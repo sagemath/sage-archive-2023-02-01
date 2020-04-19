@@ -3537,6 +3537,10 @@ class Polyhedron_base(Element):
 
             Lectures in Geometric Combinatorics, R.R.Thomas, 2006, AMS Press.
 
+        .. SEEALSO::
+
+            :func`~sage.geometry.polyhedron.library.gale_transform_to_polyhedron`.
+
         TESTS::
 
             sage: P = Polyhedron(rays=[[1,0,0]])

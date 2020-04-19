@@ -193,6 +193,322 @@ def project_points(*points, **kwds):
     return [m * v for v in vecs]
 
 
+def gale_transform_to_polytope(vectors, base_ring=None, backend=None):
+    r"""
+    Return the polytope associated to the list of vectors forming a Gale transform.
+
+    This function is the inverse of
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.gale_transform`
+    up to projective transformation.
+
+    INPUT:
+
+    - ``vectors`` -- the vectors of the Gale transform
+
+    - ``base_ring`` -- string (default: `None`);
+      the base ring to be used for the construction
+
+    - ``backend`` -- string (default: `None`);
+      the backend to use to create the polytope
+
+    .. NOTE::
+
+        The order of the input vectors will not be preserved.
+
+        If the center of the (input) vectors is the origin,
+        the function is much faster and might give a nicer representation
+        of the polytope.
+
+        If this is not the case, the vectors will be scaled
+        (each by a positive scalar) accordingly to obtain the polytope.
+
+    .. SEEALSO::
+
+        :func`~sage.geometry.polyhedron.library.gale_transform_to_primal`.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.library import gale_transform_to_polytope
+        sage: points = polytopes.octahedron().gale_transform()
+        sage: points
+        ((0, -1), (-1, 0), (1, 1), (1, 1), (-1, 0), (0, -1))
+        sage: P = gale_transform_to_polytope(points); P
+        A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
+        sage: P.vertices()
+        (A vertex at (-1, 0, 0),
+         A vertex at (0, -1, 0),
+         A vertex at (0, 0, -1),
+         A vertex at (0, 0, 1),
+         A vertex at (0, 1, 0),
+         A vertex at (1, 0, 0))
+
+    One can specify the base ring::
+
+        sage: gale_transform_to_polytope(
+        ....:     [(1,1), (-1,-1), (1,0),
+        ....:      (-1,0), (1,-1), (-2,1)]).vertices()
+        (A vertex at (-25, 0, 0),
+         A vertex at (-15, 50, -60),
+         A vertex at (0, -25, 0),
+         A vertex at (0, 0, -25),
+         A vertex at (16, -35, 54),
+         A vertex at (24, 10, 31))
+        sage: gale_transform_to_polytope(
+        ....:     [(1,1), (-1,-1), (1,0),
+        ....:      (-1,0), (1,-1), (-2,1)],
+        ....:     base_ring=RDF).vertices()
+        (A vertex at (-0.64, 1.4, -2.16),
+         A vertex at (-0.96, -0.4, -1.24),
+         A vertex at (0.6, -2.0, 2.4),
+         A vertex at (1.0, 0.0, 0.0),
+         A vertex at (0.0, 1.0, 0.0),
+         A vertex at (0.0, 0.0, 1.0))
+
+    One can also specify the backend::
+
+        sage: gale_transform_to_polytope(
+        ....:     [(1,1), (-1,-1), (1,0),
+        ....:      (-1,0), (1,-1), (-2,1)],
+        ....:     backend='field').backend()
+        'field'
+        sage: gale_transform_to_polytope(
+        ....:     [(1,1), (-1,-1), (1,0),
+        ....:      (-1,0), (1,-1), (-2,1)],
+        ....:     backend='cdd', base_ring=RDF).backend()
+        'cdd'
+
+    A gale transform corresponds to a polytope if and only if
+    every oriented (linear) hyperplane
+    has at least two vectors on each side.
+    See Theorem 6.19 of [Zie2007]_.
+    If this is not the case, one of two errors is raised.
+
+    If there is such a hyperplane with no vector on one side,
+    the vectors are not totally cyclic::
+
+        sage: gale_transform_to_polytope([(0,1), (1,1), (1,0), (-1,0)])
+        Traceback (most recent call last):
+        ...
+        ValueError: input vectors not totally cyclic
+
+    If every hyperplane has at least one vector on each side, then the gale
+    transform corresponds to a point configuration.
+    It corresponds to a polytope if and only if this point configuration is
+    convex and if and only if every hyperplane contains at least two vectors of
+    the gale transform on each side.
+
+    If this is not the case, an error is raised::
+
+        sage: gale_transform_to_polytope([(0,1), (1,1), (1,0), (-1,-1)])
+        Traceback (most recent call last):
+        ...
+        ValueError: the gale transform does not correspond to a polytope
+
+    TESTS::
+
+        sage: def test(P):
+        ....:     P1 = gale_transform_to_polytope(
+        ....:             P.gale_transform(), base_ring=P.base_ring(),
+        ....:             backend=P.backend())
+        ....:     assert P1.is_combinatorially_isomorphic(P)
+
+        sage: test(polytopes.cube())
+        sage: test(polytopes.permutahedron(4))
+        sage: test(polytopes.regular_polygon(5))
+        sage: test(polytopes.regular_polygon(7, exact=False))
+        sage: test(polytopes.snub_cube(exact=True, backend='normaliz'))   # optional - pynormaliz
+    """
+    vertices = gale_transform_to_primal(vectors, base_ring, backend)
+    P = Polyhedron(vertices=vertices, base_ring=base_ring, backend=backend)
+
+    if not P.n_vertices() == len(vertices):
+        # If the input vectors are not totally cyclic, ``gale_transform_to_primal``
+        # raises an error.
+        # As no error was raised so far, the gale transform corresponds to
+        # to a point configuration.
+        # It corresponds to a polytope if and only if
+        # ``vertices`` are in convex position.
+        raise ValueError("the gale transform does not correspond to a polytope")
+
+    return P
+
+def gale_transform_to_primal(vectors, base_ring=None, backend=None):
+    r"""
+    Return a point configuration dual to a totally cyclic vector configuration.
+
+    This is the dehomogenized vector configuration dual to the input.
+    The dual vector configuration is acyclic and can therefore
+    be dehomogenized as the input is totally cyclic.
+
+    INPUT:
+
+    - ``vectors`` -- the ordered vectors of the Gale transform
+
+    - ``base_ring`` -- string (default: `None`);
+      the base ring to be used for the construction
+
+    - ``backend`` -- string (default: `None`);
+      the backend to be use to construct a polyhedral,
+      used interally in case the center is not the origin,
+      see :func:`~sage.geometry.polyhedron.constructor.Polyhedron`
+
+    OUTPUT: An ordered point configuration as list of vectors.
+
+    .. NOTE::
+
+        If the center of the (input) vectors is the origin,
+        the function is much faster and might give a nicer representation
+        of the point configuration.
+
+        If this is not the case, the vectors will be scaled
+        (each by a positive scalar) accordingly.
+
+    ALGORITHM:
+
+    Step 1: If the center of the (input) vectors is not the origin,
+    we do an appropriate transformation to make it so.
+
+    Step 2: We add a row of ones on top of ``Matrix(vectors)``.
+    The right kernel of this larger matrix is the dual configuration space,
+    and a basis of this space provides the dual point configuration.
+
+    More concretely, the dual vector configuration (inhomogeneous)
+    is obtained by taking a basis of the right kernel of ``Matrix(vectors)``.
+    If the center of the (input) vectors is the origin,
+    there exists a basis of the right kernel of the form
+    ``[[1], [V]]``, where ``[1]`` represents a row of ones.
+    Then, ``V`` is a dehomogenization and thus the dual point configuration.
+
+    To extend ``[1]`` to a basis of ``Matrix(vectors)``, we add
+    a row of ones to ``Matrix(vectors)`` and calculate a basis of the
+    right kernel of the obtained matrix.
+
+    REFERENCES:
+
+        For more information, see Section 6.4 of [Zie2007]_
+        or Definition 2.5.1 and Definition 4.1.35 of [DLRS2010]_.
+
+    .. SEEALSO::
+
+        :func`~sage.geometry.polyhedron.library.gale_transform_to_polytope`.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.library import gale_transform_to_primal
+        sage: points = ((0, -1), (-1, 0), (1, 1), (1, 1), (-1, 0), (0, -1))
+        sage: gale_transform_to_primal(points)
+        [(0, 0, 1), (0, 1, 0), (1, 0, 0), (-1, 0, 0), (0, -1, 0), (0, 0, -1)]
+
+    One can specify the base ring::
+
+        sage: gale_transform_to_primal(
+        ....:     [(1,1), (-1,-1), (1,0),
+        ....:      (-1,0), (1,-1), (-2,1)])
+        [(16, -35, 54),
+         (24, 10, 31),
+         (-15, 50, -60),
+         (-25, 0, 0),
+         (0, -25, 0),
+         (0, 0, -25)]
+        sage: gale_transform_to_primal(
+        ....:     [(1,1),(-1,-1),(1,0),(-1,0),(1,-1),(-2,1)], base_ring=RDF)
+        [(-0.6400000000000001, 1.4, -2.1600000000000006),
+         (-0.9600000000000002, -0.39999999999999997, -1.2400000000000002),
+         (0.6000000000000001, -2.0, 2.4000000000000004),
+         (1.0, 0.0, 0.0),
+         (0.0, 1.0, 0.0),
+         (0.0, 0.0, 1.0)]
+
+    One can also specify the backend to be used internally::
+
+        sage: gale_transform_to_primal(
+        ....:     [(1,1), (-1,-1), (1,0),
+        ....:      (-1,0), (1,-1), (-2,1)], backend='field')
+        [(48, -71, 88),
+         (84, -28, 99),
+         (-77, 154, -132),
+         (-55, 0, 0),
+         (0, -55, 0),
+         (0, 0, -55)]
+        sage: gale_transform_to_primal(                          # optional - pynormaliz
+        ....:     [(1,1), (-1,-1), (1,0),
+        ....:      (-1,0), (1,-1), (-2,1)], backend='normaliz')
+        [(16, -35, 54),
+         (24, 10, 31),
+         (-15, 50, -60),
+         (-25, 0, 0),
+         (0, -25, 0),
+         (0, 0, -25)]
+
+    The input vectors should be totally cyclic::
+
+        sage: gale_transform_to_primal([(0,1), (1,0), (1,1), (-1,0)])
+        Traceback (most recent call last):
+        ...
+        ValueError: input vectors not totally cyclic
+
+        sage: gale_transform_to_primal(
+        ....:     [(1,1,0), (-1,-1,0), (1,0,0),
+        ....:      (-1,0,0), (1,-1,0), (-2,1,0)], backend='field')
+        Traceback (most recent call last):
+        ...
+        ValueError: input vectors not totally cyclic
+    """
+    from sage.modules.free_module_element import vector
+    from sage.matrix.all import Matrix
+    if base_ring:
+        vectors = tuple(vector(base_ring, x) for x in vectors)
+    else:
+        vectors = tuple(vector(x) for x in vectors)
+
+    if not sum(vectors).is_zero():
+        # The center of the input vectors shall be the origin.
+        # If this is not the case, we scale them accordingly.
+        # This has the adventage that right kernel of ``vectors`` can be
+        # presented in the form ``[[1], [V]]``, where ``V`` are the points
+        # in the dual point configuration.
+        # (Dehomogenization is straightforward.)
+
+        # Scaling of the vectors is equivalent to finding a hyperplane that intersects
+        # all vectors of the dual point configuration. But if the input is already provided
+        # such that the vectors add up to zero, the coordinates might be nicer.
+        # (And this is faster.)
+
+        if base_ring:
+            ker = Matrix(base_ring, vectors).left_kernel()
+        else:
+            ker = Matrix(vectors).left_kernel()
+        solutions = Polyhedron(lines=tuple(y for y in ker.basis_matrix()), base_ring=base_ring, backend=backend)
+
+        from sage.matrix.special import identity_matrix
+        pos_orthant = Polyhedron(rays=identity_matrix(len(vectors)), base_ring=base_ring, backend=backend)
+        pos_solutions = solutions.intersection(pos_orthant)
+        if base_ring is ZZ:
+            pos_solutions = pos_solutions.change_ring(ZZ)
+
+        # Any integral point in ``pos_solutions`` will correspond to scaling-factors
+        # that make ``sum(vectors)`` zero.
+        x = pos_solutions.representative_point()
+        if not all(y > 0 for y in x):
+            raise ValueError("input vectors not totally cyclic")
+        vectors = tuple(vec*x[i] for i,vec in enumerate(vectors))
+
+    # The right kernel of ``vectors`` has a basis of the form ``[[1], [V]]``,
+    # where ``V`` is the dehomogenized dual point configuration.
+    # If we append a row of ones to ``vectors``, ``V`` is just the right kernel.
+    if base_ring:
+        m = Matrix(base_ring, vectors).transpose().stack(Matrix(base_ring, [[1]*len(vectors)]))
+    else:
+        m = Matrix(vectors).transpose().stack(Matrix([[1]*len(vectors)]))
+
+    if m.rank() != len(vectors[0]) + 1:
+        # The given vectors do not span the ambient space,
+        # then there exists a nonnegative value vector.
+        raise ValueError("input vectors not totally cyclic")
+
+    return m.right_kernel_matrix(basis='computed').columns()
+
+
 class Polytopes():
     """
     A class of constructors for commonly used, famous, or interesting

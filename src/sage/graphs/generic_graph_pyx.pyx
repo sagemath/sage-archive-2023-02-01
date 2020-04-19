@@ -63,7 +63,7 @@ def layout_split(layout_function, G, **options):
 
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
-        sage: from sage.graphs.generic_graph_pyx import layout_split
+        sage: from sage.graphs.generic_graph_pyx import layout_split, spring_layout_fast
         sage: D = layout_split(spring_layout_fast, G); D  # random
         {0: [0.77..., 0.06...],
          ...

@@ -70,17 +70,17 @@ def _triangulate(g, comb_emb):
     :trac:`29522` is fixed::
 
         sage: g = Graph(2)
-        sage: g.layout_planar()
+        sage: _triangulate(g, {})
         Traceback (most recent call last):
         ...
         NotImplementedError: _triangulate() only knows how to handle connected graphs
         sage: g = Graph([(0, 1)])
-        sage: g.layout_planar()
+        sage: _triangulate(g, {})
         Traceback (most recent call last):
         ...
         ValueError: a Graph with less than 3 vertices doesn't have any triangulation
         sage: g = Graph(3)
-        sage: g.layout_planar()
+        sage: _triangulate(g, {})
         Traceback (most recent call last):
         ...
         NotImplementedError: _triangulate() only knows how to handle connected graphs

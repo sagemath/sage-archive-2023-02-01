@@ -98,9 +98,9 @@ def merge_environment(app, env):
             env.domaindata['citation']['citations'].update(newcite)
             # merge the py:module indexes
             newmodules = {}
-            for ind,(modpath,v1,v2,v3) in (
+            for ind,(modpath,v1,v2,v3,v4) in (
                 six.iteritems(docenv.domaindata['py']['modules'])):
-                newmodules[ind] = (fixpath(modpath),v1,v2,v3)
+                newmodules[ind] = (fixpath(modpath),v1,v2,v3,v4)
             env.domaindata['py']['modules'].update(newmodules)
             logger.info(", %s modules"%(len(newmodules)))
     logger.info('... done (%s todos, %s index, %s citations, %s modules)'%(

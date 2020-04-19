@@ -47,20 +47,16 @@ def merge_environment(app, env):
     - domaindata['py']['modules'] # list of python modules
     """
     logger.info(bold('Merging environment/index files...'))
-    if not hasattr(env, "todo_all_todos"):
-        env.todo_all_todos = []
-    if not env.domaindata['citation'].get('citations'):
-        env.domaindata['citation']['citations'] = dict()
     for curdoc in app.env.config.multidocs_subdoc_list:
         logger.info("    %s:"%curdoc, nonl=1)
         docenv = get_env(app, curdoc)
         if docenv is not None:
             fixpath = lambda path: os.path.join(curdoc, path)
-            todos = docenv.todo_all_todos if hasattr(docenv, "todo_all_todos") else []
+            todos = docenv.domaindata['todo'].get('todos', dict())
             citations = docenv.domaindata['citation'].get('citations', dict())
             indexentries = docenv.domaindata['index'].get('entries', dict())
             logger.info(" %s todos, %s index, %s citations"%(
-                    len(todos),
+                    sum(len(t) for t in todos.values()),
                     len(indexentries),
                     len(citations)
                     ), nonl=1)
@@ -70,8 +66,7 @@ def merge_environment(app, env):
                 env.titles[fixpath(t)] = docenv.titles[t]
             # merge the todo links
             for dct in todos:
-                dct['docname'] = fixpath(dct['docname'])
-            env.todo_all_todos += todos
+                env.domaindata['todo']['todos'][fixpath(dct)] = todos[dct]
             # merge the html index links
             newindex = {}
             for ind in indexentries:
@@ -105,7 +100,7 @@ def merge_environment(app, env):
             env.domaindata['py']['modules'].update(newmodules)
             logger.info(", %s modules"%(len(newmodules)))
     logger.info('... done (%s todos, %s index, %s citations, %s modules)'%(
-            len(env.todo_all_todos),
+            sum(len(t) for t in env.domaindata['todo']['todos'].values()),
             len(env.domaindata['index']['entries']),
             len(env.domaindata['citation']['citations']),
             len(env.domaindata['py']['modules'])))

@@ -790,11 +790,11 @@ cdef class ModularSymbolNumerical:
         # this is a bound to decide when to go directly to ioo
         # rather than using further convergents.
         # see symbol(r) where it is used
-        #self._cut_val = <llong>( E.conductor().isqrt() // 4 )
-        #if self._cut_val < 100:
-        #    self._cut_val = 100
-        # this is now disabled
-        self._cut_val = <long>(-1)
+        self._cut_val = <llong>( E.conductor().isqrt() // 4 )
+        if self._cut_val < 100:
+           self._cut_val = 100
+        # this is can be used to disable it
+        #self._cut_val = <long>(-1)
         #verbose("       leaving __init__", level=5)
 
     def __dealloc__(self):
@@ -1131,17 +1131,19 @@ cdef class ModularSymbolNumerical:
 
         # this code checks if the above is ok,
         # we tested quite a few curves with it
+        # change the variables to public
+        # from sage.schemes.elliptic_curves.mod_sym_num import ModularSymbolNumerical
         # def dens_check(E):
         #     N = E.conductor()
         #     Cu = Gamma0(N).cusps()
         #     m = E.modular_symbol()
-        #     d_plus = lcm( [ denominator(m(r)) for r in Cu if r != oo] )
+        #     d_plus = max( [ denominator(m(r)) for r in Cu if r != oo] )
         #     m = E.modular_symbol(-1)
-        #     d_minus = lcm( [ denominator(m(r)) for r in Cu if r != oo] )
+        #     d_minus = max( [ denominator(m(r)) for r in Cu if r != oo] )
         #     M = ModularSymbolNumerical(E)
         #     print(E.label(), (d_plus, d_minus), (M._t_plus, M._t_minus),
         #           (M._t_unitary_plus, M._t_unitary_plus))
-        #     if M._t_plus % d_plus != 0 or M._t_minus % d_minus:
+        #     if M._t_plus < d_plus or M._t_minus < d_minus:
         #         print("**** b u g *** ")
 
     def _set_up_twist(self):
@@ -2845,7 +2847,7 @@ cdef class ModularSymbolNumerical:
             if d > 0:
                 r = -Rational( (x,d) )
             else:
-                r =Rational( (x, (-d)) )
+                r = Rational( (x, (-d)) )
             if isunitary:
                 verbose("   integrate between %s and %s"%(r, rr), level=3)
                 return self._value_r_to_rr(r, rr, sign, use_partials=2)
@@ -3461,7 +3463,7 @@ cdef class ModularSymbolNumerical:
 
     def _twisted_approx(self, Rational ra, int sign=0, int prec=20):
         r"""
-        Compute the approximative value of the modular
+        Compute the approximate value of the modular
         symbol by using the symbols of the quadratic twist.
 
         Note that _set_up_twist needs to be called first
@@ -3712,7 +3714,7 @@ def _test_integration_via_partials(E, y, m, T):
     sig_free(ra)
     return res
 
-def _test_against_table(range_of_conductors, list_of_cusps=[], verb=False):
+def _test_against_table(range_of_conductors, other_implementation="sage", list_of_cusps=[], verb=False):
     r"""
     This test function checks the modular symbols here against the
     ones implemented already. Note that for some curves the current
@@ -3724,7 +3726,7 @@ def _test_against_table(range_of_conductors, list_of_cusps=[], verb=False):
     - ``range_of_conductors`` -- a list of integers; all curves with
       conductors in that list will be tested.
 
-    - ``list_of_cusps`` -- a lsit of rationals to be tested
+    - ``list_of_cusps`` -- a list of rationals to be tested
 
     - ``verb`` - if True (default) prints the values
 
@@ -3742,8 +3744,8 @@ def _test_against_table(range_of_conductors, list_of_cusps=[], verb=False):
     for C in cremona_curves(range_of_conductors):
         if verb:
             print("testing curve ", C.label())
-        m = C.modular_symbol(implementation="sage")
-        m2 = C.modular_symbol(sign=-1, implementation="sage")
+        m = C.modular_symbol(implementation=other_implementation)
+        m2 = C.modular_symbol(sign=-1, implementation=other_implementation)
         M = ModularSymbolNumerical(C)
         # a few random small rationals
         if len(list_of_cusps)==0:
@@ -3757,7 +3759,7 @@ def _test_against_table(range_of_conductors, list_of_cusps=[], verb=False):
             Mr = M(r)
             M2r = M(r, sign=-1)
             if verb:
-                print("r={} : ({},{}),({}, {})".format(r,mr,m2r,Mr,M2r), end= "  ")
+                print("r={} : ({},{}),({}, {})".format(r,mr,m2r,Mr,M2r), end= "  ", flush=True)
             if mr != Mr or m2r != M2r:
                 print (("B u g : curve = {}, cusp = {}, sage's symbols"
                         + "({},{}), our symbols ({}, {})").format(C.label(), r,

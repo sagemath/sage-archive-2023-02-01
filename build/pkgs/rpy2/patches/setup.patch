@@ -11,20 +11,6 @@ index a9f96f8..7ba69a1 100755
      
      setup(
          name=PACKAGE_NAME,
-@@ -161,12 +161,7 @@ if __name__ == '__main__':
-         packages=([PACKAGE_NAME] +
-                   ['{pack_name}.{x}'.format(pack_name=PACKAGE_NAME, x=x)
-                    for x in ('rlike', 'rinterface_lib', 'robjects',
--                             'robjects.lib', 'interactive', 'ipython',
--                             'tests',
--                             'tests.rinterface', 'tests.rlike',
--                             'tests.robjects',
--                             'tests.ipython',
--                             'tests.robjects.lib')]
-+                             'robjects.lib', 'interactive', 'ipython')]
-         ),
-         classifiers = ['Programming Language :: Python',
-                        'Programming Language :: Python :: 3',
 @@ -182,11 +177,3 @@ if __name__ == '__main__':
          package_data={'rpy2': ['rinterface_lib/R_API.h',
                                 'rinterface_lib/R_API_eventloop.h']}

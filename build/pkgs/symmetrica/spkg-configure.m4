@@ -8,12 +8,16 @@ dnl check for one of its many functions
 	 [#include "symmetrica/def.h"]
          [#include "symmetrica/macro.h"]],
 	 [[OP b,n;]
+          [int i;]
           [anfang();]
-          [n = callocobject();]
-	  [b = callocobject();]
-          [sscan_integer("4",n);]
-          [kostka_tafel(n, b);]
-          [println(b);]
+          [for (i=1; i<6; i++) {]
+            [n = callocobject();]
+            [b = callocobject();]
+            [M_I_I(i, n);]
+            [kostka_tafel(n, b);]
+            [println(b);]
+            [freeall(n);]
+            [freeall(b);}]
           [ende();]])],
          [AC_MSG_RESULT([appears to be a well-patched version.])],
 	 [AC_MSG_RESULT([buggy version. Sage will buld its own.])

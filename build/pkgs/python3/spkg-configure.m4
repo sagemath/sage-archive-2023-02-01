@@ -149,4 +149,10 @@ EOF
     dnl POST
     AS_IF([test x$sage_spkg_install_python3 = xno], [PYTHON_FOR_VENV="$ac_cv_path_PYTHON3"])
     AC_SUBST([PYTHON_FOR_VENV])
+
+    dnl These temporary directories are created by the check above
+    dnl and need to be cleaned up to prevent the "rm -f conftest*"
+    dnl (that a bunch of other checks do) from emitting warnings about
+    dnl conftest.dir and conftest_venv being directories.
+    rm -rf conftest.dir conftest_venv
 ])

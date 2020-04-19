@@ -35,7 +35,7 @@ overview can also be found in Chapter 4 of [Rüt2014]_.
 
 """
 #*****************************************************************************
-#       Copyright (C) 2013-2018 Julian Rüth <julian.rueth@fsfe.org>
+#       Copyright (C) 2013-2020 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -285,6 +285,20 @@ class PadicValuationFactory(UniqueFactory):
             sage: GaussianIntegers().valuation(GaussianIntegers().ideal(2)) # indirect doctest
             2-adic valuation
 
+        TESTS:
+
+        Verify that :trac:`28976` has been resolved::
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^6 - 18*x^4 - 24*x^3 + 27*x^2 + 36*x - 6)
+            sage: I = K.fractional_ideal((2, -7/44*a^5 + 19/44*a^4 + 87/44*a^3 - 87/44*a^2 - 5/2*a + 39/22))
+            sage: I.norm()
+            2
+            sage: I in K.primes_above(2)
+            True
+            sage: K.valuation(I)
+            [ 2-adic valuation, v(x + 1) = 1/2 ]-adic valuation
+
         """
         K, L, G = self._normalize_number_field_data(R)
 
@@ -297,14 +311,20 @@ class PadicValuationFactory(UniqueFactory):
         if len(F) != 1:
             raise ValueError("%r does not lie over a single prime of %r"%(I, K))
         vK = K.valuation(F[0][0])
-        candidates = vK.mac_lane_approximants(G, require_incomparability=True)
+        approximants = vK.mac_lane_approximants(G, require_incomparability=True)
 
-        candidates_for_I = [c for c in candidates if all(c(g.polynomial()) > 0 for g in I.gens())]
-        assert(len(candidates_for_I) > 0) # This should not be possible, unless I contains a unit
-        if len(candidates_for_I) > 1:
-            raise ValueError("%s does not single out a unique extension of %s to %s"%(prime, vK, L))
-        else:
-            return (R, candidates_for_I[0]), {'approximants': candidates}
+        candidates = approximants[:]
+
+        # Refine candidates until we can detect which valuation corresponds to the ideal I
+        while True:
+            match = [i for (i, v) in enumerate(candidates) if all(v(g.polynomial()) > 0 for g in I.gens())]
+
+            if len(match) > 1:
+                raise ValueError("%s does not single out a unique extension of %s to %s"%(prime, vK, L))
+            if len(match) == 1:
+                return (R, approximants[match[0]]), {'approximants': approximants}
+
+            candidates = [v.mac_lane_step(G)[0] for v in candidates]
 
     def _normalize_number_field_data(self, R):
         r"""

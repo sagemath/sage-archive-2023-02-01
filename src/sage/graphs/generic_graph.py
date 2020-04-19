@@ -5342,6 +5342,43 @@ class GenericGraph(GenericGraph_pyx):
         from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
 
         G = Graph(self)
+
+        # Trivial cases
+        if len(G) <= 2:
+            verts = G.vertex_iterator()
+            pos = dict()
+            embedding = dict()
+            if len(G) >= 1:
+                v1 = next(verts)
+                pos[v1] = [0,0]
+                embedding[v1] = []
+            if len(G) == 2:
+                v2 = next(verts)
+                pos[v2] = [0,1]
+                embedding[v1] = [v2]
+                embedding[v2] = [v1]
+            if set_embedding:
+                self.set_embedding(embedding)
+            return pos
+
+        if not self.is_connected():
+            if external_face:
+                raise NotImplementedError('Cannot fix the external face for a'
+                                          'disconnected graph')
+            # Compute the layout component by component
+            pos = layout_split(G.__class__.layout_planar,
+                               G,
+                               set_embedding=set_embedding,
+                               on_embedding=on_embedding,
+                               external_face=None,
+                               test=test,
+                               **options)
+            if set_embedding:
+                self.set_embedding(G.get_embedding())
+            return pos
+
+        # Now the graph is connected and has at least 3 vertices
+
         try:
             G._embedding = self._embedding
         except AttributeError:
@@ -5372,40 +5409,6 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError('{} is not an edge of {} but has been '
                                  'provided as an edge of the external face'
                                  ''.format(external_face, self))
-
-        # Trivial cases
-        if len(G) <= 2:
-            verts = G.vertex_iterator()
-            pos = dict()
-            embedding = dict()
-            if len(G)>=1:
-                v1 = next(verts)
-                pos[v1] = [0,0]
-                embedding[v1] = []
-            if len(G) == 2:
-                v2 = next(verts)
-                pos[v2] = [0,1]
-                embedding[v1] = [v2]
-                embedding[v2] = [v1]
-            if set_embedding:
-                self.set_embedding(embedding)
-            return pos
-
-        if not self.is_connected():
-            if external_face:
-                raise ValueError('Cannot fix the external face for a'
-                                 'disconnected graph')
-            # Compute the layout component by component
-            pos = layout_split(G.__class__.layout_planar,
-                               G,
-                               set_embedding=set_embedding,
-                               on_embedding=on_embedding,
-                               external_face=None,
-                               test=test,
-                               **options)
-            if set_embedding:
-                self.set_embedding(G._embedding)
-            return pos
 
         _triangulate(G, G._embedding)
 

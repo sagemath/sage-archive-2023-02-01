@@ -5393,6 +5393,7 @@ class GenericGraph(GenericGraph_pyx):
                 G._check_embedding_validity(on_embedding,boolean=False)
                 if not G.is_planar(on_embedding=on_embedding):
                     raise ValueError('provided embedding is not a planar embedding for %s'%self )
+                G.set_embedding(on_embedding)
             else:
                 if hasattr(G,'_embedding'):
                     if G._check_embedding_validity():

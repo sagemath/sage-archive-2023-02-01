@@ -17,20 +17,17 @@ if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then
     OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=PRESCOTT"
 fi
 
-sdh_make tests $OPENBLAS_CONFIGURE
+${MAKE:-make} tests $OPENBLAS_CONFIGURE
 if [ $? -ne 0 ]; then
     # First make sure we already didn't set a target
     if [[ $OPENBLAS_CONFIGURE == *"TARGET"* ]]; then
-        sdh_die "Error while running the OpenBlas testsuite ... exiting"
+        sdh_die "Failures while running the OpenBLAS testsuite ... exiting"
     else
         # The recommended TARGET is ATOM if CPU fails
         # See https://github.com/xianyi/OpenBLAS/issues/1204
         OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=ATOM"
-        echo "Error while testing the OpenBLAS testsuite"
-        echo "Retrying the OpenBAS testsuit with TARGET=ATOM"
-        sdh_make tests $OPENBLAS_CONFIGURE
-        if [ $? -ne 0 ]; then
-            sdh_die "Error while running the OpenBLAS testsuite ... exiting"
-        fi
+        echo "Failures while testing the OpenBLAS testsuite"
+        echo "Retrying the OpenBLAS testsuite with TARGET=ATOM"
+        ${MAKE:-make} tests $OPENBLAS_CONFIGURE
     fi
 fi

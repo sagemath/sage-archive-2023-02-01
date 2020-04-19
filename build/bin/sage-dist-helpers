@@ -184,6 +184,11 @@ sdh_make() {
 }
 
 
+sdh_make_check() {
+    echo "Checking $PKG_NAME"
+    ${MAKE:-make} check "$@" || sdh_die "Failures checking $PKG_NAME"
+}
+
 sdh_make_install() {
     echo "Installing $PKG_NAME"
     if [ -n "$SAGE_DESTDIR" ]; then

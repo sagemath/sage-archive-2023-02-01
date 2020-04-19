@@ -12,9 +12,6 @@ else
 AM_V_at =
 endif
 
-# We need to be able to override this to support ./sage -i -c PKG
-SAGE_SPKG = sage-spkg
-
 # List of targets that can be run using `sage -i` or `sage -f`
 # These should generally have an associated -clean target for `sage -f` to
 # work correctly

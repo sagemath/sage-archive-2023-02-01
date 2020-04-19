@@ -64,7 +64,7 @@ def layout_split(layout_function, G, **options):
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import layout_split
-        sage: D = layout_split(G, spring_layout_fast); D  # random
+        sage: D = layout_split(spring_layout_fast, G); D  # random
         {0: [0.77..., 0.06...],
          ...
          902: [3.13..., 0.22...]}
@@ -73,12 +73,21 @@ def layout_split(layout_function, G, **options):
 
     Robert Bradshaw
     """
+    from copy import copy
     Gs = G.connected_components_subgraphs()
     pos = {}
     left = 0
     buffer = 1/sqrt(len(G))
+
     for g in Gs:
-        cur_pos = layout_function(g, **options)
+        if options.get('on_embedding', None):
+            em = options['on_embedding']
+            options_g = copy(options)
+            # Restriction of `on_embedding` to `g`
+            options_g['on_embedding'] = {v: em[v] for v in g}
+            cur_pos = layout_function(g, **options_g)
+        else:
+            cur_pos = layout_function(g, **options)
         xmin = min(x[0] for x in cur_pos.values())
         xmax = max(x[0] for x in cur_pos.values())
         if len(g) > 1:
@@ -89,12 +98,11 @@ def layout_split(layout_function, G, **options):
         left += xmax - xmin + buffer
 
 
-    if hasattr(options, 'set_embedding'):
-        if options['set_embedding']:
-            embedding = dict()
-            for g in Gs:
-                embedding.update(g)
-            G.set_embedding(embedding)
+    if options.get('set_embedding', None):
+        embedding = dict()
+        for g in Gs:
+            embedding.update(g.get_embedding())
+        G.set_embedding(embedding)
     return pos
 
 

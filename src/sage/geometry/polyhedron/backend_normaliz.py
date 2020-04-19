@@ -1334,7 +1334,11 @@ class Polyhedron_normaliz(Polyhedron_base):
         .. NOTE::
 
             This function depends on Normaliz (i.e., the ``pynormaliz`` optional
-            package). See the Normaliz documentation for further details.
+            package).
+
+        REFERENCES:
+
+        See section 6.1.1 of [NormalizMan]_.
 
         EXAMPLES:
 

@@ -74,7 +74,7 @@ if [ -n "$SAGE_SILENT_BUILD" -a ${use_prefix} = true ]; then
     # Silent build.
     # Similar to https://www.gnu.org/software/automake/manual/html_node/Automake-Silent-Rules.html#Automake-Silent-Rules
     echo "[$logname] installing. Log file: $logfile"
-    t=$(time ( exec>> $logfile 2>&1 ; eval "$cmd" ) 2>&1)
+    ( exec>> $logfile 2>&1 ; eval "$cmd" )
     status=$?
     if [[ $status != 0 ]]; then
         echo "  [$logname] error installing, exit status $status. End of log file:"
@@ -83,7 +83,6 @@ if [ -n "$SAGE_SILENT_BUILD" -a ${use_prefix} = true ]; then
     else
         echo "  [$logname] successfully installed."
     fi
-    echo "  [$logname] build times: $t"
     exit $status
 else
     # Redirect stdout and stderr to a subprocess running tee.

@@ -1356,7 +1356,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: f(0)        # abs tol 1e-4
             0.000000000000000
             sage: f(1/7)      # abs tol 1e-4
-            1.00001356670155
+            0.999844176260303
 
             sage: E = EllipticCurve([123,456])
             sage: E.conductor()

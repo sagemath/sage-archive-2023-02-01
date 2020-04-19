@@ -69,7 +69,7 @@ The most likely usage for the code is through the functions
     4
     sage: Mn = E.modular_symbol_numerical(sign=-1, prec=30)
     sage: Mn(3/123)       # abs tol 1e-10
-    3.00000000000001
+    3.00000000000018
 
 In more details. A numerical modular symbols ``M`` is created from an
 elliptic curve with a chosen ``sign`` (though the other sign will also be
@@ -97,9 +97,9 @@ One can compute the numerical approximation to these rational numbers
 to any proven binary precision::
 
     sage: M.approximative_value(13/17, prec=2) #abs tol 1e-4
-    -0.500001498206669
+    -0.500003172770455
     sage: M.approximative_value(13/17, prec=4) #abs tol 1e-6
-    -0.500000060447090
+    -0.500000296037388
     sage: M.approximative_value(0, sign=+1, prec=6) #abs tol 1e-8
     0.000000000000000
 
@@ -923,9 +923,9 @@ cdef class ModularSymbolNumerical:
             sage: E = EllipticCurve("5077a1")
             sage: M = E.modular_symbol(implementation="num")
             sage: M.approximative_value(123/567)  # abs tol 1e-8
-            -4.00000000037670
+            -4.00000000000845
             sage: M.approximative_value(123/567,prec=2) # abs tol 1e-3
-            -4.00003817366976
+            -4.00002815242902
 
             sage: E = EllipticCurve([11,88])
             sage: E.conductor()
@@ -934,9 +934,9 @@ cdef class ModularSymbolNumerical:
             sage: M.approximative_value(0,prec=2)   # abs tol 1e-3
             -0.0000176374317982166
             sage: M.approximative_value(1/7,prec=2)  # abs tol 1e-3
-            0.999973327579714
+            0.999981178147778
             sage: M.approximative_value(1/7,prec=10) # abs tol 1e-6
-            0.999999895651603
+            0.999999972802649
         """
         cdef llong Q
         cdef Rational ra
@@ -3307,9 +3307,9 @@ cdef class ModularSymbolNumerical:
             sage: E = EllipticCurve('5077a1')
             sage: m = ModularSymbolNumerical(E)
             sage: m._evaluate_approx(1/11,0.000001)  # abs tol 1e-8
-            -1.60961466377785e-10 + 3.91946031186308e-10*I
+            9.69540669970570e-10 - 5.80486769763411e-11*I
             sage: m._evaluate_approx(1/17,0.000001) # abs tol 1e-8
-            -8.04895428085928e-10 + 7.40274134150297*I
+            -9.01145713605445e-10 + 7.40274134212215*I
 
             sage: M = ModularSymbolNumerical( EllipticCurve([-12,79]) )
             sage: M.elliptic_curve().conductor()
@@ -3317,7 +3317,7 @@ cdef class ModularSymbolNumerical:
             sage: M._evaluate_approx(0/1,0.01)  # abs tol 1e-4
             0.000000000000000
             sage: M._evaluate_approx(1/17,0.01) # abs tol 1e-4
-            1.08712582106239 - 0.548379251277093*I
+            1.08712572498569 - 0.548379313090719*I
             
        Test that is also works for non-unitary cusps (:trac:`29476`) ::
        
@@ -3412,7 +3412,7 @@ cdef class ModularSymbolNumerical:
             -0.470729190326520 + 2.59052039079203e-16*I
 
             sage: M = ModularSymbolNumerical(EllipticCurve("49a1"))
-            sage: M._symbol_non_unitary_approx(2/7,0.000000001)#abs tol 1e-12
+            sage: M._symbol_non_unitary_approx(2/7,0.000000001) # abs tol 1e-12
             -0.483327926404308 + 0.548042354981878*I
 
         A bit longer take::
@@ -3485,13 +3485,14 @@ cdef class ModularSymbolNumerical:
             sage: E = EllipticCurve("735e4")
             sage: M = E.modular_symbol(implementation="num")
             sage: M.approximative_value(1/19, sign=-1, prec=20, use_twist=False) # indirect doctest abs tol 1e-8
-            3.99999999988354
+            4.00000000089736
             sage: M.approximative_value(1/19, sign=-1, prec=20, use_twist=True) # abs tol 1e-8
-            4.00000000000000
+            3.99999999982043
+
             sage: M.approximative_value(6/19, sign=1, prec=20, use_twist=False) # abs tol 1e-8
-            2.99999999897041
+            2.99999999944834
             sage: M.approximative_value(6/19, sign=1, prec=20, use_twist=True) # abs tol 1e-8
-            3.00000000000000
+            3.00000000021937
         """
         cdef Integer D, Da, a, s, precd
         cdef RealNumber res, t

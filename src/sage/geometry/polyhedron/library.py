@@ -2831,26 +2831,25 @@ class Polytopes():
         parent = Polyhedra(ZZ, dim, backend=backend)
         convert = False
 
-        # Preparing the inequalities:
         # If the intervals are (a_1,b_1), ..., (a_dim, b_dim),
         # then the inequalites correspond to
         # b_1,b_2,...,b_dim, a_1,a_2,...,a_dim
         # in that order.
-        ieqs = [[0]*(dim+1) for _ in range(2*dim)]
-        for i in range(dim):
-            ieqs[i][i+1] = -1
-            ieqs[dim+i][i+1] = 1
 
         if intervals is None:
-            cp = list(itertools.product([-1,1], repeat=dim))
-            for i in range(dim):
-                ieqs[i][0]     = 1  # An inequality -x_i + 1 >= 0
-                ieqs[i+dim][0] = 1  # An inequality  x_i + 1 >= 0
+            cp = itertools.product((-1,1), repeat=dim)
+
+            # An inequality -x_i       + 1 >= 0 for i <  dim
+            # resp.          x_{dim-i} + 1 >= 0 for i >= dim
+            ieq_b = lambda i: 1
+
         elif isinstance(intervals, str):
             if intervals == 'zero_one':
-                cp = list(itertools.product([0,1], repeat=dim))
-                for i in range(dim):
-                    ieqs[i][0] = 1  # An inequality -x_i + 1 >= 0
+                cp = itertools.product((0,1), repeat=dim)
+
+                # An inequality -x_i       + 1 >= 0 for i <  dim
+                # resp.          x_{dim-i} + 0 >= 0 for i >= dim
+                ieq_b = lambda i: 1 if i < dim else 0
             else:
                 raise ValueError("the only allowed string is 'zero_one'")
         elif len(intervals) == dim:
@@ -2864,14 +2863,25 @@ class Polytopes():
                 # the specified backend cannot handle the intervals.
                 raise ValueError("specified backend {} cannot handle the intervals".format(backend))
 
-            cp = list(itertools.product(*intervals))
-            for i in range(dim):
-                ieqs[i][0]     =  intervals[i][1]  # An inequality -x_i + b_i >= 0
-                ieqs[i+dim][0] = -intervals[i][0]  # An inequality  x_i - a_i >= 0
+            cp = itertools.product(*intervals)
 
+            # An inequality -x_i       + b_i >= 0 for i <  dim
+            # resp.          x_{dim-i} - a_i >= 0 for i >= dim
+            ieq_b = lambda i: intervals[i][1] if i < dim \
+                              else intervals[i-dim][0]
         else:
             raise ValueError("the dimension of the hypercube must match the number of intervals")
-        return parent([cp, [], []], [ieqs, []], convert=convert, Vrep_minimal=True, Hrep_minimal=True)
+
+        # An inequality -x_i       + ieq_b(i)     >= 0 for i <  dim
+        # resp.          x_{dim-i} + ieq_b(i-dim) >= 0 for i >= dim
+        ieq_A = lambda i, pos: -1 if i == pos           \
+                               else 1 if i == pos + dim \
+                               else 0
+        ieqs = (tuple(ieq_b(i) if pos == 0 else ieq_A(i, pos-1)
+                      for pos in range(dim+1))
+                for i in range(2*dim))
+
+        return parent([cp, [], []], [ieqs, []], convert=convert, Vrep_minimal=True, Hrep_minimal=True, pref_rep='Hrep')
 
     def cube(self, intervals=None, backend=None):
         r"""
@@ -2970,9 +2980,9 @@ class Polytopes():
         """
         verts = tuple((ZZ**dim).basis())
         verts += tuple(-v for v in verts)
-        ieqs = tuple((1,) + x for x in itertools.product([-1,1], repeat=dim))
+        ieqs = ((1,) + x for x in itertools.product((-1,1), repeat=dim))
         parent = Polyhedra(ZZ, dim, backend=backend)
-        return parent([verts, [], []], [ieqs, []], Vrep_minimal=True, Hrep_minimal=True)
+        return parent([verts, [], []], [ieqs, []], Vrep_minimal=True, Hrep_minimal=True, pref_rep='Vrep')
 
     def parallelotope(self, generators, backend=None):
         r"""

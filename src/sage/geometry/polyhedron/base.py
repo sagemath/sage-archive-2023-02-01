@@ -104,6 +104,10 @@ class Polyhedron_base(Element):
 
     - ``Hrep_minimal`` (optional) -- see below
 
+    - ``pref_rep`` -- string (default: ``None``);
+       one of``Vrep`` or ``Hrep`` to pick this in case the backend
+       cannot initialize from complete double description
+
     If both ``Vrep`` and ``Hrep`` are provided, then
     ``Vrep_minimal`` and ``Hrep_minimal`` must be set to ``True``.
 
@@ -113,7 +117,7 @@ class Polyhedron_base(Element):
         sage: TestSuite(p).run()
     """
 
-    def __init__(self, parent, Vrep, Hrep, Vrep_minimal=None, Hrep_minimal=None, **kwds):
+    def __init__(self, parent, Vrep, Hrep, Vrep_minimal=None, Hrep_minimal=None, pref_rep=None, **kwds):
         """
         Initializes the polyhedron.
 
@@ -134,6 +138,35 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             ValueError: if both Vrep and Hrep are provided, they must be minimal...
+
+        Illustration of ``pref_rep``.
+        Note that ``ppl`` doesn't support precomputed data::
+
+            sage: from sage.geometry.polyhedron.backend_ppl import Polyhedron_QQ_ppl
+            sage: from sage.geometry.polyhedron.parent import Polyhedra_QQ_ppl
+            sage: parent = Polyhedra_QQ_ppl(QQ, 1, 'ppl')
+            sage: p = Polyhedron_QQ_ppl(parent, Vrep, 'nonsense',
+            ....:                       Vrep_minimal=True, Hrep_minimal=True, pref_rep='Vrep')
+            sage: p = Polyhedron_QQ_ppl(parent, 'nonsense', Hrep,
+            ....:                       Vrep_minimal=True, Hrep_minimal=True, pref_rep='Hrep')
+            sage: p = Polyhedron_QQ_ppl(parent, 'nonsense', Hrep,
+            ....:                       Vrep_minimal=True, Hrep_minimal=True, pref_rep='Vrepresentation')
+            Traceback (most recent call last):
+            ...
+            ValueError: ``pref_rep`` must be one of ``(None, 'Vrep', 'Hrep')``
+
+        If the backend supports precomputed data, ``pref_rep`` is ignored::
+
+            sage: p = Polyhedron_field(parent, Vrep, 'nonsense',  # py3
+            ....:                      Vrep_minimal=True, Hrep_minimal=True, pref_rep='Vrep')
+            Traceback (most recent call last):
+            ...
+            TypeError: _init_Hrepresentation() takes 3 positional arguments but 9 were given
+            sage: p = Polyhedron_field(parent, Vrep, 'nonsense',  # py2
+            ....:                      Vrep_minimal=True, Hrep_minimal=True, pref_rep='Vrep')
+            Traceback (most recent call last):
+            ...
+            TypeError: _init_Hrepresentation() takes exactly 3 arguments (9 given)
         """
         Element.__init__(self, parent=parent)
         if Vrep is not None and Hrep is not None:
@@ -144,11 +177,20 @@ class Polyhedron_base(Element):
                 self._init_from_Vrepresentation_and_Hrepresentation(Vrep, Hrep)
                 return
             else:
-                # Initialize from Hrepresentation if this seems simpler.
-                Vrep = [tuple(Vrep[0]), tuple(Vrep[1]), Vrep[2]]
-                Hrep = [tuple(Hrep[0]), Hrep[1]]
-                if len(Hrep[0]) < len(Vrep[0]) + len(Vrep[1]):
+                if pref_rep is None:
+                    # Initialize from Hrepresentation if this seems simpler.
+                    Vrep = [tuple(Vrep[0]), tuple(Vrep[1]), Vrep[2]]
+                    Hrep = [tuple(Hrep[0]), Hrep[1]]
+                    if len(Hrep[0]) < len(Vrep[0]) + len(Vrep[1]):
+                        pref_rep = 'Hrep'
+                    else:
+                        pref_rep = 'Vrep'
+                if pref_rep == 'Vrep':
+                    Hrep = None
+                elif pref_rep == 'Hrep':
                     Vrep = None
+                else:
+                    raise ValueError("``pref_rep`` must be one of ``(None, 'Vrep', 'Hrep')``")
         if Vrep is not None:
             vertices, rays, lines = Vrep
             if vertices or rays or lines:
@@ -1080,11 +1122,12 @@ class Polyhedron_base(Element):
             H-representation
             begin
              4 3 rational
-             1 1 0
-             1 0 1
              1 -1 0
              1 0 -1
+             1 1 0
+             1 0 1
             end
+            <BLANKLINE>
 
             sage: triangle = Polyhedron(vertices = [[1,0],[0,1],[1,1]],base_ring=AA)
             sage: triangle.base_ring()
@@ -4461,36 +4504,30 @@ class Polyhedron_base(Element):
             sage: test_dilation(polytopes.permutahedron(3)*Polyhedron(rays=[[0,0,1],[0,1,1]], lines=[[1,0,0]]))
         """
         parent = self.parent().base_extend(scalar)
-        one = parent.base_ring().one()
-        if scalar > 0:
-            new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator() ]
-            new_rays = self.rays()
-            new_lines = self.lines()
-            new_inequalities = [f.vector()*one for f in self.inequality_generator()]
-            for f in new_inequalities:
-                f[0] *= scalar
-            new_equations = [e.vector()*one for e in self.equation_generator()]
-            for e in new_equations:
-                e[0] *= scalar
-        elif scalar < 0:
-            new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator() ]
-            new_rays = [ list(-r.vector()) for r in self.ray_generator()]
-            new_lines = self.lines()
-            new_inequalities = [-f.vector()*one for f in self.inequality_generator()]
-            for f in new_inequalities:
-                f[0] *= scalar
-            new_equations = [-e.vector()*one for e in self.equation_generator()]
-            for e in new_equations:
-                e[0] *= scalar
-        else:
-            new_vertices = [ self.ambient_space().zero() for v in self.vertex_generator() ]
+
+        if scalar == 0:
+            new_vertices = tuple(self.ambient_space().zero() for v in self.vertex_generator())
             new_rays = []
             new_lines = []
             return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
+        one = parent.base_ring().one()
+        sign = one if scalar > 0 else -one
+
+        make_new_Hrep = lambda h : tuple(scalar*sign*x if i == 0 else sign*x
+                                         for i,x in enumerate(h._vector))
+
+        new_vertices = (tuple(scalar*x for x in v._vector) for v in self.vertex_generator())
+        new_rays = (tuple(sign*x for x in r._vector) for r in self.ray_generator())
+        new_lines = self.line_generator()
+        new_inequalities = map(make_new_Hrep, self.inequality_generator())
+        new_equations = map(make_new_Hrep, self.equation_generator())
+
+        pref_rep = 'Vrep' if self.n_vertices() + self.n_rays() <= self.n_inequalities() else 'Hrep'
+
         return parent.element_class(parent, [new_vertices, new_rays, new_lines],
                                     [new_inequalities, new_equations],
-                                    Vrep_minimal=True, Hrep_minimal=True)
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
     def linear_transformation(self, linear_transf):
         """
@@ -5622,20 +5659,20 @@ class Polyhedron_base(Element):
             sage: fl = square.face_lattice();fl
             Finite lattice containing 10 elements with distinguished linear extension
             sage: list(f.ambient_V_indices() for f in fl)
-            [(), (0,), (1,), (2,), (3,), (0, 1), (0, 2), (2, 3), (1, 3), (0, 1, 2, 3)]
+            [(), (0,), (1,), (2,), (3,), (0, 1), (1, 2), (2, 3), (0, 3), (0, 1, 2, 3)]
             sage: poset_element = fl[6]
             sage: a_face = poset_element
             sage: a_face
             A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 2 vertices
             sage: a_face.ambient_V_indices()
-            (0, 2)
+            (1, 2)
             sage: set(a_face.ambient_Vrepresentation()) == \
-            ....: set([square.Vrepresentation(0), square.Vrepresentation(2)])
+            ....: set([square.Vrepresentation(1), square.Vrepresentation(2)])
             True
             sage: a_face.ambient_Vrepresentation()
-            (A vertex at (-1, -1), A vertex at (1, -1))
+            (A vertex at (1, 1), A vertex at (-1, 1))
             sage: a_face.ambient_Hrepresentation()
-            (An inequality (0, 1) x + 1 >= 0,)
+            (An inequality (0, -1) x + 1 >= 0,)
 
         A more complicated example::
 
@@ -7958,8 +7995,8 @@ class Polyhedron_base(Element):
 
         A case where rounding in the right direction goes a long way::
 
-            sage: P = 1/10*polytopes.hypercube(14)  # long time
-            sage: P.integral_points()  # long time
+            sage: P = 1/10*polytopes.hypercube(14, backend='field')
+            sage: P.integral_points()
             ((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),)
 
         Finally, the 3-d reflexive polytope number 4078::

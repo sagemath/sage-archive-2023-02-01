@@ -2755,6 +2755,9 @@ class Polyhedron_base(Element):
         The mass is taken with respect to the induced Lebesgue measure,
         see :meth:`volume`.
 
+        If the polyhedron is not compact, a ``NotImplementedError`` is
+        raised.
+
         INPUT:
 
         - ``engine`` -- either 'auto' (default), 'internal',
@@ -2767,9 +2770,6 @@ class Polyhedron_base(Element):
           triangulation engine (see :meth:`triangulate`).
 
         OUTPUT: The centroid as vector.
-
-        If the polyhedron is not compact, a ``NotImplementedError`` is
-        raised.
 
         ALGORITHM:
 
@@ -2823,7 +2823,7 @@ class Polyhedron_base(Element):
             pc = triangulation.point_configuration()
         else:
             from sage.geometry.triangulation.point_configuration import PointConfiguration
-            A,b = self.affine_hull(as_affine_map=True, orthogonal=True, orthonormal=True, extend=True)
+            A,b = self.affine_hull_projection(as_affine_map=True, orthogonal=True, orthonormal=True, extend=True)
             pc = PointConfiguration((A(v.vector()) for v in self.Vrep_generator()))
 
         barycenters = [sum(self.Vrepresentation(i).vector() for i in simplex)/(self.dim() + 1) for simplex in triangulation]

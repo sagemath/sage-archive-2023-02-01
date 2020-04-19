@@ -2640,32 +2640,6 @@ cdef class NumberFieldElement(FieldElement):
         """
         return int(self.polynomial())
 
-    def __long__(self):
-        """
-        Attempt to convert this number field element to a Python long, if
-        possible.
-
-        EXAMPLES::
-
-            sage: K.<a> = NumberField(x^10 - x - 1)
-            sage: long(a)  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot coerce nonconstant polynomial to long
-            sage: long(K(1234)) # py2
-            doctest:...: DeprecationWarning: converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3
-            See https://trac.sagemath.org/27675 for details.
-            1234L
-
-        The value does not have to be preserved, in the case of fractions.
-
-        ::
-
-            sage: long(K(393/29))
-            13L
-        """
-        return long(self.polynomial())
-
     def __invert__(self):
         """
         Returns the multiplicative inverse of self in the number field.

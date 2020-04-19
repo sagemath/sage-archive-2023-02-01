@@ -434,8 +434,6 @@ cdef class NCPolynomialRing_plural(Ring):
             17
             sage: P(int(19))
             19
-            sage: P(long(19))
-            19
 
         TESTS:
 

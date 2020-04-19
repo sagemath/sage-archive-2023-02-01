@@ -1317,15 +1317,6 @@ cdef class Expression(CommutativeRingElement):
         else:
             return int(result)
 
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: long(sin(2)*100)
-            90L
-        """
-        return long(int(self))
-
     def _rational_(self):
         """
         EXAMPLES::

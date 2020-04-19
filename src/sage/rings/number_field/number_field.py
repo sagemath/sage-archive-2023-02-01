@@ -7617,8 +7617,6 @@ class NumberField_absolute(NumberField_generic):
             sage: S.<y> = NumberField(x^3 + x + 1)
             sage: S.coerce(int(4)) # indirect doctest
             4
-            sage: S.coerce(long(7))
-            7
             sage: S.coerce(-Integer(2))
             -2
             sage: z = S.coerce(-7/8); z, type(z)

@@ -5298,6 +5298,24 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.layout(layout='planar', external_face=(3,1))
             {0: [2, 1], 1: [0, 2], 2: [1, 1], 3: [1, 0]}
 
+        Choose the embedding:
+
+            sage: H = graphs.LadderGraph(4)
+            sage: em = {0:[1,4], 4:[0,5], 1:[5,2,0], 5:[4,6,1], 2:[1,3,6], 6:[7,5,2], 3:[7,2], 7:[3,6]}
+            sage: p = H.layout_planar(on_embedding=em)
+            sage: p # random
+            {2: [8.121320343559642, 1],
+            3: [2.1213203435596424, 6],
+            7: [3.1213203435596424, 0],
+            0: [5.121320343559642, 3],
+            1: [3.1213203435596424, 5],
+            4: [4.121320343559642, 3],
+            5: [4.121320343559642, 2],
+            6: [3.1213203435596424, 1],
+            9: [9.698670612749268, 1],
+            8: [8.698670612749268, 1],
+            10: [9.698670612749268, 0]}
+
         TESTS::
 
             sage: G = Graph([[0, 1, 2, 3], [[0, 1], [0, 2], [0, 3]]])
@@ -5318,8 +5336,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: pos2 = G.layout('planar', save_pos=True)
             sage: pos1 == pos2
             False
-        
-        Check that :trac:`29522` is fixed::
+
+        Check that the function handles disconnected graphs and small
+        graphs (:trac:`29522`)::
 
             sage: G = graphs.CycleGraph(4) + graphs.CycleGraph(5)
             sage: G.layout_planar() # random
@@ -5337,6 +5356,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: K2 = graphs.CompleteGraph(2)
             sage: K2.layout_planar()
             {0: [0, 0], 1: [0, 1]}
+
+        Check that the embedding can be specified for disconnected
+        graphs (:trac:`29522`)::
+
+            sage: H = graphs.LadderGraph(4) + graphs.CompleteGraph(3)
+            sage: em = {0:[1,4], 4:[0,5], 1:[5,2,0], 5:[4,6,1], 2:[1,3,6], 6:[7,5,2], 3:[7,2], 7:[3,6], 8:[10,9], 9:[8,10], 10:[8,9]}
+            sage: p = H.layout_planar(on_embedding=em)
         """
         from sage.graphs.graph import Graph
         from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates

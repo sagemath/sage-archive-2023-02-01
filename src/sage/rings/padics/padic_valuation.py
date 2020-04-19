@@ -299,6 +299,12 @@ class PadicValuationFactory(UniqueFactory):
             sage: K.valuation(I)
             [ 2-adic valuation, v(x + 1) = 1/2 ]-adic valuation
 
+        ::
+
+            sage: K.<a, b> = NumberField([x^2 - 2, x^2 + x + 1])
+            sage: K.valuation(2)
+            2-adic valuation
+
         """
         K, L, G = self._normalize_number_field_data(R)
 
@@ -315,16 +321,29 @@ class PadicValuationFactory(UniqueFactory):
 
         candidates = approximants[:]
 
+        # The correct approximant has v(g) > 0 for all g in the ideal.
+        # Unfortunately, the generators of I, even though defined over K have
+        # their polynomial() defined over the rationals so we need to turn them
+        # into polynomials over K[x] explicitly.
+        from sage.rings.all import PolynomialRing
+        gens = I.gens()
+        gens = [PolynomialRing(K, 'x')(list(g.vector())) for g in gens]
+
         # Refine candidates until we can detect which valuation corresponds to the ideal I
         while True:
-            match = [i for (i, v) in enumerate(candidates) if all(v(g.polynomial()) > 0 for g in I.gens())]
+            assert any(candidates), "the defining polynomial of the extension factored but we still could not figure out which valuation corresponds to the given ideal"
+
+            match = [i for (i, v) in enumerate(candidates) if v and all(v(g) > 0 for g in gens)]
 
             if len(match) > 1:
                 raise ValueError("%s does not single out a unique extension of %s to %s"%(prime, vK, L))
             if len(match) == 1:
                 return (R, approximants[match[0]]), {'approximants': approximants}
 
-            candidates = [v.mac_lane_step(G)[0] for v in candidates]
+            # We refine candidates which increases v(g) for all g in I;
+            # however, we cannot augment the valuations which are already at
+            # v(G) = +∞ which we ignore by setting them to None.
+            candidates = [v.mac_lane_step(G)[0] if v and v.is_discrete_valuation() else None for v in candidates]
 
     def _normalize_number_field_data(self, R):
         r"""

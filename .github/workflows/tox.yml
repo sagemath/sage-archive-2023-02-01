@@ -20,6 +20,9 @@ name: Run SAGE_ROOT/tox.ini
 on:
   pull_request:
     types: [opened, synchronize]
+  push:
+    tags:
+      - '*'
 
 env:
   TARGETS_PRE: sagelib-build-deps

@@ -5398,7 +5398,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if not self.is_connected():
             if external_face:
-                raise NotImplementedError('Cannot fix the external face for a'
+                raise NotImplementedError('cannot fix the external face for a'
                                           'disconnected graph')
             # Compute the layout component by component
             pos = layout_split(G.__class__.layout_planar,

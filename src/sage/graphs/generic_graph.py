@@ -5363,6 +5363,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: H = graphs.LadderGraph(4) + graphs.CompleteGraph(3)
             sage: em = {0:[1,4], 4:[0,5], 1:[5,2,0], 5:[4,6,1], 2:[1,3,6], 6:[7,5,2], 3:[7,2], 7:[3,6], 8:[10,9], 9:[8,10], 10:[8,9]}
             sage: p = H.layout_planar(on_embedding=em)
+
+        Check that an exception is raised if the input graph is not planar::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.layout(layout='planar')
+            Traceback (most recent call last):
+            ...
+            ValueError: Petersen graph is not a planar graph
+
         """
         from sage.graphs.graph import Graph
         from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
@@ -5429,7 +5438,8 @@ class GenericGraph(GenericGraph_pyx):
                     else:
                         raise ValueError('provided embedding is not a valid embedding for %s. Try putting set_embedding=True'%self)
                 else:
-                    G.is_planar(set_embedding=True)
+                    if not G.is_planar(set_embedding=True):
+                        raise ValueError('%s is not a planar graph'%self)
 
         if external_face:
             if not self.has_edge(external_face):

@@ -1037,13 +1037,14 @@ if [ "$SAGE_CHECK" = "yes" -o "$SAGE_CHECK" = "warn" ]; then
         if [ $? -ne 0 ]; then
             TEST_SUITE_RESULT="failed"
             if [ "$SAGE_CHECK" = "warn" ]; then
-                error_msg "Warning: Error testing package $PKG_NAME (ignored)" "make check"
+                error_msg "Warning: Failures testing package $PKG_NAME (ignored)" "make check"
             else
                 error_msg "Error testing package $PKG_NAME" "make check"
                 exit 1
             fi
         else
             TEST_SUITE_RESULT="passed"
+            echo "Passed the test suite for $PKG_NAME."
         fi
     else
         echo "Package $PKG_NAME has no test suite."

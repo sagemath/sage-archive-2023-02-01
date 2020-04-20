@@ -2233,6 +2233,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         from sage.combinat.posets.lattices import FiniteLatticePoset
         return FiniteLatticePoset(self.hasse_diagram())
 
+    @cached_method
     def hasse_diagram(self):
         r"""
         Return the hasse diagram of ``self``.

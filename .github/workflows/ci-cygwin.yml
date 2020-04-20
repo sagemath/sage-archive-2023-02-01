@@ -11,6 +11,7 @@ env:
   SAGE_CHECK_PACKAGES: "!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
   CYGWIN: winsymlinks:native
   CONFIGURE_ARGS: --enable-experimental-packages --enable-download-from-upstream-url
+  SAGE_FAT_BINARY: yes
 
 jobs:
   cygwin-stage-i-a:

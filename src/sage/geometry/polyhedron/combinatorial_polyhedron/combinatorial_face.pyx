@@ -297,7 +297,7 @@ cdef class CombinatorialFace(SageObject):
 
         This is a helper function.
         In order to construct a Hasse diagram (a digraph) with combinatorial faces,
-        we must define some order relation that is compatible with the hasse diagram.
+        we must define some order relation that is compatible with the Hasse diagram.
 
         Any order relation compatible with ordering by dimension is suitable.
         We us :meth:`__hash__` to define the relation.

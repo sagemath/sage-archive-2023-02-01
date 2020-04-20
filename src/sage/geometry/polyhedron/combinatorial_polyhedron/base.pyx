@@ -1739,7 +1739,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         Return the dimension in case of a simplex.
 
         A polytope `P` is `k`-simple, if every `(d-1-k)`-face
-        is contained in exactly `k+1` facets of `P` for `1 <= k <= d-1`.
+        is contained in exactly `k+1` facets of `P` for `1 \leq k \leq d-1`.
 
         Equivalently it is `k`-simple if the polar/dual polytope is `k`-simplicial.
 

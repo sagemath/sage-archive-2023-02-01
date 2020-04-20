@@ -53,7 +53,7 @@ EOF
 ARG BASE_IMAGE=fedora:latest
 FROM \${BASE_IMAGE} as with-system-packages
 EOF
-        EXISTS="2>/dev/null >/dev/null yum install -y --download-only"
+        EXISTS="2>/dev/null >/dev/null yum install -y --downloadonly"
         INSTALL="yum install -y"
         ;;
     slackware*)

@@ -5819,7 +5819,7 @@ class Polyhedron_base(Element):
 
         .. NOTE::
 
-            The face lattice is not cached, as long as this would create a memory leak.
+            The face lattice is not cached, as long as this creates a memory leak, see :trac:`28982`.
 
         EXAMPLES::
 
@@ -5914,9 +5914,9 @@ class Polyhedron_base(Element):
     @cached_method
     def hasse_diagram(self):
         r"""
-        Return the hasse diagram of the face lattice of ``self``.
+        Return the Hasse diagram of the face lattice of ``self``.
 
-        This is the hasse diagram of the poset of the faces of ``self``.
+        This is the Hasse diagram of the poset of the faces of ``self``.
 
         OUTPUT: a directed graph
 

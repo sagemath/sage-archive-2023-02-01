@@ -671,7 +671,6 @@ class SignRepresentation_abstract(Representation_abstract):
                     return self if P.sign_function(scalar) > 0 else -self
 
                 if scalar.parent() is P._semigroup_algebra:
-                    d = self.monomial_coefficients(copy=True)
                     sum_scalar_coeff = 0
                     for ms, cs in scalar:
                         sum_scalar_coeff += P.sign_function(ms) * cs
@@ -695,8 +694,7 @@ class SignRepresentationPermgroup(SignRepresentation_abstract):
             sage: V = G.sign_representation()
             sage: TestSuite(V).run()
         """
-        sign_function = lambda x: x.sign()
-        SignRepresentation_abstract.__init__(self, group, base_ring, sign_function)
+        SignRepresentation_abstract.__init__(self, group, base_ring)
 
     def _default_sign(self, elem):
         """
@@ -722,8 +720,7 @@ class SignRepresentationMatrixGroup(SignRepresentation_abstract):
             sage: TestSuite(V).run()
         """
 
-        sign_function = lambda x: 1 if x.matrix().det() > 0 else -1
-        SignRepresentation_abstract.__init__(self, group, base_ring, sign_function)
+        SignRepresentation_abstract.__init__(self, group, base_ring)
 
     def _default_sign(self, elem):
         """
@@ -747,9 +744,7 @@ class SignRepresentationCoxeterGroup(SignRepresentation_abstract):
             sage: V = G.sign_representation()
             sage: TestSuite(V).run()
         """
-        sign_function = lambda x: ((x.length() % 2) * -2) + 1
-        self._default_sign = sign_function
-        SignRepresentation_abstract.__init__(self, group, base_ring, sign_function)
+        SignRepresentation_abstract.__init__(self, group, base_ring)
 
     def _default_sign(self, elem):
         """

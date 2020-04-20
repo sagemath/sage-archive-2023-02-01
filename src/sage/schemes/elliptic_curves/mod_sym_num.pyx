@@ -560,7 +560,7 @@ cdef class _CuspsForModularSymbolNumerical:
 
     It is to only to be used internally.
     """
-    cdef public llong _a, _m, _width, 
+    cdef public llong _a, _m, _width
     cdef public llong _N_level # trac 29290 renamed
     cdef public Rational _r
 

@@ -1349,7 +1349,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: s._volume_normaliz()                         # optional - pynormaliz
             0.3333333333333333
 
-        One other possibility is to compute the scaled volume where a unimodual
+        One other possibility is to compute the scaled volume where a unimodular
         simplex has volume 1::
 
             sage: s._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
@@ -1362,7 +1362,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             6
 
         Or one can can calculate the ambient volume, which is the above multiplied by the
-        volume of the unimodal simplex (or zero if not full-dimensional)::
+        volume of the unimodular simplex (or zero if not full-dimensional)::
 
             sage: cube._volume_normaliz(measure='ambient')  # optional - pynormaliz
             1

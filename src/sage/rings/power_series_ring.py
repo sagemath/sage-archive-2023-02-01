@@ -1253,7 +1253,7 @@ class PowerSeriesRing_domain(PowerSeriesRing_generic, ring.IntegralDomain):
         defined since this is over a domain.
 
         This fraction field is just the Laurent series ring over the
-        fraction field of the base field.
+        fraction field of the base ring.
 
         EXAMPLES::
 

@@ -736,17 +736,16 @@ class SignRepresentationMatrixGroup(SignRepresentation_abstract):
 
         - ``elem`` -- the element of the group
 
-        TODO This Example doesn't make sense as of now
-        
         EXAMPLES::
-
-        sage: G = groups.permutation.PGL(2, 3)
+        
+        sage: G = GL(2, QQ)
         sage: V = G.sign_representation()
-        sage: elem = G.an_element()
-        sage: elem
-        (1,2,4,3)
-        sage: V._default_sign(elem)
-        -1
+        sage: m = G.an_element()
+        sage: m
+        [1 0]
+        [0 1]
+        sage: V._default_sign(m)
+        1
 
         """
         return 1 if elem.matrix().det() > 0 else -1

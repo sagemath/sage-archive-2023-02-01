@@ -553,9 +553,9 @@ class TrivialRepresentation(Representation_abstract):
 
 class SignRepresentation_abstract(Representation_abstract):
     """
-    The sign representation of a permutation group.
+    Generic implementation of a sign representation.
 
-    The sign representation of a permutation `S` over a commutative ring
+    The sign representation of a semigroup `S` over a commutative ring
     `R` is the `1`-dimensional `R`-module on which every element of `S`
     acts by 1 if order of element is even (including 0) or -1 if order of element if odd.
 
@@ -685,7 +685,7 @@ class SignRepresentation_abstract(Representation_abstract):
 
 class SignRepresentationPermgroup(SignRepresentation_abstract):
     """
-    The Sign Representation Class for permutation group
+    The sign representation for a permutation group.
 
     EXAMPLES::
 
@@ -708,7 +708,7 @@ class SignRepresentationPermgroup(SignRepresentation_abstract):
 
 class SignRepresentationMatrixGroup(SignRepresentation_abstract):
     """
-    The Sign Representation Class for matrix group
+    The sign representation for a matrix group.
 
     EXAMPLES::
 
@@ -730,7 +730,7 @@ class SignRepresentationMatrixGroup(SignRepresentation_abstract):
 
 class SignRepresentationCoxeterGroup(SignRepresentation_abstract):
     """
-    The Sign Representation Class for Coxeter group
+    The sign representation for a Coxeter group.
 
     EXAMPLES::
 

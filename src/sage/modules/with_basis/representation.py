@@ -632,35 +632,35 @@ class SignRepresentation_abstract(Representation_abstract):
 
             EXAMPLES::
 
-                sage:G = PermutationGroup(gens=[(1,2,3), (1,2)])
-                sage:S = G.sign_representation()
-                sage:x = S.an_element(); x
+                sage: G = PermutationGroup(gens=[(1,2,3), (1,2)])
+                sage: S = G.sign_representation()
+                sage: x = S.an_element(); x
                 2*B['v']
-                sage:c,s = G.gens(); c
+                sage: c,s = G.gens(); c
                 (1,2,3)
-                sage:c*x
+                sage: c*x
                 -2*B['v']
-                sage:c*x*c
+                sage: c*x*c
                 2*B['v']
-                sage:c*x*c*c
+                sage: c*x*c*c
                 -2*B['v']
-                sage:A = G.algebra(ZZ)
-                sage:s,c = A.algebra_generators()
-                sage:c
+                sage: A = G.algebra(ZZ)
+                sage: s,c = A.algebra_generators()
+                sage: c
                 (1,2,3)
-                sage:s
+                sage: s
                 (1,2)
-                sage:c*x
+                sage: c*x
                 2*B['v']
-                sage:c*c*x
+                sage: c*c*x
                 2*B['v']
-                sage:c*x*s
+                sage: c*x*s
                 -2*B['v']
-                sage:c*x*s*s
+                sage: c*x*s*s
                 2*B['v']
-                sage:(c+s)*x
+                sage: (c+s)*x
                 0
-                sage:(c-s)*x
+                sage: (c-s)*x
                 4*B['v']
             """
             if isinstance(scalar, Element):
@@ -697,10 +697,21 @@ class SignRepresentationPermgroup(SignRepresentation_abstract):
     def _default_sign(self, elem):
         """
         Return the sign of the element
-
+        
         INPUT:
       
         - ``elem`` -- the element of the group
+
+        EXAMPLES:
+        
+        sage: G = groups.permutation.PGL(2, 3)
+        sage: V = G.sign_representation()
+        sage: elem = G.an_element()
+        sage: elem
+        (1,2,4,3)
+        sage: V._default_sign(elem)
+        -1
+
         """
 
         return elem.sign()
@@ -724,6 +735,19 @@ class SignRepresentationMatrixGroup(SignRepresentation_abstract):
         INPUT:
 
         - ``elem`` -- the element of the group
+
+        TODO This Example doesn't make sense as of now
+
+        EXAMPLES:
+
+        sage: G = groups.permutation.PGL(2, 3)
+        sage: V = G.sign_representation()
+        sage: elem = G.an_element()
+        sage: elem
+        (1,2,4,3)
+        sage: V._default_sign(elem)
+        -1
+
         """
         return 1 if elem.matrix().det() > 0 else -1
 
@@ -746,5 +770,14 @@ class SignRepresentationCoxeterGroup(SignRepresentation_abstract):
         INPUT:
 
         - ``elem`` -- the element of the group
+
+        EXAMPLES:
+
+        sage: G = WeylGroup(["A", 1, 1])
+        sage: elem = G.an_element()
+        sage: V = G.sign_representation()
+        sage: V._default_sign(elem)
+        1
+
         """
         return -1 if elem.length() % 2 == 1 else 1

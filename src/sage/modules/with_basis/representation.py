@@ -684,21 +684,19 @@ class SignRepresentation_abstract(Representation_abstract):
 
 
 class SignRepresentationPermgroup(SignRepresentation_abstract):
-    def __init__(self, group, base_ring):
-        """
-        Initialize ``self``.
+    """
+    The Sign Representation Class for permutation group
 
-        EXAMPLES::
+    EXAMPLES::
 
-            sage: G = groups.permutation.PGL(2, 3)
-            sage: V = G.sign_representation()
-            sage: TestSuite(V).run()
-        """
-        SignRepresentation_abstract.__init__(self, group, base_ring)
+        sage: G = groups.permutation.PGL(2, 3)
+        sage: V = G.sign_representation()
+        sage: TestSuite(V).run()
+    """
 
     def _default_sign(self, elem):
         """
-        The default sign function defined for this class. Returns the sign of the element
+        Return the sign of the element
 
         INPUT:
       
@@ -709,22 +707,19 @@ class SignRepresentationPermgroup(SignRepresentation_abstract):
 
 
 class SignRepresentationMatrixGroup(SignRepresentation_abstract):
-    def __init__(self, group, base_ring):
-        """
-        Initialize ``self``.
+    """
+    The Sign Representation Class for matrix group
 
-        EXAMPLES::
+    EXAMPLES::
 
-            sage: G = groups.permutation.PGL(2, 3)
-            sage: V = G.sign_representation()
-            sage: TestSuite(V).run()
-        """
-
-        SignRepresentation_abstract.__init__(self, group, base_ring)
+        sage: G = groups.permutation.PGL(2, 3)
+        sage: V = G.sign_representation()
+        sage: TestSuite(V).run()
+    """
 
     def _default_sign(self, elem):
         """
-        The default sign function defined for this class. Returns the sign of the element
+        Return the sign of the element
 
         INPUT:
 
@@ -734,26 +729,22 @@ class SignRepresentationMatrixGroup(SignRepresentation_abstract):
 
 
 class SignRepresentationCoxeterGroup(SignRepresentation_abstract):
-    def __init__(self, group, base_ring):
-        """
-        Initialize ``self``.
+    """
+    The Sign Representation Class for Coxeter group
 
-        EXAMPLES::
+    EXAMPLES::
 
-            sage: G = WeylGroup(["A", 1, 1])
-            sage: V = G.sign_representation()
-            sage: TestSuite(V).run()
-        """
-        SignRepresentation_abstract.__init__(self, group, base_ring)
+        sage: G = WeylGroup(["A", 1, 1])
+        sage: V = G.sign_representation()
+        sage: TestSuite(V).run()
+    """
 
     def _default_sign(self, elem):
         """
-        The default sign function defined for this class. It returns the +1 or
-        -1 depending on the element in the coxeter group
-
+        Return the sign of the element
+        
         INPUT:
 
         - ``elem`` -- the element of the group
         """
-
-        return ((elem.length() % 2) * -2) + 1
+        return -1 if elem.length() % 2 == 1 else 1

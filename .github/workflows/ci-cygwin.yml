@@ -642,7 +642,7 @@ jobs:
     env:
       STAGE: iv-d
       PREVIOUS_STAGES: iii
-      TARGETS: 4ti2 pynormaliz qepcad lrslib latte_int topcom barvinok isl qhull sage_numerical_backends_coin primecount plantri polymake jupymake kenzo libsemigroups mcqd meataxe mpfrcx openssl p_group_cohomology rst2ipynb sirocco tdlib tides
+      TARGETS: qepcad  barvinok isl qhull primecount plantri kenzo libsemigroups mcqd meataxe mpfrcx openssl p_group_cohomology rst2ipynb sirocco tdlib tides
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 

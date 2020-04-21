@@ -341,7 +341,7 @@ class MatrixGroup_base(Group):
         r"""
         Return the sign representation of ``self`` over ``base_ring``.
         
-        Warning: assumes ``self`` is a matrix group over a field which has embedding over real numbers!
+        WARNING: assumes ``self`` is a matrix group over a field which has embedding over real numbers.
         
         INPUT:
 

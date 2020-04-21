@@ -43,6 +43,8 @@ jobs:
       DOCKER_TARGETS: configured with-targets with-targets-optional
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 500
       - name: fetch tags
         run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: free disk space

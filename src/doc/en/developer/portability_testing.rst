@@ -965,7 +965,7 @@ avoids changing the CI configuration on your development branch:
   GitHub Actions configuration; name it ``TESTER``, say.
 
 - Edit ``$SAGE_ROOT/.github/workflows/tox.yml`` to include the system
-  config wish to test.
+  config you wish to test.
 
 - Commit and push the branch to your GitHub fork of sage.
 
@@ -1012,3 +1012,19 @@ Scrolling down in the right pane shows "Annotations":
 Clicking on the annotations does not take you to a very useful
 place. To view details, click on one of the items in the pane. This
 changes the right pane to a log viewer.
+
+The ``docker`` workflows automatically push images to
+``docker.pkg.github.com``.  You find them in the Packages tab of your
+GitHub repository.
+
+In order to pull them for use on your computer, you need to first
+visit https://github.com/settings/tokens/new to generate a Personal
+Access Token providing the ``read:packages`` scope.  Then log in using
+your GitHub user name and the Personal Access Token::
+
+  $ docker login docker.pkg.github.com
+
+Now you can pull the image and run it::
+
+  $ docker pull docker.pkg.github.com/mkoeppe/sage/sage-docker-fedora-31-standard-configured:f4bd671
+  $ docker run -it mkoeppe/sage/sage-docker-fedora-31-standard-configured bash

@@ -350,22 +350,21 @@ class MatrixGroup_base(Group):
 
         EXAMPLES::
 
-        sage: G = GL(2, QQ)
-        sage: V = G.sign_representation()
-        sage: e = G.an_element()
-        sage: e
-        [1 0]
-        [0 1]
-        sage: V._default_sign(e)
-        1
-        sage: m2 = V.an_element()
-        sage: m2
-        2*B['v']
-        sage: m2*e
-        2*B['v']
-        sage: m2*e*e
-        2*B['v']
-
+            sage: G = GL(2, QQ)
+            sage: V = G.sign_representation()
+            sage: e = G.an_element()
+            sage: e
+            [1 0]
+            [0 1]
+            sage: V._default_sign(e)
+            1
+            sage: m2 = V.an_element()
+            sage: m2
+            2*B['v']
+            sage: m2*e
+            2*B['v']
+            sage: m2*e*e
+            2*B['v']
         """
         if base_ring is None:
             from sage.rings.all import ZZ

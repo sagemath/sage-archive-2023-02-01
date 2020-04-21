@@ -80,13 +80,17 @@ jobs:
       - name: Push docker images
         run: |
           if [ -f .tox/$TOX_ENV/Dockertags ]; then
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+            TOKEN="${{ secrets.DOCKER_PKG_GITHUB_TOKEN }}"
+            if [ -z "$TOKEN" ]; then
+              TOKEN="${{ secrets.GITHUB_TOKEN }}"
+            fi
+            echo "$TOKEN" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
             for a in $(cat .tox/$TOX_ENV/Dockertags); do
               FULL_TAG=docker.pkg.github.com/${{ github.repository }}/$a
               docker tag $a $FULL_TAG
               echo Pushing $FULL_TAG
               docker push $FULL_TAG
-            done
+            done || echo "(Ignoring errors)"
           fi
         if: always()
 

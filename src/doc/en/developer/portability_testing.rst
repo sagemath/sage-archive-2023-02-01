@@ -1027,4 +1027,4 @@ your GitHub user name and the Personal Access Token::
 Now you can pull the image and run it::
 
   $ docker pull docker.pkg.github.com/mkoeppe/sage/sage-docker-fedora-31-standard-configured:f4bd671
-  $ docker run -it mkoeppe/sage/sage-docker-fedora-31-standard-configured bash
+  $ docker run -it docker.pkg.github.com/mkoeppe/sage/sage-docker-fedora-31-standard-configured:f4bd671 bash

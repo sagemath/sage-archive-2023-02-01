@@ -636,13 +636,13 @@ class SignRepresentation_abstract(Representation_abstract):
                 sage: S = G.sign_representation()
                 sage: x = S.an_element(); x
                 2*B['v']
-                sage: c,s = G.gens(); c
+                sage: s,c = G.gens(); c
                 (1,2,3)
-                sage: c*x
+                sage: s*x
                 -2*B['v']
-                sage: c*x*c
+                sage: s*x*s
                 2*B['v']
-                sage: c*x*c*c
+                sage: s*x*s*s*c
                 -2*B['v']
                 sage: A = G.algebra(ZZ)
                 sage: s,c = A.algebra_generators()
@@ -702,7 +702,7 @@ class SignRepresentationPermgroup(SignRepresentation_abstract):
       
         - ``elem`` -- the element of the group
 
-        EXAMPLES:
+        EXAMPLES::
         
         sage: G = groups.permutation.PGL(2, 3)
         sage: V = G.sign_representation()
@@ -737,8 +737,8 @@ class SignRepresentationMatrixGroup(SignRepresentation_abstract):
         - ``elem`` -- the element of the group
 
         TODO This Example doesn't make sense as of now
-
-        EXAMPLES:
+        
+        EXAMPLES::
 
         sage: G = groups.permutation.PGL(2, 3)
         sage: V = G.sign_representation()
@@ -771,7 +771,7 @@ class SignRepresentationCoxeterGroup(SignRepresentation_abstract):
 
         - ``elem`` -- the element of the group
 
-        EXAMPLES:
+        EXAMPLES::
 
         sage: G = WeylGroup(["A", 1, 1])
         sage: elem = G.an_element()

@@ -1381,7 +1381,7 @@ cdef class SkewPolynomial(AlgebraElement):
             A = A.left_monic()
         return A
 
-    def _left_lcm_cofactor(self, other):
+    cdef SkewPolynomial _left_lcm_cofactor(self, SkewPolynomial other):
         r"""
         Return a skew polynomial `U` such that `U P = c L`
         where `P` is this skew polynomial (``self``), `L`
@@ -1389,6 +1389,12 @@ cdef class SkewPolynomial(AlgebraElement):
         constant
 
         TESTS::
+
+            sage: cython('''
+            ....: from sage.rings.polynomial.skew_polynomial_element cimport SkewPolynomial
+            ....: def left_lcm_cofactor(SkewPolynomial P, SkewPolynomial Q):
+            ....:     return P._left_lcm_cofactor(Q)
+            ....: ''')
 
             sage: k.<a> = GF(7^5)
             sage: Frob = k.frobenius_endomorphism(3)
@@ -1398,23 +1404,21 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: P = S.random_element() * D
             sage: Q = S.random_element() * D
             sage: L = P.left_lcm(Q)
-            sage: U = P._left_lcm_cofactor(Q)
+            sage: U = left_lcm_cofactor(P, Q)
             sage: (U*P).right_monic() == L
             True
         """
-        R = self._parent
-        U = R.one()
-        G = self
-        V1 = R.zero()
-        V3 = other
-        while not V3.is_zero():
-            Q, R = G.right_quo_rem(V3)
-            T = U - Q*V1
-            U = V1
-            G = V3
-            V1 = T
-            V3 = R
-        return V1
+        cdef SkewPolynomial Q, R, T
+        cdef SkewPolynomial U = <SkewPolynomial>self._parent.one()
+        cdef SkewPolynomial V = <SkewPolynomial>self._parent.zero()
+        while other:
+            Q, R = self.right_quo_rem(other)
+            T = U - Q*V
+            U = V
+            V = T
+            self = other
+            other = R
+        return V
 
     @coerce_binop
     def left_xlcm(self, other, monic=True):
@@ -1454,14 +1458,20 @@ cdef class SkewPolynomial(AlgebraElement):
             V1 = s * V1
         return L, V1, L // other
 
-    def _right_lcm_cofactor(self, other):
+    cdef SkewPolynomial _right_lcm_cofactor(self, SkewPolynomial other):
         r"""
         Return a skew polynomial `U` such that `P U = L c`
         where `P` is this skew polynomial (``self``), `L`
         is the right lcm of `P` and ``other`` and `c` is a
         constant
 
-        EXAMPLES::
+        TESTS::
+
+            sage: cython('''
+            ....: from sage.rings.polynomial.skew_polynomial_element cimport SkewPolynomial
+            ....: def right_lcm_cofactor(SkewPolynomial P, SkewPolynomial Q):
+            ....:     return P._right_lcm_cofactor(Q)
+            ....: ''')
 
             sage: k.<a> = GF(7^5)
             sage: Frob = k.frobenius_endomorphism(3)
@@ -1471,23 +1481,21 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: P = D * S.random_element()
             sage: Q = D * S.random_element()
             sage: L = P.right_lcm(Q)
-            sage: U = P._right_lcm_cofactor(Q)
+            sage: U = right_lcm_cofactor(P, Q)
             sage: (P*U).left_monic() == L
             True
         """
-        R = self._parent
-        U = R.one()
-        G = self
-        V1 = R.zero()
-        V3 = other
-        while not V3.is_zero():
-            Q, R = G.left_quo_rem(V3)
-            T = U - V1*Q
-            U = V1
-            G = V3
-            V1 = T
-            V3 = R
-        return V1
+        cdef SkewPolynomial Q, R, T
+        cdef SkewPolynomial U = <SkewPolynomial>self._parent.one()
+        cdef SkewPolynomial V = <SkewPolynomial>self._parent.zero()
+        while other:
+            Q, R = self.left_quo_rem(other)
+            T = U - V*Q
+            U = V
+            V = T
+            self = other
+            other = R
+        return V
 
     @coerce_binop
     def right_xlcm(self, other, monic=True):

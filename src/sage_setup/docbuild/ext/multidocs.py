@@ -254,7 +254,7 @@ def fetch_citation(app, env):
     with open(filename, 'rb') as f:
         cache = cPickle.load(f)
     logger.info("done (%s citations)."%len(cache))
-    cite = env.domaindata["std"].get("citations", dict())
+    cite = env.domaindata['citation'].get('citations', dict())
     for ind, (path, tag, lineno) in six.iteritems(cache):
         if ind not in cite: # don't override local citation
             cite[ind] = (os.path.join("..", path), tag, lineno)

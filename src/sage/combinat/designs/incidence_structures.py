@@ -1190,7 +1190,7 @@ class IncidenceStructure(object):
 
     def is_berge_cyclic(self):
         r"""
-        Test whether uniform hypergraph is Berge-Cyclic.
+        Check whether ``self`` is a Berge-Cyclic uniform hypergraph.
 
         A `k`-uniform Berge cycle (named after Claude Berge) of length `\ell`
         is a cyclic list of distinct `k`-sets `F_1,\ldots,F_\ell`, `\ell>1`,
@@ -1201,7 +1201,7 @@ class IncidenceStructure(object):
         A uniform hypergraph is Berge-cyclic if its incidence graph is cyclic.
         It is called "Berge-acyclic" otherwise.
 
-        For more information, see [Fag1983]_
+        For more information, see [Fag1983]_ and :wikipedia:`Hypergraph`.
 
         EXAMPLES::
 

@@ -1399,6 +1399,90 @@ cdef class CombinatorialPolyhedron(SageObject):
         deprecation(28604, "the method ridge_graph of CombinatorialPolyhedron is deprecated; use facet_graph", 3)
         return Graph(self.ridges(names=names), format="list_of_edges")
 
+    @cached_method
+    def vertex_facet_graph(self, names=True):
+        r"""
+        Return the vertex-facet graph.
+
+        This method constructs a directed bipartite graph.
+        The nodes of the graph correspond to elements of the Vrepresentation
+        and facets. There is a directed edge from Vrepresentation to facets
+        for each incidence.
+
+        If ``names`` is set to ``False``, then the vertices (of the graph) are given by
+        integers.
+
+        INPUT:
+
+        - ``names`` -- boolean (default: ``True``); if ``True`` label the vertices of the
+          graph by the corresponding names of the Vrepresentation resp. Hrepresentation;
+          if ``False`` label the vertices of the graph by integers
+
+        EXAMPLES::
+
+            sage: P = polytopes.hypercube(2).pyramid()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: G = C.vertex_facet_graph(); G
+            Digraph on 10 vertices
+            sage: C.Vrepresentation()
+            (A vertex at (0, -1, -1),
+             A vertex at (0, -1, 1),
+             A vertex at (0, 1, -1),
+             A vertex at (0, 1, 1),
+             A vertex at (1, 0, 0))
+            sage: G.neighbors_out(C.Vrepresentation()[4])
+            [An inequality (-1, 0, -1) x + 1 >= 0,
+             An inequality (-1, 0, 1) x + 1 >= 0,
+             An inequality (-1, -1, 0) x + 1 >= 0,
+             An inequality (-1, 1, 0) x + 1 >= 0]
+
+        If ``names`` is ``True`` (the default) but the combinatorial polyhedron
+        has been initialized without specifying names to
+        ``Vrepresentation`` and ``Hrepresentation``,
+        then indices of the Vrepresentation and the facets will be used along
+        with a string 'H' or 'V'::
+
+            sage: C = CombinatorialPolyhedron(P.incidence_matrix())
+            sage: C.vertex_facet_graph().vertices()
+            [('H', 0),
+             ('H', 1),
+             ('H', 2),
+             ('H', 3),
+             ('H', 4),
+             ('V', 0),
+             ('V', 1),
+             ('V', 2),
+             ('V', 3),
+             ('V', 4)]
+
+        If ``names`` is ``False`` then the vertices of the graph are given by integers::
+
+            sage: C.vertex_facet_graph(names=False).vertices()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        """
+        # The face iterator will iterate through the facets in opposite order.
+        facet_iter = self.face_iter(self.dimension() - 1, dual=False)
+        n_facets = self.n_facets()
+        n_Vrep = self.n_Vrepresentation()
+
+        if not names:
+            vertices = [i for i in range(n_facets + n_Vrep)]
+            edges = tuple((j, n_Vrep + n_facets - 1 - i) for i,facet in enumerate(facet_iter) for j in facet.ambient_V_indices())
+        else:
+            facet_names = self.facet_names()
+            if facet_names is None:
+                # No names where provided at initializiation.
+                facet_names = [("H",i) for i in range(n_facets)]
+
+            Vrep = self.Vrep()
+            if Vrep is None:
+                # No names where provided at initializiation.
+                Vrep = [("V",i) for i in range(n_Vrep)]
+
+            vertices = Vrep + facet_names
+            edges = tuple((Vrep[j], facet_names[n_facets - 1 - i]) for i,facet in enumerate(facet_iter) for j in facet.ambient_V_indices())
+        return DiGraph([vertices, edges], format='vertices_and_edges', immutable=True)
+
     def f_vector(self):
         r"""
         Compute the ``f_vector`` of the polyhedron.

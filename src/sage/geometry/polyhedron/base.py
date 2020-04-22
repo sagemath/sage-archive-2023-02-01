@@ -35,7 +35,6 @@ from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil, binomial
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
-from sage.graphs.digraph import DiGraph
 
 from .constructor import Polyhedron
 from sage.categories.sets_cat import EmptySetError
@@ -725,24 +724,14 @@ class Polyhedron_base(Element):
 
             sage: G._immutable
             True
-        """
 
-        # We construct the edges and remove the columns that have all 1s;
-        # those correspond to faces, that contain all vertices (which happens
-        # if the polyhedron is not full-dimensional)
-        G = DiGraph()
-        if labels:
-            edges = [[v, f] for f in self.Hrep_generator()
-                     if any(not(f.is_incident(v)) for v in self.Vrep_generator())
-                     for v in self.vertices() if f.is_incident(v)]
-        else:
-            #  here we obtain this incidence information from the incidence matrix
-            M = self.incidence_matrix()
-            edges = [[i, M.ncols()+j] for i, column in enumerate(M.columns())
-                     if any(entry != 1 for entry in column)
-                     for j in range(M.nrows()) if M[j, i] == 1]
-        G.add_edges(edges)
-        return G.copy(immutable=True)
+        Check that :trac:`29188` is fixed::
+
+            sage: P = polytopes.cube()
+            sage: P.vertex_facet_graph().is_isomorphic(P.vertex_facet_graph(False))
+            True
+        """
+        return self.combinatorial_polyhedron().vertex_facet_graph(names=labels)
 
     def plot(self,
              point=None, line=None, polygon=None,  # None means unspecified by the user

@@ -22,10 +22,7 @@ from __future__ import absolute_import
 from . import classical
 import sage.libs.symmetrica.all as symmetrica
 from sage.rings.integer import Integer
-from sage.combinat.partition import Partition, Partitions
-
-
-_Partitions = Partitions()
+from sage.combinat.partition import Partition, _Partitions
 
 
 class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_classical):

@@ -24,6 +24,8 @@ you extracted the binary archive and type:
 
     ./sage
 
+(Note that the first run will take more time, as Sage needs to get itself ready.)
+
 If you downloaded the [sources](https://www.sagemath.org/download-source.html),
 please read below on how to build Sage and work around common issues.
 
@@ -34,21 +36,18 @@ or ask on [ask.sagemath.org](https://ask.sagemath.org).
 Contributing to Sage
 --------------------
 
-If you'd like to contribute to Sage, be sure to read the
+If you'd like to contribute to Sage, we strongly recommend that you read the
 [Developer's Guide](https://doc.sagemath.org/html/en/developer/index.html).
 
 Supported Platforms
 -------------------
 
-Sage fully supports several Linux distributions, recent versions of
-Mac OS X, Windows (using virtualization), as well as a number of
-Solaris and OpenSolaris releases.
+Sage fully supports all major Linux distributions, recent versions of
+MacOS, and Windows (using Cygwin or using virtualization).
 
-Ports are in progress to some other, less common platforms. The list of
-supported platforms and their current statuses are given in [our wiki](https://wiki.sagemath.org/SupportedPlatforms).
-
-If you are interested in helping port Sage to a new platform, please let
-us know at the [sage-devel mailing list](https://groups.google.com/group/sage-devel).
+We highly appreciate contributions to Sage that fix portability bugs
+and help port Sage to new platforms; let us know at the [sage-devel
+mailing list](https://groups.google.com/group/sage-devel).
 
 Quick Instructions to Build from Source
 ---------------------------------------
@@ -69,47 +68,67 @@ files installed
 
 1. Make sure you have the dependencies and 5 GB of free disk space
 
-   * __All Linux versions:__ gcc, make, m4, perl, ranlib, git, and tar (a
-   matching set of gcc, gfortran and g++ will avoid the compilation
-   of Sage-specific compilers). It should also be possible to use clang/clang++,
+   * __All Linux versions:__ gcc, gfortran, g++ (a matching set of these three
+   will avoid the compilation of Sage-specific compilers - unless they are too old),
+   make, m4, perl, ranlib, git, and tar. It should also be possible to use clang/clang++,
    however this is less well-tested.
 
    * __Fedora or RedHat systems:__ the perl-ExtUtils-MakeMaker package.
    (install these using your package manager)
 
-   * __OS X:__
+   * __MacOS:__
        * Make sure you have installed the most recent version
        of Xcode which you can install for free from the App Store.
        * You also need to install the "command line tools". When
-       using OS X Mavericks, after installing Xcode, run
+       using Mavericks, after installing Xcode, run
        `xcode-select --install` from a terminal window:
        Then click "Install" in the pop-up window.
-       When using OS X Mountain Lion or earlier, you need to install the
+       When using Mountain Lion or earlier, you need to install the
        command line tools from Xcode: run Xcode; then from the File
        menu, choose "Preferences", then the "Downloads" tab, and then
        "Install" the Command Line Tools. You might also have Homebrew or
        a similar "Apple's missing package manager" system installed, with
        and libraries such gfortran, gmp, etc installed. (However, this
-       is still experimental as of May 2019).
+       is still experimental as of April 2020).
 
    * __Other platforms:__ See detailed instructions below.
 
 1. It might be desirable, it terms of faster building and better portability,
    to install, as system packages, an ever increasing [list of Sage packages](https://trac.sagemath.org/ticket/27330)
-   which otherwise might have to be built. The following is a list of Sage packages
-   "replaceable" by system's packages as of Sage release 8.8:
-   `bzip2`, `curl`, `cmake`, `gcc/clang`, `gf2x`, `gfortran` (usually part of `gcc` installation),
-   `git`, `gmp`, `libffi`, `patch`, `pcre`, `perl_term_readline_gnu`, `xz/lzma`, `yasm`, `zeromq`,  `zlib`.
-   Details and names of system packages containing these are system-dependent.  E.g. on Debian
-   `bzip2` lives in `libbz2-dev`. More details on this are in Installation manual.
+   which otherwise might have to be built.
+   Details and names of system packages containing these Sage ones are system-dependent.  E.g. on Debian
+   `bzip2` lives in `libbz2-dev`. More details on this are in Installation manual,
+   and also printed by the `./configure` script (see below).
 
 1. Extract the tarball
 
        tar zxvf sage-*.tar.gz
 
-1. cd into the Sage directory and type make
+1. cd into the Sage directory and
 
        cd sage-*/
+
+1. Optionally, review the configuration options, which includes
+   many optional packages:
+
+       ./configure --help
+
+1. type ./configure
+
+       ./configure
+
+1. At the end of a successful ./configure run, you may see messages
+   recommending to install extra system packages using your package
+   manager.  Only the most recent releases of your distribution will
+   have all of these packages.  If you choose to install the system
+   packages, a re-run of ./configure will test whether the versions
+   installed are usable for Sage; if they are, this will reduce the
+   compilation time and disk space needed by Sage. The usage of packages
+   may be adjusted by `./configure` parameters (check out the output of
+   `./configure -h`)
+
+1. Type make
+
        make
 
    That's it! Everything is automatic and non-interactive. The build
@@ -146,18 +165,16 @@ More Detailed Instructions to Build from Source
 
    * __Linux:__ See quick instructions above.
 
-   * __OS X:__ (a.k.a __MacOS__) Make sure you have a recent Xcode version.
+   * __MacOS:__ Make sure you have a recent Xcode version.
    If you don't, go to https://developer.apple.com/,
    sign up, and download the free Xcode package. Usually, Xcode's command line
    tools suffice to build Sage, although several times new releases of Xcode broke this.
-   Only OS X >= 10.4 is supported, and (as of May 2019) we only test Sage on OS X >= 10.6.
-
-   * __Solaris and OpenSolaris:__ Building Sage on these platforms is more
-   tricky than on Linux or OS X. For details on how to build Sage on
-   these platforms, see [our wiki](https://wiki.sagemath.org/solaris) (outdated as of May 2019).
+   Only MacOS >= 10.4 is supported, and (as of May 2019) we only test Sage on MacOS >= 10.6.
 
    * __Windows:__ [Download and install VirtualBox](https://www.virtualbox.org/wiki/Downloads),
-   and then download the [Sage virtual appliance](https://wiki.sagemath.org/SageAppliance).
+   and then download the [Sage virtual appliance](https://wiki.sagemath.org/SageAppliance). Or install
+   [Cygwin](http://cygwin.com) and follow [Installation Guide](https://doc.sagemath.org/html/en/installation)
+   and [Wiki](https://trac.sagemath.org/wiki/Cygwin64Port).
 
    * __NOTE:__ On some operating systems, it might be necessary to install
    gas/as, gld/ld, gnm/nm. On most platforms, these are automatically
@@ -235,16 +252,6 @@ More Detailed Instructions to Build from Source
    ImageMagick tools (e.g. the "convert" command) installed since some
    plotting functionality benefits from it.
 
-1. Optional: Read this if you are intending to run a Sage notebook
-   server for multiple users. For security (i.e., to run
-   `notebook(secure=True)`) you want to access the server using the
-   HTTPS protocol. First, install OpenSSL and the OpenSSL development
-   headers on your system if they are not already installed. Then
-   install pyOpenSSL by building Sage and then typing
-   `./sage -i pyopenssl`.
-   Note that this command requires internet access. Alternatively,
-   `make ssl` builds Sage and installs pyOpenSSL.
-
 Troubleshooting
 ---------------
 
@@ -283,7 +290,7 @@ by running `./configure` with option `--without-system-gcc`.
 There are some known problems with old assemblers, in particular when
 building the ECM package. You should ensure that your assembler
 understands all instructions for your processor. On Linux, this means
-you need a recent version of binutils; on OS X you need a recent version
+you need a recent version of binutils; on MacOS you need a recent version
 of Xcode.
 
 Directory Layout
@@ -415,14 +422,14 @@ install. You can make changes to documentation, source, etc., and very
 easily package the complete results up for redistribution just like we
 do.
 
-1. To make your own source tarball of Sage, type:
+1. To make a binary distribution with your currently installed packages,
+   visit [sagemath/binary-pkg](https://github.com/sagemath/binary-pkg).
+
+1. (**Obsolete, probably broken**) To make your own source tarball of Sage, type:
 
        sage --sdist
 
    The result is placed in the directory `dist/`.
-
-2. To make a binary distribution with your currently installed packages,
-   visit [sagemath/binary-pkg](https://github.com/sagemath/binary-pkg).
 
 
 Changes to Included Software

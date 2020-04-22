@@ -4425,7 +4425,8 @@ class ClusterSeed(SageObject):
         r"""
         Return a list of compatible vectors for each vector in the vector decomposition ``vd``.
 
-        Compatibility is defined as in [LLM]_ with respect to the matrix `B`.
+        Compatibility is defined as in [LLM2014]_ with respect to the
+        matrix `B`.
 
         INPUT:
 

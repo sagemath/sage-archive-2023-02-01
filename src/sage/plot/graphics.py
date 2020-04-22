@@ -3403,12 +3403,12 @@ class Graphics(WithEqualityById, SageObject):
         EXAMPLES::
 
             sage: print(polytopes.hypercube(2).plot().description())
-            Polygon defined by 4 points: [(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)]
-            Line defined by 2 points: [(-1.0, -1.0), (-1.0, 1.0)]
-            Line defined by 2 points: [(-1.0, -1.0), (1.0, -1.0)]
-            Line defined by 2 points: [(-1.0, 1.0), (1.0, 1.0)]
+            Polygon defined by 4 points: [(-1.0, -1.0), (1.0, -1.0), (1.0, 1.0), (-1.0, 1.0)]
+            Line defined by 2 points: [(-1.0, 1.0), (-1.0, -1.0)]
+            Line defined by 2 points: [(1.0, -1.0), (-1.0, -1.0)]
             Line defined by 2 points: [(1.0, -1.0), (1.0, 1.0)]
-            Point set defined by 4 point(s): [(-1.0, -1.0), (-1.0, 1.0), (1.0, -1.0), (1.0, 1.0)]
+            Line defined by 2 points: [(1.0, 1.0), (-1.0, 1.0)]
+            Point set defined by 4 point(s): [(1.0, -1.0), (1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0)]
         """
         data = []
         for g in self:

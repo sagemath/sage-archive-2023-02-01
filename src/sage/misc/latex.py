@@ -1895,7 +1895,7 @@ class MathJax:
 
         OUTPUT:
 
-        A :calss:`MathJaxExpr`
+        A :class:`MathJaxExpr`
 
         EXAMPLES::
 

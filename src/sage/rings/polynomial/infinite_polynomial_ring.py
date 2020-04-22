@@ -820,14 +820,14 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         return [InfinitePolynomialFunctor(self._names, self._order, 'sparse'), self._base]
 
     def _coerce_map_from_(self, S):
-        """
+        r"""
         Coerce things into ``self``.
 
         NOTE:
 
         Any coercion will preserve variable names.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Here, we check to see that elements of a *finitely* generated
         polynomial ring with appropriate variable names coerce

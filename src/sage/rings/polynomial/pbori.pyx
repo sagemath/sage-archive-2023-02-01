@@ -2045,13 +2045,13 @@ class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
                         (type(other), str(self)))
 
     def _element_constructor_(self, other=None):
-        """
+        r"""
         Convert elements of other objects to elements of this monoid.
 
         INPUT:
 
         - ``other`` - element to convert, if ``None`` a
-           :class:`BooleanMonomial` representing 1 is returned only
+          :class:`BooleanMonomial` representing 1 is returned only
           :class:`BooleanPolynomial`s with the same parent ring as ``self``
           which have a single monomial is converted
 

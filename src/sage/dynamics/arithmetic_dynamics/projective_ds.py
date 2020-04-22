@@ -83,7 +83,7 @@ from sage.rings.padics.all import Qp
 from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.qqbar import QQbar
+from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
@@ -6887,6 +6887,112 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     (3*x^2 + y^2 : x*y)
         """
         return self.as_scheme_morphism().reduce_base_field().as_dynamical_system()
+
+    def is_newton(self, return_conjugation=False):
+        r"""
+        Return whether ``self`` is a Newton map.
+
+        A map `g` is *Newton* if it is conjugate to a map of the form
+        `f(z) = z - \frac{p(z)}{p'(z)}` after dehomogenization,
+        where `p(z)` is a squarefree polynomial.
+
+        INPUT:
+
+        - ``return_conjugation`` -- (default: ``False``) if the map is Newton
+          and ``True``, then return the conjugation that moves this map to
+          the above form
+
+        OUTPUT:
+
+        A Boolean. If ``return_conjugation`` is ``True``, then this also
+        returns the conjugation as a matrix if ``self`` is Newton or ``None``
+        otherwise.
+
+        The conjugation may be defined over an extension if the map has
+        fixed points not defined over the base field.
+
+        EXAMPLES::
+
+            sage: A.<z> = AffineSpace(QQ, 1)
+            sage: f = DynamicalSystem_affine([z - (z^2 + 1)/(2*z)])
+            sage: F = f.homogenize(1)
+            sage: F.is_newton(return_conjugation=True)
+            (
+            [1 0]
+            True, [0 1]
+            )
+
+        ::
+
+            sage: A.<z> = AffineSpace(QQ, 1)
+            sage: f = DynamicalSystem_affine([z^2 + 1])
+            sage: F = f.homogenize(1)
+            sage: F.is_newton()
+            False
+            sage: F.is_newton(return_conjugation=True)
+            (False, None)
+
+        ::
+
+            sage: PP.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: F = DynamicalSystem_projective([-4*x^3 - 3*x*y^2, -2*y^3])
+            sage: F.is_newton(return_conjugation=True)[1]
+            [   0    1]
+            [-4*a  2*a]
+
+        ::
+
+            sage: K.<zeta> = CyclotomicField(2*4)
+            sage: A.<z> = AffineSpace(K, 1)
+            sage: f = DynamicalSystem_affine(z-(z^3+zeta*z)/(3*z^2+zeta))
+            sage: F = f.homogenize(1)
+            sage: F.is_newton()
+            True
+        """
+        if self.degree() == 1:
+            raise NotImplementedError("degree one Newton maps are trivial")
+        if not self.base_ring() in NumberFields():
+            raise NotImplementedError("only implemented over number fields")
+        # check if Newton map
+        sigma_1 = self.sigma_invariants(1)
+        d = ZZ(self.degree())
+        Newton_sigma = [d/(d-1)] + [0] * d  # almost Newton
+        if sigma_1 != Newton_sigma:
+            if return_conjugation:
+                return False, None
+            else:
+                return False
+        Fbar = self.change_ring(QQbar)
+        Pbar = Fbar.domain()
+        fixed = Fbar.periodic_points(1)
+        for Q in fixed:
+            if Fbar.multiplier(Q, 1) != 0:
+                inf = Q
+                break
+        if inf != Pbar([1,0]):
+            # need to move to inf to infinity
+            fixed.remove(inf)
+            source = [inf] + fixed[:2]
+            target = [Pbar([1, 0]), Pbar([0, 1]), Pbar([1, 1])]
+            M = Pbar.point_transformation_matrix(source, target)
+            M = M.inverse()
+            Newton = Fbar.conjugate(M)
+            K, el, psi = number_field_elements_from_algebraics([t for r in M for t in r])
+            M = matrix(M.nrows(), M.ncols(), el)
+            Newton = Newton._number_field_from_algebraics()
+        else:
+            Newton = self
+            M = matrix(QQ, 2, 2, [1,0,0,1])
+        N_aff = Newton.dehomogenize(1)
+        z = N_aff.domain().gen(0)
+        Npoly = (z - N_aff[0]).numerator()
+        if return_conjugation:
+            if Npoly.derivative(z) == (z - N_aff[0]).denominator():
+                return True, M
+            else:
+                return False, None
+        else:
+            return Npoly.derivative(z) == (z - N_aff[0]).denominator()
 
 class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
                                               SchemeMorphism_polynomial_projective_space_finite_field):

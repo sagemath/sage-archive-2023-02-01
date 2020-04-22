@@ -1070,7 +1070,7 @@ class Rings(CategoryWithAxiom):
             if isinstance(arg, tuple):
                 from sage.categories.morphism import Morphism
                 if len(arg) == 2 and isinstance(arg[1], Morphism):
-                   from sage.rings.polynomial.skew_polynomial_ring_constructor import SkewPolynomialRing
+                   from sage.rings.polynomial.skew_polynomial_ring import SkewPolynomialRing
                    return SkewPolynomialRing(self, arg[1], names=arg[0])
 
             # 2. Otherwise, if all specified elements are algebraic, try to

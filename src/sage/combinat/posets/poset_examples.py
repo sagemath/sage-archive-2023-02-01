@@ -933,7 +933,7 @@ class Posets(object):
     @staticmethod
     def SSTPoset(s, f=None):
         """
-        The poset on semistandard tableaux of shape ``s`` and largest
+        The lattice poset on semistandard tableaux of shape ``s`` and largest
         entry ``f`` that is ordered by componentwise comparison of the
         entries.
 
@@ -945,16 +945,18 @@ class Posets(object):
           argument.  If no maximal number is given, it will use
           the number of cells in the shape.
 
-        NOTE: This is a basic implementation and most certainly
-        not the most efficient.
+        .. NOTE::
+
+            This is a basic implementation and most certainly
+            not the most efficient.
 
         EXAMPLES::
 
             sage: posets.SSTPoset([2,1])
-            Finite poset containing 8 elements
+            Finite lattice containing 8 elements
 
             sage: posets.SSTPoset([2,1],4)
-            Finite poset containing 20 elements
+            Finite lattice containing 20 elements
 
             sage: posets.SSTPoset([2,1],2).cover_relations()
             [[[[1, 1], [2]], [[1, 2], [2]]]]
@@ -968,22 +970,12 @@ class Posets(object):
         from sage.combinat.tableau import SemistandardTableaux
 
         def tableaux_is_less_than(a, b):
-            atstring = []
-            btstring = []
-            for i in a:
-                atstring += i
-            for i in b:
-                btstring += i
-            for i in range(len(atstring)):
-                if atstring[i] > btstring[i]:
-                    return False
-            return True
+            return all(ix <= iy for x, y in zip(a, b) for ix, iy in zip(x, y))
+
         if f is None:
-            f=0
-            for i in s:
-                f += i
+            f = sum(i for i in s)
         E = SemistandardTableaux(s, max_entry=f)
-        return Poset((E, tableaux_is_less_than))
+        return LatticePoset((E, tableaux_is_less_than))
 
     @staticmethod
     def StandardExample(n, facade=None):

@@ -22,7 +22,10 @@ from __future__ import absolute_import
 from . import classical
 import sage.libs.symmetrica.all as symmetrica
 from sage.rings.integer import Integer
-from sage.combinat.partition import Partition
+from sage.combinat.partition import Partition, Partitions
+
+
+_Partitions = Partitions()
 
 
 class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_classical):
@@ -119,7 +122,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
                 # Hack due to symmetrica crashing when both of the
                 # partitions are the empty partition
-                if not left_m and not right:
+                if not left_m and not right_m:
                     z_elt[left_m] = left_c * right_c
                     continue
 
@@ -160,7 +163,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             sage: f = x[0]**2+x[1]**2+x[2]**2
             sage: m.from_polynomial(f)
             m[2]
-            sage: f=x[0]^2+x[1]
+            sage: f = x[0]^2+x[1]
             sage: m.from_polynomial(f)
             Traceback (most recent call last):
             ...
@@ -178,10 +181,9 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             if not e:
                 return True
             return all(x >= y for x, y in zip(e[:-1], e[1:]))
-        out = self.sum_of_terms(((Partition(e), c)
-                                 for e, c in f.dict().items()
-                                 if is_partition(e)),
-                                distinct=True)
+        out = self._from_dict({_Partitions.element_class(_Partitions, list(e)): c
+                               for e, c in f.dict().items()
+                               if is_partition(e)}, remove_zeros=False)
         if check and f != out.expand(f.parent().ngens(),
                                      f.parent().variable_names()):
             raise ValueError("%s is not a symmetric polynomial" % f)

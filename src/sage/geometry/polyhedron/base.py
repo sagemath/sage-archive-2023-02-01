@@ -3124,6 +3124,40 @@ class Polyhedron_base(Element):
         from sage.geometry.polyhedron.combinatorial_polyhedron.base import CombinatorialPolyhedron
         return CombinatorialPolyhedron(self)
 
+    def simplicity(self):
+        r"""
+        Return the largest integer `k` such that the polytope is `k`-simple.
+
+        A polytope `P` is `k`-simple, if every `(d-1-k)`-face
+        is contained in exactly `k+1` facets of `P` for `1 \leq k \leq d-1`.
+        Equivalently it is `k`-simple if the polar/dual polytope is `k`-simplicial.
+        If `self` is a simplex, it returns its dimension.
+
+        EXAMPLES::
+
+            sage: polytopes.hypersimplex(4,2).simplicity()
+            1
+            sage: polytopes.hypersimplex(5,2).simplicity()
+            2
+            sage: polytopes.hypersimplex(6,2).simplicity()
+            3
+            sage: polytopes.simplex(3).simplicity()
+            3
+            sage: polytopes.simplex(1).simplicity()
+            1
+
+        The method is not implemented for unbounded polyhedra::
+
+            sage: p = Polyhedron(vertices=[(0,0)],rays=[(1,0),(0,1)])
+            sage: p.simplicity()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is implemented for polytopes only
+        """
+        if not(self.is_compact()):
+            raise NotImplementedError("this function is implemented for polytopes only")
+        return self.combinatorial_polyhedron().simplicity()
+
     def is_simple(self):
         """
         Test for simplicity of a polytope.
@@ -3142,6 +3176,38 @@ class Polyhedron_base(Element):
         """
         if not self.is_compact(): return False
         return self.combinatorial_polyhedron().is_simple()
+
+    def simpliciality(self):
+        r"""
+        Return the largest interger `k` such that the polytope is `k`-simplicial.
+
+        A polytope is `k`-simplicial, if every `k`-face is a simplex.
+        If `self` is a simplex, returns its dimension.
+
+        EXAMPLES::
+
+            sage: polytopes.cyclic_polytope(10,4).simpliciality()
+            3
+            sage: polytopes.hypersimplex(5,2).simpliciality()
+            2
+            sage: polytopes.cross_polytope(4).simpliciality()
+            3
+            sage: polytopes.simplex(3).simpliciality()
+            3
+            sage: polytopes.simplex(1).simpliciality()
+            1
+
+        The method is not implemented for unbounded polyhedra::
+
+            sage: p = Polyhedron(vertices=[(0,0)],rays=[(1,0),(0,1)])
+            sage: p.simpliciality()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is implemented for polytopes only
+        """
+        if not(self.is_compact()):
+            raise NotImplementedError("this function is implemented for polytopes only")
+        return self.combinatorial_polyhedron().simpliciality()
 
     def is_simplicial(self):
         """

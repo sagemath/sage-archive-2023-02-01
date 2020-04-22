@@ -1625,6 +1625,13 @@ REFERENCES:
              and Intersection Algorithms. SIAM Journal on Computing
              1986 15:4, 948-957.
 
+.. [CVV2019] Xavier Caruso, Tristan Vaccon and Thibaut Verron,
+             *Gröbner bases over Tate algebras*, :arxiv:`1901.09574` (2019)
+
+.. [CVV2020] Xavier Caruso, Tristan Vaccon and Thibaut Verron,
+             *Signature-based algorithms for Gröbner bases over Tate algebras*,
+             :arxiv:`2002.04491` (2020)
+
 .. [CW2005] \J. E. Cremona and M. Watkins. Computing isogenies of elliptic
             curves. preprint, 2005.
 

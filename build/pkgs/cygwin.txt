@@ -25,3 +25,5 @@ findutils
 which
 # For python3 build
 libcrypt-devel
+# For R build
+libiconv-devel

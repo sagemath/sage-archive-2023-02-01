@@ -163,6 +163,7 @@ List of Polyhedron methods
 
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.boundary_complex` | returns the boundary complex of simplicial compact polyhedron
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.center` | returns the average of the vertices of the polyhedron
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.centroid` | returns the center of the mass
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.representative_point` | returns the sum of the center and the rays
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.a_maximal_chain` | returns a maximal chain of faces
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_fan` | returns the fan spanned by the faces of the polyhedron

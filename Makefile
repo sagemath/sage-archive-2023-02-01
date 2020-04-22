@@ -50,14 +50,7 @@ build/make/Makefile: configure build/make/deps $(SPKG_COLLECT_FILES) $(CONFIG_FI
 		./config.status --recheck && ./config.status; \
 	else \
 		./configure $$PREREQ_OPTIONS; \
-	fi || ( \
-		if [ "x$$SAGE_PORT" = x ]; then \
-			echo "If you would like to try to build Sage anyway (to help porting),"; \
-			echo "export the variable 'SAGE_PORT' to something non-empty."; \
-			exit 1; \
-		else \
-			echo "Since 'SAGE_PORT' is set, we will try to build anyway."; \
-		fi; )
+	fi
 
 # This is used to monitor progress towards Python 3 and prevent
 # regressions. Should be removed after the full switch to python3.

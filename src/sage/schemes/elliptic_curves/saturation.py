@@ -193,7 +193,6 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
     # p-saturation, or compute a much smaller list of possible points
     # to test for p-divisibility:
 
-    E = Plist[0].curve()
     K = E.base_ring()
 
     def projections(Q, p):
@@ -205,7 +204,8 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
         # NB we do not do E.reduction(Q) since that may change the
         # model which will cause problems when we reduce points.
         # see trac #27387
-        Ek = E.change_ring(K.residue_field(Q))
+        k = K.residue_field(Q)
+        Ek = E.change_ring(k)
         G = Ek.abelian_group() # cached!
 
         if not p.divides(G.order()):
@@ -214,13 +214,7 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
         if verbose:
             print("There is %s-torsion modulo %s, projecting points" % (p,Q))
 
-        def proj1(pt):
-            try:
-                return Ek(pt)
-            except ZeroDivisionError:
-                return Ek(0)
-
-        projPlist = [proj1(pt) for pt in Plist]
+        projPlist = [Ek([k(c) for c in pt]) if pt[0].valuation(Q)>=0 else Ek(0) for pt in Plist]
 
         if verbose:
             print(" --> %s" % projPlist)
@@ -282,7 +276,11 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
         zeta = gg[0].weil_pairing(gg[1],p2) # a primitive p1'th root of unity
         if zeta.multiplicative_order()!=p1:
             if verbose:
+                print("K = {}".format(K))
+                print("E = {}".format(E.ainvs()))
+                print("Plist = {}".format(Plist))
                 print("Ek = ",Ek)
+                print("projPlist = {}".format(projPlist))
                 print("(p1,p2) = (%s,%s)" % (p1,p2))
                 print("gg = (%s,%s)" % (gg[0],gg[1]))
             raise RuntimeError("Weil pairing error during saturation.")
@@ -448,7 +446,7 @@ def full_p_saturation(Plist, p, lin_combs = dict(), verbose=False):
             # then while this function would return the correct
             # output, there would be a very bad side effect: the
             # caller's list would have been changed here.
-            Plist = Plist + [T]
+            Plist = Plist + [T.element()]
             nx += 1
     extra_torsion = nx-n
     if extra_torsion:

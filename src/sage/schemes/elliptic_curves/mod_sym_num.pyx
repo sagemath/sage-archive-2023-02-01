@@ -560,7 +560,8 @@ cdef class _CuspsForModularSymbolNumerical:
 
     It is to only to be used internally.
     """
-    cdef public llong _a, _m, _width, _N
+    cdef public llong _a, _m, _width
+    cdef public llong _N_level # trac 29290 renamed
     cdef public Rational _r
 
     def __init__(self, Rational r, llong N):
@@ -592,7 +593,7 @@ cdef class _CuspsForModularSymbolNumerical:
         self._width = N / B
         self._a = a
         self._m = m
-        self._N = N
+        self._N_level = N
         # we could make it inherit from general cusps
         # but there is no need for this here
         # from sage.modular.cusps import Cusp
@@ -605,7 +606,7 @@ cdef class _CuspsForModularSymbolNumerical:
         Lehner operator that brings it to i`\infty`.
         """
         cdef llong B
-        B = llgcd(self._m, self._N)
+        B = llgcd(self._m, self._N_level)
         return llgcd(self._width, B) == 1
 
     cdef public int atkin_lehner(self, llong* res) except -1:
@@ -620,7 +621,7 @@ cdef class _CuspsForModularSymbolNumerical:
 
         #verbose("       enter atkin_lehner for cusp r=%s"%self._r, level=5)
         Q = self._width
-        B = llgcd(self._m, self._N)
+        B = llgcd(self._m, self._N_level)
         c = self._m / B
         if llgcd(Q, B) != 1:
             raise ValueError("This cusp is not in the Atkin-Lehner "
@@ -628,7 +629,7 @@ cdef class _CuspsForModularSymbolNumerical:
         g = llxgcd( self._a * Q, self._m, &x, &y)
         res[0] = Q * x
         res[1] = y
-        res[2] = -c * self._N
+        res[2] = -c * self._N_level
         res[3] =  Q * self._a
         #verbose("       leaving atkin_lehner with w_Q = "
         #        "[%s, %s, %s, %s]"%(res[0], res[1], res[2], res[3]),
@@ -717,7 +718,7 @@ cdef class ModularSymbolNumerical:
         -4/5
     """
     cdef:
-        llong _N,  _cut_val, _t_plus, _t_minus
+        llong _N_E,  _cut_val, _t_plus, _t_minus
         llong _t_unitary_minus, _t_unitary_plus
         int _lans
         int * _ans
@@ -775,7 +776,7 @@ cdef class ModularSymbolNumerical:
         self._E = E
         self._Epari= E.pari_mincurve()
         self._global_sign = <int>sign
-        self._N = <llong>( E.conductor() )
+        self._N_E = <llong>( E.conductor() )
         self._D = -Integer(1)
         self._set_epsQs()
         self._initialise_an_coefficients()
@@ -1002,7 +1003,7 @@ cdef class ModularSymbolNumerical:
         self._epsQs = dict(
             [d,prod(self._E.root_number(p)
                 for p in d.prime_divisors() )]
-            for d in Integer( self._N ).divisors())
+            for d in Integer( self._N_E ).divisors())
 
     def _set_den_bounds(self):
         r"""
@@ -1030,7 +1031,7 @@ cdef class ModularSymbolNumerical:
             RealNumber E0om1, E0om2, q
 
         #verbose("       enter _set_bounds", level=5)
-        N = Integer( self._N )
+        N = Integer( self._N_E )
         E = self._E
         L = E.period_lattice().basis()
         self._om1 = L[0]
@@ -1933,7 +1934,7 @@ cdef class ModularSymbolNumerical:
             llong * wQ = [0L, 0L, 0L, 0L]
             object ka
 
-        rc = _CuspsForModularSymbolNumerical(r, self._N)
+        rc = _CuspsForModularSymbolNumerical(r, self._N_E)
         Q = rc._width
         oi = rc.atkin_lehner(wQ)
         m = rc._m
@@ -1952,7 +1953,7 @@ cdef class ModularSymbolNumerical:
         if m == 1:
             use_partials = 0
         if use_partials == 2:
-            use_partials = (prec==53) and ( m**4 < self._N or m < PARTIAL_LIMIT)
+            use_partials = (prec==53) and ( m**4 < self._N_E or m < PARTIAL_LIMIT)
 
         if not use_partials and prec > 53:
             CC = ComplexField(prec)
@@ -2057,11 +2058,11 @@ cdef class ModularSymbolNumerical:
 
         #verbose("       enter _from_r_to_rr_approx_direct with r=%s,"
         #        " rr=%s,..."%(r,rr), level=5)
-        rc = _CuspsForModularSymbolNumerical(r, self._N)
+        rc = _CuspsForModularSymbolNumerical(r, self._N_E)
         m = rc._m
         a = rc._a
         Q = rc._width
-        rrc = _CuspsForModularSymbolNumerical(rr,self._N)
+        rrc = _CuspsForModularSymbolNumerical(rr,self._N_E)
         mm = rrc._m
         aa = rrc._a
         QQ = rrc._width
@@ -2075,7 +2076,7 @@ cdef class ModularSymbolNumerical:
             D = Q * QQ
             D /= g
             D *=  llabs(a*mm-aa*m)
-            use_partials = (prec==53) and ( D**4 < self._N or D < PARTIAL_LIMIT)
+            use_partials = (prec==53) and ( D**4 < self._N_E or D < PARTIAL_LIMIT)
 
         CC = ComplexField(prec)
         if not use_partials and prec > 53:
@@ -2235,7 +2236,7 @@ cdef class ModularSymbolNumerical:
 
         #verbose("       enter _from_r_to_rr_approx with r=%s,"
         #        " rr=%s, "%(r,rr), level=5)
-        rc = _CuspsForModularSymbolNumerical(r, self._N)
+        rc = _CuspsForModularSymbolNumerical(r, self._N_E)
         m = rc._m
         a = rc._a
         Q = rc._width
@@ -2243,7 +2244,7 @@ cdef class ModularSymbolNumerical:
         epsQ = self._epsQs[Q]
         r = rc._r
 
-        rrc = _CuspsForModularSymbolNumerical(rr,self._N)
+        rrc = _CuspsForModularSymbolNumerical(rr,self._N_E)
         mm = rrc._m
         aa = rrc._a
         QQ = rrc._width
@@ -2405,22 +2406,22 @@ cdef class ModularSymbolNumerical:
         #this finds a gamma with smallest |c|
         from sage.modular.cusps import Cusp
         rc = Cusp(r)
-        boo, ga = rc.is_gamma0_equiv(rr, self._N, "matrix")
+        boo, ga = rc.is_gamma0_equiv(rr, self._N_E, "matrix")
 
         if not boo:
             raise ValueError("The cusps %s and %s are not "
-                             "Gamma_0(%s)-equivalent"%(r, rr, self._N))
+                             "Gamma_0(%s)-equivalent"%(r, rr, self._N_E))
 
         # now find the same for the move to 0
         c = ga[1][0]
-        r0 = - Rational( (c/self._N, ga[0][0]) )
+        r0 = - Rational( (c/self._N_E, ga[0][0]) )
         rc0 = Cusp(r0)
-        _, ga0 = rc0.is_gamma0_equiv(0, self._N, "matrix")
+        _, ga0 = rc0.is_gamma0_equiv(0, self._N_E, "matrix")
 
         if c.abs() > ga0[1][0].abs(): # better at 0
             ga = ga0
             c = ga[1][0]
-            eN = -self._epsQs[self._N]
+            eN = -self._epsQs[self._N_E]
         else: #better at i oo
             eN = 1
 
@@ -2695,7 +2696,7 @@ cdef class ModularSymbolNumerical:
         #verbose("       enter _symbol_non_unitary with r=%s,"
         #        " sign=%s"%(r,sign), level=5)
         cdef:
-            llong a, m, B, Q, N_ell, aell, u, N = self._N
+            llong a, m, B, Q, N_ell, aell, u, N = self._N_E
             Integer ell
             Rational r2, res
 
@@ -2776,7 +2777,7 @@ cdef class ModularSymbolNumerical:
             -1
         """
         cdef:
-            llong c, d, x, y, N = self._N, Mu, Mv, Qu, Qv, du=1, dv=1
+            llong c, d, x, y, N = self._N_E, Mu, Mv, Qu, Qv, du=1, dv=1
             Rational r, rr, res
             int oi
 
@@ -2800,7 +2801,7 @@ cdef class ModularSymbolNumerical:
             Qv = N/Mv
             isunitary = ( llgcd(Qu,Mu) == 1 and llgcd(Qv,Mv) == 1 )
             if isunitary: # unitary case
-                oi = best_proj_point(u, v, self._N, &c, &d)
+                oi = best_proj_point(u, v, self._N_E, &c, &d)
             else: # at least one of the two cusps is not unitary
                 du = llgcd(Qu,Mu)
                 dv = llgcd(Qv,Mv)
@@ -2905,7 +2906,7 @@ cdef class ModularSymbolNumerical:
         if sign == 0:
             sign = self._global_sign
 
-        oi = proj_normalise(self._N, u, v, &un, &vn)
+        oi = proj_normalise(self._N_E, u, v, &un, &vn)
         #verbose("   normalized representant on P^1: "
         #        "(%s :%s)"%(un, vn), level=3)
 
@@ -2929,58 +2930,58 @@ cdef class ModularSymbolNumerical:
         c = self.__cached_methods["_manin_symbol_with_cache"]
 
         # (-v:u) = - (u:v)
-        oi = proj_normalise(self._N, -v, u, &un, &vn)
+        oi = proj_normalise(self._N_E, -v, u, &un, &vn)
         c.set_cache(-res, un, vn, sign)
 
         # (v:u) = -1 * sign * (u:v)
-        oi = proj_normalise(self._N, v, u, &un, &vn)
+        oi = proj_normalise(self._N_E, v, u, &un, &vn)
         c.set_cache(-sign*res, un, vn, sign)
 
         # (-u:v) = sign * (u:v)
-        oi = proj_normalise(self._N, -u, v, &un, &vn)
+        oi = proj_normalise(self._N_E, -u, v, &un, &vn)
         c.set_cache(sign*res, un, vn, sign)
 
         # (u:v) + ( u+v:-u) +(v,-u-v) = 0
         # is ( u+v:-u) already computed, we set the third
-        oi = proj_normalise(self._N, u+v, -u, &un, &vn)
+        oi = proj_normalise(self._N_E, u+v, -u, &un, &vn)
         if c.is_in_cache(un,vn,sign):
             r2 = - res - c(un,vn,sign)
 
             # (v:-u-v) = r2
-            oi = proj_normalise(self._N, v, -u-v, &un, &vn)
+            oi = proj_normalise(self._N_E, v, -u-v, &un, &vn)
             c.set_cache(r2, un, vn, sign)
 
             # (u+v:v) = -r2
-            oi = proj_normalise(self._N, u+v, v, &un, &vn)
+            oi = proj_normalise(self._N_E, u+v, v, &un, &vn)
             c.set_cache(-r2, un, vn, sign)
 
             # (-u-v:v) = -1 * sign * r2
-            oi = proj_normalise(self._N, -u-v, v, &un, &vn)
+            oi = proj_normalise(self._N_E, -u-v, v, &un, &vn)
             c.set_cache(-sign*r2, un, vn, sign)
 
             # (-v:-u-v) = sign * r2
-            oi = proj_normalise(self._N, -v, -u-v, &un, &vn)
+            oi = proj_normalise(self._N_E, -v, -u-v, &un, &vn)
             c.set_cache(sign*r2, un, vn, sign)
 
         # is ( v,-u-v) already computed, we set ( u+v:-u)
-        oi = proj_normalise(self._N, v, -u-v, &un, &vn)
+        oi = proj_normalise(self._N_E, v, -u-v, &un, &vn)
         if c.is_in_cache(un,vn,sign):
             r2 = - res - c(un,vn,sign)
 
             # (u+v:-u) = r2
-            oi = proj_normalise(self._N, u+v, -u, &un, &vn)
+            oi = proj_normalise(self._N_E, u+v, -u, &un, &vn)
             c.set_cache(r2, un, vn, sign)
 
             # (u:u+v) = -r2
-            oi = proj_normalise(self._N, u, u+v, &un, &vn)
+            oi = proj_normalise(self._N_E, u, u+v, &un, &vn)
             c.set_cache(-r2, un, vn, sign)
 
             # (-u:u+v) = -1 * sign * r2
-            oi = proj_normalise(self._N, -u, u+v, &un, &vn)
+            oi = proj_normalise(self._N_E, -u, u+v, &un, &vn)
             c.set_cache(-sign*r2, un, vn, sign)
 
             # (-u-v:-u) = sign * r2
-            oi = proj_normalise(self._N, -u-v, -u, &un, &vn)
+            oi = proj_normalise(self._N_E, -u-v, -u, &un, &vn)
             c.set_cache(sign*r2, un, vn, sign)
 
         return res
@@ -3052,7 +3053,7 @@ cdef class ModularSymbolNumerical:
         #verbose("       enter _evaluate with r=%s, sign=%s"%(r,sign),
         #         level=5)
         cdef:
-            llong N = self._N, u, v
+            llong N = self._N_E, u, v
             Rational r2, res
             Integer a, m, B, Q, y, x, M, uu, vv
 
@@ -3180,7 +3181,7 @@ cdef class ModularSymbolNumerical:
             sign = self._global_sign
 
         RR = RealField(53)
-        N = self._N
+        N = self._N_E
         Q = N / llgcd(m,N)
         if llgcd(m,Q) > 1:
             raise NotImplementedError("Only implemented for cusps that are "
@@ -3314,7 +3315,7 @@ cdef class ModularSymbolNumerical:
         #verbose("       enter _evaluate_approx with r=%s, eps=%s"%(r,eps),
         #        level=5)
         cdef:
-            llong N = self._N
+            llong N = self._N_E
             ComplexNumber res
             Rational r2
             Integer a, m, Q, x, y, B, M
@@ -3408,7 +3409,7 @@ cdef class ModularSymbolNumerical:
         #verbose("       enter _symbol_nonunitary_approx with r=%s,"
         #        " eps=%s"%(r,eps), level=5)
         cdef:
-            llong a, m, B, Q, N_ell, aell, u, N = self._N
+            llong a, m, B, Q, N_ell, aell, u, N = self._N_E
             Integer ell
             Rational r2
             ComplexNumber res

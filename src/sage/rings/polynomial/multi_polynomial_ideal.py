@@ -2897,8 +2897,12 @@ class MPolynomialIdeal_singular_repr(
 
         INPUT:
 
-        - ``degree`` -- integer; if not ``None``, return only the monomials of
-          the given degree
+        - ``degree`` -- ``None`` or integer
+
+        OUTPUT:
+
+        If ``degree`` is an integer, only the monomials of the given degree in
+        the normal basis.
 
         EXAMPLES::
 
@@ -2932,21 +2936,22 @@ class MPolynomialIdeal_singular_repr(
     def normal_basis(self, degree=None, algorithm='libsingular',
                      singular=singular_default):
         """
-        Return a vector space basis (consisting of monomials) of the
-        quotient ring of this ideal.
+        Return a vector space basis of the quotient ring of this ideal.
 
         INPUT:
 
-        - ``degree`` -- integer (default: ``None``); if not ``None``, return
-          only the monomials of the given degree
+        - ``degree`` -- integer (default: ``None``)
 
-        - ``algorithm`` -- string (default: ``"libsingular"``); if different
-          from the default, this will use the ``kbase()`` command from
-          Singular instead of libsingular
+        - ``algorithm`` -- string (default: ``"libsingular"``); if not the
+          default, this will use the ``kbase()`` command from Singular
 
-        - ``singular`` -- instance of Singular interface (default: the default
-          instance); the singular interpreter to use when ``algorithm`` is not
-          ``"libsingular"``
+        - ``singular`` -- the singular interpreter to use when ``algorithm`` is
+          not ``"libsingular"`` (default: the default instance)
+
+        OUTPUT:
+
+        Monomials in the basis. If ``degree`` is given, only the monomials of
+        the given degree are returned.
 
         EXAMPLES::
 
@@ -2980,8 +2985,21 @@ class MPolynomialIdeal_singular_repr(
             sage: J = R.ideal(x^2+y^2+z^2-4, x^2+2*y^2-5)
             sage: [J.normal_basis(d) for d in (0..3)]
             [[1], [z, y, x], [z^2, y*z, x*z, x*y], [z^3, y*z^2, x*z^2, x*y*z]]
+
+        Check the deprecation::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: _ = R.ideal(x^2+y^2, x*y+2*y).normal_basis('singular')
+            doctest:...: DeprecationWarning: "algorithm" should be used as keyword argument
+            See https://trac.sagemath.org/29543 for details.
         """
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+        if isinstance(degree, str):
+            from sage.misc.superseded import deprecation
+            deprecation(29543,
+                        '"algorithm" should be used as keyword argument')
+            algorithm = degree
+            degree = None
 
         if algorithm == 'libsingular':
             return self._normal_basis_libsingular(degree)

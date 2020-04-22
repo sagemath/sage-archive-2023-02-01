@@ -268,11 +268,6 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
             ORDER_ONLY_DEPS='pip'
             ;;
         esac
-        case "$SPKG_TYPE" in
-        optional|experimental)
-            ORDER_ONLY_DEPS="$ORDER_ONLY_DEPS"' $(STANDARD_PACKAGES)'
-            ;;
-        esac
         if test -n "$ORDER_ONLY_DEPS"; then
             DEPS="| $ORDER_ONLY_DEPS"
         else

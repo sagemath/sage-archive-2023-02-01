@@ -7135,6 +7135,9 @@ class Polyhedron_base(Element):
                 except FeatureNotPresentError:
                     raise RuntimeError("the induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
 
+        if engine == 'auto' and measure == 'ambient' and self.backend() == 'normaliz':
+            engine = 'normaliz'
+
         if measure == 'ambient':
             if self.dim() < self.ambient_dim():
                 return self.base_ring().zero()
@@ -7149,7 +7152,7 @@ class Polyhedron_base(Element):
             elif engine == 'latte':
                 return self._volume_latte(**kwds)
             elif engine == 'normaliz':
-                return self._volume_normaliz(measure='euclidean')
+                return self._volume_normaliz(measure='ambient')
 
             triangulation = self.triangulate(engine=engine, **kwds)
             pc = triangulation.point_configuration()

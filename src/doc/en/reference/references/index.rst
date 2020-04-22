@@ -1752,7 +1752,7 @@ REFERENCES:
 
 .. [DGH2020] \C. Donnot, A. Genitrini and Y. Herida. Unranking Combinations
             Lexicographically: an efficient new strategy compared with others, 2020,
-            https://hal.archives-ouvertes.fr/hal-02462764v1 
+            https://hal.archives-ouvertes.fr/hal-02462764v1
 
 .. [DGMPPS2019] \N. Datta, A. Ghoshal, D. Mukhopadhyay, S. Patranabis,
                 S. Picek, R. Sashukhan. "TRIFLE"
@@ -4085,6 +4085,9 @@ REFERENCES:
               Normaliz,
               http://www.mathematik.uni-osnabrueck.de/normaliz/
 
+.. [NormalizMan]  Winfried Bruns, Max Horn, *Normaliz 3.8.5*,
+                  2020, https://github.com/Normaliz/Normaliz/blob/master/doc/Normaliz.pdf.
+
 .. [NoThWi08] J.-C. Novelli, J.-Y. Thibon, L. K. Williams,
               *Combinatorial Hopf algebras, noncommutative Hall-Littlewood
               functions, and permutation tableaux*.
@@ -4908,9 +4911,9 @@ REFERENCES:
 .. [St2011b] \W. Stein, *Toward a Generalization of the Gross-Zagier
             Conjecture*, Int Math Res Notices (2011),
             :doi:`10.1093/imrn/rnq075`
-            
-.. [St2007] \W. Stein. *Modular Forms, a Computational Approach*. 
-            With an appendix by Paul E. Gunnells. 
+
+.. [St2007] \W. Stein. *Modular Forms, a Computational Approach*.
+            With an appendix by Paul E. Gunnells.
             AMS Graduate Studies in Mathematics, Volume 79, 2007.
             :doi:`10.1090/gsm/079`
 
@@ -5391,11 +5394,11 @@ REFERENCES:
 .. [Wu2004] Wuthrich, Christian. *On p-adic heights in families of
             elliptic curves*. Journal of the London Mathematical
             Society, 70(1), 23-40, (2004).
-            
+
 .. [Wu2018] Wuthrich, Christian.
-            *Numerical modular symbols for elliptic curves*. 
-            Math. Comp. 87 (2018), no. 313, 2393–2423. 
-            
+            *Numerical modular symbols for elliptic curves*.
+            Math. Comp. 87 (2018), no. 313, 2393–2423.
+
 .. [WW1991] Michelle Wachs and Dennis White, *p, q-Stirling numbers
             and set partition statistics*, Journal of Combinatorial
             Theory, Series A 56.1 (1991): 27-46.

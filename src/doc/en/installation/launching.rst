@@ -44,6 +44,10 @@ machine. This uses local port forwarding to connect your local machine to the
 remote one. The command will print a URL to the console which you can copy and
 paste in a web browser.
 
+Note that this assumes that a firewall which might be present between server
+and client allows connections on port 8888. See details on port forwarding on
+the internet, e.g. https://www.ssh.com/ssh/tunneling/example.
+
 ------------------------------------------------------------------------
 
 For further reading you can have a look at the other documents in the

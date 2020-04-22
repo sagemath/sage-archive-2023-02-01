@@ -228,9 +228,12 @@ class Polyhedron_cdd(Polyhedron_base):
             sage: P = [[-2687.19, -2088.53], [-2686.81, -2084.19]]
             sage: V = VoronoiDiagram(P)
             sage: R = V.regions()
-            sage: R
+            sage: R  # py3
             {P(-2686.81000000000, -2084.19000000000): A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex, 1 ray, 1 line,
              P(-2687.19000000000, -2088.53000000000): A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex, 1 ray, 1 line}
+            sage: R  # py2
+            {P(-2687.19000000000, -2088.53000000000): A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex, 1 ray, 1 line,
+             P(-2686.81000000000, -2084.19000000000): A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex, 1 ray, 1 line}
         """
         cddout = cddout.splitlines()
 

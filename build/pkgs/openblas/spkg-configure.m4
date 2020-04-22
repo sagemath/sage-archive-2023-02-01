@@ -47,16 +47,9 @@ SAGE_SPKG_CONFIGURE([openblas], [
     ], [
       dnl No openblas.pc
       AS_CASE([$host],
-        [*-*-cygwin*], [dnl #29398: cygwin uses openblas only to provide a binary-compatible
-                        dnl dll, /usr/bin/cygblas-0.dll, which shadows /usr/lib/lapack/cygblas-0.dll
-                        dnl There is no .pc file, and openblas-specific functions such as
-                        dnl openblas_get_config are not exported.  We only accept the system BLAS
-                        dnl if it is provided by OpenBLAS.
-                        AC_MSG_CHECKING([whether cygblas-0.dll is openblas])
-                        AS_IF([grep -q openblas_get_config $(which cygblas-0.dll)],
-                              [AS_VAR_SET([HAVE_OPENBLAS], [yes])],
-                              [AS_VAR_SET([HAVE_OPENBLAS], [no])])
-                        AC_MSG_RESULT([$HAVE_OPENBLAS])
+        [*-*-cygwin*], [dnl #29538 - workaround failing build of matplotlib etc.
+                        AS_VAR_SET([HAVE_OPENBLAS], [no])
+                        AC_MSG_RESULT([$HAVE_OPENBLAS, test for OpenBLAS disabled on Cygwin])
                        ],
                        [dnl Recent OpenBLAS (>= 0.3.4, Dec 2018) provides the version number as
                         dnl part of openblas_get_config.  We reject all older versions.

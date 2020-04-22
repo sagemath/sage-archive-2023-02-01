@@ -6244,6 +6244,14 @@ class Polyhedron_base(Element):
         Return a graph in which the vertices correspond to vertices
         of the polyhedron, and edges to edges.
 
+        ..NOTE::
+
+            The graph of a polyhedron with lines has no vertices,
+            as the polyhedron has no vertices (`0`-faces).
+
+            The method :meth:`Polyhedron_base:vertices` returns
+            the defining points in this case.
+
         EXAMPLES::
 
             sage: g3 = polytopes.hypercube(3).vertex_graph(); g3
@@ -6254,37 +6262,22 @@ class Polyhedron_base(Element):
             Graph on 5 vertices
             sage: s4.is_eulerian()
             True
+
+        The graph of an unbounded polyhedron
+        is the graph of the bounded complex::
+
+            sage: open_triangle = Polyhedron(vertices=[[1,0], [0,1]],
+            ....:                            rays    =[[1,1]])
+            sage: open_triangle.vertex_graph()
+            Graph on 2 vertices
+
+        The graph of a polyhedron with lines has no vertices::
+
+            sage: line = Polyhedron(lines=[[0,1]])
+            sage: line.vertex_graph()
+            Graph on 0 vertices
         """
-        from itertools import combinations
-        inequalities = self.inequalities()
-        vertices     = self.vertices()
-
-        # Associated to 'v' the inequalities in contact with v
-        vertex_ineq_incidence = [frozenset([i for i, ineq in enumerate(inequalities) if self._is_zero(ineq.eval(v))])
-                                 for i, v in enumerate(vertices)]
-
-        # the dual incidence structure
-        ineq_vertex_incidence = [set() for _ in range(len(inequalities))]
-        for v, ineq_list in enumerate(vertex_ineq_incidence):
-            for ineq in ineq_list:
-                ineq_vertex_incidence[ineq].add(v)
-
-        n = len(vertices)
-
-        pairs = []
-        for i, j in combinations(range(n), 2):
-            common_ineq = vertex_ineq_incidence[i] & vertex_ineq_incidence[j]
-            if not common_ineq:  # or len(common_ineq) < d-2:
-                continue
-
-            if len(set.intersection(*[ineq_vertex_incidence[k] for k in common_ineq])) == 2:
-                pairs.append((i, j))
-
-        from sage.graphs.graph import Graph
-        g = Graph()
-        g.add_vertices(vertices)
-        g.add_edges((vertices[i], vertices[j]) for i, j in pairs)
-        return g
+        return self.combinatorial_polyhedron().vertex_graph()
 
     graph = vertex_graph
 
@@ -8288,12 +8281,11 @@ class Polyhedron_base(Element):
             sage: quadrangle.restricted_automorphism_group()
             Permutation Group with generators [()]
 
-        Permutations can only exchange vertices with vertices, rays
-        with rays, and lines with lines::
+        Permutations of the vertex graph only exchange vertices with vertices::
 
-            sage: P = Polyhedron(vertices=[(1,0,0), (1,1,0)], rays=[(1,0,0)], lines=[(0,0,1)])
+            sage: P = Polyhedron(vertices=[(1,0), (1,1)], rays=[(1,0)])
             sage: P.combinatorial_automorphism_group(vertex_graph_only=True)
-            Permutation Group with generators [(A vertex at (1,0,0),A vertex at (1,1,0))]
+            Permutation Group with generators [(A vertex at (1,0),A vertex at (1,1))]
 
         This shows an example of two polytopes whose vertex-edge graphs are isomorphic,
         but their face_lattices are not isomorphic::

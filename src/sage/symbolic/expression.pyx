@@ -610,7 +610,7 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(self._parent, self._gobj)
 
     def _repr_(self):
-        """
+        r"""
         Return string representation of this symbolic expression.
 
         EXAMPLES::
@@ -1545,10 +1545,10 @@ cdef class Expression(CommutativeRingElement):
         return algebraic(self, field)
 
     def __hash__(self):
-        """
+        r"""
         Return hash of this expression.
 
-        EXAMPLES::
+        EXAMPLES:
 
         The hash of an object in Python or its coerced version into
         the symbolic ring is usually the same::
@@ -3911,10 +3911,12 @@ cdef class Expression(CommutativeRingElement):
         return print_order_compare_mul(left._gobj, right._gobj)
 
     cpdef _pow_(self, other):
-        """
+        r"""
         Return ``self`` raised to the power ``other``.
 
-        OUTPUT: a symbolic expression
+        OUTPUT:
+
+        A symbolic expression
 
         EXAMPLES::
 

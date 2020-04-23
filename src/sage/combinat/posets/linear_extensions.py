@@ -417,7 +417,6 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
     .. SEEALSO::
 
         - :meth:`sage.combinat.posets.posets.FinitePoset.linear_extensions`
-        - :class:`sage.graphs.linearextensions.LinearExtensions`
 
     EXAMPLES::
 

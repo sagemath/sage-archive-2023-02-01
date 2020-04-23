@@ -8,35 +8,45 @@ if [ -z "$system" -o -z "$command" ]; then
 fi
 shift 2
 system_packages="$*"
-if [ -z "$system_packages" ]; then
-    # No command needed to install nothing
-    exit 0
-fi
 shopt -s extglob
+if [ -n "$system_packages" ]; then
+    # No command needed to install nothing
+    case $system:$command in
+        debian*|ubuntu*)
+            echo "sudo apt-get $command $system_packages"
+            ;;
+        @(fedora*|redhat*|centos*):install)
+            echo "sudo yum install $system_packages"
+            ;;
+        arch*:install)
+            echo "sudo pacman -S $system_packages"
+            ;;
+        *conda*:install)
+            echo "conda install $system_packages"
+            ;;
+        homebrew*:install)
+            echo "brew install $system_packages"
+            echo "# Afterwards: "
+            ;;
+        slackware*:install)
+            echo "sudo slackpkg install $system_packages"
+            ;;
+        cygwin*:install)
+            echo "# first install apt-cyg from https://github.com/transcode-open/apt-cyg"
+            echo "apt-cyg install $system_packages"
+            ;;
+        *)
+            echo "# $command the following packages: $system_packages"
+            ;;
+    esac
+fi
+# Messages that should go out even if not packages need to be installed
 case $system:$command in
-    debian*|ubuntu*)
-        echo "sudo apt-get $command $system_packages"
-        ;;
-    @(fedora*|redhat*|centos*):install)
-        echo "sudo yum install $system_packages"
-        ;;
-    arch*:install)
-        echo "sudo pacman -S $system_packages"
-        ;;
-    *conda*:install)
-        echo "conda install $system_packages"
-        ;;
     homebrew*:install)
-        echo "brew install $system_packages"
-        ;;
-    slackware*:install)
-        echo "sudo slackpkg install $system_packages"
-        ;;
-    cygwin*:install)
-        echo "# first install apt-cyg from https://github.com/transcode-open/apt-cyg"
-        echo "apt-cyg install $system_packages"
-        ;;
-    *)
-        echo "# $command the following packages: $system_packages"
+        echo "# To automatically take care of homebrew messages regarding "
+        echo "# keg-only packages for the current shell session:"
+        [ -n "$SAGE_ROOT" ] || SAGE_ROOT=.
+        echo "# $ source $SAGE_ROOT/.homebrew-build-env"
+        echo "# Add this to your shell profile if you want it to persist between shell sessions."
         ;;
 esac

@@ -1909,7 +1909,7 @@ class TermOrder(SageObject):
             sage: T1 == T2
             True
 
-        TESTS::
+        TESTS:
 
         We assert that comparisons take into account the block size of
         orderings (cf. :trac:`24981`)::

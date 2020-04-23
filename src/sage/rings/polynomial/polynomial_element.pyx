@@ -944,7 +944,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return expr
 
     cpdef _richcmp_(self, other, int op):
-        """
+        r"""
         Compare the two polynomials self and other.
 
         We order polynomials first by degree (but treating 0 as having
@@ -974,7 +974,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R(0) == R(0)
             True
 
-        TESTS::
+        TESTS:
 
         Test that comparisons are consistent when using interval
         coefficients::
@@ -2989,13 +2989,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
           - ``self`` - Polynomial
           - ``right`` - Polynomial (over same base ring as self)
           - ``K_threshold`` - (optional) Integer. A threshold to fall back to
-          schoolbook algorithm. In the recursion, if one of the polynomials is
-          of degree less that K_threshold then the classic quadratic polynomial
-          is used.
+            schoolbook algorithm. In the recursion, if one of the polynomials
+            is of degree less that K_threshold then the classic quadratic
+            polynomial is used.
 
-        OUTPUT: Polynomial - The product self\*right.
+        OUTPUT:
 
-        ALGORITHM: The basic idea is to use that
+        The product ``self * right``.
+
+        ALGORITHM:
+
+        The basic idea is to use that
 
         .. MATH::
 
@@ -4112,7 +4116,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             1
 
         Factorization also works even if the variable of the finite
-        field is nefariously labeled "x"::
+        field is nefariously labeled `x`::
 
             sage: R.<x> = GF(3^2, 'x')[]
             sage: f = x^10 +7*x -13
@@ -4162,7 +4166,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: A.<T> = K[]
             sage: A(x^2 - 1).factor()
             (T - 1) * (T + 1)
-
 
         ::
 
@@ -10017,14 +10020,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
           is only considered when the valuation is zero, i.e. when the
           polynomial has a nonzero constant term.
 
-        .. ALGORITHM::
+        ALGORITHM:
 
-            Let us denote by `a` the polynomial from which we wish to extract
-            a `n`-th root. The algorithm uses the Newton method for the fixed
-            point of `F(x) = x^{-n} - a^{-1}`. The advantage of this approach
-            compared to the more naive `x^n - a` is that it does require only
-            one polynomial inversion instead of one per iteration of the Newton
-            method.
+        Let us denote by `a` the polynomial from which we wish to extract
+        a `n`-th root. The algorithm uses the Newton method for the fixed
+        point of `F(x) = x^{-n} - a^{-1}`. The advantage of this approach
+        compared to the more naive `x^n - a` is that it does require only
+        one polynomial inversion instead of one per iteration of the Newton
+        method.
 
         EXAMPLES::
 

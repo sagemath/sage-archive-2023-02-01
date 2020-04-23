@@ -398,7 +398,7 @@ cpdef RealField(int prec=53, int sci_not=0, rnd=MPFR_RNDN):
       - ``'RNDU'`` -- round towards plus infinity
       - ``'RNDA'`` -- round away from zero
       - ``'RNDF'`` -- faithful rounding (currently experimental; not
-                      guaranteed correct for every operation)
+        guaranteed correct for every operation)
       - for specialized applications, the rounding mode can also be
         given as an integer value of type ``mpfr_rnd_t``. However, the
         exact values are unspecified.

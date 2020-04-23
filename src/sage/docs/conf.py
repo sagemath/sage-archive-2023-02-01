@@ -33,6 +33,10 @@ extensions = ['inventory_builder',
 # through matplotlib, so that it will be displayed in the HTML doc
 plot_html_show_source_link = False
 plot_pre_code = """
+# Set locale to prevent having commas in decimal numbers
+# in tachyon input (see https://trac.sagemath.org/ticket/28971)
+import locale
+locale.setlocale(locale.LC_NUMERIC, 'C')
 def sphinx_plot(graphics, **kwds):
     import matplotlib.image as mpimg
     import matplotlib.pyplot as plt

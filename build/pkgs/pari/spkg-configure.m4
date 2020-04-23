@@ -1,14 +1,7 @@
 SAGE_SPKG_CONFIGURE([pari], [
-    dnl See gp_version below on how the version is computed from MAJV.MINV.PATCHV
-    m4_pushdef([SAGE_PARI_MINVER],["133889"])
-    AC_REQUIRE([SAGE_SPKG_CONFIGURE_GMP])
-    AC_REQUIRE([SAGE_SPKG_CONFIGURE_READLINE])
-    AC_MSG_CHECKING([installing gmp/mpir or readline? ])
-    if test x$sage_spkg_install_mpir = xyes -o x$sage_spkg_install_gmp = xyes -o x$sage_spkg_install_readline = xyes; then dnl deps test
-        AC_MSG_RESULT([yes; install pari as well])
-        sage_spkg_install_pari=yes
-    else
-      AC_MSG_RESULT([no])
+  dnl See gp_version below on how the version is computed from MAJV.MINV.PATCHV
+  m4_pushdef([SAGE_PARI_MINVER],["133889"])
+  SAGE_SPKG_DEPCHECK([gmp mpir readline], [
     AC_PATH_PROG([GP], [gp])
     if test x$GP = x; then dnl GP test
         AC_MSG_NOTICE([gp is not found])
@@ -139,8 +132,8 @@ SAGE_SPKG_CONFIGURE([pari], [
               AC_LANG_POP()
         ], [sage_spkg_install_pari=yes])
       fi dnl end main PARI test
-    fi dnl end deps test
-    m4_popdef([SAGE_PARI_MINVER])
+  ])
+  m4_popdef([SAGE_PARI_MINVER])
 ], [], [], [
     if test x$sage_spkg_install_pari = xyes; then
         AC_SUBST(SAGE_PARI_PREFIX, ['$SAGE_LOCAL'])

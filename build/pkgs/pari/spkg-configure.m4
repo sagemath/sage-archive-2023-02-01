@@ -74,8 +74,8 @@ SAGE_SPKG_CONFIGURE([pari], [
             sage_spkg_install_pari=yes
         fi
         AC_MSG_CHECKING([whether hyperellcharpoly bug is fixed])
-        bug_check=$(echo "hyperellcharpoly([x^10 + x^9 + x^8 + x,0]*Mod(1,3))" | $GP -qf 2>> config.log)
-        expected="%1 = x^8 + 731*x^7 + 6*x^6 - 720*x^5 + 18*x^4 - 2160*x^3 + 54*x^2 + 19737*x + 81"
+        bug_check=`echo "hyperellcharpoly(Mod(1,3)*(x^10 + x^9 + x^8 + x))" | $GP -qf 2>> config.log`
+        expected="x^8 + 2*x^7 + 6*x^6 + 9*x^5 + 18*x^4 + 27*x^3 + 54*x^2 + 54*x + 81"
         if test x"$bug_check" = x"$expected"; then
            AC_MSG_RESULT([yes])
         else
@@ -85,7 +85,7 @@ SAGE_SPKG_CONFIGURE([pari], [
            sage_spkg_install_pari=yes
         fi
         AC_MSG_CHECKING([whether bnfisunit bug of pari 2.11.3 is fixed])
-        bug_check=$(echo "bnf = bnfinit(y^4-y-1); bnfisunit(bnf,-y^3+2*y^2-1)" | $GP -qf 2>> config.log)
+        bug_check=`echo "bnf = bnfinit(y^4-y-1); bnfisunit(bnf,-y^3+2*y^2-1)" | $GP -qf 2>> config.log`
         expected="[[0, 2, Mod(0, 2)]]~"
         if test x"$bug_check" = x"$expected"; then
            AC_MSG_RESULT([yes])

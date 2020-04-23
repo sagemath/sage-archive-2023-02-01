@@ -29,8 +29,8 @@ if [ -f "$OUTPUTFILEBASENAME".tar.gz -o -f "$OUTPUTFILEBASENAME".tar.bz2 ] ; the
     exit 1
 fi
 
-# Build a temporary working dir. (subdir of SAGE_DISTFILES)
-TARGET=$(mktemp -d -p"$SAGE_DISTFILES")
+# Build a temporary working dir. (preferably, a subdir of SAGE_DISTFILES)
+TARGET=$(mktemp -d -p"$SAGE_DISTFILES" || mktemp -d)
 ORIGDIR=`pwd`
 cd "$TARGET"
 
@@ -70,9 +70,7 @@ touch html_vall
 
 # building giac source tarball for the spkg
 cd ../../../
-tar -cj src -f "$OUTPUTFILEBASENAME".tar.bz2
-
-
+tar -cjf "$OUTPUTFILEBASENAME".tar.bz2 src
 
 # cleaning extracted dir.
 cd ..

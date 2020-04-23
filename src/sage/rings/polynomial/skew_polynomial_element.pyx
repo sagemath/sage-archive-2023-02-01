@@ -60,7 +60,8 @@ AUTHORS:
 #****************************************************************************
 
 import re
-from copy import copy
+from cysignals.signals cimport sig_check
+
 from sage.rings.infinity import infinity
 from sage.structure.factorization import Factorization
 from sage.structure.element cimport Element, RingElement, AlgebraElement, ModuleElement
@@ -1117,21 +1118,23 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         if self.base_ring() not in Fields:
             raise TypeError("the base ring must be a field")
-        G = self
-        U = self._parent.one()
-        if other.is_zero():
+        cdef SkewPolynomial_generic_dense G = self
+        cdef SkewPolynomial_generic_dense U = self._parent.one()
+        cdef SkewPolynomial_generic_dense V, V1, V2, Q, R, T
+        if not other:
             V = self._parent.zero()
         else:
             V1 = self._parent.zero()
             V3 = other
-            while not V3.is_zero():
-                Q,R = G.left_quo_rem(V3)
+            while V3:
+                Q,R = G._left_quo_rem(V3)
                 T = U - V1*Q
                 U = V1
                 G = V3
                 V1 = T
                 V3 = R
-            V, _ = (G - self*U).left_quo_rem(other)
+            V = G - self*U
+            V, _ = V._left_quo_rem(other)
         if monic:
             lc = ~G.leading_coefficient()
             lc = self._parent.twist_map(-G.degree())(lc)
@@ -1139,6 +1142,119 @@ cdef class SkewPolynomial(AlgebraElement):
             U = U * lc
             V = V * lc
         return G,U,V
+
+    cdef _left_quo_rem(self, SkewPolynomial other):
+        r"""
+        Return the quotient and remainder of the left euclidean
+        division of ``self`` by ``other`` (C implementation).
+
+        Must be implemented in subclasses.
+        """
+        raise NotImplementedError("left Euclidean division is not implemented")
+
+    @coerce_binop
+    def left_quo_rem(self, other):
+        r"""
+        Return the quotient and remainder of the left euclidean
+        division of ``self`` by ``other``.
+
+        INPUT:
+
+        - ``other`` -- a skew polynomial in the same ring as ``self``
+
+        OUTPUT:
+
+        - the quotient and the remainder of the left euclidean
+          division of this skew polynomial by ``other``
+
+        .. NOTE::
+
+            This will fail if the leading coefficient of ``other`` is not a unit
+            or if Sage can't invert the twist map.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = (3*t^2 + 3*t + 2)*x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
+            sage: b = (3*t^2 + 4*t + 2)*x^2 + (2*t^2 + 4*t + 3)*x + 2*t^2 + t + 1
+            sage: q,r = a.left_quo_rem(b)
+            sage: a == b*q + r
+            True
+
+        In the following example, Sage does not know the inverse
+        of the twist map::
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = (-2*t^2 - t + 1)*x^3 + (-t^2 + t)*x^2 + (-12*t - 2)*x - t^2 - 95*t + 1
+            sage: b = x^2 + (5*t - 6)*x - 4*t^2 + 4*t - 1
+            sage: a.left_quo_rem(b)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+                Defn: t |--> t + 1
+        """
+        if not other:
+            raise ZeroDivisionError("division by zero is not valid")
+        return self._left_quo_rem(other)
+
+    cdef _right_quo_rem(self, SkewPolynomial other):
+        r"""
+        Return the quotient and remainder of the right euclidean
+        division of ``self`` by ``other`` (C implementation).
+
+        Must be implemented in subclasses.
+        """
+        raise NotImplementedError("right Euclidean division is not implemented")
+
+    @coerce_binop
+    def right_quo_rem(self, other):
+        r"""
+        Return the quotient and remainder of the right euclidean
+        division of ``self`` by ``other``.
+
+        INPUT:
+
+        - ``other`` -- a skew polynomial in the same ring as ``self``
+
+        OUTPUT:
+
+        - the quotient and the remainder of the left euclidean
+          division of this skew polynomial by ``other``
+
+        .. NOTE::
+
+            This will fail if the leading coefficient of the divisor
+            is not a unit.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x',sigma]
+            sage: a = S.random_element(degree=4); a
+            (-t - 95)*x^4 + x^3 + (2*t - 1)*x
+            sage: b = S.random_element(monic=True); b
+            x^2 + (-12*t - 2)*x
+            sage: q,r = a.right_quo_rem(b)
+            sage: a == q*b + r
+            True
+
+        The leading coefficient of the divisor need to be invertible::
+
+            sage: c = S.random_element(); c
+            (t - 1)*x^2 + t^2*x
+            sage: a.right_quo_rem(c)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the leading coefficient of the divisor is not invertible
+        """
+        if not other:
+            raise ZeroDivisionError("division by zero is not valid")
+        return self._right_quo_rem(other)
 
     @coerce_binop
     def right_xgcd(self, other, monic=True):
@@ -1212,21 +1328,23 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         if self.base_ring() not in Fields:
             raise TypeError("the base ring must be a field")
-        G = self
-        U = self._parent.one()
+        cdef SkewPolynomial_generic_dense G = self
+        cdef SkewPolynomial_generic_dense U = self._parent.one()
+        cdef SkewPolynomial_generic_dense V, V1, V3, Q, R, T
         if other.is_zero():
             V = self._parent.zero()
         else:
             V1 = self._parent.zero()
             V3 = other
             while not V3.is_zero():
-                Q, R = G.right_quo_rem(V3)
+                Q, R = G._right_quo_rem(V3)
                 T = U - Q*V1
                 U = V1
                 G = V3
                 V1 = T
                 V3 = R
-            V,_ = (G - U*self).right_quo_rem(other)
+            V = G - U*self
+            V,_ = V._right_quo_rem(other)
         if monic:
             lc = ~G.leading_coefficient()
             G = lc * G
@@ -1291,8 +1409,8 @@ cdef class SkewPolynomial(AlgebraElement):
             raise TypeError("the base ring must be a field")
         if other.is_zero():
             return self
-        A = self
-        B = other
+        cdef SkewPolynomial_generic_dense A = self
+        cdef SkewPolynomial_generic_dense B = other
         while not B.is_zero():
             A, B = B, A % B
         if monic:
@@ -1371,12 +1489,12 @@ cdef class SkewPolynomial(AlgebraElement):
             raise TypeError("the base ring must be a field")
         if other.is_zero():
             return self
-        A = self
-        B = other
+        cdef SkewPolynomial_generic_dense A_, A = self
+        cdef SkewPolynomial_generic_dense B = other
         while not B.is_zero():
             A_ = A
             A = B
-            _, B = A_.left_quo_rem(B)
+            _, B = A_._left_quo_rem(B)
         if monic:
             A = A.left_monic()
         return A
@@ -1412,7 +1530,7 @@ cdef class SkewPolynomial(AlgebraElement):
         cdef SkewPolynomial U = <SkewPolynomial>self._parent.one()
         cdef SkewPolynomial V = <SkewPolynomial>self._parent.zero()
         while other:
-            Q, R = self.right_quo_rem(other)
+            Q, R = self._right_quo_rem(other)
             T = U - Q*V
             U = V
             V = T
@@ -1450,8 +1568,8 @@ cdef class SkewPolynomial(AlgebraElement):
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError("division by zero is not valid")
-        V1 = self._left_lcm_cofactor(other)
-        L = V1 * self
+        cdef SkewPolynomial_generic_dense V1 = self._left_lcm_cofactor(other)
+        cdef SkewPolynomial_generic_dense L = V1 * self
         if monic:
             s = ~(L.leading_coefficient())
             L = s * L
@@ -1489,7 +1607,7 @@ cdef class SkewPolynomial(AlgebraElement):
         cdef SkewPolynomial U = <SkewPolynomial>self._parent.one()
         cdef SkewPolynomial V = <SkewPolynomial>self._parent.zero()
         while other:
-            Q, R = self.left_quo_rem(other)
+            Q, R = self._left_quo_rem(other)
             T = U - V*Q
             U = V
             V = T
@@ -1533,14 +1651,14 @@ cdef class SkewPolynomial(AlgebraElement):
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError("division by zero is not valid")
-        V1 = self._right_lcm_cofactor(other)
-        L = self * V1
+        cdef SkewPolynomial_generic_dense V1 = self._right_lcm_cofactor(other)
+        cdef SkewPolynomial_generic_dense L = self * V1
         if monic:
             s = self.base_ring()(~L.leading_coefficient())
             s = self._parent.twist_map(-L.degree())(s)
             L = L * s
             V1 = V1 * s
-        W1, _ = L.left_quo_rem(other)
+        W1, _ = L._left_quo_rem(other)
         return L, V1, W1
 
 
@@ -2909,57 +3027,16 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         return self._new_c(self._coeffs[:n], self._parent, 1)
 
-    @coerce_binop
-    def left_quo_rem(self, other):
+    cdef _left_quo_rem(self, SkewPolynomial other):
         r"""
         Return the quotient and remainder of the left euclidean
-        division of ``self`` by ``other``.
-
-        INPUT:
-
-        - ``other`` -- a skew polynomial in the same ring as ``self``
-
-        OUTPUT:
-
-        - the quotient and the remainder of the left euclidean
-          division of this skew polynomial by ``other``
-
-        .. NOTE::
-
-            This will fail if the leading coefficient of ``other`` is not a unit
-            or if Sage can't invert the twist map.
-
-        EXAMPLES::
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-            sage: a = (3*t^2 + 3*t + 2)*x^3 + (2*t^2 + 3)*x^2 + (4*t^2 + t + 4)*x + 2*t^2 + 2
-            sage: b = (3*t^2 + 4*t + 2)*x^2 + (2*t^2 + 4*t + 3)*x + 2*t^2 + t + 1
-            sage: q,r = a.left_quo_rem(b)
-            sage: a == b*q + r
-            True
-
-        In the following example, Sage does not know the inverse
-        of the twist map::
-
-            sage: R.<t> = ZZ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: a = (-2*t^2 - t + 1)*x^3 + (-t^2 + t)*x^2 + (-12*t - 2)*x - t^2 - 95*t + 1
-            sage: b = x^2 + (5*t - 6)*x - 4*t^2 + 4*t - 1
-            sage: a.left_quo_rem(b)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
-                Defn: t |--> t + 1
+        division of ``self`` by ``other`` (C implementation).
         """
+        sig_check()
         cdef list a = list(self._coeffs)
-        cdef list b = (<SkewPolynomial_generic_dense?>other)._coeffs
+        cdef list b = (<SkewPolynomial_generic_dense>other)._coeffs
         cdef Py_ssize_t i, j
         cdef Py_ssize_t da = self.degree(), db = other.degree()
-        if db < 0:
-            raise ZeroDivisionError("division by zero is not valid")
         if da < db:
             return (self._new_c([], self._parent), self)
         try:
@@ -2979,55 +3056,17 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         q.reverse()
         return (self._new_c(q, parent), self._new_c(a[:db], parent, 1))
 
-    @coerce_binop
-    def right_quo_rem(self, other):
+    cdef _right_quo_rem(self, SkewPolynomial other):
         r"""
         Return the quotient and remainder of the right euclidean
-        division of ``self`` by ``other``.
-
-        INPUT:
-
-        - ``other`` -- a skew polynomial in the same ring as ``self``
-
-        OUTPUT:
-
-        - the quotient and the remainder of the left euclidean
-          division of this skew polynomial by ``other``
-
-        .. NOTE::
-
-            This will fail if the leading coefficient of the divisor
-            is not a unit.
-
-        EXAMPLES::
-
-            sage: R.<t> = ZZ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: a = S.random_element(degree=4); a
-            (-t - 95)*x^4 + x^3 + (2*t - 1)*x
-            sage: b = S.random_element(monic=True); b
-            x^2 + (-12*t - 2)*x
-            sage: q,r = a.right_quo_rem(b)
-            sage: a == q*b + r
-            True
-
-        The leading coefficient of the divisor need to be invertible::
-
-            sage: c = S.random_element(); c
-            (t - 1)*x^2 + t^2*x
-            sage: a.right_quo_rem(c)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: the leading coefficient of the divisor is not invertible
+        division of ``self`` by ``other`` (C implementation).
         """
+        sig_check()
         cdef list a = list(self._coeffs)
-        cdef list b = (<SkewPolynomial_generic_dense?>other)._coeffs
+        cdef list b = (<SkewPolynomial_generic_dense>other)._coeffs
         cdef Py_ssize_t i, j
         cdef Py_ssize_t da = self.degree(), db = other.degree()
         parent = self._parent
-        if db < 0:
-            raise ZeroDivisionError("division by zero is not valid")
         if da < db:
             return (self._new_c([],parent), self)
         try:
@@ -3104,7 +3143,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             r._inplace_pow(exp)
 
         if modulus:
-            _, r = r.left_quo_rem(modulus)
+            _, r = r._left_quo_rem(modulus)
         return r
 
     cpdef right_power_mod(self, exp, modulus):
@@ -3174,7 +3213,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             r._inplace_pow(exp)
 
         if modulus:
-            _, r = r.right_quo_rem(modulus)
+            _, r = r._right_quo_rem(modulus)
         return r
 
     def __pow__(self, exp, modulus):

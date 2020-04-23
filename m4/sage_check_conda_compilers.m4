@@ -6,13 +6,11 @@ AC_DEFUN([SAGE_CHECK_CONDA_COMPILERS], [
         dnl A conda environment is active.
         dnl #27699: Conda compiler packages must be installed
         need_pkgs="c-compiler cxx-compiler fortran-compiler"
-        for pkg in $need_pkgs; do
-            AC_MSG_CHECKING([whether conda package "$pkg" is installed in the current conda environment])
-            AS_IF([$CONDA_EXE list -c -f $pkg | grep -q $pkg], [have_pkg=yes], [have_pkg=no])
-            AC_MSG_RESULT($have_pkg)
-            AS_IF([test $have_pkg = no],
-                  [AC_MSG_ERROR([A conda environment ($CONDA_DEFAULT_ENV) is active, but it is missing
-the following conda packages required for building Sage:
+        AS_IF([test -z "$CC" -o -z "$CXX" -o -z "$FC" ], [
+          AC_MSG_ERROR([A conda environment ($CONDA_DEFAULT_ENV) is active, but
+at least one of the environment variables CC, CXX, FC is not set, which indicates
+that the conda environment is missing the following conda packages required
+for building Sage:
     $need_pkgs
 For building Sage, either:
 - activate a conda environment that has these packages, using:
@@ -22,7 +20,6 @@ For building Sage, either:
 - or deactivate conda by
     conda deactivate
   (this command may need to be repeated).])
-                  ])
-        done
+        ])
     ])
 ])

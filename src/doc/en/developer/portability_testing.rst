@@ -916,7 +916,8 @@ Automatic parallel tox runs on GitHub Actions
 
 The Sage source tree includes a default configuration for GitHub
 Actions that runs tox on a multitude of platforms on every pull
-request to a repository for which GitHub Actions are enabled.
+request and on every push of a tag (but not of a branch) to a
+repository for which GitHub Actions are enabled.
 
 This is defined in the file ``$SAGE_ROOT/.github/workflows/tox.yml``.
 
@@ -936,8 +937,29 @@ workflow have finished.  Each job generates one tarball.
 "Annotations" highlight certain top-level errors or warnings issued
 during the build.
 
-The following procedure seems to work well for testing branches during
-development:
+The following procedure triggers a run of tests with the default set of
+system configurations.  Let's assume that ``github`` is the name of
+the remote corresponding to your GitHub fork of the Sage repository::
+
+  $ git remote -v | grep /my-github
+  my-github      https://github.com/mkoeppe/sage.git (fetch)
+  my-github      https://github.com/mkoeppe/sage.git (push)
+
+- Create a ("lightweight", not "annotated") tag with an arbitrary
+  name, say ``ci`` (for "Continuous Integration")::
+
+    git tag -f ci
+
+- Then push the tag to your GitHub repository::
+
+    git push -f my-github ci
+
+(In both commands, the "force" option (``-f``) allows overwriting a
+previous tag of that name.)
+
+For testing branches against a custom set of system configurations
+during development, the following procedure seems to work well.  It
+avoids changing the CI configuration on your development branch:
 
 - Create a branch from a recent beta release that contains the default
   GitHub Actions configuration; name it ``TESTER``, say.
@@ -950,6 +972,9 @@ development:
 - Push your development branch to your GitHub repository and create a
   pull request against the ``TESTER`` branch. This will trigger the
   GitHub Actions workflow.
+
+You will find a workflow status page in the "Actions" tab of your
+repository.
 
 Here is how to read it.  Each of the items in the left pane represents
 a full build of Sage on a particular system configuration.  A test

@@ -20,6 +20,9 @@ name: Run SAGE_ROOT/tox.ini TARGETS_OPTIONAL
 on:
   pull_request:
     types: [opened, synchronize]
+  push:
+    tags:
+      - '*'
 
 env:
   TARGETS_PRE: build/make/Makefile

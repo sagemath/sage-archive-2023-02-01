@@ -64,8 +64,9 @@ jobs:
         run: |
           mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"
           cp -r .tox/$TOX_ENV/Dockerfile .tox/$TOX_ENV/log "artifacts/$LOGS_ARTIFACT_NAME"
-          if [ -f .tox/$TOX_ENV/Dockertags ]; then CONTAINERS=$(docker create $(tail -1 .tox/$TOX_ENV/Dockertags)); else CONTAINERS=$(docker ps -q -a); fi
-          for CONTAINER in $CONTAINERS; do for ARTIFACT in /sage/logs; do docker cp $CONTAINER:$ARTIFACT artifacts/$LOGS_ARTIFACT_NAME && HAVE_LOG=1; done; if [ -n "$HAVE_LOG" ]; then break; fi; done
+          if [ -f .tox/$TOX_ENV/Dockertags ]; then CONTAINERS=$(docker create $(tail -1 .tox/$TOX_ENV/Dockertags) /bin/bash || true); fi
+          if [ -z "$CONTAINERS" ]; then CONTAINERS=$(docker ps -q -a); fi
+          if [ -n "$CONTAINERS" ]; then for CONTAINER in $CONTAINERS; do for ARTIFACT in /sage/logs; do docker cp $CONTAINER:$ARTIFACT artifacts/$LOGS_ARTIFACT_NAME && HAVE_LOG=1; done; if [ -n "$HAVE_LOG" ]; then break; fi; done; fi
         if: always()
       - uses: actions/upload-artifact@v1
         with:

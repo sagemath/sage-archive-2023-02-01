@@ -236,8 +236,6 @@ More Detailed Instructions to Build from Source
    contains errors to the [sage-support mailing list](https://groups.google.com/group/sage-support).
    If there are numerous failures, there was a serious problem with your build.
 
-   Note: if you built for Python 3, you can instead run `make ptest-python3`.
-
 1. The HTML version of the [documentation](https://doc.sagemath.org/html/en/index.html)
    is built during the compilation process of Sage and resides in the directory
    `local/share/doc/sage/html/`.

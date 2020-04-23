@@ -101,8 +101,9 @@ computer:
 - **perl**: version 5.8.0 or later.
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
-- **python**: Python >= 3.6.
+- **python**: Python >= 2.7.
 
+Other versions of these may work, but they may be untested.
 
 Libraries
 ^^^^^^^^^

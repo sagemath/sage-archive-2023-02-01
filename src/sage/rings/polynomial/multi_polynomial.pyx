@@ -960,13 +960,19 @@ cdef class MPolynomial(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             ValueError: wrong argument 'group'
+
+            sage: R.one().is_symmetric(SymmetricGroup(4))
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid data to initialize a permutation
         """
         n = self.parent().ngens()
         if n <= 1:
             return True
+
+        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+        S = SymmetricGroup(n)
         if group is None:
-            from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-            S = SymmetricGroup(n)
             gens = S.gens()
         else:
             try:
@@ -978,14 +984,11 @@ cdef class MPolynomial(CommutativeRingElement):
                     gens = group.GeneratorsOfGroup()
                 except AttributeError:
                     raise ValueError("wrong argument 'group'")
-                from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-                S = SymmetricGroup(n)
-                gens = [S(g) for g in gens]
+            gens = [S(g) for g in gens]
 
         cdef dict coeffs = self.dict()
         zero = self.base_ring().zero()
-        for e in self.exponents():
-            coeff = coeffs[e]
+        for e, coeff in coeffs.items():
             for g in gens:
                 if coeffs.get(g._act_on_etuple_on_position(e, True), zero) != coeff:
                     return False

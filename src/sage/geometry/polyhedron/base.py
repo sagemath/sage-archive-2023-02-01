@@ -5827,7 +5827,7 @@ class Polyhedron_base(Element):
             sage: fl = square.face_lattice();fl
             Finite lattice containing 10 elements
             sage: list(f.ambient_V_indices() for f in fl)
-            [(), (0,), (1,), (2,), (3,), (0, 1), (1, 2), (2, 3), (0, 3), (0, 1, 2, 3)]
+            [(), (0,), (1,), (0, 1), (2,), (1, 2), (3,), (0, 3), (2, 3), (0, 1, 2, 3)]
             sage: poset_element = fl[5]
             sage: a_face = poset_element
             sage: a_face

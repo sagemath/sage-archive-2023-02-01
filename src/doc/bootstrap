@@ -24,6 +24,7 @@ shopt -s extglob
 
 for SYSTEM in arch debian fedora cygwin homebrew; do
     SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} build/pkgs/$SYSTEM.txt))
+    OPTIONAL_SYSTEM_PACKAGES=
     for PKG_SCRIPTS in build/pkgs/*; do
         if [ -d $PKG_SCRIPTS ]; then
             PKG_BASE=$(basename $PKG_SCRIPTS)

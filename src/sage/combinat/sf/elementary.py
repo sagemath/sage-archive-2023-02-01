@@ -381,8 +381,8 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
                 0
                 sage: a.parent()
                 Finite Field of size 3
-                sage: a = e[1,1].principal_specialization(n=2); a
-                q^2 + 1
+                sage: a = e[1,1,1].principal_specialization(n=2); a
+                q^3 + 1
                 sage: a.parent()
                 Univariate Polynomial Ring in q over Finite Field of size 3
                 sage: a = e.one().principal_specialization(n=2, q=GF(3)(2)); a

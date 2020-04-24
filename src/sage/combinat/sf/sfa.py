@@ -5572,7 +5572,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: B = [S.p(), S.m(), S.e(), S.h(), S.s(), S.f()]
             sage: m = S.m(); x = m[3,2,1]
             sage: set([b(x).principal_specialization(n=4, q=GF(3)(2)) for b in B])
-            {-3} # Please replace by correct answer
+            {1}
 
         """
         # heuristically, it seems fastest to fall back to the

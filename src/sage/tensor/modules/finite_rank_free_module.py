@@ -1084,7 +1084,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         See
         :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`
         for more documentation.
-
+def dual_exterior_power
         """
         from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
         if p == 0:
@@ -1637,6 +1637,8 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         for more documentation.
 
         """
+        if degree == 0:
+            return self._ring()
         return self.dual_exterior_power(degree).element_class(self, degree,
                                               name=name, latex_name=latex_name)
 

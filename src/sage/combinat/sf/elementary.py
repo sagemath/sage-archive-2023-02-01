@@ -468,6 +468,8 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
             (see :meth:`principal_specialization`).
             (See (7.29) in [EnumComb2]_.)
 
+            The limit of `ex_q` as `q \to 1` is `ex`.
+
             INPUT:
 
             - ``t`` (default: ``None``) -- the value to use for `t`;

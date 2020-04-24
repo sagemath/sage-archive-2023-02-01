@@ -1243,7 +1243,7 @@ class Partition(CombinatorialElement):
 
         REFERENCES:
 
-        - :wikipedia:`Zolotarev's_lemma`
+        - :wikipedia:`Zolotarev%27s_lemma`
         """
         return (-1)**(self.size()-self.length())
 

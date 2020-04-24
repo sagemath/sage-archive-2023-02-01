@@ -48,7 +48,7 @@ AUTHORS:
 - Volker Braun (2013-1) port to new Parent, libGAP.
 
 - Sebastian Oehms (2018-07): Added _permutation_group_element_ (Trac #25706)
-- Sebastian Oehms (2019-01): Revision of :trac:`25706` (:trac:`26903`and :trac:`27143`).
+- Sebastian Oehms (2019-01): Revision of :trac:`25706` (:trac:`26903` and :trac:`27143`).
 """
 
 ##############################################################################

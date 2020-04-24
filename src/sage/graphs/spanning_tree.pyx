@@ -401,7 +401,7 @@ def filter_kruskal(G, threshold=10000, weight_function=None, bint check=False):
     .. SEEALSO::
 
         - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
-        - :wikipedia:`Kruskal's_algorithm`
+        - :wikipedia:`Kruskal%27s_algorithm`
         - :func:`kruskal`
         - :func:`filter_kruskal_iterator`
 
@@ -429,7 +429,7 @@ def filter_kruskal_iterator(G, threshold=10000, weight_function=None, bint check
     .. SEEALSO::
 
         - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
-        - :wikipedia:`Kruskal's_algorithm`
+        - :wikipedia:`Kruskal%27s_algorithm`
         - :func:`kruskal`
         - :func:`filter_kruskal`
 

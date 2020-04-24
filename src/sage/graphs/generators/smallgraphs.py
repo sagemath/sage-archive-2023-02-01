@@ -4327,7 +4327,7 @@ def TietzeGraph():
     Return the Tietze Graph.
 
     For more information on the Tietze Graph, see the
-    :wikipedia:`Tietze's_graph`.
+    :wikipedia:`Tietze%27s_graph`.
 
     EXAMPLES::
 

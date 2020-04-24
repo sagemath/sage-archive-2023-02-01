@@ -579,17 +579,22 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             r"""
             Return the principal specialization of a symmetric function.
 
-            The *principal specialization* of order `n` is the ring
-            homomorphism from the ring of symmetric functions to another
-            commutative ring `R` given by `x_i \mapsto q^{i-1}` for
-            `i \in \{1,\dots,n\}` and `x_i \mapsto 0` for `i > n`.
-            Here, `q` is a given element of `R`.
-            (To be more precise, it is a `K`-algebra homomorphism,
-            where `K` is the base ring.)
+            The *principal specialization* of order `n` at `q`
+            is the ring homomorphism `ps_{n,q}` from the ring of
+            symmetric functions to another commutative ring `R`
+            given by `x_i \mapsto q^{i-1}` for `i \in \{1,\dots,n\}`
+            and `x_i \mapsto 0` for `i > n`.
+            Here, `q` is a given element of `R`, and we assume that
+            the variables of our symmetric functions are
+            `x_1, x_2, x_3, \ldots`.
+            (To be more precise, `ps_{n,q}` is a `K`-algebra
+            homomorphism, where `K` is the base ring.)
             See Section 7.8 of [EnumComb2]_.
 
-            The *stable principal specialization* is the ring
-            homomorphism given by `x_i \mapsto q^{i-1}` for all `i`.
+            The *stable principal specialization* at `q` is the ring
+            homomorphism `ps_q` from the ring of symmetric functions
+            to another commutative ring `R` given by
+            `x_i \mapsto q^{i-1}` for all `i`.
             This is well-defined only if the resulting infinite sums
             converge; thus, in particular, setting `q = 1` in the
             stable principal specialization is an invalid operation.
@@ -618,14 +623,14 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             .. MATH::
 
-                ps_q(s_\lambda) = q^{\sum_i i\lambda_i} / \prod_{u\in\lambda} (1-q^{h(u)}).
+                ps_q(s_\lambda) = q^{\sum_i (i-1)\lambda_i} / \prod_{u\in\lambda} (1-q^{h(u)}).
 
-            Otherwise, we use the formula  from Corollary 7.21.2 of [EnumComb2]_,
+            Otherwise, we use the formula from Theorem 7.21.2 of [EnumComb2]_,
 
             .. MATH::
 
-                ps_{n,q}(s_\lambda) = q^{\sum_i i\lambda_i}
-                                      \prod_{u\in\lambda} (1-q^{n+c(u)}/(1-q^{h(u)}).
+                ps_{n,q}(s_\lambda) = q^{\sum_i (i-1)\lambda_i}
+                                      \prod_{u\in\lambda} (1-q^{n+c(u)})/(1-q^{h(u)}).
 
             EXAMPLES::
 
@@ -687,15 +692,26 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             r"""
             Return the exponential specialization of a symmetric function.
 
-            The exponential specialization `ex` is the ring homomorphism
-            defined on the basis of powersum symmetric functions by
-            setting `p_1 = t` and `p_n = 0` for `n > 1`.  Equivalently,
-            on the basis of homogeneous functions it is given by `ex(h_n)
-            = t^n / n!`, see Proposition 7.8.4 of [EnumComb2]_.
+            The *exponential specialization* `ex` at `t` is a
+            `K`-algebra homomorphism from the `K`-algebra of
+            symmetric functions to another `K`-algebra `R`.
+            It is defined whenever the base ring `K` is a
+            `\QQ`-algebra and `t` is an element of `R`.
+            The easiest way to define it is by specifying its
+            values on the powersum symmetric functions to be
+            `p_1 = t` and `p_n = 0` for `n > 1`.
+            Equivalently, on the homogeneous functions it is
+            given by `ex(h_n) = t^n / n!`; see Proposition 7.8.4 of
+            [EnumComb2]_.
 
-            By analogy, the `q`-exponential specialization is a ring
-            homomorphism defined on the complete homogeneous symmetric
-            functions as
+            By analogy, the `q`-exponential specialization is a
+            `K`-algebra homomorphism from the `K`-algebra of
+            symmetric functions to another `K`-algebra `R` that
+            depends on two elements `t` and `q` of `R` for which
+            the elements `1 - q^i` for all positive integers `i`
+            are invertible.
+            It can be defined by specifying its values on the
+            complete homogeneous symmetric functions to be
 
             .. MATH::
 
@@ -703,30 +719,32 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             where `[n]_q!` is the `q`-factorial.  Equivalently, for
             `q \neq 1` and a homogeneous symmetric function `f` of
-            degree `n`,
+            degree `n`, we have
 
             .. MATH::
 
                 ex_q(f) = (1-q)^n t^n ps_q(f),
 
-            where `ps_q(f)` is the stable principal specialization of `f`.
+            where `ps_q(f)` is the stable principal specialization of `f`
+            (see :meth:`principal_specialization`).
+            (See (7.29) in [EnumComb2]_.)
 
             INPUT:
 
-            - ``t`` (default: None) -- the value to use for `t`, the
-              default is to create a ring of polynomials in ``t``.
+            - ``t`` (default: ``None``) -- the value to use for `t`;
+              the default is to create a ring of polynomials in ``t``.
 
-            - ``q`` (default: 1) -- the value to use for `q`.  If ``q``
-              is ``None`` create a ring (or fraction field) of
-              polynomials in ``q``.
+            - ``q`` (default: `1`) -- the value to use for `q`.  If
+              ``q`` is ``None``, then a ring (or fraction field) of
+              polynomials in ``q`` is created.
 
             We use the formula in the proof of Corollary 7.21.6 of
             [EnumComb2]_
 
             .. MATH::
 
-                ex_{q}(s_\lambda) = t^{|\lambda|} q^{\sum_i i\lambda_i}
-                                      / \prod_{u\in\lambda} (1 + \dots + q^{h(u)-1})
+                ex_{q}(s_\lambda) = t^{|\lambda|} q^{\sum_i (i-1)\lambda_i}
+                                      / \prod_{u\in\lambda} (1 + q + q^2 + \dots + q^{h(u)-1})
 
             where `h(u)` is the hook length of a cell `u` in `\lambda`.
 

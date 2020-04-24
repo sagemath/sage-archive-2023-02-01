@@ -162,8 +162,8 @@ class NumberFieldIdeal(Ideal_generic):
         ans = magma(g) * O
         for g in self.gens()[1:]:
             ans += magma(g) * O
-        v = '+'.join('%s * %s'%(g._magma_init_(magma),O.name()) for g in self.gens())
-        return v
+        return '+'.join('%s * %s' % (g._magma_init_(magma), O.name())
+                        for g in self.gens())
 
     def __hash__(self):
         """

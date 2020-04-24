@@ -972,7 +972,7 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
                 T = enumerate_totallyreal_fields_rel(F, n/d, B, verbose=verbose, return_seqs=return_seqs)
                 if return_seqs:
                     for k in range(4):
-                        counts[i] += T[0][k]
+                        counts[k] += T[0][k]
                     S += [[t[0],pari(t[1]).Polrev()] for t in T[1]]
                 else:
                     S += [[t[0],t[1]] for t in T]

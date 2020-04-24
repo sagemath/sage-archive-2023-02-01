@@ -4285,8 +4285,14 @@ class Polyhedron_base(Element):
             sage: P + vector([1,2,3,4,5/2]) == Q + vector([1,2,3,4,5/2])
             True
         """
+        Vrep, Hrep, parent = self._translation_double_description(displacement)
+
+        return parent.element_class(parent, Vrep, Hrep,
+                                    Vrep_minimal=True, Hrep_minimal=True)
+
+    def _translation_double_description(self, displacement):
         displacement = vector(displacement)
-        new_vertices = tuple(x.vector()+displacement for x in self.vertex_generator())
+        new_vertices = (x.vector()+displacement for x in self.vertex_generator())
         new_rays = self.rays()
         new_lines = self.lines()
         parent = self.parent().base_extend(displacement)
@@ -4299,12 +4305,9 @@ class Polyhedron_base(Element):
             y[0] -= x.A()*displacement
             return y
 
-        new_ieqs = tuple(get_new(x) for x in self.inequality_generator())
-        new_eqns = tuple(get_new(x) for x in self.equation_generator())
-
-        return parent.element_class(parent, [new_vertices, new_rays, new_lines],
-                                    [new_ieqs, new_eqns],
-                                    Vrep_minimal=True, Hrep_minimal=True)
+        new_ieqs = (get_new(x) for x in self.inequality_generator())
+        new_eqns = (get_new(x) for x in self.equation_generator())
+        return [new_vertices, new_rays, new_lines], [new_ieqs, new_eqns], parent
 
     def product(self, other):
         """

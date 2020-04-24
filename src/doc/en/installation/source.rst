@@ -354,7 +354,7 @@ Although it is possible to install Sage's dependencies using the Cygwin
 graphical installer, it is recommended to install the `apt-cyg
 <https://github.com/transcode-open/apt-cyg>`_ command-line package
 installer, which is used for the remainder of these instructions.  To
-run `apt-cyg`, you must have already installed (using the graphical
+run ``apt-cyg``, you must have already installed (using the graphical
 installer) the following packages at a minimum::
 
     bzip2 coreutils gawk gzip tar wget
@@ -619,8 +619,10 @@ Running Sage from a directory with spaces in its name will also fail.
 #. Optional:  Set various other environment variables that influence the
    build process; see :ref:`section_envvar`.
 
-   Some environment variables deserve a special mention: `CC`, `CXX` and `FC`;
-   and on macOS, `OBJC` and `OBJCXX`. Those variables defining your compilers
+   Some environment variables deserve a special mention: :envvar:`CC`,
+   :envvar:`CXX` and :envvar:`FC`;
+   and on macOS, :envvar:`OBJC` and :envvar:`OBJCXX`. Those variables
+   defining your compilers
    can be set at configuration time and their values will be recorded for
    further use at runtime. Those initial values are over-ridden if Sage builds
    its own compiler or they are set to a different value again before calling
@@ -1513,4 +1515,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in August 2019 (Sage 9.0).**
+**This page was last updated in April 2020 (Sage 9.1).**

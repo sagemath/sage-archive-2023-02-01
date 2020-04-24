@@ -23,6 +23,7 @@ from . import classical
 import sage.libs.lrcalc.lrcalc as lrcalc
 from sage.misc.all import prod
 from sage.rings.infinity import infinity
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.functions.other import factorial
 from sage.combinat.tableau import StandardTableaux
 
@@ -665,9 +666,19 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                 f = lambda partition: (q**sum(i*part for i, part in enumerate(partition))
                                        / prod(1-q**h for h in partition.hooks()))
             else:
-                f = lambda partition: (q**sum(i*part for i, part in enumerate(partition))
-                                       * prod(1-q**(n + partition.content(*c)) for c in partition.cells())
-                                       / prod(1-q**h for h in partition.hooks()))
+                q_lim = PolynomialRing(self.base_ring(), "q").gen()
+                def f(partition):
+                    power = q**sum(i*part for i, part in enumerate(partition))
+                    denom = prod(1-q**h for h in partition.hooks())
+                    if denom:
+                        return (power
+                                * prod(1-q**(n + partition.content(*c))
+                                       for c in partition.cells())
+                                / denom)
+                    quotient = (prod(1-q_lim**(n + partition.content(*c))
+                                     for c in partition.cells())
+                                / prod(1-q_lim**h for h in partition.hooks()))
+                    return (power * quotient.subs({q_lim: q}))
 
             return self.parent()._apply_module_morphism(self, f, q.parent())
 

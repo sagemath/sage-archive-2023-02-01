@@ -5494,7 +5494,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ValueError: the variable q is in the base ring, pass it explicitly
 
             sage: Ht[2].principal_specialization(q=R("q"))
-            (-q^2 - 1)/(-q^3 + q^2 + q - 1)
+            (q^2 + 1)/(q^3 - q^2 - q + 1)
 
         Note that the principal specialization can be obtained as a plethysm::
 
@@ -5550,9 +5550,19 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: set([str(test_error(b(x))) for b in B])
             {'the stable principal specialization at q=1 is not defined'}
 
+        Check that specifying `q` which is a removable singularity works::
+
+            sage: S = SymmetricFunctions(QQ)
+            sage: B = [S.p(), S.m(), S.e(), S.h(), S.s(), S.f()]
+            sage: m = S.m(); x = m[2,2,1]
+            sage: set([b(x).principal_specialization(n=4, q=QQbar.zeta(3)) for b in B])
+            {-3}
+
         """
-        m = self.parent().realization_of().monomial()
-        return m(self).principal_specialization(n, q=q)
+        # heuristically, it seems fastest to fall back to the
+        # elementary basis instead of the powersum basis
+        e = self.parent().realization_of().elementary()
+        return e(self).principal_specialization(n, q=q)
 
     def exponential_specialization(self, t=None, q=1):
         r"""
@@ -5629,8 +5639,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             1
 
         """
-        p = self.parent().realization_of().powersum()
-        return p(self).exponential_specialization(t=t, q=q)
+        # heuristically, it seems fastest to fall back to the
+        # elementary basis instead of the powersum basis
+        e = self.parent().realization_of().elementary()
+        return e(self).exponential_specialization(t=t, q=q)
 
 SymmetricFunctionAlgebra_generic.Element = SymmetricFunctionAlgebra_generic_Element
 

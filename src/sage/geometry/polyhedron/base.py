@@ -4287,8 +4287,10 @@ class Polyhedron_base(Element):
         """
         Vrep, Hrep, parent = self._translation_double_description(displacement)
 
+        pref_rep = 'Vrep' if self.n_vertices() + self.n_rays() <= self.n_inequalities() else 'Hrep'
+
         return parent.element_class(parent, Vrep, Hrep,
-                                    Vrep_minimal=True, Hrep_minimal=True)
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
     def _translation_double_description(self, displacement):
         r"""
@@ -6579,15 +6581,73 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             ValueError: not full-dimensional; try with 'in_affine_span=True'
+
+        Check that the double description is set up correctly::
+
+            sage: P = Polyhedron([[1,0],[0,1],[-1,-1]], backend='field')
+            sage: Q = P.change_ring(QQ, backend='ppl')
+            sage: P.polar() == Q.polar()
+            True
+
+            sage: P = polytopes.simplex(4, backend='field')
+            sage: Q = P.change_ring(QQ, backend='ppl')
+            sage: P.polar(in_affine_span=True) == Q.polar(in_affine_span=True)
+            True
+
+        Check that it works, even when the equations are not orthogonal to each other::
+
+            sage: P = polytopes.cube()*Polyhedron([[0,0,0]])
+            sage: P = P.change_ring(QQ)
+
+            sage: from sage.geometry.polyhedron.backend_field import Polyhedron_field
+            sage: from sage.geometry.polyhedron.parent import Polyhedra_field
+            sage: parent = Polyhedra_field(QQ, 6, 'field')
+            sage: equations = [[0, 0, 0, 0, 1, 1, 1], [0, 0, 0, 0, -1, 1, -1], [0, 0, 0, 0, 1, -1, -1]]
+            sage: Q = Polyhedron_field(parent, [P.vertices(), [], []], [P.inequalities(), equations],
+            ....:                      Vrep_minimal=True, Hrep_minimal=True)
+            sage: Q == P
+            True
+            sage: Q.polar(in_affine_span=True) == P.polar(in_affine_span=True)
+            True
         """
         if not self.is_compact():
             raise ValueError("not a polytope")
         if not in_affine_span and not self.dim() == self.ambient_dim():
             raise ValueError("not full-dimensional; try with 'in_affine_span=True'")
 
-        verts = [list(self.center() - v.vector()) for v in self.vertex_generator()]
-        parent = self.parent().base_extend(self.center().parent())
-        return parent.element_class(parent, None, [[[1] + list(v) for v in verts], self.equations()])
+        t_Vrep, t_Hrep, parent = self._translation_double_description(-self.center())
+        t_verts = t_Vrep[0]
+        t_ieqs = t_Hrep[0]
+        t_eqns = t_Hrep[1]
+
+        new_ieqs = ((1,) + tuple(-v) for v in t_verts)
+        if self.n_vertices() == 1:
+            new_verts = self.vertices()
+        elif not self.n_equations():
+            new_verts = ((-h/h[0])[1:] for h in t_ieqs)
+        else:
+            # Transform the equations such that the normals are pairwise orthogonal.
+            t_eqns = list(t_eqns)
+            for i,h in enumerate(t_eqns):
+                for h1 in t_eqns[:i]:
+                    a = h[1:]*h1[1:]
+                    if a:
+                        b = h1[1:]*h1[1:]
+                        t_eqns[i] = b*h - a*h1
+
+            def move_vertex_to_subspace(vertex):
+                for h in t_eqns:
+                    offset = vertex*h[1:]+h[0]
+                    vertex = vertex-h[1:]*offset/(h[1:]*h[1:])
+                return vertex
+
+            new_verts = (move_vertex_to_subspace((-h/h[0])[1:]) for h in t_ieqs)
+
+        pref_rep = 'Hrep' if self.n_vertices() <= self.n_inequalities() else 'Vrep'
+
+        return parent.element_class(parent, [new_verts, [], []],
+                                    [new_ieqs, t_eqns],
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
     def is_self_dual(self):
         r"""

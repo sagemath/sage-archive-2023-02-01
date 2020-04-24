@@ -32,7 +32,7 @@ from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.modules.vector_space_morphism import linear_transformation
 from sage.matrix.constructor import matrix
-from sage.functions.other import sqrt, floor, ceil, binomial
+from sage.functions.other import sqrt, floor, ceil
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
 
@@ -7675,22 +7675,15 @@ class Polyhedron_base(Element):
             [6, 2, 2, 2]
 
         """
-        if self.is_simplex():
-            return self.dim() + 1
-        else:
-            k = 1
-            while len(self.faces(k)) == binomial(self.n_vertices(), k + 1):
-                k += 1
-            return k
+        return self.combinatorial_polyhedron().neighborliness()
 
     def is_neighborly(self, k=None):
         r"""
         Return whether the polyhedron is neighborly.
 
-        If the input ``k`` is provided then return whether the polyhedron is ``k``-neighborly
+        If the input ``k`` is provided, then return whether the polyhedron is ``k``-neighborly
 
         See :wikipedia:`Neighborly_polytope`
-
 
         INPUT:
 
@@ -7730,10 +7723,7 @@ class Polyhedron_base(Element):
             [True, True, True]
 
         """
-        if k is None:
-            k = self.dim() // 2
-        return all(len(self.faces(i)) == binomial(self.n_vertices(), i + 1)
-                   for i in range(1, k))
+        return self.combinatorial_polyhedron().is_neighborly()
 
     @cached_method
     def is_lattice_polytope(self):

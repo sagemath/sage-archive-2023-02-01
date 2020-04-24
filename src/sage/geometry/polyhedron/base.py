@@ -7623,6 +7623,9 @@ class Polyhedron_base(Element):
         r"""
         Return whether the polyhedron is a simplex.
 
+        A simplex is a bounded polyhedron with `d+1` vertices, where
+        `d` is the dimension.
+
         EXAMPLES::
 
             sage: Polyhedron([(0,0,0), (1,0,0), (0,1,0)]).is_simplex()
@@ -7638,9 +7641,10 @@ class Polyhedron_base(Element):
         r"""
         Returns the largest ``k``, such that the polyhedron is ``k``-neighborly.
 
-        In case of the ``d``-dimensional simplex, it returns ``d + 1``.
+        A polyhedron is `k`-neighborly if every set of `n` vertices forms a face
+        for `n` up to `k`.
 
-        See :wikipedia:`Neighborly_polytope`
+        In case of the `d`-dimensional simplex, it returns `d + 1`.
 
         .. SEEALSO::
 
@@ -7683,7 +7687,9 @@ class Polyhedron_base(Element):
 
         If the input ``k`` is provided, then return whether the polyhedron is ``k``-neighborly
 
-        See :wikipedia:`Neighborly_polytope`
+        A polyhedron is neighborly if every set of `n` vertices forms a face
+        for `n` up to floor of half the dimension of the polyhedron.
+        It is `k`-neighborly if this is true for `n` up to `k`.
 
         INPUT:
 
@@ -7693,7 +7699,7 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        - ``True`` if the every set of up to ``k`` vertices forms a face,
+        - ``True`` if every set of up to ``k`` vertices forms a face,
         - ``False`` otherwise
 
         .. SEEALSO::

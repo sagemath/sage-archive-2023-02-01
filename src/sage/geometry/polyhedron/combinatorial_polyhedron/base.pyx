@@ -1670,9 +1670,10 @@ cdef class CombinatorialPolyhedron(SageObject):
         r"""
         Returns the largest ``k``, such that the polyhedron is ``k``-neighborly.
 
-        In case of the ``d``-dimensional simplex, it returns ``d + 1``.
+        A polyhedron is `k`-neighborly if every set of `n` vertices forms a face
+        for `n` up to `k`.
 
-        See :wikipedia:`Neighborly_polytope`
+        In case of the `d`-dimensional simplex, it returns `d + 1`.
 
         .. SEEALSO::
 
@@ -1708,9 +1709,11 @@ cdef class CombinatorialPolyhedron(SageObject):
         r"""
         Return whether the polyhedron is neighborly.
 
-        If the input ``k`` is provided, then return whether the polyhedron is ``k``-neighborly
+        If the input `k` is provided, then return whether the polyhedron is `k`-neighborly.
 
-        See :wikipedia:`Neighborly_polytope`
+        A polyhedron is neighborly if every set of `n` vertices forms a face
+        for `n` up to floor of half the dimension of the polyhedron.
+        It is `k`-neighborly if this is true for `n` up to `k`.
 
         INPUT:
 
@@ -1754,6 +1757,9 @@ cdef class CombinatorialPolyhedron(SageObject):
     def is_simplex(self):
         r"""
         Return whether the polyhedron is a simplex.
+
+        A simplex is a bounded polyhedron with `d+1` vertices, where
+        `d` is the dimension.
 
         EXAMPLES::
 

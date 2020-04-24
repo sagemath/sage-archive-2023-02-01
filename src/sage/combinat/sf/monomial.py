@@ -315,8 +315,6 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
                 return len(part) > n
             return self._expand(condition, n, alphabet)
 
-<<<<<<< HEAD
-=======
         def principal_specialization(self, n=infinity, q=None):
             r"""
             Return the principal specialization of a symmetric function.
@@ -485,8 +483,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
                 return self.parent()._apply_module_morphism(self, f, t.parent())
 
-            return self.parent().realization_of().powersum()(self).exponential_specialization(t=t, q=q)
->>>>>>> rebase and correct
+            return self.parent().realization_of().homogeneous()(self).exponential_specialization(t=t, q=q)
 
 # Backward compatibility for unpickling
 from sage.misc.persist import register_unpickle_override

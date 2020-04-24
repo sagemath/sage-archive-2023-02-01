@@ -617,7 +617,8 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
                 ps_{n,1}(s_\lambda) = \prod_{u\in\lambda} (n+c(u)) / h(u),
 
-            where `h(u)` is the hook length of a cell `u` in `\lambda`.
+            where `h(u)` is the hook length of a cell `u` in `\lambda`,
+            and where `c(u)` is the content of a cell `u` in `\lambda`.
 
             For `n=infinity` we use the formula from Corollary 7.21.3 of [EnumComb2]_
 
@@ -665,7 +666,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             if q == 1:
                 if n == infinity:
                     raise ValueError("the stable principal specialization at q=1 is not defined")
-                f = lambda partition: (prod(n+partition.content(*c) for c in partition.cells())
+                f = lambda partition: (prod(n+j-i for (i, j) in partition.cells())
                                        / prod(h for h in partition.hooks()))
             elif n == infinity:
                 f = lambda partition: (q**sum(i*part for i, part in enumerate(partition))
@@ -675,13 +676,15 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                 def f(partition):
                     power = q**sum(i*part for i, part in enumerate(partition))
                     denom = prod(1-q**h for h in partition.hooks())
-                    if denom:
+                    if denom.is_invertible():
                         return (power
-                                * prod(1-q**(n + partition.content(*c))
-                                       for c in partition.cells())
+                                * prod(1-q**(n+j-i)
+                                       for (i, j) in partition.cells())
                                 / denom)
-                    quotient = (prod(1-q_lim**(n + partition.content(*c))
-                                     for c in partition.cells())
+                    # If denom is not invertible, we need to do the
+                    # computation with universal coefficients instead:
+                    quotient = (prod(1-q_lim**(n+j-i)
+                                     for (i, j) in partition.cells())
                                 / prod(1-q_lim**h for h in partition.hooks()))
                     return (power * quotient.subs({q_lim: q}))
 

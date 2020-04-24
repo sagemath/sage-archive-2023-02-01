@@ -782,8 +782,9 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             Let `\lambda` be a partition. The *Gessel-Reutenauer
             symmetric function* `\mathbf{GR}_\lambda` corresponding to
             `\lambda` is the symmetric function denoted `L_\lambda` in
-            [GR1993]_ and in Exercise 7.89 of [STA]_. It can be defined
-            in several ways:
+            [GR1993]_ and in Exercise 7.89 of [STA]_ and denoted
+            `\mathbf{GR}_\lambda` in Definition 6.6.34 of [GriRei18_].
+            It can be defined in several ways:
 
             - It is the sum of the monomials `\mathbf{x}_w` over all
               words `w` over the alphabet
@@ -800,15 +801,15 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
             - It is the sum of the fundamental quasisymmetric
               functions `F_{\operatorname{Des} \sigma}` over all
-              permutations `\sigma` which have cycle type `\lambda`. See
+              permutations `\sigma` that have cycle type `\lambda`. See
               :class:`sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Fundamental`
               for the definition of fundamental quasisymmetric functions,
               and :meth:`~sage.combinat.permutation.Permutation.cycle_type`
               for that of cycle type. For a permutation `\sigma`, we use
               `\operatorname{Des} \sigma` to denote the descent composition
               (:meth:`~sage.combinat.permutation.Permutation.descents_composition`)
-              of `\sigma`. Again, this definition makes the symmetry
-              of `\mathbf{GR}_\lambda` far from obvious.
+              of `\sigma`. Again, this definition does not make the
+              symmetry of `\mathbf{GR}_\lambda` obvious.
 
             - For every positive integer `n`, we have
 
@@ -834,7 +835,9 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
               `\mathbf{GR}_\lambda` obvious.
 
             The equivalences of these three definitions are proven in
-            [GR1993]_ Sections 2-3.
+            [GR1993]_ Sections 2-3. (See also [GriRei18]_ Subsection
+            6.6.2 for the equivalence of the first two definitions and
+            further formulas.)
 
             INPUT:
 
@@ -854,6 +857,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                and Descent Set*.
                Journal of Combinatorial Theory, Series A, 64 (1993),
                pp. 189--215.
+
+            .. [GriRei18]_
 
             EXAMPLES:
 

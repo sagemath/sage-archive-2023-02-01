@@ -363,7 +363,8 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
             where `\ell(\lambda)` denotes the length of `\lambda`.
 
-            In all other cases, we convert to powersum symmetric functions.
+            In all other cases, we convert to complete homogeneous
+            symmetric functions.
 
             EXAMPLES::
 
@@ -388,7 +389,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
                 f = lambda partition: binomial(n, len(partition))*multinomial(partition.to_exp())
                 return self.parent()._apply_module_morphism(self, f, q.parent())
 
-            return self.parent().realization_of().powersum()(self).principal_specialization(n=n, q=q)
+            return self.parent().realization_of().homogeneous()(self).principal_specialization(n=n, q=q)
 
         def exponential_specialization(self, t=None, q=1):
             r"""

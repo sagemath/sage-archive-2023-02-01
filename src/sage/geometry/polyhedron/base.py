@@ -4291,6 +4291,29 @@ class Polyhedron_base(Element):
                                     Vrep_minimal=True, Hrep_minimal=True)
 
     def _translation_double_description(self, displacement):
+        r"""
+        Return the input parameters for the translation.
+
+        INPUT:
+
+        - ``displacement`` -- a displacement vector or a list/tuple of
+          coordinates that determines a displacement vector
+
+        OUTPUT: Tuple of consisting of new Vrepresentation, Hrepresentation and parent.
+
+        .. SEEALSO::
+
+            :meth:`translation`
+
+        EXAMPLES::
+
+            sage: P = Polyhedron([[0,0],[1,0],[0,1]], base_ring=ZZ)
+            sage: Vrep, Hrep, parent = P._translation_double_description([2,1])
+            sage: [tuple(x) for x in Vrep], [tuple(x) for x in Hrep], parent
+            ([((2, 1), (2, 2), (3, 1)), (), ()],
+             [((-2, 1, 0), (-1, 0, 1), (4, -1, -1)), ()],
+             Polyhedra in ZZ^2)
+        """
         displacement = vector(displacement)
         new_vertices = (x.vector()+displacement for x in self.vertex_generator())
         new_rays = self.rays()

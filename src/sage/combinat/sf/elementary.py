@@ -376,6 +376,28 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
                 sage: e.zero().principal_specialization(3)
                 0
 
+                sage: e = SymmetricFunctions(GF(3)).e()
+                sage: a = e[2,1].principal_specialization(n=2, q=GF(3)(2)); a
+                0
+                sage: a.parent()
+                Finite Field of size 3
+                sage: a = e[1,1].principal_specialization(n=2); a
+                q^2 + 1
+                sage: a.parent()
+                Univariate Polynomial Ring in q over Finite Field of size 3
+                sage: a = e.one().principal_specialization(n=2, q=GF(3)(2)); a
+                1
+                sage: a.parent()
+                Finite Field of size 3
+                sage: a = e.one().principal_specialization(n=2, q=GF(3)(1)); a
+                1
+                sage: a.parent()
+                Finite Field of size 3
+                sage: a = e.one().principal_specialization(n=2); a
+                1
+                sage: a.parent()
+                Univariate Polynomial Ring in q over Finite Field of size 3
+
             """
             from sage.combinat.q_analogues import q_binomial
 

@@ -1,52 +1,85 @@
 #!/usr/bin/env bash
 #
 system=$1
-command=$2
-if [ -z "$system" -o -z "$command" ]; then
-    echo >&2 "usage: $0 {debian|arch|conda|...} {install|remove|...} PACKAGES..."
-    exit 1
-fi
-shift 2
-system_packages="$*"
-shopt -s extglob
-if [ -n "$system_packages" ]; then
-    # No command needed to install nothing
-    case $system:$command in
-        debian*|ubuntu*)
-            echo "sudo apt-get $command $system_packages"
+shift
+IF_VERBOSE=:
+SUDO=
+PROMPT=
+while :
+do
+    case "$1" in
+        --verbose)
+            IF_VERBOSE=
             ;;
-        @(fedora*|redhat*|centos*):install)
-            echo "sudo yum install $system_packages"
+        --sudo)
+            # Whether to print sudo for package managers that need sudo for non-root users
+            SUDO="sudo "
             ;;
-        arch*:install)
-            echo "sudo pacman -S $system_packages"
+        --prompt)
+            PROMPT='  $ '
             ;;
-        *conda*:install)
-            echo "conda install $system_packages"
-            ;;
-        homebrew*:install)
-            echo "brew install $system_packages"
-            echo "# Afterwards: "
-            ;;
-        slackware*:install)
-            echo "sudo slackpkg install $system_packages"
-            ;;
-        cygwin*:install)
-            echo "# first install apt-cyg from https://github.com/transcode-open/apt-cyg"
-            echo "apt-cyg install $system_packages"
+        -*)
+            echo >&2 "$0: unknown option $2"
+            exit 1
             ;;
         *)
-            echo "# $command the following packages: $system_packages"
-            ;;
+            break
     esac
+    shift
+done
+command=$1
+shift
+if [ -z "$system" -o -z "$command" ]; then
+    echo >&2 "usage: $0 {debian|arch|conda|...} [--verbose] [--sudo] [--prompt] {update|install|setup-build-env|remove|...} PACKAGES..."
+    exit 1
 fi
-# Messages that should go out even if not packages need to be installed
+system_packages="$*"
+shopt -s extglob
 case $system:$command in
-    homebrew*:install)
-        echo "# To automatically take care of homebrew messages regarding "
-        echo "# keg-only packages for the current shell session:"
+    homebrew*:setup-build-env)
+        $IF_VERBOSE echo "# To automatically take care of homebrew messages regarding "
+        $IF_VERBOSE echo "# keg-only packages for the current shell session:"
         [ -n "$SAGE_ROOT" ] || SAGE_ROOT=.
-        echo "# $ source $SAGE_ROOT/.homebrew-build-env"
-        echo "# Add this to your shell profile if you want it to persist between shell sessions."
+        echo "${PROMPT}source $SAGE_ROOT/.homebrew-build-env"
+        $IF_VERBOSE echo "# Add this to your shell profile if you want it to persist between shell sessions."
+        ;;
+    *:setup-build-env)
+        # Nothing needed
+        ;;
+    #
+    # Verbs handled above are our own inventions. Verbs handled below are apt-get verbs.
+    #
+    @(debian*|ubuntu*):update)
+        echo "${PROMPT}${SUDO}apt-get $command $system_packages"
+        ;;
+    @(debian*|ubuntu*):*)
+        [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}apt-get $command $system_packages"
+        ;;
+    @(fedora*|redhat*|centos*):install)
+        [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}yum install $system_packages"
+        ;;
+    arch*:install)
+        [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}pacman -S $system_packages"
+        ;;
+    *conda*:install)
+        [ -n "$system_packages" ] && echo "${PROMPT}conda install $system_packages"
+        ;;
+    homebrew*:install)
+        [ -n "$system_packages" ] && echo "${PROMPT}brew install $system_packages"
+        ;;
+    slackware*:install)
+        [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}slackpkg install $system_packages"
+        ;;
+    cygwin*:update)
+        echo "# first install apt-cyg from https://github.com/transcode-open/apt-cyg"
+        ;;
+    cygwin*:install)
+        [ -n "$system_packages" ] && echo "${PROMPT}apt-cyg install $system_packages"
+        ;;
+    *:update)
+        # Nothing needed
+        ;;
+    *)
+        echo "# $command the following packages: $system_packages"
         ;;
 esac

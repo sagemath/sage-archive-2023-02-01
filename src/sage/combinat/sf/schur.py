@@ -676,17 +676,19 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                 def f(partition):
                     power = q**sum(i*part for i, part in enumerate(partition))
                     denom = prod(1-q**h for h in partition.hooks())
-                    if denom.is_invertible():
+                    try:
+                        ~denom
                         return (power
                                 * prod(1-q**(n+j-i)
                                        for (i, j) in partition.cells())
                                 / denom)
                     # If denom is not invertible, we need to do the
                     # computation with universal coefficients instead:
-                    quotient = (prod(1-q_lim**(n+j-i)
-                                     for (i, j) in partition.cells())
-                                / prod(1-q_lim**h for h in partition.hooks()))
-                    return (power * quotient.subs({q_lim: q}))
+                    except (ZeroDivisionError, NotImplementedError):
+                        quotient = (prod(1-q_lim**(n+j-i)
+                                         for (i, j) in partition.cells())
+                                    / prod(1-q_lim**h for h in partition.hooks()))
+                        return (power * quotient.subs({q_lim: q}))
 
             return self.parent()._apply_module_morphism(self, f, q.parent())
 

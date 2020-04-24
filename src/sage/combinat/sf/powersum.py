@@ -804,12 +804,14 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
                 q_lim = PolynomialRing(self.base_ring(), "q").gen()
                 def f(partition):
                     denom = prod((1-q**part) for part in partition)
-                    if denom.is_invertible():
+                    try:
+                        ~denom
                         return prod((1-q**(n*part)) for part in partition)/denom
                     # If denom is not invertible, we need to do the
                     # computation with universal coefficients instead:
-                    quotient = prod((1-q_lim**(n*part))/(1-q_lim**part) for part in partition)
-                    return quotient.subs({q_lim: q})
+                    except (ZeroDivisionError, NotImplementedError):
+                        quotient = prod((1-q_lim**(n*part))/(1-q_lim**part) for part in partition)
+                        return quotient.subs({q_lim: q})
 
             return self.parent()._apply_module_morphism(self, f, q.parent())
 

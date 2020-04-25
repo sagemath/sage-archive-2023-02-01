@@ -21,6 +21,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
     cdef _left_quo_rem(self, SkewPolynomial other)
     cdef _right_quo_rem(self, SkewPolynomial other)
+
     cdef SkewPolynomial _left_lcm_cofactor(self, SkewPolynomial other)
     cdef SkewPolynomial _right_lcm_cofactor(self, SkewPolynomial other)
 

@@ -23,15 +23,16 @@ AUTHOR::
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-import copy
-
 from sage.structure.element cimport parent
 from sage.rings.ring cimport Ring
 from sage.rings.all import ZZ
 from sage.rings.integer cimport Integer
+from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.matrix2 import NotFullRankError
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.skew_polynomial_element cimport SkewPolynomial
 from sage.rings.polynomial.skew_polynomial_finite_order cimport SkewPolynomial_finite_order_dense
 
 from sage.combinat.permutation import Permutation, Permutations
@@ -225,8 +226,6 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             this (and his behaviour is not defined if the
             require property doesn't hold).
         """
-        from sage.matrix.matrix_space import MatrixSpace
-        from sage.matrix.matrix2 import NotFullRankError
         cdef skew_ring = self._parent
         cdef SkewPolynomial_finite_field_dense NS = <SkewPolynomial_finite_field_dense>skew_ring(N)
         cdef SkewPolynomial_finite_field_dense P = self.right_gcd(NS)

@@ -4356,6 +4356,17 @@ class Polyhedron_base(Element):
             'ppl'
             sage: (P * polytopes.dodecahedron(backend='field')).backend()
             'field'
+
+        Check that double description is set up correctly::
+
+           sage: P = polytopes.permutahedron(4).base_extend(QQ)
+           sage: P1 = Polyhedron(rays=[[1,0,0,0],[0,1,1,0]], lines=[[0,1,0,1]])
+           sage: Q = P.base_extend(QQ, 'field')
+           sage: Q1 = P1.base_extend(QQ, 'field')
+           sage: P*P1 == Q*Q1
+           True
+           sage: P.polar(in_affine_span=True)*P1 == Q.polar(in_affine_span=True)*Q1
+           True
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
@@ -4363,21 +4374,34 @@ class Polyhedron_base(Element):
             raise TypeError("no common canonical parent for objects with parents: " + str(self.parent()) \
                      + " and " + str(other.parent()))
 
-        new_vertices = [ list(x)+list(y)
-                         for x in self.vertex_generator() for y in other.vertex_generator()]
-        new_rays = []
-        new_rays.extend( [ r+[0]*other.ambient_dim()
-                           for r in self.ray_generator() ] )
-        new_rays.extend( [ [0]*self.ambient_dim()+r
-                           for r in other.ray_generator() ] )
-        new_lines = []
-        new_lines.extend( [ l+[0]*other.ambient_dim()
-                            for l in self.line_generator() ] )
-        new_lines.extend( [ [0]*self.ambient_dim()+l
-                            for l in other.line_generator() ] )
+        from itertools import chain
+
+        new_vertices = (tuple(x)+tuple(y)
+                        for x in self.vertex_generator() for y in other.vertex_generator())
+
+        self_zero  = tuple(0 for _ in range( self.ambient_dim()))
+        other_zero = tuple(0 for _ in range(other.ambient_dim()))
+
+        rays = chain((tuple(r) + other_zero for r in  self.ray_generator()),
+                     (self_zero + tuple(r)  for r in other.ray_generator()))
+
+        lines = chain((tuple(l) + other_zero for l in  self.line_generator()),
+                      (self_zero + tuple(l)  for l in other.line_generator()))
+
+        ieqs = chain((tuple(i) + other_zero               for i in  self.inequality_generator()),
+                     ((i.b(),) + self_zero + tuple(i.A()) for i in other.inequality_generator()))
+
+        eqns = chain((tuple(e) + other_zero               for e in  self.equation_generator()),
+                     ((e.b(),) + self_zero + tuple(e.A()) for e in other.equation_generator()))
+
+
+        pref_rep = 'Vrep' if self.n_vertices() + self.n_rays() + other.n_vertices() + other.n_rays() \
+                             <= self.n_inequalities() + other.n_inequalities() else 'Hrep'
 
         parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
-        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
+        return parent.element_class(parent, [new_vertices, rays, lines],
+                                    [ieqs, eqns],
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
     _mul_ = product
 

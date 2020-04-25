@@ -1,4 +1,4 @@
-name: windows-latest
+name: CI cygwin-standard
 
 on:
   pull_request:

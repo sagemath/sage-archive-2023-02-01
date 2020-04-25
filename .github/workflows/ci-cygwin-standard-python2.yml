@@ -1,4 +1,4 @@
-name: windows-latest
+name: CI cygwin-standard-python2
 
 on:
   pull_request:

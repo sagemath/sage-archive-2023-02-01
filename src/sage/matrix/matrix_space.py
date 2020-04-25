@@ -471,9 +471,10 @@ class MatrixSpace(UniqueRepresentation, Parent):
             ...
             ValueError: unknown matrix implementation 'foobar' over Integer Ring
 
-        Check that :`29466`is fixed::
+        Check that :trac:`29466`is fixed::
 
             sage: class MyMatrixSpace(MatrixSpace):
+            ....:     @staticmethod
             ....:     def __classcall__(cls, base_ring, nrows, ncols=None, my_option=True, sparse=False, implementation=None):
             ....:         return super(MyMatrixSpace, cls).__classcall__(cls, base_ring, nrows, ncols=ncols, my_option=my_option, sparse=sparse, implementation=implementation)
             ....:

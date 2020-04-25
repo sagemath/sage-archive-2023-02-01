@@ -5576,7 +5576,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         """
         # heuristically, it seems fastest to fall back to the
-        # elementary basis instead of the powersum basis
+        # elementary basis - using the powersum basis would
+        # introduce singularities, because it is not a Z-basis
         e = self.parent().realization_of().elementary()
         return e(self).principal_specialization(n, q=q)
 
@@ -5671,7 +5672,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         """
         # heuristically, it seems fastest to fall back to the
-        # elementary basis instead of the powersum basis
+        # elementary basis - using the powersum basis would
+        # introduce singularities, because it is not a Z-basis
         e = self.parent().realization_of().elementary()
         return e(self).exponential_specialization(t=t, q=q)
 

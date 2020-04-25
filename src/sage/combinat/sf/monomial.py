@@ -373,7 +373,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
                 sage: x = 5*m[2] + 3*m[1] + 1
                 sage: x.principal_specialization(3, q=var("q"))
-                5*(q^6 - 1)/(q^2 - 1) + 3*(q^3 - 1)/(q - 1) + 1
+                -10*(q^3 - 1)*q/(q - 1) + 5*(q^3 - 1)^2/(q - 1)^2 + 3*(q^3 - 1)/(q - 1) + 1
 
             TESTS::
 
@@ -387,6 +387,9 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
                 f = lambda partition: binomial(n, len(partition))*multinomial(partition.to_exp())
                 return self.parent()._apply_module_morphism(self, f, q.parent())
 
+            # heuristically, it seems fastest to fall back to the
+            # elementary basis - using the powersum basis would
+            # introduce singularities, because it is not a Z-basis
             return self.parent().realization_of().elementary()(self).principal_specialization(n=n, q=q)
 
         def exponential_specialization(self, t=None, q=1):
@@ -484,6 +487,9 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
                 return self.parent()._apply_module_morphism(self, f, t.parent())
 
+            # heuristically, it seems fastest to fall back to the
+            # elementary basis - using the powersum basis would
+            # introduce singularities, because it is not a Z-basis
             return self.parent().realization_of().elementary()(self).exponential_specialization(t=t, q=q)
 
 # Backward compatibility for unpickling

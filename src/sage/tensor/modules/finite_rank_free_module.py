@@ -1084,7 +1084,6 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         See
         :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`
         for more documentation.
-def dual_exterior_power
         """
         from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
         if p == 0:
@@ -1626,6 +1625,11 @@ def dual_exterior_power
             sage: a = M.alternating_form(1, 'a') ; a
             Linear form a on the Rank-3 free module M over the Integer Ring
 
+        An alternating form of degree 0 is an element of the base ring::
+
+            sage: s = M.alternating_form(0) ; s
+            1
+
         To construct such a form, it is preferable to call the method
         :meth:`linear_form` instead::
 
@@ -1638,7 +1642,8 @@ def dual_exterior_power
 
         """
         if degree == 0:
-            return self._ring()
+            # Return preferably a non-zero element of the ring:
+            return self._ring._an_element_()
         return self.dual_exterior_power(degree).element_class(self, degree,
                                               name=name, latex_name=latex_name)
 

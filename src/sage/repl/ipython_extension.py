@@ -511,10 +511,8 @@ class SageCustomizations(object):
         from .interpreter import (SagePreparseTransformer,
                                  SagePromptTransformer)
 
-        for s in (self.shell.input_splitter, self.shell.input_transformer_manager):
-            # s.physical_line_transforms.insert(1, SagePromptTransformer())
-            # s.python_line_transforms.append(SagePreparseTransformer())
-            pass
+        self.shell.input_transformers_cleanup.insert(1, SagePromptTransformer)
+        self.shell.input_transformers_post.append(SagePreparseTransformer)
 
 
 class SageJupyterCustomizations(SageCustomizations):

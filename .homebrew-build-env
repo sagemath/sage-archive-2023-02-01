@@ -16,18 +16,23 @@ for l in openblas openssl readline sqlite zlib; do
     fi
 done
 export PKG_CONFIG_PATH
-LDFLAGS="-L$HOMEBREW/lib $LDFLAGS"
-CPPFLAGS="-I$HOMEBREW/include $CPPFLAGS"
+# Compile-time path for libraries and includes.  They are like adding
+# the gcc options -L or -I, but the libraries or includes added here
+# are searched after the directories specified on the command line.
+[ -z "$LIBRARY_PATH" ] || LIBRARY_PATH="${LIBRARY_PATH}:"
+LIBRARY_PATH="$HOMEBREW/lib:$LIBRARY_PATH"
+[ -z "$CPATH" ] || CPATH="${CPATH}:"
+CPATH="$HOMEBREW/include:$CPATH"
 for l in readline; do
     if [ -d "$HOMEBREW/opt/$l/lib" ]; then
-        LDFLAGS="-L$HOMEBREW/opt/$l/lib $LDFLAGS"
+        LIBRARY_PATH="$HOMEBREW/opt/$l/lib:$LIBRARY_PATH"
     fi
     if [ -d "$HOMEBREW/opt/$l/include" ]; then
-        CPPFLAGS="-I$HOMEBREW/opt/$l/include $CPPFLAGS"
+        CPATH="$HOMEBREW/opt/$l/include:$CPATH"
     fi
 done
-export LDFLAGS
-export CPPFLAGS
+export LIBRARY_PATH
+export CPATH
 for l in gettext; do
     if [ -d "$HOMEBREW/opt/$l/share/aclocal" ]; then
         ACLOCAL_PATH="$HOMEBREW/opt/$l/share/aclocal:$ACLOCAL_PATH"

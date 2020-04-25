@@ -914,8 +914,8 @@ cdef class MPolynomial(CommutativeRingElement):
 
         INPUT:
 
-        - ``group`` (optional) - if set, test whether the polynomial is
-          symmetric with respect to the given permutation group.
+        - ``group`` (default: symmetric group) -- if set, test whether the
+          polynomial is invariant with respect to the given permutation group
 
         EXAMPLES::
 
@@ -959,7 +959,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: R.one().is_symmetric(3)
             Traceback (most recent call last):
             ...
-            ValueError: wrong argument 'group'
+            ValueError: argument must be a permutation group
 
             sage: R.one().is_symmetric(SymmetricGroup(4))
             Traceback (most recent call last):
@@ -983,16 +983,13 @@ cdef class MPolynomial(CommutativeRingElement):
                 try:
                     gens = group.GeneratorsOfGroup()
                 except AttributeError:
-                    raise ValueError("wrong argument 'group'")
+                    raise ValueError("argument must be a permutation group")
             gens = [S(g) for g in gens]
 
         cdef dict coeffs = self.dict()
         zero = self.base_ring().zero()
-        for e, coeff in coeffs.items():
-            for g in gens:
-                if coeffs.get(g._act_on_etuple_on_position(e, True), zero) != coeff:
-                    return False
-        return True
+        return all(coeffs.get(g._act_on_etuple_on_position(e, True), zero) == coeff
+                   for e, coeff in coeffs.items() for g in gens)
 
     def _gap_(self, gap):
         """

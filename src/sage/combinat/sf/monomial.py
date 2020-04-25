@@ -22,7 +22,7 @@ from __future__ import absolute_import
 from . import classical
 import sage.libs.symmetrica.all as symmetrica
 from sage.rings.integer import Integer
-from sage.combinat.partition import Partition
+from sage.combinat.partition import Partition, _Partitions
 
 class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, Sym):
@@ -173,9 +173,10 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         assert self.base_ring() == f.base_ring()
         if check and not f.is_symmetric():
             raise ValueError("%s is not a symmetric polynomial"%f)
-        out = self.sum_of_terms((Partition(e), c)
-                                for (e,c) in f.dict().items()
-                                if all(e[i+1] <= e[i] for i in range(len(e) - 1)))
+        R = self.base_ring()
+        out = self._from_dict({_Partitions(e): R(c)
+                               for (e,c) in f.dict().items()
+                               if all(e[i+1] <= e[i] for i in range(len(e)-1))})
         return out
 
     def from_polynomial_exp(self, p):

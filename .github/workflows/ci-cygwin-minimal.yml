@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [minimal]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -100,7 +100,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [minimal]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -173,7 +173,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [minimal]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -255,7 +255,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [minimal]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -335,7 +335,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [minimal]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -415,7 +415,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [minimal]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -496,7 +496,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [minimal]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -576,7 +576,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [minimal]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -656,7 +656,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [minimal]
     steps:
     - run: |
         git config --global core.autocrlf false

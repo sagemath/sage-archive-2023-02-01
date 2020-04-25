@@ -673,8 +673,11 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                 f = lambda partition: (q**sum(i*part for i, part in enumerate(partition))
                                        / prod(1-q**h for h in partition.hooks()))
             else:
-                q_lim = PolynomialRing(self.base_ring(), "q").gen()
+                ZZq = PolynomialRing(ZZ, "q").gen()
+                q_lim = ZZq.gen()
                 def f(partition):
+                    if n < len(partition):
+                        return 0
                     power = q**sum(i*part for i, part in enumerate(partition))
                     denom = prod(1-q**h for h in partition.hooks())
                     try:
@@ -686,8 +689,8 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                     # If denom is not invertible, we need to do the
                     # computation with universal coefficients instead:
                     except (ZeroDivisionError, NotImplementedError):
-                        quotient = (prod(1-q_lim**(n+j-i)
-                                         for (i, j) in partition.cells())
+                        quotient = ZZq((prod(1-q_lim**(n+j-i)
+                                             for (i, j) in partition.cells()))
                                     / prod(1-q_lim**h for h in partition.hooks()))
                         return (power * quotient.subs({q_lim: q}))
 

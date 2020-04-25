@@ -657,7 +657,8 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                 try:
                     ring(name)
                 except TypeError:
-                    return ring[name].gen()
+                    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+                    return PolynomialRing(ring, name).gen()
                 else:
                     raise ValueError("the variable %s is in the base ring, pass it explicitly" % name)
 
@@ -790,7 +791,8 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                 try:
                     ring(name)
                 except TypeError:
-                    return ring[name].gen()
+                    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+                    return PolynomialRing(ring, name).gen()
                 else:
                     raise ValueError("the variable %s is in the base ring, pass it explicitly" % name)
 

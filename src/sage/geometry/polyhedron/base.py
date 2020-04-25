@@ -35,7 +35,6 @@ from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil, binomial
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
-from sage.graphs.digraph import DiGraph
 
 from .constructor import Polyhedron
 from sage.categories.sets_cat import EmptySetError
@@ -725,24 +724,14 @@ class Polyhedron_base(Element):
 
             sage: G._immutable
             True
-        """
 
-        # We construct the edges and remove the columns that have all 1s;
-        # those correspond to faces, that contain all vertices (which happens
-        # if the polyhedron is not full-dimensional)
-        G = DiGraph()
-        if labels:
-            edges = [[v, f] for f in self.Hrep_generator()
-                     if any(not(f.is_incident(v)) for v in self.Vrep_generator())
-                     for v in self.vertices() if f.is_incident(v)]
-        else:
-            #  here we obtain this incidence information from the incidence matrix
-            M = self.incidence_matrix()
-            edges = [[i, M.ncols()+j] for i, column in enumerate(M.columns())
-                     if any(entry != 1 for entry in column)
-                     for j in range(M.nrows()) if M[j, i] == 1]
-        G.add_edges(edges)
-        return G.copy(immutable=True)
+        Check that :trac:`29188` is fixed::
+
+            sage: P = polytopes.cube()
+            sage: P.vertex_facet_graph().is_isomorphic(P.vertex_facet_graph(False))
+            True
+        """
+        return self.combinatorial_polyhedron().vertex_facet_graph(names=labels)
 
     def plot(self,
              point=None, line=None, polygon=None,  # None means unspecified by the user
@@ -2790,6 +2779,98 @@ class Polyhedron_base(Element):
             vertex_sum.set_immutable()
             return vertex_sum / self.n_vertices()
 
+    @cached_method(do_pickle=True)
+    def centroid(self, engine='auto', **kwds):
+        r"""
+        Return the center of the mass of the polytope.
+
+        The mass is taken with respect to the induced Lebesgue measure,
+        see :meth:`volume`.
+
+        If the polyhedron is not compact, a ``NotImplementedError`` is
+        raised.
+
+        INPUT:
+
+        - ``engine`` -- either 'auto' (default), 'internal',
+          'TOPCOM', or 'normaliz'.  The 'internal' and 'TOPCOM' instruct
+          this package to always use its own triangulation algorithms
+          or TOPCOM's algorithms, respectively. By default ('auto'),
+          TOPCOM is used if it is available and internal routines otherwise.
+
+        - ``**kwds`` -- keyword arguments that are passed to the
+          triangulation engine (see :meth:`triangulate`).
+
+        OUTPUT: The centroid as vector.
+
+        ALGORITHM:
+
+        We triangulate the polytope and find the barycenter of the simplices.
+        We add the individual barycenters weighted by the fraction of the total
+        mass.
+
+        EXAMPLES::
+
+            sage: P = polytopes.hypercube(2).pyramid()
+            sage: P.centroid()
+            (1/4, 0, 0)
+
+            sage: P = polytopes.associahedron(['A',2])
+            sage: P.centroid()
+            (2/21, 2/21)
+
+            sage: P = polytopes.permutahedron(4, backend='normaliz')  # optional - pynormaliz
+            sage: P.centroid()                                        # optional - pynormaliz
+            (5/2, 5/2, 5/2, 5/2)
+
+        The method is not implemented for unbounded polyhedra::
+
+            sage: P = Polyhedron(vertices=[(0,0)],rays=[(1,0),(0,1)])
+            sage: P.centroid()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the polyhedron is not compact
+
+        The centroid of an empty polyhedron is not defined::
+
+            sage: Polyhedron().centroid()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
+
+        TESTS::
+
+            sage: Polyhedron(vertices=[[0,1]]).centroid()
+            (0, 1)
+        """
+        if not self.is_compact():
+            raise NotImplementedError("the polyhedron is not compact")
+        if self.n_vertices() == self.dim() + 1:
+            # The centroid of a simplex is its center.
+            return self.center()
+
+        triangulation = self.triangulate(engine=engine, **kwds)
+
+        if self.ambient_dim() == self.dim():
+            pc = triangulation.point_configuration()
+        else:
+            from sage.geometry.triangulation.point_configuration import PointConfiguration
+            A,b = self.affine_hull_projection(as_affine_map=True, orthogonal=True, orthonormal=True, extend=True)
+            pc = PointConfiguration((A(v.vector()) for v in self.Vrep_generator()))
+
+        barycenters = [sum(self.Vrepresentation(i).vector() for i in simplex)/(self.dim() + 1) for simplex in triangulation]
+        volumes =  [pc.volume(simplex) for simplex in triangulation]
+
+        centroid = sum(volumes[i]*barycenters[i] for i in range(len(volumes)))/sum(volumes)
+        if self.ambient_dim() != self.dim():
+            # By the affine hull projection, the centroid has base ring ``AA``,
+            # we try return the centroid in a reasonable ring.
+            try:
+                return centroid.change_ring(self.base_ring().fraction_field())
+            except ValueError:
+                pass
+        return centroid
+
     @cached_method
     def representative_point(self):
         """
@@ -3124,6 +3205,40 @@ class Polyhedron_base(Element):
         from sage.geometry.polyhedron.combinatorial_polyhedron.base import CombinatorialPolyhedron
         return CombinatorialPolyhedron(self)
 
+    def simplicity(self):
+        r"""
+        Return the largest integer `k` such that the polytope is `k`-simple.
+
+        A polytope `P` is `k`-simple, if every `(d-1-k)`-face
+        is contained in exactly `k+1` facets of `P` for `1 \leq k \leq d-1`.
+        Equivalently it is `k`-simple if the polar/dual polytope is `k`-simplicial.
+        If `self` is a simplex, it returns its dimension.
+
+        EXAMPLES::
+
+            sage: polytopes.hypersimplex(4,2).simplicity()
+            1
+            sage: polytopes.hypersimplex(5,2).simplicity()
+            2
+            sage: polytopes.hypersimplex(6,2).simplicity()
+            3
+            sage: polytopes.simplex(3).simplicity()
+            3
+            sage: polytopes.simplex(1).simplicity()
+            1
+
+        The method is not implemented for unbounded polyhedra::
+
+            sage: p = Polyhedron(vertices=[(0,0)],rays=[(1,0),(0,1)])
+            sage: p.simplicity()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is implemented for polytopes only
+        """
+        if not(self.is_compact()):
+            raise NotImplementedError("this function is implemented for polytopes only")
+        return self.combinatorial_polyhedron().simplicity()
+
     def is_simple(self):
         """
         Test for simplicity of a polytope.
@@ -3142,6 +3257,38 @@ class Polyhedron_base(Element):
         """
         if not self.is_compact(): return False
         return self.combinatorial_polyhedron().is_simple()
+
+    def simpliciality(self):
+        r"""
+        Return the largest interger `k` such that the polytope is `k`-simplicial.
+
+        A polytope is `k`-simplicial, if every `k`-face is a simplex.
+        If `self` is a simplex, returns its dimension.
+
+        EXAMPLES::
+
+            sage: polytopes.cyclic_polytope(10,4).simpliciality()
+            3
+            sage: polytopes.hypersimplex(5,2).simpliciality()
+            2
+            sage: polytopes.cross_polytope(4).simpliciality()
+            3
+            sage: polytopes.simplex(3).simpliciality()
+            3
+            sage: polytopes.simplex(1).simpliciality()
+            1
+
+        The method is not implemented for unbounded polyhedra::
+
+            sage: p = Polyhedron(vertices=[(0,0)],rays=[(1,0),(0,1)])
+            sage: p.simpliciality()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is implemented for polytopes only
+        """
+        if not(self.is_compact()):
+            raise NotImplementedError("this function is implemented for polytopes only")
+        return self.combinatorial_polyhedron().simpliciality()
 
     def is_simplicial(self):
         """
@@ -6244,6 +6391,14 @@ class Polyhedron_base(Element):
         Return a graph in which the vertices correspond to vertices
         of the polyhedron, and edges to edges.
 
+        ..NOTE::
+
+            The graph of a polyhedron with lines has no vertices,
+            as the polyhedron has no vertices (`0`-faces).
+
+            The method :meth:`Polyhedron_base:vertices` returns
+            the defining points in this case.
+
         EXAMPLES::
 
             sage: g3 = polytopes.hypercube(3).vertex_graph(); g3
@@ -6254,37 +6409,22 @@ class Polyhedron_base(Element):
             Graph on 5 vertices
             sage: s4.is_eulerian()
             True
+
+        The graph of an unbounded polyhedron
+        is the graph of the bounded complex::
+
+            sage: open_triangle = Polyhedron(vertices=[[1,0], [0,1]],
+            ....:                            rays    =[[1,1]])
+            sage: open_triangle.vertex_graph()
+            Graph on 2 vertices
+
+        The graph of a polyhedron with lines has no vertices::
+
+            sage: line = Polyhedron(lines=[[0,1]])
+            sage: line.vertex_graph()
+            Graph on 0 vertices
         """
-        from itertools import combinations
-        inequalities = self.inequalities()
-        vertices     = self.vertices()
-
-        # Associated to 'v' the inequalities in contact with v
-        vertex_ineq_incidence = [frozenset([i for i, ineq in enumerate(inequalities) if self._is_zero(ineq.eval(v))])
-                                 for i, v in enumerate(vertices)]
-
-        # the dual incidence structure
-        ineq_vertex_incidence = [set() for _ in range(len(inequalities))]
-        for v, ineq_list in enumerate(vertex_ineq_incidence):
-            for ineq in ineq_list:
-                ineq_vertex_incidence[ineq].add(v)
-
-        n = len(vertices)
-
-        pairs = []
-        for i, j in combinations(range(n), 2):
-            common_ineq = vertex_ineq_incidence[i] & vertex_ineq_incidence[j]
-            if not common_ineq:  # or len(common_ineq) < d-2:
-                continue
-
-            if len(set.intersection(*[ineq_vertex_incidence[k] for k in common_ineq])) == 2:
-                pairs.append((i, j))
-
-        from sage.graphs.graph import Graph
-        g = Graph()
-        g.add_vertices(vertices)
-        g.add_edges((vertices[i], vertices[j]) for i, j in pairs)
-        return g
+        return self.combinatorial_polyhedron().vertex_graph()
 
     graph = vertex_graph
 
@@ -7142,6 +7282,9 @@ class Polyhedron_base(Element):
                 except FeatureNotPresentError:
                     raise RuntimeError("the induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
 
+        if engine == 'auto' and measure == 'ambient' and self.backend() == 'normaliz':
+            engine = 'normaliz'
+
         if measure == 'ambient':
             if self.dim() < self.ambient_dim():
                 return self.base_ring().zero()
@@ -7156,7 +7299,7 @@ class Polyhedron_base(Element):
             elif engine == 'latte':
                 return self._volume_latte(**kwds)
             elif engine == 'normaliz':
-                return self._volume_normaliz(measure='euclidean')
+                return self._volume_normaliz(measure='ambient')
 
             triangulation = self.triangulate(engine=engine, **kwds)
             pc = triangulation.point_configuration()
@@ -8288,12 +8431,11 @@ class Polyhedron_base(Element):
             sage: quadrangle.restricted_automorphism_group()
             Permutation Group with generators [()]
 
-        Permutations can only exchange vertices with vertices, rays
-        with rays, and lines with lines::
+        Permutations of the vertex graph only exchange vertices with vertices::
 
-            sage: P = Polyhedron(vertices=[(1,0,0), (1,1,0)], rays=[(1,0,0)], lines=[(0,0,1)])
+            sage: P = Polyhedron(vertices=[(1,0), (1,1)], rays=[(1,0)])
             sage: P.combinatorial_automorphism_group(vertex_graph_only=True)
-            Permutation Group with generators [(A vertex at (1,0,0),A vertex at (1,1,0))]
+            Permutation Group with generators [(A vertex at (1,0),A vertex at (1,1))]
 
         This shows an example of two polytopes whose vertex-edge graphs are isomorphic,
         but their face_lattices are not isomorphic::

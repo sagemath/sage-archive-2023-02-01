@@ -63,6 +63,7 @@ def is_LaurentSeriesRing(x):
     """
     return isinstance(x, LaurentSeriesRing)
 
+
 class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
     r"""
     Univariate Laurent Series Ring.
@@ -85,12 +86,11 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
         sage: Frac(GF(5)['y'])
         Fraction Field of Univariate Polynomial Ring in y over Finite Field of size 5
 
-    Here the fraction field is not just the Laurent series ring, so you
-    can't use the ``Frac`` notation to make the Laurent
-    series ring::
+    When the base ring is a domain, the fraction field is the
+    Laurent series ring over the fraction field of the base ring::
 
         sage: Frac(ZZ[['t']])
-        Fraction Field of Power Series Ring in t over Integer Ring
+        Laurent Series Ring in t over Rational Field
 
     Laurent series rings are determined by their variable and the base
     ring, and are globally unique::
@@ -365,7 +365,7 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             sage: LaurentSeriesRing(ZZ,'t',sparse=True)
             Sparse Laurent Series Ring in t over Integer Ring
         """
-        s = "Laurent Series Ring in %s over %s"%(self.variable_name(), self.base_ring())
+        s = "Laurent Series Ring in %s over %s" % (self.variable_name(), self.base_ring())
         if self.is_sparse():
             s = 'Sparse ' + s
         return s
@@ -493,7 +493,7 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
                 return (self(self.polynomial_ring()(x)) << n).add_bigoh(prec)
         elif (is_FractionFieldElement(x)
               and (x.base_ring() is self.base_ring() or x.base_ring() == self.base_ring())
-              and (is_Polynomial(x.numerator()) or is_MPolynomial(x.numerator())) ):
+              and (is_Polynomial(x.numerator()) or is_MPolynomial(x.numerator()))):
             x = self(x.numerator()) / self(x.denominator())
             return (x << n).add_bigoh(prec)
         return self.element_class(self, x, n).add_bigoh(prec)
@@ -615,16 +615,16 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             sage: R._is_valid_homomorphism_(R, [2*x])
             False
         """
-        ## NOTE: There are no ring homomorphisms from the ring of
-        ## all formal power series to most rings, e.g, the p-adic
-        ## field, since you can always (mathematically!) construct
-        ## some power series that doesn't converge.
-        ## NOTE: The above claim is wrong when the base ring is Z.
-        ## See trac 28486.
+        # NOTE: There are no ring homomorphisms from the ring of
+        # all formal power series to most rings, e.g, the p-adic
+        # field, since you can always (mathematically!) construct
+        # some power series that does not converge.
+        # NOTE: The above claim is wrong when the base ring is Z.
+        # See trac 28486.
 
         if base_map is None and not codomain.has_coerce_map_from(self.base_ring()):
             return False
-        ## Note that 0 is not a *ring* homomorphism, and you cannot map to a power series ring
+        # Note that 0 is not a *ring* homomorphism, and you cannot map to a power series ring
         if is_LaurentSeriesRing(codomain):
             return im_gens[0].valuation() > 0 and im_gens[0].is_unit()
         return False
@@ -698,7 +698,7 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
         """
         if n != 0:
             raise IndexError("generator {} not defined".format(n))
-        return self.element_class(self, [0,1])
+        return self.element_class(self, [0, 1])
 
     def uniformizer(self):
         """

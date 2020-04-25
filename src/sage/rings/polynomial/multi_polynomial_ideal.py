@@ -2888,11 +2888,21 @@ class MPolynomialIdeal_singular_repr(
             raise ValueError("'algorithm' must be one of 'sage' or 'singular'")
 
     @require_field
-    def _normal_basis_libsingular(self):
+    def _normal_basis_libsingular(self, degree):
         r"""
-        Returns the normal basis for a given groebner basis. It will use
-        the Groebner Basis as computed by
+        Return the normal basis for a given Groebner basis.
+
+        This will use the Groebner basis as computed by
         ``MPolynomialIdeal._groebner_basis_libsingular()``.
+
+        INPUT:
+
+        - ``degree`` -- ``None`` or integer
+
+        OUTPUT:
+
+        If ``degree`` is an integer, only the monomials of the given degree in
+        the normal basis.
 
         EXAMPLES::
 
@@ -2900,26 +2910,48 @@ class MPolynomialIdeal_singular_repr(
             sage: I = R.ideal(x^2-2*x*z+5, x*y^2+y*z+1, 3*y^2-8*x*z)
             sage: I.normal_basis() #indirect doctest
             [z^2, y*z, x*z, z, x*y, y, x, 1]
+            sage: J = R.ideal(x^2-2*x*z+5)
+            sage: J.normal_basis(3)  # indirect doctest
+            [z^3, y*z^2, x*z^2, y^2*z, x*y*z, y^3, x*y^2]
+
+        TESTS:
+
+        Check that zero is not included in trivial results::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ)
+            sage: I = R.ideal(x^2-2*x*z+5, x*y^2+y*z+1, 3*y^2-8*x*z)
+            sage: I._normal_basis_libsingular(5)
+            []
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import kbase_libsingular
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         gb = self._groebner_basis_libsingular()
-
-        return PolynomialSequence(self.ring(), kbase_libsingular(self.ring().ideal(gb)), immutable=True)
+        res = kbase_libsingular(self.ring().ideal(gb), degree)
+        if len(res) == 1 and res[0].is_zero():
+            res = []
+        return PolynomialSequence(self.ring(), res, immutable=True)
 
     @require_field
     @handle_AA_and_QQbar
-    def normal_basis(self, algorithm='libsingular', singular=singular_default):
+    def normal_basis(self, degree=None, algorithm='libsingular',
+                     singular=singular_default):
         """
-        Returns a vector space basis (consisting of monomials) of the
-        quotient ring by the ideal, resp. of a free module by the module,
-        in case it is finite dimensional and if the input is a standard
-        basis with respect to the ring ordering.
+        Return a vector space basis of the quotient ring of this ideal.
 
         INPUT:
 
-        ``algorithm`` - defaults to use libsingular, if it is anything
-        else we will use the ``kbase()`` command
+        - ``degree`` -- integer (default: ``None``)
+
+        - ``algorithm`` -- string (default: ``"libsingular"``); if not the
+          default, this will use the ``kbase()`` command from Singular
+
+        - ``singular`` -- the singular interpreter to use when ``algorithm`` is
+          not ``"libsingular"`` (default: the default instance)
+
+        OUTPUT:
+
+        Monomials in the basis. If ``degree`` is given, only the monomials of
+        the given degree are returned.
 
         EXAMPLES::
 
@@ -2930,6 +2962,18 @@ class MPolynomialIdeal_singular_repr(
             sage: I.normal_basis(algorithm='singular')
             [y*z^2, z^2, y*z, z, x*y, y, x, 1]
 
+        The result can be restricted to monomials of a chosen degree, which is
+        particularly useful when the quotient ring is not finite-dimensional as
+        a vector space.  ::
+
+            sage: J = R.ideal(x^2+y^2+z^2-4, x^2+2*y^2-5)
+            sage: J.dimension()
+            1
+            sage: [J.normal_basis(d) for d in (0..3)]
+            [[1], [z, y, x], [z^2, y*z, x*z, x*y], [z^3, y*z^2, x*z^2, x*y*z]]
+            sage: [J.normal_basis(d, algorithm='singular') for d in (0..3)]
+            [[1], [z, y, x], [z^2, y*z, x*z, x*y], [z^3, y*z^2, x*z^2, x*y*z]]
+
         TESTS:
 
         Check that this method works over QQbar (:trac:`25351`)::
@@ -2938,15 +2982,35 @@ class MPolynomialIdeal_singular_repr(
             sage: I = R.ideal(x^2+y^2+z^2-4, x^2+2*y^2-5, x*z-1)
             sage: I.normal_basis()
             [y*z^2, z^2, y*z, z, x*y, y, x, 1]
+            sage: J = R.ideal(x^2+y^2+z^2-4, x^2+2*y^2-5)
+            sage: [J.normal_basis(d) for d in (0..3)]
+            [[1], [z, y, x], [z^2, y*z, x*z, x*y], [z^3, y*z^2, x*z^2, x*y*z]]
+
+        Check the deprecation::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: _ = R.ideal(x^2+y^2, x*y+2*y).normal_basis('singular')
+            doctest:...: DeprecationWarning: "algorithm" should be used as keyword argument
+            See https://trac.sagemath.org/29543 for details.
         """
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+        if isinstance(degree, str):
+            from sage.misc.superseded import deprecation
+            deprecation(29543,
+                        '"algorithm" should be used as keyword argument')
+            algorithm = degree
+            degree = None
 
         if algorithm == 'libsingular':
-            return self._normal_basis_libsingular()
+            return self._normal_basis_libsingular(degree)
         else:
             gb = self.groebner_basis()
             R = self.ring()
-            return PolynomialSequence(R, [R(f) for f in singular.kbase(R.ideal(gb))], immutable=True)
+            if degree is None:
+                res = singular.kbase(R.ideal(gb))
+            else:
+                res = singular.kbase(R.ideal(gb), int(degree))
+            return PolynomialSequence(R, [R(f) for f in res], immutable=True)
 
 
 class MPolynomialIdeal_macaulay2_repr:

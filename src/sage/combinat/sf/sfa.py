@@ -5569,19 +5569,20 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             {-3}
 
             sage: S = SymmetricFunctions(GF(3))
-            sage: B = [S.m(), S.e(), S.h(), S.s(), S.f()]
+            sage: B = [S.p(), S.m(), S.e(), S.h(), S.s(), S.f()]
             sage: m = S.m(); x = m[3,2,1]
             sage: set([b(x).principal_specialization(n=4, q=GF(3)(2)) for b in B])
             {1}
 
             sage: S = SymmetricFunctions(Zmod(4))
-            sage: B = [S.m(), S.e(), S.h(), S.s(), S.f()]
+            sage: B = [S.p(), S.m(), S.e(), S.h(), S.s(), S.f()]
             sage: m = S.m(); x = m[3,2,1]
             sage: set([b(x).principal_specialization(n=4, q=Zmod(4)(2)) for b in B])
             {0}
             sage: y = m[3,1]
             sage: set([b(y).principal_specialization(n=4, q=Zmod(4)(2)) for b in B])
             {2}
+            sage: B = [S.m(), S.e(), S.h(), S.s(), S.f()]
             sage: z = m[1,1]
             sage: set([b(z).principal_specialization(n=4) for b in B])
             {q^5 + q^4 + 2*q^3 + q^2 + q}
@@ -5589,7 +5590,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         Check that parents are correct over `\mathbb{F}_3`::
 
             sage: S = SymmetricFunctions(GF(3))
-            sage: B = [S.m(), S.e(), S.h(), S.s(), S.f()]
+            sage: B = [S.p(), S.m(), S.e(), S.h(), S.s(), S.f()]
             sage: lams = [Partition([]), Partition([1]), Partition([2,1])]
             sage: set(b[lam].principal_specialization(n=2, q=GF(3)(0)).parent() for b in B for lam in lams)
             {Finite Field of size 3}
@@ -5620,7 +5621,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         Check that parents are correct over the integer ring::
 
             sage: S = SymmetricFunctions(ZZ)
-            sage: B = [S.m(), S.e(), S.h(), S.s(), S.f()]
+            sage: B = [S.p(), S.m(), S.e(), S.h(), S.s(), S.f()]
             sage: lams = [Partition([]), Partition([1]), Partition([2,1])]
             sage: set(b[lam].principal_specialization(n=2, q=0).parent() for b in B for lam in lams)
             {Integer Ring}
@@ -5640,7 +5641,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: P = PolynomialRing(ZZ, "q")
             sage: q = P.gen()
             sage: S = SymmetricFunctions(P)
-            sage: B = [S.m(), S.e(), S.h(), S.s(), S.f()]
+            sage: B = [S.p(), S.m(), S.e(), S.h(), S.s(), S.f()]
             sage: lams = [Partition([]), Partition([1]), Partition([2,1])]
             sage: set(b[lam].principal_specialization(n=2, q=P(0)).parent() for b in B for lam in lams)
             {Univariate Polynomial Ring in q over Integer Ring}

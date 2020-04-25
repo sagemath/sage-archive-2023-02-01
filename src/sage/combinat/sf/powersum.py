@@ -802,16 +802,19 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
             elif n == infinity:
                 f = lambda partition: prod(1/(1-q**part) for part in partition)
             else:
-                q_lim = PolynomialRing(self.base_ring(), "q").gen()
+                from sage.rings.integer_ring import ZZ
+                ZZq = PolynomialRing(ZZ, "q")
+                q_lim = ZZq.gen()
                 def f(partition):
                     denom = prod((1-q**part) for part in partition)
                     try:
                         ~denom
-                        return prod((1-q**(n*part)) for part in partition)/denom
-                    # If denom is not invertible, we need to do the
-                    # computation with universal coefficients instead:
-                    except (ZeroDivisionError, NotImplementedError):
-                        quotient = prod((1-q_lim**(n*part))/(1-q_lim**part) for part in partition)
+                        rational = prod((1-q**(n*part)) for part in partition)/denom
+                        return q.parent()(rational)
+                    except (ZeroDivisionError, NotImplementedError, TypeError):
+                        # If denom is not invertible, we need to do the
+                        # computation with universal coefficients instead:
+                        quotient = ZZq(prod((1-q_lim**(n*part))/(1-q_lim**part) for part in partition))
                         return quotient.subs({q_lim: q})
 
             return self.parent()._apply_module_morphism(self, f, q.parent())

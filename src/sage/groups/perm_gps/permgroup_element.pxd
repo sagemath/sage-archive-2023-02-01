@@ -25,4 +25,4 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
     cdef public __custom_name
     cpdef list _act_on_list_on_position(self, list x)
     cpdef ClonableIntArray _act_on_array_on_position(self, ClonableIntArray x)
-    cpdef ETuple _act_on_etuple_on_position(self, ETuple x, bint self_on_left)
+    cpdef ETuple _act_on_etuple_on_position(self, ETuple x)

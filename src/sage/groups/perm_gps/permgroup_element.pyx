@@ -1135,7 +1135,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         y.set_immutable()
         return y
 
-    cpdef ETuple _act_on_etuple_on_position(self, ETuple x, bint self_on_left):
+    cpdef ETuple _act_on_etuple_on_position(self, ETuple x):
         r"""
         Return the right action of this permutation on the ETuple ``x``.
 
@@ -1144,24 +1144,27 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: S = SymmetricGroup(6)
             sage: e = ETuple([1,2,3,4,5,6])
-            sage: S("(1,4)")._act_on_etuple_on_position(e, True)
+            sage: S("(1,4)")._act_on_etuple_on_position(e)
             (4, 2, 3, 1, 5, 6)
-            sage: S("(1,2,3,4,5,6)")._act_on_etuple_on_position(e, True)
+            sage: S("(1,2,3,4,5,6)")._act_on_etuple_on_position(e)
             (6, 1, 2, 3, 4, 5)
-            sage: S("(1,3,5)(2,4,6)")._act_on_etuple_on_position(e, False)
-            (3, 4, 5, 6, 1, 2)
 
             sage: e = ETuple([1,2,0,0,0,6])
-            sage: S("(1,4)")._act_on_etuple_on_position(e, True)
+            sage: S("(1,4)")._act_on_etuple_on_position(e)
             (0, 2, 0, 1, 0, 6)
-            sage: S("(1,2,3,4,5,6)")._act_on_etuple_on_position(e, True)
+            sage: S("(1,2,3,4,5,6)")._act_on_etuple_on_position(e)
             (6, 1, 2, 0, 0, 0)
+
+        It is indeed a right action::
+
+            sage: p, q = S('(1,2,3,4,5,6)'), S('(1,2)(3,4)(5,6)')
+            sage: e = ETuple([10..15])
+            sage: right = lambda x, p: p._act_on_etuple_on_position(x)
+            sage: right(e, p * q) == right(right(e, p), q)
+            True
         """
         cdef size_t ind
         cdef ETuple result = ETuple.__new__(ETuple)
-
-        if not self_on_left:
-            self = ~self
 
         result._length = x._length
         result._nonzero = x._nonzero

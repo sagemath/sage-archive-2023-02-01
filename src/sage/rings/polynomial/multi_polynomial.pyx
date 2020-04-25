@@ -988,7 +988,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         cdef dict coeffs = self.dict()
         zero = self.base_ring().zero()
-        return all(coeffs.get(g._act_on_etuple_on_position(e, True), zero) == coeff
+        return all(coeffs.get(g._act_on_etuple_on_position(e), zero) == coeff
                    for e, coeff in coeffs.items() for g in gens)
 
     def _gap_(self, gap):

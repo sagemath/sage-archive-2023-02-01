@@ -5582,6 +5582,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: y = m[3,1]
             sage: set([b(y).principal_specialization(n=4, q=Zmod(4)(2)) for b in B])
             {2}
+            sage: z = m[1,1]
+            sage: set([b(z).principal_specialization(n=4) for b in B])
+            {q^5 + q^4 + 2*q^3 + q^2 + q}
 
         Check that parents are correct over `\mathbb{F}_3`::
 
@@ -5597,13 +5600,14 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: set(b[lam].principal_specialization(n=2).parent() for b in B for lam in lams)
             {Univariate Polynomial Ring in q over Finite Field of size 3}
             sage: set(b[lam].principal_specialization().parent() for b in B for lam in lams)
-            {Fraction Field of Univariate Polynomial Ring in q over Finite Field of size 3}
+            {Fraction Field of Univariate Polynomial Ring in q over Finite Field of size 3,
+             Univariate Polynomial Ring in q over Finite Field of size 3}
 
             sage: a = S.e()[2,1].principal_specialization(n=2, q=GF(3)(2)); a
             0
             sage: a = S.e()[1,1,1].principal_specialization(n=2); a
             q^3 + 1
-            
+
             sage: set(b.one().principal_specialization(n=2, q=GF(3)(2)) for b in B)
             {1}
             sage: set(b.one().principal_specialization(n=2, q=GF(3)(1)) for b in B)
@@ -5627,7 +5631,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: set(b[lam].principal_specialization(n=2).parent() for b in B for lam in lams)
             {Univariate Polynomial Ring in q over Integer Ring}
             sage: set(b[lam].principal_specialization().parent() for b in B for lam in lams)
-            {Fraction Field of Univariate Polynomial Ring in q over Integer Ring}
+            {Fraction Field of Univariate Polynomial Ring in q over Integer Ring,
+             Univariate Polynomial Ring in q over Integer Ring,
+             Univariate Polynomial Ring in q over Rational Field}
 
         Check that parents are correct over a polynomial ring::
 
@@ -5645,13 +5651,15 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: set(b[lam].principal_specialization(n=2, q=q).parent() for b in B for lam in lams)
             {Univariate Polynomial Ring in q over Integer Ring}
             sage: set(b[lam].principal_specialization(q=q).parent() for b in B for lam in lams)
-            {Fraction Field of Univariate Polynomial Ring in q over Integer Ring}
+            {Fraction Field of Univariate Polynomial Ring in q over Integer Ring,
+             Univariate Polynomial Ring in q over Integer Ring,
+             Univariate Polynomial Ring in q over Rational Field}
 
             sage: a = S.e()[2,1].principal_specialization(n=2, q=2); a
             6
             sage: a = S.e()[2,1].principal_specialization(n=2, q=q); a
-            q**2 + q
-            
+            q^2 + q
+
             sage: set(b.one().principal_specialization(n=2, q=P(2)) for b in B)
             {1}
             sage: set(b.one().principal_specialization(n=2, q=P(1)) for b in B)

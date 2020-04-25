@@ -668,12 +668,13 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                 if n == infinity:
                     raise ValueError("the stable principal specialization at q=1 is not defined")
                 f = lambda partition: (prod(n+j-i for (i, j) in partition.cells())
-                                       / prod(h for h in partition.hooks()))
+                                       // prod(h for h in partition.hooks()))
             elif n == infinity:
                 f = lambda partition: (q**sum(i*part for i, part in enumerate(partition))
                                        / prod(1-q**h for h in partition.hooks()))
             else:
-                ZZq = PolynomialRing(ZZ, "q").gen()
+                from sage.rings.integer_ring import ZZ
+                ZZq = PolynomialRing(ZZ, "q")
                 q_lim = ZZq.gen()
                 def f(partition):
                     if n < len(partition):
@@ -682,13 +683,14 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                     denom = prod(1-q**h for h in partition.hooks())
                     try:
                         ~denom
-                        return (power
-                                * prod(1-q**(n+j-i)
-                                       for (i, j) in partition.cells())
-                                / denom)
-                    # If denom is not invertible, we need to do the
-                    # computation with universal coefficients instead:
-                    except (ZeroDivisionError, NotImplementedError):
+                        rational = (power
+                                    * prod(1-q**(n+j-i)
+                                           for (i, j) in partition.cells())
+                                    / denom)
+                        return q.parent()(rational)
+                    except (ZeroDivisionError, NotImplementedError, TypeError):
+                        # If denom is not invertible, we need to do the
+                        # computation with universal coefficients instead:
                         quotient = ZZq((prod(1-q_lim**(n+j-i)
                                              for (i, j) in partition.cells()))
                                     / prod(1-q_lim**h for h in partition.hooks()))

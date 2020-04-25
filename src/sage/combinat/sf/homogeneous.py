@@ -318,7 +318,9 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
 
         def exponential_specialization(self, t=None, q=1):
             r"""
-            Return the exponential specialization of a symmetric function.
+            Return the exponential specialization of a
+            symmetric function (when `q = 1`), or the
+            `q`-exponential specialization (when `q \neq 1`).
 
             The *exponential specialization* `ex` at `t` is a
             `K`-algebra homomorphism from the `K`-algebra of

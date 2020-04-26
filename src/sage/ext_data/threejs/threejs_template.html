@@ -20,8 +20,9 @@
     #menu-content div { border-top: 1px solid black; padding: 10px; white-space: nowrap; }
 
     #menu-content div:hover { background-color: #FEFEFE;; }
-  
+
 </style>
+SAGE_STYLES
 </head>
 
 <body>
@@ -37,10 +38,7 @@ SAGE_SCRIPTS
     document.body.appendChild( renderer.domElement );
 
     var options = SAGE_OPTIONS;
-
-    // When animations are supported by the viewer, the value 'false'
-    // will be replaced with an option set in Python by the user
-    var animate = false; // options.animate;
+    var animate = options.animate;
 
     var b = SAGE_BOUNDS; // bounds
 
@@ -140,6 +138,8 @@ SAGE_SCRIPTS
 
         scene.add( sprite );
 
+        return sprite;
+
     }
 
     if ( options.axes ) scene.add( new THREE.AxesHelper( Math.min( a[0]*b[1].x, a[1]*b[1].y, a[2]*b[1].z ) ) );
@@ -220,16 +220,20 @@ SAGE_SCRIPTS
     controls.addEventListener( 'change', function() { if ( !animate ) render(); } );
 
     window.addEventListener( 'resize', function() {
-        
+
         renderer.setSize( window.innerWidth, window.innerHeight );
         updateCameraAspect( camera, window.innerWidth / window.innerHeight );
         if ( !animate ) render();
-        
+
     } );
 
     var texts = SAGE_TEXTS;
-    for ( var i=0 ; i < texts.length ; i++ )
-        addLabel( texts[i].text, a[0]*texts[i].x, a[1]*texts[i].y, a[2]*texts[i].z, texts[i].color );
+    for ( var i=0 ; i < texts.length ; i++ ) addText( texts[i] );
+
+    function addText( json ) {
+        var sprite = addLabel( json.text, a[0]*json.x, a[1]*json.y, a[2]*json.z, json.color );
+        sprite.userData = json;
+    }
 
     var points = SAGE_POINTS;
     for ( var i=0 ; i < points.length ; i++ ) addPoint( points[i] );
@@ -265,6 +269,7 @@ SAGE_SCRIPTS
 
         var mesh = new THREE.Points( geometry, material );
         mesh.position.set( c.x, c.y, c.z );
+        mesh.userData = json;
         scene.add( mesh );
 
     }
@@ -291,6 +296,7 @@ SAGE_SCRIPTS
 
         var mesh = new THREE.Line( geometry, material );
         mesh.position.set( c.x, c.y, c.z );
+        mesh.userData = json;
         scene.add( mesh );
 
     }
@@ -335,6 +341,7 @@ SAGE_SCRIPTS
         var mesh = new THREE.Mesh( geometry, material );
         mesh.position.set( c.x, c.y, c.z );
         if ( transparent && json.renderOrder ) mesh.renderOrder = json.renderOrder;
+        mesh.userData = json;
         scene.add( mesh );
 
         if ( json.showMeshGrid ) {
@@ -363,6 +370,7 @@ SAGE_SCRIPTS
 
             var mesh = new THREE.LineSegments( geometry, material );
             mesh.position.set( c.x, c.y, c.z );
+            mesh.userData = json;
             scene.add( mesh );
 
         }
@@ -373,7 +381,9 @@ SAGE_SCRIPTS
 
     function render() {
 
+        if ( window.updateAnimation ) animate = updateAnimation();
         if ( animate ) requestAnimationFrame( render );
+
         renderer.render( scene, camera );
 
         // Resize text based on distance from camera.
@@ -389,7 +399,7 @@ SAGE_SCRIPTS
             }
         }
     }
-    
+
     render();
     controls.update();
     if ( !animate ) render();
@@ -462,5 +472,6 @@ SAGE_SCRIPTS
 <div>Close Menu</div>
 </div></div>
 
+SAGE_EXTRA_HTML
 </body>
 </html>

@@ -91,7 +91,7 @@ def q_factorial(n, q=None):
     .. MATH::
 
         [1]_q [2]_q \cdots [n]_q
-        = 1 \cdot (1+q) \cdot (1+q+q^2) \cdots (1+q+q^2+\cdots+q^{n-1) .
+        = 1 \cdot (1+q) \cdot (1+q+q^2) \cdots (1+q+q^2+\cdots+q^{n-1}) .
 
     If `q` is unspecified, then this function defaults to
     using the generator `q` for a univariate polynomial

@@ -5736,17 +5736,17 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: m = SymmetricFunctions(QQ).m()
             sage: (m[2,1]+m[1,1]).exponential_specialization()
             1/2*t^2
-            sage: (m[2,1]+m[1,1]).exponential_specialization(q=None)
-            t**2 * (1 - q)/(1 + q)
+            sage: m[1,1].exponential_specialization(q=None)
+            1/2*t^2
             sage: Qq = PolynomialRing(QQ, "q"); q = Qq.gen()
-            sage: (m[2,1]+m[1,1]).exponential_specialization(q=q)
-            t**2 * (1 - q)/(1 + q)
+            sage: m[1,1].exponential_specialization(q=q)
+            t^2 * (1 - q)/(1 + q)
             sage: Qt = PolynomialRing(QQ, "t"); t = Qt.gen()
-            sage: (m[2,1]+m[1,1]).exponential_specialization(t=t)
-            t**2 * (1 - q)/(1 + q)
+            sage: m[1,1].exponential_specialization(t=t)
+            1/2*t^2
             sage: Qqt = PolynomialRing(QQ, ["q", "t"]); q, t = Qqt.gens()
-            sage: (m[2,1]+m[1,1]).exponential_specialization(q=q, t=t)
-            t**2 * (1 - q)/(1 + q)
+            sage: m[1,1].exponential_specialization(q=q, t=t)
+            t^2 * (1 - q)/(1 + q)
 
             sage: x = m[3]+m[2,1]+m[1,1,1]
             sage: d = x.homogeneous_degree()
@@ -5785,10 +5785,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: B = [S.p(), S.m(), S.e(), S.h(), S.s(), S.f()]
             sage: lams = [Partition([]), Partition([1]), Partition([2,1])]
             sage: set(b[lam].exponential_specialization(q=None).parent() for b in B for lam in lams)
-            {Fraction Field of Univariate Polynomial Ring in t over
-              Univariate Polynomial Ring in q over Finite Field of size 3,
-             Univariate Polynomial Ring in t over Univariate Polynomial Ring in q
-              over Finite Field of size 3}
+            {Univariate Polynomial Ring in t over Fraction Field
+              of Univariate Polynomial Ring in q over Finite Field of size 3,
+             Univariate Polynomial Ring in t over Univariate Polynomial Ring
+              in q over Finite Field of size 3} 
             sage: P2 = PolynomialRing(GF(3), ["q", "t"])
             sage: q2, t2 = P2.gens()
             sage: set(b[lam].exponential_specialization(q=q2, t=t2).parent() for b in B for lam in lams)
@@ -5818,9 +5818,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: lams = [Partition([]), Partition([1]), Partition([2,1])]
             sage: set(b[lam].exponential_specialization(q=q).parent() for b in B for lam in lams)
             {Univariate Polynomial Ring in t over
-             Univariate Polynomial Ring in q over Rational Field}
+              Fraction Field of Univariate Polynomial Ring in q over Rational Field,
+             Univariate Polynomial Ring in t over Univariate Polynomial Ring
+              in q over Rational Field}
             sage: set(b[lam].exponential_specialization(q=q, t=1).parent() for b in B for lam in lams)
-            {Univariate Polynomial Ring in q over Integer Ring}
+            {Fraction Field of Univariate Polynomial Ring in q over Rational Field,
+             Univariate Polynomial Ring in q over Rational Field}
         """
         # heuristically, it seems fastest to fall back to the
         # elementary basis - using the powersum basis would

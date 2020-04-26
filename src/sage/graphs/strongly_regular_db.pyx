@@ -2806,11 +2806,11 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
     Check that :trac:`26513` is fixed::
 
         sage: graphs.strongly_regular_graph(539, 288, 162, 144)
-        descendant of (540, 264, 138, 120)-strongly regular graph at 0: Graph on 539 vertices
+        descendant of (540, 264, 138, 120)-strongly regular graph at ... 539 vertices
         sage: graphs.strongly_regular_graph(539, 250, 105, 125)
-        descendant of (540, 275, 130, 150)-strongly regular graph at 0: Graph on 539 vertices
+        descendant of (540, 275, 130, 150)-strongly regular graph at ... 539 vertices
         sage: graphs.strongly_regular_graph(209, 100, 45, 50)
-        descendant of complement(merging of S_7 on Circulant(6,[1,4])s) at 11: Graph on 209 vertices
+        descendant of complement(merging of S_7 on Circulant(6,[1,4])s) at ... 209 vertices
 
 
     Check that all of our constructions are correct - you will need gap_packages spkg installed::

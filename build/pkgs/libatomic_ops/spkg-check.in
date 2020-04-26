@@ -11,8 +11,3 @@ if [ "$SAGE64" = "yes" ]; then
 fi
 
 $MAKE check
-
-if [ $? -ne 0 ]; then
-   echo "Error testing libatomic_ops."
-   exit 1
-fi

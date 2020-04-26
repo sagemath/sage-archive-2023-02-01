@@ -1,8 +1,7 @@
 """
 Monomial symmetric functions
 """
-from __future__ import absolute_import
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2010 Anne Schilling <anne at math.ucdavis.edu> (addition)
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -16,13 +15,15 @@ from __future__ import absolute_import
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import absolute_import
 
 from . import classical
 import sage.libs.symmetrica.all as symmetrica
 from sage.rings.integer import Integer
-from sage.combinat.partition import Partition
+from sage.combinat.partition import Partition, _Partitions
+
 
 class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, Sym):
@@ -46,7 +47,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
     def _dual_basis_default(self):
         """
-        Returns the default dual basis to ``self`` when no scalar product is specified
+        Return the default dual basis to ``self`` when no scalar product is specified
 
         This method returns the dual basis of the monomial basis with
         respect to the standard scalar product, which is the
@@ -104,35 +105,36 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             sage: a^2
             x^2*m[] + 2*x*m[2, 1] + 4*m[2, 2, 1, 1] + 6*m[2, 2, 2] + 2*m[3, 2, 1] + 2*m[3, 3] + 2*m[4, 1, 1] + m[4, 2]
         """
-        #Use symmetrica to do the multiplication
-        #A = left.parent()
+        # Use symmetrica to do the multiplication
+        # A = left.parent()
 
-        #Hack due to symmetrica crashing when both of the
-        #partitions are the empty partition
-        #if  R is ZZ or R is QQ:
-        #    return symmetrica.mult_monomial_monomial(left, right)
+        # Hack due to symmetrica crashing when both of the
+        # partitions are the empty partition
+        # if  R is ZZ or R is QQ:
+        #     return symmetrica.mult_monomial_monomial(left, right)
 
         z_elt = {}
-        for (left_m, left_c) in six.iteritems(left._monomial_coefficients):
-            for (right_m, right_c) in six.iteritems(right._monomial_coefficients):
+        for left_m, left_c in left._monomial_coefficients.items():
+            for right_m, right_c in right._monomial_coefficients.items():
 
-                #Hack due to symmetrica crashing when both of the
-                #partitions are the empty partition
-                if left_m == [] and right_m == []:
-                    z_elt[ left_m ] = left_c*right_c
+                # Hack due to symmetrica crashing when both of the
+                # partitions are the empty partition
+                if not left_m and not right_m:
+                    z_elt[left_m] = left_c * right_c
                     continue
 
-                d = symmetrica.mult_monomial_monomial({left_m:Integer(1)}, {right_m:Integer(1)}).monomial_coefficients()
+                d = symmetrica.mult_monomial_monomial({left_m: Integer(1)},
+                                                      {right_m: Integer(1)}).monomial_coefficients()
                 for m in d:
                     if m in z_elt:
-                        z_elt[ m ] = z_elt[m] + left_c * right_c * d[m]
+                        z_elt[m] += left_c * right_c * d[m]
                     else:
-                        z_elt[ m ] = left_c * right_c * d[m]
+                        z_elt[m] = left_c * right_c * d[m]
         return z_elt
 
     def from_polynomial(self, f, check=True):
         """
-        Returns the symmetric function in the monomial basis corresponding to the polynomial ``f``.
+        Return the symmetric function in the monomial basis corresponding to the polynomial ``f``.
 
         INPUT:
 
@@ -158,7 +160,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             sage: f = x[0]**2+x[1]**2+x[2]**2
             sage: m.from_polynomial(f)
             m[2]
-            sage: f=x[0]^2+x[1]
+            sage: f = x[0]^2+x[1]
             sage: m.from_polynomial(f)
             Traceback (most recent call last):
             ...
@@ -171,11 +173,17 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             m[1, 1] + 2*m[2, 1] + 3*m[3]
         """
         assert self.base_ring() == f.base_ring()
-        out = self.sum_of_terms((Partition(e), c)
-                                for (e,c) in six.iteritems(f.dict())
-                                if tuple(sorted(e)) == tuple(reversed(e)))
-        if check and out.expand(f.parent().ngens(),f.parent().variable_names()) != f:
-            raise ValueError("%s is not a symmetric polynomial"%f)
+
+        def is_partition(e):
+            if not e:
+                return True
+            return all(x >= y for x, y in zip(e[:-1], e[1:]))
+        out = self._from_dict({_Partitions.element_class(_Partitions, list(e)): c
+                               for e, c in f.dict().items()
+                               if is_partition(e)}, remove_zeros=False)
+        if check and f != out.expand(f.parent().ngens(),
+                                     f.parent().variable_names()):
+            raise ValueError("%s is not a symmetric polynomial" % f)
         return out
 
     def from_polynomial_exp(self, p):
@@ -225,7 +233,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         """
         assert self.base_ring() == p.parent().base_ring()
         return self.sum_of_terms((Partition(exp=monomial), coeff)
-                                 for (monomial, coeff) in six.iteritems(p.dict()))
+                                 for monomial, coeff in p.dict().items())
 
     def antipode_by_coercion(self, element):
         r"""
@@ -299,13 +307,14 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
                 sage: (3*m([])).expand(0)
                 3
             """
-            condition = lambda part: len(part) > n
+
+            def condition(part):
+                return len(part) > n
             return self._expand(condition, n, alphabet)
+
 
 # Backward compatibility for unpickling
 from sage.misc.persist import register_unpickle_override
 
-import six
 
-
-register_unpickle_override('sage.combinat.sf.monomial', 'SymmetricFunctionAlgebraElement_monomial',  SymmetricFunctionAlgebra_monomial.Element)
+register_unpickle_override('sage.combinat.sf.monomial', 'SymmetricFunctionAlgebraElement_monomial', SymmetricFunctionAlgebra_monomial.Element)

@@ -1,9 +1,3 @@
-if [ -z "$SAGE_LOCAL" ]; then
-    echo >&2 "SAGE_LOCAL undefined ... exiting"
-    echo >&2 "Maybe run 'sage -sh'?"
-    exit 1
-fi
-
 cd src
 
 if [ "$SAGE_DEBUG" = "yes" ]; then
@@ -13,8 +7,3 @@ else
 fi
 
 $MAKE check
-
-if [ $? -ne 0 ]; then
-   echo "Error testing BoehmGC."
-   exit 1
-fi

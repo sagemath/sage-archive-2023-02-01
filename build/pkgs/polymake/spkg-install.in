@@ -2,9 +2,17 @@ cd src
 
 more_configure_options=
 
-if [ `uname` = Darwin ]; then
-    more_configure_options="$more_configure_options --without-fink"
-fi
+case $(uname) in
+    Darwin)
+        more_configure_options="$more_configure_options --without-fink"
+        # #21175/#29408: Set the ARCHFLAGS environment variable. This
+        # is to make sure that the output of perl -MExtUtils::Embed
+        # -e ldopts and perl -MExtUtils::Embed -e ccflags (picked up
+        # from system perl) do not contain -arch flags incompatible
+        # with our gcc.
+        export ARCHFLAGS=""
+        ;;
+esac
 
 # We disable SoPlex to avoid linking errors (#24905).
 # Since polymake v3.4, it does not find our lrs installation if we do not provide --with-lrs explicitly.

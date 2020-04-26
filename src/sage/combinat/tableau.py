@@ -6500,9 +6500,9 @@ class SemistandardTableaux_size(SemistandardTableaux):
         from sage.rings.all import ZZ
         from sage.matrix.constructor import diagonal_matrix
         from sage.combinat.rsk import RSK
-        kchoose2m1 = self.max_entry * (self.max_entry - 1) / 2 - 1
+        kchoose2m1 = self.max_entry * (self.max_entry - 1) // 2 - 1
         km1 = self.max_entry - 1
-        weights = [binomial(self.size - i + km1, km1) * binomial((i/2) + kchoose2m1, kchoose2m1)
+        weights = [binomial(self.size - i + km1, km1) * binomial((i//2) + kchoose2m1, kchoose2m1)
                    for i in range(0, self.size + 1, 2)]
         randpos = ZZ.random_element(sum(weights))
         tot = weights[0]

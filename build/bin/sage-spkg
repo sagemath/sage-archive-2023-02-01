@@ -121,7 +121,7 @@ If you want to try to fix the problem yourself, *don't* just cd to
 `pwd` and type '$2' or whatever is appropriate.
 Instead, the following commands setup all environment variables
 correctly and load a subshell for you to debug the error:
-  (cd '`pwd`' && '$SAGE_ROOT/sage' --sh)
+  (cd '`pwd`' && '$SAGE_ROOT/sage' --buildsh)
 When you are done debugging, you can type "exit" to leave the subshell.
 MESSAGE
 fi
@@ -390,7 +390,7 @@ if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
                     ;;
             esac
             echo -n "  "
-            sage-print-system-package-command $system install $system_packages
+            sage-print-system-package-command $system --prompt --sudo install $system_packages
         fi
     done
     if [ -z "$system" ]; then
@@ -786,19 +786,6 @@ for script in $WRAPPED_SCRIPTS; do
 
     if [ -f "$script.in" ]; then
         if [ "$USE_LOCAL_SCRIPTS" = "yes" ]; then
-            if [ -x "$script.in" ]; then
-                msg="$script.in should not be marked executable in the build/pkgs directory"
-                if [ "$UNAME" = "CYGWIN" ]; then
-                    # On Cygwin we can't necessarily rely on file permissions
-                    # being sane, so just issue a warning; on other platforms
-                    # this should be enforced as an error
-                    echo >&2 "WARNING: $msg"
-                else
-                    error_msg "$msg"
-                    exit 1
-                fi
-            fi
-
             write_script_wrapper "$(pwd)/$script" "$script_dir"
         else
             if [ ! -x "$script" ]; then
@@ -1037,13 +1024,14 @@ if [ "$SAGE_CHECK" = "yes" -o "$SAGE_CHECK" = "warn" ]; then
         if [ $? -ne 0 ]; then
             TEST_SUITE_RESULT="failed"
             if [ "$SAGE_CHECK" = "warn" ]; then
-                error_msg "Warning: Error testing package $PKG_NAME (ignored)" "make check"
+                error_msg "Warning: Failures testing package $PKG_NAME (ignored)" "make check"
             else
                 error_msg "Error testing package $PKG_NAME" "make check"
                 exit 1
             fi
         else
             TEST_SUITE_RESULT="passed"
+            echo "Passed the test suite for $PKG_NAME."
         fi
     else
         echo "Package $PKG_NAME has no test suite."

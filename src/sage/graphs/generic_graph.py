@@ -430,7 +430,7 @@ from six import iteritems, integer_types
 from copy import copy
 
 from sage.graphs.views import EdgesView
-from .generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
+from .generic_graph_pyx import GenericGraph_pyx, spring_layout_fast, layout_split
 from .dot2tex_utils import assert_have_dot2tex
 
 from sage.misc.decorators import options
@@ -1419,7 +1419,7 @@ class GenericGraph(GenericGraph_pyx):
                    functions + ".")
             raise ValueError(msg)
 
-    def networkx_graph(self, copy=True, weight_function=None):
+    def networkx_graph(self, weight_function=None):
         """
         Return a new ``NetworkX`` graph from the Sage graph.
 
@@ -1447,8 +1447,6 @@ class GenericGraph(GenericGraph_pyx):
             OutMultiEdgeDataView([(1, 2, {'weight': 1}), (1, 3, {'weight': 4}), (2, 3, {'weight': 3}), (3, 4, {'weight': 5}), (3, 4, {'weight': 4})])
 
         """
-        if copy is not True:
-            deprecation(27491, "parameter copy is removed")
         if weight_function is not None:
             self._check_weight_function(weight_function)
         import networkx
@@ -5298,6 +5296,24 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.layout(layout='planar', external_face=(3,1))
             {0: [2, 1], 1: [0, 2], 2: [1, 1], 3: [1, 0]}
 
+        Choose the embedding:
+
+            sage: H = graphs.LadderGraph(4)
+            sage: em = {0:[1,4], 4:[0,5], 1:[5,2,0], 5:[4,6,1], 2:[1,3,6], 6:[7,5,2], 3:[7,2], 7:[3,6]}
+            sage: p = H.layout_planar(on_embedding=em)
+            sage: p # random
+            {2: [8.121320343559642, 1],
+            3: [2.1213203435596424, 6],
+            7: [3.1213203435596424, 0],
+            0: [5.121320343559642, 3],
+            1: [3.1213203435596424, 5],
+            4: [4.121320343559642, 3],
+            5: [4.121320343559642, 2],
+            6: [3.1213203435596424, 1],
+            9: [9.698670612749268, 1],
+            8: [8.698670612749268, 1],
+            10: [9.698670612749268, 0]}
+
         TESTS::
 
             sage: G = Graph([[0, 1, 2, 3], [[0, 1], [0, 2], [0, 3]]])
@@ -5318,11 +5334,84 @@ class GenericGraph(GenericGraph_pyx):
             sage: pos2 = G.layout('planar', save_pos=True)
             sage: pos1 == pos2
             False
+
+        Check that the function handles disconnected graphs and small
+        graphs (:trac:`29522`)::
+
+            sage: G = graphs.CycleGraph(4) + graphs.CycleGraph(5)
+            sage: G.layout_planar() # random
+            {1: [3.0, 1],
+             0: [1.0, 2],
+             2: [2.0, 0],
+             3: [2.0, 1],
+             5: [6.0, 1],
+             4: [4.0, 2],
+             6: [5.0, 0],
+             7: [5.0, 1]}
+            sage: K1 = graphs.CompleteGraph(1)
+            sage: K1.layout_planar()
+            {0: [0, 0]}
+            sage: K2 = graphs.CompleteGraph(2)
+            sage: K2.layout_planar()
+            {0: [0, 0], 1: [0, 1]}
+
+        Check that the embedding can be specified for disconnected
+        graphs (:trac:`29522`)::
+
+            sage: H = graphs.LadderGraph(4) + graphs.CompleteGraph(3)
+            sage: em = {0:[1,4], 4:[0,5], 1:[5,2,0], 5:[4,6,1], 2:[1,3,6], 6:[7,5,2], 3:[7,2], 7:[3,6], 8:[10,9], 9:[8,10], 10:[8,9]}
+            sage: p = H.layout_planar(on_embedding=em)
+
+        Check that an exception is raised if the input graph is not planar::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.layout(layout='planar')
+            Traceback (most recent call last):
+            ...
+            ValueError: Petersen graph is not a planar graph
+
         """
         from sage.graphs.graph import Graph
         from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
 
         G = Graph(self)
+
+        # Trivial cases
+        if len(G) <= 2:
+            verts = G.vertex_iterator()
+            pos = dict()
+            embedding = dict()
+            if len(G) >= 1:
+                v1 = next(verts)
+                pos[v1] = [0,0]
+                embedding[v1] = []
+            if len(G) == 2:
+                v2 = next(verts)
+                pos[v2] = [0,1]
+                embedding[v1] = [v2]
+                embedding[v2] = [v1]
+            if set_embedding:
+                self.set_embedding(embedding)
+            return pos
+
+        if not self.is_connected():
+            if external_face:
+                raise NotImplementedError('cannot fix the external face for a'
+                                          'disconnected graph')
+            # Compute the layout component by component
+            pos = layout_split(G.__class__.layout_planar,
+                               G,
+                               set_embedding=set_embedding,
+                               on_embedding=on_embedding,
+                               external_face=None,
+                               test=test,
+                               **options)
+            if set_embedding:
+                self.set_embedding(G.get_embedding())
+            return pos
+
+        # Now the graph is connected and has at least 3 vertices
+
         try:
             G._embedding = self._embedding
         except AttributeError:
@@ -5337,6 +5426,7 @@ class GenericGraph(GenericGraph_pyx):
                 G._check_embedding_validity(on_embedding,boolean=False)
                 if not G.is_planar(on_embedding=on_embedding):
                     raise ValueError('provided embedding is not a planar embedding for %s'%self )
+                G.set_embedding(on_embedding)
             else:
                 if hasattr(G,'_embedding'):
                     if G._check_embedding_validity():
@@ -5346,7 +5436,8 @@ class GenericGraph(GenericGraph_pyx):
                     else:
                         raise ValueError('provided embedding is not a valid embedding for %s. Try putting set_embedding=True'%self)
                 else:
-                    G.is_planar(set_embedding=True)
+                    if not G.is_planar(set_embedding=True):
+                        raise ValueError('%s is not a planar graph'%self)
 
         if external_face:
             if not self.has_edge(external_face):
@@ -17677,7 +17768,7 @@ class GenericGraph(GenericGraph_pyx):
                                 yield w
 
     def depth_first_search(self, start, ignore_direction=False,
-                           distance=None, neighbors=None, edges=False):
+                           neighbors=None, edges=False):
         """
         Return an iterator over the vertices in a depth-first ordering.
 
@@ -17689,8 +17780,6 @@ class GenericGraph(GenericGraph_pyx):
         - ``ignore_direction`` -- boolean (default ``False``); only applies to
           directed graphs. If ``True``, searches across edges in either
           direction.
-
-        - ``distance`` -- Deprecated. Broken, do not use.
 
         - ``neighbors`` -- function (default: ``None``); a function that inputs
           a vertex and return a list of vertices. For an undirected graph,
@@ -17786,11 +17875,8 @@ class GenericGraph(GenericGraph_pyx):
             [(1, 3), (3, 6), (6, 7), (7, 5), (5, 4), (1, 2)]
 
         """
-        if distance is not None:
-            deprecation(19227, "Parameter 'distance' is broken. Do not use.")
-
         # Preferably use the Cython implementation
-        if (neighbors is None and not isinstance(start, list) and distance is None
+        if (neighbors is None and not isinstance(start, list)
                 and hasattr(self._backend, "depth_first_search") and not edges):
             for v in self._backend.depth_first_search(start, ignore_direction=ignore_direction):
                 yield v
@@ -17813,10 +17899,9 @@ class GenericGraph(GenericGraph_pyx):
                     if v not in seen:
                         yield v
                         seen.add(v)
-                        if distance is None or d < distance:
-                            for w in neighbors(v):
-                                if w not in seen:
-                                    queue.append((w, d + 1))
+                        for w in neighbors(v):
+                            if w not in seen:
+                                queue.append((w, d + 1))
             else:
                 queue = [(None, v, d) for v, d in queue]
                 while queue:
@@ -17825,10 +17910,9 @@ class GenericGraph(GenericGraph_pyx):
                         if v is not None:
                             yield v, w                        
                         seen.add(w)
-                        if distance is None or d < distance:
-                            for x in neighbors(w):
-                                if x not in seen:
-                                    queue.append((w, x, d + 1))
+                        for x in neighbors(w):
+                            if x not in seen:
+                                queue.append((w, x, d + 1))
 
     ### Constructors
 
@@ -22864,7 +22948,7 @@ class GenericGraph(GenericGraph_pyx):
                     isom_trans[v] = other_vertices[isom[G_to[v]]]
             return True, isom_trans
 
-    def canonical_label(self, partition=None, certificate=False, verbosity=0,
+    def canonical_label(self, partition=None, certificate=False,
                         edge_labels=False, algorithm=None, return_graph=True):
         r"""
         Return the canonical graph.
@@ -22905,8 +22989,6 @@ class GenericGraph(GenericGraph_pyx):
           ``False``, returns the list of edges of the canonical graph
           instead of the canonical graph; only available when ``'bliss'``
           is explicitly set as algorithm.
-
-        - ``verbosity`` -- deprecated, does nothing
 
         EXAMPLES:
 
@@ -23046,9 +23128,6 @@ class GenericGraph(GenericGraph_pyx):
             ....:             assert gcan0 == gcan1, (edges, labels, part, pp)
             ....:             assert gcan0 == gcan2, (edges, labels, part, pp)
         """
-        # Deprecation
-        if verbosity != 0:
-            deprecation(19517, "Verbosity-parameter is removed.")
 
         # Check parameter combinations
         if algorithm not in [None, 'sage', 'bliss']:

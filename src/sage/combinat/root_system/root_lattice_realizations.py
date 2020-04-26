@@ -3143,6 +3143,15 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: C = crystals.Tableaux(['B',3], shape=[2,1])
                 sage: L.plot_crystal(C, plot_labels='circles', edge_labels=True) # long time
                 Graphics3d Object
+
+            TESTS:
+
+            Check that :trac:`29548` is fixed::
+
+                sage: LS = crystals.LSPaths(['A',2], [1,1])
+                sage: L = RootSystem(['A',2]).ambient_space()
+                sage: L.plot_crystal(LS)
+                Graphics object consisting of 16 graphics primitives
             """
             from sage.plot.arrow import arrow
             from sage.plot.circle import circle
@@ -3189,13 +3198,13 @@ class RootLatticeRealizations(Category_over_base_ring):
                         G += plot_options.text(elt, positions[wt], rgbcolor=label_color)
 
             for h,t,i in g.edges():
-                G += arrow(positions[h.weight()], positions[t.weight()],
+                G += arrow(positions[self(h.weight())], positions[self(t.weight())],
                            zorder=1, rgbcolor=plot_options.color(i),
                            arrowsize=plot_options._arrowsize)
                 if edge_labels:
-                    mid = (positions[h.weight()] + positions[t.weight()]) / QQ(2)
+                    mid = (positions[self(h.weight())] + positions[self(t.weight())]) / QQ(2)
                     if plot_options.dimension >= 2:
-                        diff = (positions[h.weight()] - positions[t.weight()]).normalized()
+                        diff = (positions[self(h.weight())] - positions[self(t.weight())]).normalized()
                         if plot_options.dimension >= 3:
                             from copy import copy
                             diff2 = copy(diff)

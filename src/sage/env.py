@@ -386,22 +386,27 @@ def cython_aliases():
          'FFLASFFPACK_CFLAGS',
          'FFLASFFPACK_INCDIR',
          'FFLASFFPACK_LIBDIR',
+         'FFLASFFPACK_LIBEXTRA',
          'FFLASFFPACK_LIBRARIES',
          'GIVARO_CFLAGS',
          'GIVARO_INCDIR',
          'GIVARO_LIBDIR',
+         'GIVARO_LIBEXTRA',
          'GIVARO_LIBRARIES',
          'GSL_CFLAGS',
          'GSL_INCDIR',
          'GSL_LIBDIR',
+         'GSL_LIBEXTRA',
          'GSL_LIBRARIES',
          'LINBOX_CFLAGS',
          'LINBOX_INCDIR',
          'LINBOX_LIBDIR',
+         'LINBOX_LIBEXTRA',
          'LINBOX_LIBRARIES',
          'SINGULAR_CFLAGS',
          'SINGULAR_INCDIR',
          'SINGULAR_LIBDIR',
+         'SINGULAR_LIBEXTRA',
          'SINGULAR_LIBRARIES']
     """
     import pkgconfig
@@ -416,6 +421,7 @@ def cython_aliases():
         # passed in CFLAGS
         aliases[var + "INCDIR"] = pc['include_dirs']
         aliases[var + "LIBDIR"] = pc['library_dirs']
+        aliases[var + "LIBEXTRA"] = list(filter(lambda s: not s.startswith(('-l','-L')), pkgconfig.libs(lib).split()))
         aliases[var + "LIBRARIES"] = pc['libraries']
 
     # LinBox needs special care because it actually requires C++11 with

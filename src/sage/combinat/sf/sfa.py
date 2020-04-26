@@ -5631,10 +5631,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             {Integer Ring}
             sage: set(b[lam].principal_specialization(n=2).parent() for b in B for lam in lams)
             {Univariate Polynomial Ring in q over Integer Ring}
-            sage: set(b[lam].principal_specialization().parent() for b in B for lam in lams)
-            {Fraction Field of Univariate Polynomial Ring in q over Integer Ring,
+            sage: sorted(set(b[lam].principal_specialization().parent() for b in B for lam in lams), key=str)
+            [Fraction Field of Univariate Polynomial Ring in q over Integer Ring,
              Univariate Polynomial Ring in q over Integer Ring,
-             Univariate Polynomial Ring in q over Rational Field}
+             Univariate Polynomial Ring in q over Rational Field]
 
         Check that parents are correct over a polynomial ring::
 
@@ -5651,10 +5651,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             {Univariate Polynomial Ring in q over Integer Ring}
             sage: set(b[lam].principal_specialization(n=2, q=q).parent() for b in B for lam in lams)
             {Univariate Polynomial Ring in q over Integer Ring}
-            sage: set(b[lam].principal_specialization(q=q).parent() for b in B for lam in lams)
-            {Fraction Field of Univariate Polynomial Ring in q over Integer Ring,
+            sage: sorted(set(b[lam].principal_specialization(q=q).parent() for b in B for lam in lams), key=str)
+            [Fraction Field of Univariate Polynomial Ring in q over Integer Ring,
              Univariate Polynomial Ring in q over Integer Ring,
-             Univariate Polynomial Ring in q over Rational Field}
+             Univariate Polynomial Ring in q over Rational Field]
 
             sage: a = S.e()[2,1].principal_specialization(n=2, q=2); a
             6
@@ -5786,16 +5786,16 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: S = SymmetricFunctions(GF(3))
             sage: B = [S.p(), S.m(), S.e(), S.h(), S.s(), S.f()]
             sage: lams = [Partition([]), Partition([1]), Partition([2,1])]
-            sage: set(b[lam].exponential_specialization(q=None).parent() for b in B for lam in lams)
-            {Univariate Polynomial Ring in t over Fraction Field
+            sage: sorted(set(b[lam].exponential_specialization(q=None).parent() for b in B for lam in lams), key=str)
+            [Univariate Polynomial Ring in t over Fraction Field
               of Univariate Polynomial Ring in q over Finite Field of size 3,
              Univariate Polynomial Ring in t over Univariate Polynomial Ring
-              in q over Finite Field of size 3} 
+              in q over Finite Field of size 3]
             sage: P2 = PolynomialRing(GF(3), ["q", "t"])
             sage: q2, t2 = P2.gens()
-            sage: set(b[lam].exponential_specialization(q=q2, t=t2).parent() for b in B for lam in lams)
-            {Multivariate Polynomial Ring in q, t over Finite Field of size 3,
-             Fraction Field of Multivariate Polynomial Ring in q, t over Finite Field of size 3}
+            sage: sorted(set(b[lam].exponential_specialization(q=q2, t=t2).parent() for b in B for lam in lams), key=str)
+            [Fraction Field of Multivariate Polynomial Ring in q, t over Finite Field of size 3,
+             Multivariate Polynomial Ring in q, t over Finite Field of size 3]
 
         Check that parents are correct over `\QQ` for `q = 1`::
 
@@ -5818,14 +5818,14 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: S = SymmetricFunctions(P)
             sage: B = [S.p(), S.m(), S.e(), S.h(), S.s(), S.f()]
             sage: lams = [Partition([]), Partition([1]), Partition([2,1])]
-            sage: set(b[lam].exponential_specialization(q=q).parent() for b in B for lam in lams)
-            {Univariate Polynomial Ring in t over
+            sage: sorted(set(b[lam].exponential_specialization(q=q).parent() for b in B for lam in lams), key=str)
+            [Univariate Polynomial Ring in t over
               Fraction Field of Univariate Polynomial Ring in q over Rational Field,
              Univariate Polynomial Ring in t over Univariate Polynomial Ring
-              in q over Rational Field}
-            sage: set(b[lam].exponential_specialization(q=q, t=1).parent() for b in B for lam in lams)
-            {Fraction Field of Univariate Polynomial Ring in q over Rational Field,
-             Univariate Polynomial Ring in q over Rational Field}
+              in q over Rational Field]
+            sage: sorted(set(b[lam].exponential_specialization(q=q, t=1).parent() for b in B for lam in lams), key=str)
+            [Fraction Field of Univariate Polynomial Ring in q over Rational Field,
+             Univariate Polynomial Ring in q over Rational Field]
         """
         # heuristically, it seems fastest to fall back to the
         # elementary basis - using the powersum basis would

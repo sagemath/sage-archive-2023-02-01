@@ -5736,17 +5736,19 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: m = SymmetricFunctions(QQ).m()
             sage: (m[2,1]+m[1,1]).exponential_specialization()
             1/2*t^2
-            sage: m[1,1].exponential_specialization(q=None)
+            sage: (m[2,1]+m[1,1]).exponential_specialization(q=1)
             1/2*t^2
+            sage: m[1,1].exponential_specialization(q=None)
+            (q/(q + 1))*t^2
             sage: Qq = PolynomialRing(QQ, "q"); q = Qq.gen()
             sage: m[1,1].exponential_specialization(q=q)
-            t^2 * (1 - q)/(1 + q)
+            (q/(q + 1))*t^2
             sage: Qt = PolynomialRing(QQ, "t"); t = Qt.gen()
             sage: m[1,1].exponential_specialization(t=t)
             1/2*t^2
             sage: Qqt = PolynomialRing(QQ, ["q", "t"]); q, t = Qqt.gens()
             sage: m[1,1].exponential_specialization(q=q, t=t)
-            t^2 * (1 - q)/(1 + q)
+            q*t^2/(q + 1)
 
             sage: x = m[3]+m[2,1]+m[1,1,1]
             sage: d = x.homogeneous_degree()
@@ -5792,8 +5794,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: P2 = PolynomialRing(GF(3), ["q", "t"])
             sage: q2, t2 = P2.gens()
             sage: set(b[lam].exponential_specialization(q=q2, t=t2).parent() for b in B for lam in lams)
-            {Fraction Field of Multivariate Polynomial Ring in q, t over Finite Field of size 3,
-             Multivariate Polynomial Ring in q, t over Finite Field of size 3}
+            {Multivariate Polynomial Ring in q, t over Finite Field of size 3,
+             Fraction Field of Multivariate Polynomial Ring in q, t over Finite Field of size 3}
 
         Check that parents are correct over `\QQ` for `q = 1`::
 

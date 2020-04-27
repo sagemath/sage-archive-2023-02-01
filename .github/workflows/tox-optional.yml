@@ -40,9 +40,13 @@ jobs:
     env:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
-      DOCKER_TARGETS: with-targets-optional
+      DOCKER_TARGETS: configured with-targets with-targets-optional
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 500
+      - name: fetch tags
+        run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: free disk space
         run: |
           sudo swapoff -a
@@ -56,12 +60,12 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install python-tox
       - run: |
           set -o pipefail; EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3\"" tox -e $TOX_ENV -- $TARGETS 2>&1 | sed "/^configure: notice:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: warning:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: error:/s|^|::error file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;"
-      - name: Copy logs from the build container
+      - name: Copy logs from the docker image or build container
         run: |
           mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"
           cp -r .tox/$TOX_ENV/Dockerfile .tox/$TOX_ENV/log "artifacts/$LOGS_ARTIFACT_NAME"
-          if [ -f .tox/$TOX_ENV/Dockertags ]; then CONTAINERS=$(docker create $(tail -1 .tox/$TOX_ENV/Dockertags)); else CONTAINERS=$(docker ps -q -a); fi
-          for CONTAINER in $CONTAINERS; do for ARTIFACT in /sage/logs; do docker cp $CONTAINER:$ARTIFACT artifacts/$LOGS_ARTIFACT_NAME && HAVE_LOG=1; done; if [ -n "$HAVE_LOG" ]; then break; fi; done
+          if [ -f .tox/$TOX_ENV/Dockertags ]; then CONTAINERS=$(docker create $(tail -1 .tox/$TOX_ENV/Dockertags) /bin/bash || true); fi
+          if [ -n "$CONTAINERS" ]; then for CONTAINER in $CONTAINERS; do for ARTIFACT in /sage/logs; do docker cp $CONTAINER:$ARTIFACT artifacts/$LOGS_ARTIFACT_NAME && HAVE_LOG=1; done; if [ -n "$HAVE_LOG" ]; then break; fi; done; fi
         if: always()
       - uses: actions/upload-artifact@v1
         with:
@@ -72,6 +76,22 @@ jobs:
         # and markup the output with GitHub Actions logging commands
         run: |
           .github/workflows/scan-logs.sh "artifacts/$LOGS_ARTIFACT_NAME"
+        if: always()
+      - name: Push docker images
+        run: |
+          if [ -f .tox/$TOX_ENV/Dockertags ]; then
+            TOKEN="${{ secrets.DOCKER_PKG_GITHUB_TOKEN }}"
+            if [ -z "$TOKEN" ]; then
+              TOKEN="${{ secrets.GITHUB_TOKEN }}"
+            fi
+            echo "$TOKEN" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+            for a in $(cat .tox/$TOX_ENV/Dockertags); do
+              FULL_TAG=docker.pkg.github.com/${{ github.repository }}/$a
+              docker tag $a $FULL_TAG
+              echo Pushing $FULL_TAG
+              docker push $FULL_TAG
+            done || echo "(Ignoring errors)"
+          fi
         if: always()
 
   local-macos:

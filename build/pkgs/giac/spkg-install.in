@@ -16,6 +16,10 @@ if [ `uname -m` = "ppc64" ]; then
     CPPFLAGS="-Dx86_64 $CPPFLAGS"
 fi
 
+# Using pari in a C++17 file with "using namespace std doesn't
+# work due to a conflict between std::rank and pari's rank
+CXXFLAGS=$(echo "${CXXFLAGS}" | sed "s/-std=c++17//g")
+
 export CFLAGS CXXFLAGS CPPFLAGS
 
 cd src

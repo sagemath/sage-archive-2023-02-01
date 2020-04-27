@@ -289,6 +289,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.layout_extend_randomly` | Extend randomly a partial layout
     :meth:`~GenericGraph.layout_circular` | Return a circular layout for this graph
     :meth:`~GenericGraph.layout_tree` | Return an ordered tree layout for this graph
+    :meth:`~GenericGraph.layout_tree` | Return an ordered forest layout for this graph
     :meth:`~GenericGraph.layout_graphviz` | Call ``graphviz`` to compute a layout of the vertices of this graph.
     :meth:`~GenericGraph._circle_embedding` | Set some vertices on a circle in the embedding of this graph.
     :meth:`~GenericGraph._line_embedding` | Set some vertices on a line in the embedding of this graph.
@@ -19123,8 +19124,8 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``layout`` -- string (default: ``None``); specifies a layout algorithm
           among ``"acyclic"``, ``"acyclic_dummy"``, ``"circular"``,
-          ``"ranked"``, ``"graphviz"``, ``"planar"``, ``"spring"``, or
-          ``"tree"``
+          ``"ranked"``, ``"graphviz"``, ``"planar"``, ``"spring"``,
+          ``"forest"`` or ``"tree"``
 
         - ``pos`` -- dictionary (default: ``None``); a dictionary of positions
 
@@ -19186,6 +19187,7 @@ class GenericGraph(GenericGraph_pyx):
             ....:     print("option {} : {}".format(key, value))
             option by_component : Whether to do the spring layout by connected component -- a boolean.
             option dim : The dimension of the layout -- 2 or 3.
+            option forest_roots : An iterable specifying which vertices to use as roots for the ``layout='forest'`` option. If no root is specified for a tree, then one is chosen close to the center of the tree. Ignored unless ``layout='forest'``.
             option heights : A dictionary mapping heights to the list of vertices at this height.
             option iterations : The number of times to execute the spring layout algorithm.
             option layout : A layout algorithm -- one of : "acyclic", "circular" (plots the graph with vertices evenly distributed on a circle), "ranked", "graphviz", "planar", "spring" (traditional spring layout, using the graph's current positions as initial positions), or "tree" (the tree will be plotted in levels, depending on minimum distance for the root).
@@ -19438,12 +19440,72 @@ class GenericGraph(GenericGraph_pyx):
         return self._circle_embedding(self.vertices(), center=(0, 0), radius=1,
                                           shift=0, angle=pi/2, return_dict=True)
 
+    def layout_forest(self, tree_orientation="down", forest_roots=None,
+                      **options):
+        """
+        Return an ordered forest layout for this graph.
+
+        The function relies on :meth:`~GenericGraph.layout_tree` to deal with
+        each connected component.
+
+        INPUT:
+
+        - ``forest_roots`` -- an iterable of vertices (default: ``None``);
+          the root vertices of the trees in the forest; a vertex is chosen
+          close to the center of each component for which no root is specified
+          in ``forest_roots`` or if ``forest_roots`` is ``None``
+
+        - ``tree_orientation`` -- string (default: ``'down'``); the direction in
+          which the tree is growing, can be ``'up'``, ``'down'``, ``'left'`` or
+          ``'right'``
+
+        - ``**options`` -- other parameters ignored here
+
+        EXAMPLES::
+
+            sage: G = graphs.RandomTree(4) + graphs.RandomTree(5) + graphs.RandomTree(6)
+            sage: p = G.layout_forest()
+            sage: G.plot(pos=p) # random
+            Graphics object consisting of 28 graphics primitives
+
+            sage: H = graphs.PathGraph(5) + graphs.PathGraph(5) + graphs.BalancedTree(2,2)
+            sage: p = H.layout_forest(forest_roots=[14,3])
+            sage: H.plot(pos=p)
+            Graphics object consisting of 32 graphics primitives
+
+        TESTS::
+
+            sage: G = Graph(0)
+            sage: G.plot(layout='tree')
+            Graphics object consisting of 0 graphics primitives
+        """
+        if not self:
+            return dict()
+        elif self.is_connected():
+            if forest_roots is not None:
+                try:
+                    tree_root = next(iter(forest_roots))
+                except TypeError:
+                   raise ValueError("forest_roots should be an iterable of vertices")
+            else:
+                 tree_root = None
+            return layout_tree(self, tree_orientation, tree_root, dim, **options)
+        else:
+            # Compute the layout component by component
+            return layout_split(self.__class__.layout_tree,
+                                self,
+                                tree_orientation=tree_orientation,
+                                forest_roots=forest_roots,
+                                **options)
+
     def layout_tree(self, tree_orientation="down", tree_root=None,
                     dim=2, **options):
         r"""
         Return an ordered tree layout for this graph.
 
-        The graph must be a tree (no non-oriented cycles).
+        The graph must be a tree (no non-oriented cycles). In case of doubt
+        whether the graph is connected or not, prefer
+        :meth:`~GenericGraph.layout_forest`.
 
         INPUT:
 
@@ -19519,9 +19581,15 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             RuntimeError: cannot use tree layout on this graph: self.is_tree() returns False
+            sage: G = Graph(0)
+            sage: G.plot(layout='tree')
+            Graphics object consisting of 0 graphics primitives
         """
         if dim != 2:
             raise ValueError('only implemented in 2D')
+
+        if not self:
+            return dict()
 
         from sage.graphs.all import Graph
         if not Graph(self).is_tree():
@@ -19579,7 +19647,7 @@ class GenericGraph(GenericGraph_pyx):
                     x, y = pos[u]
                     x += dx
                     obstruction[y] = max(x + 1, obstruction[y])
-                    pos[u] = x, y
+                    pos[u] = [x, y]
                     nextlevel += children[u]
 
                 level = nextlevel
@@ -19598,12 +19666,12 @@ class GenericGraph(GenericGraph_pyx):
                     # If p has no children, we draw it at the leftmost position
                     # which has not been forbidden
                     x = obstruction[y]
-                    pos[p] = x, y
+                    pos[p] = [x, y]
                 else:
                     # If p has children, we put v on a vertical line going
                     # through the barycenter of its children
                     x = sum(pos[c][0] for c in cp) / len(cp)
-                    pos[p] = x, y
+                    pos[p] = [x, y]
                     ox = obstruction[y]
                     if x < ox:
                         slide(p, ox - x)
@@ -19635,7 +19703,7 @@ class GenericGraph(GenericGraph_pyx):
                 stick.append(t)
 
         if tree_orientation in ['right', 'left']:
-            return {p: (py, px) for p, (px, py) in iteritems(pos)}
+            return {p: [py, px] for p, [px, py] in iteritems(pos)}
 
         return pos
 

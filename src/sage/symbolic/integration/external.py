@@ -88,8 +88,9 @@ def mma_free_integrator(expression, v, a=None, b=None):
 
         sage: var('y')   # optional - internet
         y
-        sage: integral(sin(y)^2, y, algorithm='mathematica_free') # optional - internet
-        1/2*y - 1/4*sin(2*y)
+        sage: result = integral(sin(y)^2, y, algorithm='mathematica_free') # optional - internet
+        sage: result.simplify_trig()               # optional - internet
+        -1/2*cos(y)*sin(y) + 1/2*y
 
     ::
 

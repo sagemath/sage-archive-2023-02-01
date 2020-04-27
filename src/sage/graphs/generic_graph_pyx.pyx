@@ -109,7 +109,6 @@ def layout_split(layout_function, G, **options):
             pos[v] = loc
         left += xmax - xmin + buffer
 
-
     if options.get('set_embedding', None):
         embedding = dict()
         for g in Gs:

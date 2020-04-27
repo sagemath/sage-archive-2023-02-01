@@ -289,7 +289,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.layout_extend_randomly` | Extend randomly a partial layout
     :meth:`~GenericGraph.layout_circular` | Return a circular layout for this graph
     :meth:`~GenericGraph.layout_tree` | Return an ordered tree layout for this graph
-    :meth:`~GenericGraph.layout_tree` | Return an ordered forest layout for this graph
+    :meth:`~GenericGraph.layout_forest` | Return an ordered forest layout for this graph
     :meth:`~GenericGraph.layout_graphviz` | Call ``graphviz`` to compute a layout of the vertices of this graph.
     :meth:`~GenericGraph._circle_embedding` | Set some vertices on a circle in the embedding of this graph.
     :meth:`~GenericGraph._line_embedding` | Set some vertices on a line in the embedding of this graph.
@@ -19478,6 +19478,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph(0)
             sage: G.plot(layout='tree')
             Graphics object consisting of 0 graphics primitives
+
+        The parameter ``forest_roots`` should be an iterable (or ``None``)::
+
+            sage: H = graphs.PathGraph(5)
+            sage: p = H.layout_forest(forest_roots=3)
+            Traceback (most recent call last):
+            ...
+            TypeError: forest_roots should be an iterable of vertices
         """
         if not self:
             return dict()
@@ -19486,10 +19494,11 @@ class GenericGraph(GenericGraph_pyx):
                 try:
                     tree_root = next(iter(forest_roots))
                 except TypeError:
-                   raise ValueError("forest_roots should be an iterable of vertices")
+                   raise TypeError('forest_roots should be an iterable'
+                                   ' of vertices')
             else:
                  tree_root = None
-            return layout_tree(self, tree_orientation, tree_root, dim, **options)
+            return layout_tree(self, tree_orientation, tree_root, **options)
         else:
             # Compute the layout component by component
             return layout_split(self.__class__.layout_tree,

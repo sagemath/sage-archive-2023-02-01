@@ -43,24 +43,13 @@ for some operating systems, rather than compiling from source.
 Supported platforms
 -------------------
 
-See https://wiki.sagemath.org/SupportedPlatforms for the full list of platforms
-on which Sage is supported and the level of support for these systems.
+Sage runs on all major `Linux <https://en.wikipedia.org/wiki/Linux>`_
+distributions, `macOS <https://www.apple.com/macosx/>`_ , and Windows
+(via the `Cygwin <https://cygwin.com/>`_ Linux API layer).
 
-Sage is supported on a number of `Linux <https://en.wikipedia.org/wiki/Linux>`_,
-`macOS <https://www.apple.com/macosx/>`_ ,
-Sun/Oracle `Solaris <https://www.oracle.com/solaris>`_ releases,
-but not necessarily all versions of these operating systems.
-
-There is no native version of Sage which installs on
-`Microsoft Windows <https://en.wikipedia.org/wiki/Microsoft_Windows>`_,
-although Sage can be used on Windows with the aid of a
-`virtual machine <https://en.wikipedia.org/wiki/Virtual_machine>`_
-or the `Cygwin <https://cygwin.com/>`_ Linux API layer.
-
-On the `list of supported platforms <https://wiki.sagemath.org/SupportedPlatforms>`_,
-you can find details about
-`ports <https://en.wikipedia.org/wiki/Computer_port_%28software%29>`_
-to other operating systems or processors which may be taking place.
+Other installation options for Windows are using the Windows Subsystem
+for Linux (WSL), or with the aid of a `virtual machine
+<https://en.wikipedia.org/wiki/Virtual_machine>`_ or the .
 
 .. _section-prereqs:
 

@@ -79,7 +79,8 @@ def layout_split(layout_function, G, **options):
     left = 0
     buffer = 1/sqrt(len(G))
 
-    forest_roots = list(options.get('forest_roots', []))
+    forest_roots = options.get('forest_roots', None)
+    forest_roots = list(forest_roots) if forest_roots else None
     on_embedding = options.get('on_embedding', None)
 
     if forest_roots or on_embedding:

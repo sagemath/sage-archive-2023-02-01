@@ -227,7 +227,7 @@ To illustrate the differences, let us create two free modules of rank 3 over
     Ambient free module of rank 3 over the principal ideal domain Integer Ring
 
 The main difference is that ``FreeModule`` returns a free module with a
-distinguished basis, while ``FiniteRankFThinking about it, what about having the except AttributeError block do raise NotImplementedError? Sounds better than returning a random element... reeModule`` does not::
+distinguished basis, while ``FiniteRankFreeModule`` does not::
 
     sage: N.basis()
     [

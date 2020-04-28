@@ -1319,19 +1319,26 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         INPUT:
 
-        - ``measure`` -- (default: 'euclidean') the measure to take. 'euclidean'
-          correspond to ``EuclideanVolume`` in normaliz and 'induced_lattice'
-          correspond to ``Volume`` in normaliz.
+        - ``measure`` -- string. The measure to use. Allowed values are:
+
+          * ``'euclidean'`` (default): corresponds to ``'EuclideanVolume`` in normaliz
+          * ``'induced_lattice'``: corresponds to ``'Volume'`` in normaliz
+          * ``'ambient'``: Lebesgue measure of ambient space (volume)
 
         OUTPUT:
 
-        A float value (when ``measure`` is 'euclidean') or a rational number
-        (when ``measure`` is 'induced_lattice').
+        A float value (when ``measure`` is 'euclidean'),
+        a rational number (when ``measure`` is 'induced_lattice'),
+        a rational number or symbolic number otherwise (dependent on base ring).
 
         .. NOTE::
 
             This function depends on Normaliz (i.e., the ``pynormaliz`` optional
-            package). See the Normaliz documentation for further details.
+            package).
+
+        REFERENCES:
+
+        See section 6.1.1 of [NormalizMan]_.
 
         EXAMPLES:
 
@@ -1342,7 +1349,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: s._volume_normaliz()                         # optional - pynormaliz
             0.3333333333333333
 
-        The other possibility is to compute the scaled volume where a unimodual
+        One other possibility is to compute the scaled volume where a unimodular
         simplex has volume 1::
 
             sage: s._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
@@ -1354,6 +1361,14 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: cube._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
             6
 
+        Or one can can calculate the ambient volume, which is the above multiplied by the
+        volume of the unimodular simplex (or zero if not full-dimensional)::
+
+            sage: cube._volume_normaliz(measure='ambient')  # optional - pynormaliz
+            1
+            sage: s._volume_normaliz(measure='ambient')     # optional - pynormaliz
+            0
+
         TESTS:
 
         Check that :trac:`28872` is fixed::
@@ -1361,6 +1376,27 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P = polytopes.dodecahedron(backend='normaliz')  # optional - pynormaliz
             sage: P.volume(measure='induced_lattice')             # optional - pynormaliz
             -1056*sqrt5 + 2400
+
+        Some sanity checks that the ambient volume works correctly::
+
+            sage: (2*cube)._volume_normaliz(measure='ambient')    # optional - pynormaliz
+            8
+            sage: (1/2*cube)._volume_normaliz(measure='ambient')  # optional - pynormaliz
+            1/8
+            sage: s._volume_normaliz(measure='ambient')           # optional - pynormaliz
+            0
+
+            sage: P = polytopes.regular_polygon(3, backend='normaliz')          # optional - pynormaliz
+            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
+            True
+
+            sage: P = polytopes.dodecahedron(backend='normaliz')                # optional - pynormaliz
+            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
+            True
+
+            sage: P = Polyhedron(rays=[[1]], backend='normaliz')  # optional - pynormaliz
+            sage: P.volume()                                      # optional - pynormaliz
+            +Infinity
         """
         cone = self._normaliz_cone
         assert cone
@@ -1371,6 +1407,20 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return self._nmz_result(cone, 'Volume')
             else:
                 return self._nmz_result(cone, 'RenfVolume')
+        elif measure == 'ambient':
+            if self.dim() < self.ambient_dim():
+                return self.base_ring().zero()
+            if not self.is_compact():
+                from sage.rings.infinity import infinity
+                return infinity
+
+            from sage.functions.other import factorial
+            volume = self._volume_normaliz('induced_lattice')/factorial(self.dim())
+
+            return volume
+
+        else:
+            raise TypeError("the measure should be `ambient`, `euclidean`, or `induced_lattice`")
 
     def _triangulate_normaliz(self):
         r"""

@@ -390,7 +390,7 @@ if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
                     ;;
             esac
             echo -n "  "
-            sage-print-system-package-command $system install $system_packages
+            sage-print-system-package-command $system --prompt --sudo install $system_packages
         fi
     done
     if [ -z "$system" ]; then

@@ -1188,6 +1188,40 @@ class IncidenceStructure(object):
             A = self.incidence_matrix()
             return BipartiteGraph(A)
 
+    def is_berge_cyclic(self):
+        r"""
+        Check whether ``self`` is a Berge-Cyclic uniform hypergraph.
+
+        A `k`-uniform Berge cycle (named after Claude Berge) of length `\ell`
+        is a cyclic list of distinct `k`-sets `F_1,\ldots,F_\ell`, `\ell>1`,
+        and distinct vertices `C = \{v_1,\ldots,v_\ell\}` such that for each
+        `1\le i\le \ell`, `F_i` contains `v_i` and `v_{i+1}` (where `v_{l+1} =
+        v_1`).
+
+        A uniform hypergraph is Berge-cyclic if its incidence graph is cyclic.
+        It is called "Berge-acyclic" otherwise.
+
+        For more information, see [Fag1983]_ and :wikipedia:`Hypergraph`.
+
+        EXAMPLES::
+
+            sage: Hypergraph(5, [[1, 2, 3], [2, 3 ,4]]).is_berge_cyclic()
+            True
+            sage: Hypergraph(6, [[1, 2, 3], [3 ,4, 5]]).is_berge_cyclic()
+            False
+
+        TESTS::
+
+            sage: Hypergraph(5, [[1, 2, 3], [2, 3]]).is_berge_cyclic()
+            Traceback (most recent call last):
+            ...
+            TypeError: Berge cycles are defined for uniform hypergraphs only
+        """
+        if not self.is_uniform():
+            raise TypeError("Berge cycles are defined for uniform hypergraphs only")
+
+        return not self.incidence_graph().is_forest()
+
     def complement(self,uniform=False):
         r"""
         Return the complement of the incidence structure.

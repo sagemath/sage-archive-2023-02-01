@@ -68,7 +68,21 @@ from libc.string            cimport memcmp, memcpy, memset
 from .conversions           cimport Vrep_list_to_bit_rep, bit_rep_to_Vrep_list
 from .base                  cimport CombinatorialPolyhedron
 from .face_iterator         cimport FaceIterator
-from .bit_vector_operations cimport intersection, bit_rep_to_coatom_rep
+
+cdef extern from "bit_vector_operations.cc":
+    cdef void intersection(uint64_t *A, uint64_t *B, uint64_t *C,
+                           size_t face_length)
+#    Return ``A & ~B == 0``.
+#    A is not subset of B, iff there is a vertex in A, which is not in B.
+#    ``face_length`` is the length of A and B in terms of uint64_t.
+
+    cdef size_t bit_rep_to_coatom_rep(
+            uint64_t *face, uint64_t **coatoms, size_t n_coatoms,
+            size_t face_length, size_t *output)
+#        Write the coatom-representation of face in output. Return length.
+#        ``face_length`` is the length of ``face`` and ``coatoms[i]``
+#        in terms of uint64_t.
+#        ``n_coatoms`` length of ``coatoms``.
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython

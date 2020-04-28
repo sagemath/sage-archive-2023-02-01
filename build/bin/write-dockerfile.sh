@@ -43,6 +43,7 @@ case $SYSTEM in
 ARG BASE_IMAGE=ubuntu:latest
 FROM \${BASE_IMAGE} as with-system-packages
 EOF
+        EXISTS="2>/dev/null >/dev/null apt-cache show"
         UPDATE="apt-get update &&"
         INSTALL="DEBIAN_FRONTEND=noninteractive apt-get install -qqq --no-install-recommends --yes"
         CLEAN="&& apt-get clean"
@@ -52,6 +53,7 @@ EOF
 ARG BASE_IMAGE=fedora:latest
 FROM \${BASE_IMAGE} as with-system-packages
 EOF
+        EXISTS="2>/dev/null >/dev/null yum install -y --downloadonly"
         INSTALL="yum install -y"
         ;;
     slackware*)
@@ -60,6 +62,8 @@ EOF
 ARG BASE_IMAGE=vbatts/slackware:latest
 FROM \${BASE_IMAGE} as with-system-packages
 EOF
+        # slackpkg install ignores packages that it does not know, so we do not have to filter
+        EXISTS="true"
         UPDATE="slackpkg update &&"
         INSTALL="slackpkg install"
         ;;
@@ -69,7 +73,9 @@ EOF
 ARG BASE_IMAGE=archlinux:latest
 FROM \${BASE_IMAGE} as with-system-packages
 EOF
-        INSTALL="pacman -Syu --noconfirm"
+        UPDATE="pacman -Sy &&"
+        EXISTS="pacman -Si"
+        INSTALL="pacman -Su --noconfirm"
         ;;
     conda*)
         cat <<EOF
@@ -173,7 +179,7 @@ ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
 ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
-ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake"
 #:toolchain:
 $RUN make \${USE_MAKEFLAGS} base-toolchain
 
@@ -182,7 +188,7 @@ ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
 ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
-ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake"
 #:make:
 ARG TARGETS_PRE="sagelib-build-deps"
 $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_PRE}
@@ -192,7 +198,7 @@ ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
 ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
-ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake"
 ADD src src
 ARG TARGETS="build"
 $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS}
@@ -202,7 +208,7 @@ ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
 ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
-ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake"
 ARG TARGETS_OPTIONAL="ptest"
 $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_OPTIONAL} || echo "(error ignored)"
 

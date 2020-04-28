@@ -563,7 +563,7 @@ class Polytopes():
             sage: octagon.n_vertices()                                        # optional - pynormaliz
             8
             sage: octagon.volume()                                            # optional - pynormaliz
-            2.828427124746190?
+            2*a
         """
         n = ZZ(n)
         if n <= 2:

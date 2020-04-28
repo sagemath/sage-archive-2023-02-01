@@ -783,7 +783,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             symmetric function* `\mathbf{GR}_\lambda` corresponding to
             `\lambda` is the symmetric function denoted `L_\lambda` in
             [GR1993]_ and in Exercise 7.89 of [STA]_ and denoted
-            `\mathbf{GR}_\lambda` in Definition 6.6.34 of [GriRei18_].
+            `\mathbf{GR}_\lambda` in Definition 6.6.34 of [GriRei18]_.
             It can be defined in several ways:
 
             - It is the sum of the monomials `\mathbf{x}_w` over all

@@ -1762,51 +1762,6 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             self._exterior_powers[p] = MultivectorFreeModule(self, p)
         return self._exterior_powers[p]
 
-    def alternating_form(self, degree, name=None, latex_name=None):
-        r"""
-        Construct an alternating form on the free vector field module
-        ``self``.
-
-        An alternating form on ``self`` is actually a differential form
-        along the differentiable manifold `U` over which ``self`` is
-        defined.
-
-        INPUT:
-
-        - ``degree`` -- the degree of the alternating form
-          (i.e. its tensor rank)
-        - ``name`` -- (string; optional) name given to the alternating
-          form
-        - ``latex_name`` -- (string; optional) LaTeX symbol to denote
-          the alternating form; if none is provided, the LaTeX symbol is
-          set to ``name``
-
-        OUTPUT:
-
-        - instance of
-          :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal`
-
-        EXAMPLES::
-
-            sage: M = Manifold(2, 'M')
-            sage: X.<x,y> = M.chart() # makes M parallelizable
-            sage: XM = M.vector_field_module()
-            sage: XM.alternating_form(2, name='a')
-            2-form a on the 2-dimensional differentiable manifold M
-            sage: XM.alternating_form(1, name='a')
-            1-form a on the 2-dimensional differentiable manifold M
-
-        .. SEEALSO::
-
-            :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal`
-            for more examples and documentation.
-
-        """
-        if degree == 0:
-            return self._domain.scalar_field(name=name, latex_name=latex_name)
-        return self.dual_exterior_power(degree).element_class(self,
-                               degree, name=name, latex_name=latex_name)
-
     def dual_exterior_power(self, p):
         r"""
         Return the `p`-th exterior power of the dual of ``self``.

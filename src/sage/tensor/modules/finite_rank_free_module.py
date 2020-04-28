@@ -1638,7 +1638,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         """
         if degree == 0:
             try:
-                return self._ring.element_class(self, name=name,
+                return self._ring.element_class(self._ring, name=name,
                                                 latex_name=latex_name)
             except (KeyError, AttributeError):
                 raise NotImplementedError('{} apparently '.format(self._ring) +

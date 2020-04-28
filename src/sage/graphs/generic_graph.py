@@ -19256,12 +19256,12 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.LadderGraph(3) #TODO!!!!
             sage: g.layout_spring()
-            {0: [0.73..., -0.29...],
-             1: [1.37..., 0.30...],
-             2: [2.08..., 0.89...],
-             3: [1.23..., -0.83...],
-             4: [1.88..., -0.30...],
-             5: [2.53..., 0.22...]}
+            {0: [1.0, -0.29...],
+            1: [1.64..., 0.30...],
+            2: [2.34..., 0.89...],
+            3: [1.49..., -0.83...],
+            4: [2.14..., -0.30...],
+            5: [2.80..., 0.22...]}
             sage: g = graphs.LadderGraph(7)
             sage: g.plot(layout="spring")
             Graphics object consisting of 34 graphics primitives

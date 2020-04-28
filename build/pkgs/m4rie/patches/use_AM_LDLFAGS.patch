@@ -1,7 +1,7 @@
 https://bitbucket.org/malb/m4rie/pull-requests/4/do-not-interfere-with-ldflags-while
 
---- tests/Makefile.am	2020-04-27 03:46:40.283668933 +0000
-+++ tests/Makefile.am	2020-04-27 03:46:53.955804875 +0000
+--- a/tests/Makefile.am	2020-04-27 03:46:40.283668933 +0000
++++ b/tests/Makefile.am	2020-04-27 03:46:53.955804875 +0000
 @@ -2,7 +2,7 @@
  
  AM_CFLAGS = ${SIMD_FLAGS} ${OPENMP_CFLAGS} ${DEBUG_FLAGS} ${M4RIE_M4RI_CFLAGS} ${M4RI_CFLAGS} -I${top_srcdir}
@@ -11,8 +11,8 @@ https://bitbucket.org/malb/m4rie/pull-requests/4/do-not-interfere-with-ldflags-w
  
  EXTRA_DIST = testing.h
  
---- tests/Makefile.in
-+++ tests/Makefile.in
+--- a/tests/Makefile.in
++++ b/tests/Makefile.in
 @@ -441,7 +441,7 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
  INSTALL_SCRIPT = @INSTALL_SCRIPT@
  INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@

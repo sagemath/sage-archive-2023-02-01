@@ -3283,33 +3283,35 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         crit_points = [P(Q) for Q in X.rational_points()]
         return crit_points
 
-    def ramification_type(self,R=None,stable=True):
+    def ramification_type(self, R=None, stable=True):
         r"""
-        Return the ramification type of endomorphisms of
-        `\mathbb{P}^1`. Only branch points defined over ``R``
-        contribute to the ramification type if specified,
-        otherwise ``R`` is the ring of definition for self.
+        Return the ramification type of endomorphisms of `\mathbb{P}^1`.
 
-        Note that branch points defined over ``R`` may not
-        be geometric points if stable not set to True.
+        Only branch points defined over the ring ``R`` contribute to
+        the ramification type if specified, otherwise ``R`` is the
+        ring of definition for ``self``.
+
+        Note that branch points defined over ``R`` may not be
+        geometric points if stable not set to ``True``.
 
         If ``R`` is specified, ``stable`` is ignored.
 
-        If ``stable``, then this will return the ramification
-        type over an extension which splits the Galois orbits
-        of critical points.
+        If ``stable``, then this will return the ramification type
+        over an extension which splits the Galois orbits of critical
+        points.
 
         INPUT:
 
-            - ``R`` -- ring or morphism (optional)
-            - ``split`` -- boolean (optional)
+        - ``R`` -- ring or morphism (optional)
+        - ``split`` -- boolean (optional)
 
         OUTPUT:
 
-            [[e_f(P) if e_f(P) > 1 for f(P) = Q] for Q in F.critical_values()]
-            where e_f(P) is the ramification index of f at P.
+        list of lists, each term being the list of ramification indices
+        in the pre-images of one critical value
 
         EXAMPLES::
+
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: F = DynamicalSystem_projective([x^4, y^4])
             sage: F.ramification_type()
@@ -3348,15 +3350,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             F = self.change_ring(R)
 
         C = F.critical_subscheme()
-        ram_type = dict()
-        fc=C.defining_ideal().gens()[0]
-        for f,e in fc.factor():
-            c = F(F.domain().subscheme(f)) # critical value
+        ram_type = {}
+        fc = C.defining_ideal().gens()[0]
+        for f, e in fc.factor():
+            c = F(F.domain().subscheme(f))  # critical value
             if c in ram_type:
-                ram_type[c].append(e+1)
+                ram_type[c].append(e + 1)
             else:
-                ram_type[c] = [e+1]
-
+                ram_type[c] = [e + 1]
         return sorted(ram_type.values())
 
     def is_postcritically_finite(self, err=0.01, use_algebraic_closure=True):
@@ -4330,7 +4331,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         points = []
 
-        minfty = min([e[1] for e in F.exponents()]) # include the point at infinity with the right multiplicity
+        minfty = min(ex[1] for ex in F.exponents()) # include the point at infinity with the right multiplicity
         for i in range(minfty):
             points.append(PS([1,0]))
 

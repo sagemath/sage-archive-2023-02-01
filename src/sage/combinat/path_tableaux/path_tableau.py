@@ -257,7 +257,7 @@ class PathTableau(ClonableArray):
         tester = self._tester(**options)
         for i in range(self.size()-2):
             tester.assertTrue(self._local_rule(i+1)._local_rule(i+1) == self)
-                               
+
 
     def _test_involution_cactus(self, **options):
         """
@@ -271,7 +271,7 @@ class PathTableau(ClonableArray):
         tester = self._tester(**options)
         for i in range(2,self.size()+1):
             tester.assertTrue(self.cactus(1,i).cactus(1,i) == self)
-                               
+
     def _test_promotion(self, **options):
         """
         Check that promotion can be expressed in terms of the cactus generators.
@@ -445,21 +445,21 @@ class CylindricalDiagram(SageObject):
     def _latex_(self):
         r"""
         Returns a `\LaTeX` representation of ``self``
-        
+
         EXAMPLES::
-            
+
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: latex(CylindricalDiagram(t))
             \begin{array}{ccccccccccccc}
-            0 & 1 & 2 & 3 & 2 & 1 & 0\\ 
-             & 0 & 1 & 2 & 1 & 0 & 1 & 0\\ 
-             &  & 0 & 1 & 0 & 1 & 2 & 1 & 0\\ 
-             &  &  & 0 & 1 & 2 & 3 & 2 & 1 & 0\\ 
-             &  &  &  & 0 & 1 & 2 & 1 & 0 & 1 & 0\\ 
-             &  &  &  &  & 0 & 1 & 0 & 1 & 2 & 1 & 0\\ 
+            0 & 1 & 2 & 3 & 2 & 1 & 0\\
+             & 0 & 1 & 2 & 1 & 0 & 1 & 0\\
+             &  & 0 & 1 & 0 & 1 & 2 & 1 & 0\\
+             &  &  & 0 & 1 & 2 & 3 & 2 & 1 & 0\\
+             &  &  &  & 0 & 1 & 2 & 1 & 0 & 1 & 0\\
+             &  &  &  &  & 0 & 1 & 0 & 1 & 2 & 1 & 0\\
              &  &  &  &  &  & 0 & 1 & 2 & 3 & 2 & 1 & 0
              \end{array}
-             
+
         """
 
         D = self.diagram
@@ -469,22 +469,36 @@ class CylindricalDiagram(SageObject):
         result += "\n \\end{array}\n"
         return result
 
+    def __len__(self):
+        return len(self.diagram)
+
     def _ascii_art_(self):
-        r"""
         """
+        Returns an ascii art representation of ``self``
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: ascii_art(CylindricalDiagram(t))
+            [   1  3    1  2 ]
+            [   2   ,   3    ]
+        """
+        from sage.typeset.ascii_art import AsciiArt
+        D = [ map(str,x) for x in self.diagram ]
+        S = [ ' '.join(x) for x in D ]
+        return AsciiArt(S)
 
     def _unicode_art_(self):
         r"""
         """
-        
+
     def pp(self):
         """
         A pretty print utility method.
-        
+
         EXAMPLES::
+
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
-            sage: c = CylindricalDiagram(t)
-            sage: c.pp()
+            sage: CylindricalDiagram(t).pp()
             0 1 2 3 2 1 0
               0 1 2 1 0 1 0
                 0 1 0 1 2 1 0

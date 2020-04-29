@@ -10,6 +10,7 @@ Weyl Character Rings
 # ****************************************************************************
 from __future__ import print_function
 
+from functools import reduce
 import sage.combinat.root_system.branching_rules
 from operator import mul
 from sage.categories.all import Category, Algebras, AlgebrasWithBasis
@@ -2523,10 +2524,10 @@ class FusionRing(WeylCharacterRing):
         S = matrix(self.q_field(), len(ord_basis))
         for i in rng:
             for j in rng:
-                S[i,j] = self.s_ij(ord_basis[i], ord_basis[j], fusion_mats[i]) 
+                S[i,j] = self.s_ij(ord_basis[i], ord_basis[j]) 
         return S
 
-    def fusion_labels(self, labels=None):
+    def fusion_labels(self, labels=None, key=str):
         """
         Set the labels of the basis.
 
@@ -2647,7 +2648,7 @@ class FusionRing(WeylCharacterRing):
 
                 sage: B22=FusionRing("B2",2)
                 sage: [(b.q_dimension())^2 for b in B22.basis()]
-                [1, 5, 4, 1, 5, 4]
+                [1, 4, 5, 1, 5, 4]
             """
             if not self.is_simple_object():
                 raise ValueError("quantum twist is only available for simple objects of a FusionRing")

@@ -447,13 +447,12 @@ SAGE_SPKG_COLLECT()
 # TODO: fix this in Trac #21524
 touch "$SAGE_SRC/bin/sage-env-config"
 
-SAGE_SCRIPTS='\
-'
+SAGE_SCRIPTS=''
 for file in "$SAGE_SRC/bin/"*; do
     # Skip files with ".in" extension
     ext=${file##*.}
     if test "$ext" != in; then
-        SAGE_SCRIPTS+="    \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"$'\n'
+        SAGE_SCRIPTS="${SAGE_SCRIPTS} \\$(printf '\n    ')\$(SAGE_LOCAL)${file#$SAGE_SRC}"
     fi
 done
 

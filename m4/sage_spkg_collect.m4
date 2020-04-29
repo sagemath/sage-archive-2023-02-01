@@ -100,34 +100,31 @@ newest_version() {
 # not required on this platform or that can be taken from the underlying system
 # installation. Note that this contains packages that are not actually going to
 # be installed by most users because they are optional/experimental.
-SAGE_BUILT_PACKAGES='\
-'
+SAGE_BUILT_PACKAGES=''
+
 # The complement of SAGE_BUILT_PACKAGES, i.e., packages that are not required
 # on this platform or packages where we found a suitable package on the
 # underlying system.
-SAGE_DUMMY_PACKAGES='\
-'
+SAGE_DUMMY_PACKAGES=''
+
 # Standard packages
-SAGE_STANDARD_PACKAGES='\
-'
+SAGE_STANDARD_PACKAGES=''
+
 # List of currently installed and to-be-installed optional packages - filled in SAGE_SPKG_ENABLE
 #SAGE_OPTIONAL_INSTALLED_PACKAGES
 # List of optional packages to be uninstalled - filled in SAGE_SPKG_ENABLE
 #SAGE_OPTIONAL_CLEANED_PACKAGES
 
 # List of all packages that should be downloaded
-SAGE_SDIST_PACKAGES='\
-'
+SAGE_SDIST_PACKAGES=''
+
 # Generate package version and dependency lists
 SAGE_PACKAGE_VERSIONS=""
 SAGE_PACKAGE_DEPENDENCIES=""
 # Lists of packages categorized according to their build rules
-SAGE_NORMAL_PACKAGES='\
-'
-SAGE_PIP_PACKAGES='\
-'
-SAGE_SCRIPT_PACKAGES='\
-'
+SAGE_NORMAL_PACKAGES=''
+SAGE_PIP_PACKAGES=''
+SAGE_SCRIPT_PACKAGES=''
 
 SAGE_NEED_SYSTEM_PACKAGES=""
 
@@ -159,7 +156,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         message="came preinstalled with the SageMath tarball"
         ;;
     standard)
-        SAGE_STANDARD_PACKAGES+="    $SPKG_NAME \\"$'\n'
+        SAGE_STANDARD_PACKAGES="${SAGE_STANDARD_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
         in_sdist=yes
         message="will be installed as an SPKG"
         ;;
@@ -202,7 +199,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         uninstall_message="$SPKG_TYPE pip package (installed)"
     fi
 
-    SAGE_PACKAGE_VERSIONS+="vers_$SPKG_NAME = $SPKG_VERSION"$'\n'
+    SAGE_PACKAGE_VERSIONS="${SAGE_PACKAGE_VERSIONS}$(printf '\nvers_')${SPKG_NAME} = ${SPKG_VERSION}"
 
         AS_VAR_PUSHDEF([sage_spkg_install], [sage_spkg_install_${SPKG_NAME}])dnl
         AS_VAR_PUSHDEF([sage_require], [sage_require_${SPKG_NAME}])dnl
@@ -213,13 +210,13 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         # "./sage -i SPKG_NAME" will still install the package.
         AS_VAR_IF([sage_spkg_install], [no], [
             dnl We will use the system package (or not required for this platform.)
-            SAGE_DUMMY_PACKAGES+="    $SPKG_NAME \\"$'\n'
+            SAGE_DUMMY_PACKAGES="${SAGE_DUMMY_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
             AS_VAR_IF([sage_require], [yes], [ message="using system package; SPKG will not be installed"
             ],                               [ message="not required on your platform; SPKG will not be installed"
             ])
         ], [
             dnl We won't use the system package.
-            SAGE_BUILT_PACKAGES+="    $SPKG_NAME \\"$'\n'
+            SAGE_BUILT_PACKAGES="${SAGE_BUILT_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
             AS_VAR_SET_IF([sage_use_system], [
                 AS_VAR_COPY([reason], [sage_use_system])
                 AS_CASE([$reason],
@@ -249,7 +246,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     esac
 
     if test "$in_sdist" = yes; then
-        SAGE_SDIST_PACKAGES+="    $SPKG_NAME \\"$'\n'
+        SAGE_SDIST_PACKAGES="${SAGE_SDIST_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
     fi
 
     # Determine package source
@@ -282,18 +279,18 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         fi
     fi
 
-    SAGE_PACKAGE_DEPENDENCIES+="deps_$SPKG_NAME = $DEPS"$'\n'
+    SAGE_PACKAGE_DEPENDENCIES="${SAGE_PACKAGE_DEPENDENCIES}$(printf '\ndeps_')${SPKG_NAME} = ${DEPS}"
 
     # Determine package build rules
     case "$SPKG_SOURCE" in
     pip)
-        SAGE_PIP_PACKAGES+="    $SPKG_NAME \\"$'\n'
+        SAGE_PIP_PACKAGES="${SAGE_PIP_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
         ;;
     script)
-        SAGE_SCRIPT_PACKAGES+="    $SPKG_NAME \\"$'\n'
+        SAGE_SCRIPT_PACKAGES="${SAGE_SCRIPT_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
         ;;
     normal)
-        SAGE_NORMAL_PACKAGES+="    $SPKG_NAME \\"$'\n'
+        SAGE_NORMAL_PACKAGES="${SAGE_NORMAL_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
         ;;
     esac
 done

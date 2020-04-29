@@ -1803,7 +1803,7 @@ class Genus_Symbol_p_adic_ring(object):
         r"""
         Return the local mass `m_p` of this genus as defined by Conway.
 
-        See Equation (3) in [CS1988]_
+        See Equation (3) in [CS1988]_.
 
         EXAMPLES::
 
@@ -1818,7 +1818,6 @@ class Genus_Symbol_p_adic_ring(object):
         ##############
         #diagonal product
         ##############
-        species = self._species_list()
 
         # diagonal factors
         m_p = ZZ.prod(M_p(species, p) for species in self._species_list())
@@ -1857,7 +1856,6 @@ class Genus_Symbol_p_adic_ring(object):
             sage: g3._standard_mass()
             9/16
         """
-        from sage.quadratic_forms.extras import least_quadratic_nonresidue
         n = self.dimension()
         p = self.prime()
         s = (n + 1) // ZZ(2)
@@ -2794,17 +2792,17 @@ class GenusSymbol_global_ring(object):
         Return the mass of this genus.
 
         The genus must be definite.
-        Let ` L_1, ... L_n` be a complete list of representatives
+        Let `L_1, ... L_n` be a complete list of representatives
         of the isometry classes in this genus.
         Its mass is defined as
 
-        MATH::
+        .. MATH::
 
-            \sum_{i=1}^n / |O(L_i)|.
+            \sum_{i=1}^n \frac{1}{|O(L_i)|}.
 
         INPUT:
 
-        - ``backend`` -- default: ``'sage'``, or `'magma'`
+        - ``backend`` -- default: ``'sage'``, or ``'magma'``
 
         OUTPUT:
 
@@ -2823,7 +2821,6 @@ class GenusSymbol_global_ring(object):
         if pos * neg != 0:
             raise ValueError("Genus must be definite.")
         if backend == 'sage':
-            n = self.dimension()
             mass = self._standard_mass()
             for sym in self._local_symbols:
                 mass *= sym.mass()/sym._standard_mass()
@@ -2961,7 +2958,7 @@ def M_p(species, p):
 
     EXAMPLES:
 
-    These examples are taken crom Table 2 of [CS1988]_
+    These examples are taken from Table 2 of [CS1988]_::
 
         sage: from sage.quadratic_forms.genera.genus import M_p
         sage: M_p(0,2)

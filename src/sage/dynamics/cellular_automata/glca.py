@@ -88,10 +88,28 @@ class GraftalLaceCellularAutomata(SageObject):
         """
         Initialize ``self``.
 
-        EXAMPLES::
+        TESTS::
 
             sage: G = cellular_automata.GraftalLace([5,1,2,5,4,5,5,0])
             sage: TestSuite(G).run()
+
+            sage: G = cellular_automata.GraftalLace([5,1,2,5,4,5,5])
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid rule
+            sage: G = cellular_automata.GraftalLace([5,1,2,5,4,5,5,0,5])
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid rule
+            sage: G = cellular_automata.GraftalLace([5,1,2,5,-1,5,5,0])
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid rule
+            sage: G = cellular_automata.GraftalLace([8,5,1,2,5,4,5,5])
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid rule
+
         """
         if len(rule) != 8 or any(x not in range(8) for x in rule):
             raise ValueError("invalid rule")

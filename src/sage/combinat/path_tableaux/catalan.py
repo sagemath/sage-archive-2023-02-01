@@ -162,7 +162,7 @@ class CatalanTableau(PathTableau):
         ClonableArray.__init__(self, parent, w, check=check)
         
     def check(self):
-
+        """ Checks that ``self`` is a valid path."""
         n = len(self)
         if any(a < 0 for a in self):
            raise ValueError( "%s has a negative entry" % (str(self)) )

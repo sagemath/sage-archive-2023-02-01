@@ -410,8 +410,8 @@ class PathTableau(ClonableArray):
         return G
 
 class PathTableaux(UniqueRepresentation,Parent):
-
-    def __init(self):
+    """ The abstract parent class for PathTableau."""
+    def __init__(self):
         Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, *args, **kwds):
@@ -470,6 +470,7 @@ class CylindricalDiagram(SageObject):
         return result
 
     def __len__(self):
+        """Returns the length of ``self``"""
         return len(self.diagram)
 
     def _ascii_art_(self):

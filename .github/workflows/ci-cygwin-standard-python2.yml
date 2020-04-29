@@ -364,7 +364,7 @@ jobs:
       # We set the installation records to the same mtime so that no rebuilds due to dependencies
       # among these packages are triggered.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/; ; src/bin/sage-rebase.sh local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/; src/bin/sage-rebase.sh local'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
@@ -444,8 +444,7 @@ jobs:
       # We set the installation records to the same mtime so that no rebuilds due to dependencies
       # among these packages are triggered.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/; ; src/bin/sage-rebase.sh local'
-        src\\bin\\sage-rebaseall.bat
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l sage-local-*.tar; for a in sage-local-${{ env.PREVIOUS_STAGES }}.tar; do echo Extracting $a; tar xf $a; done; (cd local/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *); ls -l local local/var/lib/sage/installed/; src/bin/sage-rebase.sh local'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'

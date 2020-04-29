@@ -44,12 +44,10 @@ resolvelinks() {
     # Move stuff from $in to $out
     while [ -n "$in" ]; do
         # Normalize $in by replacing consecutive slashes by one slash
-        while { in_single_slash=${in//\/\//\/}; [ "$in" != "$in_single_slash" ]; }; do
-            in=$in_single_slash
-        done
+        in=$(echo "${in}" | sed 's://*:/:g')
 
         # If $in starts with a slash, remove it and set $out to the root
-        in_without_slash=${in/#\//}
+        in_without_slash=${in#/}
         if [ "$in" != "$in_without_slash" ]; then
             in=$in_without_slash
             out="/"
@@ -71,7 +69,7 @@ resolvelinks() {
             out="$out$f"
 
             # If the new $in starts with a slash, move it to $out
-            in_without_slash=${in/#\//}
+            in_without_slash=${in#/}
             if [ "$in" != "$in_without_slash" ]; then
                 in=$in_without_slash
                 out="$out/"
@@ -103,7 +101,8 @@ resolvelinks() {
         fi
 
         # In $in, replace $f by $f_resolved (leave $out alone)
-        in=${in/#"$f"/"$f_resolved"}
+        in="${in#${f}}"
+        in="${f_resolved}${in}"
     done
 
     # Return $out

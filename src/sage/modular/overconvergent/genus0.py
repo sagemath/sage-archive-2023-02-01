@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Overconvergent p-adic modular forms for small primes
+Overconvergent `p`-adic modular forms for small primes
 
 This module implements computations of Hecke operators and `U_p`-eigenfunctions
 on `p`-adic overconvergent modular forms of tame level 1, where `p` is one of
@@ -736,8 +736,6 @@ class OverconvergentModularFormsSpace(Module):
             input = ZZ(input)
 
         if isinstance(input, OverconvergentModularFormElement):
-            if input.parent() is self:
-                return input
             return self._coerce_from_ocmf(input)
 
         elif isinstance(input, ModularFormElement):

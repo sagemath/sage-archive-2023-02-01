@@ -1528,7 +1528,7 @@ class FormsRingElement(six.with_metaclass(
 
         return self.reduced_parent()(self._rat)
 
-    #precision is actually acuracy, maybe add "real precision" meaning number of rel. coef
+    #precision is actually accuracy, maybe add "real precision" meaning number of rel. coef
     @cached_method
     def _q_expansion_cached(self, prec, fix_d, subs_d, d_num_prec, fix_prec = False):
         """

@@ -133,7 +133,7 @@ in memory::
 
             sage: # edit here
 
-    #.  Compute the sum of the gcd's of all co-prime numbers `i, j` for `i<j<10`::
+    #.  Compute the sum of the products of all pairs of co-prime numbers `i, j` for `i<j<10`::
 
             sage: # edit here
 

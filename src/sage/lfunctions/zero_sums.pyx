@@ -15,9 +15,8 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer_ring import ZZ
@@ -486,16 +485,16 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         - ``function`` -- string (default: "sincsquared_fast") - the function
           `f(x)` as described above. Currently implemented options for `f` are
 
-          - ``sincquared`` -- `f(x) = \left(\frac{\sin(\pi x)}{\pi x}\right)^2`
+          - ``sincsquared`` -- `f(x) = \left(\frac{\sin(\pi x)}{\pi x}\right)^2`
 
           - ``gaussian``   -- `f(x) = e^{-x^2}`
 
-          - ``sincquared_fast`` -- Same as "sincsquared", but implementation
+          - ``sincsquared_fast`` -- Same as "sincsquared", but implementation
             optimized for elliptic curve `L`-functions, and tau must be 0. self
             must be attached to an elliptic curve over `\QQ` given by its global
             minimal model, otherwise the returned result will be incorrect.
 
-          - ``sincquared_parallel`` -- Same as "sincsquared_fast", but optimized
+          - ``sincsquared_parallel`` -- Same as "sincsquared_fast", but optimized
             for parallel computation with large (>2.0) `\Delta` values. self must
             be attached to an elliptic curve over `\QQ` given by its global minimal
             model, otherwise the returned result will be incorrect.
@@ -1267,7 +1266,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         r"""
         Method called by self._zerosum_sincsquared_parallel() to determine
         the optimal residue class breakdown when sieving for primes.
-        Returns a list of small primes, the product thereof, and a list of
+
+        Return a list of small primes, the product thereof, and a list of
         residues coprime to the product.
 
         INPUT:

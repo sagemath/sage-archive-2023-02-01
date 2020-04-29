@@ -79,6 +79,7 @@ class TestParent2(Parent):
 
             sage: sage.misc.nested_class_test.TestParent2()
             Traceback (most recent call last):
+            ...
             TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
         """
         from sage.categories.all import Sets
@@ -185,7 +186,7 @@ class ALB(object):
         Internal C class.
 
         Thanks to the links below this class is pickled ok.
-        But it is sphixed wrong: It is typeset as a link to an outer class.
+        But it is sphinxed wrong: It is typeset as a link to an outer class.
         """
         pass
 

@@ -373,6 +373,14 @@ class RationalField(Singleton, number_field_base.NumberField):
             Native morphism:
               From: Set of Python objects of class 'long'
               To:   Rational Field
+
+        ::
+
+            sage: L = Localization(ZZ, (3,5))
+            sage: 1/45 in L  # indirect doctest
+            True
+            sage: 1/43 in L  # indirect doctest
+            False
         """
         global ZZ
         from . import rational
@@ -387,8 +395,14 @@ class RationalField(Singleton, number_field_base.NumberField):
             return rational.int_to_Q()
         elif ZZ.has_coerce_map_from(S):
             return rational.Z_to_Q() * ZZ._internal_coerce_map_from(S)
+        from sage.rings.localization import Localization
+        if isinstance(S, Localization):
+            if S.fraction_field() is self:
+                from sage.structure.coerce_maps import CallableConvertMap
+                return CallableConvertMap(S, self, lambda x: x._value, parent_as_first_arg=False)
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """
         Check to see if the map into ``codomain`` determined by ``im_gens`` is
         a valid homomorphism.
@@ -624,7 +638,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             ...
             ValueError: no embeddings of the rational field into K.
         """
-        if K.characteristic() != 0:
+        if K.characteristic():
             raise ValueError("no embeddings of the rational field into K.")
         return [self.hom(K)]
 
@@ -852,7 +866,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         b = self(b)
         if b == 0:
             raise ValueError("second argument must be nonzero")
-        if len(S) % 2 != 0:
+        if len(S) % 2:
             raise ValueError("list should be of even cardinality")
         for p in S:
             if p != infty:
@@ -1427,7 +1441,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         return 'RationalField()'
 
-    def _macaulay2_init_(self):
+    def _macaulay2_init_(self, macaulay2=None):
         r"""
         Return the macaulay2 representation of `\QQ`.
 

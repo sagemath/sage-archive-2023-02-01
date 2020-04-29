@@ -248,7 +248,8 @@ def explain_pickle(pickle=None, file=None, compress=True, **kwargs):
     if pickle is not None:
         p = pickle
     elif file is not None:
-        p = open(file).read()
+        with open(file) as f:
+            p = f.read()
     else:
         raise ValueError("Either pickle or file must be specified")
 
@@ -2834,7 +2835,8 @@ class TestAppendList(list):
             ...
             TypeError: append() takes 1 positional argument but 2 were given
 
-        We can still append by directly using the list method:
+        We can still append by directly using the list method::
+
             sage: list.append(v, 7)
             sage: v
             [7]
@@ -2858,7 +2860,8 @@ class TestAppendList(list):
             ...
             TypeError: extend() takes 1 positional argument but 2 were given
 
-        We can still extend by directly using the list method:
+        We can still extend by directly using the list method::
+
             sage: list.extend(v, (3,1,4,1,5,9))
             sage: v
             [3, 1, 4, 1, 5, 9]

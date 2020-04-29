@@ -1,5 +1,5 @@
 r"""
-FiniteGroups
+Finite groups
 """
 # ****************************************************************************
 #  Copyright (C) 2010-2013 Nicolas M. Thiery <nthiery at users.sf.net>

@@ -805,7 +805,7 @@ class SkewTableau(ClonableList):
         the output to be the pair ``(t, (i, j))`` where ``t`` is the new
         tableau and ``(i, j)`` are the coordinates of the vacated square.
 
-        See [Fulton97]_ p12-13.
+        See [Ful1997]_ p12-13.
 
         EXAMPLES::
 
@@ -883,7 +883,7 @@ class SkewTableau(ClonableList):
         or just :class:`Tableau` formed by applying the jeu de taquin
         process to ``self``.
 
-        See page 15 of [Fulton97]_.
+        See page 15 of [Ful1997]_.
 
         INPUT:
 
@@ -914,11 +914,6 @@ class SkewTableau(ClonableList):
             [[None, 1], [2, 3]]
             sage: T
             [[None, None, None, 4], [None, None, 1, 6], [None, None, 5], [2, 3]]
-
-        REFERENCES:
-
-        .. [Fulton97] William Fulton, *Young Tableaux*,
-           Cambridge University Press 1997.
         """
         mu_size = self.inner_shape().size()
 

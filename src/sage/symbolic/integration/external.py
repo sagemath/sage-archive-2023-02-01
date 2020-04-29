@@ -24,6 +24,18 @@ def maxima_integrator(expression, v, a=None, b=None):
         sage: f(x) = function('f')(x)
         sage: maxima_integrator(f(x), x)
         integrate(f(x), x)
+
+    TESTS:
+
+    Check that :trac:`25817` is fixed::
+
+        sage: maxima_integrator(log(e^x*log(x)*sin(x))/x^2, x)
+        1/2*(x*(Ei(-log(x)) + conjugate(Ei(-log(x))))
+        - 2*x*integrate(sin(x)/(x*cos(x)^2 + x*sin(x)^2
+        + 2*x*cos(x) + x), x) + 2*x*integrate(sin(x)/(x*cos(x)^2
+        + x*sin(x)^2 - 2*x*cos(x) + x), x) + 2*x*log(x) + 2*log(2)
+        - log(cos(x)^2 + sin(x)^2 + 2*cos(x) + 1) - log(cos(x)^2
+        + sin(x)^2 - 2*cos(x) + 1) - 2*log(log(x)))/x
     """
     from sage.calculus.calculus import maxima
     if not isinstance(expression, Expression):
@@ -333,6 +345,7 @@ def symbolic_expression_from_mathematica_string(mexpr):
                     break
     return symbolic_expression_from_string(expr, lsymbols, accept_sequence=True)
 
+
 def fricas_integrator(expression, v, a=None, b=None, noPole=True):
     """
     Integration using FriCAS
@@ -355,6 +368,13 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
 
         sage: integral(sqrt(1-cos(x)), x, 0, 2*pi, algorithm="fricas")          # optional - fricas
         4*sqrt(2)
+
+    Check that in case of failure one gets unevaluated integral::
+
+        sage: integral(cos(ln(cos(x))), x, 0, pi/8, algorithm='fricas')   # optional - fricas
+        integrate(cos(log(cos(x))), x, 0, 1/8*pi)
+        sage: integral(cos(ln(cos(x))), x, algorithm='fricas')   # optional - fricas
+        integral(cos(log(cos(x))), x)
     """
     if not isinstance(expression, Expression):
         expression = SR(expression)
@@ -372,11 +392,16 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
         else:
             result = ex.integrate(seg)
 
-    if str(result) == "potentialPole":
+    result = result.sage()
+
+    if result == "failed":
+        return expression.integrate(v, a, b, hold=True)
+
+    if result == "potentialPole":
         raise ValueError("The integrand has a potential pole"
                          " in the integration interval")
 
-    return result.sage()
+    return result
 
 
 def giac_integrator(expression, v, a=None, b=None):

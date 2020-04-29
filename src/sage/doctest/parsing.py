@@ -12,7 +12,7 @@ AUTHORS:
   using interval arithmetic (:trac:`16889`).
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 David Roe <roed.math@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          William Stein <wstein@gmail.com>
@@ -20,8 +20,8 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from sage.misc.six import u
 import six
@@ -39,6 +39,11 @@ from .external import available_software
 
 float_regex = re.compile(r'\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
+# Version 4.65 of glpk prints the warning "Long-step dual simplex will
+# be used" frequently. When Sage uses a system installation of glpk
+# which has not been patched, we need to ignore that message.
+# See :trac:`29317`.
+glpk_simplex_warning_regex = re.compile(r'(Long-step dual simplex will be used)')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
 find_python_continuation = re.compile(r"^(\s*)\.\.\.([^\.])", re.M)
@@ -179,13 +184,13 @@ def normalize_long_repr(s):
     representations of long objects from strings containing a long repr.
 
     EXAMPLES::
+
         sage: from sage.doctest.parsing import normalize_long_repr
         sage: normalize_long_repr('10L')
         '10'
         sage: normalize_long_repr('[10L, -10L, +10L, "ALL"]')
         '[10, -10, +10, "ALL"]'
     """
-
     return _long_repr_re.sub(lambda m: m.group(1), s)
 
 
@@ -253,7 +258,10 @@ def normalize_bound_method_repr(s):
 # For example, on Python 3 we strip all u prefixes from unicode strings in the
 # expected output, because we never expect to see those on Python 3.
 if six.PY2:
-    _repr_fixups = []
+    _repr_fixups = [
+        (lambda g, w: '<class' in w and '<type' in g,
+         lambda g, w: (normalize_type_repr(g), w)),
+    ]
 else:
     _repr_fixups = [
         (lambda g, w: 'u"' in w or "u'" in w,
@@ -272,7 +280,7 @@ else:
 
 def parse_optional_tags(string):
     """
-    Returns a set consisting of the optional tags from the following
+    Return a set consisting of the optional tags from the following
     set that occur in a comment on the first line of the input string.
 
     - 'long time'
@@ -335,9 +343,10 @@ def parse_optional_tags(string):
             tags.extend(m.group(3).split() or [""])
     return set(tags)
 
+
 def parse_tolerance(source, want):
     """
-    Returns a version of ``want`` marked up with the tolerance tags
+    Return a version of ``want`` marked up with the tolerance tags
     specified in ``source``.
 
     INPUT:
@@ -392,6 +401,7 @@ def parse_tolerance(source, want):
                 raise RuntimeError
     return want
 
+
 def pre_hash(s):
     """
     Prepends a string with its length.
@@ -404,9 +414,10 @@ def pre_hash(s):
     """
     return "%s:%s" % (len(s), s)
 
+
 def get_source(example):
     """
-    Returns the source with the leading 'sage: ' stripped off.
+    Return the source with the leading 'sage: ' stripped off.
 
     EXAMPLES::
 
@@ -754,7 +765,7 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: print(n)
             12345678
             sage: type(n)
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
 
         It also works without the line continuation::
 
@@ -1060,11 +1071,12 @@ class SageOutputChecker(doctest.OutputChecker):
         classes) between Python 2 and Python 3::
 
             sage: int
-            <type 'int'>
+            <class 'int'>
             sage: float
-            <type 'float'>
+            <class 'float'>
         """
         got = self.human_readable_escape_sequences(got)
+        got = glpk_simplex_warning_regex.sub('', got)
         if isinstance(want, MarkedOutput):
             if want.random:
                 return True

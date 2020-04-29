@@ -366,8 +366,8 @@ def bernoulli(n, algorithm='default', num_threads=1):
         return arb_arith.bernoulli(n)
     elif algorithm == 'flint':
         if n >= 100000:
-            import warnings
-            warnings.warn("flint is known to not be accurate for large Bernoulli numbers")
+            from warnings import warn
+            warn("flint is known to not be accurate for large Bernoulli numbers")
         return flint_arith.bernoulli_number(n)
     elif algorithm == 'pari':
         x = pari(n).bernfrac()         # Use the PARI C library
@@ -4701,7 +4701,7 @@ def hilbert_conductor_inverse(d):
             dd = mo * d
         q = 1
         while hilbert_conductor(-q, dd) != d:
-            q+=1;
+            q += 1
         if dd%q == 0:
             dd /= q
         return (Z(-q), Z(dd))
@@ -5228,7 +5228,7 @@ def three_squares(n):
                 break
             x -= 2
     else:  # 7 mod 8
-        raise ValueError("%s is not a sum of 3 squares"%n)
+        raise ValueError("%s is not a sum of 3 squares" % n)
 
     if x < 0:
         # We found no good x, brute force instead.

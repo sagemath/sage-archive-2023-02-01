@@ -70,7 +70,7 @@ Bibliography
 .. [JayneMisra2014] \R. Jayne and K. Misra,
    On multiplicities of maximal weights of
    `\widehat{sl}(n)`-modules. Algebr. Represent. Theory 17 (2014), no. 4,
-   1303–1321. (arXiv:1309.4969)
+   1303–1321. :arxiv:`1309.4969`.
 
 .. [Jimbo1986] \M. A. Jimbo. `q`-analogue of `U(\mathfrak{gl}(N+1))`,
    Hecke algebra, and the Yang-Baxter equation.
@@ -120,7 +120,7 @@ Bibliography
 
 .. [KimLeeOh2017] Jang Soo Kim, Kyu-Hwan Lee and Se-Jin Oh,
    Weight multiplicities and Young tableaux through affine crystals.
-   :arXiv:`1703.10321` (2017).
+   :arxiv:`1703.10321` (2017).
 
 .. [King1975] \R. C. King. Branching rules for classical Lie groups
    using tensor and spinor methods. *Journal of Physics A*,
@@ -172,7 +172,7 @@ Bibliography
 
 .. [SchillingTingley2011] \A. Schilling, P. Tingley.
    *Demazure crystals, Kirillov-Reshetikhin crystals, and the energy function*.
-   preprint :arXiv:`1104.2359`
+   preprint :arxiv:`1104.2359`
 
 .. [Stanley1999] \R. P. Stanley. *Enumerative Combinatorics, Volume
    2*. Cambridge University Press, 1999.

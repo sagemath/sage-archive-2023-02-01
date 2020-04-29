@@ -1198,7 +1198,7 @@ class PartitionTuple(CombinatorialElement):
         "straightening" rules for the Specht modules over an arbitrary ring.
         The *top Garnir tableaux* arise in the graded representation theory of
         the symmetric groups and higher level Hecke algebras. They were
-        introduced in [KMR]_.
+        introduced in [KMR2012]_.
 
         If the Garnir node is ``cell=(k,r,c)`` and `m` and `M` are the entries
         in the cells ``(k,r,c)`` and ``(k,r+1,c)``, respectively, in the
@@ -1240,14 +1240,6 @@ class PartitionTuple(CombinatorialElement):
         .. SEEALSO::
 
             - :meth:`~sage.combinat.partition.Partition_tuple.garnir_tableau`
-
-        REFERENCE:
-
-        .. [KMR] \A. Kleshchev, A. Mathas, and A. Ram, *Universal Specht
-           modules for cyclotomic Hecke algebras*,
-           Proc. London Math. Soc. (2012) 105 (6): 1245-1289.
-           :arxiv:`1102.3519v1`
-
         """
         (comp,row,col)=cell
         if comp>=len(self) or row+1>=len(self[comp]) or col>=self[comp][row+1]:

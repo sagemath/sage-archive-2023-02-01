@@ -33,6 +33,7 @@ from six import add_metaclass
 
 from sage.combinat.integer_lists import IntegerListsLex
 from itertools import product
+import numbers
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -592,6 +593,13 @@ class IntegerVectors(Parent):
             Traceback (most recent call last):
             ...
             ValueError: k and length both specified
+
+        :trac:`29524`::
+
+            sage: IntegerVectors(3, 3/1)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'k' must be an integer or a tuple, got Rational
         """
         if 'length' in kwargs:
             if k is not None:
@@ -607,12 +615,12 @@ class IntegerVectors(Parent):
         if n is None:
             return IntegerVectors_k(k)
 
-        try:
+        if isinstance(k, numbers.Integral):
+            return IntegerVectors_nk(n, k)
+        elif isinstance(k, (tuple, list)):
             return IntegerVectors_nnondescents(n, tuple(k))
-        except TypeError:
-            pass
-
-        return IntegerVectors_nk(n, k)
+        else:
+            raise TypeError("'k' must be an integer or a tuple, got {}".format(type(k).__name__))
 
     def __init__(self, category=None):
         """

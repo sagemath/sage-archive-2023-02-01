@@ -94,7 +94,6 @@ With power series the behavior is the same.
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 import operator
 
@@ -245,7 +244,7 @@ cdef class PowerSeries(AlgebraElement):
         """
         return bool(self.__is_gen)
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of this series under the map that sends the
         generators to ``im_gens``. This is used internally for computing
@@ -258,7 +257,10 @@ cdef class PowerSeries(AlgebraElement):
             sage: f._im_gens_(ZZ, [3])
             13
         """
-        return codomain(self(im_gens[0]))
+        if base_map is None:
+            return codomain(self(im_gens[0]))
+        else:
+            raise NotImplementedError
 
     cpdef base_extend(self, R):
         """
@@ -1179,6 +1181,68 @@ cdef class PowerSeries(AlgebraElement):
         """
 
         return self.polynomial().is_monomial()
+
+    def map_coefficients(self, f, new_base_ring=None):
+        r"""
+        Returns the series obtained by applying ``f`` to the non-zero
+        coefficients of ``self``.
+
+        If ``f`` is a :class:`sage.categories.map.Map`, then the resulting
+        series will be defined over the codomain of ``f``. Otherwise, the
+        resulting polynomial will be over the same ring as self. Set
+        ``new_base_ring`` to override this behaviour.
+
+        INPUT:
+
+        - ``f`` -- a callable that will be applied to the coefficients of self.
+
+        - ``new_base_ring`` (optional) -- if given, the resulting polynomial
+          will be defined over this ring.
+
+        EXAMPLES::
+
+            sage: R.<x> = SR[[]]
+            sage: f = (1+I)*x^2 + 3*x - I
+            sage: f.map_coefficients(lambda z: z.conjugate())
+            I + 3*x + (-I + 1)*x^2
+            sage: R.<x> = ZZ[[]]
+            sage: f = x^2 + 2
+            sage: f.map_coefficients(lambda a: a + 42)
+            44 + 43*x^2
+
+        Examples with different base ring::
+
+            sage: R.<x> = ZZ[[]]
+            sage: k = GF(2)
+            sage: residue = lambda x: k(x)
+            sage: f = 4*x^2+x+3
+            sage: g = f.map_coefficients(residue); g
+            1 + x
+            sage: g.parent()
+            Power Series Ring in x over Integer Ring
+            sage: g = f.map_coefficients(residue, new_base_ring = k); g
+            1 + x
+            sage: g.parent()
+            Power Series Ring in x over Finite Field of size 2
+            sage: residue = k.coerce_map_from(ZZ)
+            sage: g = f.map_coefficients(residue); g
+            1 + x
+            sage: g.parent()
+            Power Series Ring in x over Finite Field of size 2
+
+        Tests other implementations::
+
+            sage: R.<q> = PowerSeriesRing(GF(11), implementation='pari')
+            sage: f = q - q^3 + O(q^10)
+            sage: f.map_coefficients(lambda c: c - 2)
+            10*q + 8*q^3 + O(q^10)
+        """
+        pol = self.polynomial()
+        res = pol.map_coefficients(f, new_base_ring)
+        if res.base_ring() != pol.base_ring():
+            return self.parent().change_ring(res.base_ring())(res, self.prec())
+        else:
+            return self.parent()(res, self.prec())
 
     def is_square(self):
         """

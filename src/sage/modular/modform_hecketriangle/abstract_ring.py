@@ -319,15 +319,14 @@ class FormsRing_abstract(Parent):
             sage: MF.E4()
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + O(q^5)
         """
-
-        if (prec == "max"):
-            self._disp_prec = self._prec;
-        elif (prec is not None):
+        if prec == "max":
+            self._disp_prec = self._prec
+        elif prec is not None:
             self._disp_prec = ZZ(prec)
         else:
             return self._disp_prec
 
-    def default_num_prec(self, prec = None):
+    def default_num_prec(self, prec=None):
         r"""
         Set the default numerical precision to ``prec`` (default: ``53``).
         If ``prec=None`` (default) the current default numerical

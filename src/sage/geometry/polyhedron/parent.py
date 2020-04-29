@@ -81,7 +81,12 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         sage: Polyhedra(RR, 3)
         Traceback (most recent call last):
         ...
-        ValueError: no appropriate backend for computations with Real Field with 53 bits of precision
+        ValueError: no default backend for computations with Real Field with 53 bits of precision
+        sage: Polyhedra(QQ[I], 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid base ring: Number Field in I with defining polynomial x^2 + 1 with I = 1*I cannot be coerced to a real field
+
     """
     if backend is None:
         if base_ring is ZZ or base_ring is QQ:
@@ -92,11 +97,12 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
             # TODO: find a more robust way of checking that the coefficients are indeed
             # real numbers
             if not RDF.has_coerce_map_from(base_ring):
-                raise ValueError("invalid base ring")
+                raise ValueError("invalid base ring: {} cannot be coerced to a real field".format(base_ring))
             backend = 'field'
         else:
-            raise ValueError("no appropriate backend for computations with {}".format(base_ring))
+            raise ValueError("no default backend for computations with {}".format(base_ring))
 
+    from sage.symbolic.ring import SR
     if backend == 'ppl' and base_ring is QQ:
         return Polyhedra_QQ_ppl(base_ring, ambient_dim, backend)
     elif backend == 'ppl' and base_ring is ZZ:
@@ -105,6 +111,8 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         return Polyhedra_QQ_normaliz(base_ring, ambient_dim, backend)
     elif backend == 'normaliz' and base_ring is ZZ:
         return Polyhedra_ZZ_normaliz(base_ring, ambient_dim, backend)
+    elif backend == 'normaliz' and (base_ring is SR or base_ring.is_exact()):
+        return Polyhedra_normaliz(base_ring, ambient_dim, backend)
     elif backend == 'cdd' and base_ring in (ZZ, QQ):
         return Polyhedra_QQ_cdd(QQ, ambient_dim, backend)
     elif backend == 'cdd' and base_ring is RDF:
@@ -448,9 +456,9 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``Vrep`` -- a list `[vertices, rays, lines]`` or ``None``.
+        - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``.
 
-        - ``Hrep`` -- a list `[ieqs, eqns]`` or ``None``.
+        - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``.
 
         - ``convert`` -- boolean keyword argument (default:
           ``True``). Whether to convert the coordinates into the base
@@ -526,8 +534,10 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         """
         The element (polyhedron) constructor for the case of 1 argument, a polyhedron.
 
-        This version of the method sets up the element using the H-representation only.
-        The element will have to recompute the V-representation.
+        Set up the element using both representations,
+        if the backend can handle it.
+
+        Otherwise set up the element from Hrepresentation.
 
         EXAMPLES::
 
@@ -538,10 +548,18 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
             sage: P(p)
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+
+            sage: P = Polyhedra(AA, 3, backend='field')
+            sage: p = Polyhedron(vertices=[(0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)])
+            sage: P(p)
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 4 vertices
         """
         Vrep = None
+        if hasattr(self.Element, '_init_from_Vrepresentation_and_Hrepresentation'):
+            Vrep = [polyhedron.vertex_generator(), polyhedron.ray_generator(),
+                    polyhedron.line_generator()]
         Hrep = [polyhedron.inequality_generator(), polyhedron.equation_generator()]
-        return self._element_constructor_(Vrep, Hrep, **kwds)
+        return self._element_constructor_(Vrep, Hrep, Vrep_minimal=True, Hrep_minimal=True, **kwds)
 
     def base_extend(self, base_ring, backend=None, ambient_dim=None):
         """
@@ -621,7 +639,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
     def _coerce_base_ring(self, other):
         r"""
-        Return the common base rincg for both ``self`` and ``other``.
+        Return the common base ring for both ``self`` and ``other``.
 
         This method is not part of the coercion framework, but only a
         convenience function for :class:`Polyhedra_base`.
@@ -664,24 +682,46 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             Rational Field
             sage: triangle_QQ._coerce_base_ring(0.5)
             Real Double Field
+
+        TESTS:
+
+        Test that :trac:`28770` is fixed::
+
+            sage: z = QQ['z'].0
+            sage: K = NumberField(z^2 - 2,'s')
+            sage: triangle_QQ._coerce_base_ring(K)
+            Number Field in s with defining polynomial z^2 - 2
+            sage: triangle_QQ._coerce_base_ring(K.gen())
+            Number Field in s with defining polynomial z^2 - 2
+
+            sage: z = QQ['z'].0
+            sage: K = NumberField(z^2 - 2,'s')
+            sage: K.gen()*polytopes.simplex(backend='field')
+            A 3-dimensional polyhedron in (Number Field in s with defining polynomial z^2 - 2)^4 defined as the convex hull of 4 vertices
         """
-        try:
-            other_ring = other.base_ring()
-        except AttributeError:
+        from sage.structure.element import Element
+        if isinstance(other, Element):
+            other = other.parent()
+        if hasattr(other, "is_ring") and other.is_ring():
+            other_ring = other
+        else:
             try:
-                # other is a constant?
-                other_ring = other.parent()
+                other_ring = other.base_ring()
             except AttributeError:
-                other_ring = None
-                for ring in (ZZ, QQ, RDF):
-                    try:
-                        ring.coerce(other)
-                        other_ring = ring
-                        break
-                    except TypeError:
-                        pass
-                if other_ring is None:
-                    raise TypeError('Could not coerce '+str(other)+' into ZZ, QQ, or RDF.')
+                try:
+                    # other is a constant?
+                    other_ring = other.parent()
+                except AttributeError:
+                    other_ring = None
+                    for ring in (ZZ, QQ, RDF):
+                        try:
+                            ring.coerce(other)
+                            other_ring = ring
+                            break
+                        except TypeError:
+                            pass
+                    if other_ring is None:
+                        raise TypeError('Could not coerce '+str(other)+' into ZZ, QQ, or RDF.')
 
         if not other_ring.is_exact():
             other_ring = RDF  # the only supported floating-point numbers for now
@@ -986,26 +1026,6 @@ class Polyhedra_polymake(Polyhedra_base):
 
 class Polyhedra_field(Polyhedra_base):
     Element = Polyhedron_field
-
-    def _element_constructor_polyhedron(self, polyhedron, **kwds):
-        """
-        The element (polyhedron) constructor for the case of 1 argument, a polyhedron.
-
-        This version of the method sets up the element using both representations.
-
-        EXAMPLES::
-
-            sage: from sage.geometry.polyhedron.parent import Polyhedra
-            sage: P = Polyhedra(AA, 3, backend='field')
-            sage: p = Polyhedron(vertices=[(0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)])
-            sage: P(p)
-            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 4 vertices
-        """
-        Vrep = [polyhedron.vertex_generator(), polyhedron.ray_generator(),
-                polyhedron.line_generator()]
-        Hrep = [polyhedron.inequality_generator(), polyhedron.equation_generator()]
-        return self._element_constructor_(Vrep, Hrep,
-                                          Vrep_minimal=True, Hrep_minimal=True, **kwds)
 
 @cached_function
 def does_backend_handle_base_ring(base_ring, backend):

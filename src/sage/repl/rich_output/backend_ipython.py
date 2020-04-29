@@ -31,6 +31,7 @@ class BackendIPython(BackendBase):
         sage: from sage.repl.rich_output.backend_ipython import BackendIPython
         sage: BackendIPython()._repr_()
         Traceback (most recent call last):
+        ...
         NotImplementedError: derived classes must implement this method
     """
 
@@ -423,7 +424,9 @@ class BackendIPythonCommandline(BackendIPython):
 
         if sys.platform == 'cygwin':
             import cygwin
-            scripts = [cygwin.cygpath(script, 'w') for script in scripts]
+            def normpath(p):
+                return 'file:///' + cygwin.cygpath(p, 'w').replace('\\', '/')
+            scripts = [normpath(script) for script in scripts]
 
         return '\n'.join('<script src="{0}"></script>'.format(script)
                          for script in scripts)

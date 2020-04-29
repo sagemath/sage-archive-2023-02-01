@@ -154,8 +154,27 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
                 polynomial = R
         self._polynomial = polynomial
 
-    def _im_gens_(self, codomain, im_gens):
-        return self._polynomial._im_gens_(codomain, im_gens)
+    def _im_gens_(self, codomain, im_gens, base_map=None):
+        """
+        Return the image of this element under the morphism defined by
+        ``im_gens`` in ``codomain``, where elements of the
+        base ring are mapped by ``base_map``.
+
+        EXAMPLES::
+
+            sage: Zx.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: cc = K.hom([-i])
+            sage: S.<y> = K[]
+            sage: Q.<q> = S.quotient(y^2*(y-1)*(y-i))
+            sage: T.<t> = S.quotient(y*(y+1))
+            sage: phi = Q.hom([t+1], base_map=cc)
+            sage: phi(q)
+            t + 1
+            sage: phi(i*q)
+            -i*t - i
+        """
+        return self._polynomial._im_gens_(codomain, im_gens, base_map=base_map)
 
     def __hash__(self):
         return hash(self._polynomial)
@@ -500,7 +519,8 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         #TODO: is the return order backwards from the magma convention?
 
-##         We do another example over $\ZZ$.
+##         We do another example over $\ZZ$::
+##
 ##             sage: R.<x> = ZZ['x']
 ##             sage: S.<a> = R.quo(x^3 - 2)
 ##             sage: F.<b>, g, h = a.field_extension()
@@ -508,21 +528,24 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 ##             a^2 + 3
 ##             sage: g(x^2 + 2)
 ##             a^2 + 2
+##
 ##         Note that the homomorphism is not defined on the entire
 ##         ''domain''.   (Allowing creation of such functions may be
-##         disallowed in a future version of Sage.):        <----- INDEED!
+##         disallowed in a future version of Sage.)::        <----- INDEED!
+##
 ##             sage: h(1/3)
 ##             Traceback (most recent call last):
 ##             ...
 ##             TypeError: Unable to coerce rational (=1/3) to an Integer.
-##         Note that the parent ring must be an integral domain:
+##
+##         Note that the parent ring must be an integral domain::
+##
 ##             sage: R.<x> = GF(25,'b')['x']
 ##             sage: S.<a> = R.quo(x^3 - 2)
 ##             sage: F, g, h = a.field_extension()
 ##             Traceback (most recent call last):
 ##             ...
 ##             ValueError: polynomial must be irreducible
-
 
         R = self.parent()
         x = R.gen()
@@ -534,14 +557,13 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
         if number_field_rel.is_RelativeNumberField(F):
 
-            base_hom = F.base_field().hom([R.base_ring().gen()])
-            g = F.Hom(R)(x, base_hom)
+            base_map = F.base_field().hom([R.base_ring().gen()])
+            g = F.Hom(R)(x, base_map)
 
         else:
             g = F.hom([x], R, check=False)
 
         return F, f, g
-
 
     def charpoly(self, var):
         """
@@ -662,7 +684,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
     def norm(self):
         """
-        The norm of this element, which is the norm of the matrix of right
+        The norm of this element, which is the determinant of the matrix of right
         multiplication by this element.
 
         EXAMPLES::

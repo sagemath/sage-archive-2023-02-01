@@ -59,8 +59,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-from __future__ import print_function, absolute_import, division
-
 import re
 from copy import copy
 from sage.rings.infinity import infinity
@@ -78,6 +76,7 @@ from sage.rings.morphism cimport Morphism, RingHomomorphism
 from sage.rings.polynomial.polynomial_element cimport _dict_to_list
 from sage.structure.element import coerce_binop
 from sage.misc.superseded import experimental
+
 
 cdef class SkewPolynomial(AlgebraElement):
     r"""

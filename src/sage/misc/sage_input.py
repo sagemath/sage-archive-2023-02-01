@@ -174,7 +174,7 @@ AUTHORS:
 
 from __future__ import print_function, absolute_import
 
-from six import itervalues, iteritems, integer_types, string_types
+from six import iteritems, integer_types, string_types
 
 
 def sage_input(x, preparse=True, verify=False, allow_locals=False):
@@ -1215,7 +1215,9 @@ class SageInputBuilder:
             return SageInputAnswer(sif._commands, sif.format(e, 0))
 
 # Python's precedence levels.  Hand-transcribed from section 5.14 of
-# the Python reference manual.
+# the Python 2 reference manual.  In the Python 3 reference manual
+# this is section 6.16.
+# See https://docs.python.org/3/reference/expressions.html
 _prec_lambda = 2
 _prec_or = 4
 _prec_and = 6
@@ -1602,6 +1604,20 @@ class SageInputExpression(object):
         """
         return self._sie_unop('-')
 
+    def __pos__(self):
+        r"""
+        Compute an expression tree for ``+self``.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: sie = sib(3)
+            sage: +sie
+            {unop:+ {atomic:3}}
+        """
+        return self._sie_unop('+')
+
     def __invert__(self):
         r"""
         Compute an expression tree for ``~self``.
@@ -1915,7 +1931,7 @@ class SIE_call(SageInputExpression):
         """
         refs = self._sie_args[:]
         refs.append(self._sie_func)
-        refs.extend(itervalues(self._sie_kwargs))
+        refs.extend(self._sie_kwargs.values())
         return refs
 
     def _sie_format(self, sif):
@@ -2593,6 +2609,16 @@ class SIE_unary(SageInputExpression):
             --x
             sage: sib.result(x-(-y))
             x - -y
+            sage: sib.result((+x)+y)
+            +x + y
+            sage: sib.result(x+(+y))
+            x + +y
+            sage: sib.result(+(x+y))
+            +(x + y)
+            sage: sib.result(+(+x))
+            ++x
+            sage: sib.result(x+(+y))
+            x + +y
 
         We assume that -(x*y) is always equal to (-x)*y.  Using this
         assumption, we print -(x*y) as -x*y, which parses as (-x)*y.::
@@ -2603,6 +2629,12 @@ class SIE_unary(SageInputExpression):
             -x*y
             sage: sib.result(x*(-y))
             x*-y
+
+        We do not do that for unary +, assuming that the user really
+        means to express something by using unary +::
+
+            sage: sib.result(+(x*y))
+            +(x*y)
         """
         op = self._sie_op
         fop = op
@@ -2612,6 +2644,8 @@ class SIE_unary(SageInputExpression):
             # (-a)*b.
             prec = _prec_muldiv
             rprec = _prec_negate
+        elif op == '+':
+            prec = _prec_negate
         elif op == '~':
             prec = _prec_bitnot
         else:

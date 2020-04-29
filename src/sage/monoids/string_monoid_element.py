@@ -105,7 +105,7 @@ class StringMonoidElement(FreeMonoidElement):
         else:
             raise TypeError("Argument x (= %s) is of the wrong type." % x)
 
-    def _richcmp_(left, right, op):
+    def _richcmp_(self, other, op):
         """
         Compare two free monoid elements with the same parents.
 
@@ -121,7 +121,7 @@ class StringMonoidElement(FreeMonoidElement):
             sage: S("01") < S("10")
             True
         """
-        return richcmp(left._element_list, right._element_list, op)
+        return richcmp(self._element_list, other._element_list, op)
 
     def _repr_(self):
         """

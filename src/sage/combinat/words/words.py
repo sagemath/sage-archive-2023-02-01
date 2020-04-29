@@ -3,7 +3,7 @@ r"""
 Set of words
 
 To define a new class of words, please refer to the documentation file:
-sage/combinat/words/notes/word_inheritance_howto.txt
+sage/combinat/words/notes/word_inheritance_howto.rst
 
 AUTHORS:
 
@@ -1032,7 +1032,7 @@ class FiniteWords(AbstractLanguage):
 
         INPUT:
 
-        - ``arg`` - (optional, default: None) It can be one of the following :
+        - ``arg`` - (optional, default: ``None``) It can be one of the following:
 
           - ``None`` - then the method iterates through all morphisms.
 
@@ -1045,7 +1045,7 @@ class FiniteWords(AbstractLanguage):
             ``arg`` determines the length of the word mapped to by the i-th
             letter of the (ordered) alphabet.
 
-        - ``codomain`` - (default: None) a combinatorial class of words.
+        - ``codomain`` - (default: ``None``) a combinatorial class of words.
           By default, ``codomain`` is ``self``.
 
         - ``min_length`` - (default: 1) nonnegative integer. If ``arg`` is

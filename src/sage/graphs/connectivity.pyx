@@ -50,13 +50,14 @@ Here is what the module can do:
 
     :meth:`bridges` | Returns a list of the bridges (or cut edges) of given undirected graph.
     :meth:`cleave` | Return the connected subgraphs separated by the input vertex cut.
+    :meth:`is_triconnected` | Check whether the graph is triconnected.
     :meth:`spqr_tree` | Return a SPQR-tree representing the triconnected components of the graph.
     :meth:`spqr_tree_to_graph` | Return the graph represented by the SPQR-tree `T`.
 
 Methods
 -------
 """
-from __future__ import absolute_import
+
 from sage.rings.integer cimport Integer
 from cysignals.memory cimport sig_malloc, sig_free
 
@@ -1405,6 +1406,11 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
             if G.blocks_and_cut_vertices()[1]:
                 return 1 if k is None else (k == 1)
 
+            if not G.is_triconnected():
+                return 2 if k is None else (k == 2)
+            elif k == 3:
+                return True
+
         if k == 1:
             # We know that the (di)graph is (strongly) connected
             return True
@@ -2255,7 +2261,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
         sage: T = G.spqr_tree(algorithm="cleave")
         sage: Counter(u[0] for u in T)
         Counter({'R': 1})
-        sage: for u,v in G.edges(labels=False, sort=False):
+        sage: for u,v in list(G.edges(labels=False, sort=False)):
         ....:     G.add_path([u, G.add_vertex(), G.add_vertex(), v])
         sage: T = G.spqr_tree(algorithm="Hopcroft_Tarjan")
         sage: sorted(Counter(u[0] for u in T).items())
@@ -2263,7 +2269,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
         sage: T = G.spqr_tree(algorithm="cleave")
         sage: sorted(Counter(u[0] for u in T).items())
         [('P', 15), ('R', 1), ('S', 15)]
-        sage: for u,v in G.edges(labels=False, sort=False):
+        sage: for u,v in list(G.edges(labels=False, sort=False)):
         ....:     G.add_path([u, G.add_vertex(), G.add_vertex(), v])
         sage: T = G.spqr_tree(algorithm="Hopcroft_Tarjan")
         sage: sorted(Counter(u[0] for u in T).items())
@@ -3834,8 +3840,9 @@ cdef class TriconnectivitySPQR:
     cdef __assemble_triconnected_components(self):
         """
         Iterate through all the split components built by :meth:`__path_finder`
-        and merges two bonds or two polygons that share an edge for contructing
+        and merges two bonds or two polygons that share an edge for constructing
         the final triconnected components.
+
         Subsequently, convert the edges in triconnected components into original
         vertices and edges. The triconnected components are stored in
         ``self.comp_final_edge_list`` and ``self.comp_type``.
@@ -4167,3 +4174,73 @@ cdef class TriconnectivitySPQR:
         """
         return self.spqr_tree
 
+
+def is_triconnected(G):
+    r"""
+    Check whether the graph is triconnected.
+
+    A triconnected graph is a connected graph on 3 or more vertices that is not
+    broken into disconnected pieces by deleting any pair of vertices.
+
+    EXAMPLES:
+
+    The Petersen graph is triconnected::
+
+        sage: G = graphs.PetersenGraph()
+        sage: G.is_triconnected()
+        True
+
+    But a 2D grid is not::
+
+        sage: G = graphs.Grid2dGraph(3, 3)
+        sage: G.is_triconnected()
+        False
+
+    By convention, a cycle of order 3 is triconnected::
+
+        sage: G = graphs.CycleGraph(3)
+        sage: G.is_triconnected()
+        True
+
+    But cycles of order 4 and more are not::
+
+        sage: [graphs.CycleGraph(i).is_triconnected() for i in range(4, 8)]
+        [False, False, False, False]
+
+    Comparing different methods on random graphs that are not always
+    triconnected::
+
+        sage: G = graphs.RandomBarabasiAlbert(50, 3)
+        sage: G.is_triconnected() == G.vertex_connectivity(k=3)
+        True
+
+    .. SEEALSO::
+
+        - :meth:`~sage.graphs.generic_graph.GenericGraph.is_connected`
+        - :meth:`~Graph.is_biconnected`
+        - :meth:`~sage.graphs.connectivity.spqr_tree`
+        - :wikipedia:`SPQR_tree`
+
+    TESTS::
+
+        sage: [Graph(i).is_triconnected() for i in range(4)]
+        [False, False, False, False]
+        sage: [graphs.CompleteGraph(i).is_triconnected() for i in range(3, 6)]
+        [True, True, True]
+    """
+    if G.order() < 3:
+        return False
+
+    try:
+        T = G.spqr_tree()
+    except ValueError:
+        # The graph is not biconnected
+        return False
+
+    from collections import Counter
+    C = Counter(v[0] for v in T)
+    if 'S' in C:
+        return G.order() == 3
+    # Since the graph has order >= 3, is biconnected and has no 'S' block, it
+    # has at least one 'R' block. A triconnected graph has only one such block.
+    return C['R'] == 1

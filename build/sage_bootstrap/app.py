@@ -4,27 +4,24 @@ Controller for the commandline actions
 """
 
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016 Volker Braun <vbraun.name@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import os
-import sys
 import logging
 log = logging.getLogger()
 
-from sage_bootstrap.env import SAGE_DISTFILES
 from sage_bootstrap.package import Package
 from sage_bootstrap.tarball import Tarball
 from sage_bootstrap.updater import ChecksumUpdater, PackageUpdater
 from sage_bootstrap.creator import PackageCreator
-
 
 
 class Application(object):
@@ -111,12 +108,12 @@ class Application(object):
         """
         log.debug('Updating %s to %s', package_name, new_version)
         update = PackageUpdater(package_name, new_version)
-        if url is not None:
+        if url is not None or update.package.tarball_upstream_url:
             log.debug('Downloading %s', url)
             update.download_upstream(url)
         update.fix_checksum()
 
-    def download(self, package_name):
+    def download(self, package_name, allow_upstream=False):
         """
         Download a package
 
@@ -126,7 +123,7 @@ class Application(object):
         """
         log.debug('Downloading %s', package_name)
         package = Package(package_name)
-        package.tarball.download()
+        package.tarball.download(allow_upstream=allow_upstream)
         print(package.tarball.upstream_fqn)
 
     def fix_all_checksums(self):
@@ -162,7 +159,7 @@ class Application(object):
             print('Updating checksum of {0}'.format(pkg.tarball_filename))
             update.fix_checksum()
         
-    def create(self, package_name, version, tarball, pkg_type):
+    def create(self, package_name, version, tarball, pkg_type, upstream_url):
         log.debug('Creating %s: %s, %s, %s', package_name, version, tarball, pkg_type)
         creator = PackageCreator(package_name)
         if version:
@@ -170,7 +167,11 @@ class Application(object):
         if pkg_type:
             creator.set_type(pkg_type)
         if tarball:
-            creator.set_tarball(tarball)
-            update = ChecksumUpdater(package_name)
+            creator.set_tarball(tarball, upstream_url)
+            if upstream_url and version:
+                update = PackageUpdater(package_name, version)
+                update.download_upstream()
+            else:
+                update = ChecksumUpdater(package_name)
             update.fix_checksum()
             

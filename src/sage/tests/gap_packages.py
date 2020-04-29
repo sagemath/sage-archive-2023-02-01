@@ -134,7 +134,7 @@ def all_installed_packages(ignore_dot_gap=False, gap=None):
         sage: from sage.tests.gap_packages import all_installed_packages
         sage: all_installed_packages()
         (...'GAPDoc'...)
-        sage: all_installed_packages() == all_installed_packages(gap=gap)
+        sage: all_installed_packages(ignore_dot_gap=True) == all_installed_packages(gap=gap, ignore_dot_gap=True)
         True
     """
     if gap is None:

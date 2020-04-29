@@ -217,7 +217,8 @@ class Test:
             sage: Test().test_random() #random
             Doing random test
         """
-        tests = [a for a in Test.__dict__.keys() if a[:5] == "test_" and a != "test_random"]
+        tests = [a for a in Test.__dict__
+                 if a[:5] == "test_" and a != "test_random"]
         name = prandom.choice(tests)
         print("Doing random test %s" % name)
         Test.__dict__[name](self)

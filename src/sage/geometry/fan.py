@@ -694,6 +694,9 @@ def NormalFan(polytope, lattice=None):
     r"""
     Construct the normal fan of the given rational ``polytope``.
 
+    This returns the inner normal fan. For the outer normal fan, use
+    ``NormalFan(-P)``.
+
     INPUT:
 
     - ``polytope`` -- a full-dimensional :func:`polytope

@@ -29,11 +29,34 @@ endif
 # Directory to keep track of which packages are installed
 INST = $(SAGE_SPKG_INST)
 
-# Aliases for optional packages selected at configure time
+# Aliases for mutually exclusive standard packages selected at configure time
 TOOLCHAIN = @SAGE_TOOLCHAIN@
 PYTHON = python@SAGE_PYTHON_VERSION@
 MP_LIBRARY = @SAGE_MP_LIBRARY@
 BLAS = @SAGE_BLAS@
+
+# pkgconfig files generated/installed at build time
+PCFILES = @SAGE_SYSTEM_FACADE_PC_FILES@
+
+LN = ln
+SED = sed
+
+# We need to be able to override this to support ./sage -i -c PKG
+SAGE_SPKG = sage-spkg
+
+# These are added to SAGE_SPKG in the call
+SAGE_SPKG_OPTIONS = @SAGE_SPKG_OPTIONS@
+
+# Generate/install sage-specific .pc files.
+# see build/pkgs/gsl/spkg-configure.m4
+$(SAGE_PKGCONFIG)/gsl.pc:
+	-rm -f $@
+	@SAGE_GSL_PC_COMMAND@
+
+# see build/pkgs/openblas/spkg-configure.m4
+$(SAGE_PKGCONFIG)/openblas.pc $(SAGE_PKGCONFIG)/blas.pc $(SAGE_PKGCONFIG)/cblas.pc $(SAGE_PKGCONFIG)/lapack.pc:
+	-rm -f $@
+	@SAGE_OPENBLAS_PC_COMMAND@
 
 # Files to track installation of packages
 BUILT_PACKAGES = @SAGE_BUILT_PACKAGES@
@@ -62,16 +85,20 @@ STANDARD_PACKAGE_INSTS = \
 	$(foreach pkgname,$(STANDARD_PACKAGES),$(inst_$(pkgname)))
 
 # All optional installed packages (triggers the auto-update)
-OPTIONAL_INSTALLED_PACKAGES = @SAGE_OPTIONAL_INSTALLED_PACKAGES@
+OPTIONAL_INSTALLED_PACKAGES = \
+@SAGE_OPTIONAL_INSTALLED_PACKAGES@
 OPTIONAL_INSTALLED_PACKAGE_INSTS = \
     $(foreach pkgname,$(OPTIONAL_INSTALLED_PACKAGES),$(inst_$(pkgname)))
+
+# All previously installed optional packages that are to be uninstalled
+OPTIONAL_CLEANED_PACKAGES = \
+@SAGE_OPTIONAL_CLEANED_PACKAGES@
+OPTIONAL_CLEANED_PACKAGES_CLEANS = $(OPTIONAL_CLEANED_PACKAGES:%=%-clean)
 
 # All packages which should be downloaded
 SDIST_PACKAGES = @SAGE_SDIST_PACKAGES@
 
 SCRIPTS = @SAGE_SCRIPTS@
-
-EXTCODE = @SAGE_EXTCODE@
 
 # Packages that use the 'normal' build rules
 NORMAL_PACKAGES = @SAGE_NORMAL_PACKAGES@
@@ -182,7 +209,7 @@ pkg_deps = \
 #     $(3): package dependencies
 define NORMAL_PACKAGE_templ
 $$(INST)/$(1)-$(2): $(3)
-	+$(AM_V_at)sage-logger -p '$$(SAGE_SPKG) \
+	+$(AM_V_at)sage-logger -p '$$(SAGE_SPKG) $$(SAGE_SPKG_OPTIONS) \
 		$(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-existing) \
 		$(1)-$(2)' '$$(SAGE_LOGS)/$(1)-$(2).log'
 
@@ -192,6 +219,7 @@ $(1)-clean:
 	sage-spkg-uninstall $(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-files) \
 		$(1) '$(SAGE_LOCAL)'
 
+.PHONY: $(1) $(1)-clean
 endef
 
 $(foreach pkgname, $(NORMAL_PACKAGES),\
@@ -210,21 +238,22 @@ endif
 # two rules in the form:
 #
 # <pkgname>: <dependencies>
-#     $(AM_V_at)sage-logger -p 'sage --pip install <pkgname>' '$(SAGE_LOGS)/<pkgname>.log'
+#     $(AM_V_at)sage-logger -p 'sage --pip install ...' '$(SAGE_LOGS)/<pkgname>.log'
 #
 # <pkgname>-clean:
-#     -sage --pip uninstall -y <pkgname>
+#     -sage --pip uninstall -y ...
 
 # Positional arguments:
 #     $(1): package name
 #     $(2): package dependencies
 define PIP_PACKAGE_templ
 $(1): $(2)
-	$(AM_V_at)sage-logger -p 'sage --pip install $(1)' '$$(SAGE_LOGS)/$(1).log'
+	$(AM_V_at)sage-logger -p 'sage --pip install -r "$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt"' '$$(SAGE_LOGS)/$(1).log'
 
 $(1)-clean:
-	-sage --pip uninstall -y $(1)
+	-sage --pip uninstall -y -r '$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt'
 
+.PHONY: $(1) $(1)-clean
 endef
 
 $(foreach pkgname,$(PIP_PACKAGES),\
@@ -238,12 +267,14 @@ endif
 
 # ============================= script packages ==============================
 # Generate build rules for 'script' packages; this template is used to generate
-# two rules in the form:
+# three rules in the form:
 #
-# <pkgname>: <dependencies>
+# $(INST)/<pkgname>-<pkgvers>: <dependencies>
 #     $(AM_V_at)cd '$SAGE_ROOT' && \\
 #         source '$SAGE_ROOT/src/bin/sage-env' && \\
 #         sage-logger -p '$SAGE_ROOT/build/pkgs/<pkgname>/spkg-install' '$(SAGE_LOGS)/<pkgname>.log'
+#
+# <pkgname>: $(INST)/<pkgname>-<pkgvers>
 #
 # <pkgname>-clean:
 #     -$(AM_V_at)cd '$SAGE_ROOT' && \\
@@ -252,27 +283,33 @@ endif
 
 # Positional arguments:
 #     $(1): package name
-#     $(2): package dependencies
+#     $(2): package version
+#     $(3): package dependencies
 define SCRIPT_PACKAGE_templ
-$(1): $(2)
+$$(INST)/$(1)-$(2): $(3)
 	$(AM_V_at)cd '$$(SAGE_ROOT)' && \
-		source '$$(SAGE_ROOT)/src/bin/sage-env' && \
+		source '$$(SAGE_ROOT)/src/bin/sage-env' && source '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		sage-logger -p '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$$(SAGE_LOGS)/$(1).log'
+	touch "$$@"
+
+$(1): $$(INST)/$(1)-$(2)
 
 $(1)-clean:
 	-$(AM_V_at)cd '$$(SAGE_ROOT)' && \
-		source '$$(SAGE_ROOT)/src/bin/sage-env' && \
+		source '$$(SAGE_ROOT)/src/bin/sage-env' && source '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
+	-rm -f "$$(INST)/$(1)-$(2)"
 
+.PHONY: $(1) $(1)-clean
 endef
 
 $(foreach pkgname,$(SCRIPT_PACKAGES),\
-	$(eval $(call SCRIPT_PACKAGE_templ,$(pkgname),$(call pkg_deps,$(pkgname)))))
+	$(eval $(call SCRIPT_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),$(call pkg_deps,$(pkgname)))))
 
 ifdef DEBUG_RULES
 $(info # Rules for script packages)
 $(foreach pkgname,$(SCRIPT_PACKAGES),\
-	$(info $(call SCRIPT_PACKAGE_templ,$(pkgname),$(call pkg_deps,$(pkgname)))))
+	$(info $(call SCRIPT_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),$(call pkg_deps,$(pkgname)))))
 endif
 
 

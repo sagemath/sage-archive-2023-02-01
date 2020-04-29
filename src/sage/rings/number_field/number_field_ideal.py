@@ -1420,7 +1420,7 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(7)[0].decomposition_group()
-            Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
+            Subgroup [(), (1,2)] of Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
         """
         return self.number_field().galois_group().decomposition_group(self)
 
@@ -1436,7 +1436,7 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(23)[0].ramification_group(0)
-            Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
+            Subgroup [(), (1,2)] of Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
             sage: QuadraticField(-23, 'w').primes_above(23)[0].ramification_group(1)
             Subgroup [()] of Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
         """
@@ -1454,7 +1454,7 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(23)[0].inertia_group()
-            Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
+            Subgroup [(), (1,2)] of Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
         """
         return self.ramification_group(0)
 
@@ -2981,7 +2981,9 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             Basis matrix:
             []
 
-        We do an example with a split prime and show both the quo and lift maps:
+        We do an example with a split prime and show both the quo
+        and lift maps::
+
             sage: K.<i> = NumberField(x^2 + 1); O = K.maximal_order()
             sage: I = K.factor(5)[0][0]
             sage: Q,quo,lift = I._p_quotient(5)
@@ -3061,6 +3063,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             -1
             sage: F2(a)
             Traceback (most recent call last):
+            ...
             ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (2*i + 1): it has negative valuation
 
         An example with a relative number field::

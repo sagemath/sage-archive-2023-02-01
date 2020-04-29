@@ -380,8 +380,9 @@ Sage example in ./graphtheory.tex, line 2139::
 Sage example in ./graphtheory.tex, line 2182::
 
   sage: M = Graph(G.matching())
-  sage: for i in tasks:
-  ....:   print("t{} assigned to {}".format(i,M.neighbors('t'+str(i))[0]))
+  sage: txt = "t{} assigned to {}"
+  sage: for i in tasks:                                        # random
+  ....:     print(txt.format(i, M.neighbors('t' + str(i))[0])) # random
   t0 assigned to w2
   t1 assigned to w3
   t2 assigned to w5

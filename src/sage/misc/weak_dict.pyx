@@ -117,10 +117,8 @@ See :trac:`13394` for a discussion of some of the design considerations.
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
 
 import weakref
-import six
 from weakref import KeyedRef
 from copy import deepcopy
 
@@ -349,10 +347,10 @@ cdef class WeakValueDictionary(dict):
             True
         """
         try:
-            data = six.iteritems(data)
+            data = data.items()
         except AttributeError:
             pass
-        for (k, v) in data:
+        for k, v in data:
             self._set_item(k, v)
 
     def __copy__(self):

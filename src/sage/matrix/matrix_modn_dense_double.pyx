@@ -24,11 +24,11 @@ from sage.libs.linbox.givaro cimport \
     Poly1Dom, Dense
 
 from sage.libs.linbox.linbox cimport \
-    DenseMatrix_Modular_double as BlasMatrix, \
-    EchelonForm_Modular_double as EchelonFormDomain
+    reducedRowEchelonize, \
+    DenseMatrix_Modular_double as DenseMatrix
 
 from sage.libs.linbox.fflas cimport \
-    fgemm, fgemv, Det, Rank, ReducedRowEchelonForm, applyP, \
+    fgemm, pfgemm, fgemv, Det, pDet, Rank, pRank, ReducedRowEchelonForm, pReducedRowEchelonForm, applyP, \
     MinPoly, CharPoly, MinPoly, \
     ModDoubleDensePolynomial as ModDensePoly
 
@@ -52,7 +52,7 @@ cdef class Matrix_modn_dense_double(Matrix_modn_dense_template):
     ``Matrix_modn_dense_float`` class is used for smaller moduli.
 
     Routines here are for the most basic access, see the
-    `matrix_modn_dense_template.pxi` file for higher-level routines.
+    ``matrix_modn_dense_template.pxi`` file for higher-level routines.
     """
 
     def __cinit__(self):

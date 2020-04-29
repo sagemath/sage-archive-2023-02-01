@@ -39,7 +39,7 @@ Classes and methods
 -------------------
 """
 from __future__ import absolute_import
-from sage.misc.superseded import deprecated_function_alias
+
 from sage.structure.all import Sequence
 from datetime import date
 
@@ -182,7 +182,7 @@ class Stock:
             sage: finance.Stock('ibm').__repr__()     # optional -- internet # known bug
             'IBM (...)'
         """
-        return "%s (%s)"%(self.symbol, self.market_value())
+        return "%s (%s)" % (self.symbol, self.market_value())
 
     def market_value(self):
         """
@@ -289,8 +289,6 @@ class Stock:
         data['price_book_ratio'] = values[18]
         data['short_ratio'] = values[19]
         return data
-
-    yahoo = deprecated_function_alias(18355,current_price_data)
 
     def history(self, startdate='Jan+1,+1900', enddate=None, histperiod='daily'):
         """
@@ -404,8 +402,6 @@ class Stock:
         self.__historical = []
         self.__historical = self._load_from_csv(R)
         return self.__historical
-
-    google = deprecated_function_alias(18355,history)
 
     def open(self, *args, **kwds):
         r"""
@@ -636,9 +632,9 @@ class Stock:
         symbol = self.symbol
         cid = self.cid
         if cid == '':
-            url = 'http://finance.google.com/finance/historical?q=%s%s&startdate=%s&enddate=%s&histperiod=%s&output=csv'%(exchange, symbol.upper(), startdate, enddate, histperiod)
+            url = 'http://finance.google.com/finance/historical?q=%s%s&startdate=%s&enddate=%s&histperiod=%s&output=csv' % (exchange, symbol.upper(), startdate, enddate, histperiod)
         else:
-            url = 'http://finance.google.com/finance/historical?cid=%s&startdate=%s&enddate=%s&histperiod=%s&output=csv'%(cid, startdate, enddate, histperiod)
+            url = 'http://finance.google.com/finance/historical?cid=%s&startdate=%s&enddate=%s&histperiod=%s&output=csv' % (cid, startdate, enddate, histperiod)
         data = urlopen(url).read()
         if "Bad Request" in data or "The requested URL was not found on this server." in data:
             raise RuntimeError("Google reported a wrong request (did you specify a cid?)")

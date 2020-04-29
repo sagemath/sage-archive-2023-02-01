@@ -156,15 +156,15 @@ AUTHORS:
 """
 
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2012 Andrey Novoseltsev <novoselt@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from six.moves import zip
 
 from sage.combinat.combination import Combinations
@@ -367,6 +367,8 @@ class ToricDivisorGroup(DivisorGroup_generic):
             Traceback (most recent call last):
             ...
             TypeError: 'sage.rings.integer.Integer' object is not iterable
+            sage: TDiv(TDiv.gen(0), check=True)
+            V(x)
         """
         if is_ToricDivisor(x):
             if x.parent() is self:
@@ -1528,7 +1530,7 @@ class ToricDivisor_generic(Divisor_generic):
                      x^2*u*z*w^2 : y*v^2*z^2*w : x*v*z^2*w^2)
         """
         sections = self.sections_monomials()
-        if len(sections) == 0:
+        if not sections:
             raise ValueError('The Kodaira map is not defined for divisors without sections.')
         src = self.parent().scheme()
         from sage.schemes.projective.projective_space import ProjectiveSpace

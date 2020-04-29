@@ -63,7 +63,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         """
         Ambiguity resolution: the implementation of ``some_elements``
         is preferable to that of :class:`FiniteGroups`. The same holds
-        for ``__iter__``, although a breath first search would be more
+        for ``__iter__``, although a breadth first search would be more
         natural; at least this maintains backward compatibility after
         :trac:`13589`.
 
@@ -541,7 +541,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             """
             Return the `m`-Cambrian lattice on `m`-delta sequences.
 
-            See :arxiv:`1503.00710` and :arXiv:`math/0611106`.
+            See :arxiv:`1503.00710` and :arxiv:`math/0611106`.
 
             The `m`-delta sequences are certain `m`-colored minimal
             factorizations of `c` into reflections.

@@ -385,7 +385,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default",
     """
     from sage.symbolic.expression import Expression
     from sage.ext.fast_eval import fast_callable
-    import scipy
+    import numpy
     from scipy import optimize
     if isinstance(func, Expression):
         var_list=func.variables()
@@ -394,7 +394,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default",
         f=lambda p: fast_f(*p)
         gradient_list=func.gradient()
         fast_gradient_functions=[fast_callable(gradient_list[i], vars=var_names, domain=float)  for i in range(len(gradient_list))]
-        gradient=lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
+        gradient=lambda p: numpy.array([ a(*p) for a in fast_gradient_functions])
     else:
         f=func
 
@@ -417,7 +417,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default",
                 hess=func.hessian()
                 hess_fast= [ [fast_callable(a, vars=var_names, domain=float) for a in row] for row in hess]
                 hessian=lambda p: [[a(*p) for a in row] for row in hess_fast]
-                hessian_p=lambda p,v: scipy.dot(scipy.array(hessian(p)),v)
+                hessian_p=lambda p,v: scipy.dot(numpy.array(hessian(p)),v)
                 min = optimize.fmin_ncg(f, [float(_) for _ in x0], fprime=gradient, \
                       fhess=hessian, fhess_p=hessian_p, disp=verbose, **args)
     return vector(RDF, min)
@@ -504,7 +504,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         (805.985..., 1005.985...)
     """
     from sage.symbolic.expression import Expression
-    import scipy
+    import numpy
     from scipy import optimize
     function_type = type(lambda x,y: x+y)
 
@@ -515,13 +515,13 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         f = lambda p: fast_f(*p)
         gradient_list = func.gradient()
         fast_gradient_functions = [gi._fast_float_(*var_names) for gi in gradient_list]
-        gradient = lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
+        gradient = lambda p: numpy.array([ a(*p) for a in fast_gradient_functions])
         if isinstance(cons, Expression):
             fast_cons = cons._fast_float_(*var_names)
-            cons = lambda p: scipy.array([fast_cons(*p)])
+            cons = lambda p: numpy.array([fast_cons(*p)])
         elif isinstance(cons, list) and isinstance(cons[0], Expression):
             fast_cons = [ci._fast_float_(*var_names) for ci in cons]
-            cons = lambda p: scipy.array([a(*p) for a in fast_cons])
+            cons = lambda p: numpy.array([a(*p) for a in fast_cons])
     else:
         f = func
 

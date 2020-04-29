@@ -22,7 +22,7 @@ polymake has been described in [GJ1997]_, [GJ2006]_, [JMP2009]_, [GJRW2010]_,
 #
 #  The full text of the GPL is available at:
 #
-#                  hsttp://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
 import six
@@ -40,6 +40,7 @@ from .interface import (Interface, InterfaceElement, InterfaceFunctionElement)
 from sage.misc.misc import get_verbose
 from sage.misc.cachefunc import cached_method
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.structure.richcmp import rich_to_bool
 
 import pexpect
 from random import randrange
@@ -979,7 +980,7 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
                 out = P.get(name).strip()
         return out
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
         Comparison of polymake elements.
 
@@ -1011,23 +1012,23 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         """
         P = self._check_valid()
         if P.eval("print {} {} {};".format(self.name(), P._equality_symbol(), other.name())).strip() == P._true_symbol():
-            return 0
+            return rich_to_bool(op, 0)
         if P.eval("print {} {} {};".format(self.name(), P._lessthan_symbol(), other.name())).strip() == P._true_symbol():
-            return -1
+            return rich_to_bool(op, -1)
         if P.eval("print {} {} {};".format(self.name(), P._greaterthan_symbol(), other.name())).strip() == P._true_symbol():
-            return 1
-        return -2  # that's supposed to be an error value.
+            return rich_to_bool(op, 1)
+        return NotImplemented
 
-    def bool(self):
+    def __bool__(self):
         """
         Return whether this polymake element is equal to ``True``.
 
         EXAMPLES::
 
             sage: from sage.interfaces.polymake import polymake
-            sage: polymake(0).bool()                # optional polymake
+            sage: bool(polymake(0))                # optional polymake
             False
-            sage: polymake(1).bool()                # optional polymake
+            sage: bool(polymake(1))                # optional polymake
             True
 
         """
@@ -1035,6 +1036,8 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         t = P._true_symbol()
         cmd = '{} {} {};'.format(self._name, P._equality_symbol(), t)
         return P.get(cmd) == t
+
+    __nonzero__ = __bool__
 
     def known_properties(self):
         """
@@ -1410,9 +1413,9 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         T1, T2 = self.typeof()
         name = self._name
         if T2 == 'ARRAY':
-            return int(P.eval('print scalar @{+%s};'%name))
+            return int(P.eval('print scalar @{+%s};' % name))
         if T2 == 'HASH':
-            return int(P.eval('print scalar keys %{+%s};'%name))
+            return int(P.eval('print scalar keys %' + ('{+%s};' % name)))
         if T1:
             raise TypeError("Don't know how to compute the length of {} object".format(T1))
         return int(P.eval('print scalar {};'.format(name)))
@@ -1511,8 +1514,7 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
                 T1 = Temp
         if T1 == 'QuadraticExtension':
             # We can't seem to access a, b, r by method calls, so let's parse.
-            from re import match
-            m = match(r'(-?[0-9/]+)[+]?((-?[0-9/]+)r([0-9/]+))?', repr(self))
+            m = re.match(r'(-?[0-9/]+)[+]?((-?[0-9/]+)r([0-9/]+))?', repr(self))
             if m is None:
                 raise NotImplementedError("Cannot parse QuadraticExtension element: {}".format(self))
             a, b, r = m.group(1), m.group(3), m.group(4)

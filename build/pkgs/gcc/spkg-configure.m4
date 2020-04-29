@@ -94,6 +94,10 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
         IS_REALLY_GCC=yes
     fi
 
+    # Save the value of CXX without special flags to enable C++11 support
+    AS_VAR_SET([SAGE_CXX_WITHOUT_STD], [$CXX])
+    AC_SUBST(SAGE_CXX_WITHOUT_STD)
+    # Modify CXX to include an option that enables C++11 support if necessary
     AX_CXX_COMPILE_STDCXX_11([], optional)
     if test $HAVE_CXX11 != 1; then
         SAGE_MUST_INSTALL_GCC([your C++ compiler does not support C++11])
@@ -154,25 +158,24 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
     # Check that the assembler and linker used by $CXX match $AS and $LD.
     # See http://trac.sagemath.org/sage_trac/ticket/14296
     if test -n "$AS"; then
-        CXX_as=`$CXX -print-file-name=as 2>/dev/null`
+        CXX_as=`$CXX -print-prog-name=as 2>/dev/null`
         CXX_as=`command -v $CXX_as 2>/dev/null`
         cmd_AS=`command -v $AS`
 
-        if test "$CXX_as" != "" -a "$CXX_as" != "$cmd_AS"; then
-            SAGE_SHOULD_INSTALL_GCC([there is a mismatch of assemblers])
-            AC_MSG_NOTICE([  $CXX uses $CXX_as])
-            AC_MSG_NOTICE([  \$AS equal to $AS])
+        if ! (test "$CXX_as" = "" -o "$CXX_as" -ef "$cmd_AS"); then
+            AC_MSG_NOTICE([       $CXX uses $CXX_as])
+            AC_MSG_NOTICE([       \$AS equal to $AS])
+            AC_MSG_ERROR([unset \$AS or set it to match your compiler's assembler])
         fi
     fi
     if test -n "$LD"; then
-        CXX_ld=`$CXX -print-file-name=ld 2>/dev/null`
+        CXX_ld=`$CXX -print-prog-name=ld 2>/dev/null`
         CXX_ld=`command -v $CXX_ld 2>/dev/null`
         cmd_LD=`command -v $LD`
-
-        if test "$CXX_ld" != "" -a "$CXX_ld" != "$cmd_LD"; then
-            SAGE_SHOULD_INSTALL_GCC([there is a mismatch of linkers])
-            AC_MSG_NOTICE([  $CXX uses $CXX_ld])
-            AC_MSG_NOTICE([  \$LD equal to $LD])
+        if ! (test "$CXX_ld" = "" -o "$CXX_ld" -ef "$cmd_LD"); then
+            AC_MSG_NOTICE([       $CXX uses $CXX_ld])
+            AC_MSG_NOTICE([       \$LD equal to $LD])
+            AC_MSG_ERROR([unset \$LD or set it to match your compiler's linker])
         fi
     fi
 
@@ -191,4 +194,16 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
             SAGE_SRC="$SAGE_SRC"
         ])
     fi
+], , , [
+    # Trac #27907: Find location of crti.o from the system CC, in case we build our own gcc
+    AC_MSG_CHECKING([for the location of crti.o])
+    CRTI=`$CC -print-file-name=crti.o 2>/dev/null || true`
+    if test -n "$CRTI" ; then
+        SAGE_CRTI_DIR=$(dirname -- "$CRTI")
+        if test "$SAGE_CRTI_DIR" = "." ; then
+            SAGE_CRTI_DIR=
+        fi
+    fi
+    AC_SUBST(SAGE_CRTI_DIR)
+    AC_MSG_RESULT($SAGE_CRTI_DIR)
 ])

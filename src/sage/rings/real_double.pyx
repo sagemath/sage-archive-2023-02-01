@@ -40,8 +40,6 @@ Test NumPy conversions::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function, absolute_import
-
 cimport libc.math
 from libc.string cimport memcpy
 from cpython.object cimport *
@@ -1118,7 +1116,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         return hash(self._value)
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` under the homomorphism from the rational
         field to ``codomain``.
@@ -1240,6 +1238,24 @@ cdef class RealDoubleElement(FieldElement):
         from sage.rings.all import RR
         return RR(self._value).sign_mantissa_exponent()
 
+    def as_integer_ratio(self):
+        """
+        Return a coprime pair of integers ``(a, b)`` such that ``self``
+        equals ``a / b`` exactly.
+
+        EXAMPLES::
+
+            sage: RDF(0).as_integer_ratio()
+            (0, 1)
+            sage: RDF(1/3).as_integer_ratio()
+            (6004799503160661, 18014398509481984)
+            sage: RDF(37/16).as_integer_ratio()
+            (37, 16)
+            sage: RDF(3^60).as_integer_ratio()
+            (42391158275216203520420085760, 1)
+        """
+        nd = float.as_integer_ratio(self._value)
+        return (Integer(nd[0]), Integer(nd[1]))
 
     ########################
     #   Basic Arithmetic

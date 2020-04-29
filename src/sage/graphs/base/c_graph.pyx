@@ -32,7 +32,7 @@ For more information about active vertices, see the documentation for the
 method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008-9 Robert L. Miller <rlmillster@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -40,9 +40,7 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
-
-from __future__ import print_function, absolute_import, division
+# ****************************************************************************
 
 include "sage/data_structures/bitset.pxi"
 
@@ -50,6 +48,8 @@ from sage.rings.integer cimport Integer
 from sage.arith.long cimport pyobject_to_long
 from libcpp.queue cimport priority_queue
 from libcpp.pair cimport pair
+from sage.rings.integer_ring import ZZ
+from cysignals.memory cimport check_allocarray, sig_free
 
 cdef class CGraph:
     """
@@ -116,7 +116,7 @@ cdef class CGraph:
             False
         """
         return (n >= 0 and
-                n < self.active_vertices.size and
+                <mp_bitcnt_t>n < self.active_vertices.size and
                 bitset_in(self.active_vertices, n))
 
     cpdef check_vertex(self, int n):
@@ -206,7 +206,7 @@ cdef class CGraph:
         """
         if k == -1:
             k = bitset_first_in_complement(self.active_vertices)
-        elif self.active_vertices.size <= k:
+        elif self.active_vertices.size <= <mp_bitcnt_t>k:
             k = -1
         if k != -1:
             if not bitset_in(self.active_vertices, k):
@@ -322,7 +322,7 @@ cdef class CGraph:
                 "requested vertex is past twice the allocated range: "
                 "use realloc")
         if (k >= <int>self.active_vertices.size or
-            (k == -1 and self.active_vertices.size == self.num_verts)):
+            (k == -1 and self.active_vertices.size == <mp_bitcnt_t>self.num_verts)):
             self.realloc(2 * self.active_vertices.size)
         return self.add_vertex_unsafe(k)
 
@@ -516,6 +516,7 @@ cdef class CGraph:
         if self.has_vertex(v):
             self.del_vertex_unsafe(v)
 
+
     cpdef int current_allocation(self):
         r"""
         Report the number of vertices allocated.
@@ -606,7 +607,7 @@ cdef class CGraph:
             [1, 2]
         """
         cdef int i
-        return [i for i in range(self.active_vertices.size)
+        return [i for i in range(<int>self.active_vertices.size)
                 if bitset_in(self.active_vertices, i)]
 
     cpdef realloc(self, int total):
@@ -734,38 +735,52 @@ cdef class CGraph:
 
     cpdef add_arc(self, int u, int v):
         """
-        Add the given arc to this graph.
+        Add arc ``(u, v)`` to the graph.
 
         INPUT:
 
-        - ``u`` -- integer; the tail of an arc
+        - ``u``, ``v`` -- non-negative integers, must be in self
 
-        - ``v`` -- integer; the head of an arc
+        EXAMPLES:
 
-        OUTPUT:
-
-        - Raise ``NotImplementedError``. This method is not implemented at the
-          :class:`CGraph` level. A child class should provide a suitable
-          implementation.
-
-        .. SEEALSO::
-
-            - :meth:`add_arc <sage.graphs.base.sparse_graph.SparseGraph.add_arc>`
-              -- ``add_arc`` method for sparse graphs.
-
-            - :meth:`add_arc <sage.graphs.base.dense_graph.DenseGraph.add_arc>`
-              -- ``add_arc`` method for dense graphs.
-
-        EXAMPLES::
+        On the :class:`CGraph` level, this always produces an error, as there are no vertices::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
             sage: G.add_arc(0, 1)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            LookupError: vertex (0) is not a vertex of the graph
+
+        It works, once there are vertices and :meth:`add_arc_unsafe` is implemented::
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: G = DenseGraph(5)
+            sage: G.add_arc(0, 1)
+            sage: G.add_arc(4, 7)
+            Traceback (most recent call last):
+            ...
+            LookupError: vertex (7) is not a vertex of the graph
+            sage: G.has_arc(1, 0)
+            False
+            sage: G.has_arc(0, 1)
+            True
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc(0,1)
+            sage: G.add_arc(4,7)
+            Traceback (most recent call last):
+            ...
+            LookupError: vertex (7) is not a vertex of the graph
+            sage: G.has_arc(1,0)
+            False
+            sage: G.has_arc(0,1)
+            True
         """
-        raise NotImplementedError()
+        self.check_vertex(u)
+        self.check_vertex(v)
+        self.add_arc_unsafe(u, v)
 
     cpdef bint has_arc(self, int u, int v) except -1:
         """
@@ -783,24 +798,38 @@ cdef class CGraph:
           at the :class:`CGraph` level. A child class should provide a suitable
           implementation.
 
-        .. SEEALSO::
+        EXAMPLES:
 
-            - :meth:`has_arc <sage.graphs.base.sparse_graph.SparseGraph.has_arc>`
-              -- ``has_arc`` method for sparse graphs.
-
-            - :meth:`has_arc <sage.graphs.base.dense_graph.DenseGraph.has_arc>`
-              -- ``has_arc`` method for dense graphs.
-
-        EXAMPLES::
+        On the :class:`CGraph` this always returns ``False``::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
             sage: G.has_arc(0, 1)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            False
+
+        It works once :class:`has_arc_unsafe` is implemented::
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: G = DenseGraph(5)
+            sage: G.add_arc(0, 1)
+            sage: G.has_arc(1, 0)
+            False
+            sage: G.has_arc(0, 1)
+            True
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc_label(0,1)
+            sage: G.has_arc(1,0)
+            False
+            sage: G.has_arc(0,1)
+            True
         """
-        raise NotImplementedError
+        if u < 0 or u >= <int>self.active_vertices.size or not bitset_in(self.active_vertices, u):
+            return False
+        if v < 0 or v >= <int>self.active_vertices.size or not bitset_in(self.active_vertices, v):
+            return False
+        return self.has_arc_unsafe(u, v) == 1
 
     cpdef del_all_arcs(self, int u, int v):
         """
@@ -812,30 +841,44 @@ cdef class CGraph:
 
         - ``v`` -- integer; the head of an arc.
 
-        OUTPUT:
+        EXAMPLES:
 
-        - Raise ``NotImplementedError``. This method is not implemented at the
-          :class:`CGraph` level. A child class should provide a suitable
-          implementation.
-
-        .. SEEALSO::
-
-            - :meth:`del_all_arcs <sage.graphs.base.sparse_graph.SparseGraph.del_all_arcs>`
-              -- ``del_all_arcs`` method for sparse graphs.
-
-            - :meth:`del_all_arcs <sage.graphs.base.dense_graph.DenseGraph.del_all_arcs>`
-              -- ``del_all_arcs`` method for dense graphs.
-
-        EXAMPLES::
+        On the :class:`CGraph` level, this always produces an error, as there are no vertices::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
             sage: G.del_all_arcs(0,1)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            LookupError: vertex (0) is not a vertex of the graph
+
+        It works, once there are vertices and :meth:`del_arc_unsafe` is implemented::
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc_label(0,1,0)
+            sage: G.add_arc_label(0,1,1)
+            sage: G.add_arc_label(0,1,2)
+            sage: G.add_arc_label(0,1,3)
+            sage: G.del_all_arcs(0,1)
+            sage: G.has_arc(0,1)
+            False
+            sage: G.arc_label(0,1)
+            0
+            sage: G.del_all_arcs(0,1)
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: G = DenseGraph(5)
+            sage: G.add_arc(0, 1)
+            sage: G.has_arc(0, 1)
+            True
+            sage: G.del_all_arcs(0, 1)
+            sage: G.has_arc(0, 1)
+            False
         """
-        raise NotImplementedError()
+        self.check_vertex(u)
+        self.check_vertex(v)
+        self.del_arc_unsafe(u,v)
 
     cdef adjacency_sequence_in(self, int n, int *vertices, int v, int* sequence):
         r"""
@@ -962,24 +1005,56 @@ cdef class CGraph:
           the :class:`CGraph` level. A child class should provide a suitable
           implementation.
 
-        .. SEEALSO::
+        .. NOTE::
 
-            - :meth:`in_neighbors <sage.graphs.base.sparse_graph.SparseGraph.in_neighbors>`
-              -- ``in_neighbors`` method for sparse graphs.
+            Due to the implementation of SparseGraph, this method is much more
+            expensive than out_neighbors_unsafe for SparseGraph's.
 
-            - :meth:`in_neighbors <sage.graphs.base.dense_graph.DenseGraph.in_neighbors>`
-              -- ``in_neighbors`` method for dense graphs.
+        EXAMPLES:
 
-        EXAMPLES::
+        On the :class:`CGraph` level, this always produces an error, as there are no vertices::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
             sage: G.in_neighbors(0)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            LookupError: vertex (0) is not a vertex of the graph
+
+        It works, once there are vertices and :meth:`out_neighbors_unsafe` is implemented::
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: G = DenseGraph(5)
+            sage: G.add_arc(0, 1)
+            sage: G.add_arc(3, 1)
+            sage: G.add_arc(1, 3)
+            sage: G.in_neighbors(1)
+            [0, 3]
+            sage: G.in_neighbors(3)
+            [1]
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc(0,1)
+            sage: G.add_arc(3,1)
+            sage: G.add_arc(1,3)
+            sage: G.in_neighbors(1)
+            [0, 3]
+            sage: G.in_neighbors(3)
+            [1]
         """
-        raise NotImplementedError()
+        cdef int i, num_nbrs
+        self.check_vertex(v)
+        if not self.in_degrees[v]:
+            return []
+        cdef int size = self.in_degrees[v]
+        cdef int *neighbors = <int *> check_allocarray(size, sizeof(int))
+        if not neighbors:
+            raise MemoryError
+        num_nbrs = self.in_neighbors_unsafe(v, neighbors, size)
+        output = [neighbors[i] for i in range(num_nbrs)]
+        sig_free(neighbors)
+        return output
 
     cpdef list out_neighbors(self, int u):
         """
@@ -989,30 +1064,51 @@ cdef class CGraph:
 
         - ``u`` -- integer representing a vertex of this graph
 
-        OUTPUT:
+        EXAMPLES:
 
-        - Raise ``NotImplementedError``. This method is not implemented at the
-          :class:`CGraph` level. A child class should provide a suitable
-          implementation.
-
-        .. SEEALSO::
-
-            - :meth:`out_neighbors <sage.graphs.base.sparse_graph.SparseGraph.out_neighbors>`
-              -- ``out_neighbors`` implementation for sparse graphs.
-
-            - :meth:`out_neighbors <sage.graphs.base.dense_graph.DenseGraph.out_neighbors>`
-              -- ``out_neighbors`` implementation for dense graphs.
-
-        EXAMPLES::
+        On the :class:`CGraph` level, this always produces an error, as there are no vertices::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
             sage: G.out_neighbors(0)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            LookupError: vertex (0) is not a vertex of the graph
+
+        It works, once there are vertices and :meth:`out_neighbors_unsafe` is implemented::
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: G = DenseGraph(5)
+            sage: G.add_arc(0, 1)
+            sage: G.add_arc(1, 2)
+            sage: G.add_arc(1, 3)
+            sage: G.out_neighbors(0)
+            [1]
+            sage: G.out_neighbors(1)
+            [2, 3]
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc(0,1)
+            sage: G.add_arc(1,2)
+            sage: G.add_arc(1,3)
+            sage: G.out_neighbors(0)
+            [1]
+            sage: G.out_neighbors(1)
+            [2, 3]
         """
-        raise NotImplementedError()
+        cdef int i, num_nbrs
+        self.check_vertex(u)
+        if not self.out_degrees[u]:
+            return []
+        cdef int size = self.out_degrees[u]
+        cdef int *neighbors = <int *>check_allocarray(size, sizeof(int))
+        if not neighbors:
+            raise MemoryError
+        num_nbrs = self.out_neighbors_unsafe(u, neighbors, size)
+        output = [neighbors[i] for i in range(num_nbrs)]
+        sig_free(neighbors)
+        return output
 
 
 cdef class CGraphBackend(GenericGraphBackend):
@@ -1112,7 +1208,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             u_long = pyobject_to_long(u)
         except Exception:
             return -1
-        if u_long < 0 or u_long >= G.active_vertices.size or u_long in vertex_labels:
+        if u_long < 0 or u_long >= <long>G.active_vertices.size or u_long in vertex_labels:
             return -1
         return u_long
 
@@ -1743,7 +1839,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: list(P._backend.iterator_verts([1, 2, 10]))
             [1, 2]
         """
-        cdef long i
+        cdef size_t i
         if verts is None:
             for x in self.vertex_ints:
                 yield x
@@ -1966,6 +2062,203 @@ cdef class CGraphBackend(GenericGraphBackend):
         self.vertex_ints = new_vx_ints
         self.vertex_labels = new_vx_labels
 
+    def shortest_path_special(self, x, y, exclude_vertices=None, exclude_edges=None, distance_flag=False):
+        r"""
+        Return the shortest path or distance from ``x`` to ``y``.
+
+        This method is an extension of :meth:`shortest_path` method enabling to
+        exclude vertices and/or edges from the search for the shortest path
+        between ``x`` and ``y``.
+
+        INPUT:
+
+        - ``x`` -- the starting vertex in the shortest path from ``x`` to ``y``
+
+        - ``y`` -- the end vertex in the shortest path from ``x`` to ``y``
+
+        - ``exclude_vertices`` -- iterable container (default: ``None``);
+          iterable of vertices to exclude from the graph while calculating the
+          shortest path from ``x`` to ``y``
+
+        - ``exclude_edges`` -- iterable container (default: ``None``); iterable
+          of edges to exclude from the graph while calculating the shortest path
+          from ``x`` to ``y``
+
+        - ``distance_flag`` -- boolean (default: ``False``); when set to
+          ``True``, the shortest path distance from ``x`` to ``y`` is returned
+          instead of the path
+
+        OUTPUT:
+
+        - A list of vertices in the shortest path from ``x`` to ``y`` or
+          distance from ``x`` to ``y`` is returned depending upon the value of
+          parameter ``distance_flag``
+
+        EXAMPLES::
+
+            sage: G = Graph([(1, 2), (2, 3), (3, 4), (1, 5), (5, 6), (6, 7), (7, 4)])
+            sage: G._backend.shortest_path_special(1, 4)
+            [1, 2, 3, 4]
+            sage: G._backend.shortest_path_special(1, 4, exclude_vertices=[5,7])
+            [1, 2, 3, 4]
+            sage: G._backend.shortest_path_special(1, 4, exclude_vertices=[2, 3])
+            [1, 5, 6, 7, 4]
+            sage: G._backend.shortest_path_special(1, 4, exclude_vertices=[2], exclude_edges=[(5, 6)])
+            []
+            sage: G._backend.shortest_path_special(1, 4, exclude_vertices=[2], exclude_edges=[(2, 3)])
+            [1, 5, 6, 7, 4]
+
+        """
+        cdef bint exclude_v = exclude_vertices
+        cdef bint exclude_e = exclude_edges
+        cdef bint x_excluded
+        cdef bint y_excluded
+
+        if exclude_v:
+            x_excluded = x in exclude_vertices
+            y_excluded = y in exclude_vertices
+            if x_excluded and y_excluded:
+                raise LookupError("%s and %s are excluded vertices" % (x, y))
+            elif x_excluded:
+                raise LookupError("no path from an excluded vertex %s" % (x))
+            elif y_excluded:
+                raise LookupError("no path to an excluded vertex %s" % (y))
+        if x == y:
+            if distance_flag:
+                return 0
+            else:
+                return [x]
+
+        # The function being mostly symmetric in x and y, their roles are
+        # reversed at the end of each loop. For this reason is defined, for
+        # example, two dictionaries dist_y and dist_x containing the distances
+        # to x and y, and a dictionary dist_current and dist_other, pointing
+        # toward the previous two, alternatively.
+        #
+        # Besides, there is another difference in the fact that for directed
+        # graphs we are interested in paths leaving x toward y, so we are
+        # considering the out_neighbors on x's side, and in_neighbors on
+        # y's side.
+
+        cdef int x_int = self.get_vertex(x)
+        cdef int y_int = self.get_vertex(y)
+        cdef int u = 0
+        cdef int v = 0
+        cdef int w = 0
+
+        cdef set exclude_vertices_int = None
+        cdef set exclude_edges_int = None
+
+        if exclude_v:
+            exclude_vertices_int = {self.get_vertex(v1) for v1 in exclude_vertices}
+        if exclude_e:
+            exclude_edges_int = {(self.get_vertex(v1), self.get_vertex(v2)) for v1, v2 in exclude_edges}
+
+        # Each vertex knows its predecessors in the search, for each side
+        cdef dict pred_x = {}
+        cdef dict pred_y = {}
+        cdef dict pred_current = pred_x
+        cdef dict pred_other = pred_y
+
+        # Stores the distances from x and y
+        cdef dict dist_x = {}
+        cdef dict dist_y = {}
+        cdef dict dist_current = dist_x
+        cdef dict dist_other = dist_y
+        dist_x[x_int] = 0
+        dist_y[y_int] = 0
+
+        # Lists of vertices whose neighbors have not been explored yet
+        cdef list next_x = [x_int]
+        cdef list next_y = [y_int]
+        cdef list next_current = next_x
+        cdef list next_other = next_y
+        cdef list next_temporary = []
+        cdef list neighbors
+
+        cdef list shortest_path = []
+
+        # We are interested in edges leaving x and entering y, so we
+        # are dealing with two different "neighbors" functions
+        cdef int out = 1
+
+        # As long as the current side (x or y) is not totally explored ...
+        while next_current:
+            next_temporary = []
+
+            # Take the next vertex in the list, and study all of its neighbors.
+            # When a new neighbor is found, it is added into a temporary list.
+            # When all the vertices in the list are tested
+            # and next_current is replaced by the temporary list
+            #
+            # After this, current and other are reversed, and the loop restarts
+            for u in next_current:
+                if out == 1:
+                    nbr = self._cg.out_neighbors(u)
+                elif self._cg_rev is not None:  # Sparse
+                    nbr = self._cg_rev.out_neighbors(u)
+                else:  # Dense
+                    nbr = self._cg.in_neighbors(u)
+
+                if not exclude_e and not exclude_v:
+                    neighbors = nbr
+                else:
+                    neighbors = []
+                    for w in nbr:
+                        if exclude_v and w in exclude_vertices_int:
+                            continue
+                        if (exclude_e and
+                            ((out == 1 and (u, w) in exclude_edges_int) or
+                             (out == -1 and (w, u) in exclude_edges_int))):
+                            continue
+                        neighbors.append(w)
+
+                for v in neighbors:
+                    # If the neighbor is new, updates the distances and adds
+                    # to the list.
+                    if v not in dist_current:
+                        dist_current[v] = dist_current[u] + 1
+                        if not distance_flag:
+                            pred_current[v] = u
+                        next_temporary.append(v)
+
+                        # If the new neighbor is already known by the other
+                        # side ...
+                        if v in dist_other:
+                            # build the shortest path and returns in.
+                            if distance_flag:
+                                return dist_other[v] + dist_current[v]
+                            w = v
+
+                            while w != x_int:
+                                shortest_path.append(self.vertex_label(w))
+                                w = pred_x[w]
+
+                            shortest_path.append(x)
+                            shortest_path.reverse()
+
+                            if v == y_int:
+                                return shortest_path
+
+                            w = pred_y[v]
+                            while w != y_int:
+                                shortest_path.append(self.vertex_label(w))
+                                w = pred_y[w]
+                            shortest_path.append(y)
+
+                            return shortest_path
+
+            next_current = next_temporary
+            pred_current, pred_other = pred_other, pred_current
+            dist_current, dist_other = dist_other, dist_current
+            next_current, next_other = next_other, next_current
+            out = -out
+
+        if distance_flag:
+            from sage.rings.infinity import Infinity
+            return Infinity
+        return []
+
     def shortest_path(self, x, y, distance_flag=False):
         r"""
         Return the shortest path or distance from ``x`` to ``y``.
@@ -1996,7 +2289,10 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         """
         if x == y:
-            return 0
+            if distance_flag:
+                return 0
+            else:
+                return [x]
 
         # The function being mostly symmetric in x and y, their roles are
         # reversed at the end of each loop. For this reason is defined, for
@@ -2106,6 +2402,252 @@ cdef class CGraphBackend(GenericGraphBackend):
             return Infinity
         return []
 
+    def bidirectional_dijkstra_special(self, x, y, weight_function=None,
+                               exclude_vertices=None, exclude_edges=None,
+                               include_vertices=None, distance_flag=False,
+                               reduced_weight=None):
+        r"""
+        Return the shortest path or distance from ``x`` to ``y`` using a
+        bidirectional version of Dijkstra's algorithm.
+
+        This method is an extension of :meth:`bidirectional_dijkstra` method
+        enabling to exclude vertices and/or edges from the search for the
+        shortest path between ``x`` and ``y``.
+
+        This method also has ``include_vertices`` option enabling to include the
+        vertices which will be used to search for the shortest path between
+        ``x`` and ``y``.
+
+        INPUT:
+
+        - ``x`` -- the starting vertex in the shortest path from ``x`` to ``y``
+
+        - ``y`` -- the end vertex in the shortest path from ``x`` to ``y``
+
+        - ``exclude_vertices`` -- iterable conatiner (default: ``None``);
+          iterable of vertices to exclude from the graph while calculating the
+          shortest path from ``x`` to ``y``
+
+        - ``exclude_edges`` -- iterable conatiner (default: ``None``); iterable
+          of edges to exclude from the graph while calculating the shortest path
+          from ``x`` to ``y``
+
+        - ``include_vertices`` -- iterable conatiner (default: ``None``);
+          iterable of vertices to consider in the graph while calculating the
+          shortest path from ``x`` to ``y``
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          inputs an edge ``(u, v, l)`` and outputs its weight. If ``None``, we
+          use the edge label ``l`` as a weight.
+
+        - ``distance_flag`` -- boolean (default: ``False``); when set to
+          ``True``, the shortest path distance from ``x`` to ``y`` is returned
+          instead of the path.
+
+        - ``reduced_weight`` -- dictionary (default: ``None``); a dictionary
+          that takes as input an edge ``(u, v)`` and outputs its reduced weight.
+
+        OUTPUT:
+
+        - A list of vertices in the shortest path from ``x`` to ``y`` or
+          distance from ``x`` to ``y`` is returned depending upon the value of
+          parameter ``distance_flag``
+
+        EXAMPLES::
+
+            sage: G = Graph([(1, 2, 20), (2, 3, 10), (3, 4, 30), (1, 5, 20), (5, 6, 10), (6, 4, 50), (4, 7, 5)])
+            sage: G._backend.bidirectional_dijkstra_special(1, 4, weight_function=lambda e:e[2])
+            [1, 2, 3, 4]
+            sage: G._backend.bidirectional_dijkstra_special(1, 4, weight_function=lambda e:e[2], exclude_vertices=[2], exclude_edges=[(3, 4)])
+            [1, 5, 6, 4]
+            sage: G._backend.bidirectional_dijkstra_special(1, 4, weight_function=lambda e:e[2], exclude_vertices=[2, 7])
+            [1, 5, 6, 4]
+            sage: G._backend.bidirectional_dijkstra_special(1, 4, weight_function=lambda e:e[2],  exclude_edges=[(5, 6)])
+            [1, 2, 3, 4]
+            sage: G._backend.bidirectional_dijkstra_special(1, 4, weight_function=lambda e:e[2],  include_vertices=[1, 5, 6, 4])
+            [1, 5, 6, 4]
+
+        """
+        cdef bint exclude_v = exclude_vertices
+        cdef bint exclude_e = exclude_edges
+        cdef bint include_v = include_vertices
+        cdef bint x_excluded
+        cdef bint y_excluded
+
+        if exclude_v:
+            x_excluded = x in exclude_vertices
+            y_excluded = y in exclude_vertices
+            if x_excluded and y_excluded:
+                raise LookupError("%s and %s are excluded vertices" % (x, y))
+            elif x_excluded:
+                raise LookupError("no path from an excluded vertex %s" % (x))
+            elif y_excluded:
+                raise LookupError("no path to an excluded vertex %s" % (y))
+        if x == y:
+            if distance_flag:
+                return 0
+            else:
+                return [x]
+
+        # As for shortest_path, the roles of x and y are symmetric, hence we
+        # define dictionaries like pred_current and pred_other, which
+        # represent alternatively pred_x or pred_y according to the side
+        # studied.
+        cdef int x_int = self.get_vertex(x)
+        cdef int y_int = self.get_vertex(y)
+        cdef int u = 0
+        cdef int v = 0
+        cdef int w = 0
+        cdef int pred
+        cdef int side
+        cdef double distance
+        cdef set exclude_vertices_int = None
+        cdef set exclude_edges_int = None
+
+        if exclude_v:
+            exclude_vertices_int = {self.get_vertex(v1) for v1 in exclude_vertices}
+        if exclude_e:
+            exclude_edges_int = {(self.get_vertex(v1), self.get_vertex(v2)) for v1, v2 in exclude_edges}
+        if include_v:
+            include_vertices_int = {self.get_vertex(v1) for v1 in include_vertices}
+
+        # Each vertex knows its predecessors in the search, for each side
+        cdef dict pred_x = {}
+        cdef dict pred_y = {}
+        cdef dict pred_current
+        cdef dict pred_other
+
+        # Stores the distances from x and y
+        cdef dict dist_x = {}
+        cdef dict dist_y = {}
+        cdef dict dist_current
+        cdef dict dist_other
+
+        # Lists of vertices who are left to be explored. They are represented
+        # as pairs of pair and pair: ((distance, side), (predecessor, name)).
+        # 1 indicates x's side, -1 indicates y's, the distance being
+        # defined relatively.
+        cdef priority_queue[pair[pair[double, int], pair[int, int]]] pq
+        pq.push(((0, 1), (x_int, x_int)))
+        pq.push(((0, -1), (y_int, y_int)))
+        cdef list neighbors
+
+        cdef list shortest_path = []
+
+        # Meeting_vertex is a vertex discovered through x and through y
+        # which defines the shortest path found
+        # (of length shortest_path_length).
+        cdef int meeting_vertex = -1
+
+        if reduced_weight is not None:
+            def weight_function(e):
+                return reduced_weight[(e[0], e[1])]
+
+        # As long as the current side (x or y) is not totally explored ...
+        while not pq.empty():
+            (distance, side), (pred, v) = pq.top()
+            # priority_queue by default is max heap
+            # negative value of distance is stored in priority_queue to get
+            # minimum distance
+            distance = -distance
+            pq.pop()
+            if meeting_vertex != -1 and distance > shortest_path_length:
+                break
+
+            if side == 1:
+                dist_current, dist_other = dist_x, dist_y
+                pred_current, pred_other = pred_x, pred_y
+            else:
+                dist_current, dist_other = dist_y, dist_x
+                pred_current, pred_other = pred_y, pred_x
+
+            if v not in dist_current:
+                if not distance_flag:
+                    pred_current[v] = pred
+                dist_current[v] = distance
+
+                if v in dist_other:
+                    f_tmp = distance + dist_other[v]
+                    if meeting_vertex == -1 or f_tmp < shortest_path_length:
+                        meeting_vertex = v
+                        shortest_path_length = f_tmp
+                if side == 1:
+                    nbr = self._cg.out_neighbors(v)
+                elif self._cg_rev is not None:  # Sparse
+                    nbr = self._cg_rev.out_neighbors(v)
+                else:  # Dense
+                    nbr = self._cg.in_neighbors(v)
+
+                if not exclude_e and not exclude_v:
+                    neighbors = []
+                    for n in nbr:
+                        if include_v and n not in include_vertices_int:
+                            continue
+                        neighbors.append(n)
+                else:
+                    neighbors = []
+                    for w in nbr:
+                        if exclude_v and w in exclude_vertices_int:
+                            continue
+                        if (exclude_e and
+                            ((side == 1 and (v, w) in exclude_edges_int) or
+                             (side == -1 and (w, v) in exclude_edges_int))):
+                            continue
+                        if include_v and w not in include_vertices_int:
+                            continue
+                        neighbors.append(w)
+                for w in neighbors:
+                    # If the neighbor is new, adds its non-found neighbors to
+                    # the queue.
+                    if w not in dist_current:
+                        v_obj = self.vertex_label(v)
+                        w_obj = self.vertex_label(w)
+                        if side == -1:
+                            v_obj, w_obj = w_obj, v_obj
+                        if self._multiple_edges:
+                            edge_label = min(weight_function((v_obj, w_obj, l)) for l in self.get_edge_label(v_obj, w_obj))
+                        else:
+                            edge_label = weight_function((v_obj, w_obj, self.get_edge_label(v_obj, w_obj)))
+                        if edge_label < 0:
+                            raise ValueError("the graph contains an edge with negative weight")
+                        # priority_queue is by default max_heap
+                        # negative value of distance + edge_label is stored in
+                        # priority_queue to get minimum distance
+                        pq.push(((-(distance + edge_label), side), (v, w)))
+
+        # No meeting point has been found
+        if meeting_vertex == -1:
+            if distance_flag:
+                from sage.rings.infinity import Infinity
+                return Infinity
+            return []
+        else:
+            # build the shortest path and returns it.
+            if distance_flag:
+                if shortest_path_length in ZZ:
+                    return int(shortest_path_length)
+                else:
+                    return shortest_path_length
+            w = meeting_vertex
+
+            while w != x_int:
+                shortest_path.append(self.vertex_label(w))
+                w = pred_x[w]
+
+            shortest_path.append(x)
+            shortest_path.reverse()
+
+            if meeting_vertex == y_int:
+                return shortest_path
+
+            w = pred_y[meeting_vertex]
+            while w != y_int:
+                shortest_path.append(self.vertex_label(w))
+                w = pred_y[w]
+            shortest_path.append(y)
+
+            return shortest_path
+
     def bidirectional_dijkstra(self, x, y, weight_function=None,
                                distance_flag=False):
         r"""
@@ -2135,13 +2677,13 @@ cdef class CGraphBackend(GenericGraphBackend):
         EXAMPLES::
 
             sage: G = Graph(graphs.PetersenGraph())
-            sage: for (u,v) in G.edges(labels=None):
-            ....:    G.set_edge_label(u,v,1)
+            sage: for (u, v) in G.edges(labels=None):
+            ....:    G.set_edge_label(u, v, 1)
             sage: G.shortest_path(0, 1, by_weight=True)
             [0, 1]
             sage: G.shortest_path_length(0, 1, by_weight=True)
             1
-            sage: G = DiGraph([(1,2,{'weight':1}), (1,3,{'weight':5}), (2,3,{'weight':1})])
+            sage: G = DiGraph([(1, 2, {'weight':1}), (1, 3, {'weight':5}), (2, 3, {'weight':1})])
             sage: G.shortest_path(1, 3, weight_function=lambda e:e[2]['weight'])
             [1, 2, 3]
             sage: G.shortest_path_length(1, 3, weight_function=lambda e:e[2]['weight'])
@@ -2151,22 +2693,30 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         Bugfix from :trac:`7673` ::
 
-            sage: G = Graph([(0,1,9),(0,2,8),(1,2,7)])
-            sage: G.shortest_path_length(0,1,by_weight=True)
+            sage: G = Graph([(0, 1, 9), (0, 2, 8), (1, 2, 7)])
+            sage: G.shortest_path_length(0, 1, by_weight=True)
             9
+
+        Bugfix from :trac:`28221` ::
+
+            sage: G = Graph([(0, 1, 9.2), (0, 2, 4.5), (1, 2, 4.6)])
+            sage: G.shortest_path_length(0, 1, by_weight=True)
+            9.1
 
         Bugfix from :trac:`27464` ::
 
-            sage: G = DiGraph({0:[1,2], 1:[4], 2:[3,4], 4:[5],5:[6]},multiedges=True)
-            sage: for (u,v) in G.edges(labels=None):
-            ....:    G.set_edge_label(u,v,1)
-            sage: G.distance(0,5,by_weight=true)
+            sage: G = DiGraph({0: [1, 2], 1: [4], 2: [3, 4], 4: [5], 5: [6]}, multiedges=True)
+            sage: for u, v in list(G.edges(labels=None, sort=False)):
+            ....:    G.set_edge_label(u, v, 1)
+            sage: G.distance(0, 5, by_weight=true)
             3
         """
         if x == y:
-            return 0
+            if distance_flag:
+                return 0
+            else:
+                return [x]
 
-        cdef priority_queue[pair[pair[int, int], pair[int, int]]] pq
         # As for shortest_path, the roles of x and y are symmetric, hence we
         # define dictionaries like pred_current and pred_other, which
         # represent alternatively pred_x or pred_y according to the side
@@ -2178,6 +2728,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int w = 0
         cdef int pred
         cdef int side
+        cdef double distance
 
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}
@@ -2195,6 +2746,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         # as pairs of pair and pair: ((distance, side), (predecessor, name)).
         # 1 indicates x's side, -1 indicates y's, the distance being
         # defined relatively.
+        cdef priority_queue[pair[pair[double, int], pair[int, int]]] pq
         pq.push(((0, 1), (x_int, x_int)))
         pq.push(((0, -1), (y_int, y_int)))
         cdef list neighbors
@@ -2240,9 +2792,9 @@ cdef class CGraphBackend(GenericGraphBackend):
 
                 if side == 1:
                     neighbors = self._cg.out_neighbors(v)
-                elif self._cg_rev is not None: # Sparse
+                elif self._cg_rev is not None:  # Sparse
                     neighbors = self._cg_rev.out_neighbors(v)
-                else: # Dense
+                else:  # Dense
                     neighbors = self._cg.in_neighbors(v)
                 for w in neighbors:
                     # If the neighbor is new, adds its non-found neighbors to
@@ -2272,7 +2824,10 @@ cdef class CGraphBackend(GenericGraphBackend):
         else:
             # build the shortest path and returns it.
             if distance_flag:
-                return shortest_path_length
+                if shortest_path_length in ZZ:
+                    return int(shortest_path_length)
+                else:
+                    return shortest_path_length
             w = meeting_vertex
 
             while w != x_int:
@@ -2332,7 +2887,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             sage: g = graphs.PetersenGraph()
             sage: paths = g._backend.shortest_path_all_vertices(0)
-            sage: all((len(paths[v]) == 0 or len(paths[v])-1 == g.distance(0,v)) for v in g)
+            sage: all((not paths[v] or len(paths[v])-1 == g.distance(0,v)) for v in g)
             True
             sage: g._backend.shortest_path_all_vertices(0, distance_flag=True)
             {0: 0, 1: 1, 2: 2, 3: 2, 4: 1, 5: 1, 6: 2, 7: 2, 8: 2, 9: 2}
@@ -2595,7 +3150,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         if v_int == -1:
             return True
         v = self.vertex_label(v_int)
-        cdef int n = 0
+        cdef size_t n = 0
         for _ in self.depth_first_search(v, ignore_direction=True):
             n += 1
         return n == cg.num_verts
@@ -2629,7 +3184,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         v = self.vertex_label(v_int)
 
-        cdef int n = 0
+        cdef size_t n = 0
         for _ in self.depth_first_search(v):
             n += 1
         if cg.num_verts != n:
@@ -2755,6 +3310,13 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time
             ....:      for i in range(50))                              # long time
             True
+
+        TESTS::
+
+            sage: m = Matrix(3,[0, 1, 1, 0, 0, 0, 0, 1, 0])
+            sage: g = DiGraph(m)
+            sage: g.is_directed_acyclic(certificate=True)
+            (True, [0, 2, 1])
         """
         if not self._directed:
             raise ValueError("Input must be a directed graph.")
@@ -2805,12 +3367,11 @@ cdef class CGraphBackend(GenericGraphBackend):
                 # out-neighbors have been de-activated already, for we put them
                 # *after* u in the stack.
                 if bitset_in(tried, u):
-                    ordering.insert(0, self.vertex_label(u))
+                    ordering.append(self.vertex_label(u))
                     bitset_discard(tried, u)
                     bitset_discard(activated, u)
                     stack.pop(-1)
                     continue
-
 
                 # If we never tried it, now is the time to do it. We also must
                 # remember it
@@ -2852,9 +3413,11 @@ cdef class CGraphBackend(GenericGraphBackend):
         bitset_free(tried)
 
         if certificate:
+            ordering.reverse()
             return (True, ordering)
         else:
             return True
+
 
 cdef class Search_iterator:
     r"""

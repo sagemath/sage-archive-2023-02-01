@@ -20,11 +20,11 @@ The code was tested afterwards by Liz Beazley and Ed Richmond.
       1,..., n and so in 3-step examples, none of the edge labels with 3 appear
 
     - we should also have a 3-step puzzle pieces constructor, taken from p22 of
-      :arXiv:`math/0610538`
+      :arxiv:`math/0610538`
 
     - implement the bijection from puzzles to tableaux; see for example
-      R. Vakil, A geometric Littlewood-Richardson rule, :arXiv:`math/0302294`
-      or K. Purbhoo, Puzzles, Tableaux and Mosaics, :arXiv:`0705.1184`.
+      R. Vakil, A geometric Littlewood-Richardson rule, :arxiv:`math/0302294`
+      or K. Purbhoo, Puzzles, Tableaux and Mosaics, :arxiv:`0705.1184`.
 """
 # ****************************************************************************
 #       Copyright (C) 2013 Franco Saliola <saliola@gmail.com>,
@@ -790,7 +790,7 @@ def H_grassmannian_pieces():
 
     .. [KTW] Allen Knutson, Terence Tao, Christopher Woodward,
        The honeycomb model of GL(n) tensor products II: Puzzles determine facets of the Littlewood-Richardson cone,
-       :arXiv:`math/0107011`
+       :arxiv:`math/0107011`
 
     EXAMPLES::
 
@@ -832,7 +832,7 @@ def K_grassmannian_pieces():
 
     REFERENCES:
 
-    .. [Buch00] \A. Buch, A Littlewood-Richardson rule for the K-theory of Grassmannians, :arXiv:`math.AG/0004137`
+    .. [Buch00] \A. Buch, A Littlewood-Richardson rule for the K-theory of Grassmannians, :arxiv:`math.AG/0004137`
 
     EXAMPLES::
 
@@ -855,7 +855,7 @@ def H_two_step_pieces():
 
     REFERENCES:
 
-    .. [BuchKreschTamvakis03] \A. Buch, A. Kresch, H. Tamvakis, Gromov-Witten invariants on Grassmannian, :arXiv:`math/0306388`
+    .. [BuchKreschTamvakis03] \A. Buch, A. Kresch, H. Tamvakis, Gromov-Witten invariants on Grassmannian, :arxiv:`math/0306388`
 
     EXAMPLES::
 
@@ -885,7 +885,7 @@ def HT_two_step_pieces():
     REFERENCES:
 
     .. [CoskunVakil06] \I. Coskun, R. Vakil, Geometric positivity in the cohomology of homogeneous spaces
-       and generalized Schubert calculus, :arXiv:`math/0610538`
+       and generalized Schubert calculus, :arxiv:`math/0610538`
 
     EXAMPLES::
 
@@ -930,7 +930,7 @@ def BK_pieces(max_letter):
     REFERENCES:
 
     .. [KnutsonPurbhoo10] \A. Knutson, K. Purbhoo, Product and puzzle formulae
-       for `GL_n` Belkale-Kumar coefficients, :arXiv:`1008.4979`
+       for `GL_n` Belkale-Kumar coefficients, :arxiv:`1008.4979`
 
     EXAMPLES::
 

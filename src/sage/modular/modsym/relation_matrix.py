@@ -245,7 +245,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
                 v[j0] += s0
             else:
                 v[j0] = s0
-        for j0 in v.keys():
+        for j0 in v:
             entries[(row, j0)] = v[j0]
         row += 1
 

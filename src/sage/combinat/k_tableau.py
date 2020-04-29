@@ -828,7 +828,7 @@ class WeakTableau_core(WeakTableau_abstract):
         r"""
         Return the bounded representation of the weak `k`-tableau ``self``.
 
-        Each restricted sutableaux of the output is a `k`-bounded partition.
+        Each restricted subtableau of the output is a `k`-bounded partition.
 
         EXAMPLES::
 
@@ -1971,7 +1971,7 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             sage: t = WeakTableau([[2,0],[3,2]], 3, representation = 'factorized_permutation')
             Traceback (most recent call last):
             ...
-            ValueError: Error! this only works on type 'A' affine Grassmannian elements
+            ValueError: this only works on type 'A' affine Grassmannian elements
 
             sage: T = WeakTableaux(3, [4,1], [2,1], representation = 'factorized_permutation')
             sage: t = T([[2],[1],[0]])
@@ -2571,10 +2571,10 @@ class StrongTableau(ClonableList):
             True
         """
         Tshapes = intermediate_shapes(self.to_unmarked_standard_list())
-        if not all( Partition(la).is_core(self.k+1) for la in Tshapes):
+        if not all(Partition(la).is_core(self.k + 1) for la in Tshapes):
             return False
-        Tsizes =[Core(lam, self.k+1).length() for lam in Tshapes]
-        return all(Tsizes[i]==Tsizes[i+1]-1 for i in range(len(Tsizes)-1))
+        Tsizes = [Core(lam, self.k + 1).length() for lam in Tshapes]
+        return all(Tsizes[i] == Tsizes[i+1]-1 for i in range(len(Tsizes)-1))
 
     def is_column_strict_with_weight( self, mu ):
         """

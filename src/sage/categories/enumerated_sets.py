@@ -1,12 +1,12 @@
 r"""
-Enumerated Sets
+Enumerated sets
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2009 Florent Hivert <Florent.Hivert@univ-rouen.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 from six.moves import range
 
 from sage.misc.cachefunc import cached_method
@@ -188,7 +188,6 @@ class EnumeratedSets(CategoryWithAxiom):
                 sage: class broken(UniqueRepresentation, Parent):
                 ....:     def __init__(self):
                 ....:         Parent.__init__(self, category = EnumeratedSets())
-                ....:
                 sage: it = iter(broken()); [next(it), next(it), next(it)]
                 Traceback (most recent call last):
                 ...
@@ -203,7 +202,6 @@ class EnumeratedSets(CategoryWithAxiom):
                 ....:         return 0
                 ....:     def next(self, elt):
                 ....:         return elt+1
-                ....:
                 sage: it = iter(set_first_next()); [next(it), next(it), next(it)]
                 [0, 1, 2]
 
@@ -214,7 +212,6 @@ class EnumeratedSets(CategoryWithAxiom):
                 ....:         Parent.__init__(self, category = EnumeratedSets())
                 ....:     def unrank(self, i):
                 ....:         return i + 5
-                ....:
                 sage: it = iter(set_unrank()); [next(it), next(it), next(it)]
                 [5, 6, 7]
 
@@ -225,7 +222,6 @@ class EnumeratedSets(CategoryWithAxiom):
                 ....:         Parent.__init__(self, category = EnumeratedSets())
                 ....:     def list(self):
                 ....:         return [5, 6, 7]
-                ....:
                 sage: it = iter(set_list()); [next(it), next(it), next(it)]
                 [5, 6, 7]
 
@@ -744,7 +740,7 @@ class EnumeratedSets(CategoryWithAxiom):
                 except (TypeError, ValueError ):
                     break
 
-                if f is None or f is False :
+                if f is None or f is False:
                     break
                 else:
                     yield f
@@ -942,12 +938,13 @@ class EnumeratedSets(CategoryWithAxiom):
                 sage: CC._test_enumerated_set_contains()
                 Traceback (most recent call last):
                 ...
-                AssertionError: False is not true
+                AssertionError: 3 not found in An example
+                of a finite enumerated set: {1,2,3}
             """
             tester = self._tester(**options)
             i = 0
             for w in self:
-                tester.assertTrue(w in self)
+                tester.assertIn(w, self)
                 i += 1
                 if i > tester._max_runs:
                     return

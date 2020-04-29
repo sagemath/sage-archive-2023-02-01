@@ -50,8 +50,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division
-
 cimport cython
 from cpython cimport *
 from cpython.object cimport Py_EQ, Py_NE
@@ -464,6 +462,15 @@ cdef class Rational(sage.structure.element.FieldElement):
         2/3
         sage: Rational(mpz(5))
         5
+
+    TESTS:
+
+    Check that :trac:`28321` is fixed::
+
+        sage: QQ((2r^100r, 3r^100r))
+        1267650600228229401496703205376/515377520732011331036461129765621272702107522001
+        sage: QQ((-2r^100r, -3r^100r))
+        1267650600228229401496703205376/515377520732011331036461129765621272702107522001
     """
     def __cinit__(self):
         r"""
@@ -612,20 +619,28 @@ cdef class Rational(sage.structure.element.FieldElement):
         elif isinstance(x, tuple) and len(x) == 2:
             num = x[0]
             denom = x[1]
-            if isinstance(num, int) and isinstance(denom, int):
-                if denom >= 0:
-                    mpq_set_si(self.value, num, denom)
-                else:
-                    mpq_set_si(self.value, -num, -denom)
+
+            if isinstance(num, long):
+                mpz_set_pylong(mpq_numref(self.value), num)
+            elif isinstance(num, int):  # Python 2 only
+                mpz_set_si(mpq_numref(self.value), num)
             else:
                 if not isinstance(num, integer.Integer):
                     num = integer.Integer(num, base)
+                mpz_set(mpq_numref(self.value), (<integer.Integer>num).value)
+
+            if isinstance(denom, long):
+                mpz_set_pylong(mpq_denref(self.value), denom)
+            elif isinstance(denom, int):  # Python 2 only
+                mpz_set_si(mpq_denref(self.value), denom)
+            else:
                 if not isinstance(denom, integer.Integer):
                     denom = integer.Integer(denom, base)
-                mpz_set(mpq_numref(self.value), (<integer.Integer>num).value)
                 mpz_set(mpq_denref(self.value), (<integer.Integer>denom).value)
+
             if mpz_sgn(mpq_denref(self.value)) == 0:
                 raise ValueError("denominator must not be 0")
+
             mpq_canonicalize(self.value)
 
         elif isinstance(x, pari_gen):
@@ -1084,7 +1099,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 mathml(abs(self.numer())), mathml(self.denom()))
             return t
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` under the homomorphism from the rational
         field to ``codomain``.
@@ -1978,7 +1993,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         `t`, where `s` and `t` are the smallest numbers satisfying
         `10^s=10^{s+t} \mod d`. In general if `d=2^a 5^b m` where `m`
         is coprime to 10, then `s=\max(a,b)` and `t` is the order of
-        10 modulo `d`.
+        10 modulo `m`.
 
         EXAMPLES::
 
@@ -3050,6 +3065,22 @@ cdef class Rational(sage.structure.element.FieldElement):
     #Define an alias for denominator
     denom = denominator
 
+    def as_integer_ratio(self):
+        """
+        Return the pair ``(self.numerator(), self.denominator())``.
+
+        EXAMPLES::
+
+            sage: x = -12/29
+            sage: x.as_integer_ratio()
+            (-12, 29)
+        """
+        n = <Integer>Integer.__new__(Integer)
+        d = <Integer>Integer.__new__(Integer)
+        n.set_from_mpz(mpq_numref(self.value))
+        d.set_from_mpz(mpq_denref(self.value))
+        return (n, d)
+
     def factor(self):
         """
         Return the factorization of this rational number.
@@ -3210,7 +3241,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         return (function_log(self, dont_call_method_on_arg=True) /
                 function_log(m, dont_call_method_on_arg=True))
 
-    def gamma(self, prec=None):
+    def gamma(self, *, prec=None):
         """
         Return the gamma function evaluated at ``self``. This value is exact
         for integers and half-integers, and returns a symbolic value
@@ -3235,6 +3266,15 @@ cdef class Rational(sage.structure.element.FieldElement):
             2.6789385347077476336556929410
             sage: (1/2).gamma(prec=100)
             1.7724538509055160272981674833
+
+        TESTS:
+
+        This is not the incomplete gamma function! ::
+
+            sage: (1/2).gamma(5)
+            Traceback (most recent call last):
+            ...
+            TypeError: gamma() takes exactly 0 positional arguments (1 given)
         """
         if prec:
             return self.n(prec).gamma()

@@ -34,7 +34,7 @@ We check that the coercion `C \to M` goes through the `X` basis::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
@@ -246,7 +246,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             sage: M.an_element()
             M[{1}] + 2*M[{1}, {2}]
         """
-        return self([[1]]) + 2*self([[1],[2]])
+        return self([[1]]) + 2 * self([[1], [2]])
 
     def some_elements(self):
         """
@@ -263,7 +263,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         u = self.one()
         o = self([[1]])
         s = self.base_ring().an_element()
-        return [u, o, self([[1,2]]), o + self([[1],[2]]), u + s*o]
+        return [u, o, self([[1, 2]]), o + self([[1], [2]]), u + s * o]
 
 
 class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
@@ -1184,9 +1184,6 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             m = max(max(part) for part in x)  # The degree of x
             x = [set(part) for part in x]
             yshift = [[val + m for val in part] for part in y]
-
-            def union(X, Y):
-                return X.union(Y)
             return self.sum_of_monomials(ShuffleProduct(x, yshift, K))
 
         def coproduct_on_basis(self, x):
@@ -1940,16 +1937,19 @@ class WQSymBases(Category_realization_of_parent):
             sage: bases.super_categories()
             [Category of realizations of Word Quasi-symmetric functions over Integer Ring,
              Join of Category of realizations of hopf algebras over Integer Ring
-                 and Category of graded algebras over Integer Ring,
+                 and Category of graded algebras over Integer Ring
+                 and Category of graded coalgebras over Integer Ring,
              Category of graded connected hopf algebras with basis over Integer Ring]
 
             sage: bases = WQSymBases(WQSym, False)
             sage: bases.super_categories()
             [Category of realizations of Word Quasi-symmetric functions over Integer Ring,
              Join of Category of realizations of hopf algebras over Integer Ring
-                 and Category of graded algebras over Integer Ring,
+                 and Category of graded algebras over Integer Ring
+                 and Category of graded coalgebras over Integer Ring,
              Join of Category of filtered connected hopf algebras with basis over Integer Ring
-                 and Category of graded algebras over Integer Ring]
+                 and Category of graded algebras over Integer Ring
+                 and Category of graded coalgebras over Integer Ring]
         """
         R = self.base().base_ring()
         cat = HopfAlgebras(R).Graded().WithBasis()

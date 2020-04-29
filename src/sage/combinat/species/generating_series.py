@@ -755,7 +755,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
         .. [MM] \M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
            Discrete Mathematics, vol. 308, issue 23, 2008, pp. 5407-5427.
-           :arXiv:`math/0503436v2`.
+           :arxiv:`math/0503436v2`.
 
         """
         from itertools import product, repeat, chain

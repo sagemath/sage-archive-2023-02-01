@@ -352,7 +352,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             [Category of realizations of Symmetric Functions over Rational Field,
              Category of commutative hopf algebras with basis over Rational Field,
              Join of Category of realizations of hopf algebras over Rational Field
-                 and Category of graded algebras over Rational Field]
+                 and Category of graded algebras over Rational Field
+                 and Category of graded coalgebras over Rational Field]
         """
         # FIXME: The last one should also be commutative, but this triggers a
         #   KeyError when doing the C3 algorithm!!!
@@ -406,7 +407,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
         def is_commutative(self):
             """
-            Returns whether this symmetric function algebra is commutative.
+            Return whether this symmetric function algebra is commutative.
 
             INPUT:
 
@@ -542,7 +543,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
         @cached_method
         def one_basis(self):
             r"""
-            Returns the empty partition, as per ``AlgebrasWithBasis.ParentMethods.one_basis``
+            Return the empty partition, as per ``AlgebrasWithBasis.ParentMethods.one_basis``
 
             INPUT:
 
@@ -1487,7 +1488,7 @@ class GradedSymmetricFunctionsBases(Category_realization_of_parent):
 
         def degree_zero_coefficient(self):
             r"""
-            Returns the degree zero coefficient of ``self``.
+            Return the degree zero coefficient of ``self``.
 
             EXAMPLES::
 
@@ -2455,7 +2456,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
     def _dual_basis_default(self):
         """
-        Returns the default value for ``self.dual_basis()``
+        Return the default value for ``self.dual_basis()``
 
         .. SEEALSO:: :meth:`dual_basis`
 
@@ -3419,7 +3420,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             True
 
         Let us check (on examples) Proposition 5.2 of Gelfand, Krob, Lascoux, Leclerc,
-        Retakh, Thibon, "Noncommutative symmetric functions", :arXiv:`hep-th/9407124`, for
+        Retakh, Thibon, "Noncommutative symmetric functions", :arxiv:`hep-th/9407124`, for
         `r = 2`::
 
             sage: e = SymmetricFunctions(FiniteField(29)).e()
@@ -3440,7 +3441,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             True
 
         Some examples from Briand, Orellana, Rosas, "The stability of the Kronecker
-        products of Schur functions." :arXiv:`0907.4652`::
+        products of Schur functions." :arxiv:`0907.4652`::
 
             sage: s = SymmetricFunctions(ZZ).s()
             sage: s[2,2].itensor(s[2,2])
@@ -3502,7 +3503,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(1).itensor(s(1))
             s[]
 
-        Theorem 2.1 in Bessenrodt, van Willigenburg, :arXiv:`1105.3170v2`::
+        Theorem 2.1 in Bessenrodt, van Willigenburg, :arxiv:`1105.3170v2`::
 
             sage: s = SymmetricFunctions(ZZ).s()
             sage: all( all( max( r[0] for r in s(p).itensor(s(q)).monomial_coefficients().keys() )
@@ -3838,11 +3839,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         This notion of left-padded Kronecker product can be lifted to the
         non-commutative symmetric functions
-        (:meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmeticFunctions.Bases.ElementMethods.left_padded_kronecker_product`).
+        (:meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.left_padded_kronecker_product`).
 
         .. WARNING::
 
-            Don't mistake this product for the reduced Kronecker product
+            Do not mistake this product for the reduced Kronecker product
             (:meth:`reduced_kronecker_product`), which uses the Schur
             functions instead of the complete homogeneous functions in
             its definition.
@@ -4360,7 +4361,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def scalar_qt(self, x, q = None, t = None):
         r"""
-        Returns the `q,t`-deformed standard Hall-Littlewood scalar product of
+        Return the `q,t`-deformed standard Hall-Littlewood scalar product of
         ``self`` and ``x``.
 
         INPUT:
@@ -4442,7 +4443,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def scalar_jack(self, x, t=None):
         r"""
-        Return the Jack-scalar product beween ``self`` and ``x``.
+        Return the Jack-scalar product between ``self`` and ``x``.
 
         This scalar product is defined so that the power sum elements
         `p_{\mu}` are orthogonal and `\langle p_{\mu}, p_{\mu} \rangle =
@@ -5444,7 +5445,7 @@ SymmetricFunctionAlgebra_generic.Element = SymmetricFunctionAlgebra_generic_Elem
 ###################
 def _lmax(x):
     r"""
-    Returns the max of ``x`` where ``x`` is a list.
+    Return the max of ``x`` where ``x`` is a list.
 
     If ``x`` is the empty list, ``_lmax`` returns 0.
 
@@ -5458,9 +5459,10 @@ def _lmax(x):
     """
     return max(x) if x else 0
 
+
 def _nonnegative_coefficients(x):
     r"""
-    Returns ``True`` if ``x`` has nonnegative coefficients.
+    Return ``True`` if ``x`` has nonnegative coefficients.
 
     EXAMPLES::
 
@@ -5479,4 +5481,3 @@ def _nonnegative_coefficients(x):
         return all(c >= 0 for c in x.coefficients(sparse=False))
     else:
         return x >= 0
-

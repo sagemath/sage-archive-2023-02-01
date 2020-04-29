@@ -249,11 +249,13 @@ class MaxSymbolic(MinMax_base):
         ::
 
             sage: f = max_symbolic(sin(x), cos(x))
-            sage: r = integral(f, x, 0, 1)
+            sage: r = integral(f, x, 0, 1); r
+            sqrt(2) - cos(1)
             sage: r.n()
-            0.8739124411567263
+            0.873911256504955
         """
         return max_symbolic(args)
+
 
 max_symbolic = MaxSymbolic()
 

@@ -174,7 +174,6 @@ native PolyBoRi counterparts. For instance, sets of points can be
 represented as tuples of tuples (Sage) or as ``BooleSet`` (PolyBoRi)
 and naturally the second option is faster.
 """
-from __future__ import print_function, absolute_import
 
 from cpython.object cimport Py_EQ, Py_NE
 from cython.operator cimport dereference as deref
@@ -2046,13 +2045,13 @@ class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
                         (type(other), str(self)))
 
     def _element_constructor_(self, other=None):
-        """
+        r"""
         Convert elements of other objects to elements of this monoid.
 
         INPUT:
 
         - ``other`` - element to convert, if ``None`` a
-           :class:`BooleanMonomial` representing 1 is returned only
+          :class:`BooleanMonomial` representing 1 is returned only
           :class:`BooleanPolynomial`s with the same parent ring as ``self``
           which have a single monomial is converted
 
@@ -4765,7 +4764,7 @@ cdef class PolynomialConstruct:
             # So, it is just a conversion. [Simon King]
             return (<BooleanPolynomialRing>ring)._element_constructor_(x)
 
-        raise TypeError("Cannot generate Boolean polynomial from %s , %s%" %
+        raise TypeError("Cannot generate Boolean polynomial from %s , %s" %
                         (type(x), type(ring)))
 
 

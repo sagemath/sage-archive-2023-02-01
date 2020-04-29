@@ -303,7 +303,7 @@ class OperationTable(SageObject):
         sage: from sage.matrix.operation_table import OperationTable
         sage: H=CyclicPermutationGroup(4)
         sage: H.list()
-        [(), (1,3)(2,4), (1,4,3,2), (1,2,3,4)]
+        [(), (1,2,3,4), (1,3)(2,4), (1,4,3,2)]
         sage: elts = ['()', '(1,3)(2,4)']
         sage: OperationTable(H, operator.mul, elements=elts)
         *  a b
@@ -315,7 +315,7 @@ class OperationTable(SageObject):
     group ``H``, using a simple ``for`` loop::
 
         sage: L = H.list()    #list of elements of the group H
-        sage: elts = [L[i] for i in {0, 1}]
+        sage: elts = [L[i] for i in {0, 2}]
         sage: elts
         [(), (1,3)(2,4)]
         sage: OperationTable(H, operator.mul, elements=elts)
@@ -940,7 +940,7 @@ class OperationTable(SageObject):
             d| d e a b c
             e| e a b c d
 
-        The table should adjust its column width to accomodate the width of the
+        The table should adjust its column width to accommodate the width of the
         strings used to represent elements.  ::
 
             sage: from sage.matrix.operation_table import OperationTable

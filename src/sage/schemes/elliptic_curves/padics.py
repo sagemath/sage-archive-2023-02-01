@@ -93,9 +93,7 @@ def _normalize_padic_lseries(self, p, normalize, implementation, precision):
         if normalize is not None:
             raise ValueError("The 'normalize' parameter is not used for Pollack-Stevens' overconvergent modular symbols")
     else:
-        raise ValueError("Implementation should be one of  'sage', 'eclib' or 'pollackstevens'")
-    #if precision is not None and implementation != 'pollackstevens':
-    #    raise ValueError("Must *not* specify precision unless using 'pollackstevens'")
+        raise ValueError("Implementation should be one of  'sage', 'eclib', 'num' or 'pollackstevens'")
     return (p, normalize, implementation, precision)
 
 @cached_method(key=_normalize_padic_lseries)
@@ -115,8 +113,9 @@ def padic_lseries(self, p, normalize = None, implementation = 'eclib', precision
        are normalized. See modular_symbol for
        more details.
 
-    -  ``implementation`` -- 'eclib' (default), 'sage', 'pollackstevens';
+    -  ``implementation`` -- 'eclib' (default), 'sage', 'num' or 'pollackstevens';
        Whether to use John Cremona's eclib, the Sage implementation,
+       numerical modular symbols
        or Pollack-Stevens' implementation of overconvergent
        modular symbols.
 
@@ -197,7 +196,7 @@ def padic_lseries(self, p, normalize = None, implementation = 'eclib', precision
     p, normalize, implementation, precision = self._normalize_padic_lseries(p,\
                              normalize, implementation, precision)
 
-    if implementation in ['sage', 'eclib']:
+    if implementation in ['sage', 'eclib', 'num']:
         if self.ap(p) % p != 0:
             Lp = plseries.pAdicLseriesOrdinary(self, p,
                                   normalize = normalize, implementation = implementation)
@@ -701,9 +700,9 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
         sage: h = E.padic_height(7,10)
         sage: P = E.gen(0)
         sage: h(P)
-        2*7 + 7^2 + 5*7^3 + 6*7^4 + 2*7^5 + 3*7^6 + 7^7 + O(7^9)
+        2*7 + 7^2 + 5*7^3 + 6*7^4 + 2*7^5 + 3*7^6 + 7^7 + 4*7^9 + 5*7^10 + O(7^11)
         sage: h(P+P)
-        7 + 5*7^2 + 6*7^3 + 5*7^4 + 4*7^5 + 6*7^6 + 5*7^7 + O(7^9)
+        7 + 5*7^2 + 6*7^3 + 5*7^4 + 4*7^5 + 6*7^6 + 5*7^7 + 2*7^9 + 7^10 + O(7^11)
     """
     if check_hypotheses:
         if not p.is_prime():

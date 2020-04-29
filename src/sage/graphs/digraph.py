@@ -109,6 +109,8 @@ graphs. Here is what they can do
 
     :meth:`~DiGraph.flow_polytope` | Compute the flow polytope of a digraph
     :meth:`~DiGraph.degree_polynomial` | Return the generating polynomial of degrees of vertices in ``self``.
+    :meth:`~DiGraph.out_branchings` | Return an iterator over the out branchings rooted at given vertex in ``self``.
+    :meth:`~DiGraph.in_branchings` | Return an iterator over the in branchings rooted at given vertex in ``self``.
 
 Methods
 -------
@@ -162,12 +164,11 @@ from __future__ import print_function, absolute_import
 from copy import copy
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.misc.superseded import deprecation
+from itertools import product
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
-from sage.misc.misc_c import prod
-from sage.categories.cartesian_product import cartesian_product
+from sage.graphs.views import EdgesView
 
 class DiGraph(GenericGraph):
     r"""
@@ -583,7 +584,7 @@ class DiGraph(GenericGraph):
             sage: g.add_edge("Hey", "Heyyyyyyy")
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            ValueError: graph is immutable; please change a copy instead (use function copy())
             sage: {g:1}[g]
             1
             sage: copy(g) is g    # copy is mutable again
@@ -668,9 +669,10 @@ class DiGraph(GenericGraph):
         if (format is None            and
             isinstance(data, list)    and
             len(data) == 2            and
-            isinstance(data[0], list) and # a list of two lists, the second of
-            isinstance(data[1], list) and # which contains iterables (the edges)
-            (not data[1] or callable(getattr(data[1][0], "__iter__", None)))):
+            isinstance(data[0], list) and    # a list of two lists, the second of
+            ((isinstance(data[1], list) and  # which contains iterables (the edges)
+              (not data[1] or callable(getattr(data[1][0], "__iter__", None)))) or
+             (isinstance(data[1], EdgesView)))):
             format = "vertices_and_edges"
 
         if format is None and isinstance(data, dict):
@@ -706,8 +708,8 @@ class DiGraph(GenericGraph):
             format = 'int'
             data = 0
 
-        # Input is a list of edges
-        if format is None and isinstance(data,list):
+        # Input is a list of edges or an EdgesView
+        if format is None and isinstance(data, (list, EdgesView)):
             format = "list_of_edges"
             if weighted is None:
                     weighted = False
@@ -791,7 +793,8 @@ class DiGraph(GenericGraph):
             from_dict_of_lists(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'NX':
-            # adjust for empty dicts instead of None in NetworkX default edge labels
+            # adjust for empty dicts instead of None in NetworkX default edge 
+            # labels
             if convert_empty_dict_labels_to_None is None:
                 convert_empty_dict_labels_to_None = (format == 'NX')
 
@@ -835,32 +838,17 @@ class DiGraph(GenericGraph):
             if weighted is None:
                 weighted = False
             self.allow_loops(True if loops else False, check=False)
-            self.allow_multiple_edges(True if multiedges else False, check=False)
+            self.allow_multiple_edges(True if multiedges else False,
+                                      check=False)
             if data < 0:
                 raise ValueError("the number of vertices cannot be strictly negative")
             elif data:
                 self.add_vertices(range(data))
         elif format == 'list_of_edges':
-            self.allow_multiple_edges(False if multiedges is False else True)
-            self.allow_loops(False if loops is False else True)
+            self.allow_multiple_edges(True if multiedges else False,
+                                      check=False)
+            self.allow_loops(True if loops else False, check=False)
             self.add_edges(data)
-            if multiedges is not True and self.has_multiple_edges():
-                from sage.misc.superseded import deprecation
-                deprecation(15706, "You created a graph with multiple edges "
-                            "from a list. Please set 'multiedges' to 'True' "
-                            "when you do so, as in the future the default "
-                            "behaviour will be to ignore those edges")
-            elif multiedges is None:
-                self.allow_multiple_edges(False)
-
-            if loops is not True and self.has_loops():
-                from sage.misc.superseded import deprecation
-                deprecation(15706, "You created a graph with loops from a list. "+
-                            "Please set 'loops' to 'True' when you do so, as in "+
-                            "the future the default behaviour will be to ignore "+
-                            "those edges")
-            elif loops is None:
-                self.allow_loops(False)
         else:
             raise ValueError("unknown input format '{}'".format(format))
 
@@ -1970,8 +1958,8 @@ class DiGraph(GenericGraph):
                 tempG.delete_edge(u, v, label)
                 tempG.add_edge(v, u, label)
 
-            # If user does not want to force digraph to allow parallel edges, we
-            # delete edge u to v and overwrite v,u with the label of u,v
+            # If user does not want to force digraph to allow parallel edges, 
+            # we delete edge u to v and overwrite v,u with the label of u,v
             elif multiedges is False:
                 tempG.delete_edge(u,v,label)
                 tempG.set_edge_label(v,u,label)
@@ -2095,619 +2083,6 @@ class DiGraph(GenericGraph):
 
     ### Paths and cycles iterators
 
-    def _all_paths_iterator(self, vertex, ending_vertices=None,
-                            simple=False, max_length=None, trivial=False,
-                            use_multiedges=False, report_edges=False,
-                            labels=False, data=None):
-        r"""
-        Return an iterator over the paths of ``self`` starting with the
-        given vertex.
-
-        INPUT:
-
-        - ``vertex`` -- the starting vertex of the paths
-
-        - ``ending_vertices`` -- iterable (default: ``None``); allowed ending
-          vertices of the paths. If ``None``, then all vertices are allowed.
-
-        - ``simple`` -- boolean (default: ``False``); if set to ``True``, then
-          only simple paths are considered. Simple paths are paths in which no
-          two arcs share a head or share a tail, i.e. every vertex in the path
-          is entered at most once and exited at most once.
-
-        - ``max_length`` -- non negative integer (default: ``None``); the
-          maximum length of the enumerated paths. If set to ``None``, then all
-          lengths are allowed.
-
-        - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
-          the empty paths are also enumerated.
-
-        - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
-          used only if the graph has multiple edges.
-
-          - If ``False``, the graph is considered as simple and an edge label
-            is arbitrarily selected for each edge as in
-            :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
-
-          - If ``True``, a path will be reported as many times as the edges
-            multiplicities along that path (when ``report_edges = False`` or
-            ``labels = False``), or with all possible combinations of edge
-            labels (when ``report_edges = True`` and ``labels = True``)
-
-        - ``report_edges`` -- boolean (default: ``False``); whether to report
-          paths as list of vertices (default) or list of edges, if ``False``
-          then ``labels`` parameter is ignored
-
-        - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
-          is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-          along with its edge labels are used to represent the path.  
-
-        - ``data`` -- dictionary (default: ``None``); optional parameter to
-          pass information about edge multiplicities of the graph, if ``None``
-          edge multiplicity values are computed inside the method.
-
-        OUTPUT:
-
-            iterator
-
-        EXAMPLES::
-
-            sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
-            sage: pi = g._all_paths_iterator('a', ending_vertices=['d'], report_edges=True, simple=True)
-            sage: list(pi)
-            [[('a', 'b'), ('b', 'c'), ('c', 'd')]]
-
-            sage: g = DiGraph([(0, 1, 'a'), (0, 1, 'b'), (1, 2,'c'), (1, 2,'d')], multiedges=True)
-            sage: pi =  g._all_paths_iterator(0, use_multiedges=True)
-            sage: for _ in range(6):
-            ....:     print(next(pi))
-            [0, 1]
-            [0, 1]
-            [0, 1, 2]
-            [0, 1, 2]
-            [0, 1, 2]
-            [0, 1, 2]
-            sage: pi =  g._all_paths_iterator(0, use_multiedges=True, report_edges=True, labels=True)
-            sage: for _ in range(6):
-            ....:     print(next(pi))
-            [(0, 1, 'b')]
-            [(0, 1, 'a')]
-            [(0, 1, 'b'), (1, 2, 'd')]
-            [(0, 1, 'b'), (1, 2, 'c')]
-            [(0, 1, 'a'), (1, 2, 'd')]
-            [(0, 1, 'a'), (1, 2, 'c')]
-            sage: list(g._all_paths_iterator(1, ending_vertices=[2], use_multiedges=False, report_edges=True, labels=True, simple=True))
-            [[(1, 2, 'd')]]
-            sage: list(g._all_paths_iterator(0, ending_vertices=[2], use_multiedges=False, report_edges=False, labels=True))
-            [[0, 1, 2]]
-            sage: list(g._all_paths_iterator(0, use_multiedges=True, report_edges=False, labels=True, max_length=1))
-            [[0, 1], [0, 1]]
-            sage: list(g._all_paths_iterator(0, use_multiedges=True, report_edges=True, labels=True, max_length=1))
-            [[(0, 1, 'b')], [(0, 1, 'a')]]
-
-            sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
-            sage: pi = g._all_paths_iterator('a')
-            sage: for _ in range(5):   # py2
-            ....:     print(next(pi))  # py2
-            ['a', 'a']
-            ['a', 'b']
-            ['a', 'a', 'a']
-            ['a', 'a', 'b']
-            ['a', 'b', 'c']
-            sage: pi = g._all_paths_iterator('a')
-            sage: [len(next(pi)) - 1 for _ in range(5)]
-            [1, 1, 2, 2, 2]
-
-        ::
-
-            sage: pi = g._all_paths_iterator('b')
-            sage: for _ in range(5):
-            ....:     print(next(pi))
-            ['b', 'c']
-            ['b', 'c', 'd']
-            ['b', 'c', 'd', 'c']
-            ['b', 'c', 'd', 'c', 'd']
-            ['b', 'c', 'd', 'c', 'd', 'c']
-
-        One may wish to enumerate simple paths, which are paths in which no two
-        arcs share a head or share a tail, i.e. every vertex in the path is
-        entered at most once and exited at most once. The result is always
-        finite but may take a long time to compute::
-
-            sage: pi = g._all_paths_iterator('a', simple=True)
-            sage: sorted(pi)
-            [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd']]
-            sage: pi = g._all_paths_iterator('d', simple=True)
-            sage: sorted(pi)
-            [['d', 'c'], ['d', 'c', 'd']]
-
-        It is possible to specify the allowed ending vertices::
-
-            sage: pi = g._all_paths_iterator('a', ending_vertices=['c'])
-            sage: for _ in range(5):   # py2
-            ....:     print(next(pi))  # py2
-            ['a', 'b', 'c']
-            ['a', 'a', 'b', 'c']
-            ['a', 'a', 'a', 'b', 'c']
-            ['a', 'b', 'c', 'd', 'c']
-            ['a', 'a', 'a', 'a', 'b', 'c']
-            sage: pi = g._all_paths_iterator('a', ending_vertices=['c'])
-            sage: [len(next(pi)) - 1 for _ in range(5)]
-            [2, 3, 4, 4, 5]
-            sage: pi = g._all_paths_iterator('a', ending_vertices=['a', 'b'])
-            sage: for _ in range(5):   # py2
-            ....:     print(next(pi))  # py2
-            ['a', 'a']
-            ['a', 'b']
-            ['a', 'a', 'a']
-            ['a', 'a', 'b']
-            ['a', 'a', 'a', 'a']
-            sage: pi = g._all_paths_iterator('a', ending_vertices=['a', 'b'])
-            sage: [len(next(pi)) - 1 for _ in range(5)]
-            [1, 1, 2, 2, 3]
-
-        One can bound the length of the paths::
-
-            sage: pi = g._all_paths_iterator('d', max_length=3)
-            sage: sorted(pi)
-            [['d', 'c'], ['d', 'c', 'd'], ['d', 'c', 'd', 'c']]
-
-        Or include the trivial empty path::
-
-            sage: pi = g._all_paths_iterator('a', max_length=3, trivial=True)
-            sage: sorted(list(pi), key=lambda x:(len(x), x))
-            [['a'], ['a', 'a'], ['a', 'b'], ['a', 'a', 'a'], ['a', 'a', 'b'],
-             ['a', 'b', 'c'], ['a', 'a', 'a', 'a'], ['a', 'a', 'a', 'b'],
-             ['a', 'a', 'b', 'c'], ['a', 'b', 'c', 'd']]
-            sage: pi = g._all_paths_iterator('a', max_length=3, trivial=True)
-            sage: [len(p) - 1 for p in pi]
-            [0, 1, 1, 2, 2, 2, 3, 3, 3, 3]
-        """
-        if ending_vertices is None:
-            ending_vertices = self
-        else:
-            ending_vertices = frozenset(ending_vertices)
-        if max_length is None:
-            from sage.rings.infinity import Infinity
-            max_length = Infinity
-        if max_length < 1:
-            return
-
-        if not data:
-            if report_edges and labels:
-                my_dict = {}
-                if use_multiedges:
-                    for e in self.edge_iterator():
-                        if (e[0], e[1]) in my_dict:
-                            my_dict[(e[0], e[1])].append(e)
-                        else:
-                            my_dict[(e[0], e[1])] = [e]
-                else:
-                    for e in self.edge_iterator():
-                        if (e[0], e[1]) not in my_dict:
-                            my_dict[(e[0], e[1])] = [e]
-            elif use_multiedges and self.has_multiple_edges():
-                from collections import Counter
-                edge_multiplicity = Counter(self.edge_iterator(labels=False))
-        else:
-            if report_edges and labels:
-                my_dict = data
-            elif use_multiedges and self.has_multiple_edges():
-                edge_multiplicity = data
-        # Start with the empty path; we will try all extensions of it
-        queue = []
-        path = [vertex]
-
-        if trivial and not report_edges and vertex in ending_vertices:
-            yield path
-        while True:
-            # Build next generation of paths, one arc longer; max_length refers
-            # to edges and not vertices, hence <= and not <
-            if len(path) <= max_length:
-
-                # We try all possible extensions
-                if simple:
-                    # We only keep simple extensions. An extension is simple iff
-                    # the new vertex being entered has not previously occurred
-                    # in the path, or has occurred but only been exited (i.e. is
-                    # the first vertex in the path). In this latter case we must
-                    # not exit the new vertex again, so we do not consider it
-                    # for further extension, but just yield it immediately. See
-                    # trac #12385.
-                    frozen_path = frozenset(path)
-                    for neighbor in self.neighbor_out_iterator(path[-1]):
-                        if neighbor not in frozen_path:
-                            queue.append(path + [neighbor])
-                        elif ( neighbor == path[0] and
-                               neighbor in ending_vertices ):
-                            newpath = path + [neighbor]
-                            if report_edges and labels:
-                                for p in cartesian_product([my_dict[e] for e in zip(newpath[:-1], newpath[1:])]):
-                                    yield list(p)
-                            elif use_multiedges and self.has_multiple_edges():
-                                m = prod(edge_multiplicity[e] for e in zip(newpath[:-1], newpath[1:]))
-                                if report_edges:
-                                    newpath = list(zip(newpath[:-1], newpath[1:]))
-                                for _ in range(m):
-                                    yield newpath
-                            elif report_edges:
-                                yield list(zip(newpath[:-1], newpath[1:]))
-                            else:
-                                yield newpath
-                else:
-                    # Non-simple paths requested: we add all of them
-                    for neighbor in self.neighbor_out_iterator(path[-1]):
-                        queue.append(path + [neighbor])
-
-            if not queue:
-                break
-            path = queue.pop(0)     # get the next path
-
-            if path[-1] in ending_vertices:
-                # yield good path
-                if report_edges and labels:
-                    for p in cartesian_product([my_dict[e] for e in zip(path[:-1], path[1:])]):
-                        yield list(p)
-                elif use_multiedges and self.has_multiple_edges():
-                    m = prod(edge_multiplicity[e] for e in zip(path[:-1], path[1:]))
-                    if report_edges:
-                        newpath = list(zip(path[:-1], path[1:]))
-                    else:
-                        newpath = path
-                    for _ in range(m):
-                        yield newpath
-                elif report_edges:
-                    yield list(zip(path[:-1], path[1:]))
-                else:
-                    yield path
-
-    def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
-                           simple=False, max_length=None, trivial=False,
-                           use_multiedges=False, report_edges=False, labels=False):
-        r"""
-        Return an iterator over the paths of ``self``.
-
-        The paths are enumerated in increasing length order.
-
-        INPUT:
-
-        - ``starting_vertices`` -- iterable (default: ``None``); vertices from
-          which the paths must start. If ``None``, then all vertices of the
-          graph can be starting points.
-
-        - ``ending_vertices`` -- iterable (default: ``None``); allowed ending
-          vertices of the paths. If ``None``, then all vertices are allowed.
-
-        - ``simple`` -- boolean (default: ``False``); if set to ``True``, then
-          only simple paths are considered. Simple paths are paths in which no
-          two arcs share a head or share a tail, i.e. every vertex in the path
-          is entered at most once and exited at most once.
-
-        - ``max_length`` -- non negative integer (default: ``None``); the
-          maximum length of the enumerated paths. If set to ``None``, then all
-          lengths are allowed.
-
-        - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
-          the empty paths are also enumerated.
-
-        - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
-          used only if the graph has multiple edges.
-
-          - If ``False``, the graph is considered as simple and an edge label
-            is arbitrarily selected for each edge as in
-            :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
-
-          - If ``True``, a path will be reported as many times as the edges
-            multiplicities along that path (when ``report_edges = False`` or
-            ``labels = False``), or with all possible combinations of edge
-            labels (when ``report_edges = True`` and ``labels = True``)
-
-        - ``report_edges`` -- boolean (default: ``False``); whether to report
-          paths as list of vertices (default) or list of edges, if ``False``
-          then ``labels`` parameter is ignored
-
-        - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
-          is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-          along with its edge labels are used to represent the path.
-
-        OUTPUT:
-
-            iterator
-
-        AUTHOR:
-
-            Alexandre Blondin Masse
-
-        EXAMPLES::
-
-            sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
-            sage: pi = g.all_paths_iterator(starting_vertices=['a'], ending_vertices=['d'], report_edges=True, simple=True)
-            sage: list(pi)
-            [[('a', 'b'), ('b', 'c'), ('c', 'd')]]
-
-            sage: g = DiGraph([(0, 1, 'a'), (0, 1, 'b'), (1, 2,'c'), (1, 2,'d')], multiedges=True)
-            sage: pi =  g.all_paths_iterator(starting_vertices=[0], use_multiedges=True)
-            sage: for _ in range(6):
-            ....:     print(next(pi))
-            [0, 1]
-            [0, 1]
-            [0, 1, 2]
-            [0, 1, 2]
-            [0, 1, 2]
-            [0, 1, 2]
-            sage: pi =  g.all_paths_iterator(starting_vertices=[0], use_multiedges=True, report_edges=True, labels=True)
-            sage: for _ in range(6):
-            ....:     print(next(pi))
-            [(0, 1, 'b')]
-            [(0, 1, 'a')]
-            [(0, 1, 'b'), (1, 2, 'd')]
-            [(0, 1, 'b'), (1, 2, 'c')]
-            [(0, 1, 'a'), (1, 2, 'd')]
-            [(0, 1, 'a'), (1, 2, 'c')]
-            sage: list(g.all_paths_iterator(starting_vertices=[0, 1], ending_vertices=[2], use_multiedges=False, report_edges=True, labels=True, simple=True))
-            [[(1, 2, 'd')], [(0, 1, 'b'), (1, 2, 'd')]]
-            sage: list(g.all_paths_iterator(starting_vertices=[0, 1], ending_vertices=[2], use_multiedges=False, report_edges=False, labels=True))
-            [[1, 2], [0, 1, 2]]
-            sage: list(g.all_paths_iterator(use_multiedges=True, report_edges=False, labels=True, max_length=1))
-            [[0, 1], [0, 1], [1, 2], [1, 2]]
-            sage: list(g.all_paths_iterator(use_multiedges=True, report_edges=True, labels=True, max_length=1))
-            [[(0, 1, 'b')], [(0, 1, 'a')], [(1, 2, 'd')], [(1, 2, 'c')]]
-
-            sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
-            sage: pi = g.all_paths_iterator()
-            sage: for _ in range(7):   # py2
-            ....:     print(next(pi))  # py2
-            ['a', 'a']
-            ['a', 'b']
-            ['b', 'c']
-            ['c', 'd']
-            ['d', 'c']
-            ['a', 'a', 'a']
-            ['a', 'a', 'b']
-            sage: pi = g.all_paths_iterator()
-            sage: [len(next(pi)) - 1 for _ in range(7)]
-            [1, 1, 1, 1, 1, 2, 2]
-
-        It is possible to precise the allowed starting and/or ending vertices::
-
-            sage: pi = g.all_paths_iterator(starting_vertices=['a'])
-            sage: for _ in range(5):   # py2
-            ....:     print(next(pi))  # py2
-            ['a', 'a']
-            ['a', 'b']
-            ['a', 'a', 'a']
-            ['a', 'a', 'b']
-            ['a', 'b', 'c']
-            sage: pi = g.all_paths_iterator(starting_vertices=['a'])
-            sage: [len(next(pi)) - 1 for _ in range(5)]
-            [1, 1, 2, 2, 2]
-            sage: pi = g.all_paths_iterator(starting_vertices=['a'], ending_vertices=['b'])
-            sage: for _ in range(5):
-            ....:     print(next(pi))
-            ['a', 'b']
-            ['a', 'a', 'b']
-            ['a', 'a', 'a', 'b']
-            ['a', 'a', 'a', 'a', 'b']
-            ['a', 'a', 'a', 'a', 'a', 'b']
-
-        One may prefer to enumerate only simple paths (see
-        :meth:`all_simple_paths`)::
-
-            sage: pi = g.all_paths_iterator(simple=True)
-            sage: sorted(list(pi), key=lambda x:(len(x), x))
-            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'],
-             ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'], ['d', 'c', 'd'],
-             ['a', 'b', 'c', 'd']]
-            sage: pi = g.all_paths_iterator(simple=True)
-            sage: [len(p) - 1 for p in pi]
-            [1, 1, 1, 1, 1, 2, 2, 2, 2, 3]
-
-        Or simply bound the length of the enumerated paths::
-
-            sage: pi = g.all_paths_iterator(starting_vertices=['a'], ending_vertices=['b', 'c'], max_length=6)
-            sage: sorted(list(pi), key=lambda x:(len(x), x))
-            [['a', 'b'], ['a', 'a', 'b'], ['a', 'b', 'c'], ['a', 'a', 'a', 'b'],
-             ['a', 'a', 'b', 'c'], ['a', 'a', 'a', 'a', 'b'],
-             ['a', 'a', 'a', 'b', 'c'], ['a', 'b', 'c', 'd', 'c'],
-             ['a', 'a', 'a', 'a', 'a', 'b'], ['a', 'a', 'a', 'a', 'b', 'c'],
-             ['a', 'a', 'b', 'c', 'd', 'c'],
-             ['a', 'a', 'a', 'a', 'a', 'a', 'b'],
-             ['a', 'a', 'a', 'a', 'a', 'b', 'c'],
-             ['a', 'a', 'a', 'b', 'c', 'd', 'c'],
-             ['a', 'b', 'c', 'd', 'c', 'd', 'c']]
-            sage: pi = g.all_paths_iterator(starting_vertices=['a'], ending_vertices=['b', 'c'], max_length=6)
-            sage: [len(p) - 1 for p in pi]
-            [1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6]
-
-        By default, empty paths are not enumerated, but it may be parametrized::
-
-            sage: pi = g.all_paths_iterator(simple=True, trivial=True)
-            sage: sorted(list(pi), key=lambda x:(len(x), x))
-            [['a'], ['b'], ['c'], ['d'], ['a', 'a'], ['a', 'b'], ['b', 'c'],
-             ['c', 'd'], ['d', 'c'], ['a', 'b', 'c'], ['b', 'c', 'd'],
-             ['c', 'd', 'c'], ['d', 'c', 'd'], ['a', 'b', 'c', 'd']]
-            sage: pi = g.all_paths_iterator(simple=True, trivial=True)
-            sage: [len(p) - 1 for p in pi]
-            [0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3]
-            sage: pi = g.all_paths_iterator(simple=True, trivial=False)
-            sage: sorted(list(pi), key=lambda x:(len(x), x))
-            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'],
-             ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'], ['d', 'c', 'd'],
-             ['a', 'b', 'c', 'd']]
-            sage: pi = g.all_paths_iterator(simple=True, trivial=False)
-            sage: [len(p) - 1 for p in pi]
-            [1, 1, 1, 1, 1, 2, 2, 2, 2, 3]
-        """
-        if starting_vertices is None:
-            starting_vertices = self
-        data = {}
-        if report_edges and labels:
-            if use_multiedges:
-                for e in self.edge_iterator():
-                    if (e[0], e[1]) in data:
-                        data[(e[0], e[1])].append(e)
-                    else:
-                        data[(e[0], e[1])] = [e]
-            else:
-                for e in self.edge_iterator():
-                    if (e[0], e[1]) not in data:
-                        data[(e[0], e[1])] = [e]
-        elif use_multiedges and self.has_multiple_edges():
-            from collections import Counter
-            edge_multiplicity = Counter(self.edge_iterator(labels=False))
-            data = edge_multiplicity
-   
-        # We create one paths iterator per vertex
-        # This is necessary if we want to iterate over paths
-        # with increasing length
-        vertex_iterators = {v: self._all_paths_iterator(v, ending_vertices=ending_vertices,
-                                                            simple=simple, max_length=max_length,
-                                                            trivial=trivial, use_multiedges=use_multiedges,
-                                                            report_edges=report_edges, labels=labels, data=data)
-                                                            for v in starting_vertices}
-        paths = []
-        for vi in vertex_iterators.values():
-            try:
-                path = next(vi)
-                paths.append((len(path), path))
-            except(StopIteration):
-                pass
-        # Since we always extract a shortest path, using a heap
-        # can speed up the algorithm
-        from heapq import heapify, heappop, heappush
-        heapify(paths)
-        while paths:
-            # We choose the shortest available path
-            _, shortest_path = heappop(paths)
-            yield shortest_path
-            # We update the path iterator to its next available path if it exists
-            try:
-                if report_edges:
-                    path = next(vertex_iterators[shortest_path[0][0]])
-                else:
-                    path = next(vertex_iterators[shortest_path[0]])
-                heappush(paths, (len(path), path))
-            except(StopIteration):
-                pass
-
-    def all_simple_paths(self, starting_vertices=None, ending_vertices=None,
-                         max_length=None, trivial=False, use_multiedges=False,
-                         report_edges=False, labels=False):
-        r"""
-        Return a list of all the simple paths of ``self`` starting with one of
-        the given vertices.
-
-        Simple paths are paths in which no two arcs share a head or share a
-        tail, i.e. every vertex in the path is entered at most once and exited
-        at most once.
-
-        INPUT:
-
-        - ``starting_vertices`` -- list (default: ``None``); vertices from which
-          the paths must start. If ``None``, then all vertices of the graph can
-          be starting points.
-
-        - ``ending_vertices`` -- iterable (default: ``None``); allowed ending
-          vertices of the paths. If ``None``, then all vertices are allowed.
-
-        - ``max_length`` -- non negative integer (default: ``None``); the
-          maximum length of the enumerated paths. If set to ``None``, then all
-          lengths are allowed.
-
-        - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
-          the empty paths are also enumerated.
-
-        - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
-          used only if the graph has multiple edges.
-
-          - If ``False``, the graph is considered as simple and an edge label
-            is arbitrarily selected for each edge as in
-            :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
-
-          - If ``True``, a path will be reported as many times as the edges
-            multiplicities along that path (when ``report_edges = False`` or
-            ``labels = False``), or with all possible combinations of edge
-            labels (when ``report_edges = True`` and ``labels = True``)
-
-        - ``report_edges`` -- boolean (default: ``False``); whether to report
-          paths as list of vertices (default) or list of edges, if ``False``
-          then ``labels`` parameter is ignored
-
-        - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
-          is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-          along with its edge labels are used to represent the path.
-
-        OUTPUT:
-
-            list
-
-        .. NOTE::
-
-            Although the number of simple paths of a finite graph is always
-            finite, computing all its paths may take a very long time.
-
-        EXAMPLES::
-
-            sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
-            sage: g.all_simple_paths()
-            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'],
-             ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'],
-             ['d', 'c', 'd'], ['a', 'b', 'c', 'd']]
-
-            sage: g = DiGraph([(0, 1, 'a'), (0, 1, 'b'), (1, 2,'c'), (1, 2,'d')], multiedges=True)
-            sage: g.all_simple_paths(starting_vertices=[0], ending_vertices=[2], use_multiedges=False)
-            [[0, 1, 2]]
-            sage: g.all_simple_paths(starting_vertices=[0], ending_vertices=[2], use_multiedges=True)
-            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
-            sage: g.all_simple_paths(starting_vertices=[0], ending_vertices=[2], use_multiedges=True, report_edges=True)
-            [[(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)]]
-            sage: g.all_simple_paths(starting_vertices=[0], ending_vertices=[2], use_multiedges=True, report_edges=True, labels=True)
-            [[(0, 1, 'b'), (1, 2, 'd')],
-             [(0, 1, 'b'), (1, 2, 'c')],
-             [(0, 1, 'a'), (1, 2, 'd')],
-             [(0, 1, 'a'), (1, 2, 'c')]]
-            sage: g.all_simple_paths(starting_vertices=[0, 1], ending_vertices=[2], use_multiedges=False, report_edges=True, labels=True)
-            [[(1, 2, 'd')], [(0, 1, 'b'), (1, 2, 'd')]]
-            sage: g.all_simple_paths(starting_vertices=[0, 1], ending_vertices=[2], use_multiedges=False, report_edges=False, labels=True)
-            [[1, 2], [0, 1, 2]]
-            sage: g.all_simple_paths(use_multiedges=True, report_edges=False, labels=True)
-            [[0, 1], [0, 1], [1, 2], [1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
-            sage: g.all_simple_paths(starting_vertices=[0, 1], ending_vertices=[2], use_multiedges=False, report_edges=True, labels=True, trivial=True)
-            [[(1, 2, 'd')], [(0, 1, 'b'), (1, 2, 'd')]]
-
-        One may compute all paths having specific starting and/or ending
-        vertices::
-
-            sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
-            sage: g.all_simple_paths(starting_vertices=['a'])
-            [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd']]
-            sage: g.all_simple_paths(starting_vertices=['a'], ending_vertices=['c'])
-            [['a', 'b', 'c']]
-            sage: g.all_simple_paths(starting_vertices=['a'], ending_vertices=['b', 'c'])
-            [['a', 'b'], ['a', 'b', 'c']]
-
-        It is also possible to bound the length of the paths::
-
-            sage: g.all_simple_paths(max_length=2)
-            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'],
-             ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'],
-             ['d', 'c', 'd']]
-
-        By default, empty paths are not enumerated, but this can be
-        parametrized::
-
-            sage: g.all_simple_paths(starting_vertices=['a'], trivial=True)
-            [['a'], ['a', 'a'], ['a', 'b'], ['a', 'b', 'c'],
-             ['a', 'b', 'c', 'd']]
-            sage: g.all_simple_paths(starting_vertices=['a'], trivial=False)
-            [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd']]
-        """
-        return list(self.all_paths_iterator(starting_vertices=starting_vertices,
-                                                ending_vertices=ending_vertices,
-                                                simple=True, max_length=max_length,
-                                                trivial=trivial, use_multiedges=use_multiedges,
-                                                report_edges=report_edges, labels=labels))
-
     def _all_cycles_iterator_vertex(self, vertex, starting_vertices=None, simple=False,
                                     rooted=False, max_length=None, trivial=False,
                                     remove_acyclic_edges=True):
@@ -2820,12 +2195,12 @@ class DiGraph(GenericGraph):
             if len(path) > 1 and path[0] == path[-1]:
                 yield path
             # Makes sure that the current cycle is not too long
-            # Also if a cycle has been encountered and only simple cycles are allowed,
-            # Then it discards the current path
+            # Also if a cycle has been encountered and only simple cycles are 
+            # allowed, Then it discards the current path
             if len(path) <= max_length and (not simple or path.count(path[-1]) == 1):
                 for neighbor in h.neighbor_out_iterator(path[-1]):
-                    # If cycles are not rooted, makes sure to keep only the minimum
-                    # cycle according to the lexicographic order
+                    # If cycles are not rooted, makes sure to keep only the 
+                    # minimum cycle according to the lexicographic order
                     if rooted or neighbor not in starting_vertices or path[0] <= neighbor:
                         queue.append(path + [neighbor])
 
@@ -3438,162 +2813,6 @@ class DiGraph(GenericGraph):
             level = new_level
         return Levels
 
-
-    def immediate_dominators(self, r, reverse=False):
-        r"""
-        Return the immediate dominators of all vertices reachable from `r`.
-
-        A flowgraph `G = (V, A, r)` is a digraph where every vertex in `V` is
-        reachable from a distinguished root vertex `r\in V`. In such digraph, a
-        vertex `w` dominates a vertex `v` if every path from `r` to `v` includes
-        `w`. Let `dom(v)` be the set of the vertices that dominate `v`.
-        Obviously, `r` and `v`, the trivial dominators of `v`, are in
-        `dom(v)`. For `v \neq r`, the immediate dominator of `v`, denoted by
-        `d(v)`, is the unique vertex `w \neq v` that dominates `v` and is
-        dominated by all the vertices in `dom(v)\setminus\{v\}`. The (immediate)
-        dominator tree is a directed tree (or arborescence) rooted at `r` that
-        is formed by the arcs `\{ (d(v), v)\mid v\in V\setminus\{r\}\}`.  See
-        [Ge2005]_ for more details.
-
-        This method implements the algorithm proposed in [CHK2001]_ which
-        performs very well in practice, although its worst case time complexity
-        is in `O(n^2)`.
-
-        INPUT:
-
-        - ``r`` -- a vertex of the digraph, the root of the immediate dominators
-          tree
-
-        - ``reverse`` -- boolean (default: ``False``); when set to ``True``, we
-          consider the reversed digraph in which out-neighbors become the
-          in-neighbors and vice-versa. This option is available only if the
-          backend of the digraph is :mod:`~SparseGraphBackend`.
-
-        OUTPUT: The (immediate) dominator tree rooted at `r`, encoded as a
-        predecessor dictionary.
-
-        EXAMPLES:
-
-        The output encodes a tree rooted at `r`::
-
-            sage: D = digraphs.Complete(4) * 2
-            sage: D.add_edges([(0, 4), (7, 3)])
-            sage: d = D.immediate_dominators(0)
-            doctest:...: DeprecationWarning: immediate_dominators is now deprecated. Please use method dominator_tree instead.
-            See https://trac.sagemath.org/25030 for details.
-            sage: T = DiGraph([(d[u], u) for u in d if u != d[u]])
-            sage: Graph(T).is_tree()
-            True
-            sage: all(T.in_degree(u) <= 1 for u in T)
-            True
-
-        In a strongly connected digraph, the result depends on the root::
-
-            sage: D = digraphs.Circuit(5)
-            sage: D.immediate_dominators(0)
-            {0: 0, 1: 0, 2: 1, 3: 2, 4: 3}
-            sage: D.immediate_dominators(1)
-            {0: 4, 1: 1, 2: 1, 3: 2, 4: 3}
-
-        The (immediate) dominator tree contains only reachable vertices::
-
-            sage: P = digraphs.Path(5)
-            sage: P.immediate_dominators(0)
-            {0: 0, 1: 0, 2: 1, 3: 2, 4: 3}
-            sage: P.immediate_dominators(3)
-            {3: 3, 4: 3}
-
-        Immediate dominators in the reverse digraph::
-
-            sage: D = digraphs.Complete(5)+digraphs.Complete(4)
-            sage: D.add_edges([(0, 5), (1, 6), (7, 2)])
-            sage: idom = D.immediate_dominators(0, reverse=True)
-            sage: idom
-            {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 7, 6: 7, 7: 2, 8: 7}
-            sage: D_reverse = D.reverse()
-            sage: D_reverse.immediate_dominators(0) == idom
-            True
-
-        .. SEEALSO::
-
-            - :wikipedia:`Dominator_(graph_theory)`
-            - :meth:`~DiGraph.strong_articulation_points`
-            - :meth:`~DiGraph.strongly_connected_components`
-
-        TESTS:
-
-        When `r` is not in the digraph::
-
-            sage: DiGraph().immediate_dominators(0)
-            Traceback (most recent call last):
-            ...
-            ValueError: the given root must be in the digraph
-
-        The reverse option is available only when the backend of the digraph is
-        :mod:`~SparseGraphBackend`::
-
-            sage: H = DiGraph(D.edges(), data_structure='static_sparse')
-            sage: H.immediate_dominators(0, reverse=True)
-            Traceback (most recent call last):
-            ...
-            ValueError: the reverse option is not available for this digraph
-
-        Comparison with the NetworkX method::
-
-            sage: import networkx
-            sage: D = digraphs.RandomDirectedGNP(20, 0.1)
-            sage: d = D.immediate_dominators(0)
-            sage: dx = networkx.immediate_dominators(D.networkx_graph(), 0)
-            sage: all(d[i] == dx[i] for i in d) and all(d[i] == dx[i] for i in dx)
-            True
-        """
-        deprecation(25030, "immediate_dominators is now deprecated."
-                           " Please use method dominator_tree instead.")
-        if r not in self:
-            raise ValueError("the given root must be in the digraph")
-
-        idom = {r: r}
-        n = self.order()
-        if reverse:
-            from sage.graphs.base.sparse_graph import SparseGraphBackend
-            if isinstance(self._backend, SparseGraphBackend):
-                pre_order = list(self._backend.depth_first_search(r, reverse=True))
-                number = {u: n-i for i, u in enumerate(pre_order)}
-                neighbor_iterator = self.neighbor_out_iterator
-            else:
-                raise ValueError("the reverse option is not available for this digraph")
-        else:
-            pre_order = list(self.depth_first_search(r))
-            number = {u: n-i for i, u in enumerate(pre_order)}
-            neighbor_iterator = self.neighbor_in_iterator
-        pre_order.pop(0)
-
-        def intersect(u, v):
-            while u != v:
-                while number[u] < number[v]:
-                    u = idom[u]
-                while number[u] > number[v]:
-                    v = idom[v]
-            return u
-
-        changed = True
-        while changed:
-            changed = False
-            for u in pre_order:
-                pred = [v for v in neighbor_iterator(u) if v in idom]
-                if not pred:
-                    continue
-                else:
-                    new_idom = pred[0]
-                    for v in pred[1:]:
-                        new_idom = intersect(new_idom, v)
-                if not u in idom or idom[u] != new_idom:
-                    idom[u] = new_idom
-                    changed = True
-
-        return idom
-
-
     def is_aperiodic(self):
         r"""
         Return whether the current ``DiGraph`` is aperiodic.
@@ -3699,7 +2918,7 @@ class DiGraph(GenericGraph):
 
         return g
 
-    def flow_polytope(self, edges=None, ends=None):
+    def flow_polytope(self, edges=None, ends=None, backend=None):
         r"""
         Return the flow polytope of a digraph.
 
@@ -3730,13 +2949,14 @@ class DiGraph(GenericGraph):
 
         The faces and volume of these polytopes are of interest. Examples of
         these polytopes are the Chan-Robbins-Yuen polytope and the
-        Pitman-Stanley polytope [PitSta]_.
+        Pitman-Stanley polytope [PS2002]_.
 
         INPUT:
 
-        - ``edges`` -- (optional, default: ``self.edges()``) a list or tuple of
-          all edges of ``self`` (each only once). This determines which
-          coordinate of a point in the polytope will correspond to which edge of
+        - ``edges`` -- list (default: ``None``); a list of edges of ``self``. If
+          not specified, the list of all edges of ``self`` is used with the
+          default ordering of ``self.edges()``. This determines which coordinate
+          of a point in the polytope will correspond to which edge of
           ``self``. It is also possible to specify a list which contains not all
           edges of ``self``; this results in a polytope corresponding to the
           flows which are `0` on all remaining edges. Notice that the edges
@@ -3746,6 +2966,9 @@ class DiGraph(GenericGraph):
 
         - ``ends`` -- (optional, default: ``(self.sources(), self.sinks())``) a
           pair `(S, T)` of an iterable `S` and an iterable `T`.
+
+        - ``backend`` -- string or ``None`` (default); the backend to use;
+          see :meth:`sage.geometry.polyhedron.constructor.Polyhedron`
 
         .. NOTE::
 
@@ -3840,17 +3063,24 @@ class DiGraph(GenericGraph):
             A 0-dimensional polyhedron in QQ^0 defined as the convex hull
             of 1 vertex
 
-        REFERENCES:
+        A digraph with multiple edges (:trac:`28837`)::
 
-        .. [PitSta] Jim Pitman, Richard Stanley, "A polytope related to
-           empirical distributions, plane trees, parking functions, and
-           the associahedron", :arxiv:`math/9908029`
+            sage: G = DiGraph([(0, 1), (0,1)], multiedges=True)
+            sage: G
+            Multi-digraph on 2 vertices
+            sage: P = G.flow_polytope()
+            sage: P
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices
+            sage: P.vertices()
+            (A vertex at (1, 0), A vertex at (0, 1))
+            sage: P.lines()
+            ()
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         if edges is None:
             edges = self.edges(sort=False)
-        ineqs = [[0] + [Integer(j == u) for j in edges]
-                 for u in edges]
+        m = len(edges)
+        ineqs = [[0] * (i + 1) + [1] + [0] * (m - i - 1) for i in range(m)]
 
         eqs = []
         for u in self:
@@ -3873,7 +3103,7 @@ class DiGraph(GenericGraph):
             eq = [const] + eq
             eqs.append(eq)
 
-        return Polyhedron(ieqs=ineqs, eqns=eqs)
+        return Polyhedron(ieqs=ineqs, eqns=eqs, backend=backend)
 
     def is_tournament(self):
         r"""
@@ -3910,6 +3140,537 @@ class DiGraph(GenericGraph):
         return not any(self.has_edge(u, v) == self.has_edge(v, u)
                            for u,v in itertools.combinations(self, 2))
 
+
+    def _girth_bfs(self, odd=False, certificate=False):
+        r"""
+        Return the girth of the digraph using breadth-first search.
+
+        Loops are ignored, so the returned value is at least 2.
+
+        INPUT:
+
+        - ``odd`` -- boolean (default: ``False``); whether to compute the odd
+          girth
+
+        - ``certificate`` -- boolean (default: ``False``); whether to return
+          ``(g, c)``, where ``g`` is the (odd) girth and ``c`` is a list
+          of vertices of a directed cycle of length ``g`` in the graph,
+          thus providing a certificate that the (odd) girth is at most ``g``,
+          or ``None`` if ``g`` is infinite
+
+        EXAMPLES:
+
+        A digraph with girth 4 and odd girth 5::
+
+            sage: G = DiGraph([(0, 1), (1, 2), (1, 3), (2, 3), (3, 4), (4, 0)])
+            sage: G._girth_bfs(certificate=True)  # random
+            (4, [1, 3, 4, 0])
+            sage: G._girth_bfs(odd=True)
+            5
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.GenericGraph.girth` -- return the girth of the
+              graph
+            * :meth:`~sage.graphs.GenericGraph.odd_girth` -- return the odd
+              girth of the graph
+        """
+        n = self.num_verts()
+        best = n + 1
+        seen = set()
+        for w in self:
+            seen.add(w)
+            inSpan, outSpan = {w: None}, {w: None}
+            depth = 1
+            outList, inList = set([w]), set([w])
+            while 2 * depth <= best:
+                nextOutList, nextInList = set(), set()
+                for v in outList:
+                    for u in self.neighbor_out_iterator(v):
+                        if u in seen:
+                            continue
+                        if u not in outSpan:
+                            outSpan[u] = v
+                            nextOutList.add(u)
+                        if u in inList:
+                            best = depth * 2 - 1
+                            ends = (v, u)
+                            bestSpans = (outSpan, inSpan)
+                            break
+                    if best == 2 * depth - 1:
+                        break
+                if best == 2 * depth - 1:
+                    break
+                for v in inList:
+                    for u in self.neighbor_in_iterator(v):
+                        if u in seen:
+                            continue
+                        if u not in inSpan:
+                            inSpan[u] = v
+                            nextInList.add(u)
+                        if not odd and u in nextOutList:
+                            best = depth * 2
+                            ends = (u, v)
+                            bestSpans = (outSpan, inSpan)
+                            break
+                    if best == 2 * depth:
+                        break
+                if best <= 2:
+                    break
+                outList = nextOutList
+                inList = nextInList
+                depth += 1
+        if best == n + 1:
+            from sage.rings.infinity import Infinity
+            return (Infinity, None) if certificate else Infinity
+        if certificate:
+            cycles = {}
+            for x, span in zip(ends, bestSpans):
+                cycles[x] = []
+                y = x
+                while span[y] is not None:
+                    cycles[x].append(y)
+                    y = span[y]
+            cycles[x].append(y)
+            u, v = ends
+            return (best, list(reversed(cycles[u])) + cycles[v])
+        return best
+
+    def out_branchings(self, source, spanning=True):
+        r"""
+        Return an iterator over the out branchings rooted at given vertex in
+        ``self``.
+
+        An out-branching is a directed tree rooted at ``source`` whose arcs are
+        directed from source to leaves. An out-branching is spanning if it
+        contains all vertices of the digraph.
+
+        If no spanning out branching rooted at ``source`` exist, raises
+        ValueError or return non spanning out branching rooted at ``source``, 
+        depending on the value of ``spanning``.
+
+        INPUT:
+
+        - ``source`` -- vertex used as the source for all out branchings.
+
+        - ``spanning`` -- boolean (default: ``True``); if ``False`` return
+          maximum out branching from ``source``. Otherwise, return spanning out
+          branching if exists. 
+
+        OUTPUT:
+
+        An iterator over the out branchings rooted in the given source.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.digraph.DiGraph.in_branchings`
+              -- iterator over in-branchings rooted at given vertex.
+            - :meth:`~sage.graphs.graph.Graph.spanning_trees`
+              -- returns all spanning trees.
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
+              -- counts the number of spanning trees.
+
+        ALGORITHM:
+
+        Recursively computes all out branchings.
+
+        At each step:
+
+            0. clean the graph (see below)
+            1. pick an edge e out of source
+            2. find all out branchings that do not contain e by first
+               removing it
+            3. find all out branchings that do contain e by first
+               merging the end vertices of e
+
+        Cleaning the graph implies to remove loops and replace multiedges by a
+        single one with an appropriate label since these lead to similar steps
+        of computation.
+
+        EXAMPLES:
+
+        A bidirectional 4-cycle::
+
+            sage: G = DiGraph({1:[2,3], 2:[1,4], 3:[1,4], 4:[2,3]}, format='dict_of_lists')
+            sage: list(G.out_branchings(1))
+            [Digraph on 4 vertices,
+             Digraph on 4 vertices,
+             Digraph on 4 vertices,
+             Digraph on 4 vertices]
+
+        With the Petersen graph turned into a symmetric directed graph::
+
+            sage: G = graphs.PetersenGraph().to_directed()
+            sage: len(list(G.out_branchings(0)))
+            2000
+
+        With a non connected ``DiGraph`` and ``spanning = True``::
+
+            sage: G = graphs.PetersenGraph().to_directed() + graphs.PetersenGraph().to_directed()
+            sage: G.out_branchings(0, spanning=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: no spanning out branching from vertex (0) exist
+ 
+        With a non connected ``DiGraph`` and ``spanning = False``::
+
+            sage: g=DiGraph([(0,1), (0,1), (1,2), (3,4)],multiedges=True)
+            sage: list(g.out_branchings(0, spanning=False))
+            [Digraph on 3 vertices, Digraph on 3 vertices]
+
+        With multiedges::
+
+            sage: G = DiGraph({0:[1,1,1], 1:[2,2]}, format='dict_of_lists', multiedges=True)
+            sage: len(list(G.out_branchings(0)))
+            6
+
+        With a DiGraph already being a spanning out branching::
+        
+            sage: G = DiGraph({0:[1,2], 1:[3,4], 2:[5], 3:[], 4:[], 5:[]}, format='dict_of_lists')
+            sage: next(G.out_branchings(0)) == G
+            True
+
+        TESTS:
+
+        The empty ``DiGraph``::
+
+            sage: G = DiGraph()
+            sage: G.out_branchings(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: vertex (0) is not a vertex of the digraph
+
+            sage: edges = [(0,0,'x'), (0,0,'y')]
+            sage: G = DiGraph(edges, multiedges=True, loops=True, weighted=True)
+            sage: list(G.out_branchings(0))
+            [Digraph on 1 vertex]
+
+            sage: edges = [(0,1,'x'), (0,1,'y'), (1,2,'z'), (2,0,'w')]
+            sage: G = DiGraph(edges, multiedges=True, loops=True, weighted=True)
+            sage: len(list(G.out_branchings(0)))
+            2
+        """
+        def _rec_out_branchings(depth):
+            r"""
+            The recursive function used to enumerate out branchings.
+
+            This function makes use of the following to keep track of partial
+            out branchings:
+                list_edges -- list of edges in self.
+                list_merged_edges -- list of edges that are currently merged
+                graph -- a copy of self where edges have an appropriate label
+            """
+            if not depth:
+                # We have enough merged edges to form a out_branching
+                # We iterate over the lists of labels in list_merged_edges and
+                # yield the corresponding out_branchings
+                for indexes in product(*list_merged_edges):
+                    yield DiGraph([list_edges[index] for index in indexes],
+                                  format='list_of_edges', pos=self.get_pos())
+
+            # 1) Clean the graph
+            # delete loops on source if any
+            D.delete_edges(D.incoming_edge_iterator(source))
+
+            # merge multi-edges if any by concatenating their labels
+            if D.has_multiple_edges():
+                merged_multiple_edges = {}
+                for u, v, l in D.multiple_edges():
+                    D.delete_edge(u, v, l)
+                    if (u, v) not in merged_multiple_edges:
+                        merged_multiple_edges[(u, v)] = l
+                    else:
+                        merged_multiple_edges[(u, v)] += l
+                D.add_edges([(u, v, l) for (u, v),l in merged_multiple_edges.items()])
+
+            # 2) Pick an edge e outgoing from the source
+            try:
+                s, x, l = next(D.outgoing_edge_iterator(source))
+            except:
+                return
+            # 3) Find all out_branchings that do not contain e
+            # by first removing it
+            D.delete_edge(s, x, l)
+            if len(list(D.depth_first_search(source))) == depth + 1:
+                for out_branch in _rec_out_branchings(depth):
+                    yield out_branch
+            D.add_edge(s, x, l)
+
+            # 4) Find all out_branchings that do contain e by merging
+            # the end vertices of e
+            # store different edges to unmerged the end vertices of e
+            saved_edges = D.outgoing_edges(source)
+            saved_edges.remove((s, x, l))
+            saved_edges += D.outgoing_edges(x)
+            saved_edges += D.incoming_edges(x)
+
+            D.merge_vertices((source, x))
+
+            list_merged_edges.add(l)
+            
+            for out_branch in _rec_out_branchings(depth - 1):
+                yield out_branch
+
+            list_merged_edges.remove(l)
+
+            # unmerge the end vertices of e
+            D.delete_vertex(source)
+            D.add_edges(saved_edges)
+
+        def _singleton_out_branching():
+            r"""
+            Returns a DiGraph containing only ``source`` and no edges.
+            """
+            D = DiGraph()
+            D.add_vertex(source)
+            yield D
+
+        if not self.has_vertex(source):
+            raise ValueError("vertex ({0}) is not a vertex of the digraph".format(source))
+
+        # check if self.order == 1
+        if self.order() == 1:
+            return _singleton_out_branching()
+
+        # check if the source can access to every other vertex
+        if spanning:
+            depth = self.order() - 1
+            if len(list(self.depth_first_search(source))) < self.order():
+                raise ValueError("no spanning out branching from vertex ({0}) exist".format(source))
+        else:
+            depth = len(list(self.depth_first_search(source))) - 1
+            # if vertex is isolated
+            if not depth:
+                return _singleton_out_branching()
+                
+        # We build a copy of self in which each edge has a distinct label.
+        # On the way, we remove loops and edges incoming to source.
+        D = DiGraph(multiedges=True, loops=True)
+        list_edges = list(self.edges(sort=False))
+        for i, (u, v, _) in enumerate(list_edges):
+            if u != v and v != source:
+                D.add_edge(u, v, (i,))
+        list_merged_edges = set()
+        return _rec_out_branchings(depth)
+
+    def in_branchings(self, source, spanning=True):
+        r"""
+        Return an iterator over the in branchings rooted at given vertex in
+        ``self``.
+
+        An in-branching is a directed tree rooted at ``source`` whose arcs are
+        directed to source from leaves. An in-branching is spanning if it
+        contains all vertices of the digraph.
+
+        If no spanning in branching rooted at ``source`` exist, raises
+        ValueError or return non spanning in branching rooted at ``source``, 
+        depending on the value of ``spanning``.
+
+        INPUT:
+
+        - ``source`` -- vertex used as the source for all in branchings.
+
+        - ``spanning`` -- boolean (default: ``True``); if ``False`` return
+          maximum in branching to ``source``. Otherwise, return spanning in
+          branching if exists.
+
+        OUTPUT:
+
+        An iterator over the in branchings rooted in the given source.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.digraph.DiGraph.out_branchings`
+              -- iterator over out-branchings rooted at given vertex.
+            - :meth:`~sage.graphs.graph.Graph.spanning_trees`
+              -- returns all spanning trees.
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
+              -- counts the number of spanning trees.
+
+        ALGORITHM:
+
+        Recursively computes all in branchings.
+
+        At each step:
+
+            0. clean the graph (see below)
+            1. pick an edge e incoming to source
+            2. find all in branchings that do not contain e by first
+               removing it
+            3. find all in branchings that do contain e by first
+               merging the end vertices of e
+
+        Cleaning the graph implies to remove loops and replace multiedges by a
+        single one with an appropriate label since these lead to similar steps
+        of computation.
+
+        EXAMPLES:
+
+        A bidirectional 4-cycle::
+
+            sage: G = DiGraph({1:[2,3], 2:[1,4], 3:[1,4], 4:[2,3]}, format='dict_of_lists')
+            sage: list(G.in_branchings(1))
+            [Digraph on 4 vertices,
+             Digraph on 4 vertices,
+             Digraph on 4 vertices,
+             Digraph on 4 vertices]
+
+        With the Petersen graph turned into a symmetric directed graph::
+
+            sage: G = graphs.PetersenGraph().to_directed()
+            sage: len(list(G.in_branchings(0)))
+            2000
+
+        With a non connected ``DiGraph`` and ``spanning = True``::
+
+            sage: G = graphs.PetersenGraph().to_directed() + graphs.PetersenGraph().to_directed()
+            sage: G.in_branchings(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: no spanning in branching to vertex (0) exist
+
+        With a non connected ``DiGraph`` and ``spanning = False``::
+
+            sage: g=DiGraph([(1,0), (1,0), (2,1), (3,4)],multiedges=True)
+            sage: list(g.in_branchings(0,spanning=False))
+            [Digraph on 3 vertices, Digraph on 3 vertices]
+
+        With multiedges::
+
+            sage: G = DiGraph({0:[1,1,1], 1:[2,2]}, format='dict_of_lists', multiedges=True)
+            sage: len(list(G.in_branchings(2)))
+            6
+
+        With a DiGraph already being a spanning in branching::
+        
+            sage: G = DiGraph({0:[], 1:[0], 2:[0], 3:[1], 4:[1], 5:[2]}, format='dict_of_lists')
+            sage: next(G.in_branchings(0)) == G
+            True
+
+        TESTS:
+
+        The empty ``DiGraph``::
+
+            sage: G = DiGraph()
+            sage: G.in_branchings(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: vertex (0) is not a vertex of the digraph
+
+            sage: edges = [(0,0,'x'), (0,0,'y')]
+            sage: G = DiGraph(edges, multiedges=True, loops=True, weighted=True)
+            sage: list(G.in_branchings(0))
+            [Digraph on 1 vertex]
+
+            sage: edges = [(0,1,'x'), (0,1,'y'), (1,2,'z'), (2,0,'w')]
+            sage: G = DiGraph(edges, multiedges=True, loops=True, weighted=True)
+            sage: len(list(G.in_branchings(0)))
+            1
+        """
+        def _rec_in_branchings(depth):
+            r"""
+            The recursive function used to enumerate in branchings.
+
+            This function makes use of the following to keep track of partial in
+            branchings:
+                list_edges -- list of edges in self.
+                list_merged_edges -- list of edges that are currently merged
+                graph -- a copy of self where edges have an appropriate label
+            """
+            if not depth:
+                # We have enough merged edges to form a in_branching
+                # We iterate over the lists of labels in list_merged_edges and
+                # yield the corresponding in_branchings
+                for indexes in product(*list_merged_edges):
+                    yield DiGraph([list_edges[index] for index in indexes],
+                                  format='list_of_edges', pos=self.get_pos())
+
+            # 1) Clean the graph
+            # delete loops on source if any
+            D.delete_edges(D.outgoing_edge_iterator(source))
+
+            # merge multi-edges if any by concatenating their labels
+            if D.has_multiple_edges():
+                merged_multiple_edges = {}
+                for u, v, l in D.multiple_edges():
+                    D.delete_edge(u, v, l)
+                    if (u, v) not in merged_multiple_edges:
+                        merged_multiple_edges[(u, v)] = l
+                    else:
+                        merged_multiple_edges[(u, v)] += l
+                D.add_edges([(u, v, l) for (u, v),l in merged_multiple_edges.items()])
+
+            # 2) Pick an edge e incoming to the source
+            try:
+                x, s, l = next(D.incoming_edge_iterator(source))
+            except:
+                return
+            # 3) Find all in_branchings that do not contain e
+            # by first removing it
+            D.delete_edge(x, s, l)
+            if len(list(D.depth_first_search(source, neighbors=D.neighbor_in_iterator))) == depth + 1:
+                for in_branch in _rec_in_branchings(depth):
+                    yield in_branch
+            D.add_edge(x, s, l)
+
+            # 4) Find all in_branchings that do contain e by merging
+            # the end vertices of e
+            # store different edges to unmerged the end vertices of e
+            saved_edges = D.incoming_edges(source)
+            saved_edges.remove((x, s, l))
+            saved_edges += D.outgoing_edges(x)
+            saved_edges += D.incoming_edges(x)
+
+            D.merge_vertices((source, x))
+
+            list_merged_edges.add(l)
+            
+            for in_branch in _rec_in_branchings(depth - 1):
+                yield in_branch
+
+            list_merged_edges.remove(l)
+             
+            # unmerge the end vertices of e
+            D.delete_vertex(source)
+            D.add_edges(saved_edges)
+
+        def _singleton_in_branching():
+            r"""
+            Returns a DiGraph containing only ``source`` and no edges.
+            """
+            D = DiGraph()
+            D.add_vertex(source)
+            yield D
+
+        if not self.has_vertex(source):
+            raise ValueError("vertex ({0}) is not a vertex of the digraph".format(source))
+        
+        # check if self.order == 1
+        if self.order() == 1:
+            return _singleton_in_branching()
+
+        # check if the source can access to every other vertex
+        if spanning:
+            depth = self.order() - 1
+            if len(list(self.depth_first_search(source, neighbors=self.neighbor_in_iterator))) < self.order():
+                raise ValueError("no spanning in branching to vertex ({0}) exist".format(source))
+        else:
+            depth = len(list(self.depth_first_search(source, neighbors=self.neighbor_in_iterator))) - 1
+            # if vertex is isolated
+            if not depth:
+                return _singleton_in_branching()
+            
+        # We build a copy of self in which each edge has a distinct label.
+        # On the way, we remove loops and edges incoming to source.
+        D = DiGraph(multiedges=True, loops=True)
+        list_edges = list(self.edges(sort=False))
+        for i, (u, v, _) in enumerate(list_edges):
+            if u != v and u != source:
+                D.add_edge(u, v, (i,))
+        list_merged_edges = set()
+        return _rec_in_branchings(depth)
+
+
     # Aliases to functions defined in other modules
     from sage.graphs.comparability import is_transitive
     from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components as strongly_connected_components
@@ -3918,3 +3679,6 @@ class DiGraph(GenericGraph):
     from sage.graphs.connectivity import strongly_connected_components_subgraphs
     from sage.graphs.connectivity import strongly_connected_component_containing_vertex
     from sage.graphs.connectivity import strong_articulation_points
+    from sage.graphs.path_enumeration import _all_paths_iterator
+    from sage.graphs.path_enumeration import all_paths_iterator
+    from sage.graphs.path_enumeration import all_simple_paths

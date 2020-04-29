@@ -933,7 +933,6 @@ from __future__ import print_function
 
 import six
 from six.moves import range, zip_longest, zip
-from six import itervalues
 
 from IPython.lib.pretty import pretty
 import collections
@@ -1324,13 +1323,10 @@ class FSMState(SageObject):
         sage: T.state(3).hook = stop
         sage: T.process([9, 9, 9, 9])
         (False, 3, ['a', 'b', 'c'])
-    """
 
-    is_initial = False
-    """
-    Describes whether the state is initial.
+    TESTS:
 
-    EXAMPLES::
+    Test for ``is_initial``::
 
         sage: T = Automaton([(0,0,0)])
         sage: T.initial_states()
@@ -1338,20 +1334,17 @@ class FSMState(SageObject):
         sage: T.state(0).is_initial = True
         sage: T.initial_states()
         [0]
-    """
 
-    initial_probability = None
-    """
-    The probability of starting in this state if it is part of a Markov chain.
-
-    EXAMPLES::
+    Test for ``initial_probability``::
 
         sage: from sage.combinat.finite_state_machine import FSMState
         sage: S = FSMState('state', initial_probability=1/3)
         sage: S.initial_probability
         1/3
     """
-
+    is_initial = False  # Describes whether the state is initial
+    initial_probability = None
+    # The probability of starting in this state if it is part of a Markov chain
 
     def __init__(self, label, word_out=None,
                  is_initial=False, is_final=False, final_word_out=None,
@@ -2418,30 +2411,8 @@ class FSMTransition(SageObject):
         """
         return deepcopy(self, memo)
 
-    def __hash__(self):
-        """
-        Since transitions are mutable, they should not be hashable, so
-        we return a type error.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        The hash of this transition.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.finite_state_machine import FSMTransition
-            sage: hash(FSMTransition('A', 'B'))
-            Traceback (most recent call last):
-            ...
-            TypeError: Transitions are mutable, and thus not hashable.
-
-        """
-        raise TypeError("Transitions are mutable, and thus not hashable.")
-
+    __hash__ = None
+    # Since transitions are mutable, they should not be hashable
 
     def _repr_(self):
         """
@@ -5624,9 +5595,7 @@ class FiniteStateMachine(SageObject):
             sage: [s.label() for s in F.iter_initial_states()]
             ['A']
         """
-        from six.moves import filter
-        return filter(lambda s:s.is_initial, self.iter_states())
-
+        return (s for s in self.iter_states() if s.is_initial)
 
     def final_states(self):
         """
@@ -5675,8 +5644,7 @@ class FiniteStateMachine(SageObject):
             sage: [s.label() for s in F.iter_final_states()]
             ['A', 'C']
         """
-        from six.moves import filter
-        return filter(lambda s:s.is_final, self.iter_states())
+        return (s for s in self.iter_states() if s.is_final)
 
     def state(self, state):
         """
@@ -6169,7 +6137,7 @@ class FiniteStateMachine(SageObject):
 
         If the choice of the outgoing transition is not unique (i.e.,
         we have a non-deterministic finite state machine), all
-        possibilites are followed. This is done by splitting the
+        possibilities are followed. This is done by splitting the
         process into several branches, one for each of the possible
         outgoing transitions.
 
@@ -6831,7 +6799,7 @@ class FiniteStateMachine(SageObject):
                 if is_FSMTransition(d):
                     return self._add_fsm_transition_(d)
             else:
-                d = next(itervalues(kwargs))
+                d = next(iter(kwargs.values()))
             if hasattr(d, 'items'):
                 args = []
                 kwargs = d
@@ -6938,7 +6906,7 @@ class FiniteStateMachine(SageObject):
             ....:                        final_states=[1],
             ....:                        input_alphabet=[0])
             sage: def transition_function(state, letter):
-            ....:     return(1-state, [])
+            ....:     return 1 - state, []
             sage: F.add_from_transition_function(transition_function)
             sage: F.transitions()
             [Transition from 0 to 1: 0|-,
@@ -6952,7 +6920,7 @@ class FiniteStateMachine(SageObject):
             ....:                        final_states=[1],
             ....:                        input_alphabet=[0])
             sage: def transition_function(state, letter):
-            ....:     return(1-state, [])
+            ....:     return 1 - state, []
             sage: F.add_from_transition_function(transition_function,
             ....:                                explore_existing_states=False)
             sage: F.transitions()
@@ -7004,7 +6972,7 @@ class FiniteStateMachine(SageObject):
                     pass
         else:
             ignore_done = []
-        while len(not_done) > 0:
+        while not_done:
             s = not_done.pop(0)
             for letter in self.input_alphabet:
                 try:
@@ -9179,15 +9147,13 @@ class FiniteStateMachine(SageObject):
              Transition from 1 to 0: 0|0,
              Transition from 1 to 1: 1|1,(0, 0)]
         """
-        from six.moves import filter
-
         def find_common_output(state):
-            if any(filter(
-                    lambda transition: not transition.word_out,
-                    self.transitions(state))) \
-                   or state.is_final and not state.final_word_out:
+            if (any(transition for transition in self.transitions(state)
+                    if not transition.word_out)
+                        or state.is_final and not state.final_word_out):
                 return tuple()
-            first_letters = [transition.word_out[0] for transition in self.transitions(state)]
+            first_letters = [transition.word_out[0]
+                             for transition in self.transitions(state)]
             if state.is_final:
                 first_letters = first_letters + [state.final_word_out[0]]
             if not first_letters:
@@ -10057,15 +10023,14 @@ class FiniteStateMachine(SageObject):
                 unhandeled_direct_predecessors[t.to_state].append(t.from_state)
         done = []
         open = [state]
-        while len(open) > 0:
+        while open:
             s = open.pop()
             candidates = unhandeled_direct_predecessors[s]
             if candidates is not None:
                 open.extend(candidates)
                 unhandeled_direct_predecessors[s] = None
                 done.append(s)
-        return(done)
-
+        return done
 
     def number_of_words(self, variable=var('n'),
                         base_ring=None):
@@ -11657,7 +11622,8 @@ class Automaton(FiniteStateMachine):
             ....:                ('B', 'C', 0), ('C', 'C', 1), ('C', 'C', 0)],
             ....:               initial_states=['A'], final_states=['C'])
             sage: B = A.minimization(algorithm='Brzozowski')
-            sage: B.transitions(B.states()[1])
+            sage: B_trans = B.transitions(B.states()[1])
+            sage: B_trans # random
             [Transition from frozenset({frozenset({'B', 'C'}),
                                         frozenset({'A', 'C'}),
                                         frozenset({'A', 'B', 'C'})})
@@ -11676,22 +11642,9 @@ class Automaton(FiniteStateMachine):
             sage: len(B.states())
             3
             sage: C = A.minimization(algorithm='Brzozowski')
-            sage: C.transitions(C.states()[1])
-            [Transition from frozenset({frozenset({'B', 'C'}),
-                                        frozenset({'A', 'C'}),
-                                        frozenset({'A', 'B', 'C'})})
-                        to frozenset({frozenset({'C'}),
-                                      frozenset({'B', 'C'}),
-                                      frozenset({'A', 'C'}),
-                                      frozenset({'A', 'B', 'C'})}):
-                        0|-,
-             Transition from frozenset({frozenset({'B', 'C'}),
-                                        frozenset({'A', 'C'}),
-                                        frozenset({'A', 'B', 'C'})})
-                        to frozenset({frozenset({'B', 'C'}),
-                                      frozenset({'A', 'C'}),
-                                      frozenset({'A', 'B', 'C'})}):
-                        1|-]
+            sage: C_trans = C.transitions(C.states()[1])
+            sage: B_trans == C_trans
+            True
             sage: len(C.states())
             3
 
@@ -11962,7 +11915,7 @@ class Automaton(FiniteStateMachine):
 
         If the choice of the outgoing transition is not unique (i.e.,
         we have a non-deterministic finite state machine), all
-        possibilites are followed. This is done by splitting the
+        possibilities are followed. This is done by splitting the
         process into several branches, one for each of the possible
         outgoing transitions.
 
@@ -13075,7 +13028,7 @@ class Transducer(FiniteStateMachine):
 
         If the choice of the outgoing transition is not unique (i.e.,
         we have a non-deterministic finite state machine), all
-        possibilites are followed. This is done by splitting the
+        possibilities are followed. This is done by splitting the
         process into several branches, one for each of the possible
         outgoing transitions.
 
@@ -13137,7 +13090,7 @@ class Transducer(FiniteStateMachine):
             sage: T.state(0).is_initial = True
             sage: T.state(1).is_final = True
 
-        We can see the different possibilites of the output by::
+        We can see the different possibilities of the output by::
 
             sage: [T.process(w) for w in [[1], [0, 1], [0, 0, 1], [0, 1, 1],
             ....:                         [0], [0, 0], [2, 0], [0, 1, 2]]]
@@ -13733,7 +13686,6 @@ class _FSMTapeCache_(SageObject):
         else:
             return track_cache[0]
 
-
     def compare_to_tape(self, track_number, word):
         """
         Returns whether it is possible to read ``word`` from the given
@@ -14271,7 +14223,7 @@ class FSMProcessIterator(SageObject,
 
     If the choice of the outgoing transition is not unique (i.e.,
     we have a non-deterministic finite state machine), all
-    possibilites are followed. This is done by splitting the
+    possibilities are followed. This is done by splitting the
     process into several branches, one for each of the possible
     outgoing transitions.
 

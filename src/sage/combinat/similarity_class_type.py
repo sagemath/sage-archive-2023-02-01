@@ -55,12 +55,12 @@ For `2 \times 2` matrices there are four types::
     [[2, [1]]]
 
 These four types correspond to the regular split semisimple matrices, the
-non-semisimple matrices, the central matrices and the irreducble matrices
+non-semisimple matrices, the central matrices and the irreducible matrices
 respectively.
 
 For any matrix `A` in a given similarity class type, it is possible to calculate
 the number elements in the similarity class of `A`, the dimension of the algebra
-of matrices in `M_n(A)` that commite  with `A`, and the cardinality of the
+of matrices in `M_n(A)` that commute  with `A`, and the cardinality of the
 subgroup of `GL_n(\GF{q})` that commute with `A`. For each similarity
 class type, it is also possible to compute the number of classes of that type
 (and hence, the total number of matrices of that type). All these calculations

@@ -53,8 +53,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 from cpython.tuple cimport PyTuple_GET_ITEM
 
 from .functor cimport Functor
@@ -571,5 +569,3 @@ cdef class ActionEndomorphism(Morphism):
                 return ActionEndomorphism(self._action, inv_g)
             else:
                 return (~self._action)(self._g)
-
-

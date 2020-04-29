@@ -474,7 +474,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Generator 1 is [29604565304828237474403861024284371796799791624792913256602210:-256256267988926809388776834045513089648669153204356603464786949:490078023219787588959802933995928925096061616470779979261000]; height 95.98037...
             Regulator = 95.98037...
         """
-        if options == "":
+        if not options:
             from sage.interfaces.all import mwrank
         else:
             from sage.interfaces.all import Mwrank
@@ -490,7 +490,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``algorithm`` - str, (default: "pari")
 
-           -  ``"pari"`` - use the PARI C-library ellglobalred
+           -  ``"pari"`` - use the PARI C-library :pari:`ellglobalred`
               implementation of Tate's algorithm
 
            -  ``"mwrank"`` - use Cremona's mwrank implementation
@@ -935,7 +935,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return v
 
 
-        # There is some overheard associated with coercing the PARI
+        # There is some overhead associated with coercing the PARI
         # list back to Python, but it's not bad.  It's better to do it
         # this way instead of trying to eval the whole list, since the
         # int conversion is done very sensibly.  NOTE: This would fail
@@ -1110,15 +1110,31 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             normalize = "L_ratio"
         if normalize not in ["L_ratio", "period", "none"]:
             raise ValueError("normalize should be one of 'L_ratio', 'period' or 'none'")
-        if implementation not in ["sage", "eclib"]:
-            raise ValueError("Implementation should be one of 'sage' or 'eclib'")
+        if implementation not in ["sage", "eclib", "num"]:
+            raise ValueError("Implementation should be one of 'sage', 'num' or 'eclib'")
         return (sign, normalize, implementation)
 
     @cached_method(key = _modular_symbol_normalize)
     def modular_symbol(self, sign=+1, normalize=None, implementation='eclib'):
         r"""
-        Return the modular symbol associated to this elliptic curve,
-        with given sign.
+        Return the modular symbol associated to this elliptic curve
+        with given sign.  This is a map that sends any rational number`r`
+        to a rational number `[r]_E`, defined to be a certain
+        multiple of the integral of `2 \pi i f(z) dz`
+        from `\infty` to `r` where `f` is the newform attached to `E`.
+
+        More precisely: If the sign is +1, then the value returned is the
+        quotient of the real part of this integral by the least positive
+        period `\Omega_E^{+}` of `E`. In particular for `r=0`, the value
+        is equal to `L(E,1)/\Omega_E^{+}` (unlike in ``L_ratio`` of
+        ``lseries()``, where the value is also divided by the number of
+        connected components of `E(\RR)`). In particular the modular
+        symbol depends on `E` and not only the isogeny class of `E`.
+        For sign `-1`, it is the quotient of the imaginary part of the
+        integral divided by the purely imaginary period of `E` with
+        smallest positive imaginary part. Note however there is an
+        issue about these normalizations, hence the optional argument
+        ``normalize`` explained below
 
         INPUT:
 
@@ -1126,10 +1142,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``normalize`` - (default: None); either 'L_ratio', 'period',
            or 'none' when ``implementation`` is 'sage'; ignored if
-           ``implementation`` is ``eclib``.  For 'L_ratio', the
-           modular symbol tries to normalize correctly as explained
-           below by comparing it to ``L_ratio`` for the curve and some
-           small twists.  The normalization 'period' uses the
+           ``implementation`` is ``eclib`` or ``num``.
+           For 'L_ratio', the modular symbol tries to normalize
+           correctly as explained below by comparing it to
+           ``L_ratio`` for the curve and some small twists.
+           The normalization 'period' uses the
            ``integral_period_map`` for modular symbols which is known
            to be equal to the desired normalization, up to the sign
            and a possible power of 2.  With normalization 'none', the
@@ -1140,10 +1157,32 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            ``sage`` is chosen, though evaluation of it after computing
            it is no faster.
 
-        -  ``implementation`` - either 'eclib' (default) or
-           'sage'. Here 'eclib' uses John Cremona's implementation in
-           the eclib library, while 'sage' uses an implementation
-           in Sage which is often quite a bit slower.
+
+        -  ``implementation`` - either 'eclib' (default), 'sage' or
+           'num'. Here 'eclib' uses John Cremona's implementation in
+           his eclib library. Instead 'sage' uses an implementation
+           within Sage which is often quite a bit slower.
+           Finally 'num' uses an implementation of numerical
+           modular symbols.
+
+        ALGORITHM:
+
+           For the implementations 'sage' and 'eclib', the used
+           algorithm starts by finding the space of modular symbols
+           within the full space of all modular symbols of that
+           level. This initial step will take a very long time if
+           the conductor is large (e.g. minutes for five digit
+           conductors). Once the space is determined, each
+           evaluation is very fast (logarithmic in the
+           denominator of `r`).
+
+           The implementation 'num' uses a different algorithm.
+           It uses numerical integration along paths in the upper
+           half plane. The bounds are rigorously proved so that
+           the outcome is known to be correct. The initial step
+           costs no time, instead each evaluation will take more
+           time than in the above. More information in the
+           documentation of the class ``ModularSymbolNumerical``.
 
         .. SEEALSO::
 
@@ -1188,6 +1227,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1 and a power of 2
             sage: M(1/7)
             -1/2
+
+        With the numerical version, rather high conductors can
+        be computed::
+
+            sage: E = EllipticCurve([999,997])
+            sage: E.conductor()
+            16059400956
+            sage: m = E.modular_symbol(implementation="num")
+            sage: m(0) # long time
+            16
 
         Different curves in an isogeny class have modular symbols
         which differ by a nonzero rational factor::
@@ -1253,87 +1302,74 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         sign, normalize, implementation = self._modular_symbol_normalize(sign, normalize, implementation)
         if implementation == 'eclib':
             M = ell_modular_symbols.ModularSymbolECLIB(self, sign)
-        else:  # implementation == 'sage':
+        elif implementation == 'sage':
             M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
+        else: # implementation == "num":
+            from sage.schemes.elliptic_curves.mod_sym_num import ModularSymbolNumerical
+            M = ModularSymbolNumerical(self, sign)
         return M
 
-    def _modsym(self, tau, prec=53):
-        r"""
-        Compute the modular symbol `\{\infty, \tau\}` analytically.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('11a1')
-            sage: E._modsym(0)  # abs tol 1e-14
-            0.253841860855911 - 2.86184184507043e-17*I
-            sage: E = EllipticCurve('17a1')
-            sage: E._modsym(0)  # abs tol 1e-14
-            0.386769938387780 - 4.26353246509333e-17*I
-        """
-        from sage.modular.cusps import Cusps
-        from sage.sets.all import Primes
-        N = self.conductor()
-        # Find a prime p that is suitable, along with matrices M[i].
-        for p in Primes():
-            if N % p == 0:
-                continue
-            # Are the cusps tau, p*tau, and (tau+j)/p for j = 0, ..., p-1
-            # all equivalent?
-            t = Cusps(tau)
-            M = []
-            b, m = t.is_gamma0_equiv(p * tau, N, transformation='matrix')
-            if not b:
-                continue
-            M.append(m)
-            good = True
-            for j in range(p):
-                b, m = t.is_gamma0_equiv((tau + j) / p, N,
-                                         transformation='matrix')
-                if not b:
-                    good = False
-                    break
-                M.append(m)
-            if good:
-                # Found it!
-                break
-        f = self.newform()
-        return -sum(f.period(m, prec) for m in M) / (1 + p - self.ap(p))
-
-    def modular_symbol_numerical(self, sign=1, prec=53):
+    def modular_symbol_numerical(self, sign=1, prec=20):
         """
         Return the modular symbol as a numerical function.
 
-        .. NOTE::
+        Just as in :meth:`modular_symbol` this returns a function
+        that maps any rational `r` to a real number that should be
+        equal to the rational number with an error smaller than the
+        given binary precision. In practice the precision is
+        often much higher. See the examples below.
+        The normalisation is the same.
 
-            This method does not compute spaces of modular symbols, so
-            it is suitable for curves of larger conductor than can be
-            handled by :meth:`modular_symbol`.
+        INPUT:
+
+        - ``sign`` -- either +1 (default) or -1
+
+        - ``prec`` -- an integer (default 20)
+
+        OUTPUT:
+
+        - a real number
+
+        ALGORITHM:
+
+            This method does not compute spaces of modular symbols,
+            so it is suitable for curves of larger conductor than
+            can be handled by :meth:`modular_symbol`.
+            It is essentially the same implementation as
+            ``modular_symbol`` with implementation set to 'num'.
+            However the precision is not automatically chosen to
+            be certain that the output is equal to the rational
+            number it approximates.
+
+            For large conductors one should set the ``prec`` very small.
 
         EXAMPLES::
 
             sage: E = EllipticCurve('19a1')
             sage: f = E.modular_symbol_numerical(1)
-            sage: g = E.modular_symbol()
+            sage: g = E.modular_symbol(1)
             sage: f(0), g(0)  # abs tol 1e-14
-            (0.333333333333330, 1/3)
-            sage: f(oo), g(oo)
-            (-0.000000000000000, 0)
+            (0.333333333333333, 1/3)
 
-            sage: E = EllipticCurve('79a1')
-            sage: f = E.modular_symbol_numerical(-1)
-            sage: g = E.modular_symbol(-1, implementation="sage")
-            sage: f(1/3), g(1/3)  # abs tol 1e-13
-            (1.00000000000001, 1)
-            sage: f(oo), g(oo)
-            (0.000000000000000, 0)
+            sage: E = EllipticCurve('5077a1')
+            sage: f = E.modular_symbol_numerical(-1, prec=2)
+            sage: f(0)        # abs tol 1e-4
+            0.000000000000000
+            sage: f(1/7)      # abs tol 1e-4
+            1.00001356670155
+
+            sage: E = EllipticCurve([123,456])
+            sage: E.conductor()
+            104461920
+            sage: f = E.modular_symbol_numerical(prec=2)
+            sage: f(0)        # abs tol 1e-4
+            2.00001004772210
         """
-        lam = self.period_lattice().basis(prec=prec)
-        if sign == 1:
-            P = lam[0].real()
-            return lambda a: self._modsym(a, prec).real() / P
-        else:
-            P = lam[1].imag()
-            return lambda a: self._modsym(a, prec).imag() / P
+        from sage.schemes.elliptic_curves.mod_sym_num import ModularSymbolNumerical
+        M = ModularSymbolNumerical(self, sign=sign)
+        def f(r):
+            return M.approximative_value(r, prec=prec)
+        return f
 
 
     def pollack_stevens_modular_symbol(self, sign=0, implementation='eclib'):
@@ -2298,7 +2334,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                         misc.verbose("Trying direct search up to height %s"%h)
                         G = self.point_search(h, verbose)
                         G = [P for P in G if P.order() == oo]
-                        if len(G) > 0:
+                        if G:
                             misc.verbose("Direct search succeeded.")
                             G, _, _ = self.saturation(G, verbose=verbose)
                             misc.verbose("Computed saturation.")
@@ -2566,8 +2602,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         """
         if not isinstance(points, list):
-            raise TypeError("points (=%s) must be a list."%points)
-        if len(points) == 0:
+            raise TypeError("points (=%s) must be a list." % points)
+        if not points:
             return [], None, R(1)
 
         v = []
@@ -3773,7 +3809,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         The case `M==1` corresponds to the classical definition of congruence number:
         Let `X` be the subspace of `S_2(\Gamma_0(N))` spanned by the newform
-        associated with this elliptic curve, and `Y` be orthogonal compliment
+        associated with this elliptic curve, and `Y` be orthogonal complement
         of `X` under the Petersson inner product. Let `S_X` and `S_Y` be the
         intersections of `X` and `Y` with `S_2(\Gamma_0(N), \ZZ)`. The congruence
         number is defined to be `[S_X \oplus S_Y : S_2(\Gamma_0(N),\ZZ)]`.
@@ -4672,7 +4708,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 raise ValueError("%s is not prime."%l)
         if l is None:
             isogs = isogenies_prime_degree_genus_0(self)
-            if isogs != []:
+            if isogs:
                 return isogs
             else:
                 return isogenies_sporadic_Q(self)
@@ -4682,7 +4718,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             while i<len(l):
                 isogenies = [f for f in self.isogenies_prime_degree(l[i]) if not f in isogs]
                 isogs.extend(isogenies)
-                i = i+1
+                i += 1
             return isogs
 
     def is_isogenous(self, other, proof=True, maxp=200):
@@ -6962,7 +6998,7 @@ def elliptic_curve_congruence_graph(curves):
                 n = a_E[l] - a_F[l]
                 if n != 0:
                     p_edges = [p for p in p_edges if p.divides(n)]
-            if len(p_edges):
+            if p_edges:
                 G.add_edge(E.cremona_label(), F.cremona_label(),
                            p_edges)
     return G

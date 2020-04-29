@@ -929,7 +929,7 @@ class KleberTree(UniqueRepresentation, Parent):
         """
         cur = []
         next = [self.root]
-        while len(next) > 0:
+        while next:
             cur = next
             next = []
             for node in cur:

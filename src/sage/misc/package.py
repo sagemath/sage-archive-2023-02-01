@@ -93,7 +93,7 @@ def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
     :trac:`19213`)::
 
         sage: from sage.misc.package import pip_remote_version
-        sage: pip_remote_version('beautifulsoup') # optional - internet # not tested
+        sage: pip_remote_version('beautifulsoup4') # optional - internet # not tested
         u'...'
 
     These tests are reliable since the tested package does not exist::
@@ -140,7 +140,7 @@ def pip_installed_packages():
         True
         sage: d['scipy']  # optional - build
         u'...'
-        sage: d['beautifulsoup']   # optional - build beautifulsoup
+        sage: d['beautifulsoup4']   # optional - build beautifulsoup4
         u'...'
     """
     with open(os.devnull, 'w')  as devnull:
@@ -160,16 +160,21 @@ def list_packages(*pkg_types, **opts):
     The keys are package names and values are dictionaries with the following
     keys:
 
-    - ``'type'``: either ``'standard'``, ``'optional'``, ``'experimental'`` or ``'pip'``
+    - ``'type'``: either ``'base``, ``'standard'``, ``'optional'``, or ``'experimental'``
+    - ``'source'``: either ``'normal', ``'pip'``, or ``'script'``
     - ``'installed'``: boolean
     - ``'installed_version'``: ``None`` or a string
     - ``'remote_version'``: string
 
     INPUT:
 
-    - ``pkg_types`` -- (optional) a sublist of ``'standard'``, ``'optional'``,
-      ``'experimental'`` or ``'pip'``.  If provided, list only the packages with the
+    - ``pkg_types`` -- (optional) a sublist of ``'base``, ``'standard'``, ``'optional'``,
+      or ``'experimental'``.  If provided, list only the packages with the
       given type(s), otherwise list all packages.
+
+    - ``pkg_sources`` -- (optional) a sublist of ``'normal', ``'pip'``, or ``'script'``.
+      If provided, list only the packages with the given source(s), otherwise list all
+      packages.
 
     - ``local`` -- (optional, default: ``False``) if set to ``True``, then do not
       consult remote (PyPI) repositories for package versions (only applicable for
@@ -198,30 +203,35 @@ def list_packages(*pkg_types, **opts):
          'remote_version': '...',
          'type': 'standard'}
 
-        sage: L = list_packages('pip', local=True)  # optional - build
-        sage: L['beautifulsoup']                    # optional - build
+        sage: L = list_packages(pkg_sources=['pip'], local=True)  # optional - build
+        sage: L['beautifulsoup4']                    # optional - build
         {'installed': ...,
          'installed_version': ...,
          'remote_version': None,
-         'type': 'pip'}
+         'source': 'pip',
+         'type': 'optional'}
 
-        sage: L = list_packages('pip')   # optional - build internet
-        sage: L['beautifulsoup']         # optional - build internet
+        sage: L = list_packages(pkg_sources=['pip'])   # optional - build internet
+        sage: L['beautifulsoup4']         # optional - build internet
         {'installed': ...,
          'installed_version': ...,
          'remote_version': u'...',
-         'type': 'pip'}
+         'source': 'pip',
+         'type': 'optional'}
 
     Check the option ``exclude_pip``::
 
-        sage: list_packages('pip', exclude_pip=True)  # optional - build
-        {}
+        sage: [p for p, d in list_packages('optional', exclude_pip=True).items()  # optional - build
+        ....:  if d['source'] == 'pip']
+        []
     """
     if not pkg_types:
-        pkg_types = ('standard', 'optional', 'experimental', 'pip')
-    elif any(pkg_type not in ('standard', 'optional', 'experimental', 'pip') for pkg_type in pkg_types):
-        raise ValueError("Each pkg_type must be one of 'standard', 'optional', 'experimental', 'pip'")
+        pkg_types = ('base', 'standard', 'optional', 'experimental')
+    elif any(pkg_type not in ('base', 'standard', 'optional', 'experimental') for pkg_type in pkg_types):
+        raise ValueError("Each pkg_type must be one of 'base', 'standard', 'optional', 'experimental'")
 
+    pkg_sources = opts.pop('pkg_sources',
+                           ('normal', 'pip', 'script'))
 
     local = opts.pop('local', False)
     ignore_URLError = opts.pop('ignore_URLError', False)
@@ -246,23 +256,35 @@ def list_packages(*pkg_types, **opts):
         if typ not in pkg_types:
             continue
 
-        pkg = {'name': p, 'type': typ, 'installed_version': installed.get(p)}
+        if os.path.isfile(os.path.join(SAGE_PKGS, p, "requirements.txt")):
+            src = 'pip'
+        elif os.path.isfile(os.path.join(SAGE_PKGS, p, "checksums.ini")):
+            src = 'normal'
+        else:
+            src = 'script'
+
+        if src not in pkg_sources:
+            continue
+
+        pkg = {'name': p, 'type': typ, 'source': src, 'installed_version': installed.get(p)}
         pkg['installed'] = pkg['installed_version'] is not None
 
-        if pkg['type'] == 'pip':
+        if pkg['source'] == 'pip':
             if exclude_pip:
                 continue
             if not local:
                 pkg['remote_version'] = pip_remote_version(p, ignore_URLError=ignore_URLError)
             else:
                 pkg['remote_version'] = None
-        else:
+        elif pkg['source'] == 'normal':
             # If package-version.txt does not exist, that is an error
             # in the build system => we just propagate the exception
             package_filename = os.path.join(SAGE_PKGS, p, "package-version.txt")
             with open(package_filename) as f:
                 pkg['remote_version'] = f.read().strip()
             pkg['installed_version'] = installed.get(p)
+        else:
+            pkg['remote_version'] = 'none'
 
         pkgs[p] = pkg
 
@@ -281,7 +303,7 @@ def installed_packages(exclude_pip=True):
     EXAMPLES::
 
         sage: installed_packages()  # optional - build
-        {...'arb': ...'pynac': ...}
+        {...'alabaster': ...'pynac': ...}
 
     .. SEEALSO::
 
@@ -310,7 +332,7 @@ def is_package_installed(package, exclude_pip=True):
 
     EXAMPLES::
 
-        sage: is_package_installed('pari')  # optional - build
+        sage: is_package_installed('gap')  # optional - build
         True
 
     Giving just the beginning of the package name is not good enough::
@@ -324,8 +346,8 @@ def is_package_installed(package, exclude_pip=True):
     Check that the option ``exclude_pip`` is turned on by default::
 
         sage: from sage.misc.package import list_packages
-        sage: for pkg in list_packages('pip', local=True):  # optional - build
-        ....:     assert not is_package_installed(pkg)
+        sage: for pkg in list_packages(pkg_sources=('pip'), local=True):  # optional - build
+        ....:     assert not is_package_installed(pkg), "pip package is installed: {}".format(pkg)
 
     .. NOTE::
 
@@ -422,18 +444,13 @@ def optional_packages():
 
         sage: from sage.misc.package import optional_packages
         sage: installed, not_installed = optional_packages()  # optional - build
-        sage: 'ore_algebra' in installed+not_installed  # optional - build
-        True
-        sage: 'beautifulsoup' in installed+not_installed  # optional - build
+        sage: 'beautifulsoup4' in installed+not_installed  # optional - build
         True
 
-        sage: 'beautifulsoup' in installed   # optional - build beautifulsoup
-        True
-        sage: 'ore_algebra' in installed     # optional - build ore_algebra
+        sage: 'beautifulsoup4' in installed   # optional - build beautifulsoup4
         True
     """
     pkgs = list_packages('optional', local=True)
-    pkgs.update(list_packages('pip', local=True))
     pkgs = pkgs.values()
     return (sorted(pkg['name'] for pkg in pkgs if pkg['installed']),
             sorted(pkg['name'] for pkg in pkgs if not pkg['installed']))

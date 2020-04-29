@@ -1,5 +1,5 @@
 r"""
-Cyclic Code
+Cyclic code
 
 Let `F` be a field. A `[n, k]` code `C` over `F` is called cyclic if every
 cyclic shift of a codeword is also a codeword [Rot2006]_:
@@ -819,7 +819,7 @@ class CyclicCode(AbstractLinearCode):
             sage: all(r in CC for r in C.generator_matrix())
             True
         """
-        from .bch import BCHCode
+        from .bch_code import BCHCode
         delta, params = self.bch_bound(arithmetic=True)
         return BCHCode(self.base_field(), self.length(), delta,
                        offset=params[1], jump_size=params[0])

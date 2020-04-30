@@ -123,12 +123,30 @@ class CatalanTableau(PathTableau):
         return CatalanTableaux()(ot)
 
     def __init__(self, parent, ot, check=True):
-        """
+        r"""
         Initialize a Catalan tableau.
+
+        INPUT:
+            Can be any of:
+
+                * word of nonnegative integers with successive differences $\pm 1$
+                * a DyckWord
+                * a noncrossing perfect matching
+                * a two row standard tableau
+                * a two row standard skew tab;eau
 
         TESTS::
 
-            sage: t = CatalanTableau([0,1,2,1,0])           
+            sage: CatalanTableau([0,1,2,1,0])
+            [0, 1, 2, 1, 0]
+            sage: CatalanTableau(DyckWord([1, 0, 1, 0]))
+            [0, 1, 0, 1, 0]
+            sage: CatalanTableau(PerfectMatching([(1, 4), (2, 3), (5, 6)]))
+            [0, 1, 2, 1, 0, 1, 0]
+            sage: CatalanTableau(Tableau([[1,2,4],[3,5,6]]))
+            [0, 1, 2, 1, 2, 1, 0]
+            sage: CatalanTableau(SkewTableau([[None, 1,4],[2,3]]))
+            [1, 2, 1, 0, 1]
         """
         w = None
 
@@ -157,15 +175,16 @@ class CatalanTableau(PathTableau):
                 raise ValueError("the tableau must have at most two rows")
 
         elif isinstance(ot, SkewTableau):
-            if len(ot) <= 2:
-                # The check that ot is standard is not implemented
-                u = [1] * ot.size()
-                for i in ot[1]:
-                    if i is not None:
-                        u[i-1] = 0
-                w = DyckWord(u).heights()
-            else:
+            if len(ot) > 2:
                 raise ValueError("the skew tableau must have at most two rows")
+            # The check that ot is standard is not implemented
+            c = ot.to_chain()
+            w = [0]*len(c)
+            for i,a in enumerate(c):
+                if len(a) == 1:
+                    w[i] = a[0]
+                else:
+                    w[i] = a[0]-a[1]
 
         elif isinstance(ot, (list,tuple)):
             try:

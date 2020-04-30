@@ -105,14 +105,30 @@ class CatalanTableau(PathTableau):
 
     @staticmethod
     def __classcall_private__(cls, ot):
-        """
-        This is the constructor for paths.
+        r"""
+        This ensures that a tableau is only ever constructed as an
+        ``element_class`` call of an appropriate parent.
+
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,1,0])
+
+            sage: t.parent()
+            <sage.combinat.path_tableaux.catalan.CatalanTableaux_with_category object at ...>
+            sage: t.category()
+            Category of elements of <sage.combinat.path_tableaux.catalan.CatalanTableaux_with_category object at ...>
+            sage: type(t)
+            <class 'sage.combinat.path_tableaux.catalan.CatalanTableaux_with_category.element_class'>
         """
         return CatalanTableaux()(ot)
 
     def __init__(self, parent, ot, check=True):
         """
-        This is the preprocessing for creating paths.
+        Initialize a Catalan tableau.
+
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,1,0])           
         """
         w = None
 
@@ -163,7 +179,19 @@ class CatalanTableau(PathTableau):
         ClonableArray.__init__(self, parent, w, check=check)
 
     def check(self):
-        """ Checks that ``self`` is a valid path."""
+        """ Checks that ``self`` is a valid path.
+
+        TESTS::
+            sage: CatalanTableau([0,1,0,-1,0])
+            Traceback (most recent call last):
+            ...
+            ValueError: [0, 1, 0, -1, 0] has a negative entry
+
+            sage: CatalanTableau([0,1,3,1,0])
+            Traceback (most recent call last):
+            ...
+            ValueError: [0, 1, 3, 1, 0] is not a Dyck path
+        """
         n = len(self)
         if any(a < 0 for a in self):
            raise ValueError( "%s has a negative entry" % (str(self)) )

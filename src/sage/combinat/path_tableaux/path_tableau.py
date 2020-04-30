@@ -408,31 +408,45 @@ class PathTableau(ClonableArray):
 class PathTableaux(UniqueRepresentation,Parent):
     """ The abstract parent class for PathTableau."""
     def __init__(self):
+        """
+        Initializes the abstract class of all PathTableaux
+
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,1,0])
+            sage: t.parent()
+            <sage.combinat.path_tableaux.catalan.CatalanTableaux_with_category object at ...>
+        """
         Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, *args, **kwds):
+        r"""
+        Constructs an object as an element of ``self``, if possible.
+        """
         return self.element_class(self, *args, **kwds)
-
-
 
 class CylindricalDiagram(SageObject):
     """
     A class for cylindrical growth diagrams.
-
-    EXAMPLES::
-
-        sage: t = CatalanTableau([0,1,2,3,2,1,0])
-        sage: CylindricalDiagram(t)
-         [0, 1, 2, 3, 2, 1, 0]
-         ['', 0, 1, 2, 1, 0, 1, 0]
-         ['', '', 0, 1, 0, 1, 2, 1, 0]
-         ['', '', '', 0, 1, 2, 3, 2, 1, 0]
-         ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
-         ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
-         ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
     """
-
     def __init__(self,T):
+        """
+        Initializes an object of ``self`` from the PathTableau object T
+
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: CylindricalDiagram(t)
+             [0, 1, 2, 3, 2, 1, 0]
+             ['', 0, 1, 2, 1, 0, 1, 0]
+             ['', '', 0, 1, 0, 1, 2, 1, 0]
+             ['', '', '', 0, 1, 2, 3, 2, 1, 0]
+             ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
+             ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
+             ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
+        """
+        if not isinstance(T,PathTableau):
+            raise ValueError('{0} must be a path tableau'.format(str(T)))
         n = len(T)
         result = [[None]*(2*n-1)]*n
         for i in range(n):
@@ -441,10 +455,15 @@ class CylindricalDiagram(SageObject):
 
         self.diagram = result
 
-#    def __str__(self):
-#        return "A cylindrical growth diagram."
-
     def __repr__(self):
+        """
+        Returns a string representation of ``self``
+
+        TESTS::
+
+            sage: print(CatalanTableau([0,1,2,1,2,1,0]))
+            [0, 1, 2, 1, 2, 1, 0]
+        """
         dg = self.diagram
         return ' '+str(dg[0])+''.join('\n ' + str(x) for x in self.diagram[1:])
 
@@ -465,9 +484,7 @@ class CylindricalDiagram(SageObject):
              &  &  &  &  & 0 & 1 & 0 & 1 & 2 & 1 & 0\\
              &  &  &  &  &  & 0 & 1 & 2 & 3 & 2 & 1 & 0
              \end{array}
-
         """
-
         D = self.diagram
         m = len(D[-1])
         result = "\\begin{array}{"+"c"*m + "}\n"
@@ -486,10 +503,29 @@ class CylindricalDiagram(SageObject):
         """
         return len(self.diagram)
 
+    def _ascii_art_(self):
+        """
+        Returns an ascii art representation of ``self``
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: ascii_art(CylindricalDiagram(t))
+            0 1 2 3 2 1 0
+             0 1 2 1 0 1 0
+              0 1 0 1 2 1 0
+               0 1 2 3 2 1 0
+                0 1 2 1 0 1 0
+                 0 1 0 1 2 1 0
+                  0 1 2 3 2 1 0
+        """
+        from sage.typeset.ascii_art import AsciiArt
+        D = [ map(str,x) for x in self.diagram ]
+        S = [ ' '.join(x) for x in D ]
+        return AsciiArt(S)
 
     def _unicode_art_(self):
         """
-        Returns an ascii art representation of ``self``
+        Returns a unicode art representation of ``self``
         TESTS::
 
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
@@ -501,7 +537,6 @@ class CylindricalDiagram(SageObject):
                 0 1 2 1 0 1 0
                  0 1 0 1 2 1 0
                   0 1 2 3 2 1 0
-
         """
         from sage.typeset.unicode_art import UnicodeArt
         D = [ map(str,x) for x in self.diagram ]
@@ -525,5 +560,4 @@ class CylindricalDiagram(SageObject):
                         0 1 2 3 2 1 0
 
         """
-#        m = max( max( len(str(a)) for a in x ) for x in self.diagram)
         print('\n'.join(' '.join('{:0<}'.format(a) for a in x)  for x in self.diagram ))

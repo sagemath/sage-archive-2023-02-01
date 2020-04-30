@@ -199,10 +199,10 @@ class PathTableau(ClonableArray):
         return (self.parent()(path[:m]),self.parent()(path[m-1:]))
 
     def cactus(self,i,j):
-        """
+        r"""
         Return the action of the generators of the cactus group on ``self``.
         These generators are involutions and are usually denoted by
-        `s_{i,j}`.
+        $s_{i,j}$.
 
         INPUT:
 
@@ -227,7 +227,7 @@ class PathTableau(ClonableArray):
             True
 
         """
-        if not 0 < i < j <= self.size():
+        if not 0 < i <= j <= self.size():
             raise ValueError("integers out of bounds")
 
         if i == j:
@@ -427,7 +427,15 @@ class CylindricalDiagram(SageObject):
 
         sage: t = CatalanTableau([0,1,2,3,2,1,0])
         sage: CylindricalDiagram(t)
-        A cylindrical growth diagram.
+    <BLANKLINE>
+     [0, 1, 2, 3, 2, 1, 0]
+     ['', 0, 1, 2, 1, 0, 1, 0]
+     ['', '', 0, 1, 0, 1, 2, 1, 0]
+     ['', '', '', 0, 1, 2, 3, 2, 1, 0]
+     ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
+     ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
+     ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
+
     """
 
     def __init__(self,T):
@@ -439,8 +447,11 @@ class CylindricalDiagram(SageObject):
 
         self.diagram = result
 
-    def _repr_(self):
-        return "A cylindrical growth diagram."
+#    def __str__(self):
+#        return "A cylindrical growth diagram."
+
+    def __repr__(self):
+        return ''.join('\n ' + str(x) for x in self.diagram)
 
     def _latex_(self):
         r"""
@@ -480,8 +491,14 @@ class CylindricalDiagram(SageObject):
 
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: ascii_art(CylindricalDiagram(t))
-            [   1  3    1  2 ]
-            [   2   ,   3    ]
+            0 1 2 3 2 1 0
+             0 1 2 1 0 1 0
+              0 1 0 1 2 1 0
+               0 1 2 3 2 1 0
+                0 1 2 1 0 1 0
+                 0 1 0 1 2 1 0
+                  0 1 2 3 2 1 0
+
         """
         from sage.typeset.ascii_art import AsciiArt
         D = [ map(str,x) for x in self.diagram ]
@@ -509,5 +526,5 @@ class CylindricalDiagram(SageObject):
                         0 1 2 3 2 1 0
 
         """
-        m = max( max( len(str(a)) for a in x ) for x in self.diagram)
-        print "\n".join(" ".join("{:<{}}".format(a, m) for a in x)  for x in self.diagram )
+#        m = max( max( len(str(a)) for a in x ) for x in self.diagram)
+        print('\n'.join(' '.join('{:0}'.format(a) for a in x)  for x in self.diagram ))

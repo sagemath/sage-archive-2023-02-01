@@ -40,14 +40,15 @@ EXAMPLES::
 
     sage: t = CatalanTableau([0,1,2,3,2,1,0])
     sage: print(CylindricalDiagram(t))
-    The cylindrical growth diagram:
-    [0, 1, 2, 3, 2, 1, 0]
-    ['', 0, 1, 2, 1, 0, 1, 0]
-    ['', '', 0, 1, 0, 1, 2, 1, 0]
-    ['', '', '', 0, 1, 2, 3, 2, 1, 0]
-    ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
-    ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
-    ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
+    <BLANKLINE>
+     [0, 1, 2, 3, 2, 1, 0]
+     ['', 0, 1, 2, 1, 0, 1, 0]
+     ['', '', 0, 1, 0, 1, 2, 1, 0]
+     ['', '', '', 0, 1, 2, 3, 2, 1, 0]
+     ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
+     ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
+     ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
+
     sage: TestSuite(t).run()
 """
 
@@ -158,9 +159,9 @@ class CatalanTableau(PathTableau):
 
         if w is None:
             raise ValueError("invalid input %s" % ot)
-        
+
         ClonableArray.__init__(self, parent, w, check=check)
-        
+
     def check(self):
         """ Checks that ``self`` is a valid path."""
         n = len(self)

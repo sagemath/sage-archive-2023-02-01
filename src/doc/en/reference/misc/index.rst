@@ -218,7 +218,6 @@ Interactive Sage Sessions
 .. toctree::
    :maxdepth: 1
 
-   sage/misc/log
    sage/misc/banner
    sage/misc/reset
    sage/misc/viewer

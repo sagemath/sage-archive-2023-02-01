@@ -4,25 +4,22 @@ Graftal Lace Cellular Automata
 
 AUTHORS:
 
-- Travis Scrimshaw (2018-07-08): Initial version
+- Travis Scrimshaw (2020-04-30): Initial version
 """
 
 #*****************************************************************************
-#       Copyright (C) 2018 Travis Scrimshaw <tcscrims at gmail.com>
+#       Copyright (C) 2020 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.sage_object import SageObject
 from sage.typeset.ascii_art import AsciiArt
 from sage.typeset.unicode_art import UnicodeArt
-from sage.rings.integer_ring import ZZ
-from sage.matrix.constructor import matrix
-from sage.plot.matrix_plot import matrix_plot
 
 class GraftalLaceCellularAutomata(SageObject):
     r"""
@@ -165,7 +162,7 @@ class GraftalLaceCellularAutomata(SageObject):
 
         INPUT:
 
-        - ``number`` -- (optional) the number of times to perform
+        - ``number`` -- (default: 1) the number of times to perform
           the evolution
 
         EXAMPLES::
@@ -461,9 +458,6 @@ class GraftalLaceCellularAutomata(SageObject):
             \end{tikzpicture}
         """
         ret = "\\begin{tikzpicture}\n"
-
-        from sage.plot.circle import circle
-        from sage.plot.line import line
 
         x = len(self._states)
         rad = 2

@@ -51,7 +51,7 @@ from sage.misc.latex import latex
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class PathTableau(ClonableArray):
-    r"""
+    """
     This is the abstract base class for path tableaux.
     """
     @abstract_method(optional=False)
@@ -206,9 +206,9 @@ class PathTableau(ClonableArray):
 
         INPUT:
 
-        - ``i`` -- a positive integer
+          ``i`` -- a positive integer
 
-        - ``j`` -- a positive integer strictly greater than ``i``
+          ``j`` -- a positive integer strictly greater than ``i``
 
 
         EXAMPLES::
@@ -222,10 +222,8 @@ class PathTableau(ClonableArray):
 
             sage: t.cactus(1,7) == t.evacuation()
             True
-
             sage: t.cactus(1,7).cactus(1,6) == t.promotion()
             True
-
         """
         if not 0 < i <= j <= self.size():
             raise ValueError("integers out of bounds")
@@ -252,7 +250,6 @@ class PathTableau(ClonableArray):
 
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: t._test_involution_rule()
-
         """
         tester = self._tester(**options)
         for i in range(self.size()-2):
@@ -394,7 +391,6 @@ class PathTableau(ClonableArray):
              ([0, 1, 2, 1, 0, 1, 0], [0, 1, 2, 1, 2, 1, 0], '4,7'),
              ([0, 1, 2, 1, 0, 1, 0], [0, 1, 2, 3, 2, 1, 0], '3,7'),
              ([0, 1, 2, 1, 2, 1, 0], [0, 1, 2, 3, 2, 1, 0], '3,6')]
-
         """
         from sage.graphs.graph import Graph
         from itertools import combinations
@@ -427,15 +423,13 @@ class CylindricalDiagram(SageObject):
 
         sage: t = CatalanTableau([0,1,2,3,2,1,0])
         sage: CylindricalDiagram(t)
-    <BLANKLINE>
-     [0, 1, 2, 3, 2, 1, 0]
-     ['', 0, 1, 2, 1, 0, 1, 0]
-     ['', '', 0, 1, 0, 1, 2, 1, 0]
-     ['', '', '', 0, 1, 2, 3, 2, 1, 0]
-     ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
-     ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
-     ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
-
+         [0, 1, 2, 3, 2, 1, 0]
+         ['', 0, 1, 2, 1, 0, 1, 0]
+         ['', '', 0, 1, 0, 1, 2, 1, 0]
+         ['', '', '', 0, 1, 2, 3, 2, 1, 0]
+         ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
+         ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
+         ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
     """
 
     def __init__(self,T):
@@ -451,7 +445,8 @@ class CylindricalDiagram(SageObject):
 #        return "A cylindrical growth diagram."
 
     def __repr__(self):
-        return ''.join('\n ' + str(x) for x in self.diagram)
+        dg = self.diagram
+        return ' '+str(dg[0])+''.join('\n ' + str(x) for x in self.diagram[1:])
 
     def _latex_(self):
         r"""
@@ -481,16 +476,24 @@ class CylindricalDiagram(SageObject):
         return result
 
     def __len__(self):
-        """Returns the length of ``self``"""
+        """Returns the length of ``self``
+
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: len(CylindricalDiagram(t))
+            7
+        """
         return len(self.diagram)
 
-    def _ascii_art_(self):
+
+    def _unicode_art_(self):
         """
         Returns an ascii art representation of ``self``
         TESTS::
 
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
-            sage: ascii_art(CylindricalDiagram(t))
+            sage: unicode_art(CylindricalDiagram(t))
             0 1 2 3 2 1 0
              0 1 2 1 0 1 0
               0 1 0 1 2 1 0
@@ -500,14 +503,10 @@ class CylindricalDiagram(SageObject):
                   0 1 2 3 2 1 0
 
         """
-        from sage.typeset.ascii_art import AsciiArt
+        from sage.typeset.unicode_art import UnicodeArt
         D = [ map(str,x) for x in self.diagram ]
         S = [ ' '.join(x) for x in D ]
-        return AsciiArt(S)
-
-    def _unicode_art_(self):
-        r"""
-        """
+        return UnicodeArt(S)
 
     def pp(self):
         """
@@ -527,4 +526,4 @@ class CylindricalDiagram(SageObject):
 
         """
 #        m = max( max( len(str(a)) for a in x ) for x in self.diagram)
-        print('\n'.join(' '.join('{:0}'.format(a) for a in x)  for x in self.diagram ))
+        print('\n'.join(' '.join('{:0<}'.format(a) for a in x)  for x in self.diagram ))

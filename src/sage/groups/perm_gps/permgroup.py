@@ -692,6 +692,17 @@ class PermutationGroup_generic(FiniteGroup):
             True
             sage: H3 < H1 # since H3 is a subgroup of H1
             True
+
+        TESTS::
+
+            Check that :trac:`29624` is fixed::
+            sage: G = SymmetricGroup(2)
+            sage: H = PermutationGroup([(1,2)])
+            sage: not G == H
+            False
+            sage: G != H
+            False
+
         """
         if not isinstance(right, PermutationGroup_generic):
             return NotImplemented

@@ -1,0 +1,33 @@
+From 0ac5aad01b5ca613d6147ce17ab1372ef6741ab1 Mon Sep 17 00:00:00 2001
+From: Isuru Fernando <isuruf@gmail.com>
+Date: Wed, 29 Apr 2020 19:15:30 -0700
+Subject: [PATCH 2/2] Makefile.PL: Include CFLAGS, LDFLAGS
+
+---
+ Makefile.PL | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile.PL b/Makefile.PL
+index 208aae0..c75dce3 100644
+--- a/Makefile.PL
++++ b/Makefile.PL
+@@ -124,14 +124,14 @@ WriteMakefile
+      VERSION_FROM => 'Gnu.pm',
+      MIN_PERL_VERSION => '5.8.1',
+      LIBS	  => [ "$RLLIB $libs" ],
+-     LDDLFLAGS	  => "$RLLIB $Config{lddlflags}",
++     LDDLFLAGS	  => "$RLLIB $Config{lddlflags} $ENV{LDFLAGS}",
+      dynamic_lib  => { OTHERLDFLAGS => $lddflags },
+      DEFINE	  => $defs,
+      ($Config{osname} eq 'os2' ?
+       (
+        IMPORTS	  => { xfree => 'emxlibcm.401' }, # Yuck!
+       ) : () ),
+-     INC	  => $RLINC,
++     INC	  => "$RLINC $ENV{CFLAGS}",
+      dist	  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz' },
+      clean	  => { FILES => "rlver.c rlver$Config{_exe} rlmalloc.c rlmalloc$Config{_exe}" },
+ );
+-- 
+2.24.1.1484.g7fcb965970
+

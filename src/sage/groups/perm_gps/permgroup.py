@@ -693,9 +693,10 @@ class PermutationGroup_generic(FiniteGroup):
             sage: H3 < H1 # since H3 is a subgroup of H1
             True
 
-        TESTS::
+        TESTS:
 
-            Check that :trac:`29624` is fixed::
+        Check that :trac:`29624` is fixed::
+
             sage: G = SymmetricGroup(2)
             sage: H = PermutationGroup([(1,2)])
             sage: not G == H

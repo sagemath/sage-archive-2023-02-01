@@ -1,7 +1,7 @@
 From 060a5f4b359f08de92171b838ba9ac7ec9cf5697 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Thu, 30 Apr 2020 23:21:46 -0700
-Subject: [PATCH 2/2] Makefile.PL: Include CFLAGS, LDFLAGS
+Subject: [PATCH 2/3] Makefile.PL: Include CFLAGS, LDFLAGS
 
 ---
  Makefile.PL | 8 ++++----

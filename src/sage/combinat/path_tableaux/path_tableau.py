@@ -206,9 +206,9 @@ class PathTableau(ClonableArray):
 
         INPUT:
 
-          ``i`` -- a positive integer
+        ``i`` -- a positive integer
 
-          ``j`` -- a positive integer strictly greater than ``i``
+        ``j`` -- a positive integer weakly greater than ``i``
 
 
         EXAMPLES::
@@ -423,6 +423,10 @@ class PathTableaux(UniqueRepresentation,Parent):
         r"""
         Constructs an object as an element of ``self``, if possible.
 
+        TESTS::
+
+            sage: CatalanTableau([0,1,2,1,0]) # indirect doctest
+            [0, 1, 2, 1, 0]
         """
         return self.element_class(self, *args, **kwds)
 

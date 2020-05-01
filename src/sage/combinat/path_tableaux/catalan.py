@@ -67,10 +67,10 @@ class CatalanTableau(PathTableau):
 
     INPUT:
 
-    - a sequence of nonnegative integers
-    - a two row standard skew tableau
-    - a Dyck word
-    - a noncrossing perfect matching
+    * a sequence of nonnegative integers
+    * a two row standard skew tableau
+    * a Dyck word
+    * a noncrossing perfect matching
 
     EXAMPLES::
 
@@ -114,13 +114,14 @@ class CatalanTableau(PathTableau):
         Initialize a Catalan tableau.
 
         INPUT:
-            Can be any of:
 
-                * word of nonnegative integers with successive differences $\pm 1$
-                * a DyckWord
-                * a noncrossing perfect matching
-                * a two row standard tableau
-                * a two row standard skew tab;eau
+        Can be any of:
+
+        * word of nonnegative integers with successive differences $\pm 1$
+        * a DyckWord
+        * a noncrossing perfect matching
+        * a two row standard tableau
+        * a two row standard skew tab;eau
 
         TESTS::
 
@@ -188,12 +189,12 @@ class CatalanTableau(PathTableau):
         """ Checks that ``self`` is a valid path.
 
         TESTS::
-            sage: CatalanTableau([0,1,0,-1,0])
+            sage: CatalanTableau([0,1,0,-1,0]) # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: [0, 1, 0, -1, 0] has a negative entry
 
-            sage: CatalanTableau([0,1,3,1,0])
+            sage: CatalanTableau([0,1,3,1,0]) # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: [0, 1, 3, 1, 0] is not a Dyck path

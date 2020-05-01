@@ -1810,6 +1810,14 @@ class Genus_Symbol_p_adic_ring(object):
             sage: G = Genus(matrix.diagonal([1,3,9]))
             sage: G.local_symbol(3).mass()
             9/8
+
+        TESTS::
+
+            sage: G = Genus(matrix([1]))
+            sage: G.local_symbol(2).mass()
+            Traceback (most recent call last):
+            ....
+            ValueError: the dimension must be at least 2
         """
         if self.dimension() <= 1:
             raise ValueError("the dimension must be at least 2")
@@ -1859,7 +1867,7 @@ class Genus_Symbol_p_adic_ring(object):
         n = self.dimension()
         p = self.prime()
         s = (n + 1) // ZZ(2)
-        std = 2 * QQ.prod(1-p**(-2*k) for k in srange(1, s))
+        std = 2 * QQ.prod(1-p**(-2*k) for k in range(1, s))
         if n % 2 == 0:
             D = ZZ(-1)**s * self.determinant()
             epsilon = (4*D).kronecker(p)
@@ -2779,8 +2787,10 @@ class GenusSymbol_global_ring(object):
             D = ZZ(-1)**(s)*self.determinant()
             std *= quadratic_L_function__exact(ZZ(s), D)
             d = fundamental_discriminant(D)
-            # since quadratic_L_function__exact is different from \zeta_D as defined
-            # By conway-sloane we have to compensate the missing euler factors
+            # since quadratic_L_function__exact is different
+            # from \zeta_D as defined by Conway and Sloane
+            # we have to compensate
+            # the missing Euler factors
             for sym in self.local_symbols():
                 p = sym.prime()
                 std *= (1 - d.kronecker(p)*p**(-s))
@@ -2816,10 +2826,42 @@ class GenusSymbol_global_ring(object):
             1/696729600
             sage: G.mass(backend='magma')  # optional - magma
             1/696729600
+
+        The `E_8` lattice is unique in its genus::
+
+            sage: E8 = QuadraticForm(G.representative())
+            sage: E8.number_of_automorphisms()
+            696729600
+
+        TESTS::
+
+        Check a random genus magma::
+
+            sage: d = ZZ.random_element(1,1000)
+            sage: n = ZZ.random_element(2,10)
+            sage: L = genera((n,0),d,d,even=False)
+            sage: k = ZZ.random_element(0,len(L))
+            sage: G = L[k]
+            sage: G.mass()==G.mass(backend='magma')  # optional - magma
+            True
+
+        Error messages::
+
+            sage: G.mass(backend='foo')
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown backend: foo
+            sage: G = Genus(matrix(ZZ, 2, [0, 1, 1, 0]))
+            sage: G.mass()
+            Traceback (most recent call last):
+            ...
+            ValueError: the genus must be definite.
         """
         pos, neg = self.signature_pair()
         if pos * neg != 0:
-            raise ValueError("Genus must be definite.")
+            raise ValueError("the genus must be definite.")
+        if pos + neg == 1:
+            return QQ(1)/QQ(2)
         if backend == 'sage':
             mass = self._standard_mass()
             for sym in self._local_symbols:

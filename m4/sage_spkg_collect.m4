@@ -198,8 +198,8 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     # Trac #29629: Temporary solution for Sage 9.1: Do not advertise installing pip packages
     # using ./configure --enable-SPKG
     if test -f "$DIR/requirements.txt"; then
-        message="$SPKG_TYPE pip package; install/uninstall using ./sage -pip"
-        uninstall_message="$message"
+        message="$SPKG_TYPE pip package; use \"./sage -i $SPKG_NAME\" to install"
+        uninstall_message="$SPKG_TYPE pip package (installed)"
     fi
 
     SAGE_PACKAGE_VERSIONS+="vers_$SPKG_NAME = $SPKG_VERSION"$'\n'

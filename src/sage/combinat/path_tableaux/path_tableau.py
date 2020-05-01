@@ -172,6 +172,27 @@ class PathTableau(ClonableArray):
             [1, 2, 3, 2, 1]
             [0, 1, 2, 1, 0]
             ([0, 1, 2, 1, 0], [0, 1, 2, 3, 2, 1, 0])
+
+        TESTS::
+
+            sage: t1 = CatalanTableau([])
+            sage: t2 = CatalanTableau([0,1,2,1,0])
+            sage: t1.commutor(t2)
+            Traceback (most recent call last):
+            ...
+            ValueError: this requires nonempty lists
+            sage: t1 = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t2 = CatalanTableau([])
+            sage: t1.commutor(t2)
+            Traceback (most recent call last):
+            ...
+            ValueError: this requires nonempty lists
+            sage: t1 = CatalanTableau([0,1,2,3,2,1])
+            sage: t2 = CatalanTableau([0,1,2,1,0])
+            sage: t1.commutor(t2)
+            Traceback (most recent call last):
+            ...
+            ValueError: [0, 1, 2, 3, 2, 1],[0, 1, 2, 1, 0] is not a composable pair
         """
         n = len(self)
         m = len(other)
@@ -224,6 +245,18 @@ class PathTableau(ClonableArray):
             True
             sage: t.cactus(1,7).cactus(1,6) == t.promotion()
             True
+
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t.cactus(1,8)
+            Traceback (most recent call last):
+            ...
+            ValueError: integers out of bounds
+            sage: t.cactus(0,3)
+            Traceback (most recent call last):
+            ...
+            ValueError: integers out of bounds
         """
         if not 0 < i <= j <= self.size():
             raise ValueError("integers out of bounds")
@@ -414,7 +447,7 @@ class PathTableaux(UniqueRepresentation,Parent):
         TESTS::
 
             sage: t = CatalanTableau([0,1,2,1,0])
-            sage: t.parent()
+            sage: t.parent() # indirect test
             <sage.combinat.path_tableaux.catalan.CatalanTableaux_with_category object at ...>
         """
         Parent.__init__(self, category=Sets())
@@ -437,7 +470,7 @@ class CylindricalDiagram(SageObject):
     """
     def __init__(self,T):
         """
-        Initializes an object of ``self`` from the PathTableau object T
+        Initialise an object of ``self`` from the PathTableau object T
 
         TESTS::
 
@@ -450,6 +483,11 @@ class CylindricalDiagram(SageObject):
              ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
              ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
              ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
+
+            sage: CylindricalDiagram(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: 2 must be a path tableau
         """
         if not isinstance(T,PathTableau):
             raise ValueError('{0} must be a path tableau'.format(str(T)))
@@ -467,11 +505,11 @@ class CylindricalDiagram(SageObject):
 
         TESTS::
 
-            sage: print(CatalanTableau([0,1,2,1,2,1,0]))
+            sage: print(CatalanTableau([0,1,2,1,2,1,0])) # indirect test
             [0, 1, 2, 1, 2, 1, 0]
         """
         dg = self.diagram
-        return ' '+str(dg[0])+''.join('\n ' + str(x) for x in self.diagram[1:])
+        return ' '+str(dg[0])+''.join('\n ' + str(x) for x in dg[1:])
 
     def _latex_(self):
         r"""

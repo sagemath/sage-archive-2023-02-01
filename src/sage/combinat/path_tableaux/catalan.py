@@ -243,6 +243,20 @@ class CatalanTableau(PathTableau):
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: t._local_rule(3)
             [0, 1, 2, 1, 2, 1, 0]
+
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t._local_rule(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: 0 is not a valid integer
+            sage: t._local_rule(5)
+            [0, 1, 2, 3, 2, 1, 0]
+            sage: t._local_rule(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: 6 is not a valid integer
         """
 
         def _rule(x):
@@ -251,7 +265,7 @@ class CatalanTableau(PathTableau):
             """
             return abs(x[0]-x[1]+x[2])
 
-        if not (i > 0 and i < len(self) ):
+        if not (i > 0 and i < len(self)-1):
             raise ValueError("%d is not a valid integer" % i)
 
         with self.clone() as result:
@@ -322,6 +336,13 @@ class CatalanTableau(PathTableau):
 
             sage: CatalanTableau([0,1,2,1,2,1,0,1,0]).to_perfect_matching()
             [(0, 5), (1, 2), (3, 4), (6, 7)]
+
+        TESTS::
+
+            sage: CatalanTableau([1,2,1,2,1,0,1]).to_perfect_matching()
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 2, 1, 2, 1, 0, 1] does not start at 0
         """
         if self.is_skew():
             raise ValueError( "%s does not start at 0" % (str(self)) )

@@ -203,7 +203,7 @@ from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.categories.lie_algebras import LieAlgebras
 
 from sage.categories.map import Map
-from sage.categories.all import Rings
+from sage.categories.rings import Rings
 
 
 class RingDerivationModule(Module, UniqueRepresentation):

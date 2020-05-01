@@ -32,7 +32,7 @@ from sage.matrix.matrix2 import NotFullRankError
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.skew_polynomial_element cimport SkewPolynomial
+from sage.rings.polynomial.ore_polynomial_element cimport OrePolynomial as SkewPolynomial
 from sage.rings.polynomial.skew_polynomial_finite_order cimport SkewPolynomial_finite_order_dense
 
 from sage.combinat.permutation import Permutation, Permutations

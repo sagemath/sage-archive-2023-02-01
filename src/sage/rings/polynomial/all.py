@@ -45,7 +45,8 @@ lazy_import('sage.rings.polynomial.omega', 'MacMahonOmega')
 # Infinite Polynomial Rings
 from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRing
 
-# Skew Polynomial Rings
+# Ore Polynomial Rings
+from sage.rings.polynomial.ore_polynomial_ring import OrePolynomialRing
 from sage.rings.polynomial.skew_polynomial_ring import SkewPolynomialRing
 
 # Evaluation of cyclotomic polynomials

@@ -157,7 +157,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
                     pol.append(l[k])
                 M.append(Polk(pol))
             for i from 0 <= i <= d:
-                l[i] = self._parent.twist_map()(l[i])
+                l[i] = self._parent.twist_morphism()(l[i])
         return matrix(Polk, r, r, M)
 
 
@@ -216,12 +216,12 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             True
         """
         order = self.parent()._order
-        twist_map = self.parent().twist_map()
+        twist_morphism = self.parent().twist_morphism()
         coeffs = [ ]
         for i in range(0, self.degree()+1, order):
             tr = c = self._coeffs[i]
             for _ in range(order-1):
-                tr = c + twist_map(tr)
+                tr = c + twist_morphism(tr)
             coeffs.append(tr)
         if var is False:
             return tuple(coeffs)

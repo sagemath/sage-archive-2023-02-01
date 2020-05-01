@@ -422,12 +422,14 @@ class PathTableaux(UniqueRepresentation,Parent):
     def _element_constructor_(self, *args, **kwds):
         r"""
         Constructs an object as an element of ``self``, if possible.
+        
         """
         return self.element_class(self, *args, **kwds)
 
 class CylindricalDiagram(SageObject):
     """
     A class for cylindrical growth diagrams.
+    
     """
     def __init__(self,T):
         """
@@ -457,7 +459,7 @@ class CylindricalDiagram(SageObject):
 
     def __repr__(self):
         """
-        Returns a string representation of ``self``
+        Return a string representation of ``self``
 
         TESTS::
 
@@ -469,7 +471,7 @@ class CylindricalDiagram(SageObject):
 
     def _latex_(self):
         r"""
-        Returns a `\LaTeX` representation of ``self``
+        Return a `\LaTeX` representation of ``self``
 
         EXAMPLES::
 
@@ -493,7 +495,7 @@ class CylindricalDiagram(SageObject):
         return result
 
     def __len__(self):
-        """Returns the length of ``self``
+        """Return the length of ``self``
 
         TESTS::
 
@@ -505,7 +507,8 @@ class CylindricalDiagram(SageObject):
 
     def _ascii_art_(self):
         """
-        Returns an ascii art representation of ``self``
+        Return an ascii art representation of ``self``
+
         TESTS::
 
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
@@ -525,7 +528,8 @@ class CylindricalDiagram(SageObject):
 
     def _unicode_art_(self):
         """
-        Returns a unicode art representation of ``self``
+        Return a unicode art representation of ``self``
+
         TESTS::
 
             sage: t = CatalanTableau([0,1,2,3,2,1,0])

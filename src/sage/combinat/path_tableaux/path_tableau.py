@@ -422,14 +422,14 @@ class PathTableaux(UniqueRepresentation,Parent):
     def _element_constructor_(self, *args, **kwds):
         r"""
         Constructs an object as an element of ``self``, if possible.
-        
+
         """
         return self.element_class(self, *args, **kwds)
 
 class CylindricalDiagram(SageObject):
     """
     A class for cylindrical growth diagrams.
-    
+
     """
     def __init__(self,T):
         """

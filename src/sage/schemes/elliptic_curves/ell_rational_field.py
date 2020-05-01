@@ -1348,21 +1348,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('19a1')
             sage: f = E.modular_symbol_numerical(1)
             sage: g = E.modular_symbol(1)
-            sage: f(0), g(0)  # abs tol 1e-13
+            sage: f(0), g(0)  # abs tol 1e-11
             (0.333333333333333, 1/3)
 
             sage: E = EllipticCurve('5077a1')
             sage: f = E.modular_symbol_numerical(-1, prec=2)
-            sage: f(0)        # abs tol 1e-13
+            sage: f(0)        # abs tol 1e-11
             0.000000000000000
-            sage: f(1/7)      # abs tol 1e-13
+            sage: f(1/7)      # abs tol 1e-11
             0.999844176260303
 
             sage: E = EllipticCurve([123,456])
             sage: E.conductor()
             104461920
             sage: f = E.modular_symbol_numerical(prec=2)
-            sage: f(0)        # abs tol 1e-13
+            sage: f(0)        # abs tol 1e-11
             2.00001004772210
         """
         from sage.schemes.elliptic_curves.mod_sym_num import ModularSymbolNumerical

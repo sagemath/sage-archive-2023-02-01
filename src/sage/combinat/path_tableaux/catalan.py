@@ -135,6 +135,30 @@ class CatalanTableau(PathTableau):
             [0, 1, 2, 1, 2, 1, 0]
             sage: CatalanTableau(SkewTableau([[None, 1,4],[2,3]]))
             [1, 2, 1, 0, 1]
+            sage: CatalanTableau(PerfectMatching([(1, 3), (2, 4), (5, 6)]))
+            Traceback (most recent call last):
+            ...
+            ValueError: the perfect matching must be non crossing
+            sage: CatalanTableau(Tableau([[1,2,5],[3,5,6]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: the tableau must be standard
+            sage: CatalanTableau(Tableau([[1,2,4],[3,5,6],[7]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: the tableau must have at most two rows
+            sage: CatalanTableau(SkewTableau([[None, 1,4],[2,3],[5]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: the skew tableau must have at most two rows
+            sage: CatalanTableau([0,1,2.5,1,0])
+            Traceback (most recent call last):
+            ...
+            ValueError: [0, 1, 2.50000000000000, 1, 0] is not a sequence of integers
+            sage: CatalanTableau(Partition([3,2,1]))
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid input [3, 2, 1]
         """
         w = None
 
@@ -151,16 +175,16 @@ class CatalanTableau(PathTableau):
                 raise ValueError("the perfect matching must be non crossing")
 
         elif isinstance(ot, Tableau):
-            if len(ot) <= 2:
-                if ot.is_standard():
-                    u = [1] * ot.size()
-                    for i in ot[1]:
-                        u[i-1] = 0
-                    w = DyckWord(u).heights()
-                else:
-                    raise ValueError("the tableau must be standard")
-            else:
+            if len(ot) > 2:
                 raise ValueError("the tableau must have at most two rows")
+            if ot.is_standard():
+                u = [1] * ot.size()
+                for i in ot[1]:
+                    u[i-1] = 0
+                w = DyckWord(u).heights()
+            else:
+                raise ValueError("the tableau must be standard")
+
 
         elif isinstance(ot, SkewTableau):
             if len(ot) > 2:
@@ -189,6 +213,7 @@ class CatalanTableau(PathTableau):
         """ Checks that ``self`` is a valid path.
 
         TESTS::
+
             sage: CatalanTableau([0,1,0,-1,0]) # indirect doctest
             Traceback (most recent call last):
             ...

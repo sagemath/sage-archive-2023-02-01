@@ -79,9 +79,12 @@ def layout_split(layout_function, G, **options):
     left = 0
     buffer = 1/sqrt(len(G))
 
-    forest_roots = options.get('forest_roots', None)
-    forest_roots = list(forest_roots) if forest_roots else None
     on_embedding = options.get('on_embedding', None)
+    forest_roots = options.get('forest_roots', None)
+    try:
+        forest_roots = list(forest_roots) if forest_roots else None
+    except TypeError:
+        raise TypeError('forest_roots should be an iterable of vertices')
 
     if forest_roots or on_embedding:
         options = copy(options)

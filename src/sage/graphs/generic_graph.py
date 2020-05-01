@@ -19476,8 +19476,15 @@ class GenericGraph(GenericGraph_pyx):
         TESTS::
 
             sage: G = Graph(0)
-            sage: G.plot(layout='tree')
+            sage: G.plot(layout='forest')
             Graphics object consisting of 0 graphics primitives
+
+        Works for forests that are trees::
+
+            sage: g = graphs.StarGraph(4)
+            sage: p = g.layout_forest(forest_roots=[1])
+            sage: sorted(p.items())
+            [(0, [2.0, -1]), (1, [2.0, 0]), (2, [3.0, -2]), (3, [2.0, -2]), (4, [1.0, -2])]
 
         The parameter ``forest_roots`` should be an iterable (or ``None``)::
 
@@ -19489,16 +19496,6 @@ class GenericGraph(GenericGraph_pyx):
         """
         if not self:
             return dict()
-        elif self.is_connected():
-            if forest_roots is not None:
-                try:
-                    tree_root = next(iter(forest_roots))
-                except TypeError:
-                   raise TypeError('forest_roots should be an iterable'
-                                   ' of vertices')
-            else:
-                 tree_root = None
-            return layout_tree(self, tree_orientation, tree_root, **options)
         else:
             # Compute the layout component by component
             return layout_split(self.__class__.layout_tree,

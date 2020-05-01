@@ -21,7 +21,7 @@ AUTHORS:
 from __future__ import print_function
 
 from sage.misc.all import prod, cached_method
-from sage.arith.all import LCM, srange, fundamental_discriminant
+from sage.arith.all import LCM, fundamental_discriminant
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import IntegerRing, ZZ
@@ -2833,9 +2833,9 @@ class GenusSymbol_global_ring(object):
             sage: E8.number_of_automorphisms()
             696729600
 
-        TESTS::
+        TESTS:
 
-        Check a random genus magma::
+        Check a random genus with magma::
 
             sage: d = ZZ.random_element(1,1000)
             sage: n = ZZ.random_element(2,10)

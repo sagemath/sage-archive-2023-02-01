@@ -3,10 +3,10 @@ Gray codes
 
 REFERENCES:
 
-.. [Knuth-TAOCP2A] \D. Knuth "The art of computer programming", fascicules 2A,
+.. [Knuth-TAOCP2A] \D. Knuth "The art of computer programming", fascicle 2A,
    "generating all n-tuples"
 
-.. [Knuth-TAOCP3A] \D. Knuth "The art of computer programming", fascicule 3A
+.. [Knuth-TAOCP3A] \D. Knuth "The art of computer programming", fascicle 3A
    "generating all combinations"
 
 Functions
@@ -229,7 +229,7 @@ def _revolving_door_odd(n,t):
         sage: sum(1 for _ in _revolving_door_odd(10,5)) == binomial(10,5) - 1
         True
     """
-    # note: the numerotation of the steps below follows Kunth TAOCP
+    # note: the numbering of the steps below follows Knuth TAOCP
     c = list(range(t)) + [n]    # the combination (ordered list of numbers of length t+1)
 
     while True:
@@ -274,7 +274,7 @@ def _revolving_door_even(n,t):
         sage: sum(1 for _ in _revolving_door_even(12,6)) == binomial(12,6) - 1
         True
     """
-    # note: the numerotation of the setps below follows Kunth TAOCP
+    # note: the numbering of the steps below follows Knuth TAOCP
 
     c = list(range(t)) + [n]    # the combination (ordered list of numbers of length t+1)
 

@@ -2187,30 +2187,55 @@ def termorder_from_singular(S):
          Lexicographic term order of length 2)
         sage: T._singular_ringorder_column
         1
+
+    TESTS:
+
+    Check that ``degneglex`` term orders are converted correctly
+    (:trac:`29635`)::
+
+        sage: _ = singular.ring(0, '(x,y,z,w)', '(a(1:4),ls(4))')
+        sage: termorder_from_singular(singular).singular_str()
+        '(a(1:4),ls(4))'
+        sage: _ = singular.ring(0, '(x,y,z,w)', '(a(1:2),ls(2),a(1:2),ls(2))')
+        sage: termorder_from_singular(singular).singular_str()
+        '(a(1:2),ls(2),a(1:2),ls(2))'
+        sage: _ = singular.ring(0, '(x,y,z,w)', '(a(1:2),ls(2),C,a(1:2),ls(2))')
+        sage: termorder_from_singular(singular).singular_str()
+        '(a(1:2),ls(2),C,a(1:2),ls(2))'
+        sage: PolynomialRing(QQ, 'x,y', order='degneglex')('x^2')._singular_().sage()
+        x^2
     """
     from sage.all import ZZ
     singular = S
     T = singular('ringlist(basering)[3]')
     order = []
     ringorder_column = None
-    for block in T:
+    weights_one_block = False
+    for idx, block in enumerate(T):
         blocktype = singular.eval('%s[1]'%block.name())
         if blocktype in ['a']:
+            weights = list(block[2].sage())
+            weights_one_block = all(w == 1 for w in weights)
             continue
         elif blocktype == 'c':
-            ringorder_column = 2*len(order) + 1
+            ringorder_column = 2*idx + 1
         elif blocktype == 'C':
-            if len(order) < len(T) - 1:  # skip Singular default
-                ringorder_column = 2*len(order)
+            if idx < len(T) - 1:  # skip Singular default
+                ringorder_column = 2*idx
         elif blocktype == 'M':
             from sage.matrix.constructor import matrix
             coefs = list(block[2].sage())
             n = ZZ(len(coefs)).sqrt()
             order.append(TermOrder(matrix(n,coefs)))
+        elif weights_one_block and blocktype == 'ls':
+            # 'degneglex' is encoded as '(a(1:n),ls(n))'
+            n = ZZ(singular.eval("size(%s[2])" % block.name()))
+            order.append(TermOrder('degneglex', n))
         elif blocktype[0] in ['w','W']:
             order.append(TermOrder(inv_singular_name_mapping[blocktype], list(block[2].sage())))
         else:
             order.append(TermOrder(inv_singular_name_mapping[blocktype], ZZ(singular.eval("size(%s[2])"%block.name()))))
+        weights_one_block = False
 
     if not order:
         raise ValueError("invalid term order in Singular")

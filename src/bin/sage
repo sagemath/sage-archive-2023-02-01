@@ -380,15 +380,7 @@ if [ "$1" = '-i' ]; then
     # Now install the packages
     for PKG in $PACKAGES; do
         echo
-        # First check that $PKG is an optional or experimental package
-        # so that it can be handled by configure --enable-PKG
-        SPKG_TYPE="$(cat "build/pkgs/$PKG/type" 2>/dev/null || true)"
-        case "$SPKG_TYPE" in
-            optional|experimental)
-                ENABLE_ARGS="$ENABLE_ARGS '--enable-$PKG'"
-                ;;
-        esac
-        # Otherwise check that $PKG is actually a Makefile target
+        # Check that $PKG is actually a Makefile target
         # See https://trac.sagemath.org/ticket/25078
         if ! echo "$ALL_TARGETS" | grep "^${PKG}$" >/dev/null; then
             echo >&2 "Error: package '$PKG' not found"
@@ -400,10 +392,6 @@ if [ "$1" = '-i' ]; then
     echo "New packages may have been installed."
     echo "Re-running configure and make in case any dependent packages need updating."
     touch "$SAGE_ROOT/configure" && $MAKE all-build
-    if [ -n "$ENABLE_ARGS" ]; then
-        echo >&2 "Hint: These optional/experimental packages can also be configured"
-        echo >&2 "to be installed by passing$ENABLE_ARGS to ./configure"
-    fi
     exit 0
 fi
 

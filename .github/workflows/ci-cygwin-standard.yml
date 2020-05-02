@@ -329,7 +329,7 @@ jobs:
     env:
       STAGE: ii-c
       PREVIOUS_STAGES: i-*
-      TARGETS: m4rie cypari eclib lrcalc fpylll sage_brial linbox sympy pynac
+      TARGETS:  cypari eclib fplll linbox giac
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
@@ -409,7 +409,7 @@ jobs:
     env:
       STAGE: ii-d
       PREVIOUS_STAGES: i-*
-      TARGETS: ipython jupyter-client ipywidgets notebook
+      TARGETS: ipython ipywidgets notebook
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
@@ -489,7 +489,7 @@ jobs:
     env:
       STAGE: ii-e
       PREVIOUS_STAGES: i-*
-      TARGETS: threejs tachyon pillow jmol
+      TARGETS: threejs tachyon pillow jmol m4rie sage_brial sympy lrcalc
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 

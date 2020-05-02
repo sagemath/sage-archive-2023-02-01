@@ -158,7 +158,7 @@ from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.categories.all import FiniteEnumeratedSets
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
 from sage.structure.richcmp import (richcmp_method,
-                                    richcmp, rich_to_bool, op_EQ)
+                                    richcmp, rich_to_bool, op_EQ, op_NE)
 
 
 def load_hap():
@@ -692,6 +692,18 @@ class PermutationGroup_generic(FiniteGroup):
             True
             sage: H3 < H1 # since H3 is a subgroup of H1
             True
+
+        TESTS:
+
+        Check that :trac:`29624` is fixed::
+
+            sage: G = SymmetricGroup(2)
+            sage: H = PermutationGroup([(1,2)])
+            sage: not G == H
+            False
+            sage: G != H
+            False
+
         """
         if not isinstance(right, PermutationGroup_generic):
             return NotImplemented
@@ -701,7 +713,7 @@ class PermutationGroup_generic(FiniteGroup):
 
         gSelf = self._libgap_()
         gRight = right._libgap_()
-        if op == op_EQ:
+        if op in [op_EQ,op_NE]:
             return gSelf._richcmp_(gRight, op)
 
         if gSelf.IsSubgroup(gRight):

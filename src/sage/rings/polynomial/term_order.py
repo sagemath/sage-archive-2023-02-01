@@ -225,7 +225,8 @@ Degree negative lexicographic (degneglex)
     `x^a < x^b` if and only if `\deg(x^a) < \deg(x^b)` or `\deg(x^a) = \deg(x^b)` and
     there exists `1 \le i \le n` such that `a_1 = b_1, \dots, a_{i-1} = b_{i-1}, a_i > b_i`.
     This term order is called 'dp_asc' in PolyBoRi.
-    Singular has the extra weight vector ordering '(r(1:n),rp)' for this purpose.
+    Singular has the extra weight vector ordering ``(a(1:n),ls)`` for this
+    purpose.
 
     EXAMPLES:
 

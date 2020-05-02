@@ -3,11 +3,8 @@ Gray codes
 
 REFERENCES:
 
-.. [Knuth-TAOCP2A] \D. Knuth "The art of computer programming", fascicle 2A,
-   "generating all n-tuples"
-
-.. [Knuth-TAOCP3A] \D. Knuth "The art of computer programming", fascicle 3A
-   "generating all combinations"
+.. [Knuth-TAOCP4A] \D. Knuth *The Art of Computer Programming. Volume 4A.
+   Combinatorial Algorithms, Part 1.*
 
 Functions
 ---------
@@ -25,8 +22,8 @@ def product(m):
     apply the increment ``i`` at the position ``p``. By construction, the
     increment is either ``+1`` or ``-1``.
 
-    This is algorithm H in [Knuth-TAOCP2A]_: loopless reflected mixed-radix Gray
-    generation.
+    This is algorithm H in [Knuth-TAOCP4A]_ Section 7.2.1.1, "Generating All
+    `n`-Tuples": loopless reflected mixed-radix Gray generation.
 
     INPUT:
 
@@ -123,7 +120,7 @@ def combinations(n,t):
     The ground set is always `\{0, 1, ..., n-1\}`. Note that ``n`` can be
     infinity in that algorithm.
 
-    See [Knuth-TAOCP3A]_.
+    See [Knuth-TAOCP4A]_ Section 7.2.1.3, "Generating All Combinations".
 
     INPUT:
 

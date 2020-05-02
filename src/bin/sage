@@ -603,7 +603,7 @@ fi
 
 if [ "$1" = '--pip3' ]; then
     shift
-    exec python3 -m pip "$@"
+    exec "$SAGE_LOCAL"/bin/python3 -m pip "$@"
 fi
 
 if [ "$1" = '-fix-pkg-checksums' -o "$1" = '--fix-pkg-checksums' ]; then
@@ -614,20 +614,20 @@ fi
 if [ "$1" = '-python' -o "$1" = '--python' ]; then
     shift
     if [ "$SAGE_PYTHON3" = 'yes' ]; then
-        exec python3 "$@"
+        exec "$SAGE_LOCAL"/bin/python3 "$@"
     else
-        exec python2 "$@"
+        exec "$SAGE_LOCAL"/bin/python2 "$@"
     fi
 fi
 
 if [ "$1" = '-python2' -o "$1" = '--python2' ]; then
     shift
-    exec python2 "$@"
+    exec "$SAGE_LOCAL"/bin/python2 "$@"
 fi
 
 if [ "$1" = '-python3' -o "$1" = '--python3' ]; then
     shift
-    exec python3 "$@"
+    exec "$SAGE_LOCAL"/bin/python3 "$@"
 fi
 
 if [ "$1" = '-R' -o "$1" = '--R' ]; then
@@ -637,17 +637,17 @@ fi
 
 if [ "$1" = '-ipython' -o "$1" = '--ipython' ]; then
     shift
-    exec ipython "$@"
+    exec "$SAGE_LOCAL"/bin/ipython "$@"
 fi
 
 if [ "$1" = '-ipython3' -o "$1" = '--ipython3' ]; then
     shift
-    exec ipython3 "$@"
+    exec "$SAGE_LOCAL"/bin/ipython3 "$@"
 fi
 
 if [ "$1" = '-jupyter' -o "$1" = '--jupyter' ]; then
     shift
-    exec jupyter "$@"
+    exec "$SAGE_LOCAL"/bin/jupyter "$@"
 fi
 
 if [ "$1" = '-git' -o "$1" = '--git' ]; then

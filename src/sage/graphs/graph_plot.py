@@ -593,7 +593,8 @@ class GraphPlot(SageObject):
         """
         for arg in edge_options:
             self._options[arg] = edge_options[arg]
-        if 'edge_colors' in edge_options: self._options['color_by_label'] = False
+        if 'edge_colors' in edge_options:
+            self._options['color_by_label'] = False
         if self._options['edge_labels_background'] == "transparent":
             self._options['edge_labels_background'] = "None"
 

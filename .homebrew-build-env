@@ -19,10 +19,10 @@ export PKG_CONFIG_PATH
 # Compile-time path for libraries and includes.  They are like adding
 # the gcc options -L or -I, but the libraries or includes added here
 # are searched after the directories specified on the command line.
-[ -z "$LIBRARY_PATH" ] || LIBRARY_PATH="${LIBRARY_PATH}:"
-LIBRARY_PATH="$HOMEBREW/lib:$LIBRARY_PATH"
-[ -z "$CPATH" ] || CPATH="${CPATH}:"
-CPATH="$HOMEBREW/include:$CPATH"
+[ -z "$LIBRARY_PATH" ] || LIBRARY_PATH=":${LIBRARY_PATH}"
+LIBRARY_PATH="$HOMEBREW/lib$LIBRARY_PATH"
+[ -z "$CPATH" ] || CPATH=":${CPATH}"
+CPATH="$HOMEBREW/include$CPATH"
 for l in readline; do
     if [ -d "$HOMEBREW/opt/$l/lib" ]; then
         LIBRARY_PATH="$HOMEBREW/opt/$l/lib:$LIBRARY_PATH"

@@ -346,13 +346,13 @@ fi
 
 # Compile-time path for libraries.  This is the equivalent of
 # adding the gcc option -L $SAGE_LOCAL/lib.
-[ -z "$LIBRARY_PATH" ] || LIBRARY_PATH="${LIBRARY_PATH}:"
-export LIBRARY_PATH="${LIBRARY_PATH}$SAGE_LOCAL/lib"
+[ -z "$LIBRARY_PATH" ] || LIBRARY_PATH=":${LIBRARY_PATH}"
+export LIBRARY_PATH="$SAGE_LOCAL/lib${LIBRARY_PATH}"
 
 # Compile-time path for include files.  This is the equivalent of
 # adding the gcc option -I $SAGE_LOCAL/include.
-[ -z "$CPATH" ] || CPATH="${CPATH}:"
-export CPATH="${CPATH}$SAGE_LOCAL/include"
+[ -z "$CPATH" ] || CPATH=":${CPATH}"
+export CPATH="$SAGE_LOCAL/include${CPATH}"
 
 SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
 SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE

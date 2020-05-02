@@ -4,8 +4,6 @@
 # Show all tar files from the sage-local artifact
 ls -l sage-local-*.tar
 
-mkdir -p
-
 # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
 for a in $*; do
     echo Extracting $a

@@ -1,0 +1,27 @@
+pari_galpol
+===========
+
+Description
+-----------
+
+PARI package of the GALPOL database of polynomials defining Galois
+extensions of the rationals, accessed by galoisgetpol, galoisgetgroup,
+galoisgetname.
+
+License
+-------
+
+GNU General Public License (GPL version 2 or any later version).
+
+.. _upstream_contact:
+
+Upstream Contact
+----------------
+
+http://pari.math.u-bordeaux.fr/
+
+Dependencies
+------------
+
+-  Installation: None
+-  Runtime: PARI/GP

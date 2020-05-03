@@ -1,0 +1,24 @@
+mistune
+=======
+
+Description
+-----------
+
+The fastest markdown parser in pure Python
+
+License
+-------
+
+BSD License
+
+.. _upstream_contact:
+
+Upstream Contact
+----------------
+
+Home Page: https://github.com/lepture/mistune
+
+Dependencies
+------------
+
+Python, Cython, Pip

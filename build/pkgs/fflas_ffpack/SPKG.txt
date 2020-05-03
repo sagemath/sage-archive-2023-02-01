@@ -28,13 +28,3 @@ LGPL V2.1 or later
 
  * bash.patch: fix shebang line to "#!/usr/bin/env bash"
 
-== Changelog ==
-
-=== fflas_ffpack-2.2.2 (Clement Pernet, 30 July 2016) ===
- * #13463: add bash.patch, use standard template for SPKG.txt.
-
-=== fflas_ffpack-1.6.0.p0 (Jeroen Demeyer, 5 February 2013) ===
- * #13463: add bash.patch, use standard template for SPKG.txt.
-
-=== fflas_ffpack-1.6.0 (Martin Albrecht, 7 June 2012) ===
- * #12883 new upstream release

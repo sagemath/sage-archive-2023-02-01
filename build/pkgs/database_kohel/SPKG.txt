@@ -8,7 +8,3 @@ Database of modular and Hilbert polynomials.
 
  * David Kohel <David.Kohel@univ-amu.fr>
 
-== Changelog ==
-
- * new style package 20160724 (V. Delecroix)
- * initial version 20060803 (D. Kohel and W. Stein)

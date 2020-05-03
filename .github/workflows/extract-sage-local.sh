@@ -20,6 +20,7 @@ rm -f sage-local-*.tar
 
 # Show what has been built already.
 ls -l local local/var/lib/sage/installed/
+df -h
 
 # Rebase!
 src/bin/sage-rebase.sh local

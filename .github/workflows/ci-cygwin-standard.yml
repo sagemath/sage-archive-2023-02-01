@@ -81,7 +81,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       # upload-artifact@v2-preview does not support whitespace in file names.
@@ -151,7 +151,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       # upload-artifact@v2-preview does not support whitespace in file names.
@@ -232,7 +232,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       # upload-artifact@v2-preview does not support whitespace in file names.
@@ -311,7 +311,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -388,7 +388,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -465,7 +465,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -542,7 +542,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -621,7 +621,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -700,7 +700,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -777,7 +777,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -854,7 +854,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:
@@ -931,7 +931,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
     - uses: actions/upload-artifact@v2-preview
       with:

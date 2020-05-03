@@ -65,7 +65,7 @@ jobs:
       run: |
         mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
         path: artifacts
         name: ${{ env.LOGS_ARTIFACT_NAME }}
@@ -81,13 +81,13 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
-    - uses: actions/upload-artifact@v2-preview
-      # upload-artifact@v2-preview does not support whitespace in file names.
+    - uses: actions/upload-artifact@v2
+      # upload-artifact@v2 does not support whitespace in file names.
       # so we tar up the directory ourselves
       with:
-        path: sage-local-${{ env.STAGE }}.tar
+        path: C:\\tools\\cygwin\\tmp\\sage-local-${{ env.STAGE }}.tar
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
 
@@ -135,7 +135,7 @@ jobs:
       run: |
         mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
         path: artifacts
         name: ${{ env.LOGS_ARTIFACT_NAME }}
@@ -151,13 +151,13 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
-    - uses: actions/upload-artifact@v2-preview
-      # upload-artifact@v2-preview does not support whitespace in file names.
+    - uses: actions/upload-artifact@v2
+      # upload-artifact@v2 does not support whitespace in file names.
       # so we tar up the directory ourselves
       with:
-        path: sage-local-${{ env.STAGE }}.tar
+        path: C:\\tools\\cygwin\\tmp\\sage-local-${{ env.STAGE }}.tar
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
 
@@ -199,12 +199,13 @@ jobs:
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
         choco install $PACKAGES --source cygwin
-    - uses: actions/download-artifact@v2-preview
+    - uses: actions/download-artifact@v2
       with:
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
+        path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh sage-local-${{ env.PREVIOUS_STAGES }}.tar'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-${{ env.PREVIOUS_STAGES }}.tar'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
@@ -216,7 +217,7 @@ jobs:
       run: |
         mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
         path: artifacts
         name: ${{ env.LOGS_ARTIFACT_NAME }}
@@ -232,13 +233,13 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
-    - uses: actions/upload-artifact@v2-preview
-      # upload-artifact@v2-preview does not support whitespace in file names.
+    - uses: actions/upload-artifact@v2
+      # upload-artifact@v2 does not support whitespace in file names.
       # so we tar up the directory ourselves
       with:
-        path: sage-local-${{ env.STAGE }}.tar
+        path: C:\\tools\\cygwin\\tmp\\sage-local-${{ env.STAGE }}.tar
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
 
@@ -278,12 +279,13 @@ jobs:
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
         choco install $PACKAGES --source cygwin
-    - uses: actions/download-artifact@v2-preview
+    - uses: actions/download-artifact@v2
       with:
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
+        path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh sage-local-${{ env.PREVIOUS_STAGES }}.tar'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-${{ env.PREVIOUS_STAGES }}.tar'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
@@ -295,7 +297,7 @@ jobs:
       run: |
         mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
         path: artifacts
         name: ${{ env.LOGS_ARTIFACT_NAME }}
@@ -311,11 +313,11 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
-        path: sage-local-${{ env.STAGE }}.tar
+        path: C:\\tools\\cygwin\\tmp\\sage-local-${{ env.STAGE }}.tar
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
 
@@ -355,12 +357,13 @@ jobs:
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
         choco install $PACKAGES --source cygwin
-    - uses: actions/download-artifact@v2-preview
+    - uses: actions/download-artifact@v2
       with:
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
+        path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh sage-local-${{ env.PREVIOUS_STAGES }}.tar'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-${{ env.PREVIOUS_STAGES }}.tar'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
@@ -372,7 +375,7 @@ jobs:
       run: |
         mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
         path: artifacts
         name: ${{ env.LOGS_ARTIFACT_NAME }}
@@ -388,11 +391,11 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
-        path: sage-local-${{ env.STAGE }}.tar
+        path: C:\\tools\\cygwin\\tmp\\sage-local-${{ env.STAGE }}.tar
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
 
@@ -400,7 +403,7 @@ jobs:
     env:
       STAGE: ii-d
       PREVIOUS_STAGES: i-*
-      TARGETS: ipython ipywidgets notebook
+      TARGETS: ipython ipywidgets notebook thebe
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
@@ -432,12 +435,13 @@ jobs:
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
         choco install $PACKAGES --source cygwin
-    - uses: actions/download-artifact@v2-preview
+    - uses: actions/download-artifact@v2
       with:
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
+        path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh sage-local-${{ env.PREVIOUS_STAGES }}.tar'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-${{ env.PREVIOUS_STAGES }}.tar'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
@@ -449,7 +453,7 @@ jobs:
       run: |
         mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
         path: artifacts
         name: ${{ env.LOGS_ARTIFACT_NAME }}
@@ -465,11 +469,11 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
-        path: sage-local-${{ env.STAGE }}.tar
+        path: C:\\tools\\cygwin\\tmp\\sage-local-${{ env.STAGE }}.tar
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
 
@@ -477,7 +481,7 @@ jobs:
     env:
       STAGE: ii-e
       PREVIOUS_STAGES: i-*
-      TARGETS: threejs tachyon pillow jmol m4rie sage_brial sympy lrcalc
+      TARGETS: threejs tachyon pillow jmol m4rie sage_brial sympy lrcalc lcalc symmetrica cliquer libbraiding planarity rw elliptic_curves combinatorial_designs zn_poly sympow
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
@@ -509,12 +513,13 @@ jobs:
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
         choco install $PACKAGES --source cygwin
-    - uses: actions/download-artifact@v2-preview
+    - uses: actions/download-artifact@v2
       with:
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
+        path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh sage-local-${{ env.PREVIOUS_STAGES }}.tar'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-${{ env.PREVIOUS_STAGES }}.tar'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
@@ -526,7 +531,7 @@ jobs:
       run: |
         mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
         path: artifacts
         name: ${{ env.LOGS_ARTIFACT_NAME }}
@@ -542,11 +547,11 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
-        path: sage-local-${{ env.STAGE }}.tar
+        path: C:\\tools\\cygwin\\tmp\\sage-local-${{ env.STAGE }}.tar
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
 
@@ -588,12 +593,13 @@ jobs:
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
         choco install $PACKAGES --source cygwin
-    - uses: actions/download-artifact@v2-preview
+    - uses: actions/download-artifact@v2
       with:
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
+        path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh sage-local-${{ env.PREVIOUS_STAGES }}.tar'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-${{ env.PREVIOUS_STAGES }}.tar'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
@@ -605,7 +611,7 @@ jobs:
       run: |
         mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
         path: artifacts
         name: ${{ env.LOGS_ARTIFACT_NAME }}
@@ -621,11 +627,11 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
-        path: sage-local-${{ env.STAGE }}.tar
+        path: C:\\tools\\cygwin\\tmp\\sage-local-${{ env.STAGE }}.tar
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
 
@@ -667,12 +673,13 @@ jobs:
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
         choco install $PACKAGES --source cygwin
-    - uses: actions/download-artifact@v2-preview
+    - uses: actions/download-artifact@v2
       with:
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
+        path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh sage-local-${{ env.PREVIOUS_STAGES }}.tar'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-${{ env.PREVIOUS_STAGES }}.tar'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
@@ -684,7 +691,7 @@ jobs:
       run: |
         mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
         path: artifacts
         name: ${{ env.LOGS_ARTIFACT_NAME }}
@@ -700,11 +707,11 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
-        path: sage-local-${{ env.STAGE }}.tar
+        path: C:\\tools\\cygwin\\tmp\\sage-local-${{ env.STAGE }}.tar
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
 
@@ -744,12 +751,13 @@ jobs:
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
         choco install $PACKAGES --source cygwin
-    - uses: actions/download-artifact@v2-preview
+    - uses: actions/download-artifact@v2
       with:
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
+        path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh sage-local-${{ env.PREVIOUS_STAGES }}.tar'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-${{ env.PREVIOUS_STAGES }}.tar'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
@@ -761,7 +769,7 @@ jobs:
       run: |
         mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
         path: artifacts
         name: ${{ env.LOGS_ARTIFACT_NAME }}
@@ -777,11 +785,11 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
-        path: sage-local-${{ env.STAGE }}.tar
+        path: C:\\tools\\cygwin\\tmp\\sage-local-${{ env.STAGE }}.tar
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
 
@@ -821,12 +829,13 @@ jobs:
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
         choco install $PACKAGES --source cygwin
-    - uses: actions/download-artifact@v2-preview
+    - uses: actions/download-artifact@v2
       with:
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
+        path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh sage-local-${{ env.PREVIOUS_STAGES }}.tar'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-${{ env.PREVIOUS_STAGES }}.tar'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
@@ -838,7 +847,7 @@ jobs:
       run: |
         mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
         path: artifacts
         name: ${{ env.LOGS_ARTIFACT_NAME }}
@@ -854,11 +863,11 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
-        path: sage-local-${{ env.STAGE }}.tar
+        path: C:\\tools\\cygwin\\tmp\\sage-local-${{ env.STAGE }}.tar
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()
 
@@ -898,12 +907,13 @@ jobs:
       run: |
         PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
         choco install $PACKAGES --source cygwin
-    - uses: actions/download-artifact@v2-preview
+    - uses: actions/download-artifact@v2
       with:
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
+        path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh sage-local-${{ env.PREVIOUS_STAGES }}.tar'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh'
     - name: configure
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
@@ -915,7 +925,7 @@ jobs:
       run: |
         mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in local/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
         path: artifacts
         name: ${{ env.LOGS_ARTIFACT_NAME }}
@@ -931,10 +941,10 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf sage-local-${{ env.STAGE }}.tar local'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f local/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files local'
       if: always()
-    - uses: actions/upload-artifact@v2-preview
+    - uses: actions/upload-artifact@v2
       with:
-        path: sage-local-${{ env.STAGE }}.tar
+        path: C:\\tools\\cygwin\\tmp\\sage-local-${{ env.STAGE }}.tar
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
       if: always()

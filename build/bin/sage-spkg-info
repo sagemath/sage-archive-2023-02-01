@@ -6,7 +6,13 @@
 #  Assumes SAGE_ROOT is set
 PKG_BASE=$1
 PKG_SCRIPTS="$SAGE_ROOT/build/pkgs/$PKG_BASE"
-cat "$PKG_SCRIPTS/SPKG.txt"
+for ext in rst txt; do
+    SPKG_FILE="$PKG_SCRIPTS/SPKG.$ext"
+    if [ -f "$SPKG_FILE" ]; then
+        cat "$SPKG_FILE"
+        break
+    fi
+done
 if [ -r "$PKG_SCRIPTS/type" ] ; then
     echo
     echo "== Type =="

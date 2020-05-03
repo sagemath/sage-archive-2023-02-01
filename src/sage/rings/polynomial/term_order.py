@@ -680,12 +680,23 @@ class TermOrder(SageObject):
             //        block   1 : ordering C
             //        block   2 : ordering dp
             //                  : names    x y z
+
+        Check that :trac:`29635` is fixed::
+
+            sage: T = PolynomialRing(GF(101^5), 'u,v,w', order=TermOrder('degneglex')).term_order()
+            sage: T.singular_str()
+            '(a(1:3),ls(3))'
+            sage: (T + T).singular_str()
+            '(a(1:3),ls(3),a(1:3),ls(3))'
         """
         if isinstance(name, TermOrder):
             self.__copy(name)
             if n:
                 if not name.is_block_order() and not name.is_weighted_degree_order():
                     self._length = n
+                    if self._length != 0:
+                        self._singular_str = (self._singular_str
+                                              % dict(ngens=self._length))
                 elif self._length != n:
                     raise ValueError("the length of the given term order ({}) differs from the number of variables ({})"
                             .format(self._length, n))

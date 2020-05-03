@@ -766,7 +766,7 @@ class TensorField(ModuleElement):
             # For compatibility with previous use of tensor_field():
             self.set_name(comp0)
         else:
-            if isinstance(comp0, (list, tuple)):
+            if hasattr(comp0, '__len__') and hasattr(comp0, '__getitem__'):
                 # comp0 is a list/vector of components
                 # otherwise comp is the tuple of components in a specific frame
                 comp = comp0

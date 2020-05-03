@@ -184,11 +184,11 @@ class OrderedSetPartition(ClonableArray):
         if from_word:
             return OrderedSetPartitions().from_finite_word(Words()(from_word))
         # if `parts` looks like a sequence of "letters" then treat it like a word.
-        if parts in Words() or (len(parts) and (parts[0] in ZZ or isinstance(parts[0], str))):
+        if parts in Words() or (parts and (parts[0] in ZZ or isinstance(parts[0], str))):
             return OrderedSetPartitions().from_finite_word(Words()(parts))
         else:
-            P = OrderedSetPartitions(reduce(lambda x,y: x.union(y),
-                                            map(Set, parts), Set([])))
+            P = OrderedSetPartitions(reduce(lambda x, y: x.union(y),
+                                            parts, frozenset()))
             return P.element_class(P, parts)
 
     def __init__(self, parent, s):
@@ -201,7 +201,7 @@ class OrderedSetPartition(ClonableArray):
             sage: s = OS([[1, 3], [2, 4]])
             sage: TestSuite(s).run()
         """
-        self._base_set = reduce(lambda x,y: x.union(y), map(Set, s), Set([]))
+        self._base_set = reduce(lambda x, y: x.union(y), map(Set, s), Set([]))
         ClonableArray.__init__(self, parent, [Set(_) for _ in s])
 
     def _repr_(self):
@@ -367,7 +367,7 @@ class OrderedSetPartition(ClonableArray):
             sage: OrderedSetPartition([]).reversed()
             []
         """
-        par = self.parent()
+        par = parent(self)
         return par(list(reversed(self)))
 
     def complement(self):
@@ -760,8 +760,8 @@ class OrderedSetPartition(ClonableArray):
             [[{4}, {1, 5}, {3}], [{4}, {1}, {5}, {3}]]
         """
         c = [sorted(X) for X in self]
-        l = len(c)
-        g = [-1] + [i for i in range(l-1) if c[i][-1] > c[i+1][0]] + [l-1]
+        l = len(c) - 1
+        g = [-1] + [i for i in range(l) if c[i][-1] > c[i + 1][0]] + [l]
         # g lists the positions of the blocks that cannot be merged
         # with their right neighbors.
         subcomps = [OrderedSetPartition(c[g[i] + 1: g[i + 1] + 1])
@@ -953,21 +953,21 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
         if not isinstance(x, (OrderedSetPartition, list, tuple)):
             return False
 
-        #The total number of elements in the list
-        #should be the same as the number is self._set
+        # The total number of elements in the list
+        # should be the same as the number is self._set
         if sum(map(len, x)) != len(self._set):
             return False
 
-        #Check to make sure each element of the list
-        #is a nonempty set
+        # Check to make sure each element of the list
+        # is a nonempty set
         u = Set([])
         for s in x:
             if not s or not isinstance(s, (set, frozenset, Set_generic)):
                 return False
             u = u.union(s)
 
-        #Make sure that the union of all the
-        #sets is the original set
+        # Make sure that the union of all the
+        # sets is the original set
         if u != Set(self._set):
             return False
 
@@ -1130,7 +1130,7 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
              [{3}, {1, 2, 4}],
              [{4}, {1, 2, 3}]]
         """
-        for x in Compositions(len(self._set),length=self.n):
+        for x in Compositions(len(self._set), length=self.n):
             for z in OrderedSetPartitions_scomp(self._set, x):
                 yield self.element_class(self, z)
 
@@ -1407,7 +1407,7 @@ class SplitNK(OrderedSetPartitions_scomp):
         self.__class__ = OrderedSetPartitions_scomp
         n = state['_n']
         k = state['_k']
-        OrderedSetPartitions_scomp.__init__(self, range(state['_n']), (k,n-k))
+        OrderedSetPartitions_scomp.__init__(self, range(state['_n']), (k, n-k))
 
 
 from sage.misc.persist import register_unpickle_override

@@ -1,4 +1,3 @@
-.. _jean_michels_gap_3_distribution:
 
 Jean Michel's GAP 3 distribution
 ================================
@@ -56,14 +55,12 @@ system, are distributed under the terms of the GNU General Public
 License (see http://www.gnu.org/licenses/gpl.html or the file GPL in the
 etc directory of the GAP installation).
 
-.. _spkg_maintainers:
 
 SPKG Maintainers
 ----------------
 
 -  Christian Stump <christian.stump@gmail.com>
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -71,7 +68,6 @@ Upstream Contact
 Jean Michel <jmichel@math.jussieu.fr>
 http://webusers.imj-prg.fr/~jean.michel/
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

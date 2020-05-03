@@ -13,7 +13,6 @@ License
 
 GPLv3+
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -26,7 +25,6 @@ Dependencies
 
 None
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

@@ -25,7 +25,6 @@ Patches
 
 -  None
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -34,7 +33,6 @@ Upstream Contact
 -  Email: john.cremona@gmail.com
 -  Website: http://homepages.warwick.ac.uk/staff/J.E.Cremona/
 
-.. _update_instructions:
 
 Update Instructions
 -------------------

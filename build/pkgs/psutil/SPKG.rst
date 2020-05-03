@@ -13,7 +13,6 @@ License
 
 3-clause BSD license
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

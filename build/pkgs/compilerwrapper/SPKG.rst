@@ -1,4 +1,3 @@
-.. _compiler_wrapper:
 
 Compiler Wrapper
 ================
@@ -15,7 +14,6 @@ License
 
 GPL v2+
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -28,7 +26,6 @@ Dependencies
 
 -  None
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

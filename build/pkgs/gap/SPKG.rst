@@ -18,7 +18,6 @@ it for your special use.
 This is a stripped-down version of GAP. The databases, which are
 architecture-independent, are in a separate package.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -32,7 +31,6 @@ Dependencies
 -  Readline
 -  MPIR
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

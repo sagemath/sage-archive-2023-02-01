@@ -18,7 +18,6 @@ License
 
 -  GPL v2 or GPL v3
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

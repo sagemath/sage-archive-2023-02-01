@@ -23,7 +23,6 @@ Maxima is distributed under the GNU General Public License, with some
 export restrictions from the U.S. Department of Energy. See the file
 COPYING.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -36,7 +35,6 @@ Dependencies
 
 -  ECL (Embedded Common Lisp)
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

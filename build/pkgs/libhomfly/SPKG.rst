@@ -12,14 +12,12 @@ License
 
 Public domain
 
-.. _spkg_maintainers:
 
 SPKG Maintainers
 ----------------
 
 -  Miguel Marco
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

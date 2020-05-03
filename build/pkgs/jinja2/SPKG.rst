@@ -17,7 +17,6 @@ License
 
 Modified BSD License
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -32,7 +31,6 @@ Dependencies
 -  Pygments (according to 'spkg/standard/deps')
 -  docutils (dito, as a note only)
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

@@ -12,7 +12,6 @@ License
 
 MIT License
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

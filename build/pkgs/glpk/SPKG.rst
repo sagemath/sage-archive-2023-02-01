@@ -26,7 +26,6 @@ License
 
 The GLPK package is GPL version 3.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -43,7 +42,6 @@ Dependencies
 -  GMP/MPIR
 -  zlib
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

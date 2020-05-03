@@ -11,7 +11,6 @@ License
 
 -  GPL v2 or later
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -24,7 +23,6 @@ Dependencies
 -  pip
 -  normaliz
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

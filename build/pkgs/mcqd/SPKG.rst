@@ -1,4 +1,3 @@
-.. _mcqd_1.0:
 
 MCQD 1.0
 ========
@@ -14,7 +13,6 @@ License
 
 GPL 3
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

@@ -22,7 +22,6 @@ licenses. Non-BSD compatible licenses (eg LGPL) are acceptable in
 matplotlib Toolkits. For a discussion of the motivations behind the
 licencing choice, see Licenses.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -43,7 +42,6 @@ Dependencies
 -  tornado
 -  kiwisolver
 
-.. _build_instructionschanges:
 
 Build Instructions/Changes
 --------------------------

@@ -29,7 +29,6 @@ LGPL. The “yasm-nextgen” codebase uses a different BSD-licensed
 implementation and is thus entirely under BSD-equivalent licenses. The
 full text of the licenses are provided in the Yasm source distribution.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

@@ -21,7 +21,6 @@ License
 
 -  GPL V3
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -58,7 +57,6 @@ Dependencies
    Sage library only uses it as a fall-back, if e.g. BLAS library is not
    present.)
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

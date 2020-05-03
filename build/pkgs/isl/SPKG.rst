@@ -16,7 +16,6 @@ License
 isl is released under the MIT license, but depends on the LGPL GMP
 library.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

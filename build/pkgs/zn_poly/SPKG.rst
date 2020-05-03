@@ -19,7 +19,6 @@ License
 GPL V2 or V3. Some of the code has been copied from other projects - see
 the file src/COPYING for details.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -36,7 +35,6 @@ Dependencies
 -  NTL apparently only if we configured zn_poly differently (same for
    FLINT)
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

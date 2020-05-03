@@ -13,7 +13,6 @@ License
 
 LGPL V3+
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -26,7 +25,6 @@ Dependencies
 -  GMP/MPIR (Note: Python is \*not\* required for ordinary builds.)
 -  GNU patch
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

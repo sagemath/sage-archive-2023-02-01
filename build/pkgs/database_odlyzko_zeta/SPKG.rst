@@ -1,4 +1,3 @@
-.. _zeros_of_the_riemann_zeta_function:
 
 Zeros of the Riemann zeta function
 ==================================

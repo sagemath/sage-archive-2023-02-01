@@ -14,7 +14,6 @@ asymptotically fast algorithms that scale well for extremely high
 precision work. If available, mpmath will (optionally) use gmpy to speed
 up high precision operations.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

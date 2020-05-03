@@ -24,7 +24,6 @@ this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or
 send a letter to Creative Commons, 171 Second Street, Suite 300, San
 Francisco, California, 94105, USA.
 
-.. _spkg_maintainers:
 
 SPKG Maintainers
 ----------------
@@ -32,7 +31,6 @@ SPKG Maintainers
 Dan Drake (dr.dan.drake at gmail) and SageMath developers
 (sage-devel@googlegroups.com)
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

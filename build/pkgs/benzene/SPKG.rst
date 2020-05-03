@@ -15,7 +15,6 @@ License
 Benzene is licensed under the GNU General Public License v2 or later (
 June 2007 )
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

@@ -11,7 +11,6 @@ License
 
 ISC
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

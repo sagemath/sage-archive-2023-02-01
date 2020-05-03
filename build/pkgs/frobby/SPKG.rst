@@ -23,7 +23,6 @@ Maintainers
 
 -  Bjarke Hammersholt Roune (www.broune.com)
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -35,7 +34,6 @@ Dependencies
 
 -  GMP built with support for C++
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build instructions
 ---------------------------------

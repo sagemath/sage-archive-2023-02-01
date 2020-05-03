@@ -12,7 +12,6 @@ License
 
 GPL version 2
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -24,7 +23,6 @@ Dependencies
 
 -  GNU patch
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

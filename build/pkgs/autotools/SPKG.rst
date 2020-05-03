@@ -34,7 +34,6 @@ License
 
 GNU General Public License version 3 or later.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -59,7 +58,6 @@ To update the package:
 -  Sage with autotools package installed
 -  Internet access
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

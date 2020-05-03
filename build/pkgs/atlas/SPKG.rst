@@ -11,7 +11,6 @@ License
 
 3-clause BSD
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -24,7 +23,6 @@ Dependencies
 
 -  Python
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

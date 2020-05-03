@@ -13,7 +13,6 @@ applications straightforward by building on Python's extensive standard
 library and on the strengths of Python as a high-level programming
 language.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -36,7 +35,6 @@ Dependencies
 -  GSL
 -  GLPK
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

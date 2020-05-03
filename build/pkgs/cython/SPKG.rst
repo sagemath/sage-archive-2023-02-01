@@ -24,7 +24,6 @@ License
 
 Apache License, Version 2.0
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

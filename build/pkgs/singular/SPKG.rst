@@ -13,7 +13,6 @@ License
 
 GPLv2 or GPLv3
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -32,7 +31,6 @@ Dependencies
 -  NTL
 -  FLINT
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

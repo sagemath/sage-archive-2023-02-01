@@ -26,7 +26,6 @@ License
 
 Boost Software License - see http://www.boost.org/users/license.html
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

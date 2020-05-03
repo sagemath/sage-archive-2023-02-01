@@ -19,7 +19,6 @@ License
 The libpng license - see
 http://www.libpng.org/pub/png/src/libpng-LICENSE.txt
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -34,7 +33,6 @@ This spkg depends on:
 
 -  libz
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

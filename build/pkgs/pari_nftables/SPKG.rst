@@ -12,7 +12,6 @@ License
 
 GNU General Public License (GPL version 2 or any later version).
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

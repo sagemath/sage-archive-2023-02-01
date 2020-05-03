@@ -23,7 +23,6 @@ License
 
 -  GNU GPL
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

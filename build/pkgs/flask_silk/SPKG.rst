@@ -1,4 +1,3 @@
-.. _flask_silk:
 
 Flask-Silk
 ==========

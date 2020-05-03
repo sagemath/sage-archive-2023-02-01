@@ -14,14 +14,12 @@ License
 
 LGPL V2.1 or later
 
-.. _spkg_repository:
 
 SPKG Repository
 ---------------
 
    https://bitbucket.org/malb/fflas-ffpack-spkg
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

@@ -33,7 +33,6 @@ License
    products
 -  derived from this software without specific prior written permission.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -47,7 +46,6 @@ This spkg depends on:
 
 -  libpng
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

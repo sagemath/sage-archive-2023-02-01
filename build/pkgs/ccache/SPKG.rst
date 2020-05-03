@@ -14,7 +14,6 @@ License
 
 GNU General Public License version 3 or later
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

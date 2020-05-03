@@ -15,7 +15,6 @@ License
 
 -  LGPL V2.1+
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

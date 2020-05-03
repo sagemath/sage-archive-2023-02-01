@@ -20,7 +20,6 @@ License
 
 GPL v2
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -35,7 +34,6 @@ Dependencies
 
 -  gmp, libcdd
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

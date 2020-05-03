@@ -12,7 +12,6 @@ License
 
 GLPv3
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

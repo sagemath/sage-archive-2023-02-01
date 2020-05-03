@@ -22,7 +22,6 @@ License
 
 CMake is distributed under the OSI-approved BSD 3-clause License.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

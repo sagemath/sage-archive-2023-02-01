@@ -25,7 +25,6 @@ License
 
 -  GPL version 2 or version 3 (according to the gfan website)
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -39,7 +38,6 @@ Dependencies
 -  GMP/MPIR
 -  CDDLIB
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

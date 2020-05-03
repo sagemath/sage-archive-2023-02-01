@@ -28,7 +28,6 @@ License
 
    http://ecls.sourceforge.net/license.html
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -41,7 +40,6 @@ Dependencies
 -  mpir
 -  boehm_gc
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

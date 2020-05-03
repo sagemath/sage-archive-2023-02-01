@@ -16,7 +16,6 @@ License
 
 GNU General Public License v2+
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -30,7 +29,6 @@ Dependencies
 -  MPIR or GMP
 -  MPFR
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

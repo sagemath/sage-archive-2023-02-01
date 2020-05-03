@@ -13,7 +13,6 @@ License
 
 Python Software Foundation License
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

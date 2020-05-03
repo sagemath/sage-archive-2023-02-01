@@ -12,7 +12,6 @@ License
 
 ISC License (equivalent to Simplified BSD)
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -24,7 +23,6 @@ Dependencies
 
 -  C compiler + toolchain
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

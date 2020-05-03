@@ -16,7 +16,6 @@ http://users.cecs.anu.edu.au/~bdm/nauty/COPYRIGHT.txt
 
 (a copy of this file, called COPYRIGHT, is also present in the tarball)
 
-.. _special_packaging_instruction:
 
 Special Packaging Instruction
 -----------------------------
@@ -25,7 +24,6 @@ Upstream distribute tarball named nauty${version}.tar.gz. We cannot deal
 with that so rename it nauty-${version}.tar.gz (notice the "-") without
 any changes.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

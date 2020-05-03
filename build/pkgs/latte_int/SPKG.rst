@@ -12,7 +12,6 @@ License
 
 GPLv2
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

@@ -15,7 +15,6 @@ License
 
 -  GPL v3
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -79,7 +78,6 @@ Information on missing Polymake prerequisites after installing polymake:
    (sage-sh) $ polymake
    polytope> show_unconfigured;
 
-.. _debugging_polymake_install_problems:
 
 Debugging polymake install problems
 -----------------------------------

@@ -20,7 +20,6 @@ License
 
 Plantri is distributed without a license.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

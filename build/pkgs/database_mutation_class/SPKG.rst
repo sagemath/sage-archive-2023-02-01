@@ -1,4 +1,3 @@
-.. _mutation_class_database:
 
 Mutation class database
 =======================
@@ -23,7 +22,6 @@ Description
    \``sage.combinat.cluster_algebra_quiver.quiver_mutation_type._save_data_dig6(n,
    types='Exceptional', verbose=False)`\`
 
-.. _spkg_maintainers:
 
 SPKG Maintainers
 ----------------

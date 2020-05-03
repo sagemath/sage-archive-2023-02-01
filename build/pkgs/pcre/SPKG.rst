@@ -11,7 +11,6 @@ License
 
 BSD License ; see LICENCE (sic) at the root of the original tarball.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -23,7 +22,6 @@ Dependencies
 
 None listed.
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

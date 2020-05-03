@@ -18,7 +18,6 @@ License
    which we are allowed to do by the full rpy2 license in order to
    remain GPL-compatible
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -28,7 +27,6 @@ Upstream Contact
 Dependencies
 ------------
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

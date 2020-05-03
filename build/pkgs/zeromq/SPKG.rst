@@ -13,7 +13,6 @@ License
 
 LGPLv3+
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -25,7 +24,6 @@ Dependencies
 
 A working compiler.
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

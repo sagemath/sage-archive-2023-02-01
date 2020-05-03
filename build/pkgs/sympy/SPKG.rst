@@ -20,7 +20,6 @@ License
 
 New BSD: http://www.opensource.org/licenses/bsd-license.php
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -32,7 +31,6 @@ Dependencies
 
 -  Python 2.5 or later
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

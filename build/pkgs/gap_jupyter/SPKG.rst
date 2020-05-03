@@ -1,4 +1,3 @@
-.. _jupyter_kernel_gap:
 
 jupyter-kernel-gap
 ==================
@@ -16,7 +15,6 @@ License
 
 3-Clause BSD License
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

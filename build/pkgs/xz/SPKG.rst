@@ -13,7 +13,6 @@ License
 Some parts public domain, other parts GNU LGPLv2.1, GNU GPLv2, or GNU
 GPLv3.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

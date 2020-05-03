@@ -12,7 +12,6 @@ Includes two databases:
 
 -  William Stein's database of interesting curves
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

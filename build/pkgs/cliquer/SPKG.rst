@@ -13,7 +13,6 @@ License
 
 GNU General Public License v2
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

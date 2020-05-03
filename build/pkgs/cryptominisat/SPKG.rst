@@ -20,7 +20,6 @@ License
 
 MIT License
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -30,7 +29,6 @@ Upstream Contact
 -  Website: http://www.msoos.org/
 -  Releases: https://github.com/msoos/cryptominisat/releases
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

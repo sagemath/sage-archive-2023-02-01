@@ -1,4 +1,3 @@
-.. _flask_openid:
 
 Flask-OpenID
 ============

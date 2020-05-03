@@ -1,4 +1,3 @@
-.. _flask_babel:
 
 Flask-Babel
 ===========

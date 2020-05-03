@@ -15,7 +15,6 @@ License
 
 -  Custom GPL-incompatible license
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

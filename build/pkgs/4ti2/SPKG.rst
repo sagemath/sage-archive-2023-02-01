@@ -12,7 +12,6 @@ License
 
 4ti2 is released under a GPL v2 license.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

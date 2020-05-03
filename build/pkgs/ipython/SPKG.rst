@@ -29,7 +29,6 @@ License
 
 BSD
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

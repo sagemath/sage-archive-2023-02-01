@@ -31,7 +31,6 @@ enables developers of non-free programs to use MPFR in their programs.
 If you have written a new function for MPFR or improved an existing one,
 please share your work!
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -46,7 +45,6 @@ Dependencies
 -  GMP/MPIR
 -  GNU patch
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

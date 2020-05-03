@@ -11,7 +11,6 @@ License
 
 -  LGPL V2+
 
-.. _upstream_contact:
 
 Upstream contact
 ----------------
@@ -31,7 +30,6 @@ Dependencies
 -  PARI
 -  GNU patch
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

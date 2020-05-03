@@ -27,7 +27,6 @@ License. It is permitted to link MPFI to non-free programs, as long as
 when distributing them the MPFI source code and a means to re-link with
 a modified MPFI is provided.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

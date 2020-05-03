@@ -7,7 +7,6 @@ Description
 This package adds numerical linear algebra and other numerical computing
 capabilities to python.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -26,7 +25,6 @@ Dependencies
 -  Atlas
 -  Fortran
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

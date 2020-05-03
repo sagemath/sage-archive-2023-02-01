@@ -17,7 +17,6 @@ License
 PSF or ZPL. i.e Python Software Foundation License or Zope Public
 License
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -29,7 +28,6 @@ Dependencies
 
 -  python
 
-.. _build_instructionschanges:
 
 Build Instructions/Changes
 --------------------------

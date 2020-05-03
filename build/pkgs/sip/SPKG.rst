@@ -6,7 +6,6 @@ Description
 
 Python extension module generator for C and C++ libraries
 
-.. _upstream_contact:
 
 Upstream contact
 ----------------

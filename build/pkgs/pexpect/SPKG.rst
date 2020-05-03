@@ -13,7 +13,6 @@ License
 ISC license: http://opensource.org/licenses/isc-license.txt This license
 is approved by the OSI and FSF as GPL-compatible.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

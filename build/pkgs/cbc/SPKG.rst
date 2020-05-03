@@ -1,4 +1,3 @@
-.. _coin_or_cbc:
 
 COIN-OR / CBC
 =============
@@ -22,7 +21,6 @@ License
 Eclipse Public License, Version 1.0 (EPL-1.0)
 (http://opensource.org/licenses/eclipse-1.0)
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -30,7 +28,6 @@ Upstream Contact
 -  John Forrest <jjforre@us.ibm.com>
 -  Robin Lougee-Heimer
 
-.. _project_home_page:
 
 Project Home Page
 -----------------

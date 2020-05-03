@@ -11,7 +11,6 @@ License
 
 BSD 2-Clause License
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

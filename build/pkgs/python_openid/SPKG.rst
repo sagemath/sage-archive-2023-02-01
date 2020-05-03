@@ -1,4 +1,3 @@
-.. _python_openid:
 
 python-openid
 =============

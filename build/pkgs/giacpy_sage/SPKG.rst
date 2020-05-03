@@ -13,7 +13,6 @@ Licence
 
 GPLv2 or above
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -27,7 +26,6 @@ Dependencies
 
 -  gmp, giac (the C++ library libgiac and headers)
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

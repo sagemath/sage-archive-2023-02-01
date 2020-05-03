@@ -26,7 +26,6 @@ License
 
 Public Domain (see the above web site)
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -38,7 +37,6 @@ Dependencies
 
 -  GNU patch (for applying the patches to upstream)
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

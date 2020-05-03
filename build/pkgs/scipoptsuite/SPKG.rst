@@ -22,7 +22,6 @@ software is available with its source code.
 
 http://scip.zib.de/academic.txt
 
-.. _spkg_maintainers:
 
 SPKG Maintainers
 ----------------
@@ -30,7 +29,6 @@ SPKG Maintainers
 -  Martin Albrecht (original spkg)
 -  Matthias Koeppe (updates for new spkg style)
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -42,7 +40,6 @@ Dependencies
 
 cmake
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

@@ -12,7 +12,6 @@ License
 
 -  GPL 3 and LGPL 3. So we can safely link against the library in Sage.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -25,7 +24,6 @@ Dependencies
 
 -  None for the purposes of Sage, but in general gettext.
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

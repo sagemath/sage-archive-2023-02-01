@@ -11,7 +11,6 @@ License
 
 Python Software Foundation License
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -23,7 +22,6 @@ Dependencies
 
 Python, Setuptools
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

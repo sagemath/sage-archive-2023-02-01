@@ -29,7 +29,6 @@ There is also the Python interface Pyhull available on PyPI
 https://pypi.python.org/pypi/pyhull (see also documentation at
 http://pythonhosted.org/pyhull/).
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

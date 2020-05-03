@@ -13,7 +13,6 @@ License
 
 Common Public License Version 1.0
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -23,7 +22,6 @@ Dmitrii Pasechnik <dimpase+sage@gmail.com>
 Dependencies
 ------------
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

@@ -7,7 +7,6 @@ Description
 A database of graphs. Created by Emily Kirkman based on the work of
 Jason Grout. Since April 2012 it also contains the ISGCI graph database.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

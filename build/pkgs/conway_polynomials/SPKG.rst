@@ -1,4 +1,3 @@
-.. _conway_polynomials_database:
 
 Conway Polynomials Database
 ===========================

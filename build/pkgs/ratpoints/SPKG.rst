@@ -11,7 +11,6 @@ NOTE: the ratpoints package has been assimilated by PARI/GP. Therefore,
 this package (as Sage package) is deprecated. In the future, it will be
 removed from Sage.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -26,12 +25,10 @@ Dependencies
 -  GMP/MPIR
 -  (GNU) patch
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------
 
-.. _note_on_sse2_instructions:
 
 Note on SSE2 instructions
 ~~~~~~~~~~~~~~~~~~~~~~~~~

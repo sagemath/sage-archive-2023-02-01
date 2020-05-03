@@ -20,7 +20,6 @@ License
 
 eclib is licensed GPL v2+.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

@@ -13,7 +13,6 @@ License
 
 Python Software Foundation License (PSFL)
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -25,7 +24,6 @@ Dependencies
 
 -  pip
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

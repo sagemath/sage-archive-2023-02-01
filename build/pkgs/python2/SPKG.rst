@@ -24,7 +24,6 @@ them. Python's licensing is GPL compatible.
 
 For more details see http://www.python.org/psf/license/
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -40,7 +39,6 @@ Dependencies
 -  libpng
 -  SQLite
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

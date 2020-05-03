@@ -12,7 +12,6 @@ License
 
 BSD 2-Clause License
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -27,7 +26,6 @@ Dependencies
 -  setuptools
 -  pandocfilters
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

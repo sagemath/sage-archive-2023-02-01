@@ -20,7 +20,6 @@ Ptyprocess is under the ISC license, as code derived from Pexpect.
 
    http://opensource.org/licenses/ISC
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

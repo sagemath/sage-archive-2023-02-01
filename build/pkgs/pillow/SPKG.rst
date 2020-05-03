@@ -14,7 +14,6 @@ License
 
 Standard PIL License
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

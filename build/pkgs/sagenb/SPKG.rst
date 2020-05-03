@@ -1,4 +1,3 @@
-.. _sage_notebook:
 
 Sage Notebook
 =============
@@ -14,7 +13,6 @@ License
 
 GPLv3+
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

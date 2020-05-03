@@ -1,4 +1,3 @@
-.. _git___the_stupid_content_tracker:
 
 git - the stupid content tracker
 ================================
@@ -12,7 +11,6 @@ Description
 
 -  - \`man git\`
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

@@ -31,7 +31,6 @@ License
 
 GNU General Public License
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -41,7 +40,6 @@ Upstream Contact
 Dependencies
 ------------
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

@@ -1,4 +1,3 @@
-.. _sphinxcontrib_websupport:
 
 sphinxcontrib-websupport
 ========================

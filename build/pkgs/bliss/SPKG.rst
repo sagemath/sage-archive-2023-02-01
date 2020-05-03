@@ -1,4 +1,3 @@
-.. _bliss_0.73debian_1:
 
 bliss 0.73+debian-1
 ===================
@@ -14,7 +13,6 @@ License
 
 LGPL
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

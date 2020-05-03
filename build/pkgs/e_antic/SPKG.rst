@@ -1,4 +1,3 @@
-.. _e_antic:
 
 e-antic
 =======
@@ -16,7 +15,6 @@ License
 
 e-antic is licensed GPL v3.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

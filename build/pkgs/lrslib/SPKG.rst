@@ -17,7 +17,6 @@ License
 
 lrslib is released under a GPL v2+ license.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -35,7 +34,6 @@ and installs the "mplrs" binary, a distributed version of lrs using MPI.
 
 (Sage currently does not make use of plrs and mplrs.)
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

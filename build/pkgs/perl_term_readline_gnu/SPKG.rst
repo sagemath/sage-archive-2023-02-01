@@ -13,7 +13,6 @@ License
 
 The Perl 5 License (Artistic 1 & GPL 1)
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

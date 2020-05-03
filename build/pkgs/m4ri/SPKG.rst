@@ -12,7 +12,6 @@ License
 
 -  GNU General Public License Version 2 or later (see src/COPYING)
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -26,7 +25,6 @@ Dependencies
 
 -  libPNG
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

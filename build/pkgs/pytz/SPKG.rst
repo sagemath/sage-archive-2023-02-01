@@ -6,7 +6,6 @@ Description
 
 World Timezone Definitions for Python
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

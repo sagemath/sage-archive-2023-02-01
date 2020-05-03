@@ -20,7 +20,6 @@ lidia is released under the GPL, or so it is claimed. See
 https://groups.google.com/forum/#!msg/sage-devel/kTxgPSqrbUM/5Txj3_IKhlQJ
 and https://lists.debian.org/debian-legal/2007/07/msg00120.html
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

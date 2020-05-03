@@ -7,7 +7,6 @@ Description
 Several "official" and "undeposited" GAP packages available from
 http://www.gap-system.org/Packages/packages.html
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

@@ -16,7 +16,6 @@ License
 
 GPL version 3
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

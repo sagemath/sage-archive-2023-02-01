@@ -16,7 +16,6 @@ License
 
 -  GNU LGPLv2.1+
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -29,7 +28,6 @@ Dependencies
 -  gmp
 -  gf2x
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

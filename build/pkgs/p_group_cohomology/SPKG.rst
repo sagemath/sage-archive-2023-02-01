@@ -44,14 +44,12 @@ available at
 
    http://creativecommons.org/licenses/by-sa/3.0/
 
-.. _spkg_maintainers:
 
 SPKG Maintainers
 ----------------
 
 Simon A. King <simon.king@uni-jena.de>
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

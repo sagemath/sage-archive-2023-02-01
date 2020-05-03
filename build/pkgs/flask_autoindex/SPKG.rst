@@ -1,4 +1,3 @@
-.. _flask_autoindex:
 
 Flask-AutoIndex
 ===============

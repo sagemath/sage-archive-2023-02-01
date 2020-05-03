@@ -16,7 +16,6 @@ License
 
 -  MIT
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -46,7 +45,6 @@ Patches
    Remove the failing semicolon test for the open dot2tex
    issue #5 - https://github.com/kjellmf/dot2tex/issues/5
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

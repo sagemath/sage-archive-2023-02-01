@@ -20,7 +20,6 @@ License
 SciPy's license is free for both commercial and non-commercial use,
 under the BSD terms. See http://www.scipy.org/License_Compatibility
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -35,7 +34,6 @@ Dependencies
 -  Fortran
 -  GNU patch
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

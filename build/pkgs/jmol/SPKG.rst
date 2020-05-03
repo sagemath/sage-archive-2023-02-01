@@ -1,4 +1,3 @@
-.. _jmol_for_sage:
 
 Jmol for Sage
 =============
@@ -16,7 +15,6 @@ License
 
 GPLv2+
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -34,7 +32,6 @@ No build-time dependencies.
 
 The commandline jmol requires java at runtime.
 
-.. _special_build_instructions:
 
 Special Build Instructions
 --------------------------

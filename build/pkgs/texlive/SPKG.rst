@@ -20,7 +20,6 @@ License
 Various FSF-approved free software licenses. See
 https://www.tug.org/texlive/copying.html for details.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -32,7 +31,6 @@ Dependencies
 
 -  python
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

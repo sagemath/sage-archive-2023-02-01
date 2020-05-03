@@ -11,7 +11,6 @@ License
 
 Modified BSD license.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

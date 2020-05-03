@@ -14,7 +14,6 @@ License
 
 primecount is licensed BSD 2
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

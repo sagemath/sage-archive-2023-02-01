@@ -15,7 +15,6 @@ License
 Buckygen is licensed under the GNU General Public License v3 ( June 2007
 )
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

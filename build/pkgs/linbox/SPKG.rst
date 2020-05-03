@@ -13,7 +13,6 @@ License
 
 LGPL V2 or later
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -21,7 +20,6 @@ Upstream Contact
 -  <linbox-devel@googlegroups.com>
 -  <linbox-use@googlegroups.com>
 
-.. _spkg_repository:
 
 SPKG Repository
 ---------------
@@ -45,7 +43,6 @@ Dependencies
 -  ATLAS (non-MacOS X) / The Accelerate FrameWork (on MacOS X), or GSL's
    CBLAS
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

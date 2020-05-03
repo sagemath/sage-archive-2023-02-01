@@ -36,7 +36,6 @@ License
 
    released under GPL 2 or a later version.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

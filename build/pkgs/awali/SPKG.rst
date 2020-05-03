@@ -18,7 +18,6 @@ License
 
 -  GPL 3.0
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -37,7 +36,6 @@ Dependencies
 -  graphviz must be installed from your distro, and available in the
    path.
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

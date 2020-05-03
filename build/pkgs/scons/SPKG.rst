@@ -18,7 +18,6 @@ License
 
 X/MIT
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

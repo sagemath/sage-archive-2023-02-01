@@ -36,7 +36,6 @@ From the documentation:
 > FreeType License and the GNU Public License, Version 2. It can thus >
 be used by any kind of projects, be they proprietary or not.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

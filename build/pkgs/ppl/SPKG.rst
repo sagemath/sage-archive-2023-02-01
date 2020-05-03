@@ -1,4 +1,3 @@
-.. _parma_polyhedra_library:
 
 Parma Polyhedra Library
 =======================
@@ -32,7 +31,6 @@ License
 
 GPL v3+
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -47,7 +45,6 @@ Dependencies
 
 -  gmp (or mpir)
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

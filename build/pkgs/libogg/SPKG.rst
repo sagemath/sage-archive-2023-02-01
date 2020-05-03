@@ -46,7 +46,6 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -60,7 +59,6 @@ This spkg provides dependencies for
 
 -  the Sage library
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

@@ -30,7 +30,6 @@ Note: except the french html documentation which is freely
 redistributable for non commercial only purposes. This doc has been
 removed in the Sage package, see spkg-src
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -51,7 +50,6 @@ Dependencies
 -  The Documentation is pre-built, hevea or latex or ... are not needed
    to install the package.
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

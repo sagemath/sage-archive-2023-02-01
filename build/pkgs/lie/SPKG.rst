@@ -39,7 +39,6 @@ License
 
 GNU Lesser General Public License (LGPL), version unspecified
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

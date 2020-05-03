@@ -18,7 +18,6 @@ License
 LGPLv3+ for the code and GFDLv1.3+ (with no invariant sections) for the
 documentation.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -35,7 +34,6 @@ Dependencies
 -  MPIR
 -  MPFR
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

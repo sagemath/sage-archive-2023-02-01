@@ -1,4 +1,3 @@
-.. _combinatorial_designs:
 
 Combinatorial Designs
 =====================
@@ -18,7 +17,6 @@ License
 
 Public domain.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

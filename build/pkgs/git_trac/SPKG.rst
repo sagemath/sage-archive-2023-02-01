@@ -1,4 +1,3 @@
-.. _git_trac:
 
 Git-Trac
 ========
@@ -14,7 +13,6 @@ License
 
 GPLv3+
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -27,7 +25,6 @@ Dependencies
 
 -  python 2.7 or 3.3+
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

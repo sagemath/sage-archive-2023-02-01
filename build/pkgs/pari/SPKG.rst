@@ -21,7 +21,6 @@ License
 
 GPL version 2+
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -36,7 +35,6 @@ Dependencies
 -  Readline
 -  GNU patch (shipped with Sage)
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

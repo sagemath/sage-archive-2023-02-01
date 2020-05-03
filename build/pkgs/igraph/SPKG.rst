@@ -13,7 +13,6 @@ License
 
 GPL version 2
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -29,7 +28,6 @@ Dependencies
 
    libxml2-dev from her distro.
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

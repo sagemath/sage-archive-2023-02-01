@@ -12,7 +12,6 @@ License
 
 3-clause BSD license
 
-.. _spkg_repository:
 
 SPKG Repository
 ---------------
@@ -21,7 +20,6 @@ GitHub page: https://github.com/xianyi/OpenBLAS
 
 Releases: https://github.com/xianyi/OpenBLAS/releases
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

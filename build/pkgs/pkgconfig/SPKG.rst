@@ -12,7 +12,6 @@ License
 
 MIT License
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -24,7 +23,6 @@ Dependencies
 
 -  Python 2.6+
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

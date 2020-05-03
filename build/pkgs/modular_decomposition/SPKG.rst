@@ -1,4 +1,3 @@
-.. _modular_decomposition:
 
 modular decomposition
 =====================
@@ -15,7 +14,6 @@ License
 
 GPL
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

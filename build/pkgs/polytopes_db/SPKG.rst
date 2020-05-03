@@ -1,4 +1,3 @@
-.. _reflexive_polytopes_databases:
 
 Reflexive Polytopes Databases
 =============================

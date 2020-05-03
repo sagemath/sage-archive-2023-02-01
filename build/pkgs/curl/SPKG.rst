@@ -12,7 +12,6 @@ License
 "MIT style license" : see file "COPYING" at the root of the source
 tarball, explanations at https://curl.haxx.se/docs/copyright.html.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -25,7 +24,6 @@ Dependencies
 
 None listed.
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

@@ -19,7 +19,6 @@ MPFRCX is distributed under the Gnu Lesser General Public License,
 either version 2.1 of the licence, or (at your option) any later version
 (LGPLv2.1+).
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

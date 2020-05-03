@@ -27,7 +27,6 @@ License
    event using Glucose Parallel as an embedded SAT engine (single core
    or not).
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -39,7 +38,6 @@ Dependencies
 
 zlib
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

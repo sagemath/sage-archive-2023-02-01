@@ -12,7 +12,6 @@ License
 
 GNU LGPL
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -28,7 +27,6 @@ Dependencies
 -  Python
 -  GNU patch (shipped with Sage)
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

@@ -12,7 +12,6 @@ License
 
 GPL V2+
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -26,7 +25,6 @@ Dependencies
 
 Python
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

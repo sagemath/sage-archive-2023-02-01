@@ -12,14 +12,12 @@ License
 
 GPLv3+
 
-.. _spkg_maintainers:
 
 SPKG Maintainers
 ----------------
 
 -  Miguel Marco
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

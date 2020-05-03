@@ -13,14 +13,12 @@ License
 
 GNU General Public License v2
 
-.. _spkg_maintainers:
 
 SPKG Maintainers
 ----------------
 
 Lukas Larisch (larisch@informatik.uni-frankfurt.de)
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------

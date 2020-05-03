@@ -12,7 +12,6 @@ License
 
 Public Domain
 
-.. _upstream_contact:
 
 Upstream contact
 ----------------
@@ -24,7 +23,6 @@ Dependencies
 
 -  readline
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

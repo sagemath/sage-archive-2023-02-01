@@ -29,7 +29,6 @@ License
 Valgrind is Open Source / Free Software, and is freely available under
 the GNU General Public License, version 2.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
@@ -42,7 +41,6 @@ Dependencies
 
 -  None
 
-.. _special_build_instructions:
 
 Special Build Instructions
 --------------------------

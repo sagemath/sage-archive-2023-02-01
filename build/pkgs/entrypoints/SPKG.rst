@@ -6,14 +6,12 @@ Description
 
 Discover and load entry points from installed packages.
 
-.. _upstream_contact:
 
 Upstream Contact
 ----------------
 
 https://github.com/takluyver/entrypoints
 
-.. _special_updatebuild_instructions:
 
 Special Update/Build Instructions
 ---------------------------------

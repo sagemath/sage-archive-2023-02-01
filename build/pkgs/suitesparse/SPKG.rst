@@ -1,4 +1,7 @@
-SuiteSpare is a collection of software to deal with sparse matrix. It is
+SuiteSparse
+===========
+
+SuiteSparse is a collection of software to deal with sparse matrix. It is
 hosted at http://faculty.cse.tamu.edu/davis/suitesparse.html
 
 This spkg does a minimal install of suitesparse disabling the following
@@ -27,8 +30,8 @@ License: because SuiteSparse is a collection, it comes with a variety of
 licenses. Find below a copy of the "LICENSES.txt" shipped with
 SuiteSparse.
 
-> AMD/Doc/License.txt <
------------------------
+AMD/Doc/License.txt
+-------------------
 
    AMD, Copyright (c), 1996-2015, Timothy A. Davis,
    Patrick R. Amestoy, and Iain S. Duff. All Rights Reserved.
@@ -37,31 +40,20 @@ SuiteSparse.
 
    http://www.suitesparse.com
 
--  
-
-   --------------
-
    AMD License: BSD 3-clause:
-
--  
-
-   --------------
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
 
 -  Redistributions of source code must retain the above copyright
-
    notice, this list of conditions and the following disclaimer.
 
 -  Redistributions in binary form must reproduce the above copyright
-
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
 -  Neither the name of the organizations to which the authors are
-
    affiliated, nor the names of its contributors may be used to endorse
    or promote products derived from this software without specific prior
    written permission.
@@ -86,18 +78,14 @@ SuiteSparse.
    OF SUCH
    DAMAGE.
 
-> BTF/Doc/License.txt <
------------------------
+BTF/Doc/License.txt
+-------------------
 
    BTF, Copyright (C) 2004-2013, University of Florida
    by Timothy A. Davis and Ekanathan Palamadai.
    BTF is also available under other licenses; contact authors for
    details.
    http://www.suitesparse.com
-
--  
-
-   --------------
 
    BTF is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -114,7 +102,7 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
    USA
 
-> CAMD/Doc/License.txt <
+CAMD/Doc/License.txt
 ------------------------
 
    CAMD, Copyright (c) by Timothy A. Davis,
@@ -130,16 +118,13 @@ SuiteSparse.
    are met:
 
 -  Redistributions of source code must retain the above copyright
-
    notice, this list of conditions and the following disclaimer.
 
 -  Redistributions in binary form must reproduce the above copyright
-
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
 -  Neither the name of the organizations to which the authors are
-
    affiliated, nor the names of its contributors may be used to endorse
    or promote products derived from this software without specific prior
    written permission.
@@ -168,8 +153,8 @@ SuiteSparse.
 
    http://www.suitesparse.com
 
-> CCOLAMD/Doc/License.txt <
----------------------------
+CCOLAMD/Doc/License.txt
+-----------------------
 
    CCOLAMD: constrained column approximate minimum degree ordering
    Copyright (C) 2005-2016, Univ. of Florida. Authors: Timothy A. Davis,
@@ -179,10 +164,6 @@ SuiteSparse.
    Gilbert.
    http://www.suitesparse.com
 
--  
-
-   --------------
-
    CCOLAMD license: BSD 3-clause:
 
    Redistribution and use in source and binary forms, with or without
@@ -190,16 +171,13 @@ SuiteSparse.
    are met:
 
 -  Redistributions of source code must retain the above copyright
-
    notice, this list of conditions and the following disclaimer.
 
 -  Redistributions in binary form must reproduce the above copyright
-
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
 -  Neither the name of the organizations to which the authors are
-
    affiliated, nor the names of its contributors may be used to endorse
    or promote products derived from this software without specific prior
    written permission.
@@ -224,22 +202,10 @@ SuiteSparse.
    OF SUCH
    DAMAGE.
 
--  
+CHOLMOD/Doc/License.txt
+-----------------------
 
-   --------------
-
-> CHOLMOD/Doc/License.txt <
----------------------------
-
--  
-
-   --------------
-
-   ==> Check/License.txt <==
-
--  
-
-   --------------
+   ==Check/License.txt==
 
    CHOLMOD/Check Module. Copyright (C) 2005-2006, Timothy A. Davis
    CHOLMOD is
@@ -249,10 +215,6 @@ SuiteSparse.
    Note that this license is for the CHOLMOD/Check module only.
    All CHOLMOD modules are licensed separately.
 
--  
-
-   --------------
-
    This Module is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
@@ -268,15 +230,7 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
    USA
 
--  
-
-   --------------
-
-   ==> Cholesky/License.txt <==
-
--  
-
-   --------------
+   ==Cholesky/License.txt==
 
    CHOLMOD/Cholesky module, Copyright (C) 2005-2006, Timothy A. Davis.
    CHOLMOD is also available under other licenses; contact authors for
@@ -285,10 +239,6 @@ SuiteSparse.
    Note that this license is for the CHOLMOD/Cholesky module only.
    All CHOLMOD modules are licensed separately.
 
--  
-
-   --------------
-
    This Module is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
@@ -304,15 +254,7 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
    USA
 
--  
-
-   --------------
-
-   ==> Core/License.txt <==
-
--  
-
-   --------------
+   ==Core/License.txt==
 
    CHOLMOD/Core Module. Copyright (C) 2005-2006, Univ. of Florida.
    Author:
@@ -323,10 +265,6 @@ SuiteSparse.
    Note that this license is for the CHOLMOD/Core module only.
    All CHOLMOD modules are licensed separately.
 
--  
-
-   --------------
-
    This Module is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
@@ -342,15 +280,7 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
    USA
 
--  
-
-   --------------
-
-   ==> Demo/License.txt <==
-
--  
-
-   --------------
+   ==Demo/License.txt==
 
    CHOLMOD/Demo Module. Copyright (C) 2005-2006, Timothy A. Davis.
    CHOLMOD
@@ -359,10 +289,6 @@ SuiteSparse.
 
    Note that this license is for the CHOLMOD/Demo module only.
    All CHOLMOD modules are licensed separately.
-
--  
-
-   --------------
 
    This Module is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -379,15 +305,7 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301,
    USA.
 
--  
-
-   --------------
-
-   ==> Include/License.txt <==
-
--  
-
-   --------------
+   ==Include/License.txt==
 
    CHOLMOD/Include/\* files. Copyright (C) 2005-2006, either Univ. of
    Florida
@@ -416,15 +334,7 @@ SuiteSparse.
    Include/cholmod_supernodal.h part of Supernodal module
    Include/cholmod_template.h LGPL
 
--  
-
-   --------------
-
-   ==> MATLAB/License.txt <==
-
--  
-
-   --------------
+   ==MATLAB/License.txt==
 
    CHOLMOD/MATLAB Module. Copyright (C) 2005-2006, Timothy A. Davis.
    CHOLMOD
@@ -435,10 +345,6 @@ SuiteSparse.
    Note that this license is for the CHOLMOD/MATLAB module only.
    All CHOLMOD modules are licensed separately.
 
--  
-
-   --------------
-
    This Module is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
    as published by the Free Software Foundation; either version 2
@@ -454,15 +360,7 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301,
    USA.
 
--  
-
-   --------------
-
-   ==> MatrixOps/License.txt <==
-
--  
-
-   --------------
+   ==MatrixOps/License.txt==
 
    CHOLMOD/MatrixOps Module. Copyright (C) 2005-2006, Timothy A. Davis.
    CHOLMOD is also available under other licenses; contact authors for
@@ -471,10 +369,6 @@ SuiteSparse.
    Note that this license is for the CHOLMOD/MatrixOps module only.
    All CHOLMOD modules are licensed separately.
 
--  
-
-   --------------
-
    This Module is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
    as published by the Free Software Foundation; either version 2
@@ -490,15 +384,7 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301,
    USA.
 
--  
-
-   --------------
-
-   ==> Modify/License.txt <==
-
--  
-
-   --------------
+   ==Modify/License.txt==
 
    CHOLMOD/Modify Module. Copyright (C) 2005-2006, Timothy A. Davis and
    William W. Hager. CHOLMOD is also available under other licenses;
@@ -508,10 +394,6 @@ SuiteSparse.
    Note that this license is for the CHOLMOD/Modify module only.
    All CHOLMOD modules are licensed separately.
 
--  
-
-   --------------
-
    This Module is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
    as published by the Free Software Foundation; either version 2
@@ -527,15 +409,9 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301,
    USA.
 
--  
 
-   --------------
+   ==Partition/License.txt==
 
-   ==> Partition/License.txt <==
-
--  
-
-   --------------
 
    CHOLMOD/Partition Module.
    Copyright (C) 2005-2006, Univ. of Florida. Author: Timothy A. Davis
@@ -546,9 +422,6 @@ SuiteSparse.
    Note that this license is for the CHOLMOD/Partition module only.
    All CHOLMOD modules are licensed separately.
 
--  
-
-   --------------
 
    This Module is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -565,15 +438,9 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
    USA
 
--  
 
-   --------------
+   ==Supernodal/License.txt==
 
-   ==> Supernodal/License.txt <==
-
--  
-
-   --------------
 
    CHOLMOD/Supernodal Module.
    Copyright (C) 2005-2006, Timothy A. Davis
@@ -584,9 +451,6 @@ SuiteSparse.
    Note that this license is for the CHOLMOD/Supernodal module only.
    All CHOLMOD modules are licensed separately.
 
--  
-
-   --------------
 
    This Module is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -603,15 +467,9 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301,
    USA.
 
--  
 
-   --------------
+   ==Tcov/License.txt==
 
-   ==> Tcov/License.txt <==
-
--  
-
-   --------------
 
    CHOLMOD/Tcov Module. Copyright (C) 2005-2006, Timothy A. Davis
    CHOLMOD is also available under other licenses; contact authors for
@@ -621,9 +479,6 @@ SuiteSparse.
    Note that this license is for the CHOLMOD/Tcov module only.
    All CHOLMOD modules are licensed separately.
 
--  
-
-   --------------
 
    This Module is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -640,15 +495,7 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301,
    USA.
 
--  
-
-   --------------
-
-   ==> Valgrind/License.txt <==
-
--  
-
-   --------------
+   ==Valgrind/License.txt==
 
    CHOLMOD/Valgrind Module. Copyright (C) 2005-2006, Timothy A. Davis.
    CHOLMOD is also available under other licenses; contact authors for
@@ -658,10 +505,6 @@ SuiteSparse.
    Note that this license is for the CHOLMOD/Valgrind module only.
    All CHOLMOD modules are licensed separately.
 
--  
-
-   --------------
-
    This Module is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
    as published by the Free Software Foundation; either version 2
@@ -677,8 +520,8 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301,
    USA.
 
-> COLAMD/Doc/License.txt <
---------------------------
+COLAMD/Doc/License.txt
+----------------------
 
    COLAMD, Copyright 1998-2016, Timothy A. Davis.
    http://www.suitesparse.com
@@ -691,16 +534,13 @@ SuiteSparse.
    are met:
 
 -  Redistributions of source code must retain the above copyright
-
    notice, this list of conditions and the following disclaimer.
 
 -  Redistributions in binary form must reproduce the above copyright
-
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
 -  Neither the name of the organizations to which the authors are
-
    affiliated, nor the names of its contributors may be used to endorse
    or promote products derived from this software without specific prior
    written permission.
@@ -725,16 +565,12 @@ SuiteSparse.
    OF SUCH
    DAMAGE.
 
-> CSparse/Doc/License.txt <
----------------------------
+CSparse/Doc/License.txt
+-----------------------
 
    CSparse: a Concise Sparse matrix package.
    Copyright (c) 2006, Timothy A. Davis.
    http://www.suitesparse.com
-
--  
-
-   --------------
 
    CSparse is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -751,16 +587,12 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
    USA
 
-> CXSparse/Doc/License.txt <
-----------------------------
+CXSparse/Doc/License.txt
+------------------------
 
    CXSparse: a Concise Sparse matrix package - Extended.
    Copyright (c) 2006, Timothy A. Davis.
    http://www.suitesparse.com
-
--  
-
-   --------------
 
    CXSparse is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -777,16 +609,12 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
    USA
 
-> CXSparse_newfiles/Doc/License.txt <
--------------------------------------
+CXSparse_newfiles/Doc/License.txt
+---------------------------------
 
    CXSparse: a Concise Sparse matrix package - Extended.
    Copyright (c) 2006, Timothy A. Davis.
    http://www.suitesparse.com
-
--  
-
-   --------------
 
    CXSparse is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -803,8 +631,8 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
    USA
 
-> GPUQREngine/Doc/License.txt <
--------------------------------
+GPUQREngine/Doc/License.txt
+---------------------------
 
    GPUQREngine Copyright (c) 2013, Timothy A. Davis, Sencer Nuri
    Yeralan,
@@ -832,18 +660,14 @@ SuiteSparse.
    Franklin
    Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-> KLU/Doc/License.txt <
------------------------
+KLU/Doc/License.txt
+-------------------
 
    KLU, Copyright (C) 2004-2013, University of Florida
    by Timothy A. Davis and Ekanathan Palamadai.
    KLU is also available under other licenses; contact authors for
    details.
    http://www.suitesparse.com
-
--  
-
-   --------------
 
    KLU is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -860,17 +684,13 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
    USA
 
-> LDL/Doc/License.txt <
------------------------
+LDL/Doc/License.txt
+-------------------
 
    LDL Copyright (c) 2005-2013 by Timothy A. Davis.
    LDL is also available under other licenses; contact the author for
    details.
    http://www.suitesparse.com
-
--  
-
-   --------------
 
    LDL is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -887,8 +707,8 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
    USA
 
-> MATLAB_Tools/Doc/License.txt <
---------------------------------
+MATLAB_Tools/Doc/License.txt
+----------------------------
 
    The MATLAB_Tools collection of packages is
    Copyright (c), Timothy A. Davis, All Rights Reserved,
@@ -898,32 +718,21 @@ SuiteSparse.
    All packages are available under alternative licenses.
    Contact the authors for details.
 
--  
-
-   --------------
-
    MATLAB_Tools License, with the exception of SSMULT and
    SuiteSparseCollection:
-
--  
-
-   --------------
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
 
 -  Redistributions of source code must retain the above copyright
-
    notice, this list of conditions and the following disclaimer.
 
 -  Redistributions in binary form must reproduce the above copyright
-
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
 -  Neither the name of the organizations to which the authors are
-
    affiliated, nor the names of its contributors may be used to endorse
    or promote products derived from this software without specific prior
    written permission.
@@ -948,15 +757,7 @@ SuiteSparse.
    OF SUCH
    DAMAGE.
 
--  
-
-   --------------
-
    SuiteSparseCollection License:
-
--  
-
-   --------------
 
    SuiteSparseCollection is free software; you can redistribute it
    and/or
@@ -975,15 +776,7 @@ SuiteSparse.
    Foundation,
    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
--  
-
-   --------------
-
    SSMULT License:
-
--  
-
-   --------------
 
    SSMULT, Copyright (c) 2007-2011, Timothy A. Davis,
    http://www.suitesparse.com.
@@ -1009,17 +802,13 @@ SuiteSparse.
    Inc., 51
    Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-> RBio/Doc/License.txt <
-------------------------
+RBio/Doc/License.txt
+--------------------
 
    RBio toolbox. Copyright (C) 2006-2009, Timothy A. Davis
    RBio is also available under other licenses; contact authors for
    details.
    http://www.suitesparse.com
-
--  
-
-   --------------
 
    RBio is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -1036,8 +825,8 @@ SuiteSparse.
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA.
 
-> SPQR/Doc/License.txt <
-------------------------
+SPQR/Doc/License.txt
+--------------------
 
    SPQR, Copyright 2008-2016 by Timothy A. Davis.
    All Rights Reserved.
@@ -1079,15 +868,11 @@ SuiteSparse.
 
    http://www.suitesparse.com
 
-> SuiteSparse_GPURuntime/Doc/License.txt <
-------------------------------------------
+SuiteSparse_GPURuntime/Doc/License.txt
+--------------------------------------
 
    SuiteSparse_GPURuntime Copyright (c) 2013-2016, Timothy A. Davis,
    Sencer Nuri Yeralan, and Sanjay Ranka. http://www.suitesparse.com
-
--  
-
-   --------------
 
    SuiteSparse_GPURuntime is free software; you can redistribute it
    and/or modify
@@ -1111,8 +896,8 @@ SuiteSparse.
    Franklin
    Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-> ssget/Doc/License.txt <
--------------------------
+ssget/Doc/License.txt
+---------------------
 
    Copyright (c), 2009-2016, Timothy A. Davis, All Rights Reserved.
 
@@ -1121,16 +906,13 @@ SuiteSparse.
    are met:
 
 -  Redistributions of source code must retain the above copyright
-
    notice, this list of conditions and the following disclaimer.
 
 -  Redistributions in binary form must reproduce the above copyright
-
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
 -  Neither the name of the organizations to which the authors are
-
    affiliated, nor the names of its contributors may be used to endorse
    or promote products derived from this software without specific prior
    written permission.
@@ -1155,8 +937,8 @@ SuiteSparse.
    OF SUCH
    DAMAGE.
 
-> UMFPACK/Doc/License.txt <
----------------------------
+UMFPACK/Doc/License.txt
+-----------------------
 
    UMFPACK, Copyright 1995-2009 by Timothy A. Davis.
    All Rights Reserved.
@@ -1198,8 +980,8 @@ SuiteSparse.
 
    http://www.suitesparse.com
 
-> CSparse/MATLAB/ssget/Doc/License.txt <
-----------------------------------------
+CSparse/MATLAB/ssget/Doc/License.txt
+------------------------------------
 
    Copyright (c), 2009-2016, Timothy A. Davis, All Rights Reserved.
 
@@ -1208,16 +990,13 @@ SuiteSparse.
    are met:
 
 -  Redistributions of source code must retain the above copyright
-
    notice, this list of conditions and the following disclaimer.
 
 -  Redistributions in binary form must reproduce the above copyright
-
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
 -  Neither the name of the organizations to which the authors are
-
    affiliated, nor the names of its contributors may be used to endorse
    or promote products derived from this software without specific prior
    written permission.
@@ -1242,8 +1021,8 @@ SuiteSparse.
    OF SUCH
    DAMAGE.
 
-> CXSparse/MATLAB/ssget/Doc/License.txt <
------------------------------------------
+CXSparse/MATLAB/ssget/Doc/License.txt
+-------------------------------------
 
    Copyright (c), 2009-2016, Timothy A. Davis, All Rights Reserved.
 
@@ -1252,16 +1031,13 @@ SuiteSparse.
    are met:
 
 -  Redistributions of source code must retain the above copyright
-
    notice, this list of conditions and the following disclaimer.
 
 -  Redistributions in binary form must reproduce the above copyright
-
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
 -  Neither the name of the organizations to which the authors are
-
    affiliated, nor the names of its contributors may be used to endorse
    or promote products derived from this software without specific prior
    written permission.
@@ -1286,8 +1062,8 @@ SuiteSparse.
    OF SUCH
    DAMAGE.
 
-> GraphBLAS/Doc/License.txt <
------------------------------
+GraphBLAS/Doc/License.txt
+-------------------------
 
    SuiteSparse:GraphBLAS, Copyright 2017, Timothy A. Davis
 
@@ -1305,8 +1081,8 @@ SuiteSparse.
    limitations under the License.
 
 
-> Mongoose License <
---------------------
+Mongoose License
+----------------
 
    Mongoose, Copyright 2018, Timothy A. Davis, Scott P. Kolodziej,
    William W. Hager, S. Nuri Yeralan

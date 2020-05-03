@@ -1,3 +1,9 @@
+FlintQS
+=======
+
+Description
+-----------
+
 This is William Hart's GPL'd highly optimized multi-polynomial quadratic
 sieve for integer factorization:
 

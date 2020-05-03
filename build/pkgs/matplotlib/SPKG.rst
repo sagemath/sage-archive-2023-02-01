@@ -47,17 +47,14 @@ Build Instructions/Changes
 --------------------------
 
 -  NOTE: To drastically cut down on spkg size, we delete the internal
-
    testing images. To do this, we repackage the tarball by removing
-   the contents of lib/matplotlib/tests/baseline_images/*, this is
-   done by the spkg-src script.
+   the contents of ``lib/matplotlib/tests/baseline_images/*``, this is
+   done by the ``spkg-src`` script.
 
--  setup.py.patch: disable loading of Tests. Otherwise, setup.py
-
+-  ``setup.py.patch``: disable loading of Tests. Otherwise, ``setup.py``
    raises an error because it can't find the deleted files
-   from src/lib/matplotlib/tests/baseline_images/\*
+   from ``src/lib/matplotlib/tests/baseline_images/*``
 
 -  NOTE: as of matplotlib-1.0.0 and Sage 4.6, Sage does not use
-
    $HOME/.matplotlib by default. Instead, it sets MPLCONFIGDIR to
    a subdirectory in $DOT_SAGE, see src/bin/sage-env

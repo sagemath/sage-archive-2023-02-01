@@ -3990,8 +3990,7 @@ class FiniteStateMachine(SageObject):
             True
         """
         if not is_FiniteStateMachine(other):
-            raise TypeError('Only instances of FiniteStateMachine '
-                            'can be compared.')
+            return False
         if len(self._states_) != len(other._states_):
             return False
         colors_equal = True

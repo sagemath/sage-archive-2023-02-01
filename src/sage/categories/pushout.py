@@ -2,7 +2,6 @@
 Coercion via construction functors
 """
 from __future__ import print_function, absolute_import
-from six.moves import range
 import six
 
 from sage.misc.lazy_import import lazy_import
@@ -646,7 +645,6 @@ class IdentityConstructionFunctor(ConstructionFunctor):
         """
         c = (type(self) == type(other))
         if not c:
-            from sage.categories.functor import IdentityFunctor_generic
             if isinstance(other, IdentityFunctor_generic):
                 return True
         return c

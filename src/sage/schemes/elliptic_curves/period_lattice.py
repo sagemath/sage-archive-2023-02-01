@@ -899,19 +899,21 @@ class PeriodLattice_ell(PeriodLattice):
         A complex example (taken from J.E.Cremona and E.Whitley,
         *Periods of cusp forms and elliptic curves over imaginary
         quadratic fields*, Mathematics of Computation 62 No. 205
-        (1994), 407-429)::
+        (1994), 407-429).  See :trac:`29645`::
 
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([0,1-i,i,-i,0])
             sage: L = E.period_lattice(K.embeddings(CC)[0])
             sage: L.omega()
             8.80694160502647
+            sage: L.omega(prec=200)
+            8.8069416050264741493250743632295462227858630765392114070032
         """
         if self.is_real():
             n_components = (self.real_flag+3)//2
             return self.real_period(prec) * n_components
         else:
-            return self.complex_area()
+            return self.complex_area(prec)
 
     @cached_method
     def basis_matrix(self, prec=None, normalised=False):

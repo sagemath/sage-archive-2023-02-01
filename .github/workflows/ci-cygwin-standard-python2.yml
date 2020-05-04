@@ -1,4 +1,4 @@
-name: windows-latest
+name: CI cygwin-standard-python2
 
 on:
   pull_request:
@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -91,7 +91,7 @@ jobs:
   cygwin-stage-i-b:
     env:
       STAGE: i-b
-      TARGETS: cython setuptools_scm
+      TARGETS: cython setuptools_scm kiwisolver dateutil cycler pyparsing nose certifi singledispatch pkgconfig pplpy
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
@@ -100,7 +100,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -173,7 +173,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -244,7 +244,7 @@ jobs:
     env:
       STAGE: ii-b
       PREVIOUS_STAGES: i-*
-      TARGETS: ppl singular maxima gap pari gfan palp flintqs ratpoints arb ecm glpk givaro
+      TARGETS: singular maxima gap pari gfan palp flintqs ratpoints arb ecm givaro
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
@@ -255,7 +255,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -335,7 +335,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -415,7 +415,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -496,7 +496,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -576,7 +576,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false
@@ -656,7 +656,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkgs: [minimal, standard, standard-python2]
+        pkgs: [standard-python2]
     steps:
     - run: |
         git config --global core.autocrlf false

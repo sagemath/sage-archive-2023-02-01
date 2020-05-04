@@ -1,2 +1,1 @@
-## glpk 4.65 should not be used by Sage as long as it is not patched by Homebrew
-# glpk
+glpk

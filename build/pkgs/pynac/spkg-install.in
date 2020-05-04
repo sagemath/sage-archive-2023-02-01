@@ -2,7 +2,7 @@
 ## pynac
 ###########################################
 
-export CXXFLAGS="-O2 -g $CXXFLAGS"
+export CXXFLAGS="-O2 -g $(echo $CXXFLAGS | sed 's/-fvisibility-inlines-hidden//g')"
 
 WORKDIR=${PWD}/src
 PYNACDIR=${WORKDIR}

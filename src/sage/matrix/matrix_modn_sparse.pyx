@@ -107,11 +107,10 @@ cimport sage.matrix.matrix_sparse as matrix_sparse
 cimport sage.matrix.matrix_dense as matrix_dense
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 from sage.rings.integer cimport Integer
+from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 
 from sage.misc.misc import verbose, get_verbose
-
-import sage.rings.all as rings
 
 from sage.matrix.matrix2 import Matrix as Matrix2
 from .args cimport SparseEntry, MatrixArgs_init
@@ -519,7 +518,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         for i from 0 <= i < self._nrows:
             nonzero_entries += self.rows[i].num_nonzero
 
-        return rings.ZZ(nonzero_entries)/rings.ZZ(self._nrows*self._ncols)
+        return ZZ(nonzero_entries) / ZZ(self._nrows*self._ncols)
 
     def transpose(self):
         """
@@ -926,7 +925,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             return Matrix_sparse.solve_right(self, B)
         else:
             if isinstance(B, sage.structure.element.Matrix):
-                from sage.rings.rational_field import QQ
                 from sage.matrix.special import diagonal_matrix
                 m, d = self._solve_matrix_linbox(B, algorithm)
                 return m  * diagonal_matrix([QQ((1,x)) for x in d])

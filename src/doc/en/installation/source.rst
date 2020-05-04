@@ -101,8 +101,9 @@ computer:
 - **perl**: version 5.8.0 or later.
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
-- **python**: Python >= 3.6.
+- **python**: Python 3, 3.3 or later, or Python 2 (deprecated), 2.6 or later.
 
+Other versions of these may work, but they are untested.
 
 Libraries
 ^^^^^^^^^
@@ -390,6 +391,47 @@ of the ``gcc4-core``, ``gcc4-g++``, and ``gcc4-gfortran`` packages, or
 the ``gcc4-core`` package alone if you plan on using Sage's own GCC.
 
 On other systems, check the documentation for your particular operating system.
+
+.. _section_conda_compilers:
+
+Notes on using Anaconda/Miniconda
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If Conda is installed (check by typing ``conda info``), there are two ways to
+prepare for installing SageMath from source:
+
+- Make sure that a Conda environment is active (for the current shell session)
+  that has at least the following Conda packages required for building SageMath::
+
+    c-compiler cxx-compiler fortran-compiler
+
+  - Activate a Conda environment that has these packages, using::
+
+      $ conda activate ENVIRONMENT
+
+  - The packages can be installed into the current Conda environment using::
+
+      $ conda install c-compiler cxx-compiler fortran-compiler
+
+  - Optionally, install additional Conda packages.
+
+  Then SageMath will be built using the compilers provided by Conda.
+
+- Deactivate conda (for the current shell session).
+
+  - Type::
+
+      $ conda deactivate
+
+  - Repeat the command until ``conda info`` shows::
+
+      $ conda info
+
+      active environment : None
+      ...
+
+  Then SageMath will be built either using the compilers provided by the
+  operating system, or its own compilers.
 
 Specific notes for ``make`` and ``tar``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

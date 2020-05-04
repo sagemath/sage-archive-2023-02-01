@@ -13,12 +13,19 @@ fi
 cd src
 
 echo "Configuring FLINT."
+# Trac #29607: We must always supply --with-gmp, --with-mpfr,
+# --with-ntl because otherwise FLINT's configure script uses
+# /usr/local, which is always wrong.
+# This is why we do not use $SAGE_CONFIGURE_GMP etc. here.
+# The value $SAGE_LOCAL is always a safe choice even if the library
+# is coming from the system and is found using what is in
+# LIBRARY_PATH or LDFLAGS etc.
 ./configure \
     --disable-static \
     --prefix="$SAGE_LOCAL" \
-    $SAGE_CONFIGURE_GMP \
-    $SAGE_CONFIGURE_MPFR \
-    --with-ntl="$SAGE_NTL_PREFIX" \
+    --with-gmp="$SAGE_LOCAL" \
+    --with-mpfr="$SAGE_LOCAL" \
+    --with-ntl="$SAGE_LOCAL" \
     $FLINT_CONFIGURE || sdh_die "Error: Failed to configure FLINT."
 
 sdh_make verbose

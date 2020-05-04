@@ -1091,7 +1091,7 @@ def startswith(list_, prefix):
     """
     if len(prefix) > len(list_):
         return False
-    return all(x == y for x, y in zip(list_, prefix))
+    return list_[:len(prefix)] == prefix
 
 # ****************************************************************************
 
@@ -2450,8 +2450,7 @@ class FSMTransition(SageObject):
             True
         """
         if not is_FSMTransition(other):
-            raise TypeError('Only instances of FSMTransition '
-                            'can be compared.')
+            return False
         return self.from_state == other.from_state \
             and self.to_state == other.to_state \
             and self.word_in == other.word_in \

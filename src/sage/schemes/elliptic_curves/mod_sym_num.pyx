@@ -147,7 +147,7 @@ AUTHOR:
 
 """
 
-#****************************************************************************
+# ***************************************************************************
 #       Copyright (C) 2016 Chris Wuthrich <christian.wuthrich@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -159,8 +159,8 @@ AUTHOR:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ***************************************************************************
 
 from __future__ import print_function
 from cysignals.memory cimport sig_malloc, sig_free, sig_realloc
@@ -1110,7 +1110,7 @@ cdef class ModularSymbolNumerical:
 
         # now to the bound for the unitary cusps
         # this is a bit better because they
-        # are definied over Q
+        # are defined over Q
         t0 = E0.torsion_order()
         if cinf == 1:
             t0 *= Integer(2)

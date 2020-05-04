@@ -29,14 +29,14 @@ Inductive valuations are originally discussed in [Mac1936I]_ and [Mac1936II]_.
 An introduction is also given in Chapter 4 of [Rüt2014]_.
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016-2018 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 from .valuation import DiscreteValuation, InfiniteDiscretePseudoValuation
@@ -676,7 +676,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         INPUT:
 
-        - ``G`` -- a sqaurefree monic non-constant integral polynomial ``G``
+        - ``G`` -- a squarefree monic non-constant integral polynomial ``G``
           which is not an :meth:`equivalence unit <InductiveValuation.is_equivalence_unit>`
 
         - ``principal_part_bound`` -- an integer or ``None`` (default:

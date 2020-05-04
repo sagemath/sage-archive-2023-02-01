@@ -1100,7 +1100,7 @@ def number_of_Gamma0_NFCusps(N):
 
     OUTPUT:
 
-    ingeter -- the number of orbits of cusps under Gamma0(N)-action.
+    integer -- the number of orbits of cusps under Gamma0(N)-action.
 
     EXAMPLES::
 

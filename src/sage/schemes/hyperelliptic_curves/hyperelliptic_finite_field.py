@@ -839,7 +839,8 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         from sage.rings.finite_rings.finite_field_constructor import zech_log_bound
         try:
             return self.__points
-        except AttributeError: pass
+        except AttributeError:
+            pass
 
         if self.base_ring().is_prime_field():
             self.__points = self._points_cache_sqrt()

@@ -1596,7 +1596,8 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         tester = self._tester(**options)
         S = tester.some_elements(self.domain().some_elements())
         for f in S:
-            if f.is_constant(): continue
+            if f.is_constant():
+                continue
             is_equivalence_irreducible = self.is_equivalence_irreducible(f)
             F = self.equivalence_decomposition(f)
             tester.assertEqual(is_equivalence_irreducible, len(F)==0 or (len(F)==1 and F[0][1]==1))

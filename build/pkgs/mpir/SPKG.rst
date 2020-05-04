@@ -37,7 +37,7 @@ Special Update/Build Instructions
 -  We currently don't use anything of GMP's/MPIR's CC setting, and
    matching
 
-   with the current compiler (`$CC`) is perhaps suboptimal.
+   with the current compiler (``$CC``) is perhaps suboptimal.
 
 -  Remove some files / directories not needed for Sage from upstream:
 -  build.vc\* directories (Microsoft Visual C build files)

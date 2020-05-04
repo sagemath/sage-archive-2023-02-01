@@ -5,7 +5,7 @@ Description
 -----------
 
 This is a table of number fields with bounded ramification and degree
-≤6.
+at most 6.
 
 License
 -------

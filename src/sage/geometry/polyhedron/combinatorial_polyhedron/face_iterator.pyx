@@ -161,6 +161,7 @@ from sage.rings.integer     cimport smallInteger
 from cysignals.signals      cimport sig_check, sig_on, sig_off
 from .conversions           cimport bit_rep_to_Vrep_list
 from .base                  cimport CombinatorialPolyhedron
+from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
 
 cdef extern from "bit_vector_operations.cc":
     cdef size_t get_next_level(
@@ -216,7 +217,7 @@ cdef extern from "bit_vector_operations.cc":
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
 
-cdef class FaceIterator(SageObject):
+cdef class FaceIterator_base(SageObject):
     r"""
     A class to iterate over all faces of a polyhedron.
 
@@ -557,51 +558,8 @@ cdef class FaceIterator(SageObject):
         self.structure.yet_to_visit = self.coatoms.n_faces
         self.structure._index = 0
 
-    def _repr_(self):
-        r"""
-        EXAMPLES::
-
-            sage: P = polytopes.associahedron(['A',3])
-            sage: C = CombinatorialPolyhedron(P)
-            sage: C.face_iter()
-            Iterator over the proper faces of a 3-dimensional combinatorial polyhedron
-
-            sage: C.face_iter(1)
-            Iterator over the 1-faces of a 3-dimensional combinatorial polyhedron
-        """
-        if self.structure.output_dimension != -2:
-            if self.dual:
-                # ouput_dimension is stored with respect to the dual
-                intended_dimension = self.structure.dimension - 1 - self.structure.output_dimension
-            else:
-                intended_dimension = self.structure.output_dimension
-            output = "Iterator over the {}-faces".format(intended_dimension)
-        else:
-            output = "Iterator over the proper faces"
-        return output + " of a {}-dimensional combinatorial polyhedron".format(self.structure.dimension)
-
     def __next__(self):
-        r"""
-        Return the next face.
-
-        EXAMPLES::
-            sage: P = polytopes.cube()
-            sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter()
-            sage: [next(it) for _ in range(7)]
-            [A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
-             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
-             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
-             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
-             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
-             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
-             A 1-dimensional face of a 3-dimensional combinatorial polyhedron]
-        """
-        cdef CombinatorialFace face = self.next_face()
-        if unlikely(self.structure.current_dimension == self.structure.dimension):
-            raise StopIteration
-
-        return face
+        raise NotImplementedError("a derived class must implement this")
 
     next = __next__
 
@@ -766,7 +724,7 @@ cdef class FaceIterator(SageObject):
         cdef size_t n_visited_all = self.structure.n_visited_all[self.structure.current_dimension]
 
         if (self.structure.output_dimension > -2) and (self.structure.output_dimension != self.structure.current_dimension):
-            # If only a specific dimension was requested (i.e. ``self.output_dimension > -2``),
+            # If only a specific dimension was requested (i.e. ``self.structure.output_dimension > -2``),
             # then we will not yield faces in other dimension.
             self.structure.yet_to_visit = 0
 
@@ -871,3 +829,139 @@ cdef class FaceIterator(SageObject):
         """
         cdef size_t face_length = self.structure.face_length
         return bit_rep_to_Vrep_list(self.structure.face, self.structure.atom_rep, face_length)
+
+cdef class FaceIterator(FaceIterator_base):
+    def _repr_(self):
+        r"""
+        EXAMPLES::
+
+            sage: P = polytopes.associahedron(['A',3])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.face_iter()
+            Iterator over the proper faces of a 3-dimensional combinatorial polyhedron
+
+            sage: C.face_iter(1)
+            Iterator over the 1-faces of a 3-dimensional combinatorial polyhedron
+        """
+        if self.structure.output_dimension != -2:
+            if self.dual:
+                # ouput_dimension is stored with respect to the dual
+                intended_dimension = self.structure.dimension - 1 - self.structure.output_dimension
+            else:
+                intended_dimension = self.structure.output_dimension
+            output = "Iterator over the {}-faces".format(intended_dimension)
+        else:
+            output = "Iterator over the proper faces"
+        return output + " of a {}-dimensional combinatorial polyhedron".format(self.structure.dimension)
+
+    def __next__(self):
+        r"""
+        Return the next face.
+
+        EXAMPLES::
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter()
+            sage: [next(it) for _ in range(7)]
+            [A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron]
+        """
+        cdef CombinatorialFace face = self.next_face()
+        if unlikely(self.structure.current_dimension == self.structure.dimension):
+            raise StopIteration
+
+        return face
+
+cdef class FaceIterator_geom(FaceIterator_base):
+    def __init__(self, P, dual=None, output_dimension=None):
+        self._requested_dim = output_dimension
+
+        if output_dimension is None:
+            if P.dim() == -1:
+                self._trivial_faces = 1
+            else:
+                self._trivial_faces = 2
+        elif output_dimension == P.dim():
+            output_dimension = None
+            self._trivial_faces = 4
+        elif output_dimension == -1:
+            output_dimension = None
+            self._trivial_faces = 3
+        elif output_dimension < -1 or output_dimension > P.dim():
+            output_dimension = None
+            self._trivial_faces = -1
+        else:
+            self._trivial_faces = 0
+
+        if dual is None:
+            # Determine the (likely) faster way, to iterate through all faces.
+            if not P.is_compact() or P.n_facets() <= P.n_vertices():
+                dual = False
+            else:
+                dual = True
+
+        self.P = P
+
+        FaceIterator_base.__init__(self, P.combinatorial_polyhedron(), dual, output_dimension)
+
+    def _repr_(self):
+        r"""
+        EXAMPLES::
+
+            sage: P = polytopes.associahedron(['A',3])
+            sage: P.face_generator()
+            Iterator over the faces of a 3-dimensional polyhedron in Rational Field^3
+
+            sage: P.face_generator(1)
+            Iterator over the 1-faces of a 3-dimensional polyhedron in Rational Field^3
+        """
+        if self._requested_dim is not None:
+            output = "Iterator over the {}-faces".format(self._requested_dim)
+        else:
+            output = "Iterator over the faces"
+        return output + " of a {}-dimensional polyhedron in {}^{}".format(self.structure.dimension, self.P.base_ring(), self.P.ambient_dim())
+
+    def __next__(self):
+        r"""
+        Return the next face.
+
+        EXAMPLES::
+            sage: P = polytopes.cube()
+            sage: it = P.face_generator()
+            sage: [next(it) for _ in range(7)]
+            [A 3-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 8 vertices,
+             A -1-dimensional face of a Polyhedron in ZZ^3,
+             A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
+             A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
+             A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
+             A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
+             A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices]
+        """
+        if unlikely(self._trivial_faces):
+            if self._trivial_faces == -1:
+                raise StopIteration
+            if self._trivial_faces in (2,4):  # Return the polyhedron.
+                if self._trivial_faces == 2:
+                    self._trivial_faces = 1  # Return the empty face next.
+                else:
+                    self._trivial_faces = -1
+                equations = [eq.index() for eq in self.P.equation_generator()]
+                return PolyhedronFace(self.P, range(self.P.n_Vrepresentation()), equations)
+            else:  # Return the empty face.
+                if self._trivial_faces == 1:
+                    self._trivial_faces = 0
+                else:
+                    self._trivial_faces = -1
+                return PolyhedronFace(self.P, [], range(self.P.n_Hrepresentation()))
+
+        cdef CombinatorialFace face = self.next_face()
+        if unlikely(self.structure.current_dimension == self.structure.dimension):
+            raise StopIteration
+
+        return combinatorial_face_to_polyhedral_face(self.P, face)
+

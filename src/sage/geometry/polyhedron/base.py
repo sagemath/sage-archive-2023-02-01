@@ -6028,23 +6028,8 @@ class Polyhedron_base(Element):
             sage: f.ambient_Hrepresentation()
             (An equation (1, 1, 1) x - 6 == 0,)
         """
-        from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
-
-        if face_dimension is None or face_dimension == self.dimension():
-            # Yield the polyhedron.
-            equations = [eq.index() for eq in self.equation_generator()]
-            yield PolyhedronFace(self, range(self.n_Vrepresentation()), equations)
-
-        if face_dimension is None or face_dimension == -1:
-            if not self.dimension() == -1:
-                # Yield the empty face.
-                yield PolyhedronFace(self, [], range(self.n_Hrepresentation()))
-
-        if face_dimension is None or -1 < face_dimension < self.dimension():
-            # Yield proper faces.
-            it = self.combinatorial_polyhedron().face_iter(dimension=face_dimension)
-            for comb_face in it:
-                yield combinatorial_face_to_polyhedral_face(self, comb_face)
+        from sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator import FaceIterator_geom
+        return FaceIterator_geom(self, output_dimension=face_dimension)
 
     def faces(self, face_dimension):
         """

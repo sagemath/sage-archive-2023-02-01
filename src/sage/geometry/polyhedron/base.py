@@ -558,9 +558,9 @@ class Polyhedron_base(Element):
 
                 sage: P = Polyhedron([[2/3,0],[6666666666666667/10^16,0]], base_ring=AA); P
                 A 1-dimensional polyhedron in AA^2 defined as the convex hull of 2 vertices
-                sage: P.change_ring(RDF)
+                sage: Q = P.change_ring(RDF); Q
                 A 0-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex
-                sage: P == P.change_ring(RDF)
+                sage: P.n_vertices() == Q.n_vertices()
                 False
        """
 
@@ -7185,7 +7185,7 @@ class Polyhedron_base(Element):
 
             sage: Dinexact = polytopes.dodecahedron(exact=False)
             sage: w = Dinexact.faces(2)[2].as_polyhedron().volume(measure='induced', engine='internal'); RDF(w) # abs tol 1e-9
-            1.534062710738235
+            1.5340627082974878
 
             sage: [polytopes.simplex(d).volume(measure='induced') for d in range(1,5)] == [sqrt(d+1)/factorial(d) for d in range(1,5)]
             True

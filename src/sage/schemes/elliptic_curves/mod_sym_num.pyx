@@ -2385,7 +2385,7 @@ cdef class ModularSymbolNumerical:
             sage: M = ModularSymbolNumerical(EllipticCurve("5077a1"))
             sage: M._transportable_approx( 0/1, -35/144, 0.001) #abs tol 1e-11
             -6.22753189644996 + 3.23405342839145e-7*I
-            sage: M._from_r_to_rr_approx( 0/1, -35/144, 0.001) # abs tol 1e-11
+            sage: M._from_r_to_rr_approx( 0/1, -35/144, 0.001) # abs tol 1e-10
             -6.22753204310913 - 1.31710951034592e-8*I
 
         While this one goes via 0::

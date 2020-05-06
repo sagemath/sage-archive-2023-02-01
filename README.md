@@ -33,12 +33,6 @@ If you have questions or encounter problems, please do not hesitate
 to email the [sage-support mailing list](https://groups.google.com/group/sage-support)
 or ask on [ask.sagemath.org](https://ask.sagemath.org).
 
-Contributing to Sage
---------------------
-
-If you'd like to contribute to Sage, we strongly recommend that you read the
-[Developer's Guide](https://doc.sagemath.org/html/en/developer/index.html).
-
 Supported Platforms
 -------------------
 
@@ -49,6 +43,13 @@ using virtualization).
 We highly appreciate contributions to Sage that fix portability bugs
 and help port Sage to new platforms; let us know at the [sage-devel
 mailing list](https://groups.google.com/group/sage-devel).
+
+Docker Images
+-------------
+
+You can also have a look at our Docker images to run Sage.
+To use these images [install Docker](https://www.docker.com/community-edition#/download)
+and follow the instructions on [our Docker Hub page](https://hub.docker.com/r/sagemath/sagemath/).
 
 [Windows] Preparing the Platform
 --------------------------------
@@ -108,8 +109,8 @@ Linux](https://docs.microsoft.com/en-us/windows/wsl/faq), which allows
 you to install a standard Linux distribution such as Ubuntu within
 your Windows.  Then all instructions for installation in Linux apply.
 
-Virtualization is another alternative; we will not cover it in this
-README.
+As another alternative, you can also run Linux on Windows using Docker
+(see above) or other virtualization solutions.
 
 [macOS] Preparing the Platform
 ------------------------------
@@ -275,13 +276,6 @@ Sage has significant components written in the following languages:
 C/C++, Python, Cython, Lisp, Fortran, and a bit of Perl. Lisp (ECL), Python, and Cython
 are built as part of Sage.
 
-Docker Images
--------------
-
-You can also have a look at our Docker images to run Sage.
-To use these images [install Docker](https://www.docker.com/community-edition#/download)
-and follow the instructions on [our Docker Hub page](https://hub.docker.com/r/sagemath/sagemath/).
-
 More Detailed Instructions to Build from Source
 -----------------------------------------------
 
@@ -416,6 +410,12 @@ building the ECM package. You should ensure that your assembler
 understands all instructions for your processor. On Linux, this means
 you need a recent version of binutils; on MacOS you need a recent version
 of Xcode.
+
+Contributing to Sage
+--------------------
+
+If you'd like to contribute to Sage, we strongly recommend that you read the
+[Developer's Guide](https://doc.sagemath.org/html/en/developer/index.html).
 
 Directory Layout
 ----------------

@@ -236,7 +236,7 @@ Guide](https://doc.sagemath.org/html/en/installation).
    Sage; in that case, Sage will not build another copy from source.
    Details and names of system packages are system-dependent.  E.g. on
    Debian `bzip2` lives in `libbz2-dev`. More details on this are in
-   Installation manual, and also printed by the `./configure` script
+   Installation Manual, and also printed by the `./configure` script
    (see below).
 
 1. Optional: It is recommended that you have both LaTeX and the
@@ -248,50 +248,43 @@ Guide](https://doc.sagemath.org/html/en/installation).
 
         ./configure --help
 
-1. Optional: Set some environment variables to customize the build.
+1. Optional, but highly recommended: Set some environment variables to
+   customize the build.
 
-   For example, the `MAKE` environment variable controls whether to run
-   several jobs in parallel, while the `SAGE_CHECK` environment variable
-   controls whether to perform more tests during the installation.  For
-   an in-depth discussion of environment variables for building Sage, see
-   [the installation guide](https://doc.sagemath.org/html/en/installation/source.html#environment-variables).
-
-   On a machine with 4 processors, say, typing `export MAKE="make -j4"`
-   will configure the build script to perform a parallel compilation of
-   Sage using 4 jobs. You might even consider `-j5` or `-j6`, as
-   building with more jobs than CPU cores can speed things up further.
+   For example, the `MAKE` environment variable controls whether to
+   run several jobs in parallel.  On a machine with 4 processors, say,
+   typing `export MAKE="make -j4"` will configure the build script to
+   perform a parallel compilation of Sage using 4 jobs. On some
+   powerful machines, you might even consider `-j16`, as building with
+   more jobs than CPU cores can speed things up further.
 
    If you want to run the test suite for each individual Sage package
    as it gets installed, type `export SAGE_CHECK="yes"`. This will run
-   each test suite, raising an error if any failure occurs. Python's
-   test suite has been disabled by default, because it causes failures
-   on most systems. To enable the Python test suite, set the environment
-   variable `SAGE_CHECK_PACKAGES` to `python`.
+   each test suite, raising an error if any failure occurs.  If set to
+   ``warn``, then only a warning is printed in this case.
 
    To reduce the terminal output during the build, type `export V=0`.
    (`V` stands for "verbosity".)
 
-1. Type `./configure`
+   For an in-depth discussion of more environment variables for
+   building Sage, see [the installation
+   guide](https://doc.sagemath.org/html/en/installation/source.html#environment-variables).
 
-        ./configure
-
-   Note: to build a Python2-based Sage, instead of typing `make`, type
-
-        ./configure --with-python=2
-        make
-
-   This will build Sage based on Python 2 rather than based on Python 3,
-   which is the default since sage 9.0.
+1. Type `./configure`, followed by any options that you wish to use.
+   For example, to build a Python2-based Sage (which was the default
+   before Sage 9.0), use `./configure --with-python=2`.
 
 1. At the end of a successful `./configure` run, you may see messages
    recommending to install extra system packages using your package
    manager.  Only the most recent releases of your distribution will
-   have all of these packages.  If you choose to install the system
-   packages, a re-run of `./configure` will test whether the versions
-   installed are usable for Sage; if they are, this will reduce the
-   compilation time and disk space needed by Sage. The usage of packages
-   may be adjusted by `./configure` parameters (check out the output of
-   `./configure -h`)
+   have all of these packages.
+
+   If you choose to install the system packages, a re-run of
+   `./configure` will test whether the versions installed are usable
+   for Sage; if they are, this will reduce the compilation time and
+   disk space needed by Sage. The usage of packages may be adjusted by
+   `./configure` parameters (check again the output of `./configure
+   --help`).
 
 1. Type `make`.  That's it! Everything is automatic and
    non-interactive; but it will a few hours (on a recent computer).

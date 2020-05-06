@@ -1121,10 +1121,9 @@ Here are some of the more commonly used variables affecting the build process:
 
   .. note::
 
-     As of this writing (September 2017, Sage 8.1), the test suites for the
-     Python 2 and 3 spkgs fail on most platforms.
-     So when this variable is empty or unset, Sage uses a default of
-     ``!python2,!python3``.
+     As of Sage 9.1, the test suites for the Python 2 and 3 spkgs fail
+     on most platforms.  So when this variable is empty or unset, Sage
+     uses a default of ``!python2,!python3``.
 
 - :envvar:`SAGE_INSTALL_GCC` - **Obsolete, do not use, to be removed**
 

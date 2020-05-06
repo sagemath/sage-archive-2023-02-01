@@ -67,7 +67,8 @@ target for Sage support on Windows.
 
 1. Start the Cygwin terminal and ensure you get a working bash prompt.
 
-1. Make sure your Cygwin home directory does not contain spaces.
+1. Make sure the path of your Cygwin home directory does not contain
+   space characters.
 
    By default, your username in Cygwin is the same as your username in
    Windows.  This might contain spaces and other traditionally

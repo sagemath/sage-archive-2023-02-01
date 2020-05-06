@@ -203,3 +203,59 @@ def find_p_neighbor_from_vec(self, p, v):
     M = matrix(good_basis)
     QF = self.parent()
     return QF(R, M * self.matrix() * M.transpose())
+
+
+def neighbor_method(self, p=None):
+    r"""
+    Return all classes in the `p`-neighbor graph of ``self``.
+
+    Starting from the given quadratic form, this function successively
+    finds p-neighbors untill no new quadratic form (class) is obtained.
+
+    INPUT:
+
+    - ``p`` -- a prime number
+
+    OUTPUT:
+
+    - a list of quadratic forms
+
+    EXAMPLES::
+
+        sage: Q = QuadraticForm(ZZ,3,[1,0,0,2,1,3])
+        sage: Q.det()
+        46
+        sage: Q.apply_p_neighbor_method(3)
+        [Quadratic form in 3 variables over Integer Ring with coefficients: 
+        [ 1 0 0 ]
+        [ * 2 1 ]
+        [ * * 3 ], Quadratic form in 3 variables over Integer Ring with coefficients: 
+        [ 1 0 -1 ]
+        [ * 1 0 ]
+        [ * * 6 ], Quadratic form in 3 variables over Integer Ring with coefficients: 
+        [ 1 -1 -1 ]
+        [ * 1 1 ]
+        [ * * 8 ]]
+    """
+    isom_classes = [self.lll()]
+    waiting_list = [isom_classes[0]]
+    c_mass = isom_classes[0].number_of_automorphisms()**(-1)
+    c_mass_0 = isom_classes[0].conway_mass()
+    while len(waiting_list) > 0 and c_mass < c_mass_0:
+        # find all p-neighbors of Q
+        Q = waiting_list.pop()
+        v = Q.find_primitive_p_divisible_vector__next(p)
+        while not v is None:
+            Q_neighbor = Q.find_p_neighbor_from_vec(p, v).lll()
+            for S in isom_classes:
+                if Q_neighbor.is_globally_equivalent_to(S):
+                    break
+            else:
+                isom_classes.append(Q_neighbor)
+                waiting_list.append(Q_neighbor)
+                c_mass += Q_neighbor.number_of_automorphisms()**(-1)
+            v = Q.find_primitive_p_divisible_vector__next(p, v)
+    # sanity check
+    assert c_mass == c_mass_0, "some classes are missed!"
+    return isom_classes
+

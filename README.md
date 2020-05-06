@@ -282,8 +282,12 @@ Guide](https://doc.sagemath.org/html/en/installation).
    detect whether an installed system package is suitable for use with
    Sage; in that case, Sage will not build another copy from source.
 
-   Only the most recent releases of your distribution will have all of
-   these recommended packages.
+   Sometimes, the messages will recommend to install packages that are
+   already installed on your system. See the earlier configure
+   messages or the file `config.log` for explanation.  Also, the
+   messages may recommend to install packages that are actually not
+   available; only the most recent releases of your distribution will
+   have all of these recommended packages.
 
 1. Optional: If you choose to install the additional system packages,
    a re-run of `./configure` will test whether the versions installed

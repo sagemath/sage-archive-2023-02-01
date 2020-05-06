@@ -613,12 +613,10 @@ several of Sage's components will not build if there are spaces in the path.
 Running Sage from a directory with spaces in its name will also fail.
 
 #. Go to https://www.sagemath.org/download-source.html, select a mirror,
-   and download the file :file:`sage-x.y.tar`.
+   and download the file :file:`sage-x.y.tar.gz`.
 
-   This tarfile contains the source code for Sage and the source for all
-   programs on which Sage depends.
-   Note that this file is not compressed; it's just a plain tarball (which
-   happens to be full of compressed files).
+   This compressed archive file contains the source code for Sage and
+   the source for all programs on which Sage depends.
 
    Download it into any directory you have write access to, preferably on a
    fast filesystem, avoiding
@@ -626,11 +624,11 @@ Running Sage from a directory with spaces in its name will also fail.
    On personal computers, any subdirectory of your :envvar:`HOME` directory
    should do. Note that once you have built Sage (by running ``make``,
    as described below), you will not be able to move or rename its
-   directory without likely breaking Sage.
+   directory without breaking Sage.
 
-#. Extract the tarfile::
+#. Extract the archive::
 
-       $ tar xvf sage-x.y.tar
+       $ tar xvf sage-x.y.tar.gz
 
    This creates a directory :file:`sage-x.y`.
 
@@ -658,7 +656,7 @@ Running Sage from a directory with spaces in its name will also fail.
    Sage. Note that some packages will ignore the compiler settings and use
    values deemed safe for that package on a particular OS.
 
-#. Optional:  Run the configure script to set some options that
+#. Run the configure script to set some options that
    influence the build process.
 
    - Choose the installation hierarchy (:envvar:`SAGE_LOCAL`).

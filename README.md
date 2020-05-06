@@ -62,7 +62,7 @@ target for Sage support on Windows.
 1. Run the `setup-x86_64.exe` graphical installer.  Pick the default
    options in most cases.  At the package selection screen, use the
    search bar to find and select at least the following packages:
-   `bzip2`, `coreutils`, `curl`, `gawk`, `gzip`, `tar`, `wget`.
+   `bzip2`, `coreutils`, `curl`, `gawk`, `gzip`, `tar`, `wget`, `git`.
 
 1. Start the Cygwin terminal and ensure you get a working bash prompt.
 
@@ -126,9 +126,70 @@ Instructions to Build from Source
 ---------------------------------
 
 The following steps briefly outline the process of building Sage from
-source. More detailed instructions, including how to build faster on
-multicore machines, are contained later in this README and in the
-[Installation Guide](https://doc.sagemath.org/html/en/installation).
+source on Linux, macOS, and Cygwin. More detailed instructions are
+contained in the [Installation
+Guide](https://doc.sagemath.org/html/en/installation).
+
+
+1. Decide on the source/build directory (`SAGE_ROOT`):
+
+    - For example, you could use `SAGE_ROOT=~/sage/sage-x.y`, which we
+      will use as the running example below, where `x.y` is the
+      current Sage version.
+
+    - You need at least 6 GB of free disk space.
+
+    - The path name must contain **no spaces**.
+
+    - After starting the build, you cannot move the source/build
+      directory without breaking things.
+
+    - [Cygwin] Avoid building in home directories of Windows domain
+      users or in paths with capital letters.
+
+1. Download/unpack the sources.
+
+    - After downloading the source tarball `sage-x.y.tar.gz` into
+      `~/sage/`:
+
+            $ cd ~/sage/
+            $ tar zxvf sage-x.y.tar.gz
+
+      This will create the subdirectory `sage-x.y`.
+
+    - Alternatively, clone the Sage git repository:
+
+            $ git clone --branch master git://trac.sagemath.org/sage.git
+
+      This will create the subdirectory `sage`.
+
+    - [Windows] The Sage source tree contains symbolic links, and the
+      build will not work if Windows lineendings rather than UNIX
+      lineendings are used.
+
+      Therefore it is crucial that you unpack the source tree from the
+      Cygwin (or WSL) `bash` using the Cygwin (or WSL) `tar` utility
+      and not using other Windows tools (including mingw).  Likewise,
+      when using `git`, it is crucial that you use the Cygwin (or WSL)
+      version of `git`, and that you configure it as follows first:
+
+            $ git config --global core.autocrlf false
+            $ git config --global core.symlinks true
+
+1. `cd` into the source/build directory:
+
+        $ cd sage*/
+
+1. Optionally, decide on the installation prefix (`SAGE_LOCAL`):
+
+    - Traditionally and by default, Sage installs into the
+      subdirectory hierarchy rooted at `SAGE_ROOT/local`.
+
+    - This can be changed using `./configure --prefix=SAGE_LOCAL`,
+      where `SAGE_LOCAL` is the desired installation prefix, which
+      must be writable by the user.  (See the installation manual for
+      options if you want to install into shared locations such as
+      `/usr/local/`.)
 
 1. Make sure your system has an SSL library and its development
 files installed
@@ -139,7 +200,7 @@ files installed
    SSL libraries, with some of its features disabled.
 
 
-1. Make sure you have the dependencies and 5 GB of free disk space
+1. Make sure you have the dependencies and 6 GB of free disk space
 
    * __All Linux versions:__ gcc, gfortran, g++ (a matching set of these three
    will avoid the compilation of Sage-specific compilers - unless they are too old),
@@ -172,14 +233,6 @@ files installed
    Details and names of system packages containing these Sage ones are system-dependent.  E.g. on Debian
    `bzip2` lives in `libbz2-dev`. More details on this are in Installation manual,
    and also printed by the `./configure` script (see below).
-
-1. Extract the tarball
-
-       tar zxvf sage-*.tar.gz
-
-1. cd into the Sage directory and
-
-       cd sage-*/
 
 1. Optionally, review the configuration options, which includes
    many optional packages:

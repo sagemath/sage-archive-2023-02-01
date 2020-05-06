@@ -209,35 +209,34 @@ Guide](https://doc.sagemath.org/html/en/installation).
 
         $ make configure
 
-1. Install the required build prerequisites.
+1. [Linux, Cygwin] Install the required minimal build prerequisites.
 
-   * __[All Linux versions:]__ `gcc`, `gfortran`, `g++` (a matching
-   set of these three will avoid the compilation of Sage-specific
-   compilers - unless they are too old), `make`, `m4`, `perl`,
-   `ranlib`, `git`, and `tar`. It should also be possible to use
-   `clang`/`clang++`, however this is less well-tested.
+   * Compilers: `gcc`, `gfortran`, `g++` (a matching set of these
+     three will avoid the compilation of Sage-specific compilers -
+     unless they are too old).  See the Installation Manual for a
+     discussion of suitable compilers.
 
-   * __[Fedora/RedHat systems:]__ the `perl-ExtUtils-MakeMaker` package.
-   (install these using your package manager)
+   * Build tools: GNU `make`, GNU `m4`, `perl` (including
+     ``ExtUtils::MakeMaker``), `ranlib`, `git`, `tar`, `bc`
 
-1. Optionally, make sure your system has an SSL library and its
-   development files installed.
+   * Any version of `python` (full installation including `urllib`),
+     but ideally version 3.7.x, which will avoid having to build Sage's
+     own copy of Python 3.
+
+   We have collected lists of system packages that provide these build
+   prerequisites. See [build/pkgs/arch.txt](build/pkgs/arch.txt),
+   [cygwin.txt](build/pkgs/cygwin.txt),
+   [debian.txt](build/pkgs/debian.txt) (also for Ubuntu, Linux Mint,
+   etc.), [fedora.txt](build/pkgs/fedora.txt) (also for Red Hat,
+   CentOS), and [slackware.txt](build/pkgs/slackware.txt).
+
+1. Optional, but highly recommended: Make sure your system has an SSL
+   library and its development files installed.
 
    Like Python, on which it is based, Sage uses the OpenSSL library
    for added performance if made available by the operating system. It
    has been shown that Sage can be successfully built against other
    SSL libraries, with some of its features disabled.
-
-1. Optionally, install additional system packages.
-
-   For a large [list of Sage
-   packages](https://trac.sagemath.org/ticket/27330), Sage is able to
-   detect whether an installed system package is suitable for use with
-   Sage; in that case, Sage will not build another copy from source.
-   Details and names of system packages are system-dependent.  E.g. on
-   Debian `bzip2` lives in `libbz2-dev`. More details on this are in
-   Installation Manual, and also printed by the `./configure` script
-   (see below).
 
 1. Optional: It is recommended that you have both LaTeX and the
    ImageMagick tools (e.g. the "convert" command) installed since some
@@ -274,17 +273,24 @@ Guide](https://doc.sagemath.org/html/en/installation).
    For example, to build a Python2-based Sage (which was the default
    before Sage 9.0), use `./configure --with-python=2`.
 
-1. At the end of a successful `./configure` run, you may see messages
+   At the end of a successful `./configure` run, you may see messages
    recommending to install extra system packages using your package
-   manager.  Only the most recent releases of your distribution will
-   have all of these packages.
+   manager.
 
-   If you choose to install the system packages, a re-run of
-   `./configure` will test whether the versions installed are usable
-   for Sage; if they are, this will reduce the compilation time and
-   disk space needed by Sage. The usage of packages may be adjusted by
-   `./configure` parameters (check again the output of `./configure
-   --help`).
+   For a large [list of Sage
+   packages](https://trac.sagemath.org/ticket/27330), Sage is able to
+   detect whether an installed system package is suitable for use with
+   Sage; in that case, Sage will not build another copy from source.
+
+   Only the most recent releases of your distribution will have all of
+   these recommended packages.
+
+1. Optional: If you choose to install the additional system packages,
+   a re-run of `./configure` will test whether the versions installed
+   are usable for Sage; if they are, this will reduce the compilation
+   time and disk space needed by Sage. The usage of packages may be
+   adjusted by `./configure` parameters (check again the output of
+   `./configure --help`).
 
 1. Type `make`.  That's it! Everything is automatic and
    non-interactive; but it will a few hours (on a recent computer).

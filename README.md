@@ -111,6 +111,17 @@ your Windows.  Then all instructions for installation in Linux apply.
 Virtualization is another alternative; we will not cover it in this
 README.
 
+[macOS] Preparing the Platform
+------------------------------
+
+Make sure you have the most current version of Xcode version supported
+on your version of macOS.  If you don't, go to
+https://developer.apple.com/, sign up, and download the free Xcode
+package.  Xcode's command line tools suffice to build Sage.
+
+Optionally, you can consider installing Homebrew ("the missing package
+manager for macOS") from https://brew.sh/
+
 Instructions to Build from Source
 ---------------------------------
 

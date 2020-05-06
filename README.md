@@ -298,7 +298,8 @@ Guide](https://doc.sagemath.org/html/en/installation).
    `./configure --help`).
 
 13. Type `make`.  That's it! Everything is automatic and
-   non-interactive; but it will a few hours (on a recent computer).
+   non-interactive; but it will take a few hours (on a recent
+   computer).
 
    The build should work fine on all fully supported platforms. If it
    does not, we want to know!
@@ -344,28 +345,6 @@ messages in them.  Send (a small part of) the relevant log file to the
 [sage-devel mailing list](https://groups.google.com/group/sage-devel),
 making sure to include at least some of the error messages; probably
 someone there will have some helpful suggestions.
-
-Supported Compilers
--------------------
-
-Sage includes a GCC (_GNU Compiler Collection_) package. However,
-it almost always better to use C, C++ and Fortran compilers
-already available on the system. To force using  specific compilers,
-set environment variables `CC`, `CXX`, and `FC` (for C, C++, and Fortran compilers,
-respectively) to the desired values,
-and run `./configure`. E.g. `CC=clang CXX=clang++ FC=gfortran ./configure`
-will configure Sage to be built with Clang C/C++ compilers and Fortran
-compiler gfortran.
-
-It is determined automatically whether Sage's GCC package, or just its part containing
-Fortran compiler `gfortran` needs to be installed. This can be overwritten
-by running `./configure` with option `--without-system-gcc`.
-
-There are some known problems with old assemblers, in particular when
-building the ECM package. You should ensure that your assembler
-understands all instructions for your processor. On Linux, this means
-you need a recent version of binutils; on MacOS you need a recent version
-of Xcode.
 
 Contributing to Sage
 --------------------

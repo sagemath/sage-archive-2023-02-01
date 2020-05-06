@@ -121,7 +121,13 @@ development files.
 Fortran and compiler suites
 ###########################
 
-Sage installation also needs a Fortran compiler. Officially we support
+Sage installation also needs a Fortran compiler.  It is determined
+automatically whether Sage's GCC package, or just its part containing
+Fortran compiler `gfortran` needs to be installed. This can be
+overwritten by running `./configure` with option
+`--without-system-gcc`.
+
+Officially we support
 gfortran from `GNU Compiler Collection (GCC) <https://gcc.gnu.org/>`_.
 If C and C++ compilers also come from there (i.e., gcc and g++), their versions
 should match.
@@ -136,6 +142,13 @@ this is work in progress at the moment (May 2019)).
 Therefore, if you plan on using your own GCC compilers, then make sure that
 their versions match.
 
+To force using specific compilers, set environment variables ``CC``,
+``CXX``, and ``FC`` (for C, C++, and Fortran compilers, respectively)
+to the desired values, and run ``./configure``. For example,
+``./configure CC=clang CXX=clang++ FC=gfortran`` will configure Sage
+to be built with Clang C/C++ compilers and Fortran compiler
+``gfortran``.
+
 Alternatively, Sage includes a GCC package, so that C, C++ and Fortran
 compilers will be built when the build system detects that it is needed,
 e.g., non-GCC compilers, or
@@ -147,6 +160,13 @@ package and its prerequisites before the compilers it provides can be used.
 Note that you can always override this behavior through the configure
 options ``--without-system-gcc`` and ``--with-system-gcc``, see
 :ref:`section_compilers`.
+
+There are some known problems with old assemblers, in particular when
+building the ``ecm`` and ``fflas_ffpack`` packages. You should ensure
+that your assembler understands all instructions for your
+processor. On Linux, this means you need a recent version of
+``binutils``; on macOS you need a recent version of Xcode.
+
 
 Other notes
 ^^^^^^^^^^^

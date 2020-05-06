@@ -895,18 +895,8 @@ must meet the following requirements:
   Foundation maintains a long list of `licenses and comments about
   them <http://www.gnu.org/licenses/license-list.html>`_.
 
-- **Build Support**. The code must build on all the `fully supported
-  platforms
-  <http://wiki.sagemath.org/SupportedPlatforms#Fully_supported>`_.
-
-  A standard package should also work on all the platforms where Sage
-  is `expected to work
-  <http://wiki.sagemath.org/SupportedPlatforms#Expected_to_work>`_ and
-  on which Sage `almost works
-  <http://wiki.sagemath.org/SupportedPlatforms#Almost_works>`_ but
-  since we don't fully support these platforms and often lack the
-  resources to test on them, you are not expected to confirm your
-  packages works on those platforms.
+- **Build Support**. The code must build on all the fully supported
+  platforms (Linux, macOS, Cygwin); see :ref:`chapter-portability_testing`.
 
 - **Quality**. The code should be "better" than any other available
   code (that passes the two above criteria), and the authors need to

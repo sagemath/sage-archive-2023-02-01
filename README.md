@@ -178,8 +178,8 @@ Guide](https://doc.sagemath.org/html/en/installation).
       This will create the subdirectory `sage`.
 
     - [Windows] The Sage source tree contains symbolic links, and the
-      build will not work if Windows lineendings rather than UNIX
-      lineendings are used.
+      build will not work if Windows line endings rather than UNIX
+      line endings are used.
 
       Therefore it is crucial that you unpack the source tree from the
       Cygwin (or WSL) `bash` using the Cygwin (or WSL) `tar` utility

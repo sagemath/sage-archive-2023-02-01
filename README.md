@@ -331,20 +331,12 @@ as well as the version-specific Sage Installation FAQ in the [Sage Release
 Tour](https://wiki.sagemath.org/ReleaseTours) corresponding to the
 version that you are installing.
 
-Also note the following. Each separate component of Sage is
-contained in an spkg; these are stored in `build/pkgs/`. As each one
-is built, a build log is stored in `logs/pkgs/`, so you can browse these
-to find error messages. If an spkg fails to build, the whole build
-process will stop soon after, so check the most recent log files
-first, or run
-
-       grep -li "^Error" logs/pkgs/*
-
-from the top-level Sage directory to find log files with error
-messages in them.  Send (a small part of) the relevant log file to the
-[sage-devel mailing list](https://groups.google.com/group/sage-devel),
-making sure to include at least some of the error messages; probably
-someone there will have some helpful suggestions.
+Please do not hesitate to ask for help in the [SageMath forum
+](https://ask.sagemath.org/questions/) or the [sage-support mailing
+list](https://groups.google.com/forum/#!forum/sage-support).  The
+[Troubleshooting section in the Sage Installation Guide]() provides
+instructions on what information to provide so that we can provide
+help more effectively.
 
 Contributing to Sage
 --------------------

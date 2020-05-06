@@ -17,3 +17,19 @@ therefore not covered by this manual.
 Also please do not hesitate to ask for help in the `SageMath forum
 <https://ask.sagemath.org/questions/>`_ or the `sage-support mailing
 list <https://groups.google.com/forum/#!forum/sage-support>`_.
+
+Also note the following. Each separate component of Sage is
+contained in an SPKG; these are stored in `build/pkgs/`. As each one
+is built, a build log is stored in `logs/pkgs/`, so you can browse these
+to find error messages. If an SPKG fails to build, the whole build
+process will stop soon after, so check the most recent log files
+first, or run::
+
+       grep -li "^Error" logs/pkgs/*
+
+from the top-level Sage directory to find log files with error
+messages in them.  Send the file ``config.log`` as well as (a small
+part of) the relevant log file to the `sage-support mailing list
+<https://groups.google.com/group/sage-support>`_, making sure to
+include at least some of the error messages; probably someone there
+will have some helpful suggestions.

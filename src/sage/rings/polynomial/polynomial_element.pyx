@@ -6450,7 +6450,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if B.is_zero():
                 return S
             S = [ring(B)] + S
-            delta = d-e
+            delta = d - e
             if delta > 1:
                 if len(S) > 1:
                     n = S[1].degree() - S[0].degree() - 1
@@ -6463,25 +6463,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         c = x
                         n = n - a
                         while a > 1:
-                            a = a/2
-                            c = c**2/y
+                            a /= 2
+                            c = c**2 / y
                             if n >= a:
-                                c = c*x/y
+                                c = c * x / y
                                 n = n - a
-                        C = c*S[0]/y
+                        C = c * S[0] / y
                 else:
-                    C = B.leading_coefficient()**(delta-1)*B/s**(delta-1)
+                    C = B.leading_coefficient()**(delta-1) * B / s**(delta-1)
                 S = [ring(C)] + S
             else:
                 C = B
             if e == 0:
                 return S
-            B = A.pseudo_quo_rem(-B)[1]/(s**delta*A.leading_coefficient())
+            B = A.pseudo_quo_rem(-B)[1] / (s**delta * A.leading_coefficient())
             A = C
             s = A.leading_coefficient()
-
-
-
 
     def composed_op(p1, p2, op, algorithm=None, monic=False):
         r"""

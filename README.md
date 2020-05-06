@@ -255,11 +255,6 @@ Guide](https://doc.sagemath.org/html/en/installation).
    will configure the build script to perform a parallel compilation of
    Sage using 4 jobs. You might even consider `-j5` or `-j6`, as
    building with more jobs than CPU cores can speed things up further.
-   You might in addition pass a `-l` [load flag](https://www.gnu.org/software/make/manual/make.html#Options-Summary)
-   to `make`: this sets a load limit, so for example if you execute
-   `export MAKE="make -j4 -l5.5"` then "make" won't start more than one
-   job at a time if the system load average is above 5.5, see
-   the [make documentation](https://www.gnu.org/software/make/manual/make.html#Parallel).
 
    If you want to run the test suite for each individual Sage package
    as it gets installed, type `export SAGE_CHECK="yes"`. This will run

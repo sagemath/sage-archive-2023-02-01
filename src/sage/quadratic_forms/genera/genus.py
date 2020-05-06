@@ -2126,6 +2126,16 @@ class Genus_Symbol_p_adic_ring(object):
             Genus symbol at 2:    [1^-2 2^1 4^1]_6
             sage: G2.direct_sum(G2)
             Genus symbol at 2:    [1^4 2^2 4^2]_4
+
+        TESTS::
+
+            sage: G = Genus(matrix([6]))
+            sage: G2 = G.local_symbol(2)
+            sage: G3 = G.local_symbol(3)
+            sage: G2.direct_sum(G3)
+            Traceback (most recent call last):
+            ...
+            ValueError: the local genus symbols must be over the same prime
         """
         if self.prime() != other.prime():
             raise ValueError("the local genus symbols must be over the same prime")
@@ -2928,7 +2938,7 @@ class GenusSymbol_global_ring(object):
             sage: G.mass(backend='foo')
             Traceback (most recent call last):
             ...
-            ValueError: Unknown backend: foo
+            ValueError: unknown backend: foo
             sage: G = Genus(matrix(ZZ, 2, [0, 1, 1, 0]))
             sage: G.mass()
             Traceback (most recent call last):
@@ -2954,7 +2964,7 @@ class GenusSymbol_global_ring(object):
             L = L.LatticeWithGram()
             return QQ(L.Mass())
         else:
-            raise ValueError("Unknown backend: %s"%backend)
+            raise ValueError("unknown backend: %s"%backend)
 
 
 def _gram_from_jordan_block(p, block, discr_form=False):

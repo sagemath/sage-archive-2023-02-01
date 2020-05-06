@@ -1522,4 +1522,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in April 2020 (Sage 9.1).**
+**This page was last updated in May 2020 (Sage 9.1).**

@@ -5,7 +5,7 @@
 >   "Creating a Viable Open Source Alternative to
 >    Magma, Maple, Mathematica, and MATLAB"
 
->   Copyright (C) 2005-2019 The Sage Development Team
+>   Copyright (C) 2005-2020 The Sage Development Team
 
    https://www.sagemath.org
 

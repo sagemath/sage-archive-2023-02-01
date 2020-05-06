@@ -354,9 +354,9 @@ Some additional optional packages are taken care of by:
 Cygwin prerequisite installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Sage can be built only on the 64-bit version of Cygwin.  See the
-`Cygwin64Port <https://trac.sagemath.org/wiki/Cygwin64Port>`_ wiki page for
-the most up-to-date instructions for building Sage on Cygwin.
+Sage can be built only on the 64-bit version of Cygwin.  See
+``README.md`` for the most up-to-date instructions for building Sage
+on Cygwin.
 
 Although it is possible to install Sage's dependencies using the Cygwin
 graphical installer, it is recommended to install the `apt-cyg
@@ -390,12 +390,6 @@ Other platforms
 
 On Solaris, you would use ``pkgadd`` and on OpenSolaris ``ipf`` to install
 the necessary software.
-
-On Cygwin, you would use the ``setup.exe`` program.
-As on Linux systems, ``ar`` and ``ranlib`` are provided by the ``binutils`` package.
-As far as compilers are concerned, you should either install matching versions
-of the ``gcc4-core``, ``gcc4-g++``, and ``gcc4-gfortran`` packages, or
-the ``gcc4-core`` package alone if you plan on using Sage's own GCC.
 
 On other systems, check the documentation for your particular operating system.
 

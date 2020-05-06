@@ -49,7 +49,7 @@ distributions, `macOS <https://www.apple.com/macosx/>`_ , and Windows
 
 Other installation options for Windows are using the Windows Subsystem
 for Linux (WSL), or with the aid of a `virtual machine
-<https://en.wikipedia.org/wiki/Virtual_machine>`_ or the .
+<https://en.wikipedia.org/wiki/Virtual_machine>`_.
 
 .. _section-prereqs:
 
@@ -65,9 +65,7 @@ also the `System-specific requirements`_ below.
 Disk space and memory
 ^^^^^^^^^^^^^^^^^^^^^
 
-Your computer comes with at least 6 GB of free disk space running one of the
-supported versions of an operating system listed at
-https://wiki.sagemath.org/SupportedPlatforms.
+Your computer comes with at least 6 GB of free disk space.
 It is recommended to have at least 2 GB of RAM, but you might get away
 with less (be sure to have some swap space in this case).
 

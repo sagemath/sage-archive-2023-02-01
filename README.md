@@ -43,14 +43,76 @@ Supported Platforms
 -------------------
 
 Sage fully supports all major Linux distributions, recent versions of
-MacOS, and Windows (using Cygwin or using virtualization).
+macOS, and Windows (using Cygwin, Windows Subsystem for Linux, or
+using virtualization).
 
 We highly appreciate contributions to Sage that fix portability bugs
 and help port Sage to new platforms; let us know at the [sage-devel
 mailing list](https://groups.google.com/group/sage-devel).
 
-Quick Instructions to Build from Source
----------------------------------------
+[Windows] Preparing the Platform
+--------------------------------
+
+The 64-bit version of Cygwin, also known as Cygwin64, is the current
+target for Sage support on Windows.
+
+1. Download [cygwin64](https://cygwin.com/install.html) (do not get
+   the 32-bit version; it is not supported by Sage).
+
+1. Run the `setup-x86_64.exe` graphical installer.  Pick the default
+   options in most cases.  At the package selection screen, use the
+   search bar to find and select at least the following packages:
+   `bzip2`, `coreutils`, `curl`, `gawk`, `gzip`, `tar`, `wget`.
+
+1. Start the Cygwin terminal and ensure you get a working bash prompt.
+
+1. Make sure your Cygwin home directory does not contain spaces.
+
+   By default, your username in Cygwin is the same as your username in
+   Windows.  This might contain spaces and other traditionally
+   non-UNIX-friendly characters, e.g., if it is your full name.  You
+   can check this as follows:
+
+        $ whoami
+        Erik M. Bray
+
+   This means your default home directory on Cygwin contains this
+   username verbatim; in the above example, `/home/Erik M. Bray`.  It
+   will save some potential trouble if you change your Cygwin home
+   directory to something not containing any non-alphanumeric
+   characters, for example, `/home/embray`.  The easiest way to do
+   this is to first create the home directory you want to use instead,
+   then create an `/etc/passwd` file specifying that directory as your
+   home, as follows:
+
+        $ whocanibe=embray
+        $ mkdir /home/$whocanibe
+        $ mkpasswd.exe -l -u "$(whoami)" | sed -r 's,/home/[^:]+,/home/'$whocanibe, > /etc/passwd
+
+   After this, close all Cygwin terminals (ensure nothing in
+   `C:\cygwin64` is running), then start a new Cygwin terminal and
+   your home directory should have moved.
+
+   There are [other ways to do
+   this](https://stackoverflow.com/questions/1494658/how-can-i-change-my-cygwin-home-folder-after-installation),
+   but the above seems to be the simplest that's still supported.
+
+1. Install the package manager `apt-cyg`:
+
+        $ curl -OL https://rawgit.com/transcode-open/apt-cyg/master/apt-cyg
+        $ install apt-cyg /usr/local/bin
+        $ rm -f apt-cyg
+
+An alternative to Cygwin is to use [Windows Subsystem for
+Linux](https://docs.microsoft.com/en-us/windows/wsl/faq), which allows
+you to install a standard Linux distribution such as Ubuntu within
+your Windows.  Then all instructions for installation in Linux apply.
+
+Virtualization is another alternative; we will not cover it in this
+README.
+
+Instructions to Build from Source
+---------------------------------
 
 The following steps briefly outline the process of building Sage from
 source. More detailed instructions, including how to build faster on

@@ -170,7 +170,7 @@ Guide](https://doc.sagemath.org/html/en/installation).
 
       This will create the subdirectory `sage-x.y`.
 
-    - Alternatively, clone the Sage git repository:
+    - [Git] Alternatively, clone the Sage git repository:
 
             $ git clone --branch master git://trac.sagemath.org/sage.git
 
@@ -203,6 +203,11 @@ Guide](https://doc.sagemath.org/html/en/installation).
       must be writable by the user.  (See the installation manual for
       options if you want to install into shared locations such as
       `/usr/local/`.  Do not attempt to build Sage as root.)
+
+1. [Git] If you cloned the Sage repository using `git`, bootstrap the
+   source tree using:
+
+        $ make configure
 
 1. Install the required build prerequisites.
 
@@ -266,15 +271,14 @@ Guide](https://doc.sagemath.org/html/en/installation).
    To reduce the terminal output during the build, type `export V=0`.
    (`V` stands for "verbosity".)
 
-1. Type ./configure
+1. Type `./configure`
 
         ./configure
 
    Note: to build a Python2-based Sage, instead of typing `make`, type
 
-       make configure
-       ./configure --with-python=2
-       make
+        ./configure --with-python=2
+        make
 
    This will build Sage based on Python 2 rather than based on Python 3,
    which is the default since sage 9.0.

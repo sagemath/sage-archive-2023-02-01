@@ -827,7 +827,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             True
         """
         from sage.categories.pushout import CompletionFunctor
-        return CompletionFunctor(self._names[0], self.default_prec()),  self._poly_ring()
+        return CompletionFunctor(self._names[0], self.default_prec()), self._poly_ring()
 
     def _coerce_impl(self, x):
         """
@@ -1247,7 +1247,25 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             return self.__laurent_series_ring
 
 class PowerSeriesRing_domain(PowerSeriesRing_generic, ring.IntegralDomain):
-    pass
+    def fraction_field(self):
+        """
+        Return the fraction field of this power series ring, which is
+        defined since this is over a domain.
+
+        This fraction field is just the Laurent series ring over the
+        fraction field of the base ring.
+
+        EXAMPLES::
+
+            sage: R.<t> = PowerSeriesRing(ZZ)
+            sage: R.fraction_field()
+            Laurent Series Ring in t over Rational Field
+            sage: Frac(R)
+            Laurent Series Ring in t over Rational Field
+        """
+        laurent = self.laurent_series_ring()
+        return laurent.change_ring(self.base_ring().fraction_field())
+
 
 class PowerSeriesRing_over_field(PowerSeriesRing_domain):
     _default_category = CompleteDiscreteValuationRings()

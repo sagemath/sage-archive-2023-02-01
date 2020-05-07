@@ -95,10 +95,11 @@ def _base_ring_to_fraction_field(S):
         gens = R.gens()
         sigmaS = S.twist_map()
         # try:
-        sigmaQ = Q.hom([ Q(sigmaS(g)) for g in gens ])
+        sigmaQ = Q.hom([Q(sigmaS(g)) for g in gens])
         return Q[S.variable_name(), sigmaQ]
         # except Exception, e:
         #     raise ValueError("unable to lift the twist map to a twist map over %s (error was: %s)" % (Q, e))
+
 
 def _minimal_vanishing_polynomial(R, eval_pts):
     """
@@ -137,9 +138,9 @@ def _minimal_vanishing_polynomial(R, eval_pts):
         if e.is_zero():
             return R.one()
         else:
-            return R.gen() - R.twist_map()(e)/e
+            return R.gen() - R.twist_map()(e) / e
     else:
-        t = l//2
+        t = l // 2
         A = eval_pts[:t]
         B = eval_pts[t:]
         M_A = _minimal_vanishing_polynomial(R, A)
@@ -201,9 +202,9 @@ def _lagrange_polynomial(R, eval_pts, values):
         if eval_pts[0].is_zero():
             # This is due to linear dependence among the eval_pts.
             raise ValueError("the given evaluation points are linearly dependent over the fixed field of the twist map, so a Lagrange polynomial could not be determined (and might not exist).")
-        return (values[0]/eval_pts[0])*R.one()
+        return (values[0] / eval_pts[0]) * R.one()
     else:
-        t = l//2
+        t = l // 2
         A = eval_pts[:t]
         B = eval_pts[t:]
         M_A = _minimal_vanishing_polynomial(R, A)
@@ -215,13 +216,12 @@ def _lagrange_polynomial(R, eval_pts, values):
         return I_1 * M_B + I_2 * M_A
 
 
-
 # Generic implementation of skew polynomial rings
 #################################################
 
 class SkewPolynomialRing(Algebra, UniqueRepresentation):
     r"""
-    Construct and return the globally unique skew polynomial ring with the 
+    Construct and return the globally unique skew polynomial ring with the
     given properties and variable names.
 
     Given a ring `R` and a ring automorphism `\sigma` of `R`, the ring of
@@ -535,6 +535,7 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
             return C(self, a, check=check, construct=construct)
         if isinstance(a, sage.structure.element.Element):
             P = a.parent()
+
             def build(check):
                 if a.is_zero():
                     return P.zero()
@@ -703,7 +704,6 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
             sage: Ry is R.change_var('y')
             True
         """
-        from sage.rings.polynomial.skew_polynomial_ring import SkewPolynomialRing
         return SkewPolynomialRing(self.base_ring(), self._map, names=var,
                                   sparse=self.__is_sparse)
 
@@ -724,7 +724,6 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
             5
         """
         return self.base_ring().characteristic()
-
 
     @cached_method
     def twist_map(self, n=1):
@@ -779,7 +778,6 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
             else:
                 raise ValueError("Unexpected error in iterating the twist map: %s", e)
 
-
     @cached_method
     def gen(self, n=0):
         r"""
@@ -812,7 +810,7 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
         """
         if n != 0:
             raise IndexError("generator %s not defined" % n)
-        return self.Element(self, [0,1])
+        return self.Element(self, [0, 1])
 
     parameter = gen
 
@@ -979,9 +977,11 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
                 raise ValueError("first degree argument must be less or equal to the second")
             degree = randint(*degree)
         if monic:
-            return self([R.random_element(*args, **kwds) for _ in range(degree)] + [R.one()])
+            return self([R.random_element(*args, **kwds)
+                         for _ in range(degree)] + [R.one()])
         else:
-            return self([R.random_element(*args, **kwds) for _ in range(degree+1)])
+            return self([R.random_element(*args, **kwds)
+                         for _ in range(degree + 1)])
 
     def random_irreducible(self, degree=2, monic=True, *args, **kwds):
         r"""
@@ -1148,14 +1148,14 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
             so a Lagrange polynomial could not be determined (and might not exist).
         """
         l = len(points)
-        if not all( len(pair) == 2 for pair in points ):
+        if not all(len(pair) == 2 for pair in points):
             raise TypeError("supplied points must be pairs of elements of base ring")
-        eval_pts = [ x for (x,_) in points ]
-        values   = [ y for (_,y) in points ]
+        eval_pts = [x for (x, _) in points]
+        values = [y for (_, y) in points]
 
         if l > len(set(eval_pts)):
             raise TypeError("the evaluation points must be distinct")
-        zero_i = [ i for i in range(l) if eval_pts[i].is_zero() ]
+        zero_i = [i for i in range(l) if eval_pts[i].is_zero()]
         if zero_i and not values[zero_i[0]].is_zero():
             raise TypeError("a skew polynomial always evaluates to 0 at 0, but a non-zero value was requested.")
 
@@ -1179,7 +1179,7 @@ class SectionSkewPolynomialCenterInjection(Section):
         sage: sigma = iota.section()
         sage: TestSuite(sigma).run(skip=['_test_category'])
     """
-    def _call_ (self, x):
+    def _call_(self, x):
         r"""
         Return `x` viewed as an element of the center
 
@@ -1200,7 +1200,7 @@ class SectionSkewPolynomialCenterInjection(Section):
         order = self.inverse()._order
         section = self.inverse()._embed.section()
         lx = x.list()
-        l = [ ]
+        l = []
         mod = 0
         for c in lx:
             if mod == 0:
@@ -1224,7 +1224,7 @@ class SectionSkewPolynomialCenterInjection(Section):
             sage: Z = S.center()
             sage: iota = S.convert_map_from(Z)
             sage: sigma = iota.section()
- 
+
             sage: s = loads(dumps(sigma))
             sage: s == sigma
             True
@@ -1232,7 +1232,7 @@ class SectionSkewPolynomialCenterInjection(Section):
             False
         """
         if op == op_EQ:
-            return (self.domain() is right.domain()) and (self.codomain() is right.codomain()) 
+            return (self.domain() is right.domain()) and (self.codomain() is right.codomain())
         return NotImplemented
 
 
@@ -1284,7 +1284,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
         """
         return "Embedding of the center of %s into this ring" % self._codomain
 
-    def _call_(self,x):
+    def _call_(self, x):
         r"""
         Return the image of `x` by this morphism
 
@@ -1298,12 +1298,12 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
             sage: iota(z)
             x^3
         """
-        k = self._codomain.base_ring ()
-        l = [ ]
-        lz = [ k(0) ] * (self._order-1)
+        k = self._codomain.base_ring()
+        l = []
+        lz = [k(0)] * (self._order - 1)
         for c in x.list():
-            l += [ self._embed(c) ] + lz
-        return self._codomain (l)
+            l += [self._embed(c)] + lz
+        return self._codomain(l)
 
     def _richcmp_(self, right, op):
         r"""
@@ -1315,7 +1315,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
             sage: S.<x> = SkewPolynomialRing(k, k.frobenius_endomorphism())
             sage: Z = S.center()
             sage: iota = S.convert_map_from(Z)
- 
+
             sage: i = loads(dumps(iota))
             sage: i == iota
             True
@@ -1323,7 +1323,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
             False
         """
         if op == op_EQ:
-            return (self.domain() is right.domain()) and (self.codomain() is right.codomain()) 
+            return (self.domain() is right.domain()) and (self.codomain() is right.codomain())
         return NotImplemented
 
     def section(self):
@@ -1389,7 +1389,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         (self._constants, self._embed_constants) = twist_map.fixed_field()
 
         # Configure and create center
-        self._center = { }
+        self._center = {}
         self._center_variable_name = 'z'
         for i in range(WORKING_CENTER_MAX_TRIES):
             try:
@@ -1400,7 +1400,6 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
                 self._center_variable_name = "z%s_" % i
         if self._center_variable_name is not None:
             raise NotImplementedError("unable to create the center")
-
 
     def center(self, name=None, names=None, default=False):
         r"""
@@ -1414,7 +1413,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
 
         INPUT:
 
-        - ``name`` -- a string or ``None`` (default: ``None``); 
+        - ``name`` -- a string or ``None`` (default: ``None``);
           the name for the central variable (namely `x^r`)
 
         - ``default`` -- a boolean (default: ``False``); if ``True``,
@@ -1444,7 +1443,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: y.parent() is Zy
             True
 
-        A coercion map from the center to the skew polynomial ring is set::   
+        A coercion map from the center to the skew polynomial ring is set::
 
             sage: S.has_coerce_map_from(Zy)
             True
@@ -1477,7 +1476,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
 
         A priori, the default is ``z``.
 
-        However, a variable name is given the first time this method is 
+        However, a variable name is given the first time this method is
         called, the given name become the default for the next calls::
 
             sage: K.<t> = GF(11^3)

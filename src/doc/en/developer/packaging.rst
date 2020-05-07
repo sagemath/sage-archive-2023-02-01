@@ -516,6 +516,17 @@ for ``eclib``:
     All lines of this file are ignored except the first.
     It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.
 
+For Python packages, common dependencies include ``pip``,
+``setuptools``, and ``future``. If your package depends on any of
+these, use ``$(PYTHON_TOOLCHAIN)`` instead. For example, here is the
+``dependencies`` file for ``configparser``::
+
+.. CODE-BLOCK:: text
+
+    $(PYTHON) | $(PYTHON_TOOLCHAIN)
+
+(See below for the meaning of the ``|``.)
+
 If there are no dependencies, you can use
 
 .. CODE-BLOCK:: text

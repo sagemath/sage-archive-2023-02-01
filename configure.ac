@@ -333,6 +333,8 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
 # Check C/C++/Fortran compilers
 ###############################################################################
 
+SAGE_CHECK_CONDA_COMPILERS
+
 AC_PROG_CC()
 AC_PROG_CPP()
 AC_PROG_CXX()

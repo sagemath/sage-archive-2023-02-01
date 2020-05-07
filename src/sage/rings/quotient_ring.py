@@ -1302,7 +1302,7 @@ class QuotientRing_generic(QuotientRing_nc, ring.CommutativeRing):
         QuotientRing_nc.__init__(self, R, I, names, category=category)
 
     def _macaulay2_init_(self, macaulay2=None):
-        """
+        r"""
         EXAMPLES:
 
         Quotients of multivariate polynomial rings over `\QQ`, `\ZZ` and

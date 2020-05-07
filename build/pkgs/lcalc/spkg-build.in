@@ -12,6 +12,10 @@ else
     echo "Set 'SAGE_DEBUG' to 'yes' if you want debugging information present (-g added)."
 fi
 
+# Using pari in a C++17 file with "using namespace std doesn't
+# work due to a conflict between std::rank and pari's rank
+CXXFLAGS=$(echo "${CXXFLAGS}" | sed "s/-std=c++17//g")
+
 # Export everything. Probably not necessary in most cases.
 export CFLAGS
 export CXXFLAGS

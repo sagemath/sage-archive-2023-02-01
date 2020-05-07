@@ -2167,7 +2167,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal_polymod):
             return self.gens_over_base()
 
     def gens_two(self):
-        """
+        r"""
         Return two generators of this fractional ideal.
 
         If the ideal is principal, one generator *may* be returned.

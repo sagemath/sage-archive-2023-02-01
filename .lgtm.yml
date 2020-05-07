@@ -1,6 +1,7 @@
 queries:
   - exclude: py/call/wrong-named-class-argument
   - exclude: py/call/wrong-number-class-arguments
+  - exclude: py/similar-function
   - exclude: py/unsafe-cyclic-import
 path_classifiers:
   imports_only:

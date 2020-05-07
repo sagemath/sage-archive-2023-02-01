@@ -70,9 +70,22 @@ import numbers
 from sage.rings.integer         cimport smallInteger
 from .conversions               cimport bit_rep_to_Vrep_list
 from .base                      cimport CombinatorialPolyhedron
-from .bit_vector_operations     cimport count_atoms, bit_rep_to_coatom_rep
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 from libc.string                cimport memcpy
+
+cdef extern from "bit_vector_operations.cc":
+    cdef size_t count_atoms(uint64_t *A, size_t face_length)
+#        Return the number of atoms/vertices in A.
+#        This is the number of set bits in A.
+#        ``face_length`` is the length of A in terms of uint64_t.
+
+    cdef size_t bit_rep_to_coatom_rep(
+            uint64_t *face, uint64_t **coatoms, size_t n_coatoms,
+            size_t face_length, size_t *output)
+#        Write the coatom-representation of face in output. Return length.
+#        ``face_length`` is the length of ``face`` and ``coatoms[i]``
+#        in terms of uint64_t.
+#        ``n_coatoms`` length of ``coatoms``.
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython

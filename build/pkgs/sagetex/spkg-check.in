@@ -31,6 +31,10 @@ fi
 
 cd src
 
+# Make sure that we use the version of sagetex.py and example.tex in
+# the current working directory.
+unset TEXINPUTS
+
 typeset example.tex
 checkdotsage example
 typeset example.tex

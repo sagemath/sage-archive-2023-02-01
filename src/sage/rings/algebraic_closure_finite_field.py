@@ -144,7 +144,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
 
             sage: R.<x,y> = GF(2).algebraic_closure()[]
             sage: x.resultant(y)
-            -y
+            y
         """
         # TODO: this is *very* slow
         # NOTE: the hash of a generator (e.g. z2, z3, ...) is always the

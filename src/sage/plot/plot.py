@@ -2250,9 +2250,7 @@ def _plot(funcs, xrange, parametric=False,
     plot_points = int(options.pop('plot_points'))
 
     exclude = options.pop('exclude')
-    if exclude is None:
-        initial_points = None
-    else:
+    if exclude is not None:
         from sage.symbolic.expression import Expression
         if isinstance(exclude, Expression) and exclude.is_relational():
             if len(exclude.variables()) > 1:
@@ -2279,6 +2277,8 @@ def _plot(funcs, xrange, parametric=False,
         initial_points = reduce(lambda a,b: a+b,
                                 [[x - epsilon, x + epsilon]
                                  for x in excluded_points], [])
+    else:
+        initial_points = None
     
     # If we are a log scale plot on the x axis, do a change of variables
     # so we sample the range in log scale

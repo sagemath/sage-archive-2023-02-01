@@ -538,6 +538,24 @@ and seems to be faster than ImageMagick when creating animated GIFs.
 Either ImageMagick or dvipng is used for displaying some LaTeX output in the
 Sage notebook.
 
+On Debian/Ubuntu, the following system packages are recommended.
+
+- ``texlive-generic-extra`` (to generate pdf documentation)
+
+- ``texlive-xetex`` (to convert Jupyter notebooks to pdf)
+
+- ``latexmk`` (to generate pdf documentation)
+
+- ``pandoc`` (to convert Jupyter notebooks to pdf)
+
+- ``dvipng`` (to render text with LaTeX in Matplotlib)
+
+- ``default-jdk`` (to run the Jmol 3D viewer from the console and generate images for 3D plots in the documentation)
+
+- ``ffmpeg`` (to produce animations)
+
+- ``libavdevice-dev`` (to produce animations)
+
 Notebook additional features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

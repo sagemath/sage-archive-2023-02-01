@@ -2250,8 +2250,9 @@ def _plot(funcs, xrange, parametric=False,
     plot_points = int(options.pop('plot_points'))
 
     exclude = options.pop('exclude')
-    initial_points = None
-    if exclude is not None:
+    if exclude is None:
+        initial_points = None
+    else:
         from sage.symbolic.expression import Expression
         if isinstance(exclude, Expression) and exclude.is_relational():
             if len(exclude.variables()) > 1:
@@ -2285,32 +2286,35 @@ def _plot(funcs, xrange, parametric=False,
                     not parametric and
                     options['scale'] in ['loglog', 'semilogx'])
     if is_log_scale:
-        f_orig = f
-        xrange_orig = xrange
-        f = lambda x: f_orig(exp(x))
-        xrange = (log(xrange_orig[0]), log(xrange_orig[1]))
-        if not initial_points is None:
-            initial_points = [log(x) for x in initial_points]
-
-    data = generate_plot_points(f, xrange, plot_points,
-                                adaptive_tolerance, adaptive_recursion,
-                                randomize, initial_points)
+        f_exp = lambda x: f(exp(x))
+        log_xrange = (log(xrange[0]), log(xrange[1]))
+        if initial_points is None:
+            log_initial_points = None
+        else:
+            log_initial_points = [log(x) for x in initial_points]
+        data = generate_plot_points(f_exp, log_xrange, plot_points,
+                                    adaptive_tolerance, adaptive_recursion,
+                                    randomize, log_initial_points)
+        average_distance_between_points = abs(log_xrange[1] - log_xrange[0])/plot_points
+    else:
+        data = generate_plot_points(f, xrange, plot_points,
+                                    adaptive_tolerance, adaptive_recursion,
+                                    randomize, initial_points)
+        average_distance_between_points = abs(xrange[1] - xrange[0])/plot_points
 
     for i in range(len(data)-1):
         # If the difference between consecutive x-values is more than
-        # 2 times the difference between two consecutive plot points, then
+        # 2 times the average difference between two consecutive plot points, then
         # add an exclusion point.
-        if abs(data[i+1][0] - data[i][0]) > 2*abs(xrange[1] - xrange[0])/plot_points:
+        if abs(data[i+1][0] - data[i][0]) > 2*average_distance_between_points:
             excluded_points.append((data[i][0] + data[i+1][0])/2)
     
     # If we did a change in variables, undo it now
     if is_log_scale:
-        f = f_orig
-        xrange = xrange_orig
-        for i in range(len(data)):
-            data[i] = (exp(data[i][0]), data[i][1])
-        for i in range(len(excluded_points)):
-            excluded_points[i] = exp(excluded_points[i])
+        for i,(a,fa) in enumerate(data):
+            data[i] = (exp(a), fa)
+        for i,p in enumerate(excluded_points):
+            excluded_points[i] = exp(p)
 
     if parametric:
         # We need the original x-values to be able to exclude points in parametric plots

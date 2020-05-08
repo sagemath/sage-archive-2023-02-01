@@ -123,9 +123,9 @@ Fortran and compiler suites
 
 Sage installation also needs a Fortran compiler.  It is determined
 automatically whether Sage's GCC package, or just its part containing
-Fortran compiler `gfortran` needs to be installed. This can be
-overwritten by running `./configure` with option
-`--without-system-gcc`.
+Fortran compiler ``gfortran`` needs to be installed. This can be
+overwritten by running ``./configure`` with option
+``--without-system-gcc``.
 
 Officially we support
 gfortran from `GNU Compiler Collection (GCC) <https://gcc.gnu.org/>`_.
@@ -191,10 +191,10 @@ some registration on Apple's developer site; see
 :ref:`section_macprereqs`.
 
 On Redhat-derived systems not all perl components are installed by
-default and you might have to install the **perl-ExtUtils-MakeMaker**
+default and you might have to install the ``perl-ExtUtils-MakeMaker``
 package.
 
-On Cygwin, the **lapack** and **liblapack-devel** packages are required to
+On Cygwin, the ``lapack`` and ``liblapack-devel`` packages are required to
 provide ATLAS support as the Sage package for ATLAS is not built by default.
 
 Installing prerequisites

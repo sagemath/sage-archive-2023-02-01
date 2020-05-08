@@ -247,7 +247,7 @@ cdef class LaurentPolynomial(CommutativeAlgebraElement):
         resulting polynomial will be over the same ring as ``self``. Set
         ``new_base_ring`` to override this behavior.
 
-        INPUT:
+        INPUT::
 
         - ``f`` -- a callable that will be applied to the coefficients of ``self``.
 

@@ -87,6 +87,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
         if derivation is None and morphism is None:
             return PolynomialRing(base_ring, names, sparse)
 
+        from sage.rings.polynomial import skew_polynomial_ring
         constructors = [ ]
         if derivation is None:
             if base_ring in Fields():
@@ -94,12 +95,12 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
                     order = morphism.order()
                     if order is not Infinity:
                         if base_ring.is_finite():
-                            constructors.append(sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field)
+                            constructors.append(skew_polynomial_ring.SkewPolynomialRing_finite_field)
                         else:
-                            constructors.append(sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_order)
+                            constructors.append(skew_polynomial_ring.SkewPolynomialRing_finite_order)
                 except (AttributeError, NotImplementedError):
                     pass
-            constructors.append(sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing)
+            constructors.append(skew_polynomial_ring.SkewPolynomialRing)
         
         for constructor in constructors:
             try:
@@ -431,7 +432,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
             sage: S.twisting_morphism(-1)
             Traceback (most recent call last):
             ...
-            NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
+            NotImplementedError: inversion of the twisting morphism Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
                   Defn: t |--> t + 1
         """
         if self._morphism is not None:
@@ -439,7 +440,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
                 return self._morphism ** n
             except TypeError as e:
                 if n < 0:
-                    raise NotImplementedError("inversion of the twisting morphism %s" % self._map)
+                    raise NotImplementedError("inversion of the twisting morphism %s" % self._morphism)
                 else:
                     raise ValueError("Unexpected error in iterating the twisting morphism: %s", e)
 

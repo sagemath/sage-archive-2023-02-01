@@ -87,7 +87,7 @@ def _base_ring_to_fraction_field(S):
     else:
         Q = R.fraction_field()
         gens = R.gens()
-        sigmaS = S.twist_map()
+        sigmaS = S.twisting_morphism()
         # try:
         sigmaQ = Q.hom([Q(sigmaS(g)) for g in gens])
         return Q[S.variable_name(), sigmaQ]
@@ -132,7 +132,7 @@ def _minimal_vanishing_polynomial(R, eval_pts):
         if e.is_zero():
             return R.one()
         else:
-            return R.gen() - R.twist_map()(e) / e
+            return R.gen() - R.twisting_morphism()(e) / e
     else:
         t = l // 2
         A = eval_pts[:t]
@@ -222,7 +222,7 @@ class SkewPolynomialRing(OrePolynomialRing):
 
         - ``base_ring`` -- a commutative ring
 
-        - ``twist_map`` -- an automorphism of the base ring
+        - ``twisting_morphism`` -- an automorphism of the base ring
 
         - ``name`` -- string or list of strings representing the name of
           the variables of ring
@@ -245,6 +245,7 @@ class SkewPolynomialRing(OrePolynomialRing):
         if derivation is not None:
             raise NotImplementedError
         if self.Element is None:
+            import sage.rings.polynomial.skew_polynomial_element
             self.Element = sage.rings.polynomial.skew_polynomial_element.SkewPolynomial_generic_dense
         OrePolynomialRing.__init__(self, base_ring, morphism, None, name, sparse, category)
 
@@ -255,7 +256,7 @@ class SkewPolynomialRing(OrePolynomialRing):
 
         The degree of the vanishing polynomial is at most the length of
         ``eval_pts``. Equality holds if and only if the elements of ``eval_pts``
-        are linearly independent over the fixed field of ``self.twist_map()``.
+        are linearly independent over the fixed field of ``self.twisting_morphism()``.
 
         - ``eval_pts`` -- list of evaluation points which are linearly
           independent over the fixed field of the twist map of the associated
@@ -298,10 +299,10 @@ class SkewPolynomialRing(OrePolynomialRing):
         More precisely, given `n` pairs `(x_1, y_1), ..., (x_n, y_n) \in R^2`,
         where `R` is ``self.base_ring()``, compute a skew polynomial `p(x)` such
         that `p(x_i) = y_i` for each `i`, under the condition that the `x_i` are
-        linearly independent over the fixed field of ``self.twist_map()``.
+        linearly independent over the fixed field of ``self.twisting_morphism()``.
 
         If the `x_i` are linearly independent over the fixed field of
-        ``self.twist_map()`` then such a polynomial is guaranteed to exist.
+        ``self.twisting_morphism()`` then such a polynomial is guaranteed to exist.
         Otherwise, it might exist depending on the `y_i`, but the algorithm used
         in this implementation does not support that, and so an error is always
         raised.
@@ -310,7 +311,7 @@ class SkewPolynomialRing(OrePolynomialRing):
 
         - ``points`` -- a list of pairs ``(x_1, y_1),..., (x_n, y_n)`` of
           elements of the base ring of ``self``. The `x_i` should be linearly
-          independent over the fixed field of ``self.twist_map()``.
+          independent over the fixed field of ``self.twisting_morphism()``.
 
         OUTPUT:
 
@@ -335,7 +336,7 @@ class SkewPolynomialRing(OrePolynomialRing):
             True
 
         If the `x_i` are linearly dependent over the fixed field of
-        ``self.twist_map()``, then an error is raised::
+        ``self.twisting_morphism()``, then an error is raised::
 
             sage: T.lagrange_polynomial([ (t, 1), (2*t, 3) ])
             Traceback (most recent call last):
@@ -819,10 +820,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
         """
         k = self.base_ring()
         base = k.base_ring()
-        (kfixed, embed) = self._maps[1].fixed_field()
-        section = embed.section()
-        if not kfixed.has_coerce_map_from(base):
-            raise NotImplementedError("No coercion map from %s to %s" % (base, kfixed))
+        section = self._embed_constants.section()
         if seed is None:
             seed = k.random_element()
         self._seed_retraction = seed
@@ -832,11 +830,11 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
             x = elt
             tr = elt
             for _ in range(1, self._order):
-                x = self._map(x)
+                x = self._morphism(x)
                 tr += x
             elt *= k.gen()
             trace.append(section(tr))
-        self._matrix_retraction = MatrixSpace(kfixed, 1, k.degree())(trace)
+        self._matrix_retraction = MatrixSpace(self._constants, 1, k.degree())(trace)
 
     def _retraction(self, x, newmap=False, seed=None):
         """

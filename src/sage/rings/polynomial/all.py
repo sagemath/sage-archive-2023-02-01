@@ -47,7 +47,7 @@ from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRin
 
 # Ore Polynomial Rings
 from sage.rings.polynomial.ore_polynomial_ring import OrePolynomialRing
-from sage.rings.polynomial.skew_polynomial_ring import SkewPolynomialRing
+SkewPolynomialRing = OrePolynomialRing
 
 # Evaluation of cyclotomic polynomials
 from sage.rings.polynomial.cyclotomic import cyclotomic_value

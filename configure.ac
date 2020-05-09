@@ -405,7 +405,9 @@ AC_ARG_WITH([python],
     [build and use Python 3 (default)])])
 
 case "$with_python" in
-    3*) SAGE_PYTHON_VERSION=3;;
+    3)  SAGE_PYTHON_VERSION=3;;
+    3*) AC_MSG_WARN([the only allowed value for --with-python is 3; specific Python 3.x versions cannot be requested using --with-python.  For compatibility reasons, this is only a warning.  Use './configure PYTHON3=/path/to/python3' to use a specific Python 3 binary for the Sage venv.])
+        SAGE_PYTHON_VERSION=3;;
     "") SAGE_PYTHON_VERSION=3;;
     *)
         AC_MSG_ERROR([the only allowed value for --with-python is 3.  Support for Python 2 has been removed in Sage 9.2.]);;

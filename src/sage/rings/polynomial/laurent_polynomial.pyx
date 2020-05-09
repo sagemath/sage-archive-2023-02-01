@@ -239,15 +239,14 @@ cdef class LaurentPolynomial(CommutativeAlgebraElement):
 
     def map_coefficients(self, f, new_base_ring=None):
         """
-        Returns the polynomial obtained by applying ``f`` to the nonzero
-        coefficients of ``self``.
+        Apply ``f`` to the coefficients of ``self``.
 
         If ``f`` is a :class:`sage.categories.map.Map`, then the resulting
         polynomial will be defined over the codomain of ``f``. Otherwise, the
         resulting polynomial will be over the same ring as ``self``. Set
         ``new_base_ring`` to override this behavior.
 
-        INPUT::
+        INPUT:
 
         - ``f`` -- a callable that will be applied to the coefficients of ``self``.
 

@@ -402,17 +402,14 @@ SAGE_CHECK_OSX_SUPPORTED()
 # Python version
 AC_MSG_CHECKING([Python version to install])
 AC_ARG_WITH([python],
-[AS_HELP_STRING([--with-python=2],
-    [build and use Python 2])]
 [AS_HELP_STRING([--with-python=3],
     [build and use Python 3 (default)])])
 
 case "$with_python" in
-    2*) SAGE_PYTHON_VERSION=2;;
     3*) SAGE_PYTHON_VERSION=3;;
     "") SAGE_PYTHON_VERSION=3;;
     *)
-        AC_MSG_ERROR([allowed values for --with-python are 2 and 3]);;
+        AC_MSG_ERROR([the only allowed value for --with-python is 3.  Support for Python 2 has been removed in Sage 9.2.]);;
 esac
 
 AC_MSG_RESULT([$SAGE_PYTHON_VERSION])

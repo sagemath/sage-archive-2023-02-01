@@ -2115,7 +2115,6 @@ class Genus_Symbol_p_adic_ring(object):
         r"""
         Return the local genus of the direct sum of two representatives.
 
-
         EXAMPLES::
 
             sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
@@ -2146,7 +2145,7 @@ class Genus_Symbol_p_adic_ring(object):
         sym2 = dict([[s[0], s] for s in sym2])
 
         symbol = []
-        for k in range(m+1):
+        for k in range(m + 1):
             if self.prime() == 2:
                 b = [k, 0, 1, 0, 0]
             else:

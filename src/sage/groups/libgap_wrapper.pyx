@@ -259,7 +259,7 @@ class ParentLibGAP(SageObject):
 
             sage: G = WeylGroup(['B',3])
             sage: H = G.subgroup([G[14], G[17]])
-            sage: all([(g*h in G) and (h*g in G) for g in G for h in H])
+            sage: all(g*h in G and h*g in G for g in G for h in H)
             True
         """
         generators = [ g if isinstance(g, GapElement) else self(g).gap()

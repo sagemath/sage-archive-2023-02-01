@@ -2784,30 +2784,36 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             return h
 
         from sage.rings.number_field.number_field import refine_embedding
+        from sage.all import RealField, ComplexField, Infinity
         prec_v = v.codomain().prec()
         if prec is None:
             prec = prec_v
         if K is rings.QQ:
-            vv = K.embeddings(rings.RealField(max(2*prec, prec_v)))[0]
-        else:
-            vv = refine_embedding(v, 2*prec)  # vv.prec() = max(2*prec, prec_v)
+            v = K.embeddings(RealField())[0]
+        v_inf = refine_embedding(v, Infinity)
 
-        absdisc = vv(E.discriminant()).abs()
-        while absdisc==0:
-            vv = refine_embedding(vv)
-            # print("doubling precision")
-            absdisc = vv(E.discriminant()).abs()
-        temp = 0 if absdisc>=1 else absdisc.log()/3
+        v_is_real = v_inf(K.gen()).imag().is_zero()
+        working_prec = prec+100
+        RC = RealField(working_prec) if v_is_real else ComplexField(working_prec)
 
-        b2, b4, b6, b8 = [vv(b) for b in E.b_invariants()]
-        H = max(vv(4), abs(b2), 2*abs(b4), 2*abs(b6), abs(b8))
+        # NB We risk losing much precision if we compute the embedding
+        # of K into RR or CC to some precision and then apply that to
+        # elements of K.  Instead we map elements of K into AA or Qbar
+        # (with infinite precision) and then trim back to RR or CC.
+
+        x = RC(v_inf(self[0]))
+        b2, b4, b6, b8 = [RC(v_inf(b)) for b in E.b_invariants()]
 
         # The following comes from Silverman Theorem 4.2.  Silverman
         # uses decimal precision d, so his term (5/3)d =
         # (5/3)*(log(2)/log(10))*prec = 0.5017*prec, which we round
         # up.  The rest of the expression was wrongly transcribed in
         # Sage versions <5.6 (see #12509).
-        nterms = int(math.ceil(0.51*prec + 0.5 + 0.75 * (7 + 4*H.log()/3 - temp).log()))
+
+        H = max(RC(4).abs(), b2.abs(), 2*b4.abs(), 2*b6.abs(), b8.abs())
+        absdisc = RC(v_inf(E.discriminant())).abs()
+        adl3 = 0 if absdisc>=1 else absdisc.log()/3
+        nterms = int(math.ceil(0.51*working_prec + 0.5 + 0.75 * (7 + 4*H.log()/3 - adl3).log()))
 
         b2p = b2 - 12
         b4p = b4 - b2 + 6
@@ -2819,7 +2825,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         fw = lambda T: T*(4 + T*(b2 + T*(2*b4 + T*b6)))
         fwp = lambda T: T*(4 + T*(b2p + T*(2*b4p + T*b6p)))
 
-        x = vv(self[0])
         if abs(x) >= .5:
             t = 1/x
             beta = True
@@ -2834,7 +2839,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             if beta:
                 w = fw(t)
                 z = fz(t)
-                if abs(w) <= 2 * abs(z):
+                if abs(w) <= 2 * z.abs():
                     mu += four_to_n * z.abs().log()
                     t = w/z
                 else:
@@ -2844,7 +2849,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             else:
                 w = fwp(t)
                 z = fzp(t)
-                if abs(w) <= 2 * abs(z):
+                if abs(w) <= 2 * z.abs():
                     mu += four_to_n * z.abs().log()
                     t = w/z
                 else:
@@ -2852,8 +2857,9 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                     t = w/(z-w)
                     beta = not beta
             four_to_n >>= 2
-        h = rings.RealField(prec)(lam + mu/4)
-        if weighted and not v.im_gens()[0] in rings.RR:
+
+        h = RealField(prec)(lam + mu/4)
+        if weighted and not v_is_real:
             h *= 2
         return h
 

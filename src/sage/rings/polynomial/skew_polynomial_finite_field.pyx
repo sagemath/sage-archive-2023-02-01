@@ -159,7 +159,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             []
 
         If `a = N`, the type is just `[r]` where `r` is the order
-        of the twist map ``Frob``::
+        of the twisting morphism ``Frob``::
 
             sage: N = x3^2 + x3 + 1
             sage: S(N).type(N)

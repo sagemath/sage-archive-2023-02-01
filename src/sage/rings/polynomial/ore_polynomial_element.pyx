@@ -1,56 +1,27 @@
 r"""
-Univariate Skew Polynomials
+Univariate Ore Polynomials
 
 This module provides the
 :class:`~sage.rings.polynomial.skew_polynomial_element.OrePolynomial`,
-which constructs a single univariate skew polynomial over commutative
-base rings and an automorphism over the base ring. Skew polynomials are
-non-commutative and so principal methods such as gcd, lcm, monic,
-multiplication, and division are given in left and right forms.
+which constructs a single univariate Ore polynomial over a commutative
+base equipped with an endomorphism and/or a derivation.
+It provides generic implementation of standard arithmetical operations
+on Ore polynomials as addition, multiplication, gcd, lcm, etc.
 
-The generic implementation of dense skew polynomials is
-:class:`~sage.rings.polynomial.skew_polynomial_element.OrePolynomial_generic_dense`.
+The generic implementation of dense Ore polynomials is
+:class:`~sage.rings.polynomial.ore_polynomial_element.OrePolynomial_generic_dense`.
 The classes 
-:class:`~sage.rings.polynomial.skew_polynomial_element.ConstantOrePolynomialSection`
-and :class:`~sage.rings.polynomial.skew_polynomial_element.OrePolynomialBaseringInjection`
-handle conversion from a skew polynomial ring to its base ring and vice versa respectively.
-
-.. WARNING::
-
-    The current semantics of
-    :meth:`~sage.rings.polynomial.skew_polynomial_element.OrePolynomial.__call__`
-    are experimental, so a warning is thrown when a skew polynomial is evaluated
-    for the first time in a session. See the method documentation for details.
-
-    TESTS::
-
-        sage: R.<t> = QQ[]
-        sage: sigma = R.hom([t+1])
-        sage: S.<x> = R['x',sigma]
-        sage: a = 2*(t + x) + 1
-        sage: a(t^2)
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/13215 for details.
-        2*t^3 + 3*t^2 + 4*t + 2
-        sage: a(t)
-        2*t^2 + 3*t + 2
+:class:`~sage.rings.polynomial.ore_polynomial_element.ConstantOrePolynomialSection`
+and :class:`~sage.rings.polynomial.ore_polynomial_element.OrePolynomialBaseringInjection`
+handle conversion from a Ore polynomial ring to its base ring and vice versa.
 
 AUTHORS:
 
-- Xavier Caruso (2012-06-29): initial version
-
-- Arpit Merchant (2016-08-04): improved docstrings, fixed doctests and
-  refactored classes and methods
-
-- Johan Rosenkilde (2016-08-03): changes for bug fixes, docstring and
-  doctest errors
-
+- Xavier Caruso (2020-05)
 """
 
 #############################################################################
-#    Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
+#    Copyright (C) 2020 Xavier Caruso <xavier.caruso@normalesup.org>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -81,15 +52,16 @@ from sage.misc.superseded import experimental
 
 cdef class OrePolynomial(AlgebraElement):
     r"""
-    Abstract base class for skew polynomials.
+    Abstract base class for Ore polynomials.
 
     This class must be inherited from and have key methods overridden.
 
     .. RUBRIC:: Definition
 
-    Let `R` be a commutative ring equipped with an automorphism `\sigma`.
+    Let `R` be a commutative ring equipped with an automorphism `\sigma`
+    and a `\sigma`-derivation `\partial`.
 
-    Then, a skew polynomial is given by the equation:
+    A Ore polynomial is given by the equation:
 
     .. MATH::
 
@@ -97,13 +69,13 @@ cdef class OrePolynomial(AlgebraElement):
 
     where the coefficients `a_i \in R` and `X` is a formal variable.
 
-    Addition between two skew polynomials is defined by the usual addition
+    Addition between two Ore polynomials is defined by the usual addition
     operation and the modified multiplication is defined by the rule
-    `X a = \sigma(a) X` for all `a` in `R`. Skew polynomials are thus
-    non-commutative and the degree of a product is equal to the sum of the
-    degrees of the factors.
+    `X a = \sigma(a) X + \partial(a)` for all `a` in `R`. 
+    Ore polynomials are thus non-commutative and the degree of a product 
+    is equal to the sum of the degrees of the factors.
 
-    Let `a` and `b` be two skew polynomials in the same ring `S`.
+    Let `a` and `b` be two Ore polynomials in the same ring `S`.
     The *left (resp. right) euclidean division* of `a` by `b` is a couple
     `(q,r)` of elements in `S` such that
 
@@ -121,30 +93,18 @@ cdef class OrePolynomial(AlgebraElement):
     in the *right* euclidean division exist and are unique.
 
     The same result holds for the *left* euclidean division if in addition
-    the twist map defining the skew polynomial ring is invertible.
-
-    .. RUBRIC:: Evaluation
-
-    The value of a given a skew polynomial `p(x) = \sum_{i=0}^d a_i x^i`
-    at `r` is calculated using the formula:
-
-    .. MATH::
-
-        p(r) = \sum_{i=0}^d a_i \sigma^i(r)
-
-    where `\sigma` is the base ring automorphism. This is called
-    the *operator evaluation* method.
+    the twisting morphism defining the Ore polynomial ring is invertible.
 
     EXAMPLES:
 
     We illustrate some functionalities implemented in this class.
 
-    We create the skew polynomial ring::
+    We create the Ore polynomial ring (here the derivation is zero)::
 
         sage: R.<t> = ZZ[]
         sage: sigma = R.hom([t+1])
         sage: S.<x> = R['x',sigma]; S
-        Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
+        Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
          twisted by t |--> t + 1
 
     and some elements in it::
@@ -176,7 +136,7 @@ cdef class OrePolynomial(AlgebraElement):
         sage: b^2 == b*b
         True
 
-    Sage also implements arithmetic over skew polynomial rings. You will find
+    Sage also implements arithmetic over Ore polynomial rings. You will find
     below a short panorama::
 
         sage: q,r = c.right_quo_rem(b)
@@ -196,12 +156,12 @@ cdef class OrePolynomial(AlgebraElement):
         True
 
     Left euclidean division won't work over our current `S` because Sage can't
-    invert the twist map::
+    invert the twisting morphism::
 
         sage: q,r = c.left_quo_rem(b)
         Traceback (most recent call last):
         ...
-        NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+        NotImplementedError: inversion of the twisting morphism Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
             Defn: t |--> t + 1
 
     Here we can see the effect of the operator evaluation compared to the usual
@@ -209,6 +169,9 @@ cdef class OrePolynomial(AlgebraElement):
 
         sage: a = x^2
         sage: a(t)
+        doctest:...: FutureWarning: This class/method/function is marked as experimental. 
+        It, its functionality or its interface might change without a formal deprecation.
+        See http://trac.sagemath.org/13215 for details.
         t + 2
 
     Here is a working example over a finite field::
@@ -236,8 +199,8 @@ cdef class OrePolynomial(AlgebraElement):
         sage: a.left_gcd(b)
         x + t
 
-    The left lcm has the following meaning: given skew polynomials `a` and `b`,
-    their left lcm is the least degree polynomial `c = ua = vb` for some skew
+    The left lcm has the following meaning: given Ore polynomials `a` and `b`,
+    their left lcm is the least degree polynomial `c = ua = vb` for some Ore
     polynomials `u, v`. Such a `c` always exist if the base ring is a field::
 
         sage: c = a.left_lcm(b); c
@@ -259,8 +222,7 @@ cdef class OrePolynomial(AlgebraElement):
 
     .. SEEALSO::
 
-        - :mod:`sage.rings.polynomial.skew_polynomial_ring`
-        - :mod:`sage.rings.polynomial.skew_polynomial_ring_constructor`
+        - :mod:`sage.rings.polynomial.ore_polynomial_ring`
     """
     def __init__(self, parent, construct=False):
         r"""
@@ -306,7 +268,7 @@ cdef class OrePolynomial(AlgebraElement):
         r"""
         Return the degree of ``self``.
 
-        By convention, the zero skew polynomial has degree `-1`.
+        By convention, the zero Ore polynomial has degree `-1`.
 
         EXAMPLES::
 
@@ -324,7 +286,7 @@ cdef class OrePolynomial(AlgebraElement):
 
     cdef OrePolynomial _new_c(self, list coeffs, Parent P, char check=0):
         r"""
-        Fast creation of a new skew polynomial
+        Fast creation of a new Ore polynomial
 
         .. NOTE::
 
@@ -335,18 +297,18 @@ cdef class OrePolynomial(AlgebraElement):
 
     cpdef OrePolynomial _new_constant_poly(self, RingElement a, Parent P, char check=0):
         r"""
-        Fast creation of a new constant skew polynomial
+        Fast creation of a new constant Ore polynomial
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.skew_polynomial_element import OrePolynomialBaseringInjection
+            sage: from sage.rings.polynomial.ore_polynomial_element import OrePolynomialBaseringInjection
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
             sage: OrePolynomialBaseringInjection(k, k['x', Frob]) #indirect doctest
-            Skew Polynomial base injection morphism:
+            Ore Polynomial base injection morphism:
               From: Finite Field in t of size 5^3
-              To:   Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+              To:   Ore Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
         if a:
             n = self._new_c([a],P,check)
@@ -370,9 +332,9 @@ cdef class OrePolynomial(AlgebraElement):
             sage: a[1] = t + 1
             Traceback (most recent call last):
             ...
-            IndexError: skew polynomials are immutable
+            IndexError: Ore polynomials are immutable
         """
-        raise IndexError("skew polynomials are immutable")
+        raise IndexError("Ore polynomials are immutable")
 
     def square(self):
         r"""
@@ -382,13 +344,18 @@ cdef class OrePolynomial(AlgebraElement):
 
             sage: R.<t> = QQ[]
             sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
+            sage: S.<x> = R['x', sigma]
             sage: a = x + t; a
             x + t
             sage: a.square()
             x^2 + (2*t + 1)*x + t^2
             sage: a.square() == a*a
             True
+
+            sage: der = R.derivation()
+            sage: A.<d> = R['d', der]
+            sage: (d + t).square()
+            d^2 + 2*t*d + t^2 + 1
         """
         return self * self
 
@@ -426,14 +393,14 @@ cdef class OrePolynomial(AlgebraElement):
         """
         cdef int d = self.degree()
         if d == -1:
-            raise ValueError("the skew polynomial must not be 0")
+            raise ValueError("the Ore polynomial must not be 0")
         return self[d]
 
     def is_unit(self):
         r"""
-        Return ``True`` if this skew polynomial is a unit.
+        Return ``True`` if this Ore polynomial is a unit.
 
-        When the base ring `R` is an integral domain, then a skew polynomial `f`
+        When the base ring `R` is an integral domain, then a Ore polynomial `f`
         is a unit if and only if degree of `f` is `0` and `f` is then a unit in
         `R`.
 
@@ -459,22 +426,18 @@ cdef class OrePolynomial(AlgebraElement):
             else:
                 return False
         else:
-            raise NotImplementedError("is_unit is not implemented for skew polynomial rings "
+            raise NotImplementedError("is_unit is not implemented for Ore polynomial rings "
                                       "over base rings which are not integral domains.")
 
     def is_nilpotent(self):
         r"""
         Check if ``self`` is nilpotent.
 
-        Given a commutative ring `R` and a base ring automorphism `\sigma`
-        of order `n`, an element `f` of `R[X, \sigma]` is nilpotent if
-        and only if all coefficients of `f^n` are nilpotent in `R`.
-
         .. NOTE::
 
             The paper "Nilpotents and units in skew polynomial rings
             over commutative rings" by M. Rimmer and K.R. Pearson describes
-            the method to check whether a given skew polynomial is nilpotent.
+            a method to check whether a given skew polynomial is nilpotent.
             That method however, requires one to know the order of the
             automorphism which is not available in Sage. This method is thus
             not yet implemented. 
@@ -493,7 +456,7 @@ cdef class OrePolynomial(AlgebraElement):
 
     def is_monic(self):
         r"""
-        Return ``True`` if this skew polynomial is monic.
+        Return ``True`` if this Ore polynomial is monic.
 
         The zero polynomial is by definition not monic.
 
@@ -519,12 +482,12 @@ cdef class OrePolynomial(AlgebraElement):
 
     def left_monic(self):
         r"""
-        Return the unique monic skew polynomial `m` which divides ``self`` on
-        the left and has the same degree.
+        Return the unique monic Ore polynomial `m` which divides this
+        polynomial on the left and has the same degree.
 
-        Given a skew polynomial `p` of degree `n`, its left monic is given by
-        `m = p \sigma^{-n}(1/k)`, where `k` is the leading coefficient of
-        `p`, i.e. by the appropriate scalar multiplication on the right.
+        Given a Ore polynomial `P` of degree `n`, its left monic is given by
+        `P \cdot \sigma^{-n}(1/k)`, where `k` is the leading coefficient of
+        `P` and `\sigma` is the twisting morphism.
 
         EXAMPLES::
 
@@ -541,7 +504,7 @@ cdef class OrePolynomial(AlgebraElement):
             True
             sage: b.is_left_divisible_by(a)
             True
-            sage: twist = S.twist_map(-a.degree())
+            sage: twist = S.twisting_morphism(-a.degree())
             sage: a == b * twist(a.leading_coefficient())
             True
 
@@ -554,8 +517,8 @@ cdef class OrePolynomial(AlgebraElement):
         unit::
 
             sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
+            sage: der = R.derivation()
+            sage: S.<x> = R['x', der]
             sage: a = t*x
             sage: a.left_monic()
             Traceback (most recent call last):
@@ -575,12 +538,11 @@ cdef class OrePolynomial(AlgebraElement):
 
     def right_monic(self):
         r"""
-        Return the unique monic skew polynomial `m` which divides ``self`` on
-        the right and has the same degree.
+        Return the unique monic Ore polynomial which divides this polynomial
+        on the right and has the same degree.
 
-        Given a skew polynomial `p` of degree `n`, its left monic is given by
-        `m = (1/k) * p`, where `k` is the leading coefficient of `p`, i.e. by
-        the appropriate scalar multiplication on the left.
+        Given a Ore polynomial `P` of degree `n`, its left monic is given by
+        `(1/k) \cdot P`, where `k` is the leading coefficient of `p`.
 
         EXAMPLES::
 
@@ -609,8 +571,8 @@ cdef class OrePolynomial(AlgebraElement):
         unit::
 
             sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
+            sage: der = R.derivation()
+            sage: S.<x> = R['x', der]
             sage: a = t*x
             sage: a.right_monic()
             Traceback (most recent call last):
@@ -710,7 +672,7 @@ cdef class OrePolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial in the same ring as ``self``
+        - ``other`` -- a Ore polynomial in the same ring as ``self``
 
         OUTPUT:
 
@@ -745,7 +707,7 @@ cdef class OrePolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial in the same ring as ``self``
+        - ``other`` -- a Ore polynomial in the same ring as ``self``
 
         OUTPUT:
 
@@ -794,7 +756,7 @@ cdef class OrePolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial in the same ring as ``self``
+        - ``other`` -- a Ore polynomial in the same ring as ``self``
 
         OUTPUT:
 
@@ -829,7 +791,7 @@ cdef class OrePolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial in the same ring as ``self``
+        - ``other`` -- a Ore polynomial in the same ring as ``self``
 
         OUTPUT:
 
@@ -878,27 +840,27 @@ cdef class OrePolynomial(AlgebraElement):
         Return the left gcd of ``self`` and ``other`` along with the
         coefficients for the linear combination.
 
-        If `a` is ``self`` and `b` is ``other``, then there are skew polynomials
+        If `a` is ``self`` and `b` is ``other``, then there are Ore polynomials
         `u` and `v` such that `g = a u + b v`, where `g` is the left gcd of `a`
         and `b`. This method returns `(g, u, v)`.
 
         INPUT:
 
-        - ``other`` -- a skew polynomial in the same ring as ``self``
+        - ``other`` -- a Ore polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``). Return whether the left gcd
           should be normalized to be monic.
 
         OUTPUT:
 
-        - The left gcd of ``self`` and ``other``, that is a skew polynomial
-          `g` with the following property: any skew polynomial is
+        - The left gcd of ``self`` and ``other``, that is a Ore polynomial
+          `g` with the following property: any Ore polynomial is
           divisible on the left by `g` iff it is divisible on the left
           by both ``self`` and ``other``.
           If monic is ``True``, `g` is in addition monic. (With this
           extra condition, it is uniquely determined.)
 
-        - Two skew polynomials `u` and `v` such that:
+        - Two Ore polynomials `u` and `v` such that:
 
           .. MATH::
 
@@ -910,8 +872,8 @@ cdef class OrePolynomial(AlgebraElement):
 
             Works only if following two conditions are fulfilled
             (otherwise left gcd do not exist in general):
-            1) the base ring is a field and 2) the twist map on
-            this field is bijective.
+            1) the base ring is a field and 
+            2) the twisting morphism is bijective.
 
         EXAMPLES::
 
@@ -944,7 +906,7 @@ cdef class OrePolynomial(AlgebraElement):
             ...
             TypeError: the base ring must be a field
 
-        And the twist map must be bijective::
+        And the twisting morphism must be bijective::
 
             sage: FR = R.fraction_field()
             sage: f = FR.hom([FR(t)^2])
@@ -954,7 +916,7 @@ cdef class OrePolynomial(AlgebraElement):
             sage: a.left_xgcd(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError: inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            NotImplementedError: inversion of the twisting morphism Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
                 Defn: t |--> t^2
         """
         if self.base_ring() not in Fields:
@@ -1004,17 +966,17 @@ cdef class OrePolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial in the same ring as ``self``
+        - ``other`` -- a Ore polynomial in the same ring as ``self``
 
         OUTPUT:
 
         - the quotient and the remainder of the left euclidean
-          division of this skew polynomial by ``other``
+          division of this Ore polynomial by ``other``
 
         .. NOTE::
 
             This will fail if the leading coefficient of ``other`` is not a unit
-            or if Sage can't invert the twist map.
+            or if Sage can't invert the twisting morphism.
 
         EXAMPLES::
 
@@ -1028,7 +990,7 @@ cdef class OrePolynomial(AlgebraElement):
             True
 
         In the following example, Sage does not know the inverse
-        of the twist map::
+        of the twisting morphism::
 
             sage: R.<t> = ZZ[]
             sage: sigma = R.hom([t+1])
@@ -1038,7 +1000,7 @@ cdef class OrePolynomial(AlgebraElement):
             sage: a.left_quo_rem(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+            NotImplementedError: inversion of the twisting morphism Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
                 Defn: t |--> t + 1
         """
         if not other:
@@ -1062,12 +1024,12 @@ cdef class OrePolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial in the same ring as ``self``
+        - ``other`` -- a Ore polynomial in the same ring as ``self``
 
         OUTPUT:
 
         - the quotient and the remainder of the left euclidean
-          division of this skew polynomial by ``other``
+          division of this Ore polynomial by ``other``
 
         .. NOTE::
 
@@ -1106,27 +1068,27 @@ cdef class OrePolynomial(AlgebraElement):
         Return the right gcd of ``self`` and ``other`` along with the
         coefficients for the linear combination.
 
-        If `a` is ``self`` and `b` is ``other``, then there are skew polynomials
+        If `a` is ``self`` and `b` is ``other``, then there are Ore polynomials
         `u` and `v` such that `g = u a + v b`, where `g` is the right gcd of `a`
         and `b`. This method returns `(g, u, v)`.
 
         INPUT:
 
-        - ``other`` -- a skew polynomial in the same ring as ``self``
+        - ``other`` -- a Ore polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``). Return whether the right gcd
           should be normalized to be monic.
 
         OUTPUT:
 
-        - The right gcd of ``self`` and ``other``, that is a skew polynomial
-          `g` with the following property: any skew polynomial is
+        - The right gcd of ``self`` and ``other``, that is a Ore polynomial
+          `g` with the following property: any Ore polynomial is
           divisible on the right by `g` iff it is divisible on the right
           by both ``self`` and ``other``.
           If monic is ``True``, `g` is in addition monic. (With this
           extra condition, it is uniquely determined.)
 
-        - Two skew polynomials `u` and `v` such that:
+        - Two Ore polynomials `u` and `v` such that:
 
           .. MATH::
 
@@ -1203,15 +1165,15 @@ cdef class OrePolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial in the same ring as ``self``
+        - ``other`` -- a Ore polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``). Return whether the right gcd
           should be normalized to be monic.
 
         OUTPUT:
 
-        The right gcd of ``self`` and ``other``, that is a skew polynomial
-        `g` with the following property: any skew polynomial is
+        The right gcd of ``self`` and ``other``, that is a Ore polynomial
+        `g` with the following property: any Ore polynomial is
         divisible on the right by `g` iff it is divisible on the right
         by both ``self`` and ``other``.
         If monic is ``True``, `g` is in addition monic. (With this
@@ -1268,15 +1230,15 @@ cdef class OrePolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial in the same ring as ``self``
+        - ``other`` -- a Ore polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``). Return whether the left gcd
           should be normalized to be monic.
 
         OUTPUT:
 
-        The left gcd of ``self`` and ``other``, that is a skew polynomial
-        `g` with the following property: any skew polynomial is
+        The left gcd of ``self`` and ``other``, that is a Ore polynomial
+        `g` with the following property: any Ore polynomial is
         divisible on the left by `g` iff it is divisible on the left
         by both ``self`` and ``other``.
         If monic is ``True``, `g` is in addition monic. (With this
@@ -1284,10 +1246,10 @@ cdef class OrePolynomial(AlgebraElement):
 
         .. NOTE::
 
-            Works only if two following conditions are fulfilled
+            Works only if following two conditions are fulfilled
             (otherwise left gcd do not exist in general):
-            1) the base ring is a field and 2) the twist map on
-            this field is bijective.
+            1) the base ring is a field and 
+            2) the twisting morphism is bijective.
 
         EXAMPLES::
 
@@ -1316,7 +1278,7 @@ cdef class OrePolynomial(AlgebraElement):
             ...
             TypeError: the base ring must be a field
 
-        And the twist map needs to be bijective::
+        And the twisting morphism needs to be bijective::
 
             sage: FR = R.fraction_field()
             sage: f = FR.hom([FR(t)^2])
@@ -1326,7 +1288,7 @@ cdef class OrePolynomial(AlgebraElement):
             sage: a.left_gcd(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError: inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            NotImplementedError: inversion of the twisting morphism Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
                 Defn: t |--> t^2
         """
         if self.base_ring() not in Fields:
@@ -1345,15 +1307,15 @@ cdef class OrePolynomial(AlgebraElement):
 
     cdef OrePolynomial _left_lcm_cofactor(self, OrePolynomial other):
         r"""
-        Return a skew polynomial `U` such that `U P = c L`
-        where `P` is this skew polynomial (``self``), `L`
+        Return a Ore polynomial `U` such that `U P = c L`
+        where `P` is this Ore polynomial (``self``), `L`
         is the left lcm of `P` and ``other`` and `c` is a
         constant
 
         TESTS::
 
             sage: cython('''
-            ....: from sage.rings.polynomial.skew_polynomial_element cimport OrePolynomial
+            ....: from sage.rings.polynomial.ore_polynomial_element cimport OrePolynomial
             ....: def left_lcm_cofactor(OrePolynomial P, OrePolynomial Q):
             ....:     return P._left_lcm_cofactor(Q)
             ....: ''')
@@ -1386,7 +1348,7 @@ cdef class OrePolynomial(AlgebraElement):
     def left_xlcm(self, other, monic=True):
         r"""
         Return the left lcm `L` of ``self`` and ``other`` together
-        with two skew polynomials `U` and `V` such that
+        with two Ore polynomials `U` and `V` such that
         
         .. MATH::
 
@@ -1422,15 +1384,15 @@ cdef class OrePolynomial(AlgebraElement):
 
     cdef OrePolynomial _right_lcm_cofactor(self, OrePolynomial other):
         r"""
-        Return a skew polynomial `U` such that `P U = L c`
-        where `P` is this skew polynomial (``self``), `L`
+        Return a Ore polynomial `U` such that `P U = L c`
+        where `P` is this Ore polynomial (``self``), `L`
         is the right lcm of `P` and ``other`` and `c` is a
         constant
 
         TESTS::
 
             sage: cython('''
-            ....: from sage.rings.polynomial.skew_polynomial_element cimport OrePolynomial
+            ....: from sage.rings.polynomial.ore_polynomial_element cimport OrePolynomial
             ....: def right_lcm_cofactor(OrePolynomial P, OrePolynomial Q):
             ....:     return P._right_lcm_cofactor(Q)
             ....: ''')
@@ -1463,7 +1425,7 @@ cdef class OrePolynomial(AlgebraElement):
     def right_xlcm(self, other, monic=True):
         r"""
         Return the right lcm `L` of ``self`` and ``other`` together
-        with two skew polynomials `U` and `V` such that
+        with two Ore polynomials `U` and `V` such that
         
         .. MATH::
 
@@ -1471,7 +1433,7 @@ cdef class OrePolynomial(AlgebraElement):
         
         INPUT:
 
-        - ``other`` -- a skew polynomial in the same ring as ``self``
+        - ``other`` -- a Ore polynomial in the same ring as ``self``
 
         - ``monic`` -- a boolean (default: ``True``); whether the right lcm
           should be normalized to be monic
@@ -1499,7 +1461,7 @@ cdef class OrePolynomial(AlgebraElement):
         cdef OrePolynomial L = self * V1
         if monic:
             s = self.base_ring()(~L.leading_coefficient())
-            s = self._parent.twist_map(-L.degree())(s)
+            s = self._parent.twisting_morphism(-L.degree())(s)
             L = L * s
             V1 = V1 * s
         W1, _ = L._left_quo_rem(other)
@@ -1513,15 +1475,15 @@ cdef class OrePolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial in the same ring as ``self``
+        - ``other`` -- a Ore polynomial in the same ring as ``self``
 
         - ``monic`` -- boolean (default: ``True``). Return whether the left lcm
           should be normalized to be monic.
 
         OUTPUT:
 
-        The left lcm of ``self`` and ``other``, that is a skew polynomial
-        `g` with the following property: any skew polynomial divides
+        The left lcm of ``self`` and ``other``, that is a Ore polynomial
+        `g` with the following property: any Ore polynomial divides
         `g` on the *right* iff it divides both ``self`` and ``other``
         on the *right*.
         If monic is ``True``, `g` is in addition monic. (With this
@@ -1581,15 +1543,15 @@ cdef class OrePolynomial(AlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a skew polynomial in the same ring as ``self``
+        - ``other`` -- a Ore polynomial in the same ring as ``self``
         
         - ``monic`` -- boolean (default: ``True``). Return whether the right lcm
           should be normalized to be monic.
 
         OUTPUT:
 
-        The right lcm of ``self`` and ``other``, that is a skew polynomial
-        `g` with the following property: any skew polynomial divides
+        The right lcm of ``self`` and ``other``, that is a Ore polynomial
+        `g` with the following property: any Ore polynomial divides
         `g` on the *left* iff it divides both ``self`` and ``other``
         on the *left*.
         If monic is ``True``, `g` is in addition monic. (With this
@@ -1599,7 +1561,7 @@ cdef class OrePolynomial(AlgebraElement):
 
             Works only if two following conditions are fulfilled
             (otherwise right lcm do not exist in general):
-            1) the base ring is a field and 2) the twist map on
+            1) the base ring is a field and 2) the twisting morphism on
             this field is bijective.
 
         EXAMPLES::
@@ -1636,7 +1598,7 @@ cdef class OrePolynomial(AlgebraElement):
             ...
             TypeError: the base ring must be a field
 
-        And the twist map needs to be bijective::
+        And the twisting morphism needs to be bijective::
 
             sage: FR = R.fraction_field()
             sage: f = FR.hom([FR(t)^2])
@@ -1646,7 +1608,7 @@ cdef class OrePolynomial(AlgebraElement):
             sage: a.right_lcm(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError: inversion of the twist map Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            NotImplementedError: inversion of the twisting morphism Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
                 Defn: t |--> t^2
         """
         if self.base_ring() not in Fields:
@@ -1660,12 +1622,12 @@ cdef class OrePolynomial(AlgebraElement):
 
     def _repr_(self, name=None):
         r"""
-        Return string representation of this skew polynomial.
+        Return string representation of this Ore polynomial.
 
         INPUT:
 
         - ``name`` -- the name of the variable (default: the
-          name given when the skew polynomial ring was created)
+          name given when the Ore polynomial ring was created)
 
         EXAMPLES::
 
@@ -1710,12 +1672,12 @@ cdef class OrePolynomial(AlgebraElement):
 
     def _latex_(self, name=None):
         r"""
-        Return a latex representation of this skew polynomial.
+        Return a latex representation of this Ore polynomial.
 
         INPUT:
 
         - ``name`` -- the name of the variable (default: the
-          name given when the skew polynomial ring was created)
+          name given when the Ore polynomial ring was created)
 
         EXAMPLES::
 
@@ -1886,9 +1848,9 @@ cdef class OrePolynomial(AlgebraElement):
         r"""
         Change the name of the variable of ``self``.
 
-        This will create the skew polynomial ring with the new name but same
-        base ring and twist map. The returned skew polynomial will be an element
-        of that skew polynomial ring.
+        This will create the Ore polynomial ring with the new name but same
+        base ring, twisting morphism and twisting derivation. The returned 
+        Ore polynomial will be an element of that Ore polynomial ring.
 
         INPUT:
 
@@ -1906,7 +1868,7 @@ cdef class OrePolynomial(AlgebraElement):
         Note that a new parent is created at the same time::
 
             sage: b.parent()
-            Skew Polynomial Ring in y over Univariate Polynomial Ring in t over Integer Ring
+            Ore Polynomial Ring in y over Univariate Polynomial Ring in t over Integer Ring
              twisted by t |--> t + 1
         """
         R = self._parent.change_var(var)
@@ -2027,7 +1989,7 @@ cdef class OrePolynomial(AlgebraElement):
         r"""
         Return a "copy" of ``self``.
 
-        In Sage, since skew polynomials are immutable, this just returns
+        In Sage, since Ore polynomials are immutable, this just returns
         ``self`` again.
 
         EXAMPLES::
@@ -2224,7 +2186,19 @@ cdef class OrePolynomial(AlgebraElement):
 
 cdef void lmul_gen(list A, Morphism m, d):
     r"""
-    Helper function
+    If ``A`` is the list of coefficients of a Ore polynomial ``P``,
+    replace it by the list of coefficients of ``X*P`` (where ``X`` 
+    is the variable in the Ore polynomial ring).
+
+    This is an helper function.
+
+    INPUT:
+
+    - ``A`` -- a list of coefficients
+
+    - ``m`` -- the twisting morphism of the Ore polynomial ring
+
+    - ``d`` -- the twisting derivation of the Ore polynomial ring
     """
     if m is None:
         A.append(A[-1])
@@ -2238,12 +2212,12 @@ cdef void lmul_gen(list A, Morphism m, d):
 
 cdef class OrePolynomial_generic_dense(OrePolynomial):
     r"""
-    Generic implementation of dense skew polynomial supporting any valid base
-    ring and twist map.
+    Generic implementation of dense Ore polynomial supporting any valid base
+    ring, twisting morphism and twisting derivation.
     """
     def __init__(self, parent, x=None, int check=1, int construct=0, **kwds):
         r"""
-        Construct a skew polynomial over the given parent with the given
+        Construct a Ore polynomial over the given parent with the given
         coefficients.
 
         INPUT:
@@ -2262,12 +2236,12 @@ cdef class OrePolynomial_generic_dense(OrePolynomial):
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]
 
-        We create a skew polynomial from a list::
+        We create a Ore polynomial from a list::
 
             sage: S([t,1])
             x + t
 
-        from another skew polynomial::
+        from another Ore polynomial::
 
             sage: S(x^2 + t)
             x^2 + t
@@ -2327,7 +2301,7 @@ cdef class OrePolynomial_generic_dense(OrePolynomial):
 
     def __reduce__(self):
         r"""
-        Return the generic dense skew polynomial corresponding to the
+        Return the generic dense Ore polynomial corresponding to the
         current parameters provided ``self``.
 
         EXAMPLES::
@@ -2375,11 +2349,11 @@ cdef class OrePolynomial_generic_dense(OrePolynomial):
 
     cdef OrePolynomial _new_c(self, list coeffs, Parent P, char check=0):
         r"""
-        Fast creation of a new skew polynomial given a list of coefficients.
+        Fast creation of a new Ore polynomial given a list of coefficients.
 
         .. WARNING::
 
-            The list ``coeffs`` is stored internally in the newly created skew
+            The list ``coeffs`` is stored internally in the newly created Ore
             polynomial, so this must not be modified after calling this method.
 
         TESTS::
@@ -2408,7 +2382,7 @@ cdef class OrePolynomial_generic_dense(OrePolynomial):
             sage: R.<t> = QQ[]
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]; S #indirect doctest
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
+            Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
         """
         cdef list x = self._coeffs
         cdef Py_ssize_t n = len(x) - 1
@@ -2418,7 +2392,7 @@ cdef class OrePolynomial_generic_dense(OrePolynomial):
 
     cpdef _richcmp_(left, right, int op):
         r"""
-        Compare the two skew polynomials ``self`` and ``other``.
+        Compare the two Ore polynomials ``self`` and ``other``.
 
         We order polynomials first by degree, then in dictionary order
         starting with the coefficient of largest degree.
@@ -2536,7 +2510,7 @@ cdef class OrePolynomial_generic_dense(OrePolynomial):
         r"""
         Return the degree of ``self``.
 
-        By convention, the zero skew polynomial has degree `-1`.
+        By convention, the zero Ore polynomial has degree `-1`.
 
         EXAMPLES::
 
@@ -2636,7 +2610,7 @@ cdef class OrePolynomial_generic_dense(OrePolynomial):
         r"""
         Return the minimal degree of a non-zero monomial of ``self``.
 
-        By convention, the zero skew polynomial has valuation `+\infty`.
+        By convention, the zero Ore polynomial has valuation `+\infty`.
 
         EXAMPLES::
 
@@ -2700,19 +2674,87 @@ cdef class OrePolynomial_generic_dense(OrePolynomial):
         return BA
     
     cpdef _lmul_(self, Element s):
+        r"""
+        Return the product ``self * right``.
+
+        INPUT:
+
+        - ``right`` -- an element of the base ring
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: der = R.derivation()
+            sage: A.<d> = R['d', der]
+            sage: d*t  # indirect doctest
+            t*d + 1
+        """
         cdef coeffs = self._mul_list([s])
         return self._new_c(coeffs, self._parent, 1)
 
     cpdef _rmul_(self, Element s):
+        r"""
+        Return the product ``left * self``.
+
+        INPUT:
+
+        - ``left`` -- an element of the base ring
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: der = R.derivation()
+            sage: A.<d> = R['d', der]
+            sage: t*(d + 1)  # indirect doctest
+            t*d + t
+        """
         return self._new_c([ s*c for c in self._coeffs ], self._parent)
 
     cpdef _mul_(self, other):
+        r"""
+        Return the product ``self * right``.
+
+        INPUT:
+
+        - ``right`` -- a Ore polynomial in the same ring as ``self``
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: der = R.derivation()
+            sage: A.<d> = R['d', der]
+            sage: P = d^2 + t
+            sage: Q = d^2 + (t + 1)*d
+            sage: P * Q
+            d^4 + (t + 1)*d^3 + (t + 2)*d^2 + (t^2 + t)*d
+            sage: P * Q == Q * P
+            False
+
+        TESTS::
+
+        We check associativity and distributivity::
+
+            sage: U = A.random_element(degree=10)
+            sage: V = A.random_element(degree=10)
+            sage: W = A.random_element(degree=10)
+            sage: U * (V * W) == (U * V) * W
+            True
+            sage: U * (V + W) == U*V + U*W
+            True
+            sage: (U + V) * W == U*W + V*W
+            True
+        """
         cdef coeffs = list((<OrePolynomial_generic_dense>other)._coeffs)
         if coeffs:
             coeffs = self._mul_list(coeffs)
         return self._new_c(coeffs, self._parent, 1)
 
     cdef _left_quo_rem(self, OrePolynomial other):
+        r"""
+        Return the quotient and remainder of the left euclidean
+        division of ``self`` by ``other`` (C implementation).
+        """
+        sig_check()
         cdef list A = list(self._coeffs)
         cdef Py_ssize_t degB = other.degree()
         cdef Morphism m = self._parent.twisting_morphism(-degB)
@@ -2737,6 +2779,11 @@ cdef class OrePolynomial_generic_dense(OrePolynomial):
         return self._new_c(quo, self._parent), self._new_c(A[:degB], self._parent, 1)
 
     cdef _right_quo_rem(self, OrePolynomial other):
+        r"""
+        Return the quotient and remainder of the right euclidean
+        division of ``self`` by ``other`` (C implementation).
+        """
+        sig_check()
         cdef list A = list(self._coeffs)
         cdef Py_ssize_t i, j
         cdef Py_ssize_t degB = other.degree()
@@ -2796,37 +2843,37 @@ cdef class OrePolynomial_generic_dense(OrePolynomial):
 
 cdef class ConstantOrePolynomialSection(Map):
     r"""
-    Representation of the canonical homomorphism from the constants of a skew
+    Representation of the canonical homomorphism from the constants of a Ore
     polynomial ring to the base ring.
 
-    This class is necessary for automatic coercion from zero-degree skew
+    This class is necessary for automatic coercion from zero-degree Ore
     polynomial ring into the base ring.
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.skew_polynomial_element import ConstantOrePolynomialSection
+        sage: from sage.rings.polynomial.ore_polynomial_element import ConstantOrePolynomialSection
         sage: R.<t> = QQ[]
         sage: sigma = R.hom([t+1])
         sage: S.<x> = R['x',sigma]
         sage: m = ConstantOrePolynomialSection(S, R); m
         Generic map:
-            From: Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
+            From: Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
             To:   Univariate Polynomial Ring in t over Rational Field
     """
     cpdef Element _call_(self, x):
         r"""
         Return the corresponding element of the base ring if ``self`` is a
-        constant skew polynomial. Otherwise, it fails.
+        constant Ore polynomial. Otherwise, it fails.
         
         TESTS::
             
-            sage: from sage.rings.polynomial.skew_polynomial_element import ConstantOrePolynomialSection
+            sage: from sage.rings.polynomial.ore_polynomial_element import ConstantOrePolynomialSection
             sage: R.<t> = QQ[]
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]
             sage: m = ConstantOrePolynomialSection(S, R); m
             Generic map:
-                From: Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
+                From: Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
                 To:   Univariate Polynomial Ring in t over Rational Field
             sage: m(S([0,1])-S([0,1]))
             0
@@ -2848,7 +2895,7 @@ cdef class ConstantOrePolynomialSection(Map):
 
 cdef class OrePolynomialBaseringInjection(Morphism):
     r"""
-    Representation of the canonical homomorphism from a ring `R` into a skew
+    Representation of the canonical homomorphism from a ring `R` into a Ore
     polynomial ring over `R`.
 
     This class is necessary for automatic coercion from the base ring to the Ore
@@ -2864,11 +2911,10 @@ cdef class OrePolynomialBaseringInjection(Morphism):
         sage: sigma = R.hom([t+1])
         sage: S.<x> = R['x',sigma]
         sage: S.coerce_map_from(S.base_ring()) #indirect doctest
-        Skew Polynomial base injection morphism:
+        Ore Polynomial base injection morphism:
           From: Univariate Polynomial Ring in t over Rational Field
-          To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
+          To:   Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
     """
-
     def __init__(self, domain, codomain):
         r"""
         Construct a Skew Polynomial Basering Injection.
@@ -2877,27 +2923,27 @@ cdef class OrePolynomialBaseringInjection(Morphism):
 
         - ``domain`` -- a ring `R`. This will be the domain of the injection.
 
-        - ``codomain`` -- a skew polynomial ring over ``domain``. This will be
+        - ``codomain`` -- a Ore polynomial ring over ``domain``. This will be
           the codomain.
 
         TESTS::
 
-            sage: from sage.rings.polynomial.skew_polynomial_element import OrePolynomialBaseringInjection
+            sage: from sage.rings.polynomial.ore_polynomial_element import OrePolynomialBaseringInjection
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
             sage: OrePolynomialBaseringInjection(k, k['x', Frob])
-            Skew Polynomial base injection morphism:
+            Ore Polynomial base injection morphism:
               From: Finite Field in t of size 5^3
-              To:   Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+              To:   Ore Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
             sage: R.<t> = QQ[]
             sage: OrePolynomialBaseringInjection(QQ, k['x', Frob])
             Traceback (most recent call last):
             ...
-            AssertionError: the domain of the injection must be the base ring of the skew polynomial ring
+            AssertionError: the domain of the injection must be the base ring of the Ore polynomial ring
         """
         assert codomain.base_ring() is domain, \
-            "the domain of the injection must be the base ring of the skew polynomial ring"
+            "the domain of the injection must be the base ring of the Ore polynomial ring"
         Morphism.__init__(self, Hom(domain,codomain))
         self._an_element = codomain.gen()
         self._repr_type_str = "Ore Polynomial base injection"
@@ -2909,7 +2955,7 @@ cdef class OrePolynomialBaseringInjection(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.skew_polynomial_element import OrePolynomialBaseringInjection
+            sage: from sage.rings.polynomial.ore_polynomial_element import OrePolynomialBaseringInjection
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
@@ -2921,7 +2967,7 @@ cdef class OrePolynomialBaseringInjection(Morphism):
 
     cpdef Element _call_(self, e):
         r"""
-        Return the corresponding skew polynomial to the element from the
+        Return the corresponding Ore polynomial to the element from the
         base ring according to ``self``.
 
         INPUT:
@@ -2930,11 +2976,11 @@ cdef class OrePolynomialBaseringInjection(Morphism):
 
         OUTPUT:
 
-        The skew polynomial corresponding to `e` according to ``self``.
+        The Ore polynomial corresponding to `e` according to ``self``.
 
         TESTS::
 
-            sage: from sage.rings.polynomial.skew_polynomial_element import OrePolynomialBaseringInjection
+            sage: from sage.rings.polynomial.ore_polynomial_element import OrePolynomialBaseringInjection
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
@@ -2942,7 +2988,7 @@ cdef class OrePolynomialBaseringInjection(Morphism):
             sage: m(4)
             4
             sage: parent(m(4))
-            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            Ore Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
         try:
             return self._codomain._element_constructor_(e)
@@ -2951,19 +2997,19 @@ cdef class OrePolynomialBaseringInjection(Morphism):
 
     def section(self):
         r"""
-        Return the canonical homomorphism from the constants of a skew
+        Return the canonical homomorphism from the constants of a Ore
         polynomial ring to the base ring according to ``self``.
 
         TESTS::
 
-            sage: from sage.rings.polynomial.skew_polynomial_element import OrePolynomialBaseringInjection
+            sage: from sage.rings.polynomial.ore_polynomial_element import OrePolynomialBaseringInjection
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
             sage: m = OrePolynomialBaseringInjection(k, k['x', Frob])
             sage: m.section()
             Generic map:
-            From: Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            From: Ore Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
             To:   Finite Field in t of size 5^3
         """
         return ConstantOrePolynomialSection(self._codomain, self.domain())

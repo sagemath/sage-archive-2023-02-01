@@ -50,7 +50,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             sage: R.<t> = GF(5^3)
             sage: Frob = R.frobenius_endomorphism()
             sage: S.<x> = R['x', Frob]; S
-            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            Ore Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
 
         We create a skew polynomial from a list::
 

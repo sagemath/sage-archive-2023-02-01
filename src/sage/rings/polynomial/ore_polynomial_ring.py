@@ -1,6 +1,10 @@
 r"""
 Univariate Ore Polynomial Rings
 
+This module provides the :class:`~sage.rings.polynomial.ore_polynomial_ring.OrePolynomialRing`.
+which constructs a general dense univariate Ore polynomial ring over a commutative base with
+equipped with an endomorphism and/or a derivation.
+
 AUTHOR:
 
 - Xavier Caruso (2020-04)
@@ -44,14 +48,249 @@ from sage.rings.polynomial.ore_polynomial_element import OrePolynomialBaseringIn
 WORKING_CENTER_MAX_TRIES = 1000
 
 
-# Generic implementation of skew polynomial rings
+# Generic implementation of Ore polynomial rings
 #################################################
 
 class OrePolynomialRing(Algebra, UniqueRepresentation):
+    r"""
+    Construct and return the globally unique Ore polynomial ring with the
+    given properties and variable names.
+
+    Given a ring `R` and a ring automorphism `\sigma` of `R` and a
+    `\sigma`-derivation `\partial`, the ring of Ore polynomials 
+    `R[X; \sigma, \partial]` is the usual abelian group polynomial
+    `R[X]` equipped with the modification multiplication deduced from the
+    rule `X a = \sigma(a) X + \partial(a)`.
+    We refer to [Ore1933]_ for more material on Ore polynomials.
+
+    INPUT:
+
+    - ``base_ring`` -- a commutative ring
+
+    - ``twisting_map`` -- either an endomorphism of the base ring, or
+      a (twisted) derivation of it
+
+    - ``names`` -- a string or a list of strings
+
+    - ``sparse`` -- a boolean (default: ``False``). Currently not supported.
+
+    EXAMPLES:
+
+    THE CASE OF A TWISTING ENDOMORPHISM:
+
+    We create the Ore ring `\FF_{5^3}[x, \text{Frob}]` where Frob is the
+    Frobenius endomorphism.
+        
+        sage: k.<a> = GF(5^3)
+        sage: Frob = k.frobenius_endomorphism()
+        sage: S = OrePolynomialRing(k, Frob, 'x')
+        sage: S
+        Ore Polynomial Ring in x over Finite Field in a of size 5^3 twisted by a |--> a^5
+
+    In particular, observe that it is not needed to create and pass in 
+    the twisting derivation (which is `0` in our example).
+
+    As a shortcut, we can use the square brackets notation as follow::
+
+        sage: T.<x> = k['x', Frob]
+        sage: T
+        Ore Polynomial Ring in x over Finite Field in a of size 5^3 twisted by a |--> a^5
+        sage: T is S
+        True
+
+    We emphasize that it is necessary to repeat the name of the variable
+    in the right hand side. Indeed, the following fails (it is interpreted 
+    by Sage as a classical polynomial ring with variable name ``Frob``).
+
+        sage: T.<x> = k[Frob]
+        Traceback (most recent call last):
+        ...
+        ValueError: variable name 'Frobenius endomorphism a |--> a^5 on Finite Field in a of size 5^3' is not alphanumeric
+
+    Note moreover that, similarly to the classical case, using the brackets 
+    notation also sets the variable::
+
+        sage: x.parent() is S
+        True
+
+    We are now ready to carry on computations in the Ore ring::
+
+        sage: x*a
+        (2*a^2 + 4*a + 4)*x
+        sage: Frob(a)*x
+        (2*a^2 + 4*a + 4)*x
+
+    THE CASE OF A TWISTING DERIVATION:
+
+    We can similarly create the Ore ring of differential operators over
+    `\QQ[t]`, namely `\QQ[t][d, \frac{d}{dt}]`::
+
+        sage: R.<t> = QQ[]
+        sage: der = R.derivation(); der
+        d/dt
+        sage: A = OrePolynomialRing(R, der, 'd')
+        sage: A
+        Ore Polynomial Ring in d over Univariate Polynomial Ring in t over Rational Field twisted by d/dt
+
+    Again, the brackets notation is available::
+
+        sage: B.<d> = R['d', der]
+        sage: A is B
+        True
+
+    and computations can be carried out::
+
+        sage: d*t
+        t*d + 1
+
+    THE COMBINED CASE:
+
+    Ore polynomial rings involving at the same time a twisting morphism
+    `sigma` and a twisting `sigma`-derivation can be created as well as
+    follows::
+
+        sage: F.<u> = Qq(3^2)
+        sage: sigma = F.frobenius_endomorphism(); sigma
+        Frobenius endomorphism on 3-adic Unramified Extension Field in u defined by x^2 + 2*x + 2 lifting u |--> u^3 on the residue field
+        sage: der = F.derivation(3, twist=sigma); der
+        (3 + O(3^21))*([Frob] - id)
+
+        sage: M.<X> = F['X', der]
+        sage: M
+        Ore Polynomial Ring in X over 3-adic Unramified Extension Field in u defined by x^2 + 2*x + 2 twisted by Frob and (3 + O(3^21))*([Frob] - id)
+
+    We emphasize that we only need to pass in the twisted derivation as
+    it already contains in it the datum of the twisting endomorphism.
+    Actually, passing in both twisting maps results in an error::
+
+        sage: F['X', sigma, der]
+        Traceback (most recent call last):
+        ...
+        ValueError: variable name 'Frobenius endomorphism ...' is not alphanumeric
+
+    EXAMPLES of VARIABLE NAME CONTEXT::
+
+        sage: R.<t> = ZZ[]
+        sage: sigma = R.hom([t+1])
+        sage: S.<x> = SkewPolynomialRing(R, sigma); S
+        Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
+         twisted by t |--> t + 1
+
+    The names of the variables defined above cannot be arbitrarily
+    modified because each Ore polynomial ring is unique in Sage and other
+    objects in Sage could have pointers to that Ore polynomial ring.
+
+    However, the variable can be changed within the scope of a ``with``
+    block using the localvars context::
+
+        sage: with localvars(S, ['y']):
+        ....:     print(S)
+        Ore Polynomial Ring in y over Univariate Polynomial Ring in t over Integer Ring
+         twisted by t |--> t + 1
+
+    UNIQUENESS and IMMUTABILITY:
+
+    In Sage, there is exactly one Ore polynomial ring for each quadruple
+    (base ring, twisting morphism, twisting derivation, name of the variable).
+
+        sage: k.<a> = GF(7^3)
+        sage: Frob = k.frobenius_endomorphism()
+        sage: S = k['x', Frob]
+        sage: T = k['x', Frob]
+        sage: S is T
+        True
+
+    Rings with different variables names are different::
+
+        sage: S is k['y', Frob]
+        False
+
+    Similarly, varying the twisting morphisms yields to different Ore rings
+    (expect when the morphism coincide)::
+
+        sage: S is k['x', Frob^2]
+        False
+        sage: S is k['x', Frob^3]
+        False
+        sage: S is k['x', Frob^4]
+        True
+
+    TESTS:
+
+    You must specify a variable name::
+
+        sage: SkewPolynomialRing(k, Frob)
+        Traceback (most recent call last):
+        ...
+        TypeError: you must specify the name of the variable
+
+    Multivariate Ore polynomial rings are not supported::
+
+        sage: S = OrePolynomialRing(k, Frob,names=['x','y'])
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: multivariate Ore polynomials rings not supported
+
+    Sparse Ore polynomial rings are not implemented::
+
+        sage: S = SkewPolynomialRing(k, Frob, names='x', sparse=True)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: sparse Ore polynomial rings are not implemented
+
+    Saving and loading of polynomial rings works::
+
+        sage: loads(dumps(S)) is S
+        True
+
+    .. TODO::
+
+        - Sparse Ore Polynomial Ring
+        - Multivariate Ore Polynomial Ring
+    """
     Element = None
 
     @staticmethod
     def __classcall_private__(cls, base_ring, twist=None, names=None, sparse=False):
+        r"""
+        Construct the Ore polynomial ring associated to the given parameters.
+
+        TESTS::
+
+            sage: R.<t> = QQ[]
+            sage: der = R.derivation()
+            sage: A.<d> = OrePolynomialRing(R, der)
+            sage: A
+            Ore Polynomial Ring in d over Univariate Polynomial Ring in t over Rational Field twisted by d/dt
+            sage: type(A)
+            <class 'sage.rings.polynomial.ore_polynomial_ring.OrePolynomialRing_with_category'>
+
+        We check the uniqueness property of parents::
+
+            sage: der2 = R.derivation()
+            sage: B.<d> = SkewPolynomialRing(R, der2)
+            sage: A is B
+            True
+
+        When there is no twisting derivation, a special class is used::
+
+            sage: k.<t> = ZZ[]
+            sage: theta = k.hom([t+1])
+            sage: S.<x> = SkewPolynomialRing(k, theta)
+            sage: S
+            Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+            sage: type(S)
+            <class 'sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_with_category'>
+
+        In certain situations (e.g. when the twisting morphism is the Frobenius 
+        over a finite field), even more specialized classes are used::
+
+            sage: k.<a> = GF(7^5)
+            sage: Frob = k.frobenius_endomorphism(2)
+            sage: S.<x> = SkewPolynomialRing(k, Frob)
+            sage: type(S)
+            <class 'sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field_with_category'>
+        """
         if base_ring not in CommutativeRings():
             raise TypeError('base_ring must be a commutative ring')
         if isinstance(twist, Morphism):
@@ -73,19 +312,22 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
             else:
                 derivation = None
         else:
-            raise TypeError("the twist map must be a ring morphism or a derivation")
-        if sparse:
-            raise NotImplementedError("sparse skew polynomial rings are not implemented")
+            raise TypeError("the twisting map must be a ring morphism or a derivation")
         if names is None:
             raise TypeError("you must specify the name of the variable")
         try:
             names = normalize_names(1, names)[0]
         except IndexError:
-            raise NotImplementedError("multivariate skew polynomials rings not supported")
+            raise NotImplementedError("multivariate Ore polynomials rings not supported")
+
+        # If there is no twisting morphism and no twisting derivation
+        # we return a classical polynomial ring
+        if derivation is None and morphism is None:
+            return PolynomialRing(base_ring, names, sparse=sparse)
 
         # We find the best constructor
-        if derivation is None and morphism is None:
-            return PolynomialRing(base_ring, names, sparse)
+        if sparse:
+            raise NotImplementedError("sparse Ore polynomial rings are not implemented")
 
         from sage.rings.polynomial import skew_polynomial_ring
         constructors = [ ]
@@ -119,7 +361,9 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
         - ``base_ring`` -- a commutative ring
 
-        - ``twisting_morphism`` -- an automorphism of the base ring
+        - ``morphism`` -- an automorphism of the base ring
+
+        - ``derivation`` -- a derivation or a twisted derivation of the base ring
 
         - ``name`` -- string or list of strings representing the name of
           the variables of ring
@@ -150,7 +394,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
     def _element_constructor_(self, a=None, check=True, construct=False, **kwds):
         r"""
         Convert a base ring element ``a`` into a constant of this univariate
-        skew polynomial ring, possibly non-canonically.
+        Ore polynomial ring, possibly non-canonically.
 
         INPUT:
 
@@ -163,7 +407,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
         OUTPUT:
 
-        An zero-degree skew polynomial in ``self``, equal to ``a``.
+        An zero-degree Ore polynomial in ``self``, equal to ``a``.
 
         EXAMPLES::
 
@@ -221,13 +465,13 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
         EXAMPLES::
 
             sage: R.<t> = ZZ[]
-            sage: S.<x> = SkewPolynomialRing(R, R.hom([t + 1]))
+            sage: S.<x> = OrePolynomialRing(R, R.hom([t + 1]))
             sage: S.coerce_map_from(R)
-            Skew Polynomial base injection morphism:
+            Ore Polynomial base injection morphism:
               From: Univariate Polynomial Ring in t over Integer Ring
-              To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+              To:   Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
             sage: x.parent()
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+            Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
             sage: t.parent()
             Univariate Polynomial Ring in t over Integer Ring
             sage: y = x + t  # indirect doctest
@@ -248,7 +492,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
         - any ring that canonically coerces to the base ring of this ring
 
-        - skew polynomial rings in the same variable and automorphism over
+        - Ore polynomial rings in the same variable and automorphism over
           any base ring that canonically coerces to the base ring of this ring
 
         INPUT:
@@ -259,7 +503,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
             sage: R.<t> = ZZ[]
             sage: sigma = R.hom([t+1])
-            sage: S.<x> = SkewPolynomialRing(R,sigma)
+            sage: S.<x> = OrePolynomialRing(R,sigma)
             sage: S.has_coerce_map_from(S)
             True
             sage: S.has_coerce_map_from(R)
@@ -272,16 +516,16 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
             sage: S.coerce_map_from(ZZ)
             Composite map:
                 From: Integer Ring
-                To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+                To:   Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
                 Defn:   Polynomial base injection morphism:
                         From: Integer Ring
                         To:   Univariate Polynomial Ring in t over Integer Ring
                     then
-                        Skew Polynomial base injection morphism:
+                        Ore Polynomial base injection morphism:
                         From: Univariate Polynomial Ring in t over Integer Ring
-                        To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+                        To:   Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
             sage: S.coerce_map_from(S)
-            Identity endomorphism of Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+            Identity endomorphism of Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
         """
         base_ring = self.base_ring()
         try:
@@ -300,20 +544,27 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
         r"""
         Return a string representation of ``self``.
 
+        The locution *Ore Polynomial Ring* is used when the twisting 
+        derivation is zero.
+        Otherwise the locution *Ore Polynomial Ring* is used.
+
         EXAMPLES::
 
-            sage: R.<t> = ZZ[]
+            sage: R.<t> = QQ[]
             sage: sigma = R.hom([t+1])
-            sage: S.<x> = SkewPolynomialRing(R,sigma)
+            sage: S.<x> = OrePolynomialRing(R, sigma)
             sage: S
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+            Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
+
+            sage: der = R.derivation()
+            sage: T.<d> = OrePolynomialRing(R, der)
+            sage: T
+            Ore Polynomial Ring in d over Univariate Polynomial Ring in t over Rational Field twisted by d/dt
         """
+        s = "Ore Polynomial Ring in %s over %s twisted by " % (self.variable_name(), self.base_ring())
         if self._derivation is None:
-            s = "Skew Polynomial Ring in %s over %s twisted by %s" % (self.variable_name(),
-                                                                      self.base_ring(),
-                                                                      self._morphism._repr_short())
+            s += self._morphism._repr_short()
         else:
-            s = "Ore Polynomial Ring in %s over %s twisted by " % (self.variable_name(), self.base_ring())
             if self._morphism is not None:
                 s += "%s and " % self._morphism._repr_short()
             s += self._derivation._repr_()
@@ -327,16 +578,20 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: R.<t> = ZZ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = SkewPolynomialRing(R,sigma)
-            sage: latex(S)
-            \Bold{Z}[t][x,\begin{array}{l}
-            \text{\texttt{Ring{ }endomorphism...}}
-            \end{array}]
+            sage: k.<a> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x', Frob]
+            sage: latex(S)  # indirect doctest
+            \Bold{F}_{5^{3}}\left[x ; a \mapsto a^{5} \right]
+
+            sage: R.<t> = QQ[]
+            sage: der = R.derivation()
+            sage: T.<d> = R['d', der]
+            sage: latex(T)  # indirect doctest
+            \Bold{Q}[t]\left[d ; \text{\texttt{d/dt}} \right]
         """
         from sage.misc.latex import latex
-        s = "%s\\left[%s" % latex(self.base_ring(), self._latex_variable_names()[0])
+        s = "%s\\left[%s" % (latex(self.base_ring()), self.latex_variable_names()[0])
         sep = ";"
         if self._morphism is not None:
             s += sep + latex(self._morphism)
@@ -347,8 +602,8 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
     def change_var(self, var):
         r"""
-        Return the skew polynomial ring in variable ``var`` with the same base
-        ring and twist map as ``self``.
+        Return the Ore polynomial ring in variable ``var`` with the same base
+        ring, twisting morphism and twisting derivation as ``self``.
 
         INPUT:
 
@@ -362,10 +617,10 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
-            sage: R.<x> = SkewPolynomialRing(k,Frob); R
-            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            sage: R.<x> = OrePolynomialRing(k,Frob); R
+            Ore Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
             sage: Ry = R.change_var('y'); Ry
-            Skew Polynomial Ring in y over Finite Field in t of size 5^3 twisted by t |--> t^5
+            Ore Polynomial Ring in y over Finite Field in t of size 5^3 twisted by t |--> t^5
             sage: Ry is R.change_var('y')
             True
         """
@@ -398,7 +653,8 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
     @cached_method
     def twisting_morphism(self, n=1):
         r"""
-        Return the twisting endomorphism of the base ring iterated ``n`` times.
+        Return the twisting endomorphism defining this Ore polynomial ring iterated ``n`` times 
+        or ``None`` if this Ore polynomial ring is not twisted by an endomorphism.
 
         INPUT:
 
@@ -408,7 +664,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
             sage: R.<t> = QQ[]
             sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
+            sage: S.<x> = R['x', sigma]
             sage: S.twisting_morphism()
             Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
               Defn: t |--> t + 1
@@ -419,7 +675,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
               Defn: t |--> t + 10
 
         If ``n`` in negative, Sage tries to compute the inverse of the
-        twist map::
+        twisting morphism::
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
@@ -427,13 +683,38 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
             sage: T.twisting_morphism(-1)
             Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
 
-        Sometimes it fails, even if the twist map is actually invertible::
+        Sometimes it fails, even if the twisting morphism is actually invertible::
 
             sage: S.twisting_morphism(-1)
             Traceback (most recent call last):
             ...
             NotImplementedError: inversion of the twisting morphism Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
                   Defn: t |--> t + 1
+
+        When the Ore polynomial ring is only twisted by a derivation, this
+        method returns nothing::
+
+            sage: der = R.derivation()
+            sage: A.<d> = R['x', der]
+            sage: A
+            Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by d/dt
+            sage: A.twisting_morphism()
+        
+        Here is an example where the twisting morphism is automatically 
+        infered from the derivation::
+
+            sage: k.<a> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: der = k.derivation(1, twist=Frob)
+            sage: der
+            [a |--> a^5] - id
+            sage: S.<x> = k['x', der]
+            sage: S.twisting_morphism()
+            Frobenius endomorphism a |--> a^5 on Finite Field in a of size 5^3
+
+        .. SEEALSO::
+        
+            :meth:`twisting_derivation`
         """
         if self._morphism is not None:
             try:
@@ -444,18 +725,63 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
                 else:
                     raise ValueError("Unexpected error in iterating the twisting morphism: %s", e)
 
-    def twist_map(self, n):
-        # Deprecation
+    def twist_map(self, n=1):
+        r"""
+        Return the twisting endomorphism defining this Ore polynomial ring iterated ``n`` times 
+        or ``None`` if this Ore polynomial ring is not twisted by an endomorphism.
+
+        This method is deprecated. You should use :meth:`twisting_morphism` instead.
+
+        INPUT:
+
+        -  ``n`` - an integer (default: 1)
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: sigma = R.hom([t+1])
+            sage: S.<x> = R['x', sigma]
+            sage: S.twist_map()
+            ...
+            DeprecationWarning: The method twist_map is deprecated; use twisting_morphism (same semantic) instead
+            See https://trac.sagemath.org/29629 for details.
+            Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
+              Defn: t |--> t + 1
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(29629, "The method twist_map is deprecated; use twisting_morphism (same semantic) instead")
         return self.twisting_morphism(n)
 
     def twisting_derivation(self):
+        r"""
+        Return the twisting derivation defining this Ore polynomial ring
+        or ``None`` if this Ore polynomial ring is not twisted by a derivation.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: der = R.derivation(); der
+            d/dt
+            sage: A.<d> = R['d', der]
+            sage: A.twisting_derivation()
+            d/dt
+
+            sage: k.<a> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x', Frob]
+            sage: S.twisting_derivation()
+
+        .. SEEALSO::
+        
+            :meth:`twisting_morphism`
+        """
         return self._derivation
 
 
     @cached_method
     def gen(self, n=0):
         r"""
-        Return the indeterminate generator of this skew polynomial ring.
+        Return the indeterminate generator of this Ore polynomial ring.
 
         INPUT:
 
@@ -467,7 +793,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
             sage: R.<t> = QQ[]
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]; S
-            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
+            Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Rational Field twisted by t |--> t + 1
             sage: y = S.gen(); y
             x
             sage: y == x
@@ -490,7 +816,8 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
     def gens_dict(self):
         r"""
-        Return a {name: variable} dictionary of the generators of ``self``.
+        Return a {name: variable} dictionary of the generators of
+        this Ore polynomial ring.
 
         EXAMPLES::
 
@@ -504,7 +831,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
     def is_finite(self):
         r"""
-        Return ``False`` since skew polynomial rings are not finite
+        Return ``False`` since Ore polynomial rings are not finite
         (unless the base ring is `0`.)
 
         EXAMPLES::
@@ -522,14 +849,14 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
     def is_exact(self):
         r"""
-        Return ``True`` if elements of this skew polynomial ring are exact.
+        Return ``True`` if elements of this Ore polynomial ring are exact.
         This happens if and only if elements of the base ring are exact.
 
         EXAMPLES::
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
+            sage: S.<x> = k['x', Frob]
             sage: S.is_exact()
             True
             sage: S.base_ring().is_exact()
@@ -537,7 +864,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
             sage: R.<u> = k[[]]
             sage: sigma = R.hom([u+u^2])
-            sage: T.<y> = R['y',sigma]
+            sage: T.<y> = R['y', sigma]
             sage: T.is_exact()
             False
             sage: T.base_ring().is_exact()
@@ -547,12 +874,12 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
     def is_sparse(self):
         r"""
-        Return ``True`` if the elements of this polynomial ring are sparsely
+        Return ``True`` if the elements of this Ore polynomial ring are sparsely
         represented.
 
         .. WARNING::
 
-            Since sparse skew polynomials are not yet implemented, this
+            Since sparse Ore polynomials are not yet implemented, this
             function always returns ``False``.
 
         EXAMPLES::
@@ -567,8 +894,8 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
     def ngens(self):
         r"""
-        Return the number of generators of this skew polynomial ring,
-        which is 1.
+        Return the number of generators of this Ore polynomial ring,
+        which is `1`.
 
         EXAMPLES::
 
@@ -582,7 +909,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
     def random_element(self, degree=2, monic=False, *args, **kwds):
         r"""
-        Return a random skew polynomial in ``self``.
+        Return a random Ore polynomial in this ring.
 
         INPUT:
 
@@ -590,14 +917,14 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
           or a tuple of integers with minimum and maximum degrees
 
         - ``monic`` -- (default: ``False``) if ``True``, return a monic
-          skew polynomial
+          Ore polynomial
 
         - ``*args, **kwds`` -- passed on to the ``random_element`` method
           for the base ring
 
         OUTPUT:
 
-        Skew polynomial such that the coefficients of `x^i`, for `i` up
+        Ore polynomial such that the coefficients of `x^i`, for `i` up
         to ``degree``, are random elements from the base ring, randomized
         subject to the arguments ``*args`` and ``**kwds``.
 
@@ -616,7 +943,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
             sage: p = S.random_element(degree=5)   # random
             (t^2 + 3*t)*x^4 + (4*t + 4)*x^3 + (4*t^2 + 4*t)*x^2 + (2*t^2 + 1)*x + 3
 
-        When ``monic`` is ``False``, the returned skew polynomial may have
+        When ``monic`` is ``False``, the returned Ore polynomial may have
         a degree less than ``degree`` (it happens when the random leading
         coefficient is zero). However, if ``monic`` is ``True``, this can't
         happen::
@@ -635,7 +962,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
             (3*t^2 + 1)*x^4 + (4*t + 2)*x^3 + (4*t + 1)*x^2
              + (t^2 + 3*t + 3)*x + 3*t^2 + 2*t + 2
 
-        If the first tuple element is greater than the second, a a
+        If the first tuple element is greater than the second, a
         ``ValueError`` is raised::
 
             sage: S.random_element(degree=(5,4))
@@ -657,11 +984,11 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
     def random_irreducible(self, degree=2, monic=True, *args, **kwds):
         r"""
-        Return a random irreducible skew polynomial.
+        Return a random irreducible Ore polynomial.
 
         .. WARNING::
 
-            Elements of this skew polynomial ring need to have a method
+            Elements of this Ore polynomial ring need to have a method
             is_irreducible(). Currently, this method is implemented only
             when the base ring is a finite field.
 
@@ -670,15 +997,11 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
         -  ``degree`` - Integer with degree (default: 2)
            or a tuple of integers with minimum and maximum degrees
 
-        -  ``monic`` - if True, returns a monic skew polynomial
-           (default: True)
+        -  ``monic`` - if ``True``, returns a monic Ore polynomial
+           (default: ``True``)
 
-        -  ``*args, **kwds`` - Passed on to the ``random_element`` method for
+        -  ``*args, **kwds`` - passed on to the ``random_element`` method for
            the base ring
-
-        OUTPUT:
-
-        -  A random skew polynomial
 
         EXAMPLES::
 
@@ -707,19 +1030,29 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
     def is_commutative(self):
         r"""
-        Return ``True`` if this skew polynomial ring is commutative, i.e. if the
-        twist map is the identity.
+        Return ``True`` if this Ore polynomial ring is commutative, i.e. if the
+        twisting morphism is the identity and the twisting derivation vanishes.
 
         EXAMPLES::
 
-            sage: k.<t> = GF(5^3)
+            sage: k.<a> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
+            sage: S.<x> = k['x', Frob]
             sage: S.is_commutative()
             False
 
-            sage: T.<y> = k['y',Frob^3]
+            sage: T.<y> = k['y', Frob^3]
             sage: T.is_commutative()
             True
+
+            sage: R.<t> = GF(5)[]
+            sage: der = R.derivation()
+            sage: A.<d> = R['d', der]
+            sage: A.is_commutative()
+            False
+
+            sage: B.<b> = R['b', 5*der]
+            sage: B.is_commutative()
+            True
         """
-        return self.twisting_morphism().is_identity()
+        return self._morphism is None and self._derivation is None

@@ -1,18 +1,23 @@
 r"""
 Skew Univariate Polynomial Rings
 
-This module provides the :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing`
-which constructs a general dense skew univariate polynomials over commutative base rings with
-automorphisms over the base rings. This is the set of formal polynomials where the coefficients
-are written on the left of the variable of the skew polynomial ring. The modified multiplication
-operation over elements of the base ring is extended to all elements of the skew poynomial ring
-by associativity and distributivity.
+This module provides the :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing`.
+In the class hierarchy in Sage, the locution *Skew Polynomial* is used for a Ore polynomial
+without twisting derivation.
 
-This module also provides :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_order`
-which is a specialized class for skew polynomial rings over fields equipped with an automorphism of
-finite order. It inherits from
-:class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing` but contains more
-methods and provides better algorithms.
+This module also provides:
+
+- the class :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_order`
+  which is a specialized class for skew polynomial rings over fields equipped with an automorphism of
+  finite order. It inherits from :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing`
+  but contains more methods and provides better algorithms.
+
+- the class :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field`
+  which is a specialized class for skew polynomial rings over finite fields.
+
+.. SEEALSO::
+
+    :class:`~sage.rings.polynomial.ore_polynomial_ring.OrePolynomialRing`
 
 AUTHOR:
 
@@ -79,7 +84,7 @@ def _base_ring_to_fraction_field(S):
         sage: sigma = R.hom([t+1])
         sage: S.<x> = R['x', sigma]
         sage: _base_ring_to_fraction_field(S)
-        Skew Polynomial Ring in x over Fraction Field of Univariate Polynomial Ring in t over Integer Ring twisted by t |-->  t + 1
+        Ore Polynomial Ring in x over Fraction Field of Univariate Polynomial Ring in t over Integer Ring twisted by t |-->  t + 1
     """
     R = S.base_ring()
     if isinstance(R, Field):
@@ -92,7 +97,7 @@ def _base_ring_to_fraction_field(S):
         sigmaQ = Q.hom([Q(sigmaS(g)) for g in gens])
         return Q[S.variable_name(), sigmaQ]
         # except Exception, e:
-        #     raise ValueError("unable to lift the twist map to a twist map over %s (error was: %s)" % (Q, e))
+        #     raise ValueError("unable to lift the twisting morphism to a twisting morphism over %s (error was: %s)" % (Q, e))
 
 
 def _minimal_vanishing_polynomial(R, eval_pts):
@@ -180,7 +185,7 @@ def _lagrange_polynomial(R, eval_pts, values):
         True
 
     The following restrictions are impossible to satisfy because the evaluation
-    points are linearly dependent over the fixed field of the twist map, and the
+    points are linearly dependent over the fixed field of the twisting morphism, and the
     corresponding values do not match::
 
         sage: eval_pts = [ t, 2*t ]
@@ -188,14 +193,14 @@ def _lagrange_polynomial(R, eval_pts, values):
         sage: _lagrange_polynomial(S, eval_pts, values)
         Traceback (most recent call last):
         ...
-        ValueError: the given evaluation points are linearly dependent over the fixed field of the twist map,
+        ValueError: the given evaluation points are linearly dependent over the fixed field of the twisting morphism,
         so a Lagrange polynomial could not be determined (and might not exist).
     """
     l = len(eval_pts)
     if l == 1:
         if eval_pts[0].is_zero():
             # This is due to linear dependence among the eval_pts.
-            raise ValueError("the given evaluation points are linearly dependent over the fixed field of the twist map, so a Lagrange polynomial could not be determined (and might not exist).")
+            raise ValueError("the given evaluation points are linearly dependent over the fixed field of the twisting morphism, so a Lagrange polynomial could not be determined (and might not exist).")
         return (values[0] / eval_pts[0]) * R.one()
     else:
         t = l // 2
@@ -259,7 +264,7 @@ class SkewPolynomialRing(OrePolynomialRing):
         are linearly independent over the fixed field of ``self.twisting_morphism()``.
 
         - ``eval_pts`` -- list of evaluation points which are linearly
-          independent over the fixed field of the twist map of the associated
+          independent over the fixed field of the twisting morphism of the associated
           skew polynomial ring
 
         OUTPUT:
@@ -281,7 +286,7 @@ class SkewPolynomialRing(OrePolynomialRing):
             [0, 0, 0]
 
         If the evaluation points are linearly dependent over the fixed field of
-        the twist map, then the returned polynomial has lower degree than the
+        the twisting morphism, then the returned polynomial has lower degree than the
         number of evaluation points::
 
             sage: S.minimal_vanishing_polynomial([t])
@@ -341,7 +346,7 @@ class SkewPolynomialRing(OrePolynomialRing):
             sage: T.lagrange_polynomial([ (t, 1), (2*t, 3) ])
             Traceback (most recent call last):
             ...
-            ValueError: the given evaluation points are linearly dependent over the fixed field of the twist map,
+            ValueError: the given evaluation points are linearly dependent over the fixed field of the twisting morphism,
             so a Lagrange polynomial could not be determined (and might not exist).
         """
         l = len(points)
@@ -456,7 +461,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
             sage: S.<x> = SkewPolynomialRing(k, k.frobenius_endomorphism())
             sage: Z = S.center()
             sage: S.convert_map_from(Z)   # indirect doctest
-            Embedding of the center of Skew Polynomial Ring in x over Finite Field in a of size 5^3 twisted by a |--> a^5 into this ring
+            Embedding of the center of Ore Polynomial Ring in x over Finite Field in a of size 5^3 twisted by a |--> a^5 into this ring
         """
         RingHomomorphism.__init__(self, Hom(domain, codomain))
         self._embed = embed
@@ -475,9 +480,9 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
             sage: Z = S.center()
             sage: iota = S.convert_map_from(Z)
             sage: iota
-            Embedding of the center of Skew Polynomial Ring in x over Finite Field in a of size 5^3 twisted by a |--> a^5 into this ring
+            Embedding of the center of Ore Polynomial Ring in x over Finite Field in a of size 5^3 twisted by a |--> a^5 into this ring
             sage: iota._repr_()
-            'Embedding of the center of Skew Polynomial Ring in x over Finite Field in a of size 5^3 twisted by a |--> a^5 into this ring'
+            'Embedding of the center of Ore Polynomial Ring in x over Finite Field in a of size 5^3 twisted by a |--> a^5 into this ring'
         """
         return "Embedding of the center of %s into this ring" % self._codomain
 
@@ -559,7 +564,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x', Frob]; S
-            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            Ore Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
             sage: S.category()
             Category of algebras over Finite Field in t of size 5^3
 
@@ -621,7 +626,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]; S
-            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            Ore Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
 
             sage: Z = S.center(); Z
             Univariate Polynomial Ring in z over Finite Field of size 5
@@ -648,7 +653,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: P = y + x; P
             x^3 + x
             sage: P.parent()
-            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            Ore Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
             sage: P.parent() is S
             True
 
@@ -777,7 +782,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: T.<x> = k['x', Frob]; T
-            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            Ore Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
         if self.Element is None:
             import sage.rings.polynomial.skew_polynomial_finite_field

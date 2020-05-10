@@ -2,18 +2,9 @@ r"""
 Univariate Skew Polynomials
 
 This module provides the
-:class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomial`,
-which constructs a single univariate skew polynomial over commutative
-base rings and an automorphism over the base ring. Skew polynomials are
-non-commutative and so principal methods such as gcd, lcm, monic,
-multiplication, and division are given in left and right forms.
-
-The generic implementation of dense skew polynomials is
-:class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomial_generic_dense`.
-The classes 
-:class:`~sage.rings.polynomial.skew_polynomial_element.ConstantSkewPolynomialSection`
-and :class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomialBaseringInjection`
-handle conversion from a skew polynomial ring to its base ring and vice versa respectively.
+:class:`~sage.rings.polynomial.skew_polynomial_element.SkewPolynomial`.
+In the class hierarchy in Sage, the locution *Skew Polynomial* is used 
+for a Ore polynomial without twisting derivation.
 
 .. WARNING::
 
@@ -29,9 +20,8 @@ handle conversion from a skew polynomial ring to its base ring and vice versa re
         sage: S.<x> = R['x',sigma]
         sage: a = 2*(t + x) + 1
         sage: a(t^2)
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
+        doctest:...: FutureWarning: This class/method/function is marked as experimental. 
+        It, its functionality or its interface might change without a formal deprecation.
         See http://trac.sagemath.org/13215 for details.
         2*t^3 + 3*t^2 + 4*t + 2
         sage: a(t)
@@ -85,7 +75,7 @@ from sage.rings.polynomial.ore_polynomial_element cimport OrePolynomial_generic_
 cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
     r"""
     Generic implementation of dense skew polynomial supporting any valid base
-    ring and twist map.
+    ring and twisting morphism.
     """
     cpdef left_power_mod(self, exp, modulus):
         r"""
@@ -272,7 +262,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
 
         Given a skew polynomial `p(x) = \sum_{i=0}^d a_i * x^i`, we define
         the evaluation `p(r)` to be `\sum_{i=0}^d a_i * \sigma^i(r)`, where
-        `\sigma` is the twist map of the skew polynomial ring.
+        `\sigma` is the twisting morphism of the skew polynomial ring.
 
         INPUT:
 
@@ -355,7 +345,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
             sage: a.operator_eval(t)
             2*t^2 + 2*t + 3
 
-        Evaluation points outside the base ring is usually not possible due to the twist map::
+        Evaluation points outside the base ring is usually not possible due to the twisting morphism::
 
             sage: R.<t> = QQ[]
             sage: sigma = R.hom([t+1])
@@ -381,7 +371,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
         variable of ``self``.
 
         The conjugate is obtained from ``self`` by applying the `n`-th iterate
-        of the twist map to each of its coefficients.
+        of the twisting morphism to each of its coefficients.
 
         INPUT:
 
@@ -399,7 +389,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
             True
 
         In principle, negative values for `n` are allowed, but Sage needs to be
-        able to invert the twist map::
+        able to invert the twisting morphism::
 
             sage: b = a.conjugate(-1)
             Traceback (most recent call last):
@@ -459,7 +449,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
 
     cpdef ModuleElement _lmul_(self, Element right):
         r"""
-        Multiply ``self`` on the right by scalar.
+        Return the product ``self * right``.
 
         INPUT:
 
@@ -488,7 +478,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
 
     cpdef ModuleElement _rmul_(self, Element left):
         r"""
-        Multiply ``self`` on the left by scalar.
+        Return the product ``left * self``.
 
         INPUT:
 
@@ -515,11 +505,11 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
 
     cpdef _mul_(self, right):
         r"""
-        Multiply ``self`` on the right by a skew polynomial.
+        Return the product ``self * right``.
 
         INPUT:
 
-        - ``right`` -- a skew polynomial in the same ring as ``self``
+        - ``right`` -- a Ore polynomial in the same ring as ``self``
 
         EXAMPLES::
 
@@ -649,7 +639,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
                 for j from 0 <= j < db:
                     a[i+j] -= b[j] * parent.twisting_morphism(j)(c)
             except Exception:
-                raise NotImplementedError("inversion of the twist map %s" % parent.twisting_morphism())
+                raise NotImplementedError("inversion of the twisting morphism %s" % parent.twisting_morphism())
             q.append(c)
         q.reverse()
         return (self._new_c(q, parent), self._new_c(a[:db], parent, 1))

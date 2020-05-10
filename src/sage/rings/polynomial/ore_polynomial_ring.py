@@ -586,9 +586,9 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
             sage: R.<t> = QQ[]
             sage: der = R.derivation()
-            sage: T.<d> = R['d', der]
+            sage: T.<delta> = R['delta', der]
             sage: latex(T)  # indirect doctest
-            \Bold{Q}[t]\left[d ; \text{\texttt{d/dt}} \right]
+            \Bold{Q}[t]\left[\delta ; \frac{d}{dt} \right]
         """
         from sage.misc.latex import latex
         s = "%s\\left[%s" % (latex(self.base_ring()), self.latex_variable_names()[0])

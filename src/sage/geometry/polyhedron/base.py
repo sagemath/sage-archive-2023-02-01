@@ -4363,9 +4363,9 @@ class Polyhedron_base(Element):
            sage: P1 = Polyhedron(rays=[[1,0,0,0],[0,1,1,0]], lines=[[0,1,0,1]])
            sage: Q = P.base_extend(QQ, 'field')
            sage: Q1 = P1.base_extend(QQ, 'field')
-           sage: P*P1 == Q*Q1
+           sage: P * P1 == Q * Q1
            True
-           sage: P.polar(in_affine_span=True)*P1 == Q.polar(in_affine_span=True)*Q1
+           sage: P.polar(in_affine_span=True) * P1 == Q.polar(in_affine_span=True) * Q1
            True
         """
         try:
@@ -4376,7 +4376,7 @@ class Polyhedron_base(Element):
 
         from itertools import chain
 
-        new_vertices = (tuple(x)+tuple(y)
+        new_vertices = (tuple(x) + tuple(y)
                         for x in self.vertex_generator() for y in other.vertex_generator())
 
         self_zero  = tuple(0 for _ in range( self.ambient_dim()))

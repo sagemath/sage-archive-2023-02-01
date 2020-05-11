@@ -687,12 +687,12 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: C.Hrepresentation()
             (An equation (1, 1, 1) x - 6 == 0,
-             An inequality (0, -1, -1) x + 5 >= 0,
-             An inequality (0, 0, -1) x + 3 >= 0,
-             An inequality (0, -1, 0) x + 3 >= 0,
+             An inequality (1, 1, 0) x - 3 >= 0,
+             An inequality (-1, -1, 0) x + 5 >= 0,
              An inequality (0, 1, 0) x - 1 >= 0,
-             An inequality (0, 1, 1) x - 3 >= 0,
-             An inequality (0, 0, 1) x - 1 >= 0)
+             An inequality (-1, 0, 0) x + 3 >= 0,
+             An inequality (1, 0, 0) x - 1 >= 0,
+             An inequality (0, -1, 0) x + 3 >= 0)
 
             sage: points = [(1,0,0), (0,1,0), (0,0,1),
             ....: (-1,0,0), (0,-1,0), (0,0,-1)]
@@ -1285,10 +1285,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.permutahedron(2)
             sage: C = CombinatorialPolyhedron(P)
             sage: C.ridges()
-            ((An inequality (0, -1) x + 2 >= 0, An inequality (0, 1) x - 1 >= 0),)
+            ((An inequality (1, 0) x - 1 >= 0, An inequality (-1, 0) x + 2 >= 0),)
             sage: C.ridges(add_equalities=True)
-            (((An inequality (0, -1) x + 2 >= 0, An equation (1, 1) x - 3 == 0),
-              (An inequality (0, 1) x - 1 >= 0, An equation (1, 1) x - 3 == 0)),)
+            (((An inequality (1, 0) x - 1 >= 0, An equation (1, 1) x - 3 == 0),
+              (An inequality (-1, 0) x + 2 >= 0, An equation (1, 1) x - 3 == 0)),)
 
             sage: P = polytopes.cyclic_polytope(4,5)
             sage: C = CombinatorialPolyhedron(P)

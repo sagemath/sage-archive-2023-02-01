@@ -1594,50 +1594,50 @@ class Polyhedron_base(Element):
             sage: P = polytopes.permutahedron(3)
             sage: print(P.Hrepresentation_str())
             x0 + x1 + x2 ==  6
-                -x1 - x2 >= -5
-                     -x2 >= -3
-                     -x1 >= -3
+                 x0 + x1 >=  3
+                -x0 - x1 >= -5
                       x1 >=  1
-                 x1 + x2 >=  3
-                      x2 >=  1
+                     -x0 >= -3
+                      x0 >=  1
+                     -x1 >= -3
 
             sage: print(P.Hrepresentation_str(style='<='))
             -x0 - x1 - x2 == -6
-                  x1 + x2 <=  5
-                       x2 <=  3
-                       x1 <=  3
+                 -x0 - x1 <= -3
+                  x0 + x1 <=  5
                       -x1 <= -1
-                 -x1 - x2 <= -3
-                      -x2 <= -1
+                       x0 <=  3
+                      -x0 <= -1
+                       x1 <=  3
 
             sage: print(P.Hrepresentation_str(style='positive'))
             x0 + x1 + x2 == 6
-                       5 >= x1 + x2
-                       3 >= x2
-                       3 >= x1
+                 x0 + x1 >= 3
+                       5 >= x0 + x1
                       x1 >= 1
-                 x1 + x2 >= 3
-                      x2 >= 1
+                       3 >= x0
+                      x0 >= 1
+                       3 >= x1
 
             sage: print(P.Hrepresentation_str(latex=True))
             \begin{array}{rcl}
             x_{0} + x_{1} + x_{2} & =    &  6 \\
-                   -x_{1} - x_{2} & \geq & -5 \\
-                           -x_{2} & \geq & -3 \\
-                           -x_{1} & \geq & -3 \\
+                    x_{0} + x_{1} & \geq &  3 \\
+                   -x_{0} - x_{1} & \geq & -5 \\
                             x_{1} & \geq &  1 \\
-                    x_{1} + x_{2} & \geq &  3 \\
-                            x_{2} & \geq &  1
+                           -x_{0} & \geq & -3 \\
+                            x_{0} & \geq &  1 \\
+                           -x_{1} & \geq & -3
             \end{array}
 
             sage: print(P.Hrepresentation_str(align=False))
             x0 + x1 + x2 == 6
-            -x1 - x2 >= -5
-            -x2 >= -3
-            -x1 >= -3
+            x0 + x1 >= 3
+            -x0 - x1 >= -5
             x1 >= 1
-            x1 + x2 >= 3
-            x2 >= 1
+            -x0 >= -3
+            x0 >= 1
+            -x1 >= -3
 
             sage: c = polytopes.cube()
             sage: c.Hrepresentation_str(separator=', ', style='positive')

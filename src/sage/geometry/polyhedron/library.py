@@ -2535,7 +2535,7 @@ class Polytopes():
             sage: assert P == Polyhedron(P.vertices())
             sage: assert P == Polyhedron(ieqs=P.inequalities(), eqns=P.equations())
         """
-        verts = tuple(itertools.permutations(range(1, n + 1)))
+        verts = itertools.permutations(range(1, n + 1))
         if project:
             verts = project_points(*verts)
             return Polyhedron(vertices=verts, backend=backend)
@@ -2547,15 +2547,15 @@ class Polytopes():
             # Each proper `S \subset [n]` corresponds exactly to
             # a facet that minimizes the coordinates in `S`.
             # The minimal sum for `m` coordinates is `(m*(m+1))/2`.
-            ieqs = tuple((-tri(sum(x)),) + x
-                         for x in itertools.product([0,1], repeat=n)
-                         if 0 < sum(x) < n)
+            ieqs = ((-tri(sum(x)),) + x
+                    for x in itertools.product([0,1], repeat=n)
+                    if 0 < sum(x) < n)
 
             # Adding the defining equality.
             eqns = ((-tri(n),) + tuple(1 for _ in range(n)),)
 
             return parent([verts, [], []], [ieqs, eqns],
-                          Vrep_minimal=True, Hrep_minimal=True)
+                          Vrep_minimal=True, Hrep_minimal=True, pref_rep="Hrep")
 
 
     def generalized_permutahedron(self, coxeter_type, point=None, exact=True, regular=False, backend=None):

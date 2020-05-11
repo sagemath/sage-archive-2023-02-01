@@ -20,27 +20,24 @@ AUTHOR:
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
 
+
 import sage
 
-from sage.structure.richcmp import op_EQ
 from sage.misc.prandom import randint
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 from sage.structure.category_object import normalize_names
 
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.ring import Algebra, Field
+from sage.rings.ring import Algebra
 from sage.rings.integer import Integer
 
 from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.algebras import Algebras
 from sage.categories.fields import Fields
 
-from sage.categories.morphism import Morphism, IdentityMorphism
-from sage.rings.morphism import RingHomomorphism
+from sage.categories.morphism import Morphism
 from sage.rings.derivation import RingDerivation
-from sage.categories.homset import Hom
-from sage.categories.map import Section
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.ore_polynomial_element import OrePolynomialBaseringInjection

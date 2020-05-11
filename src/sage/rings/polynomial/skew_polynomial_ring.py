@@ -40,17 +40,12 @@ AUTHOR:
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
 
-import sage
-
 from sage.structure.richcmp import op_EQ
 from sage.structure.category_object import normalize_names
 
-from sage.rings.ring import Algebra, Field
-from sage.rings.integer import Integer
-
+from sage.rings.ring import Field
 from sage.matrix.matrix_space import MatrixSpace
 
-from sage.categories.morphism import Morphism
 from sage.rings.morphism import RingHomomorphism
 from sage.categories.homset import Hom
 from sage.categories.map import Section
@@ -824,7 +819,6 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
             [ 0  6  3 10]
         """
         k = self.base_ring()
-        base = k.base_ring()
         section = self._embed_constants.section()
         if seed is None:
             seed = k.random_element()

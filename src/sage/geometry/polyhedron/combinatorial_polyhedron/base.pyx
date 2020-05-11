@@ -1668,7 +1668,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     @cached_method
     def neighborliness(self):
         r"""
-        Returns the largest ``k``, such that the polyhedron is ``k``-neighborly.
+        Return the largest ``k``, such that the polyhedron is ``k``-neighborly.
 
         A polyhedron is `k`-neighborly if every set of `n` vertices forms a face
         for `n` up to `k`.

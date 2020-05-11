@@ -2755,7 +2755,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: E = EllipticCurve(v)
             sage: P = E([72*a - 509/5,  -682/25*a - 434/25])
             sage: P.archimedean_local_height()
-            -0.2206607955468278492183362746930
+            -0.220660795546828
 
         See :trac:`19276`::
 
@@ -2763,28 +2763,46 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: E = EllipticCurve([1, a - 1, 1, -816765673272*a - 7931030674178, 1478955604013312315*a + 14361086227143654561])
             sage: P = E(5393511/49*a + 52372721/49 , -33896210324/343*a - 329141996591/343 )
             sage: P.height()
-            0.974232017827740
+            0.974232017827741
+
+        See :trac:`29966`::
+
+            sage: K.<a> = NumberField(x^3 - x^2 - 6*x + 2)
+            sage: E = EllipticCurve([1, -a^2 + 2*a + 4, 0, -6056450500590472699700624*a^2 - 11239394326797569935861742*a + 4241549693833829432516231, 1904879037869682826729875958079326124520*a^2 + 3535022146945771697732350459284777382011*a - 1334055169621036218710397707677347972626])
+            sage: P = E([1033399668533*a^2 + 1917754693229*a - 723726883800 , 12536493059202326563*a^2 + 23264879148900575548*a - 8779756111574815918 , 1])
+            sage: P.height()
+            0.297318833424763
+            sage: (2*P).height() / P.height()
+            4.00000000000000
+            sage: P.height(200)
+            0.29731883342476341806143743594519935578696537745294661858984
+            sage: (2*P).height(200) / P.height(200)
+            4.0000000000000000000000000000000000000000000000000000000000
         """
+        from sage.rings.number_field.number_field import refine_embedding
+        from sage.all import RealField, ComplexField, Infinity
+
         E = self.curve()
         K = E.base_ring()
 
         if v is None:
+
+            if prec is None:
+                prec = 53
             if K is rings.QQ:
                 v = K.embeddings(rings.RR)[0]
-                h = self.archimedean_local_height(v, prec)
+                h = self.archimedean_local_height(v, prec+10)
             else:
                 r1, r2 = K.signature()
                 pl = K.places()
-                h = (sum(self.archimedean_local_height(pl[i], prec, weighted=False)
+                h = (sum(self.archimedean_local_height(pl[i], prec+10, weighted=False)
                          for i in range(r1))
-                     + 2 * sum(self.archimedean_local_height(pl[i], prec, weighted=False)
+                     + 2 * sum(self.archimedean_local_height(pl[i], prec+10, weighted=False)
                                for i in range(r1, r1 + r2)))
                 if not weighted:
                     h /= K.degree()
-            return h
+            return RealField(prec)(h)
 
-        from sage.rings.number_field.number_field import refine_embedding
-        from sage.all import RealField, ComplexField, Infinity
         prec_v = v.codomain().prec()
         if prec is None:
             prec = prec_v

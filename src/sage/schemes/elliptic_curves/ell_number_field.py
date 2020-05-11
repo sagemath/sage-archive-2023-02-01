@@ -3823,7 +3823,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # Now saturate at each prime in prime_list.  The dict
         # lin_combs keeps the values of linear combinations of the
         # points, indexed by coefficient tuples, for efficiency; it is
-        # rest whenever the point list changes.
+        # reset whenever the point list changes.
 
         from sage.schemes.elliptic_curves.saturation import full_p_saturation
         lin_combs = dict()

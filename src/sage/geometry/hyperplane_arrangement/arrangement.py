@@ -1624,16 +1624,20 @@ class HyperplaneArrangementElement(Element):
                 continue
             subdivided = []
             for region in regions:
+                # For each region we determine, if the hyperplane splits it.
                 splits = False
+
+                # Determine if all vertices lie on one side of the hyperplane.
+                # If so, we determine on which side.
+                valuations = tuple(ieq[0] + ieq[1:]*v[:] for v in region.vertices())
                 direction = 0
-                for v in region.vertices():
-                    x = ieq[0] + ieq[1:]*v[:]
-                    if x:
-                        if x*direction < 0:
-                            splits = True
-                            break
-                        else:
-                            direction = x
+                if any(x > 0 for x in valuations):
+                    direction = 1
+                if any(x < 0 for x in valuations):
+                    if direction:
+                        splits = True
+                    else:
+                        direction = -1
 
                 if not splits:
                     # All vertices lie in one closed halfspace of the hyperplane.
@@ -1648,9 +1652,9 @@ class HyperplaneArrangementElement(Element):
                             splits = True
                     else:
                         # In this case, at least one of the vertices is not on the hyperplane.
-                        # So we check if any ray or line poke the hyperplane.
+                        # So we check if any ray or line pokes the hyperplane.
                         if any(ieq[1:]*r[:]*direction < 0 for r in region.rays()) or \
-                                any(ieq[1:]*l[:]*direction != 0 for l in region.lines()):
+                                any(ieq[1:]*l[:] != 0 for l in region.lines()):
                             splits = True
 
                 if splits:

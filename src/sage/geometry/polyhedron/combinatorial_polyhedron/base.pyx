@@ -2816,8 +2816,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                         face_iter.set_atom_rep()
 
                         # Copy the information.
-                        edges[one][2*two] = face_iter.atom_rep[0]
-                        edges[one][2*two + 1] = face_iter.atom_rep[1]
+                        edges[one][2*two] = face_iter.structure.atom_rep[0]
+                        edges[one][2*two + 1] = face_iter.structure.atom_rep[1]
                         counter += 1
 
                     d = face_iter.next_dimension()  # Go to next face.

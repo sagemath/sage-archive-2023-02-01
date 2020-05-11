@@ -508,20 +508,14 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
             sage: polytopes.cube(backend='normaliz').polar().backend()  # optional - pynormaliz
             'normaliz'
-
-        Check that the polar is computed correctly, see :trac:`29569`::
-
-            sage: P = Polyhedron([[1,0],[0,1],[-1,-1]])
-            sage: P.polar().vertices()
-            (A vertex at (1, 1), A vertex at (1, -2), A vertex at (-2, 1))
         """
         if not self.has_IP_property():
             raise ValueError('The polytope must have the IP property.')
 
-        vertices = tuple( -ieq.A()/ieq.b() for
-                           ieq in self.inequality_generator() )
+        vertices = tuple( ieq.A()/ieq.b() for
+                          ieq in self.inequality_generator() )
 
-        ieqs = ((1,) + tuple(-v[:]) for v in self.vertices())
+        ieqs = ((1,) + tuple(v[:]) for v in self.vertices())
 
         pref_rep = 'Hrep' if self.n_vertices() <= self.n_inequalities() else 'Vrep'
 

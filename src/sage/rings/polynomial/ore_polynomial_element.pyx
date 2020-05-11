@@ -32,6 +32,8 @@ AUTHORS:
 
 import re
 from cysignals.signals cimport sig_check
+from sage.structure.element import coerce_binop
+from sage.misc.superseded import experimental
 
 from sage.rings.infinity import infinity
 from sage.structure.factorization import Factorization
@@ -46,8 +48,6 @@ from cpython.object cimport PyObject_RichCompare
 from sage.categories.map cimport Map
 from sage.rings.morphism cimport Morphism, RingHomomorphism
 from sage.rings.polynomial.polynomial_element cimport _dict_to_list
-from sage.structure.element import coerce_binop
-from sage.misc.superseded import experimental
 
 
 cdef class OrePolynomial(AlgebraElement):
@@ -2840,6 +2840,96 @@ cdef class OrePolynomial_generic_dense(OrePolynomial):
             return [c for c in self._coeffs if not c.is_zero()]
         else:
             return self._coeffs
+
+    def hilbert_shift(self, s, var=None):
+        r"""
+        Return this Ore polynomial with variable shifted by `s`,
+        i.e. if this Ore polynomial is `P(x)`, return `P(x+s)`.
+
+        INPUT:
+
+        - ``s`` -- an element in the base ring
+
+        - ``var`` -- a string; the variable name
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(7)[]
+            sage: der = R.derivation()
+            sage: A.<d> = R['d', der]
+
+            sage: L = d^3 + t*d^2 
+            sage: L.hilbert_shift(t)
+            d^3 + 4*t*d^2 + (5*t^2 + 3)*d + 2*t^3 + 4*t
+            sage: (d+t)^3 + t*(d+t)^2
+            d^3 + 4*t*d^2 + (5*t^2 + 3)*d + 2*t^3 + 4*t
+
+        One can specify another variable name::
+
+            sage: L.hilbert_shift(t, var='x')
+            x^3 + 4*t*x^2 + (5*t^2 + 3)*x + 2*t^3 + 4*t
+
+        When the twisting morphism is not trivial, the output lies
+        in a different Ore polynomial ring::
+
+            sage: k.<a> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x', Frob]
+
+            sage: P = x^2 + a*x + a^2
+            sage: Q = P.hilbert_shift(a); Q
+            x^2 + (2*a^2 + a + 4)*x + a^2 + 3*a + 4
+            
+            sage: Q.parent()
+            Ore Polynomial Ring in x over Finite Field in a of size 5^3 twisted by a |--> a^5 and a*([a |--> a^5] - id)
+            sage: Q.parent() is S
+            False
+
+        This behavior ensures that the Hilbert shift by a fixed element 
+        defines an homomorphism of rings::
+
+            sage: U = S.random_element(degree=5)
+            sage: V = S.random_element(degree=5)
+            sage: s = k.random_element()
+            sage: (U+V).hilbert_shift(s) == U.hilbert_shift(s) + V.hilbert_shift(s)
+            True
+            sage: (U*V).hilbert_shift(s) == U.hilbert_shift(s) * V.hilbert_shift(s)
+            True
+
+        We check that shifting by an element and then by its opposite
+        gives back the initial Ore polynomial::
+
+            sage: P = S.random_element(degree=10)
+            sage: s = k.random_element()
+            sage: P.hilbert_shift(s).hilbert_shift(-s) == P
+            True
+        """
+        from sage.rings.polynomial.ore_polynomial_ring import OrePolynomialRing
+        parent = self._parent
+        k = parent.base_ring()
+        morphism = parent._morphism
+        derivation = parent._derivation
+        if morphism is not None:
+            if derivation is None:
+                derivation = k.derivation(s, twist=morphism)
+            else:
+                derivation += k.derivation(s, twist=morphism)
+        if var is None:
+            var = parent.variable_name()
+        if derivation is None:
+            S = OrePolynomialRing(k, morphism, var)
+        else:
+            S = OrePolynomialRing(k, derivation, var)
+        if not self:
+            return S.zero()
+        X = S.gen() + s
+        Xi = S.one()
+        ans = S(self[0])
+        for i in range(1, self.degree()+1):
+            Xi = X * Xi
+            ans += self[i] * Xi 
+        return ans
+
 
 cdef class ConstantOrePolynomialSection(Map):
     r"""

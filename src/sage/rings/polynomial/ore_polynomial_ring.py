@@ -268,7 +268,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
         We check the uniqueness property of parents::
 
             sage: der2 = R.derivation()
-            sage: B.<d> = SkewPolynomialRing(R, der2)
+            sage: B.<d> = OrePolynomialRing(R, der2)
             sage: A is B
             True
 
@@ -276,7 +276,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
             sage: k.<t> = ZZ[]
             sage: theta = k.hom([t+1])
-            sage: S.<x> = SkewPolynomialRing(k, theta)
+            sage: S.<x> = OrePolynomialRing(k, theta)
             sage: S
             Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
             sage: type(S)

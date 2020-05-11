@@ -1626,6 +1626,13 @@ class HyperplaneArrangementElement(Element):
             sage: A = K(*zero_one(5))
             sage: len(A.regions())            # not tested (~25s)
             11292
+
+        TESTS::
+
+            sage: K.<x,y,z,w,r> = HyperplaneArrangements(QQ)
+            sage: A = K()
+            sage: A.regions()
+            (A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 1 vertex and 5 lines,)
         """
         if self.base_ring().characteristic() != 0:
             raise ValueError('base field must have characteristic zero')
@@ -1634,7 +1641,7 @@ class HyperplaneArrangementElement(Element):
         dim = self.dimension()
         universe = Polyhedron(eqns=[[0] + [0] * dim], base_ring=R)
         regions = [universe]
-        if self.is_linear():
+        if self.is_linear() and self.n_hyperplanes():
             # We only take the positive half w.r. to the first hyperplane.
             # We fix this by appending all negative regions in the end.
             regions = None
@@ -1689,7 +1696,7 @@ class HyperplaneArrangementElement(Element):
                     subdivided.append(region)
             regions = subdivided
 
-        if self.is_linear():
+        if self.is_linear() and self.n_hyperplanes():
             # We have treated so far only the positive half space w.r. to the first hyperplane.
             return tuple(regions) + tuple(-x for x in regions)
         else:

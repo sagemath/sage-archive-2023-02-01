@@ -1601,6 +1601,31 @@ class HyperplaneArrangementElement(Element):
             sage: chessboard = H(chessboard)
             sage: len(chessboard.bounded_regions())   # long time, 359 ms on a Core i7
             64
+
+        Example 6 of [KP2020]::
+
+            sage: from itertools import product
+            sage: def zero_one(d):
+            ....:     for x in product([0,1], repeat=d):
+            ....:         if any(y for y in x):
+            ....:             yield [0] + list(x)
+            ....:
+            sage: K.<x,y> = HyperplaneArrangements(QQ)
+            sage: A = K(*zero_one(2))
+            sage: len(A.regions())
+            6
+            sage: K.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = K(*zero_one(3))
+            sage: len(A.regions())
+            32
+            sage: K.<x,y,z,w> = HyperplaneArrangements(QQ)
+            sage: A = K(*zero_one(4))
+            sage: len(A.regions())
+            370
+            sage: K.<x,y,z,w,r> = HyperplaneArrangements(QQ)
+            sage: A = K(*zero_one(5))
+            sage: len(A.regions())            # not tested (~25s)
+            11292
         """
         if self.base_ring().characteristic() != 0:
             raise ValueError('base field must have characteristic zero')

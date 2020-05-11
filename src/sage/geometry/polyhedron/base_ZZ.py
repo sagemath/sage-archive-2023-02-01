@@ -18,7 +18,6 @@ from sage.misc.all import cached_method
 from sage.modules.free_module_element import vector
 from .base_QQ import Polyhedron_QQ
 from sage.arith.all import gcd
-from .constructor import Polyhedron
 
 
 #########################################################################

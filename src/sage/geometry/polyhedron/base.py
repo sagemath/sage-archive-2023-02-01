@@ -1028,22 +1028,32 @@ class Polyhedron_base(Element):
         if self.n_vertices() > 0:
             desc += ' defined as the convex hull of '
             desc += repr(self.n_vertices())
-            if self.n_vertices() == 1: desc += ' vertex'
-            else:                      desc += ' vertices'
+            if self.n_vertices() == 1:
+                desc += ' vertex'
+            else:
+                desc += ' vertices'
 
             if self.n_rays() > 0:
-                if self.n_lines() > 0: desc += ", "
-                else:                  desc += " and "
+                if self.n_lines() > 0:
+                    desc += ", "
+                else:
+                    desc += " and "
                 desc += repr(self.n_rays())
-                if self.n_rays() == 1: desc += ' ray'
-                else:                  desc += ' rays'
+                if self.n_rays() == 1:
+                    desc += ' ray'
+                else:
+                    desc += ' rays'
 
             if self.n_lines() > 0:
-                if self.n_rays() > 0: desc += ", "
-                else:                 desc += " and "
+                if self.n_rays() > 0:
+                    desc += ", "
+                else:
+                    desc += " and "
                 desc += repr(self.n_lines())
-                if self.n_lines() == 1: desc += ' line'
-                else:                   desc += ' lines'
+                if self.n_lines() == 1:
+                    desc += ' line'
+                else:
+                    desc += ' lines'
 
         return desc
 
@@ -2225,10 +2235,13 @@ class Polyhedron_base(Element):
         """
         obj = self.Vrepresentation()
         for i in range(len(obj)):
-            if not obj[i].is_vertex(): continue
+            if not obj[i].is_vertex():
+                continue
             for j in range(i+1, len(obj)):
-                if not obj[j].is_vertex(): continue
-                if self.vertex_adjacency_matrix()[i, j] == 0: continue
+                if not obj[j].is_vertex():
+                    continue
+                if self.vertex_adjacency_matrix()[i, j] == 0:
+                    continue
                 yield (obj[i], obj[j])
 
     def Vrepresentation_space(self):
@@ -3702,7 +3715,8 @@ class Polyhedron_base(Element):
             sage: sum(P.gale_transform()).norm() < 1e-15
             True
         """
-        if not self.is_compact(): raise ValueError('not a polytope')
+        if not self.is_compact():
+            raise ValueError('not a polytope')
 
         A = matrix(self.n_vertices(),
                    [ [1]+x for x in self.vertex_generator()])
@@ -6951,11 +6965,11 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: polytopes.hypercube(3)._volume_lrs() #optional - lrslib
+            sage: polytopes.hypercube(3)._volume_lrs() # optional - lrslib
             8.0
-            sage: (polytopes.hypercube(3)*2)._volume_lrs() #optional - lrslib
+            sage: (polytopes.hypercube(3)*2)._volume_lrs() # optional - lrslib
             64.0
-            sage: polytopes.twenty_four_cell()._volume_lrs() #optional - lrslib
+            sage: polytopes.twenty_four_cell()._volume_lrs() # optional - lrslib
             2.0
 
         REFERENCES:
@@ -6974,7 +6988,8 @@ class Polyhedron_base(Element):
         in_file = open(in_filename, 'w')
         in_file.write(in_str)
         in_file.close()
-        if verbose: print(in_str)
+        if verbose:
+            print(in_str)
 
         lrs_procs = Popen(['lrs', in_filename],
                           stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -7021,30 +7036,30 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: polytopes.hypercube(3)._volume_latte() #optional - latte_int
+            sage: polytopes.hypercube(3)._volume_latte() # optional - latte_int
             8
-            sage: (polytopes.hypercube(3)*2)._volume_latte() #optional - latte_int
+            sage: (polytopes.hypercube(3)*2)._volume_latte() # optional - latte_int
             64
-            sage: polytopes.twenty_four_cell()._volume_latte() #optional - latte_int
+            sage: polytopes.twenty_four_cell()._volume_latte() # optional - latte_int
             2
-            sage: polytopes.cuboctahedron()._volume_latte() #optional - latte_int
+            sage: polytopes.cuboctahedron()._volume_latte() # optional - latte_int
             20/3
 
         TESTS:
 
         Testing triangulate algorithm::
 
-            sage: polytopes.cuboctahedron()._volume_latte(algorithm='triangulate') #optional - latte_int
+            sage: polytopes.cuboctahedron()._volume_latte(algorithm='triangulate') # optional - latte_int
             20/3
 
         Testing cone decomposition algorithm::
 
-            sage: polytopes.cuboctahedron()._volume_latte(algorithm='cone-decompose') #optional - latte_int
+            sage: polytopes.cuboctahedron()._volume_latte(algorithm='cone-decompose') # optional - latte_int
             20/3
 
         Testing raw output::
 
-            sage: polytopes.cuboctahedron()._volume_latte(raw_output=True) #optional - latte_int
+            sage: polytopes.cuboctahedron()._volume_latte(raw_output=True) # optional - latte_int
             '20/3'
 
         Testing inexact rings::
@@ -7137,10 +7152,10 @@ class Polyhedron_base(Element):
         reasons, Sage casts lrs's exact answer to a float::
 
             sage: I3 = polytopes.hypercube(3)
-            sage: I3.volume(engine='lrs') #optional - lrslib
+            sage: I3.volume(engine='lrs') # optional - lrslib
             8.0
             sage: C24 = polytopes.twenty_four_cell()
-            sage: C24.volume(engine='lrs') #optional - lrslib
+            sage: C24.volume(engine='lrs') # optional - lrslib
             2.0
 
         If the base ring is exact, the answer is exact::

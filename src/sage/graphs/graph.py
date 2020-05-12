@@ -5194,7 +5194,8 @@ class Graph(GenericGraph):
         else:
             return self.degree(v)/n_minus_one
 
-    # Eccentricity
+    ### Distances
+
     @doc_index("Distances")
     def eccentricity(self, v=None, by_weight=False, algorithm=None,
                      weight_function=None, check_weight=True, dist_dict=None,
@@ -5420,7 +5421,6 @@ class Graph(GenericGraph):
                 return v
             return [ecc[u] for u in v]
 
-    # Radius
     @doc_index("Distances")
     def radius(self, by_weight=False, algorithm=None, weight_function=None,
                check_weight=True):
@@ -5484,7 +5484,6 @@ class Graph(GenericGraph):
                                      check_weight=check_weight,
                                      algorithm=algorithm))
 
-    # Diameter
     @doc_index("Distances")
     def diameter(self, by_weight=False, algorithm=None, weight_function=None,
                  check_weight=True):
@@ -5602,7 +5601,6 @@ class Graph(GenericGraph):
                                      check_weight=check_weight,
                                      algorithm=algorithm))
 
-    # Center
     @doc_index("Distances")
     def center(self, by_weight=False, algorithm=None, weight_function=None,
                check_weight=True):
@@ -5675,7 +5673,6 @@ class Graph(GenericGraph):
             return []
         return [v for v in self if ecc[v] == r]
 
-    # Periphery
     @doc_index("Distances")
     def periphery(self, by_weight=False, algorithm=None, weight_function=None,
                   check_weight=True):

@@ -246,6 +246,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
         - Multivariate Ore Polynomial Ring
     """
     Element = None
+    _fraction_field_class = None
 
     @staticmethod
     def __classcall_private__(cls, base_ring, twist=None, names=None, sparse=False):
@@ -382,6 +383,9 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
         """
         if self.Element is None:
             self.Element = sage.rings.polynomial.ore_polynomial_element.OrePolynomial_generic_dense
+        if self._fraction_field_class is None:
+            from sage.rings.polynomial.ore_function_field import OreFunctionField
+            self._fraction_field_class = OreFunctionField
         self.__is_sparse = sparse
         self._morphism = morphism
         self._derivation = derivation
@@ -1056,9 +1060,8 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
     @cached_method
     def fraction_field(self):
-        from sage.rings.polynomial.ore_function_field import OreFunctionField
         if self.base_ring() in Fields():
-            return OreFunctionField(self)
+            return self._fraction_field_class(self)
         base = self.base_ring().fraction_field()
         if self._derivation is None:
             twist = self._morphism.extend_to_fraction_field()
@@ -1067,6 +1070,6 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
         name = self.variable_name()
         sparse = self.is_sparse()
         ring = OrePolynomialRing(base, twist, name, sparse)
-        frac = OreFunctionField(ring)
+        frac = self._fraction_field_class(ring)
         frac.register_coercion(self)
         return frac

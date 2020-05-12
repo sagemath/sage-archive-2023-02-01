@@ -176,3 +176,20 @@ class OreFunctionBaseringInjection(Morphism):
 
     def section(self):
         return ConstantOrePolynomialSection(self._codomain, self.domain())
+
+
+# Finite order
+##############
+
+class OreFunction_finite_order(OreFunction):
+    def reduced_trace(self, var=None):
+        ring = self.parent()._ring
+        denominator = self._denominator.reduced_norm()
+        cofactor, _ = ring(denominator).right_quo_rem(self._denominator)
+        numerator = (self._numerator * cofactor).reduced_trace()
+        return numerator/denominator
+
+    def reduced_norm(self, var=None):
+        numerator = self._numerator.reduced_norm(var)
+        denominator = self._denominator.reduced_norm(var)
+        return numerator/denominator

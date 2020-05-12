@@ -5684,6 +5684,89 @@ class Permutations_mset(Permutations):
 
         return ZZ(multinomial(d.values()))
 
+    def rank(self, p):
+        r"""
+        Return the rank of ``p`` in lexicographic order.
+
+        INPUT:
+
+        - ``p`` -- a permutation of `M`.
+
+        ALGORITHM:
+
+        The algorithm uses the recurrence from the solution to exercise 4 in
+        [Knu2011]_, Section 7.2.1.2:
+
+        .. MATH::
+
+            \mathrm{rank}(p_1 \ldots p_n) =
+            \mathrm{rank}(p_2 \ldots p_n)
+            + \frac{1}{n} \genfrac{(}{)}{0pt}{0}{n}{n_1, \ldots, n_t}
+                \sum_{j=1}^t n_j \left[ x_j < p_1 \right],
+
+        where `x_j, n_j` are the distinct elements of `p` with their
+        multiplicities, `n` is the sum of `n_1, \ldots, n_t`,
+        `\genfrac{(}{)}{0pt}{1}{n}{n_1, \ldots, n_t}` is the multinomial
+        coefficient `\frac{n!}{n_1! \ldots n_t!}`, and
+        `\sum_{j=1}^t n_j \left[ x_j < p_1 \right]` means "the number of
+        elements to the right of the first element that are less than the first
+        element".
+
+        EXAMPLES::
+
+            sage: mset = [1, 1, 2, 3, 4, 5, 5, 6, 9]
+            sage: p = Permutations(mset)
+            sage: p.rank(list(sorted(mset)))
+            0
+            sage: p.rank(list(reversed(sorted(mset)))) == p.cardinality() - 1
+            True
+            sage: p.rank([3, 1, 4, 1, 5, 9, 2, 6, 5])
+            30991
+
+        TESTS:
+
+            sage: from sage.combinat.permutation import Permutations_mset
+            sage: p = Permutations_mset([])
+            sage: p.rank([])
+            0
+            sage: p = Permutations_mset([1, 1, 2, 3, 4, 5, 5, 6, 9])
+            sage: p.rank([1, 2, 3, 4, 5, 6, 9])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid permutation
+
+        Try with greater-than-unity multiplicity in the least and greatest
+        elements.
+
+            sage: mset = list(range(10)) * 3
+            sage: p = Permutations_mset(mset)
+            sage: p.rank(list(sorted(mset)))
+            0
+            sage: p.rank(list(reversed(sorted(mset))))
+            4386797336285844479999999
+            sage: p.cardinality()
+            4386797336285844480000000
+
+        Should match ``StandardPermutations_n`` when `M` is the set
+        `\{1, 2, \ldots, n\}`.
+
+            sage: ps = Permutations(4)
+            sage: pm = Permutations_mset(list(range(1, 5)))
+            sage: ps.rank([2, 3, 1, 4]) == pm.rank([2, 3, 1, 4])
+            True
+        """
+        self(p).check()
+        m = {}
+        r = 0
+        for n in range(1, len(p)+1):
+            # ``p1`` is the first element of ``p[-n:]`` (i.e., the last ``n``
+            # elements of ``p``). ``m`` represents the multiset of ``p[-n:]`` in
+            # the form element→count.
+            p1 = p[-n]
+            m[p1] = m.get(p1, 0) + 1
+            r += multinomial(m.values()) * sum(nj for xj, nj in m.items() if xj < p1) // n
+        return r
+
 
 class Permutations_set(Permutations):
     """

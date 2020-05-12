@@ -3213,6 +3213,9 @@ REFERENCES:
 .. [Knu1995] Donald E. Knuth, *Overlapping Pfaffians*,
              :arxiv:`math/9503234v1`.
 
+.. [Knu2011] Donald E. Knuth, *The Art of Computer Programming. Volume 4A.
+             Combinatorial Algorithms, Part 1*.
+
 .. [Knu2005] Lars R. Knudsen, *SMASH - A Cryptographic Hash Function*; in
              FSE'05, (2005), pp. 228-242.
 

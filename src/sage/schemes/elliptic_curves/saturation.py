@@ -157,7 +157,7 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
     if n == 0:
         return (True, lin_combs)
 
-    if n == 1:
+    if n == 1 and p == 2:
         try:
             return (False, 0, Plist[0].division_points(p)[0])
         except IndexError:
@@ -359,7 +359,8 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
             else: # rank went up but is <n; carry on using more Qs
                 rankA = newrank
                 count = 0
-    # We reach here only if using all good primes of norm<1000 the
+
+    # We reach here only if using many auxiliary primes Q, the
     # rank never stuck for 10 consecutive Qs but is still < n.  That
     # means that n is rather large, or perhaps that E has a large
     # number of bad primes.  So we fall back to the naive method,

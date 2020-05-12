@@ -579,6 +579,20 @@ cdef class FaceIterator_base(SageObject):
         self.structure._index = 0
 
     def __next__(self):
+        r"""
+        Must be implemented by a derived class.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator \
+            ....:         import FaceIterator_base
+            sage: P = polytopes.octahedron()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: next(FaceIterator_base(C, False))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: a derived class must implement this
+        """
         raise NotImplementedError("a derived class must implement this")
 
     next = __next__

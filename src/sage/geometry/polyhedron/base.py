@@ -5924,13 +5924,14 @@ class Polyhedron_base(Element):
         - ``face_dimension`` -- integer (default ``None``),
           yield only faces of this dimension if specified
         - ``dual`` -- boolean (default ``None``);
-          if ``True``, then generate the faces using the vertices;
+          if ``True``, generate the faces using the vertices;
+          if ``False``, generate the faces using the facets;
           if ``None``, pick automatically
 
         OUTPUT:
 
         A :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator_geom`.
-        This class yields faces as
+        This class iterates over faces as
         :class:`~sage.geometry.polyhedron.face.PolyhedronFace`. See
         :mod:`~sage.geometry.polyhedron.face` for details. The order
         is random but fixed.

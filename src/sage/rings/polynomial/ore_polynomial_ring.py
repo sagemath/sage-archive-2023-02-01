@@ -1054,8 +1054,18 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
         """
         return self._morphism is None and self._derivation is None
 
+    @cached_method
     def fraction_field(self):
         from sage.rings.polynomial.ore_function_field import OreFunctionField
-        if self.base_ring() not in Fields():
-            raise NotImplementedError
-        return OreFunctionField(self)
+        if self.base_ring() in Fields():
+            ring = self
+        else:
+            base = self.base_ring().fraction_field()
+            if self._derivation is None:
+                twist = self._morphism.extend_to_fraction_field()
+            else:
+                twist = self._derivation.extend_to_fraction_field()
+            name = self.variable_name()
+            sparse = self.is_sparse()
+            ring = OrePolynomialRing(base, twist, name, sparse)
+        return OreFunctionField(ring)

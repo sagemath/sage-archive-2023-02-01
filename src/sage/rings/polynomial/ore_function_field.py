@@ -21,7 +21,7 @@ from sage.categories.fields import Fields
 from sage.rings.ring import Algebra
 
 from sage.rings.polynomial.ore_polynomial_ring import OrePolynomialRing
-from sage.rings.polynomial.ore_polynomial_element import OrePolynomialBaseringInjection
+from sage.rings.polynomial.ore_function_element import OreFunctionBaseringInjection
 
 
 # Generic implementation of Ore polynomial rings
@@ -51,8 +51,8 @@ class OreFunctionField(Algebra, UniqueRepresentation):
     def _element_constructor_(self, *args, **kwds):
         return self.Element(self, *args, **kwds)
 
-    #def _coerce_map_from_base_ring(self):
-    #    return OreFunctionBaseringInjection(self.base_ring(), self)
+    def _coerce_map_from_base_ring(self):
+        return OreFunctionBaseringInjection(self.base_ring(), self)
 
     def _coerce_map_from_(self, P):
         if isinstance(P, OreFunctionField):

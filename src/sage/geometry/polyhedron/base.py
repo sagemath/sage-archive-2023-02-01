@@ -3268,7 +3268,8 @@ class Polyhedron_base(Element):
             False
 
         """
-        if not self.is_compact(): return False
+        if not self.is_compact():
+            return False
         return self.combinatorial_polyhedron().is_simple()
 
     def simpliciality(self):

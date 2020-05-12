@@ -1602,7 +1602,7 @@ class HyperplaneArrangementElement(Element):
             sage: len(chessboard.bounded_regions())   # long time, 359 ms on a Core i7
             64
 
-        Example 6 of [KP2020]::
+        Example 6 of [KP2020]_::
 
             sage: from itertools import product
             sage: def zero_one(d):
@@ -1673,20 +1673,21 @@ class HyperplaneArrangementElement(Element):
 
                 if not splits:
                     # All vertices lie in one closed halfspace of the hyperplane.
+                    region_lines = region.lines()
                     if direction == 0:
                         # In this case all vertices lie on the hyperplane and we must
                         # check if rays are contained in one closed halfspace given by the hyperplane.
                         valuations = tuple(ieq[1:]*ray[:] for ray in region.rays())
-                        if region.lines():
-                            valuations += tuple(ieq[1:]*line[:] for line in region.lines())
-                            valuations += tuple(-ieq[1:]*line[:] for line in region.lines())
+                        if region_lines:
+                            valuations += tuple(ieq[1:]*line[:] for line in region_lines)
+                            valuations += tuple(-ieq[1:]*line[:] for line in region_lines)
                         if any(x > 0 for x in valuations) and any(x < 0 for x in valuations):
                             splits = True
                     else:
                         # In this case, at least one of the vertices is not on the hyperplane.
                         # So we check if any ray or line pokes the hyperplane.
                         if any(ieq[1:]*r[:]*direction < 0 for r in region.rays()) or \
-                                any(ieq[1:]*l[:] != 0 for l in region.lines()):
+                                any(ieq[1:]*l[:] != 0 for l in region_lines):
                             splits = True
 
                 if splits:

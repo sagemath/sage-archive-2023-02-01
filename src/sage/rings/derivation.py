@@ -933,7 +933,6 @@ class RingDerivationWithoutTwist(RingDerivation):
         else:
             return s
 
-
     def list(self):
         """
         Return the list of coefficient of this derivation
@@ -1278,6 +1277,16 @@ class RingDerivationWithoutTwist(RingDerivation):
             arg.append(morphism(self(x)))
         return M(arg)
 
+    def extend_to_fraction_field(self):
+        parent = self.parent()
+        domain = parent.domain().fraction_field()
+        codomain = parent.codomain().fraction_field()
+        M = RingDerivationModule(domain, codomain)
+        try:
+            return M(self)
+        except (ValueError, NotImplementedError):
+            return M(self.list())
+            
 
 class RingDerivationWithoutTwist_zero(RingDerivationWithoutTwist):
     """
@@ -2274,3 +2283,11 @@ class RingDerivationWithTwist_generic(RingDerivation):
             else:
                 return True
         return NotImplemented
+
+    def extend_to_fraction_field(self):
+        parent = self.parent()
+        domain = parent.domain().fraction_field()
+        codomain = parent.codomain().fraction_field()
+        twist = parent.twisting_morphism().extend_to_fraction_field()
+        M = RingDerivationModule(domain, codomain, twist)
+        return M(codomain(self._scalar))

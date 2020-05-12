@@ -1686,8 +1686,8 @@ class HyperplaneArrangementElement(Element):
                     else:
                         # In this case, at least one of the vertices is not on the hyperplane.
                         # So we check if any ray or line pokes the hyperplane.
-                        if any(ieq[1:]*r[:]*direction < 0 for r in region.rays()) or \
-                                any(ieq[1:]*l[:] != 0 for l in region_lines):
+                        if (any(ieq[1:]*r[:]*direction < 0 for r in region.rays()) or
+                            any(ieq[1:]*l[:]          != 0 for l in region_lines)):
                             splits = True
 
                 if splits:

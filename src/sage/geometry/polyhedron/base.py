@@ -1573,7 +1573,7 @@ class Polyhedron_base(Element):
         if align is None:
             align = separator == "\n"
         if align:
-            lengths  = [(len(s[0]), len(s[1]), len(s[2])) for s in pretty_hs]
+            lengths = [(len(s[0]), len(s[1]), len(s[2])) for s in pretty_hs]
             from operator import itemgetter
             length_left = max(lengths, key=itemgetter(0))[0]
             length_middle = max(lengths, key=itemgetter(1))[1]
@@ -2089,7 +2089,7 @@ class Polyhedron_base(Element):
         # We use in the following that elements in ``chain_indices`` are sorted lists
         # of V-indices.
         # Thus for each two faces we can easily find the first vertex that differs.
-        for dim,face in enumerate(chain_indices):
+        for dim, face in enumerate(chain_indices):
             if dim == 0:
                 # Append the vertex.
                 basis_indices.append(face[0])
@@ -2547,7 +2547,7 @@ class Polyhedron_base(Element):
             ineq_indices = [inc_mat_cols[i].nonzero_positions()
                             for i in range(self.n_Hrepresentation())
                             if self.Hrepresentation()[i].is_inequality()]
-            return SimplicialComplex(ineq_indices,maximality_check=False)
+            return SimplicialComplex(ineq_indices, maximality_check=False)
         else:
             raise NotImplementedError("this function is only implemented for simplicial polytopes")
 
@@ -2678,10 +2678,10 @@ class Polyhedron_base(Element):
         incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)
 
-        Vvectors_vertices = tuple((v.vector(),v.index())
+        Vvectors_vertices = tuple((v.vector(), v.index())
                                   for v in self.Vrep_generator()
                                   if v.is_vertex())
-        Vvectors_rays_lines = tuple((v.vector(),v.index())
+        Vvectors_rays_lines = tuple((v.vector(), v.index())
                                     for v in self.Vrep_generator()
                                     if not v.is_vertex())
 
@@ -2691,13 +2691,13 @@ class Polyhedron_base(Element):
             Hindex = H.index()
             for Vvec, Vindex in Vvectors_vertices:
                 if self._is_zero(Hvec*Vvec + Hconst):
-                   incidence_matrix[Vindex, Hindex] = 1
+                    incidence_matrix[Vindex, Hindex] = 1
 
             # A ray or line is considered incident with a hyperplane,
             # if it is orthogonal to the normal vector of the hyperplane.
             for Vvec, Vindex in Vvectors_rays_lines:
                 if self._is_zero(Hvec*Vvec):
-                   incidence_matrix[Vindex, Hindex] = 1
+                    incidence_matrix[Vindex, Hindex] = 1
 
         incidence_matrix.set_immutable()
         return incidence_matrix
@@ -2868,11 +2868,11 @@ class Polyhedron_base(Element):
             pc = triangulation.point_configuration()
         else:
             from sage.geometry.triangulation.point_configuration import PointConfiguration
-            A,b = self.affine_hull_projection(as_affine_map=True, orthogonal=True, orthonormal=True, extend=True)
+            A, b = self.affine_hull_projection(as_affine_map=True, orthogonal=True, orthonormal=True, extend=True)
             pc = PointConfiguration((A(v.vector()) for v in self.Vrep_generator()))
 
         barycenters = [sum(self.Vrepresentation(i).vector() for i in simplex)/(self.dim() + 1) for simplex in triangulation]
-        volumes =  [pc.volume(simplex) for simplex in triangulation]
+        volumes = [pc.volume(simplex) for simplex in triangulation]
 
         centroid = sum(volumes[i]*barycenters[i] for i in range(len(volumes)))/sum(volumes)
         if self.ambient_dim() != self.dim():
@@ -3629,7 +3629,7 @@ class Polyhedron_base(Element):
                 # We have found two candidates for base faces.
                 # Remove from each vertex ``index1`` resp. ``index2``.
                 test_verts = set(frozenset(vert_inc.difference({index1, index2}))
-                                  for vert_inc in verts_incidences)
+                                 for vert_inc in verts_incidences)
                 if len(test_verts) == n_verts/2:
                     # For each vertex containing `index1` there is
                     # another one contained in `index2`
@@ -3720,7 +3720,7 @@ class Polyhedron_base(Element):
             raise ValueError('not a polytope')
 
         A = matrix(self.n_vertices(),
-                   [ [1]+x for x in self.vertex_generator()])
+                   [[1]+x for x in self.vertex_generator()])
         A = A.transpose()
         A_ker = A.right_kernel_matrix(basis='computed')
         return tuple(A_ker.columns())
@@ -4386,8 +4386,8 @@ class Polyhedron_base(Element):
         try:
             new_ring = self.parent()._coerce_base_ring(other)
         except TypeError:
-            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent()) \
-                     + " and " + str(other.parent()))
+            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
+                             + " and " + str(other.parent()))
 
         from itertools import chain
 
@@ -4408,7 +4408,6 @@ class Polyhedron_base(Element):
 
         eqns = chain((tuple(e) + other_zero               for e in  self.equation_generator()),
                      ((e.b(),) + self_zero + tuple(e.A()) for e in other.equation_generator()))
-
 
         pref_rep = 'Vrep' if self.n_vertices() + self.n_rays() + other.n_vertices() + other.n_rays() \
                              <= self.n_inequalities() + other.n_inequalities() else 'Hrep'
@@ -4704,8 +4703,8 @@ class Polyhedron_base(Element):
         one = parent.base_ring().one()
         sign = one if scalar > 0 else -one
 
-        make_new_Hrep = lambda h : tuple(scalar*sign*x if i == 0 else sign*x
-                                         for i,x in enumerate(h._vector))
+        make_new_Hrep = lambda h: tuple(scalar*sign*x if i == 0 else sign*x
+                                         for i, x in enumerate(h._vector))
 
         new_vertices = (tuple(scalar*x for x in v._vector) for v in self.vertex_generator())
         new_rays = (tuple(sign*x for x in r._vector) for r in self.ray_generator())
@@ -5195,8 +5194,8 @@ class Polyhedron_base(Element):
                 normal_vectors.append(facet.A())
 
         if linear_coefficients is not None:
-            normal_vector = sum(linear_coefficients[i]*normal_vectors[i] for i
-                                 in range(len(normal_vectors)))
+            normal_vector = sum(linear_coefficients[i]*normal_vectors[i]
+                                for i in range(len(normal_vectors)))
         else:
             normal_vector = sum(normal_vectors)
 
@@ -5570,7 +5569,7 @@ class Polyhedron_base(Element):
             raise ValueError("{} must not be a vertex or outside self".format(v))
 
         lambda_V = [u + [0] for u in V if u != v] + [v+[1]] + [v+[2]]
-        parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  1)
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+1)
         return parent.element_class(parent, [lambda_V, [], []], None)
 
     def lawrence_polytope(self):
@@ -5632,7 +5631,7 @@ class Polyhedron_base(Element):
         n = self.n_vertices()
         I_n = matrix.identity(n)
         lambda_V = block_matrix([[V, I_n], [V, 2*I_n]])
-        parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  n)
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+n)
         return parent.element_class(parent, [lambda_V, [], []], None)
 
     def is_lawrence_polytope(self):
@@ -5944,9 +5943,9 @@ class Polyhedron_base(Element):
             if not atoms:
                 Vindices = ()
             else:
-                Vindices = tuple(sorted([   atom_to_Vindex[i] for i in   atoms ]+lines))
-            Hindices = tuple(sorted([ coatom_to_Hindex[i] for i in coatoms ]+equations))
-            return PolyhedronFace(self,Vindices, Hindices)
+                Vindices = tuple(sorted([atom_to_Vindex[i] for i in atoms] + lines))
+            Hindices = tuple(sorted([coatom_to_Hindex[i] for i in coatoms] + equations))
+            return PolyhedronFace(self, Vindices, Hindices)
 
         from sage.geometry.hasse_diagram import lattice_from_incidences
         return lattice_from_incidences(atoms_incidences, coatoms_incidences,
@@ -6950,7 +6949,7 @@ class Polyhedron_base(Element):
         if projection_dir is None:
             vertices = self.vertices()
             facet = self.Hrepresentation(0)
-            f0 = [ v.index() for v in facet.incident() ]
+            f0 = [v.index() for v in facet.incident()]
             projection_dir = [sum([vertices[f0[i]][j]/len(f0) for i in range(len(f0))])
                               for j in range(self.ambient_dim())]
         return proj.schlegel(projection_direction=projection_dir, height=height)
@@ -8070,7 +8069,7 @@ class Polyhedron_base(Element):
         if self.n_vertices() == 0:
             raise ValueError("empty polytope is not allowed")
         for i in range(self.ambient_dim()):
-            coords = [ v[i] for v in self.vertex_generator() ]
+            coords = [v[i] for v in self.vertex_generator()]
             max_coord = max(coords)
             min_coord = min(coords)
             if integral_hull:
@@ -8262,7 +8261,7 @@ class Polyhedron_base(Element):
         triangulation = self.triangulate()
         points = set()
         for simplex in triangulation:
-            triang_vertices = [ self.Vrepresentation(i) for i in simplex ]
+            triang_vertices = [self.Vrepresentation(i) for i in simplex]
             new_points = simplex_points(triang_vertices)
             for p in new_points:
                 p.set_immutable()
@@ -8794,6 +8793,7 @@ class Polyhedron_base(Element):
                 return c
         else:
             c_list = []
+
             def rational_approximation(c):
                 # Implementation detail: Return unique integer if two
                 # c-values are the same up to machine precision. But

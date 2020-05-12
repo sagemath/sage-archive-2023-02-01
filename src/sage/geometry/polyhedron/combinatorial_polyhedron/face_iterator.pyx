@@ -445,9 +445,9 @@ cdef class FaceIterator_base(SageObject):
     """
     def __init__(self, CombinatorialPolyhedron C, bint dual, output_dimension=None):
         r"""
-        Initialize :class:`FaceIterator`.
+        Initialize :class:`FaceIterator_base`.
 
-        See :class:`FaceIterator`.
+        See :class:`FaceIterator_base`.
 
         EXAMPLES::
 
@@ -606,7 +606,7 @@ cdef class FaceIterator_base(SageObject):
 
     def ignore_subfaces(self):
         r"""
-        :class:`FaceIterator` will not visit any faces of the current face.
+        The iterator will not visit any faces of the current face.
 
         Only possible when not in dual mode.
 
@@ -639,7 +639,7 @@ cdef class FaceIterator_base(SageObject):
 
     def ignore_supfaces(self):
         r"""
-        :class:`FaceIterator` will not visit any faces of the current face.
+        The iterator will not visit any faces of the current face.
 
         Only possible when not in dual mode.
 
@@ -686,14 +686,14 @@ cdef class FaceIterator_base(SageObject):
 
         Will return the dimension of the polyhedron on failure.
 
-        The function calls :meth:`FaceIterator.next_face_loop` until a new
+        The function calls :meth:`FaceIterator_base.next_face_loop` until a new
         face is set or until the iterator is consumed.
 
         .. NOTE::
 
             The face_iterator can be prevented from visiting any subfaces
-            (or supfaces in dual mode) as in :meth:`FaceIterator.ignore_subfaces`
-            and :meth`FaceIterator.ignore_supfaces`.
+            (or supfaces in dual mode) as in :meth:`FaceIterator_base.ignore_subfaces`
+            and :meth`FaceIterator_base.ignore_supfaces`.
 
             Those methods add the current face to ``visited_all`` before
             visiting sub-/supfaces instead of after. One cannot arbitrarily
@@ -805,7 +805,7 @@ cdef class FaceIterator_base(SageObject):
             return count_atoms(self.structure.face, self.structure.face_length)
 
         # The face was not initialized properly.
-        raise LookupError("``FaceIterator`` does not point to a face")
+        raise LookupError("face iterator does not point to a face")
 
     cdef size_t set_coatom_rep(self) except -1:
         r"""
@@ -931,6 +931,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
         Return the next face.
 
         EXAMPLES::
+
             sage: P = polytopes.cube()
             sage: it = P.face_generator()
             sage: [next(it) for _ in range(7)]

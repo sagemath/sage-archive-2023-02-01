@@ -915,16 +915,16 @@ cdef class FaceIterator_geom(FaceIterator_base):
 
             sage: P = polytopes.associahedron(['A',3])
             sage: P.face_generator()
-            Iterator over the faces of a 3-dimensional polyhedron in Rational Field^3
+            Iterator over the faces of a 3-dimensional polyhedron in QQ^3
 
             sage: P.face_generator(1)
-            Iterator over the 1-faces of a 3-dimensional polyhedron in Rational Field^3
+            Iterator over the 1-faces of a 3-dimensional polyhedron in QQ^3
         """
         if self._requested_dim is not None:
             output = "Iterator over the {}-faces".format(self._requested_dim)
         else:
             output = "Iterator over the faces"
-        return output + " of a {}-dimensional polyhedron in {}^{}".format(self.structure.dimension, self.P.base_ring(), self.P.ambient_dim())
+        return output + " of a {}-dimensional polyhedron in {}".format(self.structure.dimension, self.P.parent()._repr_ambient_module())
 
     def __next__(self):
         r"""

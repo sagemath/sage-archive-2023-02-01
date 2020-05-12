@@ -142,6 +142,23 @@ In dual mode one can ignore all faces that contain the current face::
     (0, 1, 2),
     (0, 1)]
 
+There is a special face iterator class for geometric polyhedra.
+It yields (geometric) polyhedral faces and it also yields trivial faces.
+Otherwise, it works exactly the same::
+
+    sage: from sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator \
+    ....:         import FaceIterator_geom
+    sage: P = polytopes.cube()
+    sage: it = FaceIterator_geom(P)
+    sage: [next(it) for _ in range(5)]
+    [A 3-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 8 vertices,
+     A -1-dimensional face of a Polyhedron in ZZ^3,
+     A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
+     A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
+     A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices]
+    sage: it
+    Iterator over the faces of a 3-dimensional polyhedron in ZZ^3
+
 AUTHOR:
 
 - Jonathan Kliem (2019-04)
@@ -219,9 +236,9 @@ cdef extern from "Python.h":
 
 cdef class FaceIterator_base(SageObject):
     r"""
-    A class to iterate over all faces of a polyhedron.
+    A base class to iterate over all faces of a polyhedron.
 
-    Constructs all proper faces from the facets. In dual mode, constructs all proper
+    Construct all proper faces from the facets. In dual mode, construct all proper
     faces from the vertices. Dual will be faster for less vertices than facets.
 
     INPUT:
@@ -234,6 +251,8 @@ cdef class FaceIterator_base(SageObject):
 
     .. SEEALSO::
 
+        :class:`FaceIterator`,
+        :class:`FaceIterator_geom`,
         :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`.
 
     EXAMPLES:
@@ -453,7 +472,8 @@ cdef class FaceIterator_base(SageObject):
 
             sage: P = polytopes.permutahedron(4)
             sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter()
+            sage: it = C.face_iter() # indirect doctest
+
             sage: f_vector = [1, 0, 0, 0, 1]
             sage: for face in it: f_vector[face.dimension()+1] += 1
             sage: print ('f_vector of permutahedron(4): ', f_vector)
@@ -831,6 +851,14 @@ cdef class FaceIterator_base(SageObject):
         return bit_rep_to_Vrep_list(self.structure.face, self.structure.atom_rep, face_length)
 
 cdef class FaceIterator(FaceIterator_base):
+    r"""
+    A class to iterate over all combinatorial faces of a polyhedron.
+
+    Construct all proper faces from the facets. In dual mode, construct all proper
+    faces from the vertices. Dual will be faster for less vertices than facets.
+
+    See :class:`FaceIterator_base`.
+    """
     def _repr_(self):
         r"""
         EXAMPLES::
@@ -878,25 +906,199 @@ cdef class FaceIterator(FaceIterator_base):
         return face
 
 cdef class FaceIterator_geom(FaceIterator_base):
+    r"""
+    A class to iterate over all geometric faces of a polyhedron.
+
+    Construct all faces from the facets. In dual mode, construct all
+    faces from the vertices. Dual will be faster for less vertices than facets.
+
+    INPUT:
+
+    - ``P`` -- an instance of :class:`~sage.geometry.polyhedron.base.Polyhedron_base`
+    - ``dual`` -- if ``True``, then dual polyhedron is used for iteration
+      (only possible for bounded Polyhedra)
+    - ``output_dimension`` -- if not ``None``, then the FaceIterator will only yield
+      faces of this dimension
+
+    EXAMPLES:
+
+    Construct a geometric face iterator::
+
+        sage: P = polytopes.cuboctahedron()
+        sage: it = P.face_generator()
+        sage: next(it)
+        A 3-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 12 vertices
+
+    Construct faces by the dual or not::
+
+        sage: it = P.face_generator(dual=False)
+        sage: _ = next(it), next(it)
+        sage: next(it).dim()
+        2
+
+        sage: it = P.face_generator(dual=True)
+        sage: _ = next(it), next(it)
+        sage: next(it).dim()
+        0
+
+    For unbounded polyhedra only non-dual iteration is possible::
+
+        sage: P = Polyhedron(rays=[[0,0,1], [0,1,0], [1,0,0]])
+        sage: it = P.face_generator()
+        sage: [face.ambient_Vrepresentation() for face in it]
+        [(A vertex at (0, 0, 0),
+          A ray in the direction (0, 0, 1),
+          A ray in the direction (0, 1, 0),
+          A ray in the direction (1, 0, 0)),
+         (),
+         (A vertex at (0, 0, 0),
+          A ray in the direction (0, 1, 0),
+          A ray in the direction (1, 0, 0)),
+         (A vertex at (0, 0, 0),
+          A ray in the direction (0, 0, 1),
+          A ray in the direction (1, 0, 0)),
+         (A vertex at (0, 0, 0),
+          A ray in the direction (0, 0, 1),
+          A ray in the direction (0, 1, 0)),
+         (A vertex at (0, 0, 0), A ray in the direction (1, 0, 0)),
+         (A vertex at (0, 0, 0), A ray in the direction (0, 1, 0)),
+         (A vertex at (0, 0, 0),),
+         (A vertex at (0, 0, 0), A ray in the direction (0, 0, 1))]
+        sage: it = P.face_generator(dual=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: cannot iterate over dual of unbounded Polyedron
+
+    Construct a FaceIterator only yielding dimension `2` faces::
+
+        sage: P = polytopes.permutahedron(5)
+        sage: it = P.face_generator(face_dimension=2)
+        sage: counter = 0
+        sage: for _ in it: counter += 1
+        sage: print ('permutahedron(5) has', counter,
+        ....:        'faces of dimension 2')
+        permutahedron(5) has 150 faces of dimension 2
+        sage: P.f_vector()
+        (1, 120, 240, 150, 30, 1)
+
+    In non-dual mode one can ignore all faces contained in the current face::
+
+        sage: P = polytopes.cube()
+        sage: it = P.face_generator(dual=False)
+        sage: _ = next(it), next(it)
+        sage: face = next(it)
+        sage: face.ambient_H_indices()
+        (5,)
+        sage: it.ignore_subfaces()
+        sage: [face.ambient_H_indices() for face in it]
+        [(4,),
+         (3,),
+         (2,),
+         (1,),
+         (0,),
+         (3, 4),
+         (1, 4),
+         (0, 4),
+         (1, 3, 4),
+         (0, 1, 4),
+         (2, 3),
+         (1, 3),
+         (1, 2, 3),
+         (1, 2),
+         (0, 2),
+         (0, 1, 2),
+         (0, 1)]
+
+        sage: it = P.face_generator(dual=True)
+        sage: _ = next(it), next(it)
+        sage: next(it)
+        A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+        sage: it.ignore_subfaces()
+        Traceback (most recent call last):
+        ...
+        ValueError: only possible when not in dual mode
+
+    In dual mode one can ignore all faces that contain the current face::
+
+        sage: P = polytopes.cube()
+        sage: it = P.face_generator(dual=True)
+        sage: _ = next(it), next(it)
+        sage: next(it)
+        A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+        sage: face = next(it)
+        sage: face.ambient_V_indices()
+        (6,)
+        sage: [face.ambient_V_indices() for face in it]
+        [(5,),
+         (4,),
+         (3,),
+         (2,),
+         (1,),
+         (0,),
+         (6, 7),
+         (4, 7),
+         (2, 7),
+         (4, 5, 6, 7),
+         (1, 2, 6, 7),
+         (2, 3, 4, 7),
+         (5, 6),
+         (1, 6),
+         (0, 1, 5, 6),
+         (4, 5),
+         (0, 5),
+         (0, 3, 4, 5),
+         (3, 4),
+         (2, 3),
+         (0, 3),
+         (0, 1, 2, 3),
+         (1, 2),
+         (0, 1)]
+
+        sage: it = P.face_generator(dual=False)
+        sage: _ = next(it), next(it)
+        sage: next(it)
+        A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+        sage: it.ignore_supfaces()
+        Traceback (most recent call last):
+        ...
+        ValueError: only possible when in dual mode
+
+    .. SEEALSO::
+
+        See :class:`FaceIterator_base`.
+    """
     def __init__(self, P, dual=None, output_dimension=None):
+        r"""
+        Initialize :class:`FaceIterator_base`.
+
+        See :class:`FaceIterator_base`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.permutahedron(4)
+            sage: it = P.face_generator()  # indirect doctest
+            sage: it
+            Iterator over the faces of a 3-dimensional polyhedron in ZZ^4
+            sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator_geom).run()
+        """
         self._requested_dim = output_dimension
 
         if output_dimension is None:
             if P.dim() == -1:
-                self._trivial_faces = 1
+                self._trivial_faces = 1  # the empty polyhedron, only yield the empty face
             else:
-                self._trivial_faces = 2
+                self._trivial_faces = 2  # yield the universe, then the empty face, than all other faces
         elif output_dimension == P.dim():
             output_dimension = None
-            self._trivial_faces = 4
+            self._trivial_faces = 4  # only yield the full-dimensional face and no other faces
         elif output_dimension == -1:
             output_dimension = None
-            self._trivial_faces = 3
+            self._trivial_faces = 3  # only yield the empty face and no other faces
         elif output_dimension < -1 or output_dimension > P.dim():
             output_dimension = None
-            self._trivial_faces = -1
+            self._trivial_faces = -1  # don't yield any faces at all
         else:
-            self._trivial_faces = 0
+            self._trivial_faces = 0  # yield the faces of the requested dimension
 
         if dual is None:
             # Determine the (likely) faster way, to iterate through all faces.
@@ -950,14 +1152,14 @@ cdef class FaceIterator_geom(FaceIterator_base):
                 if self._trivial_faces == 2:
                     self._trivial_faces = 1  # Return the empty face next.
                 else:
-                    self._trivial_faces = -1
+                    self._trivial_faces = -1  # The iterator is exhausted.
                 equations = [eq.index() for eq in self.P.equation_generator()]
                 return PolyhedronFace(self.P, range(self.P.n_Vrepresentation()), equations)
             else:  # Return the empty face.
                 if self._trivial_faces == 1:
-                    self._trivial_faces = 0
+                    self._trivial_faces = 0  # Return the proper faces next.
                 else:
-                    self._trivial_faces = -1
+                    self._trivial_faces = -1  # The iterator is exhausted.
                 return PolyhedronFace(self.P, [], range(self.P.n_Hrepresentation()))
 
         cdef CombinatorialFace face = self.next_face()

@@ -107,13 +107,13 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
 
         sage: p_saturation([P,Q,R],19, verbose=True)
         Using sieve method to saturate...
-        There is 19-torsion modulo Fractional ideal (i + 14), projecting points
+        E has 19-torsion over Finite Field of size 197, projecting points
          --> [(184 : 27 : 1), (0 : 0 : 1), (196 : 1 : 1)]
          --rank is now 1
-        There is 19-torsion modulo Fractional ideal (i - 14), projecting points
+        E has 19-torsion over Finite Field of size 197, projecting points
          --> [(15 : 168 : 1), (0 : 0 : 1), (196 : 1 : 1)]
          --rank is now 2
-        There is 19-torsion modulo Fractional ideal (-2*i + 17), projecting points
+        E has 19-torsion over Finite Field of size 293, projecting points
          --> [(156 : 275 : 1), (0 : 0 : 1), (292 : 1 : 1)]
          --rank is now 3
         Reached full rank: points were 19-saturated
@@ -195,32 +195,15 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
 
     K = E.base_ring()
 
-    def projections(Q, p):
-        r"""
-        Project points onto (E mod Q)(K mod Q) \otimes \F_p.
+    def projections(G, projPlist, p):
+        r"""G = (E mod Q)(K mod Q) and projPlist is the list of images of the points in G.
 
-        Returns a list of 0, 1 or 2 vectors in \F_p^n
+        Returns a list of 0, 1 or 2 vectors in \F_p^n, the images of
+        the points in G \times GF(p).
         """
-        # NB we do not do E.reduction(Q) since that may change the
-        # model which will cause problems when we reduce points.
-        # see trac #27387
-        k = K.residue_field(Q)
-        Ek = E.change_ring(k)
-        G = Ek.abelian_group() # cached!
-
-        if not p.divides(G.order()):
-            return []
-
-        if verbose:
-            print("There is %s-torsion modulo %s, projecting points" % (p,Q))
-
-        projPlist = [Ek([k(c) for c in pt]) if pt[0].valuation(Q)>=0 else Ek(0) for pt in Plist]
-
-        if verbose:
-            print(" --> %s" % projPlist)
-
         gens = [g.element() for g in G.gens()]
-        orders = G.generator_orders()
+        orders = [g.order() for g in gens]
+
         from sage.groups.generic import discrete_log_lambda
         from sage.modules.all import vector
 
@@ -284,7 +267,6 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
                 print("E = {}".format(E.ainvs()))
                 print("Plist = {}".format(Plist))
                 print("Ek = ",Ek)
-                print("Q = ",Q)
                 print("projPlist = {}".format(projPlist))
                 print("(p1,p2) = ({},{})".format(p1,p2))
                 print("gens = {}".format(gens))
@@ -307,15 +289,36 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
     A = matrix(GF(p), 0, n)
     rankA = 0
     count = 0
-    from sage.sets.primes import Primes
     Edisc = E.discriminant()
+    Ediscnorm = Edisc.norm()
+    denoms = [P[0].denominator_ideal().norm() for P in Plist]
+    Kpol = K.defining_polynomial()
+    Kdisc = Kpol.discriminant() # not the disc of K itself
+
+    from sage.sets.primes import Primes
     for q in Primes():
-        for Q in K.primes_above(q, degree=1):
-            if not E.is_local_integral_model(Q) or Edisc.valuation(Q)!=0:
+        if q.divides(Ediscnorm) or q.divides(Kdisc) or any(q.divides(pr) for pr in denoms):
+            continue
+        Fq = GF(q)
+        for amodq in Kpol.roots(Fq, multiplicities=False):
+            def modq(x):
+                try:
+                    return x.lift().change_ring(Fq)(amodq)
+                except AttributeError: # in case x is in QQ
+                    return Fq(x)
+            from sage.all import EllipticCurve
+            Ek = EllipticCurve([modq(a) for a in E.ainvs()])
+            G = Ek.abelian_group()
+
+            if not p.divides(G.order()):
                 continue
-            vecs = projections(Q, p)
-            if not vecs:
-                continue
+            if verbose:
+                print("E has %s-torsion over %s, projecting points" % (p,Fq))
+            projPlist = [Ek([modq(c) for c in pt]) for pt in Plist]
+            if verbose:
+                print(" --> %s" % projPlist)
+
+            vecs = projections(G, projPlist, p)
             for v in vecs:
                 A = matrix(A.rows()+[v])
             newrank = A.rank()

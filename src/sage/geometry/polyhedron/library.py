@@ -2526,7 +2526,7 @@ class Polytopes():
 
             sage: polytopes.permutahedron(8, backend='field')  # (~1s)
             A 7-dimensional polyhedron in QQ^8 defined as the convex hull of 40320 vertices
-            sage: polytopes.permutahedron(9, backend='field')  # long time -- (~5s)
+            sage: polytopes.permutahedron(9, backend='field')  # not tested (memory consumption)  # (~5s)
             A 8-dimensional polyhedron in QQ^9 defined as the convex hull of 362880 vertices
 
         .. SEEALSO::

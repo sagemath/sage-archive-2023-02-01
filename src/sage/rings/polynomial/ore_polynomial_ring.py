@@ -1058,14 +1058,15 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
     def fraction_field(self):
         from sage.rings.polynomial.ore_function_field import OreFunctionField
         if self.base_ring() in Fields():
-            ring = self
+            return OreFunctionField(self)
+        base = self.base_ring().fraction_field()
+        if self._derivation is None:
+            twist = self._morphism.extend_to_fraction_field()
         else:
-            base = self.base_ring().fraction_field()
-            if self._derivation is None:
-                twist = self._morphism.extend_to_fraction_field()
-            else:
-                twist = self._derivation.extend_to_fraction_field()
-            name = self.variable_name()
-            sparse = self.is_sparse()
-            ring = OrePolynomialRing(base, twist, name, sparse)
-        return OreFunctionField(ring)
+            twist = self._derivation.extend_to_fraction_field()
+        name = self.variable_name()
+        sparse = self.is_sparse()
+        ring = OrePolynomialRing(base, twist, name, sparse)
+        frac = OreFunctionField(ring)
+        frac.register_coercion(self)
+        return frac

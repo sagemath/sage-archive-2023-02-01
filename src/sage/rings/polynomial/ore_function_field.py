@@ -56,7 +56,7 @@ class OreFunctionField(Algebra, UniqueRepresentation):
 
     def _coerce_map_from_(self, P):
         if isinstance(P, OreFunctionField):
-            return P.ring().has_coerce_map_from(self._ring)
+            return P._ring.has_coerce_map_from(self._ring)
         if isinstance(P, Parent):
             return P.has_coerce_map_from(self._ring)
 
@@ -71,9 +71,6 @@ class OreFunctionField(Algebra, UniqueRepresentation):
                 s += "%s and " % morphism._repr_short()
             s += derivation._repr_()
         return s
-
-    def ring(self):
-        return self._ring
 
     def change_var(self, var):
         return OreFunctionField(self._ring.change_var(var)) 

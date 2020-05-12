@@ -11,7 +11,7 @@ from sage.structure.element import AlgebraElement
 class OreFunction(AlgebraElement):
     def __init__(self, parent, numerator, denominator=None, simplify=True):
         AlgebraElement.__init__(self, parent)
-        ring = parent.ring()
+        ring = parent._ring
         numerator = ring(numerator)
         if denominator is None:
             denominator = ring.one()

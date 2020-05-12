@@ -637,34 +637,8 @@ cdef class OrePolynomial(AlgebraElement):
         return q
 
     cpdef _div_(self, right):
-        r"""
-        Not Implemented.
-
-        To implement this, localization of Ore rings is needed, see
-        :trac:`13215`.
-
-        Use the operator `//` even for exact division.
-
-        EXAMPLES::
-
-            sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
-            sage: a = x^5 + (t + 2)*x^2 + t^2
-            sage: b = x^3 + 4*t
-            sage: c = a*b
-
-            sage: c / b
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: localization of Ore rings not yet implemented
-
-            sage: c // b == a
-            True
-        """
-        # Should this actually return something in the fraction field like
-        #   we do elsewhere in Sage? - TCS
-        raise NotImplementedError("localization of Ore rings not yet implemented")
+        parent = self.parent().fraction_field()
+        return parent(self) / parent(right)
 
     def is_left_divisible_by(self, other):
         r"""

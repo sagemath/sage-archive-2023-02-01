@@ -104,3 +104,9 @@ class OreFunction(AlgebraElement):
         if not self._numerator:
             raise ZeroDivisionError("cannot divide by zero")
         return self.parent()(self._denominator, self._numerator)
+
+    def hilbert_shift(self, s):
+        numerator = self._numerator.hilbert_shift(s)
+        denominator = self._denominator.hilbert_shift(s)
+        parent = numerator.parent().fraction_field()
+        return parent(numerator, denominator, simplify=False)

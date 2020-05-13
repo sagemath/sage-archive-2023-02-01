@@ -2248,6 +2248,56 @@ cdef class CombinatorialPolyhedron(SageObject):
             return (False, None)
         return False
 
+    def join_of_Vrep(self, *indices):
+        r"""
+        Return the smallest face containing all Vrepresentatives indicated by the indices.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator_base.join_of_Vrep`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.permutahedron(4)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.join_of_Vrep(0,1)
+            A 1-dimensional face of a 3-dimensional combinatorial polyhedron
+            sage: C.join_of_Vrep(0,3).ambient_V_indices()
+            (0, 1, 2, 3, 4, 5)
+            sage: C.join_of_Vrep(8).ambient_V_indices()
+            (8,)
+            sage: C.join_of_Vrep().ambient_V_indices()
+            ()
+        """
+        return self.face_iter().join_of_Vrep(*indices)
+
+    def meet_of_facets(self, *indices):
+        r"""
+        Return the largest face contained all facets indicated by the indices.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator_base.meet_of_facets`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.dodecahedron()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.meet_of_facets(0)
+            A 2-dimensional face of a 3-dimensional combinatorial polyhedron
+            sage: C.meet_of_facets(0).ambient_H_indices()
+            (0,)
+            sage: C.meet_of_facets(0,1).ambient_H_indices()
+            (0, 1)
+            sage: C.meet_of_facets(0,3).ambient_H_indices()
+            (0, 3)
+            sage: C.meet_of_facets(0,2,3).ambient_H_indices()
+            (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+            sage: C.meet_of_facets().ambient_H_indices()
+            ()
+        """
+        return self.face_iter().meet_of_facets(*indices)
+
     def face_iter(self, dimension=None, dual=None):
         r"""
         Iterator over all proper faces of specified dimension.

@@ -13265,7 +13265,8 @@ cdef class Matrix(Matrix1):
             sage: len(str(a.det()))
             12215
         """
-        from sage.rings.all import RDF, RealField
+        from sage.rings.real_double import RDF
+        from sage.rings.real_mpfr import RealField
         try:
             A = self.change_ring(RDF)
             m1 = A._hadamard_row_bound()

@@ -20,8 +20,8 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import print_function
 
-from sage.misc.all import prod
-from sage.arith.all import LCM
+from sage.misc.all import prod, cached_method
+from sage.arith.all import LCM, fundamental_discriminant
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import IntegerRing, ZZ
@@ -32,6 +32,14 @@ from sage.libs.pari import pari
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from copy import copy, deepcopy
 from sage.misc.misc import verbose
+from sage.interfaces.magma import magma
+from sage.functions.gamma import gamma
+from sage.functions.transcendental import zeta
+from sage.symbolic.constants import pi
+from sage.symbolic.ring import SR
+from sage.quadratic_forms.special_values import quadratic_L_function__exact
+
+
 
 def genera(sig_pair, determinant, max_scale=None, even=False):
     r"""
@@ -1300,7 +1308,7 @@ class Genus_Symbol_p_adic_ring(object):
         """
         if check:
            pass
-        self._prime = prime
+        self._prime = ZZ(prime)
         self._symbol = symbol
         self._canonical_symbol = None
 
@@ -1324,7 +1332,6 @@ class Genus_Symbol_p_adic_ring(object):
 
         Check that :trac:`25776` is fixed::
 
-            sage: from sage.quadratic_forms.genera.genus import Genus
             sage: G = Genus(matrix.diagonal([2,2,64]))
             sage: G
             Genus of
@@ -1541,7 +1548,6 @@ class Genus_Symbol_p_adic_ring(object):
         The following examples are given in
         [Co1999]_ 3rd edition, Chapter 15, 9.6 pp. 392::
 
-            sage: from sage.quadratic_forms.genera.genus import Genus
             sage: A = matrix.diagonal([3,16])
             sage: G = Genus(A)
             sage: sym2 = G.local_symbols()[0]
@@ -1792,6 +1798,141 @@ class Genus_Symbol_p_adic_ring(object):
             symG = p_adic_symbol(G, p, symbol[-1][0])
             assert Genus_Symbol_p_adic_ring(p, symG) == self, "oops"
         return G
+
+    def mass(self):
+        r"""
+        Return the local mass `m_p` of this genus as defined by Conway.
+
+        See Equation (3) in [CS1988]_.
+
+        EXAMPLES::
+
+            sage: G = Genus(matrix.diagonal([1,3,9]))
+            sage: G.local_symbol(3).mass()
+            9/8
+
+        TESTS::
+
+            sage: G = Genus(matrix([1]))
+            sage: G.local_symbol(2).mass()
+            Traceback (most recent call last):
+            ....
+            ValueError: the dimension must be at least 2
+        """
+        if self.dimension() <= 1:
+            raise ValueError("the dimension must be at least 2")
+        p = self.prime()
+        sym = self._symbol
+        ##############
+        #diagonal product
+        ##############
+
+        # diagonal factors
+        m_p = ZZ.prod(M_p(species, p) for species in self._species_list())
+        # cross terms
+        r = len(sym)
+        ct = 0
+        for j in range(r):
+            for i in range(j):
+                ct += (sym[j][0] - sym[i][0]) * sym[i][1] * sym[j][1]
+        ct = ct / QQ(2)
+        m_p *= p**ct
+
+        if p != 2:
+            return m_p
+
+        # type factors
+        nII = ZZ.sum(fq[1] for fq in sym if fq[3] == 0)
+
+        nI_I = ZZ(0)   # the total number of pairs of adjacent constituents f_q,
+        # f_2q that are both of type I (odd)
+        for k in range(r-1):
+            if sym[k][3] == sym[k+1][3] == 1 and sym[k][0] + 1 == sym[k+1][0]:
+                nI_I += ZZ(1)
+        return m_p * ZZ(2)**(nI_I - nII)
+
+    def _standard_mass(self):
+        r"""
+        Return the standard p-mass of this local genus.
+
+        See Equation (6) of [CS1988]_.
+
+        EXAMPLES::
+
+            sage: G = Genus(matrix.diagonal([1,3,9]))
+            sage: g3 = G.local_symbol(3)
+            sage: g3._standard_mass()
+            9/16
+        """
+        n = self.dimension()
+        p = self.prime()
+        s = (n + 1) // ZZ(2)
+        std = 2 * QQ.prod(1-p**(-2*k) for k in range(1, s))
+        if n % 2 == 0:
+            D = ZZ(-1)**s * self.determinant()
+            epsilon = (4*D).kronecker(p)
+            std *= (1 - epsilon*p**(-s))
+        return QQ(1) / std
+
+    def _species_list(self):
+        r"""
+        Return the species list.
+
+        See Table 1 in [CS1988]_.
+
+        EXAMPLES::
+
+            sage: G = Genus(matrix.diagonal([1,3,27]))
+            sage: g3 = G.local_symbol(3)
+            sage: g3._species_list()
+            [1, 1, 1]
+        """
+        p = self.prime()
+        species_list = []
+        sym = self._symbol
+        if self.prime() != 2:
+            for k in range(len(sym)):
+                n = ZZ(sym[k][1])
+                d = sym[k][2]
+                if n % 2 == 0 and d != ZZ(-1).kronecker(p)**(n//ZZ(2)):
+                    species = -n
+                else:
+                    species = n
+                species_list.append(species)
+            return species_list
+
+        #  p == 2
+        # create a dense list of symbols
+        symbols = []
+        s = 0
+        for k in range(sym[-1][0] + 1):
+            if sym[s][0] == k:
+                symbols.append(sym[s])
+                s +=1
+            else:
+                symbols.append([k,0,1,0,0])
+        # avoid a case distinction
+        sym = [[-2,0,1,0,0],[-1,0,1,0,0]] + symbols + [[sym[-1][0]+1,0,1,0,0],[sym[-1][0]+2,0,1,0,0]]
+        for k in range(1, len(sym)-1):
+            free = True
+            if sym[k-1][3]==1 or sym[k+1][3]==1:
+                free = False
+            n = sym[k][1]
+            o = sym[k][4]
+            if ZZ(sym[k][2]).kronecker(2) == -1:
+                o = (o + ZZ(4)) % 8
+            if sym[k][3] == 0 or n % 2 == 1:
+                t = n // ZZ(2)
+            else:
+                t = (n // ZZ(2)) - ZZ(1)
+            if free and (o == 0 or o == 1 or o == 7):
+                species = 2*t
+            elif free and (o == 3 or o == 5 or o == 4):
+                species = -2*t
+            else:
+                species = 2*t + 1
+            species_list.append(species)
+        return species_list
 
     def prime(self):
         r"""
@@ -2151,8 +2292,6 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import Genus
-
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: G = Genus(A)
             sage: G == loads(dumps(G))
@@ -2190,7 +2329,6 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import Genus
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: GS = Genus(A)
             sage: GS
@@ -2262,8 +2400,6 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import Genus
-
             sage: A1 = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: GS1 = Genus(A1)
             sage: A2 = DiagonalQuadraticForm(ZZ, [1,2,3,5]).Hessian_matrix()
@@ -2317,8 +2453,6 @@ class GenusSymbol_global_ring(object):
         boolean
 
         EXAMPLES::
-
-            sage: from sage.quadratic_forms.genera.genus import Genus
 
             sage: A1 = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: GS1 = Genus(A1)
@@ -2600,7 +2734,6 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import Genus
             sage: A = matrix.diagonal(ZZ, [2,-4,6,8])
             sage: GS = Genus(A)
             sage: GS.local_symbols()
@@ -2608,6 +2741,142 @@ class GenusSymbol_global_ring(object):
              Genus symbol at 3:     1^-3 3^-1]
         """
         return deepcopy(self._local_symbols)
+
+    def local_symbol(self, p):
+        r"""
+        Return a copy of the local symbol at the prime `p`.
+
+        EXAMPLES::
+
+            sage: A = matrix.diagonal(ZZ, [2,-4,6,8])
+            sage: GS = Genus(A)
+            sage: GS.local_symbol(3)
+            Genus symbol at 3:     1^-3 3^-1
+        """
+        p = ZZ(p)
+        for sym in self._local_symbols:
+            if p == sym.prime():
+                return deepcopy(sym)
+        assert p != 2
+        sym_p = [[0, self.rank(), self.det().kronecker(p)]]
+        return Genus_Symbol_p_adic_ring(p, sym_p)
+
+    def _standard_mass(self):
+        r"""
+        Return the standard mass of this genus.
+
+        It depends only on the dimension and determinant.
+
+        EXAMPLES::
+
+            sage: A = matrix.diagonal(ZZ, [1,1,1,1])
+            sage: GS = Genus(A)
+            sage: GS._standard_mass()
+            1/48
+
+        """
+        n = self.dimension()
+        if n % 2 == 0:
+            s = n // 2
+        else:
+            s = (n // 2) + 1
+        std = QQ(2) * pi**(-n*(n+1)/QQ(4))
+        std *= SR.prod(gamma(QQ(j)/QQ(2)) for j in range(1, n+1))
+        std *= SR.prod(zeta(ZZ(2)*ZZ(k)) for k in range(1, s))
+        if n % 2 == 0:
+            D = ZZ(-1)**(s)*self.determinant()
+            std *= quadratic_L_function__exact(ZZ(s), D)
+            d = fundamental_discriminant(D)
+            # since quadratic_L_function__exact is different
+            # from \zeta_D as defined by Conway and Sloane
+            # we have to compensate
+            # the missing Euler factors
+            for sym in self.local_symbols():
+                p = sym.prime()
+                std *= (1 - d.kronecker(p)*p**(-s))
+        return std
+
+    @cached_method
+    def mass(self, backend='sage'):
+        r"""
+        Return the mass of this genus.
+
+        The genus must be definite.
+        Let `L_1, ... L_n` be a complete list of representatives
+        of the isometry classes in this genus.
+        Its mass is defined as
+
+        .. MATH::
+
+            \sum_{i=1}^n \frac{1}{|O(L_i)|}.
+
+        INPUT:
+
+        - ``backend`` -- default: ``'sage'``, or ``'magma'``
+
+        OUTPUT:
+
+        a rational number
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import genera
+            sage: G = genera((8,0),1,even=True)[0]
+            sage: G.mass()
+            1/696729600
+            sage: G.mass(backend='magma')  # optional - magma
+            1/696729600
+
+        The `E_8` lattice is unique in its genus::
+
+            sage: E8 = QuadraticForm(G.representative())
+            sage: E8.number_of_automorphisms()
+            696729600
+
+        TESTS:
+
+        Check a random genus with magma::
+
+            sage: d = ZZ.random_element(1,1000)
+            sage: n = ZZ.random_element(2,10)
+            sage: L = genera((n,0),d,d,even=False)
+            sage: k = ZZ.random_element(0,len(L))
+            sage: G = L[k]
+            sage: G.mass()==G.mass(backend='magma')  # optional - magma
+            True
+
+        Error messages::
+
+            sage: G.mass(backend='foo')
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown backend: foo
+            sage: G = Genus(matrix(ZZ, 2, [0, 1, 1, 0]))
+            sage: G.mass()
+            Traceback (most recent call last):
+            ...
+            ValueError: the genus must be definite.
+        """
+        pos, neg = self.signature_pair()
+        if pos * neg != 0:
+            raise ValueError("the genus must be definite.")
+        if pos + neg == 1:
+            return QQ(1)/QQ(2)
+        if backend == 'sage':
+            mass = self._standard_mass()
+            for sym in self._local_symbols:
+                mass *= sym.mass()/sym._standard_mass()
+            return QQ(mass.canonicalize_radical())
+        elif backend == 'magma':
+            e = 1 # lattices in magma are positive definite
+            if neg !=0:
+                e = -1
+            # for some reason LatticeWithGram wants a dense matrix
+            L = magma(e*self.representative().dense_matrix())
+            L = L.LatticeWithGram()
+            return QQ(L.Mass())
+        else:
+            raise ValueError("Unknown backend: %s"%backend)
 
 
 def _gram_from_jordan_block(p, block, discr_form=False):
@@ -2722,3 +2991,76 @@ def _gram_from_jordan_block(p, block, discr_form=False):
             q[0,0] = u
         q = q * p**level
     return q
+
+# Helper functions for mass computations
+
+def M_p(species, p):
+    r"""
+    Return the diagonal factor `M_p` as a function of the species.
+
+    EXAMPLES:
+
+    These examples are taken from Table 2 of [CS1988]_::
+
+        sage: from sage.quadratic_forms.genera.genus import M_p
+        sage: M_p(0,2)
+        1
+        sage: M_p(1,2)
+        1/2
+        sage: M_p(-2,2)
+        1/3
+        sage: M_p(2,2)
+        1
+        sage: M_p(3,2)
+        2/3
+        sage: M_p(-4,2)
+        8/15
+        sage: M_p(4,2)
+        8/9
+        sage: M_p(5,2)
+        32/45
+
+    TESTS:
+
+    More values of the table for testing::
+
+        sage: M_p(0,3)
+        1
+        sage: M_p(1,3)
+        1/2
+        sage: M_p(-2,3)
+        3/8
+        sage: M_p(2,3)
+        3/4
+        sage: M_p(3,3)
+        9/16
+        sage: M_p(-4,3)
+        81/160
+        sage: M_p(4,3)
+        81/128
+        sage: M_p(5,3)
+        729/1280
+
+        sage: M_p(0,5)
+        1
+        sage: M_p(1,5)
+        1/2
+        sage: M_p(-2,5)
+        5/12
+        sage: M_p(2,5)
+        5/8
+        sage: M_p(3,5)
+        25/48
+        sage: M_p(-4,5)
+        625/1248
+        sage: M_p(4,5)
+        625/1152
+    """
+    if species == 0:
+        return QQ(1)
+    n = species.abs()
+    s = (n+1) // ZZ(2)
+    mp = ZZ(2) * ZZ.prod(ZZ(1)-p**(-2*k) for k in range(1, s))
+    if n % 2 == 0:
+        mp *= ZZ(1) - species.sign() * p**(-s)
+    return QQ(1) / mp

@@ -36,13 +36,6 @@ Sage might install the Term::ReadLine::Gnu module, however, when you
 install polymake, if it is not provided by the system, or if Sage
 installs its own readline library.
 
-On Mac OS X, to build Term::Readline::Gnu, on macOS 10.14 (Mojave), one
-needs to do the following:
-
- sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /
-
-or a "fatal error: 'EXTERN.h' file not found" will be signalled.
-
 
 A distribution-independent way to install Perl modules (into a user's
 home directory or /usr/local) is using CPAN.  This is also the way to

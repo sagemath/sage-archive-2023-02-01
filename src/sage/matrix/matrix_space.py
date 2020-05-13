@@ -444,7 +444,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
     """
 
     @staticmethod
-    def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False, implementation=None):
+    def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False, implementation=None, **kwds):
         """
         Normalize the arguments to call the ``__init__`` constructor.
 
@@ -470,6 +470,24 @@ class MatrixSpace(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: unknown matrix implementation 'foobar' over Integer Ring
+
+        Check that :trac:`29466`is fixed::
+
+            sage: class MyMatrixSpace(MatrixSpace):
+            ....:     @staticmethod
+            ....:     def __classcall__(cls, base_ring, nrows, ncols=None, my_option=True, sparse=False, implementation=None):
+            ....:         return super(MyMatrixSpace, cls).__classcall__(cls, base_ring, nrows, ncols=ncols, my_option=my_option, sparse=sparse, implementation=implementation)
+            ....:
+            ....:     def __init__(self, base_ring, nrows, ncols, sparse,  implementation, my_option=True):
+            ....:         super(MyMatrixSpace, self).__init__(base_ring, nrows, ncols, sparse, implementation)
+            ....:         self._my_option = my_option
+
+            sage: MS1 = MyMatrixSpace(ZZ, 2)
+            sage: MS1._my_option
+            True
+            sage: MS2 = MyMatrixSpace(ZZ, 2, my_option=False)
+            sage: MS2._my_option
+            False
         """
         if base_ring not in _Rings:
             raise TypeError("base_ring (=%s) must be a ring"%base_ring)
@@ -489,7 +507,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
         matrix_cls = get_matrix_class(base_ring, nrows, ncols, sparse, implementation)
         return super(MatrixSpace, cls).__classcall__(
-                cls, base_ring, nrows, ncols, sparse, matrix_cls)
+                cls, base_ring, nrows, ncols, sparse, matrix_cls, **kwds)
 
     def __init__(self, base_ring, nrows, ncols, sparse, implementation):
         r"""

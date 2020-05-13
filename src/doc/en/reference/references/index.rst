@@ -1594,6 +1594,10 @@ REFERENCES:
             and groups, 3rd. ed., Grundlehren der Mathematischen
             Wissenschaften, vol. 290, Springer-Verlag, New York, 1999.
 
+.. [CS1988] Conway, J. H., and N. J. A. Sloane. “Low-Dimensional Lattices. IV.
+            The Mass Formula.” Proceedings of the Royal Society of London.
+            Series A, Mathematical and Physical Sciences, vol. 419, no. 1857, 1988, pp. 259-286.
+
 .. [CS2003] \John E. Cremona and Michael Stoll. On The Reduction Theory of Binary Forms.
             Journal für die reine und angewandte Mathematik, 565 (2003), 79-99.
 
@@ -3028,6 +3032,9 @@ REFERENCES:
 .. [Kas1971] \T. Kasami: *The weight enumerators for several classes of
              subcodes of the second order binary Reed-Muller codes*.
              Information and Control, 18, pp. 369-394, 1971.
+
+.. [Kas2018] András Kaszanyitzky. *The GraftalLace Cellular Automata*.
+             Preprint, :arxiv:`1805.11532`.
 
 .. [Kat1991] Nicholas M. Katz, *Exponential sums and differential equations*,
              Princeton University Press, Princeton NJ, 1991.

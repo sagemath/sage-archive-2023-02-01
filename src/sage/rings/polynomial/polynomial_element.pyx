@@ -6515,13 +6515,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         TESTS:
 
-        In Python 2, ``operator.div`` still works::
-
-            sage: from six import PY2
-            sage: div = getattr(operator, "div" if PY2 else "truediv")
-            sage: p1.composed_op(p2, div)
-            x^6 + x^5 + x^4 + x^2 + 1
-
         ::
 
             sage: y = polygen(ZZ)

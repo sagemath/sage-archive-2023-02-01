@@ -37,7 +37,6 @@ from __future__ import division
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import six
 import math
 import collections
 from colorsys import hsv_to_rgb, hls_to_rgb, rgb_to_hsv, rgb_to_hls
@@ -338,7 +337,7 @@ def rgbcolor(c, space='rgb'):
     if isinstance(c, Color):
         return c.rgb()
 
-    if isinstance(c, six.string_types):
+    if isinstance(c, str):
         if len(c) > 0 and c[0] == '#':
             # Assume an HTML-like color, e.g., #00ffff or #ab0.
             return html_to_float(c)
@@ -1419,7 +1418,7 @@ def get_cmap(cmap):
     if isinstance(cmap, Colormap):
         return cmap
 
-    elif isinstance(cmap, six.string_types):
+    elif isinstance(cmap, str):
         if not cmap in cm.datad:
             raise RuntimeError("Color map %s not known (type import matplotlib.cm; matplotlib.cm.datad.keys() for valid names)" % cmap)
         return cm.__dict__[cmap]

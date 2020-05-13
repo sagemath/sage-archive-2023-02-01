@@ -11,7 +11,6 @@ Free modules
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -32,8 +31,6 @@ import sage.data_structures.blas_dict as blas
 from sage.typeset.ascii_art import AsciiArt, ascii_art
 from sage.typeset.unicode_art import UnicodeArt, unicode_art
 from sage.misc.superseded import deprecation
-
-import six
 
 
 class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
@@ -338,7 +335,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         EXAMPLES::
 
             sage: A = Algebras(QQ).WithBasis().example(); A
-            An example of an algebra with basis: 
+            An example of an algebra with basis:
             the free algebra on the generators ('a', 'b', 'c') over Rational Field
 
             sage: A.element_class.mro()
@@ -974,7 +971,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             True
         """
         cc = self.get_order()
-        return self._from_dict({cc[index]: coeff for (index,coeff) in six.iteritems(vector)})
+        return self._from_dict({cc[index]: coeff for (index,coeff) in vector.items()})
 
     def sum(self, iter_of_elements):
         """
@@ -1186,9 +1183,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         assert isinstance(d, dict)
         if coerce:
             R = self.base_ring()
-            d = {key: R(coeff) for key, coeff in six.iteritems(d)}
+            d = {key: R(coeff) for key, coeff in d.items()}
         if remove_zeros:
-            d = {key: coeff for key, coeff in six.iteritems(d) if coeff}
+            d = {key: coeff for key, coeff in d.items() if coeff}
         return self.element_class(self, d)
 
 

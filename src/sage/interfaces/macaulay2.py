@@ -117,7 +117,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function
-from six import string_types
 
 import os
 import re
@@ -1020,7 +1019,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         """
         if new_name is None:
             return self._name
-        if not isinstance(new_name, string_types):
+        if not isinstance(new_name, str):
             raise TypeError("new_name must be a string")
 
         P = self.parent()

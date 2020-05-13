@@ -20,7 +20,6 @@ Catch warnings produced by :func:`check_tkz_graph`::
 #*****************************************************************************
 
 from __future__ import print_function
-from builtins import zip
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method

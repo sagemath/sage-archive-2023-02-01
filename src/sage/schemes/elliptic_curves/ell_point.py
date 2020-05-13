@@ -2811,8 +2811,22 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         v_inf = refine_embedding(v, Infinity)
 
         v_is_real = v_inf(K.gen()).imag().is_zero()
-        working_prec = prec+100
+
+        # Find a suitable working precision.  See trac#29666 for an
+        # example where 100 extra bits is not enough when the
+        # discriminant is ~1e-92, but this code uses a working
+        # precision of 333 and gets it right.
+
+        D = v_inf(E.discriminant())
+
+        if D.abs().real_number(RealField()).round():
+            extra_prec = 100
+        else:  # then |D| is small
+            extra_prec = 10 + (1/D).abs().real_number(RealField()).round().nbits()
+
+        working_prec = prec + extra_prec
         RC = RealField(working_prec) if v_is_real else ComplexField(working_prec)
+        #print("Using working precision {}, |D| = {}".format(working_prec, RC(D).abs()))
 
         # NB We risk losing much precision if we compute the embedding
         # of K into RR or CC to some precision and then apply that to

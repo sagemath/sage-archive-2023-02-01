@@ -73,6 +73,7 @@ cdef class FaceIterator_base(SageObject):
     cdef size_t n_atom_rep(self) except -1
     cdef size_t set_coatom_rep(self) except -1
     cdef size_t set_atom_rep(self) except -1
+    cdef int ignore_subsets(self) except -1
 
 @cython.final
 cdef class FaceIterator(FaceIterator_base):

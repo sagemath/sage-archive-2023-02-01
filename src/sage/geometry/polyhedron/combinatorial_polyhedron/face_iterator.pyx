@@ -691,15 +691,7 @@ cdef class FaceIterator_base(SageObject):
         """
         if unlikely(self.dual):
             raise ValueError("only possible when not in dual mode")
-        if unlikely(self.structure.face is NULL):
-            raise ValueError("iterator not set to a face yet")
-
-        # The current face is added to ``visited_all``.
-        # This will make the iterator skip those faces.
-        # Also, this face will not be added a second time to ``visited_all``,
-        # as there are no new faces.
-        self.structure.visited_all[self.structure.n_visited_all[self.structure.current_dimension]] = self.structure.face
-        self.structure.n_visited_all[self.structure.current_dimension] += 1
+        self.ignore_subsets()
 
     def ignore_supfaces(self):
         r"""
@@ -724,9 +716,20 @@ cdef class FaceIterator_base(SageObject):
         """
         if unlikely(not self.dual):
             raise ValueError("only possible when in dual mode")
+        self.ignore_subsets()
+
+    cdef int ignore_subsets(self) except -1:
+        r"""
+        Ignore sub-/supfaces of the current face.
+
+        In non-dual mode ignores all subfaces of the current face.
+        In dual mode ignores all supfaces of the current face.
+
+        See :meth:`FaceIterator_base.ignore_subfaces` and
+        :meth:`FaceIterator_base.ignore_supfaces`.
+        """
         if unlikely(self.structure.face is NULL):
             raise ValueError("iterator not set to a face yet")
-
         # The current face is added to ``visited_all``.
         # This will make the iterator skip those faces.
         # Also, this face will not be added a second time to ``visited_all``,

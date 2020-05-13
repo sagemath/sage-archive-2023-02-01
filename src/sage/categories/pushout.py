@@ -234,7 +234,7 @@ class ConstructionFunctor(Functor):
 
     def merge(self, other):
         """
-        Merge ``self`` with another construction functor, or return ̀̀None``.
+        Merge ``self`` with another construction functor, or return ``None``.
 
         .. NOTE::
 

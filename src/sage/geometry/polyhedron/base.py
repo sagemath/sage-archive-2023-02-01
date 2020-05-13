@@ -6891,6 +6891,12 @@ class Polyhedron_base(Element):
             return ()
         return self.faces(self.dimension()-1)
 
+    def join_of_Vrep(self, *Vrepresentatives):
+        return self.face_generator().join_of_Vrep(*Vrepresentatives)
+
+    def meet_of_facets(self, *facets):
+        return self.face_generator().meet_of_facets(*facets)
+
     @cached_method(do_pickle=True)
     def f_vector(self):
         r"""

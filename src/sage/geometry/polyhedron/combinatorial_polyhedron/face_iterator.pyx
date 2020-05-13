@@ -525,7 +525,7 @@ cdef class FaceIterator_base(SageObject):
             sage: it.meet_of_facets(1,2,3).ambient_H_indices()
             Traceback (most recent call last):
             ...
-            AssertionError: index out of range
+            IndexError: coatoms out of range
 
         If the iterator has already been used, it must be reseted before::
 
@@ -587,7 +587,7 @@ cdef class FaceIterator_base(SageObject):
             sage: it.join_of_Vrep(8)
             Traceback (most recent call last):
             ...
-            AssertionError: index out of range
+            IndexError: coatoms out of range
 
         If the iterator has already been used, it must be reseted before::
 
@@ -699,7 +699,7 @@ cdef class FaceIterator_base(SageObject):
             sage: it._meet_of_coatoms(100)
             Traceback (most recent call last):
             ...
-            AssertionError: index out of range
+            IndexError: coatoms out of range
 
         The empty face is detected correctly, even with lines or rays::
 
@@ -737,7 +737,8 @@ cdef class FaceIterator_base(SageObject):
             face_add_atom(face, i)
 
         for i in indices:
-            assert 0 <= i < n_coatoms, "index out of range"
+            if not 0 <= i < n_coatoms:
+                raise IndexError("coatoms out of range")
             face_intersection(face, face, coatoms.data.faces[i])
 
         if not self._bounded and face_issubset(face, self.structure.visited_all[self.structure.dimension-1].faces[0]):
@@ -817,11 +818,11 @@ cdef class FaceIterator_base(SageObject):
             sage: it._join_of_atoms(-1)
             Traceback (most recent call last):
             ...
-            AssertionError: index out of range
+            IndexError: atoms out of range
             sage: it._join_of_atoms(100)
             Traceback (most recent call last):
             ...
-            AssertionError: index out of range
+            IndexError: atoms out of range
         """
         if unlikely(self.structure.face_status != 0):
             raise ValueError("please reset the face iterator")
@@ -837,7 +838,8 @@ cdef class FaceIterator_base(SageObject):
         cdef face_t pseudo_face = face_mem.data.faces[1]
         cdef size_t i
 
-        assert all(i in range(n_atoms) for i in indices), "index out of range"
+        if not all(i in range(n_atoms) for i in indices):
+            raise IndexError("atoms out of range")
 
         # Initialize a pseudo_face as indicated by the indices.
         for i in indices:

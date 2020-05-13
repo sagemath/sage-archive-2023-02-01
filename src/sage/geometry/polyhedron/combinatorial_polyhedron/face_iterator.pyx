@@ -521,6 +521,7 @@ cdef class FaceIterator_base(SageObject):
         self._Vrep = C.Vrep()
         self._facet_names = C.facet_names()
         self._equalities = C.equalities()
+        self._bounded = C.is_bounded()
 
         self.structure.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
         self.structure.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))
@@ -573,6 +574,35 @@ cdef class FaceIterator_base(SageObject):
 
         # Initialize ``first_time``.
         self.structure.first_time = <bint *> self._mem.allocarray(self.structure.dimension, sizeof(bint))
+        self.structure.first_time[self.structure.dimension - 1] = True
+
+        self.structure.yet_to_visit = self.coatoms.n_faces
+        self.structure._index = 0
+
+    def reset(self):
+        r"""
+        Reset the iterator.
+
+        The iterator will start with the first face again.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: C = P.combinatorial_polyhedron()
+            sage: it = C.face_iter()
+            sage: next(it).ambient_V_indices()
+            (0, 3, 4, 5)
+            sage: it.reset()
+            sage: next(it).ambient_V_indices()
+            (0, 3, 4, 5)
+        """
+        if self._bounded:
+            self.structure.n_visited_all[self.structure.dimension -1] = 0
+        else:
+            self.structure.n_visited_all[self.structure.dimension -1] = 1
+        self.structure.face = NULL
+        self.structure.n_newfaces[self.structure.dimension - 1] = self.coatoms.n_faces
+        self.structure.current_dimension = self.structure.dimension - 1
         self.structure.first_time[self.structure.dimension - 1] = True
 
         self.structure.yet_to_visit = self.coatoms.n_faces
@@ -1097,6 +1127,45 @@ cdef class FaceIterator_geom(FaceIterator_base):
         """
         self._requested_dim = output_dimension
 
+        if dual is None:
+            # Determine the (likely) faster way, to iterate through all faces.
+            if not P.is_compact() or P.n_facets() <= P.n_vertices():
+                dual = False
+            else:
+                dual = True
+
+        self.P = P
+
+        FaceIterator_base.__init__(self, P.combinatorial_polyhedron(), dual, output_dimension)
+        self.reset()
+
+    def reset(self):
+        r"""
+        Reset the iterator.
+
+        The iterator will start with the first face again.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: it = P.face_generator()
+            sage: next(it).ambient_V_indices()
+            (0, 1, 2, 3, 4, 5, 6, 7)
+            sage: next(it).ambient_V_indices()
+            ()
+            sage: next(it).ambient_V_indices()
+            (0, 3, 4, 5)
+            sage: it.reset()
+            sage: next(it).ambient_V_indices()
+            (0, 1, 2, 3, 4, 5, 6, 7)
+            sage: next(it).ambient_V_indices()
+            ()
+            sage: next(it).ambient_V_indices()
+            (0, 3, 4, 5)
+        """
+        output_dimension = self._requested_dim
+        P = self.P
+
         if output_dimension is None:
             if P.dim() == -1:
                 self._trivial_faces = 1  # the empty polyhedron, only yield the empty face
@@ -1113,17 +1182,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
             self._trivial_faces = -1  # don't yield any faces at all
         else:
             self._trivial_faces = 0  # yield the faces of the requested dimension
-
-        if dual is None:
-            # Determine the (likely) faster way, to iterate through all faces.
-            if not P.is_compact() or P.n_facets() <= P.n_vertices():
-                dual = False
-            else:
-                dual = True
-
-        self.P = P
-
-        FaceIterator_base.__init__(self, P.combinatorial_polyhedron(), dual, output_dimension)
+        FaceIterator_base.reset(self)
 
     def _repr_(self):
         r"""

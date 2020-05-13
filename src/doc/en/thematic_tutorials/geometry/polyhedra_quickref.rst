@@ -172,6 +172,8 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_generator` | a generator over the faces
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.faces` | the list of faces
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.facets` | the list of facets
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.join_of_Vrep` | smallest face containing specified Vrepresentatives
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.meet_of_facets` | largest face contained specified facets
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.normal_fan` | returns the fan spanned by the normals of the supporting hyperplanes of the polyhedron
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.gale_transform` | returns the (affine) Gale transform of the vertices of the polyhedron
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.hyperplane_arrangement` | returns the hyperplane arrangement given by the defining facets of the polyhedron

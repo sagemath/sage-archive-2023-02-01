@@ -596,6 +596,13 @@ cdef class FaceIterator_base(SageObject):
             sage: next(it).ambient_V_indices()
             (0, 3, 4, 5)
         """
+        if self.structure.dimension == 0 or self.coatoms.n_faces == 0:
+            # As we will only yield proper faces,
+            # there is nothing to yield in those cases.
+            # We have to discontinue initialization,
+            # as it assumes ``self.dimension > 0`` and ``self.n_faces > 0``.
+            self.structure.current_dimension = self.structure.dimension
+            return
         if self._bounded:
             self.structure.n_visited_all[self.structure.dimension -1] = 0
         else:
@@ -626,6 +633,25 @@ cdef class FaceIterator_base(SageObject):
         raise NotImplementedError("a derived class must implement this")
 
     next = __next__
+
+    def current(self):
+        r"""
+        Retrieve the last value of :meth:`next`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.octahedron()
+            sage: it = P.combinatorial_polyhedron().face_iter()
+            sage: next(it)
+            A 0-dimensional face of a 3-dimensional combinatorial polyhedron
+            sage: it.current()
+            A 0-dimensional face of a 3-dimensional combinatorial polyhedron
+            sage: next(it).ambient_V_indices() == it.current().ambient_V_indices()
+            True
+        """
+        if unlikely(self.structure.face is NULL):
+            raise ValueError("iterator not set to a face yet")
+        return CombinatorialFace(self)
 
     def __iter__(self):
         r"""
@@ -1139,6 +1165,10 @@ cdef class FaceIterator_geom(FaceIterator_base):
 
         self.P = P
 
+        if output_dimension is not None and (output_dimension < 0 or output_dimension >= P.dim()):
+            # In those cases the output will be completely handled by :meth:`FaceIterator_geom.__next__`.
+            output_dimension = None
+
         FaceIterator_base.__init__(self, P.combinatorial_polyhedron(), dual, output_dimension)
         self.reset()
 
@@ -1175,13 +1205,10 @@ cdef class FaceIterator_geom(FaceIterator_base):
             else:
                 self._trivial_faces = 2  # yield the universe, then the empty face, than all other faces
         elif output_dimension == P.dim():
-            output_dimension = None
             self._trivial_faces = 4  # only yield the full-dimensional face and no other faces
         elif output_dimension == -1:
-            output_dimension = None
             self._trivial_faces = 3  # only yield the empty face and no other faces
         elif output_dimension < -1 or output_dimension > P.dim():
-            output_dimension = None
             self._trivial_faces = -1  # don't yield any faces at all
         else:
             self._trivial_faces = 0  # yield the faces of the requested dimension
@@ -1238,9 +1265,26 @@ cdef class FaceIterator_geom(FaceIterator_base):
                     self._trivial_faces = -1  # The iterator is exhausted.
                 return PolyhedronFace(self.P, [], range(self.P.n_Hrepresentation()))
 
-        cdef CombinatorialFace face = self.next_face()
+        self.next_dimension()
         if unlikely(self.structure.current_dimension == self.structure.dimension):
             raise StopIteration
+        return self.current()
 
-        return combinatorial_face_to_polyhedral_face(self.P, face)
+    def current(self):
+        r"""
+        Retrieve the last value of :meth:`__next__`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.octahedron()
+            sage: it = P.face_generator()
+            sage: _ = next(it), next(it)
+            sage: next(it)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: it.current()
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: next(it).ambient_V_indices() == it.current().ambient_V_indices()
+            True
+        """
+        return combinatorial_face_to_polyhedral_face(self.P, FaceIterator_base.current(self))
 

@@ -637,6 +637,25 @@ cdef class OrePolynomial(AlgebraElement):
         return q
 
     cpdef _div_(self, right):
+        r"""
+        Return the quotient of this Ore polynomial by ``right``
+        in the fraction field.
+
+        INPUT:
+
+        - ``right`` -- a Ore polynomial
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(11)[]
+            sage: der = R.derivation()
+            sage: S.<x> = R['x', der]
+            sage: f = t/x
+            sage: f
+            (x + 10/t)^(-1) * t
+            sage: f.parent()
+            Ore Function Field in x over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 11 twisted by d/dt
+        """
         parent = self.parent().fraction_field()
         return parent(self) / parent(right)
 

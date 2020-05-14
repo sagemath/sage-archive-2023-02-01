@@ -120,7 +120,7 @@ Of course, multiplication remains noncommutative::
 
 AUTHOR:
 
-- Xavier Caruso (2020-04)
+- Xavier Caruso (2020-05)
 """
 
 

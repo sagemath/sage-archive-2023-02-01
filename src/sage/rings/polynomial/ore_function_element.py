@@ -178,10 +178,10 @@ class OreFunctionBaseringInjection(Morphism):
         return ConstantOrePolynomialSection(self._codomain, self.domain())
 
 
-# Finite order
-##############
+# Ore functions over Ore function field with finite index center
+################################################################
 
-class OreFunction_finite_order(OreFunction):
+class OreFunction_with_large_center(OreFunction):
     def reduced_trace(self, var=None):
         ring = self.parent()._ring
         denominator = self._denominator.reduced_norm()

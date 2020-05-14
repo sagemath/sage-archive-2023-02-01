@@ -378,7 +378,7 @@ class SectionSkewPolynomialCenterInjection(Section):
     """
     def _call_(self, x):
         r"""
-        Return `x` viewed as an element of the center
+        Return `x` viewed as an element of the center.
 
         EXAMPLES::
 
@@ -412,7 +412,7 @@ class SectionSkewPolynomialCenterInjection(Section):
 
     def _richcmp_(self, right, op):
         r"""
-        Compare this morphism with ``right``
+        Compare this morphism with ``right``.
 
         TESTS::
 
@@ -436,7 +436,7 @@ class SectionSkewPolynomialCenterInjection(Section):
 class SkewPolynomialCenterInjection(RingHomomorphism):
     r"""
     Canonical injection of the center of a skew polynomial ring
-    into this ring
+    into this ring.
 
     TESTS::
 
@@ -448,7 +448,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
     """
     def __init__(self, domain, codomain, embed, order):
         r"""
-        Initialize this morphism
+        Initialize this morphism.
 
         EXAMPLES::
 
@@ -466,7 +466,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
 
     def _repr_(self):
         r"""
-        Return a string representation of this morphism
+        Return a string representation of this morphism.
 
         EXAMPLES::
 
@@ -483,7 +483,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
 
     def _call_(self, x):
         r"""
-        Return the image of `x` by this morphism
+        Return the image of `x` by this morphism.
 
         TESTS::
 
@@ -504,7 +504,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
 
     def _richcmp_(self, right, op):
         r"""
-        Compare this morphism with ``right``
+        Compare this morphism with ``right``.
 
         TESTS::
 
@@ -525,7 +525,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
 
     def section(self):
         r"""
-        Return a section of this morphism
+        Return a section of this morphism.
 
         EXAMPLES::
 
@@ -542,7 +542,8 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
 
 class SkewPolynomialRing_finite_order(SkewPolynomialRing):
     """
-    A specialized class for skew polynomial rings over finite fields.
+    A specialized class for skew polynomial rings whose twising morphism
+    has finite order.
 
     .. SEEALSO::
 
@@ -552,7 +553,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
     """
     def __init__(self, base_ring, morphism, derivation, name, sparse, category=None):
         r"""
-        Initialize this skew polynomial
+        Initialize this skew polynomial ring.
 
         TESTS::
 
@@ -582,8 +583,8 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             import sage.rings.polynomial.skew_polynomial_finite_order
             self.Element = sage.rings.polynomial.skew_polynomial_finite_order.SkewPolynomial_finite_order_dense
         if self._fraction_field_class is None:
-            from sage.rings.polynomial.ore_function_field import OreFunctionField_finite_order
-            self._fraction_field_class = OreFunctionField_finite_order
+            from sage.rings.polynomial.ore_function_field import OreFunctionField_with_large_center
+            self._fraction_field_class = OreFunctionField_with_large_center
         SkewPolynomialRing.__init__(self, base_ring, morphism, derivation, name, sparse, category)
         self._order = morphism.order()
         (self._constants, self._embed_constants) = morphism.fixed_field()

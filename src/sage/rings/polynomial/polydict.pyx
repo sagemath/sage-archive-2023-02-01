@@ -1268,7 +1268,9 @@ cdef class ETuple:
             d = [self[ind] for ind from start <= ind < stop]
             return ETuple(d)
         else:
-            for ind in range(0, 2*self._nonzero, 2):
+            # Do NOT change this as it will not produce an efficient for loop
+            #for ind in range(0, 2*self._nonzero, 2):
+            for ind from 0 <= ind < 2*self._nonzero by 2:
                 if self._data[ind] == i:
                     return self._data[ind+1]
                 elif self._data[ind] > i:
@@ -1281,7 +1283,9 @@ cdef class ETuple:
         Return the exponent for the ``i``-th variable.
         """
         cdef size_t ind = 0
-        for ind in range(0, 2*self._nonzero, 2):
+        # Do NOT change this as it will not produce an efficient for loop
+        #for ind in range(0, 2*self._nonzero, 2):
+        for ind from 0 <= ind < 2*self._nonzero by 2:
             if self._data[ind] == i:
                 return self._data[ind+1]
             elif self._data[ind] > i:
@@ -1502,7 +1506,9 @@ cdef class ETuple:
         """
         cdef size_t degree = 0
         cdef size_t i
-        for i in range(1, 2*self._nonzero, 2):
+        # Do NOT change this as it will not produce an efficient for loop
+        #for i in range(1, 2*self._nonzero, 2):
+        for i from 1 <= i < 2*self._nonzero by 2:
             degree += self._data[i]
         return degree
 
@@ -1524,7 +1530,9 @@ cdef class ETuple:
         cdef size_t i
         cdef size_t deg = 0
         assert len(w) == self._length
-        for i in range(0, 2*self._nonzero, 2):
+        # Do NOT change this as it will not produce an efficient for loop
+        #for i in range(0, 2*self._nonzero, 2):
+        for i from 0 <= i < 2*self._nonzero by 2:
             deg += <size_t> self._data[i+1] * <size_t> w[self._data[i]]
         return deg
 
@@ -2001,17 +2009,23 @@ cdef class ETuple:
                 if exp1>1:
                     # division doesn't change the number of nonzero positions
                     result._nonzero = self._nonzero
-                    for j in range(0, 2*self._nonzero, 2):
+                    # Do NOT change this as it will not produce an efficient for loop
+                    #for j in range(0, 2*self._nonzero, 2):
+                    for j from 0 <= j < 2*self._nonzero by 2:
                         result._data[j] = self._data[j]
                         result._data[j+1] = self._data[j+1]
                     result._data[i+1] = exp1-1
                 else:
                     # var(index) disappears from self
                     result._nonzero = self._nonzero-1
-                    for j in range(0, i, 2):
+                    # Do NOT change this as it will not produce an efficient for loop
+                    #for ind in range(0, i, 2):
+                    for j from 0 <= j < i by 2:
                         result._data[j] = self._data[j]
                         result._data[j+1] = self._data[j+1]
-                    for j in range(i+2, 2*self._nonzero, 2):
+                    # Do NOT change this as it will not produce an efficient for loop
+                    #for j in range(i+2, 2*self._nonzero, 2):
+                    for j from i+2 <= j < 2*self._nonzero by 2:
                         result._data[j-2] = self._data[j]
                         result._data[j-1] = self._data[j+1]
                 return result
@@ -2029,7 +2043,9 @@ cdef class ETuple:
             # Trivially self cannot divide other
             return False
         cdef size_t othernz2 = 2 * other._nonzero
-        for ind1 in range(0, 2*self._nonzero, 2):
+        # Do NOT change this as it will not produce an efficient for loop
+        #for ind1 in range(0, 2*self._nonzero, 2):
+        for ind1 from 0 <= ind1 < 2*self._nonzero by 2:
             pos1 = self._data[ind1]
             exp1 = self._data[ind1+1]
             # Because of the above trivial test, other._nonzero>0.

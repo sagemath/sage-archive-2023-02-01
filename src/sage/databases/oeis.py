@@ -105,7 +105,7 @@ related ?
     ...
 
 
-What does the Taylor expansion of the `e^(e^x-1)` function have to do with
+What does the Taylor expansion of the `e^{e^x-1}` function have to do with
 primes ?
 
 ::

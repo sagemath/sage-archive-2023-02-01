@@ -538,6 +538,8 @@ $(foreach pkgname,$(SCRIPT_PACKAGES),\
 	$(info $(call SCRIPT_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),$(call pkg_deps,$(pkgname)))))
 endif
 
+# sagelib depends on this so that its install script is always executed
+FORCE:
 
 # Use this target to list common targets of this Makefile (in particular for
 # installation with `sage -i`.

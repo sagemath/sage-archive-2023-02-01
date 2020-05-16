@@ -1990,14 +1990,25 @@ class OEISSequence(SageObject, UniqueRepresentation):
         This returns ``True`` if the code compiles, and raises an error
         otherwise.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: s = oeis.find_by_id('A27642')     # optional -- internet
+        One correct sequence::
+
+            sage: s = oeis.find_by_id('A027642')     # optional -- internet
             sage: s.test_compile_sage_code()    # optional -- internet
+            True
+
+        One dead sequence::
+
+            sage: s = oeis.find_by_id('A000154')     # optional -- internet
+            sage: s.test_compile_sage_code()    # optional -- internet
+            doctest:warning
+            ...
+            RuntimeWarning: This sequence is dead: ...
             True
         """
         if self.is_dead():
-            raise True
+            return True
         filt = self.programs(language='sage')
         if filt:
             for v in filt:

@@ -105,7 +105,7 @@ related ?
     ...
 
 
-What does the Taylor expansion of the `e^(e^x-1)`` function have to do with
+What does the Taylor expansion of the `e^(e^x-1)` function have to do with
 primes ?
 
 ::
@@ -186,7 +186,7 @@ def _fetch(url):
 
     INPUT:
 
-    - ``url`` - a string corresponding to the URL to be fetched.
+    - ``url`` -- a string corresponding to the URL to be fetched.
 
     OUTPUT:
 
@@ -217,7 +217,7 @@ def _urls(html_string):
 
     INPUT:
 
-    - ``html_string`` - a string representing some HTML code.
+    - ``html_string`` -- a string representing some HTML code.
 
     OUTPUT:
 
@@ -402,10 +402,10 @@ class OEIS:
 
         INPUT:
 
-        - ``ident`` - a string representing the A-number of the sequence
+        - ``ident`` -- a string representing the A-number of the sequence
           or an integer representing its number.
 
-        - ``fetch`` - (bool, default: ``False``) whether to force fetching the
+        - ``fetch`` -- (bool, default: ``False``) whether to force fetching the
           content of the sequence on the internet.
 
         OUTPUT:
@@ -430,7 +430,7 @@ class OEIS:
 
         INPUT:
 
-        - ``entry`` - a string corresponding to an entry in the internal format
+        - ``entry`` -- a string corresponding to an entry in the internal format
           of the OEIS.
 
         OUTPUT:
@@ -455,13 +455,13 @@ class OEIS:
 
         INPUT:
 
-        - ``description`` - (string) the description the searched sequences.
+        - ``description`` -- (string) the description the searched sequences.
 
-        - ``max_results`` - (integer, default: 3) the maximum number of results
+        - ``max_results`` -- (integer, default: 3) the maximum number of results
           we want. In any case, the on-line encyclopedia will not return more
           than 100 results.
 
-        - ``first_result`` - (integer, default: 0) allow to skip the
+        - ``first_result`` -- (integer, default: 0) allow to skip the
           ``first_result`` first results in the search, to go further.
           This is useful if you are looking for a sequence that may appear
           after the 100 first found sequences.
@@ -509,11 +509,11 @@ class OEIS:
 
         INPUT:
 
-        - ``subsequence`` - a list of integers.
+        - ``subsequence`` -- a list of integers.
 
-        - ``max_results`` - (integer, default: 3), the maximum of results requested.
+        - ``max_results`` -- (integer, default: 3), the maximum of results requested.
 
-        - ``first_result`` - (integer, default: 0) allow to skip the
+        - ``first_result`` -- (integer, default: 0) allow to skip the
           ``first_result`` first results in the search, to go further.
           This is useful if you are looking for a sequence that may appear
           after the 100 first found sequences.
@@ -554,9 +554,9 @@ class OEIS:
 
         INPUT:
 
-        - ``ident`` - a string representing the A-number of the sequence.
+        - ``ident`` -- a string representing the A-number of the sequence.
 
-        - ``keywords`` - a string corresponding to the keyword field of the
+        - ``keywords`` -- a string corresponding to the keyword field of the
           sequence.
 
         OUTPUT:
@@ -614,9 +614,9 @@ class OEIS:
 
         INPUT:
 
-        - ``ident`` - a string representing the A-number of the sequence.
+        - ``ident`` -- a string representing the A-number of the sequence.
 
-        - ``keywords`` - string (default: 'sign,easy'), a list of words
+        - ``keywords`` -- string (default: 'sign,easy'), a list of words
           separated by commas.
 
         OUTPUT:
@@ -692,7 +692,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``ident`` - a string representing the A-number of the sequence or an
+        - ``ident`` -- a string representing the A-number of the sequence or an
           integer representing its number.
 
         TESTS::
@@ -753,7 +753,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``format`` - (string, default: 'A').
+        - ``format`` -- (string, default: 'A').
 
         OUTPUT:
 
@@ -1103,7 +1103,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - warn_only - (bool, default: ``False``), whether to warn when the
+        - warn_only -- (bool, default: ``False``), whether to warn when the
           sequence is dead instead of returning a boolean.
 
         EXAMPLES:
@@ -1244,7 +1244,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``number`` - (integer or ``None``, default: ``None``) the number of
+        - ``number`` -- (integer or ``None``, default: ``None``) the number of
           terms returned (if less than the number of available terms). When set
           to None, returns all the known terms.
 
@@ -1307,7 +1307,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``k`` - integer.
+        - ``k`` -- integer.
 
         OUTPUT:
 
@@ -1371,7 +1371,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``i`` - integer.
+        - ``i`` -- integer.
 
         OUTPUT:
 
@@ -1514,10 +1514,10 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``browse`` - an integer, a list of integers, or the word 'all'
+        - ``browse`` -- an integer, a list of integers, or the word 'all'
           (default: ``None``) : which links to open in a web browser.
 
-        - ``format`` - string (default: 'guess') : how to display the links.
+        - ``format`` -- string (default: 'guess') : how to display the links.
 
         OUTPUT:
 
@@ -1616,7 +1616,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``fetch`` - boolean (default: ``False``).
+        - ``fetch`` -- boolean (default: ``False``).
 
         OUTPUT:
 

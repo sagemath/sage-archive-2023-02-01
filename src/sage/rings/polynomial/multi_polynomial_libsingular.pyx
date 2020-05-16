@@ -3351,6 +3351,10 @@ cdef class MPolynomial_libsingular(MPolynomial):
             True
             sage: (x*y + x).is_monomial()
             False
+            sage: P(2).is_monomial()
+            False
+            sage: P.zero().is_monomial()
+            False
         """
         cdef poly *_p
         cdef ring *_ring
@@ -3358,7 +3362,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         _ring = self._parent_ring
 
         if self._poly == NULL:
-            return True
+            return False
 
         if(_ring != currRing): rChangeCurrRing(_ring)
 
@@ -3369,6 +3373,32 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
         p_Delete(&_p, _ring)
         return ret
+
+    def is_term(self):
+        """
+        Return ``True`` if ``self`` is a term, which we define to be a
+        product of generators times some coefficient, which need
+        not be 1.
+
+        Use :meth:`is_monomial()` to require that the coefficient be 1.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = PolynomialRing(QQ)
+            sage: x.is_term()
+            True
+            sage: (2*x).is_term()
+            True
+            sage: (x*y).is_term()
+            True
+            sage: (x*y + x).is_term()
+            False
+            sage: P(2).is_term()
+            True
+            sage: P.zero().is_term()
+            True
+        """
+        return self._poly == NULL or self._poly.next == NULL
 
     def subs(self, fixed=None, **kw):
         """

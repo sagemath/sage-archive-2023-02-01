@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+cd "$SAGE_SRC" && time $MAKE sage

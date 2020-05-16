@@ -37,20 +37,18 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
 from __future__ import print_function
 
-import operator
 from collections import OrderedDict
 from itertools import repeat, chain, product
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.misc_c import prod
 
 from sage.graphs.digraph import DiGraph
 from sage.graphs.graph import Graph
 from sage.monoids.free_monoid import FreeMonoid
 from sage.monoids.monoid import Monoid_class
-from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.power_series_ring import PowerSeriesRing
@@ -131,11 +129,11 @@ class TraceMonoidElement(MonoidElement):
 
     def lex_normal_form(self):
         """
-        Returns lexicographic normal form of the trace.
+        Return the lexicographic normal form of the trace.
 
         OUTPUT: free monoid element
 
-        SEEALSO::
+        .. SEEALSO::
 
             :meth:`sage.monoids.trace_monoid.TraceMonoid._compute_lex_normal_form`
 
@@ -155,11 +153,11 @@ class TraceMonoidElement(MonoidElement):
 
     def foata_normal_form(self):
         """
-        Returns Foata normal form of the trace.
+        Return the Foata normal form of the trace.
 
         OUTPUT: tuple of free monoid elements
 
-        SEEALSO::
+        .. SEEALSO::
 
             :meth:`sage.monoids.trace_monoid.TraceMonoid._compute_foata_normal_form`
 
@@ -176,7 +174,7 @@ class TraceMonoidElement(MonoidElement):
 
     def _mul_(self, other):
         r"""
-        Concatenates one equivalence class with another.
+        Concatenate one equivalence class with another.
 
         EXAMPLES::
 
@@ -254,7 +252,7 @@ class TraceMonoidElement(MonoidElement):
 
         OUTPUT: directed graph of generator indexes
 
-        SEEALSO::
+        .. SEEALSO::
 
             :meth:`sage.monoids.trace_monoid.TraceMonoidElement.naive_hasse_digram`,
             :meth:`sage.monoids.trace_monoid.TraceMonoidElement.min_hasse_diagram`.
@@ -294,7 +292,7 @@ class TraceMonoidElement(MonoidElement):
 
         OUTPUT: directed graph of generator indexes
 
-        SEEALSO::
+        .. SEEALSO::
 
             :meth:`sage.monoids.trace_monoid.TraceMonoidElement.hasse_digram`,
             :meth:`sage.monoids.trace_monoid.TraceMonoidElement.naive_hasse_diagram`.
@@ -341,7 +339,7 @@ class TraceMonoidElement(MonoidElement):
 
         OUTPUT: directed graph of generator indexes
 
-        SEEALSO::
+        .. SEEALSO::
 
             :meth:`sage.monoids.trace_monoid.TraceMonoidElement.hasse_digram`,
             :meth:`sage.monoids.trace_monoid.TraceMonoidElement.min_hasse_diagram`.
@@ -421,11 +419,9 @@ class TraceMonoidElement(MonoidElement):
             sage: x.projection({b,d,c})
             [b*d*b*c]
         """
-        return self.parent(reduce(
-            operator.mul,
-            [x for x in self._flat_elements() if x in letters],
-            self.parent()._base.one()
-        ))
+        base = self.parent()._base
+        return self.parent(base.prod(x for x in self._flat_elements()
+                                     if x in letters))
 
 
 class TraceMonoid(Monoid_class, UniqueRepresentation):
@@ -452,17 +448,17 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
 
     EXAMPLES::
 
-    sage: from sage.monoids.trace_monoid import TraceMonoid
-    sage: F = TraceMonoid(names=('a', 'b', 'c'), I=Set({('a','c'), ('c','a')})); F
-    Trace monoid on 3 generators ([a], [b], [c]) over Free monoid on 3 generators (a, b, c) with independence relation {(a, c), (c, a)}
-    sage: x = F.gens()
-    sage: x[0]*x[1]**5 * (x[0]*x[2])
-    [a*b^5*a*c]
+        sage: from sage.monoids.trace_monoid import TraceMonoid
+        sage: F = TraceMonoid(names=('a', 'b', 'c'), I=Set({('a','c'), ('c','a')})); F
+        Trace monoid on 3 generators ([a], [b], [c]) over Free monoid on 3 generators (a, b, c) with independence relation {(a, c), (c, a)}
+        sage: x = F.gens()
+        sage: x[0]*x[1]**5 * (x[0]*x[2])
+        [a*b^5*a*c]
 
-    sage: from sage.monoids.trace_monoid import TraceMonoid
-    sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
-    sage: latex(M)
-    \langle a, b, c \mid ac=ca \rangle
+        sage: from sage.monoids.trace_monoid import TraceMonoid
+        sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
+        sage: latex(M)
+        \langle a, b, c \mid ac=ca \rangle
 
     TESTS::
 
@@ -476,7 +472,7 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
 
     def __init__(self, M=None, I=None, names=None):
         r"""
-        Initializes TraceMonoid.
+        Initialize TraceMonoid.
 
         TESTS::
 
@@ -514,7 +510,7 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
 
     def ngens(self):
         """
-        The number of generators of the monoid.
+        Return the number of generators of the monoid.
 
         EXAMPLES::
 
@@ -527,7 +523,7 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
 
     def one(self):
         """
-        Neutral element of the monoid.
+        Return the neutral element of the monoid.
 
         EXAMPLES::
 
@@ -540,7 +536,7 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
 
     def gen(self, i=0):
         """
-        The `i`-th generator of the monoid.
+        Return the `i`-th generator of the monoid.
 
         INPUT:
 
@@ -641,7 +637,7 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
                             stacks[other_gen].pop()
                     break
 
-        return reduce(operator.mul, elements)
+        return prod(elements)
 
     @cached_method
     def _compute_foata_normal_form(self, x):
@@ -691,7 +687,7 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
 
             steps.append(step)
 
-        return tuple(reduce(operator.mul, step) for step in steps)
+        return tuple(prod(step) for step in steps)
 
     def _element_constructor_(self, x):
         """
@@ -748,8 +744,8 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
 
             sage: from sage.monoids.trace_monoid import TraceMonoid
             sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
-            sage: M.dependence()
-            {(a, a), (b, b), (b, a), (a, b), (c, b), (b, c), (c, c)}
+            sage: sorted(M.dependence())
+            [(a, a), (a, b), (b, a), (b, b), (b, c), (c, b), (c, c)]
         """
         return Set(pair for pair in product(self._base.gens(), repeat=2)
                    if pair not in self._independence)
@@ -769,8 +765,9 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
             sage: M.dependence_graph() == Graph({a:[a,b], b:[b], c:[c,b]})
             True
         """
-        return Graph(list(set(frozenset((e1, e2)) if e1 != e2 else (e1, e2)
-                              for e1, e2 in self.dependence())), loops=True)
+        return Graph(set(frozenset((e1, e2)) if e1 != e2 else (e1, e2)
+                         for e1, e2 in self.dependence()), loops=True,
+                     format="list_of_edges")
 
     @cached_method
     def independence_graph(self):
@@ -815,8 +812,8 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
             R = PolynomialRing(ZZ, 't')
             t = R.gen()
         clique_seq = self.independence_graph().clique_polynomial().coefficients()
-        return Integer(1) / sum(((-1) ** i) * coeff * (t ** i)
-                                for i, coeff in enumerate(clique_seq))
+        return ZZ.one() / sum((-1)**i * coeff * (t**i)
+                              for i, coeff in enumerate(clique_seq))
 
     @cached_method
     def number_of_words(self, length):

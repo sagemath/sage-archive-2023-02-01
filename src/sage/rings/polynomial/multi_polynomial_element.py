@@ -1020,12 +1020,11 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: l.inverse_of_unit().parent()
             Univariate Polynomial Ring in c over Rational Field
         """
-        d = self.element().dict()
-        k = list(d)
         if self.is_unit():
-            if len(k) != 1:
+            d = self.element().dict()
+            if len(d) != 1:
                 raise NotImplementedError
-            return d[k[0]].inverse_of_unit()
+            return list(d.values())[0].inverse_of_unit()
         raise ArithmeticError("is not a unit")
 
     def is_homogeneous(self):
@@ -1084,7 +1083,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def is_generator(self):
         """
-        Returns True if self is a generator of it's parent.
+        Return ``True`` if ``self`` is a generator of its parent.
 
         EXAMPLES::
 
@@ -1096,19 +1095,18 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: (x*y).is_generator()
             False
         """
-        d = self.element().dict()
-        if len(d) == 1:
-            (e, c), = d.items()
-            if c.is_one() and len(e.nonzero_positions()) == 1 and e.nonzero_values()[0] == 1:
-                return True
+        elt = self.element()
+        if len(elt) == 1:
+            (e, c), = elt.dict().items()
+            return e.nonzero_values() == [1] and c.is_one()
         return False
 
     def is_monomial(self):
         """
-        Returns True if self is a monomial, which we define to be a
+        Return ``True`` if ``self`` is a monomial, which we define to be a
         product of generators with coefficient 1.
 
-        Use is_term to allow the coefficient to not be 1.
+        Use :meth:`is_term` to allow the coefficient to not be 1.
 
         EXAMPLES::
 
@@ -1129,18 +1127,11 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: (2*x*y).is_monomial()
             False
         """
-        term = (len(self.element().dict().keys()) == 1)
-        if term:
-            if self.coefficients()[0] == 1:
-                return True
-            else:
-                return False
-        else:
-            return False
+        return len(self.element()) == 1 and self.element().coefficients()[0] == 1
 
     def is_term(self):
         """
-        Returns True if self is a term, which we define to be a
+        Return ``True`` if ``self`` is a term, which we define to be a
         product of generators times some coefficient, which need
         not be 1.
 
@@ -1165,7 +1156,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: (2*x*y).is_term()
             True
         """
-        return len(self.element().dict().keys()) == 1
+        return len(self.element()) == 1
 
     def subs(self, fixed=None, **kw):
         """
@@ -1276,7 +1267,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f.is_univariate()
             True
         """
-        mons = self.element().dict().keys()
+        mons = self.element().dict()
 
         found = -1
         for mon in mons:
@@ -1424,7 +1415,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def is_constant(self):
         """
-        True if polynomial is constant, and False otherwise.
+        Return ``True`` if ``self`` is a constant and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -1436,10 +1427,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: g.is_constant()
             True
         """
-        if len(self.dict()) <= 1 and self.degrees().is_constant():
-            return True
-        else:
-            return False
+        return self.element().is_constant()
 
     def lm(self):
         """

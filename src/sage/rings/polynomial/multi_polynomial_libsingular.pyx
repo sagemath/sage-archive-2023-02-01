@@ -3183,6 +3183,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f = 23*x^6*y^7 + x^3*y+6*x^7*z
             sage: list(f)
             [(23, x^6*y^7), (6, x^7*z), (1, x^3*y)]
+            sage: list(R.zero())
 
             sage: R.<x,y,z> = PolynomialRing(QQ, order='lex')
             sage: f = 23*x^6*y^7 + x^3*y+6*x^7*z
@@ -3193,7 +3194,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         cdef ring *_ring = parent._ring
         if _ring != currRing: rChangeCurrRing(_ring)
         base = parent._base
-        cdef poly *p = p_Copy(self._poly, _ring)
+        cdef poly *t, *p = p_Copy(self._poly, _ring)
 
         while p:
             t = pNext(p)

@@ -2989,18 +2989,63 @@ cdef class MPolynomial_libsingular(MPolynomial):
         if r!=currRing: rChangeCurrRing(r)
         base = self._parent._base
         p = self._poly
-        pd = dict()
+        cdef dict d, pd = dict()
         while p:
             d = dict()
             for v from 1 <= v <= r.N:
                 n = p_GetExp(p,v,r)
-                if n!=0:
+                if n != 0:
                     d[v-1] = n
 
             pd[ETuple(d,r.N)] = si2sa(p_GetCoeff(p, r), r, base)
 
             p = pNext(p)
         return pd
+
+    def iterator_exp_coeff(self, as_ETuples=True):
+        """
+        Iterate over ``self`` as pairs of ((E)Tuple, coefficient).
+
+        INPUT:
+
+        - ``as_ETuples`` -- (default: ``True``) if ``True`` iterate over
+          pairs whose first element is an ETuple, otherwise as a tuples
+
+        EXAMPLES::
+
+            sage: R.<a,b,c> = QQ[]
+            sage: f = a*c^3 + a^2*b + 2*b^4
+            sage: list(f.iterator_exp_coeff())
+            [((0, 4, 0), 2), ((1, 0, 3), 1), ((2, 1, 0), 1)]
+            sage: list(f.iterator_exp_coeff(as_ETuples=False))
+            [((0, 4, 0), 2), ((1, 0, 3), 1), ((2, 1, 0), 1)]
+
+            sage: R.<a,b,c> = PolynomialRing(QQ, 3, order='lex')
+            sage: f = a*c^3 + a^2*b + 2*b^4
+            sage: list(f.iterator_exp_coeff())
+            [((2, 1, 0), 1), ((1, 0, 3), 1), ((0, 4, 0), 2)]
+        """
+        cdef poly *p
+        cdef ring *r = self._parent_ring
+        cdef int n
+        cdef int v
+        if r!=currRing: rChangeCurrRing(r)
+        base = self._parent._base
+        p = self._poly
+        cdef dict d
+        while p:
+            d = dict()
+            for v from 1 <= v <= r.N:
+                n = p_GetExp(p,v,r)
+                if n != 0:
+                    d[v-1] = n
+
+            exp = ETuple(d,r.N)
+            if as_ETuples:
+                yield (exp, si2sa(p_GetCoeff(p, r), r, base))
+            else:
+                yield (tuple(exp), si2sa(p_GetCoeff(p, r), r, base))
+            p = pNext(p)
 
     cpdef long number_of_terms(self):
         """

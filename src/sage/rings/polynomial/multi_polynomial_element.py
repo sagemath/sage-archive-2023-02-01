@@ -859,6 +859,35 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                                                                 force_etuples=False))
                    )
 
+    def iterator_exp_coeff(self, as_ETuples=True):
+        """
+        Iterate over ``self`` as pairs of ((E)Tuple, coefficient).
+
+        INPUT:
+
+        - ``as_ETuples`` -- (default: ``True``) if ``True`` iterate over
+          pairs whose first element is an ETuple, otherwise as a tuples
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = PolynomialRing(QQbar, order='lex')
+            sage: f = (x^1*y^5*z^2 + x^2*z + x^4*y^1*z^3)
+            sage: list(f.iterator_exp_coeff())
+            [((4, 1, 3), 1), ((2, 0, 1), 1), ((1, 5, 2), 1)]
+
+            sage: R.<x,y,z> = PolynomialRing(QQbar, order='deglex')
+            sage: f = (x^1*y^5*z^2 + x^2*z + x^4*y^1*z^3)
+            sage: list(f.iterator_exp_coeff(as_ETuples=False))
+            [((4, 1, 3), 1), ((1, 5, 2), 1), ((2, 0, 1), 1)]
+        """
+        elt = self.element()
+        if as_ETuples:
+            for exp in self._exponents:
+                yield (exp, elt[exp])
+        else:
+            for exp in self._exponents:
+                yield (tuple(exp), elt[exp])
+
     def coefficient(self, degrees):
         """
         Return the coefficient of the variables with the degrees specified

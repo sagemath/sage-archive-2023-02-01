@@ -3184,6 +3184,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: list(f)
             [(23, x^6*y^7), (6, x^7*z), (1, x^3*y)]
             sage: list(R.zero())
+            []
 
             sage: R.<x,y,z> = PolynomialRing(QQ, order='lex')
             sage: f = 23*x^6*y^7 + x^3*y+6*x^7*z

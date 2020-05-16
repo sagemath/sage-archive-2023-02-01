@@ -2286,12 +2286,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: parent(g.coefficients()[0]) is parent(g).base_ring()
             True
         """
-        cdef dict d = self.dict()
         cdef ETuple e
-        if len(d) == 1:
-            (e, c), = d.items()
+        if self._poly.is_term():
+            (e, c), = self.dict().items()
             e = e.emul(-1)
-            P = self.parent()
+            P = self._parent
             try:
                 c = c.inverse_of_unit()
             except (AttributeError, ZeroDivisionError, ArithmeticError):
@@ -2474,7 +2473,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         c = self._prod.monomial_coefficient(m._prod.dict())
         return self._parent.base_ring()(c)
 
-    def constant_coefficient(self, method=True):
+    def constant_coefficient(self):
         """
         Return the constant coefficient of ``self``.
 
@@ -2643,15 +2642,15 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             (4*x^7*y^7*z + 3*x^3*y^8*z^2 + 2*x^4*y^7 + x^6*z^2, y^7*z^2)
         """
         ring = self._parent._R
-        n = ring.ngens()
-        numer = [0] * n  # monomial we multiply the numerator by
-        denom = [0] * n
+        numer = self._poly
+        denom = ring.one()
+        var = ring.gens()
         for i, j in enumerate(self._mon):
             if j > 0:
-                numer[i] = j
+                numer *= var[i] ** j
             else:
-                denom[i] = -j
-        return (self._poly * ring.monomial(*numer), ring.monomial(*denom))
+                denom *= var[i] ** (-j)
+        return (numer, denom)
 
     cpdef _add_(self, _right):
         """

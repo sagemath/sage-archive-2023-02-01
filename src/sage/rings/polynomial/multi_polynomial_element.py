@@ -66,6 +66,7 @@ from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singu
 from sage.structure.sequence import Sequence
 from .multi_polynomial import MPolynomial
 from sage.categories.morphism import Morphism
+from sage.misc.lazy_attribute import lazy_attribute
 
 
 def is_MPolynomial(x):
@@ -784,12 +785,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def __getitem__(self, x):
         """
+        Return the coefficient corresponding to ``x``.
+
         INPUT:
 
-
-        -  ``x`` - a tuple or, in case of a single-variable
-           MPolynomial ring x can also be an integer.
-
+        -  ``x`` -- a tuple or, in case of a single-variable
+           MPolynomial ring x can also be an integer
 
         EXAMPLES::
 
@@ -822,6 +823,41 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             return self.element()[x]
         except KeyError:
             return self.parent().base_ring()(0)
+
+    def __iter__(self):
+        """
+        Iterate over ``self`` respecting the term order.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = PolynomialRing(QQbar, order='lex')
+            sage: f = (x^1*y^5*z^2 + x^2*z + x^4*y^1*z^3)
+            sage: list(f)
+            [(1, x^4*y*z^3), (1, x^2*z), (1, x*y^5*z^2)]
+
+        ::
+
+            sage: R.<x,y,z> = PolynomialRing(QQbar, order='deglex')
+            sage: f = (x^1*y^5*z^2 + x^2*z + x^4*y^1*z^3)
+            sage: list(f)
+            [(1, x^4*y*z^3), (1, x*y^5*z^2), (1, x^2*z)]
+
+        ::
+
+            sage: R.<x,y,z> = PolynomialRing(QQbar, order='degrevlex')
+            sage: f = (x^1*y^5*z^2 + x^2*z + x^4*y^1*z^3)
+            sage: list(f)
+            [(1, x*y^5*z^2), (1, x^4*y*z^3), (1, x^2*z)]
+        """
+        elt = self.element()
+        ring = self.parent()
+        one = ring.base_ring()(1)
+        for exp in self._exponents:
+            yield (elt[exp],
+                   MPolynomial_polydict(ring, polydict.PolyDict({exp:one},
+                                                                force_int_exponents=False,
+                                                                force_etuples=False))
+                   )
 
     def coefficient(self, degrees):
         """
@@ -899,7 +935,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         looking_for = None
         if isinstance(degrees, MPolynomial) and degrees.parent() == self.parent() and degrees.is_monomial():
-            looking_for = [e if e > 0 else None for e in degrees.exponents()[0]]
+            looking_for = [e if e > 0 else None for e in degrees._exponents[0]]
         elif isinstance(degrees, list):
             looking_for = degrees
         elif isinstance(degrees, dict):
@@ -913,18 +949,33 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             raise ValueError("You must pass a dictionary list or monomial.")
         return self.parent()(self.element().polynomial_coefficient(looking_for))
 
-    def exponents(self, as_ETuples=True):
+    @lazy_attribute
+    def _exponents(self):
         """
-        Return the exponents of the monomials appearing in self.
+        Return the exponents of the monomials appearing in ``self`` for
+        internal use only.
+
+        EXAMPLES::
+
+            sage: R.<a,b,c> = PolynomialRing(QQbar, 3)
+            sage: f = a^3 + b + 2*b^2
+            sage: f._exponents
+            [(3, 0, 0), (0, 2, 0), (0, 1, 0)]
+        """
+        return sorted(self.element().dict(), key=self.parent().term_order().sortkey, reverse=True)
+
+    def exponents(self, as_ETuples=True):
+        r"""
+        Return the exponents of the monomials appearing in ``self``.
 
         INPUT:
 
-        - as_ETuples (default: ``True``): return the list of exponents as a list
-          of ETuples.
+        - ``as_ETuples`` -- (default: ``True``): return the list of
+          exponents as a list of ETuples
 
         OUTPUT:
 
-        Return the list of exponents as a list of ETuples or tuples.
+        The list of exponents as a list of ETuples or tuples.
 
         EXAMPLES::
 
@@ -939,24 +990,24 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             <type 'sage.rings.polynomial.polydict.ETuple'>
             sage: type(f.exponents(as_ETuples=False)[0])
             <... 'tuple'>
+
+        TESTS:
+
+        Check that we can mutate the list and not change the result::
+
+            sage: R.<a,b,c> = PolynomialRing(QQbar, 3)
+            sage: f = a^3 + b + 2*b^2
+            sage: E = f.exponents(); E
+            [(3, 0, 0), (0, 2, 0), (0, 1, 0)]
+            sage: E.pop()
+            (0, 1, 0)
+            sage: E != f.exponents()
+            True
         """
-        try:
-            exp = self.__exponents
-            if as_ETuples:
-                return exp
-            else:
-                return [tuple(e) for e in exp]
-        except AttributeError:
-            self.__exponents = list(self.element().dict())
-            try:
-                self.__exponents.sort(key=self.parent().term_order().sortkey,
-                                      reverse=True)
-            except AttributeError:
-                pass
-            if as_ETuples:
-                return self.__exponents
-            else:
-                return [tuple(e) for e in self.__exponents]
+        if as_ETuples:
+            return list(self._exponents)  # Make a shallow copy
+        else:
+            return [tuple(e) for e in self._exponents]
 
     def inverse_of_unit(self):
         """
@@ -1182,15 +1233,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         ring = self.parent()
         one = ring.base_ring()(1)
-        return [MPolynomial_polydict(ring, polydict.PolyDict({m:one}, force_int_exponents=False, force_etuples=False)) for m in self.exponents()]
-        try:
-            return self.__monomials
-        except AttributeError:
-            ring = self.parent()
-            one = self.parent().base_ring()(1)
-            self.__monomials = sorted([ MPolynomial_polydict(ring, polydict.PolyDict( {m:one}, force_int_exponents=False,  force_etuples=False ) ) \
-                                for m in self._MPolynomial_element__element.dict().keys() ], reverse=True)
-            return self.__monomials
+        return [MPolynomial_polydict(ring, polydict.PolyDict({m:one}, force_int_exponents=False, force_etuples=False))
+                for m in self._exponents]
 
     def constant_coefficient(self):
         """

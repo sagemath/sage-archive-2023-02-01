@@ -3126,6 +3126,39 @@ cdef class MPolynomial_libsingular(MPolynomial):
         p_Delete(&m,r)
         return self._parent._base._zero_element
 
+    def __iter__(self):
+        """
+        Facilitates iterating over the monomials of self,
+        returning tuples of the form ``(coeff, mon)`` for each
+        non-zero monomial.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ, order='degrevlex')
+            sage: f = 23*x^6*y^7 + x^3*y+6*x^7*z
+            sage: list(f)
+            [(23, x^6*y^7), (6, x^7*z), (1, x^3*y)]
+
+            sage: R.<x,y,z> = PolynomialRing(QQ, order='lex')
+            sage: f = 23*x^6*y^7 + x^3*y+6*x^7*z
+            sage: list(f)
+            [(6, x^7*z), (23, x^6*y^7), (1, x^3*y)]
+        """
+        cdef MPolynomialRing_libsingular parent = self._parent
+        cdef ring *_ring = parent._ring
+        if _ring != currRing: rChangeCurrRing(_ring)
+        base = parent._base
+        cdef poly *p = p_Copy(self._poly, _ring)
+
+        while p:
+            t = pNext(p)
+            p.next = NULL
+            coeff = si2sa(p_GetCoeff(p, _ring), _ring, base)
+            p_SetCoeff(p, n_Init(1,_ring), _ring)
+            p_Setm(p, _ring)
+            yield (coeff, new_MP(parent, p))
+            p = t
+
     def exponents(self, as_ETuples=True):
         """
         Return the exponents of the monomials appearing in this
@@ -3133,9 +3166,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
         INPUT:
 
-        - ``as_ETuples`` - (default: ``True``) if true returns the result as an list of ETuples
-                          otherwise returns a list of tuples
-
+        - ``as_ETuples`` -- (default: ``True``) if ``True`` returns the
+          result as an list of ETuples, otherwise returns a list of tuples
 
         EXAMPLES::
 
@@ -3153,16 +3185,18 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
         pl = list()
         ml = list(xrange(r.N))
-        while p:
-            for v from 1 <= v <= r.N:
-                ml[v-1] = p_GetExp(p,v,r)
-
-            if as_ETuples:
+        if as_ETuples:
+            while p:
+                for v from 1 <= v <= r.N:
+                    ml[v-1] = p_GetExp(p,v,r)
                 pl.append(ETuple(ml))
-            else:
+                p = pNext(p)
+        else:
+            while p:
+                for v from 1 <= v <= r.N:
+                    ml[v-1] = p_GetExp(p,v,r)
                 pl.append(tuple(ml))
-
-            p = pNext(p)
+                p = pNext(p)
         return pl
 
     def inverse_of_unit(self):
@@ -3609,15 +3643,12 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: p.monomials()
             [x]
         """
-        l = list()
+        cdef list l = []
         cdef MPolynomialRing_libsingular parent = self._parent
         cdef ring *_ring = parent._ring
         if(_ring != currRing): rChangeCurrRing(_ring)
         cdef poly *p = p_Copy(self._poly, _ring)
         cdef poly *t
-
-        if p == NULL:
-            return []
 
         while p:
             t = pNext(p)

@@ -3396,9 +3396,9 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: P(2).is_term()
             True
             sage: P.zero().is_term()
-            True
+            False
         """
-        return self._poly == NULL or self._poly.next == NULL
+        return self._poly != NULL and self._poly.next == NULL
 
     def subs(self, fixed=None, **kw):
         """

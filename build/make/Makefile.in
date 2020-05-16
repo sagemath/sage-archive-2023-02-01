@@ -341,8 +341,10 @@ clean:
 	@echo "Deleting package build directories..."
 	rm -rf "$(SAGE_LOCAL)/var/tmp/sage/build"
 
+# c_lib .cython_version are from old sage versions
 sagelib-clean:
-	cd "$(SAGE_SRC)" && $(MAKE) clean
+	@echo "Deleting Sage library build artifacts..."
+	cd "$(SAGE_SRC)" && (rm -rf c_lib .cython_version; rm -rf build; find . -name '*.pyc' | xargs rm -f; rm -rf sage/ext/interpreters)
 
 build-clean: clean doc-clean sagelib-clean
 

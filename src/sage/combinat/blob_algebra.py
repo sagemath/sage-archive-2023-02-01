@@ -26,7 +26,7 @@ from sage.misc.misc import powerset
 from sage.functions.other import binomial
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.algebras import Algebras
-from sage.combinat.diagram_algebras import TemperleyLiebDiagrams
+from sage.combinat.diagram_algebras import (TemperleyLiebDiagrams, diagram_latex)
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.dyck_word import DyckWords
 
@@ -113,23 +113,23 @@ class BlobDiagram(Element):
              ({}, {{-3, 3}, {-2, -1}, {1, 2}}),
              ({}, {{-3, 3}, {-2, 2}, {-1, 1}}),
              ({{-3, 1}}, {{-2, -1}, {2, 3}}),
-             ({{-3, 1}, {-2, -1}}, {{2, 3}}),
              ({{-3, 3}}, {{-2, -1}, {1, 2}}),
-             ({{-3, 3}, {-2, -1}}, {{1, 2}}),
-             ({{-3, 3}, {-2, -1}, {1, 2}}, {}),
-             ({{-3, 3}, {1, 2}}, {{-2, -1}}),
              ({{-2, -1}}, {{-3, 1}, {2, 3}}),
              ({{-2, -1}}, {{-3, 3}, {1, 2}}),
-             ({{-2, -1}, {1, 2}}, {{-3, 3}}),
              ({{-1, 1}}, {{-3, -2}, {2, 3}}),
              ({{-1, 1}}, {{-3, 3}, {-2, 2}}),
              ({{-1, 3}}, {{-3, -2}, {1, 2}}),
-             ({{-1, 3}, {1, 2}}, {{-3, -2}}),
              ({{1, 2}}, {{-3, -2}, {-1, 3}}),
-             ({{1, 2}}, {{-3, 3}, {-2, -1}})]
+             ({{1, 2}}, {{-3, 3}, {-2, -1}}),
+             ({{-3, 1}, {-2, -1}}, {{2, 3}}),
+             ({{-3, 3}, {-2, -1}}, {{1, 2}}),
+             ({{-3, 3}, {1, 2}}, {{-2, -1}}),
+             ({{-2, -1}, {1, 2}}, {{-3, 3}}),
+             ({{-1, 3}, {1, 2}}, {{-3, -2}}),
+             ({{-3, 3}, {-2, -1}, {1, 2}}, {})]
         """
-        return richcmp((self.marked, self.unmarked),
-                       (other.marked, other.unmarked),
+        return richcmp((len(self.marked), self.marked, self.unmarked),
+                       (len(other.marked), other.marked, other.unmarked),
                        op)
 
     def temperley_lieb_diagram(self):
@@ -147,7 +147,7 @@ class BlobDiagram(Element):
         return self.parent()._TL_diagrams(self.marked + self.unmarked)
 
 class BlobDiagrams(Parent, UniqueRepresentation):
-    """
+    r"""
     The set of all blob diagrams.
     """
     def __init__(self, n):
@@ -411,7 +411,7 @@ class BlobAlgebra(CombinatorialFreeModule):
     """
     @staticmethod
     def __classcall_private__(cls, k, q1, q2, q3, base_ring=None, prefix='B'):
-        """
+        r"""
         Normalize input to ensure a unique representation.
 
         TESTS::
@@ -430,7 +430,7 @@ class BlobAlgebra(CombinatorialFreeModule):
         return super(BlobAlgebra, cls).__classcall__(cls, k, q1, q2, q3, base_ring, prefix)
 
     def __init__(self, k, q1, q2, q3, base_ring, prefix):
-        """
+        r"""
         Initialize ``self``.
 
         TESTS::
@@ -451,8 +451,61 @@ class BlobAlgebra(CombinatorialFreeModule):
         CombinatorialFreeModule.__init__(self, base_ring, diagrams, category=cat,
                                          prefix=prefix, bracket=False)
 
-    def order(self):
+    def _latex_term(self, diagram):
+        r"""
+        Return a latex representation of ``diagram``.
+
+        EXAMPLES::
+
+            sage: R.<q,r,s> = ZZ[]
+            sage: B2 = algebras.Blob(2, q, r, s)
+            sage: latex(B2.an_element())
+            2\begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}] 
+            \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt] 
+            \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {}; 
+            \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw] {}; 
+            \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw] {}; 
+            \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw] {}; 
+            \draw[] (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1); 
+            \draw[] (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2); 
+            \end{tikzpicture} 
+             + 3\begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}] 
+            \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt] 
+            \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {}; 
+            \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw] {}; 
+            \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw] {}; 
+            \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw] {}; 
+            \draw[blue,very thick] (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. node[midway,circle,fill,scale=0.6] {} (G--1); 
+            \draw[] (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2); 
+            \end{tikzpicture} 
+             + 2\begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}] 
+            \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt] 
+            \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw] {}; 
+            \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw] {}; 
+            \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {}; 
+            \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw] {}; 
+            \draw[blue,very thick] (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. node[midway,circle,fill,scale=0.6] {} (G-2); 
+            \draw[] (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1); 
+            \end{tikzpicture}
         """
+        def edge_options(P):
+            if P[1] < P[0]:
+                P = [P[1], P[0]]
+            if tuple(P) in diagram.marked:
+                return 'blue,very thick'
+            return ''
+        def edge_additions(P):
+            if P[1] < P[0]:
+                P = [P[1], P[0]]
+            if tuple(P) in diagram.marked:
+                return 'node[midway,circle,fill,scale=0.6] {} '
+            return ''
+        return diagram_latex(diagram.marked+diagram.unmarked,
+                             edge_options=edge_options,
+                             edge_additions=edge_additions)
+
+    def order(self):
+        r"""
         Return the order of ``self``.
 
         The order of a partition algebra is defined as half of the number
@@ -483,7 +536,7 @@ class BlobAlgebra(CombinatorialFreeModule):
         return B.element_class(B, [], [[i, -i] for i in range(1, self.order()+1)])
 
     def product_on_basis(self, top, bot):
-        """
+        r"""
         Return the product of the basis elements indexed by ``top``
         and ``bot``.
 

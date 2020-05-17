@@ -1998,8 +1998,8 @@ class DiagramAlgebra(CombinatorialFreeModule):
             \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw] {};
             \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw] {};
             \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw] {};
-            \draw (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1);
-            \draw (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2);
+            \draw[] (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1);
+            \draw[] (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2);
             \end{tikzpicture}
 
             sage: latex(P.orbit_basis()([[1,2],[-2,-1]])) # indirect doctest
@@ -2009,73 +2009,11 @@ class DiagramAlgebra(CombinatorialFreeModule):
             \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw, fill] {};
             \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw, fill] {};
             \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw, fill] {};
-            \draw (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1);
-            \draw (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2);
+            \draw[] (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1);
+            \draw[] (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2);
             \end{tikzpicture}
-
         """
-        # these allow the view command to work (maybe move them
-        # somewhere more appropriate?)
-        from sage.misc.latex import latex
-        latex.add_to_mathjax_avoid_list('tikzpicture')
-        latex.add_package_to_preamble_if_available('tikz')
-        if hasattr(self, '_fill'):
-            filled_str = ", fill"
-        else:
-            filled_str = ""
-
-        def sgn(x):
-            # Define the sign function
-            if x > 0:
-                return 1
-            if x < 0:
-                return -1
-            return 0
-        l1 = []  # list of blocks
-        l2 = []  # list of nodes
-        for i in list(diagram):
-            l1.append(list(i))
-            for j in list(i):
-                l2.append(j)
-        output = "\\begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}] \n\\tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt] \n" #setup beginning of picture
-        for i in l2: #add nodes
-            output = output + "\\node[vertex] (G-{}) at ({}, {}) [shape = circle, draw{}] {{}}; \n".format(i, (abs(i)-1)*1.5, sgn(i), filled_str)
-        for i in l1: #add edges
-            if len(i) > 1:
-                l4 = list(i)
-                posList = []
-                negList = []
-                for j in l4:  # sort list so rows are grouped together
-                    if j > 0:
-                        posList.append(j)
-                    elif j < 0:
-                        negList.append(j)
-                posList.sort()
-                negList.sort()
-                l4 = posList + negList
-                l5 = l4[:] #deep copy
-                for j in range(len(l5)):
-                    l5[j-1] = l4[j] #create a permuted list
-                if len(l4) == 2:
-                    l4.pop()
-                    l5.pop() #pops to prevent duplicating edges
-                for j in zip(l4, l5):
-                    xdiff = abs(j[1])-abs(j[0])
-                    y1 = sgn(j[0])
-                    y2 = sgn(j[1])
-                    if y2-y1 == 0 and abs(xdiff) < 5: #if nodes are close to each other on same row
-                        diffCo = (0.5+0.1*(abs(xdiff)-1)) #gets bigger as nodes are farther apart; max value of 1; min value of 0.5.
-                        outVec = (sgn(xdiff)*diffCo, -1*diffCo*y1)
-                        inVec = (-1*diffCo*sgn(xdiff), -1*diffCo*y2)
-                    elif y2-y1 != 0 and abs(xdiff) == 1: #if nodes are close enough curviness looks bad.
-                        outVec = (sgn(xdiff)*0.75, -1*y1)
-                        inVec = (-1*sgn(xdiff)*0.75, -1*y2)
-                    else:
-                        outVec = (sgn(xdiff)*1, -1*y1)
-                        inVec = (-1*sgn(xdiff), -1*y2)
-                    output = output + "\\draw (G-{}) .. controls +{} and +{} .. (G-{}); \n".format(j[0], outVec, inVec, j[1])
-        output = output + "\\end{tikzpicture} \n" #end picture
-        return output
+        return diagram_latex(diagram, fill=hasattr(self, '_fill'))
 
     # The following subclass provides a few additional methods for
     # (sub)partition algebra elements.
@@ -3766,6 +3704,96 @@ class PropagatingIdeal(SubPartitionAlgebra):
             if n <= 0:
                 raise ValueError("can only take positive integer powers")
             return generic_power(self, n)
+
+def diagram_latex(diagram, fill=False, edge_options=None, edge_additions=None):
+    r"""
+    Return latex code for the diagram ``diagram`` using tikz.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.diagram_algebras import PartitionDiagrams, diagram_latex
+        sage: P = PartitionDiagrams(2)
+        sage: D = P([[1,2],[-2,-1]])
+        sage: print(diagram_latex(D)) # indirect doctest
+        \begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}]
+        \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt]
+        \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {};
+        \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw] {};
+        \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw] {};
+        \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw] {};
+        \draw[] (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1);
+        \draw[] (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2);
+        \end{tikzpicture}
+    """
+    # these allow the view command to work (maybe move them
+    # somewhere more appropriate?)
+    from sage.misc.latex import latex
+    latex.add_to_mathjax_avoid_list('tikzpicture')
+    latex.add_package_to_preamble_if_available('tikz')
+
+    if fill:
+        filled_str = ", fill"
+    else:
+        filled_str = ""
+
+    if edge_options is None:
+        edge_options = lambda P: ''
+    if edge_additions is None:
+        edge_additions = lambda P: ''
+
+    def sgn(x):
+        # Define the sign function
+        if x > 0:
+            return 1
+        if x < 0:
+            return -1
+        return 0
+    l1 = []  # list of blocks
+    l2 = []  # list of nodes
+    for i in list(diagram):
+        l1.append(list(i))
+        for j in list(i):
+            l2.append(j)
+    output = "\\begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}] \n\\tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt] \n" #setup beginning of picture
+    for i in l2: #add nodes
+        output = output + "\\node[vertex] (G-{}) at ({}, {}) [shape = circle, draw{}] {{}}; \n".format(i, (abs(i)-1)*1.5, sgn(i), filled_str)
+    for i in l1: #add edges
+        if len(i) > 1:
+            l4 = list(i)
+            posList = []
+            negList = []
+            for j in l4:  # sort list so rows are grouped together
+                if j > 0:
+                    posList.append(j)
+                elif j < 0:
+                    negList.append(j)
+            posList.sort()
+            negList.sort()
+            l4 = posList + negList
+            l5 = l4[:] #deep copy
+            for j in range(len(l5)):
+                l5[j-1] = l4[j] #create a permuted list
+            if len(l4) == 2:
+                l4.pop()
+                l5.pop() #pops to prevent duplicating edges
+            for j in zip(l4, l5):
+                xdiff = abs(j[1])-abs(j[0])
+                y1 = sgn(j[0])
+                y2 = sgn(j[1])
+                if y2-y1 == 0 and abs(xdiff) < 5: #if nodes are close to each other on same row
+                    diffCo = (0.5+0.1*(abs(xdiff)-1)) #gets bigger as nodes are farther apart; max value of 1; min value of 0.5.
+                    outVec = (sgn(xdiff)*diffCo, -1*diffCo*y1)
+                    inVec = (-1*diffCo*sgn(xdiff), -1*diffCo*y2)
+                elif y2-y1 != 0 and abs(xdiff) == 1: #if nodes are close enough curviness looks bad.
+                    outVec = (sgn(xdiff)*0.75, -1*y1)
+                    inVec = (-1*sgn(xdiff)*0.75, -1*y2)
+                else:
+                    outVec = (sgn(xdiff)*1, -1*y1)
+                    inVec = (-1*sgn(xdiff), -1*y2)
+                output = output + "\\draw[{}] (G-{}) .. controls +{} and +{} .. {}(G-{}); \n".format(
+                            edge_options(j), j[0], outVec, inVec, edge_additions(j), j[1])
+    output = output + "\\end{tikzpicture}" #end picture
+    return output
 
 #########################################################################
 # START BORROWED CODE

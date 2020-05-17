@@ -364,8 +364,7 @@ def sage_include_directories(use_sources=False):
 
     TOP = SAGE_SRC if use_sources else SAGE_LIB
 
-    return [SAGE_INC,
-            TOP,
+    return [TOP,
             os.path.join(TOP, 'sage', 'ext'),
             distutils.sysconfig.get_python_inc(),
             numpy.get_include()]

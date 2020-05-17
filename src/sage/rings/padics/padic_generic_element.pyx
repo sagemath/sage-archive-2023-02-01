@@ -4138,7 +4138,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         The polylogarithm of 1 is not defined ::
 
-            sage: Qp(5)(1).polylog(1)
+            sage: Qp(5)(1).polylog(2)
             Traceback (most recent call last):
             ...
             ValueError: Polylogarithm is not defined for 1.

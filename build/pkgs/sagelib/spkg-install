@@ -10,7 +10,8 @@ cd "$SAGE_SRC"
 ## the current directory (for the source tree).
 ## Building takes places in the build/ subdirectory.
 ##
-## As a special exception, we feed SAGE_PKGS.  This is needed by src/sage_setup/optional_extension.py
+## As a special exception, we feed SAGE_PKGS and SAGE_SPKG_INST.
+## They are needed by src/sage_setup/optional_extension.py
 ## via src/sage/misc/package.py.  See meta-ticket #28815 for planned changes to this.
 
 export SAGE_PKGS="$SAGE_ROOT"/build/pkgs

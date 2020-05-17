@@ -2774,7 +2774,7 @@ REFERENCES:
              Science, 447, 74–84 (2012).
              :doi:`10.1016/j.tcs.2011.11.011`
 
-.. [ILZ2018] \K. Iohara, G. Gehrer, and R. Zhang.
+.. [ILZ2018] \K. Iohara, G. Lehrer, and R. Zhang.
              *Schur-Weyl duality for certain infinite dimensional*
              `U_q(\mathfrak{sl}_2`-*modules*.
              Preprint, :arxiv:`1811.01325` (2018).

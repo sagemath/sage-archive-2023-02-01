@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Blob Algebras
 
@@ -26,7 +27,8 @@ from sage.misc.misc import powerset
 from sage.functions.other import binomial
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.algebras import Algebras
-from sage.combinat.diagram_algebras import (TemperleyLiebDiagrams, diagram_latex)
+from sage.combinat.diagram_algebras import (TemperleyLiebDiagrams, diagram_latex,
+                                            TL_diagram_ascii_art)
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.dyck_word import DyckWords
 
@@ -451,6 +453,42 @@ class BlobAlgebra(CombinatorialFreeModule):
         CombinatorialFreeModule.__init__(self, base_ring, diagrams, category=cat,
                                          prefix=prefix, bracket=False)
 
+    def _ascii_art_term(self, diagram):
+        r"""
+        Return an ascii art representation of ``diagram``.
+
+        EXAMPLES::
+
+            sage: R.<q,r,s> = ZZ[]
+            sage: B2 = algebras.Blob(2, q, r, s)
+            sage: x = B2.an_element()
+            sage: ascii_art(x)  # indirect doctest
+               o o      o o      o o
+            2* `-` + 3* `-` + 2* `0`
+               .-.      .0.      .-.
+               o o      o o      o o
+        """
+        return TL_diagram_ascii_art(diagram.marked+diagram.unmarked, use_unicode=False,
+                                    blobs=diagram.marked)
+
+    def _unicode_art_term(self, diagram):
+        r"""
+        Return a unicode art representation of ``diagram``.
+
+        EXAMPLES::
+
+            sage: R.<q,r,s> = ZZ[]
+            sage: B2 = algebras.Blob(2, q, r, s)
+            sage: x = B2.an_element()
+            sage: unicode_art(x)  # indirect doctest
+               ⚬ ⚬      ⚬ ⚬      ⚬ ⚬
+            2* ╰─╯ + 3* ╰─╯ + 2* ╰⚫╯
+               ╭─╮      ╭⚫╮      ╭─╮
+               ⚬ ⚬      ⚬ ⚬      ⚬ ⚬
+        """
+        return TL_diagram_ascii_art(diagram.marked+diagram.unmarked, use_unicode=True,
+                                    blobs=diagram.marked)
+
     def _latex_term(self, diagram):
         r"""
         Return a latex representation of ``diagram``.
@@ -459,7 +497,7 @@ class BlobAlgebra(CombinatorialFreeModule):
 
             sage: R.<q,r,s> = ZZ[]
             sage: B2 = algebras.Blob(2, q, r, s)
-            sage: latex(B2.an_element())
+            sage: latex(B2.an_element())  # indirect doctest
             2\begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}] 
             \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt] 
             \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {}; 

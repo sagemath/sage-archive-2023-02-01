@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Diagram and Partition Algebras
 
@@ -3482,6 +3483,41 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
         set_partition = to_Brauer_partition(set_partition, k=self.order())
         return SubPartitionAlgebra._element_constructor_(self, set_partition)
 
+    def _ascii_art_term(self, diagram):
+        r"""
+        Return an ascii art representation of ``diagram``.
+
+        EXAMPLES::
+
+            sage: R.<q> = QQ[]
+            sage: TL = TemperleyLiebAlgebra(4, q, R)
+            sage: x = TL.an_element()
+            sage: ascii_art(x)  # indirect doctest
+                            o o o o       o o o o
+               o o o o      | `-` |       | `-` | 
+            2* `-` `-` + 2* `-----`  + 3* `---. | 
+               .-. .-.      .-. .-.       .-. | | 
+               o o o o      o o o o       o o o o
+        """
+        return TL_diagram_ascii_art(diagram, use_unicode=False)
+
+    def _unicode_art_term(self, diagram):
+        r"""
+        Return a unicode art representation of ``diagram``.
+
+        EXAMPLES::
+
+            sage: R.<q> = QQ[]
+            sage: TL = TemperleyLiebAlgebra(4, q, R)
+            sage: x = TL.an_element()
+            sage: unicode_art(x)  # indirect doctest
+                            ⚬ ⚬ ⚬ ⚬       ⚬ ⚬ ⚬ ⚬
+               ⚬ ⚬ ⚬ ⚬      │ ╰─╯ │       │ ╰─╯ │ 
+            2* ╰─╯ ╰─╯ + 2* ╰─────╯  + 3* ╰───╮ │ 
+               ╭─╮ ╭─╮      ╭─╮ ╭─╮       ╭─╮ │ │ 
+               ⚬ ⚬ ⚬ ⚬      ⚬ ⚬ ⚬ ⚬       ⚬ ⚬ ⚬ ⚬
+        """
+        return TL_diagram_ascii_art(diagram, use_unicode=True)
 
 class PlanarAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
     r"""
@@ -3704,6 +3740,200 @@ class PropagatingIdeal(SubPartitionAlgebra):
             if n <= 0:
                 raise ValueError("can only take positive integer powers")
             return generic_power(self, n)
+
+def TL_diagram_ascii_art(diagram, use_unicode=False, blobs=[]):
+    """
+    Return ascii art for a Temperley-Lieb diagram ``diagram``.
+
+    INPUT:
+
+    - ``diagram`` -- a list of pairs of matchings of the set
+      `\{-1, \dotsc, -n, 1, \dotsc, n\}`
+    - ``use_unicode`` -- (default: ``False``): whether or not
+      to use unicode art instead of ascii art
+    - ``blobs`` -- (optional) a list of matchings with blobs on them
+
+    EXAMPLES::
+
+        sage: from sage.combinat.diagram_algebras import TL_diagram_ascii_art
+        sage: TL = [(-15,-12), (-14,-13), (-11,15), (-10,14), (-9,-6),
+        ....:       (-8,-7), (-5,-4), (-3,1), (-2,-1), (2,3), (4,5),
+        ....:       (6,11), (7, 8), (9,10), (12,13)]
+        sage: TL_diagram_ascii_art(TL, use_unicode=False)
+         o o o o o o o o o o o o o o o
+         | `-` `-` | `-` `-` | `-` | | 
+         |         `---------`     | | 
+         |                 .-------` | 
+         `---.             | .-------`
+             |     .-----. | | .-----.
+         .-. | .-. | .-. | | | | .-. | 
+         o o o o o o o o o o o o o o o
+        sage: TL_diagram_ascii_art(TL, use_unicode=True)
+         ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬
+         │ ╰─╯ ╰─╯ │ ╰─╯ ╰─╯ │ ╰─╯ │ │ 
+         │         ╰─────────╯     │ │ 
+         │                 ╭───────╯ │ 
+         ╰───╮             │ ╭───────╯
+             │     ╭─────╮ │ │ ╭─────╮
+         ╭─╮ │ ╭─╮ │ ╭─╮ │ │ │ │ ╭─╮ │ 
+         ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬
+
+        sage: TL = [(-20,-9), (-19,-10), (-18,-11), (-17,-16), (-15,-12), (2,3),
+        ....:       (-14,-13), (-8,16), (-7,7), (-6,6), (-5,1), (-4,-3), (-2,-1),
+        ....:       (4,5), (8,15), (9,10), (11,14), (12,13), (17,20), (18,19)]
+        sage: TL_diagram_ascii_art(TL, use_unicode=False, blobs=[(-2,-1), (-5,1)])
+         o o o o o o o o o o o o o o o o o o o o
+         | `-` `-` | | | `-` | `-` | | | | `-` | 
+         |         | | |     `-----` | | `-----`
+         |         | | `-------------` | 
+         `---0---. | | .---------------`
+                 | | | | .---------------------.
+                 | | | | | .-----------------. | 
+                 | | | | | | .-------------. | | 
+                 | | | | | | | .-----.     | | | 
+         .0. .-. | | | | | | | | .-. | .-. | | | 
+         o o o o o o o o o o o o o o o o o o o o
+        sage: TL_diagram_ascii_art(TL, use_unicode=True, blobs=[(-2,-1), (-5,1)])
+         ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬
+         │ ╰─╯ ╰─╯ │ │ │ ╰─╯ │ ╰─╯ │ │ │ │ ╰─╯ │ 
+         │         │ │ │     ╰─────╯ │ │ ╰─────╯
+         │         │ │ ╰─────────────╯ │ 
+         ╰───⚫───╮ │ │ ╭───────────────╯
+                 │ │ │ │ ╭─────────────────────╮
+                 │ │ │ │ │ ╭─────────────────╮ │ 
+                 │ │ │ │ │ │ ╭─────────────╮ │ │ 
+                 │ │ │ │ │ │ │ ╭─────╮     │ │ │ 
+         ╭⚫╮ ╭─╮ │ │ │ │ │ │ │ │ ╭─╮ │ ╭─╮ │ │ │ 
+         ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬
+    """
+    def insert_pairing(cur, intervals):
+        """
+        Helper function to insert a possibly nested interval
+        and push the others up, assuming inserting points from
+        right-to-left.
+        """
+        for level in intervals:
+            for j, I in enumerate(level):
+                # Singleton intervals are vertical lines,
+                #   so we don't need to worry about them
+                if len(I) > 1 and I[0] < cur[0]:
+                    cur, level[j] = level[j], cur
+                    level.append([cur[0]])
+                    level.append([cur[1]])
+                    break
+            else:
+                level.append(cur)
+                return  # We have stopped
+        else:
+            intervals.append([cur])
+    # Build a set of intervals that defines where to draw the diagram
+    intervals = [[]]
+    propogating = []
+    vertical = []
+    top_intervals = [[]]
+    num_left = 0
+    num_right = 0
+    def key_func(P):
+        if P[1] < 0:  # cap
+            return (0, P[0], P[1])
+        elif P[0] > 0:  # cup
+            return (3, -P[1], -P[0])
+        else:
+            bot, top = -P[0], P[1]
+            if top < bot:  # left moving
+                return (1, top, bot)
+            elif top > bot:  # right moving
+                return (2, -bot, -top)
+            else:  # vertical line
+                return (1, top, bot)
+    diagram = sorted(diagram, key=key_func)
+    # Since diagram is sorted in lex order, we will first do the matchings
+    #   from right-to-left on the bottom, then the propogating lines, and
+    #   then the matchings on the top from right-to-left.
+    # Note that we need the top to go from right-to-left so the
+    #   insert_pairing() function's assumptions are satisfied.
+    for P in diagram:
+        if P[1] < 0:  # Bottom matching
+            insert_pairing([-P[1], -P[0], False, False], intervals)
+        elif P[0] > 0:  # Top matching
+            insert_pairing([P[0], P[1], True, True], top_intervals)
+        else:  # Propogating line
+            if -P[0] == P[1]:
+                vertical.append(P[1])
+            else:
+                if -P[0] < P[1]:
+                    num_right += 1
+                else:
+                    num_left += 1
+                propogating.append(P)
+
+    # Now piece together the intervals together
+    total_prop = max(num_left, num_right)
+    prop_intervals = [[] for _ in range(total_prop)]
+    count_left = 0
+    # Recall that the left-moving propogating lines come before the right-moving
+    for i, P in enumerate(propogating):
+        bot, top = P
+        bot = -bot  # This makes it equal to its x-coordinate
+        for level in intervals:
+            level.append([bot])
+        for level in top_intervals:
+            level.append([top])
+        left_moving = count_left < num_left
+        if not left_moving:
+            i -= num_left
+        else:
+            count_left += 1
+        for j in range(i):
+            prop_intervals[j].append([bot])
+        for j in range(i+1,total_prop):
+            prop_intervals[j].append([top])
+        if not left_moving:
+            top, bot = bot, top
+        prop_intervals[i].append([top, bot, left_moving, not left_moving])
+    intervals += prop_intervals
+    intervals += reversed(top_intervals)
+    for level in intervals:
+        level.extend([i] for i in vertical)
+
+    n = max(max(P) for P in diagram)
+
+    # Finally, convert to a picture
+    if use_unicode:
+        from sage.typeset.unicode_art import UnicodeArt
+        d = ["╭", "╮", "╰", "╯", "─", "│"]
+        #db = ["┏", "┓", "┗", "┛", "━", "┃"]
+        blob = '⚫'
+        ret = [" ⚬" * n]
+        char_art = UnicodeArt
+    else:
+        from sage.typeset.ascii_art import AsciiArt
+        d = [".", ".", "`", "`", "-", "|"]
+        #db = [".", ".", "`", "`", "=", "|"]
+        blob = '0'
+        ret = [" o" * n]
+        char_art = AsciiArt
+    def signed(val, pos):
+        return val if pos else -val
+    for level in reversed(intervals):
+        cur = ""
+        for I in sorted(level):
+            cur += ' '*(2*I[0]-1 - len(cur))
+            if len(I) == 1:
+                cur += d[5] + ' '
+            else:
+                cur += d[2] if I[2] else d[0]
+                if tuple(sorted([signed(I[0], I[2]), signed(I[1], I[3])])) in blobs:
+                    cur += d[4] * (I[1]-I[0]-1)
+                    cur += blob
+                    cur += d[4] * (I[1]-I[0]-1)
+                else:
+                    cur += d[4] * (2*(I[1]-I[0])-1)
+                cur += d[3] if I[3] else d[1]
+        ret.append(cur)
+    # Note that the top row and bottom row will be the same
+    ret.append(ret[0])
+    return char_art(ret, baseline=len(ret)//2)
 
 def diagram_latex(diagram, fill=False, edge_options=None, edge_additions=None):
     r"""

@@ -12,8 +12,6 @@ cd "$SAGE_SRC"
 ##
 ## As a special exception, we feed SAGE_PKGS.  This is needed by src/sage_setup/optional_extension.py
 ## via src/sage/misc/package.py.  See meta-ticket #28815 for planned changes to this.
-##
-## See #21573 for SAGE_LOCAL.
 
 export SAGE_PKGS="$SAGE_ROOT"/build/pkgs
 export SAGE_ROOT=/doesnotexist
@@ -22,7 +20,15 @@ export SAGE_SRC_ROOT=/doesnotexist
 export SAGE_DOC_SRC=/doesnotexist
 export SAGE_BUILD_DIR=/doesnotexist
 
-time sage-python -u setup.py --no-user-cfg build install
+export PYTHON="$SAGE_LOCAL/bin/python3"
+
+export SAGE_LOCAL=/doesnotexist
+export SAGE_ETC=/doesnotexist
+export SAGE_PKG_CONFIG_PATH=/doesnotexist
+export SAGE_DOC=/doesnotexist
+export SAGE_SHARE=/doesnotexist
+
+time "$PYTHON" -u setup.py --no-user-cfg build install
 if [ "$UNAME" = "CYGWIN" ]; then
     sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null;
 fi

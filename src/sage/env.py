@@ -383,31 +383,9 @@ def cython_aliases():
         {...}
         sage: sorted(cython_aliases().keys())
         ['ARB_LIBRARY',
-         'FFLASFFPACK_CFLAGS',
-         'FFLASFFPACK_INCDIR',
-         'FFLASFFPACK_LIBDIR',
-         'FFLASFFPACK_LIBEXTRA',
-         'FFLASFFPACK_LIBRARIES',
-         'GIVARO_CFLAGS',
-         'GIVARO_INCDIR',
-         'GIVARO_LIBDIR',
-         'GIVARO_LIBEXTRA',
-         'GIVARO_LIBRARIES',
-         'GSL_CFLAGS',
-         'GSL_INCDIR',
-         'GSL_LIBDIR',
-         'GSL_LIBEXTRA',
-         'GSL_LIBRARIES',
-         'LINBOX_CFLAGS',
-         'LINBOX_INCDIR',
-         'LINBOX_LIBDIR',
-         'LINBOX_LIBEXTRA',
-         'LINBOX_LIBRARIES',
-         'SINGULAR_CFLAGS',
-         'SINGULAR_INCDIR',
-         'SINGULAR_LIBDIR',
-         'SINGULAR_LIBEXTRA',
-         'SINGULAR_LIBRARIES']
+         'CBLAS_CFLAGS',
+         ...,
+         'ZLIB_LIBRARIES']
     """
     import pkgconfig
 

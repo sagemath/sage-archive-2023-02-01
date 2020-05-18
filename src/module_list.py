@@ -776,51 +776,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.modules.vector_rational_sparse',
-              sources = ['sage/modules/vector_rational_sparse.pyx']),
-
-    Extension('sage.modules.vector_integer_sparse',
-              sources = ['sage/modules/vector_integer_sparse.pyx']),
-
-    Extension('sage.modules.vector_modn_sparse',
-              sources = ['sage/modules/vector_modn_sparse.pyx']),
-
-    Extension('sage.modules.finite_submodule_iter',
-              sources = ['sage/modules/finite_submodule_iter.pyx']),
-
-    Extension('sage.modules.free_module_element',
-              sources = ['sage/modules/free_module_element.pyx']),
-
-    Extension('sage.modules.module',
-              sources = ['sage/modules/module.pyx']),
-
-    Extension('sage.modules.vector_complex_double_dense',
-              ['sage/modules/vector_complex_double_dense.pyx']),
-
-    Extension('sage.modules.vector_double_dense',
-              ['sage/modules/vector_double_dense.pyx']),
-
-    Extension('sage.modules.vector_integer_dense',
-              sources = ['sage/modules/vector_integer_dense.pyx']),
-
-    Extension('sage.modules.vector_modn_dense',
-              sources = ['sage/modules/vector_modn_dense.pyx']),
-
-    Extension('sage.modules.vector_mod2_dense',
-              sources = ['sage/modules/vector_mod2_dense.pyx'],
-              libraries = m4ri_libs + gd_libs + png_libs,
-              library_dirs = m4ri_library_dirs + gd_library_dirs + png_library_dirs,
-              include_dirs = m4ri_include_dirs + gd_include_dirs + png_include_dirs,
-              extra_compile_args = m4ri_extra_compile_args),
-
-    Extension('sage.modules.vector_rational_dense',
-              sources = ['sage/modules/vector_rational_dense.pyx']),
-
-    Extension('sage.modules.vector_real_double_dense',
-              ['sage/modules/vector_real_double_dense.pyx']),
-
-    Extension('sage.modules.with_basis.indexed_element',
-              sources = ['sage/modules/with_basis/indexed_element.pyx']),
+    Extension('*', ['sage/modules/**/*.pyx']),
 
     ################################
     ##

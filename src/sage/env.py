@@ -413,10 +413,18 @@ def cython_aliases():
 
     aliases = {}
 
-    for lib in ['fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular']:
+    for lib in ['fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular',
+                'libpng', 'gdlib', 'm4ri', 'zlib', 'cblas', 'lapack']:
         var = lib.upper().replace("-", "") + "_"
         aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
-        pc = pkgconfig.parse(lib)
+        if lib == 'zlib':
+            try:
+                pc = pkgconfig.parse('zlib')
+            except pkgconfig.PackageNotFoundError:
+                from collections import defaultdict
+                pc = defaultdict(list, {'libraries': ['z']})
+        else:
+            pc = pkgconfig.parse(lib)
         # INCDIR should be redundant because the -I options are also
         # passed in CFLAGS
         aliases[var + "INCDIR"] = pc['include_dirs']
@@ -434,4 +442,14 @@ def cython_aliases():
     # fflas-ffpack and fflas-ffpack does add such a C++11 flag.
     aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
     aliases["ARB_LIBRARY"] = ARB_LIBRARY
+
+    # TODO: Remove Cygwin hack by installing a suitable cblas.pc
+    if os.path.exists('/usr/lib/libblas.dll.a'):
+        aliases["CBLAS_LIBS"] = ['gslcblas']
+
+    try:
+        aliases["M4RI_CFLAGS"].remove("-pedantic")
+    except ValueError:
+        pass
+
     return aliases

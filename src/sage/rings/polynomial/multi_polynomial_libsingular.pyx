@@ -2121,7 +2121,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             coerced_x = [parent.coerce(e) for e in x]
         except TypeError:
             # give up, evaluate functional
-            y = parent.base_ring()(0)
+            y = parent.base_ring().zero()
             for (m,c) in self.dict().iteritems():
                 y += c*mul([ x[i]**m[i] for i in m.nonzero_positions()])
             return y

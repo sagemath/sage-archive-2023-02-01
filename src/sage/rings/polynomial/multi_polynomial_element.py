@@ -394,7 +394,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             True
         """
         if not isinstance(x, polydict.PolyDict):
-            x = polydict.PolyDict(x, parent.base_ring()(0), remove_zero=True)
+            x = polydict.PolyDict(x, parent.base_ring().zero(), remove_zero=True)
         MPolynomial_element.__init__(self, parent, x)
 
     def _new_constant_poly(self, x, P):
@@ -822,7 +822,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         try:
             return self.element()[x]
         except KeyError:
-            return self.parent().base_ring()(0)
+            return self.parent().base_ring().zero()
 
     def __iter__(self):
         """
@@ -851,7 +851,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         elt = self.element()
         ring = self.parent()
-        one = ring.base_ring()(1)
+        one = ring.base_ring().one()
         for exp in self._exponents:
             yield (elt[exp],
                    MPolynomial_polydict(ring, polydict.PolyDict({exp:one},
@@ -1252,7 +1252,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             True
         """
         ring = self.parent()
-        one = ring.base_ring()(1)
+        one = ring.base_ring().one()
         return [MPolynomial_polydict(ring, polydict.PolyDict({m:one}, force_int_exponents=False, force_etuples=False))
                 for m in self._exponents]
 
@@ -1275,7 +1275,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         try:
             return d[polydict.ETuple({},self.parent().ngens())]
         except KeyError:
-            return self.parent().base_ring()(0)
+            return self.parent().base_ring().zero()
 
     def is_univariate(self):
         """
@@ -1503,7 +1503,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                 return self
             R = self.parent()
             f = self._MPolynomial_element__element.lcmt( R.term_order().greater_tuple )
-            one = R.base_ring()(1)
+            one = R.base_ring().one()
             self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},zero=R.base_ring().zero(),force_int_exponents=False,  force_etuples=False))
             return self.__lm
 
@@ -1669,7 +1669,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         if var is None:
             raise ValueError("must specify which variable to differentiate with respect to")
 
-        gens = list(self.parent().gens())
+        P = self.parent()
+        gens = list(P.gens())
 
         # check if var is one of the generators
         try:
@@ -1678,8 +1679,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             # var is not a generator; do term-by-term differentiation recursively
             # var may be, for example, a generator of the base ring
             d = dict([(e, x._derivative(var)) for (e, x) in iteritems(self.dict())])
-            d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
-            return MPolynomial_polydict(self.parent(), d)
+            d = polydict.PolyDict(d, P.base_ring().zero(), remove_zero=True)
+            return MPolynomial_polydict(P, d)
 
         # differentiate w.r.t. indicated variable
         d = {}
@@ -1687,8 +1688,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         for (exp, coeff) in iteritems(self.dict()):
             if exp[index] > 0:
                 d[exp.esub(v)] = coeff * exp[index]
-        d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
-        return MPolynomial_polydict(self.parent(), d)
+        d = polydict.PolyDict(d, P.base_ring().zero(), remove_zero=True)
+        return MPolynomial_polydict(P, d)
 
     def integral(self, var=None):
         r"""
@@ -1740,7 +1741,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             raise ValueError("must specify which variable to integrate "
                              "with respect to")
 
-        gens = list(self.parent().gens())
+        P = self.parent()
+        gens = list(P.gens())
 
         # check if var is one of the generators
         try:
@@ -1750,17 +1752,17 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             # var may be, for example, a generator of the base ring
             d = dict([(e, x.integral(var))
                       for (e, x) in iteritems(self.dict())])
-            d = polydict.PolyDict(d, self.parent().base_ring()(0),
+            d = polydict.PolyDict(d, P.base_ring().zero(),
                                   remove_zero=True)
-            return MPolynomial_polydict(self.parent(), d)
+            return MPolynomial_polydict(P, d)
 
         # integrate w.r.t. indicated variable
         d = {}
         v = polydict.ETuple({index:1}, len(gens))
         for (exp, coeff) in iteritems(self.dict()):
             d[exp.eadd(v)] = coeff / (1+exp[index])
-        d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
-        return MPolynomial_polydict(self.parent(), d)
+        d = polydict.PolyDict(d, P.base_ring().zero(), remove_zero=True)
+        return MPolynomial_polydict(P, d)
 
     def factor(self, proof=None):
         r"""

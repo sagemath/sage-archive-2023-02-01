@@ -761,27 +761,51 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         return self.element().dict()
 
-    #def __iter__(self):
-    #    """
-    #    Facilitates iterating over the monomials of self,
-    #    returning tuples of the form (coeff, mon) for each
-    #    non-zero monomial.
-    #
-    #    EXAMPLES::
+    def __iter__(self):
+        """
+        Iterate over ``self`` respecting the term order.
 
-    #        sage: R = ZZ['t']
-    #        sage: P.<x,y,z> = PolynomialRing(R,3)
-    #        sage: f = 3*x^3*y + 16*x + 7
-    #        sage: [(c,m) for c,m in f]
-    #        [(3, x^3*y), (16, x), (7, 1)]
-    #        sage: f = P.random_element(10,10)
-    #        sage: sum(c*m for c,m in f) == f
-    #        True
-    #    """
-    #    exps = self.exponents()
-    #    parent = self.parent()
-    #    for exp in exps:
-    #        yield self.element()[exp], MPolynomial_polydict(parent, {exp: 1})
+        EXAMPLES::
+
+            sage: R.<x,y,z> = PolynomialRing(QQbar, order='lex')
+            sage: f = (x^1*y^5*z^2 + x^2*z + x^4*y^1*z^3)
+            sage: list(f)
+            [(1, x^4*y*z^3), (1, x^2*z), (1, x*y^5*z^2)]
+
+        ::
+
+            sage: R.<x,y,z> = PolynomialRing(QQbar, order='deglex')
+            sage: f = (x^1*y^5*z^2 + x^2*z + x^4*y^1*z^3)
+            sage: list(f)
+            [(1, x^4*y*z^3), (1, x*y^5*z^2), (1, x^2*z)]
+
+        ::
+
+            sage: R.<x,y,z> = PolynomialRing(QQbar, order='degrevlex')
+            sage: f = (x^1*y^5*z^2 + x^2*z + x^4*y^1*z^3)
+            sage: list(f)
+            [(1, x*y^5*z^2), (1, x^4*y*z^3), (1, x^2*z)]
+
+        ::
+
+            sage: R = ZZ['t']
+            sage: P.<x,y,z> = PolynomialRing(R,3)
+            sage: f = 3*x^3*y + 16*x + 7
+            sage: [(c,m) for c,m in f]
+            [(3, x^3*y), (16, x), (7, 1)]
+            sage: f = P.random_element(10,10)
+            sage: sum(c*m for c,m in f) == f
+            True
+        """
+        elt = self.element()
+        ring = self.parent()
+        one = ring.base_ring().one()
+        for exp in self._exponents:
+            yield (elt[exp],
+                   MPolynomial_polydict(ring, polydict.PolyDict({exp:one},
+                                                                force_int_exponents=False,
+                                                                force_etuples=False))
+                   )
 
     def __getitem__(self, x):
         """
@@ -823,41 +847,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             return self.element()[x]
         except KeyError:
             return self.parent().base_ring().zero()
-
-    def __iter__(self):
-        """
-        Iterate over ``self`` respecting the term order.
-
-        EXAMPLES::
-
-            sage: R.<x,y,z> = PolynomialRing(QQbar, order='lex')
-            sage: f = (x^1*y^5*z^2 + x^2*z + x^4*y^1*z^3)
-            sage: list(f)
-            [(1, x^4*y*z^3), (1, x^2*z), (1, x*y^5*z^2)]
-
-        ::
-
-            sage: R.<x,y,z> = PolynomialRing(QQbar, order='deglex')
-            sage: f = (x^1*y^5*z^2 + x^2*z + x^4*y^1*z^3)
-            sage: list(f)
-            [(1, x^4*y*z^3), (1, x*y^5*z^2), (1, x^2*z)]
-
-        ::
-
-            sage: R.<x,y,z> = PolynomialRing(QQbar, order='degrevlex')
-            sage: f = (x^1*y^5*z^2 + x^2*z + x^4*y^1*z^3)
-            sage: list(f)
-            [(1, x*y^5*z^2), (1, x^4*y*z^3), (1, x^2*z)]
-        """
-        elt = self.element()
-        ring = self.parent()
-        one = ring.base_ring().one()
-        for exp in self._exponents:
-            yield (elt[exp],
-                   MPolynomial_polydict(ring, polydict.PolyDict({exp:one},
-                                                                force_int_exponents=False,
-                                                                force_etuples=False))
-                   )
 
     def iterator_exp_coeff(self, as_ETuples=True):
         """

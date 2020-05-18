@@ -264,54 +264,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.geometry.point_collection',
-              sources = ['sage/geometry/point_collection.pyx']),
-
-    Extension('sage.geometry.toric_lattice_element',
-              sources = ['sage/geometry/toric_lattice_element.pyx']),
-
-    Extension('sage.geometry.integral_points',
-              sources = ['sage/geometry/integral_points.pyx']),
-
-    Extension('sage.geometry.triangulation.base',
-              sources = ['sage/geometry/triangulation/base.pyx',
-                         'sage/geometry/triangulation/functions.cc',
-                         'sage/geometry/triangulation/data.cc',
-                         'sage/geometry/triangulation/triangulations.cc'],
-              depends = ['sage/geometry/triangulation/functions.h',
-                         'sage/geometry/triangulation/data.h',
-                         'sage/geometry/triangulation/triangulations.h'],
-              language="c++"),
-
-    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.base',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/base.pyx']),
-
-    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pyx'],
-              depends = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
-              language="c++",
-              extra_compile_args=['-std=c++11']),
-
-    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/face_iterator.pyx'],
-              depends = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
-              language="c++",
-              extra_compile_args=['-std=c++11']),
-
-    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/polyhedron_face_lattice.pyx'],
-              depends = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
-              language="c++",
-              extra_compile_args=['-std=c++11']),
-
-    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/combinatorial_face.pyx'],
-              depends = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
-              language="c++",
-              extra_compile_args=['-std=c++11']),
-
-    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.conversions',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/conversions.pyx']),
+    Extension('*', ['sage/geometry/**/*.pyx']),
 
     ################################
     ##

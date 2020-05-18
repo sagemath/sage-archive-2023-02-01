@@ -768,45 +768,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.modular.arithgroup.congroup',
-              sources = ['sage/modular/arithgroup/congroup.pyx']),
-
-    Extension('sage.modular.arithgroup.farey_symbol',
-              sources = ['sage/modular/arithgroup/farey_symbol.pyx']),
-
-    Extension('sage.modular.arithgroup.arithgroup_element',
-              sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),
-
-    Extension('sage.modular.hypergeometric_misc',
-              sources = ['sage/modular/hypergeometric_misc.pyx']),
-
-    Extension('sage.modular.modform.eis_series_cython',
-              sources = ['sage/modular/modform/eis_series_cython.pyx']),
-
-    Extension('sage.modular.modform.l_series_gross_zagier_coeffs',
-              sources = ['sage/modular/modform/l_series_gross_zagier_coeffs.pyx']),
-
-    Extension('sage.modular.modsym.apply',
-              sources = ['sage/modular/modsym/apply.pyx'],
-              extra_compile_args=["-D_XPG6"]),
-
-    Extension('sage.modular.modsym.manin_symbol',
-              sources = ['sage/modular/modsym/manin_symbol.pyx']),
-
-    Extension('sage.modular.modsym.relation_matrix_pyx',
-              sources = ['sage/modular/modsym/relation_matrix_pyx.pyx']),
-
-    Extension('sage.modular.modsym.heilbronn',
-              sources = ['sage/modular/modsym/heilbronn.pyx'],
-              extra_compile_args=["-D_XPG6"]),
-
-    Extension('sage.modular.modsym.p1list',
-              sources = ['sage/modular/modsym/p1list.pyx']),
-
-    Extension('sage.modular.pollack_stevens.dist',
-              sources = ['sage/modular/pollack_stevens/dist.pyx'],
-              libraries = ["gmp", "zn_poly"],
-              extra_compile_args = ["-D_XPG6"]),
+    Extension('*', ['sage/modular/**/*.pyx']),
 
     ################################
     ##

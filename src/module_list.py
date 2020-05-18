@@ -133,22 +133,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.algebras.quatalg.quaternion_algebra_element',
-               sources = ['sage/algebras/quatalg/quaternion_algebra_element.pyx'],
-               language='c++',
-               libraries = ["gmp", "m", "ntl"]),
-
-    Extension('*', sources = ['sage/algebras/letterplace/*.pyx']),
-
-    Extension('*', sources = ['sage/algebras/finite_dimensional_algebras/*.pyx']),
-
-    Extension('sage.algebras.quatalg.quaternion_algebra_cython',
-               sources = ['sage/algebras/quatalg/quaternion_algebra_cython.pyx'],
-               language='c++',
-               libraries = ["gmp", "m", "ntl"]),
-
-    Extension('sage.algebras.lie_algebras.lie_algebra_element',
-              sources = ["sage/algebras/lie_algebras/lie_algebra_element.pyx"]),
+    Extension('*', ['sage/algebras/**/*.pyx']),
 
     ################################
     ##

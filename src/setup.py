@@ -67,7 +67,8 @@ import sage_setup.fpickle_setup
 ### the same directory as this file
 #########################################################
 
-from module_list import ext_modules, library_order
+from module_list import ext_modules
+from sage_setup.library_order import library_order 
 from sage_setup.find import find_extra_files
 
 #########################################################

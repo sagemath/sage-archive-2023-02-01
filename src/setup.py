@@ -18,10 +18,6 @@ from distutils.dep_util import newer_group
 from distutils.errors import (DistutilsSetupError, DistutilsModuleError,
                               DistutilsOptionError)
 
-# This import allows instancemethods to be pickable
-import fpickle_setup
-
-
 def excepthook(*exc):
     """
     When an error occurs, display an error message similar to the error
@@ -61,6 +57,9 @@ sys.excepthook = excepthook
 import sage.env
 sage.env.SAGE_SRC = os.getcwd()
 from sage.env import *
+
+# This import allows instancemethods to be pickable
+import sage_setup.fpickle_setup
 
 #########################################################
 ### List of Extensions

@@ -53,6 +53,119 @@ AUTHORS:
 from sage.rings.finite_rings.all import GF
 from sage.rings.all import ZZ
 
+def p_projections(G, Plist, p, debug=False):
+    r"""
+
+    INPUT:
+
+    - `G` - the Abelian group of an elliptic curve over a finite field.
+
+    - `Plist` - a list of points on that curve.
+
+    - `p` - a prime number.
+
+    OUTPUT:
+
+    A list of $r\le2$ vectors in $\F_p^n$, the images of the points in
+    $G \otimes \F_p$, where $r$ is the number of vectors is the
+    $p$-rank of `G`.
+
+    ALGORITHM:
+
+    First project onto the $p$-primary part of `G`.  If that has
+    $p$-rank 1 (i.e. is cyclic), use discrete logs there to define a
+    map to $\F_p$, otherwise use the Weil pairing to define two
+    independent maps to $\F_p$.
+
+    EXAMPLES:
+
+    This curve has three independent rational points::
+
+        sage: E = EllipticCurve([0,0,1,-7,6])
+
+    We reduce modulo $409$ where its order is $3^2\cdot7^2$; the
+    $3$-primary part is non-cyclic while the $7$-primary part is
+    cyclic of order $49$::
+
+        sage: F = GF(409)
+        sage: EF = E.change_ring(F)
+        sage: G = EF.abelian_group()
+        sage: G
+        Additive abelian group isomorphic to Z/147 + Z/3 embedded in Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 + 402*x + 6 over Finite Field of size 409
+        sage: G.order().factor()
+        3^2 * 7^2
+
+    We construct three points and project them to the $p$-primary
+    parts for $p=2,3,5,7$, yielding 0,2,0,1 vectors of length 3 modulo
+    $p$ respectively.  The exact vectors output depend on the computed
+    generators of `G`::
+
+        sage: Plist = [EF([-2,3]), EF([0,2]), EF([1,0])]
+        sage: from sage.schemes.elliptic_curves.saturation import p_projections
+        sage: [(p,p_projections(G,Plist,p)) for p in primes(11)]  # random
+        [(2, []), (3, [(0, 2, 2), (2, 2, 1)]), (5, []), (7, [(5, 1, 1)])]
+        sage: [(p,len(p_projections(G,Plist,p))) for p in primes(11)]
+        [(2, 0), (3, 2), (5, 0), (7, 1)]
+
+    """
+    if debug:
+        print("In p_projections(G,Plist,p) with G = {}, Plist = {}, p = {}".format(G,Plist,p))
+    n = G.order()
+    m = n.prime_to_m_part(p)      # prime-to-p part of order
+    if debug:
+        print("m={}, n={}".format(m,n))
+    if m==n: # p-primary part trivial, nothing to do
+        return []
+
+    # project onto p-primary part
+
+    pts  = [m*pt for pt in Plist]
+    gens = [m*g.element() for g in G.gens()]
+    gens = [g for g in gens if g]
+    if debug:
+        print("gens for {}-primary part of G: {}".format(p, gens))
+        print("{}*points: {}".format(m,pts))
+    from sage.groups.generic import discrete_log as dlog
+    from sage.modules.all import vector
+    Fp = GF(p)
+
+    # If the p-primary part is cyclic we use elliptic discrete logs directly:
+
+    if len(gens) == 1:
+        g = gens[0]
+        pp = g.order()
+        if debug:
+            print("Cyclic case, taking dlogs to base {} of order {}".format(g,pp))
+        # logs are well-defined mod pp, hence mod p
+        v = [dlog(pt, g, ord = pp, operation = '+') for pt in pts]
+        if debug:
+            print("dlogs: {}".format(v))
+        return [vector(Fp,v)]
+
+    # We make no assumption about which generator order divides the
+    # other, since conventions differ!
+
+    orders = [g.order() for g in gens]
+    p1, p2 = min(orders), max(orders)
+    g1, g2 = gens
+    if debug:
+        print("Non-cyclic case, orders = {}, p1={}, p2={}, g1={}, g2={}".format(orders,p1,p2,g1,g2))
+
+    # Now the p-primary part of the reduction is non-cyclic of
+    # exponent p2, and we use the Weil pairing, whose values are p1'th
+    # roots of unity with p1|p2, together with discrete log in the
+    # multiplicative group.
+
+    zeta = g1.weil_pairing(g2,p2) # a primitive p1'th root of unity
+    if debug:
+        print("wp of gens = {} with order {}".format(zeta, zeta.multiplicative_order()))
+    assert zeta.multiplicative_order() == p1, "Weil pairing error during saturation: p={}, G={}, Plist={}".format(p,G,Plist)
+
+    # logs are well-defined mod p1, hence mod p
+
+    return [vector(Fp, [dlog(pt.weil_pairing(g1,p2), zeta, ord = p1, operation = '*') for pt in pts]),
+            vector(Fp, [dlog(pt.weil_pairing(g2,p2), zeta, ord = p1, operation = '*') for pt in pts])]
+
 def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
     r"""
     Checks whether the list of points is `p`-saturated.
@@ -195,97 +308,11 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
 
     K = E.base_ring()
 
-    def projections(G, projPlist, p):
-        r"""G = (E mod Q)(K mod Q) and projPlist is the list of images of the points in G.
-
-        Returns a list of 0, 1 or 2 vectors in \F_p^n, the images of
-        the points in G \times GF(p).
-        """
-        gens = [g.element() for g in G.gens()]
-        orders = [g.order() for g in gens]
-
-        from sage.groups.generic import discrete_log_lambda
-        from sage.modules.all import vector
-
-        if len(gens) == 1:               # cyclic case
-            n = orders[0]
-            m = n.prime_to_m_part(p)   # prime-to-p part of order
-            p2 = n//m                  # p-primary order
-            g = m*gens[0]              # generator of p-primary part
-            assert g.order() == p2
-            # if verbose:
-            #     print("   cyclic, %s-primary part generated by %s of order %s" % (p,g,p2))
-
-            # multiplying any point by m takes it into the p-primary
-            # part -- this way we do discrete logs in a cyclic group
-            # of order p2 (which will often just be p) and not order n
-
-            v = [discrete_log_lambda(m*pt,g,(0,p2),'+') for pt in projPlist]
-            # entries of v are well-defined mod p2, hence mod p
-            return [vector(GF(p),v)]
-
-        # Now the reduction is not cyclic, but we still handle
-        # separately the case where the p-primary part is cyclic,
-        # where a similar discrete log computation suffices; in the
-        # remaining case (p-rank 2) we use the Weil pairing instead.
-
-        # Note the code makes no assumption about which generator
-        # order divides the other, since conventions differ!
-
-        mm = [ni.prime_to_m_part(p) for ni in orders]
-        pp = [ni//mi for ni,mi in zip(orders,mm)] # p-powers
-        gg = [mi*gi  for mi,gi in zip(mm,gens)]   # p-power order gens
-        m = max(mm) # = lcm(mm), the prime-to-p exponent of G;
-                    # multiply by this to map onto the p-primary part.
-        p2 = max(pp) # p-exponent of G
-        p1 = min(pp) # == 1 iff p-primary part is cyclic
-
-        p_orders = [gi.order() for gi in gg]
-        assert p_orders == pp
-        assert p_orders == [p1,p2] or p_orders == [p2,p1]
-
-        if p1 == 1:                  # p-primary part is cyclic of order p2
-            g = gg[pp.index(p2)]   # g generates the p-primary part
-                                   # and we do discrete logs there:
-
-            assert g.order() == p2
-            # if verbose:
-            #     print("   non-cyclic but %s-primary part cyclic generated by %s of order %s" % (p,g,p2))
-            v = [discrete_log_lambda(m*pt,g,(0,p2),'+') for pt in projPlist]
-            # entries of v are well-defined mod p2, hence mod p
-            return [vector(GF(p),v)]
-
-        # Now the p-primary part is non-cyclic of exponent p2; we use
-        # Weil pairings of this order, whose values are p1'th roots of unity.
-
-        # if verbose:
-        #     print("   %s-primary part non-cyclic generated by %s of orders %s" % (p,gg,pp))
-        zeta = gg[0].weil_pairing(gg[1],p2) # a primitive p1'th root of unity
-        if zeta.multiplicative_order()!=p1:
-            if verbose:
-                print("K = {}".format(K))
-                print("E = {}".format(E.ainvs()))
-                print("Plist = {}".format(Plist))
-                print("Ek = ",Ek)
-                print("projPlist = {}".format(projPlist))
-                print("(p1,p2) = ({},{})".format(p1,p2))
-                print("gens = {}".format(gens))
-                print("orders = {}".format(orders))
-                print("gg = ({},{})".format(gg[0],gg[1]))
-            raise RuntimeError("Weil pairing error during saturation.")
-
-        # these are the homomorphisms from E to F_p (for g in gg):
-        def a(pt,g):
-            """Return the zeta-based log of the Weil pairing of ``m*pt`` with ``g``.
-            """
-            w = (m*pt).weil_pairing(g,p2) # result is a p1'th root of unity
-            return discrete_log_lambda(w,zeta,(0,p1),'*')
-
-        return [vector(GF(p), [a(pt,gen) for pt in projPlist]) for gen in gg]
-
     if verbose:
         print("Using sieve method to saturate...")
     from sage.matrix.all import matrix
+    from sage.sets.primes import Primes
+
     A = matrix(GF(p), 0, n)
     rankA = 0
     count = 0
@@ -295,7 +322,6 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
     Kpol = K.defining_polynomial()
     Kdisc = Kpol.discriminant() # not the disc of K itself
 
-    from sage.sets.primes import Primes
     for q in Primes():
         if q.divides(Ediscnorm) or q.divides(Kdisc) or any(q.divides(pr) for pr in denoms):
             continue
@@ -318,7 +344,7 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
             if verbose:
                 print(" --> %s" % projPlist)
 
-            vecs = projections(G, projPlist, p)
+            vecs = p_projections(G, projPlist, p)
             for v in vecs:
                 A = matrix(A.rows()+[v])
             newrank = A.rank()

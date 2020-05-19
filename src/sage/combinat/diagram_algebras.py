@@ -3742,7 +3742,7 @@ class PropagatingIdeal(SubPartitionAlgebra):
             return generic_power(self, n)
 
 def TL_diagram_ascii_art(diagram, use_unicode=False, blobs=[]):
-    """
+    r"""
     Return ascii art for a Temperley-Lieb diagram ``diagram``.
 
     INPUT:

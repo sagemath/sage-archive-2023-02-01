@@ -2526,6 +2526,11 @@ REFERENCES:
 .. [Ha2005] Gerhard Haring. [Online] Available:
             http://osdir.com/ml/python.db.pysqlite.user/2005-11/msg00047.html
 
+.. [Habib2018] Feodor Dragan, Michel Habib, Laurent Viennot.
+               *Revisiting Radius, Diameter, and all Eccentricity Computation
+               in Graphs through Certificates*.
+               http://arxiv.org/abs/1803.04660
+
 .. [Hac2016] \M. Hachimori. http://infoshako.sk.tsukuba.ac.jp/~hachi/math/library/dunce_hat_eng.html
 
 .. [Haf2004] Paul R. Hafner. *On the Graphs of Hoffman-Singleton and Higman-Sims*.

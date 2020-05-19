@@ -1277,7 +1277,7 @@ class WeakTableaux_core(WeakTableaux_abstract):
             sage: TestSuite(T).run()
         """
         self.k = k
-        self._skew = shape[1]!=[]
+        self._skew = bool(shape[1])
         self._outer_shape = shape[0]
         self._inner_shape = shape[1]
         self._shape = (self._outer_shape, self._inner_shape)
@@ -1743,7 +1743,7 @@ class WeakTableaux_bounded(WeakTableaux_abstract):
             sage: TestSuite(T).run()
         """
         self.k = k
-        self._skew = shape[1]!=[]
+        self._skew = bool(shape[1])
         self._outer_shape = Partition(shape[0])
         self._inner_shape = Partition(shape[1])
         self._shape = (self._outer_shape, self._inner_shape)
@@ -2164,7 +2164,7 @@ class WeakTableaux_factorized_permutation(WeakTableaux_abstract):
             sage: TestSuite(T).run() # long time
         """
         self.k = k
-        self._skew = shape[1]!=[]
+        self._skew = bool(shape[1])
         self._outer_shape = Core(shape[0], k+1)
         self._inner_shape = Core(shape[1], k+1)
         self._shape = (self._outer_shape, self._inner_shape)
@@ -4056,7 +4056,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: StrongTableaux( 4, [[2,1], [1]] ).shape()
             ([2, 1], [1])
         """
-        if self._inner_shape != []:
+        if bool(self._inner_shape):
             return (self._outer_shape, self._inner_shape)
         return self._outer_shape
 

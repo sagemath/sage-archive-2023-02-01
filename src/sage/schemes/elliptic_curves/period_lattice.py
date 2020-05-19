@@ -1832,11 +1832,12 @@ class PeriodLattice_ell(PeriodLattice):
             y = y.real()
 
         if to_curve:
-            a1,a2,a3,a4,a6 = [self.embedding(a) for a in self.E.ainvs()]
-            b2 = self.embedding(self.E.b2())
+            K = x.parent()
+            v = refine_embedding(self.embedding, Infinity)
+            a1,a2,a3,a4,a6 = [K(v(a)) for a in self.E.ainvs()]
+            b2 = K(v(self.E.b2()))
             x = x - b2 / 12
             y = (y - (a1 * x + a3)) / 2
-            K = x.parent()
             EK = EllipticCurve(K,[a1,a2,a3,a4,a6])
             return EK.point((x,y,K(1)), check=False)
         else:

@@ -1450,7 +1450,7 @@ class AffineConnection(SageObject):
         # Component computation in the common frame:
         tc = tensor._components[frame]
         gam = self._coefficients[frame]
-        if tensor._sym == [] and tensor._antisym == []:
+        if not tensor._sym and not tensor._antisym:
             resc = Components(tdom.scalar_field_algebra(), frame,
                               tensor._tensor_rank+1,
                               start_index=self._domain._sindex,

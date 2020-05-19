@@ -4747,8 +4747,8 @@ class FiniteWord_class(Word_class):
            return False
         for i in range(1, l - 1):
             return_lengths = [x.length() for x in self.return_words(self[:i])]
-            if return_lengths != []:
-               if (max(return_lengths) <= i and self[l-i:l] == self[:i]):
+            if return_lengths:
+               if max(return_lengths) <= i and self[l-i:l] == self[:i]:
                   return True
         return False
 

@@ -19,7 +19,7 @@ REFERENCES:
 
 .. [Wes2017] Bruce Westbury.
    *Coboundary categories and local rules*,
-   :arxiv:`1705.07141`
+   The Electronic Journal of Combinatorics, *25* (2018)
 
 AUTHORS:
 
@@ -56,7 +56,7 @@ class PathTableau(ClonableArray):
     """
     @abstract_method(optional=False)
     def _local_rule(self,i):
-        """
+        r"""
         This is the abstract local rule defined in any coboundary category.
 
         This has input a list of objects. This method first takes
@@ -74,7 +74,7 @@ class PathTableau(ClonableArray):
     ################################# Book Keeping ############################
 
     def size(self):
-        """
+        r"""
         Return the size or length of ``self``.
 
         EXAMPLES::
@@ -86,7 +86,7 @@ class PathTableau(ClonableArray):
         return len(self)
 
     def initial_shape(self):
-        """
+        r"""
         Return the initial shape of ``self``.
 
         EXAMPLES::
@@ -98,7 +98,7 @@ class PathTableau(ClonableArray):
         return self[0]
 
     def final_shape(self):
-        """
+        r"""
         Return the final shape of ``self``.
 
         EXAMPLES::
@@ -112,7 +112,7 @@ class PathTableau(ClonableArray):
     ############################# Jeu de taquin ###############################
 
     def promotion(self):
-        """
+        r"""
         Return the promotion operator applied to ``self``.
 
         EXAMPLES::
@@ -128,7 +128,7 @@ class PathTableau(ClonableArray):
         return result
 
     def evacuation(self):
-        """
+        r"""
         Return the evacuation operator applied to ``self``.
 
         EXAMPLES::
@@ -151,7 +151,7 @@ class PathTableau(ClonableArray):
         return self.parent()(result)
 
     def commutor(self,other,verbose=False):
-        """
+        r"""
         Return the commutor of ``self`` with ``other``
 
         If ``verbose=True`` then the function will print
@@ -223,7 +223,7 @@ class PathTableau(ClonableArray):
         r"""
         Return the action of the generators of the cactus group on ``self``.
         These generators are involutions and are usually denoted by
-        $s_{i,j}$.
+        's_{i,j}'.
 
         INPUT:
 
@@ -356,7 +356,7 @@ class PathTableau(ClonableArray):
             tester.assertTrue(lhs == rhs)
 
     def orbit(self):
-        """
+        r"""
         Return the orbit of ``self`` under the action of the cactus group.
 
         EXAMPLES::
@@ -386,7 +386,7 @@ class PathTableau(ClonableArray):
         return orb
 
     def dual_equivalence_graph(self):
-        """
+        r"""
         Return the graph with vertices the orbit of ``self``
         and edges given by the action of the cactus group generators.
 
@@ -439,7 +439,9 @@ class PathTableau(ClonableArray):
         return G
 
 class PathTableaux(UniqueRepresentation,Parent):
-    """ The abstract parent class for PathTableau."""
+    """
+    The abstract parent class for PathTableau.
+    """
     def __init__(self):
         """
         Initializes the abstract class of all PathTableaux

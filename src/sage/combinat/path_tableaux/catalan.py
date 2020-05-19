@@ -61,7 +61,7 @@ from sage.rings.integer import Integer
 ###############################################################################
 
 class CatalanTableau(PathTableau):
-    """
+    r"""
     An instance is the sequence of nonnegative
     integers given by the heights of a Dyck word.
 
@@ -117,7 +117,7 @@ class CatalanTableau(PathTableau):
 
         Can be any of:
 
-        * word of nonnegative integers with successive differences $\pm 1$
+        * word of nonnegative integers with successive differences '\pm 1'
         * a DyckWord
         * a noncrossing perfect matching
         * a two row standard tableau
@@ -274,7 +274,7 @@ class CatalanTableau(PathTableau):
         return result
 
     def is_skew(self):
-        """
+        r"""
         Return ``True`` if ``self`` is skew and ``False`` if not.
 
         EXAMPLES::
@@ -289,7 +289,7 @@ class CatalanTableau(PathTableau):
 
     @combinatorial_map(name='to Dyck word')
     def to_DyckWord(self):
-        """
+        r"""
         Converts ``self`` to a Dyck word.
 
         EXAMPLES::
@@ -301,7 +301,7 @@ class CatalanTableau(PathTableau):
         return DyckWord(heights_sequence = list(self))
 
     def descents(self):
-        """
+        r"""
         Return the descent set of ``self``.
 
         EXAMPLES::
@@ -318,7 +318,7 @@ class CatalanTableau(PathTableau):
         return result
 
     def to_word(self):
-        """
+        r"""
         Return the word in the alphabet `\{0,1\}` associated to ``self``.
 
         EXAMPLES::
@@ -329,7 +329,7 @@ class CatalanTableau(PathTableau):
         return [ (self[i+1]-self[i]+1)/2 for i in range(self.size()-1) ]
 
     def to_perfect_matching(self):
-        """
+        r"""
         Return the perfect matching associated to ``self``.
 
         EXAMPLES::
@@ -356,7 +356,7 @@ class CatalanTableau(PathTableau):
         return PerfectMatching(pairs)
 
     def to_tableau(self):
-        """
+        r"""
         Return the skew tableau associated to ``self``.
 
         EXAMPLES::
@@ -379,7 +379,7 @@ class CatalanTableau(PathTableau):
 
 class CatalanTableaux(PathTableaux):
     """
-    The parent class for CatalanTableau
+    The parent class for CatalanTableau.
     """
     Element = CatalanTableau
 

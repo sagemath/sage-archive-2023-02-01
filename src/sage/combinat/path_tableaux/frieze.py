@@ -1,5 +1,5 @@
 r"""
-Unimodular Frieze Patterns
+Frieze Patterns
 
 This is an implementation of the abstract base class
 :class:`sage.combinat.pathtableau.pathtableaux`.
@@ -54,7 +54,7 @@ from sage.rings.all import QQ
 
 EXAMPLES::
 
-    sage: t = UnimodularFriezePattern([0,1,2,1,2,3,1,0])
+    sage: t = FriezePattern([0,1,2,1,2,3,1,0])
     sage: CylindricalDiagram(t)
      [0, 1, 2, 1, 2, 3, 1, 0]
      ['', 0, 1, 1, 3, 5, 2, 1, 0]
@@ -67,7 +67,7 @@ EXAMPLES::
 
     sage: TestSuite(t).run()
 
-    sage: t = UnimodularFriezePattern([0,1,2,7,5,3,7,4,1,0])
+    sage: t = FriezePattern([0,1,2,7,5,3,7,4,1,0])
     sage: CylindricalDiagram(t)
      [0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
      ['', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
@@ -81,7 +81,7 @@ EXAMPLES::
      ['', '', '', '', '', '', '', '', '', 0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
     sage: TestSuite(t).run()
 
-    sage: t = UnimodularFriezePattern([0,1,3,4,5,1,0])
+    sage: t = FriezePattern([0,1,3,4,5,1,0])
     sage: CylindricalDiagram(t)
      [0, 1, 3, 4, 5, 1, 0]
      ['', 0, 1, 5/3, 7/3, 2/3, 1, 0]
@@ -96,7 +96,7 @@ EXAMPLES::
 This constructs the examples from [TJ18]_
 
     sage: K.<sqrt3> = NumberField(x^2-3)
-    sage: t = UnimodularFriezePattern([0,1,sqrt3,2,sqrt3,1,1,0], field=K)
+    sage: t = FriezePattern([0,1,sqrt3,2,sqrt3,1,1,0], field=K)
     sage: CylindricalDiagram(t)
      [0, 1, sqrt3, 2, sqrt3, 1, 1, 0]
      ['', 0, 1, sqrt3, 2, sqrt3, sqrt3 + 1, 1, 0]
@@ -110,7 +110,7 @@ This constructs the examples from [TJ18]_
     sage: TestSuite(t).run()
 
     sage: K.<sqrt2> = NumberField(x^2-2)
-    sage: t = UnimodularFriezePattern([0,1,sqrt2,1,sqrt2,3,2*sqrt2,5,3*sqrt2,1,0], field=K)
+    sage: t = FriezePattern([0,1,sqrt2,1,sqrt2,3,2*sqrt2,5,3*sqrt2,1,0], field=K)
     sage: CylindricalDiagram(t)
      [0, 1, sqrt2, 1, sqrt2, 3, 2*sqrt2, 5, 3*sqrt2, 1, 0]
      ['', 0, 1, sqrt2, 3, 5*sqrt2, 7, 9*sqrt2, 11, 2*sqrt2, 1, 0]
@@ -127,9 +127,8 @@ This constructs the examples from [TJ18]_
     sage: TestSuite(t).run()
 """
 
-
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class UnimodularFriezePattern(PathTableau):
+class FriezePattern(PathTableau):
     """
     An instance is the sequence of nonnegative integers.
     """
@@ -144,7 +143,7 @@ class UnimodularFriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: UnimodularFriezePattern([1,2,1,2,3,1])
+            sage: FriezePattern([1,2,1,2,3,1])
             [1, 2, 1, 2, 3, 1]
 
         """
@@ -159,10 +158,23 @@ class UnimodularFriezePattern(PathTableau):
         if w is None:
             raise ValueError("invalid input %s" % fp)
 
-        return UnimodularFriezePatterns(field)(w)
+        return FriezePatterns(field)(w)
 
     def check(self):
+        """ Checks that ``self`` is a valid frieze.
 
+        TESTS::
+
+            sage: CatalanTableau([0,1,0,-1,0]) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: [0, 1, 0, -1, 0] has a negative entry
+
+            sage: CatalanTableau([0,1,3,1,0]) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: [0, 1, 3, 1, 0] is not a Dyck path
+        """
         #n = len(self)
         if any(a < 0 for a in self):
            raise ValueError( "%s has a negative entry" % (str(self)) )
@@ -176,7 +188,7 @@ class UnimodularFriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: t = UnimodularFriezePattern([1,2,1,2,3,1])
+            sage: t = FriezePattern([1,2,1,2,3,1])
             sage: t._local_rule(3)
             [1, 2, 1, 2, 3, 1]
         """
@@ -201,10 +213,10 @@ class UnimodularFriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: UnimodularFriezePattern([1,2,1,2,3,1]).is_skew()
+            sage: FriezePattern([1,2,1,2,3,1]).is_skew()
             False
 
-            sage: UnimodularFriezePattern([2,2,1,2,3,1]).is_skew()
+            sage: FriezePattern([2,2,1,2,3,1]).is_skew()
             True
         """
         return self[0] != 1
@@ -215,10 +227,10 @@ class UnimodularFriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: UnimodularFriezePattern([0,1,2,7,5,3,7,4,1,0]).is_integral()
+            sage: FriezePattern([0,1,2,7,5,3,7,4,1,0]).is_integral()
             True
 
-            sage: UnimodularFriezePattern([0,1,3,4,5,1,0]).is_integral()
+            sage: FriezePattern([0,1,3,4,5,1,0]).is_integral()
             False
 
         """
@@ -240,13 +252,13 @@ class UnimodularFriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: UnimodularFriezePattern([0,1,2,7,5,3,7,4,1,0]).plot()
+            sage: FriezePattern([0,1,2,7,5,3,7,4,1,0]).plot()
             Graphics object consisting of 24 graphics primitives
 
         """
         if not self.is_integral():
             raise ValueError("{!s} must be an integral frieze".format(self))
-        n = len(self)
+        n = len(self)+1
         cd = CylindricalDiagram(self).diagram
         from sage.plot.plot import Graphics
         from sage.plot.line import line
@@ -256,28 +268,35 @@ class UnimodularFriezePattern(PathTableau):
         G = Graphics()
         G.set_aspect_ratio(1.0)
 
-        vt = [(cos(2*theta*pi/(n-1)), sin(2*theta*pi/(n-1))) for theta in range(n-1)]
+        vt = [(cos(2*theta*pi/(n)), sin(2*theta*pi/(n))) for theta in range(n+1)]
         for i, p in enumerate(vt):
             G += text(str(i),[1.05*p[0],1.05*p[1]])
 
         for i, r in enumerate(cd):
             for j, a in enumerate(r[:n-1]):
                 if a == 1:
-                    G += line([vt[i],vt[j]])
+                    G += line([vt[i],vt[j+1]])
 
         G.axes(False)
         return G
 
-class UnimodularFriezePatterns(PathTableaux):
-
+class FriezePatterns(PathTableaux):
+    """
+    The parent class for FriezePattern.
+    """
     def __init__(self, field):
+        """
+        Initializes the abstract class of all FriezePatterns
 
-        self._field = field
+        TESTS::
+            
+            sage: FriezePattern([1,1]).parent() # indirect test
+            <sage.combinat.path_tableaux.frieze.FriezePatterns_with_category object at ...>
+            
+        """
+        self.field = field
 
         Parent.__init__(self, category=Sets())
 
-    def field(self):
-        return self._field
-
-    Element = UnimodularFriezePattern
+    Element = FriezePattern
 

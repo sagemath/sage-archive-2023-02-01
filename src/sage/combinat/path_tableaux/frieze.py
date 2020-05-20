@@ -57,7 +57,7 @@ from sage.rings.all import ZZ, QQ
 
 EXAMPLES::
 
-    sage: t = FriezePattern([0,1,2,1,2,3,1,0])
+    sage: t = FriezePattern([1,2,1,2,3,1])
     sage: CylindricalDiagram(t)
      [0, 1, 2, 1, 2, 3, 1, 0]
      ['', 0, 1, 1, 3, 5, 2, 1, 0]
@@ -70,7 +70,7 @@ EXAMPLES::
 
     sage: TestSuite(t).run()
 
-    sage: t = FriezePattern([0,1,2,7,5,3,7,4,1,0])
+    sage: t = FriezePattern([1,2,7,5,3,7,4,1])
     sage: CylindricalDiagram(t)
      [0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
      ['', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
@@ -236,16 +236,58 @@ class FriezePattern(PathTableau):
         """
         return self[0] != 1
 
-    def is_integral(self):
-        r"""
-        Return ``True`` if all entries of the frieze pattern are positive integers and ``False`` if not.
+    def width(self):
+        """
+        Return the width of ''self''.
+
+        If the first and last terms of 'self'are 1 then this is the length of 'self'
+        and otherwise is undefined.
 
         EXAMPLES::
 
-            sage: FriezePattern([0,1,2,7,5,3,7,4,1,0]).is_integral()
+            sage: FriezePattern([1,2,1,2,3,1]).width()
+            6
+
+            sage: FriezePattern([1,2,1,2,3,4]).width()
+            <BLANKLINE>
+
+        """
+        if self[0] == 1 and self[-1] == 1:
+            return len(self)
+        else:
+            return None
+
+    def is_positive(self):
+        """
+        Return 'true' if all elements of ''self'' are positive.
+
+        This implies that all entries of ''CylindricalDiagram(self)'' are positive.
+
+        EXAMPLES::
+
+            sage: FriezePattern([1,2,7,5,3,7,4,1]).is_positive()
             True
 
-            sage: FriezePattern([0,1,3,4,5,1,0]).is_integral()
+            sage: FriezePattern([1,-3,4,5,1]).is_positive()
+            False
+
+            sage: K.<sqrt3> = NumberField(x^2-3)
+            sage: FriezePattern([1,sqrt3,1],K).is_positive()
+            True
+
+        """
+        return all(a>0 for a in self)
+
+    def is_integral(self):
+        r"""
+        Return ``True`` if all entries of the frieze pattern are positive integers.
+
+        EXAMPLES::
+
+            sage: FriezePattern([1,2,7,5,3,7,4,1]).is_integral()
+            True
+
+            sage: FriezePattern([1,3,4,5,1]).is_integral()
             False
 
         """

@@ -41,8 +41,8 @@ from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.parent import Parent
 from sage.categories.sets_cat import Sets
-from sage.structure.list_clone import ClonableArray
-from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
+#from sage.structure.list_clone import ClonableArray
+from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux, CylindricalDiagram
 #from sage.combinat.combinatorial_map import combinatorial_map
 #from sage.combinat.tableau import Tableau, StandardTableau
 from sage.rings.integer import Integer
@@ -55,46 +55,41 @@ from sage.rings.all import QQ
 EXAMPLES::
 
     sage: t = UnimodularFriezePattern([0,1,2,1,2,3,1,0])
-
-    sage: SkewTableau(t.cylindrical_diagram()).pp()
-      0  1  2  1  2  3  1  0
-      .  0  1  1  3  5  2  1  0
-      .  .  0  1  4  7  3  2  1  0
-      .  .  .  0  1  2  1  1  1  1  0
-      .  .  .  .  0  1  1  2  3  4  1  0
-      .  .  .  .  .  0  1  3  5  7  2  1  0
-      .  .  .  .  .  .  0  1  2  3  1  1  1  0
-      .  .  .  .  .  .  .  0  1  2  1  2  3  1  0
+    sage: CylindricalDiagram(t)
+     [0, 1, 2, 1, 2, 3, 1, 0]
+     ['', 0, 1, 1, 3, 5, 2, 1, 0]
+     ['', '', 0, 1, 4, 7, 3, 2, 1, 0]
+     ['', '', '', 0, 1, 2, 1, 1, 1, 1, 0]
+     ['', '', '', '', 0, 1, 1, 2, 3, 4, 1, 0]
+     ['', '', '', '', '', 0, 1, 3, 5, 7, 2, 1, 0]
+     ['', '', '', '', '', '', 0, 1, 2, 3, 1, 1, 1, 0]
+     ['', '', '', '', '', '', '', 0, 1, 2, 1, 2, 3, 1, 0]
 
     sage: TestSuite(t).run()
 
     sage: t = UnimodularFriezePattern([0,1,2,7,5,3,7,4,1,0])
-
-    sage: SkewTableau(t.cylindrical_diagram()).pp()
-      0  1  2  7  5  3  7  4  1  0
-      .  0  1  4  3  2  5  3  1  1  0
-      .  .  0  1  1  1  3  2  1  2  1  0
-      .  .  .  0  1  2  7  5  3  7  4  1  0
-      .  .  .  .  0  1  4  3  2  5  3  1  1  0
-      .  .  .  .  .  0  1  1  1  3  2  1  2  1  0
-      .  .  .  .  .  .  0  1  2  7  5  3  7  4  1  0
-      .  .  .  .  .  .  .  0  1  4  3  2  5  3  1  1  0
-      .  .  .  .  .  .  .  .  0  1  1  1  3  2  1  2  1  0
-      .  .  .  .  .  .  .  .  .  0  1  2  7  5  3  7  4  1  0
-
+    sage: CylindricalDiagram(t)
+     [0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
+     ['', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
+     ['', '', 0, 1, 1, 1, 3, 2, 1, 2, 1, 0]
+     ['', '', '', 0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
+     ['', '', '', '', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
+     ['', '', '', '', '', 0, 1, 1, 1, 3, 2, 1, 2, 1, 0]
+     ['', '', '', '', '', '', 0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
+     ['', '', '', '', '', '', '', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
+     ['', '', '', '', '', '', '', '', 0, 1, 1, 1, 3, 2, 1, 2, 1, 0]
+     ['', '', '', '', '', '', '', '', '', 0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
     sage: TestSuite(t).run()
 
     sage: t = UnimodularFriezePattern([0,1,3,4,5,1,0])
-
-    sage: SkewTableau(t.cylindrical_diagram()).pp()
-      0  1  3  4  5  1  0
-      .  0  15/37/32/3  1  0
-      .  .  0  1  2  1  3  1  0
-      .  .  .  0  1  1  45/3  1  0
-      .  .  .  .  0  1  57/3  2  1  0
-      .  .  .  .  .  0  12/3  1  1  1  0
-      .  .  .  .  .  .  0  1  3  4  5  1  0
-
+    sage: CylindricalDiagram(t)
+     [0, 1, 3, 4, 5, 1, 0]
+     ['', 0, 1, 5/3, 7/3, 2/3, 1, 0]
+     ['', '', 0, 1, 2, 1, 3, 1, 0]
+     ['', '', '', 0, 1, 1, 4, 5/3, 1, 0]
+     ['', '', '', '', 0, 1, 5, 7/3, 2, 1, 0]
+     ['', '', '', '', '', 0, 1, 2/3, 1, 1, 1, 0]
+     ['', '', '', '', '', '', 0, 1, 3, 4, 5, 1, 0]
 
     sage: TestSuite(t).run()
 
@@ -102,34 +97,32 @@ This constructs the examples from [TJ18]_
 
     sage: K.<sqrt3> = NumberField(x^2-3)
     sage: t = UnimodularFriezePattern([0,1,sqrt3,2,sqrt3,1,1,0], field=K)
-
-    sage: SkewTableau(t.cylindrical_diagram()).pp()
-      0  1sqrt3  2sqrt3  1  1  0
-      .  0  1sqrt3  2sqrt3sqrt3 + 1  1  0
-      .  .  0  1sqrt3  2sqrt3 + 2sqrt3  1  0
-      .  .  .  0  1sqrt3sqrt3 + 2  2sqrt3  1  0
-      .  .  .  .  0  1sqrt3 + 1sqrt3  2sqrt3  1  0
-      .  .  .  .  .  0  1  1sqrt3  2sqrt3  1  0
-      .  .  .  .  .  .  0  1sqrt3 + 1sqrt3 + 2sqrt3 + 2sqrt3 + 1  1  0
-      .  .  .  .  .  .  .  0  1sqrt3  2sqrt3  1  1  0
+    sage: CylindricalDiagram(t)
+     [0, 1, sqrt3, 2, sqrt3, 1, 1, 0]
+     ['', 0, 1, sqrt3, 2, sqrt3, sqrt3 + 1, 1, 0]
+     ['', '', 0, 1, sqrt3, 2, sqrt3 + 2, sqrt3, 1, 0]
+     ['', '', '', 0, 1, sqrt3, sqrt3 + 2, 2, sqrt3, 1, 0]
+     ['', '', '', '', 0, 1, sqrt3 + 1, sqrt3, 2, sqrt3, 1, 0]
+     ['', '', '', '', '', 0, 1, 1, sqrt3, 2, sqrt3, 1, 0]
+     ['', '', '', '', '', '', 0, 1, sqrt3 + 1, sqrt3 + 2, sqrt3 + 2, sqrt3 + 1, 1, 0]
+     ['', '', '', '', '', '', '', 0, 1, sqrt3, 2, sqrt3, 1, 1, 0]
 
     sage: TestSuite(t).run()
 
     sage: K.<sqrt2> = NumberField(x^2-2)
     sage: t = UnimodularFriezePattern([0,1,sqrt2,1,sqrt2,3,2*sqrt2,5,3*sqrt2,1,0], field=K)
-
-    sage: SkewTableau(t.cylindrical_diagram()).pp()
-      0  1sqrt2  1sqrt2  32*sqrt2  53*sqrt2  1  0
-      .  0  1sqrt2  35*sqrt2  79*sqrt2 112*sqrt2  1  0
-      .  .  0  12*sqrt2  75*sqrt2 138*sqrt2  3sqrt2  1  0
-      .  .  .  0  12*sqrt2  34*sqrt2  5sqrt2  1sqrt2  1  0
-      .  .  .  .  0  1sqrt2  32*sqrt2  1sqrt2  32*sqrt2  1  0
-      .  .  .  .  .  0  12*sqrt2  3sqrt2  35*sqrt2  72*sqrt2  1  0
-      .  .  .  .  .  .  0  1sqrt2  12*sqrt2  75*sqrt2  3sqrt2  1  0
-      .  .  .  .  .  .  .  0  1sqrt2  59*sqrt2 134*sqrt2  32*sqrt2  1  0
-      .  .  .  .  .  .  .  .  0  13*sqrt2 118*sqrt2  52*sqrt2  3sqrt2  1  0
-      .  .  .  .  .  .  .  .  .  0  12*sqrt2  3sqrt2  1sqrt2  1sqrt2  1  0
-      .  .  .  .  .  .  .  .  .  .  0  1sqrt2  1sqrt2  32*sqrt2  53*sqrt2  1  0
+    sage: CylindricalDiagram(t)
+     [0, 1, sqrt2, 1, sqrt2, 3, 2*sqrt2, 5, 3*sqrt2, 1, 0]
+     ['', 0, 1, sqrt2, 3, 5*sqrt2, 7, 9*sqrt2, 11, 2*sqrt2, 1, 0]
+     ['', '', 0, 1, 2*sqrt2, 7, 5*sqrt2, 13, 8*sqrt2, 3, sqrt2, 1, 0]
+     ['', '', '', 0, 1, 2*sqrt2, 3, 4*sqrt2, 5, sqrt2, 1, sqrt2, 1, 0]
+     ['', '', '', '', 0, 1, sqrt2, 3, 2*sqrt2, 1, sqrt2, 3, 2*sqrt2, 1, 0]
+     ['', '', '', '', '', 0, 1, 2*sqrt2, 3, sqrt2, 3, 5*sqrt2, 7, 2*sqrt2, 1, 0]
+     ['', '', '', '', '', '', 0, 1, sqrt2, 1, 2*sqrt2, 7, 5*sqrt2, 3, sqrt2, 1, 0]
+     ['', '', '', '', '', '', '', 0, 1, sqrt2, 5, 9*sqrt2, 13, 4*sqrt2, 3, 2*sqrt2, 1, 0]
+     ['', '', '', '', '', '', '', '', 0, 1, 3*sqrt2, 11, 8*sqrt2, 5, 2*sqrt2, 3, sqrt2, 1, 0]
+     ['', '', '', '', '', '', '', '', '', 0, 1, 2*sqrt2, 3, sqrt2, 1, sqrt2, 1, sqrt2, 1, 0]
+     ['', '', '', '', '', '', '', '', '', '', 0, 1, sqrt2, 1, sqrt2, 3, 2*sqrt2, 5, 3*sqrt2, 1, 0]
 
     sage: TestSuite(t).run()
 """
@@ -138,8 +131,7 @@ This constructs the examples from [TJ18]_
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class UnimodularFriezePattern(PathTableau):
     """
-    An instance is the sequence of nonnegative
-    integers.
+    An instance is the sequence of nonnegative integers.
     """
 
     @staticmethod
@@ -148,7 +140,7 @@ class UnimodularFriezePattern(PathTableau):
 
         INPUT:
 
-            - a sequence of nonnegative integers
+        - a sequence of nonnegative integers
 
         EXAMPLES::
 
@@ -171,12 +163,12 @@ class UnimodularFriezePattern(PathTableau):
 
     def check(self):
 
-        n = len(self)
+        #n = len(self)
         if any(a < 0 for a in self):
            raise ValueError( "%s has a negative entry" % (str(self)) )
 
     def _local_rule(self,i):
-        """
+        r"""
         This has input a list of objects. This method first takes
         the list of objects of length three consisting of the `(i-1)`-st,
         `i`-th and `(i+1)`-term and applies the rule. It then replaces
@@ -204,7 +196,7 @@ class UnimodularFriezePattern(PathTableau):
         return result
 
     def is_skew(self):
-        """
+        r"""
         Return ``True`` if ``self`` is skew and ``False`` if not.
 
         EXAMPLES::
@@ -218,7 +210,7 @@ class UnimodularFriezePattern(PathTableau):
         return self[0] != 1
 
     def is_integral(self):
-        """
+        r"""
         Return ``True`` if all entries of the frieze pattern are positive integers and ``False`` if not.
 
         EXAMPLES::
@@ -231,7 +223,7 @@ class UnimodularFriezePattern(PathTableau):
 
         """
         n = len(self)
-        cd = self.cylindrical_diagram()
+        cd = CylindricalDiagram(self).diagram
         for i, a in enumerate(cd):
             v = a[i+1:n+i-2]
             try:
@@ -243,7 +235,7 @@ class UnimodularFriezePattern(PathTableau):
         return True
 
     def plot(self):
-        """
+        r"""
         If ``self`` is integral then plot the triangulation.
 
         EXAMPLES::
@@ -253,9 +245,9 @@ class UnimodularFriezePattern(PathTableau):
 
         """
         if not self.is_integral():
-            raise ValueError("must be an integral frieze")
+            raise ValueError("{!s} must be an integral frieze".format(self))
         n = len(self)
-        cd = self.cylindrical_diagram()
+        cd = CylindricalDiagram(self).diagram
         from sage.plot.plot import Graphics
         from sage.plot.line import line
         from sage.plot.text import text

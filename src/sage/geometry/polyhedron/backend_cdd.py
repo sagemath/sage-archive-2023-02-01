@@ -15,7 +15,6 @@ The cdd backend for polyhedral computations
 # ****************************************************************************
 
 from __future__ import print_function, absolute_import
-from six import PY2
 
 from subprocess import Popen, PIPE
 from sage.rings.all import ZZ
@@ -147,13 +146,9 @@ class Polyhedron_cdd(Polyhedron_base):
             print('---- CDD input -----')
             print(cdd_input_string)
 
-        if PY2:
-            enc_kwargs = {}
-        else:
-            enc_kwargs = {'encoding': 'latin-1'}
-
         cdd_proc = Popen([self._cdd_executable, cmdline_arg],
-                         stdin=PIPE, stdout=PIPE, stderr=PIPE, **enc_kwargs)
+                         stdin=PIPE, stdout=PIPE, stderr=PIPE,
+                         encoding='latin-1')
         ans, err = cdd_proc.communicate(input=cdd_input_string)
 
         if verbose:

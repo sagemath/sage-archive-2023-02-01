@@ -39,8 +39,6 @@ See :mod:`sage.geometry.triangulation.point_configuration` for more details.
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-from six import iteritems
-
 from sage.structure.richcmp import richcmp
 from sage.structure.element import Element
 from sage.rings.all import QQ, ZZ
@@ -673,7 +671,7 @@ class Triangulation(Element):
             frozenset({(0, 1, 7), (0, 2, 7), (0, 3, 7), (0, 4, 7), (0, 5, 7), (1, 5, 7)})
         """
         return frozenset(facet for facet, bounded_simplices
-                         in iteritems(self._boundary_simplex_dictionary())
+                         in self._boundary_simplex_dictionary().items()
                          if len(bounded_simplices) == 1)
 
     @cached_method
@@ -709,7 +707,7 @@ class Triangulation(Element):
             frozenset({(0, 1, 7), (0, 2, 7), (0, 3, 7), (0, 4, 7), (0, 5, 7), (1, 5, 7)})
         """
         return frozenset(facet for facet, bounded_simplices
-                         in iteritems(self._boundary_simplex_dictionary())
+                         in self._boundary_simplex_dictionary().items()
                          if len(bounded_simplices) == 2)
 
     @cached_method

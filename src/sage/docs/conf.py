@@ -3,7 +3,6 @@ from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, MA
 import sage.version
 from sage.misc.sagedoc import extlinks
 import dateutil.parser
-from six import iteritems
 from docutils import nodes
 from docutils.transforms import Transform
 from sphinx.ext.doctest import blankline_re
@@ -556,7 +555,7 @@ def check_nested_class_picklability(app, what, name, obj, skip, options):
         # Check picklability of nested classes.  Adapted from
         # sage.misc.nested_class.modify_for_nested_pickle.
         module = sys.modules[obj.__module__]
-        for (nm, v) in iteritems(obj.__dict__):
+        for (nm, v) in obj.__dict__.items():
             if (isinstance(v, type) and
                 v.__name__ == nm and
                 v.__module__ == module.__name__ and
@@ -620,7 +619,6 @@ def process_dollars(app, what, name, obj, options, docstringlines):
     See sage.misc.sagedoc.process_dollars for more information.
     """
     if len(docstringlines) and name.find("process_dollars") == -1:
-        from six.moves import range
         from sage.misc.sagedoc import process_dollars as sagedoc_dollars
         s = sagedoc_dollars("\n".join(docstringlines))
         lines = s.split("\n")

@@ -39,7 +39,6 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from six.moves import range
 
 from sage.rings.integer import Integer
 from sage.manifolds.differentiable.tensorfield import TensorField

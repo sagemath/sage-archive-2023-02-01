@@ -36,7 +36,6 @@ We test that pickling works::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
 
 SMALL_DISC = 1000000
 

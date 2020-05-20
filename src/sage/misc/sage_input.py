@@ -174,9 +174,6 @@ AUTHORS:
 
 from __future__ import print_function, absolute_import
 
-from six import iteritems, integer_types, string_types
-
-
 def sage_input(x, preparse=True, verify=False, allow_locals=False):
     r"""
     Return a sequence of commands that can be used to rebuild the object ``x``.
@@ -481,8 +478,7 @@ class SageInputBuilder:
         if isinstance(x, bool):
             return SIE_literal_stringrep(self, str(x))
 
-        if (isinstance(x, int) or
-                (isinstance(x, integer_types) and not isinstance(int(x), int))):
+        if isinstance(x, int):
             # For longs that don't fit in an int, we just use the int
             # code; it will get extended to long automatically.
             if self._preparse is True:
@@ -493,27 +489,10 @@ class SageInputBuilder:
             elif self._preparse is False:
                 return self.int(x)
             else:
-                tyname = 'int' if isinstance(x, int) else 'long'
                 if x < 0:
-                    return -self.name(tyname)(self.int(-x))
+                    return -self.name('int')(self.int(-x))
                 else:
-                    return self.name(tyname)(self.int(x))
-
-        if isinstance(x, integer_types):
-            # This must be a long that does fit in an int, so we need either
-            # long(x) or an 'L' suffix.
-            # With the current preparser, 1Lr does not work.
-            # 1rL does work; but that's just ugly, so I don't use it.
-            if self._preparse is False:
-                if x < 0:
-                    return -SIE_literal_stringrep(self, str(-x) + 'L')
-                else:
-                    return SIE_literal_stringrep(self, str(x) + 'L')
-            else:
-                if x < 0:
-                    return -self.name('long')(self.int(-x))
-                else:
-                    return self.name('long')(self.int(x))
+                    return self.name('int')(self.int(x))
 
         if isinstance(x, float):
             # floats could often have prettier output,
@@ -536,7 +515,7 @@ class SageInputBuilder:
                 return self.name('float')(self.int(ZZ(rrx)))
             return self.name('float')(RR(x))
 
-        if isinstance(x, string_types):
+        if isinstance(x, str):
             return SIE_literal_stringrep(self, repr(x))
 
         if isinstance(x, tuple):
@@ -1912,7 +1891,7 @@ class SIE_call(SageInputExpression):
         func = repr(self._sie_func)
         args = [repr(arg) for arg in self._sie_args]
         kwargs = sorted(k + '=' + repr(v)
-                        for k, v in iteritems(self._sie_kwargs))
+                        for k, v in self._sie_kwargs.items())
         all_args = ', '.join(args + kwargs)
         return "{call: %s(%s)}" % (func, all_args)
 
@@ -1953,7 +1932,7 @@ class SIE_call(SageInputExpression):
         func = sif.format(self._sie_func, _prec_attribute)
         args = [sif.format(arg, 0) for arg in self._sie_args]
         kwargs = sorted(k + '=' + sif.format(v, 0)
-                        for k, v in iteritems(self._sie_kwargs))
+                        for k, v in self._sie_kwargs.items())
         all_args = ', '.join(args + kwargs)
         return ('%s(%s)' % (func, all_args), _prec_funcall)
 
@@ -3637,5 +3616,5 @@ class SageInputAnswer(tuple):
 
         locals = self[2]
         locals_text = ''.join('  %s: %r\n' % (k, v)
-                              for k, v in iteritems(locals))
+                              for k, v in locals.items())
         return 'LOCALS:\n' + locals_text + self[0] + self[1]

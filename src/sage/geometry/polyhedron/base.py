@@ -18,7 +18,6 @@ Base class for polyhedra
 from __future__ import division, print_function, absolute_import
 
 import itertools
-import six
 from sage.structure.element import Element, coerce_binop, is_Vector, is_Matrix
 from sage.structure.richcmp import rich_to_bool, op_NE
 from sage.cpython.string import bytes_to_str
@@ -943,7 +942,7 @@ class Polyhedron_base(Element):
                     continue
                 elif opt is False:
                     return False
-                elif isinstance(opt, (six.string_types, list, tuple)):
+                elif isinstance(opt, (str, list, tuple)):
                     merged['color'] = opt
                 else:
                     merged.update(opt)

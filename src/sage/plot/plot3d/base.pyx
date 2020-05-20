@@ -39,8 +39,8 @@ import sys
 import zipfile
 
 from functools import reduce
+from io import StringIO
 from random import randint
-from six.moves import cStringIO as StringIO
 
 from sage.misc.misc import sage_makedirs
 from sage.misc.temporary_file import tmp_filename

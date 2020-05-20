@@ -1483,7 +1483,15 @@ def radius(G):
         sage: G = Graph(2)
         sage: radius(G)
         +Infinity
+        sage: G = DiGraph(1)
+        sage: radius(G)
+        Traceback (most recent call last):
+        ...
+        TypeError: This method works for unweighted undirected graphs only
     """
+    if G.is_directed() or G.weighted():
+        raise TypeError("This method works for unweighted undirected graphs only")
+
     cdef uint32_t n = G.order()
     if not n or n == 1:
         return 0
@@ -1492,80 +1500,60 @@ def radius(G):
     cdef short_digraph sd
     init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
 
-    cdef list L = []
-    cdef list K = []
-    cdef uint32_t source = 0
+    cdef uint32_t source
     cdef uint32_t antipode
-    cdef uint32_t min_L = UINT32_MAX
-    cdef uint32_t min_K = UINT32_MAX
-    cdef uint32_t next_source # To store source for next iteration
+    cdef uint32_t LB = UINT32_MAX
+    cdef uint32_t UB = UINT32_MAX
+    cdef uint32_t next_source = 0 # To store source for next iteration
 
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef uint32_t * distances = <uint32_t *>mem.malloc(4 * n * sizeof(uint32_t))
     if not distances:
         raise MemoryError()
+
     cdef uint32_t * waiting_list = distances + n
+
     # For storing eccentricity of nodes
     cdef uint32_t * ecc = distances + 2 * n
+
     # For storing lower bound on eccentricity of nodes
     cdef uint32_t * ecc_lower_bound = distances + 3 * n
     memset(ecc_lower_bound,0,n * sizeof(uint32_t))
 
     cdef bitset_t seen
+    bitset_init(seen,n) # intializing bitset
 
-    # Doing first iteration of do-while loop and intializing values
-    bitset_init(seen,n)  # intializing bitset
-    ecc[source] = simple_BFS(sd, source, distances, NULL, waiting_list, seen)
-
-    if ecc[source] == UINT32_MAX: # Disconnected graph
-        from sage.rings.infinity import Infinity
-        return +Infinity
-
-    antipode = waiting_list[n-1]  # last visited vertex in simple_BFS
-
-    if(ecc[source] == ecc_lower_bound[source]):
-        return ecc[source]   # Radius
-
-    bitset_init(seen,n) # Reinitializing bitset
-    ecc[antipode] = simple_BFS(sd, antipode, distances, NULL, waiting_list, seen)
-
-    L.append(antipode)
-    K.append(source)
-    min_K = min(min_K, ecc[source])
-    min_L = UINT32_MAX
-
-    for v in range(n):
-        ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
-        if min_L > ecc_lower_bound[v]:
-            min_L = ecc_lower_bound[v]
-            next_source = v
-
-
-    # Now looping
-    while min_L < min_K:
+    # Algorithm
+    while True:
         source = next_source
-        bitset_init(seen,n)
+        bitset_clear(seen)
         ecc[source] = simple_BFS(sd, source, distances, NULL, waiting_list, seen)
-        antipode = waiting_list[n-1]
+        antipode = waiting_list[n-1] # last visited vertex in simple_BFS
+
+        if ecc[source] == UINT32_MAX:
+            bitset_free(seen)
+            from sage.rings.infinity import Infinity
+            return +Infinity
 
         if(ecc[source] == ecc_lower_bound[source]):
+            bitset_free(seen)
             return ecc[source]
 
-        bitset_init(seen,n)
+        bitset_clear(seen)
         ecc[antipode] = simple_BFS(sd, antipode, distances, NULL, waiting_list, seen)
 
-        L.append(antipode)
-        K.append(source)
-        min_K = min(min_K, ecc[source])
-        min_L = UINT32_MAX
+        UB = min(UB, ecc[source])
+        LB = UINT32_MAX
 
         for v in range(n):
             ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
-            if min_L > ecc_lower_bound[v]:
-                min_L = ecc_lower_bound[v]
+            if LB > ecc_lower_bound[v]:
+                LB = ecc_lower_bound[v]
                 next_source = v
 
-    return min_K
+        if UB <= LB:
+            bitset_free(seen)
+            return UB
 
 ################
 # Wiener index #

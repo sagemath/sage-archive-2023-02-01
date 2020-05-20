@@ -4,6 +4,8 @@ Frieze Patterns
 This is an implementation of the abstract base class
 :class:`sage.combinat.pathtableau.pathtableaux`.
 
+This implements the original frieze patterns due to Conway and Coxeter.
+
 In this implementation we have sequences of nonnegative integers.
 This follows [CoCo1]_ and [CoCo2]_
 
@@ -46,7 +48,8 @@ from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux, 
 #from sage.combinat.combinatorial_map import combinatorial_map
 #from sage.combinat.tableau import Tableau, StandardTableau
 from sage.rings.integer import Integer
-from sage.rings.all import QQ
+from sage.categories.fields import Fields
+from sage.rings.all import ZZ, QQ
 
 ###############################################################################
 
@@ -130,54 +133,60 @@ This constructs the examples from [TJ18]_
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class FriezePattern(PathTableau):
     """
-    An instance is the sequence of nonnegative integers.
+    An instance is a sequence in the ground field.
     """
 
     @staticmethod
     def __classcall_private__(cls, fp, field=QQ):
-        """This is the preprocessing for creating paths.
+        """This is the preprocessing for creating friezes.
 
         INPUT:
 
-        - a sequence of nonnegative integers
+        - a sequence of elements of the field ''field''
 
         EXAMPLES::
 
             sage: FriezePattern([1,2,1,2,3,1])
             [1, 2, 1, 2, 3, 1]
 
+        TESTS::
+
+            sage FriezePattern(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce sqrt3 to a rational
+
+            sage: K.<sqrt3> = NumberField(x^2-3)
+            sage: t = FriezePattern([0,1,sqrt3,2,sqrt3,1,1,0])
+            Traceback (most recent call last):
+            ...
+            ValueError: [0, 1, sqrt3, 2, sqrt3, 1, 1, 0] is not a sequence in the field Rational Field
+
+            sage: FriezePattern([1,2,1,2,3,1],field=ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Integer Ring must be a field
         """
+        if not field in Fields:
+            raise ValueError("{} must be a field".format(field))
+
         w = None
 
         if isinstance(fp, (list,tuple)):
             try:
                 w = tuple([field(a) for a in fp])
             except TypeError:
-                raise ValueError("%s is not a sequence of integers" % fp)
+                raise ValueError("{} is not a sequence in the field {}".format(fp, field))
 
         if w is None:
-            raise ValueError("invalid input %s" % fp)
+            raise ValueError("invalid input {}".format(fp))
 
         return FriezePatterns(field)(w)
 
     def check(self):
-        """ Checks that ``self`` is a valid frieze.
-
-        TESTS::
-
-            sage: CatalanTableau([0,1,0,-1,0]) # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: [0, 1, 0, -1, 0] has a negative entry
-
-            sage: CatalanTableau([0,1,3,1,0]) # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: [0, 1, 3, 1, 0] is not a Dyck path
         """
-        #n = len(self)
-        if any(a < 0 for a in self):
-           raise ValueError( "%s has a negative entry" % (str(self)) )
+        There is nothing to check.
+        """
 
     def _local_rule(self,i):
         r"""
@@ -191,16 +200,22 @@ class FriezePattern(PathTableau):
             sage: t = FriezePattern([1,2,1,2,3,1])
             sage: t._local_rule(3)
             [1, 2, 1, 2, 3, 1]
+
+            sage: t = FriezePattern([1,2,1,2,3,1])
+            sage: t._local_rule(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: 0 is not a valid integer
         """
 
         def _rule(x):
             """
-            This is the rule on a sequence of three letters.
+            This is the rule on a sequence of three scalars.
             """
             return (x[0]*x[2]+1)/x[1]
 
         if not (i > 0 and i < len(self) ):
-            raise ValueError("%d is not a valid integer" % i)
+            raise ValueError("{} is not a valid integer".format(i))
 
         with self.clone() as result:
             result[i] = _rule(self[i-1:i+2])
@@ -252,9 +267,15 @@ class FriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: FriezePattern([0,1,2,7,5,3,7,4,1,0]).plot()
-            Graphics object consisting of 24 graphics primitives
+            sage: FriezePattern([1,2,7,5,3,7,4,1]).plot()
+            Graphics object consisting of 25 graphics primitives
 
+        TESTS::
+
+            sage: FriezePattern([1,2,1/7,5,3]).plot()
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 2, 1/7, 5, 3] must be an integral frieze
         """
         if not self.is_integral():
             raise ValueError("{!s} must be an integral frieze".format(self))
@@ -289,10 +310,10 @@ class FriezePatterns(PathTableaux):
         Initializes the abstract class of all FriezePatterns
 
         TESTS::
-            
+
             sage: FriezePattern([1,1]).parent() # indirect test
             <sage.combinat.path_tableaux.frieze.FriezePatterns_with_category object at ...>
-            
+
         """
         self.field = field
 

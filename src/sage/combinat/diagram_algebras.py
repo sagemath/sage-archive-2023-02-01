@@ -3798,12 +3798,12 @@ def TL_diagram_ascii_art(diagram, use_unicode=False, blobs=[]):
          │ ╰─╯ ╰─╯ │ │ │ ╰─╯ │ ╰─╯ │ │ │ │ ╰─╯ │ 
          │         │ │ │     ╰─────╯ │ │ ╰─────╯
          │         │ │ ╰─────────────╯ │ 
-         ╰───⚫───╮ │ │ ╭───────────────╯
+         ╰───●───╮ │ │ ╭───────────────╯
                  │ │ │ │ ╭─────────────────────╮
                  │ │ │ │ │ ╭─────────────────╮ │ 
                  │ │ │ │ │ │ ╭─────────────╮ │ │ 
                  │ │ │ │ │ │ │ ╭─────╮     │ │ │ 
-         ╭⚫╮ ╭─╮ │ │ │ │ │ │ │ │ ╭─╮ │ ╭─╮ │ │ │ 
+         ╭●╮ ╭─╮ │ │ │ │ │ │ │ │ ╭─╮ │ ╭─╮ │ │ │ 
          ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬
     """
     def insert_pairing(cur, intervals):
@@ -3903,7 +3903,7 @@ def TL_diagram_ascii_art(diagram, use_unicode=False, blobs=[]):
         from sage.typeset.unicode_art import UnicodeArt
         d = ["╭", "╮", "╰", "╯", "─", "│"]
         #db = ["┏", "┓", "┗", "┛", "━", "┃"]
-        blob = '⚫'
+        blob = '●'
         ret = [" ⚬" * n]
         char_art = UnicodeArt
     else:

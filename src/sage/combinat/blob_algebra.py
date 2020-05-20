@@ -482,8 +482,8 @@ class BlobAlgebra(CombinatorialFreeModule):
             sage: x = B2.an_element()
             sage: unicode_art(x)  # indirect doctest
                ⚬ ⚬      ⚬ ⚬      ⚬ ⚬
-            2* ╰─╯ + 3* ╰─╯ + 2* ╰⚫╯
-               ╭─╮      ╭⚫╮      ╭─╮
+            2* ╰─╯ + 3* ╰─╯ + 2* ╰●╯
+               ╭─╮      ╭●╮      ╭─╮
                ⚬ ⚬      ⚬ ⚬      ⚬ ⚬
         """
         return TL_diagram_ascii_art(diagram.marked+diagram.unmarked, use_unicode=True,

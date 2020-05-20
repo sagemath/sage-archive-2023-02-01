@@ -1418,6 +1418,10 @@ REFERENCES:
              \J. Algebr. Comb. **39** (2014) pp. 17-51.
              :doi:`10.1007/s10801-013-0437-x`, :arxiv:`1108.1776`.
 
+.. [CM2012] \M. Cabanes, I. Marin, *On ternary quotients of cubic Hecke
+             algebras*, Comm. Math. Phys. (2012), Volume 314, Issue 1,
+             pp 57-92. :doi:`10.1007/s00220-012-1519-7`, :arxiv:`1010.1465`.
+
 .. [CMN2014] David Coudert, Dorian Mazauric, and Nicolas Nisse, *Experimental
              Evaluation of a Branch and Bound Algorithm for computing
              Pathwidth*. In Symposium on Experimental Algorithms (SEA), volume
@@ -3742,6 +3746,14 @@ REFERENCES:
 .. [Mar2004] \S. Marcus, Quasiperiodic infinite words,
              Bull. Eur. Assoc.  Theor. Comput. Sci. 82 (2004) 170-174.
 
+.. [Mar2012] \I. Marin, *The cubic Hecke algebra on at most 5 strands*,
+             Journal of Pure and Applied Algebra 216 (2012) 2754-2782.
+             :doi:`10.1016/j.jpaa.2012.04.013`, :arxiv:`1110.6621`.
+
+.. [Mar2018] \I. Marin, *Maximal cubic quotient of the braid algebra*,
+             preprint, 2018. available at
+             http://www.lamfa.u-picardie.fr/marin/arts/GQ.pdf
+
 .. [Mas1994] James L. Massey,
            *SAFER K-64: A byte-oriented block-ciphering algorithm*; in
            FSE’93, Volume 809 of LNCS, pages 1-17.
@@ -4051,6 +4063,9 @@ REFERENCES:
 
 .. [MW2009] Meshulam and Wallach, "Homological connectivity of random
             `k`-dimensional complexes", preprint, math.CO/0609773.
+
+.. [MW2012] Ivan Marin and Emmanuel Wagner, *A CUBIC DEFINING ALGEBRA FOR THE
+            LINKS-GOULD POLYNOMIAL* (:arxiv:`1203.5981v1` [mathGT] 27. Mar 2012)
 
 .. _ref-N:
 

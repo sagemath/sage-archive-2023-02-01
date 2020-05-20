@@ -200,7 +200,7 @@ class Polyhedron_QQ(Polyhedron_base):
                     lp.set_min(x[i], a)
                 for i, b in enumerate(box_max):
                     lp.set_max(x[i], b)
-                p = lp.polyhedron() # this recomputes the double description, which is wasteful
+                p = lp.polyhedron()  # this recomputes the double description, which is wasteful
                 if p.is_empty():
                     return 0
                 if p.dimension() == 0:
@@ -218,7 +218,7 @@ class Polyhedron_QQ(Polyhedron_base):
                 **kwds)
 
     @cached_method(do_pickle=True)
-    def ehrhart_polynomial(self,engine=None,variable='t',verbose=False,
+    def ehrhart_polynomial(self, engine=None, variable='t', verbose=False,
             dual=None, irrational_primal=None, irrational_all_primal=None,
             maxdet=None, no_decomposition=None, compute_vertex_cones=None,
             smith_form=None, dualization=None, triangulation=None,
@@ -340,7 +340,7 @@ class Polyhedron_QQ(Polyhedron_base):
             ...
             TypeError: the polytope has nonintegral vertices, use ehrhart_quasipolynomial with backend 'normaliz'
 
-	TESTS:
+        TESTS:
 
         The cache of the Ehrhart polynomial is being pickled::
 
@@ -412,9 +412,9 @@ class Polyhedron_QQ(Polyhedron_base):
           * ``None`` (default); When no input is given the Ehrhart polynomial
             is computed using Normaliz (optional)
           * ``'latte'``; use LattE Integrale program (requires optional package
-	    'latte_int')
+            'latte_int')
           * ``'normaliz'``; use the Normaliz program (requires optional package
-	    'pynormaliz'). The backend of ``self`` must be set to 'normaliz'.
+            'pynormaliz'). The backend of ``self`` must be set to 'normaliz'.
 
         - When the ``engine`` is 'latte', the additional input values are:
 
@@ -529,25 +529,25 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: simplex.ehrhart_polynomial()                                                            # optional - pynormaliz latte_int
             7/2*t^3 + 2*t^2 - 1/2*t + 1
 
-	TESTS:
+        TESTS:
 
         The cache of the Ehrhart quasipolynomial is being pickled::
 
-	    sage: P = polytopes.cuboctahedron(backend='normaliz')/2           # optional - pynormaliz
+            sage: P = polytopes.cuboctahedron(backend='normaliz')/2           # optional - pynormaliz
             sage: P.ehrhart_quasipolynomial()                                 # optional - pynormaliz
             (5/6*t^3 + 2*t^2 + 5/3*t + 1, 5/6*t^3 + 1/2*t^2 + 1/6*t - 1/2)
             sage: Q = loads(dumps(P))                                         # optional - pynormaliz
             sage: Q.ehrhart_quasipolynomial.is_in_cache()                     # optional - pynormaliz
             True
 
-	    sage: P = polytopes.cuboctahedron().change_ring(QQ)   # optional - latte_int
+            sage: P = polytopes.cuboctahedron().change_ring(QQ)   # optional - latte_int
             sage: P.ehrhart_quasipolynomial(engine='latte')       # optional - latte_int
             20/3*t^3 + 8*t^2 + 10/3*t + 1
             sage: Q = loads(dumps(P))                             # optional - latte_int
             sage: Q.ehrhart_quasipolynomial.is_in_cache()         # optional - latte_int
-	    True
-        """                                              
-        if self.is_empty():                              
+            True
+        """
+        if self.is_empty():
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             from sage.rings.rational_field import QQ
             R = PolynomialRing(QQ, 't')

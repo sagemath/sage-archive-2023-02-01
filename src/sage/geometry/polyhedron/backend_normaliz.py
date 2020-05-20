@@ -1104,6 +1104,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return '{}'.format(QQ(x))
             except (ValueError, TypeError):
                 return '({})'.format(x.polynomial('a'))
+
         def format_field(key, value):
             if isinstance(value, list) or isinstance(value, tuple):
                 s = '{} {}\n'.format(key, len(value))
@@ -1114,6 +1115,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return s
             else:
                 return '{} {}\n'.format(key, value)
+
         def format_number_field_data(nf_triple):
             min_poly, gen, emb = nf_triple
             return 'min_poly ({}) embedding {}'.format(min_poly, emb)
@@ -1488,6 +1490,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         return triangulation
 
+
 #########################################################################
 class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
     r"""
@@ -1561,7 +1564,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
             :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`
 
-	TESTS:
+        TESTS:
 
         Check that the Ehrhart series is pickled::
 
@@ -1734,7 +1737,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
             :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
 
-	TESTS:
+        TESTS:
 
         Check that the Hilbert series is pickled::
 

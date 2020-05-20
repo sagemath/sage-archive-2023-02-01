@@ -8003,6 +8003,7 @@ class Polyhedron_base(Element):
             return list(lp.points())
         return [p for p in lp.points() if self.contains(p)]
 
+    @cached_method(do_pickle=True)
     def h_star_vector(self):
         r"""
         Return the `h^*`-vector of the lattice polytope.
@@ -8066,6 +8067,12 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: The h_star vector is only defined for lattice polytopes
+        
+        Check that the `h^*`-vector is pickled::
+
+            sage: new_cube = loads(dumps(cube))         # optional - pynormaliz
+            sage: new_cube.h_star_vector.is_in_cache()  # optional - pynormaliz
+            True
         """
         if self.is_empty():
             return 0

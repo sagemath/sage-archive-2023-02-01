@@ -26,7 +26,7 @@ AUTHORS:
 from __future__ import absolute_import, print_function
 
 from sage.structure.element import Element
-from sage.misc.all import prod
+from sage.misc.all import cached_method, prod
 from sage.features import PythonModule
 
 from sage.rings.all import ZZ, QQ
@@ -1506,6 +1506,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         sage: TestSuite(p).run()                                           # optional - pynormaliz
     """
 
+    @cached_method(do_pickle=True)
     def ehrhart_series(self, variable='t'):
         r"""
         Return the Ehrhart series of a compact rational polyhedron.
@@ -1559,6 +1560,14 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         .. SEEALSO::
 
             :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`
+
+	TESTS:
+
+        Check that the Ehrhart series is pickled::
+
+            sage: new_poly = loads(dumps(rat_poly))      # optional - pynormaliz
+            sage: new_poly.ehrhart_series.is_in_cache()  # optional - pynormaliz
+            True
         """
         if self.is_empty():
             return 0
@@ -1662,6 +1671,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
     _ehrhart_polynomial_normaliz = _ehrhart_quasipolynomial_normaliz
 
+    @cached_method(do_pickle=True)
     def hilbert_series(self, grading, variable='t'):
         r"""
         Return the Hilbert series of the polyhedron with respect to ``grading``.
@@ -1723,6 +1733,14 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         .. SEEALSO::
 
             :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
+
+	TESTS:
+
+        Check that the Hilbert series is pickled::
+
+            sage: new_magic = loads(dumps(magic_square))  # optional - pynormaliz
+            sage: new_magic.hilbert_series.is_in_cache()  # optional - pynormaliz
+            True
         """
         if self.is_empty():
             return 0

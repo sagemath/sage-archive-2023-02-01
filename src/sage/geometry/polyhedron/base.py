@@ -31,7 +31,7 @@ from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.modules.vector_space_morphism import linear_transformation
 from sage.matrix.constructor import matrix
-from sage.functions.other import sqrt, floor, ceil, binomial
+from sage.functions.other import sqrt, floor, ceil
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
 
@@ -7622,6 +7622,9 @@ class Polyhedron_base(Element):
         r"""
         Return whether the polyhedron is a simplex.
 
+        A simplex is a bounded polyhedron with `d+1` vertices, where
+        `d` is the dimension.
+
         EXAMPLES::
 
             sage: Polyhedron([(0,0,0), (1,0,0), (0,1,0)]).is_simplex()
@@ -7635,11 +7638,12 @@ class Polyhedron_base(Element):
 
     def neighborliness(self):
         r"""
-        Returns the largest ``k``, such that the polyhedron is ``k``-neighborly.
+        Return the largest ``k``, such that the polyhedron is ``k``-neighborly.
 
-        In case of the ``d``-dimensional simplex, it returns ``d + 1``.
+        A polyhedron is `k`-neighborly if every set of `n` vertices forms a face
+        for `n` up to `k`.
 
-        See :wikipedia:`Neighborly_polytope`
+        In case of the `d`-dimensional simplex, it returns `d + 1`.
 
         .. SEEALSO::
 
@@ -7674,22 +7678,17 @@ class Polyhedron_base(Element):
             [6, 2, 2, 2]
 
         """
-        if self.is_simplex():
-            return self.dim() + 1
-        else:
-            k = 1
-            while len(self.faces(k)) == binomial(self.n_vertices(), k + 1):
-                k += 1
-            return k
+        return self.combinatorial_polyhedron().neighborliness()
 
     def is_neighborly(self, k=None):
         r"""
         Return whether the polyhedron is neighborly.
 
-        If the input ``k`` is provided then return whether the polyhedron is ``k``-neighborly
+        If the input ``k`` is provided, then return whether the polyhedron is ``k``-neighborly
 
-        See :wikipedia:`Neighborly_polytope`
-
+        A polyhedron is neighborly if every set of `n` vertices forms a face
+        for `n` up to floor of half the dimension of the polyhedron.
+        It is `k`-neighborly if this is true for `n` up to `k`.
 
         INPUT:
 
@@ -7699,7 +7698,7 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        - ``True`` if the every set of up to ``k`` vertices forms a face,
+        - ``True`` if every set of up to ``k`` vertices forms a face,
         - ``False`` otherwise
 
         .. SEEALSO::
@@ -7729,10 +7728,7 @@ class Polyhedron_base(Element):
             [True, True, True]
 
         """
-        if k is None:
-            k = self.dim() // 2
-        return all(len(self.faces(i)) == binomial(self.n_vertices(), i + 1)
-                   for i in range(1, k))
+        return self.combinatorial_polyhedron().is_neighborly()
 
     @cached_method
     def is_lattice_polytope(self):

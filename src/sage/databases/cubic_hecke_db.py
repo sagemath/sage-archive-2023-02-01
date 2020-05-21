@@ -318,21 +318,24 @@ class CubicHeckeDataBase(SageObject):
 
     def create_spkg_tarball(self):
         r"""
-        Create a tarball for the sage-package `cubic_heck_marin` in the `upstream` directory. This
+        Create a tarball for the sage-package ``cubic_heck_marin`` in the ``upstream`` directory. This
         utility should only be used by users who know what they do in case of a switch to a new
         version of the data files (that is if the original files on Iwan Marin's homepage have changed).
-        In that case in invocation of `sage -package update cubic_hecke_marin <new version>` and 
-        `sage -package update cubic_hecke_marin` will be necessary.
+        In that case in invocation of ``sage -package fix-checksum cubic_hecke_marin`` will be necessary.
 
         EXAMPLES::
 
             sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
             sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.create_spkg_tarball()              # not tested (because of internet access)
-            Importing data for monomial_basis.sobj from http://www.lamfa.u-picardie.fr/marin/softs/H4/baseH4.maple
-            Importing data for regular_left_reprs.sobj from http://www.lamfa.u-picardie.fr/marin/softs/H4/MatricesRegH4.maple
-            Importing data for regular_right_reprs.sobj from http://www.lamfa.u-picardie.fr/marin/softs/H4/MatricesRegH4right.maple
-            Importing data for irred_split_reprs.sobj from http://www.lamfa.u-picardie.fr/marin/softs/H4/RepresentationsH25
+            sage: cha_db.create_spkg_tarball()    # not tested (because of internet access)
+            Importing data for monomial_basis.sobj
+               from http://www.lamfa.u-picardie.fr/marin/softs/H4/baseH4.maple
+            Importing data for regular_left_reprs.sobj
+               from http://www.lamfa.u-picardie.fr/marin/softs/H4/MatricesRegH4.maple
+            Importing data for regular_right_reprs.sobj
+               from http://www.lamfa.u-picardie.fr/marin/softs/H4/MatricesRegH4right.maple
+            Importing data for irred_split_reprs.sobj
+               from http://www.lamfa.u-picardie.fr/marin/softs/H4/RepresentationsH25
             py/
             py/MatricesRegH4.maple.py
             py/MatricesRegH4right.maple.py

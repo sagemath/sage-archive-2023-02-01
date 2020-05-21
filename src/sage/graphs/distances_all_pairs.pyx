@@ -1468,9 +1468,9 @@ def radius(G):
         sage: G = graphs.PetersenGraph()
         sage: radius(G)
         2
-        sage: G = graphs.RandomGNP(100,0.6)
-        sage: radius(G)
-        2
+        sage: G = graphs.RandomGNP(20,0.3)
+        sage: radius(G) == G.radius()
+        True
 
     TESTS:
 
@@ -1493,7 +1493,7 @@ def radius(G):
         raise TypeError("This method works for unweighted undirected graphs only")
 
     cdef uint32_t n = G.order()
-    if not n or n == 1:
+    if n <= 1:
         return 0
 
     cdef list int_to_vertex = list(G)
@@ -1504,7 +1504,7 @@ def radius(G):
     cdef uint32_t antipode
     cdef uint32_t LB = UINT32_MAX
     cdef uint32_t UB = UINT32_MAX
-    cdef uint32_t next_source = 0 # To store source for next iteration
+    cdef uint32_t next_source = 0  # To store source for next iteration
 
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef uint32_t * distances = <uint32_t *>mem.malloc(4 * n * sizeof(uint32_t))
@@ -1518,38 +1518,45 @@ def radius(G):
 
     # For storing lower bound on eccentricity of nodes
     cdef uint32_t * ecc_lower_bound = distances + 3 * n
-    memset(ecc_lower_bound,0,n * sizeof(uint32_t))
+    memset(ecc_lower_bound, 0, n * sizeof(uint32_t))
 
     cdef bitset_t seen
-    bitset_init(seen,n) # intializing bitset
+    bitset_init(seen,n)  # intializing bitset
 
     # Algorithm
     while True:
+        # 1) pick vertex with minimum eccentricity lower bound
+        # and compute its eccentricity
         source = next_source
         bitset_clear(seen)
         ecc[source] = simple_BFS(sd, source, distances, NULL, waiting_list, seen)
-        antipode = waiting_list[n-1] # last visited vertex in simple_BFS
 
-        if ecc[source] == UINT32_MAX:
+        if ecc[source] == UINT32_MAX:  # Disconnected graph
             bitset_free(seen)
             from sage.rings.infinity import Infinity
             return +Infinity
 
-        if(ecc[source] == ecc_lower_bound[source]):
+        if ecc[source] == ecc_lower_bound[source]:
+            # we have found minimum eccentricity vertex and hence the radius
             bitset_free(seen)
             return ecc[source]
 
+        # 2) Take vertex at largest distance from source, called antipode
+        # Compute its BFS distances
+        antipode = waiting_list[n-1]  # last visited vertex in simple_BFS
         bitset_clear(seen)
         ecc[antipode] = simple_BFS(sd, antipode, distances, NULL, waiting_list, seen)
 
-        UB = min(UB, ecc[source])
+        UB = min(UB, ecc[source])  # minimum among exact computed eccentricities
         LB = UINT32_MAX
 
+        # 3) Use BFS distances from antipode
+        # to improve eccentricity lower bounds
         for v in range(n):
             ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
             if LB > ecc_lower_bound[v]:
                 LB = ecc_lower_bound[v]
-                next_source = v
+                next_source = v  # vertex with minimum eccentricity lower bound
 
         if UB <= LB:
             bitset_free(seen)

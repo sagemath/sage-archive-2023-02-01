@@ -1362,25 +1362,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.stats.hmm.util',
-              sources = ['sage/stats/hmm/util.pyx']),
-
-    Extension('sage.stats.hmm.distributions',
-              sources = ['sage/stats/hmm/distributions.pyx']),
-
-    Extension('sage.stats.hmm.hmm',
-              sources = ['sage/stats/hmm/hmm.pyx']),
-
-    Extension('sage.stats.hmm.chmm',
-              sources = ['sage/stats/hmm/chmm.pyx']),
-
-    Extension('sage.stats.intlist',
-              sources = ['sage/stats/intlist.pyx']),
-
-    Extension('sage.stats.distributions.discrete_gaussian_integer',
-              sources = ['sage/stats/distributions/discrete_gaussian_integer.pyx', 'sage/stats/distributions/dgs_gauss_mp.c', 'sage/stats/distributions/dgs_gauss_dp.c', 'sage/stats/distributions/dgs_bern.c'],
-              depends = ['sage/stats/distributions/dgs_gauss.h', 'sage/stats/distributions/dgs_bern.h', 'sage/stats/distributions/dgs_misc.h'],
-              extra_compile_args = ["-D_XOPEN_SOURCE=600"]),
+    Extension('*', ['sage/stats/**/*.pyx']),
 
     ################################
     ##

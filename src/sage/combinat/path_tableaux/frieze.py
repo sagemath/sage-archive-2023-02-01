@@ -147,7 +147,7 @@ class FriezePattern(PathTableau):
         EXAMPLES::
 
             sage: FriezePattern([1,2,1,2,3,1])
-            [0, 1, 2, 1, 2, 3, 1, 0]
+            [1, 2, 1, 2, 3, 1]
 
         TESTS::
 
@@ -190,6 +190,15 @@ class FriezePattern(PathTableau):
         There is nothing to check.
         """
 
+    def _repr_(self):
+        """
+        The representation of ''self''.
+
+        TESTS::
+
+        """
+        return (self[1:-1]).__repr__()
+
     def _local_rule(self,i):
         r"""
         This has input a list of objects. This method first takes
@@ -201,7 +210,7 @@ class FriezePattern(PathTableau):
 
             sage: t = FriezePattern([1,2,1,2,3,1])
             sage: t._local_rule(3)
-            [0, 1, 2, 5, 2, 3, 1, 0]
+            [1, 2, 5, 2, 3, 1]
 
             sage: t = FriezePattern([1,2,1,2,3,1])
             sage: t._local_rule(0)
@@ -322,7 +331,7 @@ class FriezePattern(PathTableau):
             sage: FriezePattern([1,2,1/7,5,3]).triangulation()
             Traceback (most recent call last):
             ...
-            ValueError: [0, 1, 2, 1/7, 5, 3, 0] must be an integral frieze
+            ValueError: [1, 2, 1/7, 5, 3] must be an integral frieze
         """
         if not self.is_integral():
             raise ValueError("{!s} must be an integral frieze".format(self))

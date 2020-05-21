@@ -1322,31 +1322,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.schemes.elliptic_curves.descent_two_isogeny',
-              sources = ['sage/schemes/elliptic_curves/descent_two_isogeny.pyx'],
-              libraries = ['ratpoints']),
-
-    Extension('sage.schemes.elliptic_curves.period_lattice_region',
-              sources = ['sage/schemes/elliptic_curves/period_lattice_region.pyx']),
-    
-    Extension('sage.schemes.elliptic_curves.mod_sym_num',
-              sources = ['sage/schemes/elliptic_curves/mod_sym_num.pyx']),
-
-    Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
-              sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',
-                         'sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.cpp',
-                         'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_ntl.cpp',
-                         'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_zn_poly.cpp'],
-              libraries = ['gmp', 'ntl', 'zn_poly'],
-              depends = ['sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.h',
-                         'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_ntl.h',
-                         'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_zn_poly.h'],
-              language = 'c++',
-              include_dirs = ['sage/libs/ntl/',
-                              'sage/schemes/hyperelliptic_curves/hypellfrob/']),
-
-    Extension('sage.schemes.toric.divisor_class',
-              sources = ['sage/schemes/toric/divisor_class.pyx']),
+    Extension('*', ['sage/schemes/**/*.pyx']),
 
     ################################
     ##

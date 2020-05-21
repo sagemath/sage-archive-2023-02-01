@@ -56,7 +56,7 @@ from sage.plot.all import Graphics
 
 EXAMPLES::
 
-    sage: t = FriezePattern([0,1,2,1,2,3,1,0])
+    sage: t = FriezePattern([1,2,1,2,3,1])
     sage: CylindricalDiagram(t)
      [0, 1, 2, 1, 2, 3, 1, 0]
      ['', 0, 1, 1, 3, 5, 2, 1, 0]
@@ -69,7 +69,7 @@ EXAMPLES::
 
     sage: TestSuite(t).run()
 
-    sage: t = FriezePattern([0,1,2,7,5,3,7,4,1,0])
+    sage: t = FriezePattern([1,2,7,5,3,7,4,1])
     sage: CylindricalDiagram(t)
      [0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
      ['', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
@@ -81,9 +81,10 @@ EXAMPLES::
      ['', '', '', '', '', '', '', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
      ['', '', '', '', '', '', '', '', 0, 1, 1, 1, 3, 2, 1, 2, 1, 0]
      ['', '', '', '', '', '', '', '', '', 0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
-    sage: TestSuite(t).run()
 
-    sage: t = FriezePattern([0,1,3,4,5,1,0])
+     sage: TestSuite(t).run()
+
+    sage: t = FriezePattern([1,3,4,5,1])
     sage: CylindricalDiagram(t)
      [0, 1, 3, 4, 5, 1, 0]
      ['', 0, 1, 5/3, 7/3, 2/3, 1, 0]
@@ -98,7 +99,7 @@ EXAMPLES::
 This constructs the examples from [TJ18]_
 
     sage: K.<sqrt3> = NumberField(x^2-3)
-    sage: t = FriezePattern([0,1,sqrt3,2,sqrt3,1,1,0], field=K)
+    sage: t = FriezePattern([1,sqrt3,2,sqrt3,1,1], field=K)
     sage: CylindricalDiagram(t)
      [0, 1, sqrt3, 2, sqrt3, 1, 1, 0]
      ['', 0, 1, sqrt3, 2, sqrt3, sqrt3 + 1, 1, 0]
@@ -112,7 +113,7 @@ This constructs the examples from [TJ18]_
     sage: TestSuite(t).run()
 
     sage: K.<sqrt2> = NumberField(x^2-2)
-    sage: t = FriezePattern([0,1,sqrt2,1,sqrt2,3,2*sqrt2,5,3*sqrt2,1,0], field=K)
+    sage: t = FriezePattern([1,sqrt2,1,sqrt2,3,2*sqrt2,5,3*sqrt2,1], field=K)
     sage: CylindricalDiagram(t)
      [0, 1, sqrt2, 1, sqrt2, 3, 2*sqrt2, 5, 3*sqrt2, 1, 0]
      ['', 0, 1, sqrt2, 3, 5*sqrt2, 7, 9*sqrt2, 11, 2*sqrt2, 1, 0]
@@ -146,7 +147,7 @@ class FriezePattern(PathTableau):
         EXAMPLES::
 
             sage: FriezePattern([1,2,1,2,3,1])
-            [1, 2, 1, 2, 3, 1]
+            [0, 1, 2, 1, 2, 3, 1, 0]
 
         TESTS::
 
@@ -156,10 +157,10 @@ class FriezePattern(PathTableau):
             TypeError: Unable to coerce sqrt3 to a rational
 
             sage: K.<sqrt3> = NumberField(x^2-3)
-            sage: t = FriezePattern([0,1,sqrt3,2,sqrt3,1,1,0])
+            sage: t = FriezePattern([1,sqrt3,2,sqrt3,1,1])
             Traceback (most recent call last):
             ...
-            ValueError: [0, 1, sqrt3, 2, sqrt3, 1, 1, 0] is not a sequence in the field Rational Field
+            ValueError: [1, sqrt3, 2, sqrt3, 1, 1] is not a sequence in the field Rational Field
 
             sage: FriezePattern([1,2,1,2,3,1],field=ZZ)
             Traceback (most recent call last):
@@ -173,14 +174,16 @@ class FriezePattern(PathTableau):
 
         if isinstance(fp, (list,tuple)):
             try:
-                w = tuple([field(a) for a in fp])
+                w = [field(a) for a in fp]
             except TypeError:
                 raise ValueError("{} is not a sequence in the field {}".format(fp, field))
 
         if w is None:
             raise ValueError("invalid input {}".format(fp))
 
-        return FriezePatterns(field)(w)
+        w.insert(0,field(0))
+        w.append(field(0))
+        return FriezePatterns(field)(tuple(w))
 
     def check(self):
         """
@@ -198,7 +201,7 @@ class FriezePattern(PathTableau):
 
             sage: t = FriezePattern([1,2,1,2,3,1])
             sage: t._local_rule(3)
-            [1, 2, 1, 2, 3, 1]
+            [0, 1, 2, 5, 2, 3, 1, 0]
 
             sage: t = FriezePattern([1,2,1,2,3,1])
             sage: t._local_rule(0)
@@ -213,25 +216,13 @@ class FriezePattern(PathTableau):
             """
             return (x[0]*x[2]+1)/x[1]
 
-        if not (i > 0 and i < len(self) ):
+        if not (i > 0 and i < len(self)-1 ):
             raise ValueError("{} is not a valid integer".format(i))
 
         with self.clone() as result:
             result[i] = _rule(self[i-1:i+2])
 
         return result
-
-    def size(self):
-        r"""
-        Return the size or length of ``self``.
-
-        EXAMPLES::
-
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
-            sage: t.size()
-            7
-        """
-        return len(self)+2
 
     def is_skew(self):
         r"""
@@ -245,25 +236,25 @@ class FriezePattern(PathTableau):
             sage: FriezePattern([2,2,1,2,3,1]).is_skew()
             True
         """
-        return self[0] != 1
+        return self[1] != 1
 
     def width(self):
         """
         Return the width of ''self''.
 
         If the first and last terms of 'self'are 1 then this is the length of 'self'
-        and otherwise is undefined.
+        plus two and otherwise is undefined.
 
         EXAMPLES::
 
             sage: FriezePattern([1,2,1,2,3,1]).width()
-            6
+            8
 
             sage: FriezePattern([1,2,1,2,3,4]).width()
             <BLANKLINE>
 
         """
-        if self[0] == 1 and self[-1] == 1:
+        if self[1] == 1 and self[-2] == 1:
             return len(self)
         else:
             return None
@@ -291,7 +282,7 @@ class FriezePattern(PathTableau):
             True
 
         """
-        return all(a>0 for a in self)
+        return all(a>0 for a in self[1:-1])
 
     def is_integral(self):
         r"""
@@ -314,8 +305,7 @@ class FriezePattern(PathTableau):
                 v = [ Integer(k) for k in v ]
             except TypeError:
                 return False
-            if any(k <= 0 for k in v):
-                return False
+
         return True
 
     def triangulation(self):
@@ -325,14 +315,14 @@ class FriezePattern(PathTableau):
         EXAMPLES::
 
             sage: FriezePattern([1,2,7,5,3,7,4,1]).triangulation()
-            Graphics object consisting of 25 graphics primitives
+            Graphics object consisting of 29 graphics primitives
 
         TESTS::
 
             sage: FriezePattern([1,2,1/7,5,3]).triangulation()
             Traceback (most recent call last):
             ...
-            ValueError: [1, 2, 1/7, 5, 3] must be an integral frieze
+            ValueError: [0, 1, 2, 1/7, 5, 3, 0] must be an integral frieze
         """
         if not self.is_integral():
             raise ValueError("{!s} must be an integral frieze".format(self))
@@ -358,7 +348,7 @@ class FriezePattern(PathTableau):
         G.axes(False)
         return G
 
-    def show(self):
+    def show(self,model='UHP'):
         """
         Plot the frieze as an ideal hyperbolic polygon.
 
@@ -366,15 +356,48 @@ class FriezePattern(PathTableau):
 
         We are identifying the boundary of the hyperbolic plane with the
         real projective line.
+
+        The option ''model'' must be one of
+
+        * UHP, for the upper half plane model
+        * PD, for the Poincare disk model
+        * KM, for the Klein model
+
+        The hyperboloid model is not an option as this does not implement
+        boundary points.
+
+        This can be omitted in which case it is taken to be UHP.
+
+        EXAMPLES::
+
+            sage: t = FriezePattern([1,2,7,5,3,7,4,1])
+            sage: t.show()
+            Graphics object consisting of 18 graphics primitives
+            sage: t.show(model='UHP')
+            Graphics object consisting of 18 graphics primitives
+            sage: t.show(model='PD')
+            Traceback (most recent call last):
+            ...
+            TypeError: '>' not supported between instances of 'NotANumber' and 'Pi'
+            sage: t.show(model='KM')
+            Graphics object consisting of 18 graphics primitives
+
         """
+        models = {
+                'UHP' : HyperbolicPlane().UHP(),
+                'PD' : HyperbolicPlane().PD(),
+                'KM' : HyperbolicPlane().KM(),
+                }
+        M = models.get(model)
+        if not M:
+            raise ValueError("{!s} must be one of ''UHP'', ''PD'', ''KM''".format(model))
+
         U = HyperbolicPlane().UHP()
         cd = CylindricalDiagram(self).diagram
-        num = cd[0]
-        den = cd[1]
-        num.append(0)
-        den[0] = 0
-        vt = [ x/(x+y) for x,y in zip(num,den) ]
-        gd = [ U.get_geodesic(vt[i-1],vt[i]) for i in range(len(vt))]
+        num = cd[0][:-1]
+        den = cd[1][2:]
+        vt = [ M(U.get_point(x/(x+y))) for x,y in zip(num,den) ]
+        gd = [ M.get_geodesic(vt[i-1],vt[i]) for i in range(len(vt))]
         return sum([a.plot() for a in gd],Graphics())
 
 class FriezePatterns(PathTableaux):

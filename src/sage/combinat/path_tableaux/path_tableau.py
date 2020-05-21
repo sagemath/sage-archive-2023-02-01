@@ -143,7 +143,7 @@ class PathTableau(ClonableArray):
         T = self
         L = list(T)
         result = []
-        for i in range(len(self)):
+        for i in range(self.size()):
             T = self.parent()(L).promotion()
             L = list(T)
             result.append( L.pop() )
@@ -194,7 +194,7 @@ class PathTableau(ClonableArray):
             ...
             ValueError: [0, 1, 2, 3, 2, 1],[0, 1, 2, 1, 0] is not a composable pair
         """
-        n = len(self)
+        n = self.size()
         m = len(other)
         if n == 0 or m == 0:
             raise ValueError("this requires nonempty lists")

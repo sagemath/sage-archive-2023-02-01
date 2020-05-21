@@ -744,6 +744,12 @@ class KenzoSimplicialSet(KenzoChainComplex):
             sage: p = s2.cartesian_product(s2)                  # optional - kenzo
             sage: p.homotopy_group(3)                           # optional - kenzo
             Multiplicative Abelian group isomorphic to Z x Z
+
+
+        .. WARNING::
+
+            This method assumes that the underlying space is simply connected.
+            You might get wrong answers if it is not.
         """
         if n not in ZZ or n < 2:
             raise ValueError("""homotopy groups can only be computed
@@ -774,6 +780,12 @@ class KenzoSimplicialSet(KenzoChainComplex):
               0   0   Z   0   0
               0   0   0   0   0
               0   0   0   0   0
+
+
+        .. WARNING::
+
+            This method assumes that the underlying space is simply connected.
+            You might get wrong answers if it is not.
         """
         if self.homology(1).invariants():
             raise ValueError("""Eilenberg-Moore spectral sequence implemented
@@ -790,7 +802,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.kenzo import Sphere
+            sage: from sage.interfaces.kenzo import Sphere  # optional - kenzo
             sage: S3 = Sphere(3)                            # optional - kenzo
             sage: E = S3.sw_spectral_sequence()             # optional - kenzo
             sage: T = E.table(0, 0, 4, 0, 4)                # optional - kenzo
@@ -801,6 +813,9 @@ class KenzoSimplicialSet(KenzoChainComplex):
               0   0   0   0   0
               Z   0   0   Z   0
         """
+        if self.homology(1).invariants():
+            raise ValueError("""Eilenberg-Moore spectral sequence implemented
+                only for 1-reduced simplicial sets""")
         return KenzoSpectralSequence(__serre_whitehead_spectral_sequence__(self._kenzo))
 
     def serre_spectral_sequence(self):
@@ -825,7 +840,15 @@ class KenzoSimplicialSet(KenzoChainComplex):
               0   0   0
               0   0   0
               Z   0   Z
+
+        .. WARNING::
+
+            This method assumes that the underlying space is simply connected.
+            You might get wrong answers if it is not.
         """
+        if self.homology(1).invariants():
+            raise ValueError("""Eilenberg-Moore spectral sequence implemented
+                only for 1-reduced simplicial sets""")
         return KenzoSpectralSequence(__serre_spectral_sequence_product__(self._kenzo))
 
     def wedge(self, other):

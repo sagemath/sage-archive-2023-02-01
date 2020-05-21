@@ -1411,10 +1411,6 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.tests.stl_vector',
-              sources = ['sage/tests/stl_vector.pyx'],
-              language = 'c++'),
+    Extension('*', ['sage/tests/**/*.pyx'])
 
-    Extension('sage.tests.cython',
-              sources = ['sage/tests/cython.pyx']),
 ]

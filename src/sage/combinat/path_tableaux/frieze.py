@@ -43,13 +43,12 @@ from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.parent import Parent
 from sage.categories.sets_cat import Sets
-#from sage.structure.list_clone import ClonableArray
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux, CylindricalDiagram
-#from sage.combinat.combinatorial_map import combinatorial_map
-#from sage.combinat.tableau import Tableau, StandardTableau
 from sage.rings.integer import Integer
 from sage.categories.fields import Fields
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import ZZ, QQ # ZZ used in testing
+from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
+from sage.plot.all import Graphics
 
 ###############################################################################
 
@@ -57,7 +56,7 @@ from sage.rings.all import ZZ, QQ
 
 EXAMPLES::
 
-    sage: t = FriezePattern([1,2,1,2,3,1])
+    sage: t = FriezePattern([0,1,2,1,2,3,1,0])
     sage: CylindricalDiagram(t)
      [0, 1, 2, 1, 2, 3, 1, 0]
      ['', 0, 1, 1, 3, 5, 2, 1, 0]
@@ -70,7 +69,7 @@ EXAMPLES::
 
     sage: TestSuite(t).run()
 
-    sage: t = FriezePattern([1,2,7,5,3,7,4,1])
+    sage: t = FriezePattern([0,1,2,7,5,3,7,4,1,0])
     sage: CylindricalDiagram(t)
      [0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
      ['', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
@@ -222,6 +221,18 @@ class FriezePattern(PathTableau):
 
         return result
 
+    def size(self):
+        r"""
+        Return the size or length of ``self``.
+
+        EXAMPLES::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t.size()
+            7
+        """
+        return len(self)+2
+
     def is_skew(self):
         r"""
         Return ``True`` if ``self`` is skew and ``False`` if not.
@@ -263,6 +274,10 @@ class FriezePattern(PathTableau):
 
         This implies that all entries of ''CylindricalDiagram(self)'' are positive.
 
+        Warning: There are orders on all fields. These may not be ordered fields
+        as they may not be compatible with the field operations. This method is
+        intended to be used with ordered fields only.
+
         EXAMPLES::
 
             sage: FriezePattern([1,2,7,5,3,7,4,1]).is_positive()
@@ -303,18 +318,18 @@ class FriezePattern(PathTableau):
                 return False
         return True
 
-    def plot(self):
+    def triangulation(self):
         r"""
         If ``self`` is integral then plot the triangulation.
 
         EXAMPLES::
 
-            sage: FriezePattern([1,2,7,5,3,7,4,1]).plot()
+            sage: FriezePattern([1,2,7,5,3,7,4,1]).triangulation()
             Graphics object consisting of 25 graphics primitives
 
         TESTS::
 
-            sage: FriezePattern([1,2,1/7,5,3]).plot()
+            sage: FriezePattern([1,2,1/7,5,3]).triangulation()
             Traceback (most recent call last):
             ...
             ValueError: [1, 2, 1/7, 5, 3] must be an integral frieze
@@ -343,13 +358,32 @@ class FriezePattern(PathTableau):
         G.axes(False)
         return G
 
+    def show(self):
+        """
+        Plot the frieze as an ideal hyperbolic polygon.
+
+        This is only defined up to isometry of the hyperbolic plane.
+
+        We are identifying the boundary of the hyperbolic plane with the
+        real projective line.
+        """
+        U = HyperbolicPlane().UHP()
+        cd = CylindricalDiagram(self).diagram
+        num = cd[0]
+        den = cd[1]
+        num.append(0)
+        den[0] = 0
+        vt = [ x/(x+y) for x,y in zip(num,den) ]
+        gd = [ U.get_geodesic(vt[i-1],vt[i]) for i in range(len(vt))]
+        return sum([a.plot() for a in gd],Graphics())
+
 class FriezePatterns(PathTableaux):
     """
     The parent class for FriezePattern.
     """
     def __init__(self, field):
         """
-        Initializes the abstract class of all FriezePatterns
+        Initializes the class of all FriezePatterns
 
         TESTS::
 

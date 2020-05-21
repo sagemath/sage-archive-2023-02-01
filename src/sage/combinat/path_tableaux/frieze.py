@@ -46,7 +46,7 @@ from sage.categories.sets_cat import Sets
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux, CylindricalDiagram
 from sage.rings.integer import Integer
 from sage.categories.fields import Fields
-from sage.rings.all import ZZ, QQ # ZZ used in testing
+from sage.rings.all import QQ
 from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
 from sage.plot.all import Graphics
 
@@ -151,10 +151,10 @@ class FriezePattern(PathTableau):
 
         TESTS::
 
-            sage FriezePattern(2)
+            sage: FriezePattern(2)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce sqrt3 to a rational
+            ValueError: invalid input 2
 
             sage: K.<sqrt3> = NumberField(x^2-3)
             sage: t = FriezePattern([1,sqrt3,2,sqrt3,1,1])
@@ -162,7 +162,7 @@ class FriezePattern(PathTableau):
             ...
             ValueError: [1, sqrt3, 2, sqrt3, 1, 1] is not a sequence in the field Rational Field
 
-            sage: FriezePattern([1,2,1,2,3,1],field=ZZ)
+            sage: FriezePattern([1,2,1,2,3,1],field=Integers())
             Traceback (most recent call last):
             ...
             ValueError: Integer Ring must be a field
@@ -188,16 +188,30 @@ class FriezePattern(PathTableau):
     def check(self):
         """
         There is nothing to check.
+
+        TESTS::
+
+            sage: FriezePattern([1,2,1,2,3,1]) # indirect test
+            [1, 2, 1, 2, 3, 1]
+
         """
 
     def _repr_(self):
         """
         The representation of ''self''.
 
+        This overides the iherited method.
+
+        This removes the leading and trailing zero.
+
         TESTS::
 
+            sage: t = FriezePattern([1,2,1,2,3,1])
+            sage: repr(t) == t._repr_() # indirect test
+            True
         """
         return (self[1:-1]).__repr__()
+
 
     def _local_rule(self,i):
         r"""
@@ -319,23 +333,24 @@ class FriezePattern(PathTableau):
 
     def triangulation(self):
         r"""
-        If ``self`` is integral then plot the triangulation.
+        Plot a regular polygon with some diagonals.
+
+        If ''self'' is positive and integral then this will be a triangulation.
 
         EXAMPLES::
 
             sage: FriezePattern([1,2,7,5,3,7,4,1]).triangulation()
-            Graphics object consisting of 29 graphics primitives
-
-        TESTS::
+            Graphics object consisting of 25 graphics primitives
 
             sage: FriezePattern([1,2,1/7,5,3]).triangulation()
-            Traceback (most recent call last):
-            ...
-            ValueError: [1, 2, 1/7, 5, 3] must be an integral frieze
+            Graphics object consisting of 12 graphics primitives
+
+            sage: K.<sqrt2> = NumberField(x^2-2)
+            sage: FriezePattern([1,sqrt2,1,sqrt2,3,2*sqrt2,5,3*sqrt2,1], field=K).triangulation()
+            Graphics object consisting of 24 graphics primitives
+
         """
-        if not self.is_integral():
-            raise ValueError("{!s} must be an integral frieze".format(self))
-        n = len(self)+1
+        n = len(self)-1
         cd = CylindricalDiagram(self).diagram
         from sage.plot.plot import Graphics
         from sage.plot.line import line
@@ -350,9 +365,9 @@ class FriezePattern(PathTableau):
             G += text(str(i),[1.05*p[0],1.05*p[1]])
 
         for i, r in enumerate(cd):
-            for j, a in enumerate(r[:n-1]):
+            for j, a in enumerate(r[:n]):
                 if a == 1:
-                    G += line([vt[i],vt[j+1]])
+                    G += line([vt[i],vt[j]])
 
         G.axes(False)
         return G
@@ -428,4 +443,3 @@ class FriezePatterns(PathTableaux):
         Parent.__init__(self, category=Sets())
 
     Element = FriezePattern
-

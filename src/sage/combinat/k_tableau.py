@@ -4056,7 +4056,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: StrongTableaux( 4, [[2,1], [1]] ).shape()
             ([2, 1], [1])
         """
-        if bool(self._inner_shape):
+        if self._inner_shape:
             return (self._outer_shape, self._inner_shape)
         return self._outer_shape
 

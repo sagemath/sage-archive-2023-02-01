@@ -423,7 +423,8 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
             (1,2,6)(3,4,5) True
             (1,5)(2,4)(3,6) True
         """
-        return PermutationGroupElement(self)
+        W = self._parent
+        return PermutationGroupElement(self, W)
 
     #@cached_in_parent_method
     def fix_space(self):
@@ -465,8 +466,8 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
             Basis matrix:
             [ 1 -1]
 
-            sage: W = ReflectionGroup(23)                           # optional - gap3
-            sage: W.an_element().fix_space()                        # optional - gap3
+            sage: W = ReflectionGroup(23)                 # optional - gap3
+            sage: W.gen(0).fix_space()                    # optional - gap3
             Vector space of degree 3 and dimension 2 over Universal Cyclotomic Field
             Basis matrix:
             [0 1 0]
@@ -1175,4 +1176,3 @@ def _gap_return(S, coerce_obj='self'):
     S = S.replace(' ','').replace('\n','')
     S = S.replace(',(','\',check=False),%s(\'('%coerce_obj).replace('[','[%s(\''%coerce_obj).replace(']','\',check=False)]')
     return S
-

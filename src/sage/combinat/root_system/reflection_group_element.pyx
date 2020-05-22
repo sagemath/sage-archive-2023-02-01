@@ -65,9 +65,6 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
             sage: len(WB_hash) == WB.cardinality()                  # optional - gap3
             True
 
-            sage: len(WB_hash) == WB.cardinality()                  # optional - gap3
-            True
-
             sage: len(WC_hash) == WC.cardinality()                  # optional - gap3
             True
 

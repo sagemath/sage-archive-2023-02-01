@@ -39,6 +39,9 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
     """
     An element in a complex reflection group.
     """
+    def __hash__(self):
+        return hash(self.parent()) + hash(tuple(self.reduced_word()))
+
     def reduced_word(self):
         r"""
         Return a word in the simple reflections to obtain ``self``.

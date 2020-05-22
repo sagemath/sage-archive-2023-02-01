@@ -54,7 +54,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
 
         TESTS:
 
-        Check that types B and C are hashed differently, see #29726::
+        Check that types B and C are hashed differently, see :trac:`29726`::
 
             sage: WB = ReflectionGroup(['B',5])                     # optional - gap3
             sage: WC = ReflectionGroup(['C',5])                     # optional - gap3

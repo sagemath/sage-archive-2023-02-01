@@ -424,6 +424,28 @@ class FriezePattern(PathTableau):
         gd = [ M.get_geodesic(vt[i-1],vt[i]) for i in range(len(vt))]
         return sum([a.plot() for a in gd],Graphics())
 
+    def change_ring(self, R):
+        r"""
+        Return ''self'' as a frieze pattern with coefficients in ''R''
+        assuming there is a canonical coerce map from the base ring of ''self''
+        to ''R''.
+
+        EXAMPLES::
+
+            sage: FriezePattern([1,2,7,5,3,7,4,1]).change_ring(RealField())
+            [0.000000000000000, 1.00000000000000, ... 4.00000000000000, 1.00000000000000, 0.000000000000000]
+            sage: FriezePattern([1,2,7,5,3,7,4,1]).change_ring(GF(7))
+            Traceback (most recent call last):
+            ...
+            TypeError: no base extension defined
+        """
+        from sage.structure.element import parent
+
+        if R.has_coerce_map_from(parent(self).field):
+            return FriezePattern(list(self), field = R)
+        else:
+            raise TypeError("no base extension defined")
+
 class FriezePatterns(PathTableaux):
     """
     The parent class for FriezePattern.

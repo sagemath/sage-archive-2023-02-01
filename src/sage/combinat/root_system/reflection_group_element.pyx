@@ -55,9 +55,9 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
 
         Check that types B and C are hashed differently, see #29726::
 
-            sage: WB = ReflectionGroup(['B',2])
-            sage: WC = ReflectionGroup(['C',2])
-            sage: sorted(map(hash,WB))
+            sage: WB = ReflectionGroup(['B',2])                     # optional - gap3
+            sage: WC = ReflectionGroup(['C',2])                     # optional - gap3
+            sage: sorted(map(hash,WB))                              # optional - gap3
             [-9223363287990922543,
              -9223359857975062524,
              -9223359857974062521,
@@ -66,7 +66,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
              -5510281656060039426,
              -5510280573528544276,
              -5433655748006305484]
-            sage: sorted(map(hash,WC))
+            sage: sorted(map(hash,WC))                              # optional - gap3
             [-9223363287990922588,
              -9223359857975062569,
              -9223359857974062566,

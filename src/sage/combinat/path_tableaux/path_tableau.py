@@ -501,14 +501,19 @@ class CylindricalDiagram(SageObject):
 
         self.diagram = result
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return a string representation of ``self``
 
         TESTS::
 
-            sage: print(CatalanTableau([0,1,2,1,2,1,0])) # indirect test
-            [0, 1, 2, 1, 2, 1, 0]
+            sage: cd = CylindricalDiagram(CatalanTableau([0,1,2,1,2,1,0]))
+            sage: repr(cd) == cd._repr_() # indirect test
+            True
+
+            sage: cd = CylindricalDiagram(FriezePattern([1,3,4,5,1]))
+            sage: repr(cd) == cd._repr_() # indirect test
+            True
         """
         dg = self.diagram
         return ' '+str(dg[0])+''.join('\n ' + str(x) for x in dg[1:])
@@ -530,6 +535,19 @@ class CylindricalDiagram(SageObject):
              &  &  &  &  & 0 & 1 & 0 & 1 & 2 & 1 & 0\\
              &  &  &  &  &  & 0 & 1 & 2 & 3 & 2 & 1 & 0
              \end{array}
+
+            sage: t = FriezePattern([1,3,4,5,1])
+            sage: latex(CylindricalDiagram(t))
+            \begin{array}{ccccccccccccc}
+            0 & 1 & 3 & 4 & 5 & 1 & 0\\
+             & 0 & 1 & \frac{5}{3} & \frac{7}{3} & \frac{2}{3} & 1 & 0\\
+             &  & 0 & 1 & 2 & 1 & 3 & 1 & 0\\
+             &  &  & 0 & 1 & 1 & 4 & \frac{5}{3} & 1 & 0\\
+             &  &  &  & 0 & 1 & 5 & \frac{7}{3} & 2 & 1 & 0\\
+             &  &  &  &  & 0 & 1 & \frac{2}{3} & 1 & 1 & 1 & 0\\
+             &  &  &  &  &  & 0 & 1 & 3 & 4 & 5 & 1 & 0
+             \end{array}
+
         """
         D = self.diagram
         m = len(D[-1])
@@ -564,6 +582,16 @@ class CylindricalDiagram(SageObject):
                 0 1 2 1 0 1 0
                  0 1 0 1 2 1 0
                   0 1 2 3 2 1 0
+
+            sage: t = FriezePattern([1,3,4,5,1])
+            sage: ascii_art(CylindricalDiagram(t))
+            0 1 3 4 5 1 0
+             0 1 5/3 7/3 2/3 1 0
+              0 1 2 1 3 1 0
+               0 1 1 4 5/3 1 0
+                0 1 5 7/3 2 1 0
+                 0 1 2/3 1 1 1 0
+                  0 1 3 4 5 1 0
         """
         from sage.typeset.ascii_art import AsciiArt
         D = [ map(str,x) for x in self.diagram ]
@@ -585,6 +613,16 @@ class CylindricalDiagram(SageObject):
                 0 1 2 1 0 1 0
                  0 1 0 1 2 1 0
                   0 1 2 3 2 1 0
+
+            sage: t = FriezePattern([1,3,4,5,1])
+            sage: unicode_art(CylindricalDiagram(t))
+            0 1 3 4 5 1 0
+             0 1 5/3 7/3 2/3 1 0
+              0 1 2 1 3 1 0
+               0 1 1 4 5/3 1 0
+                0 1 5 7/3 2 1 0
+                 0 1 2/3 1 1 1 0
+                  0 1 3 4 5 1 0
         """
         from sage.typeset.unicode_art import UnicodeArt
         D = [ map(str,x) for x in self.diagram ]
@@ -607,5 +645,14 @@ class CylindricalDiagram(SageObject):
                       0 1 0 1 2 1 0
                         0 1 2 3 2 1 0
 
+            sage: t = FriezePattern([1,3,4,5,1])
+            sage: CylindricalDiagram(t).pp()
+            0 1 3 4 5 1 0
+             0 1 5/3 7/3 2/3 1 0
+              0 1 2 1 3 1 0
+               0 1 1 4 5/3 1 0
+                0 1 5 7/3 2 1 0
+                 0 1 2/3 1 1 1 0
+                  0 1 3 4 5 1 0
         """
-        print('\n'.join(' '.join('{:0<}'.format(a) for a in x)  for x in self.diagram ))
+        print('\n'.join(' '.join('{!s}'.format(a) for a in x)  for x in self.diagram ))

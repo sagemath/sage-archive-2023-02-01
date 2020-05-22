@@ -11,7 +11,7 @@ All graphs have an associated Sage graphics object, which you can display::
     sage: P.show() # long time
 
 .. PLOT::
-    
+
     sphinx_plot(graphs.WheelGraph(15))
 
 If you create a graph in Sage using the ``Graph`` command, then plot that graph,
@@ -24,7 +24,7 @@ positioning vs. the Petersen graph constructed by this database::
     sage: petersen_spring.show() # long time
 
 .. PLOT::
-    
+
     petersen_spring = Graph(':I`ES@obGkqegW~')
     sphinx_plot(petersen_spring)
 
@@ -34,7 +34,7 @@ positioning vs. the Petersen graph constructed by this database::
     sage: petersen_database.show() # long time
 
 .. PLOT::
-    
+
     petersen_database = graphs.PetersenGraph()
     sphinx_plot(petersen_database)
 
@@ -157,10 +157,9 @@ graphplot_options.update(
                     'graph_border': 'Whether or not to draw a frame around the graph.',
                     'edge_labels_background' : 'The color of the background of the edge labels'})
 
-from six import iteritems
 
 _PLOT_OPTIONS_TABLE = ""
-for key, value in iteritems(graphplot_options):
+for key, value in graphplot_options.items():
     _PLOT_OPTIONS_TABLE += "    ``"+str(key)+"`` | "+str(value)+"\n"
 __doc__ = __doc__.format(PLOT_OPTIONS_TABLE=_PLOT_OPTIONS_TABLE)
 
@@ -183,7 +182,6 @@ __doc__ = __doc__.format(PLOT_OPTIONS_TABLE=_PLOT_OPTIONS_TABLE)
 from sage.structure.sage_object import SageObject
 from sage.plot.all import Graphics, scatter_plot, bezier_path, line, arrow, text, circle
 from math import sqrt, cos, sin, atan, pi
-from six import text_type as str
 
 DEFAULT_SHOW_OPTIONS = {
     "figsize"             : [4,4]
@@ -248,7 +246,7 @@ class GraphPlot(SageObject):
 
         """
         # Setting the default values if needed
-        for k, value in iteritems(DEFAULT_PLOT_OPTIONS):
+        for k, value in DEFAULT_PLOT_OPTIONS.items():
             if k not in options:
                 options[k] = value
         self._plot_components = {}
@@ -307,7 +305,7 @@ class GraphPlot(SageObject):
             Graphics object consisting of 14 graphics primitives
 
         .. PLOT::
-            
+
             g = Graph({0:[1,2], 2:[3], 4:[0,1]})
             g.graphplot(save_pos=True, layout='circular') # indirect doctest
             T = list(graphs.trees(7))
@@ -339,7 +337,7 @@ class GraphPlot(SageObject):
         self._pos = self._graph.layout(**self._options)
         # make sure the positions are floats (trac #10124)
         self._pos = {k: (float(v[0]), float(v[1]))
-                         for k, v in iteritems(self._pos)}
+                         for k, v in self._pos.items()}
 
     def set_vertices(self, **vertex_options):
         """
@@ -368,7 +366,7 @@ class GraphPlot(SageObject):
                 g = Graph({}, loops=True, multiedges=True, sparse=True)
                 g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),(0,1,'e'),(0,1,'f'),
                              (0,1,'f'),(2,1,'g'),(2,2,'h')])
-                GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True, 
+                GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True,
                                  edge_style='dashed')
                 GP.set_vertices(talk=True)
                 sphinx_plot(GP)
@@ -887,7 +885,7 @@ class GraphPlot(SageObject):
 
         """
         # Setting the default values if needed
-        for k, value in iteritems(DEFAULT_SHOW_OPTIONS):
+        for k, value in DEFAULT_SHOW_OPTIONS.items():
             if k not in kwds:
                 kwds[k] = value
 
@@ -939,12 +937,12 @@ class GraphPlot(SageObject):
                 x = float(cos(pi/2 + ((2*pi)/5)*i))
                 y = float(sin(pi/2 + ((2*pi)/5)*i))
                 pos_dict[i] = [x,y]
-            
+
             for i in range(5,10):
                 x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
                 y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
                 pos_dict[i] = [x,y]
-            
+
             pl = P.graphplot(pos=pos_dict, vertex_colors=d)
             sphinx_plot(pl)
 

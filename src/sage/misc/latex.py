@@ -26,8 +26,6 @@ import re
 import shutil
 import subprocess
 
-from six import integer_types
-
 from sage.misc import sage_eval
 from sage.misc.cachefunc import cached_function, cached_method
 from sage.misc.sage_ostools import have_program
@@ -400,18 +398,18 @@ def float_function(x):
     return latex(RDF(x))
 
 
-latex_table = {type(None): None_function,
-               bool: bool_function,
-               dict: dict_function,
-               float: float_function,
-               list: list_function,
-               str: str_function,
-               tuple: tuple_function,
-               type(NotImplemented): builtin_constant_function,
-               type(Ellipsis): builtin_constant_function}
-
-for t in integer_types:
-    latex_table[t] = str
+latex_table = {
+    type(None): None_function,
+    bool: bool_function,
+    dict: dict_function,
+    float: float_function,
+    int: str,
+    list: list_function,
+    str: str_function,
+    tuple: tuple_function,
+    type(NotImplemented): builtin_constant_function,
+    type(Ellipsis): builtin_constant_function
+}
 
 
 class LatexExpr(str):
@@ -2341,7 +2339,7 @@ def coeff_repr(c):
         return c._latex_coeff_repr()
     except AttributeError:
         pass
-    if isinstance(c, integer_types + (float,)):
+    if isinstance(c, (int, float)):
         return str(c)
     s = latex(c)
     if s.find("+") != -1 or s.find("-") != -1:

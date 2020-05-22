@@ -233,9 +233,6 @@ Classes and methods
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
-from builtins import zip
-from six.moves import range
-
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets

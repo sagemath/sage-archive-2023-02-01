@@ -53,8 +53,6 @@ We verify Lagrange's four squares identity::
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
-from six import iteritems, integer_types
 
 from sage.structure.element import CommutativeRingElement, coerce_binop
 from sage.misc.all import prod
@@ -158,7 +156,7 @@ class MPolynomial_element(MPolynomial):
         except AttributeError:
             K = self.parent().base_ring()
         y = K(0)
-        for (m,c) in iteritems(self.element().dict()):
+        for (m,c) in self.element().dict().items():
             y += c*prod([ x[i]**m[i] for i in range(n) if m[i] != 0])
         return y
 
@@ -220,7 +218,7 @@ class MPolynomial_element(MPolynomial):
         if base_map is None:
             # Just use conversion
             base_map = codomain
-        for (m,c) in iteritems(self.element().dict()):
+        for (m,c) in self.element().dict().items():
             y += base_map(c)*prod([ im_gens[i]**m[i] for i in range(n) if m[i] ])
         return y
 
@@ -336,7 +334,7 @@ class MPolynomial_element(MPolynomial):
         return self.parent().fraction_field()(self, right, coerce=False)
 
     def __rpow__(self, n):
-        if not isinstance(n, integer_types + (sage.rings.integer.Integer,)):
+        if not isinstance(n, (int, sage.rings.integer.Integer)):
             raise TypeError("The exponent must be an integer.")
         return self.parent()(self.__element**n)
 
@@ -1616,14 +1614,14 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         except ValueError:
             # var is not a generator; do term-by-term differentiation recursively
             # var may be, for example, a generator of the base ring
-            d = dict([(e, x._derivative(var)) for (e, x) in iteritems(self.dict())])
+            d = dict([(e, x._derivative(var)) for (e, x) in self.dict().items()])
             d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
             return MPolynomial_polydict(self.parent(), d)
 
         # differentiate w.r.t. indicated variable
         d = {}
         v = polydict.ETuple({index:1}, len(gens))
-        for (exp, coeff) in iteritems(self.dict()):
+        for (exp, coeff) in self.dict().items():
             if exp[index] > 0:
                 d[exp.esub(v)] = coeff * exp[index]
         d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
@@ -1688,7 +1686,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             # var is not a generator; do term-by-term integration recursively
             # var may be, for example, a generator of the base ring
             d = dict([(e, x.integral(var))
-                      for (e, x) in iteritems(self.dict())])
+                      for (e, x) in self.dict().items()])
             d = polydict.PolyDict(d, self.parent().base_ring()(0),
                                   remove_zero=True)
             return MPolynomial_polydict(self.parent(), d)
@@ -1696,7 +1694,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         # integrate w.r.t. indicated variable
         d = {}
         v = polydict.ETuple({index:1}, len(gens))
-        for (exp, coeff) in iteritems(self.dict()):
+        for (exp, coeff) in self.dict().items():
             d[exp.eadd(v)] = coeff / (1+exp[index])
         d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
         return MPolynomial_polydict(self.parent(), d)

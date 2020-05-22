@@ -141,7 +141,6 @@ Check that :trac:`5562` has been fixed::
 from __future__ import absolute_import, print_function
 
 import sys
-from six.moves import range
 
 from sage.structure.element import Element
 
@@ -375,7 +374,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         Python 3 range is allowed::
 
-            sage: from six.moves import range
             sage: R = PolynomialRing(ZZ,'x')
             sage: R(range(4))
             3*x^3 + 2*x^2 + x

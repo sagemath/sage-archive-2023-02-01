@@ -157,8 +157,8 @@ def request_wolfram_alpha(input, verbose=False):
 
     """
     # import compatible with py2 and py3
-    from six.moves.urllib.parse import urlencode
-    from six.moves.urllib.request import Request, build_opener, HTTPCookieProcessor
+    from urllib.parse import urlencode
+    from urllib.request import Request, build_opener, HTTPCookieProcessor
     import json
     from http.cookiejar import CookieJar
 

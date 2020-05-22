@@ -17,7 +17,6 @@ Schur symmetric functions
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six.moves import zip
 
 from . import classical
 import sage.libs.lrcalc.lrcalc as lrcalc

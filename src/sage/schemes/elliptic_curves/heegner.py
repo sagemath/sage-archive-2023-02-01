@@ -94,8 +94,6 @@ The above is consistent with the following analytic computation::
 
 from __future__ import print_function, absolute_import, division
 
-from six.moves import range
-
 from sage.misc.all import verbose, prod
 from sage.misc.cachefunc import cached_method
 
@@ -5535,11 +5533,6 @@ class HeegnerQuatAlg(SageObject):
             raise NotImplementedError("class number greater than 1 not implemented")
         i = min(v.nonzero_positions())
         return self.kolyvagin_sigma_operator(D, c, i)
-
-        #w = 0
-        #for i, a in six.iteritems(v.dict()):
-        #    w += a * self.kolyvagin_sigma_operator(D, c, i)
-        # return w
 
     @cached_method
     def kolyvagin_point_on_curve(self, D, c, E, p, bound=10):

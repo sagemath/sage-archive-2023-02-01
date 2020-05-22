@@ -18,7 +18,6 @@ Matrix Plots
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-from six import iteritems
 
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options, suboptions
@@ -119,7 +118,7 @@ class MatrixPlot(GraphicPrimitive):
 
         # center the matrix so that, for example, the square representing the
         # (0,0) entry is centered on the origin.
-        for k, v in iteritems(limits):
+        for k, v in limits.items():
             limits[k] -= 0.5
         return limits
 

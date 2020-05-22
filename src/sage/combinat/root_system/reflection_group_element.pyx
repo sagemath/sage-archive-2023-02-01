@@ -42,39 +42,37 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
     def __hash__(self):
         r"""
         Return a hash for this reflection group element.
+
         This hash stores both the element as a reduced word and the parent group.
 
         EXAMPLES::
 
             sage: W = ReflectionGroup(['A',5])                      # optional - gap3
-            sage: w = W.from_reduced_word([1,2,3,4,5])              # optional - gap3
-            sage: hash(w)                                           # optional - gap3
-            -1527414595000039889                                    # 64-bit
+            sage: W_hash = set(hash(w) for w in W)                  # optional - gap3
+            sage: len(W_hash) == W.cardinality()                    # optional - gap3
+            True
 
         TESTS:
 
         Check that types B and C are hashed differently, see #29726::
 
-            sage: WB = ReflectionGroup(['B',2])                     # optional - gap3
-            sage: WC = ReflectionGroup(['C',2])                     # optional - gap3
-            sage: sorted(map(hash,WB))                              # optional - gap3
-            [-9223363287990922543,
-             -9223359857975062524,
-             -9223359857974062521,
-             -8737669435968786273,
-             -6694860314014793569,
-             -5510281656060039426,
-             -5510280573528544276,
-             -5433655748006305484]
-            sage: sorted(map(hash,WC))                              # optional - gap3
-            [-9223363287990922588,
-             -9223359857975062569,
-             -9223359857974062566,
-             -8737669435968786318,
-             -6694860314014793614,
-             -5510281656060039471,
-             -5510280573528544321,
-             -5433655748006305529]
+            sage: WB = ReflectionGroup(['B',5])                     # optional - gap3
+            sage: WC = ReflectionGroup(['C',5])                     # optional - gap3
+
+            sage: WB_hash = set(hash(w) for w in WB)                # optional - gap3
+            sage: WC_hash = set(hash(w) for w in WC)                # optional - gap3
+
+            sage: len(WB_hash) == WB.cardinality()                  # optional - gap3
+            True
+
+            sage: len(WB_hash) == WB.cardinality()                  # optional - gap3
+            True
+
+            sage: len(WC_hash) == WC.cardinality()                  # optional - gap3
+            True
+
+            sage: WB_hash.intersection(WC_hash)                     # optional - gap3
+            set()
         """
         return hash(self.parent()) + hash(tuple(self.reduced_word()))
 

@@ -1458,7 +1458,7 @@ def radius(G):
     Return radius of unweighted graph `G`.
 
     This method computes radius of unweighted undirected graph using the
-    algorithm given in [Habib2018]_.
+    algorithm given in [Dragan2018]_.
 
     This method returns Infinity if graph is not connected.
 
@@ -1469,7 +1469,8 @@ def radius(G):
         sage: radius(G)
         2
         sage: G = graphs.RandomGNP(20,0.3)
-        sage: radius(G) == G.radius()
+        sage: from sage.graphs.distances_all_pairs import eccentricity
+        sage: radius(G) == min(eccentricity(G, algorithm='bounds'))
         True
 
     TESTS:

@@ -2027,7 +2027,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     @coerce_binop
     @handle_AA_and_QQbar
-    def subresultants(self, other, variable= None):
+    def subresultants(self, other, variable=None):
         r"""
         Return the nonzero subresultant polynomials of ``self`` and ``other``.
 
@@ -2036,6 +2036,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         - ``other`` -- a polynomial
 
         OUTPUT: a list of polynomials in the same ring as ``self``
+
+        EXAMPLES::
 
             sage: R.<x,y> = QQbar[]
             sage: p = (y^2 + 6)*(x - 1) - y*(x^2 + 1)

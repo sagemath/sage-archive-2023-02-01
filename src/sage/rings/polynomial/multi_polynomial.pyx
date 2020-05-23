@@ -1465,7 +1465,7 @@ cdef class MPolynomial(CommutativeRingElement):
         an = self.coefficient(variable**n)**(n - k - 2)
         return self.parent()(u * self.resultant(d, variable) * an)
 
-    def subresultants(self, other, variable= None):
+    def subresultants(self, other, variable=None):
         r"""
         Return the nonzero subresultant polynomials of ``self`` and ``other``.
 

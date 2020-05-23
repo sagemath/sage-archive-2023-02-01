@@ -203,8 +203,10 @@ TESTS::
 # *****************************************************************************
 from __future__ import division, print_function, absolute_import
 
-from six.moves import range
+import os
+import subprocess
 
+from io import StringIO
 from copy import copy
 
 from sage.cpython.string import bytes_to_str
@@ -1913,10 +1915,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             guava_bin_dir = gap.eval('DirectoriesPackagePrograms("guava")[1]')
             guava_bin_dir = guava_bin_dir[guava_bin_dir.index('"') + 1:guava_bin_dir.rindex('"')]
             input = _dump_code_in_leon_format(self) + "::code"
-            import os
-            import subprocess
             lines = subprocess.check_output([os.path.join(guava_bin_dir, 'wtdist'), input])
-            from six import StringIO
             # to use the already present output parser
             wts = [0] * (n + 1)
             for L in StringIO(bytes_to_str(lines)).readlines():

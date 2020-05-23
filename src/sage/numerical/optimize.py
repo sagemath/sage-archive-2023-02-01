@@ -10,7 +10,6 @@ AUTHOR:
 Functions and Methods
 ----------------------
 """
-from six.moves import range
 
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
@@ -80,14 +79,14 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
     the function need not be defined at the endpoints::
 
         sage: find_root(x^2*log(x,2)-1,0, 2)  # abs tol 1e-6
-        1.41421356237   
-        
+        1.41421356237
+
     The following is an example, again from :trac:`4942` where Brent's method
-    fails. Currently no other method is implemented, but at least we 
+    fails. Currently no other method is implemented, but at least we
     acknowledge the fact that the algorithm fails::
 
-        sage: find_root(1/(x-1)+1,0, 2) 
-        0.0 
+        sage: find_root(1/(x-1)+1,0, 2)
+        0.0
         sage: find_root(1/(x-1)+1,0.00001, 2)
         Traceback (most recent call last):
         ...
@@ -111,7 +110,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
         a, b = b, a
     left = f(a)
     right = f(b)
-   
+
     if left > 0 and right > 0:
         # Refine further -- try to find a point where this
         # function is negative in the interval
@@ -139,15 +138,15 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
             raise RuntimeError("f appears to have no zero on the interval")
         a = s
 
-    # Fixing :trac:`4942` - if the answer on any of the endpoints is NaN, 
+    # Fixing :trac:`4942` - if the answer on any of the endpoints is NaN,
     # we restrict to looking between minimum and maximum values in the segment
-    # Note - this could be used in all cases, but it requires some more 
+    # Note - this could be used in all cases, but it requires some more
     # computation
 
     if (left != left) or (right != right):
         minval, s_1 = find_local_minimum(f, a, b)
         maxval, s_2 = find_local_maximum(f, a, b)
-        if ((minval > 0) or (maxval < 0) or 
+        if ((minval > 0) or (maxval < 0) or
            (minval != minval) or (maxval != maxval)):
             raise RuntimeError("f appears to have no zero on the interval")
         a = min(s_1, s_2)
@@ -344,7 +343,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default",
         sage: minimize(f, [.1,.3,.4]) # abs tol 1e-6
         (1.0, 1.0, 1.0)
 
-    Try the newton-conjugate gradient method; the gradient and hessian are 
+    Try the newton-conjugate gradient method; the gradient and hessian are
     computed automatically::
 
         sage: minimize(f, [.1, .3, .4], algorithm="ncg") # abs tol 1e-6

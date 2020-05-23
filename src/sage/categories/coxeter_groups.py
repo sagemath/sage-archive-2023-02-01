@@ -10,7 +10,6 @@ Coxeter Groups
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 # With contributions from Dan Bump, Steve Pon, Qiang Wang, Anne Schilling, Christian Stump, Mark Shimozono
-from six.moves import range
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method, cached_in_parent_method

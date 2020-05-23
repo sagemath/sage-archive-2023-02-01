@@ -12,7 +12,6 @@ Root lattice realizations
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
 
 from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.misc import attrcall
@@ -1098,7 +1097,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             REFERENCES:
 
             .. [Reiner97] Victor Reiner. *Non-crossing partitions for
-               classical reflection groups*. Discrete Mathematics 177 (1997) 
+               classical reflection groups*. Discrete Mathematics 177 (1997)
             .. [Arm06] Drew Armstrong. *Generalized Noncrossing Partitions and
                Combinatorics of Coxeter Groups*. :arxiv:`math/0611106`
             """

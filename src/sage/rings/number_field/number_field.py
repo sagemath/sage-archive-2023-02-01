@@ -96,8 +96,6 @@ We do some arithmetic in a tower of relative number fields::
 # ****************************************************************************
 
 from __future__ import absolute_import, print_function
-from six.moves import range
-from six import integer_types
 
 from sage.misc.cachefunc import cached_method
 
@@ -1779,7 +1777,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K(sqrt(-3)*I)
             1/4*a0^3 - 7/2*a0
         """
-        if isinstance(x, integer_types + (Rational, Integer, pari_gen, list)):
+        if isinstance(x, (int, Rational, Integer, pari_gen, list)):
             return self._element_class(self, x)
 
         if isinstance(x, sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)\
@@ -7689,7 +7687,7 @@ class NumberField_absolute(NumberField_generic):
             <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
 
         """
-        if R in integer_types:
+        if R is int:
             return self._generic_coerce_map(R)
         elif R in (ZZ, QQ, self.base()):
             return self._generic_coerce_map(R)

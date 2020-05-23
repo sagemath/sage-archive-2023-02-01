@@ -233,8 +233,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import iteritems
-from six.moves import range
 
 from sage.interfaces.all import (singular as singular_default,
                                  macaulay2 as macaulay2_default,
@@ -529,7 +527,7 @@ class MPolynomialIdeal_singular_base_repr:
 
         if get_verbose()>=2:
             opt['prot'] = True
-        for name, value in iteritems(kwds):
+        for name, value in kwds.items():
             if value is not None:
                 opt[name] = value
 
@@ -1428,7 +1426,7 @@ class MPolynomialIdeal_singular_repr(
         if get_verbose() >= 2:
             kwds['prot'] = True
 
-        for o, v in iteritems(kwds):
+        for o, v in kwds.items():
             o = _options_py_to_singular.get(o,o)
             if v:
                 if o in ['degBound','multBound']:
@@ -3761,7 +3759,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 if other_new.groebner_basis.is_in_cache():
                     r = other_new.groebner_basis()
                 elif len(other_new._gb_by_ordering):
-                    o, r = next(iteritems(other_new._gb_by_ordering))
+                    o, r = next(iter(other_new._gb_by_ordering.items()))
                     l = self.change_ring(R.change_ring(order=o)).gens()
                 else: # use easy GB otherwise
                     newR = R.change_ring(order="degrevlex")

@@ -318,9 +318,6 @@ see :trac:`11645`::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import integer_types, string_types
-from six import reraise as raise_
 
 import io
 import os
@@ -815,7 +812,7 @@ class Singular(ExtraTabCompletion, Expect):
         if hasattr(S, 'an_element'):
             if hasattr(S.an_element(), '_singular_'):
                 return True
-        elif S in integer_types:
+        elif S is int:
             return True
         return None
 
@@ -901,7 +898,7 @@ class Singular(ExtraTabCompletion, Expect):
             x0*x1-x0*x2-x1*x2,
             x0^2*x2-x0*x2^2-x1*x2^2
         """
-        if isinstance(gens, string_types):
+        if isinstance(gens, str):
             gens = self(gens)
 
         if isinstance(gens, SingularElement):
@@ -1049,7 +1046,7 @@ class Singular(ExtraTabCompletion, Expect):
                            for x in vars[1:-1].split(',')])
             self.eval(s)
 
-        if check and isinstance(char, integer_types + (sage.rings.integer.Integer,)):
+        if check and isinstance(char, (int, sage.rings.integer.Integer)):
             if char != 0:
                 n = sage.rings.integer.Integer(char)
                 if not n.is_prime():
@@ -1280,7 +1277,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             # coercion to work properly.
             except SingularError as x:
                 self._session_number = -1
-                raise_(TypeError, TypeError(x), sys.exc_info()[2])
+                raise TypeError(x)
             except BaseException:
                 self._session_number = -1
                 raise

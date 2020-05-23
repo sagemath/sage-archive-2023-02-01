@@ -166,8 +166,6 @@ import bz2 as comp_other
 
 from pickletools import genops
 
-from six import iteritems
-
 import sage.all
 from sage.misc.sage_input import SageInputBuilder, SageInputExpression
 from sage.misc.sage_eval import sage_eval
@@ -1210,7 +1208,7 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from six.moves.copyreg import *
+            sage: from copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
             sage: test_pickle(EmptyNewstyleClass())  # py2
@@ -1237,7 +1235,7 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from six.moves.copyreg import *
+            sage: from copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 31415)
             sage: test_pickle(EmptyNewstyleClass())  # py2
@@ -1264,7 +1262,7 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from six.moves.copyreg import *
+            sage: from copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 27182818)
             sage: test_pickle(EmptyNewstyleClass())  # py2
@@ -2466,12 +2464,12 @@ def unpickle_build(obj, state):
     if state is not None:
         assert(isinstance(state, dict))
         d = obj.__dict__
-        for k, v in iteritems(state):
+        for k, v in state.items():
             d[k] = v
 
     if slots is not None:
         assert(isinstance(slots, dict))
-        for k, v in iteritems(slots):
+        for k, v in slots.items():
             setattr(obj, k, v)
 
 
@@ -2518,13 +2516,13 @@ def unpickle_extension(code):
 
     EXAMPLES::
 
-        sage: from six.moves.copyreg import *
+        sage: from copyreg import *
         sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
         sage: unpickle_extension(42)
         <class 'sage.misc.explain_pickle.EmptyNewstyleClass'>
         sage: remove_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
     """
-    from six.moves.copyreg import _inverted_registry, _extension_cache
+    from copyreg import _inverted_registry, _extension_cache
     # copied from .get_extension() in pickle.py
     nil = []
     obj = _extension_cache.get(code, nil)

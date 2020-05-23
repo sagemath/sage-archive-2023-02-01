@@ -40,8 +40,8 @@ Check that sphinx is not imported at Sage start-up::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function, absolute_import
-from six import string_types, text_type
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import re
@@ -682,7 +682,7 @@ def format(s, embedded=False):
         sage: format(r'inline code ``\\\\.``')
         'inline code "\\\\\\\\."\n'
     """
-    if not isinstance(s, string_types):
+    if not isinstance(s, str):
         raise TypeError("s must be a string")
 
     # Leading empty lines must be removed, since we search for directives
@@ -766,7 +766,7 @@ def format_src(s):
         sage: format_src('<<<Sq>>>')[5:15]
         'Sq(*nums):'
     """
-    if not isinstance(s, string_types):
+    if not isinstance(s, str):
         raise TypeError("s must be a string")
     docs = set([])
     import sage.all
@@ -953,7 +953,7 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
     else:
         # Pass through the IPython pager in a mime bundle
         from IPython.core.page import page
-        if not isinstance(text_results, text_type):
+        if not isinstance(text_results, str):
             text_results = text_results.decode('utf-8', 'replace')
 
         page({

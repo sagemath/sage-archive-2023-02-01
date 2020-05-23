@@ -37,8 +37,6 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
-from six import add_metaclass
 
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray
@@ -55,8 +53,8 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.all import prod
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class GelfandTsetlinPattern(ClonableArray):
+class GelfandTsetlinPattern(ClonableArray,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A Gelfand-Tsetlin (sometimes written as Gelfand-Zetlin or Gelfand-Cetlin)
     pattern.  They were originally defined in [GC50]_.

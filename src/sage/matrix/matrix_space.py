@@ -32,8 +32,6 @@ TESTS::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import iteritems, integer_types
 
 # System imports
 import sys
@@ -1497,7 +1495,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
             ...
             AttributeError: 'MatrixSpace_with_category' object has no attribute 'list'
         """
-        if isinstance(x, integer_types + (integer.Integer,)):
+        if isinstance(x, (integer.Integer, int)):
             return self.list()[x]
         return super(MatrixSpace, self).__getitem__(x)
 
@@ -2225,7 +2223,7 @@ def dict_to_list(entries, nrows, ncols):
         [1, 0, 0, 0, 2, 0]
     """
     v = [0] * (nrows * ncols)
-    for ij, y in iteritems(entries):
+    for ij, y in entries.items():
         i, j = ij
         v[i * ncols + j] = y
     return v

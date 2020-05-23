@@ -52,7 +52,6 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 from __future__ import print_function
-from six import string_types
 
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -753,7 +752,7 @@ class TensorField(ModuleElement):
                     # frame is actually a pair (frame, chart):
                     frame, chart = frame
                 self.add_comp(frame)[:, chart] = components
-        elif isinstance(comp0, string_types):
+        elif isinstance(comp0, str):
             # For compatibility with previous use of tensor_field():
             self.set_name(comp0)
         else:

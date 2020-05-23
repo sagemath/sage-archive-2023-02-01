@@ -282,8 +282,6 @@ We use the lexicographic ordering::
 from __future__ import print_function, absolute_import
 
 from copy import copy
-import six
-from six.moves import range, zip
 
 from sage.libs.all import pari
 from sage.libs.flint.arith import number_of_partitions as flint_number_of_partitions
@@ -3671,7 +3669,7 @@ class Partition(CombinatorialElement):
             48
         """
         size = prod(i ** mi * factorial(mi)
-                    for i, mi in six.iteritems(self.to_exp_dict()))
+                    for i, mi in self.to_exp_dict().items())
         if t or q:
             size *= prod((ZZ.one() - q ** j) / (ZZ.one() - t ** j)
                          for j in self)

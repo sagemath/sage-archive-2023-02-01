@@ -1603,3 +1603,92 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
             if len(orth_set[j] & new_cycle) % 2:
                 orth_set[j] = orth_set[j] ^ base
     return cycle_basis
+
+cpdef radius(g, weight_function=None):
+    r"""
+    Return radius of weighted graph `g`.
+    """
+    if g.is_directed():
+        raise TypeError("This method works for undirected graphs only")
+
+    cdef int n = g.order()
+    if n <= 1:
+        return 0
+
+    cdef int negative_weight = 0
+
+    if weight_function is not None:
+        for e in g.edge_iterator():
+            if float(weight_function(e)) < 0:
+                negative_weight = 1
+                break
+    else:
+        for _,_,w in g.edge_iterator():
+            if w and float(w) < 0:
+                negative_weight = 1
+                break
+
+    cdef dict v_to_int = {vv: vi for vi, vv in enumerate(g)}
+    cdef BoostVecWeightedGraph g_boost
+    boost_weighted_graph_from_sage_graph(&g_boost, g, v_to_int, weight_function)
+
+    import sys
+    cdef int source
+    cdef int next_source = 0
+    cdef int antipode
+    cdef double LB = sys.float_info.max
+    cdef double UB = sys.float_info.max
+    cdef result_distances result
+    cdef vector[double] ecc = {0 for i in range(n)}
+    cdef vector[double] ecc_lower_bound = {0 for i in range(n)}
+    cdef double eccentricity
+
+    while True:
+        source = next_source
+
+        if negative_weight:
+            sig_on()
+            result = g_boost.bellman_ford_shortest_paths(source)
+            sig_off()
+            if not result.distances.size():
+                raise ValueError("the graph contains a negative cycle")
+        else:
+            sig_on()
+            result = g_boost.dijkstra_shortest_paths(source)
+            sig_off()
+
+        eccentricity = 0
+        for v in range(n):
+            if eccentricity <= result.distances[v]:
+                eccentricity = result.distances[v]
+                antipode = v
+
+        if eccentricity == sys.float_info.max:
+            from sage.rings.infinity import Infinity
+            return +Infinity
+
+        ecc[source] = eccentricity
+
+        if ecc[source] == ecc_lower_bound[source]:
+            return ecc[source]
+
+        if negative_weight:
+            sig_on()
+            result = g_boost.bellman_ford_shortest_paths(antipode)
+            sig_off()
+        else:
+            sig_on()
+            result = g_boost.dijkstra_shortest_paths(antipode)
+            sig_off()
+
+        UB = min(UB, ecc[source])
+        LB = sys.float_info.max
+
+        for v in range(n):
+            ecc_lower_bound[v] = max(ecc_lower_bound[v], result.distances[v])
+            if LB > ecc_lower_bound[v]:
+                LB = ecc_lower_bound[v]
+                next_source = v
+
+        if UB <= LB:
+            return UB

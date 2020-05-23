@@ -1490,7 +1490,7 @@ def radius(G):
         ...
         TypeError: This method works for unweighted undirected graphs only
     """
-    if G.is_directed() or G.weighted():
+    if G.is_directed():
         raise TypeError("This method works for unweighted undirected graphs only")
 
     cdef uint32_t n = G.order()

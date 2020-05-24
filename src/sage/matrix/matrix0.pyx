@@ -5532,7 +5532,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: matrix(RR, 1, 1, [2]).inverse_of_unit()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Lifting of multivariate polynomials over non-fields is not implemented.
 
             sage: R = ZZ.cartesian_product(ZZ)
             sage: m = matrix(R, 2, [R((2,1)), R((1,1)), R((1,1)), R((1,2))])

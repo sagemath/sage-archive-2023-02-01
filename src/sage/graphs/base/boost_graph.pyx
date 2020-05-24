@@ -1607,15 +1607,55 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
 cpdef radius(g, weight_function=None):
     r"""
     Return radius of weighted graph `g`.
+
+    This method computes radius of undirected graph using the
+    algorithm given in [Dragan2018]_.
+
+    This method returns Infinity if graph is not connected.
+
+    INPUT:
+
+    - ``g`` -- the input Sage graph
+
+    - ``weight_function`` -- function (default: ``None``); a function that
+      associates a weight to each edge. If ``None`` (default), the weights of
+      ``g`` are used, if available, otherwise all edges have weight 1.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.base.boost_graph import radius
+        sage: G = Graph([(0,1,1), (1,2,1), (0,2,3)])
+        sage: radius(G)
+        1.0
+        sage: G = graphs.PathGraph(7)
+        sage: radius(G) == G.radius(algorithm='Dijkstra_Boost')
+        True
+
+    TESTS:
+
+        sage: G = Graph()
+        sage: radius(G)
+        0
+        sage: G = Graph(1)
+        sage: radius(G)
+        0
+        sage: G = Graph(2)
+        sage: radius(G)
+        +Infinity
+        sage: G = DiGraph(1)
+        sage: radius(G)
+        Traceback (most recent call last):
+        ...
+        TypeError: this method works for undirected graphs only
     """
     if g.is_directed():
-        raise TypeError("This method works for undirected graphs only")
+        raise TypeError("this method works for undirected graphs only")
 
     cdef int n = g.order()
     if n <= 1:
         return 0
 
-    cdef int negative_weight = 0
+    cdef bint negative_weight = 0
 
     if weight_function is not None:
         for e in g.edge_iterator():
@@ -1628,67 +1668,83 @@ cpdef radius(g, weight_function=None):
                 negative_weight = 1
                 break
 
+    # These variables are automatically deleted when the function terminates.
     cdef dict v_to_int = {vv: vi for vi, vv in enumerate(g)}
     cdef BoostVecWeightedGraph g_boost
     boost_weighted_graph_from_sage_graph(&g_boost, g, v_to_int, weight_function)
 
     import sys
-    cdef int source
-    cdef int next_source = 0
-    cdef int antipode
+    cdef v_index source
+    cdef v_index next_source = 0  # To store source for next iteration
+    cdef v_index antipode
     cdef double LB = sys.float_info.max
     cdef double UB = sys.float_info.max
-    cdef result_distances result
-    cdef vector[double] ecc = {0 for i in range(n)}
-    cdef vector[double] ecc_lower_bound = {0 for i in range(n)}
+    # For storing distances of all nodes from source
+    cdef vector[double] distances
+    # For storing eccentricity of nodes
+    cdef vector[double] ecc
+    # For storing lower bound on eccentricity of nodes
+    cdef vector[double] ecc_lower_bound
     cdef double eccentricity
 
+    # Initializing
+    for i in range(n):
+        ecc_lower_bound.push_back(0)
+        ecc.push_back(0)
+
+    # Algorithm
     while True:
+        # 1) pick vertex with minimum eccentricity lower bound
+        # and compute its eccentricity
         source = next_source
 
         if negative_weight:
             sig_on()
-            result = g_boost.bellman_ford_shortest_paths(source)
+            distances = g_boost.bellman_ford_shortest_paths(source).distances
             sig_off()
-            if not result.distances.size():
+            if not distances.size():
                 raise ValueError("the graph contains a negative cycle")
         else:
             sig_on()
-            result = g_boost.dijkstra_shortest_paths(source)
+            distances = g_boost.dijkstra_shortest_paths(source).distances
             sig_off()
 
         eccentricity = 0
         for v in range(n):
-            if eccentricity <= result.distances[v]:
-                eccentricity = result.distances[v]
-                antipode = v
+            if eccentricity < distances[v]:
+                eccentricity = distances[v]
+                antipode = v  # vertex at largest distance from source
 
-        if eccentricity == sys.float_info.max:
+        if eccentricity == sys.float_info.max:  # Disconnected graph
             from sage.rings.infinity import Infinity
             return +Infinity
 
         ecc[source] = eccentricity
 
         if ecc[source] == ecc_lower_bound[source]:
+            # we have found minimum eccentricity vertex and hence the radius
             return ecc[source]
 
+        # 2) Compute distances from antipode of source
         if negative_weight:
             sig_on()
-            result = g_boost.bellman_ford_shortest_paths(antipode)
+            distances = g_boost.bellman_ford_shortest_paths(antipode).distances
             sig_off()
         else:
             sig_on()
-            result = g_boost.dijkstra_shortest_paths(antipode)
+            distances = g_boost.dijkstra_shortest_paths(antipode).distances
             sig_off()
 
-        UB = min(UB, ecc[source])
+        UB = min(UB, ecc[source])  # minimum among exact computed eccentricities
         LB = sys.float_info.max
 
+        # 3) Use distances from antipode to
+        # improve eccentricity lower bounds
         for v in range(n):
-            ecc_lower_bound[v] = max(ecc_lower_bound[v], result.distances[v])
+            ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
             if LB > ecc_lower_bound[v]:
                 LB = ecc_lower_bound[v]
-                next_source = v
+                next_source = v  # vertex with minimum eccentricity lower bound
 
         if UB <= LB:
             return UB

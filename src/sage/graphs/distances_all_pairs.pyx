@@ -1488,10 +1488,10 @@ def radius(G):
         sage: radius(G)
         Traceback (most recent call last):
         ...
-        TypeError: This method works for unweighted undirected graphs only
+        TypeError: this method works for unweighted undirected graphs only
     """
     if G.is_directed():
-        raise TypeError("This method works for unweighted undirected graphs only")
+        raise TypeError("this method works for unweighted undirected graphs only")
 
     cdef uint32_t n = G.order()
     if n <= 1:

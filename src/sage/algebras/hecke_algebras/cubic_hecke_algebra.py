@@ -360,7 +360,7 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         using the the ``representation_type`` option::
 
             sage: CHA3.<c0, c1> = algebras.CubicHecke(3)     #  optional gap3
-            sage: chevie = CHA3.repr_type.SplitIrredChevie
+            sage: chevie = CHA3.repr_type.SplitIrredChevie   #  optional gap3
             sage: c0m_ch = c0.matrix(representation_type=chevie) #  optional gap3
             sage: c0m_ch[CHA3.irred_repr.W3_011]             #  optional gap3
             [         b          0]

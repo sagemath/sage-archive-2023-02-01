@@ -38,7 +38,7 @@ echo ""
 cp "$SAGE_ROOT"/config/config.* src
 
 sdh_configure $SAGE_CONFIGURE_GMP --disable-threads \
-              --enable-unicode=yes $ECL_CONFIGURE
+              --enable-unicode=yes --with-defsystem $ECL_CONFIGURE
 
 # Before running make we touch build/TAGS so its building process is never triggered
 touch build/TAGS

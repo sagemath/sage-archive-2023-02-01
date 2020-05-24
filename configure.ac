@@ -459,10 +459,6 @@ done
 
 AC_SUBST([SAGE_SCRIPTS])
 
-SAGE_MAKE_DEPS="$SAGE_ROOT/build/make/deps"
-AC_SUBST_FILE([SAGE_MAKE_DEPS])
-
-
 dnl AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile src/Makefile])
 AC_CONFIG_FILES([src/bin/sage-env-config build/bin/sage-build-env-config])

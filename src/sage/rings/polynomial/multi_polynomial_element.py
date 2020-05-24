@@ -2043,11 +2043,11 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: p = (y^2 + 6)*(x - 1) - y*(x^2 + 1)
             sage: q = (x^2 + 6)*(y - 1) - x*(y^2 + 1)
             sage: p.subresultants(q, y)
-            [2*x^6 - 22*x^5 + 102*x^4 - 274*x^3 + 488*x^2 - 552*x + 288,
-             -x^3 - x^2*y + 6*x^2 + 5*x*y - 11*x - 6*y + 6]
+            [2*x^6 + (-22)*x^5 + 102*x^4 + (-274)*x^3 + 488*x^2 + (-552)*x + 288,
+             -x^3 - x^2*y + 6*x^2 + 5*x*y + (-11)*x + (-6)*y + 6]
             sage: p.subresultants(q, x)
-            [2*y^6 - 22*y^5 + 102*y^4 - 274*y^3 + 488*y^2 - 552*y + 288,
-             x*y^2 + y^3 - 5*x*y - 6*y^2 + 6*x + 11*y - 6]
+            [2*y^6 + (-22)*y^5 + 102*y^4 + (-274)*y^3 + 488*y^2 + (-552)*y + 288,
+             x*y^2 + y^3 + (-5)*x*y + (-6)*y^2 + 6*x + 11*y - 6]
 
         """
         R = self.parent()

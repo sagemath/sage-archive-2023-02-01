@@ -440,9 +440,9 @@ class FriezePattern(PathTableau):
             ...
             TypeError: no base extension defined
         """
-        from sage.structure.element import parent
+        #from sage.structure.element import parent
 
-        if R.has_coerce_map_from(parent(self).field):
+        if R.has_coerce_map_from(self.parent().field):
             return FriezePattern(list(self), field = R)
         else:
             raise TypeError("no base extension defined")

@@ -176,10 +176,10 @@ class FriezePattern(PathTableau):
             try:
                 w = [field(a) for a in fp]
             except TypeError:
-                raise ValueError("{} is not a sequence in the field {}".format(fp, field))
+                raise ValueError(f"{fp} is not a sequence in the field {field}")
 
         if w is None:
-            raise ValueError("invalid input {}".format(fp))
+            raise ValueError(f"invalid input {fp}")
 
         w.insert(0,field(0))
         w.append(field(0))
@@ -414,7 +414,7 @@ class FriezePattern(PathTableau):
                 }
         M = models.get(model)
         if not M:
-            raise ValueError("{!s} must be one of ''UHP'', ''PD'', ''KM''".format(model))
+            raise ValueError(f"{model} must be one of ''UHP'', ''PD'', ''KM''")
 
         U = HyperbolicPlane().UHP()
         cd = CylindricalDiagram(self).diagram
@@ -434,6 +434,7 @@ class FriezePattern(PathTableau):
 
             sage: FriezePattern([1,2,7,5,3,7,4,1]).change_ring(RealField())
             [0.000000000000000, 1.00000000000000, ... 4.00000000000000, 1.00000000000000, 0.000000000000000]
+
             sage: FriezePattern([1,2,7,5,3,7,4,1]).change_ring(GF(7))
             Traceback (most recent call last):
             ...

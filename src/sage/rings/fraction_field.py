@@ -698,12 +698,8 @@ class FractionField_generic(ring.Field):
             try:
                 return self._element_class(self, x, y, coerce=coerce)
             except TypeError:
-                if not x != x0:
-                    # Make one last attempt to convert x into ``self``
-                    x = self(x)
-                    y *= x.denominator()
-                    x = x.numerator()
-                    return self._element_class(self, x, y, coerce=coerce)
+                if parent(x) is parent(x0):
+                    raise
 
     def construction(self):
         """

@@ -1262,6 +1262,85 @@ cdef uint32_t diameter_iFUB(short_digraph g,
     # We finally return the computed diameter
     return LB
 
+def diameter_dragan(G):
+    r"""
+    Return diameter of unweighted graph `G`.
+
+    This method computes diameter of unweighted undirected graph using the
+    algorithm given in [Dragan2018]_.
+
+    This method returns Infinity if graph is not connected.
+    """
+    if G.is_directed():
+        raise TypeError("this method works for unweighted undirected graphs only")
+
+    cdef uint32_t n = G.order()
+    if n <= 1:
+        return 0
+
+    cdef list int_to_vertex = list(G)
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
+
+    cdef uint32_t source
+    cdef uint32_t delegate_certificate
+    cdef uint32_t LB = 0
+    cdef uint32_t UB = 0
+    cdef uint32_t next_source = 0  # To store source for next iteration
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *>mem.malloc(4 * n * sizeof(uint32_t))
+    if not distances:
+        raise MemoryError()
+
+    cdef uint32_t * waiting_list = distances + n
+
+    # For storing eccentricity of nodes
+    cdef uint32_t * ecc = distances + 2 * n
+
+    # For storing lower bound on eccentricity of nodes
+    cdef uint32_t * ecc_upper_bound = distances + 3 * n
+    memset(ecc_upper_bound, UINT32_MAX, n * sizeof(uint32_t))
+
+    cdef bitset_t seen
+    bitset_init(seen,n)  # intializing bitset
+
+    cdef list exact = []
+
+    # Algorithm
+    while True:
+        source = next_source
+        bitset_clear(seen)
+        ecc[source] = simple_BFS(sd, source, distances, NULL, waiting_list, seen)
+        exact.append(source)
+
+        if ecc[source] == UINT32_MAX:
+            bitset_free(seen)
+            from sage.rings.infinity import Infinity
+            return +Infinity
+
+        for x in exact:
+            if distances[x] + ecc[x] == ecc[source]:
+                delegate_certificate = x
+                break
+
+        if delegate_certificate != source:
+            bitset_clear(seen)
+            ecc[delegate_certificate] = simple_BFS(sd, delegate_certificate, distances, NULL, waiting_list, seen)
+            exact.append(delegate_certificate)
+
+        LB = max(LB,ecc[source])
+        UB = 0
+
+        for v in range(n):
+            ecc_upper_bound[v] = min(ecc_upper_bound[v], distances[v] + ecc[delegate_certificate])
+            if UB < ecc_upper_bound[v]:
+                UB = ecc_upper_bound[v]
+                next_source = v
+
+        if UB <= LB:
+            bitset_free(seen)
+            return LB
 
 def diameter(G, algorithm=None, source=None):
     r"""

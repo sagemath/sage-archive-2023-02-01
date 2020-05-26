@@ -3246,12 +3246,15 @@ REFERENCES:
             http://portal.acm.org/citation.cfm?id=763203 and free of
             charge at :arxiv:`math/0106043`
 
-.. [KP2011] Manuel Kauers and Peter Paule. The Concrete Tetrahedron.
-            Springer-Verlag, 2011.
-
 .. [KP2002b] James Kuzmanovich; Andrey Pavlichenkov, *Finite
              Groups of Matrices Whose Entries Are Integers*, The American
              Mathematical Monthly, Vol. 109, No. 2. (2002) pp. 173-186
+
+.. [KP2011] Manuel Kauers and Peter Paule. The Concrete Tetrahedron.
+            Springer-Verlag, 2011.
+
+.. [KP2020] Lars Kastner and Marta Panizzut, *Hyperplane arrangements
+            in polymake*, arxiv:`2003.13548`.
 
 .. [KPRWZ2010] \M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
                *Examples of computer experimentation in algebraic

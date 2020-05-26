@@ -1904,6 +1904,9 @@ REFERENCES:
             Connection Table* (preprint); in Cryptology ePrint Archive,
             (2018), 631.
 
+.. [Duc1998] \L. Ducos, Optimizations of the Subresultant Algorithm.
+             http://www-math.univ-poitiers.fr/~ducos/Travaux/sous-resultants.pdf
+
 .. [Dur1998] \F. Durand, *A characterization of substitutive sequences
             using return words*, Discrete Math. 179 (1998) 89-101.
 

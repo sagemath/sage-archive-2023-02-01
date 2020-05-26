@@ -38,12 +38,9 @@ from sage.graphs.graph import Graph
 from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
 
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.fields import Fields
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.algebras.clifford_algebra import CliffordAlgebraElement
 from sage.typeset.ascii_art import ascii_art
 from sage.typeset.unicode_art import unicode_art
@@ -704,7 +701,6 @@ class CohomologyRAAG(CombinatorialFreeModule):
         if len(m) == 0:
             return '1'
         term = ''
-        V = self
         for i in m:
             if len(term) != 0:
                 term += '*'

@@ -71,7 +71,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
             sage: WB_hash.intersection(WC_hash)                     # optional - gap3
             set()
         """
-        return hash(self.parent()) + hash(tuple(self.reduced_word()))
+        return hash(self._parent) | hash(tuple(self._reduced_word))
 
     def reduced_word(self):
         r"""

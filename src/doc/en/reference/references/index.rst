@@ -1186,6 +1186,10 @@ REFERENCES:
 .. [Car1972] \R. W. Carter. *Simple groups of Lie type*, volume 28 of
              Pure and Applied Mathematics. John Wiley and Sons, 1972.
 
+.. [CQ2019] \A. Cassella and C. Quadrelli.
+            *Right-angled Artin groups and enhanced Koszul properties*.
+            Preprint, :arxiv:`1907.03824`, (2019).
+
 .. [CS1996] \G. Call and J. Silverman. Computing the Canonical Height on
             K3 Surfaces. Mathematics of Comp. , 65 (1996), 259-290.
 

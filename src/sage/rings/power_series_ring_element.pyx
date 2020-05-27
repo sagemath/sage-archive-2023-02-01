@@ -976,6 +976,8 @@ cdef class PowerSeries(AlgebraElement):
 
         - David Harvey (2006-09-03)
         """
+        if self.is_zero():
+            return False
         return self[0].is_unit()
 
     def inverse(self):

@@ -509,50 +509,50 @@ class GelfandTsetlinPattern(ClonableArray):
             return R.zero()
         return (t+1)**(self.number_of_special_entries()) * t**(self.number_of_boxes())
 
-    
     def bender_knuth_involution(self,i):
         r"""
         Return the image of ''self'' under the 'i'-th Bender-Knuth involution.
-    
+
         If the triangle 'G' has size 'n' then this is defined for '0 < i < n'.
-    
+
         This implements the construction of the Bender-Knuth involution using toggling
         due to Berenstein-Kirillov.
-        
+
         This agrees with the Bender-Knuth involution on semistandard tableaux.
-    
+
         EXAMPLES::
-    
+
             sage: G = GelfandTsetlinPattern([[5,3,2,1,0],[4,3,2,0],[4,2,1],[3,2],[3]])
-            sage: bender_knuth_involution(G,2)
-            [[5, 3, 2, 1, 0], [4, 3, 2, 0], [4, 2, 1], [3, 2], [3]]
-    
+            sage: G.bender_knuth_involution(2)
+            [[5, 3, 2, 1, 0], [4, 3, 2, 0], [4, 2, 1], [4, 1], [3]]
+
         TESTS::
-    
-            sage: all(all( bender_knuth_involution(G,i).to_tableau() == G.to_tableau().bender_knuth_involution(i)
+
+            sage: all(all( G.bender_knuth_involution(i).to_tableau() == G.to_tableau().bender_knuth_involution(i) \
                    for i in range(1,len(G)) ) for G in GelfandTsetlinPatterns(top_row=[3,3,3,0,0]))
             True
-    
+
             sage: G = GelfandTsetlinPattern([[2,1,0],[1,0],[0]])
-            sage: bender_knuth_involution(G,0)
+            sage: G.bender_knuth_involution(0)
             Traceback (most recent call last):
             ...
             ValueError: must have 0 < 0 < 3
-            sage: bender_knuth_involution(G,3)
+            sage: G.bender_knuth_involution(3)
             Traceback (most recent call last):
             ...
             ValueError: must have 0 < 3 < 3
-    
+
         """
+        from copy import copy
         n = len(self)
-        
+
         def toggle(i,j):
                 """
                 Return the toggle of entry 'G[i][j]' in a Gelfand-Tsetlin pattern, 'G'.
-                """        
+                """
                 if i == n-1:
                     return self[n-2][0]+self[n-2][1]-self[n-1][0]
-            
+
                 if j == 0:
                     left = self[i-1][0]
                 else:
@@ -561,9 +561,9 @@ class GelfandTsetlinPattern(ClonableArray):
                     right = self[i-1][j+1]
                 else:
                     right = max(self[i-1][j+1], self[i+1][j])
-            
+
                 return left + right - self[i][j]
-    
+
         if not 0 < i < n:
             raise ValueError(f"must have 0 < {i} < {n}")
         r = n-i

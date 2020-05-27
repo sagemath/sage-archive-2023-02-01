@@ -88,11 +88,13 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
     fi
 
     # Figuring out if we are using clang instead of gcc.
+    AC_LANG_PUSH(C)
     AX_COMPILER_VENDOR()
     IS_REALLY_GCC=no
     if test "x$ax_cv_c_compiler_vendor" = xgnu ; then
         IS_REALLY_GCC=yes
     fi
+    AC_LANG_POP()
 
     # Save the value of CXX without special flags to enable C++11 support
     AS_VAR_SET([SAGE_CXX_WITHOUT_STD], [$CXX])
@@ -144,6 +146,11 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
                 [[[0-3]].*|4.[[0-7]].*], [
                     # Install our own GCC if the system-provided one is older than gcc-4.8.
                     SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old])
+                ],
+                [1?.*], [
+                    # Install our own GCC if the system-provided one is newer than 9.x.
+                    # See https://trac.sagemath.org/ticket/29456
+                    SAGE_SHOULD_INSTALL_GCC([$CXX is g++ version $GXX_VERSION, which is too recent for this version of Sage])
                 ])
         fi
 

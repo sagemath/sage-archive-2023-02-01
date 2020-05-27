@@ -3825,14 +3825,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # points, indexed by coefficient tuples, for efficiency; it is
         # reset whenever the point list changes.
 
-        from sage.schemes.elliptic_curves.saturation import full_p_saturation
-        lin_combs = dict()
+        from sage.schemes.elliptic_curves.saturation import EllipticCurveSaturator
+        saturator = EllipticCurveSaturator(self, verbose)
         for p in prime_list:
             if full_saturation and (p > index_bound):
                 break
             if verbose:
                 print("Saturating at p=%s" % p)
-            newPlist, expo = full_p_saturation(Plist, p, lin_combs, verbose)
+            newPlist, expo = saturator.full_p_saturation(Plist, p)
             if expo:
                 if verbose:
                     print(" --gaining index %s^%s" % (p, expo))

@@ -12,8 +12,8 @@ fusenes that are subgraphs of the hexagonal lattice.
 License
 -------
 
-Benzene is licensed under the GNU General Public License v2 or later (
-June 2007 )
+Benzene is licensed under the GNU General Public License v2 or later
+(June 2007)
 
 
 Upstream Contact

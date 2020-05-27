@@ -46,18 +46,16 @@ Dependencies
 Special Update/Build Instructions
 ---------------------------------
 
--  \`configure\` doesn't support specifying the location of the GMP
-
-   library to use; only \`--with-gmp[=yes]\` or \`--with-gmp=no\`
+-  ``configure`` doesn't support specifying the location of the GMP
+   library to use; only ``--with-gmp[=yes]`` or ``--with-gmp=no``
    are valid options. (So we \*have to\* add Sage's include and
-   library directories to \`CPPFLAGS\` and \`LDFLAGS`, respectively.)
+   library directories to ``CPPFLAGS`` and ``LDFLAGS``, respectively.)
 
--  Do we need the \`--disable-static`? The stand-alone solver presumably
-
+-  Do we need the ``--disable-static``? The stand-alone solver presumably
    runs faster when built with a static library; also other
    (stand-alone)
    programs using it would.
-   (Instead, we should perhaps use \`--enable-static --enable-shared\`
+   (Instead, we should perhaps use ``--enable-static --enable-shared``
    to
    go safe.)
 
@@ -68,7 +66,6 @@ Patches
 -  src/01-zlib.patch: don't build the included zlib library.
 -  src/02-cygwin_sharedlib.patch: Let a shared library be built on
    Cygwin by
-
    passing the -no-undefined flag to libtool.
 
    The numbering reflect the order in which they have been created from

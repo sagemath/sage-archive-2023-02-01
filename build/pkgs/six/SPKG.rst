@@ -15,7 +15,8 @@ MIT License
 Upstream Contact
 ----------------
 
-Author: Benjamin Peterson Home page: http://pypi.python.org/pypi/six/
+- Author: Benjamin Peterson
+- Home page: http://pypi.python.org/pypi/six/
 
 Dependencies
 ------------

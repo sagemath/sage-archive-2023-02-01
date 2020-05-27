@@ -20,9 +20,9 @@ Modified BSD; see e.g. its egg-info file for other options
 Upstream Contact
 ----------------
 
-Author: Georg Brandl Home Page: http://sphinx.pocoo.org,
-
-   see also http://pypi.python.org/pypi/Sphinx
+- Author: Georg Brandl
+- Home Page: http://sphinx.pocoo.org,
+  see also http://pypi.python.org/pypi/Sphinx
 
 Dependencies
 ------------
@@ -42,7 +42,6 @@ Special Update/Build Instructions
 ---------------------------------
 
 -  The script create_grammar_pickle.py creates the file
-
    Grammar2.7.pickle in site-packages/Sphinx-.../sphinx/pycode/. This
    helps to avoid race conditions when building the documentation in
    parallel.

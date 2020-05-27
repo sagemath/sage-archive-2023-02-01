@@ -20,8 +20,8 @@ MIT
 Upstream Contact
 ----------------
 
-Home page: https://oreillymedia.github.io/thebe/ Source:
-https://github.com/oreillymedia/thebe/
+- Home page: https://oreillymedia.github.io/thebe/
+- Source: https://github.com/oreillymedia/thebe/
 
 Dependencies
 ------------

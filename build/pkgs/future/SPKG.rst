@@ -12,16 +12,16 @@ support both Python 2 and Python 3 with minimal overhead.
 
 It is designed to be used as follows:
 
-from \__future_\_ import (absolute_import, division,
+.. CODE-BLOCK:: python
 
-   print_function, unicode_literals)
+   from __future__ import (absolute_import, division,
+                             print_function, unicode_literals)
 
-from builtins import (
-
-   bytes, dict, int, list, object, range, str,
-   ascii, chr, hex, input, next, oct, open,
-   pow, round, super,
-   filter, map, zip)
+   from builtins import (
+       bytes, dict, int, list, object, range, str,
+       ascii, chr, hex, input, next, oct, open,
+       pow, round, super,
+       filter, map, zip)
 
 followed by predominantly standard, idiomatic Python 3 code that then
 runs similarly on Python 2.6/2.7 and Python 3.3+.

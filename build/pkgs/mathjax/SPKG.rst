@@ -33,6 +33,5 @@ Patches
 -------
 
 -  nopng_config.patch: prevent font warning messages since png files are
-
    removed. See section "Trimming II -- not strictly necessary" of
    https://github.com/mathjax/MathJax-docs/wiki/Guide%3A-reducing-size-of-a-mathjax-installation

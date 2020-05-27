@@ -83,6 +83,4 @@ None
 Dependencies
 ------------
 
-=
-
 None

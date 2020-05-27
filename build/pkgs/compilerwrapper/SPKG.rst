@@ -18,8 +18,8 @@ GPL v2+
 Upstream Contact
 ----------------
 
-https://bitbucket.org/vbraun/compilerwrapper Volker Braun
-<vbraun.name@gmail.com>
+- https://bitbucket.org/vbraun/compilerwrapper
+- Volker Braun <vbraun.name@gmail.com>
 
 Dependencies
 ------------

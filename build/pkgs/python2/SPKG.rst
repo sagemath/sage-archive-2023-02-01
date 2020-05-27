@@ -44,7 +44,6 @@ Special Update/Build Instructions
 ---------------------------------
 
 -  We keep a copy of the stdlib 'random' module in
-
    src/sage/cpython/_py2_random.py. Normally it shouldn't be necessary
    to update this, but when upgrading Python make sure to bring over
    any security updates from the upstream 'random' module in the
@@ -54,7 +53,6 @@ Special Update/Build Instructions
    that depend on the implementation details of the random module.
 
 -  Spaces in SAGE_ROOT aren't yet fully supported by this package,
-
    since we put $SAGE_LOCAL/... into CPPFLAGS and LDFLAGS, which
    wouldn't work then.
 
@@ -63,27 +61,22 @@ Patches
 
 -  socket.patch: Work around an SSL issue.
 -  permissions.patch: Changes the permission of installed libraries
-
    to 0755 (like any other library) instead of 0555.
 
 -  sys_path_security-issue_16202.patch: ensure that the current working
-
    directory or the script directory is prepended to sys.path only if
    there is no security risk in doing so.
 
 -  ncurses-issue_9665.patch: Fixes Python issue #9665 (by patching
    configure
-
    and configure.in after running autotools).
 
 -  ncurses-issue_14438.patch: Fixes Python issue #14438 (ncurses)
 -  disable_print_refs_debug.patch: Remove some unused debug output
-
    that breaks doctests.
 
 -  no_strict_proto-issue_5755.patch: don't add -Wstrict-prototypes
    compiler
-
    flag, which isn't valid for C++ (but Python uses the same compiler
    flags
    for C and C++). See http://bugs.python.org/issue5755.
@@ -92,10 +85,8 @@ Patches
 -  tinfo.patch: make sure tinfo is correctly linked in when needed on
    Cygwin.
 -  uuid-issue_11063.patch: patch from Python issue 11063; reduce uuid
-
    module import side effects and fix thread related issues.
 
 -  getcallargs-issue_20108.patch: fix inspect.getcallargs() when the
-
    function has a "func" keyword argument. Needed for @interact from
    ipywidgets.

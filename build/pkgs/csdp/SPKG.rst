@@ -48,6 +48,5 @@ Detailed steps to build the spkg are as follows. You need
 With these ready:
 
 -  ./spkg-src
--  copy the resulting csdp-.tar.gz to SAGE_ROOT/upstream,
-
+-  copy the resulting csdp-<version>.tar.gz to SAGE_ROOT/upstream,
    or somewhere else appropriate

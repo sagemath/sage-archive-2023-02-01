@@ -29,11 +29,9 @@ License
 
 -  When released, GPL 2 was in force.
 -  There is a link to a web page, which now points to GPL 3, but would
-
    have pointed to GPL 2 at the time the package was released.
 
 -  Therefore one can deduce the authors were happy for this to be
-
    released under GPL 2 or a later version.
 
 

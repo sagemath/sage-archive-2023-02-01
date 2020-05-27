@@ -43,19 +43,17 @@ update GAP, please also update and use the spkg-src script.
 
    You need the full GAP tree to compile/install many GAP packages.
 
--  There's apparently a command missing (in \`spkg-install`) building
+-  There's apparently a command missing (in ``spkg-install``) building
    the
-
    (HTML?) documentation. Earlier changelog entries as well as the
    description
    above state the documentation was removed from the upstream
    sources...
    Since the (pre-)built HTML documentation is currently included, I've
-   commented out some lines in that part of \`spkg-install`. -leif
+   commented out some lines in that part of ``spkg-install``. -leif
 
 Patches
 ~~~~~~~
 
 -  writeandcheck.patch: fix infinite loop in writeandcheck() when
-
    writing an error message fails.

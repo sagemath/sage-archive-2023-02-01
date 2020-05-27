@@ -18,8 +18,8 @@ Standard PIL License
 Upstream Contact
 ----------------
 
-Author: Alex Clark <aclark@aclark.net> Homepage:
-http://python-imaging.github.io/
+- Author: Alex Clark <aclark@aclark.net>
+- Homepage: http://python-imaging.github.io/
 
 Dependencies
 ------------

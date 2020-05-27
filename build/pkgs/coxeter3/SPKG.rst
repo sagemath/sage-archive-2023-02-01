@@ -46,8 +46,9 @@ None
 Special Update/Build Instructions
 ---------------------------------
 
-The source package was created by running
+The source package was created by running ::
 
-commit=8ac9c71723c8ca57a836d6381aed125261e44e9e git clone
-https://github.com/tscrim/coxeter.git cd coxeter git archive $commit
-\|bzip2 --best >coxeter-$commit.tar.bz2
+    commit=8ac9c71723c8ca57a836d6381aed125261e44e9e
+    git clone https://github.com/tscrim/coxeter.git
+    cd coxeter
+    git archive $commit | bzip2 --best >coxeter-$commit.tar.bz2

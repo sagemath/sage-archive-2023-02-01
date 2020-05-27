@@ -181,6 +181,15 @@ cdef class FractionFieldElement(FieldElement):
             (x^2 + 2.0*x + 1.0)/(x + 1.0)
             sage: f.reduce(); f
             x + 1.0
+
+        TESTS:
+
+        Check that :trac:`8111` is fixed::
+
+            sage: K.<k>= QQ[]
+            sage: frac = (64*k^2+128)/(64*k^3+256)
+            sage: frac.reduce(); frac
+            (k^2 + 2)/(k^3 + 4)
         """
         if self._is_reduced:
             return

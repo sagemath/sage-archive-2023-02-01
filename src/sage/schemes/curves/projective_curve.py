@@ -2573,7 +2573,7 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
 
         EXAMPLES::
 
-            sage; A.<x,y> = AffineSpace(GF(3), 2)
+            sage: A.<x,y> = AffineSpace(GF(3), 2)
             sage: C = Curve(y^2 - x^5 - x^4 - 2*x^3 - 2*x - 2)
             sage: Cbar = C.projective_closure()
             sage: Cbar.L_polynomial()
@@ -2605,7 +2605,7 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
 
         EXAMPLES::
 
-            sage; A.<x,y> = AffineSpace(GF(3), 2)
+            sage: A.<x,y> = AffineSpace(GF(3), 2)
             sage: C = Curve(y^2 - x^5 - x^4 - 2*x^3 - 2*x - 2)
             sage: Cbar = C.projective_closure()
             sage: Cbar.number_of_rational_points(3)

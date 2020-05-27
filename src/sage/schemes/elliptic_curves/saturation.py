@@ -114,6 +114,7 @@ def p_projections(G, Plist, p, debug=False):
     m = n.prime_to_m_part(p)      # prime-to-p part of order
     if debug:
         print("m={}, n={}".format(m,n))
+        print("gens = {}".format(G.gens()))
     if m==n: # p-primary part trivial, nothing to do
         return []
 
@@ -334,9 +335,10 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
                     return Fq(x)
             from sage.all import EllipticCurve
             Ek = EllipticCurve([modq(a) for a in E.ainvs()])
-            G = Ek.abelian_group()
-
-            if not p.divides(G.order()):
+            # computing cardinality faster than computing abelian group
+            if not p.divides(Ek.cardinality()):
+                # if verbose:
+                #     print("E over %s: no %s-torsion, skipping" % (Fq,p))
                 continue
             if verbose:
                 print("E has %s-torsion over %s, projecting points" % (p,Fq))
@@ -344,7 +346,14 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
             if verbose:
                 print(" --> %s" % projPlist)
 
-            vecs = p_projections(G, projPlist, p)
+            G = Ek.abelian_group()
+            try:
+                vecs = p_projections(G, projPlist, p)
+            except ValueError:
+                try:
+                    vecs = p_projections(G, projPlist, p, debug=True)
+                except ValueError:
+                    vecs = []
             for v in vecs:
                 A = matrix(A.rows()+[v])
             newrank = A.rank()

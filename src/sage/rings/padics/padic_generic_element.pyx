@@ -4136,13 +4136,17 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: Qp(5)(10).polylog(1) == -Qp(5)(1-10).log(0)
             True
 
-        The polylogarithm of 1 is not defined ::
+        The dilogarithm of 1 is zero ::
 
             sage: Qp(5)(1).polylog(2)
-            Traceback (most recent call last):
-            ...
-            ValueError: Polylogarithm is not defined for 1.
+            O(5^20)
 
+        The cubing relation holds for the trilogarithm at 1 ::
+
+            sage: K = Qp(7)
+            sage: z = K.zeta(3)
+            sage: -8*K(1).polylog(3) == 9*(K(z).polylog(3) + K(z^2).polylog(3))
+            True
 
         The polylogarithm of 0 is 0 ::
 
@@ -4218,7 +4222,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         if zeta == 1:
             if z == 1:
-                raise ValueError("Polylogarithm is not defined for 1.")
+                return Integer(2)**(n-1)*K(-1).polylog(n, p_branch=p_branch)/(1-Integer(2)**(n-1))
             verbose("residue 1, using _polylog_res_1. %d %s"%(n,str(self)), level=2)
             return self._polylog_res_1(n, p_branch)
 

@@ -3809,9 +3809,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 if verbose:
                     print("..done: %s" % lower_ht_bound)
             index_bound = (reg/lower_ht_bound).sqrt()
-            prime_list = prime_range(index_bound.ceil() + 1)
-            if verbose:
-                print("Testing primes up to %s" % prime_list[-1])
+            if index_bound < 2:
+                if verbose:
+                    print("Saturation index bound < 2, points are saturated already.")
+                return Plist, index, RealField()(1)
+            else:
+                if verbose:
+                    print("p-saturating for primes p < {}".format(index_bound.ceil()))
+            prime_list = prime_range(index_bound.ceil())
         else:
             if one_prime:
                 prime_list = [one_prime]

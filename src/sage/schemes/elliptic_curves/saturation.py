@@ -52,6 +52,7 @@ AUTHORS:
 
 from sage.rings.finite_rings.all import GF
 from sage.rings.all import ZZ
+from sage.arith.all import kronecker_symbol as kro
 from sage.structure.sage_object import SageObject
 
 def reduce(x,amodq):
@@ -114,6 +115,8 @@ class EllipticCurveSaturator(SageObject):
             # computing cardinality faster than computing abelian group
             nq = Eq.cardinality()
             redmodq[amodq] = (nq, Eq)
+            # if self._verbose:
+            #     print("Adding reduction mod ({},a-{}) with cardinality {}".format(q,amodq,nq))
 
     def full_p_saturation(self, Plist, p):
         r"""
@@ -295,6 +298,35 @@ class EllipticCurveSaturator(SageObject):
             ...
             -- points were not 2-saturated, gaining index 2
             (0, (-1/4*a + 3/4 : 59/8*a - 317/8 : 1))
+
+        A CM example where large siecing primes are needed (LMFDB
+        label 2.0.3.1-50625.1-CMb2)::
+
+            sage: K.<a> = NumberField(x^2-x+1)
+            sage: E = EllipticCurve(K, [0, 0, 1, -750, 7906])
+            sage: E.has_rational_cm()
+            True
+            sage: E.cm_discriminant()
+            -27
+            sage: points = [E([10, -38]), E([15/49*a + 760/49, 675/343*a - 884/343])]
+            sage: E.saturation(points, verbose=True) # long time (17s)
+            Computing lower height bound..
+            ..done: 7.168735020029907e-06
+            p-saturating for primes p < 132
+            ...
+            Saturating at p=131
+            --starting full 131-saturation
+            Using sieve method to saturate...
+            E has 131-torsion over Finite Field of size 617011, projecting points
+            --> [(10 : 616973 : 1), (163472 : 610067 : 1)]
+            --rank is now 1
+            --rank is now 2
+            Reached full rank: points were 131-saturated
+            Points were 131-saturated
+            --already 131-saturated
+            ([(10 : -38 : 1), (15/49*a + 760/49 : 675/343*a - 884/343 : 1)],
+            1,
+            0.123378097374749)
         """
         verbose = self._verbose
         # This code does a lot of elliptic curve group structure
@@ -345,9 +377,38 @@ class EllipticCurveSaturator(SageObject):
         A = matrix(GF(p), 0, n)
         rankA = 0
         count = 0
+
+        # We reduce the curve modulo primes Q of degree 1 above
+        # rational primes q chosen as follows: we avoid primes of bad
+        # reduction and primes dividing the discriminant of the
+        # defining polynomial of the field, so that we can avoid
+        # constructing number field primes entirely and just look for
+        # roots amodq of the defining polynomial mod q, then reduction
+        # of the curve is easy.
+
+        # We also avoid primes dividing the denominators of any of the
+        # points: the points would reduce to 0 modulo such primes
+        # anyway, and this way reduction of the points is also easy.
+
+        # Lastly, there is a special case when E has rational CM by
+        # some discriminant D.  In the non-split case (kro(D,p)=-1)
+        # the image of the mod-p Galois representation is cyclic of
+        # order p^2-1 and there will be no p-torsion mod Q unless
+        # Frob(Q) has trivial image; a necessary condition for this is
+        # q=1 (mod p) so we restrict to such q.  That way the density
+        # of q for which there is a point of order p is 1/(p+1)
+        # instead of 1/(p^2-1).  This test was put in after running
+        # many tests: for example, LMFDB curve 2.0.3.1-50625.1-CMb2
+        # has saturation index bound 132 and to saturate at p=131
+        # requires q=617011. (In the split case the density is 1/(p-1)
+        # and there is no simple test.)
+
         avoid = self._avoid + [P[0].denominator_ideal().norm() for P in Plist]
+        cm_test = E.has_rational_cm() and kro(E.cm_discriminant(), p)==-1
         for q in Primes():
             if any(q.divides(m) for m in avoid):
+                continue
+            if cm_test and not p.divides(q-1):
                 continue
             if not q in self._reductions:
                 self.add_reductions(q)
@@ -378,10 +439,10 @@ class EllipticCurveSaturator(SageObject):
                         return False
                     if newrank == rankA:
                         count += 1
-                        if count == 10:
+                        if count == 15:
                             if verbose:
-                                print("! rank same for 10 steps, checking kernel...")
-                            # no increase in rank for the last 10 primes Q
+                                print("! rank same for 15 steps, checking kernel...")
+                            # no increase in rank for the last 15 primes Q
                             # find the points in the kernel and call the no-sieve version
                             vecs = A.right_kernel().basis()
                             if verbose:
@@ -396,7 +457,7 @@ class EllipticCurveSaturator(SageObject):
                             # kernel and compute that linear
                             # combination of the points, giving a
                             # point which is certainly a p-multiple
-                            # modulo 10 primes Q, and we test if it
+                            # modulo 15 primes Q, and we test if it
                             # actually is a p-multiple:
                             if len(Rlist)==1:
                                 R = Rlist[0]
@@ -418,7 +479,7 @@ class EllipticCurveSaturator(SageObject):
 
                             # Else we call the non-sieve version with
                             # a list of points which are all
-                            # p-multiples modulo 10 primes, and we
+                            # p-multiples modulo 15 primes, and we
                             # will just try to divide all linear
                             # combinations of them
                             res = self.p_saturation(Rlist, p, sieve=False)

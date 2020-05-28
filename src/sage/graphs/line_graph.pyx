@@ -129,7 +129,7 @@ Functions
 
 def is_line_graph(g, certificate=False):
     r"""
-    Tests wether the graph is a line graph.
+    Test whether the graph `g` is a line graph.
 
     INPUT:
 
@@ -203,6 +203,11 @@ def is_line_graph(g, certificate=False):
         sage: new_g = gl.is_line_graph(certificate=True)[1]
         sage: g.line_graph().is_isomorphic(gl)
         True
+
+    Verify that :trac:`29740` is fixed::
+        sage: g = Graph('O{e[{}^~z`MDZBZBkXzE^')
+        sage: g.is_line_graph()
+        False
     """
     g._scream_if_not_simple()
 
@@ -219,31 +224,36 @@ def is_line_graph(g, certificate=False):
 
     if g.is_connected():
         try:
+            # we test whether g is a line graph by trying to construct its root graph
             R, isom = root_graph(g)
             if certificate:
                 return True, R, isom
             else:
                 return True
-        except ValueError:
-            # g is not a line graph
-            if certificate:
-                return False, get_certificate(g)
-            else:
-                return False
+        except ValueError as VE:
+            if str(VE) == "This graph is not a line graph !":
+                # g is not a line graph
+                if certificate:
+                    return False, get_certificate(g)
+                else:
+                    return False
+            raise VE
 
-    # g is not connected.
+    # g is not connected, so we apply the above procedure to each connected component
     from sage.graphs.graph import Graph
     R = Graph()
     for gg in g.connected_components_subgraphs():
         try:
             RR, isom = root_graph(gg)
             R += RR
-        except ValueError:
-            # gg is not a line graph
-            if certificate:
-                return False, get_certificate(gg)
-            else:
-                return False
+        except ValueError as VE:
+            if str(VE) == "This graph is not a line graph !":
+                # gg is not a line graph
+                if certificate:
+                    return False, get_certificate(gg)
+                else:
+                    return False
+            raise VE
 
     if certificate:
         _, isom = g.is_isomorphic(R.line_graph(labels=False), certificate=True)
@@ -252,9 +262,9 @@ def is_line_graph(g, certificate=False):
         return True
 
 
-def line_graph(self, labels=True):
+def line_graph(g, labels=True):
     """
-    Returns the line graph of the (di)graph.
+    Return the line graph of the (di)graph ``g``.
 
     INPUT:
 
@@ -402,7 +412,7 @@ def line_graph(self, labels=True):
 
 def root_graph(g, verbose=False):
     r"""
-    Computes the root graph corresponding to the given graph
+    Compute the root graph corresponding to the given graph ``g``
 
     See the documentation of :mod:`sage.graphs.line_graph` to know how it works.
 
@@ -413,16 +423,10 @@ def root_graph(g, verbose=False):
     - ``verbose`` -- boolean (default: ``False``); display some information
       about what is happening inside of the algorithm.
 
-    .. NOTE::
-
-        It is best to use this code through
-        :meth:`~sage.graphs.graph.Graph.is_line_graph`, which first checks that
-        the graph is indeed a line graph, and deals with the disconnected
-        case. But if you are sure of yourself, dig in !
-
     .. WARNING::
 
-        * This code assumes that the graph is connected.
+        This code assumes that `g` is a line graph, and is a connected, undirected graph
+        without multiple edges.
 
     TESTS:
 
@@ -440,6 +444,11 @@ def root_graph(g, verbose=False):
     Non line-graphs::
 
         sage: root_graph(graphs.PetersenGraph())
+        Traceback (most recent call last):
+        ...
+        ValueError: This graph is not a line graph !
+
+        sage: root_graph(Graph('O{e[{}^~z`MDZBZBkXzE^'))
         Traceback (most recent call last):
         ...
         ValueError: This graph is not a line graph !
@@ -464,6 +473,8 @@ def root_graph(g, verbose=False):
         raise ValueError("g cannot have multiple edges !")
     if not g.is_connected():
         raise ValueError("g is not connected !")
+    # is_line_graph expects a particular error message when g is not a line graph
+    not_line_graph = "This graph is not a line graph !"
 
     # Complete Graph ?
     if g.is_clique():
@@ -542,7 +553,7 @@ def root_graph(g, verbose=False):
         # We now associate the clique to all the vertices it contains.
         for v in S:
             if len(v_cliques[v]) == 2:
-                raise ValueError("This graph is not a line graph !")
+                raise ValueError(not_line_graph)
             v_cliques[v].append(tuple(S))
 
         if verbose:
@@ -606,19 +617,14 @@ def root_graph(g, verbose=False):
     # We now build R
     R.add_edges(vertex_to_map.values())
 
-    # Even if whatever is written above is complete nonsense, here we make sure
-    # that we do not return gibberish. Is the line graph of R isomorphic to the
-    # input ? If so, we return R, and the isomorphism. Else, we panic and
-    # scream.
-    #
-    # It's actually "just to make sure twice". This can be removed later if it
-    # turns out to be too costly.
+    # If g is a line graph, then it is isomorphic to the line graph of the graph R that
+    # we have constructed, so we return R (and the isomorphism).
     is_isom, isom = g.is_isomorphic(R.line_graph(labels=False), certificate=True)
+    if is_isom:
+        return R, isom
+    else:
+        raise ValueError(not_line_graph)
 
-    if not is_isom:
-        raise ValueError("This graph is not a line graph !")
-
-    return R, isom
 
 
 

@@ -36,12 +36,10 @@ AUTHORS:
 
 from warnings import warn
 
-from sage.structure.element import get_coercion_model
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method
-from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_domain, PolynomialQuotientRing_generic
+from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_domain
 from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
-
 
 
 
@@ -812,5 +810,5 @@ def solve_with_extension(monic_polynomial, root_names=None, var='x', flatten=Fal
 
     if flatten:
         from sage.misc.flatten import flatten
-        return flatten([[r]*m for r, m in roots])
+        return flatten([[rt]*m for rt, m in roots])
     return roots

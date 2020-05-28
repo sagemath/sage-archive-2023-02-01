@@ -497,10 +497,6 @@ def root_graph(g, verbose=False):
     # From now on we can assume (thanks to Beineke) that no edge belongs to two
     # even triangles at once.
 
-    error_message = ("It looks like there is a problem somewhere. You"
-                     "found a bug here ! Please report it on sage-devel,"
-                     "our google group !")
-
     # Better to work on integers... Everything takes more time otherwise.
     G = g.relabel(inplace=False)
 
@@ -620,7 +616,7 @@ def root_graph(g, verbose=False):
     is_isom, isom = g.is_isomorphic(R.line_graph(labels=False), certificate=True)
 
     if not is_isom:
-        raise Exception(error_message)
+        raise ValueError("This graph is not a line graph !")
 
     return R, isom
 

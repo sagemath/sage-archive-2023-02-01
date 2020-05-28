@@ -39,6 +39,40 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
     """
     An element in a complex reflection group.
     """
+    def __hash__(self):
+        r"""
+        Return a hash for this reflection group element.
+
+        This hash stores both the element as a reduced word and the parent group.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',5])                      # optional - gap3
+            sage: W_hash = set(hash(w) for w in W)                  # optional - gap3
+            sage: len(W_hash) == W.cardinality()                    # optional - gap3
+            True
+
+        TESTS:
+
+        Check that types B and C are hashed differently, see :trac:`29726`::
+
+            sage: WB = ReflectionGroup(['B',5])                     # optional - gap3
+            sage: WC = ReflectionGroup(['C',5])                     # optional - gap3
+
+            sage: WB_hash = set(hash(w) for w in WB)                # optional - gap3
+            sage: WC_hash = set(hash(w) for w in WC)                # optional - gap3
+
+            sage: len(WB_hash) == WB.cardinality()                  # optional - gap3
+            True
+
+            sage: len(WC_hash) == WC.cardinality()                  # optional - gap3
+            True
+
+            sage: WB_hash.intersection(WC_hash)                     # optional - gap3
+            set()
+        """
+        return hash(self._parent) | hash(tuple(self._reduced_word))
+
     def reduced_word(self):
         r"""
         Return a word in the simple reflections to obtain ``self``.

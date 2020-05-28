@@ -39,85 +39,104 @@ from sage.homology.chain_complex import ChainComplex
 from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
 
 from sage.libs.ecl import EclObject, ecl_eval, EclListIterator
-from sage.misc.package import installed_packages, PackageNotFoundError
 
 
-if not 'kenzo' in installed_packages():
-    raise PackageNotFoundError('kenzo')
+def kenzo_installed():
+    """
+    True if Kenzo is installed.
 
-# Redirection of ECL and Maxima stdout to /dev/null
-# This is also done in the Maxima library, but we
-# also do it here for redundancy.
-ecl_eval(r"""(defparameter *dev-null* (make-two-way-stream
-              (make-concatenated-stream) (make-broadcast-stream)))""")
-ecl_eval("(setf original-standard-output *standard-output*)")
-ecl_eval("(setf *standard-output* *dev-null*)")
+    EXAMPLES::
 
-# Loading and initialization of Kenzo
-# Note that it will load kenzo.fas file from $SAGE_LOCAL/lib/ecl/
-ecl_eval("(require :kenzo)")
-ecl_eval("(in-package :cat)")
-ecl_eval("(setf *HOMOLOGY-VERBOSE* nil)")
+        sage: from sage.interfaces.kenzo import kenzo_installed
+        sage: kenzo_installed()    # random
+        False
+    """
+    # Redirection of ECL and Maxima stdout to /dev/null
+    # This is also done in the Maxima library, but we
+    # also do it here for redundancy.
+    ecl_eval(r"""(defparameter *dev-null* (make-two-way-stream
+                  (make-concatenated-stream) (make-broadcast-stream)))""")
+    ecl_eval("(setf original-standard-output *standard-output*)")
+    ecl_eval("(setf *standard-output* *dev-null*)")
+
+    try:
+        ecl_eval("(require :kenzo)")
+    except RuntimeError:
+        return False
+    return True
 
 
 # defining the auxiliary functions as wrappers over the kenzo ones
-__chcm_mat__ = EclObject("chcm-mat")
-__homologie__ = EclObject("homologie")
-__sphere__ = EclObject("sphere")
-__crts_prdc__ = EclObject("crts-prdc")
-__moore__ = EclObject("moore")
-__k_z__ = EclObject("k-z")
-__k_z2__ = EclObject("k-z2")
-__k_zp__ = EclObject("k-zp")
-__echcm__ = EclObject("echcm")
-__loop_space__ = EclObject("loop-space")
-__tnsr_prdc__ = EclObject("tnsr-prdc")
-__classifying_space__ = EclObject("classifying-space")
-__suspension__ = EclObject("suspension")
-__homotopy_list__ = EclObject("homotopy-list")
-__nth__ = EclObject("nth")
-__nlig__ = EclObject("nlig")
-__ncol__ = EclObject("ncol")
-__array_dimensions__ = EclObject("array-dimensions")
-__convertmatrice__ = EclObject("convertmatrice")
-__make_array_to_lists__ = EclObject("make-array-to-lists")
-__make_array_from_lists__ = EclObject("make-array-from-lists")
-__chcm_mat2__ = EclObject("chcm-mat2")
-__build_finite_ss2__ = EclObject("build-finite-ss2")
-__gmsm__ = EclObject("gmsm")
-__dgop__ = EclObject("dgop")
-__dgop_int_ext__ = EclObject("dgop-int-ext")
-__basis_aux1__ = EclObject("basis_aux1")
-__orgn_aux1__ = EclObject("orgn_aux1")
-__dffr_aux_1__ = EclObject("dffr_aux1")
-__kabstractsimplex_aux1__ = EclObject("kabstractsimplex_aux1")
-__kchaincomplex_aux1__ = EclObject("kchaincomplex_aux1")
-__sfinitesimplicialset_aux1__ = EclObject("sfinitesimplicialset_aux1")
-__spectral_sequence_group__ = EclObject("spectral-sequence-group")
-__spectral_sequence_differential_matrix__ = EclObject("spectral-sequence-differential-matrix")
-__eilenberg_moore_spectral_sequence__ = EclObject("eilenberg-moore-spectral-sequence")
-__serre_whitehead_spectral_sequence__ = EclObject("serre-whitehead-spectral-sequence")
-__serre_spectral_sequence_product__ = EclObject("serre-spectral-sequence-product")
-__wedge__ = EclObject("wedge")
-__join__ = EclObject("join")
-__kmorphismchaincomplex_aux1__ = EclObject("kmorphismchaincomplex_aux1")
-__bicomplex_spectral_sequence__ = EclObject("bicomplex-spectral-sequence")
-__nreverse__ = EclObject("nreverse")
-__smash_product__ = EclObject("smash-product")
-__build_mrph_aux__ = EclObject("build-mrph-aux")
-__zero_mrph__ = EclObject("zero-mrph")
-__idnt_mrph__ = EclObject("idnt-mrph")
-__dffr_aux__ = EclObject("dffr-aux")
-__sorc_aux__ = EclObject("sorc-aux")
-__trgt_aux__ = EclObject("trgt-aux")
-__degr_aux__ = EclObject("degr-aux")
-__evaluation_aux1__ = EclObject("evaluation-aux1")
-__opps__ = EclObject("opps")
-__cmps__ = EclObject("cmps")
-__add__ = EclObject("add")
-__sbtr__ = EclObject("sbtr")
-__change_sorc_trgt_aux__ = EclObject("change-sorc-trgt-aux")
-__dstr_change_sorc_trgt_aux__ = EclObject("dstr-change-sorc-trgt-aux")
+kenzo_names = ['add',
+               'array-dimensions',
+               'basis_aux1',
+               'basis_aux1',
+               'bicomplex-spectral-sequence',
+               'build-finite-ss2',
+               'build-mrph-aux',
+               'change-sorc-trgt-aux',
+               'chcm-mat',
+               'chcm-mat2',
+               'classifying-space',
+               'cmps',
+               'convertmatrice',
+               'crts-prdc',
+               'degr-aux',
+               'dffr-aux',
+               'dffr_aux1',
+               'dgop',
+               'dgop-int-ext',
+               'dstr-change-sorc-trgt-aux',
+               'echcm',
+               'eilenberg-moore-spectral-sequence',
+               'evaluation-aux1',
+               'gmsm',
+               'homologie',
+               'homotopy-list',
+               'idnt-mrph',
+               'join',
+               'k-z',
+               'k-z2',
+               'k-zp',
+               'kabstractsimplex_aux1',
+               'kchaincomplex_aux1',
+               'kmorphismchaincomplex_aux1',
+               'loop-space',
+               'make-array-from-lists',
+               'make-array-to-lists',
+               'moore',
+               'ncol',
+               'nlig',
+               'nreverse',
+               'nth',
+               'opps',
+               'orgn_aux1',
+               'sbtr',
+               'serre-spectral-sequence-product',
+               'serre-whitehead-spectral-sequence',
+               'sfinitesimplicialset_aux1',
+               'smash-product',
+               'sorc-aux',
+               'spectral-sequence-differential-matrix',
+               'spectral-sequence-group',
+               'sphere',
+               'suspension',
+               'tnsr-prdc',
+               'trgt-aux',
+               'wedge',
+               'zero-mrph']
+
+
+# Now initialize Kenzo. For each string s in kenzo_names, the
+# following defines __s__, a wrapper for a Kenzo function. For
+# example __sphere__ is defined as EclObject("sphere"). Hyphens
+# are replaced with underscores to get valid Python identifiers.
+if kenzo_installed():
+    ecl_eval("(in-package :cat)")
+    ecl_eval("(setf *HOMOLOGY-VERBOSE* nil)")
+    for s in kenzo_names:
+        name = '__{}__'.format(s.replace('-', '_'))
+        exec('{} = EclObject("{}")'.format(name, s))
 
 
 def Sphere(n):
@@ -627,7 +646,7 @@ class KenzoChainComplex(KenzoObject):
         """
         if dim is not None and comb is not None:
             cmbn_list = pairing(comb)
-            return KenzoObject(__dffr_aux_1__(self._kenzo, dim, cmbn_list))
+            return KenzoObject(__dffr_aux1__(self._kenzo, dim, cmbn_list))
         else:
             return KenzoChainComplexMorphism(__dffr_aux__(self._kenzo))
 
@@ -1121,14 +1140,14 @@ def SChainComplex(kchaincomplex, start=0, end=15):
 
     ::
 
-        sage: from sage.interfaces.kenzo import SChainComplex, Sphere
-        sage: S4 = Sphere(4)
-        sage: C = SChainComplex(S4)
-        sage: C
+        sage: from sage.interfaces.kenzo import SChainComplex, Sphere     # optional - kenzo
+        sage: S4 = Sphere(4)                       # optional - kenzo
+        sage: C = SChainComplex(S4)                # optional - kenzo
+        sage: C                                    # optional - kenzo
         Chain complex with at most 3 nonzero terms over Integer Ring
-        sage: C._ascii_art_()
+        sage: C._ascii_art_()                      # optional - kenzo
         0 <-- C_4 <-- 0  ...  0 <-- C_0 <-- 0
-        sage: [C.homology(i) for i in range(6)]
+        sage: [C.homology(i) for i in range(6)]    # optional - kenzo
         [Z, 0, 0, 0, Z, 0]
     """
     matrices = {}

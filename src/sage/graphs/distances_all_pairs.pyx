@@ -1296,7 +1296,7 @@ cdef uint32_t diameter_dragan(short_digraph g,
     cdef uint32_t next_source = 0  # To store source for next iteration
 
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef uint32_t * distances = <uint32_t *>mem.malloc(4 * n * sizeof(uint32_t))
+    cdef uint32_t * distances = <uint32_t *>mem.malloc(6 * n * sizeof(uint32_t))
     if not distances:
         raise MemoryError()
 
@@ -1309,8 +1309,16 @@ cdef uint32_t diameter_dragan(short_digraph g,
     cdef uint32_t * ecc_upper_bound = distances + 3 * n
     memset(ecc_upper_bound, UINT32_MAX, n * sizeof(uint32_t))
 
-    # list of vertices whose exact eccentricity has been computed
-    cdef list exact = []
+    # For storing lower bound on eccentricity of nodes
+    cdef uint32_t * ecc_lower_bound = distances + 4 * n
+    memset(ecc_lower_bound, 0, n * sizeof(uint32_t))
+
+    cdef uint32_t * distances_1 = distances + 5 * n
+
+    cdef uint32_t e_x, x, next_x, antipode_x
+
+    cdef bitset_t inactive
+    bitset_init(inactive,n)
 
     # Algorithm
     while True:
@@ -1319,29 +1327,49 @@ cdef uint32_t diameter_dragan(short_digraph g,
         source = next_source
         bitset_clear(seen)
         ecc[source] = simple_BFS(g, source, distances, NULL, waiting_list, seen)
-        exact.append(source)
+        bitset_add(inactive,source)
 
         if ecc[source] == UINT32_MAX:  # Disconnected graph
             return UINT32_MAX
 
-        for x in exact:
-            # condition for delegate certificate
-            if distances[x] + ecc[x] == ecc[source]:
+        e_x = UINT32_MAX
+        for v in range(n):
+            if distances[v] + ecc_lower_bound[v] <= ecc[source]:
+                if e_x > ecc_lower_bound[v]:
+                    next_x = v
+                    e_x = ecc_lower_bound[v]
+
+        while True:
+            x = next_x
+            bitset_clear(seen)
+            ecc[x] = simple_BFS(g, x, distances_1, NULL, waiting_list, seen)
+            bitset_add(inactive, x)
+
+            LB = max(LB, ecc[x])
+            if ecc[x] == ecc_lower_bound[x]:
                 delegate_certificate = x
                 break
 
-        if delegate_certificate != source:
+            antipode_x = waiting_list[n-1]
             bitset_clear(seen)
-            ecc[delegate_certificate] = simple_BFS(g, delegate_certificate, distances, NULL, waiting_list, seen)
-            exact.append(delegate_certificate)
+            ecc[antipode_x] = simple_BFS(g, antipode_x, distances_1, NULL, waiting_list, seen)
+            LB = max(LB, ecc[antipode_x])
+            bitset_add(inactive, antipode_x)
 
-        LB = max(LB,ecc[source])
+            e_x = UINT32_MAX
+            for v in range(n):
+                ecc_lower_bound[v] = max(ecc_lower_bound[v], distances_1[v])
+                if distances[v] + ecc_lower_bound[v] <= ecc[source]:
+                    if e_x > ecc_lower_bound[v]:
+                        next_x = v
+                        e_x = ecc_lower_bound[v]
+
+        LB = max(LB, ecc[source])
         UB = 0
-
         # 2). use distances from delegate certificate to update
         # upper bound on eccentricity of vertices
         for v in range(n):
-            ecc_upper_bound[v] = min(ecc_upper_bound[v], distances[v] + ecc[delegate_certificate])
+            ecc_upper_bound[v] = min(ecc_upper_bound[v], distances_1[v] + ecc[delegate_certificate])
             if UB < ecc_upper_bound[v]:
                 UB = ecc_upper_bound[v]
                 next_source = v

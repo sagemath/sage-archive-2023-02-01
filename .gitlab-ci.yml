@@ -100,6 +100,7 @@ build-from-latest:
     - .ci/build-docker.sh | tee gitlab-build-docker.log | .ci/head-tail.sh 1048576
     - .ci/push-gitlab.sh sagemath-dev
     - .ci/push-gitlab.sh sagemath
+    - DOCKER_TAG=$CI_COMMIT_SHA .ci/push-gitlab.sh sagemath
   except:
     - master
     - develop

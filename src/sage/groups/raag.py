@@ -698,14 +698,9 @@ class CohomologyRAAG(CombinatorialFreeModule):
             sage: y*w + x*z
             -e0*e2 + e1*e3
         """
-        if len(m) == 0:
+        if not m:
             return '1'
-        term = ''
-        for i in m:
-            if len(term) != 0:
-                term += '*'
-            term += 'e' + str(i)
-        return term
+        return '*'.join('e' + str(i) for i in m)
 
     def _ascii_art_term(self, m):
         r"""
@@ -722,7 +717,7 @@ class CohomologyRAAG(CombinatorialFreeModule):
             sage: ascii_art(y*w + 2*x*z)
             -e0/\e2 + 2*e1/\e3
         """
-        if len(m) == 0:
+        if not m:
             return ascii_art('1')
         wedge = '/\\'
         return ascii_art(*['e' + str(i) for i in m], sep=wedge)
@@ -742,7 +737,7 @@ class CohomologyRAAG(CombinatorialFreeModule):
             sage: unicode_art(y*w + x*z)
             -e0∧e2 + e1∧e3
         """
-        if len(m) == 0:
+        if not m:
             return unicode_art('1')
         import unicodedata
         wedge = unicodedata.lookup('LOGICAL AND')
@@ -759,17 +754,12 @@ class CohomologyRAAG(CombinatorialFreeModule):
             sage: A = groups.misc.RightAngledArtin(C4)
             sage: H = A.cohomology()
             sage: H._latex_term((0,1,3))
-            ' e_{0} \\wedge e_{1} \\wedge e_{3}'
+            'e_{0} \\wedge e_{1} \\wedge e_{3}'
         """
-        if len(m) == 0:
+        if not m:
             return '1'
-        term = ''
         from sage.misc.latex import latex
-        for i in m:
-            if len(term) != 0:
-                term += ' \\wedge'
-            term += ' e_{{{}}}'.format(latex(i))
-        return term
+        return " \\wedge ".join('e_{{{}}}'.format(latex(i)) for i in m)
 
     def gen(self, i):
         """

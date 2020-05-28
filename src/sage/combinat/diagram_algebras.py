@@ -245,7 +245,7 @@ class AbstractPartitionDiagram(AbstractSetPartition):
         ...
         ValueError: {{1, 2}, {3, 4}} does not represent two rows of vertices of order 2
     """
-    def __init__(self, parent, d):
+    def __init__(self, parent, d, check=True):
         r"""
         Initialize ``self``.
 
@@ -256,7 +256,7 @@ class AbstractPartitionDiagram(AbstractSetPartition):
             sage: pd1 = da.AbstractPartitionDiagram(pd, ((-2,-1),(1,2)) )
         """
         self._base_diagram = tuple(sorted(tuple(sorted(i)) for i in d))
-        super(AbstractPartitionDiagram, self).__init__(parent, self._base_diagram)
+        super(AbstractPartitionDiagram, self).__init__(parent, self._base_diagram, check=check)
 
     def check(self):
         r"""
@@ -401,7 +401,7 @@ class AbstractPartitionDiagram(AbstractSetPartition):
         """
         return SetPartitions()(self)
 
-    def compose(self, other):
+    def compose(self, other, check=True):
         r"""
         Compose ``self`` with ``other``.
 
@@ -426,7 +426,7 @@ class AbstractPartitionDiagram(AbstractSetPartition):
             ({{-2, -1}, {1, 2}}, 1)
         """
         (composite_diagram, loops_removed) = set_partition_composition(self._base_diagram, other._base_diagram)
-        return (self.__class__(self.parent(), composite_diagram), loops_removed)
+        return (self.__class__(self.parent(), composite_diagram, check=check), loops_removed)
 
     def propagating_number(self):
         r"""
@@ -1215,7 +1215,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
         #   treat it like an attribute, so we call the underlying
         #   __func__.
         for i in self._diagram_func.__func__(self.order):
-            yield self.element_class(self, i)
+            yield self.element_class(self, i, check=False)
 
     def __contains__(self, obj):
         r"""
@@ -2164,7 +2164,7 @@ class DiagramBasis(DiagramAlgebra):
             d1 = self._indices(d1)
         if not self._indices.is_parent_of(d2):
             d2 = self._indices(d2)
-        (composite_diagram, loops_removed) = d1.compose(d2)
+        (composite_diagram, loops_removed) = d1.compose(d2, check=False)
         return self.term(composite_diagram, self._q**loops_removed)
 
 class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
@@ -3087,7 +3087,7 @@ class OrbitBasis(DiagramAlgebra):
                         for sigma in Permutations(Y):
                             yield [x.union(y) for x, y in zip(X, sigma)] + restA + restB
 
-        D, removed = d1.compose(d2)
+        D, removed = d1.compose(d2, check=False)
         only_top = set([frozenset(part) for part in d1
                         if all(i > 0 for i in part)])
         only_bottom = set([frozenset(part) for part in d2

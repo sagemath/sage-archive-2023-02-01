@@ -242,7 +242,7 @@ class SplittingAlgebra(PolynomialQuotientRing_domain):
                 warn('Assuming %s to be an integral domain!' %(base_ring))
 
 
-        if deg < 1 :
+        if deg < 1:
             raise ValueError( "the degree of the polynomial must positive" )
 
         self._splitting_roots     = []
@@ -316,7 +316,7 @@ class SplittingAlgebra(PolynomialQuotientRing_domain):
 
             verbose("final ring defined splitting_roots: %s" %(self._splitting_roots))
 
-        if deg == 2 :
+        if deg == 2:
             coefficients = monic_polynomial.coefficients(sparse=False)
             lin_coeff = coefficients[1]
             self._splitting_roots.append(-lin_coeff - first_root)
@@ -502,7 +502,7 @@ class SplittingAlgebra(PolynomialQuotientRing_domain):
         im_gens_start = [img for img in im_gens if im_gens.index(img) <  num_gens]
         im_gens_end   = [img for img in im_gens if im_gens.index(img) >= num_gens]
 
-        if len(im_gens_end) == 0 :
+        if len(im_gens_end) == 0:
             return super(SplittingAlgebra, self).hom(im_gens, codomain=codomain, check=check, base_map=base_map)
 
         verbose('base %s im_gens_end %s codomain %s check %s base_map %s' %(base_ring, im_gens_end, codomain, check, base_map))
@@ -778,12 +778,12 @@ def solve_with_extension(monic_polynomial, root_names=None, var='x', flatten=Fal
     except (TypeError, ValueError, NotImplementedError):
         pass
 
-    if len(root_list) == 0 :
+    if len(root_list) == 0:
         # ------------------------------------------------------------------------------
         # no roots found: find roots in an appropriate extension ring
         # ------------------------------------------------------------------------------
         verbose("no roots in base_ring")
-        if len(name_list) > deg_pol -1 :
+        if len(name_list) > deg_pol -1:
             name_list = [name_list[i] for i in range(deg_pol-1 )]
         roots = create_roots(monic_polynomial, warning=warning)
 
@@ -799,7 +799,7 @@ def solve_with_extension(monic_polynomial, root_names=None, var='x', flatten=Fal
             for r, m in root_list:
                 divisor *= (h - r)**m
             q, r = monic_polynomial.quo_rem(divisor)
-            if len(name_list) > deg_pol - num_roots -1 :
+            if len(name_list) > deg_pol - num_roots -1:
                 name_list = [name_list[i] for i in range(deg_pol - num_roots -1 )]
             verbose("%d root found in base ring, now solving %s" %(num_roots,q))
             missing_roots = create_roots(q, warning=True)

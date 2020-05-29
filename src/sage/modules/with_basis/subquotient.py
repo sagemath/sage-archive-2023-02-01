@@ -175,7 +175,7 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
       can be converted into such a family
 
     - ``support_order`` -- an ordering of the support of ``basis``
-      expressed in ``ambient``
+      expressed in ``ambient`` given as a list
 
     - ``unitriangular`` -- if the lift morphism is unitriangular
 

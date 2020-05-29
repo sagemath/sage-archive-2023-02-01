@@ -1,5 +1,5 @@
 r"""
-Catalan Tableaux
+Dyck Paths
 
 This is an implementation of the abstract base class
 :class:`sage.combinat.pathtableau.pathtableaux`.
@@ -20,7 +20,7 @@ Here we illustrate the slogan that promotion = rotation.
 
 EXAMPLES::
 
-    sage: t = CatalanTableau([0,1,2,3,2,1,0])
+    sage: t = DyckPath([0,1,2,3,2,1,0])
     sage: t.to_perfect_matching()
     [(0, 5), (1, 4), (2, 3)]
 
@@ -60,7 +60,7 @@ from sage.rings.integer import Integer
 
 ###############################################################################
 
-class CatalanTableau(PathTableau):
+class DyckPath(PathTableau):
     r"""
     An instance is the sequence of nonnegative
     integers given by the heights of a Dyck word.
@@ -74,19 +74,19 @@ class CatalanTableau(PathTableau):
 
     EXAMPLES::
 
-        sage: CatalanTableau([0,1,2,1,0])
+        sage: DyckPath([0,1,2,1,0])
         [0, 1, 2, 1, 0]
 
         sage: w = DyckWord([1,1,0,0])
-        sage: CatalanTableau(w)
+        sage: DyckPath(w)
         [0, 1, 2, 1, 0]
 
         sage: p = PerfectMatching([(1,2),(3,4)])
-        sage: CatalanTableau(p)
+        sage: DyckPath(p)
         [0, 1, 0, 1, 0]
 
         sage: t = Tableau([[1,2],[3,4]])
-        sage: CatalanTableau(t)
+        sage: DyckPath(t)
         [0, 1, 2, 1, 0]
     """
 
@@ -98,16 +98,16 @@ class CatalanTableau(PathTableau):
 
         TESTS::
 
-            sage: t = CatalanTableau([0,1,2,1,0])
+            sage: t = DyckPath([0,1,2,1,0])
 
             sage: t.parent()
-            <sage.combinat.path_tableaux.catalan.CatalanTableaux_with_category object at ...>
+            <sage.combinat.path_tableaux.catalan.DyckPaths_with_category object at ...>
             sage: t.category()
-            Category of elements of <sage.combinat.path_tableaux.catalan.CatalanTableaux_with_category object at ...>
+            Category of elements of <sage.combinat.path_tableaux.catalan.DyckPaths_with_category object at ...>
             sage: type(t)
-            <class 'sage.combinat.path_tableaux.catalan.CatalanTableaux_with_category.element_class'>
+            <class 'sage.combinat.path_tableaux.catalan.DyckPaths_with_category.element_class'>
         """
-        return CatalanTableaux()(ot)
+        return DyckPaths()(ot)
 
     def __init__(self, parent, ot, check=True):
         r"""
@@ -125,37 +125,37 @@ class CatalanTableau(PathTableau):
 
         TESTS::
 
-            sage: CatalanTableau([0,1,2,1,0])
+            sage: DyckPath([0,1,2,1,0])
             [0, 1, 2, 1, 0]
-            sage: CatalanTableau(DyckWord([1, 0, 1, 0]))
+            sage: DyckPath(DyckWord([1, 0, 1, 0]))
             [0, 1, 0, 1, 0]
-            sage: CatalanTableau(PerfectMatching([(1, 4), (2, 3), (5, 6)]))
+            sage: DyckPath(PerfectMatching([(1, 4), (2, 3), (5, 6)]))
             [0, 1, 2, 1, 0, 1, 0]
-            sage: CatalanTableau(Tableau([[1,2,4],[3,5,6]]))
+            sage: DyckPath(Tableau([[1,2,4],[3,5,6]]))
             [0, 1, 2, 1, 2, 1, 0]
-            sage: CatalanTableau(SkewTableau([[None, 1,4],[2,3]]))
+            sage: DyckPath(SkewTableau([[None, 1,4],[2,3]]))
             [1, 2, 1, 0, 1]
-            sage: CatalanTableau(PerfectMatching([(1, 3), (2, 4), (5, 6)]))
+            sage: DyckPath(PerfectMatching([(1, 3), (2, 4), (5, 6)]))
             Traceback (most recent call last):
             ...
             ValueError: the perfect matching must be non crossing
-            sage: CatalanTableau(Tableau([[1,2,5],[3,5,6]]))
+            sage: DyckPath(Tableau([[1,2,5],[3,5,6]]))
             Traceback (most recent call last):
             ...
             ValueError: the tableau must be standard
-            sage: CatalanTableau(Tableau([[1,2,4],[3,5,6],[7]]))
+            sage: DyckPath(Tableau([[1,2,4],[3,5,6],[7]]))
             Traceback (most recent call last):
             ...
             ValueError: the tableau must have at most two rows
-            sage: CatalanTableau(SkewTableau([[None, 1,4],[2,3],[5]]))
+            sage: DyckPath(SkewTableau([[None, 1,4],[2,3],[5]]))
             Traceback (most recent call last):
             ...
             ValueError: the skew tableau must have at most two rows
-            sage: CatalanTableau([0,1,2.5,1,0])
+            sage: DyckPath([0,1,2.5,1,0])
             Traceback (most recent call last):
             ...
             ValueError: [0, 1, 2.50000000000000, 1, 0] is not a sequence of integers
-            sage: CatalanTableau(Partition([3,2,1]))
+            sage: DyckPath(Partition([3,2,1]))
             Traceback (most recent call last):
             ...
             ValueError: invalid input [3, 2, 1]
@@ -214,12 +214,12 @@ class CatalanTableau(PathTableau):
 
         TESTS::
 
-            sage: CatalanTableau([0,1,0,-1,0]) # indirect doctest
+            sage: DyckPath([0,1,0,-1,0]) # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: [0, 1, 0, -1, 0] has a negative entry
 
-            sage: CatalanTableau([0,1,3,1,0]) # indirect doctest
+            sage: DyckPath([0,1,3,1,0]) # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: [0, 1, 3, 1, 0] is not a Dyck path
@@ -240,13 +240,13 @@ class CatalanTableau(PathTableau):
 
         EXAMPLES::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t._local_rule(3)
             [0, 1, 2, 1, 2, 1, 0]
 
         TESTS::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t._local_rule(0)
             Traceback (most recent call last):
             ...
@@ -279,10 +279,10 @@ class CatalanTableau(PathTableau):
 
         EXAMPLES::
 
-            sage: CatalanTableau([0,1,2,1]).is_skew()
+            sage: DyckPath([0,1,2,1]).is_skew()
             False
 
-            sage: CatalanTableau([1,0,1,2,1]).is_skew()
+            sage: DyckPath([1,0,1,2,1]).is_skew()
             True
         """
         return self[0] != 0
@@ -294,7 +294,7 @@ class CatalanTableau(PathTableau):
 
         EXAMPLES::
 
-            sage: c = CatalanTableau([0,1,2,1,0])
+            sage: c = DyckPath([0,1,2,1,0])
             sage: c.to_DyckWord()
             [1, 1, 0, 0]
         """
@@ -306,7 +306,7 @@ class CatalanTableau(PathTableau):
 
         EXAMPLES::
 
-            sage: CatalanTableau([0,1,2,1,2,1,0,1,0]).descents()
+            sage: DyckPath([0,1,2,1,2,1,0,1,0]).descents()
             {3, 6}
         """
         result = set()
@@ -323,7 +323,7 @@ class CatalanTableau(PathTableau):
 
         EXAMPLES::
 
-            sage: CatalanTableau([1,0,1,2,1]).to_word()
+            sage: DyckPath([1,0,1,2,1]).to_word()
             [0, 1, 1, 0]
         """
         return [ (self[i+1]-self[i]+1)/2 for i in range(self.size()-1) ]
@@ -334,12 +334,12 @@ class CatalanTableau(PathTableau):
 
         EXAMPLES::
 
-            sage: CatalanTableau([0,1,2,1,2,1,0,1,0]).to_perfect_matching()
+            sage: DyckPath([0,1,2,1,2,1,0,1,0]).to_perfect_matching()
             [(0, 5), (1, 2), (3, 4), (6, 7)]
 
         TESTS::
 
-            sage: CatalanTableau([1,2,1,2,1,0,1]).to_perfect_matching()
+            sage: DyckPath([1,2,1,2,1,0,1]).to_perfect_matching()
             Traceback (most recent call last):
             ...
             ValueError: [1, 2, 1, 2, 1, 0, 1] does not start at 0
@@ -361,11 +361,11 @@ class CatalanTableau(PathTableau):
 
         EXAMPLES::
 
-            sage: T = CatalanTableau([0,1,2,3,2,3])
+            sage: T = DyckPath([0,1,2,3,2,3])
             sage: T.to_tableau()
             [[1, 2, 3, 5], [4]]
 
-            sage: U = CatalanTableau([2,3,2,3])
+            sage: U = DyckPath([2,3,2,3])
             sage: U.to_tableau()
             [[None, None, 1, 3], [2]]
         """
@@ -377,9 +377,9 @@ class CatalanTableau(PathTableau):
         else:
             return StandardTableau([top,bot])
 
-class CatalanTableaux(PathTableaux):
+class DyckPaths(PathTableaux):
     """
-    The parent class for CatalanTableau.
+    The parent class for DyckPath.
     """
-    Element = CatalanTableau
+    Element = DyckPath
 

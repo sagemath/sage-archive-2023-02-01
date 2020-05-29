@@ -3747,7 +3747,7 @@ def TL_diagram_ascii_art(diagram, use_unicode=False, blobs=[]):
     INPUT:
 
     - ``diagram`` -- a list of pairs of matchings of the set
-      `\{-1, \dotsc, -n, 1, \dotsc, n\}`
+      `\{-1, \ldots, -n, 1, \ldots, n\}`
     - ``use_unicode`` -- (default: ``False``): whether or not
       to use unicode art instead of ascii art
     - ``blobs`` -- (optional) a list of matchings with blobs on them

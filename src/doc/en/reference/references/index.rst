@@ -2863,7 +2863,7 @@ REFERENCES:
 
 .. [ILZ2018] \K. Iohara, G. Lehrer, and R. Zhang.
              *Schur-Weyl duality for certain infinite dimensional*
-             `U_q(\mathfrak{sl}_2`-*modules*.
+             `U_q(\mathfrak{sl}_2)`-*modules*.
              Preprint, :arxiv:`1811.01325` (2018).
 
 .. [IR1990] \K. Ireland and M. Rosen, *A Classical Introduction to

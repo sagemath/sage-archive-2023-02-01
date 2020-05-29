@@ -39,31 +39,7 @@ from sage.homology.chain_complex import ChainComplex
 from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
 
 from sage.libs.ecl import EclObject, ecl_eval, EclListIterator
-
-
-def kenzo_installed():
-    """
-    True if Kenzo is installed.
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.kenzo import kenzo_installed
-        sage: kenzo_installed()    # random
-        False
-    """
-    # Redirection of ECL and Maxima stdout to /dev/null
-    # This is also done in the Maxima library, but we
-    # also do it here for redundancy.
-    ecl_eval(r"""(defparameter *dev-null* (make-two-way-stream
-                  (make-concatenated-stream) (make-broadcast-stream)))""")
-    ecl_eval("(setf original-standard-output *standard-output*)")
-    ecl_eval("(setf *standard-output* *dev-null*)")
-
-    try:
-        ecl_eval("(require :kenzo)")
-    except RuntimeError:
-        return False
-    return True
+from sage.features.kenzo import Kenzo
 
 
 # defining the auxiliary functions as wrappers over the kenzo ones
@@ -131,7 +107,7 @@ kenzo_names = ['add',
 # following defines __s__, a wrapper for a Kenzo function. For
 # example __sphere__ is defined as EclObject("sphere"). Hyphens
 # are replaced with underscores to get valid Python identifiers.
-if kenzo_installed():
+if Kenzo().is_present():
     ecl_eval("(in-package :cat)")
     ecl_eval("(setf *HOMOLOGY-VERBOSE* nil)")
     for s in kenzo_names:

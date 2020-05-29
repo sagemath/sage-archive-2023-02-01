@@ -108,6 +108,7 @@ kenzo_names = ['add',
 # example __sphere__ is defined as EclObject("sphere"). Hyphens
 # are replaced with underscores to get valid Python identifiers.
 if Kenzo().is_present():
+    ecl_eval("(require :kenzo)")
     ecl_eval("(in-package :cat)")
     ecl_eval("(setf *HOMOLOGY-VERBOSE* nil)")
     for s in kenzo_names:

@@ -1967,6 +1967,9 @@ REFERENCES:
             Version
             1.3". 2013. http://www.wolfgang-ehrhardt.de/specialfunctions.pdf.
 
+.. [EL2002] Ekedahl, Torsten & Laksov, Dan. (2002). *Splitting algebras, Symmetric functions and
+            Galois Theory*. J. Algebra Appl. 4, :doi:`10.1142/S0219498805001034`
+
 .. [EM2001] Pavel Etingof and Xiaoguang Ma.
             *Lecture notes on Cherednik algebras*.
             http://www-math.mit.edu/~etingof/73509.pdf :arxiv:`1001.0432`.
@@ -3384,6 +3387,9 @@ REFERENCES:
              Mémoire de maîtrise en Mathématiques, Montréal, UQAM,
              2008, 109 pages.
 
+.. [Lak2010] Dan Laksov. *Splitting algebras and Gysin homomorphisms*.
+             Journal of Commutative Algebra, Volume 2, Number 3, Fall 2010
+
 .. [Lam1996] \T. K. Lam. *B and D analogues of stable Schubert polynomials and
              related insertion algorithms*. PhD Thesis, MIT, 1996.
 
@@ -3666,6 +3672,9 @@ REFERENCES:
 .. [LT2009] \G. I. Lehrer and D. E. Taylor. *Unitary reflection
             groups*. Australian Mathematical Society Lecture
             Series, 2009.
+
+.. [LT2012] Dan Laksov, Anders Thorup. *Splitting algebras and Schubert calculus*,
+            Indiana Univ. Math. J. 61 (2012), 1253-1312 :doi:`10.1512/iumj.2012.61.4791`
 
 .. [DeLuca2006] \A. De Luca, *Pseudopalindrome closure operators in free
               monoids*, Theoret. Comput. Sci. 362 (2006) 282--300.
@@ -5163,6 +5172,9 @@ REFERENCES:
 .. [Tho2010] \T. Thongjunthug, Computing a lower bound for the canonical
              height on elliptic curves over number fields, Math. Comp. 79
              (2010), pages 2431-2449.
+
+.. [Tho2011] Anders Thorup. *ON THE INVARIANTS OF THE SPLITTING ALGEBRA*,
+             2011, :arxiv:`1105.4478`
 
 .. [TIDES] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. TIDES tutorial:
            Integrating ODEs by using the Taylor Series Method

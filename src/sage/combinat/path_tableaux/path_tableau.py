@@ -67,7 +67,7 @@ class PathTableau(ClonableArray):
         EXAMPLES::
 
             sage: t = DyckPath([0,1,2,3,2,1,0])
-            sage: t._local_rule(3)
+            sage: t.local_rule(3)
             [0, 1, 2, 1, 2, 1, 0]
         """
 
@@ -123,7 +123,7 @@ class PathTableau(ClonableArray):
         """
         with self.clone() as result:
             for i in range(1,len(result)-1):
-                result = result._local_rule(i)
+                result = result.local_rule(i)
 
         return result
 
@@ -212,7 +212,7 @@ class PathTableau(ClonableArray):
             if verbose:
                 print(path[n-i:n+m-i])
             for j in range(m-1):
-                path = path._local_rule(n+j-i)
+                path = path.local_rule(n+j-i)
         if verbose:
             print(path[:m])
 
@@ -286,7 +286,7 @@ class PathTableau(ClonableArray):
         """
         tester = self._tester(**options)
         for i in range(self.size()-2):
-            tester.assertTrue(self._local_rule(i+1)._local_rule(i+1) == self)
+            tester.assertTrue(self.local_rule(i+1).local_rule(i+1) == self)
 
 
     def _test_involution_cactus(self, **options):
@@ -450,7 +450,7 @@ class PathTableaux(UniqueRepresentation,Parent):
 
             sage: t = DyckPath([0,1,2,1,0])
             sage: t.parent() # indirect test
-            <sage.combinat.path_tableaux.catalan.DyckPaths_with_category object at ...>
+            <sage.combinat.path_tableaux.dyck_path.DyckPaths_with_category object at ...>
         """
         Parent.__init__(self, category=Sets())
 

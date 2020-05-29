@@ -101,17 +101,17 @@ class DyckPath(PathTableau):
             sage: t = DyckPath([0,1,2,1,0])
 
             sage: t.parent()
-            <sage.combinat.path_tableaux.catalan.DyckPaths_with_category object at ...>
+            <sage.combinat.path_tableaux.dyck_path.DyckPaths_with_category object at ...>
             sage: t.category()
-            Category of elements of <sage.combinat.path_tableaux.catalan.DyckPaths_with_category object at ...>
+            Category of elements of <sage.combinat.path_tableaux.dyck_path.DyckPaths_with_category object at ...>
             sage: type(t)
-            <class 'sage.combinat.path_tableaux.catalan.DyckPaths_with_category.element_class'>
+            <class 'sage.combinat.path_tableaux.dyck_path.DyckPaths_with_category.element_class'>
         """
         return DyckPaths()(ot)
 
     def __init__(self, parent, ot, check=True):
         r"""
-        Initialize a Catalan tableau.
+        Initialize a Dyck path.
 
         INPUT:
 
@@ -231,7 +231,7 @@ class DyckPath(PathTableau):
             if abs(self[i+1]-self[i]) != 1:
                 raise ValueError( "%s is not a Dyck path" % str(self) )
 
-    def _local_rule(self,i):
+    def local_rule(self,i):
         """
         This has input a list of objects. This method first takes
         the list of objects of length three consisting of the `(i-1)`-st,
@@ -241,19 +241,19 @@ class DyckPath(PathTableau):
         EXAMPLES::
 
             sage: t = DyckPath([0,1,2,3,2,1,0])
-            sage: t._local_rule(3)
+            sage: t.local_rule(3)
             [0, 1, 2, 1, 2, 1, 0]
 
         TESTS::
 
             sage: t = DyckPath([0,1,2,3,2,1,0])
-            sage: t._local_rule(0)
+            sage: t.local_rule(0)
             Traceback (most recent call last):
             ...
             ValueError: 0 is not a valid integer
-            sage: t._local_rule(5)
+            sage: t.local_rule(5)
             [0, 1, 2, 3, 2, 1, 0]
-            sage: t._local_rule(6)
+            sage: t.local_rule(6)
             Traceback (most recent call last):
             ...
             ValueError: 6 is not a valid integer

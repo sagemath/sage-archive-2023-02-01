@@ -1292,8 +1292,7 @@ cdef uint32_t diameter_dragan(short_digraph g,
     cdef uint32_t source
     cdef uint32_t delegate_certificate
     cdef uint32_t LB = 0
-    cdef uint32_t UB = 0
-    cdef uint32_t next_source = 0  # To store source for next iteration
+    cdef uint32_t UB = UINT32_MAX
 
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef uint32_t * distances = <uint32_t *>mem.malloc(6 * n * sizeof(uint32_t))
@@ -1314,65 +1313,91 @@ cdef uint32_t diameter_dragan(short_digraph g,
     memset(ecc_lower_bound, 0, n * sizeof(uint32_t))
 
     cdef uint32_t * distances_1 = distances + 5 * n
-
-    cdef uint32_t e_x, x, next_x, antipode_x
+    cdef uint32_t e_x, x, antipode_x
 
     cdef bitset_t inactive
     bitset_init(inactive,n)
 
+    cdef active = [i for i in range(n)]
+    # index of source node for simple_BFS in active
+    cdef idx = 0
+
     # Algorithm
     while True:
         # 1). Take vertex with maximum eccentricity upper bound as source
-        # and obtain its eccentricity
-        source = next_source
+        # and compute its eccentricity
+        active[idx], active[-1] = active[-1], active[idx]
+        source = active.pop()
+
         bitset_clear(seen)
         ecc[source] = simple_BFS(g, source, distances, NULL, waiting_list, seen)
         bitset_add(inactive,source)
+        LB = max(LB, ecc[source])
 
         if ecc[source] == UINT32_MAX:  # Disconnected graph
             return UINT32_MAX
 
         e_x = UINT32_MAX
-        for v in range(n):
+        idx = -1
+        for i, v in enumerate(active):
+            ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
             if distances[v] + ecc_lower_bound[v] <= ecc[source]:
                 if e_x > ecc_lower_bound[v]:
-                    next_x = v
+                    idx = i
                     e_x = ecc_lower_bound[v]
 
+        # 2) obtaining delegate certificate of source
         while True:
-            x = next_x
+            if not len(active):
+                return LB
+            #print(len(active))
+            active[idx], active[-1] = active[-1], active[idx]
+            x = active.pop()
             bitset_clear(seen)
             ecc[x] = simple_BFS(g, x, distances_1, NULL, waiting_list, seen)
             bitset_add(inactive, x)
 
             LB = max(LB, ecc[x])
-            if ecc[x] == ecc_lower_bound[x]:
+
+            if ecc[x] == ecc_lower_bound[x]:  # delegate certificate found
                 delegate_certificate = x
                 break
 
             antipode_x = waiting_list[n-1]
+            if not bitset_in(inactive, antipode_x):
+                idx = active.index(antipode_x)
+                active[idx], active[-1] = active[-1], active[idx]
+                active.pop()
+
             bitset_clear(seen)
             ecc[antipode_x] = simple_BFS(g, antipode_x, distances_1, NULL, waiting_list, seen)
-            LB = max(LB, ecc[antipode_x])
             bitset_add(inactive, antipode_x)
 
+            LB = max(LB, ecc[antipode_x])
+
+            # use distances from antipode_x to update
+            # lower bound on eccentricity
             e_x = UINT32_MAX
-            for v in range(n):
+            idx = -1
+            for i, v in enumerate(active):
                 ecc_lower_bound[v] = max(ecc_lower_bound[v], distances_1[v])
                 if distances[v] + ecc_lower_bound[v] <= ecc[source]:
                     if e_x > ecc_lower_bound[v]:
-                        next_x = v
+                        idx = i
                         e_x = ecc_lower_bound[v]
+            #if idx == -1:
+            #    delegate_certificate = x
+            #    break
 
-        LB = max(LB, ecc[source])
         UB = 0
-        # 2). use distances from delegate certificate to update
+        idx = -1
+        # 3) use distances from delegate certificate to update
         # upper bound on eccentricity of vertices
-        for v in range(n):
+        for i, v in enumerate(active):
             ecc_upper_bound[v] = min(ecc_upper_bound[v], distances_1[v] + ecc[delegate_certificate])
             if UB < ecc_upper_bound[v]:
                 UB = ecc_upper_bound[v]
-                next_source = v
+                idx = i
 
         if UB <= LB:
             return LB

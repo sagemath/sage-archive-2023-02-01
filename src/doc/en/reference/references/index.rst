@@ -2420,6 +2420,10 @@ REFERENCES:
 .. [Gr2007] \J. Green, Polynomial representations of `GL_n`, Springer
             Verlag, 2007.
 
+.. [Graham1985] \J. Graham,
+                *Modular representations of Hecke algebras and related algebras*.
+                PhD thesis, University of Sydney, 1985.
+
 .. [GriRei18] Darij Grinberg, Victor Reiner,
               *Hopf Algebras in Combinatorics*,
               :arxiv:`1409.8356v5`.
@@ -2856,6 +2860,11 @@ REFERENCES:
              articulation points in linear time*. Theoretical Computer
              Science, 447, 74–84 (2012).
              :doi:`10.1016/j.tcs.2011.11.011`
+
+.. [ILZ2018] \K. Iohara, G. Lehrer, and R. Zhang.
+             *Schur-Weyl duality for certain infinite dimensional*
+             `U_q(\mathfrak{sl}_2`-*modules*.
+             Preprint, :arxiv:`1811.01325` (2018).
 
 .. [IR1990] \K. Ireland and M. Rosen, *A Classical Introduction to
             Modern Number Theory*, Springer-Verlag, GTM volume
@@ -3977,6 +3986,10 @@ REFERENCES:
 
 .. [MS1977] \F. J. MacWilliams, N. J. A. Sloane, *The Theory of Error-Correcting
             Codes*, North-Holland, Amsterdam, 1977
+
+.. [MS1994] \P. Martin and H. Saleur.
+            *The blob algebra and the periodic Temperley-Lieb algebra*.
+            Lett. Math. Phys., **30** (1994), no. 3. pp. 189-206.
 
 .. [MS2003] \T. Mulders, A. Storjohann, "On lattice reduction for
             polynomial matrices", J. Symbolic Comput. 35 (2003),

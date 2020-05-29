@@ -8,7 +8,7 @@ cd src
 ecl < compile.lisp
 
 echo "moving kenzo--all-systems.fasb to  $SAGE_LOCAL/lib/ecl/kenzo.fas"
-mv kenzo--all-systems.fasb $SAGE_LOCAL/lib/ecl/kenzo.fas
+sdh_install -T kenzo--all-systems.fasb $SAGE_LOCAL/lib/ecl/kenzo.fas
 
 
 if [ $? -ne 0 ]; then

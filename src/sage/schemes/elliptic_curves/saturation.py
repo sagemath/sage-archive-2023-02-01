@@ -422,10 +422,10 @@ class EllipticCurveSaturator(SageObject):
                 if verbose:
                     print(" --> %s" % projPlist)
                 try:
-                    vecs = self.p_projections(Eq, projPlist, p)
+                    vecs = p_projections(Eq, projPlist, p)
                 except ValueError:
                     try:
-                        vecs = self.p_projections(Eq, projPlist, p, debug=True)
+                        vecs = p_projections(Eq, projPlist, p, debug=True)
                     except ValueError:
                         vecs = []
                 for v in vecs:
@@ -504,119 +504,118 @@ class EllipticCurveSaturator(SageObject):
                         rankA = newrank
                         count = 0
 
-    def p_projections(self, Eq, Plist, p, debug=False):
-        r"""
+def p_projections(Eq, Plist, p, debug=False):
+    r"""
 
-        INPUT:
+    INPUT:
 
-        - `Eq` -  An elliptic curve over a finite field.
+    - `Eq` -  An elliptic curve over a finite field.
 
-        - `Plist` - a list of points on `Eq`.
+    - `Plist` - a list of points on `Eq`.
 
-        - `p` - a prime number.
+    - `p` - a prime number.
 
-        OUTPUT:
+    OUTPUT:
 
-        A list of $r\le2$ vectors in $\F_p^n$, the images of the points in
-        $G \otimes \F_p$, where $r$ is the number of vectors is the
-        $p$-rank of `Eq`.
+    A list of $r\le2$ vectors in $\F_p^n$, the images of the points in
+    $G \otimes \F_p$, where $r$ is the number of vectors is the
+    $p$-rank of `Eq`.
 
-        ALGORITHM:
+    ALGORITHM:
 
-        First project onto the $p$-primary part of `Eq`.  If that has
-        $p$-rank 1 (i.e. is cyclic), use discrete logs there to define a
-        map to $\F_p$, otherwise use the Weil pairing to define two
-        independent maps to $\F_p$.
+    First project onto the $p$-primary part of `Eq`.  If that has
+    $p$-rank 1 (i.e. is cyclic), use discrete logs there to define a
+    map to $\F_p$, otherwise use the Weil pairing to define two
+    independent maps to $\F_p$.
 
-        EXAMPLES:
+    EXAMPLES:
 
-        This curve has three independent rational points::
+    This curve has three independent rational points::
 
-            sage: E = EllipticCurve([0,0,1,-7,6])
+        sage: E = EllipticCurve([0,0,1,-7,6])
 
-        We reduce modulo $409$ where its order is $3^2\cdot7^2$; the
-        $3$-primary part is non-cyclic while the $7$-primary part is
-        cyclic of order $49$::
+    We reduce modulo $409$ where its order is $3^2\cdot7^2$; the
+    $3$-primary part is non-cyclic while the $7$-primary part is
+    cyclic of order $49$::
 
-            sage: F = GF(409)
-            sage: EF = E.change_ring(F)
-            sage: G = EF.abelian_group()
-            sage: G
-            Additive abelian group isomorphic to Z/147 + Z/3 embedded in Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 + 402*x + 6 over Finite Field of size 409
-            sage: G.order().factor()
-            3^2 * 7^2
+        sage: F = GF(409)
+        sage: EF = E.change_ring(F)
+        sage: G = EF.abelian_group()
+        sage: G
+        Additive abelian group isomorphic to Z/147 + Z/3 embedded in Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 + 402*x + 6 over Finite Field of size 409
+        sage: G.order().factor()
+        3^2 * 7^2
 
-        We construct three points and project them to the $p$-primary
-        parts for $p=2,3,5,7$, yielding 0,2,0,1 vectors of length 3 modulo
-        $p$ respectively.  The exact vectors output depend on the computed
-        generators of `G`::
+    We construct three points and project them to the $p$-primary
+    parts for $p=2,3,5,7$, yielding 0,2,0,1 vectors of length 3 modulo
+    $p$ respectively.  The exact vectors output depend on the computed
+    generators of `G`::
 
-            sage: Plist = [EF([-2,3]), EF([0,2]), EF([1,0])]
-            sage: from sage.schemes.elliptic_curves.saturation import EllipticCurveSaturator
-            sage: saturator = EllipticCurveSaturator(E)
-            sage: [(p,saturator.p_projections(EF,Plist,p)) for p in primes(11)]  # random
-            [(2, []), (3, [(0, 2, 2), (2, 2, 1)]), (5, []), (7, [(5, 1, 1)])]
-            sage: [(p,len(saturator.p_projections(EF,Plist,p))) for p in primes(11)]
-            [(2, 0), (3, 2), (5, 0), (7, 1)]
-        """
+        sage: Plist = [EF([-2,3]), EF([0,2]), EF([1,0])]
+        sage: from sage.schemes.elliptic_curves.saturation import p_projections
+        sage: [(p,p_projections(EF,Plist,p)) for p in primes(11)]  # random
+        [(2, []), (3, [(0, 2, 2), (2, 2, 1)]), (5, []), (7, [(5, 1, 1)])]
+        sage: [(p,len(p_projections(EF,Plist,p))) for p in primes(11)]
+        [(2, 0), (3, 2), (5, 0), (7, 1)]
+    """
+    if debug:
+        print("In p_projections(Eq,Plist,p) with Eq = {}, Plist = {}, p = {}".format(Eq,Plist,p))
+    n = Eq.cardinality()
+    m = n.prime_to_m_part(p)      # prime-to-p part of order
+    if debug:
+        print("m={}, n={}".format(m,n))
+    if m==n: # p-primary part trivial, nothing to do
+        return []
+    G = Eq.abelian_group()
+    if debug:
+        print("gens = {}".format(G.gens()))
+
+    # project onto p-primary part
+
+    pts  = [m*pt for pt in Plist]
+    gens = [m*g.element() for g in G.gens()]
+    gens = [g for g in gens if g]
+    if debug:
+        print("gens for {}-primary part of G: {}".format(p, gens))
+        print("{}*points: {}".format(m,pts))
+    from sage.groups.generic import discrete_log as dlog
+    from sage.modules.all import vector
+    Fp = GF(p)
+
+    # If the p-primary part is cyclic we use elliptic discrete logs directly:
+
+    if len(gens) == 1:
+        g = gens[0]
+        pp = g.order()
         if debug:
-            print("In p_projections(Eq,Plist,p) with Eq = {}, Plist = {}, p = {}".format(Eq,Plist,p))
-        n = Eq.cardinality()
-        m = n.prime_to_m_part(p)      # prime-to-p part of order
+            print("Cyclic case, taking dlogs to base {} of order {}".format(g,pp))
+        # logs are well-defined mod pp, hence mod p
+        v = [dlog(pt, g, ord = pp, operation = '+') for pt in pts]
         if debug:
-            print("m={}, n={}".format(m,n))
-        if m==n: # p-primary part trivial, nothing to do
-            return []
-        G = Eq.abelian_group()
-        if debug:
-            print("gens = {}".format(G.gens()))
+            print("dlogs: {}".format(v))
+        return [vector(Fp,v)]
 
-        # project onto p-primary part
+    # We make no assumption about which generator order divides the
+    # other, since conventions differ!
 
-        pts  = [m*pt for pt in Plist]
-        gens = [m*g.element() for g in G.gens()]
-        gens = [g for g in gens if g]
-        if debug:
-            print("gens for {}-primary part of G: {}".format(p, gens))
-            print("{}*points: {}".format(m,pts))
-        from sage.groups.generic import discrete_log as dlog
-        from sage.modules.all import vector
-        Fp = GF(p)
+    orders = [g.order() for g in gens]
+    p1, p2 = min(orders), max(orders)
+    g1, g2 = gens
+    if debug:
+        print("Non-cyclic case, orders = {}, p1={}, p2={}, g1={}, g2={}".format(orders,p1,p2,g1,g2))
 
-        # If the p-primary part is cyclic we use elliptic discrete logs directly:
+    # Now the p-primary part of the reduction is non-cyclic of
+    # exponent p2, and we use the Weil pairing, whose values are p1'th
+    # roots of unity with p1|p2, together with discrete log in the
+    # multiplicative group.
 
-        if len(gens) == 1:
-            g = gens[0]
-            pp = g.order()
-            if debug:
-                print("Cyclic case, taking dlogs to base {} of order {}".format(g,pp))
-            # logs are well-defined mod pp, hence mod p
-            v = [dlog(pt, g, ord = pp, operation = '+') for pt in pts]
-            if debug:
-                print("dlogs: {}".format(v))
-            return [vector(Fp,v)]
+    zeta = g1.weil_pairing(g2,p2) # a primitive p1'th root of unity
+    if debug:
+        print("wp of gens = {} with order {}".format(zeta, zeta.multiplicative_order()))
+        assert zeta.multiplicative_order() == p1, "Weil pairing error during saturation: p={}, G={}, Plist={}".format(p,G,Plist)
 
-        # We make no assumption about which generator order divides the
-        # other, since conventions differ!
+    # logs are well-defined mod p1, hence mod p
 
-        orders = [g.order() for g in gens]
-        p1, p2 = min(orders), max(orders)
-        g1, g2 = gens
-        if debug:
-            print("Non-cyclic case, orders = {}, p1={}, p2={}, g1={}, g2={}".format(orders,p1,p2,g1,g2))
-
-        # Now the p-primary part of the reduction is non-cyclic of
-        # exponent p2, and we use the Weil pairing, whose values are p1'th
-        # roots of unity with p1|p2, together with discrete log in the
-        # multiplicative group.
-
-        zeta = g1.weil_pairing(g2,p2) # a primitive p1'th root of unity
-        if debug:
-            print("wp of gens = {} with order {}".format(zeta, zeta.multiplicative_order()))
-            assert zeta.multiplicative_order() == p1, "Weil pairing error during saturation: p={}, G={}, Plist={}".format(p,G,Plist)
-
-        # logs are well-defined mod p1, hence mod p
-
-        return [vector(Fp, [dlog(pt.weil_pairing(g1,p2), zeta, ord = p1, operation = '*') for pt in pts]),
-            vector(Fp, [dlog(pt.weil_pairing(g2,p2), zeta, ord = p1, operation = '*') for pt in pts])]
+    return [vector(Fp, [dlog(pt.weil_pairing(g1,p2), zeta, ord = p1, operation = '*') for pt in pts]),
+        vector(Fp, [dlog(pt.weil_pairing(g2,p2), zeta, ord = p1, operation = '*') for pt in pts])]
 

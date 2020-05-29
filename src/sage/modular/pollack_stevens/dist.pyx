@@ -13,10 +13,7 @@ EXAMPLES::
 
 REFERENCES:
 
-.. [PS] Overconvergent modular symbols and p-adic L-functions
-   Robert Pollack, Glenn Stevens
-   Annales Scientifiques de l'Ecole Normale Superieure, serie 4, 44 fascicule 1 (2011), 1--42.
-
+- [PS2011]_
 """
 
 #*****************************************************************************
@@ -27,7 +24,6 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
@@ -110,7 +106,7 @@ def get_dist_classes(p, prec_cap, base, symk, implementation):
 
 cdef class Dist(ModuleElement):
     r"""
-        The main `p`-adic distribution class, implemented as per the paper [PS]__.
+        The main `p`-adic distribution class, implemented as per the paper [PS2011]__.
     """
     def moment(self, n):
         r"""
@@ -1095,7 +1091,7 @@ cdef class Dist_vector(Dist):
             (1 + O(7^5), 2 + O(7^2), 3 + O(7))
         """
         if not self.parent().is_symk() and self._moments != 0:  # non-classical
-            if len(self._moments) == 0:
+            if not self._moments:
                 return self
             V = self._moments.parent()
             R = V.base_ring()
@@ -1148,7 +1144,7 @@ cdef class Dist_vector(Dist):
         r"""
         Solve the difference equation. `self = v | \Delta`, where `\Delta = [1, 1; 0, 1] - 1`.
 
-        See Theorem 4.5 and Lemma 4.4 of [PS]_.
+        See Theorem 4.5 and Lemma 4.4 of [PS2011]_.
 
         OUTPUT:
 

@@ -36,7 +36,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -63,7 +62,7 @@ from .misc import matrix_integer_dense_rational_reconstruction
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.arith.all import previous_prime, binomial
-from sage.rings.all import RealNumber
+from sage.rings.real_mpfr import create_RealNumber as RealNumber
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -455,7 +454,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
     # x * cdef _sub_
     #   * cdef _mul_
     # x * cdef _lmul_    -- scalar multiplication
-    # x * cpdef _cmp_
+    # x * cpdef _richcmp_
     # x * __neg__
     #   * __invert__
     # x * __copy__
@@ -1500,7 +1499,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             pass
         K = self.base_ring()
         phi = K.defining_polynomial()
-        from sage.rings.all import GF
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
         from .constructor import matrix
         F = GF(p)
         aa = [a for a, _ in phi.change_ring(F).roots()]

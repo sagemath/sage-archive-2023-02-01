@@ -55,9 +55,7 @@ REFERENCES:
 #*****************************************************************************
 from __future__ import print_function
 
-from six.moves import range
-from six import itervalues
-from six.moves.urllib.request import urlopen
+from urllib.request import urlopen
 
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix, block_matrix, block_diagonal_matrix, diagonal_matrix
@@ -66,6 +64,8 @@ from math import sqrt
 from sage.matrix.constructor import identity_matrix as I
 from sage.matrix.constructor import ones_matrix     as J
 from sage.misc.unknown import Unknown
+from sage.cpython.string import bytes_to_str
+
 
 def normalise_hadamard(H):
     """
@@ -76,15 +76,16 @@ def normalise_hadamard(H):
 
     EXAMPLES::
 
-        sage: H = sage.combinat.matrices.hadamard_matrix.normalise_hadamard(hadamard_matrix(4))
+        sage: from sage.combinat.matrices.hadamard_matrix import normalise_hadamard
+        sage: H = normalise_hadamard(hadamard_matrix(4))
         sage: H == hadamard_matrix(4)
         True
     """
     for i in range(H.ncols()):
-        if H[0,i] < 0:
+        if H[0, i] < 0:
             H.rescale_col(i, -1)
     for i in range(H.nrows()):
-        if H[i,0] < 0:
+        if H[i, 0] < 0:
             H.rescale_row(i, -1)
     return H
 
@@ -300,7 +301,7 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
 
     prod = (M*M.transpose()).dict()
     if (len(prod) != n or
-        set(itervalues(prod)) != {n} or
+        set(prod.values()) != {n} or
         any((i, i) not in prod for i in range(n))):
         if verbose:
             print("The product M*M.transpose() is not equal to nI")
@@ -452,16 +453,17 @@ def hadamard_matrix(n,existence=False, check=True):
 
     return M
 
+
 def hadamard_matrix_www(url_file, comments=False):
     """
-    Pulls file from Sloane's database and returns the corresponding Hadamard
+    Pull file from Sloane's database and return the corresponding Hadamard
     matrix as a Sage matrix.
 
     You must input a filename of the form "had.n.xxx.txt" as described
     on the webpage http://neilsloane.com/hadamard/, where
     "xxx" could be empty or a number of some characters.
 
-    If comments=True then the "Automorphism..." line of the had.n.xxx.txt
+    If ``comments=True`` then the "Automorphism..." line of the had.n.xxx.txt
     file is printed if it exists. Otherwise nothing is done.
 
     EXAMPLES::
@@ -493,24 +495,20 @@ def hadamard_matrix_www(url_file, comments=False):
     n = eval(url_file.split(".")[1])
     rws = []
     url = "http://neilsloane.com/hadamard/" + url_file
-    f = urlopen(url)
-    s = f.readlines()
+    with urlopen(url) as f:
+        s = [bytes_to_str(line) for line in f.readlines()]
     for i in range(n):
-        r = []
-        for j in range(n):
-            if s[i][j] == "+":
-                r.append(1)
-            else:
-                r.append(-1)
-        rws.append(r)
-    f.close()
+        line = s[i]
+        rws.append([1 if line[j] == "+" else -1 for j in range(n)])
     if comments:
         lastline = s[-1]
         if lastline[0] == "A":
             print(lastline)
     return matrix(rws)
 
+
 _rshcd_cache = {}
+
 
 def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False):
     r"""
@@ -653,8 +651,8 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
     elif (  e  == 1                 and
           not sqn is None           and
           sqn%4 == 2            and
-          True == strongly_regular_graph(sqn-1,(sqn-2)//2,(sqn-6)//4,
-                    existence=True) and
+          strongly_regular_graph(sqn-1,(sqn-2)//2,(sqn-6)//4,
+            existence=True) is True and
           is_prime_power(ZZ(sqn+1))):
         if existence:
             return true()
@@ -666,8 +664,8 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         for n1,e1 in product(divisors(n)[1:-1],[-1,1]):
             e2 = e1*e
             n2 = n//n1
-            if (regular_symmetric_hadamard_matrix_with_constant_diagonal(n1,e1,existence=True) and
-                regular_symmetric_hadamard_matrix_with_constant_diagonal(n2,e2,existence=True)):
+            if (regular_symmetric_hadamard_matrix_with_constant_diagonal(n1,e1,existence=True) is True and
+                regular_symmetric_hadamard_matrix_with_constant_diagonal(n2,e2,existence=True)) is True:
                 if existence:
                     return true()
                 M1 = regular_symmetric_hadamard_matrix_with_constant_diagonal(n1,e1)
@@ -718,7 +716,7 @@ def RSHCD_324(e):
         sage: from sage.combinat.matrices.hadamard_matrix import RSHCD_324, is_hadamard_matrix
         sage: for e in [1,-1]:  # long time
         ....:     M = RSHCD_324(e)
-        ....:     print("{} {} {}".format(M==M.T,is_hadamard_matrix(M),all([M[i,i]==1 for i in range(324)])))
+        ....:     print("{} {} {}".format(M==M.T,is_hadamard_matrix(M),all(M[i,i]==1 for i in range(324))))
         ....:     print(list(set(sum(x) for x in M)))
         True True True
         [18]
@@ -772,70 +770,65 @@ def _helper_payley_matrix(n, zero_position=True):
 
         sage: from sage.combinat.matrices.hadamard_matrix import _helper_payley_matrix
         sage: _helper_payley_matrix(5)
-        [ 0  1 -1 -1  1]
-        [ 1  0  1 -1 -1]
-        [-1  1  0  1 -1]
-        [-1 -1  1  0  1]
-        [ 1 -1 -1  1  0]
+        [ 0  1  1 -1 -1]
+        [ 1  0 -1  1 -1]
+        [ 1 -1  0 -1  1]
+        [-1  1 -1  0  1]
+        [-1 -1  1  1  0]
 
     TESTS::
 
         sage: _helper_payley_matrix(11,zero_position=True)
-        [ 0 -1  1 -1 -1 -1  1  1  1 -1  1]
-        [ 1  0 -1 -1  1 -1  1 -1  1  1 -1]
-        [-1  1  0  1 -1 -1 -1 -1  1  1  1]
-        [ 1  1 -1  0  1 -1 -1  1 -1 -1  1]
-        [ 1 -1  1 -1  0  1 -1 -1 -1  1  1]
-        [ 1  1  1  1 -1  0  1 -1 -1 -1 -1]
-        [-1 -1  1  1  1 -1  0  1 -1  1 -1]
-        [-1  1  1 -1  1  1 -1  0  1 -1 -1]
-        [-1 -1 -1  1  1  1  1 -1  0 -1  1]
-        [ 1 -1 -1  1 -1  1 -1  1  1  0 -1]
-        [-1  1 -1 -1 -1  1  1  1 -1  1  0]
+        [ 0 -1  1 -1 -1  1 -1  1  1  1 -1]
+        [ 1  0 -1  1 -1 -1 -1 -1  1  1  1]
+        [-1  1  0 -1  1  1 -1 -1 -1  1  1]
+        [ 1 -1  1  0 -1  1  1 -1 -1 -1  1]
+        [ 1  1 -1  1  0  1 -1  1 -1 -1 -1]
+        [-1  1 -1 -1 -1  0  1  1  1 -1  1]
+        [ 1  1  1 -1  1 -1  0 -1  1 -1 -1]
+        [-1  1  1  1 -1 -1  1  0 -1  1 -1]
+        [-1 -1  1  1  1 -1 -1  1  0 -1  1]
+        [-1 -1 -1  1  1  1  1 -1  1  0 -1]
+        [ 1 -1 -1 -1  1 -1  1  1 -1  1  0]
         sage: _helper_payley_matrix(11,zero_position=False)
-        [ 0  1  1  1  1 -1  1 -1 -1 -1 -1]
-        [-1  0 -1  1 -1 -1  1  1  1 -1  1]
-        [-1  1  0 -1 -1  1  1 -1  1  1 -1]
-        [-1 -1  1  0  1 -1 -1 -1  1  1  1]
-        [-1  1  1 -1  0  1 -1  1 -1 -1  1]
-        [ 1  1 -1  1 -1  0 -1 -1 -1  1  1]
-        [-1 -1 -1  1  1  1  0  1 -1  1 -1]
-        [ 1 -1  1  1 -1  1 -1  0  1 -1 -1]
-        [ 1 -1 -1 -1  1  1  1 -1  0 -1  1]
-        [ 1  1 -1 -1  1 -1 -1  1  1  0 -1]
-        [ 1 -1  1 -1 -1 -1  1  1 -1  1  0]
+        [ 0 -1  1 -1 -1 -1  1  1  1 -1  1]
+        [ 1  0 -1  1 -1 -1 -1  1  1  1 -1]
+        [-1  1  0 -1  1 -1 -1 -1  1  1  1]
+        [ 1 -1  1  0 -1  1 -1 -1 -1  1  1]
+        [ 1  1 -1  1  0 -1  1 -1 -1 -1  1]
+        [ 1  1  1 -1  1  0 -1  1 -1 -1 -1]
+        [-1  1  1  1 -1  1  0 -1  1 -1 -1]
+        [-1 -1  1  1  1 -1  1  0 -1  1 -1]
+        [-1 -1 -1  1  1  1 -1  1  0 -1  1]
+        [ 1 -1 -1 -1  1  1  1 -1  1  0 -1]
+        [-1  1 -1 -1 -1  1  1  1 -1  1  0]
     """
-    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-    K = GF(n,prefix='x')
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
+    K = FiniteField(n, prefix='x')
 
     # Order the elements of K in K_list
-    # so that K_list[i] = -K_list[n-i-1]
-    K_pairs = set(frozenset([x,-x]) for x in K)
-    K_pairs.discard(frozenset([0]))
-    K_list = [None]*n
-    if zero_position:
-        zero_position=n//2
-        shift=0
-    else:
-        shift=1
+    # so that K_list[i] = -K_list[n - i - 1]
+    K_pairs = set(tuple(sorted([x, -x])) for x in K if x)
+    K_list = [K.zero()] * n
+    shift = 0 if zero_position else 1
 
-    for i,(x,y) in enumerate(K_pairs):
-        K_list[i+shift]   = x
-        K_list[-i-1] = y
-    K_list[zero_position] = K(0)
-    M = matrix(n,[[2*((x-y).is_square())-1
-                   for x in K_list]
-                  for y in K_list])
-    M = M-I(n)
-    assert (M*J(n)).is_zero()
-    assert (M*M.transpose()) == n*I(n)-J(n)
+    for i, (x, y) in enumerate(sorted(K_pairs)):
+        K_list[i + shift] = x
+        K_list[-i - 1] = y
+
+    M = matrix(ZZ, n, n, [(1 if (x - y).is_square() else -1)
+                          for x in K_list for y in K_list])
+    M -= I(n)
+    assert (M * J(n)).is_zero()
+    assert M * M.transpose() == n * I(n) - J(n)
     return M
+
 
 def rshcd_from_close_prime_powers(n):
     r"""
     Return a `(n^2,1)`-RSHCD when `n-1` and `n+1` are odd prime powers and `n=0\pmod{4}`.
 
-    The construction implemented here appears in Theorem 4.3 from [GS70]_.
+    The construction implemented here appears in Theorem 4.3 from [GS1970]_.
 
     Note that the authors of [SWW72]_ claim in Corollary 5.12 (page 342) to have
     proved the same result without the `n=0\pmod{4}` restriction with a *very*
@@ -855,25 +848,25 @@ def rshcd_from_close_prime_powers(n):
         sage: from sage.combinat.matrices.hadamard_matrix import rshcd_from_close_prime_powers
         sage: rshcd_from_close_prime_powers(4)
         [-1 -1  1 -1  1 -1 -1  1 -1  1 -1 -1  1 -1  1 -1]
-        [-1 -1  1  1 -1 -1 -1 -1 -1  1  1 -1 -1  1 -1  1]
-        [ 1  1 -1  1  1 -1 -1 -1 -1 -1  1 -1 -1 -1  1 -1]
+        [-1 -1 -1  1  1 -1 -1  1 -1 -1  1 -1 -1  1 -1  1]
+        [ 1 -1 -1  1  1  1  1 -1 -1 -1 -1 -1 -1 -1  1 -1]
         [-1  1  1 -1  1  1 -1 -1 -1 -1 -1  1 -1 -1 -1  1]
-        [ 1 -1  1  1 -1  1  1 -1 -1 -1 -1 -1  1 -1 -1 -1]
-        [-1 -1 -1  1  1 -1  1  1 -1 -1 -1  1 -1  1 -1 -1]
-        [-1 -1 -1 -1  1  1 -1 -1  1 -1  1 -1  1  1 -1 -1]
-        [ 1 -1 -1 -1 -1  1 -1 -1 -1  1 -1  1 -1  1  1 -1]
+        [ 1  1  1  1 -1 -1 -1 -1 -1 -1  1 -1  1 -1 -1 -1]
+        [-1 -1  1  1 -1 -1  1 -1 -1  1 -1  1 -1  1 -1 -1]
+        [-1 -1  1 -1 -1  1 -1 -1  1 -1  1 -1 -1  1  1 -1]
+        [ 1  1 -1 -1 -1 -1 -1 -1 -1  1 -1 -1 -1  1  1  1]
         [-1 -1 -1 -1 -1 -1  1 -1 -1 -1  1  1  1 -1  1  1]
-        [ 1  1 -1 -1 -1 -1 -1  1 -1 -1 -1 -1  1  1 -1  1]
-        [-1  1  1 -1 -1 -1  1 -1  1 -1 -1 -1 -1  1  1 -1]
-        [-1 -1 -1  1 -1  1 -1  1  1 -1 -1 -1 -1 -1  1  1]
-        [ 1 -1 -1 -1  1 -1  1 -1  1  1 -1 -1 -1 -1 -1  1]
+        [ 1 -1 -1 -1 -1  1 -1  1 -1 -1 -1  1  1  1 -1 -1]
+        [-1  1 -1 -1  1 -1  1 -1  1 -1 -1 -1  1  1 -1 -1]
+        [-1 -1 -1  1 -1  1 -1 -1  1  1 -1 -1  1 -1 -1  1]
+        [ 1 -1 -1 -1  1 -1 -1 -1  1  1  1  1 -1 -1 -1 -1]
         [-1  1 -1 -1 -1  1  1  1 -1  1  1 -1 -1 -1 -1 -1]
-        [ 1 -1  1 -1 -1 -1 -1  1  1 -1  1  1 -1 -1 -1 -1]
-        [-1  1 -1  1 -1 -1 -1 -1  1  1 -1  1  1 -1 -1 -1]
+        [ 1 -1  1 -1 -1 -1  1  1  1 -1 -1 -1 -1 -1 -1  1]
+        [-1  1 -1  1 -1 -1 -1  1  1 -1 -1  1 -1 -1  1 -1]
 
     REFERENCE:
 
-    .. [SWW72] A Street, W. Wallis, J. Wallis,
+    .. [SWW72] \A. Street, W. Wallis, J. Wallis,
       Combinatorics: Room squares, sum-free sets, Hadamard matrices.
       Lecture notes in Mathematics 292 (1972).
     """
@@ -896,6 +889,7 @@ def rshcd_from_close_prime_powers(n):
     assert len(set(map(sum,HH))) == 1
     assert HH**2 == n**2*I(n**2)
     return HH
+
 
 def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
     r"""
@@ -1086,6 +1080,13 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
         sage: skew_hadamard_matrix(100,existence=True)
         Unknown
 
+    Check that :trac:`28526` is fixed::
+
+        sage: skew_hadamard_matrix(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter n must be strictly positive
+
     REFERENCES:
 
     .. [Ha83] \M. Hall,
@@ -1093,6 +1094,8 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
       2nd edition,
       Wiley, 1983
     """
+    if n < 1:
+        raise ValueError("parameter n must be strictly positive")
     def true():
         _skew_had_cache[n]=True
         return True
@@ -1117,7 +1120,7 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
         M = hadamard_matrix_paleyI(n, normalize=False)
 
     elif n % 8 == 0:
-        if skew_hadamard_matrix(n//2,existence=True): # (Lemma 14.1.6 in [Ha83]_)
+        if skew_hadamard_matrix(n//2,existence=True) is True: # (Lemma 14.1.6 in [Ha83]_)
             if existence:
                 return true()
             H = skew_hadamard_matrix(n//2,check=False)
@@ -1127,7 +1130,7 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
             for d in divisors(n)[2:-2]: # skip 1, 2, n/2, and n
                 n1 = n//d
                 if is_prime_power(d - 1) and (d % 4 == 0) and (n1 % 4 == 0)\
-                    and skew_hadamard_matrix(n1,existence=True):
+                    and skew_hadamard_matrix(n1,existence=True) is True:
                     if existence:
                         return true()
                     H = skew_hadamard_matrix(n1, check=False)-I(n1)
@@ -1140,7 +1143,7 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
                     M = A.tensor_product(I(n1))+(U*A).tensor_product(H)
                     break
     if M is None: # try Williamson-Goethals-Seidel construction
-        if GS_skew_hadamard_smallcases(n, existence=True):
+        if GS_skew_hadamard_smallcases(n, existence=True) is True:
             if existence:
                 return true()
             M = GS_skew_hadamard_smallcases(n)

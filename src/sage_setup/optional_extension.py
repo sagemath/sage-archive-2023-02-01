@@ -68,7 +68,7 @@ def OptionalExtension(*args, **kwds):
         sage: ext = OptionalExtension("foo", ["foo.c"], package="no_such_package")
         sage: print(ext.__class__.__name__)
         CythonizeExtension
-        sage: ext = OptionalExtension("foo", ["foo.c"], package="pari")
+        sage: ext = OptionalExtension("foo", ["foo.c"], package="gap")
         sage: print(ext.__class__.__name__)
         Extension
     """

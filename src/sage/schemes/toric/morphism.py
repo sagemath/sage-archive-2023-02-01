@@ -22,7 +22,7 @@ cannot.
 
 The toric morphisms are perhaps the most mysterious at the
 beginning. Let us quickly review their definition (See Definition
-3.3.3 of [CLS]_). Let `\Sigma_1` be a fan in `N_{1,\RR}` and `\Sigma_2` be a
+3.3.3 of [CLS2011]_). Let `\Sigma_1` be a fan in `N_{1,\RR}` and `\Sigma_2` be a
 fan in `N_{2,\RR}`. A morphism `\phi: X_{\Sigma_1} \to X_{\Sigma_2}`
 of the associated toric varieties is toric if `\phi` maps the maximal
 torus `T_{N_1} \subseteq X_{\Sigma_1}` into `T_{N_2} \subseteq
@@ -135,7 +135,7 @@ using homogeneous polynomials. Consider the blowup `O_{\mathbb{P}^1}(2)
 
 If we denote the homogeneous coordinates of `O_{\mathbb{P}^1}(2)` by
 `x`, `t`, `y` corresponding to the rays `(1,2)`, `(1,1)`, and `(1,0)`
-then the blow-up map is [BB]_:
+then the blow-up map is [BB2013]_:
 
 .. MATH::
 
@@ -346,13 +346,6 @@ fan::
     None connected components over (1, 2), each with 0 irreducible components.
     None connected components over (0, 2), each with 0 irreducible components.
     1 connected components over (0, 1), each with 2 irreducible components.
-
-REFERENCES:
-
-.. [BB]
-    Gavin Brown, Jaroslaw Buczynski:
-    *Maps of toric varieties in Cox coordinates*,
-    :arxiv:`1004.4924`
 """
 
 #*****************************************************************************
@@ -367,7 +360,6 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import iteritems
 
 # For now, the scheme morphism base class cannot derive from Morphism
 # since this would clash with elliptic curves. So we derive only on
@@ -661,7 +653,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
         orbit = self.parent().domain()
         codomain_fan = self.parent().codomain().fan()
         reverse_ray_dict = dict()
-        for n1, n2 in iteritems(self._ray_map):
+        for n1, n2 in self._ray_map.items():
             ray_index = codomain_fan.rays().index(n1)
             if n2.is_zero():
                 assert ray_index in self._defining_cone.ambient_ray_indices()
@@ -1971,7 +1963,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             pass
         multiplicity = None
         image_ray_index = None
-        for ray, index in iteritems(self._ray_index_map):
+        for ray, index in self._ray_index_map.items():
             d = gcd(ray)
             if d * fiber_ray != ray:
                 continue

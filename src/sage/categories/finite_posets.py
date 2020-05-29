@@ -479,7 +479,7 @@ class FinitePosets(CategoryWithAxiom):
             Let us hold back defining this, and introduce birational
             toggles and birational rowmotion first. These notions have
             been introduced in [EP2013]_ as generalizations of the notions
-            of toggles (:meth:`~sage.categories.posets.Posets.ParentMethods.order_ideal_toggle`) 
+            of toggles (:meth:`~sage.categories.posets.Posets.ParentMethods.order_ideal_toggle`)
             and :meth:`rowmotion <rowmotion>` on order ideals of a finite poset. They
             have been studied further in [GR2013]_.
 
@@ -1432,19 +1432,19 @@ class FinitePosets(CategoryWithAxiom):
                 Graphics Array of size 2 x 5
                 sage: P = Poset({})
                 sage: P.rowmotion_orbits_plots()
-                Graphics Array of size 2 x 1
+                Graphics Array of size 1 x 1
 
             """
             plot_of_orb_plots=[]
-            max_orbit_size = 0            
+            max_orbit_size = 0
             for orb in self.rowmotion_orbits():
                 orb_plots=[]
                 if len(orb) > max_orbit_size:
-                    max_orbit_size = len(orb)                
+                    max_orbit_size = len(orb)
                 for oi in orb:
                     oiplot = self.order_ideal_plot(oi)
                     orb_plots.append(oiplot)
-                plot_of_orb_plots.append(orb_plots)    
+                plot_of_orb_plots.append(orb_plots)
             return graphics_array(plot_of_orb_plots, ncols = max_orbit_size)
 
 
@@ -1517,19 +1517,19 @@ class FinitePosets(CategoryWithAxiom):
                 Graphics Array of size 2 x 5
                 sage: P = Poset({})
                 sage: P.toggling_orbits_plots([])
-                Graphics Array of size 2 x 1
+                Graphics Array of size 1 x 1
 
             """
-            plot_of_orb_plots=[]  
-            max_orbit_size = 0             
+            plot_of_orb_plots=[]
+            max_orbit_size = 0
             for orb in self.toggling_orbits(vs):
                 orb_plots=[]
                 if len(orb) > max_orbit_size:
-                    max_orbit_size = len(orb)                
+                    max_orbit_size = len(orb)
                 for oi in orb:
                     oiplot = self.order_ideal_plot(oi)
                     orb_plots.append(oiplot)
-                plot_of_orb_plots.append(orb_plots)    
+                plot_of_orb_plots.append(orb_plots)
             return graphics_array(plot_of_orb_plots, ncols = max_orbit_size)
 
         def panyushev_orbit_iter(self, antichain, element_constructor=set, stop=True, check=True):

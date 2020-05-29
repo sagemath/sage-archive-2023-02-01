@@ -208,7 +208,6 @@ which only work in dimension two or three)::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from sage.misc.functional import det
 from sage.structure.sage_object import SageObject
@@ -1000,7 +999,7 @@ class Patch(SageObject):
         INPUT:
 
         -  ``cmap`` - color map (default: ``'Set1'``). It can be one of the
-           following :
+           following:
 
            - string -- A coloring map. For available coloring map names type:
              ``sorted(colormaps)``
@@ -1502,9 +1501,9 @@ class E1Star(SageObject):
 
     def __mul__(self, other):
         r"""
-        Return the product of self and other.
+        Return the product of ``self`` and ``other``.
 
-        The product satisfies the following rule :
+        The product satisfies the following rule:
         `E_1^*(\sigma\circ\sigma') = E_1^*(\sigma')` \circ  E_1^*(\sigma)`
 
         INPUT:
@@ -1513,7 +1512,7 @@ class E1Star(SageObject):
 
         OUTPUT:
 
-            an instance of E1Star
+        an instance of E1Star
 
         EXAMPLES::
 

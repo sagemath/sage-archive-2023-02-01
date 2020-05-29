@@ -15,14 +15,13 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from six import iteritems
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.latex import latex
+from sage.misc.latex import latex, LatexExpr
+from sage.misc.misc_c import prod
 from sage.structure.richcmp import richcmp
 from sage.structure.element import AlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
-from copy import copy
 from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.sets.family import Family
@@ -31,6 +30,7 @@ from sage.rings.ring import Algebra
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.polynomial.multi_polynomial_ring_base import MPolynomialRing_base
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.structure.global_options import GlobalOptions
 
 
 def repr_from_monomials(monomials, term_repr, use_latex=False):
@@ -157,6 +157,74 @@ def repr_from_monomials(monomials, term_repr, use_latex=False):
     return ret
 
 
+def repr_factored(w, latex_output=False):
+    r"""
+    Return a string representation of ``w`` with the `dx_i` generators
+    factored on the right.
+
+    EXAMPLES::
+
+        sage: from sage.algebras.weyl_algebra import repr_factored
+        sage: R.<t> = QQ[]
+        sage: D = DifferentialWeylAlgebra(R)
+        sage: t, dt = D.gens()
+        sage: x = dt^3*t^3 + dt^2*t^4
+        sage: x
+        t^3*dt^3 + t^4*dt^2 + 9*t^2*dt^2 + 8*t^3*dt + 18*t*dt + 12*t^2 + 6
+        sage: print(repr_factored(x))
+        (12*t^2 + 6) + (8*t^3 + 18*t)*dt + (t^4 + 9*t^2)*dt^2 + (t^3)*dt^3
+        sage: repr_factored(x, True)
+        (12 t^{2} + 6) + (8 t^{3} + 18 t) \frac{\partial}{\partial t}
+         + (t^{4} + 9 t^{2}) \frac{\partial^{2}}{\partial t^{2}}
+         + (t^{3}) \frac{\partial^{3}}{\partial t^{3}}
+        sage: repr_factored(D.zero())
+        '0'
+
+    With multiple variables::
+
+        sage: R.<x,y,z> = QQ[]
+        sage: D = DifferentialWeylAlgebra(R)
+        sage: x, y, z, dx, dy, dz = D.gens()
+        sage: elt = dx^3*x^3 + (y^3-z*x)*dx^3 + dy^3*x^3 + dx*dy*dz*x*y*z
+        sage: elt
+        x^3*dy^3 + x*y*z*dx*dy*dz + y^3*dx^3 + x^3*dx^3 - x*z*dx^3 + y*z*dy*dz
+         + x*z*dx*dz + x*y*dx*dy + 9*x^2*dx^2 + z*dz + y*dy + 19*x*dx + 7
+        sage: print(repr_factored(elt))
+        (7) + (z)*dz + (y)*dy + (y*z)*dy*dz + (x^3)*dy^3 + (19*x)*dx
+         + (x*z)*dx*dz + (x*y)*dx*dy + (x*y*z)*dx*dy*dz
+         + (9*x^2)*dx^2 + (x^3 + y^3 - x*z)*dx^3
+        sage: repr_factored(D.zero(), True)
+        0
+    """
+    f = w.factor_differentials()
+    gens = w.parent().polynomial_ring().gens()
+
+    if latex_output:
+        def exp(e):
+            return '^{{{}}}'.format(e) if e > 1 else ''
+        def repr_dx(k):
+            total = sum(k)
+            if total == 0:
+                return ''
+            denom = ' '.join('\\partial {}{}'.format(latex(g), exp(e))
+                             for e, g in zip(k, gens) if e != 0)
+            return ''.join(' \\frac{{\\partial{}}}{{{}}}'.format(exp(total), denom) )
+        repr_x = latex
+    else:
+        def exp(e):
+            return '^{}'.format(e) if e > 1 else ''
+        def repr_dx(k):
+            return ''.join('*d{}{}'.format(g, exp(e)) for e, g in zip(k, gens) if e != 0)
+        repr_x = repr
+    ret = " + ".join("({}){}".format(repr_x(f[k]), repr_dx(k))
+                     for k in sorted(f))
+    if not ret:
+        ret = '0'
+    if latex_output:
+        return LatexExpr(ret)
+    return ret
+
+
 class DifferentialWeylAlgebraElement(AlgebraElement):
     """
     An element in a differential Weyl algebra.
@@ -187,6 +255,8 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             dy^2 + 2*x^3*dx*dy - 2*z*dx*dy + x^6*dx^2 - 2*x^3*z*dx^2
              + z^2*dx^2 + 3*x^5*dx - 3*x^2*z*dx
         """
+        if self.parent().options.factor_representation:
+            return repr_factored(self, False)
         def term(m):
             ret = ''
             for i, power in enumerate(m[0] + m[1]):
@@ -221,9 +291,14 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
              + 3 x_{0}^{5} \frac{\partial}{\partial x_{0}}
              - 3 x_{0}^{2} x_{2} \frac{\partial}{\partial x_{0}}
         """
+        if self.parent().options.factor_representation:
+            return repr_factored(self, True)
+
+        def exp(e):
+            return '^{{{}}}'.format(e) if e > 1 else ''
+
         def term(m):
             R = self.parent()._poly_ring
-            exp = lambda e: '^{{{}}}'.format(e) if e > 1 else ''
             def half_term(mon, polynomial):
                 total = sum(mon)
                 if total == 0:
@@ -285,7 +360,8 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: dy - (3*x - z)*dx
             dy + z*dx - 3*x*dx
         """
-        return self.__class__(self.parent(), {m:-c for m, c in iteritems(self.__monomials)})
+        return self.__class__(self.parent(),
+                              {m:-c for m, c in self.__monomials.items()})
 
     def _add_(self, other):
         """
@@ -300,14 +376,6 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         """
         F = self.parent()
         return self.__class__(F, blas.add(self.__monomials, other.__monomials))
-
-        d = copy(self.__monomials)
-        zero = self.parent().base_ring().zero()
-        for m, c in iteritems(other.__monomials):
-            d[m] = d.get(m, zero) + c
-            if d[m] == zero:
-                del d[m]
-        return self.__class__(self.parent(), d)
 
     def _mul_(self, other):
         """
@@ -501,6 +569,55 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
 
     __div__ = __truediv__
 
+    def factor_differentials(self):
+        """
+        Return a dict representing ``self`` with the differentials
+        factored out.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: D = DifferentialWeylAlgebra(R)
+            sage: t, dt = D.gens()
+            sage: x = dt^3*t^3 + dt^2*t^4
+            sage: x
+            t^3*dt^3 + t^4*dt^2 + 9*t^2*dt^2 + 8*t^3*dt + 18*t*dt + 12*t^2 + 6
+            sage: x.factor_differentials()
+            {(0,): 12*t^2 + 6, (1,): 8*t^3 + 18*t, (2,): t^4 + 9*t^2, (3,): t^3}
+            sage: D.zero().factor_differentials()
+            {}
+
+            sage: R.<x,y,z> = QQ[]
+            sage: D = DifferentialWeylAlgebra(R)
+            sage: x, y, z, dx, dy, dz = D.gens()
+            sage: elt = dx^3*x^3 + (y^3-z*x)*dx^3 + dy^3*x^3 + dx*dy*dz*x*y*z
+            sage: elt
+            x^3*dy^3 + x*y*z*dx*dy*dz + y^3*dx^3 + x^3*dx^3 - x*z*dx^3 + y*z*dy*dz
+             + x*z*dx*dz + x*y*dx*dy + 9*x^2*dx^2 + z*dz + y*dy + 19*x*dx + 7
+            sage: elt.factor_differentials()
+            {(0, 0, 0): 7,
+             (0, 0, 1): z,
+             (0, 1, 0): y,
+             (0, 1, 1): y*z,
+             (0, 3, 0): x^3,
+             (1, 0, 0): 19*x,
+             (1, 0, 1): x*z,
+             (1, 1, 0): x*y,
+             (1, 1, 1): x*y*z,
+             (2, 0, 0): 9*x^2,
+             (3, 0, 0): x^3 + y^3 - x*z}
+        """
+        ret = {}
+        DW = self.parent()
+        P = DW.polynomial_ring()
+        gens = P.gens()
+        for m,c in self:
+            x, dx = m
+            if dx not in ret:
+                ret[dx] = P.zero()
+            ret[dx] += c * prod(g**e for e, g in zip(x, gens))
+        return ret
+
 
 class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
     r"""
@@ -631,6 +748,39 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
         return "Differential Weyl algebra of polynomials in {} over {}".format(
                     poly_gens, self.base_ring())
 
+    # add options to class
+    class options(GlobalOptions):
+        r"""
+        Sets the global options for elements of the differential Weyl
+        algebra class. The default is to have the factored
+        representations turned off.
+
+        @OPTIONS@
+
+        If no parameters are set, then the function returns a copy of the
+        options dictionary.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: D = DifferentialWeylAlgebra(R)
+            sage: t,dt = D.gens()
+            sage: x = dt^3*t^3 + dt^2*t^4
+            sage: x
+            t^3*dt^3 + t^4*dt^2 + 9*t^2*dt^2 + 8*t^3*dt + 18*t*dt + 12*t^2 + 6
+
+            sage: D.options.factor_representation = True
+            sage: x
+            (12*t^2 + 6) + (8*t^3 + 18*t)*dt + (t^4 + 9*t^2)*dt^2 + (t^3)*dt^3
+
+            sage: D.options._reset()
+        """
+        NAME = 'DifferentialWeylAlgebra'
+        module = 'sage.algebras.weyl_algebra'
+        factor_representation = dict(default=False,
+                 description='Controls whether to factor the differentials out or not in the output representations',
+                 checker=lambda x: x in [True, False])
+
     def _element_constructor_(self, x):
         """
         Construct an element of ``self`` from ``x``.
@@ -659,7 +809,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             return self.element_class(self, {i: R(c) for i,c in x if R(c) != zero})
         x = self._poly_ring(x)
         return self.element_class(self, {(tuple(m), t): c
-                                         for m, c in iteritems(x.dict())})
+                                         for m, c in x.dict().items()})
 
     def _coerce_map_from_(self, R):
         """

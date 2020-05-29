@@ -1,5 +1,5 @@
 """
-Sparse integer matrices.
+Sparse integer matrices
 
 AUTHORS:
 
@@ -25,13 +25,12 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 from cysignals.memory cimport check_calloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from collections import Iterator, Sequence
 
-from cpython.int cimport PyInt_FromLong
+from cpython.int cimport PyInt_FromSize_t
 
 from sage.ext.stdsage cimport PY_NEW
 from sage.ext.mod_int cimport *
@@ -42,7 +41,7 @@ from sage.libs.linbox.conversion cimport (
     new_linbox_vector_integer_dense,
     new_sage_vector_integer_dense,
     new_linbox_matrix_integer_sparse,
-    METHOD_DEFAULT, METHOD_BLAS_ELIMINATION,
+    METHOD_DEFAULT, METHOD_DENSE_ELIMINATION,
     METHOD_SPARSE_ELIMINATION, METHOD_BLACKBOX,
     METHOD_WIEDEMANN, get_method)
 
@@ -127,7 +126,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
     #   * cdef _add_
     #   * cdef _sub_
     #   * cdef _mul_
-    #   * cpdef _cmp_
+    #   * cpdef _richcmp_
     #   * __neg__
     #   * __invert__
     #   * __copy__
@@ -140,7 +139,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
     # def _unpickle(self, data, int version):   # use version >= 0
     # cpdef _add_(self, right):
     # cdef _mul_(self, Matrix right):
-    # cpdef int _cmp_(self, Matrix right) except -2:
+    # cpdef _richcmp_(self, Matrix right, int op):
     # def __neg__(self):
     # def __invert__(self):
     # def __copy__(self):
@@ -641,30 +640,30 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             sage: MatrixSpace(ZZ, 1, 1, sparse=True)()._rank_linbox()
             0
         """
-        # TODO: bug in LinBox (SIGSEGV)
         if self._nrows == 0 or self._ncols == 0:
             return 0
 
         cdef givaro.ZRing givZZ
         cdef linbox.SparseMatrix_integer * M = new_linbox_matrix_integer_sparse(givZZ, self)
-        cdef unsigned long r = 0
+        cdef size_t r = 0
 
+        sig_on()
         linbox.rank(r, M[0])
+        sig_off()
 
         del M
 
-        return PyInt_FromLong(r)
+        return PyInt_FromSize_t(r)
 
     def _det_linbox(self):
         r"""
         Return the determinant computed with LinBox.
 
+        .. NOTE::
 
-        .. WARNING::
-
-            On some examples, linbox computation does not terminate! Use
-            this method with a lot of care. See
-            https://github.com/linbox-team/linbox/issues/118
+            This method is much slower than converting to a dense matrix and
+            computing the determinant there. There is not much point in making
+            it available. See :trac:`28318`.
 
         EXAMPLES::
 
@@ -680,17 +679,16 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             0
 
             sage: m = diagonal_matrix(ZZ, [2] * 46)
-            sage: m._det_linbox() == 2**46           # not tested (LinBox bug)
+            sage: m._det_linbox() == 2**46
             True
 
             sage: m = diagonal_matrix(ZZ, [3] * 100)
-            sage: m._det_linbox() == 3**100          # not tested (LinBox bug)
+            sage: m._det_linbox() == 3**100
             True
         """
         if self._nrows != self._ncols:
             raise ValueError("non square matrix")
 
-        # TODO: bug in LinBox (got SIGSEGV)
         if self._nrows == 0:
             return Integer(1)
 
@@ -698,7 +696,10 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         cdef linbox.SparseMatrix_integer * M = new_linbox_matrix_integer_sparse(givZZ, self)
         cdef givaro.Integer D
 
+        sig_on()
         linbox.det(D, M[0])
+        sig_off()
+
         cdef Integer d = PY_NEW(Integer)
         mpz_set(d.value, D.get_mpz_const())
 
@@ -793,7 +794,9 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         cdef linbox.DensePolynomial_integer * p = new linbox.DensePolynomial_integer(givZZ, <size_t> self._nrows)
         cdef Polynomial_integer_dense_flint g = (<Polynomial_integer_dense_flint> R.gen())._new()
 
+        sig_on()
         linbox.charpoly(p[0], M[0])
+        sig_off()
 
         cdef size_t i
         fmpz_poly_fit_length(g.__poly, p.size())
@@ -817,7 +820,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         - ``algorithm`` -- (optional, default ``None``) one of ``None``,
           ``'linbox'``, or an algorithm accepted by
-          meth:`sage.matrix.matrix_sparse.Matrix_sparse.minpoly`
+          :meth:`sage.matrix.matrix_sparse.Matrix_sparse.minpoly`
 
         EXAMPLES::
 
@@ -890,7 +893,9 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         cdef linbox.DensePolynomial_integer * p = new linbox.DensePolynomial_integer(givZZ, <size_t> self._nrows)
         cdef Polynomial_integer_dense_flint g = (<Polynomial_integer_dense_flint> R.gen())._new()
 
+        sig_on()
         linbox.minpoly(p[0], M[0])
+        sig_off()
 
         cdef size_t i
         fmpz_poly_fit_length(g.__poly, p.size())
@@ -904,7 +909,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         return g
 
     def _solve_right_nonsingular_square(self, B, algorithm=None, check_rank=False):
-        """
+        r"""
         If self is a matrix `A`, then this function returns a
         vector or matrix `X` such that `A X = B`. If
         `B` is a vector then `X` is a vector and if
@@ -912,7 +917,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         .. NOTE::
 
-           In Sage one can also write ``A  B`` for
+           In Sage one can also write ``A \ B`` for
            ``A.solve_right(B)``, i.e., Sage implements the "the
            MATLAB/Octave backslash operator".
 
@@ -926,7 +931,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             - ``'linbox'`` or ``'linbox_default'`` - (default) use LinBox
               and let it chooses the appropriate algorithm
 
-            -  ``linbox_blas_elimination'`` - use LinBox dense elimination
+            -  ``linbox_dense_elimination'`` - use LinBox dense elimination
 
             - ``'linbox_sparse_elimination'`` - use LinBox sparse elimination
 
@@ -964,7 +969,8 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             [0 2]
         """
         if check_rank and self.rank() < self.nrows():
-            raise ValueError("not of full rank")
+            from .matrix2 import NotFullRankError
+            raise NotFullRankError
 
         if self.base_ring() != B.base_ring():
             B = B.change_ring(self.base_ring())
@@ -993,7 +999,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         - ``b`` -- a dense integer vector
 
-        - ``algorithm`` -- (optional) either ``None``, ``'blas_elimination'``,
+        - ``algorithm`` -- (optional) either ``None``, ``'dense_elimination'``,
           ``'sparse_elimination'``, ``'wiedemann'`` or ``'blackbox'``.
 
         OUTPUT: a pair ``(a, d)`` consisting of
@@ -1012,7 +1018,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             sage: b0 = vector((1,1,1,1))
             sage: m._solve_vector_linbox(b0)
             ((-1, -7, -3, -1), 1)
-            sage: m._solve_vector_linbox(b0, 'blas_elimination')
+            sage: m._solve_vector_linbox(b0, 'dense_elimination')
             ((-1, -7, -3, -1), 1)
             sage: m._solve_vector_linbox(b0, 'sparse_elimination')
             ((-1, -7, -3, -1), 1)
@@ -1024,7 +1030,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             sage: b1 = vector((1,2,3,4))
             sage: m._solve_vector_linbox(b1)
             ((-18, -92, -41, -17), 5)
-            sage: m._solve_vector_linbox(b1, 'blas_elimination')
+            sage: m._solve_vector_linbox(b1, 'dense_elimination')
             ((-18, -92, -41, -17), 5)
             sage: m._solve_vector_linbox(b1, 'sparse_elimination')
             ((-18, -92, -41, -17), 5)
@@ -1039,7 +1045,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         TESTS::
 
-            sage: algos = ["default", "blas_elimination", "sparse_elimination",
+            sage: algos = ["default", "dense_elimination", "sparse_elimination",
             ....:          "blackbox", "wiedemann"]
             sage: for i in range(20):
             ....:     dim = randint(1, 30)
@@ -1076,16 +1082,18 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         method = get_method(algorithm)
 
+        sig_on()
         if method == METHOD_DEFAULT:
             linbox.solve(res[0], D, A[0], b[0])
         elif method == METHOD_WIEDEMANN:
             linbox.solve(res[0], D, A[0], b[0], linbox.Method.Wiedemann())
-        elif method == METHOD_BLAS_ELIMINATION:
-            linbox.solve(res[0], D, A[0], b[0], linbox.Method.BlasElimination())
+        elif method == METHOD_DENSE_ELIMINATION:
+            linbox.solve(res[0], D, A[0], b[0], linbox.Method.DenseElimination())
         elif method == METHOD_SPARSE_ELIMINATION:
             linbox.solve(res[0], D, A[0], b[0], linbox.Method.SparseElimination())
         elif method == METHOD_BLACKBOX:
             linbox.solve(res[0], D, A[0], b[0], linbox.Method.Blackbox())
+        sig_off()
 
         Vout = self._row_ambient_module().dense_module()
         res_sage = new_sage_vector_integer_dense(Vout, res[0])
@@ -1136,7 +1144,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         TESTS::
 
-            sage: algos = ["default", "blas_elimination", "sparse_elimination",
+            sage: algos = ["default", "dense_elimination", "sparse_elimination",
             ....:          "blackbox", "wiedemann"]
 
             sage: for _ in range(10):
@@ -1182,6 +1190,8 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         cdef Matrix_integer_dense X = matrix(ZZ, A.coldim(), B.ncols(), sparse=False)  # solution
         cdef Vector_integer_dense d = vector(ZZ, X.ncols(), sparse=False)  # multipliers
 
+
+        sig_on()
         cdef size_t i, j
         for i in range(X.ncols()):
             # set b to the i-th column of B
@@ -1191,8 +1201,8 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             # solve the current row
             if algo == METHOD_DEFAULT:
                 linbox.solve(res[0], D, A[0], b[0])
-            elif algo == METHOD_BLAS_ELIMINATION:
-                linbox.solve(res[0], D, A[0], b[0], linbox.Method.BlasElimination())
+            elif algo == METHOD_DENSE_ELIMINATION:
+                linbox.solve(res[0], D, A[0], b[0], linbox.Method.DenseElimination())
             elif algo == METHOD_SPARSE_ELIMINATION:
                 linbox.solve(res[0], D, A[0], b[0], linbox.Method.SparseElimination())
             elif algo == METHOD_BLACKBOX:
@@ -1206,6 +1216,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
             # compute common gcd
             mpz_set(d._entries[i], D.get_mpz_const())
+        sig_off()
 
         del A
         del b

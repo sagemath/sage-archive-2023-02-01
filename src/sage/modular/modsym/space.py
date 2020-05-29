@@ -23,7 +23,6 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 import sage.modules.free_module as free_module
 import sage.matrix.matrix_space as matrix_space
 from   sage.modules.free_module_element  import is_FreeModuleElement
@@ -967,7 +966,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             Basis matrix:
             [0 1 0 1]
             sage: ModularSymbols(11, 2, base_ring=QuadraticField(-7,'b'), sign=1).cuspidal_submodule()._q_expansion_module(prec=4, algorithm="eigen")
-            Vector space of degree 4 and dimension 1 over Number Field in b with defining polynomial x^2 + 7
+            Vector space of degree 4 and dimension 1 over Number Field in b with defining polynomial x^2 + 7 with b = 2.645751311064591?*I
             Basis matrix:
             [ 0  1 -2 -1]
 
@@ -993,7 +992,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             EXAMPLES::
 
                 sage: ModularSymbols(11, 4, base_ring=QuadraticField(-7,'b'),sign=1).cuspidal_submodule()._q_expansion_module(prec=5, algorithm="eigen") # indirect doctest
-                Vector space of degree 5 and dimension 2 over Number Field in b with defining polynomial x^2 + 7
+                Vector space of degree 5 and dimension 2 over Number Field in b with defining polynomial x^2 + 7 with b = 2.645751311064591?*I
                 Basis matrix:
                 [ 0  1  0  3 -6]
                 [ 0  0  1 -4  2]

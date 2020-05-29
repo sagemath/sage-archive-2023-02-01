@@ -196,8 +196,6 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
-#from six.moves import range
-
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.misc_c import prod
 from sage.categories.category import Category
@@ -1854,7 +1852,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         In particular, they sum to Hilbert series of the coinvariant
         algebra of ``self``.
 
-        ..NOTE::
+        .. NOTE::
 
             The ordering follows the one in Chevie and is not compatible with
             the current implementation of :meth:`irredubile_characters()`.

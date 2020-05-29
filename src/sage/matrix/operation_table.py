@@ -16,7 +16,6 @@ This module implements general operation tables, which are very matrix-like.
 
 from __future__ import absolute_import
 
-import six
 from sage.structure.sage_object import SageObject
 
 class OperationTable(SageObject):
@@ -303,7 +302,7 @@ class OperationTable(SageObject):
         sage: from sage.matrix.operation_table import OperationTable
         sage: H=CyclicPermutationGroup(4)
         sage: H.list()
-        [(), (1,3)(2,4), (1,4,3,2), (1,2,3,4)]
+        [(), (1,2,3,4), (1,3)(2,4), (1,4,3,2)]
         sage: elts = ['()', '(1,3)(2,4)']
         sage: OperationTable(H, operator.mul, elements=elts)
         *  a b
@@ -315,7 +314,7 @@ class OperationTable(SageObject):
     group ``H``, using a simple ``for`` loop::
 
         sage: L = H.list()    #list of elements of the group H
-        sage: elts = [L[i] for i in {0, 1}]
+        sage: elts = [L[i] for i in {0, 2}]
         sage: elts
         [(), (1,3)(2,4)]
         sage: OperationTable(H, operator.mul, elements=elts)
@@ -542,12 +541,12 @@ class OperationTable(SageObject):
             if len(names) != self._n:
                 raise ValueError('list of element names must be the same size as the set, %s != %s'%(len(names), self._n))
             width = 0
-            for str in names:
-                if not isinstance(str, six.string_types):
-                    raise ValueError('list of element names must only contain strings, not %s'%str)
-                if len(str) > width:
-                    width = len(str)
-                name_list.append(str)
+            for name in names:
+                if not isinstance(name, str):
+                    raise ValueError('list of element names must only contain strings, not %s' % name)
+                if len(name) > width:
+                    width = len(name)
+                name_list.append(name)
         else:
             raise ValueError("element names must be a list, or one of the keywords: 'letters', 'digits', 'elements'")
         name_dict = {}
@@ -717,9 +716,9 @@ class OperationTable(SageObject):
             ...
             ValueError: ASCII symbol should be a single character, not 5
         """
-        if not isinstance(ascii, six.string_types) or not len(ascii)==1:
+        if not isinstance(ascii, str) or not len(ascii)==1:
             raise ValueError('ASCII symbol should be a single character, not %s' % ascii)
-        if not isinstance(latex, six.string_types):
+        if not isinstance(latex, str):
             raise ValueError('LaTeX symbol must be a string, not %s' % latex)
         self._ascii_symbol = ascii
         self._latex_symbol = latex
@@ -940,7 +939,7 @@ class OperationTable(SageObject):
             d| d e a b c
             e| e a b c d
 
-        The table should adjust its column width to accomodate the width of the
+        The table should adjust its column width to accommodate the width of the
         strings used to represent elements.  ::
 
             sage: from sage.matrix.operation_table import OperationTable

@@ -733,9 +733,11 @@ class VermaModuleMorphism(Morphism):
         return "Verma module"
 
     def _repr_defn(self):
-        """
+        r"""
         Return a string describing the definition of ``self``,
         to be used when printing ``self``.
+
+        EXAMPLES::
 
             sage: L = lie_algebras.sl(QQ, 3)
             sage: La = L.cartan_type().root_system().weight_lattice().fundamental_weights()
@@ -1170,7 +1172,7 @@ class VermaModuleHomset(Homset):
                 return None
             elt = F[i]**ZZ(exp) * elt
             wt = wt.dot_action([i])
-        return elt * C.highest_weight_vector()
+        return C.highest_weight_vector()._acted_upon_(elt, False)
 
     @cached_method
     def natural_map(self):

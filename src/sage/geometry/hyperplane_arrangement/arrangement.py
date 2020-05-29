@@ -5,7 +5,7 @@ Hyperplane Arrangements
 Before talking about hyperplane arrangements, let us start with
 individual hyperplanes. This package uses certain linear expressions
 to represent hyperplanes, that is, a linear expression `3x + 3y - 5z - 7`
-stands for the hyperplane with the equation `x + 3y - 5z = 7`. To create it
+stands for the hyperplane with the equation `3x + 3y - 5z = 7`. To create it
 in Sage, you first have to create a :class:`HyperplaneArrangements`
 object to define the variables `x`, `y`, `z`::
 
@@ -116,8 +116,8 @@ New arrangements from old::
     sage: b == hyperplane_arrangements.coordinate(3)
     True
 
-A hyperplane arrangement is *essential* is the normals to its
-hyperplane span the ambient space.  Otherwise, it is *inessential*.
+A hyperplane arrangement is *essential* if the normals to its
+hyperplanes span the ambient space.  Otherwise, it is *inessential*.
 The essentialization is formed by intersecting the hyperplanes by this
 normal space (actually, it is a bit more complicated over finite
 fields)::
@@ -339,6 +339,7 @@ from sage.modules.free_module import VectorSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.geometry.hyperplane_arrangement.hyperplane import AmbientVectorSpace, Hyperplane
+from sage.combinat.posets.posets import Poset
 
 
 class HyperplaneArrangementElement(Element):
@@ -1102,30 +1103,153 @@ class HyperplaneArrangementElement(Element):
         return self.rank() == self.dimension()
 
     @cached_method
-    def is_central(self):
+    def is_central(self, certificate=False):
         r"""
         Test whether the intersection of all the hyperplanes is nonempty.
 
+        A hyperplane arrangement is central if the intersection of all the
+        hyperplanes in the arrangement is nonempty.
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: ``False``); specifies whether
+          to return the center as a polyhedron (possibly empty) as part
+          of the output
+
         OUTPUT:
 
-        A boolean whether the hyperplane arrangement is such that the
-        intersection of all the hyperplanes in the arrangement is
-        nonempty.
+        If ``certificate`` is ``True``, returns a tuple containing:
+
+        1. A boolean
+        2. The polyhedron defined to be the intersection of all the hyperplanes
+
+        If ``certificate`` is ``False``, returns a boolean.
 
         EXAMPLES::
 
             sage: a = hyperplane_arrangements.braid(2)
             sage: a.is_central()
             True
+
+        The Catalan arrangement in dimension 3 is not central::
+
+            sage: b = hyperplane_arrangements.Catalan(3)
+            sage: b.is_central(certificate=True)
+            (False, The empty polyhedron in QQ^3)
+
+        The empty arrangement in dimension 5 is central::
+
+            sage: H = HyperplaneArrangements(QQ,names=tuple(['x'+str(i) for i in range(7)]))
+            sage: c = H()
+            sage: c.is_central(certificate=True)
+            (True, A 7-dimensional polyhedron in QQ^7 defined as the convex
+            hull of 1 vertex and 7 lines)
         """
         R = self.base_ring()
+        # If there are no hyperplanes in the arrangement,
+        # the center is the entire ambient space
+        if self.n_hyperplanes() == 0:
+            if certificate:
+                from sage.geometry.polyhedron.parent import Polyhedra
+                pp = Polyhedra(R, self.dimension())
+                return (True, pp.universe())
+            else:
+                return True
+        # The center is the set of points contained in all hyperplanes,
+        # expressible as the solution set of m*x=b with m and b as follows:
         m = matrix(R, [h.normal() for h in self])
         b = vector(R, [h.b() for h in self])
         try:
-            m.solve_right(b)
-            return True
+            x = m.solve_right(b)
         except ValueError:
-            return False
+            # The solution set is empty, therefore the center is empty
+            if certificate:
+                from sage.geometry.polyhedron.parent import Polyhedra
+                pp = Polyhedra(R, self.dimension())
+                return (False, pp.empty())
+            else:
+                return False
+        # The center is the kernel of m translated by x.
+        if certificate:
+            Ker = m.right_kernel()
+            from sage.geometry.polyhedron.constructor import Polyhedron
+            return (True, Polyhedron(base_ring=R, vertices=[x], lines=Ker.basis()))
+        else:
+            return True
+
+    def center(self):
+        r"""
+        Return the center of the hyperplane arrangement.
+
+        The polyhedron defined to be the set of all points in the
+        ambient space of the arrangement that lie on all of the
+        hyperplanes.
+
+        OUTPUT:
+
+        A polyhedron.
+
+        EXAMPLES:
+
+        The empty hyperplane arrangement has the entire ambient space as its
+        center::
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: A = H()
+            sage: A.center()
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 lines
+
+        The Shi arrangement in dimension 3 has an empty center::
+
+            sage: A = hyperplane_arrangements.Shi(3)
+            sage: A.center()
+            The empty polyhedron in QQ^3
+
+        The Braid arrangement in dimension 3 has a center that is neither
+        empty nor full-dimensional::
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: A.center()
+            A 1-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex and 1 line
+        """
+        return self.is_central(certificate=True)[1]
+
+    @cached_method
+    def is_simplicial(self):
+        r"""
+        Test whether the arrangement is simplicial.
+
+        A region is simplicial if the normal vectors of its bounding hyperplanes
+        are linearly independent. A hyperplane arrangement is said to be
+        simplicial if every region is simplicial.
+
+        OUTPUT:
+
+        A boolean whether the hyperplane arrangement is simplicial.
+
+        EXAMPLES::
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H([[0,1,1,1],[0,1,2,3]])
+            sage: A.is_simplicial()
+            True
+            sage: A = H([[0,1,1,1],[0,1,2,3],[0,1,3,2]])
+            sage: A.is_simplicial()
+            True
+            sage: A = H([[0,1,1,1],[0,1,2,3],[0,1,3,2],[0,2,1,3]])
+            sage: A.is_simplicial()
+            False
+            sage: hyperplane_arrangements.braid(3).is_simplicial()
+            True
+        """
+        # if the arr is not essential, grab the essential version and check there.
+        if not self.is_essential():
+            return self.essentialization().is_simplicial()
+
+        # Check that the number of facets for each region is equal to rank
+        rank = self.rank()
+        return all(R.n_facets() == rank for R in self.regions())
+
 
     @cached_method
     def essentialization(self):
@@ -1477,6 +1601,38 @@ class HyperplaneArrangementElement(Element):
             sage: chessboard = H(chessboard)
             sage: len(chessboard.bounded_regions())   # long time, 359 ms on a Core i7
             64
+
+        Example 6 of [KP2020]_::
+
+            sage: from itertools import product
+            sage: def zero_one(d):
+            ....:     for x in product([0,1], repeat=d):
+            ....:         if any(y for y in x):
+            ....:             yield [0] + list(x)
+            ....:
+            sage: K.<x,y> = HyperplaneArrangements(QQ)
+            sage: A = K(*zero_one(2))
+            sage: len(A.regions())
+            6
+            sage: K.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = K(*zero_one(3))
+            sage: len(A.regions())
+            32
+            sage: K.<x,y,z,w> = HyperplaneArrangements(QQ)
+            sage: A = K(*zero_one(4))
+            sage: len(A.regions())
+            370
+            sage: K.<x,y,z,w,r> = HyperplaneArrangements(QQ)
+            sage: A = K(*zero_one(5))
+            sage: len(A.regions())            # not tested (~25s)
+            11292
+
+        TESTS::
+
+            sage: K.<x,y,z,w,r> = HyperplaneArrangements(QQ)
+            sage: A = K()
+            sage: A.regions()
+            (A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 1 vertex and 5 lines,)
         """
         if self.base_ring().characteristic() != 0:
             raise ValueError('base field must have characteristic zero')
@@ -1485,18 +1641,153 @@ class HyperplaneArrangementElement(Element):
         dim = self.dimension()
         universe = Polyhedron(eqns=[[0] + [0] * dim], base_ring=R)
         regions = [universe]
+        if self.is_linear() and self.n_hyperplanes():
+            # We only take the positive half w.r. to the first hyperplane.
+            # We fix this by appending all negative regions in the end.
+            regions = None
+
         for hyperplane in self:
             ieq = vector(R, hyperplane.dense_coefficient_list())
             pos_half = Polyhedron(ieqs=[ ieq], base_ring=R)
             neg_half = Polyhedron(ieqs=[-ieq], base_ring=R)
+            if not regions:
+                # See comment above.
+                regions = [pos_half]
+                continue
             subdivided = []
             for region in regions:
-                for half_space in pos_half, neg_half:
-                    part = region.intersection(half_space)
-                    if part.dim() == dim:
-                        subdivided.append(part)
+                # For each region we determine, if the hyperplane splits it.
+                splits = False
+
+                # Determine if all vertices lie on one side of the hyperplane.
+                # If so, we determine on which side.
+                valuations = tuple(ieq[0] + ieq[1:]*v[:] for v in region.vertices())
+                direction = 0
+                if any(x > 0 for x in valuations):
+                    direction = 1
+                if any(x < 0 for x in valuations):
+                    if direction:
+                        splits = True
+                    else:
+                        direction = -1
+
+                if not splits:
+                    # All vertices lie in one closed halfspace of the hyperplane.
+                    region_lines = region.lines()
+                    if direction == 0:
+                        # In this case all vertices lie on the hyperplane and we must
+                        # check if rays are contained in one closed halfspace given by the hyperplane.
+                        valuations = tuple(ieq[1:]*ray[:] for ray in region.rays())
+                        if region_lines:
+                            valuations += tuple(ieq[1:]*line[:] for line in region_lines)
+                            valuations += tuple(-ieq[1:]*line[:] for line in region_lines)
+                        if any(x > 0 for x in valuations) and any(x < 0 for x in valuations):
+                            splits = True
+                    else:
+                        # In this case, at least one of the vertices is not on the hyperplane.
+                        # So we check if any ray or line pokes the hyperplane.
+                        if (    any(ieq[1:]*r[:]*direction < 0 for r in region.rays()) or
+                                any(ieq[1:]*l[:]          != 0 for l in region_lines)):
+                            splits = True
+
+                if splits:
+                    subdivided.append(region.intersection(pos_half))
+                    subdivided.append(region.intersection(neg_half))
+                else:
+                    subdivided.append(region)
             regions = subdivided
-        return tuple(regions)
+
+        if self.is_linear() and self.n_hyperplanes():
+            # We have treated so far only the positive half space w.r. to the first hyperplane.
+            return tuple(regions) + tuple(-x for x in regions)
+        else:
+            return tuple(regions)
+
+    @cached_method
+    def poset_of_regions(self, B=None, numbered_labels=True):
+        r"""
+        Return the poset of regions for a central hyperplane arrangement.
+
+        The poset of regions is a partial order on the set of regions
+        where the regions are ordered by `R\leq R'` if and only if
+        `S(R) \subseteq S(R')` where `S(R)` is the set of hyperplanes which
+        separate the region `R` from the base region `B`.
+
+        INPUT:
+
+        - ``B`` -- a region (optional; default: ``None``); if ``None``, then
+          an arbitrary region is chosen as the base region.
+
+        - ``numbered_labels`` -- bool (optional; default: ``True``); if ``True``,
+          then the elements of the poset are numbered. Else they are labelled
+          with the regions themselves.
+
+        OUTPUT:
+
+        A Poset object containing the poset of regions.
+
+        EXAMPLES::
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H([[0,1,1,1],[0,1,2,3]])
+            sage: A.poset_of_regions()
+            Finite poset containing 4 elements
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: A.poset_of_regions()
+            Finite poset containing 6 elements
+            sage: A.poset_of_regions(numbered_labels=False)
+            Finite poset containing 6 elements
+            sage: A = hyperplane_arrangements.braid(4)
+            sage: A.poset_of_regions()
+            Finite poset containing 24 elements
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H([[0,1,1,1],[0,1,2,3],[0,1,3,2],[0,2,1,3]])
+            sage: R = A.regions()
+            sage: base_region = R[3]
+            sage: A.poset_of_regions(B=base_region)
+            Finite poset containing 14 elements
+
+        """
+        # We use RX to keep track of indexes and R to keep track of which regions
+        # we've already hit. This poset is graded, so we can go one set at a time
+        RX = self.regions()
+        R = set(RX)
+        if B in R:
+            R.discard(B)
+        else:
+            B = R.pop()
+
+        # Will record the edges in our poset
+        edges = []
+
+        # Start with rank=0 for the poset
+        nextTest = [B]
+
+        # While we have objects in our set R
+        while R:
+            # Transfer the "next step" to the "current step"
+            curTest = list(nextTest)
+            nextTest = set([])
+            # we want to test each region that we haven't hit yet
+            for r in R:
+                # Since it's graded, it suffices to look at the regions of the previous rank
+                for b in curTest:
+                    if self.distance_between_regions(b,r) == 1:
+                        nextTest.add(r)
+                        if numbered_labels:
+                            edges.append([RX.index(b),RX.index(r)])
+                        else:
+                            edges.append([b,r])
+            for x in nextTest:
+                R.discard(x)
+
+        if numbered_labels:
+            return Poset([range(len(RX)),edges])
+        else:
+            return Poset([RX,edges])
+
 
     @cached_method
     def closed_faces(self, labelled=True):
@@ -2491,6 +2782,32 @@ class HyperplaneArrangementElement(Element):
         if base_ring is None:
             base_ring = self.base_ring()
         return self.matroid().orlik_solomon_algebra(base_ring, ordering)
+
+    def orlik_terao_algebra(self, base_ring=None, ordering=None):
+        """
+        Return the Orlik-Terao algebra of ``self``.
+
+        INPUT:
+
+        - ``base_ring`` -- (default: the base field of ``self``) the ring
+          over which the Orlik-Terao algebra will be defined
+        - ``ordering`` -- (optional) an ordering of the ground set
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = P(x, y, z, x+y+z, 2*x+y+z, 2*x+3*y+z, 2*x+3*y+4*z)
+            sage: A.orlik_terao_algebra()
+            Orlik-Terao algebra of Linear matroid of rank 3 on 7 elements
+             represented over the Rational Field over Rational Field
+            sage: A.orlik_terao_algebra(base_ring=QQ['t'])
+            Orlik-Terao algebra of Linear matroid of rank 3 on 7 elements
+             represented over the Rational Field
+             over Univariate Polynomial Ring in t over Rational Field
+        """
+        if base_ring is None:
+            base_ring = self.base_ring()
+        return self.matroid().orlik_terao_algebra(base_ring, ordering)
 
     @cached_method
     def minimal_generated_number(self):

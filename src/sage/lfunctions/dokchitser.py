@@ -97,7 +97,7 @@ class Dokchitser(SageObject):
     We compute with the `L`-series of a rank `1` curve. ::
 
         sage: E = EllipticCurve('37a')
-        sage: L = E.lseries().dokchitser(); L
+        sage: L = E.lseries().dokchitser(algorithm='gp'); L
         Dokchitser L-function associated to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         sage: L(1)
         0.000000000000000
@@ -119,7 +119,7 @@ class Dokchitser(SageObject):
     `L`-series of a rank `2` elliptic curve. ::
 
         sage: E = EllipticCurve('389a')
-        sage: L = E.lseries().dokchitser()
+        sage: L = E.lseries().dokchitser(algorithm='gp')
         sage: L.num_coeffs()
         156
         sage: L.derivative(1,E.rank())
@@ -134,7 +134,7 @@ class Dokchitser(SageObject):
 
         sage: x = var('x')
         sage: K = NumberField(x**4 - x**2 - 1,'a')
-        sage: L = K.zeta_function()
+        sage: L = K.zeta_function(algorithm='gp')
         sage: L.conductor
         400
         sage: L.num_coeffs()
@@ -235,13 +235,12 @@ class Dokchitser(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: L = E.lseries().dokchitser()
+            sage: L = E.lseries().dokchitser(algorithm='gp')
             sage: L(2)
             0.546048036215014
             sage: L.gp()
             PARI/GP interpreter
         """
-
         if self.__gp is None:
             self._instantiate_gp()
         elif self.__initialized:
@@ -353,11 +352,11 @@ class Dokchitser(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: L = E.lseries().dokchitser()
+            sage: L = E.lseries().dokchitser(algorithm='gp')
             sage: L.num_coeffs()
             26
             sage: E = EllipticCurve('5077a')
-            sage: L = E.lseries().dokchitser()
+            sage: L = E.lseries().dokchitser(algorithm='gp')
             sage: L.num_coeffs()
             568
             sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init='1')
@@ -501,7 +500,7 @@ class Dokchitser(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve('5077a')
-            sage: L = E.lseries().dokchitser(100)
+            sage: L = E.lseries().dokchitser(100, algorithm='gp')
             sage: L(1)
             0.00000000000000000000000000000
             sage: L(1+I)
@@ -545,7 +544,7 @@ class Dokchitser(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve('389a')
-            sage: L = E.lseries().dokchitser()
+            sage: L = E.lseries().dokchitser(algorithm='gp')
             sage: L.derivative(1,E.rank())
             1.51863300057685
         """
@@ -589,7 +588,7 @@ class Dokchitser(SageObject):
             sage: L.taylor_series(2, 3)
             1.64493406684823 - 0.937548254315844*z + 0.994640117149451*z^2 + O(z^3)
             sage: E = EllipticCurve('37a')
-            sage: L = E.lseries().dokchitser()
+            sage: L = E.lseries().dokchitser(algorithm='gp')
             sage: L.taylor_series(1)
             0.000000000000000 + 0.305999773834052*z + 0.186547797268162*z^2 - 0.136791463097188*z^3 + 0.0161066468496401*z^4 + 0.0185955175398802*z^5 + O(z^6)
 
@@ -597,9 +596,9 @@ class Dokchitser(SageObject):
         precision. ::
 
             sage: E = EllipticCurve('389a')
-            sage: L = E.lseries().dokchitser(200)
+            sage: L = E.lseries().dokchitser(200, algorithm='gp')
             sage: L.taylor_series(1,3)
-            -9.094...e-82 + (5.1538...e-82)*z + 0.75931650028842677023019260789472201907809751649492435158581*z^2 + O(z^3)
+            ...e-82 + (...e-82)*z + 0.75931650028842677023019260789472201907809751649492435158581*z^2 + O(z^3)
 
         Check that :trac:`25402` is fixed::
 

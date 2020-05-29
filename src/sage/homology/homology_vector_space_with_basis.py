@@ -587,7 +587,6 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
             sage: a.cup_product(y)
             0
         """
-        B = self.basis()
         scomplex = self.complex()
         base_ring = self.base_ring()
         deg_left = li[0]

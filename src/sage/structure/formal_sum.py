@@ -204,13 +204,13 @@ class FormalSum(ModuleElement):
         # sage.misc.misc.repr_lincomb and use instead:
         # return sage.misc.misc.repr_lincomb([[t,c] for c,t in self], is_latex=True)
 
-    def _richcmp_(left, right, op):
+    def _richcmp_(self, other, op):
         """
-        Compare ``left`` and ``right``.
+        Compare ``self`` and ``other``.
 
         INPUT:
 
-        - ``right`` -- a :class:`FormalSum` with the same parent
+        - ``other`` -- a :class:`FormalSum` with the same parent
 
         - ``op`` -- a comparison operator
 
@@ -228,7 +228,7 @@ class FormalSum(ModuleElement):
             sage: a == 0          # 0 is coerced into a.parent()(0)
             False
         """
-        return richcmp(left._data, right._data, op)
+        return richcmp(self._data, other._data, op)
 
     def _neg_(self):
         """
@@ -319,7 +319,7 @@ class FormalSums(UniqueRepresentation, Module):
         sage: FormalSums(GF(7))
         Abelian Group of all Formal Finite Sums over Finite Field of size 7
         sage: FormalSums(ZZ[sqrt(2)])
-        Abelian Group of all Formal Finite Sums over Order in Number Field in sqrt2 with defining polynomial x^2 - 2
+        Abelian Group of all Formal Finite Sums over Order in Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
         sage: FormalSums(GF(9,'a'))
         Abelian Group of all Formal Finite Sums over Finite Field in a of size 3^2
 

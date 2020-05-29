@@ -22,6 +22,7 @@ We redirect stdout and stderr to our own logger, and remove some unwanted chatte
 # ****************************************************************************
 
 import os, sys, re, sphinx
+import sphinx.cmd.build
 
 # override the fancy multi-line formatting
 def term_width_line(text):
@@ -223,7 +224,10 @@ class SageSphinxLogger(object):
         if not self._color:
             line = self.ansi_color.sub('', line)
         if not skip_this_line:
-            self._stream.write(line)
+            # sphinx does produce messages in the current locals which
+            # could be non-ascii
+            # see https://trac.sagemath.org/ticket/27706
+            self._stream.write(line if isinstance(line, str) else line.encode('utf8'))
             self._stream.flush()
 
     def raise_errors(self):
@@ -304,12 +308,12 @@ def runsphinx():
     try:
         sys.stdout = SageSphinxLogger(sys.stdout, os.path.basename(output_dir))
         sys.stderr = SageSphinxLogger(sys.stderr, os.path.basename(output_dir))
-        # Note that this call as of eraly 2018 leaks memory. So make sure that
+        # Note that this call as of early 2018 leaks memory. So make sure that
         # you don't call runsphinx() several times in a row. (i.e., you want to
         # fork() somewhere before this call.)
         # We don't use subprocess here, as we don't want to re-initialize Sage
         # for every docbuild as this takes a while.
-        sphinx.cmdline.main(sys.argv[1:])
+        sphinx.cmd.build.main(sys.argv[1:])
         sys.stderr.raise_errors()
         sys.stdout.raise_errors()
     finally:

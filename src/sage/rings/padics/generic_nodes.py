@@ -10,7 +10,7 @@ AUTHORS:
 - David Roe
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
 #                               William Stein <wstein@gmail.com>
 #
@@ -20,7 +20,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import iteritems
 
 from sage.rings.padics.local_generic import LocalGeneric
 from sage.rings.padics.padic_generic import pAdicGeneric
@@ -30,7 +29,9 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import infinity, SignError
 from .lattice_precision import PrecisionLattice, PrecisionModule
+from sage.rings.padics.precision_error import PrecisionError
 from .padic_lattice_element import pAdicLatticeElement, pAdicLatticeCapElement, pAdicLatticeFloatElement
+
 
 class CappedAbsoluteGeneric(LocalGeneric):
     def is_capped_absolute(self):
@@ -566,6 +567,11 @@ class pAdicLatticeGeneric(pAdicGeneric):
             1 + O(2^10)
             sage: x - y
             O(2^50)
+
+        TESTS::
+
+            sage: R(x, prec=5)
+            1 + O(2^5)
         """
         # We first try the _copy method which is sharp on precision
         try:
@@ -662,7 +668,7 @@ class pAdicLatticeGeneric(pAdicGeneric):
         ans = len(elts)*[None]
         selfprec = self._precision
         # First the elements with precision lattice
-        for (prec, L) in iteritems(elt_by_prec):
+        for (prec, L) in elt_by_prec.items():
             if prec is selfprec:
                 # Here, we use the _copy method in order
                 # to be sharp on precision

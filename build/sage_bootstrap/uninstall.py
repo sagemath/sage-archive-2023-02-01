@@ -196,7 +196,7 @@ def modern_uninstall(spkg_name, sage_local, files, verbose=False):
         # filename. See https://trac.sagemath.org/ticket/26013.
         filename = pth.join(sage_local, filename.lstrip(os.sep))
         dirname = pth.dirname(filename)
-        if os.path.exists(filename):
+        if os.path.lexists(filename):
             if verbose:
                 print('rm "{}"'.format(filename))
             os.remove(filename)
@@ -252,7 +252,7 @@ def dir_type(path):
     """
 
     if path and not pth.isdir(path):
-        raise argparse.ArgumentError(
+        raise argparse.ArgumentTypeError(
             "'{0}' is not a directory".format(path))
 
     return path
@@ -267,7 +267,7 @@ def spkg_type(pkg):
     pkgbase = pth.join(PKGS, pkg)
 
     if not pth.isdir(pkgbase):
-        raise argparse.ArgumentError(
+        raise argparse.ArgumentTypeError(
                 "'{0}' is not a known spkg".format(pkg))
 
     return pkg

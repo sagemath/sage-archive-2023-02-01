@@ -574,7 +574,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: Psmaller.degree()
             80
 
-        ..  NOTE::
+        .. NOTE::
 
             In this case, the "smaller" option returned an isomorphic
             group of lower degree. The above example used GAP's library
@@ -583,7 +583,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             "Irreducible Maximal Finite Integral Matrix Groups" in the
             GAP reference manual has more details.
 
-        ..  NOTE::
+        .. NOTE::
 
             Concerning the option ``algorithm='smaller'`` you should note
             the following from GAP documentation: "The methods used might
@@ -678,21 +678,21 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         q = F.cardinality()
         gens = self.gens()
         n = self.degree()
-        MS = MatrixSpace(F,n,n)
-        mats = [] # initializing list of mats by which the gens act on self
+        MS = MatrixSpace(F, n, n)
+        mats = []  # initializing list of mats by which the gens act on self
         for g in gens:
             p = MS(g.matrix())
             m = p.rows()
             mats.append(m)
-        mats_str = str(gap([[list(r) for r in m] for m in mats]))
+        mats_str = str(gap([[list(r) for r in ma] for ma in mats]))
         gap.eval("M:=GModuleByMats("+mats_str+", GF("+str(q)+"))")
         gap.eval("MCFs := MTX.CompositionFactors( M )")
         N = eval(gap.eval("Length(MCFs)"))
         if algorithm == "verbose":
             print(gap.eval('MCFs') + "\n")
         L = []
-        for i in range(1,N+1):
-            gap.eval("MCF := MCFs[%s]"%i)
+        for i in range(1, N + 1):
+            gap.eval("MCF := MCFs[%s]" % i)
             L.append(tuple([sage_eval(gap.eval("MCF.field")),
                             eval(gap.eval("MCF.dimension")),
                             sage_eval(gap.eval("MCF.IsIrreducible")) ]))
@@ -782,23 +782,26 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
         ## Setting Singular's variable names
         ## We need to make sure that field generator and variables get different names.
-        if str(F.gen())[0]=='x':
+        if str(F.gen())[0] == 'x':
             VarStr = 'y'
         else:
             VarStr = 'x'
-        VarNames='('+','.join((VarStr+str(i+1) for i in range(n)))+')'
-        R=singular.ring(FieldStr,VarNames,'dp') # this does have a side-effect
-        if hasattr(F,'polynomial') and F.gen()!=1: # we have to define minpoly
+        VarNames = '(' + ','.join((VarStr+str(i) for i in range(1, n+1)))+')'
+        # The function call and affectation below have side-effects. Do not remove!
+        # (even if pyflakes say so)
+        R = singular.ring(FieldStr, VarNames, 'dp')
+        if hasattr(F, 'polynomial') and F.gen() != 1:
+            # we have to define minpoly
             singular.eval('minpoly = '+str(F.polynomial()).replace('x',str(F.gen())))
         A = [singular.matrix(n,n,str((x.matrix()).list())) for x in gens]
         Lgens = ','.join((x.name() for x in A))
-        PR = PolynomialRing(F,n,[VarStr+str(i) for i in range(1,n+1)])
+        PR = PolynomialRing(F, n, [VarStr+str(i) for i in range(1,n+1)])
 
-        if q == 0 or (q > 0 and self.cardinality()%q != 0):
+        if q == 0 or (q > 0 and self.cardinality() % q):
             from sage.all import Matrix
             try:
-                elements = [ g.matrix() for g in self.list() ]
-            except (TypeError,ValueError):
+                elements = [g.matrix() for g in self.list()]
+            except (TypeError, ValueError):
                 elements
             if elements is not None:
                 ReyName = 't'+singular._next_var_name()
@@ -1068,11 +1071,11 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: K.<v> = CyclotomicField(4)
             sage: R.<x,y,z,w> = K[]
             sage: G.reynolds_operator(x, chi)
-            1/4*x + (-1/4*v)*y - 1/4*z + (1/4*v)*w
+            1/4*x + (1/4*v)*y - 1/4*z + (-1/4*v)*w
             sage: chi = G.character(G.character_table()[2])
             sage: R.<x,y,z,w> = QQ[]
             sage: G.reynolds_operator(x*y, chi)
-            1/4*x*y + (1/4*zeta4)*y*z + (-1/4*zeta4)*x*w - 1/4*z*w
+            1/4*x*y + (-1/4*zeta4)*y*z + (1/4*zeta4)*x*w - 1/4*z*w
 
         ::
 
@@ -1081,10 +1084,10 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: chi = G.character(G.character_table()[1])
             sage: R.<x,y,z> = K[]
             sage: G.reynolds_operator(x*y^5, chi)
-            1/3*x*y^5 + (2/3*izeta3^3 + izeta3^2 + 8/3*izeta3 + 1)*x^5*z + (-2/3*izeta3^3 - izeta3^2 - 8/3*izeta3 - 4/3)*y*z^5
+            1/3*x*y^5 + (-2/3*izeta3^3 - izeta3^2 - 8/3*izeta3 - 4/3)*x^5*z + (2/3*izeta3^3 + izeta3^2 + 8/3*izeta3 + 1)*y*z^5
             sage: R.<x,y,z> = QQbar[]
             sage: G.reynolds_operator(x*y^5, chi)
-             1/3*x*y^5 + (-0.1666666666666667? - 0.2886751345948129?*I)*x^5*z + (-0.1666666666666667? + 0.2886751345948129?*I)*y*z^5
+             1/3*x*y^5 + (-0.1666666666666667? + 0.2886751345948129?*I)*x^5*z + (-0.1666666666666667? - 0.2886751345948129?*I)*y*z^5
 
         ::
 
@@ -1300,8 +1303,8 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: chi = G.character(G.character_table()[1])
             sage: R.<x,y,z> = K[]
             sage: sorted(G.invariants_of_degree(2, R=R, chi=chi))
-            [x*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*x*z + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y*z,
-             x^2 + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y^2 + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*z^2]
+            [x*y + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*x*z + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*y*z,
+             x^2 + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*y^2 + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*z^2]
 
         ::
 

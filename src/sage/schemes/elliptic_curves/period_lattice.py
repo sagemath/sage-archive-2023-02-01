@@ -71,18 +71,15 @@ We test that bug :trac:`8415` (caused by a PARI bug fixed in v2.3.5) is OK::
     sage: K.<a> = QuadraticField(-7)
     sage: EK = E.change_ring(K)
     sage: EK.period_lattice(K.complex_embeddings()[0])
-    Period lattice associated to Elliptic Curve defined by y^2 + y = x^3 + (-1)*x over Number Field in a with defining polynomial x^2 + 7 with respect to the embedding Ring morphism:
-      From: Number Field in a with defining polynomial x^2 + 7
+    Period lattice associated to Elliptic Curve defined by y^2 + y = x^3 + (-1)*x over Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I with respect to the embedding Ring morphism:
+      From: Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I
       To:   Algebraic Field
       Defn: a |--> -2.645751311064591?*I
 
 
 REFERENCES:
 
-.. [CT] \J. E. Cremona and T. Thongjunthug, The Complex AGM, periods of
-   elliptic curves over $\CC$ and complex elliptic logarithms.
-   Journal of Number Theory Volume 133, Issue 8, August 2013, pages
-   2813-2841.
+- [CT2013]_
 
 
 AUTHORS:
@@ -450,6 +447,49 @@ class PeriodLattice_ell(PeriodLattice):
             return self._compute_periods_complex(prec=prec)
 
     @cached_method
+    def gens(self, prec=None, algorithm='sage'):
+        r"""
+        Return a basis for this period lattice as a 2-tuple.
+
+        This is an alias for
+        :meth:`~sage.schemes.elliptic_curves.period_lattice.PeriodLattice_ell.basis`.
+        See the docstring there for a more in-depth explanation and further
+        examples.
+
+        INPUT:
+
+        - ``prec`` (default: ``None``) -- precision in bits (default
+          precision if ``None``).
+
+        - ``algorithm`` (string, default 'sage') -- choice of
+          implementation (for real embeddings only) between 'sage'
+          (native Sage implementation) or 'pari' (use the PARI
+          library: only available for real embeddings).
+
+        OUTPUT:
+
+        (tuple of Complex) `(\omega_1,\omega_2)` where the lattice is
+        `\ZZ\omega_1 + \ZZ\omega_2`.  If the lattice is real then
+        `\omega_1` is real and positive, `\Im(\omega_2)>0` and
+        `\Re(\omega_1/\omega_2)` is either `0` (for rectangular
+        lattices) or `\frac{1}{2}` (for non-rectangular lattices).
+        Otherwise, `\omega_1/\omega_2` is in the fundamental region of
+        the upper half-plane.  If the latter normalisation is required
+        for real lattices, use the function ``normalised_basis()``
+        instead.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a')
+            sage: E.period_lattice().gens()
+            (2.99345864623196, 2.45138938198679*I)
+
+            sage: E.period_lattice().gens(prec = 100)
+            (2.9934586462319596298320099794, 2.4513893819867900608542248319*I)
+        """
+        return tuple(self.basis(prec=prec, algorithm=algorithm))
+
+    @cached_method
     def normalised_basis(self, prec=None, algorithm='sage'):
         r"""
         Return a normalised basis for this period lattice as a 2-tuple.
@@ -497,8 +537,8 @@ class PeriodLattice_ell(PeriodLattice):
             sage: tau = w1/w2; tau
             0.387694505032876 + 1.30821088214407*I
         """
-        w1, w2 = periods = self.basis(prec=prec, algorithm=algorithm)
-        periods, mat = normalise_periods(w1,w2)
+        w1, w2 = self.basis(prec=prec, algorithm=algorithm)
+        periods, _ = normalise_periods(w1, w2)
         return periods
 
     @cached_method
@@ -686,11 +726,14 @@ class PeriodLattice_ell(PeriodLattice):
         # precision used!
         pi = C.pi()
         a, b, c = (C(x) for x in self._abc)
-        if (a+b).abs() < (a-b).abs(): b=-b
-        if (a+c).abs() < (a-c).abs(): c=-c
+        if (a+b).abs() < (a-b).abs():
+            b=-b
+        if (a+c).abs() < (a-c).abs():
+            c=-c
         w1 = pi/a.agm(b)
         w2 = pi*C.gen()/a.agm(c)
-        if (w1/w2).imag()<0: w2=-w2
+        if (w1/w2).imag()<0:
+            w2=-w2
         if normalise:
             w1w2, mat = normalise_periods(w1,w2)
             return w1w2
@@ -859,19 +902,21 @@ class PeriodLattice_ell(PeriodLattice):
         A complex example (taken from J.E.Cremona and E.Whitley,
         *Periods of cusp forms and elliptic curves over imaginary
         quadratic fields*, Mathematics of Computation 62 No. 205
-        (1994), 407-429)::
+        (1994), 407-429).  See :trac:`29645`::
 
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([0,1-i,i,-i,0])
             sage: L = E.period_lattice(K.embeddings(CC)[0])
             sage: L.omega()
             8.80694160502647
+            sage: L.omega(prec=200)
+            8.8069416050264741493250743632295462227858630765392114070032
         """
         if self.is_real():
             n_components = (self.real_flag+3)//2
             return self.real_period(prec) * n_components
         else:
-            return self.complex_area()
+            return self.complex_area(prec)
 
     @cached_method
     def basis_matrix(self, prec=None, normalised=False):
@@ -1207,7 +1252,8 @@ class PeriodLattice_ell(PeriodLattice):
         # NB We assume here that when the embedding is real then the
         # point is also real!
 
-        if self.real_flag ==  0: return z
+        if self.real_flag ==  0:
+            return z
         if self.real_flag == -1:
             k = (z.imag()/w2.imag()).round()
             z = z-k*w2
@@ -1245,7 +1291,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         ALGORITHM:
 
-        Uses the complex AGM.  See [CT]_ for details.
+        Uses the complex AGM.  See [CT2013]_ for details.
 
         EXAMPLES::
 
@@ -1350,9 +1396,11 @@ class PeriodLattice_ell(PeriodLattice):
 
             a = C((e1-e3).sqrt())
             b = C((e1-e2).sqrt())
-            if (a+b).abs() < (a-b).abs():  b=-b
+            if (a+b).abs() < (a-b).abs():
+                b=-b
             r = C(((xP-e3)/(xP-e2)).sqrt())
-            if r.real()<0: r=-r
+            if r.real()<0:
+                r=-r
             t = -C(wP)/(2*r*(xP-e2))
             # eps controls the end of the loop. Since we aim at a target
             # precision of prec bits, eps = 2^(-prec) is enough.
@@ -1360,10 +1408,13 @@ class PeriodLattice_ell(PeriodLattice):
             while True:
                 s = b*r+a
                 a, b = (a+b)/2, (a*b).sqrt()
-                if (a+b).abs() < (a-b).abs():  b=-b
+                if (a+b).abs() < (a-b).abs():
+                    b=-b
                 r = (a*(r+1)/s).sqrt()
-                if (r.abs()-1).abs() < eps: break
-                if r.real()<0: r=-r
+                if (r.abs()-1).abs() < eps:
+                    break
+                if r.real()<0:
+                    r=-r
                 t *= r
             z = ((a/t).arctan())/a
             z = ComplexField(prec)(z)
@@ -1382,7 +1433,8 @@ class PeriodLattice_ell(PeriodLattice):
         else:                  # real, disconnected case
             a = R(e3-e1).sqrt()
             b = R(e3-e2).sqrt()
-            if (a+b).abs() < (a-b).abs():  b=-b
+            if (a+b).abs() < (a-b).abs():
+                b=-b
             on_egg = (xP<e3)
             if on_egg:
                 r = a/R(e3-xP).sqrt()
@@ -1398,7 +1450,8 @@ class PeriodLattice_ell(PeriodLattice):
             s = b*r+a
             a, b = (a+b)/2, (a*b).sqrt()
             r = (a*(r+1)/s).sqrt()
-            if (r-1).abs() < eps: break
+            if (r-1).abs() < eps:
+                break
             t *= r
         z = ((a/t).arctan())/a
         if on_egg:
@@ -1438,7 +1491,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         ALGORITHM:
 
-        Uses the complex AGM.  See [CT]_ for details.
+        Uses the complex AGM.  See [CT2013]_ for details.
 
         EXAMPLES::
 
@@ -1779,11 +1832,12 @@ class PeriodLattice_ell(PeriodLattice):
             y = y.real()
 
         if to_curve:
-            a1,a2,a3,a4,a6 = [self.embedding(a) for a in self.E.ainvs()]
-            b2 = self.embedding(self.E.b2())
+            K = x.parent()
+            v = refine_embedding(self.embedding, Infinity)
+            a1,a2,a3,a4,a6 = [K(v(a)) for a in self.E.ainvs()]
+            b2 = K(v(self.E.b2()))
             x = x - b2 / 12
             y = (y - (a1 * x + a3)) / 2
-            K = x.parent()
             EK = EllipticCurve(K,[a1,a2,a3,a4,a6])
             return EK.point((x,y,K(1)), check=False)
         else:

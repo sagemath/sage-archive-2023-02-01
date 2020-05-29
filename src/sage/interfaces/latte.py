@@ -11,7 +11,9 @@ Interface to LattE integrale programs
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import six
+from __future__ import print_function, absolute_import
+
+from sage.cpython.string import str_to_bytes, bytes_to_str
 
 from subprocess import Popen, PIPE
 from sage.misc.misc import SAGE_TMP
@@ -68,12 +70,12 @@ def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False,
         sage: print(count(cddin, **opts))  # optional - latte_int
         x[0]^2*x[1]^(-2)*x[2]^(-2)/((1-x[1])*(1-x[2])*(1-x[0]^(-1)))
          + x[0]^(-2)*x[1]^(-2)*x[2]^(-2)/((1-x[1])*(1-x[2])*(1-x[0]))
-         + x[0]^2*x[1]^(-2)*x[2]^2/((1-x[1])*(1-x[0]^(-1))*(1-x[2]^(-1)))
+         + x[0]^2*x[1]^(-2)*x[2]^2/((1-x[1])*(1-x[2]^(-1))*(1-x[0]^(-1)))
          + x[0]^(-2)*x[1]^(-2)*x[2]^2/((1-x[1])*(1-x[0])*(1-x[2]^(-1)))
-         + x[0]^2*x[1]^2*x[2]^(-2)/((1-x[2])*(1-x[0]^(-1))*(1-x[1]^(-1)))
+         + x[0]^2*x[1]^2*x[2]^(-2)/((1-x[2])*(1-x[1]^(-1))*(1-x[0]^(-1)))
          + x[0]^(-2)*x[1]^2*x[2]^(-2)/((1-x[2])*(1-x[0])*(1-x[1]^(-1)))
-         + x[0]^2*x[1]^2*x[2]^2/((1-x[0]^(-1))*(1-x[1]^(-1))*(1-x[2]^(-1)))
-         + x[0]^(-2)*x[1]^2*x[2]^2/((1-x[0])*(1-x[1]^(-1))*(1-x[2]^(-1)))
+         + x[0]^2*x[1]^2*x[2]^2/((1-x[2]^(-1))*(1-x[1]^(-1))*(1-x[0]^(-1)))
+         + x[0]^(-2)*x[1]^2*x[2]^2/((1-x[0])*(1-x[2]^(-1))*(1-x[1]^(-1)))
 
     TESTS:
 
@@ -113,6 +115,8 @@ def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False,
     # Check that LattE is present
     Latte().require()
 
+    arg = str_to_bytes(arg)
+
     args = ['count']
     if ehrhart_polynomial and multivariate_generating_function:
         raise ValueError
@@ -138,7 +142,7 @@ def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False,
         from sage.misc.temporary_file import tmp_filename
         filename = tmp_filename()
         with open(filename, 'w') as f:
-            f.write(arg)
+            f.write(bytes_to_str(arg))
         args += [filename]
     else:
         args += ['/dev/stdin']
@@ -151,6 +155,8 @@ def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False,
                        cwd=str(SAGE_TMP))
 
     ans, err = latte_proc.communicate(arg)
+    if err:
+        err = bytes_to_str(err)
     ret_code = latte_proc.poll()
     if ret_code:
         if err is None:
@@ -159,6 +165,7 @@ def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False,
             err = ":\n" + err
         raise RuntimeError("LattE integrale program failed (exit code {})".format(ret_code) + err.strip())
 
+    ans = bytes_to_str(ans)
 
     if ehrhart_polynomial:
         ans = ans.splitlines()[-2]
@@ -240,7 +247,7 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
         sage: integrate(P.cdd_Hrepresentation(), '[[1,[2,2,2]]]', cdd=True)   # optional - latte_int
         4096/27
 
-    TESTS::
+    TESTS:
 
     Testing raw output::
 
@@ -305,6 +312,8 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
     # Check that LattE is present
     Latte().require()
 
+    arg = str_to_bytes(arg)
+
     from sage.rings.rational import Rational
 
     args = ['integrate']
@@ -335,7 +344,7 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
             args.append('--{}={}'.format(key, value))
 
     if got_polynomial:
-        if not isinstance(polynomial, six.string_types):
+        if not isinstance(polynomial, str):
             # transform polynomial to LattE description
             monomials_list = to_latte_polynomial(polynomial)
         else:
@@ -366,6 +375,7 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
             err = ":\n" + err
         raise RuntimeError("LattE integrale program failed (exit code {})".format(ret_code) + err.strip())
 
+    ans = bytes_to_str(ans)
     ans = ans.splitlines()
     ans = ans[-5].split()
     assert(ans[0]=='Answer:')
@@ -389,7 +399,7 @@ def to_latte_polynomial(polynomial):
 
     A string that describes the monomials list and exponent vectors.
 
-    TESTS::
+    TESTS:
 
     Testing a polynomial in three variables::
 

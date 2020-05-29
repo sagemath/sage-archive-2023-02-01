@@ -28,7 +28,6 @@ AUTHOR:
 - Yann Laigle-Chapuy (2009-08-28): first implementation
 
 """
-from __future__ import absolute_import
 
 from cysignals.signals cimport sig_check
 from libc.string cimport memcpy
@@ -42,6 +41,8 @@ from sage.rings.polynomial.pbori import BooleanPolynomial
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.polynomial.polynomial_element import is_Polynomial
+
+from sage.misc.superseded import deprecated_function_alias
 
 include "sage/data_structures/bitset.pxi"
 
@@ -229,7 +230,7 @@ cdef class BooleanFunction(SageObject):
     cdef object _nonlinearity
     cdef object _correlation_immunity
     cdef object _autocorrelation
-    cdef object _absolut_indicator
+    cdef object _absolute_indicator
     cdef object _sum_of_square_indicator
 
     def __cinit__(self, x):
@@ -833,13 +834,13 @@ cdef class BooleanFunction(SageObject):
             sage: B.correlation_immunity()
             2
         """
-        cdef int c
+        cdef size_t c
         if self._correlation_immunity is None:
             c = self._nvariables
             W = self.walsh_hadamard_transform()
             for 0 < i < len(W):
                 sig_check()
-                if (W[i] != 0):
+                if W[i]:
                     c = min( c , hamming_weight_int(i) )
             self._correlation_immunity = ZZ(c-1)
         return self._correlation_immunity
@@ -914,22 +915,35 @@ cdef class BooleanFunction(SageObject):
                 d[abs(i)] = 1
         return d
 
-    def absolut_indicator(self):
+    def absolute_indicator(self):
         """
-        Return the absolut indicator of the function. Ths is the maximal absolut
-        value of the autocorrelation.
+        Return the absolute indicator of the function.
+
+        The absolute indicator is defined as the maximal absolute value of
+        the autocorrelation.
 
         EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction("7969817CC5893BA6AC326E47619F5AD0")
+            sage: B.absolute_indicator()
+            32
+
+        The old method's name contained a typo, it is deprecated::
+
             sage: B.absolut_indicator()
+            doctest:warning
+            ...
+            DeprecationWarning: absolut_indicator is deprecated. Please use absolute_indicator instead.
+            See https://trac.sagemath.org/28001 for details.
             32
         """
-        if self._absolut_indicator is None:
+        if self._absolute_indicator is None:
             D = self.autocorrelation()
-            self._absolut_indicator = max([ abs(a) for a in D[1:] ])
-        return self._absolut_indicator
+            self._absolute_indicator = max([ abs(a) for a in D[1:] ])
+        return self._absolute_indicator
+
+    absolut_indicator = deprecated_function_alias(28001, absolute_indicator)
 
     def sum_of_square_indicator(self):
         """
@@ -1016,8 +1030,10 @@ cdef class BooleanFunction(SageObject):
 
     def algebraic_immunity(self, annihilator = False):
         """
-        Returns the algebraic immunity of the Boolean function. This is the smallest
-        integer `i` such that there exists a non trivial annihilator for `self` or `~self`.
+        Return the algebraic immunity of the Boolean function.
+
+        This is the smallest integer `i` such that there exists a non
+        trivial annihilator for `self` or `~self`.
 
         INPUT:
 
@@ -1325,7 +1341,7 @@ cdef class BooleanFunction(SageObject):
         self._nonlinearity = None
         self._correlation_immunity = None
         self._autocorrelation = None
-        self._absolut_indicator = None
+        self._absolute_indicator = None
         self._sum_of_square_indicator = None
 
     def __reduce__(self):
@@ -1406,9 +1422,10 @@ cdef class BooleanFunctionIterator:
 # cryptographic Boolean function.        #
 ##########################################
 
+
 def random_boolean_function(n):
     """
-    Returns a random Boolean function with `n` variables.
+    Return a random Boolean function with `n` variables.
 
     EXAMPLES::
 

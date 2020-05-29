@@ -23,7 +23,6 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import string_types, integer_types
 
 import sage.rings.all as rings
 
@@ -415,7 +414,7 @@ class EllipticCurveFactory(UniqueFactory):
                 # x is a cubic, y a rational point
                 x = EllipticCurve_from_cubic(x, y, morphism=False).ainvs()
 
-        if isinstance(x, string_types):
+        if isinstance(x, str):
             # Interpret x as a Cremona or LMFDB label.
             from sage.databases.cremona import CremonaDatabase
             x, data = CremonaDatabase().coefficients_and_data(x)
@@ -433,7 +432,7 @@ class EllipticCurveFactory(UniqueFactory):
 
         if R is None:
             R = Sequence(x).universe()
-            if R in (rings.ZZ,) + integer_types:
+            if R in (rings.ZZ, int):
                 R = rings.QQ
 
         return (R, tuple(R(a) for a in x)), kwds
@@ -1015,8 +1014,8 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         sage: cubic = 2*x^3+3*y^3+5*z^3
         sage: EllipticCurve_from_cubic(cubic,[1,1,-1])
         Scheme morphism:
-          From: Projective Plane Curve over Number Field in a with defining polynomial x^2 + 3 defined by 2*x^3 + 3*y^3 + 5*z^3
-          To:   Elliptic Curve defined by y^2 + 1754460/2053*x*y + 5226454388736000/8653002877*y = x^3 + (-652253285700/4214809)*x^2 over Number Field in a with defining polynomial x^2 + 3
+          From: Projective Plane Curve over Number Field in a with defining polynomial x^2 + 3 with a = 1.732050807568878?*I defined by 2*x^3 + 3*y^3 + 5*z^3
+          To:   Elliptic Curve defined by y^2 + 1754460/2053*x*y + 5226454388736000/8653002877*y = x^3 + (-652253285700/4214809)*x^2 over Number Field in a with defining polynomial x^2 + 3 with a = 1.732050807568878?*I
           Defn: Defined on coordinates by sending (x : y : z) to
                 (-16424/127575*x^2 - 231989/680400*x*y - 14371/64800*y^2 - 26689/81648*x*z - 10265/27216*y*z - 2053/163296*z^2 : 24496/315*x^2 + 119243/840*x*y + 4837/80*y^2 + 67259/504*x*z + 25507/168*y*z + 5135/1008*z^2 : 8653002877/2099914709760000*x^2 + 8653002877/699971569920000*x*y + 8653002877/933295426560000*y^2 + 8653002877/419982941952000*x*z + 8653002877/279988627968000*y*z + 8653002877/335986353561600*z^2)
 
@@ -1087,7 +1086,7 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         dx, dy, dz = [L.coefficient(v) for v in R.gens()]
 
         # find an invertible matrix M such that (0,1,0)M=P and
-        # ML'=(0,0,1)' where L=[dx,dy,dx].  Then the linea transform
+        # ML'=(0,0,1)' where L=[dx,dy,dx].  Then the linear transform
         # by M takes P to [0,1,0] and L to Z=0:
 
         if P[0]:

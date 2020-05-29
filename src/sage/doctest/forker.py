@@ -33,7 +33,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, division
 
 import os
 import sys
@@ -49,8 +49,8 @@ import doctest
 import traceback
 import tempfile
 from dis import findlinestarts
+from queue import Empty
 import gc
-import six
 
 import sage.misc.randstate as randstate
 from .util import Timer, RecordingDict, count_noun
@@ -68,24 +68,23 @@ import __future__
 MANDATORY_COMPILE_FLAGS = __future__.print_function.compiler_flag
 
 
-if not six.PY2:
-    # These lists are used on Python 3+ only for backwards compatibility with
-    # Python 2 in traceback parsing
-    # These exceptions in Python 2 have been rolled into OSError on Python 3;
-    # see https://docs.python.org/3/library/exceptions.html#OSError
-    _OSError_ALIASES = [
-        'IOError', 'EnvironmentError', 'socket.error', 'select.error',
-        'mmap.error'
-    ]
-    # This list is sort of the opposite case: these are new built-in exceptions
-    # in Python 3 that are subclasses of OSError; see
-    # https://docs.python.org/3/library/exceptions.html#os-exceptions
-    import builtins
-    _OSError_SUBCLASSES = [
-        exc.__name__ for exc in vars(builtins).values()
-        if isinstance(exc, type) and issubclass(exc, OSError) and
-           exc is not OSError
-    ]
+# These lists are used on Python 3+ only for backwards compatibility with
+# Python 2 in traceback parsing
+# These exceptions in Python 2 have been rolled into OSError on Python 3;
+# see https://docs.python.org/3/library/exceptions.html#OSError
+_OSError_ALIASES = [
+    'IOError', 'EnvironmentError', 'socket.error', 'select.error',
+    'mmap.error'
+]
+# This list is sort of the opposite case: these are new built-in exceptions
+# in Python 3 that are subclasses of OSError; see
+# https://docs.python.org/3/library/exceptions.html#os-exceptions
+import builtins
+_OSError_SUBCLASSES = [
+    exc.__name__ for exc in vars(builtins).values()
+    if isinstance(exc, type) and issubclass(exc, OSError) and
+       exc is not OSError
+]
 
 
 
@@ -197,7 +196,7 @@ def init_sage():
     debug.refine_category_hash_check = True
 
     # We import readline before forking, otherwise Pdb doesn't work
-    # os OS X: http://trac.sagemath.org/14289
+    # on OS X: http://trac.sagemath.org/14289
     import readline
 
     try:
@@ -545,16 +544,26 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
 
         Check that :trac:`26038` is fixed::
 
-            sage: a = 1
+            sage: a = 1 # py2
             ....: b = 2
             Traceback (most recent call last):
             ...
             SyntaxError: doctest is not a single statement
-            sage: a = 1
+            sage: a = 1 # py3
+            ....: b = 2
+            Traceback (most recent call last):
+            ...
+            SyntaxError: multiple statements found while compiling a single statement
+            sage: a = 1 # py2
             ....: @syntax error
             Traceback (most recent call last):
             ...
             SyntaxError: invalid syntax
+            sage: a = 1 # py3
+            ....: @syntax error
+            Traceback (most recent call last):
+            ...
+            SyntaxError: multiple statements found while compiling a single statement
         """
         # Ensure that injecting globals works as expected in doctests
         set_globals(test.globs)
@@ -602,7 +611,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             # If 'SKIP' is set, then skip this example.
             if self.optionflags & doctest.SKIP:
                 continue
-            
+
             # Record that we started this example.
             tries += 1
 
@@ -688,7 +697,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                     self.debugger.set_continue() # ==== Example Finished ====
             got = self._fakeout.getvalue()
 
-            if not isinstance(got, six.text_type):
+            if not isinstance(got, str):
                 # On Python 3 got should already be unicode text, but on Python
                 # 2 it is not.  For comparison's sake we want the unicode text
                 # decoded from UTF-8. If there was some error such that the
@@ -711,7 +720,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             else:
                 exc_msg = traceback.format_exception_only(*exception[:2])[-1]
 
-                if six.PY3 and example.exc_msg is not None:
+                if example.exc_msg is not None:
                     # On Python 3 the exception repr often includes the
                     # exception's full module name (for non-builtin
                     # exceptions), whereas on Python 2 does not, so we
@@ -1963,7 +1972,9 @@ class DocTestDispatcher(SageObject):
             # Hack to ensure multiprocessing leaves these processes
             # alone (in particular, it doesn't wait for them when we
             # exit).
-            multiprocessing.current_process()._children = set()
+            p = multiprocessing.process
+            assert hasattr(p, '_children')
+            p._children = set()
 
     def dispatch(self):
         """
@@ -2078,7 +2089,7 @@ class DocTestWorker(multiprocessing.Process):
         # Temporary file for stdout/stderr of the child process.
         # Normally, this isn't used in the master process except to
         # debug timeouts/crashes.
-        self.outtmpfile = tempfile.TemporaryFile()
+        self.outtmpfile = tempfile.NamedTemporaryFile(delete=False)
 
         # Create string for the master process to store the messages
         # (usually these are the doctest failures) of the child.
@@ -2139,22 +2150,6 @@ class DocTestWorker(multiprocessing.Process):
             task(self.options, self.outtmpfile, msgpipe, self.result_queue)
         finally:
             msgpipe.close()
-            # Note: This closes the tempfile in the child process, but in the
-            # parent process self.outtmpfile will not be closed yet, and can
-            # still be accessed in save_result_output
-            if hasattr(self.outtmpfile, 'delete'):
-                # On some platforms (notably Cygwin) tempfile.TemporaryFile is
-                # actually replaced by tempfile.NamedTemporaryFile with
-                # delete=True for this file
-                # This means that we end up with two NamedTemporaryFile
-                # instances--one on the parent process and one on the worker
-                # process.  Since NamedTemporaryFile automatically unlinks the
-                # file when it is closed, this can lead to an unhandled
-                # exception in the parent process if the child process closes
-                # this file first.  See https://trac.sagemath.org/ticket/25107#comment:14
-                # for more details.
-                self.outtmpfile.delete = False
-
             self.outtmpfile.close()
 
     def start(self):
@@ -2260,7 +2255,6 @@ class DocTestWorker(multiprocessing.Process):
             This method is called from the parent process, not from the
             subprocess.
         """
-        from six.moves.queue import Empty
         try:
             self.result = self.result_queue.get(block=False)
         except Empty:
@@ -2269,11 +2263,21 @@ class DocTestWorker(multiprocessing.Process):
 
         self.outtmpfile.seek(0)
         self.output = bytes_to_str(self.outtmpfile.read())
+        self.outtmpfile.close()
+        try:
+            # Now it is safe to delete the outtmpfile; we manage this manually
+            # so that the file does not get deleted via TemporaryFile.__del__
+            # in the worker process
+            os.unlink(self.outtmpfile.name)
+        except OSError as exc:
+            if exc.errno != errno.ENOENT:
+                raise
+
         del self.outtmpfile
 
     def kill(self):
         """
-        Kill this worker.  Returns ``True`` if the signal(s) are sent
+        Kill this worker.  Return ``True`` if the signal(s) are sent
         successfully or ``False`` if the worker process no longer exists.
 
         This method is only called if there is something wrong with the
@@ -2378,10 +2382,7 @@ class DocTestTask(object):
         ['cputime', 'err', 'failures', 'optionals', 'tests', 'walltime', 'walltime_skips']
     """
 
-    if six.PY2:
-        extra_globals = {}
-    else:
-        extra_globals = {'long': int}
+    extra_globals = {'long': int}
     """
     Extra objects to place in the global namespace in which tests are run.
     Normally this should be empty but there are special cases where it may

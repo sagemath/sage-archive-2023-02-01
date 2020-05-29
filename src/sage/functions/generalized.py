@@ -391,9 +391,13 @@ class FunctionSignum(BuiltinFunction):
 
     TESTS:
 
-    Check if conversion to sympy works :trac:`11921`::
+    Check if conversions to sympy and others work (:trac:`11921`)::
 
         sage: sgn(x)._sympy_()
+        sign(x)
+        sage: sgn(x)._fricas_init_()
+        'sign(x)'
+        sage: sgn(x)._giac_()
         sign(x)
 
     REFERENCES:
@@ -419,7 +423,8 @@ class FunctionSignum(BuiltinFunction):
             sign(x)
         """
         BuiltinFunction.__init__(self, "sgn", latex_name=r"\mathrm{sgn}",
-                conversions=dict(maxima='signum',mathematica='Sign',sympy='sign'),
+                conversions=dict(maxima='signum', mathematica='Sign',
+                                 sympy='sign', giac='sign', fricas='sign'),
                 alt_name="sign")
 
     def _eval_(self, x):

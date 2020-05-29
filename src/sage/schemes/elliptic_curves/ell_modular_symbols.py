@@ -8,9 +8,9 @@ is known to be modular.  The space is two-dimensional and contains a
 subspace on which complex conjugation acts as multiplication by `+1`
 and one on which it acts by `-1`.
 
-There are two implementations of modular symbols, one within ``Sage``
-and the other in Cremona's ``eclib`` library. One can choose here
-which one is used.
+There are three implementations of modular symbols, two within 
+``Sage`` and one in Cremona's ``eclib`` library.
+One can choose here which one is used.
 
 Associated to `E` there is a canonical generator in each space. They are maps
 `[.]^+` and `[.]^{-}`, both `\QQ \to\QQ`. They are normalized such that
@@ -56,16 +56,11 @@ For more details on modular symbols consult the following
 
 REFERENCES:
 
-.. [MaTaTe] B. Mazur, J. Tate, and J. Teitelbaum,
-   On `p`-adic analogues of the conjectures of Birch and
-   Swinnerton-Dyer, Inventiones mathematicae 84, (1986), 1-48.
+- [MTT1986]_
 
-.. [Crem97] John Cremona, Algorithms for modular elliptic curves,
-   Cambridge University Press, 1997.
+- [Cre1997]_
 
-.. [StWu] William Stein and Christian Wuthrich, Algorithms for the
-   Arithmetic of Elliptic Curves using Iwasawa Theory, Mathematics
-   of Computation 82 (2013), 1757-1792.
+- [SW2013]_
 
 AUTHORS:
 
@@ -159,8 +154,8 @@ class ModularSymbol(SageObject):
     `\QQ\to \QQ` obtained by sending `r` to the normalized
     symmetrized (or anti-symmetrized) integral `\infty` to `r`.
 
-    This is as defined in [MaTaTe]_, but normalized to depend on the curve
-    and not only its isogeny class as in [StWu]_.
+    This is as defined in [MTT1986]_, but normalized to depend on the curve
+    and not only its isogeny class as in [SW2013]_.
 
     See the documentation of ``E.modular_symbol()`` in elliptic curves
     over the rational numbers for help.
@@ -223,7 +218,6 @@ class ModularSymbol(SageObject):
         return "Modular symbol with sign %s over %s attached to %s"%(
             self._sign, self._base_ring, self._E)
 
-
 class ModularSymbolECLIB(ModularSymbol):
     def __init__(self, E, sign):
         r"""
@@ -233,8 +227,8 @@ class ModularSymbolECLIB(ModularSymbol):
         normalization chosen here by a factor of 2 in the case of elliptic
         curves with negative discriminant (with one real component) since
         the convention there is to write the above integral as
-        $[r]^{+}x+[r]^{-}yi$, where the lattice is $\left<2x,x+yi\right>$,
-        so that $\Omega^{+}=2x$ and $\Omega^{-}=2yi$.  We
+        `[r]^{+}x+[r]^{-}yi`, where the lattice is `\left<2x,x+yi\right>`,
+        so that `\Omega^{+}=2x` and `\Omega^{-}=2yi`.  We
         allow for this below.
 
         INPUT:
@@ -245,8 +239,8 @@ class ModularSymbolECLIB(ModularSymbol):
         EXAMPLES::
 
             sage: import sage.schemes.elliptic_curves.ell_modular_symbols
-            sage: E=EllipticCurve('11a1')
-            sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbolECLIB(E,+1)
+            sage: E = EllipticCurve('11a1')
+            sage: M = sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbolECLIB(E,+1)
             sage: M
             Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: M(0)
@@ -310,7 +304,7 @@ class ModularSymbolECLIB(ModularSymbol):
         self._sign = ZZ(sign)
         self._E = E
         self._scaling = 1 if E.discriminant()>0 else ZZ(1)/2
-        self._use_eclib = True
+        self._implementation="eclib"
         self._base_ring = QQ
         # The ECModularSymbol class must be initialized with sign=0 to compute minus symbols
         self._modsym = ECModularSymbol(E, int(sign==1))
@@ -422,7 +416,7 @@ class ModularSymbolSage(ModularSymbol):
             raise TypeError('sign must -1 or 1')
         self._sign = ZZ(sign)
         self._E = E
-        self._use_eclib = False
+        self._implementation="sage"
         self._normalize = normalize
         self._modsym = E.modular_symbol_space(sign=self._sign)
         self._base_ring = self._modsym.base_ring()

@@ -211,8 +211,6 @@ subsequent papers on the representation theory of these algebras.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import add_metaclass
 
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.words.word import Word
@@ -1298,7 +1296,7 @@ class TableauTuple(CombinatorialElement):
             \Lambda = \sum_{i=1}^l \Lambda_{a_i}
 
         of the affine special linear group. In the combinatorics, the
-        muticharge simply offsets the contents in each component so that
+        multicharge simply offsets the contents in each component so that
         the cell `(k, r, c)` has content `a_k + c - r`.
 
         INPUT:
@@ -1386,8 +1384,7 @@ class TableauTuple(CombinatorialElement):
 #--------------------------------------------------
 # Row standard tableau tuple - element class
 #--------------------------------------------------
-@add_metaclass(ClasscallMetaclass)
-class RowStandardTableauTuple(TableauTuple):
+class RowStandardTableauTuple(TableauTuple, metaclass=ClasscallMetaclass):
     r"""
     A class for row standard tableau tuples of shape a partition tuple.
 

@@ -8,7 +8,6 @@ p-adic Capped Relative Dense Polynomials
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 import sage.rings.polynomial.polynomial_element_generic
 from sage.rings.polynomial.polynomial_element import Polynomial
@@ -21,7 +20,6 @@ import sage.rings.padics.precision_error as precision_error
 import sage.rings.fraction_field_element as fraction_field_element
 import copy
 from sage.structure.element import coerce_binop
-import six
 
 from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZX
@@ -111,7 +109,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             zero = parentbr.zero()
             n = max(x.keys()) if x else 0
             v = [zero] * (n + 1)
-            for i, z in six.iteritems(x):
+            for i, z in x.items():
                 v[i] = z
             x = v
         elif isinstance(x, pari_gen):
@@ -217,9 +215,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             self._list = []
         polylist = self._poly.list()
         polylen = len(polylist)
-        self._list = [self.base_ring()(polylist[i], absprec = self._relprecs[i]) << self._valbase for i in range(polylen)] \
-                     + [self.base_ring()(0, absprec = self._relprecs[i] + self._valbase) for i in range(polylen, len(self._relprecs))]
-        while len(self._list) > 0 and self._list[-1]._is_exact_zero():
+        self._list = [self.base_ring()(polylist[i], absprec=self._relprecs[i]) << self._valbase for i in range(polylen)] \
+                     + [self.base_ring()(0, absprec=self._relprecs[i] + self._valbase) for i in range(polylen, len(self._relprecs))]
+        while self._list and self._list[-1]._is_exact_zero():
             self._list.pop()
 
     def _comp_valaddeds(self):
@@ -753,11 +751,11 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         - secure  -- a boolean (default: ``False``)
 
         If ``secure`` is ``True`` and the degree of this polynomial
-        is not determined (because the leading coefficient is 
+        is not determined (because the leading coefficient is
         indistinguishable from 0), an error is raised.
 
-        If ``secure`` is ``False``, the returned value is the largest 
-        $n$ so that the coefficient of $x^n$ does not compare equal 
+        If ``secure`` is ``False``, the returned value is the largest
+        $n$ so that the coefficient of $x^n$ does not compare equal
         to $0$.
 
         EXAMPLES::
@@ -942,16 +940,17 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             self._comp_valaddeds()
         return self._valbase + min([self._valaddeds[i] + val_of_var * i for i in range(len(self._valaddeds))])
 
-    def reverse(self, n=None):
+    def reverse(self, degree=None):
         """
-        Return a new polynomial whose coefficients are the reversed
-        coefficients of ``self``, where ``self`` is considered as a
-        polynomial of degree n.
+        Return the reverse of the input polynomial, thought as a polynomial of
+        degree ``degree``.
 
-        If n is ``None``, defaults to the degree of ``self``.
+        If `f` is a degree-`d` polynomial, its reverse is `x^d f(1/x)`.
 
-        If n is smaller than the degree of ``self``, some coefficients
-        will be discarded.
+        INPUT:
+
+        - ``degree`` (``None`` or an integer) - if specified, truncate or zero
+          pad the list of coefficients to this degree before reversing it.
 
         EXAMPLES::
 
@@ -969,9 +968,16 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             0*t^4 + (4 + O(13^7))*t^3 + (1 + O(13^7))*t
             sage: f.reverse(6)
             0*t^6 + (4 + O(13^7))*t^5 + (1 + O(13^7))*t^3
+
+        TESTS:
+
+        Check that this implementation is compatible with the generic one::
+
+            sage: all(f.reverse(d) == Polynomial.reverse(f, d)
+            ....:     for d in [None,0,1,2,3,4,5])
+            True
         """
-        if n is None:
-            n = self._poly.degree()
+        n = self._poly.degree() if degree is None else degree
         zzlist = self._poly.list()[:(n + 1)] + [0] * (n - self._poly.degree())
         zzlist.reverse()
         relprec = self._relprecs[:(n + 1)] + [infinity] * (n - self.prec_degree())
@@ -1256,7 +1262,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             ...
             PrecisionError: Not enough precision on the constant coefficient
 
-            sage: g = R([5,K(0,0),0,1]); g 
+            sage: g = R([5,K(0,0),0,1]); g
             (1 + O(5^20))*t^3 + O(5^0)*t + 5 + O(5^21)
             sage: g.is_eisenstein()
             True
@@ -1285,7 +1291,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         for i in range(1, deg):
             if relprecs[i] < compval:   # not enough precision
                 if valaddeds[i] < relprecs[i]: return False
-                if secure: 
+                if secure:
                     if i == 1:
                         raise PrecisionError("Not enough precision on the coefficient of %s" % self.variable_name())
                     else:

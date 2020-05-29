@@ -12,9 +12,7 @@ AUTHORS:
 For this interface, Kenzo is loaded into ECL which is itself loaded
 as a C library in Sage. Kenzo objects in this interface are nothing
 but wrappers around ECL objects.
-
-
-
+"""
 # ****************************************************************************
 #       Copyright (C) 2019 Miguel Marco <mmarco@unizar.es>
 #                      and Ana Romero <ana.romero@unirioja.es>
@@ -25,17 +23,13 @@ but wrappers around ECL objects.
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-"""
+from __future__ import print_function, absolute_import
 
-
-from __future__ import print_function
-from __future__ import absolute_import
-from six import string_types
 
 from sage.structure.sage_object import SageObject
 from sage.homology.homology_group import HomologyGroup
 from sage.rings.integer_ring import ZZ
-from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 
 from sage.libs.ecl import EclObject, ecl_eval, EclListIterator
 
@@ -124,7 +118,6 @@ def MooreSpace(m, n):
         sage: [m24.homology(i) for i in range(8)]            # optional - kenzo
         [Z, 0, 0, 0, C2, 0, 0, 0]
     """
-
     kenzomoore = moore(m, n)
     return KenzoSimplicialSet(kenzomoore)
 
@@ -167,13 +160,14 @@ def EilenbergMacLaneSpace(G, n):
     else:
         raise NotImplementedError("Eilenberg-MacLane spaces are only supported over ZZ and ZZ_2")
 
+
 class KenzoObject(SageObject):
     r"""
-    Wrapper to kenzo objects
+    Wrapper to Kenzo objects
 
     INPUT:
 
-    - ``kenzo_object`` -- a wrapper around a kenzo object
+    - ``kenzo_object`` -- a wrapper around a Kenzo object
       (which is an ecl object).
     """
 
@@ -198,7 +192,9 @@ class KenzoObject(SageObject):
 
     def _repr_(self):
         r"""
-        Represent the object. It just uses the ecl representation, removing the
+        Represent the object.
+
+        It just uses the ecl representation, removing the
         ecl decoration.
 
         EXAMPLES::
@@ -214,7 +210,7 @@ class KenzoObject(SageObject):
 
 class KenzoChainComplex(KenzoObject):
     r"""
-    Wrapper to kenzo chain complexes.
+    Wrapper to Kenzo chain complexes.
     """
     def homology(self, n):
         r"""
@@ -224,7 +220,7 @@ class KenzoChainComplex(KenzoObject):
 
         - ``n`` -- the dimension in which compute the homology
 
-        OUTOUT:
+        OUTPUT:
 
         - An homology group.
 

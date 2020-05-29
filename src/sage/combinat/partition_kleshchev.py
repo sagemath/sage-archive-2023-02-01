@@ -36,7 +36,7 @@ representation of `L(\Lambda_0)` of `U_q(\widehat{\mathfrak{sl}}_p)`
 and their celebrated *LLT conjecture* said that decomposition matrices of
 the :class:`sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra` of
 the symmetric group should be computable using the canonical basis of
-`L(\Lambda_0)`. This was proved and generalised to all cyclolotimc Hecke
+`L(\Lambda_0)`. This was proved and generalised to all cyclotomic Hecke
 algebras of type `A` by Ariki [Ariki1996]_ and then further generalized
 to the graded setting by Brundan and Kleshchev [BK2009]_.
 

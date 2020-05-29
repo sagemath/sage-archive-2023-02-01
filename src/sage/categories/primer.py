@@ -852,7 +852,7 @@ And rerun the test::
       File ".../sage/categories/semigroups.py", line ..., in _test_associativity
         tester.assertTrue((x * y) * z == x * (y * z))
     ...
-    AssertionError: False is not true
+    AssertionError: '((aa)a)' != '(a(aa))'
 
 We can recover instantly the actual values of ``x``, ``y``, ``z``, that is,
 a counterexample to the associativity of our broken semigroup, using post
@@ -948,8 +948,7 @@ what to do, ask your parent); it's also a speed critical method::
     sage: x._mul_??                             # not tested
     sage: x._mul_.__module__
     'sage.categories.coercion_methods'
-    sage: from six import get_method_function as gmf
-    sage: gmf(x._mul_) is gmf(Magmas.ElementMethods._mul_parent)
+    sage: x._mul_.__func__ is Magmas.ElementMethods._mul_parent  # py3
     True
 
 ``product`` is a mathematical method implemented by the parent::
@@ -1436,7 +1435,8 @@ necessarily a graded algebra! Indeed, the grading on `O` may not be
 compatible with the product on `O`::
 
     sage: Modules(QQ).Graded() & Algebras(QQ)
-    Join of Category of algebras over Rational Field and Category of graded modules over Rational Field
+    Join of Category of algebras over Rational Field
+     and Category of graded vector spaces over Rational Field
 
 The relevant difference between ``FiniteDimensional`` and ``Graded``
 is that ``FiniteDimensional`` is a statement about the properties of

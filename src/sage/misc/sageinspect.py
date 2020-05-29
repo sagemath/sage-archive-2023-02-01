@@ -114,22 +114,26 @@ defined Cython code, and with rather tricky argument lines::
 """
 from __future__ import print_function, absolute_import
 
-import six
-from six import iteritems, string_types, class_types
-from six.moves import range
-
 import ast
 import inspect
 import functools
 import os
+import sys
 import tokenize
 import re
 EMBEDDED_MODE = False
 from sage.env import SAGE_LIB
 
+try:
+    import importlib.machinery as import_machinery
+except ImportError:
+    pass
+
+
 def loadable_module_extension():
     r"""
     Return the filename extension of loadable modules, including the dot.
+
     It is '.dll' on cygwin, '.so' otherwise.
 
     EXAMPLES::
@@ -138,11 +142,9 @@ def loadable_module_extension():
         sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
         True
     """
-    import sys
-    if sys.platform == 'cygwin':
-        return os.path.extsep+'dll'
-    else:
-        return os.path.extsep+'so'
+    # Return the full platform-specific extension module suffix
+    return import_machinery.EXTENSION_SUFFIXES[0]
+
 
 def isclassinstance(obj):
     r"""
@@ -282,7 +284,7 @@ def _extract_embedded_signature(docstring, name):
         sage: from sage.misc.sageinspect import _extract_embedded_signature
         sage: from sage.misc.nested_class import MainClass
         sage: print(_extract_embedded_signature(MainClass.NestedClass.NestedSubClass.dummy.__doc__, 'dummy')[0])
-        File: sage/misc/nested_class.pyx (starting at line 314)
+        File: sage/misc/nested_class.pyx (starting at line ...)
         ...
         sage: _extract_embedded_signature(MainClass.NestedClass.NestedSubClass.dummy.__doc__, 'dummy')[1]
         ArgSpec(args=['self', 'x', 'r'], varargs='args', keywords='kwds', defaults=((1, 2, 3.4),))
@@ -365,12 +367,8 @@ def _getblock(lines):
     """
     blockfinder = BlockFinder()
     iter_lines = iter(lines)
-    if six.PY2:
-        tokenizer = tokenize.generate_tokens
-        readline = lambda: next(iter_lines)
-    else:
-        tokenizer = tokenize.tokenize
-        readline = lambda: next(iter_lines).encode('utf-8')
+    tokenizer = tokenize.tokenize
+    readline = lambda: next(iter_lines).encode('utf-8')
     try:
         for tok in tokenizer(readline):
             blockfinder.tokeneater(*tok)
@@ -401,7 +399,7 @@ def _extract_source(lines, lineno):
         raise ValueError("Line numbering starts at 1! (tried to extract line {})".format(lineno))
     lineno -= 1
 
-    if isinstance(lines, string_types):
+    if isinstance(lines, str):
         lines = lines.splitlines(True) # true keeps the '\n'
     if len(lines):
         # Fixes an issue with getblock
@@ -463,73 +461,64 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: [type(vis(n)) for n in ['foo', 'bar']]  # py3
             [<type 'str'>, <type 'str'>]
         """
-        if six.PY2:
-            what = node.id
-            if what == 'None':
-                return None
-            elif what == 'True':
-                return True
-            elif what == 'False':
-                return False
         return node.id
 
-    if six.PY3:
-        def visit_NameConstant(self, node):
-            """
-            Visit a Python AST :class:`ast.NameConstant` node.
+    def visit_NameConstant(self, node):
+        """
+        Visit a Python AST :class:`ast.NameConstant` node.
 
-            This is an optimization added in Python 3.4 for the special cases
-            of True, False, and None.
+        This is an optimization added in Python 3.4 for the special cases
+        of True, False, and None.
 
-            INPUT:
+        INPUT:
 
-            - ``node`` - the node instance to visit
+        - ``node`` - the node instance to visit
 
-            OUTPUT:
+        OUTPUT:
 
-            - None, True, False.
+        - None, True, False.
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: import ast, sage.misc.sageinspect as sms  # py3
-                sage: visitor = sms.SageArgSpecVisitor()  # py3
-                sage: vis = lambda x: visitor.visit_NameConstant(ast.parse(x).body[0].value)  # py3
-                sage: [vis(n) for n in ['True', 'False', 'None']]  # py3
-                [True, False, None]
-                sage: [type(vis(n)) for n in ['True', 'False', 'None']]  # py3
-                [<type 'bool'>, <type 'bool'>, <type 'NoneType'>]
-            """
+            sage: import ast, sage.misc.sageinspect as sms  # py3
+            sage: visitor = sms.SageArgSpecVisitor()  # py3
+            sage: vis = lambda x: visitor.visit_NameConstant(ast.parse(x).body[0].value)  # py3
+            sage: [vis(n) for n in ['True', 'False', 'None']]  # py3
+            [True, False, None]
+            sage: [type(vis(n)) for n in ['True', 'False', 'None']]  # py3
+            [<type 'bool'>, <type 'bool'>, <type 'NoneType'>]
+        """
 
-            return node.value
+        return node.value
 
-        def visit_arg(self, node):
-            r"""
-            Visit a Python AST :class:`ast.arg` node.
+    def visit_arg(self, node):
+        r"""
+        Visit a Python AST :class:`ast.arg` node.
 
-            This node type is only on Python 3, where function arguments are
-            more complex than just an identifier (e.g. they may also include
-            annotations).
+        This node type is only on Python 3, where function arguments are
+        more complex than just an identifier (e.g. they may also include
+        annotations).
 
-            For now we simply return the argument identifier as a string.
+        For now we simply return the argument identifier as a string.
 
-            INPUT:
+        INPUT:
 
-            - ``node`` -- the node instance to visit
+        - ``node`` -- the node instance to visit
 
-            OUTPUT:
+        OUTPUT:
 
-            the argument name
+        the argument name
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: import ast, sage.misc.sageinspect as sms  # py3
-                sage: s = "def f(a, b=2, c={'a': [4, 5.5, False]}, d=(None, True)):\n    return"  # py3
-                sage: visitor = sms.SageArgSpecVisitor()  # py3
-                sage: args = ast.parse(s).body[0].args.args  # py3
-                sage: [visitor.visit_arg(n) for n in args]  # py3
-                ['a', 'b', 'c', 'd']
-            """
-            return node.arg
+            sage: import ast, sage.misc.sageinspect as sms  # py3
+            sage: s = "def f(a, b=2, c={'a': [4, 5.5, False]}, d=(None, True)):\n    return"  # py3
+            sage: visitor = sms.SageArgSpecVisitor()  # py3
+            sage: args = ast.parse(s).body[0].args.args  # py3
+            sage: [visitor.visit_arg(n) for n in args]  # py3
+            ['a', 'b', 'c', 'd']
+        """
+        return node.arg
 
     def visit_Num(self, node):
         """
@@ -1092,13 +1081,9 @@ def _sage_getargspec_from_ast(source):
     args = [visitor.visit(a) for a in ast_args.args]
     defaults = [visitor.visit(d) for d in ast_args.defaults]
 
-    if six.PY2:
-        vararg = ast_args.vararg
-        kwarg = ast_args.kwarg
-    else:
-        # vararg and kwarg may be None
-        vararg = getattr(ast_args.vararg, 'arg', None)
-        kwarg = getattr(ast_args.kwarg, 'arg', None)
+    # vararg and kwarg may be None
+    vararg = getattr(ast_args.vararg, 'arg', None)
+    kwarg = getattr(ast_args.kwarg, 'arg', None)
 
     return inspect.ArgSpec(args, vararg, kwarg,
                            tuple(defaults) if defaults else None)
@@ -1555,6 +1540,20 @@ def sage_getargspec(obj):
         sage: sage_getargspec(range)
         ArgSpec(args=[], varargs='args', keywords='kwds', defaults=None)
 
+    Test that :trac:`28524` is fixed::
+
+        sage: from sage.repl.interpreter import get_test_shell
+        sage: shell = get_test_shell()
+        sage: shell.run_cell(
+        ....:     'class Foo:\n'
+        ....:     '    def __call__(self):\n'
+        ....:     '        return None\n'
+        ....:     '    def _sage_src_(self):\n'
+        ....:     '        return "the source code string"')
+        sage: shell.run_cell('f = Foo()')
+        sage: shell.run_cell('f??')
+        ...the source code string...
+
     AUTHORS:
 
     - William Stein: a modified version of inspect.getargspec from the
@@ -1594,13 +1593,15 @@ def sage_getargspec(obj):
     if isclassinstance(obj):
         if hasattr(obj,'_sage_src_'): #it may be a decorator!
             source = sage_getsource(obj)
-            # we try to find the definition and parse it by _sage_getargspec_ast
-            proxy = 'def dummy' + _grep_first_pair_of_parentheses(source) + ':\n    return'
             try:
+                # we try to find the definition and parse it by
+                # _sage_getargspec_ast
+                proxy = 'def dummy' + _grep_first_pair_of_parentheses(source) \
+                        + ':\n    return'
                 return _sage_getargspec_from_ast(proxy)
             except SyntaxError:
                 # To fix trac #10860. See #11913 for more information.
-                # See also #26906.
+                # See also #26906 and #28524.
                 pass
         if isinstance(obj, functools.partial):
             base_spec = sage_getargspec(obj.func)
@@ -1646,6 +1647,120 @@ def sage_getargspec(obj):
         defaults = None
     return inspect.ArgSpec(args, varargs, varkw, defaults)
 
+def formatannotation(annotation, base_module=None):
+    """
+    This is taken from Python 3.7's inspect.py; the only change is to
+    add documentation.
+
+    INPUT:
+
+    - ``annotation`` -- annotation for a function
+    - ``base_module`` (optional, default ``None``)
+
+    This is only relevant with Python 3, so the doctests are marked
+    accordingly.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import formatannotation
+        sage: import inspect
+        sage: def foo(a, *, b:int, **kwargs): # py3
+        ....:     pass
+        sage: s = inspect.signature(foo) # py3
+
+        sage: a = s.parameters['a'].annotation # py3
+        sage: a # py3
+        <class 'inspect._empty'>
+        sage: formatannotation(a) # py3
+        'inspect._empty'
+
+        sage: b = s.parameters['b'].annotation # py3
+        sage: b # py3
+        <class 'int'>
+        sage: formatannotation(b) # py3
+        'int'
+    """
+    if getattr(annotation, '__module__', None) == 'typing':
+        return repr(annotation).replace('typing.', '')
+    if isinstance(annotation, type):
+        if annotation.__module__ in ('builtins', base_module):
+            return annotation.__qualname__
+        return annotation.__module__+'.'+annotation.__qualname__
+    return repr(annotation)
+
+def sage_formatargspec(args, varargs=None, varkw=None, defaults=None,
+                       kwonlyargs=(), kwonlydefaults={}, annotations={},
+                       formatarg=str,
+                       formatvarargs=lambda name: '*' + name,
+                       formatvarkw=lambda name: '**' + name,
+                       formatvalue=lambda value: '=' + repr(value),
+                       formatreturns=lambda text: ' -> ' + text,
+                       formatannotation=formatannotation):
+    """
+    Format an argument spec from the values returned by getfullargspec.
+
+    The first seven arguments are (args, varargs, varkw, defaults,
+    kwonlyargs, kwonlydefaults, annotations).  The other five arguments
+    are the corresponding optional formatting functions that are called to
+    turn names and values into strings.  The last argument is an optional
+    function to format the sequence of arguments.
+
+    This is taken from Python 3.7's inspect.py, where it is
+    deprecated. The only change, aside from documentation (this
+    paragraph and the next, plus doctests), is to remove the
+    deprecation warning.
+
+    Sage uses this function to format arguments, as obtained by
+    :func:`sage_getargspec`. Since :func:`sage_getargspec` works for
+    Cython functions while Python's inspect module does not, it makes
+    sense to keep this function for formatting instances of
+    ``inspect.ArgSpec``.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import sage_formatargspec
+        sage: from inspect import formatargspec # deprecated in Python 3
+        sage: args = ['a', 'b', 'c']
+        sage: defaults = [3]
+        sage: sage_formatargspec(args, defaults=defaults)
+        '(a, b, c=3)'
+        sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults) # py2
+        True
+        sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults) # py3
+        doctest:...: DeprecationWarning: `formatargspec` is deprecated since Python 3.5. Use `signature` and the `Signature` object directly
+        True
+    """
+    def formatargandannotation(arg):
+        result = formatarg(arg)
+        if arg in annotations:
+            result += ': ' + formatannotation(annotations[arg])
+        return result
+    specs = []
+    if defaults:
+        firstdefault = len(args) - len(defaults)
+    for i, arg in enumerate(args):
+        spec = formatargandannotation(arg)
+        if defaults and i >= firstdefault:
+            spec = spec + formatvalue(defaults[i - firstdefault])
+        specs.append(spec)
+    if varargs is not None:
+        specs.append(formatvarargs(formatargandannotation(varargs)))
+    else:
+        if kwonlyargs:
+            specs.append('*')
+    if kwonlyargs:
+        for kwonlyarg in kwonlyargs:
+            spec = formatargandannotation(kwonlyarg)
+            if kwonlydefaults and kwonlyarg in kwonlydefaults:
+                spec += formatvalue(kwonlydefaults[kwonlyarg])
+            specs.append(spec)
+    if varkw is not None:
+        specs.append(formatvarkw(formatargandannotation(varkw)))
+    result = '(' + ', '.join(specs) + ')'
+    if 'return' in annotations:
+        result += formatreturns(formatannotation(annotations['return']))
+    return result
+
 
 def sage_getdef(obj, obj_name=''):
     r"""
@@ -1681,7 +1796,7 @@ def sage_getdef(obj, obj_name=''):
     """
     try:
         spec = sage_getargspec(obj)
-        s = str(inspect.formatargspec(*spec))
+        s = str(sage_formatargspec(*spec))
         s = s.strip('(').strip(')').strip()
         if s[:4] == 'self':
             s = s[4:]
@@ -1779,7 +1894,7 @@ def _sage_getdoc_unformatted(obj):
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
-    if isinstance(r, string_types):
+    if isinstance(r, str):
         return r
     else:
         # Not a string of any kind
@@ -1856,7 +1971,7 @@ def sage_getdoc_original(obj):
     """
     # typ is the type corresponding to obj, which is obj itself if
     # that was a type or old-style class
-    if isinstance(obj, class_types):
+    if isinstance(obj, type):
         typ = obj
     else:
         typ = type(obj)
@@ -2093,7 +2208,8 @@ def _sage_getsourcelines_name_with_dot(obj):
         # the length of lines, which causes an error.  Safeguard against that.
         lnum = min(obj.co_firstlineno,len(lines))-1
         while lnum > 0:
-            if pmatch(lines[lnum]): break
+            if pmatch(lines[lnum]):
+                break
             lnum -= 1
 
         return inspect.getblock(lines[lnum:]), lnum+base_lineno
@@ -2118,7 +2234,7 @@ def sage_getsourcelines(obj):
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix)[1]
-        22
+        20
         sage: sage_getsourcelines(matrix)[0][0]
         'def matrix(*args, **kwds):\n'
 
@@ -2367,7 +2483,7 @@ def sage_getvariablename(self, omit_underscore_names=True):
     """
     result = []
     for frame in inspect.stack():
-        for name, obj in iteritems(frame[0].f_globals):
+        for name, obj in frame[0].f_globals.items():
             if obj is self:
                 result.append(name)
     if len(result) == 1:

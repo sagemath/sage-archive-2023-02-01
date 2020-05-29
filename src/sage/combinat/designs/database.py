@@ -47,8 +47,6 @@ Functions
 ---------
 """
 from __future__ import print_function, absolute_import
-from six import iteritems
-from six.moves import range, zip
 
 from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_matrix,
                                                      OA_from_Vmt,
@@ -300,8 +298,8 @@ MOLS_constructions = {
 }
 
 # Add this data to the module's doc
-LIST_OF_MOLS_CONSTRUCTIONS = ", ".join([":func:`{} MOLS of order {} <MOLS_{}_{}>`".format(k,n,n,k)
-                                        for n,(k,_) in MOLS_constructions.items()])
+LIST_OF_MOLS_CONSTRUCTIONS = ", ".join(":func:`{} MOLS of order {} <MOLS_{}_{}>`".format(k,n,n,k)
+                                       for n,(k,_) in MOLS_constructions.items())
 
 def OA_7_18():
     r"""
@@ -424,7 +422,7 @@ def OA_7_66():
     # base block of a (73,9,1) BIBD
     B = [0, 19, 26, 14, 63, 15, 32, 35, 65]
     # The corresponding BIBD
-    BIBD= [[(x+i)%73 for x in B] for i in range(73)]
+    BIBD = [[(x+i)%73 for x in B] for i in range(73)]
     # the first 7 elements of an oval
     #
     # (this is the only difference with the OA(7,68) construction)
@@ -464,7 +462,7 @@ def OA_7_68():
     # base block of a (73,9,1) BIBD
     B = [0, 19, 26, 14, 63, 15, 32, 35, 65]
     # The corresponding BIBD
-    BIBD= [[(x+i)%73 for x in B] for i in range(73)]
+    BIBD = [[(x+i)%73 for x in B] for i in range(73)]
     # the first 5 elements of an oval
     #
     # (this is the only difference with the OA(7,66) construction)
@@ -503,7 +501,7 @@ def OA_8_69():
     # base block of a (73,9,1) BIBD
     B = [1,2,4,8,16,32,37,55,64]
     # The corresponding BIBD
-    BIBD= [[(x+i)%73 for x in B] for i in range(73)]
+    BIBD = [[(x+i)%73 for x in B] for i in range(73)]
     oval = [72,71,69,65]
     # PBD minus the oval
     PBD = [[x for x in B if x not in oval] for B in BIBD]
@@ -577,7 +575,7 @@ def OA_7_74():
     # base block of a (91,10,1) BIBD
     B = [0,1,3,9,27,81,61,49,56,77]
     # The corresponding BIBD
-    BIBD= [[(x+i)%91 for x in B] for i in range(91)]
+    BIBD = [[(x+i)%91 for x in B] for i in range(91)]
     # an oval
     oval = [(-x)%91 for x in B][-7:]
     # PBD minus the oval+B
@@ -616,7 +614,7 @@ def OA_8_76():
     # base block of a (91,10,1) BIBD
     B = [0,1,3,9,27,81,61,49,56,77]
     # The corresponding BIBD
-    BIBD= [[(x+i)%91 for x in B] for i in range(91)]
+    BIBD = [[(x+i)%91 for x in B] for i in range(91)]
     oval = [2,4,5,12,24]
     to_remove = oval + B
     # PBD minus the oval
@@ -1685,7 +1683,7 @@ def OA_10_469():
         blocks[len(B)].append(B)
 
     # Product of each symmetric design with the OA
-    for b_size,symmetric_design in iteritems(blocks):
+    for b_size,symmetric_design in blocks.items():
         matrix = _reorder_matrix(symmetric_design)
         OA.extend([[B[xx] for xx in R]
                    for R in incomplete_orthogonal_array(9,b_size,[1]*b_size)
@@ -2695,7 +2693,7 @@ Vmt_vectors = {
     (12,413) : ((0,1,436,546,977,467,242,3695,682,483,3026,461,1334),     _ref_Abel_v_12_t),
 }
 # Translate all V(m,t) into (mt+1,m+2;1,0;t)-QDM constructors
-for (m,t),(vec,source) in iteritems(Vmt_vectors):
+for (m,t),(vec,source) in Vmt_vectors.items():
     n,k,lmbda,mu,u = (m*t+1,m+2,1,0,t)
     if not (n+u,lmbda) in QDM:
         QDM[n+u,lmbda] = {}
@@ -4460,7 +4458,8 @@ def HigmanSimsDesign():
 
     The design is then obtained from the incidence structure produced by the
     blocks `A\in W_a` and `B\in W_b` whose intersection has cardinality 2. This
-    construction, due to M.Smith, can be found in [KY04]_ or in 10.A.(v) of [BvL84]_.
+    construction, due to M.Smith, can be found in [KY04]_ or in 10.A.(v) of
+    [BL1984]_.
 
     EXAMPLES::
 

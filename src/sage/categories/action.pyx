@@ -1,5 +1,5 @@
 r"""
-Group, ring, etc. actions on objects.
+Group, ring, etc. actions on objects
 
 The terminology and notation used is suggestive of groups acting on sets,
 but this framework can be used for modules, algebras, etc.
@@ -52,8 +52,6 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import absolute_import
 
 from cpython.tuple cimport PyTuple_GET_ITEM
 
@@ -571,5 +569,3 @@ cdef class ActionEndomorphism(Morphism):
                 return ActionEndomorphism(self._action, inv_g)
             else:
                 return (~self._action)(self._g)
-
-

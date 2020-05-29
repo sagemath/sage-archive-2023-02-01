@@ -31,8 +31,3 @@ See http://cs.anu.edu.au/~bdm/plantri
 == Dependencies ==
  * None
 
-== Changelog ==
-
-=== plantri-4.5, 11th September 2014 ===
- * #16970: First release put into Sage.
-

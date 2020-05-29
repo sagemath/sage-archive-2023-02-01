@@ -102,7 +102,6 @@ TESTS::
     True
 
 """
-from __future__ import print_function, absolute_import
 
 from cysignals.memory cimport sig_malloc, sig_free
 from sage.cpython.string cimport bytes_to_str
@@ -127,7 +126,7 @@ from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_mo
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import is_IntegerRing
 
-from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
+from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular, MPolynomial_libsingular, new_MP
 from sage.rings.polynomial.multi_polynomial_ideal import NCPolynomialIdeal
 
 from sage.rings.polynomial.polydict import ETuple
@@ -2221,6 +2220,55 @@ cdef class NCPolynomial_plural(RingElement):
             p = pNext(p)
         return pd
 
+    def _im_gens_(self, codomain, im_gens, base_map=None):
+        """
+        Return the image of ``self`` in codomain under the map that sends
+        the images of the generators of the parent of ``self`` to the
+        tuple of elements of im_gens.
+
+        INPUT:
+
+        - ``codomain`` -- The parent where the images live
+
+        - ``im_gens`` -- A list or tuple with the images of the generators of this ring.
+
+        EXAMPLES::
+
+            sage: A.<x,z,y> = FreeAlgebra(GF(9), 3)
+            sage: R = A.g_algebra(relations={y*x:-x*y + z},  order='lex')
+            sage: R.inject_variables()
+            Defining x, z, y
+            sage: B.<a,b,c> = FreeAlgebra(GF(9), 3)
+            sage: S = B.g_algebra({b*a:2*a*b, c*a:-2*a*c})
+            sage: S.inject_variables()
+            Defining a, b, c
+            sage: (x*y - x^2*z)._im_gens_(S, [a*b, b, a*b*c])
+            a^2*b^3 - a^2*b^2*c
+            sage: -(a*b)*(a*b)*b+(a*b)*(a*b*c)
+            a^2*b^3 - a^2*b^2*c
+
+            sage: z2 = GF(9).gen()
+            sage: phi = R.hom([a*b, b, a*b*c], check=False)
+            sage: phi(x*y - x^2*z)
+            a^2*b^3 - a^2*b^2*c
+            sage: phi(x*y - z2*x^2*z)
+            (z2)*a^2*b^3 - a^2*b^2*c
+            sage: phi = R.hom([a*b, b, a*b*c], base_map=GF(9).frobenius_endomorphism(), check=False)
+            sage: phi(x*y - x^2*z)
+            a^2*b^3 - a^2*b^2*c
+            sage: phi(x*y - z2*x^2*z)
+            (-z2 + 1)*a^2*b^3 - a^2*b^2*c
+            sage: z2^3
+            2*z2 + 1
+        """
+        if self.is_zero():
+            return codomain.zero()
+        from sage.misc.misc_c import prod
+        d = self.dict()
+        if base_map is None:
+            base_map = codomain
+        return sum(prod(im_gens[i]**val for i, val in enumerate(t))*base_map(d[t]) for t in d)
+
 
     cdef long _hash_c(self):
         """
@@ -2812,6 +2860,15 @@ cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
         sage: curcnt = ring_refcount_dict[currRing_wrapper()]
         sage: newR = new_CRing(W, H.base_ring())
         sage: ring_refcount_dict[currRing_wrapper()] - curcnt
+        2
+
+    Check that :trac:`29311` is fixed::
+
+        sage: R.<x,y,z> = QQ[]
+        sage: from sage.libs.singular.function_factory import ff
+        sage: W = ff.ring(ff.ringlist(R), ring=R)
+        sage: C = sage.rings.polynomial.plural.new_CRing(W, R.base_ring())
+        sage: C.one()
         1
     """
     assert( rw.is_commutative() )
@@ -2819,6 +2876,9 @@ cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
     cdef MPolynomialRing_libsingular self = <MPolynomialRing_libsingular>MPolynomialRing_libsingular.__new__(MPolynomialRing_libsingular)
 
     self._ring = rw._ring
+    cdef MPolynomial_libsingular one = new_MP(self, p_ISet(1, self._ring))
+    self._one_element = one
+    self._one_element_poly = one._poly
 
     wrapped_ring = wrap_ring(self._ring)
     sage.libs.singular.ring.ring_refcount_dict[wrapped_ring] += 1
@@ -3063,9 +3123,9 @@ def ExteriorAlgebra(base_ring, names,order='degrevlex'):
 
 cdef poly *addwithcarry(poly *tempvector, poly *maxvector, int pos, ring *_ring):
     if p_GetExp(tempvector, pos, _ring) < p_GetExp(maxvector, pos, _ring):
-      p_SetExp(tempvector, pos, p_GetExp(tempvector, pos, _ring)+1, _ring)
+        p_SetExp(tempvector, pos, p_GetExp(tempvector, pos, _ring)+1, _ring)
     else:
-      p_SetExp(tempvector, pos, 0, _ring)
-      tempvector = addwithcarry(tempvector, maxvector, pos + 1, _ring)
+        p_SetExp(tempvector, pos, 0, _ring)
+        tempvector = addwithcarry(tempvector, maxvector, pos + 1, _ring)
     p_Setm(tempvector, _ring)
     return tempvector

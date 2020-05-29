@@ -108,33 +108,6 @@ AUTHOR:
 - Nathann Cohen (2011)
 - David Coudert (2014) -- 2sweep, multi-sweep and iFUB for diameter computation
 
-REFERENCE:
-
-.. [KRG96b] \S. Klavzar, A. Rajapakse, and I. Gutman. The Szeged and the
-  Wiener index of graphs. *Applied Mathematics Letters*, 9(5):45--49, 1996.
-
-.. [GYLL93c] \I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
-  results in the theory of the Wiener number. *Indian Journal of
-  Chemistry*, 32A:651--661, 1993.
-
-.. [CGH+13] \P. Crescenzi, R. Grossi, M. Habib, L. Lanzi, A. Marino. On computing
-  the diameter of real-world undirected graphs. *Theor. Comput. Sci.* 514: 84-95
-  (2013) :doi:`10.1016/j.tcs.2012.09.018`
-
-.. [CGI+10] \P. Crescenzi, R. Grossi, C. Imbrenda, L. Lanzi, and A. Marino.
-  Finding the Diameter in Real-World Graphs: Experimentally Turning a Lower
-  Bound into an Upper Bound. Proceedings of *18th Annual European Symposium on
-  Algorithms*. Lecture Notes in Computer Science, vol. 6346, 302-313. Springer
-  (2010).
-
-.. [MLH08] \C. Magnien, M. Latapy, and M. Habib. Fast computation of empirically
-  tight bounds for the diameter of massive graphs. *ACM Journal of Experimental
-  Algorithms* 13 (2008) http://dx.doi.org/10.1145/1412228.1455266
-
-.. [TK13] \F. W. Takes and W. A. Kosters. Computing the eccentricity distribution
-  of large graphs. *Algorithms* 6:100-118 (2013)
-  http://dx.doi.org/10.3390/a6010100
-
 Functions
 ---------
 """
@@ -148,7 +121,6 @@ Functions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 include "sage/data_structures/binary_matrix.pxi"
 from libc.string cimport memset
@@ -162,6 +134,7 @@ from sage.ext.memory_allocator cimport MemoryAllocator
 
 from sage.graphs.base.static_sparse_graph cimport (short_digraph,
                                                    init_short_digraph,
+                                                   init_reverse,
                                                    free_short_digraph,
                                                    out_degree,
                                                    simple_BFS)
@@ -699,7 +672,7 @@ def distances_and_predecessors_all_pairs(G):
     cdef dict t_distance = {}
     cdef dict t_predecessor = {}
 
-    cdef int i, j
+    cdef unsigned int i, j
 
     for j in range(n):
         t_distance = {}
@@ -747,7 +720,7 @@ cdef uint32_t * c_eccentricity(G, vertex_list=None) except NULL:
 
 cdef uint32_t * c_eccentricity_bounding(G, vertex_list=None) except NULL:
     r"""
-    Return the vector of eccentricities in G using the algorithm of [TK13]_.
+    Return the vector of eccentricities in G using the algorithm of [TK2013]_.
 
     The array returned is of length `n`, and by default its `i`-th component is
     the eccentricity of the `i`-th vertex in ``G.vertices()``.
@@ -756,7 +729,7 @@ cdef uint32_t * c_eccentricity_bounding(G, vertex_list=None) except NULL:
     mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When set,
     ``ecc[i]`` is the eccentricity of vertex ``vertex_list[i]``.
 
-    The algorithm proposed in [TK13]_ is based on the observation that for all
+    The algorithm proposed in [TK2013]_ is based on the observation that for all
     nodes `v,w\in V`, we have `\max(ecc[v]-d(v,w), d(v,w))\leq ecc[w] \leq
     ecc[v] + d(v,w)`. Also the algorithms iteratively improves upper and lower
     bounds on the eccentricity of each node until no further improvements can be
@@ -842,7 +815,7 @@ def eccentricity(G, algorithm="standard", vertex_list=None):
     - ``algorithm`` -- string (default: ``'standard'``); name of the method used
       to compute the eccentricity of the vertices. Available algorithms are
       ``'standard'`` which performs a BFS from each vertex and ``'bounds'``
-      which uses the fast algorithm proposed in [TK13]_ for undirected graphs.
+      which uses the fast algorithm proposed in [TK2013]_ for undirected graphs.
 
     - ``vertex_list`` -- list (default: ``None``); a list of `n` vertices
       specifying a mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When
@@ -958,7 +931,7 @@ cdef uint32_t diameter_lower_bound_2sweep(short_digraph g,
     Compute a lower bound on the diameter using the 2-sweep algorithm.
 
     This method computes a lower bound on the diameter of an unweighted
-    undirected graph using 2 BFS, as proposed in [MLH08]_.  It first selects a
+    undirected graph using 2 BFS, as proposed in [MLH2008]_.  It first selects a
     vertex `v` that is at largest distance from an initial vertex `source` using
     BFS. Then it performs a second BFS from `v`. The largest distance from `v`
     is returned as a lower bound on the diameter of `G`.  The time complexity of
@@ -1010,6 +983,120 @@ cdef uint32_t diameter_lower_bound_2sweep(short_digraph g,
     return LB
 
 
+cdef tuple diameter_lower_bound_2Dsweep(short_digraph g,
+                                        short_digraph rev_g,
+                                        uint32_t source):
+    r"""
+    Lower bound on the diameter of digraph using directed version of 2-sweep.
+
+    This method computes a lower bound on the diameter of an unweighted directed
+    graph using directed version of the 2-sweep algorithm [Broder2000]_.
+    In first part, it performs a forward BFS from `source` and selects a vertex
+    `vf` at a maximum distance from `source` and then it calculates backward
+    eccentricity of `vf` using a backward BFS from `vf`. In second part, it
+    performs backward BFS from `source` and selects a vertex `vb` from which
+    `source` is at maximum distance and then it calculates forward eccentricity
+    of `vb` using a forward BFS from `vb`. It then calculates lower bound LB of
+    diameter as the maximum of backward eccentricity of `vf` and forward
+    eccentricity of `vb` and `s` as respective vertex.
+    This method returns (`LB`, `s`, `m`, `d`), where `LB` is best found lower
+    bound on diameter, `s` is vertex whose forward/backward eccentricity is
+    `LB`, `d` is vertex at a distance `LB` from/to `s`, `m` is vertex at
+    distance `LB/2` from/to both `s` and `d`.
+
+    INPUT:
+
+    - ``g`` -- a short_digraph
+
+    - ``rev_g`` -- a copy of `g` with edges reversed.
+
+    - ``source`` -- starting node of the forward and backward BFS
+
+    TESTS:
+
+    Diameter of weakly connected digraph is infinity ::
+
+        sage: from sage.graphs.distances_all_pairs import diameter
+        sage: G = DiGraph([(0,1)])
+        sage: diameter(G, algorithm='2Dsweep')
+        +Infinity
+    """
+    cdef uint32_t LB_1, LB_2, LB, LB_m, m, s, d
+    cdef uint32_t n = g.n
+    cdef uint32_t source_1 = source
+    cdef uint32_t source_2 = source
+    cdef bitset_t seen_1, seen_2
+
+    # Memory allocation
+    cdef MemoryAllocator mem = MemoryAllocator()
+    bitset_init(seen_1, n)
+    bitset_init(seen_2, n)
+    cdef uint32_t * distances_1 = <uint32_t *>mem.malloc(3 * n * sizeof(uint32_t))
+    cdef uint32_t * distances_2 = <uint32_t *>mem.malloc(3 * n * sizeof(uint32_t))
+    if not distances_1 or not distances_2:
+        bitset_free(seen_1)
+        bitset_free(seen_2)
+        raise MemoryError()
+
+    cdef uint32_t * predecessors_1 = distances_1 + n
+    cdef uint32_t * predecessors_2 = distances_2 + n
+    cdef uint32_t * waiting_list_1 = distances_1 + 2 * n
+    cdef uint32_t * waiting_list_2 = distances_2 + 2 * n
+
+    # we perform forward BFS from source and get its forward eccentricity
+    LB_1 = simple_BFS(g, source_1, distances_1, NULL, waiting_list_1, seen_1)
+
+    # if forward eccentricity of source is infinite, then graph is
+    # not strongly connected and its diameter is infinite
+    if LB_1 == UINT32_MAX:
+        bitset_free(seen_1)
+        bitset_free(seen_2)
+        return (UINT32_MAX, 0, 0, 0)
+
+    # we perform backward BFS from source and get its backward eccentricity
+    LB_2 = simple_BFS(rev_g, source_2, distances_2, NULL, waiting_list_2, seen_2)
+
+    # if backward eccentricity of source is infinite, then graph is
+    # not strongly connected and its diameter is infinite
+    if LB_2 == UINT32_MAX:
+        bitset_free(seen_1)
+        bitset_free(seen_2)
+        return (UINT32_MAX, 0, 0, 0)
+
+    # Then we perform backward BFS from the last visited vertex of forward BFS
+    # from source and obtain its backward eccentricity.
+    source_1 = waiting_list_1[n - 1]
+    LB_1 = simple_BFS(rev_g, source_1, distances_1, predecessors_1, waiting_list_1, seen_1)
+
+    # Then we perform forward BFS from the last visited vertex of backward BFS
+    # from source and obtain its forward eccentricity.
+    source_2 = waiting_list_2[n - 1]
+    LB_2 = simple_BFS(g, source_2, distances_2, predecessors_2, waiting_list_2, seen_2)
+
+    # we select best found lower bound as LB, s and d as source and destination
+    # of that BFS call and m as vertex at a distance LB/2 from/to both s and d
+    if LB_1 < LB_2:
+        LB = LB_2
+        s = waiting_list_2[0]
+        d = waiting_list_2[n - 1]
+        LB_m = LB_2 / 2
+        m = d
+        while distances_2[m] > LB_m:
+            m = predecessors_2[m]
+    else:
+        LB = LB_1
+        s = waiting_list_1[0]
+        d = waiting_list_1[n - 1]
+        LB_m = LB_1 / 2
+        m = d
+        while distances_1[m] > LB_m:
+            m = predecessors_1[m]
+
+    bitset_free(seen_1)
+    bitset_free(seen_2)
+
+    return (LB, s, m, d)
+
 cdef tuple diameter_lower_bound_multi_sweep(short_digraph g,
                                             uint32_t source):
     """
@@ -1017,8 +1104,8 @@ cdef tuple diameter_lower_bound_multi_sweep(short_digraph g,
 
     This method computes a lower bound on the diameter of an unweighted
     undirected graph using several iterations of the 2-sweep algorithms
-    [CGH+13]_. Roughly, it first uses 2-sweep to identify two vertices `s` and
-    `d` that are far apart. Then it selects a vertex `m` that is at same
+    [CGHLM2013]_. Roughly, it first uses 2-sweep to identify two vertices `s`
+    and `d` that are far apart. Then it selects a vertex `m` that is at same
     distance from `s` and `d`.  This vertex `m` will serve as the new source for
     another iteration of the 2-sweep algorithm that may improve the current
     lower bound on the diameter.  This process is repeated as long as the lower
@@ -1095,11 +1182,11 @@ cdef uint32_t diameter_iFUB(short_digraph g,
     Compute the diameter of the input Graph using the ``iFUB`` algorithm.
 
     The ``iFUB`` (iterative Fringe Upper Bound) algorithm calculates the exact
-    value of the diameter of a unweighted undirected graph [CGI+10]_. This
+    value of the diameter of a unweighted undirected graph [CGILM2010]_. This
     algorithms starts with a vertex found through a multi-sweep call (a
     refinement of the 4sweep method). The worst case time complexity of the iFUB
     algorithm is `O(nm)`, but it can be very fast in practice. See the code's
-    documentation and [CGH+13]_ for more details.
+    documentation and [CGHLM2013]_ for more details.
 
     INPUT:
 
@@ -1176,33 +1263,38 @@ cdef uint32_t diameter_iFUB(short_digraph g,
     return LB
 
 
-def diameter(G, algorithm='iFUB', source=None):
+def diameter(G, algorithm=None, source=None):
     r"""
     Return the diameter of `G`.
 
     This algorithm returns Infinity if the (di)graph is not connected. It can
-    also quickly return a lower bound on the diameter using the ``2sweep`` and
-    ``multi-sweep`` schemes.
+    also quickly return a lower bound on the diameter using the ``2sweep``,
+    ``2Dsweep`` and ``multi-sweep`` schemes.
 
     INPUT:
 
-    - ``algorithm`` -- (default: 'iFUB') specifies the algorithm to use among:
+    - ``algorithm`` -- string (default: ``None``); specifies the algorithm to
+      use among:
 
       - ``'standard'`` -- Computes the diameter of the input (di)graph as the
         largest eccentricity of its vertices. This is the classical algorithm
         with time complexity in `O(nm)`.
 
       - ``'2sweep'`` -- Computes a lower bound on the diameter of an
-        unweighted undirected graph using 2 BFS, as proposed in [MLH08]_.  It
+        unweighted undirected graph using 2 BFS, as proposed in [MLH2008]_.  It
         first selects a vertex `v` that is at largest distance from an initial
         vertex source using BFS. Then it performs a second BFS from `v`. The
         largest distance from `v` is returned as a lower bound on the diameter
         of `G`.  The time complexity of this algorithm is linear in the size of
         `G`.
 
+      - ``'2Dsweep'`` -- Computes lower bound on the diameter of an
+        unweighted directed graph using directed version of ``2sweep`` as
+        proposed in [Broder2000]_.
+
       - ``'multi-sweep'`` -- Computes a lower bound on the diameter of an
         unweighted undirected graph using several iterations of the ``2sweep``
-        algorithms [CGH+13]_. Roughly, it first uses ``2sweep`` to identify
+        algorithms [CGHLM2013]_. Roughly, it first uses ``2sweep`` to identify
         two vertices `u` and `v` that are far apart. Then it selects a vertex
         `w` that is at same distance from `u` and `v`.  This vertex `w` will
         serve as the new source for another iteration of the ``2sweep``
@@ -1211,7 +1303,7 @@ def diameter(G, algorithm='iFUB', source=None):
         is improved.
 
       - ``'iFUB'`` -- The iFUB (iterative Fringe Upper Bound) algorithm,
-        proposed in [CGI+10]_, computes the exact value of the diameter of an
+        proposed in [CGILM2010]_, computes the exact value of the diameter of an
         unweighted undirected graph. It is based on the following observation:
 
             The diameter of the graph is equal to the maximum eccentricity of
@@ -1232,13 +1324,13 @@ def diameter(G, algorithm='iFUB', source=None):
             compute the eccentricity of the vertices in `A`.
 
         Starting from a vertex `v` obtained through a multi-sweep computation
-        (which refines the 4sweep algorithm used in [CGH+13]_), we compute the
-        diameter by computing the eccentricity of all vertices sorted
+        (which refines the 4sweep algorithm used in [CGHLM2013]_), we compute
+        the diameter by computing the eccentricity of all vertices sorted
         decreasingly according to their distance to `v`, and stop as allowed
         by the remark above. The worst case time complexity of the iFUB
         algorithm is `O(nm)`, but it can be very fast in practice.
 
-    - ``source`` -- (default: None) vertex from which to start the first BFS.
+    - ``source`` -- (default: ``None``) vertex from which to start the first BFS.
       If ``source==None``, an arbitrary vertex of the graph is chosen. Raise an
       error if the initial vertex is not in `G`.  This parameter is not used
       when ``algorithm=='standard'``.
@@ -1252,7 +1344,9 @@ def diameter(G, algorithm='iFUB', source=None):
         sage: G = Graph({0: [], 1: [], 2: [1]})
         sage: diameter(G, algorithm='iFUB')
         +Infinity
-
+        sage: G = digraphs.Circuit(6)
+        sage: diameter(G, algorithm='2Dsweep')
+        5
 
     Although max( ) is usually defined as -Infinity, since the diameter will
     never be negative, we define it to be zero::
@@ -1283,22 +1377,27 @@ def diameter(G, algorithm='iFUB', source=None):
         sage: diameter(G, algorithm='iFUB')
         0
     """
-    cdef int n = G.order()
+    cdef uint32_t n = G.order()
     if not n:
         return 0
 
-    if algorithm == 'standard' or G.is_directed():
-        return max(G.eccentricity())
-    elif algorithm is None:
-        algorithm = 'iFUB'
-    elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB']:
-        raise ValueError("unknown algorithm for computing the diameter")
+    if G.is_directed():
+        if algorithm is None:
+            algorithm = 'standard'
+        elif not algorithm in ['2Dsweep', 'standard']:
+            raise ValueError("unknown algorithm for computing the diameter of directed graph")
+    else:
+        if algorithm is None:
+            algorithm = 'iFUB'
+        elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB', 'standard']:
+            raise ValueError("unknown algorithm for computing the diameter of undirected graph")
 
+    if algorithm == 'standard':
+       return max(G.eccentricity())
     if source is None:
         source = next(G.vertex_iterator())
     elif not G.has_vertex(source):
         raise ValueError("the specified source is not a vertex of the input Graph")
-
 
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors. This data structure is well documented in the
@@ -1306,13 +1405,14 @@ def diameter(G, algorithm='iFUB', source=None):
     cdef list int_to_vertex = list(G)
     cdef short_digraph sd
     init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
+    cdef short_digraph rev_sd # to store copy of sd with edges reversed
 
     # and we map the source to an int in [0,n-1] 
     cdef uint32_t isource = 0 if source is None else int_to_vertex.index(source)
 
     cdef bitset_t seen
     cdef uint32_t* tab
-    cdef int LB
+    cdef uint32_t LB
 
     if algorithm == '2sweep':
         # We need to allocate arrays and bitset
@@ -1327,6 +1427,11 @@ def diameter(G, algorithm='iFUB', source=None):
 
         bitset_free(seen)
         sig_free(tab)
+
+    elif algorithm == '2Dsweep':
+        init_reverse(rev_sd, sd)
+        LB = diameter_lower_bound_2Dsweep(sd, rev_sd, isource)[0]
+        free_short_digraph(rev_sd)
 
     elif algorithm == 'multi-sweep':
         LB = diameter_lower_bound_multi_sweep(sd, isource)[0]
@@ -1343,8 +1448,6 @@ def diameter(G, algorithm='iFUB', source=None):
     else:
         return int(LB)
 
-
-
 ################
 # Wiener index #
 ################
@@ -1354,7 +1457,7 @@ def wiener_index(G):
     Return the Wiener index of the graph.
 
     The Wiener index of a graph `G` can be defined in two equivalent
-    ways [KRG96b]_ :
+    ways [KRG1996]_ :
 
     - `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the
       distance between vertices `u` and `v`.
@@ -1367,7 +1470,7 @@ def wiener_index(G):
 
     EXAMPLES:
 
-    From [GYLL93c]_, cited in [KRG96b]_::
+    From [GYLL1993]_, cited in [KRG1996]_::
 
         sage: g=graphs.PathGraph(10)
         sage: w=lambda x: (x*(x*x -1)/6)
@@ -1608,7 +1711,7 @@ def floyd_warshall(gg, paths=True, distances=False):
     cdef unsigned short* t_dist = <unsigned short*>  mem.allocarray(n * n, sizeof(unsigned short))
     cdef unsigned short**  dist = <unsigned short**> mem.allocarray(n, sizeof(unsigned short*))
     dist[0] = t_dist
-    cdef int i
+    cdef unsigned int i
     for i in range(1, n):
         dist[i] = dist[i - 1] + n
     memset(t_dist, -1, n * n * sizeof(short))

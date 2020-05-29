@@ -11,7 +11,6 @@ Monoids
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
@@ -182,12 +181,11 @@ class Monoids(CategoryWithAxiom):
                 sage: S._test_prod(elements = (S('a'), S('b')))
             """
             tester = self._tester(**options)
-            tester.assertTrue(self.prod([]) == self.one())
+            tester.assertEqual(self.prod([]), self.one())
             for x in tester.some_elements():
-                tester.assertTrue(self.prod([x]) == x)
-                tester.assertTrue(self.prod([x, x]) == x**2)
-                tester.assertTrue(self.prod([x, x, x]) == x**3)
-
+                tester.assertEqual(self.prod([x]), x)
+                tester.assertEqual(self.prod([x, x]), x**2)
+                tester.assertEqual(self.prod([x, x, x]), x**3)
 
         def submonoid(self, generators, category=None):
             r"""

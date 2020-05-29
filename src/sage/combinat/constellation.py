@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Constellations
 
@@ -39,7 +40,7 @@ EXAMPLES::
 
 # ****************************************************************************
 #       Copyright (C) 2015-2016 Vincent Delecroix <20100.delecroix@gmail.com>
-#                               Frederic Chapoton <fchapoton2@gmail.com>
+#                               Frédéric Chapoton <fchapoton2@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,9 +48,6 @@ EXAMPLES::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
-from six.moves import range
-from six import integer_types
 
 from sage.structure.element import parent
 from sage.structure.parent import Parent
@@ -1508,7 +1506,7 @@ def perms_sym_init(g, sym=None):
 
     if sym is None:
         domain = set().union(*[perm_sym_domain(gg) for gg in g])
-        if all(isinstance(s, (Integer,) + integer_types) and s > 0
+        if all(isinstance(s, (int, Integer)) and s > 0
                for s in domain):
             domain = max(domain)
         else:

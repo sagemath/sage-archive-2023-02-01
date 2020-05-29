@@ -530,8 +530,10 @@ class InductiveValuation(DevelopingValuation):
 
         """
         tester = self._tester(**options)
-        tester.assertTrue(isinstance(self, InfiniteInductiveValuation) != isinstance(self, FiniteInductiveValuation))
-        tester.assertTrue(isinstance(self, FinalInductiveValuation) != isinstance(self, NonFinalInductiveValuation))
+        tester.assertNotEqual(isinstance(self, InfiniteInductiveValuation),
+                              isinstance(self, FiniteInductiveValuation))
+        tester.assertNotEqual(isinstance(self, FinalInductiveValuation),
+                              isinstance(self, NonFinalInductiveValuation))
 
 
 class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
@@ -721,28 +723,28 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         some linear key polynomials in the above example::
 
             sage: v0 = GaussValuation(R, v)
-            sage: V1 = v0.mac_lane_step(f); V1
-            [[ Gauss valuation induced by 2-adic valuation, v(x) = 3/5 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x) = 2/5 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x) = 3 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x) = 11/9 ]]
+            sage: V1 = sorted(v0.mac_lane_step(f)); V1
+            [[ Gauss valuation induced by 2-adic valuation, v(x) = 2/5 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3/5 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 11/9 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3 ]]
 
         The computation of MacLane approximants would now perform a MacLane
         step on each of these branches, note however, that a direct call to
         this method might produce some unexpected results::
 
-            sage: V1[0].mac_lane_step(f)
+            sage: V1[1].mac_lane_step(f)
             [[ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^5 + 8) = 5 ],
              [ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^10 + 8*x^5 + 64) = 7 ],
              [ Gauss valuation induced by 2-adic valuation, v(x) = 3 ],
              [ Gauss valuation induced by 2-adic valuation, v(x) = 11/9 ]]
 
-        Note how this detected the two augmentations of ``V1[0]`` but also two
+        Note how this detected the two augmentations of ``V1[1]`` but also two
         other valuations that we had seen in the previous step and that are
-        greater than ``V1[0]``. To ignore such trivial augmentations, we can
+        greater than ``V1[1]``. To ignore such trivial augmentations, we can
         set ``allow_equivalent_key``::
 
-            sage: V1[0].mac_lane_step(f, allow_equivalent_key=False)
+            sage: V1[1].mac_lane_step(f, allow_equivalent_key=False)
             [[ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^5 + 8) = 5 ],
              [ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^10 + 8*x^5 + 64) = 7 ]]
 
@@ -1528,7 +1530,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 g = self._eliminate_denominators(f)
             except ValueError:
                 continue
-            tester.assertTrue(g.parent() is self.domain())
+            tester.assertIs(g.parent(), self.domain())
             tester.assertTrue(w.is_equivalent(f, g))
 
     def _test_lift_to_key(self, **options):

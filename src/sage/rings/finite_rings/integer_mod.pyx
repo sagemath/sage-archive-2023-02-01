@@ -1,3 +1,4 @@
+# cython: language_level=2
 r"""
 Elements of `\ZZ/n\ZZ`
 
@@ -57,8 +58,7 @@ TESTS::
     sage: type(IntegerModRing(2^31).an_element())
     <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 Robert Bradshaw <robertwb@math.washington.edu>
 #                     2006 William Stein <wstein@gmail.com>
 #
@@ -66,8 +66,8 @@ TESTS::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, division, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off, sig_check
@@ -85,7 +85,8 @@ import operator
 cdef bint use_32bit_type(int_fast64_t modulus):
     return modulus <= INTEGER_MOD_INT32_LIMIT
 
-from sage.arith.long cimport integer_check_long, integer_check_long_py, ERR_OVERFLOW
+from sage.arith.long cimport (
+    integer_check_long, integer_check_long_py, is_small_python_int, ERR_OVERFLOW)
 
 import sage.rings.rational as rational
 from sage.libs.pari.all import pari, PariError
@@ -99,6 +100,7 @@ cimport sage.rings.integer
 from sage.rings.integer cimport Integer
 
 from sage.structure.coerce cimport py_scalar_to_element
+from sage.structure.richcmp import rich_to_bool_sgn, rich_to_bool
 import sage.structure.element
 cimport sage.structure.element
 coerce_binop = sage.structure.element.coerce_binop
@@ -107,7 +109,6 @@ from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
 from sage.misc.persist import register_unpickle_override
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.structure.parent cimport Parent
 
@@ -427,9 +428,9 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: abs(Mod(2,3))
             Traceback (most recent call last):
             ...
-            ArithmeticError: absolute valued not defined on integers modulo n.
+            ArithmeticError: absolute value not defined on integers modulo n.
         """
-        raise ArithmeticError("absolute valued not defined on integers modulo n.")
+        raise ArithmeticError("absolute value not defined on integers modulo n.")
 
     def __reduce__(IntegerMod_abstract self):
         """
@@ -445,7 +446,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         return sage.rings.finite_rings.integer_mod.mod, (self.lift(), self.modulus(), self.parent())
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` under the map that sends the
         generators of the parent to ``im_gens``.
@@ -457,6 +458,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: a._im_gens_(R, (R(1),))
             2
         """
+        # The generators are irrelevant (Zmod(n) is its own base), so we ignore base_map
         return codomain._coerce_(self)
 
     def __mod__(self, modulus):
@@ -941,8 +943,6 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         else:
             return x - n
 
-    centerlift = deprecated_function_alias(15804,lift_centered)
-
     cpdef bint is_one(self):
         raise NotImplementedError
 
@@ -1131,7 +1131,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             [406444, 406444, 406444, 406444, 406444, 406444, 406444, 406444]
             sage: v = R(169).sqrt(all=True); min(v), -max(v), len(v)
             (13, 13, 104)
-            sage: all([x^2==169 for x in v])
+            sage: all(x^2 == 169 for x in v)
             True
 
         ::
@@ -1302,6 +1302,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         ``extend`` is ``True``).
 
         .. warning::
+
            The 'extend' option is not implemented (yet).
 
         NOTES:
@@ -1882,11 +1883,11 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         EXAMPLES::
 
             sage: F.<a> = GF(13)
-            sage: V = F.vector_space()
+            sage: V = F.vector_space(map=False)
             sage: V(a)
             (1)
         """
-        return self.parent().vector_space()([self])
+        return self.parent().vector_space(map=False)([self])
 
 
 ######################################################################
@@ -2006,7 +2007,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
                 mpz_fdiv_q_2exp(x.value, self.value, -k)
             return x
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         EXAMPLES::
 
@@ -2019,12 +2020,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         """
         cdef int i
         i = mpz_cmp((<IntegerMod_gmp>left).value, (<IntegerMod_gmp>right).value)
-        if i < 0:
-            return -1
-        elif i == 0:
-            return 0
-        else:
-            return 1
+        return rich_to_bool_sgn(op, i)
 
     cpdef bint is_one(IntegerMod_gmp self):
         """
@@ -2373,9 +2369,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
     cdef int_fast32_t get_int_value(IntegerMod_int self):
         return self.ivalue
 
-
-
-    cpdef int _cmp_(self, right) except -2:
+    cpdef _richcmp_(self, right, int op):
         """
         EXAMPLES::
 
@@ -2391,11 +2385,11 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             True
         """
         if self.ivalue == (<IntegerMod_int>right).ivalue:
-            return 0
+            return rich_to_bool(op, 0)
         elif self.ivalue < (<IntegerMod_int>right).ivalue:
-            return -1
+            return rich_to_bool(op, -1)
         else:
-            return 1
+            return rich_to_bool(op, 1)
 
     cpdef bint is_one(IntegerMod_int self):
         """
@@ -2894,7 +2888,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             [406444, 406444, 406444, 406444, 406444, 406444, 406444, 406444]
             sage: v = R(169).sqrt(all=True); min(v), -max(v), len(v)
             (13, 13, 104)
-            sage: all([x^2==169 for x in v])
+            sage: all(x^2 == 169 for x in v)
             True
 
         Modulo a power of 2::
@@ -3186,8 +3180,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
     cdef int_fast64_t get_int_value(IntegerMod_int64 self):
         return self.ivalue
 
-
-    cpdef int _cmp_(self, right) except -2:
+    cpdef _richcmp_(self, right, int op):
         """
         EXAMPLES::
 
@@ -3202,9 +3195,12 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: mod(0, 13^5) == int(0)
             True
         """
-        if self.ivalue == (<IntegerMod_int64>right).ivalue: return 0
-        elif self.ivalue < (<IntegerMod_int64>right).ivalue: return -1
-        else: return 1
+        if self.ivalue == (<IntegerMod_int64>right).ivalue:
+            return rich_to_bool(op, 0)
+        elif self.ivalue < (<IntegerMod_int64>right).ivalue:
+            return rich_to_bool(op, -1)
+        else:
+            return rich_to_bool(op, 1)
 
     cpdef bint is_one(IntegerMod_int64 self):
         """
@@ -3635,9 +3631,8 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 cdef int mpz_pow_helper(mpz_t res, mpz_t base, object exp, mpz_t modulus) except -1:
     cdef bint invert = False
     cdef long long_exp
-
-    if type(exp) is int:
-        long_exp = PyInt_AS_LONG(exp)
+    if is_small_python_int(exp):
+        long_exp = exp
         if long_exp < 0:
             long_exp = -long_exp
             invert = True
@@ -3881,18 +3876,11 @@ cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
 
     REFERENCES:
 
-    - Siguna Muller.  'On the Computation of Square Roots in Finite
-      Fields' Designs, Codes and Cryptography, Volume 31, Issue 3
-      (March 2004)
+    - [Mul2004]_
 
-    - A. Oliver L. Atkin. 'Probabilistic primality testing' (Chapter
-      30, Section 4) In Ph. Flajolet and P. Zimmermann, editors,
-      Algorithms Seminar, 1991-1992. INRIA Research Report 1779, 1992,
-      http://www.inria.fr/rrrt/rr-1779.html. Summary by F. Morain.
-      http://citeseer.ist.psu.edu/atkin92probabilistic.html
+    - [Atk1992]_
 
-    - H. Postl. 'Fast evaluation of Dickson Polynomials' Contrib. to
-      General Algebra, Vol. 6 (1988) pp. 223-225
+    - [Pos1988]_
 
     AUTHORS:
 
@@ -3905,9 +3893,9 @@ cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
     ::
 
         sage: from sage.rings.finite_rings.integer_mod import square_root_mod_prime   # sqrt() uses brute force for small p
-        sage: all([square_root_mod_prime(a*a)^2 == a*a
-        ....:      for p in prime_range(100)
-        ....:      for a in Integers(p)])
+        sage: all(square_root_mod_prime(a*a)^2 == a*a
+        ....:     for p in prime_range(100)
+        ....:     for a in Integers(p))
         True
     """
     if not a or a.is_one():
@@ -3982,8 +3970,7 @@ def lucas_q1(mm, IntegerMod_abstract P):
 
     REFERENCES:
 
-    .. [Pos88] \H. Postl. 'Fast evaluation of Dickson Polynomials' Contrib. to
-       General Algebra, Vol. 6 (1988) pp. 223-225
+    - [Pos1988]_
 
     AUTHORS:
 
@@ -3992,9 +3979,9 @@ def lucas_q1(mm, IntegerMod_abstract P):
     TESTS::
 
         sage: from sage.rings.finite_rings.integer_mod import lucas_q1
-        sage: all([lucas_q1(k, a) == BinaryRecurrenceSequence(a, -1, 2, a)(k)
-        ....:      for a in Integers(23)
-        ....:      for k in range(13)])
+        sage: all(lucas_q1(k, a) == BinaryRecurrenceSequence(a, -1, 2, a)(k)
+        ....:     for a in Integers(23)
+        ....:     for k in range(13))
         True
     """
     if mm == 0:
@@ -4045,9 +4032,7 @@ def lucas(k, P, Q=1, n=None):
 
     REFERENCES:
 
-    .. [IEEEP1363] IEEE P1363 / D13 (Draft Version 13). Standard Specifications
-       for Public Key Cryptography Annex A (Informative).
-       Number-Theoretic Background. Section A.2.4
+    - [IEEEP1363]_
 
     AUTHORS:
 
@@ -4062,8 +4047,8 @@ def lucas(k, P, Q=1, n=None):
         sage: p = randint(0,100000)
         sage: q = randint(0,100000)
         sage: n = randint(0,100)
-        sage: all([lucas(k,p,q,n)[0] == Mod(lucas_number2(k,p,q),n)
-        ....:      for k in Integers(20)])
+        sage: all(lucas(k,p,q,n)[0] == Mod(lucas_number2(k,p,q),n)
+        ....:     for k in Integers(20))
         True
         sage: from sage.rings.finite_rings.integer_mod import lucas
         sage: p = randint(0,100000)
@@ -4210,7 +4195,7 @@ cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
         sage: [type(R(0)) for R in Rs]
         [<type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>, <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>, <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>, <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>, <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>, <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>]
         sage: fs = [IntegerMod_to_IntegerMod(S, R) for R in Rs for S in Rs if S is not R and S.order() > R.order()]
-        sage: all([f(-1) == f.codomain()(-1) for f in fs])
+        sage: all(f(-1) == f.codomain()(-1) for f in fs)
         True
         sage: [f(-1) for f in fs]
         [2, 2, 2, 2, 2, 728, 728, 728, 728, 177146, 177146, 177146, 43046720, 43046720, 10460353202]

@@ -1,6 +1,6 @@
 #cython: wraparound=False, boundscheck=False
 r"""
-This contains a few time-critical auxillary cython functions for
+This contains a few time-critical auxiliary cython functions for
 finite complex or real reflection groups.
 """
 #*****************************************************************************
@@ -11,7 +11,7 @@ finite complex or real reflection groups.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement

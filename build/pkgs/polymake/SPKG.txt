@@ -19,24 +19,30 @@ include various flavors of Linux, Free BSD and Mac OS.
 == Dependencies ==
 
 Polymake needs a working installation of Perl, including its shared
-library and some modules (XML::Writer XML::LibXML XML::LibXSLT).
-The Polymake interface in Sage additionally needs File::Slurp.
-These are not provided by a Sage package.  Sage does install the
-Term::Readline::Gnu module, however, when you install polymake.
+library and some modules (XML::Writer XML::LibXML XML::LibXSLT
+Term::ReadLine::Gnu JSON SVG).  The Polymake interface in Sage
+additionally needs File::Slurp.  For full functionality including
+polymake's polyDB, also the Perl module MongoDB is required.
 
-On Ubuntu, use:
- sudo apt-get install libxml-libxslt-perl libxml-writer-perl libxml2-dev libperl-dev libncurses-dev libfile-slurp-perl
+These are not provided by a Sage package.  The script package
+perl_cpan_polymake_prereq will signal an error at build time if these
+prerequisites are not met.
 
-On Fedora 23, use:
- sudo yum install perl-ExtUtils-Embed perl-File-Slurp
+The configure script will inform you about the equivalent system
+packages that you should install.  Otherwise, you can use CPAN
+(see below).
 
-On Mac OS X, all modules (except for Term::Readline::Gnu) appear to be
-standard.
+Sage might install the Term::ReadLine::Gnu module, however, when you
+install polymake, if it is not provided by the system, or if Sage
+installs its own readline library.
+
 
 A distribution-independent way to install Perl modules (into a user's
-home directory) is using CPAN.
+home directory or /usr/local) is using CPAN.  This is also the way to
+install the modules on macOS.  For this, if you don't have root
+access, you will need the local::lib Perl module installed.
 
- cpan -i XML::Writer XML::LibXML XML::LibXSLT File::Slurp
+ cpan -i XML::Writer XML::LibXML XML::LibXSLT File::Slurp Term::ReadLine::Gnu JSON SVG MongoDB
 
 
 Several Sage packages should be installed before installing the

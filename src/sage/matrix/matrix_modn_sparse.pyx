@@ -4,8 +4,9 @@ Sparse matrices over `\ZZ/n\ZZ` for `n` small
 This is a compiled implementation of sparse matrices over
 `\ZZ/n\ZZ` for `n` small.
 
-TODO: - move vectors into a Cython vector class - add _add_ and
-_mul_ methods.
+.. TODO::
+
+    move vectors into a Cython vector class - add _add_ and _mul_ methods.
 
 EXAMPLES::
 
@@ -68,17 +69,15 @@ TESTS::
     []
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from collections import Iterator, Sequence
 
@@ -108,11 +107,10 @@ cimport sage.matrix.matrix_sparse as matrix_sparse
 cimport sage.matrix.matrix_dense as matrix_dense
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 from sage.rings.integer cimport Integer
+from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 
 from sage.misc.misc import verbose, get_verbose
-
-import sage.rings.all as rings
 
 from sage.matrix.matrix2 import Matrix as Matrix2
 from .args cimport SparseEntry, MatrixArgs_init
@@ -520,7 +518,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         for i from 0 <= i < self._nrows:
             nonzero_entries += self.rows[i].num_nonzero
 
-        return rings.ZZ(nonzero_entries)/rings.ZZ(self._nrows*self._ncols)
+        return ZZ(nonzero_entries) / ZZ(self._nrows*self._ncols)
 
     def transpose(self):
         """
@@ -677,10 +675,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             # TODO: bug in linbox (gives segfault)
             return 0, self.base_ring().one()
 
-        # NOTE: the rank would more naturally be size_t but it is unsigned long
-        # in LinBox
-        # see https://github.com/linbox-team/linbox/issues/144
-        cdef unsigned long A_rank = 0
+        cdef size_t A_rank = 0
         cdef uint64_t A_det = 0
 
         if not is_prime(self.p):
@@ -696,9 +691,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         if A.rowdim() >= <size_t> UINT_MAX or A.coldim() >= <size_t> UINT_MAX:
             raise ValueError("row/column size unsupported in LinBox")
 
-        dom.InPlaceLinearPivoting(A_rank, A_det, A[0],
-                <unsigned long> A.rowdim(),
-                <unsigned long> A.coldim())
+        dom.InPlaceLinearPivoting(A_rank, A_det, A[0], A.rowdim(), A.coldim())
 
         del A
         del F
@@ -765,7 +758,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         .. NOTE::
 
            For very sparse matrices Gaussian elimination is faster
-           because it barly has anything to do. If the fill in needs to
+           because it barely has anything to do. If the fill in needs to
            be considered, 'Symbolic Reordering' is usually much faster.
         """
         if self._nrows == 0 or self._ncols == 0:
@@ -860,7 +853,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             raise ValueError("no algorithm '%s'"%algorithm)
 
     def _solve_right_nonsingular_square(self, B, algorithm=None, check_rank=False):
-        """
+        r"""
         If self is a matrix `A`, then this function returns a
         vector or matrix `X` such that `A X = B`. If
         `B` is a vector then `X` is a vector and if
@@ -868,7 +861,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         .. NOTE::
 
-           In Sage one can also write ``A  B`` for
+           In Sage one can also write ``A \ B`` for
            ``A.solve_right(B)``, i.e., Sage implements the "the
            MATLAB/Octave backslash operator".
 
@@ -882,7 +875,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             - ``'linbox'`` or ``'linbox_default'`` - (default) use LinBox
               and let it chooses the appropriate algorithm
 
-            -  ``linbox_blas_elimination'`` - use LinBox dense elimination
+            -  ``linbox_dense_elimination'`` - use LinBox dense elimination
 
             - ``'linbox_sparse_elimination'`` - use LinBox sparse elimination
 
@@ -920,7 +913,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             [0 2]
         """
         if check_rank and self.rank() < self.nrows():
-            raise ValueError("not of full rank")
+            from .matrix2 import NotFullRankError
+            raise NotFullRankError
 
         if self.base_ring() != B.base_ring():
             B = B.change_ring(self.base_ring())
@@ -931,7 +925,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             return Matrix_sparse.solve_right(self, B)
         else:
             if isinstance(B, sage.structure.element.Matrix):
-                from sage.rings.rational_field import QQ
                 from sage.matrix.special import diagonal_matrix
                 m, d = self._solve_matrix_linbox(B, algorithm)
                 return m  * diagonal_matrix([QQ((1,x)) for x in d])
@@ -949,7 +942,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         - ``b`` -- a dense integer vector
 
-        - ``algorithm`` -- (optional) either ``None``, ``'blas_elimination'``,
+        - ``algorithm`` -- (optional) either ``None``, ``'dense_elimination'``,
           ``'sparse_elimination'``, ``'wiedemann'`` or ``'blackbox'``.
 
         OUTPUT: a pair ``(a, d)`` consisting of
@@ -968,7 +961,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             sage: b0 = vector((1,1,1,1))
             sage: m._solve_vector_linbox(b0)
             ((-1, -7, -3, -1), 1)
-            sage: m._solve_vector_linbox(b0, 'blas_elimination')
+            sage: m._solve_vector_linbox(b0, 'dense_elimination')
             ((-1, -7, -3, -1), 1)
             sage: m._solve_vector_linbox(b0, 'sparse_elimination')
             ((-1, -7, -3, -1), 1)
@@ -984,7 +977,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         TESTS::
 
-            sage: algos = ["default", "blas_elimination", "sparse_elimination",
+            sage: algos = ["default", "dense_elimination", "sparse_elimination",
             ....:          "blackbox", "wiedemann"]
             sage: for i in range(20):
             ....:     dim = randint(1, 30)
@@ -1025,8 +1018,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             linbox.solve(res[0], D, A[0], b[0])
         elif method == METHOD_WIEDEMANN:
             linbox.solve(res[0], D, A[0], b[0], linbox.Method.Wiedemann())
-        elif method == METHOD_BLAS_ELIMINATION:
-            linbox.solve(res[0], D, A[0], b[0], linbox.Method.BlasElimination())
+        elif method == METHOD_DENSE_ELIMINATION:
+            linbox.solve(res[0], D, A[0], b[0], linbox.Method.DenseElimination())
         elif method == METHOD_SPARSE_ELIMINATION:
             linbox.solve(res[0], D, A[0], b[0], linbox.Method.SparseElimination())
         elif method == METHOD_BLACKBOX:
@@ -1081,7 +1074,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         TESTS::
 
-            sage: algos = ["default", "blas_elimination", "sparse_elimination",
+            sage: algos = ["default", "dense_elimination", "sparse_elimination",
             ....:          "blackbox", "wiedemann"]
 
             sage: for _ in range(10):
@@ -1136,8 +1129,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             # solve the current row
             if algo == METHOD_DEFAULT:
                 linbox.solve(res[0], D, A[0], b[0])
-            elif algo == METHOD_BLAS_ELIMINATION:
-                linbox.solve(res[0], D, A[0], b[0], linbox.Method.BlasElimination())
+            elif algo == METHOD_DENSE_ELIMINATION:
+                linbox.solve(res[0], D, A[0], b[0], linbox.Method.DenseElimination())
             elif algo == METHOD_SPARSE_ELIMINATION:
                 linbox.solve(res[0], D, A[0], b[0], linbox.Method.SparseElimination())
             elif algo == METHOD_BLACKBOX:

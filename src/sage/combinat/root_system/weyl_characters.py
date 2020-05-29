@@ -1021,7 +1021,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         """
         hdict = {}
         ddict = mdict.copy()
-        while len(ddict) != 0:
+        while ddict:
             highest = max((x.inner_product(self._space.rho()),x) for x in ddict)[1]
             if not highest.is_dominant():
                 raise ValueError("multiplicity dictionary may not be Weyl group invariant")
@@ -1233,7 +1233,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 sage: [x.highest_weight() for x in [G2(1,0),G2(0,1)]]
                 [(1, 0, -1), (2, -1, -1)]
                 sage: A21 = FusionRing("A2",1)
-                sage: [x.highest_weight() for x in A21.basis()]
+                sage: sorted([x.highest_weight() for x in A21.basis()])
                 [(0, 0, 0), (1/3, 1/3, -2/3), (2/3, -1/3, -1/3)]
             """
             if len(self.monomial_coefficients()) != 1:
@@ -2221,13 +2221,22 @@ class FusionRing(WeylCharacterRing):
     weights of the basis elements, then assign new labels to them::
 
         sage: B22 = FusionRing("B2", 2)
-        sage: sorted(B22.basis(), key=str)
+        sage: basis = sorted(B22.basis(), key=str)
+        sage: basis
         [B22(0,0), B22(0,1), B22(0,2), B22(1,0), B22(1,1), B22(2,0)]
-        sage: sorted([x.highest_weight() for x in B22.basis()], key=str)
-        [(0, 0), (1, 0), (1, 1), (1/2, 1/2), (2, 0), (3/2, 1/2)]
-        sage: B22.fusion_labels(['1','X','Y1','Z','Xp','Y2'])
-        sage: list(B22.basis())
-        [1, X, Y1, Z, Xp, Y2]
+        sage: [x.highest_weight() for x in basis]
+        [(0, 0), (1/2, 1/2), (1, 1), (1, 0), (3/2, 1/2), (2, 0)]
+        sage: B22.fusion_labels(['1','X','Y2','Y1','Xp','Z'])
+        sage: relabeled_basis = sorted(B22.basis(), key=str)
+        sage: relabeled_basis
+        [1, X, Xp, Y1, Y2, Z]
+        sage: [(x, x.highest_weight()) for x in relabeled_basis]
+        [(1, (0, 0)),
+         (X, (1/2, 1/2)),
+         (Xp, (3/2, 1/2)),
+         (Y1, (1, 0)),
+         (Y2, (1, 1)),
+         (Z, (2, 0))]
         sage: X*Y1
         X + Xp
         sage: Z*Z
@@ -2285,18 +2294,26 @@ class FusionRing(WeylCharacterRing):
         return [self.monomial(x) for x in self.fundamental_weights()
                 if self.level(x) <= self._k]
 
-    def fusion_labels(self, labels=None):
+    def fusion_labels(self, labels=None, key=str):
         r"""
         Set the labels of the basis.
 
         INPUT:
 
         - ``labels`` -- (default: ``None``) a list of strings
+        - ``key`` -- (default: ``str``) key to use to sort basis
 
         The length of the list ``labels`` must equal the
         number of basis elements. These become the names of
         the basis elements. If ``labels`` is ``None``, then
         this resets the labels to the default.
+
+        Note that the basis is stored as unsorted data, so to obtain
+        consistent results, it should be sorted when applying
+        labels. The argument ``key`` (default ``str``) specifies how
+        to sort the basis. If you call this with ``key=None``, then no
+        sorting is done. This may lead to random results, at least
+        with Python 3.
 
         EXAMPLES::
 
@@ -2320,7 +2337,10 @@ class FusionRing(WeylCharacterRing):
             self._fusion_labels = None
             return
         d = {}
-        fb = list(self.basis())
+        if key:
+            fb = sorted(self.basis(), key=key)
+        else:
+            fb = list(self.basis())
         for j, b in enumerate(fb):
             wt = b.highest_weight()
             t = tuple([wt.inner_product(x) for x in self.simple_coroots()])

@@ -9,7 +9,6 @@ existence of this file -- is now a non-issue, since some bugs in
 Cython were fixed.  Probably all this code should be moved into the
 relevant classes and this file deleted.
 """
-from __future__ import absolute_import
 
 from cysignals.signals cimport sig_check
 
@@ -393,7 +392,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
                 prod = prod * X[i].base_ring().order()
         verbose("finished comparing pivots", level=2, t=t, caller_name="multimod echelon")
         try:
-            if len(Y) == 0:
+            if not Y:
                 raise ValueError("not enough primes")
             t = verbose("start crt linear combination", level=2, caller_name="multimod echelon")
             a = CRT_basis([w[1] for w in Y])
@@ -420,7 +419,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             verbose("Not checking validity of result (since proof=False).", level=2, caller_name="multimod echelon")
             break
         d   = E.denominator()
-        hdE = long((d*E).height())
+        hdE = int((d*E).height())
         if hdE * self.ncols() * height < prod:
             verbose("Validity of result checked.", level=2, caller_name="multimod echelon")
             break

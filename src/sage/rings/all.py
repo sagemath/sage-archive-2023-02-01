@@ -127,8 +127,15 @@ from .power_series_ring_element import PowerSeries
 from .laurent_series_ring import LaurentSeriesRing
 from .laurent_series_ring_element import LaurentSeries
 
+# Lazy Laurent series ring
+lazy_import('sage.rings.lazy_laurent_series_ring', 'LazyLaurentSeriesRing')
+
 # Tate algebras
 from .tate_algebra import TateAlgebra
+
+# Puiseux series ring
+from .puiseux_series_ring import PuiseuxSeriesRing
+from .puiseux_series_ring_element import PuiseuxSeries
 
 # Pseudo-ring of PARI objects.
 from .pari_ring import PariRing, Pari
@@ -139,6 +146,9 @@ from .big_oh import O
 # Fraction field
 from .fraction_field import FractionField
 Frac = FractionField
+
+# Localization
+from .localization import Localization
 
 # c-finite sequences
 from .cfinite_sequence import CFiniteSequence, CFiniteSequences
@@ -158,7 +168,7 @@ from .fast_arith import prime_range
 # continued fractions
 from sage.rings.continued_fraction import (continued_fraction,
                                            continued_fraction_list)
-lazy_import("sage.rings.continued_fraction", 'convergents', deprecation=27066)
+lazy_import('sage.rings.continued_fraction', 'convergents', deprecation=27066)
 
 # asymptotic ring
 from .asymptotic.all import *

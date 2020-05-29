@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Tiling Solver
 
@@ -27,9 +28,9 @@ the Tiling Solver and allows to solve the 3d Quantumino puzzle.
 
 AUTHOR:
 
-    - Sebastien Labbe, June 2011, initial version
-    - Sebastien Labbe, July 2015, count solutions up to rotations
-    - Sebastien Labbe, April 2017, tiling a polyomino, not only a rectangular box
+- Sébastien Labbé, June 2011, initial version
+- Sébastien Labbé, July 2015, count solutions up to rotations
+- Sébastien Labbé, April 2017, tiling a polyomino, not only a rectangular box
 
 EXAMPLES:
 
@@ -56,14 +57,14 @@ solutions::
     sage: T.number_of_solutions()
     2
 
-Scott's pentomino problem
+Scott's pentamino problem
 -------------------------
 
-As mentionned in the introduction of [Knuth1]_, Scott's pentomino problem
+As mentionned in the introduction of [Knuth1]_, Scott's pentamino problem
 consists in tiling a chessboard leaving the center four squares vacant with
-the 12 distinct pentominoes.
+the 12 distinct pentaminoes.
 
-The 12 pentominoes::
+The 12 pentaminoes::
 
     sage: from sage.combinat.tiling import Polyomino
     sage: I = Polyomino([(0,0),(1,0),(2,0),(3,0),(4,0)], color='brown')
@@ -266,26 +267,20 @@ REFERENCES:
 .. [Knuth1] Knuth, Donald (2000). "Dancing links". :arxiv:`cs/0011047`.
 
 """
-#*****************************************************************************
-#       Copyright (C) 2011-2015 Sebastien Labbe <slabqc@gmail.com>
+# ****************************************************************************
+#       Copyright (C) 2011-2015 Sébastien Labbé <slabqc@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-# python3
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import division
-
-from builtins import zip
-from six import iteritems
-from six.moves import range
 
 import itertools
 from sage.structure.sage_object import SageObject
 from sage.modules.free_module_element import vector
 from sage.misc.cachefunc import cached_method, cached_function
-from sage.misc.superseded import deprecated_function_alias
 
 
 #######################################
@@ -305,7 +300,7 @@ def ncube_isometry_group(n, orientation_preserving=True):
 
     OUTPUT:
 
-        list of matrices
+    list of matrices
 
     EXAMPLES::
 
@@ -350,14 +345,6 @@ def ncube_isometry_group(n, orientation_preserving=True):
         Traceback (most recent call last):
         ...
         ValueError: ['B', 0] is not a valid Cartan type
-
-    Is deprecated::
-
-        sage: from sage.combinat.tiling import orthogonal_transformation
-        sage: L = orthogonal_transformation(2)
-        doctest:...: DeprecationWarning: orthogonal_transformation is
-        deprecated. Please use sage.combinat.tiling.ncube_isometry_group
-        instead. See http://trac.sagemath.org/19107 for details.
     """
     from sage.combinat.root_system.weyl_group import WeylGroup
     L = [w.matrix() for w in WeylGroup(['B', n])]
@@ -366,7 +353,7 @@ def ncube_isometry_group(n, orientation_preserving=True):
     else:
         return L
 
-orthogonal_transformation = deprecated_function_alias(19107, ncube_isometry_group)
+
 @cached_function
 def ncube_isometry_group_cosets(n, orientation_preserving=True):
     r"""
@@ -381,7 +368,7 @@ def ncube_isometry_group_cosets(n, orientation_preserving=True):
 
     OUTPUT:
 
-        list of cosets, each coset being a sorted list of matrices
+    list of cosets, each coset being a sorted list of matrices
 
     EXAMPLES::
 
@@ -649,7 +636,7 @@ class Polyomino(SageObject):
 
         OUTPUT:
 
-            boolean
+        boolean
 
         EXAMPLES::
 
@@ -674,7 +661,7 @@ class Polyomino(SageObject):
 
         OUTPUT:
 
-            boolean
+        boolean
 
         EXAMPLES::
 
@@ -699,7 +686,7 @@ class Polyomino(SageObject):
 
         OUTPUT:
 
-            boolean
+        boolean
 
         EXAMPLES::
 
@@ -723,7 +710,7 @@ class Polyomino(SageObject):
 
         OUTPUT:
 
-            boolean
+        boolean
 
         EXAMPLES::
 
@@ -748,7 +735,7 @@ class Polyomino(SageObject):
 
         OUTPUT:
 
-            polyomino
+        polyomino
 
         EXAMPLES::
 
@@ -770,7 +757,7 @@ class Polyomino(SageObject):
 
         OUTPUT:
 
-            polyomino
+        polyomino
 
         EXAMPLES::
 
@@ -793,7 +780,7 @@ class Polyomino(SageObject):
 
         OUTPUT:
 
-            Polyomino
+        Polyomino
 
         EXAMPLES::
 
@@ -821,7 +808,7 @@ class Polyomino(SageObject):
 
     def canonical(self):
         r"""
-        Returns the translated copy of self having minimal and nonnegative
+        Return the translated copy of self having minimal and nonnegative
         coordinates
 
         EXAMPLES::
@@ -864,7 +851,7 @@ class Polyomino(SageObject):
 
         OUTPUT:
 
-            set of Polyomino
+        set of Polyomino
 
         EXAMPLES::
 
@@ -906,7 +893,7 @@ class Polyomino(SageObject):
 
     def translated_copies(self, box):
         r"""
-        Returns an iterator over the translated images of self inside a
+        Return an iterator over the translated images of self inside a
         polyomino.
 
         INPUT:
@@ -915,7 +902,7 @@ class Polyomino(SageObject):
 
         OUTPUT:
 
-            iterator of 3d polyominoes
+        iterator of 3d polyominoes
 
         EXAMPLES::
 
@@ -1065,9 +1052,9 @@ class Polyomino(SageObject):
             raise ValueError("Dimension of input box must match the "
                              "dimension of the polyomino")
         box_min_coords, box_max_coords = box.bounding_box()
-        if mod_box_isometries and len(set(b-a for (a,b) in zip(box_min_coords, 
+        if mod_box_isometries and len(set(b-a for (a,b) in zip(box_min_coords,
                                       box_max_coords))) < box._dimension:
-            raise NotImplementedError("The code below assumes that the" 
+            raise NotImplementedError("The code below assumes that the"
                     " sizes of the box (={}) are all distinct when"
                     " argument `mod_box_isometries` is True.".format(box))
         all_distinct_cano = self.canonical_isometric_copies(orientation_preserving,
@@ -1181,17 +1168,17 @@ class Polyomino(SageObject):
             vertical[(x+1, y)] -= 1
         edges = []
         h = 0.5
-        for (x, y), coeff in iteritems(horizontal):
+        for (x, y), coeff in horizontal.items():
             if coeff:
                 edges.append(((x-h, y-h), (x+h, y-h)))
-        for (x, y), coeff in iteritems(vertical):
+        for (x, y), coeff in vertical.items():
             if coeff:
                 edges.append(((x-h, y-h), (x-h, y+h)))
         return edges
 
     def show3d(self, size=1):
         r"""
-        Returns a 3d Graphic object representing the polyomino.
+        Return a 3d Graphic object representing the polyomino.
 
         INPUT:
 
@@ -1221,7 +1208,7 @@ class Polyomino(SageObject):
 
     def show2d(self, size=0.7, color='black', thickness=1):
         r"""
-        Returns a 2d Graphic object representing the polyomino.
+        Return a 2d Graphic object representing the polyomino.
 
         INPUT:
 
@@ -1258,9 +1245,6 @@ class Polyomino(SageObject):
             G += line(edge, color=color, thickness=thickness)
         return G
 
-    canonical_orthogonals = deprecated_function_alias(19107, canonical_isometric_copies)
-    translated = deprecated_function_alias(19107, translated_copies)
-    translated_orthogonals = deprecated_function_alias(19107, isometric_copies)
 
 #######################
 # General tiling solver
@@ -1419,7 +1403,7 @@ class TilingSolver(SageObject):
 
         OUTPUT:
 
-            list of 3d polyominoes
+        list of 3d polyominoes
 
         EXAMPLES::
 
@@ -1437,7 +1421,7 @@ class TilingSolver(SageObject):
 
     def space(self):
         r"""
-        Returns an iterator over all the non negative integer coordinates
+        Return an iterator over all the non negative integer coordinates
         contained in the space to tile.
 
         EXAMPLES::
@@ -1455,11 +1439,11 @@ class TilingSolver(SageObject):
     @cached_method
     def coord_to_int_dict(self):
         r"""
-        Returns a dictionary mapping coordinates to integers.
+        Return a dictionary mapping coordinates to integers.
 
         OUTPUT:
 
-            dict
+        dict
 
         EXAMPLES::
 
@@ -1491,7 +1475,7 @@ class TilingSolver(SageObject):
     @cached_method
     def int_to_coord_dict(self):
         r"""
-        Returns a dictionary mapping integers to coordinates.
+        Return a dictionary mapping integers to coordinates.
 
         EXAMPLES::
 
@@ -1721,7 +1705,7 @@ class TilingSolver(SageObject):
 
         OUTPUT:
 
-            list
+        list
 
         EXAMPLES::
 
@@ -1764,7 +1748,7 @@ class TilingSolver(SageObject):
 
         OUTPUT:
 
-            polyomino
+        polyomino
 
         EXAMPLES::
 
@@ -1805,7 +1789,7 @@ class TilingSolver(SageObject):
 
         OUTPUT:
 
-            DLX Solver
+        DLX Solver
 
         EXAMPLES::
 
@@ -1826,7 +1810,7 @@ class TilingSolver(SageObject):
 
         OUTPUT:
 
-            iterator
+        iterator
 
         EXAMPLES::
 
@@ -1855,7 +1839,7 @@ class TilingSolver(SageObject):
 
         OUTPUT:
 
-            iterator
+        iterator
 
         EXAMPLES::
 
@@ -1924,7 +1908,7 @@ class TilingSolver(SageObject):
 
         OUTPUT:
 
-            iterator
+        iterator
 
         EXAMPLES::
 
@@ -1977,7 +1961,7 @@ class TilingSolver(SageObject):
 
     def solve(self, partial=None):
         r"""
-        Returns an iterator of list of polyominoes that are an exact cover
+        Return an iterator of list of polyominoes that are an exact cover
         of the box.
 
         INPUT:
@@ -1992,7 +1976,7 @@ class TilingSolver(SageObject):
 
         OUTPUT:
 
-            iterator of list of polyominoes
+        iterator of list of polyominoes
 
         EXAMPLES::
 
@@ -2077,7 +2061,7 @@ class TilingSolver(SageObject):
 
         OUTPUT:
 
-            integer
+        integer
 
         EXAMPLES::
 

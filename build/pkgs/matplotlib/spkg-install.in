@@ -1,0 +1,7 @@
+# Write a configuration file to src/setup.cfg
+sage-system-python make-setup-config.py
+
+cd src
+
+# Finally install
+sdh_pip_install .

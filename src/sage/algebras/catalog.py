@@ -9,6 +9,8 @@ easy way to discover and quickly create the algebras that are available
 Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 ``algebras.<tab>`` to the see the currently implemented named algebras.
 
+- :class:`algebras.ArikiKoike
+  <sage.algebras.hecke_algebras.ariki_koike_algebra.ArikiKoikeAlgebra>`
 - :class:`algebras.AskeyWilson <sage.algebras.askey_wilson.AskeyWilsonAlgebra>`
 - :class:`algebras.Brauer <sage.combinat.diagram_algebras.BrauerAlgebra>`
 - :class:`algebras.Clifford <sage.algebras.clifford_algebra.CliffordAlgebra>`
@@ -40,6 +42,8 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.MalvenutoReutenauer <sage.combinat.fqsym.FreeQuasisymmetricFunctions>`
 - :class:`algebras.NilCoxeter
   <sage.algebras.nil_coxeter_algebra.NilCoxeterAlgebra>`
+- :class:`algebras.OrlikTerao
+  <sage.algebras.orlik_terao.OrlikTeraoAlgebra>`
 - :class:`algebras.OrlikSolomon
   <sage.algebras.orlik_solomon.OrlikSolomonAlgebra>`
 - :class:`algebras.QuantumMatrixCoordinate
@@ -85,9 +89,11 @@ lazy_import('sage.algebras.askey_wilson', 'AskeyWilsonAlgebra', 'AskeyWilson')
 lazy_import('sage.algebras.hall_algebra', 'HallAlgebra', 'Hall')
 lazy_import('sage.algebras.jordan_algebra', 'JordanAlgebra', 'Jordan')
 lazy_import('sage.algebras.orlik_solomon', 'OrlikSolomonAlgebra', 'OrlikSolomon')
+lazy_import('sage.algebras.orlik_terao', 'OrlikTeraoAlgebra', 'OrlikTerao')
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra', 'Shuffle')
 lazy_import('sage.algebras.schur_algebra', 'SchurAlgebra', 'Schur')
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'GradedCommutative')
+lazy_import('sage.algebras.hecke_algebras.ariki_koike_algebra', 'ArikiKoikeAlgebra', 'ArikiKoike')
 lazy_import('sage.algebras.rational_cherednik_algebra', 'RationalCherednikAlgebra', 'RationalCherednik')
 lazy_import('sage.algebras.yokonuma_hecke_algebra', 'YokonumaHeckeAlgebra', 'YokonumaHecke')
 lazy_import('sage.combinat.posets.incidence_algebras', 'IncidenceAlgebra', 'Incidence')

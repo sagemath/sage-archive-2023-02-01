@@ -62,8 +62,6 @@ with 4 letters divided into 2 blocks::
 # ****************************************************************************
 
 from __future__ import absolute_import, division
-from six.moves import range
-from six import add_metaclass, iteritems
 
 from functools import reduce
 from itertools import chain
@@ -96,8 +94,9 @@ from sage.combinat.shuffle import ShuffleProduct, ShuffleProduct_overlapping
 from sage.combinat.crystals.letters import CrystalOfLetters as Letters
 from sage.combinat.root_system.cartan_type import CartanType
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class OrderedMultisetPartitionIntoSets(ClonableArray):
+
+class OrderedMultisetPartitionIntoSets(ClonableArray,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     Ordered Multiset Partition into sets
 
@@ -1403,7 +1402,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             # Should be a 'dictionary' of letter-frequencies, but accept a weak composition
             w = constraints["weight"]
             if not isinstance(w, dict):
-                # make sure we didn't receive ``iteritems(some_dict)``
+                # make sure we didn't receive ``some_dict.items()``
                 if len(w) > 0 and isinstance(w[0], (list, tuple)):
                     w = dict(w)
                 else:
@@ -1411,7 +1410,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             if not all((a in ZZ and a > 0) for a in w.values()):
                 raise ValueError("%s must be a dictionary of letter-frequencies or a weak composition"%w)
             else:
-                constraints["weight"] = tuple(iteritems(w))
+                constraints["weight"] = tuple(w.items())
 
         if "alphabet" in constraints:
             A = constraints["alphabet"]
@@ -1454,7 +1453,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
                         suff = ""
                         offenses = str(over_determined.pop())
                     raise ValueError("cannot pass multiset as first argument and %s as keyword argument%s" % (offenses, suff))
-                X_items = tuple(iteritems(X))
+                X_items = tuple(X.items())
                 if constraints == {}:
                     return OrderedMultisetPartitionsIntoSets_X(X_items)
                 else:
@@ -1560,7 +1559,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
 
         # pop keys with empty values, with the exception of 'size' or 'order'
         self.constraints = {}
-        for (key,val) in iteritems(constraints):
+        for (key,val) in constraints.items():
             if val:
                 self.constraints[key] = val
             elif key in ("size", "order", "length") and val is not None:
@@ -1622,7 +1621,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
                 A = sorted(cdict["alphabet"])
             cdict["alphabet"] = "{" + repr(A)[1:-1] + "}"
         constr = ""
-        ss = ['%s=%s' % item for item in iteritems(cdict)]
+        ss = ['%s=%s' % item for item in cdict.items()]
         ss = sorted(ss)
         if len(ss) > 1:
             constr = " with constraints: " + ", ".join(ss)
@@ -1710,8 +1709,8 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             sage: OMPs = OrderedMultisetPartitionsIntoSets(**c)
             sage: OMPs._satisfies_constraints([{2,4}, {1}, {1,4}])
             True
-            sage: failures = {((2,4), (2,4)), ((1,2,4), (1,), (1,4)), \
-                              ((2,4), (3,), (3,)), ((2,4), (1,), (2,4))}
+            sage: failures = {((2,4), (2,4)), ((1,2,4), (1,), (1,4)),
+            ....:             ((2,4), (3,), (3,)), ((2,4), (1,), (2,4))}
             sage: any(OMPs._satisfies_constraints(x) for x in failures)
             False
             sage: c = {"max_length":4, "weight":{1:2, 2:1, 4:2}}
@@ -1723,7 +1722,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             False
         """
         X = _concatenate(x)
-        P = OrderedMultisetPartitionsIntoSets_X(tuple(iteritems(_get_weight(X))))
+        P = OrderedMultisetPartitionsIntoSets_X(tuple(_get_weight(X).items()))
         x = P.element_class(P, [frozenset(block) for block in x])
         constr = self.full_constraints
         tsts = []
@@ -1952,7 +1951,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
 
         # slice by 'order'
         if "alphabet" in fc:
-            no_alpha = {k: v for (k, v) in iteritems(self.constraints) if k is not "alphabet"}
+            no_alpha = {k: v for (k, v) in self.constraints.items() if k != "alphabet"}
             return OrderedMultisetPartitionsIntoSets(fc["alphabet"], size, **no_alpha)
 
         # slice by 'size'
@@ -2744,7 +2743,7 @@ def _base_iterator(constraints):
     if "weight" in constraints:
         return _iterator_weight(constraints["weight"])
     elif "size" in constraints:
-        return _iterator_size(constraints["size"], \
+        return _iterator_size(constraints["size"],
             constraints.get("length",None), constraints.get("alphabet",None))
     elif "alphabet" in constraints:
         A = constraints["alphabet"]
@@ -2762,7 +2761,7 @@ def _base_iterator(constraints):
             min_ord = max_ord = constraints["order"]
             max_k = min(max_k, max_ord)
             if min_ord:
-                min_k =max(1, min_k, min_ord // len(A))
+                min_k = max(1, min_k, min_ord // len(A))
         if infinity not in (max_k, max_ord):
             return chain(*(_iterator_order(A, ord, range(min_k, max_k+1)) \
                         for ord in range(min_ord, max_ord+1)))
@@ -2790,9 +2789,9 @@ def _iterator_weight(weight):
         sage: OMP = OrderedMultisetPartitionsIntoSets(weight)
         sage: l = list(_iterator_weight(weight))
 
-        sage: sorted(map(OMP, l)) == sorted(map(OMP, \
-        [[{1}, {1}, {'b'}], [{1}, {1,'b'}], [{1}, {'b'}, {1}], \
-         [{1,'b'}, {1}], [{'b'}, {1}, {1}]]))
+        sage: sorted(map(OMP, l), key=str) == sorted(map(OMP,
+        ....:     [[{1}, {1}, {'b'}], [{1}, {1,'b'}], [{1}, {'b'}, {1}],
+        ....:     [{1,'b'}, {1}], [{'b'}, {1}, {1}]]), key=str)
         True
         sage: OMP = OrderedMultisetPartitionsIntoSets({1:3, 3:1})
         sage: list(map(OMP, _iterator_weight([3,0,1])))

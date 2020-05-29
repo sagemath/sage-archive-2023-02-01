@@ -212,7 +212,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
             sage: HeckeTriangleGroup(n=infinity).base_ring()
             Integer Ring
             sage: HeckeTriangleGroup(n=7).base_ring()
-            Maximal Order in Number Field in lam with defining polynomial x^3 - x^2 - 2*x + 1
+            Maximal Order in Number Field in lam with defining polynomial x^3 - x^2 - 2*x + 1 with lam = 1.801937735804839?
         """
         return self._base_ring
 
@@ -226,7 +226,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
             sage: HeckeTriangleGroup(n=infinity).base_field()
             Rational Field
             sage: HeckeTriangleGroup(n=7).base_field()
-            Number Field in lam with defining polynomial x^3 - x^2 - 2*x + 1
+            Number Field in lam with defining polynomial x^3 - x^2 - 2*x + 1 with lam = 1.801937735804839?
         """
         if self._n in [3, infinity]:
             return QQ

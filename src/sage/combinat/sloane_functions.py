@@ -124,8 +124,6 @@ AUTHORS:
 
 # just used for handy .load, .save, etc.
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import integer_types
 
 import inspect
 from sage.structure.sage_object import SageObject
@@ -227,7 +225,7 @@ class SloaneSequence(SageObject):
             ...
             ValueError: input n (=0) must be a positive integer
         """
-        if not isinstance(n, integer_types + (Integer_class,)):
+        if not isinstance(n, (int, Integer_class)):
             raise TypeError("input must be an int or Integer")
         m = ZZ(n)
         if m < self.offset:
@@ -321,7 +319,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import QQ
 from sage.combinat import combinat
 from sage.misc.all import prod
-import sage.interfaces.gap as gap
+
 
 # This one should be here!
 class A000001(SloaneSequence):
@@ -384,9 +382,10 @@ class A000001(SloaneSequence):
             GAPError: Error, the library of groups of size 5000 is not available
         """
         if n <= 50:
-            return self._small[n-1]
+            return self._small[n - 1]
         from sage.libs.gap.libgap import libgap
         return Integer(libgap.NumberSmallGroups(n))
+
 
 class A000027(SloaneSequence):
     def __init__(self):

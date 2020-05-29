@@ -22,7 +22,6 @@ relations, using the standard methods based on Manin symbols.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
 
 import sage.matrix.matrix_space as matrix_space
 from sage.rings.all import Ring
@@ -245,7 +244,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
                 v[j0] += s0
             else:
                 v[j0] = s0
-        for j0 in v.keys():
+        for j0 in v:
             entries[(row, j0)] = v[j0]
         row += 1
 

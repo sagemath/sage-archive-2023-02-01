@@ -20,8 +20,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from cysignals.memory cimport check_allocarray, check_calloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
@@ -44,14 +42,16 @@ from sage.graphs.base.static_sparse_graph cimport out_degree, has_edge
 cdef class GenericGraph_pyx(SageObject):
     pass
 
-def spring_layout_fast_split(G, **options):
-    """
-    Graph each component of G separately, placing them adjacent to
-    each other.
 
-    This is done because on a disconnected graph, the spring layout
-    will push components further and further from each other without
-    bound, resulting in very tight clumps for each component.
+def layout_split(layout_function, G, **options):
+    """
+    Graph each component of ``G`` separately with ``layout_function``,
+    placing them adjacent to each other.
+
+    This is done because several layout methods need the input graph to
+    be connected. For instance, on a disconnected graph, the spring
+    layout will push components further and further from each other
+    without bound, resulting in very tight clumps for each component.
 
     .. NOTE::
 
@@ -63,8 +63,8 @@ def spring_layout_fast_split(G, **options):
 
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
-        sage: from sage.graphs.generic_graph_pyx import spring_layout_fast_split
-        sage: D = spring_layout_fast_split(G); D  # random
+        sage: from sage.graphs.generic_graph_pyx import layout_split, spring_layout_fast
+        sage: D = layout_split(spring_layout_fast, G); D  # random
         {0: [0.77..., 0.06...],
          ...
          902: [3.13..., 0.22...]}
@@ -73,12 +73,21 @@ def spring_layout_fast_split(G, **options):
 
     Robert Bradshaw
     """
+    from copy import copy
     Gs = G.connected_components_subgraphs()
     pos = {}
     left = 0
     buffer = 1/sqrt(len(G))
+
     for g in Gs:
-        cur_pos = spring_layout_fast(g, **options)
+        if options.get('on_embedding', None):
+            em = options['on_embedding']
+            options_g = copy(options)
+            # Restriction of `on_embedding` to `g`
+            options_g['on_embedding'] = {v: em[v] for v in g}
+            cur_pos = layout_function(g, **options_g)
+        else:
+            cur_pos = layout_function(g, **options)
         xmin = min(x[0] for x in cur_pos.values())
         xmax = max(x[0] for x in cur_pos.values())
         if len(g) > 1:
@@ -87,7 +96,38 @@ def spring_layout_fast_split(G, **options):
             loc[0] += left - xmin + buffer
             pos[v] = loc
         left += xmax - xmin + buffer
+
+
+    if options.get('set_embedding', None):
+        embedding = dict()
+        for g in Gs:
+            embedding.update(g.get_embedding())
+        G.set_embedding(embedding)
     return pos
+
+
+def spring_layout_fast_split(G, **options):
+    """
+    Graph each component of G separately, placing them adjacent to
+    each other.
+
+    In ticket :trac:`29522` the function was modified so that it can
+    work with any layout method and renamed ``layout_split``.
+    Please use :func:`layout_split` from now on.
+
+    TESTS::
+
+        sage: from sage.graphs.generic_graph_pyx import spring_layout_fast_split
+        sage: G = Graph(4)
+        sage: _ = spring_layout_fast_split(G)
+        doctest:...: DeprecationWarning: spring_layout_fast_split is deprecated, please use layout_split instead
+        See https://trac.sagemath.org/29522 for details.
+
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(29522, ('spring_layout_fast_split is deprecated, please use '
+                        'layout_split instead'), stacklevel=3)
+    return layout_split(spring_layout_fast, G, **options)
 
 
 def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True, bint height=False, by_component = False, **options):
@@ -136,9 +176,9 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         True
     """
     if by_component:
-        return spring_layout_fast_split(G, iterations=iterations, dim = dim,
-                                        vpos = vpos, rescale = rescale, height = height,
-                                        **options)
+        return layout_split(spring_layout_fast, G, iterations=iterations,
+                            dim = dim, vpos = vpos, rescale = rescale,
+                            height = height, **options)
 
     G = G.to_undirected()
     vlist = list(G) # this defines a consistent order
@@ -409,7 +449,7 @@ def binary_string_to_graph6(x):
     r"""
     Transforms a binary string into its graph6 representation.
 
-    This helper function is named `R` in [McK]_.
+    This helper function is named `R` in [McK2015]_.
 
     INPUT:
 
@@ -420,11 +460,6 @@ def binary_string_to_graph6(x):
         sage: from sage.graphs.generic_graph_pyx import binary_string_to_graph6
         sage: binary_string_to_graph6('110111010110110010111000001100000001000000001')
         'vUqwK@?G'
-
-    REFERENCES:
-
-    .. [McK] McKay, Brendan. 'Description of graph6 and sparse6 encodings.'
-       http://cs.anu.edu.au/~bdm/data/formats.txt (2007-02-13)
     """
     # The length of x must be a multiple of 6. We extend it with 0s.
     x += '0' * ( (6 - (len(x) % 6)) % 6)
@@ -440,7 +475,7 @@ def small_integer_to_graph6(n):
     r"""
     Encodes a small integer (i.e. a number of vertices) as a graph6 string.
 
-    This helper function is named `N` [McK]_.
+    This helper function is named `N` [McK2015]_.
 
     INPUT:
 
@@ -466,7 +501,7 @@ def length_and_string_from_graph6(s):
     r"""
     Returns a pair ``(length,graph6_string)`` from a graph6 string of unknown length.
 
-    This helper function is the inverse of `N` from [McK]_.
+    This helper function is the inverse of `N` from [McK2015]_.
 
     INPUT:
 
@@ -499,7 +534,7 @@ def binary_string_from_graph6(s, n):
     r"""
     Decodes a binary string from its graph6 representation
 
-    This helper function is the inverse of `R` from [McK]_.
+    This helper function is the inverse of `R` from [McK2015]_.
 
     INPUT:
 
@@ -625,7 +660,7 @@ cdef class SubgraphSearch:
 
     def __iter__(self):
         r"""
-        Returns an iterator over all the labeleld subgraphs of `G`
+        Return an iterator over all the labeled subgraphs of `G`
         isomorphic to `H`.
 
         EXAMPLES:

@@ -31,6 +31,7 @@ Functions and methods
 ---------------------
 """
 from __future__ import print_function
+from sage.env import SAGE_NAUTY_BINS_PREFIX as nautyprefix
 
 class HypergraphGenerators():
     r"""
@@ -161,7 +162,7 @@ class HypergraphGenerators():
 
         nauty_input +=  " " + str(number_of_vertices) + " " + str(number_of_sets) + " "
 
-        sp = subprocess.Popen("genbg {0}".format(nauty_input), shell=True,
+        sp = subprocess.Popen(nautyprefix+"genbg {0}".format(nauty_input), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True)
 
@@ -250,7 +251,7 @@ class HypergraphGenerators():
             nverts = Integer(n)
         except TypeError:
             raise ValueError("number of vertices should be an integer")
-        vertices = range(nverts)
+        vertices = list(range(nverts))
 
         # Construct the edge set
         if k < 0:
@@ -261,7 +262,7 @@ class HypergraphGenerators():
             raise ValueError("the uniformity should be an integer")
         all_edges = Subsets(vertices, uniformity)
         try:
-            edges = sample(all_edges, m)
+            edges = [all_edges[t] for t in sample(range(len(all_edges)), m)]
         except OverflowError:
             raise OverflowError("binomial({}, {}) too large to be treated".format(n, k))
         except ValueError:

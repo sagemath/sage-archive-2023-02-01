@@ -511,9 +511,12 @@ class GelfandTsetlinPattern(ClonableArray):
 
     def bender_knuth_involution(self,i):
         r"""
-        Return the image of ''self'' under the 'i'-th Bender-Knuth involution.
+        Return the image of ``self`` under the `i`-th Bender-Knuth involution.
 
-        If the triangle 'G' has size 'n' then this is defined for '0 < i < n'.
+        If the triangle ``self`` has size `n` then this is defined for `0 < i < n`.
+
+        The entries of ``self`` can take values in any ordered ring. Usually,
+        this will be the integers but can also be the rationals or the real numbers.
 
         This implements the construction of the Bender-Knuth involution using toggling
         due to Berenstein-Kirillov.
@@ -525,6 +528,10 @@ class GelfandTsetlinPattern(ClonableArray):
             sage: G = GelfandTsetlinPattern([[5,3,2,1,0],[4,3,2,0],[4,2,1],[3,2],[3]])
             sage: G.bender_knuth_involution(2)
             [[5, 3, 2, 1, 0], [4, 3, 2, 0], [4, 2, 1], [4, 1], [3]]
+
+            sage: G = GelfandTsetlinPattern([[3,2,0],[2.2,0],[2]])
+            sage: G.bender_knuth_involution(2)
+            [[3, 2, 0], [2.80000000000000, 2], [2]]
 
         TESTS::
 
@@ -543,33 +550,34 @@ class GelfandTsetlinPattern(ClonableArray):
             ValueError: must have 0 < 3 < 3
 
         """
-        from copy import copy
+        #from copy import copy
         n = len(self)
 
         def toggle(i,j):
-                """
-                Return the toggle of entry 'G[i][j]' in a Gelfand-Tsetlin pattern, 'G'.
-                """
-                if i == n-1:
-                    return self[n-2][0]+self[n-2][1]-self[n-1][0]
+            """
+            Return the toggle of entry 'G[i][j]' in a Gelfand-Tsetlin pattern, 'G'.
+            """
+            if i == n-1:
+                return self[n-2][0]+self[n-2][1]-self[n-1][0]
 
-                if j == 0:
-                    left = self[i-1][0]
-                else:
-                    left = min(self[i-1][j], self[i+1][j-1])
-                if j == n-i-1:
-                    right = self[i-1][j+1]
-                else:
-                    right = max(self[i-1][j+1], self[i+1][j])
+            if j == 0:
+                left = self[i-1][0]
+            else:
+                left = min(self[i-1][j], self[i+1][j-1])
+            if j == n-i-1:
+                right = self[i-1][j+1]
+            else:
+                right = max(self[i-1][j+1], self[i+1][j])
 
-                return left + right - self[i][j]
+            return left + right - self[i][j]
 
         if not 0 < i < n:
             raise ValueError(f"must have 0 < {i} < {n}")
         r = n-i
-        result = copy(self)
-        result[r] = [toggle(r,s) for s in range(i)]
-        return result
+        P = self.parent()
+        data = [list(row) for row in self]
+        data[r] = [toggle(r,s) for s in range(i)]
+        return P.element_class(P, data)
 
 class GelfandTsetlinPatterns(UniqueRepresentation, Parent):
     """

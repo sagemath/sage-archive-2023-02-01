@@ -535,8 +535,8 @@ class GelfandTsetlinPattern(ClonableArray):
 
         TESTS::
 
-            sage: all(all( G.bender_knuth_involution(i).to_tableau() == G.to_tableau().bender_knuth_involution(i) \
-                   for i in range(1,len(G)) ) for G in GelfandTsetlinPatterns(top_row=[3,3,3,0,0]))
+            sage: all(all( G.bender_knuth_involution(i).to_tableau() == G.to_tableau().bender_knuth_involution(i)
+            ....:       for i in range(1,len(G)) ) for G in GelfandTsetlinPatterns(top_row=[3,3,3,0,0]))
             True
 
             sage: G = GelfandTsetlinPattern([[2,1,0],[1,0],[0]])

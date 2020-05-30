@@ -9,11 +9,12 @@ easy way to discover and quickly create the path tableaux that are available
 Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 ``algebras.<tab>`` to the see the currently implemented named path tableaux.
 
-- :class:`algebras.ArikiKoike
+- :class:`path_tableaux.DyckPaths
 """
-
-from sage.combinat.path_tableaux.dyck_path import DyckPaths, DyckPath
 
 from sage.misc.lazy_import import lazy_import
 
-lazy_import('sage.combinat.path_tableaux.dyck_path', 'DyckPaths', 'DyckPath')
+lazy_import('sage.combinat.path_tableaux.path_tableau', ['PathTableau', 'PathTableaux', 'CylindricalDiagram'])
+lazy_import('sage.combinat.path_tableaux.dyck_path', ['DyckPath','DyckPaths'])
+
+#del absolute_import

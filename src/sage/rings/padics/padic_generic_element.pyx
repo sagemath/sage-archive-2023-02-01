@@ -4093,7 +4093,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def polylog(self, n, p_branch = 0):
         """
-        Return `Li_n(self)` , the `n`th `p`-adic polylogarithm of this element.
+        Return `Li_n(self)`, the `n`th `p`-adic polylogarithm of this element.
 
         INPUT:
 
@@ -4152,6 +4152,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: Qp(11)(0).polylog(7)
             0
+
+        Only positive polylogarithms for positive `n` are defined ::
+
+
+            sage: Qp(11)(2).polylog(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Polylogarithm only implemented for n at least 0.
 
         Check that :trac:`29222` is fixed ::
 

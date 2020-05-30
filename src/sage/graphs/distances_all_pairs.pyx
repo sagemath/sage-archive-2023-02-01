@@ -1262,145 +1262,126 @@ cdef uint32_t diameter_iFUB(short_digraph g,
     # We finally return the computed diameter
     return LB
 
-cdef uint32_t diameter_dragan(short_digraph g,
-                     bitset_t seen):
+cdef uint32_t diameter_dragan(short_digraph g):
     r"""
-    Return diameter of unweighted graph `G`.
+    Return the diameter of unweighted graph `g`.
 
-    This method computes diameter of unweighted undirected graph using the
-    algorithm given in [Dragan2018]_.
+    This method computes the diameter of unweighted undirected graph using the
+    algorithm proposed in [Dragan2018]_.
 
     This method returns Infinity if graph is not connected.
+
+    INPUT:
+
+    - ``g`` -- a short_digraph
 
     EXAMPLES::
 
         sage: from sage.graphs.distances_all_pairs import diameter
         sage: G = graphs.PathGraph(5)
-        sage: diameter(G, algorithm = 'diameter_dragan')
+        sage: diameter(G, algorithm='DHV')
         4
 
     TESTS:
 
         sage: G = graphs.RandomGNP(20,0.3)
-        sage: G.diameter() == diameter(G, algorithm='diameter_dragan')
+        sage: G.diameter() == diameter(G, algorithm='DHV')
         True
     """
     cdef uint32_t n = g.n
     if n <= 1:
         return 0
 
-    cdef uint32_t source
-    cdef uint32_t delegate_certificate
-    cdef uint32_t LB = 0
-    cdef uint32_t UB = UINT32_MAX
-
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef uint32_t * distances = <uint32_t *>mem.malloc(6 * n * sizeof(uint32_t))
+    cdef uint32_t * distances = <uint32_t *>mem.malloc(4 * n * sizeof(uint32_t))
     if not distances:
         raise MemoryError()
 
     cdef uint32_t * waiting_list = distances + n
 
-    # For storing eccentricity of nodes
-    cdef uint32_t * ecc = distances + 2 * n
-
-    # For storing lower bound on eccentricity of nodes
-    cdef uint32_t * ecc_upper_bound = distances + 3 * n
+    # For storing upper and lower bounds on eccentricity of nodes
+    cdef uint32_t * ecc_upper_bound = distances + 2 * n
+    cdef uint32_t * ecc_lower_bound = distances + 3 * n
     memset(ecc_upper_bound, UINT32_MAX, n * sizeof(uint32_t))
-
-    # For storing lower bound on eccentricity of nodes
-    cdef uint32_t * ecc_lower_bound = distances + 4 * n
     memset(ecc_lower_bound, 0, n * sizeof(uint32_t))
 
-    cdef uint32_t * distances_1 = distances + 5 * n
-    cdef uint32_t e_x, x, antipode_x
+    cdef uint32_t u, ecc_u
+    cdef uint32_t x, ecc_x
+    cdef uint32_t antipode, ecc_antipode
+    cdef uint32_t LB = 0
+    cdef uint32_t UB = UINT32_MAX
+    cdef uint32_t v, tmp
+    cdef size_t i, idx
+    cdef bitset_t seen
+    bitset_init(seen, n)
 
-    cdef bitset_t inactive
-    bitset_init(inactive,n)
-
-    cdef active = [i for i in range(n)]
-    # index of source node for simple_BFS in active
-    cdef idx = 0
+    cdef list active = list(range(n))
 
     # Algorithm
-    while True:
-        # 1). Take vertex with maximum eccentricity upper bound as source
-        # and compute its eccentricity
-        active[idx], active[-1] = active[-1], active[idx]
-        source = active.pop()
-
-        bitset_clear(seen)
-        ecc[source] = simple_BFS(g, source, distances, NULL, waiting_list, seen)
-        bitset_add(inactive,source)
-        LB = max(LB, ecc[source])
-
-        if ecc[source] == UINT32_MAX:  # Disconnected graph
-            return UINT32_MAX
-
-        e_x = UINT32_MAX
-        idx = -1
+    while LB < UB:
+        # 1. Select vertex u with maximum eccentricity upper bound
+        tmp = 0
         for i, v in enumerate(active):
-            ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
-            if distances[v] + ecc_lower_bound[v] <= ecc[source]:
-                if e_x > ecc_lower_bound[v]:
-                    idx = i
-                    e_x = ecc_lower_bound[v]
+            if ecc_upper_bound[v] > tmp:
+                tmp = ecc_upper_bound[v]
+                idx = i
+        active[idx], active[-1] = active[-1], active[idx]
+        u = active.pop()
 
-        # 2) obtaining delegate certificate of source
-        while True:
-            if not len(active):
-                return LB
-            #print(len(active))
+        # Compute the eccentricity of u and update eccentricity lower bounds
+        ecc_u = simple_BFS(g, u, distances, NULL, waiting_list, seen)
+        LB = max(LB, ecc_u)
+        if LB == UINT32_MAX:  # Disconnected graph
+            break
+
+        for v in active:
+            ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
+
+        # 2. Select x such that dist(u, x) + ecc[x] == ecc[u].
+        # Since we don't know ecc[x], we select x with minimum eccentricity
+        # lower bound.  If ecc[x] == ecc_lb[x], we are done. Otherwise, we
+        # update eccentricity bounds and repeat
+        while active:
+            # Select v with minimum eccentricity lower bound
+            tmp = UINT32_MAX
+            for i, v in enumerate(active):
+                if ecc_lower_bound[v] < tmp:
+                    tmp = ecc_lower_bound[v]
+                    idx = i
             active[idx], active[-1] = active[-1], active[idx]
             x = active.pop()
-            bitset_clear(seen)
-            ecc[x] = simple_BFS(g, x, distances_1, NULL, waiting_list, seen)
-            bitset_add(inactive, x)
 
-            LB = max(LB, ecc[x])
+            ecc_x = simple_BFS(g, x, distances, NULL, waiting_list, seen)
+            LB = max(LB, ecc_x)
 
-            if ecc[x] == ecc_lower_bound[x]:  # delegate certificate found
-                delegate_certificate = x
+            if ecc_x == ecc_lower_bound[x]:
+                # We found the good vertex x
+                # We update eccentricity upper bounds and break
+                UB = ecc_x
+                for v in active:
+                    ecc_upper_bound[v] = min(ecc_upper_bound[v], distances[v] + ecc_x)
+                    UB = max(UB, ecc_upper_bound[v])
                 break
 
-            antipode_x = waiting_list[n-1]
-            if not bitset_in(inactive, antipode_x):
-                idx = active.index(antipode_x)
-                active[idx], active[-1] = active[-1], active[idx]
-                active.pop()
+            else:
+                # x was not a good choice
+                # We use its antipode to update eccentricity lower bounds.
+                # Observe that this antipode might have already been seen.
+                antipode = waiting_list[n-1]
+                for i, v in enumerate(active):
+                    if v == antipode:
+                        active[i] = active[-1]
+                        tmp = active.pop()
+                        break
 
-            bitset_clear(seen)
-            ecc[antipode_x] = simple_BFS(g, antipode_x, distances_1, NULL, waiting_list, seen)
-            bitset_add(inactive, antipode_x)
+                ecc_antipode = simple_BFS(g, antipode, distances, NULL, waiting_list, seen)
+                LB = max(LB, ecc_antipode)
+                for v in active:
+                    ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
 
-            LB = max(LB, ecc[antipode_x])
+    bitset_free(seen)
+    return LB
 
-            # use distances from antipode_x to update
-            # lower bound on eccentricity
-            e_x = UINT32_MAX
-            idx = -1
-            for i, v in enumerate(active):
-                ecc_lower_bound[v] = max(ecc_lower_bound[v], distances_1[v])
-                if distances[v] + ecc_lower_bound[v] <= ecc[source]:
-                    if e_x > ecc_lower_bound[v]:
-                        idx = i
-                        e_x = ecc_lower_bound[v]
-            #if idx == -1:
-            #    delegate_certificate = x
-            #    break
-
-        UB = 0
-        idx = -1
-        # 3) use distances from delegate certificate to update
-        # upper bound on eccentricity of vertices
-        for i, v in enumerate(active):
-            ecc_upper_bound[v] = min(ecc_upper_bound[v], distances_1[v] + ecc[delegate_certificate])
-            if UB < ecc_upper_bound[v]:
-                UB = ecc_upper_bound[v]
-                idx = i
-
-        if UB <= LB:
-            return LB
 
 def diameter(G, algorithm=None, source=None):
     r"""
@@ -1427,8 +1408,8 @@ def diameter(G, algorithm=None, source=None):
         of `G`.  The time complexity of this algorithm is linear in the size of
         `G`.
 
-      - ``'diameter_dragan'`` -- Computes diameter of unweighted undirected
-        graph using the algorithm given in [Dragan2018]_
+      - ``'DHV'`` -- Computes diameter of unweighted undirected graph using the
+        algorithm proposed in [Dragan2018]_
 
       - ``'2Dsweep'`` -- Computes lower bound on the diameter of an
         unweighted directed graph using directed version of ``2sweep`` as
@@ -1503,7 +1484,7 @@ def diameter(G, algorithm=None, source=None):
         sage: d1 = diameter(G, algorithm='standard')
         sage: d2 = diameter(G, algorithm='iFUB')
         sage: d3 = diameter(G, algorithm='iFUB', source=G.random_vertex())
-        sage: d4 = diameter(G, algorithm='diameter_dragan')
+        sage: d4 = diameter(G, algorithm='DHV')
         sage: if d1 != d2 or d1 != d3 or d1 != d4: print("Something goes wrong!")
 
     Comparison of lower bound algorithms::
@@ -1532,7 +1513,7 @@ def diameter(G, algorithm=None, source=None):
     else:
         if algorithm is None:
             algorithm = 'iFUB'
-        elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB', 'standard', 'diameter_dragan']:
+        elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB', 'standard', 'DHV']:
             raise ValueError("unknown algorithm for computing the diameter of undirected graph")
 
     if algorithm == 'standard':
@@ -1579,10 +1560,8 @@ def diameter(G, algorithm=None, source=None):
     elif algorithm == 'multi-sweep':
         LB = diameter_lower_bound_multi_sweep(sd, isource)[0]
 
-    elif algorithm == 'diameter_dragan':
-        bitset_init(seen,n)
-        LB = diameter_dragan(sd, seen)
-        bitset_free(seen)
+    elif algorithm == 'DHV':
+        LB = diameter_dragan(sd)
 
     else: # algorithm == 'iFUB'
         LB = diameter_iFUB(sd, isource)

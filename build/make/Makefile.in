@@ -241,12 +241,12 @@ all-toolchain: base-toolchain
 # All packages needed as a prerequisite to install other Python packages with
 # pip or which are otherwise used by the Python build tools; these should be
 # given as a prerequisite to any pip-installed packages
-PYTHON_TOOLCHAIN = setuptools pip setuptools_scm future
+PYTHON_TOOLCHAIN = setuptools pip setuptools_scm
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
 SAGERUNTIME = sagelib $(SCRIPTS) $(inst_ipython) $(inst_pexpect) \
-		$(inst_psutil) $(inst_future)
+		$(inst_psutil)
 
 all-sageruntime: toolchain-deps
 	$(MAKE) $(SAGERUNTIME)
@@ -372,7 +372,7 @@ DOC_DEPENDENCIES = sagelib $(inst_sphinx) \
 	| $(SAGERUNTIME) $(inst_maxima) $(inst_networkx) $(inst_scipy) $(inst_sympy) \
 	$(inst_matplotlib) $(inst_pillow) $(inst_mathjax) $(inst_mpmath) \
 	$(inst_ipykernel) $(inst_jupyter_client) $(inst_conway_polynomials) \
-	$(inst_tachyon) $(inst_jmol) $(inst_thebe) $(inst_ipywidgets) $(inst_typing)
+	$(inst_tachyon) $(inst_jmol) $(inst_thebe) $(inst_ipywidgets)
 
 doc: doc-html
 

@@ -2165,10 +2165,9 @@ cdef class MPolynomial_libsingular(MPolynomial):
         """
         return self._hash_c()
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
-        Compare left and right and return -1, 0, and 1 for <,==, and >
-        respectively.
+        Compare left and right.
 
         EXAMPLES::
 
@@ -2218,11 +2217,11 @@ cdef class MPolynomial_libsingular(MPolynomial):
             True
         """
         if left is right:
-            return 0
+            return rich_to_bool(op, 0)
         cdef poly *p = (<MPolynomial_libsingular>left)._poly
         cdef poly *q = (<MPolynomial_libsingular>right)._poly
         cdef ring *r = (<MPolynomial_libsingular>left)._parent_ring
-        return singular_polynomial_cmp(p, q, r)
+        return rich_to_bool(op, singular_polynomial_cmp(p, q, r))
 
     cpdef _add_(left, right):
         """

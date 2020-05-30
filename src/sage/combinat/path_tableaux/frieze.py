@@ -213,7 +213,7 @@ class FriezePattern(PathTableau):
         return (self[1:-1]).__repr__()
 
 
-    def _local_rule(self,i):
+    def local_rule(self,i):
         r"""
         This has input a list of objects. This method first takes
         the list of objects of length three consisting of the `(i-1)`-st,
@@ -223,11 +223,11 @@ class FriezePattern(PathTableau):
         EXAMPLES::
 
             sage: t = FriezePattern([1,2,1,2,3,1])
-            sage: t._local_rule(3)
+            sage: t.local_rule(3)
             [1, 2, 5, 2, 3, 1]
 
             sage: t = FriezePattern([1,2,1,2,3,1])
-            sage: t._local_rule(0)
+            sage: t.local_rule(0)
             Traceback (most recent call last):
             ...
             ValueError: 0 is not a valid integer

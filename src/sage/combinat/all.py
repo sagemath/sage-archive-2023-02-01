@@ -234,5 +234,5 @@ lazy_import('sage.combinat.growth', ['GrowthDiagram',
                                      'GrowthDiagramBinWord', 'GrowthDiagramDomino',
                                      'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])
 
-# Path tableaux
+# Path Tableaux
 from .path_tableaux.catalog import *

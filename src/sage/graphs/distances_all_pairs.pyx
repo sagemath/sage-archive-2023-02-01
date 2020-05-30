@@ -1318,7 +1318,7 @@ cdef uint32_t diameter_dragan(short_digraph g):
     cdef list active = list(range(n))
 
     # Algorithm
-    while LB < UB:
+    while LB < UB and active:
         # 1. Select vertex u with maximum eccentricity upper bound
         tmp = 0
         for i, v in enumerate(active):
@@ -1350,7 +1350,6 @@ cdef uint32_t diameter_dragan(short_digraph g):
                     idx = i
             active[idx], active[-1] = active[-1], active[idx]
             x = active.pop()
-
             ecc_x = simple_BFS(g, x, distances, NULL, waiting_list, seen)
             LB = max(LB, ecc_x)
 

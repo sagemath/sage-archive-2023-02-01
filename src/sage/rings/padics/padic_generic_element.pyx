@@ -4037,6 +4037,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
             Traceback (most recent call last):
             ...
             ValueError: Polylogarithm is not defined for 1.
+
+        Only polylogarithms for `n` at least two are defined by this function ::
+
+            sage: Qp(11)(2).polylog(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Polylogarithm only implemented for n at least 2.
         """
         from sage.rings.power_series_ring import PowerSeriesRing
         from sage.functions.other import ceil,floor
@@ -4153,8 +4160,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: Qp(11)(0).polylog(7)
             0
 
-        Only positive polylogarithms for positive `n` are defined ::
-
+        Only polylogarithms for positive `n` are defined ::
 
             sage: Qp(11)(2).polylog(-1)
             Traceback (most recent call last):

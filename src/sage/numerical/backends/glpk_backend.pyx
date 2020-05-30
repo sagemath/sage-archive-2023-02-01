@@ -1459,11 +1459,17 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.variable_upper_bound(2)
             Traceback (most recent call last):
             ...
-            GLPKError: ...
+            ValueError: invalid variable index 2
+
+            sage: p.variable_upper_bound(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid variable index -1
+
             sage: p.variable_upper_bound(3, 5)
             Traceback (most recent call last):
             ...
-            GLPKError: ...
+            ValueError: invalid variable index 3
 
             sage: p.add_variable()
             0
@@ -1479,6 +1485,9 @@ cdef class GLPKBackend(GenericBackend):
         cdef double x
         cdef double min
         cdef double dvalue
+
+        if index < 0 or index > (self.ncols() - 1):
+            raise ValueError("invalid variable index %d" % index)
 
         if value is False:
             sig_on()
@@ -1554,11 +1563,17 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.variable_lower_bound(2)
             Traceback (most recent call last):
             ...
-            GLPKError: ...
+            ValueError: invalid variable index 2
+
+            sage: p.variable_lower_bound(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid variable index -1
+
             sage: p.variable_lower_bound(3, 5)
             Traceback (most recent call last):
             ...
-            GLPKError: ...
+            ValueError: invalid variable index 3
 
             sage: p.add_variable()
             0
@@ -1574,6 +1589,9 @@ cdef class GLPKBackend(GenericBackend):
         cdef double x
         cdef double max
         cdef double dvalue
+
+        if index < 0 or index > (self.ncols() - 1):
+            raise ValueError("invalid variable index %d" % index)
 
         if value is False:
             sig_on()

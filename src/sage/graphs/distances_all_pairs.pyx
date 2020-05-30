@@ -1262,6 +1262,145 @@ cdef uint32_t diameter_iFUB(short_digraph g,
     # We finally return the computed diameter
     return LB
 
+cdef uint32_t diameter_dragan(short_digraph g,
+                     bitset_t seen):
+    r"""
+    Return diameter of unweighted graph `G`.
+
+    This method computes diameter of unweighted undirected graph using the
+    algorithm given in [Dragan2018]_.
+
+    This method returns Infinity if graph is not connected.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.distances_all_pairs import diameter
+        sage: G = graphs.PathGraph(5)
+        sage: diameter(G, algorithm = 'diameter_dragan')
+        4
+
+    TESTS:
+
+        sage: G = graphs.RandomGNP(20,0.3)
+        sage: G.diameter() == diameter(G, algorithm='diameter_dragan')
+        True
+    """
+    cdef uint32_t n = g.n
+    if n <= 1:
+        return 0
+
+    cdef uint32_t source
+    cdef uint32_t delegate_certificate
+    cdef uint32_t LB = 0
+    cdef uint32_t UB = UINT32_MAX
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *>mem.malloc(6 * n * sizeof(uint32_t))
+    if not distances:
+        raise MemoryError()
+
+    cdef uint32_t * waiting_list = distances + n
+
+    # For storing eccentricity of nodes
+    cdef uint32_t * ecc = distances + 2 * n
+
+    # For storing lower bound on eccentricity of nodes
+    cdef uint32_t * ecc_upper_bound = distances + 3 * n
+    memset(ecc_upper_bound, UINT32_MAX, n * sizeof(uint32_t))
+
+    # For storing lower bound on eccentricity of nodes
+    cdef uint32_t * ecc_lower_bound = distances + 4 * n
+    memset(ecc_lower_bound, 0, n * sizeof(uint32_t))
+
+    cdef uint32_t * distances_1 = distances + 5 * n
+    cdef uint32_t e_x, x, antipode_x
+
+    cdef bitset_t inactive
+    bitset_init(inactive,n)
+
+    cdef active = [i for i in range(n)]
+    # index of source node for simple_BFS in active
+    cdef idx = 0
+
+    # Algorithm
+    while True:
+        # 1). Take vertex with maximum eccentricity upper bound as source
+        # and compute its eccentricity
+        active[idx], active[-1] = active[-1], active[idx]
+        source = active.pop()
+
+        bitset_clear(seen)
+        ecc[source] = simple_BFS(g, source, distances, NULL, waiting_list, seen)
+        bitset_add(inactive,source)
+        LB = max(LB, ecc[source])
+
+        if ecc[source] == UINT32_MAX:  # Disconnected graph
+            return UINT32_MAX
+
+        e_x = UINT32_MAX
+        idx = -1
+        for i, v in enumerate(active):
+            ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
+            if distances[v] + ecc_lower_bound[v] <= ecc[source]:
+                if e_x > ecc_lower_bound[v]:
+                    idx = i
+                    e_x = ecc_lower_bound[v]
+
+        # 2) obtaining delegate certificate of source
+        while True:
+            if not len(active):
+                return LB
+            #print(len(active))
+            active[idx], active[-1] = active[-1], active[idx]
+            x = active.pop()
+            bitset_clear(seen)
+            ecc[x] = simple_BFS(g, x, distances_1, NULL, waiting_list, seen)
+            bitset_add(inactive, x)
+
+            LB = max(LB, ecc[x])
+
+            if ecc[x] == ecc_lower_bound[x]:  # delegate certificate found
+                delegate_certificate = x
+                break
+
+            antipode_x = waiting_list[n-1]
+            if not bitset_in(inactive, antipode_x):
+                idx = active.index(antipode_x)
+                active[idx], active[-1] = active[-1], active[idx]
+                active.pop()
+
+            bitset_clear(seen)
+            ecc[antipode_x] = simple_BFS(g, antipode_x, distances_1, NULL, waiting_list, seen)
+            bitset_add(inactive, antipode_x)
+
+            LB = max(LB, ecc[antipode_x])
+
+            # use distances from antipode_x to update
+            # lower bound on eccentricity
+            e_x = UINT32_MAX
+            idx = -1
+            for i, v in enumerate(active):
+                ecc_lower_bound[v] = max(ecc_lower_bound[v], distances_1[v])
+                if distances[v] + ecc_lower_bound[v] <= ecc[source]:
+                    if e_x > ecc_lower_bound[v]:
+                        idx = i
+                        e_x = ecc_lower_bound[v]
+            #if idx == -1:
+            #    delegate_certificate = x
+            #    break
+
+        UB = 0
+        idx = -1
+        # 3) use distances from delegate certificate to update
+        # upper bound on eccentricity of vertices
+        for i, v in enumerate(active):
+            ecc_upper_bound[v] = min(ecc_upper_bound[v], distances_1[v] + ecc[delegate_certificate])
+            if UB < ecc_upper_bound[v]:
+                UB = ecc_upper_bound[v]
+                idx = i
+
+        if UB <= LB:
+            return LB
 
 def diameter(G, algorithm=None, source=None):
     r"""
@@ -1287,6 +1426,9 @@ def diameter(G, algorithm=None, source=None):
         largest distance from `v` is returned as a lower bound on the diameter
         of `G`.  The time complexity of this algorithm is linear in the size of
         `G`.
+
+      - ``'diameter_dragan'`` -- Computes diameter of unweighted undirected
+        graph using the algorithm given in [Dragan2018]_
 
       - ``'2Dsweep'`` -- Computes lower bound on the diameter of an
         unweighted directed graph using directed version of ``2sweep`` as
@@ -1361,7 +1503,8 @@ def diameter(G, algorithm=None, source=None):
         sage: d1 = diameter(G, algorithm='standard')
         sage: d2 = diameter(G, algorithm='iFUB')
         sage: d3 = diameter(G, algorithm='iFUB', source=G.random_vertex())
-        sage: if d1 != d2 or d1 != d3: print("Something goes wrong!")
+        sage: d4 = diameter(G, algorithm='diameter_dragan')
+        sage: if d1 != d2 or d1 != d3 or d1 != d4: print("Something goes wrong!")
 
     Comparison of lower bound algorithms::
 
@@ -1378,7 +1521,7 @@ def diameter(G, algorithm=None, source=None):
         0
     """
     cdef uint32_t n = G.order()
-    if not n:
+    if n <= 1:
         return 0
 
     if G.is_directed():
@@ -1389,7 +1532,7 @@ def diameter(G, algorithm=None, source=None):
     else:
         if algorithm is None:
             algorithm = 'iFUB'
-        elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB', 'standard']:
+        elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB', 'standard', 'diameter_dragan']:
             raise ValueError("unknown algorithm for computing the diameter of undirected graph")
 
     if algorithm == 'standard':
@@ -1435,6 +1578,11 @@ def diameter(G, algorithm=None, source=None):
 
     elif algorithm == 'multi-sweep':
         LB = diameter_lower_bound_multi_sweep(sd, isource)[0]
+
+    elif algorithm == 'diameter_dragan':
+        bitset_init(seen,n)
+        LB = diameter_dragan(sd, seen)
+        bitset_free(seen)
 
     else: # algorithm == 'iFUB'
         LB = diameter_iFUB(sd, isource)

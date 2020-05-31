@@ -1287,6 +1287,10 @@ cdef uint32_t diameter_dragan(short_digraph g):
         sage: G = graphs.RandomGNP(20,0.3)
         sage: G.diameter() == diameter(G, algorithm='DHV')
         True
+
+        sage: G = Graph([(0, 1)])
+        sage: diameter(G, algorithm='DHV')
+        1
     """
     cdef uint32_t n = g.n
     if n <= 1:
@@ -1302,7 +1306,7 @@ cdef uint32_t diameter_dragan(short_digraph g):
     # For storing upper and lower bounds on eccentricity of nodes
     cdef uint32_t * ecc_upper_bound = distances + 2 * n
     cdef uint32_t * ecc_lower_bound = distances + 3 * n
-    memset(ecc_upper_bound, UINT32_MAX, n * sizeof(uint32_t))
+    memset(ecc_upper_bound, <char>-1, n * sizeof(uint32_t))
     memset(ecc_lower_bound, 0, n * sizeof(uint32_t))
 
     cdef uint32_t u, ecc_u
@@ -1355,8 +1359,9 @@ cdef uint32_t diameter_dragan(short_digraph g):
 
             if ecc_x == ecc_lower_bound[x]:
                 # We found the good vertex x
-                # We update eccentricity upper bounds and break
-                UB = ecc_x
+                # We update eccentricity upper bounds of the remaining vertices,
+                # set UB to the largest of these values and break
+                UB = 0
                 for v in active:
                     ecc_upper_bound[v] = min(ecc_upper_bound[v], distances[v] + ecc_x)
                     UB = max(UB, ecc_upper_bound[v])

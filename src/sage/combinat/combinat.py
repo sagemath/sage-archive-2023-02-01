@@ -995,39 +995,47 @@ def stirling_number2(n, k, algorithm=None):
 
 def polygonal_number(s, n):
     r"""
-    Return the `s`-gonal number at index `n`. 
-    
-    A polygonal number is a number represented by dots forming a
-    regular polygon. Two famous sequences are the triangular numbers
-    (3rd column of Pascal's Triangle) and the square numbers. These numbers
-    are defined by
-    
+    Return the `n`-th `s`-gonal number.
+
+    Polygonal sequences are represented by dots forming a regular polygon.
+    Two famous sequences are the triangular numbers (3rd column of Pascal's
+    Triangle) and the square numbers. The `n`-th term in a polygonal sequence
+    is defined by
+
     .. MATH::
 
         P(s, n) = \frac{n^2(s-2) - n(s-4)}{2},
 
-    where `s` is the
-    size (number of sides) of the polygon, and `n` is its index.
+    where `s` is the number of sides of the polygon.
 
     INPUT:
 
-    - ``s`` -- integer; the size of the polygon. For example, s = 3
+    - ``s`` -- integer; the size of the polygon. For example, `s = 3`
       returns a 3-gonal (triangular) number. `s` must be greater than 1.
 
-    - ``n`` -- integer; the index of the `s`-gonal number to output.
+    - ``n`` -- integer; the index of the `s`-gonal number being returned.
 
-    OUTPUT:
-
-    integer
+    OUTPUT: an integer
 
     EXAMPLES::
 
         sage: [polygonal_number(3, n) for n in range(10)]
         [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
+
+        sage: [polygonal_number(3, n) for n in range(-10, 0)]
+        [45, 36, 28, 21, 15, 10, 6, 3, 1, 0]
+
         sage: [polygonal_number(4, n) for n in range(10)]
         [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
-        sage: [polygonal_number(3, n) for n in [-9..0]]
-        [36, 28, 21, 15, 10, 6, 3, 1, 0, 0]
+
+        sage: polygonal_number(3.0, 2.0)
+        3
+
+        sage: polygonal_number(3.5, 1)
+        Traceback (most recent call last):
+        ...
+        TypeError: Attempt to coerce non-integral RealNumber to Integer
+
         sage: polygonal_number(1, 4)
         Traceback (most recent call last):
         ...
@@ -1035,15 +1043,13 @@ def polygonal_number(s, n):
 
     REFERENCES:
 
-    -  :wikipedia:`Polygonal_number`
-
-    -  https://oeis.org/A000217
+        :wikipedia:`Polygonal_number`
     """
     s = ZZ(s)
     n = ZZ(n)
     if s < 2:
         raise ValueError("s (=%s) must be greater than 1" % s)
-    return (((n**2) * (s-2)) - (n * (s-4))) / 2
+    return (((n**2) * (s-2)) - (n * (s-4))) // 2
 
 
 class CombinatorialObject(SageObject):

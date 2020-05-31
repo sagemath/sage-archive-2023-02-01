@@ -2856,8 +2856,9 @@ cdef class GLPKBackend(GenericBackend):
 
         .. NOTE::
 
-            The basis factorization must exist.
-            Otherwise, a ``MIPSolverException`` will be raised.
+            The basis factorization must exist and the variable with
+            index ``k`` must be basic. Otherwise, a ``ValueError`` is
+            be raised.
 
         INPUT:
 
@@ -2890,7 +2891,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.eval_tab_row(0)
             Traceback (most recent call last):
             ...
-            MIPSolverException: ...
+            ValueError: basis factorization does not exist
             sage: lp.solve()
             0
             sage: lp.eval_tab_row(0)
@@ -2902,29 +2903,35 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.eval_tab_row(1)
             Traceback (most recent call last):
             ...
-            MIPSolverException: ...
+            ValueError: slack variable 1 is not basic
             sage: lp.eval_tab_row(-1)
             Traceback (most recent call last):
             ...
             ValueError: ...
 
         """
-        cdef int n = glp_get_num_cols(self.lp)
+        cdef int m = self.nrows()
+        cdef int n = self.ncols()
         cdef int i,j
 
-        if k < 0 or k >= n + glp_get_num_rows(self.lp):
+        if k < 0 or k >= n + m:
             raise ValueError("k = %s; Variable number out of range" % k)
+
+        if glp_bf_exists(self.lp) == 0:
+            raise ValueError("basis factorization does not exist")
+
+        if k < m:
+            if not self.is_slack_variable_basic(k):
+                raise ValueError("slack variable %d is not basic" % k)
+        else:
+            if not self.is_variable_basic(k-m):
+                raise ValueError("variable %d is not basic" % (k-m) )
 
         cdef MemoryAllocator mem = MemoryAllocator()
         cdef int    * c_indices = <int*>mem.allocarray(n+1, sizeof(int))
         cdef double * c_values  = <double*>mem.allocarray(n+1, sizeof(double))
 
-        try:
-            sig_on()            # to catch GLPKError
-            i = glp_eval_tab_row(self.lp, k + 1, c_indices, c_values)
-            sig_off()
-        except GLPKError:
-            raise MIPSolverException('GLPK: basis factorization does not exist; or variable must be basic')
+        i = glp_eval_tab_row(self.lp, k + 1, c_indices, c_values)
 
         indices = [c_indices[j+1] - 1 for j in range(i)]
         values  = [c_values[j+1]      for j in range(i)]
@@ -2948,8 +2955,9 @@ cdef class GLPKBackend(GenericBackend):
 
         .. NOTE::
 
-            The basis factorization must exist.
-            Otherwise a ``MIPSolverException`` will be raised.
+            The basis factorization must exist and the variable with
+            index ``k`` must not be basic. Otherwise, a ``ValueError`` is
+            be raised.
 
         INPUT:
 
@@ -2982,7 +2990,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.eval_tab_col(1)
             Traceback (most recent call last):
             ...
-            MIPSolverException: ...
+            ValueError: basis factorization does not exist
             sage: lp.solve()
             0
             sage: lp.eval_tab_col(1)
@@ -2994,29 +3002,35 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.eval_tab_col(0)
             Traceback (most recent call last):
             ...
-            MIPSolverException: ...
+            ValueError: slack variable 0 is basic
             sage: lp.eval_tab_col(-1)
             Traceback (most recent call last):
             ...
             ValueError: ...
 
         """
-        cdef int m = glp_get_num_rows(self.lp)
+        cdef int m = self.nrows()
+        cdef int n = self.ncols()
         cdef int i,j
 
-        if k < 0 or k >= m + glp_get_num_cols(self.lp):
+        if k < 0 or k >= m + n:
             raise ValueError("k = %s; Variable number out of range" % k)
+
+        if glp_bf_exists(self.lp) == 0:
+            raise ValueError("basis factorization does not exist")
+
+        if k < m:
+            if self.is_slack_variable_basic(k):
+                raise ValueError("slack variable %d is basic" % k)
+        else:
+            if self.is_variable_basic(k-m):
+                raise ValueError("variable %d is basic" % (k-m) )
 
         cdef MemoryAllocator mem = MemoryAllocator()
         cdef int    * c_indices = <int*>mem.allocarray(m+1, sizeof(int))
         cdef double * c_values  = <double*>mem.allocarray(m+1, sizeof(double))
 
-        try:
-            sig_on()            # To catch GLPKError
-            i = glp_eval_tab_col(self.lp, k + 1, c_indices, c_values)
-            sig_off()
-        except GLPKError:
-            raise MIPSolverException('GLPK: basis factorization does not exist; or variable must be non-basic')
+        i = glp_eval_tab_col(self.lp, k + 1, c_indices, c_values)
 
         indices = [c_indices[j+1] - 1 for j in range(i)]
         values  = [c_values[j+1]      for j in range(i)]

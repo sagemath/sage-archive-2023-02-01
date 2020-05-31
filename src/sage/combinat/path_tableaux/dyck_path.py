@@ -185,7 +185,6 @@ class DyckPath(PathTableau):
             else:
                 raise ValueError("the tableau must be standard")
 
-
         elif isinstance(ot, SkewTableau):
             if len(ot) > 2:
                 raise ValueError("the skew tableau must have at most two rows")
@@ -193,10 +192,7 @@ class DyckPath(PathTableau):
             c = ot.to_chain()
             w = [0]*len(c)
             for i,a in enumerate(c):
-                if len(a) == 1:
-                    w[i] = a[0]
-                else:
-                    w[i] = a[0]-a[1]
+                w[i] = a[0] if len(a) == 1 else a[0]-a[1]
 
         elif isinstance(ot, (list,tuple)):
             try:

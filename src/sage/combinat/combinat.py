@@ -29,6 +29,8 @@ docstrings.
 
 -  Stirling numbers, :func:`stirling_number1`,
    :func:`stirling_number2`.
+   
+-  Polygonal numbers, :func:`polygonal_number`
 
 **Set-theoretic constructions:**
 
@@ -989,6 +991,59 @@ def stirling_number2(n, k, algorithm=None):
         return ZZ(maxima.eval("stirling2(%s,%s)" % (n, k)))
     else:
         raise ValueError("unknown algorithm: %s" % algorithm)
+
+
+def polygonal_number(s, n):
+    r"""
+    Return the `s`-gonal number at index `n`. 
+    
+    A polygonal number is a number represented by dots forming a
+    regular polygon. Two famous sequences are the triangular numbers
+    (3rd column of Pascal's Triangle) and the square numbers. These numbers
+    are defined by
+    
+    .. MATH::
+
+        P(s, n) = \frac{n^2(s-2) - n(s-4)}{2},
+
+    where `s` is the
+    size (number of sides) of the polygon, and `n` is its index.
+
+    INPUT:
+
+    - ``s`` -- integer; the size of the polygon. For example, s = 3
+      returns a 3-gonal (triangular) number. `s` must be greater than 1.
+
+    - ``n`` -- integer; the index of the `s`-gonal number to output.
+
+    OUTPUT:
+
+    integer
+
+    EXAMPLES::
+
+        sage: [polygonal_number(3, n) for n in range(10)]
+        [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
+        sage: [polygonal_number(4, n) for n in range(10)]
+        [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+        sage: [polygonal_number(3, n) for n in [-9..0]]
+        [36, 28, 21, 15, 10, 6, 3, 1, 0, 0]
+        sage: polygonal_number(1, 4)
+        Traceback (most recent call last):
+        ...
+        ValueError: s (=1) must be greater than 1
+
+    REFERENCES:
+
+    -  :wikipedia:`Polygonal_number`
+
+    -  https://oeis.org/A000217
+    """
+    s = ZZ(s)
+    n = ZZ(n)
+    if s < 2:
+        raise ValueError("s (=%s) must be greater than 1" % s)
+    return (((n**2) * (s-2)) - (n * (s-4))) / 2
 
 
 class CombinatorialObject(SageObject):

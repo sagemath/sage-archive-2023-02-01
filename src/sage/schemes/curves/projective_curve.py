@@ -2291,7 +2291,7 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
             sage: C._coordinate_functions
             (1, y, z)
         """
-        # homogeneous cooridinate functions
+        # homogeneous coordinate functions
         coords = list(self._open_affine._coordinate_functions)
         coords.insert(self._open_affine_index, self._function_field.one())
         return tuple(coords)

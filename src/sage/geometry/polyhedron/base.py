@@ -2,7 +2,7 @@ r"""
 Base class for polyhedra
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2015 Jean-Philippe Labbe <labbe at math.huji.ac.il>
@@ -13,7 +13,7 @@ Base class for polyhedra
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from __future__ import division, print_function, absolute_import
 
@@ -3265,7 +3265,6 @@ class Polyhedron_base(Element):
             sage: p = Polyhedron([[0,0,0],[4,4,0],[4,0,0],[0,4,0],[2,2,2]])
             sage: p.is_simple()
             False
-
         """
         if not self.is_compact():
             return False
@@ -3273,7 +3272,7 @@ class Polyhedron_base(Element):
 
     def simpliciality(self):
         r"""
-        Return the largest interger `k` such that the polytope is `k`-simplicial.
+        Return the largest integer `k` such that the polytope is `k`-simplicial.
 
         A polytope is `k`-simplicial, if every `k`-face is a simplex.
         If `self` is a simplex, returns its dimension.

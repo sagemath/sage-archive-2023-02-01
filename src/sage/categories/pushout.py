@@ -1257,7 +1257,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
 
     def _apply_functor_to_morphism(self, f):
         """
-        Morphisms for inifinite polynomial rings are not implemented yet.
+        Morphisms for infinite polynomial rings are not implemented yet.
 
         TESTS::
 
@@ -1267,10 +1267,10 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
             sage: R.construction()[0](f)     # indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError: Morphisms for inifinite polynomial rings are not implemented yet.
+            NotImplementedError: Morphisms for infinite polynomial rings are not implemented yet.
 
         """
-        raise NotImplementedError("Morphisms for inifinite polynomial rings are not implemented yet.")
+        raise NotImplementedError("Morphisms for infinite polynomial rings are not implemented yet.")
 
     def _apply_functor(self, R):
         """

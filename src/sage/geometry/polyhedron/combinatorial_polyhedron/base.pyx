@@ -1493,13 +1493,13 @@ cdef class CombinatorialPolyhedron(SageObject):
         else:
             facet_names = self.facet_names()
             if facet_names is None:
-                # No names where provided at initializiation.
-                facet_names = [("H",i) for i in range(n_facets)]
+                # No names were provided at initialisation.
+                facet_names = [("H", i) for i in range(n_facets)]
 
             Vrep = self.Vrep()
             if Vrep is None:
-                # No names where provided at initializiation.
-                Vrep = [("V",i) for i in range(n_Vrep)]
+                # No names were provided at initialisation.
+                Vrep = [("V", i) for i in range(n_Vrep)]
 
             vertices = Vrep + facet_names
             edges = tuple((Vrep[j], facet_names[n_facets - 1 - i]) for i,facet in enumerate(facet_iter) for j in facet.ambient_V_indices())

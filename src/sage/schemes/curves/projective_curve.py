@@ -2307,6 +2307,10 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
             sage: C = Curve(y^2*z^7 - x^9 - x*z^8)
             sage: C._singularities
             [(Point (x, z), [Place (1/y, 1/y*z^5 + 4*y*z^4 + 1/y^2*z)])]
+            sage: D = Curve(x)
+            sage: D._singularities
+            []
+
         """
         S = self.ambient_space().coordinate_ring()
         to_F = self._lift_to_function_field
@@ -2317,19 +2321,20 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
         places = []
         for i in range(self.ngens()):
             denom = self._coordinate_functions[i]
-            funcs = []
-            for p in S._first_ngens(i) + sing.defining_polynomials():
-                f = to_F(p)/denom**p.degree()
-                if not f.is_zero():
-                    funcs.append(f)
+            if denom:
+                funcs = []
+                for p in S._first_ngens(i) + sing.defining_polynomials():
+                    f = to_F(p)/denom**p.degree()
+                    if not f.is_zero():
+                        funcs.append(f)
 
-            if funcs:
-                f = funcs.pop()
-                pls = f.zeros()
-                for f in funcs:
-                    pls = [p for p in pls if f.valuation(p) > 0]
+                if funcs:
+                    f = funcs.pop()
+                    pls = f.zeros()
+                    for f in funcs:
+                        pls = [p for p in pls if f.valuation(p) > 0]
 
-                places.extend(pls)
+                    places.extend(pls)
 
         # compute closed points below the places lying on the singular locus,
         # and then collect places lying on each closed points

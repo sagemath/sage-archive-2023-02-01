@@ -1126,7 +1126,8 @@ class DocTestController(SageObject):
         os.putenv('CYSIGNALS_CRASH_LOGS', tmp_dir("crash_logs_"))
         init_cysignals()
 
-        import signal, subprocess
+        import signal
+        import subprocess
         p = subprocess.Popen(cmd, shell=True)
         if opt.timeout > 0:
             signal.alarm(opt.timeout)

@@ -115,7 +115,7 @@ from sage.interfaces.all import singular
 from sage.matrix.all import matrix
 from sage.misc.all import add, sage_eval
 
-from sage.rings.all import degree_lowest_rational_function
+from sage.rings.all import degree_lowest_rational_function, IntegerRing
 from sage.rings.number_field.number_field import NumberField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import (number_field_elements_from_algebraics,
@@ -2561,6 +2561,79 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
             points.append(p)
 
         return points
+
+    @cached_method
+    def L_polynomial(self, name='t'):
+        """
+        Return the L-polynomial of this possibly singular curve.
+
+        INPUT:
+
+        - ``name`` -- (default: ``t``) name of the variable of the polynomial
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(3), 2)
+            sage: C = Curve(y^2 - x^5 - x^4 - 2*x^3 - 2*x - 2)
+            sage: Cbar = C.projective_closure()
+            sage: Cbar.L_polynomial()
+            9*t^4 - 3*t^3 + t^2 - t + 1
+
+        """
+        F = self.function_field()
+        L = F.L_polynomial()
+
+        R = L.parent()
+        T = R.gen()
+
+        f = R.one()
+        for p, places in self._singularities:
+            for place in places:
+                f = f * (1 - T**place.degree())
+            f = f // (1 - T**p.degree())
+
+        return L * f
+
+    def number_of_rational_points(self, r=1):
+        """
+        Return the number of rational points of the curve with
+        constant field extended by degree ``r``.
+
+        INPUT:
+
+        - ``r`` -- positive integer (default: `1`)
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(3), 2)
+            sage: C = Curve(y^2 - x^5 - x^4 - 2*x^3 - 2*x - 2)
+            sage: Cbar = C.projective_closure()
+            sage: Cbar.number_of_rational_points(3)
+            21
+            sage: D = Cbar.change_ring(Cbar.base_ring().extension(3))
+            sage: D.base_ring()
+            Finite Field in z3 of size 3^3
+            sage: len(D.closed_points())
+            21
+
+        """
+        q = self.base_ring().order()
+        L = self.L_polynomial()
+        Lp = L.derivative()
+
+        R = IntegerRing()[[L.parent().gen()]] # power series ring
+        L = R(L)
+        Lp = R(Lp)
+
+        previous_prec = R.default_prec()
+        R.set_default_prec(r)
+
+        f = Lp / L
+        n = f[r-1] + q**r + 1
+
+        R.set_default_prec(previous_prec)
+
+        return n
 
 
 class IntegralProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_finite_field, IntegralProjectiveCurve_finite_field):

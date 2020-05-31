@@ -40,7 +40,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
 
     .. MATH::
 
-        a \circ (b \circ c) = a \circ (b \circ c) + a \circ (c \circ b).
+        (a \circ b) \circ c = a \circ (b \circ c) + a \circ (c \circ b).
 
     Zinbiel algebras were first introduced by Loday (see [Lod1995]_ and
     [LV2012]_) as the Koszul dual to Leibniz algebras (hence the name
@@ -114,7 +114,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         sage: x*(y*z) + x*(z*y)
         Z[xyz] + Z[xzy]
 
-    We see that the Zinbiel algebra is not associative, nor even
+    We see that the Zinbiel algebra is not associative, not even
     power associative::
 
         sage: x*(y*z)
@@ -124,7 +124,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         sage: (x*x)*x
         2*Z[xxx]
 
-    We verify that it is a divided powers algebra::
+    We verify that it is a divided power algebra::
 
         sage: (x*(x*x)) * (x*(x*(x*x)))
         15*Z[xxxxxxx]
@@ -479,7 +479,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
     def construction(self):
         """
         Return a pair ``(F, R)``, where ``F`` is a :class:`ZinbielFunctor`
-        and `R` is a ring, such that ``F(R)`` returns ``self``.
+        and ``R`` is a ring, such that ``F(R)`` returns ``self``.
 
         EXAMPLES::
 
@@ -654,7 +654,7 @@ class ZinbielFunctor(ConstructionFunctor):
 
     def merge(self, other):
         """
-        Merge ``self`` with another construction functor, or return None.
+        Merge ``self`` with another construction functor, or return ``None``.
 
         EXAMPLES::
 

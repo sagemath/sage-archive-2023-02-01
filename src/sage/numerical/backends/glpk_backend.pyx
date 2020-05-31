@@ -2585,7 +2585,7 @@ cdef class GLPKBackend(GenericBackend):
         else:
             return 0.0
 
-    cpdef double get_col_dual(self, int variable):
+    cpdef double get_col_dual(self, int variable) except? -1:
         """
         Returns the dual value (reduced cost) of a variable
 
@@ -2621,7 +2621,21 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.get_col_dual(1)
             -5.0
 
+        TESTS:
+
+        We sanity check the input that will be passed to GLPK::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver="GLPK")
+            sage: p.get_col_dual(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid column index 2
+
         """
+        if variable < 0 or variable > (self.ncols() - 1):
+            raise ValueError("invalid column index %d" % variable)
+
         if self.simplex_or_intopt == simplex_only:
             return glp_get_col_dual(self.lp, variable+1)
         else:

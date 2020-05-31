@@ -609,11 +609,18 @@ cdef class GLPKBackend(GenericBackend):
             sage: q.add_constraint(p.new_variable()[0] <= 1)
             Traceback (most recent call last):
             ...
-            GLPKError: glp_set_mat_row: i = 1; len = 1; invalid row length
-            Error detected in file api/prob1.c at line ...
+            ValueError: invalid variable index 0
+
         """
         if lower_bound is None and upper_bound is None:
             raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
+
+        # We're going to iterate through this more than once.
+        coefficients = list(coefficients)
+
+        for (index,_) in coefficients:
+            if index < 0 or index > (self.ncols() - 1):
+                 raise ValueError("invalid variable index %d" % index)
 
         glp_add_rows(self.lp, 1)
         cdef int n = glp_get_num_rows(self.lp)
@@ -622,7 +629,6 @@ cdef class GLPKBackend(GenericBackend):
         cdef int * row_i
         cdef double * row_values
 
-        coefficients = list(coefficients)
         cdef int n_coeff = len(coefficients)
         row_i = <int*>mem.allocarray(n_coeff + 1, sizeof(int))
         row_values = <double*>mem.allocarray(n_coeff + 1, sizeof(double))

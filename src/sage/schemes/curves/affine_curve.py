@@ -1656,7 +1656,7 @@ class AffineCurve_field(AffineCurve, AlgebraicScheme_subscheme_affine_field):
         for poly in Tp.defining_polynomials():
             I.append(poly.subs(dict([x, x - c] for x, c in zip(gens, list(p)))))
 
-        return Curve(I)
+        return Curve(I, A)
 
 
 class AffinePlaneCurve_field(AffinePlaneCurve, AffineCurve_field):

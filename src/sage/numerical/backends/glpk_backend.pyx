@@ -55,7 +55,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = MixedIntegerLinearProgram(solver="GLPK")
         """
         self.lp = glp_create_prob()
-        self.simplex_or_intopt = glp_intopt_only
+        self.simplex_or_intopt = glp_simplex_then_intopt
         self.smcp = <glp_smcp* > sig_malloc(sizeof(glp_smcp))
         glp_init_smcp(self.smcp)
         self.iocp = <glp_iocp* > sig_malloc(sizeof(glp_iocp))
@@ -434,6 +434,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.solve()
             0.30000000000000004
             sage: p.get_backend().set_verbosity(3)
+            sage: p.solver_parameter("simplex_or_intopt", "intopt_only")
             sage: p.solve()
             GLPK Integer Optimizer...
             2 rows, 2 columns, 2 non-zeros
@@ -925,12 +926,15 @@ cdef class GLPKBackend(GenericBackend):
         """
         Solve the problem.
 
-        Sage uses GLPK's implementation of the branch-and-cut algorithm
-        (``glp_intopt``) to solve the mixed-integer linear program.
-        This algorithm can be requested explicitly by setting the solver
-        parameter "simplex_or_intopt" to "intopt_only".
-        (If all variables are continuous, the algorithm reduces to solving the
-        linear program by the simplex method.)
+        Sage uses GLPK's implementation of the branch-and-cut
+        algorithm (``glp_intopt``) to solve the mixed-integer linear
+        program.  This algorithm can be requested explicitly by
+        setting the solver parameter "simplex_or_intopt" to
+        "intopt_only". By default, the simplex method will be used
+        first to detect pathological problems that the integer solver
+        cannot handle. If all variables are continuous, the integer
+        algorithm reduces to solving the linear program by the simplex
+        method.
 
         EXAMPLES::
 
@@ -969,15 +973,14 @@ cdef class GLPKBackend(GenericBackend):
 
         .. WARNING::
 
-            Sage uses GLPK's ``glp_intopt`` to find solutions.
-            This routine sometimes FAILS CATASTROPHICALLY
-            when given a system it cannot solve. (:trac:`12309`.)
-            Here, "catastrophic" can mean either "infinite loop" or
-            segmentation fault. Upstream considers this behavior
-            "essentially innate" to their design, and suggests
-            preprocessing it with ``glp_simplex`` first.
-            Thus, if you suspect that your system is infeasible,
-            set the ``preprocessing`` option first.
+            GLPK's ``glp_intopt`` sometimes fails catastrophically
+            when given a system it cannot solve (:trac:`12309`). It
+            can loop indefinitely, or just plain segfault. Upstream
+            considers this behavior "essentially innate" to the
+            current design, and suggests preprocessing with
+            ``glp_simplex``, which is what SageMath does by default.
+            Set the ``simplex_or_intopt`` solver parameter to
+            ``glp_intopt_only`` at your own risk.
 
         EXAMPLES::
 
@@ -989,6 +992,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.solve()
             0.0
             sage: lp.add_constraint(v[0] +4.0 *v[1] -v[2] +v[3], max=-1.0)
+            sage: lp.solver_parameter("simplex_or_intopt", "intopt_only")
             sage: lp.solve()
             Traceback (most recent call last):
             ...
@@ -1935,16 +1939,15 @@ cdef class GLPKBackend(GenericBackend):
 
          * - ``simplex_or_intopt``
 
-           - specify which of ``simplex``, ``exact`` and ``intopt`` routines
-             in GLPK to use.
-             This is controlled by setting ``simplex_or_intopt`` to
-             ``glp_simplex_only``, ``glp_exact_simplex_only``,
-             ``glp_intopt_only`` and ``glp_simplex_then_intopt``, respectively.
-             The latter is useful to deal with a problem in GLPK where
-             problems with no solution hang when using integer optimization;
-             if you specify ``glp_simplex_then_intopt``,
-             sage will try simplex first, then perform integer optimization
-             only if a solution of the LP relaxation exists.
+           - specify which solution routines in GLPK to use. Set this
+             to either ``simplex_only``, ``exact_simplex_only``,
+             ``intopt_only``, or ``simplex_then_intopt`` (the
+             default). The ``simplex_then_intopt`` option does some
+             extra work, but avoids hangs/crashes in GLPK on problems
+             with no solution; SageMath will try simplex first, then
+             perform integer optimization only if a solution of the LP
+             relaxation exists. If you know that your system is not
+             pathological, one of the other options will be faster.
 
          * - ``verbosity_intopt`` and ``verbosity_simplex``
 

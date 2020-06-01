@@ -101,7 +101,7 @@ jobs:
       fail-fast: false
       matrix:
         tox_system_factor: [conda-forge-ubuntu]
-        tox_packages_factor: [minimal-gcc_spkg, standard-gcc_spkg, standard]
+        tox_packages_factor: [minimal-gcc_spkg, standard-gcc_spkg]
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}

@@ -13,8 +13,6 @@ Check that gamma function imports are deprecated (:trac:`24411`)::
     beta(x, x)
 """
 from __future__ import print_function
-from six.moves import range
-from six import integer_types
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.functions.gamma',
@@ -186,7 +184,7 @@ def _eval_floor_ceil(self, x, method, bits=0, **kwds):
     else:
         return m()
 
-    if isinstance(x, integer_types):
+    if isinstance(x, int):
         return Integer(x)
     if isinstance(x, (float, complex)):
         m = getattr(math, method)
@@ -447,7 +445,7 @@ class Function_ceil(BuiltinFunction):
         try:
             return x.ceil()
         except AttributeError:
-            if isinstance(x, integer_types):
+            if isinstance(x, int):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(math.ceil(x))
@@ -611,7 +609,7 @@ class Function_floor(BuiltinFunction):
         try:
             return x.floor()
         except AttributeError:
-            if isinstance(x, integer_types):
+            if isinstance(x, int):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(math.floor(x))
@@ -741,7 +739,7 @@ class Function_frac(BuiltinFunction):
         try:
             return x - x.floor()
         except AttributeError:
-            if isinstance(x, integer_types):
+            if isinstance(x, int):
                 return Integer(0)
             elif isinstance(x, (float, complex)):
                 return x - Integer(math.floor(x))

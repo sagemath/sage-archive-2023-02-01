@@ -4,7 +4,6 @@ Wrapper for Graphics Files
 """
 
 import os
-import six
 
 from sage.misc.temporary_file import tmp_filename
 from sage.structure.sage_object import SageObject
@@ -29,10 +28,10 @@ class Mime(object):
     def validate(cls, value):
         """
         Check that input is known mime type
-        
+
         INPUT:
 
-        - ``value`` -- string. 
+        - ``value`` -- string.
 
         OUTPUT:
 
@@ -51,7 +50,7 @@ class Mime(object):
         """
         value = str(value).lower()
         for k, v in cls.__dict__.items():
-            if isinstance(v, six.string_types) and v == value:
+            if isinstance(v, str) and v == value:
                 return v
         raise ValueError('unknown mime type')
 
@@ -63,7 +62,7 @@ class Mime(object):
         INPUT:
 
         - ``mime_type`` -- mime type as string.
-        
+
         OUTPUT:
 
         String containing the usual file extension for that type of
@@ -101,7 +100,7 @@ mimetype_for_ext = dict(
 
 
 class GraphicsFile(SageObject):
-    
+
     def __init__(self, filename, mime_type=None):
         """
         Wrapper around a graphics file.
@@ -127,14 +126,14 @@ class GraphicsFile(SageObject):
         Return a string representation.
         """
         return 'Graphics file {0}'.format(self.mime())
-        
+
     def filename(self):
         return self._filename
 
     def save_as(self, filename):
         """
         Make the file available under a new filename.
-        
+
         INPUT:
 
         - ``filename`` -- string. The new filename.
@@ -157,7 +156,7 @@ class GraphicsFile(SageObject):
         """
         with open(self._filename, 'rb') as f:
             return f.read()
-    
+
     def launch_viewer(self):
         """
         Launch external viewer for the graphics file.
@@ -210,13 +209,13 @@ class GraphicsFile(SageObject):
         os.chmod(fn, 0o644)
 
 
-def graphics_from_save(save_function, preferred_mime_types, 
+def graphics_from_save(save_function, preferred_mime_types,
                        allowed_mime_types=None, figsize=None, dpi=None):
     """
     Helper function to construct a graphics file.
 
     INPUT:
-    
+
     - ``save_function`` -- callable that can save graphics to a file
       and accepts options like
       :meth:`sage.plot.graphics.Graphics.save`.

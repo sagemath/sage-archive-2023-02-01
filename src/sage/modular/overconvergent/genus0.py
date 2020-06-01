@@ -172,8 +172,6 @@ classical) does not apply.
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import integer_types
 
 from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
 from sage.misc.misc         import verbose
@@ -732,7 +730,7 @@ class OverconvergentModularFormsSpace(Module):
             sage: M10(M(f))
             3-adic overconvergent modular form of weight-character 0 with q-expansion 27*q + 324*q^2 + 2430*q^3 + 13716*q^4 + O(q^5)
         """
-        if isinstance(input, integer_types):
+        if isinstance(input, int):
             input = ZZ(input)
 
         if isinstance(input, OverconvergentModularFormElement):

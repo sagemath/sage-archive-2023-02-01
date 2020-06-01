@@ -82,7 +82,7 @@ AUTHORS:
 
 - Amanda Francis, Caitlin Lienkaemper, Kate Collins, Rajat Mittal (2019-03-10):
   methods for computing effective resistance
-  
+
 - Amanda Francis, Caitlin Lienkaemper, Kate Collins, Rajat Mittal (2019-03-19):
   most_common_neighbors and common_neighbors_matrix added.
 
@@ -411,8 +411,6 @@ Methods
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-import six
-from six.moves import range
 import itertools
 
 from copy import copy
@@ -3859,7 +3857,7 @@ class Graph(GenericGraph):
         left = set()
         right = set()
 
-        for u,s in six.iteritems(color):
+        for u,s in color.items():
             if s:
                 left.add(u)
             else:
@@ -4819,7 +4817,7 @@ class Graph(GenericGraph):
         # should be safe :-)
         m = 1/(10 *Integer(g.order()))
         d_val = p.get_values(d)
-        g_mad = g.subgraph(v for v,l in six.iteritems(d_val) if l > m)
+        g_mad = g.subgraph(v for v,l in d_val.items() if l > m)
 
         if value_only:
             return g_mad.average_degree()
@@ -8797,7 +8795,7 @@ class Graph(GenericGraph):
         if i not in self:
             raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(i)))
         elif j not in self:
-            raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(j)))    
+            raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(j)))
 
         if i == j :
             return 0
@@ -8905,7 +8903,7 @@ class Graph(GenericGraph):
             multiedges. Perhaps this method can be updated to handle them, but
             in the meantime if you want to use it please disallow multiedges
             using allow_multiple_edges().
-            
+
             sage: graphs.CompleteGraph(4).effective_resistance_matrix(nonedgesonly=False)
             [  0 1/2 1/2 1/2]
             [1/2   0 1/2 1/2]
@@ -9030,10 +9028,10 @@ class Graph(GenericGraph):
             edges = self.complement().edges(labels=False)
         else:
             edges = [(verts[i], verts[j]) for i in range(n) for j in range(i + 1, n)]
-            
+
         rmin = min(S[(verttoidx[e[0]], verttoidx[e[1]])] for e in edges)
         return [e for e in edges if S[(verttoidx[e[0]], verttoidx[e[1]])] == rmin]
-        
+
     @doc_index("Leftovers")
     def common_neighbors_matrix(self, vertices=None, nonedgesonly=True):
         r"""
@@ -9101,9 +9099,9 @@ class Graph(GenericGraph):
             sage: G.common_neighbors_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: This method is not known to work on graphs with loops. 
-            Perhaps this method can be updated to handle them, but in the 
-            meantime if you want to use it please disallow loops using 
+            ValueError: This method is not known to work on graphs with loops.
+            Perhaps this method can be updated to handle them, but in the
+            meantime if you want to use it please disallow loops using
             allow_loops().
 
         .. SEEALSO::
@@ -9147,7 +9145,7 @@ class Graph(GenericGraph):
         Return vertex pairs with maximal number of common neighbors.
 
         This method is only valid for simple (no loops, no multiple edges)
-        graphs with order `\geq 2`   
+        graphs with order `\geq 2`
 
         INPUT:
 

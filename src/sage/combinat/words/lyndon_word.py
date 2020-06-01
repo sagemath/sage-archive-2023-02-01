@@ -12,7 +12,6 @@ Lyndon words
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six.moves import builtins
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -287,7 +286,7 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
             True
         """
         evaluation = self._e
-        le = builtins.list(evaluation)
+        le = list(evaluation)
         if len(evaluation) == 0:
             return 0
 

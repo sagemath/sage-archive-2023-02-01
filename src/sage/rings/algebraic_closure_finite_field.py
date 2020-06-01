@@ -54,7 +54,6 @@ AUTHORS:
 
 """
 from __future__ import print_function
-from six.moves import range
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.fast_methods import WithEqualityById
@@ -974,7 +973,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         roots = []    # a list of pair (root,multiplicity)
         while polys:
             g,m,l,phi = polys.pop()
-        
+
             if g.degree() == 1: # found a root
                 r = phi(-g.constant_coefficient())
                 roots.append((r,m))

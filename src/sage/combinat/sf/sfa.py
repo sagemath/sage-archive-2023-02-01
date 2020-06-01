@@ -300,8 +300,6 @@ def is_SymmetricFunction(x):
 
 from sage.categories.realizations import Category_realization_of_parent
 
-import six
-
 
 class SymmetricFunctionsBases(Category_realization_of_parent):
     r"""
@@ -1634,7 +1632,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         """
         BR = self.base_ring()
         z_elt = {}
-        for m, c in six.iteritems(x._monomial_coefficients):
+        for m, c in x._monomial_coefficients.items():
             coeff = function(m)
             z_elt[m] = BR( c*coeff )
         return self._from_dict(z_elt)
@@ -1719,7 +1717,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         if orthogonal:
             # could check which of x and y has less terms
             # for mx, cx in x:
-            for mx, cx in six.iteritems(x._monomial_coefficients):
+            for mx, cx in x._monomial_coefficients.items():
                 if mx not in y._monomial_coefficients:
                     continue
                 else:
@@ -1729,8 +1727,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
                 res += cx*cy*f(mx, mx)
             return res
         else:
-            for mx, cx in six.iteritems(x._monomial_coefficients):
-                for my, cy in six.iteritems(y._monomial_coefficients):
+            for mx, cx in x._monomial_coefficients.items():
+                for my, cy in y._monomial_coefficients.items():
                     res += cx*cy*f(mx,my)
             return res
 
@@ -1814,13 +1812,13 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         BR = self.base_ring()
         zero = BR.zero()
         z_elt = {}
-        for part, c in six.iteritems(element.monomial_coefficients()):
+        for part, c in element.monomial_coefficients().items():
             if sum(part) not in cache_dict:
                 cache_function(sum(part))
             # Make sure it is a partition (for #13605), this is
             #   needed for the old kschur functions - TCS
             part = _Partitions(part)
-            for part2, c2 in six.iteritems(cache_dict[sum(part)][part]):
+            for part2, c2 in cache_dict[sum(part)][part].items():
                 if hasattr(c2,'subs'): # c3 may be in the base ring
                     c3 = c*BR(c2.subs(**subs_dict))
                 else:
@@ -3094,8 +3092,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         p = parent.realization_of().power()
         cache = {}
         ip_pnu_g = parent._inner_plethysm_pnu_g
-        return parent.sum( c*ip_pnu_g(p(x), cache, nu)
-                           for (nu, c) in six.iteritems(p(self).monomial_coefficients()) )
+        return parent.sum(c*ip_pnu_g(p(x), cache, nu)
+                          for (nu, c) in p(self).monomial_coefficients().items())
 
 
     def omega(self):

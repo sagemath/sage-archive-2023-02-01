@@ -147,8 +147,6 @@ Functions and classes
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
-from six import iteritems, add_metaclass
 
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
@@ -1368,8 +1366,8 @@ class CombinatorialObject(SageObject):
         return self._list.index(key)
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class CombinatorialElement(CombinatorialObject, Element):
+class CombinatorialElement(CombinatorialObject, Element,
+        metaclass=InheritComparisonClasscallMetaclass):
     """
     ``CombinatorialElement`` is both a :class:`CombinatorialObject`
     and an :class:`Element`. So it represents a list which is an
@@ -1456,8 +1454,7 @@ class CombinatorialElement(CombinatorialObject, Element):
         super(CombinatorialObject, self).__init__(parent)
 
 
-@add_metaclass(ClasscallMetaclass)
-class CombinatorialClass(Parent):
+class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
     """
     This class is deprecated, and will disappear as soon as all derived
     classes in Sage's library will have been fixed. Please derive
@@ -2858,7 +2855,7 @@ def bell_polynomial(n, k):
     for p in Partitions(n, length=k):
         factorial_product = 1
         power_factorial_product = 1
-        for part, count in iteritems(p.to_exp_dict()):
+        for part, count in p.to_exp_dict().items():
             factorial_product *= factorial(count)
             power_factorial_product *= factorial(part)**count
         coefficient = factorial(n) // (factorial_product * power_factorial_product)

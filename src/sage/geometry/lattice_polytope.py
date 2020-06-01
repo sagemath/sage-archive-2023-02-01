@@ -102,10 +102,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import StringIO
-from six.moves import copyreg
-import six
 
 from sage.arith.all import gcd
 from sage.combinat.posets.posets import FinitePoset
@@ -135,14 +131,12 @@ from sage.structure.richcmp import richcmp_method, richcmp
 
 from copy import copy
 import collections
+import copyreg
 import os
 import subprocess
 import warnings
 from functools import reduce
-from io import IOBase
-
-if not six.PY2:
-    file = IOBase
+from io import IOBase, StringIO
 
 
 class SetOfAllLatticePolytopesClass(Set_generic):
@@ -300,7 +294,7 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
         skip_palp_matrix(f, n)
         data = read_palp_point_collection(data)
         f.close()
-    if isinstance(data, (file, IOBase, StringIO)):
+    if isinstance(data, (IOBase, StringIO)):
         data = read_palp_point_collection(data)
     if not is_PointCollection(data) and not isinstance(data, (list, tuple)):
         try:

@@ -4934,7 +4934,7 @@ class FiniteStateMachine(SageObject):
                 ))
 
         for ((source, target), transitions) in adjacent.items():
-            if transitions):
+            if transitions:
                 labels = []
                 for transition in transitions:
                     if hasattr(transition, "format_label"):

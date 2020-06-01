@@ -378,26 +378,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             sage: MPolynomialRing_libsingular(QQ, -1, [], "lex")
             Traceback (most recent call last):
             ...
-            ValueError: Multivariate Polynomial Rings must have more than 0 variables.
+            NotImplementedError: polynomials in -1 variables are not supported in Singular
         """
-        MPolynomialRing_base.__init__(self, base_ring, n, names, order)
-        self._has_singular = True
-        assert(n == len(self._names))
         self.__ngens = n
-        self._ring = singular_ring_new(base_ring, n, self._names, order)
+        self._ring = singular_ring_new(base_ring, n, names, order)
         self._zero_element = new_MP(self, NULL)
         cdef MPolynomial_libsingular one = new_MP(self, p_ISet(1, self._ring))
         self._one_element = one
         self._one_element_poly = one._poly
-        # This polynomial ring should belong to Algebras(base_ring).
-        # Algebras(...).parent_class, which was called from MPolynomialRing_base.__init__,
-        # tries to provide a conversion from the base ring, if it does not exist.
-        # This is for algebras that only do the generic stuff in their initialisation.
-        # But here, we want to use PolynomialBaseringInjection. Hence, we need to
-        # wipe the memory and construct the conversion from scratch.
-        from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
-        base_inject = PolynomialBaseringInjection(base_ring, self)
-        self.register_coercion(base_inject)
+        MPolynomialRing_base.__init__(self, base_ring, n, names, order)
+        self._has_singular = True
         #permanently store a reference to this ring until deallocation works reliably
         permstore.append(self)
 
@@ -492,6 +482,15 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
 
         """
         base_ring = self.base_ring()
+        if other is base_ring:
+            # Because this parent class is a Cython class, the method
+            # UnitalAlgebras.ParentMethods.__init_extra__(), which normally
+            # registers the coercion map from the base ring, is called only
+            # when inheriting from this class in Python (cf. Trac #26958).
+            return self._coerce_map_from_base_ring()
+        f = self._coerce_map_via([base_ring], other)
+        if f is not None:
+            return f
 
         if isinstance(other, MPolynomialRing_libsingular):
             if self is other:
@@ -512,8 +511,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         elif is_PolynomialRing(other):
             if base_ring.has_coerce_map_from(other._mpoly_base_ring(self.variable_names())):
                 return True
-        elif base_ring.has_coerce_map_from(other):
-            return True
 
     Element = MPolynomial_libsingular
 
@@ -845,41 +842,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         elif isinstance(element, polynomial_element.Polynomial):
             if base_ring.has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
                 return self(element._mpoly_dict_recursive(self.variable_names(), base_ring))
-
-        if isinstance(element, CommutativeRingElement):
-            # base ring elements
-            if element.parent() is base_ring:
-                # shortcut for GF(p)
-                if isinstance(base_ring, FiniteField_prime_modn):
-                    _p = p_ISet(int(element) % _ring.cf.ch, _ring)
-                else:
-                    _n = sa2si(element,_ring)
-                    _p = p_NSet(_n, _ring)
-                return new_MP(self, _p)
-            # also accepting ZZ
-            elif is_IntegerRing(element.parent()):
-                if isinstance(base_ring, FiniteField_prime_modn):
-                    _p = p_ISet(int(element),_ring)
-                else:
-                    _n = sa2si(base_ring(element),_ring)
-                    _p = p_NSet(_n, _ring)
-                return new_MP(self, _p)
-            # fall back to base ring
-            try:
-                element = base_ring._coerce_c(element)
-                _n = sa2si(element,_ring)
-                _p = p_NSet(_n, _ring)
-                return new_MP(self, _p)
-            except TypeError:
-                pass
-
-        elif isinstance(element, int) or isinstance(element, long):
-            if isinstance(base_ring, FiniteField_prime_modn):
-                _p = p_ISet(element % _ring.cf.ch, _ring)
-            else:
-                _n = sa2si(base_ring(element), _ring)
-                _p = p_NSet(_n, _ring)
-            return new_MP(self, _p)
 
         if isinstance(element, (SingularElement, cypari2.gen.Gen)):
             element = str(element)

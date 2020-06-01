@@ -39,9 +39,6 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-
-from six import itervalues
-
 from sage.structure.element import CommutativeAlgebraElement
 from sage.symbolic.expression import Expression
 from sage.manifolds.chart_func import ChartFunction
@@ -1144,7 +1141,7 @@ class ScalarField(CommutativeAlgebraElement):
         if not self._express:
             # undefined scalar field
             return True
-        for funct in itervalues(self._express):
+        for funct in self._express.values():
             if not funct.is_zero():
                 self._is_zero = False
                 return True

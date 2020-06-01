@@ -539,6 +539,13 @@ cdef class PolyDict:
             sage: R3.<xi, x> = R2[]
             sage: print(latex(xi*x))
             \xi x
+
+        TESTS:
+
+        Check that :trac:`29604` is fixed::
+
+            sage: PolyDict({(1, 0): GF(2)(1)}).latex(['x', 'y'])
+            'x'
         """
         n = len(vars)
         poly = ""
@@ -549,13 +556,18 @@ cdef class PolyDict:
 
         E = sorted(self.__repn, **sort_kwargs)
 
+        if not E:
+            return "0"
         try:
-            pos_one = self.__zero.parent()(1)
+            ring = self.__repn[E[0]].parent()
+            pos_one = ring.one()
             neg_one = -pos_one
         except AttributeError:
-            # probably self.__zero is not a ring element
+            # probably self.__repn[E[0]] is not a ring element
             pos_one = 1
             neg_one = -1
+
+        is_characteristic_2 = bool(pos_one == neg_one)
 
         for e in E:
             c = self.__repn[e]
@@ -568,7 +580,7 @@ cdef class PolyDict:
                 # Next determine coefficient of multinomial
                 if len(multi) == 0:
                     multi = latex(c)
-                elif c == neg_one:
+                elif c == neg_one and not is_characteristic_2:
                     # handle -1 specially because it's a pain
                     if len(poly) > 0:
                         sign_switch = True
@@ -632,6 +644,18 @@ cdef class PolyDict:
             sage: f = PolyDict({(2,3):RIF(1/2,3/2), (1,2):RIF(-1,1)})
             sage: f.poly_repr(['x', 'y'])
             '1.?*x^2*y^3 + 0.?*x*y^2'
+
+        TESTS:
+
+        Check that :trac:`29604` is fixed::
+
+            sage: PolyDict({(1, 0): GF(4)(1)}).poly_repr(['x', 'y'])
+            'x'
+            sage: P.<x,y> = LaurentPolynomialRing(GF(2), 2)
+            sage: P.gens()
+            (x, y)
+            sage: -x - y
+            x + y
         """
         n = len(vars)
         poly = ""
@@ -641,11 +665,14 @@ cdef class PolyDict:
 
         E = sorted(self.__repn, **sort_kwargs)
 
+        if not E:
+            return "0"
         try:
-            pos_one = self.__zero.parent()(1)
+            ring = self.__repn[E[0]].parent()
+            pos_one = ring.one()
             neg_one = -pos_one
         except AttributeError:
-            # probably self.__zero is not a ring element
+            # probably self.__repn[E[0]] is not a ring element
             pos_one = 1
             neg_one = -1
 

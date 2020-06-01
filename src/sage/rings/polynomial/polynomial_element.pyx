@@ -944,7 +944,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return expr
 
     cpdef _richcmp_(self, other, int op):
-        """
+        r"""
         Compare the two polynomials self and other.
 
         We order polynomials first by degree (but treating 0 as having
@@ -974,7 +974,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R(0) == R(0)
             True
 
-        TESTS::
+        TESTS:
 
         Test that comparisons are consistent when using interval
         coefficients::
@@ -2989,13 +2989,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
           - ``self`` - Polynomial
           - ``right`` - Polynomial (over same base ring as self)
           - ``K_threshold`` - (optional) Integer. A threshold to fall back to
-          schoolbook algorithm. In the recursion, if one of the polynomials is
-          of degree less that K_threshold then the classic quadratic polynomial
-          is used.
+            schoolbook algorithm. In the recursion, if one of the polynomials
+            is of degree less that K_threshold then the classic quadratic
+            polynomial is used.
 
-        OUTPUT: Polynomial - The product self\*right.
+        OUTPUT:
 
-        ALGORITHM: The basic idea is to use that
+        The product ``self * right``.
+
+        ALGORITHM:
+
+        The basic idea is to use that
 
         .. MATH::
 
@@ -4112,7 +4116,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             1
 
         Factorization also works even if the variable of the finite
-        field is nefariously labeled "x"::
+        field is nefariously labeled `x`::
 
             sage: R.<x> = GF(3^2, 'x')[]
             sage: f = x^10 +7*x -13
@@ -4162,7 +4166,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: A.<T> = K[]
             sage: A(x^2 - 1).factor()
             (T - 1) * (T + 1)
-
 
         ::
 
@@ -4277,6 +4280,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p = x^4 + (-5 - 2*t)*x^3 + (-2 + 10*t)*x^2 + (10 + 4*t)*x - 20*t
             sage: p.factor()
             (x - 5) * (x - 2*t) * (x^2 - 2)
+
+        Check that :trac:`29266` is fixed:
+
+            sage: f = t*x + t
+            sage: f.is_irreducible()
+            True
+            sage: f = 2*x + 4
+            sage: f.is_irreducible()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially
@@ -4394,8 +4408,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         F = R.fraction_field()
                         PF = F[self.variable_name()]
                         pol_frac = PF(self) 
-                        return pol_frac.factor(**kwargs).base_change(self.parent())
-                    except (TypeError, AttributeError):
+                        pol_frac_fact = pol_frac.factor(**kwargs)
+                        if R(pol_frac_fact.unit()).is_unit():
+                            # Note: :meth:`base_change` may convert the unit to a non unit
+                            return pol_frac_fact.base_change(self.parent())
+                    except (TypeError, AttributeError, NotImplementedError):
                         raise NotImplementedError
                     
                 raise NotImplementedError
@@ -10003,14 +10020,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
           is only considered when the valuation is zero, i.e. when the
           polynomial has a nonzero constant term.
 
-        .. ALGORITHM::
+        ALGORITHM:
 
-            Let us denote by `a` the polynomial from which we wish to extract
-            a `n`-th root. The algorithm uses the Newton method for the fixed
-            point of `F(x) = x^{-n} - a^{-1}`. The advantage of this approach
-            compared to the more naive `x^n - a` is that it does require only
-            one polynomial inversion instead of one per iteration of the Newton
-            method.
+        Let us denote by `a` the polynomial from which we wish to extract
+        a `n`-th root. The algorithm uses the Newton method for the fixed
+        point of `F(x) = x^{-n} - a^{-1}`. The advantage of this approach
+        compared to the more naive `x^n - a` is that it does require only
+        one polynomial inversion instead of one per iteration of the Newton
+        method.
 
         EXAMPLES::
 

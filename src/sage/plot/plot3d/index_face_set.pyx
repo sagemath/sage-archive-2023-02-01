@@ -1284,6 +1284,124 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         return json
 
+    def threejs_repr(self, render_params):
+        r"""
+        Return representation of the surface suitable for plotting with three.js.
+
+        EXAMPLES:
+
+        A simple triangle::
+
+            sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
+            sage: G.threejs_repr(G.default_render_params())
+            [('surface',
+              {'color': '#0000ff',
+               'faces': [[0, 1, 2]],
+               'opacity': 1.0,
+               'vertices': [{'x': 0.0, 'y': 0.0, 'z': 1.0},
+                {'x': 1.0, 'y': 1.0, 'z': 1.0},
+                {'x': 2.0, 'y': 0.0, 'z': 1.0}]})]
+
+        The same but with more options applied::
+
+            sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)], color='red', opacity=0.5,
+            ....:             render_order=2, threejs_flat_shading=True,
+            ....:             single_side=True, mesh=True)
+            sage: G.threejs_repr(G.default_render_params())
+            [('surface',
+              {'color': '#ff0000',
+               'faces': [[0, 1, 2]],
+               'opacity': 0.5,
+               'renderOrder': 2.0,
+               'showMeshGrid': True,
+               'singleSide': True,
+               'useFlatShading': True,
+               'vertices': [{'x': 0.0, 'y': 0.0, 'z': 1.0},
+                {'x': 1.0, 'y': 1.0, 'z': 1.0},
+                {'x': 2.0, 'y': 0.0, 'z': 1.0}]})]
+
+        TESTS:
+
+        Transformations apply to the surface's vertices::
+
+            sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)]).scale(2,1,-1)
+            sage: G.threejs_repr(G.default_render_params())
+            [('surface',
+              {'color': '#0000ff',
+               'faces': [[0, 1, 2]],
+               'opacity': 1.0,
+               'vertices': [{'x': 0.0, 'y': 0.0, 'z': -1.0},
+                {'x': 2.0, 'y': 1.0, 'z': -1.0},
+                {'x': 4.0, 'y': 0.0, 'z': -1.0}]})]
+
+        Per-face colors::
+
+            sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: point_list = [(2,0,0),(0,2,0),(0,0,2),(0,1,1),(1,0,1),(1,1,0)]
+            sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
+            sage: col = rainbow(10, 'rgbtuple')
+            sage: t_list=[Texture(col[i]) for i in range(10)]
+            sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
+            sage: S.threejs_repr(S.default_render_params())
+            [('surface',
+              {'faceColors': ['#ff0000', '#ff9900', '#cbff00', '#33ff00'],
+               'faces': [[0, 4, 5], [3, 4, 5], [2, 3, 4], [1, 3, 5]],
+               'opacity': 1.0,
+               'vertices': [{'x': 2.0, 'y': 0.0, 'z': 0.0},
+                {'x': 0.0, 'y': 2.0, 'z': 0.0},
+                {'x': 0.0, 'y': 0.0, 'z': 2.0},
+                {'x': 0.0, 'y': 1.0, 'z': 1.0},
+                {'x': 1.0, 'y': 0.0, 'z': 1.0},
+                {'x': 1.0, 'y': 1.0, 'z': 0.0}]})]
+
+        """
+        surface = {}
+
+        vertices = []
+        cdef Transformation transform = render_params.transform
+        cdef point_c res
+        for i from 0 <= i < self.vcount:
+            if transform is None:
+                res = self.vs[i]
+            else:
+                transform.transform_point_c(&res, self.vs[i])
+            vertices.append(dict(x=float(res.x), y=float(res.y), z=float(res.z)))
+        surface['vertices'] = vertices
+
+        faces = []
+        cdef face_c face
+        for i from 0 <= i < self.fcount:
+            face = self._faces[i]
+            faces.append([int(face.vertices[j]) for j from 0 <= j < face.n])
+        surface['faces'] = faces
+
+        if self.global_texture:
+            surface['color'] = '#' + str(self.texture.hex_rgb())
+        else:
+            face_colors = []
+            for i from 0 <= i < self.fcount:
+                face = self._faces[i]
+                color = Color(face.color.r, face.color.g, face.color.b)
+                face_colors.append(str(color.html_color()))
+            surface['faceColors'] = face_colors
+
+        surface['opacity'] = float(self._extra_kwds.get('opacity', 1.0))
+
+        if 'render_order' in self._extra_kwds:
+            surface['renderOrder'] = float(self._extra_kwds['render_order'])
+
+        if self._extra_kwds.get('single_side'):
+            surface['singleSide'] = True
+
+        if self._extra_kwds.get('threejs_flat_shading'):
+            surface['useFlatShading'] = True
+
+        if self._extra_kwds.get('mesh'):
+            surface['showMeshGrid'] = True
+
+        return [('surface', surface)]
+
     def obj_repr(self, render_params):
         """
         Return an obj representation for ``self``.

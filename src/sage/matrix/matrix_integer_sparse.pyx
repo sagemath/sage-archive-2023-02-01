@@ -909,7 +909,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         return g
 
     def _solve_right_nonsingular_square(self, B, algorithm=None, check_rank=False):
-        """
+        r"""
         If self is a matrix `A`, then this function returns a
         vector or matrix `X` such that `A X = B`. If
         `B` is a vector then `X` is a vector and if
@@ -917,7 +917,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         .. NOTE::
 
-           In Sage one can also write ``A  B`` for
+           In Sage one can also write ``A \ B`` for
            ``A.solve_right(B)``, i.e., Sage implements the "the
            MATLAB/Octave backslash operator".
 
@@ -969,7 +969,8 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             [0 2]
         """
         if check_rank and self.rank() < self.nrows():
-            raise ValueError("not of full rank")
+            from .matrix2 import NotFullRankError
+            raise NotFullRankError
 
         if self.base_ring() != B.base_ring():
             B = B.change_ring(self.base_ring())

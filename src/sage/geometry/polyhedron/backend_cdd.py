@@ -213,6 +213,27 @@ class Polyhedron_cdd(Polyhedron_base):
             sage: p = Polyhedron(vertices = [[0,0],[1,0],[0,1],[1,1]], backend='cdd', base_ring=QQ) # indirect doctest
             sage: p.vertices()
             (A vertex at (0, 0), A vertex at (1, 0), A vertex at (0, 1), A vertex at (1, 1))
+
+        Check that :trac:`29176` is fixed::
+
+            sage: e = [[11582947.657000002, 5374.38, 4177.06, 1.0], [11562795.9322, 5373.62, 4168.38, 1.0]]
+            sage: p = Polyhedron(ieqs=e); p
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 1 vertex, 2 rays, 1 line
+            sage: p.incidence_matrix()
+            [1 1]
+            [1 0]
+            [0 1]
+            [1 1]
+
+            sage: P = [[-2687.19, -2088.53], [-2686.81, -2084.19]]
+            sage: V = VoronoiDiagram(P)
+            sage: R = V.regions()
+            sage: V.points()[0], R[V.points()[0]]
+            (P(-2687.19000000000, -2088.53000000000),
+             A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex, 1 ray, 1 line)
+            sage: V.points()[1], R[V.points()[1]]
+            (P(-2686.81000000000, -2084.19000000000),
+             A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex, 1 ray, 1 line)
         """
         cddout = cddout.splitlines()
 
@@ -293,8 +314,11 @@ class Polyhedron_cdd(Polyhedron_base):
                 self.parent()._make_Vertex(self, [self.base_ring().zero()] * self.ambient_dim())
             self._Vrepresentation = tuple(self._Vrepresentation)
 
-        def parse_adjacency(intro, data, N, cdd_indices_to_sage_indices):
-            ret = matrix(ZZ, N, N, 0)
+        def parse_adjacency(intro, data, M, N, cdd_indices_to_sage_indices, cdd_indices_to_sage_indices2=None):
+            # This function is also used to parse the incidence matrix.
+            if cdd_indices_to_sage_indices2 is None:
+                cdd_indices_to_sage_indices2 = cdd_indices_to_sage_indices
+            ret = matrix(ZZ, M, N, 0)
             data.pop(0)
             data.reverse()
             for adjacencies in data:
@@ -311,7 +335,7 @@ class Polyhedron_cdd(Polyhedron_base):
                 v = cdd_indices_to_sage_indices[cdd_vertex]
                 if v is None:
                     continue
-                for w in parse_indices(count, adjacencies[3:], cdd_indices_to_sage_indices):
+                for w in parse_indices(count, adjacencies[3:], cdd_indices_to_sage_indices2):
                     if w is None:
                         continue
                     ret[v, w] = 1
@@ -321,7 +345,7 @@ class Polyhedron_cdd(Polyhedron_base):
             if '_V_adjacency_matrix' in self.__dict__:
                 raise NotImplementedError("can not replace internal representation as this breaks caching")
             N = len(self._Vrepresentation)
-            self._V_adjacency_matrix = parse_adjacency(intro, data, N, self._cdd_V_to_sage_V)
+            self._V_adjacency_matrix = parse_adjacency(intro, data, N, N, self._cdd_V_to_sage_V)
             for i, v in enumerate(self._Vrepresentation):
                 # cdd reports that lines are never adjacent to anything.
                 # we disagree, they are adjacent to everything.
@@ -337,14 +361,24 @@ class Polyhedron_cdd(Polyhedron_base):
             if '_H_adjacency_matrix' in self.__dict__:
                 raise NotImplementedError("can not replace internal representation as this breaks caching")
             N = len(self._Hrepresentation)
-            self._H_adjacency_matrix = parse_adjacency(intro, data, N, self._cdd_H_to_sage_H)
+            self._H_adjacency_matrix = parse_adjacency(intro, data, N, N, self._cdd_H_to_sage_H)
             self._H_adjacency_matrix.set_immutable()
             self.facet_adjacency_matrix.set_cache(self._H_adjacency_matrix)
+
+        def parse_incidence_matrix(intro, data):
+            if 'incidence_matrix' in self.__dict__:
+                raise NotImplementedError("can not replace internal representation as this breaks caching")
+            N = len(self._Hrepresentation)
+            M = len(self._Vrepresentation)
+            inc_mat = parse_adjacency(intro, data, M, N, self._cdd_V_to_sage_V, self._cdd_H_to_sage_H)
+            inc_mat.set_immutable()
+            self.incidence_matrix.set_cache(inc_mat)
 
         Polyhedron_cdd._parse_block(cddout, 'H-representation', parse_H_representation)
         Polyhedron_cdd._parse_block(cddout, 'V-representation', parse_V_representation)
         Polyhedron_cdd._parse_block(cddout, 'Facet adjacency', parse_facet_adjacency)
         Polyhedron_cdd._parse_block(cddout, 'Vertex adjacency', parse_vertex_adjacency)
+        Polyhedron_cdd._parse_block(cddout, 'Vertex incidence', parse_incidence_matrix)
 
 
 class Polyhedron_QQ_cdd(Polyhedron_cdd, Polyhedron_QQ):

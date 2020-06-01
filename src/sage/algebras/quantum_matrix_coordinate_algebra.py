@@ -13,7 +13,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##############################################################################
 from six.moves import range
 
@@ -274,7 +274,6 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
             return self.monomial(a * b)
         G = self._indices.monoid_generators()
         one = self.base_ring().one()
-        ret = self.zero()
         q = self._q
         qi = q ** -1
         monomial = b

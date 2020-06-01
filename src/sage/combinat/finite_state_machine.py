@@ -933,7 +933,6 @@ from __future__ import print_function
 
 import six
 from six.moves import range, zip_longest, zip
-from six import itervalues
 
 from IPython.lib.pretty import pretty
 import collections
@@ -6800,7 +6799,7 @@ class FiniteStateMachine(SageObject):
                 if is_FSMTransition(d):
                     return self._add_fsm_transition_(d)
             else:
-                d = next(itervalues(kwargs))
+                d = next(iter(kwargs.values()))
             if hasattr(d, 'items'):
                 args = []
                 kwargs = d

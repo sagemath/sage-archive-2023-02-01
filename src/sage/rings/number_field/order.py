@@ -1234,8 +1234,6 @@ class AbsoluteOrder(Order):
             3*a^2 + 2*a + 1
 
         """
-        if is_Element(x) and x.parent() is self:
-            return x
         if isinstance(x, (tuple, list)):
             x = sum(xi*gi for xi,gi in zip(x,self.gens()))
         if not is_Element(x) or x.parent() is not self._K:

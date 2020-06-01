@@ -519,7 +519,8 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         #TODO: is the return order backwards from the magma convention?
 
-##         We do another example over $\ZZ$.
+##         We do another example over $\ZZ$::
+##
 ##             sage: R.<x> = ZZ['x']
 ##             sage: S.<a> = R.quo(x^3 - 2)
 ##             sage: F.<b>, g, h = a.field_extension()
@@ -527,21 +528,24 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 ##             a^2 + 3
 ##             sage: g(x^2 + 2)
 ##             a^2 + 2
+##
 ##         Note that the homomorphism is not defined on the entire
 ##         ''domain''.   (Allowing creation of such functions may be
-##         disallowed in a future version of Sage.):        <----- INDEED!
+##         disallowed in a future version of Sage.)::        <----- INDEED!
+##
 ##             sage: h(1/3)
 ##             Traceback (most recent call last):
 ##             ...
 ##             TypeError: Unable to coerce rational (=1/3) to an Integer.
-##         Note that the parent ring must be an integral domain:
+##
+##         Note that the parent ring must be an integral domain::
+##
 ##             sage: R.<x> = GF(25,'b')['x']
 ##             sage: S.<a> = R.quo(x^3 - 2)
 ##             sage: F, g, h = a.field_extension()
 ##             Traceback (most recent call last):
 ##             ...
 ##             ValueError: polynomial must be irreducible
-
 
         R = self.parent()
         x = R.gen()
@@ -560,7 +564,6 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             g = F.hom([x], R, check=False)
 
         return F, f, g
-
 
     def charpoly(self, var):
         """

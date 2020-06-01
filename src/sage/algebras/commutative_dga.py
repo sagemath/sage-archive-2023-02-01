@@ -1244,6 +1244,12 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             sage: A.<x,y,z,t> = GradedCommutativeAlgebra(GF(5))
             sage: A({(1,3,0,1): 2, (2,2,1,2): 3})
             0
+
+        TESTS::
+
+            sage: B = A.cdg_algebra({})
+            sage: B(x, coerce=False)
+            x
         """
         if isinstance(x, QuotientRingElement):
             if x.parent() is self:
@@ -2561,8 +2567,8 @@ class DifferentialGCAlgebra(GCAlgebra):
             QI = CS.quotient(phico.image())
             self._numerical_invariants[degree] = [QI.dimension()]
             if QI.dimension() > 0:
-                nnames = ['x{}_{}'.format(degree, j) for j in
-                          range(QI.dimension())]
+                nnames = ['x{}_{}'.format(degree, j)
+                          for j in range(QI.dimension())]
                 nbasis = []
                 bbasis = self.basis(degree)
                 for v in QI.basis():
@@ -2570,8 +2576,8 @@ class DifferentialGCAlgebra(GCAlgebra):
                     g = sum(bbasis[j] * vl[j] for j in range(len(bbasis)))
                     nbasis.append(g)
                 nimags = nbasis
-                ndegrees = [degree for j in nbasis]
-                return extend(phi, ndegrees, [B.zero() for nimag in nimags],
+                ndegrees = [degree for _ in nbasis]
+                return extend(phi, ndegrees, [B.zero() for _ in nimags],
                               nimags, nnames)
             return phi
 
@@ -2616,7 +2622,6 @@ class DifferentialGCAlgebra(GCAlgebra):
                           for j in range(len(nimags))]
                 nnamesy += len(nimags)
                 phi = extend(phi, ndegrees, ndifs, nimags, nnames)
-                B = phi.domain()
 
         if not self._minimalmodels:
             degnzero = 1
@@ -2631,7 +2636,7 @@ class DifferentialGCAlgebra(GCAlgebra):
             names = ['x{}_{}'.format(degnzero, j) for j in range(len(gens))]
             A = GradedCommutativeAlgebra(self.base_ring(),
                                          names,
-                                         degrees=[degnzero for j in names])
+                                         degrees=[degnzero for _ in names])
             B = A.cdg_algebra(A.differential({}))
             # Solve case that fails with one generator return B,gens
             phi = B.hom(gens)

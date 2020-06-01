@@ -117,7 +117,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         True
     """
     @staticmethod
-    def __classcall_private__(cls, R, names):
+    def __classcall_private__(cls, R, names, prefix=None):
         """
         Normalize input to ensure a unique representation.
 
@@ -129,9 +129,12 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             sage: F1 is F2 and F1 is F3
             True
         """
-        return super(ShuffleAlgebra, cls).__classcall__(cls, R, Alphabet(names))
+        if prefix is None:
+            prefix = 'B'
+        return super(ShuffleAlgebra, cls).__classcall__(cls, R,
+                                                        Alphabet(names), prefix)
 
-    def __init__(self, R, names):
+    def __init__(self, R, names, prefix):
         r"""
         Initialize ``self``.
 
@@ -147,6 +150,11 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             Traceback (most recent call last):
             ...
             TypeError: argument R must be a ring
+
+            sage: F = ShuffleAlgebra(QQ, 'xyz', prefix='f'); F
+            Shuffle Algebra on 3 generators ['x', 'y', 'z'] over Rational Field
+            sage: F.gens()
+            Family (f[word: x], f[word: y], f[word: z])
         """
         if R not in Rings():
             raise TypeError("argument R must be a ring")
@@ -154,7 +162,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         self.__ngens = self._alphabet.cardinality()
         cat = GradedHopfAlgebrasWithBasis(R).Commutative().Connected()
         CombinatorialFreeModule.__init__(self, R, Words(names, infinite=False),
-                                         latex_prefix="",
+                                         latex_prefix="", prefix=prefix,
                                          category=cat)
 
     def variable_names(self):

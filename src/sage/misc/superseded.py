@@ -374,7 +374,6 @@ class DeprecatedFunctionAlias(object):
             ....:     r"        return 1",
             ....:     r"    old_cython_meth = deprecated_function_alias(13109, new_cython_meth)"
             ....: ]))
-            ....:
             sage: cython_cls().old_cython_meth.__name__
             'old_cython_meth'
         """

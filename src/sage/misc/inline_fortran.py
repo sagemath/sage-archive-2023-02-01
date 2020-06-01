@@ -146,7 +146,7 @@ class InlineFortran:
             Traceback (most recent call last):
             ...
             RuntimeError: failed to compile Fortran code:...
-            sage: os.getcwd() == os.path.normpath(DOT_SAGE)
+            sage: os.getcwd() == os.path.realpath(DOT_SAGE)
             True
         """
         if globals is None:

@@ -290,7 +290,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         """
         raise TypeError("The polyhedron's backend should be 'normaliz'")
 
-    @cached_method
+    @cached_method(do_pickle=True)
     def ehrhart_polynomial(self, engine=None, variable='t', verbose=False, dual=None,
             irrational_primal=None, irrational_all_primal=None, maxdet=None,
             no_decomposition=None, compute_vertex_cones=None, smith_form=None,
@@ -439,6 +439,17 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             Traceback (most recent call last):
             ...
             ValueError: Ehrhart polynomial only defined for compact polyhedra
+
+        TESTS:
+
+        The cache of the Ehrhart polynomial is being pickled::
+
+            sage: P = polytopes.cube()
+            sage: P.ehrhart_polynomial()  # optional - latte_int
+            8*t^3 + 12*t^2 + 6*t + 1
+            sage: Q = loads(dumps(P))
+            sage: Q.ehrhart_polynomial.is_in_cache()  # optional - latte_int
+            True
         """
         if self.is_empty():
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -512,14 +523,48 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
     @cached_method
     def is_reflexive(self):
-        """
+        r"""
+        A lattice polytope is reflexive if it contains the origin in its interior
+        and its polar with respect to the origin is a lattice polytope.
+
+        Equivalently, it is reflexive if it is of the form `\{x \in \mathbb{R}^d: Ax \leq 1\}`
+        for some integer matrix `A` and `d` the ambient dimension.
+
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[(1,0,0),(0,1,0),(0,0,1),(-1,-1,-1)], base_ring=ZZ)
             sage: p.is_reflexive()
             True
+            sage: polytopes.hypercube(4).is_reflexive()
+            True
+            sage: p = Polyhedron(vertices=[(1,0), (0,2), (-1,0), (0,-1)], base_ring=ZZ)
+            sage: p.is_reflexive()
+            False
+            sage: p = Polyhedron(vertices=[(1,0), (0,2), (-1,0)], base_ring=ZZ)
+            sage: p.is_reflexive()
+            False
+
+        An error is raised, if the polyhedron is not compact::
+
+            sage: p = Polyhedron(rays=[(1,)], base_ring=ZZ)
+            sage: p.is_reflexive()
+            Traceback (most recent call last):
+            ...
+            ValueError: the polyhedron is not compact
         """
-        return self.polar().is_lattice_polytope()
+        if not self.is_compact():
+            raise ValueError("the polyhedron is not compact")
+
+        for H in self.Hrepresentation():
+            if H.is_equation():
+                return False
+            b = H.b()
+            if b < 1:
+                return False
+            if not all(v_i/b in ZZ for v_i in H.A()):
+                return False
+
+        return True
 
     @cached_method
     def has_IP_property(self):

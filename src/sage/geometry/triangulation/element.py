@@ -606,31 +606,31 @@ class Triangulation(Element):
             sage: triangulation = polytopes.hypercube(2).triangulate(engine='internal')
             sage: triangulation._boundary_simplex_dictionary()
             {(0, 1): ((0, 1, 3),),
-             (0, 2): ((0, 2, 3),),
-             (0, 3): ((0, 1, 3), (0, 2, 3)),
-             (1, 3): ((0, 1, 3),),
-             (2, 3): ((0, 2, 3),)}
+             (0, 3): ((0, 1, 3),),
+             (1, 2): ((1, 2, 3),),
+             (1, 3): ((0, 1, 3), (1, 2, 3)),
+             (2, 3): ((1, 2, 3),)}
 
             sage: triangulation = polytopes.cube().triangulate(engine='internal')
             sage: triangulation._boundary_simplex_dictionary()
             {(0, 1, 2): ((0, 1, 2, 7),),
-             (0, 1, 4): ((0, 1, 4, 7),),
-             (0, 1, 7): ((0, 1, 2, 7), (0, 1, 4, 7)),
-             (0, 2, 4): ((0, 2, 4, 7),),
-             (0, 2, 7): ((0, 1, 2, 7), (0, 2, 4, 7)),
-             (0, 4, 7): ((0, 1, 4, 7), (0, 2, 4, 7)),
-             (1, 2, 3): ((1, 2, 3, 7),),
-             (1, 2, 7): ((0, 1, 2, 7), (1, 2, 3, 7)),
-             (1, 3, 7): ((1, 2, 3, 7),),
-             (1, 4, 5): ((1, 4, 5, 7),),
-             (1, 4, 7): ((0, 1, 4, 7), (1, 4, 5, 7)),
-             (1, 5, 7): ((1, 4, 5, 7),),
-             (2, 3, 7): ((1, 2, 3, 7),),
-             (2, 4, 6): ((2, 4, 6, 7),),
-             (2, 4, 7): ((0, 2, 4, 7), (2, 4, 6, 7)),
-             (2, 6, 7): ((2, 4, 6, 7),),
-             (4, 5, 7): ((1, 4, 5, 7),),
-             (4, 6, 7): ((2, 4, 6, 7),)}
+             (0, 1, 5): ((0, 1, 5, 7),),
+             (0, 1, 7): ((0, 1, 2, 7), (0, 1, 5, 7)),
+             (0, 2, 3): ((0, 2, 3, 7),),
+             (0, 2, 7): ((0, 1, 2, 7), (0, 2, 3, 7)),
+             (0, 3, 4): ((0, 3, 4, 7),),
+             (0, 3, 7): ((0, 2, 3, 7), (0, 3, 4, 7)),
+             (0, 4, 5): ((0, 4, 5, 7),),
+             (0, 4, 7): ((0, 3, 4, 7), (0, 4, 5, 7)),
+             (0, 5, 7): ((0, 1, 5, 7), (0, 4, 5, 7)),
+             (1, 2, 7): ((0, 1, 2, 7),),
+             (1, 5, 6): ((1, 5, 6, 7),),
+             (1, 5, 7): ((0, 1, 5, 7), (1, 5, 6, 7)),
+             (1, 6, 7): ((1, 5, 6, 7),),
+             (2, 3, 7): ((0, 2, 3, 7),),
+             (3, 4, 7): ((0, 3, 4, 7),),
+             (4, 5, 7): ((0, 4, 5, 7),),
+             (5, 6, 7): ((1, 5, 6, 7),)}
         """
         result = dict()
         for simplex in self:
@@ -655,22 +655,22 @@ class Triangulation(Element):
 
             sage: triangulation = polytopes.cube().triangulate(engine='internal')
             sage: triangulation
-            (<0,1,2,7>, <0,1,4,7>, <0,2,4,7>, <1,2,3,7>, <1,4,5,7>, <2,4,6,7>)
+            (<0,1,2,7>, <0,1,5,7>, <0,2,3,7>, <0,3,4,7>, <0,4,5,7>, <1,5,6,7>)
             sage: triangulation.boundary()
             frozenset({(0, 1, 2),
-                       (0, 1, 4),
-                       (0, 2, 4),
-                       (1, 2, 3),
-                       (1, 3, 7),
-                       (1, 4, 5),
-                       (1, 5, 7),
+                       (0, 1, 5),
+                       (0, 2, 3),
+                       (0, 3, 4),
+                       (0, 4, 5),
+                       (1, 2, 7),
+                       (1, 5, 6),
+                       (1, 6, 7),
                        (2, 3, 7),
-                       (2, 4, 6),
-                       (2, 6, 7),
+                       (3, 4, 7),
                        (4, 5, 7),
-                       (4, 6, 7)})
+                       (5, 6, 7)})
             sage: triangulation.interior_facets()
-            frozenset({(0, 1, 7), (0, 2, 7), (0, 4, 7), (1, 2, 7), (1, 4, 7), (2, 4, 7)})
+            frozenset({(0, 1, 7), (0, 2, 7), (0, 3, 7), (0, 4, 7), (0, 5, 7), (1, 5, 7)})
         """
         return frozenset(facet for facet, bounded_simplices
                          in iteritems(self._boundary_simplex_dictionary())
@@ -691,22 +691,22 @@ class Triangulation(Element):
 
             sage: triangulation = polytopes.cube().triangulate(engine='internal')
             sage: triangulation
-            (<0,1,2,7>, <0,1,4,7>, <0,2,4,7>, <1,2,3,7>, <1,4,5,7>, <2,4,6,7>)
+            (<0,1,2,7>, <0,1,5,7>, <0,2,3,7>, <0,3,4,7>, <0,4,5,7>, <1,5,6,7>)
             sage: triangulation.boundary()
             frozenset({(0, 1, 2),
-                       (0, 1, 4),
-                       (0, 2, 4),
-                       (1, 2, 3),
-                       (1, 3, 7),
-                       (1, 4, 5),
-                       (1, 5, 7),
+                       (0, 1, 5),
+                       (0, 2, 3),
+                       (0, 3, 4),
+                       (0, 4, 5),
+                       (1, 2, 7),
+                       (1, 5, 6),
+                       (1, 6, 7),
                        (2, 3, 7),
-                       (2, 4, 6),
-                       (2, 6, 7),
+                       (3, 4, 7),
                        (4, 5, 7),
-                       (4, 6, 7)})
+                       (5, 6, 7)})
             sage: triangulation.interior_facets()
-            frozenset({(0, 1, 7), (0, 2, 7), (0, 4, 7), (1, 2, 7), (1, 4, 7), (2, 4, 7)})
+            frozenset({(0, 1, 7), (0, 2, 7), (0, 3, 7), (0, 4, 7), (0, 5, 7), (1, 5, 7)})
         """
         return frozenset(facet for facet, bounded_simplices
                          in iteritems(self._boundary_simplex_dictionary())
@@ -739,21 +739,21 @@ class Triangulation(Element):
 
             sage: triangulation = polytopes.hypercube(2).triangulate(engine='internal')
             sage: triangulation
-            (<0,1,3>, <0,2,3>)
+            (<0,1,3>, <1,2,3>)
             sage: N = triangulation.normal_cone();  N
             4-d cone in 4-d lattice
             sage: N.rays()
-            (-1,  0,  0,  0),
-            ( 1,  0,  1,  0),
-            (-1,  0, -1,  0),
-            ( 1,  0,  0, -1),
-            (-1,  0,  0,  1),
-            ( 1,  1,  0,  0),
-            (-1, -1,  0,  0)
+            ( 0,  0,  0, -1),
+            ( 0,  0,  1,  1),
+            ( 0,  0, -1, -1),
+            ( 1,  0,  0,  1),
+            (-1,  0,  0, -1),
+            ( 0,  1,  0, -1),
+            ( 0, -1,  0,  1)
             in Ambient free module of rank 4
             over the principal ideal domain Integer Ring
             sage: N.dual().rays()
-            (-1, 1, 1, -1)
+            (1, -1, 1, -1)
             in Ambient free module of rank 4
             over the principal ideal domain Integer Ring
 

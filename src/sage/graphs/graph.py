@@ -5493,7 +5493,7 @@ class Graph(GenericGraph):
         if algorithm == 'DHV':
             if by_weight:
                 from sage.graphs.base.boost_graph import radius_DHV
-                return radius_DHV(self, weight_function)
+                return radius_DHV(self, weight_function=weight_function)
             else:
                 from sage.graphs.distances_all_pairs import radius_DHV
                 return radius_DHV(self)

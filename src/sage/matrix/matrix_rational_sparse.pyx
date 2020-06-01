@@ -179,6 +179,8 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         mpq_init(s)
         for i from 0 <= i < self._nrows:
             v = &self._matrix[i]
+            if not v.num_nonzero:
+                continue
             for j from 0 <= j < right._ncols:
                 mpq_set_si(s, 0, 1)
                 c = nonzero_positions_in_columns[j]

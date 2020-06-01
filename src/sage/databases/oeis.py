@@ -158,8 +158,8 @@ Classes and methods
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function
-from six.moves.urllib.request import urlopen
-from six.moves.urllib.parse import urlencode
+from urllib.request import urlopen
+from urllib.parse import urlencode
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation

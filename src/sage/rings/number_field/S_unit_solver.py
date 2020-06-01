@@ -71,7 +71,6 @@ from itertools import combinations_with_replacement
 from sage.arith.all import gcd, lcm, CRT
 from copy import copy
 import itertools
-from six.moves import range, zip
 
 
 def column_Log(SUK, iota, U, prec=106):

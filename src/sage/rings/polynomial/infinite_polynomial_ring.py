@@ -254,9 +254,7 @@ Check that :trac:`22514` is fixed::
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from six.moves import range
 
-import six
 from sage.rings.ring import CommutativeRing
 from sage.categories.rings import Rings
 from sage.structure.all import SageObject, parent
@@ -484,7 +482,7 @@ class InfiniteGenDict:
             <class 'sage.rings.polynomial.infinite_polynomial_element.InfinitePolynomial_dense'>
         """
 
-        if not isinstance(k, six.string_types):
+        if not isinstance(k, str):
             raise KeyError("String expected")
         L = k.split('_')
         try:
@@ -704,12 +702,12 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         if not names:
             names = ['x']
         for n in names:
-            if not (isinstance(n, six.string_types) and n.isalnum() and (not n[0].isdigit())):
-                raise ValueError("generator names must be alpha-numeric strings not starting with a  digit, but %s isn't" % n)
+            if not (isinstance(n, str) and n.isalnum() and (not n[0].isdigit())):
+                raise ValueError("generator names must be alpha-numeric strings not starting with a  digit, but %s isn't"%n)
         if len(names) != len(set(names)):
             raise ValueError("generator names must be pairwise different")
         self._names = tuple(names)
-        if not isinstance(order, six.string_types):
+        if not isinstance(order, str):
             raise TypeError("The monomial order must be given as a string")
         if not R in Rings().Commutative():
             raise TypeError("The given 'base ring' (= %s) must be a commutative ring" % R)
@@ -895,7 +893,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         # In many cases, the easiest solution is to "simply" evaluate
         # the string representation.
         from sage.misc.sage_eval import sage_eval
-        if isinstance(x, six.string_types):
+        if isinstance(x, str):
             try:
                 x = sage_eval(x, self.gens_dict())
             except Exception:

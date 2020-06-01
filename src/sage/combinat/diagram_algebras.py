@@ -23,7 +23,6 @@ AUTHORS:
 # ***************************************************************************
 # python3
 from __future__ import division
-from six.moves import range
 
 from sage.categories.associative_algebras import AssociativeAlgebras
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets

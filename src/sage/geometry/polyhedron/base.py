@@ -18,7 +18,6 @@ Base class for polyhedra
 from __future__ import division, print_function, absolute_import
 
 import itertools
-import six
 from sage.structure.element import Element, coerce_binop, is_Vector, is_Matrix
 from sage.structure.richcmp import rich_to_bool, op_NE
 from sage.cpython.string import bytes_to_str
@@ -32,7 +31,7 @@ from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.modules.vector_space_morphism import linear_transformation
 from sage.matrix.constructor import matrix
-from sage.functions.other import sqrt, floor, ceil, binomial
+from sage.functions.other import sqrt, floor, ceil
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
 
@@ -558,9 +557,9 @@ class Polyhedron_base(Element):
 
                 sage: P = Polyhedron([[2/3,0],[6666666666666667/10^16,0]], base_ring=AA); P
                 A 1-dimensional polyhedron in AA^2 defined as the convex hull of 2 vertices
-                sage: P.change_ring(RDF)
+                sage: Q = P.change_ring(RDF); Q
                 A 0-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex
-                sage: P == P.change_ring(RDF)
+                sage: P.n_vertices() == Q.n_vertices()
                 False
        """
 
@@ -943,7 +942,7 @@ class Polyhedron_base(Element):
                     continue
                 elif opt is False:
                     return False
-                elif isinstance(opt, (six.string_types, list, tuple)):
+                elif isinstance(opt, (str, list, tuple)):
                     merged['color'] = opt
                 else:
                     merged.update(opt)
@@ -4285,8 +4284,39 @@ class Polyhedron_base(Element):
             sage: P + vector([1,2,3,4,5/2]) == Q + vector([1,2,3,4,5/2])
             True
         """
+        Vrep, Hrep, parent = self._translation_double_description(displacement)
+
+        pref_rep = 'Vrep' if self.n_vertices() + self.n_rays() <= self.n_inequalities() else 'Hrep'
+
+        return parent.element_class(parent, Vrep, Hrep,
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
+
+    def _translation_double_description(self, displacement):
+        r"""
+        Return the input parameters for the translation.
+
+        INPUT:
+
+        - ``displacement`` -- a displacement vector or a list/tuple of
+          coordinates that determines a displacement vector
+
+        OUTPUT: Tuple of consisting of new Vrepresentation, Hrepresentation and parent.
+
+        .. SEEALSO::
+
+            :meth:`translation`
+
+        EXAMPLES::
+
+            sage: P = Polyhedron([[0,0],[1,0],[0,1]], base_ring=ZZ)
+            sage: Vrep, Hrep, parent = P._translation_double_description([2,1])
+            sage: [tuple(x) for x in Vrep], [tuple(x) for x in Hrep], parent
+            ([((2, 1), (2, 2), (3, 1)), (), ()],
+             [((-2, 1, 0), (-1, 0, 1), (4, -1, -1)), ()],
+             Polyhedra in ZZ^2)
+        """
         displacement = vector(displacement)
-        new_vertices = tuple(x.vector()+displacement for x in self.vertex_generator())
+        new_vertices = (x.vector()+displacement for x in self.vertex_generator())
         new_rays = self.rays()
         new_lines = self.lines()
         parent = self.parent().base_extend(displacement)
@@ -4299,12 +4329,9 @@ class Polyhedron_base(Element):
             y[0] -= x.A()*displacement
             return y
 
-        new_ieqs = tuple(get_new(x) for x in self.inequality_generator())
-        new_eqns = tuple(get_new(x) for x in self.equation_generator())
-
-        return parent.element_class(parent, [new_vertices, new_rays, new_lines],
-                                    [new_ieqs, new_eqns],
-                                    Vrep_minimal=True, Hrep_minimal=True)
+        new_ieqs = (get_new(x) for x in self.inequality_generator())
+        new_eqns = (get_new(x) for x in self.equation_generator())
+        return [new_vertices, new_rays, new_lines], [new_ieqs, new_eqns], parent
 
     def product(self, other):
         """
@@ -6553,15 +6580,73 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             ValueError: not full-dimensional; try with 'in_affine_span=True'
+
+        Check that the double description is set up correctly::
+
+            sage: P = Polyhedron([[1,0],[0,1],[-1,-1]], backend='field')
+            sage: Q = P.change_ring(QQ, backend='ppl')
+            sage: P.polar() == Q.polar()
+            True
+
+            sage: P = polytopes.simplex(4, backend='field')
+            sage: Q = P.change_ring(QQ, backend='ppl')
+            sage: P.polar(in_affine_span=True) == Q.polar(in_affine_span=True)
+            True
+
+        Check that it works, even when the equations are not orthogonal to each other::
+
+            sage: P = polytopes.cube()*Polyhedron([[0,0,0]])
+            sage: P = P.change_ring(QQ)
+
+            sage: from sage.geometry.polyhedron.backend_field import Polyhedron_field
+            sage: from sage.geometry.polyhedron.parent import Polyhedra_field
+            sage: parent = Polyhedra_field(QQ, 6, 'field')
+            sage: equations = [[0, 0, 0, 0, 1, 1, 1], [0, 0, 0, 0, -1, 1, -1], [0, 0, 0, 0, 1, -1, -1]]
+            sage: Q = Polyhedron_field(parent, [P.vertices(), [], []], [P.inequalities(), equations],
+            ....:                      Vrep_minimal=True, Hrep_minimal=True)
+            sage: Q == P
+            True
+            sage: Q.polar(in_affine_span=True) == P.polar(in_affine_span=True)
+            True
         """
         if not self.is_compact():
             raise ValueError("not a polytope")
         if not in_affine_span and not self.dim() == self.ambient_dim():
             raise ValueError("not full-dimensional; try with 'in_affine_span=True'")
 
-        verts = [list(self.center() - v.vector()) for v in self.vertex_generator()]
-        parent = self.parent().base_extend(self.center().parent())
-        return parent.element_class(parent, None, [[[1] + list(v) for v in verts], self.equations()])
+        t_Vrep, t_Hrep, parent = self._translation_double_description(-self.center())
+        t_verts = t_Vrep[0]
+        t_ieqs = t_Hrep[0]
+        t_eqns = t_Hrep[1]
+
+        new_ieqs = ((1,) + tuple(-v) for v in t_verts)
+        if self.n_vertices() == 1:
+            new_verts = self.vertices()
+        elif not self.n_equations():
+            new_verts = ((-h/h[0])[1:] for h in t_ieqs)
+        else:
+            # Transform the equations such that the normals are pairwise orthogonal.
+            t_eqns = list(t_eqns)
+            for i,h in enumerate(t_eqns):
+                for h1 in t_eqns[:i]:
+                    a = h[1:]*h1[1:]
+                    if a:
+                        b = h1[1:]*h1[1:]
+                        t_eqns[i] = b*h - a*h1
+
+            def move_vertex_to_subspace(vertex):
+                for h in t_eqns:
+                    offset = vertex*h[1:]+h[0]
+                    vertex = vertex-h[1:]*offset/(h[1:]*h[1:])
+                return vertex
+
+            new_verts = (move_vertex_to_subspace((-h/h[0])[1:]) for h in t_ieqs)
+
+        pref_rep = 'Hrep' if self.n_vertices() <= self.n_inequalities() else 'Vrep'
+
+        return parent.element_class(parent, [new_verts, [], []],
+                                    [new_ieqs, t_eqns],
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
     def is_self_dual(self):
         r"""
@@ -7185,7 +7270,7 @@ class Polyhedron_base(Element):
 
             sage: Dinexact = polytopes.dodecahedron(exact=False)
             sage: w = Dinexact.faces(2)[2].as_polyhedron().volume(measure='induced', engine='internal'); RDF(w) # abs tol 1e-9
-            1.534062710738235
+            1.5340627082974878
 
             sage: [polytopes.simplex(d).volume(measure='induced') for d in range(1,5)] == [sqrt(d+1)/factorial(d) for d in range(1,5)]
             True
@@ -7623,6 +7708,9 @@ class Polyhedron_base(Element):
         r"""
         Return whether the polyhedron is a simplex.
 
+        A simplex is a bounded polyhedron with `d+1` vertices, where
+        `d` is the dimension.
+
         EXAMPLES::
 
             sage: Polyhedron([(0,0,0), (1,0,0), (0,1,0)]).is_simplex()
@@ -7636,11 +7724,12 @@ class Polyhedron_base(Element):
 
     def neighborliness(self):
         r"""
-        Returns the largest ``k``, such that the polyhedron is ``k``-neighborly.
+        Return the largest ``k``, such that the polyhedron is ``k``-neighborly.
 
-        In case of the ``d``-dimensional simplex, it returns ``d + 1``.
+        A polyhedron is `k`-neighborly if every set of `n` vertices forms a face
+        for `n` up to `k`.
 
-        See :wikipedia:`Neighborly_polytope`
+        In case of the `d`-dimensional simplex, it returns `d + 1`.
 
         .. SEEALSO::
 
@@ -7675,22 +7764,17 @@ class Polyhedron_base(Element):
             [6, 2, 2, 2]
 
         """
-        if self.is_simplex():
-            return self.dim() + 1
-        else:
-            k = 1
-            while len(self.faces(k)) == binomial(self.n_vertices(), k + 1):
-                k += 1
-            return k
+        return self.combinatorial_polyhedron().neighborliness()
 
     def is_neighborly(self, k=None):
         r"""
         Return whether the polyhedron is neighborly.
 
-        If the input ``k`` is provided then return whether the polyhedron is ``k``-neighborly
+        If the input ``k`` is provided, then return whether the polyhedron is ``k``-neighborly
 
-        See :wikipedia:`Neighborly_polytope`
-
+        A polyhedron is neighborly if every set of `n` vertices forms a face
+        for `n` up to floor of half the dimension of the polyhedron.
+        It is `k`-neighborly if this is true for `n` up to `k`.
 
         INPUT:
 
@@ -7700,7 +7784,7 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        - ``True`` if the every set of up to ``k`` vertices forms a face,
+        - ``True`` if every set of up to ``k`` vertices forms a face,
         - ``False`` otherwise
 
         .. SEEALSO::
@@ -7730,10 +7814,7 @@ class Polyhedron_base(Element):
             [True, True, True]
 
         """
-        if k is None:
-            k = self.dim() // 2
-        return all(len(self.faces(i)) == binomial(self.n_vertices(), i + 1)
-                   for i in range(1, k))
+        return self.combinatorial_polyhedron().is_neighborly()
 
     @cached_method
     def is_lattice_polytope(self):

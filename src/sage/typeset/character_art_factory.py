@@ -14,10 +14,8 @@ Factory for Character-Based Art
 #
 #  The full text of the GPL is available at:
 #
-#                  https://www.gnu.org/licenses/
-# ******************************************************************************
-from six import iteritems, string_types, text_type, binary_type
-from six.moves import range
+#                  http://www.gnu.org/licenses/
+#*******************************************************************************
 
 from sage.structure.sage_object import SageObject
 
@@ -62,7 +60,7 @@ class CharacterArtFactory(SageObject):
             <class 'sage.typeset.character_art_factory.CharacterArtFactory'>
         """
         self.art_type = art_type
-        assert isinstance(string_type('a'), string_types)
+        assert isinstance(string_type('a'), str)
         self.string_type = string_type
         assert magic_method_name in ['_ascii_art_', '_unicode_art_']
         self.magic_method_name = magic_method_name
@@ -214,13 +212,13 @@ class CharacterArtFactory(SageObject):
             bb
             ccc
         """
-        if self.string_type is text_type and not isinstance(obj, text_type):
-            if isinstance(obj, binary_type):
+        if self.string_type is str and not isinstance(obj, str):
+            if isinstance(obj, bytes):
                 obj = obj.decode('utf-8')
             else:
-                obj = text_type(obj)
-        if self.string_type is binary_type and not isinstance(obj, binary_type):
-            obj = text_type(obj).encode('utf-8')
+                obj = str(obj)
+        if self.string_type is bytes and not isinstance(obj, bytes):
+            obj = str(obj).encode('utf-8')
         return self.art_type(obj.splitlines(), baseline=baseline)
 
     def build_container(self, content, left_border, right_border, baseline=0):
@@ -346,7 +344,7 @@ class CharacterArtFactory(SageObject):
                 elt._breakpoints.remove(k._l + 1)
             return elt
         repr_elems = self.concatenate(
-                (concat_no_breakpoint(k, v) for k, v in iteritems(d)),
+                (concat_no_breakpoint(k, v) for k, v in d.items()),
                 comma, nested=True)
         return self.build_container(
                 repr_elems, self.left_curly_brace, self.right_curly_brace,

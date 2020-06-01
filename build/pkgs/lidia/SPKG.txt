@@ -23,7 +23,3 @@ Matthias Köppe, UC Davis, CA, USA
 == Dependencies ==
 
 GMP.
-
-=== lidia-2.3.0+latte-patches-2014-10-04 (Matthias Köppe, 2015-05-01) ===
- * First attempt at a Sage package.
-

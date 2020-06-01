@@ -17,8 +17,6 @@ AUTHOR:
     -- William Stein, based on code by Fernando Perez included in IPython
 """
 
-import six
-
 
 class SageTimeitResult(object):
     r"""
@@ -228,12 +226,8 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
     # but is there a better way to achieve that the code stmt has access
     # to the shell namespace?
 
-    if six.PY2:
-        src = timeit_.template % {'stmt': timeit_.reindent(stmt, 8),
-                                 'setup': "pass", 'init': ''}
-    else:
-        src = timeit_.template.format(stmt=timeit_.reindent(stmt, 8),
-                                      setup="pass", init='')
+    src = timeit_.template.format(stmt=timeit_.reindent(stmt, 8),
+                                  setup="pass", init='')
     code = compile(src, "<magic-timeit>", "exec")
     ns = {}
     if not globals_dict:

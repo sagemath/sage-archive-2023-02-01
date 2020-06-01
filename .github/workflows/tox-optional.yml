@@ -102,7 +102,7 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        tox_system_factor: [homebrew-macos-python2, homebrew-macos, homebrew-macos-python3_xcode, homebrew-macos-python3_xcode-nokegonly, homebrew-macos-python3_pythonorg, conda-forge-macos]
+        tox_system_factor: [homebrew-macos, homebrew-macos-python3_xcode, homebrew-macos-python3_xcode-nokegonly, homebrew-macos-python3_pythonorg, conda-forge-macos]
         tox_packages_factor: [maximal]
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}

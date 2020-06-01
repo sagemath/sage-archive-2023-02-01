@@ -1606,10 +1606,10 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
 
 cpdef radius_DHV(g, weight_function=None):
     r"""
-    Return radius of weighted graph `g`.
+    Return the radius of weighted graph `g`.
 
-    This method computes radius of undirected graph using the
-    algorithm given in [Dragan2018]_.
+    This method computes the radius of undirected graph using the algorithm
+    given in [Dragan2018]_.
 
     This method returns Infinity if graph is not connected.
 
@@ -1642,6 +1642,9 @@ cpdef radius_DHV(g, weight_function=None):
         sage: G = Graph(2)
         sage: radius_DHV(G)
         +Infinity
+        sage: G = Graph([(0, 1, 1)])
+        sage: radius_DHV(G)
+        1.0
         sage: G = DiGraph(1)
         sage: radius_DHV(G)
         Traceback (most recent call last):
@@ -1655,17 +1658,17 @@ cpdef radius_DHV(g, weight_function=None):
     if n <= 1:
         return 0
 
-    cdef bint negative_weight = 0
+    cdef bint negative_weight = False
 
     if weight_function is not None:
         for e in g.edge_iterator():
             if float(weight_function(e)) < 0:
-                negative_weight = 1
+                negative_weight = True
                 break
     else:
         for _,_,w in g.edge_iterator():
             if w and float(w) < 0:
-                negative_weight = 1
+                negative_weight = True
                 break
 
     # These variables are automatically deleted when the function terminates.
@@ -1674,30 +1677,25 @@ cpdef radius_DHV(g, weight_function=None):
     boost_weighted_graph_from_sage_graph(&g_boost, g, v_to_int, weight_function)
 
     import sys
-    cdef v_index source
-    cdef v_index next_source = 0  # To store source for next iteration
+    cdef v_index source = 0
     cdef v_index antipode
-    cdef double LB = sys.float_info.max
+    cdef v_index v
+    cdef double ecc_source
     cdef double UB = sys.float_info.max
+    cdef double LB = 0
     # For storing distances of all nodes from source
     cdef vector[double] distances
-    # For storing eccentricity of nodes
-    cdef vector[double] ecc
     # For storing lower bound on eccentricity of nodes
     cdef vector[double] ecc_lower_bound
-    cdef double eccentricity
 
     # Initializing
     for i in range(n):
         ecc_lower_bound.push_back(0)
-        ecc.push_back(0)
 
     # Algorithm
-    while True:
+    while LB < UB:
         # 1) pick vertex with minimum eccentricity lower bound
         # and compute its eccentricity
-        source = next_source
-
         if negative_weight:
             sig_on()
             distances = g_boost.bellman_ford_shortest_paths(source).distances
@@ -1709,23 +1707,23 @@ cpdef radius_DHV(g, weight_function=None):
             distances = g_boost.dijkstra_shortest_paths(source).distances
             sig_off()
 
-        eccentricity = 0
+        # Determine the eccentricity of source and its antipode, that is a
+        # vertex at largest distance from source
+        ecc_source = 0
         for v in range(n):
-            if eccentricity < distances[v]:
-                eccentricity = distances[v]
-                antipode = v  # vertex at largest distance from source
+            if ecc_source < distances[v]:
+                ecc_source = distances[v]
+                antipode = v
 
-        if eccentricity == sys.float_info.max:  # Disconnected graph
-            from sage.rings.infinity import Infinity
-            return +Infinity
+        if ecc_source == sys.float_info.max:  # Disconnected graph
+            break
 
-        ecc[source] = eccentricity
-
-        if ecc[source] == ecc_lower_bound[source]:
+        UB = min(UB, ecc_source)  # minimum among exact computed eccentricities
+        if ecc_source == ecc_lower_bound[source]:
             # we have found minimum eccentricity vertex and hence the radius
-            return ecc[source]
+            break
 
-        # 2) Compute distances from antipode of source
+        # 2) Compute distances from antipode
         if negative_weight:
             sig_on()
             distances = g_boost.bellman_ford_shortest_paths(antipode).distances
@@ -1735,16 +1733,17 @@ cpdef radius_DHV(g, weight_function=None):
             distances = g_boost.dijkstra_shortest_paths(antipode).distances
             sig_off()
 
-        UB = min(UB, ecc[source])  # minimum among exact computed eccentricities
+        # 3) Use distances from antipode to improve eccentricity lower bounds.
+        # We also determine the next source
         LB = sys.float_info.max
-
-        # 3) Use distances from antipode to
-        # improve eccentricity lower bounds
         for v in range(n):
             ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
             if LB > ecc_lower_bound[v]:
                 LB = ecc_lower_bound[v]
-                next_source = v  # vertex with minimum eccentricity lower bound
+                source = v  # vertex with minimum eccentricity lower bound
 
-        if UB <= LB:
-            return UB
+    if UB == sys.float_info.max:
+        from sage.rings.infinity import Infinity
+        return +Infinity
+
+    return UB

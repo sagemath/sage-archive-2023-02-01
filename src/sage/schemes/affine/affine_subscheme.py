@@ -590,7 +590,7 @@ class AlgebraicScheme_subscheme_affine_field(AlgebraicScheme_subscheme_affine):
         gens = R.gens()
 
         J = self.Jacobian_matrix()
-        Jp = J.apply_map( lambda f: f.subs(dict(zip(gens, list(p)))) )
+        Jp = J.apply_map( lambda f: f.subs(dict(zip(gens, p))) )
         I = [f for f in Jp * vector(gens) if f]
 
         return A.subscheme(R.ideal(I))

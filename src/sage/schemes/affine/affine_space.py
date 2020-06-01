@@ -970,7 +970,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             True
 
         """
-        return self([0 for i in range(self.ngens())])
+        return self([0]*self.ngens())
 
 
 class AffineSpace_field(AffineSpace_generic):

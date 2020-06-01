@@ -1578,13 +1578,12 @@ class ProjectiveCurve_field(ProjectiveCurve, AlgebraicScheme_subscheme_projectiv
         """
         for i in range(len(p)):
             if p[i]:
-                break
+                C = self.affine_patch(i)
+                q = p.dehomogenize(i)
+                T = C.tangent_line(q)
+                return T.projective_closure(i, self.ambient_space())
 
-        C = self.affine_patch(i)
-        q = p.dehomogenize(i)
-        T = C.tangent_line(q)
-
-        return T.projective_closure(i, self.ambient_space())
+        raise TypeError("{} does not define a point in the projective space".format(p))
 
 
 class ProjectivePlaneCurve_field(ProjectivePlaneCurve, ProjectiveCurve_field):

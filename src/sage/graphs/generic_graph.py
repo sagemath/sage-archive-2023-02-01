@@ -4760,9 +4760,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: sorted(g.minimum_cycle_basis(by_weight=False))
             [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
             sage: sorted(g.minimum_cycle_basis(by_weight=True, algorithm='NetworkX'))
-            doctest:...: DeprecationWarning: connected_component_subgraphs is
-            deprecated and will be removedin 2.2. Use (G.subgraph(c).copy()
-            for c in connected_components(G))
             [[1, 2, 3], [1, 2, 3, 4], [5, 6, 7]]
             sage: g.minimum_cycle_basis(by_weight=False, algorithm='NetworkX')
             [[1, 2, 3], [1, 3, 4], [5, 6, 7]]

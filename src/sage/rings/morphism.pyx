@@ -1125,7 +1125,7 @@ cdef class RingHomomorphism(RingMap):
             ...
             NotImplementedError: base rings must be equal
         """
-        return self._inverse_image_ideal(self.codomain().ideal())
+        return self._inverse_image_ideal(self.codomain().zero_ideal())
 
     def lift(self, x=None):
         """
@@ -2224,9 +2224,11 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
         Lift an element from the quotient to the cover ring of this ring
         homomorphism.
 
-        sage: Q.<x,y> = QQ['x,y'].quotient('x + y')
-        sage: Q.cover().inverse_image(x)
-        -y
+        EXAMPLES::
+
+            sage: Q.<u,v> = QQ['x,y'].quotient('x + y')
+            sage: Q.cover().inverse_image(u)
+            -y
         """
         return b.lift()
 
@@ -2651,7 +2653,7 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
 
 def _tensor_product_ring(B, A):
     """
-    Construct a quotient ring representating the tensor product of two rings
+    Construct a quotient ring representing the tensor product of two rings
     over a common base ring.
 
     Allowed arguments are polynomial rings, quotient rings, number fields and

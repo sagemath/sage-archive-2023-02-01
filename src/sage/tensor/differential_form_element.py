@@ -21,8 +21,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
-
 
 from sage.symbolic.ring import SR
 from sage.structure.element import RingElement, AlgebraElement

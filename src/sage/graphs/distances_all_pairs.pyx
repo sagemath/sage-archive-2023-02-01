@@ -1455,9 +1455,9 @@ def diameter(G, algorithm=None, source=None):
 
 def radius_DHV(G):
     r"""
-    Return radius of unweighted graph `G`.
+    Return the radius of unweighted graph `G`.
 
-    This method computes radius of unweighted undirected graph using the
+    This method computes the radius of unweighted undirected graph using the
     algorithm given in [Dragan2018]_.
 
     This method returns Infinity if graph is not connected.
@@ -1484,6 +1484,9 @@ def radius_DHV(G):
         sage: G = Graph(2)
         sage: radius_DHV(G)
         +Infinity
+        sage: G = graphs.PathGraph(2)
+        sage: radius_DHV(G)
+        1
         sage: G = DiGraph(1)
         sage: radius_DHV(G)
         Traceback (most recent call last):
@@ -1501,67 +1504,61 @@ def radius_DHV(G):
     cdef short_digraph sd
     init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
 
-    cdef uint32_t source
-    cdef uint32_t antipode
-    cdef uint32_t LB = UINT32_MAX
+    cdef uint32_t source, ecc_source
+    cdef uint32_t antipode, ecc_antipode
     cdef uint32_t UB = UINT32_MAX
-    cdef uint32_t next_source = 0  # To store source for next iteration
+    cdef uint32_t LB = 0
 
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef uint32_t * distances = <uint32_t *>mem.malloc(4 * n * sizeof(uint32_t))
+    cdef uint32_t * distances = <uint32_t *>mem.malloc(3 * n * sizeof(uint32_t))
     if not distances:
         raise MemoryError()
 
     cdef uint32_t * waiting_list = distances + n
 
-    # For storing eccentricity of nodes
-    cdef uint32_t * ecc = distances + 2 * n
-
     # For storing lower bound on eccentricity of nodes
-    cdef uint32_t * ecc_lower_bound = distances + 3 * n
+    cdef uint32_t * ecc_lower_bound = distances + 2 * n
     memset(ecc_lower_bound, 0, n * sizeof(uint32_t))
 
     cdef bitset_t seen
-    bitset_init(seen,n)  # intializing bitset
+    bitset_init(seen, n)
 
     # Algorithm
-    while True:
+    source = 0
+    while LB < UB:
         # 1) pick vertex with minimum eccentricity lower bound
         # and compute its eccentricity
-        source = next_source
-        bitset_clear(seen)
-        ecc[source] = simple_BFS(sd, source, distances, NULL, waiting_list, seen)
+        ecc_source = simple_BFS(sd, source, distances, NULL, waiting_list, seen)
 
-        if ecc[source] == UINT32_MAX:  # Disconnected graph
-            bitset_free(seen)
-            from sage.rings.infinity import Infinity
-            return +Infinity
+        if ecc_source == UINT32_MAX:  # Disconnected graph
+            break
 
-        if ecc[source] == ecc_lower_bound[source]:
+        UB = min(UB, ecc_source)  # minimum among exact computed eccentricities
+        if ecc_source == ecc_lower_bound[source]:
             # we have found minimum eccentricity vertex and hence the radius
-            bitset_free(seen)
-            return ecc[source]
+            break
 
-        # 2) Take vertex at largest distance from source, called antipode
-        # Compute its BFS distances
-        antipode = waiting_list[n-1]  # last visited vertex in simple_BFS
-        bitset_clear(seen)
-        ecc[antipode] = simple_BFS(sd, antipode, distances, NULL, waiting_list, seen)
+        # 2) Take vertex at largest distance from source, called antipode (last
+        # vertex visited in simple_BFS), and compute its BFS distances.
+        # By definition of antipode, we have ecc_antipode >= ecc_source.
+        antipode = waiting_list[n-1]
+        ecc_antipode = simple_BFS(sd, antipode, distances, NULL, waiting_list, seen)
 
-        UB = min(UB, ecc[source])  # minimum among exact computed eccentricities
+        # 3) Use distances from antipode to improve eccentricity lower bounds.
+        # We also determine the next source
         LB = UINT32_MAX
-
-        # 3) Use BFS distances from antipode
-        # to improve eccentricity lower bounds
         for v in range(n):
             ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
             if LB > ecc_lower_bound[v]:
                 LB = ecc_lower_bound[v]
-                next_source = v  # vertex with minimum eccentricity lower bound
+                source = v  # vertex with minimum eccentricity lower bound
 
-        if UB <= LB:
-            bitset_free(seen)
-            return UB
+    bitset_free(seen)
+    if UB == UINT32_MAX:
+        from sage.rings.infinity import Infinity
+        return +Infinity
+
+    return UB
 
 ################
 # Wiener index #

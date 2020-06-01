@@ -26,7 +26,6 @@ from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.cpython.string import FS_ENCODING
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.numerical.mip import MIPSolverException
-from sage.libs.glpk.error import GLPKError
 from sage.libs.glpk.constants cimport *
 from sage.libs.glpk.lp cimport *
 from libc.float cimport DBL_MAX
@@ -992,12 +991,6 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.solve()
             0.0
             sage: lp.add_constraint(v[0] +4.0 *v[1] -v[2] +v[3], max=-1.0)
-            sage: lp.solver_parameter("simplex_or_intopt", "intopt_only")
-            sage: lp.solve()
-            Traceback (most recent call last):
-            ...
-            GLPKError: Assertion failed: ...
-            sage: lp.solver_parameter("simplex_or_intopt", "simplex_then_intopt")
             sage: lp.solve()
             Traceback (most recent call last):
             ...

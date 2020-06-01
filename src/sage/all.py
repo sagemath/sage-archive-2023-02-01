@@ -91,7 +91,7 @@ warnings.filterwarnings('ignore', category=RuntimeWarning,
 
 # Ignore all deprecations from IPython etc.
 warnings.filterwarnings('ignore', category=DeprecationWarning,
-    module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
+    module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic|jedi)')
 # Ignore collections.abc warnings, there are a lot of them but they are
 # harmless.
 warnings.filterwarnings('ignore', category=DeprecationWarning,

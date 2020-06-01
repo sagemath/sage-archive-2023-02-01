@@ -1453,7 +1453,7 @@ def diameter(G, algorithm=None, source=None):
 # Radius #
 ###########
 
-def radius(G):
+def radius_DHV(G):
     r"""
     Return radius of unweighted graph `G`.
 
@@ -1464,28 +1464,28 @@ def radius(G):
 
     EXAMPLES::
 
-        sage: from sage.graphs.distances_all_pairs import radius
+        sage: from sage.graphs.distances_all_pairs import radius_DHV
         sage: G = graphs.PetersenGraph()
-        sage: radius(G)
+        sage: radius_DHV(G)
         2
         sage: G = graphs.RandomGNP(20,0.3)
         sage: from sage.graphs.distances_all_pairs import eccentricity
-        sage: radius(G) == min(eccentricity(G, algorithm='bounds'))
+        sage: radius_DHV(G) == min(eccentricity(G, algorithm='bounds'))
         True
 
     TESTS:
 
         sage: G = Graph()
-        sage: radius(G)
+        sage: radius_DHV(G)
         0
         sage: G = Graph(1)
-        sage: radius(G)
+        sage: radius_DHV(G)
         0
         sage: G = Graph(2)
-        sage: radius(G)
+        sage: radius_DHV(G)
         +Infinity
         sage: G = DiGraph(1)
-        sage: radius(G)
+        sage: radius_DHV(G)
         Traceback (most recent call last):
         ...
         TypeError: this method works for unweighted undirected graphs only

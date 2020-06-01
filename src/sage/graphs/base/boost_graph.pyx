@@ -1604,7 +1604,7 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
                 orth_set[j] = orth_set[j] ^ base
     return cycle_basis
 
-cpdef radius(g, weight_function=None):
+cpdef radius_DHV(g, weight_function=None):
     r"""
     Return radius of weighted graph `g`.
 
@@ -1623,27 +1623,27 @@ cpdef radius(g, weight_function=None):
 
     EXAMPLES::
 
-        sage: from sage.graphs.base.boost_graph import radius
+        sage: from sage.graphs.base.boost_graph import radius_DHV
         sage: G = Graph([(0,1,1), (1,2,1), (0,2,3)])
-        sage: radius(G)
+        sage: radius_DHV(G)
         1.0
         sage: G = graphs.PathGraph(7)
-        sage: radius(G) == G.radius(algorithm='Dijkstra_Boost')
+        sage: radius_DHV(G) == G.radius(algorithm='Dijkstra_Boost')
         True
 
     TESTS:
 
         sage: G = Graph()
-        sage: radius(G)
+        sage: radius_DHV(G)
         0
         sage: G = Graph(1)
-        sage: radius(G)
+        sage: radius_DHV(G)
         0
         sage: G = Graph(2)
-        sage: radius(G)
+        sage: radius_DHV(G)
         +Infinity
         sage: G = DiGraph(1)
-        sage: radius(G)
+        sage: radius_DHV(G)
         Traceback (most recent call last):
         ...
         TypeError: this method works for undirected graphs only

@@ -5486,6 +5486,10 @@ class Graph(GenericGraph):
         if weight_function is not None:
             by_weight = True
 
+        if by_weight and not weight_function:
+            def weight_function(e):
+                return 1 if e[2] is None else e[2]
+
         if not algorithm:
             algorithm = 'DHV'
 

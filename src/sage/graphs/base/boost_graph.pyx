@@ -1604,7 +1604,7 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
                 orth_set[j] = orth_set[j] ^ base
     return cycle_basis
 
-cpdef radius_DHV(g, weight_function=None):
+cpdef radius_DHV(g, weight_function=None, check_weight=True):
     r"""
     Return the radius of weighted graph `g`.
 
@@ -1619,7 +1619,11 @@ cpdef radius_DHV(g, weight_function=None):
 
     - ``weight_function`` -- function (default: ``None``); a function that
       associates a weight to each edge. If ``None`` (default), the weights of
-      ``g`` are used, if available, otherwise all edges have weight 1.
+      ``g`` are used, if ``g.weighted()==True``, otherwise all edges have
+      weight 1.
+
+    - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+      that the ``weight_function`` outputs a number for each edge
 
     EXAMPLES::
 
@@ -1658,6 +1662,9 @@ cpdef radius_DHV(g, weight_function=None):
     if n <= 1:
         return 0
 
+    if weight_function and check_weight:
+        g._check_weight_function(weight_function)
+
     cdef bint negative_weight = False
 
     if weight_function is not None:
@@ -1666,10 +1673,11 @@ cpdef radius_DHV(g, weight_function=None):
                 negative_weight = True
                 break
     else:
-        for _,_,w in g.edge_iterator():
-            if w and float(w) < 0:
-                negative_weight = True
-                break
+        if g.weighted():
+            for _,_,w in g.edge_iterator():
+                if w and float(w) < 0:
+                    negative_weight = True
+                    break
 
     # These variables are automatically deleted when the function terminates.
     cdef dict v_to_int = {vv: vi for vi, vv in enumerate(g)}

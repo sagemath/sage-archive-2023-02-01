@@ -1262,7 +1262,7 @@ cdef uint32_t diameter_iFUB(short_digraph g,
     # We finally return the computed diameter
     return LB
 
-cdef uint32_t diameter_dragan(short_digraph g):
+cdef uint32_t diameter_DHV(short_digraph g):
     r"""
     Return the diameter of unweighted graph `g`.
 
@@ -1340,7 +1340,7 @@ cdef uint32_t diameter_dragan(short_digraph g):
         # 2. Select x such that dist(u, x) + ecc[x] == ecc[u].
         # Since we don't know ecc[x], we select x with minimum eccentricity
         # lower bound.  If ecc[x] == ecc_lb[x], we are done. Otherwise, we
-        # update eccentricity bounds and repeat
+        # update eccentricity lower bounds and repeat
         while active:
             # Select v with minimum eccentricity lower bound
             tmp = UINT32_MAX
@@ -1560,7 +1560,7 @@ def diameter(G, algorithm=None, source=None):
         LB = diameter_lower_bound_multi_sweep(sd, isource)[0]
 
     elif algorithm == 'DHV':
-        LB = diameter_dragan(sd)
+        LB = diameter_DHV(sd)
 
     else: # algorithm == 'iFUB'
         LB = diameter_iFUB(sd, isource)

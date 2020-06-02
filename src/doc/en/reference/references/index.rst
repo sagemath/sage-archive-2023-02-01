@@ -1862,6 +1862,11 @@ REFERENCES:
 .. [DR2002] Joan Daemen, Vincent Rijmen. *The Design of
             Rijndael*. Springer-Verlag Berlin Heidelberg, 2002.
 
+.. [Dragan2018] Feodor Dragan, Michel Habib, Laurent Viennot.
+               *Revisiting Radius, Diameter, and all Eccentricity Computation
+               in Graphs through Certificates*.
+               http://arxiv.org/abs/1803.04660
+
 .. [Dro1987] Carl Droms. *Isomorphisms of graph groups*. Proc. of the
              Amer. Math. Soc. **100**
              (1987). No 3. http://educ.jmu.edu/~dromscg/vita/preprints/Isomorphisms.pdf

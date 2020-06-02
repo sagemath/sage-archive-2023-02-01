@@ -1623,7 +1623,7 @@ cpdef diameter_DHV(g, weight_function=None, check_weight=True):
       weight 1.
 
     - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
-        that the ``weight_function`` outputs a number for each edge
+      that the ``weight_function`` outputs a number for each edge
 
     EXAMPLES::
 

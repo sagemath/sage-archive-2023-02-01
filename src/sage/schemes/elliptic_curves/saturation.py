@@ -55,7 +55,37 @@ from sage.rings.all import ZZ
 from sage.arith.all import kronecker_symbol as kro
 from sage.structure.sage_object import SageObject
 
-def reduce(x,amodq):
+def reduce_mod_q(x,amodq):
+    r"""The reduction of ``x`` modulo the prime ideal defined by ``amodq``.
+
+    INPUT:
+
+    - ``x`` -- an element of a  number field `K`.
+
+    - ``amodq`` -- an element of `GF(q)` which is a root mod `q` of
+      the defining polynomial of `K`.  This defines a degree 1 prime
+      ideal `Q=(q,\alpha-a)` of `K=\QQ(\alpha)`, where `a \mod q = `
+      ``amodq``.
+
+    OUTPUT:
+
+    The image of ``x`` in the residue field of `K` at the prime `Q`.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.saturation import reduce_mod_q
+        sage: x = polygen(QQ)
+        sage: pol = x^3 -x^2 -3*x + 1
+        sage: K.<a> = NumberField(pol)
+        sage: [(q,[(amodq,reduce_mod_q(1-a+a^4,amodq))
+        ....:  for amodq in sorted(pol.roots(GF(q), multiplicities=False))])
+        ....: for q in primes(50,70)]
+        [(53, []),
+        (59, [(36, 28)]),
+        (61, [(40, 35)]),
+        (67, [(10, 8), (62, 28), (63, 60)])]
+
+    """
     Fq = amodq.parent()
     try:
         return x.lift().change_ring(Fq)(amodq)
@@ -90,6 +120,7 @@ class EllipticCurveSaturator(SageObject):
         """
         self._verbose = verbose
         self._curve = E
+        self._N = E.discriminant().norm()
         self._field = K = E.base_field()
         if K.absolute_degree() == 1:
             from sage.rings.all import QQ
@@ -97,10 +128,10 @@ class EllipticCurveSaturator(SageObject):
             self._Kpol = polygen(QQ)
         else:
             self._Kpol = K.defining_polynomial()
+        self._D = self._Kpol.discriminant()
         self._reductions = dict()
         self._lincombs = dict()
         self._torsion_gens = [t.element() for t in E.torsion_subgroup().gens()]
-        self._avoid = [E.discriminant().norm(), self._Kpol.discriminant()]
         self._reductions = dict()
         # This will hold a dictionary with keys (q,aq) with q prime
         # and aq a root of K's defining polynomial mod q, and values
@@ -108,19 +139,77 @@ class EllipticCurveSaturator(SageObject):
         # and gens are generators of that reduction.
 
     def add_reductions(self, q):
+        r"""Add reduction data at primes above q if not already there.
+
+        INPUT:
+
+        - ``q`` -- a prime number not dividing the defining polynomial
+          of self.__field.
+
+        OUTPUT:
+
+        Returns nothing, but updates self._reductions dictionary for
+        key ``q`` to a dict whose keys are the roots of the defining
+        polynomial mod ``q`` and values tuples (``nq``, ``Eq``) where
+        ``Eq`` is an elliptic curve over `GF(q)` and ``nq`` its
+        cardinality.  If ``q`` divides the conductor norm or order
+        discriminant nothing is added.
+
+        EXAMPLES:
+
+        Over `\QQ`::
+
+            sage: from sage.schemes.elliptic_curves.saturation import EllipticCurveSaturator
+            sage: E = EllipticCurve('11a1')
+            sage: saturator = EllipticCurveSaturator(E)
+            sage: saturator._reductions
+            {}
+            sage: saturator.add_reductions(19)
+            sage: saturator._reductions
+            {19: {0: (20,
+            Elliptic Curve defined by y^2 + y = x^3 + 18*x^2 + 9*x + 18 over Finite Field of size 19)}}
+
+        Over a number field::
+
+            sage: x = polygen(QQ);  K.<a> = NumberField(x^2 + 2)
+            sage: E = EllipticCurve(K, [0,1,0,a,a])
+            sage: from sage.schemes.elliptic_curves.saturation import EllipticCurveSaturator
+            sage: saturator = EllipticCurveSaturator(E)
+            sage: for q in primes(20):
+            ....:     saturator.add_reductions(q)
+            ....:
+            sage: saturator._reductions
+            {2: {},
+            3: {},
+            5: {},
+            7: {},
+            11: {3: (16,
+            Elliptic Curve defined by y^2 = x^3 + x^2 + 3*x + 3 over Finite Field of size 11),
+            8: (8,
+            Elliptic Curve defined by y^2 = x^3 + x^2 + 8*x + 8 over Finite Field of size 11)},
+            13: {},
+            17: {7: (20,
+            Elliptic Curve defined by y^2 = x^3 + x^2 + 7*x + 7 over Finite Field of size 17),
+            10: (18,
+            Elliptic Curve defined by y^2 = x^3 + x^2 + 10*x + 10 over Finite Field of size 17)},
+            19: {6: (16,
+            Elliptic Curve defined by y^2 = x^3 + x^2 + 6*x + 6 over Finite Field of size 19),
+            13: (12,
+            Elliptic Curve defined by y^2 = x^3 + x^2 + 13*x + 13 over Finite Field of size 19)}}
+        """
+        if q in self._reductions:
+            return
         self._reductions[q] = redmodq = dict()
+        if q.divides(self._N) or q.divides(self._D):
+            return
         from sage.schemes.elliptic_curves.all import EllipticCurve
-        for amodq in self._Kpol.roots(GF(q), multiplicities=False):
-            Eq = EllipticCurve([reduce(ai, amodq) for ai in self._curve.ainvs()])
-            # computing cardinality faster than computing abelian group
+        for amodq in sorted(self._Kpol.roots(GF(q), multiplicities=False)):
+            Eq = EllipticCurve([reduce_mod_q(ai, amodq) for ai in self._curve.ainvs()])
             nq = Eq.cardinality()
             redmodq[amodq] = (nq, Eq)
-            # if self._verbose:
-            #     print("Adding reduction mod ({},a-{}) with cardinality {}".format(q,amodq,nq))
 
     def full_p_saturation(self, Plist, p):
-        r"""
-        Full `p`-saturation of ``Plist``.
+        r"""Full `p`-saturation of ``Plist``.
 
         INPUT:
 
@@ -130,9 +219,10 @@ class EllipticCurveSaturator(SageObject):
 
         OUTPUT:
 
-        (``newPlist``, exponent) where ``newPlist`` has the same length as
-        ``Plist`` and spans the `p`-saturation of the span of ``Plist``,
-        which contains that span with index ``p**exponent``.
+        (``newPlist``, ``exponent``) where ``newPlist`` has the same
+        length as ``Plist`` and spans the `p`-saturation of the span
+        of ``Plist``, which contains that span with index
+        ``p**exponent``.
 
         EXAMPLES::
 
@@ -153,16 +243,18 @@ class EllipticCurveSaturator(SageObject):
             sage: saturator.full_p_saturation([P,Q,R],3)
             ([(i + 1 : -2*i - 1 : 1), (0 : 0 : 1), (-1 : 1 : 1)], 0)
 
-        An example where the points are not 7-saturated and we gain index
-        exponent 1.  Running this example with verbose=True shows that it
-        uses the code for when the reduction has p-rank 2 (which occurs
-        for the reduction modulo `(16-5i)`), which uses the Weil pairing::
+        An example where the points are not 7-saturated and we gain
+        index exponent 1.  Running this example with verbose=True
+        would show that it uses the code for when the reduction has
+        `p`-rank 2 (which occurs for the reduction modulo `(16-5i)`),
+        which uses the Weil pairing::
 
             sage: saturator.full_p_saturation([P,Q+3*R,Q-4*R],7)
             ([(i + 1 : -2*i - 1 : 1),
             (2869/676 : 154413/17576 : 1),
             (-7095/502681 : -366258864/356400829 : 1)],
             1)
+
         """
         if not Plist:
             return Plist, ZZ.zero()
@@ -210,8 +302,7 @@ class EllipticCurveSaturator(SageObject):
         return (Plist, exponent)
 
     def p_saturation(self, Plist, p, sieve=True):
-        r"""
-        Checks whether the list of points is `p`-saturated.
+        r"""Checks whether the list of points is `p`-saturated.
 
         INPUT:
 
@@ -220,12 +311,12 @@ class EllipticCurveSaturator(SageObject):
         - ``p`` (integer) - a prime number.
 
         - ``sieve`` (boolean) - if True, use a sieve (when there are at
-        least 2 points); otherwise test all combinations.
+          least 2 points); otherwise test all combinations.
 
         .. note::
 
-        The sieve is much more efficient when the points are saturated
-        and the number of points or the prime are large.
+            The sieve is much more efficient when the points are
+            saturated and the number of points or the prime are large.
 
         OUTPUT:
 
@@ -259,13 +350,13 @@ class EllipticCurveSaturator(SageObject):
             sage: saturator.p_saturation([P,Q,R],19)
             Using sieve method to saturate...
             E has 19-torsion over Finite Field of size 197, projecting points
-             --> [(184 : 27 : 1), (0 : 0 : 1), (196 : 1 : 1)]
-             --rank is now 1
+            --> [(15 : 168 : 1), (0 : 0 : 1), (196 : 1 : 1)]
+            --rank is now 1
             E has 19-torsion over Finite Field of size 197, projecting points
-             --> [(15 : 168 : 1), (0 : 0 : 1), (196 : 1 : 1)]
-             --rank is now 2
+            --> [(184 : 27 : 1), (0 : 0 : 1), (196 : 1 : 1)]
+            --rank is now 2
             E has 19-torsion over Finite Field of size 293, projecting points
-             --> [(156 : 275 : 1), (0 : 0 : 1), (292 : 1 : 1)]
+            --> [(139 : 16 : 1), (0 : 0 : 1), (292 : 1 : 1)]
              --rank is now 3
             Reached full rank: points were 19-saturated
             False
@@ -318,7 +409,7 @@ class EllipticCurveSaturator(SageObject):
             --starting full 131-saturation
             Using sieve method to saturate...
             E has 131-torsion over Finite Field of size 617011, projecting points
-            --> [(10 : 616973 : 1), (163472 : 610067 : 1)]
+            --> [(10 : 616973 : 1), (592083 : 192224 : 1)]
             --rank is now 1
             --rank is now 2
             Reached full rank: points were 131-saturated
@@ -327,6 +418,7 @@ class EllipticCurveSaturator(SageObject):
             ([(10 : -38 : 1), (15/49*a + 760/49 : 675/343*a - 884/343 : 1)],
             1,
             0.123378097374749)
+
         """
         verbose = self._verbose
         # This code does a lot of elliptic curve group structure
@@ -403,31 +495,27 @@ class EllipticCurveSaturator(SageObject):
         # requires q=617011. (In the split case the density is 1/(p-1)
         # and there is no simple test.)
 
-        avoid = self._avoid + [P[0].denominator_ideal().norm() for P in Plist]
+        avoid = [self._N, self._D] + [P[0].denominator_ideal().norm() for P in Plist]
         cm_test = E.has_rational_cm() and kro(E.cm_discriminant(), p)==-1
         for q in Primes():
             if any(q.divides(m) for m in avoid):
                 continue
             if cm_test and not p.divides(q-1):
                 continue
-            if not q in self._reductions:
-                self.add_reductions(q)
+            self.add_reductions(q) # does nothing if key q is already there
             for amodq in self._reductions[q]:
                 (nq, Eq) = self._reductions[q][amodq]
                 if not p.divides(nq):
                     continue
                 if verbose:
                     print("E has %s-torsion over %s, projecting points" % (p,GF(q)))
-                projPlist = [Eq([reduce(c, amodq) for c in pt]) for pt in Plist]
+                projPlist = [Eq([reduce_mod_q(c, amodq) for c in pt]) for pt in Plist]
                 if verbose:
                     print(" --> %s" % projPlist)
                 try:
                     vecs = p_projections(Eq, projPlist, p)
                 except ValueError:
-                    try:
-                        vecs = p_projections(Eq, projPlist, p, debug=True)
-                    except ValueError:
-                        vecs = []
+                    vecs = []
                 for v in vecs:
                     A = matrix(A.rows()+[v])
                     newrank = A.rank()

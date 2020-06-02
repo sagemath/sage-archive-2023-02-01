@@ -5438,13 +5438,12 @@ class Graph(GenericGraph):
 
         - ``algorithm`` -- string (default: ``'DHV'``).
 
-            - ``'DHV'`` - Radius computation is done using the algorithm
-              proposed in [Dragan2018]_. For more information see method
-              :func:`sage.graphs.distances_all_pairs.radius_DHV` and
-              :func:`sage.graphs.base.boost_graph.radius_DHV`.
+          - ``'DHV'`` - Radius computation is done using the algorithm proposed
+            in [Dragan2018]_. For more information see method
+            :func:`sage.graphs.distances_all_pairs.radius_DHV` and
+            :func:`sage.graphs.base.boost_graph.radius_DHV`.
 
-            - see method
-             :meth:`eccentricity` for the list of remaining algorithms
+          - see method :meth:`eccentricity` for the list of remaining algorithms
 
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not

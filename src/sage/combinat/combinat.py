@@ -1010,14 +1010,15 @@ def polygonal_number(s, n):
 
     INPUT:
 
-    - ``s`` -- integer; the size of the polygon. For example, `s = 3`
-      returns a 3-gonal (triangular) number. `s` must be greater than 1.
+    - ``s`` -- integer greater than 1; the number of sides of the polygon
 
-    - ``n`` -- integer; the index of the `s`-gonal number being returned.
+    - ``n`` -- integer; the index of the returned `s`-gonal number.
 
     OUTPUT: an integer
 
     EXAMPLES::
+
+    The triangular numbers::
 
         sage: [polygonal_number(3, n) for n in range(10)]
         [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
@@ -1025,16 +1026,34 @@ def polygonal_number(s, n):
         sage: [polygonal_number(3, n) for n in range(-10, 0)]
         [45, 36, 28, 21, 15, 10, 6, 3, 1, 0]
 
+    The square numbers::
+
         sage: [polygonal_number(4, n) for n in range(10)]
         [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
 
+    The pentagonal numbers::
+
+        sage: [polygonal_number(5, n) for n in range(10)]
+        [0, 1, 5, 12, 22, 35, 51, 70, 92, 117]
+
+    The hexagonal numbers::
+
+        sage: [polygonal_number(6, n) for n in range(10)]
+        [0, 1, 6, 15, 28, 45, 66, 91, 120, 153]
+
+    The input is converted into an integer::
+
         sage: polygonal_number(3.0, 2.0)
         3
+
+    A non-integer input returns an error::
 
         sage: polygonal_number(3.5, 1)
         Traceback (most recent call last):
         ...
         TypeError: Attempt to coerce non-integral RealNumber to Integer
+
+    `s` must be greater than 1::
 
         sage: polygonal_number(1, 4)
         Traceback (most recent call last):

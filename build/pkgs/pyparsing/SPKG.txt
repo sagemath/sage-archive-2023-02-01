@@ -17,9 +17,3 @@ Home page: http://pyparsing.wikispaces.com
 
 Python
 
-== Changelog ==
-
-=== pyparsing-2.0.1 (John H. Palmieri, 20 December 2013) ===
-
- * Trac #14993: initial release.
-

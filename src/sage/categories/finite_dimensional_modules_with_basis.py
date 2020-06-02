@@ -285,7 +285,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     order = range(self.dimension())
             return self._from_dict({order[i]: c for i,c in vector.iteritems()})
 
-        def echelon_form(self, elements, row_reduced=False, support_order=None):
+        def echelon_form(self, elements, row_reduced=False, order=None):
             r"""
             Return a basis in echelon form of the subspace spanned by
             a finite set of elements.
@@ -295,6 +295,8 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             - ``elements`` -- a list or finite iterable of elements of ``self``
             - ``row_reduced`` -- (default: ``False``) whether to compute the
               basis for the row reduced echelon form
+            - ``order`` -- (optional) either something that can
+              be converted into a tuple or a key function
 
             OUTPUT:
 
@@ -335,11 +337,10 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: C.echelon_form([x[0] - x[1], 2*x[1] - 2*x[2], x[0] - x[2]])
                 [x[0] - x[2], x[1] - x[2]]
             """
-            order = self.get_order()
-            if support_order is not None:
-                self.set_order(self._support_order(support_order))
+            if order is not None:
+                order = self._compute_support_order(order)
             from sage.matrix.constructor import matrix
-            mat = matrix(self.base_ring(), [g._vector_() for g in elements])
+            mat = matrix(self.base_ring(), [g._vector_(order=order) for g in elements])
             # Echelonizing a matrix over a field returned the rref
             if row_reduced and self.base_ring() not in Fields():
                 try:
@@ -348,9 +349,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     raise ValueError("unable to compute the row reduced echelon form")
             else:
                 mat.echelonize()
-            ret = [self.from_vector(vec) for vec in mat if vec]
-            if support_order is not None:
-                self.set_order(order)
+            ret = [self.from_vector(vec, order=order) for vec in mat if vec]
             return ret
 
     class ElementMethods:

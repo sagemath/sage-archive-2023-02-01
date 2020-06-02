@@ -1012,7 +1012,7 @@ def polygonal_number(s, n):
 
     - ``s`` -- integer greater than 1; the number of sides of the polygon
 
-    - ``n`` -- integer; the index of the returned `s`-gonal number.
+    - ``n`` -- integer; the index of the returned `s`-gonal number
 
     OUTPUT: an integer
 

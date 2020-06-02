@@ -1233,7 +1233,7 @@ class HypergeometricData(object):
         if q > 2 ** 31:
             raise ValueError("p^f cannot exceed 2^31")
 
-        m = array.array('i', [0]) * int(q - 1)
+        m = defaultdict(int)
         for b in beta:
             u = b * (q - 1)
             if u.is_integer(): m[u] += 1

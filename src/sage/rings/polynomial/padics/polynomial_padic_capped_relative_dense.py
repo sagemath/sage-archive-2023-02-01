@@ -1112,14 +1112,14 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         parent = PolynomialRing(K, name=self.parent().variable_name())
         return parent(q), parent(a[:db])
 
-    def gcd(self, right):
-        return self.xgcd(right)[0]
+    #def gcd(self, right):
+    #    raise NotImplementedError
 
     #def lcm(self, right):
     #    raise NotImplementedError
 
-    @coerce_binop
-    def xgcd(self, right):
+    #@coerce_binop
+    #def xgcd(self, right):
         """
         Extended gcd of ``self`` and ``other``.
 
@@ -1160,23 +1160,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             sage: h.xgcd(h*i)
             ((3 + O(3^2))*x + 1 + O(3), 1 + O(3), 0)
         """
-        from sage.rings.padics.generic_nodes import pAdicRingGeneric as pAdicRingGeneric
-        if isinstance(self.base_ring(), pAdicRingGeneric):
-            base_ring = self.base_ring()
-            fracfield = (base_ring.fraction_field())
-            sfield = self.change_ring(fracfield)
-            rfield = right.change_ring(fracfield)
-            xgcd = list(Polynomial_generic_cdv.xgcd(sfield,rfield))
-            lcm = base_ring(1)
-            for f in xgcd:
-                for i in f:
-                    lcm = (i.denominator()).lcm(lcm)
-            returnlst = []
-            for f in xgcd:
-                f *= lcm
-                returnlst.append(f.change_ring(base_ring))
-            return tuple(returnlst)
-        return Polynomial_generic_cdv.xgcd(self,right)
+        #return Polynomial_generic_cdv.xgcd(self,right)
 
     #def discriminant(self):
     #    raise NotImplementedError

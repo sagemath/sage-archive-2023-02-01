@@ -746,6 +746,27 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
         """
         return 1
 
+    def _xgcd_univariate_polynomial(self, other, *args, **kwards):
+        poly = args[0]
+        base_ring = poly.base_ring()
+        fracfield = (base_ring.fraction_field())
+        sfield = poly.change_ring(fracfield)
+        rfield = other.change_ring(fracfield)
+        from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_cdv as Polynomial_generic_cdv
+        xgcd = list(Polynomial_generic_cdv.xgcd(sfield,rfield))
+        lcm = base_ring(1)
+        for f in xgcd:
+            for i in f:
+                lcm = (i.denominator()).lcm(lcm)
+        returnlst = []
+        for f in xgcd:
+            f *= lcm
+            returnlst.append(f.change_ring(base_ring))
+        return tuple(returnlst)
+
+    def _gcd_univariate_polynomial(self, other, *args, **kwards):
+        return self._xgcd_univariate_polynomial(other, *args, **kwards)[0]
+
 def is_pAdicField(R):
     """
     Returns ``True`` if and only if ``R`` is a `p`-adic field.

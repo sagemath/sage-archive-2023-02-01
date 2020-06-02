@@ -1210,6 +1210,16 @@ class HypergeometricData(object):
             sage: H.padic_H_value(101, 2, 2)
             -1560629
 
+        Check issue from :trac:`29778`::
+
+            sage: H = Hyp(alpha_beta=([1/5,2/5,3/5,4/5,1/5,2/5,3/5,4/5], [1/4,3/4,1/7,2/7,3/7,4/7,5/7,6/7]))
+            sage: try:
+            ....:     print(H.padic_H_value(373, 4, 2))
+            ....: except ValueError:
+            ....:     print("Overflow detected")
+            ....:
+            Overflow detected
+
         REFERENCES:
 
         - [MagmaHGM]_
@@ -1221,7 +1231,7 @@ class HypergeometricData(object):
             return self._swap.padic_H_value(p, f, ~t, prec)
         q = p ** f
         if q > 2 ** 31:
-            return ValueError("p^f cannot exceed 2^31")
+            raise ValueError("p^f cannot exceed 2^31")
 
         m = array.array('i', [0]) * int(q - 1)
         for b in beta:
@@ -1493,6 +1503,16 @@ class HypergeometricData(object):
             sage: H.euler_factor(2, 11, cache_p=True)
             -T^4 + T^3 - T + 1
 
+        Check issue from :trac:`29778`::
+
+            sage: H = Hyp(alpha_beta=([1/5,2/5,3/5,4/5,1/5,2/5,3/5,4/5], [1/4,3/4,1/7,2/7,3/7,4/7,5/7,6/7]))
+            sage: try:
+            ....:     print(H.euler_factor(2, 373))
+            ....: except ValueError:
+            ....:     print("Overflow detected")
+            ....:
+            Overflow detected
+
         REFERENCES:
 
         - [Roberts2015]_
@@ -1513,6 +1533,9 @@ class HypergeometricData(object):
         # now p is good
         d = self.degree()
         bound = d // 2
+        if p ** bound > 2 ** 31:
+            raise ValueError("p^f cannot exceed 2^31")
+
         traces = [self.padic_H_value(p, i + 1, t, cache_p=cache_p)
                   for i in range(bound)]
 

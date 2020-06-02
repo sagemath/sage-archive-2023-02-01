@@ -5344,7 +5344,7 @@ class Graph(GenericGraph):
             by_weight = True
         elif by_weight:
             def weight_function(e):
-                return e[2]
+                return e[2] if e[2] else 1
 
         if algorithm is None:
             if dist_dict is not None:
@@ -5438,8 +5438,8 @@ class Graph(GenericGraph):
 
         - ``algorithm`` -- string (default: ``'DHV'``).
 
-            - ``'DHV'`` - Radius computation is done using algorithm proposed
-              in [Dragan2018]_. For more information see method
+            - ``'DHV'`` - Radius computation is done using the algorithm
+              proposed in [Dragan2018]_. For more information see method
               :func:`sage.graphs.distances_all_pairs.radius_DHV` and
               :func:`sage.graphs.base.boost_graph.radius_DHV`.
 

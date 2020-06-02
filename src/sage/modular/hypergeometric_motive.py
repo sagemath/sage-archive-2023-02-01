@@ -61,8 +61,6 @@ REFERENCES:
 
 from collections import defaultdict
 from itertools import combinations
-import array
-
 from sage.arith.misc import divisors, gcd, euler_phi, moebius, is_prime
 from sage.arith.misc import gauss_sum, kronecker_symbol
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
@@ -1098,7 +1096,8 @@ class HypergeometricData(object):
         """
         try:
             prec1, gtab = self._gauss_table[p, f]
-            if prec1 < prec: raise KeyError
+            if prec1 < prec:
+                raise KeyError
         except KeyError:
             use_longs = (p ** prec < 2 ** 31)
             gtab = gauss_table(p, f, prec, use_longs)
@@ -1217,7 +1216,6 @@ class HypergeometricData(object):
             ....:     print(H.padic_H_value(373, 4, 2))
             ....: except ValueError:
             ....:     print("Overflow detected")
-            ....:
             Overflow detected
 
         REFERENCES:
@@ -1236,7 +1234,8 @@ class HypergeometricData(object):
         m = defaultdict(int)
         for b in beta:
             u = b * (q - 1)
-            if u.is_integer(): m[u] += 1
+            if u.is_integer():
+                m[u] += 1
         M = self.M_value()
         D = -min(self.zigzag(x, flip_beta=True) for x in alpha + beta)
         # also: D = (self.weight() + 1 - m[0]) // 2

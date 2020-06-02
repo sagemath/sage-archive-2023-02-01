@@ -747,13 +747,45 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
         return 1
 
     def _xgcd_univariate_polynomial(self, other, *args, **kwards):
+        """
+        Extended gcd for univariate polynomial rings over self
+
+        EXAMPLES::
+
+            sage: R.<x> = Zp(3,3)[]
+            sage: f = x + 1
+            sage: f.xgcd(f^2)
+            ((1 + O(3^3))*x + 1 + O(3^3), 1 + O(3^3), 0)
+
+        We check that :trac:`13439` has been fixed::
+
+            sage: R.<x> = Zp(3,3)[]
+            sage: f = 3*x + 7
+            sage: g = 5*x + 9
+            sage: f.xgcd(f*g)
+            ((3 + O(3^4))*x + 1 + 2*3 + O(3^3), 0, 1 + O(3^3))
+
+            sage: R.<x> = Zp(3)[]
+            sage: f = 357555295953*x + 257392844
+            sage: g = 225227399*x - 511940255230575
+            sage: f.xgcd(f*g)
+            ((3^9 + O(3^29))*x + 2 + 2*3 + 3^2 + 2*3^5 + 3^6 + 3^7 + 3^8 + 3^10 + 3^11 + 2*3^13 + 3^14 + 3^16 + 2*3^19 + O(3^20), 0, 1 + 2*3^2 + 3^4 + 2*3^5 + 3^6 + 3^7 + 2*3^8 + 2*3^10 + 2*3^12 + 3^13 + 3^14 + 3^15 + 2*3^17 + 3^18 + O(3^20))
+
+        We check low precision computations::
+
+            sage: R.<x> = Zp(3,1)[]
+            sage: h = 3*x + 7
+            sage: i = 4*x + 9
+            sage: h.xgcd(h*i)
+            ((3 + O(3^2))*x + 1 + O(3), 1 + O(3), 0)
+        """
         poly = args[0]
         base_ring = poly.base_ring()
-        fracfield = (base_ring.fraction_field())
-        sfield = poly.change_ring(fracfield)
-        rfield = other.change_ring(fracfield)
-        from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_cdv as Polynomial_generic_cdv
-        xgcd = list(Polynomial_generic_cdv.xgcd(sfield,rfield))
+        #low precision computation done over the ring fails, see trac 29777
+        fracfield = base_ring.fraction_field()
+        pfield = poly.change_ring(fracfield)
+        ofield = other.change_ring(fracfield)
+        xgcd = fracfield._xgcd_univariate_polynomial(pfield,ofield)
         lcm = base_ring(1)
         for f in xgcd:
             for i in f:
@@ -765,6 +797,18 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
         return tuple(returnlst)
 
     def _gcd_univariate_polynomial(self, other, *args, **kwards):
+        """
+        gcd for univariate polynomial rings over self
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(27)
+            sage: K.<x> = R[]
+            sage: h = 3*x + a
+            sage: i = 4*x + 2
+            sage: h.gcd(h*i)
+            (3 + O(3^21))*x + a + O(3^20)
+        """
         return self._xgcd_univariate_polynomial(other, *args, **kwards)[0]
 
 def is_pAdicField(R):

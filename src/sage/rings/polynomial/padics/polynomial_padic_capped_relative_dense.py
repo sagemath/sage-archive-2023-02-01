@@ -1118,50 +1118,6 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
     #def lcm(self, right):
     #    raise NotImplementedError
 
-    #@coerce_binop
-    #def xgcd(self, right):
-        """
-        Extended gcd of ``self`` and ``other``.
-
-        INPUT:
-
-        - ``other`` -- an element with the same parent as ``self``
-
-        OUTPUT:
-
-        Polynomials ``g``, ``u``, and ``v`` such that ``g = u*self + v*other``
-
-        EXAMPLES::
-
-            sage: R.<x> = Qp(3,3)[]
-            sage: f = x + 1
-            sage: f.xgcd(f^2)
-            ((1 + O(3^3))*x + 1 + O(3^3), 1 + O(3^3), 0)
-
-        We check that :trac:`13439`: has been fixed:
-
-            sage: R.<x> = Qp(3,3)[]
-            sage: f = 3*x + 7
-            sage: g = 5*x + 9
-            sage: f.xgcd(f*g)
-            ((1 + O(3^3))*x + 3^-1 + 2 + O(3^2), 3^-1 + O(3^2), 0)
-
-            sage: R.<x> = Qp(3)[]
-            sage: f = 490473657*x + 257392844/729
-            sage: g = 225227399/59049*x - 8669753175
-            sage: f.xgcd(f*g)
-            ((1 + O(3^20))*x + 2*3^-9 + 2*3^-8 + 3^-7 + 2*3^-4 + 3^-3 + 3^-2 + 3^-1 + 3 + 3^2 + 2*3^4 + 3^5 + 3^7 + 2*3^10 + O(3^11), 3^-3 + 2*3^-1 + 3 + 2*3^2 + 3^3 + 3^4 + 2*3^5 + 2*3^7 + 2*3^9 + 3^10 + 3^11 + 3^12 + 2*3^14 + 3^15 + O(3^17),0)
-
-        We check low precision examples over `Zp`:
-
-            sage: R.<x> = Zp(3,1)[]
-            sage: h = 3*x + 7
-            sage: i = 4*x + 9
-            sage: h.xgcd(h*i)
-            ((3 + O(3^2))*x + 1 + O(3), 1 + O(3), 0)
-        """
-        #return Polynomial_generic_cdv.xgcd(self,right)
-
     #def discriminant(self):
     #    raise NotImplementedError
 

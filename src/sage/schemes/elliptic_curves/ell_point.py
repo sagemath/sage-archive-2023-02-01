@@ -2415,8 +2415,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         return E.reduction(p)(P)
 
     def height(self, precision=None, normalised=True, algorithm='pari'):
-        r"""
-        Return the Néron-Tate canonical height of the point.
+        r"""Return the Néron-Tate canonical height of the point.
 
         INPUT:
 
@@ -2445,7 +2444,12 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         is the one appropriate for the BSD conjecture. This is
         consistent with [Cre1997]_ and double that of [Sil2009]_.
 
-        See :wikipedia:`Néron-Tate height`
+        See :wikipedia:`Néron-Tate height`.
+
+        .. NOTE::
+
+           The correct height to use for the regulator in the BSD
+           formula is the non-normalised height.
 
         EXAMPLES::
 
@@ -2636,6 +2640,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P2 = F([2,5])
             sage: P2.height()
             1.06248137652528
+
         """
         if self.has_finite_order():
             return rings.QQ(0)

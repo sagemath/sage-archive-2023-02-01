@@ -521,9 +521,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         else:
             return L
 
-    def height_pairing_matrix(self, points=None, precision=None):
-        r"""
-        Return the height pairing matrix of the given points.
+    def height_pairing_matrix(self, points=None, precision=None, normalised=True):
+        r"""Return the height pairing matrix of the given points.
 
         INPUT:
 
@@ -577,6 +576,17 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [-0.870059380421505  0.424585837470709]
             sage: E.regulator_of_points([P,Q])
             0.164101403936070
+
+        When the parameter ``normalised`` is set to ``False``, each
+        height is multiplied by the degree `d` of the base field, and
+        the regulator of `r` points is multiplied by `d^r`::
+
+            sage: E.height_pairing_matrix([P,Q], normalised=False)
+            [ 4.33883868987537 -1.74011876084301]
+            [-1.74011876084301 0.849171674941418]
+            sage: E.regulator_of_points([P,Q], normalised=False)
+            0.656405615744281
+
         """
         if points is None:
             points = self.gens()
@@ -593,16 +603,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
         M = MatrixSpace(RR, r)
         mat = M()
         for j in range(r):
-            mat[j, j] = points[j].height(precision=precision)
+            mat[j, j] = points[j].height(precision=precision, normalised=normalised)
         for j in range(r):
             for k in range(j + 1, r):
-                mat[j, k] = ((points[j] + points[k]).height(precision=precision) - mat[j, j] - mat[k, k]) / 2
+                mat[j, k] = ((points[j] + points[k]).height(precision=precision, normalised=normalised) - mat[j, j] - mat[k, k]) / 2
                 mat[k, j] = mat[j, k]
         return mat
 
-    def regulator_of_points(self, points=[], precision=None):
-        """
-        Return the regulator of the given points on this curve.
+    def regulator_of_points(self, points=[], precision=None, normalised=True):
+        """Return the regulator of the given points on this curve.
 
         INPUT:
 
@@ -610,6 +619,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         - ``precision`` - int or None (default: None): the precision
           in bits of the result (default real precision if None)
+
+        - ``normalised`` (bool, default ``True``) -- if ``True``, use
+          normalised heights which are independent on base change.
+          Otherwise use the non-normalised Néron-Tate height, as
+          required for the regulator in the BSD conjecture.
 
         EXAMPLES::
 
@@ -655,6 +669,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.regulator_of_points([P])
             0.476223106404866
 
+        When the parameter ``normalised`` is set to ``False``, each
+        height is multiplied by the degree `d` of the base field, and
+        the regulator of `r` points is multiplied by `d^r`::
+
+            sage: P.height(normalised=False)
+            0.952446212809731
+            sage: E.regulator_of_points([P], normalised=False)
+            0.952446212809731
+
         ::
 
             sage: E = EllipticCurve('11a1')
@@ -698,7 +721,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         if points is None:
             points = []
-        mat = self.height_pairing_matrix(points=points, precision=precision)
+        mat = self.height_pairing_matrix(points=points, precision=precision, normalised=normalised)
         return mat.det(algorithm="hessenberg")
 
     def is_local_integral_model(self, *P):

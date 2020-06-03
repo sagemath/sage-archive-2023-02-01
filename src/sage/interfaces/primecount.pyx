@@ -1,3 +1,5 @@
+# sage_setup: package = sage-primecount
+
 r"""
 Interface to the primecount library
 """

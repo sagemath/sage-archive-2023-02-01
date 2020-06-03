@@ -1,3 +1,5 @@
+# distutils: language = c++
+# sage_setup: package = sage-mcqd
 
 from sage.ext.memory_allocator cimport MemoryAllocator
 

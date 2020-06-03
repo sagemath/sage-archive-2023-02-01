@@ -517,9 +517,7 @@ ext_modules = [
 
     OptionalExtension('sage.libs.coxeter3.coxeter',
               sources = ['sage/libs/coxeter3/coxeter.pyx'],
-              include_dirs = [os.path.join(SAGE_INC, 'coxeter')],
-              language="c++",
-              libraries = ['coxeter3'],
+#              include_dirs = [os.path.join(SAGE_INC, 'coxeter')],
               package = 'coxeter3'),
 
     Extension('sage.libs.ecl',

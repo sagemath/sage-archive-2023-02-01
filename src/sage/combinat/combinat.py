@@ -1016,7 +1016,7 @@ def polygonal_number(s, n):
 
     OUTPUT: an integer
 
-    EXAMPLES::
+    EXAMPLES:
 
     The triangular numbers::
 

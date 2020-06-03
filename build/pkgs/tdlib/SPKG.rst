@@ -23,8 +23,8 @@ Lukas Larisch (larisch@informatik.uni-frankfurt.de)
 Upstream Contact
 ----------------
 
-Lukas Larisch (larisch@informatik.uni-frankfurt.de) git-repo:
-git://pholia.tdi.cs.uni-frankfurt.de/git/tdlib
+- Lukas Larisch (larisch@informatik.uni-frankfurt.de)
+- git-repo: git://pholia.tdi.cs.uni-frankfurt.de/git/tdlib
 
 Dependencies
 ------------

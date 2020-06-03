@@ -36,5 +36,4 @@ Special Update/Build Instructions
 ---------------------------------
 
 -  The spkg currently disables features that require packages SCIP and
-
    CoCoA, for which we don't have packages (yet).

@@ -35,29 +35,27 @@ Special Update/Build Instructions
 ---------------------------------
 
 -  There is some garbage in the upstream sources which should be
-   removed:
+   removed::
 
-   src/include/.Lexplicit_formula.h.swp
-   src/include/.Lvalue.h.swp
-   src/include/._.DS_Store
-   src/include/.DS_Store
-   src/include/Lexplicit_formula.h.swap.crap
-   src/include/Lvalue.h.bak
-   src/src/Makefile.old
-   src/src/.Makefile.old.swp
-   src/src/._.DS_Store
-   src/src/.DS_Store
-   src/src/.Lcommandline.ggo.swp
-   src/src/libLfunction.a
+     src/include/.Lexplicit_formula.h.swp
+     src/include/.Lvalue.h.swp
+     src/include/._.DS_Store
+     src/include/.DS_Store
+     src/include/Lexplicit_formula.h.swap.crap
+     src/include/Lvalue.h.bak
+     src/src/Makefile.old
+     src/src/.Makefile.old.swp
+     src/src/._.DS_Store
+     src/src/.DS_Store
+     src/src/.Lcommandline.ggo.swp
+     src/src/libLfunction.a
 
 -  We (and apparently also upstream) currently don't build Lcalc's tests
-
    (see Makefile), hence there's no spkg-check.
    This might change in newer upstream versions.
 
 -  The original Makefile uses $(CC) to compile C++ (also using
    $(CCFLAGS)),
-
    which it defines to 'g++', and hardcodes 'g++' when linking the
    shared
    library. (It should use $(CXX) instead, which might \*default\* to
@@ -80,22 +78,19 @@ Patches
    options, locations of headers and libraries etc.).
    Besides that, we
 
--  put CXXFLAGS into Lcalc's "CCFLAGS" used for compiling C++,
--  remove some stuff involving LDFLAGS1 and LDFLAGS2, setting just
-   LDFLAGS,
--  use $(MAKE) instead of 'make' in the crude build receipts,
--  use CXXFLAG64 when linking the shared library,
--  now use $(CXX) for compiling and linking C++, which \*defaults\* to
-   'g++',
-
-   but can be overridden by setting the environment variable of the same
-   name. ($(CC) now \*defaults\* to 'gcc', although currently not really
-   used as far as I can see.)
-
--  $(INSTALL_DIR) can now be overridden by simply setting the
-   environment
-
-   variable of the same name.
+   -  put CXXFLAGS into Lcalc's "CCFLAGS" used for compiling C++,
+   -  remove some stuff involving LDFLAGS1 and LDFLAGS2, setting just
+      LDFLAGS,
+   -  use $(MAKE) instead of 'make' in the crude build receipts,
+   -  use CXXFLAG64 when linking the shared library,
+   -  now use $(CXX) for compiling and linking C++, which \*defaults\* to
+      'g++',
+      but can be overridden by setting the environment variable of the same
+      name. ($(CC) now \*defaults\* to 'gcc', although currently not really
+      used as far as I can see.)
+   -  $(INSTALL_DIR) can now be overridden by simply setting the
+      environment
+      variable of the same name.
 
 -  Lcommon.h.patch:
 
@@ -124,5 +119,4 @@ Patches
    This should get reported upstream.
 
 -  lcalc-1.23_default_parameters_1.patch: Make Lcalc (1.23) build with
-
    GCC 4.9

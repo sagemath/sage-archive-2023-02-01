@@ -40,7 +40,6 @@ See spkg-src to create the source tarball.
 Other notes:
 
 -  If the environment variable SAGE_DEBUG is set to "yes", then
-
    omalloc will be replaced by xalloc. The resulting Singular executable
    and libsingular library will be slower than with omalloc, but allow
    for easier debugging of memory corruptions.

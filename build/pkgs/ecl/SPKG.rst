@@ -45,31 +45,26 @@ Special Update/Build Instructions
 ---------------------------------
 
 -  As autotools need to be run after most of the patches are applied,
-
    we do all the patching in spkg-source.
 
 -  Deleting the following directories saves space: without doing
-
    this, the tarball can grow from under 3 megabytes to more than 7
    megabytes. Deleting these files is done automatically by the
-   \`spkg-src\` script.
+   ``spkg-src`` script.
 
 -  The directory msvc
 -  The directory src/gc-unstable
 -  The directory src/gmp
 -  The directory src/libffi
 -  Note: for the time being, ECL is built single threaded library as it
-
    seems to interact badly with the pexpect interface and Sage's signal
    handling when built multithreaded.
 
 -  Do NOT quote SAGE_LOCAL when setting CPPFLAGS and/or LDFLAGS,
-
    in spkg-install as this caused the build to break. See
    http://trac.sagemath.org/sage_trac/ticket/10187#comment:117
 
 -  TODO: Add the ECL test suite, and an spkg-check file to run it.
 -  TODO: Make ECL use Sage's Boehm GC on MacOS X as well (but perhaps
-
    put some changes from ECL's into Sage's Boehm GC), then remove
    the src/src/gc directory, too.

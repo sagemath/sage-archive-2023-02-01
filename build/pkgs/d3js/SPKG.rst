@@ -17,8 +17,8 @@ BSD 3-Clause License
 Upstream Contact
 ----------------
 
-Author: Mike Bostock (http://bost.ocks.org/mike/) Home page:
-http://d3js.org/
+- Author: Mike Bostock (http://bost.ocks.org/mike/)
+- Home page: http://d3js.org/
 
 Dependencies
 ------------

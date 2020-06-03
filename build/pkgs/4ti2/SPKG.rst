@@ -16,7 +16,8 @@ License
 Upstream Contact
 ----------------
 
-Raymond Hemmecke, TU Munich, Germany Matthias Köppe, UC Davis, CA, USA
+- Raymond Hemmecke, TU Munich, Germany
+- Matthias Köppe, UC Davis, CA, USA
 
 Dependencies
 ------------

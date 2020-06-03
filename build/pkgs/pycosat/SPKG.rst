@@ -20,8 +20,8 @@ MIT
 Upstream Contact
 ----------------
 
-PicoSAT: http://fmv.jku.at/picosat/ pycosat:
-https://github.com/ContinuumIO/pycosat
+- PicoSAT: http://fmv.jku.at/picosat/
+- pycosat: https://github.com/ContinuumIO/pycosat
 
 Dependencies
 ------------

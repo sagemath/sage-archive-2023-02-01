@@ -32,7 +32,7 @@ Notes
 
 A brief description of each package follows:
 
-cohomolo - The cohomolo package is a GAP interface to some \`C' programs
+cohomolo - The cohomolo package is a GAP interface to some ``C`` programs
 for computing Schur multipliers and covering groups of finite groups and
 first and second cohomology groups of finite groups acting on finite
 modules. (Author: Max Horn, Markus Pfeiffer)

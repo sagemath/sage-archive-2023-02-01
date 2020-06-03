@@ -7,7 +7,6 @@ Description
 Includes two databases:
 
 -  A small subset of John Cremona's database of elliptic curves up
-
    to conductor 10000.
 
 -  William Stein's database of interesting curves

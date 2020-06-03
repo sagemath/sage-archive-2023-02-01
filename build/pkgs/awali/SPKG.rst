@@ -9,7 +9,7 @@ finite state machines. Here finite state machines is to be understood in
 the broadest possible sense: finite automata with output — often called
 transducers then — or even more generally finite automata with
 multiplicity, that is, automata that not only accept, or recognize,
-sequences of symbols but compute for every such sequence a \`value' that
+sequences of symbols but compute for every such sequence a 'value' that
 is associated with it and which can be taken in any semiring. Hence the
 variety of situations that can thus be modellized.
 

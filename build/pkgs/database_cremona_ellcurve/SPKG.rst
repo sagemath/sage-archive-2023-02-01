@@ -41,11 +41,11 @@ Get an up-to-date copy of the git repository ecdata from
 https://github.com/JohnCremona/ecdata.
 
 If the cremona database has already been installed, remove
-\`SAGE_DATA/cremona/cremona.db`. Then run
+``SAGE_DATA/cremona/cremona.db``. Then run
 
 The build script expects to find the files in subfolders allcurves,
 allgens, degphi and allbsd of the ecdata folder. It extracts them and
 builds the new cremona.db file from the contents.
 
-Finally, copy \`SAGE_DATA/cremona/cremona.db\` to the src directory of
+Finally, copy ``SAGE_DATA/cremona/cremona.db`` to the src directory of
 the spkg.

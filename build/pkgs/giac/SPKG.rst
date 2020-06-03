@@ -15,7 +15,7 @@ Description
 
    $SAGE_LOCAL/share/giac/doc/en/cascmd_en/index.html
 
--  -Author's website with debian, ubuntu, macosx, windows package:
+-  Author's website with debian, ubuntu, macosx, windows package:
 
    http://www-fourier.ujf-grenoble.fr/~parisse/giac.html
 

@@ -17,8 +17,8 @@ is approved by the OSI and FSF as GPL-compatible.
 Upstream Contact
 ----------------
 
-http://pexpect.readthedocs.org/en/stable/
-https://github.com/pexpect/pexpect
+- http://pexpect.readthedocs.org/en/stable/
+- https://github.com/pexpect/pexpect
 
 Dependencies
 ------------

@@ -69,6 +69,8 @@ Information on missing Polymake prerequisites after installing polymake::
 Debugging polymake install problems
 -----------------------------------
 
-#. apt-get install libdevel-trace-perl
+::
 
-$ cd src $ perl -d:Trace support/configure.pl
+  # apt-get install libdevel-trace-perl
+  $ cd src
+  $ perl -d:Trace support/configure.pl

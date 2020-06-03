@@ -102,8 +102,8 @@ Note that internet access is required for these tests, as it is
 attempted to download cohomology rings from a public data base in the
 web.
 
-The script \``spkg-check`\` calls \`sage -t --force_lib\` on the files
-in \`pGroupCohomology`.
+The script ``spkg-check`` calls ``sage -t --force_lib`` on the files
+in ``pGroupCohomology``.
 
 Documentation
 -------------

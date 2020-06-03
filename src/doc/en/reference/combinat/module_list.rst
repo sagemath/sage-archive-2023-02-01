@@ -171,6 +171,8 @@ Comprehensive Module list
     sage/combinat/output
     sage/combinat/parallelogram_polyomino
     sage/combinat/parking_functions
+    sage/combinat/path_tableaux/catalan
+    sage/combinat/path_tableaux/path_tableau
     sage/combinat/plane_partition
     sage/combinat/partition
     sage/combinat/partition_algebra

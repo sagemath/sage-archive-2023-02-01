@@ -5354,6 +5354,10 @@ REFERENCES:
 .. [Wer1998] Annette Werner, Local heights on abelian varieties and
              rigid analytic uniformization, Doc. Math. 3 (1998), 301-319.
 
+.. [Wes2017] Bruce Westbury.
+             *Coboundary categories and local rules*,
+             The Electronic Journal of Combinatorics, *25* (2018)
+
 .. [WFYTP2008] \D. Watanable, S. Furuya, H. Yoshida, K. Takaragi, and B. Preneel,
                *A new keystream generator MUGI*; in
                FSE, (2002), pp. 179-194.

@@ -122,6 +122,7 @@ from sage.rings.qqbar import (number_field_elements_from_algebraics,
                               QQbar)
 from sage.rings.rational_field import is_RationalField
 from sage.rings.integer import Integer
+
 from sage.schemes.projective.projective_space import ProjectiveSpace, is_ProjectiveSpace
 
 from sage.schemes.projective.projective_subscheme import (AlgebraicScheme_subscheme_projective,
@@ -1557,6 +1558,32 @@ class ProjectiveCurve_field(ProjectiveCurve, AlgebraicScheme_subscheme_projectiv
         I = singular.simplify(self.defining_ideal(), 10)
         L = singular.is_ci(I).sage()
         return len(self.ambient_space().gens()) - len(I.sage().gens()) == L[-1]
+
+    def tangent_line(self, p):
+        """
+        Return the tangent line at the point ``p``.
+
+        INPUT:
+
+        - ``p`` -- a rational point of the curve
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([x*y - z*w, x^2 - y*w, y^2*w - x*z*w], P)
+            sage: p = C(1,1,1,1)
+            sage: C.tangent_line(p)
+            Projective Curve over Rational Field defined by -2*x + y + w, -3*x + z + 2*w
+
+        """
+        for i in range(len(p)):
+            if p[i]:
+                C = self.affine_patch(i)
+                q = p.dehomogenize(i)
+                T = C.tangent_line(q)
+                return T.projective_closure(i, self.ambient_space())
+
+        raise TypeError("{} does not define a point in the projective space".format(p))
 
 
 class ProjectivePlaneCurve_field(ProjectivePlaneCurve, ProjectiveCurve_field):

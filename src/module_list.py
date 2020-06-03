@@ -470,16 +470,13 @@ ext_modules = [
              package = 'fes'),
 
     Extension('sage.libs.flint.flint',
-              sources = ["sage/libs/flint/flint.pyx"],
-              extra_compile_args = ["-D_XPG6"]),
+              sources = ["sage/libs/flint/flint.pyx"]),
 
     Extension('sage.libs.flint.fmpz_poly',
-              sources = ["sage/libs/flint/fmpz_poly.pyx"],
-              extra_compile_args = ["-D_XPG6"]),
+              sources = ["sage/libs/flint/fmpz_poly.pyx"]),
 
     Extension('sage.libs.flint.arith',
-              sources = ["sage/libs/flint/arith.pyx"],
-              extra_compile_args = ["-D_XPG6"]),
+              sources = ["sage/libs/flint/arith.pyx"]),
 
     Extension("sage.libs.glpk.error",
              ["sage/libs/glpk/error.pyx"]),
@@ -488,13 +485,10 @@ ext_modules = [
               sources = ['sage/libs/gmp/pylong.pyx']),
 
     Extension('sage.libs.braiding',
-                      sources = ["sage/libs/braiding.pyx"],
-                      libraries = ["braiding"],
-                      language = 'c++'),
+                      sources = ["sage/libs/braiding.pyx"]),
 
     Extension('sage.libs.homfly',
-                      sources = ["sage/libs/homfly.pyx"],
-                      libraries = ["homfly", "gc"]),
+                      sources = ["sage/libs/homfly.pyx"]),
 
     OptionalExtension('sage.libs.sirocco',
                       sources = ["sage/libs/sirocco.pyx"],
@@ -505,10 +499,7 @@ ext_modules = [
     Extension('*', ['sage/libs/linbox/*.pyx']),
 
     Extension('sage.libs.lcalc.lcalc_Lfunction',
-              sources = ['sage/libs/lcalc/lcalc_Lfunction.pyx'],
-              libraries = ['m', 'ntl', 'Lfunction'],
-              extra_compile_args=["-O3", "-ffast-math"],
-              language = 'c++'),
+              sources = ['sage/libs/lcalc/lcalc_Lfunction.pyx']),
 
     Extension('sage.libs.libecm',
               sources = ['sage/libs/libecm.pyx'],
@@ -532,18 +523,15 @@ ext_modules = [
     Extension('*', ['sage/libs/pynac/*.pyx']),
 
     Extension('sage.libs.ratpoints',
-              sources = ["sage/libs/ratpoints.pyx"],
-              libraries = ["ratpoints"]),
+              sources = ["sage/libs/ratpoints.pyx"]),
 
     Extension('sage.libs.readline',
-              sources = ['sage/libs/readline.pyx'],
-              libraries = ['readline']),
+              sources = ['sage/libs/readline.pyx']),
 
     Extension('*', sources = ['sage/libs/singular/*.pyx']),
 
     Extension('sage.libs.symmetrica.symmetrica',
-              sources = ["sage/libs/symmetrica/symmetrica.pyx"],
-              libraries = ["symmetrica"]),
+              sources = ["sage/libs/symmetrica/symmetrica.pyx"]),
 
     Extension('sage.libs.mpmath.utils',
               sources = ["sage/libs/mpmath/utils.pyx"]),

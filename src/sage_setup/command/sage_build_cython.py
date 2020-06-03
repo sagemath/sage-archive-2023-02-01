@@ -294,7 +294,7 @@ class sage_build_cython(Command):
                 key=lambda lib: library_order.get(lib, 0))
 
         # Dependencies: add setup.py and lib_headers
-        depends = kwds.get('depends', []) + [__file__]
+        depends = kwds.get('depends', []) + [self.distribution.script_name]
         for lib, headers in lib_headers.items():
             if lib in libs:
                 depends += headers

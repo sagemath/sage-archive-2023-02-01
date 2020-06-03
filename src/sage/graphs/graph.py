@@ -5344,7 +5344,7 @@ class Graph(GenericGraph):
             by_weight = True
         elif by_weight:
             def weight_function(e):
-                return e[2] if e[2] else 1
+                return 1 if e[2] is None else e[2]
 
         if algorithm is None:
             if dist_dict is not None:

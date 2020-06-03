@@ -383,8 +383,7 @@ ext_modules = [
               sources = ['sage/graphs/base/static_dense_graph.pyx']),
 
     Extension('sage.graphs.base.static_sparse_graph',
-              sources = ['sage/graphs/base/static_sparse_graph.pyx'],
-              language = 'c++'),
+              sources = ['sage/graphs/base/static_sparse_graph.pyx']),
 
     Extension('sage.graphs.base.static_sparse_backend',
               sources = ['sage/graphs/base/static_sparse_backend.pyx']),
@@ -441,8 +440,7 @@ ext_modules = [
               sources = ['sage/graphs/spanning_tree.pyx']),
 
     Extension('sage.graphs.path_enumeration',
-              sources = ['sage/graphs/path_enumeration.pyx'],
-              language = 'c++'),
+              sources = ['sage/graphs/path_enumeration.pyx']),
 
     Extension('sage.graphs.connectivity',
           sources = ['sage/graphs/connectivity.pyx']),
@@ -457,8 +455,7 @@ ext_modules = [
               sources = ['sage/graphs/hyperbolicity.pyx']),
 
     Extension('sage.graphs.base.c_graph',
-              sources = ['sage/graphs/base/c_graph.pyx'],
-              language = 'c++'),
+              sources = ['sage/graphs/base/c_graph.pyx']),
 
     Extension('sage.graphs.base.sparse_graph',
               sources = ['sage/graphs/base/sparse_graph.pyx']),

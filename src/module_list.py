@@ -518,7 +518,7 @@ ext_modules = [
     Extension('*', ['sage/libs/pari/*.pyx']),
 
     Extension('sage.libs.ppl',
-              sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc']),
+              sources = ['sage/libs/ppl.pyx']),
 
     Extension('*', ['sage/libs/pynac/*.pyx']),
 
@@ -1188,10 +1188,7 @@ ext_modules = [
               sources = ['sage/rings/polynomial/polynomial_element.pyx']),
 
     Extension('sage.rings.polynomial.polynomial_gf2x',
-              sources = ['sage/rings/polynomial/polynomial_gf2x.pyx'],
-              libraries = ['gmp', 'ntl'],
-              extra_compile_args = m4ri_extra_compile_args,
-              language = 'c++'),
+              sources = ['sage/rings/polynomial/polynomial_gf2x.pyx']),
 
     Extension('sage.rings.polynomial.polynomial_zz_pex',
               sources = ['sage/rings/polynomial/polynomial_zz_pex.pyx'],
@@ -1228,11 +1225,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.pbori',
               sources = ['sage/rings/polynomial/pbori.pyx'],
-              libraries=['brial', 'brial_groebner'] + m4ri_libs + png_libs,
-              library_dirs = m4ri_library_dirs + png_library_dirs,
-              include_dirs = m4ri_include_dirs + png_include_dirs,
-              depends = [SAGE_INC + "/polybori/" + hd + ".h" for hd in ["polybori", "config"]],
-              extra_compile_args = m4ri_extra_compile_args),
+              depends = [SAGE_INC + "/polybori/" + hd + ".h" for hd in ["polybori", "config"]]),
 
     Extension('sage.rings.polynomial.polynomial_real_mpfr_dense',
               sources = ['sage/rings/polynomial/polynomial_real_mpfr_dense.pyx']),

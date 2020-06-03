@@ -23,15 +23,6 @@ sys.excepthook = excepthook
 import sage_setup.fpickle_setup
 
 #########################################################
-### List of Extensions
-###
-### The list of extensions resides in module_list.py in
-### the same directory as this file
-#########################################################
-
-from module_list import ext_modules
-
-#########################################################
 ### Configuration
 #########################################################
 
@@ -62,9 +53,23 @@ from sage_setup.command.sage_build_ext import sage_build_ext
 # TODO: This should be quiet by default
 print("Discovering Python/Cython source code....")
 t = time.time()
+
+distributions = ['']
+
+from sage_setup.optional_extension import is_package_installed_and_updated
+
+optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
+                                     'coxeter3', 'fes', 'sirocco', 'meataxe']
+
+distributions += ['sage-{}'.format(pkg)
+                  for pkg in optional_packages_with_extensions
+                  if is_package_installed_and_updated(pkg)]
+
+log.warn('distributions = {0}'.format(distributions))
+
 from sage_setup.find import find_python_sources
 python_packages, python_modules, cython_modules = find_python_sources(
-    SAGE_SRC, ['sage', 'sage_setup'])
+    SAGE_SRC, ['sage', 'sage_setup'], distributions=distributions)
 
 log.debug('python_packages = {0}'.format(python_packages))
 
@@ -117,4 +122,4 @@ code = setup(name = 'sage',
                       build_cython=sage_build_cython,
                       build_ext=sage_build_ext,
                       install=sage_install),
-      ext_modules = ext_modules + cython_modules)
+      ext_modules = cython_modules)

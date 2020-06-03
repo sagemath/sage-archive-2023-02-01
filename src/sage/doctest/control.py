@@ -7,8 +7,7 @@ AUTHORS:
 
 - David Roe (2012-03-27) -- initial version, based on Robert Bradshaw's code.
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 David Roe <roed.math@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          William Stein <wstein@gmail.com>
@@ -18,11 +17,17 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, division, print_function
 
-import random, os, sys, time, json, re, types
+import random
+import os
+import sys
+import time
+import json
+import re
+import types
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC, SAGE_LOCAL, SAGE_EXTCODE
@@ -626,7 +631,6 @@ class DocTestController(SageObject):
             ...
             RuntimeError: refusing to run doctests...
         """
-        import os
         import stat
         is_world_writeable = bool(os.stat(dir or os.getcwd()).st_mode & stat.S_IWOTH)
         if is_world_writeable:
@@ -1122,7 +1126,8 @@ class DocTestController(SageObject):
         os.putenv('CYSIGNALS_CRASH_LOGS', tmp_dir("crash_logs_"))
         init_cysignals()
 
-        import signal, subprocess
+        import signal
+        import subprocess
         p = subprocess.Popen(cmd, shell=True)
         if opt.timeout > 0:
             signal.alarm(opt.timeout)

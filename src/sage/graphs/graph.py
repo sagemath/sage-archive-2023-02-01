@@ -5363,7 +5363,7 @@ class Graph(GenericGraph):
             if algorithm is None:
                 algorithm = 'Dijkstra_Boost'
 
-        if v is None:
+        if v is None or all(u in self for u in v):
             # If we want to use BFS, we use the Cython routine
             if algorithm == 'BFS':
                 if by_weight:
@@ -5501,7 +5501,7 @@ class Graph(GenericGraph):
                 from sage.graphs.distances_all_pairs import radius_DHV
                 return radius_DHV(self)
 
-        return min(self.eccentricity(v=list(self), by_weight=by_weight,
+        return min(self.eccentricity(v=None,by_weight=by_weight,
                                      weight_function=weight_function,
                                      check_weight=check_weight,
                                      algorithm=algorithm))

@@ -1,3 +1,5 @@
+# distutils: language = c++
+# distutils: libraries = ntl
 """
 Matrices over Cyclotomic Fields
 

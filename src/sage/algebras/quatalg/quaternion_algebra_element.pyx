@@ -1,3 +1,5 @@
+# distutils: language = c++
+# distutils: libraries = gmp m ntl
 """
 Elements of Quaternion Algebras
 

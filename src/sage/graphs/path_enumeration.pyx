@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # cython: binding=True
+# distutils: language = c++
 r"""
 Path Enumeration
 

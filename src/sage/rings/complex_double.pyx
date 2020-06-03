@@ -1,3 +1,5 @@
+# distutils: extra_compile_args = -D_XPG6
+# distutils: libraries = m
 r"""
 Double Precision Complex Numbers
 

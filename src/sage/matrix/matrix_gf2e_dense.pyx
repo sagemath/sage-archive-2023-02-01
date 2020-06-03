@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# distutils: libraries = m4rie M4RI_LIBRARIES m
+# distutils: library_dirs = M4RI_LIBDIR
+# distutils: include_dirs = M4RI_INCDIR
+# distutils: extra_compile_args = M4RI_CFLAGS
 """
 Dense matrices over `\GF{2^e}` for `2 <= e <= 10` using the M4RIE library
 

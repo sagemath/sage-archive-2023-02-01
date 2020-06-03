@@ -1,3 +1,8 @@
+# distutils: libraries = M4RI_LIBRARIES GDLIB_LIBRARIES LIBPNG_LIBRARIES
+# distutils: library_dirs = M4RI_LIBDIR GDLIB_LIBDIR LIBPNG_LIBDIR
+# distutils: include_dirs = M4RI_INCDIR GDLIB_INCDIR LIBPNG_INCDIR
+# distutils: extra_compile_args = M4RI_CFLAGS
+
 """
 Vectors with elements in GF(2)
 

@@ -1,6 +1,6 @@
 # distutils: language = c++
 # distutils: libraries = bliss
-# sage_setup: package = sage-bliss
+# sage_setup: distribution = sage-bliss
 
 r"""
 Interface with bliss: graph (iso/auto)morphism

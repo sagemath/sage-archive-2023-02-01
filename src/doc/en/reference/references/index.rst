@@ -1904,6 +1904,9 @@ REFERENCES:
             Connection Table* (preprint); in Cryptology ePrint Archive,
             (2018), 631.
 
+.. [Duc1998] \L. Ducos, Optimizations of the Subresultant Algorithm.
+             http://www-math.univ-poitiers.fr/~ducos/Travaux/sous-resultants.pdf
+
 .. [Dur1998] \F. Durand, *A characterization of substitutive sequences
             using return words*, Discrete Math. 179 (1998) 89-101.
 
@@ -3243,12 +3246,15 @@ REFERENCES:
             http://portal.acm.org/citation.cfm?id=763203 and free of
             charge at :arxiv:`math/0106043`
 
-.. [KP2011] Manuel Kauers and Peter Paule. The Concrete Tetrahedron.
-            Springer-Verlag, 2011.
-
 .. [KP2002b] James Kuzmanovich; Andrey Pavlichenkov, *Finite
              Groups of Matrices Whose Entries Are Integers*, The American
              Mathematical Monthly, Vol. 109, No. 2. (2002) pp. 173-186
+
+.. [KP2011] Manuel Kauers and Peter Paule. The Concrete Tetrahedron.
+            Springer-Verlag, 2011.
+
+.. [KP2020] Lars Kastner and Marta Panizzut, *Hyperplane arrangements
+            in polymake*, arxiv:`2003.13548`.
 
 .. [KPRWZ2010] \M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
                *Examples of computer experimentation in algebraic

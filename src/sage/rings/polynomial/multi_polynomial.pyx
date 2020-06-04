@@ -1548,6 +1548,38 @@ cdef class MPolynomial(CommutativeRingElement):
         an = self.coefficient(variable**n)**(n - k - 2)
         return self.parent()(u * self.resultant(d, variable) * an)
 
+    def subresultants(self, other, variable=None):
+        r"""
+        Return the nonzero subresultant polynomials of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a polynomial
+
+        OUTPUT: a list of polynomials in the same ring as ``self``
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: p = (y^2 + 6)*(x - 1) - y*(x^2 + 1)
+            sage: q = (x^2 + 6)*(y - 1) - x*(y^2 + 1)
+            sage: p.subresultants(q, y)
+            [2*x^6 - 22*x^5 + 102*x^4 - 274*x^3 + 488*x^2 - 552*x + 288,
+             -x^3 - x^2*y + 6*x^2 + 5*x*y - 11*x - 6*y + 6]
+            sage: p.subresultants(q, x)
+            [2*y^6 - 22*y^5 + 102*y^4 - 274*y^3 + 488*y^2 - 552*y + 288,
+             x*y^2 + y^3 - 5*x*y - 6*y^2 + 6*x + 11*y - 6]
+
+        """
+        R = self.parent()
+        if variable is None:
+            x = R.gen(0)
+        else:
+            x = variable
+        p = self.polynomial(x)
+        q = other.polynomial(x)
+        return [R(f) for f in  p.subresultants(q)]
+
     def macaulay_resultant(self, *args):
         r"""
         This is an implementation of the Macaulay Resultant. It computes
@@ -2525,7 +2557,7 @@ cdef class MPolynomial(CommutativeRingElement):
             True
         """
         # EXERCISE (Atiyah-McDonald, Ch 1): Let `A[x]` be a polynomial
-        # ring in one variable. Then `f=\sum a_i x^i \in A[x]` is 
+        # ring in one variable. Then `f=\sum a_i x^i \in A[x]` is
         # nilpotent if and only if `a_0,\ldots, a_n` are nilpotent.
         # (Also noted in Dummit and Foote, "Abstract Algebra", 1991,
         # Section 7.3 Exercise 33).

@@ -5520,7 +5520,8 @@ class Graph(GenericGraph):
             allowed.
 
           - ``'DHV'`` - diameter computation is done using the algorithm
-            proposed in [Dragan2018]_. For more information see method
+            proposed in [Dragan2018]_. Works only for non-negative edge weights.
+            For more information see method
             :func:`sage.graphs.distances_all_pairs.diameter_DHV` and
             :func:`sage.graphs.base.boost_graph.diameter_DHV`.
 

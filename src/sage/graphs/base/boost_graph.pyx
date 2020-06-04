@@ -1641,7 +1641,7 @@ cpdef diameter_DHV(g, weight_function=None, check_weight=True):
         sage: diameter_DHV(G)
         Traceback (most recent call last):
         ...
-        ValueError: the graph contains a negative cycle
+        ValueError: graph contains negative edge weights, use Johnson_Boost instead
     """
     if g.is_directed():
         raise TypeError("this method works for undirected graphs only")
@@ -1653,19 +1653,14 @@ cpdef diameter_DHV(g, weight_function=None, check_weight=True):
     if weight_function and check_weight:
         g._check_weight_function(weight_function)
 
-    cdef bint negative_weight = False
-
     if weight_function is not None:
         for e in g.edge_iterator():
             if float(weight_function(e)) < 0:
-                negative_weight = True
-                break
-    else:
-        if g.weighted():
-            for _,_,w in g.edge_iterator():
-                if w and float(w) < 0:
-                    negative_weight = True
-                    break
+                raise ValueError("graph contains negative edge weights, use Johnson_Boost instead")
+    elif g.weighted():
+        for _,_,w in g.edge_iterator():
+            if w and float(w) < 0:
+                raise ValueError("graph contains negative edge weights, use Johnson_Boost instead")
 
     # These variables are automatically deleted when the function terminates.
     cdef dict v_to_int = {vv: vi for vi, vv in enumerate(g)}
@@ -1700,16 +1695,9 @@ cpdef diameter_DHV(g, weight_function=None, check_weight=True):
         u = active.pop()
 
         # Compute the distances from u
-        if negative_weight:
-            sig_on()
-            distances = g_boost.bellman_ford_shortest_paths(u).distances
-            sig_off()
-            if not distances.size():
-                raise ValueError("the graph contains a negative cycle")
-        else:
-            sig_on()
-            distances = g_boost.dijkstra_shortest_paths(u).distances
-            sig_off()
+        sig_on()
+        distances = g_boost.dijkstra_shortest_paths(u).distances
+        sig_off()
 
         # compute the eccentricity of u and update eccentricity lower bounds
         ecc_u = 0
@@ -1737,14 +1725,9 @@ cpdef diameter_DHV(g, weight_function=None, check_weight=True):
             x = active.pop()
 
             # compute the distances from x
-            if negative_weight:
-                sig_on()
-                distances = g_boost.bellman_ford_shortest_paths(x).distances
-                sig_off()
-            else:
-                sig_on()
-                distances = g_boost.dijkstra_shortest_paths(x).distances
-                sig_off()
+            sig_on()
+            distances = g_boost.dijkstra_shortest_paths(x).distances
+            sig_off()
 
             # compute the eccentricity of x and its antipode
             ecc_x = 0
@@ -1773,14 +1756,9 @@ cpdef diameter_DHV(g, weight_function=None, check_weight=True):
                         break
 
                 # compute the distances from antipode
-                if negative_weight:
-                    sig_on()
-                    distances = g_boost.bellman_ford_shortest_paths(antipode).distances
-                    sig_off()
-                else:
-                    sig_on()
-                    distances = g_boost.dijkstra_shortest_paths(antipode).distances
-                    sig_off()
+                sig_on()
+                distances = g_boost.dijkstra_shortest_paths(antipode).distances
+                sig_off()
 
                 # compute the eccentricity of antipode and update
                 # eccentricity lower bounds

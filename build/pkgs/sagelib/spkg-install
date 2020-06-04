@@ -36,7 +36,7 @@ export SAGE_SHARE=/doesnotexist
 # uses this variable.
 # export SAGE_LOCAL=/doesnotexist
 
-time "$PYTHON" -u setup.py --no-user-cfg build install
+time "$PYTHON" -u setup.py --no-user-cfg build install || exit 1
 if [ "$UNAME" = "CYGWIN" ]; then
     sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null;
 fi

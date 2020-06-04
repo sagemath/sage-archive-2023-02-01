@@ -8,7 +8,6 @@ AUTHORS:
 - Tomas Kalvoda (2015-04-01): Add :meth:`exp_polar()` (:trac:`18085`)
 
 """
-from six.moves import range
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.constants import e as const_e

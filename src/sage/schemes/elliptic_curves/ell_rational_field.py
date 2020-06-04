@@ -50,8 +50,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function, division, absolute_import
-from six import integer_types, iteritems
-from six.moves import range
 
 from . import constructor
 from . import BSD
@@ -1348,21 +1346,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('19a1')
             sage: f = E.modular_symbol_numerical(1)
             sage: g = E.modular_symbol(1)
-            sage: f(0), g(0)  # abs tol 1e-14
+            sage: f(0), g(0)  # abs tol 1e-11
             (0.333333333333333, 1/3)
 
             sage: E = EllipticCurve('5077a1')
             sage: f = E.modular_symbol_numerical(-1, prec=2)
-            sage: f(0)        # abs tol 1e-4
+            sage: f(0)        # abs tol 1e-11
             0.000000000000000
-            sage: f(1/7)      # abs tol 1e-4
-            1.00001356670155
+            sage: f(1/7)      # abs tol 1e-11
+            0.999844176260303
 
             sage: E = EllipticCurve([123,456])
             sage: E.conductor()
             104461920
             sage: f = E.modular_symbol_numerical(prec=2)
-            sage: f(0)        # abs tol 1e-4
+            sage: f(0)        # abs tol 1e-11
             2.00001004772210
         """
         from sage.schemes.elliptic_curves.mod_sym_num import ModularSymbolNumerical
@@ -5137,7 +5135,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         G.set_vertices(dict([(v,isocls[v]) for v in G.vertices()]))
         v = G.shortest_path_lengths(0, by_weight=True)
         # Now exponentiate and round to get degrees of isogenies
-        v = dict([(i, j.exp().round() if j else 0) for i,j in iteritems(v)])
+        v = dict([(i, j.exp().round() if j else 0) for i,j in v.items()])
         return isocls.curves, v
 
     def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
@@ -5170,7 +5168,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # enumeration is complete (which need not be the case a priori!), the LCM
         # of these numbers is a multiple of the degree of the isogeny
         # to the optimal curve.
-        v = [deg for num, deg in iteritems(v) if deg]  # get just the degrees
+        v = [deg for num, deg in v.items() if deg]  # get just the degrees
         return arith.LCM(v)
 
     ##########################################################
@@ -6782,7 +6780,7 @@ def cremona_curves(conductors):
         ('39a3', 0),
         ('39a4', 0)]
     """
-    if isinstance(conductors, integer_types + (rings.RingElement,)):
+    if isinstance(conductors, (rings.RingElement, int)):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter(conductors)
 
@@ -6808,7 +6806,7 @@ def cremona_optimal_curves(conductors):
         ['990a1', '990b1', '990c1', '990d1', '990e1', '990f1', '990g1', '990h3', '990i1', '990j1', '990k1', '990l1']
 
     """
-    if isinstance(conductors, integer_types + (rings.RingElement,)):
+    if isinstance(conductors, (rings.RingElement, int)):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter_optimal(conductors)
 

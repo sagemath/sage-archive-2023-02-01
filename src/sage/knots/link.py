@@ -48,8 +48,6 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import division
 
-from six.moves import range
-
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 from sage.graphs.digraph import DiGraph

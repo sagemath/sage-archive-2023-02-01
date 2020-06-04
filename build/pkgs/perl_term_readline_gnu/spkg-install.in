@@ -8,6 +8,11 @@ case $(uname) in
         # from system perl) do not contain -arch flags incompatible
         # with our gcc.
         export ARCHFLAGS=""
+        # Perl does some weird things with -Wl,-rpath commands.
+        # Add a workaround to those
+        if [[ "$($CC --version)" == *clang* ]]; then
+            export LDFLAGS=$(echo $LDFLAGS | sed "s/-Wl,-rpath,/-Xlinker -rpath -Xlinker /g")
+        fi
         ;;
 esac
 

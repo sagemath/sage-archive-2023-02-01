@@ -18,7 +18,3 @@ https://gitlab.com/janezkonc/mcqd
 
 None
 
-== Changelog ==
-
-=== mcqd-1.0 (Jernej Azarija, Nathann Cohen, 19 march 2014) ==
- * Initial version

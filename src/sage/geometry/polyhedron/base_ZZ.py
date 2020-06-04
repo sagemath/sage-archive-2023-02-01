@@ -18,7 +18,6 @@ from sage.misc.all import cached_method
 from sage.modules.free_module_element import vector
 from .base_QQ import Polyhedron_QQ
 from sage.arith.all import gcd
-from .constructor import Polyhedron
 
 
 #########################################################################
@@ -513,13 +512,21 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         if not self.has_IP_property():
             raise ValueError('The polytope must have the IP property.')
 
-        vertices = [ ieq.A()/ieq.b() for
-                     ieq in self.inequality_generator() ]
+        vertices = tuple( ieq.A()/ieq.b() for
+                          ieq in self.inequality_generator() )
+
+        ieqs = ((1,) + tuple(v[:]) for v in self.vertices())
+
+        pref_rep = 'Hrep' if self.n_vertices() <= self.n_inequalities() else 'Vrep'
 
         if all( all(v_i in ZZ for v_i in v) for v in vertices):
-            return Polyhedron(vertices=vertices, base_ring=ZZ, backend=self.backend())
+            parent = self.parent()
+            vertices = (v.change_ring(ZZ) for v in vertices)
         else:
-            return Polyhedron(vertices=vertices, base_ring=QQ, backend=self.backend())
+            parent = self.parent().change_ring(QQ)
+
+        return parent.element_class(parent, [vertices, [], []], [ieqs, []],
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
     @cached_method
     def is_reflexive(self):

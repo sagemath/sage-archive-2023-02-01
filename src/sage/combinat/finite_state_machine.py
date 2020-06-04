@@ -931,9 +931,6 @@ Methods
 # ****************************************************************************
 from __future__ import print_function
 
-import six
-from six.moves import range, zip_longest, zip
-
 from IPython.lib.pretty import pretty
 import collections
 import itertools
@@ -2105,7 +2102,7 @@ class FSMState(SageObject):
         _epsilon_successors_dict_[self].remove([])  # delete starting state
         if not _epsilon_successors_dict_[self]:
             del _epsilon_successors_dict_[self]
-        for s, outputs in six.iteritems(_epsilon_successors_dict_):
+        for s, outputs in _epsilon_successors_dict_.items():
             _epsilon_successors_dict_[s] = [t for t, _ in
                                             itertools.groupby(sorted(outputs))]
         return _epsilon_successors_dict_
@@ -3220,10 +3217,10 @@ class FiniteStateMachine(SageObject):
         elif hasattr(data, 'items'):
             # data is a dict (or something similar),
             # format: key = from_state, value = iterator of transitions
-            for (sf, iter_transitions) in six.iteritems(data):
+            for (sf, iter_transitions) in data.items():
                 self.add_state(sf)
                 if hasattr(iter_transitions, 'items'):
-                    for (st, transition) in six.iteritems(iter_transitions):
+                    for (st, transition) in iter_transitions.items():
                         self.add_state(st)
                         if is_FSMTransition(transition):
                             self.add_transition(transition)
@@ -5017,7 +5014,7 @@ class FiniteStateMachine(SageObject):
                 key=key_function
                 ))
 
-        for ((source, target), transitions) in six.iteritems(adjacent):
+        for ((source, target), transitions) in adjacent.items():
             if len(transitions) > 0:
                 labels = []
                 for transition in transitions:
@@ -6638,14 +6635,14 @@ class FiniteStateMachine(SageObject):
                                    "'simple' iterator cannot be used "
                                    "here." %
                                    (len(current),))
-            pos, states = next(six.iteritems(current))
+            pos, states = next(iter(current.items()))
             if len(states) > 1:
                 raise RuntimeError("Process has branched "
                                    "(visiting %s states in branch). The "
                                    "'simple' iterator cannot be used "
                                    "here." %
                                    (len(states),))
-            state, branch = next(six.iteritems(states))
+            state, branch = next(iter(states.items()))
             if len(branch.outputs) > 1:
                 raise RuntimeError("Process has branched. "
                                    "(%s different outputs in branch). The "
@@ -9816,7 +9813,6 @@ class FiniteStateMachine(SageObject):
             sage: F.state(0).final_word_out
             []
         """
-        from itertools import cycle
 
         if not isinstance(letters, list):
             letters = [letters]
@@ -9875,14 +9871,14 @@ class FiniteStateMachine(SageObject):
             assert(not in_progress)
             # trailing_letters is an infinite iterator additionally
             # marking positions
-            trailing_letters = cycle(enumerate(letters))
+            trailing_letters = itertools.cycle(enumerate(letters))
             find_final_word_out(state)
 
         # actual modifications can only be carried out after all final words
         # have been computed as it may not be permissible to stop at a
         # formerly non-final state unless a cycle has been completed.
 
-        for (state, position), final_word_out in six.iteritems(cache):
+        for (state, position), final_word_out in cache.items():
             if position == 0 and final_word_out is not None:
                 state.is_final = True
                 state.final_word_out = final_word_out
@@ -11802,7 +11798,7 @@ class Automaton(FiniteStateMachine):
 
         B = other.minimization().relabeled()
         labels = {B.process(path)[1].label(): state.label()
-                  for (state, path) in six.iteritems(address)}
+                  for (state, path) in address.items()}
         try:
             return A == B.relabeled(labels=labels)
         except KeyError:
@@ -12233,8 +12229,8 @@ class Automaton(FiniteStateMachine):
             P.state(s.label()).color = 1/(w[states[s]] * ff)
             P.state(s.label()).initial_probability = w[states[s]] * u[states[s]]
         return P
-            
- 
+
+
     def with_output(self, word_out_function=None):
         r"""
         Construct a transducer out of this automaton.
@@ -12805,14 +12801,14 @@ class Transducer(FiniteStateMachine):
         def function(*transitions):
             if equal(t.word_in for t in transitions):
                 return (transitions[0].word_in,
-                        list(zip_longest(
+                        list(itertools.zip_longest(
                             *(t.word_out for t in transitions)
                              )))
             else:
                 raise LookupError
 
         def final_function(*states):
-            return list(zip_longest(*(s.final_word_out
+            return list(itertools.zip_longest(*(s.final_word_out
                                                  for s in states)))
 
         return self.product_FiniteStateMachine(
@@ -14106,7 +14102,7 @@ def tupleofwords_to_wordoftuples(tupleofwords):
         ....:     ([1, 2], [3, 4, 5, 6], [7]))
         [(1, 3, 7), (2, 4, None), (None, 5, None), (None, 6, None)]
     """
-    return list(zip_longest(*tupleofwords, fillvalue=None))
+    return list(itertools.zip_longest(*tupleofwords, fillvalue=None))
 
 
 def wordoftuples_to_tupleofwords(wordoftuples):
@@ -14439,8 +14435,8 @@ class FSMProcessIterator(SageObject,
             """
             data = sorted(
                 (state, pos, tape_cache, outputs)
-                for pos, states in six.iteritems(self)
-                for state, (tape_cache, outputs) in six.iteritems(states))
+                for pos, states in self.items()
+                for state, (tape_cache, outputs) in states.items())
             branch = "branch" if len(data) == 1 else "branches"
             result = "process (%s %s)" % (len(data), branch)
             for s, sdata in itertools.groupby(data, lambda x: x[0]):
@@ -14716,7 +14712,7 @@ class FSMProcessIterator(SageObject,
                     'but output is written.' % (state,))
 
         for eps_state, eps_outputs in \
-                six.iteritems(state._epsilon_successors_(self.fsm)):
+                state._epsilon_successors_(self.fsm).items():
             if eps_state == state:
                 continue
                 # "eps_state == state" means epsilon cycle
@@ -14909,7 +14905,7 @@ class FSMProcessIterator(SageObject,
             return
 
         states_dict = self._current_.pop(heapq.heappop(self._current_positions_))
-        for state, branch in six.iteritems(states_dict):
+        for state, branch in states_dict.items():
             step(state, branch.tape_cache, branch.outputs)
 
         return self._current_

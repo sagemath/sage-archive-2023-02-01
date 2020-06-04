@@ -505,6 +505,19 @@ class AbstractPartitionDiagram(AbstractSetPartition):
         """
         return is_planar(self)
 
+    def dual(self):
+        """
+        Return the dual diagram of ``self`` by flipping it top-to-bottom.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram_algebras import PartitionDiagram
+            sage: D = PartitionDiagram([[1,-1],[2,-2,-3],[3]])
+            sage: D.dual()
+            {{-3}, {-2, 2, 3}, {-1, 1}}
+        """
+        return self.parent([[-i for i in part] for part in self])
+
 class IdealDiagram(AbstractPartitionDiagram):
     r"""
     The element class for a ideal diagram.
@@ -2681,6 +2694,230 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
                         * self([sum((list(d[i-1]) for i in p),[]) for p in sp])
                         for sp in SPd)
 
+    @cached_method
+    def e(self, i):
+        r"""
+        Return the element `e_i` in ``self``.
+
+        EXAMPLES::
+
+            sage: R.<n> = QQ[]
+            sage: P3 = PartitionAlgebra(3, n)
+            sage: P3.e(1)
+            P{{-3, 3}, {-2, -1, 1, 2}}
+            sage: P3.e(2)
+            P{{-3, -2, 2, 3}, {-1, 1}}
+            sage: P3.e(1/2)
+            P{{-3, 3}, {-2, 2}, {-1}, {1}}
+            sage: P3.e(5/2)
+            P{{-3}, {-2, 2}, {-1, 1}, {3}}
+            sage: P3.e(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: i must be an (half) integer between 1/2 and 5/2
+            sage: P3.e(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: i must be an (half) integer between 1/2 and 5/2
+        """
+        if i <= 0 or i >= self._k:
+            raise ValueError("i must be an (half) integer between 1/2 and {}".format((2*self._k-1)/2))
+        B = self.basis()
+        SP = B.keys()
+        if i in ZZ:
+            i -= 1
+            D = [[-j, j] for j in range(1, self._k+1)]
+            D[i] += D.pop(i+1)
+            return B[SP(D)]
+        else:
+            i = ceil(i)
+            D = [[-j, j] for j in range(1, self._k+1)]
+            D[i-1] = [-i]
+            D.append([i])
+            return B[SP(D)]
+
+    @cached_method
+    def s(self, i):
+        r"""
+        Return the ``i``-th simple transposition `s_i` in ``self``.
+
+        EXAMPLES::
+
+            sage: R.<n> = QQ[]
+            sage: P3 = PartitionAlgebra(3, n)
+            sage: P3.s(1)
+            P{{-3, 3}, {-2, 1}, {-1, 2}}
+            sage: P3.s(2)
+            P{{-3, 2}, {-2, 3}, {-1, 1}}
+            sage: P3.s(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: i must be an integer between 1 and 2
+        """
+        if i < 1 or i >= self._k:
+            raise ValueError("i must be an integer between 1 and {}".format(self._k-1))
+        B = self.basis()
+        SP = B.keys()
+        D = [[-j, j] for j in range(1, self._k+1)]
+        D[i-1] = [-(i+1), i]
+        D[i] = [-i, i+1]
+        return B[SP(D)]
+
+    @cached_method
+    def sigma(self, i):
+        r"""
+        Return the element `\sigma_i` from [Cre2020]_
+        (with the index `i` divided by 2).
+
+        EXAMPLES::
+
+            sage: R.<n> = QQ[]
+            sage: P3 = PartitionAlgebra(3, n)
+            sage: P3.sigma(1)
+            P{{-3, 3}, {-2, 2}, {-1, 1}}
+            sage: P3.sigma(3/2)
+            P{{-3, 3}, {-2, 1}, {-1, 2}}
+            sage: P3.sigma(2)
+            -P{{-3, -1, 1, 3}, {-2, 2}} + P{{-3, -1, 3}, {-2, 1, 2}}
+             + P{{-3, 1, 3}, {-2, -1, 2}} - P{{-3, 3}, {-2, -1, 1, 2}}
+             + P{{-3, 3}, {-2, 2}, {-1, 1}}
+            sage: P3.sigma(5/2)
+            -P{{-3, -1, 1, 2}, {-2, 3}} + P{{-3, -1, 2}, {-2, 1, 3}}
+             + P{{-3, 1, 2}, {-2, -1, 3}} - P{{-3, 2}, {-2, -1, 1, 3}}
+             + P{{-3, 2}, {-2, 3}, {-1, 1}}
+
+        We test the relations in Lemma 2.2.3(1) in [Cre2020]_::
+
+            sage: k = 4
+            sage: R.<x> = QQ[]
+            sage: P = PartitionAlgebra(k, x)
+            sage: all(P.sigma(i/2).dual() == P.sigma(i/2)
+            ....:     for i in range(1,2*k))
+            True
+            sage: all(P.sigma(i)*P.sigma(i+1/2) == P.sigma(i+1/2)*P.sigma(i) == P.s(i)
+            ....:     for i in range(1,k))
+            True
+            sage: all(P.sigma(i)*P.e(i) == P.e(i)*P.sigma(i) == P.e(i)
+            ....:     for i in range(1,k))
+            True
+            sage: all(P.sigma(i+1/2)*P.e(i) == P.e(i)*P.sigma(i+1/2) == P.e(i)
+            ....:     for i in range(1,k))
+            True
+        """
+        half = QQ.one() / 2
+        if i in ZZ:
+            if i == 1:
+                return self.one()
+            si = self.s(i)
+            sim = self.s(i-1)
+            x = self.e(i-1) * self.jucys_murphy_element(i-1) * si * self.e(i-1)
+            return (sim * si * self.sigma(i-1) * si * sim
+                    + x * si + si * x
+                    - self.e(i-1) * self.jucys_murphy_element(i-1) * sim
+                      * self.e(i) * self.e(i-half) * self.e(i-1)
+                    - si * self.e(i-1) * self.e(i-half) * self.e(i) * sim
+                      * self.jucys_murphy_element(i-1) * self.e(i-1) * si)
+        else:
+            j = ceil(i) - 1
+            if j == 0:
+                return self.zero()
+            if j == 1:
+                return self.s(1)
+            si = self.s(j)
+            sim = self.s(j-1)
+            x = self.e(j-1) * self.jucys_murphy_element(j-1) * si * self.e(j-1)
+            return (sim * si * self.sigma(i-1) * si * sim
+                    + si * x * si + x
+                    - si * self.e(j-1) * self.jucys_murphy_element(j-1) * sim
+                      * self.e(j) * self.e(i-1) * self.e(j-1)
+                    - self.e(j-1) * self.e(i-1) * self.e(j) * sim
+                      * self.jucys_murphy_element(j-1) * self.e(j-1) * si)
+
+    @cached_method
+    def jucys_murphy_element(self, i):
+        r"""
+        Return the ``i``-th Jucys-Murphy element `L_i` of ``self``.
+
+        ALGORITHM:
+
+        We use the recursive definition given in [Cre2020]_
+        (except we divide the indices by 2).
+
+        EXAMPLES:
+
+            sage: R.<n> = QQ[]
+            sage: P3 = PartitionAlgebra(3, n)
+            sage: P3.jucys_murphy_element(1)
+            P{{-3, 3}, {-2, 2}, {-1}, {1}}
+            sage: P3.jucys_murphy_element(2)
+            P{{-3, 3}, {-2}, {-1, 1}, {2}} - P{{-3, 3}, {-2}, {-1, 1, 2}}
+             + P{{-3, 3}, {-2, -1}, {1, 2}} - P{{-3, 3}, {-2, -1, 1}, {2}}
+             + P{{-3, 3}, {-2, 1}, {-1, 2}}
+            sage: P3.jucys_murphy_element(3/2)
+            n*P{{-3, 3}, {-2, -1, 1, 2}} - P{{-3, 3}, {-2, -1, 2}, {1}}
+             - P{{-3, 3}, {-2, 1, 2}, {-1}} + P{{-3, 3}, {-2, 2}, {-1, 1}}
+            sage: P3.L(3/2) * P3.L(2) == P3.L(2) * P3.L(3/2)
+            True
+
+        We test the relations in Lemma 2.2.3(2) in [Cre2020]_::
+
+            sage: k = 4
+            sage: R.<n> = QQ[]
+            sage: P = PartitionAlgebra(k, n)
+            sage: L = [P.L(i/2) for i in range(1,2*k+1)]
+            sage: all(x.dual() == x for x in L)
+            True
+            sage: all(x * y == y * x for x in L for y in L)  # long time
+            True
+            sage: Lsum = sum(L)
+            sage: gens = [P.s(i) for i in range(1,k)]
+            sage: gens += [P.e(i/2) for i in range(1,2*k)]
+            sage: all(x * Lsum == Lsum * x for x in gens)
+            True
+
+        Also the relations in Lemma 2.2.3(3) in [Cre2020]_::
+
+            sage: all(P.e((2*i+1)/2) * P.sigma(2*i/2) * P.e((2*i+1)/2)
+            ....:     == (n - P.L((2*i-1)/2)) * P.e((2*i+1)/2) for i in range(1,k))
+            True
+            sage: all(P.e(i/2) * (P.L(i/2) + P.L((i+1)/2))
+            ....:     == (P.L(i/2) + P.L((i+1)/2)) * P.e(i/2)
+            ....:     == n * P.e(i/2) for i in range(1,2*k))
+            True
+            sage: all(P.sigma(2*i/2) * P.e((2*i-1)/2) * P.e(2*i/2)
+            ....:     == P.L(2*i/2) * P.e(2*i/2) for i in range(1,k))
+            True
+            sage: all(P.e(2*i/2) * P.e((2*i-1)/2) * P.sigma(2*i/2)
+            ....:     == P.e(2*i/2) * P.L(2*i/2) for i in range(1,k))
+            True
+            sage: all(P.sigma((2*i+1)/2) * P.e((2*i+1)/2) * P.e(2*i/2)
+            ....:     == P.L(2*i/2) * P.e(2*i/2) for i in range(1,k))
+            True
+            sage: all(P.e(2*i/2) * P.e((2*i+1)/2) * P.sigma((2*i+1)/2)
+            ....:     == P.e(2*i/2) * P.L(2*i/2) for i in range(1,k))
+            True
+        """
+        half = QQ.one() / 2
+        if i in ZZ:
+            if i == 1:
+                return self.e(half)
+            i -= 1
+            L = self.jucys_murphy_element
+            return ((self.s(i) * L(i)) * (self.s(i) - self.e(i))
+                    - (self.e(i) * L(i)) * (self.s(i) - self.e(i+half)*self.e(i))
+                    + self.sigma(i+half))
+        else:
+            j = ceil(i) - 1
+            if j == 0:
+                return self.zero()
+            L = self.jucys_murphy_element
+            return (self.s(j) * L(i-1) * self.s(j)
+                    - L(j)*self.e(j) - self.e(j)*L(j)
+                    + (self._q*self.one() - L(i-1))*self.e(j)
+                    + self.sigma(j))
+
+    L = jucys_murphy_element
+
     class Element(DiagramBasis.Element):
         def to_orbit_basis(self):
             """
@@ -2702,6 +2939,26 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             """
             OP = self.parent().orbit_basis()
             return OP(self)
+
+        def dual(self):
+            r"""
+            Return the dual of ``self``.
+
+            The dual of an element in the partition algebra is formed
+            by taking the dual of each diagram in the support.
+
+            EXAMPLES::
+
+                sage: R.<x> = QQ[]
+                sage: P = PartitionAlgebra(2, x, R)
+                sage: elt = P.an_element(); elt
+                3*P{{-2}, {-1, 1, 2}} + 2*P{{-2, -1, 1, 2}} + 2*P{{-2, 1, 2}, {-1}}
+                sage: elt.dual()
+                3*P{{-2, -1, 1}, {2}} + 2*P{{-2, -1, 1, 2}} + 2*P{{-2, -1, 2}, {1}}
+            """
+            P = self.parent()
+            return P._from_dict({D.dual(): c for D, c in self._monomial_coefficients.items()},
+                                remove_zeros=False)
 
 class OrbitBasis(DiagramAlgebra):
     r"""

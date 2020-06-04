@@ -1062,7 +1062,7 @@ def polygonal_number(s, n):
 
     REFERENCES:
 
-        :wikipedia:`Polygonal_number`
+    - :wikipedia:`Polygonal_number`
     """
     s = ZZ(s)
     n = ZZ(n)

@@ -971,12 +971,15 @@ cdef class PowerSeries(AlgebraElement):
             True
             sage: (3 + t - t^5).is_unit()
             False
+            sage: O(t^0).is_unit()
+            False
 
         AUTHORS:
 
         - David Harvey (2006-09-03)
         """
-        if self.is_zero():
+        # return false for O(t^0) (the only power-series-ring element with precision_absolute == 0)
+        if self.precision_absolute() == 0:
             return False
         return self[0].is_unit()
 

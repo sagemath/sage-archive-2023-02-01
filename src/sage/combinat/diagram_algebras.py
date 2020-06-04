@@ -2766,8 +2766,11 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
     @cached_method
     def sigma(self, i):
         r"""
-        Return the element `\sigma_i` from [Cre2020]_
-        (with the index `i` divided by 2).
+        Return the element `\sigma_i` from [Eny2012]_ of ``self``.
+
+        .. NOTE::
+
+            In [Cre2020]_ and [Eny2013]_, these are the elements `\sigma_{2i}`.
 
         EXAMPLES::
 
@@ -2836,17 +2839,24 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
     @cached_method
     def jucys_murphy_element(self, i):
         r"""
-        Return the ``i``-th Jucys-Murphy element `L_i` of ``self``.
+        Return the ``i``-th Jucys-Murphy element `L_{2i}` from [Eny2012]_
+        of ``self``.
 
         ALGORITHM:
 
-        We use the recursive definition given in [Cre2020]_
-        (except we divide the indices by 2).
+        We use the recursive definition for `L_{2i}` given in [Cre2020]_.
+        See also [Eny2012]_ and [Eny2013]_.
+
+        .. NOTE::
+
+            `L_{1/2}` and `L_1` differs from [HR2005]_.
 
         EXAMPLES:
 
             sage: R.<n> = QQ[]
             sage: P3 = PartitionAlgebra(3, n)
+            sage: P3.jucys_murphy_element(1/2)
+            0
             sage: P3.jucys_murphy_element(1)
             P{{-3, 3}, {-2, 2}, {-1}, {1}}
             sage: P3.jucys_murphy_element(2)

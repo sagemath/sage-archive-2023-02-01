@@ -1978,6 +1978,13 @@ REFERENCES:
               *Fifth Annual Graph Drawing Contest*;
               http://www.merl.com/papers/docs/TR98-16.pdf
 
+.. [Eny2012] \J. Enyang. *Jucys-Murphy elements and a presentation
+             for the partition algebra*. J. Algebraic Combin.
+             **37** (2012) no 3, 401--454.
+
+.. [Eny2013] \J. Enyang. *A seminormal form for partition algebras*.
+             J. Combin. Theory Series A **120** (2013) 1737--1785.
+
 .. [EP2013] David Einstein, James Propp. *Combinatorial,
             piecewise-linear, and birational homomesy for products of
             two chains*. :arxiv:`1310.5294v1`.
@@ -2728,6 +2735,9 @@ REFERENCES:
 .. [Hor1972] \E. Horowitz, "Algorithms for Rational Function Arithmetic
              Operations", Annual ACM Symposium on Theory of Computing, Proceedings of
              the Fourth Annual ACM Symposium on Theory of Computing, pp. 108--118, 1972
+
+.. [HR2005]  Tom Halverson and Arun Ram. *Partition algebras*.
+             Euro. J. Combin. **26** (2005) 869--921.
 
 .. [HR2016]  Clemens Heuberger and Roswitha Rissner, "Computing
              `J`-Ideals of a Matrix Over a Principal Ideal Domain",

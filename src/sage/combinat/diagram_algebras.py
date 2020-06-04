@@ -2807,6 +2807,9 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             ....:     for i in range(1,k))
             True
         """
+        if i <= 0 or i >= self._k:
+            raise ValueError("i must be an (half) integer between 1 and {}".format((2*self._k-1)/2))
+
         half = QQ.one() / 2
         if i in ZZ:
             if i == 1:
@@ -2907,6 +2910,9 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             ....:     == P.e(2*i/2) * P.L(2*i/2) for i in range(1,k))
             True
         """
+        if i <= 0 or i > self._k:
+            raise ValueError("i must be an (half) integer between 1/2 and {}".format(2*self._k))
+
         half = QQ.one() / 2
         if i in ZZ:
             if i == 1:

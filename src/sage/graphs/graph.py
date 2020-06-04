@@ -5363,7 +5363,10 @@ class Graph(GenericGraph):
             if algorithm is None:
                 algorithm = 'Dijkstra_Boost'
 
-        if v is None or all(u in self for u in v):
+        if v is not None and not isinstance(v, list):
+            v = [v]
+
+        if v is None or all(u in v for u in self):
             # If we want to use BFS, we use the Cython routine
             if algorithm == 'BFS':
                 if by_weight:
@@ -5388,8 +5391,6 @@ class Graph(GenericGraph):
             raise ValueError("algorithm '" + algorithm + "' works only if all" +
                              " eccentricities are needed")
 
-        if not isinstance(v, list):
-            v = [v]
         ecc = {}
 
         from sage.rings.infinity import Infinity
@@ -5439,7 +5440,8 @@ class Graph(GenericGraph):
         - ``algorithm`` -- string (default: ``'DHV'``).
 
           - ``'DHV'`` - Radius computation is done using the algorithm proposed
-            in [Dragan2018]_. For more information see method
+            in [Dragan2018]_. Works for graph with non-negative edge weights.
+            For more information see method
             :func:`sage.graphs.distances_all_pairs.radius_DHV` and
             :func:`sage.graphs.base.boost_graph.radius_DHV`.
 
@@ -5496,7 +5498,8 @@ class Graph(GenericGraph):
         if algorithm == 'DHV':
             if by_weight:
                 from sage.graphs.base.boost_graph import radius_DHV
-                return radius_DHV(self, weight_function=weight_function)
+                return radius_DHV(self, weight_function=weight_function,
+                                  check_weight=check_weight)
             else:
                 from sage.graphs.distances_all_pairs import radius_DHV
                 return radius_DHV(self)

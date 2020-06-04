@@ -1646,9 +1646,9 @@ cpdef radius_DHV(g, weight_function=None, check_weight=True):
         sage: G = Graph(2)
         sage: radius_DHV(G)
         +Infinity
-        sage: G = Graph([(0, 1, 1)])
+        sage: G = Graph([(0, 1, 2)],weighted=True)
         sage: radius_DHV(G)
-        1.0
+        2.0
         sage: G = DiGraph(1)
         sage: radius_DHV(G)
         Traceback (most recent call last):
@@ -1665,19 +1665,15 @@ cpdef radius_DHV(g, weight_function=None, check_weight=True):
     if weight_function and check_weight:
         g._check_weight_function(weight_function)
 
-    cdef bint negative_weight = False
-
     if weight_function is not None:
         for e in g.edge_iterator():
             if float(weight_function(e)) < 0:
-                negative_weight = True
-                break
-    else:
-        if g.weighted():
-            for _,_,w in g.edge_iterator():
-                if w and float(w) < 0:
-                    negative_weight = True
-                    break
+                raise ValueError("graphs contains negative weights, use Johnson_Boost instead")
+    elif g.weighted():
+        for _,_,w in g.edge_iterator():
+            if w and float(w) < 0:
+                raise ValueError("graphs contains negative weights, use Johnson_Boost instead")
+
 
     # These variables are automatically deleted when the function terminates.
     cdef dict v_to_int = {vv: vi for vi, vv in enumerate(g)}
@@ -1704,16 +1700,9 @@ cpdef radius_DHV(g, weight_function=None, check_weight=True):
     while LB < UB:
         # 1) pick vertex with minimum eccentricity lower bound
         # and compute its eccentricity
-        if negative_weight:
-            sig_on()
-            distances = g_boost.bellman_ford_shortest_paths(source).distances
-            sig_off()
-            if not distances.size():
-                raise ValueError("the graph contains a negative cycle")
-        else:
-            sig_on()
-            distances = g_boost.dijkstra_shortest_paths(source).distances
-            sig_off()
+        sig_on()
+        distances = g_boost.dijkstra_shortest_paths(source).distances
+        sig_off()
 
         # Determine the eccentricity of source and its antipode, that is a
         # vertex at largest distance from source
@@ -1732,14 +1721,9 @@ cpdef radius_DHV(g, weight_function=None, check_weight=True):
             break
 
         # 2) Compute distances from antipode
-        if negative_weight:
-            sig_on()
-            distances = g_boost.bellman_ford_shortest_paths(antipode).distances
-            sig_off()
-        else:
-            sig_on()
-            distances = g_boost.dijkstra_shortest_paths(antipode).distances
-            sig_off()
+        sig_on()
+        distances = g_boost.dijkstra_shortest_paths(antipode).distances
+        sig_off()
 
         # 3) Use distances from antipode to improve eccentricity lower bounds.
         # We also determine the next source

@@ -30,8 +30,24 @@ SAGE_SPKG_CONFIGURE([brial], [
       ])
     ],
     [
-      AC_MSG_RESULT([yes])
-      sage_spkg_install_brial=no
+      dnl check we're not on Fedora 30 - more precisely, we reject version 1.2.5
+      dnl for which the version is verifiable by the following code.
+      AC_MSG_CHECKING([version not equal to 1.2.5])
+      AC_RUN_IFELSE([
+          AC_LANG_PROGRAM(
+          [[#include <polybori.h>
+            #include <polybori/config.h>
+          ]], [[
+             if (VERSION=="1.2.5") return 0;
+             else return 1;
+          ]])
+	  ], [
+          AC_MSG_RESULT([found a possibly buggy 1.2.5. Rejecting])
+	  sage_spkg_install_brial=yes
+	  ], [
+          AC_MSG_RESULT([yes])
+          sage_spkg_install_brial=no
+      ])
     ],
     [
       AC_MSG_RESULT([no])

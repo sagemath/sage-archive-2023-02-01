@@ -1245,7 +1245,7 @@ cdef class PowerSeries(AlgebraElement):
             return self.parent()(res, self.prec())
 
     def jacobi_continued_fraction(self):
-        """
+        r"""
         Return the Jacobi continued fraction of ``self``.
 
         The J-fraction or Jacobi continued fraction of a power series
@@ -1254,7 +1254,7 @@ cdef class PowerSeries(AlgebraElement):
 
         .. MATH::
 
-            1 / (1 + A_0 t + B_0 t^2 / (1 + A_1 t + B_1 t^2 / ( 1 + \dots)))
+            1 / (1 + A_0 t + B_0 t^2 / (1 + A_1 t + B_1 t^2 / (1 + \cdots)))
 
         OUTPUT:
 

@@ -173,11 +173,21 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: from sage.geometry.polyhedron.parent import Polyhedra
             sage: P = Polyhedra(QQ, 3)
             sage: TestSuite(P).run(skip='_test_pickling')
+            sage: P.cardinality()
+            +Infinity
+            sage: P = Polyhedra(AA, 0)
+            sage: P.category()
+            Category of finite polyhedral sets over Algebraic Real Field
         """
         self._backend = backend
         self._ambient_dim = ambient_dim
         from sage.categories.polyhedra import PolyhedralSets
-        Parent.__init__(self, base=base_ring, category=PolyhedralSets(base_ring))
+        category = PolyhedralSets(base_ring)
+        if ambient_dim == 0:
+            category = category.Finite()
+        else:
+            category = category.Infinite()
+        Parent.__init__(self, base=base_ring, category=category)
         self._Inequality_pool = []
         self._Equation_pool = []
         self._Vertex_pool = []

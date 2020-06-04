@@ -44,12 +44,10 @@ resolvelinks() {
     # Move stuff from $in to $out
     while [ -n "$in" ]; do
         # Normalize $in by replacing consecutive slashes by one slash
-        while { in_single_slash=${in//\/\//\/}; [ "$in" != "$in_single_slash" ]; }; do
-            in=$in_single_slash
-        done
+        in=$(echo "${in}" | sed 's://*:/:g')
 
         # If $in starts with a slash, remove it and set $out to the root
-        in_without_slash=${in/#\//}
+        in_without_slash=${in#/}
         if [ "$in" != "$in_without_slash" ]; then
             in=$in_without_slash
             out="/"
@@ -71,7 +69,7 @@ resolvelinks() {
             out="$out$f"
 
             # If the new $in starts with a slash, move it to $out
-            in_without_slash=${in/#\//}
+            in_without_slash=${in#/}
             if [ "$in" != "$in_without_slash" ]; then
                 in=$in_without_slash
                 out="$out/"
@@ -103,7 +101,8 @@ resolvelinks() {
         fi
 
         # In $in, replace $f by $f_resolved (leave $out alone)
-        in=${in/#"$f"/"$f_resolved"}
+        in="${in#${f}}"
+        in="${f_resolved}${in}"
     done
 
     # Return $out
@@ -463,7 +462,7 @@ unset R_PROFILE
 if [ -d "$SAGE_LOCAL/lib/R/share" ] ; then
    R_MAKEVARS_SITE="$SAGE_LOCAL/lib/R/share/Makevars.site" && export R_MAKEVARS_SITE
    if ! [ -f "$R_MAKEVARS_SITE" ] ; then
-       if ! [ -a "$R_MAKEVARS_SITE" ] ; then
+       if ! [ -e "$R_MAKEVARS_SITE" ] ; then
            echo "## Empty site-wide Makevars file for Sage's R" > "$R_MAKEVARS_SITE"
        else
            >&2 echo "Warning: $R_MAKEVARS_SITE exists and is not a file : trouble ahead..."
@@ -472,7 +471,7 @@ if [ -d "$SAGE_LOCAL/lib/R/share" ] ; then
 fi
 if [ -d "$DOT_SAGE" ] ; then
     if ! [ -d "$DOT_SAGE/R" ] ; then
-        if ! [ -a  "$DOT_SAGE/R" ] ; then
+        if ! [ -e  "$DOT_SAGE/R" ] ; then
             mkdir -p "$DOT_SAGE/R"
         else
             >&2 echo "Warning: $DOT_SAGE/R exists and is not a directory : trouble ahead..."
@@ -480,7 +479,7 @@ if [ -d "$DOT_SAGE" ] ; then
     fi
     R_MAKEVARS_USER="$DOT_SAGE/R/Makevars.user" && export R_MAKEVARS_USER
     if ! [ -f "$R_MAKEVARS_USER" ] ; then
-        if ! [ -a "$R_MAKEVARS_USER" ] ; then
+        if ! [ -e "$R_MAKEVARS_USER" ] ; then
             echo "## Empty user-specific Makevars file for Sage's R" > "$R_MAKEVARS_USER"
         else
             >&2 echo "Warning: $R_MAKEVARS_USER exists and is not a file : trouble ahead..."
@@ -603,9 +602,10 @@ ECLDIR="$SAGE_LOCAL/lib/ecl/" && export ECLDIR
 # First, figure out the right values for SAGE_NUM_THREADS (default
 # number of threads) and SAGE_NUM_THREADS_PARALLEL (default number of
 # threads when parallel execution is asked explicitly).
-sage_num_threads_array=(`sage-num-threads.py 2>/dev/null || echo 1 2 1`)
-SAGE_NUM_THREADS=${sage_num_threads_array[0]}
-SAGE_NUM_THREADS_PARALLEL=${sage_num_threads_array[1]}
+sage_num_threads_array=$(sage-num-threads.py 2>/dev/null || echo 1 2 1)
+sage_num_threads_array="${sage_num_threads_array% *}" # strip third item
+SAGE_NUM_THREADS="${sage_num_threads_array% *}" # keep first item
+SAGE_NUM_THREADS_PARALLEL="${sage_num_threads_array#* }" # keep second item
 export SAGE_NUM_THREADS
 export SAGE_NUM_THREADS_PARALLEL
 

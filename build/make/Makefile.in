@@ -574,7 +574,7 @@ endif
 #     $(3): package dependencies
 define SCRIPT_PACKAGE_templ
 $$(INST)/$(1)-$(2): $(3)
-	$(AM_V_at)cd '$$(SAGE_ROOT)' && \
+	$(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)' && \
 		. '$$(SAGE_ROOT)/src/bin/sage-env' && . '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		sage-logger -p '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$$(SAGE_LOGS)/$(1).log'
 	touch "$$@"
@@ -582,7 +582,7 @@ $$(INST)/$(1)-$(2): $(3)
 $(1): $$(INST)/$(1)-$(2)
 
 $(1)-clean:
-	-$(AM_V_at)cd '$$(SAGE_ROOT)' && \
+	-$(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)' && \
 		. '$$(SAGE_ROOT)/src/bin/sage-env' && . '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
 	-rm -f "$$(INST)/$(1)-$(2)"

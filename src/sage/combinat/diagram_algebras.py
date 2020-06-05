@@ -43,7 +43,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.rings.all import ZZ, QQ
-from sage.functions.other import ceil
+from sage.functions.other import floor, ceil
 
 import itertools
 
@@ -2719,6 +2719,13 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             Traceback (most recent call last):
             ...
             ValueError: i must be an (half) integer between 1/2 and 5/2
+
+            sage: P2h = PartitionAlgebra(5/2,n)
+            sage: [P2h.e(k/2) for k in range(1,5)]
+            [P{{-3, 3}, {-2, 2}, {-1}, {1}},
+             P{{-3, 3}, {-2, -1, 1, 2}},
+             P{{-3, 3}, {-2}, {-1, 1}, {2}},
+             P{{-3, -2, 2, 3}, {-1, 1}}]
         """
         if i <= 0 or i >= self._k:
             raise ValueError("i must be an (half) integer between 1/2 and {}".format((2*self._k-1)/2))
@@ -2726,12 +2733,12 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
         SP = B.keys()
         if i in ZZ:
             i -= 1
-            D = [[-j, j] for j in range(1, self._k+1)]
+            D = [[-j, j] for j in range(1, ceil(self._k)+1)]
             D[i] += D.pop(i+1)
             return B[SP(D)]
         else:
             i = ceil(i)
-            D = [[-j, j] for j in range(1, self._k+1)]
+            D = [[-j, j] for j in range(1, ceil(self._k)+1)]
             D[i-1] = [-i]
             D.append([i])
             return B[SP(D)]
@@ -2749,16 +2756,15 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             P{{-3, 3}, {-2, 1}, {-1, 2}}
             sage: P3.s(2)
             P{{-3, 2}, {-2, 3}, {-1, 1}}
-            sage: P3.s(3)
-            Traceback (most recent call last):
-            ...
-            ValueError: i must be an integer between 1 and 2
+
+            sage: R.<n> = ZZ[]
+            sage: P2h = PartitionAlgebra(5/2,n)
+            sage: P2h.s(1)
+            P{{-3, 3}, {-2, 1}, {-1, 2}}
         """
-        if i < 1 or i >= self._k:
-            raise ValueError("i must be an integer between 1 and {}".format(self._k-1))
         B = self.basis()
         SP = B.keys()
-        D = [[-j, j] for j in range(1, self._k+1)]
+        D = [[-j, j] for j in range(1, ceil(self._k)+1)]
         D[i-1] = [-(i+1), i]
         D[i] = [-i, i+1]
         return B[SP(D)]
@@ -2798,13 +2804,29 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             ....:     for i in range(1,2*k))
             True
             sage: all(P.sigma(i)*P.sigma(i+1/2) == P.sigma(i+1/2)*P.sigma(i) == P.s(i)
-            ....:     for i in range(1,k))
+            ....:     for i in range(1,floor(k)))
             True
             sage: all(P.sigma(i)*P.e(i) == P.e(i)*P.sigma(i) == P.e(i)
-            ....:     for i in range(1,k))
+            ....:     for i in range(1,floor(k)))
             True
             sage: all(P.sigma(i+1/2)*P.e(i) == P.e(i)*P.sigma(i+1/2) == P.e(i)
-            ....:     for i in range(1,k))
+            ....:     for i in range(1,floor(k)))
+            True
+
+            sage: k = 9/2
+            sage: R.<x> = QQ[]
+            sage: P = PartitionAlgebra(k, x)
+            sage: all(P.sigma(i/2).dual() == P.sigma(i/2)
+            ....:     for i in range(1,2*k-1))
+            True
+            sage: all(P.sigma(i)*P.sigma(i+1/2) == P.sigma(i+1/2)*P.sigma(i) == P.s(i)
+            ....:     for i in range(1,k-1/2))
+            True
+            sage: all(P.sigma(i)*P.e(i) == P.e(i)*P.sigma(i) == P.e(i)
+            ....:     for i in range(1,floor(k)))
+            True
+            sage: all(P.sigma(i+1/2)*P.e(i) == P.e(i)*P.sigma(i+1/2) == P.e(i)
+            ....:     for i in range(1,floor(k)))
             True
         """
         if i <= 0 or i >= self._k:
@@ -2909,9 +2931,44 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             sage: all(P.e(2*i/2) * P.e((2*i+1)/2) * P.sigma((2*i+1)/2)
             ....:     == P.e(2*i/2) * P.L(2*i/2) for i in range(1,k))
             True
+
+        The same tests for a half integer partition algebra::
+
+            sage: k = 9/2
+            sage: R.<n> = QQ[]
+            sage: P = PartitionAlgebra(k, n)
+            sage: L = [P.L(i/2) for i in range(1,2*k+1)]
+            sage: all(x.dual() == x for x in L)
+            True
+            sage: all(x * y == y * x for x in L for y in L)  # long time
+            True
+            sage: Lsum = sum(L)
+            sage: gens = [P.s(i) for i in range(1,k-1/2)]
+            sage: gens += [P.e(i/2) for i in range(1,2*k)]
+            sage: all(x * Lsum == Lsum * x for x in gens)
+            True
+            sage: all(P.e((2*i+1)/2) * P.sigma(2*i/2) * P.e((2*i+1)/2)
+            ....:     == (n - P.L((2*i-1)/2)) * P.e((2*i+1)/2) for i in range(1,floor(k)))
+            True
+            sage: all(P.e(i/2) * (P.L(i/2) + P.L((i+1)/2))
+            ....:     == (P.L(i/2) + P.L((i+1)/2)) * P.e(i/2)
+            ....:     == n * P.e(i/2) for i in range(1,2*k))
+            True
+            sage: all(P.sigma(2*i/2) * P.e((2*i-1)/2) * P.e(2*i/2)
+            ....:     == P.L(2*i/2) * P.e(2*i/2) for i in range(1,ceil(k)))
+            True
+            sage: all(P.e(2*i/2) * P.e((2*i-1)/2) * P.sigma(2*i/2)
+            ....:     == P.e(2*i/2) * P.L(2*i/2) for i in range(1,ceil(k)))
+            True
+            sage: all(P.sigma((2*i+1)/2) * P.e((2*i+1)/2) * P.e(2*i/2)
+            ....:     == P.L(2*i/2) * P.e(2*i/2) for i in range(1,floor(k)))
+            True
+            sage: all(P.e(2*i/2) * P.e((2*i+1)/2) * P.sigma((2*i+1)/2)
+            ....:     == P.e(2*i/2) * P.L(2*i/2) for i in range(1,floor(k)))
+            True
         """
         if i <= 0 or i > self._k:
-            raise ValueError("i must be an (half) integer between 1/2 and {}".format(2*self._k))
+            raise ValueError("i must be an (half) integer between 1/2 and {}".format(self._k))
 
         half = QQ.one() / 2
         if i in ZZ:

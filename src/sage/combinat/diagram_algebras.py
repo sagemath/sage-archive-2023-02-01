@@ -2876,7 +2876,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
 
             `L_{1/2}` and `L_1` differs from [HR2005]_.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R.<n> = QQ[]
             sage: P3 = PartitionAlgebra(3, n)

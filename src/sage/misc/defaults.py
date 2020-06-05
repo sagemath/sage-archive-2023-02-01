@@ -25,19 +25,19 @@ var_name = 'x'
 
 
 def variable_names(n, name=None):
-    """
-    Converts a root string into a tuple of variable names by adding 
+    r"""
+    Converts a root string into a tuple of variable names by adding
     numbers in sequence.
 
     INPUT:
 
-    - ``n`` a non-negative Integer. The number of variable names to 
-       output.
-    - ``names`` a string (Default: ``None``); The root of the variable
-      name. 
+    - ``n`` a non-negative Integer; the number of variable names to
+       output
+    - ``names`` a string (default: ``None``); the root of the variable
+      name.
 
     EXAMPLES::
-        
+
         sage: from sage.misc.defaults import variable_names
         sage: variable_names(0)
         ()
@@ -56,16 +56,16 @@ def variable_names(n, name=None):
     return tuple(['%s%s'%(name,i) for i in range(n)])
 
 def latex_variable_names(n, name=None):
-    """
-    Converts a root string into a tuple of variable names by adding 
+    r"""
+    Converts a root string into a tuple of variable names by adding
     numbers in sequence.
 
     INPUT:
 
-    - ``n`` a non-negative Integer. The number of variable names to 
-      output.
-    - ``names`` a string (Default: ``None``); The root of the variable
-      name. 
+    - ``n`` a non-negative Integer; the number of variable names to
+      output
+    - ``names`` a string (default: ``None``); the root of the variable
+      name.
 
     EXAMPLES::
 

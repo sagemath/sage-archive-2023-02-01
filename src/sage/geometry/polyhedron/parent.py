@@ -173,6 +173,8 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: from sage.geometry.polyhedron.parent import Polyhedra
             sage: P = Polyhedra(QQ, 3)
             sage: TestSuite(P).run(skip='_test_pickling')
+            sage: P = Polyhedra(QQ, 0)
+            sage: TestSuite(P).run(skip='_test_pickling')
         """
         self._backend = backend
         self._ambient_dim = ambient_dim
@@ -193,7 +195,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
     def list(self):
         """
-        Return the unique polyhedron in ambient dimension 0, raise an error otherwise
+        Return the two polyhedra in ambient dimension 0, raise an error otherwise
 
         EXAMPLES::
 
@@ -206,13 +208,14 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: P.category()
             Category of finite enumerated polyhedral sets over Algebraic Real Field
             sage: P.list()
-            [A 0-dimensional polyhedron in AA^0 defined as the convex hull of 1 vertex]
+            [The empty polyhedron in AA^0,
+             A 0-dimensional polyhedron in AA^0 defined as the convex hull of 1 vertex]
             sage: P.cardinality()
-            1
+            2
         """
         if self.ambient_dim():
             raise NotImplementedError
-        return [self.an_element()]
+        return [self.empty(), self.universe()]
 
     def recycle(self, polyhedron):
         """

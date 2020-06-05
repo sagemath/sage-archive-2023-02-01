@@ -2699,6 +2699,14 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
         r"""
         Return the element `e_i` in ``self``.
 
+        If `i = (2r+1)/2`, then `e_i` contains the blocks ``{r+1}`` and
+        ``{-r-1}``.  If `i \in {\mathbb Z}`, then `e_i` contains the block
+        ``{-i, -i-1, i, i+1}``.  Other blocks are of the form `{-j, j}`.
+
+        INPUT:
+
+        - ``i`` -- a half integer between 1/2 and `k`
+
         EXAMPLES::
 
             sage: R.<n> = QQ[]
@@ -2748,6 +2756,14 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
         r"""
         Return the ``i``-th simple transposition `s_i` in ``self``.
 
+        Borrowing the notation from the symmetric group, the ``i``-th
+        simple transposition has blocks of the form ``{-i, i+1}``,
+        ``{-i-1, i}`` and ``{-j, j}`` for `j \notin \{ i, i+1 \}`.
+
+        INPUT:
+
+        - ``i`` -- an integer between 1 and `k-1`
+
         EXAMPLES::
 
             sage: R.<n> = QQ[]
@@ -2762,6 +2778,8 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             sage: P2h.s(1)
             P{{-3, 3}, {-2, 1}, {-1, 2}}
         """
+        if not i in ZZ or i <= 0 or i >= self._k:
+            raise ValueError("i must be an integer between 1 and {}".format(self._k-1))
         B = self.basis()
         SP = B.keys()
         D = [[-j, j] for j in range(1, ceil(self._k)+1)]
@@ -2773,6 +2791,10 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
     def sigma(self, i):
         r"""
         Return the element `\sigma_i` from [Eny2012]_ of ``self``.
+
+        INPUT:
+
+        - ``i`` -- a half integer between 1/2 and `k`
 
         .. NOTE::
 
@@ -2864,8 +2886,12 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
     @cached_method
     def jucys_murphy_element(self, i):
         r"""
-        Return the ``i``-th Jucys-Murphy element `L_{2i}` from [Eny2012]_
+        Return the ``i``-th Jucys-Murphy element `L_{i}` from [Eny2012]_.
         of ``self``.
+
+        INPUT:
+
+        - ``i`` -- a half integer between 1/2 and `k`
 
         ALGORITHM:
 

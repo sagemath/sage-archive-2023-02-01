@@ -294,11 +294,18 @@ window.onload = function(){
         var doctype = '<?xml version="1.0" standalone="no"?>'
             + '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
 
+        var our_style='<style>\
+    .node {stroke: #fff;stroke-width: 1.5px;}\
+    .link {fill:none;stroke: #000;stroke-opacity: .6;opacity: .6}\
+    .directed {fill:none;stroke: #000;stroke-opacity: .6;opacity: .6}\
+    marker {fill:#bbb;}</style>';
+
         // serialize our SVG XML to a string.
         var source = (new XMLSerializer()).serializeToString(d3.select('svg').node());
 
+        var styled_source = source.replace('"all"><g>', '"all">' + our_style + "<g>");
         // create a file blob of our SVG.
-        var blob = new Blob([doctype + source], { type: 'image/svg+xml;charset=utf-8' });
+        var blob = new Blob([doctype + styled_source], { type: 'image/svg+xml;charset=utf-8' });
         var a = document.body.appendChild( document.createElement( 'a' ) );
         a.href = window.URL.createObjectURL( blob );
         a.download = 'my_graph.svg';

@@ -1674,7 +1674,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
     _ehrhart_polynomial_normaliz = _ehrhart_quasipolynomial_normaliz
 
-    @cached_method(do_pickle=True)
+    @cached_method(do_pickle=True, key=lambda self, g, v: (tuple(g), v))
     def hilbert_series(self, grading, variable='t'):
         r"""
         Return the Hilbert series of the polyhedron with respect to ``grading``.

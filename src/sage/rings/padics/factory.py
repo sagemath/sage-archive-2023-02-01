@@ -429,7 +429,7 @@ class Qp_class(UniqueFactory):
     It can be either 'none' (or equivalently ``False``), 'bigoh'
     (or equivalently ``True``) or 'bigoh'.
     The default is ``False`` for the ``'floating-point'`` type
-    and ``True`` for all other types.
+    and ``True`` for all other types. ::
 
         sage: Qp(5)(6)
         1 + 5 + O(5^20)
@@ -468,7 +468,7 @@ class Qp_class(UniqueFactory):
     It can be either 'none' (or equivalently ``False``) or 'bigoh'
     (or equivalently ``True``).
     The default is ``False`` for the ``'floating-point'`` type
-    and ``True`` for all other types.
+    and ``True`` for all other types. ::
 
         sage: Qp(5, print_mode='val-unit', show_prec=False)(30)
         5 * 6
@@ -514,7 +514,7 @@ class Qp_class(UniqueFactory):
     It can be either 'none' (or equivalently ``False``) or 'bigoh'
     (or equivalently ``True``).
     The default is ``False`` for the ``'floating-point'`` type
-    and ``True`` for all other types.
+    and ``True`` for all other types. ::
 
         sage: Qp(5, print_mode='terse', show_prec=False)(6)
         6
@@ -585,7 +585,7 @@ class Qp_class(UniqueFactory):
     It can be either 'none' (or equivalently ``False``), 'dots'
     (or equivalently ``True``) or 'bigoh'.
     The default is ``False`` for the ``'floating-point'`` type
-    and ``True`` for all other types.
+    and ``True`` for all other types. ::
 
         sage: repr(Zp(5, print_mode='digits', show_prec=True)(6))
         '...00000000000000000011'
@@ -610,7 +610,7 @@ class Qp_class(UniqueFactory):
         sage: d = R(-707/5^2); repr(d)
         '...4|4|4|4|4|4|4|4|4|4|4|4|4|4|4|3|4|1|.|3|3'
 
-    Again, note that it's not possible to read of the precision from the representation in this mode.
+    Again, note that it's not possible to read off the precision from the representation in this mode.
 
     *print_pos* controls whether the digits can be negative.::
 
@@ -641,7 +641,7 @@ class Qp_class(UniqueFactory):
     It can be either 'none' (or equivalently ``False``), 'dots'
     (or equivalently ``True``) or 'bigoh'
     The default is ``False`` for the ``'floating-point'`` type
-    and ``True`` for all other types.
+    and ``True`` for all other types. ::
 
         sage: repr(Qp(5, print_mode='bars', show_prec='bigoh')(6))
         '...1|1 + O(5^20)'
@@ -982,7 +982,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     It can be either 'none' (or equivalently ``False``), 'bigoh'
     (or equivalently ``True``).
     The default is ``False`` for the ``'floating-point'`` type
-    and ``True`` for all other types.
+    and ``True`` for all other types. ::
 
         sage: U.<e> = Qq(9, 2, show_prec=False); repr(-3*(1+2*e)^4)
         '3 + e*3^2'
@@ -1029,7 +1029,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     It can be either 'none' (or equivalently ``False``), 'bigoh'
     (or equivalently ``True``).
     The default is ``False`` for the ``'floating-point'`` type
-    and ``True`` for all other types.
+    and ``True`` for all other types. ::
 
         sage: U.<e> = Qq(9, 2, print_mode='val-unit', show_prec=False); repr(-3*(1+2*e)^4)
         '3 * (1 + 3*e)'
@@ -1083,7 +1083,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     It can be either 'none' (or equivalently ``False``), 'bigoh'
     (or equivalently ``True``).
     The default is ``False`` for the ``'floating-point'`` type
-    and ``True`` for all other types.
+    and ``True`` for all other types. ::
 
         sage: U.<e> = Qq(9, 2, print_mode='terse', show_prec=False); repr(-3*(1+2*e)^4)
         '3 + 9*e'
@@ -1125,7 +1125,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         sage: repr((a+R(1/5,relprec=3))^7)
         '...|.|?|?|?|?|[0, 1, 1]|[0, 2]|[1]'
 
-    Note that it's not possible to read of the precision from the
+    Note that it's not possible to read off the precision from the
     representation in this mode.::
 
         sage: b = a + 3; repr(b)
@@ -1174,7 +1174,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     It can be either 'none' (or equivalently ``False``), 'dots'
     (or equivalently ``True``) or 'bigoh'
     The default is ``False`` for the ``'floating-point'`` type
-    and ``True`` for all other types.
+    and ``True`` for all other types. ::
 
         sage: U.<e> = Qq(9, 2, print_mode='bars', show_prec=True); repr(-3*(1+2*e)^4)
         '...[0, 1]|[1]|[]'
@@ -1576,7 +1576,7 @@ class Zp_class(UniqueFactory):
     It can be either 'none' (or equivalently ``False``), 'bigoh'
     (or equivalently ``True``).
     The default is ``False`` for the ``'floating-point'`` and
-    ``'fixed-mod'`` types and ``True`` for all other types.
+    ``'fixed-mod'`` types and ``True`` for all other types. ::
 
         sage: Zp(5, show_prec=False)(6)
         1 + 5
@@ -1610,7 +1610,7 @@ class Zp_class(UniqueFactory):
     It can be either 'none' (or equivalently ``False``), 'bigoh'
     (or equivalently ``True``).
     The default is ``False`` for the ``'floating-point'`` and
-    ``'fixed-mod'`` types and ``True`` for all other types.
+    ``'fixed-mod'`` types and ``True`` for all other types. ::
 
         sage: Zp(5, print_mode='val-unit', show_prec=False)(30)
         5 * 6
@@ -1644,7 +1644,7 @@ class Zp_class(UniqueFactory):
     It can be either 'none' (or equivalently ``False``), 'bigoh'
     (or equivalently ``True``).
     The default is ``False`` for the ``'floating-point'`` and
-    ``'fixed-mod'`` types and ``True`` for all other types.
+    ``'fixed-mod'`` types and ``True`` for all other types. ::
 
         sage: Zp(5, print_mode='terse', show_prec=False)(30)
         30
@@ -1686,7 +1686,7 @@ class Zp_class(UniqueFactory):
     It can be either 'none' (or equivalently ``False``), 'dots'
     (or equivalently ``True``) or 'bigoh'.
     The default is ``False`` for the ``'floating-point'`` and
-    ``'fixed-mod'`` types and ``True`` for all other types.
+    ``'fixed-mod'`` types and ``True`` for all other types. ::
 
         sage: repr(Zp(5, 2, print_mode='digits', show_prec=True)(6))
         '...11'
@@ -1701,14 +1701,14 @@ class Zp_class(UniqueFactory):
         (False, False, False)
 
     5. **bars**: elements are displayed as a string of base `p` digits
-       with separators
+       with separators::
 
         sage: R = Zp(5, print_mode='bars'); a = R(70700); repr(a)
         '...4|2|3|0|3|0|0'
         sage: b = R(-70700); repr(b)
         '...4|4|4|4|4|4|4|4|4|4|4|4|4|4|4|0|2|1|4|2|0|0'
 
-    Again, note that it's not possible to read of the precision from
+    Again, note that it's not possible to read off the precision from
     the representation in this mode.
 
     *print_pos* controls whether the digits can be negative.::
@@ -1730,7 +1730,7 @@ class Zp_class(UniqueFactory):
     It can be either 'none' (or equivalently ``False``), 'dots'
     (or equivalently ``True``) or 'bigoh'.
     The default is ``False`` for the ``'floating-point'`` and
-    ``'fixed-mod'`` types and ``True`` for all other types.
+    ``'fixed-mod'`` types and ``True`` for all other types. ::
 
         sage: repr(Zp(5, 2, print_mode='bars', show_prec=True)(6))
         '...1|1'
@@ -2194,7 +2194,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     It can be either 'none' (or equivalently ``False``), 'bigoh'
     (or equivalently ``True``).
     The default is ``False`` for the ``'floating-point'`` and
-    ``'fixed-mod'`` types and ``True`` for all other types.
+    ``'fixed-mod'`` types and ``True`` for all other types. ::
 
         sage: U.<e> = Zq(9, 2, show_prec=False); repr(-3*(1+2*e)^4)
         '3 + e*3^2'
@@ -2239,7 +2239,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     It can be either 'none' (or equivalently ``False``), 'bigoh'
     (or equivalently ``True``).
     The default is ``False`` for the ``'floating-point'`` and
-    ``'fixed-mod'`` types and ``True`` for all other types.
+    ``'fixed-mod'`` types and ``True`` for all other types. ::
 
         sage: U.<e> = Zq(9, 2, print_mode='val-unit', show_prec=False); repr(-3*(1+2*e)^4)
         '3 * (1 + 3*e)'
@@ -2296,7 +2296,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     It can be either 'none' (or equivalently ``False``), 'bigoh'
     (or equivalently ``True``).
     The default is ``False`` for the ``'floating-point'`` and
-    ``'fixed-mod'`` types and ``True`` for all other types.
+    ``'fixed-mod'`` types and ``True`` for all other types. ::
 
         sage: U.<e> = Zq(9, 2, print_mode='terse', show_prec=False); repr(-3*(1+2*e)^4)
         '3 + 9*e'
@@ -2323,7 +2323,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         sage: repr((a-5)^6)
         '...[0, 4]|[1, 4]|[2, 0, 2]|[1, 4, 3]|[2, 3, 1]|[4, 4, 3]|[2, 4, 4]|[4, 3, 4]'
 
-    Note that it's not possible to read of the precision from the
+    Note that it's not possible to read off the precision from the
     representation in this mode.::
 
         sage: b = a + 3; repr(b)
@@ -2374,7 +2374,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     It can be either 'none' (or equivalently ``False``), 'dots'
     (or equivalently ``True``) or 'bigoh'.
     The default is ``False`` for the ``'floating-point'`` and
-    ``'fixed-mod'`` types and ``True`` for all other types.
+    ``'fixed-mod'`` types and ``True`` for all other types. ::
 
         sage: U.<e> = Zq(9, 2, print_mode='bars', show_prec='bigoh'); repr(-3*(1+2*e)^4)
         '[0, 1]|[1]|[] + O(3^3)'

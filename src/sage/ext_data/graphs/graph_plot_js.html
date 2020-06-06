@@ -37,8 +37,6 @@
     #menu-content div:hover { background-color: #FEFEFE;; }
 
   </style>
-  <!-- This is where the FileSaver.js script will appear : -->
-  <script src="https://cdn.rawgit.com/eligrey/FileSaver.js/e9d941381475b5df8b7d7691013401e171014e89/FileSaver.min.js"></script>
 <!-- This is where the d3.js script will appear : -->
 // D3JS_SCRIPT_HEREEEEEEEEEEE
 <script type="text/javascript">
@@ -293,17 +291,18 @@ window.onload = function(){
 
     function saveAsSVG() {
 
-        // toggleMenu(); // otherwise visible in output
         var doctype = '<?xml version="1.0" standalone="no"?>'
             + '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
 
         // serialize our SVG XML to a string.
         var source = (new XMLSerializer()).serializeToString(d3.select('svg').node());
-        var svg_node = d3.select("svg").outerHTML;
+
         // create a file blob of our SVG.
-        var blob = new Blob([ doctype + source], { type: 'image/svg+xml;charset=utf-8' });
-        saveAs(blob, "my_graph.svg");
-        // toggleMenu();
+        var blob = new Blob([doctype + source], { type: 'image/svg+xml;charset=utf-8' });
+        var a = document.body.appendChild( document.createElement( 'a' ) );
+        a.href = window.URL.createObjectURL( blob );
+        a.download = 'my_graph.svg';
+        a.click()
     }
 
 </script>

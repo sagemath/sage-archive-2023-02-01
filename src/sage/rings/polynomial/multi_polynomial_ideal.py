@@ -4002,7 +4002,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: J.groebner_basis.set_cache(gb)  # optional - giacpy_sage
             sage: ideal(J.transformed_basis()).change_ring(P).interreduced_basis()  # testing trac 21884
-            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
+            ...[a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
         Giac's gbasis over `\QQ` can benefit from a probabilistic lifting and
         multi threaded operations::

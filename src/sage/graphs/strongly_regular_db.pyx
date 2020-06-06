@@ -1484,12 +1484,18 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
             k = int(kf)
             if k == kf and \
                 strongly_regular_graph(v+1, k, l - 2*mu + k , k - mu,  existence=True) is True:
-                def la(vv):
-                    from sage.combinat.designs.twographs import twograph_descendant
-                    g = strongly_regular_graph(vv, k, l - 2*mu + k)
-                    return twograph_descendant(g, next(g.vertex_iterator()),
-                                               name=True)
-                return la, v + 1
+                try:
+                    g = strongly_regular_graph_lazy(v+1, k, l - 2*mu + k) # Sage might not know how to build g
+                    def la(*gr):
+                        from sage.combinat.designs.twographs import twograph_descendant
+                        gg = g[0](*gr)
+                        if (gg.name() is None) or (gg.name() == ''):
+                            gg = Graph(gg, name=str((v+1, k, l - 2*mu + k , k - mu))+"-strongly regular graph")
+                        return twograph_descendant(gg, next(gg.vertex_iterator()),
+                                                   name=True)
+                    return (la, *g[1:])
+                except RuntimeError:
+                    pass
     return
 
 
@@ -2797,7 +2803,17 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
 
     TESTS:
 
-    Check that all of our constructions are correct::
+    Check that :trac:`26513` is fixed::
+
+        sage: graphs.strongly_regular_graph(539, 288, 162, 144)
+        descendant of (540, 264, 138, 120)-strongly regular graph at ... 539 vertices
+        sage: graphs.strongly_regular_graph(539, 250, 105, 125)
+        descendant of (540, 275, 130, 150)-strongly regular graph at ... 539 vertices
+        sage: graphs.strongly_regular_graph(209, 100, 45, 50)
+        descendant of complement(merging of S_7 on Circulant(6,[1,4])s) at ... 209 vertices
+
+
+    Check that all of our constructions are correct - you will need gap_packages spkg installed::
 
         sage: from sage.graphs.strongly_regular_db import apparently_feasible_parameters
         sage: for p in sorted(apparently_feasible_parameters(1300)):   # not tested
@@ -2820,6 +2836,51 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         sage: graphs.strongly_regular_graph(6,3,0)
         Multipartite Graph with set sizes [3, 3]: Graph on 6 vertices
     """
+    if mu == -1:
+        mu = k*(k-l-1)//(v-k-1)
+    g = strongly_regular_graph_lazy(v, k, l, mu=mu, existence=existence)
+    if existence is True:
+        return g
+    G = g[0](*g[1:])
+    if check and (v,k,l,mu) != G.is_strongly_regular(parameters=True):
+        params = (v,k,l,mu)
+        raise RuntimeError(f"Sage built an incorrect {params}-SRG.")
+    return G
+
+def strongly_regular_graph_lazy(int v,int k,int l,int mu=-1,bint existence=False):
+    r"""
+    return a promise to build an `(v,k,l,mu)`-srg
+
+    Return a promise to build an `(v,k,l,mu)`-srg as a tuple `t`, with `t[0]` a
+    function to evaluate on `*t[1:]`.
+
+    Input as in :func:`~sage.graphs.strongly_regular_graphs_db.strongly_regular_graph`,
+    although without `check`.
+
+    TESTS::
+
+        sage: from sage.graphs.strongly_regular_db import strongly_regular_graph_lazy
+        sage: g,p=strongly_regular_graph_lazy(10,6,3); g,p
+        (<cyfunction is_johnson.<locals>.<lambda> at ...>, 5)
+        sage: g(p)
+        Johnson graph with parameters 5,2: Graph on 10 vertices
+        sage: g,p=strongly_regular_graph_lazy(10,3,0,1); g,p
+        (<cyfunction strongly_regular_graph_lazy.<locals>.<lambda> at...>,
+         (5,))
+        sage: g(p)
+        complement(Johnson graph with parameters 5,2): Graph on 10 vertices
+        sage: g,p=strongly_regular_graph_lazy(12,3,2); g,p
+        (<cyfunction strongly_regular_graph_lazy.<locals>.<lambda> at...>,
+         (3, 4))
+        sage: g(p)
+        complement(Multipartite Graph with set sizes [4, 4, 4]): Graph on 12 vertices
+        sage: g=strongly_regular_graph_lazy(539,250,105); g
+        (<cyfunction is_twograph_descendant_of_srg.<locals>.la at...>,
+         5,
+         11)
+        sage: g[0](*g[1:])
+        descendant of (540, 275, 130, 150)-strongly regular graph at 0: Graph on 539 vertices
+    """
     load_brouwer_database()
     if mu == -1:
         mu = k*(k-l-1)//(v-k-1)
@@ -2832,20 +2893,15 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
             return False
         raise ValueError(f"There exists no {params}-strongly regular graph")
 
-    def check_srg(G):
-        if check and (v,k,l,mu) != G.is_strongly_regular(parameters=True):
-            raise RuntimeError(f"Sage built an incorrect {params}-SRG.")
-        return G
-
     if _small_srg_database is None:
         _build_small_srg_database()
 
     if params in _small_srg_database:
         val = _small_srg_database[params]
-        return True if existence else check_srg(val[0](*val[1:]))
+        return True if existence else (val[0], *val[1:])
     if params_complement in _small_srg_database:
         val = _small_srg_database[params_complement]
-        return True if existence else check_srg(val[0](*val[1:]).complement())
+        return True if existence else (lambda *t: val[0](*t).complement(), *val[1:])
 
     test_functions = [is_complete_multipartite, # must be 1st, to prevent 0-divisions
                       is_paley, is_johnson,
@@ -2874,12 +2930,12 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
             if existence:
                 return True
             ans = f(*params)
-            return check_srg(ans[0](*ans[1:]))
+            return (ans[0],*ans[1:])
         if f(*params_complement):
             if existence:
                 return True
             ans = f(*params_complement)
-            return check_srg(ans[0](*ans[1:]).complement())
+            return (lambda t: ans[0](*t).complement(), ans[1:])
 
     # From now on, we have no idea how to build the graph.
     #

@@ -196,7 +196,6 @@ Classes and Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 from functools import total_ordering
 from itertools import combinations_with_replacement

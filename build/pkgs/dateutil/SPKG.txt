@@ -19,9 +19,3 @@ Home page: http://labix.org/python-dateutil
 * Python
 * Six
 
-== Changelog ==
-
-=== dateutil-2.2 (John H. Palmieri, 20 December 2013) ===
-
- * Trac #14993: initial release.
-

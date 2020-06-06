@@ -887,56 +887,56 @@ class assuming:
 
     """
     def __init__(self,*args, **kwds):
-        """
+        r"""
         EXAMPLES::
 
-        sage: forget()
-        sage: foo=assuming(x>0)
-        sage: foo.Ass
-        (x > 0,)
-        sage: bool(x>-1)
-        False
+            sage: forget()
+            sage: foo=assuming(x>0)
+            sage: foo.Ass
+            (x > 0,)
+            sage: bool(x>-1)
+            False
 
         """
         self.replace=kwds.pop("replace",False)
         self.Ass=args
-        
+
     def __enter__(self):
-        """
+        r"""
         EXAMPLES::
 
-        sage: forget()
-        sage: foo=assuming(x>0)
-        sage: bool(x>-1)
-        False
-        sage: foo.__enter__()
-        sage: bool(x>-1)
-        True
-        sage: foo.__exit__()
-        sage: bool(x>-1)
-        False
+            sage: forget()
+            sage: foo=assuming(x>0)
+            sage: bool(x>-1)
+            False
+            sage: foo.__enter__()
+            sage: bool(x>-1)
+            True
+            sage: foo.__exit__()
+            sage: bool(x>-1)
+            False
 
         """
         if self.replace:
             self.OldAss=assumptions()
             forget(assumptions())
         assume(self.Ass)
-        
+
     def __exit__(self, *args, **kwds):
-        """
+        r"""
         EXAMPLES::
 
-        sage: forget()
-        sage: foo=assuming(x>0)
-        sage: bool(x>-1)
-        False
-        sage: foo.__enter__()
-        sage: bool(x>-1)
-        True
-        sage: foo.__exit__()
-        sage: bool(x>-1)
-        False
-        sage: forget()
+            sage: forget()
+            sage: foo=assuming(x>0)
+            sage: bool(x>-1)
+            False
+            sage: foo.__enter__()
+            sage: bool(x>-1)
+            True
+            sage: foo.__exit__()
+            sage: bool(x>-1)
+            False
+            sage: forget()
 
         """
         if self.replace:

@@ -77,9 +77,10 @@ Command-line options for Sage
 - ``--scons [...]`` -- run Sage's scons
 - ``--singular [...]`` -- run Sage's singular with the given arguments
 - ``--twistd [...]`` -- run Twisted server
-- ``--sh [...]`` -- run a shell with Sage environment variables set
-- ``--buildsh [...]`` -- run a shell with Sage environment variables
+- ``--sh [...]`` -- run a shell with Sage environment variables
   as they are set in the runtime of Sage
+- ``--buildsh [...]`` -- run a shell with Sage environment variables
+  as they are set while building Sage and its packages
 - ``--gdb`` -- run Sage under the control of gdb
 - ``--gdb-ipython`` -- run Sage's IPython under the control of gdb
 - ``--cleaner`` -- run the Sage cleaner.  This cleans up after Sage,

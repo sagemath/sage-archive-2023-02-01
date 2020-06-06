@@ -1,9 +1,3 @@
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
-fi
-
 GMP_INC_DIR="$SAGE_LOCAL/include"; export GMP_INC_DIR
 ldflags="-L$SAGE_LOCAL/lib/ -lgmpxx -lgmp"; export ldflags
 

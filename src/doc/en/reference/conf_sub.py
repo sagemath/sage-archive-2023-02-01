@@ -16,8 +16,6 @@ from sage.env import SAGE_DOC_SRC, SAGE_DOC
 from sage.docs.conf import release, exclude_patterns
 from sage.docs.conf import *
 
-from six.moves import range
-
 ref_src = os.path.join(SAGE_DOC_SRC, 'en', 'reference')
 ref_out = os.path.join(SAGE_DOC, 'html', 'en', 'reference')
 

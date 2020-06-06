@@ -728,6 +728,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     dim = dimension
 
+    @cached_method
     def n_vertices(self):
         r"""
         Return the number of vertices.
@@ -1399,6 +1400,91 @@ cdef class CombinatorialPolyhedron(SageObject):
         deprecation(28604, "the method ridge_graph of CombinatorialPolyhedron is deprecated; use facet_graph", 3)
         return Graph(self.ridges(names=names), format="list_of_edges")
 
+    @cached_method
+    def vertex_facet_graph(self, names=True):
+        r"""
+        Return the vertex-facet graph.
+
+        This method constructs a directed bipartite graph.
+        The nodes of the graph correspond to elements of the Vrepresentation
+        and facets. There is a directed edge from Vrepresentation to facets
+        for each incidence.
+
+        If ``names`` is set to ``False``, then the vertices (of the graph) are given by
+        integers.
+
+        INPUT:
+
+        - ``names`` -- boolean (default: ``True``); if ``True`` label the vertices of the
+          graph by the corresponding names of the Vrepresentation resp. Hrepresentation;
+          if ``False`` label the vertices of the graph by integers
+
+        EXAMPLES::
+
+            sage: P = polytopes.hypercube(2).pyramid()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: G = C.vertex_facet_graph(); G
+            Digraph on 10 vertices
+            sage: C.Vrepresentation()
+            (A vertex at (0, -1, -1),
+             A vertex at (0, -1, 1),
+             A vertex at (0, 1, -1),
+             A vertex at (0, 1, 1),
+             A vertex at (1, 0, 0))
+            sage: G.neighbors_out(C.Vrepresentation()[4])
+            [An inequality (-1, 0, -1) x + 1 >= 0,
+             An inequality (-1, 0, 1) x + 1 >= 0,
+             An inequality (-1, -1, 0) x + 1 >= 0,
+             An inequality (-1, 1, 0) x + 1 >= 0]
+
+        If ``names`` is ``True`` (the default) but the combinatorial polyhedron
+        has been initialized without specifying names to
+        ``Vrepresentation`` and ``Hrepresentation``,
+        then indices of the Vrepresentation and the facets will be used along
+        with a string 'H' or 'V'::
+
+            sage: C = CombinatorialPolyhedron(P.incidence_matrix())
+            sage: C.vertex_facet_graph().vertices()
+            [('H', 0),
+             ('H', 1),
+             ('H', 2),
+             ('H', 3),
+             ('H', 4),
+             ('V', 0),
+             ('V', 1),
+             ('V', 2),
+             ('V', 3),
+             ('V', 4)]
+
+        If ``names`` is ``False`` then the vertices of the graph are given by integers::
+
+            sage: C.vertex_facet_graph(names=False).vertices()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        """
+        # The face iterator will iterate through the facets in opposite order.
+        facet_iter = self.face_iter(self.dimension() - 1, dual=False)
+        n_facets = self.n_facets()
+        n_Vrep = self.n_Vrepresentation()
+
+        if not names:
+            vertices = [i for i in range(n_facets + n_Vrep)]
+            edges = tuple((j, n_Vrep + n_facets - 1 - i) for i,facet in enumerate(facet_iter) for j in facet.ambient_V_indices())
+        else:
+            facet_names = self.facet_names()
+            if facet_names is None:
+                # No names where provided at initializiation.
+                facet_names = [("H",i) for i in range(n_facets)]
+
+            Vrep = self.Vrep()
+            if Vrep is None:
+                # No names where provided at initializiation.
+                Vrep = [("V",i) for i in range(n_Vrep)]
+
+            vertices = Vrep + facet_names
+            edges = tuple((Vrep[j], facet_names[n_facets - 1 - i]) for i,facet in enumerate(facet_iter) for j in facet.ambient_V_indices())
+        return DiGraph([vertices, edges], format='vertices_and_edges', immutable=True)
+
+    @cached_method
     def f_vector(self):
         r"""
         Compute the ``f_vector`` of the polyhedron.
@@ -1579,6 +1665,111 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         return flag
 
+    @cached_method
+    def neighborliness(self):
+        r"""
+        Return the largest ``k``, such that the polyhedron is ``k``-neighborly.
+
+        A polyhedron is `k`-neighborly if every set of `n` vertices forms a face
+        for `n` up to `k`.
+
+        In case of the `d`-dimensional simplex, it returns `d + 1`.
+
+        .. SEEALSO::
+
+            :meth:`is_neighborly`
+
+        EXAMPLES::
+
+            sage: P = polytopes.cyclic_polytope(8,12)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.neighborliness()
+            4
+            sage: P = polytopes.simplex(6)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.neighborliness()
+            7
+            sage: P = polytopes.cyclic_polytope(4,10)
+            sage: P = P.join(P)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.neighborliness()
+            2
+        """
+        if self.is_simplex():
+            return self.dim() + 1
+        else:
+            from sage.functions.other import binomial
+            k = 1
+            while self.f_vector()[k+1] == binomial(self.n_vertices(), k + 1):
+                k += 1
+            return k
+
+    @cached_method
+    def is_neighborly(self, k=None):
+        r"""
+        Return whether the polyhedron is neighborly.
+
+        If the input `k` is provided, then return whether the polyhedron is `k`-neighborly.
+
+        A polyhedron is neighborly if every set of `n` vertices forms a face
+        for `n` up to floor of half the dimension of the polyhedron.
+        It is `k`-neighborly if this is true for `n` up to `k`.
+
+        INPUT:
+
+        - ``k`` -- the dimension up to which to check if every set of ``k``
+          vertices forms a face. If no ``k`` is provided, check up to floor
+          of half the dimension of the polyhedron.
+
+        OUTPUT:
+
+        - ``True`` if the every set of up to ``k`` vertices forms a face,
+        - ``False`` otherwise
+
+        .. SEEALSO::
+
+            :meth:`neighborliness`
+
+        EXAMPLES::
+
+            sage: P = polytopes.cyclic_polytope(8,12)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_neighborly()
+            True
+            sage: P = polytopes.simplex(6)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_neighborly()
+            True
+            sage: P = polytopes.cyclic_polytope(4,10)
+            sage: P = P.join(P)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_neighborly()
+            False
+            sage: C.is_neighborly(k=2)
+            True
+        """
+        from sage.functions.other import binomial
+        if k is None:
+            k = self.dim() // 2
+        return all(self.f_vector()[i+1] == binomial(self.n_vertices(), i + 1)
+                   for i in range(1, k))
+
+    def is_simplex(self):
+        r"""
+        Return whether the polyhedron is a simplex.
+
+        A simplex is a bounded polyhedron with `d+1` vertices, where
+        `d` is the dimension.
+
+        EXAMPLES::
+
+            sage: CombinatorialPolyhedron(2).is_simplex()
+            False
+            sage: CombinatorialPolyhedron([[0,1],[0,2],[1,2]]).is_simplex()
+            True
+        """
+        return self.is_bounded() and (self.dim()+1 == self.n_vertices())
+
     def is_simplicial(self):
         r"""
         Test whether the polytope is simplicial.
@@ -1739,7 +1930,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         Return the dimension in case of a simplex.
 
         A polytope `P` is `k`-simple, if every `(d-1-k)`-face
-        is contained in exactly `k+1` facets of `P` for `1 <= k <= d-1`.
+        is contained in exactly `k+1` facets of `P` for `1 \leq k \leq d-1`.
 
         Equivalently it is `k`-simple if the polar/dual polytope is `k`-simplicial.
 

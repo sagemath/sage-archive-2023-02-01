@@ -39,8 +39,6 @@ See :mod:`sage.geometry.triangulation.point_configuration` for more details.
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-from six import iteritems
-
 from sage.structure.richcmp import richcmp
 from sage.structure.element import Element
 from sage.rings.all import QQ, ZZ
@@ -606,10 +604,10 @@ class Triangulation(Element):
             sage: triangulation = polytopes.hypercube(2).triangulate(engine='internal')
             sage: triangulation._boundary_simplex_dictionary()
             {(0, 1): ((0, 1, 3),),
-             (0, 2): ((0, 2, 3),),
-             (0, 3): ((0, 1, 3), (0, 2, 3)),
-             (1, 3): ((0, 1, 3),),
-             (2, 3): ((0, 2, 3),)}
+             (0, 3): ((0, 1, 3),),
+             (1, 2): ((1, 2, 3),),
+             (1, 3): ((0, 1, 3), (1, 2, 3)),
+             (2, 3): ((1, 2, 3),)}
 
             sage: triangulation = polytopes.cube().triangulate(engine='internal')
             sage: triangulation._boundary_simplex_dictionary()
@@ -673,7 +671,7 @@ class Triangulation(Element):
             frozenset({(0, 1, 7), (0, 2, 7), (0, 3, 7), (0, 4, 7), (0, 5, 7), (1, 5, 7)})
         """
         return frozenset(facet for facet, bounded_simplices
-                         in iteritems(self._boundary_simplex_dictionary())
+                         in self._boundary_simplex_dictionary().items()
                          if len(bounded_simplices) == 1)
 
     @cached_method
@@ -709,7 +707,7 @@ class Triangulation(Element):
             frozenset({(0, 1, 7), (0, 2, 7), (0, 3, 7), (0, 4, 7), (0, 5, 7), (1, 5, 7)})
         """
         return frozenset(facet for facet, bounded_simplices
-                         in iteritems(self._boundary_simplex_dictionary())
+                         in self._boundary_simplex_dictionary().items()
                          if len(bounded_simplices) == 2)
 
     @cached_method
@@ -739,21 +737,21 @@ class Triangulation(Element):
 
             sage: triangulation = polytopes.hypercube(2).triangulate(engine='internal')
             sage: triangulation
-            (<0,1,3>, <0,2,3>)
+            (<0,1,3>, <1,2,3>)
             sage: N = triangulation.normal_cone();  N
             4-d cone in 4-d lattice
             sage: N.rays()
-            (-1,  0,  0,  0),
-            ( 1,  0,  1,  0),
-            (-1,  0, -1,  0),
-            ( 1,  0,  0, -1),
-            (-1,  0,  0,  1),
-            ( 1,  1,  0,  0),
-            (-1, -1,  0,  0)
+            ( 0,  0,  0, -1),
+            ( 0,  0,  1,  1),
+            ( 0,  0, -1, -1),
+            ( 1,  0,  0,  1),
+            (-1,  0,  0, -1),
+            ( 0,  1,  0, -1),
+            ( 0, -1,  0,  1)
             in Ambient free module of rank 4
             over the principal ideal domain Integer Ring
             sage: N.dual().rays()
-            (-1, 1, 1, -1)
+            (1, -1, 1, -1)
             in Ambient free module of rank 4
             over the principal ideal domain Integer Ring
 

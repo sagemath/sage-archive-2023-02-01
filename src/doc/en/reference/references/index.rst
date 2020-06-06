@@ -1594,6 +1594,10 @@ REFERENCES:
             and groups, 3rd. ed., Grundlehren der Mathematischen
             Wissenschaften, vol. 290, Springer-Verlag, New York, 1999.
 
+.. [CS1988] Conway, J. H., and N. J. A. Sloane. “Low-Dimensional Lattices. IV.
+            The Mass Formula.” Proceedings of the Royal Society of London.
+            Series A, Mathematical and Physical Sciences, vol. 419, no. 1857, 1988, pp. 259-286.
+
 .. [CS2003] \John E. Cremona and Michael Stoll. On The Reduction Theory of Binary Forms.
             Journal für die reine und angewandte Mathematik, 565 (2003), 79-99.
 
@@ -1624,6 +1628,13 @@ REFERENCES:
 .. [Cun1986] \W. H. Cunningham, Improved Bounds for Matroid Partition
              and Intersection Algorithms. SIAM Journal on Computing
              1986 15:4, 948-957.
+
+.. [CVV2019] Xavier Caruso, Tristan Vaccon and Thibaut Verron,
+             *Gröbner bases over Tate algebras*, :arxiv:`1901.09574` (2019)
+
+.. [CVV2020] Xavier Caruso, Tristan Vaccon and Thibaut Verron,
+             *Signature-based algorithms for Gröbner bases over Tate algebras*,
+             :arxiv:`2002.04491` (2020)
 
 .. [CW2005] \J. E. Cremona and M. Watkins. Computing isogenies of elliptic
             curves. preprint, 2005.
@@ -1745,7 +1756,7 @@ REFERENCES:
 
 .. [DGH2020] \C. Donnot, A. Genitrini and Y. Herida. Unranking Combinations
             Lexicographically: an efficient new strategy compared with others, 2020,
-            https://hal.archives-ouvertes.fr/hal-02462764v1 
+            https://hal.archives-ouvertes.fr/hal-02462764v1
 
 .. [DGMPPS2019] \N. Datta, A. Ghoshal, D. Mukhopadhyay, S. Patranabis,
                 S. Picek, R. Sashukhan. "TRIFLE"
@@ -1893,6 +1904,9 @@ REFERENCES:
             Connection Table* (preprint); in Cryptology ePrint Archive,
             (2018), 631.
 
+.. [Duc1998] \L. Ducos, Optimizations of the Subresultant Algorithm.
+             http://www-math.univ-poitiers.fr/~ducos/Travaux/sous-resultants.pdf
+
 .. [Dur1998] \F. Durand, *A characterization of substitutive sequences
             using return words*, Discrete Math. 179 (1998) 89-101.
 
@@ -2014,6 +2028,10 @@ REFERENCES:
 .. _ref-F:
 
 **F**
+
+.. [Fag1983] Fagin, Ronald. *Degrees of acyclicity for hypergraphs and
+             relational database schemes.* Journal of the ACM (JACM) 30.3
+             (1983): 514-550.
 
 .. [Fayers2010] Matthew Fayers. *An LLT-type algorithm for computing
                 higher-level canonical bases*. J. Pure Appl. Algebra
@@ -3018,6 +3036,9 @@ REFERENCES:
              subcodes of the second order binary Reed-Muller codes*.
              Information and Control, 18, pp. 369-394, 1971.
 
+.. [Kas2018] András Kaszanyitzky. *The GraftalLace Cellular Automata*.
+             Preprint, :arxiv:`1805.11532`.
+
 .. [Kat1991] Nicholas M. Katz, *Exponential sums and differential equations*,
              Princeton University Press, Princeton NJ, 1991.
 
@@ -3225,12 +3246,15 @@ REFERENCES:
             http://portal.acm.org/citation.cfm?id=763203 and free of
             charge at :arxiv:`math/0106043`
 
-.. [KP2011] Manuel Kauers and Peter Paule. The Concrete Tetrahedron.
-            Springer-Verlag, 2011.
-
 .. [KP2002b] James Kuzmanovich; Andrey Pavlichenkov, *Finite
              Groups of Matrices Whose Entries Are Integers*, The American
              Mathematical Monthly, Vol. 109, No. 2. (2002) pp. 173-186
+
+.. [KP2011] Manuel Kauers and Peter Paule. The Concrete Tetrahedron.
+            Springer-Verlag, 2011.
+
+.. [KP2020] Lars Kastner and Marta Panizzut, *Hyperplane arrangements
+            in polymake*, arxiv:`2003.13548`.
 
 .. [KPRWZ2010] \M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
                *Examples of computer experimentation in algebraic
@@ -4074,6 +4098,9 @@ REFERENCES:
               Normaliz,
               http://www.mathematik.uni-osnabrueck.de/normaliz/
 
+.. [NormalizMan]  Winfried Bruns, Max Horn, *Normaliz 3.8.5*,
+                  2020, https://github.com/Normaliz/Normaliz/blob/master/doc/Normaliz.pdf.
+
 .. [NoThWi08] J.-C. Novelli, J.-Y. Thibon, L. K. Williams,
               *Combinatorial Hopf algebras, noncommutative Hall-Littlewood
               functions, and permutation tableaux*.
@@ -4897,9 +4924,9 @@ REFERENCES:
 .. [St2011b] \W. Stein, *Toward a Generalization of the Gross-Zagier
             Conjecture*, Int Math Res Notices (2011),
             :doi:`10.1093/imrn/rnq075`
-            
-.. [St2007] \W. Stein. *Modular Forms, a Computational Approach*. 
-            With an appendix by Paul E. Gunnells. 
+
+.. [St2007] \W. Stein. *Modular Forms, a Computational Approach*.
+            With an appendix by Paul E. Gunnells.
             AMS Graduate Studies in Mathematics, Volume 79, 2007.
             :doi:`10.1090/gsm/079`
 
@@ -5380,11 +5407,11 @@ REFERENCES:
 .. [Wu2004] Wuthrich, Christian. *On p-adic heights in families of
             elliptic curves*. Journal of the London Mathematical
             Society, 70(1), 23-40, (2004).
-            
+
 .. [Wu2018] Wuthrich, Christian.
-            *Numerical modular symbols for elliptic curves*. 
-            Math. Comp. 87 (2018), no. 313, 2393–2423. 
-            
+            *Numerical modular symbols for elliptic curves*.
+            Math. Comp. 87 (2018), no. 313, 2393–2423.
+
 .. [WW1991] Michelle Wachs and Dennis White, *p, q-Stirling numbers
             and set partition statistics*, Journal of Combinatorial
             Theory, Series A 56.1 (1991): 27-46.

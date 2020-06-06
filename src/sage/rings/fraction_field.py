@@ -70,8 +70,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
-import six
 
 from . import ring
 from . import fraction_field_element
@@ -623,13 +621,13 @@ class FractionField_generic(ring.Field):
             except (TypeError, ValueError):
                 pass
 
-        if isinstance(x, six.string_types):
+        if isinstance(x, str):
             from sage.misc.sage_eval import sage_eval
             try:
                 x = sage_eval(x, self.gens_dict_recursive())
             except NameError:
                 raise TypeError("unable to evaluate {!r} in {}".format(x, self))
-        if isinstance(y, six.string_types):
+        if isinstance(y, str):
             from sage.misc.sage_eval import sage_eval
             try:
                 y = sage_eval(y, self.gens_dict_recursive())

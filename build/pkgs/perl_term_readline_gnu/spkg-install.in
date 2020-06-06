@@ -1,10 +1,20 @@
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
-fi
-
 cd src
+
+case $(uname) in
+    Darwin)
+        # #21175/#29408: Set the ARCHFLAGS environment variable. This
+        # is to make sure that the output of perl -MExtUtils::Embed
+        # -e ldopts and perl -MExtUtils::Embed -e ccflags (picked up
+        # from system perl) do not contain -arch flags incompatible
+        # with our gcc.
+        export ARCHFLAGS=""
+        # Perl does some weird things with -Wl,-rpath commands.
+        # Add a workaround to those
+        if [[ "$($CC --version)" == *clang* ]]; then
+            export LDFLAGS=$(echo $LDFLAGS | sed "s/-Wl,-rpath,/-Xlinker -rpath -Xlinker /g")
+        fi
+        ;;
+esac
 
 # In the configure phase, the package fails to use rpath for a test
 # program that it compiles, causing a build failure on Linux as

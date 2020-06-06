@@ -158,7 +158,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
     - [LV2012]_
     """
     @staticmethod
-    def __classcall_private__(cls, R, n=None, names=None):
+    def __classcall_private__(cls, R, n=None, names=None, prefix=None):
         """
         Standardize input to ensure a unique representation.
 
@@ -190,12 +190,14 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             n = len(names)
         if R not in Rings():
             raise TypeError("argument R must be a ring")
+        if prefix is None:
+            prefix = 'Z'
         superclass = super(FreeZinbielAlgebra, cls)
         if names is None:
-            return superclass.__classcall__(cls, R, n, None)
-        return superclass.__classcall__(cls, R, n, tuple(names))
+            return superclass.__classcall__(cls, R, n, None, prefix)
+        return superclass.__classcall__(cls, R, n, tuple(names), prefix)
 
-    def __init__(self, R, n, names):
+    def __init__(self, R, n, names, prefix):
         """
         Initialize ``self``.
 
@@ -214,6 +216,9 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             Traceback (most recent call last):
             ...
             TypeError: argument R must be a ring
+
+            sage: algebras.FreeZinbiel(QQ, ['x', 'y'], prefix='f')
+            Free Zinbiel algebra on generators (f[x], f[y]) over Rational Field
         """
         if R not in Rings():
             raise TypeError("argument R must be a ring")
@@ -224,7 +229,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             indices = Words(Alphabet(n, names=names), infinite=False)
             self._n = n
         cat = MagmaticAlgebras(R).WithBasis().Graded()
-        CombinatorialFreeModule.__init__(self, R, indices, prefix='Z',
+        CombinatorialFreeModule.__init__(self, R, indices, prefix=prefix,
                                          category=cat)
         if self._n is not None:
             self._assign_names(names)

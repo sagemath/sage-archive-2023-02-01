@@ -1,14 +1,7 @@
 SAGE_SPKG_CONFIGURE([pari], [
-    dnl See gp_version below on how the version is computed from MAJV.MINV.PATCHV
-    m4_pushdef([SAGE_PARI_MINVER],["133889"])
-    AC_REQUIRE([SAGE_SPKG_CONFIGURE_GMP])
-    AC_REQUIRE([SAGE_SPKG_CONFIGURE_READLINE])
-    AC_MSG_CHECKING([installing gmp/mpir or readline? ])
-    if test x$sage_spkg_install_mpir = xyes -o x$sage_spkg_install_gmp = xyes -o x$sage_spkg_install_readline = xyes; then dnl deps test
-        AC_MSG_RESULT([yes; install pari as well])
-        sage_spkg_install_pari=yes
-    else
-      AC_MSG_RESULT([no])
+  dnl See gp_version below on how the version is computed from MAJV.MINV.PATCHV
+  m4_pushdef([SAGE_PARI_MINVER],["133889"])
+  SAGE_SPKG_DEPCHECK([gmp mpir readline], [
     AC_PATH_PROG([GP], [gp])
     if test x$GP = x; then dnl GP test
         AC_MSG_NOTICE([gp is not found])
@@ -73,8 +66,19 @@ SAGE_SPKG_CONFIGURE([pari], [
             AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
             sage_spkg_install_pari=yes
         fi
+        AC_MSG_CHECKING([whether hyperellcharpoly bug is fixed])
+        bug_check=`echo "hyperellcharpoly(Mod(1,3)*(x^10 + x^9 + x^8 + x))" | $GP -qf 2>> config.log`
+        expected="x^8 + 2*x^7 + 6*x^6 + 9*x^5 + 18*x^4 + 27*x^3 + 54*x^2 + 54*x + 81"
+        if test x"$bug_check" = x"$expected"; then
+           AC_MSG_RESULT([yes])
+        else
+           AC_MSG_RESULT([no; cannot use system pari/GP with known bug])
+           AC_MSG_NOTICE([Upgrade your system package and reconfigure.])
+           AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
+           sage_spkg_install_pari=yes
+        fi
         AC_MSG_CHECKING([whether bnfisunit bug of pari 2.11.3 is fixed])
-        bug_check=$(echo "bnf = bnfinit(y^4-y-1); bnfisunit(bnf,-y^3+2*y^2-1)" | $GP -qf 2>> config.log)
+        bug_check=`echo "bnf = bnfinit(y^4-y-1); bnfisunit(bnf,-y^3+2*y^2-1)" | $GP -qf 2>> config.log`
         expected="[[0, 2, Mod(0, 2)]]~"
         if test x"$bug_check" = x"$expected"; then
            AC_MSG_RESULT([yes])
@@ -128,8 +132,8 @@ SAGE_SPKG_CONFIGURE([pari], [
               AC_LANG_POP()
         ], [sage_spkg_install_pari=yes])
       fi dnl end main PARI test
-    fi dnl end deps test
-    m4_popdef([SAGE_PARI_MINVER])
+  ])
+  m4_popdef([SAGE_PARI_MINVER])
 ], [], [], [
     if test x$sage_spkg_install_pari = xyes; then
         AC_SUBST(SAGE_PARI_PREFIX, ['$SAGE_LOCAL'])

@@ -195,6 +195,13 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         ;;
     esac
 
+    # Trac #29629: Temporary solution for Sage 9.1: Do not advertise installing pip packages
+    # using ./configure --enable-SPKG
+    if test -f "$DIR/requirements.txt"; then
+        message="$SPKG_TYPE pip package; use \"./sage -i $SPKG_NAME\" to install"
+        uninstall_message="$SPKG_TYPE pip package (installed)"
+    fi
+
     SAGE_PACKAGE_VERSIONS+="vers_$SPKG_NAME = $SPKG_VERSION"$'\n'
 
         AS_VAR_PUSHDEF([sage_spkg_install], [sage_spkg_install_${SPKG_NAME}])dnl
@@ -268,11 +275,6 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
             ORDER_ONLY_DEPS='pip'
             ;;
         esac
-        case "$SPKG_TYPE" in
-        optional|experimental)
-            ORDER_ONLY_DEPS="$ORDER_ONLY_DEPS"' $(STANDARD_PACKAGES)'
-            ;;
-        esac
         if test -n "$ORDER_ONLY_DEPS"; then
             DEPS="| $ORDER_ONLY_DEPS"
         else
@@ -318,9 +320,10 @@ AC_DEFUN([SAGE_SYSTEM_PACKAGE_NOTICE], [
         AS_IF([test $SYSTEM != unknown], [
             SYSTEM_PACKAGES=$(build/bin/sage-get-system-packages $SYSTEM $SAGE_NEED_SYSTEM_PACKAGES)
             AS_IF([test -n "$SYSTEM_PACKAGES"], [
-                COMMAND=$(build/bin/sage-print-system-package-command $SYSTEM install $SYSTEM_PACKAGES)
+                PRINT_SYS="build/bin/sage-print-system-package-command $SYSTEM --verbose --prompt --sudo"
+                COMMAND=$($PRINT_SYS update && $PRINT_SYS install $SYSTEM_PACKAGES && SAGE_ROOT=$SAGE_ROOT $PRINT_SYS setup-build-env )
                 AC_MSG_NOTICE([hint: installing the following system packages is recommended and may avoid building some of the above SPKGs from source:])
-                AC_MSG_NOTICE([  \$ $COMMAND])
+                AC_MSG_NOTICE([$COMMAND])
                 AC_MSG_NOTICE([After installation, re-run configure using:])
                 AC_MSG_NOTICE([  \$ ./config.status --recheck && ./config.status])
             ], [

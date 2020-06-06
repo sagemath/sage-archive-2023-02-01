@@ -1,2 +1,2 @@
 cd src
-sdh_make check AM_CFLAGS="" AM_FFLAGS=""
+sdh_make_check AM_CFLAGS="" AM_FFLAGS=""

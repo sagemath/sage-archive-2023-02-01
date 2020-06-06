@@ -42,7 +42,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
 
 from sage.structure.element import parent
 from sage.structure.parent import Parent
@@ -1179,7 +1178,7 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
 
         elif isinstance(x, (LaurentPolynomial_univariate, LaurentPolynomial_mpair)):
             if self.variable_names() == P.variable_names():
-                # No special processing needed here;    
+                # No special processing needed here;
                 #   handled by LaurentPolynomial_mpair.__init__
                 pass
             elif set(self.variable_names()) & set(P.variable_names()):

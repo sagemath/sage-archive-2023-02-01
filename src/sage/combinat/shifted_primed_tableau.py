@@ -18,7 +18,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import, division
-from six import add_metaclass
 
 from sage.combinat.partition import Partition, Partitions, _Partitions, OrderedPartitions
 from sage.combinat.partitions import ZS1_iterator
@@ -45,8 +44,8 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.combination import Combinations
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class ShiftedPrimedTableau(ClonableArray):
+class ShiftedPrimedTableau(ClonableArray,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A shifted primed tableau.
 

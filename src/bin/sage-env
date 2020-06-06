@@ -227,6 +227,10 @@ if [ "$UNAME" = "Darwin" ]; then
     export OBJC OBJCXX
 fi
 
+if [ "$SAGE_PYTHON_VERSION" = 3 ]; then
+    export SAGE_PYTHON3=yes
+fi
+
 # Set other Fortran-related compiler variables
 export F77="$FC"
 export F90="$FC"   # Needed for SciPy
@@ -291,6 +295,12 @@ export SAGE_SRC="$SAGE_ROOT/src"
 export SAGE_DOC_SRC="$SAGE_SRC/doc"
 export SAGE_DOC="$SAGE_SHARE/doc/sage"
 
+if [ -n "$SAGE_PKG_CONFIG_PATH" ]; then
+    # set up external pkg-config to look into SAGE_LOCAL/lib/pkgconfig/
+    # (Sage's pkgconf spkg takes care of this, if installed)
+    export PKG_CONFIG_PATH="$SAGE_PKG_CONFIG_PATH${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+fi
+
 if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
     SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH
     SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET
@@ -336,13 +346,13 @@ fi
 
 # Compile-time path for libraries.  This is the equivalent of
 # adding the gcc option -L $SAGE_LOCAL/lib.
-[ -z "$LIBRARY_PATH" ] || LIBRARY_PATH="${LIBRARY_PATH}:"
-export LIBRARY_PATH="${LIBRARY_PATH}$SAGE_LOCAL/lib"
+[ -z "$LIBRARY_PATH" ] || LIBRARY_PATH=":${LIBRARY_PATH}"
+export LIBRARY_PATH="$SAGE_LOCAL/lib${LIBRARY_PATH}"
 
 # Compile-time path for include files.  This is the equivalent of
 # adding the gcc option -I $SAGE_LOCAL/include.
-[ -z "$CPATH" ] || CPATH="${CPATH}:"
-export CPATH="${CPATH}$SAGE_LOCAL/include"
+[ -z "$CPATH" ] || CPATH=":${CPATH}"
+export CPATH="$SAGE_LOCAL/include${CPATH}"
 
 SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
 SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
@@ -413,6 +423,9 @@ if [ -n "$PYTHONHOME" ]; then
 fi
 
 LDFLAGS="-L$SAGE_LOCAL/lib -Wl,-rpath,$SAGE_LOCAL/lib $LDFLAGS"
+if [ "$UNAME" = "Linux" ]; then
+    LDFLAGS="-Wl,-rpath-link,$SAGE_LOCAL/lib $LDFLAGS"
+fi
 export LDFLAGS
 
 if [ -z "$IPYTHONDIR" ]; then
@@ -543,11 +556,6 @@ fi
 
 if [ -n "$CFLAGS" -a -z "$CXXFLAGS" ]; then
     export CXXFLAGS="$CFLAGS"
-fi
-
-if [ "$UNAME" = "Darwin" ]; then
-    # Trac #21175 - export empty ARCHFLAGS for the benefit of Perl modules
-    ARCHFLAGS="" && export ARCHFLAGS
 fi
 
 if [ "$CP" = "" ]; then

@@ -380,16 +380,7 @@ if [ "$1" = '-i' ]; then
     # Now install the packages
     for PKG in $PACKAGES; do
         echo
-        # First check that $PKG is an optional or experimental package
-        # so that it can be handled by configure --enable-PKG
-        SPKG_TYPE="$(cat "build/pkgs/$PKG/type" 2>/dev/null || true)"
-        case "$SPKG_TYPE" in
-            optional|experimental)
-                ENABLE_ARGS="$ENABLE_ARGS '--enable-$PKG'"
-                continue
-                ;;
-        esac
-        # Otherwise check that $PKG is actually a Makefile target
+        # Check that $PKG is actually a Makefile target
         # See https://trac.sagemath.org/ticket/25078
         if ! echo "$ALL_TARGETS" | grep "^${PKG}$" >/dev/null; then
             echo >&2 "Error: package '$PKG' not found"
@@ -398,18 +389,9 @@ if [ "$1" = '-i' ]; then
         fi
         $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG"
     done
-    if [ -n "$ENABLE_ARGS" ]; then
-        # Adapted from config.status --recheck.
-        # ./config.status --config returns single-quoted arguments such as
-        #   'CC=gcc -Wall' '--enable-e_antic'
-        CONFIG_CMD="./configure $(./config.status --config) $ENABLE_ARGS"
-        echo >&2 "running $CONFIG_CMD"
-        bash -c "$CONFIG_CMD" && $MAKE all-build
-    else
-        echo "New packages may have been installed."
-        echo "Re-running configure and make in case any dependent packages need updating."
-        touch "$SAGE_ROOT/configure" && $MAKE all-build
-    fi
+    echo "New packages may have been installed."
+    echo "Re-running configure and make in case any dependent packages need updating."
+    touch "$SAGE_ROOT/configure" && $MAKE all-build
     exit 0
 fi
 
@@ -621,7 +603,7 @@ fi
 
 if [ "$1" = '--pip3' ]; then
     shift
-    exec python3 -m pip "$@"
+    exec "$SAGE_LOCAL"/bin/python3 -m pip "$@"
 fi
 
 if [ "$1" = '-fix-pkg-checksums' -o "$1" = '--fix-pkg-checksums' ]; then
@@ -632,20 +614,20 @@ fi
 if [ "$1" = '-python' -o "$1" = '--python' ]; then
     shift
     if [ "$SAGE_PYTHON3" = 'yes' ]; then
-        exec python3 "$@"
+        exec "$SAGE_LOCAL"/bin/python3 "$@"
     else
-        exec python2 "$@"
+        exec "$SAGE_LOCAL"/bin/python2 "$@"
     fi
 fi
 
 if [ "$1" = '-python2' -o "$1" = '--python2' ]; then
     shift
-    exec python2 "$@"
+    exec "$SAGE_LOCAL"/bin/python2 "$@"
 fi
 
 if [ "$1" = '-python3' -o "$1" = '--python3' ]; then
     shift
-    exec python3 "$@"
+    exec "$SAGE_LOCAL"/bin/python3 "$@"
 fi
 
 if [ "$1" = '-R' -o "$1" = '--R' ]; then
@@ -655,17 +637,17 @@ fi
 
 if [ "$1" = '-ipython' -o "$1" = '--ipython' ]; then
     shift
-    exec ipython "$@"
+    exec "$SAGE_LOCAL"/bin/ipython "$@"
 fi
 
 if [ "$1" = '-ipython3' -o "$1" = '--ipython3' ]; then
     shift
-    exec ipython3 "$@"
+    exec "$SAGE_LOCAL"/bin/ipython3 "$@"
 fi
 
 if [ "$1" = '-jupyter' -o "$1" = '--jupyter' ]; then
     shift
-    exec jupyter "$@"
+    exec "$SAGE_LOCAL"/bin/jupyter "$@"
 fi
 
 if [ "$1" = '-git' -o "$1" = '--git' ]; then

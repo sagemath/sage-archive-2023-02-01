@@ -125,7 +125,7 @@ class FormalPolyhedraModule(CombinatorialFreeModule):
             [conv([0], [1])] + [conv([1], [2])]
 
         We note that modulo the linear relations of polyhedra, this is only a filtration,
-        not a grading, as the following example shows.
+        not a grading, as the following example shows::
 
             sage: X = M(I01) + M(I12) - M(I02)
             sage: X.degree()

@@ -41,7 +41,7 @@ Dependencies
 ------------
 
 To install, nothing more than a standard Sage install. The
-\`spkg-check\` script will exit without actually testing anything if it
+``spkg-check`` script will exit without actually testing anything if it
 cannot find "latex" in your path.
 
 Notes
@@ -53,9 +53,9 @@ needs. Full details are in the Sage installation guide at
 http://doc.sagemath.org/html/en/installation/ and
 http://doc.sagemath.org/html/en/tutorial/sagetex.html .
 
-The directory \`$SAGE_ROOT/local/share/doc/sagetex\` contains
+The directory ``$SAGE_ROOT/local/share/doc/sagetex`` contains
 documentation and an example file. See
-\`$SAGE_ROOT/local/share/texmf/tex/latex/sagetex\` for the source code
+``$SAGE_ROOT/local/share/texmf/tex/latex/sagetex`` for the source code
 and some possibly useful scripts. If you have problems or suggestions
 see `the sage-support
 group <http://groups.google.com/group/sage-support>`__.

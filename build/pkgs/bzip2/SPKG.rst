@@ -31,8 +31,9 @@ None
 Special Update/Build Instructions
 ---------------------------------
 
-This package must not be bzip2 compressed, so create it using tar c
-bzip2-1.0.6 \| gzip --best >bzip2-1.0.6.spkg
+This package must not be bzip2 compressed, so create it using ::
+
+    tar c bzip2-1.0.6 | gzip --best >bzip2-1.0.6.spkg
 
 The build system has been autotoolized based on a patch by the Suse folk
 at

@@ -37,7 +37,6 @@ Special Update/Build Instructions
 ---------------------------------
 
 -  As of version 1.0.4, you need to repackage the upstream tarball
-
    using the spkg-src script because there was a bugfix version of 1.0.4
    reposted upstream without version number bump.
 

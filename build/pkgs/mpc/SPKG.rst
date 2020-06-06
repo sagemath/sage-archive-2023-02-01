@@ -24,7 +24,7 @@ Upstream Contact
 
 The MPC website is located at http://www.multiprecision.org/mpc .
 
-The MPC team can be contact via the MPC mailing list:
+The MPC team can be contacted via the MPC mailing list:
 
    mpc-discuss@lists.gforge.inria.fr
 
@@ -39,6 +39,5 @@ Special Update/Build Instructions
 ---------------------------------
 
 -  mpc_mul_faster.patch: Patch from Paul Zimmermann to speed up MPC
-
    multiplication (for small precisions) by reducing overhead in MPFR
    operations.

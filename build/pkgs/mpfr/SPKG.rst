@@ -49,20 +49,17 @@ Dependencies
 Special Update/Build Instructions
 ---------------------------------
 
--  Make sure MPFR's settings of \`CC\` and \`CFLAGS\` still get properly
+-  Make sure MPFR's settings of ``CC`` and ``CFLAGS`` still get properly
    extracted,
+   currently from its ``config.log`` in the ``src/`` directory.
 
-   currently from its \`config.log\` in the \`src/\` directory.
-
--  We should remove the \`configure\` option \`--disable-thread-safe\`
+-  We should remove the ``configure`` option ``--disable-thread-safe``
    in case
-
    the issues without that have meanwhile been fixed. (Then we should
-   actually pass \`--enable-thread-safe`.)
+   actually pass ``--enable-thread-safe``.)
 
 TODO
 ----
 
--  --disable-thread-safe should be switched to --enable-thread-safe,
-
+-  ``--disable-thread-safe`` should be switched to ``--enable-thread-safe``,
    need to check that this works on the buildbot machines

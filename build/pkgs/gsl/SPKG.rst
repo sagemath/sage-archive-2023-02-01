@@ -30,24 +30,20 @@ Upstream Contact
 GSL mailing lists:
 
 -  Bug-gsl <bug-gsl@gnu.org> mailing list -- bug reports for the GNU
-
    Scientific Library should be sent to bug-gsl@gnu.org
 
 -  Help-gsl <help-gsl@gnu.org> users mailing list -- for questions about
-
    installation, how GSL works and how it is used, or general questions
    concerning GSL.
 
 -  Info-gsl <info-gsl@gnu.org> mailing list -- announcements of new
    releases
-
    are made there.
 
 Dependencies
 ------------
 
 -  None - GSL does not depend on any other Sage package to compile, link
-
    and pass all of GSL's self-tests. Despite that fact, BLAS is listed
    as
    a dependency. (It comes with its own CBLAS implementation that is

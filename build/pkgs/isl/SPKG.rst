@@ -25,18 +25,18 @@ Upstream Contact
 Citation
 --------
 
-@incollection{Verdoolaege2010isl,
+::
 
-   author = {Verdoolaege, Sven},
-   title = {isl: An Integer Set Library for the Polyhedral Model},
-   booktitle = {Mathematical Software - ICMS 2010},
-   series = {Lecture Notes in Computer Science},
-   editor = {Fukuda, Komei and Hoeven, Joris and Joswig, Michael and
-   Takayama, Nobuki},
-   publisher = {Springer},
-   isbn = {978-3-642-15581-9},
-   pages = {299-302},
-   volume = {6327},
-   year = {2010}
-
-}
+  @incollection{Verdoolaege2010isl,
+     author = {Verdoolaege, Sven},
+     title = {isl: An Integer Set Library for the Polyhedral Model},
+     booktitle = {Mathematical Software - ICMS 2010},
+     series = {Lecture Notes in Computer Science},
+     editor = {Fukuda, Komei and Hoeven, Joris and Joswig, Michael and
+     Takayama, Nobuki},
+     publisher = {Springer},
+     isbn = {978-3-642-15581-9},
+     pages = {299-302},
+     volume = {6327},
+     year = {2010}
+  }

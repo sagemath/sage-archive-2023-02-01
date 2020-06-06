@@ -24,7 +24,7 @@ Upstream Contact
 ----------------
 
 -  David Harvey
--  E. M. Bray <erik.m.bray@gmail.com>
+-  \E. M. Bray <erik.m.bray@gmail.com>
 
 Dependencies
 ------------
@@ -41,32 +41,26 @@ Special Update/Build Instructions
 
 -  Make sure the patches still apply.
 
-   Especially changes in \`makemakefile.py\` may also require changes to
-   \`spkg-install\` (and perhaps also \`spkg-check`).
+   Especially changes in ``makemakefile.py`` may also require changes to
+   ``spkg-install`` (and perhaps also ``spkg-check``).
 
--  There's also a \`--use-flint\` option to \`configure`; no idea what
+-  There's also a ``--use-flint`` option to ``configure``; no idea what
    it does,
-
    and we currently don't use it either.
 
 -  TODO:
--  Use \`make install\` instead of manually "installing" (copying and
-   sym-
-
-   linking) the [shared] libraries and header files. This requires
+-  Use ``make install`` instead of manually "installing" (copying and
+   symlinking) the [shared] libraries and header files. This requires
    further
-   tweaking of \`makemakefile.py`, since it currently only installs a
+   tweaking of ``makemakefile.py``, since it currently only installs a
    static
    library and the headers.
 
 -  If everything's fine, i.e., no problems arise, some comments and
-   especial-
-
-   ly some code I currently just commented out can certainly be removed.
+   especially some code I currently just commented out can certainly be removed.
    (-leif, 04/2012)
 
 -  The version number "0.9.p11" is used as a doctest in the function
-
    package_versions in sage/misc/packages.py, so if this package gets
    upgraded, that doctest needs to be changed.
 
@@ -82,7 +76,7 @@ Patches
 
 -  profiler.c.patch, zn_poly.h.patch:
 
-   Fix potential redefinition of \`ulong\` (in combination with other
+   Fix potential redefinition of ``ulong`` (in combination with other
    headers).
 
 -  mpn_mulmid-tune.c.patch, mulmid-tune.c.patch, mul-tune.c.patch:
@@ -99,5 +93,4 @@ Patches
 -  fix_fudge_factor_in_nuss-test.c.patch:
 
    As the name says; fix provided by upstream (David Harvey); see
-
-   #. 13947.
+   #13947.

@@ -17,8 +17,8 @@ GPLv3+
 Upstream Contact
 ----------------
 
-https://github.com/sagemath/git-trac-command Volker Braun
-<vbraun.name@gmail.com>
+- https://github.com/sagemath/git-trac-command
+- Volker Braun <vbraun.name@gmail.com>
 
 Dependencies
 ------------

@@ -39,10 +39,9 @@ Special Update/Build Instructions
 
 -  On old versions of Darwin, the symbolic links libpng.\* created by
    libpng16 may
-
    interfere with a system-wide libPng.dylib.
 
--  -- the following is very likely to be obsolete in 2014 ---
+   -- the following is very likely to be obsolete in 2014 ---
 
    This system-wide library is likely to be a different version and on
    top of that, the symbols exported there are prefixed with "_cg"
@@ -57,14 +56,13 @@ Special Update/Build Instructions
    looked for when Sage is being built or run, but that's not the case
    either; it is at least looked for by the "ImageIO" framework:
 
--  when Python is built with Mac OS extensions, fixed in #4008;
--  when Mercurial is built because it uses $EDITOR, cf. #4678;
--  when R is built and it finds -lpng, cf. #4409 and #11696.
+   -  when Python is built with Mac OS extensions, fixed in #4008;
+   -  when Mercurial is built because it uses $EDITOR, cf. #4678;
+   -  when R is built and it finds ``-lpng``, cf. #4409 and #11696.
 
--  -- this is no longer done, as of #27186 ---
+   -- this is no longer done, as of #27186 ---
 
    As not all of these problems are easily dealt with and new ones may
    arise, we chose to delete the $SAGE_LOCAL/lib/libpng.\* symlinks.
    Therefore, some packages like Tachyon, which by default look for
-
--  lpng are patched to look for -lpng16 instead.
+   ``-lpng`` are patched to look for ``-lpng16`` instead.

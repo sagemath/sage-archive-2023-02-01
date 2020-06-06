@@ -9,7 +9,7 @@ Description
    unusually rich command set that provides both high-operations and
    full access to internals.
 
--  - \`man git\`
+-  ``man git``
 
 
 Upstream Contact

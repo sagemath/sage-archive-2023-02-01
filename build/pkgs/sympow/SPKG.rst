@@ -17,10 +17,10 @@ License
 Upstream Contact
 ----------------
 
-   SYMPOW does not appear to be maintained any longer, so there is no
-   upstream web site.
-   Mark Watkins, the package author, now works at Magma.
-   Previous (possibly still usable) email is watkins@maths.usyd.edu.au
+SYMPOW does not appear to be maintained any longer, so there is no
+upstream web site.
+Mark Watkins, the package author, now works at Magma.
+Previous (possibly still usable) email is watkins@maths.usyd.edu.au
 
 Dependencies
 ------------
@@ -32,7 +32,6 @@ Special Update/Build Instructions
 ---------------------------------
 
 -  Some of the code is very dubious, and it is anyones guess really what
-
    the compiler does with it. For example, the following line exists in
    src/eulerfactors.c:
 
@@ -45,7 +44,6 @@ Special Update/Build Instructions
 
 -  This is a difficult package to maintain. A trac ticket (#9758) has
    been
-
    opened to implement Watkins-Delaunay's algorithm for computing
    modular
    degrees in Sage. Once implemented, it should be possible to remove
@@ -53,13 +51,12 @@ Special Update/Build Instructions
    package.
 
 -  The package is configured such that the data files are in a directory
-
    below where 'sympow' is installed. If Sage is installed globally,
    then
    it will be impossible to create the data files without being root.
    This has been fixed in the Gentoo Linux distribution. Some
    information
-   from Christopher can be see on
+   from Christopher can be seen on
    http://trac.sagemath.org/sage_trac/ticket/9703
    This package will generate binary versions of all shipped datafiles,
    so these will work. However, creating totally new datafiles from

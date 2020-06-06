@@ -17,8 +17,7 @@ Patches:
 -  The first patch disable the building of package using cmake.
 -  The second patch make sure we use sage's blas/lapack on OS X. By
    default
-
-suitesparse discard any configurations to use the accelerate framework.
+   suitesparse discard any configurations to use the accelerate framework.
 
 The building of metis is diabled by passing MY_METIS_LIB=none to make
 (any value would have done) We also configure cholmod so it doesn't

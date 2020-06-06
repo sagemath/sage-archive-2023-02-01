@@ -30,11 +30,9 @@ Special Update/Build Instructions
 ---------------------------------
 
 -  GMP-ECM comes with a self-tuning feature; we could support
-
    that as an option ($SAGE_TUNE_*=yes) in the future.
 
 -  ECM currently does not (by itself) use the CC and CFLAGS settings
-
    from 'gmp.h' since we pass (other) options in CFLAGS, and CC is set
    by Sage and might got set by the user. We now at least partially fix
    that
@@ -56,13 +54,11 @@ Special Update/Build Instructions
    option isn't used on anything other than x86 / x86_64.)
 
 -  We currently work around a linker bug on MacOS X 10.5 PPC (with
-
    GCC 4.2.1) which breaks 'configure' if debug symbols are enabled.
    This \*might\* get fixed in later upstream releases.
 
--  We could save some space by removing the \`src/build.vc10/\`
+-  We could save some space by removing the ``src/build.vc10/``
    directory which
-
    isn't used in Sage. (It gets probably more worth in case also
    directories /
    files for later versions of Microsoft Visual C get added.)

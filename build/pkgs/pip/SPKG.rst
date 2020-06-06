@@ -17,12 +17,12 @@ MIT
 Upstream Contact
 ----------------
 
-Project Page: https://github.com/pypa/pip Install howto:
-https://pip.pypa.io/en/latest/installing.html Changelog:
-https://pip.pypa.io/en/latest/news.html Bug Tracking:
-https://github.com/pypa/pip/issues Mailing list:
-http://groups.google.com/group/python-virtualenv Docs:
-https://pip.pypa.io/
+- Project Page: https://github.com/pypa/pip
+- Install howto: https://pip.pypa.io/en/latest/installing.html
+- Changelog: https://pip.pypa.io/en/latest/news.html
+- Bug Tracking: https://github.com/pypa/pip/issues
+- Mailing list: http://groups.google.com/group/python-virtualenv
+- Docs: https://pip.pypa.io/
 
 Dependencies
 ------------

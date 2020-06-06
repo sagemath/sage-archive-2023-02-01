@@ -35,10 +35,14 @@ GPL v3+
 Upstream Contact
 ----------------
 
-http://www.cs.unipr.it/ppl/ BUGSENG srl (http://bugseng.com)
+- http://www.cs.unipr.it/ppl/ 
+- BUGSENG srl (http://bugseng.com)
 
-Core Development Team Roberto Bagnara (University of Parma) Patricia M.
-Hill (University of Parma) Enea Zaffanella (University of Parma)
+Core Development Team
+
+- Roberto Bagnara (University of Parma)
+- Patricia M. Hill (University of Parma)
+- Enea Zaffanella (University of Parma)
 
 Dependencies
 ------------
@@ -53,7 +57,6 @@ Patches
 ~~~~~~~
 
 -  ptrdiff_t-ppl-1.1.patch: Fixes to compile with gcc 4.9; C++ name
-
    lookup issue.
 
 -  weak.patch: disable use of weak symbols on Cygwin64.

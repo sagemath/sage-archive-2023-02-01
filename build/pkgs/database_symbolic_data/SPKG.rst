@@ -8,7 +8,6 @@ The SymbolicData project is set out
 
 -  to develop concepts and tools for profiling, testing and benchmarking
    Computer Algebra Software
-
    (CAS) and
 
 -  to collect and interlink relevant data and activities from different

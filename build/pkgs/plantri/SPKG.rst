@@ -26,13 +26,13 @@ Upstream Contact
 
 Gunnar Brinkmann
 
-   University of Ghent
-   Gunnar.Brinkmann@ugent.be
+- University of Ghent
+- Gunnar.Brinkmann@ugent.be
 
 Brendan McKay
 
-   Australian National University
-   bdm@cs.anu.edu.au
+- Australian National University
+- bdm@cs.anu.edu.au
 
 See http://cs.anu.edu.au/~bdm/plantri
 

@@ -35,12 +35,8 @@ Special Update/Build Instructions
 -  TODO:
 -  Perhaps also modify CXXFLAGS (and/or CPPFLAGS).
 -  We currently don't use anything of GMP's/MPIR's CC setting, and
-   matching
-
-   with the current compiler (`$CC`) is perhaps suboptimal.
-
+   matching with the current compiler (``$CC``) is perhaps suboptimal.
 -  Remove some files / directories not needed for Sage from upstream:
 -  build.vc\* directories (Microsoft Visual C build files)
 -  3.0.0-644faf502c56f97d9accd301965fc57d6ec70868
-
    was created by running the spkg-src script.

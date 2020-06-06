@@ -24,10 +24,16 @@ GPL v2
 Upstream Contact
 ----------------
 
-Prof. Dr. Jörg Rambau <Joerg.Rambau@uni-bayreuth.de> Lehrstuhl für
-Wirtschaftsmathematik Raum FAN-D.1.29 (Sekretariat: FAN-D.1.30)
-Universität Bayreuth D-95440 Bayreuth Germany Tel: +49-921-55-7350, Fax:
-+49-921-55-7352 http://www.rambau.wm.uni-bayreuth.de
+:: 
+
+    Prof. Dr. Jörg Rambau <Joerg.Rambau@uni-bayreuth.de>
+    Lehrstuhl für Wirtschaftsmathematik
+    Raum FAN-D.1.29 (Sekretariat: FAN-D.1.30)
+    Universität Bayreuth
+    D-95440 Bayreuth
+    Germany
+    Tel: +49-921-55-7350, Fax: +49-921-55-7352
+    http://www.rambau.wm.uni-bayreuth.de
 
 Dependencies
 ------------

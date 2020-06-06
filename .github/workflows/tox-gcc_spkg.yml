@@ -1,4 +1,4 @@
-name: Run SAGE_ROOT/tox.ini
+name: Test Linux --without-system-gcc
 
 ## This GitHub Actions workflow runs SAGE_ROOT/tox.ini with select environments,
 ## whenever a GitHub pull request is opened or synchronized in a repository

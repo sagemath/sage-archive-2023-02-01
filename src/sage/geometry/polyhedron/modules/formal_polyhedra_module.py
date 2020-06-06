@@ -14,6 +14,8 @@ class FormalPolyhedraModule(CombinatorialFreeModule):
     It is formal because it is free -- it does not know
     about linear relations of polyhedra.
 
+    A formal polyhedral module is graded by dimension.
+
     INPUT:
 
      - ``base_ring`` - base ring of the module; unrelated to the

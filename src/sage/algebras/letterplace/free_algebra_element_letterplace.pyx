@@ -17,6 +17,7 @@ AUTHOR:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from sage.groups.perm_gps.all import CyclicPermutationGroup
 from sage.libs.singular.function import lib, singular_function
 from sage.misc.misc import repr_lincomb
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
@@ -445,8 +446,9 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         if P.monomial_divides(s_poly,p_poly):
             return True
         realngens = A._commutative_ring.ngens()
+        CG = CyclicPermutationGroup(P.ngens())
         for i from 0 <= i < p_d-s_d:
-            s_poly = s_poly._cycle(realngens)
+            s_poly = s_poly * CG[realngens]
             if P.monomial_divides(s_poly,p_poly):
                 return True
         return False
@@ -601,7 +603,8 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         left._poly = A._current_ring(left._poly)
         right._poly = A._current_ring(right._poly)
         realngens = A._commutative_ring.ngens()
-        rshift = right._poly._cycle(left._poly.degree() * realngens)
+        CG = CyclicPermutationGroup(A._current_ring.ngens())
+        rshift = right._poly * CG[left._poly.degree() * realngens]
         return FreeAlgebraElement_letterplace(A,left._poly*rshift, check=False)
 
     def __pow__(FreeAlgebraElement_letterplace self, int n, k):
@@ -629,8 +632,9 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         q = p = self._poly
         realngens = A._commutative_ring.ngens()
         cdef int i
+        CG = CyclicPermutationGroup(A._current_ring.ngens())
         for i from 0<i<n:
-            q = q._cycle(d * realngens)
+            q = q * CG[d * realngens]
             p *= q
         return FreeAlgebraElement_letterplace(A, p, check=False)
 

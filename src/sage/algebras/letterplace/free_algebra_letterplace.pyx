@@ -699,8 +699,10 @@ cdef class FreeAlgebra_letterplace(Algebra):
         ngens = self.__ngens
         degbound = self._degbound
         cdef list G = [C(x._poly) for x in g]
+        from sage.groups.perm_gps.all import CyclicPermutationGroup
+        CG = CyclicPermutationGroup(C.ngens())
         for y in G:
-            out.extend([y]+[y._cycle(ngens*(n+1)) for n in xrange(d-y.degree())])
+            out.extend([y]+[y * CG[ngens*(n+1)] for n in xrange(d-y.degree())])
         return C.ideal(out)
 
     ###########################

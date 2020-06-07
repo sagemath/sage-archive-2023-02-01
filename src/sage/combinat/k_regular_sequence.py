@@ -381,7 +381,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         return W(n.digits(self.k))
 
 
-    def _parse_recursions_(self, equations, function, var, n0=0):
+    def _parse_recursions_(self, equations, function, var, n_start=0):
         r"""Parse recursion equations as admissible in :meth:`~.recursions`.
 
         INPUT:
@@ -758,11 +758,11 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         recursion_rules = namedtuple('recursion_rules',
                                      ['M', 'm', 'l', 'u',
-                                      'll', 'uu', 'dim',
-                                      'coeffs', 'initial_values', 'n0'])
+                                      'll', 'uu', 'n_start', 'dim',
+                                      'coeffs', 'start_values'])
 
-        return recursion_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, dim=dim,
-                               coeffs=coeffs, initial_values=initial_values, n0=n0)
+        return recursion_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, n_start=n_start,
+                               dim=dim, coeffs=coeffs, start_values=start_values)
 
 
     def _get_matrix_from_recursions_(self, recursion_rules, rem, function, var):
@@ -916,35 +916,12 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                         pass
             mat.append(row)
 
-        mat = Matrix(mat)
+        if n_start == 0:
+            return Matrix(mat)
 
-        if n0 == 0:
-            return mat
-        else:
-            arguments = [k**j*var + d for j in srange(m) for d in srange(k**j)] + \
-                        [k**j*var + d for j in srange(m, M) for d in srange(ll, k**j - k**m + uu + 1)]
-            W = []
-            for i in srange(n0):
-                v_eval_i = []
-                v_eval_ki_plus_r = []
-                for a in arguments:
-                    try:
-                        temp = a.substitute(var==i)
-                        v_eval_i.append(initial_values[temp])
-                        temp = a.substitute(var==k*i+rem)
-                        v_eval_ki_plus_r.append(initial_values[temp])
-                    except KeyError:
-                        raise ValueError('Initial value %s is missing.'
-                                         % (function(temp),))
-                W.append(list(vector(v_eval_ki_plus_r) - mat*vector(v_eval_i)))
 
-            J = []
-            for i in srange(n0):
-                J.append([int(i >= rem and i % k == rem and j*k == i - rem) for j in srange(n0)])
+    def _correct_matrices_(A, rem, n_start):
 
-            Mat = MatrixSpace(self.base_ring(), dim + n0, dim + n0)
-            return Mat(block_matrix([[mat, Matrix(W).transpose()],
-                                     [zero_matrix(n0, dim), Matrix(J)]]))
 
 
     def _get_left_from_recursions_(self, dim):

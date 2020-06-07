@@ -392,14 +392,15 @@ def cython_aliases():
     for lib in ['fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular',
                 'libpng', 'gdlib', 'm4ri', 'zlib', 'cblas', 'lapack']:
         var = lib.upper().replace("-", "") + "_"
-        aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
         if lib == 'zlib':
+            aliases[var + "CFLAGS"] = ""
             try:
                 pc = pkgconfig.parse('zlib')
             except pkgconfig.PackageNotFoundError:
                 from collections import defaultdict
                 pc = defaultdict(list, {'libraries': ['z']})
         else:
+            aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
             pc = pkgconfig.parse(lib)
         # INCDIR should be redundant because the -I options are also
         # passed in CFLAGS

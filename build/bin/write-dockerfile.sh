@@ -158,7 +158,6 @@ $RUN ./bootstrap
 FROM bootstrapped as configured
 #:configuring:
 ADD src/bin src/bin
-ADD src/Makefile.in src/Makefile.in
 RUN mkdir -p logs/pkgs; ln -s logs/pkgs/config.log config.log
 ARG EXTRA_CONFIGURE_ARGS=""
 EOF

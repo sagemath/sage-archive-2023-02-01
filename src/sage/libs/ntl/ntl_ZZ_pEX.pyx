@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 """
 Wrapper for NTL's polynomials over finite ring extensions of $\Z / p\Z.$
 

@@ -1594,6 +1594,10 @@ REFERENCES:
             and groups, 3rd. ed., Grundlehren der Mathematischen
             Wissenschaften, vol. 290, Springer-Verlag, New York, 1999.
 
+.. [CS1988] Conway, J. H., and N. J. A. Sloane. “Low-Dimensional Lattices. IV.
+            The Mass Formula.” Proceedings of the Royal Society of London.
+            Series A, Mathematical and Physical Sciences, vol. 419, no. 1857, 1988, pp. 259-286.
+
 .. [CS2003] \John E. Cremona and Michael Stoll. On The Reduction Theory of Binary Forms.
             Journal für die reine und angewandte Mathematik, 565 (2003), 79-99.
 
@@ -1899,6 +1903,9 @@ REFERENCES:
 .. [Du2018] \O. Dunkelman, *Efficient Construction of the Boomerang
             Connection Table* (preprint); in Cryptology ePrint Archive,
             (2018), 631.
+
+.. [Duc1998] \L. Ducos, Optimizations of the Subresultant Algorithm.
+             http://www-math.univ-poitiers.fr/~ducos/Travaux/sous-resultants.pdf
 
 .. [Dur1998] \F. Durand, *A characterization of substitutive sequences
             using return words*, Discrete Math. 179 (1998) 89-101.
@@ -3029,6 +3036,9 @@ REFERENCES:
              subcodes of the second order binary Reed-Muller codes*.
              Information and Control, 18, pp. 369-394, 1971.
 
+.. [Kas2018] András Kaszanyitzky. *The GraftalLace Cellular Automata*.
+             Preprint, :arxiv:`1805.11532`.
+
 .. [Kat1991] Nicholas M. Katz, *Exponential sums and differential equations*,
              Princeton University Press, Princeton NJ, 1991.
 
@@ -3236,12 +3246,15 @@ REFERENCES:
             http://portal.acm.org/citation.cfm?id=763203 and free of
             charge at :arxiv:`math/0106043`
 
-.. [KP2011] Manuel Kauers and Peter Paule. The Concrete Tetrahedron.
-            Springer-Verlag, 2011.
-
 .. [KP2002b] James Kuzmanovich; Andrey Pavlichenkov, *Finite
              Groups of Matrices Whose Entries Are Integers*, The American
              Mathematical Monthly, Vol. 109, No. 2. (2002) pp. 173-186
+
+.. [KP2011] Manuel Kauers and Peter Paule. The Concrete Tetrahedron.
+            Springer-Verlag, 2011.
+
+.. [KP2020] Lars Kastner and Marta Panizzut, *Hyperplane arrangements
+            in polymake*, arxiv:`2003.13548`.
 
 .. [KPRWZ2010] \M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
                *Examples of computer experimentation in algebraic
@@ -5340,6 +5353,10 @@ REFERENCES:
 
 .. [Wer1998] Annette Werner, Local heights on abelian varieties and
              rigid analytic uniformization, Doc. Math. 3 (1998), 301-319.
+
+.. [Wes2017] Bruce Westbury.
+             *Coboundary categories and local rules*,
+             The Electronic Journal of Combinatorics, *25* (2018)
 
 .. [WFYTP2008] \D. Watanable, S. Furuya, H. Yoshida, K. Takaragi, and B. Preneel,
                *A new keystream generator MUGI*; in

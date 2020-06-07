@@ -908,6 +908,89 @@ cdef class MPolynomial(CommutativeRingElement):
         else:
             return self.parent().change_ring(R)(self.dict())
 
+    def is_symmetric(self, group=None):
+        r"""
+        Return whether this polynomial is symmetric.
+
+        INPUT:
+
+        - ``group`` (default: symmetric group) -- if set, test whether the
+          polynomial is invariant with respect to the given permutation group
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: p = (x+y+z)**2 - 3 * (x+y)*(x+z)*(y+z)
+            sage: p.is_symmetric()
+            True
+            sage: (x + y - z).is_symmetric()
+            False
+            sage: R.one().is_symmetric()
+            True
+
+            sage: p = (x-y)*(y-z)*(z-x)
+            sage: p.is_symmetric()
+            False
+            sage: p.is_symmetric(AlternatingGroup(3))
+            True
+
+            sage: R.<x,y> = QQ[]
+            sage: ((x + y)**2).is_symmetric()
+            True
+            sage: R.one().is_symmetric()
+            True
+            sage: (x + 2*y).is_symmetric()
+            False
+
+        An example with a GAP permutation group (here the quaternions)::
+
+            sage: R = PolynomialRing(QQ, 'x', 8)
+            sage: x = R.gens()
+            sage: p = sum(prod(x[i] for i in e) for e in [(0,1,2), (0,1,7), (0,2,7), (1,2,7), (3,4,5), (3,4,6), (3,5,6), (4,5,6)])
+            sage: p.is_symmetric(libgap.TransitiveGroup(8, 5))
+            True
+            sage: p = sum(prod(x[i] for i in e) for e in [(0,1,2), (0,1,7), (0,2,7), (1,2,7), (3,4,5), (3,4,6), (3,5,6)])
+            sage: p.is_symmetric(libgap.TransitiveGroup(8, 5))
+            False
+
+        TESTS::
+
+            sage: R = PolynomialRing(QQ, 'x', 3)
+            sage: R.one().is_symmetric(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: argument must be a permutation group
+
+            sage: R.one().is_symmetric(SymmetricGroup(4))
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid data to initialize a permutation
+        """
+        n = self.parent().ngens()
+        if n <= 1:
+            return True
+
+        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+        S = SymmetricGroup(n)
+        if group is None:
+            gens = S.gens()
+        else:
+            try:
+                # for Sage group
+                gens = group.gens()
+            except AttributeError:
+                # for GAP group
+                try:
+                    gens = group.GeneratorsOfGroup()
+                except AttributeError:
+                    raise ValueError("argument must be a permutation group")
+            gens = [S(g) for g in gens]
+
+        cdef dict coeffs = self.dict()
+        zero = self.base_ring().zero()
+        return all(coeffs.get(g._act_on_etuple_on_position(e), zero) == coeff
+                   for e, coeff in coeffs.items() for g in gens)
+
     def _gap_(self, gap):
         """
         Return a representation of ``self`` in the GAP interface
@@ -1464,6 +1547,38 @@ cdef class MPolynomial(CommutativeRingElement):
             u = 1
         an = self.coefficient(variable**n)**(n - k - 2)
         return self.parent()(u * self.resultant(d, variable) * an)
+
+    def subresultants(self, other, variable=None):
+        r"""
+        Return the nonzero subresultant polynomials of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a polynomial
+
+        OUTPUT: a list of polynomials in the same ring as ``self``
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: p = (y^2 + 6)*(x - 1) - y*(x^2 + 1)
+            sage: q = (x^2 + 6)*(y - 1) - x*(y^2 + 1)
+            sage: p.subresultants(q, y)
+            [2*x^6 - 22*x^5 + 102*x^4 - 274*x^3 + 488*x^2 - 552*x + 288,
+             -x^3 - x^2*y + 6*x^2 + 5*x*y - 11*x - 6*y + 6]
+            sage: p.subresultants(q, x)
+            [2*y^6 - 22*y^5 + 102*y^4 - 274*y^3 + 488*y^2 - 552*y + 288,
+             x*y^2 + y^3 - 5*x*y - 6*y^2 + 6*x + 11*y - 6]
+
+        """
+        R = self.parent()
+        if variable is None:
+            x = R.gen(0)
+        else:
+            x = variable
+        p = self.polynomial(x)
+        q = other.polynomial(x)
+        return [R(f) for f in  p.subresultants(q)]
 
     def macaulay_resultant(self, *args):
         r"""
@@ -2442,7 +2557,7 @@ cdef class MPolynomial(CommutativeRingElement):
             True
         """
         # EXERCISE (Atiyah-McDonald, Ch 1): Let `A[x]` be a polynomial
-        # ring in one variable. Then `f=\sum a_i x^i \in A[x]` is 
+        # ring in one variable. Then `f=\sum a_i x^i \in A[x]` is
         # nilpotent if and only if `a_0,\ldots, a_n` are nilpotent.
         # (Also noted in Dummit and Foote, "Abstract Algebra", 1991,
         # Section 7.3 Exercise 33).

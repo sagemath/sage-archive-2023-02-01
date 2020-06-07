@@ -38,7 +38,6 @@ arbitrary indexing set and values are
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from six import iteritems
 
 from sage.rings.all import QQ, ZZ, Integer
 from sage.rings.infinity import infinity, minus_infinity
@@ -190,7 +189,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             return MultiFilteredVectorSpace(self.dimension(),
                                             base_ring=base_ring)
         filtrations = {}
-        for key, F in iteritems(self._filt):
+        for key, F in self._filt.items():
             filtrations[key] = F.change_ring(base_ring)
         return MultiFilteredVectorSpace(filtrations, base_ring=base_ring)
 

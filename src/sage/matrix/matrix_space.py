@@ -32,8 +32,6 @@ TESTS::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import iteritems, integer_types
 
 # System imports
 import sys
@@ -444,7 +442,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
     """
 
     @staticmethod
-    def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False, implementation=None):
+    def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False, implementation=None, **kwds):
         """
         Normalize the arguments to call the ``__init__`` constructor.
 
@@ -470,6 +468,24 @@ class MatrixSpace(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: unknown matrix implementation 'foobar' over Integer Ring
+
+        Check that :trac:`29466`is fixed::
+
+            sage: class MyMatrixSpace(MatrixSpace):
+            ....:     @staticmethod
+            ....:     def __classcall__(cls, base_ring, nrows, ncols=None, my_option=True, sparse=False, implementation=None):
+            ....:         return super(MyMatrixSpace, cls).__classcall__(cls, base_ring, nrows, ncols=ncols, my_option=my_option, sparse=sparse, implementation=implementation)
+            ....:
+            ....:     def __init__(self, base_ring, nrows, ncols, sparse,  implementation, my_option=True):
+            ....:         super(MyMatrixSpace, self).__init__(base_ring, nrows, ncols, sparse, implementation)
+            ....:         self._my_option = my_option
+
+            sage: MS1 = MyMatrixSpace(ZZ, 2)
+            sage: MS1._my_option
+            True
+            sage: MS2 = MyMatrixSpace(ZZ, 2, my_option=False)
+            sage: MS2._my_option
+            False
         """
         if base_ring not in _Rings:
             raise TypeError("base_ring (=%s) must be a ring"%base_ring)
@@ -489,7 +505,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
         matrix_cls = get_matrix_class(base_ring, nrows, ncols, sparse, implementation)
         return super(MatrixSpace, cls).__classcall__(
-                cls, base_ring, nrows, ncols, sparse, matrix_cls)
+                cls, base_ring, nrows, ncols, sparse, matrix_cls, **kwds)
 
     def __init__(self, base_ring, nrows, ncols, sparse, implementation):
         r"""
@@ -1479,7 +1495,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
             ...
             AttributeError: 'MatrixSpace_with_category' object has no attribute 'list'
         """
-        if isinstance(x, integer_types + (integer.Integer,)):
+        if isinstance(x, (integer.Integer, int)):
             return self.list()[x]
         return super(MatrixSpace, self).__getitem__(x)
 
@@ -2207,7 +2223,7 @@ def dict_to_list(entries, nrows, ncols):
         [1, 0, 0, 0, 2, 0]
     """
     v = [0] * (nrows * ncols)
-    for ij, y in iteritems(entries):
+    for ij, y in entries.items():
         i, j = ij
         v[i * ncols + j] = y
     return v

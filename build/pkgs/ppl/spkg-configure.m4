@@ -13,9 +13,5 @@ SAGE_SPKG_CONFIGURE([ppl], [
                   sage_spkg_install_ppl=no
 		],
 		[sage_spkg_install_ppl=yes])
-  ],
-  [ # Some of its dependencies are installed as SPKGs, so install the
-    # ppl SPKG as well.
-    sage_spkg_install_ppl=yes
   ])
 ])

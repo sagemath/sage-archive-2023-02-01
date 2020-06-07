@@ -158,8 +158,8 @@ Classes and methods
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function
-from six.moves.urllib.request import urlopen
-from six.moves.urllib.parse import urlencode
+from urllib.request import urlopen
+from urllib.parse import urlencode
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -490,7 +490,7 @@ class OEIS:
             0: A131956: Busy Beaver variation: maximum number of steps for ...
             1: A141475: Number of Turing machines with n states following ...
             2: A131957: Busy Beaver sigma variation: maximum number of 1's ...
-            3: A052200: Number of n-state, 2-symbol, d+ in {LEFT, RIGHT}, ...
+            3: A...: ...
         """
         options = {'q': description,
                    'n': str(max_results),

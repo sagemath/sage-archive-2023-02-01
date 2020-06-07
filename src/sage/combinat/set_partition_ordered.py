@@ -24,7 +24,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from six import add_metaclass
 
 from sage.arith.all import factorial
 from sage.sets.set import Set, Set_generic
@@ -50,8 +49,8 @@ from functools import reduce
 from sage.categories.cartesian_product import cartesian_product
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class OrderedSetPartition(ClonableArray):
+class OrderedSetPartition(ClonableArray,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     An ordered partition of a set.
 

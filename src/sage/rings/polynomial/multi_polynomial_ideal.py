@@ -233,8 +233,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import iteritems
-from six.moves import range
 
 from sage.interfaces.all import (singular as singular_default,
                                  macaulay2 as macaulay2_default,
@@ -529,7 +527,7 @@ class MPolynomialIdeal_singular_base_repr:
 
         if get_verbose()>=2:
             opt['prot'] = True
-        for name, value in iteritems(kwds):
+        for name, value in kwds.items():
             if value is not None:
                 opt[name] = value
 
@@ -1428,7 +1426,7 @@ class MPolynomialIdeal_singular_repr(
         if get_verbose() >= 2:
             kwds['prot'] = True
 
-        for o, v in iteritems(kwds):
+        for o, v in kwds.items():
             o = _options_py_to_singular.get(o,o)
             if v:
                 if o in ['degBound','multBound']:
@@ -2888,7 +2886,7 @@ class MPolynomialIdeal_singular_repr(
             raise ValueError("'algorithm' must be one of 'sage' or 'singular'")
 
     @require_field
-    def _normal_basis_libsingular(self, degree):
+    def _normal_basis_libsingular(self, degree, weights=None):
         r"""
         Return the normal basis for a given Groebner basis.
 
@@ -2898,6 +2896,9 @@ class MPolynomialIdeal_singular_repr(
         INPUT:
 
         - ``degree`` -- ``None`` or integer
+
+        - ``weights`` -- tuple of positive integers (default: ``None``); if not
+          ``None``, compute the degree with respect to these weights
 
         OUTPUT:
 
@@ -2913,6 +2914,9 @@ class MPolynomialIdeal_singular_repr(
             sage: J = R.ideal(x^2-2*x*z+5)
             sage: J.normal_basis(3)  # indirect doctest
             [z^3, y*z^2, x*z^2, y^2*z, x*y*z, y^3, x*y^2]
+            sage: [J._normal_basis_libsingular(d, (2, 2, 3)) for d in (0..8)]
+            [[1], [], [x, y], [z], [x*y, y^2], [x*z, y*z], [x*y^2, y^3, z^2],
+             [x*y*z, y^2*z], [x*y^3, y^4, x*z^2, y*z^2]]
 
         TESTS:
 
@@ -2926,7 +2930,13 @@ class MPolynomialIdeal_singular_repr(
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import kbase_libsingular
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         gb = self._groebner_basis_libsingular()
-        res = kbase_libsingular(self.ring().ideal(gb), degree)
+        J = self.ring().ideal(gb)
+        if weights is None:
+            res = kbase_libsingular(J, degree)
+        else:
+            from sage.libs.singular.function_factory import ff
+            res = ff.weightKB(J, -1 if degree is None else degree,
+                              tuple(weights), attributes={J: {'isSB': 1}})
         if len(res) == 1 and res[0].is_zero():
             res = []
         return PolynomialSequence(self.ring(), res, immutable=True)
@@ -2943,7 +2953,8 @@ class MPolynomialIdeal_singular_repr(
         - ``degree`` -- integer (default: ``None``)
 
         - ``algorithm`` -- string (default: ``"libsingular"``); if not the
-          default, this will use the ``kbase()`` command from Singular
+          default, this will use the ``kbase()`` or ``weightKB()`` command from
+          Singular
 
         - ``singular`` -- the singular interpreter to use when ``algorithm`` is
           not ``"libsingular"`` (default: the default instance)
@@ -2974,17 +2985,34 @@ class MPolynomialIdeal_singular_repr(
             sage: [J.normal_basis(d, algorithm='singular') for d in (0..3)]
             [[1], [z, y, x], [z^2, y*z, x*z, x*y], [z^3, y*z^2, x*z^2, x*y*z]]
 
+        In case of a polynomial ring with a weighted term order, the degree of
+        the monomials is taken with respect to the weights.  ::
+
+            sage: T = TermOrder('wdegrevlex', (1, 2, 3))
+            sage: R.<x,y,z> = PolynomialRing(QQ, order=T)
+            sage: B = R.ideal(x*y^2 + x^5, z*y + x^3*y).normal_basis(9); B
+            [x^2*y^2*z, x^3*z^2, x*y*z^2, z^3]
+            sage: all(f.degree() == 9 for f in B)
+            True
+
         TESTS:
 
         Check that this method works over QQbar (:trac:`25351`)::
 
-            sage: P.<x,y,z> = QQbar[]
+            sage: R.<x,y,z> = QQbar[]
             sage: I = R.ideal(x^2+y^2+z^2-4, x^2+2*y^2-5, x*z-1)
             sage: I.normal_basis()
             [y*z^2, z^2, y*z, z, x*y, y, x, 1]
             sage: J = R.ideal(x^2+y^2+z^2-4, x^2+2*y^2-5)
             sage: [J.normal_basis(d) for d in (0..3)]
             [[1], [z, y, x], [z^2, y*z, x*z, x*y], [z^3, y*z^2, x*z^2, x*y*z]]
+
+        Check the option ``algorithm="singular"`` with a weighted term order::
+
+            sage: T = TermOrder('wdegrevlex', (1, 2, 3))
+            sage: S.<x,y,z> = PolynomialRing(GF(2), order=T)
+            sage: S.ideal(x^6 + y^3 + z^2).normal_basis(6, algorithm='singular')
+            [x^4*y, x^2*y^2, y^3, x^3*z, x*y*z, z^2]
 
         Check the deprecation::
 
@@ -3001,15 +3029,22 @@ class MPolynomialIdeal_singular_repr(
             algorithm = degree
             degree = None
 
+        weights = tuple(x.degree() for x in self.ring().gens())
+        if all(w == 1 for w in weights):
+            weights = None
+
         if algorithm == 'libsingular':
-            return self._normal_basis_libsingular(degree)
+            return self._normal_basis_libsingular(degree, weights=weights)
         else:
             gb = self.groebner_basis()
             R = self.ring()
             if degree is None:
                 res = singular.kbase(R.ideal(gb))
-            else:
+            elif weights is None:
                 res = singular.kbase(R.ideal(gb), int(degree))
+            else:
+                res = singular.weightKB(R.ideal(gb), int(degree),
+                                        singular(weights, type='intvec'))
             return PolynomialSequence(R, [R(f) for f in res], immutable=True)
 
 
@@ -3724,7 +3759,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 if other_new.groebner_basis.is_in_cache():
                     r = other_new.groebner_basis()
                 elif len(other_new._gb_by_ordering):
-                    o, r = next(iteritems(other_new._gb_by_ordering))
+                    o, r = next(iter(other_new._gb_by_ordering.items()))
                     l = self.change_ring(R.change_ring(order=o)).gens()
                 else: # use easy GB otherwise
                     newR = R.change_ring(order="degrevlex")

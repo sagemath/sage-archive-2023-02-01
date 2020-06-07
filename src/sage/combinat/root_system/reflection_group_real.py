@@ -45,8 +45,6 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import print_function
 
-from six.moves import range
-
 from sage.misc.cachefunc import cached_function, cached_method, cached_in_parent_method
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.rings.all import ZZ
@@ -407,7 +405,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             sage: W = ReflectionGroup(['A',3], ['B',3])                 # optional - gap3
             sage: W.cartan_type()                                       # optional - gap3
-            A3xB3 relabelled by {1: 3, 2: 2, 3: 1}                      
+            A3xB3 relabelled by {1: 3, 2: 2, 3: 1}
         """
         if len(self._type) == 1:
             ct = self._type[0]

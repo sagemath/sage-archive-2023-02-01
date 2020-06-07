@@ -1,14 +1,14 @@
 r"""
 Path Tableaux
 
-This is an abstract base class for using local rules to construct rectification
-and the action of the cactus group, [Wes2017]_
+This is an abstract base class for using local rules to construct
+rectification and the action of the cactus group [Wes2017]_.
 
-This is an effective version
-of the Henriques-Kamnitzer construction of the action of the cactus
-group on tensor powers of a crystal. This is a generalisation of
-the Fomin growth rules which are an effective version of the operations
-on standard tableaux which were previously constructed using jeu-de-taquin.
+This is a construction of the Henriques-Kamnitzer construction of
+the action of the cactus group on tensor powers of a crystal. This is
+also a generalisation of the Fomin growth rules, which are a version of
+the operations on standard tableaux which were previously constructed
+using jeu-de-taquin.
 
 The basic operations are rectification, evacuation and promotion.
 Rectification of standard skew tableaux agrees with the rectification
@@ -17,9 +17,7 @@ by jeu-de-taquin on rectangular tableaux but in general they are different.
 
 REFERENCES:
 
-.. [Wes2017] Bruce Westbury.
-   *Coboundary categories and local rules*,
-   The Electronic Journal of Combinatorics, *25* (2018)
+- [Wes2017]_
 
 AUTHORS:
 
@@ -33,10 +31,9 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.abstract_method import abstract_method
 from sage.categories.sets_cat import Sets
@@ -49,12 +46,11 @@ from sage.misc.latex import latex
 #from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 #from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class PathTableau(ClonableArray):
+class PathTableau(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
+    r"""
+    This is the abstract base class for a path tableau.
     """
-    This is the abstract base class for path tableaux.
-    """
-    @abstract_method(optional=False)
+    @abstract_method
     def local_rule(self,i):
         r"""
         This is the abstract local rule defined in any coboundary category.
@@ -66,7 +62,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: t.local_rule(3)
             [0, 1, 2, 1, 2, 1, 0]
         """
@@ -79,7 +75,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: t.size()
             7
         """
@@ -91,7 +87,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: t.initial_shape()
             0
         """
@@ -103,7 +99,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: t.final_shape()
             0
         """
@@ -117,7 +113,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: t.promotion()
             [0, 1, 2, 1, 0, 1, 0]
         """
@@ -133,34 +129,33 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: t.evacuation()
             [0, 1, 2, 3, 2, 1, 0]
         """
         if self.size() < 3:
             return self
 
-        T = self
-        L = list(T)
+        L = list(self)
         result = []
-        for i in range(self.size()):
-            T = self.parent()(L).promotion()
-            L = list(T)
+        P = self.parent()
+        for i in range(len(self)):
+            L = list(P(L).promotion())
             result.append( L.pop() )
         result.reverse()
-        return self.parent()(result)
+        return P(result)
 
-    def commutor(self,other,verbose=False):
+    def commutor(self, other, verbose=False):
         r"""
-        Return the commutor of ``self`` with ``other``
+        Return the commutor of ``self`` with ``other``.
 
         If ``verbose=True`` then the function will print
         the rectangle.
 
         EXAMPLES::
 
-            sage: t1 = DyckPath([0,1,2,3,2,1,0])
-            sage: t2 = DyckPath([0,1,2,1,0])
+            sage: t1 = path_tableaux.DyckPath([0,1,2,3,2,1,0])
+            sage: t2 = path_tableaux.DyckPath([0,1,2,1,0])
             sage: t1.commutor(t2)
             ([0, 1, 2, 1, 0], [0, 1, 2, 3, 2, 1, 0])
             sage: t1.commutor(t2,verbose=True)
@@ -175,38 +170,40 @@ class PathTableau(ClonableArray):
 
         TESTS::
 
-            sage: t1 = DyckPath([])
-            sage: t2 = DyckPath([0,1,2,1,0])
+            sage: t1 = path_tableaux.DyckPath([])
+            sage: t2 = path_tableaux.DyckPath([0,1,2,1,0])
             sage: t1.commutor(t2)
             Traceback (most recent call last):
             ...
             ValueError: this requires nonempty lists
-            sage: t1 = DyckPath([0,1,2,3,2,1,0])
-            sage: t2 = DyckPath([])
+            sage: t1 = path_tableaux.DyckPath([0,1,2,3,2,1,0])
+            sage: t2 = path_tableaux.DyckPath([])
             sage: t1.commutor(t2)
             Traceback (most recent call last):
             ...
             ValueError: this requires nonempty lists
-            sage: t1 = DyckPath([0,1,2,3,2,1])
-            sage: t2 = DyckPath([0,1,2,1,0])
+            sage: t1 = path_tableaux.DyckPath([0,1,2,3,2,1])
+            sage: t2 = path_tableaux.DyckPath([0,1,2,1,0])
             sage: t1.commutor(t2)
             Traceback (most recent call last):
             ...
-            ValueError: [0, 1, 2, 3, 2, 1],[0, 1, 2, 1, 0] is not a composable pair
+            ValueError: [0, 1, 2, 3, 2, 1], [0, 1, 2, 1, 0] is not a composable pair
         """
         n = self.size()
         m = len(other)
         if n == 0 or m == 0:
             raise ValueError("this requires nonempty lists")
         if n == 1 or m == 1:
-            return (other,self)
+            return (other, self)
+
+        P = self.parent()
 
         row = list(other)
         col = list(self)
         if col[-1] != row[0]:
-            raise ValueError("%s,%s is not a composable pair" % (self,other))
+            raise ValueError("%s, %s is not a composable pair" % (self,other))
 
-        path = self.parent()(col + row[1:])
+        path = P(col + row[1:])
 
         for i in range(1,n):
             if verbose:
@@ -216,25 +213,21 @@ class PathTableau(ClonableArray):
         if verbose:
             print(path[:m])
 
-
-        return (self.parent()(path[:m]),self.parent()(path[m-1:]))
+        return (P(path[:m]), P(path[m-1:]))
 
     def cactus(self,i,j):
         r"""
-        Return the action of the generators of the cactus group on ``self``.
-        These generators are involutions and are usually denoted by
-        's_{i,j}'.
+        Return the action of the generator `s_{i,j}` of the cactus
+        group on ``self``.
 
         INPUT:
 
         ``i`` -- a positive integer
-
         ``j`` -- a positive integer weakly greater than ``i``
-
 
         EXAMPLES::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: t.cactus(1,5)
             [0, 1, 0, 1, 2, 1, 0]
 
@@ -248,7 +241,7 @@ class PathTableau(ClonableArray):
 
         TESTS::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: t.cactus(1,8)
             Traceback (most recent call last):
             ...
@@ -281,7 +274,7 @@ class PathTableau(ClonableArray):
 
         TESTS::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: t._test_involution_rule()
         """
         tester = self._tester(**options)
@@ -295,12 +288,12 @@ class PathTableau(ClonableArray):
 
         TESTS::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: t._test_involution_cactus()
         """
         tester = self._tester(**options)
-        for i in range(2,self.size()+1):
-            tester.assertTrue(self.cactus(1,i).cactus(1,i) == self)
+        for i in range(2, self.size()+1):
+            tester.assertEqual(self.cactus(1,i).cactus(1,i), self)
 
     def _test_promotion(self, **options):
         """
@@ -308,12 +301,12 @@ class PathTableau(ClonableArray):
 
         TESTS::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: t._test_promotion()
         """
         tester = self._tester(**options)
-        n = self.size()-1
-        tester.assertTrue(self.cactus(1,n-1).cactus(1,n).promotion() == self)
+        n = self.size() - 1
+        tester.assertEqual(self.cactus(1,n-1).cactus(1,n).promotion(), self)
 
     def _test_commutation(self, **options):
         """
@@ -321,7 +314,7 @@ class PathTableau(ClonableArray):
 
         TESTS::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: t._test_commutation()
         """
         from itertools import combinations
@@ -329,11 +322,11 @@ class PathTableau(ClonableArray):
 
         n = self.size()
         if n < 5:
-            return True
-        for i,j,r,s in combinations(range(1,n+1),4):
-            lhs = self.cactus(i,j).cactus(r,s)
-            rhs = self.cactus(r,s).cactus(i,j)
-            tester.assertTrue(lhs == rhs)
+            return
+        for i,j,r,s in combinations(range(1,n+1), 4):
+            lhs = self.cactus(i, j).cactus(r, s)
+            rhs = self.cactus(r, s).cactus(i, j)
+            tester.assertEqual(lhs, rhs)
 
     def _test_coboundary(self, **options):
         """
@@ -341,7 +334,7 @@ class PathTableau(ClonableArray):
 
         TESTS::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: t._test_coboundary()
         """
         from itertools import combinations
@@ -349,11 +342,11 @@ class PathTableau(ClonableArray):
 
         n = self.size()
         if n < 4:
-            return True
-        for i,j,r,s in combinations(range(1,n+3),4):
-            lhs = self.cactus(i,s-2).cactus(j-1,r-1)
-            rhs = self.cactus(i+s-r-1,i+s-j-1).cactus(i,s-2)
-            tester.assertTrue(lhs == rhs)
+            return
+        for i,j,r,s in combinations(range(1,n+3), 4):
+            lhs = self.cactus(i, s-2).cactus(j-1, r-1)
+            rhs = self.cactus(i+s-r-1, i+s-j-1).cactus(i, s-2)
+            tester.assertEqual(lhs, rhs)
 
     def orbit(self):
         r"""
@@ -361,7 +354,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: t.orbit()
             {[0, 1, 0, 1, 0, 1, 0],
              [0, 1, 0, 1, 2, 1, 0],
@@ -369,19 +362,17 @@ class PathTableau(ClonableArray):
              [0, 1, 2, 1, 2, 1, 0],
              [0, 1, 2, 3, 2, 1, 0]}
         """
-
         orb = set([])
         rec = set([self])
-        new = set([])
-        while rec != set([]):
+        while rec:
+            new = set([])
             for a in rec:
-                for i in range(2,self.size()):
-                    b = a.cactus(1,i)
+                for i in range(2, self.size()):
+                    b = a.cactus(1, i)
                     if (b not in orb) and (b not in rec):
                         new.add(b)
             orb = orb.union(rec)
             rec = new.copy()
-            new = set([])
 
         return orb
 
@@ -397,7 +388,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: s = DyckPath([0,1,2,3,2,3,2,1,0])
+            sage: s = path_tableaux.DyckPath([0,1,2,3,2,3,2,1,0])
             sage: s.dual_equivalence_graph().adjacency_matrix()
             [0 1 1 1 0 1 0 1 1 0 0 0 0 0]
             [1 0 1 1 1 1 1 0 1 0 0 1 1 0]
@@ -413,7 +404,7 @@ class PathTableau(ClonableArray):
             [0 1 1 1 0 0 1 1 1 1 1 0 1 1]
             [0 1 0 1 1 1 0 1 1 1 1 1 0 1]
             [0 0 0 0 1 0 1 0 0 1 1 1 1 0]
-            sage: s = DyckPath([0,1,2,3,2,1,0])
+            sage: s = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: sorted(s.dual_equivalence_graph().edges())
             [([0, 1, 0, 1, 0, 1, 0], [0, 1, 0, 1, 2, 1, 0], '4,7'),
              ([0, 1, 0, 1, 0, 1, 0], [0, 1, 2, 1, 0, 1, 0], '2,5'),
@@ -444,65 +435,72 @@ class PathTableaux(UniqueRepresentation,Parent):
     """
     def __init__(self):
         """
-        Initializes the abstract class of all PathTableaux
+        Initialize ``self``.
 
         TESTS::
 
-            sage: t = DyckPath([0,1,2,1,0])
-            sage: t.parent() # indirect test
-            <sage.combinat.path_tableaux.dyck_path.DyckPaths_with_category object at ...>
+            sage: t = path_tableaux.DyckPath([0,1,2,1,0])
+            sage: TestSuite(t).run()
         """
         Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, *args, **kwds):
         r"""
-        Constructs an object as an element of ``self``, if possible.
+        Construct an object as an element of ``self``, if possible.
 
         TESTS::
 
-            sage: DyckPath([0,1,2,1,0]) # indirect doctest
+            sage: path_tableaux.DyckPath([0,1,2,1,0])  # indirect doctest
             [0, 1, 2, 1, 0]
         """
         return self.element_class(self, *args, **kwds)
 
 class CylindricalDiagram(SageObject):
-    """
-    A class for cylindrical growth diagrams.
+    r"""
+    Cylindrical growth diagrams.
 
+    EXAMPLES::
+
+        sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
+        sage: path_tableaux.CylindricalDiagram(t)
+         [0, 1, 2, 3, 2, 1, 0]
+         ['', 0, 1, 2, 1, 0, 1, 0]
+         ['', '', 0, 1, 0, 1, 2, 1, 0]
+         ['', '', '', 0, 1, 2, 3, 2, 1, 0]
+         ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
+         ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
+         ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
     """
-    def __init__(self,T):
+    def __init__(self, T):
         """
-        Initialise an object of ``self`` from the PathTableau object T
+        Initialize ``self`` from the
+        :class:`~sage.combinat.path_tableaux.path_tableau.PathTableau`
+        object ``T``.
 
         TESTS::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
-            sage: CylindricalDiagram(t)
-             [0, 1, 2, 3, 2, 1, 0]
-             ['', 0, 1, 2, 1, 0, 1, 0]
-             ['', '', 0, 1, 0, 1, 2, 1, 0]
-             ['', '', '', 0, 1, 2, 3, 2, 1, 0]
-             ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
-             ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
-             ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
+            sage: T = path_tableaux.DyckPath([0,1,2,3,2,1,0])
+            sage: D = path_tableaux.CylindricalDiagram(T)
+            sage: TestSuite(D).run()
 
-            sage: CylindricalDiagram(2)
+            sage: path_tableaux.CylindricalDiagram(2)
             Traceback (most recent call last):
             ...
             ValueError: 2 must be a path tableau
         """
-        if not isinstance(T,PathTableau):
+        if not isinstance(T, PathTableau):
             raise ValueError('{0} must be a path tableau'.format(str(T)))
         n = len(T)
-        result = [[None]*(2*n-1)]*n
+        result = [[None]*(2*n-1)] * n
         for i in range(n):
             result[i] = [""]*i + list(T)
             T = T.promotion()
 
+        self.path_tableau = T
         self.diagram = result
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``
 
         TESTS::
@@ -517,9 +515,53 @@ class CylindricalDiagram(SageObject):
 
             sage: print(DyckPath([0,1,2,1,2,1,0])) # indirect test
             [0, 1, 2, 1, 2, 1, 0]
+
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
+            sage: path_tableaux.CylindricalDiagram(t)
+             [0, 1, 2, 3, 2, 1, 0]
+             ['', 0, 1, 2, 1, 0, 1, 0]
+             ['', '', 0, 1, 0, 1, 2, 1, 0]
+             ['', '', '', 0, 1, 2, 3, 2, 1, 0]
+             ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
+             ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
+             ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
         """
         dg = self.diagram
-        return ' '+str(dg[0])+''.join('\n ' + str(x) for x in dg[1:])
+        return ' ' + str(dg[0]) + ''.join('\n ' + str(x) for x in dg[1:])
+
+    def __eq__(self, other):
+        """
+        Check equality.
+
+        EXAMPLES::
+
+            sage: t1 = path_tableaux.DyckPath([0,1,2,3,2,1,0])
+            sage: T1 = path_tableaux.CylindricalDiagram(t1)
+            sage: t2 = path_tableaux.DyckPath([0,1,2,1,2,1,0])
+            sage: T2 = path_tableaux.CylindricalDiagram(t2)
+            sage: T1 == T2
+            False
+            sage: T1 == path_tableaux.CylindricalDiagram(t1)
+            True
+        """
+        return isinstance(other, CylindricalDiagram) and self.diagram == other.diagram
+
+    def __ne__(self, other):
+        """
+        Check inequality.
+
+        EXAMPLES::
+
+            sage: t1 = path_tableaux.DyckPath([0,1,2,3,2,1,0])
+            sage: T1 = path_tableaux.CylindricalDiagram(t1)
+            sage: t2 = path_tableaux.DyckPath([0,1,2,1,2,1,0])
+            sage: T2 = path_tableaux.CylindricalDiagram(t2)
+            sage: T1 != T2
+            True
+            sage: T1 != path_tableaux.CylindricalDiagram(t1)
+            False
+        """
+        return not (self == other)
 
     def _latex_(self):
         r"""
@@ -527,8 +569,8 @@ class CylindricalDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
-            sage: latex(CylindricalDiagram(t))
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
+            sage: latex(path_tableaux.CylindricalDiagram(t))
             \begin{array}{ccccccccccccc}
             0 & 1 & 2 & 3 & 2 & 1 & 0\\
              & 0 & 1 & 2 & 1 & 0 & 1 & 0\\
@@ -560,24 +602,25 @@ class CylindricalDiagram(SageObject):
         return result
 
     def __len__(self):
-        """Return the length of ``self``
+        r"""
+        Return the length of ``self``.
 
         TESTS::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
-            sage: len(CylindricalDiagram(t))
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
+            sage: len(path_tableaux.CylindricalDiagram(t))
             7
         """
         return len(self.diagram)
 
     def _ascii_art_(self):
-        """
+        r"""
         Return an ascii art representation of ``self``
 
         TESTS::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
-            sage: ascii_art(CylindricalDiagram(t))
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
+            sage: ascii_art(path_tableaux.CylindricalDiagram(t))
             0 1 2 3 2 1 0
              0 1 2 1 0 1 0
               0 1 0 1 2 1 0
@@ -602,13 +645,13 @@ class CylindricalDiagram(SageObject):
         return AsciiArt(S)
 
     def _unicode_art_(self):
-        """
+        r"""
         Return a unicode art representation of ``self``
 
         TESTS::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
-            sage: unicode_art(CylindricalDiagram(t))
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
+            sage: unicode_art(path_tableaux.CylindricalDiagram(t))
             0 1 2 3 2 1 0
              0 1 2 1 0 1 0
               0 1 0 1 2 1 0
@@ -633,13 +676,13 @@ class CylindricalDiagram(SageObject):
         return UnicodeArt(S)
 
     def pp(self):
-        """
+        r"""
         A pretty print utility method.
 
         EXAMPLES::
 
-            sage: t = DyckPath([0,1,2,3,2,1,0])
-            sage: CylindricalDiagram(t).pp()
+            sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
+            sage: path_tableaux.CylindricalDiagram(t).pp()
             0 1 2 3 2 1 0
               0 1 2 1 0 1 0
                 0 1 0 1 2 1 0

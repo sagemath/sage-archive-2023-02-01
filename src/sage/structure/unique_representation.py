@@ -552,13 +552,12 @@ accordingly, for example by inheriting from
 # *****************************************************************************
 from __future__ import print_function
 
-from sage.misc import six
 from sage.misc.cachefunc import weak_cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.fast_methods import WithEqualityById
 
 
-class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
+class CachedRepresentation(metaclass=ClasscallMetaclass):
     """
     Classes derived from CachedRepresentation inherit a weak cache for their
     instances.

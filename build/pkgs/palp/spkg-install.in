@@ -11,6 +11,11 @@ if [ "$UNAME" = "CYGWIN" ] ; then
   CFLAGS="$CFLAGS -Wl,--stack,8000000"
 fi
 
+# Undefine NDEBUG. Palp source has assert statements and preprocessing them
+# away changes the syntactical meaning of the program.
+CPPFLAGS=$(echo "${CPPFLAGS}" | sed "s/-DNDEBUG//g")
+CFLAGS=$(echo "${CFLAGS}" | sed "s/-DNDEBUG//g")
+
 BIN="$SAGE_LOCAL/bin"
 
 for dim in 4 5 6 11; do

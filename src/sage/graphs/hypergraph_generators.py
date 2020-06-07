@@ -51,7 +51,7 @@ class HypergraphGenerators():
 
         INPUT:
 
-        - ``number_of_sets`` -- integer, at most 64-``number_of_vertices
+        - ``number_of_sets`` -- integer, at most 64 minus ``number_of_vertices``
 
         - ``number_of_vertices`` -- integer, at most 30
 
@@ -132,6 +132,7 @@ class HypergraphGenerators():
             ((0, 1, 2), (0, 3, 4), (0, 5, 6), (1, 3, 5), (2, 4, 5), (2, 3, 6), (1, 4, 6))
 
         TESTS::
+
             sage: len(list(hypergraphs.nauty(20, 20, uniform=2, regular=2,max_intersection=1)))
             49
             sage: list(hypergraphs.nauty(40, 40, uniform=2, regular=2,max_intersection=1))

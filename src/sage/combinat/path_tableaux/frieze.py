@@ -28,9 +28,8 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.parent import Parent
 from sage.categories.sets_cat import Sets
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux, CylindricalDiagram
-from sage.rings.integer import Integer
 from sage.categories.fields import Fields
-from sage.rings.all import QQ
+from sage.rings.all import QQ, ZZ
 from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
 from sage.plot.all import Graphics
 
@@ -301,7 +300,6 @@ class FriezePattern(PathTableau):
             False
 
         """
-        from sage.rings.all import ZZ
         n = len(self)
         cd = CylindricalDiagram(self).diagram
         for i, a in enumerate(cd):
@@ -432,6 +430,11 @@ class FriezePattern(PathTableau):
 class FriezePatterns(PathTableaux):
     """
     The parent class for path_tableaux.FriezePattern.
+
+    TESTS::
+
+        sage: P = path_tableaux.FriezePatterns(QQ)
+        sage: TestSuite(P).run()
     """
     def __init__(self, field):
         """

@@ -1451,6 +1451,14 @@ REFERENCES:
             "Orange"
             https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/orange-spec.pdf
 
+.. [CoCo1] J.H. Conway, H.S.M. Coxeter
+    *Triangulated polygons and frieze patterns*,
+    The Mathematical Gazette (1973) 57 p.87-94
+
+.. [CoCo2] J.H. Conway, H.S.M. Coxeter
+    *Triangulated polygons and frieze patterns (continued)*,
+    The Mathematical Gazette (1973) 57 p.175-183
+
 .. [Co1984] \J. Conway, Hexacode and tetracode - MINIMOG and
             MOG. *Computational group theory*, ed. M. Atkinson,
             Academic Press, 1984.
@@ -2659,6 +2667,10 @@ REFERENCES:
 
 .. [Hoc] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid",
          preprint.
+
+.. [HJ18] Thorsten Holm and  Peter Jorgensen
+    *A p-angulated generalisation of Conway and Coxeter's theorem on frieze patterns*,
+    International Mathematics Research Notices (2018)
 
 .. [Hopcroft1973] J. E. Hopcroft and R. E. Tarjan. *Dividing a Graph into
                   Triconnected Components*, SIAM J. Comput., 2(3), 135–158

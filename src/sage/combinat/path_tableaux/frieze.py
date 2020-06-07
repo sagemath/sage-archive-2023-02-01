@@ -9,22 +9,6 @@ This implements the original frieze patterns due to Conway and Coxeter.
 In this implementation we have sequences of nonnegative integers.
 This follows [CoCo1]_ and [CoCo2]_
 
-REFERENCES:
-
-.. [CoCo1] J.H. Conway and H.S.M. Coxeter
-    *Triangulated polygons and frieze patterns*,
-    The Mathematical Gazette (1973) 57 p.87-94
-
-
-.. [CoCo2] J.H. Conway and H.S.M. Coxeter
-    *Triangulated polygons and frieze patterns (continued)*,
-    The Mathematical Gazette (1973) 57 p.175-183
-
-.. [TJ18] Thorsten Holm and  Peter Jorgensen
-    *A p-angulated generalisation of Conway and Coxeter's theorem on frieze patterns*,
-    International Mathematics Research Notices (2018)
-
-
 AUTHORS:
 
 - Bruce Westbury (2019): initial version
@@ -52,88 +36,85 @@ from sage.plot.all import Graphics
 
 ###############################################################################
 
-"""
-
-EXAMPLES::
-
-    sage: t = path_tableaux.FriezePattern([1,2,1,2,3,1])
-    sage: path_tableaux.CylindricalDiagram(t)
-     [0, 1, 2, 1, 2, 3, 1, 0]
-     ['', 0, 1, 1, 3, 5, 2, 1, 0]
-     ['', '', 0, 1, 4, 7, 3, 2, 1, 0]
-     ['', '', '', 0, 1, 2, 1, 1, 1, 1, 0]
-     ['', '', '', '', 0, 1, 1, 2, 3, 4, 1, 0]
-     ['', '', '', '', '', 0, 1, 3, 5, 7, 2, 1, 0]
-     ['', '', '', '', '', '', 0, 1, 2, 3, 1, 1, 1, 0]
-     ['', '', '', '', '', '', '', 0, 1, 2, 1, 2, 3, 1, 0]
-
-    sage: TestSuite(t).run()
-
-    sage: t = path_tableaux.FriezePattern([1,2,7,5,3,7,4,1])
-    sage: path_tableaux.CylindricalDiagram(t)
-     [0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
-     ['', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
-     ['', '', 0, 1, 1, 1, 3, 2, 1, 2, 1, 0]
-     ['', '', '', 0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
-     ['', '', '', '', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
-     ['', '', '', '', '', 0, 1, 1, 1, 3, 2, 1, 2, 1, 0]
-     ['', '', '', '', '', '', 0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
-     ['', '', '', '', '', '', '', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
-     ['', '', '', '', '', '', '', '', 0, 1, 1, 1, 3, 2, 1, 2, 1, 0]
-     ['', '', '', '', '', '', '', '', '', 0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
-
-     sage: TestSuite(t).run()
-
-    sage: t = path_tableaux.FriezePattern([1,3,4,5,1])
-    sage: path_tableaux.CylindricalDiagram(t)
-     [0, 1, 3, 4, 5, 1, 0]
-     ['', 0, 1, 5/3, 7/3, 2/3, 1, 0]
-     ['', '', 0, 1, 2, 1, 3, 1, 0]
-     ['', '', '', 0, 1, 1, 4, 5/3, 1, 0]
-     ['', '', '', '', 0, 1, 5, 7/3, 2, 1, 0]
-     ['', '', '', '', '', 0, 1, 2/3, 1, 1, 1, 0]
-     ['', '', '', '', '', '', 0, 1, 3, 4, 5, 1, 0]
-
-    sage: TestSuite(t).run()
-
-This constructs the examples from [TJ18]_
-
-    sage: K.<sqrt3> = NumberField(x^2-3)
-    sage: t = path_tableaux.FriezePattern([1,sqrt3,2,sqrt3,1,1], field=K)
-    sage: path_tableaux.CylindricalDiagram(t)
-     [0, 1, sqrt3, 2, sqrt3, 1, 1, 0]
-     ['', 0, 1, sqrt3, 2, sqrt3, sqrt3 + 1, 1, 0]
-     ['', '', 0, 1, sqrt3, 2, sqrt3 + 2, sqrt3, 1, 0]
-     ['', '', '', 0, 1, sqrt3, sqrt3 + 2, 2, sqrt3, 1, 0]
-     ['', '', '', '', 0, 1, sqrt3 + 1, sqrt3, 2, sqrt3, 1, 0]
-     ['', '', '', '', '', 0, 1, 1, sqrt3, 2, sqrt3, 1, 0]
-     ['', '', '', '', '', '', 0, 1, sqrt3 + 1, sqrt3 + 2, sqrt3 + 2, sqrt3 + 1, 1, 0]
-     ['', '', '', '', '', '', '', 0, 1, sqrt3, 2, sqrt3, 1, 1, 0]
-
-    sage: TestSuite(t).run()
-
-    sage: K.<sqrt2> = NumberField(x^2-2)
-    sage: t = path_tableaux.FriezePattern([1,sqrt2,1,sqrt2,3,2*sqrt2,5,3*sqrt2,1], field=K)
-    sage: path_tableaux.CylindricalDiagram(t)
-     [0, 1, sqrt2, 1, sqrt2, 3, 2*sqrt2, 5, 3*sqrt2, 1, 0]
-     ['', 0, 1, sqrt2, 3, 5*sqrt2, 7, 9*sqrt2, 11, 2*sqrt2, 1, 0]
-     ['', '', 0, 1, 2*sqrt2, 7, 5*sqrt2, 13, 8*sqrt2, 3, sqrt2, 1, 0]
-     ['', '', '', 0, 1, 2*sqrt2, 3, 4*sqrt2, 5, sqrt2, 1, sqrt2, 1, 0]
-     ['', '', '', '', 0, 1, sqrt2, 3, 2*sqrt2, 1, sqrt2, 3, 2*sqrt2, 1, 0]
-     ['', '', '', '', '', 0, 1, 2*sqrt2, 3, sqrt2, 3, 5*sqrt2, 7, 2*sqrt2, 1, 0]
-     ['', '', '', '', '', '', 0, 1, sqrt2, 1, 2*sqrt2, 7, 5*sqrt2, 3, sqrt2, 1, 0]
-     ['', '', '', '', '', '', '', 0, 1, sqrt2, 5, 9*sqrt2, 13, 4*sqrt2, 3, 2*sqrt2, 1, 0]
-     ['', '', '', '', '', '', '', '', 0, 1, 3*sqrt2, 11, 8*sqrt2, 5, 2*sqrt2, 3, sqrt2, 1, 0]
-     ['', '', '', '', '', '', '', '', '', 0, 1, 2*sqrt2, 3, sqrt2, 1, sqrt2, 1, sqrt2, 1, 0]
-     ['', '', '', '', '', '', '', '', '', '', 0, 1, sqrt2, 1, sqrt2, 3, 2*sqrt2, 5, 3*sqrt2, 1, 0]
-
-    sage: TestSuite(t).run()
-"""
-
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class FriezePattern(PathTableau):
     """
     An instance is a sequence in the ground field.
+
+    EXAMPLES::
+
+        sage: t = path_tableaux.FriezePattern([1,2,1,2,3,1])
+        sage: path_tableaux.CylindricalDiagram(t)
+         [0, 1, 2, 1, 2, 3, 1, 0]
+         ['', 0, 1, 1, 3, 5, 2, 1, 0]
+         ['', '', 0, 1, 4, 7, 3, 2, 1, 0]
+         ['', '', '', 0, 1, 2, 1, 1, 1, 1, 0]
+         ['', '', '', '', 0, 1, 1, 2, 3, 4, 1, 0]
+         ['', '', '', '', '', 0, 1, 3, 5, 7, 2, 1, 0]
+         ['', '', '', '', '', '', 0, 1, 2, 3, 1, 1, 1, 0]
+         ['', '', '', '', '', '', '', 0, 1, 2, 1, 2, 3, 1, 0]
+
+        sage: TestSuite(t).run()
+
+        sage: t = path_tableaux.FriezePattern([1,2,7,5,3,7,4,1])
+        sage: path_tableaux.CylindricalDiagram(t)
+         [0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
+         ['', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
+         ['', '', 0, 1, 1, 1, 3, 2, 1, 2, 1, 0]
+         ['', '', '', 0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
+         ['', '', '', '', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
+         ['', '', '', '', '', 0, 1, 1, 1, 3, 2, 1, 2, 1, 0]
+         ['', '', '', '', '', '', 0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
+         ['', '', '', '', '', '', '', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
+         ['', '', '', '', '', '', '', '', 0, 1, 1, 1, 3, 2, 1, 2, 1, 0]
+         ['', '', '', '', '', '', '', '', '', 0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
+
+         sage: TestSuite(t).run()
+
+        sage: t = path_tableaux.FriezePattern([1,3,4,5,1])
+        sage: path_tableaux.CylindricalDiagram(t)
+         [0, 1, 3, 4, 5, 1, 0]
+         ['', 0, 1, 5/3, 7/3, 2/3, 1, 0]
+         ['', '', 0, 1, 2, 1, 3, 1, 0]
+         ['', '', '', 0, 1, 1, 4, 5/3, 1, 0]
+         ['', '', '', '', 0, 1, 5, 7/3, 2, 1, 0]
+         ['', '', '', '', '', 0, 1, 2/3, 1, 1, 1, 0]
+         ['', '', '', '', '', '', 0, 1, 3, 4, 5, 1, 0]
+
+        sage: TestSuite(t).run()
+
+    This constructs the examples from [HJ18]_::
+
+        sage: K.<sqrt3> = NumberField(x^2-3)
+        sage: t = path_tableaux.FriezePattern([1,sqrt3,2,sqrt3,1,1], field=K)
+        sage: path_tableaux.CylindricalDiagram(t)
+         [0, 1, sqrt3, 2, sqrt3, 1, 1, 0]
+         ['', 0, 1, sqrt3, 2, sqrt3, sqrt3 + 1, 1, 0]
+         ['', '', 0, 1, sqrt3, 2, sqrt3 + 2, sqrt3, 1, 0]
+         ['', '', '', 0, 1, sqrt3, sqrt3 + 2, 2, sqrt3, 1, 0]
+         ['', '', '', '', 0, 1, sqrt3 + 1, sqrt3, 2, sqrt3, 1, 0]
+         ['', '', '', '', '', 0, 1, 1, sqrt3, 2, sqrt3, 1, 0]
+         ['', '', '', '', '', '', 0, 1, sqrt3 + 1, sqrt3 + 2, sqrt3 + 2, sqrt3 + 1, 1, 0]
+         ['', '', '', '', '', '', '', 0, 1, sqrt3, 2, sqrt3, 1, 1, 0]
+
+        sage: TestSuite(t).run()
+
+        sage: K.<sqrt2> = NumberField(x^2-2)
+        sage: t = path_tableaux.FriezePattern([1,sqrt2,1,sqrt2,3,2*sqrt2,5,3*sqrt2,1], field=K)
+        sage: path_tableaux.CylindricalDiagram(t)
+         [0, 1, sqrt2, 1, sqrt2, 3, 2*sqrt2, 5, 3*sqrt2, 1, 0]
+         ['', 0, 1, sqrt2, 3, 5*sqrt2, 7, 9*sqrt2, 11, 2*sqrt2, 1, 0]
+         ['', '', 0, 1, 2*sqrt2, 7, 5*sqrt2, 13, 8*sqrt2, 3, sqrt2, 1, 0]
+         ['', '', '', 0, 1, 2*sqrt2, 3, 4*sqrt2, 5, sqrt2, 1, sqrt2, 1, 0]
+         ['', '', '', '', 0, 1, sqrt2, 3, 2*sqrt2, 1, sqrt2, 3, 2*sqrt2, 1, 0]
+         ['', '', '', '', '', 0, 1, 2*sqrt2, 3, sqrt2, 3, 5*sqrt2, 7, 2*sqrt2, 1, 0]
+         ['', '', '', '', '', '', 0, 1, sqrt2, 1, 2*sqrt2, 7, 5*sqrt2, 3, sqrt2, 1, 0]
+         ['', '', '', '', '', '', '', 0, 1, sqrt2, 5, 9*sqrt2, 13, 4*sqrt2, 3, 2*sqrt2, 1, 0]
+         ['', '', '', '', '', '', '', '', 0, 1, 3*sqrt2, 11, 8*sqrt2, 5, 2*sqrt2, 3, sqrt2, 1, 0]
+         ['', '', '', '', '', '', '', '', '', 0, 1, 2*sqrt2, 3, sqrt2, 1, sqrt2, 1, sqrt2, 1, 0]
+         ['', '', '', '', '', '', '', '', '', '', 0, 1, sqrt2, 1, sqrt2, 3, 2*sqrt2, 5, 3*sqrt2, 1, 0]
+
+        sage: TestSuite(t).run()
     """
 
     @staticmethod
@@ -168,7 +149,7 @@ class FriezePattern(PathTableau):
             ValueError: Integer Ring must be a field
         """
         if not field in Fields:
-            raise ValueError("{} must be a field".format(field))
+            raise ValueError(f"{field} must be a field")
 
         w = None
 
@@ -198,7 +179,7 @@ class FriezePattern(PathTableau):
 
     def _repr_(self):
         """
-        The representation of ''self''.
+        The representation of ``self``.
 
         This overides the iherited method.
 
@@ -240,7 +221,7 @@ class FriezePattern(PathTableau):
             return (x[0]*x[2]+1)/x[1]
 
         if not (i > 0 and i < len(self)-1 ):
-            raise ValueError("{} is not a valid integer".format(i))
+            raise ValueError(f"{i} is not a valid integer")
 
         with self.clone() as result:
             result[i] = _rule(self[i-1:i+2])
@@ -263,9 +244,9 @@ class FriezePattern(PathTableau):
 
     def width(self):
         """
-        Return the width of ''self''.
+        Return the width of ``self``.
 
-        If the first and last terms of 'self'are 1 then this is the length of 'self'
+        If the first and last terms of ``self`` are 1 then this is the length of ``self``
         plus two and otherwise is undefined.
 
         EXAMPLES::
@@ -284,9 +265,9 @@ class FriezePattern(PathTableau):
 
     def is_positive(self):
         """
-        Return 'true' if all elements of ''self'' are positive.
+        Return 'true' if all elements of ``self`` are positive.
 
-        This implies that all entries of ''CylindricalDiagram(self)'' are positive.
+        This implies that all entries of ``CylindricalDiagram(self)`` are positive.
 
         Warning: There are orders on all fields. These may not be ordered fields
         as they may not be compatible with the field operations. This method is
@@ -320,13 +301,11 @@ class FriezePattern(PathTableau):
             False
 
         """
+        from sage.rings.all import ZZ
         n = len(self)
         cd = CylindricalDiagram(self).diagram
         for i, a in enumerate(cd):
-            v = a[i+1:n+i-2]
-            try:
-                v = [ Integer(k) for k in v ]
-            except TypeError:
+            if any(k not in ZZ for k in a[i+1:n+i-2]):
                 return False
 
         return True
@@ -335,7 +314,14 @@ class FriezePattern(PathTableau):
         r"""
         Plot a regular polygon with some diagonals.
 
-        If ''self'' is positive and integral then this will be a triangulation.
+        If ``self`` is positive and integral then this will be a triangulation.
+
+        .. PLOT::
+            :width: 600 px
+
+            G = path_tableaux.FriezePattern([1,2,7,5,3,7,4,1]).triangulation()
+            p = graphics_array(G, 7, 6)
+            sphinx_plot(p)
 
         EXAMPLES::
 
@@ -348,7 +334,6 @@ class FriezePattern(PathTableau):
             sage: K.<sqrt2> = NumberField(x^2-2)
             sage: path_tableaux.FriezePattern([1,sqrt2,1,sqrt2,3,2*sqrt2,5,3*sqrt2,1], field=K).triangulation()
             Graphics object consisting of 24 graphics primitives
-
         """
         n = len(self)-1
         cd = CylindricalDiagram(self).diagram
@@ -372,7 +357,7 @@ class FriezePattern(PathTableau):
         G.axes(False)
         return G
 
-    def show(self,model='UHP'):
+    def plot(self,model='UHP'):
         """
         Plot the frieze as an ideal hyperbolic polygon.
 
@@ -395,17 +380,15 @@ class FriezePattern(PathTableau):
         EXAMPLES::
 
             sage: t = path_tableaux.FriezePattern([1,2,7,5,3,7,4,1])
-            sage: t.show()
-            Graphics object consisting of 18 graphics primitives
-            sage: t.show(model='UHP')
-            Graphics object consisting of 18 graphics primitives
-            sage: t.show(model='PD')
+            sage: t.plot()
+
+            sage: t.plot(model='UHP')
+
+            sage: t.plot(model='PD')
             Traceback (most recent call last):
             ...
             TypeError: '>' not supported between instances of 'NotANumber' and 'Pi'
-            sage: t.show(model='KM')
-            Graphics object consisting of 18 graphics primitives
-
+            sage: t.plot(model='KM')
         """
         models = {
                 'UHP' : HyperbolicPlane().UHP(),
@@ -413,8 +396,8 @@ class FriezePattern(PathTableau):
                 'KM' : HyperbolicPlane().KM(),
                 }
         M = models.get(model)
-        if not M:
-            raise ValueError(f"{model} must be one of ''UHP'', ''PD'', ''KM''")
+        if M == None:
+            raise ValueError(f"{model} must be one of ``UHP``, ``PD``, ``KM``")
 
         U = HyperbolicPlane().UHP()
         cd = CylindricalDiagram(self).diagram
@@ -422,13 +405,13 @@ class FriezePattern(PathTableau):
         den = cd[1][2:]
         vt = [ M(U.get_point(x/(x+y))) for x,y in zip(num,den) ]
         gd = [ M.get_geodesic(vt[i-1],vt[i]) for i in range(len(vt))]
-        return sum([a.plot() for a in gd],Graphics())
+        sum([a.plot() for a in gd],Graphics()).plot()
 
     def change_ring(self, R):
         r"""
-        Return ''self'' as a frieze pattern with coefficients in ''R''
-        assuming there is a canonical coerce map from the base ring of ''self''
-        to ''R''.
+        Return ``self`` as a frieze pattern with coefficients in ``R``
+        assuming there is a canonical coerce map from the base ring of ``self``
+        to ``R``.
 
         EXAMPLES::
 

@@ -56,8 +56,8 @@ from sage.plot.all import Graphics
 
 EXAMPLES::
 
-    sage: t = FriezePattern([1,2,1,2,3,1])
-    sage: CylindricalDiagram(t)
+    sage: t = path_tableaux.FriezePattern([1,2,1,2,3,1])
+    sage: path_tableaux.CylindricalDiagram(t)
      [0, 1, 2, 1, 2, 3, 1, 0]
      ['', 0, 1, 1, 3, 5, 2, 1, 0]
      ['', '', 0, 1, 4, 7, 3, 2, 1, 0]
@@ -69,8 +69,8 @@ EXAMPLES::
 
     sage: TestSuite(t).run()
 
-    sage: t = FriezePattern([1,2,7,5,3,7,4,1])
-    sage: CylindricalDiagram(t)
+    sage: t = path_tableaux.FriezePattern([1,2,7,5,3,7,4,1])
+    sage: path_tableaux.CylindricalDiagram(t)
      [0, 1, 2, 7, 5, 3, 7, 4, 1, 0]
      ['', 0, 1, 4, 3, 2, 5, 3, 1, 1, 0]
      ['', '', 0, 1, 1, 1, 3, 2, 1, 2, 1, 0]
@@ -84,8 +84,8 @@ EXAMPLES::
 
      sage: TestSuite(t).run()
 
-    sage: t = FriezePattern([1,3,4,5,1])
-    sage: CylindricalDiagram(t)
+    sage: t = path_tableaux.FriezePattern([1,3,4,5,1])
+    sage: path_tableaux.CylindricalDiagram(t)
      [0, 1, 3, 4, 5, 1, 0]
      ['', 0, 1, 5/3, 7/3, 2/3, 1, 0]
      ['', '', 0, 1, 2, 1, 3, 1, 0]
@@ -99,8 +99,8 @@ EXAMPLES::
 This constructs the examples from [TJ18]_
 
     sage: K.<sqrt3> = NumberField(x^2-3)
-    sage: t = FriezePattern([1,sqrt3,2,sqrt3,1,1], field=K)
-    sage: CylindricalDiagram(t)
+    sage: t = path_tableaux.FriezePattern([1,sqrt3,2,sqrt3,1,1], field=K)
+    sage: path_tableaux.CylindricalDiagram(t)
      [0, 1, sqrt3, 2, sqrt3, 1, 1, 0]
      ['', 0, 1, sqrt3, 2, sqrt3, sqrt3 + 1, 1, 0]
      ['', '', 0, 1, sqrt3, 2, sqrt3 + 2, sqrt3, 1, 0]
@@ -113,8 +113,8 @@ This constructs the examples from [TJ18]_
     sage: TestSuite(t).run()
 
     sage: K.<sqrt2> = NumberField(x^2-2)
-    sage: t = FriezePattern([1,sqrt2,1,sqrt2,3,2*sqrt2,5,3*sqrt2,1], field=K)
-    sage: CylindricalDiagram(t)
+    sage: t = path_tableaux.FriezePattern([1,sqrt2,1,sqrt2,3,2*sqrt2,5,3*sqrt2,1], field=K)
+    sage: path_tableaux.CylindricalDiagram(t)
      [0, 1, sqrt2, 1, sqrt2, 3, 2*sqrt2, 5, 3*sqrt2, 1, 0]
      ['', 0, 1, sqrt2, 3, 5*sqrt2, 7, 9*sqrt2, 11, 2*sqrt2, 1, 0]
      ['', '', 0, 1, 2*sqrt2, 7, 5*sqrt2, 13, 8*sqrt2, 3, sqrt2, 1, 0]
@@ -146,23 +146,23 @@ class FriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: FriezePattern([1,2,1,2,3,1])
+            sage: path_tableaux.FriezePattern([1,2,1,2,3,1])
             [1, 2, 1, 2, 3, 1]
 
         TESTS::
 
-            sage: FriezePattern(2)
+            sage: path_tableaux.FriezePattern(2)
             Traceback (most recent call last):
             ...
             ValueError: invalid input 2
 
             sage: K.<sqrt3> = NumberField(x^2-3)
-            sage: t = FriezePattern([1,sqrt3,2,sqrt3,1,1])
+            sage: t = path_tableaux.FriezePattern([1,sqrt3,2,sqrt3,1,1])
             Traceback (most recent call last):
             ...
             ValueError: [1, sqrt3, 2, sqrt3, 1, 1] is not a sequence in the field Rational Field
 
-            sage: FriezePattern([1,2,1,2,3,1],field=Integers())
+            sage: path_tableaux.FriezePattern([1,2,1,2,3,1],field=Integers())
             Traceback (most recent call last):
             ...
             ValueError: Integer Ring must be a field
@@ -191,7 +191,7 @@ class FriezePattern(PathTableau):
 
         TESTS::
 
-            sage: FriezePattern([1,2,1,2,3,1]) # indirect test
+            sage: path_tableaux.FriezePattern([1,2,1,2,3,1]) # indirect test
             [1, 2, 1, 2, 3, 1]
 
         """
@@ -206,7 +206,7 @@ class FriezePattern(PathTableau):
 
         TESTS::
 
-            sage: t = FriezePattern([1,2,1,2,3,1])
+            sage: t = path_tableaux.FriezePattern([1,2,1,2,3,1])
             sage: repr(t) == t._repr_() # indirect test
             True
         """
@@ -222,11 +222,11 @@ class FriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: t = FriezePattern([1,2,1,2,3,1])
+            sage: t = path_tableaux.FriezePattern([1,2,1,2,3,1])
             sage: t.local_rule(3)
             [1, 2, 5, 2, 3, 1]
 
-            sage: t = FriezePattern([1,2,1,2,3,1])
+            sage: t = path_tableaux.FriezePattern([1,2,1,2,3,1])
             sage: t.local_rule(0)
             Traceback (most recent call last):
             ...
@@ -253,10 +253,10 @@ class FriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: FriezePattern([1,2,1,2,3,1]).is_skew()
+            sage: path_tableaux.FriezePattern([1,2,1,2,3,1]).is_skew()
             False
 
-            sage: FriezePattern([2,2,1,2,3,1]).is_skew()
+            sage: path_tableaux.FriezePattern([2,2,1,2,3,1]).is_skew()
             True
         """
         return self[1] != 1
@@ -270,10 +270,10 @@ class FriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: FriezePattern([1,2,1,2,3,1]).width()
+            sage: path_tableaux.FriezePattern([1,2,1,2,3,1]).width()
             8
 
-            sage: FriezePattern([1,2,1,2,3,4]).width()
+            sage: path_tableaux.FriezePattern([1,2,1,2,3,4]).width()
             <BLANKLINE>
 
         """
@@ -294,14 +294,14 @@ class FriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: FriezePattern([1,2,7,5,3,7,4,1]).is_positive()
+            sage: path_tableaux.FriezePattern([1,2,7,5,3,7,4,1]).is_positive()
             True
 
-            sage: FriezePattern([1,-3,4,5,1]).is_positive()
+            sage: path_tableaux.FriezePattern([1,-3,4,5,1]).is_positive()
             False
 
             sage: K.<sqrt3> = NumberField(x^2-3)
-            sage: FriezePattern([1,sqrt3,1],K).is_positive()
+            sage: path_tableaux.FriezePattern([1,sqrt3,1],K).is_positive()
             True
 
         """
@@ -313,10 +313,10 @@ class FriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: FriezePattern([1,2,7,5,3,7,4,1]).is_integral()
+            sage: path_tableaux.FriezePattern([1,2,7,5,3,7,4,1]).is_integral()
             True
 
-            sage: FriezePattern([1,3,4,5,1]).is_integral()
+            sage: path_tableaux.FriezePattern([1,3,4,5,1]).is_integral()
             False
 
         """
@@ -339,14 +339,14 @@ class FriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: FriezePattern([1,2,7,5,3,7,4,1]).triangulation()
+            sage: path_tableaux.FriezePattern([1,2,7,5,3,7,4,1]).triangulation()
             Graphics object consisting of 25 graphics primitives
 
-            sage: FriezePattern([1,2,1/7,5,3]).triangulation()
+            sage: path_tableaux.FriezePattern([1,2,1/7,5,3]).triangulation()
             Graphics object consisting of 12 graphics primitives
 
             sage: K.<sqrt2> = NumberField(x^2-2)
-            sage: FriezePattern([1,sqrt2,1,sqrt2,3,2*sqrt2,5,3*sqrt2,1], field=K).triangulation()
+            sage: path_tableaux.FriezePattern([1,sqrt2,1,sqrt2,3,2*sqrt2,5,3*sqrt2,1], field=K).triangulation()
             Graphics object consisting of 24 graphics primitives
 
         """
@@ -394,7 +394,7 @@ class FriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: t = FriezePattern([1,2,7,5,3,7,4,1])
+            sage: t = path_tableaux.FriezePattern([1,2,7,5,3,7,4,1])
             sage: t.show()
             Graphics object consisting of 18 graphics primitives
             sage: t.show(model='UHP')
@@ -432,10 +432,10 @@ class FriezePattern(PathTableau):
 
         EXAMPLES::
 
-            sage: FriezePattern([1,2,7,5,3,7,4,1]).change_ring(RealField())
+            sage: path_tableaux.FriezePattern([1,2,7,5,3,7,4,1]).change_ring(RealField())
             [0.000000000000000, 1.00000000000000, ... 4.00000000000000, 1.00000000000000, 0.000000000000000]
 
-            sage: FriezePattern([1,2,7,5,3,7,4,1]).change_ring(GF(7))
+            sage: path_tableaux.FriezePattern([1,2,7,5,3,7,4,1]).change_ring(GF(7))
             Traceback (most recent call last):
             ...
             TypeError: no base extension defined
@@ -448,7 +448,7 @@ class FriezePattern(PathTableau):
 
 class FriezePatterns(PathTableaux):
     """
-    The parent class for FriezePattern.
+    The parent class for path_tableaux.FriezePattern.
     """
     def __init__(self, field):
         """
@@ -456,7 +456,7 @@ class FriezePatterns(PathTableaux):
 
         TESTS::
 
-            sage: FriezePattern([1,1]).parent() # indirect test
+            sage: path_tableaux.FriezePattern([1,1]).parent() # indirect test
             <sage.combinat.path_tableaux.frieze.FriezePatterns_with_category object at ...>
 
         """

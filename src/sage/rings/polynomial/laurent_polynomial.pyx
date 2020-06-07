@@ -2081,7 +2081,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: LF.<a,b> = LaurentPolynomialRing(F)
             sage: rho = LF.hom([b,a], base_map=F.frobenius_endomorphism())
             sage: s = t*~a + b +~t*(b**-3)*a**2; rs = rho(s); rs
-            -a + (t + 1)*b^-1 + t*a^-3*b^2
+            a + (t + 1)*b^-1 + t*a^-3*b^2
             sage: s == rho(rs)
             True
         """

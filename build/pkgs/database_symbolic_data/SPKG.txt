@@ -32,10 +32,3 @@ GNU General Public License
 
 List patches that need to be applied and what they do
 
-== Changelog ==
-
-=== database_symbolic_data-20070206 (Martin Albrecht, 8 Oct 2013) ===
-
- * SPKG.txt added
- * adapted to new git workflow
-

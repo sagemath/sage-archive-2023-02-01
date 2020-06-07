@@ -197,27 +197,20 @@ def list_packages(*pkg_types, **opts):
          ...
          'zn_poly',
          'zope_interface']
-        sage: L['ppl']  # optional - build
-        {'installed': True,
-         'installed_version': '...',
-         'remote_version': '...',
-         'type': 'standard'}
+        sage: sage_conf_info = L['sage_conf']  # optional - build
+        sage: sage_conf_info['type'] # optional - build
+        'standard'
+        sage: sage_conf_info['installed'] # optional - build
+        True
+        sage: sage_conf_info['source'] # optional - build
+        'script'
 
-        sage: L = list_packages(pkg_sources=['pip'], local=True)  # optional - build
-        sage: L['beautifulsoup4']                    # optional - build
-        {'installed': ...,
-         'installed_version': ...,
-         'remote_version': None,
-         'source': 'pip',
-         'type': 'optional'}
-
-        sage: L = list_packages(pkg_sources=['pip'])   # optional - build internet
-        sage: L['beautifulsoup4']         # optional - build internet
-        {'installed': ...,
-         'installed_version': ...,
-         'remote_version': u'...',
-         'source': 'pip',
-         'type': 'optional'}
+        sage: L = list_packages(pkg_sources=['pip'], local=True)  # optional - build internet
+        sage: bs4_info = L['beautifulsoup4'] # optional - build internet
+        sage: bs4_info['type'] # optional - build internet
+        'optional'
+        sage: bs4_info['source'] # optional - build internet
+        'pip'
 
     Check the option ``exclude_pip``::
 
@@ -302,8 +295,12 @@ def installed_packages(exclude_pip=True):
 
     EXAMPLES::
 
-        sage: installed_packages()  # optional - build
-        {...'alabaster': ...'pynac': ...}
+        sage: sorted(installed_packages().keys())  # optional - build
+        [...'alabaster', ...'sage_conf', ...]
+        sage: installed_packages()['alabaster']  # optional - build, random
+        '0.7.12'
+        sage: installed_packages()['sage_conf']  # optional - build
+        'none'
 
     .. SEEALSO::
 

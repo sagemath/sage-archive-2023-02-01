@@ -113,11 +113,10 @@ REFERENCES:
 ############################################################################
 from __future__ import print_function, absolute_import
 
+import builtins
 import os
 import struct
 import zlib
-
-import six
 
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
@@ -265,7 +264,6 @@ class Animation(WithEqualityById, SageObject):
         for kwds in kwds_tuple:
             new_kwds.update(kwds)
 
-        from six.moves import builtins
         for name in ['xmin', 'xmax', 'ymin', 'ymax']:
             values = [v for v in [kwds.get(name, None) for kwds in kwds_tuple] if v is not None]
             if values:
@@ -1524,10 +1522,8 @@ class APngAssembler(object):
             else: # for PNG magic
                 b.append(ord(h[0]))
                 h = h[1:]
-        if six.PY2:
-            return ''.join(map(chr, b))
-        else:
-            return bytes(b)
+
+        return bytes(b)
 
     @classmethod
     def _testData(cls, name, asFile):

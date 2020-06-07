@@ -9,10 +9,6 @@ SAGE_SPKG_CONFIGURE([fflas_ffpack], [
                       [fflas-ffpack >= 2.4.0],
                       [sage_spkg_install_fflas_ffpack=no],
                       [sage_spkg_install_fflas_ffpack=yes])
-  ],
-  [ # Some of its dependencies are installed as SPKGs, so install the
-    # fflas-ffpack SPKG as well.
-    sage_spkg_install_fflas_ffpack=yes
   ])
 ],[],[],[
   # Run this AFTER the check above, unconditionally, so that in particular

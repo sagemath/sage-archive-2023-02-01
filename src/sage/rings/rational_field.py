@@ -55,12 +55,6 @@ AUTHORS:
 """
 from __future__ import print_function, absolute_import
 
-import six
-if six.PY2:
-    _long_type = long
-else:
-    _long_type = int
-
 from .rational import Rational
 from .integer import Integer
 
@@ -389,10 +383,8 @@ class RationalField(Singleton, number_field_base.NumberField):
             ZZ = integer_ring.ZZ
         if S is ZZ:
             return rational.Z_to_Q()
-        elif S is _long_type:
-            return rational.long_to_Q()
         elif S is int:
-            return rational.int_to_Q()
+            return rational.long_to_Q()
         elif ZZ.has_coerce_map_from(S):
             return rational.Z_to_Q() * ZZ._internal_coerce_map_from(S)
         from sage.rings.localization import Localization

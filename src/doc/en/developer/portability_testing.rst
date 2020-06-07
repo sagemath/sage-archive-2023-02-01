@@ -965,7 +965,7 @@ avoids changing the CI configuration on your development branch:
   GitHub Actions configuration; name it ``TESTER``, say.
 
 - Edit ``$SAGE_ROOT/.github/workflows/tox.yml`` to include the system
-  config wish to test.
+  config you wish to test.
 
 - Commit and push the branch to your GitHub fork of sage.
 
@@ -1012,3 +1012,27 @@ Scrolling down in the right pane shows "Annotations":
 Clicking on the annotations does not take you to a very useful
 place. To view details, click on one of the items in the pane. This
 changes the right pane to a log viewer.
+
+The ``docker`` workflows automatically push images to
+``docker.pkg.github.com``.  You find them in the Packages tab of your
+GitHub repository.
+
+In order to pull them for use on your computer, you need to first
+generate a Personal Access Token providing the ``read:packages`` scope
+as follows.  Visit https://github.com/settings/tokens/new (this may
+prompt you for your GitHub password).  As "Note", type "Access
+docker.pkg.github.com"; then in "Select scopes", select the checkbox
+for ``read:packages``.  Finally, push the "Generate token" button at
+the bottom.  This will lead to a page showing your token, such as
+``de1ec7ab1ec0ffee5ca1dedbaff1ed0ddba11``.  Copy this token and paste
+it to the command line::
+
+  $ echo de1ec7ab1ec0ffee5ca1dedbaff1ed0ddba11 | docker login docker.pkg.github.com --username YOUR-GITHUB-USERNAME
+
+where you replace the token by your token, of course, and
+``YOUR-GITHUB-USERNAME`` by your GitHub username.
+
+Now you can pull the image and run it::
+
+  $ docker pull docker.pkg.github.com/YOUR-GITHUB-USERNAME/sage/sage-docker-fedora-31-standard-configured:f4bd671
+  $ docker run -it docker.pkg.github.com/YOUR-GITHUB-USERNAME/sage/sage-docker-fedora-31-standard-configured:f4bd671 bash

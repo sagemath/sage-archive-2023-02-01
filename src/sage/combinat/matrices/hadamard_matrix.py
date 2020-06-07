@@ -55,8 +55,7 @@ REFERENCES:
 #*****************************************************************************
 from __future__ import print_function
 
-from six.moves import range
-from six.moves.urllib.request import urlopen
+from urllib.request import urlopen
 
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix, block_matrix, block_diagonal_matrix, diagonal_matrix

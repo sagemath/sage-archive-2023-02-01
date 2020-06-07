@@ -196,8 +196,6 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
-#from six.moves import range
-
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.misc_c import prod
 from sage.categories.category import Category

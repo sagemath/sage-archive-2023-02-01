@@ -1,0 +1,26 @@
+From 95345da162f3e1c3e15601b67fe60a5e3b3d6200 Mon Sep 17 00:00:00 2001
+From: Matthias Koeppe <mkoeppe@math.ucdavis.edu>
+Date: Sun, 7 Jun 2020 12:27:56 -0700
+Subject: [PATCH] Makefile.in [macos]: Do not make $(DESTDIR) part of
+ install_name
+
+---
+ Makefile.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile.in b/Makefile.in
+index 5932547ba..960ad33c0 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -214,7 +214,7 @@ install: library
+ 	cp flintxx/*.h "$(DESTDIR)$(PREFIX)/include/flint/flintxx"
+ 	cp *xx.h "$(DESTDIR)$(PREFIX)/include/flint"
+ 	$(AT)if [ "$(OS)" = "Darwin" ] && [ "$(FLINT_SHARED)" -eq "1" ]; then \
+-		install_name_tool -id "$(DESTDIR)$(PREFIX)/$(LIBDIR)/$(FLINT_LIB)" "$(DESTDIR)$(PREFIX)/$(LIBDIR)/$(FLINT_LIBNAME)"; \
++		install_name_tool -id "$(PREFIX)/$(LIBDIR)/$(FLINT_LIB)" "$(DESTDIR)$(PREFIX)/$(LIBDIR)/$(FLINT_LIBNAME)"; \
+ 	fi
+ 
+ build:
+-- 
+2.26.2
+

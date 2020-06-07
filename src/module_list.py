@@ -1,3 +1,11 @@
+#########################################################
+###
+### OBSOLETE FILE - DO NOT ADD TO IT
+###
+### See https://trac.sagemath.org/ticket/29701
+###
+#########################################################
+
 import os
 from distutils.extension import Extension
 from sage.env import SAGE_LOCAL

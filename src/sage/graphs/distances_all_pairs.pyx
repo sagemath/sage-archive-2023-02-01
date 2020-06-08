@@ -801,7 +801,7 @@ cdef uint32_t * c_eccentricity_bounding(G, vertex_list=None) except NULL:
 
     return LB
 
-cdef uint32_t * all_eccentricity_DHV(G, vertex_list=None):
+def all_eccentricity_DHV(G, vertex_list=None):
     r"""
     Returns vector of all eccentricities of unweighted graph `G`.
 
@@ -826,7 +826,7 @@ cdef uint32_t * all_eccentricity_DHV(G, vertex_list=None):
 
     cdef uint32_t n = G.order()
     if not n:
-        return NULL
+        return []
 
     cdef short_digraph sd
     init_short_digraph(sd, G, edge_labelled=False, vertex_list=vertex_list)
@@ -839,8 +839,8 @@ cdef uint32_t * all_eccentricity_DHV(G, vertex_list=None):
     cdef uint32_t * waiting_list = distances + n
 
     # For storing upper and lower bounds on eccentricity of nodes
-    cdef uint32_t * ecc_upper_bound = distances + 2 * n
-    cdef uint32_t * ecc_lower_bound = distances + 3 * n
+    cdef uint32_t * ecc_lower_bound = distances + 2 * n
+    cdef uint32_t * ecc_upper_bound = distances + 3 * n
     memset(ecc_upper_bound, <char>-1, n * sizeof(uint32_t))
     memset(ecc_lower_bound, 0, n * sizeof(uint32_t))
 
@@ -914,7 +914,10 @@ cdef uint32_t * all_eccentricity_DHV(G, vertex_list=None):
         if flag:  # We are done.
             break
 
-    return ecc_upper_bound
+    l = []
+    for i in range(n):
+        l.append(ecc_upper_bound[i])
+    return l
 
 def eccentricity(G, algorithm="standard", vertex_list=None):
     r"""
@@ -1028,8 +1031,8 @@ def eccentricity(G, algorithm="standard", vertex_list=None):
         ecc = c_eccentricity_bounding(G, vertex_list=int_to_vertex)
     elif algorithm == "standard":
         ecc = c_eccentricity(G, vertex_list=int_to_vertex)
-    elif algorithm == "DHV":
-        ecc = c_eccentricity(G,vertex_list=int_to_vertex)
+    #elif algorithm == "DHV":
+    #    ecc = all_eccentricity_DHV(G,vertex_list=int_to_vertex)
     else:
         raise ValueError("unknown algorithm '{}', please contribute".format(algorithm))
 

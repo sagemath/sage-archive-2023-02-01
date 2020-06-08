@@ -844,3 +844,22 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             return self.element_class(self, lst, check)
 
     Element = LinearExtensionOfPoset
+
+class LinearExtensionsOfPosetWithHooks(LinearExtensionsOfPoset):
+    r"""
+    A subclass of ``LinearExtensionOfPoset`` where the poset
+    has well-defined hook lengths (ie. d-complete).
+    """
+
+    def __init__(self, poset, facade):
+        LinearExtensionsOfPoset.__init__(self, poset=poset, facade=facade)
+    
+    def cardinality(self):
+        """
+        Count the number of linear extensions
+        """
+        num_elmts = poset.cardinality()
+        hooks = poset.get_hooks()
+        hook_product = prod(hooks[elmt] for elmt in hooks)
+        return factorial(num_elmts) / hook_product
+        

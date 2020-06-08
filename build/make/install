@@ -19,6 +19,7 @@ export SAGE_SHARE="$SAGE_LOCAL/share"
 export SAGE_PKGCONFIG="$SAGE_LOCAL/lib/pkgconfig"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
+export SAGE_SPKG_SCRIPTS="$SAGE_LOCAL/var/lib/sage/scripts"
 . "$SAGE_SRC"/bin/sage-version.sh
 export SAGE_VERSION
 

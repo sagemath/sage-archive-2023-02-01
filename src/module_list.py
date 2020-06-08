@@ -308,8 +308,7 @@ ext_modules = [
               package = 'bliss'),
 
     Extension('sage.graphs.planarity',
-              sources = ['sage/graphs/planarity.pyx'],
-              libraries=['planarity']),
+              sources = ['sage/graphs/planarity.pyx']),
 
     Extension('sage.graphs.strongly_regular_db',
               sources = ['sage/graphs/strongly_regular_db.pyx']),

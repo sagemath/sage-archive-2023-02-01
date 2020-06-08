@@ -278,6 +278,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.functions.other import floor
+from sage.functions.other import binomial
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -1553,7 +1554,7 @@ class FinitePoset(UniqueRepresentation, Parent):
     @cached_method
     def linear_extensions(self, facade=False):
         """
-        Returns the enumerated set of all the linear extensions of this poset
+        Return the enumerated set of all the linear extensions of this poset
 
         INPUT:
 
@@ -1627,9 +1628,300 @@ class FinitePoset(UniqueRepresentation, Parent):
         from .linear_extensions import LinearExtensionsOfPoset
         return LinearExtensionsOfPoset(self, facade = facade)
 
+    def spectrum(self, a):
+        r"""
+        Return the `a`-spectrum of this poset.
+
+        The `a`-spectrum in this poset is the list of integers whose
+        `i`-th position contains the number of linear extensions of this poset
+        that have `a` in the `i`-th location.
+
+        INPUT:
+
+        - ``a`` -- an element of this poset.
+
+        OUTPUT: The `a`-spectrum of this poset, returned as a list.
+
+        EXAMPLES::
+
+            sage: P = posets.ChainPoset(5)
+            sage: P.spectrum(2)
+            [0, 0, 1, 0, 0]
+
+            sage: P = posets.BooleanLattice(3)
+            sage: P.spectrum(5)
+            [0, 0, 0, 4, 12, 16, 16, 0]
+
+            sage: P = posets.AntichainPoset(4)
+            sage: P.spectrum(3)
+            [6, 6, 6, 6]
+
+        TESTS::
+
+            sage: P = posets.ChainPoset(5)
+            sage: P.spectrum(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: Input element is not in poset!
+        """
+        if a not in self:
+            raise ValueError("Input element is not in poset!")
+
+        a_spec = [0] * len(self)
+        for L in self.linear_extensions():
+            idx = L.index(a)
+            a_spec[idx] += 1
+
+        return a_spec
+
+    @staticmethod
+    def _glue_spectra(a_spec, b_spec, orientation):
+        r"""
+        Return the `a`-spectrum of a poset by merging ``a_spec`` and ``b_spec``.
+
+        ``a_spec`` and ``b_spec`` are the `a`-spectrum and `b`-spectrum of two different
+        posets (see :meth:`atkinson` for the definition of `a`-spectrum).
+
+        The orientation determines whether `a < b` or `b < a` in the combined poset.
+
+        This is a helper method for :meth:`atkinson`.
+
+        INPUT:
+
+        - ``a_spec`` -- list; the `a`-spectrum of a poset `P`.
+
+        - ``b_spec`` -- list; the `b`-spectrum of a poset `Q`.
+
+        - ``orientation`` -- boolean; ``True`` if `a < b`, ``False`` otherwise.
+
+        OUTPUT: The `a`-spectrum (or `b`-spectrum, depending on orientation),
+                returned as a list, of the poset which is a disjoint union
+                of `P` and `Q`, together with the additional
+                covering relation `a < b`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.posets import FinitePoset
+            sage: Pdata = [0, 1, 2, 0]
+            sage: Qdata = [1, 1, 0]
+            sage: FinitePoset._glue_spectra(Pdata, Qdata, True)
+            [0, 20, 28, 18, 0, 0, 0]
+
+            sage: Pdata = [0, 0, 2]
+            sage: Qdata = [0, 1]
+            sage: FinitePoset._glue_spectra(Pdata, Qdata, False)
+            [0, 0, 0, 0, 8]
+        """
+        new_a_spec = []
+
+        if orientation is False:
+            a_spec, b_spec = b_spec, a_spec
+
+        p = len(a_spec)
+        q = len(b_spec)
+
+        for r in range(1, p+q+1):
+            new_a_spec.append(0)
+            for i in range(max(1, r-q), min(p, r) + 1):
+                k_val = binomial(r-1, i-1) * binomial(p+q-r, p-i)
+                if orientation:
+                    inner_sum = sum(b_spec[j-1] for j in range(r-i + 1, len(b_spec) + 1))
+                else:
+                    inner_sum = sum(b_spec[j-1] for j in range(1, r-i + 1))
+                new_a_spec[-1] = new_a_spec[-1] + (a_spec[i-1] * k_val * inner_sum)
+
+        return new_a_spec
+
+    def _split(self, a, b):
+        r"""
+        Return the two connected components obtained by deleting the covering relation
+        `a < b` from a poset whose Hasse diagram is a tree.
+
+        This is a helper method for :meth:`atkinson`.
+
+        INPUT:
+
+        - ``self`` -- a poset.
+
+        - ``a`` -- an element of the poset.
+
+        - ``b`` -- an element of the poset which covers ``a``.
+
+        OUTPUT: A list containing two posets which are the connected components
+                of this poset after deleting the covering relation `a < b`.
+
+        EXAMPLES::
+
+            sage: P = Poset({0: [1, 2], 1: [], 2: []})
+            sage: P._split(0, 1)
+            [Finite poset containing 2 elements, Finite poset containing 1 elements]
+
+            sage: P = posets.ChainPoset(5)
+            sage: P._split(1, 2)
+            [Finite poset containing 2 elements, Finite poset containing 3 elements]
+
+        TESTS::
+
+            sage: P = posets.BooleanLattice(3)
+            sage: P._split(0, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Wrong number of connected components after the covering relation is deleted!
+
+            sage: P = Poset({0: [1], 1: [], 2: []})
+            sage: P._split(0, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Wrong number of connected components after the covering relation is deleted!
+        """
+        covers = self.cover_relations()
+        covers.remove([a, b])
+        split_poset = Poset((self.list(), covers), cover_relations=True)
+        components = split_poset.connected_components()
+
+        if not len(components) == 2:
+            raise ValueError("Wrong number of connected components after the covering relation is deleted!")
+
+        c1, c2 = components
+        if a in c2:
+            c1, c2 = c2, c1
+
+        return [c1, c2]
+
+    def _spectrum_of_tree(self, a):
+        r"""
+        Return the `a`-spectrum of a poset whose underlying graph is a tree.
+
+        This is a helper method for :meth:`atkinson`.
+
+        INPUT:
+
+        - ``self`` -- a poset for which the underlying undirected graph is a tree.
+
+        - ``a`` -- an element of the poset.
+
+        OUTPUT: The `a`-spectrum of this poset, returned as a list.
+
+        EXAMPLES::
+
+            sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: P._spectrum_of_tree(0)
+            [2, 2, 0, 0, 0]
+
+            sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: P._spectrum_of_tree(2)
+            [0, 0, 4, 0, 0]
+
+            sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: P._spectrum_of_tree(3)
+            [0, 0, 0, 2, 2]
+        """
+        upper_covers = self.upper_covers(a)
+        lower_covers = self.lower_covers(a)
+        if not upper_covers and not lower_covers:
+            return [1]
+        if upper_covers:
+            b = upper_covers[0]
+            orientation = True
+        else:
+            (a, b) = (self.lower_covers(a)[0], a)
+            orientation = False
+        P, Q = self._split(a, b)
+        a_spec = P._spectrum_of_tree(a)
+        b_spec = Q._spectrum_of_tree(b)
+        return FinitePoset._glue_spectra(a_spec, b_spec, orientation)
+
+
+    def atkinson(self, a):
+        r"""
+        Return the `a`-spectrum of a poset whose Hasse diagram is cycle-free as
+        an undirected graph.
+
+        Given an element `a` in a poset `P`, the `a`-spectrum is the list of
+        integers whose `i`-th term contains the number of linear extensions of
+        `P` with element `a` located in the i-th position.
+
+        INPUT:
+
+        - ``self`` -- a poset for which the underlying undirected graph is a forest.
+
+        - ``a`` -- an element of the poset.
+
+        OUTPUT: The `a`-spectrum of this poset, returned as a list.
+
+        EXAMPLES::
+
+            sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: P.atkinson(0)
+            [2, 2, 0, 0, 0]
+
+            sage: P = Poset({0: [1], 1: [2, 3], 2: [], 3: [], 4: [5, 6], 5: [], 6: []})
+            sage: P.atkinson(5)
+            [0, 10, 18, 24, 28, 30, 30]
+
+            sage: P = posets.AntichainPoset(10)
+            sage: P.atkinson(0)
+            [362880, 362880, 362880, 362880, 362880, 362880, 362880, 362880, 362880, 362880]
+
+        TESTS::
+
+            sage: P = posets.ChainPoset(5)
+            sage: P.atkinson(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: Input element is not in poset!
+
+            sage: P = posets.BooleanLattice(2)
+            sage: P.atkinson(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: This poset is not a forest.
+
+        .. NOTE::
+
+            This function is the implementation of the algorithm from [At1990]_.
+        """
+        if a not in self:
+            raise ValueError("Input element is not in poset!")
+
+        if not self.hasse_diagram().to_undirected().is_forest():
+            raise ValueError("This poset is not a forest.")
+
+        n = self.cardinality()
+
+        # Compute the component of this poset containing `a` and its complement
+        components = self.connected_components()
+        remainder_poset = Poset()
+
+        for X in components:
+            if a in X:
+                main = X
+            else:
+                remainder_poset = remainder_poset.disjoint_union(X)
+
+        a_spec = main._spectrum_of_tree(a)
+
+        if remainder_poset.cardinality() == 0:
+            return a_spec
+
+        b = remainder_poset.an_element()
+        b_spec = remainder_poset.atkinson(b)
+        n_lin_exts = sum(b_spec)
+
+        new_a_spec = []
+        k = main.cardinality()
+
+        # Compute number of shuffles of linear extensions of the two posets
+        for r in range(1, n+1):
+            new_a_spec.append(0)
+            for i in range(max(1, r-n+k), min(r,k) + 1):
+                k_val = binomial(r-1, i-1) * binomial(n - r, k - i)
+                new_a_spec[-1] += k_val * a_spec[i-1] * n_lin_exts
+        return new_a_spec
+
     def is_linear_extension(self, l):
         """
-        Returns whether ``l`` is a linear extension of ``self``
+        Return whether ``l`` is a linear extension of ``self``
 
         INPUT:
 

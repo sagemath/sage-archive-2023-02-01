@@ -256,6 +256,8 @@ List of Poset methods
     :meth:`~FinitePoset.rank` | Return the rank of an element, or the rank of the poset.
     :meth:`~FinitePoset.rank_function` | Return a rank function of the poset, if it exists.
     :meth:`~FinitePoset.unwrap` | Unwraps an element of this poset.
+    :meth:`~FinitePoset.atkinson` | Return the `a`-spectrum of a poset whose undirected Hasse diagram is a forest.
+    :meth:`~FinitePoset.spectrum` | Return the `a`-spectrum of this poset.
 
 Classes and functions
 ---------------------

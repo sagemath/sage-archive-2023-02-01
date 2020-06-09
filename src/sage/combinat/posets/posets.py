@@ -1632,15 +1632,17 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Return the `a`-spectrum of this poset.
 
-        The `a`-spectrum in this poset is the list of integers whose
-        `i`-th position contains the number of linear extensions of this poset
+        The `a`-spectrum in a poset `P` is the list of integers whose
+        `i`-th position contains the number of linear extensions of `P`
         that have `a` in the `i`-th location.
 
         INPUT:
 
-        - ``a`` -- an element of this poset.
+        - ``a`` -- an element of this poset
 
-        OUTPUT: The `a`-spectrum of this poset, returned as a list.
+        OUTPUT:
+
+        The `a`-spectrum of this poset, returned as a list.
 
         EXAMPLES::
 
@@ -1662,10 +1664,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.spectrum(6)
             Traceback (most recent call last):
             ...
-            ValueError: Input element is not in poset!
+            ValueError: input element is not in poset
         """
         if a not in self:
-            raise ValueError("Input element is not in poset!")
+            raise ValueError("input element is not in poset")
 
         a_spec = [0] * len(self)
         for L in self.linear_extensions():
@@ -1688,16 +1690,18 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``a_spec`` -- list; the `a`-spectrum of a poset `P`.
+        - ``a_spec`` -- list; the `a`-spectrum of a poset `P`
 
-        - ``b_spec`` -- list; the `b`-spectrum of a poset `Q`.
+        - ``b_spec`` -- list; the `b`-spectrum of a poset `Q`
 
-        - ``orientation`` -- boolean; ``True`` if `a < b`, ``False`` otherwise.
+        - ``orientation`` -- boolean; ``True`` if `a < b`, ``False`` otherwise
 
-        OUTPUT: The `a`-spectrum (or `b`-spectrum, depending on orientation),
-                returned as a list, of the poset which is a disjoint union
-                of `P` and `Q`, together with the additional
-                covering relation `a < b`.
+        OUTPUT:
+
+        The `a`-spectrum (or `b`-spectrum, depending on orientation),
+        returned as a list, of the poset which is a disjoint union
+        of `P` and `Q`, together with the additional
+        covering relation `a < b`.
 
         EXAMPLES::
 
@@ -1714,7 +1718,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         new_a_spec = []
 
-        if orientation is False:
+        if not orientation:
             a_spec, b_spec = b_spec, a_spec
 
         p = len(a_spec)
@@ -1734,21 +1738,20 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def _split(self, a, b):
         r"""
-        Return the two connected components obtained by deleting the covering relation
-        `a < b` from a poset whose Hasse diagram is a tree.
+        Return the two connected components obtained by deleting the covering
+        relation `a < b` from a poset whose Hasse diagram is a tree.
 
         This is a helper method for :meth:`atkinson`.
 
         INPUT:
 
-        - ``self`` -- a poset.
+        - ``a`` -- an element of the poset
+        - ``b`` -- an element of the poset which covers ``a``
 
-        - ``a`` -- an element of the poset.
+        OUTPUT:
 
-        - ``b`` -- an element of the poset which covers ``a``.
-
-        OUTPUT: A list containing two posets which are the connected components
-                of this poset after deleting the covering relation `a < b`.
+        A list containing two posets which are the connected components
+        of this poset after deleting the covering relation `a < b`.
 
         EXAMPLES::
 
@@ -1766,13 +1769,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P._split(0, 1)
             Traceback (most recent call last):
             ...
-            ValueError: Wrong number of connected components after the covering relation is deleted!
+            ValueError: wrong number of connected components after the covering relation is deleted
 
             sage: P = Poset({0: [1], 1: [], 2: []})
             sage: P._split(0, 1)
             Traceback (most recent call last):
             ...
-            ValueError: Wrong number of connected components after the covering relation is deleted!
+            ValueError: wrong number of connected components after the covering relation is deleted
         """
         covers = self.cover_relations()
         covers.remove([a, b])
@@ -1780,7 +1783,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         components = split_poset.connected_components()
 
         if not len(components) == 2:
-            raise ValueError("Wrong number of connected components after the covering relation is deleted!")
+            raise ValueError("wrong number of connected components after the covering relation is deleted")
 
         c1, c2 = components
         if a in c2:
@@ -1796,11 +1799,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``self`` -- a poset for which the underlying undirected graph is a tree.
+        - ``a`` -- an element of the poset
 
-        - ``a`` -- an element of the poset.
+        OUTPUT:
 
-        OUTPUT: The `a`-spectrum of this poset, returned as a list.
+        The `a`-spectrum of this poset, returned as a list.
 
         EXAMPLES::
 
@@ -1824,18 +1827,17 @@ class FinitePoset(UniqueRepresentation, Parent):
             b = upper_covers[0]
             orientation = True
         else:
-            (a, b) = (self.lower_covers(a)[0], a)
+            (a, b) = (lower_covers[0], a)
             orientation = False
         P, Q = self._split(a, b)
         a_spec = P._spectrum_of_tree(a)
         b_spec = Q._spectrum_of_tree(b)
         return FinitePoset._glue_spectra(a_spec, b_spec, orientation)
 
-
     def atkinson(self, a):
         r"""
-        Return the `a`-spectrum of a poset whose Hasse diagram is cycle-free as
-        an undirected graph.
+        Return the `a`-spectrum of a poset whose Hasse diagram is
+        cycle-free as an undirected graph.
 
         Given an element `a` in a poset `P`, the `a`-spectrum is the list of
         integers whose `i`-th term contains the number of linear extensions of
@@ -1843,11 +1845,13 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``self`` -- a poset for which the underlying undirected graph is a forest.
+        - ``self`` -- a poset whose Hasse diagram is a forest
 
-        - ``a`` -- an element of the poset.
+        - ``a`` -- an element of the poset
 
-        OUTPUT: The `a`-spectrum of this poset, returned as a list.
+        OUTPUT:
+
+        The `a`-spectrum of this poset, returned as a list.
 
         EXAMPLES::
 
@@ -1869,23 +1873,23 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.atkinson(6)
             Traceback (most recent call last):
             ...
-            ValueError: Input element is not in poset!
+            ValueError: input element is not in poset
 
             sage: P = posets.BooleanLattice(2)
             sage: P.atkinson(1)
             Traceback (most recent call last):
             ...
-            ValueError: This poset is not a forest.
+            ValueError: this poset is not a forest
 
         .. NOTE::
 
             This function is the implementation of the algorithm from [At1990]_.
         """
         if a not in self:
-            raise ValueError("Input element is not in poset!")
+            raise ValueError("input element is not in poset")
 
-        if not self.hasse_diagram().to_undirected().is_forest():
-            raise ValueError("This poset is not a forest.")
+        if not self._hasse_diagram.to_undirected().is_forest():
+            raise ValueError("this poset is not a forest")
 
         n = self.cardinality()
 
@@ -1901,7 +1905,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         a_spec = main._spectrum_of_tree(a)
 
-        if remainder_poset.cardinality() == 0:
+        if not remainder_poset.cardinality():
             return a_spec
 
         b = remainder_poset.an_element()

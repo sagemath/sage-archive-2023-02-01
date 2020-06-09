@@ -81,7 +81,7 @@ def setup_glpk_error_handler():
     TESTS::
 
         sage: cython(             # optional - glpk_error_recovery_patch
-        ....  '''
+        ....: '''
         ....: # distutils: libraries = glpk z gmp
         ....: from cysignals.signals cimport sig_on, sig_off
         ....: from sage.libs.glpk.env cimport glp_term_out

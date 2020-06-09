@@ -26,7 +26,7 @@ Cython modules::
     'Rational Numbers...'
 
     sage: sage_getsource(sage.rings.rational)[5:]
-    'Rational Numbers...'
+    '# distutils: ... Rational Numbers...'
 
 Python modules::
 

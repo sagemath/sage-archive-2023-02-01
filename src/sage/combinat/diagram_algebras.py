@@ -2228,6 +2228,26 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
     due to the fact that its natural basis is given by certain graphs
     often called diagrams.
 
+    There are a number of predefined elements for the partition algebra.
+    We define the cup/cap pair by :meth:`a()`. The simple transpositions
+    are denoted :meth:`s()`. Finally, we define elements :meth:`e()`,
+    where if `i = (2r+1)/2`, then ``e(i)`` contains the blocks `\{r+1\}`
+    and `\{-r-1\}` and if `i \in \ZZ`, then `e_i` contains the block
+    `\{-i, -i-1, i, i+1\}`, with all other blocks being `\{-j, j\}`.
+    So we have::
+
+        sage: P = PartitionAlgebra(4, 0)
+        sage: P.a(2)
+        P{{-4, 4}, {-3, -2}, {-1, 1}, {2, 3}}
+        sage: P.e(3/2)
+        P{{-4, 4}, {-3, 3}, {-2}, {-1, 1}, {2}}
+        sage: P.e(2)
+        P{{-4, 4}, {-3, -2, 2, 3}, {-1, 1}}
+        sage: P.e(5/2)
+        P{{-4, 4}, {-3}, {-2, 2}, {-1, 1}, {3}}
+        sage: P.s(2)
+        P{{-4, 4}, {-3, 2}, {-2, 3}, {-1, 1}}
+
     An excellent reference for partition algebras and their various
     subalgebras (Brauer algebra, Temperley--Lieb algebra, etc) is the
     paper [HR2005]_.
@@ -2695,13 +2715,54 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
                         for sp in SPd)
 
     @cached_method
+    def a(self, i):
+        r"""
+        Return the element `a_i` in ``self``.
+
+        The element `a_i` is the cap and cup at `(i, i+1)`, so it contains
+        the blocks `\{i, i+1\}`, `\{-i, -i-1\}`, and `\{-j, j\}` for all
+        `j \neq i, i+1`.
+
+        INPUT:
+
+        - ``i`` -- an integer between 1 and `k-1`
+
+        EXAMPLES::
+
+            sage: R.<n> = QQ[]
+            sage: P3 = PartitionAlgebra(3, n)
+            sage: P3.a(1)
+            P{{-3, 3}, {-2, -1}, {1, 2}}
+            sage: P3.a(2)
+            P{{-3, -2}, {-1, 1}, {2, 3}}
+
+            sage: P3 = PartitionAlgebra(5/2, n)
+            sage: P3.a(1)
+            P{{-3, 3}, {-2, -1}, {1, 2}}
+            sage: P3.a(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: i must be an integer between 1 and 1
+        """
+        if i <= 0 or i >= floor(self._k):
+            raise ValueError("i must be an integer between 1 and {}".format(floor(self._k)-1))
+        B = self.basis()
+        SP = B.keys()
+        D = [[-j, j] for j in range(1, ceil(self._k)+1)]
+        D[i-1] = [i,i+1]
+        D[i] = [-i,-(i+1)]
+        return B[SP(D)]
+
+    generator_a = a
+
+    @cached_method
     def e(self, i):
         r"""
         Return the element `e_i` in ``self``.
 
-        If `i = (2r+1)/2`, then `e_i` contains the blocks ``{r+1}`` and
-        ``{-r-1}``.  If `i \in {\mathbb Z}`, then `e_i` contains the block
-        ``{-i, -i-1, i, i+1}``.  Other blocks are of the form `{-j, j}`.
+        If `i = (2r+1)/2`, then `e_i` contains the blocks `\{r+1\}` and
+        `\{-r-1\}`.  If `i \in \ZZ`, then `e_i` contains the block
+        `\{-i, -i-1, i, i+1\}`.  Other blocks are of the form `\{-j, j\}`.
 
         INPUT:
 
@@ -2751,14 +2812,16 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             D.append([i])
             return B[SP(D)]
 
+    generator_e = e
+
     @cached_method
     def s(self, i):
         r"""
         Return the ``i``-th simple transposition `s_i` in ``self``.
 
-        Borrowing the notation from the symmetric group, the ``i``-th
-        simple transposition has blocks of the form ``{-i, i+1}``,
-        ``{-i-1, i}`` and ``{-j, j}`` for `j \notin \{ i, i+1 \}`.
+        Borrowing the notation from the symmetric group, the `i`-th
+        simple transposition `s_i` has blocks of the form `\{-i, i+1\}`,
+        `\{-i-1, i\}` and `\{-j, j\}` for `j \notin \{ i, i+1 \}`.
 
         INPUT:
 
@@ -2786,6 +2849,8 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
         D[i-1] = [-(i+1), i]
         D[i] = [-i, i+1]
         return B[SP(D)]
+
+    generator_s = s
 
     @cached_method
     def sigma(self, i):
@@ -2886,7 +2951,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
     @cached_method
     def jucys_murphy_element(self, i):
         r"""
-        Return the ``i``-th Jucys-Murphy element `L_{i}` from [Eny2012]_.
+        Return the ``i``-th Jucys-Murphy element `L_i` from [Eny2012]_.
         of ``self``.
 
         INPUT:

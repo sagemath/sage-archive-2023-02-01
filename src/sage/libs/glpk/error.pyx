@@ -108,8 +108,8 @@ def setup_glpk_error_handler():
         sage: p.add_constraint(3*x + 2*y <= 6)
         sage: p.add_constraint(x >= 0)
         sage: p.set_objective(x + y)
-        sage: res = p.solve()
-              0: obj = ...
+        sage: print('output'); res = p.solve()
+        output ... 0: obj = ...
         sage: res  # rel tol 1e-15
         2.4
     """

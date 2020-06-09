@@ -92,8 +92,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
                     self._adjust_prec_info(absprec, relprec)
                 return
             elif x.base_ring() is ZZ:
+                self._poly = PolynomialRing(ZZ, parent.variable_name())(x)
                 self._valbase = Integer(0)
-                self._poly = PolynomialRing(ZZ, parent.variable_name())([a >> self._valbase for a in x])
                 p = parentbr.prime()
                 self._relprecs = [c.valuation(p) + parentbr.precision_cap() for c in x.list()]
                 self._comp_valaddeds()

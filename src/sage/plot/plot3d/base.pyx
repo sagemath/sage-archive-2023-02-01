@@ -374,6 +374,7 @@ cdef class Graphics3d(SageObject):
         js_options['decimals'] = options.get('decimals', 2)
         js_options['frame'] = options.get('frame', True)
         js_options['projection'] = options.get('projection', 'perspective')
+        js_options['viewpoint'] = options.get('viewpoint', False)
 
         if js_options['projection'] not in ['perspective', 'orthographic']:
             import warnings

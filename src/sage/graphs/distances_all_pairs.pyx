@@ -801,12 +801,24 @@ cdef uint32_t * c_eccentricity_bounding(G, vertex_list=None) except NULL:
 
     return LB
 
-cdef uint32_t * all_eccentricity_DHV(G, vertex_list=None):
+cdef uint32_t * c_eccentricity_DHV(G, vertex_list=None):
     r"""
-    Returns vector of all eccentricities of unweighted graph `G`.
+    Return the vector of eccentricities using the algorithm of [Dragan2018]_.
 
-    This method computes the eccentricity of all vertices of
-    unweighted undirected graph using the algorithm proposed in [Dragan2018]_.
+    The array returned is of length `n`, and by default its `i`-th component is
+    the eccentricity of the `i`-th vertex in ``G.vertices()``.
+
+    Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
+    mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When set,
+    ``ecc[i]`` is the eccentricity of vertex ``vertex_list[i]``.
+
+    The algorithm proposed in [Dragan2018]_ is an improvement of the algorithm
+    proposed in [TK2013]_. It is also is based on the observation that for all
+    nodes `v,w\in V`, we have `\max(ecc[v]-d(v,w), d(v,w))\leq ecc[w] \leq
+    ecc[v] + d(v,w)`. Also the algorithms iteratively improves upper and lower
+    bounds on the eccentricity of each vertex until no further improvements can
+    be done. The difference with [TK2013]_ is in the order in which improvements
+    are done.
 
     EXAMPLES::
 
@@ -817,12 +829,12 @@ cdef uint32_t * all_eccentricity_DHV(G, vertex_list=None):
 
     TESTS:
 
-        sage: G = graphs.RandomBarabasiAlbert(11,7)
-        sage: eccentricity(G) == eccentricity(G, algorithm ='DHV')
+        sage: G = graphs.RandomBarabasiAlbert(50, 2)
+        sage: eccentricity(G, algorithm='bounds') == eccentricity(G, algorithm='DHV')
         True
     """
     if G.is_directed():
-        raise ValueError("this algorithm only works on undirected graphs.")
+        raise ValueError("the 'DHV' algorithm only works on undirected graphs")
 
     cdef uint32_t n = G.order()
     if not n:
@@ -831,11 +843,11 @@ cdef uint32_t * all_eccentricity_DHV(G, vertex_list=None):
     cdef short_digraph sd
     init_short_digraph(sd, G, edge_labelled=False, vertex_list=vertex_list)
 
-    cdef uint32_t * distances = <uint32_t *>sig_malloc(3 * n * sizeof(uint32_t))
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *> mem.malloc(3 * n * sizeof(uint32_t))
     # For storing upper bounds on eccentricity of nodes
     cdef uint32_t * ecc_upper_bound = <uint32_t *>sig_calloc(n, sizeof(uint32_t))
     if not distances or not ecc_upper_bound:
-        sig_free(distances)
         sig_free(ecc_upper_bound)
         free_short_digraph(sd)
         raise MemoryError()
@@ -863,61 +875,54 @@ cdef uint32_t * all_eccentricity_DHV(G, vertex_list=None):
         # For this, we select u with minimum eccentricity lower bound in active
         # if ecc_u == ecc_lb[u], we are done. Otherwise, we update eccentricity
         # lower bounds and repeat
-        while active:
-            # Select u with minimum eccentricity lower bound
-            tmp = UINT32_MAX
+
+        tmp = UINT32_MAX
+        for i, v in enumerate(active):
+            if ecc_lower_bound[v] < tmp:
+                tmp = ecc_lower_bound[v]
+                idx = i
+        active[idx], active[-1] = active[-1], active[idx]
+        u = active.pop()
+        ecc_u = simple_BFS(sd, u, distances, NULL, waiting_list, seen)
+        ecc_upper_bound[u] = ecc_u
+
+        if ecc_u == UINT32_MAX:  # Disconnected graph
+            break
+
+        if ecc_u == ecc_lower_bound[u]:
+            # We found the good vertex.
+            # Update eccentricity upper bounds of the remaining vertices
+            for v in active:
+                ecc_upper_bound[v] = min(ecc_upper_bound[v], distances[v] + ecc_u)
+
+        else:
+            # u was not a good choice.
+            # We use its antipode to update eccentricity lower bounds.
+            # Observe that this antipode might have already been seen.
+            antipode = waiting_list[n-1]
             for i, v in enumerate(active):
-                if ecc_lower_bound[v] < tmp:
-                    tmp = ecc_lower_bound[v]
-                    idx = i
-            active[idx], active[-1] = active[-1], active[idx]
-            u = active.pop()
-            ecc_u = simple_BFS(sd, u, distances, NULL, waiting_list, seen)
-            ecc_upper_bound[u] = ecc_u
+                if v == antipode:
+                    active[i] = active[-1]
+                    active.pop()
+                    break
 
-            if ecc_u == UINT32_MAX:  # Disconnected graph
-                flag = 1
-                break
+            ecc_antipode = simple_BFS(sd, antipode, distances, NULL, waiting_list, seen)
+            ecc_upper_bound[antipode] = ecc_antipode
 
-            if ecc_u == ecc_lower_bound[u]:
-                # Update eccentricity upper bounds of the remaining vertices
-                # and break.
-                for v in active:
-                    ecc_upper_bound[v] = min(ecc_upper_bound[v], distances[v] + ecc_u)
-                break
+            for v in active:
+                ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
 
+        # We remove from active vertices for which the gap is closed
+        i = 0
+        while i < len(active):
+            v = active[i]
+            if ecc_upper_bound[v] == ecc_lower_bound[v]:
+                active[i] = active[-1]
+                active.pop()
             else:
-                # u was not a good choice.
-                # We use its antipode to update eccentricity lower bounds.
-                # Observe that this antipode might have already been seen.
-                antipode = waiting_list[n-1]
-                for i, v in enumerate(active):
-                    if v == antipode:
-                        active[i] = active[-1]
-                        active.pop()
-                        break
-
-                ecc_antipode = simple_BFS(sd, antipode, distances, NULL, waiting_list, seen)
-                ecc_upper_bound[antipode] = ecc_antipode
-
-                for v in active:
-                    ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
-
-        if flag:  # Disconnected graph
-            break
-
-        # Check if there exist any vertex in active, whose eccentricity bounds
-        # can be further updated.
-        flag = 1
-        for v in active:
-            if ecc_upper_bound[v] > ecc_lower_bound[v]:
-                flag = 0
-                break
-        if flag:  # We are done.
-            break
+                i += 1
 
     free_short_digraph(sd)
-    sig_free(distances)
     bitset_free(seen)
 
     return ecc_upper_bound
@@ -970,7 +975,10 @@ def eccentricity(G, algorithm="standard", vertex_list=None):
 
         sage: from sage.graphs.distances_all_pairs import eccentricity
         sage: g = graphs.RandomGNP(50, .1)
-        sage: eccentricity(g, algorithm='standard') == eccentricity(g, algorithm='bounds')
+        sage: ecc = eccentricity(g, algorithm='standard')
+        sage: ecc == eccentricity(g, algorithm='bounds')
+        True
+        sage: ecc == eccentricity(g, algorithm='DHV')
         True
 
     Case of not (strongly) connected (directed) graph::
@@ -1035,7 +1043,7 @@ def eccentricity(G, algorithm="standard", vertex_list=None):
     elif algorithm == "standard":
         ecc = c_eccentricity(G, vertex_list=int_to_vertex)
     elif algorithm == "DHV":
-        ecc = all_eccentricity_DHV(G,vertex_list=int_to_vertex)
+        ecc = c_eccentricity_DHV(G, vertex_list=int_to_vertex)
     else:
         raise ValueError("unknown algorithm '{}', please contribute".format(algorithm))
 

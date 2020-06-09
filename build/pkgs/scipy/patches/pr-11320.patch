@@ -1,0 +1,62 @@
+From 421b16cbb95a2f4aa8f240bdf61b2f2f5b19c3fd Mon Sep 17 00:00:00 2001
+From: Grzegorz Mrukwa <g.mrukwa@gmail.com>
+Date: Sun, 5 Jan 2020 12:27:46 +0100
+Subject: [PATCH 1/2] BUG: Add `#include <cstdint>` to `rectangular_lsap.cpp`
+
+There was missing declaration of `int64_t` in the file,
+causing the extension build failure.
+---
+ THANKS.txt                                           | 1 +
+ scipy/optimize/rectangular_lsap/rectangular_lsap.cpp | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/THANKS.txt b/THANKS.txt
+index cf17d6d689c..8046b6f254d 100644
+--- a/THANKS.txt
++++ b/THANKS.txt
+@@ -227,6 +227,7 @@ Leo P. Singer for bug fixes in scipy.optimize and scipy.interpolate and
+ Domen Gorjup and Janko Slavič for continuous wavelet transform with complex
+     wavelets fix.
+ Søren Fuglede Jørgensen for improvements to scipy.sparse.csgraph
++Grzegorz Mrukwa for a bug fix in rectangular_lsap.cpp
+ 
+ Institutions
+ ------------
+diff --git a/scipy/optimize/rectangular_lsap/rectangular_lsap.cpp b/scipy/optimize/rectangular_lsap/rectangular_lsap.cpp
+index bce9d380358..a45cf056f63 100644
+--- a/scipy/optimize/rectangular_lsap/rectangular_lsap.cpp
++++ b/scipy/optimize/rectangular_lsap/rectangular_lsap.cpp
+@@ -42,6 +42,7 @@ Author: PM Larsen
+ 
+ #include <algorithm>
+ #include <cmath>
++#include <cstdint>
+ #include <vector>
+ 
+ static int
+
+From 0983cdd25cb8abc1d4517c461ae3e9bdd6309b74 Mon Sep 17 00:00:00 2001
+From: Grzegorz Mrukwa <g.mrukwa@gmail.com>
+Date: Sun, 5 Jan 2020 13:36:56 +0100
+Subject: [PATCH 2/2] BUG: Switch to `rectangular_lsap.h`
+
+Builds were failing as C++11 was disabled.
+
+Co-Authored-By: peterbell10 <peterbell10@live.co.uk>
+---
+ scipy/optimize/rectangular_lsap/rectangular_lsap.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scipy/optimize/rectangular_lsap/rectangular_lsap.cpp b/scipy/optimize/rectangular_lsap/rectangular_lsap.cpp
+index a45cf056f63..7734652fed4 100644
+--- a/scipy/optimize/rectangular_lsap/rectangular_lsap.cpp
++++ b/scipy/optimize/rectangular_lsap/rectangular_lsap.cpp
+@@ -42,7 +42,7 @@ Author: PM Larsen
+ 
+ #include <algorithm>
+ #include <cmath>
+-#include <cstdint>
++#include "rectangular_lsap.h"
+ #include <vector>
+ 
+ static int

@@ -831,16 +831,18 @@ cdef uint32_t * all_eccentricity_DHV(G, vertex_list=None):
     cdef short_digraph sd
     init_short_digraph(sd, G, edge_labelled=False, vertex_list=vertex_list)
 
-    cdef MemoryAllocator mem = MemoryAllocator()
-    cdef uint32_t * distances = <uint32_t *>mem.malloc(4 * n * sizeof(uint32_t))
-    if not distances:
+    cdef uint32_t * distances = <uint32_t *>sig_malloc(3 * n * sizeof(uint32_t))
+    # For storing upper bounds on eccentricity of nodes
+    cdef uint32_t * ecc_upper_bound = <uint32_t *>sig_calloc(n, sizeof(uint32_t))
+    if not distances or not ecc_upper_bound:
+        sig_free(distances)
+        sig_free(ecc_upper_bound)
+        free_short_digraph(sd)
         raise MemoryError()
 
     cdef uint32_t * waiting_list = distances + n
-
-    # For storing upper and lower bounds on eccentricity of nodes
+    # For storing lower bounds on eccentricity of nodes
     cdef uint32_t * ecc_lower_bound = distances + 2 * n
-    cdef uint32_t * ecc_upper_bound = distances + 3 * n
     memset(ecc_upper_bound, <char>-1, n * sizeof(uint32_t))
     memset(ecc_lower_bound, 0, n * sizeof(uint32_t))
 
@@ -913,6 +915,10 @@ cdef uint32_t * all_eccentricity_DHV(G, vertex_list=None):
                 break
         if flag:  # We are done.
             break
+
+    free_short_digraph(sd)
+    sig_free(distances)
+    bitset_free(seen)
 
     return ecc_upper_bound
 

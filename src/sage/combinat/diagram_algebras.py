@@ -2483,11 +2483,6 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
         P{{-3, 2}, {-2, 1}, {-1, 3}}
         sage: A([2,3,1]) == A(S([2,3,1]))
         True
-
-    REFERENCES:
-
-    .. [HR2005] Tom Halverson and Arun Ram, *Partition algebras*. European
-       Journal of Combinatorics **26** (2005), 869--921.
     """
     @staticmethod
     def __classcall_private__(cls, k, q, base_ring=None, prefix="P"):

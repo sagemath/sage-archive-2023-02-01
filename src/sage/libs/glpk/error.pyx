@@ -21,7 +21,10 @@ from sage.numerical.mip import MIPSolverException
 
 class GLPKError(MIPSolverException):
     """
-    An error raised by the GLPK library.
+    A low-level error that is raised by ``sage_glpk_term_hook``.
+
+    The GLPK API considers these errors non-recoverable.  User code should not try
+    to catch this exception.
 
     EXAMPLES::
 
@@ -67,6 +70,13 @@ def setup_glpk_error_handler():
     r"""
     Setup the GLPK error handler. Called automatically when this module
     is imported at Sage startup.
+
+    We install this error handler so that an error does not lead to
+    an immediate error exit of the process.  Instead, we raise a
+    ``GLPKError`` for the convenience of developers.
+
+    The GLPK API considers errors non-recoverable.
+    Therefore, user code should not try to catch this exception.
 
     TESTS::
 

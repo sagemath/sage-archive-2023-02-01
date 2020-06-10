@@ -70,10 +70,10 @@ AUTHOR:
 
 from sage.structure.element import is_Matrix
 
-from libc.string                   cimport memset
-from .list_of_faces                cimport ListOfFaces
-from sage.misc.superseded           import deprecated_function_alias
-from sage.matrix.matrix_mod2_dense cimport Matrix_mod2_dense
+from libc.string                      cimport memset
+from .list_of_faces                   cimport ListOfFaces
+from sage.misc.superseded              import deprecated_function_alias
+from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -233,7 +233,7 @@ cdef int incidences_to_bit_rep(tuple incidences, uint64_t *output,
             position = entry//64
             output[position] += vertex_to_bit_dictionary(value)
 
-def incidence_matrix_to_bit_rep_of_facets(Matrix_mod2_dense matrix):
+def incidence_matrix_to_bit_rep_of_facets(Matrix_integer_dense matrix):
     r"""
     Initialize facets in Bit-representation as :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`.
 
@@ -242,7 +242,7 @@ def incidence_matrix_to_bit_rep_of_facets(Matrix_mod2_dense matrix):
     - ``matrix`` -- an incidence matrix as in
       :meth:`sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`
       with columns corresponding to equations deleted
-      of type :class:`sage.matrix.matrix_mod2_dense.Matrix_mod2_dense`
+      of type :class:`sage.matrix.matrix_integer_dense.Matrix_integer_dense`
 
     OUTPUT:
 
@@ -318,7 +318,7 @@ def incidence_matrix_to_bit_rep_of_facets(Matrix_mod2_dense matrix):
         # Filling each facet with its Vrep-incidences, which "is" the
         # "i-th column" of the original matrix (but we have transposed).
         for entry in range(nrows):
-            if matrix.get_unsafe(entry, i):
+            if matrix.get_unsafe_double(entry, i):
                 # Vrep ``entry`` is contained in the face, so set the corresponding bit
                 value = entry % 64
                 position = entry//64
@@ -326,7 +326,7 @@ def incidence_matrix_to_bit_rep_of_facets(Matrix_mod2_dense matrix):
     return facets
 incidence_matrix_to_bit_repr_of_facets = deprecated_function_alias(28608, incidence_matrix_to_bit_rep_of_facets)
 
-def incidence_matrix_to_bit_rep_of_Vrep(Matrix_mod2_dense matrix):
+def incidence_matrix_to_bit_rep_of_Vrep(Matrix_integer_dense matrix):
     r"""
     Initialize Vrepresentatives in Bit-representation as :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`.
 
@@ -338,7 +338,7 @@ def incidence_matrix_to_bit_rep_of_Vrep(Matrix_mod2_dense matrix):
     - ``matrix`` -- an incidence matrix as in
       :meth:`sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`
       with columns corresponding to equations deleted
-      of type :class:`sage.matrix.matrix_mod2_dense.Matrix_mod2_dense`
+      of type :class:`sage.matrix.matrix_integer_dense.Matrix_integer_dense`
 
     OUTPUT:
 

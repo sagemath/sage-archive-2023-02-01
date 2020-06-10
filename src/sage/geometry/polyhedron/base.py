@@ -2688,18 +2688,25 @@ class Polyhedron_base(Element):
                                     for v in self.Vrep_generator()
                                     if not v.is_vertex())
 
+        # Determine ``is_zero`` to save lots of time.
+        if self.base_ring().is_exact():
+            def is_zero(x):
+                return x == 0
+        else:
+            is_zero == self._is_zero
+
         for H in self.Hrep_generator():
             Hconst = H.b()
             Hvec = H.A()
             Hindex = H.index()
             for Vvec, Vindex in Vvectors_vertices:
-                if self._is_zero(Hvec*Vvec + Hconst):
+                if is_zero(Hvec*Vvec + Hconst):
                     incidence_matrix[Vindex, Hindex] = 1
 
             # A ray or line is considered incident with a hyperplane,
             # if it is orthogonal to the normal vector of the hyperplane.
             for Vvec, Vindex in Vvectors_rays_lines:
-                if self._is_zero(Hvec*Vvec):
+                if is_zero(Hvec*Vvec):
                     incidence_matrix[Vindex, Hindex] = 1
 
         incidence_matrix.set_immutable()

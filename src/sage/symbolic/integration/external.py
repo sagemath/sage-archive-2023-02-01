@@ -94,7 +94,7 @@ def mma_free_integrator(expression, v, a=None, b=None):
 
     ::
 
-    Check that :trac:`14764` is resolved:
+    Check that :trac:`14764` is resolved::
 
         sage: integrate(x^2, x, 0, 1, algorithm="mathematica_free") # optional - internet
         1/3

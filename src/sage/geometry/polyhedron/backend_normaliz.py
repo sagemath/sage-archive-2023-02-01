@@ -335,8 +335,8 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         Check that :trac:`29836` is fixed::
 
-            sage: P = polytopes.simplex(backend='normaliz')
-            sage: K.<sqrt2> = QuadraticField(2)
+            sage: P = polytopes.simplex(backend='normaliz')  # optional - pynormaliz
+            sage: K.<sqrt2> = QuadraticField(2)              # optional - pynormaliz
             sage: P.dilation(sqrt2)
             A 3-dimensional polyhedron in (Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.41...)^4 defined as the convex hull of 4 vertices
         """
@@ -345,7 +345,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             return [ int(x.numerator()), int(x.denominator())]
         from sage.rings.rational import Rational
         from types import GeneratorType
-        if isinstance(x, list) or isinstance(x, tuple) or isinstance(x, GeneratorType):
+        if isinstance(x, (list, tuple, GeneratorType)):
             return [ Polyhedron_normaliz._convert_to_pynormaliz(y) for y in x ]
         try:
             return int(ZZ(x))

@@ -110,11 +110,6 @@ from sage.arith.all import gcd
 from .matrix2 import decomp_seq
 from .matrix0 import Matrix as Matrix_base
 
-from .matrix_mod2_dense import Matrix_mod2_dense
-from .matrix_mod2_dense cimport Matrix_mod2_dense
-from sage.rings.finite_rings.finite_field_constructor import GF
-import sage.matrix.matrix_space as matrix_space
-
 
 from sage.misc.all import verbose, get_verbose, prod
 
@@ -1428,7 +1423,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     cpdef zero_pattern_matrix(self):
         """
-        Return a matrix that contains 1 if and only if the corresponding entry is 0.
+        Return a matrix over the integers that contains 1 if and only if the corresponding entry is 0.
+        All other entries are 0.
 
         EXAMPLES::
 
@@ -1437,13 +1433,15 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [0 0]
             [0 1]
         """
-        MS = matrix_space.MatrixSpace(GF(2), self._nrows, self._ncols)
-        cdef Matrix_mod2_dense M = Matrix_mod2_dense(MS)
+        from sage.matrix.matrix_space import MatrixSpace
+        MZ = MatrixSpace(ZZ, self._nrows, self._ncols, sparse=False)
+        cdef Matrix_integer_dense M =  Matrix_integer_dense.__new__(Matrix_integer_dense, MZ, None, None, None)
+
         cdef Py_ssize_t i, j
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 if self.get_is_zero_unsafe(i, j):
-                    M.set_unsafe(i, j, 1)
+                    M.set_unsafe_si(i, j, 1)
         return M
 
     ################################################

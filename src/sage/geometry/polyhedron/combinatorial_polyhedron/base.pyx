@@ -427,17 +427,26 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._n_Hrepresentation = data.ncols()
             self._n_Vrepresentation = data.nrows()
 
+            from sage.rings.all  import GF
+            R = GF(2)
+
+            if not data.base_ring() is R:
+                data = data.change_ring(R)
+
             # Store the incidence matrix.
             if not data.is_immutable():
                 data = data.__copy__()
                 data.set_immutable()
             self.incidence_matrix.set_cache(data)
 
+            # Delete equations.
+            data_modified = data.delete_columns([i for i in range(data.ncols()) if all(data[j,i] for j in range(data.nrows()))], check=False)
+
             # Initializing the facets in their Bit-representation.
-            self._bitrep_facets = incidence_matrix_to_bit_rep_of_facets(data)
+            self._bitrep_facets = incidence_matrix_to_bit_rep_of_facets(data_modified)
 
             # Initializing the Vrep as their Bit-representation.
-            self._bitrep_Vrep = incidence_matrix_to_bit_rep_of_Vrep(data)
+            self._bitrep_Vrep = incidence_matrix_to_bit_rep_of_Vrep(data_modified)
 
             self._n_facets = self.bitrep_facets().n_faces
 

@@ -1567,14 +1567,14 @@ cdef class Matrix_integer_dense(Matrix_dense):
         MS = matrix_space.MatrixSpace(GF(2), self._nrows, self._ncols)
         return Matrix_mod2_dense(MS, self, True, True)
 
-    def _zero_matrix(self):
+    cpdef zero_pattern_matrix(self):
         """
         Return a matrix that contains 1 if and only if the corresponding entry is 0.
 
         EXAMPLES::
 
             sage: M = Matrix(ZZ, 2, [1,2,-2,0])
-            sage: M._zero_matrix()
+            sage: M.zero_pattern_matrix()
             [0 0]
             [0 1]
         """

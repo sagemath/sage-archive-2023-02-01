@@ -1426,14 +1426,14 @@ cdef class Matrix_rational_dense(Matrix_dense):
         verbose("done computing right kernel matrix over the rationals for %sx%s matrix" % (self.nrows(), self.ncols()),level=1, t=tm)
         return 'computed-iml-rational', K
 
-    def _zero_matrix(self):
+    cpdef zero_pattern_matrix(self):
         """
         Return a matrix that contains 1 if and only if the corresponding entry is 0.
 
         EXAMPLES::
 
             sage: M = Matrix(QQ, 2, [1,2/3,-2,0])
-            sage: M._zero_matrix()
+            sage: M.zero_pattern_matrix()
             [0 0]
             [0 1]
         """

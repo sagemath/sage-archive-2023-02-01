@@ -1394,7 +1394,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         Check that the code path cunningham might be used::
 
             sage: a = Mod(9,11)
-            sage: a.nth_root(2, False, True, 'Johnston', cunningham = True) # optional - cunningham
+            sage: a.nth_root(2, False, True, 'Johnston', cunningham = True) # optional - cunningham_tables
             [3, 8]
 
         ALGORITHMS:

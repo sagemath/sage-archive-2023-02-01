@@ -116,6 +116,7 @@ from .matrix_modn_dense_double cimport Matrix_modn_dense_double
 
 from .matrix_mod2_dense import Matrix_mod2_dense
 from .matrix_mod2_dense cimport Matrix_mod2_dense
+from sage.rings.finite_rings.finite_field_constructor import GF
 
 
 from .matrix2 import decomp_seq
@@ -1553,7 +1554,17 @@ cdef class Matrix_integer_dense(Matrix_dense):
             return self._mod_int_c(modulus)
 
     cdef _mod_two(self):
-        MS = matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols)
+        """
+        TESTS:
+
+        Check that bug discovered in :trac:`29839` is fixed::
+
+            sage: M = Matrix(ZZ, [[0,1],[0,1]])
+            sage: M._mod_int(2).transpose()
+            [0 0]
+            [1 1]
+        """
+        MS = matrix_space.MatrixSpace(GF(2), self._nrows, self._ncols)
         return Matrix_mod2_dense(MS, self, True, True)
 
     def _zero_matrix(self):
@@ -1567,7 +1578,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             [0 0]
             [0 1]
         """
-        MS = matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols)
+        MS = matrix_space.MatrixSpace(GF(2), self._nrows, self._ncols)
         cdef Matrix_mod2_dense M = Matrix_mod2_dense(MS)
         cdef Py_ssize_t i, j
         for i from 0 <= i < self._nrows:

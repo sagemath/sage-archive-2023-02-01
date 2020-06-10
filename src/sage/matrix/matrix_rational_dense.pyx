@@ -112,7 +112,7 @@ from .matrix0 import Matrix as Matrix_base
 
 from .matrix_mod2_dense import Matrix_mod2_dense
 from .matrix_mod2_dense cimport Matrix_mod2_dense
-from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+from sage.rings.finite_rings.finite_field_constructor import GF
 import sage.matrix.matrix_space as matrix_space
 
 
@@ -1437,7 +1437,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [0 0]
             [0 1]
         """
-        MS = matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols)
+        MS = matrix_space.MatrixSpace(GF(2), self._nrows, self._ncols)
         cdef Matrix_mod2_dense M = Matrix_mod2_dense(MS)
         cdef Py_ssize_t i, j
         for i from 0 <= i < self._nrows:

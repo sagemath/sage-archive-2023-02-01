@@ -397,6 +397,17 @@ cdef class Matrix_integer_dense(Matrix_dense):
         self.get_unsafe_mpz(i, j, z.value)
         return z
 
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Return True if the entry (i, j) is zero, otherwise False.
+
+        .. warning::
+
+           This is very unsafe; it assumes i and j are in the right
+           range.
+        """
+        return fmpz_is_zero(fmpz_mat_entry(self._matrix, i,j))
+
     cdef inline void get_unsafe_mpz(self, Py_ssize_t i, Py_ssize_t j, mpz_t value):
         """
         Copy entry i,j of the matrix ``self`` to ``value``.
@@ -1544,6 +1555,26 @@ cdef class Matrix_integer_dense(Matrix_dense):
     cdef _mod_two(self):
         MS = matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols)
         return Matrix_mod2_dense(MS, self, True, True)
+
+    def _zero_matrix(self):
+        """
+        Return a matrix that contains 1 if and only if the corresponding entry is 0.
+
+        EXAMPLES::
+
+            sage: M = Matrix(ZZ, 2, [1,2,-2,0])
+            sage: M._zero_matrix()
+            [0 0]
+            [0 1]
+        """
+        MS = matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols)
+        cdef Matrix_mod2_dense M = Matrix_mod2_dense(MS)
+        cdef Py_ssize_t i, j
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                if self.get_is_zero_unsafe(i, j):
+                    M.set_unsafe(i, j, 1)
+        return M
 
     cdef _mod_int_c(self, mod_int p):
         from .matrix_modn_dense_float import MAX_MODULUS as MAX_MODULUS_FLOAT

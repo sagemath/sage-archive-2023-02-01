@@ -110,6 +110,12 @@ from sage.arith.all import gcd
 from .matrix2 import decomp_seq
 from .matrix0 import Matrix as Matrix_base
 
+from .matrix_mod2_dense import Matrix_mod2_dense
+from .matrix_mod2_dense cimport Matrix_mod2_dense
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+import sage.matrix.matrix_space as matrix_space
+
+
 from sage.misc.all import verbose, get_verbose, prod
 
 #########################################################
@@ -259,6 +265,17 @@ cdef class Matrix_rational_dense(Matrix_dense):
         x = Rational.__new__(Rational)
         fmpq_get_mpq(x.value, fmpq_mat_entry(self._matrix, i, j))
         return x
+
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Return True if the entry (i, j) is zero, otherwise False.
+
+        .. warning::
+
+           This is very unsafe; it assumes i and j are in the right
+           range.
+        """
+        return fmpq_is_zero(fmpq_mat_entry(self._matrix, i,j))
 
     cdef _add_ui_unsafe_assuming_int(self, Py_ssize_t i, Py_ssize_t j, unsigned long int n):
         # doesn't check immutability
@@ -1408,6 +1425,26 @@ cdef class Matrix_rational_dense(Matrix_dense):
             K = A._rational_kernel_iml().transpose().change_ring(QQ)
         verbose("done computing right kernel matrix over the rationals for %sx%s matrix" % (self.nrows(), self.ncols()),level=1, t=tm)
         return 'computed-iml-rational', K
+
+    def _zero_matrix(self):
+        """
+        Return a matrix that contains 1 if and only if the corresponding entry is 0.
+
+        EXAMPLES::
+
+            sage: M = Matrix(QQ, 2, [1,2/3,-2,0])
+            sage: M._zero_matrix()
+            [0 0]
+            [0 1]
+        """
+        MS = matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols)
+        cdef Matrix_mod2_dense M = Matrix_mod2_dense(MS)
+        cdef Py_ssize_t i, j
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                if self.get_is_zero_unsafe(i, j):
+                    M.set_unsafe(i, j, 1)
+        return M
 
     ################################################
     # Change ring

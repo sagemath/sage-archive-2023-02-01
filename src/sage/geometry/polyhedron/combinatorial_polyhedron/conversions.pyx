@@ -318,7 +318,7 @@ def incidence_matrix_to_bit_rep_of_facets(Matrix_integer_dense matrix):
         # Filling each facet with its Vrep-incidences, which "is" the
         # "i-th column" of the original matrix (but we have transposed).
         for entry in range(nrows):
-            if matrix.get_unsafe_double(entry, i):
+            if not matrix.get_is_zero_unsafe(entry, i):
                 # Vrep ``entry`` is contained in the face, so set the corresponding bit
                 value = entry % 64
                 position = entry//64

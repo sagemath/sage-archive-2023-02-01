@@ -349,6 +349,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         # ``self._length_edges_list*2*sizeof(size_t *)``.
         self._length_edges_list = 16348
 
+        data_modified = None
+
         if isinstance(data, Polyhedron_base):
             # input is ``Polyhedron``
             Vrep = data.Vrepresentation()
@@ -361,7 +363,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             else:
                 self._bounded = True
 
+            P = data
             data = data.incidence_matrix()
+
+            # Delete equations
+            if P.n_equations():
+                data_modified = data.delete_columns([e.index() for e in P.equations()])
+            else:
+                data_modified = data
         elif isinstance(data, LatticePolytopeClass):
             # input is ``LatticePolytope``
             self._bounded = True
@@ -440,8 +449,10 @@ cdef class CombinatorialPolyhedron(SageObject):
                 data.set_immutable()
             self.incidence_matrix.set_cache(data)
 
-            # Delete equations.
-            data_modified = data.delete_columns([i for i in range(data.ncols()) if all(data[j,i] for j in range(data.nrows()))], check=False)
+
+            if data_modified is None:
+                # Delete equations.
+                data_modified = data.delete_columns([i for i in range(data.ncols()) if all(data[j,i] for j in range(data.nrows()))], check=False)
 
             # Initializing the facets in their Bit-representation.
             self._bitrep_facets = incidence_matrix_to_bit_rep_of_facets(data_modified)

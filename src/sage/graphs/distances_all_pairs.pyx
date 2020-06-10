@@ -862,7 +862,6 @@ cdef uint32_t * c_eccentricity_DHV(G, vertex_list=None):
     cdef uint32_t antipode, ecc_antipode
     cdef uint32_t v, tmp
     cdef size_t i, idx
-    cdef bint flag = 0
     cdef bitset_t seen
     bitset_init(seen,n)
 
@@ -912,7 +911,7 @@ cdef uint32_t * c_eccentricity_DHV(G, vertex_list=None):
             for v in active:
                 ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
 
-        # We remove from active vertices for which the gap is closed
+        # We remove those vertices from active for which gap is closed
         i = 0
         while i < len(active):
             v = active[i]

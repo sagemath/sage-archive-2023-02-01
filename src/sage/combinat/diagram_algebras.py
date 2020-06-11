@@ -2715,8 +2715,8 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
         Return the element `a_i` in ``self``.
 
         The element `a_i` is the cap and cup at `(i, i+1)`, so it contains
-        the blocks `\{i, i+1\}`, `\{-i, -i-1\}`, and `\{-j, j\}` for all
-        `j \neq i, i+1`.
+        the blocks `\{i, i+1\}`, `\{-i, -i-1\}`.  Other blocks are of the
+        form `\{-j, j\}`.
 
         INPUT:
 
@@ -2761,7 +2761,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
 
         INPUT:
 
-        - ``i`` -- a half integer between 1/2 and `k`
+        - ``i`` -- a half integer between 1/2 and `k-1/2`
 
         EXAMPLES::
 
@@ -2816,7 +2816,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
 
         Borrowing the notation from the symmetric group, the `i`-th
         simple transposition `s_i` has blocks of the form `\{-i, i+1\}`,
-        `\{-i-1, i\}` and `\{-j, j\}` for `j \notin \{ i, i+1 \}`.
+        `\{-i-1, i\}`.  Other blocks are of the form `\{-j, j\}`.
 
         INPUT:
 
@@ -2854,7 +2854,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
 
         INPUT:
 
-        - ``i`` -- a half integer between 1/2 and `k`
+        - ``i`` -- a half integer between 1/2 and `k-1/2`
 
         .. NOTE::
 
@@ -2947,7 +2947,6 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
     def jucys_murphy_element(self, i):
         r"""
         Return the ``i``-th Jucys-Murphy element `L_i` from [Eny2012]_.
-        of ``self``.
 
         INPUT:
 
@@ -3071,8 +3070,8 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
                 return self.zero()
             L = self.jucys_murphy_element
             return (self.s(j) * L(i-1) * self.s(j)
-                    - L(j)*self.e(j) - self.e(j)*L(j)
-                    + (self._q*self.one() - L(i-1))*self.e(j)
+                    - self.e(j)*L(j)
+                    + (self._q*self.one() - L(i-1) - L(j))*self.e(j)
                     + self.sigma(j))
 
     L = jucys_murphy_element

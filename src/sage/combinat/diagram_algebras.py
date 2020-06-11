@@ -2221,9 +2221,6 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
     in which the product of two set partitions is simply given by their
     composition.
 
-    The Iwahori--Hecke algebra of type `A` (with a single parameter) is
-    naturally a subalgebra of the partition algebra.
-
     The partition algebra is regarded as an example of a "diagram algebra"
     due to the fact that its natural basis is given by certain graphs
     often called diagrams.

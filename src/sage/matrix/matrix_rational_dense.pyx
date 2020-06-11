@@ -135,7 +135,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: type(a)
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
 
-        .. warning::
+        .. WARNING::
 
            This is for internal use only, or if you really know what
            you're doing.
@@ -265,7 +265,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         """
         Return 1 if the entry (i, j) is zero, otherwise 0.
 
-        .. warning::
+        .. WARNING::
 
            This is very unsafe; it assumes i and j are in the right
            range.

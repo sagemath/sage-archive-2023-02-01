@@ -374,7 +374,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Returns (i, j) entry of self as a new Integer.
 
-        .. warning::
+        .. WARNING::
 
            This is very unsafe; it assumes i and j are in the right
            range.
@@ -402,7 +402,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Copy entry i,j of the matrix ``self`` to ``value``.
 
-        .. warning::
+        .. WARNING::
 
            This is very unsafe; it assumes i and j are in the right
            range.
@@ -428,7 +428,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Returns (j, i) entry of self as a new Integer.
 
-        .. warning::
+        .. WARNING::
 
            This is very unsafe; it assumes i and j are in the right
            range.
@@ -454,7 +454,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Return 1 if the entry (i, j) is zero, otherwise 0.
 
-        .. warning::
+        .. WARNING::
 
            This is very unsafe; it assumes i and j are in the right
            range.
@@ -688,7 +688,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Multiply matrices over ZZ using linbox.
 
-        .. warning::
+        .. WARNING::
 
            This is very slow right now, i.e., linbox is very slow.
 
@@ -2257,7 +2257,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Return the elementary divisors of self, in order.
 
-        .. warning::
+        .. WARNING::
 
            This is MUCH faster than the :meth:`smith_form` function.
 
@@ -4864,7 +4864,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         a new matrix that is the echelon form of self with row appended to
         the bottom.
 
-        .. warning::
+        .. WARNING::
 
            It is assumed that self is in echelon form.
 

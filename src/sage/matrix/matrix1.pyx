@@ -2206,7 +2206,7 @@ cdef class Matrix(Matrix0):
 
     def zero_pattern_matrix(self, R=None):
         """
-        Return a matrix over the integers that contains 1 if and only if the corresponding entry is 0.
+        Return a dense matrix over ``R`` that contains 1 if and only if the corresponding entry is 0.
         All other entries are 0.
 
         EXAMPLES::
@@ -2220,6 +2220,10 @@ cdef class Matrix(Matrix0):
             sage: M.zero_pattern_matrix()
             [0 0]
             [0 1]
+
+        NOTE::
+
+            This method can be optimized by improving :meth:`get_is_zero_unsafe`` for derived matrix classes.
         """
         if R is None:
             R = self._base_ring

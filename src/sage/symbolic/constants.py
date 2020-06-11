@@ -686,9 +686,7 @@ from sage.symbolic.constants_c import E
 e = E()
 
 # Allow for backtranslation to this symbol from Mathematica (#29833).
-# Note: after Sage's initialization, e will stay defined, but foo will not.
-from sage.libs.pynac.pynac import register_symbol as foo
-foo(e, {'mathematica': 'E'})
+register_symbol(e, {'mathematica': 'E'})
 
 class NotANumber(Constant):
     """

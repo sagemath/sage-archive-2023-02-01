@@ -355,7 +355,7 @@ correctly (:trac:`18888`, :trac:`28907`)::
                     2
     -0.5 + 3.14159 x
 
-Check that Mathematica's `E` exponential symbol is correctly bachtranslated
+Check that Mathematica's `E` exponential symbol is correctly backtranslated
 as Sage's `e` (:trac:`29833`)::
 
     sage: (e^x)._mathematica_().sage()  # optional -- mathematica

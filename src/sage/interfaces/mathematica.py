@@ -354,6 +354,14 @@ correctly (:trac:`18888`, :trac:`28907`)::
     sage: str(mathematica('Pi*x^2-1/2').N())  # optional -- mathematica
                     2
     -0.5 + 3.14159 x
+
+Check that Mathematica's `E` exponential symbol is correctly bachtranslated
+as Sage's `e` (:trac:`29833`)::
+
+    sage: (e^x)._mathematica_().sage()  # optional -- mathematica
+    e^x
+    sage: exp(x)._mathematica_().sage() # optional -- mathematica
+    e^x
 """
 
 #*****************************************************************************

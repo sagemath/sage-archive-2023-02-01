@@ -2221,7 +2221,7 @@ cdef class Matrix(Matrix0):
             [0 0]
             [0 1]
 
-        NOTE::
+        .. NOTE::
 
             This method can be optimized by improving :meth:`get_is_zero_unsafe`` for derived matrix classes.
         """
@@ -2232,8 +2232,8 @@ cdef class Matrix(Matrix0):
         MZ = MatrixSpace(R, self._nrows, self._ncols, sparse=False)
 
         cdef object zero = R.zero()
+        cdef object one = R.one()
         cdef Matrix M =  MZ(zero, None, None)
-        cdef object one = M._coerce_element(1)
         cdef Py_ssize_t i, j
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:

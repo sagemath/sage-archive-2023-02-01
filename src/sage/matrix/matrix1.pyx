@@ -2223,7 +2223,7 @@ cdef class Matrix(Matrix0):
 
         .. NOTE::
 
-            This method can be optimized by improving :meth:`get_is_zero_unsafe`` for derived matrix classes.
+            This method can be optimized by improving :meth:`get_is_zero_unsafe` for derived matrix classes.
         """
         if R is None:
             R = self._base_ring

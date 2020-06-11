@@ -172,8 +172,8 @@ We find the `x` such that `e^x - 3x = 0`.
 
 ::
 
-    sage: e = mathematica('Exp[x] - 3x == 0') # optional - mathematica
-    sage: e.FindRoot(['x', 2])                # optional - mathematica
+    sage: eqn = mathematica('Exp[x] - 3x == 0') # optional - mathematica
+    sage: eqn.FindRoot(['x', 2])                # optional - mathematica
     {x -> 1.512134551657842}
 
 Note that this agrees with what the PARI interpreter gp produces::
@@ -358,6 +358,7 @@ correctly (:trac:`18888`, :trac:`28907`)::
 Check that Mathematica's `E` exponential symbol is correctly backtranslated
 as Sage's `e` (:trac:`29833`)::
 
+    sage: x = var('x')
     sage: (e^x)._mathematica_().sage()  # optional -- mathematica
     e^x
     sage: exp(x)._mathematica_().sage() # optional -- mathematica

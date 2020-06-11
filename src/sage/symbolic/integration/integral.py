@@ -66,11 +66,11 @@ class IndefiniteIntegral(BuiltinFunction):
 
         Check for :trac:`29833`::
 
-        sage: (x,a,b)=var('x a b')
-        sage: assume(b > 0)
-        sage: f = (exp((x-a)/b) + 1)**(-1)
-        sage: (f*f).integrate(x, algorithm="mathematica_free") # optional -- internet
-        -b*log(e^(-(a - x)/b) + 1) + x + b/(e^(-(a - x)/b) + 1)
+            sage: (x,a,b)=var('x a b')
+            sage: assume(b > 0)
+            sage: f = (exp((x-a)/b) + 1)**(-1)
+            sage: (f*f).integrate(x, algorithm="mathematica_free") # optional -- internet
+            -b*log(e^(-(a - x)/b) + 1) + x + b/(e^(-(a - x)/b) + 1)
         """
         # The automatic evaluation routine will try these integrators
         # in the given order. This is an attribute of the class instead of

@@ -261,9 +261,9 @@ cdef class Matrix_rational_dense(Matrix_dense):
         fmpq_get_mpq(x.value, fmpq_mat_entry(self._matrix, i, j))
         return x
 
-    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+    cdef int get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
-        Return True if the entry (i, j) is zero, otherwise False.
+        Return 1 if the entry (i, j) is zero, otherwise 0.
 
         .. warning::
 
@@ -1420,29 +1420,6 @@ cdef class Matrix_rational_dense(Matrix_dense):
             K = A._rational_kernel_iml().transpose().change_ring(QQ)
         verbose("done computing right kernel matrix over the rationals for %sx%s matrix" % (self.nrows(), self.ncols()),level=1, t=tm)
         return 'computed-iml-rational', K
-
-    cpdef zero_pattern_matrix(self):
-        """
-        Return a matrix over the integers that contains 1 if and only if the corresponding entry is 0.
-        All other entries are 0.
-
-        EXAMPLES::
-
-            sage: M = Matrix(QQ, 2, [1,2/3,-2,0])
-            sage: M.zero_pattern_matrix()
-            [0 0]
-            [0 1]
-        """
-        from sage.matrix.matrix_space import MatrixSpace
-        MZ = MatrixSpace(ZZ, self._nrows, self._ncols, sparse=False)
-        cdef Matrix_integer_dense M =  Matrix_integer_dense.__new__(Matrix_integer_dense, MZ, None, None, None)
-
-        cdef Py_ssize_t i, j
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
-                if self.get_is_zero_unsafe(i, j):
-                    M.set_unsafe_si(i, j, 1)
-        return M
 
     ################################################
     # Change ring

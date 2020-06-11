@@ -521,6 +521,17 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         raise NotImplementedError("this must be defined in the derived type.")
 
+    cdef int get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Returns 1 if the entry ``(i, j)`` is zero, otherwise 0.
+
+        Might/should be optimized for derived type.
+        """
+        if self.get_unsafe(i, j):
+            return 1
+        else:
+            return 0
+
     def add_to_entry(self, Py_ssize_t i, Py_ssize_t j, elt):
         r"""
         Add ``elt`` to the entry at position ``(i, j)``.
@@ -5634,9 +5645,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             [1]
             sage: 0^0
             1
-        
+
         Non-integer (symbolic) exponents are also supported::
-        
+
             sage: k = var('k')
             sage: A = matrix([[2, -1], [1,  0]])
             sage: A^(2*k+1)

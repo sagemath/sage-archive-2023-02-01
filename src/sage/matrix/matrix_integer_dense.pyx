@@ -398,17 +398,6 @@ cdef class Matrix_integer_dense(Matrix_dense):
         self.get_unsafe_mpz(i, j, z.value)
         return z
 
-    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
-        """
-        Return True if the entry (i, j) is zero, otherwise False.
-
-        .. warning::
-
-           This is very unsafe; it assumes i and j are in the right
-           range.
-        """
-        return fmpz_is_zero(fmpz_mat_entry(self._matrix, i,j))
-
     cdef inline void get_unsafe_mpz(self, Py_ssize_t i, Py_ssize_t j, mpz_t value):
         """
         Copy entry i,j of the matrix ``self`` to ``value``.
@@ -460,6 +449,17 @@ cdef class Matrix_integer_dense(Matrix_dense):
             6
         """
         return fmpz_get_d(fmpz_mat_entry(self._matrix, i, j))
+
+    cdef int get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Return 1 if the entry (i, j) is zero, otherwise 0.
+
+        .. warning::
+
+           This is very unsafe; it assumes i and j are in the right
+           range.
+        """
+        return fmpz_is_zero(fmpz_mat_entry(self._matrix, i,j))
 
     def _pickle(self):
         """
@@ -1566,26 +1566,6 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         MS = matrix_space.MatrixSpace(GF(2), self._nrows, self._ncols)
         return Matrix_mod2_dense(MS, self, True, True)
-
-    cpdef zero_pattern_matrix(self):
-        """
-        Return a matrix over the integers that contains 1 if and only if the corresponding entry is 0.
-        All other entries are 0.
-
-        EXAMPLES::
-
-            sage: M = Matrix(ZZ, 2, [1,2,-2,0])
-            sage: M.zero_pattern_matrix()
-            [0 0]
-            [0 1]
-        """
-        cdef Matrix_integer_dense M = self._new(self._nrows, self._ncols)
-        cdef Py_ssize_t i, j
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
-                if self.get_is_zero_unsafe(i, j):
-                    M.set_unsafe_si(i, j, 1)
-        return M
 
     cdef _mod_int_c(self, mod_int p):
         from .matrix_modn_dense_float import MAX_MODULUS as MAX_MODULUS_FLOAT

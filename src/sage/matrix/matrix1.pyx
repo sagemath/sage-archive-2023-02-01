@@ -2204,6 +2204,39 @@ cdef class Matrix(Matrix0):
             msg = "Cannot set column with {0} elements over {1}, use change_ring first."
             raise TypeError(msg.format(v[i].parent(), self.base_ring()))
 
+    def zero_pattern_matrix(self, R=None):
+        """
+        Return a matrix over the integers that contains 1 if and only if the corresponding entry is 0.
+        All other entries are 0.
+
+        EXAMPLES::
+
+            sage: M = Matrix(ZZ, 2, [1,2,-2,0])
+            sage: M.zero_pattern_matrix()
+            [0 0]
+            [0 1]
+
+            sage: M = Matrix(QQ, 2, [1,2/3,-2,0])
+            sage: M.zero_pattern_matrix()
+            [0 0]
+            [0 1]
+        """
+        if R is None:
+            R = self._base_ring
+
+        from sage.matrix.matrix_space import MatrixSpace
+        MZ = MatrixSpace(R, self._nrows, self._ncols, sparse=False)
+
+        cdef object zero = R.zero()
+        cdef Matrix M =  MZ(zero, None, None)
+        cdef object one = M._coerce_element(1)
+        cdef Py_ssize_t i, j
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                if self.get_is_zero_unsafe(i, j):
+                    M.set_unsafe(i, j, one)
+        return M
+
 
     ####################################################################################
     # Change of representation between dense and sparse.

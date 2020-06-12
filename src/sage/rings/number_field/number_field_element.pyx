@@ -64,6 +64,7 @@ from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.rational cimport Rational
 from sage.rings.infinity import infinity
 from sage.categories.fields import Fields
+from sage.categories.map import is_Map
 
 from sage.modules.free_module_element import vector
 
@@ -4398,8 +4399,8 @@ cdef class NumberFieldElement(FieldElement):
 
         INPUT:
 
-        - ``base_field`` -- a subfield of the parent number field ``K``
-        of ``self``. The default is ``K.base_field()``.
+        - ``base_field`` -- a subfield (embedding of a subfield) of the parent
+        number field ``K`` of ``self``. The default is ``K.base_field()``.
 
         EXAMPLES::
 
@@ -4412,6 +4413,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<b> = NumberField(x^4 - 2)
             sage: (b^2).different()
             0
+            sage: phi = K.base_field().embeddings(K)[0]
+            sage: b.different(base_field=phi)
+            4*b^3
 
             sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
             sage: a.different()
@@ -4428,7 +4432,13 @@ cdef class NumberFieldElement(FieldElement):
             return self.absolute_charpoly().derivative()(self)
         if base_field is None or base_field is K.base_field():
             return self.charpoly().derivative()(self)
-        iota = base_field.embeddings(K)[0]
+        if is_Map(base_field):
+            # base_field better be a morphism with codomain self
+            if base_field.codomain() != K:
+                raise ValueError("Co-domain of morphism must be parent of self")
+            iota = base_field
+        else:
+            iota = base_field.embeddings(K)[0]
         K1 = K.relativize(iota, names="b")
         K1_to_K,K_to_K1 = K1.structure()
         return K1_to_K(K_to_K1(self).charpoly().derivative()(K_to_K1(self)))

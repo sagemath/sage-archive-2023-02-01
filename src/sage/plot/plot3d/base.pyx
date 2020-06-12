@@ -386,11 +386,15 @@ cdef class Graphics3d(SageObject):
         js_options['decimals'] = int(js_options['decimals'])
 
         if js_options['viewpoint']:
-            import warnings
             if len(js_options['viewpoint']) != 2 or len(js_options['viewpoint'][0]) != 3:
+                import warnings
                 warnings.warn('viewpoint must be of the form [[x,y,z],angle]')
                 js_options['viewpoint'] = False
             else:
+                if type(js_options['viewpoint']) is tuple:
+                    js_options['viewpoint'] = list(js_options['viewpoint']) 
+                if type(js_options['viewpoint'][0]) is tuple:
+                    js_options['viewpoint'][0] = list(js_options['viewpoint'][0]) 
                 js_options['viewpoint'][0] = [float(i) for i in js_options['viewpoint'][0]]
                 js_options['viewpoint'][1] = float(js_options['viewpoint'][1])
 

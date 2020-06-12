@@ -813,7 +813,7 @@ cdef uint32_t * c_eccentricity_DHV(G, vertex_list=None):
     ``ecc[i]`` is the eccentricity of vertex ``vertex_list[i]``.
 
     The algorithm proposed in [Dragan2018]_ is an improvement of the algorithm
-    proposed in [TK2013]_. It is also is based on the observation that for all
+    proposed in [TK2013]_. It is also based on the observation that for all
     nodes `v,w\in V`, we have `\max(ecc[v]-d(v,w), d(v,w))\leq ecc[w] \leq
     ecc[v] + d(v,w)`. Also the algorithms iteratively improves upper and lower
     bounds on the eccentricity of each vertex until no further improvements can

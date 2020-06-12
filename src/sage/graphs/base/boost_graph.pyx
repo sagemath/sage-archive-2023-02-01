@@ -1603,3 +1603,181 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
             if len(orth_set[j] & new_cycle) % 2:
                 orth_set[j] = orth_set[j] ^ base
     return cycle_basis
+
+cpdef eccentricity_DHV(g, vertex_list=None, weight_function=None, check_weight=True):
+    r"""
+    Return the vector of eccentricities using the algorithm of [Dragan2018]_.
+
+    The array returned is of length `n`, and by default its `i`-th component is
+    the eccentricity of the `i`-th vertex in ``g.vertices()``,
+    if ``vertex_list is None``, otherwise ``ecc[i]`` is the eccentricity of
+    vertex ``vertex_list[i]``.
+
+    The algorithm proposed in [Dragan2018]_ is based on the observation that for
+    all nodes `v,w\in V`, we have `\max(ecc[v]-d(v,w), d(v,w))\leq ecc[w] \leq
+    ecc[v] + d(v,w)`. Also the algorithm iteratively improves upper and lower
+    bounds on the eccentricity of each vertex until no further improvements can
+    be done.
+
+    INPUT:
+
+    - ``g`` -- the input Sage graph.
+
+    - ``vertex_list`` -- list (default: ``None``); a list of `n` vertices
+      specifying a mapping from `(0, \ldots, n-1)` to vertex labels in `g`. When
+      set, ``ecc[i]`` is the eccentricity of vertex ``vertex_list[i]``. When
+      ``vertex_list`` is ``None``, ``ecc[i]`` is the eccentricity of vertex
+      ``g.vertices()[i]``.
+
+    - ``weight_function`` -- function (default: ``None``); a function that
+      associates a weight to each edge. If ``None`` (default), the weights of
+      ``g`` are used, if ``g.weighted()==True``, otherwise all edges have
+      weight 1.
+
+    - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+      that the ``weight_function`` outputs a number for each edge
+
+    EXAMPLES::
+
+        sage: from sage.graphs.base.boost_graph import eccentricity_DHV
+        sage: G = graphs.BullGraph()
+        sage: eccentricity_DHV(G)
+        [2.0, 2.0, 2.0, 3.0, 3.0]
+
+    TESTS:
+
+        sage: G = Graph(2)
+        sage: eccentricity_DHV(G)
+        [+Infinity, +Infinity]
+        sage: G = graphs.RandomGNP(20,0.7)
+        sage: eccentricity_DHV(G) == G.eccentricity()
+        True
+        sage: G = Graph([(0,1,-1)], weighted=True)
+        sage: eccentricity_DHV(G)
+        Traceback (most recent call last):
+        ...
+        ValueError: graph contains negative edge weights, use Johnson_Boost instead
+    """
+    if g.is_directed():
+        raise TypeError("the 'DHV' algorithm only works on undirected graphs")
+
+    cdef int n = g.order()
+    if not n:
+        return []
+
+    if weight_function and check_weight:
+        g._check_weight_function(weight_function)
+
+    if weight_function is not None:
+        for e in g.edge_iterator():
+            if float(weight_function(e)) < 0:
+                raise ValueError("graph contains negative edge weights, use Johnson_Boost instead")
+    elif g.weighted():
+        for _,_,w in g.edge_iterator():
+            if w and float(w) < 0:
+                raise ValueError("graph contains negative edge weights, use Johnson_Boost instead")
+
+    if vertex_list is None:
+        vertex_list = g.vertices()
+    elif not len(vertex_list) == n or not set(vertex_list) == set(g):
+        raise ValueError("parameter vertex_list is incorrect for this graph")
+
+    # These variables are automatically deleted when the function terminates.
+    cdef dict v_to_int = {vv: vi for vi, vv in enumerate(vertex_list)}
+    cdef BoostVecWeightedGraph g_boost
+    boost_weighted_graph_from_sage_graph(&g_boost, g, v_to_int, weight_function)
+
+    import sys
+    cdef v_index u, antipode, v
+    cdef double ecc_u, ecc_antipode, tmp
+    cdef size_t i, idx
+
+    cdef list active = list(range(n))
+    cdef vector[double] ecc_lower_bound, ecc_upper_bound, distances
+
+    for i in range(n):
+        ecc_lower_bound.push_back(0)
+        ecc_upper_bound.push_back(sys.float_info.max)
+
+    # Algorithm
+    while active:
+        # Select vertex with minimum eccentricity in active and update
+        # eccentricity upper bounds.
+        # For this, we select u with minimum eccentricity lower bound in active
+        # if ecc_u == ecc_lb[u], we are done. Otherwise, we update eccentricity
+        # lower bounds and repeat
+
+        tmp = sys.float_info.max
+        for i, v in enumerate(active):
+            if ecc_lower_bound[v] < tmp:
+                tmp = ecc_lower_bound[v]
+                idx = i
+        active[idx], active[-1] = active[-1], active[idx]
+        u = active.pop()
+
+        # compute distances from u
+        sig_on()
+        distances = g_boost.dijkstra_shortest_paths(u).distances
+        sig_off()
+
+        # Compute eccentricity of u
+        ecc_u = 0
+        for v in range(n):
+            if ecc_u < distances[v]:
+                ecc_u = distances[v]
+                antipode = v
+        ecc_upper_bound[u] = ecc_u
+
+        if ecc_u == sys.float_info.max:  # Disconnected graph
+            break
+
+        if ecc_u == ecc_lower_bound[u]:
+            # We found the good vertex.
+            # Update eccentricity upper bounds of the remaining vertices
+            for v in active:
+                ecc_upper_bound[v] = min(ecc_upper_bound[v], distances[v] + ecc_u)
+
+        else:
+            # u was not a good choice.
+            # We use its antipode to update eccentricity lower bounds.
+            # Observe that this antipode might have already been seen.
+            for i, v in enumerate(active):
+                if v == antipode:
+                    active[i] = active[-1]
+                    active.pop()
+                    break
+
+            # Compute distances from antipode
+            sig_on()
+            distances = g_boost.dijkstra_shortest_paths(antipode).distances
+            sig_off()
+
+            # Compute eccentricity of antipode
+            ecc_antipode = 0
+            for v in range(n):
+                ecc_antipode = max(ecc_antipode, distances[v])
+            ecc_upper_bound[antipode] = ecc_antipode
+
+            # Update eccentricity lower bounds.
+            for v in active:
+                ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
+
+            # We remove those vertices from active for which gap is closed
+            i = 0
+            while i < len(active):
+                v = active[i]
+                if ecc_upper_bound[v] == ecc_lower_bound[v]:
+                    active[i] = active[-1]
+                    active.pop()
+                else:
+                    i += 1
+
+    from sage.rings.infinity import Infinity
+    cdef list eccentricity = []
+    for i in range(n):
+        if ecc_upper_bound[i] != sys.float_info.max:
+            eccentricity.append(ecc_upper_bound[i])
+        else:
+            eccentricity.append(+Infinity)
+
+    return eccentricity

@@ -59,7 +59,7 @@ Options currently supported by the viewer:
 
 - ``thickness`` -- (default: 1) numeric value for thickness of lines
 
-- ``viewpoint`` -- (default: None) string of the form '[x,y,z],angle' setting the initial viewpoint
+- ``viewpoint`` -- (default: None) string of the form [[x,y,z],angle] setting the initial viewpoint
   of the scene; can be determined using the 'Get Viewpoint' option of the information menu
 
 Clicking on the information icon in the lower right-hand corner of the viewer opens

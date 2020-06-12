@@ -385,6 +385,15 @@ cdef class Graphics3d(SageObject):
         js_options['aspectRatio'] = [float(i) for i in js_options['aspectRatio']]
         js_options['decimals'] = int(js_options['decimals'])
 
+        if js_options['viewpoint']:
+            import warnings
+            if len(js_options['viewpoint']) != 2 or len(js_options['viewpoint'][0]) != 3:
+                warnings.warn('viewpoint must be of the form [[x,y,z],angle]')
+                js_options['viewpoint'] = False
+            else:
+                js_options['viewpoint'][0] = [float(i) for i in js_options['viewpoint'][0]]
+                js_options['viewpoint'][1] = float(js_options['viewpoint'][1])
+
         if not js_options['frame']:
             js_options['axesLabels'] = False
 

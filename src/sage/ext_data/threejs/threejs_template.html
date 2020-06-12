@@ -152,9 +152,9 @@ SAGE_SCRIPTS
 
     if ( options.viewpoint ) {
 
-        var aa = options.viewpoint.replace('[','').replace(']','').split(',');
-        var axis = new THREE.Vector3( aa[0], aa[1], aa[2] );
-        var angle = aa[3] * Math.PI / 180;
+        var aa = options.viewpoint;
+        var axis = new THREE.Vector3( aa[0][0], aa[0][1], aa[0][2] ).normalize();
+        var angle = aa[1] * Math.PI / 180;
         var q = new THREE.Quaternion().setFromAxisAngle( axis, angle ).inverse();
 
         offset.set( 0, 0, offset.length() );

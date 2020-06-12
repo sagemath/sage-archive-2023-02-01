@@ -521,16 +521,16 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         raise NotImplementedError("this must be defined in the derived type.")
 
-    cdef int get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
-        Returns 1 if the entry ``(i, j)`` is zero, otherwise 0.
+        Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
 
         Might/should be optimized for derived type.
         """
         if self.get_unsafe(i, j):
-            return 1
-        else:
             return 0
+        else:
+            return 1
 
     def add_to_entry(self, Py_ssize_t i, Py_ssize_t j, elt):
         r"""

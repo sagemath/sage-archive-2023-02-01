@@ -261,7 +261,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         fmpq_get_mpq(x.value, fmpq_mat_entry(self._matrix, i, j))
         return x
 
-    cdef int get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
         Return 1 if the entry (i, j) is zero, otherwise 0.
 

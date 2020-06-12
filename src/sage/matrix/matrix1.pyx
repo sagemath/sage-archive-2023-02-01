@@ -2204,10 +2204,20 @@ cdef class Matrix(Matrix0):
             msg = "Cannot set column with {0} elements over {1}, use change_ring first."
             raise TypeError(msg.format(v[i].parent(), self.base_ring()))
 
-    def zero_pattern_matrix(self, R=None):
+    def zero_pattern_matrix(self, ring=None):
         """
-        Return a dense matrix over ``R`` that contains 1 if and only if the corresponding entry is 0.
-        All other entries are 0.
+        Return a matrix that contains one for corresponding zero entries.
+
+        All other entries are zero.
+
+        INPUT:
+
+        - `ring` -- (optional); base ring of the output; default is `ZZ`
+
+        OUTPUT:
+
+        A new dense matrix with same dimensions as ``self``
+        and with base ring ``ring``.
 
         EXAMPLES::
 
@@ -2221,20 +2231,79 @@ cdef class Matrix(Matrix0):
             [0 0]
             [0 1]
 
+        Default base ring for the output is ``ZZ``::
+
+            sage: M.zero_pattern_matrix().base_ring()
+            Integer Ring
+
+        Specify a different base ring for the output::
+
+            sage: M.zero_pattern_matrix(GF(2)).base_ring()
+            Finite Field of size 2
+
+        Examples for different base rings for ``self``::
+
+            sage: M = Matrix(Zmod(8), 3, 2, [2, 3, 9, 8, 1, 0]); M
+            [2 3]
+            [1 0]
+            [1 0]
+            sage: M.zero_pattern_matrix()
+            [0 0]
+            [0 1]
+            [0 1]
+
+        ::
+
+            sage: W.<a> = CyclotomicField(100)
+            sage: M = Matrix(2, 3, [a, a/2, 0, a^2, a^100-1, a^2 - a]); M
+            [      a   1/2*a       0]
+            [    a^2       0 a^2 - a]
+            sage: M.zero_pattern_matrix()
+            [0 0 1]
+            [0 1 0]
+
+        ::
+
+            sage: K.<a> = GF(2^4)
+            sage: l = [a^2 + 1, a^3 + 1, 0, 0, a, a^3 + a + 1, a + 1,
+            ....:      a + 1, a^2, a^3 + a + 1, a^3 + a, a^3 + a]
+            sage: M = Matrix(K, 3, 4, l); M
+            [    a^2 + 1     a^3 + 1           0           0]
+            [          a a^3 + a + 1       a + 1       a + 1]
+            [        a^2 a^3 + a + 1     a^3 + a     a^3 + a]
+            sage: M.zero_pattern_matrix()
+            [0 0 1 1]
+            [0 0 0 0]
+            [0 0 0 0]
+
+        ::
+
+            sage: K.<a> = GF(25)
+            sage: M = Matrix(K, 2, 3, [0, 2, 3, 5, a, a^2])
+            sage: M
+            [    0     2     3]
+            [    0     a a + 3]
+            sage: M.zero_pattern_matrix()
+            [1 0 0]
+            [1 0 0]
+
         .. NOTE::
 
-            This method can be optimized by improving :meth:`get_is_zero_unsafe` for derived matrix classes.
+            This method can be optimized by improving
+            :meth:`get_is_zero_unsafe` for derived matrix classes.
         """
-        if R is None:
-            R = self._base_ring
+        if ring is None:
+            from sage.rings.all import ZZ
+            ring = ZZ
+
+        cdef object zero = ring.zero()
+        cdef object one = ring.one()
+        cdef Py_ssize_t i, j
 
         from sage.matrix.matrix_space import MatrixSpace
-        MZ = MatrixSpace(R, self._nrows, self._ncols, sparse=False)
+        MZ = MatrixSpace(ring, self._nrows, self._ncols, sparse=False)
+        cdef Matrix M =  MZ(zero, None, None)  # initialize with zeros
 
-        cdef object zero = R.zero()
-        cdef object one = R.one()
-        cdef Matrix M =  MZ(zero, None, None)
-        cdef Py_ssize_t i, j
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 if self.get_is_zero_unsafe(i, j):

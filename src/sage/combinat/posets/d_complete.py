@@ -1,4 +1,5 @@
 from sage.combinat.posets.posets import Poset, FinitePoset
+from sage.misc.lazy_attribute import lazy_attribute
 
 class DCompletePoset(FinitePoset):
     r"""
@@ -41,7 +42,7 @@ class DCompletePoset(FinitePoset):
     - ``key`` -- any hashable value (default: ``None``).
 
     """
-
+    @lazy_attribute
     def _calculateHookLengths(self):
         """
         Calculates the hook lengths of the elements of self
@@ -49,7 +50,7 @@ class DCompletePoset(FinitePoset):
         hooks = {}
         queue = list(self.minimal_elements())
         
-        while len(queue) > 0:
+        while queue:
             elmt = queue.pop(0)
             print(elmt)
             children = self.lower_covers(elmt)
@@ -84,7 +85,7 @@ class DCompletePoset(FinitePoset):
         """
         Get all the hook lengths returned in a dictionary
         """
-        return _hooks
+        return dict(self._hooks)
 
     @staticmethod
     def is_d_complete(cls, poset):

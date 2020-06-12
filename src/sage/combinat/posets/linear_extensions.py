@@ -6,6 +6,7 @@ This module defines two classes:
 
 - :class:`LinearExtensionOfPoset`
 - :class:`LinearExtensionsOfPoset`
+- :class:`LinearExtensionsOfPosetWithHooks`
 
 Classes and methods
 -------------------
@@ -860,6 +861,6 @@ class LinearExtensionsOfPosetWithHooks(LinearExtensionsOfPoset):
         """
         num_elmts = poset.cardinality()
         hooks = poset.get_hooks()
-        hook_product = prod(hooks[elmt] for elmt in hooks)
-        return factorial(num_elmts) / hook_product
+        hook_product = prod(hooks.values())
+        return factorial(num_elmts) // hook_product
         

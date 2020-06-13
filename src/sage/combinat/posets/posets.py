@@ -302,7 +302,7 @@ from sage.combinat.subset import Subsets
 from sage.combinat.posets.d_complete import DCompletePoset
 
 
-def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None, poset_type=FinitePoset):
+def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
     r"""
     Construct a finite poset from various forms of input data.
 
@@ -762,7 +762,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
                 "extension for the poset as it contains duplicate elements")
     else:
         elements = None
-    return poset_type(D, elements=elements, category=category, facade=facade, key=key)
+    return FinitePoset(D, elements=elements, category=category, facade=facade, key=key)
 
 
 class FinitePoset(UniqueRepresentation, Parent):

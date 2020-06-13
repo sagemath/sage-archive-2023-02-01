@@ -192,6 +192,7 @@ Comprehensive Module list
     sage/combinat/posets/moebius_algebra
     sage/combinat/posets/poset_examples
     sage/combinat/posets/posets
+    sage/combinat/posets/d_complete
     sage/combinat/q_analogues
     sage/combinat/q_bernoulli
     sage/combinat/quickref

@@ -118,7 +118,6 @@ import ast
 import inspect
 import functools
 import os
-import sys
 import tokenize
 import re
 EMBEDDED_MODE = False

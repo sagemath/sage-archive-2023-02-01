@@ -1723,10 +1723,8 @@ def sage_formatargspec(args, varargs=None, varkw=None, defaults=None,
         sage: defaults = [3]
         sage: sage_formatargspec(args, defaults=defaults)
         '(a, b, c=3)'
-        sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults) # py2
-        True
-        sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults) # py3
-        doctest:...: DeprecationWarning: `formatargspec` is deprecated since Python 3.5. Use `signature` and the `Signature` object directly
+        sage: import warnings; warnings.simplefilter('ignore')  # py3: ignore DeprecationWarning
+        sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults)
         True
     """
     def formatargandannotation(arg):

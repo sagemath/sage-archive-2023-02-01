@@ -5869,14 +5869,10 @@ cdef class Expression(CommutativeRingElement):
 
         Indexing directly with ``t[1]`` causes problems with numpy types.
 
-            sage: t[1] # py2
+            sage: t[1]
             Traceback (most recent call last):
             ...
-            TypeError: 'sage.symbolic.expression.Expression' object does not support indexing
-            sage: t[1] # py3
-            Traceback (most recent call last):
-            ...
-            TypeError: 'sage.symbolic.expression.Expression' object is not subscriptable
+            TypeError: 'sage.symbolic.expression.Expression' object ...
         """
         if (is_a_symbol(self._gobj) or is_a_constant(self._gobj) or
             is_a_numeric(self._gobj)):

@@ -119,6 +119,20 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         mpz_vector_get_entry(x.value, &self._matrix[i], j)
         return x
 
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
+
+        EXAMPLES::
+
+            sage: M = matrix(ZZ, [[0,1,0],[0,0,0]], sparse=True)
+            sage: M.zero_pattern_matrix()  # indirect doctest
+            [1 0 1]
+            [1 1 1]
+        """
+        return mpz_vector_is_entry_zero_unsafe(&self._matrix[i], j)
+
+
     ########################################################################
     # LEVEL 2 functionality
     #   * def _pickle

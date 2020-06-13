@@ -4221,7 +4221,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return the width of the poset (the size of its longest antichain).
 
         It is computed through a matching in a bipartite graph; see
-        :wikipedia:`Dilworth's_theorem` for more information. The width is
+        :wikipedia:`Dilworth%27s_theorem` for more information. The width is
         also called Dilworth number.
 
         INPUT:
@@ -4273,7 +4273,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         partitioned into `\alpha` chains, where `\alpha` is the cardinality of
         its largest antichain. This method returns such a partition.
 
-        See :wikipedia:`Dilworth's_theorem`.
+        See :wikipedia:`Dilworth%27s_theorem`.
 
         ALGORITHM:
 

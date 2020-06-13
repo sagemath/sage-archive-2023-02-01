@@ -617,7 +617,7 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
     and `m` is the number of edges and `k` is the number of shortest paths
     needed to find.
 
-    See [Yen1970]_ and the :wikipedia:`Yen's_algorithm` for more details on the
+    See [Yen1970]_ and the :wikipedia:`Yen%27s_algorithm` for more details on the
     algorithm.
 
     EXAMPLES::

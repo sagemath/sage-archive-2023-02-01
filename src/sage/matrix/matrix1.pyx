@@ -2212,7 +2212,7 @@ cdef class Matrix(Matrix0):
 
         INPUT:
 
-        - `ring` -- (optional); base ring of the output; default is `ZZ`
+        - ``ring`` -- (optional); base ring of the output; default is ``ZZ``
 
         OUTPUT:
 

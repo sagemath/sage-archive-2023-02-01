@@ -1736,9 +1736,17 @@ cpdef eccentricity_DHV(g, vertex_list=None, weight_function=None, check_weight=T
 
         if ecc_u == ecc_lower_bound[u]:
             # We found the good vertex.
-            # Update eccentricity upper bounds of the remaining vertices
-            for v in active:
+            # Update eccentricity upper bounds and remove from active those
+            # vertices for which gap is closed
+            i = 0
+            while i < len(active):
+                v = active[i]
                 ecc_upper_bound[v] = min(ecc_upper_bound[v], distances[v] + ecc_u)
+                if ecc_upper_bound[v] == ecc_lower_bound[v]:
+                    active[i] = active[-1]
+                    active.pop()
+                else:
+                    i += 1
 
         else:
             # u was not a good choice.

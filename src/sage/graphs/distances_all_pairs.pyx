@@ -890,9 +890,17 @@ cdef uint32_t * c_eccentricity_DHV(G, vertex_list=None):
 
         if ecc_u == ecc_lower_bound[u]:
             # We found the good vertex.
-            # Update eccentricity upper bounds of the remaining vertices
-            for v in active:
+            # Update eccentricity upper bounds and remove from active those
+            # vertices for which gap is closed
+            i = 0
+            while i < len(active):
+                v = active[i]
                 ecc_upper_bound[v] = min(ecc_upper_bound[v], distances[v] + ecc_u)
+                if ecc_upper_bound[v] == ecc_lower_bound[v]:
+                    active[i] = active[-1]
+                    active.pop()
+                else:
+                    i += 1
 
         else:
             # u was not a good choice.
@@ -908,18 +916,17 @@ cdef uint32_t * c_eccentricity_DHV(G, vertex_list=None):
             ecc_antipode = simple_BFS(sd, antipode, distances, NULL, waiting_list, seen)
             ecc_upper_bound[antipode] = ecc_antipode
 
-            for v in active:
+            # Update eccentricity lower bounds and remove from active those
+            # vertices for which the gap is closed
+            i = 0
+            while i < len(active):
+                v = active[i]
                 ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
-
-        # We remove those vertices from active for which gap is closed
-        i = 0
-        while i < len(active):
-            v = active[i]
-            if ecc_upper_bound[v] == ecc_lower_bound[v]:
-                active[i] = active[-1]
-                active.pop()
-            else:
-                i += 1
+                if ecc_upper_bound[v] == ecc_lower_bound[v]:
+                    active[i] = active[-1]
+                    active.pop()
+                else:
+                    i += 1
 
     free_short_digraph(sd)
     bitset_free(seen)

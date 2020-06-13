@@ -736,7 +736,9 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             sage: bool(zero)
             False
         """
-        return not mzed_is_zero(self._entries)
+        if self._nrows and self._ncols:
+            return not mzed_is_zero(self._entries)
+        return False
 
     def _list(self):
         """

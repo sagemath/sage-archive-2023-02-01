@@ -214,7 +214,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             [1 0 0 0]
             [0 0 0 1]
         """
-        return (i,j) in self._entries
+        return (i,j) not in self._entries
 
     def _pickle(self):
         version = 0

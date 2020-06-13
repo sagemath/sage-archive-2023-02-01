@@ -1741,18 +1741,21 @@ class FinitePoset(UniqueRepresentation, Parent):
         components = self.connected_components()
         remainder_poset = Poset()
 
+        
         for X in components:
             if a in X:
                 main = X
             else:
                 remainder_poset = remainder_poset.disjoint_union(X)
 
-        a_spec = main._hasse_diagram._spectrum_of_tree(a)
+        hasse_a = main._element_to_vertex(a)
+        a_spec = main._hasse_diagram._spectrum_of_tree(hasse_a)
 
         if not remainder_poset.cardinality():
             return a_spec
 
         b = remainder_poset.an_element()
+
         b_spec = remainder_poset.atkinson(b)
         n_lin_exts = sum(b_spec)
 

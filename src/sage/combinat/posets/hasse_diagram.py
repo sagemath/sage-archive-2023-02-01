@@ -3249,23 +3249,24 @@ class HasseDiagram(DiGraph):
 
         EXAMPLES::
 
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0: [1, 2], 1: [], 2: []})
             sage: H._split(0, 1)
             [Hasse diagram of a poset containing 2 elements, Hasse diagram of a poset containing 1 elements]
 
-            sage: H = posets.ChainPoset(5)._hasse_diagram
+            sage: H = HasseDiagram({0: [1], 1: [2], 2: [3], 3: [4], 4: []})
             sage: H._split(1, 2)
             [Hasse diagram of a poset containing 2 elements, Hasse diagram of a poset containing 3 elements]
 
         TESTS::
-
-            sage: H = posets.BooleanLattice(3)._hasse_diagram
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1,2,3], 1: [4, 5], 2: [4, 6], 3: [5, 6], 4: [7], 5: [7], 6: [7], 7: []})
             sage: H._split(0, 1)
             Traceback (most recent call last):
             ...
             ValueError: wrong number of connected components after the covering relation is deleted
 
-            sage: H = Poset({0: [1], 1: [], 2: []})._hasse_diagram
+            sage: H = HasseDiagram({0: [1], 1: [], 2: []})
             sage: H._split(0, 1)
             Traceback (most recent call last):
             ...
@@ -3273,8 +3274,7 @@ class HasseDiagram(DiGraph):
         """
         split_hasse = self.copy(self)
         split_hasse.delete_edge(a,b)
-        components = split_hasse.connected_components()
-
+        components = split_hasse.connected_components_subgraphs()
         if not len(components) == 2:
             raise ValueError("wrong number of connected components after the covering relation is deleted")
 
@@ -3282,7 +3282,7 @@ class HasseDiagram(DiGraph):
         if a in c2:
             c1, c2 = c2, c1
 
-        return [self.subgraph(c1), self.subgraph(c2)]
+        return [c1, c2]
 
     def _spectrum_of_tree(self, a):
         r"""
@@ -3300,15 +3300,16 @@ class HasseDiagram(DiGraph):
 
         EXAMPLES::
 
-            sage: H = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})._hasse_diagram
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
             sage: H._spectrum_of_tree(0)
             [2, 2, 0, 0, 0]
 
-            sage: H = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})._hasse_diagram
+            sage: H = HasseDiagram({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
             sage: H._spectrum_of_tree(2)
             [0, 0, 4, 0, 0]
 
-            sage: H = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})._hasse_diagram
+            sage: H = HasseDiagram({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
             sage: H._spectrum_of_tree(3)
             [0, 0, 0, 2, 2]
         """

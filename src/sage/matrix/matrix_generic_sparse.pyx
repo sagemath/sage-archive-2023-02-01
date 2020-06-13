@@ -211,8 +211,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             sage: R.<a,b> = Zmod(5)['a','b']
             sage: m = matrix(R,2,4, {(1,3): a, (0,0):b}, sparse=True)
             sage: m.zero_pattern_matrix()  # indirect doctest
-            [1 0 0 0]
-            [0 0 0 1]
+            [0 1 1 1]
+            [1 1 1 0]
         """
         return (i,j) not in self._entries
 

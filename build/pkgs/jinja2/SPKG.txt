@@ -32,15 +32,3 @@ Homepage: http://jinja.pocoo.org/
 None. (Just make sure its prerequisites are new enough in Sage, to avoid
 downloads during the build / installation.)
 
-== Changelog ==
-
-=== jinja2-2.5.5 (Leif Leonhardy, December 3rd, 2010) ===
- * #10423: Upgrade to version 2.5.5, as Sphinx (1.0.4) requires a version >=2.2
-   (cf. #10350).
- * Some clean-up, dependencies added.
-
-=== jinja2-2.1.1 (Tim Dumol, September 6th, 2009) ===
- * Upgrade to version 2.
-
-=== jinja2-1.2 (Mike Hansen, September 15th, 2008) ===
- * Initial version.

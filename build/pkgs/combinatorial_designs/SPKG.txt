@@ -19,7 +19,3 @@ Public domain.
 
 N/A
 
-== Changelog ==
-
-== designs-20140630 (Nathann Cohen, 2014-06-30) ==
- * #16541: Table of MOLS

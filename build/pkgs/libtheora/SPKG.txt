@@ -57,7 +57,3 @@ This spkg provides dependencies for
 
  * No changes went into src.
 
-== Changelog ==
-
-=== libtheora-1.1.1 (Wilfried Huss, October 19th, 2009) ===
- * libtheora-1.1.1

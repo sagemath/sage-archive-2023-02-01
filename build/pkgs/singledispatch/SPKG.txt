@@ -18,8 +18,3 @@ Home page: http://docs.python.org/3/library/functools.html#functools.singledispa
 
 Python
 
-== Changelog ==
-
-=== singledispatch-3.4.0.3 (Emmanuel Charpentier, December 1st, 2015) ===
-
- * Trac #19638: initial release, enabling upgrade of rpy2.

@@ -16,9 +16,3 @@ Home page: http://www.tornadoweb.org
 
 Python
 
-== Changelog ==
-
-=== tornado-3.1.1 (John H. Palmieri, 20 December 2013) ===
-
- * Trac #14993: initial release.
-

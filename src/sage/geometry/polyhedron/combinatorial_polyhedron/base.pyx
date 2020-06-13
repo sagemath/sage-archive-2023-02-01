@@ -728,6 +728,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     dim = dimension
 
+    @cached_method
     def n_vertices(self):
         r"""
         Return the number of vertices.
@@ -1483,6 +1484,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             edges = tuple((Vrep[j], facet_names[n_facets - 1 - i]) for i,facet in enumerate(facet_iter) for j in facet.ambient_V_indices())
         return DiGraph([vertices, edges], format='vertices_and_edges', immutable=True)
 
+    @cached_method
     def f_vector(self):
         r"""
         Compute the ``f_vector`` of the polyhedron.
@@ -1662,6 +1664,111 @@ cdef class CombinatorialPolyhedron(SageObject):
             flag[self.dimension()] = smallInteger(1)
 
         return flag
+
+    @cached_method
+    def neighborliness(self):
+        r"""
+        Return the largest ``k``, such that the polyhedron is ``k``-neighborly.
+
+        A polyhedron is `k`-neighborly if every set of `n` vertices forms a face
+        for `n` up to `k`.
+
+        In case of the `d`-dimensional simplex, it returns `d + 1`.
+
+        .. SEEALSO::
+
+            :meth:`is_neighborly`
+
+        EXAMPLES::
+
+            sage: P = polytopes.cyclic_polytope(8,12)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.neighborliness()
+            4
+            sage: P = polytopes.simplex(6)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.neighborliness()
+            7
+            sage: P = polytopes.cyclic_polytope(4,10)
+            sage: P = P.join(P)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.neighborliness()
+            2
+        """
+        if self.is_simplex():
+            return self.dim() + 1
+        else:
+            from sage.functions.other import binomial
+            k = 1
+            while self.f_vector()[k+1] == binomial(self.n_vertices(), k + 1):
+                k += 1
+            return k
+
+    @cached_method
+    def is_neighborly(self, k=None):
+        r"""
+        Return whether the polyhedron is neighborly.
+
+        If the input `k` is provided, then return whether the polyhedron is `k`-neighborly.
+
+        A polyhedron is neighborly if every set of `n` vertices forms a face
+        for `n` up to floor of half the dimension of the polyhedron.
+        It is `k`-neighborly if this is true for `n` up to `k`.
+
+        INPUT:
+
+        - ``k`` -- the dimension up to which to check if every set of ``k``
+          vertices forms a face. If no ``k`` is provided, check up to floor
+          of half the dimension of the polyhedron.
+
+        OUTPUT:
+
+        - ``True`` if the every set of up to ``k`` vertices forms a face,
+        - ``False`` otherwise
+
+        .. SEEALSO::
+
+            :meth:`neighborliness`
+
+        EXAMPLES::
+
+            sage: P = polytopes.cyclic_polytope(8,12)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_neighborly()
+            True
+            sage: P = polytopes.simplex(6)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_neighborly()
+            True
+            sage: P = polytopes.cyclic_polytope(4,10)
+            sage: P = P.join(P)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.is_neighborly()
+            False
+            sage: C.is_neighborly(k=2)
+            True
+        """
+        from sage.functions.other import binomial
+        if k is None:
+            k = self.dim() // 2
+        return all(self.f_vector()[i+1] == binomial(self.n_vertices(), i + 1)
+                   for i in range(1, k))
+
+    def is_simplex(self):
+        r"""
+        Return whether the polyhedron is a simplex.
+
+        A simplex is a bounded polyhedron with `d+1` vertices, where
+        `d` is the dimension.
+
+        EXAMPLES::
+
+            sage: CombinatorialPolyhedron(2).is_simplex()
+            False
+            sage: CombinatorialPolyhedron([[0,1],[0,2],[1,2]]).is_simplex()
+            True
+        """
+        return self.is_bounded() and (self.dim()+1 == self.n_vertices())
 
     def is_simplicial(self):
         r"""

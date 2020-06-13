@@ -3670,9 +3670,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         if skew:
             # testing the diagonal entries to be zero
-            zero = self.parent().base_ring().zero()
             for i from 0 <= i < self._nrows:
-                if self.get_unsafe(i,i) != zero:
+                if not self.get_is_zero_unsafe(i,i):
                     return False
             sign = -1
         else:
@@ -4443,20 +4442,18 @@ cdef class Matrix(sage.structure.element.Matrix):
         return np
 
     def nonzero_positions(self, copy=True, column_order=False):
-        """
-        Returns the sorted list of pairs (i,j) such that self[i,j] != 0.
+        r"""
+        Return the sorted list of pairs ``(i,j)`` such that ``self[i,j] != 0``.
 
         INPUT:
 
+        -  ``copy`` -- (default: ``True``) it is safe to change the
+           resulting list (unless you give the option ``copy=False``)
 
-        -  ``copy`` - (default: True) It is safe to change the
-           resulting list (unless you give the option copy=False).
-
-        -  ``column_order`` - (default: False) If true,
-           returns the list of pairs (i,j) such that self[i,j] != 0, but
-           sorted by columns, i.e., column j=0 entries occur first, then
-           column j=1 entries, etc.
-
+        -  ``column_order`` -- (default: ``False``) If ``True``,
+           returns the list of pairs ``(i,j)`` such that ``self[i,j] != 0``, but
+           sorted by columns, i.e., column ``j=0`` entries occur first, then
+           column ``j=1`` entries, etc.
 
         EXAMPLES::
 
@@ -4486,16 +4483,16 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def _nonzero_positions_by_row(self, copy=True):
         """
-        Returns the list of pairs (i,j) such that self[i,j] != 0.
+        Returns the list of pairs ``(i,j)`` such that ``self[i,j] != 0``.
 
-        It is safe to change the resulting list (unless you give the option copy=False).
+        It is safe to change the resulting list (unless you give the
+        option ``copy=False``).
 
         EXAMPLES::
 
             sage: M = Matrix(CC, [[1,0],[0,1]], sparse=True)
             sage: M._nonzero_positions_by_row()
             [(0, 0), (1, 1)]
-
         """
         x = self.fetch('nonzero_positions')
         if not x is None:
@@ -4503,11 +4500,10 @@ cdef class Matrix(sage.structure.element.Matrix):
                 return list(x)
             return x
         cdef Py_ssize_t i, j
-        z = self._base_ring(0)
         nzp = []
         for i from 0 <= i < self._nrows:
            for j from 0 <= j < self._ncols:
-                if self.get_unsafe(i,j) != z:
+                if not self.get_is_zero_unsafe(i,j):
                     nzp.append((i,j))
         self.cache('nonzero_positions', nzp)
         if copy:
@@ -4516,19 +4512,18 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def _nonzero_positions_by_column(self, copy=True):
         """
-        Returns the list of pairs (i,j) such that self[i,j] != 0, but
-        sorted by columns, i.e., column j=0 entries occur first, then
-        column j=1 entries, etc.
+        Returns the list of pairs ``(i,j)`` such that ``self[i,j] != 0``, but
+        sorted by columns, i.e., column ``j=0`` entries occur first, then
+        column ``j=1`` entries, etc.
 
         It is safe to change the resulting list (unless you give the option
-        copy=False).
+        ``copy=False``).
 
         EXAMPLES::
 
             sage: m=matrix(QQ,2,[1,0,1,1,1,0])
             sage: m._nonzero_positions_by_column()
             [(0, 0), (1, 0), (1, 1), (0, 2)]
-
         """
         x = self.fetch('nonzero_positions_by_column')
         if not x is None:
@@ -4536,11 +4531,10 @@ cdef class Matrix(sage.structure.element.Matrix):
                 return list(x)
             return x
         cdef Py_ssize_t i, j
-        z = self._base_ring(0)
         nzp = []
         for j from 0 <= j < self._ncols:
             for i from 0 <= i < self._nrows:
-                if self.get_unsafe(i,j) != z:
+                if not self.get_is_zero_unsafe(i,j):
                     nzp.append((i,j))
         self.cache('nonzero_positions_by_column', nzp)
         if copy:
@@ -4549,15 +4543,13 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def nonzero_positions_in_column(self, Py_ssize_t i):
         """
-        Return a sorted list of the integers j such that self[j,i] is
-        nonzero, i.e., such that the j-th position of the i-th column is
-        nonzero.
+        Return a sorted list of the integers ``j`` such that ``self[j,i]`` is
+        nonzero, i.e., such that the ``j``-th position of the ``i``-th column
+        is nonzero.
 
         INPUT:
 
-
-        -  ``i`` - an integer
-
+        - ``i`` -- an integer
 
         OUTPUT: list
 
@@ -4572,7 +4564,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a.nonzero_positions_in_column(1)
             [0, 1]
 
-        You'll get an IndexError, if you select an invalid column::
+        You will get an ``IndexError`` if you select an invalid column::
 
             sage: a.nonzero_positions_in_column(2)
             Traceback (most recent call last):
@@ -4580,26 +4572,23 @@ cdef class Matrix(sage.structure.element.Matrix):
             IndexError: matrix column index out of range
         """
         cdef Py_ssize_t j
-        z = self._base_ring(0)
         tmp = []
 
         if i<0 or i >= self._ncols:
             raise IndexError("matrix column index out of range")
         for j from 0 <= j < self._nrows:
-            if self.get_unsafe(j,i) != z:
+            if not self.get_is_zero_unsafe(j,i):
                 tmp.append(j)
         return tmp
 
     def nonzero_positions_in_row(self, Py_ssize_t i):
         """
-        Return the integers j such that self[i,j] is nonzero, i.e., such
-        that the j-th position of the i-th row is nonzero.
+        Return the integers ``j`` such that ``self[i,j]`` is nonzero, i.e.,
+        such that the ``j``-th position of the ``i``-th row is nonzero.
 
         INPUT:
 
-
-        -  ``i`` - an integer
-
+        -  ``i`` -- an integer
 
         OUTPUT: list
 
@@ -4618,14 +4607,13 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         cdef Py_ssize_t j
 
-        if i<0 or i >= self._nrows:
+        if i < 0 or i >= self._nrows:
             raise IndexError("matrix row index out of range")
 
-        z = self._base_ring(0)
         tmp = []
 
         for j from 0 <= j < self._ncols:
-            if self.get_unsafe(i,j) != z:
+            if not self.get_is_zero_unsafe(i,j):
                 tmp.append(j)
         return tmp
 
@@ -5840,7 +5828,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         cdef Py_ssize_t i, j
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
-                if self.get_unsafe(i,j):
+                if not self.get_is_zero_unsafe(i,j):
                     return True
         return False
 

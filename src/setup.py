@@ -124,7 +124,7 @@ code = setup(name = 'sage',
                  'bin/sage-massif',
                  'bin/sage-omega',
                  'bin/sage-valgrind',
-                 'bin/sage-version.sh'
+                 'bin/sage-version.sh',
                  ## Only makes sense in sage-the-distribution
                  'bin/sage-list-experimental',
                  'bin/sage-list-optional',

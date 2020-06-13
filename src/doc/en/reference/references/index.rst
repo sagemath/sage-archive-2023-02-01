@@ -1394,6 +1394,10 @@ REFERENCES:
             Ann. Combinatorics (6), 2002 pp. 125-145.
             :doi:`10.1007/PL00012580`.
 
+.. [CL2017] Xavier Caruso and Jérémy Le Borgne,
+            *A new faster algorithm for factoring skew polynomials over finite fields*
+            J. Symbolic Comput. 79 (2017), 411-443.
+
 .. [CL2013] Maria Chlouveraki and Sofia Lambropoulou. *The
             Yokonuma-Hecke algebras and the HOMFLYPT
             polynomial*. (2015) :arxiv:`1204.1871v4`.

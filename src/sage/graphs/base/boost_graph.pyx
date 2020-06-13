@@ -1649,7 +1649,7 @@ cpdef eccentricity_DHV(g, vertex_list=None, weight_function=None, check_weight=T
         sage: G = Graph(2)
         sage: eccentricity_DHV(G)
         [+Infinity, +Infinity]
-        sage: G = graphs.RandomGNP(20,0.7)
+        sage: G = graphs.RandomGNP(20, 0.7)
         sage: eccentricity_DHV(G) == G.eccentricity()
         True
         sage: G = Graph([(0,1,-1)], weighted=True)
@@ -1664,6 +1664,8 @@ cpdef eccentricity_DHV(g, vertex_list=None, weight_function=None, check_weight=T
     cdef int n = g.order()
     if not n:
         return []
+    if n == 1:
+        return [0]
 
     if weight_function and check_weight:
         g._check_weight_function(weight_function)
@@ -1693,11 +1695,12 @@ cpdef eccentricity_DHV(g, vertex_list=None, weight_function=None, check_weight=T
     cdef size_t i, idx
 
     cdef list active = list(range(n))
-    cdef vector[double] ecc_lower_bound, ecc_upper_bound, distances
+    cdef vector[double] ecc_lower_bound
+    cdef vector[double] ecc_upper_bound
+    cdef vector[double] distances
 
-    for i in range(n):
-        ecc_lower_bound.push_back(0)
-        ecc_upper_bound.push_back(sys.float_info.max)
+    ecc_lower_bound.assign(n, 0)
+    ecc_upper_bound.assign(n, sys.float_info.max)
 
     # Algorithm
     while active:
@@ -1758,14 +1761,12 @@ cpdef eccentricity_DHV(g, vertex_list=None, weight_function=None, check_weight=T
                 ecc_antipode = max(ecc_antipode, distances[v])
             ecc_upper_bound[antipode] = ecc_antipode
 
-            # Update eccentricity lower bounds.
-            for v in active:
-                ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
-
-            # We remove those vertices from active for which gap is closed
+            # Update eccentricity lower bounds and remove from active those
+            # vertices for which the gap is closed
             i = 0
             while i < len(active):
                 v = active[i]
+                ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
                 if ecc_upper_bound[v] == ecc_lower_bound[v]:
                     active[i] = active[-1]
                     active.pop()

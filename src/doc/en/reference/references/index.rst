@@ -1568,7 +1568,7 @@ REFERENCES:
              games*. MIT Press, 2003.
 
 .. [Cre2020] Creedon, Samuel. *The center of the partition algebra*.
-             Preprint, :arxiv:`2005.00600v1` (2020).
+             Preprint, :arxiv:`2005.00600` (2020).
 
 .. [Cro1983] \M. Crochemore, Recherche linéaire d'un carré dans un mot,
              C. R. Acad. Sci. Paris Sér. I Math. 296 (1983) 14

@@ -2874,7 +2874,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
              + P{{-3, 1, 2}, {-2, -1, 3}} - P{{-3, 2}, {-2, -1, 1, 3}}
              + P{{-3, 2}, {-2, 3}, {-1, 1}}
 
-        We test the relations in Lemma 2.2.3(1) in [Cre2020]_::
+        We test the relations in Lemma 2.2.3(1) in [Cre2020]_ (v1)::
 
             sage: k = 4
             sage: R.<x> = QQ[]
@@ -2976,7 +2976,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             sage: P3.L(3/2) * P3.L(2) == P3.L(2) * P3.L(3/2)
             True
 
-        We test the relations in Lemma 2.2.3(2) in [Cre2020]_::
+        We test the relations in Lemma 2.2.3(2) in [Cre2020]_ (v1)::
 
             sage: k = 4
             sage: R.<n> = QQ[]
@@ -2992,7 +2992,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             sage: all(x * Lsum == Lsum * x for x in gens)
             True
 
-        Also the relations in Lemma 2.2.3(3) in [Cre2020]_::
+        Also the relations in Lemma 2.2.3(3) in [Cre2020]_ (v1)::
 
             sage: all(P.e((2*i+1)/2) * P.sigma(2*i/2) * P.e((2*i+1)/2)
             ....:     == (n - P.L((2*i-1)/2)) * P.e((2*i+1)/2) for i in range(1,k))

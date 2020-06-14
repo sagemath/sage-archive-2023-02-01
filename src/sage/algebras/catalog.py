@@ -9,6 +9,8 @@ easy way to discover and quickly create the algebras that are available
 Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 ``algebras.<tab>`` to the see the currently implemented named algebras.
 
+- :class:`algebras.CubicHecke
+  <sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra>`
 - :class:`algebras.ArikiKoike
   <sage.algebras.hecke_algebras.ariki_koike_algebra.ArikiKoikeAlgebra>`
 - :class:`algebras.AskeyWilson <sage.algebras.askey_wilson.AskeyWilsonAlgebra>`
@@ -95,6 +97,7 @@ lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra', 'Shuffle')
 lazy_import('sage.algebras.schur_algebra', 'SchurAlgebra', 'Schur')
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'GradedCommutative')
 lazy_import('sage.algebras.hecke_algebras.ariki_koike_algebra', 'ArikiKoikeAlgebra', 'ArikiKoike')
+lazy_import('sage.algebras.hecke_algebras.cubic_hecke_algebra', 'CubicHeckeAlgebra', 'CubicHecke')
 lazy_import('sage.algebras.rational_cherednik_algebra', 'RationalCherednikAlgebra', 'RationalCherednik')
 lazy_import('sage.algebras.yokonuma_hecke_algebra', 'YokonumaHeckeAlgebra', 'YokonumaHecke')
 lazy_import('sage.combinat.posets.incidence_algebras', 'IncidenceAlgebra', 'Incidence')

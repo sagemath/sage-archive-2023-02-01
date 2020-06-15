@@ -71,7 +71,6 @@ specifying the universe of the sequence::
 
 from __future__ import print_function
 
-from sage.misc.latex import list_function as list_latex_function
 import sage.structure.sage_object
 import sage.structure.coerce
 
@@ -683,6 +682,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: latex(t)
             \left[\sqrt{x}, e^{x}, x^{x - 1}\right]
         """
+        from sage.misc.latex import list_function as list_latex_function
         return list_latex_function(self)
 
     def __str__(self):

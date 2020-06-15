@@ -48,7 +48,11 @@ import warnings
 import sage.misc.prandom as random
 from .lazy_string import lazy_string
 import sage.server.support
-from .call import AttrCallObject, attrcall, call_method
+
+from sage.misc.lazy_import import lazy_import
+
+lazy_import("sage.misc.call", ["AttrCallObject", "attrcall", "call_method"],
+            deprecation=29869)
 
 from sage.env import DOT_SAGE, HOSTNAME
 

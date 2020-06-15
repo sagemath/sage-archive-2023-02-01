@@ -304,9 +304,41 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
     AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires perl-5.8.0 or later])
 ])
 
+
+
 ###############################################################################
-# Check C/C++/Fortran compilers
+# Check C/C++/Fortran compilers and set CFLAGS
 ###############################################################################
+
+ORIGINAL_CFLAGS="$CFLAGS"
+ORIGINAL_CXXFLAGS="$CXXFLAGS"
+ORIGINAL_CXXFLAGS="$FCFLAGS"
+ORIGINAL_CXXFLAGS="$F77FLAGS"
+AC_SUBST(ORIGINAL_CFLAGS)
+AC_SUBST(ORIGINAL_CXXFLAGS)
+AC_SUBST(ORIGINAL_FCFLAGS)
+AC_SUBST(ORIGINAL_F77FLAGS)
+
+if test "x${CFLAGS}" = "x"; then
+    GOT_FLAGS="no"
+
+    # Evaluate SAGE_DEBUG:
+    if test "x$SAGE_DEBUG" = "xyes" ; then
+        CFLAGS="-Og -g"
+        CFLAGS_O3="-Og -g"
+    else
+        if test "x$SAGE_DEBUG" = "no" ; then
+            CFLAGS="-O2"
+            CFLAGS_O3="-O3"
+        else
+            CFLAGS="-O2 -g"
+            CFLAGS_O3="-O3 -g"
+        fi
+    fi
+else
+    GOT_FLAGS="yes"
+    CFLAGS_O3="${CFLAGS}"
+fi
 
 SAGE_CHECK_CONDA_COMPILERS
 
@@ -327,6 +359,76 @@ AC_SUBST(OBJC)
 AC_SUBST(OBJCXX)
 
 AS_IF([test "x$CXX" = x], [AC_MSG_ERROR([a C++ compiler is missing])])
+
+CFLAGS_NON_NATIVE="${CFLAGS}"
+AC_SUBST(CFLAGS_NON_NATIVE)
+
+# Adding march native in certain cases.
+if test "x$SAGE_FAT_BINARY" != "xyes" ; then
+    if test "x$GOT_FLAGS" = "xno"; then
+
+        # GCC less than 5.1 is not yet ready for "-march=native",
+        # but it claims it is.
+        GCC_LT_51="no"
+        if test "x$GCC" = "xyes"; then
+            GCC_GTE_51=$(expr `${CC} --version | grep ^gcc | sed 's/^.* //g' | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$/&00/'` \>= 50100)
+            if test "x$GCC_GTE_51" = "x0"; then
+                GCC_LT_51="yes"
+            fi
+        fi
+
+        if test "x$GCC_LT_51" = "xno"; then
+            AX_CHECK_COMPILE_FLAG("-march=native", [MARCH=" -march=native"], [MARCH=""], [], [])
+            CFLAGS="${CFLAGS}${MARCH}"
+            CFLAGS_O3="${CFLAGS_O3}${MARCH}"
+        fi
+
+    fi
+fi
+AC_SUBST(CFLAGS)
+AC_SUBST(CFLAGS_O3)
+AC_MSG_NOTICE(CFLAGS_NON_NATIVE=$CFLAGS_NON_NATIVE)
+AC_MSG_NOTICE(CFLAGS=$CFLAGS)
+AC_MSG_NOTICE(CFLAGS_O3=$CFLAGS_O3)
+
+# Copy to CXXFLAGS, if this is not set.
+if test "x${CXXFLAGS}" = "x"; then
+    CXXFLAGS="$CFLAGS"
+    CXXFLAGS_O3="$CFLAGS_O3"
+    CXXFLAGS_NON_NATIVE="$CFLAGS_NON_NATIVE"
+else
+    CXXFLAGS_03="$CXXFLAGS"
+    CXXFLAGS_NON_NATIVE="$CXXFLAGS"
+fi
+AC_SUBST(CXXFLAGS)
+AC_SUBST(CCXFLAGS_O3)
+AC_SUBST(CXXFLAGS_NON_NATIVE)
+
+# Copy to FCFLAGS, if this is not set.
+if test "x${FCFLAGS}" = "x"; then
+    FCFLAGS="$CFLAGS"
+    FCFLAGS_O3="$CFLAGS_O3"
+    FCFLAGS_NON_NATIVE="$CFLAGS_NON_NATIVE"
+else
+    FCFLAGS_03="$FCFLAGS"
+    FCFLAGS_NON_NATIVE="$FCFLAGS"
+fi
+AC_SUBST(FCFLAGS)
+AC_SUBST(FCFLAGS_O3)
+AC_SUBST(FCFLAGS_NON_NATIVE)
+
+# Copy to F77FLAGS, if this is not set.
+if test "x${F77FLAGS}" = "x"; then
+    F77FLAGS="$CFLAGS"
+    F77FLAGS_O3="$CFLAGS_O3"
+    F77FLAGS_NON_NATIVE="$CFLAGS_NON_NATIVE"
+else
+    F77FLAGS_03="$FCFLAGS"
+    F77FLAGS_NON_NATIVE="$FCFLAGS"
+fi
+AC_SUBST(F77FLAGS)
+AC_SUBST(F77FLAGS_O3)
+AC_SUBST(F77FLAGS_NON_NATIVE)
 
 
 ###############################################################################
@@ -369,6 +471,7 @@ AS_IF([echo "$ac_pwd" |grep " " >/dev/null],
 )
 
 SAGE_CHECK_OSX_SUPPORTED()
+
 
 ###############################################################################
 # Collect substitutions for build/make/Makefile.in

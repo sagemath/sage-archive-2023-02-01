@@ -8091,9 +8091,16 @@ class ANBinaryExpr(ANDescr):
 
         We check to make sure that this method still works even. We
         do this by increasing the recursion level at each step and
-        decrease it before we return::
+        decrease it before we return.
+        We lower the recursion limit for this test to allow
+        a test in reasonable time::
 
-            sage: import sys; sys.getrecursionlimit()
+            sage: import sys
+            sage: old_recursion_limit = sys.getrecursionlimit()
+            sage: sys.setrecursionlimit(1000)
+
+            sage: old_recursion_limit = sys.getrecursionlimit()
+            sage: sys.getrecursionlimit()
             1000
             sage: s = SymmetricFunctions(QQ).schur()
             sage: a=s([3,2]).expand(8)(flatten([[QQbar.zeta(3)^d for d in range(3)], [QQbar.zeta(5)^d for d in range(5)]]))
@@ -8102,6 +8109,7 @@ class ANBinaryExpr(ANDescr):
             sage: sys.getrecursionlimit()
             1000
 
+            sage: sys.setrecursionlimit(old_recursion_limit)
         """
         import sys
         old_recursion_limit = sys.getrecursionlimit()

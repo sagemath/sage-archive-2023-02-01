@@ -13,7 +13,6 @@ from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import (Crystals, CrystalHomset,
                                       CrystalMorphismByGenerators)
 from sage.categories.tensor import TensorProductsCategory
-from sage.graphs.dot2tex_utils import have_dot2tex
 
 class HighestWeightCrystals(Category_singleton):
     """
@@ -520,6 +519,7 @@ class HighestWeightCrystals(Category_singleton):
                 visited = recently_visited
 
             G = DiGraph(d)
+            from sage.graphs.dot2tex_utils import have_dot2tex
             if have_dot2tex():
                 G.set_latex_options(format="dot2tex",
                                     edge_labels=True,

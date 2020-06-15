@@ -317,7 +317,7 @@ SINGULAR_SO = var("SINGULAR_SO", _get_shared_lib_path("Singular", "singular-Sing
 GAP_SO = var("GAP_SO", _get_shared_lib_path("gap", ""))
 
 # post process
-if ' ' in DOT_SAGE:
+if DOT_SAGE is not None and ' ' in DOT_SAGE:
     if UNAME[:6] == 'CYGWIN':
         # on windows/cygwin it is typical for the home directory
         # to have a space in it.  Fortunately, users also have

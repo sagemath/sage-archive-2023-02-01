@@ -1889,7 +1889,7 @@ class FinitePosets(CategoryWithAxiom):
             if facade is None:
                 facade = self._is_facade
             if as_ideals:
-                from sage.misc.misc import attrcall
+                from sage.misc.call import attrcall
                 from sage.sets.set import Set
                 ideals = [Set(self.order_ideal(antichain))
                           for antichain in self.antichains()]

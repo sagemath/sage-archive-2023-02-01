@@ -8,7 +8,7 @@ be ranked.
 """
 
 from sage.misc.prandom import randint
-from sage.misc.misc import attrcall
+from sage.misc.call import attrcall
 from functools import reduce
 
 implications = {
@@ -156,7 +156,7 @@ def test_finite_lattice(L):
 
     from sage.misc.prandom import randint
     from sage.misc.flatten import flatten
-    from sage.misc.misc import attrcall
+    from sage.misc.call import attrcall
 
     from sage.misc.sageinspect import sage_getargspec
 
@@ -460,7 +460,7 @@ def test_finite_poset(P):
     from sage.combinat.subset import Subsets
     from sage.misc.prandom import shuffle
 
-    from sage.misc.misc import attrcall
+    from sage.misc.call import attrcall
 
     e = P.random_element()
     P_one_less = P.subposet([x for x in P if x != e])

@@ -185,7 +185,6 @@ from sage.structure.sage_object import SageObject
 from sage.structure.element import Element
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
-from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 
 
@@ -1193,6 +1192,7 @@ class Factorization(SageObject):
             sage: F.value()
             x^3*y^2*x
         """
+        from sage.misc.misc_c import prod
         return prod([p**e for p, e in self.__x], self.__unit)
 
     # Two aliases for ``value(self)``.
@@ -1348,4 +1348,5 @@ class Factorization(SageObject):
         """
         if not all(e > 0 for p, e in self.__x):
             raise ValueError("All exponents in the factorization must be positive.")
+        from sage.misc.misc_c import prod
         return prod([p for p, e in self.__x])

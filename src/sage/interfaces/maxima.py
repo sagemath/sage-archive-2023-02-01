@@ -464,7 +464,6 @@ Test that Maxima gracefully handles this syntax error (:trac:`17667`)::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six import string_types
 
 import os
 import re
@@ -472,7 +471,7 @@ import pexpect
 
 from random import randrange
 
-from sage.env import DOT_SAGE, SAGE_LOCAL
+from sage.env import DOT_SAGE, SAGE_LOCAL, MAXIMA
 from sage.misc.misc import ECL_TMP
 
 from .expect import (Expect, ExpectElement, gc_disabled)
@@ -546,7 +545,7 @@ class Maxima(MaximaAbstract, Expect):
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = r'\(\%i[0-9]+\) ',
-                        command = 'maxima -p "{0}"'.format(STARTUP),
+                        command = '"{0}" -p "{1}"'.format(MAXIMA, STARTUP),
                         env = {'TMPDIR': str(ECL_TMP)},
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
@@ -994,7 +993,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: maxima.get('xxxxx')
             '2'
         """
-        if not isinstance(value, string_types):
+        if not isinstance(value, str):
             raise TypeError
         cmd = '%s : %s$'%(var, value.rstrip(';'))
         if len(cmd) > self.__eval_using_file_cutoff:

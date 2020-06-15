@@ -1,5 +1,5 @@
 """
-Dense matrices over `\GF{2^e}` for `2 <= e <= 10` using the M4RIE library.
+Dense matrices over `\GF{2^e}` for `2 <= e <= 10` using the M4RIE library
 
 The M4RIE library offers two matrix representations:
 
@@ -89,7 +89,7 @@ from sage.structure.element cimport Matrix, Vector
 from sage.structure.element cimport ModuleElement, Element, RingElement
 from sage.structure.richcmp cimport rich_to_bool
 
-from sage.rings.all import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.matrix.matrix_mod2_dense cimport Matrix_mod2_dense

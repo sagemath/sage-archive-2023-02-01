@@ -57,12 +57,11 @@ AUTHORS:
 """
 from subprocess import Popen, PIPE
 import os
+import sys
 import select
 
-import six
 
-
-def test_executable(args, input="", timeout=100.0, **kwds):
+def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False, **kwds):
     r"""
     Run the program defined by ``args`` using the string ``input`` on
     the standard input.
@@ -77,6 +76,13 @@ def test_executable(args, input="", timeout=100.0, **kwds):
 
     - ``timeout`` -- if the program produces no output for ``timeout``
       seconds, a RuntimeError is raised.
+
+    - ``pydebug_ignore_warnings`` -- boolean. Set the PYTHONWARNINGS environment variable to ignore
+      Python warnings when on a Python debug build (`--with-pydebug`, e.g. from building with
+      `SAGE_DEBUG=yes`). Debug builds do not install the default warning filters, which can break
+      some doctests. Unfortunately the environment variable does not support regex message filters,
+      so the filter will catch a bit more than the default filters. Hence we only enable it on debug
+      builds.
 
     - ``**kwds`` -- Additional keyword arguments passed to the
       :class:`Popen` constructor.
@@ -107,7 +113,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
 
     Run Sage itself with various options::
 
-        sage: (out, err, ret) = test_executable(["sage"])
+        sage: (out, err, ret) = test_executable(["sage"], pydebug_ignore_warnings=True)
         sage: out.find(version()) >= 0
         True
         sage: err
@@ -115,7 +121,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage"], "3^33\n")
+        sage: (out, err, ret) = test_executable(["sage"], "3^33\n", pydebug_ignore_warnings=True)
         sage: out.find(version()) >= 0
         True
         sage: out.find("5559060566555523") >= 0
@@ -125,7 +131,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "-q"], "3^33\n")
+        sage: (out, err, ret) = test_executable(["sage", "-q"], "3^33\n", pydebug_ignore_warnings=True)
         sage: out.find(version()) >= 0
         False
         sage: out.find("5559060566555523") >= 0
@@ -210,7 +216,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])  # optional - build
         sage: print(out)  # optional - build
         Found local metadata for sqlite-...
-        = SQLite =
+        SQLite
+        ======
         ...
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
@@ -223,7 +230,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])  # optional - build
         sage: print(out)  # optional - build
         Found local metadata for sqlite-...
-        = SQLite =
+        SQLite
+        ======
         ...
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
@@ -285,14 +293,14 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: F = open(fullname, 'w')
         sage: _ = F.write("from cysignals.signals cimport *\nfrom sage.rings.integer cimport Integer\ncdef long i, s = 0\nsig_on()\nfor i in range(1000): s += i\nsig_off()\nprint(Integer(s))")
         sage: F.close()
-        sage: (out, err, ret) = test_executable(["sage", fullname])
+        sage: (out, err, ret) = test_executable(["sage", fullname], pydebug_ignore_warnings=True)
         sage: print(out)
         499500
         sage: err
         'Compiling ...spyx...'
         sage: ret
         0
-        sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
+        sage: (out, err, ret) = test_executable(["sage", name], cwd=dir, pydebug_ignore_warnings=True)
         sage: print(out)
         499500
         sage: err
@@ -401,24 +409,6 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         1
 
-    Check that Sage refuses to run doctests from a directory whose
-    permissions are too loose. Note that this is relevant only for
-    Sage's Python 2, which is patched to produce this behavior. We
-    create a world-writable directory inside a safe temporary
-    directory to test this::
-
-        sage: d = os.path.join(tmp_dir(), "test")
-        sage: os.mkdir(d)
-        sage: os.chmod(d, 0o777)
-        sage: (out, err, ret) = test_executable(["sage", "-t", "nonexisting.py"], cwd=d) # py2
-        sage: print(err) # py2
-        ...
-        RuntimeError: refusing to run doctests...
-        sage: (out, err, ret) = test_executable(["sage", "-tp", "1", "nonexisting.py"], cwd=d) # py2
-        sage: print(err) # py2
-        ...
-        RuntimeError: refusing to run doctests...
-
     Now run a test for the fixdoctests script and, in particular, check that the
     issues raised in :trac:`10589` are fixed. We have to go to slightly silly
     lengths to doctest the output.::
@@ -477,7 +467,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         42
 
-        sage: (out, err, ret) = test_executable(["sage", "--ipython"], "\n3**33\n")
+        sage: (out, err, ret) = test_executable(["sage", "--ipython"], "\n3**33\n", pydebug_ignore_warnings=True)
         sage: out.find("5559060566555523") >= 0
         True
         sage: err
@@ -850,12 +840,13 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     except KeyError:
         pass
 
-    encoding = kwds.pop('encoding', 'utf-8')
-    errors = kwds.pop('errors', None)
+    __with_pydebug = hasattr(sys, 'gettotalrefcount')   # This is a Python debug build (--with-pydebug) 
+    if __with_pydebug and pydebug_ignore_warnings:
+        pexpect_env['PYTHONWARNINGS'] = ','.join([
+            'ignore::DeprecationWarning',
+        ])
 
-    if six.PY3:
-        kwds['encoding'] = encoding
-        kwds['errors'] = errors
+    kwds['encoding'] = kwds.pop('encoding', 'utf-8')
 
     p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=pexpect_env,
               **kwds)

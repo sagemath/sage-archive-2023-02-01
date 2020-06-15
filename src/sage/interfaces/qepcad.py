@@ -605,13 +605,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six import string_types
 
 from sage.env import SAGE_LOCAL
 import pexpect
 import re
 import sys
 
+from sage.cpython.string import bytes_to_str
 from sage.misc.flatten import flatten
 from sage.misc.sage_eval import sage_eval
 from sage.repl.preparse import implicit_mul
@@ -838,12 +838,12 @@ class Qepcad:
 
         varlist = None
         if vars is not None:
-            if isinstance(vars, string_types):
+            if isinstance(vars, str):
                 varlist = vars.strip('()').split(',')
             else:
                 varlist = [str(v) for v in vars]
 
-        if isinstance(formula, string_types):
+        if isinstance(formula, str):
             if varlist is None:
                 raise ValueError("vars must be specified if formula is a string")
 
@@ -919,7 +919,7 @@ class Qepcad:
             sage: qe.finish() # optional - qepcad
             4 a c - b^2 <= 0
         """
-        if not isinstance(assume, string_types):
+        if not isinstance(assume, str):
             assume = qepcad_formula.formula(assume)
             if len(assume.qvars):
                 raise ValueError("assumptions cannot be quantified")
@@ -1067,7 +1067,7 @@ class Qepcad:
         if match == pexpect.EOF:
             return 'EXITED'
         else:
-            return match.group(1)
+            return bytes_to_str(match.group(1))
 
     def _parse_answer_stats(self):
         r"""
@@ -1089,7 +1089,7 @@ class Qepcad:
         """
         if self.phase() != 'EXITED':
             raise ValueError("QEPCAD is not finished yet")
-        final = self._qex.expect().before
+        final = bytes_to_str(self._qex.expect().before)
         match = re.search('\nAn equivalent quantifier-free formula:(.*)\n=+  The End  =+\r\n\r\n(.*)$', final, re.DOTALL)
 
         if match:
@@ -1717,7 +1717,7 @@ def qepcad_banner():
     """
     qex = Qepcad_expect()
     qex._start()
-    banner = qex.expect().before
+    banner = bytes_to_str(qex.expect().before)
     return AsciiArtString(banner)
 
 def qepcad_version():

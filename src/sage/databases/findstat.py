@@ -206,8 +206,6 @@ Classes and methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, unicode_literals
-from six.moves import range
-from six import iteritems, add_metaclass, string_types
 
 from sage.misc.lazy_list import lazy_list
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -232,7 +230,6 @@ import tempfile
 import inspect
 import cgi
 import requests
-import sys
 
 # Combinatorial collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
@@ -306,11 +303,7 @@ FINDSTAT_COLLECTION_PADDED_IDENTIFIER  = "Cc%04d"
 # the format string for using POST
 # WARNING: we use cgi.escape to avoid injection problems, thus we expect double quotes as field delimiters.
 FINDSTAT_POST_HEADER = """
-<script src="https://www.google.com/jsapi"></script>
-<script>
-    google.load("jquery", "1.3.2");
-</script>
-
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
 <script>
     $(document).ready(function() {$("#form").submit(); });
 </script>
@@ -464,8 +457,6 @@ def _submit(args, url):
             verbose("writing argument %s" % key, caller_name='FindStat')
             value_encoded = cgi.escape(value, quote=True)
             html = FINDSTAT_FORM_FORMAT % (key, value_encoded)
-            if sys.version_info[0] < 3:
-                html = html.encode("utf-8")
             f.write(html)
         else:
             verbose("skipping argument %s because it is empty" % key, caller_name='FindStat')
@@ -1518,8 +1509,6 @@ class FindStatFunction(SageObject):
             s = "%s(modified): %s" % (self.id_str(), self.name())
         else:
             s = "%s: %s" % (self.id_str(), self.name())
-        if sys.version_info[0] < 3:
-            return s.encode("utf-8")
         return s
 
     def reset(self):
@@ -1698,9 +1687,6 @@ class FindStatFunction(SageObject):
                     author_title = ", ".join(e for e in [bibitem["Author"], bibitem["Title"]]
                                              if e)
                     result.append(comment + author_title + " " + "".join(parts[1:]))
-
-        if sys.version_info[0] < 3:
-            return FancyTuple([ref.encode("utf-8") for ref in result])
 
         return FancyTuple([ref for ref in result])
 

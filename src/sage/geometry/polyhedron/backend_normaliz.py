@@ -104,7 +104,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)],   # optional - pynormaliz
         ....:                lines=[], backend='normaliz')
-        sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
+        sage: TestSuite(p).run()                                           # optional - pynormaliz
 
     Two ways to get the full space::
 
@@ -211,19 +211,16 @@ class Polyhedron_normaliz(Polyhedron_base):
         See :class:`Polyhedron_normaliz` for a description of the input
         data.
 
-        TESTS:
+        TESTS::
 
-        We skip the pickling test because pickling is currently
-        not implemented::
-
-            sage: p = Polyhedron(backend='normaliz')                 # optional - pynormaliz
-            sage: TestSuite(p).run(skip="_test_pickling")            # optional - pynormaliz
-            sage: p = Polyhedron(vertices=[(1, 1)], rays=[(0, 1)],   # optional - pynormaliz
+            sage: p = Polyhedron(backend='normaliz')                       # optional - pynormaliz
+            sage: TestSuite(p).run()                                       # optional - pynormaliz
+            sage: p = Polyhedron(vertices=[(1, 1)], rays=[(0, 1)],         # optional - pynormaliz
             ....:                backend='normaliz')
-            sage: TestSuite(p).run(skip="_test_pickling")            # optional - pynormaliz
+            sage: TestSuite(p).run()                                       # optional - pynormaliz
             sage: p = Polyhedron(vertices=[(-1,-1), (1,0), (1,1), (0,1)],  # optional - pynormaliz
             ....:                backend='normaliz')
-            sage: TestSuite(p).run(skip="_test_pickling")            # optional - pynormaliz
+            sage: TestSuite(p).run()                                       # optional - pynormaliz
         """
         if normaliz_cone:
             if Hrep is not None or Vrep is not None or normaliz_data is not None:
@@ -396,8 +393,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]]
         """
         if verbose:
-            import six
-            if isinstance(verbose, six.string_types):
+            if isinstance(verbose, str):
                 print("# Wrote equivalent Normaliz input file to {}".format(verbose))
                 self._normaliz_format(data, file_output=verbose)
             else:
@@ -1157,6 +1153,95 @@ class Polyhedron_normaliz(Polyhedron_base):
         other._normaliz_cone = conecopy
         return other
 
+    def __getstate__(self):
+        r"""
+        Remove the normaliz cone for pickling.
+
+        TESTS::
+
+        sage: P = polytopes.simplex(backend='normaliz')   # optional - pynormaliz
+        sage: P.__getstate__()                            # optional - pynormaliz
+        (Polyhedra in ZZ^4,
+         {'_Hrepresentation': (An inequality (0, 0, 0, 1) x + 0 >= 0,
+           An inequality (0, 0, 1, 0) x + 0 >= 0,
+           An inequality (0, 1, 0, 0) x + 0 >= 0,
+           An inequality (1, 0, 0, 0) x + 0 >= 0,
+           An equation (1, 1, 1, 1) x - 1 == 0),
+          '_Vrepresentation': (A vertex at (0, 0, 0, 1),
+           A vertex at (0, 0, 1, 0),
+           A vertex at (0, 1, 0, 0),
+           A vertex at (1, 0, 0, 0)),
+          '_normaliz_field': Rational Field})
+        """
+        state = super(Polyhedron_normaliz, self).__getstate__()
+        state = (state[0], state[1].copy())
+        # Remove the unpicklable entries.
+        del state[1]['_normaliz_cone']
+        return state
+
+    def __setstate__(self, state):
+        r"""
+        Initialize the normaliz cone after pickling.
+
+        TESTS::
+
+            sage: P = polytopes.permutahedron(4, backend='normaliz')       # optional - pynormaliz
+            sage: P.volume(measure='induced_lattice', engine='normaliz')   # optional - pynormaliz
+            96
+            sage: P.volume.clear_cache()                                   # optional - pynormaliz
+            sage: P1 = loads(dumps(P))                 # indirect doctest  # optional - pynormaliz
+            sage: P1.volume(measure='induced_lattice', engine='normaliz')  # optional - pynormaliz
+            96
+
+        Test that the obtained cone is valid::
+
+            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz  # optional - pynormaliz
+            sage: P = polytopes.permutahedron(4, backend='normaliz')                         # optional - pynormaliz
+            sage: P1 = loads(dumps(P))                                                       # optional - pynormaliz
+            sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone)       # optional - pynormaliz
+            sage: P2 == P # optional - pynormaliz
+            True
+
+            sage: P = Polyhedron(lines=[[1,0], [0,1]], backend='normaliz')              # optional - pynormaliz
+            sage: P1 = loads(dumps(P))                                                  # optional - pynormaliz
+            sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone)  # optional - pynormaliz
+            sage: P2 == P                                                               # optional - pynormaliz
+            True
+
+            sage: P = Polyhedron(backend='normaliz')                                    # optional - pynormaliz
+            sage: P1 = loads(dumps(P))                                                  # optional - pynormaliz
+            sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone)  # optional - pynormaliz
+            sage: P2 == P                                                               # optional - pynormaliz
+            True
+
+            sage: P = polytopes.permutahedron(4, backend='normaliz') * Polyhedron(lines=[[1]], backend='normaliz')  # optional - pynormaliz
+            sage: P1 = loads(dumps(P))                                                  # optional - pynormaliz
+            sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone)  # optional - pynormaliz
+            sage: P2 == P                                                               # optional - pynormaliz
+            True
+
+            sage: P = polytopes.dodecahedron(backend='normaliz')  # optional - pynormaliz
+            sage: P1 = loads(dumps(P))                            # optional - pynormaliz
+            sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone, normaliz_field=P1._normaliz_field)  # optional - pynormaliz
+            sage: P == P2                                         # optional - pynormaliz
+            True
+        """
+        super(Polyhedron_normaliz, self).__setstate__(state)
+
+        if not self.inequalities():
+            # If there are no inequalites, we must initialize the cone from scratch.
+            P = Polyhedron_normaliz(self.parent(), [self.vertices(), self.rays(), self.lines()], None)
+            self._normaliz_cone = P._normaliz_cone
+            return
+
+        if self.is_empty():
+            # Special case to avoid.
+            self._normaliz_cone = None
+
+        self._normaliz_cone = \
+            self._cone_from_Vrepresentation_and_Hrepresentation(
+                    self.vertices(), self.rays(), self.inequalities(), self.equations())
+
     def integral_hull(self):
         r"""
         Return the integral hull in the polyhedron.
@@ -1199,25 +1284,60 @@ class Polyhedron_normaliz(Polyhedron_base):
         return self.parent().element_class._from_normaliz_cone(parent=self.parent(),
                                                                normaliz_cone=cone)
 
+    def _h_star_vector_normaliz(self):
+        r"""
+        Return the `h^*`-vector of the lattice polytope.
+
+        INPUT:
+
+        - ``self`` -- A lattice polytope with backend ``'normaliz'``.
+
+        OUTPUT:
+
+        The `h^*`-vector as a list.
+
+        EXAMPLES:
+
+        The `h^*`-vector of a unimodular simplex is 1::
+
+            sage: s3 = polytopes.simplex(3,backend='normaliz')   # optional - pynormaliz
+            sage: s3._h_star_vector_normaliz()                   # optional - pynormaliz
+            [1]
+
+        The `h^*`-vector of the `0/1`-cube is [1,4,1]::
+
+            sage: cube = polytopes.cube(intervals='zero_one', backend='normaliz') # optional - pynormaliz
+            sage: cube.h_star_vector()   # optional - pynormaliz
+            [1, 4, 1]
+        """
+        return self.ehrhart_series().numerator().coefficients()
+
     def _volume_normaliz(self, measure='euclidean'):
         r"""
         Computes the volume of a polytope using normaliz.
 
         INPUT:
 
-        - ``measure`` -- (default: 'euclidean') the measure to take. 'euclidean'
-          correspond to ``EuclideanVolume`` in normaliz and 'induced_lattice'
-          correspond to ``Volume`` in normaliz.
+        - ``measure`` -- string. The measure to use. Allowed values are:
+
+          * ``'euclidean'`` (default): corresponds to ``'EuclideanVolume`` in normaliz
+          * ``'induced_lattice'``: corresponds to ``'Volume'`` in normaliz
+          * ``'ambient'``: Lebesgue measure of ambient space (volume)
 
         OUTPUT:
 
-        A float value (when ``measure`` is 'euclidean') or a rational number
-        (when ``measure`` is 'induced_lattice').
+        A float value (when ``measure`` is 'euclidean'),
+        a rational number (when ``measure`` is 'induced_lattice'),
+        a rational number or symbolic number otherwise (dependent on base ring).
 
         .. NOTE::
 
             This function depends on Normaliz (i.e., the ``pynormaliz`` optional
-            package). See the Normaliz documentation for further details.
+            package).
+
+        REFERENCES:
+
+        See section 6.1.1 of [NormalizMan]_.
 
         EXAMPLES:
 
@@ -1228,7 +1348,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: s._volume_normaliz()                         # optional - pynormaliz
             0.3333333333333333
 
-        The other possibility is to compute the scaled volume where a unimodual
+        One other possibility is to compute the scaled volume where a unimodular
         simplex has volume 1::
 
             sage: s._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
@@ -1240,6 +1360,14 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: cube._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
             6
 
+        Or one can can calculate the ambient volume, which is the above multiplied by the
+        volume of the unimodular simplex (or zero if not full-dimensional)::
+
+            sage: cube._volume_normaliz(measure='ambient')  # optional - pynormaliz
+            1
+            sage: s._volume_normaliz(measure='ambient')     # optional - pynormaliz
+            0
+
         TESTS:
 
         Check that :trac:`28872` is fixed::
@@ -1247,6 +1375,27 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P = polytopes.dodecahedron(backend='normaliz')  # optional - pynormaliz
             sage: P.volume(measure='induced_lattice')             # optional - pynormaliz
             -1056*sqrt5 + 2400
+
+        Some sanity checks that the ambient volume works correctly::
+
+            sage: (2*cube)._volume_normaliz(measure='ambient')    # optional - pynormaliz
+            8
+            sage: (1/2*cube)._volume_normaliz(measure='ambient')  # optional - pynormaliz
+            1/8
+            sage: s._volume_normaliz(measure='ambient')           # optional - pynormaliz
+            0
+
+            sage: P = polytopes.regular_polygon(3, backend='normaliz')          # optional - pynormaliz
+            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
+            True
+
+            sage: P = polytopes.dodecahedron(backend='normaliz')                # optional - pynormaliz
+            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
+            True
+
+            sage: P = Polyhedron(rays=[[1]], backend='normaliz')  # optional - pynormaliz
+            sage: P.volume()                                      # optional - pynormaliz
+            +Infinity
         """
         cone = self._normaliz_cone
         assert cone
@@ -1257,6 +1406,20 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return self._nmz_result(cone, 'Volume')
             else:
                 return self._nmz_result(cone, 'RenfVolume')
+        elif measure == 'ambient':
+            if self.dim() < self.ambient_dim():
+                return self.base_ring().zero()
+            if not self.is_compact():
+                from sage.rings.infinity import infinity
+                return infinity
+
+            from sage.functions.other import factorial
+            volume = self._volume_normaliz('induced_lattice')/factorial(self.dim())
+
+            return volume
+
+        else:
+            raise TypeError("the measure should be `ambient`, `euclidean`, or `induced_lattice`")
 
     def _triangulate_normaliz(self):
         r"""
@@ -1340,7 +1503,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)],                 # optional - pynormaliz
         ....:                rays=[(1,1)], lines=[],
         ....:                backend='normaliz', base_ring=QQ)
-        sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
+        sage: TestSuite(p).run()                                           # optional - pynormaliz
     """
 
     def ehrhart_series(self, variable='t'):
@@ -1880,6 +2043,6 @@ class Polyhedron_ZZ_normaliz(Polyhedron_QQ_normaliz, Polyhedron_ZZ):
         sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)],                 # optional - pynormaliz
         ....:                rays=[(1,1)], lines=[],
         ....:                backend='normaliz', base_ring=ZZ)
-        sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
+        sage: TestSuite(p).run()                                           # optional - pynormaliz
     """
     pass

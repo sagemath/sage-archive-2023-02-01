@@ -302,20 +302,28 @@ ext_modules = [
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/base.pyx']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pyx']),
-
-    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.bit_vector_operations.cc',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pyx'],
+              depends = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
+              language="c++",
               extra_compile_args=['-std=c++11']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/face_iterator.pyx']),
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/face_iterator.pyx'],
+              depends = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
+              language="c++",
+              extra_compile_args=['-std=c++11']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/polyhedron_face_lattice.pyx']),
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/polyhedron_face_lattice.pyx'],
+              depends = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
+              language="c++",
+              extra_compile_args=['-std=c++11']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/combinatorial_face.pyx']),
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/combinatorial_face.pyx'],
+              depends = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
+              language="c++",
+              extra_compile_args=['-std=c++11']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.conversions',
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/conversions.pyx']),
@@ -1192,6 +1200,9 @@ ext_modules = [
     Extension('sage.rings.tate_algebra_ideal',
               sources = ['sage/rings/tate_algebra_ideal.pyx']),
 
+    Extension('sage.rings.puiseux_series_ring_element',
+              sources = ['sage/rings/puiseux_series_ring_element.pyx']),
+
     Extension('sage.rings.rational',
               sources = ['sage/rings/rational.pyx'],
               libraries=['ntl']),
@@ -1219,6 +1230,18 @@ ext_modules = [
 
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']),
+
+    Extension('sage.rings.ring_extension',
+              sources = ['sage/rings/ring_extension.pyx']),
+
+    Extension('sage.rings.ring_extension_element',
+              sources = ['sage/rings/ring_extension_element.pyx']),
+
+    Extension('sage.rings.ring_extension_morphism',
+              sources = ['sage/rings/ring_extension_morphism.pyx']),
+
+    Extension('sage.rings.ring_extension_conversion',
+              sources = ['sage/rings/ring_extension_conversion.pyx']),
 
     Extension('*', ['sage/rings/convert/*.pyx']),
 
@@ -1512,6 +1535,9 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.skew_polynomial_element',
               sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
+    
+    Extension('sage.rings.polynomial.skew_polynomial_finite_order',
+              sources = ['sage/rings/polynomial/skew_polynomial_finite_order.pyx']),
 
     # Note that weil_polynomials includes distutils directives in order to support
     # conditional OpenMP compilation (by uncommenting lines)
@@ -1549,6 +1575,9 @@ ext_modules = [
 
     Extension('sage.schemes.elliptic_curves.period_lattice_region',
               sources = ['sage/schemes/elliptic_curves/period_lattice_region.pyx']),
+    
+    Extension('sage.schemes.elliptic_curves.mod_sym_num',
+              sources = ['sage/schemes/elliptic_curves/mod_sym_num.pyx']),
 
     Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
               sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',

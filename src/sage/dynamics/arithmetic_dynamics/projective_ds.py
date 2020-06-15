@@ -4871,7 +4871,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             )
         """
         if self.domain().ambient_space().dimension_relative() != 1:
-            return NotImplementedError('only implmeneted for dimension 1')
+            return NotImplementedError('only implemented for dimension 1')
         return_conjugation = kwds.get('return_conjugation', True)
         emb = kwds.get('emb', None)
         prec = kwds.get('prec', 300)
@@ -4880,7 +4880,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         dynatomic = algorithm = kwds.get('dynatomic', True)
         smallest_coeffs = kwds.get('smallest_coeffs', True)
         if smallest_coeffs:
-            if self.base_ring() not in [ZZ,QQ]:
+            if self.base_ring() not in [ZZ, QQ]:
                 raise NotImplementedError("smallest coeff only over ZZ or QQ")
             check_min = kwds.get('check_minimal', True)
             from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import smallest_dynamical

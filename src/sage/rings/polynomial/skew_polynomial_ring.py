@@ -5,7 +5,7 @@ This module provides the :class:`~sage.rings.polynomial.skew_polynomial_ring.Ske
 which constructs a general dense skew univariate polynomials over commutative base rings with
 automorphisms over the base rings. This is the set of formal polynomials where the coefficients
 are written on the left of the variable of the skew polynomial ring. The modified multiplication
-operation over elements of the base ring is extended to all elements of the skew poynomial ring
+operation over elements of the base ring is extended to all elements of the skew polynomial ring
 by associativity and distributivity.
 
 This module also provides :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_order`
@@ -1394,7 +1394,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: P.parent() is S
             True
 
-        together with a converion map in the reverse direction::
+        together with a conversion map in the reverse direction::
 
             sage: Zy(x^6 + 2*x^3 + 3)
             y^2 + 2*y + 3

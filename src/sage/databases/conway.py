@@ -19,11 +19,9 @@ Frank Luebeck's tables of Conway polynomials over finite fields
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from six import iteritems
-from six.moves import cPickle as pickle
-
 import collections
 import os
+import pickle
 
 from sage.env import CONWAY_POLYNOMIALS_DATA_DIR
 
@@ -182,7 +180,7 @@ class ConwayPolynomials(collections.Mapping):
             sage: next(itr)  # random
             (65537, 4)
         """
-        for a, b in iteritems(self._store):
+        for a, b in self._store.items():
             for c in b:
                 yield a, c
 

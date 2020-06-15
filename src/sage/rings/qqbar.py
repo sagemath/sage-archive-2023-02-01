@@ -522,8 +522,6 @@ runs under 5 seconds (used to take ~40sec)::
 """
 
 from __future__ import absolute_import, print_function, division
-from six.moves import range
-from six import integer_types, iteritems
 
 import itertools
 import operator
@@ -877,7 +875,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
             #
             # As nbruin pointed out during the review of Trac #25390,
             # this can be accomplished more efficiently using the resultant
-            # of the polynomial with the number field's minimial polynomial.
+            # of the polynomial with the number field's minimal polynomial.
             #
             # We use two auxiliary polynomial rings:
             #
@@ -2073,7 +2071,7 @@ def clear_denominators(poly):
             min_e = (e + (deg - i) - 1) // (deg - i)
             factors[f] = max(oe, min_e)
     change = 1
-    for f, e in iteritems(factors):
+    for f, e in factors.items():
         change = change * f**e
     poly = poly * (change**deg)
     poly = poly(poly.parent().gen() / change)
@@ -3412,7 +3410,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             22/7
         """
         sage.structure.element.FieldElement.__init__(self, parent)
-        if isinstance(x, integer_types + (sage.rings.integer.Integer,
+        if isinstance(x, (int, sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             self._descr = ANRational(x)
         elif isinstance(x, ANDescr):
@@ -6038,7 +6036,7 @@ class ANRational(ANDescr):
         if isinstance(x, (sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             self._value = x
-        elif isinstance(x, integer_types):
+        elif isinstance(x, int):
             self._value = ZZ(x)
         else:
             raise TypeError("Illegal initializer for algebraic number rational")

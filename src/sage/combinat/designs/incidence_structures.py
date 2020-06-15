@@ -40,9 +40,6 @@ Methods
 # **************************************************************************
 from __future__ import print_function
 
-import six
-from six.moves import range
-
 from sage.rings.integer import Integer
 from sage.misc.latex import latex
 from sage.sets.set import Set
@@ -481,8 +478,8 @@ class IncidenceStructure(object):
 
         if A == B:
             if certificate:
-                B_canon_rev = {y:x for x,y in six.iteritems(B_canon)}
-                return {x:B_canon_rev[xint] for x,xint in six.iteritems(A_canon)}
+                B_canon_rev = {y:x for x,y in B_canon.items()}
+                return {x:B_canon_rev[xint] for x,xint in A_canon.items()}
             else:
                 return True
         else:
@@ -889,7 +886,7 @@ class IncidenceStructure(object):
                 for s in combinations(b,size):
                     d[s]+=1
             if self._point_to_index:
-                return {tuple([self._points[x] for x in s]):v for s,v in six.iteritems(d)}
+                return {tuple([self._points[x] for x in s]):v for s,v in d.items()}
             else:
                 return d
 
@@ -1438,7 +1435,7 @@ class IncidenceStructure(object):
         p.solve(log=verbose)
 
         return [[self._points[x] for x in self._blocks[i]]
-                for i, v in six.iteritems(p.get_values(b)) if v]
+                for i, v in p.get_values(b).items() if v]
 
     def is_t_design(self, t=None, v=None, k=None, l=None, return_parameters=False):
         r"""
@@ -1961,7 +1958,7 @@ class IncidenceStructure(object):
                 else:
                     # each class is stored as the list of indices of its blocks
                     self._classes = [[] for _ in range(n_classes)]
-                    for (t, i), v in six.iteritems(p.get_values(b)):
+                    for (t, i), v in p.get_values(b).items():
                         if v:
                             self._classes[t].append(self._blocks[i])
 
@@ -2073,7 +2070,7 @@ class IncidenceStructure(object):
 
         col = [[] for i in range(k)]
 
-        for (x,i),v in six.iteritems(p.get_values(b)):
+        for (x,i),v in p.get_values(b).items():
             if v:
                 col[i].append(self._points[x])
 

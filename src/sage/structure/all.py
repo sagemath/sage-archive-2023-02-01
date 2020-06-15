@@ -23,7 +23,9 @@ from .parent_gens import ParentWithGens, localvars
 
 from .proof import all as proof
 
-from .formal_sum  import FormalSums, FormalSum
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.structure.formal_sum', ['FormalSums', 'FormalSum'])
+del lazy_import
 
 from .mutability  import Mutability
 

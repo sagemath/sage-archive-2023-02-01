@@ -1301,9 +1301,6 @@ cdef class PathAlgebraElement(RingElement):
             return sample._new_(homog_poly_scale((<PathAlgebraElement>self).data, x))
         raise TypeError("Don't know how to divide {} by {}".format(x, self))
 
-    def __div__(self, x):
-        return self / x
-
 ## Multiplication in the algebra
 
     cpdef _mul_(self, other):

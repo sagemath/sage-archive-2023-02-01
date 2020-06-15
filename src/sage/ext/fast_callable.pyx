@@ -960,28 +960,6 @@ cdef class Expression:
         """
         return _expression_binop_helper(s, o, op_truediv)
 
-    def __div__(s, o):
-        r"""
-        Compute a quotient of two Expressions.
-
-        EXAMPLES::
-
-            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
-            sage: etb = ExpressionTreeBuilder(vars=(x,))
-            sage: x = etb(x)
-            sage: x/x
-            div(v_0, v_0)
-            sage: x/1
-            div(v_0, 1)
-            sage: 1/x
-            div(1, v_0)
-            sage: x.__div__(1)  # py2
-            div(v_0, 1)
-            sage: x.__rdiv__(1)  # py2
-            div(1, v_0)
-        """
-        return _expression_binop_helper(s, o, op_div)
-
     def __floordiv__(s, o):
         r"""
         Compute the floordiv (the floor of the quotient) of two Expressions.

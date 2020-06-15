@@ -1600,77 +1600,6 @@ cdef class Element(SageObject):
         """
         return coercion_model.bin_op(self, n, mul)
 
-    def __div__(left, right):
-        """
-        Top-level division operator for :class:`Element` invoking
-        the coercion model. This is always true division.
-
-        See :ref:`element_arithmetic`.
-
-        EXAMPLES::
-
-            sage: 2 / 3
-            2/3
-            sage: pi / 3
-            1/3*pi
-            sage: K.<i> = NumberField(x^2+1)
-            sage: 2 / K.ideal(i+1)
-            Fractional ideal (-i + 1)
-
-        ::
-
-            sage: from sage.structure.element import Element
-            sage: class MyElement(Element):
-            ....:     def _div_(self, other):
-            ....:         return 42
-            sage: e = MyElement(Parent())
-            sage: e / e
-            42
-
-        TESTS::
-
-            sage: e = Element(Parent())
-            sage: e / e
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for /: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
-            sage: 1 / e
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for /: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
-            sage: e / 1
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for /: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
-            sage: int(1) / e
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand type(s) for /: 'int' and 'sage.structure.element.Element'
-            sage: e / int(1)
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand type(s) for /: 'sage.structure.element.Element' and 'int'
-            sage: None / e
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand type(s) for /: 'NoneType' and 'sage.structure.element.Element'
-            sage: e / None
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand type(s) for /: 'sage.structure.element.Element' and 'NoneType'
-        """
-        # See __add__ for comments
-        cdef int cl = classify_elements(left, right)
-        if HAVE_SAME_PARENT(cl):
-            return (<Element>left)._div_(right)
-        if BOTH_ARE_ELEMENT(cl):
-            return coercion_model.bin_op(left, right, truediv)
-
-        try:
-            return coercion_model.bin_op(left, right, truediv)
-        except TypeError:
-            return NotImplemented
-
     def __truediv__(left, right):
         """
         Top-level true division operator for :class:`Element` invoking
@@ -3419,9 +3348,6 @@ cdef class Vector(ModuleElement):
     cpdef _pairwise_product_(Vector left, Vector right):
         raise TypeError("unsupported operation for '%s' and '%s'"%(parent(left), parent(right)))
 
-    def __div__(self, other):
-        return self / other
-
     def __truediv__(self, right):
         right = py_scalar_to_element(right)
         if isinstance(right, RingElement):
@@ -3772,59 +3698,6 @@ cdef class Matrix(ModuleElement):
             sage: operator.truediv(c, a)
             [-5/2  3/2]
             [-1/2  5/2]
-        """
-        if have_same_parent(left, right):
-            return left * ~right
-        return coercion_model.bin_op(left, right, truediv)
-
-    def __div__(left, right):
-        """
-        Division of the matrix ``left`` by the matrix or scalar ``right``.
-
-        EXAMPLES::
-
-            sage: a = matrix(ZZ, 2, range(4))
-            sage: a / 5
-            [ 0 1/5]
-            [2/5 3/5]
-            sage: a = matrix(ZZ, 2, range(4))
-            sage: b = matrix(ZZ, 2, [1,1,0,5])
-            sage: a / b
-            [  0 1/5]
-            [  2 1/5]
-            sage: c = matrix(QQ, 2, [3,2,5,7])
-            sage: c / a
-            [-5/2  3/2]
-            [-1/2  5/2]
-            sage: a / c
-            [-5/11  3/11]
-            [-1/11  5/11]
-            sage: a / 7
-            [  0 1/7]
-            [2/7 3/7]
-
-        Other rings work just as well::
-
-            sage: a = matrix(GF(3),2,2,[0,1,2,0])
-            sage: b = matrix(ZZ,2,2,[4,6,1,2])
-            sage: a / b
-            [1 2]
-            [2 0]
-            sage: c = matrix(GF(3),2,2,[1,2,1,1])
-            sage: a / c
-            [1 2]
-            [1 1]
-            sage: a = matrix(RDF,2,2,[.1,-.4,1.2,-.6])
-            sage: b = matrix(RDF,2,2,[.3,.1,-.5,1.3])
-            sage: a / b # rel tol 1e-10
-            [-0.15909090909090906 -0.29545454545454547]
-            [   2.863636363636364  -0.6818181818181817]
-            sage: R.<t> = ZZ['t']
-            sage: a = matrix(R,2,2,[t^2,t+1,-t,t+2])
-            sage: b = matrix(R,2,2,[t^3-1,t,-t+3,t^2])
-            sage: a / b
-            [      (t^4 + t^2 - 2*t - 3)/(t^5 - 3*t)               (t^4 - t - 1)/(t^5 - 3*t)]
-            [       (-t^3 + t^2 - t - 6)/(t^5 - 3*t) (t^4 + 2*t^3 + t^2 - t - 2)/(t^5 - 3*t)]
         """
         if have_same_parent(left, right):
             return left * ~right

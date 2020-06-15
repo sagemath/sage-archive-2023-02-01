@@ -38,6 +38,8 @@ try_add_CFLAG()
     return 2
 }
 
+CFLAGS=$ORIGINAL_CFLAGS
+
 # These flags never hurt, so add them if possible
 for FLAG in '-fno-fast-math' '-mfpmath=sse' '-Dx86'; do
     try_add_CFLAG $FLAG

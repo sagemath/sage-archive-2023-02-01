@@ -159,11 +159,11 @@ class SplittingAlgebra(PolynomialQuotientRing_domain):
         sage: all(t^3 -u*t^2 +v*t -w == 0 for t in roots)
         True
         sage: xi = ~x; xi
-        ((-w^-1)*x)*y + (-w^-1)*x^2 + ((w^-1)*u)*x
+        (w^-1)*x^2 + ((-w^-1)*u)*x + (w^-1)*v
         sage: ~xi == x
         True
         sage: ~y
-        (w^-1)*x^2 + ((-w^-1)*u)*x + (w^-1)*v
+        ((-w^-1)*x)*y + (-w^-1)*x^2 + ((w^-1)*u)*x
         sage: zi = ((w^-1)*x)*y; ~zi
         -y - x + u
 
@@ -438,8 +438,13 @@ class SplittingAlgebra(PolynomialQuotientRing_domain):
             Splitting Algebra of x^3 + (-u^2 + v)*x^2 + (u + v)*x - 1
              with roots [X, Y, -Y - X + u^2 - v]
              over Multivariate Polynomial Ring in u, v over Integer Ring
+            sage: S._first_ngens(4)
+            (X, Y, u, v)
         """
-        return self.gens_recursive()[:n]
+        srts = self.splitting_roots()
+        k = len(srts)-1
+        gens = srts[:k] + list(self.scalar_base_ring().gens())
+        return tuple(gens[:n])
 
     def _element_constructor_(self, x):
         r"""
@@ -453,7 +458,7 @@ class SplittingAlgebra(PolynomialQuotientRing_domain):
             sage: S(u + v)
             u + v
             sage: S(X*Y + X)
-            (X + 1)*Y
+            X*Y + X
             sage: TestSuite(S).run()                   # indirect doctest
         """
         if isinstance(x, SplittingAlgebraElement):
@@ -575,26 +580,6 @@ class SplittingAlgebra(PolynomialQuotientRing_domain):
             [I, -I]
         """
         return self._splitting_roots
-
-    @cached_method
-    def gens_recursive(self):
-        r"""
-        Return all generators recursively.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.splitting_algebra import SplittingAlgebra
-            sage: L.<u, v, w > = LaurentPolynomialRing(ZZ)
-            sage: x = polygen(L)
-            sage: S = SplittingAlgebra(x^3 - u*x^2 + v*x - w, ('X', 'Y'))
-            sage: S.gens_recursive()
-            (Y, X, u, v, w)
-        """
-        base_ring = self.base_ring()
-        res = self.gens()
-        if isinstance(base_ring, SplittingAlgebra):
-            return res + base_ring.gens_recursive()
-        return res + base_ring.gens()
 
     @cached_method
     def scalar_base_ring(self):

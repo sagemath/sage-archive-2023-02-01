@@ -337,7 +337,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
             sage: P = polytopes.simplex(backend='normaliz')  # optional - pynormaliz
             sage: K.<sqrt2> = QuadraticField(2)              # optional - pynormaliz
-            sage: P.dilation(sqrt2)
+            sage: P.dilation(sqrt2)                          # optional - pynormaliz
             A 3-dimensional polyhedron in (Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.41...)^4 defined as the convex hull of 4 vertices
         """
         def _QQ_pair(x):

@@ -439,7 +439,7 @@ class PathTableaux(UniqueRepresentation,Parent):
 
         TESTS::
 
-            sage: t = path_tableaux.DyckPath([0,1,2,1,0])
+            sage: t = path_tableaux.DyckPaths()
             sage: TestSuite(t).run()
         """
         Parent.__init__(self, category=Sets())

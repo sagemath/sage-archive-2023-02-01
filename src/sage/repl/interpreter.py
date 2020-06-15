@@ -88,6 +88,45 @@ Check that Cython source code appears in tracebacks::
     <BLANKLINE>
     ZeroDivisionError: rational division by zero
     sage: shell.quit()
+
+Test prompt transformer::
+
+    sage: from sage.repl.interpreter import SagePromptTransformer
+    sage: spt = SagePromptTransformer
+    sage: spt(["sage: 2 + 2"])
+    ['2 + 2']
+    sage: spt([''])
+    ['']
+    sage: spt(["....: 2+2"])
+    ['2+2']
+
+This should strip multiple prompts: see :trac:`16297`::
+
+    sage: spt(["sage:   sage: 2+2"])
+    ['2+2']
+    sage: spt(["   sage: ....: 2+2"])
+    ['2+2']
+
+The prompt contains a trailing space. Extra spaces between the
+last prompt and the remainder should not be stripped::
+
+    sage: spt(["   sage: ....:    2+2"])
+    ['   2+2']
+
+We test that the input transformer is enabled on the Sage command
+line::
+
+    sage: from sage.repl.interpreter import get_test_shell
+    sage: shell = get_test_shell()
+    sage: shell.run_cell('sage: a = 123')              # single line
+    sage: shell.run_cell('sage: a = [\n... 123]')      # old-style multi-line
+    sage: shell.run_cell('sage: a = [\n....: 123]')    # new-style multi-line
+
+We test that :trac:`16196` is resolved::
+
+    sage: shell.run_cell('    sage: 1+1')
+    2
+    sage: shell.quit()
 """
 
 #*****************************************************************************

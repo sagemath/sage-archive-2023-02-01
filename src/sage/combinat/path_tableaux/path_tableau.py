@@ -441,6 +441,9 @@ class PathTableaux(UniqueRepresentation,Parent):
 
             sage: t = path_tableaux.DyckPaths()
             sage: TestSuite(t).run()
+
+            sage: f = path_tableaux.FriezePatterns(QQ)
+            sage: TestSuite(f).run()
         """
         Parent.__init__(self, category=Sets())
 
@@ -505,15 +508,15 @@ class CylindricalDiagram(SageObject):
 
         TESTS::
 
-            sage: cd = CylindricalDiagram(DyckPath([0,1,2,1,2,1,0]))
+            sage: cd = path_tableaux.CylindricalDiagram(path_tableaux.DyckPath([0,1,2,1,2,1,0]))
             sage: repr(cd) == cd._repr_() # indirect test
             True
 
-            sage: cd = CylindricalDiagram(FriezePattern([1,3,4,5,1]))
+            sage: cd = path_tableaux.CylindricalDiagram(path_tableaux.FriezePattern([1,3,4,5,1]))
             sage: repr(cd) == cd._repr_() # indirect test
             True
 
-            sage: print(DyckPath([0,1,2,1,2,1,0])) # indirect test
+            sage: print(path_tableaux.DyckPath([0,1,2,1,2,1,0])) # indirect test
             [0, 1, 2, 1, 2, 1, 0]
 
             sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
@@ -581,8 +584,8 @@ class CylindricalDiagram(SageObject):
              &  &  &  &  &  & 0 & 1 & 2 & 3 & 2 & 1 & 0
              \end{array}
 
-            sage: t = FriezePattern([1,3,4,5,1])
-            sage: latex(CylindricalDiagram(t))
+            sage: t = path_tableaux.FriezePattern([1,3,4,5,1])
+            sage: latex(path_tableaux.CylindricalDiagram(t))
             \begin{array}{ccccccccccccc}
             0 & 1 & 3 & 4 & 5 & 1 & 0\\
              & 0 & 1 & \frac{5}{3} & \frac{7}{3} & \frac{2}{3} & 1 & 0\\
@@ -629,8 +632,8 @@ class CylindricalDiagram(SageObject):
                  0 1 0 1 2 1 0
                   0 1 2 3 2 1 0
 
-            sage: t = FriezePattern([1,3,4,5,1])
-            sage: ascii_art(CylindricalDiagram(t))
+            sage: t = path_tableaux.FriezePattern([1,3,4,5,1])
+            sage: ascii_art(path_tableaux.CylindricalDiagram(t))
             0 1 3 4 5 1 0
              0 1 5/3 7/3 2/3 1 0
               0 1 2 1 3 1 0
@@ -660,8 +663,8 @@ class CylindricalDiagram(SageObject):
                  0 1 0 1 2 1 0
                   0 1 2 3 2 1 0
 
-            sage: t = FriezePattern([1,3,4,5,1])
-            sage: unicode_art(CylindricalDiagram(t))
+            sage: t = path_tableaux.FriezePattern([1,3,4,5,1])
+            sage: unicode_art(path_tableaux.CylindricalDiagram(t))
             0 1 3 4 5 1 0
              0 1 5/3 7/3 2/3 1 0
               0 1 2 1 3 1 0
@@ -691,8 +694,8 @@ class CylindricalDiagram(SageObject):
                       0 1 0 1 2 1 0
                         0 1 2 3 2 1 0
 
-            sage: t = FriezePattern([1,3,4,5,1])
-            sage: CylindricalDiagram(t).pp()
+            sage: t = path_tableaux.FriezePattern([1,3,4,5,1])
+            sage: path_tableaux.CylindricalDiagram(t).pp()
             0 1 3 4 5 1 0
              0 1 5/3 7/3 2/3 1 0
               0 1 2 1 3 1 0

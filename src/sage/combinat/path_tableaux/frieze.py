@@ -450,4 +450,15 @@ class FriezePatterns(PathTableaux):
 
         Parent.__init__(self, category=Sets())
 
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: path_tableaux.FriezePatterns(QQ)._an_element_()
+            [1, 1, 1]
+        """
+        return FriezePattern([1,1,1])
+
     Element = FriezePattern

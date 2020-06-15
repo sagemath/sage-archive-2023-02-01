@@ -1,0 +1,57 @@
+prune sage
+graft sage/cpython
+include sage/__init__.py   # FIXME: Needs to become a namespace package
+include sage/env.py        # FIXME: sage_setup must be changed so it does not depend on it
+include sage/version.py    # FIXME: likewise
+
+graft sage/structure
+graft sage/categories
+include sage/misc/__init__.py
+include sage/misc/classcall_metaclass.*
+include sage/misc/inherit_comparison*.*
+include sage/misc/weak_dict.*
+include sage/misc/nested_class*.*
+include sage/misc/abstract_method.*
+include sage/misc/cachefunc.*
+include sage/misc/decorators.*
+include sage/misc/c3_controlled.*
+include sage/misc/lazy_attribute.*
+include sage/misc/function_mangling.*
+include sage/misc/lazy_string.*
+include sage/misc/lazy_format.*
+include sage/misc/unknown.*
+include sage/misc/fast_methods.*
+include sage/misc/constant_function.*
+include sage/misc/call.*
+include sage/misc/bindable_class.*
+
+include sage/misc/misc_c.*              # prod
+
+include sage/misc/flatten.*             # dep of sage/categories/coxeter_groups.py
+
+include sage/misc/lazy_import*.*
+include sage/misc/sageinspect.*          # dep of sage/misc/lazy_import
+graft sage/docs                          # dep of sage/misc/lazy_import
+
+include sage/misc/persist.*
+include sage/misc/misc.*                 # dep of sage/misc/persist
+include sage/misc/sage_unittest.*        # dep of sage/misc/persist
+
+include sage/ext/__init__.py
+include sage/ext/stdsage.pxd
+include sage/sets/__init__.py
+include sage/sets/pythonclass.*
+include sage/arith/__init__.py
+include sage/arith/power.*
+include sage/arith/numerical_approx.*
+# integers...
+include sage/arith/long.*
+include sage/rings/__init__.py
+include sage/rings/integer_fake.*
+include sage/libs/__init__.py
+graft sage/libs/gmp
+
+
+
+## What we do not want:
+# sage/misc/latex         -- this should really go to another package

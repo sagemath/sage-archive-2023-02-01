@@ -8099,7 +8099,6 @@ class ANBinaryExpr(ANDescr):
             sage: old_recursion_limit = sys.getrecursionlimit()
             sage: sys.setrecursionlimit(1000)
 
-            sage: old_recursion_limit = sys.getrecursionlimit()
             sage: sys.getrecursionlimit()
             1000
             sage: s = SymmetricFunctions(QQ).schur()

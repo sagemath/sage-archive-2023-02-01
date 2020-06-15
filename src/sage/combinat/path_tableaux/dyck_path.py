@@ -363,5 +363,17 @@ class DyckPaths(PathTableaux):
     """
     The parent class for DyckPath.
     """
+
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: path_tableaux.DyckPaths()._an_element_()
+            [0, 1, 2, 1, 0]
+        """
+        return DyckPath([0,1,2,1,0])
+
     Element = DyckPath
 

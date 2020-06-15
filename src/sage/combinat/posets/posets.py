@@ -1652,8 +1652,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.spectrum(2)
             [0, 0, 1, 0, 0]
 
-            sage: P = posets.BooleanLattice(3)
-            sage: P.spectrum(5)
+            sage: P = posets.YoungDiagramPoset(Partition([3,2,1]))
+            sage: P.spectrum(1)
             [0, 0, 0, 4, 12, 16, 16, 0]
 
             sage: P = posets.AntichainPoset(4)

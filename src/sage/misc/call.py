@@ -156,7 +156,7 @@ def call_method(obj, name, *args, **kwds):
 
     EXAMPLES::
 
-        sage: from sage.misc.misc import call_method
+        sage: from sage.misc.call import call_method
         sage: call_method(1, "__add__", 2)
         3
     """

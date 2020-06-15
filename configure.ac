@@ -84,6 +84,12 @@ if test "$enable_build_as_root" != yes; then
    AX_CHECK_ROOT([AC_MSG_ERROR([You cannot build Sage as root, switch to an unprivileged user.  (If building in a container, use --enable-build-as-root.)])], [])
 fi
 
+AC_ARG_ENABLE([fat-binary],
+              [AS_HELP_STRING([--enable-fat-binary],
+                              [build binaries that will run on the widest range of target CPUs (but not relocatable)])],
+              [AC_SUBST(SAGE_FAT_BINARY, "yes")],
+              [])
+
 # Check whether we are on a supported platform
 AC_CANONICAL_BUILD()
 AC_CANONICAL_HOST()

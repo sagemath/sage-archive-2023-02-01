@@ -205,6 +205,7 @@ Classes and methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems, add_metaclass, string_types
 from sage.misc.lazy_list import lazy_list
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
@@ -2574,7 +2575,7 @@ class FindStatStatisticQuery(FindStatStatistic):
              0: St000041 (quality [99, 100])
              1: St000042 (quality [99, 100])
              sage: r.first_terms()                                              # optional -- internet
-             {[]: 0, [(1, 2)]: 0}
+             OrderedDict([([], 0), ([(1, 2)], 0)])
         """
         return OrderedDict((objs[0], vals[0]) for objs, vals in self._known_terms
                            if len(vals) == 1)
@@ -2610,7 +2611,7 @@ class FindStatStatisticQuery(FindStatStatistic):
             sage: q = findstat(data, depth=0); q                                    # optional -- internet
             0: St000054 (quality [100, 100])
             sage: q.first_terms()                                                   # optional -- internet
-            {[1, 2]: 1}
+            OrderedDict([([1, 2], 1)])
             sage: q.generating_functions()                                          # optional -- internet, indirect doctest
             {3: 2*q^3 + 2*q^2 + 2*q}
         """

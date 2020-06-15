@@ -53,7 +53,7 @@ class DCompletePoset(FinitePoset):
 
     """
     @lazy_attribute
-    def _calculateHookLengths(self):
+    def _hooks(self):
         """
         Calculates the hook lengths of the elements of self
         """
@@ -83,8 +83,7 @@ class DCompletePoset(FinitePoset):
                 
     def __init__(self, hasse_diagram, elements, category, facade, key):
         FinitePoset.__init__(self, hasse_diagram=hasse_diagram, elements=elements, category=category, facade=facade, key=key)
-        self._hooks = self._calculateHookLengths()
-        
+
     def get_hook(self, elmt):
         """
         Get the hook length of a specific element

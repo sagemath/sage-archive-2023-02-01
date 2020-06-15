@@ -87,6 +87,7 @@ from sage.misc.classcall_metaclass import ClasscallMetaclass
 import sage.categories.posets
 from sage.combinat.permutation import Permutations, Permutation, to_standard
 from sage.combinat.posets.posets import Poset, FinitePoset, FinitePosets_n
+from sage.combinat.posets.d_complete import DCompletePoset
 from sage.combinat.posets.lattices import (LatticePoset, MeetSemilattice,
                                            JoinSemilattice, FiniteLatticePoset)
 from sage.categories.finite_posets import FinitePosets
@@ -1533,6 +1534,31 @@ class Posets(object):
         D = DiGraph([[], covers], format='vertices_and_edges')
         D.relabel(lambda v: Word(v), inplace=True)
         return FiniteMeetSemilattice(hasse_diagram=D, category=FinitePosets())
+
+    @staticmethod
+    def DoubleTailedDiamond(n):
+        r"""
+        Return a double-tailed diamond of 2n + 2 elements
+
+        input:
+
+        - ``n`` -- a positive integer
+        """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {}".format(n))
+        if n <= 0:
+            raise ValueError("number of elements must be nonnegative, not {}".format(n))
+        
+        edges = [(i,i+2) for i in range(1, n)]
+        edges.extend([(n, n+1), (n, n+2), (n+1, n+3), (n+2, n+3)])
+        edges.extend([(i, i+1) for i in range(n+3, 2*n+2)])
+        p = DiGraph([list(range(1, 2*n + 3)), edges])
+
+        return DCompletePoset(p)
+
+        
 
     @staticmethod
     def PermutationPattern(n):

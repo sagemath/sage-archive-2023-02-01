@@ -29,7 +29,6 @@ from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.tensor import TensorProductsCategory
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom, Homset
-from sage.misc.latex import latex
 from sage.combinat import ranker
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.rings.integer import Integer
@@ -1133,6 +1132,7 @@ class Crystals(Category_singleton):
             # To do: check the regular expression
             # Removing %-style comments, newlines, quotes
             # This should probably be moved to sage.misc.latex
+            from sage.misc.latex import latex
             quoted_latex = lambda x: re.sub("\"|\r|(%[^\n]*)?\n","", latex(x))
 
             result = "digraph G { \n  node [ shape=plaintext ];\n"

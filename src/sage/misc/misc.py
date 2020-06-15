@@ -43,7 +43,6 @@ import time
 import resource
 import pdb
 import warnings
-import sage.misc.prandom as random
 from .lazy_string import lazy_string
 import sage.server.support
 
@@ -925,6 +924,7 @@ def random_sublist(X, s):
         sage: is_sublist(sublist, S)
         True
     """
+    import sage.misc.prandom as random
     return [a for a in X if random.random() <= s]
 
 def is_sublist(X, Y):
@@ -1029,6 +1029,7 @@ def _some_tuples_sampling(elements, repeat, max_samples, n):
         True
     """
     from sage.rings.integer import Integer
+    import sage.misc.prandom as random
     N = n if repeat is None else n**repeat
     # We sample on range(N) and create tuples manually since we don't want to create the list of all possible tuples in memory
     for a in random.sample(range(N), max_samples):
@@ -1278,6 +1279,7 @@ def embedded():
         sage: sage.misc.misc.embedded()    # output True if in the notebook
         False
     """
+    import sage.server.support
     return sage.server.support.EMBEDDED_MODE
 
 

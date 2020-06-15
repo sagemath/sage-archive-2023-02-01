@@ -13680,13 +13680,20 @@ cdef class Matrix(Matrix1):
             [0.750000000000000 0.800000000000000 0.833333333333333]
             [0.857142857142857 0.875000000000000 0.888888888888889]
             [0.900000000000000 0.909090909090909 0.916666666666667]
+
+        We check that :trac:`29700` is fixed::
+
+            sage: M = matrix(3,[1,1,1,1,0,0,0,1,0])
+            sage: A,B = M.diagonalization(QQbar)
+            sage: _ = A.n()
+
         """
         if prec is None:
             prec = digits_to_bits(digits)
 
         try:
             return self.change_ring(sage.rings.real_mpfr.RealField(prec))
-        except TypeError:
+        except (TypeError, ValueError):
             # try to return a complex result
             return self.change_ring(sage.rings.complex_field.ComplexField(prec))
 

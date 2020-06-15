@@ -875,7 +875,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
             #
             # As nbruin pointed out during the review of Trac #25390,
             # this can be accomplished more efficiently using the resultant
-            # of the polynomial with the number field's minimial polynomial.
+            # of the polynomial with the number field's minimal polynomial.
             #
             # We use two auxiliary polynomial rings:
             #

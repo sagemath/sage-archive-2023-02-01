@@ -1232,7 +1232,7 @@ class MPolynomialIdeal_singular_repr(
 
             sage: P.<x,y,z> = PolynomialRing(GF(32003),3)
             sage: sage.rings.ideal.FieldIdeal(P).vector_space_dimension()  # known bug
-            -1973539045
+            32777216864027
 
         TESTS:
 

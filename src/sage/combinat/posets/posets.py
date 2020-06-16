@@ -1653,8 +1653,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             [0, 0, 1, 0, 0]
 
             sage: P = posets.YoungDiagramPoset(Partition([3,2,1]))
-            sage: P.spectrum(1)
-            [0, 0, 0, 4, 12, 16, 16, 0]
+            sage: P.spectrum((0,1))
+            [0, 8, 6, 2, 0, 0]
 
             sage: P = posets.AntichainPoset(4)
             sage: P.spectrum(3)

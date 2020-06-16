@@ -2389,14 +2389,13 @@ class FusionRing(WeylCharacterRing):
             sage: B22=FusionRing('B2',2)
             sage: B22.twists_matrix()
             [  0   0   0   0   0   0]
-            [  0   2   0   0   0   0]
-            [  0   0 4/5   0   0   0]
-            [  0   0   0 6/5   0   0]
-            [  0   0   0   0 1/2   0]
-            [  0   0   0   0   0 3/2]
+            [  0 4/5   0   0   0   0]
+            [  0   0 1/2   0   0   0]
+            [  0   0   0   2   0   0]
+            [  0   0   0   0 3/2   0]
+            [  0   0   0   0   0 6/5]
         """
         return diagonal_matrix(self.basis()[x].twist() for x in self.get_order())
-        # return diagonal_matrix(obj.twist() for obj in self.ordered_basis())
 
     def q_dims(self):
         r"""
@@ -2409,78 +2408,10 @@ class FusionRing(WeylCharacterRing):
             [1, -zeta80^24 + zeta80^16 + 1]
             sage: B22=FusionRing("B2",2)
             sage: B22.q_dims()
-            [1, 1, 2, 2, -2*zeta40^12 + 2*zeta40^8 + 1, -2*zeta40^12 + 2*zeta40^8 + 1]
+            [1, 2, -2*zeta40^12 + 2*zeta40^8 + 1, 1, -2*zeta40^12 + 2*zeta40^8 + 1, 2]
         """
         b = self.basis()
         return [b[x].q_dimension() for x in self.get_order()]
-        # return [x.q_dimension() for x in self.ordered_basis()]
-
-    def ordered_basis(self):
-        """
-        Returns a basis of simple objects ordered according to 
-        [NaiRow2011]_. For type A level 1, the basis is ordered by the
-        fundamental weights.  The order is described in [Fuchs1994]_.
-        """
-        ct = self._cartan_type[0]
-        k = self._k
-        r = self.rank()
-        wts = self.fundamental_weights()
-        ord_basis = list()
-        #Order bases for dimension 2 algebras
-        if self.dimension() == 2:
-            ord_basis.append(self(wts[1]*0))
-            for wt in self.basis():
-                wt = wt.highest_weight()
-                if wt.inner_product(wt) > 0:
-                    ord_basis.append(self(wt))
-        if ct == 'A' and k == 1:
-            ord_basis = [self(wts[1]*0)]
-            ord_basis += [self(wts[i+1]) for i in range(r)]
-        if ct == 'A' and k == 2:
-            #TODO: generalize to higher rank
-            if r == 1:
-                ord_basis = [self(wts[1]*0), self(wts[1]), self(wts[1]*2)]
-        if ct == 'B' and k == 2:
-            ord_basis = [self(wts[1]*0), self(2*wts[1])]
-            ord_basis += [self(wts[i]) for i in range(1, r)]
-            ord_basis += [self(2*wts[r]), self(wts[r]), self(wts[1]+wts[r])]
-        if ct == 'D' and k == 1:
-            if r % 2 == 0:
-                ord_basis = sorted(self.basis().values())
-            else:
-                temp = sorted(self.basis().values(), reverse=1)
-                ord_basis = [temp.pop()]
-                ord_basis.extend(temp)
-        if ct == 'D' and k == 2:
-            ord_basis = [self(wts[1]*0), self(2*wts[1]), self(2*wts[r-1]), self(2*wts[r])]
-            ord_basis += [self(wts[i]) for i in range(1, r-1)]
-            ord_basis += [self(wts[r-1] + wts[r]), self(wts[r-1]), self(wts[r])]
-            ord_basis += [self(wts[1] + wts[r-1]), self(wts[1] + wts[r])]
-        if ct == 'E' and k == 1:
-            if r == 6:
-                ord_basis = [self(wts[1]*0), self(wts[1]), self(wts[6])]
-        if ct == 'E' and k == 2:
-            if r == 8:
-                ord_basis = [self(wts[1]*0), self(wts[8]), self(wts[1])]
-        if not ord_basis:
-            raise ValueError("ordered basis not yet available for this FusionRing")
-        return ord_basis
-
-    def s_ij_legacy(self, elt_i, elt_j, fusion_mat_i=[]):
-        """
-        Remove this soon
-        """
-        dims = self.q_dims()
-        ord_basis = self.ordered_basis()
-        twists = [x.twist() for x in ord_basis]
-        rng = range(len(ord_basis))
-        j = ord_basis.index(elt_j)
-        fusion_matrix = fusion_mat_i if fusion_mat_i else elt_i.fusion_matrix()
-        q = self.q_field().gen()
-        l = self.fusion_l()
-        s_ij = sum(fusion_matrix[k,j]*q**(2*l*twists[k])*dims[k] for k in rng)
-        s_ij *= q**(-2*l*(elt_i.twist() + elt_j.twist()))
-        return s_ij
 
     def s_ij(self, elt_i, elt_j):
         """
@@ -2493,7 +2424,10 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES:: 
 
-            #TODO: update docstring using next iteration of ordered basis method
+            sage: G21=FusionRing("G2",1)
+            sage: b=G21.basis()
+            sage: [G21.s_ij(x,y) for x in b for y in b]
+            [1, -zeta60^14 + zeta60^6 + zeta60^4, -zeta60^14 + zeta60^6 + zeta60^4, -1]
         """
         l = self.fusion_l()
         K = self.q_field()
@@ -2501,12 +2435,7 @@ class FusionRing(WeylCharacterRing):
         ijtwist = -2*l*(elt_i.twist() + elt_j.twist())
         return sum(self(k).q_dimension()*q**(2*l*self(k).twist()+ijtwist) for k in (elt_i.dual()*elt_j).monomial_coefficients())
 
-
     def s_matrix(self):
-        b = self.basis()
-        return matrix([[self.s_ij(b[x],b[y]) for x in self.get_order()] for y in self.get_order()])
-
-    def s_matrix_old(self):
         r"""
         Return the S-matrix of this FusionRing.
 
@@ -2526,13 +2455,8 @@ class FusionRing(WeylCharacterRing):
             [ 1 -1  1 -1]
             [ 1 -1 -1  1]
         """
-        ord_basis = self.ordered_basis()
-        rng = range(len(ord_basis))
-        S = matrix(self.q_field(), len(ord_basis))
-        for i in rng:
-            for j in rng:
-                S[i,j] = self.s_ij(ord_basis[i], ord_basis[j]) 
-        return S
+        b = self.basis()
+        return matrix([[self.s_ij(b[x],b[y]) for x in self.get_order()] for y in self.get_order()])
 
     def fusion_labels(self, labels=None, key=str):
         """
@@ -2672,23 +2596,3 @@ class FusionRing(WeylCharacterRing):
             expr = expr.substitute(q=q**2)/q**(expr.degree())
             zet = self.parent().q_field().gen()
             return expr.substitute(q=zet)
-
-        def fusion_matrix(self):
-            r"""
-            Return a matrix containing the object's fusion coefficients.
-
-            EXAMPLES::
-
-            sage: G21=FusionRing('G2',1)
-            sage: G21.basis()
-            Finite family {(0, 0, 0): G21(0,0), (1, 0, -1): G21(1,0)}
-            sage: G21(1,0).fusion_matrix()
-            [0 1]
-            [1 1]
-            """
-            if not self.is_simple_object():
-                raise ValueError("fusion matrix is only available for simple objects of a FusionRing")
-            ord_basis = self.parent().ordered_basis()
-            wts = [x.highest_weight() for x in ord_basis]
-            rows = [[wt in (self*obj).monomial_coefficients() for wt in wts] for obj in ord_basis]
-            return matrix(rows)

@@ -308,33 +308,6 @@ cdef class DenseGraph(CGraph):
             self.num_arcs += 1
             self.edges[place] |= word
 
-    cpdef add_arc(self, int u, int v):
-        """
-        Add arc ``(u, v)`` to the graph.
-
-        INPUT:
-
-        - ``u``, ``v`` -- non-negative integers, must be in self
-
-        EXAMPLES::
-
-            sage: from sage.graphs.base.dense_graph import DenseGraph
-            sage: G = DenseGraph(5)
-            sage: G.add_arc(0, 1)
-            sage: G.add_arc(4, 7)
-            Traceback (most recent call last):
-            ...
-            LookupError: vertex (7) is not a vertex of the graph
-            sage: G.has_arc(1, 0)
-            False
-            sage: G.has_arc(0, 1)
-            True
-
-        """
-        self.check_vertex(u)
-        self.check_vertex(v)
-        self.add_arc_unsafe(u, v)
-
     cdef int has_arc_unsafe(self, int u, int v) except -1:
         """
         Check whether arc ``(u, v)`` is in the graph.
@@ -352,31 +325,6 @@ cdef class DenseGraph(CGraph):
         cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
         return (self.edges[place] & word) >> (v & radix_mod_mask)
 
-    cpdef bint has_arc(self, int u, int v) except -1:
-        """
-        Check whether arc ``(u, v)`` is in the graph.
-
-        INPUT:
-
-        - ``u``, ``v`` -- integers
-
-        EXAMPLES::
-
-            sage: from sage.graphs.base.dense_graph import DenseGraph
-            sage: G = DenseGraph(5)
-            sage: G.add_arc(0, 1)
-            sage: G.has_arc(1, 0)
-            False
-            sage: G.has_arc(0, 1)
-            True
-
-        """
-        if u < 0 or u >= <int>self.active_vertices.size or not bitset_in(self.active_vertices, u):
-            return False
-        if v < 0 or v >= <int>self.active_vertices.size or not bitset_in(self.active_vertices, v):
-            return False
-        return self.has_arc_unsafe(u, v) == 1
-
     cdef int del_arc_unsafe(self, int u, int v) except -1:
         """
         Delete the arc from ``u`` to ``v``, if it exists.
@@ -393,36 +341,6 @@ cdef class DenseGraph(CGraph):
             self.out_degrees[u] -= 1
             self.num_arcs -= 1
             self.edges[place] &= ~word
-
-    cpdef del_all_arcs(self, int u, int v):
-        """
-        Delete the arc from ``u`` to ``v``.
-
-        INPUT:
-
-        - ``u, v`` -- integers
-
-        .. NOTE::
-
-            The naming of this function is for consistency with
-            ``SparseGraph``. Of course, there can be at most one arc for a
-            ``DenseGraph``.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.base.dense_graph import DenseGraph
-            sage: G = DenseGraph(5)
-            sage: G.add_arc(0, 1)
-            sage: G.has_arc(0, 1)
-            True
-            sage: G.del_all_arcs(0, 1)
-            sage: G.has_arc(0, 1)
-            False
-
-        """
-        self.check_vertex(u)
-        self.check_vertex(v)
-        self.del_arc_unsafe(u, v)
 
     def complement(self):
         r"""
@@ -509,40 +427,6 @@ cdef class DenseGraph(CGraph):
                 v += 1
         return num_nbrs
 
-    cpdef list out_neighbors(self, int u):
-        """
-        Return the list of out-neighbors of ``u``.
-
-        INPUT:
-
-        - ``u`` -- integer
-
-        EXAMPLES::
-
-            sage: from sage.graphs.base.dense_graph import DenseGraph
-            sage: G = DenseGraph(5)
-            sage: G.add_arc(0, 1)
-            sage: G.add_arc(1, 2)
-            sage: G.add_arc(1, 3)
-            sage: G.out_neighbors(0)
-            [1]
-            sage: G.out_neighbors(1)
-            [2, 3]
-
-        """
-        cdef int i, num_nbrs
-        self.check_vertex(u)
-        if not self.out_degrees[u]:
-            return []
-        cdef int size = self.out_degrees[u]
-        cdef int *neighbors = <int *> sig_malloc(size * sizeof(int))
-        if not neighbors:
-            raise MemoryError
-        num_nbrs = self.out_neighbors_unsafe(u, neighbors, size)
-        output = [neighbors[i] for i in range(num_nbrs)]
-        sig_free(neighbors)
-        return output
-
     cdef int in_neighbors_unsafe(self, int v, int *neighbors, int size) except -2:
         """
         Feed array ``neighbors`` with the in-neighbors of ``v``.
@@ -580,40 +464,6 @@ cdef class DenseGraph(CGraph):
                 neighbors[num_nbrs] = i
                 num_nbrs += 1
         return num_nbrs
-
-    cpdef list in_neighbors(self, int v):
-        """
-        Return the list of in-neighbors of ``u``.
-
-        INPUT:
-
-        - ``v`` -- integer
-
-        EXAMPLES::
-
-            sage: from sage.graphs.base.dense_graph import DenseGraph
-            sage: G = DenseGraph(5)
-            sage: G.add_arc(0, 1)
-            sage: G.add_arc(3, 1)
-            sage: G.add_arc(1, 3)
-            sage: G.in_neighbors(1)
-            [0, 3]
-            sage: G.in_neighbors(3)
-            [1]
-
-        """
-        cdef int i, num_nbrs
-        self.check_vertex(v)
-        if not self.in_degrees[v]:
-            return []
-        cdef int size = self.in_degrees[v]
-        cdef int *neighbors = <int *> sig_malloc(size * sizeof(int))
-        if not neighbors:
-            raise MemoryError
-        num_nbrs = self.in_neighbors_unsafe(v, neighbors, size)
-        output = [neighbors[i] for i in range(num_nbrs)]
-        sig_free(neighbors)
-        return output
 
 ##############################
 # Further tests. Unit tests for methods, functions, classes defined with cdef.

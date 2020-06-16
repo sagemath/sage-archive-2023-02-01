@@ -196,11 +196,11 @@ class DiffForm(TensorField):
 
         sage: f = M.scalar_field({c_xy: (x+y)^2, c_uv: u^2}, name='f')
         sage: s = f*a ; s
-        1-form on the 2-dimensional differentiable manifold M
+        1-form f*a on the 2-dimensional differentiable manifold M
         sage: s.display(eU)
-        (-x^2*y - 2*x*y^2 - y^3) dx + (x^3 + 2*x^2*y + x*y^2) dy
+        f*a = (-x^2*y - 2*x*y^2 - y^3) dx + (x^3 + 2*x^2*y + x*y^2) dy
         sage: s.display(eV)
-        1/2*u^2*v du - 1/2*u^3 dv
+        f*a = 1/2*u^2*v du - 1/2*u^3 dv
 
 
     .. RUBRIC:: Examples with SymPy as the symbolic engine
@@ -263,9 +263,9 @@ class DiffForm(TensorField):
         sage: f = M.scalar_field({c_xy: (x+y)^2, c_uv: u^2}, name='f')
         sage: s = f*a
         sage: s.display(eU)
-        -y*(x**2 + 2*x*y + y**2) dx + x*(x**2 + 2*x*y + y**2) dy
+        f*a = -y*(x**2 + 2*x*y + y**2) dx + x*(x**2 + 2*x*y + y**2) dy
         sage: s.display(eV)
-        u**2*v/2 du - u**3/2 dv
+        f*a = u**2*v/2 du - u**3/2 dv
 
     """
     def __init__(self, vector_field_module, degree, name=None, latex_name=None):
@@ -275,7 +275,7 @@ class DiffForm(TensorField):
         TESTS:
 
         Construction via ``parent.element_class``, and not via a direct call
-        to ``DiffForm`, to fit with the category framework::
+        to ``DiffForm``, to fit with the category framework::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
@@ -511,7 +511,7 @@ class DiffForm(TensorField):
             sage: f.add_expr_by_continuation(c_uv, W)
             sage: t = a.wedge(f)
             sage: t.display()
-            x*y dx + x^2 dy
+            f*a = x*y dx + x^2 dy
 
         """
         if other._tensor_rank == 0:
@@ -1441,7 +1441,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: f = M.scalar_field(x, name='f')
             sage: t = a.wedge(f)
             sage: t.display()
-            2*x dx + (x^2 + x) dy + x*y*z dz
+            f*a = 2*x dx + (x^2 + x) dy + x*y*z dz
 
         """
         if other._tensor_rank == 0:

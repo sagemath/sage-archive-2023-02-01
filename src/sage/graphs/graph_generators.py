@@ -16,8 +16,7 @@ More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
 from __future__ import print_function, absolute_import, division
-from six.moves import range
-from six import PY2
+from sage.env import SAGE_NAUTY_BINS_PREFIX as nautyprefix
 
 import subprocess
 
@@ -210,6 +209,7 @@ __append_to_doc(
      "CirculantGraph",
      "cospectral_graphs",
      "CubeGraph",
+     "CubeConnectedCycle",
      "DorogovtsevGoltsevMendesGraph",
      "EgawaGraph",
      "FibonacciTree",
@@ -792,7 +792,8 @@ class GraphGenerators():
             gens = []
             for i in range(vertices-1):
                 gen = list(range(i))
-                gen.append(i+1); gen.append(i)
+                gen.append(i+1)
+                gen.append(i)
                 gen += list(range(i + 2, vertices))
                 gens.append(gen)
             for gg in canaug_traverse_edge(g, gens, property, loops=loops, sparse=sparse):
@@ -899,7 +900,7 @@ class GraphGenerators():
 
             sage: gen = graphs.nauty_geng("4", debug=True)
             sage: print(next(gen))
-            >A geng -d0D3 n=4 e=0-6
+            >A ...geng -d0D3 n=4 e=0-6
             sage: gen = graphs.nauty_geng("4 -q", debug=True)
             sage: next(gen)
             ''
@@ -913,19 +914,15 @@ class GraphGenerators():
             ...
             ValueError: wrong format of parameter option
             sage: list(graphs.nauty_geng("-c3", debug=True))
-            ['>E Usage: geng [-cCmtfbd#D#] [-uygsnh] [-lvq] \n']
+            ['>E Usage: ...geng [-cCmtfbd#D#] [-uygsnh] [-lvq] ...
             sage: list(graphs.nauty_geng("-c 3", debug=True))
-            ['>A geng -cd1D2 n=3 e=2-3\n', Graph on 3 vertices, Graph on 3 vertices]
+            ['>A ...geng -cd1D2 n=3 e=2-3\n', Graph on 3 vertices, Graph on 3 vertices]
         """
-        if PY2:
-            enc_kwargs = {}
-        else:
-            enc_kwargs = {'encoding': 'latin-1'}
 
-        sp = subprocess.Popen("geng {0}".format(options), shell=True,
+        sp = subprocess.Popen(nautyprefix+"geng {0}".format(options), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
-                              **enc_kwargs)
+                              encoding='latin-1')
         msg = sp.stderr.readline()
         if debug:
             yield msg
@@ -1093,7 +1090,7 @@ class GraphGenerators():
         The following example creates a small planar code file in memory and
         reads it using the ``_read_planar_code`` method::
 
-            sage: from six import StringIO
+            sage: from io import StringIO
             sage: code_input = StringIO('>>planar_code<<')
             sage: _ = code_input.write('>>planar_code<<')
             sage: for c in [4,2,3,4,0,1,4,3,0,1,2,4,0,1,3,2,0]:
@@ -1259,18 +1256,12 @@ class GraphGenerators():
 
         command = 'buckygen -'+('I' if ipr else '')+'d {0}d'.format(order)
 
-        if PY2:
-            enc_kwargs = {}
-        else:
-            enc_kwargs = {'encoding': 'latin-1'}
-
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
-                              **enc_kwargs)
+                              encoding='latin-1')
 
-        if not PY2:
-            sp.stdout.reconfigure(newline='')
+        sp.stdout.reconfigure(newline='')
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -1352,18 +1343,12 @@ class GraphGenerators():
 
         command = 'benzene '+('b' if benzenoids else '')+' {0} p'.format(hexagon_count)
 
-        if PY2:
-            enc_kwargs = {}
-        else:
-            enc_kwargs = {'encoding': 'latin-1'}
-
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
-                              **enc_kwargs)
+                              encoding='latin-1')
 
-        if not PY2:
-            sp.stdout.reconfigure(newline='')
+        sp.stdout.reconfigure(newline='')
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -1405,7 +1390,7 @@ class GraphGenerators():
         - ``exact_connectivity`` - default: ``False`` - if ``True`` only
           graphs with exactly the specified connectivity will be generated.
           This option cannot be used with ``minimum_connectivity=3``, or if
-          the minimum connectivity is not explicitely set.
+          the minimum connectivity is not explicitly set.
 
         - ``only_bipartite`` - default: ``False`` - if ``True`` only bipartite
           graphs will be generated. This option cannot be used for graphs with
@@ -1550,18 +1535,12 @@ class GraphGenerators():
                              'd' if dual else '',
                              order)
 
-        if PY2:
-            enc_kwargs = {}
-        else:
-            enc_kwargs = {'encoding': 'latin-1'}
-
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
-                              **enc_kwargs)
+                              encoding='latin-1')
 
-        if not PY2:
-            sp.stdout.reconfigure(newline='')
+        sp.stdout.reconfigure(newline='')
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -1596,11 +1575,11 @@ class GraphGenerators():
         - ``exact_connectivity`` - default: ``False`` - if ``True`` only
           triangulations with exactly the specified connectivity will be generated.
           This option cannot be used with ``minimum_connectivity=3``, or if
-          the minimum connectivity is not explicitely set.
+          the minimum connectivity is not explicitly set.
 
         - ``only_eulerian`` - default: ``False`` - if ``True`` only Eulerian
           triangulations will be generated. This option cannot be used if the
-          minimum degree is explicitely set to anything else than 4.
+          minimum degree is explicitly set to anything else than 4.
 
         - ``dual`` - default: ``False`` - if ``True`` return instead the
           planar duals of the generated graphs.
@@ -1741,18 +1720,12 @@ class GraphGenerators():
                              'd' if dual else '',
                              order)
 
-        if PY2:
-            enc_kwargs = {}
-        else:
-            enc_kwargs = {'encoding': 'latin-1'}
-
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
-                              **enc_kwargs)
+                              encoding='latin-1')
 
-        if not PY2:
-            sp.stdout.reconfigure(newline='')
+        sp.stdout.reconfigure(newline='')
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -1891,18 +1864,12 @@ class GraphGenerators():
                              'd' if dual else '',
                              order)
 
-        if PY2:
-            enc_kwargs = {}
-        else:
-            enc_kwargs = {'encoding': 'latin-1'}
-
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
-                              **enc_kwargs)
+                              encoding='latin-1')
 
-        if not PY2:
-            sp.stdout.reconfigure(newline='')
+        sp.stdout.reconfigure(newline='')
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -2048,6 +2015,7 @@ class GraphGenerators():
     chang_graphs           = staticmethod(families.chang_graphs)
     CirculantGraph         = staticmethod(families.CirculantGraph)
     CubeGraph              = staticmethod(families.CubeGraph)
+    CubeConnectedCycle     = staticmethod(families.CubeConnectedCycle)
     DipoleGraph            = staticmethod(families.DipoleGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(families.DorogovtsevGoltsevMendesGraph)
     EgawaGraph             = staticmethod(families.EgawaGraph)
@@ -2352,7 +2320,7 @@ def check_aut(aut_gens, cut_vert, n):
     perm = list(range(n + 1))
     seen_perms = [perm]
     unchecked_perms = [perm]
-    while len(unchecked_perms) != 0:
+    while unchecked_perms:
         perm = unchecked_perms.pop(0)
         for gen in aut_gens:
             new_perm = copy(perm)
@@ -2363,6 +2331,7 @@ def check_aut(aut_gens, cut_vert, n):
                 unchecked_perms.append(new_perm)
                 if new_perm[cut_vert] == n:
                     yield new_perm
+
 
 def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, sparse=True):
     """
@@ -2424,7 +2393,8 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, sparse=T
         max_size = n*(n-1)
     else:
         max_size = (n*(n-1))>>1 # >> 1 is just / 2 (this is n choose 2)
-    if loops: max_size += n
+    if loops:
+        max_size += n
     if g.size() < max_size:
         # build a list representing C(g) - the edge to be added
         # is one of max_size choices
@@ -2556,7 +2526,7 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
     perm = list(range(n))
     seen_perms = [perm]
     unchecked_perms = [perm]
-    while len(unchecked_perms) != 0:
+    while unchecked_perms:
         perm = unchecked_perms.pop(0)
         for gen in aut_gens:
             new_perm = copy(perm)

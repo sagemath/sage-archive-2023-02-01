@@ -25,8 +25,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function, absolute_import
-import six
-from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
@@ -534,9 +532,9 @@ class IsogenyClass_EC(SageObject):
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 + 35*x - 28 over Rational Field
         """
-        if order is None or isinstance(order, six.string_types) and order == self._algorithm:
+        if order is None or isinstance(order, str) and order == self._algorithm:
             return self
-        if isinstance(order, six.string_types):
+        if isinstance(order, str):
             if order == "lmfdb":
                 reordered_curves = sorted(self.curves, key = lambda E: E.a_invariants())
             else:
@@ -1068,7 +1066,7 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
                 raise RuntimeError("unable to find %s in the database" % self.E)
             db = sage.databases.cremona.CremonaDatabase()
             curves = db.isogeny_class(label)
-            if len(curves) == 0:
+            if not curves:
                 raise RuntimeError("unable to find %s in the database" % self.E)
             # All curves will have the same conductor and isogeny class,
             # and there are most 8 of them, so lexicographic sorting is okay.

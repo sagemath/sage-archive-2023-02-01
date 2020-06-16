@@ -77,6 +77,7 @@ from sage.arith.long cimport integer_check_long_py
 from sage.arith.power cimport generic_power
 from sage.structure.element cimport Element
 from sage.structure.proof.proof import get_flag as get_proof_flag
+from sage.structure.richcmp cimport rich_to_bool
 from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
@@ -586,7 +587,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
     # x * cdef _add_
     # x * cdef _sub_
     # x * cdef _mul_
-    # x * cpdef _cmp_
+    # x * cpdef _richcmp_
     # x * __neg__
     # x * __invert__  -> SEE LEVEL 3 FUNCTIONALITIES
     # x * __copy__
@@ -975,8 +976,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         return M
 
-
-    cpdef int _cmp_(self, right) except -2:
+    cpdef _richcmp_(self, right, int op):
         r"""
         Compare ``self`` with ``right``, examining entries in
         lexicographic (row major) ordering.
@@ -996,17 +996,18 @@ cdef class Matrix_integer_dense(Matrix_dense):
         cdef int k
 
         sig_on()
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
-                k = fmpz_cmp(fmpz_mat_entry(self._matrix,i,j),fmpz_mat_entry((<Matrix_integer_dense>right)._matrix,i,j))
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                k = fmpz_cmp(fmpz_mat_entry(self._matrix,i,j),
+                             fmpz_mat_entry((<Matrix_integer_dense>right)._matrix,i,j))
                 if k:
                     sig_off()
                     if k < 0:
-                        return -1
+                        return rich_to_bool(op, -1)
                     else:
-                        return 1
+                        return rich_to_bool(op, 1)
         sig_off()
-        return 0
+        return rich_to_bool(op, 0)
 
     # TODO: Implement better
     cdef _vector_times_matrix_(self, Vector v):
@@ -1015,9 +1016,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         INPUT:
 
-
         -  ``v`` - a free module element.
-
 
         OUTPUT: The vector times matrix product v\*A.
 
@@ -4161,7 +4160,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         .. NOTE::
 
-           In Sage one can also write ``A  B`` for
+           In Sage one can also write ``A \ B`` for
            ``A.solve_right(B)``, i.e., Sage implements the "the
            MATLAB/Octave backslash operator".
 
@@ -4256,7 +4255,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
         # in the non-full rank case.  In any case, we do this for now,
         # since rank is very fast and infinite loops are evil.
         if check_rank and self.rank() < self.nrows():
-            raise ValueError("self must be of full rank.")
+            from .matrix2 import NotFullRankError
+            raise NotFullRankError
 
         if not self.is_square():
             raise NotImplementedError("the input matrix must be square.")
@@ -5428,7 +5428,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             [ 1  0  3]
             [-1  0  5]
         """
-        if len(cols) == 0:
+        if not cols:
             return self
         cdef Py_ssize_t i, c, r, nc = max(self._ncols + len(cols), max(cols)+1)
         cdef Matrix_integer_dense A = self.new_matrix(self._nrows, nc)

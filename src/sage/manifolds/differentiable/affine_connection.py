@@ -18,7 +18,7 @@ REFERENCES:
 - [ONe1983]_
 
 """
-#******************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2015 Marco Mancini <marco.mancini@obspm.fr>
@@ -27,7 +27,7 @@ REFERENCES:
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#******************************************************************************
+# *****************************************************************************
 
 from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
@@ -250,7 +250,6 @@ class AffineConnection(SageObject):
         ....:     for j in M.irange():
         ....:         for k in M.irange():
         ....:             nab.add_coef(eV)[i,j,k] = nab.coef(eVW)[i,j,k,c_uvW].expr()
-        ....:
 
     At this stage, the connection is fully defined on all the manifold::
 
@@ -301,7 +300,6 @@ class AffineConnection(SageObject):
         ....:     for j in M.irange():
         ....:         for k in M.irange():
         ....:             nab.add_coef(eV)[i,j,k] = nab.coef(eVW)[i,j,k,c_uvW].expr()
-        ....:
 
     At this stage, the connection is fully defined on all the manifold::
 
@@ -428,6 +426,7 @@ class AffineConnection(SageObject):
                                   # (key: vector frame)
         self._curvature_forms = {}  # dict. of dict. of curvature 2-forms
                                     # (key: vector frame)
+        self._hash = -1
 
     def _del_derived(self):
         r"""
@@ -1634,7 +1633,6 @@ class AffineConnection(SageObject):
             ....:     for j in M.irange():
             ....:         for k in M.irange():
             ....:             nab.add_coef(eV)[i,j,k] = nab.coef(eVW)[i,j,k,c_uvW].expr()
-            ....:
             sage: t = nab.torsion() ; t
             Tensor field of type (1,2) on the 2-dimensional differentiable
              manifold M
@@ -1758,7 +1756,6 @@ class AffineConnection(SageObject):
             ....:     for j in M.irange():
             ....:         for k in M.irange():
             ....:             nab.add_coef(eV)[i,j,k] = nab.coef(eVW)[i,j,k,c_uvW].expr()
-            ....:
             sage: r = nab.riemann() ; r
             Tensor field of type (1,3) on the 2-dimensional differentiable
              manifold M
@@ -1789,7 +1786,6 @@ class AffineConnection(SageObject):
             ....:     for j in M.irange():
             ....:         for k in M.irange():
             ....:             nab.add_coef(eV)[i,j,k] = nab.coef(eVW)[i,j,k,c_uvW].expr()
-            ....:
             sage: r = nab.riemann() ; r
             Tensor field of type (1,3) on the 2-dimensional differentiable
              manifold M
@@ -1990,9 +1986,10 @@ class AffineConnection(SageObject):
             sage: nab.connection_form(1,1,e).comp(e)[:]
             [x*y^2*z, (x^2*y + 1)*z/y, -x*y*z]
 
-        Check of the formula `\omega^i_{\ \, j} = \Gamma^i_{\ \, jk} e^k`::
+        Check of the formula `\omega^i_{\ \, j} = \Gamma^i_{\ \, jk} e^k`:
 
-            sage: #... on the manifold's default frame (d/dx, d/dy, d:dz)
+        First on the manifold's default frame (d/dx, d/dy, d:dz)::
+
             sage: dx = M.default_frame().coframe() ; dx
             Coordinate coframe (M, (dx,dy,dz))
             sage: check = []
@@ -2000,10 +1997,11 @@ class AffineConnection(SageObject):
             ....:     for j in M.irange():
             ....:         check.append( nab.connection_form(i,j) == \
             ....:               sum( nab[[i,j,k]]*dx[k] for k in M.irange() ) )
-            ....:
             sage: check
             [True, True, True, True, True, True, True, True, True]
-            sage: #... on the frame e
+
+        Then on the frame e::
+
             sage: ef = e.coframe() ; ef
             Coframe (M, (e^1,e^2,e^3))
             sage: check = []
@@ -2011,7 +2009,6 @@ class AffineConnection(SageObject):
             ....:     for j in M.irange():
             ....:         s = nab.connection_form(i,j,e).comp(c_xyz.frame(), from_basis=e)
             ....:         check.append( nab.connection_form(i,j,e) == sum( nab.coef(e)[[i,j,k]]*ef[k] for k in M.irange() ) )
-            ....:
             sage: check
             [True, True, True, True, True, True, True, True, True]
 
@@ -2134,11 +2131,9 @@ class AffineConnection(SageObject):
             sage: for i in M.irange():  # long time
             ....:     nab.torsion_form(i, e) == ef[i].exterior_derivative() + \
             ....:      sum(nab.connection_form(i,j,e).wedge(ef[j]) for j in M.irange())
-            ....:
             True
             True
             True
-
         """
         if frame is None:
             frame = self._domain._def_frame
@@ -2244,7 +2239,6 @@ class AffineConnection(SageObject):
             ....:         check.append( nab.curvature_form(i,j,e) == \
             ....:                       omega(i,j,e).exterior_derivative() + \
             ....:         sum( omega(i,k,e).wedge(omega(k,j,e)) for k in M.irange()) )
-            ....:
             sage: check  # long time
             [True, True, True, True, True, True, True, True, True]
 
@@ -2321,3 +2315,25 @@ class AffineConnection(SageObject):
                 if truncate:
                     coef[ind].simplify()
         self._del_derived()
+
+    def __hash__(self):
+        r"""
+        Hash function.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: hash(nab) == nab.__hash__()
+            True
+
+        Let us check that ``nab`` can be used as a dictionary key::
+
+            sage: {nab: 1}[nab]
+            1
+
+        """
+        if self._hash == -1:
+            self._hash = hash(repr(self))
+        return self._hash

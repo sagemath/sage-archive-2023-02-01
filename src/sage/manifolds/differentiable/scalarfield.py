@@ -1026,12 +1026,12 @@ class DiffScalarField(ScalarField):
             sage: a = M.diff_form(2, name='a')
             sage: a[0,1] = x*y
             sage: s = f.wedge(a); s
-            2-form on the 2-dimensional differentiable manifold M
+            2-form f*a on the 2-dimensional differentiable manifold M
             sage: s.display()
-            (x*y^3 + x^2*y) dx/\dy
+            f*a = (x*y^3 + x^2*y) dx/\dy
 
         """
-        return self*other
+        return self * other
 
     def degree(self):
         r"""

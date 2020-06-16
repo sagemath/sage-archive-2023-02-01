@@ -216,10 +216,6 @@ Left-special and bispecial factors::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
-from builtins import zip
-
-from six import iteritems
-from six.moves import range
 from collections import defaultdict
 from itertools import islice, cycle
 from sage.combinat.words.abstract_word import Word_class
@@ -2683,7 +2679,7 @@ class FiniteWord_class(Word_class):
 
             if pal in palindromes:
                 lacunas.append(i)
-            else :
+            else:
                 palindromes.add(pal)
 
         return lengths_lps, lacunas, palindromes
@@ -2943,7 +2939,7 @@ class FiniteWord_class(Word_class):
             sage: Word('abbabaab').lengths_maximal_palindromes(f)
             [0, 0, 2, 0, 0, 0, 2, 0, 8, 0, 2, 0, 0, 0, 2, 0, 0]
         """
-        if f is not None :
+        if f is not None:
             from sage.combinat.words.morphism import WordMorphism
             if not isinstance(f, WordMorphism):
                 f = WordMorphism(f)
@@ -3551,7 +3547,7 @@ class FiniteWord_class(Word_class):
                     current_exp = QQ((current_pos+1, current_pos+1-m))
                     if current_exp > best_exp:
                         best_exp = current_exp
-                for ((i,j),u) in iteritems(st._transition_function[v]):
+                for ((i,j),u) in st._transition_function[v].items():
                     if j is None:
                         j = self.length()
                     queue.append((u, i, j, l+j-i+1))
@@ -4299,7 +4295,7 @@ class FiniteWord_class(Word_class):
         while s <= lm - lf:
             for j in range(lf-1, -1, -1):
                 a = other[s+j]
-                if self[j] != a :
+                if self[j] != a:
                     s += max(suff[j + 1], j - occ.get(a,-1))
                     break
             else:
@@ -4868,7 +4864,7 @@ class FiniteWord_class(Word_class):
             sage: sorted(Word("abcaccab").evaluation_sparse())
             [('a', 3), ('b', 2), ('c', 3)]
         """
-        return list(iteritems(self.evaluation_dict()))
+        return list(self.evaluation_dict().items())
 
     def evaluation_partition(self):
         r"""
@@ -4888,7 +4884,7 @@ class FiniteWord_class(Word_class):
         else:
             return Partition(p)
 
-    def overlap_partition(self, other, delay=0, p=None, involution=None) :
+    def overlap_partition(self, other, delay=0, p=None, involution=None):
         r"""
         Return the partition of the alphabet induced by the overlap of
         ``self`` and ``other`` with the given ``delay``.

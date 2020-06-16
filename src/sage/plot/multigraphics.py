@@ -654,7 +654,7 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         - ``fontsize`` -- (default: ``None``)  integer, font size (in points)
           for the inset; if ``None``, the value of 6 points is used, unless
-          ``fontsize`` has been explicitely set in the construction of
+          ``fontsize`` has been explicitly set in the construction of
           ``graphics`` (in this case, it is not overwritten here)
 
         OUTPUT:
@@ -1295,15 +1295,15 @@ class GraphicsArray(MultiGraphics):
             sage: g2 = circle((0,1), 1.)
             sage: G = graphics_array([g1, g2])
             sage: G.position(0)  # tol 1.0e-13
-            (0.028906249999999998,
-             0.038541666666666696,
-             0.45390624999999996,
-             0.9229166666666667)
+            (0.023437500000000003,
+             0.03415488992713045,
+             0.4627803348994754,
+             0.9345951100728696)
             sage: G.position(1)  # tol 1.0e-13
-            (0.5171874999999999,
-             0.038541666666666696,
-             0.45390624999999996,
-             0.9229166666666667)
+            (0.5136230468749999,
+             0.19293222169724827,
+             0.46278033489947534,
+             0.617040446532634)
 
         """
         if not self._positions:

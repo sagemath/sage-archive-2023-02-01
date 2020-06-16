@@ -62,7 +62,6 @@ EXAMPLES::
     sage: simplicial_complexes.MatchingComplex(6).homology()
     {0: 0, 1: Z^16, 2: 0}
 """
-from six import iteritems
 
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.structure.unique_representation import UniqueRepresentation
@@ -119,9 +118,10 @@ def facets_for_RP4():
                 facets.append(new)
     return facets
 
+
 def facets_for_K3():
     """
-    Returns the facets for a minimal triangulation of the K3 surface.
+    Return the facets for a minimal triangulation of the K3 surface.
 
     This is a pure simplicial complex of dimension 4 with 16
     vertices and 288 facets. The facets are obtained by constructing a
@@ -541,9 +541,10 @@ def ComplexProjectivePlane():
          [9, 7, 2, 3, 6], [7, 8, 3, 1, 4], [8, 9, 1, 2, 5]],
         name='Minimal triangulation of the complex projective plane')
 
+
 def PseudoQuaternionicProjectivePlane():
     r"""
-    Returns a pure simplicial complex of dimension 8 with 490 facets.
+    Return a pure simplicial complex of dimension 8 with 490 facets.
 
     .. WARNING::
 
@@ -830,9 +831,10 @@ def RealProjectiveSpace(n):
         return UniqueSimplicialComplex(list(facets),
                                        name='Triangulation of RP^{}'.format(n))
 
+
 def K3Surface():
     """
-    Returns a minimal triangulation of the K3 surface.
+    Return a minimal triangulation of the K3 surface.
 
     This is a pure simplicial complex of dimension 4 with 16 vertices
     and 288 facets. It was constructed by Casella and Kühnel
@@ -950,9 +952,10 @@ def K3Surface():
             (1, 2, 4, 7, 15), (2, 3, 7, 8, 16), (1, 4, 5, 6, 10)],
         name='Minimal triangulation of the K3 surface')
 
+
 def BarnetteSphere():
     r"""
-    Returns Barnette's triangulation of the 3-sphere.
+    Return Barnette's triangulation of the 3-sphere.
 
     This is a pure simplicial complex of dimension 3 with 8
     vertices and 19 facets, which is a non-polytopal triangulation
@@ -990,9 +993,10 @@ def BarnetteSphere():
             (3,6,4,8)],
           name="Barnette's triangulation of the 3-sphere")
 
+
 def BrucknerGrunbaumSphere():
     r"""
-    Returns Bruckner and Grunbaum's triangulation of the 3-sphere.
+    Return Bruckner and Grunbaum's triangulation of the 3-sphere.
 
     This is a pure simplicial complex of dimension 3 with 8
     vertices and 20 facets, which is a non-polytopal triangulation
@@ -1404,7 +1408,7 @@ def RandomTwoSphere(n):
     graph = RandomTriangulation(n)
 
     graph = graph.relabel(inplace=False)
-    triangles = [(u, v, w) for u, L in iteritems(graph._embedding)
+    triangles = [(u, v, w) for u, L in graph._embedding.items()
                  for v, w in zip(L, L[1:] + [L[0]]) if u < v and u < w]
 
     return SimplicialComplex(triangles, maximality_check=False)

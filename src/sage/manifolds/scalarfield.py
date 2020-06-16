@@ -40,8 +40,6 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
-from six import itervalues
-
 from sage.structure.element import CommutativeAlgebraElement
 from sage.symbolic.expression import Expression
 from sage.manifolds.chart_func import ChartFunction
@@ -1144,7 +1142,7 @@ class ScalarField(CommutativeAlgebraElement):
         if not self._express:
             # undefined scalar field
             return True
-        for funct in itervalues(self._express):
+        for funct in self._express.values():
             if not funct.is_zero():
                 self._is_zero = False
                 return True
@@ -1277,7 +1275,7 @@ class ScalarField(CommutativeAlgebraElement):
                 return False
             try:
                 other = self.parent()(other)  # conversion to a scalar field
-            except TypeError:
+            except Exception:
                 return False
         if other._domain != self._domain:
             return False
@@ -1474,9 +1472,15 @@ class ScalarField(CommutativeAlgebraElement):
         """
         return self._domain
 
-    def copy(self):
+    def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of the scalar field.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
 
         EXAMPLES:
 
@@ -1496,8 +1500,7 @@ class ScalarField(CommutativeAlgebraElement):
             False
 
         """
-        result = type(self)(self.parent(), name=self._name,
-                            latex_name=self._latex_name)
+        result = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, funct in self._express.items():
             result._express[chart] = funct.copy()
         result._is_zero = self._is_zero
@@ -2543,8 +2546,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        from sage.tensor.modules.format_utilities import format_mul_txt, \
-                                                         format_mul_latex
+        from sage.tensor.modules.format_utilities import (format_mul_txt,
+                                                         format_mul_latex)
         # Special cases:
         if self._is_zero or other._is_zero:
             return self._domain.zero_scalar_field()
@@ -2557,7 +2560,7 @@ class ScalarField(CommutativeAlgebraElement):
             # ChartFunction multiplication:
             result._express[chart] = self._express[chart] * other._express[chart]
         result._name = format_mul_txt(self._name, '*', other._name)
-        result._latex_name = format_mul_latex(self._latex_name, ' ',
+        result._latex_name = format_mul_latex(self._latex_name, r' \cdot ',
                                              other._latex_name)
         return result
 

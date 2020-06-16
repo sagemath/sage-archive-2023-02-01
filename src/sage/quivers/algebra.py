@@ -20,7 +20,6 @@ from __future__ import absolute_import
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-import six
 from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule
 from .algebra_elements import PathAlgebraElement
@@ -320,11 +319,11 @@ class PathAlgebra(CombinatorialFreeModule):
 
         # If it's a scalar, return a multiple of one:
         if x in self.base_ring():
-            return self.one()*x
+            return self.one() * x
 
         # If it's a tuple or a list, try and create a QuiverPath from it and
         # then return the associated basis element
-        if isinstance(x, (tuple, list, six.string_types)):
+        if isinstance(x, (tuple, list, str)):
             return self.element_class(self, {self._semigroup(x): self.base_ring().one()})
 
         if isinstance(x, dict):

@@ -40,7 +40,6 @@ Characters are themselves group elements, and basic arithmetic on them works::
     sage: chi.multiplicative_order()
     +Infinity
 """
-from six.moves import range
 
 import operator
 from sage.structure.element import MultiplicativeGroupElement, parent
@@ -753,7 +752,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         for c in range(6):
             gens = self.unit_gens(c)
             exps = self.exponents(c)
-            T.assertTrue(exps[-1] == 0)
+            T.assertEqual(exps[-1], 0)
             T.assertTrue(all(u != 0 for u in exps[:-1]))
             T.assertTrue(all(u.parent() is self.number_field() for u in gens))
 
@@ -772,7 +771,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
                 if not (g - 1 in I):
                     T.fail("For generator g=%s, g^%s = %s, which is not 1 mod I" % (gens[i], exps[i], g))
             I = self.prime() if self.number_field() == QQ else self.ideal(1)
-            T.assertTrue(gens[-1].valuation(I) == 1)
+            T.assertEqual(gens[-1].valuation(I), 1)
 
             # This implicitly tests that the gens really are gens!
             self.discrete_log(c, -1)

@@ -35,7 +35,6 @@ include "sage/data_structures/bitset.pxi"
 from sage.rings.integer cimport Integer
 from sage.libs.flint.ulong_extras cimport n_is_prime
 
-
 # OrbitPartition (OP)
 
 cdef inline OrbitPartition *OP_new(int n):
@@ -1348,7 +1347,7 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
     """
     if gap:
         from sage.groups.perm_gps.permgroup import PermutationGroup
-        from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+        from sage.groups.perm_gps.constructor import PermutationGroupElement
         from sage.misc.prandom import shuffle
 
     cdef StabilizerChain *SC

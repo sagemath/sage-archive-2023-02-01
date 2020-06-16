@@ -53,9 +53,7 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
 from __future__ import division, print_function
-from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
@@ -242,7 +240,7 @@ class PerfectMatching(SetPartition):
             ...
             \end{tikzpicture}
 
-        ..TODO::
+        .. TODO::
 
             This should probably call the latex method of
             :class:`SetPartition` with appropriate defaults.

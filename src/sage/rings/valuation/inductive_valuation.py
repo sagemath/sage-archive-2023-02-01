@@ -29,14 +29,14 @@ Inductive valuations are originally discussed in [Mac1936I]_ and [Mac1936II]_.
 An introduction is also given in Chapter 4 of [Rüt2014]_.
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016-2018 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 from .valuation import DiscreteValuation, InfiniteDiscretePseudoValuation
@@ -530,8 +530,10 @@ class InductiveValuation(DevelopingValuation):
 
         """
         tester = self._tester(**options)
-        tester.assertTrue(isinstance(self, InfiniteInductiveValuation) != isinstance(self, FiniteInductiveValuation))
-        tester.assertTrue(isinstance(self, FinalInductiveValuation) != isinstance(self, NonFinalInductiveValuation))
+        tester.assertNotEqual(isinstance(self, InfiniteInductiveValuation),
+                              isinstance(self, FiniteInductiveValuation))
+        tester.assertNotEqual(isinstance(self, FinalInductiveValuation),
+                              isinstance(self, NonFinalInductiveValuation))
 
 
 class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
@@ -674,7 +676,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         INPUT:
 
-        - ``G`` -- a sqaurefree monic non-constant integral polynomial ``G``
+        - ``G`` -- a squarefree monic non-constant integral polynomial ``G``
           which is not an :meth:`equivalence unit <InductiveValuation.is_equivalence_unit>`
 
         - ``principal_part_bound`` -- an integer or ``None`` (default:
@@ -1528,7 +1530,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 g = self._eliminate_denominators(f)
             except ValueError:
                 continue
-            tester.assertTrue(g.parent() is self.domain())
+            tester.assertIs(g.parent(), self.domain())
             tester.assertTrue(w.is_equivalent(f, g))
 
     def _test_lift_to_key(self, **options):
@@ -1594,7 +1596,8 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         tester = self._tester(**options)
         S = tester.some_elements(self.domain().some_elements())
         for f in S:
-            if f.is_constant(): continue
+            if f.is_constant():
+                continue
             is_equivalence_irreducible = self.is_equivalence_irreducible(f)
             F = self.equivalence_decomposition(f)
             tester.assertEqual(is_equivalence_irreducible, len(F)==0 or (len(F)==1 and F[0][1]==1))

@@ -18,11 +18,10 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-from six.moves import range, builtins
-from six import integer_types
+import builtins
 
 from sage.rings.complex_double import CDF
 from sage.rings.real_double import RDF, RealDoubleElement
@@ -247,7 +246,7 @@ def denominator(x):
         sage: denominator(r)
         x - 1
     """
-    if isinstance(x, integer_types):
+    if isinstance(x, int):
         return 1
     return x.denominator()
 
@@ -568,7 +567,7 @@ def symbolic_sum(expression, *args, **kwds):
 
        #. Sage can currently only understand a subset of the output of Maxima, Maple and
           Mathematica, so even if the chosen backend can perform the summation the
-          result might not be convertable into a Sage expression.
+          result might not be convertible into a Sage expression.
 
     """
     if hasattr(expression, 'sum'):
@@ -859,7 +858,7 @@ def is_integrally_closed(x):
     return x.is_integrally_closed()
 
 
-def is_field(x):
+def is_field(x, proof=True):
     """
     Return whether or not ``x`` is a field.
 
@@ -872,7 +871,7 @@ def is_field(x):
         sage: is_field(F)
         True
     """
-    return x.is_field()
+    return x.is_field(proof=proof)
 
 
 def is_odd(x):
@@ -1213,7 +1212,7 @@ def numerator(x):
         sage: numerator(17/11111)
         17
     """
-    if isinstance(x, integer_types):
+    if isinstance(x, int):
         return x
     return x.numerator()
 
@@ -1548,10 +1547,9 @@ def round(x, ndigits=0):
 
     .. NOTE::
 
-        This is currently slower than the builtin round function, since
-        it does more work - i.e., allocating an RDF element and
-        initializing it. To access the builtin version do
-        ``from six.moves import builtins; builtins.round``.
+        This is currently slower than the builtin round function, since it does
+        more work - i.e., allocating an RDF element and initializing it. To
+        access the builtin version do ``import builtins; builtins.round``.
     """
     try:
         if ndigits:

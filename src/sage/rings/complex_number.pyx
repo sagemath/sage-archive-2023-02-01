@@ -645,6 +645,22 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         im = mpfr_to_mpfval(self.__im)
         return make_mpc((re, im))
 
+    def _sympy_(self):
+        """
+        Convert this complex number to Sympy.
+
+        EXAMPLES::
+
+            sage: CC(1, 0)._sympy_()
+            1.00000000000000
+            sage: CC(1/3, 1)._sympy_()
+            0.333333333333333 + 1.0*I
+            sage: type(_)
+            <class 'sympy.core.add.Add'>
+        """
+        import sympy
+        return self.real()._sympy_() + self.imag()._sympy_() * sympy.I
+
     cpdef _add_(self, right):
         """
         Add ``self`` to ``right``.
@@ -1437,22 +1453,33 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return (~self).arccosh()
 
-    def cotan(self):
+    def cot(self):
         """
         Return the cotangent of ``self``.
 
         EXAMPLES::
 
+            sage: (1+CC(I)).cot()
+            0.217621561854403 - 0.868014142895925*I
             sage: (1+CC(I)).cotan()
             0.217621561854403 - 0.868014142895925*I
             sage: i = ComplexField(200).0
-            sage: (1+i).cotan()
+            sage: (1+i).cot()
             0.21762156185440268136513424360523807352075436916785404091068 - 0.86801414289592494863584920891627388827343874994609327121115*I
             sage: i = ComplexField(220).0
-            sage: (1+i).cotan()
+            sage: (1+i).cot()
             0.21762156185440268136513424360523807352075436916785404091068124239 - 0.86801414289592494863584920891627388827343874994609327121115071646*I
+
+        TESTS:
+
+        Verify that :trac:`29409` is fixed::
+
+            sage: cot(1 + I).n()
+            0.217621561854403 - 0.868014142895925*I
         """
         return ~(self.tan())
+
+    cotan = cot # provide this alias for backward compatibility in #29409
 
     def cos(self):
         """

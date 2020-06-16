@@ -10,7 +10,6 @@ Coxeter Groups
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 # With contributions from Dan Bump, Steve Pon, Qiang Wang, Anne Schilling, Christian Stump, Mark Shimozono
-from six.moves import range
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
@@ -720,6 +719,28 @@ class CoxeterGroups(Category_singleton):
             from sage.sets.family import Family
             return Family(self.index_set(), lambda i: self.simple_projection(i, side=side, length_increasing=length_increasing))
 
+        def sign_representation(self, base_ring=None, side="twosided"):
+            r"""
+            Return the sign representation of ``self`` over ``base_ring``.
+
+            INPUT:
+
+            - ``base_ring`` -- (optional) the base ring; the default is `\ZZ`
+            - ``side`` -- ignored
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A", 1, 1])
+                sage: W.sign_representation()
+                Sign representation of Weyl Group of type ['A', 1, 1] (as a matrix group acting on the root space) over Integer Ring
+                
+            """
+            if base_ring is None:
+                from sage.rings.all import ZZ
+                base_ring = ZZ
+            from sage.modules.with_basis.representation import SignRepresentationCoxeterGroup
+            return SignRepresentationCoxeterGroup(self, base_ring)
+
         def demazure_product(self, Q):
             r"""
             Return the Demazure product of the list ``Q`` in ``self``.
@@ -1019,11 +1040,11 @@ class CoxeterGroups(Category_singleton):
                 opi = self.simple_projections(side=side, length_increasing=False)
                 for i in self.index_set():
                     for w in tester.some_elements():
-                        tester.assertTrue(pi[i](w) == w.apply_simple_projection(i, side=side))
-                        tester.assertTrue(pi[i](w) == w.apply_simple_projection(i, side=side, length_increasing=True))
-                        tester.assertTrue(opi[i](w) == w.apply_simple_projection(i, side=side, length_increasing=False))
+                        tester.assertEqual(pi[i](w), w.apply_simple_projection(i, side=side))
+                        tester.assertEqual(pi[i](w), w.apply_simple_projection(i, side=side, length_increasing=True))
+                        tester.assertEqual(opi[i](w), w.apply_simple_projection(i, side=side, length_increasing=False))
                         tester.assertTrue(pi[i](w).has_descent(i, side=side))
-                        tester.assertTrue(not opi[i](w).has_descent(i, side=side))
+                        tester.assertFalse(opi[i](w).has_descent(i, side=side))
                         tester.assertEqual(set([pi[i](w), opi[i](w)]),
                                            set([w, w.apply_simple_reflection(i, side=side)]))
 

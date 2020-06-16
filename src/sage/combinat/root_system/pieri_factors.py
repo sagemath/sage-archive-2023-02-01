@@ -7,9 +7,8 @@ Pieri Factors
 #                          Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  https://www.gnu.org/licenses/
-# *****************************************************************************
-from six.moves import range
+#                  http://www.gnu.org/licenses/
+#******************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.constant_function import ConstantFunction
@@ -246,7 +245,8 @@ class PieriFactors(UniqueRepresentation, Parent):
             sage: WeylGroup(['B',5,1]).pieri_factors()._test_maximal_elements()
         """
         tester = self._tester(**options)
-        tester.assertTrue(set(self.maximal_elements()) == set(self.maximal_elements_combinatorial()))
+        tester.assertEqual(set(self.maximal_elements()),
+                           set(self.maximal_elements_combinatorial()))
 
     @cached_method
     def max_length(self):

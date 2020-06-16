@@ -892,7 +892,7 @@ cdef class CoercionModel:
 
         .. NOTE::
 
-           This function is accurate only in so far as analyse is kept
+           This function is accurate only in so far as :meth:`analyse` is kept
            in sync with the :meth:`bin_op` and
            :meth:`canonical_coercion` which are kept separate for
            maximal efficiency.
@@ -1647,6 +1647,7 @@ cdef class CoercionModel:
             Call morphism:
               From: Multivariate Polynomial Ring in x, y over Integer Ring
               To:   Multivariate Polynomial Ring in x, y over Real Double Field,
+             (map internal to coercion system -- copy before use)
              Polynomial base injection morphism:
               From: Real Double Field
               To:   Multivariate Polynomial Ring in x, y over Real Double Field)

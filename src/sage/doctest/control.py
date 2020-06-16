@@ -7,8 +7,7 @@ AUTHORS:
 
 - David Roe (2012-03-27) -- initial version, based on Robert Bradshaw's code.
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 David Roe <roed.math@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          William Stein <wstein@gmail.com>
@@ -18,12 +17,17 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, division, print_function
 
-import random, os, sys, time, json, re, types
-import six
+import random
+import os
+import sys
+import time
+import json
+import re
+import types
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC, SAGE_LOCAL, SAGE_EXTCODE
@@ -35,12 +39,13 @@ from .forker import DocTestDispatcher
 from .reporting import DocTestReporter
 from .util import Timer, count_noun, dict_difference
 from .external import external_software, available_software
+from sage.features import PythonModule
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')
 
 # Optional tags which are always automatically added
-auto_optional_tags = set(['py2' if six.PY2 else 'py3'])
+auto_optional_tags = set(['py3'])
 
 
 class DocTestDefaults(SageObject):
@@ -190,7 +195,7 @@ def skipdir(dirname):
         sage: skipdir(os.path.join(sage.env.SAGE_SRC, "sage", "doctest", "tests"))
         True
     """
-    if os.path.exists(os.path.join(dirname, "nodoctest.py")):
+    if os.path.exists(os.path.join(dirname, "nodoctest.py")) or os.path.exists(os.path.join(dirname, "nodoctest")):
         return True
     return False
 
@@ -340,7 +345,7 @@ class DocTestController(SageObject):
         if options.verbose:
             options.show_skipped = True
 
-        if isinstance(options.optional, six.string_types):
+        if isinstance(options.optional, str):
             s = options.optional.lower()
             options.optional = set(s.split(','))
             if "all" in options.optional:
@@ -355,7 +360,7 @@ class DocTestController(SageObject):
                     options.optional.discard('optional')
                     from sage.misc.package import list_packages
                     for pkg in list_packages('optional', local=True).values():
-                        if pkg['installed_version'] == pkg['remote_version']:
+                        if pkg['installed'] and pkg['installed_version'] == pkg['remote_version']:
                             options.optional.add(pkg['name'])
 
                 # Check that all tags are valid
@@ -612,18 +617,6 @@ class DocTestController(SageObject):
         """
         Test that the given directory is safe to run Python code from.
 
-        We use the check added to Python for this, which gives a
-        warning when the current directory is considered unsafe.  We promote
-        this warning to an error with ``-Werror``.  See
-        ``sage/tests/cmdline.py`` for a doctest that this works, see
-        also :trac:`13579`.
-
-        .. NOTE::
-
-            This is only relevant with Python 2, because Sage's Python
-            2 is patched to give a warning when the current directory
-            is unsafe, but Python 3 is not.
-
         TESTS::
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
@@ -633,20 +626,19 @@ class DocTestController(SageObject):
             sage: d = os.path.join(tmp_dir(), "test")
             sage: os.mkdir(d)
             sage: os.chmod(d, 0o777)
-            sage: DC.test_safe_directory(d) # py2
+            sage: DC.test_safe_directory(d)
             Traceback (most recent call last):
             ...
             RuntimeError: refusing to run doctests...
         """
-        import subprocess
-        with open(os.devnull, 'w') as dev_null:
-            if subprocess.call(['sage-python', '-Werror', '-c', ''],
-                    stdout=dev_null, stderr=dev_null, cwd=dir) != 0:
-                raise RuntimeError(
-                      "refusing to run doctests from the current "
-                      "directory '{}' since untrusted users could put files in "
-                      "this directory, making it unsafe to run Sage code from"
-                      .format(os.getcwd()))
+        import stat
+        is_world_writeable = bool(os.stat(dir or os.getcwd()).st_mode & stat.S_IWOTH)
+        if is_world_writeable:
+            raise RuntimeError(
+                  "refusing to run doctests from the current "
+                  "directory '{}' since untrusted users could put files in "
+                  "this directory, making it unsafe to run Sage code from"
+                  .format(os.getcwd()))
 
     def create_run_id(self):
         """
@@ -692,9 +684,9 @@ class DocTestController(SageObject):
 
             sage: DD = DocTestDefaults(sagenb = True)
             sage: DC = DocTestController(DD, [])
-            sage: DC.add_files()  # py2
+            sage: DC.add_files()  # py2 # optional - sagenb
             Doctesting the Sage notebook.
-            sage: DC.files[0][-6:]  # py2
+            sage: DC.files[0][-6:]  # py2 # optional - sagenb
             'sagenb'
         """
         opj = os.path.join
@@ -741,7 +733,7 @@ class DocTestController(SageObject):
                          filename.endswith(".rst"))):
                     self.files.append(os.path.relpath(opj(SAGE_ROOT,filename)))
         if self.options.sagenb:
-            if six.PY3:
+            if not PythonModule('sagenb').is_present():
                 if not self.options.all:
                     self.log("Skipping doctesting of the Sage notebook: "
                              "not installed on Python 3")
@@ -1029,9 +1021,9 @@ class DocTestController(SageObject):
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
             sage: DC = DocTestController(DocTestDefaults(timeout=123), ["hello_world.py"])
             sage: print(DC._assemble_cmd())
-            sage-python "...sage-runtests" --serial --timeout=123 hello_world.py
+            sage-runtests --serial --timeout=123 hello_world.py
         """
-        cmd = '''sage-python "%s" --serial '''%(os.path.join(SAGE_LOCAL,"bin","sage-runtests"))
+        cmd = "sage-runtests --serial "
         opt = dict_difference(self.options.__dict__, DocTestDefaults().__dict__)
         for o in ("all", "sagenb"):
             if o in opt:
@@ -1065,14 +1057,14 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(gdb=True)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
-            exec gdb -x "...sage-gdb-commands" --args sage-python "...sage-runtests" --serial --timeout=0 hello_world.py
+            exec gdb -x "...sage-gdb-commands" --args sage-runtests --serial --timeout=0 hello_world.py
 
         ::
 
             sage: DD = DocTestDefaults(valgrind=True, optional="all", timeout=172800)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
-            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="...valgrind/pyalloc.supp" --suppressions="...valgrind/sage.supp" --suppressions="...valgrind/sage-additional.supp"  --log-file=".../valgrind/sage-memcheck.%p" sage-python "...sage-runtests" --serial --timeout=172800 --optional=all hello_world.py
+            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="...valgrind/pyalloc.supp" --suppressions="...valgrind/sage.supp" --suppressions="...valgrind/sage-additional.supp"  --log-file=".../valgrind/sage-memcheck.%p" sage-runtests --serial --timeout=172800 --optional=all hello_world.py
         """
         try:
             sage_cmd = self._assemble_cmd()
@@ -1134,7 +1126,8 @@ class DocTestController(SageObject):
         os.putenv('CYSIGNALS_CRASH_LOGS', tmp_dir("crash_logs_"))
         init_cysignals()
 
-        import signal, subprocess
+        import signal
+        import subprocess
         p = subprocess.Popen(cmd, shell=True)
         if opt.timeout > 0:
             signal.alarm(opt.timeout)
@@ -1286,7 +1279,7 @@ def run_doctests(module, options=None):
                 return [base]
             else:
                 return [os.path.join(base, file) + ext]
-        elif isinstance(x, six.string_types):
+        elif isinstance(x, str):
             return [os.path.abspath(x)]
     F = stringify(module)
     if options is None:

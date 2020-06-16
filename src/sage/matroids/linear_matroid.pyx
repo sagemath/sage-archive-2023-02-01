@@ -2344,9 +2344,11 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             [{0: 1, 1: 1, 2: 1}]
             sage: N = Matroid(ring=QQ,
             ....:         reduced_matrix=[[-1, -1, 0], [1, 0, -1], [0, 1, 1]])
-            sage: N.linear_extension_chains(F=[0, 1], simple=True,
+            sage: L = N.linear_extension_chains(F=[0, 1], simple=True,
             ....:                           fundamentals=set([1, -1, 1/2, 2]))
-            [{0: 1, 1: 1}, {0: -1/2, 1: 1}, {0: -2, 1: 1}]
+            sage: result = [{0: 1, 1: 1}, {0: -1/2, 1: 1}, {0: -2, 1: 1}]
+            sage: all(D in L for D in result)
+            True
         """
         if F is None:
             FI = self.basis()

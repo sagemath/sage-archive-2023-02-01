@@ -1071,7 +1071,7 @@ class GraphLatex(SageObject):
         #   shape" to mirror vertex shapes
         # - "line width" works for vertices, should be configurable
         # - allow injection of latex code to style a pre-built style for
-        #   example, \SetUpVertex[style={fill=green}] could overide color
+        #   example, \SetUpVertex[style={fill=green}] could override color
         #   selection in a style like "Art"
         # - "inner sep" is distance from vertex label to edge of vertex this
         #   should be set as small as possible - but bigger than the line width.
@@ -1333,14 +1333,14 @@ class GraphLatex(SageObject):
             sage: print(g.latex_options().dot2tex_picture())  # optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
-              \node (node_3) at (...bp,...bp) [draw,draw=none] {$\left(0, 1\right)$};
-              \node (node_2) at (...bp,...bp) [draw,draw=none] {$\left(1, 0\right)$};
-              \node (node_1) at (...bp,...bp) [draw,draw=none] {$\left(0, 0\right)$};
-              \node (node_0) at (...bp,...bp) [draw,draw=none] {$\left(1, 1\right)$};
-              \draw [black,->] (node_1) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_3);
-              \draw [black,->] (node_2) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_3);
-              \draw [black,->] (node_2) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_0);
-              \draw [black,->] (node_1) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_0);
+              \node (node_...) at (...bp,...bp) [draw,draw=none] {$\left(...\right)$};
+              \node (node_...) at (...bp,...bp) [draw,draw=none] {$\left(...\right)$};
+              \node (node_...) at (...bp,...bp) [draw,draw=none] {$\left(...\right)$};
+              \node (node_...) at (...bp,...bp) [draw,draw=none] {$\left(...\right)$};
+              \draw [black,->] (node_...) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_...);
+              \draw [black,->] (node_...) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_...);
+              \draw [black,->] (node_...) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_...);
+              \draw [black,->] (node_...) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_...);
             %
             \end{tikzpicture}
 
@@ -1352,9 +1352,9 @@ class GraphLatex(SageObject):
             sage: print(G.latex_options().dot2tex_picture()) # optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
-            \node (node_1) at (...bp,...bp) [draw,draw=none] {$3333$};
-              \node (node_0) at (...bp,...bp) [draw,draw=none] {$88$};
-              \draw [black,->] (node_1) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_0);
+            \node (node_...) at (...bp,...bp) [draw,draw=none] {$...$};
+              \node (node_...) at (...bp,...bp) [draw,draw=none] {$...$};
+              \draw [black,->] (node_...) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_...);
               \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
               \pgfsetstrokecolor{strokecol}
               \draw (...bp,...bp) node {$\text{\texttt{my{\char`\_}label}}$};
@@ -1371,7 +1371,6 @@ class GraphLatex(SageObject):
             \draw [red,] (node_0) ... (node_1);
             ...
             \end{tikzpicture}
-
 
         .. NOTE::
 

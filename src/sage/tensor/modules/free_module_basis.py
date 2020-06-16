@@ -483,7 +483,7 @@ class FreeModuleBasis(Basis_abstract):
          Element e_1 of the Rank-3 free module M over the Integer Ring,
          Element e_2 of the Rank-3 free module M over the Integer Ring)
 
-    The LaTeX symbol can be set explicitely::
+    The LaTeX symbol can be set explicitly::
 
         sage: latex(e)
         \left(e_{0},e_{1},e_{2}\right)
@@ -711,6 +711,64 @@ class FreeModuleBasis(Basis_abstract):
                                latex_symbol_dual=latex_symbol_dual)
 
     ###### End of methods to be redefined by derived classes ######
+
+    def _init_from_family(self, family):
+        r"""
+        Identify ``self`` to a linearly independent spanning family of
+        module elements.
+
+        INPUT:
+
+        - ``family``: a family of elements of ``self.free_module()`` that are
+          linearly independent and spanning ``self.free_module()``
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(QQ, 2, name='M', start_index=1)
+            sage: e = M.basis('e')
+            sage: f1 = e[1] + e[2]
+            sage: f2 = e[1] - e[2]
+            sage: f = M.basis('f')
+            sage: f._init_from_family([f1, f2])
+            sage: (f[1], f[2]) == (f1, f2)
+            True
+            sage: f[1].display()
+            f_1 = e_1 + e_2
+            sage: f[2].display()
+            f_2 = e_1 - e_2
+            sage: e[1].display(f)
+            e_1 = 1/2 f_1 + 1/2 f_2
+            sage: e[2].display(f)
+            e_2 = 1/2 f_1 - 1/2 f_2
+
+        """
+        fmodule = self._fmodule
+        n = fmodule.rank()
+        if len(family) != n:
+            raise ValueError("the size of the family must be {}".format(n))
+        # Copy of the components of each element of the family:
+        for i, ff in enumerate(family):
+            if ff not in fmodule:
+                raise TypeError("{} is not an element of {}".format(ff,
+                                                                    fmodule))
+            vs = self._vec[i]
+            for basis, comp in ff._components.items():
+                vs._components[basis] = comp.copy()
+        # Automorphisms relating the family to previously defined bases are
+        # constructed from the components of the family elements and are
+        # registered as changes of basis to ``self``:
+        ff0 = family[0]
+        for basis in ff0._components:
+            try:
+                comps = [ff.components(basis) for ff in family]
+            except ValueError:
+                continue
+            aut = fmodule.automorphism()
+            mat = [[c[[i]] for c in comps] for i in fmodule.irange()]
+            aut.add_comp(basis)[:] = mat
+            aut.add_comp(self)[:] = mat
+            fmodule.set_change_of_basis(basis, self, aut)
+
 
     def module(self):
         r"""

@@ -39,7 +39,11 @@ png_library_dirs = png_pc['library_dirs']
 png_include_dirs = png_pc['include_dirs']
 
 # zlib
-zlib_pc = pkgconfig.parse('zlib')
+try:
+    zlib_pc = pkgconfig.parse('zlib')
+except pkgconfig.PackageNotFoundError:
+    from collections import defaultdict
+    zlib_pc = defaultdict(list, {'libraries': ['z']})
 zlib_libs = zlib_pc['libraries']
 zlib_library_dirs = zlib_pc['library_dirs']
 zlib_include_dirs = zlib_pc['include_dirs']
@@ -298,20 +302,28 @@ ext_modules = [
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/base.pyx']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pyx']),
-
-    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.bit_vector_operations.cc',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pyx'],
+              depends = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
+              language="c++",
               extra_compile_args=['-std=c++11']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/face_iterator.pyx']),
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/face_iterator.pyx'],
+              depends = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
+              language="c++",
+              extra_compile_args=['-std=c++11']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/polyhedron_face_lattice.pyx']),
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/polyhedron_face_lattice.pyx'],
+              depends = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
+              language="c++",
+              extra_compile_args=['-std=c++11']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/combinatorial_face.pyx']),
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/combinatorial_face.pyx'],
+              depends = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
+              language="c++",
+              extra_compile_args=['-std=c++11']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.conversions',
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/conversions.pyx']),
@@ -422,6 +434,9 @@ ext_modules = [
               language="c++",
               package = 'tdlib'),
 
+    Extension('sage.graphs.graph_decompositions.clique_separators',
+              sources = ['sage/graphs/graph_decompositions/clique_separators.pyx']),
+
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 
@@ -453,6 +468,9 @@ ext_modules = [
 
     Extension('sage.graphs.base.boost_graph',
               sources = ['sage/graphs/base/boost_graph.pyx']),
+
+    Extension('sage.graphs.views',
+              sources = ['sage/graphs/views.pyx']),
 
     ################################
     ##
@@ -924,6 +942,9 @@ ext_modules = [
     Extension('sage.modular.arithgroup.arithgroup_element',
               sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),
 
+    Extension('sage.modular.hypergeometric_misc',
+              sources = ['sage/modular/hypergeometric_misc.pyx']),
+
     Extension('sage.modular.modform.eis_series_cython',
               sources = ['sage/modular/modform/eis_series_cython.pyx']),
 
@@ -1053,27 +1074,6 @@ ext_modules = [
     Extension("sage.numerical.backends.interactivelp_backend",
               ["sage/numerical/backends/interactivelp_backend.pyx"]),
 
-    OptionalExtension("sage.numerical.backends.gurobi_backend",
-              ["sage/numerical/backends/gurobi_backend.pyx"],
-              libraries = ["gurobi"],
-              condition = os.path.isfile(SAGE_INC + "/gurobi_c.h") and
-                  os.path.isfile(SAGE_LOCAL + "/lib/libgurobi.so")),
-
-    OptionalExtension("sage.numerical.backends.cplex_backend",
-              ["sage/numerical/backends/cplex_backend.pyx"],
-              libraries = ["cplex"],
-              condition = os.path.isfile(SAGE_INC + "/cplex.h") and
-                  os.path.isfile(SAGE_LOCAL + "/lib/libcplex.a")),
-
-    OptionalExtension("sage.numerical.backends.coin_backend",
-              ["sage/numerical/backends/coin_backend.pyx"],
-              language = 'c++',
-              libraries = ["Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils",
-                           "OsiCbc", "OsiClp", "Osi"] + lapack_libs,
-              library_dirs = lapack_library_dirs,
-              include_dirs = lapack_include_dirs,
-              package = 'cbc'),
-
     ################################
     ##
     ## sage.plot
@@ -1200,6 +1200,9 @@ ext_modules = [
     Extension('sage.rings.tate_algebra_ideal',
               sources = ['sage/rings/tate_algebra_ideal.pyx']),
 
+    Extension('sage.rings.puiseux_series_ring_element',
+              sources = ['sage/rings/puiseux_series_ring_element.pyx']),
+
     Extension('sage.rings.rational',
               sources = ['sage/rings/rational.pyx'],
               libraries=['ntl']),
@@ -1227,6 +1230,18 @@ ext_modules = [
 
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']),
+
+    Extension('sage.rings.ring_extension',
+              sources = ['sage/rings/ring_extension.pyx']),
+
+    Extension('sage.rings.ring_extension_element',
+              sources = ['sage/rings/ring_extension_element.pyx']),
+
+    Extension('sage.rings.ring_extension_morphism',
+              sources = ['sage/rings/ring_extension_morphism.pyx']),
+
+    Extension('sage.rings.ring_extension_conversion',
+              sources = ['sage/rings/ring_extension_conversion.pyx']),
 
     Extension('*', ['sage/rings/convert/*.pyx']),
 
@@ -1520,6 +1535,14 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.skew_polynomial_element',
               sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
+    
+    Extension('sage.rings.polynomial.skew_polynomial_finite_order',
+              sources = ['sage/rings/polynomial/skew_polynomial_finite_order.pyx']),
+
+    # Note that weil_polynomials includes distutils directives in order to support
+    # conditional OpenMP compilation (by uncommenting lines)
+    Extension('sage.rings.polynomial.weil.weil_polynomials',
+              sources = ['sage/rings/polynomial/weil/weil_polynomials.pyx']),
 
 
     ################################
@@ -1552,6 +1575,9 @@ ext_modules = [
 
     Extension('sage.schemes.elliptic_curves.period_lattice_region',
               sources = ['sage/schemes/elliptic_curves/period_lattice_region.pyx']),
+    
+    Extension('sage.schemes.elliptic_curves.mod_sym_num',
+              sources = ['sage/schemes/elliptic_curves/mod_sym_num.pyx']),
 
     Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
               sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',

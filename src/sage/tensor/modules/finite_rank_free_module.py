@@ -1084,7 +1084,6 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         See
         :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`
         for more documentation.
-
         """
         from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
         if p == 0:
@@ -1188,7 +1187,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
           or a list/tuple of strings, representing the individual LaTeX symbols
           of the elements of the basis; if ``None``, ``symbol`` is used in
           place of ``latex_symbol``
-        - ``from_family`` -- (default: ``None``) tuple of `n` linearly
+        - ``from_family`` -- (default: ``None``) tuple or list of `n` linearly
           independent elements of the free module ``self`` (`n` being the
           rank of ``self``)
         - ``indices`` -- (default: ``None``; used only if ``symbol`` is a
@@ -1222,7 +1221,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: latex(e)
             \left(e_{0},e_{1},e_{2}\right)
 
-        The LaTeX symbol can be set explicitely::
+        The LaTeX symbol can be set explicitly::
 
             sage: eps = M.basis('eps', latex_symbol=r'\epsilon') ; eps
             Basis (eps_0,eps_1,eps_2) on the Rank-3 free module M
@@ -1268,8 +1267,8 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: e[1]
             Element e_1 of the Rank-3 free module M over the Integer Ring
 
-        Construction of a basis from a family of linearly independent module
-        elements::
+        Construction of a basis from a spanning family of linearly independent
+        module elements::
 
             sage: f1 = -e[2]
             sage: f2 = 4*e[1] + 3*e[3]
@@ -1302,6 +1301,15 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: all( f[i] == a(e[i]) for i in M.irange() )
             True
 
+        Providing a family of module elements that are not linearly independent
+        raise an error::
+
+            sage: g = M.basis('g', from_family=(f1, f2, f1+f2))
+            Traceback (most recent call last):
+            ...
+            ValueError: the provided module elements are not linearly
+             independent
+
         For more documentation on bases see
         :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis`.
 
@@ -1315,26 +1323,11 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
                                symbol_dual=symbol_dual,
                                latex_symbol_dual=latex_symbol_dual)
         if from_family:
-            n = self._rank
-            if len(from_family) != n:
-                raise ValueError("the size of the family is not {}".format(n))
-            for ff in from_family:
-                if ff not in self:
-                    raise TypeError("{} is not an element of {}".format(ff,
-                                                                        self))
-            # The automorphisms relating the family to previously defined
-            # bases are registered:
-            ff0 = from_family[0]
-            for basis in ff0._components:
-                try:
-                    comp = [ff.components(basis) for ff in from_family]
-                except ValueError:
-                    continue
-                mat = [[comp_ff[[i]] for comp_ff in comp]
-                                                        for i in self.irange()]
-                aut = self.automorphism()
-                aut.set_comp(basis)[:] = mat
-                self.set_change_of_basis(basis, resu, aut)
+            try:
+                resu._init_from_family(from_family)
+            except ZeroDivisionError:
+                raise ValueError("the provided module elements are not "
+                                 "linearly independent")
         return resu
 
     def tensor(self, tensor_type, name=None, latex_name=None, sym=None,
@@ -1643,6 +1636,13 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         for more documentation.
 
         """
+        if degree == 0:
+            try:
+                return self._ring.element_class(self._ring, name=name,
+                                                latex_name=latex_name)
+            except (KeyError, AttributeError):
+                raise NotImplementedError('{} apparently '.format(self._ring) +
+                                          'does not provide generic elements')
         return self.dual_exterior_power(degree).element_class(self, degree,
                                               name=name, latex_name=latex_name)
 

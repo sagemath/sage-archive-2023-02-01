@@ -228,7 +228,8 @@ cdef class Tokenizer:
 
     cdef int find(self) except -1:
         """
-        This function actually does all the work, and extensively is tested above.
+        This function actually does all the work, and is extensively tested
+        above.
         """
         cdef bint seen_exp, seen_decimal
         cdef int type

@@ -25,7 +25,6 @@ AUTHORS:
 # ****************************************************************************
 # python3
 from __future__ import division, absolute_import
-from six import add_metaclass
 
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.abstract_tree import (AbstractClonableTree,
@@ -45,8 +44,8 @@ from sage.sets.family import Family
 from sage.misc.cachefunc import cached_method
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class BinaryTree(AbstractClonableTree, ClonableArray):
+class BinaryTree(AbstractClonableTree, ClonableArray,
+        metaclass=InheritComparisonClasscallMetaclass):
     """
     Binary trees.
 
@@ -2674,10 +2673,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         composing it. A left (resp. right) branch is maximal if it is not
         included in a strictly longer left (resp. right) branch.
 
+        OUTPUT:
 
-        OUTPUT :
-
-        A list of two integers.
+        A list of two integers
 
         EXAMPLES::
 

@@ -1482,8 +1482,52 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
         EXAMPLES:
 
+        skew-symmetric matrices:
+        
+            sage: f = lambda x: -x
+            sage: MS = MetricSpace(GF(3), 2,2)
+            sage: gen = MS.symmetric_matrices(f)
+            sage: for M in gen:
+            ....:     print(M)
+            ....:     
+            [0 0]
+            [0 0]
+            [0 1]
+            [2 0]
+            [0 2]
+            [1 0]
+            sage: g = lambda x : 1
+            sage: gen = MS.symmetric_matrices(f,g)
+            sage: for M in gen:
+            ....:     print(M)
+            ....:     
+            [1 0]
+            [0 1]
+            [1 1]
+            [2 1]
+            [1 2]
+            [1 1]
         
         TESTS::
+        
+            sage: f = lambda x: -x
+            sage: MS = MatrixSpace(ZZ,3,3)
+            sage: gen = MS.symmetric_matrices(f)
+            sage: i = 0
+            sage: for M in gen:
+            ....:     i+= 1
+            ....:     print(M)
+            ....:     if i == 3: break
+            ....:     
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [ 0  1  0]
+            [-1  0  0]
+            [ 0  0  0]
+            [ 0  0  1]
+            [ 0  0  0]
+            [-1  0  0]
         
         """
         if self.__nrows != self.__ncols:

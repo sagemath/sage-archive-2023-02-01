@@ -76,7 +76,6 @@ Command-line options for Sage
 - ``-R [...]`` -- run Sage's R with the given arguments
 - ``--scons [...]`` -- run Sage's scons
 - ``--singular [...]`` -- run Sage's singular with the given arguments
-- ``--twistd [...]`` -- run Twisted server
 - ``--sh [...]`` -- run a shell with Sage environment variables
   as they are set in the runtime of Sage
 - ``--buildsh [...]`` -- run a shell with Sage environment variables

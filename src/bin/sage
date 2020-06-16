@@ -142,7 +142,6 @@ usage_advanced() {
     echo "                         as they are set while building Sage and its packages"
     echo "  -singular [...]     -- run Sage's singular with given arguments"
     echo "  -sqlite3 [...]      -- run Sage's sqlite3 with given arguments"
-    echo "  -twistd [...]       -- run Twisted server"
 
     echo
     ####  1.......................26..................................................78
@@ -550,11 +549,6 @@ fi
 if [ "$1" = '-sws2rst' -o "$1" = '--sws2rst' ]; then
     shift
     exec sage-sws2rst "$@"
-fi
-
-if [ "$1" = '-twistd' -o "$1" = '--twistd' ]; then
-    shift
-    exec twistd "$@"
 fi
 
 if [ "$1" = '-ecl' -o "$1" = '--ecl' ]; then

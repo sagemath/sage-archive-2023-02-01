@@ -2395,7 +2395,8 @@ class FusionRing(WeylCharacterRing):
             [  0   0   0   0 1/2   0]
             [  0   0   0   0   0 3/2]
         """
-        return diagonal_matrix(obj.twist() for obj in self.ordered_basis())
+        return diagonal_matrix(self.basis()[x].twist() for x in self.get_order())
+        # return diagonal_matrix(obj.twist() for obj in self.ordered_basis())
 
     def q_dims(self):
         r"""
@@ -2410,7 +2411,9 @@ class FusionRing(WeylCharacterRing):
             sage: B22.q_dims()
             [1, 1, 2, 2, -2*zeta40^12 + 2*zeta40^8 + 1, -2*zeta40^12 + 2*zeta40^8 + 1]
         """
-        return [x.q_dimension() for x in self.ordered_basis()]
+        b = self.basis()
+        return [b[x].q_dimension() for x in self.get_order()]
+        # return [x.q_dimension() for x in self.ordered_basis()]
 
     def ordered_basis(self):
         """
@@ -2498,7 +2501,12 @@ class FusionRing(WeylCharacterRing):
         ijtwist = -2*l*(elt_i.twist() + elt_j.twist())
         return sum(self(k).q_dimension()*q**(2*l*self(k).twist()+ijtwist) for k in (elt_i.dual()*elt_j).monomial_coefficients())
 
+
     def s_matrix(self):
+        b = self.basis()
+        return matrix([[self.s_ij(b[x],b[y]) for x in self.get_order()] for y in self.get_order()])
+
+    def s_matrix_old(self):
         r"""
         Return the S-matrix of this FusionRing.
 
@@ -2519,7 +2527,6 @@ class FusionRing(WeylCharacterRing):
             [ 1 -1 -1  1]
         """
         ord_basis = self.ordered_basis()
-        fusion_mats = [x.fusion_matrix() for x in ord_basis]
         rng = range(len(ord_basis))
         S = matrix(self.q_field(), len(ord_basis))
         for i in rng:

@@ -1,6 +1,6 @@
 cd src
 
-export CFLAGS=CFLAGS_O3
+export CFLAGS=$CFLAGS_O3
 
 # When using GMP from a standard system location it shouldn't really
 # matter what we put here, but iml's configure script requires we

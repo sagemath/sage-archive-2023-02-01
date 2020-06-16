@@ -1523,6 +1523,21 @@ cdef class RingHomomorphism(RingMap):
             raise ZeroDivisionError("ring homomorphism not surjective")
         return self.parent().reversed()(preimages, check=False)
 
+    def __invert__(self):
+        """
+        Return the inverse of this ring homomorphism if it exists.
+
+        This simply calls :meth:`inverse`.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = GF(17)[]
+            sage: f = R.hom([3*x, y + x^2 + x^3], R)
+            sage: (f * ~f).is_identity()
+            True
+        """
+        return self.inverse()
+
     def is_surjective(self):
         """
         Return whether this ring homomorphism is surjective.

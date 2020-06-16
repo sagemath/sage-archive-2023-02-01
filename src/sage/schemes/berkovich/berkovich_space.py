@@ -16,7 +16,7 @@ from sage.schemes.generic.morphism import is_SchemeMorphism
 from sage.schemes.affine.affine_space import AffineSpace
 from sage.schemes.generic.scheme import Scheme
 from sage.rings.rational_field import QQ
-from sage.rings.real_mpfr import is_RealNumber
+
 
 
 class Berkovich_Element(Element):
@@ -28,8 +28,8 @@ class Berkovich_Element(Element):
 class Berkovich_Element_Cp(Berkovich_Element):
     """
     The parent class for any element of Berkovich space over ``Cp``. 
-    This class should never be instantiated, instead BerkSpaceCpAffineElement
-    or BerkSpaceCpProjective should be used.
+    This class should never be instantiated, instead Berkovich_Element_Cp_Affine
+    or Berkovich_Element_Cp_Projective should be used.
     """
 
     def __init__(self, parent, center, radius=None, power=None, prec=20, child=None, error_check=True):
@@ -38,12 +38,15 @@ class Berkovich_Element_Cp(Berkovich_Element):
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         from sage.rings.fraction_field_element import FractionFieldElement_1poly_field
         self._type = None
+
+        #if center is a list, this is a Type 4 point
         if isinstance(center, list):
             if error_check:
                 if not isinstance(radius, list):
                     raise ValueError("center was passed a list but radius was not a list")
                 if len(radius) != len(center):
-                    raise ValueError("The same number of centers and radii must be specified to create a Type IV point")
+                    raise ValueError("The same number of centers and radii must be specified to create \
+                        a Type IV point")
             self._center_lst = list(center)
             self._radius_lst = list(radius)
             self._prec = len(self._radius_lst)
@@ -52,22 +55,30 @@ class Berkovich_Element_Cp(Berkovich_Element):
             self._type = 4
             if not error_check:
                 return
+
+        #is_FunctionFieldElement calls .parent
         elif hasattr(center, "parent"):
-            if is_FunctionFieldElement(center) or is_Polynomial(center) or isinstance(center, FractionFieldElement_1poly_field) or is_Expression(center):
+            #if center is a supported univariate function, this is a Type 4 point
+            if is_FunctionFieldElement(center) or is_Polynomial(center) or\
+                isinstance(center, FractionFieldElement_1poly_field) or is_Expression(center):
                 #check that both center and radii are supported univariate function
                 center_expr_check = False
                 radius_expr_check = False
                 if error_check:
                     if is_Expression(center):
                         if len(center.variables()) != 1:
-                            raise ValueError("An expression with %s variables cannot define the centers approximating a Type IV point" %(len(center.variables())))
+                            raise ValueError("An expression with %s variables cannot define \
+                                the centers approximating a Type IV point" %(len(center.variables())))
                         else:
+                            #we do this since .subs is currently bugged for polynomials but not expressions
                             center_expr_check = True
-                    if not (is_FunctionFieldElement(radius) or is_Polynomial(radius) or isinstance(radius, FractionFieldElement_1poly_field) or is_Expression(radius)):
+                    if not (is_FunctionFieldElement(radius) or is_Polynomial(radius) or\
+                        isinstance(radius, FractionFieldElement_1poly_field) or is_Expression(radius)):
                         raise ValueError("center was passed a function but radius was not a function")
                     if is_Expression(radius):
                         if len(radius.variables()) != 1:
-                            raise ValueError("An expression with %s variables cannot define the radii approximating a Type IV point" %(len(radius.variables())))
+                            raise ValueError("An expression with %s variables cannot define the radii \
+                                approximating a Type IV point" %(len(radius.variables())))
                         else:
                             radius_expr_check = True
                 else:
@@ -87,9 +98,11 @@ class Berkovich_Element_Cp(Berkovich_Element):
                     y = self._radius_func.variables()[0]
                 for i in range(1,self._prec+1):
                     if center_expr_check:
-                        center_lst.append(self._center_func.subs({x:i})) #we use .subs for expressions to avoid deprecation
+                        #we use .subs for expressions to avoid deprecation
+                        center_lst.append(self._center_func.subs({x:i}))
                     else:
-                        center_lst.append(self._center_func(i)) #.subs for polynomials is currently bugged
+                        #.subs for polynomials is currently bugged
+                        center_lst.append(self._center_func(i))
                     if radius_expr_check:
                         radius_lst.append(self._radius_func.subs({y:i}))
                     else:
@@ -98,21 +111,31 @@ class Berkovich_Element_Cp(Berkovich_Element):
                 self._radius_lst = radius_lst
                 if not error_check:
                     return
+
         if self._type == 4 and error_check:
+            from sage.rings.real_mpfr import is_RealNumber
             if child == "projective":
                 for i in range(len(self._center_lst)):
                     center = self._center_lst[i]
                     radius = self._radius_lst[i]
+                    #make sure the center is a point of projective space and not the point at infinity
                     if not isinstance(center, SchemeMorphism_point_projective_field):
                         try:
                             center = (self._base_space)(center)
                             self._center_lst[i] = center
                         except:
-                            raise ValueError("The center of a point of Projective Berkovich space must be a point of P^1(Cp(%s))"%(self._p))
+                            raise ValueError("The center of a point of Projective Berkovich \
+                                space must be a point of P^1(Cp(%s)), not of %s"%(self._p, center.parent()))
                     if center.scheme().ambient_space() != center.scheme():
-                        raise ValueError("The center of a point of Berkovich space over P^1(Cp(%s)) cannot be a point of %s" %(self._p,center.scheme()))
+                        raise ValueError("The center of a point of Berkovich space over P^1(Cp(%s)) \
+                            cannot be a point of %s" %(self._p,center.scheme()))
                     if (center.scheme()).base_ring().prime() != self._p:
-                        raise ValueError("The center of a point of Berkovich space over P^1(Cp(%s)) cannot be a point of %s") %(self._p, center.scheme())
+                        raise ValueError("The center of a disk approximating a Type IV point of Berkovich space\
+                             over P^1(Cp(%s)) cannot be a point of %s") %(self._p, center.scheme())
+                    if center == (center.scheme())((1,0)):
+                        raise ValueError("The center of a disk approximating a Type IV point of Berkovich \
+                            space cannot be centered at %s" %((center.scheme())((1,0))))
+                    #make sure the radius coerces into the reals
                     if not is_RealNumber(radius):
                         if is_Expression(radius):
                             radius = RR(radius)
@@ -120,26 +143,33 @@ class Berkovich_Element_Cp(Berkovich_Element):
                             radius = RR(radius)
                             self._radius_lst[i] = radius
                         else:
-                            raise ValueError("The radius of a disk approximating a Type IV point must coerce into the real numbers, %s does not coerce" %(radius))
+                            raise ValueError("The radius of a disk approximating a Type IV point \
+                                must coerce into the real numbers, %s does not coerce" %(radius))
                     if i != 0:
+                        #check containment for the sequence of disks
                         previous_center = self._center_lst[i-1]
                         previous_radius = self._radius_lst[i-1]
                         dist = (center[0] - previous_center[0]).abs()
                         if previous_radius < radius or dist > radius:
-                            raise ValueError("Sequence of disks does not define a Type IV point as containment is not proper")
+                            raise ValueError("Sequence of disks does not define a Type IV point as \
+                                containment is not proper")
                 return
             elif child == "affine":
                 for i in range(len(self._center_lst)):
                     center = self._center_lst[i]
                     radius = self._radius_lst[i]
+                    #make sure the center is in Cp
                     if not isinstance(center, pAdicGenericElement):
                         try:
                             center = (self._base_space)(center)
                             self._center_lst[i] = center
                         except:
-                            raise ValueError("The center of a disk approximating a Type IV point must be padic or coerce into Qp, %s does not coerse into Qp" %(center))
+                            raise ValueError("The center of a disk approximating a Type IV point must \
+                                be padic or coerce into Qp, %s does not coerse into Qp" %(center))
                     if (center.parent()).prime() != self._p:
-                        raise ValueError("The center of a disk approximating a Type IV point of Berkovich space over Cp(%s) cannot be a point of %s") %(self._p, center.parent())
+                        raise ValueError("The center of a disk approximating a Type IV point of Berkovich \
+                            space over Cp(%s) cannot be a point of %s") %(self._p, center.parent())
+                    #make sure the radius coerces into the reals
                     if not is_RealNumber(radius):
                         if is_Expression(radius):
                             radius = RR(radius)
@@ -147,24 +177,61 @@ class Berkovich_Element_Cp(Berkovich_Element):
                             radius = RR(radius)
                             self._radius_lst[i] = radius
                         else:
-                            raise ValueError("The radius of a disk approximating a Type IV point must coerce into the real numbers, %s does not coerce" %(radius))
+                            raise ValueError("The radius of a disk approximating a Type IV point must \
+                                coerce into the real numbers, %s does not coerce" %(radius))
                     if i != 0:
+                        #check containment for the sequence of disks
                         previous_center = self._center_lst[i-1]
                         previous_radius = self._radius_lst[i-1]
                         dist = (center - previous_center).abs()
                         if previous_radius < radius or dist > radius:
-                            raise ValueError("Sequence of disks does not define a Type IV point as containment is not proper")
+                            raise ValueError("Sequence of disks does not define a Type IV point as \
+                                containment is not proper")
                 return
             else:
-                raise ValueError("bad value %s passed to child. Do not initialize BerkSpaceCpElement directly" %(child))
+                raise ValueError("bad value %s passed to child. Do not initialize Berkovich_Element_Cp \
+                    directly" %(child))
             return
-        self._prec = None
+
+        #the point must now be Type 1, 2, or 3, so we check that the center is of the appropriate type
+        if child == "affine" and error_check:
+            if not isinstance(center, pAdicGenericElement):
+                try:
+                    center = (self._base_space)(center)
+                except:
+                    raise ValueError("The center of a point of Affine Berkovich space over %s must convert \
+                        to %s" %(self._base_space,self._base_space))
+            if (center.parent()).prime() != self._p:
+                raise ValueError("The center of a point of Berkovich space over Cp(%s) cannot be a point of %s")\
+                    %(self._p, center.parent())
+        elif child == "projective" and error_check:
+            if not isinstance(center, SchemeMorphism_point_projective_field):
+                try:
+                    center = (self._base_space)(center)
+                except:
+                    raise ValueError("The center of a point of Projective Berkovich space must be a \
+                        point of P^1(Cp) or coerce into P^1(Qp)") #TODO change to Qpbar
+            if not(center.scheme().ambient_space() is center.scheme()):
+                    raise ValueError("The center of a point of Projective Berkovich space cannot be \
+                        a point of %s" %(center.scheme()))
+            if (center.scheme()).base_ring().prime() != self._p:
+                raise ValueError("The center of a point of Berkovich space over P^1(Cp(%s)) cannot \
+                    be a point of %s") %(self._p, center.scheme())
+        elif child != "affine" and child != "projective":
+            raise ValueError("bad value %s passed to child. Do not initialize Berkovich_Element_Cp \
+                    directly" %(child))
         self._center = center
         if (radius == None and power == None) or radius == 0:
             self._type = 1
             self._radius = 0
             self._power = None
             return
+        #In order to simplify our representation, Type II and III points cannot be centered at infinity
+        if child == "projective":
+            try:
+                center.dehomogenize(1)
+            except ValueError:
+                raise ValueError("Type II and III points cannot be centered at (1 : 0)")
         if power != None:
             if error_check:
                 if power.parent() != QQ:
@@ -190,6 +257,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                     self._radius = radius
                 except:
                     raise ValueError("Symbolic radius must be a real number")
+            from sage.rings.real_mpfr import is_RealNumber
             if (not is_RealNumber(radius)) and power == None:
                 if RR.has_coerce_map_from(radius.parent()):
                     self._radius = RR(radius)
@@ -224,7 +292,14 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def diameter(self):
         """
-        Diameter function on Berkovich space
+        Diameter function on Berkovich space.
+
+        For Type I, II, and III points, returns the radius.
+        For Type IV points returns either the last radius
+        in the finite approximation, or if a generating function
+        was given for the radii, the diameter is computed
+        as the limit of the function as it's variable tends
+        to infinity.
 
         EXAMPLES::
 
@@ -257,7 +332,6 @@ class Berkovich_Element_Cp(Berkovich_Element):
     def hyperbolic_metric(self, other):
         """
         Returns the hypebolic distance metric distance between ``self`` and ``other``.
-        Not defined for Type I points.
 
         EXAMPLES::
 
@@ -272,7 +346,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
             raise ValueError("Hyperbolic metric not defined between point of Berkovich space and %s" %(other))
         if self.parent() != other.parent():
             raise ValueError("Input to hyperbolic metric was an element of a different Berkovich space")
-        if self.Type() == 1 or other.Type() == 1:
+        if self.type_of_point() == 1 or other.type_of_point() == 1:
             if self == other:
                 return 0
             else:
@@ -326,7 +400,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
             return self._center_lst[:]
         return self._center
 
-    def Type(self):
+    def type_of_point(self):
         """
         Returns the Type of this point of Berkovich space over ``Cp``
         """
@@ -369,7 +443,18 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
 class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
     r"""
-    Element class of the Berkovich affine line over Cp
+    Element class of the Berkovich affine line over `\CC_p`
+
+    Elements are categorized into four Types, represented by specific data:
+
+     - Type I points are represented by a center in `\QQ_p` or a finite extension
+
+     - Type II points are represented by a center in `\QQ_p` and a rational power of `p`
+
+     - Type III points are represented by a center in `\QQ_p` and a radius in `[0,\infty)`
+
+     - Type IV points are represented by a finite list of centers in `\QQ_p` and 
+       a finite list of radii in `[0,\infty)`. 
 
     INPUT:
 
@@ -378,13 +463,17 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
      of `\QQ_p`, or coerce into `\QQ_p`. For Type IV points, can be a list of centers
      used to approximate the point or a univariate function that computes the centers 
      (computation starts at 1).
+
     - ``radius`` -- (optional) For Type I, II, and III points, the radius of the 
      corresponding disk in ``Cp``. Must coerce into the real numbers. For Type IV points,
      can be a list of radii used to approximate the point or a univariate function that
      computes the radii (computation starts at 1). 
+
     - ``power`` -- (optional) Rational number. Used for constructing Type II points; specifies
      the power of ``p`` such that p^power = radius
+
     - ``prec`` -- (default: 20) The number of disks to be used to approximate a Type IV point
+
     - ``error_check`` -- (default: True) If error checking should be run on input. If
      input is correctly formatted, can be set to ``False`` for better performance. 
      WARNING: with error check set to ``False``, any error in the input will lead to 
@@ -492,28 +581,26 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     """
     def __init__(self, parent, center, radius=None, power=None, prec=20, error_check=True):
-        if not error_check and not(isinstance(center, Berkovich_Element_Cp_Projective)):
-            self._p = parent.prime()
-            self._base_space = parent.base()
-            Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,prec=prec,child="affine",error_check=error_check)
-            return
-        if not isinstance(parent, Berkovich_Cp_Affine):
-            raise ValueError("The parent of a point of Berkovich space must be Berkovich space")
+        #we call Berkovich_Element_Cp constructor which is shared with projective Berkovich space
+        #unless we are passed a point of projective Berkovich space
         self._p = parent.prime()
         self._base_space = parent.base()
+
+        #if this is a point of projective berkovich space, we do the conversion
         if isinstance(center, Berkovich_Element_Cp_Projective):
             if (center.prime() == self._p):
                 Element.__init__(self, parent)
                 try:
                     center.center().dehomogenize(1)
                 except:
-                    raise ValueError("The point at infinity of Berkovich Projective space does not convert to Berkovich Affine space")
+                    raise ValueError("The point at infinity of Berkovich Projective space does not \
+                        convert to Berkovich Affine space")
                 self._center = center.center()[0]
                 self._radius = center._radius
                 self._power = center._power
-                self._prec = center._prec
                 self._type = center._type
                 if self._type == 4:
+                    self._prec = center._prec
                     self._center_func = center._center_func
                     self._radius_func = center._center_func
                     self._radius_lst = center._radius_lst
@@ -523,25 +610,13 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
                     self._center_lst = center_lst
                 return
             else:
-                raise ValueError("Tried to convert from a point of Berkovich space over Cp(%s) to a point of Berkovich space over Cp(%s)" %(center._base_space.base_ring().prime(),parent.base().prime()))
-        from sage.rings.function_field.element import is_FunctionFieldElement
-        from sage.rings.polynomial.polynomial_element import is_Polynomial
-        from sage.rings.fraction_field_element import FractionFieldElement_1poly_field
-        if isinstance(center, list):
-            Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,prec=prec,child="affine",error_check=error_check)
-            return
-        elif hasattr(center, "parent"):
-            if is_FunctionFieldElement(center) or is_Polynomial(center) or isinstance(center, FractionFieldElement_1poly_field) or is_Expression(center):
-                Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,prec=prec,child="affine",error_check=error_check)
-                return
-        if not isinstance(center, pAdicGenericElement):
-            try:
-                center = (self._base_space)(center)
-            except:
-                raise ValueError("The center of a point of Affine Berkovich space over %s must convert to %s" %(self._base_space,self._base_space))
-        if (center.parent()).prime() != self._p:
-            raise ValueError("The center of a point of Berkovich space over Cp(%s) cannot be a point of %s") %(self._p, center.parent())
-        Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,prec=prec,child="affine",error_check=error_check)
+                raise ValueError("Tried to convert from a point of Berkovich space over Cp(%s) to a \
+                    point of Berkovich space over Cp(%s)" %(center._base_space.base_ring().prime(), \
+                    parent.base().prime()))
+
+        #otherwise we call the Berkovich_Element_Cp constructor with child=affine
+        Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,\
+            prec=prec,child="affine",error_check=error_check)
 
     def __eq__(self, other):
         """
@@ -553,8 +628,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             return False
         if other.parent() != self.parent():
             return False
-        stype = self.Type()
-        otype = other.Type()
+        stype = self.type_of_point()
+        otype = other.type_of_point()
         if stype == otype and stype == 1:
             return self.center() == other.center()
         elif stype == otype and stype == 4:
@@ -600,8 +675,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             raise ValueError("partial order takes another point of the Berkovich Affine line, not %s" %(other))
         if self.parent() != other.parent():
             raise ValueError("partial order takes another point of the same Berkovich Affine line")
-        if self.Type() in [1,4]:
-            if other.Type() in [1,4]:
+        if self.type_of_point() in [1,4]:
+            if other.type_of_point() in [1,4]:
                 if self == other:
                     return True
                 else:
@@ -609,7 +684,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             else:
                 return False
         else:
-            if other.Type() in [1,4]:
+            if other.type_of_point() in [1,4]:
                 return True
             else:
                 dist = (self.center()-other.center()).abs()
@@ -624,19 +699,20 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
                     else:
                         return None
 
-    def join(self, other, basepoint="oo"):
+    def join(self, other, basepoint="infty"):
         """
-        Computes the join of ``self`` and ``other``, with respect
-        to ``basepoint``. The join is first point that lies on the interesection
+        Computes the join of ``self`` and ``other`` with respect to ``basepoint``.
+
+        The join is first point that lies on the interesection
         of the path from self to basepoint and the path from other to
         basepoint.
 
         INPUT:
-         
+
          - ``other`` -- the second point with which to take the join
          - ``basepoint`` -- (default: Infinity) the basepoint with which
          to take the join with respect to
-        
+
         EXAMPLES::
 
             sage: B = Berkovich_Cp_Affine(Qp(3))
@@ -671,9 +747,9 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             raise ValueError("join of a point of the Berkovich Affine line takes another point of the Berkovich Affine line, not %s" %(other))
         if self.parent() != other.parent():
             raise ValueError("join takes two points in the same Berkovich Affine line")
-        if self.Type() == 4 or other.Type() == 4:
+        if self.type_of_point() == 4 or other.type_of_point() == 4:
             raise NotImplementedError("join with Type IV points not implemented")
-        if basepoint == "oo":
+        if basepoint == "infty":
             dist = (self.center() - other.center()).abs()
             return self.parent()(self.center(),max(dist,self.radius(),other.radius()))
         else:
@@ -681,7 +757,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
                 raise ValueError("basepoint for join must be a point of the Berkovich Affine line over Cp")
             if basepoint.parent() != self.parent():
                 raise ValueError("basepoint must be a point of the same Berkovich Affine line")
-            if basepoint.Type() == 4:
+            if basepoint.type_of_point() == 4:
                 raise NotImplementedError("join not implemented for Type IV basepoint")
             b_greater_than_s = basepoint.partial_order(self)
             b_greater_than_o = basepoint.partial_order(other)
@@ -722,8 +798,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def potential_kernel(self, other, basepoint):
         """
-        The potential kernel of ``self`` with ``other``,
-        with basepoint ``basepoint``.
+        The potential kernel of ``self`` with ``other``, with basepoint ``basepoint``.
         """
         if not isinstance(other,Berkovich_Element_Cp_Affine):
             raise ValueError("potential kernel of a point of the Berkovich Affine line takes another point of the Berkovich Affine line, not %s" %(other))
@@ -755,8 +830,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def Hsia_kernel(self, other, basepoint):
         """
-        The Hsia kernel of ``self`` and ``other``,
-        with basepoint ``basepoint``
+        The Hsia kernel of ``self`` and ``other``, with basepoint ``basepoint``.
         """
         if not isinstance(other,Berkovich_Element_Cp_Affine):
             raise ValueError("Hsia kernel of a point of the Berkovich Affine line takes another point of the Berkovich Affine line, not %s" %(other))
@@ -766,7 +840,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             raise ValueError("basepoint must be a point of the Berkovich Affine line over Cp")
         if basepoint.parent() != self.parent():
             raise ValueError("basepoint must be a point of the same Berkovich Affine line")
-        if basepoint.Type() == 1:
+        if basepoint.type_of_point() == 1:
             if self == basepoint or other == basepoint:
                 return "oo"
         return (self.spherical_kernel(other))/(self.spherical_kernel(basepoint)*other.spherical_kernel(basepoint))
@@ -789,7 +863,24 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
 class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
     r"""
-    Element class of the Berkovich projective line over Cp
+    Element class of the Berkovich Projective line over `\CC_p`
+    
+    Elements are categorized into four Types, which are represented as follows:
+
+     - Type I points are represented by a center in Projective Space of dimension 1 over
+       `\QQ_p` or over a finite extension of `\QQ_p`
+
+     - Type II points are represented by a center in Projective Space of dimension 1 over
+       `\QQ_p` or over a finite extension of `\QQ_p` and a rational power of `p`.
+       Type II points cannot be centered at the point at infinity.
+
+     - Type III points are represented by a center in Projective Space of dimension 1 over
+       `\QQ_p` or over a finite extension of `\QQ_p` and a radius in [0,`\infty`).
+       Type III points are cannot be centered at the point at infinity.
+
+     - Type IV points are represented by finite list of centers in Projective Space of dimension 1 over
+       `\QQ_p` or over a finite extension of `\QQ_p` and by a finite list of radii in [0,`\infty`).
+       None of the centers can be the point at infinity.
 
     INPUT:
 
@@ -798,15 +889,20 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
      of `\QQ_p`, or coerce into `\QQ_p`. For Type IV points, can be a list of centers
      used to approximate the point or a univariate function that computes the centers 
      (computation starts at 1).
+
     - ``radius`` -- (optional) For Type I, II, and III points, the radius of the 
      corresponding disk in ``Cp``. Must coerce into the real numbers. For Type IV points,
      can be a list of radii used to approximate the point or a univariate function that
      computes the radii (computation starts at 1). 
+
     - ``power`` -- (optional) Rational number. Used for constructing Type II points; specifies
      the power of ``p`` such that p^power = radius
+
     - ``prec`` -- (default: 20) The number of disks to be used to approximate a Type IV point
+
     - ``error_check`` -- (default: True) If error checking should be run on input. If
      input is correctly formatted, can be set to ``False`` for better performance.
+     WARNING: Setting error_check to ``False`` can lead to incorrect results.
 
     EXAMPLES::
 
@@ -814,7 +910,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         sage: S = ProjectiveSpace(Qp(5),1)
         sage: P = Berkovich_Cp_Projective(S); P
-        Projective Berkovich line over Cp(5)
+        Projective Berkovich line over Cp(5) of precision 20
 
         sage: a = S((0,1))
         sage: Q1 = P(a); Q1
@@ -869,27 +965,22 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     """
     def __init__(self, parent, center, radius=None, power=None, prec=20, error_check=True):
-        if not error_check and not(isinstance(center, Berkovich_Element_Cp_Affine)):
-            self._p = parent.prime()
-            self._base_space = parent.base()
-            Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,prec=prec,child="projective",error_check=error_check)
-            return
-        if not isinstance(parent, Berkovich_Cp_Projective):
-            raise ValueError("The parent of a point of Berkovich space must be Berkovich space")
+        #if we are given a point of Affine Berkovich Space, we do the conversion
+        #otherwise we call the Berkovich_Element_Cp constructor with child="projective"
+
         self._p = parent.prime()
         self._base_space = parent.base()
-        from sage.rings.function_field.element import is_FunctionFieldElement
-        from sage.rings.polynomial.polynomial_element import is_Polynomial
-        from sage.rings.fraction_field_element import FractionFieldElement_1poly_field
+
+        #conversion from Affine points is handled in this constructor
         if isinstance(center, Berkovich_Element_Cp_Affine):
             if (center.prime() == self._p):
                 Element.__init__(self, parent)
                 self._center = (self._base_space)(center._center)
                 self._radius = center._radius
                 self._power = center._power
-                self._prec = center._prec
                 self._type = center._type
                 if self._type == 4:
+                    self._prec = center._prec
                     self._center_func = center._center_func
                     self._radius_func = center._center_func
                     self._radius_lst = center._radius_lst
@@ -899,31 +990,11 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                     self._center_lst = center_lst
                 return
             else:
-                raise ValueError("Tried to convert from a point of Berkovich space over Cp(%s) to a point of Berkovich space over Cp(%s)" %(center._base_space.base_ring().prime(),parent.base().prime()))
-        if isinstance(center, list):
-            Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,prec=prec,child="projective",error_check=error_check)
-            return
-        elif hasattr(center, "parent"):
-            if is_FunctionFieldElement(center) or is_Polynomial(center) or isinstance(center, FractionFieldElement_1poly_field) or is_Expression(center):
-                Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,prec=prec,child="projective",error_check=error_check)
-                return
-        if not isinstance(center, SchemeMorphism_point_projective_field):
-            try:
-                center = (self._base_space)(center)
-            except:
-                raise ValueError("The center of a point of Projective Berkovich space must be a point of P^1(Cp) or coerce into P^1(Qp)") #TODO change to Qpbar
-        if not(center.scheme().ambient_space() is center.scheme()):
-                raise ValueError("The center of a point of Projective Berkovich space cannot be a point of %s" %(center.scheme()))
-        if (center.scheme()).base_ring().prime() != self._p:
-            raise ValueError("The center of a point of Berkovich space over P^1(Cp(%s)) cannot be a point of %s") %(self._p, center.scheme())
-        if (radius == None and power == None) or radius == 0:
-            Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,prec=prec,child="projective",error_check=error_check)
-            return
-        try:
-            center.dehomogenize(1)
-        except ValueError:
-            raise ValueError("Type II and III points cannot be centered at (1 : 0)")
-        Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,prec=prec,child="projective",error_check=error_check)
+                raise ValueError("Tried to convert from a point of Berkovich space over Cp(%s) to a point \
+                    of Berkovich space over Cp(%s)" %(center._base_space.base_ring().prime(),parent.base().prime()))
+
+        Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,\
+                prec=prec,child="projective",error_check=error_check)
 
     def _field_center(self):
         """
@@ -944,8 +1015,8 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             return False
         if other.parent() != self.parent():
             return False
-        stype = self.Type()
-        otype = other.Type()
+        stype = self.type_of_point()
+        otype = other.type_of_point()
         if stype == otype and stype == 1:
             return self.center() == other.center()
         elif stype == otype and stype == 4:
@@ -993,8 +1064,8 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             raise ValueError("partial order takes another point of the Berkovich Projective line, not %s" %(other))
         if self.parent() != other.parent():
             raise ValueError("partial order takes another point of the same Berkovich Projective line")
-        if self.Type() in [1,4]:
-            if other.Type() in [1,4]:
+        if self.type_of_point() in [1,4]:
+            if other.type_of_point() in [1,4]:
                 if self == other:
                     return True
                 else:
@@ -1002,7 +1073,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             else:
                 return False
         else:
-            if other.Type() in [1,4]:
+            if other.type_of_point() in [1,4]:
                 return True
             else:
                 dist = (self._field_center()-other._field_center()).abs()
@@ -1017,10 +1088,11 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                     else:
                         return None
 
-    def join(self, other, basepoint="oo"):
+    def join(self, other, basepoint="infty"):
         """
-        Computes the join of ``self`` and ``other``, with respect
-        to ``basepoint``. The join is first point that lies on the interesection
+        Computes the join of ``self`` and ``other``, with respect to ``basepoint``. 
+
+        The join is first point that lies on the interesection
         of the path from self to basepoint and the path from other to
         basepoint.
 
@@ -1064,10 +1136,10 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             raise ValueError("join of a point of the Berkovich Projective line takes another point of the Berkovich Projective line, not %s" %(other))
         if self.parent() != other.parent():
             raise ValueError("join takes two points in the same Berkovich Projective line")
-        if self.Type() == 4 or other.Type() == 4:
+        if self.type_of_point() == 4 or other.type_of_point() == 4:
             raise NotImplementedError("join with Type IV points not implemented")
         infty = (self.parent())((1,0))
-        if basepoint == "oo" or basepoint == infty:
+        if basepoint == "infty" or basepoint == infty:
             if self == infty or other == infty:
                 return infty
             else:
@@ -1078,7 +1150,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                 raise ValueError("basepoint for join must be a point of the Berkovich Affine line over Cp")
             if basepoint.parent() != self.parent():
                 raise ValueError("basepoint must be a point of the same Berkovich Affine line")
-            if basepoint.Type() == 4:
+            if basepoint.type_of_point() == 4:
                 raise NotImplementedError("join not implemented for Type IV basepoint")
             if self == infty or other == infty:
                 if self == other:
@@ -1143,7 +1215,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             raise ValueError("basepoint must be a point of the Berkovich Affine line over Cp")
         if basepoint.parent() != self.parent():
             raise ValueError("basepoint must be a point of the same Berkovich Affine line")
-        if basepoint.Type() == 1:
+        if basepoint.type_of_point() == 1:
             if self == basepoint or other == basepoint:
                 return "oo"
         return (self.spherical_kernel(other))/(self.spherical_kernel(basepoint)*other.spherical_kernel(basepoint))
@@ -1171,11 +1243,50 @@ class Berkovich(UniqueRepresentation,Parent):
     pass
 
 class Berkovich_Cp_Affine(Berkovich):
-    """
-    The Berkovich affine line over Cp
-    """
+    r"""
+    The Berkovich Affine line over `\CC_p`.
+    
+    The Berkovich Affine line can be thought of as the set of seminorms on `\CC_p[x]`,
+    with the weakest topology that makes the map `| \cdot | \to |f|` continuous
+    for all `f \in \CC_p[x]`.
 
+    INPUT:
+
+     - ``base`` - The prime ``p``. Alternative, can be `\QQ_p` or a finite extension.
+       This allows for more control over automated conversion of centers of points.
+
+    EXAMPLES::
+
+        sage: B = Berkovich_Cp_Affine(3); B
+        Affine Berkovich line over Cp(3) of precision 20
+
+    Initializing by passing in Qp space looks the same::
+
+        sage: B = Berkovich_Cp_Affine(Qp(3)); B
+        Affine Berkovich line over Cp(3) of precision 20
+
+    However, this method allows for more control over behind-the-scenes conversion::
+
+        sage: B = Berkovich_Cp_Affine(Qp(3,1)); B
+        Affine Berkovich line over Cp(3) of precision 1
+
+        sage: Q1 = B(1/2); Q1
+        Type I point centered at 2 + O(3)
+
+    Note that this point has very low precision, as B was initialized
+    with a padic field of capped-relative precision one. For high precision,
+    pass in a high precision padic field::
+
+        sage: B = Berkovich_Cp_Affine(Qp(3,1000)); B
+        Affine Berkovich line over Cp(3) of precision 1000
+    """
     def __init__(self,base):
+        from sage.rings.integer_ring import ZZ
+        if base in ZZ:
+            if base.is_prime():
+                base = Qp(base) #TODO chance to Qpbar
+            else:
+                raise ValueError("Non-prime pased into Berkovich space")
         from sage.rings.padics.generic_nodes import is_pAdicField
         if not is_pAdicField(base): #TODO change base to Qpbar(prime)
             raise ValueError("Base of Berkovich Space must be a padic field")
@@ -1195,7 +1306,7 @@ class Berkovich_Cp_Affine(Berkovich):
         return False
 
     def _repr_(self):
-        return "Affine Berkovich line over Cp(%s)" %(self.prime())
+        return "Affine Berkovich line over Cp(%s) of precision %s" %(self.prime(),self.base().precision_cap())
     
     def _latex_(self):
         return r"\text{Affine Berkovich line over } \Bold{C}_{%s}" %(self.prime())
@@ -1203,17 +1314,60 @@ class Berkovich_Cp_Affine(Berkovich):
     Element = Berkovich_Element_Cp_Affine
 
 class Berkovich_Cp_Projective(Berkovich):
-    """
-    The Berkovich projective line over Cp
-    """
+    r"""
+    The Berkovich Projective line over `\CC_p`.
 
+    The Berkovich Projective line can be thought of as the one-point compactification
+    of the Berkovich Affine line.
+
+    INPUT:
+
+     - base - The prime number `p`. Alternatively, can be a Projective Space over
+       `\QQ_p` or a finite extension of `\QQ_p`. This allows for more control of conversion of centers.
+
+    EXAMPLES::
+
+        sage: B = Berkovich_Cp_Projective(3); B
+        Projective Berkovich line over Cp(3) of precision 20
+
+    Initializing by passing in a projective space looks the same::
+
+        sage: S = ProjectiveSpace(Qp(3),1)
+        sage: B = Berkovich_Cp_Projective(S); B
+        Projective Berkovich line over Cp(3) of precision 20
+
+    However, this method allows for more control over behind-the-scenes conversion::
+
+        sage: S = ProjectiveSpace(Qp(3,1),1)
+        sage: B = Berkovich_Cp_Projective(S); B
+        Projective Berkovich line over Cp(3) of precision 1
+
+        sage: Q1 = B(1/2); Q1
+        Type I point centered at (2 + O(3) : 1 + O(3))
+
+    Note that this point has very low precision, as S is a scheme over
+    Qp(3) of capped-relative precision one.
+
+    """
     def __init__(self,base):
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        if not is_ProjectiveSpace(base):
-            raise ValueError("Base of Projective Berkovich Space must be Projective Space")
-        from sage.rings.padics.generic_nodes import is_pAdicField
-        if not (is_pAdicField(base.base_ring())):
-            raise ValueError("Base of Projective Berkovich Space must be Projective Space over Qp")
+        from sage.rings.integer_ring import ZZ
+        if base in ZZ:
+            if base.is_prime():
+                base = ProjectiveSpace(Qp(base),1)
+            else:
+                raise ValueError("Non-prime pased into Berkovich space")
+        else:
+            from sage.schemes.projective.projective_space import is_ProjectiveSpace
+            if not is_ProjectiveSpace(base):
+                raise ValueError("Base of Projective Berkovich Space must be Projective Space")
+            from sage.rings.padics.generic_nodes import is_pAdicField
+            if not (is_pAdicField(base.base_ring())):
+                raise ValueError("Base of Projective Berkovich Space must be Projective Space over Qp")
+            if base.ambient_space() != base:
+                raise ValueError("Base of Projective Berkovich Space must be Projective Space over Qp")
+            if base.dimension() != 1:
+                raise ValueError("Base of Projective Berkovich Space must be Projective Space of \
+                    dimension 1 over Qp")
         self._p = base.base_ring().prime()
         Parent.__init__(self, base = base, category=TopologicalSpaces())
 
@@ -1230,7 +1384,8 @@ class Berkovich_Cp_Projective(Berkovich):
         return False
     
     def _repr_(self):
-        return "Projective Berkovich line over Cp(%s)" %(self.prime())
+        return "Projective Berkovich line over Cp(%s) of precision %s" %(self.prime(),\
+            self.base().base_ring().precision_cap())
     
     def _latex_(self):
         return r"\text{Projective Berkovich line over } \Bold{C}_{%s}" %(self.prime())

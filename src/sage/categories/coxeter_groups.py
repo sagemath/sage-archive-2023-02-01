@@ -1514,21 +1514,21 @@ class CoxeterGroups(Category_singleton):
                     y = tuple(y)
                     # Check that the reduced expressions differ by only
                     #   a single braid move
-                    i = 0
-                    while i < len(x) and x[i] == y[i]:
-                        i += 1
-                    if i == len(x):
+                    j = 0
+                    while j < len(x) and x[j] == y[j]:
+                        j += 1
+                    if j == len(x):
                         continue
-                    a, b = x[i], y[i]
+                    a, b = x[j], y[j]
                     m = P.coxeter_matrix()[a, b]
                     subword = [a, b] * (m // 2)
                     subword2 = [b, a] * (m // 2)
                     if m % 2:
                         subword.append(a)
                         subword2.append(b)
-                    if (x[i:i+m] != tuple(subword)
-                            or y[i:i+m] != tuple(subword2)
-                            or x[i+m:] != y[i+m:]):
+                    if (x[j:j+m] != tuple(subword)
+                            or y[j:j+m] != tuple(subword2)
+                            or x[j+m:] != y[j+m:]):
                         continue
                     edges.append([x, y, m])
             G = Graph(edges, immutable=True, format="list_of_edges")

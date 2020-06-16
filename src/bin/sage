@@ -857,16 +857,20 @@ if [ "$1" = "-inotebook" -o "$1" = '--inotebook' ]; then
     exec sage-notebook --notebook=sagenb secure=False "$@"
 fi
 
-if [ "$1" = '-grep' -o "$1" = "--grep" -o "$1" = "-search_src" -o "$1" = "--search_src" ]; then
-    shift
-    sage-grep "$@"
-    exit 0
-fi
+if [ -n "$SAGE_SRC" -a -d "$SAGE_SRC" ]; then
+    # Source inspection facilities, supported on sage-the-distribution and on distributions
+    # that package the Sage sources.
+    if [ "$1" = '-grep' -o "$1" = "--grep" -o "$1" = "-search_src" -o "$1" = "--search_src" ]; then
+        shift
+        sage-grep "$@"
+        exit 0
+    fi
 
-if [ "$1" = '-grepdoc' -o "$1" = "--grepdoc" -o "$1" = "-search_doc" -o "$1" = "--search_doc" ]; then
-    shift
-    sage-grepdoc "$@"
-    exit 0
+    if [ "$1" = '-grepdoc' -o "$1" = "--grepdoc" -o "$1" = "-search_doc" -o "$1" = "--search_doc" ]; then
+        shift
+        sage-grepdoc "$@"
+        exit 0
+    fi
 fi
 
 if [ "$1" = '-b' ]; then

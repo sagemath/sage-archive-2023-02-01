@@ -1099,6 +1099,19 @@ if [ "$1" = '-gthread' -o "$1" = '-qthread' -o "$1" = '-q4thread' -o "$1" = '-wt
     interactive_sage "$@"
 fi
 
+case "$1" in
+    -*)
+        # Delegate further option handling to the non-installed sage-site script.
+        # (These options become unavailable if the directory $SAGE_ROOT is removed.)
+        if [ -n "$SAGE_ROOT" ]; then
+            exec "$SAGE_ROOT/build/bin/sage-site" "$@"
+            # fallthrough if there is no sage-site script
+        fi
+        echo "Error: Unknown option: $1"
+        exit 1
+        ;;
+esac
+
 if [ $# -ge 1 ]; then
     T=`echo "$1" | sed -e "s/.*\.//"`
     if [ "$T" = "spkg" ]; then
@@ -1107,5 +1120,6 @@ if [ $# -ge 1 ]; then
     fi
     sage_setup
     unset TERM  # See Trac #12263
+    # sage-run rejects all command line options as the first argument.
     exec sage-run "$@"
 fi

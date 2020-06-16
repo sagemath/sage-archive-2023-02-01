@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Handle options of the src/bin/sage script that pertain to SAGE_ROOT or sage-the-distribution.
+
+if [ "$1" = '-package' -o "$1" = "--package" ]; then
+    shift
+    exec sage-package $@
+fi
+
+if [ "$1" = '-optional' -o "$1" = "--optional" ]; then
+    shift
+    exec sage-list-packages optional $@
+fi
+
+if [ "$1" = '-experimental' -o "$1" = "--experimental" ]; then
+    shift
+    exec sage-list-packages experimental $@
+fi
+
+if [ "$1" = '-standard' -o "$1" = "--standard" ]; then
+    shift
+    exec sage-list-packages standard $@
+fi
+
+if [ "$1" = '-installed' -o "$1" = "--installed" ]; then
+    shift
+    exec sage-list-packages all --installed-only $@
+fi
+
+if [ "$1" = '-p' ]; then
+    echo "Error: Installing old-style SPKGs is no longer supported."
+    exit 1
+fi
+
+if [ "$1" = '-info' -o "$1" = '--info' ]; then
+    shift
+    for PKG in "$@"
+    do
+        sage-spkg --info "$PKG" || exit $?
+    done
+    exit 0
+fi
+
+echo "Error: Unknown option: $1"
+exit 1

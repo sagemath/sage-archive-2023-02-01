@@ -154,6 +154,7 @@ def diamond_cut(V, GM, C, verbose=False):
         (A vertex at (2), A vertex at (0))
     """
     # coerce to floats
+    from sage.misc.functional import round
     GM = GM.n()
     C = float(C)
     if verbose:
@@ -223,7 +224,7 @@ def diamond_cut(V, GM, C, verbose=False):
                 cut_count += 1
                 if verbose:
                     print("\n%d) Cut using normal vector %s" % (cut_count, hv))
-                hv = [QQ(elmt.n(digits=6)) for elmt in hv]
+                hv = [QQ(round(elmt,6)) for elmt in hv]
                 inequalities.append(plane_inequality(hv))
 
     if verbose:

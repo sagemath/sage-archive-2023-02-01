@@ -417,14 +417,14 @@ def Yu_condition_115(K, v):
 
     EXAMPLES::
 
-       sage: from sage.rings.number_field.S_unit_solver import Yu_condition_115
-       sage: K.<a> = NumberField(x^2 + 5)
-       sage: v2 = K.primes_above(2)[0]
-       sage: v11 = K.primes_above(11)[0]
-       sage: Yu_condition_115(K, v2)
-       False
-       sage: Yu_condition_115(K, v11)
-       True
+        sage: from sage.rings.number_field.S_unit_solver import Yu_condition_115
+        sage: K.<a> = NumberField(x^2 + 5)
+        sage: v2 = K.primes_above(2)[0]
+        sage: v11 = K.primes_above(11)[0]
+        sage: Yu_condition_115(K, v2)
+        False
+        sage: Yu_condition_115(K, v11)
+        True
 
     REFERENCES:
 
@@ -522,14 +522,14 @@ def Omega_prime(dK, v, mu_list, prec=106):
 
     EXAMPLES:
 
-       sage: from sage.rings.number_field.S_unit_solver import mus, Omega_prime
-       sage: K.<a> = NumberField(x^3 - 3)
-       sage: SUK = UnitGroup(K, S=tuple(K.primes_above(6)))
-       sage: v = K.primes_above(3)[0]
-       sage: mu_list = [-1] + mus(SUK, v)
-       sage: dK = K.degree()
-       sage: Omega_prime(dK, v, mu_list)
-       0.000487349679922696
+        sage: from sage.rings.number_field.S_unit_solver import mus, Omega_prime
+        sage: K.<a> = NumberField(x^3 - 3)
+        sage: SUK = UnitGroup(K, S=tuple(K.primes_above(6)))
+        sage: v = K.primes_above(3)[0]
+        sage: mu_list = [-1] + mus(SUK, v)
+        sage: dK = K.degree()
+        sage: Omega_prime(dK, v, mu_list)
+        0.000487349679922696
 
     REFERENCES:
 
@@ -623,12 +623,12 @@ def Yu_bound(SUK, v, prec=106):
 
     EXAMPLES::
 
-       sage: from sage.rings.number_field.S_unit_solver import Yu_bound
-       sage: K.<a> = NumberField(x^2 + 11)
-       sage: SUK = UnitGroup(K, S=tuple(K.primes_above(6)))
-       sage: v = K.primes_above(3)[0]
-       sage: Yu_bound(SUK, v)
-       9.03984381033128e9
+        sage: from sage.rings.number_field.S_unit_solver import Yu_bound
+        sage: K.<a> = NumberField(x^2 + 11)
+        sage: SUK = UnitGroup(K, S=tuple(K.primes_above(6)))
+        sage: v = K.primes_above(3)[0]
+        sage: Yu_bound(SUK, v)
+        9.03984381033128e9
 
     REFERENCES:
 
@@ -705,12 +705,12 @@ def K0_func(SUK, A, prec=106):
 
     EXAMPLES::
 
-       sage: from sage.rings.number_field.S_unit_solver import K0_func
-       sage: K.<a> = NumberField(x^2 + 11)
-       sage: SUK = UnitGroup(K, S=tuple(K.primes_above(6)))
-       sage: v = K.primes_above(3)[0]
-       sage: K0_func(SUK, K.roots_of_unity())
-       8.84763586062272e12
+        sage: from sage.rings.number_field.S_unit_solver import K0_func
+        sage: K.<a> = NumberField(x^2 + 11)
+        sage: SUK = UnitGroup(K, S=tuple(K.primes_above(6)))
+        sage: v = K.primes_above(3)[0]
+        sage: K0_func(SUK, K.roots_of_unity())
+        8.84763586062272e12
 
     REFERENCES:
 

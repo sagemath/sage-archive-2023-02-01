@@ -169,7 +169,7 @@ REFERENCES:
                 http://www.math.arizona.edu/~wmc/Research/JacobianFinal.pdf
 
 .. [AKMRVW] \A. Alvarado, A. Koutsianas, B. Malmskog, C. Rasmussen, C. Vincent,
-            and M. West
+            and M. West,
             *A robust implementation for solving the S-unit equation and 
             several applications.*
             :arxiv:`1903.00977`
@@ -3989,7 +3989,7 @@ REFERENCES:
              Volume 34, Issue 3, May 1983, Pages 340--359.
              http://www.sciencedirect.com/science/article/pii/0097316583900687
 
-.. [MR2016] \B. Malmskog, C. Rasmussen, *Picard curves over \mathbb{Q}
+.. [MR2016] \B. Malmskog, C. Rasmussen, *Picard curves over Q
             with good reduction away from 3*. LMS Journal of Computation and
             Mathematics 19 (2016), no. 2, 382-408.
             :doi:`10.1112/S1461157016000413`.

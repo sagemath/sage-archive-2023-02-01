@@ -33,11 +33,10 @@ usage() {
     echo "  -h, -?              -- print this help message"
     echo "  -i [packages]       -- install the given Sage packages"
     echo "  -pip [...]          -- invoke pip, the Python package manager"
-    echo "  -inotebook [...]    -- start the *insecure* Sage notebook (deprecated)"
     echo "  -maxima [...]       -- run Sage's Maxima with given arguments"
     echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
     echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
-    echo "                         'default', 'sagenb', 'jupyter', and 'export')"
+    echo "                         'default', 'jupyter', and 'export')"
     echo "                         Current default is 'export' from sagenb to jupyter"
     echo "  -n, --notebook      -- shortcut for --notebook=default"
     echo "  -optional           -- list all optional packages that can be installed"
@@ -56,7 +55,6 @@ usage() {
     echo "                           --long - include lines with the phrase 'long time'"
     echo "                           --verbose - print debugging output during the test"
     echo "                           --optional - controls which optional tests are run"
-    echo "                           --sagenb - test all sagenb files"
     echo "                           --help - show all testing options"
     echo "  -upgrade [version]  -- download, build and install the given version. Here,"
     echo "                         'version' is a git branch or tag name. Useful values"
@@ -92,14 +90,13 @@ usage_advanced() {
     ####  |.....................--.|...................................................|
     echo "Running the notebook:"
     echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
-    echo "                         'default', 'sagenb', 'jupyter' and 'export')."
+    echo "                         'default', 'jupyter' and 'export')."
     echo "                         Current default is 'export' sagenb to jupyter."
     echo "                         See the output of sage --notebook --help"
     echo "                         for more details and examples of how to pass"
     echo "                         optional arguments"
     echo "  -bn, -build-and-notebook [...] -- build the Sage library then start"
     echo "                         the Sage notebook"
-    echo "  -inotebook [...]    -- start the *insecure* Sage notebook (deprecated)"
     echo "  -n, -notebook [...] -- start the default Sage notebook (options are the"
     echo "                         same as for the notebook command in Sage).  See the"
     echo "                         output of sage -n -h for more details"
@@ -203,7 +200,6 @@ usage_advanced() {
     echo "                           --long - include lines with the phrase 'long time'"
     echo "                           --verbose - print debugging output during the test"
     echo "                           --all - test all files"
-    echo "                           --sagenb - test all sagenb files"
     echo "                           --optional - controls which optional tests are run"
     echo "                           --new - only test files modified since last commit"
     echo "                           --initial - only show the first failure per block"
@@ -844,12 +840,6 @@ if [ "$1" = "-bn" -o "$1" = "--build-and-notebook" ]; then
     build_sage
     sage-cleaner &>/dev/null &
     exec sage-notebook --notebook=default "$@"
-fi
-
-if [ "$1" = "-inotebook" -o "$1" = '--inotebook' ]; then
-    shift
-    sage-cleaner &>/dev/null &
-    exec sage-notebook --notebook=sagenb secure=False "$@"
 fi
 
 if [ -n "$SAGE_SRC" -a -d "$SAGE_SRC" ]; then

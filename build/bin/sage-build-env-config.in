@@ -22,6 +22,27 @@
 # The configured CXX without special flags added that enable C++11 support
 export SAGE_CXX_WITHOUT_STD="@SAGE_CXX_WITHOUT_STD@"
 
+# The configured compilation flags
+export CFLAGS="@CFLAGS@"
+export CXXFLAGS="@CXXFLAGS@"
+export FCFLAGS="@FCFLAGS@"
+export F77FLAGS="@F77FLAGS@"
+
+export CFLAGS_O3="@CFLAGS_O3@"
+export CXXFLAGS_O3="@CXXFLAGS_O3@"
+export FCFLAGS_O3="@FCFLAGS_O3@"
+export F77FLAGS_O3="@F77FLAGS_O3@"
+
+export CFLAGS_NON_NATIVE="@CFLAGS_NON_NATIVE@"
+export CXXFLAGS_NON_NATIVE="@CXXFLAGS_NON_NATIVE@"
+export FCFLAGS_NON_NATIVE="@FCFLAGS_NON_NATIVE@"
+export F77FLAGS_NON_NATIVE="@F77FLAGS_NON_NATIVE@"
+
+export ORIGINAL_CFLAGS="@ORIGINAL_CFLAGS@"
+export ORIGINAL_CXXFLAGS="@ORIGINAL_CXXFLAGS@"
+export ORIGINAL_FCFLAGS="@ORIGINAL_FCFLAGS@"
+export ORIGINAL_F77FLAGS="@ORIGINAL_F77FLAGS@"
+
 # This is usually blank if the system GMP is used, or $SAGE_LOCAL otherwise
 export SAGE_GMP_PREFIX="@SAGE_GMP_PREFIX@"
 export SAGE_GMP_INCLUDE="@SAGE_GMP_INCLUDE@"
@@ -41,7 +62,7 @@ fi
 export SAGE_MPFR_PREFIX="@SAGE_MPFR_PREFIX@"
 if [ -n "$SAGE_MPFR_PREFIX" ]; then
     # Some packages that depend on MPFR accept a --with-mpfr=<prefix> flag to
-    # their ./configure scripts. Thus we deal with this just as with GMP above. 
+    # their ./configure scripts. Thus we deal with this just as with GMP above.
     export SAGE_CONFIGURE_MPFR="--with-mpfr=$SAGE_MPFR_PREFIX"
 fi
 
@@ -50,7 +71,7 @@ fi
 export SAGE_MPC_PREFIX="@SAGE_MPC_PREFIX@"
 if [ -n "$SAGE_MPC_PREFIX" ]; then
     # Some packages that depend on MPC accept a --with-mpc=<prefix> flag to
-    # their ./configure scripts. Thus we deal with this just as with GMP above. 
+    # their ./configure scripts. Thus we deal with this just as with GMP above.
     export SAGE_CONFIGURE_MPC="--with-mpc=$SAGE_MPC_PREFIX"
 fi
 

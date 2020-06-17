@@ -156,7 +156,7 @@ a minimum the following files:
     |-- dependencies
     |-- package-version.txt
     |-- spkg-install.in
-    |-- SPKG.txt
+    |-- SPKG.rst
     `-- type
 
 The following are some additional files which can be added:
@@ -459,8 +459,8 @@ example, the ``scipy`` ``spkg-check.in`` file contains the line
 
 .. _section-spkg-SPKG-txt:
 
-The SPKG.txt File
------------------
+The SPKG.rst or SPKG.txt File
+-----------------------------
 
 The ``SPKG.txt`` file should follow this pattern:
 
@@ -497,6 +497,8 @@ with ``PACKAGE_NAME`` replaced by the package name. Legacy
 ``SPKG.txt`` files have an additional changelog section, but this
 information is now kept in the git repository.
 
+It is now also possible to use an ``SPKG.rst`` file instead, with the same
+sections.
 
 .. _section-dependencies:
 
@@ -880,7 +882,7 @@ License Information
 
 If you are patching a standard Sage spkg, then you should make sure that
 the license information for that package is up-to-date, both in its
-``SPKG.txt`` file and in the file ``SAGE_ROOT/COPYING.txt``.  For
+``SPKG.rst`` or ``SPKG.txt`` file and in the file ``SAGE_ROOT/COPYING.txt``.  For
 example, if you are producing an spkg which upgrades the vanilla source
 to a new version, check whether the license changed between versions.
 
@@ -895,18 +897,8 @@ must meet the following requirements:
   Foundation maintains a long list of `licenses and comments about
   them <http://www.gnu.org/licenses/license-list.html>`_.
 
-- **Build Support**. The code must build on all the `fully supported
-  platforms
-  <http://wiki.sagemath.org/SupportedPlatforms#Fully_supported>`_.
-
-  A standard package should also work on all the platforms where Sage
-  is `expected to work
-  <http://wiki.sagemath.org/SupportedPlatforms#Expected_to_work>`_ and
-  on which Sage `almost works
-  <http://wiki.sagemath.org/SupportedPlatforms#Almost_works>`_ but
-  since we don't fully support these platforms and often lack the
-  resources to test on them, you are not expected to confirm your
-  packages works on those platforms.
+- **Build Support**. The code must build on all the fully supported
+  platforms (Linux, macOS, Cygwin); see :ref:`chapter-portability_testing`.
 
 - **Quality**. The code should be "better" than any other available
   code (that passes the two above criteria), and the authors need to

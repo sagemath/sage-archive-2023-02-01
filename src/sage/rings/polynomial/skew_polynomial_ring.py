@@ -652,7 +652,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: P.parent() is S
             True
 
-        together with a converion map in the reverse direction::
+        together with a conversion map in the reverse direction::
 
             sage: Zy(x^6 + 2*x^3 + 3)
             y^2 + 2*y + 3

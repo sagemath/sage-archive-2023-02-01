@@ -183,12 +183,8 @@ cdef class redirection:
 
     TESTS::
 
-        sage: from six.moves import cStringIO as StringIO
-        sage: redirection(sys.stdout, StringIO())  # py2
-        Traceback (most recent call last):
-        ...
-        TypeError: <...> must be a Python file or an integer
-        sage: redirection(sys.stdout, StringIO())  # py3
+        sage: import io
+        sage: redirection(sys.stdout, io.StringIO())
         Traceback (most recent call last):
         ...
         io.UnsupportedOperation: fileno

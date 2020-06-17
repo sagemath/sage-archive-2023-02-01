@@ -10,9 +10,6 @@ tree or graph structure.
 
 Deprecated classes (use :func:`RecursivelyEnumeratedSet` instead):
 
-- :class:`SearchForest`: Depth and breadth first
-  search through a tree described by a ``children`` function.
-
 - :class:`TransitiveIdeal`: Depth first search through a
   graph described by a ``neighbours`` relation.
 
@@ -20,10 +17,6 @@ Deprecated classes (use :func:`RecursivelyEnumeratedSet` instead):
   through a graph described by a ``neighbours`` relation.
 
 Deprecation details:
-
-- ``SearchForest(seeds, succ)`` keeps the same behavior as before
-  :trac:`6637` and is now the same as ``RecursivelyEnumeratedSet(seeds,
-  succ, structure='forest', enumeration='depth')``.
 
 - ``TransitiveIdeal(succ, seeds)`` keeps the same behavior as before
   :trac:`6637` and is now the same as ``RecursivelyEnumeratedSet(seeds,
@@ -69,18 +62,12 @@ from sage.rings.integer_ring import ZZ
 from sage.sets.recursively_enumerated_set import (
     RecursivelyEnumeratedSet_generic, RecursivelyEnumeratedSet_forest)
 
-from sage.misc.lazy_import import lazy_import
-lazy_import("sage.sets.recursively_enumerated_set",
-            ["RecursivelyEnumeratedSet_forest", "search_forest_iterator"],
-            ["SearchForest", "search_forest_iterator"],
-            deprecation=16351)
-
 class GenericBacktracker(object):
     r"""
     A generic backtrack tool for exploring a search space organized as a tree,
     with branch pruning, etc.
 
-    See also :class:`SearchForest` and :class:`TransitiveIdeal` for
+    See also :class:`RecursivelyEnumeratedSet_forest` and :class:`TransitiveIdeal` for
     handling simple special cases.
     """
     def __init__(self, initial_data, initial_state):

@@ -599,11 +599,6 @@ if [ "$1" = '--pip3' ]; then
     exec "$SAGE_LOCAL"/bin/python3 -m pip "$@"
 fi
 
-if [ "$1" = '-fix-pkg-checksums' -o "$1" = '--fix-pkg-checksums' ]; then
-    shift
-    exec sage-fix-pkg-checksums "$@"
-fi
-
 if [ "$1" = '-python' -o "$1" = '--python' ]; then
     shift
     if [ "$SAGE_PYTHON3" = 'yes' ]; then

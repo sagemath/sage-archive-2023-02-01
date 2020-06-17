@@ -27,7 +27,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux, CylindricalDiagram
+from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.dyck_word import DyckWord
 from sage.combinat.perfect_matching import PerfectMatching

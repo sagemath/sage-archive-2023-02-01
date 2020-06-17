@@ -1473,8 +1473,8 @@ class RecursivelyEnumeratedSet_forest(Parent):
     node ``x`` of the forest.
 
     See also :class:`sage.combinat.backtrack.GenericBacktracker`,
-    :class:`sage.combinat.backtrack.TransitiveIdeal`, and
-    :class:`sage.combinat.backtrack.TransitiveIdealGraded`.
+    :class:`RecursivelyEnumeratedSet_graded`, and
+    :class:`RecursivelyEnumeratedSet_symmetric`.
 
     INPUT:
 

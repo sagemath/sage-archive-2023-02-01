@@ -26,12 +26,10 @@ usage() {
     echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx file"
     echo "  -advanced           -- list all command line options"
     echo "  -c <cmd>            -- Evaluates cmd as sage code"
-    echo "  -experimental       -- list all experimental packages that can be installed"
     echo "  -gap [...]          -- run Sage's Gap with given arguments"
     echo "  -gap3 [...]         -- run Sage's Gap3 with given arguments"
     echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
     echo "  -h, -?              -- print this help message"
-    echo "  -i [packages]       -- install the given Sage packages"
     echo "  -pip [...]          -- invoke pip, the Python package manager"
     echo "  -maxima [...]       -- run Sage's Maxima with given arguments"
     echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
@@ -39,7 +37,6 @@ usage() {
     echo "                         'default', 'jupyter', and 'export')"
     echo "                         Current default is 'export' from sagenb to jupyter"
     echo "  -n, --notebook      -- shortcut for --notebook=default"
-    echo "  -optional           -- list all optional packages that can be installed"
     echo "  -python [...]       -- run the Python interpreter"
     echo "  -python2 [...]      -- run the Python 2 interpreter"
     echo "  -python3 [...]      -- run the Python 3 interpreter"
@@ -56,11 +53,10 @@ usage() {
     echo "                           --verbose - print debugging output during the test"
     echo "                           --optional - controls which optional tests are run"
     echo "                           --help - show all testing options"
-    echo "  -upgrade [version]  -- download, build and install the given version. Here,"
-    echo "                         'version' is a git branch or tag name. Useful values"
-    echo "                         are 'master' (the current development version, this"
-    echo "                         is the default) or a version number like '5.13'."
     echo "  -v, -version        -- display Sage version information"
+    if [ -n "$SAGE_ROOT" ]; then
+        exec "$SAGE_ROOT/build/bin/sage-site" "-h"
+    fi
     exit 0
 }
 
@@ -139,41 +135,6 @@ usage_advanced() {
     echo "                         as they are set while building Sage and its packages"
     echo "  -singular [...]     -- run Sage's singular with given arguments"
     echo "  -sqlite3 [...]      -- run Sage's sqlite3 with given arguments"
-
-    echo
-    ####  1.......................26..................................................78
-    ####  |.....................--.|...................................................|
-    echo "Installing packages and upgrading:"
-    echo "  -package [args]     -- call the new package manager with given arguments."
-    echo "                         Run without arguments for package-specific help."
-    echo "  -experimental       -- list all experimental packages that can be installed"
-    echo "  -f [opts] [packages]-- shortcut for -i -f: force build of the given Sage"
-    echo "                         packages"
-    echo "  -i [opts] [packages]-- install the given Sage packages.  Options:"
-    echo "                           -c -- run the packages' test suites"
-    echo "                           -d -- only download, do not install packages"
-    echo "                           -f -- force build: install the packages even"
-    echo "                                 if they are already installed"
-    echo "                           -s -- do not delete the temporary build directories"
-    echo "                                 after a successful build"
-    echo "                           -y -- reply yes to prompts about experimental"
-    echo "                                 and old-style packages; warning: there"
-    echo "                                 is no guarantee that these packages will"
-    echo "                                 build correctly; use at your own risk"
-    echo "                           -n -- reply no to prompts about experimental"
-    echo "                                 and old-style packages"
-    echo "  -p [opts] [packages]-- install the given Sage packages, without dependency"
-    echo "                         checking. Options are the same as for the -i command."
-    echo "  -info [packages]    -- print the SPKG.txt or SPKG.rst of the given packages,"
-    echo "                         and some additional information."
-    echo "  --location          -- if needed, fix paths to make Sage relocatable"
-    echo "  -optional           -- list all optional packages that can be installed"
-    echo "  -standard           -- list all standard packages that can be installed"
-    echo "  -installed          -- list all installed packages"
-    echo "  -upgrade [version]  -- download, build and install the given version. Here,"
-    echo "                         'version' is a git branch or tag name. Useful values"
-    echo "                         are 'master' (the current development version, this"
-    echo "                         is the default) or a version number like '5.13'."
     echo "  -pip [...]          -- invoke pip, the Python package manager"
 
     echo
@@ -249,14 +210,6 @@ usage_advanced() {
     echo
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
-    echo "Making Sage packages or distributions:"
-    echo "  -sdist              -- build a source distribution of Sage"
-    echo "  -fix-pkg-checksums  -- fix the checksums from build/pkgs directories from "
-    echo "                         the packages located in upstream/"
-
-    echo
-    ####  1.......................26..................................................78
-    ####  |.....................--.|...................................................|
     echo "Valgrind memory debugging:"
     echo "  -cachegrind         -- run Sage using Valgrind's cachegrind tool.  The log"
     echo "                         files are named sage-cachegrind.PID can be found in"
@@ -274,6 +227,9 @@ usage_advanced() {
     echo "                         files are named sage-omega.PID can be found in"
     echo "                         $DOT_SAGE"
     echo "  -valgrind           -- this is an alias for -memcheck"
+    if [ -n "$SAGE_ROOT" ]; then
+        "$SAGE_ROOT/build/bin/sage-site" "-advanced"
+    fi
     echo
     echo "You can also use -- before a long option, e.g., 'sage --optional'."
     echo

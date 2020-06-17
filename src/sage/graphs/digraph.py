@@ -38,6 +38,19 @@ graphs. Here is what they can do
     :meth:`~DiGraph.is_directed` | Since digraph is directed, returns True.
     :meth:`~DiGraph.dig6_string` | Return the ``dig6`` representation of the digraph as an ASCII string.
 
+**Distances:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~DiGraph.eccentricity` | Return the eccentricity of vertex (or vertices) ``v``.
+    :meth:`~DiGraph.radius` | Return the radius of the DiGraph.
+    :meth:`~DiGraph.diameter` | Return the diameter of the DiGraph.
+    :meth:`~DiGraph.center` | Return the set of vertices in the center of the DiGraph.
+    :meth:`~DiGraph.periphery` | Return the set of vertices in the periphery of the DiGraph.
+
 **Paths and cycles:**
 
 .. csv-table::
@@ -2080,6 +2093,530 @@ class DiGraph(GenericGraph):
             tempG.reverse_edge(e,inplace=True,multiedges=multiedges)
         if not inplace:
             return tempG
+
+    ### Distances
+
+    def eccentricity(self, v=None, by_weight=False, algorithm=None,
+                     weight_function=None, check_weight=True, dist_dict=None,
+                     with_labels=False):
+        """
+        Return the eccentricity of vertex (or vertices) ``v``.
+
+        The eccentricity of a vertex is the maximum distance to any other
+        vertex.
+
+        For more information and examples on how to use input variables, see
+        :meth:`~GenericGraph.shortest_path_all_pairs`,
+        :meth:`~GenericGraph.shortest_path_lengths` and
+        :meth:`~GenericGraph.shortest_paths`
+
+        INPUT:
+
+        - ``v`` - either a single vertex or a list of vertices. If it is not
+          specified, then it is taken to be all vertices.
+
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, edge
+          weights are taken into account; if False, all edges have weight 1
+
+        - ``algorithm`` -- string (default: ``None``); one of the following
+          algorithms:
+
+          - ``'BFS'`` - the computation is done through a BFS centered on each
+            vertex successively. Works only if ``by_weight==False``.
+
+          - ``'Floyd-Warshall-Cython'`` - a Cython implementation of the
+            Floyd-Warshall algorithm. Works only if ``by_weight==False`` and
+            ``v is None``.
+
+          - ``'Floyd-Warshall-Python'`` - a Python implementation of the
+            Floyd-Warshall algorithm. Works also with weighted graphs, even with
+            negative weights (but no negative cycle is allowed). However, ``v``
+            must be ``None``.
+
+          - ``'Dijkstra_NetworkX'`` - the Dijkstra algorithm, implemented in
+            NetworkX. It works with weighted graphs, but no negative weight is
+            allowed.
+
+          - ``'Dijkstra_Boost'`` - the Dijkstra algorithm, implemented in Boost
+            (works only with positive weights).
+
+          - ``'Johnson_Boost'`` - the Johnson algorithm, implemented in
+            Boost (works also with negative weights, if there is no negative
+            cycle).
+
+          - ``'From_Dictionary'`` - uses the (already computed) distances, that
+            are provided by input variable ``dist_dict``.
+
+          - ``None`` (default): Sage chooses the best algorithm:
+            ``'From_Dictionary'`` if ``dist_dict`` is not None, ``'BFS'`` for
+            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
+            positive, ``'Johnson_Boost'`` otherwise.
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
+
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the ``weight_function`` outputs a number for each edge
+
+        - ``dist_dict`` -- a dictionary (default: ``None``); a dict of dicts of
+          distances (used only if ``algorithm=='From_Dictionary'``)
+
+        - ``with_labels`` -- boolean (default: ``False``); whether to return a
+          list or a dictionary keyed by vertices.
+
+        EXAMPLES::
+
+            sage: G = graphs.KrackhardtKiteGraph().to_directed()
+            sage: G.eccentricity()
+            [4, 4, 4, 4, 4, 3, 3, 2, 3, 4]
+            sage: G.vertices()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            sage: G.eccentricity(7)
+            2
+            sage: G.eccentricity([7,8,9])
+            [2, 3, 4]
+            sage: G.eccentricity([7,8,9], with_labels=True) == {8: 3, 9: 4, 7: 2}
+            True
+            sage: G = DiGraph(3)
+            sage: G.eccentricity(with_labels=True)
+            {0: +Infinity, 1: +Infinity, 2: +Infinity}
+            sage: G = DiGraph({0:[]})
+            sage: G.eccentricity(with_labels=True)
+            {0: 0}
+            sage: G = DiGraph([(0,1,2), (1,2,3), (2,0,2)])
+            sage: G.eccentricity(algorithm = 'BFS')
+            [2, 2, 2]
+            sage: G.eccentricity(algorithm = 'Floyd-Warshall-Cython')
+            [2, 2, 2]
+            sage: G.eccentricity(by_weight = True, algorithm = 'Dijkstra_NetworkX')
+            [5, 5, 4]
+            sage: G.eccentricity(by_weight = True, algorithm = 'Dijkstra_Boost')
+            [5, 5, 4]
+            sage: G.eccentricity(by_weight = True, algorithm = 'Johnson_Boost')
+            [5, 5, 4]
+            sage: G.eccentricity(by_weight = True, algorithm = 'Floyd-Warshall-Python')
+            [5, 5, 4]
+            sage: G.eccentricity(dist_dict = G.shortest_path_all_pairs(by_weight = True)[0])
+            [5, 5, 4]
+
+        TESTS:
+
+        A non-implemented algorithm::
+
+            sage: G.eccentricity(algorithm = 'boh')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm "boh"
+
+        An algorithm that does not work with edge weights::
+
+            sage: G.eccentricity(by_weight = True, algorithm = 'BFS')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm 'BFS' does not work with weights
+            sage: G.eccentricity(by_weight = True, algorithm = 'Floyd-Warshall-Cython')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm 'Floyd-Warshall-Cython' does not work with weights
+
+        An algorithm that computes the all-pair-shortest-paths when not all
+        vertices are needed::
+
+            sage: G.eccentricity(0, algorithm = 'Floyd-Warshall-Cython')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm 'Floyd-Warshall-Cython' works only if all eccentricities are needed
+            sage: G.eccentricity(0, algorithm = 'Floyd-Warshall-Python')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm 'Floyd-Warshall-Python' works only if all eccentricities are needed
+            sage: G.eccentricity(0, algorithm = 'Johnson_Boost')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm 'Johnson_Boost' works only if all eccentricities are needed
+        """
+        if weight_function is not None:
+            by_weight = True
+        elif by_weight:
+            def weight_function(e):
+                return e[2]
+
+        if algorithm is None:
+            if dist_dict is not None:
+                algorithm = 'From_Dictionary'
+            elif not by_weight:
+                algorithm = 'BFS'
+            else:
+                for e in self.edge_iterator():
+                    try:
+                        if float(weight_function(e)) < 0:
+                            algorithm = 'Johnson_Boost'
+                            break
+                    except (ValueError, TypeError):
+                        raise ValueError("the weight function cannot find the"
+                                         " weight of " + str(e))
+            if algorithm is None:
+                algorithm = 'Dijkstra_Boost'
+
+        if v is None:
+            # If we want to use BFS, we use the Cython routine
+            if algorithm == 'BFS':
+                if by_weight:
+                    raise ValueError("algorithm 'BFS' does not work with weights")
+                from sage.graphs.distances_all_pairs import eccentricity
+                algo = 'standard'
+                if with_labels:
+                    vertex_list = list(self)
+                    return dict(zip(vertex_list, eccentricity(self, algorithm=algo, vertex_list=vertex_list)))
+                else:
+                    return eccentricity(self, algorithm=algo)
+
+            if algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
+                dist_dict = self.shortest_path_all_pairs(by_weight, algorithm,
+                                                         weight_function,
+                                                         check_weight)[0]
+                algorithm = 'From_Dictionary'
+
+            v = self.vertices()
+
+        elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
+            raise ValueError("algorithm '" + algorithm + "' works only if all" +
+                             " eccentricities are needed")
+
+        if not isinstance(v, list):
+            v = [v]
+        ecc = {}
+
+        from sage.rings.infinity import Infinity
+
+        for u in v:
+            if algorithm == 'From_Dictionary':
+                length = dist_dict[u]
+            else:
+                # If algorithm is wrong, the error is raised by the
+                # shortest_path_lengths function
+                length = self.shortest_path_lengths(u, by_weight=by_weight,
+                                                    algorithm=algorithm,
+                                                    weight_function=weight_function,
+                                                    check_weight=check_weight)
+
+            if len(length) != self.num_verts():
+                ecc[u] = Infinity
+            else:
+                ecc[u] = max(length.values())
+
+        if with_labels:
+            return ecc
+        else:
+            if len(ecc) == 1:
+                # return single value
+                v, = ecc.values()
+                return v
+            return [ecc[u] for u in v]
+
+    def radius(self, by_weight=False, algorithm=None, weight_function=None,
+               check_weight=True):
+        r"""
+        Return the radius of the DiGraph.
+
+        The radius is defined to be the minimum eccentricity of any vertex,
+        where the eccentricity is the maximum distance to any other
+        vertex. For more information and examples on how to use input variables,
+        see :meth:`~GenericGraph.shortest_paths` and
+        :meth:`~DiGraph.eccentricity`
+
+        INPUT:
+
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, edge
+          weights are taken into account; if False, all edges have weight 1
+
+        - ``algorithm`` -- string (default: ``None``); see method
+          :meth:`eccentricity` for the list of available algorithms
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
+
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the ``weight_function`` outputs a number for each edge
+
+        EXAMPLES:
+
+        The more symmetric a DiGraph is, the smaller (diameter - radius) is::
+
+            sage: G = graphs.BarbellGraph(9, 3).to_directed()
+            sage: G.radius()
+            3
+            sage: G.diameter()
+            6
+
+        ::
+
+            sage: G = digraphs.Circuit(9)
+            sage: G.radius()
+            8
+            sage: G.diameter()
+            8
+
+        TESTS::
+
+            sage: G = DiGraph()
+            sage: G.radius()
+            Traceback (most recent call last):
+            ...
+            ValueError: radius is not defined for the empty DiGraph
+        """
+        if not self.order():
+            raise ValueError("radius is not defined for the empty DiGraph")
+
+        return min(self.eccentricity(v=list(self), by_weight=by_weight,
+                                     weight_function=weight_function,
+                                     check_weight=check_weight,
+                                     algorithm=algorithm))
+
+    def diameter(self, by_weight=False, algorithm=None, weight_function=None,
+                 check_weight=True):
+        r"""
+        Return the diameter of the DiGraph.
+
+        The diameter is defined to be the maximum distance between two vertices.
+        It is infinite if the DiGraph is not strongly connected.
+
+        For more information and examples on how to use input variables, see
+        :meth:`~GenericGraph.shortest_paths` and
+        :meth:`~DiGraph.eccentricity`
+
+        INPUT:
+
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, edge
+          weights are taken into account; if False, all edges have weight 1
+
+        - ``algorithm`` -- string (default: ``None``); one of the following
+          algorithms:
+
+          - ``'BFS'``: the computation is done through a BFS centered on each
+            vertex successively. Works only if ``by_weight==False``.
+
+          - ``'Floyd-Warshall-Cython'``: a Cython implementation of the
+            Floyd-Warshall algorithm. Works only if ``by_weight==False`` and ``v
+            is None``.
+
+          - ``'Floyd-Warshall-Python'``: a Python implementation of the
+            Floyd-Warshall algorithm. Works also with weighted graphs, even with
+            negative weights (but no negative cycle is allowed). However, ``v``
+            must be ``None``.
+
+          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+            NetworkX. It works with weighted graphs, but no negative weight is
+            allowed.
+
+          - ``'standard'``, ``'2Dsweep'``: these algorithms are implemented in
+            :func:`sage.graphs.distances_all_pairs.diameter`.
+            They work only if ``by_weight==False``. See the function
+            documentation for more information.
+
+          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
+            (works only with positive weights).
+
+          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+            Boost (works also with negative weights, if there is no negative
+            cycle).
+
+          - ``None`` (default): Sage chooses the best algorithm: ``'iFUB'`` for
+            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are positive,
+            ``'Johnson_Boost'`` otherwise.
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
+
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the ``weight_function`` outputs a number for each edge
+
+        EXAMPLES::
+
+            sage: G = digraphs.DeBruijn(5,4)
+            sage: G.diameter()
+            4
+            sage: G = digraphs.GeneralizedDeBruijn(9, 3)
+            sage: G.diameter()
+            2
+
+        TESTS::
+
+            sage: G = DiGraph()
+            sage: G.diameter()
+            Traceback (most recent call last):
+            ...
+            ValueError: diameter is not defined for the empty DiGraph
+            sage: g = DiGraph([(1, 2, {'weight': 1})])
+            sage: g.diameter(algorithm='2Dsweep', weight_function=lambda e: e[2]['weight'])
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm '2Dsweep' does not work on weighted DiGraphs
+        """
+        if not self.order():
+            raise ValueError("diameter is not defined for the empty DiGraph")
+
+        if weight_function is not None:
+            by_weight = True
+
+        if algorithm is None and not by_weight:
+            algorithm = 'standard'
+        elif algorithm == 'BFS':
+            algorithm = 'standard'
+
+        if algorithm in ['standard', '2Dsweep']:
+            if by_weight:
+                raise ValueError("algorithm '" + algorithm + "' does not work" +
+                                 " on weighted DiGraphs")
+            from sage.graphs.distances_all_pairs import diameter
+            return diameter(self, algorithm=algorithm)
+
+        return max(self.eccentricity(v=list(self), by_weight=by_weight,
+                                     weight_function=weight_function,
+                                     check_weight=check_weight,
+                                     algorithm=algorithm))
+
+    def center(self, by_weight=False, algorithm=None, weight_function=None,
+               check_weight=True):
+        r"""
+        Return the set of vertices in the center of the DiGraph.
+
+        The center is the set of vertices whose eccentricity is equal to the
+        radius of the DiGraph, i.e., achieving the minimum eccentricity.
+
+        For more information and examples on how to use input variables,
+        see :meth:`~GenericGraph.shortest_paths` and
+        :meth:`~DiGraph.eccentricity`
+
+        INPUT:
+
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, edge
+          weights are taken into account; if False, all edges have weight 1
+
+        - ``algorithm`` -- string (default: ``None``); see method
+          :meth:`eccentricity` for the list of available algorithms
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
+
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the ``weight_function`` outputs a number for each edge
+
+        EXAMPLES:
+
+        Every vertex is a center in a Circuit-DiGraph::
+
+            sage: G = digraphs.Circuit(9)
+            sage: G.center()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8]
+
+        Center can be the whole graph::
+
+            sage: G.subgraph(G.center()) == G
+            True
+
+        Some other graphs::
+
+            sage: G = digraphs.Path(5)
+            sage: G.center()
+            [0]
+            sage: G = DiGraph([(0,1,2), (1,2,3), (2,0,2)])
+            sage: G.center(by_weight=True)
+            [2]
+
+        TESTS::
+
+            sage: G = DiGraph()
+            sage: G.center()
+            []
+            sage: G = DiGraph(3)
+            sage: G.center()
+            [0, 1, 2]
+        """
+        ecc = self.eccentricity(v=list(self), by_weight=by_weight,
+                                weight_function=weight_function,
+                                algorithm=algorithm,
+                                check_weight=check_weight,
+                                with_labels=True)
+        try:
+            r = min(ecc.values())
+        except Exception:
+            return []
+        return [v for v in self if ecc[v] == r]
+
+    def periphery(self, by_weight=False, algorithm=None, weight_function=None,
+                  check_weight=True):
+        r"""
+        Return the set of vertices in the periphery of the DiGraph.
+
+        The periphery is the set of vertices whose eccentricity is equal to the
+        diameter of the DiGraph, i.e., achieving the maximum eccentricity.
+
+        For more information and examples on how to use input variables,
+        see :meth:`~GenericGraph.shortest_paths` and
+        :meth:`~DiGraph.eccentricity`
+
+        INPUT:
+
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, edge
+          weights are taken into account; if False, all edges have weight 1
+
+        - ``algorithm`` -- string (default: ``None``); see method
+          :meth:`eccentricity` for the list of available algorithms
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
+
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the ``weight_function`` outputs a number for each edge
+
+        EXAMPLES::
+
+            sage: G = graphs.DiamondGraph().to_directed()
+            sage: G.periphery()
+            [0, 3]
+            sage: P = digraphs.Path(5)
+            sage: P.periphery()
+            [1, 2, 3, 4]
+            sage: G = digraphs.Complete(5)
+            sage: G.subgraph(G.periphery()) == G
+            True
+
+        TESTS::
+
+            sage: G = DiGraph()
+            sage: G.periphery()
+            []
+            sage: G.add_vertex()
+            0
+            sage: G.periphery()
+            [0]
+        """
+        ecc = self.eccentricity(v=list(self), by_weight=by_weight,
+                                weight_function=weight_function,
+                                algorithm=algorithm,
+                                check_weight=check_weight,
+                                with_labels=True)
+        try:
+            d = max(ecc.values())
+        except Exception:
+            return []
+        return [v for v in self if ecc[v] == d]
 
     ### Paths and cycles iterators
 

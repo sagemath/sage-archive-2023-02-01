@@ -38,7 +38,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import iteritems, integer_types, string_types
 
 import operator
 
@@ -293,7 +292,7 @@ class Interface(WithEqualityById, ParentWithBase):
             except (NotImplementedError, TypeError):
                 pass
 
-        if isinstance(x, string_types):
+        if isinstance(x, str):
             return cls(self, x, name=name)
         try:
             # Special methods do not and should not have an option to
@@ -336,7 +335,7 @@ class Interface(WithEqualityById, ParentWithBase):
     def _coerce_impl(self, x, use_special=True):
         if isinstance(x, bool):
             return self(self._true_symbol() if x else self._false_symbol())
-        elif isinstance(x, integer_types):
+        elif isinstance(x, int):
             import sage.rings.all
             return self(sage.rings.all.Integer(x))
         elif isinstance(x, float):
@@ -556,7 +555,7 @@ class Interface(WithEqualityById, ParentWithBase):
         for i, arg in enumerate(args):
             if not isinstance(arg, InterfaceElement) or arg.parent() is not self:
                 args[i] = self(arg)
-        for key, value in iteritems(kwds):
+        for key, value in kwds.items():
             if not isinstance(value, InterfaceElement) or value.parent() is not self:
                 kwds[key] = self(value)
 
@@ -1131,7 +1130,7 @@ class InterfaceElement(Element):
         except ValueError as msg:
             return '(invalid {} object -- {})'.format(self.parent() or type(self), msg)
         cr = getattr(self, '_cached_repr', None)
-        if isinstance(cr, string_types):
+        if isinstance(cr, str):
             s = cr
         else:
             s = self._repr_()
@@ -1400,7 +1399,7 @@ class InterfaceElement(Element):
             's5'
         """
         if new_name is not None:
-            if not isinstance(new_name, string_types):
+            if not isinstance(new_name, str):
                 raise TypeError("new_name must be a string")
             p = self.parent()
             p.set(new_name, self._name)

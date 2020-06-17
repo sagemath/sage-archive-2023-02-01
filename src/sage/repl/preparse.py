@@ -227,7 +227,6 @@ from __future__ import print_function
 
 import os
 import re
-import six
 
 from sage.repl.load import load_wrap
 
@@ -839,14 +838,10 @@ def preparse_numeric_literals(code, extract=False):
         postfix = m.groups()[-1].upper()
 
         if 'R' in postfix:
-            if not six.PY2:
-                postfix = postfix.replace('L', '')
+            postfix = postfix.replace('L', '')
             num_name = num_make = num + postfix.replace('R', '')
         elif 'L' in postfix:
-            if six.PY2:
-                continue
-            else:
-                num_name = num_make = num + postfix.replace('L', '')
+            num_name = num_make = num + postfix.replace('L', '')
         else:
 
             # The Sage preparser does extra things with numbers, which we need to handle here.
@@ -1370,7 +1365,7 @@ def preparse_file(contents, globals=None, numeric_literals=True):
         _sage_const_100 = Integer(100)
         type(100 ), type(_sage_const_100 )
     """
-    if not isinstance(contents, six.string_types):
+    if not isinstance(contents, str):
         raise TypeError("contents must be a string")
 
     if globals is None:

@@ -915,12 +915,17 @@ class Rings(CategoryWithAxiom):
                 sage: GF(17)['a']['b']
                 Univariate Polynomial Ring in b over Univariate Polynomial Ring in a over Finite Field of size 17
 
-            We can create skew polynomial rings::
+            We can create Ore polynomial rings::
 
                 sage: k.<t> = GF(5^3)
                 sage: Frob = k.frobenius_endomorphism()
-                sage: k['x',Frob]
-                Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+                sage: k['x', Frob]
+                Ore Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+
+                sage: R.<t> = QQ[]
+                sage: der = R.derivation()
+                sage: R['d', der]
+                Ore Polynomial Ring in d over Univariate Polynomial Ring in t over Rational Field twisted by d/dt
 
             We can also create power series rings by using double brackets::
 

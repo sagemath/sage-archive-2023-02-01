@@ -83,7 +83,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from sage.structure.element import CommutativeRingElement
 from sage.structure.richcmp import richcmp
@@ -361,11 +360,22 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             Traceback (most recent call last):
             ...
             NotImplementedError: The base ring (=Ring of integers modulo 16) is not a field
+
+        Check that :trac:`29469` is fixed::
+
+            sage: S(3).is_unit()
+            True
         """
         if self._polynomial.is_zero():
             return False
         if self._polynomial.is_one():
             return True
+        try:
+            if self._polynomial.is_unit():
+                return True
+        except NotImplementedError:
+            pass
+
         parent = self.parent()
         base = parent.base_ring()
         if not base.is_field():
@@ -406,12 +416,26 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             Traceback (most recent call last):
             ...
             NotImplementedError: The base ring (=Ring of integers modulo 16) is not a field
+
+        Check that :trac:`29469` is fixed::
+
+            sage: ~S(3)
+            11
         """
         if self._polynomial.is_zero():
             raise ZeroDivisionError("element %s of quotient polynomial ring not invertible"%self)
         if self._polynomial.is_one():
             return self
+
         parent = self.parent()
+
+        try:
+            if self._polynomial.is_unit():
+                inv_pol = self._polynomial.inverse_of_unit()
+                return parent(inv_pol)
+        except (TypeError, NotImplementedError):
+            pass
+
         base = parent.base_ring()
         if not base.is_field():
             raise NotImplementedError("The base ring (=%s) is not a field" % base)

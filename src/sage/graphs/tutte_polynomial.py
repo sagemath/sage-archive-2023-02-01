@@ -31,6 +31,7 @@ where the sum ranges over all induced subgraphs `H` of `G`.
 Functions
 ---------
 """
+
 from contextlib import contextmanager
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod

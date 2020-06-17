@@ -50,9 +50,6 @@ Functions
 # python3
 from __future__ import division, print_function, absolute_import
 
-from builtins import zip
-from six.moves import range
-
 from sage.misc.cachefunc import cached_function
 
 from sage.categories.sets_cat import EmptySetError

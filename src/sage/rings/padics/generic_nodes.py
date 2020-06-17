@@ -746,9 +746,20 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
         """
         return 1
 
-    def _xgcd_univariate_polynomial(self, other, *args, **kwards):
+    def _xgcd_univariate_polynomial(self, f, g):
         """
-        Extended gcd for univariate polynomial rings over self
+        Extended gcd for univariate polynomial rings over self.
+
+        Should not be called directly. Use f.xgcd(g) instead.
+
+        INPUT:
+
+         - ``f``, ``g`` - the polynomials of which to take the xgcd
+
+        OUTPUT:
+
+         - A tuple (a, b, c) which satisfies a = b*f + c*g. There 
+         is not guarentee that a, b, and c are minimal.
 
         EXAMPLES::
 
@@ -779,13 +790,12 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
             sage: h.xgcd(h*i)
             ((3 + O(3^2))*x + 1 + O(3), 1 + O(3), 0)
         """
-        poly = args[0]
-        base_ring = poly.base_ring()
-        #low precision computation done over the ring fails, see trac 29777
+        base_ring = f.base_ring()
+        #low precision computation done over a ring fails, see trac 29777
         fracfield = base_ring.fraction_field()
-        pfield = poly.change_ring(fracfield)
-        ofield = other.change_ring(fracfield)
-        xgcd = fracfield._xgcd_univariate_polynomial(pfield,ofield)
+        f_field = f.change_ring(fracfield)
+        g_field = g.change_ring(fracfield)
+        xgcd = fracfield._xgcd_univariate_polynomial(f_field,g_field)
         lcm = base_ring(1)
         for f in xgcd:
             for i in f:
@@ -796,9 +806,17 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
             returnlst.append(f.change_ring(base_ring))
         return tuple(returnlst)
 
-    def _gcd_univariate_polynomial(self, other, *args, **kwards):
+    def _gcd_univariate_polynomial(self, f, g):
         """
-        gcd for univariate polynomial rings over self
+        gcd for univariate polynomial rings over self.
+
+        INPUT:
+
+         - ``f``, ``g`` - the polynomials of which to take the gcd
+
+        OUTPUT:
+
+         - A polynomial
 
         EXAMPLES::
 
@@ -809,7 +827,7 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
             sage: h.gcd(h*i)
             (3 + O(3^21))*x + a + O(3^20)
         """
-        return self._xgcd_univariate_polynomial(other, *args, **kwards)[0]
+        return self._xgcd_univariate_polynomial(f , g)[0]
 
 def is_pAdicField(R):
     """

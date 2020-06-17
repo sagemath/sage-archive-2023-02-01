@@ -691,12 +691,12 @@ On the other hand, note that the straightforward ::
 
     sage: plot(x^(1/3), (x, -1, 1))
 
-produces the expected plot only for positive ``x``. The *reason* is that Sage
+produces the expected plot only for positive `x`. The *reason* is that Sage
 returns complex numbers for odd roots of negative numbers when numerically
 approximated, which is a `standard convention
-<https://en.wikipedia.org/wiki/Cube_root#Complex_numbers>`_.
+<https://en.wikipedia.org/wiki/Cube_root#Complex_numbers>`_. ::
 
-    sage: N((-1)^(1/3))
+    sage: numerical_approx( (-1)^(1/3) )
     0.500000000000000 + 0.866025403784439*I
 
 How do I use the bitwise XOR operator in Sage?

@@ -191,8 +191,10 @@ if __name__ == '__main__':
     if args.notebook == "sagenb":
         logger.critical('cannot use the legacy notebook SageNB with Python 3')
         print('The legacy notebook does not work under Python 3; '
-        'use the Jupyter notebook.')
+              'use the Jupyter notebook.')
         print('See https://wiki.sagemath.org/Python3-Switch')
+        print('Use \"sage --notebook=export\" to export SageNB notebooks '
+              'to Jupyter')
         sys.exit(1)
 
     try:

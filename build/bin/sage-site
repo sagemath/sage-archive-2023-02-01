@@ -6,12 +6,12 @@ usage() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Sage-the-distribution options:"
-    echo "  -optional           -- list all optional packages that can be installed"
-    echo "  -experimental       -- list all experimental packages that can be installed"
-    echo "  -info [packages]    -- print the SPKG.txt or SPKG.rst of the given packages,"
+    echo "  --optional          -- list all optional packages that can be installed"
+    echo "  --experimental      -- list all experimental packages that can be installed"
+    echo "  --info [packages]   -- print the SPKG.txt or SPKG.rst of the given packages,"
     echo "                         and some additional information."
     echo "  -i [packages]       -- install the given Sage packages"
-    echo "  -upgrade [version]  -- download, build and install the given version. Here,"
+    echo "  --upgrade [version] -- download, build and install the given version. Here,"
     echo "                         'version' is a git branch or tag name. Useful values"
     echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
@@ -21,14 +21,33 @@ usage_advanced() {
     echo
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
-    echo "Installing packages and upgrading:"
-    echo "  -package [args]     -- call the new package manager with given arguments."
-    echo "                         Run without arguments for package-specific help."
-    echo "  -experimental       -- list all experimental packages that can be installed"
+    echo "Building the Sage library"
+    echo
+    echo "  -b                  -- build Sage library -- do this if you have"
+    echo "                         modified any source code files in SAGE_ROOT/src/sage/"
+    echo "  -ba                 -- same as -b, but rebuild *all* Cython"
+    echo "                         code.  This could take a while, so you will be asked"
+    echo "                         if you want to proceed."
+    echo "  --ba-force          -- same as -ba, but don't query before rebuilding"
+    echo "  -br                 -- build and run Sage"
+    echo "  -bt [...]           -- build Sage and test; same options as -t"
+    echo "  -btp <N> [...]      -- build Sage and test in parallel; same options as -tp"
+    echo "  -btnew [...]        -- build Sage and test modified files, as in -t --new"
+    echo "  --coverage <files>  -- give information about doctest coverage of files"
+    echo "  --coverageall       -- give summary info about doctest coverage of"
+    echo "                         all files in the Sage library"
+    echo
+    echo "Installing packages and upgrading"
+    echo
+    echo "  --package [args]    -- call the new package manager with given arguments."
+    echo "                         Run without arguments for help."
+    echo "  --experimental      -- list all experimental packages that can be installed"
     echo "  -f [opts] [packages]-- shortcut for -i -f: force build of the given Sage"
     echo "                         packages"
     echo "  -i [opts] [packages]-- install the given Sage packages.  Options:"
-    echo "                           -c -- run the packages' test suites"
+    echo "                           -c -- run the packages' test suites,"
+    echo "                                 overriding the settings of"
+    echo "                                 SAGE_CHECK and SAGE_CHECK_PACKAGES"
     echo "                           -d -- only download, do not install packages"
     echo "                           -f -- force build: install the packages even"
     echo "                                 if they are already installed"
@@ -43,10 +62,10 @@ usage_advanced() {
     echo "  -p [opts] [packages]-- install the given Sage packages, without dependency"
     echo "                         checking. Options are the same as for the -i command."
     echo "  --location          -- if needed, fix paths to make Sage relocatable"
-    echo "  -optional           -- list all optional packages that can be installed"
-    echo "  -standard           -- list all standard packages that can be installed"
-    echo "  -installed          -- list all installed packages"
-    echo "  -upgrade [version]  -- download, build and install the given version. Here,"
+    echo "  --optional          -- list all optional packages that can be installed"
+    echo "  --standard          -- list all standard packages that can be installed"
+    echo "  --installed         -- list all installed packages"
+    echo "  --upgrade [version] -- download, build and install the given version. Here,"
     echo "                         'version' is a git branch or tag name. Useful values"
     echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
@@ -54,10 +73,73 @@ usage_advanced() {
     echo
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
-    echo "Making Sage packages or distributions:"
-    echo "  -sdist              -- build a source distribution of Sage"
-    echo "  -fix-pkg-checksums  -- fix the checksums from build/pkgs directories from "
-    echo "                         the packages located in upstream/"
+    echo "Making Sage packages or distributions"
+    echo
+    echo "  --sdist             -- build a source distribution of Sage"
+    echo
+    echo "Building the documentation"
+    echo
+    echo "  --docbuild [lang/]<document> <html|pdf|...> -- Build the Sage documentation"
+    echo
+    echo "Other developer tools"
+    echo
+    echo "  --root              -- print the Sage root directory"
+    echo "  --git-branch        -- print the current git branch"
+    echo "  --grep [options] <string> -- regular expression search through the Sage"
+    echo "                               library for \"string\". Any options will"
+    echo "                               get passed to the \"grep\" command."
+    echo "  --grepdoc [options] <string> -- regular expression search through the"
+    echo "                                  Sage documentation for \"string\"."
+    echo "  --search_src <string> -- same as --grep"
+    echo "  --search_doc <string> -- same as --grepdoc"
+    echo
+    echo "Running external programs"
+    echo
+    echo "  --cython [...]      -- run Cython with the given arguments"
+    echo "  --ecl [...], --lisp [...]  -- run Sage's copy of ECL (Embeddable"
+    echo "                                Common Lisp) with the given arguments"
+    echo "  --gap [...]        -- run Sage's Gap with the given arguments"
+    echo "  --gap3 [...]       -- run Sage's Gap3 with the given arguments"
+    command -v gap3 &>/dev/null || \
+    echo "                        (not installed currently, run sage -i gap3)"
+    echo "  --gdb              -- run Sage under the control of gdb"
+    echo "  --gdb-ipython      -- run Sage's IPython under the control of gdb"
+    echo "  --git [...]        -- run Sage's Git with the given arguments"
+    echo "  --gp [...]         -- run Sage's PARI/GP calculator with the"
+    echo "                        given arguments"
+    echo "  --ipython [...]    -- run Sage's IPython using the default"
+    echo "                        environment (not Sage), passing additional"
+    echo "                        options to IPython"
+    echo "  --jupyter [...]    -- run Sage's Jupyter with given arguments"
+    echo "  --kash [...]       -- run Sage's Kash with the given arguments"
+    command -v kash &>/dev/null || \
+    echo "                        (not installed currently, run sage -i kash)"
+    echo "  --M2 [...]         -- run Sage's Macaulay2 with the given arguments"
+    command -v M2 &>/dev/null || \
+    echo "                        (not installed currently, run sage -i macaulay2)"
+    echo "  --maxima [...]     -- run Sage's Maxima with the given arguments"
+    echo "  --mwrank [...]     -- run Sage's mwrank with the given arguments"
+    echo "  --pip [...]        -- invoke pip, the Python package manager"
+    echo "  --polymake [...]   -- run Sage's Polymake with given arguments"
+    command -v polymake &>/dev/null || \
+    echo "                        (not installed currently, run sage -i polymake)"
+    echo "  --python [...], --python3 [...] -- run the Python 3 interpreter"
+    echo "  -R [...]           -- run Sage's R with the given arguments"
+    echo "  --scons [...]      -- run Sage's scons"
+    echo "  --singular [...]   -- run Sage's singular with the given arguments"
+
+    echo "  --sqlite3 [...]    -- run Sage's sqlite3 with given arguments"
+    echo
+    echo "Other utilities"
+    echo
+    echo "  --sh [...]         -- run a shell with Sage environment variables"
+    echo "                        as they are set in the runtime of Sage"
+    echo "  --buildsh [...]    -- run a shell with Sage environment variables"
+    echo "                        as they are set while building Sage and its packages"
+    echo "  --cleaner          -- run the Sage cleaner.  This cleans up after Sage,"
+    echo "                        removing temporary directories and spawned processes."
+    echo "                        (This gets run by Sage automatically, so it is usually"
+    echo "                        not necessary to run it separately.)"
 }
 
 if [ "$1" = '-h' -o "$1" = '-?' -o "$1" = '-help' -o "$1" = '--help' ]; then

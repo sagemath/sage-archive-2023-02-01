@@ -338,7 +338,7 @@ def Yu_a1_kappa1_c1(p, dK, ep):
 
     - ``p`` -- a rational prime number.
     - ``dK`` -- the absolute degree of some number field `K`
-    - ``ep`` -- the asbsolute ramification index of some prime `frak_p` of `K` lying above `p`
+    - ``ep`` -- the absolute ramification index of some prime `frak_p` of `K` lying above `p`
 
     OUTPUT:
 
@@ -346,7 +346,9 @@ def Yu_a1_kappa1_c1(p, dK, ep):
 
     EXAMPLES::
 
-    <to be added>
+        sage: from sage.rings.number_field.S_unit_solver import Yu_a1_kappa1_c1
+        sage: Yu_a1_kappa1_c1(5, 10, 3)
+        (16, 20, 319)
 
     REFERENCES:
 
@@ -415,7 +417,14 @@ def Yu_condition_115(K, v):
 
     EXAMPLES::
 
-    <to be added>
+       sage: from sage.rings.number_field.S_unit_solver import Yu_condition_115
+       sage: K.<a> = NumberField(x^2 + 5)
+       sage: v2 = K.primes_above(2)[0]
+       sage: v11 = K.primes_above(11)[0]
+       sage: Yu_condition_115(K, v2)
+       False
+       sage: Yu_condition_115(K, v11)
+       True
 
     REFERENCES:
 
@@ -463,7 +472,15 @@ def Yu_modified_height(mu, n, v, prec=106):
 
     EXAMPLES::
 
-    <to be added>
+        sage: K.<a> = NumberField(x^2 + 5)
+        sage: v11 = K.primes_above(11)[0]
+        sage: from sage.rings.number_field.S_unit_solver import Yu_modified_height
+        sage: Yu_modified_height(a, 3, v11)
+        0.8047189562170501873003796666131
+
+    If mu is a root of unity, the output is not zero. ::
+        sage: Yu_modified_height(-1, 3, v11)
+        0.03425564675426243634374205111379
 
     REFERENCES:
 
@@ -505,7 +522,14 @@ def Omega_prime(dK, v, mu_list, prec=106):
 
     EXAMPLES:
 
-    <to be added; include a root of unity to show it differs from global height>
+       sage: from sage.rings.number_field.S_unit_solver import mus, Omega_prime
+       sage: K.<a> = NumberField(x^3 - 3)
+       sage: SUK = UnitGroup(K, S=tuple(K.primes_above(6)))
+       sage: v = K.primes_above(3)[0]
+       sage: mu_list = [-1] + mus(SUK, v)
+       sage: dK = K.degree()
+       sage: Omega_prime(dK, v, mu_list)
+       0.000487349679922696
 
     REFERENCES:
 
@@ -540,7 +564,11 @@ def Yu_C1_star(n, v, prec=106):
 
     EXAMPLES::
 
-    <to be added>
+        sage: K.<a> = NumberField(x^2 + 5)
+        sage: v11 = K.primes_above(11)[0]
+        sage: from sage.rings.number_field.S_unit_solver import Yu_C1_star
+        sage: Yu_C1_star(1,v11)
+        2.154667761574516556114215527020e6
 
     REFERENCES:
 
@@ -595,7 +623,12 @@ def Yu_bound(SUK, v, prec=106):
 
     EXAMPLES::
 
-    <to be added>
+       sage: from sage.rings.number_field.S_unit_solver import Yu_bound
+       sage: K.<a> = NumberField(x^2 + 11)
+       sage: SUK = UnitGroup(K, S=tuple(K.primes_above(6)))
+       sage: v = K.primes_above(3)[0]
+       sage: Yu_bound(SUK, v)
+       9.03984381033128e9
 
     REFERENCES:
 
@@ -631,7 +664,7 @@ def Yu_bound(SUK, v, prec=106):
     else:
         # K and v don't satisfy the theorem hypotheses, and we must move to a quadratic extension L.
         # For justification of this next bound, see [AKMRVW].
-        var('x') # this declares 'x' as a polynomial variable.
+        var('x')
         if p == 2:
             L_over_K = K.extension(x**2 + x + 1, 'xi0')
         else:
@@ -672,7 +705,12 @@ def K0_func(SUK, A, prec=106):
 
     EXAMPLES::
 
-    <to be added>
+       sage: from sage.rings.number_field.S_unit_solver import K0_func
+       sage: K.<a> = NumberField(x^2 + 11)
+       sage: SUK = UnitGroup(K, S=tuple(K.primes_above(6)))
+       sage: v = K.primes_above(3)[0]
+       sage: K0_func(SUK, K.roots_of_unity())
+       8.84763586062272e12
 
     REFERENCES:
 

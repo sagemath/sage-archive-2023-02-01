@@ -2333,6 +2333,16 @@ class FusionRing(WeylCharacterRing):
     def _element_constructor(self,weight):
         return self._parent._element_constructor(self._parent,weight)
 
+    def get_order(self):
+        """
+        This duplicates the functionality inherited from combinat.free_module
+        but it is not cached. The caching of get_order causes inconsistent
+        results after calling set_order.
+        """
+        if self._order is None:
+            self.set_order(self.basis().keys().list())
+        return self._order
+
     def some_elements(self):
         """
         Return some elements of ``self``.

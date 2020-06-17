@@ -3,7 +3,7 @@ Fraction fields of Ore polynomial rings.
 
 Sage provides support for building the fraction field of any Ore
 polynomial ring and performing basic operations in it.
-The fraction field is constructed by the method 
+The fraction field is constructed by the method
 :meth:`sage.rings.polynomial.ore_polynomial_ring.OrePolynomialRing.fraction_field`
 as demonstrated below::
 
@@ -14,7 +14,7 @@ as demonstrated below::
     sage: K
     Ore Function Field in d over Fraction Field of Univariate Polynomial Ring in t over Rational Field twisted by d/dt
 
-The simplest way to build elements in `K` is to use the division 
+The simplest way to build elements in `K` is to use the division
 operator over Ore polynomial rings::
 
     sage: f = 1/d
@@ -25,9 +25,9 @@ operator over Ore polynomial rings::
 
 REPRESENTATION OF ELEMENTS:
 
-Elements in `K` are internally represented by fractions of the form `s^{-1} t` 
-with the denominator on the left. Notice that, because of noncommutativity, 
-this is not the same that fractions with denominator on the right. 
+Elements in `K` are internally represented by fractions of the form `s^{-1} t`
+with the denominator on the left. Notice that, because of noncommutativity,
+this is not the same that fractions with denominator on the right.
 For example, a fraction created by the division operator is usually displayed
 with a different numerator and/or a different denominator::
 
@@ -42,8 +42,8 @@ The left numerator and right denominator are accessible as follows:
     sage: g.right_denominator()
     d
 
-Similarly the methods :meth:`OrePolynomial.left_denominator` and 
-:meth:`OrePolynomial.right_numerator` give access to the Ore polynomials 
+Similarly the methods :meth:`OrePolynomial.left_denominator` and
+:meth:`OrePolynomial.right_numerator` give access to the Ore polynomials
 `s` and `t` in the representation `s^{-1} t`::
 
     sage: g.left_denominator()
@@ -68,7 +68,7 @@ twisting morphism), computing the left numerator and the right denominator fails
       Defn: t |--> t^2
 
 On a related note, fractions are systematically simplified when the twisting
-morphism is bijective but they are not otherwise. As an example, compare the 
+morphism is bijective but they are not otherwise. As an example, compare the
 two following computations::
 
     sage: P = d^2 + t*d + 1
@@ -330,7 +330,7 @@ class OreFunctionField(Algebra, UniqueRepresentation):
             sage: Ky is K.change_var('y')
             True
         """
-        return OreFunctionField(self._ring.change_var(var)) 
+        return OreFunctionField(self._ring.change_var(var))
 
     def characteristic(self):
         r"""
@@ -355,7 +355,7 @@ class OreFunctionField(Algebra, UniqueRepresentation):
 
     def twisting_morphism(self, n=1):
         r"""
-        Return the twisting endomorphism defining this Ore function field iterated ``n`` times 
+        Return the twisting endomorphism defining this Ore function field iterated ``n`` times
         or ``None`` if this Ore function field is not twisted by an endomorphism.
 
         INPUT:
@@ -381,7 +381,7 @@ class OreFunctionField(Algebra, UniqueRepresentation):
             sage: F.twisting_morphism()
 
         .. SEEALSO::
-        
+
             :meth:`sage.rings.polynomial.ore_polynomial_element.OrePolynomial.twisting_morphism`, 
             :meth:`twisting_derivation`
         """
@@ -409,7 +409,7 @@ class OreFunctionField(Algebra, UniqueRepresentation):
             sage: K.twisting_derivation()
 
         .. SEEALSO::
-        
+
             :meth:`sage.rings.polynomial.ore_polynomial_element.OrePolynomial.twisting_derivation`, 
             :meth:`twisting_morphism`
         """
@@ -537,7 +537,7 @@ class OreFunctionField(Algebra, UniqueRepresentation):
 
         INPUT:
 
-        - ``degree`` -- (default: 2) an integer or a list of 
+        - ``degree`` -- (default: 2) an integer or a list of
           two integers; the degrees of the denominator and numerator
 
         - ``monic`` -- (default: ``False``) if ``True``, return a monic
@@ -569,7 +569,7 @@ class OreFunctionField(Algebra, UniqueRepresentation):
         numerator = self._ring.random_element(degnum, monic, *args, **kwds)
         denominator = self._ring.random_element(degdenom, True, *args, **kwds)
         return self(numerator, denominator)
-    
+
     def is_commutative(self):
         r"""
         Return ``True`` if this Ore function field is commutative, i.e. if the
@@ -611,13 +611,13 @@ class OreFunctionField(Algebra, UniqueRepresentation):
 
     def fraction_field(self):
         r"""
-        Return the fraction field of this Ore polynomial field,
-        i.e. this Ore polynomial field itself.
+        Return the fraction field of this Ore function field,
+        i.e. this Ore function field itself.
 
         EXAMPLES::
 
             sage: R.<t> = QQ[]
-            sage: der = R.derivation() 
+            sage: der = R.derivation()
             sage: A.<d> = R['d', der]
             sage: K = A.fraction_field()
 

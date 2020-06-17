@@ -114,7 +114,7 @@ class OreFunction(AlgebraElement):
         EXAMPLES::
 
             sage: R.<t> = GF(5)[]
-            sage: der = R.derivation() 
+            sage: der = R.derivation()
             sage: S.<d> = R['d', der]
             sage: f = (d+t)^(-1) * (d^2 + t^2)
             sage: latex(f)
@@ -185,14 +185,14 @@ class OreFunction(AlgebraElement):
         WARNING:
 
         When the twisting morphism is bijective, there is a unique
-        irreducible fraction of the form `s^{-1} t` representing this 
-        element. Here irreducible means that `s` and `t` have no 
+        irreducible fraction of the form `s^{-1} t` representing this
+        element. Here irreducible means that `s` and `t` have no
         nontrivial common left divisor.
-        Under this additional assumption, this method always return 
+        Under this additional assumption, this method always return
         this distinguished denominator `s`.
 
         On the contrary, when the twisting morphism is not bijective,
-        this method returns the denominator of *some* fraction 
+        this method returns the denominator of *some* fraction
         representing the input element.
         However, the software guarantees that the method :meth:`right_numerator`
         outputs the numerator of the *same* fraction.
@@ -234,7 +234,7 @@ class OreFunction(AlgebraElement):
             True
 
         .. SEEALSO::
-        
+
             :meth:`right_numerator`, :meth:`left_numerator`, :meth:`right_denominator`
         """
         return self._denominator
@@ -246,14 +246,14 @@ class OreFunction(AlgebraElement):
         WARNING:
 
         When the twisting morphism is bijective, there is a unique
-        irreducible fraction of the form `s^{-1} t` representing this 
-        element. Here irreducible means that `s` and `t` have no 
+        irreducible fraction of the form `s^{-1} t` representing this
+        element. Here irreducible means that `s` and `t` have no
         nontrivial common left divisor.
-        Under this additional assumption, this method always return 
+        Under this additional assumption, this method always return
         this distinguished numerator `t`.
 
         On the contrary, when the twisting morphism is not bijective,
-        this method returns the numerator of *some* fraction 
+        this method returns the numerator of *some* fraction
         representing the input element.
         However, the software guarantees that the method :meth:`left_denominator`
         outputs the numerator of the *same* fraction.
@@ -278,7 +278,7 @@ class OreFunction(AlgebraElement):
             x^2 + a*x + a^2
 
         .. SEEALSO::
-        
+
             :meth:`left_denominator`, :meth:`left_numerator`, :meth:`right_denominator`
         """
         return self._numerator
@@ -320,10 +320,10 @@ class OreFunction(AlgebraElement):
         WARNING:
 
         When the twisting morphism is bijective, there is a unique
-        irreducible fraction of the form `t s^{-1}` representing this 
-        element. Here irreducible means that `s` and `t` have no 
+        irreducible fraction of the form `t s^{-1}` representing this
+        element. Here irreducible means that `s` and `t` have no
         nontrivial common right divisor.
-        Under this additional assumption, this method always return 
+        Under this additional assumption, this method always return
         this distinguished denominator `s`.
 
         On the contrary, when the twisting morphism is not bijective,
@@ -350,7 +350,7 @@ class OreFunction(AlgebraElement):
             x + a
 
         .. SEEALSO::
-        
+
             :meth:`left_numerator`, :meth:`left_denominator`, :meth:`right_numerator`
 
         TESTS::
@@ -374,10 +374,10 @@ class OreFunction(AlgebraElement):
         WARNING:
 
         When the twisting morphism is bijective, there is a unique
-        irreducible fraction of the form `t s^{-1}` representing this 
-        element. Here irreducible means that `s` and `t` have no 
+        irreducible fraction of the form `t s^{-1}` representing this
+        element. Here irreducible means that `s` and `t` have no
         nontrivial common right divisor.
-        Under this additional assumption, this method always return 
+        Under this additional assumption, this method always return
         this distinguished numerator `t`.
 
         On the contrary, when the twisting morphism is not bijective,
@@ -632,13 +632,13 @@ class OreFunction(AlgebraElement):
             sage: f = (x-a)^(-2)
             sage: g = f.hilbert_shift(a); g
             x^(-2)
-            
+
             sage: g.parent()
             Ore Function Field in x over Finite Field in a of size 5^3 twisted by a |--> a^5 and a*([a |--> a^5] - id)
             sage: g.parent() is S
             False
 
-        This behavior ensures that the Hilbert shift by a fixed element 
+        This behavior ensures that the Hilbert shift by a fixed element
         defines an homomorphism of fields::
 
             sage: U = K.random_element(degree=5)
@@ -679,7 +679,7 @@ class ConstantOreFunctionSection(Map):
     """
     def _call_(self, x):
         r"""
-        Return `x` viewed in the base field, 
+        Return `x` viewed in the base field,
         or raise an error if `x` is not a constant Ore function.
 
         TESTS::
@@ -834,13 +834,13 @@ class OreFunction_with_large_center(OreFunction):
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x', Frob]
             sage: K = S.fraction_field()
-            
+
             sage: a = 1 / (x^2 + t)
             sage: tr = a.reduced_trace(); tr
             3/(z^2 + 2)
 
         The reduced trace lies in the center of `S`, which is the fraction field
-        of a univariate polynomial ring in the variable `z = x^3` over `GF(5)`. 
+        of a univariate polynomial ring in the variable `z = x^3` over `GF(5)`.
 
             sage: tr.parent()
             Fraction Field of Univariate Polynomial Ring in z over Finite Field of size 5
@@ -854,12 +854,12 @@ class OreFunction_with_large_center(OreFunction):
 
         By default, the name of the central variable is usually ``z`` (see
         :meth:`sage.rings.polynomial.skew_polynomial_ring.OreFunctionField_with_large_center.center`
-        for more details about this). 
-        However, the user can specify a different variable name if desired:: 
+        for more details about this).
+        However, the user can specify a different variable name if desired::
 
             sage: a.reduced_trace(var='u')
             3/(u^2 + 2)
-        
+
         TESTS:
 
         We check that the reduced trace is additive::
@@ -901,7 +901,7 @@ class OreFunction_with_large_center(OreFunction):
             (z + 2)/(z^2 + 4)
 
         The reduced norm lies in the center of `S`, which is the fraction field
-        of a univariate polynomial ring in the variable `z = x^3` over `GF(5)`. 
+        of a univariate polynomial ring in the variable `z = x^3` over `GF(5)`.
 
             sage: N.parent()
             Fraction Field of Univariate Polynomial Ring in z over Finite Field of size 5
@@ -915,14 +915,14 @@ class OreFunction_with_large_center(OreFunction):
 
         By default, the name of the central variable is usually ``z`` (see
         :meth:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomiaRing_finite_order.center`
-        for more details about this). 
+        for more details about this).
         However, the user can speciify a different variable name if desired::
 
             sage: a.reduced_norm(var='u')
             (u + 2)/(u^2 + 4)
 
         TESTS:
-    
+
         We check that the reduced norm is a multiplicative map::
 
             sage: a = K.random_element()

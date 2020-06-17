@@ -1742,7 +1742,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         Check that the Hilbert series is pickled::
 
             sage: new_magic = loads(dumps(magic_square))  # optional - pynormaliz
-            sage: new_magic.hilbert_series.is_in_cache()  # optional - pynormaliz
+            sage: new_magic.hilbert_series.is_in_cache(grading)  # optional - pynormaliz
             True
         """
         if self.is_empty():

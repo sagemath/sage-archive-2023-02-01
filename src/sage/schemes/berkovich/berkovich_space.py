@@ -34,7 +34,6 @@ class Berkovich_Element_Cp(Berkovich_Element):
     """
 
     def __init__(self, parent, center, radius=None, power=None, prec=20, child=None, error_check=True):
-        Element.__init__(self, parent)
         from sage.rings.function_field.element import is_FunctionFieldElement
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         from sage.rings.fraction_field_element import FractionFieldElement_1poly_field
@@ -720,13 +719,13 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
     def __init__(self, parent, center, radius=None, power=None, prec=20, error_check=True):
         #we call Berkovich_Element_Cp constructor which is shared with projective Berkovich space
         #unless we are passed a point of projective Berkovich space
+        Element.__init__(self, parent)
         self._p = parent.prime()
         self._base_space = parent.base()
 
         #if this is a point of projective berkovich space, we do the conversion
         if isinstance(center, Berkovich_Element_Cp_Projective):
             if (center.prime() == self._p):
-                Element.__init__(self, parent)
                 try:
                     center.center().dehomogenize(1)
                     flag = False
@@ -754,7 +753,6 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
                     "over Cp(%s) to a " %center._base_space.base_ring().prime() + \
                     "point of Berkovich space over Cp(%s)" %(parent.base().prime()))
 
-        #otherwise we call the Berkovich_Element_Cp constructor with child=affine
         Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,\
             prec=prec,child="affine",error_check=error_check)
 
@@ -810,53 +808,35 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             sage: Q1.partial_order(Q2)
             False
 
+            ::
+
             sage: Q3 = B(1/2)
             sage: Q1.partial_order(Q3)
             True
+
+            ::
 
             sage: Q4 = B(1/81,1)
             sage: print(Q4.partial_order(Q1))
             None
 
+            ::
+
+            sage: print(Q4.partial_order(Q3))
+            None
         """
+        #error check, then convert to projective berkovich space to do the partial order
         if not isinstance(other,Berkovich_Element_Cp_Affine):
             raise ValueError("partial order takes another point of " + \
                 "the Berkovich Affine line, not %s" %(other))
         if self.parent() != other.parent():
             raise ValueError("partial order takes another point of " + \
                 "the same Berkovich Affine line")
-        if self.type_of_point() == 1:
-            if other.type_of_point() in [1,4]:
-                if self == other:
-                    return True
-                return None
-            else:
-                s_less_than_o = other.partial_order(self)
-                if s_less_than_o == None:
-                    return None
-                return not s_less_than_o
-        else:
-            if other.type_of_point() == 1:
-                dist = (self.center() - other.center()).abs()
-                if dist <= self.radius():
-                    return True
-                return None
-            if other.type_of_point() == 4:
-                center = other.center()[len(other.center())]
-                dist = (self.center() - center).abs()
-                if dist <= self.radius():
-                    return True
-                return None
-            else:
-                dist = (self.center()-other.center()).abs()
-                if(dist <= self.radius()):
-                    if(other.radius() <= self.radius()):
-                        return True
-                    return False
-                else:
-                    if(dist <= other.radius()):
-                        return False
-                    return None
+        base = self._base_space
+        B = Berkovich_Cp_Projective(ProjectiveSpace(base,1))
+        proj_self = B(self)
+        proj_other = B(other)
+        return proj_self.partial_order(proj_other)
 
     def join(self, other, basepoint="infty"):
         """
@@ -901,7 +881,9 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             sage: Q7 = B(1/27,1/27)
             sage: Q1.join(Q7,Q2)
             Type III point centered at 2 + O(3^20) of radius 2.00000000000000
+
         """
+        #we error check and then pass to projective space to do the join
         if not isinstance(other,Berkovich_Element_Cp_Affine):
             raise ValueError("join of a point of the Berkovich Affine line " + \
                 "takes another point of the Berkovich Affine line, not %s" %(other))
@@ -910,59 +892,25 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         if self.type_of_point() == 4 or other.type_of_point() == 4:
             raise NotImplementedError("join with Type IV points not implemented")
 
+        parent = self.parent()
+        base = self._base_space
+        B = Berkovich_Cp_Projective(ProjectiveSpace(base,1))
+        proj_self = B(self)
+        proj_other = B(other)
+
         if basepoint == "infty":
-            dist = (self.center() - other.center()).abs()
-            return self.parent()(self.center(),max(dist,self.radius(),other.radius()))
+            return parent(proj_self.join(proj_other))
 
-        else:
-            if not isinstance(basepoint, Berkovich_Element_Cp_Affine):
-                raise ValueError("basepoint for join must be a point of the Berkovich " + \
-                    "Affine line over Cp")
-            if basepoint.parent() != self.parent():
-                raise ValueError("basepoint must be a point of the same Berkovich Affine line")
-            if basepoint.type_of_point() == 4:
-                raise NotImplementedError("join not implemented for Type IV basepoint")
+        if not isinstance(basepoint, Berkovich_Element_Cp_Affine):
+            raise ValueError("basepoint for join must be a point of the Berkovich " + \
+                "Affine line over Cp")
+        if basepoint.parent() != self.parent():
+            raise ValueError("basepoint must be a point of the same Berkovich Affine line")
+        if basepoint.type_of_point() == 4:
+            raise NotImplementedError("join not implemented for Type IV basepoint")
+        proj_basepoint = B(basepoint)
+        return parent(proj_self.join(proj_other, proj_basepoint))
 
-            b_greater_than_s = basepoint.partial_order(self)
-            b_greater_than_o = basepoint.partial_order(other)
-
-            if b_greater_than_s == None and b_greater_than_o == None:
-                dist_b_s = (self.center() - basepoint.center()).abs()
-                dist_b_o = (other.center() - basepoint.center()).abs()
-                return self.parent()(basepoint.center(),\
-                    min(max(dist_b_o,other.radius(),basepoint.radius()),\
-                        max(dist_b_s,self.radius(),basepoint.radius())))
-
-            elif b_greater_than_s != None and b_greater_than_o == None:
-                dist_b_o = (other.center() - basepoint.center()).abs()
-                if dist_b_o < self.radius(): 
-                    return (self.parent())(basepoint.center(),dist_b_o)
-                elif dist_b_o >= self.radius():
-                    if b_greater_than_s:
-                        return basepoint
-                    else:
-                        return self
-
-            elif b_greater_than_s == None and b_greater_than_o != None:
-                return other.join(self,basepoint)
-
-            else:
-                if b_greater_than_s:
-                    if b_greater_than_o:
-                        if self.partial_order(other):
-                            return self
-                        else:
-                            return other
-                    else:
-                        return basepoint
-                else:
-                    if b_greater_than_o:
-                        return basepoint
-                    else:
-                        if self.partial_order(other):
-                            return other
-                        else:
-                            return self
 
     def involution_map(self):
         """
@@ -971,7 +919,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         The involution map is the extension of the map z |-> 1/z map
         on ``Cp`` to Berkovich space.
 
-        For Affine Berkovich Space, not defined for the Type I point centered at 0.
+        For Affine Berkovich Space, not defined for the Type I 
+        point centered at 0.
 
         EXAMPLES::
 
@@ -1240,13 +1189,13 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         #if we are given a point of Affine Berkovich Space, we do the conversion
         #otherwise we call the Berkovich_Element_Cp constructor with child="projective"
 
+        Element.__init__(self, parent)
         self._p = parent.prime()
         self._base_space = parent.base()
 
         #conversion from Affine points is handled in this constructor
         if isinstance(center, Berkovich_Element_Cp_Affine):
             if (center.prime() == self._p):
-                Element.__init__(self, parent)
                 self._center = (self._base_space)(center._center)
                 self._radius = center._radius
                 self._power = center._power
@@ -1268,15 +1217,6 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,\
                 prec=prec,child="projective",error_check=error_check)
-
-    def _field_center(self):
-        """
-        Returns the center of ``self`` as an element 
-        of a field, allowing for arithmetic.
-        Used to make handling Type II and III points
-        easier, as the centers of these points are never (1 : 0).
-        """
-        return self.center()[0]
 
     def __eq__(self, other):
         """
@@ -1347,6 +1287,18 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         if self.parent() != other.parent():
             raise ValueError("partial order takes another point of the " + \
                 "same Berkovich Projective line")
+
+        #if self or other is infinity, we apply the involution map
+        parent = self.parent()
+        infty = parent((1,0))
+        zero = parent(0)
+        if self == infty or other == infty:
+            if self == zero or other == zero:
+                return None
+            newself = self.involution_map()
+            newother = other.involution_map()
+            return newself.partial_order(newother)
+
         if self.type_of_point() == 1:
             if other.type_of_point() in [1,4]:
                 if self == other:
@@ -1424,49 +1376,82 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             sage: Q1.join(Q7,Q2)
             Type III point centered at (2 + O(3^20) : 1 + O(3^20)) of radius 2.00000000000000
         """
+        parent = self.parent()
+
         if not isinstance(other,Berkovich_Element_Cp_Projective):
             raise ValueError("join of a point of the Berkovich Projective " + \
                 "line takes another point of the Berkovich Projective line, not %s" %(other))
-        if self.parent() != other.parent():
+        if other.parent() != parent:
             raise ValueError("join takes two points in the same Berkovich Projective line")
         if self.type_of_point() == 4 or other.type_of_point() == 4:
             raise NotImplementedError("join with Type IV points not implemented")
 
         #we deal with the point at infinity as a special case
-        #if self, other and basepoint all covert to Affine Berkovich space, we do the join
-        #in Affine space and then convert back to projective
 
-        parent = self.parent()
         infty = parent((1,0))
+
         if basepoint == "infty" or basepoint == infty:
             if self == infty or other == infty:
                 return infty
-            else:
-                dist = (self.center()[0] - other.center()[0]).abs()
-                return parent(self.center(),max(dist,self.radius(),other.radius()))
-        else:
-            if not isinstance(basepoint, Berkovich_Element_Cp_Projective):
-                raise ValueError("basepoint for join must be a point of the Berkovich Projective line over Cp")
-            if basepoint.parent() != parent:
-                raise ValueError("basepoint must be a point of the same Berkovich Projective line")
-            if basepoint.type_of_point() == 4:
-                raise NotImplementedError("join not implemented for Type IV basepoint")
-            if self == infty or other == infty:
-                if self == other:
-                    return infty
+            dist = (self.center()[0] - other.center()[0]).abs()
+            return parent(self.center(),max(dist,self.radius(),other.radius())) #TODO optimize for Type II
+
+        if not isinstance(basepoint, Berkovich_Element_Cp_Projective):
+            raise ValueError("basepoint for join must be a point of the Berkovich Projective line over Cp")
+        if basepoint.parent() != parent:
+            raise ValueError("basepoint must be a point of the same Berkovich Projective line")
+        if basepoint.type_of_point() == 4:
+            raise NotImplementedError("join not implemented for Type IV basepoint")
+
+        if self == infty:
+            return other.join(basepoint)
+        if other == infty:
+            return self.join(basepoint)
+
+        #since none of the self, other, and basepoint are infinity, we can now treat them
+        #as affine points
+
+        b_greater_than_s = basepoint.partial_order(self)
+        b_greater_than_o = basepoint.partial_order(other)
+
+        if b_greater_than_s == None and b_greater_than_o == None:
+            dist_b_s = (self.center()[0] - basepoint.center()[0]).abs()
+            dist_b_o = (other.center()[0] - basepoint.center()[0]).abs()
+            return parent(basepoint.center(),\
+                min(max(dist_b_o,other.radius(),basepoint.radius()),\
+                    max(dist_b_s,self.radius(),basepoint.radius())))
+
+        elif b_greater_than_s != None and b_greater_than_o == None:
+            dist_b_o = (other.center()[0] - basepoint.center()[0]).abs()
+            if dist_b_o < self.radius(): 
+                return parent(basepoint.center(),dist_b_o)
+            elif dist_b_o >= self.radius():
+                if b_greater_than_s:
+                    return basepoint
                 else:
-                    if self == infty:
-                        return other.join(basepoint)
+                    return self
+
+        elif b_greater_than_s == None and b_greater_than_o != None:
+            return other.join(self,basepoint)
+
+        else:
+            if b_greater_than_s:
+                if b_greater_than_o:
+                    if self.partial_order(other):
+                        return self
                     else:
-                        return self.join(basepoint)
+                        return other
+                else:
+                    return basepoint
             else:
-                base = self._base_space.base_ring()
-                B = Berkovich_Cp_Affine(base)
-                affine_self = B(self)
-                affine_other = B(other)
-                affine_basepoint = B(basepoint)
-                affine_join = affine_self.join(affine_other,affine_basepoint)
-                return (parent)(affine_join)
+                if b_greater_than_o:
+                    return basepoint
+                else:
+                    if self.partial_order(other):
+                        return other
+                    else:
+                        return self
+
 
     def involution_map(self):
         """
@@ -1474,7 +1459,6 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         The involution map is the extension of the map z |-> 1/z map
         on projective space over ``Cp`` to Berkovich space.
-
 
         EXAMPLES::
 

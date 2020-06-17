@@ -331,13 +331,49 @@ class Berkovich_Element_Cp(Berkovich_Element):
                 self._power = power
                 self._type = 2
                 return
-            power = radius.log(self._p)
+            power = RR(radius.log(self._p))
             if power.is_integer():
                 self._power = QQ(power)
                 self._type = 2
             else:
                 self._type = 3
-                self._power = None
+                self._power = power
+
+    def prec(self):
+        """
+        Returns the precision of a Type IV point.
+
+        Not defined for Type I, II or III points.
+
+        OUTPUT: An integer
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Affine(Qp(3))
+            sage: d = B([Qp(3)(2), Qp(3)(2), Qp(3)(2)], [1.761, 1.123, 1.112])
+            sage: d.prec()
+            3
+        """
+        return self.precision()
+
+    def precision(self):
+        """
+        Returns the precision of a Type IV point.
+
+        Not defined for Type I, II, or III points.
+
+        OUTPUT: An integer
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Affine(Qp(3))
+            sage: d = B([2, 2, 2], [1.761, 1.123, 1.112])
+            sage: d.prec()
+            3
+        """
+        if self._type in [1,2,3]:
+            raise AttributeError("Type I, II, and III points do not have a precision")
+        return self._prec
 
     def power(self):
         """
@@ -345,6 +381,24 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
         For Type II points, always in QQ. For Type III points,
         a real number. Not defined for Type I or IV points.
+
+        OUTPUT:
+
+         - An integer for Type II points
+         - A real number for Type III points
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: Q1 = B(1, 9)
+            sage: Q1.power()
+            2
+
+        ::
+
+            sage: Q2 = B(1,4)
+            sage: Q2.power()
+            1.26185950714291
         """
         if self._type in [1,4]:
             raise AttributeError("Type I and IV points do not have a power")
@@ -356,8 +410,21 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
         OUTPUT:
 
-        - For Type I, II, and III points, returns a list of a single non-negative 
-          real number. For Type IV points, returns a list of non-negative real numbers.
+         - A non-negative real number for points Types I-III
+         - A list of non-negative real numbers for Type IV points
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: Q1 = B(1, 2/5)
+            sage: Q1.radius()
+            0.400000000000000
+
+            ::
+
+            sage: d = B([2, 2, 2], [1.761, 1.123, 1.112])
+            sage: d.radius()
+            [1.76100000000000, 1.12300000000000, 1.11200000000000]
         """
         if self._type == 4:
             return self._radius_lst[:]
@@ -368,11 +435,14 @@ class Berkovich_Element_Cp(Berkovich_Element):
         Diameter function on Berkovich space.
 
         For Type I, II, and III points, returns the radius.
+
         For Type IV points returns either the last radius
         in the finite approximation, or if a generating function
         was given for the radii, the diameter is computed
         as the limit of the function as it's variable tends
         to infinity.
+
+        OUTPUT: A real number.
 
         EXAMPLES::
 
@@ -381,10 +451,21 @@ class Berkovich_Element_Cp(Berkovich_Element):
             sage: Q1.diameter()
             0
 
+            ::
+
             sage: Q2 = B(1/2,9)
             sage: Q2.diameter()
             9.00000000000000
 
+            The diameter of a Type IV point is the limit of the radii::
+
+            sage: R.<x> = PolynomialRing(Qp(3))
+            sage: f = R(2)
+            sage: S.<y> = PolynomialRing(RR)
+            sage: S = FractionField(S)
+            sage: g = (y+1)/y
+            sage: B(f,g).diameter()
+            1.0
         """
         if self._type == 4:
             if self._radius_func == None:
@@ -408,7 +489,6 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
         Also known as the path distance metric, or the big metric. 
         See path_distance_metric for details.
-
         """
         return self.path_distance_metric(other)
 
@@ -429,8 +509,14 @@ class Berkovich_Element_Cp(Berkovich_Element):
         Also referred to as the hyperbolic metric, or the big metric.
 
         On the set of Type II, III and IV points, the path distance metric
-        is a canonical metric. Following Baker and Rumely, we extend 
+        is a metric. Following Baker and Rumely, we extend 
         the path distance metric to Type I points x,y by p(x,x) = 0 and p(x,y) = infty
+
+        INPUT:
+
+         - ``other`` - a point of the same Berkovich space
+
+        OUTPUT: A real number, or the infinity symbol 'oo'
 
         EXAMPLES::
 
@@ -440,18 +526,23 @@ class Berkovich_Element_Cp(Berkovich_Element):
             sage: Q1.path_distance_metric(Q2)
             0.369070246428542
 
+        ::
+
+            sage: Q3 = B(1)
+            sage: Q3.path_distance_metric(Q1)
+            'oo'
         """
         if not isinstance(other,Berkovich_Element_Cp):
-            raise ValueError("Hyperbolic metric not defined between point of " + \
+            raise ValueError("Path distance metric not defined between point of " + \
                 "Berkovich space and %s" %(other))
         if self.parent() != other.parent():
-            raise ValueError("Input to hyperbolic metric was an element of a " + \
+            raise ValueError("Input to path distance metric was an element of a " + \
                 "different Berkovich space")
         if self.type_of_point() == 1 or other.type_of_point() == 1:
             if self == other:
                 return 0
             else:
-                return "infty"
+                return "oo"
         return 2*((self.join(other)).diameter().log(self.prime()))\
             -self.diameter().log(self.prime())\
             -other.diameter().log(other.prime())
@@ -459,6 +550,12 @@ class Berkovich_Element_Cp(Berkovich_Element):
     def small_metric(self, other):
         """
         Returns the small metric distance between this point and ``other``.
+
+        INPUT:
+
+         - ``other`` - a point of the same Berkovich space
+
+        OUTPUT: A real number
 
         EXAMPLES::
 
@@ -497,6 +594,12 @@ class Berkovich_Element_Cp(Berkovich_Element):
         """
         Return the Hsia kernel at infinity of this point with ``other``.
 
+        INPUT:
+
+         - ``other`` - a point of the same Berkovich space
+
+        OUTPUT: A real number
+
         EXAMPLES::
 
             sage: B = Berkovich_Cp_Affine(Qp(3))
@@ -510,12 +613,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def center(self):
         """
-        Returns the center of the corresponding disk (or sequence of disks) in ``Cp``
-
-        OUTPUT:
-
-        - For Type I, II, and III points, returns an element of ``Qp`` or a finite extension. For
-          Type IV points, returns a list of points of ``Qp`` or a finite extension
+        Returns the center of the corresponding disk (or sequence of disks) in ``Cp``.
         """
         if self._type == 4:
             return self._center_lst[:]
@@ -524,12 +622,16 @@ class Berkovich_Element_Cp(Berkovich_Element):
     def type_of_point(self):
         """
         Returns the Type of this point of Berkovich space over ``Cp``
+
+        OUTPUT: An integer between 1 and 4 inclusive
         """
         return self._type
 
     def prime(self):
         """
         Shorthand for residue characteristic of the parent
+
+        OUTPUT: A prime integer
         """
         return self._p
     
@@ -756,6 +858,30 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,\
             prec=prec,child="affine",error_check=error_check)
 
+    def center(self):
+        """
+        Returns the center of the corresponding disk (or sequence of disks) in ``Cp``
+
+        OUTPUT:
+
+         - For Type I-III points, a point of ``Cp``
+         - For Type IV points, a list of points of ``Cp``
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: Q1 = B(2,1)
+            sage: Q1.center()
+            2 + O(3^20)
+
+        ::
+
+            sage: d = B([4,2],[4,2])
+            sage: d.center()
+            [1 + 3 + O(3^20), 2 + O(3^20)]
+        """
+        return super().center()
+
     def __eq__(self, other):
         """
         Equality operator.
@@ -793,9 +919,11 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         is a subset of D(c2,r2) in ``Cp``.
 
         INPUT:
+
          - ``other`` - another point of the same Berkovich space
 
         OUTPUT:
+
          - ``True`` - If self > other in the standard partial order
          - ``False`` - If self < other in the standard partial order
          - ``None`` - If the two points are not comparable
@@ -851,6 +979,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
          - ``other`` -- the second point with which to take the join
          - ``basepoint`` -- (default: Infinity) the basepoint with which
          to take the join with respect to
+
+        OUTPUT: A point of the same Berkovich space
 
         EXAMPLES::
 
@@ -922,6 +1052,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         For Affine Berkovich Space, not defined for the Type I 
         point centered at 0.
 
+        OUTPUT: A point of the same Berkovich space
+
         EXAMPLES::
 
         The involution map is 1/z on Type I points::
@@ -982,6 +1114,22 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
     def potential_kernel(self, other, basepoint):
         """
         The potential kernel of this point with ``other``, with basepoint ``basepoint``.
+
+        INPUT:
+
+         - ``other`` - the point with which to take the potential kernel
+         - ``basepoint`` - the basepoint with which to take the potential kernel
+
+        OUTPUT: A real number or the infinity symbol 'oo'
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: Q1 = B(27,1)
+            sage: Q2 = B(1/3,2)
+            sage: Q3 = B(1/9,1/2)
+            sage: Q3.potential_kernel(Q1,Q2)
+            0.369070246428543
         """
         if not isinstance(other,Berkovich_Element_Cp_Affine):
             raise ValueError("potential kernel of a point of the " + \
@@ -1003,6 +1151,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         The spherical kernel is one possible extension of 
         the spherical distance on P^1(``Cp``) to P^1 Berkovich.
+
+        OUTPUT: A real number
 
         EXAMPLES::
 
@@ -1029,8 +1179,12 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         """
         The Hsia kernel of this point and ``other``, with basepoint ``basepoint``.
 
-        OUTPUT: If the basepoint is Type I and either this point or other equals
-        the basepoint, outputs the string "oo". Otherwise, a real number.
+        INPUT:
+
+         - ``other`` - The point with which to take the Hsia kernel with
+         - ``basepoint`` - The basepoint of the Hsia kernel
+
+        OUTPUT: A real number or the infinity symbol 'oo'
 
         EXAMPLES::
 
@@ -1076,6 +1230,13 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         If the basepoint is not infinity, the diameter
         is the Hsia kernel of this point with itself at
         basepoint ``basepoint``.
+
+        INPUT:
+
+         - ``basepoint`` - (default = Infinity) the basepoint of 
+         the generalized diameter
+
+        OUTPUT: A real number or the infinity symbol 'oo'
         """
         if basepoint == "oo":
             return super().diameter()
@@ -1218,6 +1379,30 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,\
                 prec=prec,child="projective",error_check=error_check)
 
+    def center(self):
+        """
+        Returns the center of the corresponding disk (or sequence of disks) in P^1(Cp)
+
+        OUTPUT:
+
+         - For Type I-III points, a point of P^1(Cp)
+         - For Type IV points, a list of points of P^1(Cp)
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: Q1 = B(2,1)
+            sage: Q1.center()
+            (2 + O(3^20) : 1 + O(3^20))
+
+        ::
+
+            sage: d = B([4,2],[4,2])
+            sage: d.center()
+            [(1 + 3 + O(3^20) : 1 + O(3^20)), (2 + O(3^20) : 1 + O(3^20))]
+        """
+        return super().center()
+
     def __eq__(self, other):
         """
         Equality operator.
@@ -1272,14 +1457,24 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             sage: Q1.partial_order(Q2)
             False
 
+        ::
+
             sage: Q3 = B(1/2)
             sage: Q1.partial_order(Q3)
             True
+
+        ::
 
             sage: Q4 = B(1/81,1)
             sage: print(Q4.partial_order(Q1))
             None
 
+        We check infinity works in the partial order::
+
+            sage: Q5 = B((1,0))
+            sage: Q6 = B(3,3)
+            sage: Q6.partial_order(Q5)
+            True
         """
         if not isinstance(other,Berkovich_Element_Cp_Projective):
             raise ValueError("partial order takes another point of " + \
@@ -1346,6 +1541,8 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
          - ``basepoint`` -- (default: Infinity) the basepoint with which
          to take the join with respect to
 
+        OUTPUT: A point of the same Berkovich space
+
         EXAMPLES::
 
             sage: B = Berkovich_Cp_Projective(ProjectiveSpace(Qp(3),1))
@@ -1383,8 +1580,17 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                 "line takes another point of the Berkovich Projective line, not %s" %(other))
         if other.parent() != parent:
             raise ValueError("join takes two points in the same Berkovich Projective line")
-        if self.type_of_point() == 4 or other.type_of_point() == 4:
-            raise NotImplementedError("join with Type IV points not implemented")
+
+        #if either self or other is Type IV, we use the last disk in the approximation
+
+        if self.type_of_point() == 4:
+            new_center = self.center()[self.prec()-1]
+            new_radius = self.radius()[self.prec()-1]
+            return parent(new_center,new_radius).join(other)
+        if  other.type_of_point() == 4:
+            new_center = other.center()[other.prec()-1]
+            new_radius = other.radius()[other.prec()-1]
+            return self.join(parent(new_center,new_radius))
 
         #we deal with the point at infinity as a special case
 
@@ -1400,8 +1606,13 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             raise ValueError("basepoint for join must be a point of the Berkovich Projective line over Cp")
         if basepoint.parent() != parent:
             raise ValueError("basepoint must be a point of the same Berkovich Projective line")
+
+        #if the basepoint is Type IV, we use the last disk in the approximation
+
         if basepoint.type_of_point() == 4:
-            raise NotImplementedError("join not implemented for Type IV basepoint")
+            new_center = other.center()[other.prec()-1]
+            new_radius = other.radius()[other.prec()-1]
+            return self.join(other, parent(new_center,new_radius))
 
         if self == infty:
             return other.join(basepoint)
@@ -1452,13 +1663,14 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                     else:
                         return self
 
-
     def involution_map(self):
         """
         Returns the image of this point under the involution map.
 
         The involution map is the extension of the map z |-> 1/z map
         on projective space over ``Cp`` to Berkovich space.
+
+        OUTPUT: A point of the same Berkovich space
 
         EXAMPLES::
 
@@ -1524,6 +1736,22 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         """
         The potential kernel of this point with ``other``,
         with basepoint ``basepoint``.
+
+        INPUT:
+
+         - ``other`` - the point with which to take the potential kernel
+         - ``basepoint`` - the basepoint with which to take the potential kernel
+
+        OUTPUT: A real number or the infinity symbol 'oo'
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: Q1 = B(27,1)
+            sage: Q2 = B(1/3,2)
+            sage: Q3 = B(1/9,1/2)
+            sage: Q3.potential_kernel(Q1,Q2)
+            0.369070246428543
         """
         if not isinstance(other,Berkovich_Element_Cp_Projective):
             raise ValueError("potential kernel of a point of the Berkovich " + \
@@ -1542,6 +1770,12 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         The spherical kernel is one possible extension of the spherical
         distance on P^1(``Cp``) to P^1 Berkovich.
+
+        INPUT:
+
+         - ``other`` - The point with which to take the spherical kernel
+
+        OUTPUT: A real number
 
         EXAMPLES::
 
@@ -1567,10 +1801,14 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
     def Hsia_kernel(self, other, basepoint):
         """
         The Hsia kernel of this point and ``other``,
-        with basepoint ``basepoint``
+        with basepoint ``basepoint``.
 
-        OUTPUT: If the basepoint is Type I and either this point or other equals
-        the basepoint, outputs the string "oo". Otherwise, a real number.
+        INPUT::
+
+         - ``other`` - the point with which to take the Hsia kernel
+         - ``basepoint`` - the basepoint with which to take the Hsia kernel
+
+        OUTPUT: A real number or the infinity symbol 'oo'
 
         EXAMPLES::
 
@@ -1616,6 +1854,13 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         If the basepoint is not infinity, the diameter
         is the Hsia kernel of this point with itself at
         basepoint ``basepoint``.
+
+        INPUT:
+
+         - ``basepoint`` - (default = Infinity) the basepoint of 
+         the generalized diameter
+
+        OUTPUT: A real number or the infinity symbol 'oo'
         """
         if basepoint == "oo":
             return super().diameter()

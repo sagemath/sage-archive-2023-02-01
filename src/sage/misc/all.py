@@ -3,8 +3,7 @@ from .lazy_attribute import lazy_attribute, lazy_class_attribute
 from .lazy_import import lazy_import
 
 from .misc import (BackslashOperator,
-                  cputime, verbose, set_verbose, set_verbose_files,
-                  get_verbose_files, unset_verbose_files, get_verbose,
+                  cputime,
                   union, uniq, powerset, subsets,
                   exists, forall, is_iterator,
                   random_sublist, walltime,
@@ -14,6 +13,10 @@ from .misc import (BackslashOperator,
                    newton_method_sizes, compose,
                   nest)
 
+from .verbose import (set_verbose, set_verbose_files,
+                      get_verbose_files, unset_verbose_files, get_verbose)
+lazy_import('sage.misc.verbose', 'verbose',
+            deprecation=17815)
 from .call import attrcall
 
 from .banner import version, banner

@@ -119,7 +119,8 @@ cpdef hgm_coeffs(long long p, int f, int prec, gamma, m, int D,
             if use_longs:
                 u = R(w)
                 u1 = R(w1)
-            if i % 2: u = -u
+            if i % 2:
+                u = -u
             ans[r] = (u / u1) << l
         if f > 1:
             r1 = r

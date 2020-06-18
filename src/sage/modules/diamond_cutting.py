@@ -18,7 +18,6 @@ from __future__ import print_function
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.modules.free_module_element import vector
-from sage.rings.rational_field import QQ
 
 from math import sqrt, floor, ceil
 

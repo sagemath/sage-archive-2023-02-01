@@ -945,6 +945,17 @@ class Function_real_nth_root(BuiltinFunction):
                                                   mathematica='Surd',
                                                   maple='surd'))
 
+    def _print_latex_(self, base, exp):
+        r"""
+        EXAMPLES::
+
+            sage: latex(real_nth_root(x, 3))
+            x^{\frac{1}{3}}
+            sage: latex(real_nth_root(x^2 + x, 3))
+            {\left(x^{2} + x\right)}^{\frac{1}{3}}
+        """
+        return latex(base**(1/exp))
+
     def _evalf_(self, base, exp, parent=None):
         """
         EXAMPLES::
@@ -1028,6 +1039,16 @@ class Function_real_nth_root(BuiltinFunction):
             sage: f = real_nth_root(-x, 4)
             sage: f.diff()
             -1/4*real_nth_root(-1/x^3, 4)
+
+        ::
+
+            sage: f = real_nth_root(x,3)
+            sage: f.diff()
+            1/3*real_nth_root(x^(-2), 3)
+            sage: f.integrate(x)
+            integrate(abs(x)^(1/3)*sgn(x), x)
+            sage: _.diff()
+            abs(x)^(1/3)*sgn(x)
         """
         return 1/exp * self(base, exp)**(1-exp)
 

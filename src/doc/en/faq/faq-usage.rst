@@ -419,7 +419,7 @@ How can I wrote multiplication implicitly as in Mathematica?
 Sage has a function that enables this::
 
     sage: implicit_multiplication(True)
-    sage: x 2 x  # Not tested
+    sage: x 2 x  # not tested
     2*x^2
     sage: implicit_multiplication(False)
 
@@ -684,12 +684,11 @@ How do I plot the cube root (or other odd roots) for negative input?
 This is one of the most frequently asked questions.  There are several
 methods mentioned in the plot documentation, but this one is easiest::
 
-    sage: plot(real_nth_root(x, 3), (x, -1, 1))
-    Graphics object consisting of 1 graphics primitive
+    sage: plot(real_nth_root(x, 3), (x, -1, 1))  # not tested
 
 On the other hand, note that the straightforward ::
 
-    sage: plot(x^(1/3), (x, -1, 1))
+    sage: plot(x^(1/3), (x, -1, 1))  # not tested
 
 produces the expected plot only for positive `x`. The *reason* is that Sage
 returns complex numbers for odd roots of negative numbers when numerically

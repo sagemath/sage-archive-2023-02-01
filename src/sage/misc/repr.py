@@ -4,6 +4,29 @@ Repr formatting support
 
 
 def coeff_repr(c, is_latex=False):
+    r"""
+    String representing coefficients in a linear combination.
+
+    INPUT:
+
+    - ``c`` -- a coefficient (i.e., an element of a ring)
+
+    OUTPUT:
+
+    A string
+
+    EXAMPLES::
+
+        sage: from sage.misc.repr import coeff_repr
+        sage: coeff_repr(QQ(1/2))
+        '1/2'
+        sage: coeff_repr(-x^2)
+        '(-x^2)'
+        sage: coeff_repr(QQ(1/2), is_latex=True)
+        '\\frac{1}{2}'
+        sage: coeff_repr(-x^2, is_latex=True)
+        '\\left(-x^{2}\\right)'
+    """
     if not is_latex:
         try:
             return c._coeff_repr()

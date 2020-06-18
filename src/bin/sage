@@ -60,7 +60,7 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo
-    echo "Running Sage, the most common options"
+    echo "Running Sage, the most common options:"
     echo
     echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx file"
     echo "  -h, -?, --help      -- print a short help message"
@@ -70,33 +70,59 @@ usage_advanced() {
     echo "                         \"sage -c 'print(factor(35))'\" will"
     echo "                         print \"5 * 7\"."
     echo
-    echo "Running Sage, other options"
+    echo "Running Sage, other options:"
     echo
-    echo "  --dumpversion        -- print brief Sage version"
+    echo "  --dumpversion       -- print brief Sage version"
     echo "  --preparse file.sage -- preparse \"file.sage\", and produce"
     echo "                          the corresponding Python file"
     echo "                          \"file.sage.py\""
-    echo "  -q                   -- quiet; start with no banner"
-    echo "  --min                -- do not populate global namespace"
-    echo "                          (must be first option)"
-    echo "   --nodotsage          -- run Sage without using the user's"
-    echo "                          .sage directory: create and use a temporary"
-    echo "                          .sage directory instead."
-    echo "   --gthread, --qthread, --q4thread, --wthread, --pylab"
-    echo "                        -- pass the option through to IPython"
+    echo "  -q                  -- quiet; start with no banner"
+    echo "  --min               -- do not populate global namespace"
+    echo "                         (must be first option)"
+    echo "  --nodotsage         -- run Sage without using the user's"
+    echo "                         .sage directory: create and use a temporary"
+    echo "                         .sage directory instead."
+    echo "  --gthread, --qthread, --q4thread, --wthread, --pylab"
+    echo "                      -- pass the option through to IPython"
+    if [ -n "$SAGE_SRC" -a -d "$SAGE_SRC" ]; then
+        echo "  --grep [options] <string>"
+        echo "                      -- regular expression search through the Sage"
+        echo "                         library for \"string\". Any options will"
+        echo "                         get passed to the \"grep\" command."
+        echo "  --grepdoc [options] <string>"
+        echo "                      -- regular expression search through the"
+        echo "                         Sage documentation for \"string\"."
+        echo "  --search_src ...    -- same as --grep"
+        echo "  --search_doc ...    -- same as --grepdoc"
+    fi
     echo
-    echo "Running the notebook"
+    echo "Running external programs:"
     echo
-    echo "  -n [...], --notebook=[...] -- start the notebook; valid options"
-    echo "                                include \"default\", \"jupyter\", \"export\"."
-    echo "                                 Current default is \"jupyter\"."
-    echo "                                Run \"sage --notebook --help\" for more details."
-    echo "  -bn [...], --build-and-notebook [...] -- build the Sage library (as by"
-    echo "                                running \"sage -b\") then start the notebook"
+    echo "  --gdb               -- run Sage under the control of gdb"
+    echo "  --gdb-ipython       -- run Sage's IPython under the control of gdb"
+    echo "  --ipython [...], --ipython3 [...]"
+    echo "                      -- run Sage's IPython using the default"
+    echo "                         environment (not Sage), passing additional"
+    echo "                         additional options to IPython"
+    echo "  --jupyter [...]     -- run Sage's Jupyter with given arguments"
+    echo "  --pip [...]         -- invoke pip, the Python package manager"
+    echo "  --python [...], --python3 [...]"
+    echo "                      -- run the Python 3 interpreter"
+    echo
+    echo "Running the notebook:"
+    echo
+    echo "  -n [...], --notebook=[...]"
+    echo "                      -- start the notebook; valid options"
+    echo "                         include \"default\", \"jupyter\", \"export\"."
+    echo "                         Current default is \"jupyter\"."
+    echo "                         Run \"sage --notebook --help\" for more details."
+    echo "  -bn [...], --build-and-notebook [...]"
+    echo "                      -- build the Sage library (as by running \"sage -b\")"
+    echo "                         and then start the notebook"
     echo
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
-    echo "Testing files"
+    echo "Testing files:"
     echo
     echo "  -t [options] <files|dir> -- test examples in .py, .pyx, .sage"
     echo "                              or .tex files.  Options:"
@@ -104,16 +130,16 @@ usage_advanced() {
     echo "     --verbose        -- print debugging output during the test"
     echo "     --all            -- test all files"
     echo "     --optional       -- also test all examples labeled \"# optional\""
-    echo "     --only-optional[=tags] -- if no 'tags' are specified, only"
-    echo "                               run blocks of tests containing a line"
-    echo "                               labeled \"# optional\". If a"
-    echo "                               a comma-separated list of tags is"
-    echo "                               specified, only run blocks containing"
-    echo "                               a line labeled \"# optional tag\" for"
-    echo "                               any of the tags given and in these blocks"
-    echo "                               only run the lines which are unlabeled or"
-    echo "                               labeled \"# optional\" or labeled"
-    echo "                               \"# optional tag\" for any of the tags given."
+    echo "     --only-optional[=tags]"
+    echo "                      -- if no 'tags' are specified, only run"
+    echo "                         blocks of tests containing a line labeled"
+    echo "                         \"# optional\". If a comma-separated"
+    echo "                         list of tags is specified, only run block"
+    echo "                         containing a line labeled \"# optional tag\""
+    echo "                         for any of the tags given, and in these blocks"
+    echo "                         only run the lines which are unlabeled or"
+    echo "                         labeled \"# optional\" or labeled"
+    echo "                         \"# optional tag\" for any of the tags given."
     echo "     --randorder[=seed] -- randomize order of tests"
     echo "     --new            -- only test files modified since last commit"
     echo "     --initial        -- only show the first failure per block"
@@ -124,11 +150,11 @@ usage_advanced() {
     echo "     --gc=GC          -- control garbarge collection (ALWAYS:"
     echo "                         collect garbage before every test; NEVER:"
     echo "                         disable gc; DEFAULT: Python default)"
-    echo "     --short[=seconds]  -- run as many doctests as possible in about 300"
-    echo "                           seconds (or the number of seconds given.) This runs"
-    echo "                           the tests for each module from the top of the file"
-    echo "                           and skips tests once it exceeds the budget"
-    echo "                           allocated for that file."
+    echo "     --short[=secs]   -- run as many doctests as possible in about 300"
+    echo "                         seconds (or the number of seconds given.) This runs"
+    echo "                         the tests for each module from the top of the file"
+    echo "                         and skips tests once it exceeds the budget"
+    echo "                         allocated for that file."
     echo "     --help           -- show all testing options"
     echo "  --tnew [...]        -- equivalent to -t --new"
     echo "  -tp <N> [...]       -- like -t above, but tests in parallel using"
@@ -138,9 +164,17 @@ usage_advanced() {
     echo "                         start up; optionally specify a module to get more"
     echo "                         details about that particular module"
     echo
+    echo "Some developer utilities:"
+    echo
+    echo "  --sh [...]         -- run a shell with Sage environment variables"
+    echo "                        as they are set in the runtime of Sage"
+    echo "  --cleaner          -- run the Sage cleaner.  This cleans up after Sage,"
+    echo "                        removing temporary directories and spawned processes."
+    echo "                        (This gets run by Sage automatically, so it is usually"
+    echo "                        not necessary to run it separately.)"
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
-    echo "File conversion"
+    echo "File conversion:"
     echo
     echo "  --rst2ipynb [...]   -- Generates Jupyter notebook (.ipynb) from standalone"
     echo "                         reStructuredText source."
@@ -157,7 +191,7 @@ usage_advanced() {
     echo
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
-    echo "Valgrind memory debugging"
+    echo "Valgrind memory debugging:"
     echo
     echo "  --cachegrind        -- run Sage using Valgrind's cachegrind tool.  The log"
     echo "                         files are named sage-cachegrind.PID can be found in"
@@ -176,8 +210,9 @@ usage_advanced() {
     echo "                         \$DOT_SAGE"
     echo "  --valgrind          -- this is an alias for --memcheck"
     if [ -n "$SAGE_ROOT/" ]; then
-        "$SAGE_ROOT/build/bin/sage-site" "--advanced"
+        exec "$SAGE_ROOT/build/bin/sage-site" "--advanced"
     fi
+    echo
     exit 0
 }
 

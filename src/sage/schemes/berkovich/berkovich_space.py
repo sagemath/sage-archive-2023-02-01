@@ -8,8 +8,9 @@ from sage.structure.element import Element
 from sage.categories.topological_spaces import TopologicalSpaces
 from sage.symbolic.expression import is_Expression
 from sage.rings.real_mpfr import RR
-from sage.rings.padics.generic_nodes import pAdicFieldGeneric
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
+from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
+from sage.rings.padics.generic_nodes import is_pAdicField
 from sage.rings.padics.factory import Qp
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_field
@@ -129,7 +130,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         if flag:
                             raise ValueError("The center of a point of Projective Berkovich" + \
                                 "space must be a point of P^1(Cp(%s)), not of %s"%(self._p, center.parent()))
-                    elif not isinstance(center.scheme().base_ring(), pAdicFieldGeneric):
+                    elif not is_pAdicField(center.scheme().base_ring()):
                         if not isinstance(center.scheme().base_ring(),pAdicGeneric):
                             try:
                                 center = (self._base_space)(center)
@@ -187,7 +188,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         if flag:
                             raise ValueError("The center of a disk approximating a Type IV point must " + \
                                 "be padic or coerce into Qp, %s does not coerse into Qp" %(center))
-                    elif not isinstance(center.parent(),pAdicFieldGeneric):
+                    elif not is_pAdicField(center.parent()):
                         try:
                             center = (self._base_space)(center)
                         except:
@@ -231,7 +232,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                     if flag:
                         raise ValueError("The center of a point of Affine Berkovich space over " + \
                             "%s must convert to %s" %(self._base_space,self._base_space))
-                elif not isinstance(center.parent(),pAdicFieldGeneric):
+                elif not is_pAdicField(center.parent()):
                     try:
                         center = (self._base_space)(center)
                     except:
@@ -249,7 +250,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                     if flag:
                         raise ValueError("The center of a point of Projective Berkovich space must be a " + \
                             "point of P^1(Cp) or coerce into %s") %self._base_space
-                elif not isinstance(center.scheme().base_ring(), pAdicFieldGeneric):
+                elif not is_pAdicField(center.scheme().base_ring()):
                     if not isinstance(center.scheme().base_ring(), pAdicBaseGeneric):
                         try:
                             center = (self._base_space)(center)
@@ -514,7 +515,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
         INPUT:
 
-         - ``other`` - a point of the same Berkovich space
+         - ``other`` -- A point of the same Berkovich space as this point
 
         OUTPUT: A real number, or the infinity symbol 'oo'
 
@@ -553,7 +554,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
         INPUT:
 
-         - ``other`` - a point of the same Berkovich space
+         - ``other`` -- A point of the same Berkovich space as this point
 
         OUTPUT: A real number
 
@@ -596,7 +597,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
         INPUT:
 
-         - ``other`` - a point of the same Berkovich space
+         - ``other`` -- A point of the same Berkovich space as this point
 
         OUTPUT: A real number
 
@@ -674,6 +675,15 @@ class Berkovich_Element_Cp(Berkovich_Element):
             r"\ldots \text{ and radii %s } \ldots" %self._radius_lst[:2]
         return r"\text{Type %s Point of }" %(self._type) \
             + latex(self.parent()) + r"\text{equivalent to " + text
+
+    def __hash__(self):
+        """
+        Return the hash of this point.
+        """
+        if self.type_of_point() != 4:
+            return hash(str(self.center())+str(self.radius()))
+        return hash(str(self.center()[self.precision()])+str(self.radius()[self.precision()]))
+
 
 class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
     r"""
@@ -906,6 +916,12 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         else:
             return False
 
+    def __hash__(self):
+        """
+        Returns the hash of this point.
+        """
+        return super().__hash__()
+
     def partial_order(self,other):
         """
         The standard partial order on Berkovich space
@@ -920,7 +936,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``other`` - another point of the same Berkovich space
+         - ``other`` -- A point of the same Berkovich space as this point
 
         OUTPUT:
 
@@ -976,9 +992,9 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``other`` -- the second point with which to take the join
-         - ``basepoint`` -- (default: Infinity) the basepoint with which
-         to take the join with respect to
+         - ``other`` -- A point of the same Berkovich space as this point
+         - ``basepoint`` -- (default: Infinity) A point of the same 
+         Berkovich space as this point or the string 'infty'
 
         OUTPUT: A point of the same Berkovich space
 
@@ -1117,8 +1133,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``other`` - the point with which to take the potential kernel
-         - ``basepoint`` - the basepoint with which to take the potential kernel
+         - ``other`` -- A point of the same Berkovich space as this point
+         - ``basepoint`` -- A point of the same Berkovich space as this point
 
         OUTPUT: A real number or the infinity symbol 'oo'
 
@@ -1181,8 +1197,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``other`` - The point with which to take the Hsia kernel with
-         - ``basepoint`` - The basepoint of the Hsia kernel
+         - ``other`` -- A point of the same Berkovich space as this point
+         - ``basepoint`` -- A point of the same Berkovich space as this point
 
         OUTPUT: A real number or the infinity symbol 'oo'
 
@@ -1233,8 +1249,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``basepoint`` - (default = Infinity) the basepoint of 
-         the generalized diameter
+         - ``basepoint`` -- (default = Infinity) A point of the 
+         same Berkovich space as this point
 
         OUTPUT: A real number or the infinity symbol 'oo'
         """
@@ -1429,6 +1445,12 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         else:
             return False
 
+    def __hash__(self):
+        """
+        Returns the hash of this point.
+        """
+        return super().__hash__()
+
     def partial_order(self,other):
         """
         The standard partial order on Berkovich space.
@@ -1442,7 +1464,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         is a subset of D(c2,r2) in ``Cp``.
 
         INPUT:
-         - ``other`` - another point of the same Berkovich space
+         - ``other`` -- A point of the same Berkovich space as this point
 
         OUTPUT:
          - ``True`` - If self > other in the standard partial order
@@ -1537,9 +1559,9 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         INPUT:
          
-         - ``other`` -- the second point with which to take the join
-         - ``basepoint`` -- (default: Infinity) the basepoint with which
-         to take the join with respect to
+         - ``other`` -- A point of the same Berkovich space as this point
+         - ``basepoint`` -- (default: Infinity) A point of the same
+         Berkovich space as this point or the string 'infty'
 
         OUTPUT: A point of the same Berkovich space
 
@@ -1571,6 +1593,9 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
             sage: Q7 = B(1/27,1/27)
             sage: Q1.join(Q7,Q2)
+            Type III point centered at (2 + O(3^20) : 1 + O(3^20)) of radius 2.00000000000000
+
+            sage: Q1.join(Q2, Q7)
             Type III point centered at (2 + O(3^20) : 1 + O(3^20)) of radius 2.00000000000000
         """
         parent = self.parent()
@@ -1624,44 +1649,50 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         b_greater_than_s = basepoint.partial_order(self)
         b_greater_than_o = basepoint.partial_order(other)
+        s_greater_than_o = self.partial_order(other)
 
-        if b_greater_than_s == None and b_greater_than_o == None:
-            dist_b_s = (self.center()[0] - basepoint.center()[0]).abs()
-            dist_b_o = (other.center()[0] - basepoint.center()[0]).abs()
-            return parent(basepoint.center(),\
-                min(max(dist_b_o,other.radius(),basepoint.radius()),\
-                    max(dist_b_s,self.radius(),basepoint.radius())))
+        #we deal with all the cases where self and other are not comparable first
 
-        elif b_greater_than_s != None and b_greater_than_o == None:
-            dist_b_o = (other.center()[0] - basepoint.center()[0]).abs()
-            if dist_b_o < self.radius(): 
-                return parent(basepoint.center(),dist_b_o)
-            elif dist_b_o >= self.radius():
-                if b_greater_than_s:
-                    return basepoint
+        if s_greater_than_o == None:
+            if b_greater_than_o == None:
+                if b_greater_than_s == None:
+                    #case where none of the points are comparable
+                    dist_b_s = (self.center()[0] - basepoint.center()[0]).abs()
+                    dist_b_o = (other.center()[0] - basepoint.center()[0]).abs()
+                    return parent(basepoint.center(),\
+                        min(max(dist_b_o,other.radius(),basepoint.radius()),\
+                            max(dist_b_s,self.radius(),basepoint.radius())))
+
+                #case where self and basepoint are comparable
                 else:
-                    return self
-
-        elif b_greater_than_s == None and b_greater_than_o != None:
-            return other.join(self,basepoint)
-
-        else:
-            if b_greater_than_s:
-                if b_greater_than_o:
-                    if self.partial_order(other):
-                        return self
+                    if b_greater_than_s:
+                        return basepoint
                     else:
-                        return other
-                else:
-                    return basepoint
+                        return self
+
+            #case where other and basepoint are comparable
             else:
                 if b_greater_than_o:
                     return basepoint
                 else:
-                    if self.partial_order(other):
-                        return other
-                    else:
-                        return self
+                    return other
+
+        #now the cases where self > other
+
+        elif s_greater_than_o:
+            if b_greater_than_s == None:
+                return self
+            if b_greater_than_s:
+                return self
+            if b_greater_than_o:
+                return basepoint
+            if b_greater_than_o == False:
+                return other
+
+        #join is symmetric, so we flip self and other so that self > other
+
+        else:
+            return other.join(self,basepoint)
 
     def involution_map(self):
         """
@@ -1739,8 +1770,8 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``other`` - the point with which to take the potential kernel
-         - ``basepoint`` - the basepoint with which to take the potential kernel
+         - ``other`` -- A point of the same Berkovich space as this point
+         - ``basepoint`` -- A point of the same Berkovich space as this point
 
         OUTPUT: A real number or the infinity symbol 'oo'
 
@@ -1773,7 +1804,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``other`` - The point with which to take the spherical kernel
+         - ``other`` -- A point of the same Berkovich space as this point
 
         OUTPUT: A real number
 
@@ -1805,8 +1836,8 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         INPUT::
 
-         - ``other`` - the point with which to take the Hsia kernel
-         - ``basepoint`` - the basepoint with which to take the Hsia kernel
+         - ``other`` -- A point of the same Berkovich space as this point
+         - ``basepoint`` -- A point of the same Berkovich space as this point
 
         OUTPUT: A real number or the infinity symbol 'oo'
 
@@ -1857,8 +1888,8 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``basepoint`` - (default = Infinity) the basepoint of 
-         the generalized diameter
+         - ``basepoint`` -- (default = Infinity) A point of the same 
+         Berkovich space as this point, or the string 'oo'
 
         OUTPUT: A real number or the infinity symbol 'oo'
         """
@@ -1918,7 +1949,6 @@ class Berkovich_Cp_Affine(Berkovich):
                 base = Qp(base) #TODO chance to Qpbar
             else:
                 raise ValueError("Non-prime pased into Berkovich space")
-        from sage.rings.padics.generic_nodes import is_pAdicField
         if not is_pAdicField(base): #TODO change base to Qpbar(prime)
             raise ValueError("Base of Berkovich Space must be a padic field")
         self._p = base.prime()
@@ -1992,7 +2022,6 @@ class Berkovich_Cp_Projective(Berkovich):
             from sage.schemes.projective.projective_space import is_ProjectiveSpace
             if not is_ProjectiveSpace(base):
                 raise ValueError("Base of Projective Berkovich Space must be Projective Space")
-            from sage.rings.padics.generic_nodes import is_pAdicField
             if not (is_pAdicField(base.base_ring())):
                 raise ValueError("Base of Projective Berkovich Space must be " + \
                     "Projective Space over Qp")
@@ -2016,7 +2045,14 @@ class Berkovich_Cp_Projective(Berkovich):
             if S.prime() == self.prime():
                 return True
         return False
-    
+
+    def convex_hull(self, points):
+        """
+        The convex hull of a set of points.
+
+        The convex hull 
+        """
+
     def _repr_(self):
         return "Projective Berkovich line over Cp(%s) of precision %s" %(self.prime(),\
             self.base().base_ring().precision_cap())

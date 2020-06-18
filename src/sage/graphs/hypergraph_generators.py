@@ -146,7 +146,7 @@ class HypergraphGenerators():
         """
         if number_of_vertices > 30:
             raise ValueError("cannot have more than 30 vertices")
-        if number_of_sets+number_of_vertices > 64:
+        if number_of_sets + number_of_vertices > 64:
             raise ValueError("cannot have more than 64 sets+vertices")
 
         import subprocess
@@ -182,7 +182,7 @@ class HypergraphGenerators():
 
         nauty_input +=  " " + str(number_of_vertices) + " " + str(number_of_sets) + " "
 
-        sp = subprocess.Popen(nautyprefix+"genbgL {0}".format(nauty_input), shell=True,
+        sp = subprocess.Popen(nautyprefix + "genbgL {0}".format(nauty_input), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True)
 

@@ -3,7 +3,7 @@ Some utility routines for the hypergeometric motives package that benefit
 significantly from Cythonization.
 """
 from cpython cimport array
-from cysignals.signals cimport sig_on, sig_off
+from cysignals.signals cimport sig_check
 
 cpdef hgm_coeffs(long long p, int f, int prec, gamma, m, int D,
                  gtable, int gtable_prec, bint use_longs):
@@ -71,6 +71,7 @@ cpdef hgm_coeffs(long long p, int f, int prec, gamma, m, int D,
     Rz = R.zero()
     ans = [None] * q1
     for r in range(q1):
+        sig_check()
         # Skip this coefficient if we already have it by symmetry.
         if ans[r] is not None:
             continue

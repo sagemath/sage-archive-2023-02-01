@@ -171,10 +171,5 @@ if [ "$1" = '-info' -o "$1" = '--info' ]; then
     exit 0
 fi
 
-if [ "$1" = '-fix-pkg-checksums' -o "$1" = '--fix-pkg-checksums' ]; then
-    shift
-    exec sage-fix-pkg-checksums "$@"
-fi
-
 echo "Error: Unknown option: $1"
 exit 1

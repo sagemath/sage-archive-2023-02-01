@@ -30,12 +30,14 @@ usage_advanced() {
     echo "                         if you want to proceed."
     echo "  --ba-force          -- same as -ba, but don't query before rebuilding"
     echo "  -br                 -- build and run Sage"
+    echo
     echo "  -bt [...]           -- build Sage and test; same options as -t"
     echo "  -btp <N> [...]      -- build Sage and test in parallel; same options as -tp"
     echo "  -btnew [...]        -- build Sage and test modified files, as in -t --new"
-    echo "  --coverage <files>  -- give information about doctest coverage of files"
-    echo "  --coverageall       -- give summary info about doctest coverage of"
-    echo "                         all files in the Sage library"
+    echo
+    echo "  -bn [...], --build-and-notebook [...]"
+    echo "                      -- build the Sage library (as by running \"sage -b\")"
+    echo "                         and then start the notebook"
     echo
     echo "Package handling:"
     echo

@@ -116,9 +116,6 @@ usage_advanced() {
     echo "                         include \"default\", \"jupyter\", \"export\"."
     echo "                         Current default is \"jupyter\"."
     echo "                         Run \"sage --notebook --help\" for more details."
-    echo "  -bn [...], --build-and-notebook [...]"
-    echo "                      -- build the Sage library (as by running \"sage -b\")"
-    echo "                         and then start the notebook"
     echo
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
@@ -160,6 +157,10 @@ usage_advanced() {
     echo "  -tp <N> [...]       -- like -t above, but tests in parallel using"
     echo "                         N threads, with 0 interpreted as min(8, cpu_count())"
     echo "  --testall [options] -- equivalent to -t --all"
+    echo
+    echo "  --coverage <files>  -- give information about doctest coverage of files"
+    echo "  --coverageall       -- give summary info about doctest coverage of"
+    echo "                         all files in the Sage library"
     echo "  --startuptime [module] -- display how long each component of Sage takes to"
     echo "                         start up; optionally specify a module to get more"
     echo "                         details about that particular module"

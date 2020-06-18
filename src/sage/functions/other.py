@@ -33,7 +33,6 @@ from sage.structure.element import coercion_model
 from sage.structure.all import parent as s_parent
 
 from sage.functions.trig import arctan2
-from sage.functions.generalized import sgn
 
 from sage.arith.all import binomial as arith_binomial
 

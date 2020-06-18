@@ -134,6 +134,10 @@ if [ "$1" = "-advanced" -o "$1" = "--advanced" ]; then
     exit 0
 fi
 
+#####################################################################
+# Package handling
+#####################################################################
+
 if [ "$1" = '-package' -o "$1" = "--package" ]; then
     shift
     exec sage-package $@
@@ -173,5 +177,111 @@ if [ "$1" = '-info' -o "$1" = '--info' ]; then
     exit 0
 fi
 
-echo "Error: Unknown option: $1"
+#####################################################################
+# Building the documentation.
+#####################################################################
+
+if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
+    # Redirect stdin from /dev/null. This helps with running TeX which
+    # tends to ask interactive questions if something goes wrong. These
+    # cause the build to hang. If stdin is /dev/null, TeX just aborts.
+    shift
+    exec sage-python -m sage_setup.docbuild "$@" </dev/null
+fi
+
+#####################################################################
+# Run Sage's versions of its component packages
+#####################################################################
+
+if [ "$1" = '-axiom' -o "$1" = '--axiom' ]; then
+    shift
+    exec axiom "$@"
+fi
+
+if [ "$1" = "-cython" -o "$1" = '--cython' -o "$1" = '-pyrex' -o "$1" = "--pyrex" ]; then
+    shift
+    exec sage-cython "$@"
+fi
+
+if [ "$1" = '-gap' -o "$1" = '--gap' ]; then
+    shift
+    exec gap "$@"
+fi
+
+if [ "$1" = '-gap3' -o "$1" = '--gap3' ]; then
+    shift
+    exec gap3 "$@"
+fi
+
+if [ "$1" = '-gp' -o "$1" = '--gp' ]; then
+    shift
+    exec gp "$@"
+fi
+
+if [ "$1" = '-polymake' -o "$1" = '--polymake' ]; then
+    shift
+    exec polymake "$@"
+fi
+
+if [ "$1" = '-singular' -o "$1" = '--singular' ]; then
+    shift
+    exec Singular "$@"
+fi
+
+if [ "$1" = '-sqlite3' -o "$1" = '--sqlite3' ]; then
+    shift
+    exec sqlite3 "$@"
+fi
+
+if [ "$1" = '-ecl' -o "$1" = '--ecl' ]; then
+    shift
+    exec ecl "$@"
+fi
+
+if [ "$1" = '-lisp' -o "$1" = '--lisp' ]; then
+    shift
+    exec ecl "$@"
+fi
+
+if [ "$1" = '-kash' -o "$1" = '--kash' ]; then
+    shift
+    exec kash "$@"
+fi
+
+if [ "$1" = '-maxima' -o "$1" = '--maxima' ]; then
+    shift
+    exec maxima "$@"
+fi
+
+if [ "$1" = '-mwrank' -o "$1" = '--mwrank' ]; then
+    shift
+    exec mwrank "$@"
+fi
+
+if [ "$1" = '-M2' -o "$1" = '--M2' ]; then
+    shift
+    exec M2 "$@"
+fi
+
+if [ "$1" = '-scons' -o "$1" = '--scons' ]; then
+    shift
+    exec scons "$@"
+fi
+
+if [ "$1" = '-R' -o "$1" = '--R' ]; then
+    shift
+    exec R "$@"
+fi
+
+if [ "$1" = '-git' -o "$1" = '--git' ]; then
+    shift
+    exec git "$@"
+fi
+
+if [ "$1" = '-git-branch' -o "$1" = '--git-branch' ]; then
+    shift
+    exec git --git-dir="$SAGE_ROOT"/.git rev-parse --abbrev-ref HEAD
+fi
+
+echo "Error: unknown option: $1"
 exit 1

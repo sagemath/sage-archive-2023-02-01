@@ -1,4 +1,4 @@
-name: Test optional packages with tox
+name: Test experimental packages with tox
 
 ## This GitHub Actions workflow runs SAGE_ROOT/tox.ini with select environments,
 ## whenever a GitHub pull request is opened or synchronized in a repository
@@ -28,8 +28,8 @@ env:
   TARGETS_PRE: build/make/Makefile
   TARGETS:     build/make/Makefile
   # List obtained by:
-  #echo $(cd build/pkgs/ && for a in *; do if [ "$(cat $a/type 2>/dev/null )" = optional ]; then echo $a; fi; done)
-  TARGETS_OPTIONAL: 4ti2 atlas barvinok beautifulsoup4 benzene biopython bliss boost buckygen cbc ccache cmake coxeter3 cryptominisat csdp d3js database_cremona_ellcurve database_jones_numfield database_kohel database_mutation_class database_odlyzko_zeta database_stein_watkins database_stein_watkins_mini database_symbolic_data deformation dot2tex e_antic fricas frobby gap_jupyter gap_packages giacpy_sage git_trac glucose gp2c igraph isl jupymake kenzo latte_int libogg libsemigroups lidia lrslib mcqd meataxe mpfrcx nibabel ninja_build normaliz notedown openssl p_group_cohomology pandoc pandoc_attributes pari_elldata pari_galpol pari_jupyter pari_nftables pari_seadata perl_cpan_polymake_prereq plantri polylib primecount pybtex pycosat pyflakes pynormaliz pyopenssl pysingular python_igraph python_openid pyx qhull r_jupyter rst2ipynb saclib sage_numerical_backends_coin sage_numerical_backends_cplex sage_numerical_backends_gurobi sage_setup singular_jupyter sip sirocco speaklater sqlalchemy tdlib termcap texlive tides topcom
+    #echo $(cd build/pkgs/ && for a in *; do if [ "$(cat $a/type 2>/dev/null )" = experimental ]; then echo $a; fi; done)
+  TARGETS_OPTIONAL: awali cocoalib compilerwrapper gambit gap3 gdb libtheora lie modular_decomposition perl_term_readline_gnu polymake qepcad scipoptsuite scons surf valgrind
 
 jobs:
   docker:

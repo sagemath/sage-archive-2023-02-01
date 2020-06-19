@@ -564,6 +564,8 @@ class Polytopes():
             8
             sage: octagon.volume()                                            # optional - pynormaliz
             2*a
+            sage: TestSuite(octagon).run()
+            sage: TestSuite(polytopes.regular_polygon(5, exact=False)).run()
         """
         n = ZZ(n)
         if n <= 2:
@@ -628,6 +630,7 @@ class Polytopes():
 
             sage: b4norm = polytopes.Birkhoff_polytope(4,backend='normaliz')  # optional - pynormaliz
             sage: TestSuite(b4norm).run()                                     # optional - pynormaliz
+            sage: TestSuite(polytopes.Birkhoff_polytope(3)).run()
         """
         from itertools import permutations
         verts = []
@@ -702,6 +705,7 @@ class Polytopes():
 
             sage: s6norm = polytopes.simplex(6,backend='normaliz')  # optional - pynormaliz
             sage: TestSuite(s6norm).run()                           # optional - pynormaliz
+            sage: TestSuite(polytopes.simplex(5)).run()
         """
         verts = list((ZZ**(dim + 1)).basis())
         if project:
@@ -768,6 +772,9 @@ class Polytopes():
             (1, 12, 30, 20, 1)
             sage: ico.volume()                                     # optional - pynormaliz
             5/12*sqrt5 + 5/4
+            sage: TestSuite(ico).run()                             # optional - pynormaliz
+            sage: ico = polytopes.icosahedron(exact=False)
+            sage: TestSuite(ico).run()
 
         """
         if base_ring is None and exact:
@@ -833,6 +840,7 @@ class Polytopes():
             sage: d12 = polytopes.dodecahedron(backend='normaliz')  # optional - pynormaliz
             sage: d12.f_vector()                                    # optional - pynormaliz
             (1, 20, 30, 12, 1)
+            sage: TestSuite(d12).run()                              # optional - pynormaliz
 
         """
         return self.icosahedron(exact=exact, base_ring=base_ring, backend=backend).polar()
@@ -887,6 +895,7 @@ class Polytopes():
             (1, 24, 48, 26, 1)
             sage: sr.volume()                                                   # optional - pynormaliz
             80/3*sqrt2 + 32
+            sage: TestSuite(sr).run()                                           # optional - pynormaliz
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -1103,6 +1112,7 @@ class Polytopes():
             sage: co = polytopes.truncated_cube(backend='normaliz')  # optional - pynormaliz
             sage: co.f_vector()                                      # optional - pynormaliz
             (1, 24, 36, 14, 1)
+            sage: TestSuite(co).run()                                # optional - pynormaliz
 
         """
         if base_ring is None and exact:
@@ -1480,14 +1490,16 @@ class Polytopes():
 
         TESTS::
 
-            sage: polytopes.icosidodecahedron(exact=False)
+            sage: id = polytopes.icosidodecahedron(exact=False); id
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 30 vertices
+            sage: TestSuite(id).run()
 
             sage: id = polytopes.icosidodecahedron(backend='normaliz')  # optional - pynormaliz
             sage: id.f_vector()                                         # optional - pynormaliz
             (1, 30, 60, 32, 1)
             sage: id.base_ring()                                        # optional - pynormaliz
             Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
+            sage: TestSuite(id).run()                                   # optional - pynormaliz
         """
         from sage.rings.number_field.number_field import QuadraticField
         from itertools import product
@@ -1560,7 +1572,7 @@ class Polytopes():
             (1, 30, 60, 32, 1)
             sage: id.base_ring()                                           # optional - pynormaliz
             Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
-
+            sage: TestSuite(id).run()                                      # optional - pynormaliz
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -2464,12 +2476,14 @@ class Polytopes():
             (1, 6, 12, 8, 1)
             sage: h_4_2.ehrhart_polynomial()    # optional - latte_int
             2/3*t^3 + 2*t^2 + 7/3*t + 1
+            sage: TestSuite(h_4_2).run()
 
             sage: h_7_3 = polytopes.hypersimplex(7, 3, project=True)
             sage: h_7_3
             A 6-dimensional polyhedron in RDF^6 defined as the convex hull of 35 vertices
             sage: h_7_3.f_vector()
             (1, 35, 210, 350, 245, 84, 14, 1)
+            sage: TestSuite(h_7_3).run()
         """
         verts = Permutations([0] * (dim - k) + [1] * k).list()
         if project:
@@ -2978,7 +2992,7 @@ class Polytopes():
 
         The ``'normaliz'`` is faster::
 
-            sage: polytopes.one_hundred_twenty_cell(backend='normaliz')  # optional - pynormaliz
+            sage: P = polytopes.one_hundred_twenty_cell(backend='normaliz'); P  # optional - pynormaliz
             A 4-dimensional polyhedron in (Number Field in sqrt5 with defining
             polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^4 defined as the convex hull of 600 vertices
 
@@ -2987,6 +3001,10 @@ class Polytopes():
 
             sage: polytopes.one_hundred_twenty_cell(backend='normaliz',construction='as_permutahedron') # not tested - long time
             A 4-dimensional polyhedron in AA^4 defined as the convex hull of 600 vertices
+
+        TESTS::
+
+            sage: TestSuite(P).run()          # optional - pynormaliz
         """
         if construction == 'coxeter':
             if not exact:
@@ -3100,6 +3118,14 @@ class Polytopes():
 
             sage: fc = polytopes.hypercube(4,backend='normaliz')   # optional - pynormaliz
             sage: TestSuite(fc).run()                              # optional - pynormaliz
+
+        ::
+
+            sage: set_random_seed()
+            sage: ls = [randint(-100,100) for _ in range(4)]
+            sage: intervals = [[x, x+randint(1,50)] for x in ls]
+            sage: P = polytopes.hypercube(4, intervals, backend='field')
+            sage: TestSuite(P).run()
 
         If the dimension ``dim`` is not equal to the length of intervals, an
         error is raised::
@@ -3287,6 +3313,11 @@ class Polytopes():
             sage: cp = polytopes.cross_polytope(4,backend='normaliz')   # optional - pynormaliz
             sage: TestSuite(cp).run()                                   # optional - pynormaliz
 
+        ::
+
+            sage: P = polytopes.cross_polytope(6, backend='field')
+            sage: TestSuite(P).run()
+
         Check that double description is set up correctly::
 
             sage: P = polytopes.cross_polytope(6, backend='ppl')
@@ -3322,10 +3353,14 @@ class Polytopes():
 
             sage: K = QuadraticField(2, 'sqrt2')
             sage: sqrt2 = K.gen()
-            sage: polytopes.parallelotope([ (1,sqrt2), (1,-1) ])
+            sage: P = polytopes.parallelotope([ (1,sqrt2), (1,-1) ]); P
             A 2-dimensional polyhedron in (Number Field in sqrt2 with defining
             polynomial x^2 - 2 with sqrt2 = 1.414213562373095?)^2 defined as
             the convex hull of 4 vertices
+
+        TESTS::
+
+            sage: TestSuite(P).run()
         """
         from sage.modules.free_module_element import vector
         from sage.structure.sequence import Sequence

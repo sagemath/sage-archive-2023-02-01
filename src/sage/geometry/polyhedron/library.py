@@ -2256,7 +2256,7 @@ class Polytopes():
         TESTS::
 
             sage: p600 = polytopes.six_hundred_cell(exact=True, backend='normaliz') # optional - pynormaliz
-            sage: len(list(p600.bounded_edges()))                                   # optional - pynormaliz
+            sage: len(list(p600.bounded_edges()))                                   # optional - pynormaliz, long time
             720
         """
         if exact:
@@ -2395,7 +2395,7 @@ class Polytopes():
         TESTS::
 
             sage: G321 = polytopes.Gosset_3_21(backend='normaliz')   # optional - pynormaliz
-            sage: TestSuite(G321).run()                              # optional - pynormaliz
+            sage: TestSuite(G321).run()                              # optional - pynormaliz, long time
         """
         from itertools import combinations
         verts = []
@@ -2625,8 +2625,8 @@ class Polytopes():
              A vertex at (0.500000000000000?, 0.866025403784439?))
             sage: perm_a2_reg.is_inscribed()
             True
-            sage: perm_a3_reg = polytopes.generalized_permutahedron(['A',3],regular=True)
-            sage: perm_a3_reg.is_inscribed()
+            sage: perm_a3_reg = polytopes.generalized_permutahedron(['A',3],regular=True)  # long time
+            sage: perm_a3_reg.is_inscribed()                                               # long time
             True
 
         The same is possible with vertices in ``RDF``::
@@ -2651,7 +2651,7 @@ class Polytopes():
 
         It works also with types with non-rational coordinates::
 
-            sage: perm_b3 = polytopes.generalized_permutahedron(['B',3]); perm_b3
+            sage: perm_b3 = polytopes.generalized_permutahedron(['B',3]); perm_b3  # long time
             A 3-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?)^3 defined as the convex hull of 48 vertices
 
             sage: perm_b3_reg = polytopes.generalized_permutahedron(['B',3],regular=True); perm_b3_reg # not tested - long time (12sec on 64 bits).
@@ -2669,8 +2669,8 @@ class Polytopes():
             sage: perm_h3 = polytopes.generalized_permutahedron(['H',3],backend='normaliz')  # optional - pynormaliz
             sage: perm_h3                                                                    # optional - pynormaliz
             A 3-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?)^3 defined as the convex hull of 120 vertices
-            sage: perm_f4 = polytopes.generalized_permutahedron(['F',4],backend='normaliz')  # optional - pynormaliz
-            sage: perm_f4                                                                    # optional - pynormaliz
+            sage: perm_f4 = polytopes.generalized_permutahedron(['F',4],backend='normaliz')  # optional - pynormaliz, long time
+            sage: perm_f4                                                                    # optional - pynormaliz, long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?)^4 defined as the convex hull of 1152 vertices
 
         .. SEEALSO::
@@ -3004,7 +3004,7 @@ class Polytopes():
 
         TESTS::
 
-            sage: TestSuite(P).run()          # optional - pynormaliz
+            sage: TestSuite(P).run()          # optional - pynormaliz, long time
         """
         if construction == 'coxeter':
             if not exact:

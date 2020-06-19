@@ -484,47 +484,6 @@ class Berkovich_Element_Cp(Berkovich_Element):
             return radius_expr.limit(x="oo")
         return self._radius
 
-    def contained_in_interval(self, start, end):
-        """
-        Checks if this point is an element of the interval [``start``,``end``].
-
-        INPUT:
-
-         - ``start`` -- A point of the same Berkovich space as this point
-         - ``end`` -- A point of the same Berkovich space as this point
-
-        OUTPUT:
-
-         - ``True`` if this point is an element of [``start``,``end``]
-         - ``False`` otherwise
-
-        EXAMPLES::
-
-            sage: B = Berkovich_Cp_Projective((3))
-            sage: Q1 = B(2,1)
-            sage: Q2 = B(2,4)
-            sage: Q3 = B(1/3)
-            sage: Q2.contained_in_interval(Q1,Q3.join(Q1))
-            False
-
-            ::
-
-            sage: Q4 = B(1/81,1)
-            sage: Q2.contained_in_interval(Q1,Q4.join(Q1))
-            True
-        """
-        if not isinstance(start, Berkovich_Element_Cp):
-            raise ValueError("start must be a point of Berkovich space")
-        if start.parent() != self.parent():
-            raise ValueError("start must be a point of the same Berkovich space as this point")
-        if not isinstance(end, Berkovich_Element_Cp):
-            raise ValueError("start must be a point of Berkovich space")
-        if end.parent() != self.parent():
-            raise ValueError("start must be a point of the same Berkovich space as this point")
-        join = start.join(end)
-        return join.partial_order(self) and (self.partial_order(start) \
-            or self.partial_order(end))
-
     def hyperbolic_metric(self, other):
         """
         The hyperbolic distance between this point and ``other``.
@@ -1168,6 +1127,49 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             new_radius_lst.append(new_radius)
         return parent(new_center_lst,new_radius_lst,error_check=False)
 
+    def contained_in_interval(self, start, end):
+        """
+        Checks if this point is an element of the interval [``start``,``end``].
+
+        INPUT:
+
+         - ``start`` -- A point of the same Berkovich space as this point
+         - ``end`` -- A point of the same Berkovich space as this point
+
+        OUTPUT:
+
+         - ``True`` if this point is an element of [``start``,``end``]
+         - ``False`` otherwise
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Projective((3))
+            sage: Q1 = B(2,1)
+            sage: Q2 = B(2,4)
+            sage: Q3 = B(1/3)
+            sage: Q2.contained_in_interval(Q1,Q3.join(Q1))
+            False
+
+            ::
+
+            sage: Q4 = B(1/81,1)
+            sage: Q2.contained_in_interval(Q1,Q4.join(Q1))
+            True
+        """
+        if not isinstance(start, Berkovich_Element_Cp):
+            raise ValueError("start must be a point of Berkovich space")
+        if start.parent() != self.parent():
+            raise ValueError("start must be a point of the same Berkovich space as this point")
+        if not isinstance(end, Berkovich_Element_Cp):
+            raise ValueError("start must be a point of Berkovich space")
+        if end.parent() != self.parent():
+            raise ValueError("start must be a point of the same Berkovich space as this point")
+
+        #we treat infinity as a special case
+        base = self._base_space
+        P = Berkovich_Cp_Projective(ProjectiveSpace(base,1))
+        return P(self).contained_in_interval(P(start),P(end))
+
     def potential_kernel(self, other, basepoint):
         """
         The potential kernel of this point with ``other``, with basepoint ``basepoint``.
@@ -1804,6 +1806,64 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             new_radius_lst.append(new_radius)
         return parent(new_center_lst,new_radius_lst)
 
+    def contained_in_interval(self, start, end):
+        """
+        Checks if this point is an element of the interval [``start``,``end``].
+
+        INPUT:
+
+         - ``start`` -- A point of the same Berkovich space as this point
+         - ``end`` -- A point of the same Berkovich space as this point
+
+        OUTPUT:
+
+         - ``True`` if this point is an element of [``start``,``end``]
+         - ``False`` otherwise
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Projective((3))
+            sage: Q1 = B(2,1)
+            sage: Q2 = B(2,4)
+            sage: Q3 = B(1/3)
+            sage: Q2.contained_in_interval(Q1,Q3.join(Q1))
+            False
+
+            ::
+
+            sage: Q4 = B(1/81,1)
+            sage: Q2.contained_in_interval(Q1,Q4.join(Q1))
+            True
+        """
+        if not isinstance(start, Berkovich_Element_Cp):
+            raise ValueError("start must be a point of Berkovich space")
+        if start.parent() != self.parent():
+            raise ValueError("start must be a point of the same Berkovich space as this point")
+        if not isinstance(end, Berkovich_Element_Cp):
+            raise ValueError("start must be a point of Berkovich space")
+        if end.parent() != self.parent():
+            raise ValueError("start must be a point of the same Berkovich space as this point")
+
+        #we treat infinity as a special case
+        infty = (self.parent())((1,0))
+        zero = (self.parent())(0)
+        if self == infty:
+            if start == zero or end == zero:
+                return end == infty or start == infty
+            return (self.involution_map()).contained_in_interval(start.involution_map(),\
+                end.involution_map())
+        if start == infty or end == infty:
+            if self == zero:
+                return end == zero or start == zero
+            if start == zero or end == zero:
+                gauss = (self.parent())(0,1)
+                return self.contained_in_interval(start,gauss) or self.contained_in_interval(gauss,end)
+            return (self.involution_map()).contained_in_interval(start.involution_map(),\
+                end.involution_map())
+        join = start.join(end)
+        return join.partial_order(self) and (self.partial_order(start) \
+            or self.partial_order(end))
+
     def potential_kernel(self, other, basepoint):
         """
         The potential kernel of this point with ``other``,
@@ -2014,7 +2074,7 @@ class Berkovich_Cp(Berkovich):
                 raise ValueError("input to convex_hull must be a list of points of this Berkovich space")
         point_to_name = {}
         for i in range(len(points)):
-            point_to_name[points[i]] = "P" + str(i)
+            point_to_name[points[i]] = "P" + str(i+1)
         V = points[:]
         for i in range(len(points)):
             for j in range(i+1,len(points)):
@@ -2047,7 +2107,8 @@ class Berkovich_Cp(Berkovich):
                 if good_end:
                     outgoing[point_to_name[end]] = 'replace' #TODO write good names for edges
             E_final[point_to_name[start]] = outgoing
-        return E_final
+        from sage.graphs.digraph import DiGraph
+        return DiGraph(E_final)
 
 class Berkovich_Cp_Affine(Berkovich_Cp):
     r"""

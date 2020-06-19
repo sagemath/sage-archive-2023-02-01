@@ -45,6 +45,7 @@ class Package(object):
         self.__tarball = None
         self._init_checksum()
         self._init_version()
+        self._init_type()
 
     def __repr__(self):
         return 'Package {0}'.format(self.name)
@@ -217,6 +218,13 @@ class Package(object):
         """
         return self.__patchlevel
 
+    @property
+    def type(self):
+        """
+        Return the package type
+        """
+        return self.__type
+
     def __eq__(self, other):
         return self.tarball == other.tarball
         
@@ -227,10 +235,15 @@ class Package(object):
         """
         base = os.path.join(SAGE_ROOT, 'build', 'pkgs')
         for subdir in os.listdir(base):
-            path = os.path.join(base, subdir) 
+            path = os.path.join(base, subdir)
             if not os.path.isfile(os.path.join(path, "checksums.ini")):
+                log.debug('%s has no checksums.ini', subdir)
                 continue
-            yield cls(subdir)
+            try:
+                yield cls(subdir)
+            except BaseException:
+                log.error('Failed to open %s', subdir)
+                raise 
 
     @property
     def path(self):
@@ -274,4 +287,10 @@ class Package(object):
             self.__version = match.group('version')
             self.__patchlevel = int(match.group('patchlevel'))
         
-        
+    def _init_type(self):
+        with open(os.path.join(self.path, 'type')) as f:
+            package_type = f.read().strip()
+        assert package_type in [
+            'base', 'standard', 'optional', 'experimental', 'script', 'pip'
+        ]
+        self.__type = package_type

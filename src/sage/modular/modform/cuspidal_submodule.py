@@ -39,7 +39,8 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #########################################################################
 from sage.rings.all     import QQ, Integer
-from sage.misc.all      import verbose, cached_method
+from sage.misc.all      import cached_method
+from sage.misc.verbose  import verbose
 from sage.matrix.all    import Matrix, identity_matrix
 
 from .submodule import ModularFormsSubmodule

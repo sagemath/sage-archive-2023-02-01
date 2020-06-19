@@ -91,8 +91,8 @@ from .ell_generic import is_EllipticCurve
 from .ell_point import EllipticCurvePoint_number_field
 from .constructor import EllipticCurve
 from sage.rings.all import PolynomialRing, ZZ, QQ, RealField, Integer
-from sage.misc.all import cached_method, verbose, prod, union
-
+from sage.misc.all import cached_method, prod, union
+from sage.misc.verbose import verbose
 
 class EllipticCurve_number_field(EllipticCurve_field):
     r"""

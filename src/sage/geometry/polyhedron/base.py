@@ -113,6 +113,31 @@ class Polyhedron_base(Element):
 
         sage: p = Polyhedron()
         sage: TestSuite(p).run()
+
+    ::
+
+        sage: p = Polyhedron(vertices=[(1,0), (0,1)], rays=[(1,1)], base_ring=ZZ)
+        sage: TestSuite(p).run()
+
+    ::
+
+        sage: p=polytopes.flow_polytope(digraphs.DeBruijn(3,2))
+        sage: TestSuite(p).run()
+
+    ::
+
+        sage: TestSuite(Polyhedron([[]])).run()
+        sage: TestSuite(Polyhedron([[0]])).run()
+
+    ::
+
+        sage: P = polytopes.permutahedron(3) * Polyhedron(rays=[[0,0,1],[0,1,1],[1,2,3]])
+        sage: TestSuite(P).run()
+
+    ::
+
+        sage: P = polytopes.permutahedron(3)*Polyhedron(rays=[[0,0,1],[0,1,1]], lines=[[1,0,0]])
+        sage: TestSuite(P).run()
     """
 
     def __init__(self, parent, Vrep, Hrep, Vrep_minimal=None, Hrep_minimal=None, pref_rep=None, **kwds):

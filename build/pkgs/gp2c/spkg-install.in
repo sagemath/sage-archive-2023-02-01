@@ -1,4 +1,7 @@
 cd src
+
+export CFLAGS=$CFLAGS_NON_NATIVE
+
 sdh_configure --with-paricfg=$SAGE_PARI_CFG
 sdh_make
 sdh_make_install

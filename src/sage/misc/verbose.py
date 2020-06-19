@@ -38,7 +38,7 @@ Reset the level::
 
 Warnings are still shown at this default level (``logging.WARNING``)::
 
-    sage: logger.warn('Hello. I am warning you.')
+    sage: logger.warning('Hello. I am warning you.')
     WARNING:__main__:Hello. I am warning you.
 
 And that's all.

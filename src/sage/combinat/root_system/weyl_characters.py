@@ -2241,30 +2241,40 @@ class FusionRing(WeylCharacterRing):
     weights of the basis elements, then assign new labels to them::
 
         sage: B22 = FusionRing("B2", 2)
-        sage: basis = sorted(B22.basis(), key=str)
-        sage: basis
-        [B22(0,0), B22(0,1), B22(0,2), B22(1,0), B22(1,1), B22(2,0)]
-        sage: [x.highest_weight() for x in basis]
-        [(0, 0), (1/2, 1/2), (1, 1), (1, 0), (3/2, 1/2), (2, 0)]
-        sage: B22.fusion_labels(['1','X','Y2','Y1','Xp','Z'])
-        sage: relabeled_basis = sorted(B22.basis(), key=str)
-        sage: relabeled_basis
-        [1, X, Xp, Y1, Y2, Z]
-        sage: [(x, x.highest_weight()) for x in relabeled_basis]
-        [(1, (0, 0)),
-         (X, (1/2, 1/2)),
-         (Xp, (3/2, 1/2)),
+        sage: b = [B22(x) for x in B22.get_order()]; b
+        [B22(0,0), B22(1,0), B22(0,1), B22(2,0), B22(1,1), B22(0,2)]
+        sage: [x.highest_weight() for x in b]
+        [(0, 0), (1, 0), (1/2, 1/2), (2, 0), (3/2, 1/2), (1, 1)]
+        sage: B22.fusion_labels(['I0','Y1','X','Z','Xp','Y2'])
+        sage: b = [B22(x) for x in B22.get_order()]; b
+        [I0, Y1, X, Z, Xp, Y2]
+        sage: [(x, x.highest_weight()) for x in b]
+        [(I0, (0, 0)),
          (Y1, (1, 0)),
-         (Y2, (1, 1)),
-         (Z, (2, 0))]
+         (X, (1/2, 1/2)),
+         (Z, (2, 0)),
+         (Xp, (3/2, 1/2)),
+         (Y2, (1, 1))]
         sage: X*Y1
         X + Xp
         sage: Z*Z
-        1
+        I0
 
-        sage: C22 = FusionRing("C2", 2)
-        sage: sorted(C22.basis(), key=str)
-        [C22(0,0), C22(0,1), C22(0,2), C22(1,0), C22(1,1), C22(2,0)]
+    A fixed order of the basis keys is avalailable with :meth:`get_order`.
+    This is the order used by methods such as :meth:`s_matrix`.
+    You may use :meth:`set_order` to reorder the basis::
+
+        sage: B22.set_order([x.highest_weight() for x in [I0,Y1,Y2,X,Xp,Z]])
+        sage: [B22(x) for x in B22.get_order()]
+        [I0, Y1, Y2, X, Xp, Z]
+
+    To reset the labels and the order to their defaults,
+    you may run `fusion_labels` with no parameter:
+
+        sage: B22.fusion_labels()
+        sage: [B22(x) for x in B22.get_order()]
+        [B22(0,0), B22(1,0), B22(0,1), B22(2,0), B22(1,1), B22(0,2)]
+
 
     REFERENCES:
 
@@ -2335,9 +2345,22 @@ class FusionRing(WeylCharacterRing):
 
     def get_order(self):
         """
-        This duplicates the functionality inherited from combinat.free_module
-        but it is not cached. The caching of get_order causes inconsistent
-        results after calling set_order.
+        Returns the weights of the basis vectors in a fixed order.
+        You may change the order of the basis using :meth:`set_order`
+
+        EXAMPLES::
+
+            sage: A14=FusionRing("A1",4)
+            sage: w = A14.get_order(); w
+            [(0, 0), (1/2, -1/2), (1, -1), (3/2, -3/2), (2, -2)]
+            sage: A14.set_order([w[k] for k in [0,4,1,3,2]])
+            sage: [A14(x) for x in A14.get_order()]
+            [A14(0), A14(4), A14(1), A14(3), A14(2)]
+
+        This duplicates :meth:`get_order` from `combinat.free_module`.
+        However unlike the `combinat.free_module` method with the same
+        name this `get_order` is not cached. Caching of get_order causes
+        inconsistent results after calling `set_order`.
         """
         if self._order is None:
             self.set_order(self.basis().keys().list())
@@ -2468,31 +2491,27 @@ class FusionRing(WeylCharacterRing):
         b = self.basis()
         return matrix([[self.s_ij(b[x],b[y]) for x in self.get_order()] for y in self.get_order()])
 
-    def fusion_labels(self, labels=None, key=str):
+    def fusion_labels(self, labels=None):
         """
         Set the labels of the basis.
 
         INPUT:
 
-        - ``labels`` -- (default: ``None``) a list of strings
-        - ``key`` -- (default: ``str``) key to use to sort basis
+        - ``labels`` -- (default: ``None``) a list of strings or string
 
-        The length of the list ``labels`` must equal the
+        If ``labels`` is a list, the length of the list must equal the
         number of basis elements. These become the names of
-        the basis elements. If ``labels`` is ``None``, then
-        this resets the labels to the default.
+        the basis elements. 
 
-        Note that the basis is stored as unsorted data, so to obtain
-        consistent results, it should be sorted when applying
-        labels. The argument ``key`` (default ``str``) specifies how
-        to sort the basis. If you call this with ``key=None``, then no
-        sorting is done. This may lead to random results, at least
-        with Python 3.
+        If ``labels`` is a string, this is treated as a prefix and a
+        list of names is generated.
+
+        If ``labels`` is ``None``, then this resets the labels to the default.
 
         EXAMPLES::
 
             sage: A13 = FusionRing("A1", 3)
-            sage: A13.fusion_labels(['x0','x1','x2','x3'])
+            sage: A13.fusion_labels("x")
             sage: fb = list(A13.basis()); fb
             [x0, x1, x2, x3]
             sage: Matrix([[x*y for y in A13.basis()] for x in A13.basis()])
@@ -2508,18 +2527,19 @@ class FusionRing(WeylCharacterRing):
             [A13(0), A13(1), A13(2), A13(3)]
         """
         if labels is None:
+            self._order = None
             self._fusion_labels = None
             return
+        elif type(labels) == str:
+            labels = [labels+"%d"%k for k in range(len(self.basis()))]
+        elif len(labels) != len(self.basis()):
+            raise ValueError('invalid data')
         d = {}
-        if key:
-            fb = sorted(self.basis(), key=key)
-        else:
-            fb = list(self.basis())
+        fb = list(self.get_order())
         for j, b in enumerate(fb):
-            wt = b.highest_weight()
-            t = tuple([wt.inner_product(x) for x in self.simple_coroots()])
+            t = tuple([b.inner_product(x) for x in self.simple_coroots()])
             d[t] = labels[j]
-            inject_variable(labels[j], b)
+            inject_variable(labels[j], self(b))
         self._fusion_labels = d
 
     class Element(WeylCharacterRing.Element):

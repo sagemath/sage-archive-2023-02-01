@@ -2838,7 +2838,8 @@ class Graphics(WithEqualityById, SageObject):
             color = lopts.pop('back_color', 'white')
             leg = subplot.legend(prop=prop, **lopts)
             if leg is None:
-                sage.misc.misc.warn("legend requested but no items are labeled")
+                from warnings import warn
+                warn("legend requested but no items are labeled")
             else:
                 # color
                 lframe = leg.get_frame()

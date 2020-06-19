@@ -1291,9 +1291,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
                1/16*a*xbar^3 + (-1/16*a - 1/8)*xbar^2 + 23/16*a*xbar - 23/16*a - 23/8),
               6),
              ((-5/4*xbar^2 - 115/4,
-               (1/8*a - 5/8)*xbar^2 + 23/8*a - 115/8,
-               -1/16*xbar^3 - 17/16*xbar^2 - 23/16*xbar - 391/16,
-               1/16*a*xbar^3 + (-1/16*a - 5/8)*xbar^2 + 23/16*a*xbar - 23/16*a - 115/8),
+               1/4*a*xbar^2 + 23/4*a,
+               -1/16*xbar^3 - 7/16*xbar^2 - 23/16*xbar - 161/16,
+               1/16*a*xbar^3 - 1/16*a*xbar^2 + 23/16*a*xbar - 23/16*a),
               2)]
 
         By using the ideal `(a)`, we cut the part of the class group coming from
@@ -1423,9 +1423,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
                1/16*a*xbar^3 + (-1/16*a - 1/8)*xbar^2 + 23/16*a*xbar - 23/16*a - 23/8),
               6),
              ((-5/4*xbar^2 - 115/4,
-               (1/8*a - 5/8)*xbar^2 + 23/8*a - 115/8,
-               -1/16*xbar^3 - 17/16*xbar^2 - 23/16*xbar - 391/16,
-               1/16*a*xbar^3 + (-1/16*a - 5/8)*xbar^2 + 23/16*a*xbar - 23/16*a - 115/8),
+               1/4*a*xbar^2 + 23/4*a,
+               -1/16*xbar^3 - 7/16*xbar^2 - 23/16*xbar - 161/16,
+               1/16*a*xbar^3 - 1/16*a*xbar^2 + 23/16*a*xbar - 23/16*a),
               2)]
 
         Note that all the returned values live where we expect them to::

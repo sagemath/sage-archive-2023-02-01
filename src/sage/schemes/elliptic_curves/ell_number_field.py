@@ -301,8 +301,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             (3,
              3,
              [(0 : 0 : 1),
-              (-1/2*zeta43_0^2 - 1/2*zeta43_0 + 7 : -3/2*zeta43_0^2 - 5/2*zeta43_0 + 18 : 1),
-              (5/8*zeta43_0^2 + 17/8*zeta43_0 - 9/4 : -27/16*zeta43_0^2 - 103/16*zeta43_0 + 39/8 : 1)])
+              (-1/2*zeta43_0^2 - 1/2*zeta43_0 + 7 : -3/2*zeta43_0^2 - 5/2*zeta43_0 + 18 : 1)])
         """
         verbose = int(verbose)
         if known_points is None:
@@ -810,7 +809,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<v> = NumberField(x^2 + 161*x - 150)
             sage: E = EllipticCurve([25105/216*v - 3839/36, 634768555/7776*v - 98002625/1296, 634768555/7776*v - 98002625/1296, 0, 0])
             sage: E.global_integral_model()
-            Elliptic Curve defined by y^2 + (33872485050625*v-31078224284250)*x*y + (2020602604156076340058146664245468750000*v-1871778534673615560803175189398437500000)*y = x^3 + (6933305282258321342920781250*v-6422644400723486559914062500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
+            Elliptic Curve defined by y^2 + (2094779518028859*v-1940492905300351)*x*y + (477997268472544193101178234454165304071127500*v-442791377441346852919930773849502871958097500)*y = x^3 + (26519784690047674853185542622500*v-24566525306469707225840460652500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
 
         :trac:`14476`::
 
@@ -920,10 +919,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
            sage: E1 = E.scale_curve(u^5)
            sage: E1.ainvs()
            (0,
-            0,
-            0,
-            193309837823322216*a - 611299381639464252,
-            -3379649566176127326923323632*a + 10687390322316522207588229536)
+           0,
+           0,
+           28087920796764302856*a + 88821804456186580548,
+           -77225139016967233228487820912*a - 244207331916752959911655344864)
            sage: E1._scale_by_units().ainvs()
            (0, 0, 0, 4536*a + 14148, -163728*a - 474336)
 

@@ -1823,7 +1823,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
 
             sage: F.<a> = NumberField(2*x^3 + x + 1)
             sage: fact = F.factor(2); fact
-            (Fractional ideal (-2*a^2 - 1))^2 * (Fractional ideal (2*a^2))
+            (Fractional ideal (2*a^2 + 1))^2 * (Fractional ideal (-2*a^2))
             sage: [p[0].norm() for p in fact]
             [2, 2]
         """
@@ -2414,7 +2414,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: A.is_coprime(B)
             False
             sage: lam = A.idealcoprime(B); lam
-            1/6*a - 1/6
+            -1/6*a + 1/6
             sage: (lam*A).is_coprime(B)
             True
 

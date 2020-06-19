@@ -84,6 +84,7 @@ from sage.rings.all import (
     ComplexField, RationalField)
 
 import sage.misc.all as misc
+from sage.misc.verbose import verbose as verbose_verbose
 
 from sage.functions.log import log
 
@@ -2103,7 +2104,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             # true rank
             rank_bound = self.analytic_rank_upper_bound()
             if rank_bound <= 1:
-                misc.verbose("rank %s due to zero sum bound and parity"%rank_bound)
+                verbose_verbose("rank %s due to zero sum bound and parity"%rank_bound)
                 rank = Integer(rank_bound)
                 self.__rank = (rank, proof)
                 return rank
@@ -2114,14 +2115,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             if self.root_number() == 1:
                 L, err = self.lseries().at1(prec)
                 if abs(L) > err + R(0.0001):  # definitely doesn't vanish
-                    misc.verbose("rank 0 because L(E,1)=%s" % L)
+                    verbose_verbose("rank 0 because L(E,1)=%s" % L)
                     rank = Integer(0)
                     self.__rank = (rank, proof)
                     return rank
             else:
                 Lprime, err = self.lseries().deriv_at1(prec)
                 if abs(Lprime) > err + R(0.0001):  # definitely doesn't vanish
-                    misc.verbose("rank 1 because L'(E,1)=%s"%Lprime)
+                    verbose_verbose("rank 1 because L'(E,1)=%s"%Lprime)
                     rank = Integer(1)
                     self.__rank = (rank, proof)
                     return rank
@@ -2145,11 +2146,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     del E.__mwrank_curve
                     raise RuntimeError('rank not provably correct (lower bound: {})'.format(rank))
                 else:
-                    misc.verbose("Warning -- rank not proven correct", level=1)
+                    verbose_verbose("Warning -- rank not proven correct", level=1)
             return rank
 
         if algorithm == 'mwrank_shell':
-            misc.verbose("using mwrank shell")
+            verbose_verbose("using mwrank shell")
             X = self.mwrank()
             if 'determined unconditionally' not in X or 'only a lower bound of' in X:
                 if proof:
@@ -2333,7 +2334,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                         G = self.point_search(h, verbose)
                         G = [P for P in G if P.order() == oo]
                         if G:
-                            misc.verbose("Direct search succeeded.")
+                            verbose_verbose("Direct search succeeded.")
                             G, _, _ = self.saturation(G, verbose=verbose)
                             verbose_verbose("Computed saturation.")
                             return G, True

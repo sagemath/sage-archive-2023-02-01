@@ -52,6 +52,7 @@ import os
 
 from sage.structure.sage_object import SageObject
 from sage.misc.all import pager
+from sage.misc.verbose import verbose
 import sage.rings.all
 
 

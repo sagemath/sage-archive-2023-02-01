@@ -120,6 +120,7 @@ from sage.structure.sage_object import SageObject
 import sage.arith.all as arith
 from sage.rings.fast_arith import prime_range
 import sage.misc.all as misc
+from sage.misc.verbose import verbose
 import sage.rings.all as rings
 from sage.rings.all import RealField, GF
 
@@ -1010,11 +1011,11 @@ class GaloisRepresentation(SageObject):
                         could_be_exc = 0
                     if a_ell != 0 and arith.kronecker(a_ell**2 - 4*ell,p) == 1 and could_be_non_split == 1:
                         # it can not be in the normalizer of the non-split Cartan
-                        misc.verbose("the image cannot be non-split, found u=%s"%u,2)
+                        verbose("the image cannot be non-split, found u=%s"%u,2)
                         could_be_non_split = 0
                     if a_ell != 0 and arith.kronecker(a_ell**2 - 4*ell,p) == -1 and could_be_split == 1:
                         # it can not be in the normalizer of the split Cartan
-                        misc.verbose("the image cannot be split, found u=%s"%u,2)
+                        verbose("the image cannot be split, found u=%s"%u,2)
                         could_be_split = 0
 
             assert could_be_exc + could_be_split + could_be_non_split  > 0, "bug in image_type."
@@ -1075,7 +1076,7 @@ class GaloisRepresentation(SageObject):
             K = self._E.division_field(p, 'z')
             d = K.absolute_degree()
 
-            misc.verbose("field of degree %s.  try to compute Galois group"%(d),2)
+            verbose("field of degree %s.  try to compute Galois group"%(d),2)
             # If the degree is too big, we have no chance at the Galois
             # group.  K.galois_group calls is_galois which used to rely on
             # pari's Galois group computations, so degree < 12

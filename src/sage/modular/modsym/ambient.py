@@ -2898,7 +2898,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             Tp = W * R
             tm = verbose("done multiplying",tm)
             Tp = Tp.dense_matrix()
-            misc.verbose("done making Hecke operator dense", tm)
+            verbose("done making Hecke operator dense", tm)
         if rows is None:
             self._hecke_matrices[(p,rows)] = Tp
         return Tp

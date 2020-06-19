@@ -27,7 +27,8 @@ import sage.matrix.matrix_space as matrix_space
 from sage.rings.all import Ring
 from sage.misc.search import search
 from sage.rings.rational_field import is_RationalField
-import sage.misc.misc as misc
+from sage.misc.verbose import verbose
+
 from sage.modular.modsym.manin_symbol_list import ManinSymbolList
 
 SPARSE = True
@@ -125,7 +126,7 @@ def modS_relations(syms):
             rels.add(((i, 1), (j, s)))
         else:
             rels.add(((j, s), (i, 1)))
-    misc.verbose("finished creating S relations", tm)
+    verbose("finished creating S relations", tm)
     return rels
 
 
@@ -188,7 +189,7 @@ def modI_relations(syms, sign):
         j, s = syms.apply_I(i)
         assert j != -1
         rels.add(((i, 1), (j, -sign * s)))
-    misc.verbose("finished creating I relations", tm)
+    verbose("finished creating I relations", tm)
     return rels
 
 
@@ -253,7 +254,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
     R = MAT(entries)
     if not sparse:
         R = R.dense_matrix()
-    misc.verbose("finished (number of rows=%s)" % row, tm)
+    verbose("finished (number of rows=%s)" % row, tm)
     return R
 
 
@@ -306,7 +307,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
         h = relation_matrix.height()
     except AttributeError:
         h = 9999999
-    tm = misc.verbose("putting relation matrix in echelon form (height = %s)" % h)
+    tm = verbose("putting relation matrix in echelon form (height = %s)" % h)
     if h < 10:
         A = relation_matrix.echelon_form(algorithm='multimodular',
                                          height_guess=1)
@@ -327,7 +328,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
 
     ONE = field(1)
 
-    misc.verbose("done doing setup", tm)
+    verbose("done doing setup", tm)
 
     tm = verbose("now forming quotient matrix")
     M = matrix_space.MatrixSpace(field, len(syms), len(basis), sparse=sparse)
@@ -345,7 +346,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
             # the non-pivot columns of A:
             B._set_row_to_negative_of_row_of_A_using_subset_of_columns(i, A, r, basis, cols_index)
 
-    misc.verbose("done making quotient matrix", tm)
+    verbose("done making quotient matrix", tm)
 
     # The following is very fast (over Q at least).
     tm = verbose('now filling in the rest of the matrix')
@@ -355,8 +356,8 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
         if j != i and s != 0:   # ignored in the above matrix
             k += 1
             B.set_row_to_multiple_of_row(i, j, s)
-    misc.verbose("set %s rows" % k)
-    tm = misc.verbose("time to fill in rest of matrix", tm)
+    verbose("set %s rows" % k)
+    tm = verbose("time to fill in rest of matrix", tm)
 
     return B, basis
 
@@ -554,7 +555,7 @@ def sparse_2term_quotient(rels, n, F):
     if not isinstance(F, Ring):
         raise TypeError("F must be a ring.")
 
-    tm = misc.verbose("Starting sparse 2-term quotient...")
+    tm = verbose("Starting sparse 2-term quotient...")
     free = list(range(n))
     ONE = F.one()
     ZERO = F.zero()
@@ -596,5 +597,5 @@ def sparse_2term_quotient(rels, n, F):
             coef[die] = ZERO
 
     mod = [(free[i], coef[i]) for i in range(len(free))]
-    misc.verbose("finished", tm)
+    verbose("finished", tm)
     return mod

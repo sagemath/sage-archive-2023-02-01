@@ -996,7 +996,7 @@ class HeckeModule_free_module(HeckeModule_generic):
 
         is_rational = self.base_ring() == sage.rings.all.QQ
 
-        time = misc.verbose("Decomposing %s" % self)
+        time = verbose("Decomposing %s" % self)
         T = self.ambient_hecke_module().hecke_algebra()
         if bound is None:
             bound = self.ambient_hecke_module().hecke_bound()
@@ -1004,11 +1004,11 @@ class HeckeModule_free_module(HeckeModule_generic):
         U = [self.free_module()]
         p = 2
         while U and p <= bound:
-            misc.verbose(mesg="p=%s" % p, t=time)
+            verbose(mesg="p=%s" % p, t=time)
             if anemic:
                 while arith.GCD(p, self.level()) != 1:
                     p = arith.next_prime(p)
-            misc.verbose("Decomposition using p=%s" % p)
+            verbose("Decomposition using p=%s" % p)
             t = T.hecke_operator(p).matrix()
             Uprime = []
             for i in range(len(U)):

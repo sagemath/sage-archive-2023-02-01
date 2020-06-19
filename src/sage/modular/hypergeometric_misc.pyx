@@ -130,5 +130,14 @@ cpdef hgm_coeffs(long long p, int f, int prec, gamma, m, int D,
                 if ans[r1] is not None:
                     break
                 ans[r1] = ans[r]
-    return ans
-
+    if f == 1:
+        return ans
+    # Consolidate down to p-1 terms.
+    ans2 = [Rz] * (p-1)
+    r1 = 0
+    for r in range(q1):
+        ans2[r1] += ans[r]
+        r1 += 1
+        if r1 == p-1:
+            r1 = 0
+    return ans2

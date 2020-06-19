@@ -29,7 +29,7 @@ class Berkovich_Element(Element):
 
 class Berkovich_Element_Cp(Berkovich_Element):
     """
-    The parent class for any element of Berkovich space over ``Cp``. 
+    The abstract parent class for any element of Berkovich space over ``Cp``. 
     This class should never be instantiated, instead Berkovich_Element_Cp_Affine
     or Berkovich_Element_Cp_Projective should be used.
     """
@@ -483,6 +483,47 @@ class Berkovich_Element_Cp(Berkovich_Element):
                 radius_expr = SR(RR)(radius_expr)
             return radius_expr.limit(x="oo")
         return self._radius
+
+    def contained_in_interval(self, start, end):
+        """
+        Checks if this point is an element of the interval [``start``,``end``].
+
+        INPUT:
+
+         - ``start`` -- A point of the same Berkovich space as this point
+         - ``end`` -- A point of the same Berkovich space as this point
+
+        OUTPUT:
+
+         - ``True`` if this point is an element of [``start``,``end``]
+         - ``False`` otherwise
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Projective((3))
+            sage: Q1 = B(2,1)
+            sage: Q2 = B(2,4)
+            sage: Q3 = B(1/3)
+            sage: Q2.contained_in_interval(Q1,Q3.join(Q1))
+            False
+
+            ::
+
+            sage: Q4 = B(1/81,1)
+            sage: Q2.contained_in_interval(Q1,Q4.join(Q1))
+            True
+        """
+        if not isinstance(start, Berkovich_Element_Cp):
+            raise ValueError("start must be a point of Berkovich space")
+        if start.parent() != self.parent():
+            raise ValueError("start must be a point of the same Berkovich space as this point")
+        if not isinstance(end, Berkovich_Element_Cp):
+            raise ValueError("start must be a point of Berkovich space")
+        if end.parent() != self.parent():
+            raise ValueError("start must be a point of the same Berkovich space as this point")
+        join = start.join(end)
+        return join.partial_order(self) and (self.partial_order(start) \
+            or self.partial_order(end))
 
     def hyperbolic_metric(self, other):
         """
@@ -1898,13 +1939,117 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         else:
             return self.Hsia_kernel(self,basepoint)
 
-class Berkovich(UniqueRepresentation,Parent):
+class Berkovich(UniqueRepresentation, Parent):
     """
     The parent class for any Berkovich space
     """
     pass
 
-class Berkovich_Cp_Affine(Berkovich):
+class Berkovich_Cp(Berkovich):
+    """
+    Abstract parent class for Berkovich space over ``Cp``.
+    """
+
+    def interval_intersection(self, I1, I2):
+        """
+        The intersection of the two intervals ``I1`` and ``I2``.
+
+        An 'interval' in Berkovich space is a tuple of the
+        form (start, end), where both start and end are 
+        elements of this Berkovich space. The interval is defined
+        as the unique path from start to end.
+
+        INPUT:
+
+         - ``I1`` -- A list or tuple of length two, where the both elements
+         are points of this Berkovich space
+         - ``I2`` -- A list or tuple of length two, where the both elements
+         are points of this Berkovich space
+
+        OUTPUT: An interval of Berkovich space which equals the intersection
+        of ``I1`` and ``I2``, or ``None`` if the intersection is empty.
+        """
+        if not (isinstance(I1, list) or isinstance(I1,tuple)):
+            raise ValueError("I1 must be a tuple or a list")
+        if not (isinstance(I2, list) or isinstance(I2,tuple)):
+            raise ValueError("I2 must be a tuple or a list")
+        if len(I1) != 2:
+            raise ValueError("I1 must be length 2")
+        if len(I2) != 2:
+            raise ValueError("I2 must be length 2")
+        for j in [I1,I2]:
+            for i in j:
+                if not isinstance(i, Berkovich_Element_Cp):
+                    raise ValueError("Intervals must start and end at points of Berkovich space")
+                if i.parent() != self:
+                    raise ValueError("Intervals must start and end at points of this Berkovich space")
+
+        start = I1[0].join(I1[1],I2[0])
+        end = I1[0].join(I1[1],I2[0])
+        if start.contained_in_interval(I2[0],I2[1]) and end.contained_in_interval(I2[0],I2[1]):
+            return (start, end)
+        return None
+
+    def convex_hull(self, points):
+        """
+        Returns the convex hull of a set of points.
+
+        The convex hull of a set of points is the smallest
+        path-connected space that contains all the point,
+        or equivalently, the union of all intervals starting
+        and ending at points in the set.
+
+        INPUT:
+
+         - points -- A list of points of this Berkovich space.
+
+        OUTPUT: A bipartite graph
+        """
+        if not (isinstance(points, list) or isinstance(points, tuple)):
+            raise ValueError("input to convex_hull must be a list")
+        for i in points:
+            if not isinstance(i, Berkovich_Element_Cp):
+                raise ValueError("input to convex_hull must be a list of points of Berkovich space")
+            if i.parent() != self:
+                raise ValueError("input to convex_hull must be a list of points of this Berkovich space")
+        point_to_name = {}
+        for i in range(len(points)):
+            point_to_name[points[i]] = "P" + str(i)
+        V = points[:]
+        for i in range(len(points)):
+            for j in range(i+1,len(points)):
+                join = points[i].join(points[j])
+                if join not in V:
+                    V.append(join)
+                    join_label = point_to_name[points[i]] + " ^ " + point_to_name[points[j]]
+                    point_to_name[join] = join_label
+        E_first_pass = {}
+        for i in range(len(V)):
+            outgoing_first_pass = []
+            for j in range(len(V)):
+                if j != i:
+                    comparison = V[i].partial_order(V[j])
+                    if comparison:
+                        #potential edge
+                        outgoing_first_pass.append(V[j])
+            E_first_pass[V[i]] = outgoing_first_pass
+        E_final = {}
+        for start in V:
+            outgoing = {}
+            for end in E_first_pass[start]:
+                good_end = True
+                for v in V:
+                    if v != start and v != end:
+                        contained = v.contained_in_interval(start,end)
+                        if contained:
+                            good_end = False
+                            break
+                if good_end:
+                    outgoing[point_to_name[end]] = 'replace' #TODO write good names for edges
+            E_final[point_to_name[start]] = outgoing
+        return E_final
+
+class Berkovich_Cp_Affine(Berkovich_Cp):
     r"""
     The Berkovich Affine line over `\CC_p`.
     
@@ -1975,7 +2120,7 @@ class Berkovich_Cp_Affine(Berkovich):
 
     Element = Berkovich_Element_Cp_Affine
 
-class Berkovich_Cp_Projective(Berkovich):
+class Berkovich_Cp_Projective(Berkovich_Cp):
     r"""
     The Berkovich Projective line over `\CC_p`.
 
@@ -2016,6 +2161,8 @@ class Berkovich_Cp_Projective(Berkovich):
         if base in ZZ:
             if base.is_prime():
                 base = ProjectiveSpace(Qp(base),1)
+                Berkovich_Cp_Projective.__init__(self,base)
+                return
             else:
                 raise ValueError("Non-prime pased into Berkovich space")
         else:
@@ -2045,13 +2192,6 @@ class Berkovich_Cp_Projective(Berkovich):
             if S.prime() == self.prime():
                 return True
         return False
-
-    def convex_hull(self, points):
-        """
-        The convex hull of a set of points.
-
-        The convex hull 
-        """
 
     def _repr_(self):
         return "Projective Berkovich line over Cp(%s) of precision %s" %(self.prime(),\

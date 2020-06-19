@@ -110,7 +110,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 
-from sage.misc.misc import verbose, get_verbose
+from sage.misc.verbose import verbose, get_verbose
 
 from sage.matrix.matrix2 import Matrix as Matrix2
 from .args cimport SparseEntry, MatrixArgs_init

@@ -335,7 +335,7 @@ from sage.structure.element import RingElement
 import sage.rings.integer
 
 from sage.env import SINGULARPATH
-from sage.misc.misc import get_verbose
+from sage.misc.verbose import get_verbose
 from sage.docs.instancedoc import instancedoc
 
 

@@ -75,7 +75,7 @@ from sage.arith.all import kronecker, next_prime
 from sage.matrix.matrix_space import MatrixSpace
 from sage.modular.arithgroup.all import Gamma0
 from sage.libs.pari.all import pari
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.structure.richcmp import richcmp_method, richcmp
 
 ZZy = PolynomialRing(ZZ, 'y')

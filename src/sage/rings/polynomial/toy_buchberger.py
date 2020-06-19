@@ -139,7 +139,7 @@ AUTHORS:
 """
 from __future__ import print_function
 
-from sage.misc.misc import get_verbose
+from sage.misc.verbose import get_verbose
 from sage.structure.sequence import Sequence
 
 # some aliases that conform to Becker and Weispfenning's notation:

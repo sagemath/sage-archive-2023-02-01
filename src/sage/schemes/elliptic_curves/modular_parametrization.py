@@ -46,7 +46,7 @@ from __future__ import absolute_import
 from . import heegner
 
 from sage.rings.all import (LaurentSeriesRing, RationalField, ComplexField, QQ)
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 
 
 class ModularParameterization:

@@ -30,7 +30,7 @@ import sage.misc.latex
 import sage.rings.integer
 
 from sage.arith.power cimport generic_power
-from sage.misc.misc import verbose, get_verbose
+from sage.misc.verbose import verbose, get_verbose
 from sage.structure.sequence import Sequence
 from sage.structure.parent cimport Parent
 

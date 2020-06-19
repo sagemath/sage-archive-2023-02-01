@@ -27,9 +27,7 @@ on:
 env:
   TARGETS_PRE: build/make/Makefile
   TARGETS:     build/make/Makefile
-  # List obtained by:
-    #echo $(cd build/pkgs/ && for a in *; do if [ "$(cat $a/type 2>/dev/null )" = experimental ]; then echo $a; fi; done)
-  TARGETS_OPTIONAL: awali cocoalib compilerwrapper gambit gap3 gdb libtheora lie modular_decomposition perl_term_readline_gnu polymake qepcad scipoptsuite scons surf valgrind
+  TARGETS_OPTIONAL: $(PATH=build/bin:$PATH build/bin/sage-package list :experimental:)
 
 jobs:
   docker:

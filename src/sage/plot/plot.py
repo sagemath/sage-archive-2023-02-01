@@ -583,7 +583,7 @@ from functools import reduce
 
 #DEFAULT_FIGSIZE=(6, 3.70820393249937)
 EMBEDDED_MODE = False
-import sage.misc.misc
+import sage.misc.verbose
 from sage.arith.srange import srange
 
 from sage.misc.randstate import current_randstate #for plot adaptive refinement
@@ -3936,12 +3936,12 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
             data[i] = (float(xi), float(f(xi)))
             if str(data[i][1]) in ['nan', 'NaN', 'inf', '-inf']:
                 msg = "Unable to compute f(%s)" % xi
-                sage.misc.misc.verbose(msg, 1)
+                sage.misc.verbose.verbose(msg, 1)
                 exceptions += 1
                 exception_indices.append(i)
 
         except (ArithmeticError, TypeError, ValueError) as m:
-            sage.misc.misc.verbose("%s\nUnable to compute f(%s)" % (m, xi), 1)
+            sage.misc.verbose.verbose("%s\nUnable to compute f(%s)" % (m, xi), 1)
 
             if i == 0: # Given an error for left endpoint, try to move it in slightly
                 for j in range(1, 99):
@@ -3995,7 +3995,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
        i += 1
 
     if (len(data) == 0 and exceptions > 0) or exceptions > 10:
-        sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points." % exceptions, level=0)
-        sage.misc.misc.verbose("Last error message: '%s'" % msg, level=0)
+        sage.misc.verbose.verbose("WARNING: When plotting, failed to evaluate function at %s points." % exceptions, level=0)
+        sage.misc.verbose.verbose("Last error message: '%s'" % msg, level=0)
 
     return data

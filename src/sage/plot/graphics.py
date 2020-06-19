@@ -38,7 +38,7 @@ from __future__ import print_function, absolute_import
 
 import os
 from math import isnan
-import sage.misc.misc
+import sage.misc.verbose
 from sage.misc.temporary_file import tmp_filename
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
@@ -2259,16 +2259,16 @@ class Graphics(WithEqualityById, SageObject):
             ymax = max(d['ymax'] for d in minmax_data)
             if isnan(xmin):
                 xmin=0
-                sage.misc.misc.verbose("xmin was NaN (setting to 0)", level=0)
+                sage.misc.verbose.verbose("xmin was NaN (setting to 0)", level=0)
             if isnan(xmax):
                 xmax=0
-                sage.misc.misc.verbose("xmax was NaN (setting to 0)", level=0)
+                sage.misc.verbose.verbose("xmax was NaN (setting to 0)", level=0)
             if isnan(ymin):
                 ymin=0
-                sage.misc.misc.verbose("ymin was NaN (setting to 0)", level=0)
+                sage.misc.verbose.verbose("ymin was NaN (setting to 0)", level=0)
             if isnan(ymax):
                 ymax=0
-                sage.misc.misc.verbose("ymax was NaN (setting to 0)", level=0)
+                sage.misc.verbose.verbose("ymax was NaN (setting to 0)", level=0)
         else:
             xmin = xmax = ymin = ymax = 0
 

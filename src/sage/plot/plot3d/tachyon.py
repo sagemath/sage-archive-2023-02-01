@@ -143,7 +143,7 @@ from sage.interfaces.tachyon import tachyon_rt
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 
-from sage.misc.misc import get_verbose
+from sage.misc.verbose import get_verbose
 from sage.misc.temporary_file import tmp_filename
 
 #from sage.ext import fast_tachyon_routines
@@ -449,7 +449,7 @@ class Tachyon(WithEqualityById, SageObject):
 
         -  ``verbose`` - integer (default: None); if no verbosity setting 
            is supplied, the verbosity level set by 
-           sage.misc.misc.set_verbose is used.
+           ``sage.misc.verbose.set_verbose`` is used.
 
         -  ``0`` - silent
 

@@ -11,8 +11,8 @@ CPPFLAGS="$CPPFLAGS"
 # "for type of 'hidden' Fortran character lengths"
 # on ubuntu-bionic-minimal, ubuntu-eoan/focal-minimal, debian-buster/bullseye/sid-minimal,
 # linuxmint-19.3-minimal, archlinux-latest-minimal
-CFLAGS="$CFLAGS -fPIC"
-FCFLAGS="$FCFLAGS -fPIC"
+CFLAGS="$CFLAGS_NON_NATIVE -fPIC"
+FCFLAGS="$FCFLAGS_NON_NATIVE -fPIC"
 
 export CFLAGS CPPFLAGS FCFLAGS LDFLAGS
 

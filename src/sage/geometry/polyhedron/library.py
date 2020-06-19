@@ -3127,6 +3127,12 @@ class Polytopes():
             sage: P = polytopes.hypercube(4, intervals, backend='field')
             sage: TestSuite(P).run()
 
+        Check that :trac:`29904` is fixed::
+
+            sage: intervals = [[-2,2]]
+            sage: P = polytopes.hypercube(1, intervals, 'field')
+            sage: TestSuite(P).run()
+
         If the dimension ``dim`` is not equal to the length of intervals, an
         error is raised::
 
@@ -3152,8 +3158,7 @@ class Polytopes():
 
         Check that we set up the hypercube correctly::
 
-            sage: ls = [randint(-100,100) for _ in range(4)]
-            sage: intervals = [[x, x+randint(1,50)] for x in ls]
+            sage: set_random_seed()
             sage: ls = [randint(-100,100) for _ in range(4)]
             sage: intervals = [[x, x+randint(1,50)] for x in ls]
             sage: P = polytopes.hypercube(4, intervals, backend='field')
@@ -3210,7 +3215,7 @@ class Polytopes():
             # An inequality -x_i       + b_i >= 0 for i <  dim
             # resp.          x_{dim-i} - a_i >= 0 for i >= dim
             ieq_b = lambda i: intervals[i][1] if i < dim \
-                              else intervals[i-dim][0]
+                              else -intervals[i-dim][0]
         else:
             raise ValueError("the dimension of the hypercube must match the number of intervals")
 

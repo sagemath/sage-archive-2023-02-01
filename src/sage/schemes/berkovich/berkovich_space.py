@@ -1,5 +1,5 @@
-"""
-A framework for implementing the Berkovich construction over a scheme.
+r"""
+Berkovich Space over `\CC_p`
 """
 
 from sage.structure.parent import Parent
@@ -28,8 +28,8 @@ class Berkovich_Element(Element):
     pass
 
 class Berkovich_Element_Cp(Berkovich_Element):
-    """
-    The abstract parent class for any element of Berkovich space over ``Cp``. 
+    r"""
+    The abstract parent class for any element of Berkovich space over `\CC_p`. 
     This class should never be instantiated, instead Berkovich_Element_Cp_Affine
     or Berkovich_Element_Cp_Projective should be used.
     """
@@ -249,7 +249,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         flag = True
                     if flag:
                         raise ValueError("The center of a point of Projective Berkovich space must be a " + \
-                            "point of P^1(Cp) or coerce into %s") %self._base_space
+                            "point of P^1(Cp) or coerce into %s" %self._base_space)
                 elif not is_pAdicField(center.scheme().base_ring()):
                     if not isinstance(center.scheme().base_ring(), pAdicBaseGeneric):
                         try:
@@ -615,6 +615,21 @@ class Berkovich_Element_Cp(Berkovich_Element):
     def center(self):
         """
         Returns the center of the corresponding disk (or sequence of disks) in ``Cp``.
+
+        OUTPUT: An element of the ``base_ring`` of the parent Berkovich
+        Space.
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: B(3,1).center()
+            3 + O(3^21)
+
+        ::
+
+            sage: C = Berkovich_Cp_Projective(3)
+            sage: C(3,1).center()
+            (3 + O(3^21) : 1 + O(3^20))
         """
         if self._type == 4:
             return self._center_lst[:]
@@ -625,6 +640,17 @@ class Berkovich_Element_Cp(Berkovich_Element):
         Returns the Type of this point of Berkovich space over ``Cp``
 
         OUTPUT: An integer between 1 and 4 inclusive
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: B(1).type_of_point()
+            1
+
+        ::
+
+            sage: B(0,1).type_of_point()
+            2
         """
         return self._type
 
@@ -633,6 +659,12 @@ class Berkovich_Element_Cp(Berkovich_Element):
         Shorthand for residue characteristic of the parent
 
         OUTPUT: A prime integer
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: B(1).prime()
+            3
         """
         return self._p
     
@@ -643,6 +675,9 @@ class Berkovich_Element_Cp(Berkovich_Element):
         return not (self == other)
 
     def _repr_(self):
+        """
+        String representation of this point.
+        """
         if self._type == 1:
             return "Type I point centered at " + format(self._center)
         elif self._type == 2:
@@ -664,6 +699,9 @@ class Berkovich_Element_Cp(Berkovich_Element):
                     %(self._center_lst[:2],self._radius_lst[:2])
 
     def _latex_(self):
+        """
+        LaTeX representation of this point.
+        """
         from sage.misc.latex import latex
         if self._type == 1:
             text = r"the point %s of } \Bold{C}_%s" %(self._center, self._p)
@@ -691,37 +729,37 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     Elements are categorized into four Types, represented by specific data:
 
-     - Type I points are represented by a center in `\QQ_p` or a finite extension
+    - Type I points are represented by a center in `\QQ_p` or a finite extension
 
-     - Type II points are represented by a center in `\QQ_p` and a rational power of `p`
+    - Type II points are represented by a center in `\QQ_p` and a rational power of `p`
 
-     - Type III points are represented by a center in `\QQ_p` and a radius in `[0,\infty)`
+    - Type III points are represented by a center in `\QQ_p` and a radius in `[0,\infty)`
 
-     - Type IV points are represented by a finite list of centers in `\QQ_p` and 
-       a finite list of radii in `[0,\infty)`. 
+    - Type IV points are represented by a finite list of centers in `\QQ_p` and 
+      a finite list of radii in `[0,\infty)`. 
 
     INPUT:
 
     - ``center`` -- For Type I, II, and III points, the center of the 
-     corresponding disk in `\CC_p`. Must be an element of `\QQ_p`, a finite extension
-     of `\QQ_p`, or coerce into `\QQ_p`. For Type IV points, can be a list of centers
-     used to approximate the point or a univariate function that computes the centers 
-     (computation starts at 1).
+      corresponding disk in `\CC_p`. Must be an element of `\QQ_p`, a finite extension
+      of `\QQ_p`, or coerce into `\QQ_p`. For Type IV points, can be a list of centers
+      used to approximate the point or a univariate function that computes the centers 
+      (computation starts at 1).
 
     - ``radius`` -- (optional) For Type I, II, and III points, the radius of the 
-     corresponding disk in ``Cp``. Must coerce into the real numbers. For Type IV points,
-     can be a list of radii used to approximate the point or a univariate function that
-     computes the radii (computation starts at 1). 
+      corresponding disk in ``Cp``. Must coerce into the real numbers. For Type IV points,
+      can be a list of radii used to approximate the point or a univariate function that
+      computes the radii (computation starts at 1). 
 
     - ``power`` -- (optional) Rational number. Used for constructing Type II points; specifies
-     the power of ``p`` such that p^power = radius
+      the power of ``p`` such that p^ ``power`` = radius
 
     - ``prec`` -- (default: 20) The number of disks to be used to approximate a Type IV point
 
     - ``error_check`` -- (default: True) If error checking should be run on input. If
-     input is correctly formatted, can be set to ``False`` for better performance. 
-     WARNING: with error check set to ``False``, any error in the input will lead to 
-     incorrect results.
+      input is correctly formatted, can be set to ``False`` for better performance. 
+      WARNING: with error check set to ``False``, any error in the input will lead to 
+      incorrect results.
 
     EXAMPLES:
 
@@ -874,8 +912,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         OUTPUT:
 
-         - For Type I-III points, a point of ``Cp``
-         - For Type IV points, a list of points of ``Cp``
+        - For Type I-III points, a point of ``Cp``
+        - For Type IV points, a list of points of ``Cp``
 
         EXAMPLES::
 
@@ -936,13 +974,13 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``other`` -- A point of the same Berkovich space as this point
+        - ``other`` -- A point of the same Berkovich space as this point
 
         OUTPUT:
 
-         - ``True`` - If self > other in the standard partial order
-         - ``False`` - If self < other in the standard partial order
-         - ``None`` - If the two points are not comparable
+        - ``True`` -- If self > other in the standard partial order
+        - ``False`` -- If self < other in the standard partial order
+        - ``None`` -- If the two points are not comparable
 
         EXAMPLES::
 
@@ -952,19 +990,19 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             sage: Q1.partial_order(Q2)
             False
 
-            ::
+        ::
 
             sage: Q3 = B(1/2)
             sage: Q1.partial_order(Q3)
             True
 
-            ::
+        ::
 
             sage: Q4 = B(1/81,1)
             sage: print(Q4.partial_order(Q1))
             None
 
-            ::
+        ::
 
             sage: print(Q4.partial_order(Q3))
             None
@@ -992,9 +1030,9 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``other`` -- A point of the same Berkovich space as this point
-         - ``basepoint`` -- (default: Infinity) A point of the same 
-         Berkovich space as this point or the string 'infty'
+        - ``other`` -- A point of the same Berkovich space as this point
+        - ``basepoint`` -- (default: Infinity) A point of the same 
+          Berkovich space as this point or the string 'infty'
 
         OUTPUT: A point of the same Berkovich space
 
@@ -1062,7 +1100,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         """
         Returns the image of this point under the involution map.
 
-        The involution map is the extension of the map z |-> 1/z map
+        The involution map is the extension of the map ``z |-> 1/z`` map
         on ``Cp`` to Berkovich space.
 
         For Affine Berkovich Space, not defined for the Type I 
@@ -1070,7 +1108,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         OUTPUT: A point of the same Berkovich space
 
-        EXAMPLES::
+        EXAMPLES:
 
         The involution map is 1/z on Type I points::
 
@@ -1133,13 +1171,13 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``start`` -- A point of the same Berkovich space as this point
-         - ``end`` -- A point of the same Berkovich space as this point
+        - ``start`` -- A point of the same Berkovich space as this point
+        - ``end`` -- A point of the same Berkovich space as this point
 
         OUTPUT:
 
-         - ``True`` if this point is an element of [``start``,``end``]
-         - ``False`` otherwise
+        - ``True`` if this point is an element of [``start``,``end``]
+        - ``False`` otherwise
 
         EXAMPLES::
 
@@ -1150,7 +1188,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             sage: Q2.contained_in_interval(Q1,Q3.join(Q1))
             False
 
-            ::
+        ::
 
             sage: Q4 = B(1/81,1)
             sage: Q2.contained_in_interval(Q1,Q4.join(Q1))
@@ -1176,8 +1214,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``other`` -- A point of the same Berkovich space as this point
-         - ``basepoint`` -- A point of the same Berkovich space as this point
+        - ``other`` -- A point of the same Berkovich space as this point
+        - ``basepoint`` -- A point of the same Berkovich space as this point
 
         OUTPUT: A real number or the infinity symbol 'oo'
 
@@ -1205,11 +1243,12 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         return basepoint.path_distance_metric((self.join(other,basepoint)))
 
     def spherical_kernel(self,other):
-        """
+        r"""
         The spherical kernel of this point with ``other``.
 
         The spherical kernel is one possible extension of 
-        the spherical distance on P^1(``Cp``) to P^1 Berkovich.
+        the spherical distance on `A^1(\CC_p)` to the Berkovich
+        Affine line.
 
         OUTPUT: A real number
 
@@ -1240,8 +1279,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``other`` -- A point of the same Berkovich space as this point
-         - ``basepoint`` -- A point of the same Berkovich space as this point
+        - ``other`` -- A point of the same Berkovich space as this point
+        - ``basepoint`` -- A point of the same Berkovich space as this point
 
         OUTPUT: A real number or the infinity symbol 'oo'
 
@@ -1254,7 +1293,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             sage: Q1.Hsia_kernel(Q2,Q3)
             0.111111111111111
 
-            ::
+        ::
 
             sage: B = Berkovich_Cp_Affine(Qp(3))
             sage: Q1 = B(2,9)
@@ -1292,10 +1331,23 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``basepoint`` -- (default = Infinity) A point of the 
-         same Berkovich space as this point
+        - ``basepoint`` -- (default = Infinity) A point of the 
+          same Berkovich space as this point
 
         OUTPUT: A real number or the infinity symbol 'oo'
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: Q1 = B(1/81,1)
+            sage: Q2 = B(1/3)
+            sage: Q1.diameter(Q2)
+            0.00137174211248285
+
+        ::
+
+            sage: Q2.diameter(Q2)
+            'oo'
         """
         if basepoint == "oo":
             return super().diameter()
@@ -1304,48 +1356,48 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
 class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
     r"""
-    Element class of the Berkovich Projective line over `\CC_p`
-    
+    Element class of the Berkovich Projective line over `\CC_p`.
+
     Elements are categorized into four Types, which are represented as follows:
 
-     - Type I points are represented by a center in Projective Space of dimension 1 over
-       `\QQ_p` or over a finite extension of `\QQ_p`
+    - Type I points are represented by a center in Projective Space of dimension 1 over
+      `\QQ_p` or over a finite extension of `\QQ_p`.
 
-     - Type II points are represented by a center in Projective Space of dimension 1 over
-       `\QQ_p` or over a finite extension of `\QQ_p` and a rational power of `p`.
-       Type II points cannot be centered at the point at infinity.
+    - Type II points are represented by a center in Projective Space of dimension 1 over
+      `\QQ_p` or over a finite extension of `\QQ_p` and a rational power of `p`.
+      Type II points cannot be centered at the point at infinity.
 
-     - Type III points are represented by a center in Projective Space of dimension 1 over
-       `\QQ_p` or over a finite extension of `\QQ_p` and a radius in [0,`\infty`).
-       Type III points are cannot be centered at the point at infinity.
+    - Type III points are represented by a center in Projective Space of dimension 1 over
+      `\QQ_p` or over a finite extension of `\QQ_p` and a radius in `[0,\infty)`.
+      Type III points are cannot be centered at the point at infinity.
 
-     - Type IV points are represented by finite list of centers in Projective Space of dimension 1 over
-       `\QQ_p` or over a finite extension of `\QQ_p` and by a finite list of radii in [0,`\infty`).
-       None of the centers can be the point at infinity.
+    - Type IV points are represented by finite list of centers in Projective Space of dimension 1 over
+      `\QQ_p` or over a finite extension of `\QQ_p` and by a finite list of radii in `[0,\infty)`.
+      None of the centers can be the point at infinity.
 
     INPUT:
 
     - ``center`` -- For Type I, II, and III points, the center of the 
-     corresponding disk in `P^1(\CC_p)`. Must be an element of `\QQ_p`, a finite extension
-     of `\QQ_p`, or coerce into `\QQ_p`. For Type IV points, can be a list of centers
-     used to approximate the point or a univariate function that computes the centers 
-     (computation starts at 1).
+      corresponding disk in `P^1(\CC_p)`. Must be an element of `\QQ_p`, a finite extension
+      of `\QQ_p`, or coerce into `\QQ_p`. For Type IV points, can be a list of centers
+      used to approximate the point or a univariate function that computes the centers 
+      (computation starts at 1).
 
     - ``radius`` -- (optional) For Type I, II, and III points, the radius of the 
-     corresponding disk in ``Cp``. Must coerce into the real numbers. For Type IV points,
-     can be a list of radii used to approximate the point or a univariate function that
-     computes the radii (computation starts at 1). 
+      corresponding disk in ``Cp``. Must coerce into the real numbers. For Type IV points,
+      can be a list of radii used to approximate the point or a univariate function that
+      computes the radii (computation starts at 1). 
 
     - ``power`` -- (optional) Rational number. Used for constructing Type II points; specifies
-     the power of ``p`` such that p^power = radius
+      the power of ``p`` such that p^ ``power`` = radius.
 
-    - ``prec`` -- (default: 20) The number of disks to be used to approximate a Type IV point
+    - ``prec`` -- (default: 20) The number of disks to be used to approximate a Type IV point.
 
     - ``error_check`` -- (default: True) If error checking should be run on input. If
-     input is correctly formatted, can be set to ``False`` for better performance.
-     WARNING: Setting error_check to ``False`` can lead to incorrect results.
+      input is correctly formatted, can be set to ``False`` for better performance.
+      WARNING: Setting error_check to ``False`` can lead to incorrect results.
 
-    EXAMPLES::
+    EXAMPLES:
 
     Type I points can be created by specifying the corresponding point of `P^1(\CC_p)`::
 
@@ -1439,13 +1491,13 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                 prec=prec,child="projective",error_check=error_check)
 
     def center(self):
-        """
-        Returns the center of the corresponding disk (or sequence of disks) in P^1(Cp)
+        r"""
+        Returns the center of the corresponding disk (or sequence of disks) in `P^1(\CC_p)`.
 
         OUTPUT:
 
-         - For Type I-III points, a point of P^1(Cp)
-         - For Type IV points, a list of points of P^1(Cp)
+        - For Type I-III points, a point of `P^1(\CC_p)`
+        - For Type IV points, a list of points of `P^1(\CC_p)`
 
         EXAMPLES::
 
@@ -1507,12 +1559,14 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         is a subset of D(c2,r2) in ``Cp``.
 
         INPUT:
-         - ``other`` -- A point of the same Berkovich space as this point
+
+        - ``other`` -- A point of the same Berkovich space as this point
 
         OUTPUT:
-         - ``True`` - If self > other in the standard partial order
-         - ``False`` - If other > self in the standard partial order
-         - ``None`` - If the two points are not comparable
+
+        - ``True`` - If self > other in the standard partial order
+        - ``False`` - If other > self in the standard partial order
+        - ``None`` - If the two points are not comparable
 
         EXAMPLES::
 
@@ -1601,10 +1655,10 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         basepoint.
 
         INPUT:
-         
-         - ``other`` -- A point of the same Berkovich space as this point
-         - ``basepoint`` -- (default: Infinity) A point of the same
-         Berkovich space as this point or the string 'infty'
+
+        - ``other`` -- A point of the same Berkovich space as this point
+        - ``basepoint`` -- (default: Infinity) A point of the same
+          Berkovich space as this point or the string 'infty'
 
         OUTPUT: A point of the same Berkovich space
 
@@ -1741,12 +1795,12 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         """
         Returns the image of this point under the involution map.
 
-        The involution map is the extension of the map z |-> 1/z map
+        The involution map is the extension of the map ``z |-> 1/z`` map
         on projective space over ``Cp`` to Berkovich space.
 
         OUTPUT: A point of the same Berkovich space
 
-        EXAMPLES::
+        EXAMPLES:
 
         The involution map is 1/z on Type I points::
 
@@ -1808,17 +1862,17 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     def contained_in_interval(self, start, end):
         """
-        Checks if this point is an element of the interval [``start``,``end``].
+        Checks if this point is an element of the interval [``start``, ``end``].
 
         INPUT:
 
-         - ``start`` -- A point of the same Berkovich space as this point
-         - ``end`` -- A point of the same Berkovich space as this point
+        - ``start`` -- A point of the same Berkovich space as this point
+        - ``end`` -- A point of the same Berkovich space as this point
 
         OUTPUT:
 
-         - ``True`` if this point is an element of [``start``,``end``]
-         - ``False`` otherwise
+        - ``True`` if this point is an element of [``start``, ``end``]
+        - ``False`` otherwise
 
         EXAMPLES::
 
@@ -1829,7 +1883,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             sage: Q2.contained_in_interval(Q1,Q3.join(Q1))
             False
 
-            ::
+        ::
 
             sage: Q4 = B(1/81,1)
             sage: Q2.contained_in_interval(Q1,Q4.join(Q1))
@@ -1871,8 +1925,8 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``other`` -- A point of the same Berkovich space as this point
-         - ``basepoint`` -- A point of the same Berkovich space as this point
+        - ``other`` -- A point of the same Berkovich space as this point
+        - ``basepoint`` -- A point of the same Berkovich space as this point
 
         OUTPUT: A real number or the infinity symbol 'oo'
 
@@ -1897,15 +1951,15 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         return basepoint.path_distance_metric((self.join(other,basepoint)))
 
     def spherical_kernel(self,other):
-        """
+        r"""
         The spherical kernel of this point with ``other``.
 
         The spherical kernel is one possible extension of the spherical
-        distance on P^1(``Cp``) to P^1 Berkovich.
+        distance on `P^1(\CC_p)` to the Projective Berkovich line.
 
         INPUT:
 
-         - ``other`` -- A point of the same Berkovich space as this point
+        - ``other`` -- A point of the same Berkovich space as this point
 
         OUTPUT: A real number
 
@@ -1935,10 +1989,10 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         The Hsia kernel of this point and ``other``,
         with basepoint ``basepoint``.
 
-        INPUT::
+        INPUT:
 
-         - ``other`` -- A point of the same Berkovich space as this point
-         - ``basepoint`` -- A point of the same Berkovich space as this point
+        - ``other`` -- A point of the same Berkovich space as this point
+        - ``basepoint`` -- A point of the same Berkovich space as this point
 
         OUTPUT: A real number or the infinity symbol 'oo'
 
@@ -1989,10 +2043,23 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         INPUT:
 
-         - ``basepoint`` -- (default = Infinity) A point of the same 
-         Berkovich space as this point, or the string 'oo'
+        - ``basepoint`` -- (default = Infinity) A point of the same 
+          Berkovich space as this point, or the string 'oo'
 
         OUTPUT: A real number or the infinity symbol 'oo'
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: Q1 = B(1/81,1)
+            sage: Q2 = B(1/3)
+            sage: Q1.diameter(Q2)
+            0.00137174211248285
+
+        ::
+
+            sage: Q2.diameter(Q2)
+            'oo'
         """
         if basepoint == "oo":
             return super().diameter()
@@ -2010,125 +2077,34 @@ class Berkovich_Cp(Berkovich):
     Abstract parent class for Berkovich space over ``Cp``.
     """
 
-    def interval_intersection(self, I1, I2):
-        """
-        The intersection of the two intervals ``I1`` and ``I2``.
+    def __eq__(self,right):
+    
+        if not isinstance(right, Berkovich_Cp):
+            return False
+        return self.base() == right.base()
 
-        An 'interval' in Berkovich space is a tuple of the
-        form (start, end), where both start and end are 
-        elements of this Berkovich space. The interval is defined
-        as the unique path from start to end.
-
-        INPUT:
-
-         - ``I1`` -- A list or tuple of length two, where the both elements
-         are points of this Berkovich space
-         - ``I2`` -- A list or tuple of length two, where the both elements
-         are points of this Berkovich space
-
-        OUTPUT: An interval of Berkovich space which equals the intersection
-        of ``I1`` and ``I2``, or ``None`` if the intersection is empty.
-        """
-        if not (isinstance(I1, list) or isinstance(I1,tuple)):
-            raise ValueError("I1 must be a tuple or a list")
-        if not (isinstance(I2, list) or isinstance(I2,tuple)):
-            raise ValueError("I2 must be a tuple or a list")
-        if len(I1) != 2:
-            raise ValueError("I1 must be length 2")
-        if len(I2) != 2:
-            raise ValueError("I2 must be length 2")
-        for j in [I1,I2]:
-            for i in j:
-                if not isinstance(i, Berkovich_Element_Cp):
-                    raise ValueError("Intervals must start and end at points of Berkovich space")
-                if i.parent() != self:
-                    raise ValueError("Intervals must start and end at points of this Berkovich space")
-
-        start = I1[0].join(I1[1],I2[0])
-        end = I1[0].join(I1[1],I2[0])
-        if start.contained_in_interval(I2[0],I2[1]) and end.contained_in_interval(I2[0],I2[1]):
-            return (start, end)
-        return None
-
-    def convex_hull(self, points):
-        """
-        Returns the convex hull of a set of points.
-
-        The convex hull of a set of points is the smallest
-        path-connected space that contains all the point,
-        or equivalently, the union of all intervals starting
-        and ending at points in the set.
-
-        INPUT:
-
-         - points -- A list of points of this Berkovich space.
-
-        OUTPUT: A bipartite graph
-        """
-        if not (isinstance(points, list) or isinstance(points, tuple)):
-            raise ValueError("input to convex_hull must be a list")
-        for i in points:
-            if not isinstance(i, Berkovich_Element_Cp):
-                raise ValueError("input to convex_hull must be a list of points of Berkovich space")
-            if i.parent() != self:
-                raise ValueError("input to convex_hull must be a list of points of this Berkovich space")
-        point_to_name = {}
-        for i in range(len(points)):
-            point_to_name[points[i]] = "P" + str(i+1)
-        V = points[:]
-        for i in range(len(points)):
-            for j in range(i+1,len(points)):
-                join = points[i].join(points[j])
-                if join not in V:
-                    V.append(join)
-                    join_label = point_to_name[points[i]] + " ^ " + point_to_name[points[j]]
-                    point_to_name[join] = join_label
-        E_first_pass = {}
-        for i in range(len(V)):
-            outgoing_first_pass = []
-            for j in range(len(V)):
-                if j != i:
-                    comparison = V[i].partial_order(V[j])
-                    if comparison:
-                        #potential edge
-                        outgoing_first_pass.append(V[j])
-            E_first_pass[V[i]] = outgoing_first_pass
-        E_final = {}
-        for start in V:
-            outgoing = {}
-            for end in E_first_pass[start]:
-                good_end = True
-                for v in V:
-                    if v != start and v != end:
-                        contained = v.contained_in_interval(start,end)
-                        if contained:
-                            good_end = False
-                            break
-                if good_end:
-                    outgoing[point_to_name[end]] = 'replace' #TODO write good names for edges
-            E_final[point_to_name[start]] = outgoing
-        from sage.graphs.digraph import DiGraph
-        return DiGraph(E_final)
+    def __neq__(self,right):
+        return not self == right
 
 class Berkovich_Cp_Affine(Berkovich_Cp):
     r"""
     The Berkovich Affine line over `\CC_p`.
     
-    The Berkovich Affine line can be thought of as the set of seminorms on `\CC_p[x]`,
+    The Berkovich Affine line is the set of seminorms on `\CC_p[x]`,
     with the weakest topology that makes the map `| \cdot | \to |f|` continuous
     for all `f \in \CC_p[x]`.
 
     INPUT:
 
-     - ``base`` - The prime ``p``. Alternative, can be `\QQ_p` or a finite extension.
-       This allows for more control over automated conversion of centers of points.
+    - ``base`` - The prime ``p``. Alternative, can be `\QQ_p` or a finite extension.
+      This allows for more control over automated conversion of centers of points.
 
     EXAMPLES::
 
         sage: B = Berkovich_Cp_Affine(3); B
         Affine Berkovich line over Cp(3) of precision 20
 
-    Initializing by passing in Qp space looks the same::
+    Initializing by passing in ``Qp`` looks the same::
 
         sage: B = Berkovich_Cp_Affine(Qp(3)); B
         Affine Berkovich line over Cp(3) of precision 20
@@ -2148,6 +2124,9 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
         sage: B = Berkovich_Cp_Affine(Qp(3,1000)); B
         Affine Berkovich line over Cp(3) of precision 1000
     """
+
+    Element = Berkovich_Element_Cp_Affine
+
     def __init__(self,base):
         from sage.rings.integer_ring import ZZ
         if base in ZZ:
@@ -2158,40 +2137,69 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
         if not is_pAdicField(base): #TODO change base to Qpbar(prime)
             raise ValueError("Base of Berkovich Space must be a padic field")
         self._p = base.prime()
-        Parent.__init__(self, base = base, category=TopologicalSpaces()) 
+        Parent.__init__(self, base = base, category=TopologicalSpaces())
 
     def residue_characteristic(self):
+        """
+        The residue characteristic of the ``base``.
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: B.residue_characteristic()
+            3
+        """
         return self._p
 
     def prime(self):
+        """
+        Short hand for ``residue_characteristic``.
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: B.prime()
+            3
+        """
         return self._p
 
-    def _coerce_map_from_(self,S):
-        if isinstance(S, Berkovich_Cp_Affine):
-            if S.prime() == self.prime():
-                return True
-        return False
-
     def _repr_(self):
+        """
+        String representation of this Berkovich Space.
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: B
+            Affine Berkovich line over Cp(3) of precision 20
+        """
         return "Affine Berkovich line over Cp(%s) of precision %s" \
             %(self.prime(),self.base().precision_cap())
     
     def _latex_(self):
-        return r"\text{Affine Berkovich line over } \Bold{C}_{%s}" %(self.prime())
+        r"""
+        LaTeX representation of this Berkovich Space.
 
-    Element = Berkovich_Element_Cp_Affine
+        EXAMPLES:
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: latex(B)
+            \text{Affine Berkovich line over } \Bold{C}_{3}
+        """
+        return r"\text{Affine Berkovich line over } \Bold{C}_{%s}" %(self.prime())
 
 class Berkovich_Cp_Projective(Berkovich_Cp):
     r"""
     The Berkovich Projective line over `\CC_p`.
 
-    The Berkovich Projective line can be thought of as the one-point compactification
+    The Berkovich Projective line is the one-point compactification
     of the Berkovich Affine line.
 
     INPUT:
 
-     - base - The prime number `p`. Alternatively, can be a Projective Space over
-       `\QQ_p` or a finite extension of `\QQ_p`. This allows for more control of conversion of centers.
+    - ``base`` - The prime number `p`. Alternatively, can be a Projective Space over
+      `\QQ_p` or a finite extension of `\QQ_p`. This allows for more control of 
+      conversion of centers.
 
     EXAMPLES::
 
@@ -2204,7 +2212,8 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
         sage: B = Berkovich_Cp_Projective(S); B
         Projective Berkovich line over Cp(3) of precision 20
 
-    However, this method allows for more control over behind-the-scenes conversion::
+    However, this method allows for more control over
+    behind-the-scenes conversion::
 
         sage: S = ProjectiveSpace(Qp(3,1),1)
         sage: B = Berkovich_Cp_Projective(S); B
@@ -2214,9 +2223,11 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
         Type I point centered at (2 + O(3) : 1 + O(3))
 
     Note that this point has very low precision, as S is a scheme over
-    Qp(3) of capped-relative precision one.
-
+    `\QQ_3` of capped-relative precision 1.
     """
+
+    Element = Berkovich_Element_Cp_Projective
+
     def __init__(self,base):
         from sage.rings.integer_ring import ZZ
         if base in ZZ:
@@ -2243,24 +2254,73 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
         Parent.__init__(self, base = base, category=TopologicalSpaces())
 
     def residue_characteristic(self):
+        """
+        The residue characteristic of the ``base``.
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: B.residue_characteristic()
+            3
+        """
         return self._p
 
     def prime(self):
+        """
+        Short hand for ``residue_characteristic``.
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: B.prime()
+            3
+        """
         return self._p
-        
-    def _coerce_map_from_(self,S):
-        if isinstance(S, Berkovich_Cp_Affine) or isinstance(S,Berkovich_Cp_Projective):
-            if S.prime() == self.prime():
-                return True
-        return False
+
+    def base_ring(self):
+        r"""
+        The base of this Berkovich Space.
+
+        OUTPUT: A Projective Space of dimension 1 over `\QQ_p`
+        or a finite extension.
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: B.base_ring()
+            Projective Space of dimension 1 over 3-adic Field with 
+            capped relative precision 20
+
+        ::
+
+            sage: C = Berkovich_Cp_Projective(ProjectiveSpace(Qp(3,1),1))
+            sage: C.base_ring()
+            Projective Space of dimension 1 over 3-adic Field with
+            capped relative precision 1
+        """
+        return self.base()
 
     def _repr_(self):
+        """
+        String representation of this Berkovich Space.
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: B
+            Projective Berkovich line over Cp(3) of precision 20
+        """
         return "Projective Berkovich line over Cp(%s) of precision %s" %(self.prime(),\
             self.base().base_ring().precision_cap())
     
     def _latex_(self):
+        r"""
+        LaTeX representation of this Berkovich Space.
+
+        EXAMPLES:
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: latex(B)
+            \text{Projective Berkovich line over } \Bold{C}_{3}
+        """
         return r"\text{Projective Berkovich line over } \Bold{C}_{%s}" %(self.prime())
-
-    Element = Berkovich_Element_Cp_Projective
-
-    

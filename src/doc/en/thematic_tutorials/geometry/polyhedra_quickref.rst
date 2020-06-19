@@ -72,6 +72,8 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.f_vector` |  the `f`-vector (number of faces of each dimension)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.flag_f_vector` |  the flag-`f`-vector (number of chains of faces)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.neighborliness` | highest cardinality for which all `k`-subsets of the vertices are faces of the polyhedron
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.simpliciality` | highest cardinality for which all `k`-faces are simplices
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.simplicity` | highest cardinality for which the polar is `k`-simplicial
 
 **Implementation properties**
 
@@ -98,7 +100,7 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.intersection` | intersection of two polyhedra
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.join` | join of two polyhedra
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.convex_hull` | convex hull of the union of two polyhedra
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.affine_hull` | constructs an affinely equivalent full dimensional polyhedra
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.affine_hull_projection` | constructs an affinely equivalent full-dimensional polyhedron
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.barycentric_subdivision` | constructs a geometric realization of the barycentric subdivision
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.dilation` |  scalar dilation
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_truncation` | truncates a specific face
@@ -161,6 +163,7 @@ List of Polyhedron methods
 
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.boundary_complex` | returns the boundary complex of simplicial compact polyhedron
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.center` | returns the average of the vertices of the polyhedron
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.centroid` | returns the center of the mass
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.representative_point` | returns the sum of the center and the rays
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.a_maximal_chain` | returns a maximal chain of faces
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_fan` | returns the fan spanned by the faces of the polyhedron

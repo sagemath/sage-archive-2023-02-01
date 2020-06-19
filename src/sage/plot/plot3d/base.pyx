@@ -39,8 +39,8 @@ import sys
 import zipfile
 
 from functools import reduce
+from io import StringIO
 from random import randint
-from six.moves import cStringIO as StringIO
 
 from sage.misc.misc import sage_makedirs
 from sage.misc.temporary_file import tmp_filename
@@ -400,44 +400,11 @@ cdef class Graphics3d(SageObject):
         ambient = '{{"color":"{}"}}'.format(Color(.5,.5,.5).html_color())
 
         import json
-        from sage.plot.plot3d.shapes import arrow3d
-        points, lines, texts = [], [], []
 
-        if not hasattr(self, 'all'):
-            self += Graphics3d()
-        for p in self.flatten().all:
-            if hasattr(p, 'loc'):
-                color = p._extra_kwds.get('color', 'blue')
-                opacity = float(p._extra_kwds.get('opacity', 1))
-                points.append('{{"point":{}, "size":{}, "color":"{}", "opacity":{}}}'.format(
-                              json.dumps(p.loc), p.size, color, opacity))
-            if hasattr(p, 'points'):
-                color = p._extra_kwds.get('color', 'blue')
-                opacity = float(p._extra_kwds.get('opacity', 1))
-                thickness = p._extra_kwds.get('thickness', 1)
-                lines.append('{{"points":{}, "color":"{}", "opacity":{}, "linewidth":{}}}'.format(
-                             json.dumps(p.points), color, opacity, thickness))
-            if hasattr(p, '_trans'):
-                m = p.get_transformation().get_matrix()
-                t = (m[0,3], m[1,3], m[2,3])
-                if hasattr(p.all[0], 'points'):
-                    translated = [[sum(x) for x in zip(t,u)] for u in p.all[0].points]
-                    width = .5 * p.all[0].thickness
-                    color = p.all[0].texture.color
-                    opacity = p.all[0].texture.opacity
-                    self += arrow3d(translated[0], translated[1], width=width, color=color, opacity=opacity)
-                if hasattr(p.all[0], 'string'):
-                    color = '#' + p.all[0].texture.hex_rgb();
-                    texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}, "color":"{}"}}'.format(
-                                 p.all[0].string, t[0], t[1], t[2], color))
-
-        points = '[' + ','.join(points) + ']'
-        lines = '[' + ','.join(lines) + ']'
-        texts = '[' + ','.join(texts) + ']'
-
-        surfaces = self.json_repr(self.default_render_params())
-        surfaces = flatten_list(surfaces)
-        surfaces = '[' + ','.join(surfaces) + ']'
+        reprs = {'point': [], 'line': [], 'text': [], 'surface': []}
+        for kind, desc in self.threejs_repr(self.default_render_params()):
+            reprs[kind].append(desc)
+        reprs = {kind: json.dumps(descs) for kind, descs in reprs.items()}
 
         from sage.env import SAGE_EXTCODE
         with open(os.path.join(
@@ -449,10 +416,10 @@ cdef class Graphics3d(SageObject):
         html = html.replace('SAGE_BOUNDS', bounds)
         html = html.replace('SAGE_LIGHTS', lights)
         html = html.replace('SAGE_AMBIENT', ambient)
-        html = html.replace('SAGE_TEXTS', str(texts))
-        html = html.replace('SAGE_POINTS', str(points))
-        html = html.replace('SAGE_LINES', str(lines))
-        html = html.replace('SAGE_SURFACES', str(surfaces))
+        html = html.replace('SAGE_TEXTS', str(reprs['text']))
+        html = html.replace('SAGE_POINTS', str(reprs['point']))
+        html = html.replace('SAGE_LINES', str(reprs['line']))
+        html = html.replace('SAGE_SURFACES', str(reprs['surface']))
 
         from sage.repl.rich_output.output_catalog import OutputSceneThreejs
         return OutputSceneThreejs(html);
@@ -1164,6 +1131,21 @@ end_scene""" % (render_params.antialiasing,
         """
         return []
 
+    def threejs_repr(self, render_params):
+        """
+        A flat list of ``(kind, desc)`` tuples where ``kind`` is one of:
+        'point', 'line', 'text', or 'surface'; and where ``desc`` is a dictionary
+        describing a point, line, text, or surface.
+
+        EXAMPLES::
+
+            sage: G = sage.plot.plot3d.base.Graphics3d()
+            sage: G.threejs_repr(G.default_render_params())
+            []
+
+        """
+        return []
+
     def texture_set(self):
         """
         Often the textures of a 3d file format are kept separate from the
@@ -1757,11 +1739,11 @@ end_scene""" % (render_params.antialiasing,
             sage: Q = P.plot().all[-1]
             sage: print(Q.stl_ascii_string().splitlines()[:7])
             ['solid surface',
-             'facet normal 0.8506508083520398 -0.0 0.5257311121191338',
+             'facet normal 0.0 0.5257311121191338 0.8506508083520399',
              '    outer loop',
-             '        vertex 1.2360679774997898 -0.4721359549995796 0.0',
-             '        vertex 1.2360679774997898 0.4721359549995796 0.0',
-             '        vertex 0.7639320225002102 0.7639320225002102 0.7639320225002102',
+             '        vertex -0.7639320225002102 0.7639320225002102 0.7639320225002102',
+             '        vertex -0.4721359549995796 0.0 1.2360679774997898',
+             '        vertex 0.4721359549995796 0.0 1.2360679774997898',
              '    endloop']
         """
         from sage.modules.free_module import FreeModule
@@ -2149,6 +2131,31 @@ class Graphics3dGroup(Graphics3d):
         """
         return [g.jmol_repr(render_params) for g in self.all]
 
+    def threejs_repr(self, render_params):
+        r"""
+        The three.js representation of a group is the concatenation of the
+        representations of its objects.
+
+        EXAMPLES::
+
+            sage: G = point3d((1,2,3)) + point3d((4,5,6)) + line3d([(1,2,3), (4,5,6)])
+            sage: G.threejs_repr(G.default_render_params())
+            [('point',
+              {'color': '#6666ff', 'opacity': 1.0, 'point': (1.0, 2.0, 3.0), 'size': 5.0}),
+             ('point',
+              {'color': '#6666ff', 'opacity': 1.0, 'point': (4.0, 5.0, 6.0), 'size': 5.0}),
+             ('line',
+              {'color': '#6666ff',
+               'linewidth': 1.0,
+               'opacity': 1.0,
+               'points': [(1.0, 2.0, 3.0), (4.0, 5.0, 6.0)]})]
+
+        """
+        reprs = []
+        for g in self.all:
+            reprs += g.threejs_repr(render_params)
+        return reprs
+
     def stl_binary_repr(self, render_params):
         r"""
         The stl binary representation of a group is simply the
@@ -2405,6 +2412,29 @@ class TransformGroup(Graphics3dGroup):
         render_params.pop_transform()
         return rep
 
+    def threejs_repr(self, render_params):
+        r"""
+        Transformations for three.js are applied at the leaf nodes.
+
+        EXAMPLES::
+
+            sage: G = point3d((1,2,3)) + point3d((4,5,6))
+            sage: G = G.translate(-1, -2, -3).scale(10)
+            sage: G.threejs_repr(G.default_render_params())
+            [('point',
+              {'color': '#6666ff', 'opacity': 1.0, 'point': (0.0, 0.0, 0.0), 'size': 5.0}),
+             ('point',
+              {'color': '#6666ff',
+               'opacity': 1.0,
+               'point': (30.0, 30.0, 30.0),
+               'size': 5.0})]
+
+        """
+        render_params.push_transform(self.get_transformation())
+        rep = Graphics3dGroup.threejs_repr(self, render_params)
+        render_params.pop_transform()
+        return rep
+
     def get_transformation(self):
         """
         Return the actual transformation object associated with ``self``.
@@ -2600,6 +2630,28 @@ cdef class PrimitiveObject(Graphics3d):
         """
         return self.triangulation().jmol_repr(render_params)
 
+    def threejs_repr(self, render_params):
+        r"""
+        Default behavior is to render the triangulation.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.base import PrimitiveObject
+            sage: class SimpleTriangle(PrimitiveObject):
+            ....:     def triangulation(self):
+            ....:         return polygon3d([(0,0,0), (1,0,0), (0,1,0)])
+            sage: G = SimpleTriangle()
+            sage: G.threejs_repr(G.default_render_params())
+            [('surface',
+              {'color': '#0000ff',
+               'faces': [[0, 1, 2]],
+               'opacity': 1.0,
+               'vertices': [{'x': 0.0, 'y': 0.0, 'z': 0.0},
+                {'x': 1.0, 'y': 0.0, 'z': 0.0},
+                {'x': 0.0, 'y': 1.0, 'z': 0.0}]})]
+
+        """
+        return self.triangulation().threejs_repr(render_params)
 
 
 class BoundingSphere(SageObject):

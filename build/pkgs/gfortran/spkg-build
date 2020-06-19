@@ -1,3 +1,0 @@
-. ./set-library-path
-
-./build-gcc --disable-bootstrap --enable-languages=fortran

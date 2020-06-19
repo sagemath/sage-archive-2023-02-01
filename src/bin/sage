@@ -170,7 +170,8 @@ usage_advanced() {
     echo "                         checking and with support for old-style spkgs."
     echo "                         Options are -c, -d and -s with the same meaning as"
     echo "                         for the -i command"
-    echo "  -info [packages]    -- print the SPKG.txt of the given packages"
+    echo "  -info [packages]    -- print the SPKG.txt or SPKG.rst of the given packages,"
+    echo "                         and some additional information."
     echo "  --location          -- if needed, fix paths to make Sage relocatable"
     echo "  -optional           -- list all optional packages that can be installed"
     echo "  -standard           -- list all standard packages that can be installed"
@@ -257,8 +258,6 @@ usage_advanced() {
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
     echo "  -sdist              -- build a source distribution of Sage"
-    echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
-    echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
     echo "  -fix-pkg-checksums  -- fix the checksums from build/pkgs directories from "
     echo "                         the packages located in upstream/"
 
@@ -382,7 +381,7 @@ if [ "$1" = '-i' ]; then
     # Now install the packages
     for PKG in $PACKAGES; do
         echo
-        # First check that $PKG is actually a Makefile target
+        # Check that $PKG is actually a Makefile target
         # See https://trac.sagemath.org/ticket/25078
         if ! echo "$ALL_TARGETS" | grep "^${PKG}$" >/dev/null; then
             echo >&2 "Error: package '$PKG' not found"
@@ -391,7 +390,6 @@ if [ "$1" = '-i' ]; then
         fi
         $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG"
     done
-
     echo "New packages may have been installed."
     echo "Re-running configure and make in case any dependent packages need updating."
     touch "$SAGE_ROOT/configure" && $MAKE all-build
@@ -606,7 +604,7 @@ fi
 
 if [ "$1" = '--pip3' ]; then
     shift
-    exec python3 -m pip "$@"
+    exec "$SAGE_LOCAL"/bin/python3 -m pip "$@"
 fi
 
 if [ "$1" = '-fix-pkg-checksums' -o "$1" = '--fix-pkg-checksums' ]; then
@@ -617,20 +615,20 @@ fi
 if [ "$1" = '-python' -o "$1" = '--python' ]; then
     shift
     if [ "$SAGE_PYTHON3" = 'yes' ]; then
-        exec python3 "$@"
+        exec "$SAGE_LOCAL"/bin/python3 "$@"
     else
-        exec python2 "$@"
+        exec "$SAGE_LOCAL"/bin/python2 "$@"
     fi
 fi
 
 if [ "$1" = '-python2' -o "$1" = '--python2' ]; then
     shift
-    exec python2 "$@"
+    exec "$SAGE_LOCAL"/bin/python2 "$@"
 fi
 
 if [ "$1" = '-python3' -o "$1" = '--python3' ]; then
     shift
-    exec python3 "$@"
+    exec "$SAGE_LOCAL"/bin/python3 "$@"
 fi
 
 if [ "$1" = '-R' -o "$1" = '--R' ]; then
@@ -640,17 +638,17 @@ fi
 
 if [ "$1" = '-ipython' -o "$1" = '--ipython' ]; then
     shift
-    exec ipython "$@"
+    exec "$SAGE_LOCAL"/bin/ipython "$@"
 fi
 
 if [ "$1" = '-ipython3' -o "$1" = '--ipython3' ]; then
     shift
-    exec ipython3 "$@"
+    exec "$SAGE_LOCAL"/bin/ipython3 "$@"
 fi
 
 if [ "$1" = '-jupyter' -o "$1" = '--jupyter' ]; then
     shift
-    exec jupyter "$@"
+    exec "$SAGE_LOCAL"/bin/jupyter "$@"
 fi
 
 if [ "$1" = '-git' -o "$1" = '--git' ]; then
@@ -1020,16 +1018,6 @@ if [ "$1" = '-info' -o "$1" = '--info' ]; then
         sage-spkg --info "$PKG" || exit $?
     done
     exit 0
-fi
-
-if [ "$1" = '-pkg' -o "$1" = '-spkg' -o "$1" = "--pkg" -o "$1" = "--spkg" ]; then
-    shift
-    exec sage-pkg "$@"
-fi
-
-if [ "$1" = '-pkg_nc' -o "$1" = "--pkg_nc" ]; then
-    shift
-    exec sage-pkg -n "$@"
 fi
 
 if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then

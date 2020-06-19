@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Wrapper script for building GCC used for both the gcc and gfortran SPKGs
 # Usage:

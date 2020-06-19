@@ -83,7 +83,7 @@ from sage.rings.padics.all import Qp
 from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.qqbar import QQbar
+from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
@@ -3283,6 +3283,83 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         crit_points = [P(Q) for Q in X.rational_points()]
         return crit_points
 
+    def ramification_type(self, R=None, stable=True):
+        r"""
+        Return the ramification type of endomorphisms of `\mathbb{P}^1`.
+
+        Only branch points defined over the ring ``R`` contribute to
+        the ramification type if specified, otherwise ``R`` is the
+        ring of definition for ``self``.
+
+        Note that branch points defined over ``R`` may not be
+        geometric points if stable not set to ``True``.
+
+        If ``R`` is specified, ``stable`` is ignored.
+
+        If ``stable``, then this will return the ramification type
+        over an extension which splits the Galois orbits of critical
+        points.
+
+        INPUT:
+
+        - ``R`` -- ring or morphism (optional)
+        - ``split`` -- boolean (optional)
+
+        OUTPUT:
+
+        list of lists, each term being the list of ramification indices
+        in the pre-images of one critical value
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: F = DynamicalSystem_projective([x^4, y^4])
+            sage: F.ramification_type()
+            [[4], [4]]
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: F = DynamicalSystem_projective([x^3, 4*y^3 - 3*x^2*y])
+            sage: F.ramification_type()
+            [[2], [2], [3]]
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: F = DynamicalSystem_projective([(x + y)^4, 16*x*y*(x-y)^2])
+            sage: F.ramification_type()
+            [[2], [2, 2], [4]]
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: F = DynamicalSystem_projective([(x + y)*(x - y)^3, y*(2*x+y)^3])
+            sage: F.ramification_type()
+            [[3], [3], [3]]
+
+            sage: F = DynamicalSystem_projective([x^3-2*x*y^2 + 2*y^3, y^3])
+            sage: F.ramification_type()
+            [[2], [2], [3]]
+            sage: F.ramification_type(R=F.base_ring())
+            [[2], [3]]
+
+        """
+        # Change base ring if specified.
+        if R is None:
+            if stable:
+                L,phi = self.field_of_definition_critical(return_embedding=True)
+                F = self.change_ring(phi)
+            else:
+                F = self
+        else:
+            F = self.change_ring(R)
+
+        C = F.critical_subscheme()
+        ram_type = {}
+        fc = C.defining_ideal().gens()[0]
+        for f, e in fc.factor():
+            c = F(F.domain().subscheme(f))  # critical value
+            if c in ram_type:
+                ram_type[c].append(e + 1)
+            else:
+                ram_type[c] = [e + 1]
+        return sorted(ram_type.values())
+
     def is_postcritically_finite(self, err=0.01, use_algebraic_closure=True):
         r"""
         Determine if this dynamical system is post-critically finite.
@@ -3300,7 +3377,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``err`` -- (default: 0.01) positive real number
 
         - ``use_algebraic_closure`` -- boolean (default: True) -- If True uses the
-          algebraic closure. If False, uses the smalest extension of the base field
+          algebraic closure. If False, uses the smallest extension of the base field
           containing all the critical points.
 
         OUTPUT: boolean
@@ -3410,7 +3487,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``check`` -- boolean (default: True)
 
         - ``use_algebraic_closure`` -- boolean (default: True) -- If True uses the
-          algebraic closure. If False, uses the smalest extension of the base field
+          algebraic closure. If False, uses the smallest extension of the base field
           containing all the critical points.
 
         OUTPUT: a digraph
@@ -3533,7 +3610,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``error_bound`` -- (optional) a positive real number
 
         - ``use_algebraic_closure`` -- boolean (default: True) -- If True uses the
-          algebraic closure. If False, uses the smalest extension of the base field
+          algebraic closure. If False, uses the smallest extension of the base field
           containing all the critical points.
 
         OUTPUT: real number
@@ -4101,7 +4178,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           per point or one per cycle
 
        - ``use_algebraic_closure`` -- boolean (default: True) -- If True uses the
-          algebraic closure. If False, uses the smalest extension of the base field
+          algebraic closure. If False, uses the smallest extension of the base field
           containing all the critical points.
 
         OUTPUT: a list of field elements
@@ -4254,7 +4331,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         points = []
 
-        minfty = min([e[1] for e in F.exponents()]) # include the point at infinity with the right multiplicity
+        minfty = min(ex[1] for ex in F.exponents()) # include the point at infinity with the right multiplicity
         for i in range(minfty):
             points.append(PS([1,0]))
 
@@ -4794,7 +4871,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             )
         """
         if self.domain().ambient_space().dimension_relative() != 1:
-            return NotImplementedError('only implmeneted for dimension 1')
+            return NotImplementedError('only implemented for dimension 1')
         return_conjugation = kwds.get('return_conjugation', True)
         emb = kwds.get('emb', None)
         prec = kwds.get('prec', 300)
@@ -4803,7 +4880,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         dynatomic = algorithm = kwds.get('dynatomic', True)
         smallest_coeffs = kwds.get('smallest_coeffs', True)
         if smallest_coeffs:
-            if self.base_ring() not in [ZZ,QQ]:
+            if self.base_ring() not in [ZZ, QQ]:
                 raise NotImplementedError("smallest coeff only over ZZ or QQ")
             check_min = kwds.get('check_minimal', True)
             from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import smallest_dynamical
@@ -5211,8 +5288,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
           specifies modulo which prime to try and perform the lifting
 
         - ``period_degree_bounds`` -- (default: ``[4,4]``) a pair of positive integers
-          (max period, max degree) for which the dynatomic polynomial should be solved
-          for when in dimension 1
+          (max period, max degree) for which the dynatomic polynomial should be solved for
 
         - ``algorithm`` -- (optional) specifies which algorithm to use;
           current options are `dynatomic` and `lifting`; defaults to solving the
@@ -6887,6 +6963,112 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     (3*x^2 + y^2 : x*y)
         """
         return self.as_scheme_morphism().reduce_base_field().as_dynamical_system()
+
+    def is_newton(self, return_conjugation=False):
+        r"""
+        Return whether ``self`` is a Newton map.
+
+        A map `g` is *Newton* if it is conjugate to a map of the form
+        `f(z) = z - \frac{p(z)}{p'(z)}` after dehomogenization,
+        where `p(z)` is a squarefree polynomial.
+
+        INPUT:
+
+        - ``return_conjugation`` -- (default: ``False``) if the map is Newton
+          and ``True``, then return the conjugation that moves this map to
+          the above form
+
+        OUTPUT:
+
+        A Boolean. If ``return_conjugation`` is ``True``, then this also
+        returns the conjugation as a matrix if ``self`` is Newton or ``None``
+        otherwise.
+
+        The conjugation may be defined over an extension if the map has
+        fixed points not defined over the base field.
+
+        EXAMPLES::
+
+            sage: A.<z> = AffineSpace(QQ, 1)
+            sage: f = DynamicalSystem_affine([z - (z^2 + 1)/(2*z)])
+            sage: F = f.homogenize(1)
+            sage: F.is_newton(return_conjugation=True)
+            (
+            [1 0]
+            True, [0 1]
+            )
+
+        ::
+
+            sage: A.<z> = AffineSpace(QQ, 1)
+            sage: f = DynamicalSystem_affine([z^2 + 1])
+            sage: F = f.homogenize(1)
+            sage: F.is_newton()
+            False
+            sage: F.is_newton(return_conjugation=True)
+            (False, None)
+
+        ::
+
+            sage: PP.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: F = DynamicalSystem_projective([-4*x^3 - 3*x*y^2, -2*y^3])
+            sage: F.is_newton(return_conjugation=True)[1]
+            [   0    1]
+            [-4*a  2*a]
+
+        ::
+
+            sage: K.<zeta> = CyclotomicField(2*4)
+            sage: A.<z> = AffineSpace(K, 1)
+            sage: f = DynamicalSystem_affine(z-(z^3+zeta*z)/(3*z^2+zeta))
+            sage: F = f.homogenize(1)
+            sage: F.is_newton()
+            True
+        """
+        if self.degree() == 1:
+            raise NotImplementedError("degree one Newton maps are trivial")
+        if not self.base_ring() in NumberFields():
+            raise NotImplementedError("only implemented over number fields")
+        # check if Newton map
+        sigma_1 = self.sigma_invariants(1)
+        d = ZZ(self.degree())
+        Newton_sigma = [d/(d-1)] + [0] * d  # almost Newton
+        if sigma_1 != Newton_sigma:
+            if return_conjugation:
+                return False, None
+            else:
+                return False
+        Fbar = self.change_ring(QQbar)
+        Pbar = Fbar.domain()
+        fixed = Fbar.periodic_points(1)
+        for Q in fixed:
+            if Fbar.multiplier(Q, 1) != 0:
+                inf = Q
+                break
+        if inf != Pbar([1,0]):
+            # need to move to inf to infinity
+            fixed.remove(inf)
+            source = [inf] + fixed[:2]
+            target = [Pbar([1, 0]), Pbar([0, 1]), Pbar([1, 1])]
+            M = Pbar.point_transformation_matrix(source, target)
+            M = M.inverse()
+            Newton = Fbar.conjugate(M)
+            K, el, psi = number_field_elements_from_algebraics([t for r in M for t in r])
+            M = matrix(M.nrows(), M.ncols(), el)
+            Newton = Newton._number_field_from_algebraics()
+        else:
+            Newton = self
+            M = matrix(QQ, 2, 2, [1,0,0,1])
+        N_aff = Newton.dehomogenize(1)
+        z = N_aff.domain().gen(0)
+        Npoly = (z - N_aff[0]).numerator()
+        if return_conjugation:
+            if Npoly.derivative(z) == (z - N_aff[0]).denominator():
+                return True, M
+            else:
+                return False, None
+        else:
+            return Npoly.derivative(z) == (z - N_aff[0]).denominator()
 
 class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
                                               SchemeMorphism_polynomial_projective_space_finite_field):

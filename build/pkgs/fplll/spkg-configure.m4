@@ -6,11 +6,7 @@ SAGE_SPKG_CONFIGURE([fplll], [
     dnl back to a manual header/library search is pointless.
     PKG_CHECK_MODULES([FPLLL],
                       [fplll >= 5.3],
-                      [],
+                      [sage_spkg_install_fplll=no],
                       [sage_spkg_install_fplll=yes])
-  ],
-  [ dnl If we're installing sage's mpfr, then we have to install
-    dnl its fplll, too.
-    sage_spkg_install_fplll=yes
   ])
 ])

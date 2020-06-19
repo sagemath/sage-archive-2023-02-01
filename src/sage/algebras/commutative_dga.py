@@ -72,9 +72,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six import string_types
 
-from sage.misc.six import with_metaclass
 from sage.structure.unique_representation import UniqueRepresentation, CachedRepresentation
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -139,8 +137,9 @@ def sorting_keys(element):
     V = CR.V()
     return list(CR(V(x.basis_coefficients())))
 
-class Differential(with_metaclass(
-        InheritComparisonClasscallMetaclass, UniqueRepresentation, Morphism)):
+
+class Differential(UniqueRepresentation, Morphism,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     Differential of a commutative graded algebra.
 
@@ -942,7 +941,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             else:
                 n = len(degrees)
             names = tuple('x{}'.format(i) for i in range(n))
-        elif isinstance(names, string_types):
+        elif isinstance(names, str):
             names = tuple(names.split(','))
             n = len(names)
         else:
@@ -1244,6 +1243,12 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             sage: A.<x,y,z,t> = GradedCommutativeAlgebra(GF(5))
             sage: A({(1,3,0,1): 2, (2,2,1,2): 3})
             0
+
+        TESTS::
+
+            sage: B = A.cdg_algebra({})
+            sage: B(x, coerce=False)
+            x
         """
         if isinstance(x, QuotientRingElement):
             if x.parent() is self:
@@ -2527,7 +2532,7 @@ class DifferentialGCAlgebra(GCAlgebra):
 
         def extend(phi, ndegrees, ndifs, nimags, nnames):
             """
-            Extend phi to a new algebra with new genererators, labeled by nnames
+            Extend phi to a new algebra with new generators, labeled by nnames
             """
             B = phi.domain()
             names = [str(g) for g in B.gens()]

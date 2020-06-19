@@ -110,6 +110,8 @@ class Polyhedron_cdd(Polyhedron_base):
             convex hull of 1 vertex and 1 ray
         """
         from .cdd_file_format import cdd_Hrepresentation
+        # We have to add a trivial equation, in case the polyhedron is the universe.
+        eqns = tuple(eqns) + ((1,) + tuple(0 for _ in range(self.ambient_dim())),)
         s = cdd_Hrepresentation(self._cdd_type, ieqs, eqns)
         s = self._run_cdd(s, '--redcheck', verbose=verbose)
         s = self._run_cdd(s, '--repall', verbose=verbose)

@@ -1351,7 +1351,7 @@ class Polytopes():
              A vertex at (1, -z^2, -z),
              A vertex at (1, z^2, z),
              A vertex at (1, z, -z^2)]
-            sage: sc_exact.is_combinatorially_isomorphic(sc_inexact) # long time
+            sage: sc_exact.is_combinatorially_isomorphic(sc_inexact)  # long time
             True
 
         TESTS::

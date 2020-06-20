@@ -1,3 +1,5 @@
+# distutils: libraries = ntl
+# distutils: language = c++
 """
 Optimized Quadratic Number Field Elements
 

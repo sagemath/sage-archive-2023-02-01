@@ -1113,34 +1113,19 @@ ext_modules = [
     ################################
 
     Extension('sage.rings.sum_of_squares',
-              sources = ['sage/rings/sum_of_squares.pyx'],
-              libraries = ['m']),
+              sources = ['sage/rings/sum_of_squares.pyx']),
 
     Extension('sage.rings.bernmm',
-              sources = ['sage/rings/bernmm.pyx',
-                         'sage/rings/bernmm/bern_modp.cpp',
-                         'sage/rings/bernmm/bern_modp_util.cpp',
-                         'sage/rings/bernmm/bern_rat.cpp'],
-              libraries = ['ntl', 'pthread', 'gmp'],
-              depends = ['sage/rings/bernmm/bern_modp.h',
-                         'sage/rings/bernmm/bern_modp_util.h',
-                         'sage/rings/bernmm/bern_rat.h'],
-              language = 'c++',
-              define_macros=[('USE_THREADS', '1'),
-                             ('THREAD_STACK_SIZE', '4096')]),
+              sources = ['sage/rings/bernmm.pyx']),
 
     Extension('sage.rings.bernoulli_mod_p',
-              sources = ['sage/rings/bernoulli_mod_p.pyx'],
-              libraries=['ntl', 'gmp'],
-              language = 'c++'),
+              sources = ['sage/rings/bernoulli_mod_p.pyx']),
 
     Extension("sage.rings.complex_arb",
               ["sage/rings/complex_arb.pyx"]),
 
     Extension('sage.rings.complex_double',
-              sources = ['sage/rings/complex_double.pyx'],
-              extra_compile_args = ["-D_XPG6"],
-              libraries = ['m']),
+              sources = ['sage/rings/complex_double.pyx']),
 
     Extension('sage.rings.complex_interval',
               sources = ['sage/rings/complex_interval.pyx']),
@@ -1149,12 +1134,10 @@ ext_modules = [
               sources = ['sage/rings/complex_number.pyx']),
 
     Extension('sage.rings.integer',
-              sources = ['sage/rings/integer.pyx'],
-              libraries=['ntl']),
+              sources = ['sage/rings/integer.pyx']),
 
     Extension('sage.rings.integer_ring',
-              sources = ['sage/rings/integer_ring.pyx'],
-              libraries=['ntl']),
+              sources = ['sage/rings/integer_ring.pyx']),
 
     Extension('sage.rings.factorint',
               sources = ['sage/rings/factorint.pyx']),
@@ -1166,9 +1149,7 @@ ext_modules = [
               sources = ['sage/rings/fraction_field_element.pyx']),
 
     Extension('sage.rings.fraction_field_FpT',
-              sources = ['sage/rings/fraction_field_FpT.pyx'],
-              libraries = ["gmp", "ntl", "zn_poly"],
-              language = 'c++'),
+              sources = ['sage/rings/fraction_field_FpT.pyx']),
 
     Extension('sage.rings.laurent_series_ring_element',
               sources = ['sage/rings/laurent_series_ring_element.pyx']),
@@ -1204,8 +1185,7 @@ ext_modules = [
               sources = ['sage/rings/puiseux_series_ring_element.pyx']),
 
     Extension('sage.rings.rational',
-              sources = ['sage/rings/rational.pyx'],
-              libraries=['ntl']),
+              sources = ['sage/rings/rational.pyx']),
 
     Extension('sage.rings.real_double',
               sources = ['sage/rings/real_double.pyx']),
@@ -1261,14 +1241,10 @@ ext_modules = [
               sources = ['sage/rings/finite_rings/integer_mod.pyx']),
 
     Extension('sage.rings.finite_rings.element_givaro',
-              sources = ["sage/rings/finite_rings/element_givaro.pyx"],
-              libraries = ['givaro', 'ntl', 'gmp', 'm'],
-              language='c++'),
+              sources = ["sage/rings/finite_rings/element_givaro.pyx"]),
 
     Extension('sage.rings.finite_rings.element_ntl_gf2e',
-              sources = ['sage/rings/finite_rings/element_ntl_gf2e.pyx'],
-              libraries = ['ntl'],
-              language = 'c++'),
+              sources = ['sage/rings/finite_rings/element_ntl_gf2e.pyx']),
 
     Extension('sage.rings.finite_rings.element_pari_ffelt',
               sources = ['sage/rings/finite_rings/element_pari_ffelt.pyx']),
@@ -1280,9 +1256,7 @@ ext_modules = [
               sources = ["sage/rings/finite_rings/hom_prime_finite_field.pyx"]),
 
     Extension('sage.rings.finite_rings.hom_finite_field_givaro',
-              sources = ["sage/rings/finite_rings/hom_finite_field_givaro.pyx"],
-              libraries = ['givaro', 'ntl', 'gmp', 'm'],
-              language='c++'),
+              sources = ["sage/rings/finite_rings/hom_finite_field_givaro.pyx"]),
 
     ################################
     ##
@@ -1303,14 +1277,10 @@ ext_modules = [
               sources = ['sage/rings/number_field/number_field_base.pyx']),
 
     Extension('sage.rings.number_field.number_field_element',
-              sources = ['sage/rings/number_field/number_field_element.pyx'],
-              libraries=['ntl'],
-              language = 'c++'),
+              sources = ['sage/rings/number_field/number_field_element.pyx']),
 
     Extension('sage.rings.number_field.number_field_element_quadratic',
-              sources = ['sage/rings/number_field/number_field_element_quadratic.pyx'],
-              libraries=['ntl'],
-              language = 'c++'),
+              sources = ['sage/rings/number_field/number_field_element_quadratic.pyx']),
 
     Extension('sage.rings.number_field.number_field_morphisms',
               sources = ['sage/rings/number_field/number_field_morphisms.pyx']),
@@ -1319,8 +1289,7 @@ ext_modules = [
               sources = ['sage/rings/number_field/totallyreal.pyx']),
 
     Extension('sage.rings.number_field.totallyreal_data',
-              sources = ['sage/rings/number_field/totallyreal_data.pyx'],
-              libraries = ['gmp']),
+              sources = ['sage/rings/number_field/totallyreal_data.pyx']),
 
     ################################
     ##
@@ -1347,9 +1316,7 @@ ext_modules = [
               sources = ['sage/rings/padics/padic_floating_point_element.pyx']),
 
     Extension('sage.rings.padics.padic_ext_element',
-              sources = ['sage/rings/padics/padic_ext_element.pyx'],
-              libraries=['ntl', 'gmp', 'm'],
-              language='c++'),
+              sources = ['sage/rings/padics/padic_ext_element.pyx']),
 
     Extension('sage.rings.padics.padic_fixed_mod_element',
               sources = ['sage/rings/padics/padic_fixed_mod_element.pyx']),
@@ -1358,49 +1325,31 @@ ext_modules = [
               sources = ['sage/rings/padics/padic_generic_element.pyx']),
 
     Extension('sage.rings.padics.padic_printing',
-              sources = ['sage/rings/padics/padic_printing.pyx'],
-              libraries=['gmp', 'ntl', 'm'],
-              language='c++'),
+              sources = ['sage/rings/padics/padic_printing.pyx']),
 
     Extension('sage.rings.padics.padic_ZZ_pX_CA_element',
-              sources = ['sage/rings/padics/padic_ZZ_pX_CA_element.pyx'],
-              libraries = ['ntl', 'gmp', 'm'],
-              language='c++'),
+              sources = ['sage/rings/padics/padic_ZZ_pX_CA_element.pyx']),
 
     Extension('sage.rings.padics.padic_ZZ_pX_CR_element',
-              sources = ['sage/rings/padics/padic_ZZ_pX_CR_element.pyx'],
-              libraries=['ntl', 'gmp', 'm'],
-              language='c++'),
+              sources = ['sage/rings/padics/padic_ZZ_pX_CR_element.pyx']),
 
     Extension('sage.rings.padics.padic_ZZ_pX_element',
-              sources = ['sage/rings/padics/padic_ZZ_pX_element.pyx'],
-              libraries=['ntl', 'gmp', 'm'],
-              language='c++'),
+              sources = ['sage/rings/padics/padic_ZZ_pX_element.pyx']),
 
     Extension('sage.rings.padics.padic_ZZ_pX_FM_element',
-              sources = ['sage/rings/padics/padic_ZZ_pX_FM_element.pyx'],
-              libraries=['ntl', 'gmp', 'm'],
-              language='c++'),
+              sources = ['sage/rings/padics/padic_ZZ_pX_FM_element.pyx']),
 
     Extension('sage.rings.padics.pow_computer',
-              sources = ['sage/rings/padics/pow_computer.pyx'],
-              libraries = ["ntl", "gmp", "m"],
-              language='c++'),
+              sources = ['sage/rings/padics/pow_computer.pyx']),
 
     Extension('sage.rings.padics.pow_computer_ext',
-              sources = ['sage/rings/padics/pow_computer_ext.pyx'],
-              libraries = ["ntl", "gmp", "m"],
-              language='c++'),
+              sources = ['sage/rings/padics/pow_computer_ext.pyx']),
 
     Extension('sage.rings.padics.pow_computer_flint',
-              sources = ['sage/rings/padics/pow_computer_flint.pyx'],
-              libraries = ["gmp", "ntl"],
-              language='c++'),
+              sources = ['sage/rings/padics/pow_computer_flint.pyx']),
 
     Extension('sage.rings.padics.pow_computer_relative',
-              sources = ['sage/rings/padics/pow_computer_relative.pyx'],
-              libraries = ["ntl", "gmp", "m"],
-              language='c++'),
+              sources = ['sage/rings/padics/pow_computer_relative.pyx']),
 
     Extension('sage.rings.padics.qadic_flint_CR',
               sources = ['sage/rings/padics/qadic_flint_CR.pyx']),
@@ -1412,8 +1361,7 @@ ext_modules = [
               sources = ['sage/rings/padics/qadic_flint_FM.pyx']),
 
     Extension('sage.rings.padics.qadic_flint_FP',
-              sources = ['sage/rings/padics/qadic_flint_FP.pyx'],
-              libraries = ["flint"]),
+              sources = ['sage/rings/padics/qadic_flint_FP.pyx']),
 
     Extension('sage.rings.padics.relative_ramified_FM',
               sources = ['sage/rings/padics/relative_ramified_FM.pyx']),
@@ -1434,9 +1382,7 @@ ext_modules = [
               sources = ['sage/rings/polynomial/cyclotomic.pyx']),
 
     Extension('sage.rings.polynomial.evaluation',
-              libraries = ["ntl"],
-              sources = ['sage/rings/polynomial/evaluation.pyx'],
-              language = 'c++'),
+              sources = ['sage/rings/polynomial/evaluation.pyx']),
 
     Extension('sage.rings.polynomial.laurent_polynomial',
               sources = ['sage/rings/polynomial/laurent_polynomial.pyx']),
@@ -1481,34 +1427,22 @@ ext_modules = [
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_zz_pex',
-              sources = ['sage/rings/polynomial/polynomial_zz_pex.pyx'],
-              libraries = ['ntl', 'gmp'],
-              language = 'c++'),
+              sources = ['sage/rings/polynomial/polynomial_zz_pex.pyx']),
 
     Extension('sage.rings.polynomial.polynomial_zmod_flint',
-              sources = ['sage/rings/polynomial/polynomial_zmod_flint.pyx'],
-              libraries = ["gmp", "ntl", "zn_poly"],
-              language = 'c++'),
+              sources = ['sage/rings/polynomial/polynomial_zmod_flint.pyx']),
 
     Extension('sage.rings.polynomial.polynomial_integer_dense_flint',
-              sources = ['sage/rings/polynomial/polynomial_integer_dense_flint.pyx'],
-              language = 'c++',
-              libraries = ["ntl", "gmp"]),
+              sources = ['sage/rings/polynomial/polynomial_integer_dense_flint.pyx']),
 
     Extension('sage.rings.polynomial.polynomial_integer_dense_ntl',
-              sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx'],
-              libraries = ['ntl', 'gmp'],
-              language = 'c++'),
+              sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx']),
 
     Extension('sage.rings.polynomial.polynomial_rational_flint',
-              sources = ['sage/rings/polynomial/polynomial_rational_flint.pyx'],
-              libraries = ["ntl", "gmp"],
-              language = 'c++'),
+              sources = ['sage/rings/polynomial/polynomial_rational_flint.pyx']),
 
     Extension('sage.rings.polynomial.polynomial_modn_dense_ntl',
-              sources = ['sage/rings/polynomial/polynomial_modn_dense_ntl.pyx'],
-              libraries = ['ntl', 'gmp'],
-              language = 'c++'),
+              sources = ['sage/rings/polynomial/polynomial_modn_dense_ntl.pyx']),
 
     Extension('sage.rings.polynomial.polynomial_ring_homomorphism',
               sources = ['sage/rings/polynomial/polynomial_ring_homomorphism.pyx']),

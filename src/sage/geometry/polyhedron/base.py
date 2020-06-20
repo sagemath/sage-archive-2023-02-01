@@ -9135,12 +9135,11 @@ class Polyhedron_base(Element):
 
             sage: polytopes.cross_polytope(3)._test_is_combinatorially_isomorphic()
         """
-        from sage.rings.all import ZZ
         if tester is None:
             tester = self._tester(**options)
 
         if not self.is_compact():
-            with tester.assertRaises(AssertionError) as cm:
+            with tester.assertRaises(AssertionError):
                 self.is_combinatorially_isomorphic(self)
             return
 

@@ -1323,7 +1323,7 @@ class Polytopes():
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 24 vertices
             sage: sc_inexact.f_vector()
             (1, 24, 60, 38, 1)
-            sage: sc_exact = polytopes.snub_cube(exact=True)  # long time - 30secs
+            sage: sc_exact = polytopes.snub_cube(exact=True)  # long time
             sage: sc_exact.f_vector()               # long time
             (1, 24, 60, 38, 1)
             sage: sorted(sc_exact.vertices())       # long time
@@ -1351,7 +1351,7 @@ class Polytopes():
              A vertex at (1, -z^2, -z),
              A vertex at (1, z^2, z),
              A vertex at (1, z, -z^2)]
-            sage: sc_exact.is_combinatorially_isomorphic(sc_inexact) #long time
+            sage: sc_exact.is_combinatorially_isomorphic(sc_inexact) # long time
             True
 
         TESTS::

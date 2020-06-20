@@ -126,10 +126,7 @@ code = setup(name = 'sage',
                  'bin/sage-valgrind',
                  'bin/sage-version.sh',
                  ## Only makes sense in sage-the-distribution
-                 'bin/sage-list-experimental',
-                 'bin/sage-list-optional',
                  'bin/sage-list-packages',
-                 'bin/sage-list-standard',
                  ## Uncategorized scripts in alphabetical order
                  'bin/math-readline',
                  'bin/sage-cleaner',

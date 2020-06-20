@@ -27,7 +27,7 @@ on:
 env:
   TARGETS_PRE: build/make/Makefile
   TARGETS:     build/make/Makefile
-  TARGETS_OPTIONAL: $(PATH=build/bin:$PATH build/bin/sage-package list :optional:)
+  TARGETS_OPTIONAL: $(echo $(PATH=build/bin:$PATH build/bin/sage-package list :optional:))
 
 jobs:
   docker:

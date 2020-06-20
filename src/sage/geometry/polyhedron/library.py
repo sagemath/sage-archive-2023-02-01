@@ -303,20 +303,6 @@ def gale_transform_to_polytope(vectors, base_ring=None, backend=None):
         Traceback (most recent call last):
         ...
         ValueError: the gale transform does not correspond to a polytope
-
-    TESTS::
-
-        sage: def test(P):
-        ....:     P1 = gale_transform_to_polytope(
-        ....:             P.gale_transform(), base_ring=P.base_ring(),
-        ....:             backend=P.backend())
-        ....:     assert P1.is_combinatorially_isomorphic(P)
-
-        sage: test(polytopes.cube())
-        sage: test(polytopes.permutahedron(4))
-        sage: test(polytopes.regular_polygon(5))
-        sage: test(polytopes.regular_polygon(7, exact=False))
-        sage: test(polytopes.snub_cube(exact=True, backend='normaliz'))   # optional - pynormaliz
     """
     vertices = gale_transform_to_primal(vectors, base_ring, backend)
     P = Polyhedron(vertices=vertices, base_ring=base_ring, backend=backend)

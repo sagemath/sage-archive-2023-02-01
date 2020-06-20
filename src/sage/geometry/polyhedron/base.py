@@ -3748,6 +3748,41 @@ class Polyhedron_base(Element):
         A_ker = A.right_kernel_matrix(basis='computed')
         return tuple(A_ker.columns())
 
+    def _test_gale_transform(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.gale_transform` and its inverse
+        :meth:`~sage.geometry.polyhedron.library.gale_transform_to_polytope`.
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_gale_transform()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        if not self.is_compact():
+            with tester.assertRaises(ValueError):
+                self.gale_transform()
+            return
+
+        # Check :trac:`29073`.
+        if not self.base_ring().is_exact():
+            g = self.gale_transform()
+            tester.assertTrue(sum(g).norm() < 1e-10 or sum(g).norm()/matrix(g).norm() < 1e-13)
+            return
+
+        # Prevent very long doctests.
+        if self.n_vertices() + self.n_rays() > 50 or self.n_facets() > 50:
+            return
+
+        if not self.is_empty():
+            # ``gale_transform_to_polytope`` needs at least one vertex to work.
+            from sage.geometry.polyhedron.library import gale_transform_to_polytope
+            g = self.gale_transform()
+            P = gale_transform_to_polytope(g, base_ring=self.base_ring(), backend=self.backend())
+
+            tester.assertTrue(self.is_combinatorially_isomorphic(P))
+
     @cached_method
     def normal_fan(self, direction='inner'):
         r"""

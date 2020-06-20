@@ -27,7 +27,8 @@ on:
 env:
   TARGETS_PRE: build/make/Makefile
   TARGETS:     build/make/Makefile
-  TARGETS_OPTIONAL: $(echo $(PATH=build/bin:$PATH build/bin/sage-package list :optional:))
+  # Test all optional packages, but do not test huge packages
+  TARGETS_OPTIONAL: "$(echo $(PATH=build/bin:$PATH build/bin/sage-package list :optional: | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d))"
 
 jobs:
   docker:

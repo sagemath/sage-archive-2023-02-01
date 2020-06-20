@@ -9115,6 +9115,32 @@ class Polyhedron_base(Element):
         else:
             return self.face_lattice().is_isomorphic(other.face_lattice())
 
+    def _test_is_combinatorially_isomorphic(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.is_combinatorially_isomorphic`
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_is_combinatorially_isomorphic()
+        """
+        from sage.rings.all import ZZ
+        if tester is None:
+            tester = self._tester(**options)
+
+        if not self.is_compact():
+            with tester.assertRaises(AssertionError) as cm:
+                self.is_combinatorially_isomorphic(self)
+            return
+
+        tester.assertTrue(self.is_combinatorially_isomorphic(ZZ(4)*self))
+        if self.n_vertices():
+            tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center()))
+
+        if self.n_vertices() < 20:
+            tester.assertTrue(self.is_combinatorially_isomorphic(ZZ(4)*self, algorithm='face_lattice'))
+            if self.n_vertices():
+                tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center(), algorithm='face_lattice'))
+
     def affine_hull_projection(self, as_affine_map=False, orthogonal=False, orthonormal=False, extend=False):
         """
         Return the polyhedron projected into its affine hull.

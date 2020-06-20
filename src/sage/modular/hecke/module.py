@@ -15,7 +15,6 @@ from __future__ import print_function, absolute_import
 
 import sage.rings.all
 import sage.arith.all as arith
-import sage.misc.misc as misc
 from sage.misc.verbose import verbose
 import sage.modules.module
 from sage.structure.all import Sequence

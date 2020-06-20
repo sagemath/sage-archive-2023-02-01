@@ -74,7 +74,6 @@ from __future__ import absolute_import
 ################################################################################
 # Sage packages
 import sage.misc.latex as latex
-import sage.misc.misc as misc
 from sage.misc.verbose import verbose
 
 import sage.matrix.matrix_space as matrix_space

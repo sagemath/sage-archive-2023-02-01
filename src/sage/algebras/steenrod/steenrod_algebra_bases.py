@@ -1117,7 +1117,6 @@ def steenrod_basis_error_check(dim, p, **kwds):
         sage: steenrod_basis_error_check(40,3) # long time
         sage: steenrod_basis_error_check(80,5) # long time
     """
-    import sage.misc.misc as misc
     from sage.misc.verbose import verbose
     generic = kwds.get('generic', False if p==2 else True )
 

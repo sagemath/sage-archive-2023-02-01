@@ -6,7 +6,6 @@ from __future__ import absolute_import
 
 from sage.structure.all import Sequence
 from sage.misc.all import cached_method
-from sage.misc.verbose import verbose
 import sage.rings.all as rings
 from sage.categories.all import Objects
 from sage.matrix.all import Matrix

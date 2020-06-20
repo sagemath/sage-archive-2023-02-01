@@ -28,8 +28,6 @@ import sage.modules.all
 
 import sage.rings.all
 
-import sage.misc.misc as misc
-
 import sage.arith.all as arith
 
 import sage.matrix.matrix_space as matrix_space

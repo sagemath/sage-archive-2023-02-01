@@ -28,7 +28,6 @@ import sage.matrix.matrix_space as matrix_space
 from   sage.modules.free_module_element  import is_FreeModuleElement
 from sage.modules.free_module import EchelonMatrixKey
 from sage.misc.all import prod
-from sage.misc.verbose import verbose
 import sage.modular.hecke.all as hecke
 import sage.arith.all as arith
 import sage.rings.fast_arith as fast_arith

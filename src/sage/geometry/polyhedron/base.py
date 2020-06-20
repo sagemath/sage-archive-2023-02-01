@@ -4780,7 +4780,7 @@ class Polyhedron_base(Element):
             return
 
         # Testing that the double description is set up correctly.
-        if not self.backend() is 'field' and self.base_ring().is_exact():
+        if self.backend() != 'field' and self.base_ring().is_exact():
             p = self.base_extend(self.base_ring(), backend='field')
             tester.assertEqual(ZZ(2)*p, ZZ(2)*self)
             tester.assertEqual(ZZ(1)/2*p, ZZ(1)/2*self)

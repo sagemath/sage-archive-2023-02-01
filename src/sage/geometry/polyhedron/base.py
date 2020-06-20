@@ -216,6 +216,18 @@ class Polyhedron_base(Element):
                     raise ValueError("``pref_rep`` must be one of ``(None, 'Vrep', 'Hrep')``")
         if Vrep is not None:
             vertices, rays, lines = Vrep
+
+            # Detect the empty polyhedron.
+            # The damage is limited. We mainly have a generator to dispose
+            # of the Vrepresentation in case we don't need it.
+            from types import GeneratorType
+            if isinstance(vertices, GeneratorType):
+                vertices = tuple(vertices)
+            if isinstance(rays, GeneratorType):
+                rays = tuple(rays)
+            if isinstance(lines, GeneratorType):
+                lines = tuple(lines)
+
             if vertices or rays or lines:
                 self._init_from_Vrepresentation(vertices, rays, lines, **kwds)
             else:

@@ -113,7 +113,8 @@ layout_options =   {
                     'iterations': 'The number of times to execute the spring layout algorithm.',
                     'heights': 'A dictionary mapping heights to the list of vertices at this height.',
                     'spring': 'Use spring layout to finalize the current layout.',
-                    'tree_root': 'A vertex designation for drawing trees. A vertex of the tree to be used as the root for the ``layout=\'tree\'`` option. If no root is specified, then one is chosen close to the center of the tree. Ignored unless ``layout=\'tree\'``',
+                    'tree_root': 'A vertex designation for drawing trees. A vertex of the tree to be used as the root for the ``layout=\'tree\'`` option. If no root is specified, then one is chosen close to the center of the tree. Ignored unless ``layout=\'tree\'``.',
+                    'forest_roots': 'An iterable specifying which vertices to use as roots for the ``layout=\'forest\'`` option. If no root is specified for a tree, then one is chosen close to the center of the tree. Ignored unless ``layout=\'forest\'``.',
                     'tree_orientation': 'The direction of tree branches -- \'up\', \'down\', \'left\' or \'right\'.',
                     'save_pos': 'Whether or not to save the computed position for the graph.',
                     'dim': 'The dimension of the layout -- 2 or 3.',
@@ -590,7 +591,8 @@ class GraphPlot(SageObject):
         """
         for arg in edge_options:
             self._options[arg] = edge_options[arg]
-        if 'edge_colors' in edge_options: self._options['color_by_label'] = False
+        if 'edge_colors' in edge_options:
+            self._options['color_by_label'] = False
         if self._options['edge_labels_background'] == "transparent":
             self._options['edge_labels_background'] = "None"
 

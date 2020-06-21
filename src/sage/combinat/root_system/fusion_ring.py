@@ -36,8 +36,18 @@ class FusionRing(WeylCharacterRing):
     - ``ct`` -- the Cartan type of a simple (finite-dimensional) Lie algebra
     - ``k`` -- a nonnegative integer
 
-    This algebra has a basis indexed by the weights of level `\leq k`.
-    It is implemented as a variant of the :class:`WeylCharacterRing`.
+    This algebra has a basis (sometimes called *primary fields*)
+    indexed by the weights of level `\leq k`. These arise as
+    the fusion algebras of WZW conformal field theories, or from
+    quantum groups at roots of unity. The :class:`FusionRing` class is
+    implemented as a variant of the :class:`WeylCharacterRing`.
+
+    REFERENCES:
+
+    - [DFMS1996]_ Chapter 16
+    - [Feingold2004]_
+    - [Fuchs1994]_
+    - [Walton1990]_
 
     EXAMPLES::
 
@@ -59,12 +69,12 @@ class FusionRing(WeylCharacterRing):
         sage: B22 = FusionRing("B2", 2)
         sage: b = [B22(x) for x in B22.get_order()]; b
         [B22(0,0), B22(1,0), B22(0,1), B22(2,0), B22(1,1), B22(0,2)]
-        sage: [x.highest_weight() for x in b]
+        sage: [x.weight() for x in b]
         [(0, 0), (1, 0), (1/2, 1/2), (2, 0), (3/2, 1/2), (1, 1)]
         sage: B22.fusion_labels(['I0','Y1','X','Z','Xp','Y2'])
         sage: b = [B22(x) for x in B22.get_order()]; b
         [I0, Y1, X, Z, Xp, Y2]
-        sage: [(x, x.highest_weight()) for x in b]
+        sage: [(x, x.weight()) for x in b]
         [(I0, (0, 0)),
          (Y1, (1, 0)),
          (X, (1/2, 1/2)),
@@ -80,7 +90,7 @@ class FusionRing(WeylCharacterRing):
     This is the order used by methods such as :meth:`s_matrix`.
     You may use :meth:`set_order` to reorder the basis::
 
-        sage: B22.set_order([x.highest_weight() for x in [I0,Y1,Y2,X,Xp,Z]])
+        sage: B22.set_order([x.weight() for x in [I0,Y1,Y2,X,Xp,Z]])
         sage: [B22(x) for x in B22.get_order()]
         [I0, Y1, Y2, X, Xp, Z]
 
@@ -91,13 +101,6 @@ class FusionRing(WeylCharacterRing):
         sage: [B22(x) for x in B22.get_order()]
         [B22(0,0), B22(1,0), B22(0,1), B22(2,0), B22(1,1), B22(0,2)]
 
-
-    REFERENCES:
-
-    - [DFMS1996]_ Chapter 16
-    - [Feingold2004]_
-    - [Fuchs1994]_
-    - [Walton1990]_
     """
     @staticmethod
     def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots", conjugate=False):
@@ -360,7 +363,7 @@ class FusionRing(WeylCharacterRing):
 
     class Element(WeylCharacterRing.Element):
         """
-        A class for FusionRing elements
+        A class for FusionRing elements.
         """
         def is_simple_object(self):
             """
@@ -379,6 +382,21 @@ class FusionRing(WeylCharacterRing):
                 False
             """
             return self.parent()._k is not None and len(self.monomial_coefficients())==1
+
+        def weight(self):
+            """
+            This method is only available for basis elements. Returns the
+            parametrizing dominant weight in the level `k` alcove.
+
+            EXAMPLES::
+
+                sage: A21 = FusionRing("A2",1)
+                sage: sorted([x.weight() for x in A21.basis()])
+                [(0, 0, 0), (1/3, 1/3, -2/3), (2/3, -1/3, -1/3)]
+            """
+            if len(self.monomial_coefficients()) != 1:
+                raise ValueError("fusion weight is valid for basis elements only")
+            return self.leading_support()
 
         def twist(self):
             r"""
@@ -404,7 +422,7 @@ class FusionRing(WeylCharacterRing):
             if not self.is_simple_object():
                 raise ValueError("quantum twist is only available for simple objects of a FusionRing")
             rho = sum(self.parent().positive_roots())/2
-            lam = self.highest_weight()
+            lam = self.weight()
             inner = lam.inner_product(lam+2*rho)
             twist = self.parent()._conj*self.parent()._nf*inner/self.parent().fusion_l()
             #Reduce to canonical form 
@@ -429,7 +447,7 @@ class FusionRing(WeylCharacterRing):
             """
             if not self.is_simple_object():
                 raise ValueError("quantum twist is only available for simple objects of a FusionRing")
-            lam = self.highest_weight()
+            lam = self.weight()
             space = self.parent().space()
             rho = space.rho()
             l = self.parent().fusion_l()

@@ -1245,17 +1245,13 @@ class WeylCharacterRing(CombinatorialFreeModule):
         def highest_weight(self):
             """
             This method is only available for basis elements. Returns the
-            parametrizing dominant weight of an irreducible character or
-            simple element of a FusionRing.
+            parametrizing dominant weight of an irreducible character.
 
-            Examples::
+            EXAMPLES::
 
                 sage: G2 = WeylCharacterRing("G2", style="coroots")
                 sage: [x.highest_weight() for x in [G2(1,0),G2(0,1)]]
                 [(1, 0, -1), (2, -1, -1)]
-                sage: A21 = FusionRing("A2",1)
-                sage: sorted([x.highest_weight() for x in A21.basis()])
-                [(0, 0, 0), (1/3, 1/3, -2/3), (2/3, -1/3, -1/3)]
             """
             if len(self.monomial_coefficients()) != 1:
                 raise ValueError("fusion weight is valid for basis elements only")

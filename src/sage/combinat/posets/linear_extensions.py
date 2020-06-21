@@ -35,6 +35,8 @@ from sage.graphs.digraph import DiGraph
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.structure.list_clone import ClonableArray
+from sage.misc.all import prod
+from sage.arith.all import factorial
 
 
 class LinearExtensionOfPoset(ClonableArray,
@@ -857,8 +859,8 @@ class LinearExtensionsOfPosetWithHooks(LinearExtensionsOfPoset):
         """
         Count the number of linear extensions
         """
-        num_elmts = poset.cardinality()
-        hooks = poset.get_hooks()
+        num_elmts = self._poset.cardinality()
+        hooks = self._poset.get_hooks()
         hook_product = prod(hooks.values())
         return factorial(num_elmts) // hook_product
         

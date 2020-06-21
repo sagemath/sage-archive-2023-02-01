@@ -2083,6 +2083,23 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return list(self.relations_iterator())
 
+    def common_upper_covers(self, elmts):
+        r"""
+        Return the list of all common upper covers of a list of elemements
+
+        EXAMPLES::
+
+            sage: P = Poset({0: [1,2], 1: [3], 2: [3], 3: []})
+            sage: P.common_upper_covers([1, 2])
+            [3]
+        """
+        covers = set(self.upper_covers(elmts.pop()))
+
+        for e in elmts:
+            covers = covers.intersection(self.upper_covers(e))
+
+        return list(covers)
+
     def intervals_poset(self):
         r"""
         Return the natural partial order on the set of intervals of the poset.

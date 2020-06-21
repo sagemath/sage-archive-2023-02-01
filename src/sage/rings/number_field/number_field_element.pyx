@@ -1732,7 +1732,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<a> = NumberField(x^3 + x^2 - 2*x - 1, 'a')
             sage: P.<X> = K[]
             sage: L = NumberField(X^2 + a^2 + 2*a + 1, 'b')
-            sage: K(17)._rnfisnorm(L)
+            sage: K(17)._rnfisnorm(L)  # representation depends, not tested
             ((a^2 - 2)*b - 4, 1)
 
             sage: K.<a> = NumberField(x^3 + x + 1)
@@ -1767,6 +1767,20 @@ cdef class NumberFieldElement(FieldElement):
             sage: L.<b> = K.extension(x^2 - 1/2)
             sage: a._rnfisnorm(L)
             (a*b + a + 1/2, 1)
+
+        We test the above doctest, which was not tested.
+        The representation depends on the PARI version::
+
+            sage: K.<a> = NumberField(x^3 + x^2 - 2*x - 1, 'a')
+            sage: P.<X> = K[]
+            sage: L.<b> = NumberField(X^2 + a^2 + 2*a + 1, 'b')
+            sage: (xbar, q) = K(17)._rnfisnorm(L)
+            sage: q == 1
+            1
+            sage: xbar.norm()
+            4913
+            sage: xbar in ((a^2 - 2)*b - 4, (a^2 - 2)*b + 4)
+            True
 
         AUTHORS:
 

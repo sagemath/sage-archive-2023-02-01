@@ -23,6 +23,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
+from sage.functions.other import binomial
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 
 
@@ -3172,6 +3173,164 @@ class HasseDiagram(DiGraph):
                     return False
 
         return True
+
+    @staticmethod
+    def _glue_spectra(a_spec, b_spec, orientation):
+        r"""
+        Return the `a`-spectrum of a poset by merging ``a_spec`` and ``b_spec``.
+
+        ``a_spec`` and ``b_spec`` are the `a`-spectrum and `b`-spectrum of two different
+        posets (see :meth:`atkinson` for the definition of `a`-spectrum).
+
+        The orientation determines whether `a < b` or `b < a` in the combined poset.
+
+        This is a helper method for :meth:`atkinson`.
+
+        INPUT:
+
+        - ``a_spec`` -- list; the `a`-spectrum of a poset `P`
+
+        - ``b_spec`` -- list; the `b`-spectrum of a poset `Q`
+
+        - ``orientation`` -- boolean; ``True`` if `a < b`, ``False`` otherwise
+
+        OUTPUT:
+
+        The `a`-spectrum (or `b`-spectrum, depending on orientation),
+        returned as a list, of the poset which is a disjoint union
+        of `P` and `Q`, together with the additional
+        covering relation `a < b`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: Pdata = [0, 1, 2, 0]
+            sage: Qdata = [1, 1, 0]
+            sage: HasseDiagram._glue_spectra(Pdata, Qdata, True)
+            [0, 20, 28, 18, 0, 0, 0]
+
+            sage: Pdata = [0, 0, 2]
+            sage: Qdata = [0, 1]
+            sage: HasseDiagram._glue_spectra(Pdata, Qdata, False)
+            [0, 0, 0, 0, 8]
+        """
+        new_a_spec = []
+
+        if not orientation:
+            a_spec, b_spec = b_spec, a_spec
+
+        p = len(a_spec)
+        q = len(b_spec)
+
+        for r in range(1, p+q+1):
+            new_a_spec.append(0)
+            for i in range(max(1, r-q), min(p, r) + 1):
+                k_val = binomial(r-1, i-1) * binomial(p+q-r, p-i)
+                if orientation:
+                    inner_sum = sum(b_spec[j-1] for j in range(r-i + 1, len(b_spec) + 1))
+                else:
+                    inner_sum = sum(b_spec[j-1] for j in range(1, r-i + 1))
+                new_a_spec[-1] = new_a_spec[-1] + (a_spec[i-1] * k_val * inner_sum)
+
+        return new_a_spec
+
+    def _split(self, a, b):
+        r"""
+        Return the two connected components obtained by deleting the covering
+        relation `a < b` from a Hasse diagram that is a tree.
+
+        This is a helper method for :meth:`FinitePoset.atkinson`.
+
+        INPUT:
+
+        - ``a`` -- an element of the poset
+        - ``b`` -- an element of the poset which covers ``a``
+
+        OUTPUT:
+
+        A list containing two posets which are the connected components
+        of this poset after deleting the covering relation `a < b`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [], 2: []})
+            sage: H._split(0, 1)
+            [Hasse diagram of a poset containing 2 elements, Hasse diagram of a poset containing 1 elements]
+
+            sage: H = HasseDiagram({0: [1], 1: [2], 2: [3], 3: [4], 4: []})
+            sage: H._split(1, 2)
+            [Hasse diagram of a poset containing 2 elements, Hasse diagram of a poset containing 3 elements]
+
+        TESTS::
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1,2,3], 1: [4, 5], 2: [4, 6], 3: [5, 6], 4: [7], 5: [7], 6: [7], 7: []})
+            sage: H._split(0, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: wrong number of connected components after the covering relation is deleted
+
+            sage: H = HasseDiagram({0: [1], 1: [], 2: []})
+            sage: H._split(0, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: wrong number of connected components after the covering relation is deleted
+        """
+        split_hasse = self.copy(self)
+        split_hasse.delete_edge(a,b)
+        components = split_hasse.connected_components_subgraphs()
+        if not len(components) == 2:
+            raise ValueError("wrong number of connected components after the covering relation is deleted")
+
+        c1, c2 = components
+        if a in c2:
+            c1, c2 = c2, c1
+
+        return [c1, c2]
+
+    def _spectrum_of_tree(self, a):
+        r"""
+        Return the `a`-spectrum of a poset whose underlying graph is a tree.
+
+        This is a helper method for :meth:`FinitePoset.atkinson`.
+
+        INPUT:
+
+        - ``a`` -- an element of the poset
+
+        OUTPUT:
+
+        The `a`-spectrum of this poset, returned as a list.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: H._spectrum_of_tree(0)
+            [2, 2, 0, 0, 0]
+
+            sage: H = HasseDiagram({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: H._spectrum_of_tree(2)
+            [0, 0, 4, 0, 0]
+
+            sage: H = HasseDiagram({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: H._spectrum_of_tree(3)
+            [0, 0, 0, 2, 2]
+        """
+        upper_covers = self.neighbors_out(a)
+        lower_covers = self.neighbors_in(a)
+        if not upper_covers and not lower_covers:
+            return [1]
+        if upper_covers:
+            b = upper_covers[0]
+            orientation = True
+        else:
+            (a, b) = (lower_covers[0], a)
+            orientation = False
+        P, Q = self._split(a, b)
+        a_spec = P._spectrum_of_tree(a)
+        b_spec = Q._spectrum_of_tree(b)
+        return HasseDiagram._glue_spectra(a_spec, b_spec, orientation)
 
 
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

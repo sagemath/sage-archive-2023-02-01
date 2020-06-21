@@ -189,7 +189,7 @@ class PathTableau(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             ...
             ValueError: [0, 1, 2, 3, 2, 1], [0, 1, 2, 1, 0] is not a composable pair
         """
-        n = len(self)
+        n = self.size()
         m = len(other)
         if n == 0 or m == 0:
             raise ValueError("this requires nonempty lists")
@@ -441,6 +441,9 @@ class PathTableaux(UniqueRepresentation,Parent):
 
             sage: t = path_tableaux.DyckPaths()
             sage: TestSuite(t).run()
+
+            sage: f = path_tableaux.FriezePatterns(QQ)
+            sage: TestSuite(f).run()
         """
         Parent.__init__(self, category=Sets())
 
@@ -463,13 +466,13 @@ class CylindricalDiagram(SageObject):
 
         sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
         sage: path_tableaux.CylindricalDiagram(t)
-         [0, 1, 2, 3, 2, 1, 0]
-         ['', 0, 1, 2, 1, 0, 1, 0]
-         ['', '', 0, 1, 0, 1, 2, 1, 0]
-         ['', '', '', 0, 1, 2, 3, 2, 1, 0]
-         ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
-         ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
-         ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
+        [0, 1, 2, 3, 2, 1, 0]
+        [ , 0, 1, 2, 1, 0, 1, 0]
+        [ ,  , 0, 1, 0, 1, 2, 1, 0]
+        [ ,  ,  , 0, 1, 2, 3, 2, 1, 0]
+        [ ,  ,  ,  , 0, 1, 2, 1, 0, 1, 0]
+        [ ,  ,  ,  ,  , 0, 1, 0, 1, 2, 1, 0]
+        [ ,  ,  ,  ,  ,  , 0, 1, 2, 3, 2, 1, 0]
     """
     def __init__(self, T):
         """
@@ -501,22 +504,37 @@ class CylindricalDiagram(SageObject):
 
     def _repr_(self):
         r"""
-        Return a string representation of ``self``.
+        Return a string representation of ``self``
 
         TESTS::
 
+            sage: cd = path_tableaux.CylindricalDiagram(path_tableaux.DyckPath([0,1,2,1,2,1,0]))
+            sage: repr(cd) == cd._repr_() # indirect test
+            True
+
+            sage: cd = path_tableaux.CylindricalDiagram(path_tableaux.FriezePattern([1,3,4,5,1]))
+            sage: repr(cd) == cd._repr_() # indirect test
+            True
+
+            sage: print(path_tableaux.DyckPath([0,1,2,1,2,1,0])) # indirect test
+            [0, 1, 2, 1, 2, 1, 0]
+
             sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: path_tableaux.CylindricalDiagram(t)
-             [0, 1, 2, 3, 2, 1, 0]
-             ['', 0, 1, 2, 1, 0, 1, 0]
-             ['', '', 0, 1, 0, 1, 2, 1, 0]
-             ['', '', '', 0, 1, 2, 3, 2, 1, 0]
-             ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
-             ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
-             ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
+            [0, 1, 2, 3, 2, 1, 0]
+            [ , 0, 1, 2, 1, 0, 1, 0]
+            [ ,  , 0, 1, 0, 1, 2, 1, 0]
+            [ ,  ,  , 0, 1, 2, 3, 2, 1, 0]
+            [ ,  ,  ,  , 0, 1, 2, 1, 0, 1, 0]
+            [ ,  ,  ,  ,  , 0, 1, 0, 1, 2, 1, 0]
+            [ ,  ,  ,  ,  ,  , 0, 1, 2, 3, 2, 1, 0]
         """
-        dg = self.diagram
-        return ' ' + str(dg[0]) + ''.join('\n ' + str(x) for x in dg[1:])
+        data = [[str(x) for x in row] for row in self.diagram]
+        if not data[0]:
+            data[0] = ['']  # Put sometime there
+        max_width = max(max(len(x) for x in row) for row in data if row)
+        return '\n'.join('[' + ', '.join(' '*(max_width-len(x)) + x for x in row)
+                         + ']' for row in data)
 
     def __eq__(self, other):
         """
@@ -569,6 +587,19 @@ class CylindricalDiagram(SageObject):
              &  &  &  &  & 0 & 1 & 0 & 1 & 2 & 1 & 0\\
              &  &  &  &  &  & 0 & 1 & 2 & 3 & 2 & 1 & 0
              \end{array}
+
+            sage: t = path_tableaux.FriezePattern([1,3,4,5,1])
+            sage: latex(path_tableaux.CylindricalDiagram(t))
+            \begin{array}{ccccccccccccc}
+            0 & 1 & 3 & 4 & 5 & 1 & 0\\
+             & 0 & 1 & \frac{5}{3} & \frac{7}{3} & \frac{2}{3} & 1 & 0\\
+             &  & 0 & 1 & 2 & 1 & 3 & 1 & 0\\
+             &  &  & 0 & 1 & 1 & 4 & \frac{5}{3} & 1 & 0\\
+             &  &  &  & 0 & 1 & 5 & \frac{7}{3} & 2 & 1 & 0\\
+             &  &  &  &  & 0 & 1 & \frac{2}{3} & 1 & 1 & 1 & 0\\
+             &  &  &  &  &  & 0 & 1 & 3 & 4 & 5 & 1 & 0
+             \end{array}
+
         """
         D = self.diagram
         m = len(D[-1])
@@ -597,18 +628,32 @@ class CylindricalDiagram(SageObject):
 
             sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: ascii_art(path_tableaux.CylindricalDiagram(t))
-            0 1 2 3 2 1 0
-             0 1 2 1 0 1 0
-              0 1 0 1 2 1 0
-               0 1 2 3 2 1 0
-                0 1 2 1 0 1 0
+             0 1 2 3 2 1 0
+               0 1 2 1 0 1 0
                  0 1 0 1 2 1 0
-                  0 1 2 3 2 1 0
+                   0 1 2 3 2 1 0
+                     0 1 2 1 0 1 0
+                       0 1 0 1 2 1 0
+                         0 1 2 3 2 1 0
+
+            sage: t = path_tableaux.FriezePattern([1,3,4,5,1])
+            sage: ascii_art(path_tableaux.CylindricalDiagram(t))
+               0   1   3   4   5   1   0
+                   0   1 5/3 7/3 2/3   1   0
+                       0   1   2   1   3   1   0
+                           0   1   1   4 5/3   1   0
+                               0   1   5 7/3   2   1   0
+                                   0   1 2/3   1   1   1   0
+                                       0   1   3   4   5   1   0
         """
-        from sage.typeset.ascii_art import AsciiArt
-        D = [ map(str,x) for x in self.diagram ]
-        S = [ ' '.join(x) for x in D ]
-        return AsciiArt(S)
+        from sage.typeset.ascii_art import ascii_art
+        from sage.misc.misc_c import prod
+        data = [[ascii_art(x) for x in row] for row in self.diagram]
+        if not data[0]:
+            data[0] = [ascii_art('')]  # Put sometime there
+        max_width = max(max(len(x) for x in row) for row in data if row)
+        return prod((sum((ascii_art(' '*(max_width-len(x)+1)) + x for x in row), ascii_art(''))
+                    for row in data), ascii_art(''))
 
     def _unicode_art_(self):
         r"""
@@ -618,18 +663,32 @@ class CylindricalDiagram(SageObject):
 
             sage: t = path_tableaux.DyckPath([0,1,2,3,2,1,0])
             sage: unicode_art(path_tableaux.CylindricalDiagram(t))
-            0 1 2 3 2 1 0
-             0 1 2 1 0 1 0
-              0 1 0 1 2 1 0
-               0 1 2 3 2 1 0
-                0 1 2 1 0 1 0
+             0 1 2 3 2 1 0
+               0 1 2 1 0 1 0
                  0 1 0 1 2 1 0
-                  0 1 2 3 2 1 0
+                   0 1 2 3 2 1 0
+                     0 1 2 1 0 1 0
+                       0 1 0 1 2 1 0
+                         0 1 2 3 2 1 0
+
+            sage: t = path_tableaux.FriezePattern([1,3,4,5,1])
+            sage: unicode_art(path_tableaux.CylindricalDiagram(t))
+               0   1   3   4   5   1   0
+                   0   1 5/3 7/3 2/3   1   0
+                       0   1   2   1   3   1   0
+                           0   1   1   4 5/3   1   0
+                               0   1   5 7/3   2   1   0
+                                   0   1 2/3   1   1   1   0
+                                       0   1   3   4   5   1   0
         """
-        from sage.typeset.unicode_art import UnicodeArt
-        D = [ map(str,x) for x in self.diagram ]
-        S = [ ' '.join(x) for x in D ]
-        return UnicodeArt(S)
+        from sage.typeset.unicode_art import unicode_art
+        from sage.misc.misc_c import prod
+        data = [[unicode_art(x) for x in row] for row in self.diagram]
+        if not data[0]:
+            data[0] = [unicode_art('')]  # Put sometime there
+        max_width = max(max(len(x) for x in row) for row in data if row)
+        return prod((sum((unicode_art(' '*(max_width-len(x)+1)) + x for x in row), unicode_art(''))
+                    for row in data), unicode_art(''))
 
     def pp(self):
         r"""
@@ -646,6 +705,21 @@ class CylindricalDiagram(SageObject):
                     0 1 2 1 0 1 0
                       0 1 0 1 2 1 0
                         0 1 2 3 2 1 0
+
+            sage: t = path_tableaux.FriezePattern([1,3,4,5,1])
+            sage: path_tableaux.CylindricalDiagram(t).pp()
+              0   1   3   4   5   1   0
+                  0   1 5/3 7/3 2/3   1   0
+                      0   1   2   1   3   1   0
+                          0   1   1   4 5/3   1   0
+                              0   1   5 7/3   2   1   0
+                                  0   1 2/3   1   1   1   0
+                                      0   1   3   4   5   1   0
         """
-        print('\n'.join(' '.join('{:0<}'.format(a) for a in x)  for x in self.diagram ))
+        data = [[str(x) for x in row] for row in self.diagram]
+        if not data[0]:
+            data[0] = ['']  # Put sometime there
+        max_width = max(max(len(x) for x in row) for row in data if row)
+        print('\n'.join(' '.join(' '*(max_width-len(x)) + x for x in row)
+                        for row in data))
 

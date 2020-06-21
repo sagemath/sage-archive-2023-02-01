@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+cd src
+. sage-dist-helpers
+# We install directly with setuptools, not with pip, because pip does not handle our symlinks correctly.
+# An alternative would be to build an sdist and then to install the sdist using pip.
+sage-python23 -u setup.py --no-user-cfg install --single-version-externally-managed --root="$SAGE_LOCAL"

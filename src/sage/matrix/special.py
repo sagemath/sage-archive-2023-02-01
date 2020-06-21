@@ -824,7 +824,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         nrows = nentries
 
     # provide a default ring for an empty list
-    if not entries and ring is None:
+    if not len(entries) and ring is None:
         ring = ZZ
 
     # Convert entries to a list v over a common ring
@@ -833,9 +833,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
 
     # Create a "diagonal" dictionary for matrix constructor
     # If nentries < nrows, diagonal is effectively padded with zeros at end
-    w = {}
-    for i in range(len(v)):
-        w[(i, i)] = v[i]
+    w = {(i, i): v[i] for i in range(len(v))}
 
     # Ship ring, matrix size, dictionary to matrix constructor
     if ring is None:
@@ -1692,7 +1690,7 @@ def _determine_block_matrix_rows(sub_matrices):
                 # if we don't know the height, and there are zeroes,
                 # we can't determine the height
                 raise ValueError("insufficient information to determine submatrix heights")
-            elif total_width % len(R) != 0:
+            elif total_width % len(R):
                 raise ValueError("incompatible submatrix widths")
             else:
                 height = int(total_width / len(R))
@@ -3497,7 +3495,7 @@ def hilbert(dim, ring=QQ):
         [1/5 1/6 1/7 1/8 1/9]
     """
     def entries(i, j):
-        return 1 / (i + j + 1)
+        return ZZ.one() / (i + j + 1)
     return matrix(entries, nrows=dim, ncols=dim, ring=ring)
 
 

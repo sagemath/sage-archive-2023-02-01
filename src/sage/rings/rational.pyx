@@ -823,7 +823,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         l = self.continued_fraction_list()
         return ContinuedFraction_periodic(l)
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Compare two rational numbers.
 
@@ -860,29 +860,13 @@ cdef class Rational(sage.structure.element.FieldElement):
             ....:     assert (one1 >= one2) is True
         """
         cdef int c
-        cdef mpz_t mpz_tmp
-
-        assert isinstance(left, Rational)
-
-        if isinstance(right, Rational):
-            if op == Py_EQ:
-                return <bint> mpq_equal((<Rational>left).value, (<Rational>right).value)
-            elif op == Py_NE:
-                return not mpq_equal((<Rational>left).value, (<Rational>right).value)
-            else:
-                c = mpq_cmp((<Rational>left).value, (<Rational>right).value)
-        elif isinstance(right, Integer):
-            c = mpq_cmp_z((<Rational>left).value, (<Integer>right).value)
-        elif isinstance(right, long):
-            mpz_init(mpz_tmp)
-            mpz_set_pylong(mpz_tmp, right)
-            c = mpq_cmp_z((<Rational>left).value, mpz_tmp)
-            mpz_clear(mpz_tmp)
-        elif isinstance(right, int):
-            c = mpq_cmp_si((<Rational>left).value, PyInt_AS_LONG(right), 1)
-        else:
-            return coercion_model.richcmp(left, right, op)
-
+        if op == Py_EQ:
+            return <bint> mpq_equal((<Rational>left).value,
+                                    (<Rational>right).value)
+        elif op == Py_NE:
+            return not mpq_equal((<Rational>left).value,
+                                 (<Rational>right).value)
+        c = mpq_cmp((<Rational>left).value, (<Rational>right).value)
         return rich_to_bool_sgn(op, c)
 
     def __copy__(self):

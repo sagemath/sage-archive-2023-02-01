@@ -380,8 +380,6 @@ def is_Rational(x):
         True
         sage: is_Rational(int(2))
         False
-        sage: is_Rational(long(2))
-        False
         sage: is_Rational('5')
         False
     """
@@ -2998,36 +2996,19 @@ cdef class Rational(sage.structure.element.FieldElement):
     #Define an alias for numerator
     numer = numerator
 
-    IF PY_MAJOR_VERSION <= 2:
-        def __int__(self):
-            """
-            Convert this rational to a Python ``int``.
-
-            This truncates ``self`` if ``self`` has a denominator (which is
-            consistent with Python's ``long(floats)``).
-
-            EXAMPLES::
-
-                sage: int(7/3)
-                2
-                sage: int(-7/3)
-                -2
-            """
-            return int(self.__long__())
-
-    def __long__(self):
+    def __int__(self):
         """
-        Convert this rational to a Python ``long`` (``int`` on Python 3).
+        Convert this rational to a Python ``int``
 
         This truncates ``self`` if ``self`` has a denominator (which is
         consistent with Python's ``long(floats)``).
 
         EXAMPLES::
 
-            sage: long(7/3)
-            2L
-            sage: long(-7/3)
-            -2L
+            sage: int(7/1)
+            7
+            sage: int(7/2)
+            3
         """
         cdef mpz_t x
         if mpz_cmp_si(mpq_denref(self.value),1) != 0:
@@ -4271,11 +4252,7 @@ cdef class long_to_Q(Morphism):
 
         EXAMPLES::
 
-            sage: sage.rings.rational.long_to_Q()  # py2
-            Native morphism:
-              From: Set of Python objects of class 'long'
-              To:   Rational Field
-            sage: sage.rings.rational.long_to_Q()  # py3
+            sage: sage.rings.rational.long_to_Q()
             Native morphism:
               From: Set of Python objects of class 'int'
               To:   Rational Field
@@ -4293,9 +4270,7 @@ cdef class long_to_Q(Morphism):
         EXAMPLES::
 
             sage: f = sage.rings.rational.long_to_Q()
-            sage: f(long(4)) # indirect doctest
-            4
-            sage: f(long(4^100))
+            sage: f(4^100)
             1606938044258990275541962092341162602522202993782792835301376
         """
 

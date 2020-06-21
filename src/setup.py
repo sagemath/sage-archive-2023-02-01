@@ -117,6 +117,10 @@ code = setup(name = 'sage',
                  'bin/sage',
                  ## Other scripts that should be in the path also for OS packaging of sage:
                  'bin/sage-eval',
+                 'bin/sage-runtests',          # because it is useful for doctesting user scripts too
+                 'bin/sage-fixdoctests',       # likewise
+                 'bin/sage-coverage',          # because it is useful for coverage-testing user scripts too
+                 'bin/sage-coverageall',       # likewise
                  ## Helper scripts invoked by sage script
                  ## (they would actually belong to something like libexec)
                  'bin/sage-cachegrind',
@@ -131,14 +135,11 @@ code = setup(name = 'sage',
                  'bin/math-readline',
                  'bin/sage-cleaner',
                  'bin/sage-clone-source',
-                 'bin/sage-coverage',
-                 'bin/sage-coverageall',
                  'bin/sage-cython',
                  'bin/sage-download-upstream',
                  'bin/sage-env',
                  'bin/sage-env-config',
                  # sage-env-config.in -- not to be installed',
-                 'bin/sage-fixdoctests',
                  'bin/sage-gdb-commands',
                  'bin/sage-grep',
                  'bin/sage-grepdoc',
@@ -163,7 +164,6 @@ code = setup(name = 'sage',
                  'bin/sage-rsyncdist',
                  'bin/sage-run',
                  'bin/sage-run-cython',
-                 'bin/sage-runtests',
                  'bin/sage-sdist',
                  'bin/sage-startuptime.py',
                  'bin/sage-sws2rst',

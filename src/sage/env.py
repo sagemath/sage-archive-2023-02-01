@@ -398,17 +398,20 @@ def cython_aliases():
             aliases[var + "CFLAGS"] = ""
             try:
                 pc = pkgconfig.parse('zlib')
+                libs = pkgconfig.libs(lib)
             except pkgconfig.PackageNotFoundError:
                 from collections import defaultdict
                 pc = defaultdict(list, {'libraries': ['z']})
+                libs = "-lz"
         else:
             aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
             pc = pkgconfig.parse(lib)
+            libs = pkgconfig.libs(lib)
         # INCDIR should be redundant because the -I options are also
         # passed in CFLAGS
         aliases[var + "INCDIR"] = pc['include_dirs']
         aliases[var + "LIBDIR"] = pc['library_dirs']
-        aliases[var + "LIBEXTRA"] = list(filter(lambda s: not s.startswith(('-l','-L')), pkgconfig.libs(lib).split()))
+        aliases[var + "LIBEXTRA"] = list(filter(lambda s: not s.startswith(('-l','-L')), libs.split()))
         aliases[var + "LIBRARIES"] = pc['libraries']
 
     # LinBox needs special care because it actually requires C++11 with

@@ -1882,10 +1882,6 @@ REFERENCES:
 .. [DS1994] J. Dalbec and B. Sturmfels. Invariant methods in discrete and computational geometry,
             chapter Introduction to Chow forms, pages 37-58. Springer Netherlands, 1994.
 
-.. [DS2010] \K. Duggal, B. Sahin,
-            *Differential Geometry of Lightlike Submanifolds*,
-            Frontiers in Mathematics, 2010.
-
 .. [DS2004] Dan Gusfield, Jens Stoye,
             Linear time algorithms for finding and representing all the tandem repeats in a string,
             Journal of Computer and System Sciences,
@@ -1893,6 +1889,14 @@ REFERENCES:
             2004,
             Pages 525-546,
             https://doi.org/10.1016/j.jcss.2004.03.004.
+
+.. [DS2009] \W. Decker, F.-O. Schreyer,
+            *Varieties, Gröbner Bases, and Algebraic Curves*, 2009.
+            https://www.math.uni-sb.de/ag/schreyer/images/PDFs/teaching/ws1617ag/book.pdf
+
+.. [DS2010] \K. Duggal, B. Sahin,
+            *Differential Geometry of Lightlike Submanifolds*,
+            Frontiers in Mathematics, 2010.
 
 .. [Du2001] \I. Duursma, "From weight enumerators to zeta functions", in
             Discrete Applied Mathematics, vol. 111, no. 1-2,

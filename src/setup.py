@@ -121,6 +121,7 @@ code = setup(name = 'sage',
                  'bin/sage-fixdoctests',       # likewise
                  'bin/sage-coverage',          # because it is useful for coverage-testing user scripts too
                  'bin/sage-coverageall',       # likewise
+                 'bin/sage-cython',            # deprecated, might be used in user package install scripts
                  ## Helper scripts invoked by sage script
                  ## (they would actually belong to something like libexec)
                  'bin/sage-cachegrind',
@@ -129,14 +130,15 @@ code = setup(name = 'sage',
                  'bin/sage-omega',
                  'bin/sage-valgrind',
                  'bin/sage-version.sh',
-                 ## Only makes sense in sage-the-distribution
+                 'bin/sage-cleaner',
+                 ## Only makes sense in sage-the-distribution. TODO: Move to another installation script.
                  'bin/sage-list-packages',
+                 'bin/sage-clone-source',
+                 'bin/sage-download-upstream',
+                 'bin/sage-sdist',
+                 'bin/sage-location',
                  ## Uncategorized scripts in alphabetical order
                  'bin/math-readline',
-                 'bin/sage-cleaner',
-                 'bin/sage-clone-source',
-                 'bin/sage-cython',
-                 'bin/sage-download-upstream',
                  'bin/sage-env',
                  'bin/sage-env-config',
                  # sage-env-config.in -- not to be installed',
@@ -146,7 +148,6 @@ code = setup(name = 'sage',
                  'bin/sage-inline-fortran',
                  'bin/sage-ipynb2rst',
                  'bin/sage-ipython',
-                 'bin/sage-location',
                  'bin/sage-maxima.lisp',
                  'bin/sage-native-execute',
                  'bin/sage-notebook',
@@ -164,7 +165,6 @@ code = setup(name = 'sage',
                  'bin/sage-rsyncdist',
                  'bin/sage-run',
                  'bin/sage-run-cython',
-                 'bin/sage-sdist',
                  'bin/sage-startuptime.py',
                  'bin/sage-sws2rst',
                  'bin/sage-update-src',

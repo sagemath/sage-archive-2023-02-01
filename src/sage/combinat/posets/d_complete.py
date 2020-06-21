@@ -13,49 +13,63 @@ from sage.misc.lazy_attribute import lazy_attribute
 
 class DCompletePoset(FinitePoset):
     r"""
-    A (finite) `n`-element d-complete poset constructed from a directed acyclic graph.
+    D-complete posets are a class of posets introduced by Proctor in [1].
+    It includes ommon families such as shapes, shifted shapes, and forests. Proctor showed in [2]
+    that d-complete posets have decompositions in ``irreducible`` posets, and showed in [3] that
+    d-complete posets admit a hook-length formula (see [4]). A complete proof of the hook-length formula
+    can be found in [5].
 
-    INPUT:
 
-    - ``hasse_diagram`` -- an instance of
-      :class:`~sage.combinat.posets.posets.FinitePoset`, or a
-      :class:`DiGraph` that is transitively-reduced, acyclic,
-      loop-free, and multiedge-free.
+    REFERENCES:
 
-    - ``elements`` -- an optional list of elements, with ``element[i]``
-      corresponding to vertex ``i``. If ``elements`` is ``None``, then it is
-      set to be the vertex set of the digraph. Note that if this option is set,
-      then ``elements`` is considered as a specified linear extension of the poset
-      and the `linear_extension` attribute is set.
+    ..  [1] R. A. Proctor. Minuscule elements of Weyl groups, the numbers game, and d-complete posets. J. Algebra,
+                213(1):272–303, 1999.
+    ..  [2] R. A. Proctor. Dynkin diagram classification of λ-minuscule Bruhat lattices and of d-complete posets. J.
+                Algebraic Combin., 9(1):61–94, 1999.
+    ..  [3] R. A. Proctor. d-complete posets generalize Young diagrams for the hook product formula: Partial Presentation
+                of Proof. RIMS Kˆokyˆuroku, 1913:120–140, 2014.
+    ..  [4] https://en.wikipedia.org/wiki/Hook_length_formula
 
-    - ``category`` -- :class:`FinitePosets`, or a subcategory thereof.
-
-    - ``facade`` -- a boolean or ``None`` (default); whether the
-      :class:`~sage.combinat.posets.posets.DCompletePoset`'s elements should be
-      wrapped to make them aware of the Poset they belong to.
-
-      * If ``facade = True``, the
-        :class:`~sage.combinat.posets.posets.DCompletePoset`'s elements are exactly
-        those given as input.
-
-      * If ``facade = False``, the
-        :class:`~sage.combinat.posets.posets.DCompletePoset`'s elements will become
-        :class:`~sage.combinat.posets.posets.PosetElement` objects.
-
-      * If ``facade = None`` (default) the expected behaviour is the behaviour
-        of ``facade = True``, unless the opposite can be deduced from the
-        context (i.e. for instance if a
-        :class:`~sage.combinat.posets.posets.DCompletePoset` is built from another
-        :class:`~sage.combinat.posets.posets.DCompletePoset`, itself built with
-        ``facade = False``)
-
-    - ``key`` -- any hashable value (default: ``None``).
-
+    ..  [5] Kim, Jang Soo, and Meesue Yoo. "Hook length property of d-complete posets via q-integrals." 
+                Journal of Combinatorial Theory, Series A 162 (2019): 167-221.
     """
+
+    def _repr_(self):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.posets.d_complete import DCompletePoset
+            sage: P = DCompletePoset(DiGraph({0: [1], 0: [2], 1: [3], 2: [3], 3: []}))
+            sage: P._repr_()
+            'Finite d-complete poset containing 4 elements'
+        """
+        s = "Finite d-complete poset containing %s elements" % self._hasse_diagram.order()
+        if self._with_linear_extension:
+            s += " with distinguished linear extension"
+        return s
+
+
     @lazy_attribute
     def _hooks(self):
-        """
-        Calculates the hook lengths of the elements of self
+        r"""
+        The hook lengths of the elements of the d-complete poset. For the definition 
+        of hook lengths for d-complete posets, see [1].
+
+        TESTS::
+
+            sage: from sage.combinat.posets.d_complete import DCompletePoset
+            sage: P = DCompletePoset(DiGraph({0: [1, 2], 1: [3], 2: [3], 3: []}))
+            sage: P._hooks
+            {0: 1, 1: 2, 2: 2, 3: 3}
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: P = DCompletePoset(Posets.YoungDiagramPoset(Partition([3,2,1]))._hasse_diagram.reverse()) 
+            sage: P._hooks
+            {0: 5, 1: 3, 2: 1, 3: 3, 4: 1, 5: 1}
+
+        REFERENCES:
+
+        .. [1] Kim, Jang Soo, and Meesue Yoo. "Hook length property of d-complete posets via q-integrals." 
+                Journal of Combinatorial Theory, Series A 162 (2019): 167-221.
         """
         hooks = {}
 
@@ -130,17 +144,56 @@ class DCompletePoset(FinitePoset):
         return hooks
                 
     def __init__(self, hasse_diagram, elements, category, facade, key):
+        r"""
+        EXAMPLES::
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: P = Posets.DoubleTailedDiamond(2)
+            sage: type(P)
+            <class 'sage.combinat.posets.d_complete.DCompletePoset_with_category'>
+
+        The additional internal data structure consists of:
+
+        - the hook lengths of the elements of the poset
+
+            sage: P._hooks
+            {1: 1, 2: 2, 3: 3, 4: 3, 5: 4, 6: 5}
+
+        TESTS::
+
+            sage: TestSuite(P).run()
+
+        See also the other tests in the class documentation.
+        """
         FinitePoset.__init__(self, hasse_diagram=hasse_diagram, elements=elements, category=category, facade=facade, key=key)
 
     def get_hook(self, elmt):
-        """
-        Get the hook length of a specific element
+        r"""
+        Get the hook length of a specific element.
+
+        TESTS::
+
+            sage: from sage.combinat.posets.d_complete import DCompletePoset
+            sage: P = DCompletePoset(DiGraph({0: [1], 1: [2]}))
+            sage: P.get_hook(1)
+            2
         """
         return self._hooks[elmt]
 
     def get_hooks(self):
         """
         Get all the hook lengths returned in a dictionary
+        
+        TESTS::
+
+            sage: from sage.combinat.posets.d_complete import DCompletePoset
+            sage: P = DCompletePoset(DiGraph({0: [1, 2], 1: [3], 2: [3], 3: []}))
+            sage: P.get_hooks()
+            {0: 1, 1: 2, 2: 2, 3: 3}
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: P = DCompletePoset(Posets.YoungDiagramPoset(Partition([3,2,1]))._hasse_diagram.reverse()) 
+            sage: P.get_hooks()
+            {0: 5, 1: 3, 2: 1, 3: 3, 4: 1, 5: 1}
+
         """
         return dict(self._hooks)
 
@@ -152,5 +205,49 @@ class DCompletePoset(FinitePoset):
         pass
 
     def linear_extensions(self, facade=False):
+        r"""
+        Returns the enumerated set of all the linear extensions of this poset with hook lengths
+
+        INPUT:
+
+        - ``facade`` -- a boolean (default: ``False``);
+          whether to return the linear extensions as plain lists
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.d_complete import DCompletePoset
+            sage: P = DCompletePoset(DiGraph({0: [1, 2], 1: [3], 2: [3], 3: [4]}))
+            sage: L = P.linear_extensions()
+            sage: L.cardinality()
+            2
+            sage: L.list()
+            [[0, 1, 2, 3, 4], [0, 2, 1, 3, 4]]
+
+        TESTS::
+
+            sage: from sage.combinat.posets.d_complete import DCompletePoset
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: P = DCompletePoset(Posets.YoungDiagramPoset(Partition([3,2,1]))._hasse_diagram.reverse()) 
+            sage: L = P.linear_extensions()
+            sage: L.cardinality()
+            16
+            sage: L.list()
+            [[5, 4, 3, 2, 1, 0],
+             [4, 5, 3, 2, 1, 0],
+             [4, 5, 2, 3, 1, 0],
+             [4, 2, 5, 3, 1, 0],
+             [2, 4, 5, 3, 1, 0],
+             [2, 4, 5, 1, 3, 0],
+             [2, 4, 1, 5, 3, 0],
+             [4, 2, 1, 5, 3, 0],
+             [4, 2, 5, 1, 3, 0],
+             [4, 5, 2, 1, 3, 0],
+             [5, 4, 2, 1, 3, 0],
+             [5, 2, 4, 1, 3, 0],
+             [2, 5, 4, 1, 3, 0],
+             [2, 5, 4, 3, 1, 0],
+             [5, 2, 4, 3, 1, 0],
+             [5, 4, 2, 3, 1, 0]]
+        """
         from .linear_extensions import LinearExtensionsOfPosetWithHooks
         return LinearExtensionsOfPosetWithHooks(self, facade=facade)

@@ -1538,9 +1538,16 @@ class Posets(metaclass=ClasscallMetaclass):
         r"""
         Return a double-tailed diamond of 2n + 2 elements
 
-        input:
+        Input:
 
         - ``n`` -- a positive integer
+
+        EXAMPLES::
+
+            sage: P = posets.DoubleTailedDiamond(2); P
+            Finite d-complete poset containing 6 elements
+            sage: P.cover_relations()
+            [[1, 2], [2, 3], [2, 4], [3, 5], [4, 5], [5, 6]]
         """
         try:
             n = Integer(n)

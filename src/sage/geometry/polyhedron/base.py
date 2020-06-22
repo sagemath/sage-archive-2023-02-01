@@ -2120,7 +2120,7 @@ class Polyhedron_base(Element):
             tester = self._tester(**options)
         if self.is_compact():
             b = self.an_affine_basis()
-            m = matrix(b).transpose().stack(matrix([[1]*len(b)]))
+            m = matrix([1] + list(v) for v in b)
             tester.assertEqual(m.rank(), self.dim() + 1)
             for v in b:
                 tester.assertIn(v, self.vertices())

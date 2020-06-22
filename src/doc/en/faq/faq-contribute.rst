@@ -247,13 +247,13 @@ necessity to import what you need.
 
       from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-  You can use ̀`import_statements`` to get the exact necessary line::
+  You can use ``import_statements`` to get the exact necessary line::
 
       sage: import_statements(PolynomialRing)
       from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
   If this fails, you can ask Sage where to find ``PolynomialRing`` using::
-x
+
       sage: PolynomialRing.__module__
       'sage.rings.polynomial.polynomial_ring_constructor'
 

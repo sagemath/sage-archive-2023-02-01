@@ -856,8 +856,8 @@ class LinearExtensionsOfPosetWithHooks(LinearExtensionsOfPoset):
         LinearExtensionsOfPoset.__init__(self, poset=poset, facade=facade)
     
     def cardinality(self):
-        """
-        Count the number of linear extensions
+        r"""
+        Count the number of linear extensions using a hook-length formula
         """
         num_elmts = self._poset.cardinality()
         hooks = self._poset.get_hooks()

@@ -14,7 +14,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 class DCompletePoset(FinitePoset):
     r"""
     D-complete posets are a class of posets introduced by Proctor in [1].
-    It includes ommon families such as shapes, shifted shapes, and forests. Proctor showed in [2]
+    It includes common families such as shapes, shifted shapes, and rooted forests. Proctor showed in [2]
     that d-complete posets have decompositions in ``irreducible`` posets, and showed in [3] that
     d-complete posets admit a hook-length formula (see [4]). A complete proof of the hook-length formula
     can be found in [5].

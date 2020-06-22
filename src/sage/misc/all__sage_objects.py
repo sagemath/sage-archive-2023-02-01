@@ -28,3 +28,7 @@ from .sage_unittest import TestSuite
 from .decorators import specialize, sage_wraps, infix_operator
 
 from .unknown import Unknown, UnknownError
+
+from .cachefunc import CachedFunction, cached_function, cached_method, cached_in_parent_method, disk_cached_function
+
+from .abstract_method import abstract_method

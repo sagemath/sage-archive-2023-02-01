@@ -4785,7 +4785,7 @@ class Polyhedron_base(Element):
 
     def _test_dilation(self, tester=None, **options):
         """
-        Run tests on the method :meth:`.dilation`
+        Run tests on the method :meth:`.dilation`.
 
         TESTS::
 

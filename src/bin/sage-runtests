@@ -73,6 +73,7 @@ if __name__ == "__main__":
     parser.add_option("--randorder", type=int, metavar="SEED", help="randomize order of tests")
     parser.add_option("--global-iterations", "--global_iterations", type=int, default=0, help="repeat the whole testing process this many times")
     parser.add_option("--file-iterations", "--file_iterations", type=int, default=0, help="repeat each file this many times, stopping on the first failure")
+    parser.add_option("--environment", type=str, default=None, help="name of a module that provides the global environment for tests")
 
     parser.add_option("-i", "--initial", action="store_true", default=False, help="only show the first failure in each file")
     parser.add_option("--exitfirst", action="store_true", default=False, help="end the test run immediately after the first failure or unexpected exception")

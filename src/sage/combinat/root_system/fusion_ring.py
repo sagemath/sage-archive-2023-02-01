@@ -10,7 +10,7 @@ Fusion Rings
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.combinat.root_system.root_system import RootSystem
+
 from sage.combinat.root_system.weyl_characters import WeylCharacterRing
 from functools import reduce
 from operator import mul
@@ -131,6 +131,13 @@ class FusionRing(WeylCharacterRing):
         The cyclotomic field of 4l-th roots of unity, where
         l is the fusion_l of the category (see above). Call this
         lazy attribute via the method `self.q_field()`.
+
+        EXAMPLES::
+
+            sage: B22=FusionRing("B2",2)
+            sage: B22.q_field()
+            Cyclotomic Field of order 40 and degree 16
+
         """
         self._K = CyclotomicField(4*self._l)
         return self._K
@@ -145,9 +152,6 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: B22=FusionRing("B2",2)
-            sage: B22.q_field()
-            Cyclotomic Field of order 40 and degree 16
             sage: A11=FusionRing('A1',1)
             sage: A11.q_field()
             Cyclotomic Field of order 12 and degree 4
@@ -156,7 +160,7 @@ class FusionRing(WeylCharacterRing):
 
     def get_order(self):
         """
-        Returns the weights of the basis vectors in a fixed order.
+        This returns the weights of the basis vectors in a fixed order.
         You may change the order of the basis using :meth:`set_order`
 
         EXAMPLES::
@@ -204,7 +208,7 @@ class FusionRing(WeylCharacterRing):
 
     def fusion_l(self):
         r"""
-        Returns the product `m_g(k + h^\vee)`, where `m_g` denotes the
+        This Returns the product `m_g(k + h^\vee)`, where `m_g` denotes the
         square of the ratio of the lengths of long to short roots of 
         the underlying Lie algebra, `k` denotes the level of the FusionRing,
         and `h^\vee` denotes the dual Coxeter number of the underlying Lie
@@ -431,7 +435,7 @@ class FusionRing(WeylCharacterRing):
             with `m=1,2,3` depending on whether type is simply, doubly or
             triply laced, `k` is the level and `h^\vee` is the dual Coxeter number.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: B22=FusionRing("B2",2)
                 sage: [(b.q_dimension())^2 for b in B22.basis()]

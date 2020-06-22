@@ -758,8 +758,8 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
 
         OUTPUT:
 
-         - A tuple (a, b, c) which satisfies a = b*f + c*g. There 
-         is not guarentee that a, b, and c are minimal.
+         - A tuple (a, b, c) which satisfies `a = b*f + c*g`. There 
+           is not guarentee that a, b, and c are minimal.
 
         EXAMPLES::
 
@@ -814,9 +814,7 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
 
          - ``f``, ``g`` - the polynomials of which to take the gcd
 
-        OUTPUT:
-
-         - A polynomial
+        OUTPUT: A polynomial
 
         EXAMPLES::
 

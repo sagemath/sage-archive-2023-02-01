@@ -3766,7 +3766,7 @@ class Polyhedron_base(Element):
             return
 
         # Check :trac:`29073`.
-        if not self.base_ring().is_exact():
+        if not self.base_ring().is_exact() and self.ambient_dim() > 0:
             g = self.gale_transform()
             tester.assertTrue(sum(g).norm() < 1e-10 or sum(g).norm()/matrix(g).norm() < 1e-13)
             return

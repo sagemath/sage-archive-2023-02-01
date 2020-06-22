@@ -541,11 +541,6 @@ fi
 # Run Sage's versions of its component packages
 #####################################################################
 
-if [ "$1" = '-axiom' -o "$1" = '--axiom' ]; then
-    shift
-    exec axiom "$@"
-fi
-
 if [ "$1" = "-cython" -o "$1" = '--cython' -o "$1" = '-pyrex' -o "$1" = "--pyrex" ]; then
     shift
     exec sage-cython "$@"

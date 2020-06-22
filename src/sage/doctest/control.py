@@ -1002,9 +1002,8 @@ class DocTestController(SageObject):
         """
         cmd = "sage-runtests --serial "
         opt = dict_difference(self.options.__dict__, DocTestDefaults().__dict__)
-        for o in ("all",):
-            if o in opt:
-                raise ValueError("You cannot run gdb/valgrind on the whole sage%s library"%("" if o == "all" else "nb"))
+        if "all" in opt:
+            raise ValueError("You cannot run gdb/valgrind on the whole sage library")
         for o in ("all", "long", "force_lib", "verbose", "failed", "new"):
             if o in opt:
                 cmd += "--%s "%o

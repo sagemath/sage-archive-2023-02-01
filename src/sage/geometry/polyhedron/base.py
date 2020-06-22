@@ -9129,7 +9129,7 @@ class Polyhedron_base(Element):
 
     def _test_is_combinatorially_isomorphic(self, tester=None, **options):
         """
-        Run tests on the method :meth:`.is_combinatorially_isomorphic`
+        Run tests on the method :meth:`.is_combinatorially_isomorphic`.
 
         TESTS::
 

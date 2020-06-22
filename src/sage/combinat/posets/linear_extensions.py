@@ -863,4 +863,19 @@ class LinearExtensionsOfPosetWithHooks(LinearExtensionsOfPoset):
         hooks = self._poset.get_hooks()
         hook_product = prod(hooks.values())
         return factorial(num_elmts) // hook_product
+
+class LinearExtensionsOfForest(LinearExtensionsOfPoset):
+    r"""
+    A subclass of ``LinearExtensionOfPoset`` where the poset
+    is a forest.
+    """
+
+    def __init__(self, poset, facade):
+        LinearExtensionsOfPoset.__init__(self, poset=poset, facade=facade)
+    
+    def cardinality(self):
+        r"""
+        Use Atkinson's algorithm to compute the number of linear extensions
+        """
+        return sum(self.atkinson(self._elements[0]))
         

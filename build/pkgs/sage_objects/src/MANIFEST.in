@@ -91,6 +91,9 @@ include bin/sage-runtests
 graft sage/doctest
 include sage/misc/temporary_file.*
 include sage/misc/randstate.*
+include sage/misc/misc.*              # walltime, cputime
+# graft sage/features
+include sage/misc/package.*
 
 graft sage/repl
 graft sage/server

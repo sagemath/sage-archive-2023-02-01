@@ -13,18 +13,13 @@ Fusion Rings
 from sage.combinat.root_system.root_system import RootSystem
 from sage.combinat.root_system.weyl_characters import WeylCharacterRing
 from functools import reduce
-import sage.combinat.root_system.branching_rules
 from operator import mul
-from sage.categories.all import Category, Algebras, AlgebrasWithBasis
-from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.q_analogues import q_int
-from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.root_system.root_system import RootSystem
 from sage.matrix.special import diagonal_matrix
 from sage.matrix.constructor import matrix
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import inject_variable
-from sage.rings.all import ZZ, CC
+from sage.rings.all import ZZ
 from sage.rings.number_field.number_field import CyclotomicField
 
 class FusionRing(WeylCharacterRing):
@@ -450,7 +445,6 @@ class FusionRing(WeylCharacterRing):
             lam = self.weight()
             space = self.parent().space()
             rho = space.rho()
-            l = self.parent().fusion_l()
             num = reduce(mul, [q_int(self.parent()._nf*alpha.inner_product(lam+rho)) for alpha in space.positive_roots()], 1)
             den = reduce(mul, [q_int(self.parent()._nf*alpha.inner_product(rho)) for alpha in space.positive_roots()], 1)
             expr = num/den

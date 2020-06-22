@@ -10,24 +10,17 @@ Weyl Character Rings
 # ****************************************************************************
 from __future__ import print_function
 
-from functools import reduce
 import sage.combinat.root_system.branching_rules
-from operator import mul
 from sage.categories.all import Category, Algebras, AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.q_analogues import q_int
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
-from sage.matrix.special import diagonal_matrix
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.misc.functional import is_even
-from sage.misc.misc import inject_variable
-from sage.rings.all import ZZ, CC
-from sage.rings.number_field.number_field import CyclotomicField
-
+from sage.rings.all import ZZ
 
 class WeylCharacterRing(CombinatorialFreeModule):
     r"""

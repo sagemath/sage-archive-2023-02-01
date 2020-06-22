@@ -154,9 +154,6 @@ class FusionRing(WeylCharacterRing):
         """
         return self._q_field
 
-    def _element_constructor(self,weight):
-        return self._parent._element_constructor(self._parent,weight)
-
     def get_order(self):
         """
         Returns the weights of the basis vectors in a fixed order.

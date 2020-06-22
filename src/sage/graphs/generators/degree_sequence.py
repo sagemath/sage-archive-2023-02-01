@@ -216,9 +216,10 @@ def DegreeSequenceExpected(deg_sequence, seed=None):
 
     EXAMPLES::
 
+        sage: set_random_seed(0)
         sage: G = graphs.DegreeSequenceExpected([1,2,3,2,3])
         sage: G.edges(labels=False)
-        [(0, 3), (1, 3), (1, 4), (4, 4)]                    # 32-bit 
+        [(0, 3), (1, 3), (1, 4), (4, 4)]                    # 32-bit
         [(0, 3), (1, 4), (2, 2), (2, 3), (2, 4), (4, 4)]    # 64-bit
         sage: G.show()  # long time
 

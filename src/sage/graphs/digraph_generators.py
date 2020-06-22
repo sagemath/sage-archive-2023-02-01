@@ -1174,9 +1174,14 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGN(25)
-            sage: D.edges(labels=False)
-            [(1, 0), (2, 0), (3, 2), (4, 2), (5, 4), (6, 3), (7, 0), (8, 4), (9, 4), (10, 3), (11, 4), (12, 4), (13, 3), (14, 4), (15, 4), (16, 0), (17, 2), (18, 4), (19, 6), (20, 14), (21, 4), (22, 0), (23, 22), (24, 14)]  # 32-bit
-            [(1, 0), (2, 1), (3, 0), (4, 2), (5, 0), (6, 2), (7, 3), (8, 2), (9, 3), (10, 4), (11, 5), (12, 9), (13, 2), (14, 2), (15, 5), (16, 2), (17, 15), (18, 1), (19, 5), (20, 2), (21, 5), (22, 1), (23, 5), (24, 14)]   # 64-bit
+            sage: D.edges(labels=False)  # random
+            [(1, 0), (2, 1), (3, 0), (4, 2), (5, 0), (6, 2), (7, 3), (8, 2), (9, 3), (10, 4), (11, 5), (12, 9), (13, 2), (14, 2), (15, 5), (16, 2), (17, 15), (18, 1), (19, 5), (20, 2), (21, 5), (22, 1), (23, 5), (24, 14)]
+            sage: D.num_verts()
+            25
+            sage: D.num_edges()
+            24
+            sage: D.is_connected()
+            True
             sage: D.show()  # long time
         """
         if seed is None:
@@ -1276,7 +1281,9 @@ class DiGraphGenerators():
             sage: D = digraphs.RandomDirectedGNM(10, 5)
             sage: D.num_verts()
             10
-            sage: D.edges(labels=False)
+            sage: D.num_edges()
+            5
+            sage: D.edges(labels=False)  # random
             [(0, 3), (1, 5), (5, 1), (7, 0), (8, 5)]
 
         With loops::

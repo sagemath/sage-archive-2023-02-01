@@ -697,10 +697,7 @@ def RandomNewmanWattsStrogatz(n, k, p, seed=None):
     We check that the generated graph contains a cycle of order `n`::
 
         sage: G = graphs.RandomNewmanWattsStrogatz(7, 2, 0.2)
-        sage: G.order(), G.size()   # py3
-        (7, 9)                      # 64-bit
-        (7, 10)                     # 32-bit
-        sage: G.order(), G.size()   # py2
+        sage: G.order(), G.size()   # random
         (7, 9)
         sage: C7 = graphs.CycleGraph(7)
         sage: G.subgraph_search(C7)
@@ -1261,9 +1258,8 @@ def RandomLobster(n, p, q, seed=None):
     EXAMPLES: We show the edge list of a random graph with 3 backbone
     nodes and probabilities `p = 0.7` and `q = 0.3`::
 
-        sage: graphs.RandomLobster(3, 0.7, 0.3).edges(labels=False)
-        []                                                                  # 32-bit
-        [(0, 1), (0, 5), (1, 2), (1, 6), (2, 3), (2, 7), (3, 4), (3, 8)]    # 64-bit
+        sage: graphs.RandomLobster(3, 0.7, 0.3).edges(labels=False)  # random
+        [(0, 1), (0, 5), (1, 2), (1, 6), (2, 3), (2, 7), (3, 4), (3, 8)]
 
     ::
 

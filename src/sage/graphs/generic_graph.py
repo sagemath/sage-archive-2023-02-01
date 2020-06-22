@@ -7150,8 +7150,10 @@ class GenericGraph(GenericGraph_pyx):
         The heuristic totally agrees::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.longest_path(algorithm="backtrack").edges(labels=False)
+            sage: p = g.longest_path(algorithm="backtrack").edges(labels=False); p  # random
             [(0, 1), (1, 2), (2, 3), (3, 4), (4, 9), (5, 7), (5, 8), (6, 8), (6, 9)]
+            sage: len(p)
+            9
 
         .. PLOT::
 
@@ -8311,19 +8313,19 @@ class GenericGraph(GenericGraph_pyx):
         Now, using the backtrack algorithm in the Heawood graph ::
 
             sage: G=graphs.HeawoodGraph()
-            sage: G.hamiltonian_cycle(algorithm='backtrack')
+            sage: G.hamiltonian_cycle(algorithm='backtrack')  # random
             (True, [11, 10, 1, 2, 3, 4, 9, 8, 7, 6, 5, 0, 13, 12])
 
         And now in the Petersen graph ::
 
             sage: G=graphs.PetersenGraph()
-            sage: G.hamiltonian_cycle(algorithm='backtrack')
+            sage: G.hamiltonian_cycle(algorithm='backtrack')  # random
             (False, [6, 8, 5, 0, 1, 2, 7, 9, 4, 3])
 
         Finally, we test the algorithm in a cube graph, which is Hamiltonian ::
 
             sage: G=graphs.CubeGraph(3)
-            sage: G.hamiltonian_cycle(algorithm='backtrack')
+            sage: G.hamiltonian_cycle(algorithm='backtrack')  # random
             (True, ['010', '110', '100', '000', '001', '101', '111', '011'])
 
         """
@@ -10185,7 +10187,7 @@ class GenericGraph(GenericGraph_pyx):
         triple ``(u, v, l)`` of values, in which ``l`` is the label of edge
         ``(u, v)``::
 
-            sage: g.random_edge()
+            sage: g.random_edge()  # random
             (3, 4, None)
 
         TESTS::
@@ -13192,7 +13194,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: P = graphs.PetersenGraph()
             sage: P.random_subgraph(.25)
-            Subgraph of (Petersen graph): Graph on 4 vertices
+            Subgraph of (Petersen graph): Graph on ... vert...
         """
         p = float(p)
         if p < 0 or p > 1:
@@ -17350,7 +17352,7 @@ class GenericGraph(GenericGraph_pyx):
                 queue = [(v, 0) for v in reversed(start)]
             else:
                 queue = [(start, 0)]
-            
+
             if not edges:
                 while queue:
                     v, d = queue.pop()
@@ -17366,7 +17368,7 @@ class GenericGraph(GenericGraph_pyx):
                     v, w, d = queue.pop()
                     if w not in seen:
                         if v is not None:
-                            yield v, w                        
+                            yield v, w
                         seen.add(w)
                         for x in neighbors(w):
                             if x not in seen:
@@ -18702,7 +18704,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = graphs.LadderGraph(3) #TODO!!!!
-            sage: g.layout_spring()
+            sage: g.layout_spring()  # random
             {0: [1.0, -0.29...],
             1: [1.64..., 0.30...],
             2: [2.34..., 0.89...],
@@ -18742,7 +18744,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = graphs.LadderGraph(3)
-            sage: g.layout_ranked(heights={i: (i, i+3) for i in range(3)})
+            sage: g.layout_ranked(heights={i: (i, i+3) for i in range(3)})  # random
             {0: [0.668..., 0],
              1: [0.667..., 1],
              2: [0.677..., 2],

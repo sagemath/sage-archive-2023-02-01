@@ -38,5 +38,7 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1
 
 cdef Integer smallInteger(long value)
 
+cdef inline Integer _Integer_from_mpz(mpz_t e)
+
 cdef class int_to_Z(Morphism):
     pass

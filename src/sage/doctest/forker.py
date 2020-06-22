@@ -88,7 +88,7 @@ _OSError_SUBCLASSES = [
 
 
 
-def init_sage(environment=None):
+def init_sage(controller=None):
     """
     Import the Sage library.
 
@@ -168,7 +168,11 @@ def init_sage(environment=None):
     from sage.cpython._py2_random import Random
     sage.misc.randstate.DEFAULT_PYTHON_RANDOM = Random
 
-    import sage.repl.ipython_kernel.all_jupyter
+    if controller is None:
+        import sage.repl.ipython_kernel.all_jupyter
+    else:
+        controller.load_environment()
+
     try:
         from sage.interfaces.quit import invalidate_all
         invalidate_all()
@@ -1630,7 +1634,7 @@ class DocTestDispatcher(SageObject):
             <sage.doctest.forker.DocTestDispatcher object at ...>
         """
         self.controller = controller
-        init_sage(controller.options.environment)
+        init_sage(controller)
 
     def serial_dispatch(self):
         """

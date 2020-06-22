@@ -108,6 +108,14 @@ class Polyhedron_cdd(Polyhedron_base):
             ....:            backend='cdd', base_ring=QQ)  # indirect doctest
             A 1-dimensional polyhedron in QQ^2 defined as the
             convex hull of 1 vertex and 1 ray
+
+        TESTS:
+
+        The polyhedron with zero inequalities can be initialized from Hrepresentation;
+        see :trac:`29899`::
+
+            sage: Polyhedron(ieqs=[], ambient_dim=5, backend='cdd')
+            A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 1 vertex and 5 lines
         """
         from .cdd_file_format import cdd_Hrepresentation
         # We have to add a trivial inequality, in case the polyhedron is the universe.
@@ -553,6 +561,15 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
             sage: R = 2*P
             sage: P.is_combinatorially_isomorphic(R)
             True
+
+        The polyhedron with zero inequalites works correctly; see :trac:`29899`::
+
+            sage: Vrep = [[], [], [[1.0]]]
+            sage: Hrep = [[], []]
+            sage: p = Polyhedron_RDF_cdd(parent, Vrep, Hrep,
+            ....:                        Vrep_minimal=True, Hrep_minimal=True)  # indirect doctest
+            sage: p
+            A 1-dimensional polyhedron in RDF^1 defined as the convex hull of 1 vertex and 1 line
         """
         def parse_Vrep(intro, data):
             count = int(data[0][0])

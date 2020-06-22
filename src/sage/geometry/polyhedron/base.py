@@ -165,6 +165,14 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: _init_Hrepresentation() takes exactly 3 arguments (9 given)
+
+        The empty polyhedron is detected when the Vrepresentation is given with generator;
+        see :trac:`29899`::
+
+            sage: from sage.geometry.polyhedron.backend_cdd import Polyhedron_QQ_cdd
+            sage: from sage.geometry.polyhedron.parent import Polyhedra_QQ_cdd
+            sage: parent = Polyhedra_QQ_cdd(QQ, 0, 'cdd')
+            sage: p = Polyhedron_QQ_cdd(parent, [iter([]), iter([]), iter([])], None)
         """
         Element.__init__(self, parent=parent)
         if Vrep is not None and Hrep is not None:
@@ -195,12 +203,11 @@ class Polyhedron_base(Element):
             # Detect the empty polyhedron.
             # The damage is limited. We mainly have a generator to dispose
             # of the Vrepresentation in case we don't need it.
-            from types import GeneratorType
-            if isinstance(vertices, GeneratorType):
+            if not isinstance(vertices, (tuple, list)):
                 vertices = tuple(vertices)
-            if isinstance(rays, GeneratorType):
+            if not isinstance(rays, (tuple, list)):
                 rays = tuple(rays)
-            if isinstance(lines, GeneratorType):
+            if not isinstance(lines, (tuple, list)):
                 lines = tuple(lines)
 
             if vertices or rays or lines:

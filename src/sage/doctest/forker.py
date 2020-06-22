@@ -169,7 +169,11 @@ def init_sage():
     sage.misc.randstate.DEFAULT_PYTHON_RANDOM = Random
 
     import sage.repl.ipython_kernel.all_jupyter
-    sage.interfaces.quit.invalidate_all()
+    try:
+        from sage.interfaces.quit import invalidate_all
+        invalidate_all()
+    except ModuleNotFoundError:
+        pass
 
     # Disable cysignals debug messages in doctests: this is needed to
     # make doctests pass when cysignals was built with debugging enabled

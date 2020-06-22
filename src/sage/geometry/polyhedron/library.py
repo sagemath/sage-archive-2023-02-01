@@ -3121,7 +3121,6 @@ class Polytopes():
 
         ::
 
-            sage: set_random_seed()
             sage: ls = [randint(-100,100) for _ in range(4)]
             sage: intervals = [[x, x+randint(1,50)] for x in ls]
             sage: P = polytopes.hypercube(4, intervals, backend='field')
@@ -3158,7 +3157,6 @@ class Polytopes():
 
         Check that we set up the hypercube correctly::
 
-            sage: set_random_seed()
             sage: ls = [randint(-100,100) for _ in range(4)]
             sage: intervals = [[x, x+randint(1,50)] for x in ls]
             sage: P = polytopes.hypercube(4, intervals, backend='field')

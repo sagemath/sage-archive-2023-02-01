@@ -913,32 +913,64 @@ Function_sqrt = type('deprecated_sqrt', (),
 
 
 class Function_real_nth_root(BuiltinFunction):
+    r"""
+    Real `n`-th root function `x^\frac{1}{n}`.
+
+    The function assumes positive integer `n` and real number `x`.
+
+    EXAMPLES::
+
+        sage: v = real_nth_root(2, 3)
+        sage: v
+        real_nth_root(2, 3)
+        sage: v^3
+        2
+        sage: v = real_nth_root(-2, 3)
+        sage: v
+        real_nth_root(-2, 3)
+        sage: v^3
+        -2
+        sage: real_nth_root(8, 3)
+        2
+        sage: real_nth_root(-8, 3)
+        -2
+
+    For numeric input, it gives a numerical approximation. ::
+
+        sage: real_nth_root(2., 3)
+        1.25992104989487
+        sage: real_nth_root(-2., 3)
+        -1.25992104989487
+
+    Some symbolic calculus::
+
+        sage: f = real_nth_root(x, 5)^3
+        sage: f
+        real_nth_root(x^3, 5)
+        sage: f.diff()
+        3/5*x^2*real_nth_root(x^(-12), 5)
+        sage: f.integrate(x)
+        integrate((abs(x)^3)^(1/5)*sgn(x^3), x)
+        sage: _.diff()
+        (abs(x)^3)^(1/5)*sgn(x^3)
+
+    """
     def __init__(self):
         r"""
-        The real `n`-th root function `x^\frac{1}{n}`.
-
-        The function assumes positive integer `n` and real number `x`.
-
-        EXAMPLES::
-
-            sage: f = real_nth_root(2, 3)
-            sage: f^3
-            2
-            sage: f = real_nth_root(-2, 3)
-            sage: f^3
-            -2
+        Initialize.
 
         TESTS::
+
+            sage: cube_root = real_nth_root(x, 3)
+            sage: loads(dumps(cube_root))
+            real_nth_root(x, 3)
+
+        ::
 
             sage: f = real_nth_root(x, 3)
             sage: f._sympy_()
             Piecewise((Abs(x)**(1/3)*sign(x), Eq(im(x), 0)), (x**(1/3), True))
 
-        ::
-
-            sage: cube_root = real_nth_root(x, 3)
-            sage: loads(dumps(cube_root))
-            real_nth_root(x, 3)
         """
         BuiltinFunction.__init__(self, "real_nth_root", nargs=2,
                                  conversions=dict(sympy='real_root',
@@ -947,7 +979,7 @@ class Function_real_nth_root(BuiltinFunction):
 
     def _print_latex_(self, base, exp):
         r"""
-        EXAMPLES::
+        TESTS::
 
             sage: latex(real_nth_root(x, 3))
             x^{\frac{1}{3}}
@@ -958,16 +990,10 @@ class Function_real_nth_root(BuiltinFunction):
 
     def _evalf_(self, base, exp, parent=None):
         """
-        EXAMPLES::
+        TESTS::
 
-            sage: real_nth_root(2, 3)
-            real_nth_root(2, 3)
-            sage: real_nth_root(-2, 3)
-            real_nth_root(-2, 3)
-            sage: real_nth_root(2., 3)
-            1.25992104989487
-            sage: real_nth_root(-2., 3)
-            -1.25992104989487
+            sage: real_nth_root(RIF(2), 3)
+            1.259921049894873?
             sage: real_nth_root(RBF(2), 3)
             [1.259921049894873 +/- 3.92e-16]
             sage: real_nth_root(-2, 4)
@@ -991,16 +1017,12 @@ class Function_real_nth_root(BuiltinFunction):
 
     def _eval_(self, base, exp):
         """
-        EXAMPLES::
+        TESTS::
 
             sage: real_nth_root(x, 1)
             x
             sage: real_nth_root(x, 3)
             real_nth_root(x, 3)
-            sage: real_nth_root(8, 3)
-            2
-            sage: real_nth_root(-8, 3)
-            -2
         """
         if not isinstance(base, Expression) and not isinstance(exp, Expression):
             if isinstance(base, Integer):
@@ -1015,17 +1037,17 @@ class Function_real_nth_root(BuiltinFunction):
 
     def _power_(self, base, exp, power_param=None):
         """
-        EXAMPLES::
+        TESTS::
 
-            sage: v = real_nth_root(x, 3)
-            sage: v^5
+            sage: f = real_nth_root(x, 3)
+            sage: f^5
             real_nth_root(x^5, 3)
         """
         return self(base**power_param, exp)
 
     def _derivative_(self, base, exp, diff_param=None):
         """
-        EXAMPLES::
+        TESTS::
 
             sage: f = real_nth_root(x, 3)
             sage: f.diff()
@@ -1039,16 +1061,6 @@ class Function_real_nth_root(BuiltinFunction):
             sage: f = real_nth_root(-x, 4)
             sage: f.diff()
             -1/4*real_nth_root(-1/x^3, 4)
-
-        ::
-
-            sage: f = real_nth_root(x,3)
-            sage: f.diff()
-            1/3*real_nth_root(x^(-2), 3)
-            sage: f.integrate(x)
-            integrate(abs(x)^(1/3)*sgn(x), x)
-            sage: _.diff()
-            abs(x)^(1/3)*sgn(x)
         """
         return 1/exp * self(base, exp)**(1-exp)
 

@@ -684,7 +684,8 @@ How do I plot the cube root (or other odd roots) for negative input?
 This is one of the most frequently asked questions.  There are several
 methods mentioned in the plot documentation, but this one is easiest::
 
-    sage: plot(real_nth_root(x, 3), (x, -1, 1))  # not tested
+    sage: plot(real_nth_root(x, 3), (x, -1, 1))
+    Graphics object consisting of 1 graphics primitive
 
 On the other hand, note that the straightforward ::
 

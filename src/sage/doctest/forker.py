@@ -88,7 +88,7 @@ _OSError_SUBCLASSES = [
 
 
 
-def init_sage():
+def init_sage(environment=None):
     """
     Import the Sage library.
 
@@ -1630,7 +1630,7 @@ class DocTestDispatcher(SageObject):
             <sage.doctest.forker.DocTestDispatcher object at ...>
         """
         self.controller = controller
-        init_sage()
+        init_sage(controller.options.environment)
 
     def serial_dispatch(self):
         """
@@ -2510,7 +2510,8 @@ class DocTestTask(object):
         """
         # Import Jupyter globals to doctest the Jupyter
         # implementation of widgets and interacts
-        import sage.repl.ipython_kernel.all_jupyter as sage_all
+        from importlib import import_module
+        sage_all = import_module(options.environment)
         dict_all = sage_all.__dict__
         # Remove '__package__' item from the globals since it is not
         # always in the globals in an actual Sage session.

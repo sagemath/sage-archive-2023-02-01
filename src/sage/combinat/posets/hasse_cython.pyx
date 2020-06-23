@@ -11,14 +11,14 @@ Some fast computations for finite posets
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
-from cysignals.signals cimport sig_str, sig_off, sig_check
+from cysignals.signals cimport sig_check
 
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_mat cimport *
 
-from sage.rings.integer_ring import ZZ
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
+
+from sage.rings.integer_ring import ZZ
 from sage.matrix.matrix_space import MatrixSpace
 
 
@@ -54,8 +54,6 @@ cpdef Matrix_integer_dense moebius_matrix_fast(list positions):
     cdef int j, k
     A = Matrix_integer_dense.__new__(Matrix_integer_dense,
                                      MatrixSpace(ZZ, n, n), None, None, None)
-    sig_str("FLINT exception")
-    sig_off()
     fmpz_mat_one(A._matrix)
     for i in range(n - 1, -1, -1):
         sig_check()

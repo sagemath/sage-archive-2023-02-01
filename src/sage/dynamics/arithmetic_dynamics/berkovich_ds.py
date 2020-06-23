@@ -169,7 +169,7 @@ class DynamicalSystem_Berkovich(Element):
             raise ValueError('action of dynamical system not defined on %s' %x)
         if x.type_of_point() != 1:
             raise NotImplementedError('action on Type II, III, and IV points not implemented')
-        return self._system(x.center())
+        return self.domain()(self._system(x.center()))
 
     def _repr_(self):
         """

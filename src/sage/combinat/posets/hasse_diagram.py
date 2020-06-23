@@ -976,7 +976,7 @@ class HasseDiagram(DiGraph):
 
         OUTPUT:
 
-        a dense for the algorithm ``cython``, a sparse matrix otherwise
+        a dense matrix for the algorithm ``cython``, a sparse matrix otherwise
 
         .. NOTE::
 

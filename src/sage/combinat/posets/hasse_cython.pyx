@@ -19,7 +19,6 @@ from sage.libs.flint.fmpz_mat cimport *
 
 from sage.rings.integer_ring import ZZ
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
-from sage.matrix.constructor import Matrix
 from sage.matrix.matrix_space import MatrixSpace
 
 

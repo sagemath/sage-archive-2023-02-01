@@ -331,11 +331,11 @@ def possible_mu0s(SUK, v):
 
 def Yu_a1_kappa1_c1(p, dK, ep):
     r"""
-    Returns the constants a(1), kappa1, and c(1) of [Yu2007]_
+    Compute the constants a(1), kappa1, and c(1) of [Yu2007]_
 
     INPUT:
 
-    - ``p`` -- a rational prime number.
+    - ``p`` -- a rational prime number
     - ``dK`` -- the absolute degree of some number field `K`
     - ``ep`` -- the absolute ramification index of some prime `frak_p` of `K` lying above `p`
 
@@ -403,16 +403,16 @@ def Yu_a1_kappa1_c1(p, dK, ep):
 
 def Yu_condition_115(K, v):
     r"""
-    Returns True or False, as the number field K and the finite place v satisfy condition (1.15) of [Yu2007]_
+    Return ``True`` or ``False``, as the number field ``K`` and the finite place ``v`` satisfy condition (1.15) of [Yu2007]_
 
     INPUT:
 
     - ``K`` -- a number field
-    - ``v`` -- a finite place of `K`
+    - ``v`` -- a finite place of ``K``
 
     OUTPUT:
 
-    - `True` if (1.15) is satisfied, otherwise `False`.
+    ``True`` if (1.15) is satisfied, otherwise `False`.
 
     EXAMPLES::
 
@@ -456,7 +456,7 @@ def Yu_condition_115(K, v):
 
 def Yu_modified_height(mu, n, v, prec=106):
     r"""
-    Return the value of h(n)(mu) as appearing in [Yu2007] equation (1.21).
+    Return the value of h(n)(mu) as appearing in [Yu2007]_ equation (1.21).
 
     INPUT:
 
@@ -517,7 +517,7 @@ def Omega_prime(dK, v, mu_list, prec=106):
 
     OUTPUT:
 
-    - The constant `Omega'`.
+    The constant `Omega'`.
 
     EXAMPLES:
 
@@ -537,19 +537,19 @@ def Omega_prime(dK, v, mu_list, prec=106):
 
     R = RealField(prec)
 
-    Omega_prime = R(1)
+    omega_prime = R(1)
     for mu in mu_list[1:]:
-        Omega_prime *= mu.global_height()
+        omega_prime *= mu.global_height()
 
     n = len(mu_list)
 
-    Omega_prime *= Yu_modified_height(mu_list[0], n, v, prec)
+    omega_prime *= Yu_modified_height(mu_list[0], n, v, prec)
 
-    return Omega_prime
+    return omega_prime
 
 def Yu_C1_star(n, v, prec=106):
     r"""
-    Return the constant C_1^* appearin in [Yu2007] (1.23).
+    Return the constant C_1^* appearing in [Yu2007]_ (1.23).
 
     INPUT:
 
@@ -1023,7 +1023,7 @@ def reduction_step_complex_case(place, B0, list_of_gens, torsion_gen, c13):
         finish = False
         while not finish:
             A = identity_matrix(ZZ, n+1)
-            A[n] = vector([(g * C).round() for g in imag_part_log_gens])
+            # v = vector([(g * C).round() for g in imag_part_log_gens])
 
             if A.is_singular():
                 C = ZZ(2*C)

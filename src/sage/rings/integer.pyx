@@ -7254,7 +7254,7 @@ cdef class int_to_Z(Morphism):
         sage: type(1 + 2r)
         <type 'sage.rings.integer.Integer'>
 
-    This is intented for internal use by the coercion system,
+    This is intended for internal use by the coercion system,
     to facilitate fast expressions mixing ints and more complex
     Python types.  Note that (as with all morphisms) the input
     is forcably coerced to the domain ``int`` if it is not

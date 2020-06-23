@@ -6623,7 +6623,7 @@ cdef class Matroid(SageObject):
             sage: M.is_max_weight_independent_generic()
             False
 
-        Here is an example from [GriRei18]_ (Example 7.4.12 in v5)::
+        Here is an example from [GriRei18]_ (Example 7.4.12 in v6)::
 
             sage: A = Matrix(QQ, [[ 1,  1,  0,  0],
             ....:                 [-1,  0,  1,  1],
@@ -6781,7 +6781,7 @@ cdef class Matroid(SageObject):
             sage: M.dual().is_max_weight_coindependent_generic(weights=wt)
             True
 
-        Here is an example from [GriRei18]_ (Example 7.4.12 in v5)::
+        Here is an example from [GriRei18]_ (Example 7.4.12 in v6)::
 
             sage: A = Matrix(QQ, [[ 1,  1,  0,  0],
             ....:                 [-1,  0,  1,  1],

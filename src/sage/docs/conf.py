@@ -455,6 +455,13 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{23AE}{\ensuremath{\|}} % integral extenison
 
     \DeclareUnicodeCharacter{2571}{/}   % Box drawings light diagonal upper right to lower left
+
+    \DeclareUnicodeCharacter{25CF}{\ensuremath{\bullet}}  % medium black circle
+    \DeclareUnicodeCharacter{26AC}{\ensuremath{\circ}}  % medium small white circle
+    \DeclareUnicodeCharacter{256D}{+}
+    \DeclareUnicodeCharacter{256E}{+}
+    \DeclareUnicodeCharacter{256F}{+}
+    \DeclareUnicodeCharacter{2570}{+}
 \fi
 
 \let\textLaTeX\LaTeX

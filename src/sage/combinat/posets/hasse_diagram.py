@@ -99,7 +99,7 @@ class HasseDiagram(DiGraph):
         r"""
         Return a linear extension
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[]})
@@ -113,7 +113,7 @@ class HasseDiagram(DiGraph):
         r"""
         Return an iterator over all linear extensions.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[]})
@@ -144,7 +144,7 @@ class HasseDiagram(DiGraph):
             [0, 1, 2, 3, 4]
             [0, 2, 3, 1, 4]
 
-        TESTS:
+        TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: list(HasseDiagram({}).greedy_linear_extensions_iterator())
@@ -244,7 +244,7 @@ class HasseDiagram(DiGraph):
         r"""
         Test if an ordering is a linear extension.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[]})
@@ -268,7 +268,7 @@ class HasseDiagram(DiGraph):
         r"""
         Iterate over cover relations.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
@@ -282,7 +282,7 @@ class HasseDiagram(DiGraph):
         r"""
         Return the list of cover relations.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
@@ -293,15 +293,15 @@ class HasseDiagram(DiGraph):
 
     def is_lequal(self, i, j):
         """
-        Return True if i is less than or equal to j in the poset, and
-        False otherwise.
+        Return ``True`` if i is less than or equal to j in the poset, and
+        ``False`` otherwise.
 
         .. note::
 
             If the :meth:`lequal_matrix` has been computed, then this method is
             redefined to use the cached data (see :meth:`_alternate_is_lequal`).
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
@@ -321,10 +321,10 @@ class HasseDiagram(DiGraph):
 
     def is_less_than(self, x, y):
         r"""
-        Return True if ``x`` is less than or equal to ``y`` in the
-        poset, and False otherwise.
+        Return ``True`` if ``x`` is less than or equal to ``y`` in the
+        poset, and ``False`` otherwise.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
@@ -342,8 +342,7 @@ class HasseDiagram(DiGraph):
         """
         if x == y:
             return False
-        else:
-            return self.is_lequal(x, y)
+        return self.is_lequal(x, y)
 
     def is_gequal(self, x, y):
         r"""
@@ -443,7 +442,7 @@ class HasseDiagram(DiGraph):
 
     def has_bottom(self):
         """
-        Return True if the poset has a unique minimal element.
+        Return ``True`` if the poset has a unique minimal element.
 
         EXAMPLES::
 
@@ -492,8 +491,8 @@ class HasseDiagram(DiGraph):
 
     def is_bounded(self):
         """
-        Return True if the poset contains a unique maximal element and a
-        unique minimal element, and False otherwise.
+        Return ``True`` if the poset contains a unique maximal element and a
+        unique minimal element, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -508,7 +507,7 @@ class HasseDiagram(DiGraph):
 
     def is_chain(self):
         """
-        Return True if the poset is totally ordered, and False otherwise.
+        Return ``True`` if the poset is totally ordered, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -555,6 +554,10 @@ class HasseDiagram(DiGraph):
     def dual(self):
         """
         Return a poset that is dual to the given poset.
+
+        This means that it has the same elements but opposite order.
+        The elements are renumbered to ensure that ``range(n)``
+        is a linear extension.
 
         EXAMPLES::
 
@@ -631,8 +634,9 @@ class HasseDiagram(DiGraph):
     def interval(self, x, y):
         r"""
         Return a list of the elements `z` of ``self`` such that
-        `x \leq z \leq y`. The order is that induced by the
-        ordering in ``self.linear_extension``.
+        `x \leq z \leq y`.
+
+        The order is that induced by the ordering in ``self.linear_extension``.
 
         INPUT:
 
@@ -657,9 +661,9 @@ class HasseDiagram(DiGraph):
 
     def open_interval(self, x, y):
         """
-        Return a list of the elements `z` of ``self`` such that
-        `x < z < y`. The order is that induced by the ordering in
-        ``self.linear_extension``.
+        Return a list of the elements `z` of ``self`` such that `x < z < y`.
+
+        The order is that induced by the ordering in ``self.linear_extension``.
 
         EXAMPLES::
 
@@ -828,7 +832,7 @@ class HasseDiagram(DiGraph):
 
     def is_ranked(self):
         r"""
-        Return True if the poset is ranked, and False otherwise.
+        Return ``True`` if the poset is ranked, and ``False`` otherwise.
 
         A poset is *ranked* if it admits a rank function. For more information
         about the rank function, see :meth:`~rank_function`
@@ -847,7 +851,7 @@ class HasseDiagram(DiGraph):
 
     def covers(self, x, y):
         """
-        Return True if y covers x and False otherwise.
+        Return ``True`` if y covers x and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -1428,8 +1432,10 @@ class HasseDiagram(DiGraph):
 
     def meet_matrix(self):
         r"""
-        Return the matrix of meets of ``self``. The ``(x,y)``-entry of
-        this matrix is the meet of ``x`` and ``y`` in ``self``.
+        Return the matrix of meets of ``self``.
+
+        The ``(x,y)``-entry of this matrix is the meet of ``x`` and
+        ``y`` in ``self``.
 
         This algorithm is modelled after the algorithm of Freese-Jezek-Nation
         (p217). It can also be found on page 140 of [Gec81]_.
@@ -2100,7 +2106,7 @@ class HasseDiagram(DiGraph):
 
         INPUT:
 
-         - ``i``, ``j`` -- vertices of this Hasse diagram
+        - ``i``, ``j`` -- vertices of this Hasse diagram
 
         EXAMPLES::
 
@@ -2140,7 +2146,7 @@ class HasseDiagram(DiGraph):
 
         INPUT:
 
-         - ``element_class`` -- (default:list) an iterable type
+        - ``element_class`` -- (default:list) an iterable type
 
         EXAMPLES::
 
@@ -2159,8 +2165,6 @@ class HasseDiagram(DiGraph):
         TESTS::
 
             sage: TestSuite(A).run()
-
-        TESTS::
 
             sage: A = Poset()._hasse_diagram.antichains()
             sage: list(A)
@@ -2209,7 +2213,7 @@ class HasseDiagram(DiGraph):
             [[], [0], [0, 1], [0, 2], [1], [2]]
 
         The ``element_class`` keyword determines how the chains are
-        being returned:
+        being returned::
 
             sage: P = Poset({1: [2, 3], 2: [4]})
             sage: list(P._hasse_diagram.chains(element_class=tuple))
@@ -2217,7 +2221,7 @@ class HasseDiagram(DiGraph):
             sage: list(P._hasse_diagram.chains())
             [[], [0], [0, 1], [0, 1, 2], [0, 2], [0, 3], [1], [1, 2], [2], [3]]
 
-        (Note that taking the Hasse diagram has renamed the vertices.)
+        (Note that taking the Hasse diagram has renamed the vertices.) ::
 
             sage: list(P._hasse_diagram.chains(element_class=tuple, exclude=[0]))
             [(), (1,), (1, 2), (2,), (3,)]

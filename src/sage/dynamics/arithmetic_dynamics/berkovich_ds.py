@@ -7,12 +7,21 @@ which naturally induces a dynamical system on affine or
 projective Berkovich space.
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.structure.element import Element
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
 from sage.misc.classcall_metaclass import typecall
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.rings.padics.generic_nodes import is_pAdicField
 from sage.schemes.berkovich.berkovich_space import Berkovich_Cp_Affine, Berkovich_Cp_Projective
+from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective
 
 class DynamicalSystem_Berkovich(Element):
 
@@ -29,6 +38,7 @@ class DynamicalSystem_Berkovich(Element):
 
         - ``domain`` -- (optional) affine or projective Berkovich space over \CC_p
         """
+        if not(domain is None) or 
         if isinstance(system_morphism_polys,(list,tuple)):
             polys = list(system_morphism_polys)
             if len(system_morphism_polys) not in [1,2]:
@@ -41,6 +51,15 @@ class DynamicalSystem_Berkovich(Element):
                     polys = [poly.lift() for poly in polys]
                 except AttributeError:
                     raise ValueError('{} must be elements of a polynomial ring'.format(system_morphism_polys))
+            if domain is None:
+                PR = get_coercion_model().common_parent(*polys)
+                if (not is_pAdicField(PR)) or :
+                    raise ValueError('common parent for polynomials not a padic field')
+                system_morphism_polys = DynamicalSystem_projective(polys)
+            else:
+                
+                if isinstance(domain, Berkovich_Cp_Affine):
+
 
         if isinstance(system_morphism_polys, DynamicalSystem):
             system_morphism_polys = system_morphism_polys.as_scheme_morphism()
@@ -52,7 +71,10 @@ class DynamicalSystem_Berkovich(Element):
             if morphism_domain != system_morphism_polys.codomain():
                 raise ValueError('domain and codomain do not agree')
             if not is_pAdicField(R):
-                raise ValueError('system_morphism_polys not defined over padic field')
+                if domain is None:
+                    raise ValueError('system_morphism_polys not defined over padic field and domain is None')
+                try:
+                    system_morphism_polys = system_morphism_polys.change_ring()
             if morphism_domain != morphism_domain.ambient_space():
                 raise ValueError('morphism must be defined on the ambient space')
             if domain == None:

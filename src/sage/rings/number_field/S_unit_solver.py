@@ -230,11 +230,11 @@ def beta_k(betas_and_ns):
     - [Sma1995]_ pp. 824-825
     """
     for pair in betas_and_ns:
-        if pair[1].abs() != 0:
+        if abs( pair[1] ) != 0:
             good_pair = pair
             break
     for pair in betas_and_ns:
-        if (pair[1].abs()!=0 and pair[1].abs()<good_pair[1].abs()):
+        if ( abs(pair[1]) != 0 and abs(pair[1]) < abs(good_pair[1]) ):
             good_pair = pair
     return good_pair
 
@@ -317,7 +317,7 @@ def possible_mu0s(SUK, v):
     ns = [beta[1] for beta in beta_and_ns if beta[0] != betak]
     betas = [beta[0] for beta in beta_and_ns if beta[0] != betak]
     mu0s = []
-    for rs in combinations_with_replacement(range(nk.abs()), len(betas)):
+    for rs in combinations_with_replacement(range( abs(nk), len(betas)):
         # n_0 = valuation_v of one of the coefficients of the equation = 0 for x + y = 1 p. 824
         n_rs = zip(ns, rs)
         sigma_tilde = -(sum([n_r[0]*n_r[1] for n_r in n_rs]))
@@ -883,7 +883,7 @@ def K1_func(SUK, v, A, prec=106):
 
     def hprime(SUK, alpha, v):
         #[Sma1998]_ p. 225
-        return R(max(alpha.global_height(), 1/SUK.number_field().degree(), v(alpha).log().abs()/SUK.number_field().degree()))
+        return R(max(alpha.global_height(), 1/SUK.number_field().degree(), abs( v(alpha).log() ) / SUK.number_field().degree()))
 
     #[Sma1995]_ p. 825 and [Sma1998]_ p. 225, Theorem A.1
     c14 = Baker_C * prod([hprime(SUK, alpha, v) for alpha in SUK.gens_values()])
@@ -947,7 +947,7 @@ def minimal_vector(A, y, prec=106):
     c1 = 2**(n-1)
     ALLL = A.LLL()
     ALLLinv = ALLL.inverse()
-    ybrace = [R(a-a.round()).abs() for a in y * ALLLinv if (a-a.round()) != 0]
+    ybrace = [ abs(R(a-a.round())) for a in y * ALLLinv if (a-a.round()) != 0]
 
     if len(ybrace) == 0:
         return (ALLL.rows()[0].norm())**2 / c1
@@ -1172,7 +1172,7 @@ def cx_LLL_bound(SUK, A, prec=106):
             cx_bound = K1_func(SUK, v, A, prec_v)
             new_bound, inc_prec = reduction_step_complex_case(v, cx_bound, SUK.fundamental_units(), SUK.zeta(), c13_LLL)
         counter = 0
-        while (cx_bound-new_bound).abs() > .5*cx_bound and counter < 15:
+        while abs(cx_bound - new_bound) > .5*cx_bound and counter < 15:
             #We fear a loop that is not convergent, this is the purpose of the counter
             #Repeat complex LLL until we get essentially no change from it
             cx_bound = min(cx_bound, new_bound)

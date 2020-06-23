@@ -90,7 +90,7 @@ class FusionRing(WeylCharacterRing):
         [I0, Y1, Y2, X, Xp, Z]
 
     To reset the labels and the order to their defaults,
-    you may run `fusion_labels` with no parameter:
+    you may run :meth:`fusion_labels` with no parameter::
 
         sage: B22.fusion_labels()
         sage: [B22(x) for x in B22.get_order()]
@@ -128,9 +128,9 @@ class FusionRing(WeylCharacterRing):
     @lazy_attribute
     def _q_field(self):
         """
-        The cyclotomic field of 4l-th roots of unity, where
-        l is the fusion_l of the category (see above). Call this
-        lazy attribute via the method `self.q_field()`.
+        The cyclotomic field of `4\ell`-th roots of unity, where
+        `\ell` is computed by :meth:`fusion_l`. Call this
+        lazy attribute via the method :meth:`q_field()`.
 
         EXAMPLES::
 
@@ -144,8 +144,8 @@ class FusionRing(WeylCharacterRing):
 
     def q_field(self):
         """
-        Return the cyclotomic field of 4l-th roots of unity, where
-        `l` is the ``fusion_l`` of the category (see above).
+        Return the cyclotomic field of `4\ell`-th roots of unity, where
+        `\ell` is computed by :meth:`fusion_l`.
 
         This field contains the twists, categorical dimensions, and the entries of the 
         S-matrix.
@@ -172,10 +172,10 @@ class FusionRing(WeylCharacterRing):
             sage: [A14(x) for x in A14.get_order()]
             [A14(0), A14(4), A14(1), A14(3), A14(2)]
 
-        This duplicates :meth:`get_order` from `combinat.free_module`.
-        However unlike the `combinat.free_module` method with the same
-        name this `get_order` is not cached. Caching of get_order causes
-        inconsistent results after calling `set_order`.
+        This duplicates :meth:`get_order` from :mod:`combinat.free_module`.
+        However unlike the :mod:`combinat.free_module` method with the same
+        name this :meth:`get_order` is not cached. Caching of :meth:`get_order` causes
+        inconsistent results after calling :meth:`set_order`.
         """
         if self._order is None:
             self.set_order(self.basis().keys().list())
@@ -214,7 +214,7 @@ class FusionRing(WeylCharacterRing):
         and `h^\vee` denotes the dual Coxeter number of the underlying Lie
         algebra.
 
-        This value is used to define the associated root of unity q.
+        This value is used to define the associated root of unity ``q``.
 
         EXAMPLES::
 
@@ -261,6 +261,55 @@ class FusionRing(WeylCharacterRing):
         b = self.basis()
         return [b[x].q_dimension() for x in self.get_order()]
 
+    def N_ijk(self, elt_i, elt_j, elt_k):
+        """
+        INPUT:
+
+        - ``elt_i``, ``elt_j``, ``elt_k`` -- elements of the fusion basis
+
+        Returns the symmetric fusion coefficient `N_{ijk}`. This
+        is the same as `N_{ij}^{k\\ast}`, where $N_{ij}^k$ are the
+        structure coefficients of the ring (see :meth:`Nk_ij`),
+        and `k\\ast`` denotes the dual element. The coefficient `N_{ijk}`
+        is unchanged under permutations of the three basis vectors.
+
+        EXAMPLES::
+
+            sage: G23=FusionRing("G2",3)
+            sage: G23.fusion_labels("g")
+            sage: b = G23.basis().list(); b
+            [g0, g1, g2, g3, g4, g5]
+            sage: [(x,y,z) for x in b for y in b for z in b if G23.N_ijk(x,y,z)>1]
+            [(g3, g3, g3), (g3, g3, g4), (g3, g4, g3), (g4, g3, g3)]
+            sage: all([G23.N_ijk(x,y,z)==G23.N_ijk(y,z,x) for x in b for y in b for z in b])
+            True
+            sage: all([G23.N_ijk(x,y,z)==G23.N_ijk(y,x,z) for x in b for y in b for z in b])
+            True
+
+        """
+        return (elt_i*elt_j).monomial_coefficients().get(elt_k.dual().weight(),0)
+
+    def Nk_ij(self, elt_i, elt_j, elt_k):
+        """
+        Returns the fusion coefficient `N^k_{ij}`. These are
+        the structure coefficients of the fusion ring, so
+        
+        .. MATH::
+
+            i*j = \sum_k N_{ij}^k\,k
+
+        as the example shows.
+
+        EXAMPLES::
+
+            sage: A22=FusionRing("A2",2)
+            sage: b = A22.basis().list()
+            sage: all(x*y == sum(A22.Nk_ij(x,y,k)*k for k in b) for x in b for y in b)
+            True
+
+        """
+        return (elt_i*elt_j).monomial_coefficients().get(elt_k.weight(),0)
+
     def s_ij(self, elt_i, elt_j):
         """
         Return the element of the S-matrix of this FusionRing corresponding to 
@@ -281,6 +330,7 @@ class FusionRing(WeylCharacterRing):
         K = self.q_field()
         q = K.gen()
         ijtwist = -2*l*(elt_i.twist() + elt_j.twist())
+        
         return sum(self(k).q_dimension()*q**(2*l*self(k).twist()+ijtwist) for k in (elt_i.dual()*elt_j).monomial_coefficients())
 
     def s_matrix(self):

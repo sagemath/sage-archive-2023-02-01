@@ -540,11 +540,11 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: Q.ehrhart_quasipolynomial.is_in_cache()                     # optional - pynormaliz
             True
 
-            sage: P = polytopes.cuboctahedron().change_ring(QQ)   # optional - latte_int
-            sage: P.ehrhart_quasipolynomial(engine='latte')       # optional - latte_int
+            sage: P = polytopes.cuboctahedron().change_ring(QQ)               # optional - latte_int
+            sage: P.ehrhart_quasipolynomial(engine='latte')                   # optional - latte_int
             20/3*t^3 + 8*t^2 + 10/3*t + 1
-            sage: Q = loads(dumps(P))                             # optional - latte_int
-            sage: Q.ehrhart_quasipolynomial.is_in_cache()         # optional - latte_int
+            sage: Q = loads(dumps(P))                                         # optional - latte_int
+            sage: Q.ehrhart_quasipolynomial.is_in_cache(engine='latte')       # optional - latte_int
             True
         """
         if self.is_empty():

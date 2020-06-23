@@ -90,6 +90,12 @@ AC_ARG_ENABLE([fat-binary],
               [AC_SUBST(SAGE_FAT_BINARY, "yes")],
               [])
 
+AC_ARG_ENABLE([debug],
+              [AS_HELP_STRING([--enable-debug={no|symbols|yes}],
+                              [controls debugging support: "no" debugging; debugging "symbols" (default); build debug version ("yes")])],
+              [AC_SUBST(SAGE_DEBUG, $enableval)],
+              [])
+
 # Check whether we are on a supported platform
 AC_CANONICAL_BUILD()
 AC_CANONICAL_HOST()
@@ -333,7 +339,7 @@ if test "x${CFLAGS}" = "x"; then
         CFLAGS="-Og -g"
         CFLAGS_O3="-Og -g"
     else
-        if test "x$SAGE_DEBUG" = "no" ; then
+        if test "x$SAGE_DEBUG" = "xno" ; then
             CFLAGS="-O2"
             CFLAGS_O3="-O3"
         else

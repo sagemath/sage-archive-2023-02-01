@@ -5723,7 +5723,7 @@ class Permutations_mset(Permutations):
             sage: p.rank([3, 1, 4, 1, 5, 9, 2, 6, 5])
             30991
 
-        TESTS:
+        TESTS::
 
             sage: from sage.combinat.permutation import Permutations_mset
             sage: p = Permutations_mset([])
@@ -5736,7 +5736,7 @@ class Permutations_mset(Permutations):
             ValueError: Invalid permutation
 
         Try with greater-than-unity multiplicity in the least and greatest
-        elements.
+        elements. ::
 
             sage: mset = list(range(10)) * 3
             sage: p = Permutations_mset(mset)
@@ -5748,7 +5748,7 @@ class Permutations_mset(Permutations):
             4386797336285844480000000
 
         Should match ``StandardPermutations_n`` when `M` is the set
-        `\{1, 2, \ldots, n\}`.
+        `\{1, 2, \ldots, n\}`. ::
 
             sage: ps = Permutations(4)
             sage: pm = Permutations_mset(list(range(1, 5)))
@@ -5794,7 +5794,7 @@ class Permutations_mset(Permutations):
             sage: p.unrank(p.cardinality()-1) == list(reversed(sorted(mset)))
             True
 
-        TESTS:
+        TESTS::
 
             sage: from sage.combinat.permutation import Permutations_mset
             sage: p = Permutations_mset([])
@@ -5815,7 +5815,7 @@ class Permutations_mset(Permutations):
             ValueError: r must be between 0 and 90719 inclusive
 
         Try with a cardinality that exceeds the precise integer range of a
-        float.
+        float. ::
 
             sage: mset = list(range(10)) * 3
             sage: p = Permutations_mset(mset)
@@ -5825,7 +5825,7 @@ class Permutations_mset(Permutations):
             True
 
         Should match ``StandardPermutations_n`` when `M` is the set
-        `\{1, 2, \ldots, n\}`.
+        `\{1, 2, \ldots, n\}`. ::
 
             sage: ps = Permutations(4)
             sage: pm = Permutations_mset(list(range(1, 5)))

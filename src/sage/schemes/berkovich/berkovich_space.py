@@ -180,7 +180,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                             raise ValueError("the center of a point of Projective Berkovich" + \
                                 "space must be a point of P^1(Cp(%s)), not of %s"%(self._p, center.parent()))
                     elif not is_pAdicField(center.scheme().base_ring()):
-                        if not isinstance(center.scheme().base_ring(),pAdicGeneric):
+                        if not isinstance(center.scheme().base_ring(),pAdicBaseGeneric):
                             try:
                                 center = (self._base_space)(center)
                                 flag = False

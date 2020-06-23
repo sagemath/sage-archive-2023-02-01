@@ -49,13 +49,32 @@ AC_DEFUN([SAGE_CHECK_BROKEN_GCC], [
     fi
 ])
 
+dnl Save the flags as configured by the user.
+AC_DEFUN([SAGE_SAVE_ORIGINAL_FLAGS], [
+    AC_SUBST(ORIGINAL_CFLAGS, "$CFLAGS")
+    AC_SUBST(ORIGINAL_CXXFLAGS, "$CXXFLAGS")
+    AC_SUBST(ORIGINAL_FCFLAGS, "$FCFLAGS")
+    AC_SUBST(ORIGINAL_F77FLAGS, "$F77FLAGS")
+])
 
 SAGE_SPKG_CONFIGURE_BASE([gcc], [
-	AC_REQUIRE([AC_PROG_CC])
-	AC_REQUIRE([AC_PROG_CPP])
-	AC_REQUIRE([AC_PROG_CXX])
-	AC_REQUIRE([AC_PROG_OBJC])
-	AC_REQUIRE([AC_PROG_OBJCXX])
+    AC_REQUIRE([SAGE_SAVE_ORIGINAL_FLAGS])
+
+    AC_REQUIRE([SAGE_CHECK_CONDA_COMPILERS])
+
+    AC_REQUIRE([AC_PROG_CC])
+    AC_REQUIRE([AC_PROG_CPP])
+    AC_REQUIRE([AC_PROG_CXX])
+
+    AC_SUBST(CC)
+    AC_SUBST(FC)
+
+    AC_REQUIRE([AC_PROG_OBJC])
+    AC_REQUIRE([AC_PROG_OBJCXX])
+    AC_SUBST(OBJC)
+    AC_SUBST(OBJCXX)
+
+    AS_IF([test "x$CXX" = x], [AC_MSG_ERROR([a C++ compiler is missing])])
 
     if test -f "$SAGE_LOCAL/bin/gcc"; then
         # Special value for SAGE_INSTALL_GCC if GCC is already installed
@@ -151,6 +170,10 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
                     # Install our own GCC if the system-provided one is newer than 9.x.
                     # See https://trac.sagemath.org/ticket/29456
                     SAGE_SHOULD_INSTALL_GCC([$CXX is g++ version $GXX_VERSION, which is too recent for this version of Sage])
+                ],
+                [4.[[8-9]].*|5.[[0-1]].*], [
+                    # GCC less than 5.1 is not ready for AVX512.
+                    sage_use_march_native=no
                 ])
         fi
 
@@ -201,6 +224,62 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
             SAGE_SRC="$SAGE_SRC"
         ])
     fi
+
+    # Determine which compiler flags should be set.
+    if test "x$sage_use_march_native" = "xno"; then
+        march=""
+    elif test "x$SAGE_FAT_BINARY" = "xyes"; then
+        march=""
+    elif test "x$SAGE_DEBUG" = "xyes"; then
+        march=""
+    elif test "x$sage_spkg_install_gcc" =" xyes"; then
+        march=" -march=native"
+    else
+        AX_CHECK_COMPILE_FLAG("-march=native", [march=" -march=native"], [march=""], [], [])
+    fi
+
+    if test "x$ORIGINAL_CFLAGS" = "x"; then
+        # Evaluate SAGE_DEBUG:
+        if test "x$SAGE_DEBUG" = "xyes" ; then
+            AC_SUBST(CFLAGS_NON_NATIVE, "-Og -g")
+            AC_SUBST(CFLAGS_O3_NON_NATIVE, "-Og -g")
+        else
+            if test "x$SAGE_DEBUG" = "xno" ; then
+                AC_SUBST(CFLAGS_NON_NATIVE, "-O2")
+                AC_SUBST(CFLAGS_O3_NON_NATIVE, "-O3")
+            else
+                AC_SUBST(CFLAGS_NON_NATIVE, "-O2 -g")
+                AC_SUBST(CFLAGS_O3_NON_NATIVE, "-O3 -g")
+            fi
+        fi
+        AC_SUBST(CFLAGS, "${CFLAGS_NON_NATIVE}${march}")
+        AC_SUBST(CFLAGS_O3, "${CFLAGS_O3_NON_NATIVE}${march}")
+    else
+        # Respect user environment variable.
+        AC_SUBST(CFLAGS, "${CFLAGS}")
+        AC_SUBST(CFLAGS_O3, "${CFLAGS}")
+        AC_SUBST(CFLAGS_NON_NATIVE, "${CFLAGS}")
+        AC_SUBST(CFLAGS_O3_NON_NATIVE, "${CFLAGS}")
+    fi
+
+    AC_MSG_NOTICE(ORIGINAL_CFLAGS=$ORIGINAL_CFLAGS)
+    AC_MSG_NOTICE(CFLAGS=$CFLAGS)
+    AC_MSG_NOTICE(CFLAGS_O3=$CFLAGS_O3)
+    AC_MSG_NOTICE(CFLAGS_NON_NATIVE=$CFLAGS_NON_NATIVE)
+    AC_MSG_NOTICE(CFLAGS_O3_NON_NATIVE=$CFLAGS_O3_NON_NATIVE)
+
+    # Copy to CXXFLAGS if this is not set.
+    if test "x$CXXFLAGS" = "x"; then
+        AC_SUBST(CXXFLAGS, "$CFLAGS")
+        AC_SUBST(CXXFLAGS_O3, "$CFLAGS_O3")
+        AC_SUBST(CXXFLAGS_NON_NATIVE, "$CFLAGS_NON_NATIVE")
+        AC_SUBST(CXXFLAGS_O3_NON_NATIVE, "$CFLAGS_O3_NON_NATIVE")
+    else
+        AC_SUBST(CXXFLAGS_03, "$CXXFLAGS")
+        AC_SUBST(CXXFLAGS_NON_NATIVE, "$CXXFLAGS")
+        AC_SUBST(CXXFLAGS_O3_NON_NATIVE, "$CXXFLAGS")
+    fi
+
 ], , , [
     # Trac #27907: Find location of crti.o from the system CC, in case we build our own gcc
     AC_MSG_CHECKING([for the location of crti.o])

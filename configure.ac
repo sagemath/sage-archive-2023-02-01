@@ -319,139 +319,48 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
 
 
 ###############################################################################
-# Check C/C++/Fortran compilers and set CFLAGS
+# Collect packages and check C/C++/Fortran compilers
 ###############################################################################
 
-ORIGINAL_CFLAGS="$CFLAGS"
-ORIGINAL_CXXFLAGS="$CXXFLAGS"
-ORIGINAL_FCFLAGS="$FCFLAGS"
-ORIGINAL_F77FLAGS="$F77FLAGS"
-AC_SUBST(ORIGINAL_CFLAGS)
-AC_SUBST(ORIGINAL_CXXFLAGS)
-AC_SUBST(ORIGINAL_FCFLAGS)
-AC_SUBST(ORIGINAL_F77FLAGS)
+# Python version
+AC_ARG_WITH([python],
+[AS_HELP_STRING([--with-python=3],
+    [build and use Python 3 (default)])])
 
-if test "x${CFLAGS}" = "x"; then
-    GOT_FLAGS="no"
+case "$with_python" in
+    3)  SAGE_PYTHON_VERSION=3;;
+    3*) AC_MSG_WARN([the only allowed value for --with-python is 3; specific Python 3.x versions cannot be requested using --with-python.  For compatibility reasons, this is only a warning.  Use './configure PYTHON3=/path/to/python3' to use a specific Python 3 binary for the Sage venv.])
+        SAGE_PYTHON_VERSION=3;;
+    "") SAGE_PYTHON_VERSION=3;;
+    *)
+        AC_MSG_ERROR([the only allowed value for --with-python is 3.  Support for Python 2 has been removed in Sage 9.2.]);;
+esac
+AC_SUBST(SAGE_PYTHON_VERSION)
 
-    # Evaluate SAGE_DEBUG:
-    if test "x$SAGE_DEBUG" = "xyes" ; then
-        CFLAGS="-Og -g"
-        CFLAGS_O3="-Og -g"
-    else
-        if test "x$SAGE_DEBUG" = "xno" ; then
-            CFLAGS="-O2"
-            CFLAGS_O3="-O3"
-        else
-            CFLAGS="-O2 -g"
-            CFLAGS_O3="-O3 -g"
-        fi
-    fi
-else
-    GOT_FLAGS="yes"
-    CFLAGS_O3="${CFLAGS}"
+# $(TOOLCHAIN) variable containing prerequisites for the build
+SAGE_TOOLCHAIN=gcc
+if test "$SAGE_INSTALL_CCACHE" = yes ; then
+    SAGE_TOOLCHAIN="$SAGE_TOOLCHAIN ccache"
 fi
+AC_SUBST([SAGE_TOOLCHAIN])
 
-SAGE_CHECK_CONDA_COMPILERS
+AC_ARG_ENABLE([experimental-packages],
+  [AS_HELP_STRING([--enable-experimental-packages],
+    [allow installing experimental packages (default: no = ask for user confirmation for each package)])])
+AC_ARG_ENABLE([download-from-upstream-url],
+  [AS_HELP_STRING([--enable-download-from-upstream-url],
+    [allow downloading packages from their upstream URL if they cannot be found on the Sage mirrors])])
 
-AC_PROG_CC()
-AC_PROG_CPP()
-AC_PROG_CXX()
-AC_PROG_FC()
+SAGE_SPKG_OPTIONS=""
+AS_IF([test "x$enable_experimental_packages" = "xyes"], [
+  AS_VAR_APPEND([SAGE_SPKG_OPTIONS], [" -y"])
+])
+AS_IF([test "x$enable_download_from_upstream_url" = "xyes"], [
+  AS_VAR_APPEND([SAGE_SPKG_OPTIONS], [" -o"])
+])
+AC_SUBST([SAGE_SPKG_OPTIONS])
 
-AC_SUBST(CC)
-AC_SUBST(FC)
-
-# On darwin, also set the objective C/C++ compilers
-# Checking on all platforms doesn't hurt and stops
-# configure from sending an error when run on non-darwin.
-AC_PROG_OBJC()
-AC_PROG_OBJCXX()
-AC_SUBST(OBJC)
-AC_SUBST(OBJCXX)
-
-AS_IF([test "x$CXX" = x], [AC_MSG_ERROR([a C++ compiler is missing])])
-
-CFLAGS_NON_NATIVE="${CFLAGS}"
-CFLAGS_O3_NON_NATIVE="${CFLAGS_O3}"
-AC_SUBST(CFLAGS_NON_NATIVE)
-AC_SUBST(CFLAGS_O3_NON_NATIVE)
-
-# Adding march native in certain cases.
-if test "x$SAGE_FAT_BINARY" != "xyes" ; then
-    if test "x$GOT_FLAGS" = "xno"; then
-
-        # GCC less than 5.1 is not yet ready for "-march=native",
-        # but it claims it is.
-        GCC_LT_51="no"
-        if test "x$GCC" = "xyes"; then
-            GCC_GTE_51=$(expr `${CC} --version | grep ^gcc | sed 's/^.* //g' | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$/&00/'` \>= 50100)
-            if test "x$GCC_GTE_51" = "x0"; then
-                GCC_LT_51="yes"
-            fi
-        fi
-
-        if test "x$GCC_LT_51" = "xno"; then
-            AX_CHECK_COMPILE_FLAG("-march=native", [MARCH=" -march=native"], [MARCH=""], [], [])
-            CFLAGS="${CFLAGS}${MARCH}"
-            CFLAGS_O3="${CFLAGS_O3}${MARCH}"
-        fi
-
-    fi
-fi
-AC_SUBST(CFLAGS)
-AC_SUBST(CFLAGS_O3)
-AC_MSG_NOTICE(CFLAGS_NON_NATIVE=$CFLAGS_NON_NATIVE)
-AC_MSG_NOTICE(CFLAGS=$CFLAGS)
-AC_MSG_NOTICE(CFLAGS_O3=$CFLAGS_O3)
-
-# Copy to CXXFLAGS, if this is not set.
-if test "x${CXXFLAGS}" = "x"; then
-    CXXFLAGS="$CFLAGS"
-    CXXFLAGS_O3="$CFLAGS_O3"
-    CXXFLAGS_NON_NATIVE="$CFLAGS_NON_NATIVE"
-    CXXFLAGS_O3_NON_NATIVE="$CFLAGS_O3_NON_NATIVE"
-else
-    CXXFLAGS_03="$CXXFLAGS"
-    CXXFLAGS_NON_NATIVE="$CXXFLAGS"
-    CXXFLAGS_O3_NON_NATIVE="$CXXFLAGS"
-fi
-AC_SUBST(CXXFLAGS)
-AC_SUBST(CCXFLAGS_O3)
-AC_SUBST(CXXFLAGS_NON_NATIVE)
-AC_SUBST(CXXFLAGS_O3_NON_NATIVE)
-
-# Copy to FCFLAGS, if this is not set.
-if test "x${FCFLAGS}" = "x"; then
-    FCFLAGS="$CFLAGS"
-    FCFLAGS_O3="$CFLAGS_O3"
-    FCFLAGS_NON_NATIVE="$CFLAGS_NON_NATIVE"
-    FCFLAGS_O3_NON_NATIVE="$CFLAGS_O3_NON_NATIVE"
-else
-    FCFLAGS_03="$FCFLAGS"
-    FCFLAGS_NON_NATIVE="$FCFLAGS"
-    FCFLAGS_O3_NON_NATIVE="$FCFLAGS"
-fi
-AC_SUBST(FCFLAGS)
-AC_SUBST(FCFLAGS_O3)
-AC_SUBST(FCFLAGS_NON_NATIVE)
-AC_SUBST(FCFLAGS_O3_NON_NATIVE)
-
-# Copy to F77FLAGS, if this is not set.
-if test "x${F77FLAGS}" = "x"; then
-    F77FLAGS="$CFLAGS"
-    F77FLAGS_O3="$CFLAGS_O3"
-    F77FLAGS_NON_NATIVE="$CFLAGS_NON_NATIVE"
-    F77FLAGS_O3_NON_NATIVE="$CFLAGS_NON_NATIVE"
-else
-    F77FLAGS_03="$FCFLAGS"
-    F77FLAGS_NON_NATIVE="$FCFLAGS"
-    F77FLAGS_O3_NON_NATIVE="$FCFLAGS"
-fi
-AC_SUBST(F77FLAGS)
-AC_SUBST(F77FLAGS_O3)
-AC_SUBST(F77FLAGS_NON_NATIVE)
-AC_SUBST(F77FLAGS_O3_NON_NATIVE)
+SAGE_SPKG_COLLECT()
 
 
 ###############################################################################
@@ -499,46 +408,6 @@ SAGE_CHECK_OSX_SUPPORTED()
 ###############################################################################
 # Collect substitutions for build/make/Makefile.in
 ###############################################################################
-
-# Python version
-AC_ARG_WITH([python],
-[AS_HELP_STRING([--with-python=3],
-    [build and use Python 3 (default)])])
-
-case "$with_python" in
-    3)  SAGE_PYTHON_VERSION=3;;
-    3*) AC_MSG_WARN([the only allowed value for --with-python is 3; specific Python 3.x versions cannot be requested using --with-python.  For compatibility reasons, this is only a warning.  Use './configure PYTHON3=/path/to/python3' to use a specific Python 3 binary for the Sage venv.])
-        SAGE_PYTHON_VERSION=3;;
-    "") SAGE_PYTHON_VERSION=3;;
-    *)
-        AC_MSG_ERROR([the only allowed value for --with-python is 3.  Support for Python 2 has been removed in Sage 9.2.]);;
-esac
-AC_SUBST(SAGE_PYTHON_VERSION)
-
-# $(TOOLCHAIN) variable containing prerequisites for the build
-SAGE_TOOLCHAIN=gcc
-if test "$SAGE_INSTALL_CCACHE" = yes ; then
-    SAGE_TOOLCHAIN="$SAGE_TOOLCHAIN ccache"
-fi
-AC_SUBST([SAGE_TOOLCHAIN])
-
-AC_ARG_ENABLE([experimental-packages],
-  [AS_HELP_STRING([--enable-experimental-packages],
-    [allow installing experimental packages (default: no = ask for user confirmation for each package)])])
-AC_ARG_ENABLE([download-from-upstream-url],
-  [AS_HELP_STRING([--enable-download-from-upstream-url],
-    [allow downloading packages from their upstream URL if they cannot be found on the Sage mirrors])])
-
-SAGE_SPKG_OPTIONS=""
-AS_IF([test "x$enable_experimental_packages" = "xyes"], [
-  AS_VAR_APPEND([SAGE_SPKG_OPTIONS], [" -y"])
-])
-AS_IF([test "x$enable_download_from_upstream_url" = "xyes"], [
-  AS_VAR_APPEND([SAGE_SPKG_OPTIONS], [" -o"])
-])
-AC_SUBST([SAGE_SPKG_OPTIONS])
-
-SAGE_SPKG_COLLECT()
 
 # We need sage-env-config to exist before running this.
 # TODO: fix this in Trac #21524

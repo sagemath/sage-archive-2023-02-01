@@ -6876,7 +6876,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: solutions, bound = K.S_unit_solutions(S, prec=100, include_bound=True)
             sage: bound
-            2
+            6
         """
         from .S_unit_solver import solve_S_unit_equation
         return solve_S_unit_equation(self, S, prec, include_exponents, include_bound, proof)

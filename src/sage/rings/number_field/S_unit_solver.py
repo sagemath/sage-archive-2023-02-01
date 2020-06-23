@@ -56,7 +56,6 @@ EXAMPLES::
 from __future__ import absolute_import
 
 from sage.rings.all import Infinity
-from sage.rings.polynomial.polynomial_ring import polygen
 from sage.calculus.var import var
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -665,7 +664,7 @@ def Yu_bound(SUK, v, prec=106):
     else:
         # K and v don't satisfy the theorem hypotheses, and we must move to a quadratic extension L.
         # For justification of this next bound, see [AKMRVW].
-        var('x')
+        x = var('x')
         if p == 2:
             L_over_K = K.extension(x**2 + x + 1, 'xi0')
         else:
@@ -726,7 +725,6 @@ def K0_func(SUK, A, prec=106):
 
     for v_l in SUK.primes():
         e_l = v_l.residue_class_degree()
-        p = v_l.smallest_integer()
         Norm_v_l = v_l.absolute_norm()
 
         c5_l = c3/(e_l * R(Norm_v_l).log())
@@ -1025,7 +1023,7 @@ def reduction_step_complex_case(place, B0, list_of_gens, torsion_gen, c13):
         finish = False
         while not finish:
             A = identity_matrix(ZZ, n+1)
-            v = vector([(g * C).round() for g in imag_part_log_gens])
+            # v = vector([(g * C).round() for g in imag_part_log_gens])
 
             if A.is_singular():
                 C = ZZ(2*C)
@@ -1158,7 +1156,7 @@ def cx_LLL_bound(SUK, A, prec=106):
         sage: A = K.roots_of_unity()
 
         sage: cx_LLL_bound(SUK,A) # long time
-        22
+        35
     """
     cx_LLL = 0
     #initialize a bound, a bad guess, as we iterate over the places of the number field, we will replace its value with the largest complex LLL bound we've found across the places

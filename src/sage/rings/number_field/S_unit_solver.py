@@ -1023,7 +1023,7 @@ def reduction_step_complex_case(place, B0, list_of_gens, torsion_gen, c13):
         finish = False
         while not finish:
             A = identity_matrix(ZZ, n+1)
-            # v = vector([(g * C).round() for g in imag_part_log_gens])
+            A[n] = vector([(g * C).round() for g in imag_part_log_gens])
 
             if A.is_singular():
                 C = ZZ(2*C)

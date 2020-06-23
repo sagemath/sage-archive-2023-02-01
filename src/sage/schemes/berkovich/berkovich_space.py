@@ -47,6 +47,29 @@ from sage.schemes.generic.scheme import Scheme
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
 
+def is_Berkovich(space):
+    """
+    Checks if ``space`` is a Berkovich space.
+
+    OUTPUT:
+
+    - ``True`` if ``space`` is a Berkovich space
+    - ``False`` otherwise
+    """
+    return isinstance(space, Berkovich)
+
+def is_Berkovich_Cp(space):
+    """
+    Checks if ``space`` is a Berkovich space over ``Cp``.
+
+    OUTPUT:
+
+    - ``True`` if ``space`` is a Berkovich space over ``Cp``
+    - ``False`` otherwise
+    """
+    return isinstance(space, Berkovich_Cp)
+
+
 class Berkovich_Element(Element):
     """
     The parent class for any element of a Berkovich space

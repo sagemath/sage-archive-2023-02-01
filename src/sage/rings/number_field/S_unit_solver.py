@@ -331,7 +331,7 @@ def possible_mu0s(SUK, v):
 
 def Yu_a1_kappa1_c1(p, dK, ep):
     r"""
-    Returns the constants a(1), kappa1, and c(1) of [Yu2007].
+    Returns the constants a(1), kappa1, and c(1) of [Yu2007]_
 
     INPUT:
 
@@ -403,7 +403,7 @@ def Yu_a1_kappa1_c1(p, dK, ep):
 
 def Yu_condition_115(K, v):
     r"""
-    Returns True or False, as the number field K and the finite place v satisfy condition (1.15) of [Yu2007]
+    Returns True or False, as the number field K and the finite place v satisfy condition (1.15) of [Yu2007]_
 
     INPUT:
 

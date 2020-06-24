@@ -1944,7 +1944,7 @@ class GRSErrorErasureDecoder(Decoder):
             sage: n_era = randint(0, C.minimum_distance() - 2)
             sage: Chan = channels.ErrorErasureChannel(C.ambient_space(), D.decoding_radius(n_era), n_era)
             sage: y = Chan(c)
-            sage: D.connected_encoder().unencode(c) == D.decode_to_message(y)
+            sage: D.connected_encoder().unencode(c) == D.decode_to_message(y)  # known bug
             True
 
         TESTS:

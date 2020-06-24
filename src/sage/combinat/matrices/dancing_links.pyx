@@ -1017,7 +1017,8 @@ cdef class dancing_linksWrapper:
 
         OUTPUT:
 
-        MixedIntegerLinearProgram instance
+        - MixedIntegerLinearProgram instance
+        - MIPVariable of dimension 1
 
         EXAMPLES::
 
@@ -1030,6 +1031,24 @@ cdef class dancing_linksWrapper:
             sage: x
             MIPVariable of dimension 1
 
+        In the reduction, the boolean variable x_i is True if and only if
+        the i-th row is in the solution::
+
+            sage: p.show()
+            Maximization:
+            <BLANKLINE>
+            <BLANKLINE>
+            Constraints:
+              one 1 in 0-th column: 1.0 <= x_0 + x_1 <= 1.0
+              one 1 in 1-th column: 1.0 <= x_0 + x_2 <= 1.0
+              one 1 in 2-th column: 1.0 <= x_0 + x_1 <= 1.0
+              one 1 in 3-th column: 1.0 <= x_3 <= 1.0
+            Variables:
+              x_0 is a boolean variable (min=0.0, max=1.0)
+              x_1 is a boolean variable (min=0.0, max=1.0)
+              x_2 is a boolean variable (min=0.0, max=1.0)
+              x_3 is a boolean variable (min=0.0, max=1.0)
+
         Using some optional MILP solvers::
 
             sage: d.to_milp_solver('gurobi')   # optional gurobi sage_numerical_backends_gurobi
@@ -1040,7 +1059,7 @@ cdef class dancing_linksWrapper:
         p = MixedIntegerLinearProgram(solver=solver)
 
         # x[i] == True iff i-th dlx row is in the solution
-        x = p.new_variable(binary=True)
+        x = p.new_variable(binary=True, indices=range(self.nrows()))
 
         # Construction of the columns (transpose of the rows)
         columns = [[] for _ in range(self.ncols())]

@@ -83,11 +83,12 @@ else:
 
 keep_going = False
 
-# search for dependencies and add to gcc -I<path>
+# Search for dependencies in the source tree and add to gcc -I<path>
 include_dirs = sage_include_directories(use_sources=True)
 
-# Look for libraries in $SAGE_LOCAL/lib
-library_dirs = [os.path.join(SAGE_LOCAL, "lib")]
+# Look for libraries only in what is configured already through distutils
+# and environment variables
+library_dirs = []
 
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
 # and disappears from the default flags if the user has set CFLAGS.

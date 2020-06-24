@@ -39,6 +39,7 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
+
 from sage.structure.element import CommutativeAlgebraElement
 from sage.symbolic.expression import Expression
 from sage.manifolds.chart_func import ChartFunction

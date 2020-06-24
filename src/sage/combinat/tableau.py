@@ -8058,8 +8058,10 @@ class StandardTableaux_shape(StandardTableaux):
 
         EXAMPLES::
 
-            sage: StandardTableaux([2,2]).random_element()
+            sage: t = StandardTableaux([2,2]).random_element(); t  # random
             [[1, 2], [3, 4]]
+            sage: t.shape()
+            [2, 2]
             sage: StandardTableaux([]).random_element()
             []
         """

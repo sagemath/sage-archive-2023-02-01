@@ -1000,6 +1000,119 @@ cdef class dancing_linksWrapper:
             return None
         return [key for (key,val) in enumerate(solution, start=-1) if val]
 
+    @cached_method
+    def to_milp_solver(self, solver=None):
+        r"""
+        Return the mixed integer linear program (MILP) solver solving an
+        equivalent problem.
+
+        See also :mod:`sage.numerical.mip.MixedIntegerLinearProgram`.
+
+        INPUT:
+
+        - ``solver`` -- string or ``None`` (default: ``None``), possible
+          values include ``'GLPK'``, ``'GLPK/exact'``, ``'Coin'``,
+          ``'CPLEX'``, ``'Gurobi'``, ``'CVXOPT'``, ``'PPL'``,
+          ``'InteractiveLP'``.
+
+        OUTPUT:
+
+        MixedIntegerLinearProgram instance
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [0,2], [1], [3]]
+            sage: d = dlx_solver(rows)
+            sage: p,x = d.to_milp_solver()
+            sage: p
+            Boolean Program (no objective, 4 variables, 4 constraints)
+            sage: x
+            MIPVariable of dimension 1
+
+        Using some optional MILP solvers::
+
+            sage: d.to_milp_solver('gurobi')   # optional gurobi sage_numerical_backends_gurobi
+            Boolean Program (no objective, 4 variables, 4 constraints)
+
+        """
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        p = MixedIntegerLinearProgram(solver=solver)
+
+        # x[i] == True iff i-th dlx row is in the solution
+        x = p.new_variable(binary=True)
+
+        # Construction of the columns (transpose of the rows)
+        columns = [[] for _ in range(self.ncols())]
+        for i,row in enumerate(self.rows()):
+            for a in row:
+                columns[a].append(i)
+
+        # Constraints: exactly one 1 in each column
+        for j,column in enumerate(columns):
+            S = p.sum(x[a] for a in column)
+            name = "one 1 in {}-th column".format(j)
+            p.add_constraint(S==1, name=name)
+
+        return p,x
+
+    def one_solution_using_milp_solver(self, solver=None):
+        r"""
+        Return a solution found using a MILP solver.
+
+        INPUT:
+
+        - ``solver`` -- string or ``None`` (default: ``None``), possible
+          values include ``'GLPK'``, ``'GLPK/exact'``, ``'Coin'``,
+          ``'CPLEX'``, ``'Gurobi'``, ``'CVXOPT'``, ``'PPL'``,
+          ``'InteractiveLP'``.
+
+        OUTPUT:
+
+        list of rows or ``None`` if no solution is found
+
+        .. NOTE::
+
+            When comparing the time taken by method `one_solution`, have in
+            mind that `one_solution_using_milp_solver` first creates (and
+            caches) the MILP solver instance from the dancing links solver.
+            This copy of data may take many seconds depending on the size
+            of the problem.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
+            sage: d = dlx_solver(rows)
+            sage: solutions = [[0,1], [2,3], [4,5]]
+            sage: d.one_solution_using_milp_solver() in solutions
+            True
+
+        Using optional solvers::
+
+            sage: s = d.one_solution_using_milp_solver('Gurobi') # optional -- Gurobi sage_numerical_backends_gurobi
+            sage: s in solutions     # optional -- Gurobi sage_numerical_backends_gurobi
+            True
+
+        When no solution is found::
+
+            sage: rows = [[0,1,2], [2,3,4,5], [0,1,2,3]]
+            sage: d = dlx_solver(rows)
+            sage: d.one_solution_using_milp_solver() is None
+            True
+
+        """
+        from sage.numerical.mip import MIPSolverException
+        p,x = self.to_milp_solver(solver)
+        try:
+            p.solve()
+        except MIPSolverException:
+            return None
+        else:
+            soln = p.get_values(x)
+            support = sorted(key for key in soln if soln[key])
+            return support
+
 def dlx_solver(rows):
     """
     Internal-use wrapper for the dancing links C++ code.

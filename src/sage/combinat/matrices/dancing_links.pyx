@@ -922,7 +922,7 @@ cdef class dancing_linksWrapper:
 
         Using some optional SAT solvers::
 
-            sage: x.to_sat_solver('cryptominisat')          # optional cryptominisat
+            sage: x.to_sat_solver('cryptominisat')          # optional - cryptominisat
             CryptoMiniSat solver: 4 variables, 7 clauses.
 
         """
@@ -982,8 +982,8 @@ cdef class dancing_linksWrapper:
 
         Using optional solvers::
 
-            sage: s = d.one_solution_using_sat_solver('glucose') # optional glucose
-            sage: s in solutions                                 # optional glucose
+            sage: s = d.one_solution_using_sat_solver('glucose') # optional - glucose
+            sage: s in solutions                                 # optional - glucose
             True
 
         When no solution is found::
@@ -1051,8 +1051,9 @@ cdef class dancing_linksWrapper:
 
         Using some optional MILP solvers::
 
-            sage: d.to_milp_solver('gurobi')   # optional gurobi sage_numerical_backends_gurobi
-            Boolean Program (no objective, 4 variables, 4 constraints)
+            sage: d.to_milp_solver('gurobi')   # optional - gurobi sage_numerical_backends_gurobi
+            (Boolean Program (no objective, 4 variables, 4 constraints),
+             MIPVariable of dimension 1)
 
         """
         from sage.numerical.mip import MixedIntegerLinearProgram
@@ -1109,8 +1110,8 @@ cdef class dancing_linksWrapper:
 
         Using optional solvers::
 
-            sage: s = d.one_solution_using_milp_solver('Gurobi') # optional -- Gurobi sage_numerical_backends_gurobi
-            sage: s in solutions     # optional -- Gurobi sage_numerical_backends_gurobi
+            sage: s = d.one_solution_using_milp_solver('gurobi') # optional - gurobi sage_numerical_backends_gurobi
+            sage: s in solutions                                 # optional - gurobi sage_numerical_backends_gurobi
             True
 
         When no solution is found::

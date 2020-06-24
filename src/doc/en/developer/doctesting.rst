@@ -809,7 +809,7 @@ Doctests start from a random seed::
     Running doctests with ID 2020-06-23-23-22-59-49f37a55.
     ...
     Doctesting 1 file.
-    sage -t --warn-long 89.5 --random_seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst
+    sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst
     **********************************************************************
     File "src/sage/doctest/tests/random_seed.rst", line 3, in sage.doctest.tests.random_seed
     Failed example:
@@ -823,7 +823,7 @@ Doctests start from a random seed::
        1 of   2 in sage.doctest.tests.random_seed
         [1 test, 1 failure, 0.00 s]
     ----------------------------------------------------------------------
-    sage -t --warn-long 89.5 --random_seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst  # 1 doctest failed
+    sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst  # 1 doctest failed
     ----------------------------------------------------------------------
     Total time for all tests: 0.0 seconds
         cpu time: 0.0 seconds
@@ -831,11 +831,11 @@ Doctests start from a random seed::
 
 This seed can be set explicitly to reproduce possible failures::
 
-    [kliem@sage sage-9.2]$ sage -t --warn-long 89.5 --random_seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst
+    [kliem@sage sage-9.2]$ sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst
     Running doctests with ID 2020-06-23-23-24-28-14a52269.
     ...
     Doctesting 1 file.
-    sage -t --warn-long 89.5 --random_seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst
+    sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst
     **********************************************************************
     File "src/sage/doctest/tests/random_seed.rst", line 3, in sage.doctest.tests.random_seed
     Failed example:
@@ -849,7 +849,7 @@ This seed can be set explicitly to reproduce possible failures::
        1 of   2 in sage.doctest.tests.random_seed
         [1 test, 1 failure, 0.00 s]
     ----------------------------------------------------------------------
-    sage -t --warn-long 89.5 --random_seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst  # 1 doctest failed
+    sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst  # 1 doctest failed
     ----------------------------------------------------------------------
     Total time for all tests: 0.0 seconds
         cpu time: 0.0 seconds

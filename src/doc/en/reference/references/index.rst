@@ -1584,7 +1584,10 @@ REFERENCES:
              Curves*. Cambridge University Press, 1997.
 
 .. [Cre2003] Cressman, Ross. *Evolutionary dynamics and extensive form
-            games*. MIT Press, 2003.
+             games*. MIT Press, 2003.
+
+.. [Cre2020] Creedon, Samuel. *The center of the partition algebra*.
+             Preprint, :arxiv:`2005.00600` (2020).
 
 .. [Cro1983] \M. Crochemore, Recherche linéaire d'un carré dans un mot,
              C. R. Acad. Sci. Paris Sér. I Math. 296 (1983) 14
@@ -2005,6 +2008,13 @@ REFERENCES:
 .. [EMMN1998] \P. Eaded, J. Marks, P.Mutzel, S. North.
               *Fifth Annual Graph Drawing Contest*;
               http://www.merl.com/papers/docs/TR98-16.pdf
+
+.. [Eny2012] \J. Enyang. *Jucys-Murphy elements and a presentation
+             for the partition algebra*. J. Algebraic Combin.
+             **37** (2012) no 3, 401--454.
+
+.. [Eny2013] \J. Enyang. *A seminormal form for partition algebras*.
+             J. Combin. Theory Series A **120** (2013) 1737--1785.
 
 .. [EP2013] David Einstein, James Propp. *Combinatorial,
             piecewise-linear, and birational homomesy for products of
@@ -2764,6 +2774,9 @@ REFERENCES:
 .. [Hor1972] \E. Horowitz, "Algorithms for Rational Function Arithmetic
              Operations", Annual ACM Symposium on Theory of Computing, Proceedings of
              the Fourth Annual ACM Symposium on Theory of Computing, pp. 108--118, 1972
+
+.. [HR2005]  Tom Halverson and Arun Ram. *Partition algebras*.
+             Euro. J. Combin. **26** (2005) 869--921.
 
 .. [HR2016]  Clemens Heuberger and Roswitha Rissner, "Computing
              `J`-Ideals of a Matrix Over a Principal Ideal Domain",

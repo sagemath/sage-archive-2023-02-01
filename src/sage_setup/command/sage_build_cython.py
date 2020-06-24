@@ -29,11 +29,11 @@ lib_headers = dict()
 # Set by build/bin/sage-build-env-config. Empty if the system package is used.
 gmp_prefix = os.environ.get("SAGE_GMP_PREFIX", "")
 if gmp_prefix:
-    lib_headers["gmp"] = os.path.join(gmp_prefix, 'include', 'gmp.h')  # cf. #8664, #9896
-    lib_headers["gmpxx"] = os.path.join(gmp_prefix, 'include', 'gmpxx.h')
+    lib_headers["gmp"] = [os.path.join(gmp_prefix, 'include', 'gmp.h')]  # cf. #8664, #9896
+    lib_headers["gmpxx"] = [os.path.join(gmp_prefix, 'include', 'gmpxx.h')]
 ntl_prefix = os.environ.get("SAGE_NTL_PREFIX", "")
 if ntl_prefix:
-    lib_headers["ntl"] = os.path.join(ntl_prefix, 'include', 'NTL', 'config.h')
+    lib_headers["ntl"] = [os.path.join(ntl_prefix, 'include', 'NTL', 'config.h')]
 
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
 # and disappears from the default flags if the user has set CFLAGS.

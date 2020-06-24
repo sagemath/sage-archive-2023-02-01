@@ -1,9 +1,6 @@
 SAGE_SPKG_CONFIGURE([gfortran], [
     AC_REQUIRE([SAGE_SPKG_CONFIGURE_GCC])
-
     AC_REQUIRE([AC_PROG_FC])
-    AC_SUBST(FC)
-
     # Check that the Fortran compiler accepts free-format source code (as
     # opposed to the older fixed-format style from Fortran 77).
     # This helps verify the compiler works too, so if some idiot sets FC to
@@ -26,27 +23,27 @@ SAGE_SPKG_CONFIGURE([gfortran], [
     fi
 
     # Copy CFLAGS to FCFLAGS if this is not set.
-    if test "x$FCFLAGS" = "x"; then
+    if test "x$ORIGINAL_FCFLAGS" = "x"; then
         AC_SUBST(FCFLAGS, "$CFLAGS")
         AC_SUBST(FCFLAGS_O3, "$CFLAGS_O3")
         AC_SUBST(FCFLAGS_NON_NATIVE, "$CFLAGS_NON_NATIVE")
         AC_SUBST(FCFLAGS_O3_NON_NATIVE, "$CFLAGS_O3_NON_NATIVE")
     else
-        AC_SUBST(FCFLAGS_03, "$FCFLAGS")
-        AC_SUBST(FCFLAGS_NON_NATIVE, "$FCFLAGS")
-        AC_SUBST(FCFLAGS_O3_NON_NATIVE, "$FCFLAGS")
+        AC_SUBST(FCFLAGS_03, "$ORIGINAL_FCFLAGS")
+        AC_SUBST(FCFLAGS_NON_NATIVE, "$ORIGINAL_FCFLAGS")
+        AC_SUBST(FCFLAGS_O3_NON_NATIVE, "$ORIGINAL_FCFLAGS")
     fi
 
     # Copy FCFLAGS to F77FLAGS if this is not set.
-    if test "x$F77FLAGS" = "x"; then
+    if test "x$ORIGINAL_F77FLAGS" = "x"; then
         AC_SUBST(F77FLAGS, "$FCFLAGS")
         AC_SUBST(F77FLAGS_O3, "$FCFLAGS_O3")
         AC_SUBST(F77FLAGS_NON_NATIVE, "$FCFLAGS_NON_NATIVE")
         AC_SUBST(F77FLAGS_O3_NON_NATIVE, "$FCFLAGS_O3_NON_NATIVE")
     else
-        AC_SUBST(F77FLAGS_03, "$F77FLAGS")
-        AC_SUBST(F77FLAGS_NON_NATIVE, "$F77FLAGS")
-        AC_SUBST(F77FLAGS_O3_NON_NATIVE, "$F77FLAGS")
+        AC_SUBST(F77FLAGS_03, "$ORIGINAL_F77FLAGS")
+        AC_SUBST(F77FLAGS_NON_NATIVE, "$ORIGINAL_F77FLAGS")
+        AC_SUBST(F77FLAGS_O3_NON_NATIVE, "$ORIGINAL_F77FLAGS")
     fi
 
 ])

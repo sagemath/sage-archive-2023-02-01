@@ -316,51 +316,35 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
     AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires perl-5.8.0 or later])
 ])
 
-
-
 ###############################################################################
-# Collect packages and check C/C++/Fortran compilers
+# Check C/C++/Fortran compilers
 ###############################################################################
 
-# Python version
-AC_ARG_WITH([python],
-[AS_HELP_STRING([--with-python=3],
-    [build and use Python 3 (default)])])
+# Save compiler flags as configured by the user.
+AC_SUBST(ORIGINAL_CFLAGS, "$CFLAGS")
+AC_SUBST(ORIGINAL_CXXFLAGS, "$CXXFLAGS")
+AC_SUBST(ORIGINAL_FCFLAGS, "$FCFLAGS")
+AC_SUBST(ORIGINAL_F77FLAGS, "$F77FLAGS")
 
-case "$with_python" in
-    3)  SAGE_PYTHON_VERSION=3;;
-    3*) AC_MSG_WARN([the only allowed value for --with-python is 3; specific Python 3.x versions cannot be requested using --with-python.  For compatibility reasons, this is only a warning.  Use './configure PYTHON3=/path/to/python3' to use a specific Python 3 binary for the Sage venv.])
-        SAGE_PYTHON_VERSION=3;;
-    "") SAGE_PYTHON_VERSION=3;;
-    *)
-        AC_MSG_ERROR([the only allowed value for --with-python is 3.  Support for Python 2 has been removed in Sage 9.2.]);;
-esac
-AC_SUBST(SAGE_PYTHON_VERSION)
+SAGE_CHECK_CONDA_COMPILERS
 
-# $(TOOLCHAIN) variable containing prerequisites for the build
-SAGE_TOOLCHAIN=gcc
-if test "$SAGE_INSTALL_CCACHE" = yes ; then
-    SAGE_TOOLCHAIN="$SAGE_TOOLCHAIN ccache"
-fi
-AC_SUBST([SAGE_TOOLCHAIN])
+AC_PROG_CC()
+AC_PROG_CPP()
+AC_PROG_CXX()
+AC_PROG_FC()
 
-AC_ARG_ENABLE([experimental-packages],
-  [AS_HELP_STRING([--enable-experimental-packages],
-    [allow installing experimental packages (default: no = ask for user confirmation for each package)])])
-AC_ARG_ENABLE([download-from-upstream-url],
-  [AS_HELP_STRING([--enable-download-from-upstream-url],
-    [allow downloading packages from their upstream URL if they cannot be found on the Sage mirrors])])
+AC_SUBST(CC)
+AC_SUBST(FC)
 
-SAGE_SPKG_OPTIONS=""
-AS_IF([test "x$enable_experimental_packages" = "xyes"], [
-  AS_VAR_APPEND([SAGE_SPKG_OPTIONS], [" -y"])
-])
-AS_IF([test "x$enable_download_from_upstream_url" = "xyes"], [
-  AS_VAR_APPEND([SAGE_SPKG_OPTIONS], [" -o"])
-])
-AC_SUBST([SAGE_SPKG_OPTIONS])
+# On darwin, also set the objective C/C++ compilers
+# Checking on all platforms doesn't hurt and stops
+# configure from sending an error when run on non-darwin.
+AC_PROG_OBJC()
+AC_PROG_OBJCXX()
+AC_SUBST(OBJC)
+AC_SUBST(OBJCXX)
 
-SAGE_SPKG_COLLECT()
+AS_IF([test "x$CXX" = x], [AC_MSG_ERROR([a C++ compiler is missing])])
 
 
 ###############################################################################
@@ -404,10 +388,49 @@ AS_IF([echo "$ac_pwd" |grep " " >/dev/null],
 
 SAGE_CHECK_OSX_SUPPORTED()
 
-
 ###############################################################################
 # Collect substitutions for build/make/Makefile.in
 ###############################################################################
+
+# Python version
+AC_ARG_WITH([python],
+[AS_HELP_STRING([--with-python=3],
+    [build and use Python 3 (default)])])
+
+case "$with_python" in
+    3)  SAGE_PYTHON_VERSION=3;;
+    3*) AC_MSG_WARN([the only allowed value for --with-python is 3; specific Python 3.x versions cannot be requested using --with-python.  For compatibility reasons, this is only a warning.  Use './configure PYTHON3=/path/to/python3' to use a specific Python 3 binary for the Sage venv.])
+        SAGE_PYTHON_VERSION=3;;
+    "") SAGE_PYTHON_VERSION=3;;
+    *)
+        AC_MSG_ERROR([the only allowed value for --with-python is 3.  Support for Python 2 has been removed in Sage 9.2.]);;
+esac
+AC_SUBST(SAGE_PYTHON_VERSION)
+
+# $(TOOLCHAIN) variable containing prerequisites for the build
+SAGE_TOOLCHAIN=gcc
+if test "$SAGE_INSTALL_CCACHE" = yes ; then
+    SAGE_TOOLCHAIN="$SAGE_TOOLCHAIN ccache"
+fi
+AC_SUBST([SAGE_TOOLCHAIN])
+
+AC_ARG_ENABLE([experimental-packages],
+  [AS_HELP_STRING([--enable-experimental-packages],
+    [allow installing experimental packages (default: no = ask for user confirmation for each package)])])
+AC_ARG_ENABLE([download-from-upstream-url],
+  [AS_HELP_STRING([--enable-download-from-upstream-url],
+    [allow downloading packages from their upstream URL if they cannot be found on the Sage mirrors])])
+
+SAGE_SPKG_OPTIONS=""
+AS_IF([test "x$enable_experimental_packages" = "xyes"], [
+  AS_VAR_APPEND([SAGE_SPKG_OPTIONS], [" -y"])
+])
+AS_IF([test "x$enable_download_from_upstream_url" = "xyes"], [
+  AS_VAR_APPEND([SAGE_SPKG_OPTIONS], [" -o"])
+])
+AC_SUBST([SAGE_SPKG_OPTIONS])
+
+SAGE_SPKG_COLLECT()
 
 # We need sage-env-config to exist before running this.
 # TODO: fix this in Trac #21524

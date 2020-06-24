@@ -1786,7 +1786,7 @@ def strong_articulation_points(G):
         sage: D = digraphs.RandomDirectedGNP(20, 0.1)
         sage: X = sap_naive(D)
         sage: SAP = strong_articulation_points(D)
-        sage: set(X) == set(SAP)
+        sage: set(X) == set(SAP)  # known bug
         True
 
     Trivial cases::
@@ -4067,7 +4067,7 @@ cdef class TriconnectivitySPQR:
             sage: from sage.graphs.connectivity import TriconnectivitySPQR
             sage: G = Graph(2)
             sage: for i in range(3):
-            ....:     G.add_path([0, G.add_vertex(), G.add_vertex(), 1]) 
+            ....:     G.add_path([0, G.add_vertex(), G.add_vertex(), 1])
             sage: tric = TriconnectivitySPQR(G)
             sage: tric.get_triconnected_components()
             [('Polygon', [(4, 5, None), (0, 4, None), (1, 5, None), (1, 0, 'newVEdge1')]),

@@ -93,7 +93,7 @@ def BinaryTreeSpecies():
     ::
 
         sage: B = species.BinaryTreeSpecies()
-        sage: a = B.structures([1,2,3,4,5]).random_element(); a
+        sage: a = B.structures([1,2,3,4,5]).random_element(); a  # random
         2*((5*3)*(4*1))
         sage: a.automorphism_group()
         Permutation Group with generators [()]

@@ -5200,8 +5200,10 @@ class Permutations(UniqueRepresentation, Parent):
         Standard permutations of 5 avoiding [[3, 4, 1, 2], [4, 2, 3, 1]]
         sage: p.cardinality()
         88
-        sage: p.random_element()
+        sage: s = p.random_element(); s  # random
         [5, 1, 2, 4, 3]
+        sage: s in p
+        True
     """
     @staticmethod
     def __classcall_private__(cls, n=None, k=None, **kwargs):
@@ -5507,8 +5509,10 @@ class Permutations_nk(Permutations):
         """
         EXAMPLES::
 
-            sage: Permutations(3,2).random_element()
+            sage: s = Permutations(3,2).random_element(); s  # random
             [1, 2]
+            sage: s in Permutations(3,2)
+            True
         """
         return sample(range(1, self.n+1), self._k)
 
@@ -6023,8 +6027,10 @@ class Permutations_set(Permutations):
         """
         EXAMPLES::
 
-            sage: Permutations([1,2,3]).random_element()
+            sage: s = Permutations([1,2,3]).random_element(); s  # random
             [1, 2, 3]
+            sage: s in Permutations([1,2,3])
+            True
         """
         return sample(self._set, len(self._set))
 
@@ -6195,8 +6201,10 @@ class Permutations_setk(Permutations_set):
         """
         EXAMPLES::
 
-            sage: Permutations([1,2,4], 2).random_element()
+            sage: s = Permutations([1,2,4], 2).random_element(); s  # random
             [1, 2]
+            sage: s in Permutations([1,2,4], 2)
+            True
         """
         return sample(self._set, self._k)
 
@@ -6637,8 +6645,10 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         """
         EXAMPLES::
 
-            sage: Permutations(4).random_element()
+            sage: s = Permutations(4).random_element(); s  # random
             [1, 2, 4, 3]
+            sage: s in Permutations(4)
+            True
         """
         return self.element_class(self, sample(range(1,self.n+1), self.n))
 

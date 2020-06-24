@@ -328,7 +328,9 @@ class CartesianProduct_iters(EnumeratedSetFromIterator):
         EXAMPLES::
 
             sage: from sage.combinat.cartesian_product import CartesianProduct_iters
-            sage: CartesianProduct_iters('dog', 'cat').random_element()
+            sage: c = CartesianProduct_iters('dog', 'cat').random_element(); c  # random
             ['d', 'a']
+            sage: c in CartesianProduct_iters('dog', 'cat')
+            True
         """
         return [rnd.choice(_) for _ in self.iters]

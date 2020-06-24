@@ -828,7 +828,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
         [{1}, {2}, {3}, {4}]
         sage: OS.last()
         [{1, 2, 3, 4}]
-        sage: OS.random_element()
+        sage: OS.random_element()  # random
         [{3}, {1}, {2}, {4}]
 
     ::

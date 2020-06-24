@@ -75,8 +75,12 @@ def _make_color_list(n, colors=None,  color_map=None, randomize=False):
          (0.5019607843137255, 0.7509803921568627, 0.4),
          (0.7529411764705882, 0.8764705882352941, 0.4),
          (1.0, 1.0, 0.4)]
-        sage: _make_color_list(8, ['blue', 'red'], randomize=True)
+        sage: l = _make_color_list(8, ['blue', 'red'], randomize=True); l  # random
         ['blue', 'blue', 'red', 'blue', 'red', 'red', 'red', 'blue']
+        sage: l.count('blue')
+        4
+        sage: l.count('red')
+        4
     """
     if colors:
         dim = len(colors)

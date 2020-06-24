@@ -6027,11 +6027,11 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = posets.BooleanLattice(3)
-            sage: P.random_order_ideal()
+            sage: P.random_order_ideal()  # random
             [0, 1, 2, 3, 4, 5, 6]
-            sage: P.random_order_ideal(direction='up')
+            sage: P.random_order_ideal(direction='up')  # random
             [6, 7]
-            sage: P.random_order_ideal(direction='antichain')
+            sage: P.random_order_ideal(direction='antichain')  # random
             [1, 2]
 
             sage: P = posets.TamariLattice(5)

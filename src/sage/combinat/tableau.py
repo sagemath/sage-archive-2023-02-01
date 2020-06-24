@@ -6710,9 +6710,9 @@ class SemistandardTableaux_shape(SemistandardTableaux):
         EXAMPLES::
 
            http://www.sciencedirect.com/science/article/pii/0012365X9290368P
-            sage: SemistandardTableaux([2, 2, 1, 1]).random_element()
+            sage: SemistandardTableaux([2, 2, 1, 1]).random_element()  # random
             [[1, 1], [2, 3], [3], [5]]
-            sage: SemistandardTableaux([2, 2, 1, 1], max_entry=7).random_element()
+            sage: SemistandardTableaux([2, 2, 1, 1], max_entry=7).random_element()  # random
             [[1, 4], [5, 5], [6], [7]]
 
         """

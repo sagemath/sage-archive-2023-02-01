@@ -2728,12 +2728,16 @@ class SetPartitions_set(SetPartitions):
         EXAMPLES::
 
             sage: S = SetPartitions(10)
-            sage: S.random_element()
+            sage: s = S.random_element(); s  # random
             {{1, 4, 9}, {2, 5, 7}, {3}, {6}, {8, 10}}
+            sage: s in S
+            True
 
             sage: S = SetPartitions(["a", "b", "c"])
-            sage: S.random_element() # random
+            sage: s = S.random_element(); s  # random
             {{'a'}, {'b', 'c'}}
+            sage: s in S
+            True
         """
         base_set = list(self.base_set())
         N = len(base_set)
@@ -3159,10 +3163,12 @@ class SetPartitions_setn(SetPartitions_set):
         EXAMPLES::
 
             sage: S = SetPartitions(10, 4)
-            sage: S.random_element()
+            sage: s = S.random_element(); s  # random
             {{1, 2, 4, 6, 9, 10}, {3}, {5, 7}, {8}}
+            sage: s in S
+            True
 
-            sage: SetPartitions(["a", "b", "c"], 2).random_element() # random
+            sage: SetPartitions(["a", "b", "c"], 2).random_element()  # random
             {{'a'}, {'b', 'c'}}
 
         """

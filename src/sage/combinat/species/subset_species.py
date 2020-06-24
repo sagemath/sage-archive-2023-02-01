@@ -29,6 +29,7 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
         """
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: S = species.SubsetSpecies()
             sage: a = S.structures(["a","b","c"]).random_element(); a
             {}

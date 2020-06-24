@@ -1771,11 +1771,11 @@ class WordGenerator(object):
             sage: from sage.misc.prandom import randint
             sage: def it():
             ....:   while True: yield randint(0,1)
-            sage: words.s_adic(it(), repeat('a'), [tm,fib])
+            sage: words.s_adic(it(), repeat('a'), [tm,fib])  # random
             word: abbaabababbaababbaabbaababbaabababbaabba...
-            sage: words.s_adic(it(), repeat('a'), [tm,fib])
+            sage: words.s_adic(it(), repeat('a'), [tm,fib])  # random
             word: abbaababbaabbaababbaababbaabbaababbaabba...
-            sage: words.s_adic(it(), repeat('a'), [tm,fib])
+            sage: words.s_adic(it(), repeat('a'), [tm,fib])  # random
             word: abaaababaabaabaaababaabaaababaaababaabaa...
 
         An example where the sequences cycle on two morphisms and two

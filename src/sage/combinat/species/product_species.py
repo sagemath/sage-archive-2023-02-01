@@ -42,6 +42,7 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: S = species.SetSpecies()
             sage: (S*S).structures(['a','b','c']).random_element()
             {}*{'a', 'b', 'c'}
@@ -132,6 +133,7 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: S = species.SetSpecies()
             sage: F = S * S
             sage: a = F.structures(['a','b','c']).random_element(); a
@@ -152,6 +154,7 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
         """
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: p = PermutationGroupElement((2,3))
             sage: S = species.SetSpecies()
             sage: F = S * S

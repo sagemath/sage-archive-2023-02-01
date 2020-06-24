@@ -5865,7 +5865,7 @@ class FiniteWord_class(Word_class):
             sage: W = Words('ab')
             sage: w = W('ab')
             sage: for i in range(8): w = choice([s1,s2,s3,s4])(w)
-            sage: w
+            sage: w  # random
             word: abaaabaaabaabaaabaaabaabaaabaabaaabaaaba...
             sage: w.is_sturmian_factor()
             True

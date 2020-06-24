@@ -1166,11 +1166,16 @@ class GelfandTsetlinPatterns(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: g = GelfandTsetlinPatterns(4, 5)
-            sage: g.random_element()
+            sage: x = g.random_element(); x  # random
             [[5, 2, 2, 1], [2, 2, 1], [2, 1], [1]]
+            sage: x in g
+            True
+
             sage: g = GelfandTsetlinPatterns(4, 5, strict=True)
-            sage: g.random_element()
+            sage: x = g.random_element(); x  # random
             [[5, 4, 1, 0], [5, 2, 1], [2, 1], [2]]
+            sage: x in g
+            True
         """
         if self._n is not None and self._k is not None:
             if self._strict and self._k+1 < self._n:
@@ -1380,11 +1385,16 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
         EXAMPLES::
 
             sage: g = GelfandTsetlinPatterns(top_row = [4, 3, 1, 1])
-            sage: g.random_element()
+            sage: x = g.random_element(); x  # random
             [[4, 3, 1, 1], [4, 3, 1], [4, 1], [3]]
+            sage: x in g
+            True
+
             sage: g = GelfandTsetlinPatterns(top_row=[4, 3, 2, 1], strict=True)
-            sage: g.random_element()
+            sage: x = g.random_element(); x  # random
             [[4, 3, 2, 1], [4, 2, 1], [4, 1], [2]]
+            sage: x in g
+            True
         """
         if self._strict:
             return self._cftp(1)

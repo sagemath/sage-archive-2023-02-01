@@ -42,6 +42,7 @@ class LinearOrderSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: F = species.LinearOrderSpecies()
             sage: a = F.structures(["a", "b", "c"]).random_element(); a
             ['a', 'b', 'c']
@@ -59,6 +60,7 @@ class LinearOrderSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: F = species.LinearOrderSpecies()
             sage: a = F.structures(["a", "b", "c"]).random_element(); a
             ['a', 'b', 'c']

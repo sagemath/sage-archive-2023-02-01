@@ -505,7 +505,7 @@ class IntegerVectors(Parent, metaclass=ClasscallMetaclass):
         [5, 0, 0]
         sage: IV53.last()
         [0, 0, 5]
-        sage: IV53.random_element()
+        sage: IV53.random_element()  # random
         [4, 0, 1]
 
     Further examples::

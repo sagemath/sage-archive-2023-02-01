@@ -26,6 +26,7 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
         """
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: S = species.CycleSpecies()
             sage: a = S.structures(["a","b","c"]).random_element(); a
             ('a', 'b', 'c')
@@ -50,6 +51,7 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: F = species.CycleSpecies()
             sage: a = F.structures(["a", "b", "c"]).random_element(); a
             ('a', 'b', 'c')
@@ -66,6 +68,7 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: F = species.CycleSpecies()
             sage: a = F.structures(["a", "b", "c"]).random_element(); a
             ('a', 'b', 'c')
@@ -87,6 +90,7 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: P = species.CycleSpecies()
             sage: a = P.structures([1, 2, 3, 4]).random_element(); a
             (1, 2, 3, 4)

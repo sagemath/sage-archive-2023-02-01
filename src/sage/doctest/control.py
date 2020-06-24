@@ -29,7 +29,6 @@ import json
 import re
 import types
 import sage.misc.flatten
-import sage.misc.randstate as randstate
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC, SAGE_LOCAL, SAGE_EXTCODE
 from sage.misc.temporary_file import tmp_dir
@@ -415,8 +414,7 @@ class DocTestController(SageObject):
         self._init_warn_long()
 
         if self.options.random_seed is None:
-            randstate.set_random_seed()
-            self.options.random_seed = randstate.initial_seed()
+            self.options.random_seed = 0
 
     def __del__(self):
         if getattr(self, 'logfile', None) is not None:

@@ -357,7 +357,7 @@ cdef class MPolynomial(CommutativeRingElement):
         x = [etb.var(v) for v in my_vars]
         n = len(x)
 
-        expr = etb.constant(self.base_ring()(0))
+        expr = etb.constant(self.base_ring().zero())
         for (m, c) in self.dict().iteritems():
             monom = prod([ x[i]**m[i] for i in range(n) if m[i] != 0],
                              etb.constant(c))
@@ -1155,11 +1155,6 @@ cdef class MPolynomial(CommutativeRingElement):
         returning tuples of the form ``(coeff, mon)`` for each
         non-zero monomial.
 
-        .. NOTE::
-
-            This function creates the entire list upfront because Cython
-            doesn't (yet) support iterators.
-
         EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(QQ,3)
@@ -1170,8 +1165,34 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: sum(c*m for c,m in f) == f
             True
         """
-        L = zip(self.coefficients(), self.monomials())
-        return iter(L)
+        for exp, coeff in self.iterator_exp_coeff():
+            yield (coeff, self.monomial(exp))
+
+    def iterator_exp_coeff(self, as_ETuples=True):
+        """
+        Iterate over ``self`` as pairs of ((E)Tuple, coefficient).
+
+        INPUT:
+
+        - ``as_ETuples`` -- (default: ``True``) if ``True`` iterate over
+          pairs whose first element is an ETuple, otherwise as a tuples
+
+        EXAMPLES::
+
+            sage: R.<a,b,c> = QQ[]
+            sage: f = a*c^3 + a^2*b + 2*b^4
+            sage: list(f.iterator_exp_coeff())
+            [((0, 4, 0), 2), ((1, 0, 3), 1), ((2, 1, 0), 1)]
+            sage: list(f.iterator_exp_coeff(as_ETuples=False))
+            [((0, 4, 0), 2), ((1, 0, 3), 1), ((2, 1, 0), 1)]
+
+            sage: R.<a,b,c> = PolynomialRing(QQ, 3, order='lex')
+            sage: f = a*c^3 + a^2*b + 2*b^4
+            sage: list(f.iterator_exp_coeff())
+            [((2, 1, 0), 1), ((1, 0, 3), 1), ((0, 4, 0), 2)]
+        """
+        for exp in self.exponents():
+            yield (exp, self.monomial_coefficient(exp))
 
     def content(self):
         """
@@ -1547,6 +1568,38 @@ cdef class MPolynomial(CommutativeRingElement):
             u = 1
         an = self.coefficient(variable**n)**(n - k - 2)
         return self.parent()(u * self.resultant(d, variable) * an)
+
+    def subresultants(self, other, variable=None):
+        r"""
+        Return the nonzero subresultant polynomials of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a polynomial
+
+        OUTPUT: a list of polynomials in the same ring as ``self``
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: p = (y^2 + 6)*(x - 1) - y*(x^2 + 1)
+            sage: q = (x^2 + 6)*(y - 1) - x*(y^2 + 1)
+            sage: p.subresultants(q, y)
+            [2*x^6 - 22*x^5 + 102*x^4 - 274*x^3 + 488*x^2 - 552*x + 288,
+             -x^3 - x^2*y + 6*x^2 + 5*x*y - 11*x - 6*y + 6]
+            sage: p.subresultants(q, x)
+            [2*y^6 - 22*y^5 + 102*y^4 - 274*y^3 + 488*y^2 - 552*y + 288,
+             x*y^2 + y^3 - 5*x*y - 6*y^2 + 6*x + 11*y - 6]
+
+        """
+        R = self.parent()
+        if variable is None:
+            x = R.gen(0)
+        else:
+            x = variable
+        p = self.polynomial(x)
+        q = other.polynomial(x)
+        return [R(f) for f in  p.subresultants(q)]
 
     def macaulay_resultant(self, *args):
         r"""
@@ -2525,7 +2578,7 @@ cdef class MPolynomial(CommutativeRingElement):
             True
         """
         # EXERCISE (Atiyah-McDonald, Ch 1): Let `A[x]` be a polynomial
-        # ring in one variable. Then `f=\sum a_i x^i \in A[x]` is 
+        # ring in one variable. Then `f=\sum a_i x^i \in A[x]` is
         # nilpotent if and only if `a_0,\ldots, a_n` are nilpotent.
         # (Also noted in Dummit and Foote, "Abstract Algebra", 1991,
         # Section 7.3 Exercise 33).

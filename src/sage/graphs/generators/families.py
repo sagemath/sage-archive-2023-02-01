@@ -18,8 +18,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, division
-import six
-from six.moves import range
 
 from copy import copy
 from math import sin, cos, pi
@@ -1206,7 +1204,7 @@ def CubeGraph(n):
     for i in range(n):
         ci = float(cos(i*theta))
         si = float(sin(i*theta))
-        for v,e in six.iteritems(d):
+        for v,e in d.items():
             v0 = v+'0'
             v1 = v+'1'
             l0 = [v1]
@@ -1225,7 +1223,7 @@ def CubeGraph(n):
     # construct the graph
     r = Graph(name="%d-Cube"%n)
     r.add_vertices(d.keys())
-    for u,L in six.iteritems(d):
+    for u,L in d.items():
         for v in L:
             r.add_edge(u,v)
     r.set_pos(p)

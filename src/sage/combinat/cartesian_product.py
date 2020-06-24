@@ -17,8 +17,6 @@ Cartesian Products
 # ****************************************************************************
 from __future__ import absolute_import
 
-from six.moves import range
-
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.sets.set_from_iterator import EnumeratedSetFromIterator
 

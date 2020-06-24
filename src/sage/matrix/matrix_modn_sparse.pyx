@@ -271,7 +271,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         Even though sparse and dense matrices are represented
         differently, they still compare as equal if they have the
-        same entries:
+        same entries::
+
             sage: a*b == a._matrix_times_matrix_dense(b)
             True
             sage: d = matrix(GF(43), 3, 8, range(24))
@@ -287,7 +288,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             [32770 32770 32770]
             sage: M*M.transpose() # previously returned [32738]
             [3]
-
         """
         cdef Matrix_modn_sparse right, ans
         right = _right
@@ -295,24 +295,29 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint* v
 
         # Build a table that gives the nonzero positions in each column of right
-        nonzero_positions_in_columns = [set([]) for _ in range(right._ncols)]
+        cdef list nonzero_positions_in_columns = [set() for _ in range(right._ncols)]
         cdef Py_ssize_t i, j, k
-        for i from 0 <= i < right._nrows:
+        for i in range(right._nrows):
             v = &(right.rows[i])
-            for j from 0 <= j < right.rows[i].num_nonzero:
-                nonzero_positions_in_columns[v.positions[j]].add(i)
+            for j in range(v.num_nonzero):
+                (<set> nonzero_positions_in_columns[v.positions[j]]).add(i)
+        # pre-computes the list of nonzero columns of right
+        cdef list right_indices
+        right_indices = [j for j in range(right._ncols)
+                         if nonzero_positions_in_columns[j]]
 
         ans = self.new_matrix(self._nrows, right._ncols)
 
         # Now do the multiplication, getting each row completely before filling it in.
         cdef int x, y, s
+        cdef set c
 
-        for i from 0 <= i < self._nrows:
-            v = &self.rows[i]
-            for j from 0 <= j < right._ncols:
+        for i in range(self._nrows):
+            v = &(self.rows[i])
+            for j in range(right._ncols):
                 s = 0
-                c = nonzero_positions_in_columns[j]
-                for k from 0 <= k < v.num_nonzero:
+                c = <set> nonzero_positions_in_columns[j]
+                for k in range(v.num_nonzero):
                     if v.positions[k] in c:
                         y = get_entry(&right.rows[v.positions[k]], j)
                         x = v.entries[k] * y

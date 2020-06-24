@@ -216,7 +216,6 @@ We check that :trac:`17990` is fixed::
 #*****************************************************************************
 # python3
 from __future__ import division
-from six import integer_types
 
 from sys import maxsize
 from sage.rings.ring import Ring
@@ -752,7 +751,7 @@ class UnsignedInfinityRing_class(Singleton, Ring):
             sage: UnsignedInfinityRing.has_coerce_map_from(SymmetricGroup(13))
             False
         """
-        return isinstance(R, Ring) or R in integer_types + (float, complex)
+        return isinstance(R, Ring) or R in (int, float, complex)
 
 UnsignedInfinityRing = UnsignedInfinityRing_class()
 

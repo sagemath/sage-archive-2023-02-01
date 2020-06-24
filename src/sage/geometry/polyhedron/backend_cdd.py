@@ -15,7 +15,6 @@ The cdd backend for polyhedral computations
 # ****************************************************************************
 
 from __future__ import print_function, absolute_import
-from six import PY2
 
 from subprocess import Popen, PIPE
 from sage.rings.all import ZZ
@@ -147,13 +146,9 @@ class Polyhedron_cdd(Polyhedron_base):
             print('---- CDD input -----')
             print(cdd_input_string)
 
-        if PY2:
-            enc_kwargs = {}
-        else:
-            enc_kwargs = {'encoding': 'latin-1'}
-
         cdd_proc = Popen([self._cdd_executable, cmdline_arg],
-                         stdin=PIPE, stdout=PIPE, stderr=PIPE, **enc_kwargs)
+                         stdin=PIPE, stdout=PIPE, stderr=PIPE,
+                         encoding='latin-1')
         ans, err = cdd_proc.communicate(input=cdd_input_string)
 
         if verbose:
@@ -513,3 +508,108 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
             sage: TestSuite(p).run()
         """
         Polyhedron_cdd.__init__(self, parent, Vrep, Hrep, **kwds)
+
+    def _init_from_Vrepresentation_and_Hrepresentation(self, Vrep, Hrep, verbose=False):
+        """
+        Construct polyhedron from Vrepresentation and Hrepresentation data.
+
+        See :class:`Polyhedron_base` for a description of ``Vrep`` and ``Hrep``.
+
+        .. NOTE::
+
+            The representation is assumed to be correct.
+
+            As long as cdd can obtain a consistent object with Vrepresentation
+            or Hrepresentation no warning is raised. Consistency is checked by
+            comparing the output length of Vrepresentation and Hrepresentation
+            with the input.
+
+            In comparison, the "normal" initialization from Vrepresentation over RDF
+            expects the output length to be consistent with the computed length
+            when re-feeding cdd the outputed Hrepresentation.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.parent import Polyhedra_RDF_cdd
+            sage: from sage.geometry.polyhedron.backend_cdd import Polyhedron_RDF_cdd
+            sage: parent = Polyhedra_RDF_cdd(RDF, 1, 'cdd')
+            sage: Vrep = [[[0.0], [1.0]], [], []]
+            sage: Hrep = [[[0.0, 1.0], [1.0, -1.0]], []]
+            sage: p = Polyhedron_RDF_cdd(parent, Vrep, Hrep,
+            ....:                        Vrep_minimal=True, Hrep_minimal=True)  # indirect doctest
+            sage: p
+            A 1-dimensional polyhedron in RDF^1 defined as the convex hull of 2 vertices
+
+        TESTS:
+
+        Test that :trac:`29568` is fixed::
+
+            sage: P = polytopes.buckyball(exact=False)
+            sage: Q = P + P.center()
+            sage: P.is_combinatorially_isomorphic(Q)
+            True
+            sage: R = 2*P
+            sage: P.is_combinatorially_isomorphic(R)
+            True
+        """
+        def parse_Vrep(intro, data):
+            count = int(data[0][0])
+            if count != len(vertices) + len(rays) + len(lines):
+                # Upstream claims that nothing can be done about these
+                # cases/that they are features not bugs. Imho, cddlib is
+                # not really suitable for automatic parsing of its output,
+                # the implementation backed by doubles has not really been
+                # optimized for numerical stability, and makes some
+                # somewhat random numerical choices. (But I am not an
+                # expert in that field by any means.) See also
+                # https://github.com/cddlib/cddlib/pull/7.
+                from warnings import warn
+                warn("This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.")
+
+        def parse_Hrep(intro, data):
+            count = int(data[0][0])
+            infinite_count = len([d for d in data[1:] if d[0] == '1' and all(c == '0' for c in d[1:])])
+            if count - infinite_count != len(ieqs) + len(eqns):
+                # Upstream claims that nothing can be done about these
+                # cases/that they are features not bugs. Imho, cddlib is
+                # not really suitable for automatic parsing of its output,
+                # the implementation backed by doubles has not really been
+                # optimized for numerical stability, and makes some
+                # somewhat random numerical choices. (But I am not an
+                # expert in that field by any means.)
+                from warnings import warn
+                warn("This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.")
+
+        def try_init(rep):
+            if rep == "Vrep":
+                from .cdd_file_format import cdd_Vrepresentation
+                s = cdd_Vrepresentation(self._cdd_type, vertices, rays, lines)
+            else:
+                from .cdd_file_format import cdd_Hrepresentation
+                s = cdd_Hrepresentation(self._cdd_type, ieqs, eqns)
+
+            s = self._run_cdd(s, '--redcheck', verbose=verbose)
+            s = self._run_cdd(s, '--repall', verbose=verbose)
+            Polyhedron_cdd._parse_block(s.splitlines(), 'V-representation', parse_Vrep)
+            Polyhedron_cdd._parse_block(s.splitlines(), 'H-representation', parse_Hrep)
+            self._init_from_cdd_output(s)
+
+        from warnings import catch_warnings, simplefilter
+
+        vertices, rays, lines = (tuple(x) for x in Vrep)
+        ieqs, eqns            = (tuple(x) for x in Hrep)
+
+        # We prefer the shorter representation.
+        # Note that for the empty polyhedron we prefer Hrepresentation.
+        prim = "Hrep" if len(ieqs) <= len(vertices) + len(rays) else "Vrep"
+        sec  = "Vrep" if len(ieqs) <= len(vertices) + len(rays) else "Hrep"
+
+        with catch_warnings():
+            # Raise an error and try the other representation in case of
+            # numerical inconsistency.
+            simplefilter("error")
+            try:
+                try_init(prim)
+            except UserWarning:
+                simplefilter("once")  # Only print the first warning.
+                try_init(sec)

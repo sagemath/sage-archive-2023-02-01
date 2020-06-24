@@ -28,7 +28,6 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import print_function, absolute_import
 
-from six.moves import range
 import sage.misc.prandom as rnd
 import itertools
 

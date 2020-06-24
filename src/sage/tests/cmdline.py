@@ -60,8 +60,6 @@ import os
 import sys
 import select
 
-import six
-
 
 def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False, **kwds):
     r"""
@@ -218,7 +216,8 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])  # optional - build
         sage: print(out)  # optional - build
         Found local metadata for sqlite-...
-        = SQLite =
+        SQLite
+        ======
         ...
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
@@ -231,7 +230,8 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])  # optional - build
         sage: print(out)  # optional - build
         Found local metadata for sqlite-...
-        = SQLite =
+        SQLite
+        ======
         ...
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
@@ -846,12 +846,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
             'ignore::DeprecationWarning',
         ])
 
-    encoding = kwds.pop('encoding', 'utf-8')
-    errors = kwds.pop('errors', None)
-
-    if six.PY3:
-        kwds['encoding'] = encoding
-        kwds['errors'] = errors
+    kwds['encoding'] = kwds.pop('encoding', 'utf-8')
 
     p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=pexpect_env,
               **kwds)

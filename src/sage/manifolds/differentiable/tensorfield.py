@@ -52,7 +52,6 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 from __future__ import print_function
-from six import string_types
 
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -743,6 +742,15 @@ class TensorField(ModuleElement):
             sage: t.display(Y)
             t = 2*u d/du*du + v^3 d/dv*du + (u + v) d/dv*dv
 
+        TESTS:
+
+        Check that :trac:`29639` is fixed::
+
+            sage: v = M.vector_field()
+            sage: v._init_components(1/2, -1)
+            sage: v.display()
+            1/2 d/dx - d/dy
+
         """
         comp0 = comp[0]
         self._is_zero = False  # a priori
@@ -753,11 +761,11 @@ class TensorField(ModuleElement):
                     # frame is actually a pair (frame, chart):
                     frame, chart = frame
                 self.add_comp(frame)[:, chart] = components
-        elif isinstance(comp0, string_types):
+        elif isinstance(comp0, str):
             # For compatibility with previous use of tensor_field():
             self.set_name(comp0)
         else:
-            if hasattr(comp0, '__getitem__'):
+            if hasattr(comp0, '__len__') and hasattr(comp0, '__getitem__'):
                 # comp0 is a list/vector of components
                 # otherwise comp is the tuple of components in a specific frame
                 comp = comp0

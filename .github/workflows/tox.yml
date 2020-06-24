@@ -37,7 +37,7 @@ jobs:
       max-parallel: 20
       matrix:
         tox_system_factor: [ubuntu-trusty, ubuntu-xenial, ubuntu-bionic, ubuntu-eoan, ubuntu-focal, debian-jessie, debian-stretch, debian-buster, debian-bullseye, debian-sid, linuxmint-17, linuxmint-18, linuxmint-19, linuxmint-19.3, fedora-26, fedora-27, fedora-28, fedora-29, fedora-30, fedora-31, fedora-32, centos-7, centos-8, archlinux-latest, slackware-14.2, conda-forge, ubuntu-bionic-i386, ubuntu-eoan-i386, debian-buster-i386, centos-7-i386]
-        tox_packages_factor: [minimal, standard, standard-python2]
+        tox_packages_factor: [minimal, standard]
     env:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
@@ -102,7 +102,7 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        tox_system_factor: [homebrew-macos-python2, homebrew-macos, homebrew-macos-python3_xcode, homebrew-macos-python3_xcode-nokegonly, homebrew-macos-python3_pythonorg, homebrew-macos-python3_xcode-gcc_spkg, conda-forge-macos]
+        tox_system_factor: [homebrew-macos, homebrew-macos-python3_xcode, homebrew-macos-python3_xcode-nokegonly, homebrew-macos-python3_pythonorg, homebrew-macos-python3_xcode-gcc_spkg, conda-forge-macos]
         tox_packages_factor: [minimal, standard]
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
@@ -147,7 +147,7 @@ jobs:
       max-parallel: 1
       matrix:
         tox_system_factor: [conda-forge-ubuntu]
-        tox_packages_factor: [minimal, standard, standard-python2]
+        tox_packages_factor: [minimal, standard]
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}

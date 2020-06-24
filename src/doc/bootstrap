@@ -49,3 +49,31 @@ for SYSTEM in arch debian fedora cygwin homebrew; do
     echo "$(sage-print-system-package-command $SYSTEM --prompt --sudo install $(echo $(echo $SYSTEM_PACKAGES | xargs -n 1 echo | sort)))" > "$OUTPUT_DIR"/$SYSTEM.txt
     echo "$(sage-print-system-package-command $SYSTEM --prompt --sudo install $(echo $(echo $OPTIONAL_SYSTEM_PACKAGES | xargs -n 1 echo | sort)))" > "$OUTPUT_DIR"/$SYSTEM-optional.txt
 done
+
+OUTPUT_DIR="src/doc/en/reference/spkg"
+mkdir -p "$OUTPUT_DIR"
+echo >&2 $0:$LINENO: installing "$OUTPUT_DIR"/"*.rst"
+OUTPUT_INDEX="$OUTPUT_DIR"/index.rst
+cat > "$OUTPUT_INDEX" <<EOF
+
+External Packages
+=================
+
+.. toctree::
+   :maxdepth: 1
+
+EOF
+for PKG_SCRIPTS in build/pkgs/*; do
+    if [ -d "$PKG_SCRIPTS" ]; then
+        PKG_BASE=$(basename "$PKG_SCRIPTS")
+        if [ -f "$PKG_SCRIPTS"/SPKG.rst ]; then
+            # Instead of just copying, we may want to call
+            # a version of sage-spkg-info to format extra information.
+            cp "$PKG_SCRIPTS"/SPKG.rst "$OUTPUT_DIR"/$PKG_BASE.rst
+            echo >> "$OUTPUT_INDEX" "   $PKG_BASE"
+        fi
+    fi
+done
+cat >> "$OUTPUT_INDEX" <<EOF
+.. include:: ../footer.txt
+EOF

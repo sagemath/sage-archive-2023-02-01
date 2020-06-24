@@ -50,10 +50,8 @@ Check that the issues from :trac:`27199` are fixed::
 ###############################################################################
 from __future__ import print_function
 
-from six import iteritems, PY2
-
-import subprocess
 import re
+import subprocess
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
@@ -187,7 +185,7 @@ class ECM(SageObject):
     def _make_cmd(self, B1, B2, kwds):
         ecm = ['ecm']
         options = []
-        for x, v in iteritems(kwds):
+        for x, v in kwds.items():
             if v is False:
                 continue
             options.append('-{0}'.format(x))
@@ -221,16 +219,11 @@ class ECM(SageObject):
         """
         from subprocess import Popen, PIPE
 
-        if PY2:
-            enc_kwds = {}
-        else:
-            # Under normal usage this program only returns ASCII; anything
-            # else mixed is garbage and an error
-            # So just accept latin-1 without encoding errors, and let the
-            # output parser deal with the rest
-            enc_kwds = {'encoding': 'latin-1'}
-
-        p = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=PIPE, **enc_kwds)
+        # Under normal usage this program only returns ASCII; anything
+        # else mixed is garbage and an error
+        # So just accept latin-1 without encoding errors, and let the
+        # output parser deal with the rest
+        p = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=PIPE, encoding='latin-1')
         out, err = p.communicate(input=str(n))
         if err != '':
             raise ValueError(err)

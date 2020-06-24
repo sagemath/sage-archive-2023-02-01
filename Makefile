@@ -42,7 +42,7 @@ SPKG_COLLECT_FILES = build/pkgs/*/type build/pkgs/*/package-version.txt build/pk
 
 # If configure was run before, rerun it with the old arguments.
 # Otherwise, run configure with argument $PREREQ_OPTIONS.
-build/make/Makefile: configure build/make/deps $(SPKG_COLLECT_FILES) $(CONFIG_FILES:%=%.in)
+build/make/Makefile: configure $(SPKG_COLLECT_FILES) $(CONFIG_FILES:%=%.in)
 	rm -f config.log
 	mkdir -p logs/pkgs
 	ln -s logs/pkgs/config.log config.log
@@ -105,6 +105,7 @@ distclean: build-clean
 bootstrap-clean:
 	rm -rf config configure build/make/Makefile-auto.in
 	rm -f src/doc/en/installation/*.txt
+	rm -rf src/doc/en/reference/spkg/*.rst
 
 # Remove absolutely everything which isn't part of the git repo
 maintainer-clean: distclean bootstrap-clean

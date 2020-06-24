@@ -393,8 +393,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]]
         """
         if verbose:
-            import six
-            if isinstance(verbose, six.string_types):
+            if isinstance(verbose, str):
                 print("# Wrote equivalent Normaliz input file to {}".format(verbose))
                 self._normaliz_format(data, file_output=verbose)
             else:

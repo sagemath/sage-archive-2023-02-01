@@ -71,7 +71,6 @@ from itertools import combinations_with_replacement
 from sage.arith.all import gcd, lcm, CRT
 from copy import copy
 import itertools
-from six.moves import range, zip
 
 
 def column_Log(SUK, iota, U, prec=106):
@@ -1922,7 +1921,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
 
     rfv_to_ev = {}
 
-    # We build a second dictionary of dictiories.
+    # We build a second dictionary of dictionaries.
     # comp_exp_vec[q] is the dictionary mod q which assigns to each exponent vector
     # a list of 'complementary' exponent vectors.
 

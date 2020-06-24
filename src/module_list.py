@@ -116,14 +116,6 @@ library_order["stdc++"] = 1000
 #############################################################
 
 from sage_setup.optional_extension import OptionalExtension
-UNAME = os.uname()
-
-def uname_specific(name, value, alternative):
-    if name in UNAME[0]:
-        return value
-    else:
-        return alternative
-
 
 ext_modules = [
 
@@ -501,10 +493,7 @@ ext_modules = [
               language = 'c++'),
 
     Extension('sage.libs.libecm',
-              sources = ['sage/libs/libecm.pyx'],
-              libraries = ['ecm'],
-              extra_link_args = uname_specific("Linux", ["-Wl,-z,noexecstack"],
-                                                        [])),
+              sources = ['sage/libs/libecm.pyx']),
 
     Extension('sage.libs.lrcalc.lrcalc',
               sources = ["sage/libs/lrcalc/lrcalc.pyx"]),

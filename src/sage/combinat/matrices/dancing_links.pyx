@@ -985,11 +985,19 @@ cdef class dancing_linksWrapper:
             sage: s = d.one_solution_using_sat_solver('glucose') # optional glucose
             sage: s in solutions                                 # optional glucose
             True
+
+        When no solution is found::
+
+            sage: rows = [[0,1,2], [2,3,4,5], [0,1,2,3]]
+            sage: d = dlx_solver(rows)
+            sage: d.one_solution_using_sat_solver() is None
+            True
+
         """
         sat_solver = self.to_sat_solver(solver)
         solution = sat_solver()
         if not solution:
-            raise ValueError('no solution found using SAT solver (={})'.format(solver))
+            return None
         return [key for (key,val) in enumerate(solution, start=-1) if val]
 
 def dlx_solver(rows):

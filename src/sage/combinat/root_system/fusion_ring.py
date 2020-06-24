@@ -39,9 +39,12 @@ class FusionRing(WeylCharacterRing):
 
     REFERENCES:
 
+    - [BK]_ Chapter 3
     - [DFMS1996]_ Chapter 16
+    - [EGNO]_ Chapter 8
     - [Feingold2004]_
     - [Fuchs1994]_
+    - [Row2006]_
     - [Walton1990]_
 
     EXAMPLES::
@@ -214,7 +217,7 @@ class FusionRing(WeylCharacterRing):
         and `h^\vee` denotes the dual Coxeter number of the underlying Lie
         algebra.
 
-        This value is used to define the associated root of unity ``q``.
+        This value is used to define the associated root of unity `q=e^{i\\pi/\ell}`.
 
         EXAMPLES::
 
@@ -296,7 +299,7 @@ class FusionRing(WeylCharacterRing):
         
         .. MATH::
 
-            i*j = \sum_k N_{ij}^k\,k
+            i*j = \sum_{k} N_{ij}^k k
 
         as the example shows.
 
@@ -313,7 +316,14 @@ class FusionRing(WeylCharacterRing):
     def s_ij(self, elt_i, elt_j):
         """
         Return the element of the S-matrix of this FusionRing corresponding to 
-        the given elements.
+        the given elements. This is computed using the formula
+
+        .. MATH::
+
+            s_{i,j} = \\frac{1}{\\theta_i\\theta_j}\\sum_k N_{ik}^j d_k\\theta_k
+
+        where `\\theta_k` is the twist and `d_k` is the quantum
+        dimension. See [Row2006]_ equation (2.2) or [EGNO]_ Proposition 8.13.8.
 
         INPUT:
 
@@ -325,13 +335,15 @@ class FusionRing(WeylCharacterRing):
             sage: b=G21.basis()
             sage: [G21.s_ij(x,y) for x in b for y in b]
             [1, -zeta60^14 + zeta60^6 + zeta60^4, -zeta60^14 + zeta60^6 + zeta60^4, -1]
+
         """
         l = self.fusion_l()
         K = self.q_field()
         q = K.gen()
         ijtwist = -2*l*(elt_i.twist() + elt_j.twist())
-        
-        return sum(self(k).q_dimension()*q**(2*l*self(k).twist()+ijtwist) for k in (elt_i.dual()*elt_j).monomial_coefficients())
+        mc = (elt_i.dual()*elt_j).monomial_coefficients()
+        return sum(self(k).q_dimension()*self.Nk_ij(elt_i,self(k),elt_j)*q**(2*l*self(k).twist()+ijtwist) for k in mc)
+        # return sum(self(k).q_dimension()*q**(2*l*self(k).twist()+ijtwist) for k in (elt_i.dual()*elt_j).monomial_coefficients())
 
     def s_matrix(self):
         r"""
@@ -446,11 +458,12 @@ class FusionRing(WeylCharacterRing):
 
         def twist(self):
             r"""
-            Compute the object's twist. Returns a rational number `h_X` such that 
-            `e^{(i \pi h_X)}` is the twist of `X`. 
+            Compute the object's twist. This returns a rational number `h` such that 
+            `\theta = e^{i \pi h}` is the twist of ``self``. This method is
+            only available for simple objects.
 
             We compute the twists following p.7 of [Row2006]_, noting that the bilinear form
-            is normalized so that `\langle\alpha, \alpha\rangle = 2` for SHORT roots.
+            is normalized so that `\langle\alpha, \alpha\rangle = 2` for short roots.
 
             EXAMPLES::
 

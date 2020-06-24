@@ -165,12 +165,13 @@ class WeylCharacterRing(CombinatorialFreeModule):
             #TODO: implement conjugate functionality
             if ct[0] in ['A','D','E']:
                 self._m_g = 1
-                self._nf = 1
             elif ct[0] in ['B', 'C', 'F']:
                 self._m_g = 2
-                self._nf = 2
             else: 
                 self._m_g = 3
+            if ct[0] in ['B','F']:
+                self._nf = 2
+            else:
                 self._nf = 1
             h_check = ct.dual_coxeter_number()
             self._l = self._m_g * (self._k + h_check) 

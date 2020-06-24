@@ -2,7 +2,9 @@
 Some utility routines for the hypergeometric motives package that benefit
 significantly from Cythonization.
 """
-cpdef hgm_coeffs(long long p, int f, int prec, gamma, array.array m, int D,
+from cpython cimport array
+
+cpdef hgm_coeffs(long long p, int f, int prec, gamma, m, int D,
                  gtable, int gtable_prec, bint use_longs):
     r"""
     Compute coefficients for the hypergeometric trace formula.

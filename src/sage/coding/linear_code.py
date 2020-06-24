@@ -2807,7 +2807,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 1)
             sage: c = C.random_element()
             sage: r = Chan(c)
-            sage: c == D.decode_to_code(r)  # known bug
+            sage: c == D.decode_to_code(r)
             True
         """
         lookup_table = self.syndrome_table()

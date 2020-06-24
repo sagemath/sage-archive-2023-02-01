@@ -176,7 +176,7 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         sage: designs.balanced_incomplete_block_design(37,9,8)
         (37,9,8)-Balanced Incomplete Block Design
         sage: designs.balanced_incomplete_block_design(15,7,3)
-        (15,7,3)-Balanced Incomplete Block Design
+        g(15,7,3)-Balanced Incomplete Block Design
     """
 
     # Trivial BIBD
@@ -205,7 +205,7 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         (lambd*v*(v-1))/(k*(k-1)) < v):
         if existence:
             return False
-        raise EmptySetError("There exists no ({},{},{})-BIBD".format(v,k,lambd))
+        raise EmptySetError("There exists no ({},{},{})-BIBD".format(v, k, lambd))
 
     if k == 2:
         if existence:
@@ -259,7 +259,7 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         if B.low_bd() > expected_n_of_blocks:
             if existence:
                 return False
-            raise EmptySetError("There exists no ({},{},{})-BIBD".format(v,k,lambd))
+            raise EmptySetError("There exists no ({},{},{})-BIBD".format(v, k, lambd))
         B = B.incidence_structure()
         if B.num_blocks() == expected_n_of_blocks:
             if existence:
@@ -270,7 +270,7 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
     if existence:
         return Unknown
     else:
-        raise NotImplementedError("I don't know how to build a ({},{},1)-BIBD!".format(v,k))
+        raise NotImplementedError("I don't know how to build a ({},{},1)-BIBD!".format(v, k))
 
 def steiner_triple_system(n):
     r"""
@@ -438,8 +438,8 @@ def BIBD_from_TD(v,k,existence=False):
     """
     # First construction
     if (v%k == 0 and
-        balanced_incomplete_block_design(v//k,k,existence=True) is True and
-        transversal_design(k,v//k,existence=True) is True):
+        balanced_incomplete_block_design(v//k, k, existence=True) is True and
+        transversal_design(k, v//k, existence=True) is True):
 
         if existence:
             return True

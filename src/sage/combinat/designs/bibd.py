@@ -210,7 +210,7 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
     if k == 2:
         if existence:
             return True
-        return BalancedIncompleteBlockDesign(v, [[x, y] for _ in range(lambd) for x in range(v) for y in range(v) if x != y], lambd=lambd, check=False, copy=True)
+        return BalancedIncompleteBlockDesign(v, [[x, y] for _ in range(lambd) for x in range(v) for y in range(x+1, v) if x != y], lambd=lambd, check=False, copy=True)
     if k == 3 and lambd == 1:
         if existence:
             return v%6 == 1 or v%6 == 3

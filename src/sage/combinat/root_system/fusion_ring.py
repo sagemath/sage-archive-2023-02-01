@@ -102,15 +102,15 @@ class FusionRing(WeylCharacterRing):
 
     The fusion ring has a number of methods that reflect its role
     as the Grothendieck ring of a modular tensor category. These
-    include a twist method :meth:twist for its elements related
-    to the ribbon element, and the S-matrix :meth:`s_ij`.
+    include a twist method :meth:`twist` for its elements related
+    to the ribbon structure, and the S-matrix :meth:`s_ij`.
 
     There are two natural normalizations of the S-matrix. Both
     are explained in Chapter 3 of [BK]_. The one that is computed
     by the method :meth:`s_matrix`, or whose individual entries
-    are computed by :meth:`s_ij` is denoted `\\tilde{s}` in
+    are computed by :meth:`s_ij` is denoted `\tilde{s}` in
     [BK]_. It is not unitary. To make it unitary, one would
-    divide by the square root of `D=\\sum d_i^2` where the sum is over all simple
+    divide by the square root of `D=\sum d_i^2` where the sum is over all simple
     objects and `d_i` is the quantum dimension, computed by the
     method :meth:`q_dimension`. The quantity `D` is computed by
     :meth:`q_dimension`.
@@ -124,7 +124,7 @@ class FusionRing(WeylCharacterRing):
 
     where ``I`` is the unit object. In this formula `s` is the normalized
     unitary S-matrix denoted `s` in [BK]_. We may define a function that corresponds
-    to the right-hand side, except using `\\tilde{s}` instead of `s`.
+    to the right-hand side, except using `\tilde{s}` instead of `s`::
 
         sage: def V(i,j,k):
         ....:     R = i.parent()
@@ -178,7 +178,7 @@ class FusionRing(WeylCharacterRing):
     def field(self):
         """
         This returns a cyclotomic field large enough to
-        contain the `2l`-th roots of unity, as well as
+        contain the `2\ell`-th roots of unity, as well as
         all the S-matrix entries.
 
         EXAMPLES::

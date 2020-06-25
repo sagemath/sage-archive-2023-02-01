@@ -23,7 +23,8 @@ from sage.misc.classcall_metaclass import typecall
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.rings.padics.generic_nodes import is_pAdicField
 from sage.schemes.berkovich.berkovich_space import (Berkovich_Cp_Affine,
-                                Berkovich_Cp_Projective, is_Berkovich_Cp, Berkovich_Element_Cp)
+                                Berkovich_Cp_Projective, is_Berkovich_Cp,
+                                Berkovich_Element_Cp_Affine, Berkovich_Element_Cp_Projective)
 from sage.rings.padics.factory import Qp
 from sage.structure.element import get_coercion_model
 from sage.schemes.projective.projective_space import ProjectiveSpace
@@ -31,6 +32,7 @@ from sage.schemes.affine.affine_space import is_AffineSpace
 from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
 from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective
 from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
+from sage.rings.rational_field import QQ
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class DynamicalSystem_Berkovich(Element):
@@ -97,6 +99,16 @@ class DynamicalSystem_Berkovich(Element):
             Defn: Defined on coordinates by sending (x) to
                 (x^2 + 1 + O(3^20))
 
+    ``domain`` is ignored if a dynamical system or an endomorphism is
+    passsed in, unless that morphism is not defined over a padic ring/field::
+
+        sage: f = DynamicalSystem_affine(x^2+1)
+        sage: C = Berkovich_Cp_Projective(3)
+        sage: DynamicalSystem_Berkovich(f, C)
+        Dynamical system of Affine Berkovich line over Cp(3) of precision 20 induced by the map
+          Defn: Defined on coordinates by sending (x) to
+                (x^2 + 1 + O(3^20))
+
     Creating a map on Berkovich space creates the Berkovich space
     it acts on::
 
@@ -129,12 +141,14 @@ class DynamicalSystem_Berkovich(Element):
         """
         if not(domain is None or is_Berkovich_Cp(domain)):
             raise ValueError('domain must be a Berkovich space over Cp')
+        morphism_domain = None
         if isinstance(dynamical_system, SchemeMorphism_polynomial):
             morphism_domain = dynamical_system.domain()
 
         if not domain is None:
             if isinstance(domain, Berkovich_Cp_Affine):
                 return DynamicalSystem_Berkovich_affine(dynamical_system,domain)
+        if not morphism_domain is None:
             from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
             if is_AffineSpace(morphism_domain) or isinstance(domain, AlgebraicScheme_subscheme_affine):
                 return DynamicalSystem_Berkovich_affine(dynamical_system,domain)
@@ -172,32 +186,6 @@ class DynamicalSystem_Berkovich(Element):
             Projective Berkovich line over Cp(3) of precision 20
         """
         return self._domain
-
-    def __call__(self, x):
-        """
-        Makes dynamical systems on Berkovich space over ``Cp`` callable.
-
-        INPUT:
-
-        - ``x`` -- a point of Berkovich space over ``Cp``
-
-        EXAMPLES::
-
-            sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
-            sage: f = DynamicalSystem_projective([x^2, y^2])
-            sage: g = DynamicalSystem_Berkovich(f)
-            sage: B = g.domain()
-            sage: Q1 = B(2)
-            sage: g(Q1)
-            Type I point centered at (1 + 3 + O(3^20) : 1 + O(3^20))
-        """
-        if not isinstance(x.parent(), type(self._domain)):
-            raise ValueError('action of dynamical system not defined on %s' %x.parent())
-        if x.type_of_point() == 1:
-            return self.domain()(self._system(x.center()))
-        if x.type_of_point() == 4:
-            raise NotImplementedError('action on Type IV points not implemented')
-        #TODO write a better check for zeros in disk
 
     def defining_polynomials(self):
         """
@@ -311,8 +299,11 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         """
         Returns the approapriate dynamical system on projective Berkovich space over ``Cp``.
         """
-        if not isinstance(dynamical_system, DynamicalSystem_projective):
-            dynamical_system = DynamicalSystem_projective(dynamical_system)
+        if not isinstance(dynamical_system, DynamicalSystem):
+            if not isinstance(dynamical_system, DynamicalSystem_projective):
+                dynamical_system = DynamicalSystem_projective(dynamical_system)
+            else:
+                raise ValueError('affine dynamical system passed to projective constructor')
         R = dynamical_system.base_ring()
         morphism_domain = dynamical_system.domain()
         if not isinstance(R, pAdicBaseGeneric):
@@ -340,6 +331,89 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         Python constructor.
         """
         DynamicalSystem_Berkovich.__init__(self, dynamical_system, domain)
+
+    def dehomogenize(self, n):
+        """
+        Returns the map induced by the standard dehomogenization.
+
+        The dehomogenization is done at the ``n[0]`` coordinate
+        of the domain and the ``n[1]`` coordinate of the codomain.
+
+        INPUT:
+
+        - ``n`` -- a tuple of nonnegative integers; if ``n`` is an integer,
+          then the two values of the tuple are assumed to be the same
+
+        OUTPUT: A dynamical system on affine Berkovich space
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+            sage: f = DynamicalSystem_projective([x^2 + y^2, x*y + y^2])
+            sage: g = DynamicalSystem_Berkovich(f)
+            sage: g.dehomogenize(1)
+            Dynamical system of Affine Berkovich line over Cp(3) of precision 20 induced by the map
+              Defn: Defined on coordinates by sending (x) to
+                    ((x^2 + 1 + O(3^20))/(x + 1 + O(3^20)))
+        """
+        new_system = self._system.dehomogenize(n)
+        base_ring = self.domain().base_ring().base_ring() #2 base rings since this is projective berkovich space
+        new_domain = Berkovich_Cp_Affine(base_ring)
+        return DynamicalSystem_Berkovich_affine(new_system,new_domain)
+
+    def __call__(self, x):
+        """
+        Makes dynamical systems on Berkovich space over ``Cp`` callable.
+
+        INPUT:
+
+        - ``x`` -- a point of Berkovich space over ``Cp``
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+            sage: f = DynamicalSystem_projective([x^2, y^2])
+            sage: g = DynamicalSystem_Berkovich(f)
+            sage: B = g.domain()
+            sage: Q1 = B(2)
+            sage: g(Q1)
+            Type I point centered at (1 + 3 + O(3^20) : 1 + O(3^20))
+        """
+        if not isinstance(x.parent(), type(self._domain)):
+            try:
+                x = self.domain()(x)
+            except:
+                raise ValueError('action of dynamical system not defined on %s' %x.parent())
+        if x.type_of_point() == 1:
+            return self.domain()(self._system(x.center()))
+        if x.type_of_point() == 4:
+            raise NotImplementedError('action on Type IV points not implemented')
+        f = self._system
+        """
+        if x.type_of_point() == 2:
+            from sage.matrix.constructor import Matrix
+            from sage.modules.free_module_element import vector
+            M = Matrix([[1,2],[0,1]])
+            X = M * vector(f[0].parent().gens())
+            F = vector(f._polys)
+            F = list(F(list(X)))
+        """
+        #TODO write a better check for zeros in disk
+        P = f.domain()
+        if P.gens()[0] in f.defining_polynomials()[1].variables():
+            raise ValueError('action on Type II/III points only defined for polynomials')
+        nth_derivative = f.dehomogenize(1).defining_polynomials()[0]
+        variable = nth_derivative.parent().gens()[0]
+        a = x.center()[0]
+        Taylor_expansion = []
+        from sage.functions.other import factorial
+        for i in range(f.degree()+1):
+            Taylor_expansion.append(nth_derivative(a)*1/factorial(i))
+            nth_derivative = nth_derivative.derivative(variable)
+        r = x.radius()
+        new_center = f(a)
+        new_radius = max([Taylor_expansion[i].abs()*r**i for i in range(1,len(Taylor_expansion))])
+        return self.domain()(new_center, new_radius)
 
 class DynamicalSystem_Berkovich_affine(DynamicalSystem_Berkovich):
     @staticmethod
@@ -373,3 +447,56 @@ class DynamicalSystem_Berkovich_affine(DynamicalSystem_Berkovich):
         Python constructor.
         """
         DynamicalSystem_Berkovich.__init__(self, dynamical_system, domain)
+
+    def homogenize(self, n):
+        """
+        Returns the homogenization of this dynamical system.
+
+        For dynamical systems on Berkovich space, this is the dynamical
+        system on projective space induced by the homogenization of
+        the dynamical system.
+
+        INPUT:
+
+        - ``n`` -- a tuple of nonnegative integers. If ``n`` is an integer,
+          then the two values of the tuple are assumed to be the same
+
+        OUTPUT: a dynamical system on projective Berkovich space
+
+        EXAMPLES::
+
+            sage: A.<x> = AffineSpace(Qp(3),1)
+            sage: f = DynamicalSystem_affine(1/x)
+            sage: f = DynamicalSystem_Berkovich(f)
+            sage: f.homogenize(1)
+            Dynamical system of Projective Berkovich line over Cp(3) of precision 20 induced by the map
+                  Defn: Defined on coordinates by sending (x0 : x1) to
+                        (x1 : x0)
+
+        """
+        new_system = self._system.homogenize(n)
+        base_ring = self.domain().base_ring()
+        new_domain = Berkovich_Cp_Affine(base_ring)
+        return DynamicalSystem_Berkovich_projective(new_system,new_domain)
+
+    def __call__(self, x):
+        """
+        Makes this dynamical system callable.
+
+        EXAMPLES::
+
+            sage: P.<x> = AffineSpace(Qp(3),1)
+            sage: f = DynamicalSystem_affine(x^2)
+            sage: g = DynamicalSystem_Berkovich(f)
+            sage: B = g.domain()
+            sage: Q1 = B(2)
+            sage: g(Q1)
+            Type I point centered at 1 + 3 + O(3^20)
+        """
+        if not isinstance(x, Berkovich_Element_Cp_Affine):
+            try:
+                x = self.domain()(x)
+            except:
+                raise ValueError('action of dynamical system not defined on %s' %x)
+        proj_system = self.homogenize(1)
+        return self.domain()(proj_system(x))

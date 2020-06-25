@@ -1262,6 +1262,76 @@ cdef uint32_t diameter_iFUB(short_digraph g,
     # We finally return the computed diameter
     return LB
 
+cdef uint32_t diameter_DiFUB(short_digraph sd,
+                             uint32_t source):
+
+    cdef uint32_t n = sd.n
+
+    if n <= 1:
+        return 0
+
+    cdef short_digraph rev_sd
+    init_reverse(rev_sd, sd)
+
+    cdef uint32_t LB, s, m, d, LB_1, LB_2, UB
+    cdef size_t i
+    cdef bitset_t seen
+
+    LB, s, m, d = diameter_lower_bound_2Dsweep(sd, rev_sd, source)
+
+    if LB == UINT32_MAX:
+        return LB
+
+    # We allocate some arrays and a bitset
+    bitset_init(seen, n)
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *>mem.malloc(7 * n * sizeof(uint32_t))
+
+    if not distances:
+        bitset_free(seen)
+        raise MemoryError()
+
+    cdef uint32_t * waiting_list_1 = distances + n
+    cdef uint32_t * waiting_list_2 = distances + 2 * n
+    cdef uint32_t * order_1        = distances + 3 * n
+    cdef uint32_t * order_2        = distances + 4 * n
+    cdef uint32_t * layer_1        = distances + 5 * n
+    cdef uint32_t * layer_2        = distances + 6 * n
+
+    LB_1 = simple_BFS(sd, m, layer_1, NULL, waiting_list_1, seen)
+    for i in range(n):
+        order_1[i] = waiting_list_1[n - i - 1]
+
+    LB_2 = simple_BFS(rev_sd, m, layer_2, NULL, waiting_list_2, seen)
+    for i in range(n):
+        order_2[i] = waiting_list_2[n - i - 1]
+
+    LB = max(LB, LB_1)
+    LB = max(LB, LB_2)
+
+    if LB == UINT32_MAX:
+        return LB
+
+    i = 0
+    UB = max(2 * layer_1[order_1[i]], 2 * layer_2[order_2[i]])
+
+    while LB < UB:
+        LB_1 = simple_BFS(sd, order_1[i], distances, NULL, waiting_list_1, seen)
+        LB_2 = simple_BFS(rev_sd, order_2[i], distances, NULL, waiting_list_1, seen)
+
+        LB = max(LB, LB_1)
+        LB = max(LB, LB_2)
+        i += 1
+
+        if LB == UINT32_MAX or i == n:
+            break
+
+        UB = max(2 * layer_1[order_1[i]], 2 * layer_2[order_2[i]])
+
+    bitset_free(seen)
+    free_short_digraph(rev_sd)
+
+    return LB
 
 def diameter(G, algorithm=None, source=None):
     r"""
@@ -1384,7 +1454,7 @@ def diameter(G, algorithm=None, source=None):
     if G.is_directed():
         if algorithm is None:
             algorithm = 'standard'
-        elif not algorithm in ['2Dsweep', 'standard']:
+        elif not algorithm in ['2Dsweep', 'standard', 'DiFUB']:
             raise ValueError("unknown algorithm for computing the diameter of directed graph")
     else:
         if algorithm is None:
@@ -1435,6 +1505,9 @@ def diameter(G, algorithm=None, source=None):
 
     elif algorithm == 'multi-sweep':
         LB = diameter_lower_bound_multi_sweep(sd, isource)[0]
+
+    elif algorithm == 'DiFUB':
+        LB = diameter_DiFUB(sd, isource)
 
     else: # algorithm == 'iFUB'
         LB = diameter_iFUB(sd, isource)

@@ -105,27 +105,38 @@ class FusionRing(WeylCharacterRing):
     include a twist method :meth:twist for its elements related
     to the ribbon element, and the S-matrix :meth:`s_ij`.
 
+    There are two natural normalizations of the S-matrix. Both
+    are explained in Chapter 3 of [BK]_. The one that is computed
+    by the method :meth:`s_matrix`, or whose individual entries
+    are computed by :meth:`s_ij` is denoted `\\tilde{s}` in
+    [BK]_. It is not unitary. To make it unitary, one would
+    divide by the square root of `D=\\sum d_i^2` where the sum is over all simple
+    objects and `d_i` is the quantum dimension, computed by the
+    method :meth:`q_dimension`. The quantity `D` is computed by
+    :meth:`q_dimension`.
+
     Let us check the Verlinde formula. This famous identity states
     that
 
         .. MATH::
 
-            N_{ijk} = \sum_l \frac{S(i,\ell)\,S(j,\ell)\,S(k,\ell)}{S(I,\ell)}
+            N_{ijk} = \sum_l \frac{s(i,\ell)\,s(j,\ell)\,s(k,\ell)}{s(I,\ell)}
 
-    where ``I`` is the unit object. We may define a function that corresponds
-    to the right-hand side::
+    where ``I`` is the unit object. In this formula `s` is the normalized
+    unitary S-matrix denoted `s` in [BK]_. We may define a function that corresponds
+    to the right-hand side, except using `\\tilde{s}` instead of `s`.
 
         sage: def V(i,j,k):
         ....:     R = i.parent()
         ....:     return sum(R.s_ij(i,l)*R.s_ij(j,l)*R.s_ij(k,l)/R.s_ij(R.one(),l) for l in R.basis())
 
-    This does not produce ``self.N_ijk(i,j,k)`` exactly, because our S-matrix
-    is omitting a normalization factor. The following code to check the
+    This does not produce ``self.N_ijk(i,j,k)`` exactly, because of the
+    missing normalization factor. The following code to check the
     Verlinde formula takes this into account::
 
        sage: def test_verlinde(R):
        ....:     b0 = R.one()
-       ....:     c = V(b0, b0, b0)
+       ....:     c = R.total_quantum_order()
        ....:     return all(V(i,j,k)==c*R.N_ijk(i,j,k) for i in R.basis() for j in R.basis() for k in R.basis())
 
     Every fusion ring should pass this test::
@@ -443,6 +454,19 @@ class FusionRing(WeylCharacterRing):
             inject_variable(labels[j], self(b))
         self._fusion_labels = d
 
+    def total_quantum_order(self):
+        """
+        Return `\sum d_i^2`, where the sum is over all simple objects
+        and `d_i` is the quantum dimension.
+
+        EXAMPLES::
+
+            sage: FusionRing("E6",1).total_quantum_order()
+            3
+
+        """
+        return sum(x.q_dimension()**2 for x in self.basis())
+
     class Element(WeylCharacterRing.Element):
         """
         A class for FusionRing elements.
@@ -543,3 +567,4 @@ class FusionRing(WeylCharacterRing):
             expr = expr.substitute(q=q**2)/q**(expr.degree())
             zet = self.parent().field().gen()**(self.parent()._fg)
             return expr.substitute(q=zet)
+

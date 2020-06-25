@@ -176,6 +176,12 @@ class WeylCharacterRing(CombinatorialFreeModule):
             h_check = ct.dual_coxeter_number()
             self._l = self._m_g * (self._k + h_check) 
             self._conj = (-1)**conjugate 
+            if ct[0] == 'A':
+                self._fg = ct[1]+1
+            elif ct[0] == 'E' and ct[1] == 6:
+                self._fg = 3
+            else:
+                self._fg = 1
 
     @cached_method
     def ambient(self):

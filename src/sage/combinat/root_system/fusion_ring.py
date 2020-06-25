@@ -21,6 +21,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import inject_variable
 from sage.rings.all import ZZ
 from sage.rings.number_field.number_field import CyclotomicField
+from sage.misc.cachefunc import cached_method
 
 class FusionRing(WeylCharacterRing):
     r"""
@@ -99,6 +100,41 @@ class FusionRing(WeylCharacterRing):
         sage: [B22(x) for x in B22.get_order()]
         [B22(0,0), B22(1,0), B22(0,1), B22(2,0), B22(1,1), B22(0,2)]
 
+    The fusion ring has a number of methods that reflect its role
+    as the Grothendieck ring of a modular tensor category. These
+    include a twist method :meth:twist for its elements related
+    to the ribbon element, and the S-matrix :meth:`s_ij`.
+
+    Let us check the Verlinde formula. This famous identity states
+    that
+
+        .. MATH::
+
+            N_{ijk} = \sum_l \frac{S(i,\ell)\,S(j,\ell)\,S(k,\ell)}{S(I,\ell)}
+
+    where ``I`` is the unit object. We may define a function that corresponds
+    to the right-hand side::
+
+        sage: def V(i,j,k):
+        ....:     R = i.parent()
+        ....:     return sum(R.s_ij(i,l)*R.s_ij(j,l)*R.s_ij(k,l)/R.s_ij(R.one(),l) for l in R.basis())
+
+    This does not produce ``self.N_ijk(i,j,k)`` exactly, because our S-matrix
+    is omitting a normalization factor. The following code to check the
+    Verlinde formula takes this into account::
+
+       sage: def test_verlinde(R):
+       ....:     b0 = R.one()
+       ....:     c = V(b0, b0, b0)
+       ....:     return all(V(i,j,k)==c*R.N_ijk(i,j,k) for i in R.basis() for j in R.basis() for k in R.basis())
+
+    Every fusion ring should pass this test::
+
+        sage: test_verlinde(FusionRing("A2",1))
+        True
+        sage: test_verlinde(FusionRing("B4",2))
+        True
+
     """
     @staticmethod
     def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots", conjugate=False):
@@ -128,39 +164,23 @@ class FusionRing(WeylCharacterRing):
         return super(FusionRing, cls).__classcall__(cls, ct, base_ring=base_ring,
                                                     prefix=prefix, style=style, k=k, conjugate=conjugate)
 
-    @lazy_attribute
-    def _q_field(self):
+    def field(self):
         """
-        The cyclotomic field of `4\ell`-th roots of unity, where
-        `\ell` is computed by :meth:`fusion_l`. Call this
-        lazy attribute via the method :meth:`q_field()`.
+        This returns a cyclotomic field large enough to
+        contain the `2l`-th roots of unity, as well as
+        all the S-matrix entries.
 
         EXAMPLES::
 
-            sage: B22=FusionRing("B2",2)
-            sage: B22.q_field()
+            sage: FusionRing("A2",2).field()
+            Cyclotomic Field of order 60 and degree 16
+            sage: FusionRing("B2",2).field()
             Cyclotomic Field of order 40 and degree 16
 
         """
-        self._K = CyclotomicField(4*self._l)
-        return self._K
 
-    def q_field(self):
-        """
-        Return the cyclotomic field of `4\ell`-th roots of unity, where
-        `\ell` is computed by :meth:`fusion_l`.
-
-        This field contains the twists, categorical dimensions, and the entries of the 
-        S-matrix.
-
-        EXAMPLES::
-
-            sage: A11=FusionRing('A1',1)
-            sage: A11.q_field()
-            Cyclotomic Field of order 12 and degree 4
-        """
-        return self._q_field
-
+        return CyclotomicField(4*self._fg*self._l)
+                
     def get_order(self):
         """
         This returns the weights of the basis vectors in a fixed order.
@@ -217,7 +237,8 @@ class FusionRing(WeylCharacterRing):
         and `h^\vee` denotes the dual Coxeter number of the underlying Lie
         algebra.
 
-        This value is used to define the associated root of unity `q=e^{i\\pi/\ell}`.
+        This value is used to define the associated root `2\ell`-th
+        of unity `q=e^{i\pi/\ell}`.
 
         EXAMPLES::
 
@@ -264,6 +285,7 @@ class FusionRing(WeylCharacterRing):
         b = self.basis()
         return [b[x].q_dimension() for x in self.get_order()]
 
+    @cached_method
     def N_ijk(self, elt_i, elt_j, elt_k):
         """
         INPUT:
@@ -292,6 +314,7 @@ class FusionRing(WeylCharacterRing):
         """
         return (elt_i*elt_j).monomial_coefficients().get(elt_k.dual().weight(),0)
 
+    @cached_method
     def Nk_ij(self, elt_i, elt_j, elt_k):
         """
         Returns the fusion coefficient `N^k_{ij}`. These are
@@ -313,6 +336,7 @@ class FusionRing(WeylCharacterRing):
         """
         return (elt_i*elt_j).monomial_coefficients().get(elt_k.weight(),0)
 
+    @cached_method
     def s_ij(self, elt_i, elt_j):
         """
         Return the element of the S-matrix of this FusionRing corresponding to 
@@ -337,17 +361,17 @@ class FusionRing(WeylCharacterRing):
             [1, -zeta60^14 + zeta60^6 + zeta60^4, -zeta60^14 + zeta60^6 + zeta60^4, -1]
 
         """
-        l = self.fusion_l()
-        K = self.q_field()
+        l = self.fusion_l()*self._fg
+        K = self.field()
         q = K.gen()
         ijtwist = -2*l*(elt_i.twist() + elt_j.twist())
         mc = (elt_i.dual()*elt_j).monomial_coefficients()
         return sum(self(k).q_dimension()*self.Nk_ij(elt_i,self(k),elt_j)*q**(2*l*self(k).twist()+ijtwist) for k in mc)
-        # return sum(self(k).q_dimension()*q**(2*l*self(k).twist()+ijtwist) for k in (elt_i.dual()*elt_j).monomial_coefficients())
 
     def s_matrix(self):
         r"""
-        Return the S-matrix of this FusionRing.
+        Return the S-matrix of this FusionRing. This is the matrix denoted
+        `\widetilde{s}` in [BK]_. It is not normalized to be unitary.
 
         EXAMPLES:: 
 
@@ -491,8 +515,9 @@ class FusionRing(WeylCharacterRing):
                 twist += 2
             return twist
 
+        @cached_method
         def q_dimension(self):
-            r""""
+            r"""
             This returns the quantum dimension as an element of the cyclotomic
             field of the `2l`-th roots of unity, where `l = m(k+h^\vee)`
             with `m=1,2,3` depending on whether type is simply, doubly or
@@ -505,7 +530,7 @@ class FusionRing(WeylCharacterRing):
                 [1, 4, 5, 1, 5, 4]
             """
             if not self.is_simple_object():
-                raise ValueError("quantum twist is only available for simple objects of a FusionRing")
+                raise ValueError("quantum dimension is only available for simple objects of a FusionRing")
             lam = self.weight()
             space = self.parent().space()
             rho = space.rho()
@@ -516,5 +541,5 @@ class FusionRing(WeylCharacterRing):
             q = pr.gen()**2
             expr = pr(expr)
             expr = expr.substitute(q=q**2)/q**(expr.degree())
-            zet = self.parent().q_field().gen()
+            zet = self.parent().field().gen()**(self.parent()._fg)
             return expr.substitute(q=zet)

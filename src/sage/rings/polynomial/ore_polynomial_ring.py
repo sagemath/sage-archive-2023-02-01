@@ -77,14 +77,14 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
     We create the Ore ring `\FF_{5^3}[x, \text{Frob}]` where Frob is the
     Frobenius endomorphism.
-        
+
         sage: k.<a> = GF(5^3)
         sage: Frob = k.frobenius_endomorphism()
         sage: S = OrePolynomialRing(k, Frob, 'x')
         sage: S
         Ore Polynomial Ring in x over Finite Field in a of size 5^3 twisted by a |--> a^5
 
-    In particular, observe that it is not needed to create and pass in 
+    In particular, observe that it is not needed to create and pass in
     the twisting derivation (which is `0` in our example).
 
     As a shortcut, we can use the square brackets notation as follow::
@@ -104,7 +104,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
         ...
         ValueError: variable name 'Frobenius endomorphism a |--> a^5 on Finite Field in a of size 5^3' is not alphanumeric
 
-    Note moreover that, similarly to the classical case, using the brackets 
+    Note moreover that, similarly to the classical case, using the brackets
     notation also sets the variable::
 
         sage: x.parent() is S
@@ -280,7 +280,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
             sage: type(S)
             <class 'sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_with_category'>
 
-        In certain situations (e.g. when the twisting morphism is the Frobenius 
+        In certain situations (e.g. when the twisting morphism is the Frobenius
         over a finite field), even more specialized classes are used::
 
             sage: k.<a> = GF(7^5)
@@ -341,7 +341,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
                 except (AttributeError, NotImplementedError):
                     pass
             constructors.append(skew_polynomial_ring.SkewPolynomialRing)
-        
+
         for constructor in constructors:
             try:
                 return constructor(base_ring, morphism, derivation, names, sparse)
@@ -374,7 +374,7 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
 
             sage: R.<t> = ZZ[]
             sage: sigma = R.hom([t+1])
-            sage: S.<x> = SkewPolynomialRing(R,sigma)
+            sage: S.<x> = SkewPolynomialRing(R, sigma)
             sage: S.category()
             Category of algebras over Univariate Polynomial Ring in t over Integer Ring
             sage: S([1]) + S([-1])
@@ -392,6 +392,27 @@ class OrePolynomialRing(Algebra, UniqueRepresentation):
         self._fraction_field = None
         category = Algebras(base_ring).or_subcategory(category)
         Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
+
+    def __reduce__(self):
+        r"""
+        TESTS::
+
+            sage: k.<a> = GF(11^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x', Frob]
+            sage: loads(dumps(S)) is S
+            True
+
+            sage: der = k.derivation(a, twist=Frob)
+            sage: T.<y> = k['y', der]
+            sage: loads(dumps(T)) is T
+            True
+        """
+        if self._derivation is None:
+            twist = self._morphism
+        else:
+            twist = self._derivation
+        return OrePolynomialRing, (self.base_ring(), twist, self.variable_names(), self.__is_sparse)
 
     def _element_constructor_(self, a=None, check=True, construct=False, **kwds):
         r"""

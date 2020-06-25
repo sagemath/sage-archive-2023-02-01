@@ -154,8 +154,8 @@ from sage.rings.polynomial.ore_function_element import OreFunctionBaseringInject
 WORKING_CENTER_MAX_TRIES = 1000
 
 
-# Generic implementation of Ore polynomial rings
-#################################################
+# Generic implementation of Ore function fields
+###############################################
 
 class OreFunctionField(Algebra, UniqueRepresentation):
     r"""
@@ -173,7 +173,8 @@ class OreFunctionField(Algebra, UniqueRepresentation):
             sage: Frob = k.frobenius_endomorphism()
             sage: der = k.derivation(a, twist=Frob)
             sage: S.<x> = k['x', der]
-            sage: # TestSuite(S).run()   # TODO: test_pickling fails
+            sage: K = S.fraction_field()
+            sage: TestSuite(K).run(skip=['_test_elements'])  # test_category fails on elements
         """
         if self.Element is None:
             import sage.rings.polynomial.ore_function_element
@@ -726,8 +727,8 @@ class OreFunctionCenterInjection(RingHomomorphism):
             sage: S.<x> = SkewPolynomialRing(k, k.frobenius_endomorphism())
             sage: K = S.fraction_field()
             sage: Z = K.center()
-            sage: iota = S.convert_map_from(Z)
-            sage: # TestSuite(iota).run(skip=['_test_category'])   # TODO: test_pickling
+            sage: iota = K.coerce_map_from(Z)
+            sage: TestSuite(iota).run(skip=['_test_category'])
         """
         RingHomomorphism.__init__(self, Hom(domain, codomain))
         self._codomain = codomain
@@ -744,7 +745,7 @@ class OreFunctionCenterInjection(RingHomomorphism):
             sage: S.<x> = SkewPolynomialRing(k, k.frobenius_endomorphism())
             sage: K = S.fraction_field()
             sage: Z = K.center()
-            sage: iota = K.convert_map_from(Z)
+            sage: iota = K.coerce_map_from(Z)
             sage: iota
             Embedding of the center of Ore Function Field in x over Finite Field in a of size 5^3 twisted by a |--> a^5 into this field
             sage: iota._repr_()
@@ -762,7 +763,7 @@ class OreFunctionCenterInjection(RingHomomorphism):
             sage: S.<x> = SkewPolynomialRing(k, k.frobenius_endomorphism())
             sage: K = S.fraction_field()
             sage: Z.<z> = K.center()
-            sage: iota = K.convert_map_from(Z)
+            sage: iota = K.coerce_map_from(Z)
 
             sage: iota(1/(z+1))
             (x^3 + 1)^(-1)
@@ -781,7 +782,7 @@ class OreFunctionCenterInjection(RingHomomorphism):
             sage: S.<x> = SkewPolynomialRing(k, k.frobenius_endomorphism())
             sage: K = S.fraction_field()
             sage: Z = K.center()
-            sage: iota = K.convert_map_from(Z)
+            sage: iota = K.coerce_map_from(Z)
 
             sage: i = loads(dumps(iota))
             sage: i == iota
@@ -825,7 +826,7 @@ class OreFunctionField_with_large_center(OreFunctionField):
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x', Frob]
             sage: K = S.fraction_field()
-            sage: # TestSuite(K).run()
+            sage: TestSuite(K).run(skip=['_test_elements'])  # test_category fails on elements
         """
         if self.Element is None:
             self.Element = sage.rings.polynomial.ore_function_element.OreFunction_with_large_center

@@ -479,10 +479,15 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: C = FiniteEnumeratedSets().example()
-                sage: C.random_element()  # random
+                sage: n = C.random_element(); n  # random
                 1
-                sage: C._random_element_from_unrank()  # random
+                sage: n in C
+                True
+
+                sage: n = C._random_element_from_unrank(); n  # random
                 2
+                sage: n in C
+                True
 
             TODO: implement _test_random which checks uniformness
             """

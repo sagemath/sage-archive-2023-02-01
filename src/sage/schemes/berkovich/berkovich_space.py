@@ -2360,6 +2360,8 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
                 return
             else:
                 raise ValueError("non-prime pased into Berkovich space")
+        elif is_pAdicField(base):
+            base = ProjectiveSpace(base, 1)
         else:
             from sage.schemes.projective.projective_space import is_ProjectiveSpace
             if not is_ProjectiveSpace(base):

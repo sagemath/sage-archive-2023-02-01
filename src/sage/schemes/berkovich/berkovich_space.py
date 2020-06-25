@@ -2423,7 +2423,7 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
             Projective Space of dimension 1 over 3-adic Field with
             capped relative precision 1
         """
-        return self.base()
+        return self.base().base_ring()
 
     def _repr_(self):
         """

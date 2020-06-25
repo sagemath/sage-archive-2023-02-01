@@ -162,7 +162,7 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         sage: designs.balanced_incomplete_block_design(1171,10)
         (1171,10,1)-Balanced Incomplete Block Design
 
-    And we know some inexistence results::
+    And we know some nonexistence results::
 
         sage: designs.balanced_incomplete_block_design(21,6,existence=True)
         False
@@ -176,7 +176,7 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         sage: designs.balanced_incomplete_block_design(37,9,8)
         (37,9,8)-Balanced Incomplete Block Design
         sage: designs.balanced_incomplete_block_design(15,7,3)
-        g(15,7,3)-Balanced Incomplete Block Design
+        (15,7,3)-Balanced Incomplete Block Design
     """
 
     # Trivial BIBD
@@ -270,7 +270,7 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
     if existence:
         return Unknown
     else:
-        raise NotImplementedError("I don't know how to build a ({},{},1)-BIBD!".format(v, k))
+        raise NotImplementedError("I don't know how to build a ({},{},{})-BIBD!".format(v, k, lambd))
 
 def steiner_triple_system(n):
     r"""

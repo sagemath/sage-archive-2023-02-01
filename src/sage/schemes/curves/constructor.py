@@ -41,6 +41,9 @@ from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
+from sage.rings.rational_field import QQ
+from sage.rings.qqbar import QQbar
+
 from sage.structure.all import Sequence
 
 from sage.schemes.affine.affine_space import is_AffineSpace
@@ -58,16 +61,20 @@ from .projective_curve import (ProjectiveCurve,
                                ProjectiveCurve_field,
                                ProjectivePlaneCurve_field,
                                ProjectivePlaneCurve_finite_field,
-                               IntegralProjectivePlaneCurve_finite_field,
-                               IntegralProjectiveCurve_finite_field)
+                               IntegralProjectiveCurve,
+                               IntegralProjectiveCurve_finite_field,
+                               IntegralProjectivePlaneCurve,
+                               IntegralProjectivePlaneCurve_finite_field)
 
 from .affine_curve import (AffineCurve,
                            AffinePlaneCurve,
                            AffineCurve_field,
                            AffinePlaneCurve_field,
                            AffinePlaneCurve_finite_field,
-                           IntegralAffinePlaneCurve_finite_field,
-                           IntegralAffineCurve_finite_field)
+                           IntegralAffineCurve,
+                           IntegralAffineCurve_finite_field,
+                           IntegralAffinePlaneCurve,
+                           IntegralAffinePlaneCurve_finite_field)
 
 
 from sage.schemes.plane_conics.constructor import Conic
@@ -278,6 +285,8 @@ def Curve(F, A=None):
                 if A.coordinate_ring().ideal(F).is_prime():
                     return IntegralAffineCurve_finite_field(A, F)
             if k in Fields():
+                if k == QQ and A.coordinate_ring().ideal(F).is_prime():
+                    return IntegralAffineCurve(A, F)
                 return AffineCurve_field(A, F)
             return AffineCurve(A, F)
 
@@ -291,6 +300,8 @@ def Curve(F, A=None):
                 return IntegralAffinePlaneCurve_finite_field(A, F)
             return AffinePlaneCurve_finite_field(A, F)
         if k in Fields():
+            if k == QQ and A.coordinate_ring().ideal(F).is_prime():
+                return IntegralAffinePlaneCurve(A, F)
             return AffinePlaneCurve_field(A, F)
         return AffinePlaneCurve(A, F)
 
@@ -302,6 +313,8 @@ def Curve(F, A=None):
                 if A.coordinate_ring().ideal(F).is_prime():
                     return IntegralProjectiveCurve_finite_field(A, F)
             if k in Fields():
+                if k == QQ and A.coordinate_ring().ideal(F).is_prime():
+                    return IntegralProjectiveCurve(A, F)
                 return ProjectiveCurve_field(A, F)
             return ProjectiveCurve(A, F)
 
@@ -320,6 +333,8 @@ def Curve(F, A=None):
                 return IntegralProjectivePlaneCurve_finite_field(A, F)
             return ProjectivePlaneCurve_finite_field(A, F)
         if k in Fields():
+            if k == QQ and A.coordinate_ring().ideal(F).is_prime():
+                return IntegralProjectivePlaneCurve(A, F)
             return ProjectivePlaneCurve_field(A, F)
         return ProjectivePlaneCurve(A, F)
 

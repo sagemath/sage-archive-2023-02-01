@@ -1,3 +1,1 @@
-export CFLAGS=$CFLAGS_NON_NATIVE
-
 cd src && sdh_pip_install .

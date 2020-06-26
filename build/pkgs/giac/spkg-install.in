@@ -8,8 +8,8 @@
 #############################################################
 # If CFLAGS and CXXFLAGS are unset, giac looks to set -g -O2,
 #   but if they are not empty, the -g -O2 is not added
-CFLAGS=$CFLAGS_NON_NATIVE
-CXXFLAGS=$CXXFLAGS_NON_NATIVE
+CFLAGS="-g -O2 $CFLAGS"
+CXXFLAGS="-g -O2 $CXXFLAGS"
 CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 
 if [ `uname -m` = "ppc64" ]; then

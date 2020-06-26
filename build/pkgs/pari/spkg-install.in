@@ -112,7 +112,7 @@ if [ $MACOSX_VERSION -ge 14 ]; then
     export MACOSX_DEPLOYMENT_TARGET=10.9
 fi
 
-export CFLAGS=$CFLAGS_O3_NON_NATIVE
+export CFLAGS=$CFLAGS_O3
 
 if [ "$SAGE_DEBUG" = yes ]; then
 

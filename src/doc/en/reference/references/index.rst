@@ -344,7 +344,7 @@ REFERENCES:
 
 **B**
 
-.. [BK2001] Bakalov and Kirillov, *Lectures on tensor categories and modular functors*,
+.. [BaKi2001] Bakalov and Kirillov, *Lectures on tensor categories and modular functors*,
             AMS (2001).
 
 .. [Ba1994] Kaushik Basu. *The Traveler's Dilemma: Paradoxes of
@@ -1956,7 +1956,7 @@ REFERENCES:
              1981, Pages 108-125, ISSN 0097-3165,:doi:`10.1016/0097-3165(81)90007-8`.
              (http://www.sciencedirect.com/science/article/pii/0097316581900078)
 
-.. [EGNO20015] Pavel Etingof, Shlomo Gelaki, Dmitri Nikshych and Victor Ostrik,
+.. [EGNO2015] Pavel Etingof, Shlomo Gelaki, Dmitri Nikshych and Victor Ostrik,
                *Tensor Categories*, AMS Mathematical Surveys and Monographs 205 (2015).
 
 .. [EGHLSVY] Pavel Etingof, Oleg Golberg, Sebastian Hensel, Tiankai

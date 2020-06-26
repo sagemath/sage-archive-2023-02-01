@@ -36,7 +36,7 @@ class FusionRing(WeylCharacterRing):
 
     REFERENCES:
 
-    - [BK2001]_ Chapter 3
+    - [BaKi2001]_ Chapter 3
     - [DFMS1996]_ Chapter 16
     - [EGNO2015]_ Chapter 8
     - [Feingold2004]_
@@ -109,10 +109,10 @@ class FusionRing(WeylCharacterRing):
     to the ribbon structure, and the S-matrix :meth:`s_ij`.
 
     There are two natural normalizations of the S-matrix. Both
-    are explained in Chapter 3 of [BK2001]_. The one that is computed
+    are explained in Chapter 3 of [BaKi2001]_. The one that is computed
     by the method :meth:`s_matrix`, or whose individual entries
     are computed by :meth:`s_ij` is denoted `\tilde{s}` in
-    [BK2001]_. It is not unitary. To make it unitary, one would
+    [BaKi2001]_. It is not unitary. To make it unitary, one would
     divide by the square root of `D = \sum_V d_i(V)^2` where the sum
     is over all simple objects `V` and `d_i(V)` is the quantum dimension
     of `V` computed by the method :meth:`q_dimension`. The quantity `D`
@@ -125,7 +125,7 @@ class FusionRing(WeylCharacterRing):
             N_{ijk} = \sum_l \frac{s(i,\ell)\,s(j,\ell)\,s(k,\ell)}{s(I,\ell)},
 
     where ``I`` is the unit object. In this formula `s` is the normalized
-    unitary S-matrix denoted `s` in [BK2001]_. We may define a function that
+    unitary S-matrix denoted `s` in [BaKi2001]_. We may define a function that
     corresponds to the right-hand side, except using `\tilde{s}` instead
     of `s`::
 
@@ -390,7 +390,7 @@ class FusionRing(WeylCharacterRing):
 
         .. NOTE::
 
-            This is the matrix denoted `\widetilde{s}` in [BK2001]_.
+            This is the matrix denoted `\widetilde{s}` in [BaKi2001]_.
             It is not normalized to be unitary.
 
         EXAMPLES::

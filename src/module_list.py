@@ -450,16 +450,13 @@ ext_modules = [
              package = 'fes'),
 
     Extension('sage.libs.flint.flint',
-              sources = ["sage/libs/flint/flint.pyx"],
-              extra_compile_args = ["-D_XPG6"]),
+              sources = ["sage/libs/flint/flint.pyx"]),
 
     Extension('sage.libs.flint.fmpz_poly',
-              sources = ["sage/libs/flint/fmpz_poly.pyx"],
-              extra_compile_args = ["-D_XPG6"]),
+              sources = ["sage/libs/flint/fmpz_poly.pyx"]),
 
     Extension('sage.libs.flint.arith',
-              sources = ["sage/libs/flint/arith.pyx"],
-              extra_compile_args = ["-D_XPG6"]),
+              sources = ["sage/libs/flint/arith.pyx"]),
 
     Extension("sage.libs.glpk.error",
              ["sage/libs/glpk/error.pyx"]),
@@ -468,13 +465,10 @@ ext_modules = [
               sources = ['sage/libs/gmp/pylong.pyx']),
 
     Extension('sage.libs.braiding',
-                      sources = ["sage/libs/braiding.pyx"],
-                      libraries = ["braiding"],
-                      language = 'c++'),
+                      sources = ["sage/libs/braiding.pyx"]),
 
     Extension('sage.libs.homfly',
-                      sources = ["sage/libs/homfly.pyx"],
-                      libraries = ["homfly", "gc"]),
+                      sources = ["sage/libs/homfly.pyx"]),
 
     OptionalExtension('sage.libs.sirocco',
                       sources = ["sage/libs/sirocco.pyx"],
@@ -483,10 +477,7 @@ ext_modules = [
     Extension('*', ['sage/libs/linbox/*.pyx']),
 
     Extension('sage.libs.lcalc.lcalc_Lfunction',
-              sources = ['sage/libs/lcalc/lcalc_Lfunction.pyx'],
-              libraries = ['m', 'ntl', 'Lfunction'],
-              extra_compile_args=["-O3", "-ffast-math"],
-              language = 'c++'),
+              sources = ['sage/libs/lcalc/lcalc_Lfunction.pyx']),
 
     Extension('sage.libs.libecm',
               sources = ['sage/libs/libecm.pyx']),
@@ -501,23 +492,20 @@ ext_modules = [
     Extension('*', ['sage/libs/pari/*.pyx']),
 
     Extension('sage.libs.ppl',
-              sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc']),
+              sources = ['sage/libs/ppl.pyx']),
 
     Extension('*', ['sage/libs/pynac/*.pyx']),
 
     Extension('sage.libs.ratpoints',
-              sources = ["sage/libs/ratpoints.pyx"],
-              libraries = ["ratpoints"]),
+              sources = ["sage/libs/ratpoints.pyx"]),
 
     Extension('sage.libs.readline',
-              sources = ['sage/libs/readline.pyx'],
-              libraries = ['readline']),
+              sources = ['sage/libs/readline.pyx']),
 
     Extension('*', sources = ['sage/libs/singular/*.pyx']),
 
     Extension('sage.libs.symmetrica.symmetrica',
-              sources = ["sage/libs/symmetrica/symmetrica.pyx"],
-              libraries = ["symmetrica"]),
+              sources = ["sage/libs/symmetrica/symmetrica.pyx"]),
 
     Extension('sage.libs.mpmath.utils',
               sources = ["sage/libs/mpmath/utils.pyx"]),
@@ -605,16 +593,13 @@ ext_modules = [
               sources = ['sage/matrix/matrix2.pyx']),
 
     Extension("sage.matrix.matrix_complex_ball_dense",
-              ["sage/matrix/matrix_complex_ball_dense.pyx"],
-              libraries=[arb_dylib_name]),
+              ["sage/matrix/matrix_complex_ball_dense.pyx"]),
 
     Extension('sage.matrix.matrix_complex_double_dense',
               sources = ['sage/matrix/matrix_complex_double_dense.pyx']),
 
     Extension('sage.matrix.matrix_cyclo_dense',
-              sources = ['sage/matrix/matrix_cyclo_dense.pyx'],
-              language = "c++",
-              libraries=['ntl']),
+              sources = ['sage/matrix/matrix_cyclo_dense.pyx']),
 
     Extension('sage.matrix.matrix_gap',
               sources = ['sage/matrix/matrix_gap.pyx']),
@@ -632,43 +617,22 @@ ext_modules = [
               sources = ['sage/matrix/matrix_generic_sparse.pyx']),
 
     Extension('sage.matrix.matrix_integer_dense',
-              sources = ['sage/matrix/matrix_integer_dense.pyx'],
-              extra_compile_args = m4ri_extra_compile_args,
-              libraries = ['iml', 'ntl', 'gmp', 'm'] + cblas_libs,
-              library_dirs = cblas_library_dirs,
-              include_dirs = cblas_include_dirs),
+              sources = ['sage/matrix/matrix_integer_dense.pyx']),
 
     Extension('sage.matrix.matrix_integer_sparse',
               sources = ['sage/matrix/matrix_integer_sparse.pyx']),
 
     Extension('sage.matrix.matrix_mod2_dense',
-              sources = ['sage/matrix/matrix_mod2_dense.pyx'],
-              libraries = m4ri_libs + gd_libs + png_libs + zlib_libs,
-              library_dirs = m4ri_library_dirs + gd_library_dirs + png_library_dirs + zlib_library_dirs,
-              include_dirs = m4ri_include_dirs + gd_include_dirs + png_include_dirs + zlib_include_dirs,
-              extra_compile_args = m4ri_extra_compile_args),
+              sources = ['sage/matrix/matrix_mod2_dense.pyx']),
 
     Extension('sage.matrix.matrix_gf2e_dense',
-              sources = ['sage/matrix/matrix_gf2e_dense.pyx'],
-              libraries = ['m4rie'] + m4ri_libs + ['m'],
-              library_dirs = m4ri_library_dirs,
-              include_dirs = m4ri_include_dirs,
-              extra_compile_args = m4ri_extra_compile_args),
+              sources = ['sage/matrix/matrix_gf2e_dense.pyx']),
 
     Extension('sage.matrix.matrix_modn_dense_float',
-              sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
-              language="c++",
-              libraries = cblas_libs,
-              library_dirs = cblas_library_dirs,
-              include_dirs = cblas_include_dirs),
+              sources = ['sage/matrix/matrix_modn_dense_float.pyx']),
 
     Extension('sage.matrix.matrix_modn_dense_double',
-              sources = ['sage/matrix/matrix_modn_dense_double.pyx'],
-              language="c++",
-              libraries = cblas_libs,
-              library_dirs = cblas_library_dirs,
-              include_dirs = cblas_include_dirs,
-              extra_compile_args = ["-D_XPG6"]),
+              sources = ['sage/matrix/matrix_modn_dense_double.pyx']),
 
     Extension('sage.matrix.matrix_modn_sparse',
               sources = ['sage/matrix/matrix_modn_sparse.pyx']),
@@ -680,11 +644,7 @@ ext_modules = [
               sources = ['sage/matrix/matrix_polynomial_dense.pyx']),
 
     Extension('sage.matrix.matrix_rational_dense',
-              sources = ['sage/matrix/matrix_rational_dense.pyx'],
-              extra_compile_args = ["-D_XPG6"] + m4ri_extra_compile_args,
-              libraries = ['iml', 'ntl', 'm'] + cblas_libs,
-              library_dirs = cblas_library_dirs,
-              include_dirs = cblas_include_dirs),
+              sources = ['sage/matrix/matrix_rational_dense.pyx']),
 
     Extension('sage.matrix.matrix_rational_sparse',
               sources = ['sage/matrix/matrix_rational_sparse.pyx']),
@@ -1147,10 +1107,7 @@ ext_modules = [
               sources = ['sage/rings/polynomial/polynomial_element.pyx']),
 
     Extension('sage.rings.polynomial.polynomial_gf2x',
-              sources = ['sage/rings/polynomial/polynomial_gf2x.pyx'],
-              libraries = ['gmp', 'ntl'],
-              extra_compile_args = m4ri_extra_compile_args,
-              language = 'c++'),
+              sources = ['sage/rings/polynomial/polynomial_gf2x.pyx']),
 
     Extension('sage.rings.polynomial.polynomial_zz_pex',
               sources = ['sage/rings/polynomial/polynomial_zz_pex.pyx']),
@@ -1175,11 +1132,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.pbori',
               sources = ['sage/rings/polynomial/pbori.pyx'],
-              libraries=['brial', 'brial_groebner'] + m4ri_libs + png_libs,
-              library_dirs = m4ri_library_dirs + png_library_dirs,
-              include_dirs = m4ri_include_dirs + png_include_dirs,
-              depends = [SAGE_INC + "/polybori/" + hd + ".h" for hd in ["polybori", "config"]],
-              extra_compile_args = m4ri_extra_compile_args),
+              depends = [SAGE_INC + "/polybori/" + hd + ".h" for hd in ["polybori", "config"]]),
 
     Extension('sage.rings.polynomial.polynomial_real_mpfr_dense',
               sources = ['sage/rings/polynomial/polynomial_real_mpfr_dense.pyx']),

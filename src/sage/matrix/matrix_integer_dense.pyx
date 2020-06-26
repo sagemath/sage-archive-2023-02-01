@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+# distutils: extra_compile_args = M4RI_CFLAGS
+# distutils: libraries = iml ntl gmp m CBLAS_LIBRARIES
+# distutils: library_dirs = CBLAS_LIBDIR
+# distutils: include_dirs = CBLAS_INCDIR
 """
 Dense matrices over the integer ring
 

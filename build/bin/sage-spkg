@@ -68,7 +68,9 @@
 #*****************************************************************************
 
 # Avoid surprises with character ranges [a-z] in regular expressions
-export LC_ALL=C
+# See Trac #15791; some locales can produce different results for
+# character ranges (use C.UTF-8 to ensure UTF-8 default encoding in Python)
+export LC_ALL=C.UTF-8
 
 usage()
 {
@@ -361,52 +363,7 @@ EOF
 fi
 
 if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
-    cat "$PKG_SCRIPTS/SPKG.txt"
-    if [ -r "$PKG_SCRIPTS/type" ] ; then
-        echo
-        echo "== Type =="
-        echo
-        cat "$PKG_SCRIPTS/type"
-        echo
-    fi
-    echo "== Equivalent System Packages =="
-    echo
-    PKG_DISTROS="$PKG_SCRIPTS"/distros
-    for system_package_file in "$PKG_DISTROS"/*.txt; do
-        if [ -f "$system_package_file" ]; then
-            system=$(basename "$system_package_file" .txt)
-            system_packages="$(echo $(sed 's/#.*//;' $system_package_file))"
-            case $system in
-                debian)
-                    # Generic
-                    echo "Debian/Ubuntu:"
-                    ;;
-                fedora)
-                    # Generic
-                    echo "Fedora/Redhat/CentOS:"
-                    ;;
-                *)
-                    echo "$system:"
-                    ;;
-            esac
-            echo -n "  "
-            sage-print-system-package-command $system --prompt --sudo install $system_packages
-        fi
-    done
-    if [ -z "$system" ]; then
-        echo "(none known)"
-    else
-        echo
-        if [ -f "$PKG_SCRIPTS"/spkg-configure.m4 ]; then
-            echo "If the system package is installed, ./configure will check whether it can be used."
-        else
-            echo "However, these system packages will not be used for building Sage"
-            echo "because spkg-configure.m4 has not been written for this package;"
-            echo "see https://trac.sagemath.org/ticket/27330"
-        fi
-    fi
-    echo
-    exit 0
+    exec sage-spkg-info $PKG_BASE
 fi
 
 # If we haven't found the package yet, we must download it

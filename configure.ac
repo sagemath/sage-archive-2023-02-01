@@ -28,31 +28,6 @@ AC_PREREQ([2.69])
 AC_DEFUN([SAGE_VERSION], m4_esyscmd_s([. src/bin/sage-version.sh && echo $SAGE_VERSION]))
 AC_INIT([Sage], SAGE_VERSION, [sage-devel@googlegroups.com])
 
-# The following needs to be immediately after calling AC_INIT
-#------------------------------------------------------------
-# We need to run this configure script with bash
-if test -z "$BASH_VERSION"
-then
-    CONFIG_SHELL=`command -v bash`
-    export CONFIG_SHELL
-    if $CONFIG_SHELL -c "exit 0"
-    then
-        exec $CONFIG_SHELL $0 "$@"
-    else
-        AC_MSG_NOTICE([The 'bash' shell is needed to build AC_PACKAGE_NAME])
-        AC_MSG_NOTICE([All modern systems will have the 'bash' shell installed somewhere])
-        if test -d /opt/OpenSource/bin
-        then
-           AC_MSG_NOTICE([On HP-UX you may try adding /opt/OpenSource/bin to your path])
-        fi
-        if test -d /opt/pware/bin
-        then
-           AC_MSG_NOTICE([On AIX you may try adding /opt/pware/bin to your path])
-        fi
-        AC_MSG_ERROR(['bash' not found])
-    fi
-fi
-
 
 AC_COPYRIGHT([GPL version 3])
 AC_CONFIG_SRCDIR([configure.ac])
@@ -400,22 +375,18 @@ SAGE_CHECK_OSX_SUPPORTED()
 ###############################################################################
 
 # Python version
-AC_MSG_CHECKING([Python version to install])
 AC_ARG_WITH([python],
-[AS_HELP_STRING([--with-python=2],
-    [build and use Python 2])]
 [AS_HELP_STRING([--with-python=3],
     [build and use Python 3 (default)])])
 
 case "$with_python" in
-    2*) SAGE_PYTHON_VERSION=2;;
-    3*) SAGE_PYTHON_VERSION=3;;
+    3)  SAGE_PYTHON_VERSION=3;;
+    3*) AC_MSG_WARN([the only allowed value for --with-python is 3; specific Python 3.x versions cannot be requested using --with-python.  For compatibility reasons, this is only a warning.  Use './configure PYTHON3=/path/to/python3' to use a specific Python 3 binary for the Sage venv.])
+        SAGE_PYTHON_VERSION=3;;
     "") SAGE_PYTHON_VERSION=3;;
     *)
-        AC_MSG_ERROR([allowed values for --with-python are 2 and 3]);;
+        AC_MSG_ERROR([the only allowed value for --with-python is 3.  Support for Python 2 has been removed in Sage 9.2.]);;
 esac
-
-AC_MSG_RESULT([$SAGE_PYTHON_VERSION])
 AC_SUBST(SAGE_PYTHON_VERSION)
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
@@ -447,13 +418,12 @@ SAGE_SPKG_COLLECT()
 # TODO: fix this in Trac #21524
 touch "$SAGE_SRC/bin/sage-env-config"
 
-SAGE_SCRIPTS='\
-'
+SAGE_SCRIPTS=''
 for file in "$SAGE_SRC/bin/"*; do
     # Skip files with ".in" extension
     ext=${file##*.}
     if test "$ext" != in; then
-        SAGE_SCRIPTS+="    \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"$'\n'
+        SAGE_SCRIPTS="${SAGE_SCRIPTS} \\$(printf '\n    ')\$(SAGE_LOCAL)${file#$SAGE_SRC}"
     fi
 done
 

@@ -1921,7 +1921,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
 
     rfv_to_ev = {}
 
-    # We build a second dictionary of dictiories.
+    # We build a second dictionary of dictionaries.
     # comp_exp_vec[q] is the dictionary mod q which assigns to each exponent vector
     # a list of 'complementary' exponent vectors.
 

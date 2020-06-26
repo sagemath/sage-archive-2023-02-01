@@ -1883,7 +1883,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef simpliciality = dim - 1
 
         # For each face in the iterator, check if its a simplex.
-        face_iter.lowest_dimension = 2 # every 1-face is a simplex
+        face_iter.structure.lowest_dimension = 2 # every 1-face is a simplex
         d = face_iter.next_dimension()
         while (d < dim):
             sig_check()
@@ -1997,7 +1997,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef simplicity = dim - 1
 
         # For each coface in the iterator, check if its a simplex.
-        coface_iter.lowest_dimension = 2 # every coface of dimension 1 is a simplex
+        coface_iter.structure.lowest_dimension = 2 # every coface of dimension 1 is a simplex
         d = coface_iter.next_dimension()
         while (d < dim):
             sig_check()
@@ -2892,8 +2892,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                     face_iter.set_atom_rep()
 
                     # Copy the information.
-                    edges[one][2*two] = face_iter.atom_rep[0]
-                    edges[one][2*two + 1] = face_iter.atom_rep[1]
+                    edges[one][2*two] = face_iter.structure.atom_rep[0]
+                    edges[one][2*two + 1] = face_iter.structure.atom_rep[1]
                     counter += 1
 
             # Success, copy the data to ``CombinatorialPolyhedron``.
@@ -2944,8 +2944,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                         face_iter.set_atom_rep()
 
                         # Copy the information.
-                        edges[one][2*two] = face_iter.atom_rep[0]
-                        edges[one][2*two + 1] = face_iter.atom_rep[1]
+                        edges[one][2*two] = face_iter.structure.atom_rep[0]
+                        edges[one][2*two + 1] = face_iter.structure.atom_rep[1]
                         counter += 1
 
                     d = face_iter.next_dimension()  # Go to next face.
@@ -3065,8 +3065,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                 face_iter.set_coatom_rep()
 
                 # Copy the information.
-                ridges[one][2*two] = face_iter.coatom_rep[0]
-                ridges[one][2*two + 1] = face_iter.coatom_rep[1]
+                ridges[one][2*two] = face_iter.structure.coatom_rep[0]
+                ridges[one][2*two + 1] = face_iter.structure.coatom_rep[1]
                 counter += 1
 
         # Success, copy the data to ``CombinatorialPolyhedron``.

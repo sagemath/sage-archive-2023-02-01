@@ -21,18 +21,16 @@ tutorial shows how it all works.
 Instructions
 """"""""""""
 
-To put an image of a 3d-polytope in LaTeX using TikZ and Sage, simply follow the instructions:
+To put an image of a 3D-polytope in LaTeX using TikZ and Sage, simply follow the instructions:
 
 - Install `SageTex <http://doc.sagemath.org/html/en/tutorial/sagetex.html>`_ (optional but recommended!)
 - Put ``\usepackage{tikz}`` in the preamble of your article
 - Open Sage and change the directory to your article's by the command ``cd /path/to/article``
 - Input your polytope, called P for example, to Sage
 - Visualize the polytope P using the command ``P.show(aspect_ratio=1)``
-- This will open an interactive viewer named Jmol, in which you can rotate the polytope. Once the wished view angle is found, right click on the image and select *Console*
-- In the dialog box click the button *State*
-- Scroll up to the line starting with *moveto*
-- It reads something like ``moveto 0.0 {x y z angle} scale``
-- Go back to Sage and type ``Img = P.projection().tikz([x,y,z],angle)``
+- This will open an interactive view in your default browser, where you can rotate the polytope.
+- Once the desired view angle is found, click on the information icon in the lower right-hand corner and select *Get Viewpoint*. This will copy a string of the form '[x,y,z],angle' to your local clipboard.
+- Go back to Sage and type ``Img = P.projection().tikz([x,y,z],angle)``. You can paste the string here to save some typing.
 - *Img* now contains a Sage object of type ``LatexExpr`` containing the raw TikZ picture of your polytope
 
 Then, you can either copy-paste it to your article by typing ``Img`` in Sage or save it to a file, by doing

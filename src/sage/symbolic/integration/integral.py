@@ -939,6 +939,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
         sage: (g.derivative() - f).full_simplify().full_simplify()
         0
+
+    Test for :trac:`24117`::
+
+        sage: integrate(sqrt(1-4*sin(x)^2),x, algorithm='maxima')
+        integrate(sqrt(-4*sin(x)^2 + 1), x)
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

@@ -758,8 +758,15 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
 
         OUTPUT:
 
-         - A tuple (a, b, c) which satisfies `a = b*f + c*g`. There 
+         - A tuple (a, b, c) which satisfies `a = b*f + c*g`. There
            is not guarentee that a, b, and c are minimal.
+
+        .. WARNING::
+
+            The computations are performed using the standard Euclidean
+            algorithm which might produce mathematically incorrect results in
+            some cases. See :trac:`13439`.
+
 
         EXAMPLES::
 
@@ -774,7 +781,7 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
             sage: f = 3*x + 7
             sage: g = 5*x + 9
             sage: f.xgcd(f*g)
-            ((3 + O(3^4))*x + 1 + 2*3 + O(3^3), 0, 1 + O(3^3))
+            ((3 + O(3^4))*x + 1 + 2*3 + O(3^3), 1 + O(3^3), 0)
 
             sage: R.<x> = Zp(3)[]
             sage: f = 357555295953*x + 257392844
@@ -782,9 +789,9 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
             sage: f.xgcd(f*g)
             ((3^9 + O(3^29))*x + 2 + 2*3 + 3^2 + 2*3^5 + 3^6 + 3^7
              + 3^8 + 3^10 + 3^11 + 2*3^13 + 3^14 + 3^16 + 2*3^19 +
-            O(3^20), 0, 1 + 2*3^2 + 3^4 + 2*3^5 + 3^6 + 3^7 +
+            O(3^20), 1 + 2*3^2 + 3^4 + 2*3^5 + 3^6 + 3^7 +
              2*3^8 + 2*3^10 + 2*3^12 + 3^13 + 3^14 + 3^15 + 2*3^17
-             + 3^18 + O(3^20))
+             + 3^18 + O(3^20), 0)
 
         We check low precision computations::
 
@@ -794,8 +801,10 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
             sage: h.xgcd(h*i)
             ((3 + O(3^2))*x + 1 + O(3), 1 + O(3), 0)
         """
+        from sage.misc.stopgap import stopgap
+        stopgap("Extended gcd computations over p-adic fields are performed using the standard Euclidean algorithm which might produce mathematically incorrect results in some cases.", 13439)
+
         base_ring = f.base_ring()
-        #low precision computation done over a ring fails, see trac 29777
         fracfield = base_ring.fraction_field()
         f_field = f.change_ring(fracfield)
         g_field = g.change_ring(fracfield)

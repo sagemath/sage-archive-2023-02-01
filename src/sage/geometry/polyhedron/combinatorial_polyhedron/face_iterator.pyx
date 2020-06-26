@@ -1,3 +1,7 @@
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc
+# distutils: language = c++
+# distutils: extra_compile_args = -std=c++11
+
 r"""
 Face iterator for polyhedra
 

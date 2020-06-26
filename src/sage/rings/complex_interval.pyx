@@ -1420,19 +1420,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         raise TypeError("can't convert complex interval to int")
 
-    def __long__(self):
-        """
-        Convert ``self`` to a ``lon``.
-
-        EXAMPLES::
-
-            sage: long(CIF(1,1))  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex interval to long
-        """
-        raise TypeError("can't convert complex interval to long")
-
     def __float__(self):
         """
         Convert ``self`` to a ``float``.

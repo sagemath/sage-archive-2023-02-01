@@ -1,5 +1,5 @@
 """
-Dense matrices over `\GF{2^e}` for `2 <= e <= 10` using the M4RIE library
+Dense matrices over `\GF{2^e}` for `2 \leq e \leq 16` using the M4RIE library
 
 The M4RIE library offers two matrix representations:
 
@@ -201,7 +201,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
     def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         r"""
-        Create new matrix over `GF(2^e)` for 2<=e<=10.
+        Create new matrix over `GF(2^e)` for `2 \leq e \leq 16`.
 
         INPUT:
 

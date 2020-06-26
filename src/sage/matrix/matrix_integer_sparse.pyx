@@ -219,6 +219,63 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         self.cache('dict', d)
         return d
 
+    cdef sage.structure.element.Matrix _matrix_times_matrix_(self, sage.structure.element.Matrix _right):
+        """
+        Return the product of the sparse integer matrices
+        ``self`` and ``_right``.
+
+       EXAMPLES::
+
+            sage: a = matrix(ZZ, 2, [1,2,3,4], sparse=True)
+            sage: b = matrix(ZZ, 2, 3, [1..6], sparse=True)
+            sage: a * b
+            [ 9 12 15]
+            [19 26 33]
+        """
+        cdef Matrix_integer_sparse right, ans
+        right = _right
+
+        cdef mpz_vector* v
+
+        # Build a table that gives the nonzero positions in each column of right
+        cdef list nonzero_positions_in_columns = [set() for _ in range(right._ncols)]
+        cdef Py_ssize_t i, j, k
+        for i in range(right._nrows):
+            v = &(right._matrix[i])
+            for j in range(v.num_nonzero):
+                (<set> nonzero_positions_in_columns[v.positions[j]]).add(i)
+        # pre-computes the list of nonzero columns of right
+        cdef list right_indices
+        right_indices = [j for j in range(right._ncols)
+                         if nonzero_positions_in_columns[j]]
+
+        ans = self.new_matrix(self._nrows, right._ncols)
+
+        # Now do the multiplication, getting each row completely before filling it in.
+        cdef set c
+        cdef mpz_t x, y, s
+        mpz_init(x)
+        mpz_init(y)
+        mpz_init(s)
+        for i in range(self._nrows):
+            v = &(self._matrix[i])
+            if not v.num_nonzero:
+                continue
+            for j in right_indices:
+                mpz_set_si(s, 0)
+                c = <set> nonzero_positions_in_columns[j]
+                for k in range(v.num_nonzero):
+                    if v.positions[k] in c:
+                        mpz_vector_get_entry(y, &right._matrix[v.positions[k]], j)
+                        mpz_mul(x, v.entries[k], y)
+                        mpz_add(s, s, x)
+                mpz_vector_set_entry(&ans._matrix[i], j, s)
+
+        mpz_clear(x)
+        mpz_clear(y)
+        mpz_clear(s)
+        return ans
+
     ########################################################################
     # LEVEL 3 functionality (Optional)
     #    * cdef _sub_

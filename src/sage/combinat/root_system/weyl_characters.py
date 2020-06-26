@@ -163,21 +163,21 @@ class WeylCharacterRing(CombinatorialFreeModule):
         # Record properties of the FusionRing
         if k is not None:
             #TODO: implement conjugate functionality
-            if ct[0] in ['A','D','E']:
+            if ct[0] in ['A', 'D', 'E']:
                 self._m_g = 1
             elif ct[0] in ['B', 'C', 'F']:
                 self._m_g = 2
-            else: 
+            else:
                 self._m_g = 3
             if ct[0] in ['B','F']:
                 self._nf = 2
             else:
                 self._nf = 1
             h_check = ct.dual_coxeter_number()
-            self._l = self._m_g * (self._k + h_check) 
-            self._conj = (-1)**conjugate 
+            self._l = self._m_g * (self._k + h_check)
+            self._conj = (-1) ** conjugate
             if ct[0] == 'A':
-                self._fg = ct[1]+1
+                self._fg = ct[1] + 1
             elif ct[0] == 'E' and ct[1] == 6:
                 self._fg = 3
             else:

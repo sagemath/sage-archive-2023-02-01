@@ -360,6 +360,11 @@ if [ "$1" = '-i' ]; then
                 echo >&2 "Error: 'sage -i $OPT <package>' is no longer supported, use 'sage --info <package>' instead."
                 exit 2;;
             -f) FORCE_INSTALL=yes;;
+            # Setting SAGE_CHECK here duplicates what we do in sage-spkg
+            # but we need it in "make" already when there are (order-only)
+            # dependencies on packages providing test infrastructure
+            -c) INSTALL_OPTIONS="$INSTALL_OPTIONS $OPT"; export SAGE_CHECK=yes;;
+            -w) INSTALL_OPTIONS="$INSTALL_OPTIONS $OPT"; export SAGE_CHECK=warn;;
             -*) INSTALL_OPTIONS="$INSTALL_OPTIONS $OPT";;
             *) PACKAGES="$PACKAGES $OPT";;
         esac

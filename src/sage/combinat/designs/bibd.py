@@ -170,6 +170,8 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         sage: designs.balanced_incomplete_block_design(21,6,existence=True)
         False
     """
+    from sage.arith.misc import is_square
+    
     lmbd = 1
 
     # Trivial BIBD
@@ -199,6 +201,33 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         if existence:
             return False
         raise EmptySetError("There exists no ({},{},{})-BIBD".format(v,k,lmbd))
+
+    if v == (lmbd*v*(v-1))//(k*(k-1)):
+        #symmetric BIBD
+        exists = False
+        if v%2 == 0: 
+            exists = is_square(k-lmbd)
+        else:
+            from sage.calculus.var import var
+            from sage.symbolic.assumptions import assume, forget
+            from sage.symbolic.relation import solve
+
+            # g = (-1)^((v-1)/2)
+            g = 1 if v%4 == 1 else -1
+            x, y, z = var('x y z')
+            assume(x, 'integer')
+            assume(y, 'integer')
+            assume(z, 'integer')
+            sol = solve(x**2-(k-lmbd)*y**2 == g*lmbd*z**2, x, y, z, algorithm="sympy")
+            if not isinstance(sol,tuple):
+                raise RuntimeError("The solve method returned a non-tuple")
+        
+            exists = sol[0]*sol[1]*sol[2] != 0
+            forget()  # forget assumptions
+            if not exists:
+                if existence:
+                    return False
+                raise EmptySetError("There exists no ({},{},{})-BIBD by Bruck-Ryser-Chowla Theorem".format(v,k,lmbd))
 
     if k == 2:
         if existence:

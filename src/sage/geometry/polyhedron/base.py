@@ -2484,6 +2484,18 @@ class Polyhedron_base(Element):
             (0, 0, 0, 0, 1) A ray in the direction (1, 1)
             (0, 0, 1, 1, 0) A vertex at (3, 0)
 
+        The vertex adjacency matrix has base ring integers. This way one can express various
+        counting questions::
+
+            sage: P = polytopes.cube()
+            sage: Q = P.stack(P.faces(2)[0])
+            sage: M = Q.vertex_adjacency_matrix()
+            sage: sum(M)
+            (4, 4, 3, 3, 4, 4, 4, 3, 3)
+            sage: G = Q.vertex_graph()
+            sage: G.degree()
+            [4, 4, 3, 3, 4, 4, 4, 3, 3]
+
         TESTS:
 
         Check that :trac:`28828` is fixed::
@@ -2564,6 +2576,15 @@ class Polyhedron_base(Element):
             [1 1 0 1 1]
             [1 1 1 0 1]
             [1 1 1 1 0]
+
+        The facet adjacency matrix has base ring integers. This way one can express various
+        counting questions::
+
+            sage: P = polytopes.cube()
+            sage: Q = P.stack(P.faces(2)[0])
+            sage: M = Q.facet_adjacency_matrix()
+            sage: sum(M)
+            (4, 4, 4, 4, 3, 3, 3, 3, 4)
 
         TESTS:
 
@@ -2670,6 +2691,14 @@ class Polyhedron_base(Element):
             [1 0 1]
             [0 1 0]
             [0 0 1]
+
+        The incidence matrix has base ring integers. This way one can express various
+        counting questions::
+
+            sage: P = polytopes.twenty_four_cell()
+            sage: M = P.incidence_matrix()
+            sage: sum(sum(x) for x in M) == P.flag_f_vector(0,3)
+            True
 
         TESTS:
 

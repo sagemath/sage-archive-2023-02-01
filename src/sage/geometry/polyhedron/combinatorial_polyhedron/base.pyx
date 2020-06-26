@@ -1033,6 +1033,12 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.incidence_matrix.clear_cache()
             sage: C.incidence_matrix()
             []
+
+        Check that the base ring is ``ZZ``, see :trac:`29840`::
+
+            sage: C = CombinatorialPolyhedron([[0,1,2], [0,1,3], [0,2,3], [1,2,3]])
+            sage: C.incidence_matrix().base_ring()
+            Integer Ring
         """
         from sage.rings.all import ZZ
         from sage.matrix.constructor import matrix

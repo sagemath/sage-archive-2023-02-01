@@ -1,3 +1,4 @@
+# distutils: libraries = ntl
 r"""
 Rational Numbers
 

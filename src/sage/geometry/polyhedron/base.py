@@ -2586,6 +2586,10 @@ class Polyhedron_base(Element):
             vertices/rays/lines in the order
             :meth:`Vrepresentation`.
 
+        .. SEEALSO::
+
+            :meth:`slack_matrix`.
+
         EXAMPLES::
 
             sage: p = polytopes.cuboctahedron()
@@ -2700,6 +2704,86 @@ class Polyhedron_base(Element):
 
         incidence_matrix.set_immutable()
         return incidence_matrix
+
+    @cached_method
+    def slack_matrix(self):
+        r"""
+        Return the slack matrix.
+
+        The entries correspond to the evaluation of the Hrepresentation
+        elements on the  Vrepresentation elements.
+
+        .. NOTE::
+
+            The columns correspond to inequalities/equations in the
+            order :meth:`Hrepresentation`, the rows correspond to
+            vertices/rays/lines in the order
+            :meth:`Vrepresentation`.
+
+        .. SEEALSO::
+
+            :meth:`incidence_matrix`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: P.slack_matrix()
+            [0 2 2 2 0 0]
+            [0 0 2 2 0 2]
+            [0 0 0 2 2 2]
+            [0 2 0 2 2 0]
+            [2 2 0 0 2 0]
+            [2 2 2 0 0 0]
+            [2 0 2 0 0 2]
+            [2 0 0 0 2 2]
+
+            sage: P = polytopes.cube(intervals='zero_one')
+            sage: P.slack_matrix()
+            [0 1 1 1 0 0]
+            [0 0 1 1 0 1]
+            [0 0 0 1 1 1]
+            [0 1 0 1 1 0]
+            [1 1 0 0 1 0]
+            [1 1 1 0 0 0]
+            [1 0 1 0 0 1]
+            [1 0 0 0 1 1]
+
+            sage: P = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
+            sage: P.slack_matrix()
+            [1/2*sqrt5 - 1/2               0               0               1 1/2*sqrt5 - 1/2               0]
+            [              0               0 1/2*sqrt5 - 1/2 1/2*sqrt5 - 1/2               1               0]
+            [              0 1/2*sqrt5 - 1/2               1               0 1/2*sqrt5 - 1/2               0]
+            [              1 1/2*sqrt5 - 1/2               0 1/2*sqrt5 - 1/2               0               0]
+            [1/2*sqrt5 - 1/2               1 1/2*sqrt5 - 1/2               0               0               0]
+
+            sage: P = Polyhedron(rays=[[1, 0], [0, 1]])
+            sage: P.slack_matrix()
+            [0 0]
+            [0 1]
+            [1 0]
+
+        TESTS::
+
+            sage: Polyhedron().slack_matrix()
+            []
+            sage: Polyhedron(base_ring=QuadraticField(2)).slack_matrix().base_ring()
+            Number Field in a with defining polynomial x^2 - 2 with a = 1.41...
+        """
+        if not self.n_Vrepresentation() or not self.n_Hrepresentation():
+            slack_matrix = matrix(self.base_ring(), self.n_Vrepresentation(),
+                                  self.n_Hrepresentation(), 0)
+        else:
+            Vrep_matrix = matrix(self.base_ring(), self.Vrepresentation())
+            Hrep_matrix = matrix(self.base_ring(), self.Hrepresentation())
+
+            # Getting homogenous coordinates of the Vrepresentation.
+            hom_helper = matrix(self.base_ring(), [1 if v.is_vertex() else 0 for v in self.Vrepresentation()])
+            hom_Vrep = hom_helper.stack(Vrep_matrix.transpose())
+
+            slack_matrix = (Hrep_matrix * hom_Vrep).transpose()
+
+        slack_matrix.set_immutable()
+        return slack_matrix
 
     def base_ring(self):
         """

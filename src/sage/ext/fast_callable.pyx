@@ -422,39 +422,6 @@ def fast_callable(x, domain=None, vars=None,
         Traceback (most recent call last):
             ...
         TypeError: unable to simplify to float approximation
-
-    Check :trac:`24805`--if a fast_callable expression involves division
-    on a Python object, it will always prefer Python 3 semantics (e.g.
-    ``x / y`` will try ``x.__truediv__`` instead of ``x.__div__``, as if
-    ``from __future__ import division`` is in effect).  However, for
-    classes that implement ``__div__`` but not ``__truediv__`` it will still
-    fall back on ``__div__`` for backwards-compatibility, but reliance on
-    this functionality is deprecated::
-
-        sage: from sage.ext.fast_callable import ExpressionTreeBuilder
-        sage: etb = ExpressionTreeBuilder('x')
-        sage: x = etb.var('x')
-        sage: class One(object):
-        ....:     def __div__(self, other):
-        ....:         if not isinstance(other, Integer):
-        ....:             return NotImplemented
-        ....:         return 1 / other
-        sage: expr = One() / x
-        sage: f = fast_callable(expr, vars=[x])
-        sage: f(2)  # py2
-        doctest:warning...:
-        DeprecationWarning: use of __truediv__ should be preferred over __div__
-        See https://trac.sagemath.org/24805 for details.
-        1/2
-        sage: class ModernOne(One):
-        ....:     def __truediv__(self, other):
-        ....:         if not isinstance(other, Integer):
-        ....:             return NotImplemented
-        ....:         return 1 / other
-        sage: expr = ModernOne() / x
-        sage: f = fast_callable(expr, vars=[x])
-        sage: f(2)
-        1/2
     """
     cdef Expression et
     if isinstance(x, Expression):

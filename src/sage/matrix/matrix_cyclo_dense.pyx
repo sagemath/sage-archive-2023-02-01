@@ -404,6 +404,26 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
         return x
 
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        r"""
+        Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
+
+        EXAMPLES::
+
+            sage: K.<z> = CyclotomicField(3)
+            sage: A = matrix(K, 4, 3, [0, -z, -2, -2*z + 2, 2*z, z, z, 1-z, 2+3*z, z, 1+z, 0])
+            sage: A.zero_pattern_matrix()  # indirect doctest
+            [1 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 1]
+        """
+        cdef int a
+        for a in range(self._degree):
+            if not self._matrix.get_is_zero_unsafe(a, j+i*self._ncols):
+                return False
+        return True
+
     def _pickle(self):
         """
         Used for pickling matrices. This function returns the

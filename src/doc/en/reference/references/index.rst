@@ -3324,6 +3324,9 @@ REFERENCES:
            Journal of Combinatorial Theory, Series A, **88** (1999), 66-92,
            http://www.sciencedirect.com/science/article/pii/0012365X9290368P
 
+.. [Kra1999det] \C. Krattenthaler, *Advanced determinant calculus*,
+                Sém. Lothar. Combin. **42** (1999), Art. B42q, 67pp.
+
 .. [Kra2006] Christian Krattenthaler.  *Growth diagrams, and
              increasing and decreasing chains in fillings of Ferrers
              shapes*.  Advances in Applied Mathematics Volume 37,

@@ -134,7 +134,7 @@ Fix the checksum of a package
 EXAMPLE:
 
     $ sage --package fix-checksum pari
-    Updating checksum of pari-2.8-2044-g89b0f1e.tar.gz
+    Updating checksum of pari (tarball pari-2.8-2044-g89b0f1e.tar.gz)
 """
 
 epilog_create = \

@@ -1716,16 +1716,6 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                   To:   Finite Field of size 3
                 sage: f.is_injective()
                 False
-
-            Note that many maps do not implement this method::
-
-                sage: R.<x> = ZZ[]
-                sage: f = R.hom([x])
-                sage: f.is_injective()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError
-
             """
             if self.domain().cardinality() <= 1:
                 return True

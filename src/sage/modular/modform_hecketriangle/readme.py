@@ -602,7 +602,7 @@ Modular forms ring and spaces for Hecke triangle groups:
   - Specifying the form as a rational function in the basic generators (see below)
   - For weakly holomorphic modular forms it is possible to exactly determine the
     form by specifying (sufficiently many) initial coefficients of its Fourier expansion.
-  - There is even hope (no garantuee) to determine a (exact) form from
+  - There is even hope (no guarantee) to determine a (exact) form from
     the initial numerical coefficients (see below).
   - By specifying the coefficients with respect to a basis of the space
     (if the corresponding space supports coordinate vectors)

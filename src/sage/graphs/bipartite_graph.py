@@ -1631,7 +1631,7 @@ class BipartiteGraph(Graph):
           among:
 
           - ``"Konig"`` will compute a minimum vertex cover using Konig's
-            algorithm (:wikipedia:`Kőnig's_theorem_(graph_theory)`)
+            algorithm (:wikipedia:`Kőnig%27s_theorem_(graph_theory)`)
 
           - ``"Cliquer"`` will compute a minimum vertex cover
             using the Cliquer package

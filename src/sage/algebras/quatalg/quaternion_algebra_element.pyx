@@ -265,26 +265,6 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             return int(self[0])
         raise TypeError
 
-    def __long__(self):
-        """
-        Try to coerce this quaternion to a Python long.
-
-        EXAMPLES::
-
-            sage: A.<i,j,k> = QuaternionAlgebra(-1,-2)
-            sage: long(A(-3))
-            -3L
-            sage: long(A(-3/2))
-            -1L
-            sage: long(-3 + i)
-            Traceback (most recent call last):
-            ...
-            TypeError
-        """
-        if self.is_constant():
-            return long(self[0])
-        raise TypeError
-
     def __float__(self):
         """
         Try to coerce this quaternion to a Python float.

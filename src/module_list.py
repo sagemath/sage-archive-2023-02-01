@@ -1119,6 +1119,9 @@ ext_modules = [
     Extension('sage.rings.polynomial.skew_polynomial_finite_order',
               sources = ['sage/rings/polynomial/skew_polynomial_finite_order.pyx']),
 
+    Extension('sage.rings.polynomial.skew_polynomial_finite_field',
+              sources = ['sage/rings/polynomial/skew_polynomial_finite_field.pyx']),
+
     # Note that weil_polynomials includes distutils directives in order to support
     # conditional OpenMP compilation (by uncommenting lines)
     Extension('sage.rings.polynomial.weil.weil_polynomials',

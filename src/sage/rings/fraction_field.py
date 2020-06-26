@@ -79,6 +79,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.integer_ring import ZZ
 from sage.structure.richcmp import richcmp
 from sage.structure.parent import Parent
+from sage.structure.element import parent
 from sage.structure.coerce import py_scalar_to_element
 from sage.structure.coerce_maps import CallableConvertMap, DefaultConvertMap_unique
 from sage.categories.basic import QuotientFields, Rings
@@ -606,8 +607,21 @@ class FractionField_generic(ring.Field):
             sage: S.<s> = ZZ[]
             sage: S.fraction_field()(s/(s+1), (t-1)/(t+2))
             (s^2 + 2*s)/(s^2 - 1)
+
+        Check that :trac:`29713` is fixed::
+
+            sage: F = FractionField(QQ['a'])
+            sage: a = F.gen()
+            sage: R = PolynomialRing(F, 'x')
+            sage: FF = FractionField(R)
+            sage: elt = F(-1/2/(a^2+a))
+            sage: x = FF(elt)
+            sage: F(x)
+            -1/2/(a^2 + a)
         """
         if y is None:
+            if parent(x) is self:
+                return x
             ring_one = self.ring().one()
             try:
                 return self._element_class(self, x, ring_one, coerce=coerce)
@@ -616,6 +630,9 @@ class FractionField_generic(ring.Field):
             y = self._element_class(self, ring_one, ring_one,
                                     coerce=False, reduce=False)
         else:
+            if parent(x) is self:
+                y = self(y)
+                x, y = x.numerator() * y.denominator(), y.numerator() * x.denominator()
             try:
                 return self._element_class(self, x, y, coerce=coerce)
             except (TypeError, ValueError):
@@ -658,12 +675,12 @@ class FractionField_generic(ring.Field):
             except (AttributeError, TypeError, ValueError):
                 pass
             try:
-                P = yd.parent()
+                P = parent(yd)
                 return (P(xn) * yd, yn * P(xd))
             except (AttributeError, TypeError, ValueError):
                 pass
             try:
-                P = xd.parent()
+                P = parent(xd)
                 return (xn * P(yd), P(yn) * xd)
             except (AttributeError, TypeError, ValueError):
                 pass
@@ -679,7 +696,7 @@ class FractionField_generic(ring.Field):
             try:
                 return self._element_class(self, x, y, coerce=coerce)
             except TypeError:
-                if not x != x0:
+                if parent(x) is parent(x0):
                     raise
 
     def construction(self):

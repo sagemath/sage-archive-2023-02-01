@@ -386,7 +386,7 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             raise NotImplementedError
         return self._section_class(self)
 
-    def inverse_image(self, b):
+    def _inverse_image_element(self, b):
         """
         Return the unique ``a`` such that ``self(a) = b`` if one such exists.
 

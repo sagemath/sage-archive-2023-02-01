@@ -65,8 +65,6 @@ cdef class ntl_ZZ(object):
             12
             sage: ntl.ZZ(Integer(95413094))
             95413094
-            sage: ntl.ZZ(long(223895239852389582983))
-            223895239852389582983
             sage: ntl.ZZ('-1')
             -1
             sage: ntl.ZZ('1L')
@@ -256,9 +254,7 @@ cdef class ntl_ZZ(object):
 
             sage: ntl.ZZ(10^30).__int__()
             1000000000000000000000000000000L
-            sage: type(ntl.ZZ(10^30).__int__())  # py2
-            <type 'long'>
-            sage: type(ntl.ZZ(10^30).__int__())  # py3
+            sage: type(ntl.ZZ(10^30).__int__())
             <class 'int'>
         """
         return int(self._integer_())

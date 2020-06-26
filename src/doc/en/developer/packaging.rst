@@ -307,8 +307,9 @@ A script package has a single install script named ``spkg-install``.
 It needs to be an executable shell script; it is not subject to the templating
 described in the previous section.
 
-Sage runs ``spkg-install`` from the ``$SAGE_ROOT`` directory in the environment
-obtained by sourcing the files ``src/bin/sage-env`` and ``build/bin/sage-build-env-config``.
+Sage runs ``spkg-install`` from the directory ``$SAGE_ROOT/build/pkgs/<package>``
+in the environment obtained by sourcing the files ``src/bin/sage-env`` and
+``build/bin/sage-build-env-config``.
 
 .. _section-sdh-helpers:
 

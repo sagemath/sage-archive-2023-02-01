@@ -1219,6 +1219,43 @@ def BIBD_from_arc_in_desarguesian_projective_plane(n,k,existence=False):
     from sage.combinat.designs.block_design import DesarguesianProjectivePlaneDesign
     return DesarguesianProjectivePlaneDesign(q).trace(C)._blocks
 
+def biplane_79_13_2():
+    r"""
+    Return a `(79,13,2)`-BIBD.
+
+    The construction follows the paper ....
+    """
+
+    # We have a correspondece between elements of G and integers
+    # x^a*y^b*z^c <-> 1+c+2*b+10*a
+    def to_int(x,y,z):
+        return 1 + z+ 2*y+ 10*x
+
+    # P(i,a,b,c) represents P_i x^a*y^b*z^c
+    # we ensure that each set is represented uniquely
+    # i.e. we simplify the action of G
+    def P(i,x,y,z):
+        x = x%11
+        y = y%5
+        z = z%2
+        if i == 1: return (to_int(0, 0, z), 0, 0, 0)
+        if i == 2: return (0, to_int(x, 0, 0), 0, 0)
+        if i == 3: return (0, 0, to_int(x, 0, 0), 0)
+        if i == 4: return (0, 0, 0, to_int(x, y, 0))
+
+    # The set of points is:
+    # [P(i,x,y,z) for i in range(1,5) for x in range(11) for y in range(5) for z in range(2)]
+    B1 = [P(1,0,0,0), P(1,0,0,1)] + [P(2,x,0,0) for x in range(11)]
+    B2 = [P(1,0,0,0), P(1,0,0,1)] + [P(3,x,0,0) for x in range(11)]
+    blocks = [B1, B2]
+    blocks += [([P(1,x,0,z), P(2,x,0,z), P(3,x,0,z)] + [P(4,1+x,y,z) for y in range(5)]) for x in range(11) for z in range(2)]
+    blocks += [[P(2,2+x,+y,0), P(2,x-2,y,0), P(3,x+5,y,0), P(3,x-5,y,0), P(4,x,y,0),
+                P(4,x+1,y+2,0), P(4,x-1,y+2,0), P(4,x+1,y+1,0), P(4,x-1,y+1,0),
+                P(4,x+5,y+1,0), P(4,x-5,y+1,0), P(4,x+5,y+4,0), P(4,x-5,y+4,0)] for x in range(11) for y in range(5)]
+
+    return IncidenceStructure(blocks)
+        
+
 class PairwiseBalancedDesign(GroupDivisibleDesign):
     r"""
     Pairwise Balanced Design (PBD)

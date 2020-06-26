@@ -85,14 +85,12 @@ STANDARD_PACKAGE_INSTS = \
 	$(foreach pkgname,$(STANDARD_PACKAGES),$(inst_$(pkgname)))
 
 # All optional installed packages (triggers the auto-update)
-OPTIONAL_INSTALLED_PACKAGES = \
-@SAGE_OPTIONAL_INSTALLED_PACKAGES@
+OPTIONAL_INSTALLED_PACKAGES = @SAGE_OPTIONAL_INSTALLED_PACKAGES@
 OPTIONAL_INSTALLED_PACKAGE_INSTS = \
     $(foreach pkgname,$(OPTIONAL_INSTALLED_PACKAGES),$(inst_$(pkgname)))
 
 # All previously installed optional packages that are to be uninstalled
-OPTIONAL_CLEANED_PACKAGES = \
-@SAGE_OPTIONAL_CLEANED_PACKAGES@
+OPTIONAL_CLEANED_PACKAGES = @SAGE_OPTIONAL_CLEANED_PACKAGES@
 OPTIONAL_CLEANED_PACKAGES_CLEANS = $(OPTIONAL_CLEANED_PACKAGES:%=%-clean)
 
 # All packages which should be downloaded
@@ -337,7 +335,7 @@ sagelib-build-deps: \
 
 sagelib: sagelib-build-deps
 	$(AM_V_at)if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
-		cd $(SAGE_SRC) && source bin/sage-env && source $(SAGE_ROOT)/build/bin/sage-build-env-config && \
+		cd $(SAGE_SRC) && . bin/sage-env && . $(SAGE_ROOT)/build/bin/sage-build-env-config && \
 		sage-logger -p 'time $(MAKE) sage' '$(SAGE_LOGS)/sagelib-$(SAGE_VERSION).log'; \
 	fi
 
@@ -560,14 +558,14 @@ endif
 #
 # $(INST)/<pkgname>-<pkgvers>: <dependencies>
 #     $(AM_V_at)cd '$SAGE_ROOT' && \\
-#         source '$SAGE_ROOT/src/bin/sage-env' && \\
+#         . '$SAGE_ROOT/src/bin/sage-env' && \\
 #         sage-logger -p '$SAGE_ROOT/build/pkgs/<pkgname>/spkg-install' '$(SAGE_LOGS)/<pkgname>.log'
 #
 # <pkgname>: $(INST)/<pkgname>-<pkgvers>
 #
 # <pkgname>-clean:
 #     -$(AM_V_at)cd '$SAGE_ROOT' && \\
-#         source '$SAGE_ROOT/src/bin/sage-env' && \\
+#         . '$SAGE_ROOT/src/bin/sage-env' && \\
 #         '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'
 
 # Positional arguments:
@@ -577,7 +575,7 @@ endif
 define SCRIPT_PACKAGE_templ
 $$(INST)/$(1)-$(2): $(3)
 	$(AM_V_at)cd '$$(SAGE_ROOT)' && \
-		source '$$(SAGE_ROOT)/src/bin/sage-env' && source '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
+		. '$$(SAGE_ROOT)/src/bin/sage-env' && . '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		sage-logger -p '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$$(SAGE_LOGS)/$(1).log'
 	touch "$$@"
 
@@ -585,7 +583,7 @@ $(1): $$(INST)/$(1)-$(2)
 
 $(1)-clean:
 	-$(AM_V_at)cd '$$(SAGE_ROOT)' && \
-		source '$$(SAGE_ROOT)/src/bin/sage-env' && source '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
+		. '$$(SAGE_ROOT)/src/bin/sage-env' && . '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
 	-rm -f "$$(INST)/$(1)-$(2)"
 

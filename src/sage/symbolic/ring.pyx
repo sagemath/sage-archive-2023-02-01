@@ -237,7 +237,7 @@ cdef class SymbolicRing(CommutativeRing):
             x + y0/y1
             sage: x.subs(x=y0/y1)
             y0/y1
-            sage: x + long(1)
+            sage: x + int(1)
             x + 1
 
         If `a` is already in the symbolic expression ring, coercing returns

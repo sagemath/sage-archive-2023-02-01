@@ -2,7 +2,7 @@ r"""
 Base class for polyhedra
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2015 Jean-Philippe Labbe <labbe at math.huji.ac.il>
@@ -13,7 +13,7 @@ Base class for polyhedra
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from __future__ import division, print_function, absolute_import
 
@@ -1027,22 +1027,32 @@ class Polyhedron_base(Element):
         if self.n_vertices() > 0:
             desc += ' defined as the convex hull of '
             desc += repr(self.n_vertices())
-            if self.n_vertices() == 1: desc += ' vertex'
-            else:                      desc += ' vertices'
+            if self.n_vertices() == 1:
+                desc += ' vertex'
+            else:
+                desc += ' vertices'
 
             if self.n_rays() > 0:
-                if self.n_lines() > 0: desc += ", "
-                else:                  desc += " and "
+                if self.n_lines() > 0:
+                    desc += ", "
+                else:
+                    desc += " and "
                 desc += repr(self.n_rays())
-                if self.n_rays() == 1: desc += ' ray'
-                else:                  desc += ' rays'
+                if self.n_rays() == 1:
+                    desc += ' ray'
+                else:
+                    desc += ' rays'
 
             if self.n_lines() > 0:
-                if self.n_rays() > 0: desc += ", "
-                else:                 desc += " and "
+                if self.n_rays() > 0:
+                    desc += ", "
+                else:
+                    desc += " and "
                 desc += repr(self.n_lines())
-                if self.n_lines() == 1: desc += ' line'
-                else:                   desc += ' lines'
+                if self.n_lines() == 1:
+                    desc += ' line'
+                else:
+                    desc += ' lines'
 
         return desc
 
@@ -1562,7 +1572,7 @@ class Polyhedron_base(Element):
         if align is None:
             align = separator == "\n"
         if align:
-            lengths  = [(len(s[0]), len(s[1]), len(s[2])) for s in pretty_hs]
+            lengths = [(len(s[0]), len(s[1]), len(s[2])) for s in pretty_hs]
             from operator import itemgetter
             length_left = max(lengths, key=itemgetter(0))[0]
             length_middle = max(lengths, key=itemgetter(1))[1]
@@ -2078,7 +2088,7 @@ class Polyhedron_base(Element):
         # We use in the following that elements in ``chain_indices`` are sorted lists
         # of V-indices.
         # Thus for each two faces we can easily find the first vertex that differs.
-        for dim,face in enumerate(chain_indices):
+        for dim, face in enumerate(chain_indices):
             if dim == 0:
                 # Append the vertex.
                 basis_indices.append(face[0])
@@ -2224,10 +2234,13 @@ class Polyhedron_base(Element):
         """
         obj = self.Vrepresentation()
         for i in range(len(obj)):
-            if not obj[i].is_vertex(): continue
+            if not obj[i].is_vertex():
+                continue
             for j in range(i+1, len(obj)):
-                if not obj[j].is_vertex(): continue
-                if self.vertex_adjacency_matrix()[i, j] == 0: continue
+                if not obj[j].is_vertex():
+                    continue
+                if self.vertex_adjacency_matrix()[i, j] == 0:
+                    continue
                 yield (obj[i], obj[j])
 
     def Vrepresentation_space(self):
@@ -2533,7 +2546,7 @@ class Polyhedron_base(Element):
             ineq_indices = [inc_mat_cols[i].nonzero_positions()
                             for i in range(self.n_Hrepresentation())
                             if self.Hrepresentation()[i].is_inequality()]
-            return SimplicialComplex(ineq_indices,maximality_check=False)
+            return SimplicialComplex(ineq_indices, maximality_check=False)
         else:
             raise NotImplementedError("this function is only implemented for simplicial polytopes")
 
@@ -2664,10 +2677,10 @@ class Polyhedron_base(Element):
         incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)
 
-        Vvectors_vertices = tuple((v.vector(),v.index())
+        Vvectors_vertices = tuple((v.vector(), v.index())
                                   for v in self.Vrep_generator()
                                   if v.is_vertex())
-        Vvectors_rays_lines = tuple((v.vector(),v.index())
+        Vvectors_rays_lines = tuple((v.vector(), v.index())
                                     for v in self.Vrep_generator()
                                     if not v.is_vertex())
 
@@ -2677,13 +2690,13 @@ class Polyhedron_base(Element):
             Hindex = H.index()
             for Vvec, Vindex in Vvectors_vertices:
                 if self._is_zero(Hvec*Vvec + Hconst):
-                   incidence_matrix[Vindex, Hindex] = 1
+                    incidence_matrix[Vindex, Hindex] = 1
 
             # A ray or line is considered incident with a hyperplane,
             # if it is orthogonal to the normal vector of the hyperplane.
             for Vvec, Vindex in Vvectors_rays_lines:
                 if self._is_zero(Hvec*Vvec):
-                   incidence_matrix[Vindex, Hindex] = 1
+                    incidence_matrix[Vindex, Hindex] = 1
 
         incidence_matrix.set_immutable()
         return incidence_matrix
@@ -2854,11 +2867,11 @@ class Polyhedron_base(Element):
             pc = triangulation.point_configuration()
         else:
             from sage.geometry.triangulation.point_configuration import PointConfiguration
-            A,b = self.affine_hull_projection(as_affine_map=True, orthogonal=True, orthonormal=True, extend=True)
+            A, b = self.affine_hull_projection(as_affine_map=True, orthogonal=True, orthonormal=True, extend=True)
             pc = PointConfiguration((A(v.vector()) for v in self.Vrep_generator()))
 
         barycenters = [sum(self.Vrepresentation(i).vector() for i in simplex)/(self.dim() + 1) for simplex in triangulation]
-        volumes =  [pc.volume(simplex) for simplex in triangulation]
+        volumes = [pc.volume(simplex) for simplex in triangulation]
 
         centroid = sum(volumes[i]*barycenters[i] for i in range(len(volumes)))/sum(volumes)
         if self.ambient_dim() != self.dim():
@@ -3252,14 +3265,14 @@ class Polyhedron_base(Element):
             sage: p = Polyhedron([[0,0,0],[4,4,0],[4,0,0],[0,4,0],[2,2,2]])
             sage: p.is_simple()
             False
-
         """
-        if not self.is_compact(): return False
+        if not self.is_compact():
+            return False
         return self.combinatorial_polyhedron().is_simple()
 
     def simpliciality(self):
         r"""
-        Return the largest interger `k` such that the polytope is `k`-simplicial.
+        Return the largest integer `k` such that the polytope is `k`-simplicial.
 
         A polytope is `k`-simplicial, if every `k`-face is a simplex.
         If `self` is a simplex, returns its dimension.
@@ -3614,7 +3627,7 @@ class Polyhedron_base(Element):
                 # We have found two candidates for base faces.
                 # Remove from each vertex ``index1`` resp. ``index2``.
                 test_verts = set(frozenset(vert_inc.difference({index1, index2}))
-                                  for vert_inc in verts_incidences)
+                                 for vert_inc in verts_incidences)
                 if len(test_verts) == n_verts/2:
                     # For each vertex containing `index1` there is
                     # another one contained in `index2`
@@ -3701,10 +3714,11 @@ class Polyhedron_base(Element):
             sage: sum(P.gale_transform()).norm() < 1e-15
             True
         """
-        if not self.is_compact(): raise ValueError('not a polytope')
+        if not self.is_compact():
+            raise ValueError('not a polytope')
 
         A = matrix(self.n_vertices(),
-                   [ [1]+x for x in self.vertex_generator()])
+                   [[1]+x for x in self.vertex_generator()])
         A = A.transpose()
         A_ker = A.right_kernel_matrix(basis='computed')
         return tuple(A_ker.columns())
@@ -4383,28 +4397,51 @@ class Polyhedron_base(Element):
             'ppl'
             sage: (P * polytopes.dodecahedron(backend='field')).backend()
             'field'
+
+        Check that double description is set up correctly::
+
+           sage: P = polytopes.permutahedron(4).base_extend(QQ)
+           sage: P1 = Polyhedron(rays=[[1,0,0,0],[0,1,1,0]], lines=[[0,1,0,1]])
+           sage: Q = P.base_extend(QQ, 'field')
+           sage: Q1 = P1.base_extend(QQ, 'field')
+           sage: P * P1 == Q * Q1
+           True
+           sage: P.polar(in_affine_span=True) * P1 == Q.polar(in_affine_span=True) * Q1
+           True
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
         except TypeError:
-            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent()) \
-                     + " and " + str(other.parent()))
+            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
+                             + " and " + str(other.parent()))
 
-        new_vertices = [ list(x)+list(y)
-                         for x in self.vertex_generator() for y in other.vertex_generator()]
-        new_rays = []
-        new_rays.extend( [ r+[0]*other.ambient_dim()
-                           for r in self.ray_generator() ] )
-        new_rays.extend( [ [0]*self.ambient_dim()+r
-                           for r in other.ray_generator() ] )
-        new_lines = []
-        new_lines.extend( [ l+[0]*other.ambient_dim()
-                            for l in self.line_generator() ] )
-        new_lines.extend( [ [0]*self.ambient_dim()+l
-                            for l in other.line_generator() ] )
+        from itertools import chain
+
+        new_vertices = (tuple(x) + tuple(y)
+                        for x in self.vertex_generator() for y in other.vertex_generator())
+
+        self_zero  = tuple(0 for _ in range( self.ambient_dim()))
+        other_zero = tuple(0 for _ in range(other.ambient_dim()))
+
+        rays = chain((tuple(r) + other_zero for r in  self.ray_generator()),
+                     (self_zero + tuple(r)  for r in other.ray_generator()))
+
+        lines = chain((tuple(l) + other_zero for l in  self.line_generator()),
+                      (self_zero + tuple(l)  for l in other.line_generator()))
+
+        ieqs = chain((tuple(i) + other_zero               for i in  self.inequality_generator()),
+                     ((i.b(),) + self_zero + tuple(i.A()) for i in other.inequality_generator()))
+
+        eqns = chain((tuple(e) + other_zero               for e in  self.equation_generator()),
+                     ((e.b(),) + self_zero + tuple(e.A()) for e in other.equation_generator()))
+
+        pref_rep = 'Vrep' if self.n_vertices() + self.n_rays() + other.n_vertices() + other.n_rays() \
+                             <= self.n_inequalities() + other.n_inequalities() else 'Hrep'
 
         parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
-        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
+        return parent.element_class(parent, [new_vertices, rays, lines],
+                                    [ieqs, eqns],
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
     _mul_ = product
 
@@ -4692,8 +4729,8 @@ class Polyhedron_base(Element):
         one = parent.base_ring().one()
         sign = one if scalar > 0 else -one
 
-        make_new_Hrep = lambda h : tuple(scalar*sign*x if i == 0 else sign*x
-                                         for i,x in enumerate(h._vector))
+        make_new_Hrep = lambda h: tuple(scalar*sign*x if i == 0 else sign*x
+                                         for i, x in enumerate(h._vector))
 
         new_vertices = (tuple(scalar*x for x in v._vector) for v in self.vertex_generator())
         new_rays = (tuple(sign*x for x in r._vector) for r in self.ray_generator())
@@ -5183,8 +5220,8 @@ class Polyhedron_base(Element):
                 normal_vectors.append(facet.A())
 
         if linear_coefficients is not None:
-            normal_vector = sum(linear_coefficients[i]*normal_vectors[i] for i
-                                 in range(len(normal_vectors)))
+            normal_vector = sum(linear_coefficients[i]*normal_vectors[i]
+                                for i in range(len(normal_vectors)))
         else:
             normal_vector = sum(normal_vectors)
 
@@ -5558,7 +5595,7 @@ class Polyhedron_base(Element):
             raise ValueError("{} must not be a vertex or outside self".format(v))
 
         lambda_V = [u + [0] for u in V if u != v] + [v+[1]] + [v+[2]]
-        parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  1)
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+1)
         return parent.element_class(parent, [lambda_V, [], []], None)
 
     def lawrence_polytope(self):
@@ -5620,7 +5657,7 @@ class Polyhedron_base(Element):
         n = self.n_vertices()
         I_n = matrix.identity(n)
         lambda_V = block_matrix([[V, I_n], [V, 2*I_n]])
-        parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  n)
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+n)
         return parent.element_class(parent, [lambda_V, [], []], None)
 
     def is_lawrence_polytope(self):
@@ -5932,9 +5969,9 @@ class Polyhedron_base(Element):
             if not atoms:
                 Vindices = ()
             else:
-                Vindices = tuple(sorted([   atom_to_Vindex[i] for i in   atoms ]+lines))
-            Hindices = tuple(sorted([ coatom_to_Hindex[i] for i in coatoms ]+equations))
-            return PolyhedronFace(self,Vindices, Hindices)
+                Vindices = tuple(sorted([atom_to_Vindex[i] for i in atoms] + lines))
+            Hindices = tuple(sorted([coatom_to_Hindex[i] for i in coatoms] + equations))
+            return PolyhedronFace(self, Vindices, Hindices)
 
         from sage.geometry.hasse_diagram import lattice_from_incidences
         return lattice_from_incidences(atoms_incidences, coatoms_incidences,
@@ -6996,7 +7033,7 @@ class Polyhedron_base(Element):
         if projection_dir is None:
             vertices = self.vertices()
             facet = self.Hrepresentation(0)
-            f0 = [ v.index() for v in facet.incident() ]
+            f0 = [v.index() for v in facet.incident()]
             projection_dir = [sum([vertices[f0[i]][j]/len(f0) for i in range(len(f0))])
                               for j in range(self.ambient_dim())]
         return proj.schlegel(projection_direction=projection_dir, height=height)
@@ -7012,11 +7049,11 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: polytopes.hypercube(3)._volume_lrs() #optional - lrslib
+            sage: polytopes.hypercube(3)._volume_lrs() # optional - lrslib
             8.0
-            sage: (polytopes.hypercube(3)*2)._volume_lrs() #optional - lrslib
+            sage: (polytopes.hypercube(3)*2)._volume_lrs() # optional - lrslib
             64.0
-            sage: polytopes.twenty_four_cell()._volume_lrs() #optional - lrslib
+            sage: polytopes.twenty_four_cell()._volume_lrs() # optional - lrslib
             2.0
 
         REFERENCES:
@@ -7035,7 +7072,8 @@ class Polyhedron_base(Element):
         in_file = open(in_filename, 'w')
         in_file.write(in_str)
         in_file.close()
-        if verbose: print(in_str)
+        if verbose:
+            print(in_str)
 
         lrs_procs = Popen(['lrs', in_filename],
                           stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -7082,30 +7120,30 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: polytopes.hypercube(3)._volume_latte() #optional - latte_int
+            sage: polytopes.hypercube(3)._volume_latte() # optional - latte_int
             8
-            sage: (polytopes.hypercube(3)*2)._volume_latte() #optional - latte_int
+            sage: (polytopes.hypercube(3)*2)._volume_latte() # optional - latte_int
             64
-            sage: polytopes.twenty_four_cell()._volume_latte() #optional - latte_int
+            sage: polytopes.twenty_four_cell()._volume_latte() # optional - latte_int
             2
-            sage: polytopes.cuboctahedron()._volume_latte() #optional - latte_int
+            sage: polytopes.cuboctahedron()._volume_latte() # optional - latte_int
             20/3
 
         TESTS:
 
         Testing triangulate algorithm::
 
-            sage: polytopes.cuboctahedron()._volume_latte(algorithm='triangulate') #optional - latte_int
+            sage: polytopes.cuboctahedron()._volume_latte(algorithm='triangulate') # optional - latte_int
             20/3
 
         Testing cone decomposition algorithm::
 
-            sage: polytopes.cuboctahedron()._volume_latte(algorithm='cone-decompose') #optional - latte_int
+            sage: polytopes.cuboctahedron()._volume_latte(algorithm='cone-decompose') # optional - latte_int
             20/3
 
         Testing raw output::
 
-            sage: polytopes.cuboctahedron()._volume_latte(raw_output=True) #optional - latte_int
+            sage: polytopes.cuboctahedron()._volume_latte(raw_output=True) # optional - latte_int
             '20/3'
 
         Testing inexact rings::
@@ -7198,10 +7236,10 @@ class Polyhedron_base(Element):
         reasons, Sage casts lrs's exact answer to a float::
 
             sage: I3 = polytopes.hypercube(3)
-            sage: I3.volume(engine='lrs') #optional - lrslib
+            sage: I3.volume(engine='lrs') # optional - lrslib
             8.0
             sage: C24 = polytopes.twenty_four_cell()
-            sage: C24.volume(engine='lrs') #optional - lrslib
+            sage: C24.volume(engine='lrs') # optional - lrslib
             2.0
 
         If the base ring is exact, the answer is exact::
@@ -8111,7 +8149,7 @@ class Polyhedron_base(Element):
         if self.n_vertices() == 0:
             raise ValueError("empty polytope is not allowed")
         for i in range(self.ambient_dim()):
-            coords = [ v[i] for v in self.vertex_generator() ]
+            coords = [v[i] for v in self.vertex_generator()]
             max_coord = max(coords)
             min_coord = min(coords)
             if integral_hull:
@@ -8303,7 +8341,7 @@ class Polyhedron_base(Element):
         triangulation = self.triangulate()
         points = set()
         for simplex in triangulation:
-            triang_vertices = [ self.Vrepresentation(i) for i in simplex ]
+            triang_vertices = [self.Vrepresentation(i) for i in simplex]
             new_points = simplex_points(triang_vertices)
             for p in new_points:
                 p.set_immutable()
@@ -8835,6 +8873,7 @@ class Polyhedron_base(Element):
                 return c
         else:
             c_list = []
+
             def rational_approximation(c):
                 # Implementation detail: Return unique integer if two
                 # c-values are the same up to machine precision. But

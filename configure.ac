@@ -28,31 +28,6 @@ AC_PREREQ([2.69])
 AC_DEFUN([SAGE_VERSION], m4_esyscmd_s([. src/bin/sage-version.sh && echo $SAGE_VERSION]))
 AC_INIT([Sage], SAGE_VERSION, [sage-devel@googlegroups.com])
 
-# The following needs to be immediately after calling AC_INIT
-#------------------------------------------------------------
-# We need to run this configure script with bash
-if test -z "$BASH_VERSION"
-then
-    CONFIG_SHELL=`command -v bash`
-    export CONFIG_SHELL
-    if $CONFIG_SHELL -c "exit 0"
-    then
-        exec $CONFIG_SHELL $0 "$@"
-    else
-        AC_MSG_NOTICE([The 'bash' shell is needed to build AC_PACKAGE_NAME])
-        AC_MSG_NOTICE([All modern systems will have the 'bash' shell installed somewhere])
-        if test -d /opt/OpenSource/bin
-        then
-           AC_MSG_NOTICE([On HP-UX you may try adding /opt/OpenSource/bin to your path])
-        fi
-        if test -d /opt/pware/bin
-        then
-           AC_MSG_NOTICE([On AIX you may try adding /opt/pware/bin to your path])
-        fi
-        AC_MSG_ERROR(['bash' not found])
-    fi
-fi
-
 
 AC_COPYRIGHT([GPL version 3])
 AC_CONFIG_SRCDIR([configure.ac])
@@ -443,13 +418,12 @@ SAGE_SPKG_COLLECT()
 # TODO: fix this in Trac #21524
 touch "$SAGE_SRC/bin/sage-env-config"
 
-SAGE_SCRIPTS='\
-'
+SAGE_SCRIPTS=''
 for file in "$SAGE_SRC/bin/"*; do
     # Skip files with ".in" extension
     ext=${file##*.}
     if test "$ext" != in; then
-        SAGE_SCRIPTS+="    \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"$'\n'
+        SAGE_SCRIPTS="${SAGE_SCRIPTS} \\$(printf '\n    ')\$(SAGE_LOCAL)${file#$SAGE_SRC}"
     fi
 done
 

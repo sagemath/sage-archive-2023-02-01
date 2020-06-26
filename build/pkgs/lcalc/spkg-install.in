@@ -4,7 +4,6 @@ if [ "$UNAME" = "Darwin" ]; then
     export LDFLAGS="$LDFLAGS -Wl,-headerpad_max_install_names"
 fi
 
-export CFLAGS=$CFLAGS_NON_NATIVE
 CXXFLAGS=$CXXFLAGS_NON_NATIVE
 
 # Using pari in a C++17 file with "using namespace std doesn't

@@ -24,8 +24,6 @@ from sage.structure.element import have_same_parent, parent
 from sage.misc.flatten import flatten
 from copy import copy
 
-from sage.rings.integer_ring import ZZ
-
 
 class CoxeterGroups(Category_singleton):
     r"""
@@ -319,6 +317,7 @@ class CoxeterGroups(Category_singleton):
             braid_rels = self.braid_relations()
             I = self.index_set()
 
+            from sage.rings.integer_ring import ZZ
             be_careful = any(i not in ZZ for i in I)
 
             if be_careful:
@@ -736,7 +735,7 @@ class CoxeterGroups(Category_singleton):
                 
             """
             if base_ring is None:
-                from sage.rings.all import ZZ
+                from sage.rings.integer_ring import ZZ
                 base_ring = ZZ
             from sage.modules.with_basis.representation import SignRepresentationCoxeterGroup
             return SignRepresentationCoxeterGroup(self, base_ring)

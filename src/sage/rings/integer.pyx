@@ -178,7 +178,6 @@ from cypari2.paridecl cimport *
 from sage.rings.rational cimport Rational
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
-from sage.libs.ntl.convert cimport mpz_to_ZZ
 from sage.libs.gmp.mpq cimport mpq_neg
 from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
 
@@ -1761,11 +1760,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     cdef void set_from_mpz(Integer self, mpz_t value):
         mpz_set(self.value, value)
-
-    cdef int _to_ZZ(self, ZZ_c *z) except -1:
-        sig_on()
-        mpz_to_ZZ(z, self.value)
-        sig_off()
 
     def __add__(left, right):
         r"""

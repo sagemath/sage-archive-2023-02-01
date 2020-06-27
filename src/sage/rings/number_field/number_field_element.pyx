@@ -44,6 +44,7 @@ from sage.libs.gmp.mpq cimport *
 from sage.libs.mpfi cimport mpfi_t, mpfi_init, mpfi_set, mpfi_clear, mpfi_div_z, mpfi_init2, mpfi_get_prec, mpfi_set_prec
 from sage.libs.mpfr cimport mpfr_equal_p, mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p, mpfr_floor, mpfr_get_z, MPFR_RNDN
 from sage.libs.ntl.error import NTLError
+from sage.libs.ntl.convert cimport mpz_to_ZZ
 from sage.libs.gmp.pylong cimport mpz_pythonhash
 
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
@@ -304,7 +305,7 @@ cdef class NumberFieldElement(FieldElement):
         if isinstance(f, (int, long, Integer_sage)):
             # set it up and exit immediately
             # fast pathway
-            (<Integer>ZZ(f))._to_ZZ(&coeff)
+            mpz_to_ZZ(&coeff, (<Integer>ZZ(f)).value)
             ZZX_SetCoeff( self.__numerator, 0, coeff )
             ZZ_conv_from_int( self.__denominator, 1 )
             return
@@ -323,10 +324,10 @@ cdef class NumberFieldElement(FieldElement):
 
         cdef long i
         den = f.denominator()
-        (<Integer>ZZ(den))._to_ZZ(&self.__denominator)
+        mpz_to_ZZ(&self.__denominator, (<Integer>ZZ(den)).value)
         num = f * den
         for i from 0 <= i <= num.degree():
-            (<Integer>ZZ(num[i]))._to_ZZ(&coeff)
+            mpz_to_ZZ(&coeff, (<Integer>ZZ(num[i])).value)
             ZZX_SetCoeff( self.__numerator, i, coeff )
 
     def _lift_cyclotomic_element(self, new_parent, bint check=True, int rel=0):
@@ -933,11 +934,11 @@ cdef class NumberFieldElement(FieldElement):
 
             # set the denominator
             mpz_set_si(denom_temp.value, 1)
-            denom_temp._to_ZZ(&self.__denominator)
+            mpz_to_ZZ(&self.__denominator, (<Integer>denom_temp).value)
             for i from 0 <= i < ZZX_deg(self.__fld_numerator.x):
                 tmp_integer = <Integer>(ZZ.random_element(x=num_bound,
                                                    distribution=distribution))
-                tmp_integer._to_ZZ(&ntl_temp)
+                mpz_to_ZZ(&ntl_temp, (<Integer>tmp_integer).value)
                 ZZX_SetCoeff(self.__numerator, i, ntl_temp)
 
         else:
@@ -957,7 +958,7 @@ cdef class NumberFieldElement(FieldElement):
             # scale the numerators and set everything appropriately
 
             # first, the denominator (easy)
-            denom_temp._to_ZZ(&self.__denominator)
+            mpz_to_ZZ(&self.__denominator, (<Integer>denom_temp).value)
 
             # now the coefficients themselves.
             for i from 0 <= i < ZZX_deg(self.__fld_numerator.x):
@@ -972,7 +973,8 @@ cdef class NumberFieldElement(FieldElement):
                              mpq_denref(tmp_rational.value))
 
                 # now set the coefficient of self
-                tmp_integer._to_ZZ(&ntl_temp)
+                mpz_to_ZZ(&ntl_temp, (<Integer>tmp_integer).value)
+
                 ZZX_SetCoeff(self.__numerator, i, ntl_temp)
 
         return 0  # No error
@@ -5384,11 +5386,11 @@ cdef void _ntl_poly(f, ZZX_c *num, ZZ_c *den):
     cdef ntl_ZZ _den
 
     __den = f.denominator()
-    (<Integer>ZZ(__den))._to_ZZ(den)
+    mpz_to_ZZ(den, (<Integer>ZZ(__den)).value)
 
     __num = f * __den
     for i from 0 <= i <= __num.degree():
-        (<Integer>ZZ(__num[i]))._to_ZZ(&coeff)
+        mpz_to_ZZ(&coeff, (<Integer>ZZ(__num[i])).value)
         ZZX_SetCoeff( num[0], i, coeff )
 
 

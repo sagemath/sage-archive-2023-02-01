@@ -31,7 +31,7 @@ from sage.rings.rational cimport Rational
 from sage.rings.integer_ring cimport IntegerRing_class
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
-from sage.libs.ntl.convert cimport PyLong_to_ZZ
+from sage.libs.ntl.convert cimport PyLong_to_ZZ, mpz_to_ZZ
 
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
@@ -116,11 +116,11 @@ cdef class ntl_ZZ_p(object):
             elif isinstance(v, int):
                 self.x = int_to_ZZ_p(v)
             elif isinstance(v, Integer):
-                (<Integer>v)._to_ZZ(&temp)
+                mpz_to_ZZ(&temp, (<Integer>v).value)
                 self.x = ZZ_to_ZZ_p(temp)
             elif isinstance(v, Rational):
-                (<Integer>v.numerator())._to_ZZ(&num)
-                (<Integer>v.denominator())._to_ZZ(&den)
+                mpz_to_ZZ(&num, (<Integer>v.numerator()).value)
+                mpz_to_ZZ(&den, (<Integer>v.denominator()).value)
                 ZZ_p_div(self.x, ZZ_to_ZZ_p(num), ZZ_to_ZZ_p(den))
             else:
                 str_v = str(v)  # can cause modulus to change  trac #25790

@@ -4571,7 +4571,7 @@ def BIBD_201_6_1():
 # (n,k,lambda)-BIBD family.
 #
 # This dictionary is used by designs.BalancedIncompleteBlockDesign
-
+# Note that the values are a list of blocks and not a design object
 BIBD_constructions = {
     ( 45,9,8): BIBD_45_9_8,
     ( 66,6,1): BIBD_66_6_1,
@@ -4584,7 +4584,7 @@ BIBD_constructions = {
     (136,6,1): BIBD_136_6_1,
     (141,6,1): BIBD_141_6_1,
     (171,6,1): BIBD_171_6_1,
-    (176,50,14): HigmanSimsDesign,
+    (176,50,14): lambda : HigmanSimsDesign().blocks(),
     (196,6,1): BIBD_196_6_1,
     (201,6,1): BIBD_201_6_1,
 }

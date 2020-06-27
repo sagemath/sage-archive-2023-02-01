@@ -4565,6 +4565,105 @@ def BIBD_201_6_1():
     bibd = RecursivelyEnumeratedSet([frozenset(e) for e in bibd], successors=gens)
     return IncidenceStructure(bibd)._blocks
 
+def biplane_79_13_2():
+    r"""
+    Return a `(79,13,2)`-BIBD.
+
+    EXAMPLES:
+
+        sage: from sage.combinat.designs.database import biplane_79_13_2
+        sage: D = IncidenceStructure(biplane_79_13_2())
+        sage: D.is_t_design(t=2, v=79, k=13, l=2)
+        True
+    """
+    from .incidence_structures import IncidenceStructure
+    Gelems = [(x,y,z) for x in range(11) for y in range(5) for z in range(2)]
+
+    def Gop(a,b,c,x,y,z):
+        # First normalise the input
+        a = a%11
+        b = b%5
+        c = c%2
+        x = x%11
+        y = y%5
+        z = z%2
+        # We know: x y = y x^4
+        #          y x = x^3 y
+        #          z x = x^10 z
+        #          x z = z x^-1
+        #          z y = y z
+        return ((a + (3**b) * (10**c) * x)%11, (b+y)%5, (z+c)%2)
+
+    # P(i,a,b,c) represents P_i x^a*y^b*z^c
+    # i.e. we compute the action of x^a*y^b*z^c on P_i
+    def P(i,x,y,z):
+        x = x%11
+        y = y%5
+        z = z%2
+        if i == 1: return (1, (0, 0, z))
+        if i == 2: return (2, (((4**y)*(1-2*z)*x)%11, 0, 0))
+        if i == 3: return (3, (((4**y)*(1-2*z)*x)%11, 0, 0))
+        if i == 4: return (4, (((1-2*z)*x)%11, y, 0))
+
+    points = {P(i,x,y,z) for i in range(1,5) for x in range(11) for y in range(5) for z in range(2)}
+    Gaction = {(i,(a,b,c)): {(x,y,z): P(i,*Gop(a,b,c,x,y,z)) for x,y,z in Gelems} for a,b,c in Gelems for i in [1,2,3,4]}
+
+    B1 = [P(1,0,0,0), P(1,0,0,1)] + [P(2,x,0,0) for x in range(11)]
+    B2 = [P(1,0,0,0), P(1,0,0,1)] + [P(3,x,0,0) for x in range(11)]
+    B3 = [P(1,0,0,0), P(2,0,0,0), P(3,0,0,0)] + [P(4,1,y,0) for y in range(5)] + [P(4,4,y,0) for y in range(5)]
+    B4 = [P(2,2,0,0), P(2,-2,0,0), P(3,5,0,0), P(3,-5,0,0), P(4,0,0,0), P(4,1,2,0), P(4,-1,2,0), P(4,1,1,0), P(4,-1,1,0), P(4,5,1,0), P(4,-5,1,0), P(4,5,4,0), P(4,-5,4,0)]
+
+    B3Orbit = set()
+    for g in Gelems:
+        B3g = frozenset([Gaction[p][g] for p in B3])
+        B3Orbit.add(B3g)
+
+    B4Orbit = set()
+    for g in Gelems:
+        B4g = frozenset([Gaction[p][g] for p in B4])
+        B4Orbit.add(B4g)
+
+    blocks = [B1,B2] + list(B3Orbit) + list(B4Orbit)
+
+    D = IncidenceStructure(blocks)
+    return D._blocks
+
+def biplane_56_11_2():
+    r"""
+    Return a `(56,11,2)`-BIBD.
+
+    EXAMPLES:
+
+        sage: from sage.combinat.designs.database import biplane_56_11_2
+        sage: D = IncidenceStructure(biplane_56_11_2())
+        sage: D.is_t_design(t=2, v=56, k=11, l=2)
+        True
+    """
+    from sage.libs.gap.libgap import libgap
+    from .incidence_structures import IncidenceStructure
+
+    a = list(range(2,57)) + [50]
+    a[6] = 1
+    a[13] = 8
+    a[20] = 15
+    a[27] = 22
+    a[34] = 29
+    a[41] = 36
+    a[48] = 43
+
+    b = [1,8,27,36,20,14,42,41,29,52,24,30,55,22,26,21,10,40,23,53,
+         56,6,49,46,50,32,28,3,34,48,4,15,13,9,18,31,51,39,43,35,
+         2,54,38,25,45,11,37,12,19,44,47,17,5,7,33,16]
+
+    a = libgap.PermList(a)
+    b = libgap.PermList(b)
+    G = libgap.Group(a,b)
+
+    B = libgap.Set([1,12,19,23,30,37,45,47,48,49,51])
+
+    D = IncidenceStructure(libgap.Orbit(G, B, libgap.OnSets))
+    return D._blocks
+
 # Index of the BIBD constructions
 #
 # Associates to triple (v,k,lambda) a function that return a
@@ -4574,8 +4673,10 @@ def BIBD_201_6_1():
 
 BIBD_constructions = {
     ( 45,9,8): BIBD_45_9_8,
+    (56,11,2): biplane_56_11_2,
     ( 66,6,1): BIBD_66_6_1,
     ( 76,6,1): BIBD_76_6_1,
+    (79,13,2): biplane_79_13_2,
     ( 96,6,1): BIBD_96_6_1,
     (120,8,1): RBIBD_120_8_1,
     (106,6,1): BIBD_106_6_1,

@@ -2734,7 +2734,9 @@ cdef class NumberFieldElement(FieldElement):
             raise TypeError("Unable to coerce %s to a rational"%self)
         cdef Integer num = Integer.__new__(Integer)
         ZZX_getitem_as_mpz(num.value, &self.__numerator, 0)
-        return num / (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
+        cdef Integer den = Integer.__new__(Integer)
+        ZZ_to_mpz(den.value, &self.__denominator)
+        return num / den
 
     def _algebraic_(self, parent):
         r"""
@@ -3129,7 +3131,8 @@ cdef class NumberFieldElement(FieldElement):
             ZZX_getitem_as_mpz(z, &self.__numerator, i)
 
     cdef void _ntl_denom_as_mpz(self, mpz_t z):
-        cdef Integer denom = (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
+        cdef Integer denom = Integer.__new__(Integer)
+        ZZ_to_mpz(denom.value, &self.__denominator)
         mpz_set(z, denom.value)
 
     def denominator(self):
@@ -3147,7 +3150,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: a.denominator()
             15
         """
-        return (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
+        cdef Integer ans = Integer.__new__(Integer)
+        ZZ_to_mpz(ans.value, &self.__denominator)
+        return ans
 
     def _set_multiplicative_order(self, n):
         """

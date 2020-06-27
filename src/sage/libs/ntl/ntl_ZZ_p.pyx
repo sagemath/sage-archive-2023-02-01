@@ -473,7 +473,9 @@ cdef class ntl_ZZ_p(object):
         """
         self.c.restore_c()
         cdef ZZ_c rep = ZZ_p_rep(self.x)
-        return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&rep)
+        cdef Integer ans = Integer.__new__(Integer)
+        ZZ_to_mpz(ans.value, &rep)
+        return ans
 
     def _sage_(self):
         r"""
@@ -495,4 +497,6 @@ cdef class ntl_ZZ_p(object):
         cdef ZZ_c rep
         self.c.restore_c()
         rep = ZZ_p_rep(self.x)
-        return IntegerModRing(self.modulus()._integer_())((<IntegerRing_class>ZZ_sage)._coerce_ZZ(&rep))
+        cdef Integer ans = Integer.__new__(Integer)
+        ZZ_to_mpz(ans.value, &rep)
+        return IntegerModRing(self.modulus()._integer_())(ans)

@@ -68,7 +68,6 @@ from sage.structure.sequence import Sequence
 
 from sage.misc.misc_c import prod
 from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
-from sage.libs.ntl.convert cimport ZZ_to_mpz
 
 cimport sage.rings.integer as integer
 cimport sage.rings.rational as rational
@@ -524,13 +523,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             yield n
             yield -n
             n += 1
-
-    cdef Integer _coerce_ZZ(self, ZZ_c *z):
-        cdef Integer i = Integer.__new__(Integer)
-        sig_on()
-        ZZ_to_mpz(i.value, z)
-        sig_off()
-        return i
 
     cpdef _coerce_map_from_(self, S):
         r"""

@@ -296,7 +296,6 @@ cdef class ntl_ZZ(object):
         cdef Integer ans = Integer.__new__(Integer)
         ZZ_to_mpz(ans.value, &self.x)
         return ans
-        #return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
 
     cdef void set_from_int(ntl_ZZ self, int value):
         r"""

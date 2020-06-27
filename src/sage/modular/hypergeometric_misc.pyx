@@ -15,16 +15,14 @@ cpdef hgm_coeffs(long long p, int f, int prec, gamma, m, int D,
     TESTS::
 
         sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
-        sage: import array
         sage: from sage.modular.hypergeometric_misc import hgm_coeffs
         sage: H = Hyp(cyclotomic=([3],[4]))
         sage: H.euler_factor(2, 7, cache_p=True)
         7*T^2 - 3*T + 1
         sage: gamma = H.gamma_array()
         sage: prec, gtable = H.gauss_table(7, 1, 2)
-        sage: m = array.array('i', [0]*6)
         sage: D = 1
-        sage: hgm_coeffs(7, 1, 2, gamma, m, D, gtable, prec, False)
+        sage: hgm_coeffs(7, 1, 2, gamma, [0]*6, D, gtable, prec, False)
         [7, 2*7, 6*7, 7, 6, 4*7]
     """
     from sage.rings.padics.factory import Zp
@@ -134,10 +132,7 @@ cpdef hgm_coeffs(long long p, int f, int prec, gamma, m, int D,
         return ans
     # Consolidate down to p-1 terms.
     ans2 = [Rz] * (p-1)
-    r1 = 0
-    for r in range(q1):
-        ans2[r1] += ans[r]
-        r1 += 1
-        if r1 == p-1:
-            r1 = 0
+    for r1 in range(p-1):
+        for r in range(r1, q1, p-1):
+            ans2[r1] += ans[r]
     return ans2

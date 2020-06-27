@@ -1270,11 +1270,7 @@ class HypergeometricData(object):
         m = defaultdict(int)
         for b in beta:
             u = b * (q - 1)
-<<<<<<< HEAD
             if u.is_integer():
-=======
-            if u.is_integer(): 
->>>>>>> Fix deprecated inline ifs
                 m[u] += 1
         M = self.M_value()
         D = -min(self.zigzag(x, flip_beta=True) for x in alpha + beta)

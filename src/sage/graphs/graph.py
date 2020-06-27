@@ -5546,6 +5546,12 @@ class Graph(GenericGraph):
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
 
+          - ``'DHV'`` - diameter computation is done using the algorithm
+            proposed in [Dragan2018]_. Works only for non-negative edge weights.
+            For more information see method
+            :func:`sage.graphs.distances_all_pairs.diameter_DHV` and
+            :func:`sage.graphs.base.boost_graph.diameter_DHV`.
+
           - ``'standard'``, ``'2sweep'``, ``'multi-sweep'``, ``'iFUB'``:
             these algorithms are implemented in
             :func:`sage.graphs.distances_all_pairs.diameter`
@@ -5609,10 +5615,26 @@ class Graph(GenericGraph):
         if weight_function is not None:
             by_weight = True
 
-        if algorithm is None and not by_weight:
-            algorithm = 'iFUB'
+        if by_weight and not weight_function:
+            def weight_function(e):
+                return 1 if e[2] is None else e[2]
+
+        if algorithm is None:
+            if by_weight:
+                algorithm = 'iFUB'
+            else:
+                algorithm = 'DHV'
         elif algorithm == 'BFS':
             algorithm = 'standard'
+
+        if algorithm == 'DHV':
+            if by_weight:
+                from sage.graphs.base.boost_graph import diameter_DHV
+                return diameter_DHV(self, weight_function=weight_function,
+                                    check_weight=check_weight)
+            else:
+                from sage.graphs.distances_all_pairs import diameter
+                return diameter(self, algorithm=algorithm)
 
         if algorithm in ['standard', '2sweep', 'multi-sweep', 'iFUB']:
             if by_weight:

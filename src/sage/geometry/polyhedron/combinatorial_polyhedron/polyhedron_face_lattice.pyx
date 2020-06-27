@@ -1,3 +1,7 @@
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc
+# distutils: language = c++
+# distutils: extra_compile_args = -std=c++11
+
 r"""
 PolyhedronFaceLattice
 
@@ -72,9 +76,8 @@ from .face_iterator         cimport FaceIterator
 cdef extern from "bit_vector_operations.cc":
     cdef void intersection(uint64_t *A, uint64_t *B, uint64_t *C,
                            size_t face_length)
-#    Return ``A & ~B == 0``.
-#    A is not subset of B, iff there is a vertex in A, which is not in B.
-#    ``face_length`` is the length of A and B in terms of uint64_t.
+#    Set ``C = A & B``, i.e. C is the intersection of A and B.
+#    ``face_length`` is the length of A, B and C in terms of uint64_t.
 
     cdef size_t bit_rep_to_coatom_rep(
             uint64_t *face, uint64_t **coatoms, size_t n_coatoms,

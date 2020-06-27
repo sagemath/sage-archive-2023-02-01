@@ -262,15 +262,27 @@ class DefiniteIntegral(BuiltinFunction):
             -f(a)
             sage: h.diff(b)
             f(b)
+
+        TESTS:
+
+        Check for :trac:`28656`::
+
+            sage: t = var("t")
+            sage: f = function("f")
+            sage: F(x) = integrate(f(t),t,0,x)
+            sage: F(x).diff(x)
+            f(x)
         """
         if not x.has(diff_param):
             # integration variable != differentiation variable
             ans = definite_integral(f.diff(diff_param), x, a, b)
         else:
             ans = SR.zero()
-        return (ans
-                + f.subs(x == b) * b.diff(diff_param)
-                - f.subs(x == a) * a.diff(diff_param))
+        if hasattr(b, 'diff'):
+            ans += f.subs(x == b) * b.diff(diff_param)
+        if hasattr(a, 'diff'):
+            ans -= f.subs(x == a) * a.diff(diff_param)
+        return ans
 
     def _print_latex_(self, f, x, a, b):
         r"""

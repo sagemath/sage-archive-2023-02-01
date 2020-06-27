@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -92,8 +95,6 @@ cdef class ntl_ZZ_p(object):
             1
             sage: ntl.ZZ_p(Integer(95413094), c)
             7
-            sage: ntl.ZZ_p(long(223895239852389582988), c)
-            5
             sage: ntl.ZZ_p('-1', c)
             10
 

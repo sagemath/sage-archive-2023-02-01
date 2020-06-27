@@ -16416,7 +16416,6 @@ class GenericGraph(GenericGraph_pyx):
             return networkx.single_source_dijkstra_path_length(G, u)
 
         elif algorithm in ['Dijkstra_Boost', 'Bellman-Ford_Boost', None]:
-            self.weighted(True)
             from sage.graphs.base.boost_graph import shortest_paths
             return shortest_paths(self, u, weight_function, algorithm)[0]
 

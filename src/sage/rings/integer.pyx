@@ -373,8 +373,6 @@ def is_Integer(x):
         False
         sage: is_Integer(int(2))
         False
-        sage: is_Integer(long(2))
-        False
         sage: is_Integer('5')
         False
     """
@@ -489,7 +487,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         EXAMPLES::
 
-            sage: a = long(-901824309821093821093812093810928309183091832091)
+            sage: a = int(-901824309821093821093812093810928309183091832091)
             sage: b = ZZ(a); b
             -901824309821093821093812093810928309183091832091
             sage: ZZ(b)
@@ -560,14 +558,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: class MyInt(int):
             ....:     pass
-            sage: class MyLong(long):
-            ....:     pass
             sage: class MyFloat(float):
             ....:     pass
             sage: ZZ(MyInt(3))
             3
-            sage: ZZ(MyLong(4))
-            4
             sage: ZZ(MyFloat(5))
             5
 
@@ -1228,10 +1222,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             10
             sage: print(Integer(16938402384092843092843098243).hex())
             36bb1e3929d1a8fe2802f083
-            sage: print(hex(long(16938402384092843092843098243)))
-            0x36bb1e3929d1a8fe2802f083L
-
-        TESTS::
 
             sage: hex(Integer(16))  # py2
             doctest:warning...:
@@ -1843,9 +1833,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Make sure it works when -<long>n would overflow::
 
             sage: most_neg_long = int(-sys.maxsize - 1)
-            sage: type(most_neg_long), type(-most_neg_long)  # py2
-            (<type 'int'>, <type 'long'>)
-            sage: type(most_neg_long), type(-most_neg_long)  # py3
+            sage: type(most_neg_long), type(-most_neg_long)
             (<class 'int'>, <class 'int'>)
             sage: 0 + most_neg_long == most_neg_long
             True
@@ -3616,35 +3604,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             99028390823409823904823098490238409823490820938L
             sage: int(-n)
             -99028390823409823904823098490238409823490820938L
-            sage: type(n.__int__())  # py2
-            <type 'long'>
-            sage: type(n.__int__())  # py3
+            sage: type(n.__int__())
             <class 'int'>
             sage: int(-1), int(0), int(1)
             (-1, 0, 1)
         """
         return mpz_get_pyintlong(self.value)
-
-    def __long__(self):
-        """
-        Return the Python long corresponding to this Sage integer.
-
-        EXAMPLES::
-
-            sage: n = 9023408290348092849023849820934820938490234290
-            sage: long(n)
-            9023408290348092849023849820934820938490234290L
-            sage: long(-n)
-            -9023408290348092849023849820934820938490234290L
-            sage: n = 920938
-            sage: long(n)
-            920938L
-            sage: n.__long__()  # py2
-            920938L
-            sage: long(-1), long(0), long(1)
-            (-1L, 0L, 1L)
-        """
-        return mpz_get_pylong(self.value)
 
     def __float__(self):
         """
@@ -7241,9 +7206,7 @@ cdef class int_to_Z(Morphism):
     EXAMPLES::
 
         sage: f = ZZ.coerce_map_from(int)
-        sage: type(f)  # py2
-        <type 'sage.rings.integer.int_to_Z'>
-        sage: type(f)  # py3
+        sage: type(f)
         <class 'sage.rings.integer.long_to_Z'>
         sage: f(5r)
         5
@@ -7254,7 +7217,7 @@ cdef class int_to_Z(Morphism):
         sage: type(1 + 2r)
         <type 'sage.rings.integer.Integer'>
 
-    This is intented for internal use by the coercion system,
+    This is intended for internal use by the coercion system,
     to facilitate fast expressions mixing ints and more complex
     Python types.  Note that (as with all morphisms) the input
     is forcably coerced to the domain ``int`` if it is not
@@ -7321,20 +7284,13 @@ cdef class long_to_Z(Morphism):
     """
     EXAMPLES::
 
-        sage: f = ZZ.coerce_map_from(long)  # py2
-        sage: f = ZZ.coerce_map_from(int)   # py3
-        sage: f  # py2
-        Native morphism:
-          From: Set of Python objects of class 'long'
-          To:   Integer Ring
-        sage: f  # py3
+        sage: f = ZZ.coerce_map_from(int)
+        sage: f
         Native morphism:
           From: Set of Python objects of class 'int'
           To:   Integer Ring
         sage: f(1rL)
         1
-        sage: f(-10000000000000000000001r)
-        -10000000000000000000001
     """
     def __init__(self):
         import sage.categories.homset

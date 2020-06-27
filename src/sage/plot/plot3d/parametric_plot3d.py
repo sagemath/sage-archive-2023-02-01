@@ -416,7 +416,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
         f_z = cos(u) / (1 + sqrt(2))
         sphinx_plot(parametric_plot3d([f_x, f_y, f_z], (u,-pi,pi), (v,-pi,pi), frame=False, color="green"))
 
-    Boy's surface (:wikipedia:`Boy's_surface` and https://mathcurve.com/surfaces/boy/boy.shtml)::
+    Boy's surface (:wikipedia:`Boy%27s_surface` and https://mathcurve.com/surfaces/boy/boy.shtml)::
 
         sage: u, v = var('u,v')
         sage: K = cos(u) / (sqrt(2) - cos(2*u)*sin(3*v))

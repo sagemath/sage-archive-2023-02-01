@@ -816,9 +816,13 @@ class ReferenceSubBuilder(DocBuilder):
 
         env_pickle = os.path.join(self._doctrees_dir(), 'environment.pickle')
         try:
-            env = BuildEnvironment.frompickle(env_pickle, FakeApp(self.dir))
-            logger.debug("Opened Sphinx environment: %s", env_pickle)
-            return env
+            with open(env_pickle, 'rb') as f:
+                import pickle
+                env = pickle.load(f)
+                env.app = FakeApp(self.dir)
+                env.config.values = env.app.config.values
+                logger.debug("Opened Sphinx environment: %s", env_pickle)
+                return env
         except IOError as err:
             logger.debug("Failed to open Sphinx environment: %s", err)
 

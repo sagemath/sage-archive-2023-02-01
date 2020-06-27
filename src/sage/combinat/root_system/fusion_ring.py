@@ -20,8 +20,7 @@ from sage.rings.number_field.number_field import CyclotomicField
 from sage.misc.cachefunc import cached_method
 
 class FusionRing(WeylCharacterRing):
-    r"""
-    Return the Fusion Ring (Verlinde Algebra) of level ``k``.
+    r"""Return the Fusion Ring (Verlinde Algebra) of level ``k``.
 
     INPUT:
 
@@ -151,6 +150,33 @@ class FusionRing(WeylCharacterRing):
         True
         sage: test_verlinde(FusionRing("B4",2))
         True
+
+    As an exercise, the reader may verify the examples in
+    Section 5.3 of [RoStWa2009]_. Here we check the example
+    of the Ising modular tensor product, which is related
+    to the BPZ minimal model `M(4,3)` or to an `E_8` coset
+    model. See [DFMS1996]_ sections 7.4.2 and
+    18.4.1. [RoStWa2009]_ Example 5.3.4 tells us how to
+    construct it as the conjugate of the `E_8` level 2
+    :class:`FusionRing`::
+
+        sage: I = FusionRing("E8",2,conjugate=True)
+        sage: I.fusion_labels(["i0","p","s"],inject_variables=True)
+        sage: b = I.basis().list(); b
+        [i0, p, s]
+        sage: [[x*y for x in b] for y in b]
+        [[i0, p, s], [p, i0, s], [s, s, i0 + p]]
+        sage: [x.q_dimension()^2 for x in b]
+        [1, 1, 2]
+        sage: I.s_matrix()
+        [                       1                        1 -zeta128^48 + zeta128^16]
+        [                       1                        1  zeta128^48 - zeta128^16]
+        [-zeta128^48 + zeta128^16  zeta128^48 - zeta128^16                        0]
+        sage: I.s_matrix().apply_map(lambda x:x^2)
+        [1 1 2]
+        [1 1 2]
+        [2 2 0]
+
     """
     @staticmethod
     def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots", conjugate=False):
@@ -196,7 +222,7 @@ class FusionRing(WeylCharacterRing):
         return CyclotomicField(4 * self._fg * self._l)
 
     def get_order(self):
-        r"""This returns the weights of the basis vectors in a fixed order.
+        r"""Return the weights of the basis vectors in a fixed order.
         You may change the order of the basis using :meth:`CombinatorialFreeModule.set_order`
 
         EXAMPLES::

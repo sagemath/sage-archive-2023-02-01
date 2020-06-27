@@ -4557,6 +4557,9 @@ REFERENCES:
              Contemp. Math., **413**, Amer. Math. Soc., Providence, RI, 2006.
              :arXiv:`math/0503226`.
 
+.. [RoStWa2009] Eric Rowell, Richard Stong and Zhenghan Wang, *On classification
+        of modular tensor categories*, Comm. Math. Phys. 292, 343--389, 2009.
+
 .. [RR1997] Arun Ram and Jeffrey Remmel. *Applications of the Frobenius
             formulas and the characters of the symmetric group and the
             Hecke algebras of type A*. J. Algebraic Combin.

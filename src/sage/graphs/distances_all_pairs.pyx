@@ -1194,14 +1194,6 @@ cdef uint32_t diameter_iFUB(short_digraph g,
 
     - ``source`` -- starting node of the first BFS
 
-    TESTS:
-
-    Diameter of weakly connected digraph is infinity ::
-
-        sage: from sage.graphs.distances_all_pairs import diameter
-        sage: G = digraphs.Path(5)
-        sage: diameter(G, algorithm='DiFUB')
-        +Infinity
     """
     cdef uint32_t i, LB, s, m, d
     cdef uint32_t n = g.n
@@ -1272,16 +1264,18 @@ cdef uint32_t diameter_iFUB(short_digraph g,
 
 cdef uint32_t diameter_DiFUB(short_digraph sd,
                              uint32_t source):
-    """
-    Returns the diameter of unweighted directed graph.
+    r"""
+    Return the diameter of unweighted directed graph.
 
     The ``DiFUB`` (Directed iterative Fringe Upper Bound) algorithm calculates
     the exact value of the diameter of an unweighted directed graph [CGLM2012]_.
 
-    This algorithm starts with a vertex found through a 2Dsweep call (a directed
+    This algorithm starts from a vertex found through a 2Dsweep call (a directed
     version of the 2sweep method). The worst case time complexity of the DiFUB
     algorithm is `O(nm)`, but it can be very fast in practice. See the code's
     documentation and [CGLM2012]_ for more details.
+
+    If the digraph is not strongly connected, the returned value is infinity.
 
     INPUT:
 
@@ -1289,6 +1283,14 @@ cdef uint32_t diameter_DiFUB(short_digraph sd,
 
     - ``source`` -- starting node of the first BFS
 
+    TESTS:
+
+    The diameter of a weakly connected digraph is infinity ::
+
+        sage: from sage.graphs.distances_all_pairs import diameter
+        sage: G = digraphs.Path(5)
+        sage: diameter(G, algorithm='DiFUB')
+        +Infinity
     """
     cdef uint32_t n = sd.n
 
@@ -1325,10 +1327,10 @@ cdef uint32_t diameter_DiFUB(short_digraph sd,
     cdef uint32_t * layer_1      = distances + 4 * n
     cdef uint32_t * layer_2      = distances + 5 * n
 
-    # We order the vertices by decreasing forward/ backward layers. This is the
-    # inverse order of a forward/ backward BFS from m, and so the inverse order
-    # of array waiting_list. Forward/ Backward distances are stored in arrays
-    # layer_1/ layer_2 respectively.
+    # We order the vertices by decreasing forward / backward layers. This is the
+    # inverse order of a forward / backward BFS from m, and so the inverse order
+    # of array waiting_list. Forward / Backward distances are stored in arrays
+    # layer_1 / layer_2 respectively.
     LB_1 = simple_BFS(sd, m, layer_1, NULL, waiting_list, seen)
     for i in range(n):
         order_1[i] = waiting_list[n - i - 1]
@@ -1347,19 +1349,19 @@ cdef uint32_t diameter_DiFUB(short_digraph sd,
     #
     # The diameter of the digraph is equal to the maximum forward or backward
     # eccentricity of a vertex. The algorithm is based on the following two
-    # observations -
+    # observations :
     # 1). All the nodes `x` above the level `i` in Backward BFS of `m` having
-    # forward eccentricity greater than `2(i-1)` have a corresponding node `y`
-    # whose backward eccentricity is greater than or equal to forward
+    # forward eccentricity greater than `2(i-1)` have a corresponding node `y`,
+    # whose backward eccentricity is greater than or equal to the forward
     # eccentricity of `x`, below or on the level `i` in Forward BFS of `m`.
     #
     # 2). All the nodes `x` above the level `i` in Forward BFS of `m` having
     # backward eccentricity greater than `2(i-1)` have a corresponding node `y`,
-    # whose forward eccentricity is greater than or equal to backward
+    # whose forward eccentricity is greater than or equal to the backward
     # eccentricity of `x`, below or on the level `i` in Backward BFS of `m`
     #
-    # Therefore, we calculate backward/ forward eccentricity of all nodes at
-    # level `i` in Forward/ Backward BFS of `m` respectively. And their
+    # Therefore, we calculate backward / forward eccentricity of all nodes at
+    # level `i` in Forward / Backward BFS of `m` respectively. And their
     # maximum is `LB`. If `LB` is greater than `2(max distance at next level)`
     # then we are done, else we proceed further.
 
@@ -1410,9 +1412,10 @@ def diameter(G, algorithm=None, source=None):
         of `G`.  The time complexity of this algorithm is linear in the size of
         `G`.
 
-      - ``'2Dsweep'`` -- Computes lower bound on the diameter of an
-        unweighted directed graph using directed version of ``2sweep`` as
-        proposed in [Broder2000]_.
+      - ``'2Dsweep'`` -- Computes lower bound on the diameter of an unweighted
+        directed graph using directed version of ``2sweep`` as proposed in
+        [Broder2000]_. If the digraph is not strongly connected, the returned
+        value is infinity.
 
       - ``'multi-sweep'`` -- Computes a lower bound on the diameter of an
         unweighted undirected graph using several iterations of the ``2sweep``
@@ -1454,7 +1457,8 @@ def diameter(G, algorithm=None, source=None):
 
       - ``'DiFUB'`` -- The directed version of iFUB (iterative Fringe Upper
         Bound) algorithm. See the code's documentation and [CGLM2012]_ for more
-        details.
+        details. If the digraph is not strongly connected, the returned value is
+        infinity.
 
     - ``source`` -- (default: ``None``) vertex from which to start the first BFS.
       If ``source==None``, an arbitrary vertex of the graph is chosen. Raise an
@@ -1484,7 +1488,7 @@ def diameter(G, algorithm=None, source=None):
         sage: diameter(G, algorithm='iFUB')
         0
 
-    Comparison of exact algorithms::
+    Comparison of exact algorithms for graphs::
 
         sage: G = graphs.RandomBarabasiAlbert(100, 2)
         sage: d1 = diameter(G, algorithm='standard')
@@ -1497,6 +1501,15 @@ def diameter(G, algorithm=None, source=None):
         sage: lb2 = diameter(G, algorithm='2sweep')
         sage: lbm = diameter(G, algorithm='multi-sweep')
         sage: if not (lb2 <= lbm and lbm <= d3): print("Something goes wrong!")
+
+    Comparison of exact algorithms for digraphs::
+
+        sage: D = DiGraph(graphs.RandomBarabasiAlbert(50, 2))
+        sage: d1 = diameter(D, algorithm='standard')
+        sage: d2 = diameter(D, algorithm='DiFUB')
+        sage: d3 = diameter(D, algorithm='DiFUB', source=D.random_vertex())
+        sage: d1 == d2 and d1 == d3
+        True
 
     TESTS:
 

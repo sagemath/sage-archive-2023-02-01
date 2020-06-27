@@ -259,7 +259,7 @@ class RegularCrystals(Category_singleton):
                  ([[2, 2]], [[1, 2]], 0)]
             """
             from sage.combinat.free_module import CombinatorialFreeModule
-            from sage.rings.all import QQ
+            from sage.rings.rational_field import QQ
             C = CombinatorialFreeModule(QQ, self)
             D = self.demazure_operator(C(element), reduced_word)
             if only_support:

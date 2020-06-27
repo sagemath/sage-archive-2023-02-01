@@ -559,7 +559,7 @@ class Fields(CategoryWithAxiom):
             """
             if self.is_zero():
                 raise ValueError("euclidean degree not defined for the zero element")
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             return ZZ.zero()
 
         def quo_rem(self, other):

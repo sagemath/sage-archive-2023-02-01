@@ -330,7 +330,7 @@ class HighestWeightCrystals(Category_singleton):
                  + 36*q^12 + 44*q^13 + 57*q^14 + 70*q^15 + O(x^16)
 
             """
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             WLR = self.weight_lattice_realization()
             I = self.index_set()
             mg = self.highest_weight_vectors()

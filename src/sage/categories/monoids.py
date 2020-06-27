@@ -102,7 +102,7 @@ class Monoids(CategoryWithAxiom):
         """
         if names is not None:
             if isinstance(names, str):
-                from sage.rings.all import ZZ
+                from sage.rings.integer_ring import ZZ
                 if ',' not in names and index_set in ZZ:
                     names = [names + repr(i) for i in range(index_set)]
                 else:
@@ -349,7 +349,7 @@ class Monoids(CategoryWithAxiom):
             """
             if names is not None:
                 if isinstance(names, str):
-                    from sage.rings.all import ZZ
+                    from sage.rings.integer_ring import ZZ
                     if ',' not in names and index_set in ZZ:
                         names = [names + repr(i) for i in range(index_set)]
                     else:

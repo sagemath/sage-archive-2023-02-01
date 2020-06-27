@@ -1194,6 +1194,14 @@ cdef uint32_t diameter_iFUB(short_digraph g,
 
     - ``source`` -- starting node of the first BFS
 
+    TESTS:
+
+    Diameter of weakly connected digraph is infinity ::
+
+        sage: from sage.graphs.distances_all_pairs import diameter
+        sage: G = digraphs.Path(5)
+        sage: diameter(G, algorithm='DiFUB')
+        +Infinity
     """
     cdef uint32_t i, LB, s, m, d
     cdef uint32_t n = g.n
@@ -1229,7 +1237,7 @@ cdef uint32_t diameter_iFUB(short_digraph g,
     # The algorithm:
     #
     # The diameter of the graph is equal to the maximum eccentricity of a
-    # vertex. Let m be any vertex, and let V be partitionned into A u B where:
+    # vertex. Let m be any vertex, and let V be partitioned into A u B where:
     #
     #    d(m,a)<=i for all a \in A
     #    d(m,b)>=i for all b \in B
@@ -1262,6 +1270,120 @@ cdef uint32_t diameter_iFUB(short_digraph g,
     # We finally return the computed diameter
     return LB
 
+cdef uint32_t diameter_DiFUB(short_digraph sd,
+                             uint32_t source):
+    """
+    Returns the diameter of unweighted directed graph.
+
+    The ``DiFUB`` (Directed iterative Fringe Upper Bound) algorithm calculates
+    the exact value of the diameter of an unweighted directed graph [CGLM2012]_.
+
+    This algorithm starts with a vertex found through a 2Dsweep call (a directed
+    version of the 2sweep method). The worst case time complexity of the DiFUB
+    algorithm is `O(nm)`, but it can be very fast in practice. See the code's
+    documentation and [CGLM2012]_ for more details.
+
+    INPUT:
+
+    - ``sd`` -- a short_digraph
+
+    - ``source`` -- starting node of the first BFS
+
+    """
+    cdef uint32_t n = sd.n
+
+    if n <= 1:  # Trivial case
+        return 0
+
+    cdef short_digraph rev_sd  # Copy of sd with edges reversed
+    init_reverse(rev_sd, sd)
+
+    cdef uint32_t LB, s, m, d, LB_1, LB_2, UB
+    cdef size_t i
+    cdef bitset_t seen
+
+    # We select a vertex with low eccentricity using 2Dsweep
+    LB, s, m, d = diameter_lower_bound_2Dsweep(sd, rev_sd, source)
+
+    # If the lower bound is a very large number, it means that the digraph is
+    # not strongly connected and so the diameter is infinite.
+    if LB == UINT32_MAX:
+        return LB
+
+    # We allocate some arrays and a bitset
+    bitset_init(seen, n)
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *>mem.malloc(6 * n * sizeof(uint32_t))
+
+    if not distances:
+        bitset_free(seen)
+        raise MemoryError()
+
+    cdef uint32_t * waiting_list = distances + n
+    cdef uint32_t * order_1      = distances + 2 * n
+    cdef uint32_t * order_2      = distances + 3 * n
+    cdef uint32_t * layer_1      = distances + 4 * n
+    cdef uint32_t * layer_2      = distances + 5 * n
+
+    # We order the vertices by decreasing forward/ backward layers. This is the
+    # inverse order of a forward/ backward BFS from m, and so the inverse order
+    # of array waiting_list. Forward/ Backward distances are stored in arrays
+    # layer_1/ layer_2 respectively.
+    LB_1 = simple_BFS(sd, m, layer_1, NULL, waiting_list, seen)
+    for i in range(n):
+        order_1[i] = waiting_list[n - i - 1]
+
+    LB_2 = simple_BFS(rev_sd, m, layer_2, NULL, waiting_list, seen)
+    for i in range(n):
+        order_2[i] = waiting_list[n - i - 1]
+
+    # update the lower bound
+    LB = max(LB, LB_1, LB_2)
+
+    if LB == UINT32_MAX:  # Not strongly connected case
+        return LB
+
+    # The algorithm:
+    #
+    # The diameter of the digraph is equal to the maximum forward or backward
+    # eccentricity of a vertex. The algorithm is based on the following two
+    # observations -
+    # 1). All the nodes `x` above the level `i` in Backward BFS of `m` having
+    # forward eccentricity greater than `2(i-1)` have a corresponding node `y`
+    # whose backward eccentricity is greater than or equal to forward
+    # eccentricity of `x`, below or on the level `i` in Forward BFS of `m`.
+    #
+    # 2). All the nodes `x` above the level `i` in Forward BFS of `m` having
+    # backward eccentricity greater than `2(i-1)` have a corresponding node `y`,
+    # whose forward eccentricity is greater than or equal to backward
+    # eccentricity of `x`, below or on the level `i` in Backward BFS of `m`
+    #
+    # Therefore, we calculate backward/ forward eccentricity of all nodes at
+    # level `i` in Forward/ Backward BFS of `m` respectively. And their
+    # maximum is `LB`. If `LB` is greater than `2(max distance at next level)`
+    # then we are done, else we proceed further.
+
+    i = 0
+    UB = max(2 * layer_1[order_1[i]], 2 * layer_2[order_2[i]])
+
+    while LB < UB:
+        LB_1 = simple_BFS(rev_sd, order_1[i], distances, NULL, waiting_list, seen)
+        LB_2 = simple_BFS(sd, order_2[i], distances, NULL, waiting_list, seen)
+
+        # update the lower bound
+        LB = max(LB, LB_1, LB_2)
+        i += 1
+
+        if LB == UINT32_MAX or i == n:
+            break
+        # maximum distance at next level
+        UB = max(2 * layer_1[order_1[i]], 2 * layer_2[order_2[i]])
+
+    bitset_free(seen)
+    free_short_digraph(rev_sd)
+
+    # Finally return the computed diameter
+    return LB
 
 def diameter(G, algorithm=None, source=None):
     r"""
@@ -1330,6 +1452,10 @@ def diameter(G, algorithm=None, source=None):
         by the remark above. The worst case time complexity of the iFUB
         algorithm is `O(nm)`, but it can be very fast in practice.
 
+      - ``'DiFUB'`` -- The directed version of iFUB (iterative Fringe Upper
+        Bound) algorithm. See the code's documentation and [CGLM2012]_ for more
+        details.
+
     - ``source`` -- (default: ``None``) vertex from which to start the first BFS.
       If ``source==None``, an arbitrary vertex of the graph is chosen. Raise an
       error if the initial vertex is not in `G`.  This parameter is not used
@@ -1347,6 +1473,9 @@ def diameter(G, algorithm=None, source=None):
         sage: G = digraphs.Circuit(6)
         sage: diameter(G, algorithm='2Dsweep')
         5
+        sage: G = graphs.PathGraph(7).to_directed()
+        sage: diameter(G, algorithm='DiFUB')
+        6
 
     Although max( ) is usually defined as -Infinity, since the diameter will
     never be negative, we define it to be zero::
@@ -1384,7 +1513,7 @@ def diameter(G, algorithm=None, source=None):
     if G.is_directed():
         if algorithm is None:
             algorithm = 'standard'
-        elif not algorithm in ['2Dsweep', 'standard']:
+        elif not algorithm in ['2Dsweep', 'standard', 'DiFUB']:
             raise ValueError("unknown algorithm for computing the diameter of directed graph")
     else:
         if algorithm is None:
@@ -1435,6 +1564,9 @@ def diameter(G, algorithm=None, source=None):
 
     elif algorithm == 'multi-sweep':
         LB = diameter_lower_bound_multi_sweep(sd, isource)[0]
+
+    elif algorithm == 'DiFUB':
+        LB = diameter_DiFUB(sd, isource)
 
     else: # algorithm == 'iFUB'
         LB = diameter_iFUB(sd, isource)

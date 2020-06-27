@@ -51,6 +51,9 @@ export ORIGINAL_F77FLAGS="@ORIGINAL_F77FLAGS@"
 # Export SAGE_FAT_BINARY if this was enabled during configure.
 export SAGE_FAT_BINARY="@SAGE_FAT_BINARY@"
 
+# Export SAGE_DEBUG if this was enabled during configure.
+export SAGE_DEBUG="@SAGE_DEBUG@"
+
 # This is usually blank if the system GMP is used, or $SAGE_LOCAL otherwise
 export SAGE_GMP_PREFIX="@SAGE_GMP_PREFIX@"
 export SAGE_GMP_INCLUDE="@SAGE_GMP_INCLUDE@"

@@ -1,3 +1,7 @@
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc
+# distutils: language = c++
+# distutils: extra_compile_args = -std=c++11
+
 r"""
 List of faces
 
@@ -347,7 +351,7 @@ cdef class ListOfFaces:
             return count_atoms(faces[0], face_length)
 
         # ``maybe_newfaces`` are all intersection of ``faces[n_faces -1]`` with previous faces.
-        # It needs to be allcoated to store those faces.
+        # It needs to be allocated to store those faces.
         cdef ListOfFaces maybe_newfaces_mem = ListOfFaces(n_faces, face_length*64)
         cdef uint64_t **maybe_newfaces = maybe_newfaces_mem.data
 

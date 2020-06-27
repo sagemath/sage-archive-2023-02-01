@@ -1119,28 +1119,6 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         raise TypeError("can't convert complex to int; use int(abs(z))")
 
-    def __long__(self):
-        r"""
-        Method for converting ``self`` to type ``long``.
-
-        Called by the ``long`` function. Note that calling this method
-        returns an error since, in general, complex numbers cannot be
-        coerced into integers.
-
-        EXAMPLES::
-
-            sage: a = ComplexNumber(2,1)
-            sage: long(a)   # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to long; use long(abs(z))
-            sage: a.__long__()   # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to long; use long(abs(z))
-        """
-        raise TypeError("can't convert complex to long; use long(abs(z))")
-
     def __float__(self):
         r"""
         Method for converting ``self`` to type ``float``.

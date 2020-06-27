@@ -773,18 +773,6 @@ cdef class FractionFieldElement(FieldElement):
         """
         return Q(self.__numerator) / Q(self.__denominator)
 
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: K.<x> = Frac(QQ['x'])
-            sage: long(K(3))
-            3L
-            sage: long(K(3/5))
-            0L
-        """
-        return long(int(self))
-
     def __pow__(self, right, dummy):
         r"""
         Returns self raised to the `right^{th}` power.

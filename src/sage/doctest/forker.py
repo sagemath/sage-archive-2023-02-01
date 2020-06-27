@@ -51,6 +51,7 @@ import tempfile
 from dis import findlinestarts
 from queue import Empty
 import gc
+import IPython.lib.pretty
 
 import sage.misc.randstate as randstate
 from .util import Timer, RecordingDict, count_noun
@@ -86,6 +87,32 @@ _OSError_SUBCLASSES = [
        exc is not OSError
 ]
 
+def _sorted_dict_pprinter_factory(start, end):
+    """
+    Modified version of :func:`IPython.lib.pretty._dict_pprinter_factory`
+    that sorts the keys of dictionaries for printing.
+
+    EXAMPLES::
+
+        sage: {2: 0, 1: 0} # indirect doctest
+        {1: 0, 2: 0}
+    """
+    def inner(obj, p, cycle):
+        if cycle:
+            return p.text('{...}')
+        step = len(start)
+        p.begin_group(step, start)
+        keys = obj.keys()
+        keys = IPython.lib.pretty._sorted_for_pprint(keys)
+        for idx, key in p._enumerate(keys):
+            if idx:
+                p.text(',')
+                p.breakable()
+            p.pretty(key)
+            p.text(': ')
+            p.pretty(obj[key])
+        p.end_group(step, end)
+    return inner
 
 
 def init_sage():
@@ -185,11 +212,11 @@ def init_sage():
     # IPython's pretty printer sorts the repr of dicts by their keys by default
     # (or their keys' str() if they are not otherwise orderable).  However, it
     # disables this for CPython 3.6+ opting to instead display dicts' "natural"
-    # insertion order, which is preserved in those versions).  This makes for
-    # inconsistent results with Python 2 tests that return dicts, so here we
-    # force the Python 2 style dict printing
-    import IPython.lib.pretty
-    IPython.lib.pretty.DICT_IS_ORDERED = False
+    # insertion order, which is preserved in those versions).
+    # However, this order is random in some instances.
+    # Also modifications of code may affect the order.
+    # So here we fore sorted dict printing.
+    IPython.lib.pretty.for_type(dict, _sorted_dict_pprinter_factory('{', '}'))
 
     # Switch on extra debugging
     from sage.structure.debug_options import debug
@@ -2382,16 +2409,17 @@ class DocTestTask(object):
         ['cputime', 'err', 'failures', 'optionals', 'tests', 'walltime', 'walltime_skips']
     """
 
-    extra_globals = {'long': int}
+    extra_globals = {}
     """
     Extra objects to place in the global namespace in which tests are run.
     Normally this should be empty but there are special cases where it may
     be useful.
 
-    In particular, on Python 3 add ``long`` as an alias for ``int`` so that
-    tests that use the ``long`` built-in (of which there are many) still pass.
-    We do this so that the test suite can run on Python 3 while Python 2 is
-    still the default.
+    For example, in Sage versions 9.1 and earlier, on Python 3 add
+    ``long`` as an alias for ``int`` so that tests that use the
+    ``long`` built-in (of which there are many) still pass.  We did
+    this so that the test suite could run on Python 3 while Python 2
+    was still the default.
     """
 
     def __init__(self, source):

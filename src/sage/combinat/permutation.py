@@ -5824,6 +5824,18 @@ class Permutations_mset(Permutations):
             sage: p.unrank(p.cardinality()-1) == list(reversed(sorted(mset)))
             True
 
+        Exhaustive check of roundtrip and lexicographic order for a single
+        multiset. ::
+
+            sage: p = Permutations_mset([2, 2, 3, 3, 3, 5, 5, 5, 5, 5])
+            sage: prev = None
+            sage: for rank, perm in enumerate(p):
+            ....:     perm = tuple(perm)
+            ....:     assert p.rank(perm) == rank, (rank, perm, p.rank(perm))
+            ....:     assert tuple(p.unrank(rank)) == perm, (rank, perm, p.unrank(rank))
+            ....:     assert prev is None or prev < perm
+            ....:     prev = perm
+
         Should match ``StandardPermutations_n`` when `M` is the set
         `\{1, 2, \ldots, n\}`. ::
 

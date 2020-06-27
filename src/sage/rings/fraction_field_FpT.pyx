@@ -1,3 +1,5 @@
+# distutils: libraries = gmp ntl zn_poly
+# distutils: language = c++
 "Univariate rational functions over prime fields"
 
 import sys

@@ -166,6 +166,8 @@ class FusionRing(WeylCharacterRing):
         [i0, p, s]
         sage: [[x*y for x in b] for y in b]
         [[i0, p, s], [p, i0, s], [s, s, i0 + p]]
+        sage: [x.twist() for x in b]
+        [0, 1, 1/8]
         sage: [x.q_dimension()^2 for x in b]
         [1, 1, 2]
         sage: I.s_matrix()

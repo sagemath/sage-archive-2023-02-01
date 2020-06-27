@@ -772,7 +772,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             [       x^2 + 2       -2*x + 3]
             [      -4*x + 6 x^2 - 6*x + 11]
         """
-        from sage.misc.misc import attrcall
+        from sage.misc.call import attrcall
         return self.apply_map(attrcall('expand'))
 
     def variables(self):

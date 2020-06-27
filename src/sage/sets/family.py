@@ -45,7 +45,7 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.misc.lazy_import import lazy_import
 from sage.rings.integer import Integer
-from sage.misc.misc import AttrCallObject
+from sage.misc.call import AttrCallObject
 lazy_import('sage.combinat.combinat', 'CombinatorialClass')
 
 def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=False, name=None):

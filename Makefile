@@ -110,6 +110,7 @@ bootstrap-clean:
 	rm -rf config configure build/make/Makefile-auto.in
 	rm -f src/doc/en/installation/*.txt
 	rm -rf src/doc/en/reference/spkg/*.rst
+	rm -f src/doc/en/reference/repl/*.txt
 
 # Remove absolutely everything which isn't part of the git repo
 maintainer-clean: distclean bootstrap-clean

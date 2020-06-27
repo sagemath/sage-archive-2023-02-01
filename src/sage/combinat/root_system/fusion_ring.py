@@ -28,11 +28,12 @@ class FusionRing(WeylCharacterRing):
     - ``ct`` -- the Cartan type of a simple (finite-dimensional) Lie algebra
     - ``k`` -- a nonnegative integer
 
-    This algebra has a basis (sometimes called *primary fields*)
-    indexed by the weights of level `\leq k`. These arise as
-    the fusion algebras of WZW conformal field theories, or from
-    quantum groups at roots of unity. The :class:`FusionRing` class is
-    implemented as a variant of the :class:`WeylCharacterRing`.
+    This algebra has a basis (sometimes called *primary fields* but here
+    called *simple objects*) indexed by the weights of level `\leq k`.
+    These arise as the fusion algebras of WZW conformal field theories,
+    or as Grothendieck groups of tilting modules for quantum groups at 
+    roots of unity. The :class:`FusionRing` class is implemented as a
+    variant of the :class:`WeylCharacterRing`.
 
     REFERENCES:
 
@@ -82,9 +83,9 @@ class FusionRing(WeylCharacterRing):
         sage: Z * Z
         I0
 
-    A fixed order of the basis keys is avalailable with :meth:`get_order`.
+    A fixed order of the basis keys is available with :meth:`get_order`.
     This is the order used by methods such as :meth:`s_matrix`.
-    You may use :meth:`set_order` to reorder the basis::
+    You may use :meth:`CombinatorialFreeModule.set_order` to reorder the basis::
 
         sage: B22.set_order([x.weight() for x in [I0,Y1,Y2,X,Xp,Z]])
         sage: [B22(x) for x in B22.get_order()]
@@ -105,7 +106,7 @@ class FusionRing(WeylCharacterRing):
 
     The fusion ring has a number of methods that reflect its role
     as the Grothendieck ring of a modular tensor category. These
-    include a twist method :meth:`twist` for its elements related
+    include a twist method :meth:`Element.twist` for its elements related
     to the ribbon structure, and the S-matrix :meth:`s_ij`.
 
     There are two natural normalizations of the S-matrix. Both
@@ -115,8 +116,8 @@ class FusionRing(WeylCharacterRing):
     [BaKi2001]_. It is not unitary. To make it unitary, one would
     divide by the square root of `D = \sum_V d_i(V)^2` where the sum
     is over all simple objects `V` and `d_i(V)` is the quantum dimension
-    of `V` computed by the method :meth:`q_dimension`. The quantity `D`
-    is computed by :meth:`q_dimension`.
+    of `V` computed by the method :meth:`Element.q_dimension`. The quantity `D`
+    is computed by :meth:`total_quantum_order`.
 
     Let us check the Verlinde formula. This famous identity states that
 
@@ -195,9 +196,8 @@ class FusionRing(WeylCharacterRing):
         return CyclotomicField(4 * self._fg * self._l)
 
     def get_order(self):
-        r"""
-        This returns the weights of the basis vectors in a fixed order.
-        You may change the order of the basis using :meth:`set_order`
+        r"""This returns the weights of the basis vectors in a fixed order.
+        You may change the order of the basis using :meth:`CombinatorialFreeModule.set_order`
 
         EXAMPLES::
 
@@ -212,8 +212,10 @@ class FusionRing(WeylCharacterRing):
 
             This duplicates :meth:`get_order` from
             :class:`CombinatorialFreeModule` except the result
-            is *not* cached. Caching of :meth:`get_order` causes
-            inconsistent results after calling :meth:`set_order`.
+            is *not* cached. Caching of
+            :meth:`CombinatorialFreeModule.get_order` causes inconsistent
+            results after calling :meth:`CombinatorialFreeModule.set_order`.
+
         """
         if self._order is None:
             self.set_order(self.basis().keys().list())
@@ -246,7 +248,7 @@ class FusionRing(WeylCharacterRing):
 
     def fusion_l(self):
         r"""
-        Return the product `m_g(k + h^\vee)`, where `m_g` denotes the
+        Return the product `{\ell}=m_g(k + h^\vee)`, where `m_g` denotes the
         square of the ratio of the lengths of long to short roots of
         the underlying Lie algebra, `k` denotes the level of the FusionRing,
         and `h^\vee` denotes the dual Coxeter number of the underlying Lie
@@ -391,7 +393,9 @@ class FusionRing(WeylCharacterRing):
         .. NOTE::
 
             This is the matrix denoted `\widetilde{s}` in [BaKi2001]_.
-            It is not normalized to be unitary.
+            It is not normalized to be unitary. To obtain a unitary
+            matrix, divide by `\sqrt{D}` where `D` is computed
+            by :meth:`total_quantum_order`.
 
         EXAMPLES::
 
@@ -573,7 +577,7 @@ class FusionRing(WeylCharacterRing):
         def q_dimension(self):
             r"""
             Return the quantum dimension as an element of the cyclotomic
-            field of the `2l`-th roots of unity, where `l = m (k+h^\vee)`
+            field of the `2\ell`-th roots of unity, where `l = m (k+h^\vee)`
             with `m=1,2,3` depending on whether type is simply, doubly or
             triply laced, `k` is the level and `h^\vee` is the dual
             Coxeter number.

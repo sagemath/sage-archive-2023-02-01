@@ -211,9 +211,6 @@ Command-line options for Sage
 
 .. rubric:: Making Sage packages or distributions
 
-- ``--pkg dir`` -- create the Sage package ``dir.spkg`` from the
-  directory ``dir``
-- ``--pkg_nc dir`` -- as ``--pkg``, but do not compress the package
 - ``--merge`` -- run Sage's automatic merge and test script
 - ``--sdist`` -- build a source distribution of Sage
 

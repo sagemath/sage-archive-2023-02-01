@@ -83,7 +83,7 @@ else:
 
 keep_going = False
 
-# Search for dependencies in the source tree and add to gcc -I<path>
+# Search for dependencies in the source tree and add to the list of include directories
 include_dirs = sage_include_directories(use_sources=True)
 
 # Look for libraries only in what is configured already through distutils

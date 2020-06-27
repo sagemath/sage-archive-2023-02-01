@@ -72,8 +72,7 @@ except ValueError:
 # manually reorder the libraries according to this list. The order is
 # important in particular for Cygwin. Any libraries which are not
 # listed here will be added at the end of the list (without changing
-# their relative order). There is one exception: stdc++ is always put
-# at the very end of the list.
+# their relative order).
 from sage.env import cython_aliases
 aliases = cython_aliases()
 
@@ -101,5 +100,3 @@ library_order = {}
 for i in range(n):
     lib = library_order_list[i]
     library_order[lib] = i-n
-
-library_order["stdc++"] = 1000

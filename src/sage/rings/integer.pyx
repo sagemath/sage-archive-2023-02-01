@@ -1,4 +1,3 @@
-# distutils: libraries = ntl
 r"""
 Elements of the ring `\ZZ` of integers
 

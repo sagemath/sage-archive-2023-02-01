@@ -1001,9 +1001,9 @@ cdef class dancing_linksWrapper:
         return [key for (key,val) in enumerate(solution, start=-1) if val]
 
     @cached_method
-    def to_milp_solver(self, solver=None):
+    def to_milp(self, solver=None):
         r"""
-        Return the mixed integer linear program (MILP) solver solving an
+        Return the mixed integer linear program (MILP) representing an
         equivalent problem.
 
         See also :mod:`sage.numerical.mip.MixedIntegerLinearProgram`.
@@ -1025,7 +1025,7 @@ cdef class dancing_linksWrapper:
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2], [0,2], [1], [3]]
             sage: d = dlx_solver(rows)
-            sage: p,x = d.to_milp_solver()
+            sage: p,x = d.to_milp()
             sage: p
             Boolean Program (no objective, 4 variables, 4 constraints)
             sage: x
@@ -1051,7 +1051,7 @@ cdef class dancing_linksWrapper:
 
         Using some optional MILP solvers::
 
-            sage: d.to_milp_solver('gurobi')   # optional - gurobi sage_numerical_backends_gurobi
+            sage: d.to_milp('gurobi')   # optional - gurobi sage_numerical_backends_gurobi
             (Boolean Program (no objective, 4 variables, 4 constraints),
              MIPVariable of dimension 1)
 
@@ -1123,7 +1123,7 @@ cdef class dancing_linksWrapper:
 
         """
         from sage.numerical.mip import MIPSolverException
-        p,x = self.to_milp_solver(solver)
+        p,x = self.to_milp(solver)
         try:
             p.solve()
         except MIPSolverException:

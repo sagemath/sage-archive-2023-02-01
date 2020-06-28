@@ -1771,7 +1771,7 @@ class PartitionTuple(CombinatorialElement):
 
 
 class PartitionTuples(UniqueRepresentation, Parent):
-    """
+    r"""
     Class of all partition tuples.
 
     For more information about partition tuples, see :class:`PartitionTuple`.
@@ -1785,8 +1785,13 @@ class PartitionTuples(UniqueRepresentation, Parent):
 
     - ``size``  -- the total number of cells
 
-    - ``regular`` -- the highest multiplicity an entry may have in a
-      component plus `1`
+    - ``regular`` -- a positive integer or a tuple of non-negative
+        integers; If an integer, the highest multiplicity an entry may
+        have in a component plus `1`. If a level `k` is specified and
+        ``regular`` is a tuple of integers `l_1,..,l_k` then this
+        specifies partition tuples `\mu` such that
+        `mu_i` is `l_i`-regular. The special case `l_i = 0` is treated
+        as `\infty`-regular, that is, partitions without restrictions.
 
     TESTS::
 
@@ -1841,19 +1846,27 @@ class PartitionTuples(UniqueRepresentation, Parent):
             if size is None:
                 if regular is None:
                     return _Partitions
+                if isinstance(regular, tuple):
+                    return VectorRegularPartitionTuples_level(1,regular)
                 return RegularPartitions_all(regular)
 
             if regular is None:
                 return Partitions_n(size)
+            if isinstance(regular, tuple):
+                return VectorRegularPartitionTuples_level_size(1,size,regular)
             return RegularPartitions_n(size, regular)
 
         # Higher level
         if size is None:
             if regular is None:
                 return PartitionTuples_level(level)
+            if isinstance(regular, tuple):
+                return VectorRegularPartitionTuples_level(level,regular)
             return RegularPartitionTuples_level(level, regular)
         if regular is None:
             return PartitionTuples_level_size(level, size)
+        if isinstance(regular, tuple):
+            return VectorRegularPartitionTuples_level_size(level,size,regular)
         return RegularPartitionTuples_level_size(level, size, regular)
 
     Element = PartitionTuple
@@ -2886,3 +2899,272 @@ class RegularPartitionTuples_level_size(RegularPartitionTuples):
                 mu[0] = [1]
                 mu[-1] = [self._size-1]
         return self.element_class(self, mu)
+
+
+class VectorRegularPartitionTuples_level(PartitionTuples_level):
+    """
+    Class of vector-regular partition tuples with a fixed level.
+    """
+    def __init__(self, level, regular):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: RPT = PartitionTuples(level=4, regular=(2,3,0,2))
+            sage: RPT[:24]
+            [([], [], [], []),
+             ([1], [], [], []),
+             ([], [1], [], []),
+             ([], [], [1], []),
+             ([], [], [], [1]),
+             ([2], [], [], []),
+             ([1], [1], [], []),
+             ([1], [], [1], []),
+             ([1], [], [], [1]),
+             ([], [2], [], []),
+             ([], [1, 1], [], []),
+             ([], [1], [1], []),
+             ([], [1], [], [1]),
+             ([], [], [2], []),
+             ([], [], [1, 1], []),
+             ([], [], [1], [1]),
+             ([], [], [], [2]),
+             ([3], [], [], []),
+             ([2, 1], [], [], []),
+             ([2], [1], [], []),
+             ([2], [], [1], []),
+             ([2], [], [], [1]),
+             ([1], [2], [], []),
+             ([1], [1, 1], [], [])]
+            sage: [[1,1],[3],[5,5,5],[7,2]] in RPT
+            False
+            sage: [[3,1],[3],[5,5,5],[7,2]] in RPT
+            True
+            sage: [[3,1],[3],[5,5,5]] in RPT
+            False
+        """
+        if level not in ZZ or level <= 0:
+            raise ValueError('level must be a positive integer')
+        if len(regular) != level:
+            raise ValueError("regular must be a tuple with length {}".\
+                                                                format(level))
+        if any (i not in NN for i in regular):
+            raise ValueError('regular must be a tuple of non-negative integers')
+        PartitionTuples_level.__init__(self, level)
+        self._ell = regular
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: RPT = PartitionTuples(level=4, regular=(2,3,0,2))
+            sage: RPT
+            (2, 3, 0, 2)-Regular partition tuples of level 4
+        """
+        return '{}-Regular partition tuples of level {}'.format(self._ell,
+                                                                    self._level)
+
+    def __contains__(self, mu):
+        """
+        Return ``True`` if ``mu`` is in ``self``.
+
+        TESTS::
+
+            sage: RPT = PartitionTuples(level=3, regular=(2,1,4))
+            sage: [[4],[2],[5]] in RPT
+            False
+            sage: [[4],[],[5]] in RPT
+            True
+            sage: [[4,3],[],[5]] in RPT
+            True
+            sage: [[4,4],[],[5]] in RPT
+            False
+            sage: [[4,3],[5]] in RPT
+            False
+            sage: [5,4,3] in RPT
+            False
+            sage: RPT = PartitionTuples(level=1,regular=(3,)); RPT
+            (3,)-Regular partition tuples of level 1
+            sage: [[2,2]] in RPT
+            True
+            sage: [[2,2,2]] in RPT
+            False
+        """
+        if self._level != len(mu):
+            return False
+        if mu not in PartitionTuples_level(self._level):
+            return False
+        if isinstance(mu, Partition):
+            if self._ell[0] == 0:
+                return True
+            return max(mu.to_exp() + [0]) < self._ell[0]
+        if isinstance(mu, PartitionTuple):
+            return all(max(mu[i].to_exp() + [0]) < self._ell[i] for
+                       i in range(len(mu)) if self._ell[i] > 0)
+        if len(mu) == 0:
+            return True
+        return all(mu[i] in RegularPartitions_all(self._ell[i]) for i in
+                   range(len(mu)) if self._ell[i] > 0)
+
+    def __iter__(self):
+        """
+        Iterate through the class of vector `\ell`-regular partition
+        tuples of a fixed level.
+
+        EXAMPLES::
+
+            sage: PartitionTuples(level=3, regular=(2,1,4))[:24]
+            [([], [], []),
+             ([1], [], []),
+             ([], [], [1]),
+             ([2], [], []),
+             ([1], [], [1]),
+             ([], [], [2]),
+             ([], [], [1, 1]),
+             ([3], [], []),
+             ([2, 1], [], []),
+             ([2], [], [1]),
+             ([1], [], [2]),
+             ([1], [], [1, 1]),
+             ([], [], [3]),
+             ([], [], [2, 1]),
+             ([], [], [1, 1, 1]),
+             ([4], [], []),
+             ([3, 1], [], []),
+             ([3], [], [1]),
+             ([2, 1], [], [1]),
+             ([2], [], [2]),
+             ([2], [], [1, 1]),
+             ([1], [], [3]),
+             ([1], [], [2, 1]),
+             ([1], [], [1, 1, 1])]
+        """
+        for size in NN:
+            for mu in VectorRegularPartitionTuples_level_size(self._level,
+                                                              size, self._ell):
+                yield self.element_class(self, list(mu))
+
+class VectorRegularPartitionTuples_level_size(PartitionTuples_level_size):
+    """
+    Class of vector `\ell`-regular partition tuples with a fixed level
+    and a fixed size.
+    """
+    def __init__(self, level, size, regular):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: PartitionTuples(level=3, size=7, regular=(2,1,3))[0:24]
+            [([7], [], []),
+             ([6, 1], [], []),
+             ([5, 2], [], []),
+             ([4, 3], [], []),
+             ([4, 2, 1], [], []),
+             ([6], [], [1]),
+             ([5, 1], [], [1]),
+             ([4, 2], [], [1]),
+             ([3, 2, 1], [], [1]),
+             ([5], [], [2]),
+             ([5], [], [1, 1]),
+             ([4, 1], [], [2]),
+             ([4, 1], [], [1, 1]),
+             ([3, 2], [], [2]),
+             ([3, 2], [], [1, 1]),
+             ([4], [], [3]),
+             ([4], [], [2, 1]),
+             ([3, 1], [], [3]),
+             ([3, 1], [], [2, 1]),
+             ([3], [], [4]),
+             ([3], [], [3, 1]),
+             ([3], [], [2, 2]),
+             ([3], [], [2, 1, 1]),
+             ([2, 1], [], [4])]
+        """
+        if size not in NN:
+            raise ValueError('size must be a non-negative integer')
+        if not (level in ZZ and level > 0):
+            raise ValueError('level must be a positive integer')
+        PartitionTuples_level_size.__init__(self, level, size)
+        if len(regular) != level:
+            raise ValueError('regular must be a list with length'\
+                             ' {}'.format(level))
+        if any (i not in NN for i in regular):
+            raise ValueError('regular must be a list of non-negative integers')
+        self._ell = regular
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: RPT = PartitionTuples(level=3, size=7, regular=(2,1,4))
+            sage: RPT
+            (2, 1, 4)-Regular partition tuples of level 3 and size 7
+        """
+        return '{}-Regular partition tuples of level {} and size {}'.\
+                format(self._ell, self._level, self._size)
+
+    def __contains__(self, mu):
+        """
+        Return ``True`` if `\mu` is in ``self``.
+
+        TESTS::
+
+            sage: RPT = PartitionTuples(level=3, size=7, regular=(2,1,4))
+            sage: RPT
+            (2, 1, 4)-Regular partition tuples of level 3 and size 7
+            sage: [[3,1],[],[3]] in RPT
+            True
+            sage: [[3],[1],[3]] in RPT
+            False
+            sage: [[3,2],[],[3]] in RPT
+            False
+            sage: [[3,3],[],[1]] in RPT
+            False
+        """
+        if mu not in PartitionTuples_level_size(self._level, self._size):
+            return False
+        if mu not in VectorRegularPartitionTuples_level(self._level, self._ell):
+            return False
+        return True
+
+    def __iter__(self):
+        """
+        Iterate through the finite class of vector `\ell`-regular
+        partition tuples of a fixed level and a fixed size.
+
+        EXAMPLES::
+
+            sage: list(PartitionTuples(level=3,size=3,regular=(2,1,2)))
+            [([3], [], []),
+             ([2, 1], [], []),
+             ([2], [], [1]),
+             ([1], [], [2]),
+             ([], [], [3]),
+             ([], [], [2, 1])]
+        """
+        for iv in IntegerVectors(self._size, self._level):
+            p = [RegularPartitions_n(iv[j], self._ell[j]) if self._ell[j] else
+                 Partitions_n(iv[j]) for j in range(self._level)]
+            for cp in itertools.product(*[p[i] for i in range(self._level)]):
+                yield self._element_constructor_(cp)
+
+    def _an_element_(self):
+        """
+        Return a generic element.
+
+        EXAMPLES::
+
+            sage: PartitionTuples(level=4, size=4, regular=3).an_element()
+            ([1], [], [], [3])
+        """
+        if self._size == 0:
+            return self.element_class(self,([],)*self._level)
+        return PartitionTuples(level=self._level, size=self._size,
+                               regular=self._ell)[1]
+

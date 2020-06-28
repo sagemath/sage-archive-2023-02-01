@@ -5,4 +5,4 @@ include MANIFEST.in
 prune .tox
 
 graft   sage/libs/gap/test
-recursive-exclude sage/ext/interpreters *.c *.h *.pyx *.pxd
+prune sage/ext/interpreters   # In particular, __init__.py must not be present in the distribution; or sage_setup.autogen.interpreters.rebuild will not generate the code

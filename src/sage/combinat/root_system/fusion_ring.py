@@ -20,7 +20,8 @@ from sage.rings.number_field.number_field import CyclotomicField
 from sage.misc.cachefunc import cached_method
 
 class FusionRing(WeylCharacterRing):
-    r"""Return the Fusion Ring (Verlinde Algebra) of level ``k``.
+    r"""
+    Return the Fusion Ring (Verlinde Algebra) of level ``k``.
 
     INPUT:
 
@@ -120,9 +121,9 @@ class FusionRing(WeylCharacterRing):
 
     Let us check the Verlinde formula. This famous identity states that
 
-        .. MATH::
+    .. MATH::
 
-            N_{ijk} = \sum_l \frac{s(i,\ell)\,s(j,\ell)\,s(k,\ell)}{s(I,\ell)},
+        N_{ijk} = \sum_l \frac{s(i,\ell)\,s(j,\ell)\,s(k,\ell)}{s(I,\ell)},
 
     where ``I`` is the unit object. In this formula `s` is the normalized
     unitary S-matrix denoted `s` in [BaKi2001]_. We may define a function that
@@ -226,7 +227,9 @@ class FusionRing(WeylCharacterRing):
         return CyclotomicField(4 * self._fg * self._l)
 
     def get_order(self):
-        r"""Return the weights of the basis vectors in a fixed order.
+        r"""
+        Return the weights of the basis vectors in a fixed order.
+
         You may change the order of the basis using :meth:`CombinatorialFreeModule.set_order`
 
         EXAMPLES::
@@ -364,7 +367,7 @@ class FusionRing(WeylCharacterRing):
 
     @cached_method
     def Nk_ij(self, elt_i, elt_j, elt_k):
-        """
+        r"""
         Return the fusion coefficient `N^k_{ij}`.
 
         These are the structure coefficients of the fusion ring, so
@@ -386,7 +389,9 @@ class FusionRing(WeylCharacterRing):
     def s_ij(self, elt_i, elt_j):
         r"""
         Return the element of the S-matrix of this FusionRing corresponding to
-        the given elements. This is computed using the formula
+        the given elements.
+
+        This is computed using the formula
 
         .. MATH::
 
@@ -516,7 +521,7 @@ class FusionRing(WeylCharacterRing):
         self._fusion_labels = d
 
     def global_q_dimension(self):
-        """
+        r"""
         Return `\sum d_i^2`, where the sum is over all simple objects
         and `d_i` is the quantum dimension.
 

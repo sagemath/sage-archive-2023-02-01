@@ -1681,12 +1681,10 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 m = p.is_cyclotomic(certificate=True)
                 if not m:
                     raise NotImplementedError('no known factorization for this polynomial')
-                for i in range(1, m):
-                    if gcd(m, i) == 1:
-                        factors.append((x - UCF.zeta(m, i), e))
+                for i in m.coprime_integers(m):
+                    factors.append((x - UCF.zeta(m, i), e))
 
         return Factorization(factors, unit)
-
 
     def degree(self):
         r"""

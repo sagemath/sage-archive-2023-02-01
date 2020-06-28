@@ -2181,21 +2181,15 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             sage: M = ModularSymbols(37,2,0,K)
             sage: M.twisted_winding_element(0,eps)
             2*(1,23) - 2*(1,32) + 2*(1,34)
-
         """
-
         if not dirichlet.is_DirichletCharacter(eps):
             raise TypeError("eps must be a Dirichlet character.")
-        if (i < 0) or (i > self.weight()-2):
+        if (i < 0) or (i > self.weight() - 2):
             raise ValueError("i must be between 0 and k-2.")
 
         m = eps.modulus()
-        s = self(0)
-
-        for a in ([ x for x in range(1,m) if gcd(x, m) == 1 ]):
-            s += eps(a) * self.modular_symbol([i, Cusp(0), Cusp(a/m)])
-
-        return s
+        return self.sum(eps(a) * self.modular_symbol([i, Cusp(0), Cusp(a / m)])
+                        for a in m.coprime_integers(m))
 
     ######################################################################
     # Z-module of integral modular symbols.

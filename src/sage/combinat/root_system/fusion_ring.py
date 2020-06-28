@@ -149,7 +149,7 @@ class FusionRing(WeylCharacterRing):
 
         sage: test_verlinde(FusionRing("A2",1))
         True
-        sage: test_verlinde(FusionRing("B4",2))
+        sage: test_verlinde(FusionRing("B4",2)) # long time (.56s)
         True
 
     As an exercise, the reader may verify the examples in
@@ -207,9 +207,44 @@ class FusionRing(WeylCharacterRing):
 
             sage: D41 = FusionRing('D4', 1)
             sage: TestSuite(D41).run()
+
+            sage: G22 = FusionRing('G2', 2)
+            sage: TestSuite(G22).run()
+
+            sage: F41 = FusionRing('F4', 1)
+            sage: TestSuite(F41).run()
+
+            sage: E61 = FusionRing('E6', 1)
+            sage: TestSuite(E61).run()
+
+            sage: E71 = FusionRing('E7', 1)
+            sage: TestSuite(E71).run()
+
+            sage: E81 = FusionRing('E8', 1)
+            sage: TestSuite(E81).run()
+
         """
         return super(FusionRing, cls).__classcall__(cls, ct, base_ring=base_ring,
                                                     prefix=prefix, style=style, k=k, conjugate=conjugate)
+
+    def _test_verlinde(self, **options):
+        """
+        Check the Verlinde formula for this :class:`FusionRing` instance.
+
+        EXAMPLES::
+
+            sage: G22=FusionRing("G2",2)
+            sage: G22._test_verlinde()
+
+        """
+        tester = self._tester(**options)
+        c = self.global_q_dimension()
+        i0 = self.one()
+        for x in self.basis():
+            for y in self.basis():
+                for z in self.basis():
+                    v = sum(self.s_ij(x,w)*self.s_ij(y,w)*self.s_ij(z,w)/self.s_ij(i0,w) for w in self.basis())
+                    tester.assertEqual(v,c*self.N_ijk(x,y,z))
 
     def field(self):
         r"""

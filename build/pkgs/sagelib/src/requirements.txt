@@ -10,3 +10,8 @@ numpy          # already needed by sage.env
 jinja2         # sage_setup.autogen.interpreters
 
 cypari2        # but building bdist_wheel of cypari2 fails with recent pip... https://github.com/sagemath/cypari2/issues/93
+
+########## Runtime
+
+psutil
+pexpect

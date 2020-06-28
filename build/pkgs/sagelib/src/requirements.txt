@@ -15,3 +15,5 @@ cypari2        # but building bdist_wheel of cypari2 fails with recent pip... ht
 
 psutil
 pexpect
+pplpy
+ipython<=5.8

@@ -1,5 +1,5 @@
 #sage_conf
-sage_setup @ file:///Users/mkoeppe/s/sage/sage-rebasing/worktree-algebraic-2018-spring/upstream/sage-setup-0.0.0.tar.gz
+#sage_setup
 six             # use of six should be removed from sage_setup
 Cython==0.29.17
 pkgconfig

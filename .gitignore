@@ -105,6 +105,7 @@ gitlab-build-docker.log
 /build/pkgs/*/src/dist
 /build/pkgs/*/src/MANIFEST
 /build/pkgs/*/src/*.egg-info
+/build/pkgs/*/src/.tox
 
 #######################
 # tox generated files #

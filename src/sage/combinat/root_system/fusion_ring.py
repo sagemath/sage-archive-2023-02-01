@@ -116,7 +116,7 @@ class FusionRing(WeylCharacterRing):
     divide by the square root of `D = \sum_V d_i(V)^2` where the sum
     is over all simple objects `V` and `d_i(V)` is the quantum dimension
     of `V` computed by the method :meth:`Element.q_dimension`. The quantity `D`
-    is computed by :meth:`total_quantum_order`.
+    is computed by :meth:`global_q_dimension`.
 
     Let us check the Verlinde formula. This famous identity states that
 
@@ -140,7 +140,7 @@ class FusionRing(WeylCharacterRing):
 
        sage: def test_verlinde(R):
        ....:     b0 = R.one()
-       ....:     c = R.total_quantum_order()
+       ....:     c = R.global_q_dimension()
        ....:     return all(V(i,j,k) == c * R.N_ijk(i,j,k) for i in R.basis()
        ....:                for j in R.basis() for k in R.basis())
 
@@ -168,6 +168,8 @@ class FusionRing(WeylCharacterRing):
         [[i0, p, s], [p, i0, s], [s, s, i0 + p]]
         sage: [x.twist() for x in b]
         [0, 1, 1/8]
+        sage: I.global_q_dimension()
+        4
         sage: [x.q_dimension()^2 for x in b]
         [1, 1, 2]
         sage: I.s_matrix()
@@ -423,7 +425,7 @@ class FusionRing(WeylCharacterRing):
             This is the matrix denoted `\widetilde{s}` in [BaKi2001]_.
             It is not normalized to be unitary. To obtain a unitary
             matrix, divide by `\sqrt{D}` where `D` is computed
-            by :meth:`total_quantum_order`.
+            by :meth:`global_q_dimension`.
 
         EXAMPLES::
 
@@ -513,14 +515,14 @@ class FusionRing(WeylCharacterRing):
                 inject_variable(labels[j], B[b])
         self._fusion_labels = d
 
-    def total_quantum_order(self):
+    def global_q_dimension(self):
         """
         Return `\sum d_i^2`, where the sum is over all simple objects
         and `d_i` is the quantum dimension.
 
         EXAMPLES::
 
-            sage: FusionRing("E6",1).total_quantum_order()
+            sage: FusionRing("E6",1).global_q_dimension()
             3
         """
         return sum(x.q_dimension()**2 for x in self.basis())

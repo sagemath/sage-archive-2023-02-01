@@ -20,8 +20,7 @@ from sage.rings.number_field.number_field import CyclotomicField
 from sage.misc.cachefunc import cached_method
 
 class FusionRing(WeylCharacterRing):
-    r"""
-    Return the Fusion Ring (Verlinde Algebra) of level ``k``.
+    r"""Return the Fusion Ring (Verlinde Algebra) of level ``k``.
 
     INPUT:
 
@@ -119,16 +118,33 @@ class FusionRing(WeylCharacterRing):
     of `V` computed by the method :meth:`Element.q_dimension`. The quantity `D`
     is computed by :meth:`global_q_dimension`.
 
-    Let us check the Verlinde formula. This famous identity states that
+    Let us check the Verlinde formula, which is [DFMS1996]_ (16.3). This
+    famous identity states that
+
+    .. MATH::
+
+        N^k_{ij} = \sum_l \frac{s(i,\ell)\,s(j,\ell)\,\overline{s(k,\ell)}}{s(I,\ell)},
+
+    where `N^k_{ij}` are the fusion coefficients, i.e. the structure
+    constants of the fusion ring, and ``I`` is the unit object.
+    The S-matrix has the property that if `i*` denotes the dual
+    object of `i`, implemented in Sage as ``i.dual()``, then
+
+    .. MATH::
+
+        s(i*,j) = s(i,j*) = \overline{s(i,j)}.
+
+    This is equation (16.5) in [DFMS1996]_. Thus with `N_{ijk}=N^{k*}_{ij}`
+    the Verlinde formula is equivalent to
 
     .. MATH::
 
         N_{ijk} = \sum_l \frac{s(i,\ell)\,s(j,\ell)\,s(k,\ell)}{s(I,\ell)},
 
-    where ``I`` is the unit object. In this formula `s` is the normalized
-    unitary S-matrix denoted `s` in [BaKi2001]_. We may define a function that
-    corresponds to the right-hand side, except using `\tilde{s}` instead
-    of `s`::
+    In this formula `s` is the normalized unitary S-matrix
+    denoted `s` in [BaKi2001]_. We may define a function that
+    corresponds to the right-hand side, except using
+    `\tilde{s}` instead of `s`::
 
         sage: def V(i,j,k):
         ....:     R = i.parent()

@@ -1,4 +1,4 @@
-"""
+r"""
 Affine curves
 
 Affine curves in Sage are curves in an affine space or an affine plane.
@@ -2448,8 +2448,6 @@ class IntegralAffineCurve(AffineCurve_field):
             sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: C = Curve(x^2 + y^2 -1)
             sage: p = C(0,1)
-            sage: p.closed_point()
-            Point (x, y - 1)
             sage: p.closed_point()
             Point (x, y - 1)
             sage: pl = _.place()

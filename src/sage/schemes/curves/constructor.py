@@ -42,7 +42,6 @@ from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.rings.rational_field import QQ
-from sage.rings.qqbar import QQbar
 
 from sage.structure.all import Sequence
 
@@ -78,6 +77,21 @@ from .affine_curve import (AffineCurve,
 
 
 from sage.schemes.plane_conics.constructor import Conic
+
+def _is_irreducible_and_reduced(F):
+    """
+    Check if the polynomial F is irreducible and reduced.
+
+    TESTS::
+
+        sage: R.<x,y> = QQ[]
+        sage: F = x^2 + y^2
+        sage: from sage.schemes.curves.constructor import _is_irreducible_and_reduced
+        sage: _is_irreducible_and_reduced(F)
+        True
+    """
+    factors = F.factor()
+    return len(factors) == 1 and factors[0][1] == 1
 
 def Curve(F, A=None):
     """
@@ -295,12 +309,11 @@ def Curve(F, A=None):
 
         F = F[0]
         if is_FiniteField(k):
-            factors = F.factor()
-            if len(factors) == 1 and factors[0][1] == 1: # irreducible
+            if _is_irreducible_and_reduced(F):
                 return IntegralAffinePlaneCurve_finite_field(A, F)
             return AffinePlaneCurve_finite_field(A, F)
         if k in Fields():
-            if k == QQ and A.coordinate_ring().ideal(F).is_prime():
+            if k == QQ and _is_irreducible_and_reduced(F):
                 return IntegralAffinePlaneCurve(A, F)
             return AffinePlaneCurve_field(A, F)
         return AffinePlaneCurve(A, F)
@@ -318,8 +331,8 @@ def Curve(F, A=None):
                 return ProjectiveCurve_field(A, F)
             return ProjectiveCurve(A, F)
 
-        # there is no dimension check when initializing a plane curve, so check
-        # here that F consists of a single nonconstant polynomial
+        # There is no dimension check when initializing a plane curve, so check
+        # here that F consists of a single nonconstant polynomial.
         if not (len(F) == 1 and F[0] != 0 and F[0].degree() > 0):
             raise TypeError("need a single nonconstant polynomial to define a plane curve")
 
@@ -328,12 +341,11 @@ def Curve(F, A=None):
             raise TypeError("{} is not a homogeneous polynomial".format(F))
 
         if is_FiniteField(k):
-            factors = F.factor()
-            if len(factors) == 1 and factors[0][1] == 1: # irreducible
+            if _is_irreducible_and_reduced(F):
                 return IntegralProjectivePlaneCurve_finite_field(A, F)
             return ProjectivePlaneCurve_finite_field(A, F)
         if k in Fields():
-            if k == QQ and A.coordinate_ring().ideal(F).is_prime():
+            if k == QQ and _is_irreducible_and_reduced(F):
                 return IntegralProjectivePlaneCurve(A, F)
             return ProjectivePlaneCurve_field(A, F)
         return ProjectivePlaneCurve(A, F)

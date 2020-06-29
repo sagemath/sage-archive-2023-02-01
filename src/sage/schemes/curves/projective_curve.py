@@ -1,4 +1,4 @@
-"""
+r"""
 Projective curves
 
 Projective curves in Sage are curves in a projective space or a projective plane.

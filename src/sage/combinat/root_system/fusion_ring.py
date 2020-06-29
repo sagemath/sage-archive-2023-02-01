@@ -622,8 +622,9 @@ class FusionRing(WeylCharacterRing):
             return next(iter(self._monomial_coefficients))
 
         def twist(self):
-            r"""Compute the object's twist. This returns a rational number `h`
-            such that  `\theta = e^{i \pi h}` is the twist of ``self``.
+            r"""
+            Return a rational number `h` such that `\theta = e^{i \pi h}` 
+            is the twist of ``self``.
 
             This method is only available for simple objects. If
             `\lambda` is the weight of the object, then

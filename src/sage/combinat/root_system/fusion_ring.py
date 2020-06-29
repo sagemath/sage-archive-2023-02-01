@@ -20,7 +20,8 @@ from sage.rings.number_field.number_field import CyclotomicField
 from sage.misc.cachefunc import cached_method
 
 class FusionRing(WeylCharacterRing):
-    r"""Return the Fusion Ring (Verlinde Algebra) of level ``k``.
+    r"""
+    Return the Fusion Ring (Verlinde Algebra) of level ``k``.
 
     INPUT:
 
@@ -238,7 +239,6 @@ class FusionRing(WeylCharacterRing):
 
             sage: E81 = FusionRing('E8', 1)
             sage: TestSuite(E81).run()
-
         """
         return super(FusionRing, cls).__classcall__(cls, ct, base_ring=base_ring,
                                                     prefix=prefix, style=style, k=k, conjugate=conjugate)
@@ -249,18 +249,18 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: G22=FusionRing("G2",2)
+            sage: G22 = FusionRing("G2",2)
             sage: G22._test_verlinde()
-
         """
         tester = self._tester(**options)
         c = self.global_q_dimension()
         i0 = self.one()
-        for x in self.basis():
-            for y in self.basis():
-                for z in self.basis():
-                    v = sum(self.s_ij(x,w)*self.s_ij(y,w)*self.s_ij(z,w)/self.s_ij(i0,w) for w in self.basis())
-                    tester.assertEqual(v,c*self.N_ijk(x,y,z))
+        S = tester.some_elements()
+        from sage.misc.misc import some_tuples
+        B = self.basis()
+        for x,y,z in some_tuples(B, 3, tester._max_runs):
+            v = sum(self.s_ij(x,w) * self.s_ij(y,w) * self.s_ij(z,w) / self.s_ij(i0,w) for w in B)
+            tester.assertEqual(v, c * self.N_ijk(x,y,z))
 
     def field(self):
         r"""

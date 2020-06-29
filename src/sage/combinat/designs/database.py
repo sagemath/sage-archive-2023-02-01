@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Database of small combinatorial designs
 
@@ -42,6 +43,15 @@ REFERENCES:
   Charles Colbourn, Jeffrey Dinitz
   Chapman & Hall/CRC
   2012
+
+.. [Aschbacher71] \M. Aschbacher,
+  On collineation groups of symmetric block designs.
+  J. Combinatorial Theory Ser. A 11 (1971), pp. 272–281.
+
+.. [Hall71] \M. Hall, Jr.,
+  Combinatorial designs and groups.
+  Actes du Congrès International des Mathématiciens (Nice, 1970),
+  v.3, pp. 217–222. Gauthier-Villars, Paris, 1971.
 
 Functions
 ---------
@@ -4565,9 +4575,16 @@ def BIBD_201_6_1():
     bibd = RecursivelyEnumeratedSet([frozenset(e) for e in bibd], successors=gens)
     return IncidenceStructure(bibd)._blocks
 
-def biplane_79_13_2():
+def BIBD_79_13_2():
     r"""
-    Return a `(79,13,2)`-BIBD.
+    Return a symmetric `(79,13,2)`-BIBD.
+
+    The construction implemented is the one described in [Aschbacher71]_.
+    A typo in that paper was corrected in [Hall71]_.
+
+    .. NOTE::
+
+        A symmetric `(v,k,\lambda)` BIBD is a `(v,k,\lambda)` BIBD with `v` blocks.
 
     EXAMPLES:
 
@@ -4628,9 +4645,15 @@ def biplane_79_13_2():
     D = IncidenceStructure(blocks)
     return D._blocks
 
-def biplane_56_11_2():
+def BIBD_56_11_2():
     r"""
-    Return a `(56,11,2)`-BIBD.
+    Return a symmetric `(56,11,2)`-BIBD.
+
+    The construction implemented is given in [Hall71]_.
+
+    .. NOTE::
+
+        A symmetric `(v,k,\lambda)` BIBD is a `(v,k,\lambda)` BIBD with `v` blocks.
 
     EXAMPLES:
 
@@ -4673,10 +4696,10 @@ def biplane_56_11_2():
 
 BIBD_constructions = {
     ( 45,9,8): BIBD_45_9_8,
-    (56,11,2): biplane_56_11_2,
+    (56,11,2): BIBD_56_11_2,
     ( 66,6,1): BIBD_66_6_1,
     ( 76,6,1): BIBD_76_6_1,
-    (79,13,2): biplane_79_13_2,
+    (79,13,2): BIBD_79_13_2,
     ( 96,6,1): BIBD_96_6_1,
     (120,8,1): RBIBD_120_8_1,
     (106,6,1): BIBD_106_6_1,

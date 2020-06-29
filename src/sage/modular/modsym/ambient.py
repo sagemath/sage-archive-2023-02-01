@@ -70,7 +70,7 @@ from __future__ import absolute_import
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ################################################################################
 # Sage packages
 import sage.misc.latex as latex
@@ -84,7 +84,7 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
 from sage.rings.all import Integer, QQ, ZZ, Ring
-from sage.arith.all import is_prime, gcd, divisors, number_of_divisors, crt
+from sage.arith.all import is_prime, divisors, number_of_divisors, crt
 import sage.rings.polynomial.multi_polynomial_element
 import sage.structure.formal_sum as formal_sum
 import sage.categories.all as cat

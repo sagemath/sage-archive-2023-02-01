@@ -414,14 +414,12 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             for poly in F:
                 for i in poly:
                     if i != 0:
-                        gcd = gcd = gcd*i*gcd.lcm(i).inverse_of_unit()
+                        gcd = gcd*i*gcd.lcm(i).inverse_of_unit()
             for i in range(len(F)):
                 F[i] *= gcd.inverse_of_unit()
             gcd = F[0].gcd(F[1])
             F[0] = F[0].quo_rem(gcd)[0]
             F[1] = F[1].quo_rem(gcd)[0]
-            print('num = ', F[0])
-            print('dem = ', F[1])
             fraction = []
             for poly in F:
                 new_poly = []
@@ -432,8 +430,11 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             gcd = fraction[0].gcd(fraction[1])
             num = fraction[0].quo_rem(gcd)[0]
             dem = fraction[1].quo_rem(gcd)[0]
-            print('num = ', num)
-            print('dem = ', dem)
+            if dem.is_zero():
+                f = DynamicalSystem_affine(F[0]/F[1]).homogenize(1)
+                f = f.conjugate(Matrix([[0, 1], [1 , 0]]))
+                g = DynamicalSystem_Berkovich(f)
+                return g(self.domain()(QQ(0),QQ(1))).involution_map()
             #if the reduction is not constant, the image
             #is the Gauss point
             if not(num.is_constant() and dem.is_constant()):

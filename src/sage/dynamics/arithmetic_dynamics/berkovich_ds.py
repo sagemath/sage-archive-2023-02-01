@@ -389,19 +389,64 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         if x.type_of_point() == 4:
             raise NotImplementedError('action on Type IV points not implemented')
         f = self._system
-        """
         if x.type_of_point() == 2:
             from sage.matrix.constructor import Matrix
             from sage.modules.free_module_element import vector
-            M = Matrix([[1,2],[0,1]])
+            y,w = f.domain().gens()[0],f.domain().gens()[1]
+            field = f.domain().base_ring()
+            M = Matrix([[field(x.prime()**(-1*x.power())),x.center()[0]],[field(0),field(1)]])
             X = M * vector(f[0].parent().gens())
             F = vector(f._polys)
             F = list(F(list(X)))
-        """
+            R = field['z']
+            z = R.gens()[0]
+            for i in range(len(F)):
+                F[i] = F[i].subs({y:z,w:1})
+            print(F)
+            lcm = field(1)
+            for poly in F:
+                for i in poly:
+                    if i != 0:
+                        lcm = i.denominator().lcm(lcm)
+            for i in range(len(F)):
+                F[i] *= lcm
+            gcd = [i for i in F[0] if i != 0][0]
+            for poly in F:
+                for i in poly:
+                    if i != 0:
+                        gcd = gcd = gcd*i*gcd.lcm(i).inverse_of_unit()
+            for i in range(len(F)):
+                F[i] *= gcd.inverse_of_unit()
+            gcd = F[0].gcd(F[1])
+            F[0] = F[0].quo_rem(gcd)[0]
+            F[1] = F[1].quo_rem(gcd)[0]
+            print('num = ', F[0])
+            print('dem = ', F[1])
+            fraction = []
+            for poly in F:
+                new_poly = []
+                for i in poly:
+                    new_poly.append((i).residue())
+                new_poly = R(new_poly)
+                fraction.append((new_poly))
+            gcd = fraction[0].gcd(fraction[1])
+            num = fraction[0].quo_rem(gcd)[0]
+            dem = fraction[1].quo_rem(gcd)[0]
+            print('num = ', num)
+            print('dem = ', dem)
+            #if the reduction is not constant, the image
+            #is the Gauss point
+            if not(num.is_constant() and dem.is_constant()):
+                return self.domain()(QQ(0),QQ(1))
+            reduced_value = field(num*dem.inverse_of_unit()).lift_to_precision(field.precision_cap())
+            new_num = F[0]-reduced_value*F[1]
+            power_of_p = min([i.valuation() for i in new_num])
+            inverse_map = (field(x.prime()**power_of_p)*z + reduced_value)
+            return self.domain()(inverse_map(0),(inverse_map(1)-inverse_map(0)).abs())
         #TODO write a better check for zeros in disk
         P = f.domain()
         if P.gens()[0] in f.defining_polynomials()[1].variables():
-            raise ValueError('action on Type II/III points only defined for polynomials')
+            raise ValueError('action on Type II/III points only implemented for polynomials')
         nth_derivative = f.dehomogenize(1).defining_polynomials()[0]
         variable = nth_derivative.parent().gens()[0]
         a = x.center()[0]

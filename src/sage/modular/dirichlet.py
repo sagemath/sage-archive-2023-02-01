@@ -1257,7 +1257,6 @@ class DirichletCharacter(MultiplicativeGroupElement):
             NotImplementedError: Kloosterman sums not implemented over this ring
         """
         G = self.parent()
-        K = G.base_ring()
         zo = G.zeta_order()
         m = G.modulus()
         g = 0

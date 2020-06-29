@@ -90,7 +90,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
     https://doc.sagemath.org/html/en/thematic_tutorials/lie.html
     """
     @staticmethod
-    def __classcall__(cls, ct, base_ring=ZZ, prefix=None, style="lattice", k=None, conjugate=False):
+    def __classcall__(cls, ct, base_ring=ZZ, prefix=None, style="lattice", k=None, conjugate=False, cyclotomic_order=None):
         """
         TESTS::
 
@@ -106,9 +106,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 prefix = ct[0]+str(ct[1])
             else:
                 prefix = repr(ct)
-        return super(WeylCharacterRing, cls).__classcall__(cls, ct, base_ring=base_ring, prefix=prefix, style=style, k=k, conjugate=conjugate)
+        return super(WeylCharacterRing, cls).__classcall__(cls, ct, base_ring=base_ring, prefix=prefix, style=style, k=k, conjugate=conjugate, cyclotomic_order=cyclotomic_order)
 
-    def __init__(self, ct, base_ring=ZZ, prefix=None, style="lattice", k=None, conjugate=False):
+    def __init__(self, ct, base_ring=ZZ, prefix=None, style="lattice", k=None, conjugate=False, cyclotomic_order=None):
         """
         EXAMPLES::
 
@@ -173,15 +173,24 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 self._nf = 2
             else:
                 self._nf = 1
-            h_check = ct.dual_coxeter_number()
-            self._l = self._m_g * (self._k + h_check)
-            self._conj = (-1) ** conjugate
+            self._h_check = ct.dual_coxeter_number()
+            self._l = self._m_g * (self._k + self._h_check)
+            if conjugate:
+                self._conj = -1
+            else:
+                self._conj = 1
             if ct[0] == 'A':
                 self._fg = ct[1] + 1
             elif ct[0] == 'E' and ct[1] == 6:
                 self._fg = 3
+            elif ct[0] == 'D':
+                self._fg = 2
             else:
                 self._fg = 1
+            if cyclotomic_order is None:
+                self._cyclotomic_order = self._fg * self._l
+            else:
+                self._cyclotomic_order = cyclotomic_order
 
     @cached_method
     def ambient(self):

@@ -201,7 +201,7 @@ class FusionRing(WeylCharacterRing):
 
     """
     @staticmethod
-    def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots", conjugate=False):
+    def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots", conjugate=False, cyclotomic_order=None):
         """
         Normalize input to ensure a unique representation.
 
@@ -241,7 +241,7 @@ class FusionRing(WeylCharacterRing):
             sage: TestSuite(E81).run()
         """
         return super(FusionRing, cls).__classcall__(cls, ct, base_ring=base_ring,
-                                                    prefix=prefix, style=style, k=k, conjugate=conjugate)
+                                                    prefix=prefix, style=style, k=k, conjugate=conjugate, cyclotomic_order=cyclotomic_order)
 
     def _test_verlinde(self, **options):
         """
@@ -274,7 +274,22 @@ class FusionRing(WeylCharacterRing):
             sage: FusionRing("B2",2).field()
             Cyclotomic Field of order 40 and degree 16
         """
-        return CyclotomicField(4 * self._fg * self._l)
+        return CyclotomicField(4 * self._cyclotomic_order)
+
+    def to_field(self, r):
+        """
+        Returns `e^{i\pi r}` as an element of ``self.field()`` if possible.
+
+        INPUT:
+
+        = ``i`` -- a rational number
+        """
+
+        n = 2 * r * self._cyclotomic_order
+        if n in ZZ:
+            return self.field().gen()**n
+        else:
+            return None
 
     def get_order(self):
         r"""
@@ -462,14 +477,10 @@ class FusionRing(WeylCharacterRing):
             sage: [G21.s_ij(x, y) for x in b for y in b]
             [1, -zeta60^14 + zeta60^6 + zeta60^4, -zeta60^14 + zeta60^6 + zeta60^4, -1]
         """
-        l = self.fusion_l() * self._fg
-        K = self.field()
-        q = K.gen()
-        ijtwist = -2 * l * (elt_i.twist() + elt_j.twist())
         mc = (elt_i.dual() * elt_j).monomial_coefficients(copy=False)
-        B = self.basis()
-        return sum(B[k].q_dimension() * self.Nk_ij(elt_i, B[k], elt_j) * q**(2*l*B[k].twist() + ijtwist)
-                   for k in mc)
+        b = self.basis()
+        ijtwist = elt_i.twist() + elt_j.twist()
+        return sum(k.q_dimension() * self.Nk_ij(elt_i, k, elt_j) * self.to_field(k.twist() - ijtwist) for k in self.basis())
 
     def s_matrix(self):
         r"""
@@ -486,10 +497,10 @@ class FusionRing(WeylCharacterRing):
 
             sage: D91 = FusionRing('D9', 1)
             sage: D91.s_matrix()
-            [         1          1          1          1]
-            [         1          1         -1         -1]
-            [         1         -1 -zeta68^17  zeta68^17]
-            [         1         -1  zeta68^17 -zeta68^17]
+            [          1           1           1           1]
+            [          1           1          -1          -1]
+            [          1          -1 -zeta136^34  zeta136^34]
+            [          1          -1  zeta136^34 -zeta136^34]
 
             sage: D41 = FusionRing('D4', 1)
             sage: D41.s_matrix()

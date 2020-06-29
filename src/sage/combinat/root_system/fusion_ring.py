@@ -622,15 +622,16 @@ class FusionRing(WeylCharacterRing):
             return next(iter(self._monomial_coefficients))
 
         def twist(self):
-            r"""
-            Compute the object's twist. This returns a rational number `h`
+            r"""Compute the object's twist. This returns a rational number `h`
             such that  `\theta = e^{i \pi h}` is the twist of ``self``.
 
-            This method is only available for simple objects.
-
-            We compute the twists following p.7 of [Row2006]_, noting that
-            the bilinear form is normalized so that
-            `\langle \alpha, \alpha \rangle = 2` for short roots.
+            This method is only available for simple objects. If
+            `\lambda` is the weight of the object, then
+            `h = \langle\lambda,\lambda+2\rho\rangle` where
+            `\rho` is half the sum of the positive roots.
+            As in [Row2006]_, this requires normalizing
+            the invariant bilinear form so that `\langle \alpha, \alpha
+            \rangle = 2` for short roots.
 
             EXAMPLES::
 
@@ -644,6 +645,7 @@ class FusionRing(WeylCharacterRing):
                 Finite family {(0, 0, 0, 0): F41(0,0,0,0), (1, 0, 0, 0): F41(0,0,0,1)}
                 sage: F41(0,0,0,1).twist()
                 4/5
+
             """
             if not self.is_simple_object():
                 raise ValueError("quantum twist is only available for simple objects of a FusionRing")

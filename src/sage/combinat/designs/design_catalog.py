@@ -105,7 +105,7 @@ lazy_import('sage.combinat.designs.difference_family', 'difference_family')
 lazy_import('sage.combinat.designs.difference_matrices', 'difference_matrix')
 
 lazy_import('sage.combinat.designs.bibd',
-            ('balanced_incomplete_block_design', 'steiner_triple_system'))
+            ('balanced_incomplete_block_design', 'steiner_triple_system', 'biplane'))
 lazy_import('sage.combinat.designs.resolvable_bibd',
             ('resolvable_balanced_incomplete_block_design',
              'kirkman_triple_system'))

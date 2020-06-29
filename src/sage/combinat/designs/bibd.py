@@ -60,6 +60,49 @@ from sage.arith.all import binomial, is_prime_power
 from .group_divisible_designs import GroupDivisibleDesign
 from .designs_pyx import is_pairwise_balanced_design
 
+def biplane(n, existence=False):
+    r"""
+    Return a biplane of order `n`.
+
+    A biplane of order `n` is a symmetric `(1+\frac {(n+1)(n+2)} {2}, n+2, 2)`-BIBD.
+    A symmetric (or square) `(v,k,\lambda)`-BIBD is a `(v,k,\lambda)`-BIBD with `v` blocks.
+
+    INPUT:
+
+    - ``n`` -- (integer) order of the biplane
+
+     - ``existence`` (boolean) -- instead of building the design, return:
+
+        - ``True`` -- meaning that Sage knows how to build the design
+
+        - ``Unknown`` -- meaning that Sage does not know how to build the
+          design, but that the design may exist (see :mod:`sage.misc.unknown`).
+
+        - ``False`` -- meaning that the design does not exist.
+
+    .. SEEALSO:
+
+        * :func:`balanced_incomplete_block_design`
+
+    EXAMPLES::
+
+        sage: designs.biplane(4)
+        (16,6,2)-Balanced Incomplete Block Design
+        sage: designs.biplane(7, existence=True)
+        True
+
+    TESTS::
+
+    Check all knwon biplanes::
+
+        sage: [n for n in [0,1,2,3,4,7,9,11] if designs.biplane(n, existence=True) is True]
+        [0,1,2,3,4,7,9,11]
+    """
+    k = n+2
+    v = (k*(k-1))//2 + 1
+    return balanced_incomplete_block_design(v, k, lambd=2, existence=existence)
+
+
 def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=False):
     r"""
     Return a BIBD of parameters `v,k, \lambda`.

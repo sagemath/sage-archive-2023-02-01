@@ -90,13 +90,18 @@ def biplane(n, existence=False):
         (16,6,2)-Balanced Incomplete Block Design
         sage: designs.biplane(7, existence=True)
         True
+        sage: designs.biplane(11)
+        (79,13,2)-Balanced Incomplete Block Design
 
     TESTS::
+
+        sage: designs.biplane(9)
+        (56,11,2)-Balanced Incomplete Block Design
 
     Check all knwon biplanes::
 
         sage: [n for n in [0,1,2,3,4,7,9,11] if designs.biplane(n, existence=True) is True]
-        [0,1,2,3,4,7,9,11]
+        [0, 1, 2, 3, 4, 7, 9, 11]
     """
     k = n+2
     v = (k*(k-1))//2 + 1

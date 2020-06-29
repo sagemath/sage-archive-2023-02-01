@@ -5,6 +5,7 @@ include sage/env.py        # FIXME: sage_setup must be changed so it does not de
 include sage/version.py    # FIXME: likewise
 
 global-include all__sage_objects.py
+global-include all__sage_categories.py
 
 graft sage/structure
 graft sage/categories
@@ -39,6 +40,8 @@ graft sage/docs                          # dep of sage/misc/lazy_import
 include sage/misc/persist.*
 include sage/misc/sage_unittest.*        # dep of sage/misc/persist
 
+include sage/misc/prandom.*              # dep of sage/rings/ring
+
 include sage/ext/__init__.py
 include sage/ext/stdsage.pxd
 include sage/sets/__init__.py
@@ -56,7 +59,7 @@ graft sage/libs/gmp
 # Extra in sage_categories:
 include sage/rings/ideal.*
 include sage/rings/ring.*
-# include sage/rings/integer*.*     # depends on cypari, flint
+# include sage/rings/integer*.*     # depends on cypari, flint - https://trac.sagemath.org/ticket/30022
 # include sage/rings/rational*.*
 # include sage/rings/infinity.*
 

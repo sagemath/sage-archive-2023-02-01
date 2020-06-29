@@ -255,7 +255,6 @@ class FusionRing(WeylCharacterRing):
         tester = self._tester(**options)
         c = self.global_q_dimension()
         i0 = self.one()
-        S = tester.some_elements()
         from sage.misc.misc import some_tuples
         B = self.basis()
         for x,y,z in some_tuples(B, 3, tester._max_runs):

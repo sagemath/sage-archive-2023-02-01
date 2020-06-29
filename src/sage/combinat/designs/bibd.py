@@ -569,7 +569,8 @@ def BIBD_from_difference_family(G, D, lambd=None, check=True):
         GG = Gset.copy()
         while GG:
             g = GG.pop()
-            if S: GG.difference_update(mul(s,g) for s in S)
+            if S:
+                GG.difference_update(mul(s,g) for s in S)
             bibd.append([p_to_i[mul(i,g)] for i in b])
 
     if check:

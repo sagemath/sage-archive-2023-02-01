@@ -4593,57 +4593,75 @@ def BIBD_79_13_2():
         sage: D.is_t_design(t=2, v=79, k=13, l=2)
         True
     """
+    from sage.libs.gap.libgap import libgap
     from .incidence_structures import IncidenceStructure
-    Gelems = [(x,y,z) for x in range(11) for y in range(5) for z in range(2)]
 
-    def Gop(a,b,c,x,y,z):
-        # First normalise the input
-        a = a%11
-        b = b%5
-        c = c%2
-        x = x%11
-        y = y%5
-        z = z%2
-        # We know: x y = y x^4
-        #          y x = x^3 y
-        #          z x = x^10 z
-        #          x z = z x^-1
-        #          z y = y z
-        return ((a + (3**b) * (10**c) * x)%11, (b+y)%5, (z+c)%2)
+    g11 = libgap.Z(11)  # generator for GF(11)
+    one = g11**0
+    zero = 0*g11
 
-    # P(i,a,b,c) represents P_i x^a*y^b*z^c
-    # i.e. we compute the action of x^a*y^b*z^c on P_i
-    def P(i,x,y,z):
-        x = x%11
-        y = y%5
-        z = z%2
-        if i == 1: return (1, (0, 0, z))
-        if i == 2: return (2, (((4**y)*(1-2*z)*x)%11, 0, 0))
-        if i == 3: return (3, (((4**y)*(1-2*z)*x)%11, 0, 0))
-        if i == 4: return (4, (((1-2*z)*x)%11, y, 0))
+    X = libgap([[one, one], [zero, one]])
+    Y = libgap([[5*one, zero], [zero, 9*one]])
+    Z = libgap([[-one, zero], [zero, one]])
+    I = libgap([[one, zero], [zero, one]])
 
-    points = {P(i,x,y,z) for i in range(1,5) for x in range(11) for y in range(5) for z in range(2)}
-    Gaction = {(i,(a,b,c)): {(x,y,z): P(i,*Gop(a,b,c,x,y,z)) for x,y,z in Gelems} for a,b,c in Gelems for i in [1,2,3,4]}
+    G = libgap.Group(X, Y, Z)
+    H1 = libgap.Group(X, Y)
+    H23 = libgap.Group(Y, Z)
+    H4 = libgap.Group(Z)
 
-    B1 = [P(1,0,0,0), P(1,0,0,1)] + [P(2,x,0,0) for x in range(11)]
-    B2 = [P(1,0,0,0), P(1,0,0,1)] + [P(3,x,0,0) for x in range(11)]
-    B3 = [P(1,0,0,0), P(2,0,0,0), P(3,0,0,0)] + [P(4,1,y,0) for y in range(5)] + [P(4,4,y,0) for y in range(5)]
-    B4 = [P(2,2,0,0), P(2,-2,0,0), P(3,5,0,0), P(3,-5,0,0), P(4,0,0,0), P(4,1,2,0), P(4,-1,2,0), P(4,1,1,0), P(4,-1,1,0), P(4,5,1,0), P(4,-5,1,0), P(4,5,4,0), P(4,-5,4,0)]
+    P1Action = G.FactorCosetAction(H1)
+    P23Action = G.FactorCosetAction(H23)
+    P4Action = G.FactorCosetAction(H4)
 
-    B3Orbit = set()
-    for g in Gelems:
-        B3g = frozenset([Gaction[p][g] for p in B3])
-        B3Orbit.add(B3g)
+    libgap.set_global("p1Act", P1Action)
+    libgap.set_global("p23Act", P23Action)
+    libgap.set_global("p4Act", P4Action)
 
-    B4Orbit = set()
-    for g in Gelems:
-        B4g = frozenset([Gaction[p][g] for p in B4])
-        B4Orbit.add(B4g)
+    get_action = libgap.eval("""ChooseMyAction := function(i)
+        if i = 1 then
+            return p1Act;
+        elif i = 4 then
+            return p4Act;
+        else
+            return p23Act;
+        fi;
+    end;""")
 
-    blocks = [B1,B2] + list(B3Orbit) + list(B4Orbit)
+    action = libgap.eval("""MyAction := function(pair, g)
+        local i, C, hom;
+        i := pair[1];
+        C := pair[2];
+        hom := ChooseMyAction(i);
+        return [i, C^(ImageElm(hom,g))];
+    end;""")
 
-    D = IncidenceStructure(blocks)
-    return D._blocks
+    p1 = (1,1)
+    p2 = (2,1)
+    p3 = (3,1)
+    p4 = (4,1)
+
+    B1 = libgap.Set([p1, action(p1, Z)] + [action(p2, X**i) for i in range(11)])
+    B2 = libgap.Set([p1, action(p1, Z)] + [action(p3, X**i) for i in range(11)])
+    B3 = libgap.Set([p1, p2, p3] + [action(p4, X * Y**i) for i in range(5)] + [action(p4, X**4 * Y**i) for i in range(5)])
+    B4 = libgap.Set([action(p2, X**2), action(p2, X**-2), action(p3, X**5), action(p3, X**-5), p4,
+          action(p4, X * Y**2), action(p4, X**-1 * Y**2), action(p4, X*Y), action(p4, X**-1 * Y),
+          action(p4, X**5 * Y), action(p4, X**-5 * Y), action(p4, X**5 * Y**4), action(p4, X**-5 * Y**4)])
+
+    actionOnSet = libgap.eval("""MyActionOnSets := function(block, g)
+        local set, p, q;
+        set := Set([]);
+        for p in block do
+            q := MyAction(p, g);
+            AddSet(set, q);
+        od;
+        return set;
+    end;""")
+
+    B3Orbit = libgap.Orbit(G, B3, actionOnSet)
+    B4Orbit = libgap.Orbit(G, B4, actionOnSet)
+    blocks = [B1, B2] + list(B3Orbit) + list(B4Orbit)
+    return blocks
 
 def BIBD_56_11_2():
     r"""

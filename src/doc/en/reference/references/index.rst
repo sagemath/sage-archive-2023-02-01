@@ -2632,6 +2632,9 @@ REFERENCES:
              Algebras, J. Ramanujan Math. Soc., 25 (2010),
              113--145. :arxiv:`0309168v3` :mathscinet:`MR2642451`
 
+.. [HLF] :wikipedia:`Hook_length_formula`, accessed 27th
+                 June 2020.
+
 .. [HL1999] \L. Heath and N. Loehr (1999).  New algorithms for
             generating Conway polynomials over finite fields.
             Proceedings of the tenth annual ACM-SIAM symposium on
@@ -3387,6 +3390,10 @@ REFERENCES:
             Algebras and modules, II (Geiranger, 1996), 365–386,
             CMS Conf. Proc., **24**, Amer. Math. Soc., Providence, RI, 1998.
             :mathscinet:`MR1648638`
+
+.. [KY2019] Kim, Jang Soo, and Meesue Yoo. 
+            "Hook length property of d-complete posets via q-integrals." 
+            Journal of Combinatorial Theory, Series A 162 (2019): 167-221.
 
 .. [KZ2003] \M. Kontsevich, A. Zorich "Connected components of the
             moduli space of Abelian differentials with prescripebd
@@ -4340,6 +4347,15 @@ REFERENCES:
              Geometry, Contemp. Math., 605, Amer. Math. Soc.,
              Providence, RI, 2013.
              :arxiv:`1112.6163`
+
+.. [Proc1999] R. A. Proctor. Minuscule elements of Weyl groups, the numbers game, 
+              and d-complete posets. J. Algebra, 213(1):272–303, 1999.
+
+.. [PDynk1999] R. A. Proctor. Dynkin diagram classification of λ-minuscule Bruhat lattices 
+               and of d-complete posets. J. Algebraic Combin., 9(1):61–94, 1999.
+
+.. [Proc2014] R. A. Proctor. d-complete posets generalize Young diagrams for the hook product 
+              formula: Partial Presentation of Proof. RIMS Kˆokyˆuroku, 1913:120–140, 2014.
 
 .. [PR2003] Perrin-Riou, *Arithmétique des courbes elliptiques à
             réduction supersingulière en `p`*,

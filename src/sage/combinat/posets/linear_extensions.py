@@ -35,8 +35,8 @@ from sage.graphs.digraph import DiGraph
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.structure.list_clone import ClonableArray
-from sage.misc.all import prod
-from sage.arith.all import factorial
+from sage.misc.misc_c import prod
+from sage.functions.other import factorial
 
 
 class LinearExtensionOfPoset(ClonableArray,

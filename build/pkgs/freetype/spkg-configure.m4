@@ -6,7 +6,8 @@ SAGE_SPKG_CONFIGURE([freetype], [
       sage_spkg_install_freetype=yes
     else
       AC_MSG_RESULT([no])
-      PKG_CHECK_MODULES([FREETYPE], [freetype2 >= 2.4], [], [sage_spkg_install_freetype=yes])
+      dnl freetype versions are libtool's ones, cf trac #30014
+      PKG_CHECK_MODULES([FREETYPE], [freetype2 >= 16.1], [], [sage_spkg_install_freetype=yes])
     fi
     if test x$sage_spkg_install_freetype = xyes; then
       AC_SUBST(SAGE_FREETYPE_PREFIX, ['$SAGE_LOCAL'])

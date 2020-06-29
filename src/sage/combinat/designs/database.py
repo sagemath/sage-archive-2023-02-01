@@ -4588,8 +4588,8 @@ def BIBD_79_13_2():
 
     EXAMPLES:
 
-        sage: from sage.combinat.designs.database import biplane_79_13_2
-        sage: D = IncidenceStructure(biplane_79_13_2())
+        sage: from sage.combinat.designs.database import BIBD_79_13_2
+        sage: D = IncidenceStructure(BIBD_79_13_2())
         sage: D.is_t_design(t=2, v=79, k=13, l=2)
         True
     """
@@ -4657,8 +4657,8 @@ def BIBD_56_11_2():
 
     EXAMPLES:
 
-        sage: from sage.combinat.designs.database import biplane_56_11_2
-        sage: D = IncidenceStructure(biplane_56_11_2())
+        sage: from sage.combinat.designs.database import BIBD_56_11_2
+        sage: D = IncidenceStructure(BIBD_56_11_2())
         sage: D.is_t_design(t=2, v=56, k=11, l=2)
         True
     """

@@ -784,7 +784,8 @@ class SchemeMorphism_spec(SchemeMorphism):
             sage: f(X.an_element())    # indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: inverse not implemented for morphisms of
+            Rational Field
         """
         # By virtue of argument preprocessing in __call__, we can assume that
         # x is a topological scheme point of self

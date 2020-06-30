@@ -385,7 +385,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
         (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
         sage: v[3].parent()
         Integer Ring
-        sage: v = vector([float(23.4), int(2), complex(2+7*I), long(1)]); v
+        sage: v = vector([float(23.4), int(2), complex(2+7*I), 1]); v
         (23.4, 2.0, 2.0 + 7.0*I, 1.0)
         sage: v[1].parent()
         Complex Double Field
@@ -2698,14 +2698,13 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         Return the matrix which describes a cross product
         between ``self`` and some other vector.
 
-        This operation is sometimes written using the `hat operator`_.
+        This operation is sometimes written using the hat operator:
+        see :wikipedia:`Hat_operator#Cross_product`.
         It is only defined for vectors of length 3 or 7.
         For a vector `v` the cross product matrix `\hat{v}`
         is a matrix which satisfies `\hat{v} \cdot w = v \times w`
         and also `w \cdot \hat{v} = w \times v` for all vectors `w`.
         The basis vectors are assumed to be orthonormal.
-
-        .. _hat operator: :wikipedia:`Hat_operator#Cross_product`
 
         OUTPUT:
 

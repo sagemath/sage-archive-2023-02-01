@@ -5232,12 +5232,12 @@ class Graph(GenericGraph):
 
           - ``'Floyd-Warshall-Cython'`` - a Cython implementation of the
             Floyd-Warshall algorithm. Works only if ``by_weight==False`` and
-            ``v is None`` or ``v==list(self)``.
+            ``v is None`` or ``v`` should contain all vertices of ``self``.
 
           - ``'Floyd-Warshall-Python'`` - a Python implementation of the
             Floyd-Warshall algorithm. Works also with weighted graphs, even with
             negative weights (but no negative cycle is allowed). However, ``v``
-            must be ``None`` or ``v==list(self)``.
+            must be ``None`` or ``v`` should contain all vertices of ``self``.
 
           - ``'Dijkstra_NetworkX'`` - the Dijkstra algorithm, implemented in
             NetworkX. It works with weighted graphs, but no negative weight is
@@ -5248,7 +5248,8 @@ class Graph(GenericGraph):
 
           - ``'Johnson_Boost'`` - the Johnson algorithm, implemented in
             Boost (works also with negative weights, if there is no negative
-            cycle). Works only if ``v is None`` or ``v == list(self)`` .
+            cycle). Works only if ``v is None`` or ``v`` should contain all
+            vertices of ``self``.
 
           - ``'From_Dictionary'`` - uses the (already computed) distances, that
             are provided by input variable ``dist_dict``.

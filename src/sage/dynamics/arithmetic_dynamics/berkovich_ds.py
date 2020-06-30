@@ -187,6 +187,28 @@ class DynamicalSystem_Berkovich(Element):
         """
         return self._domain
 
+    def __getitem(self, i):
+        """
+        Returns the ith polynomial.
+
+        INPUT:
+
+        - ``i`` -- an integer
+
+        OUTPUT:
+
+        - element of polynomial ring or a fraction field of a polynomial ring
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+            sage: f = DynamicalSystem_projective([x^2 + y^2, 2*y^2])
+            sage: g = DynamicalSystem_Berkovich(f)
+            sage: g[0]
+            x^2 + y^2
+        """
+        return self._polys[i]
+
     def defining_polynomials(self):
         """
         Return the defining polynomials.
@@ -331,6 +353,61 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         Python constructor.
         """
         DynamicalSystem_Berkovich.__init__(self, dynamical_system, domain)
+
+    """
+    def scale_by(self, t):
+        ""
+        Scales each coordinate by a factor of ``t``.
+
+        INPUT:
+
+        - ``t`` -- a ring element.
+
+        OUTPUT:
+
+        - None.
+        ""
+        field = self.domain().base_ring()
+        R = field['z']
+        x,y = self._polys[0].variables()[0], self._polys[0].variables()[1]
+        z = R.gens()[0]
+        old_polys = self._polys[:]
+        for i in range(len(old_polys)):
+            old_polys[i] = old_polys[i].subs({x:z,})
+        new_polys = []
+        for i in self:
+            new_polys.append(i*t.numerator())
+    """
+
+    def conjugate(self, M, adjugate=False):
+        r"""
+        Conjugate this dynamical system by ``M``, i.e. `M^{-1} \circ f \circ M`.
+
+        If possible the new map will be defined over the same space.
+        Otherwise, will try to coerce to the base ring of ``M``.
+
+        INPUT:
+
+        - ``M`` -- a square invertible matrix
+
+        - ``adjugate`` -- (default: ``False``) boolean, also classically
+          called adjoint, takes a square matrix ``M`` and finds the transpose
+          of its cofactor matrix. Used for conjugation in place of inverse
+          when specified ``'True'``. Functionality is the same in projective space.
+
+        OUTPUT: a dynamical system
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+            sage: f = DynamicalSystem_projective([x^2 + y^2, 2*y^2])
+            sage: g = DynamicalSystem_Berkovich(f)
+            sage: g.conjugate(Matrix([[1,1],[0,1]]))
+            Dynamical system of Projective Berkovich line over Cp(3) of precision 20 induced by the map
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 + (2 + O(3^20))*x*y : (2 + O(3^20))*y^2)
+        """
+        return DynamicalSystem_Berkovich(self._system.conjugate(M,adjugate))
 
     def dehomogenize(self, n):
         """

@@ -59,9 +59,7 @@ Functions
 from __future__ import print_function, absolute_import
 
 from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_matrix,
-                                                     OA_from_Vmt,
                                                      QDM_from_Vmt,
-                                                     OA_from_wider_OA,
                                                      OA_from_PBD,
                                                      OA_n_times_2_pow_c_from_matrix,
                                                      orthogonal_array)
@@ -781,7 +779,6 @@ def OA_9_120():
         sage: designs.orthogonal_arrays.is_available(9,120)
         True
     """
-    from .incidence_structures import IncidenceStructure
     RBIBD_120 = RBIBD_120_8_1()
     equiv = [RBIBD_120[i*15:(i+1)*15] for i in range(17)]
 
@@ -3161,7 +3158,6 @@ def DM_12_6_1():
       :doi:`10.1016/0012-365X(75)90040-0`,
       Discrete Mathematics, Volume 11, Issue 3, 1975, Pages 255-369.
     """
-    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(2).cartesian_product(AdditiveCyclic(6))
     M = [[(0,0),(0,0),(0,0),(0,0),(0,0),(0,0)],
@@ -3699,7 +3695,6 @@ def DM_52_6_1():
 
         sage: _ = designs.difference_matrix(52,6)
     """
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
     F4  = FiniteField(4,'z')
     G13 = FiniteField(13)
@@ -3731,7 +3726,6 @@ def DM_52_6_1():
     Mb=[[(0,0)]*6]
 
     from itertools import product
-    p = lambda x,y : G(tuple([x*yy for yy in G(y)]))
 
     def t1(i,R):
         if i > 1:
@@ -4594,7 +4588,6 @@ def BIBD_79_13_2():
         True
     """
     from sage.libs.gap.libgap import libgap
-    from .incidence_structures import IncidenceStructure
 
     g11 = libgap.Z(11)  # generator for GF(11)
     one = g11**0
@@ -4603,7 +4596,6 @@ def BIBD_79_13_2():
     X = libgap([[one, one], [zero, one]])
     Y = libgap([[5*one, zero], [zero, 9*one]])
     Z = libgap([[-one, zero], [zero, one]])
-    I = libgap([[one, zero], [zero, one]])
 
     G = libgap.Group(X, Y, Z)
     H1 = libgap.Group(X, Y)
@@ -4618,7 +4610,7 @@ def BIBD_79_13_2():
     libgap.set_global("p23Act", P23Action)
     libgap.set_global("p4Act", P4Action)
 
-    get_action = libgap.function_factory("""ChooseMyAction := function(i)
+    libgap.function_factory("""ChooseMyAction := function(i)
         if i = 1 then
             return p1Act;
         elif i = 4 then
@@ -4666,7 +4658,7 @@ def BIBD_79_13_2():
     B4Orbit = libgap.Orbit(G, B4, actionOnSet)
     blocks = [B1, B2] + list(B3Orbit) + list(B4Orbit)
 
-    #clear gap variables
+    # clear gap variables
     libgap.unset_global("p1Act")
     libgap.unset_global("p23Act")
     libgap.unset_global("p4Act")

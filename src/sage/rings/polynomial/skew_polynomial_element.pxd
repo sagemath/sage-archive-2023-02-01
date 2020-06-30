@@ -8,22 +8,29 @@ cdef class SkewPolynomial(AlgebraElement):
     cdef _is_gen
 
     cdef long _hash_c(self)
-    cdef SkewPolynomial _new_c(self,list coeffs,Parent P,char check=*)
-    cpdef SkewPolynomial _new_constant_poly(self,RingElement a,Parent P,char check=*)
+    cdef SkewPolynomial _new_c(self, list coeffs, Parent P, char check=*)
+    cpdef SkewPolynomial _new_constant_poly(self, RingElement a, Parent P, char check=*)
     cpdef _neg_(self)
     cpdef _floordiv_(self, right)
     cpdef _mod_(self, right)
 
     cpdef bint is_zero(self)
     cpdef bint is_one(self)
-
+ 
     cpdef operator_eval(self, eval_pt)
+
+    cdef _left_quo_rem(self, SkewPolynomial other)
+    cdef _right_quo_rem(self, SkewPolynomial other)
+
+    cdef SkewPolynomial _left_lcm_cofactor(self, SkewPolynomial other)
+    cdef SkewPolynomial _right_lcm_cofactor(self, SkewPolynomial other)
 
     # Abstract methods
     cdef void _inplace_rmul(self, SkewPolynomial_generic_dense right)
     cdef void _inplace_pow(self, Py_ssize_t n)
     cpdef int degree(self)
     cpdef list coefficients(self, sparse=*)
+
 
 cdef class SkewPolynomial_generic_dense(SkewPolynomial):
     cdef list _coeffs
@@ -38,7 +45,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
     cpdef right_power_mod(self, exp, modulus)
     cpdef left_power_mod(self, exp, modulus)
 
+
 cdef class SkewPolynomialBaseringInjection(Morphism):
     cdef RingElement _an_element
     cdef object _new_constant_poly_
-

@@ -1267,7 +1267,7 @@ def diameter(G, algorithm=None, source=None):
     r"""
     Return the diameter of `G`.
 
-    This algorithm returns Infinity if the (di)graph is not connected. It can
+    This method returns Infinity if the (di)graph is not connected. It can
     also quickly return a lower bound on the diameter using the ``2sweep``,
     ``2Dsweep`` and ``multi-sweep`` schemes.
 
@@ -1447,6 +1447,118 @@ def diameter(G, algorithm=None, source=None):
         return +Infinity
     else:
         return int(LB)
+
+
+###########
+# Radius #
+###########
+
+def radius_DHV(G):
+    r"""
+    Return the radius of unweighted graph `G`.
+
+    This method computes the radius of unweighted undirected graph using the
+    algorithm given in [Dragan2018]_.
+
+    This method returns Infinity if graph is not connected.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.distances_all_pairs import radius_DHV
+        sage: G = graphs.PetersenGraph()
+        sage: radius_DHV(G)
+        2
+        sage: G = graphs.RandomGNP(20,0.3)
+        sage: from sage.graphs.distances_all_pairs import eccentricity
+        sage: radius_DHV(G) == min(eccentricity(G, algorithm='bounds'))
+        True
+
+    TESTS:
+
+        sage: G = Graph()
+        sage: radius_DHV(G)
+        0
+        sage: G = Graph(1)
+        sage: radius_DHV(G)
+        0
+        sage: G = Graph(2)
+        sage: radius_DHV(G)
+        +Infinity
+        sage: G = graphs.PathGraph(2)
+        sage: radius_DHV(G)
+        1
+        sage: G = DiGraph(1)
+        sage: radius_DHV(G)
+        Traceback (most recent call last):
+        ...
+        TypeError: this method works for unweighted undirected graphs only
+    """
+    if G.is_directed():
+        raise TypeError("this method works for unweighted undirected graphs only")
+
+    cdef uint32_t n = G.order()
+    if n <= 1:
+        return 0
+
+    cdef list int_to_vertex = list(G)
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
+
+    cdef uint32_t source, ecc_source
+    cdef uint32_t antipode, ecc_antipode
+    cdef uint32_t UB = UINT32_MAX
+    cdef uint32_t LB = 0
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *>mem.malloc(3 * n * sizeof(uint32_t))
+    if not distances:
+        raise MemoryError()
+
+    cdef uint32_t * waiting_list = distances + n
+
+    # For storing lower bound on eccentricity of nodes
+    cdef uint32_t * ecc_lower_bound = distances + 2 * n
+    memset(ecc_lower_bound, 0, n * sizeof(uint32_t))
+
+    cdef bitset_t seen
+    bitset_init(seen, n)
+
+    # Algorithm
+    source = 0
+    while LB < UB:
+        # 1) pick vertex with minimum eccentricity lower bound
+        # and compute its eccentricity
+        ecc_source = simple_BFS(sd, source, distances, NULL, waiting_list, seen)
+
+        if ecc_source == UINT32_MAX:  # Disconnected graph
+            break
+
+        UB = min(UB, ecc_source)  # minimum among exact computed eccentricities
+        if ecc_source == ecc_lower_bound[source]:
+            # we have found minimum eccentricity vertex and hence the radius
+            break
+
+        # 2) Take vertex at largest distance from source, called antipode (last
+        # vertex visited in simple_BFS), and compute its BFS distances.
+        # By definition of antipode, we have ecc_antipode >= ecc_source.
+        antipode = waiting_list[n-1]
+        ecc_antipode = simple_BFS(sd, antipode, distances, NULL, waiting_list, seen)
+
+        # 3) Use distances from antipode to improve eccentricity lower bounds.
+        # We also determine the next source
+        LB = UINT32_MAX
+        for v in range(n):
+            ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
+            if LB > ecc_lower_bound[v]:
+                LB = ecc_lower_bound[v]
+                source = v  # vertex with minimum eccentricity lower bound
+
+    bitset_free(seen)
+    if UB == UINT32_MAX:
+        from sage.rings.infinity import Infinity
+        return +Infinity
+
+    return UB
 
 ################
 # Wiener index #

@@ -295,6 +295,9 @@ REFERENCES:
              Math., Combinatorics (T. S. Motzkin, ed.), vol. 19, AMS,
              Providence 1971
 
+.. [At1990] \M. D. Atkinson. *On computing the number of linear extensions of a
+            tree.* Order 7 (1990) 20-25.
+
 .. [At1992] \M. D. Atkinson. *Solomon's descent algebra revisited.*
             Bull. London Math. Soc. 24 (1992) 545-551.
             http://www.cs.otago.ac.nz/staffpriv/mike/Papers/Descent/DescAlgRevisited.pdf
@@ -1394,6 +1397,10 @@ REFERENCES:
             Ann. Combinatorics (6), 2002 pp. 125-145.
             :doi:`10.1007/PL00012580`.
 
+.. [CL2017] Xavier Caruso and Jérémy Le Borgne,
+            *A new faster algorithm for factoring skew polynomials over finite fields*
+            J. Symbolic Comput. 79 (2017), 411-443.
+
 .. [CL2013] Maria Chlouveraki and Sofia Lambropoulou. *The
             Yokonuma-Hecke algebras and the HOMFLYPT
             polynomial*. (2015) :arxiv:`1204.1871v4`.
@@ -1454,6 +1461,14 @@ REFERENCES:
 .. [CN2019] \B. Chakraborty, M. Nandi
             "Orange"
             https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/orange-spec.pdf
+
+.. [CoCo1] J.H. Conway, H.S.M. Coxeter
+    *Triangulated polygons and frieze patterns*,
+    The Mathematical Gazette (1973) 57 p.87-94
+
+.. [CoCo2] J.H. Conway, H.S.M. Coxeter
+    *Triangulated polygons and frieze patterns (continued)*,
+    The Mathematical Gazette (1973) 57 p.175-183
 
 .. [Co1984] \J. Conway, Hexacode and tetracode - MINIMOG and
             MOG. *Computational group theory*, ed. M. Atkinson,
@@ -1569,7 +1584,10 @@ REFERENCES:
              Curves*. Cambridge University Press, 1997.
 
 .. [Cre2003] Cressman, Ross. *Evolutionary dynamics and extensive form
-            games*. MIT Press, 2003.
+             games*. MIT Press, 2003.
+
+.. [Cre2020] Creedon, Samuel. *The center of the partition algebra*.
+             Preprint, :arxiv:`2005.00600` (2020).
 
 .. [Cro1983] \M. Crochemore, Recherche linéaire d'un carré dans un mot,
              C. R. Acad. Sci. Paris Sér. I Math. 296 (1983) 14
@@ -1866,16 +1884,17 @@ REFERENCES:
 .. [DR2002] Joan Daemen, Vincent Rijmen. *The Design of
             Rijndael*. Springer-Verlag Berlin Heidelberg, 2002.
 
+.. [Dragan2018] Feodor Dragan, Michel Habib, Laurent Viennot.
+               *Revisiting Radius, Diameter, and all Eccentricity Computation
+               in Graphs through Certificates*.
+               http://arxiv.org/abs/1803.04660
+
 .. [Dro1987] Carl Droms. *Isomorphisms of graph groups*. Proc. of the
              Amer. Math. Soc. **100**
              (1987). No 3. http://educ.jmu.edu/~dromscg/vita/preprints/Isomorphisms.pdf
 
 .. [DS1994] J. Dalbec and B. Sturmfels. Invariant methods in discrete and computational geometry,
             chapter Introduction to Chow forms, pages 37-58. Springer Netherlands, 1994.
-
-.. [DS2010] \K. Duggal, B. Sahin,
-            *Differential Geometry of Lightlike Submanifolds*,
-            Frontiers in Mathematics, 2010.
 
 .. [DS2004] Dan Gusfield, Jens Stoye,
             Linear time algorithms for finding and representing all the tandem repeats in a string,
@@ -1884,6 +1903,14 @@ REFERENCES:
             2004,
             Pages 525-546,
             https://doi.org/10.1016/j.jcss.2004.03.004.
+
+.. [DS2009] \W. Decker, F.-O. Schreyer,
+            *Varieties, Gröbner Bases, and Algebraic Curves*, 2009.
+            https://www.math.uni-sb.de/ag/schreyer/images/PDFs/teaching/ws1617ag/book.pdf
+
+.. [DS2010] \K. Duggal, B. Sahin,
+            *Differential Geometry of Lightlike Submanifolds*,
+            Frontiers in Mathematics, 2010.
 
 .. [Du2001] \I. Duursma, "From weight enumerators to zeta functions", in
             Discrete Applied Mathematics, vol. 111, no. 1-2,
@@ -1971,6 +1998,9 @@ REFERENCES:
             Version
             1.3". 2013. http://www.wolfgang-ehrhardt.de/specialfunctions.pdf.
 
+.. [EL2002] Ekedahl, Torsten & Laksov, Dan. (2002). *Splitting algebras, Symmetric functions and
+            Galois Theory*. J. Algebra Appl. 4, :doi:`10.1142/S0219498805001034`
+
 .. [EM2001] Pavel Etingof and Xiaoguang Ma.
             *Lecture notes on Cherednik algebras*.
             http://www-math.mit.edu/~etingof/73509.pdf :arxiv:`1001.0432`.
@@ -1978,6 +2008,13 @@ REFERENCES:
 .. [EMMN1998] \P. Eaded, J. Marks, P.Mutzel, S. North.
               *Fifth Annual Graph Drawing Contest*;
               http://www.merl.com/papers/docs/TR98-16.pdf
+
+.. [Eny2012] \J. Enyang. *Jucys-Murphy elements and a presentation
+             for the partition algebra*. J. Algebraic Combin.
+             **37** (2012) no 3, 401--454.
+
+.. [Eny2013] \J. Enyang. *A seminormal form for partition algebras*.
+             J. Combin. Theory Series A **120** (2013) 1737--1785.
 
 .. [EP2013] David Einstein, James Propp. *Combinatorial,
             piecewise-linear, and birational homomesy for products of
@@ -2668,6 +2705,10 @@ REFERENCES:
 .. [Hoc] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid",
          preprint.
 
+.. [HJ18] Thorsten Holm and  Peter Jorgensen
+    *A p-angulated generalisation of Conway and Coxeter's theorem on frieze patterns*,
+    International Mathematics Research Notices (2018)
+
 .. [Hopcroft1973] J. E. Hopcroft and R. E. Tarjan. *Dividing a Graph into
                   Triconnected Components*, SIAM J. Comput., 2(3), 135–158
 
@@ -2733,6 +2774,9 @@ REFERENCES:
 .. [Hor1972] \E. Horowitz, "Algorithms for Rational Function Arithmetic
              Operations", Annual ACM Symposium on Theory of Computing, Proceedings of
              the Fourth Annual ACM Symposium on Theory of Computing, pp. 108--118, 1972
+
+.. [HR2005]  Tom Halverson and Arun Ram. *Partition algebras*.
+             Euro. J. Combin. **26** (2005) 869--921.
 
 .. [HR2016]  Clemens Heuberger and Roswitha Rissner, "Computing
              `J`-Ideals of a Matrix Over a Principal Ideal Domain",
@@ -3397,6 +3441,9 @@ REFERENCES:
              Mémoire de maîtrise en Mathématiques, Montréal, UQAM,
              2008, 109 pages.
 
+.. [Lak2010] Dan Laksov. *Splitting algebras and Gysin homomorphisms*.
+             Journal of Commutative Algebra, Volume 2, Number 3, Fall 2010
+
 .. [Lam1996] \T. K. Lam. *B and D analogues of stable Schubert polynomials and
              related insertion algorithms*. PhD Thesis, MIT, 1996.
 
@@ -3679,6 +3726,9 @@ REFERENCES:
 .. [LT2009] \G. I. Lehrer and D. E. Taylor. *Unitary reflection
             groups*. Australian Mathematical Society Lecture
             Series, 2009.
+
+.. [LT2012] Dan Laksov, Anders Thorup. *Splitting algebras and Schubert calculus*,
+            Indiana Univ. Math. J. 61 (2012), 1253-1312 :doi:`10.1512/iumj.2012.61.4791`
 
 .. [DeLuca2006] \A. De Luca, *Pseudopalindrome closure operators in free
               monoids*, Theoret. Comput. Sci. 362 (2006) 282--300.
@@ -5181,6 +5231,9 @@ REFERENCES:
              height on elliptic curves over number fields, Math. Comp. 79
              (2010), pages 2431-2449.
 
+.. [Tho2011] Anders Thorup. *ON THE INVARIANTS OF THE SPLITTING ALGEBRA*,
+             2011, :arxiv:`1105.4478`
+
 .. [TIDES] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. TIDES tutorial:
            Integrating ODEs by using the Taylor Series Method
            (http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
@@ -5370,6 +5423,10 @@ REFERENCES:
 
 .. [Wer1998] Annette Werner, Local heights on abelian varieties and
              rigid analytic uniformization, Doc. Math. 3 (1998), 301-319.
+
+.. [Wes2017] Bruce Westbury.
+             *Coboundary categories and local rules*,
+             The Electronic Journal of Combinatorics, *25* (2018)
 
 .. [WFYTP2008] \D. Watanable, S. Furuya, H. Yoshida, K. Takaragi, and B. Preneel,
                *A new keystream generator MUGI*; in

@@ -5,7 +5,7 @@ dnl Implement cases for what to do on different options here
             AC_CHECK_HEADER(gmp.h, [], [sage_spkg_install_mpir=yes])
             AC_CHECK_HEADER(gmpxx.h, [], [sage_spkg_install_mpir=yes])
             dnl mpq_cmp_z appeared in GMP 6.1.0 and is used by pynac
-            AC_SEARCH_LIBS([__gmpq_cmp_z], [gmp], [break],
+            AC_SEARCH_LIBS([__gmpq_cmp_z], [gmp], [],
                 [sage_spkg_install_mpir=yes])
             SAGE_MP_LIBRARY=mpir
             ;;

@@ -1912,6 +1912,9 @@ REFERENCES:
             *Differential Geometry of Lightlike Submanifolds*,
             Frontiers in Mathematics, 2010.
 
+.. [DSK2006] \A. De Sole and V. Kac. "Finite vs Affine W-algebras". Jpn. J. Math. 
+             (2006) vol. 1, no. 1, pp 137--261
+
 .. [Du2001] \I. Duursma, "From weight enumerators to zeta functions", in
             Discrete Applied Mathematics, vol. 111, no. 1-2,
             pp. 55-73, 2001.
@@ -3052,6 +3055,9 @@ REFERENCES:
 .. [Ka1990] Victor G. Kac. *Infinite-dimensional Lie Algebras*. Third
             edition. Cambridge University Press, Cambridge, 1990.
 
+.. [Kac1997] \V. Kac, "Vertex algebras for beginners". Second Edition. vol 10. 
+             university lecture series. AMS, Cambridge, 1997. 
+
 .. [Kal1992] \B. Kaliski,
              *The MD2 message-digest algorithm*; in
              RFS 1319, (1992).
@@ -3521,6 +3527,9 @@ REFERENCES:
 
 .. [Li1995b] \P. Littelmann, Paths and root operators in representation
              theory. Ann. of Math. (2) 142 (1995), no. 3, 499-525.
+
+.. [Li2005] \H. Li, *Abelianizing vertex algebras*. Comm. Math. Phys. vol. 259,
+             no. 2, pp. 391--411 (2005)
 
 .. [Lic1977] \A. Lichnerowicz, *Les variétés de Poisson et leurs
              algèbres de Lie associées*, Journal of Differential

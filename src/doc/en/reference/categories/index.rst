@@ -130,6 +130,7 @@ Individual Categories
    sage/categories/left_modules
    sage/categories/lie_algebras
    sage/categories/lie_algebras_with_basis
+   sage/categories/lie_conformal_algebras
    sage/categories/lie_groups
    sage/categories/loop_crystals
    sage/categories/l_trivial_semigroups

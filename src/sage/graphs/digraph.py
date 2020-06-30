@@ -2415,8 +2415,8 @@ class DiGraph(GenericGraph):
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
 
-          - ``'standard'``, ``'2Dsweep'``: these algorithms are implemented in
-            :func:`sage.graphs.distances_all_pairs.diameter`.
+          - ``'standard'``, ``'2Dsweep'``, ``'DiFUB'``: these algorithms are
+            implemented in :func:`sage.graphs.distances_all_pairs.diameter`.
             They work only if ``by_weight==False``. See the function
             documentation for more information.
 
@@ -2451,6 +2451,9 @@ class DiGraph(GenericGraph):
 
         TESTS::
 
+            sage: G = digraphs.Path(5)
+            sage: G.diameter(algorithm = 'DiFUB')
+            +Infinity
             sage: G = DiGraph()
             sage: G.diameter()
             Traceback (most recent call last):
@@ -2469,11 +2472,11 @@ class DiGraph(GenericGraph):
             by_weight = True
 
         if algorithm is None and not by_weight:
-            algorithm = 'standard'
+            algorithm = 'DiFUB'
         elif algorithm == 'BFS':
             algorithm = 'standard'
 
-        if algorithm in ['standard', '2Dsweep']:
+        if algorithm in ['standard', '2Dsweep', 'DiFUB']:
             if by_weight:
                 raise ValueError("algorithm '" + algorithm + "' does not work" +
                                  " on weighted DiGraphs")

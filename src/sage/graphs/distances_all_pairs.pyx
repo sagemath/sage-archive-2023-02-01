@@ -1283,7 +1283,7 @@ cdef uint32_t diameter_DiFUB(short_digraph sd,
 
     - ``source`` -- starting node of the first BFS
 
-    TESTS:
+    TESTS::
 
     The diameter of a weakly connected digraph is infinity ::
 
@@ -1511,7 +1511,7 @@ def diameter(G, algorithm=None, source=None):
         sage: d1 == d2 and d1 == d3
         True
 
-    TESTS:
+    TESTS::
 
     This was causing a segfault. Fixed in :trac:`17873` ::
 

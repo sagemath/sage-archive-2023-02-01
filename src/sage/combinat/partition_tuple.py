@@ -1801,6 +1801,10 @@ class PartitionTuples(UniqueRepresentation, Parent):
         True
         sage: ( [] ) in PartitionTuples()
         True
+        sage: PartitionTuples(level=1, regular=(0,))
+        Partitions
+        sage: PartitionTuples(level=1, size=3, regular=(0,))
+        Partitions of the integer 3
 
     Check that :trac:`14145` has been fixed::
 
@@ -1843,6 +1847,9 @@ class PartitionTuples(UniqueRepresentation, Parent):
             if len(regular) != level:
                 raise ValueError("regular must be a list of length {}, got "\
                                  "{}".format(level,regular))
+        if regular == 0:
+            raise ValueError("regular must be a positive integer or a tuple"\
+                             "of non-negative integers")
         if level is None:
             if size is None:
                 if regular is None:
@@ -1857,11 +1864,11 @@ class PartitionTuples(UniqueRepresentation, Parent):
             if isinstance(regular, (list,tuple)):
                 regular = regular[0]
             if size is None:
-                if regular is None:
+                if regular is None or regular == 0:
                     return _Partitions
                 return RegularPartitions_all(regular)
 
-            if regular is None:
+            if regular is None or regular == 0:
                 return Partitions_n(size)
             return RegularPartitions_n(size, regular)
 
@@ -2683,6 +2690,9 @@ class RegularPartitionTuples_level(PartitionTuples_level):
 
         TESTS::
 
+            sage: RPT = PartitionTuples(level=2, regular=(0,0))
+            sage: RPT.category()
+            Category of infinite enumerated sets
             sage: RPT = PartitionTuples(level=4, regular=3)
             sage: TestSuite(RPT).run()
         """
@@ -2691,7 +2701,7 @@ class RegularPartitionTuples_level(PartitionTuples_level):
         if not isinstance(regular, tuple):
             #This should not happen if called from RegularPartitionTuples
             regular = (regular,)*level
-        if any (r > 1 for r in regular):
+        if any (r != 1 for r in regular):
             category = InfiniteEnumeratedSets()
         else:
             category = FiniteEnumeratedSets()

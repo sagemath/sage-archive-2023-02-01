@@ -161,8 +161,10 @@ class WeylCharacterRing(CombinatorialFreeModule):
         self.register_conversion(self.retract)
 
         # Record properties of the FusionRing
+        # mg = square of long to short root lengths
+        # nf = normalizing factor for the inner product
+        # fg = order of the fundamental group (except for Type B)
         if k is not None:
-            #TODO: implement conjugate functionality
             if ct[0] in ['A', 'D', 'E']:
                 self._m_g = 1
             elif ct[0] in ['B', 'C', 'F']:

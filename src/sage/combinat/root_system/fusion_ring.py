@@ -261,6 +261,75 @@ class FusionRing(WeylCharacterRing):
             v = sum(self.s_ij(x,w) * self.s_ij(y,w) * self.s_ij(z,w) / self.s_ij(i0,w) for w in B)
             tester.assertEqual(v, c * self.N_ijk(x,y,z))
 
+    def fusion_labels(self, labels=None, inject_variables=False):
+        r"""
+        Set the labels of the basis.
+
+        INPUT:
+
+        - ``labels`` -- (default: ``None``) a list of strings or string
+        - ``inject_variables`` -- (default: ``False``) if ``True``, then
+          inject the variable names into the global namespace; note that
+          this could override objects already defined
+
+        If ``labels`` is a list, the length of the list must equal the
+        number of basis elements. These become the names of
+        the basis elements.
+
+        If ``labels`` is a string, this is treated as a prefix and a
+        list of names is generated.
+
+        If ``labels`` is ``None``, then this resets the labels to the default.
+
+        EXAMPLES::
+
+            sage: A13 = FusionRing("A1", 3)
+            sage: A13.fusion_labels("x")
+            sage: fb = list(A13.basis()); fb
+            [x0, x1, x2, x3]
+            sage: Matrix([[x*y for y in A13.basis()] for x in A13.basis()])
+            [     x0      x1      x2      x3]
+            [     x1 x0 + x2 x1 + x3      x2]
+            [     x2 x1 + x3 x0 + x2      x1]
+            [     x3      x2      x1      x0]
+
+        We give an example where the variables are injected into the
+        global namepsace::
+
+            sage: A13.fusion_labels("y", inject_variables=True)
+            sage: y0
+            y0
+            sage: y0.parent() is A13
+            True
+
+        We reset the labels to the default::
+
+            sage: A13.fusion_labels()
+            sage: fb
+            [A13(0), A13(1), A13(2), A13(3)]
+            sage: y0
+            A13(0)
+        """
+        if labels is None:
+            # Remove the fusion labels
+            self._fusion_labels = None
+            return
+
+        B = self.basis()
+        if isinstance(labels, str):
+            labels = [labels + str(k) for k in range(len(B))]
+        elif len(labels) != len(B):
+            raise ValueError('invalid data')
+
+        d = {}
+        ac = self.simple_coroots()
+        for j, b in enumerate(self.get_order()):
+            t = tuple([b.inner_product(x) for x in ac])
+            d[t] = labels[j]
+            if inject_variables:
+                inject_variable(labels[j], B[b])
+        self._fusion_labels = d
+
     def field(self):
         r"""
         Return a cyclotomic field large enough to
@@ -383,7 +452,14 @@ class FusionRing(WeylCharacterRing):
             [  0   0   0   0   0 6/5]
         """
         B = self.basis()
-        return diagonal_matrix(B[x].twist() for x in self.get_order())
+        return diagonal_matrix(self.to_field(B[x].twist()) for x in self.get_order())
+
+    def cc_matrix(self):
+        r"""
+        Return the conjugation matrix, the permutation matrix
+        for the conjugation operation on basis elements.
+        """
+        return matrix([[i==j.dual() for i in self.get_order()] for j in self.get_order()])
 
     def q_dims(self):
         r"""
@@ -512,75 +588,6 @@ class FusionRing(WeylCharacterRing):
         b = self.basis()
         return matrix([[self.s_ij(b[x], b[y]) for x in self.get_order()] for y in self.get_order()])
 
-    def fusion_labels(self, labels=None, inject_variables=False):
-        r"""
-        Set the labels of the basis.
-
-        INPUT:
-
-        - ``labels`` -- (default: ``None``) a list of strings or string
-        - ``inject_variables`` -- (default: ``False``) if ``True``, then
-          inject the variable names into the global namespace; note that
-          this could override objects already defined
-
-        If ``labels`` is a list, the length of the list must equal the
-        number of basis elements. These become the names of
-        the basis elements.
-
-        If ``labels`` is a string, this is treated as a prefix and a
-        list of names is generated.
-
-        If ``labels`` is ``None``, then this resets the labels to the default.
-
-        EXAMPLES::
-
-            sage: A13 = FusionRing("A1", 3)
-            sage: A13.fusion_labels("x")
-            sage: fb = list(A13.basis()); fb
-            [x0, x1, x2, x3]
-            sage: Matrix([[x*y for y in A13.basis()] for x in A13.basis()])
-            [     x0      x1      x2      x3]
-            [     x1 x0 + x2 x1 + x3      x2]
-            [     x2 x1 + x3 x0 + x2      x1]
-            [     x3      x2      x1      x0]
-
-        We give an example where the variables are injected into the
-        global namepsace::
-
-            sage: A13.fusion_labels("y", inject_variables=True)
-            sage: y0
-            y0
-            sage: y0.parent() is A13
-            True
-
-        We reset the labels to the default::
-
-            sage: A13.fusion_labels()
-            sage: fb
-            [A13(0), A13(1), A13(2), A13(3)]
-            sage: y0
-            A13(0)
-        """
-        if labels is None:
-            # Remove the fusion labels
-            self._fusion_labels = None
-            return
-
-        B = self.basis()
-        if isinstance(labels, str):
-            labels = [labels + str(k) for k in range(len(B))]
-        elif len(labels) != len(B):
-            raise ValueError('invalid data')
-
-        d = {}
-        ac = self.simple_coroots()
-        for j, b in enumerate(self.get_order()):
-            t = tuple([b.inner_product(x) for x in ac])
-            d[t] = labels[j]
-            if inject_variables:
-                inject_variable(labels[j], B[b])
-        self._fusion_labels = d
-
     def global_q_dimension(self):
         r"""
         Return `\sum d_i^2`, where the sum is over all simple objects
@@ -592,6 +599,20 @@ class FusionRing(WeylCharacterRing):
             3
         """
         return sum(x.q_dimension()**2 for x in self.basis())
+
+    def D_plus(self):
+        r"""
+        Return `\sum d_i^2\theta_i` where `i` runs through the simple objects and
+        `theta_i` is the twist.
+        """
+        return sum((x.q_dimension())**2*self.to_field(x.twist()) for x in self.basis())
+
+    def D_minus(self):
+        r"""
+        Return `\sum d_i^2\theta_i^{-1}` where `i` runs through the simple objects and
+        `theta_i` is the twist.
+        """
+        return sum((x.q_dimension())**2*self.to_field(-x.twist()) for x in self.basis())
 
     class Element(WeylCharacterRing.Element):
         """

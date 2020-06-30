@@ -1,5 +1,5 @@
 r"""
-Atkin/Hecke series for overconvergent modular forms.
+Atkin/Hecke series for overconvergent modular forms
 
 This file contains a function :func:`~hecke_series` to compute the
 characteristic series `P(t)` modulo `p^m` of the Atkin/Hecke operator `U_p`
@@ -59,7 +59,7 @@ A list containing the characteristic series of the U_23 operator modulo 23^10 on
     + 29197235447073*x + 1, 32737396672905*x^4 + 36141830902187*x^3 + 16514246534976*x^2 + 38886059530878*x + 1]
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Alan Lauder <lauder@maths.ox.ac.uk>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -68,7 +68,7 @@ A list containing the characteristic series of the U_23 operator modulo 23^10 on
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
+
 from sage.functions.all import floor, ceil
 from sage.arith.all import valuation
 from sage.rings.all import ZZ, Zmod, Infinity, Integer
@@ -112,9 +112,10 @@ def compute_G(p, F):
     Fp = (F.truncate_powerseries(ceil(F.prec() / ZZ(p)))).V(p)
     return F / Fp
 
-def low_weight_bases(N,p,m,NN,weightbound):
+
+def low_weight_bases(N, p, m, NN, weightbound):
     r"""
-    Returns a list of integral bases of modular forms of level N and (even)
+    Return a list of integral bases of modular forms of level N and (even)
     weight at most ``weightbound``, as `q`-expansions modulo `(p^m,q^{NN})`.
 
     These forms are obtained by reduction mod `p^m` from an integral basis in
@@ -502,7 +503,7 @@ def complementary_spaces(N,p,k0,n,mdash,elldashp,elldash,modformsring,bound):
         [2 + 2*q + 14*q^2 + 19*q^3 + 18*q^4 + O(q^5)],
         [6 + 8*q + 10*q^2 + 23*q^3 + 4*q^4 + O(q^5)]]
     """
-    if modformsring == False:
+    if not modformsring:
         LWB = random_low_weight_bases(N,p,mdash,elldashp,bound)
     else:
         LWB,bound = low_weight_generators(N,p,mdash,elldashp)
@@ -1169,7 +1170,7 @@ def hecke_series(p,N,klist,m, modformsring = False, weightbound = 6):
         P = charpoly(A).reverse()
         Plist.append(P)
 
-    if oneweight == True:
+    if oneweight:
         return Plist[0]
     else:
         return Plist

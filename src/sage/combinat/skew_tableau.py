@@ -24,8 +24,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six import add_metaclass
-from six.moves import range, zip
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.parent import Parent
@@ -48,9 +46,9 @@ from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.words.words import Words
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class SkewTableau(ClonableList):
-    """
+class SkewTableau(ClonableList,
+        metaclass=InheritComparisonClasscallMetaclass):
+    r"""
     A skew tableau.
 
     Note that Sage by default uses the English convention for partitions and
@@ -77,7 +75,6 @@ class SkewTableau(ClonableList):
 
         sage: SkewTableau(chain=[[2], [2, 1], [3, 1], [4, 3, 2, 1]])
         [[None, None, 2, 3], [1, 3, 3], [3, 3], [3]]
-
     """
     @staticmethod
     def __classcall_private__(cls, st=None, expr=None, chain=None):
@@ -122,7 +119,7 @@ class SkewTableau(ClonableList):
             TypeError: 'tuple' object does not support item assignment
         """
         try:
-            st = map(tuple, st)
+            st = [tuple(t) for t in st]
         except TypeError:
             raise TypeError("each element of the skew tableau must be an iterable")
 
@@ -210,10 +207,21 @@ class SkewTableau(ClonableList):
             Traceback (most recent call last):
             ...
             TypeError: a skew tableau cannot have an empty list for a row
+
+            sage: s = SkewTableau([[1, None, None],[2, None],[3]])
+            Traceback (most recent call last):
+            ...
+            TypeError: not a valid skew tableau
         """
         for row in self:
             if not row:
                 raise TypeError("a skew tableau cannot have an empty list for a row")
+            inside = False
+            for x in row:
+                if x is not None:
+                    inside = True
+                elif inside:
+                    raise TypeError('not a valid skew tableau')
 
     def _repr_(self):
         """
@@ -503,7 +511,7 @@ class SkewTableau(ClonableList):
         return Permutation(word)
 
     def weight(self):
-        """
+        r"""
         Return the weight (aka evaluation) of the tableau ``self``.
         Trailing zeroes are omitted when returning the weight.
 
@@ -549,15 +557,15 @@ class SkewTableau(ClonableList):
             sage: all(by_word(t) == SkewTableau(t).weight() for t in SST)
             True
         """
-        if len(self) == 0:
+        if len(self) == 0 or all(c is None for row in self for c in row):
             return []
-        m = max(max(row) for row in self)
+        m = max(c for row in self for c in row if c is not None)
         if m is None:
             return []
         res = [0] * m
         for row in self:
             for i in row:
-                if not (i is None) and i > 0:
+                if (i is not None) and i > 0:
                     res[i - 1] += 1
         return res
 
@@ -736,7 +744,7 @@ class SkewTableau(ClonableList):
         return SkewPartition([self.restriction_outer_shape(n), self.inner_shape()])
 
     def to_chain(self, max_entry=None):
-        """
+        r"""
         Return the chain of partitions corresponding to the (semi)standard
         skew tableau ``self``.
 
@@ -778,12 +786,10 @@ class SkewTableau(ClonableList):
             [[1]]
         """
         if max_entry is None:
-            if len(self) == 0:
+            if len(self) == 0 or all(c is None for row in self for c in row):
                 max_entry = 0
             else:
-                max_entry = max(max(row) for row in self)
-            if max_entry is None:
-                max_entry = 0
+                max_entry = max(c for row in self for c in row if c is not None)
         return [self.restriction_outer_shape(x) for x in range(max_entry+1)]
 
     def slide(self, corner=None, return_vacated=False):
@@ -797,7 +803,7 @@ class SkewTableau(ClonableList):
         the output to be the pair ``(t, (i, j))`` where ``t`` is the new
         tableau and ``(i, j)`` are the coordinates of the vacated square.
 
-        See [Fulton97]_ p12-13.
+        See [Ful1997]_ p12-13.
 
         EXAMPLES::
 
@@ -875,7 +881,7 @@ class SkewTableau(ClonableList):
         or just :class:`Tableau` formed by applying the jeu de taquin
         process to ``self``.
 
-        See page 15 of [Fulton97]_.
+        See page 15 of [Ful1997]_.
 
         INPUT:
 
@@ -906,11 +912,6 @@ class SkewTableau(ClonableList):
             [[None, 1], [2, 3]]
             sage: T
             [[None, None, None, 4], [None, None, 1, 6], [None, None, 5], [2, 3]]
-
-        REFERENCES:
-
-        .. [Fulton97] William Fulton, *Young Tableaux*,
-           Cambridge University Press 1997.
         """
         mu_size = self.inner_shape().size()
 
@@ -1579,7 +1580,7 @@ class SkewTableau(ClonableList):
 
 def _label_skew(list_of_cells, sk):
     """
-    Return a filled-in standard standard skew tableau given an
+    Return a filled-in standard skew tableau given an
     ordered list ``list_of_cells`` of the coordinates to fill in
     (as pairs) and an empty shape ``sk``.
 
@@ -1752,13 +1753,13 @@ class StandardSkewTableaux(SkewTableaux):
     ::
 
         sage: StandardSkewTableaux([[3, 2, 1], [1, 1]]).list()
-        [[[None, 1, 2], [None, 3], [4]],
+        [[[None, 2, 3], [None, 4], [1]],
+         [[None, 1, 2], [None, 3], [4]],
          [[None, 1, 2], [None, 4], [3]],
-         [[None, 1, 3], [None, 2], [4]],
-         [[None, 1, 4], [None, 2], [3]],
          [[None, 1, 3], [None, 4], [2]],
          [[None, 1, 4], [None, 3], [2]],
-         [[None, 2, 3], [None, 4], [1]],
+         [[None, 1, 4], [None, 2], [3]],
+         [[None, 1, 3], [None, 2], [4]],
          [[None, 2, 4], [None, 3], [1]]]
     """
     @staticmethod
@@ -1834,9 +1835,8 @@ class StandardSkewTableaux_all(StandardSkewTableaux):
             sage: [next(it) for x in range(10)]
             [[],
              [[1]],
-             [[1, 2]], [[1], [2]], [[None, 1], [2]], [[None, 2], [1]],
-             [[1, 2, 3]], [[1, 2], [3]], [[1, 3], [2]],
-             [[None, 1, 2], [3]]]
+             [[1, 2]], [[1], [2]], [[None, 2], [1]], [[None, 1], [2]],
+             [[1, 2, 3]], [[1, 2], [3]], [[1, 3], [2]], [[None, 2, 3], [1]]]
         """
         n = 0
         while True:
@@ -1895,21 +1895,24 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
         EXAMPLES::
 
             sage: StandardSkewTableaux(2).list()
-            [[[1, 2]], [[1], [2]], [[None, 1], [2]], [[None, 2], [1]]]
+            [[[1, 2]], [[1], [2]], [[None, 2], [1]], [[None, 1], [2]]]
 
             sage: StandardSkewTableaux(3).list()
             [[[1, 2, 3]],
              [[1, 2], [3]], [[1, 3], [2]],
-             [[None, 1, 2], [3]], [[None, 1, 3], [2]],
-             [[None, 2, 3], [1]],
-             [[None, 1], [2, 3]], [[None, 2], [1, 3]],
-             [[None, None, 1], [2, 3]], [[None, None, 2], [1, 3]], [[None, None, 3], [1, 2]],
-             [[1], [2], [3]],
-             [[None, 1], [None, 2], [3]], [[None, 1], [None, 3], [2]], [[None, 2], [None, 3], [1]],
-             [[None, 1], [2], [3]], [[None, 2], [1], [3]], [[None, 3], [1], [2]],
-             [[None, None, 1], [None, 2], [3]], [[None, None, 1], [None, 3], [2]],
-             [[None, None, 2], [None, 1], [3]], [[None, None, 3], [None, 1], [2]],
-             [[None, None, 2], [None, 3], [1]], [[None, None, 3], [None, 2], [1]]]
+             [[None, 2, 3], [1]], [[None, 1, 2], [3]], [[None, 1, 3], [2]],
+             [[None, 2], [1, 3]], [[None, 1], [2, 3]],
+             [[None, None, 2], [1, 3]], [[None, None, 3], [1, 2]],
+             [[None, None, 1], [2, 3]],
+             [[1], [2], [3]], [[None, 2], [None, 3], [1]],
+             [[None, 1], [None, 2], [3]], [[None, 1], [None, 3], [2]],
+             [[None, 2], [1], [3]], [[None, 3], [1], [2]],
+             [[None, 1], [2], [3]], [[None, None, 3], [None, 2], [1]],
+             [[None, None, 2], [None, 3], [1]],
+             [[None, None, 1], [None, 3], [2]],
+             [[None, None, 1], [None, 2], [3]],
+             [[None, None, 2], [None, 1], [3]],
+             [[None, None, 3], [None, 1], [2]]]
         """
         for skp in SkewPartitions(self.n):
             for sst in StandardSkewTableaux_shape(skp):
@@ -1989,14 +1992,14 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
 
         EXAMPLES::
 
-            sage: [st for st in StandardSkewTableaux([[3, 2, 1], [1, 1]])]
-            [[[None, 1, 2], [None, 3], [4]],
+            sage: StandardSkewTableaux([[3, 2, 1], [1, 1]]).list()
+            [[[None, 2, 3], [None, 4], [1]],
+             [[None, 1, 2], [None, 3], [4]],
              [[None, 1, 2], [None, 4], [3]],
-             [[None, 1, 3], [None, 2], [4]],
-             [[None, 1, 4], [None, 2], [3]],
              [[None, 1, 3], [None, 4], [2]],
              [[None, 1, 4], [None, 3], [2]],
-             [[None, 2, 3], [None, 4], [1]],
+             [[None, 1, 4], [None, 2], [3]],
+             [[None, 1, 3], [None, 2], [4]],
              [[None, 2, 4], [None, 3], [1]]]
         """
         dag = self.skp.to_dag(format="tuple")
@@ -2526,7 +2529,7 @@ class SkewTableau_class(SkewTableau):
 
         TESTS::
 
-            sage: loads('x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+H,*\xc9,\xc9\xcc\xcf\xe3\n\x80\xb1\xe2\x93s\x12\x8b\x8b\xb9\n\x195\x1b\x0b\x99j\x0b\x995BY\xe33\x12\x8b3\nY\xfc\x80\xac\x9c\xcc\xe2\x92B\xd6\xd8B6\r\x88IE\x99y\xe9\xc5z\x99y%\xa9\xe9\xa9E\\\xb9\x89\xd9\xa9\xf10N!{(\xa3qkP!G\x06\x90a\x04dp\x82\x18\x86@\x06Wji\x92\x1e\x00x0.\xb5')
+            sage: loads(b'x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+H,*\xc9,\xc9\xcc\xcf\xe3\n\x80\xb1\xe2\x93s\x12\x8b\x8b\xb9\n\x195\x1b\x0b\x99j\x0b\x995BY\xe33\x12\x8b3\nY\xfc\x80\xac\x9c\xcc\xe2\x92B\xd6\xd8B6\r\x88IE\x99y\xe9\xc5z\x99y%\xa9\xe9\xa9E\\\xb9\x89\xd9\xa9\xf10N!{(\xa3qkP!G\x06\x90a\x04dp\x82\x18\x86@\x06Wji\x92\x1e\x00x0.\xb5')
             [3, 2, 1]
             sage: loads(dumps( SkewTableau([[1,1], [3,2,1]]) ))  # indirect doctest
             [[1, 1], [3, 2, 1]]
@@ -2535,7 +2538,7 @@ class SkewTableau_class(SkewTableau):
         self.__init__(SkewTableaux(), state['_list'])
 
 # October 2012: fixing outdated pickles which use the classes being deprecated
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_n',  StandardSkewTableaux_size)
 register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_n',  SemistandardSkewTableaux_size)
 register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_nmu',  SemistandardSkewTableaux_size_weight)
@@ -2544,7 +2547,3 @@ register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTablea
 # July 2013: But wait, there more!
 register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_skewpartition',  StandardSkewTableaux_shape)
 register_unpickle_override('sage.combinat.skew_tableau', 'SkewTableau_class',  SkewTableau_class)
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-SkewTableaux.global_options=deprecated_function_alias(18555, SkewTableaux.options)

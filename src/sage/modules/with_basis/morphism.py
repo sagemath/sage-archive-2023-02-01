@@ -104,23 +104,21 @@ sage.categories.modules_with_basis; see :trac:`8678` for the complete log.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
-from six import iteritems
 
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
 from sage.misc.misc import attrcall
 # The identity function would deserve a more canonical location
 from sage.misc.c3_controlled import identity
-from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
 from sage.categories.homset import Hom
 from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.categories.morphism import SetMorphism, Morphism
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
-from sage.structure.element import parent
 from sage.structure.richcmp import op_EQ, op_NE
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
+
 
 class ModuleMorphism(Morphism):
     """
@@ -179,17 +177,19 @@ class ModuleMorphism(Morphism):
                 raise ValueError("codomain(=%s) needs to have a base_ring attribute"%(codomain))
             # codomain should be a module over base_ring
             # The natural test would be ``codomains in Modules(base_ring)``
-            # But this is not properly implemented yet:
+            # But this is not properly implemented yet::
+            #
             #     sage: CC in Modules(QQ)
             #     False
             #     sage: QQ in Modules(QQ)
             #     False
             #     sage: CC[x] in Modules(QQ)
             #     False
+
             # The test below is a bit more restrictive
             if (not codomain.base_ring().has_coerce_map_from(base_ring)) \
                and (not codomain.has_coerce_map_from(base_ring)):
-                raise ValueError("codomain(=%s) should be a module over the base ring of the domain(=%s)"%(codomain, domain))
+                raise ValueError("codomain(=%s) should be a module over the base ring of the domain(=%s)" % (codomain, domain))
 
             if affine:
                 # We don't yet have a category whose morphisms are affine morphisms
@@ -394,9 +394,12 @@ class ModuleMorphismByLinearity(ModuleMorphism):
 
         mc = x.monomial_coefficients(copy=False)
         if self._is_module_with_basis_over_same_base_ring:
-            return self.codomain().linear_combination( (self._on_basis(*(before+(index,)+after)), coeff ) for (index, coeff) in iteritems(mc) )
+            return self.codomain().linear_combination(
+                    (self._on_basis(*(before+(index,)+after)), coeff )
+                    for (index, coeff) in mc.items())
         else:
-            return sum(( coeff * self._on_basis(*(before+(index,)+after)) for (index, coeff) in iteritems(mc) ), self._zero)
+            return sum((coeff * self._on_basis(*(before+(index,)+after))
+                       for (index, coeff) in mc.items()), self._zero)
 
     # As per the specs of Map, we should in fact implement _call_.
     # However we currently need to abuse Map.__call__ (which strict
@@ -438,10 +441,6 @@ class TriangularModuleMorphism(ModuleMorphism):
     - ``unitriangular`` -- boolean (default: ``False``)
       As a shorthand, one may use ``unitriangular="lower"``
       for ``triangular="lower", unitriangular=True``.
-
-    - ``cmp`` -- a comparison function on `J`
-      (default: the usual comparison function on `J`)
-      This is deprecated since :trac:`21043`, see below.
 
     - ``key`` -- a comparison key on `J`
       (default: the usual comparison of elements of `J`)
@@ -625,7 +624,7 @@ class TriangularModuleMorphism(ModuleMorphism):
         [-1/3*B[1] + B[2] - 1/12*B[3], 1/4*B[3], 1/3*B[1] - 1/6*B[3]]
     """
     def __init__(self, triangular="upper", unitriangular=False,
-                 cmp=None, key=None, inverse=None, inverse_on_support=identity, invertible=None):
+                 key=None, inverse=None, inverse_on_support=identity, invertible=None):
         """
         TESTS::
 
@@ -647,33 +646,28 @@ class TriangularModuleMorphism(ModuleMorphism):
 
         Pickling fails (:trac:`17957`) because the attribute
         ``phi._inverse_on_support`` is a ``dict.get`` method which is
-        not yet picklable::
+        not picklable in Python 2::
 
             sage: phi = X.module_morphism(lt, triangular="lower", codomain=X,
             ....:                         inverse_on_support="compute")
-            sage: dumps(phi)
+            sage: dumps(phi) # py2
             Traceback (most recent call last):
             ...
             TypeError: expected string or Unicode object, NoneType found
             sage: phi._inverse_on_support
             <built-in method get of dict object at ...>
-            sage: dumps(phi._inverse_on_support)
+            sage: dumps(phi._inverse_on_support) # py2
             Traceback (most recent call last):
             ...
             TypeError: expected string or Unicode object, NoneType found
+            sage: ldp = loads(dumps(phi._inverse_on_support)) # py3
+            sage: [ldp(i) == phi._inverse_on_support(i) for i in range(1, 4)] # py3
+            [True, True, True]
         """
-        if cmp is not None:
-            deprecation(21043, "the 'cmp' keyword is deprecated, use 'key' instead")
-            self._key_kwds = dict(cmp=cmp)
-        elif key is not None:
+        if key is not None:
             self._key_kwds = dict(key=key)
         else:
             self._key_kwds = dict()
-
-        if triangular is True:
-            deprecation(8678, "module_morphism(..., triangular=True) is deprecated; "
-                        "please use triangular='lower'.")
-            triangular = "lower"
 
         if triangular == "upper":
             self._dominant_item = attrcall("leading_item", **self._key_kwds)
@@ -711,16 +705,12 @@ class TriangularModuleMorphism(ModuleMorphism):
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
             sage: def ut(i): return (x[1] + x[2] if i == 1 else x[2] + (x[3] if i == 3 else 0))
             sage: perm = [0, 2, 1, 3]
-            sage: our_cmp = lambda a, b: (perm[a] > perm[b]) - (perm[a] < perm[b])
-            sage: phi = X.module_morphism(ut, triangular="upper", codomain=X, cmp=our_cmp)
-            doctest:warning
-            ...
-            DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-            See http://trac.sagemath.org/21043 for details.
+            sage: our_key = lambda a: perm[a]
+            sage: phi = X.module_morphism(ut, triangular="upper", codomain=X, key=our_key)
             sage: def ut2(i): return (x[1] + 7*x[2] if i == 1 else x[2] + (x[3] if i == 3 else 0))
-            sage: phi2 = X.module_morphism(ut2, triangular="upper", codomain=X, cmp=our_cmp)
+            sage: phi2 = X.module_morphism(ut2, triangular="upper", codomain=X, key=our_key)
             sage: def lt(i): return (x[1] + x[2] + x[3] if i == 2 else x[i])
-            sage: psi = X.module_morphism(lt, triangular="lower", codomain=X, cmp=our_cmp)
+            sage: psi = X.module_morphism(lt, triangular="lower", codomain=X, key=our_key)
             sage: phi == phi
             True
             sage: phi == phi2
@@ -895,7 +885,7 @@ class TriangularModuleMorphism(ModuleMorphism):
         return self.preimage( self.codomain().monomial(i) )
 
     def preimage(self, f):
-        """
+        r"""
         Return the preimage of `f` under ``self``.
 
         EXAMPLES::
@@ -994,7 +984,7 @@ class TriangularModuleMorphism(ModuleMorphism):
         return out
 
     def coreduced(self, y):
-        """
+        r"""
         Return `y` reduced w.r.t. the image of ``self``.
 
         INPUT:
@@ -1082,10 +1072,9 @@ class TriangularModuleMorphism(ModuleMorphism):
                     c = c / s[j]  # the base ring is a field
                 remainder -= s._lmul_(c)
         return result
-    co_reduced = deprecated_function_alias(8678, coreduced)
 
     def cokernel_basis_indices(self):
-        """
+        r"""
         Return the indices of the natural monomial basis of the cokernel of ``self``.
 
         INPUT:
@@ -1169,8 +1158,6 @@ class TriangularModuleMorphism(ModuleMorphism):
         category = ModulesWithBasis(codomain.base_ring()).or_subcategory(category)
         return codomain.module_morphism(function=self.coreduced,
                                         codomain=codomain, category=category)
-
-    co_kernel_projection = deprecated_function_alias(8678, cokernel_projection)
 
 class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity, TriangularModuleMorphism):
     r"""
@@ -1328,14 +1315,16 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
             sage: TestSuite(phi).run(skip=["_test_pickling"])
 
         Pickling fails (:trac:`17957`) because ``phi._on_basis`` is
-        currently a ``dict.__getitem__`` which is not yet picklable::
+        currently a ``dict.__getitem__`` which is not picklable in Python 2::
 
             sage: phi._on_basis
             <built-in method __getitem__ of dict object at ...>
-            sage: dumps(phi._on_basis)
+            sage: dumps(phi._on_basis) # py2
             Traceback (most recent call last):
             ...
             TypeError: expected string or Unicode object, NoneType found
+            sage: loads(dumps(phi)) == phi # py3
+            True
 
         The matrix is stored in the morphism, as if it was for an
         action on the right::
@@ -1512,7 +1501,7 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
         return self.codomain().term(i, self._diagonal(i))
 
     def __invert__(self):
-        """
+        r"""
         Return the inverse diagonal morphism.
 
         EXAMPLES::
@@ -1548,7 +1537,6 @@ def pointwise_inverse_function(f):
 
         sage: from sage.modules.with_basis.morphism import pointwise_inverse_function
         sage: def f(x): return x
-        ....:
         sage: g = pointwise_inverse_function(f)
         sage: g(1), g(2), g(3)
         (1, 1/2, 1/3)

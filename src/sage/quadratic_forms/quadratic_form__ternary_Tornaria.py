@@ -11,7 +11,6 @@ Tornaria Methods for Computing with Quadratic Forms
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from sage.rings.integer_ring import ZZ
 from sage.misc.functional import is_odd
@@ -65,7 +64,7 @@ def disc(self):
 
 
 def content(self):
-    """
+    r"""
     Return the GCD of the coefficients of the quadratic form.
 
     .. warning::
@@ -137,9 +136,9 @@ def adjoint(self):
 
     """
     if is_odd(self.dim()):
-        return QuadraticForm(self.matrix().adjoint()*2)
+        return QuadraticForm(self.matrix().adjoint_classical()*2)
     else:
-        return QuadraticForm(self.matrix().adjoint())
+        return QuadraticForm(self.matrix().adjoint_classical())
 
 
 def antiadjoint(self):
@@ -318,8 +317,9 @@ def hasse_conductor(self):
         sage: QuadraticForm(ZZ, 3, [2, -2, 0, 2, 0, 5]).hasse_conductor()
         10
     """
-    D = self.disc()
-    return prod([x[0] for x in factor(2 * self.level()) if self.hasse_invariant(x[0]) == -1])
+    return prod([x[0] for x in factor(2 * self.level())
+                 if self.hasse_invariant(x[0]) == -1])
+
 
 def clifford_invariant(self, p):
     """
@@ -354,6 +354,7 @@ def clifford_invariant(self, p):
     elif n == 7 or n == 0:
         s = hilbert_symbol(-1, self.disc(), p)
     return s * self.hasse_invariant(p)
+
 
 def clifford_conductor(self):
     """
@@ -391,15 +392,14 @@ def clifford_conductor(self):
         1
         sage: (H + H + H + H).clifford_conductor()
         1
-
     """
-    D = self.disc()
-    return prod([x[0] for x in factor(2 * self.level()) if self.clifford_invariant(x[0]) == -1])
+    return prod([x[0] for x in factor(2 * self.level())
+                 if self.clifford_invariant(x[0]) == -1])
 
 
 ### Genus theory
 
-def basiclemma(self,M):
+def basiclemma(self, M):
     """
     Finds a number represented by self and coprime to M.
 
@@ -408,13 +408,13 @@ def basiclemma(self,M):
         sage: Q = QuadraticForm(ZZ, 2, [2, 1, 3])
         sage: Q.basiclemma(6)
         71
-
     """
-    a=self(self.basiclemmavec(M))
-    assert gcd(a,M) == 1
+    a = self(self.basiclemmavec(M))
+    assert gcd(a, M) == 1
     return a
 
-def basiclemmavec(self,M):
+
+def basiclemmavec(self, M):
     """
     Finds a vector where the value of the quadratic form is coprime to M.
 
@@ -425,10 +425,8 @@ def basiclemmavec(self,M):
         (6, 5)
         sage: Q(_)
         227
-
     """
-    V=FreeModule(self.base_ring(),self.dim())
-    mat = self.matrix()
+    V = FreeModule(self.base_ring(), self.dim())
     vec = []
     mod = []
     M0 = abs(M)
@@ -442,7 +440,7 @@ def basiclemmavec(self,M):
             mod.append(M1)
         M0 = M0/M1
         if M0 == 1:
-            return tuple(CRT_vectors(vec,mod))
+            return tuple(CRT_vectors(vec, mod))
 
     for i in range(self.dim()):
         for j in range(i):
@@ -452,7 +450,7 @@ def basiclemmavec(self,M):
                 mod.append(M1)
             M0 = M0/M1
             if M0 == 1:
-                return __crt_list(vec,mod)
+                return tuple(CRT_vectors(vec, mod))
 
     raise ValueError("not primitive form")
 

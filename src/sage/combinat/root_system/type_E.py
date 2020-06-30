@@ -1,18 +1,16 @@
+# -*- coding: utf-8 -*-
 """
 Root system data for type E
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2009 Justin Walker
 #       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
-
-from six.moves import range
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function, absolute_import
 
 from . import ambient_space
 from sage.rings.all import ZZ
@@ -21,7 +19,7 @@ from sage.combinat.family import Family
 class AmbientSpace(ambient_space.AmbientSpace):
     """
     The lattice behind E6, E7, or E8.  The computations are based on Bourbaki,
-    Groupes et Algebres de Lie, Ch. 4,5,6 (planche V-VII).
+    Groupes et Algèbres de Lie, Ch. 4,5,6 (planche V-VII).
     """
     def __init__(self, root_system, baseRing):
         """
@@ -159,7 +157,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
     def negative_roots(self):
         """
-        The negative negative roots.
+        The negative roots.
 
         EXAMPLES::
 
@@ -635,5 +633,5 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
         return ret + '---'.join(node(i) for i in labels) + '\n' + "".join("{!s:4}".format(i) for i in labels)
 
 # For unpickling backward compatibility (Sage <= 4.1)
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.root_system.type_E', 'ambient_space',  AmbientSpace)

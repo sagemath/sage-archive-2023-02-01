@@ -1,5 +1,4 @@
 *.pyc
-/.BUILDSTART
 /dist
 /local
 /logs
@@ -14,6 +13,12 @@
 /config.log
 /config.status
 /configure
+/conftest*
+
+/m4/sage_spkg_configures.m4
+
+# no longer generated, but may still be in user worktrees
+/src/lib/pkgconfig
 
 ###################
 # Temporary Files #
@@ -36,6 +41,9 @@
 # PyCharm
 .idea
 .iml
+
+# VSCode
+.vscode
 
 # XCode
 xcuserdata/
@@ -81,3 +89,21 @@ $RECYCLE.BIN/
 ###########
 .ipynb_checkpoints
 Untitled*.ipynb
+
+#############################
+# GitLab CI generated files #
+#############################
+gitlab-build-docker.log
+
+/src/.cython_version
+/src/build
+/src/Makefile
+/src/bin/sage-env-config
+/build/bin/sage-build-env-config
+
+#######################
+# tox generated files #
+#######################
+
+/.tox
+/prefix

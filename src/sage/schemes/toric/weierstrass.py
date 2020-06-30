@@ -1,10 +1,10 @@
 r"""
-Weierstrass form of a toric elliptic curve.
+Weierstrass form of a toric elliptic curve
 
 There are 16 reflexive polygons in the plane, see
 :func:`~sage.geometry.lattice_polytope.ReflexivePolytopes`. Each of
 them defines a toric Fano variety. And each of them has a unique
-crepant resolution to a smooth toric surface [CLSsurfaces]_ by
+crepant resolution to a smooth toric surface (Section 10.4 in [CLS2011]_) by
 subdividing the face fan. An anticanonical hypersurface defines an
 elliptic curve in this ambient space, which we call a toric elliptic
 curve. The purpose of this module is to write an anticanonical
@@ -20,7 +20,7 @@ Technically, this module computes the Weierstrass form of the Jacobian
 of the elliptic curve. This is why you will never have to specify the
 origin (or zero section) in the following.
 
-It turns out [VolkerBraun]_ that the anticanonical hypersurface
+It turns out [Bra2011]_ that the anticanonical hypersurface
 equation of any one of the above 16 toric surfaces is a specialization
 (that is, set one or more of the coefficients to zero) of the
 following three cases. In inhomogeneous coordinates, they are
@@ -123,28 +123,10 @@ TESTS::
 
 REFERENCES:
 
-..  [VolkerBraun]
-    Volker Braun:
-    Toric Elliptic Fibrations and F-Theory Compactifications
-    :arxiv:`1110.4883`
-
-..  [Duistermaat]
-    J. J. Duistermaat,
-    Discrete integrable systems. QRT maps and elliptic surfaces.
-    Springer Monographs in Mathematics. Berlin: Springer. xxii, 627 p., 2010
-
-..  [ArtinVillegasTate]
-    Michael Artin, Fernando Rodriguez-Villegas, John Tate,
-    On the Jacobians of plane cubics,
-    Advances in Mathematics 198 (2005) 1, pp. 366--382
-    :doi:`10.1016/j.aim.2005.06.004`
-    http://www.math.utexas.edu/users/villegas/publications/jacobian-cubics.pdf
-
-..  [CLSsurfaces]
-    Section 10.4 in
-    David A. Cox, John B. Little,  Hal Schenck,
-    "Toric Varieties", Graduate Studies in Mathematics,
-    Amer. Math. Soc., Providence, RI, 2011
+- [Bra2011]_
+- [Du2010]_
+- [ARVT2005]_
+- [CLS2011]_
 """
 
 ########################################################################
@@ -152,7 +134,7 @@ REFERENCES:
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ########################################################################
 from __future__ import print_function
 
@@ -160,9 +142,7 @@ from sage.misc.all import prod
 from sage.rings.infinity import Infinity
 from sage.modules.all import vector
 from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
-from sage.rings.all import invariant_theory
-
-import six
+from sage.rings.invariants.all import invariant_theory
 
 
 ######################################################################
@@ -268,8 +248,7 @@ def Newton_polytope_vars_coeffs(polynomial, variables):
 
     OUTPUT:
 
-    A tuple containing of the affine span of the Netwton polytope and
-    a dictionary with keys the integral values of the Newton polytope
+    A dictionary with keys the integral values of the Newton polytope
     and values the corresponding coefficient of ``polynomial``.
 
     EXAMPLES::
@@ -291,7 +270,7 @@ def Newton_polytope_vars_coeffs(polynomial, variables):
          (3, 0, 0): a30}
 
         sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
-        sage: polytope = LatticePolytope_PPL(p_data.keys());  polytope
+        sage: polytope = LatticePolytope_PPL(list(p_data));  polytope
         A 2-dimensional lattice polytope in ZZ^3 with 3 vertices
         sage: polytope.vertices()
         ((0, 0, 3), (3, 0, 0), (0, 3, 0))
@@ -360,12 +339,12 @@ def Newton_polygon_embedded(polynomial, variables):
          (s, t))
     """
     p_dict = Newton_polytope_vars_coeffs(polynomial, variables)
-    newton_polytope = LatticePolytope_PPL(p_dict.keys())
+    newton_polytope = LatticePolytope_PPL(list(p_dict))
     assert newton_polytope.affine_dimension() <= 2
     embedding = newton_polytope.embed_in_reflexive_polytope('points')
     x, y = variables[0:2]
     embedded_polynomial = polynomial.parent().zero()
-    for e, c in six.iteritems(p_dict):
+    for e, c in p_dict.items():
         e_embed = embedding[e]
         embedded_polynomial += c * x**(e_embed[0]) * y**(e_embed[1])
     return newton_polytope, embedded_polynomial, (x, y)
@@ -406,7 +385,7 @@ def WeierstrassForm(polynomial, variables=None, transformation=False):
 
     If ``transformation=True``, a triple `(X,Y,Z)` of polynomials
     defining a rational map of the toric hypersurface or complete
-    intersection in `\mathbb{P}^3` to its Weierstrass form in 
+    intersection in `\mathbb{P}^3` to its Weierstrass form in
     `\mathbb{P}^2[2,3,1]` is returned.
     That is, the triple satisfies
 
@@ -625,9 +604,9 @@ def _extract_coefficients(polynomial, monomials, variables):
         i = index(m)
         coeffs[i] = c*m + coeffs.pop(i, R.zero())
     result = tuple(coeffs.pop(index(m), R.zero()) // m for m in monomials)
-    if len(coeffs) != 0:
+    if coeffs:
         raise ValueError('The polynomial contains more monomials than '
-                         'given: '+str(coeffs))
+                         'given: ' + str(coeffs))
     return result
 
 
@@ -650,7 +629,7 @@ def _check_polynomial_P2(cubic, variables):
     polynomial ring. A ``ValueError`` is raised if the polynomial is
     not homogeneous.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.schemes.toric.weierstrass import _check_polynomial_P2
         sage: R.<x,y,z> = QQ[]
@@ -991,7 +970,7 @@ def _check_polynomial_P2_112(polynomial, variables):
     polynomial ring. A ``ValueError`` is raised if the polynomial is
     not homogeneous.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.schemes.toric.weierstrass import _check_polynomial_P2_112
         sage: R.<x,y,z,t> = QQ[]

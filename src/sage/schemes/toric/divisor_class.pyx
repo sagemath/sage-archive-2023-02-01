@@ -10,7 +10,7 @@ AUTHORS:
 
 TESTS:
 
-Toric rational divisor clases are elements of the rational class group of a
+Toric rational divisor classes are elements of the rational class group of a
 toric variety, represented as rational vectors in some basis::
 
     sage: dP6 = toric_varieties.dP6()
@@ -54,7 +54,6 @@ divisor representing a divisor class::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.libs.gmp.mpq cimport *
 

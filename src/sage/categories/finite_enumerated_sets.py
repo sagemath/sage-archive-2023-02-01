@@ -1,15 +1,13 @@
 r"""
 Finite Enumerated Sets
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2009 Florent Hivert <Florent.Hivert@univ-rouen.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 from __future__ import print_function
-
-import itertools
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -18,7 +16,9 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import lazy_import
+from sage.cpython.getattr import raw_getattr
 lazy_import("sage.rings.integer", "Integer")
+
 
 class FiniteEnumeratedSets(CategoryWithAxiom):
     """
@@ -566,8 +566,6 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 ...
                 AssertionError: 4 != 3
             """
-            # isinstance with LazyImported classes is not robust
-            from sage.rings.integer import Integer
             tester = self._tester(**options)
             if self.cardinality != self._cardinality_from_iterator:
                 card = self.cardinality()
@@ -615,12 +613,9 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 sage: C.__iter__.__module__
                 'sage.categories.sets_cat'
             """
-
-            # Ambiguity resolution between methods inherited from
-            # Sets.CartesianProducts and from EnumeratedSets.Finite.
-            random_element = Sets.CartesianProducts.ParentMethods.random_element.__func__
-            cardinality = Sets.CartesianProducts.ParentMethods.cardinality.__func__
-            __iter__ = Sets.CartesianProducts.ParentMethods.__iter__.__func__
+            random_element = raw_getattr(Sets.CartesianProducts.ParentMethods, "random_element")
+            cardinality = raw_getattr(Sets.CartesianProducts.ParentMethods, "cardinality")
+            __iter__ = raw_getattr(Sets.CartesianProducts.ParentMethods, "__iter__")
 
             def last(self):
                 r"""

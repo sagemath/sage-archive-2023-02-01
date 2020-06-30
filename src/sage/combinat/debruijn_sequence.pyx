@@ -35,8 +35,7 @@ This sequence is of length `k^n`, which is best possible as it is the number of
 of parameters `k` and `n` as a cyclic sequence of length `k^n` in which all
 substring of length `n` are different.
 
-See also the `Wikipedia article on De Bruijn sequences
-<http://en.wikipedia.org/wiki/De_Bruijn_sequence>`_.
+See also :wikipedia:`De_Bruijn_sequence`.
 
 TESTS:
 
@@ -331,7 +330,7 @@ class DeBruijnSequences(UniqueRepresentation, Parent):
 
         - ``seq`` -- A sequence of integers.
 
-        EXAMPLES:
+        EXAMPLES::
 
            sage: Sequences =  DeBruijnSequences(2, 3)
            sage: Sequences.an_element() in Sequences
@@ -351,12 +350,7 @@ class DeBruijnSequences(UniqueRepresentation, Parent):
 
         ALGORITHM:
 
-        The formula for cardinality is `k!^{k^{n-1}}/k^n` [1]_.
-
-        REFERENCES:
-
-        .. [1] Rosenfeld, Vladimir Raphael, 2002: Enumerating De Bruijn
-          Sequences. *Communications in Math. and in Computer Chem.*
+        The formula for cardinality is `k!^{k^{n-1}}/k^n` [Ros2002]_.
         """
         k = ZZ(self.k)
         n = ZZ(self.n)

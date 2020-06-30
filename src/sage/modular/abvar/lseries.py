@@ -24,8 +24,6 @@ TESTS::
 from sage.structure.sage_object import SageObject
 from sage.rings.all import Integer, infinity, ZZ, QQ, CC
 from sage.modules.free_module import span
-from sage.modular.modform.constructor import Newform, CuspForms
-from sage.modular.arithgroup.congroup_gamma0 import is_Gamma0
 from sage.misc.misc_c import prod
 
 
@@ -218,8 +216,8 @@ class Lseries_complex(Lseries):
 
         EXAMPLES:
 
-        Numerically, it appears that the `L`-series for J0(389) vanishes at 1.
-        This is confirmed by this algebraic computation. ::
+        Numerically, the `L`-series for `J_0(389)` appears to vanish
+        at 1.  This is confirmed by this algebraic computation::
 
             sage: L = J0(389)[0].lseries(); L
             Complex L-series attached to Simple abelian subvariety 389a(1,389) of dimension 1 of J0(389)
@@ -228,17 +226,25 @@ class Lseries_complex(Lseries):
             sage: L.vanishes_at_1()
             True
 
-        Numerically, it appears that the `L`-series for J1(23) vanishes at 1.
-        But this algebraic computation shows otherwise. ::
+        Numerically, one might guess that the `L`-series for `J_1(23)`
+        and `J_1(31)` vanish at 1.  This algebraic computation shows
+        otherwise::
 
             sage: L = J1(23).lseries(); L
             Complex L-series attached to Abelian variety J1(23) of dimension 12
-            sage: L(1)
-            1.71571957480487e-7
+            sage: L(1)  # long time (about 3 s)
+            0.0001295198...
             sage: L.vanishes_at_1()
             False
-            sage: L(1, prec=100)
-            1.7157195748048518516191946658e-7
+            sage: abs(L(1, prec=100)- 0.00012951986142702571478817757148) < 1e-32  # long time (about 3 s)
+            True
+
+            sage: L = J1(31).lseries(); L
+            Complex L-series attached to Abelian variety J1(31) of dimension 26
+            sage: abs(L(1) - 3.45014267547611e-7) < 1e-15  # long time (about 8 s)
+            True
+            sage: L.vanishes_at_1()  # long time (about 6 s)
+            False
         """
         abelian_variety = self.abelian_variety()
         # Check for easy dimension zero case

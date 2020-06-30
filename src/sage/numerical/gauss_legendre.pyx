@@ -1,4 +1,3 @@
-# distutils: libraries = mpfr
 r"""
 Gauss-Legendre integration for vector-valued functions
 
@@ -16,15 +15,15 @@ The code here is directly based on mpmath (see http://mpmath.org), but has a hig
 optimized routine to compute the nodes.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Nils Bruin <nbruin@sfu.ca>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 #as it turns out, computing the nodes can easily turn out to be more
 #expensive than computing the integrals. So it's worth optimizing this.
@@ -32,7 +31,7 @@ optimized routine to compute the nodes.
 #want to we can optimize this further, probably to a point where
 #we don't have to bother with node computation routines that have a better order
 #than this naive approach (which is quadratic)
-from __future__ import absolute_import, division, print_function
+
 from sage.libs.mpfr cimport *
 import math
 from sage.rings.real_mpfr import RealField
@@ -54,7 +53,7 @@ def nodes(degree,prec):
 
     A list of (node,weight) pairs.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The nodes for the Gauss-Legendre scheme are roots of Legendre polynomials.
     The weights can be computed by a straightforward formula (note that evaluating
@@ -75,8 +74,8 @@ def nodes(degree,prec):
     cdef RealField_class R
     if prec < 53:
         prec = 53
-    if degree !=3 and degree % 2 !=0:
-        raise ValueError("degree=%s not supported (degree must be 3 or even)"%degree)
+    if degree != 3 and degree % 2:
+        raise ValueError("degree=%s not supported (degree must be 3 or even)" % degree)
     R = RealField(int(prec*3/2))
     Rout = RealField(prec)
     mpfr_init2(u,R.__prec)
@@ -147,18 +146,17 @@ def estimate_error(results,prec,epsilon):
 
     An estimate of the error.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.numerical.gauss_legendre import estimate_error
-        sage: prec=200
-        sage: K=RealField(prec)
-        sage: V=VectorSpace(K,2)
-        sage: a=V([1,-1])
-        sage: b=V([1,1/2])
-        sage: L=[a+2^(-2^i)*b for i in [0..5]]
+        sage: prec = 200
+        sage: K = RealField(prec)
+        sage: V = VectorSpace(K,2)
+        sage: a = V([1,-1])
+        sage: b = V([1,1/2])
+        sage: L = [a+2^(-2^i)*b for i in [0..5]]
         sage: estimate_error(L,prec,K(2^(-prec)))
         2.328235...e-10
-
     """
     if len(results)==2:
         return max((results[0][i]-results[1][i]).abs() for i in xrange(len(results[0])))
@@ -196,7 +194,7 @@ def integrate_vector(f,prec,epsilon=None):
 
     Vector approximating value of the integral.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.numerical.gauss_legendre import integrate_vector
         sage: prec=200

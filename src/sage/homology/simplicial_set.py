@@ -251,7 +251,6 @@ copy of the integers::
 #                  http://www.gnu.org/licenses/
 #
 #*****************************************************************************
-from six.moves import range
 
 import copy
 
@@ -259,7 +258,6 @@ from sage.graphs.graph import Graph
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.fast_methods import WithEqualityById
-from sage.misc.latex import latex
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -962,7 +960,7 @@ class NonDegenerateSimplex(AbstractSimplex_class, WithEqualityById):
 
 def AbstractSimplex(dim, degeneracies=(), underlying=None,
                     name=None, latex_name=None):
-    """
+    r"""
     An abstract simplex, a building block of a simplicial set.
 
     In a simplicial set, a simplex either is non-degenerate or is
@@ -1827,7 +1825,7 @@ class SimplicialSet_arbitrary(Parent):
             [9, 36, 84, 90, 36]
             sage: K = CP2.quotient(sub)
             sage: K.f_vector()
-            [1, 0, 23, 45, 24]
+            [1, 0, 16, 30, 16]
             sage: K.homology()
             {0: 0, 1: 0, 2: Z, 3: 0, 4: Z}
 
@@ -1849,7 +1847,7 @@ class SimplicialSet_arbitrary(Parent):
                 d = f.dimension()
                 found = False
                 for x in self.n_cells(d):
-                    if str(x) == str(f):
+                    if str(x) == str(tuple(sorted(tuple(f), key=str))):
                         new.append(x)
                         found = True
                         break
@@ -2289,7 +2287,6 @@ class SimplicialSet_arbitrary(Parent):
             if (not isinstance(subcomplex, SubSimplicialSet)
                 and subcomplex.ambient_space() == self):
                 raise ValueError('the "subcomplex" is not actually a subcomplex')
-            pass
         if self.is_finite():
             return QuotientOfSimplicialSet_finite(subcomplex.inclusion_map(),
                                                   vertex_name=vertex_name)
@@ -2306,8 +2303,9 @@ class SimplicialSet_arbitrary(Parent):
         - ``others`` -- one or several simplicial sets
 
         As long as the factors are all finite, the inclusion map from
-        each factor is available.
-
+        each factor is available. Any factors which are empty are
+        ignored completely: they do not appear in the list of factors,
+        etc.
 
         EXAMPLES::
 
@@ -2340,6 +2338,16 @@ class SimplicialSet_arbitrary(Parent):
             Torus
             sage: i.codomain()
             Disjoint union: (Torus u S^2)
+
+        Empty factors are ignored::
+
+            sage: from sage.homology.simplicial_set_examples import Empty
+            sage: E = Empty()
+            sage: K = S2.disjoint_union(S2, E, E, S2)
+            sage: K == S2.disjoint_union(S2, S2)
+            True
+            sage: K.factors()
+            (S^2, S^2, S^2)
         """
         from .simplicial_set_constructions import DisjointUnionOfSimplicialSets, \
             DisjointUnionOfSimplicialSets_finite
@@ -3121,7 +3129,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
     - ``base_point`` (optional, default ``None``) -- 0-simplex in this
       simplicial set, its base point
 
-    - ``name`` (optional, defaul ``None``) -- string, the name of the
+    - ``name`` (optional, default ``None``) -- string, the name of the
       simplicial set
 
     - ``check`` (optional, default ``True``) -- boolean. If ``True``,
@@ -3211,7 +3219,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
             ...
             ValueError: simplicial identity d_i d_j = d_{j-1} d_i fails in dimension 2
 
-        Returning a copy of the orignal::
+        Returning a copy of the original::
 
             sage: v = AbstractSimplex(0)
             sage: e = AbstractSimplex(1)
@@ -3251,9 +3259,9 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
                 for d in range(data.dimension()+1):
                     old_faces = faces
                     faces = {}
-                    for idx, sigma in enumerate(data.n_faces(d)):
+                    for idx, sigma in enumerate(data.n_cells(d)):
                         new_sigma = AbstractSimplex(d)
-                        new_sigma.rename(str(sigma))
+                        new_sigma.rename(str(tuple(sorted(tuple(sigma), key=str))))
                         if d > 0:
                             simplices[new_sigma] = [old_faces[_] for _ in sigma.faces()]
                         else:
@@ -4044,7 +4052,7 @@ def shrink_simplicial_complex(K):
         sage: Z.homology()
         {0: 0, 1: Z^6, 2: Z}
         sage: M = shrink_simplicial_complex(Z)
-        sage: M.f_vector()
+        sage: M.f_vector() # random
         [1, 32, 27]
         sage: M.homology()
         {0: 0, 1: Z^6, 2: Z}

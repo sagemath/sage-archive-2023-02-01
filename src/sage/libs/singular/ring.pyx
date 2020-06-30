@@ -13,7 +13,8 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from sage.cpython.string cimport str_to_bytes
 
 from sage.libs.gmp.types cimport __mpz_struct
 from sage.libs.gmp.mpz cimport mpz_init_set_ui, mpz_init_set
@@ -21,7 +22,7 @@ from sage.libs.gmp.mpz cimport mpz_init_set_ui, mpz_init_set
 from sage.libs.singular.decl cimport number, poly, ring, currRing
 from sage.libs.singular.decl cimport rChangeCurrRing, rCopy0, rComplete, rDelete, idInit
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omAlloc, omAlloc0Bin,  sip_sring_bin, rnumber_bin
-from sage.libs.singular.decl cimport ringorder_dp, ringorder_Dp, ringorder_lp, ringorder_rp, ringorder_ds, ringorder_Ds, ringorder_ls, ringorder_M, ringorder_C, ringorder_wp, ringorder_Wp, ringorder_ws, ringorder_Ws, ringorder_a, rRingOrder_t
+from sage.libs.singular.decl cimport ringorder_dp, ringorder_Dp, ringorder_lp, ringorder_rp, ringorder_ds, ringorder_Ds, ringorder_ls, ringorder_M, ringorder_c, ringorder_C, ringorder_wp, ringorder_Wp, ringorder_ws, ringorder_Ws, ringorder_a, rRingOrder_t
 from sage.libs.singular.decl cimport p_Copy, prCopyR
 from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF
 from sage.libs.singular.decl cimport n_coeffType, cfInitCharProc
@@ -38,6 +39,10 @@ from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+from cpython.object cimport Py_EQ, Py_NE
+
+from collections import defaultdict
 
 
 # mapping str --> SINGULAR representation
@@ -111,6 +116,17 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
         sage: P.<x,y,z> = Zmod(25213521351515232)[]; P
         Multivariate Polynomial Ring in x, y, z over Ring of integers modulo 25213521351515232
+
+    TESTS:
+
+    Check that ``degneglex`` and ``degrevlex`` are the same up to reversal of
+    variables (:trac:`29635`)::
+
+        sage: R = PolynomialRing(QQ, 'x', 4, order='degrevlex')
+        sage: S = PolynomialRing(QQ, tuple(reversed(R.gens())), order='degneglex')
+        sage: L = [v for d in (0..4) for v in IntegerVectors(d, 4)]
+        sage: sorted([R.monomial(*e) for e in L]) == sorted([S.monomial(*e) for e in L])
+        True
     """
     cdef long cexponent
     cdef GFInfo* _param
@@ -118,13 +134,14 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     cdef ring* _ring
     cdef char **_names
     cdef char **_ext_names
-    cdef char *_name
     cdef int i,j
     cdef int nblcks
     cdef int offset
     cdef int nvars
     cdef int characteristic
     cdef int modbase
+    cdef int ringorder_column_pos
+    cdef int ringorder_column_asc
 
     cdef n_coeffType ringtype = n_unknown
     cdef MPolynomialRing_libsingular k
@@ -137,20 +154,29 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     _ring  = NULL
 
     n = int(n)
-    if n<1:
-        raise ArithmeticError("The number of variables must be at least 1.")
+    if n < 1:
+        raise NotImplementedError(f"polynomials in {n} variables are not supported in Singular")
 
     nvars = n
     order = TermOrder(term_order, n)
 
     cdef nbaseblcks = len(order.blocks())
-    nblcks = nbaseblcks + order.singular_moreblocks()
+    nblcks = nbaseblcks + order.singular_moreblocks() + 1  # one block for ringorder column
     offset = 0
 
+    if (order._singular_ringorder_column is None or
+        order._singular_ringorder_column < 0 or
+        order._singular_ringorder_column >= 2*nbaseblcks+2):
+        ringorder_column_pos = nbaseblcks
+        ringorder_column_type = ringorder_C
+    else:
+        ringorder_column_pos = order._singular_ringorder_column // 2
+        ringorder_column_type = (ringorder_C if order._singular_ringorder_column % 2 == 0
+                                             else ringorder_c)
 
     _names = <char**>omAlloc0(sizeof(char*)*(len(names)))
     for i from 0 <= i < n:
-        _name = names[i]
+        _name = str_to_bytes(names[i])
         _names[i] = omStrDup(_name)
 
     # from the SINGULAR source code documentation for the rInit function
@@ -169,10 +195,11 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     _block0 = <int *>omAlloc0((nblcks + 2) * sizeof(int))
     _block1 = <int *>omAlloc0((nblcks + 2) * sizeof(int))
 
-
-
     cdef int idx = 0
     for i from 0 <= i < nbaseblcks:
+        if i == ringorder_column_pos:
+            _order[idx] = ringorder_column_type
+            idx += 1
         s = order[i].singular_str()
         if s[0] == 'M': # matrix order
             _order[idx] = ringorder_M
@@ -190,35 +217,33 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             _wvhdl[idx] = wv
         elif s[0] == '(' and order[i].name() == 'degneglex':  # "(a(1:n),ls(n))"
             _order[idx] = ringorder_a
-            if len(order[i]) == 0:    # may be zero for arbitrary-length orders
+            if not order[i]:    # may be zero for arbitrary-length orders
                 nlen = n
             else:
                 nlen = len(order[i])
 
             _wvhdl[idx] = <int *>omAlloc0(len(order[i])*sizeof(int))
-            for j in range(nlen):  _wvhdl[idx][j] = 1
-            _block0[idx] = offset + 1     # same like subsequent rp block
+            for j in range(nlen):
+                _wvhdl[idx][j] = 1
+            _block0[idx] = offset + 1     # same like subsequent ls block
             _block1[idx] = offset + nlen
 
             idx += 1;                   # we need one more block here
-            _order[idx] = ringorder_rp
+            _order[idx] = ringorder_ls
 
         else: # ordinary orders
             _order[idx] = order_dict.get(s, ringorder_dp)
 
         _block0[idx] = offset + 1
-        if len(order[i]) == 0: # may be zero in some cases
+        if not order[i]: # may be zero in some cases
             _block1[idx] = offset + n
         else:
             _block1[idx] = offset + len(order[i])
         offset = _block1[idx]
         idx += 1
 
-    # TODO: if we construct a free module don't hardcode! This
-    # position determines whether we break ties at monomials first or
-    # whether we break at indices first!
-    _order[nblcks] = ringorder_C
-
+    if ringorder_column_pos >= nbaseblcks:
+        _order[idx] = ringorder_column_type
 
     if isinstance(base_ring, RationalField):
         characteristic = 0
@@ -226,16 +251,14 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
     elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
         characteristic = 1
-        try:
-            k = PolynomialRing(RationalField(), 1, [base_ring.variable_name()], 'lex')
-        except TypeError:
-            raise TypeError("The multivariate polynomial ring in a single variable %s in lex order over Rational Field is supposed to be of type %s" % (base_ring.variable_name(), MPolynomialRing_libsingular))
+        k = PolynomialRing(RationalField(),
+            name=base_ring.variable_name(), order="lex", implementation="singular")
 
         minpoly = base_ring.polynomial()(k.gen())
 
         _ext_names = <char**>omAlloc0(sizeof(char*))
         extname = k.gen()
-        _name = k._names[0]
+        _name = str_to_bytes(k._names[0])
         _ext_names[0] = omStrDup(_name)
         _cfr = rDefault( 0, 1, _ext_names )
 
@@ -257,8 +280,6 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
 
     elif (isinstance(base_ring, FiniteField_generic) and base_ring.is_prime_field()):
-        #or (is_IntegerModRing(base_ring) and base_ring.characteristic().is_prime()):
-
         if base_ring.characteristic() <= 2147483647:
             characteristic = base_ring.characteristic()
         else:
@@ -274,11 +295,10 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             characteristic = -base_ring.characteristic() # note the negative characteristic
         else:
             raise TypeError("characteristic must be <= 2147483647.")
-        # TODO: This is lazy, it should only call Singular stuff not MPolynomial stuff
-        try:
-            k = PolynomialRing(base_ring.prime_subfield(), 1, [base_ring.variable_name()], 'lex')
-        except TypeError:
-            raise TypeError("The multivariate polynomial ring in a single variable %s in lex order over %s is supposed to be of type %s" % (base_ring.variable_name(), base_ring,MPolynomialRing_libsingular))
+
+        # TODO: This is lazy, it should only call Singular stuff not PolynomialRing()
+        k = PolynomialRing(base_ring.prime_subfield(),
+            name=base_ring.variable_name(), order="lex", implementation="singular")
         minpoly = base_ring.polynomial()(k.gen())
 
         ch = base_ring.characteristic()
@@ -289,7 +309,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         cexponent = F[0][1]
 
         _ext_names = <char**>omAlloc0(sizeof(char*))
-        _name = k._names[0]
+        _name = str_to_bytes(k._names[0])
         _ext_names[0] = omStrDup(_name)
         _cfr = rDefault( modbase, 1, _ext_names )
 
@@ -307,30 +327,32 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     elif is_IntegerModRing(base_ring):
 
         ch = base_ring.characteristic()
+        if ch < 2:
+            raise NotImplementedError(f"polynomials over {base_ring} are not supported in Singular")
+
         isprime = ch.is_prime()
 
         if not isprime and ch.is_power_of(2):
             exponent = ch.nbits() -1
             cexponent = exponent
 
-            if exponent <= 30:  ringtype = n_Z2m
-            else:               ringtype = n_Znm
+            if exponent <= 30:
+                ringtype = n_Z2m
+            else:
+                ringtype = n_Znm
 
             if ringtype == n_Znm:
+                F = ch.factor()
 
-              F = ch.factor()
+                modbase = F[0][0]
+                cexponent = F[0][1]
 
-              modbase = F[0][0]
-              cexponent = F[0][1]
-
-              _info.base = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
-              mpz_init_set_ui(_info.base, modbase)
-              _info.exp = cexponent
-              _cf = nInitChar( n_Znm, <void *>&_info )
-
-            elif  ringtype == n_Z2m:
-                _cf = nInitChar( n_Z2m, <void *>cexponent )
-
+                _info.base = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
+                mpz_init_set_ui(_info.base, modbase)
+                _info.exp = cexponent
+                _cf = nInitChar(ringtype, <void *>&_info)
+            else:  # ringtype == n_Z2m
+                _cf = nInitChar(ringtype, <void *>cexponent)
 
         elif not isprime and ch.is_prime_power() and ch < ZZ(2)**160:
             F = ch.factor()
@@ -356,10 +378,8 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             _cf = nInitChar( n_Zn, <void *>&_info )
         _ring = rDefault( _cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
 
-
     else:
-        raise NotImplementedError("Base ring is not supported.")
-
+        raise NotImplementedError(f"polynomials over {base_ring} are not supported in Singular")
 
     if (_ring is NULL):
         raise ValueError("Failed to allocate Singular ring.")
@@ -376,7 +396,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     rComplete(_ring, 1)
 
     _ring.ShortOut = 0
- 
+
     if order.is_local():
         assert(_ring.OrdSgn == -1)
     if order.is_global():
@@ -386,7 +406,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
 
 #############################################################################
-ring_refcount_dict = {}
+ring_refcount_dict = defaultdict(int)
 
 
 cdef class ring_wrapper_Py(object):
@@ -416,7 +436,11 @@ cdef class ring_wrapper_Py(object):
             sage: from sage.libs.singular.ring import ring_wrapper_Py
             sage: t = ring_wrapper_Py(); t
             The ring pointer 0x0
-            sage: TestSuite(t).run()
+
+        These are just wrappers around a pointer, so it isn't really meaningful
+        to pickle them::
+
+            sage: TestSuite(t).run(skip='_test_pickling')
         """
         self._ring = NULL
 
@@ -456,9 +480,12 @@ cdef class ring_wrapper_Py(object):
         """
         return 'The ring pointer '+hex(self.__hash__())
 
-    def __cmp__(ring_wrapper_Py left, ring_wrapper_Py right):
+    # This could be written using __eq__ but that does not work
+    # due to https://github.com/cython/cython/issues/2019
+    def __richcmp__(ring_wrapper_Py self, other, int op):
         """
-        Compare ``left`` and ``right`` so that instances can be used as dictionary keys.
+        Equality comparison between two ``ring_wrapper_Py`` instances,
+        for use when hashing.
 
         INPUT:
 
@@ -466,21 +493,35 @@ cdef class ring_wrapper_Py(object):
 
         OUTPUT:
 
-        -1, 0, or +1 depending on whether ``left`` and ``right`` are
-         less than, equal, or greather than.
+        True if both ``ring_wrapper_Py`` wrap the same pointer.
 
         EXAMPLES::
 
-            sage: from sage.libs.singular.ring import ring_wrapper_Py
+            sage: from sage.libs.singular.ring import (ring_wrapper_Py,
+            ....:     currRing_wrapper)
             sage: t = ring_wrapper_Py()
-            sage: t.__cmp__(t)
-            0
+            sage: t == t
+            True
+            sage: P.<x,y,z> = QQ[]
+            sage: t2 = currRing_wrapper()
+            sage: t3 = currRing_wrapper()
+            sage: t == t2
+            False
+            sage: t2 == t3
+            True
+            sage: t2 != t3
+            False
+            sage: t2 == None
+            False
         """
-        if left._ring < right._ring:
-            return -1
-        if left._ring > right._ring:
-            return +1
-        return 0
+        if not (op == Py_EQ or op == Py_NE):
+            return NotImplemented
+
+        if type(other) is not ring_wrapper_Py:
+            return op != Py_EQ
+
+        r = <ring_wrapper_Py>other
+        return (self._ring == r._ring) == (op == Py_EQ)
 
 
 cdef wrap_ring(ring* R):
@@ -524,13 +565,13 @@ cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
         sage: from sage.libs.singular.groebner_strategy import GroebnerStrategy
         sage: from sage.libs.singular.ring import ring_refcount_dict
         sage: n = len(ring_refcount_dict)
-        sage: prev_rings = set(ring_refcount_dict.keys())
+        sage: prev_rings = set(ring_refcount_dict)
         sage: P = MPolynomialRing_libsingular(GF(541), 2, ('x', 'y'), TermOrder('degrevlex', 2))
-        sage: ring_ptr = set(ring_refcount_dict.keys()).difference(prev_rings).pop()
+        sage: ring_ptr = set(ring_refcount_dict).difference(prev_rings).pop()
         sage: ring_ptr  # random output
         The ring pointer 0x7f78a646b8d0
         sage: ring_refcount_dict[ring_ptr]
-        4
+        3
 
         sage: strat = GroebnerStrategy(Ideal([P.gen(0) + P.gen(1)]))
         sage: ring_refcount_dict[ring_ptr]
@@ -546,10 +587,11 @@ cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
         sage: ring_ptr in ring_refcount_dict
         True
     """
-    if existing_ring==NULL:
+    if existing_ring is NULL:
         raise ValueError('singular_ring_reference(ring*) called with NULL pointer.')
+
     cdef object r = wrap_ring(existing_ring)
-    ring_refcount_dict[r] = ring_refcount_dict.get(r,0)+1
+    ring_refcount_dict[r] += 1
     return existing_ring
 
 
@@ -589,10 +631,11 @@ cdef void singular_ring_delete(ring *doomed):
         return
 
     cdef ring_wrapper_Py r = wrap_ring(doomed)
-    refcount = ring_refcount_dict.pop(r)
-    if refcount > 1:
-        ring_refcount_dict[r] = refcount-1
+    ring_refcount_dict[r] -= 1
+    if ring_refcount_dict[r] > 0:
         return
+
+    del ring_refcount_dict[r]
 
     global currRing
     cdef ring *oldRing = currRing
@@ -603,8 +646,6 @@ cdef void singular_ring_delete(ring *doomed):
         rChangeCurrRing(doomed)
         rDelete(doomed)
         rChangeCurrRing(oldRing)
-
-
 
 
 #############################################################################
@@ -660,6 +701,7 @@ cpdef print_currRing():
     """
     cdef size_t addr = <size_t>currRing
     print("DEBUG: currRing == " + str(hex(addr)))
+
 
 def currRing_wrapper():
     """

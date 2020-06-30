@@ -64,7 +64,7 @@ cdef class NumberFieldEmbedding(Morphism):
         else:
             self._gen_image = R(gen_embedding)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         A helper for pickling and copying.
 
@@ -91,8 +91,9 @@ cdef class NumberFieldEmbedding(Morphism):
             sage: g(a)^3
             2.00000000000000?
         """
-        _slots['_gen_image'] = self._gen_image
-        return Morphism._extra_slots(self, _slots)
+        slots = Morphism._extra_slots(self)
+        slots['_gen_image'] = self._gen_image
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -182,13 +183,13 @@ cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
         sage: from sage.rings.number_field.number_field_morphisms import EmbeddedNumberFieldMorphism
         sage: EmbeddedNumberFieldMorphism(K,L,CDF)
         Generic morphism:
-          From: Number Field in i with defining polynomial x^2 + 1
-          To:   Number Field in i with defining polynomial x^2 + 1
+          From: Number Field in i with defining polynomial x^2 + 1 with i = I
+          To:   Number Field in i with defining polynomial x^2 + 1 with i = -I
           Defn: i -> -i
         sage: EmbeddedNumberFieldMorphism(K,L,QQbar)
         Generic morphism:
-          From: Number Field in i with defining polynomial x^2 + 1
-          To:   Number Field in i with defining polynomial x^2 + 1
+          From: Number Field in i with defining polynomial x^2 + 1 with i = I
+          To:   Number Field in i with defining polynomial x^2 + 1 with i = -I
           Defn: i -> -i
 
     """
@@ -225,7 +226,7 @@ cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
             sage: F1.gen() + F2.gen()
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for +: 'Number Field in a with defining polynomial x^3 + 2' and 'Number Field in a with defining polynomial x^3 + 2'
+            TypeError: unsupported operand parent(s) for +: 'Number Field in a with defining polynomial x^3 + 2 with a = -1.259921049894873?' and 'Number Field in a with defining polynomial x^3 + 2 with a = 0.6299605249474365? + 1.091123635971722?*I'
 
         The following was fixed to raise a ``TypeError`` in :trac:`15331`::
 
@@ -486,9 +487,9 @@ def root_from_approx(f, a):
     P = a.parent()
     if P.is_exact() and not f(a):
         return a
-    elif RealField(mpfr_prec_min()).has_coerce_map_from(P):
+    elif P._is_real_numerical():
         return LazyAlgebraic(RLF, f, a, prec=0)
-    elif ComplexField(mpfr_prec_min()).has_coerce_map_from(P):
+    elif P._is_numerical():
         return LazyAlgebraic(CLF, f, a, prec=0)
     # p-adic lazy, when implemented, would go here
     else:
@@ -609,7 +610,7 @@ cdef class CyclotomicFieldEmbedding(NumberFieldEmbedding):
             -1
         """
         Morphism.__init__(self, K, L)
-        from number_field import NumberField_cyclotomic
+        from .number_field import NumberField_cyclotomic
         if not isinstance(K, NumberField_cyclotomic) or not isinstance(L, NumberField_cyclotomic):
             raise TypeError("CyclotomicFieldEmbedding only valid for cyclotomic fields.")
         Kn = K._n()
@@ -619,7 +620,7 @@ cdef class CyclotomicFieldEmbedding(NumberFieldEmbedding):
         self.ratio = L._log_gen(K.coerce_embedding()(K.gen()))
         self._gen_image = L.gen() ** self.ratio
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         A helper for pickling and copying.
 
@@ -646,9 +647,9 @@ cdef class CyclotomicFieldEmbedding(NumberFieldEmbedding):
             sage: g(cf6.0)
             zeta12^2
         """
-        _slots['_gen_image'] = self._gen_image
-        _slots['ratio'] = self.ratio
-        return Morphism._extra_slots(self, _slots)
+        slots = NumberFieldEmbedding._extra_slots(self)
+        slots['ratio'] = self.ratio
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

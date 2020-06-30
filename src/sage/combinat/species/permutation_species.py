@@ -16,14 +16,12 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from .species import GenericCombinatorialSpecies
 from .structure import GenericSpeciesStructure
 from .generating_series import _integers_from
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
-from sage.misc.cachefunc import cached_function
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.species.misc import accept_size
 
@@ -58,7 +56,6 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
             sage: a.permutation_group_element()
             (2,3)
         """
-        from sage.groups.all import PermutationGroupElement
         return Permutation(self._list).to_permutation_group_element()
 
     def transport(self, perm):

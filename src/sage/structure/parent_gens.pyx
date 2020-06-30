@@ -68,13 +68,11 @@ This example illustrates generators for a free module over `\ZZ`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 import sage.misc.defaults
 from sage.misc.latex import latex_variable_name
 from . import gens_py
 cimport sage.structure.parent as parent
-from sage.structure.coerce_dict import MonoDict
+from sage.structure.coerce_dict cimport MonoDict
 cimport sage.structure.category_object as category_object
 
 
@@ -98,7 +96,6 @@ cdef class ParentWithGens(ParentWithBase):
             ('a', 'b', 'c')
         """
         self._base = base
-        self._has_coerce_map_from = MonoDict(23)
         self._assign_names(names=names, normalize=normalize)
 
         ParentWithBase.__init__(self, base, category=category)
@@ -208,21 +205,27 @@ cdef class ParentWithGens(ParentWithBase):
     # Morphisms of objects with generators
     #################################################################################
 
-    def hom(self, im_gens, codomain=None, check=True):
+    def hom(self, im_gens, codomain=None, base_map=None, category=None, check=True):
         r"""
         Return the unique homomorphism from self to codomain that
-        sends ``self.gens()`` to the entries of ``im_gens``.
+        sends ``self.gens()`` to the entries of ``im_gens``
+        and induces the map ``base_map`` on the base ring.
         Raises a TypeError if there is no such homomorphism.
 
         INPUT:
 
-        - ``im_gens`` - the images in the codomain of the generators of
+        - ``im_gens`` -- the images in the codomain of the generators of
           this object under the homomorphism
 
-        - ``codomain`` - the codomain of the homomorphism
+        - ``codomain`` -- the codomain of the homomorphism
 
-        - ``check`` - whether to verify that the images of generators extend
-          to define a map (using only canonical coercions).
+        - ``base_map`` -- a map from the base ring of the domain into something
+          that coerces into the codomain
+
+        - ``category`` -- the category of the resulting morphism
+
+        - ``check`` -- whether to verify that the images of generators extend
+          to define a map (using only canonical coercions)
 
         OUTPUT:
 
@@ -249,7 +252,7 @@ cdef class ParentWithGens(ParentWithBase):
             sage: f = R.hom([5], GF(7))
             Traceback (most recent call last):
             ...
-            TypeError: images do not define a valid homomorphism
+            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
 
             sage: R.<x> = PolynomialRing(GF(7))
             sage: f = R.hom([3], GF(49,'a'))
@@ -271,7 +274,7 @@ cdef class ParentWithGens(ParentWithBase):
             sage: f(7)
             2
             sage: f
-            Ring Coercion morphism:
+            Natural morphism:
               From: Integer Ring
               To:   Finite Field of size 5
 
@@ -282,17 +285,38 @@ cdef class ParentWithGens(ParentWithBase):
             sage: QQ.hom(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: Natural coercion morphism from Rational Field to Integer Ring not defined.
+            TypeError: natural coercion morphism from Rational Field to Integer Ring not defined
+
+        You can specify a map on the base ring::
+
+            sage: k = GF(2)
+            sage: R.<a> = k[]
+            sage: l.<a> = k.extension(a^3 + a^2 + 1)
+            sage: R.<b> = l[]
+            sage: m.<b> = l.extension(b^2 + b + a)
+            sage: n.<z> = GF(2^6)
+            sage: m.hom([z^4 + z^3 + 1], base_map=l.hom([z^5 + z^4 + z^2]))
+            Ring morphism:
+              From: Univariate Quotient Polynomial Ring in b over Finite Field in a of size 2^3 with modulus b^2 + b + a
+              To:   Finite Field in z of size 2^6
+              Defn: b |--> z^4 + z^3 + 1
+                    with map of base ring
         """
         if self._element_constructor is not None:
-            return parent.Parent.hom(self, im_gens, codomain, check)
+            return parent.Parent.hom(self, im_gens, codomain, base_map=base_map, category=category, check=check)
         if isinstance(im_gens, parent.Parent):
             return self.Hom(im_gens).natural_map()
         if codomain is None:
             from sage.structure.all import Sequence
             im_gens = Sequence(im_gens)
             codomain = im_gens.universe()
-        return self.Hom(codomain)(im_gens, check=check)
+        kwds = {}
+        if check is not None:
+            kwds['check'] = check
+        if base_map is not None:
+            kwds['base_map'] = base_map
+        Hom_kwds = {} if category is None else {'category': category}
+        return self.Hom(codomain, **Hom_kwds)(im_gens, **kwds)
 
 
 cdef class localvars:

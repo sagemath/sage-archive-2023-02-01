@@ -134,7 +134,6 @@ REFERENCE:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 import bz2
 import os
@@ -300,7 +299,7 @@ class SteinWatkinsAllData:
             except StopIteration:
                 if C != []:
                     yield C
-                raise StopIteration
+                return
             if E.conductor != N:
                 if C != []:
                     yield C

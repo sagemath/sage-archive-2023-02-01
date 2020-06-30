@@ -5,15 +5,15 @@ Given a differentiable manifold `U` and a differentiable map
 `\Phi: U \rightarrow M` to a differentiable manifold `M` (possibly `U = M`
 and `\Phi=\mathrm{Id}_M`), the *group of tangent-space automorphism fields*
 associated with `U` and `\Phi` is the general linear group
-`\mathrm{GL}(\mathcal{X}(U,\Phi))` of the module `\mathcal{X}(U,\Phi)` of
+`\mathrm{GL}(\mathfrak{X}(U,\Phi))` of the module `\mathfrak{X}(U,\Phi)` of
 vector fields along `U` with values on `M\supset \Phi(U)` (see
 :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`).
-Note that `\mathcal{X}(U, \Phi)` is a module over
+Note that `\mathfrak{X}(U, \Phi)` is a module over
 `C^k(U)`, the algebra of differentiable scalar fields on `U`.
-Elements of `\mathrm{GL}(\mathcal{X}(U, \Phi))` are fields along `U`
+Elements of `\mathrm{GL}(\mathfrak{X}(U, \Phi))` are fields along `U`
 of automorphisms of tangent spaces to `M`.
 
-Two classes implement `\mathrm{GL}(\mathcal{X}(U, \Phi))` depending
+Two classes implement `\mathrm{GL}(\mathfrak{X}(U, \Phi))` depending
 whether `M` is parallelizable or not:
 :class:`AutomorphismFieldParalGroup` and :class:`AutomorphismFieldGroup`.
 
@@ -21,6 +21,7 @@ AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
 - Travis Scrimshaw (2016): review tweaks
+- Michael Jung (2019): improve treatment of the identity element
 
 REFERENCES:
 
@@ -57,12 +58,12 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
     `\Phi: U \rightarrow M` to a differentiable manifold `M` (possibly `U = M`
     and `\Phi = \mathrm{Id}_M`), the *group of tangent-space automorphism
     fields* associated with `U` and `\Phi` is the general linear group
-    `\mathrm{GL}(\mathcal{X}(U,\Phi))` of the module `\mathcal{X}(U,\Phi)` of
+    `\mathrm{GL}(\mathfrak{X}(U,\Phi))` of the module `\mathfrak{X}(U,\Phi)` of
     vector fields along `U` with values on `M \supset \Phi(U)` (see
     :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`).
-    Note that `\mathcal{X}(U,\Phi)` is a module over
+    Note that `\mathfrak{X}(U,\Phi)` is a module over
     `C^k(U)`, the algebra of differentiable scalar fields on `U`.
-    Elements of `\mathrm{GL}(\mathcal{X}(U,\Phi))` are fields along `U` of
+    Elements of `\mathrm{GL}(\mathfrak{X}(U,\Phi))` are fields along `U` of
     automorphisms of tangent spaces to `M`.
 
     .. NOTE::
@@ -74,7 +75,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
 
     - ``vector_field_module`` --
       :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`;
-      module `\mathcal{X}(U,\Phi)` of vector fields along `U` with values on `M`
+      module `\mathfrak{X}(U,\Phi)` of vector fields along `U` with values on `M`
 
     EXAMPLES:
 
@@ -95,7 +96,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
          2-dimensional differentiable manifold M
 
     ``G`` is the general linear group of the vector field module
-    `\mathcal{X}(M)`::
+    `\mathfrak{X}(M)`::
 
         sage: XM = M.vector_field_module() ; XM
         Module X(M) of vector fields on the 2-dimensional differentiable
@@ -300,7 +301,16 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
             [0 1]
 
         """
-        return self.element_class(self._vmodule, is_identity=True)
+        # Specific initializations for the field of identity maps:
+        resu = self._element_constructor_(name='Id', latex_name=r'\mathrm{Id}')
+        resu._inverse = resu
+        for dom in resu._domain._subsets:
+            if dom.is_manifestly_parallelizable():
+                fmodule = dom.vector_field_module()
+                resu._restrictions[dom] = fmodule.identity_map(name='Id',
+                                                      latex_name=r'\mathrm{Id}')
+        resu._is_identity = True
+        return resu
 
     #### End of monoid methods ####
 
@@ -334,9 +344,9 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
             sage: M = Manifold(2, 'M')
             sage: G = M.automorphism_field_group()
             sage: G._latex_()
-            \mathrm{GL}\left( \mathcal{X}\left(M\right) \right)
+            \mathrm{GL}\left( \mathfrak{X}\left(M\right) \right)
             sage: latex(G)  # indirect doctest
-            \mathrm{GL}\left( \mathcal{X}\left(M\right) \right)
+            \mathrm{GL}\left( \mathfrak{X}\left(M\right) \right)
 
         """
         from sage.misc.latex import latex
@@ -388,12 +398,12 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
     `\Phi: U \rightarrow M` to a parallelizable  manifold `M` (possibly `U = M`
     and `\Phi = \mathrm{Id}_M`), the *group of tangent-space automorphism
     fields* associated with `U` and `\Phi` is the general linear group
-    `\mathrm{GL}(\mathcal{X}(U, \Phi))` of the module `\mathcal{X}(U, \Phi)`
+    `\mathrm{GL}(\mathfrak{X}(U, \Phi))` of the module `\mathfrak{X}(U, \Phi)`
     of vector fields along `U` with values on `M \supset \Phi(U)` (see
     :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`).
-    Note that `\mathcal{X}(U, \Phi)` is a free module over `C^k(U)`,
+    Note that `\mathfrak{X}(U, \Phi)` is a free module over `C^k(U)`,
     the algebra of differentiable scalar fields on `U`.
-    Elements of `\mathrm{GL}(\mathcal{X}(U, \Phi))` are fields along `U` of
+    Elements of `\mathrm{GL}(\mathfrak{X}(U, \Phi))` are fields along `U` of
     automorphisms of tangent spaces to `M`.
 
     .. NOTE::
@@ -405,7 +415,7 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
 
     - ``vector_field_module`` --
       :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`;
-      free module `\mathcal{X}(U,\Phi)` of vector fields along `U`
+      free module `\mathfrak{X}(U,\Phi)` of vector fields along `U`
       with values on `M`
 
     EXAMPLES:
@@ -422,10 +432,10 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
         General linear group of the Free module X(M) of vector fields on the
          2-dimensional differentiable manifold M
         sage: latex(G)
-        \mathrm{GL}\left( \mathcal{X}\left(M\right) \right)
+        \mathrm{GL}\left( \mathfrak{X}\left(M\right) \right)
 
     ``G`` is nothing but the general linear group of the module
-    `\mathcal{X}(M)`::
+    `\mathfrak{X}(M)`::
 
         sage: G is XM.general_linear_group()
         True
@@ -452,7 +462,7 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
         sage: a.parent() is G
         True
 
-    As automorphisms of `\mathcal{X}(M)`, the elements of ``G`` map a vector
+    As automorphisms of `\mathfrak{X}(M)`, the elements of ``G`` map a vector
     field to a vector field::
 
         sage: v = XM.an_element() ; v

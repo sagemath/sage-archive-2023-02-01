@@ -15,6 +15,8 @@ AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Travis Scrimshaw (2015): review tweaks
+- Eric Gourgoulhon (2019): periodic coordinates,
+  add :meth:`~Chart.calculus_method`
 
 REFERENCES:
 
@@ -23,7 +25,7 @@ REFERENCES:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2015 Travis Scrimshaw <tscrimsh@umn.edu>
@@ -32,10 +34,9 @@ REFERENCES:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -43,6 +44,11 @@ from sage.symbolic.ring import SR
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
 from sage.misc.decorators import options
+from sage.manifolds.chart_func import ChartFunctionRing
+from sage.manifolds.calculus_method import CalculusMethod
+from sage.symbolic.expression import Expression
+from sage.ext.fast_callable import fast_callable
+
 
 class Chart(UniqueRepresentation, SageObject):
     r"""
@@ -61,26 +67,37 @@ class Chart(UniqueRepresentation, SageObject):
 
     - ``domain`` -- open subset `U` on which the chart is defined (must be
       an instance of :class:`~sage.manifolds.manifold.TopologicalManifold`)
-    - ``coordinates`` -- (default: ``''`` (empty string)) the string
-      defining the coordinate symbols, see below
+    - ``coordinates`` -- (default: '' (empty string)) single string defining
+      the coordinate symbols, with ``' '`` (whitespace) as a separator; each
+      item has at most three fields, separated by a colon (``:``):
+
+      1. the coordinate symbol (a letter or a few letters)
+      2. (optional) the period of the coordinate if the coordinate is
+         periodic; the period field must be written as ``period=T``, where
+         ``T`` is the period (see examples below)
+      3. (optional) the LaTeX spelling of the coordinate; if not provided the
+         coordinate symbol given in the first field will be used
+
+      The order of fields 2 and 3 does not matter and each of them can be
+      omitted. If it contains any LaTeX expression, the string ``coordinates``
+      must be declared with the prefix 'r' (for "raw") to allow for a proper
+      treatment of LaTeX's backslash character (see examples below).
+      If no period and no LaTeX spelling are to be set for any coordinate, the
+      argument ``coordinates`` can be omitted when the shortcut operator
+      ``<,>`` is used to declare the chart (see examples below).
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used)
+    - ``calc_method`` -- (default: ``None``) string defining the calculus
+      method for computations involving coordinates of the chart; must be
+      one of
 
-    The string ``coordinates`` has the space ``' '`` as a separator and each
-    item has at most two fields, separated by a colon (``:``):
-
-    1. the coordinate symbol (a letter or a few letters);
-    2. (optional) the LaTeX spelling of the coordinate, if not provided the
-       coordinate symbol given in the first field will be used.
-
-    If it contains any LaTeX expression, the string ``coordinates`` must be
-    declared with the prefix 'r' (for "raw") to allow for a proper treatment
-    of LaTeX's backslash character (see examples below).
-    If no LaTeX spelling is to be set for any coordinate, the argument
-    ``coordinates`` can be omitted when the shortcut operator ``<,>`` is
-    used via Sage preparser (see examples below).
+      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+      - ``'sympy'``: SymPy
+      - ``None``: the default of
+        :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
+        used
 
     EXAMPLES:
 
@@ -161,6 +178,14 @@ class Chart(UniqueRepresentation, SageObject):
     it makes sure that the backslash character is treated as an ordinary
     character, to be passed to the LaTeX interpreter.
 
+    Periodic coordinates are declared through the keyword ``period=`` in the
+    coordinate field::
+
+        sage: N = Manifold(2, 'N', field='complex', structure='topological')
+        sage: XN.<Z1,Z2> = N.chart('Z1:period=1+2*I Z2')
+        sage: XN.periods()
+        {0: 2*I + 1}
+
     Coordinates are Sage symbolic variables (see
     :mod:`sage.symbolic.expression`)::
 
@@ -237,7 +262,7 @@ class Chart(UniqueRepresentation, SageObject):
         manifolds over `\RR`.
 
     """
-    def __init__(self, domain, coordinates='', names=None):
+    def __init__(self, domain, coordinates='', names=None, calc_method=None):
         r"""
         Construct a chart.
 
@@ -264,7 +289,14 @@ class Chart(UniqueRepresentation, SageObject):
             coordinates = coordinates[:-1]
         self._manifold = domain.manifold()
         self._domain = domain
+        self._sindex = self._manifold.start_index()
+        # Handling of calculus methods available on this chart:
+        self._calc_method = CalculusMethod(current=calc_method,
+                             base_field_type=self.manifold().base_field_type())
+        self.simplify = self._calc_method.simplify
+
         # Treatment of the coordinates:
+        self._periods = {}  # dict. of periods (if any); key = coord. index
         if ' ' in coordinates:
             coord_list = coordinates.split()
         else:
@@ -309,9 +341,9 @@ class Chart(UniqueRepresentation, SageObject):
         # restriction of:
         self._supercharts = set([self])
         #
-        self._dom_restrict = {} # dict. of the restrictions of self to
-                                # subsets of self._domain, with the
-                                # subsets as keys
+        self._dom_restrict = {}  # dict. of the restrictions of self to
+                                 # subsets of self._domain, with the
+                                 # subsets as keys
         # The null and one functions of the coordinates:
         # Expression in self of the zero and one scalar fields of open sets
         # containing the domain of self:
@@ -351,14 +383,23 @@ class Chart(UniqueRepresentation, SageObject):
 
         """
         xx_list = [] # will contain the coordinates as Sage symbolic variables
-        for coord_field in coord_list:
+        for coord_index, coord_field in enumerate(coord_list):
             coord_properties = coord_field.split(':')
             coord_symb = coord_properties[0].strip() # the coordinate symbol
-            # LaTeX symbol:
-            coord_latex = None
+            coord_latex = None # possibly redefined below
+            # scan of the properties other than the symbol:
             for prop in coord_properties[1:]:
-                coord_latex = prop.strip()
-            # Construction of the coordinate as some Sage's symbolic variable:
+                prop1 = prop.strip()
+                if prop1[0:6] == 'period':
+                    if self._manifold.base_field_type() in ['real', 'complex']:
+                        period = SR(prop1[7:])
+                    else:
+                        period = self._manifold.base_field()(prop1[7:])
+                    self._periods[coord_index + self._sindex] = period
+                else:
+                    # prop1 is the coordinate's LaTeX symbol
+                    coord_latex = prop1
+            # Construction of the coordinate as a Sage symbolic variable:
             coord_var = SR.var(coord_symb, latex_name=coord_latex)
             xx_list.append(coord_var)
         self._xx = tuple(xx_list)
@@ -458,14 +499,13 @@ class Chart(UniqueRepresentation, SageObject):
             (x,)
         """
         if isinstance(i, slice):
-            start,stop = i.start,i.stop
+            start, stop = i.start, i.stop
             if start is not None:
-                start -= self._manifold._sindex
+                start -= self._sindex
             if stop is not None:
-                stop -= self._manifold._sindex
+                stop -= self._sindex
             return self._xx[start:stop:i.step]
-        else:
-            return self._xx[i-self._manifold._sindex]
+        return self._xx[i-self._sindex]
 
     def __call__(self, point):
         r"""
@@ -526,6 +566,67 @@ class Chart(UniqueRepresentation, SageObject):
 
         """
         return self._manifold
+
+    def periods(self):
+        r"""
+        Return the coordinate periods as a dictionary, possibly empty if no
+        coordinate is periodic.
+
+        OUTPUT:
+
+        - a dictionary with keys the indices of the periodic coordinates and
+          with values the periods.
+
+        EXAMPLES:
+
+        A chart without any periodic coordinate::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: X.periods()
+            {}
+
+        Charts with a periodic coordinate::
+
+            sage: Y.<u,v> = M.chart("u v:(0,2*pi):periodic")
+            sage: Y.periods()
+            {1: 2*pi}
+            sage: Z.<a,b> = M.chart(r"a:period=sqrt(2):\alpha b:\beta")
+            sage: Z.periods()
+            {0: sqrt(2)}
+
+        The key in the output dictionary takes into account the index range
+        declared on the manifold with ``start_index``::
+
+            sage: M = Manifold(2, 'M', structure='topological', start_index=1)
+            sage: Y.<u,v> = M.chart("u v:(0,2*pi):periodic")
+            sage: Y[2]
+            v
+            sage: Y.periods()
+            {2: 2*pi}
+            sage: Z.<a,b> = M.chart(r"a:period=sqrt(2):\alpha b:\beta")
+            sage: Z[1]
+            a
+            sage: Z.periods()
+            {1: sqrt(2)}
+
+        Complex manifold with a periodic coordinate::
+
+            sage: M = Manifold(2, 'M', field='complex', structure='topological',
+            ....:              start_index=1)
+            sage: X.<x,y> = M.chart("x y:period=1+I")
+            sage: X.periods()
+            {2: I + 1}
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', field=QQ, structure='topological')
+            sage: X.<xq,yq> = M.chart(r"xq:period=3/2 yq:\zeta:period=2")
+            sage: X.periods()[0], X.periods()[1]
+            (3/2, 2)
+
+        """
+        return self._periods
 
     def add_restrictions(self, restrictions):
         r"""
@@ -625,7 +726,8 @@ class Chart(UniqueRepresentation, SageObject):
             coordinates = ""
             for coord in self._xx:
                 coordinates += repr(coord) + ' '
-            res = type(self)(subset, coordinates)
+            res = type(self)(subset, coordinates,
+                             calc_method=self._calc_method._current)
             res._restrictions.extend(self._restrictions)
             # The coordinate restrictions are added to the result chart and
             # possibly transformed into coordinate bounds:
@@ -756,8 +858,6 @@ class Chart(UniqueRepresentation, SageObject):
             return combine
         # Case of a single condition:
         return bool(restrict.subs(substitutions))
-
-
 
     def transition_map(self, other, transformations, intersection_name=None,
                        restrictions1=None, restrictions2=None):
@@ -895,12 +995,13 @@ class Chart(UniqueRepresentation, SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: X.function_ring()
-            Ring of coordinate functions on Chart (M, (x, y))
+            Ring of chart functions on Chart (M, (x, y))
         """
-        from sage.manifolds.coord_func_symb import CoordFunctionSymbRing
-        return CoordFunctionSymbRing(self)
 
-    def function(self, expression):
+        return ChartFunctionRing(self)
+
+    def function(self, expression, calc_method=None, expansion_symbol=None,
+                 order=None):
         r"""
         Define a coordinate function to the base field.
 
@@ -917,30 +1018,38 @@ class Chart(UniqueRepresentation, SageObject):
         where `V` is the chart codomain and `(x^1, \ldots, x^n)` are the
         chart coordinates.
 
-        The coordinate function can be either a symbolic one or a numerical
-        one, depending on the parameter ``expression`` (see below).
-
-        See :class:`~sage.manifolds.coord_func.CoordFunction`
-        and :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
-        for a complete documentation.
-
         INPUT:
 
-        - ``expression`` -- material defining the coordinate function; it can
-          be either:
+        - ``expression`` -- a symbolic expression involving the chart
+          coordinates, to represent `f(x^1,\ldots, x^n)`
 
-          - a symbolic expression involving the chart coordinates, to represent
-            `f(x^1,\ldots, x^n)`
-          - a string representing the name of a file where the data
-            to construct a numerical coordinate function is stored
+        - ``calc_method`` -- string (default: ``None``): the calculus method
+          with respect to which the internal expression of the function must be
+          initialized from ``expression``; one of
+
+          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+          - ``'sympy'``: SymPy
+          - ``None``: the chart current calculus method is assumed
+
+        - ``expansion_symbol`` -- (default: ``None``) symbolic variable (the
+          "small parameter") with respect to which the coordinate expression is
+          expanded in power series (around the zero value of this variable)
+
+        - ``order`` -- integer (default: ``None``); the order of the expansion
+          if ``expansion_symbol`` is not ``None``; the *order* is defined as
+          the degree of the polynomial representing the truncated power series
+          in ``expansion_symbol``.
+
+          .. WARNING::
+
+             The value of ``order`` is `n-1`, where `n` is the order of the
+             big `O` in the power series expansion
 
         OUTPUT:
 
-        - instance of a subclass of the base class
-          :class:`~sage.manifolds.coord_func.CoordFunction`
-          representing the coordinate function `f`; this is
-          :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb` if
-          if  ``expression`` is a symbolic expression.
+        - instance of
+          :class:`~sage.manifolds.chart_func.ChartFunction`
+          representing the coordinate function `f`
 
         EXAMPLES:
 
@@ -952,18 +1061,31 @@ class Chart(UniqueRepresentation, SageObject):
             sage: f
             sin(x*y)
             sage: type(f)
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
             sage: f.display()
             (x, y) |--> sin(x*y)
             sage: f(2,3)
             sin(6)
 
+        Using SymPy for the internal representation of the function (dictionary
+        ``_express``)::
+
+            sage: g = X.function(x^2 + x*cos(y), calc_method='sympy')
+            sage: g._express
+            {'sympy': x**2 + x*cos(y)}
+
+        On the contrary, for ``f``, only the ``SR`` part has been initialized::
+
+            sage: f._express
+            {'SR': sin(x*y)}
+
+        See :class:`~sage.manifolds.chart_func.ChartFunction` for more examples.
+
         """
-        if isinstance(expression, str):
-            raise NotImplementedError("numerical coordinate function not " +
-                                      "implemented yet")
-        else:
-            return self.function_ring()(expression)
+        parent = self.function_ring()
+        return parent.element_class(parent, expression, calc_method=calc_method,
+                                    expansion_symbol=expansion_symbol,
+                                    order=order)
 
     def zero_function(self):
         r"""
@@ -981,12 +1103,12 @@ class Chart(UniqueRepresentation, SageObject):
 
         where `V` is the chart codomain.
 
-        See class :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        See class :class:`~sage.manifolds.chart_func.ChartFunction`
         for a complete documentation.
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        - a :class:`~sage.manifolds.chart_func.ChartFunction`
           representing the zero coordinate function `f`
 
         EXAMPLES::
@@ -998,7 +1120,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.zero_function().display()
             (x, y) |--> 0
             sage: type(X.zero_function())
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
         The result is cached::
 
@@ -1035,12 +1157,12 @@ class Chart(UniqueRepresentation, SageObject):
 
         where `V` is the chart codomain.
 
-        See class :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        See class :class:`~sage.manifolds.chart_func.ChartFunction`
         for a complete documentation.
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        - a :class:`~sage.manifolds.chart_func.ChartFunction`
           representing the one coordinate function `f`
 
         EXAMPLES::
@@ -1052,7 +1174,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.one_function().display()
             (x, y) |--> 1
             sage: type(X.one_function())
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
         The result is cached::
 
@@ -1073,6 +1195,71 @@ class Chart(UniqueRepresentation, SageObject):
         """
         return self.function_ring().one()
 
+    def calculus_method(self):
+        r"""
+        Return the interface governing the calculus engine for expressions
+        involving coordinates of this chart.
+
+        The calculus engine can be one of the following:
+
+        - Sage's symbolic engine (Pynac + Maxima), implemented via the
+          Symbolic Ring ``SR``
+        - SymPy
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.calculus_method.CalculusMethod` for a
+            complete documentation.
+
+        OUTPUT:
+
+        - an instance of :class:`~sage.manifolds.calculus_method.CalculusMethod`
+
+        EXAMPLES:
+
+        The default calculus method relies on Sage's Symbolic Ring::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: X.calculus_method()
+            Available calculus methods (* = current):
+             - SR (default) (*)
+             - sympy
+
+        Accordingly the method
+        :meth:`~sage.manifolds.chart_func.ChartFunction.expr` of a function
+        ``f`` defined on the chart ``X`` returns a Sage symbolic expression::
+
+            sage: f = X.function(x^2 + cos(y)*sin(x))
+            sage: f.expr()
+            x^2 + cos(y)*sin(x)
+            sage: type(f.expr())
+            <type 'sage.symbolic.expression.Expression'>
+            sage: parent(f.expr())
+            Symbolic Ring
+            sage: f.display()
+            (x, y) |--> x^2 + cos(y)*sin(x)
+
+        Changing to SymPy::
+
+            sage: X.calculus_method().set('sympy')
+            sage: f.expr()
+            x**2 + sin(x)*cos(y)
+            sage: type(f.expr())
+            <class 'sympy.core.add.Add'>
+            sage: parent(f.expr())
+            <class 'sympy.core.add.Add'>
+            sage: f.display()
+            (x, y) |--> x**2 + sin(x)*cos(y)
+
+        Back to the Symbolic Ring::
+
+            sage: X.calculus_method().set('SR')
+            sage: f.display()
+            (x, y) |--> x^2 + cos(y)*sin(x)
+
+        """
+        return self._calc_method
 
     def multifunction(self, *expressions):
         r"""
@@ -1095,7 +1282,7 @@ class Chart(UniqueRepresentation, SageObject):
         `K^m`-valued function of the coordinates associated to the chart
         `(U, \varphi)`.
 
-        See :class:`~sage.manifolds.coord_func.MultiCoordFunction` for a
+        See :class:`~sage.manifolds.chart_func.MultiCoordFunction` for a
         complete documentation.
 
         INPUT:
@@ -1108,7 +1295,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.coord_func.MultiCoordFunction`
+        - a :class:`~sage.manifolds.chart_func.MultiCoordFunction`
           representing `f`
 
         EXAMPLES:
@@ -1125,14 +1312,14 @@ class Chart(UniqueRepresentation, SageObject):
         TESTS::
 
             sage: type(f)
-            <class 'sage.manifolds.coord_func.MultiCoordFunction'>
+            <class 'sage.manifolds.chart_func.MultiCoordFunction'>
 
         """
-        from sage.manifolds.coord_func import MultiCoordFunction
+        from sage.manifolds.chart_func import MultiCoordFunction
         return MultiCoordFunction(self, expressions)
 
 
-#*****************************************************************************
+# *****************************************************************************
 
 class RealChart(Chart):
     r"""
@@ -1150,35 +1337,46 @@ class RealChart(Chart):
     INPUT:
 
     - ``domain`` -- open subset `U` on which the chart is defined
-    - ``coordinates`` -- (default: ``''`` (empty string)) string defining
-      the coordinate symbols and ranges, see below
+    - ``coordinates`` -- (default: '' (empty string)) single string defining
+      the coordinate symbols, with ``' '`` (whitespace) as a separator; each
+      item has at most four fields, separated by a colon (``:``):
+
+      1. the coordinate symbol (a letter or a few letters)
+      2. (optional) the interval `I` defining the coordinate range: if not
+         provided, the coordinate is assumed to span all `\RR`; otherwise
+         `I` must be provided in the form ``(a,b)`` (or equivalently
+         ``]a,b[``); the bounds ``a`` and ``b`` can be ``+/-Infinity``,
+         ``Inf``, ``infinity``, ``inf`` or ``oo``; for *singular*
+         coordinates, non-open intervals such as ``[a,b]`` and ``(a,b]``
+         (or equivalently ``]a,b]``) are allowed; note that the interval
+         declaration must not contain any whitespace
+      3. (optional) indicator of the periodic character of the coordinate,
+         either as ``period=T``, where ``T`` is the period, or as the keyword
+         ``periodic`` (the value of the period is then deduced from the
+         interval `I` declared in field 2; see examples below)
+      4. (optional) the LaTeX spelling of the coordinate; if not provided the
+         coordinate symbol given in the first field will be used
+
+      The order of fields 2 to 4 does not matter and each of them can be
+      omitted. If it contains any LaTeX expression, the string ``coordinates``
+      must be declared with the prefix 'r' (for "raw") to allow for a proper
+      treatment of LaTeX's backslash character (see examples below).
+      If interval range, no period and no LaTeX spelling are to be set for any
+      coordinate, the argument ``coordinates`` can be omitted when the shortcut
+      operator ``<,>`` is used to declare the chart (see examples below).
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used)
+    - ``calc_method`` -- (default: ``None``) string defining the calculus
+      method for computations involving coordinates of the chart; must be
+      one of
 
-    The string ``coordinates`` has the space ``' '`` as a separator and each
-    item has at most three fields, separated by a colon (``:``):
-
-    1. The coordinate symbol (a letter or a few letters).
-    2. (optional) The interval `I` defining the coordinate range: if not
-       provided, the coordinate is assumed to span all `\RR`; otherwise
-       `I` must be provided in the form ``(a,b)`` (or equivalently
-       ``]a,b[``). The bounds ``a`` and ``b`` can be ``+/-Infinity``,
-       ``Inf``, ``infinity``, ``inf`` or ``oo``.
-       For *singular* coordinates, non-open intervals such as ``[a,b]`` and
-       ``(a,b]`` (or equivalently ``]a,b]``) are allowed.
-       Note that the interval declaration must not contain any whitespace.
-    3. (optional) The LaTeX spelling of the coordinate; if not provided the
-       coordinate symbol given in the first field will be used.
-
-    The order of the fields 2 and 3 does not matter and each of them can be
-    omitted. If it contains any LaTeX expression, the string ``coordinates``
-    must be declared with the prefix 'r' (for "raw") to allow for a proper
-    treatment of LaTeX backslash characters (see examples below). If no
-    interval range and no LaTeX spelling is to be set for any coordinate,
-    the argument ``coordinates`` can be omitted when the shortcut
-    operator ``<,>`` is used via Sage preparser (see examples below).
+      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+      - ``'sympy'``: SymPy
+      - ``None``: the default of
+        :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
+        used
 
     EXAMPLES:
 
@@ -1215,7 +1413,8 @@ class RealChart(Chart):
     names and do not have to coincide with the coordinate symbols; for
     instance, one may write::
 
-        sage: M = Manifold(3, 'R^3', r'\RR^3', structure='topological', start_index=1)
+        sage: M = Manifold(3, 'R^3', r'\RR^3', structure='topological',
+        ....:              start_index=1)
         sage: c_cart.<x1,y1,z1> = M.chart('x y z'); c_cart
         Chart (R^3, (x, y, z))
 
@@ -1290,11 +1489,33 @@ class RealChart(Chart):
         sage: simplify(abs(x)) # no positive range has been declared for x
         abs(x)
 
+    A coordinate can be declared periodic by adding the keyword ``periodic``
+    to its range::
+
+        sage: V = M.open_subset('V')
+        sage: c_spher1.<r,th,ph1> = \
+        ....: V.chart(r'r:(0,+oo) th:(0,pi):\theta ph1:(0,2*pi):periodic:\phi_1')
+        sage: c_spher1.periods()
+        {3: 2*pi}
+        sage: c_spher1.coord_range()
+        r: (0, +oo); th: (0, pi); ph1: [0, 2*pi] (periodic)
+
+    It is equivalent to give the period as ``period=2*pi``, skipping the
+    coordinate range::
+
+        sage: c_spher2.<r,th,ph2> = \
+        ....: V.chart(r'r:(0,+oo) th:(0,pi):\theta ph2:period=2*pi:\phi_2')
+        sage: c_spher2.periods()
+        {3: 2*pi}
+        sage: c_spher2.coord_range()
+        r: (0, +oo); th: (0, pi); ph2: [0, 2*pi] (periodic)
+
     Each constructed chart is automatically added to the manifold's
     user atlas::
 
         sage: M.atlas()
-        [Chart (R^3, (x, y, z)), Chart (U, (r, th, ph))]
+        [Chart (R^3, (x, y, z)), Chart (U, (r, th, ph)),
+         Chart (V, (r, th, ph1)), Chart (V, (r, th, ph2))]
 
     and to the atlas of its domain::
 
@@ -1345,7 +1566,9 @@ class RealChart(Chart):
         sage: U.atlas()
         [Chart (U, (r, th, ph)), Chart (U, (x, y, z))]
         sage: M.atlas()
-        [Chart (R^3, (x, y, z)), Chart (U, (r, th, ph)), Chart (U, (x, y, z))]
+        [Chart (R^3, (x, y, z)), Chart (U, (r, th, ph)),
+         Chart (V, (r, th, ph1)), Chart (V, (r, th, ph2)),
+         Chart (U, (x, y, z))]
         sage: c_cartU.valid_coordinates(-1,0,2)
         True
         sage: c_cartU.valid_coordinates(1,0,2)
@@ -1362,7 +1585,7 @@ class RealChart(Chart):
     :meth:`plot`.
 
     """
-    def __init__(self, domain, coordinates='', names=None):
+    def __init__(self, domain, coordinates='', names=None, calc_method=None):
         r"""
         Construct a chart on a real topological manifold.
 
@@ -1380,7 +1603,9 @@ class RealChart(Chart):
             sage: TestSuite(X).run()
 
         """
-        Chart.__init__(self, domain, coordinates=coordinates, names=names)
+        Chart.__init__(self, domain, coordinates=coordinates, names=names,
+                       calc_method=calc_method)
+        self._fast_valid_coordinates = None
 
     def _init_coordinates(self, coord_list):
         r"""
@@ -1419,7 +1644,7 @@ class RealChart(Chart):
         from sage.symbolic.assumptions import assume
         xx_list = [] # will contain the coordinates as Sage symbolic variables
         bounds_list = [] # will contain the coordinate bounds
-        for coord_field in coord_list:
+        for coord_index, coord_field in enumerate(coord_list):
             coord_properties = coord_field.split(':')
             coord_symb = coord_properties[0].strip() # the coordinate symbol
             # default values, possibly redefined below:
@@ -1427,6 +1652,7 @@ class RealChart(Chart):
             xmin = -Infinity; xmin_included = False
             xmax = +Infinity; xmax_included = False
             # scan of the properties other than the symbol:
+            is_periodic = False
             for prop in coord_properties[1:]:
                 prop1 = prop.strip()
                 delim_min = prop1[0]
@@ -1442,23 +1668,35 @@ class RealChart(Chart):
                                         '+Infinity', 'oo', '+oo']:
                         xmax = SR(xmax_str)
                         xmax_included = ( prop1[-1] == ']' )
+                elif prop1[0:6] == 'period':
+                    # prop1 indicates a periodic coordinate
+                    is_periodic = True
+                    if prop1[6:8] != 'ic':
+                        # case prop1 = 'period=value'
+                        xmin = 0
+                        xmax = SR(prop1[7:])
                 else:
                     # prop1 is the coordinate's LaTeX symbol
                     coord_latex = prop1
-            # Construction of the coordinate as some Sage's symbolic variable:
+            # Construction of the coordinate as a Sage symbolic variable:
             coord_var = SR.var(coord_symb, domain='real',
                                latex_name=coord_latex)
             assume(coord_var, 'real')
-            if xmin != -Infinity:
-                if xmin_included:
-                    assume(coord_var >= xmin)
-                else:
-                    assume(coord_var > xmin)
-            if xmax != Infinity:
-                if xmax_included:
-                    assume(coord_var <= xmax)
-                else:
-                    assume(coord_var < xmax)
+            if is_periodic:
+                self._periods[coord_index + self._sindex] = xmax - xmin
+                xmin_included = 'periodic'
+                xmax_included = 'periodic'
+            else:
+                if not (xmin == -Infinity):
+                    if xmin_included:
+                        assume(coord_var >= xmin)
+                    else:
+                        assume(coord_var > xmin)
+                if not (xmax == Infinity):
+                    if xmax_included:
+                        assume(coord_var <= xmax)
+                    else:
+                        assume(coord_var < xmax)
             xx_list.append(coord_var)
             bounds_list.append(((xmin, xmin_included), (xmax, xmax_included)))
         self._xx = tuple(xx_list)
@@ -1525,7 +1763,7 @@ class RealChart(Chart):
         if i is None:
             return self._bounds
         else:
-            return self._bounds[i-self._manifold._sindex]
+            return self._bounds[i-self._sindex]
 
     def coord_range(self, xx=None):
         r"""
@@ -1564,6 +1802,7 @@ class RealChart(Chart):
 
         """
         from sage.tensor.modules.format_utilities import FormattedExpansion
+
         def _display_coord_range(self, xx, rtxt, rlatex):
             ind = self._xx.index(xx)
             bounds = self._bounds[ind]
@@ -1592,10 +1831,14 @@ class RealChart(Chart):
             if bounds[1][1]:
                 rtxt += "]"
                 rlatex += r"\right]"
+                if bounds[1][1] == 'periodic':
+                    rtxt += " (periodic)"
+                    rlatex += r"\mbox{(periodic)}"
             else:
                 rtxt += ")"
                 rlatex += r"\right)"
             return rtxt, rlatex
+
         resu_txt = ""
         resu_latex = ""
         if xx is None:
@@ -1609,7 +1852,6 @@ class RealChart(Chart):
             resu_txt, resu_latex = _display_coord_range(self, xx, resu_txt,
                                                         resu_latex)
         return FormattedExpansion(resu_txt, resu_latex)
-
 
     def add_restrictions(self, restrictions):
         r"""
@@ -1722,6 +1964,7 @@ class RealChart(Chart):
                 new_restrictions.append(restrict)
         self._bounds = tuple(bounds)
         self._restrictions = new_restrictions
+        self._fast_valid_coordinates = None
 
 
     def restrict(self, subset, restrictions=None):
@@ -1797,7 +2040,8 @@ class RealChart(Chart):
             coordinates = ""
             for coord in self._xx:
                 coordinates += repr(coord) + ' '
-            res = type(self)(subset, coordinates)
+            res = type(self)(subset, coordinates,
+                             calc_method=self._calc_method._current)
             res._bounds = self._bounds
             res._restrictions.extend(self._restrictions)
             # The coordinate restrictions are added to the result chart and
@@ -1890,6 +2134,8 @@ class RealChart(Chart):
         for x, bounds in zip(coordinates, self._bounds):
             xmin = bounds[0][0] - tolerance
             min_included = bounds[0][1]
+            if min_included == 'periodic':
+                continue  # no range to check for a periodic coordinate
             xmax = bounds[1][0] + tolerance
             max_included = bounds[1][1]
             if parameters:
@@ -1913,7 +2159,134 @@ class RealChart(Chart):
             return self._check_restrictions(self._restrictions, substitutions)
         return True
 
-    @options(max_range=8, color='red',  style='-', thickness=1, plot_points=75,
+    def valid_coordinates_numerical(self, *coordinates):
+        r"""
+        Check whether a tuple of float coordinates can be the coordinates
+        of a point in the chart domain.
+
+        This version is optimized for float numbers, and cannot accept
+        parameters nor tolerance. The chart restriction must also be
+        specified in CNF (i.e. a list of tuples).
+
+        INPUT:
+
+        - ``*coordinates`` -- coordinate values
+
+        OUTPUT:
+
+        - ``True`` if the coordinate values are admissible in the chart
+          range and ``False`` otherwise
+
+        EXAMPLES:
+
+        Cartesian coordinates on a square interior::
+
+            sage: forget()  # for doctest only
+            sage: M = Manifold(2, 'M', structure='topological')  # the square interior
+            sage: X.<x,y> = M.chart('x:(-2,2) y:(-2,2)')
+            sage: X.valid_coordinates_numerical(0,1)
+            True
+            sage: X.valid_coordinates_numerical(-3/2,5/4)
+            True
+            sage: X.valid_coordinates_numerical(0,3)
+            False
+
+        The unit open disk inside the square::
+
+            sage: D = M.open_subset('D', coord_def={X: x^2+y^2<1})
+            sage: XD = X.restrict(D)
+            sage: XD.valid_coordinates_numerical(0,1)
+            False
+            sage: XD.valid_coordinates_numerical(-3/2,5/4)
+            False
+            sage: XD.valid_coordinates_numerical(-1/2,1/2)
+            True
+            sage: XD.valid_coordinates_numerical(0,0)
+            True
+
+        Another open subset of the square, defined by `x^2 + y^2 < 1` or
+        (`x > 0` and `|y| < 1`)::
+
+            sage: B = M.open_subset('B',coord_def={X: [(x^2+y^2<1, x>0),
+            ....:                   (x^2+y^2<1,  abs(y)<1)]})
+            sage: XB = X.restrict(B)
+            sage: XB.valid_coordinates_numerical(-1/2, 0)
+            True
+            sage: XB.valid_coordinates_numerical(-1/2, 3/2)
+            False
+            sage: XB.valid_coordinates_numerical(3/2, 1/2)
+            True
+
+        """
+        # case fast callable already computed
+        if self._fast_valid_coordinates is not None:
+            return self._fast_valid_coordinates(*coordinates)
+
+        # case fast callable has to be computed
+        from operator import lt, gt
+
+        if not isinstance(self._restrictions, list):
+            if isinstance(self._restrictions, tuple):
+                self._restrictions = [self._restrictions]
+            elif isinstance(self._restrictions, Expression):
+                self._restrictions = [(self._restrictions,)]
+            else:
+                raise ValueError("restrictions must be in CNF (list of tuples)")
+
+        list_of_clause = []
+        for clause in self._restrictions:
+            if not isinstance(clause, tuple):
+                if isinstance(clause, Expression):
+                    clause = (clause,)
+                else:
+                    raise ValueError("restrictions must be in CNF (list of tuples)")
+            list_of_fast_callable = []
+            for litteral in clause:
+                if not isinstance(litteral, Expression):
+                    raise ValueError("Restrictions must be in CNF (list of tuples)")
+                # End of checks
+
+                fl = fast_callable(litteral.lhs(), vars=self[:], domain=float)
+                fr = fast_callable(litteral.rhs(), vars=self[:], domain=float)
+                op = litteral.operator()
+                list_of_fast_callable.append((fl, fr, op))
+            list_of_clause.append(list_of_fast_callable)
+
+        # adding bounds as restrictions
+        for x, bounds in zip(self[:], self._bounds):
+            if bounds[0][1] == 'periodic':
+                continue  # no range to check for a periodic coordinate
+            xmin = bounds[0][0]
+            xmax = bounds[1][0]
+
+            if x <= xmin:
+                return False
+            if x >= xmax:
+                return False
+
+            if xmin is not -Infinity:
+                fl = fast_callable(x, vars=self[:], domain=float)
+                fr = fast_callable(SR(xmin), vars=self[:], domain=float)
+                list_of_clause.append(((fl, fr, gt),))
+            if xmax is not Infinity:
+                fl = fast_callable(x, vars=self[:], domain=float)
+                fr = fast_callable(SR(xmax), vars=self[:], domain=float)
+                list_of_clause.append(((fl, fr, lt),))
+
+        # final call
+        def evaluate_fast_callable(*coordinates):
+            for clause in list_of_clause:
+                temp = False
+                for fl, fr, op in clause:
+                    temp = temp or op(fl(*coordinates), fr(*coordinates))
+                if not temp:
+                    return False
+            return True
+
+        self._fast_valid_coordinates = evaluate_fast_callable
+        return self._fast_valid_coordinates(*coordinates)
+
+    @options(max_range=8, color='red', style='-', thickness=1, plot_points=75,
              label_axes=True)
     def plot(self, chart=None, ambient_coords=None, mapping=None,
              fixed_coords=None, ranges=None, number_values=None,
@@ -2559,7 +2932,7 @@ class RealChart(Chart):
                 resu = set_axes_labels(resu, *labels)
         return resu
 
-#*****************************************************************************
+# *****************************************************************************
 
 class CoordChange(SageObject):
     r"""
@@ -2762,21 +3135,24 @@ class CoordChange(SageObject):
 
         EXAMPLES:
 
-        Inverse of a coordinate transformation corresponding to a
-        `\pi/3`-rotation in the plane::
+        Inverse of a coordinate transformation corresponding to a rotation
+        in the Cartesian plane::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: c_xy.<x,y> = M.chart()
             sage: c_uv.<u,v> = M.chart()
-            sage: xy_to_uv = c_xy.transition_map(c_uv, ((x - sqrt(3)*y)/2, (sqrt(3)*x + y)/2))
+            sage: phi = var('phi', domain='real')
+            sage: xy_to_uv = c_xy.transition_map(c_uv,
+            ....:                                [cos(phi)*x + sin(phi)*y,
+            ....:                                 -sin(phi)*x + cos(phi)*y])
             sage: M.coord_changes()
             {(Chart (M, (x, y)),
               Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))}
             sage: uv_to_xy = xy_to_uv.inverse(); uv_to_xy
             Change of coordinates from Chart (M, (u, v)) to Chart (M, (x, y))
             sage: uv_to_xy.display()
-            x = 1/2*sqrt(3)*v + 1/2*u
-            y = -1/2*sqrt(3)*u + 1/2*v
+            x = u*cos(phi) - v*sin(phi)
+            y = v*cos(phi) + u*sin(phi)
             sage: M.coord_changes()  # random (dictionary output)
             {(Chart (M, (u, v)),
               Chart (M, (x, y))): Change of coordinates from Chart (M, (u, v)) to Chart (M, (x, y)),
@@ -2785,8 +3161,7 @@ class CoordChange(SageObject):
 
         """
         from sage.symbolic.relation import solve
-        from sage.manifolds.utilities import simplify_chain_real, \
-                                             simplify_chain_generic
+        from sage.symbolic.assumptions import assumptions
         if self._inverse is not None:
             return self._inverse
         # The computation is necessary:
@@ -2823,14 +3198,14 @@ class CoordChange(SageObject):
         if len(solutions) == 1:
             x2_to_x1 = [solutions[0][x1[i]].subs(substitutions)
                                                             for i in range(n1)]
+            x2_to_x1_simpl = [] # to store simplified transformations
             for transf in x2_to_x1:
                 try:
-                    if self._domain.base_field_type() == 'real':
-                        transf = simplify_chain_real(transf)
-                    else:
-                        transf = simplify_chain_generic(transf)
+                    transf = self._chart2.simplify(transf)
                 except AttributeError:
                     pass
+                x2_to_x1_simpl.append(transf)
+            x2_to_x1 = x2_to_x1_simpl
         else:
             list_x2_to_x1 = []
             for sol in solutions:
@@ -2838,15 +3213,18 @@ class CoordChange(SageObject):
                     raise ValueError("the system could not be solved; use " +
                                      "set_inverse() to set the inverse " +
                                      "manually")
-                x2_to_x1 = [sol[x1[i]].subs(substitutions) for i in range(n1)]
+                try:
+                    x2_to_x1 = [sol[x1[i]].subs(substitutions) for i in range(n1)]
+                except KeyError: # sol is not a valid solution
+                    continue
+                x2_to_x1_simpl = [] # to store simplified transformations
                 for transf in x2_to_x1:
                     try:
-                        if self._domain.base_field_type() == 'real':
-                            transf = simplify_chain_real(transf)
-                        else:
-                            transf = simplify_chain_generic(transf)
+                        transf = self._chart2.simplify(transf)
                     except AttributeError:
                         pass
+                    x2_to_x1_simpl.append(transf)
+                x2_to_x1 = x2_to_x1_simpl
                 if self._chart1.valid_coordinates(*x2_to_x1):
                     list_x2_to_x1.append(x2_to_x1)
             if len(list_x2_to_x1) == 0:
@@ -2861,6 +3239,12 @@ class CoordChange(SageObject):
                    "manually")
             x2_to_x1 = list_x2_to_x1[0]
         self._inverse = type(self)(self._chart2, self._chart1, *x2_to_x1)
+        # Some cleaning: the local symbolic variables (xxxx0, xxxx1, ...) are
+        # removed from the list of assumptions
+        for asm in assumptions():
+            for xxxx in xp2:
+                if asm.has(xxxx):
+                    asm.forget()
         return self._inverse
 
     def set_inverse(self, *transformations, **kwds):
@@ -2875,21 +3259,39 @@ class CoordChange(SageObject):
         - ``transformations`` -- the inverse transformations expressed as a
           list of the expressions of the "old" coordinates in terms of the
           "new" ones
-        - ``kwds`` -- keyword arguments: only ``verbose=True`` or
-          ``verbose=False`` (default) are meaningful; it determines whether
-          the provided transformations are checked to be indeed the inverse
-          coordinate transformations
+        - ``kwds`` -- optional arguments; valid keywords are
+
+          - ``check`` (default: ``True``) -- boolean determining whether the
+            provided transformations are checked to be indeed the inverse
+            coordinate transformations
+          - ``verbose`` (default: ``False``) -- boolean determining whether
+            some details of the check are printed out; if ``False``, no
+            output is printed if the check is passed (see example below)
 
         EXAMPLES:
 
         From spherical coordinates to Cartesian ones in the plane::
 
             sage: M = Manifold(2, 'R^2', structure='topological')
-            sage: U = M.open_subset('U') # the complement of the half line {y=0, x>= 0}
+            sage: U = M.open_subset('U') # complement of the half line {y=0, x>= 0}
             sage: c_cart.<x,y> = U.chart()
             sage: c_spher.<r,ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi')
-            sage: spher_to_cart = c_spher.transition_map(c_cart, [r*cos(ph), r*sin(ph)])
+            sage: spher_to_cart = c_spher.transition_map(c_cart,
+            ....:                                        [r*cos(ph), r*sin(ph)])
             sage: spher_to_cart.set_inverse(sqrt(x^2+y^2), atan2(y,x))
+            Check of the inverse coordinate transformation:
+              r == r  *passed*
+              ph == arctan2(r*sin(ph), r*cos(ph))  **failed**
+              x == x  *passed*
+              y == y  *passed*
+            NB: a failed report can reflect a mere lack of simplification.
+
+        As indicated, the failure for ``ph`` is due to a lack of simplification
+        of the ``arctan2`` term, not to any error in the provided inverse
+        formulas.
+
+        We have now::
+
             sage: spher_to_cart.inverse()
             Change of coordinates from Chart (U, (x, y)) to Chart (U, (r, ph))
             sage: spher_to_cart.inverse().display()
@@ -2897,33 +3299,92 @@ class CoordChange(SageObject):
             ph = arctan2(y, x)
             sage: M.coord_changes()  # random (dictionary output)
             {(Chart (U, (r, ph)),
-              Chart (U, (x, y))): Change of coordinates from Chart (U, (r, ph)) to Chart (U, (x, y)),
+              Chart (U, (x, y))): Change of coordinates from Chart (U, (r, ph))
+               to Chart (U, (x, y)),
              (Chart (U, (x, y)),
-              Chart (U, (r, ph))): Change of coordinates from Chart (U, (x, y)) to Chart (U, (r, ph))}
+              Chart (U, (r, ph))): Change of coordinates from Chart (U, (x, y))
+               to Chart (U, (r, ph))}
 
-        Introducing a wrong inverse transformation (note the ``x^3`` typo) is
-        revealed by setting ``verbose`` to ``True``::
+        One can suppress the check of the provided formulas by means of the
+        optional argument ``check=False``::
 
-            sage: spher_to_cart.set_inverse(sqrt(x^3+y^2), atan2(y,x), verbose=True)
+            sage: spher_to_cart.set_inverse(sqrt(x^2+y^2), atan2(y,x),
+            ....:                           check=False)
+
+        However, it is not recommended to do so, the check being (obviously)
+        useful to avoid some mistake. For instance, if the term
+        ``sqrt(x^2+y^2)`` contains a typo (``x^3`` instead of ``x^2``),
+        we get::
+
+            sage: spher_to_cart.set_inverse(sqrt(x^3+y^2), atan2(y,x))
             Check of the inverse coordinate transformation:
-               r == sqrt(r*cos(ph)^3 + sin(ph)^2)*r
-               ph == arctan2(r*sin(ph), r*cos(ph))
-               x == sqrt(x^3 + y^2)*x/sqrt(x^2 + y^2)
-               y == sqrt(x^3 + y^2)*y/sqrt(x^2 + y^2)
+              r == sqrt(r*cos(ph)^3 + sin(ph)^2)*r  **failed**
+              ph == arctan2(r*sin(ph), r*cos(ph))  **failed**
+              x == sqrt(x^3 + y^2)*x/sqrt(x^2 + y^2)  **failed**
+              y == sqrt(x^3 + y^2)*y/sqrt(x^2 + y^2)  **failed**
+            NB: a failed report can reflect a mere lack of simplification.
+
+        If the check is passed, no output is printed out::
+
+            sage: M = Manifold(2, 'M')
+            sage: X1.<x,y> = M.chart()
+            sage: X2.<u,v> = M.chart()
+            sage: X1_to_X2 = X1.transition_map(X2, [x+y, x-y])
+            sage: X1_to_X2.set_inverse((u+v)/2, (u-v)/2)
+
+        unless the option ``verbose`` is set to ``True``::
+
+            sage: X1_to_X2.set_inverse((u+v)/2, (u-v)/2, verbose=True)
+            Check of the inverse coordinate transformation:
+              x == x  *passed*
+              y == y  *passed*
+              u == u  *passed*
+              v == v  *passed*
+
+        TESTS::
+
+            sage: X1_to_X2.set_inverse((u+v)/2, (u-v)/2, bla=3)
+            Traceback (most recent call last):
+            ...
+            TypeError: bla is not a valid keyword argument
 
         """
-        verbose = kwds.get('verbose', False)
+        check = kwds.pop('check', True)
+        verbose = kwds.pop('verbose', False)
+        for unknown_key in kwds:
+            raise TypeError("{} is not a valid keyword "
+                            "argument".format(unknown_key))
         self._inverse = type(self)(self._chart2, self._chart1,
                                    *transformations)
-        if verbose:
-            print("Check of the inverse coordinate transformation:")
+        if check:
+            infos = ["Check of the inverse coordinate transformation:"]
             x1 = self._chart1._xx
             x2 = self._chart2._xx
-            n1 = len(x1)
-            for i in range(n1):
-                print("  {} == {}".format(x1[i], self._inverse(*(self(*x1)))[i]))
-            for i in range(n1):
-                print("  {} == {}".format(x2[i], self(*(self._inverse(*x2)))[i]))
+            x1_to_x1 = self._inverse(*(self(*x1)))
+            x2_to_x2 = self(*(self._inverse(*x2)))
+            any_failure = False  # a priori
+            for x, xc in zip(x1, x1_to_x1):
+                eq = x == self._chart1.simplify(xc)
+                if bool(eq):
+                    resu = '*passed*'
+                else:
+                    resu = '**failed**'
+                    any_failure = True
+                infos.append("  {}  {}".format(eq, resu))
+            for x, xc in zip(x2, x2_to_x2):
+                eq = x == self._chart2.simplify(xc)
+                if bool(eq):
+                    resu = '*passed*'
+                else:
+                    resu = '**failed**'
+                    any_failure = True
+                infos.append("  {}  {}".format(eq, resu))
+            if any_failure:
+                infos.append("NB: a failed report can reflect a mere lack of "
+                             "simplification.")
+            if verbose or any_failure:
+                for li in infos:
+                    print(li)
 
     def __mul__(self, other):
         r"""
@@ -3002,7 +3463,7 @@ class CoordChange(SageObject):
         ch1 = self._chart1.restrict(dom1)
         ch2 = self._chart2.restrict(dom2)
         if (ch1, ch2) in dom1.coord_changes():
-            return dom1.coord_changes()[(ch1,ch2)]
+            return dom1.coord_changes()[(ch1, ch2)]
         return type(self)(self._chart1.restrict(dom1),
                           self._chart2.restrict(dom2), *(self._transf.expr()))
 
@@ -3040,7 +3501,7 @@ class CoordChange(SageObject):
         from sage.tensor.modules.format_utilities import FormattedExpansion
         coords2 = self._chart2[:]
         n2 = len(coords2)
-        expr = self._transf.expr()
+        expr = self._transf.expr('SR')
         rtxt = ""
         if n2 == 1:
             rlatex = r"\begin{array}{lcl}"
@@ -3058,4 +3519,3 @@ class CoordChange(SageObject):
         return FormattedExpansion(rtxt, rlatex)
 
     disp = display
-

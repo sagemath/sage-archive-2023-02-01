@@ -24,7 +24,7 @@ from __future__ import absolute_import
 from sage.categories.morphism import Morphism, is_Morphism
 from .fgp_module import DEBUG
 from sage.structure.richcmp import richcmp, op_NE
-
+from sage.misc.cachefunc import cached_method
 
 class FGP_Morphism(Morphism):
     """
@@ -132,6 +132,7 @@ class FGP_Morphism(Morphism):
             self.domain().base_ring(), self.domain().invariants(), self.codomain().invariants(),
             list(self.im_gens()))
 
+    @cached_method
     def im_gens(self):
         """
         Return tuple of the images of the generators of the domain
@@ -146,10 +147,7 @@ class FGP_Morphism(Morphism):
             sage: phi.im_gens() is phi.im_gens()
             True
         """
-        try: return self.__im_gens
-        except AttributeError: pass
-        self.__im_gens = tuple([self(x) for x in self.domain().gens()])
-        return self.__im_gens
+        return tuple([self(x) for x in self.domain().gens()])
 
     def _richcmp_(self, right, op):
         """
@@ -229,7 +227,7 @@ class FGP_Morphism(Morphism):
 
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
             sage: Q = V/W
-            sage: phi = Q.hom([Q.0+3*Q.1, -Q.1]);
+            sage: phi = Q.hom([Q.0+3*Q.1, -Q.1])
             sage: phi(Q.0) == Q.0 + 3*Q.1
             True
 
@@ -492,9 +490,9 @@ class FGP_Homset_class(Homset):
         Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (4, 12) to Finitely generated module V/W over Integer Ring with invariants (4, 12) in Category of modules over Integer Ring
         sage: type(H)
         <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
-
     """
     Element = FGP_Morphism
+
     def __init__(self, X, Y, category=None):
         """
         EXAMPLES::
@@ -512,8 +510,6 @@ class FGP_Homset_class(Homset):
                 from sage.all import Modules
                 category = Modules(X.base_ring())
         Homset.__init__(self, X, Y, category)
-        self._populate_coercion_lists_(element_constructor = FGP_Morphism,
-                                       coerce_list = [])
 
     def _coerce_map_from_(self, S):
         """

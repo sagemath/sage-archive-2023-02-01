@@ -13,7 +13,8 @@ User Interface
 ==============
 
 * :doc:`Command Line Interface (REPL) <repl/index>`
-* :doc:`Web Notebook <notebook/index>`
+* For the Jupyter notebook interface, visit `its documentation <https://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_.
+* For the legacy notebook interface, which is no longer actively maintained, visit the `source repository <https://github.com/sagemath/sagenb>`_.
 
 Graphics
 ========
@@ -36,9 +37,9 @@ Basic Rings and Fields
 
 * :doc:`Integers and Rational Numbers <rings_standard/index>`
 * :doc:`Real and Complex Numbers <rings_numerical/index>`
-* :doc:`Finite Rings and Fields <finite_rings/index>`
 * :doc:`Polynomials <polynomial_rings/index>`
-* :doc:`Formal Power Series <power_series/index>`
+* :doc:`Power Series and Laurent Series <power_series/index>`
+* :doc:`Finite Rings and Fields <finite_rings/index>`
 * :doc:`p-Adic Numbers <padics/index>`
 * :doc:`Quaternion Algebras <quat_algebras/index>`
 
@@ -92,19 +93,20 @@ Discrete Mathematics
 Geometry and Topology
 ---------------------
 
+* :doc:`Euclidean Spaces and Vector Calculus <manifolds/euclidean_space>`
 * :doc:`Combinatorial and Discrete Geometry <discrete_geometry/index>`
-* :doc:`Hyperbolic Geometry <hyperbolic_geometry/index>`
 * :doc:`Cell Complexes and their Homology <homology/index>`
-* :doc:`Differential Forms <tensor/index>`
-* :doc:`Manifolds <manifolds/index>`
+* :doc:`Manifolds and Differential Geometry <manifolds/index>`
+* :doc:`Hyperbolic Geometry <hyperbolic_geometry/index>`
 * :doc:`Parametrized Surfaces <riemannian_geometry/index>`
 * :doc:`Knot Theory <knots/index>`
 
-Number Fields and Function Fields
----------------------------------
+Number Fields, Function Fields, and Valuations
+----------------------------------------------
 
 * :doc:`Number Fields <number_fields/index>`
 * :doc:`Function Fields <function_fields/index>`
+* :doc:`Discrete Valuations <valuations/index>`
 
 Number Theory
 -------------
@@ -144,10 +146,12 @@ Interfaces
 
 * :doc:`Interpreter Interfaces <interfaces/index>`
 * :doc:`C/C++ Library Interfaces <libs/index>`
+* :doc:`Python technicalities <cpython/index>`
 
 General Information
 ===================
 
+* :doc:`External Packages <spkg/index>`
 * :doc:`References <references/index>`
 * :doc:`History and License <history_and_license/index>`
 * :ref:`genindex`

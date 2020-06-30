@@ -1,5 +1,5 @@
 """
-A fast bitset datatype in Cython.
+A fast bitset datatype in Cython
 
 Operations between bitsets are only guaranteed to work if the bitsets
 have the same size, with the exception of ``bitset_realloc``.  Similarly, you
@@ -28,6 +28,7 @@ AUTHORS:
 from libc.string cimport strlen
 from cysignals.memory cimport check_calloc, check_reallocarray, sig_malloc, sig_free
 
+from sage.cpython.string cimport char_to_str, str_to_bytes, bytes_to_str
 from sage.libs.gmp.mpn cimport *
 from sage.data_structures.bitset cimport *
 from cython.operator import preincrement as preinc
@@ -85,7 +86,7 @@ cdef inline bint bitset_init(bitset_t bits, mp_bitcnt_t size) except -1:
 
 cdef inline int bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
     """
-    Reallocate a bitset to size size. If reallocation is larger, new bitset
+    Reallocate a bitset to size ``size``. If reallocation is larger, new bitset
     does not contain any of the extra bits.
     """
     cdef mp_size_t limbs_old = bits.limbs
@@ -225,7 +226,7 @@ cdef inline bint bitset_eq(bitset_t a, bitset_t b):
 
 cdef inline int bitset_cmp(bitset_t a, bitset_t b):
     """
-    Compare bitsets a and b.  Returns 0 if the two sets are
+    Compare bitsets a and b.  Return 0 if the two sets are
     identical, and consistently return -1 or 1 for two sets that are
     not equal.
 
@@ -425,13 +426,14 @@ cdef inline long bitset_first_in_complement(bitset_t a):
     Calculate the index of the first element not in the set. If the set
     is full, returns -1.
     """
-    cdef mp_size_t i, j
+    cdef mp_size_t i
+    cdef mp_bitcnt_t j
     for i from 0 <= i < a.limbs:
         if ~a.bits[i]:
             j = (i << index_shift) | _bitset_first_in_limb_nonzero(~a.bits[i])
             if j >= a.size:
-                j = -1
-            return j
+                return -1
+            return <mp_size_t>j
     return -1
 
 cdef inline long bitset_pop(bitset_t a) except -1:
@@ -726,7 +728,7 @@ cdef char* bitset_chars(char* s, bitset_t bits, char zero=c'0', char one=c'1'):
     The string is both stored in s and returned.  If s is NULL, then a
     new string is allocated.
     """
-    cdef long i
+    cdef mp_bitcnt_t i
     if s == NULL:
         s = <char *>sig_malloc(bits.size + 1)
     for i from 0 <= i < bits.size:
@@ -734,26 +736,48 @@ cdef char* bitset_chars(char* s, bitset_t bits, char zero=c'0', char one=c'1'):
     s[bits.size] = 0
     return s
 
-cdef int bitset_from_str(bitset_t bits, char* s, char zero=c'0', char one=c'1') except -1:
+
+cdef int bitset_from_char(bitset_t bits, char* s, char zero=c'0', char one=c'1') except -1:
     """
-    Initialize a bitset with a set derived from the character string
-    s, where one represents the character indicating set membership.
+    Initialize a bitset with a set derived from the C string s, where one
+    represents the character indicating set membership.
     """
     bitset_init(bits, strlen(s))
-    cdef long i
+    cdef mp_bitcnt_t i
     for i from 0 <= i < bits.size:
         bitset_set_to(bits, i, s[i] == one)
     return 0
+
+
+cdef int bitset_from_str(bitset_t bits, object s, char zero=c'0', char one=c'1') except -1:
+    """
+    Initialize a bitset with a set derived from the Python str s, where one
+    represents the character indicating set membership.
+    """
+    cdef bytes b = str_to_bytes(s)
+    return bitset_from_char(bits, b, zero, one)
+
 
 cdef bitset_string(bitset_t bits):
     """
     Return a python string representing the bitset.
     """
+    return bytes_to_str(bitset_bytes(bits))
+
+
+cdef bitset_bytes(bitset_t bits):
+    """
+    Return a python bytes string representing the bitset.
+
+    On Python 2 this is equivalent to bitset_string.
+    """
+
     cdef char* s = bitset_chars(NULL, bits)
     cdef object py_s
     py_s = s
     sig_free(s)
     return py_s
+
 
 cdef list bitset_list(bitset_t bits):
     """

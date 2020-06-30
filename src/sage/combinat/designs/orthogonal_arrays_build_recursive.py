@@ -31,8 +31,6 @@ Functions
 ---------
 """
 from __future__ import print_function, absolute_import
-from six.moves import range
-from builtins import zip
 
 from .orthogonal_arrays import orthogonal_array, wilson_construction, is_orthogonal_array
 
@@ -50,7 +48,7 @@ def construction_3_3(k,n,m,i,explain_construction=False):
 
     INPUT:
 
-    - ``k,n,m,i`` (integers) such that the following designs are available :
+    - ``k,n,m,i`` (integers) such that the following designs are available:
       `OA(k,n)`, `OA(k,m)`, `OA(k,m+1)`, `OA(k,r)`.
 
     - ``explain_construction`` (boolean) -- return a string describing
@@ -383,11 +381,11 @@ def OA_and_oval(q):
     # We build the TD by relabelling the point set, and removing those which
     # contain x.
     r = {}
-    B = list(B)
-    # (this is to make sure that the first set containing x in B is the one
-    # which contains no other oval point)
 
-    B.sort(key=lambda b:int(any([xx in oval for xx in b])))
+    # Make sure that the first set containing x in B is the one
+    # which contains no other oval point
+    B = sorted(B, key=lambda b: any(xx in oval for xx in b))
+
     BB = []
     for b in B:
         if x in b:
@@ -540,7 +538,7 @@ def construction_q_x(k,q,x,check=True,explain_construction=False):
     PBD = [[relabel[xx] for xx in B if not xx in points_to_delete] for B in TD]
 
     # Taking the unique block of size x+2
-    assert map(len,PBD).count(x+2)==1
+    assert list(map(len,PBD)).count(x+2)==1
     for B in PBD:
         if len(B) == x+2:
             break
@@ -694,7 +692,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
     assert G_set[0] == G.zero() and G_set[1] == G.one(), "problem with the ordering of {}".format(G)
     G_to_int = {v:i for i,v in enumerate(G_set)}
 
-    # Builds an OA(n+1,n) whose last n-1 colums are
+    # Builds an OA(n+1,n) whose last n-1 columns are
     #
     # \forall x \in G and x!=0, C_x(i,j) = i+x*j
     #
@@ -709,9 +707,9 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
     OA = [list(B[3:]+B[:3]) for B in OA]
 
     # Set of values in the axb square
-    third_complement= set([B[-1] for B in OA if B[-3] < a and B[-2] < b])
+    third_complement = set(B[-1] for B in OA if B[-3] < a and B[-2] < b)
 
-    assert n-len(third_complement) >= c
+    assert n - len(third_complement) >= c
 
     # The keepers
     first_set  = list(range(a))
@@ -803,13 +801,14 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
 
     q = n
     K = FiniteField(q, 'x')
-    relabel = {x:i for i,x in enumerate(K)}
-    PG = DesarguesianProjectivePlaneDesign(q,check=False,point_coordinates=False).blocks(copy=False)
+    relabel = {x: i for i, x in enumerate(K)}
+    PG = DesarguesianProjectivePlaneDesign(q, check=False,
+                                           point_coordinates=False).blocks()
 
     if q % 3 == 0:
         t = K.one()
-    elif q%3 == 1:
-        t = K.multiplicative_generator()**((q-1)//3)
+    elif q % 3 == 1:
+        t = K.multiplicative_generator()**((q - 1)//3)
     else:
         raise ValueError("q(={}) must be congruent to 0 or 1 mod 3".format(q))
 
@@ -902,7 +901,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
         - The product of the blocks of a `n_1`-parallel class of `OA(k,n_2)`
           with an `OA(k,n_1)` can be done in such a way that it yields `n_1n_2`
           parallel classes of `OA(k,n_1n_2)`. Those classes cover exactly the
-          pairs that woud have been covered with the usual product.
+          pairs that would have been covered with the usual product.
 
           This can be achieved by simple cyclic permutations. Let us build the
           product of the `n_1`-parallel class `\mathcal P\subseteq OA(k,n_2)`
@@ -972,13 +971,13 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
         Three-factor product with n=8.9.9 from:
            Peter J. Dukes, Alan C.H. Ling,
            A three-factor product construction for mutually orthogonal latin squares,
-           http://arxiv.org/abs/1401.1466
+           https://arxiv.org/abs/1401.1466
 
     REFERENCE:
 
     .. [DukesLing14] A three-factor product construction for mutually orthogonal latin squares,
       Peter J. Dukes, Alan C.H. Ling,
-      http://arxiv.org/abs/1401.1466
+      :arxiv:`1401.1466`
 
     .. [Rees00] Truncated Transversal Designs: A New Lower Bound on the Number of Idempotent MOLS of Side,
       Rolf S. Rees,
@@ -994,7 +993,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
         return ("Three-factor product with n={}.{}.{} from:\n"+
                 "   Peter J. Dukes, Alan C.H. Ling,\n"+
                 "   A three-factor product construction for mutually orthogonal latin squares,\n"+
-                "   http://arxiv.org/abs/1401.1466").format(n1,n2,n3)
+                "   https://arxiv.org/abs/1401.1466").format(n1, n2, n3)
 
     def assert_c_partition(classs,k,n,c):
         r"""
@@ -1163,7 +1162,7 @@ def _reorder_matrix(matrix):
         sage: all(set(M2[i][0] for i in range(N)) == set(range(N)) for i in range(k))
         True
 
-        sage: M =[list(range(10))]*10
+        sage: M = [list(range(10))] * 10
         sage: N = k = 10
         sage: M2 = _reorder_matrix(M)
         sage: all(set(M2[i][0] for i in range(N)) == set(range(N)) for i in range(k))
@@ -1582,8 +1581,8 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
 
         else:
             assert e2 == 1, "equivalent to x!=1"
-            # Extending the x partitions into bocks of size t with each of the
-            # new x points.
+            # Extending the x partitions into blocks of size t with
+            # each of the new x points.
 
             for i,partition in enumerate(partition_of_blocks_of_size_t):
                 for B in partition:

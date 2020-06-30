@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
@@ -14,7 +17,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division
+from sage.ext.cplusplus cimport ccrepr
 
 include 'misc.pxi'
 include 'decl.pxi'
@@ -24,7 +27,7 @@ from .ntl_ZZ cimport ntl_ZZ
 from .ntl_GF2 cimport ntl_GF2
 from .ntl_GF2X cimport ntl_GF2X
 from .ntl_GF2EContext cimport ntl_GF2EContext_class
-from ntl_GF2EContext import ntl_GF2EContext
+from .ntl_GF2EContext import ntl_GF2EContext
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 from sage.misc.randstate cimport randstate, current_randstate
 
@@ -90,7 +93,8 @@ cdef class ntl_GF2E(object):
         OUTPUT:
             a new ntl.GF2E element
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<a> = GF(2^8)
             sage: e = ntl.GF2E(a,k); e
             [0 1]
@@ -167,7 +171,8 @@ cdef class ntl_GF2E(object):
         """
         Returns the structure that holds the underlying NTL GF2E modulus.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext( ntl.GF2X([1,1,0,1,1,0,0,0,1]) )
             sage: a = ntl.GF2E(ntl.ZZ_pX([1,1,3],2), ctx)
             sage: cty = a.modulus_context(); cty
@@ -181,19 +186,21 @@ cdef class ntl_GF2E(object):
         """
         Return the string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: ntl.GF2E([1,1,0,1], ctx) # indirect doctest
             [1 1 0 1]
         """
         self.c.restore_c()
-        return GF2E_to_PyString(&self.x)
+        return ccrepr(self.x)
 
     def __copy__(self):
         """
         Return a copy of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = ntl.GF2E([0,1,1],GF(2^4,'a'))
             sage: y = copy(x)
             sage: x == y
@@ -207,7 +214,8 @@ cdef class ntl_GF2E(object):
 
     def __mul__(ntl_GF2E self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: x = ntl.GF2E([1,0,1,0,1], ctx) ; y = ntl.GF2E([1,1,0,1,1], ctx)
             sage: x*y ## indirect doctest
@@ -224,7 +232,8 @@ cdef class ntl_GF2E(object):
 
     def __sub__(ntl_GF2E self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: x = ntl.GF2E([1,0,1,0,1], ctx) ; y = ntl.GF2E([1,1,0,1,1], ctx)
             sage: x - y ## indirect doctest
@@ -241,7 +250,8 @@ cdef class ntl_GF2E(object):
 
     def __add__(ntl_GF2E self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: x = ntl.GF2E([1,0,1,0,1], ctx) ; y = ntl.GF2E([1,1,0,1,1], ctx)
             sage: x+y ## indirect doctest
@@ -258,7 +268,8 @@ cdef class ntl_GF2E(object):
 
     def __truediv__(ntl_GF2E self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: x = ntl.GF2E([1,0,1,0,1], ctx) ; y = ntl.GF2E([1,1,0,1,1], ctx)
             sage: x/y ## indirect doctest
@@ -278,7 +289,8 @@ cdef class ntl_GF2E(object):
 
     def __neg__(ntl_GF2E self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: x = ntl.GF2E([1,0,1,0,1], ctx)
             sage: -x ## indirect doctest
@@ -290,7 +302,8 @@ cdef class ntl_GF2E(object):
 
     def __pow__(ntl_GF2E self, long e, ignored):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: x = ntl.GF2E([1,0,1,0,1], ctx)
             sage: x**2 ## indirect doctest
@@ -335,7 +348,8 @@ cdef class ntl_GF2E(object):
         """
         Returns True if this element equals zero, False otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: x = ntl.GF2E([1,0,1,0,1], ctx) ; y = ntl.GF2E([1,1,0,1,1,0,0,0,1], ctx)
             sage: x.IsZero()
@@ -349,7 +363,8 @@ cdef class ntl_GF2E(object):
         """
         Returns True if this element equals one, False otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: x = ntl.GF2E([1,0,1,0,1], ctx) ; y = ntl.GF2E([0,1,0,1,1,0,0,0,1], ctx)
             sage: x.IsOne()
@@ -363,7 +378,8 @@ cdef class ntl_GF2E(object):
         """
         Returns the trace of this element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: x = ntl.GF2E([1,0,1,0,1], ctx) ; y = ntl.GF2E([0,1,1,0,1,1], ctx)
             sage: x.trace()
@@ -379,7 +395,8 @@ cdef class ntl_GF2E(object):
         """
         Returns a ntl.GF2X copy of this element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: a = ntl.GF2E('0x1c', ctx)
             sage: a.rep()
@@ -395,7 +412,8 @@ cdef class ntl_GF2E(object):
         """
         Represents this element as a list of binary digits.
 
-        EXAMPLES:
+        EXAMPLES::
+
              sage: e=ntl.GF2E([0,1,1],GF(2^4,'a'))
              sage: e.list()
              [0, 1, 1]
@@ -432,7 +450,8 @@ cdef class ntl_GF2E(object):
         OUTPUT:
             FiniteFieldElement over k
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: e = ntl.GF2E([0,1], ctx)
             sage: a = e._sage_(); a

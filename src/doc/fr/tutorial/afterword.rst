@@ -89,7 +89,7 @@ Aussi, Sage se comporte différemment de Python à plusieurs égards.
    exclusif n'est que rarement utilisé. Par commodité, Sage prétraite
    chaque ligne de commande avant de la transmettre
    à Python, en remplaçant par exemple les apparitions de ``^``
-   (en-dehors des chaînes de caractères) par des ``**``:
+   (en dehors des chaînes de caractères) par des ``**``:
 
    ::
 
@@ -132,7 +132,7 @@ Aussi, Sage se comporte différemment de Python à plusieurs égards.
        Rational Field
        sage: 2//3
        0
-       sage: int(2)/int(3)   # optional - python2
+       sage: int(2)/int(3)   # py2
        0
 
 -  **Entiers longs :** Python possède nativement un support pour les entiers de
@@ -160,7 +160,7 @@ faut taper ``sage -python setup.py install``.)
 Comment puis-je contribuer ?
 ============================
 
-Si vous souhaitez contribuer au developpement de Sage, votre aide sera grandement
+Si vous souhaitez contribuer au développement de Sage, votre aide sera grandement
 appréciée ! Cela peut aller de contributions substantielles en code au
 signalement de bogues en passant par l'enrichissement de la documentation.
 
@@ -180,9 +180,10 @@ calculs faits avec Sage en citant
 
 ::
 
-    [SAGE], SAGE Mathematical Software, Version 4.3, http://www.sagemath.org
+    [Sage] SageMath, the Sage Mathematics Software System (Version 8.7),
+           The Sage Developers, 2019, https://www.sagemath.org.
 
-dans votre bibliographie (en remplaçant 4.3 par la version de Sage que
+dans votre bibliographie (en remplaçant 8.7 par la version de Sage que
 vous avez utilisée). De plus, pensez à rechercher les composants de Sage
 que vous avez utilisés pour vos calculs, par exemple PARI, GAP, Singular,
 Maxima et citez également ces systèmes. Si vous vous demandez quel
@@ -195,4 +196,3 @@ discussion plus approfondie de ce point.
 Si vous venez de lire d'une traite ce tutoriel et que vous avez une idée du temps qu'il vous a fallu pour le parcourir, merci de nous le faire savoir sur le groupe Google ``sage-devel``.
 
 Amusez-vous bien avec Sage !
-

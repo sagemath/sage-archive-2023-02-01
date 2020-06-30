@@ -24,8 +24,8 @@ Here are brief overviews of each part; for more details, see the extended table
 of contents below.  No matter where you start, good luck and welcome to Sage
 development!
 
-- **Trac server:** all changes go through the `the Sage Trac server
-  <http://trac.sagemath.org>`_ at some point. It contains bug reports, upgrade
+- **Trac server:** all changes go through `the Sage Trac server
+  <https://trac.sagemath.org>`_ at some point. It contains bug reports, upgrade
   requests, changes in progress, and those already part of Sage
   today. :ref:`Click here <chapter-sage-trac>` for more information.
 
@@ -126,6 +126,14 @@ Running Sage's tests
 
    doctesting
 
+Testing on multiple platforms
+-----------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   portability_testing
+
 Contributing to Manuals and Tutorials
 -------------------------------------
 
@@ -151,7 +159,6 @@ Packaging Third-Party Code
    :maxdepth: 3
 
    packaging
-   packaging_old_spkgs
 
 Sage Notebook Developer Guide
 =============================

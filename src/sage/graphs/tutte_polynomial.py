@@ -2,7 +2,7 @@ r"""
 Tutte polynomial
 
 This module implements a deletion-contraction algorithm for computing
-the Tutte polynomial as described in the paper [Gordon10]_.
+the Tutte polynomial as described in the paper [HPR2010]_.
 
 .. csv-table::
     :class: contentstable
@@ -28,20 +28,12 @@ connected components we define the Tutte polynomial of `G` as
 
 where the sum ranges over all induced subgraphs `H` of `G`.
 
-REFERENCES:
-
-.. [Gordon10] Computing Tutte Polynomials. Gary Haggard, David
-   J. Pearce and Gordon Royle. In ACM Transactions on Mathematical
-   Software, Volume 37(3), article 24, 2010. Preprint:
-   http://homepages.ecs.vuw.ac.nz/~djp/files/TOMS10.pdf
-
 Functions
 ---------
 """
 
 from contextlib import contextmanager
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.graphs.graph import Graph
 from sage.misc.misc_c import prod
 from sage.rings.integer_ring import ZZ
 from sage.misc.decorators import sage_wraps
@@ -197,6 +189,7 @@ def underlying_graph(G):
         sage: underlying_graph(G).edges()
         [(0, 1, None)]
     """
+    from sage.graphs.graph import Graph
     g = Graph()
     g.allow_loops(True)
     for edge in set(G.edges(labels=False)):
@@ -206,7 +199,7 @@ def underlying_graph(G):
 
 def edge_multiplicities(G):
     r"""
-    Return the a dictionary of multiplicities of the edges in the
+    Return the dictionary of multiplicities of the edges in the
     graph `G`.
 
     EXAMPLES::
@@ -230,7 +223,7 @@ class Ear(object):
     r"""
     An ear is a sequence of vertices
 
-    Here is the definition from [Gordon10]_:
+    Here is the definition from [HPR2010]_:
 
     An ear in a graph is a path `v_1 - v_2 - \dots - v_n - v_{n+1}`
     where `d(v_1) > 2`, `d(v_{n+1}) > 2` and
@@ -327,7 +320,7 @@ class Ear(object):
         subgraph = g.subgraph(degree_two_vertices)
         for component in subgraph.connected_components():
             edges = g.edges_incident(vertices=component, labels=True)
-            all_vertices = list(sorted(set(sum([e[:2] for e in edges], ()))))
+            all_vertices = sorted(set(sum([e[:2] for e in edges], ())))
             if len(all_vertices) < 3:
                 continue
             end_points = [v for v in all_vertices if v not in component]
@@ -446,10 +439,9 @@ class MinimizeDegree(EdgeSelection):
             (0, 1, None)
         """
         degrees = dict(graph.degree_iterator(labels=True))
-        edges = graph.edges(labels=True)
-        edges.sort(key=lambda x: degrees[x[0]]+degrees[x[1]])  # Sort by degree
-        for e in edges:
-            return e
+        edges = graph.edges(labels=True, sort=False)
+        if edges:
+            return min(edges, key=lambda x: degrees[x[0]] + degrees[x[1]])
         raise RuntimeError("no edges left to select")
 
 
@@ -461,14 +453,14 @@ class MaximizeDegree(EdgeSelection):
             sage: from sage.graphs.tutte_polynomial import MaximizeDegree
             sage: G = graphs.PathGraph(6)
             sage: MaximizeDegree()(G)
-            (3, 4, None)
+            (1, 2, None)
         """
         degrees = dict(graph.degree_iterator(labels=True))
-        edges = graph.edges(labels=True)
-        edges.sort(key=lambda x: degrees[x[0]]+degrees[x[1]])  # Sort by degree
-        for e in reversed(edges):
-            return e
+        edges = graph.edges(labels=True, sort=False)
+        if edges:
+            return max(edges, key=lambda x: degrees[x[0]] + degrees[x[1]])
         raise RuntimeError("no edges left to select")
+
 
 ###########
 # Caching #
@@ -576,7 +568,7 @@ def tutte_polynomial(G, edge_selector=None, cache=None):
     Verify that :trac:`18366` is fixed::
 
         sage: g = Graph(multiedges=True)
-        sage: g.add_edges([(0,1,1),(1,5,2),(5,3,3),(5,2,4),(2,4,5),(0,2,6),(0,3,7),(0,4,8),(0,5,9)]);
+        sage: g.add_edges([(0,1,1),(1,5,2),(5,3,3),(5,2,4),(2,4,5),(0,2,6),(0,3,7),(0,4,8),(0,5,9)])
         sage: g.tutte_polynomial()(1,1)
         52
         sage: g.spanning_trees_count()
@@ -632,7 +624,7 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
 
     uG = underlying_graph(G)
     em = edge_multiplicities(G)
-    d = em.values()
+    d = list(em.values())
 
     def yy(start, end):
         return sum(y**i for i in range(start, end+1))
@@ -640,11 +632,6 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
     #Lemma 1
     if G.is_forest():
         return prod(x + yy(1, d_i-1) for d_i in d)
-
-    #Handle disconnected components
-    if not G.is_connected():
-        return prod([recursive_tp(G.subgraph(block))
-                     for block in G.connected_components()])
 
     #Theorem 1: from Haggard, Pearce, Royle 2008
     blocks, cut_vertices = G.blocks_and_cut_vertices()
@@ -682,7 +669,7 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
                                                       for d_i in d[:-2])
         return result
 
-    # Theorem 3 from Haggard, Pearce, and Royle, adapted to multi-eaars
+    # Theorem 3 from Haggard, Pearce, and Royle, adapted to multi-ears
     ear = Ear.find_ear(uG)
     if ear is not None:
         if (ear.is_cycle and ear.vertices == G.vertices()):

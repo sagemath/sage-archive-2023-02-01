@@ -2,26 +2,25 @@
 """
 Eisenstein Series
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004-2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
-from six import integer_types
 
-import sage.misc.all as misc
+from sage.misc.all import verbose, cputime
 import sage.modular.dirichlet as dirichlet
 from sage.modular.arithgroup.congroup_gammaH import GammaH_class
-from sage.rings.all import Integer, CyclotomicField, ZZ, QQ, Integer
+from sage.rings.all import Integer, CyclotomicField, ZZ, QQ
 from sage.arith.all import bernoulli, divisors, is_squarefree, lcm
-from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.power_series_ring import PowerSeriesRing
 from .eis_series_cython import eisenstein_series_poly, Ek_ZZ
+
 
 def eisenstein_series_qexp(k, prec = 10, K=QQ, var='q', normalization='linear'):
     r"""
@@ -194,12 +193,9 @@ def __common_minimal_basering(chi, psi):
     psi = psi.change_ring(K)
     return chi, psi
 
-#def prim(eps):
-#    print "making eps with modulus %s primitive"%eps.modulus()
-#    return eps.primitive_character()
 
 def __find_eisen_chars(character, k):
-    """
+    r"""
     Find all triples `(\psi_1, \psi_2, t)` that give rise to an Eisenstein series of the given weight and character.
 
     EXAMPLES::
@@ -220,12 +216,12 @@ def __find_eisen_chars(character, k):
     """
     N = character.modulus()
     if character.is_trivial():
-        if k%2 != 0:
+        if k % 2:
             return []
         char_inv = ~character
-        V = [(character, char_inv, t) for t in divisors(N) if t>1]
+        V = [(character, char_inv, t) for t in divisors(N) if t > 1]
         if k != 2:
-            V.insert(0,(character, char_inv, 1))
+            V.insert(0, (character, char_inv, 1))
         if is_squarefree(N):
             return V
         # Now include all pairs (chi,chi^(-1)) such that cond(chi)^2 divides N:
@@ -256,10 +252,9 @@ def __find_eisen_chars(character, k):
     #
     # See [Miyake, Modular Forms] Lemma 7.1.1.
 
-    K = G.base_ring()
     C = {}
 
-    t0 = misc.cputime()
+    t0 = cputime()
 
     for e in G:
         m = Integer(e.conductor())
@@ -268,11 +263,11 @@ def __find_eisen_chars(character, k):
         else:
             C[m] = [e]
 
-    misc.verbose("Enumeration with conductors.",t0)
+    verbose("Enumeration with conductors.", t0)
 
     params = []
     for L in divisors(N):
-        misc.verbose("divisor %s"%L)
+        verbose("divisor %s" % L)
         if L not in C:
             continue
         GL = C[L]
@@ -289,8 +284,9 @@ def __find_eisen_chars(character, k):
                                 params.append( (chi0,psi0,t) )
     return params
 
+
 def __find_eisen_chars_gammaH(N, H, k):
-    """
+    r"""
     Find all triples `(\psi_1, \psi_2, t)` that give rise to an Eisenstein series of weight `k` on
     `\Gamma_H(N)`.
 
@@ -302,12 +298,13 @@ def __find_eisen_chars_gammaH(N, H, k):
     """
     params = []
     for chi in dirichlet.DirichletGroup(N):
-        if all([chi(h) == 1 for h in H]):
+        if all(chi(h) == 1 for h in H):
             params += __find_eisen_chars(chi, k)
     return params
 
+
 def __find_eisen_chars_gamma1(N, k):
-    """
+    r"""
     Find all triples `(\psi_1, \psi_2, t)` that give rise to an Eisenstein series of weight `k` on
     `\Gamma_1(N)`.
 
@@ -418,8 +415,6 @@ def eisenstein_series_lseries(weight, prec=53,
     """
     f = eisenstein_series_qexp(weight,prec)
     from sage.lfunctions.all import Dokchitser
-    from sage.symbolic.constants import pi
-    key = (prec, max_imaginary_part, max_asymp_coeffs)
     j = weight
     L = Dokchitser(conductor = 1,
                    gammaV = [0,1],
@@ -489,7 +484,7 @@ def compute_eisenstein_params(character, k):
         sage: len(sage.modular.modform.eis_series.compute_eisenstein_params(GammaH(15, [4]), 3))
         8
     """
-    if isinstance(character, integer_types + (Integer,)):
+    if isinstance(character, (int, Integer)):
         return __find_eisen_chars_gamma1(character, k)
     elif isinstance(character, GammaH_class):
         return __find_eisen_chars_gammaH(character.level(), character._generators_for_H(), k)

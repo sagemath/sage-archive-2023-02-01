@@ -624,10 +624,14 @@ cdef class FastDoubleFunc:
             Traceback (most recent call last):
             ...
             TypeError: Wrong number of arguments (need at least 3, got 1)
-            sage: f('blah', 1, 2, 3)
+            sage: f('blah', 1, 2, 3) # py2
             Traceback (most recent call last):
             ...
             TypeError: a float is required
+            sage: f('blah', 1, 2, 3) # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: must be real number, not str
         """
         if len(args) < self.nargs:
             raise TypeError("Wrong number of arguments (need at least %s, got %s)" % (self.nargs, len(args)))
@@ -1284,7 +1288,7 @@ def fast_float_constant(x):
     This is all that goes on under the hood::
 
         sage: fast_float_constant(pi).op_list()
-        ['push 3.14159265359']
+        ['push 3.1415926535...']
     """
     return FastDoubleFunc('const', x)
 
@@ -1395,7 +1399,8 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
         if old:
             return f._fast_float_(*vars)
         else:
-            return fast_callable(f, vars=vars, domain=float, _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality=True, expect_one_var=expect_one_var)
+            return fast_callable(f, vars=vars, domain=float,
+                                 expect_one_var=expect_one_var)
     except AttributeError:
         pass
 

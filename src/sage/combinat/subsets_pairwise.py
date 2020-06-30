@@ -10,12 +10,12 @@ Subsets whose elements satisfy a predicate pairwise
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.set import Set_object_enumerated
-from sage.combinat.backtrack import SearchForest
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_forest
 from sage.combinat.subset import Subsets
 
 
-class PairwiseCompatibleSubsets(SearchForest):
-    """
+class PairwiseCompatibleSubsets(RecursivelyEnumeratedSet_forest):
+    r"""
     The set of all subsets of ``ambient`` whose elements satisfy
     ``predicate`` pairwise
 
@@ -31,7 +31,7 @@ class PairwiseCompatibleSubsets(SearchForest):
 
     .. warning:: The current name is suboptimal and is subject to
        change. Suggestions for a good name, and a good user entry
-       point are welcome. Maybe ``Subsets(..., independant = predicate)``.
+       point are welcome. Maybe ``Subsets(..., independent = predicate)``.
 
     EXAMPLES:
 
@@ -105,7 +105,7 @@ class PairwiseCompatibleSubsets(SearchForest):
         # TODO: use self.element_class for consistency
         # At this point (2011/03) TestSuite fails if we do so
         self._element_class = element_class
-        SearchForest.__init__(self, algorithm = 'depth', category = FiniteEnumeratedSets())
+        RecursivelyEnumeratedSet_forest.__init__(self, algorithm = 'depth', category = FiniteEnumeratedSets())
 
     def __eq__(self, other):
         """

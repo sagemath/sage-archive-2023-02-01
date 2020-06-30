@@ -6,7 +6,7 @@ This file contains two functions, :func:`algebraic_topological_model`
 and :func:`algebraic_topological_model_delta_complex`. The second
 works more generally: for all simplicial, cubical, and
 `\Delta`-complexes. The first only works for simplicial and cubical
-complexes, but it is faster in those case.
+complexes, but it is faster in those cases.
 
 AUTHORS:
 
@@ -23,7 +23,6 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
-from six import iteritems
 
 # TODO: cythonize this.
 
@@ -194,7 +193,7 @@ def algebraic_topological_model(K, base_ring=None):
     old_cells = []
 
     for dim in range(K.dimension()+1):
-        n_cells = K.n_cells(dim)
+        n_cells = K._n_cells_sorted(dim)
         diff = C.differential(dim)
         # diff is sparse and low density. Dense matrices are faster
         # over finite fields, but for low density matrices, sparse
@@ -221,7 +220,7 @@ def algebraic_topological_model(K, base_ring=None):
             c_bar = c_vec
             bdry_c = diff * c_vec
             # Apply phi to bdry_c and subtract from c_bar.
-            for (idx, coord) in iteritems(bdry_c):
+            for (idx, coord) in bdry_c.items():
                 try:
                     c_bar -= coord * phi_dict[dim-1][idx]
                 except KeyError:
@@ -232,7 +231,7 @@ def algebraic_topological_model(K, base_ring=None):
             # Evaluate pi(bdry(c_bar)).
             pi_bdry_c_bar = zero
 
-            for (idx, coeff) in iteritems(bdry_c_bar):
+            for (idx, coeff) in bdry_c_bar.items():
                 try:
                     pi_bdry_c_bar += coeff * pi_dict[dim-1][idx]
                 except KeyError:
@@ -251,7 +250,8 @@ def algebraic_topological_model(K, base_ring=None):
             else:
                 # Take any u in gens so that lambda_i = <u, pi(bdry(c_bar))> != 0.
                 # u_idx will be the index of the corresponding cell.
-                for (u_idx, lambda_i) in iteritems(pi_bdry_c_bar):
+                for u_idx in pi_bdry_c_bar.nonzero_positions():
+                    lambda_i = pi_bdry_c_bar[u_idx]
                     # Now find the actual cell.
                     u = old_cells[u_idx]
                     if u in gens[dim-1]:
@@ -294,7 +294,7 @@ def algebraic_topological_model(K, base_ring=None):
     iota_data = {}
     phi_data = {}
     for n in range(K.dimension()+1):
-        n_cells = K.n_cells(n)
+        n_cells = K._n_cells_sorted(n)
         # Remove zero entries from pi_dict and phi_dict.
         pi_dict[n] = {i: pi_dict[n][i] for i in pi_dict[n] if pi_dict[n][i]}
         phi_dict[n] = {i: phi_dict[n][i] for i in phi_dict[n] if phi_dict[n][i]}
@@ -311,7 +311,7 @@ def algebraic_topological_model(K, base_ring=None):
             # First pi:
             if idx in pi_dict[n]:
                 column = vector(base_ring, M_rows)
-                for (entry, coeff) in iteritems(pi_dict[n][idx]):
+                for (entry, coeff) in pi_dict[n][idx].items():
                     # Translate from cells in n_cells to cells in gens[n].
                     column[gens[n].index(n_cells[entry])] = coeff
             else:
@@ -523,7 +523,7 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
                 # Take any u in gens so that lambda_i = <u, pi(bdry(c_bar))> != 0.
                 # u_idx will be the index of the corresponding cell.
                 (u_idx, lambda_i) = pi_bdry_c_bar.leading_item()
-                for (u_idx, lambda_i) in iteritems(pi_bdry_c_bar):
+                for (u_idx, lambda_i) in pi_bdry_c_bar.items():
                     if u_idx not in to_be_deleted:
                         break
                 # This element/column needs to be deleted from gens and

@@ -120,7 +120,7 @@ TESTS::
 
 Check that :trac:`5562` has been fixed::
 
-    sage: R.<u> = PolynomialRing(RDF, 1, 'u')
+    sage: R.<u> = PolynomialRing(RDF, 1)
     sage: v1 = vector([u])
     sage: v2 = vector([CDF(2)])
     sage: v1 * v2
@@ -137,20 +137,24 @@ Check that :trac:`5562` has been fixed::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
-from six.moves import range
+
+from __future__ import absolute_import, print_function
+
+import sys
 
 from sage.structure.element import Element
-from sage.structure.category_object import check_default_category
+
+import sage.categories as categories
+from sage.categories.morphism import IdentityMorphism
+
 import sage.algebras.algebra
-import sage.categories.basic as categories
 import sage.rings.commutative_algebra as commutative_algebra
 import sage.rings.ring as ring
 from sage.structure.element import is_RingElement
 import sage.rings.polynomial.polynomial_element_generic as polynomial_element_generic
 import sage.rings.rational_field as rational_field
-from sage.rings.integer_ring import is_IntegerRing, IntegerRing
+from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.libs.pari.all import pari_gen
@@ -159,21 +163,21 @@ from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default
 import sage.misc.latex as latex
 from sage.misc.prandom import randint
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.rings.real_mpfr import is_RealField
-from .polynomial_real_mpfr_dense import PolynomialRealDense
-from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.finite_rings.element_base import FiniteRingElement
 
 from .polynomial_element import PolynomialBaseringInjection
+from .polynomial_real_mpfr_dense import PolynomialRealDense
+from .polynomial_integer_dense_flint import Polynomial_integer_dense_flint
+from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
+from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
 
-from sage.categories.commutative_rings import CommutativeRings
-_CommutativeRings = CommutativeRings()
+_CommutativeRings = categories.commutative_rings.CommutativeRings()
 
 from . import cyclotomic
-
-ZZ_sage = IntegerRing()
 
 from sage.interfaces.singular import SingularElement
 
@@ -210,9 +214,7 @@ def is_PolynomialRing(x):
 
     ::
 
-        sage: is_PolynomialRing(PolynomialRing(ZZ,1,'w'))
-        False
-        sage: R = PolynomialRing(ZZ,1,'w'); R
+        sage: R.<w> = PolynomialRing(ZZ, implementation="singular"); R
         Multivariate Polynomial Ring in w over Integer Ring
         sage: is_PolynomialRing(R)
         False
@@ -228,7 +230,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
     """
     Univariate polynomial ring over a ring.
     """
-    _no_generic_basering_coercion = True
+
     def __init__(self, base_ring, name=None, sparse=False, element_class=None, category=None):
         """
         EXAMPLES::
@@ -243,10 +245,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             Join of Category of unique factorization domains
              and Category of commutative algebras over
               (euclidean domains and infinite enumerated sets and metric spaces)
+             and Category of infinite sets
             sage: category(GF(7)['x'])
             Join of Category of euclidean domains
              and Category of commutative algebras over
-              (finite enumerated fields and subquotients of monoids and quotients of semigroups)
+              (finite enumerated fields and subquotients of monoids and quotients of semigroups) and Category of infinite sets
 
         TESTS:
 
@@ -256,11 +259,35 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R.<y> = K[]
             sage: TestSuite(R).run()
 
+        Check that category for zero ring::
+
+            sage: PolynomialRing(Zmod(1), 'x').category()
+            Category of finite commutative algebras over
+            (finite commutative rings and subquotients of monoids and
+            quotients of semigroups and finite enumerated sets)
+
+        Check `is_finite` inherited from category (:trac:`24432`)::
+
+            sage: Zmod(1)['x'].is_finite()
+            True
+
+            sage: GF(7)['x'].is_finite()
+            False
+
+            sage: Zmod(1)['x']['y'].is_finite()
+            True
+
+            sage: GF(7)['x']['y'].is_finite()
+            False
+
         """
         # We trust that, if category is given, it is useful and does not need to be joined
         # with the default category
         if category is None:
-            category = polynomial_default_category(base_ring.category(),False)
+            if base_ring.is_zero():
+                category = categories.rings.Rings().Finite()
+            else:
+                category = polynomial_default_category(base_ring.category(), 1)
         self.__is_sparse = sparse
         if element_class:
             self._polynomial_class = element_class
@@ -273,31 +300,13 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         self.Element = self._polynomial_class
         self.__cyclopoly_cache = {}
         self._has_singular = False
-        # Algebra.__init__ also calls __init_extra__ of Algebras(...).parent_class, which
-        # tries to provide a conversion from the base ring, if it does not exist.
-        # This is for algebras that only do the generic stuff in their initialisation.
-        # But the attribute _no_generic_basering_coercion prevents that from happening,
-        # since we want to use PolynomialBaseringInjection.
         sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
-        self.__generator = self.element_class(self, [0,1], is_gen=True)
-        self._populate_coercion_lists_(
-                #coerce_list = [base_inject],
-                #convert_list = [list, base_inject],
-                convert_method_name = '_polynomial_')
-        if is_PolynomialRing(base_ring):
-            self._Karatsuba_threshold = 0
-        else:
-            from sage.matrix.matrix_space import MatrixSpace
-            if isinstance(base_ring, MatrixSpace):
-                self._Karatsuba_threshold = 0
-            else:
-                self._Karatsuba_threshold = 8
+        self._populate_coercion_lists_(convert_method_name='_polynomial_')
 
     def __reduce__(self):
-        import sage.rings.polynomial.polynomial_ring_constructor
-        return (sage.rings.polynomial.polynomial_ring_constructor.PolynomialRing,
-                (self.base_ring(), self.variable_name(), None, self.is_sparse()))
-
+        from sage.rings.polynomial.polynomial_ring_constructor import unpickle_PolynomialRing
+        args = (self.base_ring(), self.variable_names(), None, self.is_sparse())
+        return unpickle_PolynomialRing, args
 
     def _element_constructor_(self, x=None, check=True, is_gen=False,
                               construct=False, **kwds):
@@ -365,7 +374,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         Python 3 range is allowed::
 
-            sage: from six.moves import range
             sage: R = PolynomialRing(ZZ,'x')
             sage: R(range(4))
             3*x^3 + 2*x^2 + x
@@ -457,6 +465,80 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             x = x.truncate()
         return C(self, x, check, is_gen, construct=construct, **kwds)
 
+    @classmethod
+    def _implementation_names(cls, implementation, base_ring, sparse=False):
+        """
+        Check whether this class can handle the implementation
+        ``implementation`` over the given base ring and sparseness.
+
+        This is a simple wrapper around :meth:`_implementation_names_impl`
+        which does the real work.
+
+        .. NOTE::
+
+            It is assumed that the ``base_ring`` argument is a base ring
+            which the class can handle.
+
+        INPUT:
+
+        - ``implementation`` -- either a string denoting a specific
+          implementation or ``None`` for the default.
+
+        - ``base_ring`` -- the base ring for the polynomial ring.
+
+        - ``sparse`` -- (boolean) whether the implementation is sparse.
+
+        OUTPUT:
+
+        - if the implementation is supported, the output is a list of
+          all names (possibly including ``None``) which refer to the
+          given implementation. The first element of the list is the
+          canonical name. If the ``__init__`` method does not take an
+          ``implementation`` keyword, then the first element must be
+          ``None``.
+
+        - if the implementation is not supported, raise a
+          ``ValueError``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
+            sage: PolynomialRing_general._implementation_names(None, ZZ, True)
+            [None, 'generic']
+            sage: PolynomialRing_general._implementation_names("generic", ZZ, True)
+            [None, 'generic']
+            sage: PolynomialRing_general._implementation_names("xyzzy", ZZ, True)
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown implementation 'xyzzy' for sparse polynomial rings over Integer Ring
+        """
+        names = cls._implementation_names_impl(implementation, base_ring, sparse)
+        if names is NotImplemented:
+            raise ValueError("unknown implementation %r for %s polynomial rings over %r" %
+                    (implementation, "sparse" if sparse else "dense", base_ring))
+        assert isinstance(names, list)
+        assert implementation in names
+        return names
+
+    @staticmethod
+    def _implementation_names_impl(implementation, base_ring, sparse):
+        """
+        The underlying implementation of :meth:`_implementation_names`.
+
+        The behaviour is exactly the same, except that an unknown
+        implementation returns ``NotImplemented`` instead of raising
+        ``ValueError``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
+            sage: PolynomialRing_general._implementation_names_impl("xyzzy", ZZ, True)
+            NotImplemented
+        """
+        if implementation is None or implementation == "generic":
+            return [None, "generic"]
+        return NotImplemented
+
     def is_integral_domain(self, proof = True):
         """
         EXAMPLES::
@@ -510,9 +592,31 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self([2*one,0,2*one]), # an element with non-trivial content
         ]
 
+    @cached_method
+    def flattening_morphism(self):
+        r"""
+        Return the flattening morphism of this polynomial ring
+
+        EXAMPLES::
+
+            sage: QQ['a','b']['x'].flattening_morphism()
+            Flattening morphism:
+              From: Univariate Polynomial Ring in x over Multivariate Polynomial Ring in a, b over Rational Field
+              To:   Multivariate Polynomial Ring in a, b, x over Rational Field
+
+            sage: QQ['x'].flattening_morphism()
+            Identity endomorphism of Univariate Polynomial Ring in x over Rational Field
+        """
+        from .multi_polynomial_ring import is_MPolynomialRing
+        base = self.base_ring()
+        if is_PolynomialRing(base) or is_MPolynomialRing(base):
+            from .flatten import FlatteningMorphism
+            return FlatteningMorphism(self)
+        else:
+            return IdentityMorphism(self)
+
     def construction(self):
-        from sage.categories.pushout import PolynomialFunctor
-        return PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
+        return categories.pushout.PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
 
     def completion(self, p, prec=20, extras=None):
         """
@@ -534,7 +638,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: PP(f)
             1 - x
             sage: 1/f
-            1/(-x + 1)
+            -1/(x - 1)
             sage: 1/PP(f)
             1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + x^7 + x^8 + x^9 + x^10 + x^11 + x^12 + x^13 + x^14 + x^15 + x^16 + x^17 + x^18 + x^19 + O(x^20)
         """
@@ -543,6 +647,32 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             return PowerSeriesRing(self.base_ring(), name=self._names[0], default_prec=prec)
         else:
             raise TypeError("Cannot complete %s with respect to %s" % (self, p))
+
+    def _coerce_map_from_base_ring(self):
+        """
+        Return a coercion map from the base ring of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R.coerce_map_from(QQ)
+            Polynomial base injection morphism:
+              From: Rational Field
+              To:   Univariate Polynomial Ring in x over Rational Field
+            sage: R.coerce_map_from(ZZ)
+            Composite map:
+              From: Integer Ring
+              To:   Univariate Polynomial Ring in x over Rational Field
+              Defn:   Natural morphism:
+                      From: Integer Ring
+                      To:   Rational Field
+                    then
+                      Polynomial base injection morphism:
+                      From: Rational Field
+                      To:   Univariate Polynomial Ring in x over Rational Field
+            sage: R.coerce_map_from(GF(7))
+        """
+        return PolynomialBaseringInjection(self.base_ring(), self)
 
     def _coerce_map_from_(self, P):
         """
@@ -567,28 +697,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES::
 
             sage: R = QQ['x']
-            sage: R.has_coerce_map_from(QQ)
-            True
-            sage: R.has_coerce_map_from(ZZ)
-            True
-            sage: R.has_coerce_map_from(GF(7))
-            False
             sage: R.has_coerce_map_from(ZZ['x'])
             True
             sage: R.has_coerce_map_from(ZZ['y'])
             False
-
-            sage: R.coerce_map_from(ZZ)
-            Composite map:
-              From: Integer Ring
-              To:   Univariate Polynomial Ring in x over Rational Field
-              Defn:   Natural morphism:
-                      From: Integer Ring
-                      To:   Rational Field
-                    then
-                      Polynomial base injection morphism:
-                      From: Rational Field
-                      To:   Univariate Polynomial Ring in x over Rational Field
 
         Here we test against the change in the coercions introduced
         in :trac:`9944`::
@@ -620,11 +732,27 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             False
             sage: Q.base_ring() is P.remove_var(Q.variable_name())
             True
+
+        Over the integers, there is a coercion from the NTL and generic
+        implementation to the default FLINT implementation::
+
+            sage: R = PolynomialRing(ZZ, 't', implementation="NTL")
+            sage: S = PolynomialRing(ZZ, 't', implementation="FLINT")
+            sage: T = PolynomialRing(ZZ, 't', implementation="generic")
+            sage: R.has_coerce_map_from(S)
+            False
+            sage: R.has_coerce_map_from(T)
+            False
+            sage: S.has_coerce_map_from(T)
+            True
+            sage: S.has_coerce_map_from(R)
+            True
+            sage: T.has_coerce_map_from(R)
+            False
+            sage: T.has_coerce_map_from(S)
+            False
         """
-        # In the first place, handle the base ring
         base_ring = self.base_ring()
-        if P is base_ring:
-            return PolynomialBaseringInjection(base_ring, self)
         # handle constants that canonically coerce into self.base_ring()
         # first, if possible
         try:
@@ -636,32 +764,39 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         # polynomial rings in the same variable over a base that canonically
         # coerces into self.base_ring()
-        try:
-            if is_PolynomialRing(P):
-                if self.__is_sparse and not P.is_sparse():
-                    return False
-                if P.construction()[0] == self.construction()[0]:
-                    if P.base_ring() is base_ring and \
-                            base_ring is ZZ_sage:
-                        # We're trying to coerce from FLINT->NTL
-                        # or vice versa.  Only allow coercions from
-                        # NTL->FLINT, not vice versa.
-                        # Unfortunately this doesn't work, because
-                        # the parents for ZZ[x]-with-NTL and
-                        # ZZ[x]-with-FLINT are equal, and the coercion model
-                        # believes this means that both coercions are valid;
-                        # but we'll probably change that in the
-                        # coercion model, at which point this code will
-                        # become useful.
-                        if self._implementation_names == ('NTL',):
-                            return False
-                    f = base_ring.coerce_map_from(P.base_ring())
-                    if f is not None:
-                        from sage.rings.homset import RingHomset
-                        from sage.rings.polynomial.polynomial_ring_homomorphism import PolynomialRingHomomorphism_from_base
-                        return PolynomialRingHomomorphism_from_base(RingHomset(P, self), f)
-        except AttributeError:
-            pass
+        if is_PolynomialRing(P):
+            if self.construction()[0] != P.construction()[0]:
+                # Construction (including variable names) must be the
+                # same to allow coercion
+                return False
+            self_sparse = self.is_sparse()
+            P_sparse = P.is_sparse()
+            if self_sparse and not P_sparse:
+                # Coerce only sparse -> dense
+                return False
+
+            if P.base_ring() is base_ring:
+                # Same base ring but different implementations.
+                # Ideally, we should avoid cyclic coercions (a coercion
+                # from A to B and also from B to A), but this is
+                # currently hard to do:
+                # see https://trac.sagemath.org/ticket/24319
+                if not self_sparse and P_sparse:
+                    # Always allow coercion sparse -> dense
+                    pass
+                elif base_ring is ZZ:
+                    # Over ZZ, only allow coercion from any ZZ['x']
+                    # implementation to the default FLINT implementation
+                    if self.element_class is not Polynomial_integer_dense_flint:
+                        return None
+                # Other rings: always allow coercion
+                # To be fixed in Trac #24319
+            f = base_ring.coerce_map_from(P.base_ring())
+            if f is None:
+                return None
+            from sage.rings.homset import RingHomset
+            from sage.rings.polynomial.polynomial_ring_homomorphism import PolynomialRingHomomorphism_from_base
+            return PolynomialRingHomomorphism_from_base(RingHomset(P, self), f)
 
         # Last, we consider multivariate polynomial rings:
         from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
@@ -773,43 +908,52 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return sib.parent_with_gens(self, sie, self.variable_names(), 'R',
                                     gens_syntax=gens_syntax)
 
-    def _macaulay2_(self, m2=None):
+    def _macaulay2_init_(self, macaulay2=None):
         """
         EXAMPLES::
 
             sage: R = QQ['x']
-            sage: macaulay2(R) # optional - macaulay2
-            QQ[x, Degrees => {1}, Heft => {1}, MonomialOrder => {MonomialSize => 32}, DegreeRank => 1]
+            sage: macaulay2(R).describe()  # optional - macaulay2
+            QQ[x, Degrees => {1}, Heft => {1}, MonomialOrder => {MonomialSize => 16},
                                                                 {GRevLex => {1}    }
                                                                 {Position => Up    }
+            --------------------------------------------------------------------------------
+            DegreeRank => 1]
+
+        TESTS:
+
+        Check that results are cached (:trac:`28074`)::
+
+            sage: R = ZZ['t']
+            sage: macaulay2(R) is macaulay2(R)  # optional - macaulay2
+            True
         """
-        if m2 is None:
-            import sage.interfaces.macaulay2
-            m2 = sage.interfaces.macaulay2.macaulay2
-        base_ring = m2( self.base_ring() )
-        var = self.gen()
-        return m2("%s[symbol %s]"%(base_ring.name(), var))
+        if macaulay2 is None:
+            from sage.interfaces.macaulay2 import macaulay2 as m2_default
+            macaulay2 = m2_default
+        return macaulay2._macaulay2_input_ring(self.base_ring(), self.gens())
 
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
-        try:
-            # all that is needed is that elements of the base ring
-            # of the polynomial ring canonically coerce into codomain.
-            # Since poly rings are free, any image of the gen
-            # determines a homomorphism
-            codomain.coerce(self.base_ring().one())
-        except TypeError:
-            return False
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
+        """
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R._is_valid_homomorphism_(GF(7), [5])
+            False
+            sage: R._is_valid_homomorphism_(Qp(7), [5])
+            True
+        """
+        # Since poly rings are free, any image of the gen
+        # determines a homomorphism
+        if base_map is None:
+            # If no base map is given, the only requirement is that the
+            # base ring coerces into the codomain
+            return codomain.has_coerce_map_from(self.base_ring())
         return True
 
-#    Polynomial rings should be unique parents. Hence,
-#    no need for __cmp__. Or actually, having a __cmp__
-#    method that identifies a dense with a sparse ring
-#    is a bad bad idea!
-#    def __cmp__(left, right):
-#        c = cmp(type(left),type(right))
-#        if c: return c
-#        return cmp((left.base_ring(), left.variable_name()), (right.base_ring(), right.variable_name()))
+    #    Polynomial rings should be unique parents. Hence,
+    #    no need for any comparison method
 
     def __hash__(self):
         # should be faster than just relying on the string representation
@@ -1021,6 +1165,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         else:
             return self(cyclotomic.cyclotomic_coeffs(n), check=True)
 
+    @cached_method
     def gen(self, n=0):
         """
         Return the indeterminate generator of this polynomial ring.
@@ -1043,7 +1188,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         if n != 0:
             raise IndexError("generator n not defined")
-        return self.__generator
+        return self.element_class(self, [0,1], is_gen=True)
 
     def gens_dict(self):
         """
@@ -1071,27 +1216,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         return self.gen()
 
-    def is_finite(self):
-        """
-        Return False since polynomial rings are not finite (unless the base
-        ring is 0.)
-
-        EXAMPLES::
-
-            sage: R = Integers(1)['x']
-            sage: R.is_finite()
-            True
-            sage: R = GF(7)['x']
-            sage: R.is_finite()
-            False
-            sage: R['x']['y'].is_finite()
-            False
-        """
-        R = self.base_ring()
-        if R.is_finite() and R.order() == 1:
-            return True
-        return False
-
     @cached_method
     def is_exact(self):
         return self.base_ring().is_exact()
@@ -1103,7 +1227,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES::
 
             sage: R.<z> = Integers(2)[]; R
-            Univariate Polynomial Ring in z over Ring of integers modulo 2 (using NTL)
+            Univariate Polynomial Ring in z over Ring of integers modulo 2 (using GF2X)
             sage: R.is_field()
             False
         """
@@ -1126,6 +1250,28 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             True
         """
         return self.__is_sparse
+
+    def monomial(self, exponent):
+        """
+        Return the monomial with the ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- nonnegative integer
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.monomial(5)
+            x^5
+            sage: e=(10,)
+            sage: R.monomial(*e)
+            x^10
+            sage: m = R.monomial(100)
+            sage: R.monomial(m.degree()) == m
+            True
+        """
+        return self({exponent:self.base_ring().one()})
 
     def krull_dimension(self):
         """
@@ -1182,21 +1328,21 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
             sage: R.<x> = ZZ[]
             sage: R.random_element(10, 5,10)
-            9*x^10 + 8*x^9 + 6*x^8 + 8*x^7 + 8*x^6 + 9*x^5 + 8*x^4 + 8*x^3 + 6*x^2 + 8*x + 8
+            5*x^10 + 5*x^9 + 9*x^8 + 8*x^7 + 6*x^6 + 8*x^5 + 8*x^4 + 9*x^3 + 8*x^2 + 8*x + 8
             sage: R.random_element(6)
-            x^6 - 3*x^5 - x^4 + x^3 - x^2 + x + 1
+            x^6 - 2*x^5 - 2*x^3 + 2*x^2 - 3*x
             sage: R.random_element(6)
-            -2*x^6 - 2*x^5 + 2*x^4 - 3*x^3 + 1
+            -x^6 + x^5 + x^2 - x
             sage: R.random_element(6)
-            -x^6 + x^5 - x^4 + 4*x^3 - x^2 + x
+            -5*x^6 + x^5 + 14*x^4 - x^3 + x^2 - x + 4
 
-        If a tuple of two integers is given for the degree argument, a
-        polynomial of degree in between the bound is given::
+        If a tuple of two integers is given for the degree argument, a degree
+        is first uniformly chosen, then a polynomial of that degree is given::
 
             sage: R.random_element(degree=(0,8))
-            x^8 + 4*x^7 + 2*x^6 - x^4 + 4*x^3 - 5*x^2 + x + 14
+            4*x^4 + 2*x^3 - x + 4
             sage: R.random_element(degree=(0,8))
-            -5*x^7 + x^6 - 3*x^5 + 4*x^4 - x^2 - 2*x + 1
+            x + 1
 
         Note that the zero polynomial has degree ``-1``, so if you want to
         consider it set the minimum degree to ``-1``::
@@ -1242,10 +1388,31 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if degree[0] <= -2:
             raise ValueError("degree should be an integer greater or equal than -1")
 
-        p = self([R.random_element(*args,**kwds) for _ in range(degree[1]+1)])
+        # If the coefficient range only contains 0, then
+        # * if the degree range includes -1, return the zero polynomial,
+        # * otherwise raise a value error
+        if args == (0, 1):
+            if degree[0] == -1:
+                return self.zero()
+            else:
+                raise ValueError("No polynomial of degree >= 0 has all coefficients zero")
 
-        if p.degree() < degree[0]:
-            p += R._random_nonzero_element() * self.gen()**randint(degree[0],degree[1])
+        # Pick a random degree
+        d = randint(degree[0], degree[1])
+
+        # If degree is -1, return the 0 polynomial
+        if d == -1:
+            return self.zero()
+
+        # If degree is 0, return a random constant term
+        if d == 0:
+            return self(R._random_nonzero_element(*args, **kwds))
+
+        # Pick random coefficients
+        p = self([R.random_element(*args, **kwds) for _ in range(d)])
+
+        # Add non-zero leading coefficient
+        p += R._random_nonzero_element(*args, **kwds) * self.gen() ** d
 
         return p
 
@@ -1294,6 +1461,33 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             coeffs.reverse()
             yield self(coeffs)
 
+    @lazy_attribute
+    def _Karatsuba_threshold(self):
+        """
+        Return the default Karatsuba threshold.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQbar[]
+            sage: R._Karatsuba_threshold
+            8
+            sage: MS = MatrixSpace(ZZ, 2, 2)
+            sage: R.<x> = MS[]
+            sage: R._Karatsuba_threshold
+            0
+        """
+        base_ring = self.base_ring()
+        if is_PolynomialRing(base_ring):
+            return 0
+        from sage.matrix.matrix_space import MatrixSpace
+        if isinstance(base_ring, MatrixSpace):
+            return 0
+        from sage.rings.fraction_field import FractionField_generic
+        if isinstance(base_ring, FractionField_generic):
+            return 1 << 60
+        # Generic default value
+        return 8
+
     def karatsuba_threshold(self):
         """
         Return the Karatsuba threshold used for this ring by the method
@@ -1329,8 +1523,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: K.karatsuba_threshold()
             0
         """
-        self._Karatsuba_threshold = ZZ_sage(Karatsuba_threshold)
-
+        self._Karatsuba_threshold = int(Karatsuba_threshold)
 
     def polynomials( self, of_degree = None, max_degree = None ):
         """
@@ -1460,6 +1653,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             return self._monics_max( max_degree )
         raise ValueError("you should pass exactly one of of_degree and max_degree")
 
+
 class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.CommutativeAlgebra):
     """
     Univariate polynomial ring over a commutative ring.
@@ -1469,7 +1663,10 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             raise TypeError("Base ring %s must be a commutative ring."%repr(base_ring))
         # We trust that, if a category is given, that it is useful.
         if category is None:
-            category = polynomial_default_category(base_ring.category(),False)
+            if base_ring.is_zero():
+                category = categories.algebras.Algebras(base_ring.category()).Commutative().Finite()
+            else:
+                category = polynomial_default_category(base_ring.category(), 1)
         PolynomialRing_general.__init__(self, base_ring, name=name,
                 sparse=sparse, element_class=element_class, category=category)
 
@@ -1553,10 +1750,21 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             [x^2 - 2*x + 1, x + 1]
             sage: p.roots(degree_bound=1)
             [(x + 1, 2)]
+
+        TESTS:
+
+        Check that :trac:`23639` is fixed::
+
+            sage: foo = QQ['x']['y'].one()
+            sage: foo.roots(QQ)
+            []
         """
         if ring is not None and ring is not self:
             p = p.change_ring(ring)
-            return p.roots(multiplicities, algorithm, degree_bound)
+            if degree_bound is None:
+                return p.roots(multiplicities = multiplicities, algorithm = algorithm)
+            return p.roots(multiplicities = multiplicities, algorithm = algorithm, degree_bound = degree_bound)
+
         roots = p._roots_from_factorization(p.factor(), multiplicities)
         if degree_bound is not None:
             if multiplicities:
@@ -1566,7 +1774,8 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
         return roots
 
 
-class PolynomialRing_integral_domain(PolynomialRing_commutative, ring.IntegralDomain):
+class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_singular_repr,
+                                     ring.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False, implementation=None,
             element_class=None, category=None):
         """
@@ -1584,23 +1793,145 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, ring.IntegralDo
             <type 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
         """
         self._implementation_repr = ''
-        if not element_class:
-            if is_IntegerRing(base_ring) and not sparse:
+        if element_class is None:
+            implementation = self._implementation_names(implementation, base_ring, sparse)[0]
+            if base_ring is ZZ:
                 if implementation == 'NTL':
                     from sage.rings.polynomial.polynomial_integer_dense_ntl \
-                            import Polynomial_integer_dense_ntl
-                    element_class = Polynomial_integer_dense_ntl
-                    self._implementation_names = ('NTL',)
+                        import Polynomial_integer_dense_ntl as element_class
                     self._implementation_repr = ' (using NTL)'
-                elif implementation == 'FLINT' or implementation is None:
-                    from sage.rings.polynomial.polynomial_integer_dense_flint \
-                            import Polynomial_integer_dense_flint
+                elif implementation == 'FLINT':
                     element_class = Polynomial_integer_dense_flint
-                    self._implementation_names = (None, 'FLINT')
-                else:
-                    raise ValueError("Unknown implementation %s for ZZ[x]"%implementation)
         PolynomialRing_commutative.__init__(self, base_ring, name=name,
                 sparse=sparse, element_class=element_class, category=category)
+        self._has_singular = can_convert_to_singular(self)
+
+    @cached_method(key=lambda self, d, q, sign, lead: (d, q, sign, tuple([x if isinstance(x, (tuple, list)) else (x, 0) for x in lead]) if isinstance(lead, (tuple, list)) else ((lead, 0))))
+    def weil_polynomials(self, d, q, sign=1, lead=1):
+        r"""
+        Return all integer polynomials whose complex roots all have a specified absolute value.
+
+        Such polynomials `f` satisfy a functional equation
+
+        .. MATH::
+
+            T^d f(q/T) = s q^{d/2} f(T)
+
+        where `d` is the degree of `f`, `s` is a sign and `q^{1/2}` is the absolute value
+        of the roots of `f`.
+
+        INPUT:
+
+        - ``d`` -- integer, the degree of the polynomials
+
+        - ``q`` -- integer, the square of the complex absolute value of the roots
+
+        - ``sign`` -- integer (default `1`), the sign `s` of the functional equation
+
+        - ``lead`` -- integer, list of integers or list of pairs of integers (default `1`),
+            constraints on the leading few coefficients of the generated polynomials.
+            If pairs `(a, b)` of integers are given, they are treated as a constraint
+            of the form `\equiv a \pmod{b}`; the moduli must be in decreasing order by
+            divisibility, and the modulus of the leading coefficient must be 0.
+
+        .. SEEALSO::
+
+            More documentation and additional options are available using the iterator
+            :class:`sage.rings.polynomial.weil.weil_polynomials.WeilPolynomials`
+            directly. In addition, polynomials have a method `is_weil_polynomial` to
+            test whether or not the given polynomial is a Weil polynomial.
+
+        EXAMPLES::
+
+            sage: R.<T> = ZZ[]
+            sage: L = R.weil_polynomials(4, 2)
+            sage: len(L)
+            35
+            sage: L[9]
+            T^4 + T^3 + 2*T^2 + 2*T + 4
+            sage: all(p.is_weil_polynomial() for p in L)
+            True
+
+        Setting multiple leading coefficients:
+
+            sage: R.<T> = QQ[]
+            sage: l = R.weil_polynomials(4,2,lead=((1,0),(2,4),(1,2)))
+            sage: l
+            [T^4 + 2*T^3 + 5*T^2 + 4*T + 4,
+            T^4 + 2*T^3 + 3*T^2 + 4*T + 4,
+            T^4 - 2*T^3 + 5*T^2 - 4*T + 4,
+            T^4 - 2*T^3 + 3*T^2 - 4*T + 4]
+
+        We do not require Weil polynomials to be monic. This example generates Weil
+        polynomials associated to K3 surfaces over `GF(2)` of Picard number at least 12::
+
+            sage: R.<T> = QQ[]
+            sage: l = R.weil_polynomials(10,1,lead=2)
+            sage: len(l)
+            4865
+            sage: l[len(l)//2]
+            2*T^10 + T^8 + T^6 + T^4 + T^2 + 2
+
+        TESTS:
+
+        We check that products of Weil polynomials are also listed as Weil polynomials::
+
+            sage: all((f * g) in R.weil_polynomials(6, q) for q in [3,4] for f in R.weil_polynomials(2, q) for g in R.weil_polynomials(4, q))
+            True
+
+        We check that irreducible Weil polynomials of degree 6 are CM::
+
+            sage: simples = [f for f in R.weil_polynomials(6, 3) if f.is_irreducible()]
+            sage: len(simples)
+            348
+            sage: reals = [R([f[3+i] + sum((-3)^j * (i+2*j)/(i+j) * binomial(i+j,j) * f[3+i+2*j] for j in range(1,(3+i)//2+1)) for i in range(4)]) for f in simples]
+
+        Check that every polynomial in this list has 3 real roots between `-2 \sqrt{3}` and `2 \sqrt{3}`::
+
+            sage: roots = [f.roots(RR, multiplicities=False) for f in reals]
+            sage: all(len(L) == 3 and all(x^2 <= 12 for x in L) for L in roots)
+            True
+
+        Finally, check that the original polynomials are reconstructed as CM polynomials::
+
+            sage: all(f == T^3*r(T + 3/T) for (f, r) in zip(simples, reals))
+            True
+
+        A simple check (not sufficient)::
+
+            sage: all(f.number_of_real_roots() == 0 for f in simples)
+            True
+        """
+        R = self.base_ring()
+        if not (R is ZZ or R is QQ):
+            raise ValueError("Weil polynomials have integer coefficients")
+        from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+        return list(WeilPolynomials(d, q, sign, lead, polring=self))
+
+    @staticmethod
+    def _implementation_names_impl(implementation, base_ring, sparse):
+        """
+        TESTS::
+
+            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_integral_domain
+            sage: PolynomialRing_integral_domain._implementation_names_impl(None, ZZ, False)
+            ['FLINT', None]
+            sage: PolynomialRing_integral_domain._implementation_names_impl(None, ZZ, True)
+            [None, 'generic']
+            sage: PolynomialRing_integral_domain._implementation_names_impl(None, QQ, False)
+            [None, 'generic']
+            sage: PolynomialRing_integral_domain._implementation_names_impl(None, QQ, True)
+            [None, 'generic']
+        """
+        if base_ring is ZZ and not sparse:
+            defaults = ["FLINT", None]
+            if implementation in defaults:
+                return defaults
+            elif implementation in ["NTL", "generic"]:
+                return [implementation]
+        elif implementation is None or implementation == "generic":
+            return [None, "generic"]
+        return NotImplemented
 
     def _repr_(self):
         """
@@ -1615,7 +1946,6 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, ring.IntegralDo
 
 
 class PolynomialRing_field(PolynomialRing_integral_domain,
-                           PolynomialRing_singular_repr,
                            ring.PrincipalIdealDomain):
     def __init__(self, base_ring, name="x", sparse=False, element_class=None, category=None):
         """
@@ -1641,7 +1971,6 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: x^(10^20) # this should be fast
             x^100000000000000000000
         """
-        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         import sage.rings.complex_arb
 
         if not element_class:
@@ -1666,8 +1995,6 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                 element_class = polynomial_element_generic.Polynomial_generic_dense_field
 
         PolynomialRing_integral_domain.__init__(self, base_ring, name=name, sparse=sparse, element_class=element_class, category=category)
-
-        self._has_singular = can_convert_to_singular(self)
 
     def _ideal_class_(self, n=0):
         """
@@ -1714,7 +2041,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         EXAMPLES:
 
         Only return the divided-difference coefficients `F_{i,i}`.
-        This example is taken from Example 1, page 121 of [BF05]_::
+        This example is taken from Example 1, page 121 of [BF2005]_::
 
             sage: points = [(1.0, 0.7651977), (1.3, 0.6200860), (1.6, 0.4554022), (1.9, 0.2818186), (2.2, 0.1103623)]
             sage: R = PolynomialRing(RR, "x")
@@ -1744,7 +2071,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             0.00182510288066044]]
 
         The following example is taken from Example 4.12, page 225 of
-        [MF99]_::
+        [MF1999]_::
 
             sage: points = [(1, -3), (2, 0), (3, 15), (4, 48), (5, 105), (6, 192)]
             sage: R = PolynomialRing(QQ, "x")
@@ -1757,15 +2084,9 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             [48, 33, 9, 1],
             [105, 57, 12, 1, 0],
             [192, 87, 15, 1, 0, 0]]
-
-        REFERENCES:
-
-        .. [MF99] \J.H. Mathews and K.D. Fink. *Numerical Methods Using
-           MATLAB*.  3rd edition, Prentice-Hall, 1999.
-
         """
         to_base_ring = self.base_ring()
-        points = [map(to_base_ring, x) for x in points]
+        points = [tuple(to_base_ring(c) for c in p) for p in points]
         n = len(points)
         F = [[points[i][1]] for i in range(n)]
         for i in range(1, n):
@@ -1797,7 +2118,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             differences.
 
           - ``algorithm='neville'``: adapt Neville's method as
-            described on page 144 of [BF05]_ to recursively generate
+            described on page 144 of [BF2005]_ to recursively generate
             the Lagrange interpolation polynomial.  Neville's method
             generates a table of approximating polynomials, where the
             last row of that table contains the `n`-th Lagrange
@@ -1918,12 +2239,6 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             0
             sage: R.lagrange_polynomial([[1, 0], [2, 0], [3, 0]])
             0
-
-        REFERENCES:
-
-        .. [BF05] \R.L. Burden and J.D. Faires. *Numerical Analysis*.
-           8th edition, Thomson Brooks/Cole, 2005.
-
         """
         # Perhaps we should be slightly stricter on the input and use
         # self.base_ring().coerce here and in the divided_difference()
@@ -2001,6 +2316,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         else:
             raise ValueError("algorithm must be one of 'divided_difference' or 'neville'")
 
+    @cached_method
     def fraction_field(self):
         """
         Returns the fraction field of self.
@@ -2010,19 +2326,33 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: R.<t> = GF(5)[]
             sage: R.fraction_field()
             Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
+
+        TESTS:
+
+        Check that :trac:`25449` has been resolved::
+
+            sage: k = GF(25453)
+            sage: F.<x> = FunctionField(k)
+            sage: R.<t> = k[]
+            sage: t(x)
+            x
+
+            sage: k = GF(55667)
+            sage: F.<x> = FunctionField(k)
+            sage: R.<t> = k[]
+            sage: t(x)
+            x
+
         """
-        try:
-            return self._fraction_field
-        except AttributeError:
-            R = self.base_ring()
-            p = R.characteristic()
-            if p != 0 and R.is_prime_field() and 2 < p and p < 2**16:
-                from sage.rings.fraction_field_FpT import FpT
-                self._fraction_field = FpT(self)
-            else:
-                from sage.rings.fraction_field import FractionField_1poly_field
-                self._fraction_field = FractionField_1poly_field(self)
-            return self._fraction_field
+        R = self.base_ring()
+        p = R.characteristic()
+        if p != 0 and R.is_prime_field():
+            from sage.rings.fraction_field_FpT import FpT
+            if 2 < p and p < FpT.INTEGER_LIMIT:
+                return FpT(self)
+        from sage.rings.fraction_field import FractionField_1poly_field
+        return FractionField_1poly_field(self)
+
 
 class PolynomialRing_dense_finite_field(PolynomialRing_field):
     """
@@ -2046,21 +2376,49 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
             sage: S = PolynomialRing_dense_finite_field(GF(25, 'a'), implementation='NTL')
             sage: type(S(0))
             <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>
-        """
-        if implementation is None:
-            implementation = "NTL"
 
+            sage: S = PolynomialRing_dense_finite_field(GF(64), implementation='superfast')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown implementation 'superfast' for dense polynomial rings over Finite Field in z6 of size 2^6
+        """
+        implementation = self._implementation_names(implementation, base_ring)[0]
         if implementation == "NTL":
             from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
             from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
             from sage.rings.polynomial.polynomial_zz_pex import Polynomial_ZZ_pEX
 
-            p=base_ring.characteristic()
+            p = base_ring.characteristic()
             self._modulus = ntl_ZZ_pEContext(ntl_ZZ_pX(list(base_ring.modulus()), p))
             element_class = Polynomial_ZZ_pEX
-
         PolynomialRing_field.__init__(self, base_ring, sparse=False, name=name,
                                       element_class=element_class)
+
+    @staticmethod
+    def _implementation_names_impl(implementation, base_ring, sparse):
+        """
+        TESTS::
+
+            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_finite_field
+            sage: PolynomialRing_dense_finite_field._implementation_names_impl("NTL", GF(4), False)
+            ['NTL', None]
+            sage: PolynomialRing_dense_finite_field._implementation_names_impl(None, GF(4), False)
+            ['NTL', None]
+            sage: PolynomialRing_dense_finite_field._implementation_names_impl("generic", GF(4), False)
+            ['generic']
+            sage: PolynomialRing_dense_finite_field._implementation_names_impl("FLINT", GF(4), False)
+            NotImplemented
+            sage: PolynomialRing_dense_finite_field._implementation_names_impl(None, GF(4), True)
+            NotImplemented
+        """
+        if sparse:
+            return NotImplemented
+        defaults = ["NTL", None]
+        if implementation in defaults:
+            return defaults
+        elif implementation == "generic":
+            return [implementation]
+        return NotImplemented
 
     def irreducible_element(self, n, algorithm=None):
         """
@@ -2085,7 +2443,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         EXAMPLES::
 
             sage: GF(5^3, 'a')['x'].irreducible_element(2)
-            x^2 + (4*a^2 + a + 4)*x + 2*a^2 + 2
+            x^2 + 3*a^2 + a + 2
             sage: GF(19)['x'].irreducible_element(21, algorithm="first_lexicographic")
             x^21 + x + 5
             sage: GF(5**2, 'a')['x'].irreducible_element(17, algorithm="first_lexicographic")
@@ -2143,7 +2501,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
 
         - If ``precision = k`` for some integer ``k``, then all `f \in \F[x]` such
           that `Q(f) \equiv 0 \mod x^k` are computed. This set is infinite, thus it
-          represented as a list of pairs in `F[x] \times \mathbb{Z}_+`, where
+          represented as a list of pairs in `F[x] \times \ZZ_+`, where
           `(f, d)` denotes that `Q(f + x^d h) \equiv 0 \mod x^k` for any `h \in
           F[[x]]`.
 
@@ -2237,7 +2595,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
 
         - If ``precision = k`` for some integer ``k``, then all `f \in \F[x]` such
           that `Q(f) \equiv 0 \mod x^k` are computed. This set is infinite, thus it
-          represented as a list of pairs in `F[x] \times \mathbb{Z}_+`, where
+          represented as a list of pairs in `F[x] \times \ZZ_+`, where
           `(f, d)` denotes that `Q(f + x^d h) \equiv 0 \mod x^k` for any `h \in
           F[[x]]`.
 
@@ -2368,12 +2726,28 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
             [x + 1]
             sage: p.roots(multiplicities=False, algorithm="Roth-Ruckenstein")
             [x^2 + 11*x + 1, x + 1]
+
+        TESTS:
+
+        Check that :trac:`23639` is fixed::
+
+            sage: R = GF(3)['x']['y']
+            sage: R.one().roots(multiplicities=False)
+            []
+            sage: R.zero().roots(multiplicities=False)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: roots of 0 are not defined
         """
         if multiplicities:
             raise NotImplementedError("Use multiplicities=False")
 
         if degree_bound is None:
             l = p.degree()
+            if l < 0:
+                raise ArithmeticError("roots of 0 are not defined")
+            if l == 0:
+                return []
             dl = p[l].degree()
             degree_bound = max((p[i].degree() - dl)//(l - i) for i in range(l) if p[i])
 
@@ -2388,7 +2762,6 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
 
         else:
             raise ValueError("unknown algorithm '{}'".format(algorithm))
-
 
 
 class PolynomialRing_cdvr(PolynomialRing_integral_domain):
@@ -2418,6 +2791,7 @@ class PolynomialRing_cdvr(PolynomialRing_integral_domain):
                 element_class = Polynomial_generic_dense_cdvr
         PolynomialRing_integral_domain.__init__(self, base_ring, name, sparse, element_class=element_class, category=category)
 
+
 class PolynomialRing_cdvf(PolynomialRing_cdvr, PolynomialRing_field):
     """
     A class for polynomial ring over complete discrete valuation fields
@@ -2445,6 +2819,7 @@ class PolynomialRing_cdvf(PolynomialRing_cdvr, PolynomialRing_field):
                 element_class = Polynomial_generic_dense_cdvf
         PolynomialRing_field.__init__(self, base_ring, name, sparse, element_class=element_class, category=category)
 
+
 class PolynomialRing_dense_padic_ring_generic(PolynomialRing_cdvr):
     r"""
     A class for dense polynomial ring over padic rings
@@ -2452,12 +2827,52 @@ class PolynomialRing_dense_padic_ring_generic(PolynomialRing_cdvr):
     def __init__(self, base_ring, name=None, element_class=None, category=None):
         PolynomialRing_cdvr.__init__(self, base_ring, sparse=False, name=name, element_class=element_class, category=category)
 
+    @staticmethod
+    def _implementation_names_impl(implementation, base_ring, sparse):
+        """
+        Only support ``implementation=None`` and ``sparse=False``.
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_padic_ring_generic
+            sage: PolynomialRing_dense_padic_ring_generic._implementation_names_impl(None, Zp(2), False)
+            [None]
+            sage: PolynomialRing_dense_padic_ring_generic._implementation_names_impl(None, Zp(2), True)
+            NotImplemented
+            sage: PolynomialRing_dense_padic_ring_generic._implementation_names_impl("generic", Zp(2), False)
+            NotImplemented
+        """
+        if implementation is None and not sparse:
+            return [None]  # Not a "generic" implementation
+        return NotImplemented
+
+
 class PolynomialRing_dense_padic_field_generic(PolynomialRing_cdvf):
     r"""
     A class for dense polynomial ring over padic fields
     """
     def __init__(self, base_ring, name=None, element_class=None, category=None):
         PolynomialRing_cdvf.__init__(self, base_ring, sparse=False, name=name, element_class=element_class, category=category)
+
+    @staticmethod
+    def _implementation_names_impl(implementation, base_ring, sparse):
+        """
+        Only support ``implementation=None`` and ``sparse=False``.
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_padic_field_generic
+            sage: PolynomialRing_dense_padic_field_generic._implementation_names_impl(None, Qp(2), False)
+            [None]
+            sage: PolynomialRing_dense_padic_field_generic._implementation_names_impl(None, Qp(2), True)
+            NotImplemented
+            sage: PolynomialRing_dense_padic_field_generic._implementation_names_impl("generic", Qp(2), False)
+            NotImplemented
+        """
+        if implementation is None and not sparse:
+            return [None]  # Not a "generic" implementation
+        return NotImplemented
+
 
 class PolynomialRing_dense_padic_ring_capped_relative(PolynomialRing_dense_padic_ring_generic):
     def __init__(self, base_ring, name=None, element_class=None, category=None):
@@ -2478,6 +2893,7 @@ class PolynomialRing_dense_padic_ring_capped_relative(PolynomialRing_dense_padic
         PolynomialRing_dense_padic_ring_generic.__init__(self, base_ring,
                 name=name, element_class=element_class, category=category)
 
+
 class PolynomialRing_dense_padic_ring_capped_absolute(PolynomialRing_dense_padic_ring_generic):
     def __init__(self, base_ring, name=None, element_class=None, category=None):
         """
@@ -2495,6 +2911,7 @@ class PolynomialRing_dense_padic_ring_capped_absolute(PolynomialRing_dense_padic
             element_class = Polynomial_padic_flat
         PolynomialRing_dense_padic_ring_generic.__init__(self, base_ring,
                 name=name, element_class=element_class, category=category)
+
 
 class PolynomialRing_dense_padic_ring_fixed_mod(PolynomialRing_dense_padic_ring_generic):
     def __init__(self, base_ring, name=None, element_class=None, category=None):
@@ -2515,24 +2932,6 @@ class PolynomialRing_dense_padic_ring_fixed_mod(PolynomialRing_dense_padic_ring_
         PolynomialRing_dense_padic_ring_generic.__init__(self, base_ring,
                 name=name, element_class=element_class, category=category)
 
-class PolynomialRing_dense_padic_ring_lazy(PolynomialRing_dense_padic_ring_generic):
-    def __init__(self, base_ring, name=None, element_class=None, category=None):
-        """
-        TESTS::
-
-            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_padic_ring_lazy as PRing
-            sage: R = PRing(Zp(13, type='lazy'), name='t')
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: lazy p-adics need more work.  Sorry.
-
-            #sage: type(R.gen())
-
-        """
-        if element_class is None:
-            element_class = polynomial_element_generic.Polynomial_generic_dense
-        PolynomialRing_dense_padic_ring_generic.__init__(self, base_ring,
-                name=name, element_class=element_class, category=category)
 
 class PolynomialRing_dense_padic_field_capped_relative(PolynomialRing_dense_padic_field_generic):
     def __init__(self, base_ring, name=None, element_class=None, category=None):
@@ -2553,23 +2952,6 @@ class PolynomialRing_dense_padic_field_capped_relative(PolynomialRing_dense_padi
         PolynomialRing_dense_padic_field_generic.__init__(self, base_ring,
                 name=name, element_class=element_class, category=category)
 
-class PolynomialRing_dense_padic_field_lazy(PolynomialRing_dense_padic_field_generic):
-    def __init__(self, base_ring, name=None, element_class=None, category=None):
-        """
-        TESTS::
-
-            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_padic_field_lazy as PRing
-            sage: R = PRing(Qp(13, type='lazy'), name='t')
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: lazy p-adics need more work.  Sorry.
-
-            #sage: type(R.gen())
-        """
-        if element_class is None:
-            element_class = polynomial_element_generic.Polynomial_generic_dense
-        PolynomialRing_dense_padic_field_generic.__init__(self, base_ring,
-                name=name, element_class=element_class, category=category)
 
 class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
     def __init__(self, base_ring, name=None, element_class=None,
@@ -2603,29 +2985,64 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
             sage: type(R.gen())
             <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_ZZ'>
         """
-        from sage.rings.polynomial.polynomial_zmod_flint import \
-                Polynomial_zmod_flint
-        import sage.rings.polynomial.polynomial_modn_dense_ntl as \
-                modn_dense_ntl
-        self.__modulus = base_ring.order()
-        if not element_class:
-            if implementation is None or implementation == 'FLINT':
-                import sys
-                if self.__modulus < sys.maxsize:
-                    element_class = Polynomial_zmod_flint
-                    self._implementation_names = (None, 'FLINT')
-                    self._implementation_repr = ''
-                elif implementation == 'FLINT':
-                    raise ValueError("FLINT does not support modulus %s"%(self.__modulus))
-            if not element_class:
-                self._implementation_names = ('NTL',)
-                self._implementation_repr = ' (using NTL)'
-                if self.__modulus < ZZ_sage(modn_dense_ntl.zz_p_max):
+        if element_class is None:
+            implementation = self._implementation_names(implementation, base_ring)[0]
+            if implementation == "FLINT":
+                from .polynomial_zmod_flint import \
+                        Polynomial_zmod_flint as element_class
+                self._implementation_repr = ''
+            elif implementation == "NTL":
+                modulus = base_ring.order()
+                from . import polynomial_modn_dense_ntl as modn_dense_ntl
+                if modulus < ZZ(modn_dense_ntl.zz_p_max):
                     element_class = modn_dense_ntl.Polynomial_dense_modn_ntl_zz
                 else:
                     element_class = modn_dense_ntl.Polynomial_dense_modn_ntl_ZZ
+                self._implementation_repr = ' (using NTL)'
         PolynomialRing_commutative.__init__(self, base_ring, name=name,
                 element_class=element_class, category=category)
+
+    @staticmethod
+    def _implementation_names_impl(implementation, base_ring, sparse):
+        """
+        TESTS::
+
+            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_mod_n
+            sage: PolynomialRing_dense_mod_n._implementation_names_impl("FLINT", IntegerModRing(10), False)
+            ['FLINT', None]
+            sage: PolynomialRing_dense_mod_n._implementation_names_impl("NTL", IntegerModRing(10), False)
+            ['NTL']
+            sage: PolynomialRing_dense_mod_n._implementation_names_impl(None, IntegerModRing(10), False)
+            ['FLINT', None]
+            sage: PolynomialRing_dense_mod_n._implementation_names_impl("generic", IntegerModRing(10), False)
+            NotImplemented
+            sage: PolynomialRing_dense_mod_n._implementation_names_impl("FLINT", IntegerModRing(10^30), False)
+            Traceback (most recent call last):
+            ...
+            ValueError: FLINT does not support modulus 1000000000000000000000000000000
+            sage: PolynomialRing_dense_mod_n._implementation_names_impl("NTL", IntegerModRing(10^30), False)
+            ['NTL', None]
+            sage: PolynomialRing_dense_mod_n._implementation_names_impl(None, IntegerModRing(10^30), False)
+            ['NTL', None]
+            sage: PolynomialRing_dense_mod_n._implementation_names_impl("generic", IntegerModRing(10^30), False)
+            NotImplemented
+            sage: PolynomialRing_dense_mod_n._implementation_names_impl(None, IntegerModRing(10^30), True)
+            NotImplemented
+        """
+        if sparse:
+            return NotImplemented
+        modulus = base_ring.order()
+        if modulus <= sys.maxsize:
+            defaults = ["FLINT", None]
+        elif implementation == "FLINT":
+            raise ValueError("FLINT does not support modulus %s" % modulus)
+        else:
+            defaults = ["NTL", None]
+        if implementation in defaults:
+            return defaults
+        elif implementation == "NTL":
+            return [implementation]
+        return NotImplemented
 
     @cached_method
     def modulus(self):
@@ -2657,16 +3074,16 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
 
             sage: R.<t> = GF(2)[]
             sage: k.<a> = R.residue_field(t^3+t+1); k
-            Residue field in a of Principal ideal (t^3 + t + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            Residue field in a of Principal ideal (t^3 + t + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
             sage: k.list()
             [0, a, a^2, a + 1, a^2 + a, a^2 + a + 1, a^2 + 1, 1]
             sage: R.residue_field(t)
-            Residue field of Principal ideal (t) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            Residue field of Principal ideal (t) of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
             sage: P = R.irreducible_element(8) * R
             sage: P
-            Principal ideal (t^8 + t^4 + t^3 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            Principal ideal (t^8 + t^4 + t^3 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
             sage: k.<a> = R.residue_field(P); k
-            Residue field in a of Principal ideal (t^8 + t^4 + t^3 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            Residue field in a of Principal ideal (t^8 + t^4 + t^3 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
             sage: k.cardinality()
             256
 
@@ -2690,6 +3107,7 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
             raise ArithmeticError("ideal is not maximal")
         return ideal.residue_field(names)
 
+
 class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
                                  PolynomialRing_dense_mod_n,
                                  PolynomialRing_singular_repr):
@@ -2698,7 +3116,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
         TESTS::
 
             sage: P = GF(2)['x']; P
-            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using GF2X)
             sage: type(P.gen())
             <type 'sage.rings.polynomial.polynomial_gf2x.Polynomial_GF2X'>
 
@@ -2719,35 +3137,70 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             sage: type(P.gen())
             <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_mod_p'>
 
+        This caching bug was fixed in :trac:`24264`::
 
+            sage: p = 2^64 + 13
+            sage: A = GF(p^2)
+            sage: B = GF(p^3)
+            sage: R = A.modulus().parent()
+            sage: S = B.modulus().parent()
+            sage: R is S
+            True
         """
-        from sage.rings.polynomial.polynomial_zmod_flint import \
-                Polynomial_zmod_flint
-        __modulus = base_ring.characteristic()
-        element_class = None
-        if __modulus == 2:
-            import sage.rings.polynomial.polynomial_gf2x as polynomial_gf2x
-            element_class = polynomial_gf2x.Polynomial_GF2X
+        implementation = self._implementation_names(implementation, base_ring)[0]
+        if implementation == "FLINT":
+            from .polynomial_zmod_flint import \
+                    Polynomial_zmod_flint as element_class
+            self._implementation_repr = ''
+        elif implementation == "NTL":
+            from .polynomial_modn_dense_ntl import \
+                    Polynomial_dense_mod_p as element_class
             self._implementation_repr = ' (using NTL)'
-        elif implementation is None or implementation == 'FLINT':
-            import sys
-            if __modulus < sys.maxsize:
-                self._implementation_names = (None, 'FLINT')
-                self._implementation_repr = ''
-                element_class = Polynomial_zmod_flint
-            elif implementation == 'FLINT':
-                raise ValueError("FLINT does not support modulus %s"%(__modulus))
-        if not element_class:
-            from sage.rings.polynomial.polynomial_modn_dense_ntl import \
-                    Polynomial_dense_mod_p
-            element_class = Polynomial_dense_mod_p
-            self._implementation_names = ('NTL',)
-            self._implementation_repr = ' (using NTL)'
+        elif implementation == "GF2X":
+            from .polynomial_gf2x import \
+                    Polynomial_GF2X as element_class
+            self._implementation_repr = ' (using GF2X)'
         PolynomialRing_dense_mod_n.__init__(self, base_ring, name=name,
                 element_class=element_class, category=category)
 
-        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         self._has_singular = can_convert_to_singular(self)
+
+    @staticmethod
+    def _implementation_names_impl(implementation, base_ring, sparse):
+        """
+        TESTS::
+
+            sage: PolynomialRing(GF(2), 'x', implementation="GF2X")
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using GF2X)
+            sage: PolynomialRing(GF(2), 'x', implementation="NTL")
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using GF2X)
+            sage: PolynomialRing(GF(2), 'x', implementation=None)
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using GF2X)
+            sage: PolynomialRing(GF(2), 'x', implementation="FLINT")
+            Univariate Polynomial Ring in x over Finite Field of size 2
+            sage: PolynomialRing(GF(3), 'x', implementation="GF2X")
+            Traceback (most recent call last):
+            ...
+            ValueError: GF2X only supports modulus 2
+        """
+        if sparse:
+            return NotImplemented
+        modulus = base_ring.characteristic()
+        if modulus == 2:
+            defaults = ["GF2X", "NTL", None]
+        elif implementation == "GF2X":
+            raise ValueError("GF2X only supports modulus 2")
+        elif modulus <= sys.maxsize:
+            defaults = ["FLINT", None]
+        elif implementation == "FLINT":
+            raise ValueError("FLINT does not support modulus %s" % modulus)
+        else:
+            defaults = ["NTL", None]
+        if implementation in defaults:
+            return defaults
+        elif implementation in ["NTL", "FLINT"]:
+            return [implementation]
+        return NotImplemented
 
     def irreducible_element(self, n, algorithm=None):
         """
@@ -2929,7 +3382,7 @@ def polygen(ring_or_element, name="x"):
         return t.gens()
     return t.gen()
 
-def polygens(base_ring, names="x"):
+def polygens(base_ring, names="x", *args):
     """
     Return indeterminates over the given base ring with the given
     names.
@@ -2944,6 +3397,11 @@ def polygens(base_ring, names="x"):
         sage: t = polygens(QQ,['x','yz','abc'])
         sage: t
         (x, yz, abc)
+
+    The number of generators can be passed as a third argument::
+
+        sage: polygens(QQ, 'x', 4)
+        (x0, x1, x2, x3)
     """
     from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-    return PolynomialRing(base_ring, names).gens()
+    return PolynomialRing(base_ring, names, *args).gens()

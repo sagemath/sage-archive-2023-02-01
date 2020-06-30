@@ -61,7 +61,6 @@ Type `D_n^{(1)}` examples::
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.combinat.crystals.tensor_product import FullTensorProductOfRegularCrystals
@@ -125,7 +124,6 @@ class HighestWeightTensorKRT(UniqueRepresentation):
             sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import HighestWeightTensorKRT
             sage: for x in HighestWeightTensorKRT(KRT): x
-            ...
             [[1], [2]]
             [[1], [-1]]
         """

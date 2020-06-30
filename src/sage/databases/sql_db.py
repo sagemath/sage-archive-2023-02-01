@@ -100,9 +100,12 @@ sqlite_keywords = ['ABORT','ACTION','ADD','AFTER','ALL','ALTER','ANALYZE',
 def regexp(expr, item):
     """
     Function to define regular expressions in pysqlite.
-    Returns ``True`` if parameter ``item`` matches the regular expression
-    parameter ``expr``.
-    Returns ``False`` otherwise (i.e.: no match).
+
+    OUTPUT:
+
+    - ``True`` if parameter ``item`` matches the regular expression
+      parameter ``expr``
+    - ``False`` otherwise (i.e.: no match)
 
     REFERENCES:
 
@@ -120,6 +123,7 @@ def regexp(expr, item):
     """
     r = re.compile(expr)
     return r.match(item) is not None
+
 
 def verify_type(type):
     """
@@ -142,6 +146,7 @@ def verify_type(type):
     if type.upper() not in types:
         raise TypeError('%s is not a legal type.'%type)
     return True
+
 
 def verify_column(col_dict):
     """
@@ -176,7 +181,7 @@ def verify_column(col_dict):
 
 def verify_operator(operator):
     """
-    Checks that ``operator`` is one of the allowed strings.
+    Check that ``operator`` is one of the allowed strings.
     Legal operators include the following strings:
 
     - '='
@@ -210,9 +215,10 @@ def verify_operator(operator):
         raise TypeError('%s is not a legal operator.'%operator)
     return True
 
+
 def construct_skeleton(database):
     """
-    Constructs a database skeleton from the sql data.  The skeleton data
+    Construct a database skeleton from the sql data.  The skeleton data
     structure is a triple indexed dictionary of the following format::
 
         | - skeleton -- a triple-indexed dictionary
@@ -235,8 +241,8 @@ def construct_skeleton(database):
 
         sage: G = SQLDatabase(GraphDatabase().__dblocation__, False)
         sage: from sage.databases.sql_db import construct_skeleton
-        sage: construct_skeleton(G).keys()
-        [u'aut_grp', u'degrees', u'spectrum', u'misc', u'graph_data']
+        sage: sorted(construct_skeleton(G))
+        [u'aut_grp', u'degrees', u'graph_data', u'misc', u'spectrum']
     """
     skeleton = {}
     cur = database.__connection__.cursor()
@@ -271,7 +277,7 @@ def construct_skeleton(database):
 p = 0
 def _create_print_table(cur, col_titles, **kwds):
     """
-    Creates a nice printable table from the cursor given with the given
+    Create a nice printable table from the cursor given with the given
     column titles.
 
     KEYWORDS:
@@ -424,6 +430,24 @@ class SQLQuery(SageObject):
             --------------------
             0
             1
+
+        Test that :trac:`27562` is fixed::
+
+            sage: D = SQLDatabase()
+            sage: r = SQLQuery(D, {'table_name':'simon', 'display_cols':['a1'], 'expression':['b2','<=', 3]})
+            Traceback (most recent call last):
+            ...
+            ValueError: Database has no table simon
+            sage: D.create_table('simon',{'a1':{'sql':'bool', 'primary_key':False}, 'b2':{'sql':'int'}})
+            sage: D.create_table('simon',{'a1':{'sql':'bool', 'primary_key':False}, 'b2':{'sql':'int'}})
+            Traceback (most recent call last):
+            ...
+            ValueError: Database already has a table named simon
+            sage: SQLQuery(D, {'table_name':'simon', 'display_cols':['a1'], 'expression':['c1','>',2]})
+            Traceback (most recent call last):
+                ...
+            ValueError: Table has no column c1
+
         """
         if not isinstance(database, SQLDatabase):
             raise TypeError('%s is not a valid SQLDatabase'%database)
@@ -459,20 +483,19 @@ class SQLQuery(SageObject):
               else:
                   self.__param_tuple__ = tuple()
               return
-
         if query_dict:
             skel = database.__skeleton__
             if query_dict['table_name'] not in skel:
-                raise ValueError("Database has no table" \
-                    + str(query_dict['table_name']) + ".")
+                raise ValueError("Database has no table %s"
+                    % query_dict['table_name'])
             table_name = query_dict['table_name']
             if query_dict['display_cols'] is not None:
                 for column in query_dict['display_cols']:
                     if column not in skel[table_name]:
-                        raise ValueError("Table has no column %s."%column)
+                        raise ValueError("Table has no column %s"%column)
             if query_dict['expression'][0] not in skel[table_name]:
-                raise ValueError("Table has no column " \
-                    + str(query_dict['expression'][0]) + ".")
+                raise ValueError("Table has no column %s"
+                    % query_dict['expression'][0])
 
             self.__query_dict__ = query_dict
             self.__param_tuple__ = (str(query_dict['expression'][2]),)
@@ -496,7 +519,7 @@ class SQLQuery(SageObject):
 
     def __repr__(self):
         """
-        Overrides the print output to display useful info regarding the
+        Override the print output to display useful info regarding the
         query.
 
         EXAMPLES::
@@ -523,7 +546,7 @@ class SQLQuery(SageObject):
 
     def get_query_string(self):
         """
-        Returns a copy of the query string.
+        Return a copy of the query string.
 
         EXAMPLES::
 
@@ -542,7 +565,7 @@ class SQLQuery(SageObject):
 
     def __iter__(self):
         """
-        Returns an iterator over the results of the query.
+        Return an iterator over the results of the query.
 
         EXAMPLES::
 
@@ -567,7 +590,7 @@ class SQLQuery(SageObject):
 
     def query_results(self):
         """
-        Runs the query by executing the ``__query_string__``. Returns the
+        Run the query by executing the ``__query_string__``. Return the
         results of the query in a list.
 
         EXAMPLES::
@@ -588,7 +611,7 @@ class SQLQuery(SageObject):
 
     def show(self, **kwds):
         """
-        Displays the result of the query in table format.
+        Display the result of the query in table format.
 
         KEYWORDS:
 
@@ -659,7 +682,7 @@ class SQLQuery(SageObject):
 
     def __copy__(self):
         """
-        Returns a copy of itself.
+        Return a copy of itself.
 
         EXAMPLES::
 
@@ -679,7 +702,7 @@ class SQLQuery(SageObject):
     def intersect(self, other, join_table=None, join_dict=None, \
                   in_place=False):
         """
-        Returns a new ``SQLQuery`` that is the intersection of ``self`` and
+        Return a new ``SQLQuery`` that is the intersection of ``self`` and
         ``other``. ``join_table`` and ``join_dict`` can be ``None`` iff the
         two queries only search one table in the database. All display columns
         will be concatenated in order: self display cols + other display cols.
@@ -772,7 +795,7 @@ class SQLQuery(SageObject):
             if re.search(pattern, self.__query_string__) \
               or re.search(pattern, other.__query_string__):
                 raise TypeError('Input queries have joins but join ' \
-                    + 'paramaters are NoneType')
+                    + 'parameters are NoneType')
             s = ((self.__query_string__).upper()).split('FROM ')
             o = ((other.__query_string__).upper()).split('FROM ')
             s = s[1].split(' WHERE ')
@@ -809,7 +832,7 @@ class SQLQuery(SageObject):
 
     def union(self, other, join_table=None, join_dict=None, in_place=False):
         """
-        Returns a new ``SQLQuery`` that is the union of self and other.
+        Return a new ``SQLQuery`` that is the union of self and other.
         ``join_table`` and ``join_dict`` can be ``None`` iff the two queries
         only search one table in the database. All display columns will be
         concatenated in order: self display cols + other display cols.
@@ -908,39 +931,40 @@ class SQLDatabase(SageObject):
         we specify its structure with a Python dictionary, each of whose keys
         is the name of a column::
 
-            sage: table_skeleton = {
-            ....: 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
-            ....: 'vertices':{'sql':'INTEGER'},
-            ....: 'edges':{'sql':'INTEGER'}
-            ....: }
+            sage: from collections import OrderedDict
+            sage: table_skeleton = OrderedDict([
+            ....: ('graph6',{'sql':'TEXT', 'index':True, 'primary_key':True}),
+            ....: ('vertices', {'sql':'INTEGER'}),
+            ....: ('edges', {'sql':'INTEGER'})
+            ....: ])
 
         Then we create the table::
 
             sage: D.create_table('simon', table_skeleton)
             sage: D.show('simon')
-            edges                graph6               vertices
+            graph6               vertices             edges
             ------------------------------------------------------------
 
         Now that we have the table, we will begin to populate the table with
         rows. First, add the graph on zero vertices.::
 
             sage: G = Graph()
-            sage: D.add_row('simon',(0, G.graph6_string(), 0))
+            sage: D.add_row('simon',(G.graph6_string(), 0, 0))
             sage: D.show('simon')
-            edges                graph6               vertices
+            graph6               vertices             edges
             ------------------------------------------------------------
-            0                    ?                    0
+            ?                    0                    0
 
         Next, add the graph on one vertex.::
 
             sage: G.add_vertex()
             0
-            sage: D.add_row('simon',(0, G.graph6_string(), 1))
+            sage: D.add_row('simon',(G.graph6_string(), 1, 0))
             sage: D.show('simon')
-            edges                graph6               vertices
+            graph6               vertices             edges
             ------------------------------------------------------------
-            0                    ?                    0
-            0                    @                    1
+            ?                    0                    0
+            @                    1                    0
 
         Say we want a database of graphs on four or less vertices::
 
@@ -948,32 +972,32 @@ class SQLDatabase(SageObject):
             sage: for i in range(2, 5):
             ....:     labels[i] = []
             ....:     for g in all_labeled_graphs(i):
-            ....:         g = g.canonical_label()
+            ....:         g = g.canonical_label(algorithm='sage')
             ....:         if g not in labels[i]:
             ....:             labels[i].append(g)
-            ....:             D.add_row('simon', (g.size(), g.graph6_string(), g.order()))
-            sage: D.show('simon') # random
-            edges                graph6               vertices
+            ....:             D.add_row('simon', (g.graph6_string(), g.order(), g.size()))
+            sage: D.show('simon')
+            graph6               vertices             edges
             ------------------------------------------------------------
-            0                    ?                    0
-            0                    @                    1
-            0                    A?                   2
-            1                    A_                   2
-            0                    B?                   3
-            1                    BG                   3
-            2                    BW                   3
-            3                    Bw                   3
-            0                    C?                   4
-            1                    C@                   4
-            2                    CB                   4
-            3                    CF                   4
-            3                    CJ                   4
-            2                    CK                   4
-            3                    CL                   4
-            4                    CN                   4
-            4                    C]                   4
-            5                    C^                   4
-            6                    C~                   4
+            ?                    0                    0
+            @                    1                    0
+            A?                   2                    0
+            A_                   2                    1
+            B?                   3                    0
+            BG                   3                    1
+            BW                   3                    2
+            Bw                   3                    3
+            C?                   4                    0
+            C@                   4                    1
+            CB                   4                    2
+            CF                   4                    3
+            CJ                   4                    3
+            CK                   4                    2
+            CL                   4                    3
+            CN                   4                    4
+            C]                   4                    4
+            C^                   4                    5
+            C~                   4                    6
 
         We can then query the database -- let's ask for all the graphs on four
         vertices with three edges. We do so by creating two queries and asking
@@ -1000,28 +1024,28 @@ class SQLDatabase(SageObject):
         instance. We can load the file as an immutable database::
 
             sage: E = SQLDatabase(replace_with_your_own_filepath + 'simon.db')
-            sage: E.show('simon') # random
-            edges                graph6               vertices
+            sage: E.show('simon')
+            graph6               vertices             edges
             ------------------------------------------------------------
-            0                    ?                    0
-            0                    @                    1
-            0                    A?                   2
-            1                    A_                   2
-            0                    B?                   3
-            1                    BG                   3
-            2                    BW                   3
-            3                    Bw                   3
-            0                    C?                   4
-            1                    C@                   4
-            2                    CB                   4
-            3                    CF                   4
-            3                    CJ                   4
-            2                    CK                   4
-            3                    CL                   4
-            4                    CN                   4
-            4                    C]                   4
-            5                    C^                   4
-            6                    C~                   4
+            ?                    0                    0
+            @                    1                    0
+            A?                   2                    0
+            A_                   2                    1
+            B?                   3                    0
+            BG                   3                    1
+            BW                   3                    2
+            Bw                   3                    3
+            C?                   4                    0
+            C@                   4                    1
+            CB                   4                    2
+            CF                   4                    3
+            CJ                   4                    3
+            CK                   4                    2
+            CL                   4                    3
+            CN                   4                    4
+            C]                   4                    4
+            C^                   4                    5
+            C~                   4                    6
             sage: E.drop_table('simon')
             Traceback (most recent call last):
             ...
@@ -1070,7 +1094,7 @@ class SQLDatabase(SageObject):
 
     def __repr__(self):
         """
-        Overrides the print output to display useful info regarding the
+        Override the print output to display useful info regarding the
         database.
 
         EXAMPLES::
@@ -1080,15 +1104,15 @@ class SQLDatabase(SageObject):
             sage: SD.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}})
             sage: print(SD)
             table simon:
-                column n: index: True; unique: False; primary_key: False;
-                    sql: INTEGER;
+                column n: index: True; primary_key: False; sql: INTEGER;
+                    unique: False;
         """
         s = ''
         for table in self.__skeleton__:
             s += 'table ' + table + ':\n'
             for column in self.__skeleton__[table]:
                 s += '    column ' + column + ': '
-                for data in self.__skeleton__[table][column]:
+                for data in sorted(self.__skeleton__[table][column]):
                     s += data + ': ' \
                         + str(self.__skeleton__[table][column][data]) + '; '
                 s += '\n'
@@ -1096,33 +1120,38 @@ class SQLDatabase(SageObject):
 
     def __copy__(self):
         """
-        Returns an instance of ``SQLDatabase`` that points to a copy database,
+        Return an instance of ``SQLDatabase`` that points to a copy database,
         and allows modification.
 
         EXAMPLES::
 
+            sage: from collections import OrderedDict
             sage: DB = SQLDatabase()
-            sage: DB.create_table('lucy',{'id':{'sql':'INTEGER', 'primary_key':True, 'index':True}, 'a1':{'sql':'bool'}, 'b2':{'sql':'int', 'primary_key':False}})
+            sage: DB.create_table('lucy',OrderedDict([
+            ....: ('id', {'sql':'INTEGER', 'primary_key':True, 'index':True}),
+            ....: ('a1', {'sql':'bool'}),
+            ....: ('b2', {'sql':'int', 'primary_key':False})
+            ....: ]))
             sage: DB.add_rows('lucy', [(0,1,1),(1,1,4),(2,0,7),(3,1,384), (4,1,978932)],['id','a1','b2'])
             sage: d = copy(DB)
             sage: d == DB
             False
             sage: d.show('lucy')
-            a1                   id                   b2
+            id                   a1                   b2
             ------------------------------------------------------------
-            1                    0                    1
+            0                    1                    1
             1                    1                    4
-            0                    2                    7
-            1                    3                    384
-            1                    4                    978932
+            2                    0                    7
+            3                    1                    384
+            4                    1                    978932
             sage: DB.show('lucy')
-            a1                   id                   b2
+            id                   a1                   b2
             ------------------------------------------------------------
-            1                    0                    1
+            0                    1                    1
             1                    1                    4
-            0                    2                    7
-            1                    3                    384
-            1                    4                    978932
+            2                    0                    7
+            3                    1                    384
+            4                    1                    978932
         """
         # copy .db file
         new_loc = tmp_filename() + '.db'
@@ -1174,7 +1203,7 @@ class SQLDatabase(SageObject):
 
     def get_skeleton(self, check=False):
         """
-        Returns a dictionary representing the hierarchical structure of the
+        Return a dictionary representing the hierarchical structure of the
         database, in the following format::
 
             | - skeleton -- a triple-indexed dictionary
@@ -1221,7 +1250,7 @@ class SQLDatabase(SageObject):
 
     def query(self, *args, **kwds):
         """
-        Creates a ``SQLQuery`` on this database.  For full class details,
+        Create a ``SQLQuery`` on this database.  For full class details,
         type ``SQLQuery?`` and press shift+enter.
 
         EXAMPLES::
@@ -1269,7 +1298,7 @@ class SQLDatabase(SageObject):
 
     def get_cursor(self, ignore_warning=None):
         """
-        Returns a pysqlite cursor for the database connection.
+        Return a pysqlite cursor for the database connection.
 
         A cursor is an input from which you can execute sqlite commands on the
         database.
@@ -1299,7 +1328,7 @@ class SQLDatabase(SageObject):
 
     def get_connection(self, ignore_warning=None):
         """
-        Returns a pysqlite connection to the database.
+        Return a pysqlite connection to the database.
 
         You most likely want ``get_cursor()`` instead, which is used for
         executing sqlite commands on the database.
@@ -1344,7 +1373,7 @@ class SQLDatabase(SageObject):
 
     def create_table(self, table_name, table_skeleton):
         """
-        Creates a new table in the database.
+        Create a new table in the database.
 
         To create a table, a column structure must be specified. The form for
         this is a Python dict, for example::
@@ -1376,22 +1405,23 @@ class SQLDatabase(SageObject):
 
         EXAMPLES::
 
+            sage: from collections import OrderedDict
             sage: D = SQLDatabase()
-            sage: table_skeleton = {
-            ....: 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
-            ....: 'vertices':{'sql':'INTEGER'},
-            ....: 'edges':{'sql':'INTEGER'}
-            ....: }
+            sage: table_skeleton = OrderedDict([
+            ....: ('graph6', {'sql':'TEXT', 'index':True, 'primary_key':True}),
+            ....: ('vertices', {'sql':'INTEGER'}),
+            ....: ('edges', {'sql':'INTEGER'})
+            ....: ])
             sage: D.create_table('simon', table_skeleton)
             sage: D.show('simon')
-            edges                graph6               vertices
+            graph6               vertices             edges
             ------------------------------------------------------------
         """
         if self.__read_only__:
             raise RuntimeError('Cannot add table to a read only database.')
         if table_name in self.__skeleton__:
-            raise ValueError('Database already has a table named' \
-                + '%s.'%table_name)
+            raise ValueError('Database already has a table named %s'
+                % table_name)
         if table_name.find(' ') != -1:
             raise ValueError('Table names cannot contain spaces.')
         if table_name.upper() in sqlite_keywords:
@@ -1452,33 +1482,34 @@ class SQLDatabase(SageObject):
 
         EXAMPLES::
 
+            sage: from collections import OrderedDict
             sage: MonicPolys = SQLDatabase()
-            sage: MonicPolys.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}})
+            sage: MonicPolys.create_table('simon', OrderedDict([('n', {'sql':'INTEGER', 'index':True})]))
             sage: for n in range(20): MonicPolys.add_row('simon', (n,))
             sage: MonicPolys.add_column('simon', 'n_squared', {'sql':'INTEGER', 'index':False}, 0)
             sage: MonicPolys.show('simon')
-            n_squared            n
+            n                    n_squared
             ----------------------------------------
             0                    0
-            0                    1
-            0                    2
-            0                    3
-            0                    4
-            0                    5
-            0                    6
-            0                    7
-            0                    8
-            0                    9
-            0                    10
-            0                    11
-            0                    12
-            0                    13
-            0                    14
-            0                    15
-            0                    16
-            0                    17
-            0                    18
-            0                    19
+            1                    0
+            2                    0
+            3                    0
+            4                    0
+            5                    0
+            6                    0
+            7                    0
+            8                    0
+            9                    0
+            10                   0
+            11                   0
+            12                   0
+            13                   0
+            14                   0
+            15                   0
+            16                   0
+            17                   0
+            18                   0
+            19                   0
         """
         if self.__read_only__:
             raise RuntimeError('Cannot add columns to a read only database.')
@@ -1505,7 +1536,7 @@ class SQLDatabase(SageObject):
 
     def _rebuild_table(self, table_name, col_name=None, default=''):
         """
-        Rebuilds the table ``table_name`` adding column ``col_name`` if not
+        Rebuild the table ``table_name`` adding column ``col_name`` if not
         ``None``. If a new column is added, each rows' value is set to
         ``default``.
 
@@ -1663,7 +1694,7 @@ class SQLDatabase(SageObject):
 
     def rename_table(self, table_name, new_name):
         """
-        Renames the table ``table_name`` to ``new_name``.
+        Rename the table ``table_name`` to ``new_name``.
 
         EXAMPLES::
 
@@ -1728,7 +1759,7 @@ class SQLDatabase(SageObject):
 
     def drop_data_from_table(self, table_name):
         """
-        Removes all rows from ``table_name``.
+        Remove all rows from ``table_name``.
 
         EXAMPLES::
 
@@ -1791,7 +1822,7 @@ class SQLDatabase(SageObject):
             index_string = 'CREATE INDEX ' + col_name + ' ON ' + table_name \
                 + ' (' + col_name + ')'
         cur = self.__connection__.cursor()
-        exe = cur.execute(index_string)
+        cur.execute(index_string)
 
         # Update Skeleton
         self.__skeleton__[table_name][col_name]['index'] = True
@@ -1821,14 +1852,15 @@ class SQLDatabase(SageObject):
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
         if table_name not in self.__skeleton__:
-            raise ValueError("Database has no table %s."%table_name)
+            raise ValueError("Database has no table %s." % table_name)
         if index_name not in self.__skeleton__[table_name]:
-            raise ValueError("Table %s has no column %s."%(table,index_name))
+            raise ValueError("Table %s has no column %s." % (table_name,
+                                                             index_name))
         if not self.__skeleton__[table_name][index_name]['index']:
             return # silently
 
         cur = self.__connection__.cursor()
-        exe = cur.execute('DROP INDEX i_' + table_name + '_' + index_name)
+        cur.execute('DROP INDEX i_' + table_name + '_' + index_name)
 
         # Update Skeleton
         self.__skeleton__[table_name][index_name]['index'] = False
@@ -2023,7 +2055,7 @@ class SQLDatabase(SageObject):
 
     def delete_rows(self, query):
         """
-        Uses a ``SQLQuery`` instance to modify (delete rows from) the
+        Use a ``SQLQuery`` instance to modify (delete rows from) the
         database.
 
         ``SQLQuery`` must have no join statements.  (As of now, you can only
@@ -2043,25 +2075,29 @@ class SQLDatabase(SageObject):
 
         EXAMPLES::
 
+            sage: from collections import OrderedDict
             sage: DB = SQLDatabase()
-            sage: DB.create_table('lucy',{'id':{'sql':'INTEGER', 'primary_key':True, 'index':True}, 'a1':{'sql':'bool'}, 'b2':{'sql':'int'}})
+            sage: DB.create_table('lucy', OrderedDict([
+            ....: ('id', {'sql':'INTEGER', 'primary_key':True, 'index':True}),
+            ....: ('a1', {'sql':'bool'}),
+            ....: ('b2', {'sql':'int'})]))
             sage: DB.add_rows('lucy', [(0,1,1),(1,1,4),(2,0,7),(3,1,384), (4,1,978932)],['id','a1','b2'])
             sage: DB.show('lucy')
-            a1                   id                   b2
+            id                   a1                   b2
             ------------------------------------------------------------
-            1                    0                    1
+            0                    1                    1
             1                    1                    4
-            0                    2                    7
-            1                    3                    384
-            1                    4                    978932
+            2                    0                    7
+            3                    1                    384
+            4                    1                    978932
             sage: Q = SQLQuery(DB, {'table_name':'lucy', 'display_cols':['id','a1','b2'], 'expression':['id','>=',3]})
             sage: DB.delete_rows(Q)
             sage: DB.show('lucy')
-            a1                   id                   b2
+            id                   a1                   b2
             ------------------------------------------------------------
-            1                    0                    1
+            0                    1                    1
             1                    1                    4
-            0                    2                    7
+            2                    0                    7
         """
         if self.__read_only__:
             raise RuntimeError('Cannot delete rows from a read only database.')
@@ -2118,7 +2154,7 @@ class SQLDatabase(SageObject):
 
     def vacuum(self):
         """
-        Cleans the extra hard disk space used up by a database that has
+        Clean the extra hard disk space used up by a database that has
         recently shrunk.
 
         EXAMPLES::
@@ -2136,7 +2172,7 @@ class SQLDatabase(SageObject):
 
     def commit(self):
         """
-        Commits changes to file.
+        Commit changes to file.
 
         EXAMPLES::
 

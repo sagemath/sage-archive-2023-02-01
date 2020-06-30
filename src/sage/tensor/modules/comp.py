@@ -38,8 +38,8 @@ AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
 - Joris Vankerschaver (2010): for the idea of storing only the non-zero
-  components as dictionaries, whose keys are the component indices (see
-  class :class:`~sage.tensor.differential_form_element.DifferentialForm`)
+  components as dictionaries, whose keys are the component indices (implemented
+  in the old class ``DifferentialForm``; see :trac:`24444`)
 - Marco Mancini (2015) : parallelization of some computations
 
 EXAMPLES:
@@ -139,7 +139,7 @@ the :class:`Components` constructor::
 
 If some formatter function or unbound method is provided via the argument
 ``output_formatter`` in the :class:`Components` constructor, it is used to
-change the ouput of the access operator ``[...]``::
+change the output of the access operator ``[...]``::
 
     sage: a = Components(QQ, basis, 2, output_formatter=Rational.numerical_approx)
     sage: a[1,2] = 1/3
@@ -237,7 +237,7 @@ In case of symmetries, only non-redundant components are stored::
 
 """
 
-#******************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2015 Marco Mancini <marco.mancini@obspm.fr>
@@ -247,9 +247,6 @@ In case of symmetries, only non-redundant components are stored::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import print_function
-from six.moves import range
-from six import itervalues
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
@@ -333,7 +330,7 @@ class Components(SageObject):
         -3
 
     If some formatter function or unbound method is provided via the argument
-    ``output_formatter``, it is used to change the ouput of the access
+    ``output_formatter``, it is used to change the output of the access
     operator ``[...]``::
 
         sage: a = Components(QQ, basis, 2, output_formatter=Rational.numerical_approx)
@@ -584,7 +581,7 @@ class Components(SageObject):
         """
         result = self._new_instance()
         for ind, val in self._comp.items():
-            if hasattr(val, 'copy'):
+            if isinstance(val, SageObject) and hasattr(val, 'copy'):
                 result._comp[ind] = val.copy()
             else:
                 result._comp[ind] = val
@@ -755,18 +752,30 @@ class Components(SageObject):
 
     def _get_list(self, ind_slice, no_format=True, format_type=None):
         r"""
-        Return the list of components.
+        Return the list of components (as nested list or matrix).
 
         INPUT:
 
-        - ``ind_slice`` --  a slice object
+        - ``ind_slice`` --  a slice object. Unless the dimension is 1,
+          this must be ``[:]``.
+        - ``no_format`` -- (default: ``True``) determines whether some
+          formatting of the components is to be performed
+        - ``format_type`` -- (default: ``None``) argument to be passed
+          to the formatting function ``self._output_formatter``, as the
+          second (optional) argument
 
         OUTPUT:
 
-        - the full list of components if  ``ind_slice = [:]``, or a slice
-          of it if ``ind_slice = [a:b]`` (1-D case), in the form
-          ``T[i][j]...`` for the components `T_{ij...}` (for a 2-indices
-          object, a matrix is returned).
+        - general case: the nested list of components in the form
+          ``T[i][j]...`` for the components `T_{ij...}`.
+
+        - in the 1-dim case, a slice of that list if
+          ``ind_slice = [a:b]``.
+
+        - in the 2-dim case, a matrix (over the base ring of the components or
+          of the formatted components if ``no_format`` is ``False``) is
+          returned instead, except if the formatted components do not belong
+          to any ring (for instance if they are strings).
 
         EXAMPLES::
 
@@ -787,9 +796,7 @@ class Components(SageObject):
             [4, 5]
             sage: v._get_list(slice(2,3))
             [6]
-
         """
-        from sage.matrix.constructor import matrix
         si = self._sindex
         nsi = si + self._dim
         if self._nid == 1:
@@ -813,15 +820,12 @@ class Components(SageObject):
         resu = [self._gen_list([i], no_format, format_type)
                 for i in range(si, nsi)]
         if self._nid == 2:
-            try:
-                for i in range(self._dim):
-                    for j in range(self._dim):
-                        a = resu[i][j]
-                        if hasattr(a, '_express'):
-                            resu[i][j] = a._express
-                resu = matrix(resu)  # for a nicer output
-            except TypeError:
-                pass
+            # 2-dim case: convert to matrix for a nicer output
+            from sage.matrix.constructor import matrix
+            from sage.structure.element import parent
+            from sage.categories.rings import Rings
+            if parent(resu[0][0]) in Rings():
+                return matrix(resu)
         return resu
 
     def _gen_list(self, ind, no_format=True, format_type=None):
@@ -855,7 +859,7 @@ class Components(SageObject):
             si = self._sindex
             nsi = si + self._dim
             return [self._gen_list(ind + [i], no_format, format_type)
-                                                       for i in range(si, nsi)]
+                    for i in range(si, nsi)]
 
     def __setitem__(self, args, value):
         r"""
@@ -915,9 +919,16 @@ class Components(SageObject):
             self._set_list(indices, format_type, value)
         else:
             ind = self._check_indices(indices)
-            if value == 0:
+            # Check for a zero value
+            #   The fast method is_trivial_zero() is employed preferably
+            #   to the (possibly expensive) direct comparison to zero:
+            if hasattr(value, 'is_trivial_zero'):
+                zero_value = value.is_trivial_zero()
+            else:
+                zero_value = value == 0
+            if zero_value:
                 # if the component has been set previously, it is deleted,
-                # otherwise nothing is done:
+                # otherwise nothing is done (zero components are not stored):
                 if ind in self._comp:
                     del self._comp[ind]
             else:
@@ -1076,7 +1087,7 @@ class Components(SageObject):
             c_111 = 3
 
         By default, all indices are printed as subscripts, but any index
-        position can be specifed::
+        position can be specified::
 
             sage: c.display('c', index_positions='udd')
             c^0_10 = -2
@@ -1199,8 +1210,13 @@ class Components(SageObject):
         for ind in generator:
             ind_arg = ind + (format_spec,)
             val = self[ind_arg]
-            if not (val == 0) or not only_nonzero:  # val != 0 would not be
-                                                    # correct, see :trac:`22520`
+            # Check whether the value is zero, preferably via the
+            # fast method is_trivial_zero():
+            if hasattr(val, 'is_trivial_zero'):
+                zero_value = val.is_trivial_zero()
+            else:
+                zero_value = val == 0
+            if not zero_value or not only_nonzero:
                 indices = ''  # text indices
                 d_indices = '' # LaTeX down indices
                 u_indices = '' # LaTeX up indices
@@ -1345,7 +1361,7 @@ class Components(SageObject):
         # any zero value
         # In other words, the full method should be
         #   return self.comp == {}
-        for val in itervalues(self._comp):
+        for val in self._comp.values():
             if not (val == 0):
                 return False
         return True
@@ -1523,7 +1539,7 @@ class Components(SageObject):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         if not isinstance(other, Components):
             raise TypeError("the second argument for the addition must be " +
@@ -1543,7 +1559,7 @@ class Components(SageObject):
         # only to add other:
         result = self.copy()
         nproc = Parallelism().get('tensor')
-        if nproc != 1 :
+        if nproc != 1:
             # Parallel computation
             lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
             ind_list = [ind for ind in other._comp]
@@ -1638,7 +1654,7 @@ class Components(SageObject):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         return self + (-other)  #!# correct, deals properly with
                                 # symmetries, but is probably not optimal
@@ -1776,7 +1792,7 @@ class Components(SageObject):
                 # result:
 
                 nproc = Parallelism().get('tensor')
-                if nproc != 1 :
+                if nproc != 1:
                     # Parallel computation
                     lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
                     ind_list = [ind for ind in result.non_redundant_index_generator()]
@@ -1787,7 +1803,10 @@ class Components(SageObject):
 
                     @parallel(p_iter='multiprocessing',ncpus=nproc)
                     def paral_mul(a, local_list_ind):
-                        return [[ind, a[[ind[0]]]*a[[ind[1]]]] for ind in local_list_ind]
+                        partial = []
+                        for ind in local_list_ind:
+                            partial.append([ind, a[[ind[0]]]*a[[ind[1]]]])
+                        return partial
 
                     for ii,val in paral_mul(listParalInput):
                         for jj in val:
@@ -1804,7 +1823,7 @@ class Components(SageObject):
             result = Components(self._ring, self._frame, self._nid + other._nid,
                                 self._sindex, self._output_formatter)
         nproc = Parallelism().get('tensor')
-        if nproc != 1 :
+        if nproc != 1:
             # Parallel computation
             lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
             ind_list = [ind for ind  in self._comp]
@@ -2314,7 +2333,7 @@ class Components(SageObject):
                 return local_res
 
             for ii, val in make_Contraction(listParalInput):
-                for jj in val :
+                for jj in val:
                       res[[jj[0]]] = jj[1]
         else:
             # sequential
@@ -2337,7 +2356,6 @@ class Components(SageObject):
                 res[[ind]] = sm
 
         return res
-
 
     def index_generator(self):
         r"""
@@ -2532,7 +2550,7 @@ class Components(SageObject):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = list(range(self._nid))
+            pos = tuple(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
@@ -2683,7 +2701,7 @@ class Components(SageObject):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = list(range(self._nid))
+            pos = tuple(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
@@ -2956,7 +2974,8 @@ class CompWithSym(Components):
         self._sym = []
         if sym is not None and sym != []:
             if isinstance(sym[0], (int, Integer)):
-                # a single symmetry is provided as a tuple -> 1-item list:
+                # a single symmetry is provided as a tuple or a range object;
+                # it is converted to a 1-item list:
                 sym = [tuple(sym)]
             for isym in sym:
                 if len(isym) < 2:
@@ -2970,7 +2989,8 @@ class CompWithSym(Components):
         self._antisym = []
         if antisym is not None and antisym != []:
             if isinstance(antisym[0], (int, Integer)):
-                # a single antisymmetry is provided as a tuple -> 1-item list:
+                # a single antisymmetry is provided as a tuple or a range
+                # object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
             for isym in antisym:
                 if len(isym) < 2:
@@ -3253,14 +3273,21 @@ class CompWithSym(Components):
             self._set_list(indices, format_type, value)
         else:
             sign, ind = self._ordered_indices(indices)
+            # Check for a zero value
+            #   The fast method is_trivial_zero() is employed preferably
+            #   to the (possibly expensive) direct comparison to zero:
+            if hasattr(value, 'is_trivial_zero'):
+                zero_value = value.is_trivial_zero()
+            else:
+                zero_value = value == 0
             if sign == 0:
-                if not (value == 0):
+                if not zero_value:
                     raise ValueError("by antisymmetry, the component cannot " +
                                      "have a nonzero value for the indices " +
                                      str(indices))
                 if ind in self._comp:
                     del self._comp[ind]  # zero values are not stored
-            elif value == 0:
+            elif zero_value:
                 if ind in self._comp:
                     del self._comp[ind]  # zero values are not stored
             else:
@@ -3403,7 +3430,7 @@ class CompWithSym(Components):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         if not isinstance(other, Components):
             raise TypeError("the second argument for the addition must be a " +
@@ -3426,7 +3453,7 @@ class CompWithSym(Components):
                 # The symmetries/antisymmetries are identical:
                 result = self.copy()
                 nproc = Parallelism().get('tensor')
-                if nproc != 1 :
+                if nproc != 1:
                     # Parallel computation
                     lol = lambda lst, sz: [lst[i:i+sz] for i in
                                            range(0, len(lst), sz)]
@@ -3481,7 +3508,7 @@ class CompWithSym(Components):
             result = Components(self._ring, self._frame, self._nid,
                                 self._sindex, self._output_formatter)
         nproc = Parallelism().get('tensor')
-        if nproc != 1 :
+        if nproc != 1:
             # Parallel computation
             lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
             ind_list = [ind for ind in result.non_redundant_index_generator()]
@@ -3587,7 +3614,7 @@ class CompWithSym(Components):
         result = CompWithSym(self._ring, self._frame, self._nid + other._nid,
                              self._sindex, self._output_formatter, sym, antisym)
         nproc = Parallelism().get('tensor')
-        if nproc != 1 :
+        if nproc != 1:
             # Parallel computation
             lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
             ind_list = [ind for ind in self._comp]
@@ -4143,14 +4170,14 @@ class CompWithSym(Components):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = list(range(self._nid))
+            pos = tuple(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
             if len(pos) > self._nid:
                 raise ValueError("number of index positions larger than the " \
                                  "total number of indices")
-        pos = tuple(pos)
+            pos = tuple(pos)
         pos_set = set(pos)
         # If the symmetry is already present, there is nothing to do:
         for isym in self._sym:
@@ -4405,14 +4432,14 @@ class CompWithSym(Components):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = list(range(self._nid))
+            pos = tuple(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
             if len(pos) > self._nid:
                 raise ValueError("number of index positions larger than the " \
                                  "total number of indices")
-        pos = tuple(pos)
+            pos = tuple(pos)
         pos_set = set(pos)
         # If the antisymmetry is already present, there is nothing to do:
         for iasym in self._antisym:
@@ -4812,7 +4839,16 @@ class CompFullySym(CompWithSym):
             self._set_list(indices, format_type, value)
         else:
             ind = self._ordered_indices(indices)[1]  # [0]=sign is not used
-            if value == 0:
+            # Check for a zero value
+            #   The fast method is_trivial_zero() is employed preferably
+            #   to the (possibly expensive) direct comparison to zero:
+            if hasattr(value, 'is_trivial_zero'):
+                zero_value = value.is_trivial_zero()
+            else:
+                zero_value = value == 0
+            if zero_value:
+                # if the component has been set previously, it is deleted,
+                # otherwise nothing is done (zero components are not stored):
                 if ind in self._comp:
                     del self._comp[ind]  # zero values are not stored
             else:
@@ -4899,7 +4935,7 @@ class CompFullySym(CompWithSym):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         if not isinstance(other, Components):
             raise TypeError("the second argument for the addition must be a " +
@@ -4918,7 +4954,7 @@ class CompFullySym(CompWithSym):
             # remains only to add other:
             result = self.copy()
             nproc = Parallelism().get('tensor')
-            if nproc != 1 :
+            if nproc != 1:
                 # parallel sum
                 lol = lambda lst, sz: [lst[i:i+sz] for i
                                        in range(0, len(lst), sz)]
@@ -5199,7 +5235,7 @@ class CompFullyAntiSym(CompWithSym):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         if not isinstance(other, Components):
             raise TypeError("the second argument for the addition must be a " +
@@ -5218,7 +5254,7 @@ class CompFullyAntiSym(CompWithSym):
             # only to add other:
             result = self.copy()
             nproc = Parallelism().get('tensor')
-            if nproc != 1 :
+            if nproc != 1:
                 # Parallel computation
                 lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
                 ind_list = [ind for ind in other._comp]
@@ -5247,6 +5283,153 @@ class CompFullyAntiSym(CompWithSym):
         else:
             return CompWithSym.__add__(self, other)
 
+    def interior_product(self, other):
+        r"""
+        Interior product with another set of fully antisymmetric components.
+
+        The interior product amounts to a contraction over all the `p` indices
+        of ``self`` with the first `p` indices of ``other``, assuming that
+        the number `q` of indices of ``other`` obeys `q\geq p`.
+
+        .. NOTE::
+
+            ``self.interior_product(other)`` yields the same result as
+            ``self.contract(0,..., p-1, other, 0,..., p-1)``
+            (cf. :meth:`~sage.tensor.modules.comp.Components.contract`), but
+            ``interior_product`` is more efficient, the antisymmetry of ``self``
+            being not used to reduce the computation in
+            :meth:`~sage.tensor.modules.comp.Components.contract`.
+
+        INPUT:
+
+        - ``other`` -- fully antisymmetric components defined on the same frame
+          as ``self`` and with a number of indices at least equal to that of
+          ``self``
+
+        OUTPUT:
+
+        - base ring element (case `p=q`) or set of components (case `p<q`)
+          resulting from the contraction over all the `p` indices of ``self``
+          with the first `p` indices of ``other``
+
+        EXAMPLES:
+
+        Interior product of a set of components ``a`` with ``p`` indices with a
+        set of components ``b`` with ``q`` indices on a 4-dimensional vector
+        space.
+
+        Case ``p=2`` and ``q=2``::
+
+            sage: from sage.tensor.modules.comp import CompFullyAntiSym
+            sage: V = VectorSpace(QQ, 4)
+            sage: a = CompFullyAntiSym(QQ, V.basis(), 2)
+            sage: a[0,1], a[0,2], a[0,3] = -2, 4, 3
+            sage: a[1,2], a[1,3], a[2,3] = 5, -3, 1
+            sage: b = CompFullyAntiSym(QQ, V.basis(), 2)
+            sage: b[0,1], b[0,2], b[0,3] = 3, -4, 2
+            sage: b[1,2], b[1,3], b[2,3] = 2, 5, 1
+            sage: c = a.interior_product(b)
+            sage: c
+            -40
+            sage: c == a.contract(0, 1, b, 0, 1)
+            True
+
+        Case ``p=2`` and ``q=3``::
+
+            sage: b = CompFullyAntiSym(QQ, V.basis(), 3)
+            sage: b[0,1,2], b[0,1,3], b[0,2,3], b[1,2,3] = 3, -4, 2, 5
+            sage: c = a.interior_product(b)
+            sage: c[:]
+            [58, 10, 6, 82]
+            sage: c == a.contract(0, 1, b, 0, 1)
+            True
+
+        Case ``p=2`` and ``q=4``::
+
+            sage: b = CompFullyAntiSym(QQ, V.basis(), 4)
+            sage: b[0,1,2,3] = 5
+            sage: c = a.interior_product(b)
+            sage: c[:]
+            [  0  10  30  50]
+            [-10   0  30 -40]
+            [-30 -30   0 -20]
+            [-50  40  20   0]
+            sage: c == a.contract(0, 1, b, 0, 1)
+            True
+
+        Case ``p=3`` and ``q=3``::
+
+            sage: a = CompFullyAntiSym(QQ, V.basis(), 3)
+            sage: a[0,1,2], a[0,1,3], a[0,2,3], a[1,2,3] = 2, -1, 3, 5
+            sage: b = CompFullyAntiSym(QQ, V.basis(), 3)
+            sage: b[0,1,2], b[0,1,3], b[0,2,3], b[1,2,3] = -2, 1, 4, 2
+            sage: c = a.interior_product(b)
+            sage: c
+            102
+            sage: c == a.contract(0, 1, 2, b, 0, 1, 2)
+            True
+
+        Case ``p=3`` and ``q=4``::
+
+            sage: b = CompFullyAntiSym(QQ, V.basis(), 4)
+            sage: b[0,1,2,3] = 5
+            sage: c = a.interior_product(b)
+            sage: c[:]
+            [-150, 90, 30, 60]
+            sage: c == a.contract(0, 1, 2, b, 0, 1, 2)
+            True
+
+        Case ``p=4`` and ``q=4``::
+
+            sage: a = CompFullyAntiSym(QQ, V.basis(), 4)
+            sage: a[0,1,2,3] = 3
+            sage: c = a.interior_product(b)
+            sage: c
+            360
+            sage: c == a.contract(0, 1, 2, 3, b, 0, 1, 2, 3)
+            True
+
+        """
+        from sage.functions.other import factorial
+        # Sanity checks:
+        if not isinstance(other, CompFullyAntiSym):
+            raise TypeError("{} is not a fully antisymmetric ".format(other) +
+                            "set of components")
+        if other._frame != self._frame:
+            raise ValueError("The {} are not defined on the ".format(other) +
+                             "same frame as the {}".format(self))
+        if other._nid < self._nid:
+            raise ValueError("The {} have less indices than ".format(other) +
+                             "the {}".format(self))
+        # Number of indices of the result:
+        res_nid = other._nid - self._nid
+        #
+        # Case of a scalar result
+        #
+        if res_nid == 0:
+            res = 0
+            for ind in self.non_redundant_index_generator():
+                res += self[[ind]] * other[[ind]]
+            return factorial(self._nid)*res
+        #
+        # Case of component result
+        #
+        if res_nid == 1:
+            res = Components(self._ring, self._frame, res_nid,
+                             start_index=self._sindex,
+                             output_formatter=self._output_formatter)
+        else:
+            res = CompFullyAntiSym(self._ring, self._frame, res_nid,
+                                   start_index=self._sindex,
+                                   output_formatter=self._output_formatter)
+        factorial_s = factorial(self._nid)
+        for ind in res.non_redundant_index_generator():
+            sm = 0
+            for ind_s, cmp_s in self._comp.items():
+                ind_o = ind_s + ind
+                sm += cmp_s * other[[ind_o]]
+            res[[ind]] = factorial_s*sm
+        return res
 
 #******************************************************************************
 

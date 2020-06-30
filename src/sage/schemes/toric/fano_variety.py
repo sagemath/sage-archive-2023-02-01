@@ -8,7 +8,7 @@ varieties, corresponding to crepant subdivisions of face fans of reflexive
 The interface is provided via :func:`CPRFanoToricVariety`.
 
 A careful exposition of different flavours of Fano varieties can be found in
-the paper by Benjamin Nill [Nill2005]_. The main goal of this module is to
+the paper by Benjamin Nill [Nil2005]_. The main goal of this module is to
 support work with **Gorenstein weak Fano toric varieties**. Such a variety
 corresponds to a **coherent crepant refinement of the normal fan of a
 reflexive polytope** `\Delta`, where crepant means that primitive generators
@@ -18,7 +18,7 @@ upper convex piecewise linear function whose domains of linearity are
 precisely the maximal cones of the subdivision. These varieties are important
 for string theory in physics, as they serve as ambient spaces for mirror pairs
 of Calabi-Yau manifolds via constructions due to Victor V. Batyrev
-[Batyrev1994]_ and Lev A. Borisov [Borisov1993]_.
+[Bat1994]_ and Lev A. Borisov [Bor1993]_.
 
 From the combinatorial point of view "crepant" requirement is much more simple
 and natural to work with than "coherent." For this reason, the code in this
@@ -28,30 +28,10 @@ whether they are coherent or not. We refer to corresponding toric varieties as
 
 REFERENCES:
 
-..  [Batyrev1994]
-    Victor V. Batyrev,
-    "Dual polyhedra and mirror symmetry for Calabi-Yau hypersurfaces in toric
-    varieties",
-    J. Algebraic Geom. 3 (1994), no. 3, 493-535.
-    arXiv:alg-geom/9310003v1
-
-..  [Borisov1993]
-    Lev A. Borisov,
-    "Towards the mirror symmetry for Calabi-Yau complete intersections in
-    Gorenstein Fano toric varieties", 1993.
-    arXiv:alg-geom/9310001v1
-
-..  [CD2007]
-    Adrian Clingher and Charles F. Doran,
-    "Modular invariants for lattice polarized K3 surfaces",
-    Michigan Math. J. 55 (2007), no. 2, 355-393.
-    arXiv:math/0602146v1 [math.AG]
-
-..  [Nill2005]
-    Benjamin Nill,
-    "Gorenstein toric Fano varieties",
-    Manuscripta Math. 116 (2005), no. 2, 183-210.
-    arXiv:math/0405448v1 [math.AG]
+- [Bat1994]_
+- [Bor1993]_
+- [CD2007]_
+- [Nil2005]_
 
 AUTHORS:
 
@@ -125,13 +105,13 @@ one-dimensional Calabi-Yau manifolds are elliptic curves!
 Now let's take a look at a toric realization of `M`-polarized K3 surfaces
 studied by Adrian Clingher and Charles F. Doran in [CD2007]_::
 
-    sage: p4318 = ReflexivePolytope(3, 4318)  # long time
-    sage: FTV = CPRFanoToricVariety(Delta_polar=p4318)  # long time
-    sage: FTV.anticanonical_hypersurface()  # long time
+    sage: p4318 = ReflexivePolytope(3, 4318)
+    sage: FTV = CPRFanoToricVariety(Delta_polar=p4318)
+    sage: FTV.anticanonical_hypersurface()
     Closed subscheme of 3-d CPR-Fano toric variety
     covered by 4 affine patches defined by:
-      a3*z2^12 + a4*z2^6*z3^6 + a2*z3^12
-    + a8*z0*z1*z2*z3 + a0*z1^3 + a1*z0^2
+      a0*z2^12 + a4*z2^6*z3^6 + a3*z3^12
+    + a8*z0*z1*z2*z3 + a2*z1^3 + a1*z0^2
 
 Below you will find detailed descriptions of available functions. Current
 functionality of this module is very basic, but it is under active
@@ -153,7 +133,6 @@ implementing them on your own as a patch for inclusion!
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 import re
 
@@ -165,7 +144,7 @@ from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.fraction_field import is_FractionField
 
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_toric
+from sage.schemes.toric.toric_subscheme import AlgebraicScheme_subscheme_toric
 from sage.schemes.toric.variety import (
                                             ToricVariety_field,
                                             normalize_names)
@@ -1138,12 +1117,12 @@ class CPRFanoToricVariety_field(ToricVariety_field):
         We construct several complete intersections associated to the same
         nef-partition of the 3-dimensional reflexive polytope #2254::
 
-            sage: p = ReflexivePolytope(3, 2254)  # long time (7s on sage.math, 2011)
-            sage: np = p.nef_partitions()[1]      # long time
-            sage: np  # long time
+            sage: p = ReflexivePolytope(3, 2254)
+            sage: np = p.nef_partitions()[1]
+            sage: np
             Nef-partition {2, 3, 4, 7, 8} U {0, 1, 5, 6}
-            sage: X = CPRFanoToricVariety(Delta_polar=p)  # long time
-            sage: X.nef_complete_intersection(np)  # long time
+            sage: X = CPRFanoToricVariety(Delta_polar=p)
+            sage: X.nef_complete_intersection(np)
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 10 affine patches defined by:
               a0*z1*z4^2*z5^2*z7^3 + a2*z2*z4*z5*z6*z7^2*z8^2
@@ -1154,7 +1133,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
         Now we include only monomials associated to vertices of `\Delta_i`::
 
-            sage: X.nef_complete_intersection(np, monomial_points="vertices")  # long time
+            sage: X.nef_complete_intersection(np, monomial_points="vertices")
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 10 affine patches defined by:
               a0*z1*z4^2*z5^2*z7^3 + a2*z2*z4*z5*z6*z7^2*z8^2
@@ -1165,7 +1144,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
         (effectively, we set ``b5=0``). Next we provide coefficients explicitly
         instead of using default generic names::
 
-            sage: X.nef_complete_intersection(np,  # long time
+            sage: X.nef_complete_intersection(np,
             ....:       monomial_points="vertices",
             ....:       coefficients=[("a", "a^2", "a/e", "c_i"), list(range(1,6))])
             Closed subscheme of 3-d CPR-Fano toric variety
@@ -1178,9 +1157,9 @@ class CPRFanoToricVariety_field(ToricVariety_field):
         Finally, we take a look at the generic representative of these complete
         intersections in a completely resolved ambient toric variety::
 
-            sage: X = CPRFanoToricVariety(Delta_polar=p,  # long time
+            sage: X = CPRFanoToricVariety(Delta_polar=p,
             ....:                    coordinate_points="all")
-            sage: X.nef_complete_intersection(np)  # long time
+            sage: X.nef_complete_intersection(np)
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 22 affine patches defined by:
               a2*z2*z4*z5*z6*z7^2*z8^2*z9^2*z10^2*z11*z12*z13
@@ -1445,7 +1424,7 @@ class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
         else:
             variables = set()
             nonstr = []
-            regex = re.compile("[_A-Za-z]\w*")
+            regex = re.compile(r"[_A-Za-z]\w*")
             for c in coefficients:
                 if isinstance(c, str):
                     variables.update(regex.findall(c))
@@ -1575,7 +1554,7 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
             else:
                 variables = set()
                 nonstr = []
-                regex = re.compile("[_A-Za-z]\w*")
+                regex = re.compile(r"[_A-Za-z]\w*")
                 for c in coefficients[i]:
                     if isinstance(c, str):
                         variables.update(regex.findall(c))
@@ -1602,9 +1581,9 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
     def cohomology_class(self):
         r"""
         Return the class of ``self`` in the ambient space cohomology ring.
-        
+
         OUTPUT:
-        
+
         - a :class:`cohomology class
           <sage.schemes.generic.toric_variety.CohomologyClass>`.
 
@@ -1631,7 +1610,7 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
         return prod(sum(H.gen(X._point_to_ray[point])
                     for point in part if point in X._coordinate_points)
                for part in self.nef_partition().parts(all_points=True))
-    
+
     def nef_partition(self):
         r"""
         Return the nef-partition associated to ``self``.

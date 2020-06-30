@@ -1,5 +1,5 @@
 """
-Dense univariate polynomials over `\ZZ/n\ZZ`, implemented using FLINT.
+Dense univariate polynomials over `\ZZ/n\ZZ`, implemented using FLINT
 
 This module gives a fast implementation of `(\ZZ/n\ZZ)[x]` whenever `n` is at
 most ``sys.maxsize``. We use it by default in preference to NTL when the modulus
@@ -35,7 +35,8 @@ AUTHORS:
 
 from sage.libs.ntl.ntl_lzz_pX import ntl_zz_pX
 from sage.structure.factorization import Factorization
-from sage.structure.element import coerce_binop, parent
+from sage.structure.element cimport parent
+from sage.structure.element import coerce_binop
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 
 # We need to define this stuff before including the templating stuff
@@ -773,8 +774,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         Return a polynomial with the coefficients of this polynomial reversed.
 
         If an optional degree argument is given the coefficient list will be
-        truncated or zero padded as necessary and the reverse polynomial will
-        have the specified degree.
+        truncated or zero padded as necessary before computing the reverse.
 
         EXAMPLES::
 
@@ -823,10 +823,17 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             Traceback (most recent call last):
             ...
             ValueError: degree argument must be a non-negative integer, got 1.5
+
+        Check that this implementation is compatible with the generic one::
+
+            sage: p = R([0,1,0,2])
+            sage: all(p.reverse(d) == Polynomial.reverse(p, d)
+            ....:     for d in [None, 0, 1, 2, 3, 4])
+            True
         """
         cdef Polynomial_zmod_flint res = self._new()
         cdef unsigned long d
-        if degree:
+        if degree is not None:
             d = degree
             if d != degree:
                 raise ValueError("degree argument must be a non-negative integer, got %s"%(degree))

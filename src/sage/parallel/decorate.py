@@ -2,7 +2,6 @@ r"""
 Decorate interface for parallel computation
 """
 from __future__ import print_function, absolute_import
-from six import integer_types
 
 import types
 
@@ -53,7 +52,7 @@ def normalize_input(a):
         return ((a,), {})
 
 
-class Parallel:
+class Parallel(object):
     r"""
     Create a ``parallel``-decorated function.
     This is the object created by :func:`parallel`.
@@ -63,14 +62,14 @@ class Parallel:
         EXAMPLES::
 
             sage: P = sage.parallel.decorate.Parallel(); P
-            <sage.parallel.decorate.Parallel instance at 0x...>
+            <sage.parallel.decorate.Parallel object at 0x...>
         """
         # The default p_iter is currently the 'fork' implementation.
         # This has changed.
 
         self.p_iter = None
 
-        if isinstance(p_iter, integer_types + (Integer,)):
+        if isinstance(p_iter, (int, Integer)):
             p_iter, ncpus = 'fork', p_iter
 
         if ncpus is None:
@@ -410,7 +409,6 @@ def parallel(p_iter='fork', ncpus=None, **kwds):
        Currently, parallel methods do not work with the
        multiprocessing implementation.
     """
-    import types
     if isinstance(p_iter, types.FunctionType):
         return Parallel()(p_iter)
     return Parallel(p_iter, ncpus, **kwds)
@@ -432,7 +430,7 @@ def parallel(p_iter='fork', ncpus=None, **kwds):
 #   def f(...): ...
 ###################################################################
 
-class Fork:
+class Fork(object):
     """
     A ``fork`` decorator class.
     """
@@ -448,9 +446,9 @@ class Fork:
         EXAMPLES::
 
             sage: sage.parallel.decorate.Fork()
-            <sage.parallel.decorate.Fork instance at 0x...>
+            <sage.parallel.decorate.Fork object at 0x...>
             sage: sage.parallel.decorate.Fork(timeout=3)
-            <sage.parallel.decorate.Fork instance at 0x...>
+            <sage.parallel.decorate.Fork object at 0x...>
         """
         self.timeout = timeout
         self.verbose = verbose

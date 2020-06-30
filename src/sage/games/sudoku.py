@@ -21,8 +21,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ######################################################################
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import string_types
 
 from sage.structure.sage_object import SageObject
 
@@ -79,9 +77,9 @@ def sudoku(m):
         ...
         ValueError: sudoku function expects puzzle to be a matrix, perhaps use the Sudoku class
     """
-    from sage.matrix.matrix import Matrix
+    from sage.structure.element import is_Matrix
 
-    if not(isinstance(m, Matrix)):
+    if not is_Matrix(m):
         raise ValueError('sudoku function expects puzzle to be a matrix, perhaps use the Sudoku class')
     solution = next(Sudoku(m).solve(algorithm='dlx'))
     return (solution.to_matrix() if solution else None)
@@ -94,13 +92,13 @@ class Sudoku(SageObject):
 
     INPUT:
 
-    - puzzle - the first argument can take one of three forms
+    - puzzle -- the first argument can take one of three forms
         * list - a Python list with elements of the puzzle in row-major order,
           where a blank entry is a zero
         * matrix - a square Sage matrix over `\ZZ`
         * string - a string where each character is an entry of
           the puzzle. For two-digit entries, a = 10, b = 11, etc.
-    - verify_input - default = ``True``, use ``False`` if you know the input is valid
+    - verify_input -- default = ``True``, use ``False`` if you know the input is valid
 
     EXAMPLES::
 
@@ -173,17 +171,17 @@ class Sudoku(SageObject):
             ValueError: Sudoku puzzle has an invalid entry
         """
         from math import sqrt
-        from sage.matrix.matrix import Matrix
+        from sage.structure.element import is_Matrix
 
         if isinstance(puzzle, list):
             puzzle_size = int(round(sqrt(len(puzzle))))
             self.puzzle = tuple(puzzle)
-        elif isinstance(puzzle, Matrix):
+        elif is_Matrix(puzzle):
             puzzle_size = puzzle.ncols()
             if verify_input and not(puzzle.is_square()):
                 raise ValueError('Sudoku puzzle must be a square matrix')
             self.puzzle = tuple([int(x) for x in puzzle.list()])
-        elif isinstance(puzzle, string_types):
+        elif isinstance(puzzle, str):
             puzzle_size = int(round(sqrt(len(puzzle))))
             puzzle_numeric = []
             for char in puzzle:
@@ -226,6 +224,18 @@ class Sudoku(SageObject):
             False
         """
         return self.puzzle == tuple(other.to_list())
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: a = Sudoku('.4..32....14..3.')
+            sage: hash(a) == hash(a.puzzle)
+            True
+        """
+        return hash(self.puzzle)
 
     def __ne__(self, other):
         """
@@ -366,7 +376,7 @@ class Sudoku(SageObject):
             sage: s.to_list()
             [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 9, 0, 4, 0, 0, 0, 5, 0, 0, 0, 6, 0, 0, 0, 7, 0, 0, 0, 5, 0, 9, 0, 3, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 8, 5, 0, 0, 4, 0, 7, 0, 0, 0, 0, 0, 6, 0, 0, 0, 3, 0, 0, 0, 9, 0, 8, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1]
 
-        TEST:
+        TESTS:
 
         This tests the input and output of Sudoku puzzles as lists. ::
 
@@ -389,7 +399,7 @@ class Sudoku(SageObject):
             [0 0 1 4]
             [0 0 3 0]
 
-        TEST:
+        TESTS:
 
         This tests the input and output of Sudoku puzzles as matrices over `\ZZ`. ::
 
@@ -426,11 +436,10 @@ class Sudoku(SageObject):
         nsquare = n*n
         m = self.to_matrix()
         m.subdivide(list(range(0,nsquare+1,n)), list(range(0,nsquare+1,n)))
-        naked_zero = compile('([\|, ]+)0')
+        naked_zero = compile(r'([\|, ]+)0')
         blanked = naked_zero.sub(lambda x: x.group(1)+' ', m.str())
-        brackets = compile('[\[,\]]')
+        brackets = compile(r'[\[,\]]')
         return brackets.sub('', blanked)
-
 
     def to_latex(self):
         r"""
@@ -474,7 +483,7 @@ class Sudoku(SageObject):
 
         INPUT:
 
-        - algorithm - default = ``'dlx'``, specify choice of solution algorithm. The
+        - algorithm -- default = ``'dlx'``, specify choice of solution algorithm. The
           two possible algorithms are ``'dlx'`` and ``'backtrack'``.
 
         OUTPUT:
@@ -564,16 +573,16 @@ class Sudoku(SageObject):
         [sudoku:top95]_ which we use to show that the two available algorithms obtain
         the same solution for each. ::
 
-            sage: top =['4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......',\
-                        '52...6.........7.13...........4..8..6......5...........418.........3..2...87.....',\
-                        '6.....8.3.4.7.................5.4.7.3..2.....1.6.......2.....5.....8.6......1....',\
-                        '48.3............71.2.......7.5....6....2..8.............1.76...3.....4......5....',\
-                        '....14....3....2...7..........9...3.6.1.............8.2.....1.4....5.6.....7.8...',\
-                        '......52..8.4......3...9...5.1...6..2..7........3.....6...1..........7.4.......3.',\
-                        '6.2.5.........3.4..........43...8....1....2........7..5..27...........81...6.....',\
-                        '.524.........7.1..............8.2...3.....6...9.5.....1.6.3...........897........',\
-                        '6.2.5.........4.3..........43...8....1....2........7..5..27...........81...6.....',\
-                        '.923.........8.1...........1.7.4...........658.........6.5.2...4.....7.....9.....']
+            sage: top =['4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......',
+            ....:       '52...6.........7.13...........4..8..6......5...........418.........3..2...87.....',
+            ....:       '6.....8.3.4.7.................5.4.7.3..2.....1.6.......2.....5.....8.6......1....',
+            ....:       '48.3............71.2.......7.5....6....2..8.............1.76...3.....4......5....',
+            ....:       '....14....3....2...7..........9...3.6.1.............8.2.....1.4....5.6.....7.8...',
+            ....:       '......52..8.4......3...9...5.1...6..2..7........3.....6...1..........7.4.......3.',
+            ....:       '6.2.5.........3.4..........43...8....1....2........7..5..27...........81...6.....',
+            ....:       '.524.........7.1..............8.2...3.....6...9.5.....1.6.3...........897........',
+            ....:       '6.2.5.........4.3..........43...8....1....2........7..5..27...........81...6.....',
+            ....:       '.923.........8.1...........1.7.4...........658.........6.5.2...4.....7.....9.....']
             sage: p = [Sudoku(top[i]) for i in range(10)]
             sage: verify = [next(p[i].solve(algorithm='dlx')) == next(p[i].solve(algorithm='backtrack')) for i in range(10)]
             sage: verify == [True]*10
@@ -722,14 +731,14 @@ class Sudoku(SageObject):
 
         INPUT:
 
-        - count_only - boolean, default = False.
+        - count_only -- boolean, default = False.
           If set to ``True`` the generator returned as output will
           simply generate ``None`` for each solution, so the
           calling routine can count these.
 
         OUTPUT:
 
-        Returns a generator that that iterates over all the solutions.
+        A generator that iterates over all the solutions.
 
         This function is intended to be called from the
         :func:`~sage.games.sudoku.Sudoku.solve` method

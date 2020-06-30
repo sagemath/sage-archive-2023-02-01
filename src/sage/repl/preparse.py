@@ -87,9 +87,14 @@ Raw and hex work correctly::
     sage: type(0xa1)
     <type 'sage.rings.integer.Integer'>
     sage: type(0xa1r)
-    <... 'int'>
+    <type 'int'>
     sage: type(0Xa1R)
-    <... 'int'>
+    <type 'int'>
+
+The preparser can handle PEP 515 (see :trac:`28490`)::
+
+    sage: 1_000_000 + 3_000 # py3
+    1003000
 
 In Sage, methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error)::
@@ -159,7 +164,7 @@ We create a raw integer::
     sage: a
     393939
     sage: type(a)
-    <... 'int'>
+    <type 'int'>
 
 We create a raw float::
 
@@ -167,7 +172,7 @@ We create a raw float::
     sage: z
     1.5949
     sage: type(z)
-    <... 'float'>
+    <type 'float'>
 
 You can also use an upper case letter::
 
@@ -175,7 +180,7 @@ You can also use an upper case letter::
     sage: z
     3.1415
     sage: type(z)
-    <... 'float'>
+    <type 'float'>
 
 This next example illustrates how raw literals can be very useful in
 certain cases.  We make a list of even integers up to 10000::
@@ -222,7 +227,6 @@ from __future__ import print_function
 
 import os
 import re
-import six
 
 from sage.repl.load import load_wrap
 
@@ -230,15 +234,24 @@ implicit_mul_level = False
 numeric_literal_prefix = '_sage_const_'
 
 def implicit_multiplication(level=None):
-    """
-    Turns implicit multiplication on or off, optionally setting a
-    specific ``level``.  Returns the current ``level`` if no argument
-    is given.
+    r"""
+    Turn implicit multiplication on or off, optionally setting a
+    specific ``level``.
 
     INPUT:
 
-    - ``level`` - an integer (default: None); see :func:`implicit_mul`
-      for a list
+    - ``level`` -- a boolean or integer (default: 5); how aggressive to be in
+      placing \*'s
+
+      -  0 - Do nothing
+      -  1 - Numeric followed by alphanumeric
+      -  2 - Closing parentheses followed by alphanumeric
+      -  3 - Spaces between alphanumeric
+      - 10 - Adjacent parentheses (may mangle call statements)
+
+    OUTPUT:
+
+    The current ``level`` if no argument is given.
 
     EXAMPLES::
 
@@ -250,6 +263,21 @@ def implicit_multiplication(level=None):
       sage: implicit_multiplication(False)
       sage: preparse('2x')
       '2x'
+
+    Note that the `IPython automagic
+    <https://ipython.readthedocs.io/en/stable/interactive/magics.html#magic-automagic>`_
+    feature cannot be used if ``level >= 3``::
+
+        sage: implicit_multiplication(3)
+        sage: preparse('cd Documents')
+        'cd*Documents'
+        sage: implicit_multiplication(2)
+        sage: preparse('cd Documents')
+        'cd Documents'
+        sage: implicit_multiplication(False)
+
+    In this case, one can use the explicit syntax for IPython magics such as
+    ``%cd Documents``.
     """
     global implicit_mul_level
     if level is None:
@@ -277,16 +305,6 @@ def isalphadigit_(s):
         False
     """
     return s.isalpha() or s.isdigit() or s == "_"
-
-keywords = """
-and       del       from      not       while
-as        elif      global    or        with
-assert    else      if        pass      yield
-break     except    import    print
-class     exec      in        raise
-continue  finally   is        return
-def       for       lambda    try
-""".split()
 
 in_single_quote = False
 in_double_quote = False
@@ -423,27 +441,34 @@ def strip_string_literals(code, state=None):
     return "".join(new_code), literals, (in_quote, raw)
 
 
-def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
+def containing_block(code, idx, delimiters=['()','[]','{}'], require_delim=True):
     """
-    Returns the smallest range (start,end) such that code[start,end]
-    is delimited by balanced delimiters (e.g., parentheses, brackets,
-    and braces).
+    Find the code block given by balanced delimiters that contains the position ``idx``.
 
     INPUT:
 
     - ``code`` - a string
 
-    - ``ix`` - an integer; a starting position
+    - ``idx`` - an integer; a starting position
 
     - ``delimiters`` - a list of strings (default: ['()', '[]',
-      '{}']); the delimiters to balance
+      '{}']); the delimiters to balance. A delimiter must be a single
+      character and no character can at the same time be opening and
+      closing delimiter.
 
     - ``require_delim`` - a boolean (default: True); whether to raise
-      a SyntaxError if delimiters are unbalanced
+      a SyntaxError if delimiters are present. If the delimiters are
+      unbalanced, an error will be raised in any case.
 
     OUTPUT:
 
-    - a 2-tuple of integers
+    - a 2-tuple ``(a,b)`` of integers, such that ``code[a:b]`` is
+      delimited by balanced delimiters, ``a<=idx<b``, and ``a``
+      is maximal and ``b`` is minimal with that property. If that
+      does not exist, a ``SyntaxError`` is raised.
+
+    - If ``require_delim`` is false and ``a,b`` as above can not be
+      found, then ``0, len(code)`` is returned.
 
     EXAMPLES::
 
@@ -464,41 +489,97 @@ def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
         '(L[5]+1)'
         sage: start, end = containing_block(s, 10); s[start:end]
         '(next_prime(L[5]+1))'
+
+    TESTS::
+
+        sage: containing_block('((a{))',0)
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Unbalanced delimiters
+        sage: containing_block('((a{))',1)
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Unbalanced delimiters
+        sage: containing_block('((a{))',2)
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Unbalanced delimiters
+        sage: containing_block('((a{))',3)
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Unbalanced delimiters
+        sage: containing_block('((a{))',4)
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Unbalanced delimiters
+        sage: containing_block('((a{))',5)
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Unbalanced delimiters
+        sage: containing_block('(()()',1)
+        (1, 3)
+        sage: containing_block('(()()',3)
+        (3, 5)
+        sage: containing_block('(()()',4)
+        (3, 5)
+        sage: containing_block('(()()',0)
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Unbalanced delimiters
+        sage: containing_block('(()()',0, require_delim=False)
+        (0, 5)
+        sage: containing_block('((})()',1, require_delim=False)
+        (0, 6)
+        sage: containing_block('abc',1, require_delim=False)
+        (0, 3)
+
     """
     openings = "".join([d[0] for d in delimiters])
     closings = "".join([d[-1] for d in delimiters])
     levels = [0] * len(openings)
     p = 0
-    start = ix
+    start = idx
     while start >= 0:
-        start -= 1
-        if start == -1:
-            if require_delim:
-                raise SyntaxError("Unbalanced or missing ()'s")
-            else:
-                break
         if code[start] in openings:
             p = openings.index(code[start])
             levels[p] -= 1
             if levels[p] == -1:
                 break
-        elif code[start] in closings:
+        elif code[start] in closings and start < idx:
             p = closings.index(code[start])
             levels[p] += 1
+        start -= 1
     if start == -1:
-        return 0, len(code)
-    end = ix
-    level = 0
+        if require_delim:
+            raise SyntaxError("Unbalanced or missing delimiters")
+        else:
+            return 0, len(code)
+    if levels.count(0) != len(levels)-1:
+        if require_delim:
+            raise SyntaxError("Unbalanced delimiters")
+        else:
+            return 0, len(code)
+    p0 = p
+    # We now have levels[p0]==-1. We go to the right hand side
+    # till we find a closing delimiter of type p0 that makes
+    # levels[p0]==0.
+    end = idx
     while end < len(code):
-        end += 1
-        if end == len(code):
-            raise SyntaxError("Unbalanced or missing ()'s")
-        if code[end] == openings[p]:
-            level += 1
-        elif code[end] == closings[p]:
-            level -= 1
-            if level == -1:
+        if code[end] in closings:
+            p = closings.index(code[end])
+            levels[p] += 1
+            if p==p0 and levels[p] == 0:
                 break
+        elif code[end] in openings and end > idx:
+            p = openings.index(code[end])
+            levels[p] -= 1
+        end += 1
+    if levels.count(0) != len(levels):
+        # This also occurs when end==len(code) without finding a closing delimiter
+        if require_delim:
+            raise SyntaxError("Unbalanced delimiters")
+        else:
+            return 0, len(code)
     return start, end+1
 
 
@@ -673,6 +754,68 @@ def preparse_numeric_literals(code, extract=False):
         '0xEA'
         sage: preparse_numeric_literals('0x1012Fae')
         'Integer(0x1012Fae)'
+
+    Test underscores as digit separators (PEP 515,
+    https://www.python.org/dev/peps/pep-0515/)::
+
+        sage: preparse_numeric_literals('123_456')
+        'Integer(123_456)'
+        sage: preparse_numeric_literals('123_456.78_9_0')
+        "RealNumber('123_456.78_9_0')"
+        sage: preparse_numeric_literals('0b11_011')
+        'Integer(0b11_011)'
+        sage: preparse_numeric_literals('0o76_321')
+        'Integer(0o76_321)'
+        sage: preparse_numeric_literals('0xaa_aaa')
+        'Integer(0xaa_aaa)'
+        sage: preparse_numeric_literals('1_3.2_5e-2_2')
+        "RealNumber('1_3.2_5e-2_2')"
+
+        sage: for f in ["1_1.", "11_2.", "1.1_1", "1_1.1_1", ".1_1", ".1_1e1_1", ".1e1_1",
+        ....:           "1e12_3", "1_1e1_1", "1.1_3e1_2", "1_1e1_1", "1e1", "1.e1_1",
+        ....:           "1.0", "1_1.0"]:
+        ....:     preparse_numeric_literals(f)
+        ....:     assert preparse(f) == preparse_numeric_literals(f), f
+        "RealNumber('1_1.')"
+        "RealNumber('11_2.')"
+        "RealNumber('1.1_1')"
+        "RealNumber('1_1.1_1')"
+        "RealNumber('.1_1')"
+        "RealNumber('.1_1e1_1')"
+        "RealNumber('.1e1_1')"
+        "RealNumber('1e12_3')"
+        "RealNumber('1_1e1_1')"
+        "RealNumber('1.1_3e1_2')"
+        "RealNumber('1_1e1_1')"
+        "RealNumber('1e1')"
+        "RealNumber('1.e1_1')"
+        "RealNumber('1.0')"
+        "RealNumber('1_1.0')"
+
+    Having consecutive underscores is not valid Python syntax, so
+    it is not preparsed, and similarly with a trailing underscore::
+
+        sage: preparse_numeric_literals('123__45')
+        '123__45'
+        sage: 123__45 # py2
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid syntax
+        sage: 123__45 # py3
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid token
+
+        sage: preparse_numeric_literals('3040_1_')
+        '3040_1_'
+        sage: 3040_1_ # py2
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid syntax
+        sage: 3040_1_ # py3
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid token
     """
     literals = {}
     last = 0
@@ -680,14 +823,13 @@ def preparse_numeric_literals(code, extract=False):
 
     global all_num_regex
     if all_num_regex is None:
-        dec_num = r"\b\d+"
-        hex_num = r"\b0x[0-9a-f]+"
-        oct_num = r"\b0o[0-7]+"
-        bin_num = r"\b0b[01]+"
+        hex_num = r"\b0x[0-9a-f]+(_[0-9a-f]+)*"
+        oct_num = r"\b0o[0-7]+(_[0-7]+)*"
+        bin_num = r"\b0b[01]+(_[01]+)*"
         # This is slightly annoying as floating point numbers may start
         # with a decimal point, but if they do the \b will not match.
-        float_num = r"((\b\d+([.]\d*)?)|([.]\d+))(e[-+]?\d+)?"
-        all_num = r"((%s)|(%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (hex_num, oct_num, bin_num, float_num, dec_num)
+        float_num = r"((\b\d+(_\d+)*([.](\d+(_\d+)*)?)?)|([.]\d+(_\d+)*))(e[-+]?\d+(_\d+)*)?"
+        all_num = r"((%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (hex_num, oct_num, bin_num, float_num)
         all_num_regex = re.compile(all_num, re.I)
 
     for m in all_num_regex.finditer(code):
@@ -696,9 +838,10 @@ def preparse_numeric_literals(code, extract=False):
         postfix = m.groups()[-1].upper()
 
         if 'R' in postfix:
+            postfix = postfix.replace('L', '')
             num_name = num_make = num + postfix.replace('R', '')
         elif 'L' in postfix:
-            continue
+            num_name = num_make = num + postfix.replace('L', '')
         else:
 
             # The Sage preparser does extra things with numbers, which we need to handle here.
@@ -716,7 +859,7 @@ def preparse_numeric_literals(code, extract=False):
                         # handle 4.sqrt()
                         end -= 1
                         num = num[:-1]
-            elif end < len(code) and code[end] == '.' and not postfix and re.match(r'\d+$', num):
+            elif end < len(code) and code[end] == '.' and not postfix and re.match(r'\d+(_\d+)*$', num):
                 # \b does not match after the . for floating point
                 # two dots in a row would be an ellipsis
                 if end+1 == len(code) or code[end+1] != '.':
@@ -1081,7 +1224,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: preparse("ZZ.<x> = QQ[2^(1/3)]")
         'ZZ = QQ[Integer(2)**(Integer(1)/Integer(3))]; (x,) = ZZ._first_ngens(1)'
         sage: QQ[2^(1/3)]
-        Number Field in a with defining polynomial x^3 - 2
+        Number Field in a with defining polynomial x^3 - 2 with a = 1.259921049894873?
 
         sage: preparse("a^b")
         'a**b'
@@ -1094,9 +1237,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: 9^^1
         8
 
-        sage: preparse("A \ B")
+        sage: preparse("A \\ B")
         'A  * BackslashOperator() * B'
-        sage: preparse("A^2 \ B + C")
+        sage: preparse("A^2 \\ B + C")
         'A**Integer(2)  * BackslashOperator() * B + C'
         sage: preparse("a \\ b \\") # There is really only one backslash here, it's just being escaped.
         'a  * BackslashOperator() * b \\'
@@ -1145,7 +1288,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
     # Generators
     # R.0 -> R.gen(0)
-    L = re.sub(r'([_a-zA-Z]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
+    L = re.sub(r'(\b[_a-zA-Z]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
 
     # Use ^ for exponentiation and ^^ for xor
     # (A side effect is that **** becomes xor as well.)
@@ -1222,7 +1365,7 @@ def preparse_file(contents, globals=None, numeric_literals=True):
         _sage_const_100 = Integer(100)
         type(100 ), type(_sage_const_100 )
     """
-    if not isinstance(contents, six.string_types):
+    if not isinstance(contents, str):
         raise TypeError("contents must be a string")
 
     if globals is None:
@@ -1277,22 +1420,17 @@ def preparse_file(contents, globals=None, numeric_literals=True):
 
     return '\n'.join(F)
 
+
 def implicit_mul(code, level=5):
-    """
-    Inserts \*'s to make implicit multiplication explicit.
+    r"""
+    Insert \*'s to make implicit multiplication explicit.
 
     INPUT:
 
     - ``code``  -- a string; the code with missing \*'s
 
-    - ``level`` -- an integer (default: 5); how aggressive to be in
-      placing \*'s
-
-      -  0 - Do nothing
-      -  1 - Numeric followed by alphanumeric
-      -  2 - Closing parentheses followed by alphanumeric
-      -  3 - Spaces between alphanumeric
-      - 10 - Adjacent parentheses (may mangle call statements)
+    - ``level`` -- an integer (default: 5); see :func:`implicit_multiplication`
+      for a list
 
     OUTPUT:
 
@@ -1309,12 +1447,32 @@ def implicit_mul(code, level=5):
         '1r + 1e3 + 5*exp(2)'
         sage: implicit_mul('f(a)(b)', level=10)
         'f(a)*(b)'
+
+    TESTS:
+
+    Check handling of Python 3 keywords (:trac:`29391`)::
+
+        sage: implicit_mul('nonlocal a')  # py3
+        'nonlocal a'
+
+    Although these are not keywords in Python 3, we explicitly avoid implicit
+    multiplication in these cases because the error message will be more
+    helpful (:trac:`29391`)::
+
+        sage: implicit_mul('print 2')
+        'print 2'
+        sage: implicit_mul('exec s')
+        'exec s'
     """
+    from keyword import iskeyword
+    keywords_py2 = ['print', 'exec']
+
     def re_no_keyword(pattern, code):
         for _ in range(2): # do it twice in because matches don't overlap
             for m in reversed(list(re.finditer(pattern, code))):
                 left, right = m.groups()
-                if left not in keywords and right not in keywords:
+                if not iskeyword(left) and not iskeyword(right) \
+                   and left not in keywords_py2:
                     code = "%s%s*%s%s" % (code[:m.start()],
                                           left,
                                           right,
@@ -1457,19 +1615,17 @@ def handle_encoding_declaration(contents, out):
         '#!/usr/local/bin/python\nimport os, sys'
 
 
-    NOTES:
+    .. NOTE::
 
-    - PEP 263: http://www.python.org/dev/peps/pep-0263/
+        - :pep:`263` says that Python will interpret a UTF-8
+          byte order mark as a declaration of UTF-8 encoding, but I don't
+          think we do that; this function only sees a Python string so it
+          can't account for a BOM.
 
-    - PEP 263 says that Python will interpret a UTF-8 byte order mark
-      as a declaration of UTF-8 encoding, but I don't think we do
-      that; this function only sees a Python string so it can't
-      account for a BOM.
+        - We default to UTF-8 encoding even though PEP 263 says that
+          Python files should default to ASCII.
 
-    - We default to UTF-8 encoding even though PEP 263 says that
-      Python files should default to ASCII.
-
-    - Also see http://docs.python.org/ref/encodings.html.
+        - Also see https://docs.python.org/ref/encodings.html.
 
     AUTHORS:
 
@@ -1494,7 +1650,8 @@ def preparse_file_named_to_stream(name, out):
     stream \code{out}.
     """
     name = os.path.abspath(name)
-    contents = open(name).read()
+    with open(name) as f:
+        contents = f.read()
     contents = handle_encoding_declaration(contents, out)
     parsed = preparse_file(contents)
     out.write('#'*70+'\n')
@@ -1509,7 +1666,6 @@ def preparse_file_named(name):
     """
     from sage.misc.temporary_file import tmp_filename
     tmpfilename = tmp_filename(os.path.basename(name)) + '.py'
-    out = open(tmpfilename, 'w')
-    preparse_file_named_to_stream(name, out)
-    out.close()
+    with open(tmpfilename, 'w') as out:
+        preparse_file_named_to_stream(name, out)
     return tmpfilename

@@ -18,8 +18,9 @@ With Realizations Covariant Functorial Construction
 from sage.categories.category import Category
 from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
 
+
 def WithRealizations(self):
-    """
+    r"""
     Return the category of parents in ``self`` endowed with multiple realizations.
 
     INPUT:
@@ -260,7 +261,8 @@ def WithRealizations(self):
         Category of graded hopf algebras with basis over Rational Field with realizations
         sage: C.super_categories()
         [Join of Category of hopf algebras over Rational Field
-             and Category of graded algebras over Rational Field]
+             and Category of graded algebras over Rational Field
+             and Category of graded coalgebras over Rational Field]
         sage: TestSuite(Semigroups().WithRealizations()).run()
     """
     return WithRealizationsCategory.category_of(self)

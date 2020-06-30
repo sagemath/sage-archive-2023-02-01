@@ -1,5 +1,5 @@
-"""
-A catalog of posets and lattices.
+r"""
+Catalog of posets and lattices
 
 Some common posets can be accessed through the ``posets.<tab>`` object::
 
@@ -29,12 +29,20 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~Posets.AntichainPoset` | Return an antichain on `n` elements.
     :meth:`~Posets.BooleanLattice` | Return the Boolean lattice on `2^n` elements.
     :meth:`~Posets.ChainPoset` | Return a chain on `n` elements.
+    :meth:`~Posets.Crown` | Return the crown poset on `2n` elements.
+    :meth:`~Posets.DexterSemilattice` | Return the Dexter semilattice.
     :meth:`~Posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
     :meth:`~Posets.DivisorLattice` | Return the divisor lattice of an integer.
     :meth:`~Posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
     :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
     :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the lattice of integer partitions on the integer `n` ordered by dominance.
+    :meth:`~Posets.NoncrossingPartitions` | Return the poset of noncrossing partitions of a finite Coxeter group ``W``.
     :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
+    :meth:`~Posets.PermutationPattern` | Return the Permutation pattern poset.
+    :meth:`~Posets.PermutationPatternInterval` | Return an interval in the Permutation pattern poset.
+    :meth:`~Posets.PermutationPatternOccurrenceInterval` | Return the occurrence poset for a pair of comparable elements in the Permutation pattern poset.
+    :meth:`~Posets.PowerPoset` | Return a power poset.
+    :meth:`~Posets.ProductOfChains` | Return a product of chain posets.
     :meth:`~Posets.RandomLattice` | Return a random lattice on `n` elements.
     :meth:`~Posets.RandomPoset` | Return a random poset on `n` elements.
     :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
@@ -52,6 +60,7 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~Posets.YoungDiagramPoset` | Return the poset of cells in the Young diagram of a partition.
     :meth:`~Posets.YoungsLattice` | Return Young's Lattice up to rank `n`.
     :meth:`~Posets.YoungsLatticePrincipalOrderIdeal` | Return the principal order ideal of the partition `lam` in Young's Lattice.
+    :meth:`~Posets.YoungFibonacci` | Return the Young-Fibonacci lattice up to rank `n`.
 
 Constructions
 -------------
@@ -72,31 +81,30 @@ Constructions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import add_metaclass, string_types
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 import sage.categories.posets
-from sage.combinat.permutation import Permutations, Permutation
-from sage.combinat.posets.posets import Poset, FinitePosets_n
+from sage.combinat.permutation import Permutations, Permutation, to_standard
+from sage.combinat.posets.posets import Poset, FinitePoset, FinitePosets_n
 from sage.combinat.posets.lattices import (LatticePoset, MeetSemilattice,
                                            JoinSemilattice, FiniteLatticePoset)
+from sage.categories.finite_posets import FinitePosets
 from sage.categories.finite_lattice_posets import FiniteLatticePosets
 from sage.graphs.digraph import DiGraph
 from sage.rings.integer import Integer
 
 
-@add_metaclass(ClasscallMetaclass)
-class Posets(object):
+class Posets(metaclass=ClasscallMetaclass):
     r"""
     A collection of posets and lattices.
 
     EXAMPLES::
 
-        sage: Posets.BooleanLattice(3)
+        sage: posets.BooleanLattice(3)
         Finite lattice containing 8 elements
-        sage: Posets.ChainPoset(3)
+        sage: posets.ChainPoset(3)
         Finite lattice containing 3 elements
-        sage: Posets.RandomPoset(17,.15)
+        sage: posets.RandomPoset(17,.15)
         Finite poset containing 17 elements
 
     The category of all posets::
@@ -154,7 +162,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.BooleanLattice(5)
+            sage: posets.BooleanLattice(5)
             Finite lattice containing 32 elements
         """
         try:
@@ -187,7 +195,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: C = Posets.ChainPoset(6); C
+            sage: C = posets.ChainPoset(6); C
             Finite lattice containing 6 elements
             sage: C.linear_extension()
             [0, 1, 2, 3, 4, 5]
@@ -201,13 +209,13 @@ class Posets(object):
 
         Check that :trac:`8422` is solved::
 
-            sage: Posets.ChainPoset(0)
+            sage: posets.ChainPoset(0)
             Finite lattice containing 0 elements
-            sage: C = Posets.ChainPoset(1); C
+            sage: C = posets.ChainPoset(1); C
             Finite lattice containing 1 elements
             sage: C.cover_relations()
             []
-            sage: C = Posets.ChainPoset(2); C
+            sage: C = posets.ChainPoset(2); C
             Finite lattice containing 2 elements
             sage: C.cover_relations()
             [[0, 1]]
@@ -240,7 +248,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: A = Posets.AntichainPoset(6); A
+            sage: A = posets.AntichainPoset(6); A
             Finite poset containing 6 elements
 
         TESTS::
@@ -254,13 +262,13 @@ class Posets(object):
 
         Check that :trac:`8422` is solved::
 
-            sage: Posets.AntichainPoset(0)
+            sage: posets.AntichainPoset(0)
             Finite poset containing 0 elements
-            sage: C = Posets.AntichainPoset(1); C
+            sage: C = posets.AntichainPoset(1); C
             Finite poset containing 1 elements
             sage: C.cover_relations()
             []
-            sage: C = Posets.AntichainPoset(2); C
+            sage: C = posets.AntichainPoset(2); C
             Finite poset containing 2 elements
             sage: C.cover_relations()
             []
@@ -287,7 +295,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.PentagonPoset(); P
+            sage: P = posets.PentagonPoset(); P
             Finite lattice containing 5 elements
             sage: P.cover_relations()
             [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
@@ -304,7 +312,7 @@ class Posets(object):
 
             sage: P.is_distributive()
             False
-            sage: Posets.DiamondPoset(5).is_distributive()
+            sage: posets.DiamondPoset(5).is_distributive()
             False
         """
         return LatticePoset([[1,2],[4],[3],[4],[]], facade=facade)
@@ -325,7 +333,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.DiamondPoset(7)
+            sage: posets.DiamondPoset(7)
             Finite lattice containing 7 elements
         """
         try:
@@ -341,6 +349,40 @@ class Posets(object):
         return FiniteLatticePoset(hasse_diagram=D,
                                   category=FiniteLatticePosets(),
                                   facade=facade)
+
+    @staticmethod
+    def Crown(n, facade=None):
+        r"""
+        Return the crown poset of `2n` elements.
+
+        In this poset every element `i` for `0 \leq i \leq n-1`
+        is covered by elements `i+n` and `i+n+1`, except that
+        `n-1` is covered by `n` and `n+1`.
+
+        INPUT:
+
+        - ``n`` -- number of elements, an integer at least 2
+
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`); the
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
+
+        EXAMPLES::
+
+            sage: posets.Crown(3)
+            Finite poset containing 6 elements
+        """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 2:
+            raise ValueError("n must be an integer at least 2")
+        D = {i: [i+n, i+n+1] for i in range(n-1)}
+        D[n-1] = [n, n+n-1]
+        return FinitePoset(hasse_diagram=DiGraph(D), category=FinitePosets(),
+                           facade=facade)
 
     @staticmethod
     def DivisorLattice(n, facade=None):
@@ -360,17 +402,17 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.DivisorLattice(12)
+            sage: P = posets.DivisorLattice(12)
             sage: sorted(P.cover_relations())
             [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
 
-            sage: P = Posets.DivisorLattice(10, facade=False)
+            sage: P = posets.DivisorLattice(10, facade=False)
             sage: P(2) < P(5)
             False
 
         TESTS::
 
-            sage: Posets.DivisorLattice(1)
+            sage: posets.DivisorLattice(1)
             Finite lattice containing 1 elements with distinguished linear extension
         """
         from sage.arith.misc import divisors, is_prime
@@ -398,7 +440,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.IntegerCompositions(7); P
+            sage: P = posets.IntegerCompositions(7); P
             Finite poset containing 64 elements
             sage: len(P.cover_relations())
             192
@@ -420,7 +462,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.IntegerPartitions(7); P
+            sage: P = posets.IntegerPartitions(7); P
             Finite poset containing 15 elements
             sage: len(P.cover_relations())
             28
@@ -458,7 +500,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.RestrictedIntegerPartitions(7); P
+            sage: P = posets.RestrictedIntegerPartitions(7); P
             Finite poset containing 15 elements
             sage: len(P.cover_relations())
             17
@@ -502,7 +544,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.IntegerPartitionsDominanceOrder(6); P
+            sage: P = posets.IntegerPartitionsDominanceOrder(6); P
             Finite lattice containing 11 elements
             sage: P.cover_relations()
             [[[1, 1, 1, 1, 1, 1], [2, 1, 1, 1, 1]],
@@ -525,6 +567,107 @@ class Posets(object):
         return LatticePoset((Partitions(n), Partition.dominates)).dual()
 
     @staticmethod
+    def PowerPoset(n):
+        r"""
+        Return the power poset on `n` element posets.
+
+        Elements of the power poset are all posets on
+        the set `\{0, 1, \ldots, n-1\}` ordered by extension.
+        That is, the antichain of `n` elements is the bottom and
+        `P_a \le P_b` in the power poset if `P_b` is an extension
+        of `P_a`.
+
+        These were studied in [Bru1994]_.
+
+        EXAMPLES::
+
+            sage: P3 = posets.PowerPoset(3); P3
+            Finite meet-semilattice containing 19 elements
+            sage: all(P.is_chain() for P in P3.maximal_elements())
+            True
+
+        TESTS::
+
+            sage: P0 = posets.PowerPoset(0); P0
+            Finite meet-semilattice containing 1 elements
+            sage: P0[0]
+            Finite poset containing 0 elements
+            sage: P1 = posets.PowerPoset(1); P1
+            Finite meet-semilattice containing 1 elements
+            sage: P1[0]
+            Finite poset containing 1 elements
+            sage: P1[0][0]
+            0
+        """
+        # Todo: Make this faster.
+
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("parameter n must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("parameter n must be non-negative, not {0}".format(n))
+
+        all_pos_n = set()
+        Pn = list(Posets(n))
+        for P in Pn:
+            for r in Permutations(P):
+                all_pos_n.add(P.relabel(list(r)))
+
+        return MeetSemilattice((all_pos_n,
+                                lambda A, B: all(B.is_lequal(x, y) for x,y in A.cover_relations_iterator())
+                               ))
+
+
+    @staticmethod
+    def ProductOfChains(chain_lengths, facade=None):
+        """
+        Return a product of chains.
+
+        - ``chain_lengths`` -- A list of nonnegative integers; number of
+          elements in each chain.
+
+        - ``facade`` -- boolean; whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`); the
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
+
+        EXAMPLES::
+
+            sage: P = posets.ProductOfChains([2, 2]); P
+            Finite lattice containing 4 elements
+            sage: P.linear_extension()
+            [(0, 0), (0, 1), (1, 0), (1, 1)]
+            sage: P.upper_covers((0,0))
+            [(0, 1), (1, 0)]
+            sage: P.lower_covers((1,1))
+            [(0, 1), (1, 0)]
+
+        TESTS::
+
+            sage: P = posets.ProductOfChains([]); P
+            Finite lattice containing 0 elements
+            sage: P = posets.ProductOfChains([3, 0, 1]); P
+            Finite lattice containing 0 elements
+            sage: P = posets.ProductOfChains([1,1,1,1]); P
+            Finite lattice containing 1 elements
+        """
+        try:
+            l = [Integer(x) for x in chain_lengths]
+        except TypeError:
+            raise TypeError("parameter chain_lengths must be a list of integers, not {0}".format(chain_lengths))
+        if any(x < 0 for x in l):
+            raise TypeError("parameter chain_lengths must be a list of nonnegative integers, not {0}".format(l))
+
+        # given the empty list, we expect the empty poset.
+        if not chain_lengths:
+            return LatticePoset(facade=facade)
+        from sage.categories.cartesian_product import cartesian_product
+        elements = cartesian_product([range(i) for i in l])
+        compare = lambda a, b: all(x <= y for x, y in zip(a, b))
+        return LatticePoset([elements, compare], facade=facade)
+
+    @staticmethod
     def RandomPoset(n, p):
         r"""
         Generate a random poset on ``n`` elements according to a
@@ -543,38 +686,38 @@ class Posets(object):
         `p=1` will return a chain. To create interesting examples,
         keep the probability small, perhaps on the order of `1/n`.
 
-        .. SEEALSO:: :meth:`RandomLattice`
-
         EXAMPLES::
 
             sage: set_random_seed(0)  # Results are reproducible
-            sage: P = Posets.RandomPoset(5, 0.3)
+            sage: P = posets.RandomPoset(5, 0.3)
             sage: P.cover_relations()
             [[5, 4], [4, 2], [1, 2]]
 
+        .. SEEALSO:: :meth:`RandomLattice`
+
         TESTS::
 
-            sage: Posets.RandomPoset('junk', 0.5)
+            sage: posets.RandomPoset('junk', 0.5)
             Traceback (most recent call last):
             ...
             TypeError: number of elements must be an integer, not junk
 
-            sage: Posets.RandomPoset(-6, 0.5)
+            sage: posets.RandomPoset(-6, 0.5)
             Traceback (most recent call last):
             ...
             ValueError: number of elements must be non-negative, not -6
 
-            sage: Posets.RandomPoset(6, 'garbage')
+            sage: posets.RandomPoset(6, 'garbage')
             Traceback (most recent call last):
             ...
             TypeError: probability must be a real number, not garbage
 
-            sage: Posets.RandomPoset(6, -0.5)
+            sage: posets.RandomPoset(6, -0.5)
             Traceback (most recent call last):
             ...
             ValueError: probability must be between 0 and 1, not -0.5
 
-            sage: Posets.RandomPoset(0, 0.5)
+            sage: posets.RandomPoset(0, 0.5)
             Finite poset containing 0 elements
         """
         from sage.misc.prandom import random
@@ -626,7 +769,7 @@ class Posets(object):
         A lattice on `n` elements. When ``properties`` is ``None``,
         the probability `p` roughly measures number of covering
         relations of the lattice. To create interesting examples, make
-        the probability near one, something like `0.98..0.999`.
+        the probability a little below one, for example `0.9`.
 
         Currently parameter ``p`` has no effect only when ``properties``
         is not ``None``.
@@ -636,47 +779,47 @@ class Posets(object):
             Results are reproducible in same Sage version only. Underlying
             algorithm may change in future versions.
 
-        .. SEEALSO:: :meth:`RandomPoset`
-
         EXAMPLES::
 
             sage: set_random_seed(0)  # Results are reproducible
-            sage: L = Posets.RandomLattice(8, 0.995); L
+            sage: L = posets.RandomLattice(8, 0.995); L
             Finite lattice containing 8 elements
             sage: L.cover_relations()
             [[7, 6], [7, 3], [7, 1], ..., [5, 4], [2, 4], [1, 4], [0, 4]]
-            sage: L = Posets.RandomLattice(10, 0, properties=['dismantlable'])
+            sage: L = posets.RandomLattice(10, 0, properties=['dismantlable'])
             sage: L.is_dismantlable()
             True
 
+        .. SEEALSO:: :meth:`RandomPoset`
+
         TESTS::
 
-            sage: Posets.RandomLattice('junk', 0.5)
+            sage: posets.RandomLattice('junk', 0.5)
             Traceback (most recent call last):
             ...
             TypeError: number of elements must be an integer, not junk
 
-            sage: Posets.RandomLattice(-6, 0.5)
+            sage: posets.RandomLattice(-6, 0.5)
             Traceback (most recent call last):
             ...
             ValueError: number of elements must be non-negative, not -6
 
-            sage: Posets.RandomLattice(6, 'garbage')
+            sage: posets.RandomLattice(6, 'garbage')
             Traceback (most recent call last):
             ...
             TypeError: probability must be a real number, not garbage
 
-            sage: Posets.RandomLattice(6, -0.5)
+            sage: posets.RandomLattice(6, -0.5)
             Traceback (most recent call last):
             ...
             ValueError: probability must be a positive real number and below 1, not -0.5
 
-            sage: Posets.RandomLattice(10, 0.5, properties=['junk'])
+            sage: posets.RandomLattice(10, 0.5, properties=['junk'])
             Traceback (most recent call last):
             ...
             ValueError: unknown value junk for 'properties'
 
-            sage: Posets.RandomLattice(0, 0.5)
+            sage: posets.RandomLattice(0, 0.5)
             Finite lattice containing 0 elements
         """
         from copy import copy
@@ -697,14 +840,14 @@ class Posets(object):
         if properties is None:
             # Basic case, no special properties for lattice asked.
             if n <= 3:
-                return Posets.ChainPoset(n)
+                return posets.ChainPoset(n)
             covers = _random_lattice(n, p)
             covers_dict = {i:covers[i] for i in range(n)}
             D = DiGraph(covers_dict)
             D.relabel([i-1 for i in Permutations(n).random_element()])
             return LatticePoset(D, cover_relations=True)
 
-        if isinstance(properties, string_types):
+        if isinstance(properties, str):
             properties = set([properties])
         else:
             properties = set(properties)
@@ -716,7 +859,7 @@ class Posets(object):
 
         if n <= 3:
             # Change this, if property='complemented' is added
-            return Posets.ChainPoset(n)
+            return posets.ChainPoset(n)
 
         # Handling properties: planar => dismantlable, stone => distributive
         if 'planar' in properties:
@@ -765,13 +908,13 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.SetPartitions(4)
+            sage: posets.SetPartitions(4)
             Finite lattice containing 15 elements
         """
         from sage.rings.semirings.non_negative_integer_semiring import NN
         if n not in NN:
             raise ValueError('n must be an integer')
-        from sage.combinat.set_partition import SetPartition, SetPartitions
+        from sage.combinat.set_partition import SetPartitions
         S = SetPartitions(n)
 
         def covers(x):
@@ -788,7 +931,7 @@ class Posets(object):
     @staticmethod
     def SSTPoset(s, f=None):
         """
-        The poset on semistandard tableaux of shape ``s`` and largest
+        The lattice poset on semistandard tableaux of shape ``s`` and largest
         entry ``f`` that is ordered by componentwise comparison of the
         entries.
 
@@ -800,45 +943,37 @@ class Posets(object):
           argument.  If no maximal number is given, it will use
           the number of cells in the shape.
 
-        NOTE: This is a basic implementation and most certainly
-        not the most efficient.
+        .. NOTE::
+
+            This is a basic implementation and most certainly
+            not the most efficient.
 
         EXAMPLES::
 
-            sage: Posets.SSTPoset([2,1])
-            Finite poset containing 8 elements
+            sage: posets.SSTPoset([2,1])
+            Finite lattice containing 8 elements
 
-            sage: Posets.SSTPoset([2,1],4)
-            Finite poset containing 20 elements
+            sage: posets.SSTPoset([2,1],4)
+            Finite lattice containing 20 elements
 
-            sage: Posets.SSTPoset([2,1],2).cover_relations()
+            sage: posets.SSTPoset([2,1],2).cover_relations()
             [[[[1, 1], [2]], [[1, 2], [2]]]]
 
-            sage: Posets.SSTPoset([3,2]).bottom()  # long time (6s on sage.math, 2012)
+            sage: posets.SSTPoset([3,2]).bottom()  # long time (6s on sage.math, 2012)
             [[1, 1, 1], [2, 2]]
 
-            sage: Posets.SSTPoset([3,2],4).maximal_elements()
+            sage: posets.SSTPoset([3,2],4).maximal_elements()
             [[[3, 3, 4], [4, 4]]]
         """
         from sage.combinat.tableau import SemistandardTableaux
 
         def tableaux_is_less_than(a, b):
-            atstring = []
-            btstring = []
-            for i in a:
-                atstring += i
-            for i in b:
-                btstring += i
-            for i in range(len(atstring)):
-                if atstring[i] > btstring[i]:
-                    return False
-            return True
+            return all(ix <= iy for x, y in zip(a, b) for ix, iy in zip(x, y))
+
         if f is None:
-            f=0
-            for i in s:
-                f += i
+            f = sum(i for i in s)
         E = SemistandardTableaux(s, max_entry=f)
-        return Poset((E, tableaux_is_less_than))
+        return LatticePoset((E, tableaux_is_less_than))
 
     @staticmethod
     def StandardExample(n, facade=None):
@@ -865,27 +1000,24 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: A = Posets.StandardExample(3); A
+            sage: A = posets.StandardExample(3); A
             Finite poset containing 6 elements
             sage: A.dimension()
             3
 
         REFERENCES:
 
-        .. [Rosen] \K. Rosen *Handbook of Discrete and Combinatorial
-           Mathematics* (1999), Chapman and Hall.
-
-        .. [Garg] \V. Garg *Introduction to Lattice Theory with Computer
-           Science Applications* (2015), Wiley.
+        - [Gar2015]_
+        - [Ros1999]_
 
         TESTS::
 
-            sage: A = Posets.StandardExample(10); A
+            sage: A = posets.StandardExample(10); A
             Finite poset containing 20 elements
             sage: len(A.cover_relations())
             90
 
-            sage: P = Posets.StandardExample(5, facade=False)
+            sage: P = posets.StandardExample(5, facade=False)
             sage: P(4) < P(3), P(4) > P(3)
             (False, False)
         """
@@ -906,7 +1038,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.SymmetricGroupBruhatOrderPoset(4)
+            sage: posets.SymmetricGroupBruhatOrderPoset(4)
             Finite poset containing 24 elements
         """
         if n < 10:
@@ -935,15 +1067,14 @@ class Posets(object):
         Any interval is rank symmetric if and only if it avoids these
         permutations::
 
-            sage: P1 = Posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [3,4,1,2])
-            sage: P2 = Posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [4,2,3,1])
+            sage: P1 = posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [3,4,1,2])
+            sage: P2 = posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [4,2,3,1])
             sage: ranks1 = [P1.rank(v) for v in P1]
             sage: ranks2 = [P2.rank(v) for v in P2]
-            sage: [ranks1.count(i) for i in uniq(ranks1)]
+            sage: [ranks1.count(i) for i in sorted(set(ranks1))]
             [1, 3, 5, 4, 1]
-            sage: [ranks2.count(i) for i in uniq(ranks2)]
+            sage: [ranks2.count(i) for i in sorted(set(ranks2))]
             [1, 3, 5, 6, 4, 1]
-
         """
         start = Permutation(start)
         end = Permutation(end)
@@ -976,7 +1107,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.SymmetricGroupWeakOrderPoset(4)
+            sage: posets.SymmetricGroupWeakOrderPoset(4)
             Finite poset containing 24 elements
         """
         if n < 10 and labels == "permutations":
@@ -1036,37 +1167,31 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.TetrahedralPoset(4,'green','red','yellow','silver','blue','orange')
+            sage: posets.TetrahedralPoset(4,'green','red','yellow','silver','blue','orange')
             Finite poset containing 10 elements
 
-            sage: Posets.TetrahedralPoset(4,'green','red','yellow','silver','blue','orange', labels='integers')
+            sage: posets.TetrahedralPoset(4,'green','red','yellow','silver','blue','orange', labels='integers')
             Finite poset containing 10 elements
 
             sage: A = AlternatingSignMatrices(3)
             sage: p = A.lattice()
             sage: ji = p.join_irreducibles_poset()
-            sage: tet = Posets.TetrahedralPoset(3, 'green','yellow','blue','orange')
+            sage: tet = posets.TetrahedralPoset(3, 'green','yellow','blue','orange')
             sage: ji.is_isomorphic(tet)
             True
-
-        REFERENCES:
-
-        .. [Striker2011] \J. Striker. *A unifying poset perspective on
-           alternating sign matrices, plane partitions, Catalan objects,
-           tournaments, and tableaux*, Advances in Applied Mathematics 46
-           (2011), no. 4, 583-609. :arXiv:`1408.5391`
         """
         n = n - 1
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError("n must be an integer.")
+            raise TypeError("n must be an integer")
         if n < 2:
-            raise ValueError("n must be greater than 2.")
+            raise ValueError("n must be greater than 2")
         for c in colors:
-            if(c not in ('green', 'red', 'yellow', 'orange', 'silver', 'blue')):
+            if c not in ('green', 'red', 'yellow', 'orange', 'silver', 'blue'):
                 raise ValueError("Color input must be from the following: 'green', 'red', 'yellow', 'orange', 'silver', and 'blue'.")
-        elem=[(i,j,k) for i in range (n) for j in range (n-i) for k in range (n-i-j)]
+        elem = [(i, j, k) for i in range(n)
+                for j in range(n-i) for k in range(n-i-j)]
         rels = []
         elem_labels = {}
         if 'labels' in labels:
@@ -1077,23 +1202,23 @@ class Posets(object):
                     labelcount += 1
         for c in colors:
             for (i,j,k) in elem:
-                if(i+j+k < n-1):
-                    if(c=='green'):
+                if i+j+k < n-1:
+                    if c == 'green':
                         rels.append([(i,j,k),(i+1,j,k)])
-                    if(c=='red'):
+                    if c == 'red':
                         rels.append([(i,j,k),(i,j,k+1)])
-                    if(c=='yellow'):
+                    if c == 'yellow':
                         rels.append([(i,j,k),(i,j+1,k)])
-                if(j<n-1 and k>0):
-                    if(c=='orange'):
+                if j < n-1 and k > 0:
+                    if c == 'orange':
                         rels.append([(i,j,k),(i,j+1,k-1)])
-                if(i<n-1 and j>0):
-                    if(c=='silver'):
+                if i < n-1 and j > 0:
+                    if c == 'silver':
                         rels.append([(i,j,k),(i+1,j-1,k)])
-                if(i<n-1 and k>0):
-                    if(c=='blue'):
+                if i < n-1 and k > 0:
+                    if c == 'blue':
                         rels.append([(i,j,k),(i+1,j,k-1)])
-        return Poset([elem,rels], elem_labels)
+        return Poset([elem, rels], elem_labels)
 
     # shard intersection order
     import sage.combinat.shard_order
@@ -1102,6 +1227,7 @@ class Posets(object):
     # Tamari lattices
     import sage.combinat.tamari_lattices
     TamariLattice = staticmethod(sage.combinat.tamari_lattices.TamariLattice)
+    DexterSemilattice = staticmethod(sage.combinat.tamari_lattices.DexterSemilattice)
 
     @staticmethod
     def CoxeterGroupAbsoluteOrderPoset(W, use_reduced_words=True):
@@ -1119,17 +1245,38 @@ class Posets(object):
         EXAMPLES::
 
             sage: W = CoxeterGroup(['B', 3])
-            sage: Posets.CoxeterGroupAbsoluteOrderPoset(W)
+            sage: posets.CoxeterGroupAbsoluteOrderPoset(W)
             Finite poset containing 48 elements
 
             sage: W = WeylGroup(['B', 2], prefix='s')
-            sage: Posets.CoxeterGroupAbsoluteOrderPoset(W, False)
+            sage: posets.CoxeterGroupAbsoluteOrderPoset(W, False)
             Finite poset containing 8 elements
         """
         if use_reduced_words:
             element_labels = {s: tuple(s.reduced_word()) for s in W}
             return Poset({s: s.absolute_covers() for s in W}, element_labels)
         return Poset({s: s.absolute_covers() for s in W})
+
+    @staticmethod
+    def NoncrossingPartitions(W):
+        """
+        Return the lattice of noncrossing partitions.
+
+        INPUT:
+
+        - ``W`` -- a finite Coxeter group or a Weyl group
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A', 3])
+            sage: posets.NoncrossingPartitions(W)
+            Finite lattice containing 14 elements
+
+            sage: W = WeylGroup(['B', 2], prefix='s')
+            sage: posets.NoncrossingPartitions(W)
+            Finite lattice containing 6 elements
+        """
+        return W.noncrossing_partition_lattice()
 
     @staticmethod
     def SymmetricGroupAbsoluteOrderPoset(n, labels="permutations"):
@@ -1152,11 +1299,11 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.SymmetricGroupAbsoluteOrderPoset(4)
+            sage: posets.SymmetricGroupAbsoluteOrderPoset(4)
             Finite poset containing 24 elements
-            sage: Posets.SymmetricGroupAbsoluteOrderPoset(3, labels="cycles")
+            sage: posets.SymmetricGroupAbsoluteOrderPoset(3, labels="cycles")
             Finite poset containing 6 elements
-            sage: Posets.SymmetricGroupAbsoluteOrderPoset(3, labels="reduced_words")
+            sage: posets.SymmetricGroupAbsoluteOrderPoset(3, labels="reduced_words")
             Finite poset containing 6 elements
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -1194,19 +1341,19 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.UpDownPoset(7, 2); P
+            sage: P = posets.UpDownPoset(7, 2); P
             Finite poset containing 7 elements
             sage: sorted(P.cover_relations())
             [[0, 1], [1, 2], [3, 2], [3, 4], [4, 5], [6, 5]]
 
         Fibonacci numbers as the number of antichains of a poset::
 
-            sage: [len(Posets.UpDownPoset(n).antichains().list()) for n in range(6)]
+            sage: [len(posets.UpDownPoset(n).antichains().list()) for n in range(6)]
             [1, 2, 3, 5, 8, 13]
 
         TESTS::
 
-            sage: P = Posets.UpDownPoset(0); P
+            sage: P = posets.UpDownPoset(0); P
             Finite poset containing 0 elements
         """
         try:
@@ -1237,11 +1384,11 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.YoungDiagramPoset(Partition([2,2])); P
+            sage: P = posets.YoungDiagramPoset(Partition([2,2])); P
             Finite meet-semilattice containing 4 elements
-            sage: P.cover_relations()
-            [[(0, 0), (0, 1)], [(0, 0), (1, 0)], [(0, 1), (1, 1)], [(1, 0),
-            (1, 1)]]
+
+            sage: sorted(P.cover_relations())
+            [[(0, 0), (0, 1)], [(0, 0), (1, 0)], [(0, 1), (1, 1)], [(1, 0), (1, 1)]]
         """
         def cell_leq(a, b):
             """
@@ -1267,7 +1414,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.YoungsLattice(3); P
+            sage: P = posets.YoungsLattice(3); P
             Finite meet-semilattice containing 7 elements
             sage: P.cover_relations()
             [[[], [1]],
@@ -1295,7 +1442,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.YoungsLatticePrincipalOrderIdeal(Partition([2,2]))
+            sage: P = posets.YoungsLatticePrincipalOrderIdeal(Partition([2,2]))
             sage: P
             Finite lattice containing 6 elements
             sage: P.cover_relations()
@@ -1306,41 +1453,278 @@ class Posets(object):
              [[2], [2, 1]],
              [[2, 1], [2, 2]]]
         """
-        from sage.misc.flatten import flatten
-        from sage.combinat.partition import Partition
+        ideal = {}
+        level = [lam]
+        while level:
+            new_level = set()
+            for mu in level:
+                down = mu.down_list()
+                ideal[mu] = down
+                new_level.update(down)
+            level = new_level
 
-        def lower_covers(l):
-            """
-            Nested function returning those partitions obtained
-            from the partition `l` by removing
-            a single cell.
-            """
-            return [l.remove_cell(c[0], c[1]) for c in l.removable_cells()]
-
-        def contained_partitions(l):
-            """
-            Nested function returning those partitions contained in
-            the partition `l`
-            """
-            if l == Partition([]):
-                return l
-            return flatten([l, [contained_partitions(m)
-                                for m in lower_covers(l)]])
-
-        ideal = list(set(contained_partitions(lam)))
-        H = DiGraph(dict([[p, lower_covers(p)] for p in ideal]))
+        H = DiGraph(ideal)
         return LatticePoset(H.reverse())
+
+    @staticmethod
+    def YoungFibonacci(n):
+        """
+        Return the Young-Fibonacci lattice up to rank `n`.
+
+        Elements of the (infinite) lattice are words with letters '1'
+        and '2'.  The covers of a word are the words with another '1'
+        added somewhere not after the first occurrence of an existing
+        '1' and, additionally, the words where the first '1' is replaced by a
+        '2'. The lattice is truncated to have rank `n`.
+
+        See :wikipedia:`Young-Fibonacci lattice`.
+
+        EXAMPLES::
+
+            sage: Y5 = posets.YoungFibonacci(5); Y5
+            Finite meet-semilattice containing 20 elements
+            sage: sorted(Y5.upper_covers(Word('211')))
+            [word: 1211, word: 2111, word: 221]
+
+        TESTS::
+
+            sage: posets.YoungFibonacci(0)
+            Finite meet-semilattice containing 1 elements
+            sage: posets.YoungFibonacci(1)
+            Finite meet-semilattice containing 2 elements
+        """
+        from sage.combinat.posets.lattices import FiniteMeetSemilattice
+        from sage.categories.finite_posets import FinitePosets
+        from sage.combinat.words.word import Word
+
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
+
+        if n == 0:
+            return MeetSemilattice({'': []})
+
+        covers = []
+        current_level = ['']
+        for i in range(1, n+1):
+            new_level = set()
+            for low in current_level:
+                ind = low.find('1')
+                if ind != -1:  # = found a '1' -> change first '1' to '2'
+                    up = low[:ind]+'2'+low[ind+1:]
+                    new_level.add(up)
+                    covers.append((low, up))
+                else:  # no '1' in low
+                    ind = len(low)
+
+                # add '1' to every position not after first existing '1'
+                for j in range(ind+1):
+                    up = '2'*j + '1' + low[j:len(low)]
+                    new_level.add(up)
+                    covers.append((low, up))
+
+            current_level = new_level
+
+        D = DiGraph([[], covers], format='vertices_and_edges')
+        D.relabel(lambda v: Word(v), inplace=True)
+        return FiniteMeetSemilattice(hasse_diagram=D, category=FinitePosets())
+
+    @staticmethod
+    def PermutationPattern(n):
+        r"""
+        Return the poset of permutations under pattern containment
+        up to rank ``n``.
+
+        INPUT:
+
+        - ``n`` -- a positive integer
+
+        A permutation `u = u_1 \cdots u_n` contains the pattern
+        `v = v_1 \cdots v_m` if there is a (not necessarily consecutive)
+        subsequence of `u`  of length `m` whose entries have the same
+        relative order as `v`.
+
+        See :wikipedia:`Permutation_pattern`.
+
+        EXAMPLES::
+
+            sage: P4 = posets.PermutationPattern(4); P4
+            Finite poset containing 33 elements
+            sage: sorted(P4.lower_covers(Permutation([2,4,1,3])))
+            [[1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.permutation.Permutation.has_pattern`
+
+        TESTS::
+
+            sage: posets.PermutationPattern(1)
+            Finite poset containing 1 elements
+            sage: posets.PermutationPattern(2)
+            Finite poset containing 3 elements
+        """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {}".format(n))
+        if n <= 0:
+            raise ValueError("number of elements must be nonnegative, not {}".format(n))
+        elem = []
+        for i in range(1, n+1):
+            elem += Permutations(i)
+        return Poset((elem, lambda a,b: b.has_pattern(a)))
+
+    @staticmethod
+    def PermutationPatternInterval(bottom, top):
+        r"""
+        Return the poset consisting of an interval in the poset of permutations
+        under pattern containment between ``bottom`` and ``top``.
+
+        INPUT:
+
+        - ``bottom``, ``top`` -- permutations where ``top`` contains
+          ``bottom`` as a pattern
+
+        A permutation `u = u_1 \cdots u_n` contains the pattern
+        `v = v_1 \cdots v_m` if there is a (not necessarily consecutive)
+        subsequence of `u`  of length `m` whose entries have the same
+        relative order as `v`.
+
+        See :wikipedia:`Permutation_pattern`.
+
+        EXAMPLES::
+
+            sage: t = Permutation([2,3,1])
+            sage: b = Permutation([4,6,2,3,5,1])
+            sage: R = posets.PermutationPatternInterval(t, b); R
+            Finite poset containing 14 elements
+            sage: R.moebius_function(R.bottom(),R.top())
+            -4
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.permutation.Permutation.has_pattern`,
+            :meth:`PermutationPattern`
+
+        TESTS::
+
+            sage: p = Permutation([1])
+            sage: posets.PermutationPatternInterval(p, p)
+            Finite poset containing 1 elements
+        """
+        P = Permutations()
+        top = P(top)
+        bottom = P(bottom)
+        if not top.has_pattern(bottom):
+            raise ValueError("{} doesn't contain {} as a pattern".format(top, bottom))
+        # Make a list of lists of elements in the interval divided by rank.
+        # List will be flattened at the end
+        elem = [[top]]
+        level = 0    # Consider the top element to be level 0, and then go down from there.
+        rel = []     # List of covering relations to be fed into poset constructor.
+        while len(top) - len(bottom) >= level + 1:
+            elem.append([]) # Add a new empty level
+            for upper in elem[level]:
+                # Run through all permutations on current level
+                #   and find relations for which it is upper cover
+                upper_perm = P(upper)
+                for i in range(len(top) - level):
+                    # Try and remove the ith element from the permutation
+                    lower = list(upper)
+                    j = lower.pop(i)
+                    for k in range(len(top)-level-1): # Standardize result
+                        if lower[k] > j:
+                            lower[k] = lower[k] - 1
+                    lower_perm = P(lower)
+                    if lower_perm.has_pattern(bottom): # Check to see if result is in interval
+                        rel += [[lower_perm, upper_perm]]
+                        if lower not in elem[level+1]:
+                            elem[level+1].append(lower_perm)
+            level += 1
+        elem = [item for sublist in elem for item in sublist]
+        return Poset((elem,rel))
+
+    @staticmethod
+    def PermutationPatternOccurrenceInterval(bottom, top, pos):
+        r"""
+        Return the poset consisting of an interval in the poset of
+        permutations under pattern containment between ``bottom`` and
+        ``top``, where a specified instance of ``bottom`` in ``top``
+        must be maintained.
+
+        INPUT:
+
+        - ``bottom``, ``top`` -- permutations where ``top`` contains
+           ``bottom`` as a pattern
+        - ``pos`` -- a list of indices indicating a distinguished copy of
+           ``bottom`` inside ``top`` (indexed starting at 0)
+
+        For futher information (and picture illustrating included example),
+        see [ST2010]_ .
+
+        See :wikipedia:`Permutation_pattern`.
+
+        EXAMPLES::
+
+            sage: t = Permutation([3,2,1])
+            sage: b = Permutation([6,3,4,5,2,1])
+            sage: A = posets.PermutationPatternOccurrenceInterval(t, b, (0,2,4)); A
+            Finite poset containing 8 elements
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.permutation.Permutation.has_pattern`,
+            :meth:`PermutationPattern`, :meth:`PermutationPatternInterval`
+        """
+        P = Permutations()
+        top = P(top)
+        bottom = P(bottom)
+        if not to_standard([top[z] for z in pos]) == list(bottom): # check input
+            raise ValueError("cannot find 'bottom' in 'top' given by 'pos'")
+        elem = [[(top, pos)]]
+        level = 0
+        rel = []
+        while len(top) - len(bottom) >= level + 1:
+            elem.append([]) # Add a new empty level
+            for upper in elem[level]:
+                for i in range(len(top)-level):
+                    # Try and remove the ith element from the permutation
+                    if i in upper[1]:
+                        continue
+                    lower_perm = list(upper[0])
+                    j = lower_perm.pop(i)
+                    for e in range(len(top)-level-1):
+                        if lower_perm[e] > j:
+                            lower_perm[e] = lower_perm[e] - 1
+                    lower_pos = list(upper[1])
+                    for f in range(len(upper[1])):
+                        if upper[1][f] > i:
+                            lower_pos[f] = upper[1][f] - 1
+                    rel += [[(P(lower_perm), tuple(lower_pos)),
+                             (P(upper[0]), upper[1])]]
+                    if (P(lower_perm), tuple(lower_pos)) not in elem[level+1]:
+                        elem[level+1].append((P(lower_perm), tuple(lower_pos)))
+            level += 1
+        elem = [item for sublist in elem for item in sublist]
+        return Poset([elem,rel])
+
+
+
 
 ## RANDOM LATTICES
 
 # Following are helper functions for random lattice generation.
 # There is no parameter checking, 0, 1, ..., n may or may not be a
 # linear extension, exact output type may vary, etc. Direct use is
-# discouraged. Use by Posets.RandomLattice(..., properties=[...]).
+# discouraged. Use by posets.RandomLattice(..., properties=[...]).
 
 
 def _random_lattice(n, p):
-    """
+    r"""
     Return a random lattice.
 
     INPUT:
@@ -1380,34 +1764,21 @@ def _random_lattice(n, p):
 
     for i in range(1, n):
 
-        # First add some random element as a lower cover.
-        # Alone it can't change a semilattice to non-semilattice,
-        # so we don't check it.
-        new = i-1-floor(i*sqrt(random()))
-        lc_list = [new]
-        maxs.discard(new)
-        max_meets = {m:meets[m][new] for m in maxs}
-
-        while random() < p and 0 not in lc_list:
-            # An ad hoc solution. srqt(random()) instead of randint(0, i)
-            # make number of coatoms closer to number of atoms.
-            new = i-1-floor(i*sqrt(random()))
-
-            # Check that lc_list + new is an antichain.
-            if any(meets[new][lc] in [new, lc] for lc in lc_list):
-                continue
-
-            # Check that new has a unique meet with any maximal element.
-            for m in maxs:
-                meet_m = meets[m][new]
-                if meets[meet_m][max_meets[m]] not in [meet_m, max_meets[m]]:
-                    break
-
-            else:  # So, we found a new lower cover for i.
+        # Look for an admissible lower cover for the next element i
+        while True:
+            # Generate a random antichain
+            lc_list = [i-1-floor(i*sqrt(random()))]
+            while random() < p and 0 not in lc_list:
+                new = i-1-floor(i*sqrt(random()))
+                if any(meets[new][lc] in [new, lc] for lc in lc_list):
+                    continue
                 lc_list.append(new)
-                for m in maxs:
-                    max_meets[m] = max(max_meets[m], meets[m][new])
-                maxs.discard(new)
+            # Check whether it is admissible as a new lower cover
+            if all(any(all(meets[m][meets[a][a1]] == meets[m][a1] for a1 in lc_list if a1 != a) for a in lc_list) for m in maxs):
+                break
+
+        # We've found a suitable lower cover for i
+        maxs.difference_update(lc_list)
 
         # Now compute new row and column to meet matrix.
         meets[i][i] = i
@@ -1424,7 +1795,7 @@ def _random_lattice(n, p):
 
 
 def _random_dismantlable_lattice(n):
-    """
+    r"""
     Return a random dismantlable lattice on `n` elements.
 
     INPUT:
@@ -1467,7 +1838,7 @@ def _random_dismantlable_lattice(n):
 
 
 def _random_planar_lattice(n):
-    """
+    r"""
     Return a random planar lattice on `n` elements.
 
     INPUT:
@@ -1573,6 +1944,7 @@ def _random_distributive_lattice(n):
             H = HasseDiagram(D)
     return D
 
+
 def _random_stone_lattice(n):
     """
     Return a random Stone lattice on `n` elements.
@@ -1594,7 +1966,7 @@ def _random_stone_lattice(n):
     ALGORITHM:
 
     Randomly split `n` to some factors. For every factor `p` generate
-    a random distributive lattice on `p-1` elements and add a new new bottom
+    a random distributive lattice on `p-1` elements and add a new bottom
     element to it. Compute the cartesian product of those lattices.
     """
     from sage.arith.misc import factor
@@ -1602,7 +1974,7 @@ def _random_stone_lattice(n):
     from sage.misc.misc_c import prod
     from copy import copy
 
-    factors = sum([[f[0]]*f[1] for f in factor(n)], [])
+    factors = sum([[f[0]] * f[1] for f in factor(n)], [])
     sage.misc.prandom.shuffle(factors)
 
     part_lengths = list(Partitions(len(factors)).random_element())
@@ -1614,9 +1986,9 @@ def _random_stone_lattice(n):
 
     result = DiGraph(1)
     for p in parts:
-        g = _random_distributive_lattice(p-1)
+        g = _random_distributive_lattice(p - 1)
         g = copy(Poset(g).order_ideals_lattice(as_ideals=False)._hasse_diagram)
-        g.add_edge('bottom', 0)
+        g.add_edge(-1, 0)
         result = result.cartesian_product(g)
         result.relabel()
 

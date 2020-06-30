@@ -36,7 +36,6 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
-from __future__ import absolute_import
 
 from sage.rings.complex_double import CDF
 
@@ -82,18 +81,7 @@ cdef class Matrix_complex_double_dense(Matrix_double_dense):
     See the commands qr, lu, and svd for QR, LU, and singular value
     decomposition.
     """
-
-
-    ########################################################################
-    # LEVEL 1 functionality
-    #   * __cinit__
-    #   * __dealloc__
-    #   * __init__
-    #   * set_unsafe
-    #   * get_unsafe
-    #   * __hash__       -- always simple
-    ########################################################################
-    def __cinit__(self, parent, entries, copy, coerce):
+    def __cinit__(self):
         global numpy
         if numpy is None:
             import numpy

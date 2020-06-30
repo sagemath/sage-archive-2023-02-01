@@ -16,7 +16,6 @@ Signed Compositions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-from six.moves import builtins
 
 import itertools
 
@@ -91,7 +90,7 @@ class SignedCompositions(Compositions_n):
             sage: [-2, 1, -3] in SignedCompositions(6)
             True
         """
-        if isinstance(x, builtins.list):
+        if isinstance(x, list):
             for z in x:
                 if (not isinstance(z, (int, Integer))) and z not in ZZ:
                     return False
@@ -137,6 +136,6 @@ class SignedCompositions(Compositions_n):
             for sign in itertools.product([1,-1], repeat=l):
                 yield [ sign[i]*comp[i] for i in range(l)]
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.composition_signed', 'SignedCompositions_n', SignedCompositions)
 

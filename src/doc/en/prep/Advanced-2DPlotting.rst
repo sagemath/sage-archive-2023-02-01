@@ -188,7 +188,7 @@ Notice the automatic graded shading of the fill color.
     Graphics object consisting of 4 graphics primitives
 
 Problem: Create a plot for the following problem. Find the area that is
-inside the circle :math:`r=2`, but outside the cardiod
+inside the circle :math:`r=2`, but outside the cardioid
 :math:`2+2\cos(\theta)`.
 
 Interactive Demonstration
@@ -661,7 +661,7 @@ text is just text.
 
 ::
 
-    sage: text('$\int_0^2 x^2\, dx$', (0.5,2))+plot(x^2,(x,0,2),fill=True)
+    sage: text(r'$\int_0^2 x^2\, dx$', (0.5,2))+plot(x^2,(x,0,2),fill=True)
     Graphics object consisting of 3 graphics primitives
 
 .. _Saving:

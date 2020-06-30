@@ -21,12 +21,12 @@ Check that operations with numpy elements work well (see :trac:`18076` and
     sage: numpy.float32('1.5') * x
     1.50000000000000*x
 """
-from __future__ import absolute_import
 
 from cysignals.memory cimport check_allocarray, check_reallocarray, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
-from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
+from cpython.int cimport PyInt_AS_LONG
+from cpython.float cimport PyFloat_AS_DOUBLE
 
 from sage.structure.parent cimport Parent
 from .polynomial_element cimport Polynomial, _dict_to_list
@@ -35,7 +35,8 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
 
 from sage.structure.element cimport Element, ModuleElement, RingElement
-from sage.structure.element import parent, canonical_coercion, bin_op, coerce_binop
+from sage.structure.element cimport parent
+from sage.structure.element import coerce_binop
 from sage.libs.mpfr cimport *
 
 from sage.libs.all import pari_gen
@@ -512,12 +513,23 @@ cdef class PolynomialRealDense(Polynomial):
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
-            sage: f = PolynomialRealDense(RR['x'], [pi, 0, 2, 1]);
+            sage: f = PolynomialRealDense(RR['x'], [pi, 0, 2, 1])
             sage: f.derivative()
             3.00000000000000*x^2 + 4.00000000000000*x
+
+        TESTS::
+
+            sage: x, y = var('x,y')
+            sage: f.derivative(x)
+            3.00000000000000*x^2 + 4.00000000000000*x
+            sage: f.derivative(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to y
         """
         if var is not None and var != self._parent.gen():
-            return self._new(-1)
+            raise ValueError("cannot differentiate with respect to {}".format(var))
+
         cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f = self._new(self._degree-1)
         for i from 0 <= i < self._degree:
@@ -540,21 +552,46 @@ cdef class PolynomialRealDense(Polynomial):
             mpfr_div_ui(f._coeffs[i+1], self._coeffs[i], i+1, rnd)
         return f
 
-    def reverse(self):
+    def reverse(self, degree=None):
         """
-        Returns `x^d f(1/x)` where `d` is the degree of `f`.
+        Return reverse of the input polynomial thought as a polynomial of
+        degree ``degree``.
+
+        If `f` is a degree-`d` polynomial, its reverse is `x^d f(1/x)`.
+
+        INPUT:
+
+        - ``degree`` (``None`` or an integer) - if specified, truncate or zero
+          pad the list of coefficients to this degree before reversing it.
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
-            sage: f = PolynomialRealDense(RR['x'], [-3, pi, 0, 1])
+            sage: f = RR['x']([-3, pi, 0, 1])
             sage: f.reverse()
             -3.00000000000000*x^3 + 3.14159265358979*x^2 + 1.00000000000000
+            sage: f.reverse(2)
+            -3.00000000000000*x^2 + 3.14159265358979*x
+            sage: f.reverse(5)
+            -3.00000000000000*x^5 + 3.14159265358979*x^4 + x^2
+
+        TESTS:
+
+        We check that this implementation is compatible with the generic one::
+
+            sage: all(f.reverse(d) == Polynomial.reverse(f, d)
+            ....:     for d in [None, 0, 1, 2, 3, 4, 5])
+            True
         """
+        if degree is None: degree = self._degree
+
         cdef mpfr_rnd_t rnd = self._base_ring.rnd
-        cdef PolynomialRealDense f = self._new(self._degree)
-        for i from 0 <= i <= self._degree:
-            mpfr_set(f._coeffs[self._degree-i], self._coeffs[i], rnd)
+        cdef PolynomialRealDense f = self._new(degree)
+
+        cdef int i
+        for i in range(1+min(degree, self._degree)):
+            mpfr_set(f._coeffs[degree-i], self._coeffs[i], rnd)
+        for i in range(1 + self._degree, 1 + degree):
+            mpfr_set_si(f._coeffs[degree-i], 0, rnd)
         f._normalize()
         return f
 

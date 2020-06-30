@@ -216,12 +216,11 @@ We check that :trac:`17990` is fixed::
 #*****************************************************************************
 # python3
 from __future__ import division
-from six import integer_types
 
 from sys import maxsize
 from sage.rings.ring import Ring
 from sage.structure.element import RingElement, InfinityElement
-from sage.structure.parent import Parent
+from sage.structure.richcmp import rich_to_bool, richcmp
 from sage.misc.fast_methods import Singleton
 import sage.rings.integer
 import sage.rings.rational
@@ -244,7 +243,27 @@ class _uniq(object):
         _obj[cls] = O = cls.__bases__[-1].__new__(cls, *args)
         return O
 
+
 class AnInfinity(object):
+    """
+    TESTS::
+
+        sage: oo == oo
+        True
+        sage: oo < oo
+        False
+        sage: -oo < oo
+        True
+        sage: -oo < 3 < oo
+        True
+
+        sage: unsigned_infinity == 3
+        False
+        sage: unsigned_infinity == unsigned_infinity
+        True
+        sage: unsigned_infinity == oo
+        True
+    """
 
     def _repr_(self):
         """
@@ -328,35 +347,6 @@ class AnInfinity(object):
             ['\\infty', '+\\infty', '-\\infty']
         """
         return self._sign_char + "\\infty"
-
-    def __cmp__(self, other):
-        """
-        Compare ``self`` to ``other``.
-
-        EXAMPLES::
-
-            sage: oo == oo
-            True
-            sage: oo < oo
-            False
-            sage: -oo < oo
-            True
-            sage: -oo < 3 < oo
-            True
-
-            sage: unsigned_infinity == 3
-            False
-            sage: unsigned_infinity == unsigned_infinity
-            True
-            sage: unsigned_infinity == oo
-            True
-        """
-        if isinstance(other, AnInfinity):
-            return cmp(self._sign, other._sign)
-        elif self._sign:
-            return self._sign
-        else:
-            return 1
 
     def __abs__(self):
         """
@@ -589,7 +579,7 @@ class UnsignedInfinityRing_class(Singleton, Ring):
             sage: UnsignedInfinityRing(3) == UnsignedInfinityRing(-19.5)
             True
         """
-        Parent.__init__(self, self, names=('oo',), normalize=False)
+        Ring.__init__(self, self, names=('oo',), normalize=False)
 
     def ngens(self):
         """
@@ -728,10 +718,7 @@ class UnsignedInfinityRing_class(Singleton, Ring):
 
         # Handle all ways to represent infinity first
         if isinstance(x, InfinityElement):
-            if x.parent() is self:
-                return x
-            else:
-                return self.gen()
+            return self.gen()
         elif isinstance(x, float):
             if x in [float('+inf'), float('-inf')]:
                 return self.gen()
@@ -764,9 +751,11 @@ class UnsignedInfinityRing_class(Singleton, Ring):
             sage: UnsignedInfinityRing.has_coerce_map_from(SymmetricGroup(13))
             False
         """
-        return isinstance(R, Ring) or R in  integer_types + (float, complex)
+        return isinstance(R, Ring) or R in (int, float, complex)
 
 UnsignedInfinityRing = UnsignedInfinityRing_class()
+
+
 
 class LessThanInfinity(_uniq, RingElement):
     def __init__(self, parent=UnsignedInfinityRing):
@@ -862,7 +851,7 @@ class LessThanInfinity(_uniq, RingElement):
             return sage.rings.integer_ring.ZZ(0)
         raise ValueError("quotient of number < oo by number < oo not defined")
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare ``self`` to ``other``.
 
@@ -872,8 +861,8 @@ class LessThanInfinity(_uniq, RingElement):
             False
         """
         if isinstance(other, UnsignedInfinity):
-            return -1
-        return 0
+            return rich_to_bool(op, -1)
+        return rich_to_bool(op, 0)
 
 
 class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
@@ -930,7 +919,7 @@ class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
         EXAMPLES::
 
             sage: import sympy
-            sage: sympy.sympify(unsigned_infinity)
+            sage: SR(unsigned_infinity)._sympy_()
             zoo
             sage: gamma(-3)._sympy_() is sympy.factorial(-2)
             True
@@ -940,6 +929,18 @@ class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
         import sympy
         return sympy.zoo
 
+    def _richcmp_(self, other, op):
+        """
+        Compare ``self`` to ``other``.
+
+        EXAMPLES::
+
+            sage: 1 == unsigned_infinity
+            False
+        """
+        if isinstance(other, LessThanInfinity):
+            return rich_to_bool(op, 1)
+        return rich_to_bool(op, 0)
 
 unsigned_infinity = UnsignedInfinityRing.gen(0)
 less_than_infinity = UnsignedInfinityRing.less_than_infinity()
@@ -988,7 +989,7 @@ class InfinityRing_class(Singleton, Ring):
             sage: InfinityRing == UnsignedInfinityRing
             False
         """
-        Parent.__init__(self, self, names=('oo',), normalize=False)
+        Ring.__init__(self, self, names=('oo',), normalize=False)
 
     def fraction_field(self):
         """
@@ -1179,7 +1180,8 @@ class InfinityRing_class(Singleton, Ring):
                 pass
 
         # If we got here then x is not infinite
-        return FiniteNumber(self, cmp(x, 0))
+        c = int(bool(x > 0)) - int(bool(x < 0))
+        return FiniteNumber(self, c)
 
     def _coerce_map_from_(self, R):
         r"""
@@ -1237,8 +1239,8 @@ class InfinityRing_class(Singleton, Ring):
             sage: CC(0, oo) < CC(1)   # does not coerce to infinity ring
             True
         """
-        from sage.rings.real_mpfr import mpfr_prec_min, RealField
-        if RealField(mpfr_prec_min()).has_coerce_map_from(R):
+        from sage.structure.coerce import parent_is_real_numerical
+        if parent_is_real_numerical(R):
             return True
         from sage.rings.real_mpfi import RealIntervalField_class
         if isinstance(R, RealIntervalField_class):
@@ -1270,7 +1272,7 @@ class FiniteNumber(RingElement):
         RingElement.__init__(self, parent)
         self.value = x
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare ``self`` and ``other``.
 
@@ -1285,10 +1287,10 @@ class FiniteNumber(RingElement):
             True
         """
         if isinstance(other, PlusInfinity):
-            return -1
+            return rich_to_bool(op, -1)
         if isinstance(other, MinusInfinity):
-            return 1
-        return cmp(self.value, other.value)
+            return rich_to_bool(op, 1)
+        return richcmp(self.value, other.value, op)
 
     def _add_(self, other):
         """
@@ -1478,6 +1480,7 @@ class FiniteNumber(RingElement):
             raise SignError("cannot take square root of a negative number")
         return self
 
+
 class MinusInfinity(_uniq, AnInfinity, InfinityElement):
 
     _sign = -1
@@ -1503,6 +1506,24 @@ class MinusInfinity(_uniq, AnInfinity, InfinityElement):
             -2147483648          # 32-bit
         """
         return ~maxsize
+
+    def _richcmp_(self, other, op):
+        """
+        Compare ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: P = InfinityRing
+            sage: -oo < P(-5) < P(0) < P(1.5) < oo
+            True
+            sage: P(1) < P(100)
+            False
+            sage: P(-1) == P(-100)
+            True
+        """
+        if isinstance(other, MinusInfinity):
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def _neg_(self):
         """
@@ -1558,6 +1579,7 @@ class MinusInfinity(_uniq, AnInfinity, InfinityElement):
         """
         return '-infinity'
 
+
 class PlusInfinity(_uniq, AnInfinity, InfinityElement):
 
     _sign = 1
@@ -1583,6 +1605,24 @@ class PlusInfinity(_uniq, AnInfinity, InfinityElement):
             2147483647          # 32-bit
         """
         return maxsize
+
+    def _richcmp_(self, other, op):
+        """
+        Compare ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: P = InfinityRing
+            sage: -oo < P(-5) < P(0) < P(1.5) < oo
+            True
+            sage: P(1) < P(100)
+            False
+            sage: P(-1) == P(-100)
+            True
+        """
+        if isinstance(other, PlusInfinity):
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, 1)
 
     def _neg_(self):
         """

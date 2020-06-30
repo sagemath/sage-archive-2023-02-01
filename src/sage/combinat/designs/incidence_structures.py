@@ -26,7 +26,7 @@ AUTHORS:
 Methods
 -------
 """
-#***************************************************************************
+# **************************************************************************
 #                              Copyright (C) 2007                          #
 #                                                                          #
 #                Peter Dobcsanyi       and         David Joyner            #
@@ -36,20 +36,14 @@ Methods
 #    Distributed under the terms of the GNU General Public License (GPL)   #
 #    as published by the Free Software Foundation; either version 2 of     #
 #    the License, or (at your option) any later version.                   #
-#                    http://www.gnu.org/licenses/                          #
-#***************************************************************************
+#                    https://www.gnu.org/licenses/                          #
+# **************************************************************************
 from __future__ import print_function
 
-import six
-from six import itervalues
-from six.moves import range
-
-from sage.misc.cachefunc import cached_method
-
-from sage.rings.all import ZZ
 from sage.rings.integer import Integer
 from sage.misc.latex import latex
 from sage.sets.set import Set
+
 
 class IncidenceStructure(object):
     r"""
@@ -72,7 +66,7 @@ class IncidenceStructure(object):
           defines the ground set as the union of the blocks::
 
               sage: H = IncidenceStructure([['a','b','c'],['c','d','e']])
-              sage: H.ground_set()
+              sage: sorted(H.ground_set())
               ['a', 'b', 'c', 'd', 'e']
 
     - ``blocks`` -- (i.e. edges, i.e. sets) the blocks defining the incidence
@@ -170,9 +164,9 @@ class IncidenceStructure(object):
             sage: blocks = [[e0,e1,e2],[e0,e1],[e2,e4]]
             sage: I = IncidenceStructure(V, blocks)
             sage: type(I.ground_set()[0])
-            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+            <... 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
             sage: type(I.blocks()[0][0])
-            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+            <... 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
 
         TESTS::
 
@@ -203,15 +197,15 @@ class IncidenceStructure(object):
             self._blocks = sorted(M.nonzero_positions_in_column(i) for i in range(M.ncols()))
 
         else:
-            if isinstance(points, (int,Integer)):
+            if isinstance(points, (int, Integer)):
                 self._points = list(range(points))
                 self._point_to_index = None
             else:
-                self._points = sorted(points)
-                if self._points == list(range(len(points))) and all(isinstance(x,(int,Integer)) for x in self._points):
+                self._points = list(points)
+                if self._points == list(range(len(points))) and all(isinstance(x, (int, Integer)) for x in self._points):
                     self._point_to_index = None
                 else:
-                    self._point_to_index = {e:i for i,e in enumerate(self._points)}
+                    self._point_to_index = {e: i for i, e in enumerate(self._points)}
 
             if check:
                 for block in blocks:
@@ -484,8 +478,8 @@ class IncidenceStructure(object):
 
         if A == B:
             if certificate:
-                B_canon_rev = {y:x for x,y in six.iteritems(B_canon)}
-                return {x:B_canon_rev[xint] for x,xint in six.iteritems(A_canon)}
+                B_canon_rev = {y:x for x,y in B_canon.items()}
+                return {x:B_canon_rev[xint] for x,xint in A_canon.items()}
             else:
                 return True
         else:
@@ -790,7 +784,7 @@ class IncidenceStructure(object):
             sage: BD.block_sizes()
             [3, 3, 3, 3, 3, 3, 3]
         """
-        return [len(_) for _ in self._blocks]
+        return [len(b) for b in self._blocks]
 
     def degree(self, p=None, subset=False):
         r"""
@@ -815,10 +809,6 @@ class IncidenceStructure(object):
 
         TESTS::
 
-            sage: designs.steiner_triple_system(9).degree()
-            doctest:...: DeprecationWarning: Please use degrees() instead of degree(None)
-            See http://trac.sagemath.org/17108 for details.
-            {0: 4, 1: 4, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4}
             sage: designs.steiner_triple_system(9).degree(subset=True)
             Traceback (most recent call last):
             ...
@@ -827,9 +817,6 @@ class IncidenceStructure(object):
         if p is None:
             if subset is True:
                 raise ValueError("subset must be False when p is None")
-            from sage.misc.superseded import deprecation
-            deprecation(17108, "Please use degrees() instead of degree(None)")
-            return self.degrees()
 
         # degree of a point
         if not subset:
@@ -899,7 +886,7 @@ class IncidenceStructure(object):
                 for s in combinations(b,size):
                     d[s]+=1
             if self._point_to_index:
-                return {tuple([self._points[x] for x in s]):v for s,v in six.iteritems(d)}
+                return {tuple([self._points[x] for x in s]):v for s,v in d.items()}
             else:
                 return d
 
@@ -1055,7 +1042,7 @@ class IncidenceStructure(object):
             False
         """
         B = self._blocks
-        return all(B[i] != B[i+1] for i in range(len(B)-1))
+        return all(B[i] != B[i + 1] for i in range(len(B) - 1))
 
     def _gap_(self):
         """
@@ -1067,12 +1054,11 @@ class IncidenceStructure(object):
             sage: BD._gap_()
             'BlockDesign(7,[[1, 2, 3], [1, 4, 5], [1, 6, 7], [2, 4, 6], [2, 5, 7], [3, 4, 7], [3, 5, 6]])'
         """
-        B = self.blocks()
         v = self.num_points()
-        gB = [[x+1 for x in b] for b in self._blocks]
-        return "BlockDesign("+str(v)+","+str(gB)+")"
+        gB = [[x + 1 for x in b] for b in self._blocks]
+        return "BlockDesign({},{})".format(v, gB)
 
-    def intersection_graph(self,sizes=None):
+    def intersection_graph(self, sizes=None):
         r"""
         Return the intersection graph of the incidence structure.
 
@@ -1105,8 +1091,8 @@ class IncidenceStructure(object):
             sizes = PositiveIntegers()
         elif sizes in PositiveIntegers():
             sizes = (sizes,)
-        V = map(Set,self)
-        return Graph([V,lambda x,y: len(x&y) in sizes],loops=False)
+        V = [Set(v)  for v in self]
+        return Graph([V, lambda x,y: len(x & y) in sizes], loops=False)
 
     def incidence_matrix(self):
         r"""
@@ -1198,6 +1184,40 @@ class IncidenceStructure(object):
             from sage.graphs.bipartite_graph import BipartiteGraph
             A = self.incidence_matrix()
             return BipartiteGraph(A)
+
+    def is_berge_cyclic(self):
+        r"""
+        Check whether ``self`` is a Berge-Cyclic uniform hypergraph.
+
+        A `k`-uniform Berge cycle (named after Claude Berge) of length `\ell`
+        is a cyclic list of distinct `k`-sets `F_1,\ldots,F_\ell`, `\ell>1`,
+        and distinct vertices `C = \{v_1,\ldots,v_\ell\}` such that for each
+        `1\le i\le \ell`, `F_i` contains `v_i` and `v_{i+1}` (where `v_{l+1} =
+        v_1`).
+
+        A uniform hypergraph is Berge-cyclic if its incidence graph is cyclic.
+        It is called "Berge-acyclic" otherwise.
+
+        For more information, see [Fag1983]_ and :wikipedia:`Hypergraph`.
+
+        EXAMPLES::
+
+            sage: Hypergraph(5, [[1, 2, 3], [2, 3 ,4]]).is_berge_cyclic()
+            True
+            sage: Hypergraph(6, [[1, 2, 3], [3 ,4, 5]]).is_berge_cyclic()
+            False
+
+        TESTS::
+
+            sage: Hypergraph(5, [[1, 2, 3], [2, 3]]).is_berge_cyclic()
+            Traceback (most recent call last):
+            ...
+            TypeError: Berge cycles are defined for uniform hypergraphs only
+        """
+        if not self.is_uniform():
+            raise TypeError("Berge cycles are defined for uniform hypergraphs only")
+
+        return not self.incidence_graph().is_forest()
 
     def complement(self,uniform=False):
         r"""
@@ -1357,21 +1377,8 @@ class IncidenceStructure(object):
         else:
             self._point_to_index = {v:i for i,v in enumerate(self._points)}
 
-    def __hash__(self):
-        r"""
-        Not Implemented
-
-        This object is mutable because of .relabel()
-
-        EXAMPLES::
-
-            sage: TD=designs.transversal_design(5,5)
-            sage: hash(TD)
-            Traceback (most recent call last):
-            ...
-            RuntimeError: This object is mutable !
-        """
-        raise RuntimeError("This object is mutable !")
+    __hash__ = None
+    # This object is mutable because of .relabel()
 
     #####################
     # real computations #
@@ -1403,8 +1410,9 @@ class IncidenceStructure(object):
 
         EXAMPLES::
 
-            sage; IncidenceStructure([[1,2],[3,"A"],[2,3]]).packing()
-            [[1, 2], [3, 'A']]
+            sage: P = IncidenceStructure([[1,2],[3,4],[2,3]]).packing()
+            sage: sorted(sorted(b) for b in P)
+            [[1, 2], [3, 4]]
             sage: len(designs.steiner_triple_system(9).packing())
             3
         """
@@ -1412,13 +1420,13 @@ class IncidenceStructure(object):
 
         # List of blocks containing a given point x
         d = [[] for x in self._points]
-        for i,B in enumerate(self._blocks):
+        for i, B in enumerate(self._blocks):
             for x in B:
                 d[x].append(i)
 
         p = MixedIntegerLinearProgram(solver=solver)
         b = p.new_variable(binary=True)
-        for x,L in enumerate(d): # Set of disjoint blocks
+        for x, L in enumerate(d):  # Set of disjoint blocks
             p.add_constraint(p.sum([b[i] for i in L]) <= 1)
 
         # Maximum number of blocks
@@ -1427,7 +1435,7 @@ class IncidenceStructure(object):
         p.solve(log=verbose)
 
         return [[self._points[x] for x in self._blocks[i]]
-                for i,v in six.iteritems(p.get_values(b)) if v]
+                for i, v in p.get_values(b).items() if v]
 
     def is_t_design(self, t=None, v=None, k=None, l=None, return_parameters=False):
         r"""
@@ -1647,7 +1655,8 @@ class IncidenceStructure(object):
 
         .. NOTE::
 
-            Some references (e.g. [PT09]_ or [GQwiki]_) only allow *regular*
+            Some references (e.g. [PT2009]_ or
+            :wikipedia:`Generalized_quadrangle`) only allow *regular*
             generalized quadrangles. To use such a definition, see the
             ``parameters`` optional argument described below, or the methods
             :meth:`is_regular` and :meth:`is_uniform`.
@@ -1752,7 +1761,7 @@ class IncidenceStructure(object):
             sage: print(D.dual(algorithm="gap"))       # optional - gap_packages
             Incidence structure with 3 points and 4 blocks
             sage: blocks = [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]]
-            sage: BD = IncidenceStructure(7, blocks, name="FanoPlane");
+            sage: BD = IncidenceStructure(7, blocks, name="FanoPlane")
             sage: BD
             Incidence structure with 7 points and 7 blocks
             sage: print(BD.dual(algorithm="gap"))         # optional - gap_packages
@@ -1916,7 +1925,7 @@ class IncidenceStructure(object):
             False
         """
         if self._classes is None:
-            degrees = set(itervalues(self.degrees()))
+            degrees = set(self.degrees().values())
             if len(degrees) != 1:
                 self._classes = False
             else:
@@ -1949,7 +1958,7 @@ class IncidenceStructure(object):
                 else:
                     # each class is stored as the list of indices of its blocks
                     self._classes = [[] for _ in range(n_classes)]
-                    for (t,i),v in six.iteritems(p.get_values(b)):
+                    for (t, i), v in p.get_values(b).items():
                         if v:
                             self._classes[t].append(self._blocks[i])
 
@@ -2061,7 +2070,7 @@ class IncidenceStructure(object):
 
         col = [[] for i in range(k)]
 
-        for (x,i),v in six.iteritems(p.get_values(b)):
+        for (x,i),v in p.get_values(b).items():
             if v:
                 col[i].append(self._points[x])
 
@@ -2092,8 +2101,10 @@ class IncidenceStructure(object):
         """
         from sage.graphs.graph import Graph
         blocks = self.blocks()
-        blocks_sets = [frozenset(_) for _ in blocks]
-        g = Graph([list(range(self.num_blocks())), lambda x,y: len(blocks_sets[x]&blocks_sets[y])], loops = False)
+        blocks_sets = [frozenset(b) for b in blocks]
+        g = Graph([list(range(self.num_blocks())),
+                   lambda x, y: len(blocks_sets[x]&blocks_sets[y])],
+                  loops=False)
         return [[blocks[i] for i in C] for C in g.coloring(algorithm="MILP")]
 
     def _spring_layout(self):
@@ -2135,14 +2146,15 @@ class IncidenceStructure(object):
         from sage.graphs.graph import Graph
 
         g = Graph()
-        for s in map(Set,self.blocks()):
+        for s in map(Set, self.blocks()):
             for x in s:
-                g.add_edge(s,x)
+                g.add_edge((0, s), (1, x))
 
         _ = g.plot(iterations = 50000,save_pos=True)
 
         # The values are rounded as TikZ does not like accuracy.
-        return {k:(round(x,3),round(y,3)) for k,(x,y) in g.get_pos().items()}
+        return {k[1]: (round(x, 3), round(y, 3))
+                for k, (x, y) in g.get_pos().items()}
 
     def _latex_(self):
         r"""
@@ -2162,7 +2174,6 @@ class IncidenceStructure(object):
             sage: H = Hypergraph(sets)
             sage: view(H) # not tested
         """
-        from sage.rings.integer import Integer
         from sage.functions.trig import arctan2
 
         from sage.misc.misc import warn
@@ -2220,6 +2231,7 @@ class IncidenceStructure(object):
 
         tex += "\\end{tikzpicture}"
         return tex
+
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(METHODS_OF_IncidenceStructure=gen_rest_table_index(IncidenceStructure))

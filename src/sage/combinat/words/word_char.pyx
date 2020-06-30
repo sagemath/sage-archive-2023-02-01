@@ -10,7 +10,6 @@ Fast word datatype using an array of unsigned char
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from cysignals.memory cimport check_allocarray, sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -177,7 +176,7 @@ cdef class WordDatatype_char(WordDatatype):
             sage: w.length()
             7
             sage: type(w.length())
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
             sage: type(len(w))
             <... 'int'>
         """
@@ -238,7 +237,7 @@ cdef class WordDatatype_char(WordDatatype):
         cdef int res = 5381
         cdef size_t i
         if self._hash is None:
-            for i in range(min(1024,self._length)):
+            for i in range(min(<size_t>1024, self._length)):
                 res = ((res << 5) + res) + self._data[i]
             self._hash = res
         return self._hash
@@ -385,7 +384,7 @@ cdef class WordDatatype_char(WordDatatype):
             i = key    # cast key into a size_t
             if i < 0:
                 i += self._length;
-            if i < 0 or i >= self._length:
+            if i < 0 or <size_t>i >= self._length:
                 raise IndexError("word index out of range")
             return self._data[i]
 
@@ -463,7 +462,40 @@ cdef class WordDatatype_char(WordDatatype):
             w._set_data(other)
             return (<WordDatatype_char> self)._concatenate(w)
 
-        raise TypeError("not able to initialize a word from {}".format(other))
+        else:
+            from sage.combinat.words.finite_word import FiniteWord_class
+            return FiniteWord_class.concatenate(self, other)
+
+    def __add__(self, other):
+        r"""
+        Concatenation (alias for ``*``).
+
+        TESTS::
+
+            sage: W = Words([0,1,2])
+            sage: type(W([0]) + W([1])) is W.finite_words()._element_classes['char']
+            True
+        """
+        return self * other
+
+    def concatenate(self, other):
+        r"""
+        Concatenation of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: W = Words([0,1,2])
+            sage: W([0,2,1]).concatenate([0,0,0])
+            word: 021000
+
+        TESTS::
+
+            sage: W = Words([0,1,2])
+            sage: w = W([0,2,1]).concatenate(W([0,0,0]))
+            sage: type(w) is W.finite_words()._element_classes['char']
+            True
+        """
+        return self * other
 
     def __pow__(self, exp, mod):
         r"""
@@ -535,7 +567,7 @@ cdef class WordDatatype_char(WordDatatype):
         # now consider non trivial powers
         if w._length > SIZE_T_MAX / (i+1):
             raise OverflowError("the length of the result is too large")
-        cdef size_t new_length = w._length * i + rest
+        cdef Py_ssize_t new_length = w._length * i + rest
         cdef unsigned char * data = <unsigned char *>check_allocarray(new_length, sizeof(unsigned char))
 
         cdef Py_ssize_t j = w._length
@@ -586,7 +618,7 @@ cdef class WordDatatype_char(WordDatatype):
             sage: w.has_prefix([0,1,0])
             True
         """
-        cdef size_t i
+        cdef Py_ssize_t i
         cdef WordDatatype_char w
 
         if isinstance(other, WordDatatype_char):
@@ -611,7 +643,7 @@ cdef class WordDatatype_char(WordDatatype):
 
     def is_square(self):
         r"""
-        Returns True if self is a square, and False otherwise.
+        Return True if self is a square, and False otherwise.
 
         EXAMPLES::
 
@@ -644,7 +676,7 @@ cdef class WordDatatype_char(WordDatatype):
             True
         """
         cdef size_t l
-        if self._length % 2 != 0:
+        if self._length % 2:
             return False
         else:
             l = self._length // 2

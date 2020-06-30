@@ -25,7 +25,7 @@ AUTHORS:
 Functions
 =========
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Michael Welsh <michael@welsh.co.nz >
 #       Copyright (C) 2013 Stefan van Zwam <stefanvanzwam@gmail.com >
 #
@@ -34,15 +34,11 @@ Functions
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
-from itertools import combinations
-
-import sage.matrix.matrix
 from sage.matrix.constructor import Matrix
-from sage.graphs.all import Graph, graphs
+from sage.graphs.all import graphs
 
-from sage.rings.all import ZZ, QQ, FiniteField, GF
+from sage.rings.all import ZZ, GF
 from sage.schemes.all import ProjectiveSpace
 from sage.symbolic.ring import SR
 
@@ -50,7 +46,9 @@ import sage.matroids.matroid
 import sage.matroids.basis_exchange_matroid
 from sage.matroids.basis_matroid import BasisMatroid
 from sage.matroids.circuit_closures_matroid import CircuitClosuresMatroid
-from sage.matroids.linear_matroid import LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
+from sage.matroids.linear_matroid import (LinearMatroid, RegularMatroid,
+                                          BinaryMatroid, TernaryMatroid,
+                                          QuaternaryMatroid)
 from sage.matroids.rank_matroid import RankMatroid
 from sage.matroids.constructor import Matroid
 
@@ -156,7 +154,7 @@ def R6():
 
 
 def Fano():
-    """
+    r"""
     Return the Fano matroid, represented over `GF(2)`.
 
     The Fano matroid, or Fano plane, or `F_7`, is a 7-element matroid of
@@ -172,8 +170,8 @@ def Fano():
         sage: M = matroids.named_matroids.Fano(); M
         Fano: Binary matroid of rank 3 on 7 elements, type (3, 0)
         sage: setprint(sorted(M.nonspanning_circuits()))
-        [{'b', 'c', 'd'}, {'a', 'c', 'e'}, {'d', 'e', 'f'}, {'a', 'b', 'f'},
-         {'c', 'f', 'g'}, {'b', 'e', 'g'}, {'a', 'd', 'g'}]
+        [{'a', 'b', 'f'}, {'a', 'c', 'e'}, {'a', 'd', 'g'}, {'b', 'c', 'd'},
+         {'b', 'e', 'g'}, {'c', 'f', 'g'}, {'d', 'e', 'f'}]
         sage: M.delete(M.groundset_list()[randrange(0,
         ....:                  7)]).is_isomorphic(matroids.CompleteGraphic(4))
         True
@@ -203,8 +201,8 @@ def NonFano():
         sage: M = matroids.named_matroids.NonFano(); M
         NonFano: Ternary matroid of rank 3 on 7 elements, type 0-
         sage: setprint(M.nonbases())
-        [{'b', 'c', 'd'}, {'a', 'c', 'e'}, {'a', 'b', 'f'}, {'c', 'f', 'g'},
-         {'b', 'e', 'g'}, {'a', 'd', 'g'}]
+        [{'a', 'b', 'f'}, {'a', 'c', 'e'}, {'a', 'd', 'g'}, {'b', 'c', 'd'},
+         {'b', 'e', 'g'}, {'c', 'f', 'g'}]
         sage: M.delete('f').is_isomorphic(matroids.CompleteGraphic(4))
         True
         sage: M.delete('g').is_isomorphic(matroids.CompleteGraphic(4))
@@ -295,26 +293,27 @@ def AG32prime():
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.named_matroids.AG32prime(); M
         AG(3, 2)': Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'c', 'd', 'e', 'h'}, {'b', 'e', 'g', 'h'}, {'d', 'e', 'f', 'g'},
-             {'a', 'b', 'd', 'e'}, {'b', 'c', 'd', 'g'}, {'c', 'f', 'g', 'h'},
-             {'a', 'c', 'd', 'f'}, {'b', 'c', 'e', 'f'}, {'a', 'c', 'e', 'g'},
-             {'a', 'b', 'f', 'g'}, {'a', 'b', 'c', 'h'}, {'a', 'e', 'f', 'h'},
-             {'a', 'd', 'g', 'h'}},
+        {3: {{'a', 'b', 'c', 'h'}, {'a', 'b', 'd', 'e'}, {'a', 'b', 'f', 'g'},
+             {'a', 'c', 'd', 'f'}, {'a', 'c', 'e', 'g'}, {'a', 'd', 'g', 'h'},
+             {'a', 'e', 'f', 'h'}, {'b', 'c', 'd', 'g'}, {'b', 'c', 'e', 'f'},
+             {'b', 'e', 'g', 'h'}, {'c', 'd', 'e', 'h'}, {'c', 'f', 'g', 'h'},
+             {'d', 'e', 'f', 'g'}},
          4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         sage: M.contract('c').is_isomorphic(matroids.named_matroids.Fano())
         True
         sage: setprint(M.noncospanning_cocircuits())
-        [{'b', 'd', 'f', 'h'}, {'a', 'd', 'g', 'h'}, {'c', 'd', 'e', 'h'},
-         {'a', 'c', 'd', 'f'}, {'b', 'c', 'd', 'g'}, {'a', 'b', 'd', 'e'},
-         {'d', 'e', 'f', 'g'}, {'c', 'f', 'g', 'h'}, {'b', 'c', 'e', 'f'},
-         {'a', 'b', 'f', 'g'}, {'a', 'b', 'c', 'h'}, {'a', 'e', 'f', 'h'},
-         {'b', 'e', 'g', 'h'}]
+        [{'a', 'b', 'c', 'h'}, {'a', 'b', 'd', 'e'}, {'a', 'b', 'f', 'g'},
+         {'a', 'c', 'd', 'f'}, {'a', 'd', 'g', 'h'}, {'a', 'e', 'f', 'h'},
+         {'b', 'c', 'd', 'g'}, {'b', 'c', 'e', 'f'}, {'b', 'd', 'f', 'h'},
+         {'b', 'e', 'g', 'h'}, {'c', 'd', 'e', 'h'}, {'c', 'f', 'g', 'h'},
+         {'d', 'e', 'f', 'g'}]
         sage: M.is_valid() # long time
         True
     """
     E = 'abcdefgh'
     CC = {
-        3: ['abfg', 'bcdg', 'defg', 'cdeh', 'aefh', 'abch', 'abed', 'cfgh', 'bcef', 'adgh', 'acdf', 'begh', 'aceg'],
+        3: ['abfg', 'bcdg', 'defg', 'cdeh', 'aefh', 'abch', 'abed',
+            'cfgh', 'bcef', 'adgh', 'acdf', 'begh', 'aceg'],
         4: [E]
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
@@ -366,10 +365,10 @@ def F8():
         sage: from sage.matroids.advanced import *
         sage: M = matroids.named_matroids.F8(); M
         F8: Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'c', 'd', 'e', 'h'}, {'d', 'e', 'f', 'g'}, {'a', 'b', 'd', 'e'},
-             {'b', 'c', 'd', 'g'}, {'c', 'f', 'g', 'h'}, {'a', 'c', 'd', 'f'},
-             {'b', 'c', 'e', 'f'}, {'a', 'c', 'e', 'g'}, {'a', 'b', 'f', 'g'},
-             {'a', 'b', 'c', 'h'}, {'a', 'e', 'f', 'h'}, {'a', 'd', 'g', 'h'}},
+        {3: {{'a', 'b', 'c', 'h'}, {'a', 'b', 'd', 'e'}, {'a', 'b', 'f', 'g'},
+             {'a', 'c', 'd', 'f'}, {'a', 'c', 'e', 'g'}, {'a', 'd', 'g', 'h'},
+             {'a', 'e', 'f', 'h'}, {'b', 'c', 'd', 'g'}, {'b', 'c', 'e', 'f'},
+             {'c', 'd', 'e', 'h'}, {'c', 'f', 'g', 'h'}, {'d', 'e', 'f', 'g'}},
          4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         sage: D = get_nonisomorphic_matroids([M.contract(i)
         ....:                                         for i in M.groundset()])
@@ -384,7 +383,8 @@ def F8():
     """
     E = 'abcdefgh'
     CC = {
-        3: ['abfg', 'bcdg', 'defg', 'cdeh', 'aefh', 'abch', 'abed', 'cfgh', 'bcef', 'adgh', 'acdf', 'aceg'],
+        3: ['abfg', 'bcdg', 'defg', 'cdeh', 'aefh', 'abch', 'abed',
+            'cfgh', 'bcef', 'adgh', 'acdf', 'aceg'],
         4: [E]
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
@@ -404,10 +404,10 @@ def Q8():
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.named_matroids.Q8(); M
         Q8: Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'c', 'd', 'e', 'h'}, {'d', 'e', 'f', 'g'}, {'a', 'b', 'd', 'e'},
-             {'b', 'c', 'd', 'g'}, {'c', 'f', 'g', 'h'}, {'a', 'c', 'd', 'f'},
-             {'b', 'c', 'e', 'f'}, {'a', 'b', 'f', 'g'}, {'a', 'b', 'c', 'h'},
-             {'a', 'e', 'f', 'h'}, {'a', 'd', 'g', 'h'}},
+        {3: {{'a', 'b', 'c', 'h'}, {'a', 'b', 'd', 'e'}, {'a', 'b', 'f', 'g'},
+             {'a', 'c', 'd', 'f'}, {'a', 'd', 'g', 'h'}, {'a', 'e', 'f', 'h'},
+             {'b', 'c', 'd', 'g'}, {'b', 'c', 'e', 'f'}, {'c', 'd', 'e', 'h'},
+             {'c', 'f', 'g', 'h'}, {'d', 'e', 'f', 'g'}},
          4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         sage: setprint(M.flats(3))
         [{'a', 'b', 'c', 'h'}, {'a', 'b', 'd', 'e'}, {'a', 'b', 'f', 'g'},
@@ -423,7 +423,8 @@ def Q8():
     """
     E = 'abcdefgh'
     CC = {
-        3: ['abfg', 'bcdg', 'defg', 'cdeh', 'aefh', 'abch', 'abed', 'cfgh', 'bcef', 'adgh', 'acdf'],
+        3: ['abfg', 'bcdg', 'defg', 'cdeh', 'aefh', 'abch', 'abed',
+            'cfgh', 'bcef', 'adgh', 'acdf'],
         4: [E]
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
@@ -444,9 +445,9 @@ def L8():
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.named_matroids.L8(); M
         L8: Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'b', 'd', 'f', 'h'}, {'c', 'd', 'e', 'h'}, {'d', 'e', 'f', 'g'},
-             {'b', 'c', 'd', 'g'}, {'a', 'c', 'e', 'g'}, {'a', 'b', 'f', 'g'},
-             {'a', 'b', 'c', 'h'}, {'a', 'e', 'f', 'h'}},
+        {3: {{'a', 'b', 'c', 'h'}, {'a', 'b', 'f', 'g'}, {'a', 'c', 'e', 'g'},
+             {'a', 'e', 'f', 'h'}, {'b', 'c', 'd', 'g'}, {'b', 'd', 'f', 'h'},
+             {'c', 'd', 'e', 'h'}, {'d', 'e', 'f', 'g'}},
          4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         sage: M.equals(M.dual())
         True
@@ -520,8 +521,8 @@ def Vamos():
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.named_matroids.Vamos(); M
         Vamos: Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'e', 'f', 'g', 'h'},
-             {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}},
+        {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'},
+             {'c', 'd', 'e', 'f'}, {'e', 'f', 'g', 'h'}},
          4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         sage: setprint(M.nonbases())
         [{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'},
@@ -587,7 +588,7 @@ def J():
         sage: M = matroids.named_matroids.J(); M
         J: Ternary matroid of rank 4 on 8 elements, type 0-
         sage: setprint(M.truncation().nonbases())
-        [{'a', 'c', 'g'}, {'a', 'b', 'f'}, {'a', 'd', 'h'}]
+        [{'a', 'b', 'f'}, {'a', 'c', 'g'}, {'a', 'd', 'h'}]
         sage: M.is_isomorphic(M.dual())
         True
         sage: M.has_minor(matroids.CompleteGraphic(4))
@@ -656,9 +657,9 @@ def P8pp():
         sage: from sage.matroids.advanced import *
         sage: M = matroids.named_matroids.P8pp(); M
         P8'': Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'a', 'c', 'g', 'h'}, {'a', 'b', 'f', 'h'}, {'b', 'c', 'e', 'g'},
-             {'a', 'd', 'e', 'g'}, {'c', 'd', 'f', 'h'}, {'b', 'd', 'f', 'g'},
-             {'a', 'c', 'e', 'f'}, {'b', 'd', 'e', 'h'}},
+        {3: {{'a', 'b', 'f', 'h'}, {'a', 'c', 'e', 'f'}, {'a', 'c', 'g', 'h'},
+             {'a', 'd', 'e', 'g'}, {'b', 'c', 'e', 'g'}, {'b', 'd', 'e', 'h'},
+             {'b', 'd', 'f', 'g'}, {'c', 'd', 'f', 'h'}},
          4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         sage: M.is_isomorphic(M.dual())
         True
@@ -691,16 +692,15 @@ def K33dual():
 
         sage: M = matroids.named_matroids.K33dual(); M
         M*(K3, 3): Regular matroid of rank 4 on 9 elements with 81 bases
-        sage: any([N.is_3connected()
-        ....:                      for N in M.linear_extensions(simple=True)])
+        sage: any(N.is_3connected()
+        ....:     for N in M.linear_extensions(simple=True))
         False
         sage: M.is_valid() # long time
         True
-
     """
     E = 'abcdefghi'
     G = graphs.CompleteBipartiteGraph(3, 3)
-    M = Matroid(groundset=E, graph=G)
+    M = Matroid(groundset=E, graph=G, regular=True)
     M = M.dual()
     M.rename('M*(K3, 3): ' + repr(M))
     return M
@@ -750,16 +750,14 @@ def CompleteGraphic(n):
 
     OUTPUT:
 
-    The regular matroid associated with the `n`-vertex complete graph.
+    The graphic matroid associated with the `n`-vertex complete graph.
     This matroid has rank `n - 1`.
-
-    The maximum-sized regular matroid of rank `n` is `M(K_n)`.
 
     EXAMPLES::
 
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.CompleteGraphic(5); M
-        M(K5): Regular matroid of rank 4 on 10 elements with 125 bases
+        M(K5): Graphic matroid of rank 4 on 10 elements
         sage: M.has_minor(matroids.Uniform(2, 4))
         False
         sage: simplify(M.contract(randrange(0,
@@ -777,7 +775,7 @@ def CompleteGraphic(n):
 
 
 def Wheel(n, field=None, ring=None):
-    """
+    r"""
     Return the rank-`n` wheel.
 
     INPUT:
@@ -812,16 +810,16 @@ def Wheel(n, field=None, ring=None):
         Wheel(3): Ternary matroid of rank 3 on 6 elements, type 0+
     """
     base_ring = ZZ
-    if field != None and ring != None :
+    if field is not None and ring is not None:
         raise ValueError("only one of ring and field can be specified.")
-    if field != None :
+    if field is not None:
         base_ring = field
         try:
             if not base_ring.is_field():
                 raise TypeError("specified ``field`` is not a field.")
         except AttributeError:
             raise TypeError("specified ``field`` is not a field.")
-    if ring  != None :
+    if ring is not None:
         base_ring = ring
     A = Matrix(base_ring, n, 2 * n, sparse=True)
     for i in range(n):
@@ -982,7 +980,7 @@ def PG(n, q, x=None):
 
 
 def AG(n, q, x=None):
-    """
+    r"""
     Return the affine geometry of dimension ``n`` over the finite field of
     order ``q``.
 
@@ -1043,7 +1041,6 @@ def R10():
         sage: cct = []
         sage: for i in M.circuits():
         ....:      cct.append(len(i))
-        ....:
         sage: Set(cct)
         {4, 6}
         sage: M.equals(M.dual())
@@ -1117,8 +1114,8 @@ def NonVamos():
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.named_matroids.NonVamos(); M
         NonVamos: Matroid of rank 4 on 8 elements with circuit-closures
-        {3: {{'a', 'b', 'g', 'h'}, {'a', 'b', 'c', 'd'}, {'e', 'f', 'g', 'h'},
-            {'c', 'd', 'e', 'f'}, {'a', 'b', 'e', 'f'}, {'c', 'd', 'g', 'h'}},
+        {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'},
+             {'c', 'd', 'e', 'f'}, {'c', 'd', 'g', 'h'}, {'e', 'f', 'g', 'h'}},
          4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         sage: setprint(M.nonbases())
         [{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'}, {'a', 'b', 'g', 'h'},
@@ -1153,13 +1150,13 @@ def Pappus():
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.named_matroids.Pappus(); M
         Pappus: Matroid of rank 3 on 9 elements with circuit-closures
-        {2: {{'a', 'b', 'c'}, {'a', 'f', 'h'}, {'c', 'e', 'g'},
-             {'b', 'f', 'g'}, {'c', 'd', 'h'}, {'d', 'e', 'f'},
-             {'a', 'e', 'i'}, {'b', 'd', 'i'}, {'g', 'h', 'i'}},
+        {2: {{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'},
+             {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'},
+             {'c', 'e', 'g'}, {'d', 'e', 'f'}, {'g', 'h', 'i'}},
          3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}
         sage: setprint(M.nonspanning_circuits())
-        [{'a', 'b', 'c'}, {'a', 'f', 'h'}, {'c', 'e', 'g'}, {'b', 'f', 'g'},
-         {'c', 'd', 'h'}, {'b', 'd', 'i'}, {'a', 'e', 'i'}, {'d', 'e', 'f'},
+        [{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'}, {'b', 'd', 'i'},
+         {'b', 'f', 'g'}, {'c', 'd', 'h'}, {'c', 'e', 'g'}, {'d', 'e', 'f'},
          {'g', 'h', 'i'}]
         sage: M.is_dependent(['d', 'e', 'f'])
         True
@@ -1189,13 +1186,13 @@ def NonPappus():
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.named_matroids.NonPappus(); M
         NonPappus: Matroid of rank 3 on 9 elements with circuit-closures
-        {2: {{'a', 'b', 'c'}, {'a', 'f', 'h'}, {'c', 'e', 'g'},
-             {'b', 'f', 'g'}, {'c', 'd', 'h'}, {'b', 'd', 'i'},
-             {'a', 'e', 'i'}, {'g', 'h', 'i'}},
+        {2: {{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'},
+             {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'},
+             {'c', 'e', 'g'}, {'g', 'h', 'i'}},
          3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}
         sage: setprint(M.nonspanning_circuits())
-        [{'a', 'b', 'c'}, {'a', 'f', 'h'}, {'c', 'e', 'g'}, {'b', 'f', 'g'},
-         {'c', 'd', 'h'}, {'b', 'd', 'i'}, {'a', 'e', 'i'}, {'g', 'h', 'i'}]
+        [{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'}, {'b', 'd', 'i'},
+         {'b', 'f', 'g'}, {'c', 'd', 'h'}, {'c', 'e', 'g'}, {'g', 'h', 'i'}]
         sage: M.is_dependent(['d', 'e', 'f'])
         False
         sage: M.is_valid() # long time
@@ -1227,7 +1224,8 @@ def TicTacToe():
     """
     E = 'abcdefghi'
     CC = {
-        4: ['abcdg', 'adefg', 'abceh', 'abcfi', 'cdefi', 'adghi', 'beghi', 'cfghi'],
+        4: ['abcdg', 'adefg', 'abceh', 'abcfi', 'cdefi', 'adghi',
+            'beghi', 'cfghi'],
         5: [E]
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
@@ -1236,11 +1234,11 @@ def TicTacToe():
 
 
 def Q10():
-    """
-    Return the matroid `Q_{10}`, represented over `\GF(4)`.
+    r"""
+    Return the matroid `Q_{10}`, represented over `\GF{4}`.
 
     `Q_{10}` is a 10-element, rank-5, self-dual matroid. It is representable
-    over `\GF(3)` and `\GF(4)`, and hence is a sixth-roots-of-unity matroid.
+    over `\GF{3}` and `\GF{4}`, and hence is a sixth-roots-of-unity matroid.
     `Q_{10}` is a splitter for the class of sixth-root-of-unity matroids.
 
     EXAMPLES::
@@ -1276,8 +1274,8 @@ def Q10():
 
 
 def N1():
-    """
-    Return the matroid `N_1`, represented over `\GF(3)`.
+    r"""
+    Return the matroid `N_1`, represented over `\GF{3}`.
 
     `N_1` is an excluded minor for the dyadic matroids. See [Oxl2011]_, p. 554.
 
@@ -1303,8 +1301,8 @@ def N1():
 
 
 def N2():
-    """
-    Return the matroid `N_2`, represented over `\GF(3)`.
+    r"""
+    Return the matroid `N_2`, represented over `\GF{3}`.
 
     `N_2` is an excluded minor for the dyadic matroids. See [Oxl2011]_, p. 554.
 
@@ -1325,8 +1323,8 @@ def N2():
         [0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1],
         [0, 0, 0, 0, 0, 1, 1, 2, 2, 1, 0, 1]
     ])
-    return TernaryMatroid(A, 'abcdefghijkl')
-    M.rename('T12: ' + repr(M))
+    M = TernaryMatroid(A, 'abcdefghijkl')
+    M.rename('N2: ' + repr(M))
     return M
 
 
@@ -1349,7 +1347,8 @@ def BetsyRoss():
     """
     E = 'abcdefghijk'
     CC = {
-        2: ['acfg', 'bdgh', 'cehi', 'befj', 'adij', 'dfk', 'egk', 'ahk', 'bik', 'cjk'],
+        2: ['acfg', 'bdgh', 'cehi', 'befj', 'adij', 'dfk',
+            'egk', 'ahk', 'bik', 'cjk'],
         3: [E]
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
@@ -1373,7 +1372,9 @@ def Block_9_4():
     """
     E = 'abcdefghi'
     CC = {
-        3: ['abcd', 'acef', 'bdef', 'cdeg', 'abfg', 'adeh', 'bcfh', 'acgh', 'begh', 'dfgh', 'abei', 'cdfi', 'bcgi', 'adgi', 'efgi', 'bdhi', 'cehi', 'afhi'],
+        3: ['abcd', 'acef', 'bdef', 'cdeg', 'abfg', 'adeh', 'bcfh', 'acgh',
+            'begh', 'dfgh', 'abei', 'cdfi', 'bcgi', 'adgi', 'efgi', 'bdhi',
+            'cehi', 'afhi'],
         4: [E]
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
@@ -1398,7 +1399,12 @@ def Block_10_5():
 
     E = 'abcdefghij'
     CC = {
-        4: ['abcde', 'acdfg', 'bdefg', 'bcdfh', 'abefh', 'abcgh', 'adegh', 'cefgh', 'bcefi', 'adefi', 'bcdgi', 'acegi', 'abfgi', 'abdhi', 'cdehi', 'acfhi', 'beghi', 'dfghi', 'abdfj', 'acefj', 'abegj', 'cdegj', 'bcfgj', 'acdhj', 'bcehj', 'defhj', 'bdghj', 'afghj', 'abcij', 'bdeij', 'cdfij', 'adgij', 'efgij', 'aehij', 'bfhij', 'cghij'],
+        4: ['abcde', 'acdfg', 'bdefg', 'bcdfh', 'abefh', 'abcgh', 'adegh',
+            'cefgh', 'bcefi', 'adefi', 'bcdgi', 'acegi', 'abfgi', 'abdhi',
+            'cdehi', 'acfhi', 'beghi', 'dfghi', 'abdfj', 'acefj', 'abegj',
+            'cdegj', 'bcfgj', 'acdhj', 'bcehj', 'defhj', 'bdghj', 'afghj',
+            'abcij', 'bdeij', 'cdfij', 'adgij', 'efgij', 'aehij', 'bfhij',
+            'cghij'],
         5: [E]
     }
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
@@ -1602,7 +1608,8 @@ def R9A():
 
     """
     E = 'abcdefghi'
-    CC = {3: ['abde', 'bcdf', 'aceg', 'abch', 'aefh', 'adgh', 'acdi', 'abfi', 'defi', 'begi', 'bdhi', 'cehi', 'fghi'],
+    CC = {3: ['abde', 'bcdf', 'aceg', 'abch', 'aefh', 'adgh', 'acdi', 'abfi',
+              'defi', 'begi', 'bdhi', 'cehi', 'fghi'],
           4: [E]}
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
     M.rename('R9A: ' + repr(M))
@@ -1626,7 +1633,8 @@ def R9B():
 
     """
     E = 'abcdefghi'
-    CC = {3: ['abde', 'bcdf', 'aceg', 'abch', 'befh', 'cdgh', 'bcei', 'adfi', 'abgi', 'degi', 'bdhi', 'aehi', 'fghi'],
+    CC = {3: ['abde', 'bcdf', 'aceg', 'abch', 'befh', 'cdgh', 'bcei', 'adfi',
+              'abgi', 'degi', 'bdhi', 'aehi', 'fghi'],
           4: [E]}
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
     M.rename('R9B: ' + repr(M))

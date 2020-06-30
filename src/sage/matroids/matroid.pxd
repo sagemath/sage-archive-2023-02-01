@@ -37,10 +37,36 @@ cdef class Matroid(SageObject):
     cpdef _line_length(self, F)
     cpdef _extension(self, element, hyperplanes)
 
-    # ** user-facing methods **
+    cdef inline __subset(self, X):
+        """
+        Convert ``X`` to a ``frozenset`` and check that it is a subset
+        of the groundset.
 
-    # cpdef _latex_(self)  # Disabled, because not overridden by current subclasses
-    # cpdef show(self)  # Disabled, because not implemented yet
+        See ``_subset`` for the corresponding Python method.
+        """
+        S = frozenset(X)
+        if not self.groundset().issuperset(S):
+            raise ValueError(f"{X!r} is not a subset of the groundset")
+        return S
+
+    cdef inline __subset_all(self, X):
+        """
+        If ``X`` is ``None``, return the groundset.
+
+        Otherwise, do like ``_subset``:
+        convert ``X`` to a ``frozenset`` and check that it is a subset
+        of the groundset.
+
+        See ``_subset_all`` for the corresponding Python method.
+        """
+        if X is None:
+            return self.groundset()
+        S = frozenset(X)
+        if not self.groundset().issuperset(S):
+            raise ValueError(f"{X!r} is not a subset of the groundset")
+        return S
+
+    # ** user-facing methods **
     cpdef size(self)
 
     # matroid oracle
@@ -145,7 +171,7 @@ cdef class Matroid(SageObject):
     cpdef _is_4connected_shifting(self, certificate=*)
     cpdef _shifting_all(self, X, P_rows, P_cols, Q_rows, Q_cols, m)
     cpdef _shifting(self, X, X_1, Y_2, X_2, Y_1, m)
-    cpdef is_3connected(self, certificate=*, algorithm=*, separation=*)
+    cpdef is_3connected(self, certificate=*, algorithm=*)
     cpdef is_4connected(self, certificate=*, algorithm=*)
     cpdef _is_3connected_CE(self, certificate=*)
     cpdef _is_3connected_BC(self, certificate=*)
@@ -185,7 +211,7 @@ cdef class Matroid(SageObject):
     cpdef _internal(self, B)
     cpdef _external(self, B)
     cpdef tutte_polynomial(self, x=*, y=*)
-    cpdef flat_cover(self)
+    cpdef flat_cover(self, solver=*, verbose=*)
 
     # visualization
     cpdef plot(self,B=*,lineorders=*,pos_method=*,pos_dict=*,save_pos=*)

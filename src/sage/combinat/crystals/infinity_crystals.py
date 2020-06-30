@@ -30,6 +30,8 @@ AUTHORS:
 from sage.structure.parent import Parent
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
+from sage.categories.crystals import Crystals
+from sage.categories.supercrystals import SuperCrystals
 from sage.categories.homset import Hom
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
@@ -39,7 +41,8 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.letters import CrystalOfLetters
 from sage.combinat.crystals.tensor_product import CrystalOfWords
 from sage.combinat.crystals.tensor_product_element import (CrystalOfTableauxElement,
-        InfinityCrystalOfTableauxElement, InfinityCrystalOfTableauxElementTypeD)
+        InfinityCrystalOfTableauxElement, InfinityCrystalOfTableauxElementTypeD,
+        InfinityQueerCrystalOfTableauxElement)
 
 
 class InfinityCrystalOfTableaux(CrystalOfWords):
@@ -47,10 +50,10 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
     `\mathcal{B}(\infty)` crystal of tableaux.
 
     A tableaux model `\mathcal{T}(\infty)` for the crystal
-    `\mathcal{B}(\infty)` is introduced by Hong and Lee in [HL08]_. This model
+    `\mathcal{B}(\infty)` is introduced by Hong and Lee in [HL2008]_. This model
     is currently valid for types `A_n`, `B_n`, `C_n`, `D_n`, and `G_2`, and
-    builds on the tableaux model given by Kashiwara and Nakashima [KN94]_ in
-    types `A_n`, `B_n`, `C_n`, and `D_n`, and by Kang and Misra [KM94]_ in
+    builds on the tableaux model given by Kashiwara and Nakashima [KN1994]_ in
+    types `A_n`, `B_n`, `C_n`, and `D_n`, and by Kang and Misra [KM1994]_ in
     type `G_2`.
 
     .. NOTE::
@@ -123,24 +126,6 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
     In particular, the shape of the tableaux is not fixed in any instance of
     `\mathcal{T}(\infty)`; the row lengths of a tableau can be arbitrarily long.
-
-    REFERENCES:
-
-    .. [BN10] \D. Bump and M. Nakasuji.
-       Integration on `p`-adic groups and crystal bases.
-       Proc. Amer. Math. Soc. 138(5), pp. 1595--1605.
-
-    .. [LS12] \K.-H. Lee and B. Salisbury.
-       Young tableaux, canonical bases, and the Gindikin-Karpelevich formula.
-       :arXiv:`1205.6006`.
-
-    .. [HL08] \J. Hong and H. Lee.
-       Young tableaux and crystal `B(\infty)` for finite simple Lie algebras.
-       J. Algebra 320, pp. 3680--3693, 2008.
-
-    .. [KM94] \S.-J. Kang and K. C. Misra.
-       Crystal bases and tensor product decompositions of `U_q(G_2)`-modules.
-       J. Algebra 163, pp. 675--691, 1994.
 
     INPUT:
 
@@ -219,6 +204,8 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
         cartan_type = CartanType(cartan_type)
         if cartan_type.type() == 'D':
             return InfinityCrystalOfTableauxTypeD(cartan_type)
+        if cartan_type.type() == 'Q':
+            return DualInfinityQueerCrystalOfTableaux(cartan_type)
         return super(InfinityCrystalOfTableaux, cls).__classcall__(cls, cartan_type)
 
     def __init__(self, cartan_type):
@@ -249,7 +236,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
     @cached_method
     def module_generator(self):
-        """
+        r"""
         Return the module generator (or highest weight element) of ``self``.
 
         The module generator is the unique tableau of shape `(n, n-1, \ldots,
@@ -427,7 +414,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
             (not necessarily semistandard) tableaux obtained from `T` by
             removing all `i`-boxes in the `i`-th row, subject to the condition
             that if the row is empty, a `\ast` is put as a placeholder.
-            This is described in [BN10]_ and [LS12]_.
+            This is described in [BN2010]_ and [LS2012]_.
 
             EXAMPLES::
 
@@ -461,7 +448,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
             r"""
             Returns the statistic `\mathrm{seg}` of ``self.``
 
-            More precisely, following [LS12]_, define a `k`-segment of a
+            More precisely, following [LS2012]_, define a `k`-segment of a
             tableau `T` in `\mathcal{B}(\infty)` to be a maximal string
             of `k`-boxes in a single row of `T`.  Set `\mathrm{seg}^{\prime}(T)`
             to be the number of `k`-segments in `T`, as `k` varies over
@@ -622,7 +609,7 @@ class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
 
     @cached_method
     def module_generator(self):
-        """
+        r"""
         Return the module generator (or highest weight element) of ``self``.
 
         The module generator is the unique tableau of shape `(n-1, \ldots, 2,
@@ -644,5 +631,98 @@ class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
         r"""
         Elements in `\mathcal{B}(\infty)` crystal of tableaux for type `D_n`.
         """
+        pass
+
+#########################################################
+## Queer superalgebra
+
+class DualInfinityQueerCrystalOfTableaux(CrystalOfWords):
+    @staticmethod
+    def __classcall_private__(cls, cartan_type):
+        """
+        Normalize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(['A',4])
+            sage: B2 = crystals.infinity.Tableaux(CartanType(['A',4]))
+            sage: B is B2
+            True
+        """
+        cartan_type = CartanType(cartan_type)
+        return super(DualInfinityQueerCrystalOfTableaux, cls).__classcall__(cls, cartan_type)
+
+    def __init__(self, cartan_type):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(['A',2])
+            sage: TestSuite(B).run() # long time
+        """
+        Parent.__init__(self, category=(SuperCrystals(), InfiniteEnumeratedSets()))
+        self._cartan_type = cartan_type
+        self.letters = CrystalOfLetters(cartan_type)
+        self.module_generators = (self.module_generator(),)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(['A',4]); B
+            The infinity crystal of tableaux of type ['A', 4]
+        """
+        return "The dual infinity crystal of tableaux of type %s" % self._cartan_type
+
+    @cached_method
+    def module_generator(self):
+        r"""
+        Return the module generator (or highest weight element) of ``self``.
+
+        The module generator is the unique semistandard hoook tableau of shape
+        `(n, n-1, \ldots,2, 1)` with weight `0`.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(["Q",5])
+            sage: B.module_generator()
+            [[5, 5, 5, 5, 5], [4, 4, 4, 4], [3, 3, 3], [2, 2], [1]]
+        """
+        n = self._cartan_type.rank() + 1
+        row_lens = list(reversed(range(1, n+1)))
+        module_generator = flatten([[val]*val for val in row_lens])
+        return self.element_class(self, [self.letters(x) for x in module_generator], row_lens)
+
+    @cached_method
+    def index_set(self):
+        r"""
+        Return the index set of ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(["Q",3])
+            sage: B.index_set()
+            (1, 2, -1)
+        """
+        n = self._cartan_type.rank()
+        return tuple(range(1, n+1)) + (-1,)
+
+    def _element_constructor_(self, *args, **options):
+        """
+        Construct an element of ``self`` from the input data.
+
+        EXAMPLES::
+
+            sage: B = crystals.infinity.Tableaux(["Q",4])
+            sage: t = B([[4,4,4,4,2,1],[3,3,3],[2,2],[1]])
+            sage: t
+            [[4, 4, 4, 4, 2, 1], [3, 3, 3], [2, 2], [1]]
+        """
+        return self.element_class(self, *args, **options)
+
+    class Element(InfinityQueerCrystalOfTableauxElement):
         pass
 

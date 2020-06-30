@@ -38,12 +38,3 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
 cdef int ith_word_nonlinear(BinaryCodeStruct, int, bitset_s *)
 
 cdef int refine_by_bip_degree(PartitionStack *, void *, int *, int)
-cdef int compare_linear_codes(int *, int *, void *, void *, int)
-cdef int compare_nonlinear_codes(int *, int *, void *, void *, int)
-cdef bint all_children_are_equivalent(PartitionStack *, void *)
-cdef inline int word_degree(PartitionStack *, BinaryCodeStruct, int, int, PartitionStack *)
-cdef inline int col_degree(PartitionStack *, BinaryCodeStruct, int, int, PartitionStack *)
-cdef inline int sort_by_function_codes(PartitionStack *, int, int *, int *, int *, int)
-
-
-

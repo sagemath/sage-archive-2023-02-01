@@ -1,14 +1,5 @@
-###############################################################################
-#
-#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-#
-###############################################################################
-
 """
-Homogeneous ideals of free algebras.
+Homogeneous ideals of free algebras
 
 For twosided ideals and when the base ring is a field, this
 implementation also provides Groebner bases and ideal containment
@@ -39,11 +30,21 @@ AUTHOR:
 
 """
 
+# ****************************************************************************
+#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 from sage.rings.noncommutative_ideals import Ideal_nc
 from sage.libs.singular.function import lib, singular_function
 from sage.algebras.letterplace.free_algebra_letterplace cimport FreeAlgebra_letterplace
 from sage.algebras.letterplace.free_algebra_element_letterplace cimport FreeAlgebraElement_letterplace
-from sage.all import Infinity
+from sage.rings.infinity import Infinity
 
 #####################
 # Define some singular functions
@@ -201,15 +202,15 @@ class LetterplaceIdeal(Ideal_nc):
         ideals, and the ring of coefficients must be a field. A
         `TypeError` is raised if one of these conditions is violated.
 
-        NOTES:
+        .. NOTE::
 
-        - The result is cached. The same Groebner basis is returned
-          if a smaller degree bound than the known one is requested.
-        - If the degree bound Infinity is requested, it is attempted to
-          compute a complete Groebner basis. But we can not guarantee
-          that the computation will terminate, since not all twosided
-          homogeneous ideals of a free algebra have a finite Groebner
-          basis.
+            - The result is cached. The same Groebner basis is returned
+              if a smaller degree bound than the known one is requested.
+            - If the degree bound ``Infinity`` is requested, it is attempted to
+              compute a complete Groebner basis. But we can not guarantee
+              that the computation will terminate, since not all twosided
+              homogeneous ideals of a free algebra have a finite Groebner
+              basis.
 
         EXAMPLES::
 

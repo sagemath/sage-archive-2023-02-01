@@ -7,8 +7,14 @@
 #
 #  Options can be:
 #   -s: do not delete temporary build directory
+#   -k: do not uninstall existing installation of this package before
+#       installing; instead simply overwrite existing files.
 #   -c: after installing, run the test suite for the spkg. This should
 #       override the settings of SAGE_CHECK and SAGE_CHECK_PACKAGES.
+#       Exit with an error if the test suite fails.
+#   -w: after installing, run the test suite for the spkg. This should
+#       override the settings of SAGE_CHECK and SAGE_CHECK_PACKAGES.
+#       Print a warning if the test suite fails.
 #   -d: only download the package
 #   -y: automatically reply "y" for all prompts regarding
 #       experimental and old-style packages
@@ -21,6 +27,10 @@
 #      SAGE_ROOT      -- root directory of sage install
 #      SAGE_LOCAL     -- $SAGE_ROOT/local
 #      SAGE_DISTFILES -- directory that stores upstream tarballs
+#      SAGE_DESTDIR   -- temporary root the package will be installed to
+#      PKG_BASE       -- the base name of the package itself (e.g. 'patch')
+#      PKG_VER        -- the version number of the package
+#      PKG_NAME       -- $PKG_BASE-$PKG_VER
 #      LIBRARY_PATH, PYTHONPATH, LD_LIBRARY_PATH, DYLD_LIBRARY_PATH
 #      CC, CXX, CFLAGS, CXXFLAGS, LDFLAGS, MAKE
 #
@@ -58,7 +68,9 @@
 #*****************************************************************************
 
 # Avoid surprises with character ranges [a-z] in regular expressions
-export LC_ALL=C
+# See Trac #15791; some locales can produce different results for
+# character ranges (use C.UTF-8 to ensure UTF-8 default encoding in Python)
+export LC_ALL=C.UTF-8
 
 usage()
 {
@@ -72,7 +84,10 @@ found, install it.
 
 Options:
    -s: do not delete the temporary build directory
-   -c: after installing, run the test suite for the package
+   -c: after installing, run the test suite for the package;
+       exit with an error on test suite failures
+   -w: after installing, run the test suite for the package;
+       print a warning on test suite failures
    -d: only download the package
    -y: automatically reply "y" for all prompts regarding
        experimental and old-style packages; warning: there
@@ -80,6 +95,8 @@ Options:
        use at your own risk"
    -n: automatically reply "n" for all prompts regarding
        experimental and old-style packages
+   -o: allow fetching the package from its upstream URL
+       when it is not available from the Sage mirrors (yet)
 EOF
 }
 
@@ -106,7 +123,7 @@ If you want to try to fix the problem yourself, *don't* just cd to
 `pwd` and type '$2' or whatever is appropriate.
 Instead, the following commands setup all environment variables
 correctly and load a subshell for you to debug the error:
-  (cd '`pwd`' && '$SAGE_ROOT/sage' --sh)
+  (cd '`pwd`' && '$SAGE_ROOT/sage' --buildsh)
 When you are done debugging, you can type "exit" to leave the subshell.
 MESSAGE
 fi
@@ -153,6 +170,7 @@ fi
 # than exiting.  Using dot suggested by W. Cheung.
 . sage-env
 
+
 if [ $? -ne 0 ]; then
     error_msg "Error setting environment variables by sourcing sage-env"
     exit 1
@@ -162,15 +180,9 @@ if [ -z "$SAGE_BUILD_DIR" ]; then
     export SAGE_BUILD_DIR="$SAGE_LOCAL/var/tmp/sage/build"
 fi
 
-mkdir -p "$SAGE_SPKG_INST"
-if [ $? -ne 0 ]; then
-    error_msg "Error creating directory $SAGE_SPKG_INST"
-    exit 1
-fi
 
-
-# Remove '.' from PYTHONPATH, which may also come from SAGE_PATH, to avoid
-# trouble with setuptools / easy_install (cf. #10192, #10176):
+# Remove '.' from PYTHONPATH, to avoid trouble with setuptools / easy_install
+# (cf. #10192, #10176):
 if [ -n "$PYTHONPATH" ]; then
     # We also collapse multiple slashs into a single one (first substitution),
     # remove leading './'s and trailing '/.'s (second and third), and
@@ -203,6 +215,7 @@ fi
 # Parse options
 INFO=0
 YES=0
+KEEP_EXISTING=0
 while true; do
     case "$1" in
         --info)
@@ -216,8 +229,15 @@ while true; do
         -s)
             export SAGE_KEEP_BUILT_SPKGS=yes;;
         -c|--check)
-            SAGE_CHECK_PACKAGES=x  # nonempty, so not set to '!python2' later
+            SAGE_CHECK_PACKAGES=x  # nonempty, so not set to default later
             export SAGE_CHECK=yes;;
+        -w|--check-warning-only)
+            SAGE_CHECK_PACKAGES=x  # nonempty, so not set to default later
+            export SAGE_CHECK=warn;;
+        -k|--keep-existing)
+            KEEP_EXISTING=yes;;
+        -o|--allow-upstream)
+            SAGE_DOWNLOAD_FILE_OPTIONS+=" --allow-upstream";;
         -*)
             echo >&2 "Error: unknown option '$1'"
             exit 2;;
@@ -343,20 +363,14 @@ EOF
 fi
 
 if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
-    cat "$PKG_SCRIPTS/SPKG.txt"
-    if [ -r "$PKG_SCRIPTS/type" ] ; then
-        echo "== Type =="
-        echo
-        cat "$PKG_SCRIPTS/type"
-    fi
-    exit 0
+    exec sage-spkg-info $PKG_BASE
 fi
 
 # If we haven't found the package yet, we must download it
 if [ ! -f "$PKG_SRC" ]; then
     if [ -n "$PKG_NAME_UPSTREAM" ]; then
         # This is the new-style package way of downloading the tarball
-        if ! sage-download-file "$PKG_NAME_UPSTREAM"; then
+        if ! sage-download-file $SAGE_DOWNLOAD_FILE_OPTIONS "$PKG_NAME_UPSTREAM"; then
             error_msg "Error downloading $PKG_NAME_UPSTREAM"
             exit 1
         fi
@@ -556,11 +570,13 @@ fi
 # Setup directories
 ##################################################################
 
-mkdir -p "$SAGE_BUILD_DIR"
-if [ $? -ne 0 ]; then
-    error_msg "Error creating directory $SAGE_BUILD_DIR"
-    exit 1
-fi
+for dir in "$SAGE_SPKG_INST" "$SAGE_SPKG_SCRIPTS" "$SAGE_BUILD_DIR"; do
+    mkdir -p "$dir"
+    if [ $? -ne 0 ]; then
+        error_msg "Error creating directory $dir"
+        exit 1
+    fi
+done
 
 # Trac #5852: check write permissions
 if [ ! -w "$SAGE_BUILD_DIR" ]; then
@@ -611,7 +627,7 @@ fi
 if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
     # New-style package
     echo "Setting up build directory for $PKG_NAME"
-    cp -Rp "$PKG_SCRIPTS" "$PKG_NAME"
+    cp -RLp "$PKG_SCRIPTS" "$PKG_NAME"
     cd "$PKG_NAME" || exit $?
 
     sage-uncompress-spkg -d src "$PKG_SRC"
@@ -650,6 +666,94 @@ cd ..
 # The package has been extracted, prepare for installation
 ##################################################################
 
+# Rewrites the given bash pseudo-script with a boilerplate header that includes
+# the shebang line and sourcing sage-env.  Make sure the name of the script is
+# passed in as an absolute path.
+write_script_wrapper() {
+    local script="$1"
+    local script_dir="$2"
+
+    trap "echo >&2 Error: Unexpected error writing wrapper script for $script; exit \$_" ERR
+
+    if head -1 "$script.in" | grep '^#!.*$' >/dev/null; then
+        echo >&2 "Error: ${script##*/} should not contain a shebang line; it will be prepended automatically."
+        exit 1
+    fi
+
+    local tmpscript="$(dirname "$script")/.tmp-${script##*/}"
+
+    cat > "$tmpscript" <<__EOF__
+#!/usr/bin/env bash
+
+export SAGE_ROOT="$SAGE_ROOT"
+export SAGE_SRC="$SAGE_SRC"
+export SAGE_PKG_DIR="$script_dir"
+export SAGE_SPKG_SCRIPTS="$SAGE_SPKG_SCRIPTS"
+
+export PKG_NAME="$PKG_NAME"
+export PKG_BASE="$PKG_BASE"
+export PKG_VER="$PKG_VER"
+
+for lib in "\$SAGE_ROOT/build/bin/sage-dist-helpers" "\$SAGE_SRC/bin/sage-env" "\$SAGE_ROOT/build/bin/sage-build-env-config"; do
+    source "\$lib"
+    if [ \$? -ne 0 ]; then
+        echo >&2 "Error: failed to source \$lib"
+        echo >&2 "Is \$SAGE_ROOT the correct SAGE_ROOT?"
+        exit 1
+    fi
+done
+
+sdh_guard
+if [ \$? -ne 0 ]; then
+    echo >&2 "Error: sdh_guard not found; Sage environment was not set up properly"
+    exit 1
+fi
+
+cd "\$SAGE_PKG_DIR"
+if [ \$? -ne 0 ]; then
+    echo >&2 "Error: could not cd to the package build directory \$SAGE_PKG_DIR"
+    exit 1
+fi
+
+__EOF__
+
+    cat "$script.in" >> "$tmpscript"
+    mv "$tmpscript" "$script"
+    chmod +x "$script"
+
+    trap - ERR
+}
+
+
+WRAPPED_SCRIPTS="build install check preinst postinst legacy-uninstall prerm postrm"
+INSTALLED_SCRIPTS="prerm postrm"
+
+
+for script in $WRAPPED_SCRIPTS; do
+    # 'Installed' scripts are not run immediately out of the package build
+    # directory, and may be run later, so set their root directory to
+    # $SAGE_ROOT
+    if echo "$INSTALLED_SCRIPTS" | grep -w "$script" > /dev/null; then
+        script_dir="$SAGE_ROOT"
+    else
+        script_dir="$(pwd)"
+    fi
+
+    script="spkg-$script"
+
+    if [ -f "$script.in" ]; then
+        if [ "$USE_LOCAL_SCRIPTS" = "yes" ]; then
+            write_script_wrapper "$(pwd)/$script" "$script_dir"
+        else
+            if [ ! -x "$script" ]; then
+                echo >&2 "WARNING: $script is not executable, making it executable"
+                chmod +x "$script"
+            fi
+        fi
+    fi
+done
+
+
 # When there is no spkg-install, assume the "spkg" is a tarball not
 # specifically made for Sage.  Since we want it to be as easy as
 # possible to install such a package, we "guess" spkg-install.
@@ -667,17 +771,6 @@ if [ ! -f spkg-install ]; then
     chmod +x spkg-install
 fi
 
-# If spkg-install is a Python script (i.e. the first line of the file
-# contains "python"), verify that Python has already been installed.
-if head -1 spkg-install | grep python >/dev/null; then
-    # If there is no Python installed in local/bin, exit with an error.
-    if [ ! -x "$SAGE_LOCAL"/bin/python ]; then
-         echo >&2 "Error: The spkg-install script is written in Python, but the Python"
-         echo >&2 'package is not yet installed in Sage.  You should add $(PYTHON)'
-         echo >&2 "as dependency in build/pkgs/$PKG_BASE/dependencies"
-         exit 1
-    fi
-fi
 
 # SAGE_CHECK_PACKAGES: if this contains "!pkg", skip tests for "pkg",
 # so set SAGE_CHECK=no.  If this contains "pkg", run tests, so set
@@ -685,9 +778,10 @@ fi
 # package's spkg-install script can use this variable.
 #
 # Since Python's self-tests seem to fail on all platforms, we disable
-# its test suite by default.
-if [ -z "$SAGE_CHECK_PACKAGES" ]; then
-    SAGE_CHECK_PACKAGES='!python2'
+# its test suite by default.  However, if SAGE_CHECK=warn, we do not
+# do that.
+if [ x"$SAGE_CHECK" = xyes -a -z "$SAGE_CHECK_PACKAGES" ]; then
+    SAGE_CHECK_PACKAGES='!python2,!python3'
 fi
 # Allow spaces, commas, or colons as separator (the documentation suggests commas).
 if echo ",$SAGE_CHECK_PACKAGES," | grep -i "[ ,:]\!$PKG_BASE[ ,:]" > /dev/null ; then
@@ -707,12 +801,6 @@ $CC -v
 echo "****************************************************"
 
 ##################################################################
-# Remove install markers for any other versions of this spkg.
-##################################################################
-
-rm -f "$SAGE_SPKG_INST/$PKG_BASE-"*
-
-##################################################################
 # Poison the proxy variable to forbid downloads in spkg-install
 ##################################################################
 export http_proxy=http://192.0.2.0:5187/
@@ -721,14 +809,59 @@ export ftp_proxy=$http_proxy
 export rsync_proxy=$http_proxy
 
 ##################################################################
-# Actually install
+# We need to run sage-rebase.sh for each package installed, but it
+# can be dangerous to do this while other packages are installing
+# so we need to use a lock to manage when rebase is allowed to
+# run.  Because of this, if multiple sage-spkg runs are waiting on
+# the rebase lock, we can end up with multiple consecutive rebase
+# calls that are redundant, but I don't see an obvious way around
+# that.  This also unfortunately slows down parallel builds since
+# all packages will eventually need to wait for this lock, but
+# again there's no simple way around that.
 ##################################################################
-if [ ! -x spkg-install ]; then
-    echo >&2 "WARNING: spkg-install is not executable, making it executable"
-    chmod +x spkg-install
+
+if [ "$UNAME" = "CYGWIN" ]; then
+    if [ ! -d "$SAGE_LOCAL/var/lock" ]; then
+        mkdir -p "$SAGE_LOCAL/var/lock"
+    fi
+    exec 200>"$SAGE_LOCAL/var/lock/rebase.lock"
+    sage-flock -s $lock_type 200
 fi
 
-if [ -x spkg-build ]; then
+##################################################################
+# Actually install
+##################################################################
+
+# Set the $SAGE_DESTDIR variable to be passed to the spkg-install
+# script (the script itself could set this, but better to standardize
+# this in one place)
+export SAGE_DESTDIR="${SAGE_BUILD_DIR}/${PKG_NAME}/inst"
+
+# The actual prefix where the installation will be staged. This is the
+# directory that you need to work in if you want to change the staged
+# installation tree (before final installation to $SAGE_LOCAL) at the
+# end of spkg-install.
+export SAGE_DESTDIR_LOCAL="${SAGE_DESTDIR}${SAGE_LOCAL}"
+
+# First uninstall the previous version of this package, if any
+if [ "$KEEP_EXISTING" != "yes" ]; then
+    sage-spkg-uninstall "$PKG_BASE"
+fi
+
+# To work around #26996: Create lib and set a symlink so that writes into lib64/ end up in lib/
+(mkdir -p "$SAGE_DESTDIR_LOCAL/lib" && cd "$SAGE_DESTDIR_LOCAL" && ln -sf lib lib64)
+
+# Run the pre-install script, if any
+if [ -f spkg-preinst ]; then
+    echo "Running pre-install script for $PKG_NAME."
+    time $SAGE_SUDO ./spkg-preinst
+    if [ $? -ne 0 ]; then
+        error_msg "Error running the preinst script for $PKG_NAME."
+        exit 1
+    fi
+fi
+
+if [ -f spkg-build ]; then
     # Package has both spkg-build and spkg-install; execute the latter with SAGE_SUDO
     time ./spkg-build
     if [ $? -ne 0 ]; then
@@ -749,39 +882,129 @@ else
     fi
 fi
 
+# To work around #26996: Remove the symlink set, or we get "cp: cannot overwrite directory"
+rm -f "$SAGE_DESTDIR_LOCAL/lib64"
+
+# All spkgs should eventually support this, but fall back on old behavior in
+# case DESTDIR=$SAGE_DESTDIR installation was not used
+echo "Copying package files from temporary location $SAGE_DESTDIR to $SAGE_LOCAL"
+if [ -d "$SAGE_DESTDIR" ]; then
+    # Some `find` implementations will put superfluous slashes in the
+    # output if we give them a directory name with a slash; so make sure
+    # any trailing slash is removed; https://trac.sagemath.org/ticket/26013
+    PREFIX="${SAGE_DESTDIR_LOCAL%/}"
+
+    rm -f "$PREFIX"/lib/*.la
+    if [ $? -ne 0 ]; then
+        error_msg "Error deleting unnecessary libtool archive files"
+        exit 1
+    fi
+
+    # Generate installed file manifest
+    FILE_LIST="$(cd "$PREFIX" && find . -type f -o -type l | sed 's|^\./||' | sort)"
+
+    # Copy files into $SAGE_LOCAL
+    $SAGE_SUDO cp -Rp "$PREFIX/." "$SAGE_LOCAL"
+    if [ $? -ne 0 ]; then
+        error_msg "Error copying files for $PKG_NAME."
+        exit 1
+    fi
+
+    # Remove the $SAGE_DESTDIR entirely once all files have been moved to their
+    # final location.
+    rm -rf "$SAGE_DESTDIR"
+fi
+
+
+# At this stage the path in $SAGE_DESTDIR no longer exists, so the variable
+# should be unset
+unset SAGE_DESTDIR
+unset SAGE_DESTDIR_LOCAL
+
+
+# Some spkg scripts, if they exist, should also be installed to
+# $SAGE_SPKG_SCRIPTS; they are not included in the package's manifest, but are
+# removed by sage-spkg-uninstall
+INSTALLED_SCRIPTS_DEST="$SAGE_SPKG_SCRIPTS/$PKG_BASE"
+for script in $INSTALLED_SCRIPTS; do
+    script="spkg-$script"
+
+    if [ -f "$script" ]; then
+        mkdir -p "$INSTALLED_SCRIPTS_DEST"
+        if [ $? -ne 0 ]; then
+            error_msg "Error creating the spkg scripts directory $INSTALLED_SCRIPTS_DEST."
+            exit 1
+        fi
+
+        cp -a "$script" "$INSTALLED_SCRIPTS_DEST"
+        if [ $? -ne 0 ]; then
+            error_msg "Error copying the $script script to $INSTALLED_SCRIPTS_DEST."
+            exit 1
+        fi
+    fi
+done
+
+
+# Run the post-install script, if any
+if [ -f spkg-postinst ]; then
+    echo "Running post-install script for $PKG_NAME."
+    time $SAGE_SUDO ./spkg-postinst
+    if [ $? -ne 0 ]; then
+        error_msg "Error running the postinst script for $PKG_NAME."
+        exit 1
+    fi
+fi
+
 if [ "$UNAME" = "CYGWIN" ]; then
+    # Drop our sage-spkg's shared lock, and try to call sage-rebase.sh
+    # under an exclusive lock
+    sage-flock -u 200
+
     # Rebase after installing each package--in case any packages load this
     # package at build time we need to ensure during the build that no binaries
     # have conflicting address spaces
-    sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null
+    echo "Waiting for rebase lock"
+    sage-flock -x "$SAGE_LOCAL/var/lock/rebase.lock" \
+        sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null
 fi
 
-echo "Successfully installed $PKG_NAME"
 
-if [ "$SAGE_CHECK" = "yes" ]; then
+# Note: spkg-check tests are run after the package has been copied into
+# SAGE_LOCAL.  It might make more sense to run the tests before, but the
+# spkg-check scripts were written before use of DESTDIR installs, and so
+# fail in many cases.  This might be good to change later.
+
+if [ "$SAGE_CHECK" = "yes" -o "$SAGE_CHECK" = "warn" ]; then
     if [ -f spkg-check ]; then
         echo "Running the test suite for $PKG_NAME..."
-        if [ ! -x spkg-check ]; then
-            echo >&2 "WARNING: spkg-check is not executable, making it executable"
-            chmod +x spkg-check
-        fi
         time ./spkg-check
         if [ $? -ne 0 ]; then
-            error_msg "Error testing package $PKG_NAME" "make check"
-            exit 1
+            TEST_SUITE_RESULT="failed"
+            if [ "$SAGE_CHECK" = "warn" ]; then
+                error_msg "Warning: Failures testing package $PKG_NAME (ignored)" "make check"
+            else
+                error_msg "Error testing package $PKG_NAME" "make check"
+                exit 1
+            fi
+        else
+            TEST_SUITE_RESULT="passed"
+            echo "Passed the test suite for $PKG_NAME."
         fi
-        TEST_SUITE_RESULT="passed"
     else
         echo "Package $PKG_NAME has no test suite."
         TEST_SUITE_RESULT="not available"
     fi
 fi
 
-rm -f "$SAGE_LOCAL"/lib/*.la
-if [ $? -ne 0 ]; then
-    error_msg "Error deleting unnecessary libtool archive files"
-    exit 1
-fi
+# For each line in $FILE_LIST, enclose in double quotes:
+NEW_LIST=""
+for f in $FILE_LIST; do
+         NEW_LIST+="\"$f\"
+"
+done
+# Now remove the last line (it's blank), indent each line (skipping
+# the first) and append a comma (skipping the last).
+FILE_LIST="$(echo "$NEW_LIST" | sed '$d' | sed '2,$s/^/        /; $!s/$/,/')"
 
 # Mark that the new package has been installed (and tested, if
 # applicable).
@@ -793,9 +1016,15 @@ cat > "$PKG_NAME_INSTALLED" << __EOF__
     "install_date": "$(date)",
     "system_uname": "$(uname -a)",
     "sage_version": "$(cat "${SAGE_ROOT}/VERSION.txt")",
-    "test_result": "$TEST_SUITE_RESULT"
+    "test_result": "$TEST_SUITE_RESULT",
+    "files": [
+        $FILE_LIST
+    ]
 }
 __EOF__
+
+
+echo "Successfully installed $PKG_NAME"
 
 
 ##################################################################

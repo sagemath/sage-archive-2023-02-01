@@ -20,6 +20,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+import operator
 from sage.misc.all import cached_method
 from sage.categories.semigroups import Semigroups
 from sage.categories.sets_cat import Sets
@@ -30,7 +31,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
 from sage.sets.family import Family
 from sage.rings.integer import Integer
-import operator
+from sage.cpython.getattr import raw_getattr
+
 
 class AutomaticSemigroup(UniqueRepresentation, Parent):
     r"""
@@ -169,7 +171,6 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         ....:     z=x*y
         ....:     z.set_immutable()
         ....:     return z
-        ....:
         sage: Mon = AutomaticSemigroup([M1,M2], mul=prod_m, category=Monoids().Finite().Subobjects())
         sage: Mon.cardinality()
         24
@@ -202,7 +203,7 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
 
         sage: len(M.idempotents())
         16
-        sage: all([len(j) == 1 for j in M.j_classes()])
+        sage: all(len(j) == 1 for j in M.j_classes())
         True
 
     TESTS::
@@ -475,7 +476,6 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             ....:     z=x*y
             ....:     z.set_immutable()
             ....:     return z
-            ....:
             sage: Mon = AutomaticSemigroup([M1,M2], mul=prod_m)
             sage: Mon.ambient()
             Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
@@ -680,7 +680,12 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             # been called before we move on to the next line
             i += 1
             if i == len(self._elements) and not self._constructed:
-                next(self._iter)
+                try:
+                    next(self._iter)
+                except StopIteration:
+                    # Don't allow StopIteration to bubble up from generator
+                    # see PEP-479
+                    break
 
     def cardinality(self):
         """
@@ -1007,7 +1012,7 @@ class AutomaticMonoid(AutomaticSemigroup):
         return self._one
 
     # This method takes the monoid generators and adds the unit
-    semigroup_generators = Monoids.ParentMethods.semigroup_generators.__func__
+    semigroup_generators = raw_getattr(Monoids.ParentMethods, "semigroup_generators")
 
     def monoid_generators(self):
         """

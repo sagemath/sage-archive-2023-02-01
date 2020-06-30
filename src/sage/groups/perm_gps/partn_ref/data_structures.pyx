@@ -35,7 +35,6 @@ include "sage/data_structures/bitset.pxi"
 from sage.rings.integer cimport Integer
 from sage.libs.flint.ulong_extras cimport n_is_prime
 
-
 # OrbitPartition (OP)
 
 cdef inline OrbitPartition *OP_new(int n):
@@ -292,7 +291,7 @@ cdef int PS_first_smallest(PartitionStack *PS, bitset_t b, int *second_pos=NULL,
     bitset_zero(b)
     while 1:
         if PS.levels[i] <= PS.depth:
-            if i != j and n > i - j + 1 and (partn_ref_alg==None or 
+            if i != j and n > i - j + 1 and (partn_ref_alg is None or 
                                 partn_ref_alg._minimization_allowed_on_col(PS.entries[j])):
                 n = i - j + 1
                 location = j
@@ -744,7 +743,7 @@ cdef StabilizerChain *SC_alternating_group(int n):
             SC_invert_perm(SC.gen_inverses[i] + n*j, SC.generators[i] + n*j, n)
     return SC
 
-cdef int SC_realloc_bitsets(StabilizerChain *SC, long size):
+cdef int SC_realloc_bitsets(StabilizerChain *SC, unsigned long size):
     """
     If size is larger than current allocation, double the size of the bitsets
     until it is not.
@@ -1144,7 +1143,8 @@ cdef bint SC_is_giant(int n, int num_perms, int *perms, float p, bitset_t suppor
     Running time is roughly O(-ln(1-p)*n*ln(m)) where m <= n is the size of the
     support of the group.
     """
-    cdef int i, j, num_steps, m = 1, support_root
+    cdef int i, j, num_steps, support_root
+    cdef size_t m = 1
     cdef unsigned long q
     cdef int *gen
     cdef int *perm = <int *> sig_malloc(n*sizeof(int))
@@ -1287,10 +1287,10 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
         ....:     m = n//3
         ....:     perm1 = list(range(2*m))
         ....:     shuffle(perm1)
-        ....:     perm1 += range(2*m,n)
-        ....:     perm2 = range(m,n)
+        ....:     perm1 += list(range(2*m,n))
+        ....:     perm2 = list(range(m,n))
         ....:     shuffle(perm2)
-        ....:     perm2 = range(m) + perm2
+        ....:     perm2 = list(range(m)) + perm2
         ....:     SC_test_list_perms([perm1, perm2], n, limit, gap, 0, contains)
         sage: for n in [4..9]:                     # long time
         ....:     for _ in range(2):                 # long time
@@ -1346,7 +1346,10 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
 
     """
     if gap:
-        from sage.all import PermutationGroup, PermutationGroupElement, shuffle
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+        from sage.groups.perm_gps.constructor import PermutationGroupElement
+        from sage.misc.prandom import shuffle
+
     cdef StabilizerChain *SC
     cdef StabilizerChain *SCC
     cdef StabilizerChain *SCCC

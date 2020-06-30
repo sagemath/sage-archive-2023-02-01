@@ -19,11 +19,9 @@ Frank Luebeck's tables of Conway polynomials over finite fields
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from six import itervalues, iteritems
-from six.moves import cPickle as pickle
-
 import collections
 import os
+import pickle
 
 from sage.env import CONWAY_POLYNOMIALS_DATA_DIR
 
@@ -168,7 +166,7 @@ class ConwayPolynomials(collections.Mapping):
             return self._len
         except AttributeError:
             pass
-        self._len = sum(len(a) for a in itervalues(self._store))
+        self._len = sum(len(a) for a in self._store.values())
         return self._len
 
     def __iter__(self):
@@ -179,12 +177,10 @@ class ConwayPolynomials(collections.Mapping):
 
             sage: c = ConwayPolynomials()
             sage: itr = iter(c)
-            sage: next(itr)
+            sage: next(itr)  # random
             (65537, 4)
-            sage: next(itr)
-            (2, 1)
         """
-        for a, b in iteritems(self._store):
+        for a, b in self._store.items():
             for c in b:
                 yield a, c
 
@@ -221,9 +217,9 @@ class ConwayPolynomials(collections.Mapping):
             RuntimeError: Conway polynomial over F_97 of degree 128 not in database.
         """
         try:
-            return self[p,n]
+            return self[p, n]
         except KeyError:
-            raise RuntimeError("Conway polynomial over F_%s of degree %s not in database."%(p,n))
+            raise RuntimeError("Conway polynomial over F_%s of degree %s not in database." % (p, n))
 
     def has_polynomial(self, p, n):
         """
@@ -277,7 +273,7 @@ class ConwayPolynomials(collections.Mapping):
         """
         if p not in self._store:
             return []
-        return self._store[p].keys()
+        return list(self._store[p])
 
     def __reduce__(self):
         """

@@ -14,7 +14,6 @@ Affine Crystals
 
 from sage.misc.abstract_method import abstract_method
 from sage.categories.loop_crystals import RegularLoopCrystals
-from sage.structure.element import parent
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
@@ -115,7 +114,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
             category = RegularLoopCrystals()
         self._cartan_type = cartan_type
         Parent.__init__(self, category = category)
-        self.classical_crystal = classical_crystal;
+        self.classical_crystal = classical_crystal
         self.module_generators = [self.retract(_) for _ in self.classical_crystal.module_generators]
         self.element_class._latex_ = lambda x: x.lift()._latex_()
 
@@ -123,8 +122,8 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-            sage: n=1
-            sage: C=crystals.Tableaux(['A',n],shape=[1])
+            sage: n = 1
+            sage: C = crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
             sage: crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1) # indirect doctest

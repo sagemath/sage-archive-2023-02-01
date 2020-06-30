@@ -71,10 +71,10 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 include 'sage/data_structures/bitset.pxi'
 
+from sage.structure.richcmp cimport rich_to_bool
 from .matroid cimport Matroid
 from .basis_exchange_matroid cimport BasisExchangeMatroid
 from .set_system cimport SetSystem
@@ -233,7 +233,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
                 for B in nonbases:
                     b = frozenset(B)
                     if len(b) != self._matroid_rank:
-                        raise ValueError("nonbasis has wrong cardinalty.")
+                        raise ValueError("nonbasis has wrong cardinality")
                     if not b.issubset(self._groundset):
                         raise ValueError("nonbasis is not a subset of the groundset")
                     self.__pack(self._b, b)
@@ -915,8 +915,12 @@ cdef class BasisMatroid(BasisExchangeMatroid):
                 bitset_add(b2, morph[j])
                 j = bitset_next(self._b, j + 1)
             if bitset_in((<BasisMatroid>other)._bb, set_to_index(b2)):
+                bitset_free(b2)
+                bitset_free(bb_comp)
                 return False
             i = bitset_next(bb_comp, i + 1)
+        bitset_free(b2)
+        bitset_free(bb_comp)
         return True
 
     cpdef _is_isomorphism(self, other, morphism):
@@ -1153,19 +1157,14 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             sage: M == N
             False
         """
-        if op not in (Py_EQ, Py_NE):
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
-        if not isinstance(left, BasisMatroid) or not isinstance(right, BasisMatroid):
+        if type(left) is not type(right):
             return NotImplemented
-        if op == Py_EQ:
-            res = True
-        if op == Py_NE:
-            res = False
-        # res gets inverted if matroids are deemed different.
         if left.equals(right):
-            return res
+            return rich_to_bool(op, 0)
         else:
-            return not res
+            return rich_to_bool(op, 1)
 
     def __copy__(self):
         """

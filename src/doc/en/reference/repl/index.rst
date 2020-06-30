@@ -79,15 +79,12 @@ Display Backend Infrastructure
    sage/repl/rich_output/backend_test
    sage/repl/rich_output/backend_doctest
    sage/repl/rich_output/backend_ipython
-   sage/repl/rich_output/backend_sagenb
 
 Miscellaneous
 -------------
 
 .. toctree::
    :maxdepth: 2
-
-   sage/repl/readline_extra_commands
 
    sage/repl/interpreter
    sage/repl/ipython_extension

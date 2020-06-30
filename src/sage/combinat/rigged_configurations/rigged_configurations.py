@@ -6,7 +6,7 @@ AUTHORS:
 - Travis Scrimshaw (2010-09-26): Initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010-2012 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -18,8 +18,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import itertools
 
@@ -39,9 +39,10 @@ from sage.combinat.rigged_configurations.rigged_configuration_element import (
      KRRCTypeA2DualElement)
 from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
 
+
 # Used in the KR crystals catalog so that there is a common interface
 def KirillovReshetikhinCrystal(cartan_type, r, s):
-    """
+    r"""
     Return the KR crystal `B^{r,s}` using
     :class:`rigged configurations <RiggedConfigurations>`.
 
@@ -64,8 +65,8 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
         sage: K1 is KirillovReshetikhinCrystal(['A',6,2], 2, 1)
         True
     """
-    from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
-    return RiggedConfigurations(cartan_type, [[r,s]])
+    return RiggedConfigurations(cartan_type, [[r, s]])
+
 
 # Note on implementation, this class is used for simply-laced types only
 class RiggedConfigurations(UniqueRepresentation, Parent):
@@ -79,8 +80,8 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
     .. MATH::
 
-        \sum_{\overline{I} \times \mathbb{Z}_{>0}} i m_i^{(a)} \alpha_a
-        = \sum_{\overline{I} \times \mathbb{Z}_{>0}} i L_i^{(a)} \Lambda_a
+        \sum_{\overline{I} \times \ZZ_{>0}} i m_i^{(a)} \alpha_a
+        = \sum_{\overline{I} \times \ZZ_{>0}} i L_i^{(a)} \Lambda_a
         - \Lambda
 
     where `\alpha_a` is a simple root, `\Lambda_a` is a fundamental weight,
@@ -137,7 +138,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
         All non-simply-laced rigged configurations have not been proven to
         give rise to aligned virtual crystals (i.e. have the correct crystal
-        structure or ismorphic as affine crystals to the tensor product of
+        structure or isomorphic as affine crystals to the tensor product of
         KR tableaux).
 
     INPUT:
@@ -387,9 +388,8 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         Parent.__init__(self, category=KirillovReshetikhinCrystals().TensorProducts())
 
     # add options to class
-    options=GlobalOptions('RiggedConfigurations',
-        module='sage.combinat.rigged_configurations.rigged_configurations',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Sets and displays the options for rigged configurations.
         If no parameters are set, then the function returns a copy of
         the options dictionary.
@@ -397,8 +397,9 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         The ``options`` to partitions can be accessed as the method
         :obj:`RiggedConfigurations.options` of
         :class:`RiggedConfigurations`.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
+
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A',3,1], [[2,2],[1,1],[1,1]])
@@ -432,21 +433,22 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
               1  2  3
               4  5
             sage: RiggedConfigurations.options._reset()
-        """,
-        display=dict(default="vertical",
+        """
+        NAME = 'RiggedConfigurations'
+        module = 'sage.combinat.rigged_configurations.rigged_configurations'
+        display = dict(default="vertical",
                      description='Specifies how rigged configurations should be printed',
                      values=dict(vertical='displayed vertically',
                                  horizontal='displayed horizontally'),
-                     case_sensitive=False),
-        element_ascii_art=dict(default=True,
+                     case_sensitive=False)
+        element_ascii_art = dict(default=True,
                          description='display using the repr option ``element_ascii_art``',
-                         checker=lambda x: isinstance(x, bool)),
-        half_width_boxes_type_B=dict(default=True,
+                         checker=lambda x: isinstance(x, bool))
+        half_width_boxes_type_B = dict(default=True,
                 description='display the last rigged partition in affine type B as half width boxes',
-                checker=lambda x: isinstance(x, bool)),
-        convention=dict(link_to=(tableau.Tableaux.options,'convention')),
+                checker=lambda x: isinstance(x, bool))
+        convention = dict(link_to=(tableau.Tableaux.options,'convention'))
         notation = dict(alt_name='convention')
-    )
 
     def _repr_(self):
         """
@@ -676,7 +678,6 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
             sage: ascii_art(RC.classically_highest_weight_vectors())
-            (                    )
             ( (/)  (/)  (/)  (/) )
         """
         return self.module_generators
@@ -793,9 +794,9 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         """
         vac_num = 0
         if "B" in options:
-            for tableau in options["B"]:
-                if len(tableau) == self._rc_index[a]:
-                    vac_num += min(i, len(tableau[0]))
+            for tab in options["B"]:
+                if len(tab) == self._rc_index[a]:
+                    vac_num += min(i, len(tab[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
@@ -810,8 +811,12 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
                 if dim[0] == self._rc_index[a]:
                     vac_num += min(dim[1], i)
 
-        for b in range(self._cartan_matrix.ncols()):
-            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i)
+        if i == float('inf'):
+            vac_num -= sum(self._cartan_matrix[a,b] * sum(nu)
+                           for b,nu in enumerate(partitions))
+        else:
+            vac_num -= sum(self._cartan_matrix[a,b] * nu.get_num_cells_to_column(i)
+                           for b,nu in enumerate(partitions))
 
         return vac_num
 
@@ -861,9 +866,9 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
     def fermionic_formula(self, q=None, only_highest_weight=False, weight=None):
         r"""
-        Return the fermoinic formula associated to ``self``.
+        Return the fermionic formula associated to ``self``.
 
-        Given a set of rigged configurations `RC(\lambda, L)`, the fermonic
+        Given a set of rigged configurations `RC(\lambda, L)`, the fermionic
         formula is defined as:
 
         .. MATH::
@@ -1129,9 +1134,9 @@ class RCNonSimplyLaced(RiggedConfigurations):
         """
         vac_num = 0
         if "B" in options:
-            for tableau in options["B"]:
-                if len(tableau) == self._rc_index[a]:
-                    vac_num += min(i, len(tableau[0]))
+            for tab in options["B"]:
+                if len(tab) == self._rc_index[a]:
+                    vac_num += min(i, len(tab[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
@@ -1146,11 +1151,15 @@ class RCNonSimplyLaced(RiggedConfigurations):
                 if dim[0] == self._rc_index[a]:
                     vac_num += min(dim[1], i)
 
-        gamma = self._folded_ct.scaling_factors()
-        for b in range(self._cartan_matrix.ncols()):
-            vac_num -= (self._cartan_matrix[a,b]
-                        * partitions[b].get_num_cells_to_column(gamma[a+1]*i, gamma[b+1])
-                        // gamma[b+1])
+        if i == float('inf'):
+            vac_num -= sum(self._cartan_matrix[a,b] * sum(nu)
+                           for b,nu in enumerate(partitions))
+        else:
+            gamma = self._folded_ct.scaling_factors()
+            vac_num -= sum(self._cartan_matrix[a,b]
+                           * nu.get_num_cells_to_column(gamma[a+1]*i, gamma[b+1])
+                           // gamma[b+1]
+                           for b,nu in enumerate(partitions))
 
         return vac_num
 
@@ -1340,7 +1349,7 @@ class RCNonSimplyLaced(RiggedConfigurations):
 
     def from_virtual(self, vrc):
         """
-        Convert ``vrc`` in the virtual crystal into a rigged configution of
+        Convert ``vrc`` in the virtual crystal into a rigged configuration of
         the original Cartan type.
 
         INPUT:
@@ -1474,9 +1483,9 @@ class RCTypeA2Even(RCNonSimplyLaced):
         """
         vac_num = 0
         if "B" in options:
-            for tableau in options["B"]:
-                if len(tableau) == self._rc_index[a]:
-                    vac_num += min(i, len(tableau[0]))
+            for tab in options["B"]:
+                if len(tab) == self._rc_index[a]:
+                    vac_num += min(i, len(tab[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
@@ -1492,8 +1501,12 @@ class RCTypeA2Even(RCNonSimplyLaced):
                     vac_num += min(dim[1], i)
 
         gamma = self._folded_ct.scaling_factors()
-        for b in range(self._cartan_matrix.ncols()):
-            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i) // gamma[b+1]
+        if i == float('inf'):
+            vac_num -= sum(self._cartan_matrix[a,b] * sum(nu) // gamma[b+1]
+                           for b, nu in enumerate(partitions))
+        else:
+            vac_num -= sum(self._cartan_matrix[a,b] * nu.get_num_cells_to_column(i) // gamma[b+1]
+                           for b, nu in enumerate(partitions))
 
         return vac_num
 
@@ -1540,7 +1553,7 @@ class RCTypeA2Even(RCNonSimplyLaced):
 
     def from_virtual(self, vrc):
         """
-        Convert ``vrc`` in the virtual crystal into a rigged configution of
+        Convert ``vrc`` in the virtual crystal into a rigged configuration of
         the original Cartan type.
 
         INPUT:
@@ -1623,9 +1636,9 @@ class RCTypeA2Dual(RCTypeA2Even):
 
         vac_num = 0
         if "B" in options:
-            for tableau in options["B"]:
-                if len(tableau) == self._rc_index[a]:
-                    vac_num += min(i, len(tableau[0]))
+            for tab in options["B"]:
+                if len(tab) == self._rc_index[a]:
+                    vac_num += min(i, len(tab[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
@@ -1640,8 +1653,12 @@ class RCTypeA2Dual(RCTypeA2Even):
                 if dim[0] == self._rc_index[a]:
                     vac_num += min(dim[1], i)
 
-        for b in range(self._cartan_matrix.ncols()):
-            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i) / 2
+        if i == float('inf'):
+            vac_num -= sum(self._cartan_matrix[a,b] * sum(nu) / 2
+                           for b,nu in enumerate(partitions))
+        else:
+            vac_num -= sum(self._cartan_matrix[a,b] * nu.get_num_cells_to_column(i) / 2
+                           for b,nu in enumerate(partitions))
 
         return vac_num
 
@@ -1859,7 +1876,7 @@ class RCTypeA2Dual(RCTypeA2Even):
 
     def from_virtual(self, vrc):
         """
-        Convert ``vrc`` in the virtual crystal into a rigged configution of
+        Convert ``vrc`` in the virtual crystal into a rigged configuration of
         the original Cartan type.
 
         INPUT:
@@ -1894,8 +1911,3 @@ class RCTypeA2Dual(RCTypeA2Even):
         return self.element_class(self, partitions)
 
     Element = KRRCTypeA2DualElement
-
-# deprecations from trac:18555
-from sage.misc.superseded import deprecated_function_alias
-RiggedConfigurations.global_options=deprecated_function_alias(18555, RiggedConfigurations.options)
-RiggedConfigurationOptions = deprecated_function_alias(18555, RiggedConfigurations.options)

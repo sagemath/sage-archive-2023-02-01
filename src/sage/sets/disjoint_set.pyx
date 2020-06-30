@@ -48,15 +48,15 @@ Disjoint set of hashables objects::
     'a'
 """
 
-#*****************************************************************************
-#       Copyright (C) 2009 Sebastien Labbe <slabqc at gmail.com>
+# ****************************************************************************
+#       Copyright (C) 2009 Sébastien Labbé <slabqc at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.integer import Integer
 from sage.structure.sage_object cimport SageObject
@@ -190,7 +190,7 @@ cdef class DisjointSet_class(SageObject):
             sage: sorted(d)
             [['a'], ['b'], ['c']]
         """
-        return (<dict?>self.root_to_elements_dict()).itervalues()
+        return iter((<dict?>self.root_to_elements_dict()).itervalues())
 
     def __richcmp__(self, other, int op):
         r"""
@@ -528,14 +528,14 @@ cdef class DisjointSet_of_integers(DisjointSet_class):
         EXAMPLES::
 
             sage: d = DisjointSet(5)
-            sage: d.root_to_elements_dict()
-            {0: [0], 1: [1], 2: [2], 3: [3], 4: [4]}
+            sage: sorted(d.root_to_elements_dict().items())
+            [(0, [0]), (1, [1]), (2, [2]), (3, [3]), (4, [4])]
             sage: d.union(2,3)
-            sage: d.root_to_elements_dict()
-            {0: [0], 1: [1], 2: [2, 3], 4: [4]}
+            sage: sorted(d.root_to_elements_dict().items())
+            [(0, [0]), (1, [1]), (2, [2, 3]), (4, [4])]
             sage: d.union(3,0)
-            sage: d.root_to_elements_dict()
-            {1: [1], 2: [0, 2, 3], 4: [4]}
+            sage: sorted(d.root_to_elements_dict().items())
+            [(1, [1]), (2, [0, 2, 3]), (4, [4])]
             sage: d
             {{0, 2, 3}, {1}, {4}}
         """
@@ -662,7 +662,7 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
 
     def __reduce__(self):
         r"""
-        Return a tuple of three elements :
+        Return a tuple of three elements:
 
         - The function :func:`DisjointSet`
         - Arguments for the function :func:`DisjointSet`
@@ -826,8 +826,9 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
             sage: d = DisjointSet(range(5))
             sage: d.union(2,3)
             sage: d.union(4,1)
-            sage: e = d.root_to_elements_dict(); e
-            {0: [0], 2: [2, 3], 4: [1, 4]}
+            sage: e = d.root_to_elements_dict()
+            sage: sorted(e.items())
+            [(0, [0]), (2, [2, 3]), (4, [1, 4])]
         """
         s = {}
         for e in self._int_to_el:
@@ -847,8 +848,9 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
             sage: d = DisjointSet(range(5))
             sage: d.union(2,3)
             sage: d.union(4,1)
-            sage: e = d.element_to_root_dict(); e
-            {0: 0, 1: 4, 2: 2, 3: 2, 4: 4}
+            sage: e = d.element_to_root_dict()
+            sage: sorted(e.items())
+            [(0, 0), (1, 4), (2, 2), (3, 2), (4, 4)]
             sage: WordMorphism(e)
             WordMorphism: 0->0, 1->4, 2->2, 3->2, 4->4
         """

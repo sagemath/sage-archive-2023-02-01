@@ -68,7 +68,7 @@ def _pyrand():
 
         sage: from sage.misc.prandom import _pyrand
         sage: _pyrand()
-        <random.Random object at 0x...>
+        <...random.Random object at 0x...>
         sage: _pyrand().getrandbits(10)
         114L
     """
@@ -173,7 +173,6 @@ def sample(population, k):
 
         sage: sample(["Here", "I", "come", "to", "save", "the", "day"], 3)
         ['Here', 'to', 'day']
-        sage: from six.moves import range
         sage: sample(range(2^30), 7)
         [357009070, 558990255, 196187132, 752551188, 85926697, 954621491, 624802848]
     """

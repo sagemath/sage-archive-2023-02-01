@@ -24,10 +24,10 @@ it back to a polynomial::
     sage: f = (x^3 - sin(y)*x^2 - 5*x + 3); f
     x^3 - x^2*sin(y) - 5*x + 3
     sage: g = f.series(x, 4); g
-    3 + (-5)*x + (-sin(y))*x^2 + 1*x^3
+    3 + (-5)*x + (-sin(y))*x^2 + 1*x^3 + Order(x^4)
     sage: g.truncate()
     x^3 - x^2*sin(y) - 5*x + 3
-    sage: g = f.series(x==1, 4); g
+    sage: g = f.series(x==1, oo); g
     (-sin(y) - 1) + (-2*sin(y) - 2)*(x - 1) + (-sin(y) + 3)*(x - 1)^2 + 1*(x - 1)^3
     sage: h = g.truncate(); h
     (x - 1)^3 - (x - 1)^2*(sin(y) - 3) - 2*(x - 1)*(sin(y) + 1) - sin(y) - 1
@@ -88,7 +88,7 @@ TESTS:
 Check that :trac:`20088` is fixed::
 
     sage: ((1+x).series(x)^pi).series(x,3)
-    1 + (pi)*x + (-1/2*pi + 1/2*pi^2)*x^2 + Order(x^3)
+    1 + pi*x + (-1/2*pi + 1/2*pi^2)*x^2 + Order(x^3)
 
 Check that :trac:`14878` is fixed, this should take only microseconds::
 
@@ -115,15 +115,15 @@ Check that :trac:`22733` is fixed::
     (z)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Ralf Stephan <ralf@ark.in-berlin.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.libs.pynac.pynac cimport *
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
@@ -140,20 +140,6 @@ cdef class SymbolicSeries(Expression):
         """
         Expression.__init__(self, SR, 0)
         self._parent = SR
-
-    def is_series(self):
-        """
-        TESTS::
-
-            sage: ex = sin(x).series(x,5)
-            sage: ex.is_series()
-            doctest:...: DeprecationWarning: ex.is_series() is deprecated. Use isinstance(ex, sage.symbolic.series.SymbolicSeries) instead
-            See http://trac.sagemath.org/17659 for details.
-            True
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17659, "ex.is_series() is deprecated. Use isinstance(ex, sage.symbolic.series.SymbolicSeries) instead")
-        return True
 
     def is_terminating_series(self):
         """
@@ -281,7 +267,7 @@ cdef class SymbolicSeries(Expression):
         EXAMPLES::
 
             sage: ex=(gamma(1-x)).series(x,3); ex
-            1 + (euler_gamma)*x + (1/2*euler_gamma^2 + 1/12*pi^2)*x^2 + Order(x^3)
+            1 + euler_gamma*x + (1/2*euler_gamma^2 + 1/12*pi^2)*x^2 + Order(x^3)
             sage: g=ex.power_series(SR); g
             1 + euler_gamma*x + (1/2*euler_gamma^2 + 1/12*pi^2)*x^2 + O(x^3)
             sage: g.parent()

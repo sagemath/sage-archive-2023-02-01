@@ -26,7 +26,7 @@ Multivariate Polynomials
    :maxdepth: 2
 
    polynomial_rings_multivar
-   sage/rings/invariant_theory
+   invariant_theory
    polynomial_rings_toy_implementations
 
 Skew Polynomials
@@ -36,8 +36,8 @@ Skew Polynomials
    :maxdepth: 2
 
    sage/rings/polynomial/skew_polynomial_element
-   sage/rings/polynomial/skew_polynomial_ring_constructor
    sage/rings/polynomial/skew_polynomial_ring
+   sage/rings/polynomial/skew_polynomial_finite_order
 
 Rational Functions
 ------------------

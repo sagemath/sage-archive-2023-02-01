@@ -1,24 +1,30 @@
-Plane curves
-=========================
+Curves
+======
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/schemes/curves/constructor
+   sage/schemes/curves/curve
+   sage/schemes/curves/affine_curve
+   sage/schemes/curves/projective_curve
+   sage/schemes/curves/point
+   sage/schemes/curves/closed_point
+
+   sage/schemes/jacobians/abstract_jacobian
+
+Plane conics
+============
 
 .. toctree::
    :maxdepth: 2
-
-   sage/schemes/curves/constructor
-   sage/schemes/curves/affine_curve
-   sage/schemes/curves/projective_curve
-   sage/schemes/curves/curve
-   sage/schemes/curves/point
 
    sage/schemes/plane_conics/constructor
    sage/schemes/plane_conics/con_field
    sage/schemes/plane_conics/con_number_field
    sage/schemes/plane_conics/con_rational_field
    sage/schemes/plane_conics/con_finite_field
-   sage/schemes/plane_conics/con_prime_finite_field
    sage/schemes/plane_conics/con_rational_function_field
-
-   sage/schemes/jacobians/abstract_jacobian
 
 Plane quartics
 =========================
@@ -29,6 +35,13 @@ Plane quartics
    sage/schemes/plane_quartics/quartic_constructor
    sage/schemes/plane_quartics/quartic_generic
 
+Riemann surfaces
+================
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/schemes/riemann_surfaces/riemann_surface
 
 Elliptic curves
 =========================
@@ -65,6 +78,7 @@ Elliptic curves over number fields
 
    sage/schemes/elliptic_curves/ell_number_field
    sage/schemes/elliptic_curves/height
+   sage/schemes/elliptic_curves/saturation
 
    sage/schemes/elliptic_curves/ell_torsion
    sage/schemes/elliptic_curves/gal_reps
@@ -83,7 +97,6 @@ The following relate to elliptic curves over local nonarchimedean fields.
    sage/schemes/elliptic_curves/ell_local_data
    sage/schemes/elliptic_curves/kodaira_symbol
    sage/schemes/elliptic_curves/ell_tate_curve
-   sage/schemes/elliptic_curves/padics
 
 Analytic properties over `\CC`.
 
@@ -101,6 +114,7 @@ Modularity and `L`-series over `\QQ`.
 
    sage/schemes/elliptic_curves/modular_parametrization
    sage/schemes/elliptic_curves/ell_modular_symbols
+   sage/schemes/elliptic_curves/mod_sym_num
    sage/schemes/elliptic_curves/lseries_ell
    sage/schemes/elliptic_curves/heegner
    sage/schemes/elliptic_curves/padic_lseries
@@ -143,10 +157,7 @@ Hyperelliptic curves
    sage/schemes/hyperelliptic_curves/jacobian_homset
    sage/schemes/hyperelliptic_curves/jacobian_morphism
 
-   sage/schemes/hyperelliptic_curves/hyperelliptic_g2_generic
-   sage/schemes/hyperelliptic_curves/hyperelliptic_g2_finite_field
-   sage/schemes/hyperelliptic_curves/hyperelliptic_g2_padic_field
-   sage/schemes/hyperelliptic_curves/hyperelliptic_g2_rational_field
+   sage/schemes/hyperelliptic_curves/hyperelliptic_g2
    sage/schemes/hyperelliptic_curves/invariants
    sage/schemes/hyperelliptic_curves/kummer_surface
 

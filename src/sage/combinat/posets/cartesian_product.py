@@ -137,7 +137,7 @@ class CartesianProductPoset(CartesianProduct):
 
         EXAMPLES::
 
-            sage: P = Posets.ChainPoset(10)
+            sage: P = posets.ChainPoset(10)
             sage: def le_sum(left, right):
             ....:     return (sum(left) < sum(right) or
             ....:             sum(left) == sum(right) and left[0] <= right[0])

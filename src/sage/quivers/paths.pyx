@@ -2,7 +2,7 @@
 Quiver Paths
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2012    Jim Stark <jstarx@gmail.com>
 #                2013/14 Simon King <simon.king@uni-jena.de>
 #
@@ -15,10 +15,10 @@ Quiver Paths
 #  See the GNU General Public License for more details; the full text
 #  is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
+cimport cython
 from cysignals.signals cimport sig_check, sig_on, sig_off
 
 from sage.data_structures.bounded_integer_sequences cimport *
@@ -466,7 +466,7 @@ cdef class QuiverPath(MonoidElement):
         # return an iterator for _path as a list
         cdef mp_size_t i
         cdef tuple E = self._parent._sorted_edges
-        for i in range(0,self._path.length):
+        for i in range(self._path.length):
             yield E[biseq_getitem(self._path, i)]
 
     cpdef _mul_(self, other):
@@ -606,7 +606,7 @@ cdef class QuiverPath(MonoidElement):
         sig_on()
         i = biseq_startswith_tail(P._path, self._path, 0)
         sig_off()
-        if i==-1:
+        if i == <size_t>-1:
             return (None, None, None)
         return (self[:i], self[i:], P[self._path.length-i:])
 
@@ -615,9 +615,9 @@ cdef class QuiverPath(MonoidElement):
         Return a pair ``(a,b)`` of paths s.t. ``self==a*subpath*b``,
         or ``(None, None)`` if ``subpath`` is not a subpath of this path.
 
-        NOTE:
+        .. NOTE::
 
-        ``a`` is chosen of minimal length.
+            ``a`` is chosen of minimal length.
 
         EXAMPLES::
 
@@ -787,7 +787,9 @@ cdef class QuiverPath(MonoidElement):
             biseq_inititem(out._path, i, biseq_getitem(self._path, l-i))
         return out
 
-cpdef QuiverPath NewQuiverPath(Q, start, end, biseq_data):
+
+@cython.binding(True)
+def NewQuiverPath(Q, start, end, biseq_data):
     """
     Return a new quiver path for given defining data.
 
@@ -812,7 +814,7 @@ cpdef QuiverPath NewQuiverPath(Q, start, end, biseq_data):
         sage: loads(dumps(p)) == p   # indirect doctest
         True
         sage: p.__reduce__()
-        (<...NewQuiverPath>,
+        (<cyfunction NewQuiverPath at ...>,
          (Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices,
           1,
           3,

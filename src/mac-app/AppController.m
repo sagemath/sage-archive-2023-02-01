@@ -147,7 +147,7 @@
     // We have to run it through a shell so that the default arguments are parsed properly
     NSString *command = [NSString stringWithFormat:
                          @"'%@' --notebook=jupyter %@ 2>&1 | tee -a '%@' |"
-                         " grep --line-buffered -i 'ipython notebook is running at' |"
+                         " grep -i --line-buffered --context=1 'Notebook is running at' |"
                          " grep --line-buffered -o http://.*",
                          escSageBin,
                          // default args are ready to be

@@ -40,7 +40,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 cimport numpy
 import numpy
@@ -209,7 +208,7 @@ cdef class Vector_double_dense(FreeModuleElement):
                 try:
                     z = self._python_dtype(entries)
                 except TypeError:
-                    raise TypeError("cannot coerce entry to type %s"%self._python_dtype)
+                    raise TypeError("unable to convert {!r} to {}".format(entries, self._python_dtype))
                 if z != 0:
                     raise TypeError("entries must be a list or 0")
                 else:
@@ -468,12 +467,18 @@ cdef class Vector_double_dense(FreeModuleElement):
             else:
                 self._vector_numpy = scipy.fftpack.ifft(self._vector_numpy, overwrite_x = True)
         else:
+            try:
+                fft = scipy.fft.fft
+                ifft = scipy.fft.ifft
+            except AttributeError:
+                fft = scipy.fft
+                ifft = scipy.ifft
             V = CDF ** self._degree
             from .vector_complex_double_dense import Vector_complex_double_dense
             if direction == 'forward':
-                return Vector_complex_double_dense(V, scipy.fft(self._vector_numpy))
+                return Vector_complex_double_dense(V, fft(self._vector_numpy))
             else:
-                return Vector_complex_double_dense(V, scipy.ifft(self._vector_numpy))
+                return Vector_complex_double_dense(V, ifft(self._vector_numpy))
 
 
     cdef _replace_self_with_numpy(self, numpy.ndarray numpy_array):
@@ -807,13 +812,13 @@ cdef class Vector_double_dense(FreeModuleElement):
 
             sage: v = vector(CDF,4,range(4))
             sage: v.numpy()
-            array([ 0.+0.j,  1.+0.j,  2.+0.j,  3.+0.j])
+            array([0.+0.j, 1.+0.j, 2.+0.j, 3.+0.j])
             sage: v = vector(CDF,0)
             sage: v.numpy()
             array([], dtype=complex128)
             sage: v = vector(RDF,4,range(4))
             sage: v.numpy()
-            array([ 0.,  1.,  2.,  3.])
+            array([0., 1., 2., 3.])
             sage: v = vector(RDF,0)
             sage: v.numpy()
             array([], dtype=float64)
@@ -823,11 +828,11 @@ cdef class Vector_double_dense(FreeModuleElement):
             sage: import numpy
             sage: v = vector(CDF, 3, range(3))
             sage: v.numpy()
-            array([ 0.+0.j,  1.+0.j,  2.+0.j])
+            array([0.+0.j, 1.+0.j, 2.+0.j])
             sage: v.numpy(dtype=numpy.float64)
-            array([ 0.,  1.,  2.])
+            array([0., 1., 2.])
             sage: v.numpy(dtype=numpy.float32)
-            array([ 0.,  1.,  2.], dtype=float32)
+            array([0., 1., 2.], dtype=float32)
         """
         if dtype is None or dtype is self._vector_numpy.dtype:
             from copy import copy

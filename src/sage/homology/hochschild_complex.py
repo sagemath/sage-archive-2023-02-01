@@ -9,7 +9,7 @@ Hochschild Complexes
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ########################################################################
 
 from sage.misc.cachefunc import cached_method
@@ -22,7 +22,6 @@ from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.homology.chain_complex import ChainComplex, Chain_class
 
-from sage.misc.superseded import deprecated_function_alias
 
 class HochschildComplex(UniqueRepresentation, Parent):
     r"""
@@ -185,9 +184,7 @@ class HochschildComplex(UniqueRepresentation, Parent):
         """
         if d < 0:
             raise ValueError("only defined for non-negative degree")
-        return tensor([self._M] + [self._A]*d)
-
-    free_module = deprecated_function_alias(21386, module)
+        return tensor([self._M] + [self._A] * d)
 
     @cached_method
     def trivial_module(self):
@@ -349,7 +346,7 @@ class HochschildComplex(UniqueRepresentation, Parent):
         return cod.module_morphism(matrix=bdry.matrix().transpose(), codomain=dom)
 
     def homology(self, d):
-        """
+        r"""
         Return the ``d``-th homology group.
 
         EXAMPLES::
@@ -403,7 +400,7 @@ class HochschildComplex(UniqueRepresentation, Parent):
         return ker.quotient_module(im_retract)
 
     def cohomology(self, d):
-        """
+        r"""
         Return the ``d``-th cohomology group.
 
         EXAMPLES::
@@ -622,7 +619,7 @@ class HochschildComplex(UniqueRepresentation, Parent):
                 return 'Trivial chain'
 
             if n == 1:
-                deg, vec = self._vec.items()[0]
+                (deg, vec), = self._vec.items()
                 return 'Chain({0}: {1})'.format(deg, vec)
 
             return 'Chain with {0} nonzero terms over {1}'.format(n,
@@ -751,4 +748,3 @@ class HochschildComplex(UniqueRepresentation, Parent):
                 True
             """
             return richcmp(self._vec, other._vec, op)
-

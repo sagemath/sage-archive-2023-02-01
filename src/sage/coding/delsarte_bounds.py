@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 r"""
-Delsarte, a.k.a. Linear Programming (LP), upper bounds
+Delsarte (or linear programming) bounds
 
-This module provides LP upper bounds for the parameters of codes,
-introduced in [De1973]_.
+This module provides LP upper bounds for the parameters of codes, introduced in
+[De1973]_.
 
 The exact LP solver PPL is used by default, ensuring that no
 rounding/overflow problems occur.
 
 AUTHORS:
 
-- Dmitrii V. (Dima) Pasechnik (2012-10): initial implementation. Minor fixes (2015)
+- Dmitrii V. (Dima) Pasechnik (2012-10): initial implementation
+
+- Dmitrii V. (Dima) Pasechnik (2015): minor fixes
 
 REFERENCES:
 
@@ -27,8 +29,6 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, division
-from sage.misc.superseded import deprecation, deprecated_function_alias
-
 
 def krawtchouk(n, q, l, x, check=True):
     r"""
@@ -108,9 +108,6 @@ def krawtchouk(n, q, l, x, check=True):
         jth_term *= -q*(l-j+1)*(x-j+1)/((q-1)*j*(n-j+1))
         kraw += jth_term
     return kraw
-
-Krawtchouk = deprecated_function_alias(20908, krawtchouk)
-Kravchuk   = deprecated_function_alias(20908, krawtchouk)
 
 def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
     """
@@ -197,7 +194,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
        [1, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0]
 
     The bound on the size of the `F_2`-codes of length 24 and minimal distance
-    8, i.e. parameters of the extened binary Golay code::
+    8, i.e. parameters of the extended binary Golay code::
 
        sage: a,p,x = codes.bounds.delsarte_bound_hamming_space(24,8,2,return_data=True)
        sage: x
@@ -210,7 +207,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
        sage: codes.bounds.delsarte_bound_hamming_space(11,3,4)
        327680/3
 
-    An improvement of a known upper bound (150) from http://www.win.tue.nl/~aeb/codes/binary-1.html ::
+    An improvement of a known upper bound (150) from https://www.win.tue.nl/~aeb/codes/binary-1.html ::
 
        sage: a,p,x = codes.bounds.delsarte_bound_hamming_space(23,10,2,return_data=True,isinteger=True); x # long time
        148

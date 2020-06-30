@@ -5,18 +5,16 @@ View for the Download Commandline UI
 This module handles the main "sage-download-file" commandline utility.
 """
 
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016 Volker Braun <vbraun.name@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-import os
 import sys
 import logging
 log = logging.getLogger()
@@ -62,6 +60,10 @@ def make_parser():
         help='Timeout for network operations')
 
     parser.add_argument(
+        '--allow-upstream', action="store_true",
+        help='Whether to fall back to downloading from the upstream URL')
+
+    parser.add_argument(
         'url_or_tarball', type=str, nargs='?', default=None,
         help="""A http:// url or a tarball filename. In the latter case, the
         tarball is downloaded from the mirror network and its checksum
@@ -73,6 +75,10 @@ def make_parser():
         will be downloaded and the content written to stdout and a
         tarball will be saved under {SAGE_DISTFILES}""".format(SAGE_DISTFILES=SAGE_DISTFILES))
     
+    parser.add_argument(
+        '--no-check-certificate', action='store_true',
+        help='Do not check SSL certificates for https connections')
+
     return parser
 
 
@@ -86,6 +92,12 @@ def run():
         level = getattr(logging, args.log.upper())
         log.setLevel(level=level)
     log.debug('Commandline arguments: %s', args)
+    if args.no_check_certificate:
+        try:
+            import ssl
+            ssl._create_default_https_context = ssl._create_unverified_context
+        except ImportError:
+            pass
     app = Application(timeout=args.timeout, quiet=args.quiet)
     if (not args.print_fastest_mirror) and (args.url_or_tarball is None):
         parser.print_help()
@@ -97,7 +109,7 @@ def run():
     elif is_url(args.url_or_tarball):
         app.download_url(args.url_or_tarball, args.destination)
     else:
-        app.download_tarball(args.url_or_tarball, args.destination)
+        app.download_tarball(args.url_or_tarball, args.destination, args.allow_upstream)
 
 
 def format_error(message):
@@ -116,13 +128,12 @@ def format_error(message):
 def run_safe():
     try:
         run()
-    except StandardError as error:
+    except Exception as error:
         try:
             format_error(error)
         finally:
             sys.exit(1)
 
-                
         
 if __name__ == '__main__':
     run_safe()

@@ -22,20 +22,20 @@ REFERENCES:
 - Chap. 1 of [Lee2013]_
 
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.manifolds.chart import Chart, RealChart, CoordChange
 from sage.manifolds.differentiable.vectorframe import CoordFrame
+
 
 class DiffChart(Chart):
     r"""
@@ -55,23 +55,36 @@ class DiffChart(Chart):
 
     - ``domain`` -- open subset `U` on which the chart is defined
     - ``coordinates`` -- (default: '' (empty string)) single string defining
-      the coordinate symbols, with ' ' (whitespace) as a separator; each item
-      has at most two fields, separated by ':':
+      the coordinate symbols, with ``' '`` (whitespace) as a separator; each
+      item has at most three fields, separated by a colon (``:``):
 
-        1. The coordinate symbol (a letter or a few letters)
-        2. (optional) The LaTeX spelling of the coordinate; if not provided the
-           coordinate symbol given in the first field will be used.
+      1. the coordinate symbol (a letter or a few letters)
+      2. (optional) the period of the coordinate if the coordinate is
+         periodic; the period field must be written as ``period=T``, where
+         ``T`` is the period (see examples below)
+      3. (optional) the LaTeX spelling of the coordinate; if not provided the
+         coordinate symbol given in the first field will be used
 
-      If it contains any LaTeX expression, the string ``coordinates`` must be
-      declared with the prefix 'r' (for "raw") to allow for a proper treatment
-      of LaTeX's backslash character (see examples below).
-      If no LaTeX spelling is to be set for any coordinate, the argument
-      ``coordinates`` can be omitted when the shortcut operator ``<,>`` is
-      used via Sage preparser (see examples below)
+      The order of fields 2 and 3 does not matter and each of them can be
+      omitted. If it contains any LaTeX expression, the string ``coordinates``
+      must be declared with the prefix 'r' (for "raw") to allow for a proper
+      treatment of LaTeX's backslash character (see examples below).
+      If no period and no LaTeX spelling are to be set for any coordinate, the
+      argument ``coordinates`` can be omitted when the shortcut operator
+      ``<,>`` is used to declare the chart (see examples below).
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used).
+    - ``calc_method`` -- (default: ``None``) string defining the calculus
+      method for computations involving coordinates of the chart; must be
+      one of
+
+      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+      - ``'sympy'``: SymPy
+      - ``None``: the default of
+        :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
+        used
 
     EXAMPLES:
 
@@ -156,6 +169,14 @@ class DiffChart(Chart):
     it makes sure that the backslash character is treated as an ordinary
     character, to be passed to the LaTeX interpreter.
 
+    Periodic coordinates are declared through the keyword ``period=`` in the
+    coordinate field::
+
+        sage: N = Manifold(2, 'N', field='complex')
+        sage: XN.<Z1,Z2> = N.chart('Z1:period=1+2*I Z2')
+        sage: XN.periods()
+        {0: 2*I + 1}
+
     Coordinates are Sage symbolic variables (see
     :mod:`sage.symbolic.expression`)::
 
@@ -238,7 +259,7 @@ class DiffChart(Chart):
         on differentiable manifolds over `\RR`.
 
     """
-    def __init__(self, domain, coordinates='', names=None):
+    def __init__(self, domain, coordinates='', names=None, calc_method=None):
         r"""
         Construct a chart.
 
@@ -255,7 +276,8 @@ class DiffChart(Chart):
             sage: TestSuite(X).run()
 
         """
-        Chart.__init__(self, domain, coordinates=coordinates, names=names)
+        Chart.__init__(self, domain, coordinates=coordinates, names=names,
+                       calc_method=calc_method)
         # Construction of the coordinate frame associated to the chart:
         self._frame = CoordFrame(self)
         self._coframe = self._frame._coframe
@@ -548,6 +570,103 @@ class DiffChart(Chart):
                     dom._top_frames.remove(resu._frame)
         return self._dom_restrict[subset]
 
+    def symbolic_velocities(self, left='D', right=None):
+        r"""
+        Return a list of symbolic variables ready to be used by the
+        user as the derivatives of the coordinate functions with respect
+        to a curve parameter (i.e. the velocities along the curve).
+        It may actually serve to denote anything else than velocities,
+        with a name including the coordinate functions.
+        The choice of strings provided as 'left' and 'right' arguments
+        is not entirely free since it must comply with Python
+        prescriptions.
+
+        INPUT:
+
+        - ``left`` -- (default: ``D``) string to concatenate to the left
+          of each coordinate functions of the chart
+        - ``right`` -- (default: ``None``) string to concatenate to the
+          right of each coordinate functions of the chart
+
+        OUTPUT:
+
+        - a list of symbolic expressions with the desired names
+
+        EXAMPLES:
+
+        Symbolic derivatives of the Cartesian coordinates of the
+        3-dimensional Euclidean space::
+
+            sage: R3 = Manifold(3, 'R3', start_index=1)
+            sage: cart.<X,Y,Z> = R3.chart()
+            sage: D = cart.symbolic_velocities(); D
+            [DX, DY, DZ]
+            sage: D = cart.symbolic_velocities(left='d', right="/dt"); D
+            Traceback (most recent call last):
+            ...
+            ValueError: The name "dX/dt" is not a valid Python
+             identifier.
+            sage: D = cart.symbolic_velocities(left='d', right="_dt"); D
+            [dX_dt, dY_dt, dZ_dt]
+            sage: D = cart.symbolic_velocities(left='', right="'"); D
+            Traceback (most recent call last):
+            ...
+            ValueError: The name "X'" is not a valid Python
+             identifier.
+            sage: D = cart.symbolic_velocities(left='', right="_dot"); D
+            [X_dot, Y_dot, Z_dot]
+            sage: R.<t> = RealLine()
+            sage: canon_chart = R.default_chart()
+            sage: D = canon_chart.symbolic_velocities() ; D
+            [Dt]
+
+        """
+
+        from sage.symbolic.ring import var
+
+        # The case len(self[:]) = 1 is treated apart due to the
+        # following fact.
+        # In the case of several coordinates, the argument of 'var' (as
+        # implemented below after the case len(self[:]) = 1) is a list
+        # of strings of the form ['Dx1', 'Dx2', ...] and not a unique
+        # string of the form 'Dx1 Dx2 ...'.
+        # Although 'var' is supposed to accept both syntaxes, the first
+        # one causes an error when it contains only one argument, due to
+        # line 784 of sage/symbolic/ring.pyx :
+        # "return self.symbol(name, latex_name=formatted_latex_name, domain=domain)"
+        # In this line, the first argument 'name' of 'symbol' is a list
+        # and not a string if the argument of 'var' is a list of one
+        # string (of the type ['Dt']), which causes error in 'symbol'.
+        # This might be corrected.
+        if len(self[:]) == 1:
+            string_vel = left + format(self[:][0]) # will raise an error
+            # in case left is not a string
+            if right is not None:
+                string_vel += right # will raise an error in case right
+                # is not a string
+
+            # If the argument of 'var' contains only one word, for
+            # instance::
+            # var('Dt')
+            # then 'var' does not return a tuple containing one symbolic
+            # expression, but the symbolic expression itself.
+            # This is taken into account below in order to return a list
+            # containing one symbolic expression.
+            return [var(string_vel)]
+
+        list_strings_velocities = [left + format(coord_func)
+                                   for coord_func in self[:]] # will
+        # raise an error in case left is not a string
+
+        if right is not None:
+            list_strings_velocities = [str_vel + right for str_vel
+                                       in list_strings_velocities] # will
+            # raise an error in case right is not a string
+
+        return list(var(list_strings_velocities))
+
+
+
 #*****************************************************************************
 
 class RealDiffChart(DiffChart, RealChart):
@@ -568,33 +687,45 @@ class RealDiffChart(DiffChart, RealChart):
 
     - ``domain`` -- open subset `U` on which the chart is defined
     - ``coordinates`` -- (default: '' (empty string)) single string defining
-      the coordinate symbols and ranges, with ' ' (whitespace) as a separator;
-      each item has at most three fields, separated by ':':
+      the coordinate symbols, with ``' '`` (whitespace) as a separator; each
+      item has at most four fields, separated by a colon (``:``):
 
-        1. The coordinate symbol (a letter or a few letters)
-        2. (optional) The interval `I` defining the coordinate range: if not
-           provided, the coordinate is assumed to span all `\RR`; otherwise
-           `I` must be provided in the form ``(a,b)`` (or equivalently
-           ``]a,b[``). The bounds ``a`` and ``b`` can be ``+/-Infinity``,
-           ``Inf``, ``infinity``, ``inf`` or ``oo``.
-           For *singular* coordinates, non-open intervals such as ``[a,b]`` and
-           ``(a,b]`` (or equivalently ``]a,b]``) are allowed.
-           Note that the interval declaration must not contain any whitespace.
-        3. (optional) The LaTeX spelling of the coordinate; if not provided the
-           coordinate symbol given in the first field will be used.
+      1. the coordinate symbol (a letter or a few letters)
+      2. (optional) the interval `I` defining the coordinate range: if not
+         provided, the coordinate is assumed to span all `\RR`; otherwise
+         `I` must be provided in the form ``(a,b)`` (or equivalently
+         ``]a,b[``); the bounds ``a`` and ``b`` can be ``+/-Infinity``,
+         ``Inf``, ``infinity``, ``inf`` or ``oo``; for *singular*
+         coordinates, non-open intervals such as ``[a,b]`` and ``(a,b]``
+         (or equivalently ``]a,b]``) are allowed; note that the interval
+         declaration must not contain any whitespace
+      3. (optional) indicator of the periodic character of the coordinate,
+         either as ``period=T``, where ``T`` is the period, or as the keyword
+         ``periodic`` (the value of the period is then deduced from the
+         interval `I` declared in field 2; see examples below)
+      4. (optional) the LaTeX spelling of the coordinate; if not provided the
+         coordinate symbol given in the first field will be used
 
-      The order of the fields 2 and 3 does not matter and each of them can be
-      omitted.
-      If it contains any LaTeX expression, the string ``coordinates`` must be
-      declared with the prefix 'r' (for "raw") to allow for a proper treatment
-      of LaTeX backslash characters (see examples below).
-      If no interval range and no LaTeX spelling is to be set for any
-      coordinate, the argument ``coordinates`` can be omitted when the
-      shortcut operator ``<,>`` is used via Sage preparser (see examples below)
+      The order of fields 2 to 4 does not matter and each of them can be
+      omitted. If it contains any LaTeX expression, the string ``coordinates``
+      must be declared with the prefix 'r' (for "raw") to allow for a proper
+      treatment of LaTeX's backslash character (see examples below).
+      If interval range, no period and no LaTeX spelling are to be set for any
+      coordinate, the argument ``coordinates`` can be omitted when the shortcut
+      operator ``<,>`` is used to declare the chart (see examples below).
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used).
+    - ``calc_method`` -- (default: ``None``) string defining the calculus
+      method for computations involving coordinates of the chart; must be
+      one of
+
+      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+      - ``'sympy'``: SymPy
+      - ``None``: the default of
+        :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
+        used
 
     EXAMPLES:
 
@@ -709,16 +840,38 @@ class RealDiffChart(DiffChart, RealChart):
         sage: simplify(abs(x)) # no positive range has been declared for x
         abs(x)
 
-    Each constructed chart is automatically added to the manifold's user atlas::
+    A coordinate can be declared periodic by adding the keyword ``periodic``
+    to its range::
+
+        sage: V = M.open_subset('V')
+        sage: c_spher1.<r,th,ph1> = \
+        ....: V.chart(r'r:(0,+oo) th:(0,pi):\theta ph1:(0,2*pi):periodic:\phi_1')
+        sage: c_spher1.periods()
+        {3: 2*pi}
+        sage: c_spher1.coord_range()
+        r: (0, +oo); th: (0, pi); ph1: [0, 2*pi] (periodic)
+
+    It is equivalent to give the period as ``period=2*pi``, skipping the
+    coordinate range::
+
+        sage: c_spher2.<r,th,ph2> = \
+        ....: V.chart(r'r:(0,+oo) th:(0,pi):\theta ph2:period=2*pi:\phi_2')
+        sage: c_spher2.periods()
+        {3: 2*pi}
+        sage: c_spher2.coord_range()
+        r: (0, +oo); th: (0, pi); ph2: [0, 2*pi] (periodic)
+
+    Each constructed chart is automatically added to the manifold's
+    user atlas::
 
         sage: M.atlas()
-        [Chart (R^3, (x, y, z)), Chart (U, (r, th, ph))]
+        [Chart (R^3, (x, y, z)), Chart (U, (r, th, ph)),
+         Chart (V, (r, th, ph1)), Chart (V, (r, th, ph2))]
 
     and to the atlas of its domain::
 
         sage: U.atlas()
         [Chart (U, (r, th, ph))]
-
 
     Manifold subsets have a *default chart*, which, unless changed via the
     method
@@ -765,7 +918,9 @@ class RealDiffChart(DiffChart, RealChart):
         sage: U.atlas()
         [Chart (U, (r, th, ph)), Chart (U, (x, y, z))]
         sage: M.atlas()
-        [Chart (R^3, (x, y, z)), Chart (U, (r, th, ph)), Chart (U, (x, y, z))]
+        [Chart (R^3, (x, y, z)), Chart (U, (r, th, ph)),
+         Chart (V, (r, th, ph1)), Chart (V, (r, th, ph2)),
+         Chart (U, (x, y, z))]
         sage: c_cartU.valid_coordinates(-1,0,2)
         True
         sage: c_cartU.valid_coordinates(1,0,2)
@@ -791,7 +946,7 @@ class RealDiffChart(DiffChart, RealChart):
     :meth:`~sage.manifolds.chart.RealChart.plot`.
 
     """
-    def __init__(self, domain, coordinates='', names=None):
+    def __init__(self, domain, coordinates='', names=None, calc_method=None):
         r"""
         Construct a chart on a real differentiable manifold.
 
@@ -809,7 +964,8 @@ class RealDiffChart(DiffChart, RealChart):
             sage: TestSuite(X).run()
 
         """
-        RealChart.__init__(self, domain, coordinates=coordinates, names=names)
+        RealChart.__init__(self, domain, coordinates=coordinates, names=names,
+                           calc_method = calc_method)
         # Construction of the coordinate frame associated to the chart:
         self._frame = CoordFrame(self)
         self._coframe = self._frame._coframe
@@ -1015,7 +1171,7 @@ class DiffCoordChange(CoordChange):
 
         - Jacobian matrix `J`, the elements `J_{ij}` of which being
           coordinate functions
-          (cf. :class:`~sage.manifolds.coord_func.CoordFunction`)
+          (cf. :class:`~sage.manifolds.chart_func.ChartFunction`)
 
         EXAMPLES:
 
@@ -1032,7 +1188,7 @@ class DiffCoordChange(CoordChange):
         Each element of the Jacobian matrix is a coordinate function::
 
             sage: parent(X_to_Y.jacobian()[0,0])
-            Ring of coordinate functions on Chart (M, (x, y))
+            Ring of chart functions on Chart (M, (x, y))
 
         """
         return self._jacobian  # has been computed in __init__
@@ -1049,7 +1205,7 @@ class DiffCoordChange(CoordChange):
 
         - determinant of the Jacobian matrix `J` as a coordinate
           function
-          (cf. :class:`~sage.manifolds.coord_func.CoordFunction`)
+          (cf. :class:`~sage.manifolds.chart_func.ChartFunction`)
 
         EXAMPLES:
 
@@ -1067,7 +1223,7 @@ class DiffCoordChange(CoordChange):
         The Jacobian determinant is a coordinate function::
 
             sage: parent(X_to_Y.jacobian_det())
-            Ring of coordinate functions on Chart (M, (x, y))
+            Ring of chart functions on Chart (M, (x, y))
 
         """
         return self._transf.jacobian_det()

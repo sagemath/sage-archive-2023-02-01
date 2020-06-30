@@ -14,7 +14,7 @@ REFERENCES:
 - [AS1964]_ Abramowitz and Stegun: *Handbook of Mathematical Functions*
 - :wikipedia:`Exponential_integral`
 - Online Encyclopedia of Special Function: http://algo.inria.fr/esf/index.html
-- NIST Digital Library of Mathematical Functions: http://dlmf.nist.gov/
+- NIST Digital Library of Mathematical Functions: https://dlmf.nist.gov/
 - Maxima `special functions package`_
 - `mpmath library`_
 
@@ -51,6 +51,7 @@ from __future__ import division, print_function
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.structure.all import parent
+from sage.misc.latex import latex
 from sage.libs.mpmath import utils as mpmath_utils
 mpmath_utils_call = mpmath_utils.call # eliminate some overhead in _evalf_
 
@@ -157,7 +158,6 @@ class Function_exp_integral_e(BuiltinFunction):
 
         """
         BuiltinFunction.__init__(self, "exp_integral_e", nargs=2,
-                                 latex_name=r'exp_integral_e',
                                  conversions=dict(maxima='expintegral_e',
                                                   sympy='expint'))
 
@@ -222,6 +222,17 @@ class Function_exp_integral_e(BuiltinFunction):
         """
         import mpmath
         return mpmath_utils.call(mpmath.expint, n, z, parent=parent)
+
+    def _print_latex_(self, n, z):
+        r"""
+        Custom ``_print_latex_`` method.
+
+        EXAMPLES::
+
+            sage: latex(exp_integral_e(1, -x - 1))
+            E_{1}\left(-x - 1\right)
+        """
+        return r"E_{{{}}}\left({}\right)".format(latex(n), latex(z))
 
     def _derivative_(self, n, z, diff_param=None):
         """
@@ -310,7 +321,6 @@ class Function_exp_integral_e1(BuiltinFunction):
 
         """
         BuiltinFunction.__init__(self, "exp_integral_e1", nargs=1,
-                                 latex_name=r'exp_integral_e1',
                                  conversions=dict(maxima='expintegral_e1',
                                                   sympy='E1'))
 
@@ -327,9 +337,23 @@ class Function_exp_integral_e1(BuiltinFunction):
         import mpmath
         return mpmath_utils_call(mpmath.e1, z, parent=parent)
 
+
+    def _print_latex_(self, z):
+        r"""
+        Custom ``_print_latex_`` method.
+
+        EXAMPLES::
+
+            sage: latex(exp_integral_e1(2))
+            E_{1}\left(2\right)
+        """
+        return r"E_{{1}}\left({}\right)".format(latex(z))
+
     def _derivative_(self, z, diff_param=None):
         """
-        The derivative of `E_1(z)` is `-e^{-z}/z`. See [AS1964], 5.1.26.
+        The derivative of `E_1(z)` is `-e^{-z}/z`.
+
+        See [AS1964]_ 5.1.26.
 
         EXAMPLES::
 
@@ -395,7 +419,7 @@ class Function_log_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Logarithmic_integral_function
+    - :wikipedia:`Logarithmic_integral_function`
     - mpmath documentation: `logarithmic-integral`_
 
     .. _`logarithmic-integral`: http://mpmath.org/doc/current/functions/expintegrals.html#logarithmic-integral
@@ -403,7 +427,7 @@ class Function_log_integral(BuiltinFunction):
 
     """
     def __init__(self):
-        """
+        r"""
         See the docstring for ``Function_log_integral``.
 
         EXAMPLES::
@@ -412,10 +436,18 @@ class Function_log_integral(BuiltinFunction):
             log_integral(3)
             sage: log_integral(x)._sympy_()
             li(x)
+            sage: log_integral(x)._fricas_init_()
+            'li(x)'
 
+        TESTS:
+
+        Verify that :trac:`28917` is fixed::
+
+            sage: latex(log_integral(x))
+            \operatorname{log\_integral}\left(x\right)
         """
         BuiltinFunction.__init__(self, "log_integral", nargs=1,
-                                 latex_name=r'log_integral',
+                                 latex_name=r'\operatorname{log\_integral}',
                                  conversions=dict(maxima='expintegral_li',
                                                   sympy='li',
                                                   fricas='li'))
@@ -583,15 +615,15 @@ class Function_log_integral_offset(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Logarithmic_integral_function
+    - :wikipedia:`Logarithmic_integral_function`
     - mpmath documentation: `logarithmic-integral`_
 
     .. _`logarithmic-integral`: http://mpmath.org/doc/current/functions/expintegrals.html#logarithmic-integral
     """
 
     def __init__(self):
-        """
-        See the docstring for ``Function_log_integral-offset``.
+        r"""
+        See the docstring for ``Function_log_integral_offset``.
 
         EXAMPLES::
 
@@ -600,9 +632,16 @@ class Function_log_integral_offset(BuiltinFunction):
             sage: log_integral_offset(x, hold=True)._sympy_()
             Li(x)
 
+        TESTS:
+
+        Verify that the problem described in :trac:`28917` no longer appears here::
+
+            sage: latex(log_integral_offset)
+            \operatorname{log\_integral\_offset}
+
         """
         BuiltinFunction.__init__(self, "log_integral_offset", nargs=1,
-                                 latex_name=r'log_integral_offset',
+                                 latex_name=r'\operatorname{log\_integral\_offset}',
                                  conversions=dict(sympy='Li'))
 
     def _eval_(self,z):
@@ -641,7 +680,7 @@ class Function_log_integral_offset(BuiltinFunction):
         return mpmath_utils_call(mpmath.li, z, offset=True, parent=parent)
 
     def _derivative_(self, z, diff_param=None):
-        """
+        r"""
         The derivative of `\operatorname{Li}(z) is `1/log(z)`.
 
         EXAMPLES::
@@ -654,7 +693,6 @@ class Function_log_integral_offset(BuiltinFunction):
             sage: f = log_integral_offset(x^2)
             sage: f.diff(x)
             2*x/log(x^2)
-
         """
         return 1/log(z)
 
@@ -754,7 +792,7 @@ class Function_sin_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `si`_
 
     .. _`si`: http://mpmath.org/doc/current/functions/expintegrals.html#si
@@ -770,13 +808,16 @@ class Function_sin_integral(BuiltinFunction):
             sin_integral(1)
             sage: sin_integral(x)._sympy_()
             Si(x)
-
+            sage: sin_integral(x)._fricas_init_()
+            'Si(x)'
+            sage: sin_integral(x)._giac_()
+            Si(x)
         """
         BuiltinFunction.__init__(self, "sin_integral", nargs=1,
                                  latex_name=r'\operatorname{Si}',
                                  conversions=dict(maxima='expintegral_si',
                                                   sympy='Si',
-                                                  fricas='Si'))
+                                                  fricas='Si', giac='Si'))
 
     def _eval_(self, z):
         """
@@ -798,7 +839,7 @@ class Function_sin_integral(BuiltinFunction):
             return z
 
     def _evalf_(self, z, parent=None, algorithm=None):
-        """
+        r"""
         EXAMPLES:
 
         The limit `\operatorname{Si}(z)` as `z \to \infty`  is `\pi/2`::
@@ -823,7 +864,6 @@ class Function_sin_integral(BuiltinFunction):
             -1.60541297680269
             sage: sin_integral(-1e23)
             -1.57079632679490
-
         """
         import mpmath
         return mpmath_utils_call(mpmath.si, z, parent=parent)
@@ -887,7 +927,8 @@ class Function_cos_integral(BuiltinFunction):
     Compare ``cos_integral(3.0)`` to the definition of the value using
     numerical integration::
 
-        sage: N(euler_gamma + log(3.0) + integrate((cos(x)-1)/x, x, 0, 3.0) - cos_integral(3.0)) < 1e-14
+        sage: a = numerical_integral((cos(x)-1)/x, 0, 3)[0]
+        sage: abs(N(euler_gamma + log(3)) + a - N(cos_integral(3.0))) < 1e-14
         True
 
     Arbitrary precision and complex arguments are handled::
@@ -927,7 +968,7 @@ class Function_cos_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `ci`_
 
     .. _`ci`: http://mpmath.org/doc/current/functions/expintegrals.html#ci
@@ -943,13 +984,16 @@ class Function_cos_integral(BuiltinFunction):
             cos_integral(1)
             sage: cos_integral(x)._sympy_()
             Ci(x)
-
+            sage: cos_integral(x)._fricas_init_()
+            'Ci(x)'
+            sage: cos_integral(x)._giac_()
+            Ci(x)
         """
         BuiltinFunction.__init__(self, "cos_integral", nargs=1,
                                  latex_name=r'\operatorname{Ci}',
                                  conversions=dict(maxima='expintegral_ci',
                                                   sympy='Ci',
-                                                  fricas='Ci'))
+                                                  fricas='Ci', giac='Ci'))
 
     def _evalf_(self, z, parent=None, algorithm=None):
         """
@@ -1016,7 +1060,8 @@ class Function_sinh_integral(BuiltinFunction):
     Compare ``sinh_integral(3.0)`` to the definition of the value using
     numerical integration::
 
-        sage: N(integrate((sinh(x))/x, x, 0, 3.0) - sinh_integral(3.0)) < 1e-14
+        sage: a = numerical_integral(sinh(x)/x, 0, 3)[0]
+        sage: abs(a - N(sinh_integral(3))) < 1e-14
         True
 
     Arbitrary precision and complex arguments are handled::
@@ -1060,7 +1105,7 @@ class Function_sinh_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `shi`_
 
     .. _`shi`: http://mpmath.org/doc/current/functions/expintegrals.html#shi
@@ -1130,7 +1175,7 @@ class Function_sinh_integral(BuiltinFunction):
 
             sage: f = sinh_integral(ln(x))
             sage: f.diff(x)
-            sinh(log(x))/(x*log(x))
+            1/2*(x^2 - 1)/(x^2*log(x))
 
         """
         return sinh(z)/z
@@ -1170,13 +1215,13 @@ class Function_cosh_integral(BuiltinFunction):
 
         sage: f(x) = cosh_integral(x)
         sage: find_root(f, 0.1, 1.0)
-        0.523822571389482...
+        0.523822571389...
 
     Compare ``cosh_integral(3.0)`` to the definition of the value using
     numerical integration::
 
-        sage: N(euler_gamma + log(3.0) + integrate((cosh(x)-1)/x, x, 0, 3.0) -
-        ....:   cosh_integral(3.0)) < 1e-14
+        sage: a = numerical_integral((cosh(x)-1)/x, 0, 3)[0]
+        sage: abs(N(euler_gamma + log(3)) + a - N(cosh_integral(3.0))) < 1e-14
         True
 
     Arbitrary precision and complex arguments are handled::
@@ -1208,7 +1253,7 @@ class Function_cosh_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `chi`_
 
     .. _`chi`: http://mpmath.org/doc/current/functions/expintegrals.html#chi
@@ -1246,7 +1291,7 @@ class Function_cosh_integral(BuiltinFunction):
         return mpmath_utils_call(mpmath.chi, z, parent=parent)
 
     def _derivative_(self, z, diff_param=None):
-        """
+        r"""
         The derivative of `\operatorname{Chi}(z)` is `\cosh(z)/z`.
 
         EXAMPLES::
@@ -1258,7 +1303,7 @@ class Function_cosh_integral(BuiltinFunction):
 
             sage: f = cosh_integral(ln(x))
             sage: f.diff(x)
-            cosh(log(x))/(x*log(x))
+            1/2*(x^2 + 1)/(x^2*log(x))
 
         """
         return cosh(z)/z
@@ -1315,7 +1360,7 @@ class Function_exp_integral(BuiltinFunction):
 
         sage: Ei(RealField(300)(1.1))
         2.16737827956340282358378734233807621497112737591639704719499002090327541763352339357795426
-        
+
     ALGORITHM: Uses mpmath.
 
     TESTS:

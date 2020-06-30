@@ -118,9 +118,27 @@ class WeylGroups(Category_singleton):
 
                 sage: W = WeylGroup(['B',3])
                 sage: PF = W.pieri_factors()
-                sage: [w.reduced_word() for w in PF]
-                [[1, 2, 3, 2, 1], [1, 2, 3, 2], [2, 3, 2], [2, 3], [3, 1, 2, 1], [1, 2, 1], [2], [1, 2], [1], [], [2, 1], [3, 2, 1], [3, 1], [2, 3, 2, 1], [3], [3, 2], [1, 2, 3], [1, 2, 3, 1], [3, 1, 2], [2, 3, 1]]
-
+                sage: sorted([w.reduced_word() for w in PF])
+                [[],
+                 [1],
+                 [1, 2],
+                 [1, 2, 1],
+                 [1, 2, 3],
+                 [1, 2, 3, 1],
+                 [1, 2, 3, 2],
+                 [1, 2, 3, 2, 1],
+                 [2],
+                 [2, 1],
+                 [2, 3],
+                 [2, 3, 1],
+                 [2, 3, 2],
+                 [2, 3, 2, 1],
+                 [3],
+                 [3, 1],
+                 [3, 1, 2],
+                 [3, 1, 2, 1],
+                 [3, 2],
+                 [3, 2, 1]]
                 sage: W = WeylGroup(['C',4,1])
                 sage: PF = W.pieri_factors()
                 sage: W.from_reduced_word([3,2,0]) in PF
@@ -129,6 +147,7 @@ class WeylGroups(Category_singleton):
             # Do not remove this line which makes sure the pieri factor
             # code is properly inserted inside the Cartan Types
             import sage.combinat.root_system.pieri_factors
+            assert sage.combinat.root_system.pieri_factors
             ct = self.cartan_type()
             if hasattr(ct, "PieriFactors"):
                 return ct.PieriFactors(self, *args, **keywords)

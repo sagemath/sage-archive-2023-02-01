@@ -68,8 +68,9 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
             sage: BasesOfQSymOrNCSF(QSym).super_categories()
             [Category of realizations of Quasisymmetric functions over the Rational Field,
              Category of graded hopf algebras with basis over Rational Field,
-             Join of Category of realizations of hopf algebras over Rational Field and
-             Category of graded algebras over Rational Field]
+             Join of Category of realizations of hopf algebras over Rational Field
+              and Category of graded algebras over Rational Field
+              and Category of graded coalgebras over Rational Field]
         """
         R = self.base().base_ring()
         from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
@@ -494,7 +495,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
             - The result of skewing the element ``x`` by the Hopf algebra
               element ``y`` (either from the left or from the right, as
               determined by ``side``), written in the basis ``self``.
-              This uses coercion to a concreate realization (either the
+              This uses coercion to a concrete realization (either the
               complete basis of non-commutative symmetric functions or
               the monomial basis of the quasi-symmetric functions).
 

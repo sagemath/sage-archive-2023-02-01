@@ -24,7 +24,6 @@ method of univariate polynomial ring objects and the top-level
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 import sys
 
@@ -281,7 +280,7 @@ def cyclotomic_value(n, x):
         sage: a.pyobject()
         I
         sage: parent(_)
-        Number Field in I with defining polynomial x^2 + 1
+        Number Field in I with defining polynomial x^2 + 1 with I = 1*I
     """
     n = ZZ(n)
     if n < 3:

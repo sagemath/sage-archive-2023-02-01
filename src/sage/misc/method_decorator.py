@@ -18,10 +18,9 @@ class MethodDecorator(SageObject):
             ....:     @MethodDecorator
             ....:     def bar(self, x):
             ....:         return x**2
-            ....:
             sage: J = Foo()
             sage: J.bar
-            <class 'sage.misc.method_decorator.MethodDecorator'>
+            <sage.misc.method_decorator.MethodDecorator object at ...>
         """
         self.f = f
         if hasattr(f, "__doc__"):

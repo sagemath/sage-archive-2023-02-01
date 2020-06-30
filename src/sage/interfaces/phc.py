@@ -21,15 +21,15 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 import os
@@ -41,12 +41,13 @@ from sage.misc.all import tmp_filename
 from sage.rings.real_mpfr import RR
 from sage.rings.all import CC
 from sage.rings.integer import Integer
-from sage.plot.plot import line, point
+from sage.plot.line import line
+from sage.plot.point import point
 
 
 def get_solution_dicts(output_file_contents, input_ring, get_failures = True):
     """
-    Returns a list of dictionaries of variable:value (key:value)
+    Return a list of dictionaries of variable:value (key:value)
     pairs.  Only used internally; see the solution_dict function in
     the PHC_Object class definition for details.
 
@@ -82,7 +83,7 @@ def get_solution_dicts(output_file_contents, input_ring, get_failures = True):
         # sol_number = int(output_list[solution_line+1].split(' ')[0])
     for i in range(solution_line + 1,len(output_list)):
         if output_list[i].count('the solution for t') == 1:
-            if output_list[i-3].count('success') > 0 or get_failures == True:
+            if output_list[i-3].count('success') > 0 or get_failures:
                 temp_dict = {}
                 for j in range(1,var_number+1):
                     rawsplit = output_list[i+j].split(': ')[1].split(' ')
@@ -95,7 +96,7 @@ def get_solution_dicts(output_file_contents, input_ring, get_failures = True):
 
 def get_classified_solution_dicts(output_file_contents, input_ring, get_failures = True):
     """
-    Returns a dictionary of lists of dictionaries of variable:value (key:value)
+    Return a dictionary of lists of dictionaries of variable:value (key:value)
     pairs.  Only used internally; see the classified_solution_dict function in
     the PHC_Object class definition for details.
 
@@ -152,7 +153,7 @@ def get_classified_solution_dicts(output_file_contents, input_ring, get_failures
 
 def get_variable_list(output_file_contents):
     """
-    Returns the variables, as strings, in the order in which PHCpack has processed them.
+    Return the variables, as strings, in the order in which PHCpack has processed them.
 
     EXAMPLES::
 
@@ -250,14 +251,13 @@ class PHC_Object:
         start_data += str(sol_count) + ' ' + str(var_number) + '\n'
         start_data += jan_bar + sol_data
         if start_filename is not None:
-            start_file = open(start_filename, 'w')
-            start_file.write(start_data)
-            start_file.close()
+            with open(start_filename, 'w') as start_file:
+                start_file.write(start_data)
         return start_data
 
     def classified_solution_dicts(self):
         """
-        Returns a dictionary of lists of dictionaries of solutions.
+        Return a dictionary of lists of dictionaries of solutions.
         Its not as crazy as it sounds; the keys are the types of solutions as
         classified by phcpack: regular vs. singular, complex vs. real
 
@@ -289,7 +289,7 @@ class PHC_Object:
 
     def solution_dicts(self, get_failures = False):
         """
-        Returns a list of solutions in dictionary form: variable:value.
+        Return a list of solutions in dictionary form: variable:value.
 
         INPUT:
 
@@ -328,7 +328,7 @@ class PHC_Object:
 
     def solutions(self, get_failures = False):
         """
-        Returns a list of solutions in the ComplexField.
+        Return a list of solutions in the ComplexField.
 
         Use the variable_list function to get the order of variables used by
         PHCpack, which is usually different than the term order of the
@@ -367,7 +367,7 @@ class PHC_Object:
 
     def variable_list(self):
         """
-        Returns the variables, as strings, in the order in which
+        Return the variables, as strings, in the order in which
         PHCpack has processed them.
 
         EXAMPLES::
@@ -444,7 +444,8 @@ class PHC:
         input = self._input_file(polys)
         if verbose:
             print("Writing the input file to %s" % input_filename)
-        open(input_filename, 'w').write(input)
+        with open(input_filename, 'w') as file:
+            file.write(input)
 
         if verbose:
             print("The following file will be the input polynomial file to phc.")
@@ -547,8 +548,8 @@ class PHC:
         # regular expressions for matching certain output types
         var_cnt_regex = re.compile('^ +([0-9]+)')
         output_regex  = re.compile('^OUTPUT INFORMATION DURING')
-        t_regex       = re.compile('(^t +: +(-{0,1}[0-9]+\.[0-9]+E[-+][0-9]+) +(-{0,1}[0-9]+\.[0-9]+E[-+][0-9]+)$)', re.IGNORECASE)
-        sols_regex    = re.compile('(^ *(([a-z]|[0-9])+) +: +(-?[0-9]+\.[0-9]+E[-+][0-9]+) +(-?[0-9]+\.[0-9]+E[-+][0-9]+)$)', re.IGNORECASE)
+        t_regex       = re.compile(r'(^t +: +(-{0,1}[0-9]+\.[0-9]+E[-+][0-9]+) +(-{0,1}[0-9]+\.[0-9]+E[-+][0-9]+)$)', re.IGNORECASE)
+        sols_regex    = re.compile(r'(^ *(([a-z]|[0-9])+) +: +(-?[0-9]+\.[0-9]+E[-+][0-9]+) +(-?[0-9]+\.[0-9]+E[-+][0-9]+)$)', re.IGNORECASE)
         complete_regex= re.compile('^TIMING INFORMATION')
 
         breakfast = False
@@ -607,7 +608,7 @@ class PHC:
 
     def _path_track_file(self, start_filename_or_string, polys, input_ring, c_skew = 0.001, verbose = False):
         """
-        Returns the filename which contains path tracking output.
+        Return the filename which contains path tracking output.
 
         EXAMPLES::
 
@@ -625,9 +626,8 @@ class PHC:
         # Probably unnecessarily redundant from the start_from function
         if start_filename_or_string.find('THE SOLUTIONS') != -1:
             start_filename = tmp_filename()
-            start_file = open(start_filename, 'w')
-            start_file.write(start_filename_or_string)
-            start_file.close()
+            with open(start_filename, 'w') as start_file:
+                start_file.write(start_filename_or_string)
         elif os.path.exists(start_filename_or_string):
             start_filename = start_filename_or_string
         else:
@@ -759,7 +759,8 @@ class PHC:
         """
         output_filename = self._output_from_command_list(['phc -m','4','n','n','n'], polys, verbose = verbose)
 
-        out = open(output_filename).read()
+        with open(output_filename) as out:
+            out.read()
         # All done
         out_lines = out.split('\n')
         for a_line in out_lines:
@@ -813,9 +814,8 @@ class PHC:
 
         if start_filename_or_string.find('THE SOLUTIONS') != -1:
             start_filename = tmp_filename()
-            start_file = open(start_filename,'w')
-            start_file.write(start_filename_or_string)
-            start_file.close()
+            with open(start_filename, 'w') as start_file:
+                start_file.write(start_filename_or_string)
         elif os.path.exists(start_filename_or_string):
             start_filename = start_filename_or_string
         else:
@@ -825,7 +825,8 @@ class PHC:
         input = self._input_file(polys)
         if verbose:
             print("Writing the input file to %s" % input_filename)
-        open(input_filename, 'w').write(input)
+        with open(input_filename, 'w') as f:
+            f.write(input)
 
         if verbose:
             print("The following file will be the input polynomial file to phc.")
@@ -869,7 +870,8 @@ class PHC:
             raise RuntimeError("The output file does not exist; something went wrong running phc.")
 
         # Read the output produced by PHC
-        out = open(output_filename).read()
+        with open(output_filename) as f:
+            out = f.read()
 
         # Delete the temporary files
         os.unlink(output_filename)
@@ -880,7 +882,7 @@ class PHC:
 
     def blackbox(self, polys, input_ring, verbose = False):
         """
-        Returns as a string the result of running PHC with the given polynomials
+        Return as a string the result of running PHC with the given polynomials
         under blackbox mode (the '-b' option).
 
         INPUT:
@@ -913,7 +915,8 @@ class PHC:
         input = self._input_file(polys)
         if verbose:
             print("Writing the input file to %s" % input_filename)
-        open(input_filename, 'w').write(input)
+        with open(input_filename, 'w') as f:
+            f.write(input)
 
         if verbose:
             print("The following file will be the input polynomial file to phc.")
@@ -933,16 +936,19 @@ class PHC:
         if e:
             from sage.misc.sage_ostools import have_program
             if not have_program('phc'):
-                print(os.system('which phc') + '  PHC needs to be installed and in your path')
+                print(str(os.system('which phc')) + '  PHC needs to be installed and in your path')
                 raise RuntimeError
             # todo -- why? etc.
-            raise RuntimeError(open(log_filename).read() + "\nError running phc.")
+            with open(log_filename) as f:
+                msg = f.read()
+            raise RuntimeError(msg + "\nError running phc.")
 
         if not os.path.exists(output_filename):
             raise RuntimeError("The output file does not exist; something went wrong running phc.")
 
         # Read the output produced by PHC
-        out = open(output_filename).read()
+        with open(output_filename) as f:
+            out = f.read()
 
         # All done
         return PHC_Object(out, input_ring)
@@ -952,4 +958,3 @@ class PHC:
 
 # The unique phc interface instance.
 phc = PHC()
-

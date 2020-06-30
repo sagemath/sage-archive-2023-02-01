@@ -101,7 +101,7 @@ integers. So for example,
 ::
 
     sage: maple('(x^28-1)').factor( )           # optional - maple
-    (x-1)*(x^6+x^5+x^4+x^3+x^2+x+1)*(x+1)*(1-x+x^2-x^3+x^4-x^5+x^6)*(x^2+1)*(x^12-x^10+x^8-x^6+x^4-x^2+1)
+    (x-1)*(x^6+x^5+x^4+x^3+x^2+x+1)*(x+1)*(x^6-x^5+x^4-x^3+x^2-x+1)*(x^2+1)*(x^12-x^10+x^8-x^6+x^4-x^2+1)
 
 Another important feature of maple is its online help. We can
 access this through sage as well. After reading the description of
@@ -109,9 +109,7 @@ the command, you can press q to immediately get back to your
 original prompt.
 
 Incidentally you can always get into a maple console by the
-command
-
-::
+command ::
 
     sage: maple.console()          # not tested
     sage: !maple                   # not tested
@@ -232,10 +230,9 @@ loaded.
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #############################################################################
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 import os
 
@@ -247,8 +244,10 @@ from sage.env import DOT_SAGE
 from sage.misc.pager import pager
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
+from sage.structure.richcmp import rich_to_bool
 
-COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj'%DOT_SAGE
+
+COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj' % DOT_SAGE
 
 
 class Maple(ExtraTabCompletion, Expect):
@@ -359,9 +358,8 @@ class Maple(ExtraTabCompletion, Expect):
         ::
 
             sage: filename = tmp_filename()  # optional - maple
-            sage: f = open(filename, 'w')  # optional - maple
-            sage: _ = f.write('xx := 22;\n')  # optional - maple
-            sage: f.close()               # optional - maple
+            sage: with open(filename, 'w') as f:   # optional - maple
+            ....:     _ = f.write('xx := 22;\n')
             sage: maple.read(filename)    # optional - maple
             sage: maple.get('xx').strip() # optional - maple
             '22'
@@ -442,7 +440,7 @@ connection to a server running Maple; for hints, type
         return self._expect
 
     def console(self):
-        """
+        r"""
         Spawn a new Maple command-line session.
 
         EXAMPLES::
@@ -951,7 +949,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         """
         return int(maple.eval('StringTools:-Hash(convert(%s, string))'%self.name())[1:-1],16)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare equality between self and other, using maple.
 
@@ -1005,32 +1003,27 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         P = self.parent()
         if P.eval("evalb(%s %s %s)" % (self.name(), P._equality_symbol(),
                                        other.name())) == P._true_symbol():
-            return 0
+            return rich_to_bool(op, 0)
         # Maple does not allow comparing objects of different types and
         # it raises an error in this case.
         # We catch the error, and return True for <
         try:
             if P.eval("evalb(%s %s %s)" % (self.name(), P._lessthan_symbol(),
                                            other.name())) == P._true_symbol():
-                return -1
+                return rich_to_bool(op, -1)
         except RuntimeError as e:
             msg = str(e)
             if 'is not valid' in msg and 'to < or <=' in msg:
                 if (hash(str(self)) < hash(str(other))):
-                    return -1
+                    return rich_to_bool(op, -1)
                 else:
-                    return 1
+                    return rich_to_bool(op, 1)
             else:
                 raise RuntimeError(e)
         if P.eval("evalb(%s %s %s)" % (self.name(), P._greaterthan_symbol(),
                                        other.name())) == P._true_symbol():
-            return 1
-        # everything is supposed to be comparable in Python, so we define
-        # the comparison thus when no comparable in interfaced system.
-        if (hash(self) < hash(other)):
-            return -1
-        else:
-            return 1
+            return rich_to_bool(op, 1)
+        return NotImplemented
 
     def _mul_(self, right):
         """
@@ -1118,10 +1111,41 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: m.sage()                                          # optional - maple
             (cos(1/x) - 1)^2*sin(sqrt(-x^2 + 1))
 
+        Some matrices can be converted back::
+
+            sage: m = matrix(2, 2, [1, 2, x, 3])    # optional - maple
+            sage: mm = maple(m)                     # optional - maple
+            sage: mm.sage() == m                    # optional - maple
+            True
+
+        Some vectors can be converted back::
+
+            sage: m = vector([1, x, 2, 3])          # optional - maple
+            sage: mm = maple(m)                     # optional - maple
+            sage: mm.sage() == m                    # optional - maple
+            True
         """
+        from sage.matrix.constructor import matrix
+        from sage.modules.free_module_element import vector
+        from sage.rings.integer_ring import ZZ
+
         result = repr(self)
         # The next few lines are a very crude excuse for a maple "parser".
         result = result.replace("Pi", "pi")
+
+        if result[:6] == "Matrix":
+            content = result[7:-1]
+            m, n = content.split(',')[:2]
+            m = ZZ(m.strip())
+            n = ZZ(n.strip())
+            coeffs = [self[i + 1, j + 1].sage()
+                      for i in range(m) for j in range(n)]
+            return matrix(m, n, coeffs)
+        elif result[:6] == "Vector":
+            start = result.index('(')
+            content = result[start + 1:-1]
+            m = ZZ(content.split(',')[0].strip())
+            return vector([self[i + 1].sage() for i in range(m)])
 
         try:
             from sage.symbolic.all import SR
@@ -1146,7 +1170,7 @@ def reduce_load_Maple():
 
 
 def maple_console():
-    """
+    r"""
     Spawn a new Maple command-line session.
 
     EXAMPLES::

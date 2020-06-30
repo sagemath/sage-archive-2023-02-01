@@ -32,7 +32,7 @@ References:
    A survey of Kirkman triple systems and related designs,
    Volume 92, Issues 1-3, 17 November 1991, Pages 371-393,
    Discrete Mathematics,
-   http://dx.doi.org/10.1016/0012-365X(91)90294-C.
+   :doi:`10.1016/0012-365X(91)90294-C`
 
 .. [RCW71] \D. K. Ray-Chaudhuri, R. M. Wilson,
    Solution of Kirkman's schoolgirl problem,
@@ -48,7 +48,6 @@ Functions
 ---------
 """
 from __future__ import print_function, absolute_import, division
-from six.moves import range
 
 from sage.arith.all import is_prime_power
 from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -92,7 +91,7 @@ def resolvable_balanced_incomplete_block_design(v,k,existence=False):
 
         sage: for v in range(40):
         ....:     for k in range(v):
-        ....:         if designs.resolvable_balanced_incomplete_block_design(v,k,existence=True):
+        ....:         if designs.resolvable_balanced_incomplete_block_design(v,k,existence=True) is True:
         ....:             _ = designs.resolvable_balanced_incomplete_block_design(v,k)
     """
     # Trivial cases
@@ -348,11 +347,12 @@ def kirkman_triple_system(v,existence=False):
                                             k=3,
                                             lambd=1,
                                             check=True,
-                                            copy =False)
+                                            copy=False)
         KTS._classes = classes
         assert KTS.is_resolvable()
 
         return KTS
+
 
 def v_4_1_rbibd(v,existence=False):
     r"""
@@ -439,7 +439,7 @@ def PBD_4_7(v,check=True, existence=False):
 
         sage: from sage.combinat.designs.resolvable_bibd import PBD_4_7
         sage: PBD_4_7(22)
-        Pairwise Balanced Design on 22 points with sets of sizes in set([4, 7])
+        Pairwise Balanced Design on 22 points with sets of sizes in [4, 7]
 
     TESTS:
 
@@ -447,7 +447,7 @@ def PBD_4_7(v,check=True, existence=False):
 
         sage: for i in range(1,300,3):
         ....:     if i not in [10,19,31]:
-        ....:         assert PBD_4_7(i,existence=True)
+        ....:         assert PBD_4_7(i,existence=True) is True
         ....:         _ = PBD_4_7(i,check=True)
     """
     if v%3 != 1 or v in [10,19,31]:
@@ -622,7 +622,7 @@ def PBD_4_7(v,check=True, existence=False):
 
         return PBD_4_7_from_Y(GDD,check=check)
 
-    elif v % 6 == 1 and GDD_4_2((v - 1) // 6, existence=True):
+    elif v % 6 == 1 and GDD_4_2((v - 1) // 6, existence=True) is True:
         # VII.5.17 from [BJL99]
         gdd = GDD_4_2((v - 1) // 6)
         return PBD_4_7_from_Y(gdd, check=check)
@@ -633,9 +633,9 @@ def PBD_4_7(v,check=True, existence=False):
         PBD = PBD_4_7_from_Y(PBD,check=False)
         return PBD_4_7_from_Y(PBD,check=check)
 
-    elif balanced_incomplete_block_design(v,4,existence=True):
+    elif balanced_incomplete_block_design(v,4,existence=True) is True:
         return balanced_incomplete_block_design(v,4)
-    elif balanced_incomplete_block_design(v,7,existence=True):
+    elif balanced_incomplete_block_design(v,7,existence=True) is True:
         return balanced_incomplete_block_design(v,7)
     else:
         from sage.combinat.designs.orthogonal_arrays import orthogonal_array
@@ -650,9 +650,9 @@ def PBD_4_7(v,check=True, existence=False):
         vv = (v - 1) // 3
         for g in range((vv + 5 - 1) // 5, vv // 4 + 1):
             u = vv-4*g
-            if (orthogonal_array(5,g,existence=True) and
-                PBD_4_7(3*g+1,existence=True)        and
-                PBD_4_7(3*u+1,existence=True)):
+            if (orthogonal_array(5,g,existence=True) is True and
+                PBD_4_7(3*g+1,existence=True) is True and
+                PBD_4_7(3*u+1,existence=True) is True):
                 from .orthogonal_arrays import transversal_design
                 domain = set(range(vv))
                 GDD = transversal_design(5,g)
@@ -699,14 +699,14 @@ def PBD_4_7_from_Y(gdd,check=True):
 
         sage: from sage.combinat.designs.resolvable_bibd import PBD_4_7_from_Y
         sage: PBD_4_7_from_Y(designs.transversal_design(7,8))
-        Pairwise Balanced Design on 169 points with sets of sizes in set([4, 7])
+        Pairwise Balanced Design on 169 points with sets of sizes in [4, 7]
 
     TESTS::
 
         sage: PBD_4_7_from_Y(designs.balanced_incomplete_block_design(10,10))
         Traceback (most recent call last):
         ...
-        ValueError: The GDD should only contain blocks of size {4,5,7} but there are other: set([10])
+        ValueError: The GDD should only contain blocks of size {4,5,7} but there are other: [10]
         sage: PBD_4_7_from_Y(designs.transversal_design(4,3))
         Traceback (most recent call last):
         ...
@@ -716,12 +716,13 @@ def PBD_4_7_from_Y(gdd,check=True):
     from .bibd import PairwiseBalancedDesign
     block_sizes = set(map(len,gdd._blocks))
     group_sizes = set(map(len,gdd._groups))
-    if not block_sizes.issubset([4,5,7]):
+    if not block_sizes.issubset([4, 5, 7]):
+        txt = list(block_sizes.difference([4, 5, 7]))
         raise ValueError("The GDD should only contain blocks of size {{4,5,7}} "
-                         "but there are other: {}".format(block_sizes.difference([4,5,7])))
+                         "but there are other: {}".format(txt))
 
     for gs in group_sizes:
-        if not PBD_4_7(3*gs+1,existence=True):
+        if not PBD_4_7(3*gs+1,existence=True) is True:
             raise RuntimeError("A group has size {} but I do not know how to "
                                "build a ({},[4,7])-PBD".format(gs,3*gs+1))
 

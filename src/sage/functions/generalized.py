@@ -87,7 +87,7 @@ class FunctionDiracDelta(BuiltinFunction):
 
     REFERENCES:
 
-    -  http://en.wikipedia.org/wiki/Dirac_delta_function
+    - :wikipedia:`Dirac_delta_function`
 
     """
     def __init__(self):
@@ -316,7 +316,7 @@ class FunctionUnitStep(GinacFunction):
 
         -  ``x`` - a real number or a symbolic expression
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: unit_step(-1)
             0
@@ -391,21 +391,25 @@ class FunctionSignum(BuiltinFunction):
 
     TESTS:
 
-    Check if conversion to sympy works :trac:`11921`::
+    Check if conversions to sympy and others work (:trac:`11921`)::
 
         sage: sgn(x)._sympy_()
+        sign(x)
+        sage: sgn(x)._fricas_init_()
+        'sign(x)'
+        sage: sgn(x)._giac_()
         sign(x)
 
     REFERENCES:
 
-    -  http://en.wikipedia.org/wiki/Sign_function
+    - :wikipedia:`Sign_function`
 
     """
     def __init__(self):
         r"""
         The sgn function, ``sgn(x)``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: sgn(-1)
             -1
@@ -419,7 +423,8 @@ class FunctionSignum(BuiltinFunction):
             sign(x)
         """
         BuiltinFunction.__init__(self, "sgn", latex_name=r"\mathrm{sgn}",
-                conversions=dict(maxima='signum',mathematica='Sign',sympy='sign'),
+                conversions=dict(maxima='signum', mathematica='Sign',
+                                 sympy='sign', giac='sign', fricas='sign'),
                 alt_name="sign")
 
     def _eval_(self, x):
@@ -536,7 +541,7 @@ class FunctionKroneckerDelta(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Kronecker_delta
+    - :wikipedia:`Kronecker_delta`
 
     """
     def __init__(self):
@@ -629,7 +634,7 @@ class FunctionKroneckerDelta(BuiltinFunction):
         return 0
 
     def _print_latex_(self, m, n, **kwds):
-        """
+        r"""
         Return latex expression
 
         EXAMPLES::
@@ -638,9 +643,8 @@ class FunctionKroneckerDelta(BuiltinFunction):
             sage: m,n=var('m,n')
             sage: latex(kronecker_delta(m,n))
             \delta_{m,n}
-
         """
         from sage.misc.latex import latex
-        return "\\delta_{%s,%s}"%(latex(m), latex(n))
+        return r"\delta_{%s,%s}" % (latex(m), latex(n))
 
 kronecker_delta = FunctionKroneckerDelta()

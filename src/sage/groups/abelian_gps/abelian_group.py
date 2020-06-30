@@ -203,8 +203,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
-import six
 
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -218,7 +216,6 @@ from sage.misc.all import prod
 from sage.misc.mrange import mrange, cartesian_product_iterator
 from sage.groups.group import AbelianGroup as AbelianGroupBase
 from sage.categories.groups import Groups
-
 
 # TODO: this uses perm groups - the AbelianGroupElement instance method
 # uses a different implementation.
@@ -495,6 +492,8 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         sage: Z2xZ3 is Z6
         False
         sage: Z2xZ3 == Z6
+        False
+        sage: Z2xZ3.is_isomorphic(Z6)
         True
 
         sage: F = AbelianGroup(5,[5,5,7,8,9],names = list("abcde")); F
@@ -539,7 +538,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: A.category()
             Category of infinite commutative groups
         """
-        assert isinstance(names, (six.string_types, tuple))
+        assert isinstance(names, (str, tuple))
         assert isinstance(generator_orders, tuple)
         assert all(isinstance(order,Integer) for order in generator_orders)
         self._gens_orders = generator_orders
@@ -571,33 +570,10 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: G2 = AbelianGroup([2,3,4,5,1])
             sage: G1.is_isomorphic(G2)
             True
-            sage: G1 == G2    # syntactic sugar
-            True
         """
         if not is_AbelianGroup(right):
             return False
         return left.elementary_divisors() == right.elementary_divisors()
-
-    __eq__ = is_isomorphic
-
-    def __ne__(left, right):
-        """
-        Check whether ``left`` and ``right`` are not isomorphic
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: G1 = AbelianGroup([2,3,4,5])
-            sage: G2 = AbelianGroup([2,3,4,5,1])
-            sage: G1 != G2
-            False
-            sage: G1.__ne__(G2)
-            False
-        """
-        return not left.is_isomorphic(right)
 
     def is_subgroup(left, right):
         """
@@ -700,7 +676,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
     @cached_method
     def dual_group(self, names="X", base_ring=None):
         """
-        Returns the dual group.
+        Return the dual group.
 
         INPUT:
 
@@ -869,8 +845,40 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: F._latex_()
             '$\\mathrm{AbelianGroup}( 10, (2, 2, 2, 2, 2, 2, 2, 2, 2, 2) )$'
         """
-        s = "$\mathrm{AbelianGroup}( %s, %s )$"%(self.ngens(), self.gens_orders())
-        return s
+        return r"$\mathrm{AbelianGroup}( %s, %s )$" % (self.ngens(),
+                                                       self.gens_orders())
+
+    @cached_method
+    def _libgap_(self):
+        r"""
+        Return a GAP group corresponding to this group.
+
+        EXAMPLES::
+
+            sage: G = AbelianGroup([2,3,9])
+            sage: libgap(G)
+            <pc group of size 54 with 3 generators>
+
+        The result is cached::
+
+            sage: libgap(G) is libgap(G)
+            True
+
+        Requires the optional ``gap_packages`` for infinite groups::
+
+            sage: G = AbelianGroup(3, [0,3,4], names="abc")
+            sage: libgap(G)   # optional - gap_packages
+            Pcp-group with orders [ 0, 3, 4 ]
+        """
+        from sage.libs.gap.libgap import libgap
+
+        if self.is_finite():
+            return libgap.AbelianGroup(self.gens_orders())
+
+        # Make sure to LoadPackage("Polycyclic") in gap
+        from sage.features.gap import GapPackage
+        GapPackage("polycyclic", spkg="gap_packages").require()
+        return libgap.AbelianPcpGroup(self.gens_orders())
 
     def _gap_init_(self):
         r"""
@@ -884,22 +892,20 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: gap(G)
             Group( [ f1, f2, f3 ] )
 
-        Only works for finite groups::
+        Requires the optional ``gap_packages`` for infinite groups::
 
-            sage: G = AbelianGroup(3,[0,3,4],names="abc"); G
+            sage: G = AbelianGroup(3,[0,3,4], names="abc"); G
             Multiplicative Abelian group isomorphic to Z x C3 x C4
-            sage: G._gap_init_()
-            Traceback (most recent call last):
-            ...
-            TypeError: abelian groups in GAP are finite, but self is infinite
+            sage: G._gap_init_()   # optional - gap_packages
+            'AbelianPcpGroup([0, 3, 4])'
         """
-        # TODO: Use the package polycyclic has AbelianPcpGroup, which can handle
-        # the infinite case but it is a GAP package not GPL'd.
-        # Use this when the group is infinite...
-        # return 'AbelianPcpGroup(%s)'%list(self.invariants())
-        if not self.is_finite():
-            raise TypeError('abelian groups in GAP are finite, but self is infinite')
-        return 'AbelianGroup(%s)'%list(self.gens_orders())
+        if self.is_finite():
+            return 'AbelianGroup(%s)'%list(self.gens_orders())
+
+        from sage.features.gap import GapPackage
+        # Make sure to LoadPackage("Polycyclic") in gap
+        GapPackage("polycyclic", spkg="gap_packages").require()
+        return 'AbelianPcpGroup(%s)'%list(self.gens_orders())
 
     def gen(self, i=0):
         """
@@ -1127,7 +1133,20 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             Multiplicative Abelian group isomorphic to C2 x C3
             sage: G.permutation_group()
             Permutation Group with generators [(3,4,5), (1,2)]
+
+        TESTS:
+
+        Check that :trac:`25692` is fixed::
+
+            sage: G = AbelianGroup([0])
+            sage: G.permutation_group()
+            Traceback (most recent call last):
+            ...
+            TypeError: Abelian group must be finite
         """
+        # GAP does not support infinite permutation groups
+        if not self.is_finite():
+            raise TypeError('Abelian group must be finite')
         from sage.groups.perm_gps.permgroup import PermutationGroup
         s = 'Image(IsomorphismPermGroup(%s))'%self._gap_init_()
         return PermutationGroup(gap_group=s)
@@ -1296,7 +1315,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         r"""
         Compute all the subgroups of this abelian group (which must be finite).
 
-        TODO: This is *many orders of magnitude* slower than Magma.
+        .. TODO:: This is *many orders of magnitude* slower than Magma.
 
         INPUT:
 
@@ -1422,15 +1441,16 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         return self.subgroup([self([x[0][i] % self.gens_orders()[i]
                                     for i in range(d)]) for x in new_basis if x[1] != 1])
 
+
 class AbelianGroup_subgroup(AbelianGroup_class):
     """
     Subgroup subclass of AbelianGroup_class, so instance methods are
     inherited.
 
-    TODO:
+    .. TODO::
 
-    - There should be a way to coerce an element of a subgroup
-      into the ambient group.
+        There should be a way to coerce an element of a subgroup
+        into the ambient group.
     """
     def __init__(self, ambient, gens, names="f"):
         """

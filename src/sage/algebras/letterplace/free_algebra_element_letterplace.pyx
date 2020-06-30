@@ -1,21 +1,21 @@
-###############################################################################
-#
-#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-#
-###############################################################################
-
 """
-Weighted homogeneous elements of free algebras, in letterplace implementation.
+Weighted homogeneous elements of free algebras, in letterplace implementation
 
 AUTHOR:
 
 - Simon King (2011-03-23): Trac ticket :trac:`7797`
 
 """
-from __future__ import print_function
+
+# ****************************************************************************
+#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.libs.singular.function import lib, singular_function
 from sage.misc.misc import repr_lincomb
@@ -139,11 +139,11 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
             sage: F.<w,x,y,z> = FreeAlgebra(GF(3), implementation='letterplace')
             sage: p = x*y-z^2
-            sage: list(p)   # indirect doctest
+            sage: sorted(p)   # indirect doctest
             [((0, 0, 0, 1, 0, 0, 0, 1), 2), ((0, 1, 0, 0, 0, 0, 1, 0), 1)]
-
         """
-        return self._poly.dict().iteritems()
+        cdef dict d = self._poly.dict()
+        yield from d.iteritems()
 
     def _repr_(self):
         """
@@ -243,7 +243,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         cdef list L = []
         cdef FreeAlgebra_letterplace P = self._parent
         cdef int ngens = P.__ngens
-        from sage.all import latex
+        from sage.misc.latex import latex
         if P._base._repr_option('element_is_atomic'):
             for E,c in zip(self._poly.exponents(),self._poly.coefficients()):
                 monstr = P.exponents_to_latex(E)
@@ -651,11 +651,11 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         The twosided reduction of this element by the argument.
 
-        NOTE:
+        .. NOTE::
 
-        This may not be the normal form of this element, unless
-        the argument is a twosided Groebner basis up to the degree
-        of this element.
+            This may not be the normal form of this element, unless
+            the argument is a twosided Groebner basis up to the degree
+            of this element.
 
         EXAMPLES::
 
@@ -663,7 +663,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
             sage: p = y^2*z*y^2+y*z*y*z*y
 
-        We compute the letterplace version of the Groebneer basis
+        We compute the letterplace version of the Groebner basis
         of `I` with degree bound 4::
 
             sage: G = F._reductor_(I.groebner_basis(4).gens(),4)

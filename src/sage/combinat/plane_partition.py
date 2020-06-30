@@ -23,8 +23,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import add_metaclass
 
 from sage.structure.list_clone import ClonableArray
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -37,8 +35,8 @@ from sage.misc.all import prod
 from sage.combinat.tableau import Tableau
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class PlanePartition(ClonableArray):
+class PlanePartition(ClonableArray,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A plane partition.
 
@@ -220,58 +218,81 @@ class PlanePartition(ClonableArray):
         EXAMPLES::
 
             sage: print(PlanePartition([[4,3,3,1],[2,1,1],[1,1]])._repr_diagram())
-                 / \
-                |\ /|
-                |\|/ \
-               / \|\ / \
-              |\ /|\|\ /|
-             / \|/ \|\|/|
-            |\ / \ / \|/ \
-             \|\ /|\ /|\ /|
-               \|/ \|/ \|/
+                    __
+                   /\_\
+                __/\/_/
+             __/\_\/\_\
+            /\_\/_/\/\_\
+            \/\_\_\/\/_/
+             \/_/\_\/_/
+                \/_/\_\
+                   \/_/
             sage: print(PlanePartition([[4,3,3,1],[2,1,1],[1,1]])._repr_diagram(True))
-                 / \
-               /|\ /|\
-             /|/|\|/ \|\
-            |/|/ \|\ / \|\
-            |/|\ /|\|\ /|\|
-            |/ \|/ \|\|/|\|
-            |\ / \ / \|/ \|
-             \|\ /|\ /|\ /|
-               \|/ \|/ \|/
-                 \ / \ /
-                   \ /
+                ______
+               /_/_/\_\
+              /_/_/\/_/\
+             /_/\_\/\_\/\
+            /\_\/_/\/\_\/\
+            \/\_\_\/\/_/\/
+             \/_/\_\/_/\/
+              \_\/_/\_\/
+               \_\_\/_/
         """
         x = self._max_x
         y = self._max_y
         z = self._max_z
-        drawing = [[" " for i in range(2*x+2*y+1)] for j in range(x+y+z)]
-        def add_topside(i,j,k):
-            drawing[z+0+i+j-k][2*x-1-2*i+2*j] = u"╱" if use_unicode else "/"
-            drawing[z+0+i+j-k][2*x+1-2*i+2*j] = u"╲" if use_unicode else "\\"
-            drawing[z+1+i+j-k][2*x-1-2*i+2*j] = u"╲" if use_unicode else "\\"
-            drawing[z+1+i+j-k][2*x+1-2*i+2*j] = u"╱" if use_unicode else "/"
-        def add_rightside(i,j,k):
-            drawing[z+0+i+j-k][2*x-2-2*i+2*j] = u"│" if use_unicode else "|"
-            drawing[z+0+i+j-k][2*x-1-2*i+2*j] = u"╱" if use_unicode else "/"
-            drawing[z-1+i+j-k][2*x-1-2*i+2*j] = u"╱" if use_unicode else "/"
-            drawing[z-1+i+j-k][2*x-0-2*i+2*j] = u"│" if use_unicode else "|"
-        def add_leftside(i,j,k):
-            drawing[z-1+i+j-k][2*x-0-2*i+2*j] = u"│" if use_unicode else "|"
-            drawing[z-1+i+j-k][2*x+1-2*i+2*j] = u"╲" if use_unicode else "\\"
-            drawing[z+0+i+j-k][2*x+2-2*i+2*j] = u"│" if use_unicode else "|"
-            drawing[z+0+i+j-k][2*x+1-2*i+2*j] = u"╲" if use_unicode else "\\"
+
+        drawing = [[" " for i in range(2 * x + y + z)]
+                   for j in range(y + z + 1)]
+
+        hori = u"_" if use_unicode else "_"
+        down = u"╲" if use_unicode else "\\"
+        up = u"╱" if use_unicode else "/"
+
+        def superpose(l, c, letter):
+            # add the given letter at line l and column c
+            exist = drawing[l][c]
+            if exist == " " or exist == "_":
+                drawing[l][c] = letter
+
+        def add_topside(i, j, k):
+            X = z + j - k
+            Y = 2 * x - 2 * i + j + k
+            superpose(X, Y-2, hori)
+            superpose(X, Y-1, hori)
+            superpose(X + 1, Y-2, down)
+            superpose(X + 1, Y-1, hori)
+            superpose(X + 1, Y, down)
+
+        def add_rightside(i, j, k):
+            X = z + j - k
+            Y = 2 * x - 2 * i + j + k
+            superpose(X - 1, Y - 1, hori)
+            superpose(X - 1, Y, hori)
+            superpose(X, Y - 2, up)
+            superpose(X, Y - 1, hori)
+            superpose(X, Y, up)
+
+        def add_leftside(i, j, k):
+            X = z + j - k
+            Y = 2 * x - 2 * i + j + k
+            superpose(X, Y, up)
+            superpose(X, Y + 1, down)
+            superpose(X + 1, Y + 1, up)
+            superpose(X + 1, Y, down)
 
         tab = self.z_tableau()
         for r in range(len(tab)):
             for c in range(len(tab[r])):
                 if tab[r][c] > 0 or show_box:
                     add_topside(r, c, tab[r][c])
+
         tab = self.y_tableau()
         for r in range(len(tab)):
             for c in range(len(tab[r])):
                 if self.y_tableau()[r][c] > 0 or show_box:
                     add_rightside(c, tab[r][c], r)
+
         tab = self.x_tableau()
         for r in range(len(tab)):
             for c in range(len(tab[r])):
@@ -298,16 +319,17 @@ class PlanePartition(ClonableArray):
 
         EXAMPLES::
 
-            sage: print(PlanePartition([[4,3,3,1],[2,1,1],[1,1]])._ascii_art_())
-                 / \
-                |\ /|
-                |\|/ \
-               / \|\ / \
-              |\ /|\|\ /|
-             / \|/ \|\|/|
-            |\ / \ / \|/ \
-             \|\ /|\ /|\ /|
-               \|/ \|/ \|/
+            sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
+            sage: ascii_art(PP)
+                    __
+                   /\_\
+                __/\/_/
+             __/\_\/\_\
+            /\_\/_/\/\_\
+            \/\_\_\/\/_/
+             \/_/\_\/_/
+                \/_/\_\
+                   \/_/
         """
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines(), baseline=0)
@@ -320,15 +342,15 @@ class PlanePartition(ClonableArray):
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: unicode_art(PP)
-                 ╱ ╲
-                │╲ ╱│
-                │╲│╱ ╲
-               ╱ ╲│╲ ╱ ╲
-              │╲ ╱│╲│╲ ╱│
-             ╱ ╲│╱ ╲│╲│╱│
-            │╲ ╱ ╲ ╱ ╲│╱ ╲
-             ╲│╲ ╱│╲ ╱│╲ ╱│
-               ╲│╱ ╲│╱ ╲│╱
+                    __
+                   ╱╲_╲
+                __╱╲╱_╱
+             __╱╲_╲╱╲_╲
+            ╱╲_╲╱_╱╲╱╲_╲
+            ╲╱╲_╲_╲╱╲╱_╱
+             ╲╱_╱╲_╲╱_╱
+                ╲╱_╱╲_╲
+                   ╲╱_╱
         """
         from sage.typeset.unicode_art import UnicodeArt
         return UnicodeArt(self._repr_diagram(use_unicode=True).splitlines(), baseline=0)
@@ -349,27 +371,25 @@ class PlanePartition(ClonableArray):
         EXAMPLES::
 
             sage: PlanePartition([[4,3,3,1],[2,1,1],[1,1]]).pp()
-                 / \
-                |\ /|
-                |\|/ \
-               / \|\ / \
-              |\ /|\|\ /|
-             / \|/ \|\|/|
-            |\ / \ / \|/ \
-             \|\ /|\ /|\ /|
-               \|/ \|/ \|/
+                    __
+                   /\_\
+                __/\/_/
+             __/\_\/\_\
+            /\_\/_/\/\_\
+            \/\_\_\/\/_/
+             \/_/\_\/_/
+                \/_/\_\
+                   \/_/
             sage: PlanePartition([[4,3,3,1],[2,1,1],[1,1]]).pp(True)
-                 / \
-               /|\ /|\
-             /|/|\|/ \|\
-            |/|/ \|\ / \|\
-            |/|\ /|\|\ /|\|
-            |/ \|/ \|\|/|\|
-            |\ / \ / \|/ \|
-             \|\ /|\ /|\ /|
-               \|/ \|/ \|/
-                 \ / \ /
-                   \ /
+                ______
+               /_/_/\_\
+              /_/_/\/_/\
+             /_/\_\/\_\/\
+            /\_\/_/\/\_\/\
+            \/\_\_\/\/_/\/
+             \/_/\_\/_/\/
+              \_\/_/\_\/
+               \_\_\/_/
         """
         print(self._repr_diagram(show_box))
 
@@ -406,14 +426,14 @@ class PlanePartition(ClonableArray):
         from sage.graphs.graph_latex import setup_latex_preamble
         setup_latex_preamble()
 
-        x = self._max_x
-        y = self._max_y
-        z = self._max_z
         ret = "\\begin{tikzpicture}\n"
+
         def add_topside(i,j,k):
             return "\\draw[fill={},shift={{(210:{})}},shift={{(-30:{})}},shift={{(90:{})}}]\n(0,0)--(-30:1)--(0,-1)--(210:1)--(0,0);\n".format(colors[0],i,j,k)
+
         def add_leftside(j,k,i):
             return "\\draw[fill={},shift={{(210:{})}},shift={{(-30:{})}},shift={{(90:{})}}]\n(0,0)--(0,1)--(30:1)--(-30:1)--(0,0);\n".format(colors[1],i,j,k)
+
         def add_rightside(k,i,j):
             return "\\draw[fill={},shift={{(210:{})}},shift={{(-30:{})}},shift={{(90:{})}}]\n(0,0)--(210:1)--(150:1)--(0,1)--(0,0);\n".format(colors[2],i,j,k)
         funcs = [add_topside, add_rightside, add_leftside]
@@ -445,9 +465,6 @@ class PlanePartition(ClonableArray):
             sage: PP.plot()
             Graphics object consisting of 27 graphics primitives
         """
-        x = self._max_x
-        y = self._max_y
-        z = self._max_z
         from sage.functions.trig import cos, sin
         from sage.plot.polygon import polygon
         from sage.symbolic.constants import pi
@@ -458,10 +475,12 @@ class PlanePartition(ClonableArray):
         Xdir = [cos(7*pi/6), sin(7*pi/6)]
         Ydir = [cos(-pi/6), sin(-pi/6)]
         Zdir = [0, 1]
+
         def move(side, i, j, k):
             return [[P[0]+i*Xdir[0]+j*Ydir[0]+k*Zdir[0],
                      P[1]+i*Xdir[1]+j*Ydir[1]+k*Zdir[1]]
                     for P in side]
+
         def add_topside(i, j, k):
             return polygon(move(Uside,i,j,k), edgecolor="black", color=colors[0])
         def add_leftside(i, j, k):
@@ -546,11 +565,32 @@ class PlanePartition(ClonableArray):
             sage: PP = PlanePartition([[3,3,2],[3,3,2],[2,2,2]])
             sage: PP.is_SPP()
             True
+            sage: PP = PlanePartition([[3,2,1],[2,0,0]])
+            sage: PP.is_SPP()
+            False
+            sage: PP = PlanePartition([[3,2,0],[2,0,0]])
+            sage: PP.is_SPP()
+            True
+            sage: PP = PlanePartition([[3,2],[2,0],[1,0]])
+            sage: PP.is_SPP()
+            False
+            sage: PP = PlanePartition([[3,2],[2,0],[0,0]])
+            sage: PP.is_SPP()
+            True
+
+
         """
-        z_tab = self.z_tableau()
-        return all(z_tab[r][c] == z_tab[c][r]
-                   for r in range(len(z_tab))
-                   for c in range(r, len(z_tab[r])))
+        Z = self.z_tableau()
+        c1 = len(Z)
+        c2 = len(Z[0])
+        size = max(c1, c2)
+        T = [[0 for i in range(0,size)] for j in range(0,size)]
+        for i in range(0,c1):
+            for j in range(0,c2):
+                T[i][j]=Z[i][j]
+        return all(T[r][c] == T[c][r]
+            for r in range(0,size)
+            for c in range(r, size))
 
     def is_CSPP(self):
         r"""
@@ -631,6 +671,15 @@ class PlanePartition(ClonableArray):
             sage: PP.is_SSCPP()
             False
             sage: PP = PlanePartition([[4,3,3,2],[3,2,2,1],[3,2,2,1],[2,1,1,0]])
+            sage: PP.is_SSCPP()
+            True
+            sage: PP = PlanePartition([[2,1],[1,0]])
+            sage: PP.is_SSCPP()
+            True
+            sage: PP = PlanePartition([[4,3,2],[3,2,1],[2,1,0]])
+            sage: PP.is_SSCPP()
+            True
+            sage: PP = PlanePartition([[4,2,2,2],[2,2,2,2],[2,2,2,2],[2,2,2,0]])
             sage: PP.is_SSCPP()
             True
         """
@@ -836,4 +885,3 @@ class PlanePartitions(UniqueRepresentation, Parent):
         return self.element_class(self, Z, check=False)
 
     Element = PlanePartition
-

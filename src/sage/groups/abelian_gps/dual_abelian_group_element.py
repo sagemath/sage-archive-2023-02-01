@@ -1,5 +1,5 @@
 """
-Elements (characters) of the dual group of a finite Abelian group.
+Elements (characters) of the dual group of a finite Abelian group
 
 To obtain the dual group of a finite Abelian group, use the
 :meth:`~sage.groups.abelian_gps.abelian_group.dual_group` method::
@@ -42,7 +42,7 @@ AUTHORS:
   Default to cyclotomic base ring.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2006 David Joyner<wdjoyner@gmail.com>
 #       Copyright (C) 2012 Volker Braun<vbraun.name@gmail.com>
@@ -51,17 +51,17 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 import operator
 
 from sage.arith.all import LCM
 from sage.misc.all import prod
-from sage.rings.complex_field import is_ComplexField
 from sage.groups.abelian_gps.element_base import AbelianGroupElementBase
 from functools import reduce
+
 
 def add_strings(x, z=0):
     """
@@ -153,24 +153,25 @@ class DualAbelianGroupElement(AbelianGroupElementBase):
             -0.499999999999995 + 0.866025403784447*I
             sage: A(a*b)
             -1
+
+        TESTS::
+
+            sage: F = AbelianGroup(1, [7], names="a")
+            sage: a, = F.gens()
+            sage: Fd = F.dual_group(names="A", base_ring=GF(29))
+            sage: A, = Fd.gens()
+            sage: A(a)
+            16
         """
         F = self.parent().base_ring()
         expsX = self.exponents()
         expsg = g.exponents()
         order = self.parent().gens_orders()
         N = LCM(order)
-        if is_ComplexField(F):
-            from sage.symbolic.constants import pi
-            I = F.gen()
-            PI = F(pi)
-            ans = prod([(2*PI*I*expsX[i]*expsg[i]/order[i]).exp() for i in range(len(expsX))])
-            return ans
-        ans = F(1)  ## assumes F is the cyclotomic field
-        zeta = F.gen()
-        for i in range(len(expsX)):
-            order_noti = N/order[i]
-            ans = ans*zeta**(expsX[i]*expsg[i]*order_noti)
-        return ans
+        order_not = [N / o for o in order]
+        zeta = F.zeta(N)
+        return F.prod(zeta ** (expsX[i] * expsg[i] * order_not[i])
+                      for i in range(len(expsX)))
 
     def word_problem(self, words, display=True):
         """

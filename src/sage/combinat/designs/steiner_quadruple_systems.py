@@ -13,28 +13,14 @@ least)... it does !
 
 The constructions have been implemented while reading two papers simultaneously,
 for one of them sometimes provides the informations that the other one does
-not. The first one is Haim Hanani's original paper [Hanani60]_, and the other
+not. The first one is Haim Hanani's original paper [Han1960]_, and the other
 one is a paper from Horan and Hurlbert which goes through all constructions
-[HH12]_.
+[HH2012]_.
 
 It can be used through the ``designs`` object::
 
     sage: designs.steiner_quadruple_system(8)
     Incidence structure with 8 points and 14 blocks
-
-REFERENCES:
-
-.. [Hanani60] Haim Hanani,
-  On quadruple systems,
-  pages 145--157, vol. 12,
-  Canadian Journal of Mathematics,
-  1960
-  http://cms.math.ca/cjm/v12/cjm1960v12.0145-0157.pdf
-
-.. [HH12] Victoria Horan and Glenn Hurlbert,
-  Overlap Cycles for Steiner Quadruple Systems,
-  2012,
-  http://arxiv.org/abs/1204.3215
 
 AUTHORS:
 
@@ -43,7 +29,7 @@ AUTHORS:
 Index
 -----
 
-This module's main function is the following :
+This module's main function is the following:
 
 .. csv-table::
     :class: contentstable
@@ -52,7 +38,7 @@ This module's main function is the following :
 
     | :func:`steiner_quadruple_system` | Return a Steiner Quadruple System on `n` points
 
-This function redistributes its work among 6 constructions :
+This function redistributes its work among 6 constructions:
 
 .. csv-table::
     :class: contentstable
@@ -68,13 +54,12 @@ This function redistributes its work among 6 constructions :
 
 It also defines two specific Steiner Quadruple Systems that the constructions
 require, i.e. `SQS_{14}` and `SQS_{38}` as well as the systems of pairs
-`P_{\alpha}(m)` and `\overline P_{\alpha}(m)` (see [Hanani60]_).
+`P_{\alpha}(m)` and `\overline P_{\alpha}(m)` (see [Han1960]_).
 
 Functions
 ---------
 """
 from __future__ import print_function
-from six.moves import range
 
 from sage.misc.cachefunc import cached_function
 from sage.combinat.designs.incidence_structures import IncidenceStructure
@@ -271,7 +256,7 @@ def three_n_minus_four(B):
     for a in range(2):
         for aa in range(n-2):
             for aaa in range(n-2):
-                aaaa= -(a+aa+aaa)%(n-2)
+                aaaa = -(a+aa+aaa) % (n-2)
                 Y.append([r(0,aa),r(1,aaa), r(2,aaaa),3*(n-2)+a])
 
     # Line 4.
@@ -512,7 +497,7 @@ def P(alpha, m):
     r"""
     Return the collection of pairs `P_{\alpha}(m)`
 
-    For more information on this system, see [Hanani60]_.
+    For more information on this system, see [Han1960]_.
 
     EXAMPLES::
 
@@ -574,7 +559,7 @@ def barP(eps, m):
     r"""
     Return the collection of pairs `\overline P_{\alpha}(m)`
 
-    For more information on this system, see [Hanani60]_.
+    For more information on this system, see [Han1960]_.
 
     EXAMPLES::
 
@@ -589,7 +574,7 @@ def barP_system(m):
     r"""
     Return the 1-factorization of `K_{2m}` `\overline P(m)`
 
-    For more information on this system, see [Hanani60]_.
+    For more information on this system, see [Han1960]_.
 
     EXAMPLES::
 
@@ -737,7 +722,7 @@ def steiner_quadruple_system(n, check = False):
         sqs = IncidenceStructure(14, _SQS14(), copy = False, check = False)
     elif n == 38:
         sqs = IncidenceStructure(38, _SQS38(), copy = False, check = False)
-    elif n%12 in [4,8]:
+    elif n%12 in [4, 8]:
         nn =  n // 2
         sqs = two_n(steiner_quadruple_system(nn, check = False))
     elif n%18 in [4,10]:
@@ -746,13 +731,13 @@ def steiner_quadruple_system(n, check = False):
     elif (n%36) == 34:
         nn = (n+8) // 3
         sqs = three_n_minus_eight(steiner_quadruple_system(nn, check = False))
-    elif (n%36) == 26 :
+    elif (n%36) == 26:
         nn = (n+4) // 3
         sqs = three_n_minus_four(steiner_quadruple_system(nn, check = False))
-    elif n%24 in [2,10]:
+    elif n%24 in [2, 10]:
         nn = (n+6) // 4
         sqs = four_n_minus_six(steiner_quadruple_system(nn, check = False))
-    elif n%72 in [14,38]:
+    elif n%72 in [14, 38]:
         nn = (n+10) // 12
         sqs = twelve_n_minus_ten(steiner_quadruple_system(nn, check = False))
     else:

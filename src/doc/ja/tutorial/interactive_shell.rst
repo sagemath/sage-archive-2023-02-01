@@ -13,10 +13,10 @@ Sageを起動すると，すぐに次のような画面が現れる:
 
 ::
 
-    ----------------------------------------------------------------------
-    | SAGE Version 3.1.1, Release Date: 2008-05-24                       |
-    | Type notebook() for the GUI, and license() for information.        |
-    ----------------------------------------------------------------------
+    ┌────────────────────────────────────────────────────────────────────┐
+    │ SageMath version 9.0, Release Date: 2020-01-01                     │
+    │ Using Python 3.7.3. Type "help()" for help.                        │
+    └────────────────────────────────────────────────────────────────────┘
 
 
     sage:
@@ -162,10 +162,10 @@ Sageセッションのロギングと，セッションの保存(:ref:`section-s
 ::
 
     was@form:~$ sage
-    ----------------------------------------------------------------------
-    | SAGE Version 3.0.2, Release Date: 2008-05-24                       |
-    | Type notebook() for the GUI, and license() for information.        |
-    ----------------------------------------------------------------------
+    ┌────────────────────────────────────────────────────────────────────┐
+    │ SageMath version 9.0, Release Date: 2020-01-01                     │
+    │ Using Python 3.7.3. Type "help()" for help.                        │
+    └────────────────────────────────────────────────────────────────────┘
 
     sage: logstart setup
     Activating auto-logging. Current session state plus future input saved.
@@ -181,10 +181,10 @@ Sageセッションのロギングと，セッションの保存(:ref:`section-s
     sage:
     Exiting SAGE (CPU time 0m0.61s, Wall time 0m50.39s).
     was@form:~$ sage
-    ----------------------------------------------------------------------
-    | SAGE Version 3.0.2, Release Date: 2008-05-24                       |
-    | Type notebook() for the GUI, and license() for information.        |
-    ----------------------------------------------------------------------
+    ┌────────────────────────────────────────────────────────────────────┐
+    │ SageMath version 9.0, Release Date: 2020-01-01                     │
+    │ Using Python 3.7.3. Type "help()" for help.                        │
+    └────────────────────────────────────────────────────────────────────┘
 
     sage: load("setup")
     Loading log file <setup> one line at a time...
@@ -422,11 +422,6 @@ IPythonのクイック レファレンスガイドを見たければ， ``%quick
 実例を見てみよう:
 
 ::
-
-    sage: 3_2
-    Traceback (most recent call last):
-    ...
-    SyntaxError: invalid syntax
 
     sage: EllipticCurve([0,infinity])
     Traceback (most recent call last):

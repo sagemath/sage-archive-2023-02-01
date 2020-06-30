@@ -59,9 +59,9 @@ class PSage(Sage):
         import sage.misc.misc
         T = sage.misc.temporary_file.tmp_dir('sage_smp')
         self.__tmp_dir = T
-        self.__tmp = '%s/lock'%T
+        self.__tmp = '%s/lock' % T
         self._unlock()
-        self._unlock_code = "open('%s','w').write('__unlocked__')"%self.__tmp
+        self._unlock_code = "with open('%s', 'w') as f: f.write('__unlocked__')" % self.__tmp
 
         global number
         self._number = number
@@ -80,11 +80,13 @@ class PSage(Sage):
 
     def _unlock(self):
         self._locked = False
-        open(self.__tmp, 'w').write('__unlocked__')
+        with open(self.__tmp, 'w') as fobj:
+            fobj.write('__unlocked__')
 
     def _lock(self):
         self._locked = True
-        open(self.__tmp, 'w').write('__locked__')
+        with open(self.__tmp, 'w') as fobj:
+            fobj.write('__locked__')
 
     def _start(self):
         Sage._start(self)
@@ -92,13 +94,16 @@ class PSage(Sage):
         self.expect().delaybeforesend = 0.01
 
     def is_locked(self):
-        if open(self.__tmp).read() == '__locked__':
-            try:
-                self.expect().expect(self._prompt)
-                self.expect().expect(self._prompt)
-            except ExceptionPexpect:
-                pass
-        return open(self.__tmp).read() == '__locked__'
+        with open(self.__tmp) as fobj:
+            if fobj.read() == '__locked__':
+                try:
+                    self.expect().expect(self._prompt)
+                    self.expect().expect(self._prompt)
+                except ExceptionPexpect:
+                    pass
+
+        with open(self.__tmp) as fobj:
+            return fobj.read() == '__locked__'
 
     def __del__(self):
         print("deleting")

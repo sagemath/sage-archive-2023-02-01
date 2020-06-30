@@ -1,14 +1,27 @@
 #!/usr/bin/env bash
 
-help_banner() {
-    sage_banner | grep -v 'Type'
-    echo
+# Display the current version of Sage
+# usage: sage_version [-v]
+#   -v    display the full version banner including release date
+sage_version() {
+    if [ -f "$0-version.sh" ]; then
+        . "$0-version.sh"
+    else
+        . "$SAGE_ROOT/src/bin/sage-version.sh"
+    fi
+
+    if [ "$1" = "-v" ]; then
+        echo "${SAGE_VERSION_BANNER}"
+    else
+        echo "${SAGE_VERSION}"
+    fi
 }
 
 usage() {
-    help_banner
+    sage_version -v
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
+    echo
     echo "Optional arguments:"
     echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx file"
     echo "  -advanced           -- list all command line options"
@@ -28,7 +41,8 @@ usage() {
     echo "                         Current default is 'export' from sagenb to jupyter"
     echo "  -n, --notebook      -- shortcut for --notebook=default"
     echo "  -optional           -- list all optional packages that can be installed"
-    echo "  -python [...]       -- run the Python 2 interpreter"
+    echo "  -python [...]       -- run the Python interpreter"
+    echo "  -python2 [...]      -- run the Python 2 interpreter"
     echo "  -python3 [...]      -- run the Python 3 interpreter"
     echo "  -R [...]            -- run Sage's R with given arguments"
     echo "  -singular [...]     -- run Sage's singular with given arguments"
@@ -53,9 +67,10 @@ usage() {
 }
 
 usage_advanced() {
-    help_banner
+    sage_version -v
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
+    echo
     echo "Running Sage:"
     echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx file"
     echo "  -advanced           -- print this advanced help message"
@@ -102,6 +117,8 @@ usage_advanced() {
     echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
     echo "  -ipython [...]      -- run Sage's IPython using the default environment (not"
     echo "                         Sage), passing additional options to IPython"
+    echo "  -ipython3 [...]     -- same as above, but using Python 3"
+    echo "  -jupyter [...]      -- run Sage's Jupyter with given arguments"
     echo "  -kash [...]         -- run Sage's Kash with given arguments"
     command -v kash &>/dev/null || \
     echo "                         (not installed currently, run sage -i kash)"
@@ -115,9 +132,14 @@ usage_advanced() {
     command -v polymake &>/dev/null || \
     echo "                         (not installed currently, run sage -i polymake)"
     echo "  -python [...]       -- run the Python interpreter"
+    echo "  -python2 [...]      -- run the Python 2 interpreter"
+    echo "  -python3 [...]      -- run the Python 3 interpreter"
     echo "  -R [...]            -- run Sage's R with given arguments"
     echo "  -scons [...]        -- run Sage's scons"
     echo "  -sh [...]           -- run \$SHELL ($SHELL) with Sage environment variables"
+    echo "                         as they are set in the runtime of Sage"
+    echo "  -buildsh [...]      -- run \$SHELL ($SHELL) with Sage environment variables"
+    echo "                         as they are set while building Sage and its packages"
     echo "  -singular [...]     -- run Sage's singular with given arguments"
     echo "  -sqlite3 [...]      -- run Sage's sqlite3 with given arguments"
     echo "  -twistd [...]       -- run Twisted server"
@@ -148,7 +170,8 @@ usage_advanced() {
     echo "                         checking and with support for old-style spkgs."
     echo "                         Options are -c, -d and -s with the same meaning as"
     echo "                         for the -i command"
-    echo "  -info [packages]    -- print the SPKG.txt of the given packages"
+    echo "  -info [packages]    -- print the SPKG.txt or SPKG.rst of the given packages,"
+    echo "                         and some additional information."
     echo "  --location          -- if needed, fix paths to make Sage relocatable"
     echo "  -optional           -- list all optional packages that can be installed"
     echo "  -standard           -- list all standard packages that can be installed"
@@ -182,15 +205,19 @@ usage_advanced() {
     echo "                         selected options:"
     echo "                           --long - include lines with the phrase 'long time'"
     echo "                           --verbose - print debugging output during the test"
+    echo "                           --all - test all files"
+    echo "                           --sagenb - test all sagenb files"
     echo "                           --optional - controls which optional tests are run"
-    echo "                           --randorder[=seed] - randomize order of tests"
     echo "                           --new - only test files modified since last commit"
     echo "                           --initial - only show the first failure per block"
     echo "                           --debug - drop into PDB after an unexpected error"
     echo "                           --failed - only test files that failed last test"
-    echo "                           --sagenb - test all sagenb files"
-    echo "                           --help - show all testing options"
     echo "                           --warn-long [timeout] - warning if doctest is slow"
+    echo "                           --only-errors - only output failures, not successes"
+    echo "                           --gc=GC - control garbarge collection (ALWAYS:"
+    echo "                                     collect garbage before every test; NEVER:"
+    echo "                                     disable gc; DEFAULT: Python default)"
+    echo "                           --help - show all testing options"
     echo "  -tp <N> [...]       -- like -t above, but tests in parallel using N threads"
     echo "                         with 0 interpreted as a sensible default"
     echo "  -testall [options]  -- test all source files, docs, and examples.  options"
@@ -215,6 +242,10 @@ usage_advanced() {
     echo "File conversion:"
     echo "  -rst2ipynb [...]    -- Generates Jupyter notebook (.ipynb) from standalone"
     echo "                         reStructuredText source."
+    command -v rst2ipynb &>/dev/null || \
+    echo "                         (not installed currently, run sage -i rst2ipynb)"
+    echo "  -ipynb2rst [...]    -- Generates a reStructuredText source file from"
+    echo "                         a Jupyter notebook (.ipynb)."
     echo "  -rst2txt [...]      -- Generates Sage worksheet text file from standalone"
     echo "                         reStructuredText source."
     echo "  -rst2sws [...]      -- Generates Sage worksheet (.sws) from standalone"
@@ -227,8 +258,6 @@ usage_advanced() {
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
     echo "  -sdist              -- build a source distribution of Sage"
-    echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
-    echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
     echo "  -fix-pkg-checksums  -- fix the checksums from build/pkgs directories from "
     echo "                         the packages located in upstream/"
 
@@ -283,7 +312,7 @@ if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
     # We set PYTHONPATH to that directory such that the system Python
     # should also find the sage_patchbot package.
     cmd='import sage_patchbot as p; import os; print(os.path.dirname(p.__path__[0]))'
-    export PYTHONPATH=`"$SAGE_ROOT/sage" --python -c "$cmd"`
+    export PYTHONPATH=`"$SAGE_ROOT/sage" --python3 -c "$cmd"`
     if [ -z "$PYTHONPATH" ]; then
         # Something went wrong, assume that the patchbot is not installed
         echo >&2 "Error: cannot find installation path for sage_patchbot"
@@ -291,13 +320,10 @@ if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
         exit 1
     fi
 
-    # Try "python2.7", then "python2", then "python"
     shopt -s execfail  # Do not exit if "exec" fails
-    exec python2.7 -m sage_patchbot.patchbot "$@"
-    exec python2 -m sage_patchbot.patchbot "$@"
-    exec python -m sage_patchbot.patchbot "$@"
-    echo >&2 "Error: cannot find a suitable Python program."
-    echo >&2 "The SageMath patchbot requires a system Python installation."
+    exec python3 -m sage_patchbot.patchbot "$@"
+    echo >&2 "Error: cannot find a suitable Python 3 program."
+    echo >&2 "The SageMath patchbot requires a system Python 3 installation."
     exit 127
 fi
 
@@ -323,56 +349,72 @@ if [ "$1" = '-i' ]; then
     fi
 
     set -e
-
     cd "$SAGE_ROOT"
 
-    # First of all, make sure that the toolchain is up-to-date
-    # (which is a dependency of every package)
-    ./sage --location
-    $MAKE all-toolchain
-    echo
-
+    # Parse options
+    PACKAGES=""         # Packages to install
     INSTALL_OPTIONS=""  # Options to sage-spkg
-    for PKG in "$@"
-    do
-        case "$PKG" in
+    for OPT in "$@"; do
+        case "$OPT" in
             -info|--info)
-                echo >&2 "Error: 'sage -i $PKG <package>' is no longer supported, use 'sage --info <package>' instead."
+                echo >&2 "Error: 'sage -i $OPT <package>' is no longer supported, use 'sage --info <package>' instead."
                 exit 2;;
             -f) FORCE_INSTALL=yes;;
-            -*) INSTALL_OPTIONS="$INSTALL_OPTIONS $PKG";;
-            *)
-                # First check that $PKG is actually a Makefile target
-                if ! grep "^$PKG: " build/make/Makefile >/dev/null; then
-                    echo >&2 "Error: package '$PKG' not found"
-                    echo >&2 "Assuming it is an old-style package... (this is deprecated: use -p instead of -i to install old-style packages)"
-                    echo >&2
-                    sleep 5
-                    ./sage -p $INSTALL_OPTIONS "$PKG"
-                else
-                    if [ x$FORCE_INSTALL = xyes ]; then
-                        $MAKE "$PKG-clean"
-                    fi
-                    $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG"
-                fi;;
+            -*) INSTALL_OPTIONS="$INSTALL_OPTIONS $OPT";;
+            *) PACKAGES="$PACKAGES $OPT";;
         esac
     done
+
+    # First, uninstall the packages if -f was given
+    if [ "$FORCE_INSTALL" = yes ]; then
+        for PKG in $PACKAGES; do
+            $MAKE "$PKG-clean" || true  # Ignore errors
+        done
+    fi
+
+    # Make sure that the toolchain is up-to-date
+    # (which is a dependency of every package)
+    $MAKE all-toolchain
+
+    ALL_TARGETS="$($MAKE list 2>/dev/null)"
+
+    # Now install the packages
+    for PKG in $PACKAGES; do
+        echo
+        # Check that $PKG is actually a Makefile target
+        # See https://trac.sagemath.org/ticket/25078
+        if ! echo "$ALL_TARGETS" | grep "^${PKG}$" >/dev/null; then
+            echo >&2 "Error: package '$PKG' not found"
+            echo >&2 "Note: if it is an old-style package, use -p instead of -i to install it"
+            exit 1
+        fi
+        $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG"
+    done
+    echo "New packages may have been installed."
+    echo "Re-running configure and make in case any dependent packages need updating."
+    touch "$SAGE_ROOT/configure" && $MAKE all-build
     exit 0
 fi
 
 
 #####################################################################
-# Source sage-env ($0 is the name of this "sage" script, so we can just
-# append -env to that). We redirect stdout to stderr, which is safer
-# for scripts.
+# Report information about the Sage environment
 #####################################################################
-. "$0-env" >&2
-if [ $? -ne 0 ]; then
-    echo >&2 "Error setting environment variables by sourcing '$0-env';"
-    echo >&2 "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
-    exit 1
+
+if [ "$1" = '-dumpversion' -o "$1" = '--dumpversion' ]; then
+        sage_version
+        exit 0
 fi
 
+if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
+        sage_version -v
+        exit 0
+fi
+
+if [ "$1" = '-root'  -o "$1" = '--root' ]; then
+    echo "$SAGE_ROOT"
+    exit 0
+fi
 
 if [ $# -gt 0 ]; then
   if [ "$1" = '-h' -o "$1" = '-?' -o "$1" = '-help' -o "$1" = '--help' ]; then
@@ -383,10 +425,29 @@ if [ $# -gt 0 ]; then
   fi
 fi
 
+
+#####################################################################
+# Source sage-env ($0 is the name of this "sage" script, so we can just
+# append -env to that). We redirect stdout to stderr, which is safer
+# for scripts.
+#####################################################################
+if [ -f "$0-env" ]; then
+    . "$0-env" >&2
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error setting environment variables by sourcing '$0-env';"
+        echo >&2 "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
+        exit 1
+    fi
+fi
+
+if [ -z "$DOT_SAGE" ]; then
+    export DOT_SAGE="$HOME/.sage"
+fi
+
 # Prepare for running Sage, either interactively or non-interactively.
 sage_setup() {
     # Check that we're not in a source tarball which hasn't been built yet (#13561).
-    if [ ! -x "$SAGE_LOCAL/bin/sage" ]; then
+    if [ ! -z "$SAGE_LOCAL" ] && [ ! -x "$SAGE_LOCAL/bin/sage" ]; then
         echo >&2 '************************************************************************'
         echo >&2 'It seems that you are attempting to run Sage from an unpacked source'
         echo >&2 'tarball, but you have not compiled it yet (or maybe the build has not'
@@ -397,16 +458,13 @@ sage_setup() {
         exit 1
     fi
 
-    # Display the startup banner (unless SAGE_BANNER is explicitly "no")
-    sage_banner
-
     maybe_sage_location
 
     if [ ! -d "$IPYTHONDIR" ]; then
         # make sure that $DOT_SAGE exists so that ipython will happily
         # create its config directories there.  If DOT_SAGE doesn't
         # exist, ipython complains.
-        mkdir -p "$DOT_SAGE"
+        mkdir -p -m 700 "$DOT_SAGE"
     fi
     sage-cleaner &>/dev/null &
 }
@@ -448,27 +506,6 @@ fi
 
 if [ "$1" = '-cleaner' -o "$1" = '--cleaner' ]; then
     exec sage-cleaner
-fi
-
-#####################################################################
-# Report information about the Sage environment
-#####################################################################
-
-if [ "$1" = '-dumpversion' -o "$1" = '--dumpversion' ]; then
-        . "$SAGE_LOCAL"/bin/sage-version.sh
-        echo ${SAGE_VERSION}
-        exit 0
-fi
-
-if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
-        . "$SAGE_LOCAL"/bin/sage-version.sh
-        echo "SageMath version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
-        exit 0
-fi
-
-if [ "$1" = '-root'  -o "$1" = '--root' ]; then
-    echo "$SAGE_ROOT"
-    exit 0
 fi
 
 #####################################################################
@@ -562,7 +599,12 @@ fi
 
 if [ "$1" = '-pip' -o "$1" = '--pip' ]; then
     shift
-    exec pip "$@"
+    exec sage-python -m pip "$@"
+fi
+
+if [ "$1" = '--pip3' ]; then
+    shift
+    exec "$SAGE_LOCAL"/bin/python3 -m pip "$@"
 fi
 
 if [ "$1" = '-fix-pkg-checksums' -o "$1" = '--fix-pkg-checksums' ]; then
@@ -572,17 +614,21 @@ fi
 
 if [ "$1" = '-python' -o "$1" = '--python' ]; then
     shift
-    exec python "$@"
+    if [ "$SAGE_PYTHON3" = 'yes' ]; then
+        exec "$SAGE_LOCAL"/bin/python3 "$@"
+    else
+        exec "$SAGE_LOCAL"/bin/python2 "$@"
+    fi
 fi
 
 if [ "$1" = '-python2' -o "$1" = '--python2' ]; then
     shift
-    exec python2 "$@"
+    exec "$SAGE_LOCAL"/bin/python2 "$@"
 fi
 
 if [ "$1" = '-python3' -o "$1" = '--python3' ]; then
     shift
-    exec python3 "$@"
+    exec "$SAGE_LOCAL"/bin/python3 "$@"
 fi
 
 if [ "$1" = '-R' -o "$1" = '--R' ]; then
@@ -592,7 +638,17 @@ fi
 
 if [ "$1" = '-ipython' -o "$1" = '--ipython' ]; then
     shift
-    exec ipython "$@"
+    exec "$SAGE_LOCAL"/bin/ipython "$@"
+fi
+
+if [ "$1" = '-ipython3' -o "$1" = '--ipython3' ]; then
+    shift
+    exec "$SAGE_LOCAL"/bin/ipython3 "$@"
+fi
+
+if [ "$1" = '-jupyter' -o "$1" = '--jupyter' ]; then
+    shift
+    exec "$SAGE_LOCAL"/bin/jupyter "$@"
 fi
 
 if [ "$1" = '-git' -o "$1" = '--git' ]; then
@@ -605,13 +661,26 @@ if [ "$1" = '-git-branch' -o "$1" = '--git-branch' ]; then
     exec git --git-dir="$SAGE_ROOT"/.git rev-parse --abbrev-ref HEAD
 fi
 
-if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
+if [ "$1" = '-sh' -o "$1" = '--sh' -o "$1" = '-buildsh' -o "$1" = '--buildsh' ]; then
     # AUTHORS:
     # - Carl Witty and William Stein: initial version
     # - Craig Citro: add options for not loading profile
     # - Martin Albrecht: fix zshell prompt (#11866)
     # - John Palmieri: shorten the prompts, and don't print messages if
     #   there are more arguments to 'sage -sh' (#11790)
+    if [ -z "$SAGE_SHPROMPT_PREFIX" ]; then
+        SAGE_SHPROMPT_PREFIX=sage-sh
+    fi
+    if [ "$1" = '-buildsh' -o "$1" = '--buildsh' ]; then
+        if [ ! -r "$SAGE_ROOT"/build/bin/sage-build-env-config ]; then
+           echo "error: '$SAGE_ROOT' does not contain build/bin/sage-build-env-config.  Run configure first."
+           exit 1
+        fi
+        . "$SAGE_ROOT"/build/bin/sage-build-env-config || (echo "error:  Error sourcing $SAGE_ROOT/build/bin/sage-build-env-config"; exit 1)
+        export SAGE_SHPROMPT_PREFIX=sage-buildsh
+        # We export it so that recursive invocation of 'sage-sh' from a sage-buildsh shows the sage-buildsh prompt;
+        # this makes sense because all environment variables set in build/bin/sage-build-env-config are exported.
+    fi
     shift
     # If $SHELL is unset, default to bash
     if [ -z "$SHELL" ]; then
@@ -638,9 +707,9 @@ if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
         bash)
             SHELL_OPTS="--norc"
             if [ "$color_prompt" = yes ]; then
-                PS1="\[$(tput rev)\](sage-sh)\[$(tput sgr0)\] \u@\h:\W\$ "
+                PS1="\[$(tput rev)\]($SAGE_SHPROMPT_PREFIX)\[$(tput sgr0)\] \u@\h:\W\$ "
             else
-                PS1="(sage-sh) \u@\h:\w\$ "
+                PS1="($SAGE_SHPROMPT_PREFIX) \u@\h:\w\$ "
             fi
             export PS1
             ;;
@@ -653,9 +722,9 @@ if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
         ksh)
             SHELL_OPTS="-p"
             if [ "$color_prompt" = yes ] ; then
-                PS1="$(tput rev)(sage-sh)$(tput sgr0) $USER@`hostname -s`:\${PWD##*/}$ "
+                PS1="$(tput rev)($SAGE_SHPROMPT_PREFIX)$(tput sgr0) $USER@`hostname -s`:\${PWD##*/}$ "
             else
-                PS1="(sage-sh) $USER@`hostname -s`:\${PWD##*/}$ "
+                PS1="($SAGE_SHPROMPT_PREFIX) $USER@`hostname -s`:\${PWD##*/}$ "
             fi
             export PS1
             ;;
@@ -664,9 +733,9 @@ if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
             # bash, but this is not guaranteed), so we don't set
             # SHELL_OPTS.
             if [ "$color_prompt" = yes ] ; then
-                PS1="$(tput rev)(sage-sh)$(tput sgr0) $USER@`hostname -s`:\${PWD##*/}$ "
+                PS1="$(tput rev)($SAGE_SHPROMPT_PREFIX)$(tput sgr0) $USER@`hostname -s`:\${PWD##*/}$ "
             else
-                PS1="(sage-sh) $USER@`hostname -s`:\${PWD}$ "
+                PS1="($SAGE_SHPROMPT_PREFIX) $USER@`hostname -s`:\${PWD}$ "
             fi
             export PS1
             ;;
@@ -677,7 +746,7 @@ if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
             SHELL_OPTS="-f"
             ;;
         zsh)
-            PS1="%S(sage-sh)%s %n@%m:%~$ "
+            PS1="%S($SAGE_SHPROMPT_PREFIX)%s %n@%m:%~$ "
             # In zsh, the system /etc/zshenv is *always* run,
             # and this may change the path (like on OSX), so we'll
             # create a temporary .zshenv to reset the path
@@ -689,7 +758,7 @@ EOF
             export PS1
             ;;
         *)
-            export PS1='(sage-sh) $ '
+            export PS1='($SAGE_SHPROMPT_PREFIX) $ '
             ;;
     esac
     if [ -n "$oldPS1" ]; then
@@ -743,7 +812,15 @@ fi
 
 if [ "$1" = '-rst2ipynb' -o "$1" = '--rst2ipynb' ]; then
     shift
-    exec sage-rst2ipynb "$@"
+    rst2ipynb --kernel=sagemath "$@"
+    status="${?}"
+    if [ "${status}" -eq "127" ] ; then echo 'rst2ipynb is not installed, please run "sage -i rst2ipynb"' ; fi
+    exit ${status}
+fi
+
+if [ "$1" = '-ipynb2rst' -o "$1" = '--ipynb2rst' ]; then
+    shift
+    exec sage-ipynb2rst "$@"
 fi
 
 if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then
@@ -789,15 +866,15 @@ if [ "$1" = "-inotebook" -o "$1" = '--inotebook' ]; then
 fi
 
 if [ "$1" = '-grep' -o "$1" = "--grep" -o "$1" = "-search_src" -o "$1" = "--search_src" ]; then
-   shift
-   sage-grep "$@"
-   exit 0
+    shift
+    sage-grep "$@"
+    exit 0
 fi
 
 if [ "$1" = '-grepdoc' -o "$1" = "--grepdoc" -o "$1" = "-search_doc" -o "$1" = "--search_doc" ]; then
-   shift
-   sage-grepdoc "$@"
-   exit 0
+    shift
+    sage-grepdoc "$@"
+    exit 0
 fi
 
 if [ "$1" = '-b' ]; then
@@ -811,8 +888,8 @@ if [ "$1" = '-br' -o "$1" = "--br" ]; then
 fi
 
 if [ "$1" = '-r' ]; then
-   shift
-   interactive_sage
+    shift
+    interactive_sage
 fi
 
 if [ "$1" = '-ba' -o "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
@@ -825,7 +902,7 @@ if [ "$1" = '-t' -o "$1" = '-bt' -o "$1" = '-tp' -o "$1" = '-btp' ]; then
     if [ "$1" = '-bt' -o "$1" = '-btp' ]; then
         build_sage
     fi
-    SAGE_BANNER=no sage_setup
+    sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
         shift
@@ -841,21 +918,21 @@ if [ "$1" = '-tnew' -o "$1" = '-btnew' ]; then
         build_sage
     fi
     shift
-    SAGE_BANNER=no sage_setup
+    sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     exec sage-runtests --new "$@"
 fi
 
 if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
     shift
-    SAGE_BANNER=no sage_setup
+    sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     exec sage-runtests -a "$@"
 fi
 
 if [ "$1" = '-c' ]; then
     shift
-    SAGE_BANNER=no sage_setup
+    sage_setup
     unset TERM  # See Trac #12263
     exec sage-eval "$@"
 fi
@@ -922,7 +999,7 @@ fi
 
 if [ "$1" = '-installed' -o "$1" = "--installed" ]; then
     shift
-    exec sage-list-packages installed $@
+    exec sage-list-packages all --installed-only $@
 fi
 
 if [ "$1" = '-p' ]; then
@@ -943,16 +1020,6 @@ if [ "$1" = '-info' -o "$1" = '--info' ]; then
     exit 0
 fi
 
-if [ "$1" = '-pkg' -o "$1" = '-spkg' -o "$1" = "--pkg" -o "$1" = "--spkg" ]; then
-    shift
-    exec sage-pkg "$@"
-fi
-
-if [ "$1" = '-pkg_nc' -o "$1" = "--pkg_nc" ]; then
-    shift
-    exec sage-pkg -n "$@"
-fi
-
 if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then
     maybe_sage_location
     shift
@@ -969,22 +1036,24 @@ if [ "$1" = '-rsyncdist' -o "$1" = "--rsyncdist" ]; then
 fi
 
 if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
+    # Redirect stdin from /dev/null. This helps with running TeX which
+    # tends to ask interactive questions if something goes wrong. These
+    # cause the build to hang. If stdin is /dev/null, TeX just aborts.
     shift
-    exec python -m "sage_setup.docbuild" "$@"
+    exec sage-python -m sage_setup.docbuild "$@" </dev/null
 fi
 
 if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
     shift
     sage_setup
     if [ "$SAGE_DEBUG" = "no" ]; then
-        gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
-            -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
+        gdb -x "$0-gdb-commands" \
+            -args python "$0-ipython" "$@" -i
     else
-        # Location of cython_debug directory
-        cygdb_dir="$SAGE_SRC/build/cythonized"
-        cygdb "$cygdb_dir" "$SAGE_SRC/sage" \
-            -- -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
-            -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
+        sage_dir=$(sage-python -c 'import os, sage; print(os.path.dirname(sage.__file__))')
+        cygdb "$sage_dir" "$SAGE_SRC/sage" \
+            -- -x "$0-gdb-commands" \
+            -args python "$0-ipython" "$@" -i
     fi
     exit $?
 fi
@@ -1043,7 +1112,7 @@ if [ $# -ge 1 ]; then
     if [ "$T" = "spkg" ]; then
         install "$@"
     fi
-    SAGE_BANNER=no sage_setup
+    sage_setup
     unset TERM  # See Trac #12263
     exec sage-run "$@"
 fi

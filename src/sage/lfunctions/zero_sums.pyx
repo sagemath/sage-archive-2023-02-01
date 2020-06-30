@@ -15,9 +15,8 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer_ring import ZZ
@@ -157,7 +156,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         """
         # Computed at initialization
-        if include_euler_gamma==False:
+        if not include_euler_gamma:
             return self._C1
         else:
             return self._C0
@@ -486,16 +485,16 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         - ``function`` -- string (default: "sincsquared_fast") - the function
           `f(x)` as described above. Currently implemented options for `f` are
 
-          - ``sincquared`` -- `f(x) = \left(\frac{\sin(\pi x)}{\pi x}\right)^2`
+          - ``sincsquared`` -- `f(x) = \left(\frac{\sin(\pi x)}{\pi x}\right)^2`
 
           - ``gaussian``   -- `f(x) = e^{-x^2}`
 
-          - ``sincquared_fast`` -- Same as "sincsquared", but implementation
+          - ``sincsquared_fast`` -- Same as "sincsquared", but implementation
             optimized for elliptic curve `L`-functions, and tau must be 0. self
             must be attached to an elliptic curve over `\QQ` given by its global
             minimal model, otherwise the returned result will be incorrect.
 
-          - ``sincquared_parallel`` -- Same as "sincsquared_fast", but optimized
+          - ``sincsquared_parallel`` -- Same as "sincsquared_fast", but optimized
             for parallel computation with large (>2.0) `\Delta` values. self must
             be attached to an elliptic curve over `\QQ` given by its global minimal
             model, otherwise the returned result will be incorrect.
@@ -551,20 +550,20 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         """
 
-        # If Delta>6.95, then exp(2*pi*Delta)>sys.maxint, so we get overflow
+        # If Delta>6.95, then exp(2*pi*Delta)>sys.maxsize, so we get overflow
         # when summing over the logarithmic derivative coefficients
         if Delta > 6.95:
             raise ValueError("Delta value too large; will result in overflow")
 
-        if function=="sincsquared_parallel":
+        if function == "sincsquared_parallel":
             return self._zerosum_sincsquared_parallel(Delta=Delta,ncpus=ncpus)
-        elif function=="sincsquared_fast":
+        elif function == "sincsquared_fast":
             return self._zerosum_sincsquared_fast(Delta=Delta)
-        elif function=="sincsquared":
+        elif function == "sincsquared":
             return self._zerosum_sincsquared(Delta=Delta,tau=tau)
-        elif function=="gaussian":
+        elif function == "gaussian":
             return self._zerosum_gaussian(Delta=Delta)
-        elif function=="cauchy":
+        elif function == "cauchy":
             return self._zerosum_cauchy(Delta=Delta,tau=tau)
         else:
             raise ValueError("Input function not recognized.")
@@ -1158,7 +1157,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: print((E.rank(),Z._zerosum_sincsquared_fast(Delta=1))) # tol 1.0e-13
             (1, 1.0103840698356263)
             sage: E = EllipticCurve("121a")
-            sage: Z = LFunctionZeroSum(E);
+            sage: Z = LFunctionZeroSum(E)
             sage: print((E.rank(),Z._zerosum_sincsquared_fast(Delta=1.5))) # tol 1.0e-13
             (0, 0.0104712060086507)
 
@@ -1228,7 +1227,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             if n<expt:
                 y += self._sincsquared_summand_1(n, t, ap, p, logp, thetap,
                                                  sqrtp, logq, thetaq, sqrtq, z)
-        # Now iterate only only over those n that are 1 or 5 mod 6
+        # Now iterate only over those n that are 1 or 5 mod 6
         n = 11
         # First: those n that are <= sqrt(bound)
         bound1 = c_exp(t/2)
@@ -1267,7 +1266,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         r"""
         Method called by self._zerosum_sincsquared_parallel() to determine
         the optimal residue class breakdown when sieving for primes.
-        Returns a list of small primes, the product thereof, and a list of
+
+        Return a list of small primes, the product thereof, and a list of
         residues coprime to the product.
 
         INPUT:
@@ -1442,7 +1442,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             1.0103840698356263
             sage: E = EllipticCurve("121a"); print(E.rank())
             0
-            sage: Z = LFunctionZeroSum(E);
+            sage: Z = LFunctionZeroSum(E)
             sage: print(Z._zerosum_sincsquared_parallel(Delta=1.5,ncpus=2)) # tol 1.0e-11
             0.01047120600865063
 
@@ -1567,7 +1567,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
           - If True, the computation is first run with small and then
             successively larger Delta values up to max_Delta. If at any
-            point the computed bound is 0 (or 1 when when root_number is -1
+            point the computed bound is 0 (or 1 when root_number is -1
             or True), the computation halts and that value is returned;
             otherwise the minimum of the computed bounds is returned.
           - If False, the computation is run a single time with

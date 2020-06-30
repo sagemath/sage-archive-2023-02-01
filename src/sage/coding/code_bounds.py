@@ -1,5 +1,5 @@
 r"""
-Bounds for Parameters of Codes
+Bounds for parameters of codes
 
 This module provided some upper and lower bounds for the parameters
 of codes.
@@ -156,12 +156,12 @@ PROBLEM: In this module we shall typically either (a) seek bounds
 on k, given n, d, q, (b) seek bounds on R, delta, q (assuming n is
 "infinity").
 
-TODO:
+.. TODO::
 
-- Johnson bounds for binary codes.
+    - Johnson bounds for binary codes.
 
-- mrrw2_bound_asymp(delta,q), "second" asymptotic
-  McEliese-Rumsey-Rodemich-Welsh bound for the information rate.
+    - mrrw2_bound_asymp(delta,q), "second" asymptotic
+      McEliese-Rumsey-Rodemich-Welsh bound for the information rate.
 """
 from __future__ import absolute_import
 
@@ -214,7 +214,7 @@ def _check_n_q_d(n, q, d, field_based=True):
     """
     if (q not in ZZ) or (q<2):
         raise ValueError("The alphabet size must be an integer >1")
-    if field_based==True and (not is_prime_power(q)):
+    if field_based and (not is_prime_power(q)):
         raise ValueError("The alphabet size does not make sense for a code over a field")
     if not( d > 0 and n >= d and n in ZZ and d in ZZ ):
         raise ValueError("The length or minimum distance does not make sense")
@@ -288,13 +288,15 @@ def codesize_upper_bound(n,d,q,algorithm=None):
         sub = singleton_upper_bound(n,q,d)
         return min([eub,hub,pub,sub])
 
-def dimension_upper_bound(n,d,q,algorithm=None):
-    r"""
-    Returns an upper bound for the dimension of a linear code.
 
-    Returns an upper bound `B(n,d) = B_q(n,d)` for the
+def dimension_upper_bound(n, d, q, algorithm=None):
+    r"""
+    Return an upper bound for the dimension of a linear code.
+
+    Return an upper bound `B(n,d) = B_q(n,d)` for the
     dimension of a linear code of length n, minimum distance d over a
     field of size q.
+
     Parameter "algorithm" has the same meaning as in :func:`codesize_upper_bound`
 
     EXAMPLES::
@@ -317,10 +319,10 @@ def dimension_upper_bound(n,d,q,algorithm=None):
     """
     _check_n_q_d(n, q, d)
     q = ZZ(q)
-    if algorithm=="LP":
-        return delsarte_bound_additive_hamming_space(n,d,q)
-    else:       # algorithm==None or algorithm=="gap":
-        return int(log(codesize_upper_bound(n,d,q,algorithm=algorithm),q))
+    if algorithm == "LP":
+        return delsarte_bound_additive_hamming_space(n, d, q)
+    # algorithm == None or algorithm == "gap":
+    return int(ZZ(codesize_upper_bound(n, d, q, algorithm=algorithm)).log(q))
 
 
 def volume_hamming(n,q,r):
@@ -397,7 +399,7 @@ def griesmer_upper_bound(n,q,d,algorithm=None):
 
     Returns the Griesmer upper bound for the number of elements in a
     largest linear code of minimum distance `d` in `\GF{q}^n`, cf. [HP2003]_.
-    If the method is "gap", it wraps GAP's ``UpperBoundGriesmer``. 
+    If the method is "gap", it wraps GAP's ``UpperBoundGriesmer``.
 
     The bound states:
 
@@ -454,7 +456,7 @@ def elias_upper_bound(n,q,d,algorithm=None):
 
     Returns the Elias upper bound for number of elements in the largest
     code of minimum distance `d` in `\GF{q}^n`, cf. [HP2003]_.
-    If the method is "gap", it wraps GAP's ``UpperBoundElias``. 
+    If the method is "gap", it wraps GAP's ``UpperBoundElias``.
 
     EXAMPLES::
 
@@ -546,8 +548,9 @@ def singleton_upper_bound(n,q,d):
     _check_n_q_d(n, q, d, field_based=False)
     return q**(n - d + 1)
 
-def gv_info_rate(n,delta,q):
-    """
+
+def gv_info_rate(n, delta, q):
+    r"""
     The Gilbert-Varshamov lower bound for information rate.
 
     The Gilbert-Varshamov lower bound for information rate of a `q`-ary code of
@@ -561,6 +564,7 @@ def gv_info_rate(n,delta,q):
     q = ZZ(q)
     ans=log(gilbert_lower_bound(n,q,int(n*delta)),q)/n
     return ans
+
 
 def entropy(x, q=2):
     """
@@ -577,8 +581,8 @@ def entropy(x, q=2):
 
         sage: codes.bounds.entropy(0, 2)
         0
-        sage: codes.bounds.entropy(1/5,4)
-        1/5*log(3)/log(4) - 4/5*log(4/5)/log(4) - 1/5*log(1/5)/log(4)
+        sage: codes.bounds.entropy(1/5,4).factor()
+        1/10*(log(3) - 4*log(4/5) - log(1/5))/log(2)
         sage: codes.bounds.entropy(1, 3)
         log(2)/log(3)
 
@@ -627,7 +631,7 @@ def entropy_inverse(x, q=2):
 
         sage: from sage.coding.code_bounds import entropy_inverse
         sage: entropy_inverse(0.1)
-        0.012986862055848683
+        0.012986862055...
         sage: entropy_inverse(1)
         1/2
         sage: entropy_inverse(0, 3)
@@ -699,8 +703,9 @@ def singleton_bound_asymp(delta,q):
     """
     return (1-delta)
 
-def plotkin_bound_asymp(delta,q):
-    """
+
+def plotkin_bound_asymp(delta, q):
+    r"""
     The asymptotic Plotkin bound for the information rate.
 
     This only makes sense when `0 < \delta < 1-1/q`.
@@ -713,8 +718,9 @@ def plotkin_bound_asymp(delta,q):
     r = 1-1/q
     return (1-delta/r)
 
-def elias_bound_asymp(delta,q):
-    """
+
+def elias_bound_asymp(delta, q):
+    r"""
     The asymptotic Elias bound for the information rate.
 
     This only makes sense when `0 < \delta < 1-1/q`.
@@ -727,8 +733,9 @@ def elias_bound_asymp(delta,q):
     r = 1-1/q
     return RDF((1-entropy(r-sqrt(r*(r-delta)), q)))
 
-def mrrw1_bound_asymp(delta,q):
-    """
+
+def mrrw1_bound_asymp(delta, q):
+    r"""
     The first asymptotic McEliese-Rumsey-Rodemich-Welsh bound.
 
     This only makes sense when `0 < \delta < 1-1/q`.

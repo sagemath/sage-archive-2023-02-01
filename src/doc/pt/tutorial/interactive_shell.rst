@@ -15,10 +15,10 @@ obtém o seguinte:
 
 ::
 
-    ----------------------------------------------------------------------
-    | SAGE Version 3.1.1, Release Date: 2008-05-24                       |
-    | Type notebook() for the GUI, and license() for information.        |
-    ----------------------------------------------------------------------
+    ┌────────────────────────────────────────────────────────────────────┐
+    │ SageMath version 9.0, Release Date: 2020-01-01                     │
+    │ Using Python 3.7.3. Type "help()" for help.                        │
+    └────────────────────────────────────────────────────────────────────┘
     sage:
 
 Para sair do Sage pressione Ctrl-D ou digite ``quit`` ou ``exit``.
@@ -173,10 +173,10 @@ arquivo log).
 ::
 
     was@form:~$ sage
-    ----------------------------------------------------------------------
-    | SAGE Version 3.0.2, Release Date: 2008-05-24                       |
-    | Type notebook() for the GUI, and license() for information.        |
-    ----------------------------------------------------------------------
+    ┌────────────────────────────────────────────────────────────────────┐
+    │ SageMath version 9.0, Release Date: 2020-01-01                     │
+    │ Using Python 3.7.3. Type "help()" for help.                        │
+    └────────────────────────────────────────────────────────────────────┘
     
     sage: logstart setup
     Activating auto-logging. Current session state plus future input saved.
@@ -192,10 +192,10 @@ arquivo log).
     sage:
     Exiting SAGE (CPU time 0m0.61s, Wall time 0m50.39s).
     was@form:~$ sage
-    ----------------------------------------------------------------------
-    | SAGE Version 3.0.2, Release Date: 2008-05-24                       |
-    | Type notebook() for the GUI, and license() for information.        |
-    ----------------------------------------------------------------------
+    ┌────────────────────────────────────────────────────────────────────┐
+    │ SageMath version 9.0, Release Date: 2020-01-01                     │
+    │ Using Python 3.7.3. Type "help()" for help.                        │
+    └────────────────────────────────────────────────────────────────────┘
     
     sage: load "setup"
     Loading log file <setup> one line at a time...
@@ -943,9 +943,7 @@ variável ``b`` não foi redefinida.
 A Interface do Notebook
 =======================
 
-Esta seção refere-se ao notebook Sage legado, ou "sagenb". Consulte a
-`documentação da sagenb <https://doc.sagemath.org/html/en/reference/notebook/index.html>`_
-para obter maiores detalhes.
+Esta seção refere-se ao notebook Sage legado, ou "sagenb".
 
 SageMath está em transição para uso do
 `Jupyter <http://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_

@@ -141,7 +141,7 @@ coordinates in the root lattice::
 One can also customize the projection by specifying a function. Here,
 we display all the roots for type `E_8` using the projection from its
 eight dimensional ambient space onto 3D described on
-:wikipedia:`Wikipedia's E8 3D picture <File:E8_3D.png>`::
+:wikipedia:`Wikipedia%27s E8 3D picture <File:E8_3D.png>`::
 
     sage: M = matrix([[0., -0.556793440452, 0.19694925177, -0.19694925177, 0.0805477263944, -0.385290876171, 0., 0.385290876171],
     ....:             [0.180913155536, 0., 0.160212955043, 0.160212955043, 0., 0.0990170516545, 0.766360424875, 0.0990170516545],
@@ -476,7 +476,7 @@ below) that can be called independently and combined at will::
 .. NOTE::
 
     By default the axes are disabled in root system plots since they
-    tend to polute the picture. Annoyingly they come back when
+    tend to pollute the picture. Annoyingly they come back when
     combining them. Here is a workaround::
 
         sage: p = L.plot_roots() + L.plot_reflection_hyperplanes()
@@ -797,15 +797,14 @@ Here is an analogue picture in 3D::
 Enjoy and please post your best pictures on the
 `Sage-Combinat wiki <http://wiki.sagemath.org/combinat/CoolPictures>`_.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
-import six
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.latex import latex
 from sage.misc.lazy_import import lazy_import
@@ -813,9 +812,11 @@ from sage.structure.element import parent
 from sage.modules.free_module_element import vector
 from sage.rings.all import ZZ, QQ
 from sage.combinat.root_system.cartan_type import CartanType
-lazy_import("sage.combinat.root_system.root_lattice_realizations", "RootLatticeRealizations")
+lazy_import("sage.combinat.root_system.root_lattice_realizations",
+            "RootLatticeRealizations")
 
-class PlotOptions:
+
+class PlotOptions(object):
     r"""
     A class for plotting options for root lattice realizations.
 
@@ -986,13 +987,13 @@ class PlotOptions:
         """
         if self.labels:
             if self.dimension <= 2:
-                if not isinstance(label, six.string_types):
+                if not isinstance(label, str):
                     label = "$"+str(latex(label))+"$"
                 from sage.plot.text import text
                 return text(label, position, fontsize=15, rgbcolor=rgbcolor)
             elif self.dimension == 3:
                 # LaTeX labels not yet supported in 3D
-                if isinstance(label, six.string_types):
+                if isinstance(label, str):
                     label = label.replace("{","").replace("}","").replace("$","").replace("_","")
                 else:
                     label = str(label)
@@ -1294,10 +1295,10 @@ class PlotOptions:
             Graphics object consisting of 5 graphics primitives
             sage: list(p)
             [Text '$0$' at the point (0.0,0.0),
-             Arrow from (0.0,0.0) to (0.5,0.866024518389),
-             Text '$1$' at the point (0.525,0.909325744308),
-             Arrow from (0.0,0.0) to (-0.5,0.866024518389),
-             Text '$2$' at the point (-0.525,0.909325744308)]
+             Arrow from (0.0,0.0) to (0.5,0.86602451838...),
+             Text '$1$' at the point (0.525,0.909325744308...),
+             Arrow from (0.0,0.0) to (-0.5,0.86602451838...),
+             Text '$2$' at the point (-0.525,0.909325744308...)]
         """
         from sage.plot.arrow import arrow
         tail = self.origin_projected
@@ -1354,7 +1355,7 @@ class PlotOptions:
             Graphics object consisting of 2 graphics primitives
             sage: list(p)
             [Polygon defined by 4 points,
-             Text '$2$' at the point (3.15,3.15)]
+             Text '$2$' at the point (3.15...,3.15...)]
             sage: options.cone(rays=[alpha[1]], lines=[alpha[2]], color='green', label=2, as_polyhedron=True)
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex, 1 ray, 1 line
 
@@ -1370,7 +1371,7 @@ class PlotOptions:
             sage: options = L.plot_parse_options()
             sage: p = options.cone(rays=[alpha[1]+alpha[2]], color='green', label=2, thickness=4, alpha=.5)
             sage: list(p)
-            [Line defined by 2 points, Text '$2$' at the point (3.15,3.15)]
+            [Line defined by 2 points, Text '$2$' at the point (3.15...,3.15...)]
             sage: sorted(p[0].options().items())
             [('alpha', 0.500000000000000), ('legend_color', None),
              ('legend_label', None), ('rgbcolor', 'green'), ('thickness', 4),
@@ -1384,8 +1385,8 @@ class PlotOptions:
         from sage.geometry.polyhedron.all import Polyhedron
         # TODO: we currently convert lines into rays, which simplify a
         # bit the calculation of the intersection. But it would be
-        # nice to benefit from the new ``lines`` option of Polyhedrons
-        rays = list(rays)+[ray for ray in lines]+[-ray for ray in lines]
+        # nice to benefit from the new ``lines`` option of Polyhedra
+        rays = list(rays) + [ray for ray in lines] + [-ray for ray in lines]
 
         # Compute the intersection at level 1, if needed
         if self.level:
@@ -1442,7 +1443,7 @@ class PlotOptions:
         TESTS::
 
             sage: print(H.description())
-            Text '$H_{\alpha^\vee_{1}}$' at the point (0.0,3.15)
+            Text '$H_{\alpha^\vee_{1}}$' at the point (0.0,3.15...)
             Line defined by 2 points: [(0.0, 3.0), (0.0, -3.0)]
 
         ::
@@ -1586,7 +1587,8 @@ def barycentric_projection_matrix(n, angle=0):
     if angle and n == 2:
         from sage.functions.trig import sin
         from sage.functions.trig import cos
-        rotation = matrix([[sin(angle), cos(angle)],[-cos(angle), sin(angle)]])
+        rotation = matrix([[sin(angle), cos(angle)],
+                           [-cos(angle), sin(angle)]])
         result = rotation * result
     result.set_immutable()
     return result

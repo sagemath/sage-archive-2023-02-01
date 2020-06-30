@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
 #
@@ -13,9 +16,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division
-
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
 include 'misc.pxi'
 include 'decl.pxi'
@@ -39,7 +41,8 @@ cdef class ntl_GF2(object):
         r"""
         Initializes a NTL bit.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.GF2(1)
             1
             sage: ntl.GF2(int(2))
@@ -52,26 +55,25 @@ cdef class ntl_GF2(object):
         elif isinstance(v, int) or isinstance(v, long) or isinstance(v, Integer):
             GF2_conv_long(self.x, int(v) % 2)
         elif v is not None:
-            v = str(v)
-            sig_on()
-            GF2_from_str(&self.x, v)
-            sig_off()
+            ccreadstr(self.x, str(v))
 
     def __repr__(self):
         """
         Return the string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: str(ntl.GF2(1)) # indirect doctest
             '1'
         """
-        return GF2_to_PyString(&self.x)
+        return ccrepr(self.x)
 
     def __reduce__(self):
         """
         Serializes self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = ntl.GF2(1)
             sage: loads(dumps(a))
             1
@@ -226,7 +228,8 @@ cdef class ntl_GF2(object):
         """
         Return self as an int.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: o = ntl.GF2(1)
             sage: z = ntl.GF2(0)
             sage: int(z)
@@ -241,7 +244,8 @@ def unpickle_class_value(cls, x):
     """
     Here for unpickling.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.libs.ntl.ntl_GF2.unpickle_class_value(ntl.GF2,1)
         1
         sage: type(sage.libs.ntl.ntl_GF2.unpickle_class_value(ntl.GF2,1))
@@ -253,7 +257,8 @@ def unpickle_class_args(cls, x):
     """
     Here for unpickling.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.libs.ntl.ntl_GF2.unpickle_class_args(ntl.GF2,[1])
         1
         sage: type(sage.libs.ntl.ntl_GF2.unpickle_class_args(ntl.GF2,[1]))

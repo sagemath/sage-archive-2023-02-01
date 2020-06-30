@@ -145,7 +145,7 @@ class CCInterpreter(StackInterpreter):
             sage: print(interp.c_header)
             <BLANKLINE>
             #include <mpc.h>
-            #include "interpreters/wrapper_cc.h"
+            #include "sage/ext/interpreters/wrapper_cc.h"
             <BLANKLINE>
 
         So instructions where you need to interact with Python can
@@ -167,7 +167,7 @@ class CCInterpreter(StackInterpreter):
         self.c_header = ri(0,
             '''
             #include <mpc.h>
-            #include "interpreters/wrapper_cc.h"
+            #include "sage/ext/interpreters/wrapper_cc.h"
             ''')
 
         self.pxd_header = ri(0,
@@ -207,7 +207,7 @@ class CCInterpreter(StackInterpreter):
                        code='mpc_set(o0, i0, MPC_RNDNN);'),
             InstrSpec('return', pg('S', ''),
                        code='mpc_set(retval, i0, MPC_RNDNN);\nreturn 1;\n'),
-            InstrSpec('py_call', pg('P[D]S@D', 'S'),    
+            InstrSpec('py_call', pg('P[D]S@D', 'S'),
                        uses_error_handler=True,
                        code="""
   if (!cc_py_call_helper(domain, i0, n_i1, i1, o0)) {

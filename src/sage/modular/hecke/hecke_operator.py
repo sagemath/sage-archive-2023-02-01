@@ -17,10 +17,10 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import integer_types
 
 
 from sage.structure.element import AlgebraElement
+from sage.structure.richcmp import richcmp, rich_to_bool
 from sage.categories.homset import End
 import sage.arith.all as arith
 from   sage.rings.integer import Integer
@@ -117,21 +117,21 @@ class HeckeAlgebraElement(AlgebraElement):
             Hecke operator T_2 on Modular Symbols space of dimension 15 for Gamma_1(13) of weight 2 with sign 0 and over Rational Field
             sage: t.hecke_module_morphism()
             Hecke module morphism T_2 defined by the matrix
-            [ 2  1  0  0  0  0  0  0  0  0  0  0  0  0 -1]
-            [ 0  2  0  1  0  0  0 -1  0  0  0  0  0  0  0]
-            [ 0  0  2  0  0  1 -1  1  0 -1  0  1 -1  0  0]
-            [ 0  0  0  2  1  0  1  0  0  0  1 -1  0  0  0]
-            [ 0  0  1  0  2  0  0  0  0  1 -1  0  0  0  1]
-            [ 1  0  0  0  0  2  0  0  0  0  0  0  1  0  0]
-            [ 0  0  0  0  0  0  0  1 -1  1 -1  0 -1  1  1]
-            [ 0  0  0  0  0  0  0 -1  1  1  0  0 -1  1  0]
-            [ 0  0  0  0  0  0 -1 -1  0  1 -1 -1  1  0 -1]
-            [ 0  0  0  0  0  0 -2  0  2 -2  0  2 -2  1 -1]
-            [ 0  0  0  0  0  0  0  0  2 -1  1  0  0  1 -1]
-            [ 0  0  0  0  0  0 -1  1  2 -1  1  0 -2  2  0]
-            [ 0  0  0  0  0  0  0  0  1  1  0 -1  0  0  0]
-            [ 0  0  0  0  0  0 -1  1  1  0  1  1 -1  0  0]
-            [ 0  0  0  0  0  0  2  0  0  0  2 -1  0  1 -1]
+            [ 2  0  0  0  0  0  0  1  0  0  1  0  0  0  0]
+            [ 0  2  0  1  0  1  0  0 -1  0  0  0  0  0  1]
+            [ 0  1  2  0  0  0  0  0  0  0  0 -1  1  0  0]
+            [ 1  0  0  2  0 -1  1  0  1  0 -1  1 -1  0  0]
+            [ 0  0  1  0  2  0 -1  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  0  1 -2  2 -1]
+            [ 0  0  0  0  0  2 -1  0 -1  0  0  0  0  1  0]
+            [ 0  0  0  0  1  0  0  2  0  0  0  0  0  0 -1]
+            [ 0  0  0  0  0  1  0  0 -1  0  2 -1  0  2 -1]
+            [ 0  0  0  0  0  1  1  0  0 -1  0  1 -1  2  0]
+            [ 0  0  0  0  0  2  0  0 -1 -1  1 -1  0  1  0]
+            [ 0  0  0  0  0  1  1  0  1  0  0  0 -1  1  0]
+            [ 0  0  0  0  0  1  1  0  0  1  0  0  0  0  0]
+            [ 0  0  0  0  0  1  0  0  1 -1  2  0  0  0 -1]
+            [ 0  0  0  0  0  0  0  0  0  1  0 -1  2  0 -1]
             Domain: Modular Symbols space of dimension 15 for Gamma_1(13) of weight ...
             Codomain: Modular Symbols space of dimension 15 for Gamma_1(13) of weight ...
             """
@@ -170,12 +170,12 @@ class HeckeAlgebraElement(AlgebraElement):
             sage: t2 = M.hecke_operator(2); t3 = M.hecke_operator(3)
             sage: t2 + t3
             Hecke operator on Modular Symbols space of dimension 6 for Gamma_1(6) of weight 4 with sign 0 and over Rational Field defined by:
-            [   35     0     0  -8/7  24/7 -16/7]
-            [    4    28     0  19/7 -57/7  38/7]
-            [   18     0     9 -40/7  22/7  18/7]
-            [    0    18     4 -22/7 -18/7  54/7]
-            [    0    18     4  13/7 -53/7  54/7]
-            [    0    18     4  13/7 -18/7  19/7]
+            [   35     0     0   8/5   8/5 -16/5]
+            [    4    28     0 -19/5 -19/5  38/5]
+            [   18     0     9    -6     8    -2]
+            [    0    18     4 -23/5 -13/5  46/5]
+            [    0    18     4   2/5 -38/5  46/5]
+            [    0    18     4   2/5 -13/5  21/5]
             sage: (t2 - t3).charpoly('x')
             x^6 + 36*x^5 + 104*x^4 - 3778*x^3 + 7095*x^2 - 3458*x
         """
@@ -226,12 +226,12 @@ class HeckeAlgebraElement(AlgebraElement):
             sage: t2 = M.hecke_operator(2); t3 = M.hecke_operator(3)
             sage: t2 - t3 # indirect doctest
             Hecke operator on Modular Symbols space of dimension 6 for Gamma_1(6) of weight 4 with sign 0 and over Rational Field defined by:
-            [  -19     0     0   4/7 -12/7   8/7]
-            [    4   -26     0 -17/7  51/7 -34/7]
-            [  -18     0     7 -12/7  -6/7  18/7]
-            [    0   -18     4 -16/7  34/7 -18/7]
-            [    0   -18     4 -23/7  41/7 -18/7]
-            [    0   -18     4 -23/7  34/7 -11/7]
+            [  -19     0     0  -4/5  -4/5   8/5]
+            [    4   -26     0  17/5  17/5 -34/5]
+            [  -18     0     7 -18/5  12/5   6/5]
+            [    0   -18     4   3/5  23/5 -26/5]
+            [    0   -18     4  -2/5  28/5 -26/5]
+            [    0   -18     4  -2/5  23/5 -21/5]
         """
         return self.parent()(self.matrix() - other.matrix(), check=False)
 
@@ -438,7 +438,7 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             TypeError: A must be a square matrix of rank 3
         """
         HeckeAlgebraElement.__init__(self, parent)
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
         if not is_Matrix(A):
             raise TypeError("A must be a matrix")
         if not A.base_ring() == self.parent().base_ring():
@@ -447,7 +447,7 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             raise TypeError("A must be a square matrix of rank %s" % self.parent().module().rank())
         self.__matrix = A
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Compare self to other, where the coercion model has already ensured
         that other has the same parent as self.
@@ -460,15 +460,16 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             False
             sage: m == n.matrix_form()
             False
-            sage: n.matrix_form() == T(matrix(QQ, 2, [4051542498456, 384163586352000, 0, 401856]), check=False)
+            sage: n.matrix_form() == T(matrix(QQ, 2, [401856,0,0,4051542498456]), check=False)
             True
         """
         if not isinstance(other, HeckeAlgebraElement_matrix):
             if isinstance(other, HeckeOperator):
-                return cmp(self, other.matrix_form())
+                return richcmp(self, other.matrix_form(), op)
             else:
-                raise RuntimeError("Bug in coercion code") # can't get here.
-        return cmp(self.__matrix, other.__matrix)
+                raise RuntimeError("Bug in coercion code") # can't get here
+
+        return richcmp(self.__matrix, other.__matrix, op)
 
     def _repr_(self):
         r"""
@@ -482,7 +483,7 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             sage: ModularForms(Gamma0(100)).hecke_operator(4).matrix_form()._repr_()
             'Hecke operator on Modular Forms space of dimension 24 for Congruence Subgroup Gamma0(100) of weight 2 over Rational Field defined by:\n24 x 24 dense matrix over Rational Field'
         """
-        return "Hecke operator on %s defined by:\n%s"%(self.parent().module(), self.__matrix)
+        return "Hecke operator on %s defined by:\n%r" % (self.parent().module(), self.__matrix)
 
     def _latex_(self):
         r"""
@@ -547,16 +548,16 @@ class DiamondBracketOperator(HeckeAlgebraElement_matrix):
             sage: type(d)
             <class 'sage.modular.hecke.hecke_operator.DiamondBracketOperator'>
             sage: d.matrix()
-            [     0      1      0      0      0      0      0      0      0      0]
-            [     1      0      0      0      0      0      0      0      0      0]
-            [     0      0      0      0      0      0      0      1      0      0]
-            [     0      0  -8/17     -1  14/17  11/17      0  -8/17  14/17  11/17]
-            [     0      0      0      0      0      0      0      0      1      0]
-            [     0      0      0      0      0      0      0      0      0      1]
-            [     0      0  16/17      0 -11/17  12/17     -1  16/17 -11/17  12/17]
-            [     0      0      1      0      0      0      0      0      0      0]
-            [     0      0      0      0      1      0      0      0      0      0]
-            [     0      0      0      0      0      1      0      0      0      0]
+            [    0     1     0     0     0     0     0     0     0     0]
+            [    1     0     0     0     0     0     0     0     0     0]
+            [    0     0     0     0     0     0     1     0     0     0]
+            [    0     0     0     0     0     0     0     0     0     1]
+            [    0     0     0     0     0     0     0     1     0     0]
+            [    0     0 17/16 11/16  -3/4    -1 17/16  -3/4     0 11/16]
+            [    0     0     1     0     0     0     0     0     0     0]
+            [    0     0     0     0     1     0     0     0     0     0]
+            [    0     0  -1/2   1/2     1     0  -1/2     1    -1   1/2]
+            [    0     0     0     1     0     0     0     0     0     0]
             sage: d**4 == 1
             True
         """
@@ -582,6 +583,7 @@ class DiamondBracketOperator(HeckeAlgebraElement_matrix):
         """
         return r"\langle %s \rangle" % self.__d
 
+
 class HeckeOperator(HeckeAlgebraElement):
     r"""
     The Hecke operator `T_n` for some `n` (which need not be coprime to the
@@ -604,11 +606,11 @@ class HeckeOperator(HeckeAlgebraElement):
             Hecke operator T_10604499373 on Modular Symbols space of dimension 5 for Gamma_0(21) of weight 2 with sign 0 over Rational Field
         """
         HeckeAlgebraElement.__init__(self, parent)
-        if not isinstance(n, integer_types + (Integer,)):
+        if not isinstance(n, (int, Integer)):
             raise TypeError("n must be an int")
         self.__n = int(n)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Compare self and other (where the coercion model has already ensured
         that self and other have the same parent). Hecke operators on the same
@@ -634,16 +636,15 @@ class HeckeOperator(HeckeAlgebraElement):
             sage: m == m.matrix()
             False
         """
-
         if not isinstance(other, HeckeOperator):
             if isinstance(other, HeckeAlgebraElement_matrix):
-                return cmp(self.matrix_form(), other)
+                return richcmp(self.matrix_form(), other, op)
             else:
                 raise RuntimeError("Bug in coercion code") # can't get here
 
         if self.__n == other.__n:
-            return 0
-        return cmp(self.matrix(), other.matrix())
+            return rich_to_bool(op, 0)
+        return richcmp(self.matrix(), other.matrix(), op)
 
     def _repr_(self):
         r"""

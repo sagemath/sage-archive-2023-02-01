@@ -25,11 +25,11 @@ AUTHORS:
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import parent
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.crystals import Crystals
 from sage.categories.finite_crystals import FiniteCrystals
+from sage.categories.supercrystals import SuperCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
@@ -37,7 +37,7 @@ from sage.structure.richcmp import richcmp
 
 
 class Subcrystal(UniqueRepresentation, Parent):
-    """
+    r"""
     A subcrystal `X` of an ambient crystal `Y` is a crystal formed by taking a
     subset of `Y` and whose crystal structure is induced by `Y`.
 
@@ -82,8 +82,8 @@ class Subcrystal(UniqueRepresentation, Parent):
         8
         sage: list(T)
         [[[1, 1], [3]],
-         [[1, 1], [2]],
          [[1, 2], [3]],
+         [[1, 1], [2]],
          [[2, 2], [3]],
          [[1, 2], [2]],
          [[2, 3], [3]],
@@ -100,6 +100,16 @@ class Subcrystal(UniqueRepresentation, Parent):
     .. TODO::
 
         Include support for subcrystals which only contains certain arrows.
+
+    TESTS:
+
+    Check that the subcrystal respects being in the category
+    of supercrystals (:trac:`27368`)::
+
+        sage: T = crystals.Tableaux(['A',[1,1]], [2,1])
+        sage: S = T.subcrystal(max_depth=3)
+        sage: S.category()
+        Category of finite super crystals
     """
     @staticmethod
     def __classcall_private__(cls, ambient, contained=None, generators=None,
@@ -130,6 +140,8 @@ class Subcrystal(UniqueRepresentation, Parent):
             generators = ambient.module_generators
 
         category = Crystals().or_subcategory(category)
+        if ambient in SuperCrystals():
+            category = category & SuperCrystals()
         if ambient in FiniteCrystals() or isinstance(contained, frozenset):
             category = category.Finite()
 
@@ -330,35 +342,35 @@ class Subcrystal(UniqueRepresentation, Parent):
             For != operator::
 
                 sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]!=S[j]]
-                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if
                 ....: S[i].value!=S[j].value])
                 True
 
             For < operator::
 
                 sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]<S[j]]
-                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if
                 ....: S[i].value<S[j].value])
                 True
 
             For <= operator::
 
                 sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]<=S[j]]
-                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if
                 ....: S[i].value<=S[j].value])
                 True
 
             For > operator::
 
                 sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]>S[j]]
-                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if
                 ....: S[i].value>S[j].value])
                 True
 
             For >= operator::
 
                 sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]>=S[j]]
-                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if
                 ....: S[i].value>=S[j].value])
                 True
             """

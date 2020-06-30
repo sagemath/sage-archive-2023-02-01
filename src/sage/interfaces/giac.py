@@ -11,7 +11,7 @@ supporting "giac --sage" ( roughly after 0.9.1 ). In this case you do not have
 to install any  optional Sage packages. If giac is not already installed, you can
 download binaries or sources or spkg (follow the sources link) from the homepage:
 
-Homepage <http://www-fourier.ujf-grenoble.fr/~parisse/giac.html>
+Homepage <https://www-fourier.ujf-grenoble.fr/~parisse/giac.html>
 
 Type ``giac.[tab]`` for a list of all the functions
 available from your Giac install. Type
@@ -136,9 +136,7 @@ the command, you can press q to immediately get back to your
 original prompt.
 
 Incidentally you can always get into a giac console by the
-command.
-
-::
+command ::
 
     sage: giac.console()                       # not tested
     sage: !giac                                # not tested
@@ -195,7 +193,7 @@ object. In many cases, it will just work. In particular, it should be able to
 convert expressions entirely consisting of:
 
 - numbers, i.e. integers, floats, complex numbers;
-- functions and named constants also present in Sage, where Sage knows how to 
+- functions and named constants also present in Sage, where Sage knows how to
   translate the function or constant's name from Giac's
 - symbolic variables whose names don't pathologically overlap with
   objects already defined in Sage.
@@ -205,12 +203,12 @@ This method will not work when Giac's output includes functions unknown to Sage.
 If you want to convert more complicated Giac expressions, you can
 instead call ``GiacElement._sage_()`` and supply a translation dictionary::
 
-    sage: g = giac('NewFn(x)')       
-    sage: g._sage_(locals={'NewFn': sin})   
+    sage: g = giac('NewFn(x)')
+    sage: g._sage_(locals={'NewFn': sin})
     sin(x)
 
-Moreover, new conversions can be permanently added using Pynac's 
-``register_symbol``, and this is the recommended approach for library code. 
+Moreover, new conversions can be permanently added using Pynac's
+``register_symbol``, and this is the recommended approach for library code.
 For more details, see the documentation for ``._sage_()``.
 """
 
@@ -219,20 +217,21 @@ For more details, see the documentation for ``._sage_()``.
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #############################################################################
 from __future__ import print_function
 
 import os
 
 from sage.interfaces.expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
-from sage.interfaces.tab_completion import ExtraTabCompletion
 
 import pexpect
 
+from sage.cpython.string import bytes_to_str
 from sage.env import DOT_SAGE
 from sage.misc.pager import pager
 from sage.docs.instancedoc import instancedoc
+from sage.structure.richcmp import rich_to_bool
 
 
 COMMANDS_CACHE = '%s/giac_commandlist_cache.sobj'%DOT_SAGE
@@ -247,7 +246,7 @@ class Giac(Expect):
     Type ``giac.[tab]?`` for Giac's help about a given function.
     Type ``giac(...)`` to create a new Giac object.
 
-    Full html documentation for giac is avaible from your giac installation at ``$PREFIX``/share/giac/doc/en/cascmd_en/index.html
+    Full html documentation for giac is available from your giac installation at ``$PREFIX``/share/giac/doc/en/cascmd_en/index.html
 
     EXAMPLES:
 
@@ -288,19 +287,23 @@ class Giac(Expect):
 
     ::
 
-      sage: R.<a,b>=QQ[];f=(2+a+b);p=giac.gcd(f^3+5*f^5,f^2+f^5);p;R(p);
+      sage: R.<a,b> = QQ[]; f = (2+a+b)
+      sage: p = giac.gcd(f^3+5*f^5,f^2+f^5); p; R(p)
       a^2+2*a*b+4*a+b^2+4*b+4
       a^2 + 2*a*b + b^2 + 4*a + 4*b + 4
 
-    Variable names in python and giac are independant.
+    Variable names in python and giac are independent::
 
-    ::
+        sage: a=sqrt(2);giac('Digits:=30;a:=5');a,giac('a'),giac(a),giac(a).evalf()
+        30
+        (sqrt(2), 5, sqrt(2), 1.41421356237309504880168872421)
 
-      sage: a=sqrt(2);giac('Digits:=30;a:=5');a,giac('a'),giac(a),giac(a).evalf()
-      30
-      (sqrt(2), 5, sqrt(2), 1.41421356237309504880168872421)
+    TESTS::
 
-
+        sage: g = giac('euler_gamma').sage();g
+        euler_gamma
+        sage: g.n()
+        0.577215664901533
     """
     def __init__(self, maxread=None, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
         """
@@ -315,6 +318,7 @@ class Giac(Expect):
                         name = 'giac',
                         prompt = '[0-9]*>> ',
                         command = "giac --sage",
+                        env = {"LANG": "C"},
                         init_code= ['maple_mode(0);I:=i;'],      #  coercion could be broken in maple_mode
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,                        server = server,
@@ -371,14 +375,13 @@ class Giac(Expect):
         ::
 
             sage: filename = tmp_filename()
-            sage: f = open(filename,'w')
-            sage: _ = f.write('xx := 22;\n')
-            sage: f.close()
+            sage: with open(filename,'w') as f:
+            ....:     _ = f.write('xx := 22;\n')
             sage: giac.read(filename)
             sage: giac.get('xx').strip()
             '22'
         """
-        return 'read "%s"'%filename
+        return 'read "%s"' % filename
 
     def _quit_string(self):
         """
@@ -424,7 +427,7 @@ or a spkg ( for the spkg follow the sources link) from the homepage:
 Homepage http://www-fourier.ujf-grenoble.fr/~parisse/giac.html
 
 
-Full html documentation for giac is avaible from your giac installation at:
+Full html documentation for giac is available from your giac installation at:
 
     ``$PREFIX``/share/giac/doc/en/cascmd_en/index.html
 
@@ -482,7 +485,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         if self._expect is None:
             self._start()
         E = self._expect
-        E.sendline('%s%s%s'%(s,chr(63),chr(13)))
+        E.sendline('%s%s%s' % (s, chr(63), chr(13)))
         t = E.timeout
         E.timeout=0.3  # since some things have no completion
         try:
@@ -491,7 +494,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             E.timeout = t
             return []
         E.timeout = t
-        v = E.before
+        v = bytes_to_str(E.before)
         E.expect(self._prompt)
         E.expect(self._prompt)
         return v.split()[1:]
@@ -577,7 +580,6 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         else:
             return float(self('time() - %s'%float(t)))
 
-
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=False):
         """
         EXAMPLES::
@@ -585,16 +587,23 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             sage: giac._eval_line('2+2')
             '4'
 
-            sage: A=matrix([range(280)])
-            sage: GA=giac(A)
+            sage: A = matrix([range(280)])
+            sage: GA = giac(A)
+
+        TESTS::
+
+            sage: h='int(1/x*((-2*x^(1/3)+1)^(1/4))^3,x)'
+            sage: giac(h)
+            12*(...)
         """
         with gc_disabled():
             z = Expect._eval_line(self, line, allow_use_file=allow_use_file,
                     wait_for_prompt=wait_for_prompt)
             if z.lower().find("error") != -1:
                 raise RuntimeError("An error occurred running a Giac command:\nINPUT:\n%s\nOUTPUT:\n%s"%(line, z))
-        return z
-
+        lines = (line for line in z.splitlines()
+                 if not line.startswith('Evaluation time:'))
+        return "\n".join(lines)
 
     def eval(self, code, strip=True, **kwds):
         r"""
@@ -615,10 +624,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             '4\n3'
             sage: s='g(x):={\nx+1;\nx+2;\n}'
             sage: giac(s)
-            (x)->{
-            x+1;
-            x+2;
-            }
+            (x)->[x+1,x+2]
             sage: giac.g(5)
             7
         """
@@ -714,14 +720,14 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         EXAMPLES::
 
             sage: giac._true_symbol()
-            '1'
+            'true'
 
         ::
 
             sage: giac(2) == giac(2)
             True
         """
-        return '1'
+        return 'true'
 
     def _assign_symbol(self):
         """
@@ -834,7 +840,7 @@ class GiacElement(ExpectElement):
             sage: float(giac(1/2))
             0.5
             sage: type(_)
-            <... 'float'>
+            <type 'float'>
         """
         return float(giac.eval('evalf(%s)' % self.name()))
 
@@ -869,13 +875,12 @@ class GiacElement(ExpectElement):
         """
         return hash(giac.eval('string(%s);'%self.name()))
 
-
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare equality between self and other, using giac.
 
         These examples are optional, and require Giac to be installed. You
-        don't need to install any Sage packages for this.
+        do not need to install any Sage packages for this.
 
         EXAMPLES::
 
@@ -911,30 +916,26 @@ class GiacElement(ExpectElement):
         P = self.parent()
         if P.eval("evalb(%s %s %s)"%(self.name(), P._equality_symbol(),
                                  other.name())) == P._true_symbol():
-            return 0
+            return rich_to_bool(op, 0)
         # (to be tested with giac). Maple  does not allow comparing objects of different types and
         # it raises an error in this case.
         # We catch the error, and return True for <
         try:
             if P.eval("evalb(%s %s %s)"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
-                return -1
+                return rich_to_bool(op, -1)
         except RuntimeError as e:
             msg = str(e)
             if 'is not valid' in msg and 'to < or <=' in msg:
                 if (hash(str(self)) < hash(str(other))):
-                    return -1
+                    return rich_to_bool(op, -1)
                 else:
-                    return 1
+                    return rich_to_bool(op, 1)
             else:
                 raise RuntimeError(e)
         if P.eval("evalb(%s %s %s)"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
-            return 1
-        # everything is supposed to be comparable in Python, so we define
-        # the comparison thus when no comparable in interfaced system.
-        if (hash(self) < hash(other)):
-            return -1
-        else:
-            return 1
+            return rich_to_bool(op, 1)
+
+        return NotImplemented
 
     def _tab_completion(self):
         """
@@ -945,7 +946,6 @@ class GiacElement(ExpectElement):
             True
         """
         return self.parent()._tab_completion()
-
 
     def __len__(self):
         """
@@ -998,12 +998,12 @@ class GiacElement(ExpectElement):
         """
         return self.parent().eval('latex(%s)'%self.name())
 
-
     def _matrix_(self, R):
         r"""
         Return matrix over the (Sage) ring R determined by self, where self
         should be a  Giac matrix.
-        Warning: It is slow, don't convert big matrices.
+
+        .. WARNING:: It is slow, do not convert big matrices.
 
         EXAMPLES::
 
@@ -1029,67 +1029,80 @@ class GiacElement(ExpectElement):
         entries = [[R(self[r, c]) for c in range(m)] for r in range(n)]
         return M(entries)
 
-
     def _sage_(self, locals={}):
         r"""
         Convert a giac expression back to a Sage expression, if possible.
 
-        NOTES: 
-        
-        This method works successfully when Giac returns a result
-        or list of results that consist only of:
-        - numbers, i.e. integers, floats, complex numbers;
-        - functions and named constants also present in Sage, where:
-            - Sage knows how to translate the function or constant's name
-            from Giac's naming scheme through the symbols_table, or
-            - you provide a translation dictionary ``locals``.
-            
+        .. NOTE::
+
+            This method works successfully when Giac returns a result
+            or list of results that consist only of:
+            - numbers, i.e. integers, floats, complex numbers;
+            - functions and named constants also present in Sage, where:
+                - Sage knows how to translate the function or constant's name
+                from Giac's naming scheme through the ``symbol_table``, or
+                - you provide a translation dictionary ``locals``.
+
         New conversions can be added using Pynac's ``register_symbol``.
         This is the recommended approach for library code.
 
-        Warning: List conversion is slow.
+        .. WARNING:: List conversion is slow.
 
         EXAMPLES::
 
-        sage: m = giac('x^2 + 5*y')
-        sage: m.sage()
-        x^2 + 5*y
+            sage: m = giac('x^2 + 5*y')
+            sage: m.sage()
+            x^2 + 5*y
 
         ::
 
-        sage: m = giac('sin(2*sqrt(1-x^2)) * (1 - cos(1/x))^2')
-        sage: m.trigexpand().sage()
-        2*cos(sqrt(-x^2 + 1))*cos(1/x)^2*sin(sqrt(-x^2 + 1)) - 4*cos(sqrt(-x^2 + 1))*cos(1/x)*sin(sqrt(-x^2 + 1)) + 2*cos(sqrt(-x^2 + 1))*sin(sqrt(-x^2 + 1))
+            sage: m = giac('sin(2*sqrt(1-x^2)) * (1 - cos(1/x))^2')
+            sage: m.trigexpand().sage()
+            2*cos(sqrt(-x^2 + 1))*cos(1/x)^2*sin(sqrt(-x^2 + 1)) - 4*cos(sqrt(-x^2 + 1))*cos(1/x)*sin(sqrt(-x^2 + 1)) + 2*cos(sqrt(-x^2 + 1))*sin(sqrt(-x^2 + 1))
 
         Converting a custom name using the ``locals`` dictionary::
-        
-        sage: ex = giac('myFun(x)')
-        sage: ex._sage_({'myFun': sin})
-        sin(x)
-        
-        Same but by adding a new entry to the ``symbols_table``::
-        
-        sage: ex = giac('myFun(x)')
-        sage: sage.libs.pynac.pynac.register_symbol(sin, {'giac':'myFun'})
-        sage: ex._sage_()
-        sin(x)
+
+            sage: ex = giac('myFun(x)')
+            sage: ex._sage_({'myFun': sin})
+            sin(x)
+
+        Same but by adding a new entry to the ``symbol_table``::
+
+            sage: ex = giac('myFun(x)')
+            sage: sage.libs.pynac.pynac.register_symbol(sin, {'giac':'myFun'})
+            sage: ex._sage_()
+            sin(x)
+
+        Conversion of lists::
+
+            sage: L = giac('solve((2/3)^x-2, x)'); L
+            list[ln(2)/(ln(2)-ln(3))]
+            sage: L.sage()
+            [-log(2)/(log(3) - log(2))]
+
+        TESTS:
+
+        Check conversion of Booleans (:trac:`28705`)::
+
+            sage: giac('true')._sage_(), giac('false')._sage_()
+            (True, False)
         """
         from sage.libs.pynac.pynac import symbol_table
         from sage.calculus.calculus import symbolic_expression_from_string
-        
+
         result = repr(self) # string representation
-        
-        if str(self.type()) != 'DOM_LIST' :   
-            
+
+        if str(self.type()) not in ['DOM_LIST', 'vector', 'vecteur']:
+
             # Merge the user-specified locals dictionary and the symbol_table
             # (locals takes priority)
             lsymbols = symbol_table['giac'].copy()
-            lsymbols.update(locals)    
-            
+            lsymbols.update(locals)
+
             try:
                 return symbolic_expression_from_string(result, lsymbols,
                     accept_sequence=True)
-                    
+
             except Exception:
                 raise NotImplementedError("Unable to parse Giac output: %s" % result)
         else:
@@ -1127,14 +1140,14 @@ class GiacElement(ExpectElement):
             -2*sin(y)
         """
         if min is None:
-            return giac('int(%s,%s)'%(self.name(),var))
+            return giac('int(%s,%s)' % (self.name(), var))
         else:
             if max is None:
                 raise ValueError("neither or both of min/max must be specified.")
-        return giac('int(%s,%s,%s,%s)'%(self.name(),var,giac(min),giac(max)))
+        return giac('int(%s,%s,%s,%s)' % (self.name(), var,
+                                          giac(min), giac(max)))
 
-    integrate=integral
-
+    integrate = integral
 
     def sum(self, var, min=None, max=None):
         r"""
@@ -1157,11 +1170,12 @@ class GiacElement(ExpectElement):
             (pi*exp(pi)^2+pi)/(exp(pi)^2-1)
         """
         if min is None:
-            return giac('sum(%s,%s)'%(self.name(),var))
+            return giac('sum(%s,%s)' % (self.name(), var))
         else:
             if max is None:
                 raise ValueError("neither or both of min/max must be specified.")
-            return giac('sum(%s,%s,%s,%s)'%(self.name(),var,giac(min),giac(max)))
+            return giac('sum(%s,%s,%s,%s)' % (self.name(), var,
+                                              giac(min), giac(max)))
 
 
 # An instance

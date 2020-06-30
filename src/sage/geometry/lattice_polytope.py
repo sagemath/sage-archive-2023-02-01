@@ -92,32 +92,32 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007-2013 Andrey Novoseltsev <novoselt@gmail.com>
 #       Copyright (C) 2007-2013 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
 
-from sage.arith.all import gcd, lcm
+from sage.arith.all import gcd
 from sage.combinat.posets.posets import FinitePoset
 from sage.env import POLYTOPE_DATA_DIR
-from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
-from sage.geometry.point_collection import PointCollection, is_PointCollection
+from sage.geometry.cone import _ambient_space_point, integral_length
+from sage.geometry.hasse_diagram import lattice_from_incidences
+from sage.geometry.point_collection import PointCollection,\
+    is_PointCollection, read_palp_point_collection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.graphs.graph import DiGraph, Graph
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from sage.libs.ppl import (C_Polyhedron, Generator_System, Linear_Expression,
+from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+from ppl import (C_Polyhedron, Generator_System, Linear_Expression,
                            point as PPL_point)
 from sage.matrix.constructor import matrix
-from sage.matrix.matrix import is_Matrix
-from sage.misc.all import cached_method, tmp_filename
-from sage.misc.superseded import deprecated_function_alias
+from sage.structure.element import is_Matrix
+from sage.misc.all import cached_method, flatten, tmp_filename
 from sage.modules.all import vector
 from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.plot.plot3d.index_face_set import IndexFaceSet
@@ -127,14 +127,16 @@ from sage.rings.all import Integer, ZZ, QQ
 from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp_method, richcmp
 
 from copy import copy
 import collections
-from six.moves import copyreg
+import copyreg
 import os
 import subprocess
-from six import StringIO
+import warnings
 from functools import reduce
+from io import IOBase, StringIO
 
 
 class SetOfAllLatticePolytopesClass(Set_generic):
@@ -183,8 +185,9 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
 
         * a file with matrix data, opened for reading, or
 
-        * a filename of such a file, see :func:`read_palp_matrix` for the
-          file format;
+        * a filename of such a file, see
+          :func:`~sage.geometry.point_collection.read_palp_point_collection`
+          for the file format;
 
     - ``compute_vertices`` -- boolean (default: ``True``). If ``True``, the
        convex hull of the given points will be computed for
@@ -289,10 +292,10 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
     if isinstance(data, str):
         f = open(data)
         skip_palp_matrix(f, n)
-        data = read_palp_matrix(data)
+        data = read_palp_point_collection(data)
         f.close()
-    if isinstance(data, (file, StringIO)):
-        data = read_palp_matrix(data)
+    if isinstance(data, (IOBase, StringIO)):
+        data = read_palp_point_collection(data)
     if not is_PointCollection(data) and not isinstance(data, (list, tuple)):
         try:
             data = list(data)
@@ -313,7 +316,7 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
         except TypeError:
             raise TypeError("cannot construct a polytope from\n%s" % data)
     try:
-        data = tuple(map(lattice, data))        
+        data = tuple(map(lattice, data))
     except TypeError:
         raise ValueError("points\n%s\nare not in %s!" % (data, lattice))
     for p in data:
@@ -327,10 +330,9 @@ copyreg.constructor(LatticePolytope)   # "safe for unpickling"
 
 def ReflexivePolytope(dim, n):
     r"""
-    Return n-th reflexive polytope from the database of 2- or
-    3-dimensional reflexive polytopes.
+    Return the `n`-th 2- or 3-dimensional reflexive polytope.
 
-    .. note::
+    .. NOTE::
 
        #. Numeration starts with zero: `0 \leq n \leq 15` for `{\rm dim} = 2`
           and `0 \leq n \leq 4318` for `{\rm dim} = 3`.
@@ -343,9 +345,9 @@ def ReflexivePolytope(dim, n):
        #. Equivalent to ``ReflexivePolytopes(dim)[n]`` but checks bounds
           first.
 
-    EXAMPLES: The 3rd 2-dimensional polytope is "the diamond:"
+    EXAMPLES:
 
-    ::
+    The 3rd 2-dimensional polytope is "the diamond"::
 
         sage: ReflexivePolytope(2, 3)
         2-d reflexive polytope #3 in 2-d lattice M
@@ -382,13 +384,13 @@ def ReflexivePolytope(dim, n):
         raise NotImplementedError("only 2- and 3-dimensional reflexive polytopes are available!")
 
 # Sequences of reflexive polytopes
-_rp = [None]*4
+_rp = [None] * 4
 
 def ReflexivePolytopes(dim):
     r"""
     Return the sequence of all 2- or 3-dimensional reflexive polytopes.
 
-    .. note::
+    .. NOTE::
 
        During the first call the database is loaded and cached for
        future use, so repetitive calls will return the same object in
@@ -398,13 +400,14 @@ def ReflexivePolytopes(dim):
     :type dim: 2 or 3
     :rtype: list of lattice polytopes
 
-    EXAMPLES: There are 16 reflexive polygons::
+    EXAMPLES:
+
+    There are 16 reflexive polygons::
 
         sage: len(ReflexivePolytopes(2))
         16
 
     It is not possible to load 4-dimensional polytopes in this way::
-
 
         sage: ReflexivePolytopes(4)
         Traceback (most recent call last):
@@ -422,17 +425,7 @@ def ReflexivePolytopes(dim):
             p.normal_form.set_cache(p._vertices)
             p.index.set_cache(n)
             # Prevents dimension computation later
-            p._dim = dim
-        # Compute "fast" data in one call to PALP
-        all_polars(rp)
-        # Construction of all points via PALP takes more time after the switch
-        # to point collections, which is inconvenient for doctests and using
-        # reflexive polytopes in general, turn it off for now - there was no
-        # promise in documentation that points are precomputed.
-        # all_points(rp + [p._polar for p in rp])
-        # TODO: improve faces representation so that we can uncomment
-        # all_faces(rp)
-        # It adds ~10s for dim=3, which is a bit annoying to wait for.
+            p.dim.set_cache(dim)
         _rp[dim] = rp
     return _rp[dim]
 
@@ -463,7 +456,7 @@ def is_LatticePolytope(x):
     """
     return isinstance(x, LatticePolytopeClass)
 
-
+@richcmp_method
 class LatticePolytopeClass(SageObject, collections.Hashable):
     r"""
     Create a lattice polytope.
@@ -491,7 +484,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
     - ``ambient_vertex_indices`` -- increasing list or tuple of integers,
       indices of vertices of ``ambient`` generating this polytope;
-      
+
     - ``ambient_facet_indices`` -- increasing list or tuple of integers,
       indices of facets of ``ambient`` generating this polytope.
 
@@ -523,7 +516,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             if compute_vertices:
                 P = C_Polyhedron(Generator_System(
                     [PPL_point(Linear_Expression(p, 0)) for p in points]))
-                P.set_immutable()
                 self._PPL.set_cache(P)
                 vertices = P.minimized_generators()
                 if len(vertices) != len(points):
@@ -541,7 +533,26 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             self._ambient_facet_indices = tuple(ambient_facet_indices)
             self._vertices = ambient.vertices(self._ambient_vertex_indices)
 
-    def __eq__(self, other):
+    def __contains__(self, point):
+        r"""
+        Check if ``point`` is contained in ``self``.
+
+        See :meth:`_contains` (which is called by this function) for
+        documentation.
+
+        TESTS::
+
+            sage: p = lattice_polytope.cross_polytope(2)
+            sage: (1,0) in p
+            True
+            sage: [1,0] in p
+            True
+            sage: (-2,0) in p
+            False
+        """
+        return self._contains(point)
+
+    def __richcmp__(self, other, op):
         r"""
         Compare ``self`` with ``other``.
 
@@ -549,14 +560,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         - ``other`` -- anything.
 
-        OUTPUT:
-
-        - ``True`` if ``other`` is a :class:`lattice polytope
-          <LatticePolytopeClass>` equal to ``self``, ``False`` otherwise.
-
         .. NOTE::
 
-            Two lattice polytopes are equal if they have the same vertices 
+            Two lattice polytopes are equal if they have the same vertices
             listed in the same order.
 
         TESTS::
@@ -574,9 +580,42 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             False
             sage: p1 == 0
             False
+            sage: p1 < p2
+            False
+            sage: p2 < p1
+            False
+            sage: p1 < p3
+            False
+            sage: p3 < p1
+            True
+            sage: p1 <= p2
+            True
+            sage: p2 <= p1
+            True
+            sage: p1 <= p3
+            False
+            sage: p3 <= p1
+            True
+            sage: p1 > p2
+            False
+            sage: p2 > p1
+            False
+            sage: p1 > p3
+            True
+            sage: p3 > p1
+            False
+            sage: p1 >= p2
+            True
+            sage: p2 >= p1
+            True
+            sage: p1 >= p3
+            True
+            sage: p3 >= p1
+            False
         """
-        return (isinstance(other, LatticePolytopeClass)
-                and self._vertices == other._vertices)
+        if not isinstance(other, LatticePolytopeClass):
+            return NotImplemented
+        return richcmp(self._vertices, other._vertices, op)
 
     @cached_method
     def __hash__(self):
@@ -595,42 +634,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         # FIXME: take into account other things that may be preset?..
         return hash(self._vertices)
-
-    def __ne__(self, other):
-        r"""
-        Compare ``self`` with ``other``.
-
-        INPUT:
-
-        - ``other`` -- anything.
-
-        OUTPUT:
-
-        - ``False`` if ``other`` is a :class:`lattice polytope
-          <LatticePolytopeClass>` equal to ``self``, ``True`` otherwise.
-
-        .. NOTE::
-
-            Two lattice polytopes are if they have the same vertices listed in
-            the same order.
-
-        TESTS::
-
-            sage: p1 = LatticePolytope([(1,0), (0,1), (-1,-1)])
-            sage: p2 = LatticePolytope([(1,0), (0,1), (-1,-1)])
-            sage: p3 = LatticePolytope([(0,1), (1,0), (-1,-1)])
-            sage: p1 != p1
-            False
-            sage: p1 != p2
-            False
-            sage: p1 is p2
-            False
-            sage: p1 != p3
-            True
-            sage: p1 != 0
-            True
-        """
-        return not (self == other)
 
     def __reduce__(self):
         r"""
@@ -666,44 +669,35 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         self.__dict__.update(state)
 
-    def _compute_dim(self):
+    def _compute_embedding(self):
         r"""
-        Compute the dimension of this polytope.
+        Compute embedding data for this polytope.
 
-        If the dimension of this polytope is not equal to its ambient dimension,
-        auxiliary polytope will be created and stored for using PALP commands.
+        Useful only if the dimension of this polytope is not equal to its
+        ambient dimension.
 
         TESTS::
 
             sage: p = LatticePolytope(([1], [2], [3]))
-            sage: hasattr(p, "_dim")
+            sage: hasattr(p, "_sublattice_polytope")
             False
-            sage: p._compute_dim()
-            sage: p._dim
-            1
+            sage: p._compute_embedding()
+            sage: p._sublattice_polytope
+            1-d lattice polytope in 1-d lattice M
         """
-        if hasattr(self, "_dim"):
+        if hasattr(self, "_sublattice_polytope"):
             return
-        N = self.lattice()
         points = self._vertices
         if not points:  # the empty lattice polytope
-            self._dim = -1
             return
-        p0 = points[0]
+        p0 = self._shift_vector = points[0]
         points = [point - p0 for point in points]
-        H = N.submodule(points)
-        self._dim = H.rank()
-        # Setup auxiliary polytope and maps
-        H = H.saturation()
-        H_points = [H.coordinates(point) for point in points]
-        H_polytope = LatticePolytope(H_points, compute_vertices=True)
-        self._sublattice = H
-        self._sublattice_polytope = H_polytope
-        self._embedding_matrix = H.basis_matrix().transpose()
-        self._shift_vector = p0
+        H = self._sublattice = self.lattice().submodule(points).saturation()
+        self._sublattice_polytope = LatticePolytope([H.coordinates(point)
+                                                     for point in points])
+        M = self._embedding_matrix = H.basis_matrix().transpose()
         # In order to use facet normals obtained from subpolytopes, we
         # need the following (see Trac #9188).
-        M = self._embedding_matrix
         # Basis for the ambient space with spanned subspace in front
         basis = M.columns() + M.integer_kernel().basis()
         # Let's represent it as columns of a matrix
@@ -727,51 +721,55 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             N(-1, -1, 0),
             N(-1,  1, 0)
             in 3-d lattice N
+
+        Check that :trac:`28741` is fixed::
+
+            sage: p = LatticePolytope([], lattice=ToricLattice(3).dual()); p
+            -1-d lattice polytope in 3-d lattice M
+            sage: a = p.faces()[0][0]
+            sage: p = LatticePolytope([], lattice=ToricLattice(3).dual()); p
+            -1-d lattice polytope in 3-d lattice M
+            sage: a = p.faces()[0][0]; a
+            -1-d lattice polytope in 3-d lattice M
+            sage: a.facet_normals()
+            Empty collection
+            in 3-d lattice N
+            sage: a
+            -1-d lattice polytope in 3-d lattice M
         """
         assert not hasattr(self, "_facet_normals")
-        if self.dim() == self.lattice_dim():
-            N = self.dual_lattice()
-            normals = []
-            constants = []
-            for c in self._PPL().minimized_constraints():
-                assert c.is_inequality()
-                normals.append(N(c.coefficients()))
-                normals[-1].set_immutable()
-                constants.append(c.inhomogeneous_term())
-            # Sort normals if facets are vertices
-            if (self.dim() == 1
-                and normals[0] * self.vertex(0) + constants[0] != 0):
-                normals = (normals[1], normals[0])
-                constants = (constants[1], constants[0])
-            self.is_reflexive.set_cache(all(c == 1 for c in constants))
-            if self.is_reflexive():
-                polar = LatticePolytope(
-                    normals, compute_vertices=False, lattice=N)
-                polar._dim = self._dim
-                polar.is_reflexive.set_cache(True)
-                polar._polar = self
-                self._polar = polar
-                self._facet_normals = polar._vertices
-                polar._facet_normals = self._vertices
-                self._facet_constants = vector(ZZ, [1] * polar.nvertices())
-                self._facet_constants.set_immutable()
-                polar._facet_constants = vector(ZZ, [1] * self.nvertices())
-                polar._facet_constants.set_immutable()
-            else:
-                self._facet_normals = PointCollection(normals, N)
-                self._facet_constants = vector(ZZ, constants)
-                self._facet_constants.set_immutable()
-        else:
-            sp = self._sublattice_polytope
-            N = self.dual_lattice()
-            normals = [N(_) for _ in sp.facet_normals() * self._dual_embedding_matrix]
-            for n in normals:
+        N = self.dual_lattice()
+        normals = []
+        constants = []
+        for c in self._PPL().minimized_constraints():
+            if c.is_inequality():
+                n = N.element_class(N, [Integer(mpz) for mpz in c.coefficients()])
                 n.set_immutable()
-            self._facet_normals = PointCollection(normals, N)
-            self._facet_constants = (
-                            sp.facet_constants() * self._dual_embedding_scale -
-                            self._shift_vector * self._facet_normals)
-            self._facet_constants.set_immutable()
+                normals.append(n)
+                constants.append(Integer(c.inhomogeneous_term()))
+        # Sort normals if facets are vertices
+        if (self.dim() == 1
+            and normals[0] * self.vertex(0) + constants[0] != 0):
+            normals = (normals[1], normals[0])
+            constants = (constants[1], constants[0])
+        self._facet_normals = PointCollection(normals, N)
+        # vector(ZZ, constants) is slow
+        self._facet_constants = (ZZ**len(constants))(constants)
+        self._facet_constants.set_immutable()
+        self.is_reflexive.set_cache(self.dim() == self.lattice_dim() and
+                                    all(c == 1 for c in constants))
+        if self.is_reflexive():
+            polar = LatticePolytope(
+                self._facet_normals, compute_vertices=False)
+            polar.dim.set_cache(self.dim())
+            polar.is_reflexive.set_cache(True)
+            polar._polar = self
+            self._polar = polar
+            polar._facet_normals = self._vertices
+            ones = [1] * self.nvertices()
+            ones = (ZZ**len(ones))(ones)
+            ones.set_immutable()
+            polar._facet_constants = ones
 
     def _compute_hodge_numbers(self):
         r"""
@@ -789,6 +787,57 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             NotImplementedError: use nef_partitions(hodge_numbers=True)!
         """
         raise NotImplementedError("use nef_partitions(hodge_numbers=True)!")
+
+    def _contains(self, point, region='whole polytope'):
+        r"""
+        Check if ``point`` is contained in ``self``.
+
+        This function is called by :meth:`__contains__` and :meth:`contains`
+        to ensure the same call depth for warning messages.
+
+        INPUT:
+
+        - ``point`` -- an attempt will be made to convert it into a
+          single element of the ambient space of ``self``; if it fails,
+          ``False`` is returned
+
+        - ``region`` -- string; can be either ``'whole polytope'`` (default),
+          ``'interior'``, or ``'relative interior'``
+
+        OUTPUT:
+
+        - ``True`` if ``point`` is contained in the specified ``region`` of
+          ``self``, ``False`` otherwise
+
+        TESTS::
+
+            sage: p = lattice_polytope.cross_polytope(2)
+            sage: p._contains((1,0))
+            True
+        """
+        try:
+            point = _ambient_space_point(self, point)
+        except TypeError as ex:
+            if str(ex).endswith("have incompatible lattices"):
+                warnings.warn("you have checked if a cone contains a point "
+                              "from an incompatible lattice, this is False",
+                              stacklevel=3)
+            return False
+
+        if region not in ("whole polytope", "relative interior", "interior"):
+            raise ValueError("%s is an unknown region" % region)
+        if region == "interior" and self.dim() < self.lattice_dim():
+            return False
+        need_strict = region.endswith("interior")
+        N = self.dual_lattice()
+        for c in self._PPL().minimized_constraints():
+            pr = N([Integer(mpz) for mpz in c.coefficients()]) * point + Integer(c.inhomogeneous_term())
+            if c.is_equality():
+                if pr != 0:
+                    return False
+            elif pr < 0 or need_strict and pr == 0:
+                return False
+        return True
 
     def _embed(self, data):
         r"""
@@ -816,6 +865,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if self.lattice_dim() == self.dim():
             return data
+        self._compute_embedding()
         M = self.lattice()
         if is_PointCollection(data):
             r = [M(self._embedding_matrix * point + self._shift_vector)
@@ -926,7 +976,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         OUTPUT:
 
-        - :class:`~sage.libs.ppl.C_Polyhedron`
+        - :class:`~ppl.polyhedron.C_Polyhedron`
 
         EXAMPLES::
 
@@ -953,7 +1003,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         P = C_Polyhedron(Generator_System(
             [PPL_point(Linear_Expression(v, 0)) for v in self.vertices()]))
-        P.set_immutable()
         return P
 
     def _pullback(self, data):
@@ -982,6 +1031,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if self.lattice_dim() == self.dim():
             return data
+        self._compute_embedding()
         if data is self._vertices:
             return self._sublattice_polytope._vertices
         if is_PointCollection(data):
@@ -1072,19 +1122,23 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         N = self.dual_lattice()
         if self.is_reflexive():
             data.seek(pos)
-            polar = LatticePolytope(read_palp_matrix(data).columns(),
-                                    compute_vertices=False, lattice=N)
-            polar._dim = self._dim
+            polar = LatticePolytope(
+                read_palp_point_collection(data, N), compute_vertices=False)
+            polar.dim.set_cache(self.dim())
             polar.is_reflexive.set_cache(True)
             polar._constructed_as_polar = True
             polar._polar = self
             self._polar = polar
             self._facet_normals = polar._vertices
             polar._facet_normals = self._vertices
-            self._facet_constants = vector(ZZ, [1]*polar.nvertices())
-            self._facet_constants.set_immutable()
-            polar._facet_constants = vector(ZZ, [1]*self.nvertices())
-            polar._facet_constants.set_immutable()
+            ones = [1] * polar.nvertices()
+            ones = (ZZ**len(ones))(ones)
+            ones.set_immutable()
+            self._facet_constants = ones
+            ones = [1] * self.nvertices()
+            ones = (ZZ**len(ones))(ones)
+            ones.set_immutable()
+            polar._facet_constants = ones
         else:
             normals = []
             constants = []
@@ -1150,14 +1204,14 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             return
         nvertices = self.nvertices()
         data.readline() # Skip M/N information
-        nef_vertices = read_palp_matrix(data)
-        if self.vertices().column_matrix() != nef_vertices:
+        nef_vertices = read_palp_point_collection(data, self.lattice())
+        if self.vertices() != nef_vertices:
             raise RuntimeError("nef.x changed the order of vertices!")
         line = data.readline()
         if line == "":
             raise ValueError("more data expected!")
         partitions = Sequence([], cr=True)
-        while len(line) > 0 and line.find("np=") == -1:
+        while line and line.find("np=") == -1:
             if line.find("V:") == -1:
                 line = data.readline()
                 continue
@@ -1427,15 +1481,15 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         - increasing :class:`tuple` of integers.
 
         EXAMPLES:
-        
+
         The polytope itself is not contained in any of its facets::
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: o.ambient_facet_indices()
             ()
-            
+
         But each of its other faces is contained in one or more facets::
-        
+
             sage: face = o.faces(1)[0]
             sage: face.ambient_facet_indices()
             (4, 5)
@@ -1527,18 +1581,18 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             (0, 1)
         """
         return self._ambient_vertex_indices
-        
+
     @cached_method
     def boundary_point_indices(self):
         r"""
         Return indices of (relative) boundary lattice points of this polytope.
 
         OUTPUT:
-        
+
         - increasing :class:`tuple` of integers.
 
         EXAMPLES:
-       
+
         All points but the origin are on the boundary of this square::
 
             sage: square = lattice_polytope.cross_polytope(2).polar()
@@ -1555,9 +1609,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             in 2-d lattice N
             sage: square.boundary_point_indices()
             (0, 1, 2, 3, 4, 5, 7, 8)
-            
+
         For an edge the boundary is formed by the end points::
-        
+
             sage: face = square.edges()[0]
             sage: face.points()
             N(-1, -1),
@@ -1570,17 +1624,17 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         return tuple(i
                      for i, c in enumerate(self.distances().columns(copy=False))
                      if len(c.nonzero_positions()) < self.nfacets())
-        
+
     def boundary_points(self):
         r"""
         Return (relative) boundary lattice points of this polytope.
-        
+
         OUTPUT:
 
         - a :class:`point collection <PointCollection>`.
 
         EXAMPLES:
-       
+
         All points but the origin are on the boundary of this square::
 
             sage: square = lattice_polytope.cross_polytope(2).polar()
@@ -1594,9 +1648,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             N( 0,  1),
             N( 1,  0)
             in 2-d lattice N
-            
+
         For an edge the boundary is formed by the end points::
-        
+
             sage: face = square.edges()[0]
             sage: face.boundary_points()
             N(-1, -1),
@@ -1604,13 +1658,47 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             in 2-d lattice N
         """
         return self.points(self.boundary_point_indices())
-        
+
+    def contains(self, *args):
+        r"""
+        Check if a given point is contained in ``self``.
+
+        INPUT:
+
+        - an attempt will be made to convert all arguments into a
+          single element of the ambient space of ``self``; if it fails,
+          ``False`` will be returned
+
+        OUTPUT:
+
+        - ``True`` if the given point is contained in ``self``, ``False``
+          otherwise
+
+        EXAMPLES::
+
+            sage: p = lattice_polytope.cross_polytope(2)
+            sage: p.contains(p.lattice()(1,0))
+            True
+            sage: p.contains((1,0))
+            True
+            sage: p.contains(1,0)
+            True
+            sage: p.contains((2,0))
+            False
+        """
+        point = flatten(args)
+        if len(point) == 1:
+           point = point[0]
+        return self._contains(point)
+
+    @cached_method
     def dim(self):
         r"""
         Return the dimension of this polytope.
 
-        EXAMPLES: We create a 3-dimensional octahedron and check its
-        dimension::
+        EXAMPLES:
+
+        We create a 3-dimensional octahedron and check its dimension::
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: o.dim()
@@ -1624,9 +1712,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: p.lattice_dim()
             3
         """
-        if not hasattr(self, "_dim"):
-            self._compute_dim()
-        return self._dim
+        nv = self.nvertices()
+        return self._PPL().affine_dimension() if nv > 3 else nv - 1
 
     def distances(self, point=None):
         r"""
@@ -1639,11 +1726,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         If point is specified, integral distances from the point to all
         facets of this polytope will be computed.
-
-        This function CAN be used for polytopes whose dimension is smaller
-        than the dimension of the ambient space. In this case distances are
-        computed in the affine subspace spanned by the polytope and if the
-        point is given, it must be in this subspace.
 
         EXAMPLES: The matrix of distances for a 3-dimensional octahedron::
 
@@ -1682,19 +1764,15 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [0 2 2 0 1]
             sage: p.distances((1/2, 3, 0))
             (9/2, -3/2, -5/2, 7/2)
+
+        This point is not even in the affine subspace of the polytope::
+
             sage: p.distances((1, 1, 1))
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: vector is not in free module
+            (3, 1, -1, 1)
         """
         if point is not None:
-            if self.dim() < self.lattice_dim():
-                return self._sublattice_polytope.distances(
-                                                        self._pullback(point))
             return (vector(QQ, point) * self.facet_normals() +
                     self.facet_constants())
-        if self.dim() < self.lattice_dim():
-            return self._sublattice_polytope.distances()
         try:
             return self._distances
         except AttributeError:
@@ -1709,15 +1787,15 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
     def dual(self):
         r"""
         Return the dual face under face duality of polar reflexive polytopes.
-        
+
         This duality extends the correspondence between vertices and facets.
-        
+
         OUTPUT:
-        
+
         - a :class:`lattice polytope <LatticePolytopeClass>`.
-        
+
         EXAMPLES::
-        
+
             sage: o = lattice_polytope.cross_polytope(4)
             sage: e = o.edges()[0]; e
             1-d face of 4-d reflexive polytope in 4-d lattice M
@@ -1778,8 +1856,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             12
         """
         return self.faces(dim=1)
-        
-    edges_lp = deprecated_function_alias(22122, edges)
 
     @cached_method
     def face_lattice(self):
@@ -1801,7 +1877,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: square = LatticePolytope([(0,0), (1,0), (1,1), (0,1)])
             sage: L = square.face_lattice()
             sage: L
-            Finite poset containing 10 elements with distinguished linear extension
+            Finite lattice containing 10 elements with distinguished linear extension
 
         To see all faces arranged by dimension, you can do this::
 
@@ -1868,14 +1944,14 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: face.adjacent()[0].vertices()
             M(1, 0)
             in 2-d lattice M
-    
+
         Note that if ``p`` is a face of ``superp``, then the face
         lattice of ``p`` consists of (appropriate) faces of ``superp``::
 
             sage: superp = LatticePolytope([(1,2,3,4), (5,6,7,8),
             ....:                           (1,2,4,8), (1,3,9,7)])
             sage: superp.face_lattice()
-            Finite poset containing 16 elements with distinguished linear extension
+            Finite lattice containing 16 elements with distinguished linear extension
             sage: superp.face_lattice().top()
             3-d lattice polytope in 4-d lattice M
             sage: p = superp.facets()[0]
@@ -1892,14 +1968,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if self._ambient is self:
             # We need to compute face lattice on our own.
-            vertex_to_facets = []
-            facet_to_vertices = [[] for _ in range(self.nfacets())]
-            for i, vertex in enumerate(self.vertices()):
-                facets = [j for j, normal in enumerate(self.facet_normals())
-                            if normal * vertex + self.facet_constant(j) == 0]
-                vertex_to_facets.append(facets)
-                for j in facets:
-                    facet_to_vertices[j].append(i)
+            vertex_to_facets = [row.nonzero_positions()
+                                for row in self.incidence_matrix().rows()]
+            facet_to_vertices = [column.nonzero_positions()
+                                 for column in self.incidence_matrix().columns()]
 
             def LPFace(vertices, facets):
                 if not facets:
@@ -1908,7 +1980,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                                             ambient_vertex_indices=vertices,
                                             ambient_facet_indices=facets)
 
-            return Hasse_diagram_from_incidences(
+            return lattice_from_incidences(
                 vertex_to_facets, facet_to_vertices, LPFace, key = id(self))
         else:
             # Get face lattice as a sublattice of the ambient one
@@ -1992,7 +2064,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
               1-d face of 2-d lattice polytope in 2-d lattice M,
               1-d face of 2-d lattice polytope in 2-d lattice M),
              (2-d lattice polytope in 2-d lattice M,))
-            
+
         Its faces of dimension one (i.e., edges)::
 
             sage: square.faces(dim=1)
@@ -2005,7 +2077,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: square.faces(codim=1) is square.faces(dim=1)
             True
-            
+
         Let's pick a particular face::
 
             sage: face = square.faces(dim=1)[0]
@@ -2038,94 +2110,35 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             return self._faces
         else:
             return self._faces[dim + 1] if -1 <= dim <= self.dim() else ()
-            
-    faces_lp = deprecated_function_alias(22122, faces)
 
     def facet_constant(self, i):
         r"""
         Return the constant in the ``i``-th facet inequality of this polytope.
 
-        The i-th facet inequality is given by
-        self.facet_normal(i) * X + self.facet_constant(i) >= 0.
+        This is equivalent to ``facet_constants()[i]``.
 
         INPUT:
 
-        - ``i`` - integer, the index of the facet
+        - ``i`` -- integer; the index of the facet
 
         OUTPUT:
 
         - integer -- the constant in the ``i``-th facet inequality.
 
-        EXAMPLES:
+        .. SEEALSO::
 
-        Let's take a look at facets of the octahedron and some polytopes
-        inside it::
+            :meth:`facet_constants`,
+            :meth:`facet_normal`,
+            :meth:`facet_normals`,
+            :meth:`facets`.
+
+        EXAMPLES::
 
             sage: o = lattice_polytope.cross_polytope(3)
-            sage: o.vertices()
-            M( 1,  0,  0),
-            M( 0,  1,  0),
-            M( 0,  0,  1),
-            M(-1,  0,  0),
-            M( 0, -1,  0),
-            M( 0,  0, -1)
-            in 3-d lattice M
-            sage: o.facet_normal(0)
-            N(1, -1, -1)
             sage: o.facet_constant(0)
             1
-            sage: p = LatticePolytope(o.vertices()(1,2,3,4,5))
-            sage: p.vertices()
-            M( 0,  1,  0),
-            M( 0,  0,  1),
-            M(-1,  0,  0),
-            M( 0, -1,  0),
-            M( 0,  0, -1)
-            in 3-d lattice M
-            sage: p.facet_normal(0)
-            N(-1, 0, 0)
-            sage: p.facet_constant(0)
-            0
-            sage: p = LatticePolytope(o.vertices()(1,2,4,5))
-            sage: p.vertices()
-            M(0,  1,  0),
-            M(0,  0,  1),
-            M(0, -1,  0),
-            M(0,  0, -1)
-            in 3-d lattice M
-            sage: p.facet_normal(0)
-            N(0, 1, 1)
-            sage: p.facet_constant(0)
-            1
-
-        This is a 2-dimensional lattice polytope in a 4-dimensional space::
-
-            sage: p = LatticePolytope([(1,-1,1,3), (-1,-1,1,3), (0,0,0,0)])
-            sage: p
-            2-d lattice polytope in 4-d lattice M
-            sage: p.vertices()
-            M( 1, -1, 1, 3),
-            M(-1, -1, 1, 3),
-            M( 0,  0, 0, 0)
-            in 4-d lattice M
-            sage: fns = [p.facet_normal(i) for i in range(p.nfacets())]
-            sage: fns
-            [N(11, -1, 1, 3), N(0, 1, -1, -3), N(-11, -1, 1, 3)]
-            sage: fcs = [p.facet_constant(i) for i in range(p.nfacets())]
-            sage: fcs
-            [0, 11, 0]
-
-        Now we manually compute the distance matrix of this polytope. Since it
-        is a triangle, each line (corresponding to a facet) should have two
-        zeros (vertices of the corresponding facet) and one positive number
-        (since our normals are inner)::
-
-            sage: matrix([[fns[i] * p.vertex(j) + fcs[i]
-            ....:          for j in range(p.nvertices())]
-            ....:         for i in range(p.nfacets())])
-            [22  0  0]
-            [ 0  0 11]
-            [ 0 22  0]
+            sage: o.facet_constant(0) == o.facet_constants()[0]
+            True
         """
         return self.facet_constants()[i]
 
@@ -2133,9 +2146,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         r"""
         Return facet constants of ``self``.
 
+        Facet inequalities have form `n \cdot x + c \geq 0` where `n` is the
+        inner normal and `c` is a constant.
+
         OUTPUT:
 
-        - an integer vector.
+        - an integer vector
+
+        .. SEEALSO::
+
+            :meth:`facet_constant`,
+            :meth:`facet_normal`,
+            :meth:`facet_normals`,
+            :meth:`facets`.
 
         EXAMPLES:
 
@@ -2165,7 +2188,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             M(-1, -1, 1, 3)
             in 4-d lattice M
             sage: p.facet_constants()
-            (0, 0, 10, 0)
+            (0, 0, 3, 0)
         """
         try:
             return self._facet_constants
@@ -2177,90 +2200,30 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         r"""
         Return the inner normal to the ``i``-th facet of this polytope.
 
-        If this polytope is not full-dimensional, facet normals will be
-        orthogonal to the integer kernel of the affine subspace spanned by
-        this polytope.
+        This is equivalent to ``facet_normals()[i]``.
 
         INPUT:
 
-        - ``i`` -- integer, the index of the facet
+        - ``i`` -- integer; the index of the facet
 
         OUTPUT:
 
-        - vectors -- the inner normal of the ``i``-th facet
+        - a vector
 
-        EXAMPLES:
+        .. SEEALSO::
 
-        Let's take a look at facets of the octahedron and some polytopes
-        inside it::
+            :meth:`facet_constant`,
+            :meth:`facet_constants`,
+            :meth:`facet_normals`,
+            :meth:`facets`.
+
+        EXAMPLES::
 
             sage: o = lattice_polytope.cross_polytope(3)
-            sage: o.vertices()
-            M( 1,  0,  0),
-            M( 0,  1,  0),
-            M( 0,  0,  1),
-            M(-1,  0,  0),
-            M( 0, -1,  0),
-            M( 0,  0, -1)
-            in 3-d lattice M
             sage: o.facet_normal(0)
             N(1, -1, -1)
-            sage: o.facet_constant(0)
-            1
-            sage: p = LatticePolytope(o.vertices()(1,2,3,4,5))
-            sage: p.vertices()
-            M( 0,  1,  0),
-            M( 0,  0,  1),
-            M(-1,  0,  0),
-            M( 0, -1,  0),
-            M( 0,  0, -1)
-            in 3-d lattice M
-            sage: p.facet_normal(0)
-            N(-1, 0, 0)
-            sage: p.facet_constant(0)
-            0
-            sage: p = LatticePolytope(o.vertices()(1,2,4,5))
-            sage: p.vertices()
-            M(0,  1,  0),
-            M(0,  0,  1),
-            M(0, -1,  0),
-            M(0,  0, -1)
-            in 3-d lattice M
-            sage: p.facet_normal(0)
-            N(0, 1, 1)
-            sage: p.facet_constant(0)
-            1
-
-        Here is an example of a 3-dimensional polytope in a 4-dimensional
-        space::
-
-            sage: p = LatticePolytope([(0,0,0,0), (1,1,1,3),
-            ....:                      (1,-1,1,3), (-1,-1,1,3)])
-            sage: p.vertices()
-            M( 0,  0, 0, 0),
-            M( 1,  1, 1, 3),
-            M( 1, -1, 1, 3),
-            M(-1, -1, 1, 3)
-            in 4-d lattice M
-            sage: ker = p.vertices().column_matrix().integer_kernel().matrix()
-            sage: ker
-            [ 0  0  3 -1]
-            sage: ker * p.facet_normals()
-            [0 0 0 0]
-
-        Now we manually compute the distance matrix of this polytope. Since it
-        is a simplex, each line (corresponding to a facet) should consist of
-        zeros (indicating generating vertices of the corresponding facet) and
-        a single positive number (since our normals are inner)::
-
-            sage: matrix([[p.facet_normal(i) * p.vertex(j)
-            ....:          + p.facet_constant(i)
-            ....:          for j in range(p.nvertices())]
-            ....:         for i in range(p.nfacets())])
-            [ 0 20  0  0]
-            [ 0  0 20  0]
-            [10  0  0  0]
-            [ 0  0  0 20]
+            sage: o.facet_normal(0) is o.facet_normals()[0]
+            True
         """
         return self.facet_normals()[i]
 
@@ -2268,10 +2231,20 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         r"""
         Return inner normals to the facets of ``self``.
 
+        If this polytope is not full-dimensional, facet normals will define
+        this polytope in the affine subspace spanned by it.
+
         OUTPUT:
 
         - a :class:`point collection <PointCollection>` in the
           :meth:`dual_lattice` of ``self``.
+
+        .. SEEALSO::
+
+            :meth:`facet_constant`,
+            :meth:`facet_constants`,
+            :meth:`facet_normal`,
+            :meth:`facets`.
 
         EXAMPLES:
 
@@ -2309,11 +2282,25 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             M(-1, -1, 1, 3)
             in 4-d lattice M
             sage: p.facet_normals()
-            N(  0,  10,  1,  3),
-            N( 10, -10,  0,  0),
-            N(  0,   0, -1, -3),
-            N(-10,   0,  1,  3)
+            N( 0,  3, 0,  1),
+            N( 1, -1, 0,  0),
+            N( 0,  0, 0, -1),
+            N(-3,  0, 0,  1)
             in 4-d lattice N
+            sage: p.facet_constants()
+            (0, 0, 3, 0)
+
+        Now we manually compute the distance matrix of this polytope. Since it
+        is a simplex, each line (corresponding to a facet) should consist of
+        zeros (indicating generating vertices of the corresponding facet) and
+        a single positive number (since our normals are inner)::
+
+            sage: matrix([[n * v + c for v in p.vertices()]
+            ....:     for n, c in zip(p.facet_normals(), p.facet_constants())])
+            [0 6 0 0]
+            [0 0 2 0]
+            [3 0 0 0]
+            [0 0 0 6]
         """
         try:
             return self._facet_normals
@@ -2365,10 +2352,55 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         return self.faces(codim=1)
 
-    facets_lp = deprecated_function_alias(22122, facets)
-
     # Dictionaries of normal forms
-    _rp_dict = [None]*4
+    _rp_dict = [None] * 4
+
+    @cached_method
+    def incidence_matrix(self):
+        """
+        Return the incidence matrix.
+
+        .. NOTE::
+
+           The columns correspond to facets/facet normals
+           in the order of :meth:`facet_normals`, the rows
+           correspond to the vertices in the order of
+           :meth:`vertices`.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.cross_polytope(2)
+            sage: o.incidence_matrix()
+            [0 0 1 1]
+            [0 1 1 0]
+            [1 1 0 0]
+            [1 0 0 1]
+            sage: o.faces(1)[0].incidence_matrix()
+            [1 0]
+            [0 1]
+
+            sage: o = lattice_polytope.cross_polytope(4)
+            sage: o.incidence_matrix().column(3).nonzero_positions()
+            [3, 4, 5, 6]
+            sage: o.facets()[3].ambient_vertex_indices()
+            (3, 4, 5, 6)
+
+        TESTS::
+
+            sage: o.incidence_matrix().is_immutable()
+            True
+        """
+        incidence_matrix = matrix(ZZ, self.nvertices(),
+                                  self.nfacets(), 0)
+
+        for Hindex, normal in enumerate(self.facet_normals()):
+            facet_constant = self.facet_constant(Hindex)
+            for Vindex, vertex in enumerate(self.vertices()):
+                if normal*vertex + facet_constant == 0:
+                    incidence_matrix[Vindex, Hindex] = 1
+
+        incidence_matrix.set_immutable()
+        return incidence_matrix
 
     @cached_method
     def index(self):
@@ -2440,13 +2472,13 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
     def interior_point_indices(self):
         r"""
         Return indices of (relative) interior lattice points of this polytope.
-        
+
         OUTPUT:
-        
+
         - increasing :class:`tuple` of integers.
 
         EXAMPLES:
-       
+
         The origin is the only interior point of this square::
 
             sage: square = lattice_polytope.cross_polytope(2).polar()
@@ -2463,9 +2495,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             in 2-d lattice N
             sage: square.interior_point_indices()
             (6,)
-            
+
         Its edges also have a single interior point each::
-        
+
             sage: face = square.edges()[0]
             sage: face.points()
             N(-1, -1),
@@ -2478,33 +2510,33 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         return tuple(i
                      for i, c in enumerate(self.distances().columns(copy=False))
                      if len(c.nonzero_positions()) == self.nfacets())
-        
+
     def interior_points(self):
         r"""
         Return (relative) boundary lattice points of this polytope.
-        
+
         OUTPUT:
 
         - a :class:`point collection <PointCollection>`.
 
         EXAMPLES:
-       
+
         The origin is the only interior point of this square::
 
             sage: square = lattice_polytope.cross_polytope(2).polar()
             sage: square.interior_points()
             N(0, 0)
             in 2-d lattice N
-            
+
         Its edges also have a single interior point each::
-        
+
             sage: face = square.edges()[0]
             sage: face.interior_points()
             N(-1, 0)
             in 2-d lattice N
         """
         return self.points(self.interior_point_indices())
-        
+
     @cached_method
     def is_reflexive(self):
         r"""
@@ -2802,7 +2834,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Return the normal form of vertices of ``self``.
 
         Two full-dimensional lattice polytopes are in the same
-        ``GL(\mathbb{Z})``-orbit if and only if their normal forms are the
+        ``GL(\ZZ)``-orbit if and only if their normal forms are the
         same. Normal form is not defined and thus cannot be used for polytopes
         whose dimension is smaller than the dimension of the ambient space.
 
@@ -2837,7 +2869,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
           of ``self`` or a tuple of it and a permutation.
 
         EXAMPLES:
-        
+
         We compute the normal form of the "diamond"::
 
             sage: d = LatticePolytope([(1,0), (0,1), (-1,0), (0,-1)])
@@ -2860,9 +2892,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             3
             sage: d
             2-d reflexive polytope #3 in 2-d lattice M
-            
+
         You can get it in its normal form (in the default lattice) as ::
-        
+
             sage: lattice_polytope.ReflexivePolytope(2, 3).vertices()
             M( 1,  0),
             M( 0,  1),
@@ -2900,29 +2932,28 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if self.dim() < self.lattice_dim():
             raise ValueError("normal form is not defined for %s" % self)
+        M = self.lattice()
         if algorithm == "palp":
-            result = read_palp_matrix(self.poly_x("N"),
-                                      permutation=permutation)
+            result = read_palp_point_collection(
+                StringIO(self.poly_x("N")), M, permutation=permutation)
         elif algorithm == "palp_native":
             result = self._palp_native_normal_form(permutation=permutation)
         elif algorithm == "palp_modified":
             result = self._palp_modified_normal_form(permutation=permutation)
         else:
-            raise ValueError('Algorithm must be palp, ' + 
+            raise ValueError('Algorithm must be palp, ' +
                              'palp_native, or palp_modified.')
         if permutation:
             vertices, perm = result
         else:
             vertices = result
-        if algorithm == "palp":
-            vertices = vertices.columns()
-        M = self.lattice()
-        vertices = [M(_) for _ in vertices]
-        for v in vertices:
-            v.set_immutable()
-        vertices = PointCollection(vertices, M)
+        if algorithm != "palp":
+            vertices = [M(_) for _ in vertices]
+            for v in vertices:
+                v.set_immutable()
+            vertices = PointCollection(vertices, M)
         return (vertices, perm) if permutation else vertices
-        
+
     def _palp_modified_normal_form(self, permutation=False):
         r"""
         Return the normal form of ``self`` using the modified PALP algorithm.
@@ -3032,7 +3063,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         maximum under all permutations of its rows and columns. For more
         more detail, see also
         :meth:`~sage.matrix.matrix2.Matrix.permutation_normal_form`.
-        
+
         Instead of using the generic method for computing the permutation
         normal form, this method uses the PALP algorithm to compute
         the permutation normal form and its automorphisms concurrently.
@@ -3063,7 +3094,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [3 0 0]
             [0 3 0]
             [0 0 3]
-            sage: permutations.values()
+            sage: list(permutations.values())
             [[(1,2,3), (1,2,3)],
              [(1,3,2), (1,3,2)],
              [(1,3), (1,3)],
@@ -3071,22 +3102,27 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
              [(), ()],
              [(2,3), (2,3)]]
             sage: PM_max.automorphisms_of_rows_and_columns()
-            [((), ()), ((2,3), (2,3)), ((1,2), (1,2)),
-             ((1,3,2), (1,3,2)), ((1,2,3), (1,2,3)), ((1,3), (1,3))]
+            [((), ()),
+             ((1,2,3), (1,2,3)),
+             ((1,3,2), (1,3,2)),
+             ((2,3), (2,3)),
+             ((1,2), (1,2)),
+             ((1,3), (1,3))]
             sage: PMs = [i._palp_PM_max(check=True)
             ....:        for i in ReflexivePolytopes(2)] # long time
             sage: all(len(i) == len(j.automorphisms_of_rows_and_columns())
             ....:     for j, i in PMs) # long time
             True
         """
-        def PGE(t):
-            if len(t) == 2 and t[0] == t[1]:
-                t = tuple()
-            return PermutationGroupElement(t)
+        def PGE(S, u, v):
+            if u == v: return S.one()
+            return S((u, v), check=False)
 
         PM = self.vertex_facet_pairing_matrix()
         n_v = PM.ncols()
         n_f = PM.nrows()
+        S_v = SymmetricGroup(n_v)
+        S_f = SymmetricGroup(n_f)
 
         # and find all the ways of making the first row of PM_max
         def index_of_max(iterable):
@@ -3098,23 +3134,22 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             return m
 
         n_s = 1
-        permutations = {0 : [PGE(range(1, n_f + 1)),
-                             PGE(range(1, n_v + 1))]}
+        permutations = {0 : [S_f.one(), S_v.one()]}
         for j in range(n_v):
             m = index_of_max(
                 [(PM.with_permuted_columns(permutations[0][1]))[0][i]
                  for i in range(j, n_v)])
             if m > 0:
-                permutations[0][1] = PGE((j + 1,m + j + 1))*permutations[0][1]
+                permutations[0][1] = PGE(S_v, j + 1, m + j + 1) * permutations[0][1]
         first_row = list(PM[0])
-        
+
         # Arrange other rows one by one and compare with first row
         for k in range(1, n_f):
             # Error for k == 1 already!
-            permutations[n_s] = [PGE(range(1, n_f+1)),PGE(range(1, n_v+1))]
+            permutations[n_s] = [S_f.one(), S_v.one()]
             m = index_of_max(PM.with_permuted_columns(permutations[n_s][1])[k])
             if m > 0:
-                permutations[n_s][1] = PGE((1,m+1))*permutations[n_s][1]
+                permutations[n_s][1] = PGE(S_v, 1, m+1) * permutations[n_s][1]
             d = ((PM.with_permuted_columns(permutations[n_s][1]))[k][0]
                 - permutations[0][1](first_row)[0])
             if d < 0:
@@ -3127,7 +3162,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                     [PM.with_permuted_columns(permutations[n_s][1])[k][j]
                      for j in range(i, n_v)])
                 if m > 0:
-                    permutations[n_s][1] = PGE((i + 1, m + i + 1)) \
+                    permutations[n_s][1] = PGE(S_v, i + 1, m + i + 1) \
                                            * permutations[n_s][1]
                 if d == 0:
                     d = (PM.with_permuted_columns(permutations[n_s][1])[k][i]
@@ -3138,18 +3173,18 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 # This row is smaller than 1st row, so nothing to do
                 del permutations[n_s]
                 continue
-            permutations[n_s][0] = PGE((1, k + 1))*permutations[n_s][0]
+            permutations[n_s][0] =  PGE(S_f, 1, k + 1) * permutations[n_s][0]
             if d == 0:
                 # This row is the same, so we have a symmetry!
                 n_s += 1
             else:
-                # This row is larger, so it becomes the first row and 
+                # This row is larger, so it becomes the first row and
                 # the symmetries reset.
                 first_row = list(PM[k])
                 permutations = {0: permutations[n_s]}
                 n_s = 1
         permutations = {k:permutations[k] for k in permutations if k < n_s}
-        
+
         b = PM.with_permuted_rows_and_columns(*permutations[0])[0]
         # Work out the restrictions the current permutations
         # place on other permutations as a automorphisms
@@ -3164,8 +3199,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 S[S[i]-1] += 1
             else:
                 S[i] = i + 1
-        
-        # We determine the other rows of PM_max in turn by use of perms and 
+
+        # We determine the other rows of PM_max in turn by use of perms and
         # aut on previous rows.
         for l in range(1, n_f - 1):
             n_s = len(permutations)
@@ -3178,7 +3213,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 # number of local permutations associated with current global
                 n_p = 0
                 ccf = cf
-                permutations_bar = {0:copy(permutations[k])}
+                permutations_bar = {0: copy(permutations[k])}
                 # We look for the line with the maximal entry in the first
                 # subsymmetry block, i.e. we are allowed to swap elements
                 # between 0 and S(0)
@@ -3187,11 +3222,11 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                         v = PM.with_permuted_rows_and_columns(
                             *permutations_bar[n_p])[s]
                         if v[0] < v[j]:
-                            permutations_bar[n_p][1] = PGE((1,j + 1))*permutations_bar[n_p][1]
+                            permutations_bar[n_p][1] = PGE(S_v, 1, j + 1) * permutations_bar[n_p][1]
                     if ccf == 0:
                         l_r[0] = PM.with_permuted_rows_and_columns(
                                  *permutations_bar[n_p])[s][0]
-                        permutations_bar[n_p][0] = PGE((l + 1, s + 1))*permutations_bar[n_p][0]
+                        permutations_bar[n_p][0] = PGE(S_f, l + 1, s + 1) * permutations_bar[n_p][0]
                         n_p += 1
                         ccf = 1
                         permutations_bar[n_p] = copy(permutations[k])
@@ -3204,14 +3239,14 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                             continue
                         elif d==0:
                             # Maximal values agree, so possible symmetry
-                            permutations_bar[n_p][0] = PGE((l + 1, s + 1))*permutations_bar[n_p][0]
+                            permutations_bar[n_p][0] = PGE(S_f, l + 1, s + 1) * permutations_bar[n_p][0]
                             n_p += 1
                             permutations_bar[n_p] = copy(permutations[k])
                         else:
                             # We found a greater maximal value for first entry.
                             # It becomes our new reference:
                             l_r[0] = d1
-                            permutations_bar[n_p][0] = PGE((l + 1, s + 1))*permutations_bar[n_p][0]
+                            permutations_bar[n_p][0] = PGE(S_f, l + 1, s + 1) * permutations_bar[n_p][0]
                             # Forget previous work done
                             cf = 0
                             permutations_bar = {0:copy(permutations_bar[n_p])}
@@ -3236,7 +3271,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                             v = PM.with_permuted_rows_and_columns(
                                 *permutations_bar[s])[l]
                             if (v[c] < v[j]):
-                                permutations_bar[s][1] = PGE((c + 1, j + 1))*permutations_bar[s][1]
+                                permutations_bar[s][1] = PGE(S_v, c + 1, j + 1) * permutations_bar[s][1]
                         if ccf == 0:
                             # Set reference and carry on to next permutation
                             l_r[c] = PM.with_permuted_rows_and_columns(
@@ -3264,7 +3299,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 for s in range(n_p):
                    permutations[n_s] = copy(permutations_bar[s])
                    n_s += 1
-                cf = n_s   
+                cf = n_s
             permutations = {k:permutations[k] for k in permutations if k < n_s}
             # If the automorphisms are not already completely restricted,
             # update them
@@ -3424,7 +3459,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         -  ``vertex_color`` - (default:(1,0,0))
 
         -  ``show_points`` - (default:True) whether to draw
-           other poits as balls
+           other points as balls
 
         -  ``point_size`` - (default:10)
 
@@ -3437,7 +3472,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
            vertex labels
 
         -  ``vlabels`` - (default:None) if specified, must be a list of labels
-           for each vertex, default labels are vertex indicies
+           for each vertex, default labels are vertex indices
 
         -  ``show_pindices`` - (default:same as show_points)
            whether to show indices of other points
@@ -3545,7 +3580,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
     def polyhedron(self):
         r"""
         Return the Polyhedron object determined by this polytope's vertices.
-        
+
         EXAMPLES::
 
             sage: o = lattice_polytope.cross_polytope(2)
@@ -3553,8 +3588,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
-        return Polyhedron(vertices=[list(v) for v in self._vertices])        
-    
+        return Polyhedron(vertices=[list(v) for v in self._vertices])
+
     def show3d(self):
         """
         Show a 3d picture of the polytope with default settings and without axes or frame.
@@ -3606,9 +3641,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
     def points(self, *args, **kwds):
         r"""
         Return all lattice points of ``self``.
-        
+
         INPUT:
-        
+
         - any arguments given will be passed on to the returned object.
 
         OUTPUT:
@@ -3670,9 +3705,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             M( 0, -1, 0),
             M( 0,  0, 0)
             in 3-d lattice M
-            
+
         Only two of the above points:
-        
+
             sage: p.points(1, 3)
             M(0,  1, 0),
             M(0, -1, 0)
@@ -3686,15 +3721,34 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             in 1-d lattice M
         """
         if not hasattr(self, "_points"):
-            if self.dim() <= 0:
-                self._points = self._vertices
-            else:
-                points = self._embed(read_palp_matrix(
-                            self.poly_x("p", reduce_dimension=True))).columns()
-                M = self.lattice()
-                points = [M(_) for _ in points]
-                for point in points:
-                    point.set_immutable()
+            M = self.lattice()
+            nv = self.nvertices()
+            self._points = points = self._vertices
+            if self.dim() == 1:
+                v = points[1] - points[0]
+                l = gcd(v)
+                if l > 1:
+                    v = M(v.base_extend(QQ) / l)
+                    points = list(points)
+                    current = points[0]
+                    for i in range(l - 1):
+                        current += v
+                        current.set_immutable()
+                        points.append(current)
+            if self.dim() > 1:
+                result = self.poly_x("p", reduce_dimension=True)
+                if self.dim() == self.lattice_dim():
+                    points = read_palp_point_collection(StringIO(result), M)
+                else:
+                    m = self._embed(read_palp_matrix(result))
+                    if m.ncols() > nv:
+                        points = list(points)
+                        for j in range(nv, m.ncols()):
+                            current = M.element_class(
+                                M, [m[i, j] for i in range(M.rank())])
+                            current.set_immutable()
+                            points.append(current)
+            if len(points) > nv:
                 self._points = PointCollection(points, M)
         if args or kwds:
             return self._points(*args, **kwds)
@@ -3912,7 +3966,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         Needed for plot3d function of polytopes.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: p = lattice_polytope.cross_polytope(2).polar()
             sage: p.traverse_boundary()
@@ -3984,9 +4038,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
     def vertices(self, *args, **kwds):
         r"""
         Return vertices of ``self``.
-        
+
         INPUT:
-        
+
         - any arguments given will be passed on to the returned object.
 
         OUTPUT:
@@ -4118,12 +4172,12 @@ class NefPartition(SageObject,
     standard basis of $\ZZ^k$. The **dual Cayley polytope**
     $P^* \subset \overline{N}_\RR$ is the Cayley polytope of the dual
     nef-partition.
-    
+
     The **Cayley cone** $C \subset \overline{M}_\RR$ of a nef-partition is the
     cone spanned by its Cayley polytope. The **dual Cayley cone**
     $C^\vee \subset \overline{M}_\RR$ is the usual dual cone of $C$. It turns
     out, that $C^\vee$ is spanned by $P^*$.
-   
+
     It is also possible to go back from the Cayley cone to the Cayley polytope,
     since $C$ is a reflexive Gorenstein cone supported by $P$: primitive
     integral ray generators of $C$ are contained in an affine hyperplane and
@@ -4327,7 +4381,7 @@ class NefPartition(SageObject,
         result = r"\text{Nef-partition } "
         for i, part in enumerate(self.parts()):
             if i != 0:
-                result += " \sqcup "
+                result += r" \sqcup "
             result += r"\{" + ", ".join("%d" % v for v in part) + r"\}"
         try:
             # We may or may not know the type of the partition
@@ -4503,7 +4557,7 @@ class NefPartition(SageObject,
         See Proposition 3.19 in [BN2008]_.
 
         .. NOTE::
-        
+
             Automatically constructed dual nef-partitions will be ordered, i.e.
             vertex partition of `\nabla` will look like
             `\{0, 1, 2\} \sqcup \{3, 4, 5, 6\} \sqcup \{7, 8\}`.
@@ -4726,7 +4780,7 @@ class NefPartition(SageObject,
         INPUT:
 
         - ``i`` -- an integer
-        
+
         - ``all_points`` -- (default: False) whether to list all lattice points
           or just vertices
 
@@ -4893,12 +4947,8 @@ class NefPartition(SageObject,
             raise ValueError("the origin belongs to all parts!")
         point = self._Delta_polar.point(i)
         for part, nabla in enumerate(self.nablas()):
-            try:
-                if min(nabla.distances(point)) >= 0:
-                    return part
-            except ArithmeticError:
-                # point is not even in the affine subspace of nabla
-                continue
+            if point in nabla:
+                return part
 
 
 _palp_dimension = None
@@ -4931,6 +4981,7 @@ def _palp(command, polytopes, reduce_dimension=False):
         sage: p = LatticePolytope([(1,0,0), (0,1,0), (-1,0,0), (0,-1,0)])
         sage: lattice_polytope._palp("poly.x -f", [p])
         Traceback (most recent call last):
+        ...
         ValueError: Cannot run PALP for a 2-dimensional polytope in a 3-dimensional space!
 
         sage: result_name = lattice_polytope._palp("poly.x -f", [p], reduce_dimension=True)
@@ -4949,10 +5000,13 @@ def _palp(command, polytopes, reduce_dimension=False):
         if p.dim() == 0:
             raise ValueError(("Cannot run \"%s\" for the zero-dimensional "
                 + "polytope!\nPolytope: %s") % (command, p))
-        if p.dim() < p.lattice_dim() and not reduce_dimension:
-            raise ValueError(("Cannot run PALP for a %d-dimensional polytope " +
-            "in a %d-dimensional space!") % (p.dim(), p.lattice_dim()))
-        write_palp_matrix(p._pullback(p._vertices), input_file)
+        if p.dim() < p.lattice_dim():
+            if not reduce_dimension:
+                raise ValueError(("Cannot run PALP for a %d-dimensional polytope " +
+                "in a %d-dimensional space!") % (p.dim(), p.lattice_dim()))
+            write_palp_matrix(p._pullback(p._vertices), input_file)
+        else:
+            p._vertices.write_for_palp(input_file)
     input_file.close()
     output_file_name = tmp_filename()
     c = "%s <%s >%s" % (command, input_file_name, output_file_name)
@@ -4961,9 +5015,9 @@ def _palp(command, polytopes, reduce_dimension=False):
                      stdout=subprocess.PIPE,
                      stderr=subprocess.PIPE,
                      close_fds=True)
-    stdin, stdout, stderr = (p.stdin, p.stdout, p.stderr)
+    stderr = p.stderr
     err = stderr.read()
-    if len(err) > 0:
+    if len(err):
         raise RuntimeError(("Error executing \"%s\" for a polytope sequence!"
             + "\nOutput:\n%s") % (command, err))
     os.remove(input_file_name)
@@ -4972,6 +5026,7 @@ def _palp(command, polytopes, reduce_dimension=False):
     except OSError:
         pass
     return output_file_name
+
 
 def _palp_canonical_order(V, PM_max, permutations):
     r"""
@@ -4989,7 +5044,7 @@ def _palp_canonical_order(V, PM_max, permutations):
     INPUT:
 
     - ``V`` -- :class:`point collection <PointCollection>`. The vertices.
-    
+
     - ``PM_max`` -- the maximal vertex-facet pairing matrix
 
     - ``permutation`` -- the permutations of the vertices yielding
@@ -5014,7 +5069,8 @@ def _palp_canonical_order(V, PM_max, permutations):
     """
     n_v = PM_max.ncols()
     n_f = PM_max.nrows()
-    p_c = PermutationGroupElement(range(1, n_v))
+    S_v = SymmetricGroup(n_v)
+    p_c = S_v.one()
     M_max = [max([PM_max[i][j] for i in range(n_f)]) for j in range(n_v)]
     S_max = [sum([PM_max[i][j] for i in range(n_f)]) for j in range(n_v)]
     for i in range(n_v):
@@ -5026,20 +5082,21 @@ def _palp_canonical_order(V, PM_max, permutations):
         if not k == i:
             M_max[i], M_max[k] = M_max[k], M_max[i]
             S_max[i], S_max[k] = S_max[k], S_max[i]
-            p_c = PermutationGroupElement((1 + i, 1 + k))*p_c
+            p_c = S_v((1 + i, 1 + k), check=False) * p_c
     # Create array of possible NFs.
-    permutations = [p_c*k[1] for k in permutations.values()]
-    Vs = [(V.column_matrix().with_permuted_columns(k).hermite_form(), k) 
-          for k in permutations]
+    permutations = [p_c * l[1] for l in permutations.values()]
+    Vs = [(V.column_matrix().with_permuted_columns(sig).hermite_form(), sig)
+          for sig in permutations]
     Vmin = min(Vs, key=lambda x:x[0])
     vertices = [V.module()(_) for _ in Vmin[0].columns()]
     for v in vertices:
         v.set_immutable()
     return (PointCollection(vertices, V.module()), Vmin[1])
 
+
 def _palp_convert_permutation(permutation):
     r"""
-    Convert a permutation from PALPs notation to a PermutationGroupElement.
+    Convert a permutation from PALPs notation to a Sage permutation.
 
     PALP specifies a permutation group element by its domain. Furthermore,
     it only supports permutations of up to 62 objects and labels these by
@@ -5074,9 +5131,9 @@ def _palp_convert_permutation(permutation):
             else:
                 raise ValueError('Cannot convert PALP index '
                                  + i + ' to number.')
-        return i            
+        return i
     n = len(permutation)
-    domain = [from_palp_index(i) for i in permutation]    
+    domain = [from_palp_index(i) for i in permutation]
     from sage.groups.perm_gps.permgroup_element import make_permgroup_element
     from sage.groups.perm_gps.permgroup_named import SymmetricGroup
     S = SymmetricGroup(n)
@@ -5117,26 +5174,28 @@ def _read_nef_x_partitions(data):
     if line == "":
         raise ValueError("Empty file!")
     partitions = []
-    while len(line) > 0 and line.find("np=") == -1:
+    while line and line.find("np=") == -1:
         if line.find("V:") == -1:
             line = data.readline()
             continue
         start = line.find("V:") + 2
         end = line.find("  ", start)  # Find DOUBLE space
-        partitions.append(Sequence(line[start:end].split(),int))
+        partitions.append(Sequence(line[start:end].split(), int))
         line = data.readline()
     # Compare the number of found partitions with np in data.
     start = line.find("np=")
     if start != -1:
-        start += 3
-        end = line.find(" ", start)
-        np = int(line[start:end])
-        if False and np != len(partitions):
-            raise ValueError("Found %d partitions, expected %d!" %
-                                 (len(partitions), np))
+        # start += 3
+        # end = line.find(" ", start)
+        # np = int(line[start:end])
+        # if False and np != len(partitions):
+        #     raise ValueError("Found %d partitions, expected %d!" %
+        #                          (len(partitions), np))
+        pass
     else:
         raise ValueError("Wrong data format, cannot find \"np=\"!")
     return partitions
+
 
 def _read_poly_x_incidences(data, dim):
     r"""
@@ -5164,11 +5223,11 @@ def _read_poly_x_incidences(data, dim):
         ....:     print(f.read())
         Incidences as binary numbers [F-vector=(4 4)]:
         v[d][i]: sum_j Incidence(i'th dim-d-face, j-th vertex) x 2^j
-        v[0]: 1000 0001 0100 0010 
-        v[1]: 1001 1100 0011 0110 
+        v[0]: 1000 0001 0100 0010
+        v[1]: 1001 1100 0011 0110
         f[d][i]: sum_j Incidence(i'th dim-d-face, j-th facet) x 2^j
-        f[0]: 0011 0101 1010 1100 
-        f[1]: 0001 0010 0100 1000         
+        f[0]: 0011 0101 1010 1100
+        f[1]: 0001 0010 0100 1000
         sage: f = open(result_name)
         sage: l = f.readline()
         sage: lattice_polytope._read_poly_x_incidences(f, 2)
@@ -5186,11 +5245,13 @@ def _read_poly_x_incidences(data, dim):
         line.pop(0)
         subr = []
         for e in line:
-            f = Sequence([j for j in range(n) if e[n-1-j] == '1'], int, check=False)
+            f = Sequence([j for j in range(n) if e[n-1-j] == '1'],
+                         int, check=False)
             f.set_immutable()
             subr.append(f)
         result.append(subr)
     return result
+
 
 def all_cached_data(polytopes):
     r"""
@@ -5274,6 +5335,7 @@ def all_nef_partitions(polytopes, keep_symmetric=False):
     result.close()
     os.remove(result_name)
 
+
 def all_points(polytopes):
     r"""
     Compute lattice points for all given ``polytopes``.
@@ -5303,17 +5365,26 @@ def all_points(polytopes):
     result_name = _palp("poly.x -fp", polytopes, reduce_dimension=True)
     result = open(result_name)
     for p in polytopes:
-        points = p._embed(read_palp_matrix(result))
-        if points.nrows() == 0:
-            raise RuntimeError("Cannot read points of a polytope!"
-                                                        +"\nPolytope: %s" % p)
         M = p.lattice()
-        points = [M(_) for _ in points.columns()]
-        for point in points:
-            point.set_immutable()
-        p._points = PointCollection(points, M)
+        nv = p.nvertices()
+        if p.dim() == p.lattice_dim():
+            points = read_palp_point_collection(result, M)
+            p._points = points if len(points) > nv else p.vertices()
+        else:
+            m = p._embed(read_palp_matrix(result))
+            if m.ncols() == nv:
+                p._points = p.vertices()
+            else:
+                points = list(p.vertices())
+                for j in range(nv, m.ncols()):
+                    current = M.element_class(
+                        M, [m[i, j] for i in range(M.rank())])
+                    current.set_immutable()
+                    points.append(current)
+                p._points = PointCollection(points, M)
     result.close()
     os.remove(result_name)
+
 
 def all_polars(polytopes):
     r"""
@@ -5377,7 +5448,7 @@ def convex_hull(points):
         return []
     vpoints = []
     for p in points:
-        v = vector(ZZ,p)
+        v = vector(ZZ, p)
         if not v in vpoints:
             vpoints.append(v)
     p0 = vpoints[0]
@@ -5399,13 +5470,13 @@ def convex_hull(points):
 def cross_polytope(dim):
     r"""
     Return a cross-polytope of the given dimension.
-    
+
     INPUT:
-    
+
     - ``dim`` -- an integer.
-    
+
     OUTPUT:
-    
+
     - a :class:`lattice polytope <LatticePolytopeClass>`.
 
     EXAMPLES::
@@ -5426,32 +5497,6 @@ def cross_polytope(dim):
     vertices = list(M.gens())
     vertices += [-v for v in vertices]
     return LatticePolytope(vertices, compute_vertices=False)
-
-
-def integral_length(v):
-    """
-    Compute the integral length of a given rational vector.
-
-    INPUT:
-
-    -  ``v`` - any object which can be converted to a list of rationals
-
-    OUTPUT: Rational number ``r`` such that ``v = r u``, where ``u`` is the
-    primitive integral vector in the direction of ``v``.
-
-    EXAMPLES::
-
-        sage: lattice_polytope.integral_length([1, 2, 4])
-        1
-        sage: lattice_polytope.integral_length([2, 2, 4])
-        2
-        sage: lattice_polytope.integral_length([2/3, 2, 4])
-        2/3
-    """
-    data = [QQ(e) for e in list(v)]
-    ns = [e.numerator() for e in data]
-    ds = [e.denominator() for e in data]
-    return gcd(ns)/lcm(ds)
 
 
 def minkowski_sum(points1, points2):
@@ -5553,7 +5598,7 @@ def positive_integer_relations(points):
         c = [0] * (n + i) + [1] + [0] * (n_nonpivots - i - 1)
         MIP.set_objective(sum(ci * w[i] for i, ci in enumerate(c)))
         MIP.solve()
-        x = MIP.get_values(w).values()[:n]
+        x = list(MIP.get_values(w).values())[:n]
         v = relations.linear_combination_of_rows(x)
         new_relations.append(v)
 
@@ -5582,11 +5627,11 @@ def read_all_polytopes(file_name):
       polytopes.
 
     OUTPUT:
-   
+
     - a sequence of polytopes.
 
     EXAMPLES:
-   
+
     We use poly.x to compute two polar polytopes and read them::
 
         sage: d = lattice_polytope.cross_polytope(2)
@@ -5609,21 +5654,16 @@ def read_all_polytopes(file_name):
           -1   1  -1
            1   1  -1
         sage: lattice_polytope.read_all_polytopes(result_name)
-        [
-        2-d reflexive polytope #14 in 2-d lattice M,
-        3-d reflexive polytope in 3-d lattice M
-        ]
+        [2-d reflexive polytope #14 in 2-d lattice M,
+         3-d reflexive polytope in 3-d lattice M]
         sage: os.remove(result_name)
     """
-    polytopes = Sequence([], LatticePolytope, cr=True)
-    f = open(file_name)
-    n = 0
-    m = read_palp_matrix(f)
-    while m.nrows() != 0:
-        polytopes.append(LatticePolytope(m.columns(), compute_vertices=False))
-        n += 1
-        m = read_palp_matrix(f)
-    f.close()
+    polytopes = []
+    with open(file_name) as f:
+        pc = read_palp_point_collection(f)
+        while pc is not None:
+            polytopes.append(LatticePolytope(pc, compute_vertices=False))
+            pc = read_palp_point_collection(f)
     return polytopes
 
 

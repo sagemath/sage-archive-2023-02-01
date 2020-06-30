@@ -7,26 +7,31 @@ AUTHORS:
 - William Stein (2007-07-28): update from sagex to cython
 - Martin Albrecht & William Stein (2011-08): cfile & cargs
 """
-#*****************************************************************************
+
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import builtins
-from six import iteritems
 
+import builtins
 import os
 import sys
-import platform
-
-
-from sage.env import SAGE_LOCAL, SAGE_SRC
-from .misc import SPYX_TMP
-from .temporary_file import tmp_filename
+import shutil
 import pkgconfig
+
+from sage.env import (SAGE_LOCAL, cython_aliases,
+                      sage_include_directories)
+from sage.misc.misc import SPYX_TMP, sage_makedirs
+from .temporary_file import tmp_filename
+from sage.repl.user_globals import get_globals
+from sage.misc.sage_ostools import restore_cwd, redirection
+from sage.cpython.string import str_to_bytes
 
 
 # CBLAS can be one of multiple implementations
@@ -41,245 +46,8 @@ standard_libs = [
 ] + cblas_libs + [
     'ntl']
 
+standard_libdirs = [os.path.join(SAGE_LOCAL, "lib")] + cblas_library_dirs
 
-# Functions which used to be automatically declared.
-# We list these here in order to give useful warnings.
-old_pxi_names = {
-    "cysignals.signals": [
-        "sig_on", "sig_str", "sig_check", "sig_off",
-        "sig_retry", "sig_error", "sig_block", "sig_unblock",
-        "sig_on_no_except", "sig_str_no_except", "sig_check_no_except",
-        "cython_check_exception",
-    ],
-    "sage.ext.stdsage": [
-        "PY_NEW", "HAS_DICTIONARY",
-    ],
-    "cysignals.memory": [
-        "sig_malloc", "sig_realloc", "sig_calloc", "sig_free",
-        "check_allocarray", "check_reallocarray",
-        "check_malloc", "check_realloc", "check_calloc",
-    ],
-    "libc.string": [
-        "strlen", "strcpy", "memset", "memcpy", "memcmp",
-    ],
-    "libc.math": [
-        "sqrt", "frexp", "ldexp",
-    ],
-    "libc.stdio": [
-        "stdin", "stdout", "stderr",
-        "FOPEN_MAX", "FILENAME_MAX",
-        "fopen", "freopen", "fdopen", "fclose",
-        "remove", "rename", "tmpfile",
-        "setvbuf", "BUFSIZ", "setbuf",
-        "fread", "fwrite", "fflush",
-        "EOF", "clearerr", "feof", "ferror",
-        "SEEK_SET", "SEEK_CUR", "SEEK_END",
-        "fseek", "rewind", "ftell", "fgetpos", "fsetpos",
-        "scanf", "sscanf", "fscanf",
-        "printf", "sprintf", "snprintf", "fprintf",
-        "perror", "gets", "fgets", "getchar", "fgetc", "getc", "ungetc",
-        "puts", "fputs", "putchar", "fputc", "putc", "getline",
-    ]
-    }
-
-
-def parse_keywords(kwd, s):
-    r"""
-    Given a keyword ``kwd`` and a string ``s``, return a list of all arguments
-    on the same line as that keyword in ``s``, as well as a new copy of ``s``
-    in which each occurrence of ``kwd`` is in a comment. If a comment already
-    occurs on the line containing ``kwd``, no words after the ``#`` are added
-    to the list.
-
-    EXAMPLES::
-
-        sage: import sage.misc.cython
-        sage: sage.misc.cython.parse_keywords('clib', " clib foo bar baz\n #cinclude bar\n")
-        (['foo', 'bar', 'baz'], ' #clib foo bar baz\n #cinclude bar\n')
-
-        sage: sage.misc.cython.parse_keywords('clib', "# qux clib foo bar baz\n #cinclude bar\n")
-        (['foo', 'bar', 'baz'], '# qux clib foo bar baz\n #cinclude bar\n')
-        sage: sage.misc.cython.parse_keywords('clib', "# clib foo bar # baz\n #cinclude bar\n")
-        (['foo', 'bar'], '# clib foo bar # baz\n #cinclude bar\n')
-    """
-    j = 0
-    v = []
-    while True:
-        # see if kwd occurs
-        i = s[j:].find(kwd)
-        if i == -1: break
-        j = i + j
-
-        # add a hash, if necessary
-        last_hash = s[:j].rfind('#')
-        last_newline = s[:j].rfind('\n')
-        if last_hash > last_newline:
-            j += len(kwd)
-        else:
-            s = s[:j] + '#' + s[j:]
-            j += len(kwd) + 1
-
-        # find all other words on this line
-        k = s[j:].find('\n')
-        if k == -1:
-            k = len(s)
-
-        # add them to our list, until we find a comment
-        for X in s[j:j+k].split():
-            if X[0] == '#':   # skip rest of line
-                break
-            v.append(X)
-
-    return v, s
-
-def environ_parse(s):
-    r"""
-    Given a string s, find each substring of the form ``'\$ABC'``. If the
-    environment variable :envvar:`$ABC` is set, replace ``'\$ABC'`` with its
-    value and move on to the next such substring. If it is not set, stop
-    parsing there.
-
-    EXAMPLES::
-
-        sage: from sage.misc.cython import environ_parse
-        sage: environ_parse('$SAGE_LOCAL') == SAGE_LOCAL
-        True
-        sage: environ_parse('$THIS_IS_NOT_DEFINED_ANYWHERE')
-        '$THIS_IS_NOT_DEFINED_ANYWHERE'
-        sage: os.environ['DEFINE_THIS'] = 'hello'
-        sage: environ_parse('$DEFINE_THIS/$THIS_IS_NOT_DEFINED_ANYWHERE/$DEFINE_THIS')
-        'hello/$THIS_IS_NOT_DEFINED_ANYWHERE/$DEFINE_THIS'
-    """
-    i = s.find('$')
-    if i == -1:
-        return s
-    j = s[i:].find('/')
-    if j == -1:
-        j = len(s)
-    else:
-        j = i + j
-    name = s[i+1:j]
-    if name in os.environ:
-        s = s[:i] + os.environ[name] + s[j:]
-    else:
-        return s
-    return environ_parse(s)
-
-def pyx_preparse(s):
-    r"""
-    Preparse a pyx file:
-
-    * parse ``clang`` pragma (c or c++)
-    * parse ``clib`` pragma (additional libraries to link in)
-    * parse ``cinclude`` (additional include directories)
-    * parse ``cfile`` (additional files to be included)
-    * parse ``cargs`` (additional parameters passed to the compiler)
-
-    The pragmas:
-
-    - ``clang`` - may be either ``'c'`` or ``'c++'`` indicating whether a C or
-      C++ compiler should be used
-
-    - ``clib`` - additional libraries to be linked in, the space separated list
-      is split and passed to distutils.
-
-    - ``cinclude`` - additional directories to search for header files. The
-      space separated list is split and passed to distutils.
-
-    - ``cfile`` - additional C or C++ files to be compiled. Also,
-      :envvar:`$SAGE_SRC` and :envvar:`$SAGE_LOCAL` are expanded, but other
-      environment variables are not.
-
-    - ``cargs`` - additional parameters passed to the compiler
-
-    OUTPUT: preamble, libs, includes, language, files, args
-
-    EXAMPLES::
-
-        sage: from sage.misc.cython import pyx_preparse
-        sage: pyx_preparse("")
-        ('',
-        ['mpfr',
-        'gmp',
-        'gmpxx',
-        'stdc++',
-        'pari',
-        'm',
-        'ec',
-        'gsl',
-        ...,
-        'ntl'],
-        ['.../include',
-        '.../include/python...',
-        '.../python.../numpy/core/include',
-        '...',
-        '.../sage/ext',
-        '.../cysignals'],
-        'c',
-        [], ['-w', '-O2'],...)
-        sage: s, libs, inc, lang, f, args, libdirs = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
-        sage: lang
-        'c++'
-
-        sage: libs
-        ['foo', 'mpfr',
-        'gmp', 'gmpxx',
-        'stdc++',
-        'pari',
-        'm',
-        'ec',
-        'gsl',
-        ...,
-        'ntl']
-        sage: libs[1:] == sage.misc.cython.standard_libs
-        True
-
-        sage: inc
-        ['bar',
-        '.../include',
-        '.../include/python...',
-        '.../python.../numpy/core/include',
-        '...',
-        '.../sage/ext',
-        '.../cysignals']
-
-        sage: s, libs, inc, lang, f, args, libdirs = pyx_preparse("# cargs -O3 -ggdb\n")
-        sage: args
-        ['-w', '-O2', '-O3', '-ggdb']
-
-    TESTS::
-
-        sage: module = sage.misc.cython.import_test("trac11680")  # long time (7s on sage.math, 2012)
-        sage: R.<x> = QQ[]
-        sage: module.evaluate_at_power_of_gen(x^3 + x - 7, 5)  # long time
-        x^15 + x^5 - 7
-    """
-    from sage.env import sage_include_directories
-
-    lang, s = parse_keywords('clang', s)
-    if lang:
-        lang = lang[0].lower() # this allows both C++ and c++
-    else:
-        lang = "c"
-
-    v, s = parse_keywords('clib', s)
-    libs = v + standard_libs
-
-    additional_source_files, s = parse_keywords('cfile', s)
-
-    v, s = parse_keywords('cinclude', s)
-    inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + sage_include_directories()
-    args, s = parse_keywords('cargs', s)
-    args = ['-w','-O2'] + args
-    libdirs = cblas_library_dirs
-
-    # Add cysignals directory to includes
-    for path in sys.path:
-        cysignals_path = os.path.join(path, "cysignals")
-        if os.path.isdir(cysignals_path):
-            inc.append(cysignals_path)
-
-    return s, libs, inc, lang, additional_source_files, args, libdirs
 
 ################################################################
 # If the user attaches a .spyx file and changes it, we have
@@ -296,7 +64,12 @@ def pyx_preparse(s):
 
 sequence_number = {}
 
-def cython(filename, verbose=False, compile_message=False,
+
+# Only used on Cygwin; see note below about --enable-auto-image-base
+CYTHON_IMAGE_BASE = 0x580000000
+
+
+def cython(filename, verbose=0, compile_message=False,
            use_cache=False, create_local_c_file=False, annotate=True, sage_namespace=True,
            create_local_so_file=False):
     r"""
@@ -306,33 +79,37 @@ def cython(filename, verbose=False, compile_message=False,
 
     INPUT:
 
-    - ``filename`` - the name of the file to be compiled. Should end with
+    - ``filename`` -- the name of the file to be compiled. Should end with
       'pyx'.
 
-    - ``verbose`` (bool, default False) - if True, print debugging
-      information.
+    - ``verbose`` (integer, default 0) -- level of verbosity. A negative
+      value ensures complete silence.
 
-    - ``compile_message`` (bool, default False) - if True, print
+    - ``compile_message`` (bool, default False) -- if True, print
       ``'Compiling <filename>...'`` to the standard error.
 
-    - ``use_cache`` (bool, default False) - if True, check the
+    - ``use_cache`` (bool, default False) -- if True, check the
       temporary build directory to see if there is already a
       corresponding .so file. If so, and if the .so file is newer than the
       Cython file, don't recompile, just reuse the .so file.
 
-    - ``create_local_c_file`` (bool, default False) - if True, save a
+    - ``create_local_c_file`` (bool, default False) -- if True, save a
       copy of the ``.c`` or ``.cpp`` file in the current directory.
 
-    - ``annotate`` (bool, default True) - if True, create an html file which
+    - ``annotate`` (bool, default True) -- if True, create an html file which
       annotates the conversion from .pyx to .c. By default this is only created
       in the temporary directory, but if ``create_local_c_file`` is also True,
       then save a copy of the .html file in the current directory.
 
-    - ``sage_namespace`` (bool, default True) - if True, import
+    - ``sage_namespace`` (bool, default True) -- if True, import
       ``sage.all``.
 
-    - ``create_local_so_file`` (bool, default False) - if True, save a
+    - ``create_local_so_file`` (bool, default False) -- if True, save a
       copy of the compiled .so file in the current directory.
+
+    OUTPUT: a tuple ``(name, dir)`` where ``name`` is the name
+    of the compiled module and ``dir`` is the directory containing
+    the generated files.
 
     TESTS:
 
@@ -342,12 +119,8 @@ def cython(filename, verbose=False, compile_message=False,
     work around while waiting for :trac:`22461` which will offer a better
     solution::
 
-        sage: import pkgconfig
-        sage: singular_pc = pkgconfig.parse('Singular')
         sage: code = [
         ....: "#clang C++",
-        ....: "#clib " + " ".join(singular_pc['libraries']),
-        ....: "#cargs " + pkgconfig.cflags('Singular'),
         ....: "from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular",
         ....: "from sage.libs.singular.polynomial cimport singular_polynomial_pow",
         ....: "def test(MPolynomial_libsingular p):",
@@ -362,38 +135,64 @@ def cython(filename, verbose=False, compile_message=False,
         sage: x
         x^2
 
-    Check that compiling c++ code works::
+    Check that compiling C++ code works::
 
-        sage: cython("#clang C++\n"+
+        sage: cython("# distutils: language = c++\n"+
         ....:        "from libcpp.vector cimport vector\n"
         ....:        "cdef vector[int] * v = new vector[int](4)\n")
 
-    Check that compiling c++ code works, when creating a local c file,
+    Check that compiling C++ code works when creating a local C file,
     first moving to a tempdir to avoid clutter.  Before :trac:`22113`,
-    the create_local_c_file argument was not tested in combination with
-    the ``#clang c++`` directive::
+    the create_local_c_file argument was not tested for C++ code::
 
-        sage: import sage.misc.cython
         sage: d = sage.misc.temporary_file.tmp_dir()
         sage: os.chdir(d)
         sage: with open("test.pyx", 'w') as f:
-        ....:     _ = f.write("#clang C++\n"
+        ....:     _ = f.write("# distutils: language = c++\n"
         ....:       "from libcpp.vector cimport vector\n"
         ....:       "cdef vector[int] * v = new vector[int](4)\n")
         sage: output = sage.misc.cython.cython("test.pyx", create_local_c_file=True)
 
-    Sage used to automatically include various ``.pxi`` files. Since
-    :trac:`22805`, we no longer do this. But we make sure to give a
-    useful message in case the ``.pxi`` files were needed::
+    Accessing a ``.pxd`` file from the current directory works::
 
-        sage: cython("sig_malloc(0)")
+        sage: d = sage.misc.temporary_file.tmp_dir()
+        sage: os.chdir(d)
+        sage: with open("helper.pxd", 'w') as f:
+        ....:     _ = f.write("cdef inline int the_answer(): return 42")
+        sage: cython('''
+        ....: from helper cimport the_answer
+        ....: print(the_answer())
+        ....: ''')
+        42
+
+    Warning and error messages generated by Cython are properly
+    handled. Warnings are only shown if verbose >= 0::
+
+        sage: code = '''
+        ....: def test_unreachable():
+        ....:     raise Exception
+        ....:     return 42
+        ....: '''
+        sage: cython(code, verbose=-1)
+        sage: cython(code, verbose=0)
+        warning: ...:4:4: Unreachable code
+
+        sage: cython("foo = bar\n")
         Traceback (most recent call last):
         ...
-        RuntimeError: Error converting ... to C:
+        RuntimeError: Error compiling Cython file:
+        ------------------------------------------------------------
         ...
-        NOTE: Sage no longer automatically includes the deprecated files
-        "cdefs.pxi", "signals.pxi" and "stdsage.pxi" in Cython files.
-        You can fix your code by adding "from cysignals.memory cimport sig_malloc".
+        foo = bar
+             ^
+        ------------------------------------------------------------
+        <BLANKLINE>
+        ...:1:6: undeclared name not builtin: bar
+
+        sage: cython("cdef extern from 'no_such_header_file': pass")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: ...
     """
     if not filename.endswith('pyx'):
         print("Warning: file (={}) should have extension .pyx".format(filename), file=sys.stderr)
@@ -407,61 +206,41 @@ def cython(filename, verbose=False, compile_message=False,
     # the same session).
     if create_local_so_file:
         base, ext = os.path.splitext(os.path.basename(filename))
-        base = sanitize(base)
     else:
-        base = sanitize(os.path.abspath(filename))
+        base = os.path.abspath(filename)
+    base = sanitize(base)
 
-    # This is the *temporary* directory where we build the pyx file.
-    # This is deleted when sage exits, which means pyx files must be
+    # This is the *temporary* directory where we store the pyx file.
+    # This is deleted when Sage exits, which means pyx files must be
     # rebuilt every time Sage is restarted at present.
-    build_dir = os.path.join(SPYX_TMP, base)
+    target_dir = os.path.join(SPYX_TMP, base)
 
-    if os.path.exists(build_dir):
+    # Build directory for Cython/distutils
+    build_dir = os.path.join(target_dir, "build")
+
+    if os.path.exists(target_dir):
         # There is already a module here. Maybe we do not have to rebuild?
         # Find the name.
         if use_cache:
             from sage.misc.sageinspect import loadable_module_extension
-            prev_so = [F for F in os.listdir(build_dir) if F.endswith(loadable_module_extension())]
+            prev_so = [F for F in os.listdir(target_dir) if F.endswith(loadable_module_extension())]
             if len(prev_so) > 0:
                 prev_so = prev_so[0]     # should have length 1 because of deletes below
-                if os.path.getmtime(filename) <= os.path.getmtime('%s/%s'%(build_dir, prev_so)):
+                if os.path.getmtime(filename) <= os.path.getmtime('%s/%s' % (target_dir, prev_so)):
                     # We do not have to rebuild.
-                    return prev_so[:-len(loadable_module_extension())], build_dir
-    else:
-        os.makedirs(build_dir)
-    for F in os.listdir(build_dir):
-        G = '%s/%s'%(build_dir,F)
-        try:
-            if not os.path.isdir(G):
+                    return prev_so[:-len(loadable_module_extension())], target_dir
+
+        # Delete all ordinary files in target_dir
+        for F in os.listdir(target_dir):
+            G = os.path.join(target_dir, F)
+            if os.path.isdir(G):
+                continue
+            try:
                 os.unlink(G)
-        except OSError:
-            pass
-
-    # Get the absolute path to the directory that contains the pyx file.
-    # We will use this only to make some convenient symbolic links.
-    abs_base = os.path.split(os.path.abspath(filename))[0]
-
-    # bad things happen if the current directory is SAGE_SRC
-    if not os.path.exists("%s/sage" % abs_base):
-        cmd = 'cd "%s"; ln -sf "%s"/* .'%(build_dir, abs_base)
-        os.system(cmd)
-        if os.path.exists("%s/setup.py" % build_dir):
-            os.unlink("%s/setup.py" % build_dir)
-
-    if compile_message:
-        print("Compiling {}...".format(filename), file=sys.stderr)
-
-    F = open(filename).read()
-
-    F, libs, includes, language, additional_source_files, extra_args, libdirs = pyx_preparse(F)
-
-    # add the working directory to the includes so custom headers etc. work
-    includes.append(os.path.split(os.path.splitext(filename)[0])[0])
-
-    if language == 'c++':
-        extension = "cpp"
+            except OSError:
+                pass
     else:
-        extension = "c"
+        sage_makedirs(target_dir)
 
     if create_local_so_file:
         name = base
@@ -469,141 +248,151 @@ def cython(filename, verbose=False, compile_message=False,
         global sequence_number
         if base not in sequence_number:
             sequence_number[base] = 0
-        name = '%s_%s'%(base, sequence_number[base])
+        name = '%s_%s' % (base, sequence_number[base])
 
         # increment the sequence number so will use a different one next time.
         sequence_number[base] += 1
 
-    file_list = []
-    for fname in additional_source_files:
-        fname = fname.replace("$SAGE_SRC", SAGE_SRC)
-        fname = fname.replace("$SAGE_LOCAL", SAGE_LOCAL)
-        if fname.startswith(os.path.sep):
-            file_list.append("'"+fname+"'")
-        else:
-            file_list.append("'"+os.path.abspath(os.curdir)+"/"+fname+"'")
-    additional_source_files = ",".join(file_list)
+    if compile_message:
+        sys.stderr.write("Compiling {}...\n".format(filename))
+        sys.stderr.flush()
 
-    pyx = '%s/%s.pyx'%(build_dir, name)
-    open(pyx,'w').write(F)
-    setup="""
-# Build using 'python setup.py'
-import distutils.sysconfig, os, sys
-from distutils.core import setup, Extension
+    # Copy original file to the target directory.
+    pyxfile = os.path.join(target_dir, name + ".pyx")
+    shutil.copy(filename, pyxfile)
 
-from sage.env import SAGE_LOCAL
+    # Add current working directory to includes. This is needed because
+    # we cythonize from a different directory. See Trac #24764.
+    includes = [os.getcwd()] + sage_include_directories()
 
-extra_compile_args = %s
+    # Now do the actual build, directly calling Cython and distutils
+    from Cython.Build import cythonize
+    from Cython.Compiler.Errors import CompileError
+    import Cython.Compiler.Options
+    from distutils.dist import Distribution
+    from distutils.core import Extension
+    from distutils.log import set_verbosity
+    set_verbosity(verbose)
 
-ext_modules = [Extension('%s', sources=['%s.%s', %s],
-                     libraries=%s,
-                     library_dirs=[SAGE_LOCAL + '/lib/'] + %s,
-                     extra_compile_args = extra_compile_args,
-                     language = '%s' )]
+    Cython.Compiler.Options.annotate = annotate
+    Cython.Compiler.Options.embed_pos_in_docstring = True
+    Cython.Compiler.Options.pre_import = "sage.all" if sage_namespace else None
 
-setup(ext_modules = ext_modules,
-      include_dirs = %s)
-    """%(extra_args, name, name, extension, additional_source_files, libs, libdirs, language, includes)
-    open('%s/setup.py'%build_dir,'w').write(setup)
-    cython_include = ' '.join(["-I '%s'"%x for x in includes if len(x.strip()) > 0 ])
+    extra_compile_args = ['-w']  # no warnings
+    extra_link_args = []
+    if sys.platform == 'cygwin':
+        # Link using --enable-auto-image-base, reducing the likelihood of the
+        # new DLL colliding with existing DLLs in memory.
+        # Note: Cygwin locates --enable-auto-image-base DLLs in the range
+        # 0x4:00000000 up to 0x6:00000000; this is documented in heap.cc in the
+        # Cygwin sources, while 0x6:00000000 and up is reserved for the Cygwin
+        # heap.
+        # In practice, Sage has enough DLLs that when rebasing everything we
+        # use up through, approximately, 0x4:80000000 though there is nothing
+        # precise here.  When running 'rebase' it just start from 0x2:00000000
+        # (below that is reserved for Cygwin's DLL and some internal
+        # structures).
+        # Therefore, to minimize the likelihood of collision with one of Sage's
+        # standard DLLs, while giving ~2GB (should be more than enough) for
+        # Sage to grow, we base these DLLs from 0x5:8000000, leaving again ~2GB
+        # for temp DLLs which in normal use should be more than enough.
+        # See https://trac.sagemath.org/ticket/28258
+        # It should be noted, this is not a bulletproof solution; there is
+        # still a potential for DLL overlaps with this.  But this reduces the
+        # probability thereof, especially in normal practice.
+        dll_filename = os.path.splitext(pyxfile)[0] + '.dll'
+        image_base = _compute_dll_image_base(dll_filename)
+        extra_link_args.extend([
+                '-Wl,--disable-auto-image-base',
+                '-Wl,--image-base=0x{:x}'.format(image_base)
+        ])
 
-    options = ['-p']
-    if annotate:
-        options.append('-a')
-    if sage_namespace:
-        options.append('--pre-import sage.all')
+    ext = Extension(name,
+                    sources=[pyxfile],
+                    extra_compile_args=extra_compile_args,
+                    extra_link_args=extra_link_args,
+                    libraries=standard_libs,
+                    library_dirs=standard_libdirs)
 
-    cmd = "cd '{DIR}' && cython {OPT} {INC} {LANG} '{NAME}.pyx' 1>log 2>err ".format(
-        DIR=build_dir,
-        OPT=' '.join(options),
-        INC=cython_include,
-        LANG='--cplus' if language=='c++' else '',
-        NAME=name)
+    directives = dict(language_level=sys.version_info[0])
+
+    try:
+        # Change directories to target_dir so that Cython produces the correct
+        # relative path; https://trac.sagemath.org/ticket/24097
+        with restore_cwd(target_dir):
+            try:
+                ext, = cythonize([ext],
+                                 aliases=cython_aliases(),
+                                 include_path=includes,
+                                 compiler_directives=directives,
+                                 quiet=(verbose <= 0),
+                                 errors_to_stderr=False,
+                                 use_listing_file=True)
+            finally:
+                # Read the "listing file" which is the file containing
+                # warning and error messages generated by Cython.
+                try:
+                    with open(name + ".lis") as f:
+                        cython_messages = f.read()
+                except IOError:
+                    cython_messages = "Error compiling Cython file"
+    except CompileError:
+        raise RuntimeError(cython_messages.strip())
+
+    if verbose >= 0:
+        sys.stderr.write(cython_messages)
+        sys.stderr.flush()
 
     if create_local_c_file:
-        target_c = '%s/_%s.%s'%(os.path.abspath(os.curdir), base, extension)
-        cmd += " && cp '%s.%s' '%s'"%(name, extension, target_c)
+        shutil.copy(os.path.join(target_dir, ext.sources[0]),
+                    os.curdir)
         if annotate:
-            target_html = '%s/_%s.html'%(os.path.abspath(os.curdir), base)
-            cmd += " && cp '%s.html' '%s'"%(name, target_html)
+            shutil.copy(os.path.join(target_dir, name + ".html"),
+                        os.curdir)
 
-    if verbose:
-        print(cmd)
-    if os.system(cmd):
-        log = open('%s/log'%build_dir).read()
-        err = open('%s/err'%build_dir).read()
-        for pxd, names in old_pxi_names.items():
-            for name in names:
-                if ("undeclared name not builtin: " + name) in err:
-                    err += '\nNOTE: Sage no longer automatically includes the deprecated files\n' \
-                       '"cdefs.pxi", "signals.pxi" and "stdsage.pxi" in Cython files.\n' \
-                       'You can fix your code by adding "from %s cimport %s".' % \
-                       (pxd, name)
-        raise RuntimeError("Error converting {} to C:\n{}\n{}".format(filename, log, err))
+    # This emulates running "setup.py build" with the correct options
+    dist = Distribution()
+    dist.ext_modules = [ext]
+    dist.include_dirs = includes
+    buildcmd = dist.get_command_obj("build")
+    buildcmd.build_base = build_dir
+    buildcmd.build_lib = target_dir
 
-    cmd = 'cd %s && python setup.py build 1>log 2>err'%build_dir
-    if verbose:
-        print(cmd)
-    if os.system(cmd):
-        log = open('%s/log'%build_dir).read()
-        err = open('%s/err'%build_dir).read()
-        raise RuntimeError("Error compiling {}:\n{}\n{}".format(filename, log, err))
+    try:
+        # Capture errors from distutils and its child processes
+        with open(os.path.join(target_dir, name + ".err"), 'w+') as errfile:
+            try:
+                # Redirect stderr to errfile.  We use the file descriptor
+                # number "2" instead of "sys.stderr" because we really
+                # want to redirect the messages from GCC. These are sent
+                # to the actual stderr, regardless of what sys.stderr is.
+                sys.stderr.flush()
+                with redirection(2, errfile, close=False):
+                    dist.run_command("build")
+            finally:
+                errfile.seek(0)
+                distutils_messages = errfile.read()
+    except Exception as msg:
+        msg = str(msg) + "\n" + distutils_messages
+        raise RuntimeError(msg.strip())
 
-    # Move from lib directory.
-    cmd = 'mv %s/build/lib.*/* %s'%(build_dir, build_dir)
-    if verbose:
-        print(cmd)
-    if os.system(cmd):
-        raise RuntimeError("Error copying extension module for {}".format(filename))
+    if verbose >= 0:
+        sys.stderr.write(distutils_messages)
+        sys.stderr.flush()
 
     if create_local_so_file:
-        # Copy from lib directory into local directory
+        # Copy module to current directory
         from sage.misc.sageinspect import loadable_module_extension
-        cmd = 'cp %s/%s%s %s'%(build_dir, name, loadable_module_extension(), os.path.abspath(os.curdir))
-        if os.system(cmd):
-            raise RuntimeError("Error making local copy of shared object library for {}".format(filename))
+        shutil.copy(os.path.join(target_dir, name + loadable_module_extension()),
+                    os.curdir)
 
-    return name, build_dir
-
-
-
-def subtract_from_line_numbers(s, n):
-    r"""
-    Given a string ``s`` and an integer ``n``, for any line of ``s`` which has
-    the form ``'text:NUM:text'`` subtract ``n`` from NUM and return
-    ``'text:(NUM-n):text'``. Return other lines of ``s`` without change.
-
-    EXAMPLES::
-
-        sage: from sage.misc.cython import subtract_from_line_numbers
-        sage: subtract_from_line_numbers('hello:1234:hello', 3)
-        doctest:...: DeprecationWarning: subtract_from_line_numbers is deprecated
-        See http://trac.sagemath.org/22805 for details.
-        'hello:1231:hello\n'
-        sage: subtract_from_line_numbers('text:123\nhello:1234:', 3)
-        'text:123\nhello:1231:\n'
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(22805, 'subtract_from_line_numbers is deprecated')
-
-    ans = []
-    for X in s.split('\n'):
-        i = X.find(':')
-        j = i+1 + X[i+1:].find(':')
-        try:
-            ans.append('%s:%s:%s\n'%(X[:i], int(X[i+1:j]) - n, X[j+1:]))
-        except ValueError:
-            ans.append(X)
-    return '\n'.join(ans)
+    return name, target_dir
 
 
 ################################################################
 # COMPILE
 ################################################################
-def cython_lambda(vars, expr,
-                 verbose=False,
-                 compile_message=False,
-                 use_cache=False):
+def cython_lambda(vars, expr, verbose=0, **kwds):
     """
     Create a compiled function which evaluates ``expr`` assuming machine values
     for ``vars``.
@@ -654,7 +443,7 @@ def cython_lambda(vars, expr,
     if isinstance(vars, str):
         v = vars
     else:
-        v = ', '.join(['%s %s'%(typ,var) for typ, var in vars])
+        v = ', '.join(['%s %s' % (typ, var) for typ, var in vars])
 
     s = """
 cdef class _s:
@@ -674,71 +463,22 @@ sage = _s()
 
 def f(%s):
     return %s
-    """%(v, expr)
-    if verbose:
+    """ % (v, expr)
+    if verbose > 0:
         print(s)
-    tmpfile = tmp_filename(ext=".spyx")
-    open(tmpfile,'w').write(s)
+    tmpfile = tmp_filename(ext=".pyx")
+    with open(tmpfile, 'w') as f:
+        f.write(s)
 
     d = {}
-    cython_import_all(tmpfile, d,
-                      verbose=verbose, compile_message=compile_message,
-                      use_cache=use_cache,
-                      create_local_c_file=False)
+    cython_import_all(tmpfile, d, verbose=verbose, **kwds)
     return d['f']
-
-
-def cython_create_local_so(filename):
-    r"""
-    Compile filename and make it available as a loadable shared object file.
-
-    INPUT:
-
-    - ``filename`` - string: a Cython (.spyx) file
-
-    OUTPUT: None
-
-    EFFECT: A compiled, python "importable" loadable shared object file is created.
-
-    .. note::
-
-        Shared object files are *not* reloadable. The intent is for
-        imports in other scripts. A possible development cycle might
-        go thus:
-
-        - Attach a .spyx file
-        - Interactively test and edit it to your satisfaction
-        - Use ``cython_create_local_so`` to create the shared object file
-        - Import the .so file in other scripts
-
-    EXAMPLES::
-
-        sage: curdir = os.path.abspath(os.curdir)
-        sage: dir = tmp_dir(); os.chdir(dir)
-        sage: f = open('hello.spyx', 'w')
-        sage: s = "def hello():\n    print('hello')\n"
-        sage: _ = f.write(s)
-        sage: f.close()
-        sage: cython_create_local_so('hello.spyx')
-        Compiling hello.spyx...
-        sage: sys.path.append('.')
-        sage: import hello
-        sage: hello.hello()
-        hello
-        sage: os.chdir(curdir)
-
-    AUTHORS:
-
-    - David Fu (2008-04-09): initial version
-    """
-    cython(filename, compile_message=True, use_cache=False, create_local_so_file=True)
 
 
 ################################################################
 # IMPORT
 ################################################################
-def cython_import(filename, verbose=False, compile_message=False,
-                 use_cache=False, create_local_c_file=True, **kwds):
+def cython_import(filename, **kwds):
     """
     Compile a file containing Cython code, then import and return the
     module.  Raises an ``ImportError`` if anything goes wrong.
@@ -755,17 +495,17 @@ def cython_import(filename, verbose=False, compile_message=False,
 
     - the module that contains the compiled Cython code.
     """
-    name, build_dir = cython(filename, verbose=verbose,
-                             compile_message=compile_message,
-                             use_cache=use_cache,
-                             create_local_c_file=create_local_c_file,
-                             **kwds)
-    sys.path.append(build_dir)
-    return builtins.__import__(name)
+    name, build_dir = cython(filename, **kwds)
+
+    oldpath = sys.path
+    try:
+        sys.path.append(build_dir)
+        return builtins.__import__(name)
+    finally:
+        sys.path = oldpath
 
 
-def cython_import_all(filename, globals, verbose=False, compile_message=False,
-                     use_cache=False, create_local_c_file=True):
+def cython_import_all(filename, globals, **kwds):
     """
     Imports all non-private (i.e., not beginning with an underscore)
     attributes of the specified Cython module into the given context.
@@ -780,10 +520,8 @@ def cython_import_all(filename, globals, verbose=False, compile_message=False,
     - ``filename`` - a string; name of a file that contains Cython
       code
     """
-    m = cython_import(filename, verbose=verbose, compile_message=compile_message,
-                     use_cache=use_cache,
-                     create_local_c_file=create_local_c_file)
-    for k, x in iteritems(m.__dict__):
+    m = cython_import(filename, **kwds)
+    for k, x in m.__dict__.items():
         if k[0] != '_':
             globals[k] = x
 
@@ -817,7 +555,7 @@ def sanitize(f):
     return s
 
 
-def compile_and_load(code):
+def compile_and_load(code, **kwds):
     r"""
     INPUT:
 
@@ -829,57 +567,149 @@ def compile_and_load(code):
 
     EXAMPLES::
 
-        sage: module = sage.misc.cython.compile_and_load("def f(int n):\n    return n*n")
+        sage: from sage.misc.cython import compile_and_load
+        sage: module = compile_and_load("def f(int n):\n    return n*n")
         sage: module.f(10)
         100
+
+    TESTS::
+
+        sage: code = '''
+        ....: from sage.rings.rational cimport Rational
+        ....: from sage.rings.polynomial.polynomial_rational_flint cimport Polynomial_rational_flint
+        ....: from sage.libs.flint.fmpq_poly cimport fmpq_poly_length, fmpq_poly_get_coeff_mpq, fmpq_poly_set_coeff_mpq
+        ....:
+        ....: def evaluate_at_power_of_gen(Polynomial_rational_flint f, unsigned long n):
+        ....:     assert n >= 1
+        ....:     cdef Polynomial_rational_flint res = f._new()
+        ....:     cdef unsigned long k
+        ....:     cdef Rational z = Rational(0)
+        ....:     for k in range(fmpq_poly_length(f.__poly)):
+        ....:         fmpq_poly_get_coeff_mpq(z.value, f.__poly, k)
+        ....:         fmpq_poly_set_coeff_mpq(res.__poly, n*k, z.value)
+        ....:     return res
+        ....: '''
+        sage: module = compile_and_load(code)  # long time
+        sage: R.<x> = QQ[]
+        sage: module.evaluate_at_power_of_gen(x^3 + x - 7, 5)  # long time
+        x^15 + x^5 - 7
     """
-    file = tmp_filename(ext=".pyx")
-    open(file,'w').write(code)
-    return cython_import(file, create_local_c_file=False)
+    tmpfile = tmp_filename(ext=".pyx")
+    with open(tmpfile, 'w') as f:
+        f.write(code)
+    return cython_import(tmpfile, **kwds)
 
 
-TESTS = {
-'trac11680':"""
-#cargs -O3 -ggdb
-#clib flint
-
-from sage.rings.rational cimport Rational
-from sage.rings.polynomial.polynomial_rational_flint cimport Polynomial_rational_flint
-from sage.libs.flint.fmpq_poly cimport fmpq_poly_length, fmpq_poly_get_coeff_mpq, fmpq_poly_set_coeff_mpq
-
-def evaluate_at_power_of_gen(Polynomial_rational_flint f, unsigned long n):
-    assert n >= 1
-    cdef Polynomial_rational_flint res = f._new()
-    cdef unsigned long k
-    cdef Rational z = Rational(0)
-    for k in range(fmpq_poly_length(f.__poly)):
-        fmpq_poly_get_coeff_mpq(z.value, f.__poly, k)
-        fmpq_poly_set_coeff_mpq(res.__poly, n*k, z.value)
-    return res
-""",
-
-'trac11680b':"""
-def f(int a, int b, int c):
-    return a+b+c
-"""
-}
-
-def import_test(name):
+def cython_compile(code, **kwds):
     """
-    This is used by the testing infrastructure to test building
-    Cython programs.
+    Given a block of Cython code (as a text string), this function
+    compiles it using a C compiler, and includes it into the global
+    namespace.
 
-    INPUT:
+    AUTHOR: William Stein, 2006-10-31
 
-    - ``name`` -- string; name of a key to the TESTS dictionary above
+    .. WARNING::
 
-    OUTPUT: a module, which results from compiling the given code and importing it
+        Only use this from Python code, not from extension code, since
+        from extension code you would change the global scope (i.e.,
+        of the Sage interpreter). And it would be stupid, since you're
+        already writing Cython!
 
-    EXAMPLES::
+        Also, never use this in the standard Sage library.  Any code
+        that uses this can only run on a system that has a C compiler
+        installed, and we want to avoid making that assumption for
+        casual Sage usage.  Also, any code that uses this in the
+        library would greatly slow down startup time, since currently
+        there is no caching.
 
-        sage: module = sage.misc.cython.import_test("trac11680b")
-        sage: module.f(2,3,4)
-        9
+    .. TODO::
+
+        Need to create a clever caching system so code only gets
+        compiled once.
     """
-    return compile_and_load(TESTS[name])
+    tmpfile = tmp_filename(ext=".pyx")
+    with open(tmpfile, 'w') as f:
+        f.write(code)
+    return cython_import_all(tmpfile, get_globals(), **kwds)
 
+
+# THe following utility functions are used on Cygwin only to work around a
+# shortcoming in ld/binutils; see https://trac.sagemath.org/ticket/28258
+def _strhash(s):
+    """
+    Implementation of the strhash function from binutils
+
+    See
+    https://sourceware.org/git/gitweb.cgi?p=binutils-gdb.git;a=blob;f=binutils/dllwrap.c;hb=d0e6d77b3fb64561ca66535f8ed6ca523eac923e#l449
+
+    This is used to re-implement support for --enable-auto-image-base with a
+    custom base address, which is currently broken in ld/binutils for PE32+
+    binaries.
+
+    TESTS::
+
+        sage: from sage.misc.cython import _strhash
+        sage: hex(_strhash('test.pyx'))
+        '0x3d99a20'
+    """
+
+    s = str_to_bytes(s)
+    h = 0
+    l = len(s)
+
+    for c in s:
+        h += c + (c << 17)
+        h ^= h >> 2
+
+    h += l + (l << 17)
+    h ^= h >> 2
+    return h
+
+
+def _compute_dll_image_base(filename, auto_image_base=None):
+    """
+    Compute a DLL image base address from a hash of its filename, using the
+    same implementation as --enable-auto-image-base from binutils, but with
+    support for a custom minimum base address.
+
+    See
+    https://sourceware.org/git/gitweb.cgi?p=binutils-gdb.git;a=blob;f=ld/emultempl/pe.em;h=c18cb266beb23d14108044571382e0c7f4dbedb3;hb=d0e6d77b3fb64561ca66535f8ed6ca523eac923e#l919
+    which implements this for PE32 images (for PE32+ images the support for
+    custom base addresses is broken).
+
+    See also :trac:`28258`.
+
+    TESTS::
+
+        sage: from sage.misc.cython import _compute_dll_image_base
+        sage: hex(_compute_dll_image_base('test.pyx'))
+        '0x59a200000'
+
+    Test that given a random filename it is always below 0x6:00000000; in
+    principle this could fail randomly, but if it never fails then no problem.
+    We do not test for collisions since there is always a random chance of
+    collisions with two arbitrary filenames::
+
+        sage: from sage.misc.temporary_file import tmp_filename
+        sage: image_base = _compute_dll_image_base(tmp_filename(ext='.pyx'))
+        sage: hex(image_base)  # random
+        '0x59a200000'
+        sage: image_base <= (0x600000000 - 0x10000)
+        True
+    """
+
+    if auto_image_base is None:
+        # The default, which can in principle be modified at runtime if needed
+        auto_image_base = CYTHON_IMAGE_BASE
+
+    # See https://sourceware.org/git/gitweb.cgi?p=binutils-gdb.git;a=blob;f=ld/emultempl/pep.em;h=dca36cc341aabfa2ec9db139b8ec94690165201a;hb=d0e6d77b3fb64561ca66535f8ed6ca523eac923e#l113
+    # where move_default_addr_high=1 on Cygwin targets.
+    # This is actually derived from taking the upper limit 0x6:00000000 minus
+    # the lower limit 0x4:00000000 minus a gap of at least 0x10000.  I don't
+    # know why but this is supposed to work: https://narkive.com/HCyWCS6h.23
+    # Currently in binutils auto_image_base of 0x4:00000000 is hard-coded, so
+    # this comes out to 0x1:ffff0000, but here we must compute it.
+    NT_DLL_AUTO_IMAGE_MASK = 0x600000000 - auto_image_base - 0x10000
+
+    h = _strhash(filename)
+    return auto_image_base + ((h << 16) & NT_DLL_AUTO_IMAGE_MASK)

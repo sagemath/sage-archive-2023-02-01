@@ -20,8 +20,6 @@ for speed.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division
-
 from cpython.object cimport PyObject_RichCompare
 from itertools import groupby
 from cysignals.signals cimport sig_on, sig_off
@@ -40,7 +38,7 @@ from sage.modular.cusps import Cusp
 
 from sage.plot.all import Graphics
 from sage.plot.colors import to_mpl_color
-from sage.plot.misc import options, rename_keyword
+from sage.misc.decorators import options, rename_keyword
 from sage.plot.all import hyperbolic_arc, hyperbolic_triangle, text
 
 from sage.misc.latex import latex

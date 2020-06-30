@@ -1,7 +1,7 @@
 r"""
 Curves in Manifolds
 
-Given a differentiable manifold `M`, a *differentiable curve* curve in
+Given a differentiable manifold `M`, a *differentiable curve* in
 `M` is a differentiable mapping
 
 .. MATH::
@@ -37,7 +37,6 @@ from sage.misc.latex import latex
 from sage.misc.decorators import options
 from sage.manifolds.point import ManifoldPoint
 from sage.manifolds.differentiable.diff_map import DiffMap
-from sage.manifolds.utilities import simplify_chain_real
 
 class DifferentiableCurve(DiffMap):
     r"""
@@ -63,7 +62,7 @@ class DifferentiableCurve(DiffMap):
       the values being lists or tuples of `n` symbolic expressions of `t`,
       where `n` is the dimension of `M`
     - ``name`` -- (default: ``None``) string; symbol given to the curve
-    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
+    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
       the curve; if none is provided, ``name`` will be used
     - ``is_isomorphism`` -- (default: ``False``) determines whether the
       constructed object is a diffeomorphism; if set to ``True``,
@@ -269,17 +268,13 @@ class DifferentiableCurve(DiffMap):
             sage: TestSuite(c).run()
 
         """
-        domain = parent.domain()
-        codomain = parent.codomain()
         if coord_expression is None:
             coord_functions = None
         else:
             if not isinstance(coord_expression, dict):
                 raise TypeError("{} is not a dictionary".format(
                                                              coord_expression))
-            param_chart = domain.canonical_chart()
-            codom_atlas = codomain.atlas()
-            n = codomain.manifold().dim()
+            param_chart = parent.domain().canonical_chart()
             coord_functions = {}
             for chart, expr in coord_expression.items():
                 if isinstance(chart, tuple):
@@ -368,9 +363,17 @@ class DifferentiableCurve(DiffMap):
             sage: U = M.open_subset('U', coord_def={c_xy: (y!=0, x<0)}) # the complement of the segment y=0 and x>0
             sage: c_cart = c_xy.restrict(U) # Cartesian coordinates on U
             sage: c_spher.<r,ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi') # spherical coordinates on U
-            sage: # Links between spherical coordinates and Cartesian ones:
+
+        Links between spherical coordinates and Cartesian ones::
+
             sage: ch_cart_spher = c_cart.transition_map(c_spher, [sqrt(x*x+y*y), atan2(y,x)])
             sage: ch_cart_spher.set_inverse(r*cos(ph), r*sin(ph))
+            Check of the inverse coordinate transformation:
+              x == x  *passed*
+              y == y  *passed*
+              r == r  *passed*
+              ph == arctan2(r*sin(ph), r*cos(ph))  **failed**
+            NB: a failed report can reflect a mere lack of simplification.
             sage: R.<t> = RealLine()
             sage: c = U.curve({c_spher: (1,t)}, (t, 0, 2*pi), name='c')
             sage: c.coord_expr(c_spher)
@@ -383,7 +386,7 @@ class DifferentiableCurve(DiffMap):
             sage: c.coord_expr()
             (cos(t), sin(t))
 
-        Cartesian expression of a cardiod::
+        Cartesian expression of a cardioid::
 
             sage: c = U.curve({c_spher: (2*(1+cos(t)), t)}, (t, 0, 2*pi), name='c')
             sage: c.coord_expr(c_cart)
@@ -434,15 +437,15 @@ class DifferentiableCurve(DiffMap):
         if (canon_chart, codom._def_chart) in self._coord_expression:
             chart_pair = (canon_chart, codom._def_chart)
         else:
-            chart_pair = self._coord_expression.keys()[0]  # a chart is picked
-                                                           # at random
+            chart_pair = next(iter(self._coord_expression.keys()))
+            # a chart is picked at random
         coord_functions = self._coord_expression[chart_pair]._functions
         n = codom._dim
         dict_subs = {canon_coord: t}
         coords = [coord_functions[i].expr().substitute(dict_subs)
                   for i in range(n)]
         if simplify:
-            coords = [simplify_chain_real(coords[i]) for i in range(n)]
+            coords = [chart_pair[0].simplify(coords[i]) for i in range(n)]
         if self._name is not None:
             name = "{}({})".format(self._name, t)
         else:
@@ -744,7 +747,7 @@ class DifferentiableCurve(DiffMap):
             sage: a, b = var('a b')
             sage: c = R2.curve([a*cos(t) + b, a*sin(t)], (t, 0, 2*pi), name='c')
 
-        To make a plot, we set spectific values for ``a`` and ``b`` by means
+        To make a plot, we set specific values for ``a`` and ``b`` by means
         of the Python dictionary ``parameters``::
 
             sage: c.plot(parameters={a: 2, b: -3}, aspect_ratio=1)
@@ -763,10 +766,8 @@ class DifferentiableCurve(DiffMap):
         """
         from sage.rings.infinity import Infinity
         from sage.misc.functional import numerical_approx
-        from sage.plot.graphics import Graphics
-        from sage.plot.line import line
         from sage.manifolds.chart import RealChart
-        from sage.manifolds.utilities import set_axes_labels
+
         #
         # Get the @options from kwds
         #
@@ -857,9 +858,60 @@ class DifferentiableCurve(DiffMap):
                                [numerical_approx( x[j].substitute(parameters) )
                                 for j in ind_pc] )
                 t += dt
+
+        return self._graphics(plot_curve, ambient_coords,
+                              thickness=thickness,
+                              aspect_ratio=aspect_ratio, color= color,
+                              style=style, label_axes=label_axes)
+
+
+
+    def _graphics(self, plot_curve, ambient_coords, thickness=1,
+                  aspect_ratio='automatic', color='red', style='-',
+                  label_axes=True):
+        r"""
+        Plot a 2D or 3D curve in a Cartesian graph with axes labeled by
+        the ambient coordinates; it is invoked by the methods
+        :meth:`plot` of
+        :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`,
+        and its subclasses
+        (:class:`~sage.manifolds.differentiable.integrated_curve.IntegratedCurve`,
+        :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedAutoparallelCurve`,
+        and
+        :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedGeodesic`).
+
+        TESTS::
+
+            sage: M = Manifold(2, 'R^2')
+            sage: X.<x,y> = M.chart()
+            sage: R.<t> = RealLine()
+            sage: c = M.curve([cos(t), sin(t)], (t, 0, 2*pi), name='c')
+            sage: graph = c._graphics([[1,2], [3,4]], [x,y])
+            sage: graph._objects[0].xdata == [1,3]
+            True
+            sage: graph._objects[0].ydata == [2,4]
+            True
+            sage: graph._objects[0]._options['thickness'] == 1
+            True
+            sage: graph._extra_kwds['aspect_ratio'] == 'automatic'
+            True
+            sage: graph._objects[0]._options['rgbcolor'] == 'red'
+            True
+            sage: graph._objects[0]._options['linestyle'] == '-'
+            True
+            sage: l = [r'$'+latex(x)+r'$', r'$'+latex(y)+r'$']
+            sage: graph._extra_kwds['axes_labels'] == l
+            True
+
+        """
+        from sage.plot.graphics import Graphics
+        from sage.plot.line import line
+        from sage.manifolds.utilities import set_axes_labels
+
         #
         # The plot
         #
+        n_pc = len(ambient_coords)
         resu = Graphics()
         resu += line(plot_curve, color=color, linestyle=style,
                      thickness=thickness)
@@ -880,4 +932,3 @@ class DifferentiableCurve(DiffMap):
                 labels = [str(pc) for pc in ambient_coords]
                 resu = set_axes_labels(resu, *labels)
         return resu
-

@@ -14,8 +14,6 @@ context class, and related utilities.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from cpython.int cimport *
 from cpython.long cimport *
 from cpython.float cimport *
@@ -1067,12 +1065,10 @@ cdef class Context:
 
             sage: class MyInt(int):
             ....:     pass
-            sage: class MyLong(long):
-            ....:     pass
             sage: class MyFloat(float):
             ....:     pass
-            sage: mag(MyInt(10)), mag(MyLong(10))
-            (4, 4)
+            sage: mag(MyInt(10))
+            4
 
         """
         cdef int typ
@@ -1655,10 +1651,11 @@ cdef class mpnumber:
         """
         return global_context.almosteq(s, t, rel_eps, abs_eps)
 
+
 cdef class mpf_base(mpnumber):
 
     # Shared methods for mpf, constant. However, somehow some methods
-    # (hash?, __richcmp__?) aren't inerited, so they have to
+    # (hash?, __richcmp__?) are not inherited, so they have to
     # be defined multiple times. TODO: fix this.
 
     def __hash__(self):
@@ -1789,18 +1786,6 @@ cdef class mpf_base(mpnumber):
             3
         """
         return int(libmp.to_int(self._mpf_))
-
-    def __long__(self):
-        """
-        Support long conversion for derived classes ::
-
-            sage: from mpmath import mpf
-            sage: from sage.libs.mpmath.ext_main import mpf_base
-            sage: class X(mpf_base): _mpf_ = mpf(3.25)._mpf_
-            sage: long(X())
-            3L
-        """
-        return long(self.__int__())
 
     def __float__(self):
         """
@@ -2050,26 +2035,6 @@ cdef class mpf(mpf_base):
         """
         MPF_to_fixed(tmp_mpz, &self.value, 0, True)
         return mpzi(tmp_mpz)
-
-    def __long__(self):
-        r"""
-        Convert this mpf value to a long.
-
-        (Due to http://bugs.python.org/issue9869, to allow NZMATH to use
-        this Sage-modified version of mpmath, it is vital that we
-        return a long, not an int.)
-
-        TESTS::
-
-            sage: import mpmath
-            sage: v = mpmath.mpf(2)
-            sage: class MyLong(long):
-            ....:     pass
-            sage: MyLong(v)
-            2L
-        """
-        MPF_to_fixed(tmp_mpz, &self.value, 0, True)
-        return mpzl(tmp_mpz)
 
     def __float__(self):
         """

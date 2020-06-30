@@ -61,14 +61,10 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.arith.all import binomial, integer_floor, is_prime_power
 from .incidence_structures import IncidenceStructure
-from sage.misc.decorators import rename_keyword
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from sage.matrix.matrix_space import MatrixSpace
-
-
-import six
 
 
 BlockDesign = IncidenceStructure
@@ -276,7 +272,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, point_coordinates=True, ch
             blocks.append(b)
         B = BlockDesign(len(points), blocks, name="ProjectiveGeometryDesign", check=check)
         if point_coordinates:
-            B.relabel({i:p[0] for p,i in six.iteritems(points)})
+            B.relabel({i:p[0] for p,i in points.items()})
 
     elif algorithm == "gap":   # Requires GAP's Design
         from sage.interfaces.gap import gap
@@ -343,7 +339,7 @@ def DesarguesianProjectivePlaneDesign(n, point_coordinates=True, check=True):
     K = FiniteField(n, 'a')
     n2 = n**2
     relabel = {x:i for i,x in enumerate(K)}
-    Kiter = relabel  # it is much faster to iterate throug a dict than through
+    Kiter = relabel  # it is much faster to iterate through a dict than through
                      # the finite field K
 
     # we decompose the (equivalence class) of points [x:y:z] of the projective
@@ -354,10 +350,10 @@ def DesarguesianProjectivePlaneDesign(n, point_coordinates=True, check=True):
     affine_plane   = lambda x,y: relabel[x] + n * relabel[y]
 
     # - the affine line is the set of points [x:1:0] (i.e. the third coordinate is
-    #   zero but not the second one) and gets relabeld from n^2 to n^2 + n - 1
+    #   zero but not the second one) and gets relabeled from n^2 to n^2 + n - 1
     line_infinity  = lambda x: n2 + relabel[x]
 
-    # - the point is [1:0:0] and gets relabeld n^2 + n
+    # - the point is [1:0:0] and gets relabeled n^2 + n
     point_infinity = n2 + n
 
     blcks = []
@@ -812,7 +808,7 @@ def AffineGeometryDesign(n, d, F, point_coordinates=True, check=True):
     - ``F`` -- a finite field or a prime power.
 
     - ``point_coordinates`` -- (optional, default ``True``) whether we use
-      coordinates in `\GF(q)^n` or plain integers for the points of the design.
+      coordinates in `\GF{q}^n` or plain integers for the points of the design.
 
     - ``check`` -- (optional, default ``True``) whether to check the output.
 
@@ -859,11 +855,13 @@ def AffineGeometryDesign(n, d, F, point_coordinates=True, check=True):
     points = {p:i for i,p in enumerate(reduced_echelon_matrix_iterator(F,1,n+1,copy=True,set_immutable=True)) if p[0,0]}
 
     blocks = []
-    l1 = q_binomial(n+1, d+1, q) - q_binomial(n, d+1, q)
+    l1 = int(q_binomial(n+1, d+1, q) - q_binomial(n, d+1, q))
     l2 = q**d
-    for m1 in islice(reduced_echelon_matrix_iterator(F,d+1,n+1,copy=False), l1):
+    for m1 in islice(reduced_echelon_matrix_iterator(F,d+1,n+1,copy=False),
+                     int(l1)):
         b = []
-        for m2 in islice(reduced_echelon_matrix_iterator(F,1,d+1,copy=False), l2):
+        for m2 in islice(reduced_echelon_matrix_iterator(F,1,d+1,copy=False),
+                         int(l2)):
             m = m2*m1
             m.echelonize()
             m.set_immutable()
@@ -873,7 +871,7 @@ def AffineGeometryDesign(n, d, F, point_coordinates=True, check=True):
     B = BlockDesign(len(points), blocks, name="AffineGeometryDesign", check=check)
 
     if point_coordinates:
-        rd = {i:p[0][1:] for p,i in six.iteritems(points)}
+        rd = {i:p[0][1:] for p,i in points.items()}
         for v in rd.values(): v.set_immutable()
         B.relabel(rd)
 
@@ -937,7 +935,7 @@ def WittDesign(n):
         sage: print(BD)                      # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
     """
-    from sage.interfaces.gap import gap, GapElement
+    from sage.interfaces.gap import gap
     gap.load_package("design")
     gap.eval("B:=WittDesign(%s)"%n)
     v = eval(gap.eval("B.v"))
@@ -946,6 +944,7 @@ def WittDesign(n):
     for b in gblcks:
        gB.append([x-1 for x in b])
     return BlockDesign(v, gB, name="WittDesign", check=True)
+
 
 def HadamardDesign(n):
     """
@@ -993,9 +992,10 @@ def HadamardDesign(n):
     # A is the incidence matrix of the block design
     return IncidenceStructure(incidence_matrix=A,name="HadamardDesign")
 
+
 def Hadamard3Design(n):
-    """
-    Return the Hadamard 3-design with parameters `3-(n, \\frac n 2, \\frac n 4 - 1)`.
+    r"""
+    Return the Hadamard 3-design with parameters `3-(n, \frac n 2, \frac n 4 - 1)`.
 
     This is the unique extension of the Hadamard `2`-design (see
     :meth:`HadamardDesign`).  We implement the description from pp. 12 in
@@ -1012,7 +1012,7 @@ def Hadamard3Design(n):
 
     We verify that any two blocks of the Hadamard `3`-design `3-(8, 4, 1)`
     design meet in `0` or `2` points. More generally, it is true that any two
-    blocks of a Hadamard `3`-design meet in `0` or `\\frac{n}{4}` points (for `n
+    blocks of a Hadamard `3`-design meet in `0` or `\frac{n}{4}` points (for `n
     > 4`).
 
     ::

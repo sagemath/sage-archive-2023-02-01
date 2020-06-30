@@ -46,7 +46,8 @@ preparsed when calling ``%runfile`` ::
     sage: bool(re.search('/[0-9]+/', TMP))
     True
     sage: tmp = os.path.join(TMP, 'run_cell.py')
-    sage: f = open(tmp, 'w'); _ = f.write('a = 2\n'); f.close()
+    sage: with open(tmp, 'w') as f:
+    ....:     _ = f.write('a = 2\n')
     sage: shell.run_cell('%runfile '+tmp)
     sage: shell.run_cell('a')
     2
@@ -109,7 +110,8 @@ class SageMagics(Magics):
             sage: from sage.misc.all import tmp_dir
             sage: shell = get_test_shell()
             sage: tmp = os.path.join(tmp_dir(), 'run_cell.py')
-            sage: f = open(tmp, 'w'); _ = f.write('a = 2\n'); f.close()
+            sage: with open(tmp, 'w') as f:
+            ....:     _ = f.write('a = 2\n')
             sage: shell.run_cell('%runfile '+tmp)
             sage: shell.run_cell('a')
             2
@@ -133,12 +135,12 @@ class SageMagics(Magics):
             sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: tmp = os.path.normpath(os.path.join(SAGE_TMP, 'run_cell.py'))
-            sage: f = open(tmp, 'w'); _ = f.write('a = 2\n'); f.close()
+            sage: with open(tmp, 'w') as f: _ = f.write('a = 2\n')
             sage: shell.run_cell('%attach ' + tmp)
             sage: shell.run_cell('a')
             2
             sage: sleep(1)  # filesystem timestamp granularity
-            sage: f = open(tmp, 'w'); _ = f.write('a = 3\n'); f.close()
+            sage: with open(tmp, 'w') as f: _ = f.write('a = 3\n')
 
         Note that the doctests are never really at the command prompt, so
         we call the input hook manually::
@@ -207,13 +209,13 @@ class SageMagics(Magics):
           for allowed values. If the mode is ``ascii_art``, it can
           optionally be followed by a width.
 
-        How to use: if you want activate the ASCII art mod::
+        How to use: if you want to activate the ASCII art mode::
 
             sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.run_cell('%display ascii_art')
 
-        That means you don't have to use :func:`ascii_art` to get an ASCII art
+        That means you do not have to use :func:`ascii_art` to get an ASCII art
         output::
 
             sage: shell.run_cell("i = var('i')")
@@ -221,7 +223,7 @@ class SageMagics(Magics):
                  10       9       8       7       6       5       4      3      2
             100*x   + 81*x  + 64*x  + 49*x  + 36*x  + 25*x  + 16*x  + 9*x  + 4*x  + x
 
-        Then when you want return in 'textual mode'::
+        Then when you want to return to 'textual mode'::
 
             sage: shell.run_cell('%display text plain')
             sage: shell.run_cell('%display plain')        # shortcut for "text plain"
@@ -234,14 +236,14 @@ class SageMagics(Magics):
             sage: shell.run_cell('%display ascii_art')
             sage: shell.run_cell('StandardTableaux(4).list()')
             [
-            [                                                                  1  4
-            [                 1  3  4    1  2  4    1  2  3    1  3    1  2    2
-            [   1  2  3  4,   2      ,   3      ,   4      ,   2  4,   3  4,   3   ,
+            [                                                                  1  4    1  3
+            [                 1  3  4    1  2  4    1  2  3    1  3    1  2    2       2
+            [   1  2  3  4,   2      ,   3      ,   4      ,   2  4,   3  4,   3   ,   4   ,
             <BLANKLINE>
-                               1 ]
-               1  3    1  2    2 ]
-               2       3       3 ]
-               4   ,   4   ,   4 ]
+                       1 ]
+               1  2    2 ]
+               3       3 ]
+               4   ,   4 ]
             sage: shell.run_cell('%display ascii_art 50')
             sage: shell.run_cell('StandardTableaux(4).list()')
             [
@@ -331,7 +333,7 @@ class SageMagics(Magics):
         Cython cell magic
 
         This is syntactic sugar on the
-        :func:`~sage.misc.cython_c.cython` function.
+        :func:`~sage.misc.cython.cython_compile` function.
 
         INPUT:
 
@@ -352,9 +354,10 @@ class SageMagics(Magics):
             ....: def f():
             ....:     print('test')
             ....: ''')
-            ....: shell.run_cell('f()')
+            sage: f()
+            test
         """
-        from sage.misc.cython_c import cython_compile
+        from sage.misc.cython import cython_compile
         return cython_compile(cell)
 
     @cell_magic
@@ -530,7 +533,7 @@ class SageJupyterCustomizations(SageCustomizations):
         return all_jupyter
 
 
-# from http://stackoverflow.com/questions/4103773/efficient-way-of-having-a-function-only-execute-once-in-a-loop
+# from https://stackoverflow.com/questions/4103773/efficient-way-of-having-a-function-only-execute-once-in-a-loop
 from functools import wraps
 def run_once(func):
     """

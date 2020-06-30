@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+# All these methods are imported in EllipticCurve_rational_field,
+# so there is no reason to add this module to the documentation.
 """
-Miscellaneous `p`-adic functions
-
-`p`-adic functions from ell_rational_field.py, moved here to reduce
-crowding in that file.
+Miscellaneous `p`-adic methods
 """
 
 ######################################################################
@@ -18,7 +18,7 @@ crowding in that file.
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ######################################################################
 from __future__ import absolute_import
 
@@ -61,7 +61,7 @@ def __check_padic_hypotheses(self, p):
     """
     p = rings.Integer(p)
     if not p.is_prime():
-        raise ValueError("p = (%s) must be prime"%p)
+        raise ValueError("p = (%s) must be prime" % p)
     if p == 2:
         raise ValueError("p must be odd")
     if self.conductor() % p == 0 or self.ap(p) % p == 0:
@@ -69,27 +69,18 @@ def __check_padic_hypotheses(self, p):
     return p
 
 
-def _normalize_padic_lseries(self, p, normalize, use_eclib, implementation, precision):
+def _normalize_padic_lseries(self, p, normalize, implementation, precision):
     r"""
     Normalize parameters for :meth:`padic_lseries`.
 
     TESTS::
 
         sage: from sage.schemes.elliptic_curves.padics import _normalize_padic_lseries
-        sage: u = _normalize_padic_lseries(None, 5, None, None, 'sage', 10)
-        sage: v = _normalize_padic_lseries(None, 5, "L_ratio", None, 'sage', 10)
+        sage: u = _normalize_padic_lseries(None, 5, None, 'sage', 10)
+        sage: v = _normalize_padic_lseries(None, 5, "L_ratio", 'sage', 10)
         sage: u == v
         True
      """
-    if use_eclib is not None:
-        from sage.misc.superseded import deprecation
-        deprecation(812,"Use the option 'implementation' instead of 'use_eclib'")
-        if implementation == 'pollackstevens':
-            raise ValueError
-        if use_eclib:
-            implementation = 'eclib'
-        else:
-            implementation = 'sage'
     if implementation == 'eclib':
         if normalize is None:
             normalize = "L_ratio"
@@ -101,14 +92,15 @@ def _normalize_padic_lseries(self, p, normalize, use_eclib, implementation, prec
             raise ValueError("Must specify precision when using 'pollackstevens'")
         if normalize is not None:
             raise ValueError("The 'normalize' parameter is not used for Pollack-Stevens' overconvergent modular symbols")
+    elif implementation == "num":
+        if normalize is not None:
+            raise ValueError("The 'normalize' parameter is not used for numerical modular symbols")
     else:
-        raise ValueError("Implementation should be one of  'sage', 'eclib' or 'pollackstevens'")
-    #if precision is not None and implementation != 'pollackstevens':
-    #    raise ValueError("Must *not* specify precision unless using 'pollackstevens'")
+        raise ValueError("Implementation should be one of  'sage', 'eclib', 'num' or 'pollackstevens'")
     return (p, normalize, implementation, precision)
 
 @cached_method(key=_normalize_padic_lseries)
-def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 'eclib', precision = None):
+def padic_lseries(self, p, normalize = None, implementation = 'eclib', precision = None):
     r"""
     Return the `p`-adic `L`-series of self at
     `p`, which is an object whose approx method computes
@@ -117,18 +109,16 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
 
     INPUT:
 
+    -  ``p`` -- prime
 
-    -  ``p`` - prime
-
-    -  ``normalize`` -  'L_ratio' (default), 'period' or 'none';
+    -  ``normalize`` -- 'L_ratio' (default), 'period' or 'none';
        this is describes the way the modular symbols
        are normalized. See modular_symbol for
        more details.
 
-    -  ``use_eclib`` - deprecated, use ``implementation`` instead
-
-    -  ``implementation`` - 'eclib' (default), 'sage', 'pollackstevens';
+    -  ``implementation`` -- 'eclib' (default), 'sage', 'num' or 'pollackstevens';
        Whether to use John Cremona's eclib, the Sage implementation,
+       numerical modular symbols
        or Pollack-Stevens' implementation of overconvergent
        modular symbols.
 
@@ -187,6 +177,14 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
         sage: L = e.padic_lseries(3, implementation = 'sage')
         sage: L.series(5,prec=10)
         2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + O(3^7) + (1 + 3 + 2*3^2 + 3^3 + O(3^4))*T + (1 + 2*3 + O(3^4))*T^2 + (3 + 2*3^2 + O(3^3))*T^3 + (2*3 + 3^2 + O(3^3))*T^4 + (2 + 2*3 + 2*3^2 + O(3^3))*T^5 + (1 + 3^2 + O(3^3))*T^6 + (2 + 3^2 + O(3^3))*T^7 + (2 + 2*3 + 2*3^2 + O(3^3))*T^8 + (2 + O(3^2))*T^9 + O(T^10)
+        
+    Also the numerical modular symbols can be used.
+    This may allow for much larger conductor in some instances::   
+    
+        sage: E = EllipticCurve([101,103])
+        sage: L = E.padic_lseries(5, implementation="num")
+        sage: L.series(2)
+        O(5^4) + (3 + O(5))*T + (1 + O(5))*T^2 + (3 + O(5))*T^3 + O(5)*T^4 + O(T^5)
 
     Finally, we can use the overconvergent method of Pollack-Stevens.::
 
@@ -207,9 +205,9 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
         O(11^0)
     """
     p, normalize, implementation, precision = self._normalize_padic_lseries(p,\
-                             normalize, use_eclib, implementation, precision)
+                             normalize, implementation, precision)
 
-    if implementation in ['sage', 'eclib']:
+    if implementation in ['sage', 'eclib', 'num']:
         if self.ap(p) % p != 0:
             Lp = plseries.pAdicLseriesOrdinary(self, p,
                                   normalize = normalize, implementation = implementation)
@@ -229,23 +227,20 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
 
 def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
     r"""
-    Computes the cyclotomic `p`-adic regulator of this curve.
-
+    Compute the cyclotomic `p`-adic regulator of this curve.
 
     INPUT:
 
+    - ``p`` -- prime >= 5
 
-    -  ``p`` - prime = 5
+    - ``prec`` -- answer will be returned modulo
+      `p^{\mathrm{prec}}`
 
-    -  ``prec`` - answer will be returned modulo
-       `p^{\mathrm{prec}}`
+    - ``height`` -- precomputed height function. If not
+      supplied, this function will call padic_height to compute it.
 
-    -  ``height`` - precomputed height function. If not
-       supplied, this function will call padic_height to compute it.
-
-    -  ``check_hypotheses`` - boolean, whether to check
-       that this is a curve for which the p-adic height makes sense
-
+    - ``check_hypotheses`` -- boolean, whether to check
+      that this is a curve for which the p-adic height makes sense
 
     OUTPUT: The p-adic cyclotomic regulator of this curve, to the
     requested precision.
@@ -351,7 +346,7 @@ def padic_height_pairing_matrix(self, p, prec=20, height=None, check_hypotheses=
     INPUT:
 
 
-    -  ``p`` - prime = 5
+    -  ``p`` - prime >= 5
 
     -  ``prec`` - answer will be returned modulo
        `p^{\mathrm{prec}}`
@@ -556,7 +551,6 @@ def _multiply_point(E, R, P, m):
 
     # now walk through list and compute g(k)
     g = {0 : R(0), 1 : R(1), 2 : R(-1), 3 : B8, 4 : B6**2 - B4*B8}
-    last = [0, 1, 2, 3, 4]     # last few k
     for i in reversed(intervals):
         k = i[0]
         while k < i[1]:
@@ -592,7 +586,6 @@ def _multiply_point(E, R, P, m):
     return theta, omega, psi_m * d
 
 
-
 def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
     r"""
     Compute the cyclotomic p-adic height.
@@ -601,10 +594,10 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
 
     INPUT:
 
-    -  ``p`` - prime = 5 for which the curve has
+    -  ``p`` - prime >= 5 for which the curve has
        semi-stable reduction
 
-    -  ``prec`` - integer = 1, desired precision of result
+    -  ``prec`` - integer >= 1 (default 20), desired precision of result
 
     -  ``sigma`` - precomputed value of sigma. If not
        supplied, this function will call padic_sigma to compute it.
@@ -718,9 +711,9 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
         sage: h = E.padic_height(7,10)
         sage: P = E.gen(0)
         sage: h(P)
-        2*7 + 7^2 + 5*7^3 + 6*7^4 + 2*7^5 + 3*7^6 + 7^7 + O(7^9)
+        2*7 + 7^2 + 5*7^3 + 6*7^4 + 2*7^5 + 3*7^6 + 7^7 + 4*7^9 + 5*7^10 + O(7^11)
         sage: h(P+P)
-        7 + 5*7^2 + 6*7^3 + 5*7^4 + 4*7^5 + 6*7^6 + 5*7^7 + O(7^9)
+        7 + 5*7^2 + 6*7^3 + 5*7^4 + 4*7^5 + 6*7^6 + 5*7^7 + 2*7^9 + 7^10 + O(7^11)
     """
     if check_hypotheses:
         if not p.is_prime():
@@ -810,10 +803,10 @@ def padic_height_via_multiply(self, p, prec=20, E2=None, check_hypotheses=True):
     INPUT:
 
 
-    -  ``p`` - prime = 5 for which the curve has good
+    -  ``p`` - prime >= 5 for which the curve has good
        ordinary reduction
 
-    -  ``prec`` - integer = 2, desired precision of result
+    -  ``prec`` - integer >= 2 (default 20), desired precision of result
 
     -  ``E2`` - precomputed value of E2. If not supplied,
        this function will call padic_E2 to compute it. The value supplied
@@ -962,10 +955,10 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     INPUT:
 
 
-    -  ``p`` - prime = 5 for which the curve has good
+    -  ``p`` - prime >= 5 for which the curve has good
        ordinary reduction
 
-    -  ``N`` - integer = 1, indicates precision of result;
+    -  ``N`` - integer >= 1 (default 20), indicates precision of result;
        see OUTPUT section for description
 
     -  ``E2`` - precomputed value of E2. If not supplied,
@@ -1074,22 +1067,21 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
         raise NotImplementedError("p (=%s) must be at least 5" % p)
 
     N = int(N)
-    if N <= 2:
-        # a few special cases for small N
-        if N < 1:
-            raise ValueError("N (=%s) must be at least 1" % prec)
 
-        if N == 1:
-            # return simply t + O(t^2)
-            K = Qp(p, 2)
-            return PowerSeriesRing(K, "t")([K(0), K(1, 1)], prec=2)
+    # a few special cases for small N
+    if N < 1:
+        raise ValueError("N (=%s) must be at least 1" % N)
 
+    if N == 1:
+        # return simply t + O(t^2)
+        K = Qp(p, 2)
+        return PowerSeriesRing(K, "t")([K(0), K(1, 1)], prec=2)
 
-        if N == 2:
-            # return t + a_1/2 t^2 + O(t^3)
-            K = Qp(p, 3)
-            return PowerSeriesRing(K, "t")([K(0), K(1, 2),
-                                            K(self.a1()/2, 1)], prec=3)
+    if N == 2:
+        # return t + a_1/2 t^2 + O(t^3)
+        K = Qp(p, 3)
+        return PowerSeriesRing(K, "t")([K(0), K(1, 2),
+                                        K(self.a1()/2, 1)], prec=3)
 
     if self.discriminant().valuation(p) != 0:
         raise NotImplementedError("equation of curve must be minimal at p")
@@ -1116,7 +1108,7 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     A = (-X.a1()/2 - A) * f
 
     # Convert to a power series and remove the -1/x term.
-    # Also we artificially bump up the accuracy from N-2 to to N-1 digits;
+    # Also we artificially bump up the accuracy from N-2 to N-1 digits;
     # the constant term needs to be known to N-1 digits, so we compute
     # it directly
     assert A.valuation() == -1 and A[-1] == 1
@@ -1131,9 +1123,9 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     sigma = theta * theta.parent().gen()
 
     # Convert the answer to power series over p-adics; drop the precision
-    # of the $t^k$ coefficient to $p^(N-k+1)$.
+    # of the t^k coefficient to p^(N-k+1).
     # [Note: there are actually more digits available, but it's a bit
-    # tricky to figure out exactly how many, and we only need $p^(N-k+1)$
+    # tricky to figure out exactly how many, and we only need p^(N-k+1)
     # for p-adic height purposes anyway]
     K = rings.pAdicField(p, N + 1)
 
@@ -1172,30 +1164,27 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     return sigma
 
 
-
-
 def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True):
     r"""
-    Computes the p-adic sigma function with respect to the standard
+    Compute the p-adic sigma function with respect to the standard
     invariant differential `dx/(2y + a_1 x + a_3)`, as
     defined by Mazur and Tate, as a power series in the usual
     uniformiser `t` at the origin.
 
     The equation of the curve must be minimal at `p`.
 
-    This function differs from padic_sigma() in the precision profile
+    This function differs from :func:`padic_sigma` in the precision profile
     of the returned power series; see OUTPUT below.
 
     INPUT:
 
-
-    -  ``p`` - prime = 5 for which the curve has good
+    -  ``p`` - prime >= 5 for which the curve has good
        ordinary reduction
 
-    -  ``N`` - integer = 2, indicates precision of result;
+    -  ``N`` - integer >= 2 (default 20), indicates precision of result;
        see OUTPUT section for description
 
-    -  ``lamb`` - integer = 0, see OUTPUT section for
+    -  ``lamb`` - integer >= 0, see OUTPUT section for
        description
 
     -  ``E2`` - precomputed value of E2. If not supplied,
@@ -1225,7 +1214,7 @@ def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True)
     AUTHOR:
 
     - David Harvey (2008-01): wrote based on previous
-      padic_sigma function
+      :func:`padic_sigma function`
 
     EXAMPLES::
 
@@ -1323,7 +1312,7 @@ def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True)
     sigma = theta * theta.parent().gen()
 
     # Convert the answer to power series over p-adics; drop the precision
-    # of the $t^j$ coefficient to $p^{N - 2 + (3 - j)(lamb + 1)})$.
+    # of the t^j coefficient to p^{N - 2 + (3 - j)(lamb + 1)}).
     K = rings.pAdicField(p, N - 2 + 3*(lamb+1))
 
     sigma = sigma.padded_list(trunc+1)
@@ -1503,7 +1492,8 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
             eq = self.tate_curve(p)
             return  eq.E2(prec=prec)
 
-    frob_p = self.matrix_of_frobenius(p, prec, check, check_hypotheses, algorithm).change_ring(Integers(p**prec))
+    X = self.minimal_model().short_weierstrass_model()
+    frob_p = X.matrix_of_frobenius(p, prec, check, check_hypotheses, algorithm).change_ring(Integers(p**prec))
 
     frob_p_n = frob_p**prec
 
@@ -1514,7 +1504,6 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
               + O(p**prec)
 
     # Take into account the coordinate change.
-    X = self.minimal_model().short_weierstrass_model()
     fudge_factor = (X.discriminant() / self.discriminant()).nth_root(6)
     # todo: here I should be able to write:
     #  return E2_of_X / fudge_factor
@@ -1526,13 +1515,15 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
     fudge_factor_inverse = Qp(p, prec=(E2_of_X.precision_absolute() + 1))(1 / fudge_factor)
     return output_ring(E2_of_X * fudge_factor_inverse)
 
+
 def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, algorithm="auto"):
     r"""
-    Returns the matrix of Frobenius on the Monsky Washnitzer cohomology of the elliptic curve.
+    Returns the matrix of Frobenius on the Monsky Washnitzer cohomology of
+    the short Weierstrass model of the minimal model of the elliptic curve.
 
     INPUT:
 
-    -  ``p`` - prime (= 5) for which `E` is good
+    -  ``p`` - prime (>= 3) for which `E` is good
        and ordinary
 
     -  ``prec`` - (relative) `p`-adic precision for
@@ -1579,10 +1570,19 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
         6 + 10*11 + 10*11^2 + O(11^3)
         sage: E.ap(11)
         -5
-
+        sage: E = EllipticCurve('83a1')
+        sage: E.matrix_of_frobenius(3,6)
+        [                      2*3 + 3^5 + O(3^6)             2*3 + 2*3^2 + 2*3^3 + O(3^6)]
+        [              2*3 + 3^2 + 2*3^5 + O(3^6) 2 + 2*3^2 + 2*3^3 + 2*3^4 + 3^5 + O(3^6)]
     """
-    # TODO change the basis back to the original equation.
-    # TODO, add lots of comments like the above
+    p = Integer(p)
+    prec = int(prec)
+
+    if p < 3:
+        raise NotImplementedError("p (=%s) must be at least 3" % p)
+    if prec < 1:
+        raise ValueError("prec (=%s) must be at least 1" % prec)
+
     if check_hypotheses:
         p = __check_padic_hypotheses(self, p)
 
@@ -1594,17 +1594,12 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
     if algorithm not in ["standard", "sqrtp"]:
         raise ValueError("unknown algorithm '%s'" % algorithm)
 
-    # todo: maybe it would be good if default prec was None, and then
-    # it selects an appropriate precision based on how large the prime
-    # is
-
-    # todo: implement the p == 3 case
-    if p < 5:
-        raise NotImplementedError("p (=%s) must be at least 5" % p)
-
-    prec = int(prec)
-    if prec < 1:
-        raise ValueError("prec (=%s) must be at least 1" % prec)
+    # for p = 3, we create the corresponding hyperelliptic curve
+    # and call matrix of frobenius on it
+    if p == 3:
+        from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
+        f,g = self.hyperelliptic_polynomials()
+        return HyperellipticCurve(f + (g/2)**2).matrix_of_frobenius(p,prec)
 
     # To run matrix_of_frobenius(), we need to have the equation in the
     # form y^2 = x^3 + ax + b, whose discriminant is invertible mod p.
@@ -1620,7 +1615,8 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
 
     # todo: The following strategy won't work at all for p = 2, 3.
 
-    X=self.minimal_model().short_weierstrass_model()
+    # TODO change the basis back to the original equation.
+    X = self.minimal_model().short_weierstrass_model()
 
     assert X.discriminant().valuation(p) == 0, "Something's gone wrong. " \
            "The discriminant of the Weierstrass model should be a unit " \
@@ -1638,13 +1634,11 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
             trace = self.ap(p)
 
         base_ring = rings.Integers(p**adjusted_prec)
-        output_ring = rings.pAdicField(p, prec)
 
         R, x = rings.PolynomialRing(base_ring, 'x').objgen()
         Q = x**3 + base_ring(X.a4()) * x + base_ring(X.a6())
         frob_p = sage.schemes.hyperelliptic_curves.monsky_washnitzer.matrix_of_frobenius(
                          Q, p, adjusted_prec, trace)
-
 
     else:   # algorithm == "sqrtp"
         p_to_prec = p**prec
@@ -1656,9 +1650,6 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
         # and we don't want to get caught with our pants down...
         trace = self.ap(p)
         check = True
-
-
-    # return frob_p ## why was this here ?
 
     if check:
         trace_of_frobenius = frob_p.trace().lift() % p**prec
@@ -1729,11 +1720,10 @@ def _brent(F, p, N):
         ....:                "incorrect precision output"
     """
     Rx = F.parent()           # Rx = power series ring over Z/p^{N-1} Z
-    R = Rx.base_ring()        # R = Z/p^{N-1} Z
     Qx = PowerSeriesRing(RationalField(), "x")
 
     # initial approximation:
-    G = Rx(1)
+    G = Rx.one()
 
     # loop over an appropriate increasing sequence of lengths s
     for s in misc.newton_method_sizes(N):

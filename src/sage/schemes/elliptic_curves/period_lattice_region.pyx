@@ -6,20 +6,13 @@ of the period lattice of an elliptic curve, used in computing minimum height
 bounds.
 
 In particular, these are the approximating sets ``S^{(v)}`` in section 3.2 of
-Thotsaphon Thongjunthug's Ph.D. Thesis and paper [TT]_.
+Thotsaphon Thongjunthug's Ph.D. Thesis and paper [Tho2010]_.
 
 AUTHORS:
 
 - Robert Bradshaw (2010): initial version
 
 - John Cremona (2014): added some docstrings and doctests
-
-REFERENCES:
-
-.. [T] \T. Thongjunthug, Computing a lower bound for the canonical
-   height on elliptic curves over number fields, Math. Comp. 79
-   (2010), pages 2431-2449.
-
 """
 
 #*****************************************************************************
@@ -31,8 +24,6 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import division
 
 import numpy as np
 cimport numpy as np
@@ -662,10 +653,11 @@ cdef class PeriodicRegion:
             sage: plot(S) + plot(S.expand(), rgbcolor=(1, 0, 1), thickness=2)
             Graphics object consisting of 46 graphics primitives
         """
-        from sage.all import line
+        from sage.plot.line import line
         dw1, dw2 = self.ds()
         L = []
-        F = line([(0,0), tuple(self.w1), tuple(self.w1+self.w2), tuple(self.w2), (0,0)])
+        F = line([(0,0), tuple(self.w1),
+                  tuple(self.w1+self.w2), tuple(self.w2), (0,0)])
         if not self.full:
             F += line([tuple(self.w2/2), tuple(self.w1+self.w2/2)])
         if 'rgbcolor' not in kwds:

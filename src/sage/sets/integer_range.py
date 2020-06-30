@@ -5,15 +5,15 @@ AUTHORS:
 
  - Nicolas Borie  (2010-03): First release.
  - Florent Hivert (2010-03): Added a class factory + cardinality method.
- - Vincent Delecroix (2012-02): add methods rank/unrank, make it complient with
+ - Vincent Delecroix (2012-02): add methods rank/unrank, make it compliant with
    Python int.
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2010 Nicolas Borie <nicolas.borie@math.u-psud.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.parent import Parent
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -23,6 +23,7 @@ from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.infinity import Infinity, MinusInfinity, PlusInfinity
+
 
 class IntegerRange(UniqueRepresentation, Parent):
     r"""
@@ -84,7 +85,7 @@ class IntegerRange(UniqueRepresentation, Parent):
     Except for the type of the numbers::
 
         sage: type(IntegerRange(-54,13,12)[0]), type(list(range(-54,13,12))[0])
-        (<type 'sage.rings.integer.Integer'>, <... 'int'>)
+        (<... 'sage.rings.integer.Integer'>, <... 'int'>)
 
     When ``begin`` is finite and ``end`` is +Infinity, ``self`` is the infinite
     arithmetic progression starting from the ``begin`` by step ``step``::
@@ -219,7 +220,7 @@ class IntegerRange(UniqueRepresentation, Parent):
             sage: IntegerRange(1.0)
             Traceback (most recent call last):
             ...
-            TypeError: end must be Integer or Infinity, not <type 'sage.rings.real_mpfr.RealLiteral'>
+            TypeError: end must be Integer or Infinity, not <... 'sage.rings.real_mpfr.RealLiteral'>
         """
         if isinstance(begin, int): begin = Integer(begin)
         if isinstance(end, int): end = Integer(end)

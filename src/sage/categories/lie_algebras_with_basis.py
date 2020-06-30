@@ -17,7 +17,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.abstract_method import abstract_method
-from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.lie_algebras import LieAlgebras
 
@@ -25,7 +25,7 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
     Category of Lie algebras with a basis.
     """
-    _base_category_class_and_axiom = [LieAlgebras, "WithBasis"]
+    _base_category_class_and_axiom = (LieAlgebras, "WithBasis")
 
     def example(self, gens=None):
         """
@@ -50,6 +50,10 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             gens = Partitions()
         from sage.categories.examples.lie_algebras_with_basis import Example
         return Example(self.base_ring(), gens)
+
+    Graded = LazyImport('sage.categories.graded_lie_algebras_with_basis',
+                        'GradedLieAlgebrasWithBasis',
+                        as_name='Graded')
 
     class ParentMethods:
         def _basis_key(self, x):
@@ -103,7 +107,7 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 # Otherwise just index by the basis of ``self`` as a fallback
                 return CombinatorialFreeModule(self.base_ring(), self.basis())
 
-        def from_vector(self, v):
+        def from_vector(self, v, order=None):
             """
             Return the element of ``self`` corresponding to the
             vector ``v`` in ``self.module()``.
@@ -190,7 +194,7 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             return P.sum(cl * cr * term(ml, mr)
                          for ml, cl in self for mr, cr in y)
 
-        def to_vector(self):
+        def to_vector(self, order=None):
             """
             Return the vector in ``g.module()`` corresponding to the
             element ``self`` of ``g`` (where ``g`` is the parent of
@@ -213,4 +217,41 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             M = self.parent().module()
             B = M.basis()
             return M.sum(self[i] * B[i] for i in self.support())
+
+        def lift(self):
+            """
+            Lift ``self`` to the universal enveloping algebra.
+
+            EXAMPLES::
+
+                sage: S = SymmetricGroup(3).algebra(QQ)
+                sage: L = LieAlgebra(associative=S)
+                sage: x = L.gen(3)
+                sage: y = L.gen(1)
+                sage: x.lift()
+                b3
+                sage: y.lift()
+                b1
+                sage: x * y
+                b1*b3 + b4 - b5
+            """
+            P = self.parent()
+            UEA = P.universal_enveloping_algebra()
+            try:
+                gen_dict = UEA.algebra_generators()
+            except (TypeError, AttributeError):
+                gen_dict = UEA.gens_dict()
+            s = UEA.zero()
+            if not self:
+                return s
+            # Special hook for when the index set of the parent of ``self``
+            #   does not match the generators index set of the UEA.
+            if hasattr(P, '_UEA_names_map'):
+                names_map = P._UEA_names_map
+                for t, c in self.monomial_coefficients(copy=False).items():
+                    s += c * gen_dict[names_map[t]]
+            else:
+                for t, c in self.monomial_coefficients(copy=False).items():
+                    s += c * gen_dict[t]
+            return s
 

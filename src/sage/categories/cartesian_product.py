@@ -16,7 +16,7 @@ from sage.misc.lazy_import import lazy_import
 from sage.categories.covariant_functorial_construction import CovariantFunctorialConstruction, CovariantConstructionCategory
 from sage.categories.pushout import MultivariateConstructionFunctor
 
-native_python_containers   = set([tuple, list, set, frozenset])
+native_python_containers   = set([tuple, list, set, frozenset, range])
 
 class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConstructionFunctor):
     """
@@ -131,8 +131,8 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
         :class:`CovariantFunctorialConstruction` to:
 
         - handle the following plain Python containers as input:
-          :class:`frozenset`, :class:`list`, :class:`set` and
-          :class:`tuple`.
+          :class:`frozenset`, :class:`list`, :class:`set`,
+          :class:`tuple`, and :class:`xrange` (Python3 ``range``).
 
         - handle the empty list of factors.
 
@@ -161,6 +161,14 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
             ()
             sage: C.category()
             Category of Cartesian products of sets
+
+        Check that Python3 ``range`` is handled correctly::
+
+            sage: C = cartesian_product([range(2), range(2)])
+            sage: list(C)
+            [(0, 0), (0, 1), (1, 0), (1, 1)]
+            sage: C.category()
+            Category of Cartesian products of finite enumerated sets
         """
         if any(type(arg) in native_python_containers for arg in args):
             from sage.categories.sets_cat import Sets
@@ -173,8 +181,9 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
 
         return super(CartesianProductFunctor, self).__call__(args, **kwds)
 
+
 class CartesianProductsCategory(CovariantConstructionCategory):
-    """
+    r"""
     An abstract base class for all ``CartesianProducts`` categories.
 
     TESTS::

@@ -16,13 +16,11 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from .species import GenericCombinatorialSpecies
 from .generating_series import factorial_stream
 from .structure import GenericSpeciesStructure
 from .set_species import SetSpecies
-from sage.misc.cachefunc import cached_function
 from sage.structure.unique_representation import UniqueRepresentation
 
 class CharacteristicSpeciesStructure(GenericSpeciesStructure):

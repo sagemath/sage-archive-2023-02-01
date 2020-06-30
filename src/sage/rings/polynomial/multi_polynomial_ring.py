@@ -50,34 +50,28 @@ TESTS::
     (Multivariate Polynomial Ring in x, y, z over Finite Field of size 5,
     (x, y, z))
 """
-from __future__ import absolute_import
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from six.moves import range
-from six import iteritems
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import absolute_import
 
 from sage.rings.ring import IntegralDomain
 import sage.rings.fraction_field_element as fraction_field_element
 
-from sage.rings.integer_ring import is_IntegerRing
-
 import sage.rings.polynomial.multi_polynomial_ideal as multi_polynomial_ideal
 
-from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic, is_MPolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring_base import MPolynomialRing_base, is_MPolynomialRing
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.polynomial.polydict import PolyDict, ETuple
 from sage.rings.polynomial.term_order import TermOrder
 
 from sage.interfaces.singular import is_SingularElement
-from sage.interfaces.all import macaulay2 as macaulay2_default
 from sage.interfaces.macaulay2 import is_Macaulay2Element
 from sage.libs.pari.all import pari_gen
 
@@ -85,43 +79,23 @@ from sage.structure.element import Element
 
 class MPolynomialRing_macaulay2_repr:
     """
-
+    A mixin class for polynomial rings that support conversion to Macaulay2.
     """
-    def _macaulay2_(self, macaulay2=None):
+    def _macaulay2_init_(self, macaulay2=None):
+        """
+        EXAMPLES::
+
+            sage: PolynomialRing(QQ, 'x', 2, implementation='generic')._macaulay2_init_()   # optional - macaulay2
+            'sage...[symbol x0,symbol  x1, MonomialSize=>16, MonomialOrder=>GRevLex]'
+        """
         if macaulay2 is None:
-            macaulay2 = macaulay2_default
-        try:
-            R = self.__macaulay2
-            if not (R.parent() is macaulay2):
-                raise ValueError
-            R._check_valid()
-            return R
-        except (AttributeError, ValueError):
-            base_str = self._macaulay2_base_str()
-            self.__macaulay2 = macaulay2.ring(base_str, str(self.gens()), \
-                                              self.term_order().macaulay2_str())
-        return self.__macaulay2
-
-    def _macaulay2_base_str(self):
-        if self.base_ring().is_prime_field():
-            if self.characteristic() == 0:
-                return "QQ"
-            else:
-                return "ZZ/" + str(self.characteristic())
-        elif is_IntegerRing(self.base_ring()):
-            return "ZZ"
-        else:
-            raise TypeError("no conversion of to a Macaulay2 ring defined")
-
-    def _macaulay2_set_ring(self, macaulay2):
-        macaulay2.ring(self._macaulay2_base_str(), str(self.gens()), \
-                       self.term_order().macaulay2_str())
-
-    def is_exact(self):
-        return self.base_ring().is_exact()
+            from sage.interfaces.macaulay2 import macaulay2 as m2_default
+            macaulay2 = m2_default
+        return macaulay2._macaulay2_input_ring(self.base_ring(), self.gens(),
+                                               self.term_order().macaulay2_str())
 
 
-class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_singular_repr, MPolynomialRing_generic):
+class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_singular_repr, MPolynomialRing_base):
     """
     Multivariable polynomial ring.
 
@@ -135,7 +109,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
     def __init__(self, base_ring, n, names, order):
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         order = TermOrder(order,n)
-        MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
+        # MPolynomialRing_base.__init__() normally initialises the base ring,
+        # but it also needs the generators to construct a coercion map from the
+        # base ring, and the base ring must be set to initialise the generators.
+        # We set the base ring manually to break this circular dependency.
+        self._base = base_ring
         # Construct the generators
         v = [0] * n
         one = base_ring(1);
@@ -147,17 +125,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             v[i] = 0
         self._gens = tuple(self._gens)
         self._zero_tuple = tuple(v)
+        MPolynomialRing_base.__init__(self, base_ring, n, names, order)
         self._has_singular = can_convert_to_singular(self)
-        # This polynomial ring should belong to Algebras(base_ring).
-        # Algebras(...).parent_class, which was called from MPolynomialRing_generic.__init__,
-        # tries to provide a conversion from the base ring, if it does not exist.
-        # This is for algebras that only do the generic stuff in their initialisation.
-        # But here, we want to use PolynomialBaseringInjection. Hence, we need to
-        # wipe the memory and construct the conversion from scratch.
-        if n:
-            from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
-            base_inject = PolynomialBaseringInjection(base_ring, self)
-            self.register_coercion(base_inject)
 
     def _monomial_order_function(self):
         return self.__monomial_order_function
@@ -166,12 +135,45 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         return MPolynomial_polydict
 
-    def __cmp__(left, right):
-        if not is_MPolynomialRing(right):
-            return cmp(type(left),type(right))
-        else:
-            return cmp((left.base_ring(), left.ngens(), left.variable_names(), left.term_order()),
-                       (right.base_ring(), right.ngens(), right.variable_names(), right.term_order()))
+    def __eq__(self, other):
+        """
+        Check whether ``self`` is equal to ``other``.
+
+        EXAMPLES::
+
+            sage: R = PolynomialRing(Integers(10), 'x', 4)
+            sage: loads(R.dumps()) == R
+            True
+        """
+        if not is_MPolynomialRing(other):
+            return False
+        return ((self.base_ring(), self.ngens(),
+                self.variable_names(), self.term_order()) ==
+                (other.base_ring(), other.ngens(),
+                 other.variable_names(), other.term_order()))
+
+    def __ne__(self , other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: R = PolynomialRing(Integers(8), 'x', 3)
+            sage: loads(R.dumps()) != R
+            False
+        """
+        return not (self == other)
+
+    def __hash__(self):
+        """
+        Compute the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: h = hash(PolynomialRing(Integers(8), 'x', 3))
+        """
+        return hash((self.base_ring(), self.ngens(),
+                     self.variable_names(), self.term_order()))
 
     def __call__(self, x, check=True):
         """
@@ -191,8 +193,9 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: T = S*S*S                                              # optional - macaulay2
             sage: U = T.gens().entries().flatten()                       # optional - macaulay2
             sage: f = U[2]; f                                            # optional - macaulay2
-            x^6*y+2*x^3*y^2+y^3
-            sage: R(repr(f))                                             # optional - macaulay2
+             6      3 2    3
+            x y + 2x y  + y
+            sage: R(f.external_string())                                 # optional - macaulay2
             x^6*y + 2*x^3*y^2 + y^3
 
         Some other subtle conversions. We create polynomial rings in 2
@@ -436,7 +439,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
                 # no guarantees that this is mathematically solid."
                 K = self.base_ring()
                 D = x.element().dict()
-                for i, a in iteritems(D):
+                for i, a in D.items():
                     D[i] = K(a)
                 return MPolynomial_polydict(self, D)
             elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
@@ -460,7 +463,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
                 # no guarantees that this is mathematically solid."
                 K = self.base_ring()
                 D = x.dict()
-                for i, a in iteritems(D):
+                for i, a in D.items():
                     D[i] = K(a)
                 return MPolynomial_polydict(self, D)
             elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
@@ -477,7 +480,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         elif isinstance(x, dict):
             K = self.base_ring()
-            return MPolynomial_polydict(self, {i: K(a) for i, a in iteritems(x)})
+            return MPolynomial_polydict(self, {i: K(a) for i, a in x.items()})
 
         elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
             if x.denominator() == 1:
@@ -605,31 +608,35 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: P.monomial_quotient(x, P(1))
             x
 
-        .. note::
+        .. NOTE::
 
-           Assumes that the head term of f is a multiple of the head
-           term of g and return the multiplicant m. If this rule is
-           violated, funny things may happen.
+            Assumes that the head term of f is a multiple of the head
+            term of g and return the multiplicant m. If this rule is
+            violated, funny things may happen.
         """
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
 
         if not f:
-          return f
+            return f
         if not g:
-          raise ZeroDivisionError
+            raise ZeroDivisionError
+
+        fd = f.dict()
+        gd = g.dict()
 
         if not coeff:
-          coeff = self.base_ring()(1)
+            f = next(iter(fd))
+            g = next(iter(gd))
+            coeff = self.base_ring().one()
         else:
-          coeff = self.base_ring()(f.dict().values()[0] /  g.dict().values()[0])
-
-        f = f.dict().keys()[0]
-        g = g.dict().keys()[0]
+            f, cf = next(iter(fd.items()))
+            g, cg = next(iter(gd.items()))
+            coeff = self.base_ring()(cf / cg)
 
         res = f.esub(g)
 
-        return MPolynomial_polydict(self, PolyDict({res:coeff},\
-                                                   force_int_exponents=False, \
+        return MPolynomial_polydict(self, PolyDict({res:coeff},
+                                                   force_int_exponents=False,
                                                    force_etuples=False))
 
     def monomial_lcm(self, f, g):
@@ -669,22 +676,18 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: P.monomial_lcm(x, P(1))
             x
         """
-        one = self.base_ring()(1)
+        one = self.base_ring().one()
 
-        f = f.dict().keys()[0]
-        g = g.dict().keys()[0]
-
+        f, = f.dict()
+        g, = g.dict()
 
         length = len(f)
 
-        res = {}
+        res = {i: max(f[i], g[i])
+               for i in f.common_nonzero_positions(g)}
 
-        for i in f.common_nonzero_positions(g):
-            res[i] = max([f[i],g[i]])
-
-        res =  self(PolyDict({ETuple(res,length):one},\
-                            force_int_exponents=False,force_etuples=False))
-        return res
+        return self(PolyDict({ETuple(res, length): one},
+                             force_int_exponents=False, force_etuples=False))
 
     def monomial_reduce(self, f, G):
         r"""
@@ -750,15 +753,15 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
     def monomial_divides(self, a, b):
         """
-        Return False if ``a`` does not divide ``b`` and True otherwise.
+        Return ``False`` if ``a`` does not divide ``b`` and ``True`` otherwise.
 
         INPUT:
 
-        -  ``a`` - monomial.
+        - ``a`` -- monomial
 
-        -  ``b`` - monomial.
+        - ``b`` -- monomial
 
-        OUTPUT: Boolean.
+        OUTPUT: Boolean
 
         EXAMPLES::
 
@@ -781,12 +784,12 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         if not a:
             raise ZeroDivisionError
 
-        a = a.dict().keys()[0]
-        b = b.dict().keys()[0]
+        a, = a.dict()
+        b, = b.dict()
 
         for i in b.common_nonzero_positions(a):
-          if b[i] - a[i] < 0:
-            return False
+            if b[i] - a[i] < 0:
+                return False
         return True
 
     def monomial_pairwise_prime(self, h, g):
@@ -867,31 +870,32 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         def addwithcarry(tempvector, maxvector, pos):
             if tempvector[pos] < maxvector[pos]:
-              tempvector[pos] += 1
+                tempvector[pos] += 1
             else:
-              tempvector[pos] = 0
-              tempvector = addwithcarry(tempvector, maxvector, pos + 1)
+                tempvector[pos] = 0
+                tempvector = addwithcarry(tempvector, maxvector, pos + 1)
             return tempvector
 
         if not t.is_monomial():
-          raise TypeError("only monomials are supported")
+            raise TypeError("only monomials are supported")
 
         R = self
-        one = self.base_ring()(1)
+        one = self.base_ring().one()
         M = list()
 
-        maxvector = list(t.dict().keys()[0])
+        v, = t.dict()
+        maxvector = list(v)
 
-        tempvector =[0,]*len(maxvector)
+        tempvector =[0,] * len(maxvector)
 
         pos = 0
 
         while tempvector != maxvector:
-          tempvector = addwithcarry(list(tempvector) , maxvector, pos)
-          M.append(R(PolyDict({ETuple(tempvector):one}, \
-                              force_int_exponents=False,force_etuples=False)))
+            tempvector = addwithcarry(list(tempvector) , maxvector, pos)
+            M.append(R(PolyDict({ETuple(tempvector): one},
+                                force_int_exponents=False,
+                                force_etuples=False)))
         return M
-
 
 
 class MPolynomialRing_polydict_domain(IntegralDomain,
@@ -923,7 +927,7 @@ class MPolynomialRing_polydict_domain(IntegralDomain,
                 gens = gens[0]
         if not self._has_singular:
             # pass through
-            MPolynomialRing_generic.ideal(self,gens,**kwds)
+            MPolynomialRing_base.ideal(self,gens,**kwds)
         if is_SingularElement(gens):
             gens = list(gens)
             do_coerce = True

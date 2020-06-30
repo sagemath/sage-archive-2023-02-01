@@ -1,15 +1,15 @@
 r"""
 Interface to Axiom
 
-TODO:
+.. TODO::
 
-- Evaluation using a file is not done. Any input line with more than a
-  few thousand characters would hang the system, so currently it
-  automatically raises an exception.
+    - Evaluation using a file is not done. Any input line with more than a
+      few thousand characters would hang the system, so currently it
+      automatically raises an exception.
 
-- All completions of a given command.
+    - All completions of a given command.
 
-- Interactive help.
+    - Interactive help.
 
 Axiom is a free GPL-compatible (modified BSD license) general
 purpose computer algebra system whose development started in 1973
@@ -173,10 +173,9 @@ Python floats.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 import os
 import re
@@ -188,6 +187,8 @@ from pexpect import EOF
 from sage.misc.multireplace import multiple_replace
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
+from sage.structure.richcmp import rich_to_bool
+
 
 # The Axiom commands ")what thing det" ")show Matrix" and ")display
 # op det" commands, gives a list of all identifiers that begin in
@@ -213,10 +214,10 @@ class PanAxiom(ExtraTabCompletion, Expect):
         """
         eval_using_file_cutoff = 200
         self.__eval_using_file_cutoff = eval_using_file_cutoff
-        self._COMMANDS_CACHE = '%s/%s_commandlist_cache.sobj'%(DOT_SAGE, name)
+        self._COMMANDS_CACHE = '%s/%s_commandlist_cache.sobj' % (DOT_SAGE, name)
         Expect.__init__(self,
                         name = name,
-                        prompt = '\([0-9]+\) -> ',
+                        prompt = r'\([0-9]+\) -> ',
                         command = command,
                         script_subdirectory = script_subdirectory,
                         server=server,
@@ -569,7 +570,7 @@ class PanAxiomElement(ExpectElement):
         P = self.parent()
         return P('%s(%s)'%(self.name(), x))
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         EXAMPLES::
 
@@ -604,18 +605,13 @@ class PanAxiomElement(ExpectElement):
         """
         P = self.parent()
         if 'true' in P.eval("(%s = %s) :: Boolean"%(self.name(),other.name())):
-            return 0
+            return rich_to_bool(op, 0)
         elif 'true' in P.eval("(%s < %s) :: Boolean"%(self.name(), other.name())):
-            return -1
+            return rich_to_bool(op, -1)
         elif 'true' in P.eval("(%s > %s) :: Boolean"%(self.name(),other.name())):
-            return 1
+            return rich_to_bool(op, 1)
 
-        # everything is supposed to be comparable in Python, so we define
-        # the comparison thus when no comparable in interfaced system.
-        if (hash(self) < hash(other)):
-            return -1
-        else:
-            return 1
+        return NotImplemented
 
     def type(self):
         """

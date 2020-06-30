@@ -231,7 +231,7 @@ def shard_poset(n):
         q^3 - 11*q^2 + 23*q - 13
         sage: P.zeta_polynomial()
         17/3*q^3 - 6*q^2 + 4/3*q
-        sage: P.is_selfdual()
+        sage: P.is_self_dual()
         False
     """
     import operator

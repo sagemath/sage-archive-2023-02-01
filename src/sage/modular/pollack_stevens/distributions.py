@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Spaces of Distributions for Pollack-Stevens modular symbols
 
 The Pollack-Stevens version of modular symbols take values on a
@@ -41,7 +41,6 @@ EXAMPLES::
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
-from six.moves import range
 
 from sage.modules.module import Module
 from sage.structure.parent import Parent
@@ -283,7 +282,7 @@ class OverconvergentDistributions_abstract(Module):
         """
         if not isinstance(base, ring.Ring):
             raise TypeError("base must be a ring")
-        from sage.rings.padics.pow_computer import PowComputer
+        #from sage.rings.padics.pow_computer import PowComputer
         # should eventually be the PowComputer on ZpCA once that uses longs.
         Dist, WeightKAction = get_dist_classes(p, prec_cap, base,
                                                self.is_symk(), implementation)

@@ -716,7 +716,7 @@ die ähnliche Funktion ``canonicalize_radical``::
 Diese Gesetze können auch umgekehrt verwendet werden, wie in diesem Beispiel::
 
     sage: (5*log(2) + 5*log(5)).simplify_log()
-    log(100000)
+    5*log(10)
 
 Es geben weitere mögliche Vereinfachungen, die wir hier nicht weiter erwähnen.
 

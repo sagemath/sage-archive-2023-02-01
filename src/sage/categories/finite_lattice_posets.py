@@ -156,7 +156,7 @@ class FiniteLatticePosets(CategoryWithAxiom):
 
                 sage: LatticePoset().irreducibles_poset()
                 Finite poset containing 0 elements
-                sage: Posets.ChainPoset(1).irreducibles_poset()
+                sage: posets.ChainPoset(1).irreducibles_poset()
                 Finite poset containing 1 elements
             """
             if self.cardinality() == 1:
@@ -199,7 +199,7 @@ class FiniteLatticePosets(CategoryWithAxiom):
 
             We construct the boolean lattice `B_2`::
 
-                sage: B = Posets.BooleanLattice(2)
+                sage: B = posets.BooleanLattice(2)
                 sage: B.cover_relations()
                 [[0, 1], [0, 2], [1, 3], [2, 3]]
 

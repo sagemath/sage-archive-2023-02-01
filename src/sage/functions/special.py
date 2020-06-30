@@ -121,9 +121,9 @@ REFERENCES:
 - Abramowitz and Stegun: Handbook of Mathematical Functions,
   http://www.math.sfu.ca/~cbm/aands/
 
-- http://en.wikipedia.org/wiki/Spherical_harmonics
+- :wikipedia:`Spherical_harmonics`
 
-- http://en.wikipedia.org/wiki/Helmholtz_equation
+- :wikipedia:`Helmholtz_equation`
 
 - Online Encyclopedia of Special Function
   http://algo.inria.fr/esf/index.html
@@ -142,7 +142,7 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
    by hardware floats precision.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                     2006 David Joyner <wdj@usna.edu>
 #
@@ -155,23 +155,19 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.integer import Integer
-from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
 from sage.misc.latex import latex
-from sage.rings.all import ZZ, RR, RDF, CDF
-from sage.functions.other import real, imag, log_gamma
+from sage.rings.all import ZZ
 from sage.symbolic.constants import pi
 from sage.symbolic.function import BuiltinFunction
-from sage.symbolic.expression import Expression
-from sage.calculus.calculus import maxima
-from sage.structure.element import parent
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.functions.all import sqrt, sin, cot, exp
 from sage.symbolic.all import I
+
 
 class SphericalHarmonic(BuiltinFunction):
     r"""
@@ -229,9 +225,9 @@ class SphericalHarmonic(BuiltinFunction):
 
         Check that :trac:`20939` is fixed::
 
-            sage: spherical_harmonic(3,2,1,2*pi/3)
-            -1/240*sqrt(30)*(15*I*sqrt(7)*sqrt(3)
-             + 15*sqrt(7))*cos(1)*sin(1)^2/sqrt(pi)
+            sage: ex = spherical_harmonic(3,2,1,2*pi/3)
+            sage: QQbar(ex * sqrt(pi)/cos(1)/sin(1)^2).minpoly()
+            x^4 + 105/32*x^2 + 11025/1024
         """
         if n in ZZ and m in ZZ and n > -1:
             if abs(m) > n:
@@ -302,55 +298,69 @@ spherical_harmonic = SphericalHarmonic()
 
 ####### elliptic functions and integrals
 
-def elliptic_j(z):
-   r"""
-   Returns the elliptic modular `j`-function evaluated at `z`.
+def elliptic_j(z, prec=53):
+    r"""
+    Returns the elliptic modular `j`-function evaluated at `z`.
 
-   INPUT:
+    INPUT:
 
-   - ``z`` (complex) -- a complex number with positive imaginary part.
+    - ``z`` (complex) -- a complex number with positive imaginary part.
 
-   OUTPUT:
+    - ``prec`` (default: 53) -- precision in bits for the complex field.
 
-   (complex) The value of `j(z)`.
+    OUTPUT:
 
-   ALGORITHM:
+    (complex) The value of `j(z)`.
 
-   Calls the ``pari`` function ``ellj()``.
+    ALGORITHM:
 
-   AUTHOR:
+    Calls the ``pari`` function ``ellj()``.
 
-   John Cremona
+    AUTHOR:
 
-   EXAMPLES::
+    John Cremona
 
-       sage: elliptic_j(CC(i))
-       1728.00000000000
-       sage: elliptic_j(sqrt(-2.0))
-       8000.00000000000
-       sage: z = ComplexField(100)(1,sqrt(11))/2
-       sage: elliptic_j(z)
-       -32768.000...
-       sage: elliptic_j(z).real().round()
-       -32768
+    EXAMPLES::
+
+        sage: elliptic_j(CC(i))
+        1728.00000000000
+        sage: elliptic_j(sqrt(-2.0))
+        8000.00000000000
+        sage: z = ComplexField(100)(1,sqrt(11))/2
+        sage: elliptic_j(z)
+        -32768.000...
+        sage: elliptic_j(z).real().round()
+        -32768
 
     ::
 
-       sage: tau = (1 + sqrt(-163))/2
-       sage: (-elliptic_j(tau.n(100)).real().round())^(1/3)
-       640320
+        sage: tau = (1 + sqrt(-163))/2
+        sage: (-elliptic_j(tau.n(100)).real().round())^(1/3)
+        640320
 
-   """
-   CC = z.parent()
-   from sage.rings.complex_field import is_ComplexField
-   if not is_ComplexField(CC):
-      CC = ComplexField()
-      try:
-         z = CC(z)
-      except ValueError:
-         raise ValueError("elliptic_j only defined for complex arguments.")
-   from sage.libs.all import pari
-   return CC(pari(z).ellj())
+    This example shows the need for higher precision than the default one of
+    the `ComplexField`, see :trac:`28355`::
+
+        sage: -elliptic_j(tau) # rel tol 1e-2
+        2.62537412640767e17 - 732.558854258998*I
+        sage: -elliptic_j(tau,75) # rel tol 1e-2
+        2.625374126407680000000e17 - 0.0001309913593909879441262*I
+        sage: -elliptic_j(tau,100) # rel tol 1e-2
+        2.6253741264076799999999999999e17 - 1.3012822400356887122945119790e-12*I
+        sage: (-elliptic_j(tau, 100).real().round())^(1/3)
+        640320
+    """
+
+    CC = z.parent()
+    from sage.rings.complex_field import is_ComplexField
+    if not is_ComplexField(CC):
+        CC = ComplexField(prec)
+        try:
+            z = CC(z)
+        except ValueError:
+            raise ValueError("elliptic_j only defined for complex arguments.")
+    from sage.libs.all import pari
+    return CC(pari(z).ellj())
 
 #### elliptic integrals
 
@@ -473,7 +483,7 @@ class EllipticE(BuiltinFunction):
             return (elliptic_e(z, m) - elliptic_f(z, m)) / (Integer(2) * m)
 
     def _print_latex_(self, z, m):
-        """
+        r"""
         EXAMPLES::
 
             sage: latex(elliptic_e(pi, x))
@@ -483,8 +493,9 @@ class EllipticE(BuiltinFunction):
 
 elliptic_e = EllipticE()
 
+
 class EllipticEC(BuiltinFunction):
-    """
+    r"""
     Return the complete elliptic integral of the second kind:
 
     .. MATH::
@@ -548,7 +559,7 @@ class EllipticEC(BuiltinFunction):
             sage: elliptic_ec(I).n()
             1.63241178144043 - 0.369219492375499*I
         """
-        R = parent or parent(z)
+        R = parent or parent(x)
         from mpmath import ellipe
         return mpmath_utils.call(ellipe, x, parent=R)
 
@@ -620,7 +631,7 @@ class EllipticEU(BuiltinFunction):
             sage: elliptic_eu(1,1).n(200)
             0.7615941559557648881194582...
         """
-        R = parent or parent(z)
+        R = parent or parent(u)
         return mpmath_utils.call(elliptic_eu_f, u, m, parent=R)
 
     def _derivative_(self, u, m, diff_param):
@@ -787,7 +798,7 @@ class EllipticF(BuiltinFunction):
                       sqrt(Integer(1) - m * sin(z) ** Integer(2)))))
 
     def _print_latex_(self, z, m):
-        """
+        r"""
         EXAMPLES::
 
             sage: latex(elliptic_f(x,pi))
@@ -796,6 +807,7 @@ class EllipticF(BuiltinFunction):
         return r"F(%s\,|\,%s)" % (latex(z), latex(m))
  
 elliptic_f = EllipticF()
+
 
 class EllipticKC(BuiltinFunction):
     r"""
@@ -1002,7 +1014,7 @@ class EllipticPi(BuiltinFunction):
                      sqrt(Integer(1) - m * sin(z) ** Integer(2)))))
 
     def _print_latex_(self, n, z, m):
-        """
+        r"""
         EXAMPLES::
 
             sage: latex(elliptic_pi(x,pi,0))
@@ -1011,23 +1023,3 @@ class EllipticPi(BuiltinFunction):
         return r"\Pi(%s,%s,%s)" % (latex(n), latex(z), latex(m))
  
 elliptic_pi = EllipticPi()
-
-
-def error_fcn(x):
-    """
-    Deprecated in :trac:`21819`. Please use ``erfc()``.
-
-    EXAMPLES::
-
-        sage: error_fcn(x)
-        doctest:warning
-        ...
-        DeprecationWarning: error_fcn() is deprecated. Please use erfc()
-        See http://trac.sagemath.org/21819 for details.
-        erfc(x)
-    """
-    from .error import erfc
-    from sage.misc.superseded import deprecation
-    deprecation(21819, "error_fcn() is deprecated. Please use erfc()")
-    return erfc(x)
-

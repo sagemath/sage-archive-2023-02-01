@@ -43,17 +43,13 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six import itervalues, iteritems
-from six.moves import range
 
 from sage.rings.continued_fraction import convergents
-from sage.misc.misc import verbose
 from .sigma0 import Sigma0
 from .fund_domain import t00, t10, t01, t11, M2Z
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import ZZ
-from sage.parallel.decorate import parallel
-from operator import methodcaller
+from sage.structure.element import coercion_model
 
 
 def unimod_matrices_to_infty(r, s):
@@ -224,7 +220,7 @@ class ManinMap(object):
         self._codomain = codomain
         self._manin = manin_relations
         if check:
-            if not codomain.get_action(Sigma0(manin_relations._N)):
+            if coercion_model.get_action(codomain, Sigma0(manin_relations._N)) is None:
                 raise ValueError("Codomain must have an action of Sigma0(N)")
             self._dict = {}
             if isinstance(defining_data, (list, tuple)):
@@ -407,7 +403,7 @@ class ManinMap(object):
         D = {}
         sd = self._dict
         rd = right._dict
-        for ky, val in iteritems(sd):
+        for ky, val in sd.items():
             if ky in rd:
                 D[ky] = val + rd[ky]
         return self.__class__(self._codomain, self._manin, D, check=False)
@@ -444,7 +440,7 @@ class ManinMap(object):
         D = {}
         sd = self._dict
         rd = right._dict
-        for ky, val in iteritems(sd):
+        for ky, val in sd.items():
             if ky in rd:
                 D[ky] = val - rd[ky]
         return self.__class__(self._codomain, self._manin, D, check=False)
@@ -482,7 +478,7 @@ class ManinMap(object):
             return self._right_action(right)
 
         D = {}
-        for ky, val in iteritems(self._dict):
+        for ky, val in self._dict.items():
             D[ky] = val * right
         return self.__class__(self._codomain, self._manin, D, check=False)
 
@@ -531,7 +527,7 @@ class ManinMap(object):
         SN = Sigma0(self._manin._N)
         A = M2Z(A)
         B = self._manin.equivalent_rep(A)
-        gaminv = SN(B * M2Z(A).adjoint())
+        gaminv = SN(B * M2Z(A).adjugate())
         return (self[B] * gaminv).normalize()
 
     def __call__(self, A):
@@ -616,7 +612,7 @@ class ManinMap(object):
         sd = self._dict
         if codomain is None:
             codomain = self._codomain
-        for ky, val in iteritems(sd):
+        for ky, val in sd.items():
             if to_moments:
                 D[ky] = codomain([f(val.moment(a))
                                   for a in range(val.precision_absolute())])
@@ -714,7 +710,7 @@ class ManinMap(object):
             (1 + O(11^2), 2 + O(11))
         """
         sd = self._dict
-        for val in itervalues(sd):
+        for val in sd.values():
             val.normalize()
         return self
 
@@ -740,7 +736,7 @@ class ManinMap(object):
             1 + O(11^2)
         """
         D = {}
-        for ky, val in iteritems(self._dict):
+        for ky, val in self._dict.items():
             D[ky] = val.reduce_precision(M)
         return self.__class__(self._codomain, self._manin, D, check=False)
 
@@ -762,7 +758,7 @@ class ManinMap(object):
             Sym^0 Z_11^2
         """
         D = {}
-        for ky, val in iteritems(self._dict):
+        for ky, val in self._dict.items():
             D[ky] = val.specialize(*args)
         return self.__class__(self._codomain.specialize(*args), self._manin,
                               D, check=False)
@@ -822,7 +818,7 @@ class ManinMap(object):
 
     def p_stabilize(self, p, alpha, V):
         r"""
-        Return the `p`-stablization of self to level `N*p` on which
+        Return the `p`-stabilization of self to level `N*p` on which
         `U_p` acts by `\alpha`.
 
         INPUT:

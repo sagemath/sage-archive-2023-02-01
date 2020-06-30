@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Representations of objects.
+Representations of objects
 """
 
 #*****************************************************************************
@@ -12,15 +12,13 @@ Representations of objects.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 import types
+from io import StringIO
 
 from IPython.lib.pretty import (
     _safe_getattr, _baseclass_reprs,
     _type_pprinters,
 )
-
-from IPython.lib import pretty
 
 from sage.repl.display.util import format_list
 
@@ -46,7 +44,7 @@ class ObjectReprABC(object):
             sage: ObjectReprABC()
             ObjectReprABC pretty printer
         """
-        return('{0} pretty printer'.format(self.__class__.__name__))
+        return '{0} pretty printer'.format(self.__class__.__name__)
 
     def __call__(self, obj, p, cycle):
         r"""
@@ -93,7 +91,6 @@ class ObjectReprABC(object):
             'Error: ObjectReprABC.__call__ is abstract'
         """
         from sage.repl.display.pretty_print import SagePrettyPrinter
-        from six import StringIO
         stream = StringIO()
         p = SagePrettyPrinter(stream, 79, '\n')
         ok = self(obj, p, False)
@@ -209,7 +206,7 @@ class LargeMatrixHelpRepr(ObjectReprABC):
         if obj.nrows() < max_rows and obj.ncols() < max_cols:
             return False
         p.text(
-            str(obj) + " (use the '.str()' method to see the entries)"
+            repr(obj) + " (use the '.str()' method to see the entries)"
         )
         return True
 
@@ -331,10 +328,10 @@ class TallListRepr(ObjectReprABC):
             sage: F = Foo()
             sage: [F, F]
             [
-            BBB    AA   RRR    BBB    AA   RRR  
-            B  B  A  A  R  R   B  B  A  A  R  R 
-            BBB   AAAA  RRR    BBB   AAAA  RRR  
-            B  B  A  A  R  R   B  B  A  A  R  R 
+            BBB    AA   RRR    BBB    AA   RRR
+            B  B  A  A  R  R   B  B  A  A  R  R
+            BBB   AAAA  RRR    BBB   AAAA  RRR
+            B  B  A  A  R  R   B  B  A  A  R  R
             BBB   A  A  R   R, BBB   A  A  R   R
             ]
         """
@@ -358,4 +355,4 @@ class TallListRepr(ObjectReprABC):
         p.text(output)
         return True
 
-            
+

@@ -20,7 +20,6 @@ compression of FreeMonoid elements (a feature), and could be packed into words.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-from six import integer_types
 
 # import operator
 from sage.rings.integer import Integer
@@ -48,12 +47,14 @@ def is_BinaryStringMonoidElement(x):
     return isinstance(x, StringMonoidElement) and \
            isinstance(x.parent(), BinaryStringMonoid)
 
+
 def is_OctalStringMonoidElement(x):
     r"""
     """
     from .string_monoid import OctalStringMonoid
     return isinstance(x, StringMonoidElement) and \
            isinstance(x.parent(), OctalStringMonoid)
+
 
 def is_HexadecimalStringMonoidElement(x):
     r"""
@@ -62,12 +63,13 @@ def is_HexadecimalStringMonoidElement(x):
     return isinstance(x, StringMonoidElement) and \
            isinstance(x.parent(), HexadecimalStringMonoid)
 
+
 def is_Radix64StringMonoidElement(x):
     r"""
     """
     from .string_monoid import Radix64StringMonoid
     return isinstance(x, StringMonoidElement) and \
-           isinstance(x.parent(), string_monoid.Radix64StringMonoid)
+           isinstance(x.parent(), Radix64StringMonoid)
 
 
 class StringMonoidElement(FreeMonoidElement):
@@ -85,7 +87,7 @@ class StringMonoidElement(FreeMonoidElement):
         if isinstance(x, list):
             if check:
                 for b in x:
-                    if not isinstance(b, integer_types + (Integer,)):
+                    if not isinstance(b, (int, Integer)):
                         raise TypeError(
                             "x (= %s) must be a list of integers." % x)
             self._element_list = list(x) # make copy
@@ -102,7 +104,7 @@ class StringMonoidElement(FreeMonoidElement):
         else:
             raise TypeError("Argument x (= %s) is of the wrong type." % x)
 
-    def _richcmp_(left, right, op):
+    def _richcmp_(self, other, op):
         """
         Compare two free monoid elements with the same parents.
 
@@ -118,7 +120,7 @@ class StringMonoidElement(FreeMonoidElement):
             sage: S("01") < S("10")
             True
         """
-        return richcmp(left._element_list, right._element_list, op)
+        return richcmp(self._element_list, other._element_list, op)
 
     def _repr_(self):
         """
@@ -188,7 +190,7 @@ class StringMonoidElement(FreeMonoidElement):
             ...
             IndexError: Argument n (= -1) must be non-negative.
         """
-        if not isinstance(n, integer_types + (Integer,)):
+        if not isinstance(n, (int, Integer)):
             raise TypeError("Argument n (= %s) must be an integer." % n)
         if n < 0:
             raise IndexError("Argument n (= %s) must be non-negative." % n)
@@ -231,11 +233,10 @@ class StringMonoidElement(FreeMonoidElement):
             [S, H, R, U, B, B, E, R, Y]
         """
         l = len(self._element_list)
-        i=0
+        i = 0
         while i < l:
             yield self[i]
-            i+=1
-        raise StopIteration
+            i += 1
 
     def __getitem__(self, n):
         """
@@ -496,6 +497,7 @@ class StringMonoidElement(FreeMonoidElement):
             sage: sorted(D.items())
             [(AB, 0.333333333333333), (BC, 0.333333333333333), (CD, 0.333333333333333)]
         """
+        from sage.probability.random_variable import DiscreteProbabilitySpace
         if not length in (1, 2):
             raise NotImplementedError("Not implemented")
         if prec == 0:
@@ -503,13 +505,12 @@ class StringMonoidElement(FreeMonoidElement):
         else:
             RR = RealField(prec)
         S = self.parent()
-        n = S.ngens()
         if length == 1:
             Alph = S.gens()
         else:
-            Alph = tuple([ x*y for x in S.gens() for y in S.gens() ])
+            Alph = tuple(x * y for x in S.gens() for y in S.gens())
         X = {}
-        N = len(self)-length+1
+        N = len(self) - length + 1
         eps = RR(Integer(1)/N)
         for i in range(N):
             c = self[i:i+length]
@@ -519,5 +520,4 @@ class StringMonoidElement(FreeMonoidElement):
                 X[c] = eps
         # Return a dictionary of probability distribution. This should
         # allow for easier parsing of the dictionary.
-        from sage.probability.random_variable import DiscreteProbabilitySpace
         return DiscreteProbabilitySpace(Alph, X, RR)

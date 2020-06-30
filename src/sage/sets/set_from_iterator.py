@@ -61,15 +61,10 @@ The module also provides decorator for functions and methods::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.categories.sets_cat import EmptySetError
-
-import os
 from sage.misc.function_mangling import ArgumentFixer
 from sage.misc.lazy_list import lazy_list
 from sage.docs.instancedoc import instancedoc
@@ -405,9 +400,12 @@ class EnumeratedSetFromIterator(Parent):
         TESTS::
 
             sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
-            sage: from six.moves import range
             sage: S = EnumeratedSetFromIterator(range, args=(1,4))
-            sage: S(1)  # indirect doctest
+            sage: S(1)  # py2
+            1
+
+            sage: S(1)  # py3
+            doctest:...: UserWarning: Testing equality of infinite sets which will not end in case of equality
             1
             sage: S(0)  # indirect doctest
             Traceback (most recent call last):
@@ -522,7 +520,7 @@ class Decorator(object):
             sage: S = sage_getsourcelines(d)   # indirect doctest
             sage: S[0][2]
             '        Return the number of elements of this group.\n'
-            sage: S[0][18]
+            sage: S[0][25]
             '            return Integer(1)\n'
         """
         from sage.misc.sageinspect import sage_getsourcelines
@@ -577,7 +575,6 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
     EXAMPLES::
 
         sage: from sage.sets.set_from_iterator import set_from_function
-        sage: from six.moves import range
         sage: @set_from_function
         ....: def f(n):
         ....:     for i in range(n):
@@ -678,7 +675,7 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
     def __call__(self, *args, **kwds):
         r"""
         Build a new :class:`EnumeratedSet` by calling ``self.f`` with
-        apropriate argument. If ``f`` is ``None``, then returns a new instance
+        appropriate argument. If ``f`` is ``None``, then returns a new instance
         of :class:`EnumeratedSetFromIterator`.
 
         EXAMPLES::
@@ -692,25 +689,22 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
             sage: F(10).cardinality()
             10
         """
-        options = self.options
-
         if hasattr(self, 'f'): # yet initialized
             if hasattr(self,'name'):
-                if isinstance(self.name,str):
+                if isinstance(self.name, str):
                     if args or kwds:
-                        _,kk = self.af.fix_to_named(*args,**kwds)
-                        name = self.name%dict(kk)
+                        _, kk = self.af.fix_to_named(*args,**kwds)
+                        name = self.name % dict(kk)
                     else:
                         name = self.name
                 else:
-                    name = self.name(*args,**kwds)
+                    name = self.name(*args, **kwds)
                 return EnumeratedSetFromIterator(self.f, args, kwds, name=name, **self.options)
             return EnumeratedSetFromIterator(self.f, args, kwds, **self.options)
 
         else: # potential global options
             if args == ():
-                assert len(kwds.keys()) == 1
-                f = kwds.values()[0]
+                f, = kwds.values()
             else:
                 assert len(args) == 1
                 f = args[0]
@@ -758,10 +752,14 @@ class EnumeratedSetFromIterator_method_caller(Decorator):
 
         But not the enumerated set::
 
-            sage: loads(dumps(d.f()))
+            sage: loads(dumps(d.f())) # py2
             Traceback (most recent call last):
             ...
             PicklingError: Can't pickle <... 'function'>: attribute lookup __builtin__.function failed
+            sage: loads(dumps(d.f())) # py3
+            Traceback (most recent call last):
+            ...
+            _pickle.PicklingError: Can't pickle <function DummyExampleForPicklingTest.f at ...>: it's not the same object as sage.sets.set_from_iterator.DummyExampleForPicklingTest.f
         """
         self.inst = inst
         self.f = f
@@ -936,12 +934,10 @@ class EnumeratedSetFromIterator_method_decorator(object):
             True
         """
         if f is not None:
-            import types
             self.f = f
             if hasattr(f,"__name__"):
                 self.__name__ = f.__name__
                 self.__module__ = f.__module__
-
             else:
                 if hasattr(f, '__module__'):
                     self.__module__ = f.__module__

@@ -50,7 +50,7 @@ which is anyway set to raise an error::
     ...
     RuntimeError: Maxima interface in library mode can only be instantiated once
 
-Changed besselexpand to true in init_code -- automatically simplify bessel functions to trig functions when appropriate when true. Examples:
+Changed besselexpand to true in init_code -- automatically simplify Bessel functions to trig functions when appropriate when true. Examples:
 
 For some infinite sums, a closed expression can be found. By default, "maxima" is used for that::
 
@@ -70,7 +70,7 @@ Maxima has some flags that affect how the result gets simplified (By default, be
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -86,7 +86,6 @@ Maxima has some flags that affect how the result gets simplified (By default, be
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
-from six import string_types
 
 from sage.symbolic.ring import SR
 
@@ -96,12 +95,16 @@ from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
     MaximaAbstractElement, MaximaAbstractFunctionElement,
     MaximaAbstractElementFunction)
 from sage.docs.instancedoc import instancedoc
+from sage.env import MAXIMA_FAS
 
 
 ## We begin here by initializing Maxima in library mode
 ## i.e. loading it into ECL
 ecl_eval("(setf *load-verbose* NIL)")
-ecl_eval("(require 'maxima)")
+if MAXIMA_FAS is not None:
+    ecl_eval("(require 'maxima \"{}\")".format(MAXIMA_FAS))
+else:
+    ecl_eval("(require 'maxima)")
 ecl_eval("(in-package :maxima)")
 ecl_eval("(setq $nolabels t))")
 ecl_eval("(defvar *MAXIMA-LANG-SUBDIR* NIL)")
@@ -112,7 +115,7 @@ ecl_eval('(defun principal nil (cond ($noprincipal (diverg)) ((not pcprntd) (mer
 ecl_eval("(remprop 'mfactorial 'grind)") # don't use ! for factorials (#11539)
 ecl_eval("(setf $errormsg nil)")
 
-# the following is a direct adaption of the definition of "retrieve"
+# the following is a direct adaptation of the definition of "retrieve"
 # in the Maxima file macsys.lisp. This routine is normally responsible
 # for displaying a question and returning the answer. We change it to
 # throw an error in which the text of the question is included. We do
@@ -166,7 +169,7 @@ ecl_eval("(setf *standard-output* *dev-null*)")
 
 init_code = ['besselexpand : true', 'display2d : false', 'domain : complex', 'keepfloat : true',
             'load(to_poly_solve)', 'load(simplify_sum)',
-            'load(abs_integrate)', 'load(diag)']
+            'load(diag)']
 
 
 # Turn off the prompt labels, since computing them *very
@@ -449,7 +452,7 @@ class MaximaLib(MaximaAbstract):
                     statement = line[:ind_semi]
                     line = line[ind_semi+1:]
                 if statement:
-                    result = ((result + '\n') if result else '') + max_to_string(maxima_eval("#$%s$"%statement))                        
+                    result = ((result + '\n') if result else '') + max_to_string(maxima_eval("#$%s$"%statement))
             else:
                 statement = line[:ind_dollar]
                 line = line[ind_dollar+1:]
@@ -505,7 +508,7 @@ class MaximaLib(MaximaAbstract):
             sage: maxima_lib.get('xxxxx')
             '2'
         """
-        if not isinstance(value, string_types):
+        if not isinstance(value, str):
             raise TypeError
         cmd = '%s : %s$'%(var, value.rstrip(';'))
         self.eval(cmd)
@@ -721,7 +724,7 @@ class MaximaLib(MaximaAbstract):
 
         ::
 
-            sage: integrate(sgn(x) - sgn(1-x), x)
+            sage: integrate(sgn(x) - sgn(1-x), x)  # known bug
             abs(x - 1) + abs(x)
 
         This is a known bug in Sage symbolic limits code, see
@@ -732,12 +735,12 @@ class MaximaLib(MaximaAbstract):
 
         ::
 
-            sage: integrate(1/(1 + abs(x)), x)
+            sage: integrate(1/(1 + abs(x)), x)  # known bug
             1/2*(log(x + 1) + log(-x + 1))*sgn(x) + 1/2*log(x + 1) - 1/2*log(-x + 1)
 
         ::
 
-            sage: integrate(cos(x + abs(x)), x)
+            sage: integrate(cos(x + abs(x)), x)  # known bug
             -1/2*x*sgn(x) + 1/4*(sgn(x) + 1)*sin(2*x) + 1/2*x
 
         The last example relies on the following simplification::
@@ -748,7 +751,7 @@ class MaximaLib(MaximaAbstract):
         An example from sage-support thread e641001f8b8d1129::
 
             sage: f = e^(-x^2/2)/sqrt(2*pi) * sgn(x-1)
-            sage: integrate(f, x, -Infinity, Infinity)
+            sage: integrate(f, x, -Infinity, Infinity)  # known bug
             -erf(1/2*sqrt(2))
 
         From :trac:`8624`::
@@ -758,12 +761,12 @@ class MaximaLib(MaximaAbstract):
 
         ::
 
-            sage: integrate(sqrt(x + sqrt(x)), x).canonicalize_radical()
+            sage: integrate(sqrt(x + sqrt(x)), x).canonicalize_radical()  # known bug
             1/12*((8*x - 3)*x^(1/4) + 2*x^(3/4))*sqrt(sqrt(x) + 1) + 1/8*log(sqrt(sqrt(x) + 1) + x^(1/4)) - 1/8*log(sqrt(sqrt(x) + 1) - x^(1/4))
 
         And :trac:`11594`::
 
-            sage: integrate(abs(x^2 - 1), x, -2, 2)
+            sage: integrate(abs(x^2 - 1), x, -2, 2)  # known bug
             4
 
         This definite integral returned zero (incorrectly) in at least
@@ -772,24 +775,6 @@ class MaximaLib(MaximaAbstract):
             sage: f = (x^2)*exp(x) / (1+exp(x))^2
             sage: integrate(f, (x, -infinity, infinity))
             1/3*pi^2
-
-        Sometimes one needs different simplification settings, such as
-        ``radexpand``, to compute an integral (see :trac:`10955`)::
-
-            sage: f = sqrt(x + 1/x^2)
-            sage: maxima = sage.calculus.calculus.maxima
-            sage: maxima('radexpand')
-            true
-            sage: integrate(f, x)
-            integrate(sqrt(x + 1/x^2), x)
-            sage: maxima('radexpand: all')
-            all
-            sage: g = integrate(f, x); g
-            2/3*sqrt(x^3 + 1) - 1/3*log(sqrt(x^3 + 1) + 1) + 1/3*log(sqrt(x^3 + 1) - 1)
-            sage: (f - g.diff(x)).canonicalize_radical()
-            0
-            sage: maxima('radexpand: true')
-            true
 
         The following integral was computed incorrectly in versions of
         Maxima before 5.27 (see :trac:`12947`)::
@@ -1026,7 +1011,7 @@ class MaximaLib(MaximaAbstract):
         """
         Helper function for unified handling of failed computation because an
         assumption was missing.
-        
+
         EXAMPLES::
 
             sage: from sage.interfaces.maxima_lib import maxima_lib
@@ -1042,7 +1027,7 @@ class MaximaLib(MaximaAbstract):
         if errstr[3] == ' ':
             jj = 3
         k = errstr.find(' ',jj+1)
-        
+
         outstr = "Computation failed since Maxima requested additional constraints; using the 'assume' command before evaluation *may* help (example of legal syntax is 'assume("\
              + errstr[jj+1:k] +">0)', see `assume?` for more details)\n" + errstr
         outstr = outstr.replace('_SAGE_VAR_','')
@@ -1199,9 +1184,6 @@ def reduce_load_MaximaLib():
 
 import sage.rings.real_double
 import sage.symbolic.expression
-import sage.functions.trig
-import sage.functions.log
-import sage.functions.other
 import sage.symbolic.integration.integral
 from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
 
@@ -1221,7 +1203,7 @@ lisp_length=EclObject("length")
 sage_op_dict = {
     sage.functions.other.abs : "MABS",
     add_vararg : "MPLUS",
-    sage.symbolic.expression.operator.div : "MQUOTIENT",
+    sage.symbolic.expression.operator.truediv : "MQUOTIENT",
     sage.symbolic.expression.operator.eq : "MEQUAL",
     sage.symbolic.expression.operator.ge : "MGEQP",
     sage.symbolic.expression.operator.gt : "MGREATERP",
@@ -1238,7 +1220,8 @@ sage_op_dict = {
     sage.functions.log.lambert_w : "%LAMBERT_W",
     sage.functions.other.factorial : "MFACTORIAL",
     sage.functions.error.erf : "%ERF",
-    sage.functions.other.gamma_inc : "%GAMMA_INCOMPLETE",
+    sage.functions.gamma.gamma_inc : "%GAMMA_INCOMPLETE",
+    sage.functions.other.conjugate : "$CONJUGATE",
 }
 #we compile the dictionary
 sage_op_dict = dict([(k,EclObject(sage_op_dict[k])) for k in sage_op_dict])
@@ -1343,7 +1326,7 @@ def mqapply_to_sage(expr):
         return sage.functions.log.polylog(max_to_sr(cadadr(expr)),
                                           max_to_sr(caddr(expr)))
     if caaadr(expr) == max_psi:
-        return sage.functions.other.psi(max_to_sr(cadadr(expr)),
+        return sage.functions.gamma.psi(max_to_sr(cadadr(expr)),
                                         max_to_sr(caddr(expr)))
     if caaadr(expr) == max_hyper:
         return sage.functions.hypergeometric.hypergeometric(mlist_to_sage(car(cdr(cdr(expr)))),
@@ -1459,8 +1442,8 @@ def dummy_integrate(expr):
         sage: dummy_integrate(f.ecl())
         integrate(f(x), x, 0, 10)
     """
-    args=[max_to_sr(a) for a in cdr(expr)]
-    if len(args) == 4 :
+    args = [max_to_sr(a) for a in cdr(expr)]
+    if len(args) == 4:
         return sage.symbolic.integration.integral.definite_integral(*args,
                                                                 hold=True)
     else:
@@ -1494,8 +1477,8 @@ special_max_to_sage={
 
 special_sage_to_max={
     sage.functions.log.polylog : lambda N,X : [[mqapply],[[max_li, max_array],N],X],
-    sage.functions.other.psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
-    sage.functions.other.psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
+    sage.functions.gamma.psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
+    sage.functions.gamma.psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
     sage.functions.log.lambert_w : lambda N,X : [[max_lambert_w], X] if N==EclObject(0) else [[mqapply],[[max_lambert_w, max_array],N],X],
     sage.functions.log.harmonic_number : lambda N,X : [[max_harmo],X,N],
     sage.functions.hypergeometric.hypergeometric : lambda A, B, X : [[mqapply],[[max_hyper, max_array],lisp_length(A.cdr()),lisp_length(B.cdr())],A,B,X]

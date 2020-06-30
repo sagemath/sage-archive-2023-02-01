@@ -24,7 +24,7 @@ We create a toy example based on the Mordell-Weil group of an elliptic curve ove
     (0 : 1 : 0)
     sage: 3000000000000001 * M.0
     (4 : -7 : 1)
-    sage: M == loads(dumps(M))  # known bug, see http://trac.sagemath.org/sage_trac/ticket/11599#comment:7
+    sage: M == loads(dumps(M))  # known bug, see https://trac.sagemath.org/sage_trac/ticket/11599#comment:7
     True
 
 We check that ridiculous operations are being avoided::
@@ -36,12 +36,16 @@ We check that ridiculous operations are being avoided::
     sage: set_verbose(0, 'additive_abelian_wrapper.py')
 
 
-TODO:
+.. TODO::
 
-- The discrete_exp function can potentially be sped up substantially via caching.
-- Think about subgroups and quotients, which probably won't work in the current
-  implementation -- some fiddly adjustments will be needed in order to be able
-  to pass extra arguments to the subquotient's init method.
+    - Implement proper black-box discrete logarithm (using baby-step
+      giant-step).  The discrete_exp function can also potentially be
+      speeded up substantially via caching.
+
+    - Think about subgroups and quotients, which probably won't work
+      in the current implementation -- some fiddly adjustments will be
+      needed in order to be able to pass extra arguments to the
+      subquotient's init method.
 """
 from __future__ import absolute_import
 
@@ -51,6 +55,7 @@ from sage.misc.misc import verbose
 from sage.categories.morphism import Morphism
 from sage.structure.element import parent
 from sage.modules.free_module_element import vector
+
 
 class UnwrappingMorphism(Morphism):
     r"""
@@ -99,7 +104,7 @@ class AdditiveAbelianGroupWrapperElement(addgp.AdditiveAbelianGroupElement):
 
     def __init__(self, parent, vector, element=None, check=False):
         r"""
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.groups.additive_abelian.additive_abelian_wrapper import AdditiveAbelianGroupWrapper
             sage: G = AdditiveAbelianGroupWrapper(QQbar, [sqrt(QQbar(2)), sqrt(QQbar(3))], [0, 0])
@@ -219,7 +224,6 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: v.parent() is QQbar
             True
         """
-        from six.moves import range
         v = self.V()(v)
         verbose("Calling discrete exp on %s" % v)
         # DUMB IMPLEMENTATION!
@@ -377,10 +381,6 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: G(V([6,2]))
             (6, 2)
             sage: G([1,1])
-            doctest:...: DeprecationWarning: The default behaviour changed!
-             If you *really* want a linear combination of smith generators,
-             use .linear_combination_of_smith_form_gens.
-            See http://trac.sagemath.org/16261 for details.
             (6, 2)
             sage: G(G([1,1]))
             (6, 2)

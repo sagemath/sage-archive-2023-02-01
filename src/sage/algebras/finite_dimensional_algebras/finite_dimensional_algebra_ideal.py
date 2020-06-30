@@ -3,23 +3,22 @@ Ideals of Finite Algebras
 """
 from __future__ import absolute_import
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2011 Johan Bosman <johan.g.bosman@gmail.com>
 #  Copyright (C) 2011, 2013 Peter Bruin <peter.bruin@math.uzh.ch>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from .finite_dimensional_algebra_element import FiniteDimensionalAlgebraElement
 
 from sage.matrix.constructor import Matrix
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.rings.ideal import Ideal_generic
 from sage.structure.element import parent
-from sage.structure.sage_object import SageObject
 
 from sage.misc.cachefunc import cached_method
 from functools import reduce
@@ -68,7 +67,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
             gens = FiniteDimensionalAlgebraElement(A, gens)
         elif isinstance(gens, FiniteDimensionalAlgebraElement):
             gens = gens.vector()
-            B = Matrix([gens * b for b in A.table()])
+            B = Matrix([(gens * b).list() for b in A.table()])
             self._basis_matrix = B.echelon_form().image().basis_matrix()
         Ideal_generic.__init__(self, A, gens)
 

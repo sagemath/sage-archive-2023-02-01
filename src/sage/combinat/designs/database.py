@@ -4618,7 +4618,7 @@ def BIBD_79_13_2():
     libgap.set_global("p23Act", P23Action)
     libgap.set_global("p4Act", P4Action)
 
-    get_action = libgap.eval("""ChooseMyAction := function(i)
+    get_action = libgap.function_factory("""ChooseMyAction := function(i)
         if i = 1 then
             return p1Act;
         elif i = 4 then
@@ -4628,7 +4628,7 @@ def BIBD_79_13_2():
         fi;
     end;""")
 
-    action = libgap.eval("""MyAction := function(pair, g)
+    action = libgap.function_factory("""MyAction := function(pair, g)
         local i, C, hom;
         i := pair[1];
         C := pair[2];
@@ -4641,14 +4641,18 @@ def BIBD_79_13_2():
     p3 = (3,1)
     p4 = (4,1)
 
-    B1 = libgap.Set([p1, action(p1, Z)] + [action(p2, X**i) for i in range(11)])
-    B2 = libgap.Set([p1, action(p1, Z)] + [action(p3, X**i) for i in range(11)])
-    B3 = libgap.Set([p1, p2, p3] + [action(p4, X * Y**i) for i in range(5)] + [action(p4, X**4 * Y**i) for i in range(5)])
+    B1 = list(libgap.Orbit(H4, p1, action)) + list(libgap.Orbit(G, p2, action))
+    B2 = list(libgap.Orbit(H4, p1, action)) + list(libgap.Orbit(G, p3, action))
+    B3 = list(libgap([p1, p2, p3])) + list(libgap.Orbit(libgap.Group(Y), action(p4, X), action)) + list(libgap.Orbit(libgap.Group(Y), action(p4, X**4), action))
+    B1 = libgap.Set(B1)
+    B2 = libgap.Set(B2)
+    B3 = libgap.Set(B3)
+    g
     B4 = libgap.Set([action(p2, X**2), action(p2, X**-2), action(p3, X**5), action(p3, X**-5), p4,
           action(p4, X * Y**2), action(p4, X**-1 * Y**2), action(p4, X*Y), action(p4, X**-1 * Y),
           action(p4, X**5 * Y), action(p4, X**-5 * Y), action(p4, X**5 * Y**4), action(p4, X**-5 * Y**4)])
 
-    actionOnSet = libgap.eval("""MyActionOnSets := function(block, g)
+    actionOnSet = libgap.function_factory("""MyActionOnSets := function(block, g)
         local set, p, q;
         set := Set([]);
         for p in block do
@@ -4661,6 +4665,14 @@ def BIBD_79_13_2():
     B3Orbit = libgap.Orbit(G, B3, actionOnSet)
     B4Orbit = libgap.Orbit(G, B4, actionOnSet)
     blocks = [B1, B2] + list(B3Orbit) + list(B4Orbit)
+
+    #clear gap variables
+    libgap.unset_global("p1Act")
+    libgap.unset_global("p23Act")
+    libgap.unset_global("p4Act")
+    libgap.unset_global("ChooseMyAction")
+    libgap.unset_global("MyAction")
+    libgap.unset_global("MyActionOnSets")
     return blocks
 
 def BIBD_56_11_2():

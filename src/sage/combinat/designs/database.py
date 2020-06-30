@@ -4647,7 +4647,7 @@ def BIBD_79_13_2():
     B1 = libgap.Set(B1)
     B2 = libgap.Set(B2)
     B3 = libgap.Set(B3)
-    g
+
     B4 = libgap.Set([action(p2, X**2), action(p2, X**-2), action(p3, X**5), action(p3, X**-5), p4,
           action(p4, X * Y**2), action(p4, X**-1 * Y**2), action(p4, X*Y), action(p4, X**-1 * Y),
           action(p4, X**5 * Y), action(p4, X**-5 * Y), action(p4, X**5 * Y**4), action(p4, X**-5 * Y**4)])

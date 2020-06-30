@@ -20,8 +20,7 @@ from sage.rings.number_field.number_field import CyclotomicField
 from sage.misc.cachefunc import cached_method
 
 class FusionRing(WeylCharacterRing):
-    r"""
-    Return the Fusion Ring (Verlinde Algebra) of level ``k``.
+    r"""Return the Fusion Ring (Verlinde Algebra) of level ``k``.
 
     INPUT:
 
@@ -30,10 +29,10 @@ class FusionRing(WeylCharacterRing):
 
     This algebra has a basis (sometimes called *primary fields* but here
     called *simple objects*) indexed by the weights of level `\leq k`.
-    These arise as the fusion algebras of WZW conformal field theories,
-    or as Grothendieck groups of tilting modules for quantum groups at 
-    roots of unity. The :class:`FusionRing` class is implemented as a
-    variant of the :class:`WeylCharacterRing`.
+    These arise as the fusion algebras of Wess-Zumino-Witten (WZW) conformal
+    field theories, or as Grothendieck groups of tilting modules for quantum
+    groups at roots of unity. The :class:`FusionRing` class is implemented as
+    a variant of the :class:`WeylCharacterRing`.
 
     REFERENCES:
 
@@ -261,6 +260,7 @@ class FusionRing(WeylCharacterRing):
             v = sum(self.s_ij(x,w) * self.s_ij(y,w) * self.s_ij(z,w) / self.s_ij(i0,w) for w in B)
             tester.assertEqual(v, c * self.N_ijk(x,y,z))
 
+
     def fusion_labels(self, labels=None, inject_variables=False):
         r"""
         Set the labels of the basis.
@@ -435,6 +435,44 @@ class FusionRing(WeylCharacterRing):
         """
         return self._l
 
+    def virasoro_central_charge(self):
+        r"""
+        Return the Virasoro central charge of the WZW conformal
+        field theory associated with the Fusion Ring. If `\mathfrak{g}`
+        is the corresponding semisimple Lie algebra, this is
+        
+        .. MATH::
+
+            \frac{k\dim\mathfrak{g}}{k+h^\vee}
+
+        where `k` is the level and `h^\vee` is the dual Coxeter number.
+        By Proposition 2.3 in [RoStWa2009]_ there exists
+        a rational number c such that `D_+/\sqrt{D}=e^{i\pi c/4}`
+        where `D_+=\sum d_i^2\theta_i` is computed in
+        :meth:`D_plus` and `D=\sum d_i^2>0` is computed
+        by :meth:`global_q_dimension`. Squaring this identity
+        and remembering that `D_+D_-=D` gives
+        
+        .. MATH::
+
+            D_+/D_- = e^{i\pi c/2}.
+
+        EXAMPLES::
+
+            sage: R = FusionRing("A1",2)
+            sage: c = R.virasoro_central_charge(); c
+            3/2
+            sage: Dp = R.D_plus(); Dp
+            2*zeta32^6
+            sage: Dm = R.D_minus(); Dm
+            -2*zeta32^10
+            sage: Dp/Dm == R.to_field(c/2)
+            True
+
+        """
+        dim_g = len(self.space().roots())+self.cartan_type()[1]
+        return self._conj*self._k*dim_g/(self._k+self._h_check)
+
     def twists_matrix(self):
         r"""
         Return a diagonal matrix describing the twist corresponding to
@@ -442,14 +480,16 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: B22 = FusionRing('B2',2)
-            sage: B22.twists_matrix()
-            [  0   0   0   0   0   0]
-            [  0 4/5   0   0   0   0]
-            [  0   0 1/2   0   0   0]
-            [  0   0   0   2   0   0]
-            [  0   0   0   0 3/2   0]
-            [  0   0   0   0   0 6/5]
+            sage: B21=FusionRing("B2",1)
+            sage: [x.twist() for x in B21.basis().list()]
+            [0, 1, 5/8]
+            sage: [B21.to_field(x.twist()) for x in B21.basis().list()]
+            [1, -1, zeta32^10]
+            sage: B21.twists_matrix()
+            [        1         0         0]
+            [        0        -1         0]
+            [        0         0 zeta32^10]
+
         """
         B = self.basis()
         return diagonal_matrix(self.to_field(B[x].twist()) for x in self.get_order())
@@ -459,7 +499,8 @@ class FusionRing(WeylCharacterRing):
         Return the conjugation matrix, the permutation matrix
         for the conjugation operation on basis elements.
         """
-        return matrix([[i==j.dual() for i in self.get_order()] for j in self.get_order()])
+        b = self.basis().list()
+        return matrix([[i==j.dual() for i in b] for j in b])
 
     def q_dims(self):
         r"""

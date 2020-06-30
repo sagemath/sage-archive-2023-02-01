@@ -185,6 +185,8 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 self._fg = ct[1] + 1
             elif ct[0] == 'E' and ct[1] == 6:
                 self._fg = 3
+            elif ct[0] == 'E' and ct[1] == 7:
+                self._fg = 2
             elif ct[0] == 'D':
                 self._fg = 2
             else:

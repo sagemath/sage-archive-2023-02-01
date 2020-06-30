@@ -4646,7 +4646,7 @@ def BIBD_79_13_2():
     libgap.unset_global("p1Act")
     libgap.unset_global("p23Act")
     libgap.unset_global("p4Act")
-    return blocks
+    return [[int(t)-1 for t in y] for y in blocks]
 
 def BIBD_56_11_2():
     r"""

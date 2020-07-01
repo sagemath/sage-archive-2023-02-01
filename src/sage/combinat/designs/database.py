@@ -59,9 +59,7 @@ Functions
 from __future__ import print_function, absolute_import
 
 from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_matrix,
-                                                     OA_from_Vmt,
                                                      QDM_from_Vmt,
-                                                     OA_from_wider_OA,
                                                      OA_from_PBD,
                                                      OA_n_times_2_pow_c_from_matrix,
                                                      orthogonal_array)
@@ -781,7 +779,6 @@ def OA_9_120():
         sage: designs.orthogonal_arrays.is_available(9,120)
         True
     """
-    from .incidence_structures import IncidenceStructure
     RBIBD_120 = RBIBD_120_8_1()
     equiv = [RBIBD_120[i*15:(i+1)*15] for i in range(17)]
 
@@ -3161,7 +3158,6 @@ def DM_12_6_1():
       :doi:`10.1016/0012-365X(75)90040-0`,
       Discrete Mathematics, Volume 11, Issue 3, 1975, Pages 255-369.
     """
-    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(2).cartesian_product(AdditiveCyclic(6))
     M = [[(0,0),(0,0),(0,0),(0,0),(0,0),(0,0)],
@@ -3699,7 +3695,6 @@ def DM_52_6_1():
 
         sage: _ = designs.difference_matrix(52,6)
     """
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
     F4  = FiniteField(4,'z')
     G13 = FiniteField(13)
@@ -3731,7 +3726,6 @@ def DM_52_6_1():
     Mb=[[(0,0)]*6]
 
     from itertools import product
-    p = lambda x,y : G(tuple([x*yy for yy in G(y)]))
 
     def t1(i,R):
         if i > 1:
@@ -4593,57 +4587,66 @@ def BIBD_79_13_2():
         sage: D.is_t_design(t=2, v=79, k=13, l=2)
         True
     """
-    from .incidence_structures import IncidenceStructure
-    Gelems = [(x,y,z) for x in range(11) for y in range(5) for z in range(2)]
+    from sage.libs.gap.libgap import libgap
 
-    def Gop(a,b,c,x,y,z):
-        # First normalise the input
-        a = a%11
-        b = b%5
-        c = c%2
-        x = x%11
-        y = y%5
-        z = z%2
-        # We know: x y = y x^4
-        #          y x = x^3 y
-        #          z x = x^10 z
-        #          x z = z x^-1
-        #          z y = y z
-        return ((a + (3**b) * (10**c) * x)%11, (b+y)%5, (z+c)%2)
+    g11 = libgap.Z(11)  # generator for GF(11)
+    one = g11**0
+    zero = 0*g11
 
-    # P(i,a,b,c) represents P_i x^a*y^b*z^c
-    # i.e. we compute the action of x^a*y^b*z^c on P_i
-    def P(i,x,y,z):
-        x = x%11
-        y = y%5
-        z = z%2
-        if i == 1: return (1, (0, 0, z))
-        if i == 2: return (2, (((4**y)*(1-2*z)*x)%11, 0, 0))
-        if i == 3: return (3, (((4**y)*(1-2*z)*x)%11, 0, 0))
-        if i == 4: return (4, (((1-2*z)*x)%11, y, 0))
+    X = libgap([[one, one], [zero, one]])
+    Y = libgap([[5*one, zero], [zero, 9*one]])
+    Z = libgap([[-one, zero], [zero, one]])
 
-    points = {P(i,x,y,z) for i in range(1,5) for x in range(11) for y in range(5) for z in range(2)}
-    Gaction = {(i,(a,b,c)): {(x,y,z): P(i,*Gop(a,b,c,x,y,z)) for x,y,z in Gelems} for a,b,c in Gelems for i in [1,2,3,4]}
+    G = libgap.Group(X, Y, Z)
+    H1 = libgap.Group(X, Y)
+    H23 = libgap.Group(Y, Z)
+    H4 = libgap.Group(Z)
 
-    B1 = [P(1,0,0,0), P(1,0,0,1)] + [P(2,x,0,0) for x in range(11)]
-    B2 = [P(1,0,0,0), P(1,0,0,1)] + [P(3,x,0,0) for x in range(11)]
-    B3 = [P(1,0,0,0), P(2,0,0,0), P(3,0,0,0)] + [P(4,1,y,0) for y in range(5)] + [P(4,4,y,0) for y in range(5)]
-    B4 = [P(2,2,0,0), P(2,-2,0,0), P(3,5,0,0), P(3,-5,0,0), P(4,0,0,0), P(4,1,2,0), P(4,-1,2,0), P(4,1,1,0), P(4,-1,1,0), P(4,5,1,0), P(4,-5,1,0), P(4,5,4,0), P(4,-5,4,0)]
+    P1Action = G.FactorCosetAction(H1)
+    P23Action = G.FactorCosetAction(H23)
+    P4Action = G.FactorCosetAction(H4)
 
-    B3Orbit = set()
-    for g in Gelems:
-        B3g = frozenset([Gaction[p][g] for p in B3])
-        B3Orbit.add(B3g)
+    libgap.set_global("p1Act", P1Action)
+    libgap.set_global("p23Act", P23Action)
+    libgap.set_global("p4Act", P4Action)
 
-    B4Orbit = set()
-    for g in Gelems:
-        B4g = frozenset([Gaction[p][g] for p in B4])
-        B4Orbit.add(B4g)
+    action = libgap.function_factory("""function(pair, g)
+        local i, C, homs;
+        i := pair[1];
+        C := pair[2];
+        homs := [p1Act, p23Act, p23Act, p4Act];
+        return [i, C^(ImageElm(homs[i],g))];
+    end;""")
 
-    blocks = [B1,B2] + list(B3Orbit) + list(B4Orbit)
+    p1 = (1,1)
+    p2 = (2,1)
+    p3 = (3,1)
+    p4 = (4,1)
 
-    D = IncidenceStructure(blocks)
-    return D._blocks
+    B1 = list(libgap.Orbit(H4, p1, action)) + list(libgap.Orbit(G, p2, action))
+    B2 = list(libgap.Orbit(H4, p1, action)) + list(libgap.Orbit(G, p3, action))
+    B3 = list(libgap([p1, p2, p3])) + list(libgap.Orbit(libgap.Group(Y), action(p4, X), action)) + list(libgap.Orbit(libgap.Group(Y), action(p4, X**4), action))
+    B4 = [action(p2, X**2), action(p2, X**-2), action(p3, X**5), action(p3, X**-5), p4,
+          action(p4, X * Y**2), action(p4, X**-1 * Y**2), action(p4, X*Y), action(p4, X**-1 * Y),
+          action(p4, X**5 * Y), action(p4, X**-5 * Y), action(p4, X**5 * Y**4), action(p4, X**-5 * Y**4)]
+
+    points = []
+    for i in range(1,5):
+        points += list(libgap.Orbit(G, (i,1), action))
+
+    permAction = libgap.Action(G, points, action)
+
+    baseBlocks = [libgap.Set(list(map(lambda p: libgap.Position(points, p), B))) for B in [B1, B2, B3, B4]]
+
+    B3Orbit = libgap.Orbit(permAction, baseBlocks[2], libgap.OnSets)
+    B4Orbit = libgap.Orbit(permAction, baseBlocks[3], libgap.OnSets)
+    blocks = baseBlocks[0:2] + list(B3Orbit) + list(B4Orbit)
+
+    # clear gap variables
+    libgap.unset_global("p1Act")
+    libgap.unset_global("p23Act")
+    libgap.unset_global("p4Act")
+    return [[int(t)-1 for t in y] for y in blocks]
 
 def BIBD_56_11_2():
     r"""

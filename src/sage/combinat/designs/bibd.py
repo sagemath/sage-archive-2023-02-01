@@ -266,6 +266,22 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
             else:
                 return B
 
+    if ( (k+lambd)*(k+lambd-1) == lambd*(v+k+lambd-1) and
+         balanced_incomplete_block_design(v+k+lambd, k+lambd, lambd, existence=True) is True):
+        # By removing a block and all points of that block from the
+        # symmetric (v+k+lambd, k+lambd, lambd) BIBD
+        # we get a (v, k, lambd) BIBD
+        if existence: return True
+
+        D = balanced_incomplete_block_design(v+k+lambd, k+lambd, lambd)
+        Br = D.blocks[0]  # block to remove
+        blocks = D.blocks[1:]
+
+        for B in blocks:
+            B = set(B).difference(Br)
+
+        return BalancedIncompleteBlockDesign(v, blocks, lambd=lambd, copy=False)
+
     if existence:
         return Unknown
     else:

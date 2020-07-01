@@ -806,6 +806,16 @@ class AlgebraicForm(FormsBase):
             Traceback (most recent call last):
             ...
             ValueError: less monomials were passed than the form actually has
+
+        TESTS:
+
+        Check for :trac:`30035`::
+
+            sage: R.<a,b,c> = QQ[]
+            sage: f = 3*a**3+b**3+a*b*c
+            sage: T = invariant_theory.ternary_cubic(f)
+            sage: T.S_invariant().parent()
+            Rational Field
         """
         R = self._ring
         Rgens = R.gens()

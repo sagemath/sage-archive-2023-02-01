@@ -161,6 +161,11 @@ class AffineLieConformalAlgebra(GradedLieConformalAlgebra):
     def _repr_(self):
         """
         The name of this Lie conformal algebra.
+
+        EXAMPLES::
+
+            sage: AffineLieConformalAlgebra(QQ, 'A1')
+            The affine Lie conformal algebra of type ['A', 1] over Rational Field
         """
         return "The affine Lie conformal algebra of type {} over {}".format(
                                                     self._ct,self.base_ring())

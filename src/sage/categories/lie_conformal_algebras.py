@@ -361,7 +361,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             With a super Lie Conformal Algebra::
 
-                sage: R = NeveuSchwarzLieConformalAlgebra(QQbar); 
+                sage: R = NeveuSchwarzLieConformalAlgebra(QQbar);
                 sage: R.inject_variables()
                 Defining L, G, C
                 sage: G.bracket(G)
@@ -378,7 +378,7 @@ class LieConformalAlgebras(Category_over_base_ring):
         @abstract_method
         def _bracket_(self,rhs):
             r"""
-            Returns the `\lambda`-bracket of these two elements.
+            The `\lambda`-bracket of these two elements.
 
             EXAMPLES:
 
@@ -411,7 +411,7 @@ class LieConformalAlgebras(Category_over_base_ring):
         @coerce_binop
         def nproduct(self,rhs,n):
             r"""
-            Returns the n-th product of these two elements.
+            The ``n``-th product of these two elements.
 
             EXAMPLES::
 
@@ -437,7 +437,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
         def _nproduct_(self,rhs,n):
             r"""
-            Returns the n-th product of this two elements.
+            The ``n``-th product of these two elements.
 
             EXAMPLES::
 
@@ -618,7 +618,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             from sage.algebras.lie_conformal_algebras.examples import \
                                                 NeveuSchwarzLieConformalAlgebra
             return NeveuSchwarzLieConformalAlgebra(self.base_ring())
-        
+
         class SubcategoryMethods:
 
             def Graded(self, base_ring=None):
@@ -803,7 +803,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                     sage: L.T(3).degree()
                     5
 
-                    sage: R = NeveuSchwarzLieConformalAlgebra(QQbar); 
+                    sage: R = NeveuSchwarzLieConformalAlgebra(QQbar);
                     sage: R.inject_variables()
                     Defining L, G, C
                     sage: G.degree()
@@ -823,6 +823,11 @@ class LieConformalAlgebras(Category_over_base_ring):
         def _repr_object_names(self):
             """
             The names of objects of this category.
+
+            EXAMPLES::
+
+                sage: LieConformalAlgebras(QQ).WithBasis()
+                Category of Lie conformal algebras over Rational Field with basis
             """
             return "{} with basis".format(self.base_category().\
                                           _repr_object_names())
@@ -896,6 +901,11 @@ class LieConformalAlgebras(Category_over_base_ring):
         def _repr_object_names(self):
             """
             The names of objects of this category.
+
+            EXAMPLES::
+
+                sage: LieConformalAlgebras(QQ).FinitelyGenerated()
+                Category of finitely generated Lie conformal algebras over Rational Field
             """
             return "finitely generated {}".format(self.base_category().\
                             _repr_object_names())
@@ -915,7 +925,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                     sage: V.ngens()
                     9
 
-                    sage: L = NeveuSchwarzLieConformalAlgebra(QQbar); 
+                    sage: L = NeveuSchwarzLieConformalAlgebra(QQbar);
                     sage: L.gens()
                     (L, G, C)
                     sage: L.ngens()

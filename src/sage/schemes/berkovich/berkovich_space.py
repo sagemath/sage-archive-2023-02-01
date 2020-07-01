@@ -45,6 +45,8 @@ from sage.schemes.generic.morphism import is_SchemeMorphism
 from sage.schemes.affine.affine_space import AffineSpace
 from sage.schemes.generic.scheme import Scheme
 from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.number_field.number_field import is_NumberField
 from sage.rings.infinity import Infinity
 
 def is_Berkovich(space):
@@ -179,27 +181,34 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         if flag:
                             raise ValueError("the center of a point of Projective Berkovich" + \
                                 "space must be a point of P^1(Cp(%s)), not of %s"%(self._p, center.parent()))
-                    elif not is_pAdicField(center.scheme().base_ring()):
-                        if not isinstance(center.scheme().base_ring(),pAdicBaseGeneric):
-                            try:
-                                center = (self._base_space)(center)
-                                flag = False
-                            except:
-                                flag = True
-                            if flag:
-                                raise ValueError("the center of a point of Projective Berkovich space must be a " + \
-                                    "point of P^1(Cp) or coerce into %s") %self._base_space
+                    else:
+                        if self._base_type == 'padic':
+                            if not is_pAdicField(center.scheme().base_ring()):
+                                if not isinstance(center.scheme().base_ring(),pAdicBaseGeneric):
+                                    try:
+                                        center = (self._base_space)(center)
+                                        flag = False
+                                    except:
+                                        flag = True
+                                    if flag:
+                                        raise ValueError("the center of a point of Projective Berkovich space must be a " + \
+                                            "point of P^1(Cp) or coerce into %s") %self._base_space
+                                else:
+                                    try:
+                                        center = (self._base_space)(center)
+                                    except:
+                                        pass
+                            if (center.scheme()).base_ring().prime() != self._p:
+                                raise ValueError("the center of a disk approximating a Type IV point of Berkovich space" + \
+                                    " over P^1(Cp(%s)) cannot be a point of %s") %(self._p, center.scheme())
                         else:
-                            try:
-                                center = (self._base_space)(center)
-                            except:
-                                pass
+                            base_field = self.parent().base_ring()
+                            if not (center[0] in base_field and center[1] in base_field):
+                                raise ValueError('center of a point of Berkovich space in projective space ' + \
+                                    'over the wrong field')
                     if center.scheme().ambient_space() != center.scheme():
                         raise ValueError("the center of a point of Berkovich space over " + \
                             "P^1(Cp(%s)) cannot be a point of %s" %(self._p,center.scheme()))
-                    if (center.scheme()).base_ring().prime() != self._p:
-                        raise ValueError("the center of a disk approximating a Type IV point of Berkovich space" + \
-                            " over P^1(Cp(%s)) cannot be a point of %s") %(self._p, center.scheme())
                     if center == (center.scheme())((1,0)):
                         raise ValueError("the center of a disk approximating a Type IV point of Berkovich " + \
                             "space cannot be centered at %s" %((center.scheme())((1,0))))
@@ -226,25 +235,31 @@ class Berkovich_Element_Cp(Berkovich_Element):
                 for i in range(len(self._center_lst)):
                     center = self._center_lst[i]
                     radius = self._radius_lst[i]
-                    #make sure the center is in Cp
-                    if not isinstance(center, pAdicGenericElement):
-                        try:
-                            center = (self._base_space)(center)
-                            self._center_lst[i] = center
-                            flag = False
-                        except:
-                            flag = True
-                        if flag:
-                            raise ValueError("the center of a disk approximating a Type IV point must " + \
-                                "be padic or coerce into Qp, %s does not coerse into Qp" %(center))
-                    elif not is_pAdicField(center.parent()):
-                        try:
-                            center = (self._base_space)(center)
-                        except:
-                            pass
-                    if (center.parent()).prime() != self._p:
-                        raise ValueError("the center of a disk approximating a Type IV point of Berkovich " + \
-                            "space over Cp(%s) cannot be a point of %s") %(self._p, center.parent())
+                    if self._base_type == 'padic':
+                        #make sure the center is in Cp
+                        if not isinstance(center, pAdicGenericElement):
+                            try:
+                                center = (self._base_space)(center)
+                                self._center_lst[i] = center
+                                flag = False
+                            except:
+                                flag = True
+                            if flag:
+                                raise ValueError("the center of a disk approximating a Type IV point must " + \
+                                    "be padic or coerce into Qp, %s does not coerse into Qp" %(center))
+                        elif not is_pAdicField(center.parent()):
+                            try:
+                                center = (self._base_space)(center)
+                            except:
+                                pass
+                        if (center.parent()).prime() != self._p:
+                            raise ValueError("the center of a disk approximating a Type IV point of Berkovich " + \
+                                "space over Cp(%s) cannot be a point of %s") %(self._p, center.parent())
+                    else:
+                        #make sure the center is in the appropriate number field
+                        if not(center in self._base_space):
+                            raise ValueError('center defined over %s passed to ' %center.parent()+ \
+                                'Berkovich space defined over number field %s' %self._base_space)
                     #make sure the radius coerces into the reals
                     if not is_RealNumber(radius):
                         if is_Expression(radius):
@@ -272,23 +287,28 @@ class Berkovich_Element_Cp(Berkovich_Element):
         #the point must now be Type 1, 2, or 3, so we check that the center is of the appropriate type
         if error_check:
             if child == "affine":
-                if not isinstance(center, pAdicGenericElement):
-                    try:
-                        center = (self._base_space)(center)
-                        flag = False
-                    except:
-                        flag = True
-                    if flag:
-                        raise ValueError("the center of a point of Affine Berkovich space over " + \
-                            "%s must convert to %s" %(self._base_space,self._base_space))
-                elif not is_pAdicField(center.parent()):
-                    try:
-                        center = (self._base_space)(center)
-                    except:
-                        pass
-                if (center.parent()).prime() != self._p:
-                    raise ValueError("the center of a point of Berkovich space over " + \
-                        "Cp(%s) cannot be a point of %s" %(self._p, center.parent()))
+                if self._base_type == 'padic':
+                    if not isinstance(center, pAdicGenericElement):
+                        try:
+                            center = (self._base_space)(center)
+                            flag = False
+                        except:
+                            flag = True
+                        if flag:
+                            raise ValueError("the center of a point of Affine Berkovich space over " + \
+                                "%s must convert to %s" %(self._base_space,self._base_space))
+                    elif not is_pAdicField(center.parent()):
+                        try:
+                            center = (self._base_space)(center)
+                        except:
+                            pass
+                    if (center.parent()).prime() != self._p:
+                        raise ValueError("the center of a point of Berkovich space over " + \
+                            "Cp(%s) cannot be a point of %s" %(self._p, center.parent()))
+                else:
+                    if not(center in self._base_space):
+                        raise ValueError('center defined over %s passed to ' %center.parent()+ \
+                            'Berkovich space defined over number field %s' %self._base_space)
             elif child == "projective":
                 if not isinstance(center, SchemeMorphism_point_projective_field):
                     try:
@@ -299,27 +319,32 @@ class Berkovich_Element_Cp(Berkovich_Element):
                     if flag:
                         raise ValueError("the center of a point of Projective Berkovich space must be a " + \
                             "point of P^1(Cp) or coerce into %s" %self._base_space)
-                elif not is_pAdicField(center.scheme().base_ring()):
-                    if not isinstance(center.scheme().base_ring(), pAdicBaseGeneric):
-                        try:
-                            center = (self._base_space)(center)
-                            flag = False
-                        except:
-                            flag = True
-                        if flag:
-                            raise ValueError("the center of a point of Projective Berkovich space must be a " + \
-                                "point of P^1(Cp) or coerce into %s") %self._base_space
-                    else:
-                        try:
-                            center = (self._base_space)(center)
-                        except:
-                            pass
+                if self._base_type == 'padic':
+                    if not is_pAdicField(center.scheme().base_ring()):
+                        if not isinstance(center.scheme().base_ring(), pAdicBaseGeneric):
+                            try:
+                                center = (self._base_space)(center)
+                                flag = False
+                            except:
+                                flag = True
+                            if flag:
+                                raise ValueError("the center of a point of Projective Berkovich space must be a " + \
+                                    "point of P^1(Cp) or coerce into %s") %self._base_space
+                        else:
+                            try:
+                                center = (self._base_space)(center)
+                            except:
+                                pass
+                    if (center.scheme()).base_ring().prime() != self._p:
+                        raise ValueError("the center of a point of Berkovich space over " + \
+                            "P^1(Cp(%s)) cannot be a point of %s" %(self._p, center.scheme()))
+                else:
+                    if not(center[0] in self._base_space.base_ring() and center[1] in self._base_space.base_ring()):
+                        raise ValueError('center defined over %s ' %center.parent() + \
+                            'but Berkovich space defined over %s' %self._base_space)
                 if not(center.scheme().ambient_space() is center.scheme()):
                         raise ValueError("the center of a point of Projective Berkovich space cannot be " + \
                             "a point of %s" %(center.scheme()))
-                if (center.scheme()).base_ring().prime() != self._p:
-                    raise ValueError("the center of a point of Berkovich space over " + \
-                        "P^1(Cp(%s)) cannot be a point of %s" %(self._p, center.scheme()))
             else:
                 raise ValueError("bad value %s passed to child. Do not initialize  "%(child) + \
                         "Berkovich_Element_Cp directly" )
@@ -333,10 +358,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
         if child == "projective":
             try:
                 center.dehomogenize(1)
-                flag = False
             except ValueError:
-                flag = True
-            if flag:
                 raise ValueError("type II and III points cannot be centered at (1 : 0)")
         if power != None:
             if error_check:
@@ -405,6 +427,14 @@ class Berkovich_Element_Cp(Berkovich_Element):
             3
         """
         return self.precision()
+
+    def _custom_abs(self, x):
+        """
+        Returns the absolute value of ``x`` with respect to the norm on ``Cp``.
+
+        Used to simplify code, as ``x`` may be a point of a number field
+        or a padic field. 
+        """
 
     def precision(self):
         """
@@ -925,9 +955,14 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         Element.__init__(self, parent)
         self._p = parent.prime()
         self._base_space = parent.base()
+        self._base_type = parent._base_type
+        self._valuation = parent._valuation
 
         #if this is a point of projective berkovich space, we do the conversion
         if isinstance(center, Berkovich_Element_Cp_Projective):
+            if center._base_type != self._base_type:
+                raise ValueError('cannot convert from Berkovich space over ' + \
+                    'a %s to Berkovich space over a %s field' %center._base_type, self._base_type)
             if (center.prime() == self._p):
                 try:
                     center.center().dehomogenize(1)
@@ -1539,9 +1574,14 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         Element.__init__(self, parent)
         self._p = parent.prime()
         self._base_space = parent.base()
+        self._base_type = parent._base_type
+        self._valuation = parent._valuation
 
         #conversion from Affine points is handled in this constructor
         if isinstance(center, Berkovich_Element_Cp_Affine):
+            if center._base_type != self._base_type:
+                raise ValueError('cannot convert from Berkovich space over ' + \
+                    'a %s field to Berkovich space over a %s field' %(center._base_type, self._base_type))
             if (center.prime() == self._p):
                 self._center = (self._base_space)(center._center)
                 self._radius = center._radius
@@ -2250,17 +2290,33 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
 
     Element = Berkovich_Element_Cp_Affine
 
-    def __init__(self,base):
-        from sage.rings.integer_ring import ZZ
+    def __init__(self, base, valuation=None):
         if base in ZZ:
             if base.is_prime():
                 base = Qp(base) #TODO chance to Qpbar
             else:
                 raise ValueError("non-prime pased into Berkovich space")
-        if not is_pAdicField(base): #TODO change base to Qpbar(prime)
-            raise ValueError("base of Berkovich Space must be a padic field")
-        self._p = base.prime()
-        Parent.__init__(self, base = base, category=TopologicalSpaces())
+        if is_NumberField(base):
+            if valuation == None:
+                raise ValueError('passed a number field but not a valuation')
+            from sage.rings.padics.padic_valuation import pAdicValuation_base
+            if not isinstance(valuation, pAdicValuation_base):
+                raise ValueError('valuation was not a padic valuation')
+            if valuation.domain() != base:
+                raise ValueError('passed number field ' + \
+                    '%s but valuation defined over %s' %(base, valuation.domain()))
+            prime = valuation.p()
+            self._base_type = 'number'
+        elif is_pAdicField(base): #TODO change base to Qpbar(prime)
+            prime = base.prime()
+            valuation = base.valuation()
+            self._base_type = 'padic'
+        else:
+            raise ValueError("base of Berkovich Space must be a padic field " + \
+                "or a number field")
+        self._valuation = valuation
+        self._p = prime
+        Parent.__init__(self, base=base, category=TopologicalSpaces())
 
     def residue_characteristic(self):
         """
@@ -2320,62 +2376,88 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
 
     INPUT:
 
-    - ``base`` - The prime number `p`. Alternatively, can be a Projective Space over
-      `\QQ_p` or a finite extension of `\QQ_p`. This allows for more control of 
-      conversion of centers.
+    - ``base`` -- Three cases:
+
+      * a prime number ``p``. Centers of elements are then represented
+        as points of projective space of dimension 1 over `\QQ_p`.
+
+      * `\QQ_p` or a finite extension of `\QQ_p`. Centers of elements
+        are then represented as points of projective space of dimension 1
+        over ``base``.
+
+      * A number field `K`. Centers of elements are then represented
+        as points of projective space of dimension 1 over ``base``.
+
+    - ``valuation`` -- (optional) a valuation on ``base``. Must be
+      specified if a number field is passed to ``base``, otherwise
+      it is ignored.
 
     EXAMPLES::
 
         sage: B = Berkovich_Cp_Projective(3); B
         Projective Berkovich line over Cp(3) of precision 20
 
-    Initializing by passing in a projective space looks the same::
+    Initializing by passing in a padic space looks the same::
 
-        sage: S = ProjectiveSpace(Qp(3),1)
-        sage: B = Berkovich_Cp_Projective(S); B
+        sage: B = Berkovich_Cp_Projective(Qp(3)); B
         Projective Berkovich line over Cp(3) of precision 20
 
     However, this method allows for more control over
     behind-the-scenes conversion::
 
-        sage: S = ProjectiveSpace(Qp(3,1),1)
+        sage: S = Qp(3,1)
         sage: B = Berkovich_Cp_Projective(S); B
         Projective Berkovich line over Cp(3) of precision 1
 
         sage: Q1 = B(1/2); Q1
         Type I point centered at (2 + O(3) : 1 + O(3))
 
-    Note that this point has very low precision, as S is a scheme over
-    `\QQ_3` of capped-relative precision 1.
+    Note that this point has very low precision, as S has low
+    precision cap.
     """
 
     Element = Berkovich_Element_Cp_Projective
 
-    def __init__(self,base):
-        from sage.rings.integer_ring import ZZ
+    def __init__(self, base, valuation=None):
         if base in ZZ:
             if base.is_prime():
                 base = ProjectiveSpace(Qp(base),1)
-                Berkovich_Cp_Projective.__init__(self,base)
-                return
             else:
                 raise ValueError("non-prime pased into Berkovich space")
-        elif is_pAdicField(base):
+        if is_NumberField(base):
             base = ProjectiveSpace(base, 1)
+        if is_pAdicField(base):
+            base = ProjectiveSpace(base, 1)
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        if not is_ProjectiveSpace(base):
+            raise ValueError("base of Projective Berkovich Space must be Projective Space")
+        if not (is_pAdicField(base.base_ring())):
+            if not (is_NumberField(base.base_ring())):
+                raise ValueError("base of Projective Berkovich Space must be " + \
+                    "Projective Space over Qp or a number field")
+            else:
+                if valuation == None:
+                    raise ValueError('passed a number field but not a valuation')
+                from sage.rings.padics.padic_valuation import pAdicValuation_base
+                if not isinstance(valuation, pAdicValuation_base):
+                    raise ValueError('valuation was not a padic valuation')
+                if valuation.domain() != base.base_ring():
+                    raise ValueError('passed number field ' + \
+                        '%s but valuation defined over %s' %(base.base_ring(), valuation.domain()))
+                prime = valuation.p()
+                self._base_type = 'number'
         else:
-            from sage.schemes.projective.projective_space import is_ProjectiveSpace
-            if not is_ProjectiveSpace(base):
-                raise ValueError("base of Projective Berkovich Space must be Projective Space")
-            if not (is_pAdicField(base.base_ring())):
-                raise ValueError("base of Projective Berkovich Space must be " + \
-                    "Projective Space over Qp")
-            if base.ambient_space() != base:
-                raise ValueError("base of Projective Berkovich Space must be " + \
-                    "Projective Space over Qp")
-            if base.dimension() != 1:
-                raise ValueError("base of Projective Berkovich Space must be " + \
-                    "Projective Space of dimension 1 over Qp")
-        self._p = base.base_ring().prime()
+            valuation = base.base_ring().valuation()
+            prime = base.base_ring().prime()
+            self._base_type = 'padic'
+        if base.ambient_space() != base:
+            raise ValueError("base of Projective Berkovich Space must be " + \
+                "Projective Space over Qp or a number field")
+        if base.dimension() != 1:
+            raise ValueError("base of Projective Berkovich Space must be " + \
+                "Projective Space of dimension 1 over Qp or a number field")
+        self._p = prime
+        self._valuation = valuation
         Parent.__init__(self, base = base, category=TopologicalSpaces())
 
     def residue_characteristic(self):
@@ -2434,10 +2516,22 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
             sage: B = Berkovich_Cp_Projective(3)
             sage: B
             Projective Berkovich line over Cp(3) of precision 20
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: A.<a> = NumberField(x^2+1)
+            sage: v = A.valuation(a+1)
+            sage: B = Berkovich_Cp_Projective(A,v); B
+            Projective Berkovich line over Cp(2), with base Number Field in a with defining polynomial x^2 + 1
         """
-        return "Projective Berkovich line over Cp(%s) of precision %s" %(self.prime(),\
-            self.base().base_ring().precision_cap())
-    
+        if self._base_type == 'padic':
+            return "Projective Berkovich line over Cp(%s) of precision %s" %(self.prime(),\
+                self.base().base_ring().precision_cap())
+        else:
+            return  "Projective Berkovich line over Cp(%s), with base %s" %(self.prime(),\
+                self.base().base_ring())
+
     def _latex_(self):
         r"""
         LaTeX representation of this Berkovich Space.

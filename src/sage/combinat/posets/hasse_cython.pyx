@@ -12,6 +12,7 @@ Some fast computations for finite posets
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from cysignals.signals cimport sig_check
+from cysignals.memory cimport sig_malloc, sig_free
 
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_mat cimport *
@@ -55,14 +56,29 @@ cpdef Matrix_integer_dense moebius_matrix_fast(list positions):
     A = Matrix_integer_dense.__new__(Matrix_integer_dense,
                                      MatrixSpace(ZZ, n, n), None, None, None)
     fmpz_mat_one(A._matrix)
+    cdef Py_ssize_t *pos_lens = <Py_ssize_t*> sig_malloc(n*sizeof(Py_ssize_t))
+    cdef int **pos_array = <int**> sig_malloc(n*sizeof(int*))
+    cdef Py_ssize_t jind, kind
+    for i in range(n):
+        pos_lens[i] = len(positions[i])
+        pos_array[i] = <int*> sig_malloc(pos_lens[i]*sizeof(int))
+        for jind,j in enumerate(positions[i]):
+            pos_array[i][jind] = j
+
     for i in range(n - 1, -1, -1):
         sig_check()
-        for j in positions[i]:
+        for jind in range(pos_lens[i]):
+            j = pos_array[i][jind]
             if j != i:
-                for k in positions[j]:
+                for kind in range(pos_lens[j]):
+                    k = pos_array[j][kind]
                     fmpz_sub(fmpz_mat_entry(A._matrix, i, k),
                              fmpz_mat_entry(A._matrix, i, k),
                              fmpz_mat_entry(A._matrix, j, k))
+    for i in range(n):
+        sig_free(pos_array[i])
+    sig_free(pos_array)
+    sig_free(pos_lens)
     return A
 
 
@@ -99,21 +115,38 @@ cpdef Matrix_integer_dense coxeter_matrix_fast(list positions):
     A = Matrix_integer_dense.__new__(Matrix_integer_dense,
                                      MatrixSpace(ZZ, n, n), None, None, None)
     fmpz_mat_one(A._matrix)
+    cdef Py_ssize_t *pos_lens = <Py_ssize_t*> sig_malloc(n*sizeof(Py_ssize_t))
+    cdef int **pos_array = <int**> sig_malloc(n*sizeof(int*))
+    cdef Py_ssize_t jind, kind
+    for i in range(n):
+        pos_lens[i] = len(positions[i])
+        pos_array[i] = <int*> sig_malloc(pos_lens[i]*sizeof(int))
+        for jind,j in enumerate(positions[i]):
+            pos_array[i][jind] = j
+
     for i in range(n - 1, -1, -1):
         sig_check()
-        for j in positions[i]:
+        for jind in range(pos_lens[i]):
+            j = pos_array[i][jind]
             if j != i:
-                for k in positions[j]:
+                for kind in range(pos_lens[j]):
+                    k = pos_array[j][kind]
                     fmpz_sub(fmpz_mat_entry(A._matrix, k, i),
                              fmpz_mat_entry(A._matrix, k, i),
                              fmpz_mat_entry(A._matrix, k, j))
     for i in range(n):
         sig_check()
-        for j in positions[i]:
+        for jind in range(pos_lens[i]):
+            j = pos_array[i][jind]
             if j != i:
                 for k in range(n):
                     fmpz_add(fmpz_mat_entry(A._matrix, i, k),
                              fmpz_mat_entry(A._matrix, i, k),
                              fmpz_mat_entry(A._matrix, j, k))
+    for i in range(n):
+        sig_free(pos_array[i])
+    sig_free(pos_array)
+    sig_free(pos_lens)
     fmpz_mat_scalar_mul_si(A._matrix, A._matrix, -1)
     return A
+

@@ -26,6 +26,13 @@ class FusionRing(WeylCharacterRing):
 
     - ``ct`` -- the Cartan type of a simple (finite-dimensional) Lie algebra
     - ``k`` -- a nonnegative integer
+    - (optional) ``conjugate`` -- (default ``False``) set ``True`` to obtain the complex conjugate ring
+    - (optional) ``cyclotomic_order`` -- (default computed depending on ``ct`` and ``k``)
+
+    The cyclotomic order is an integer `N` such that all computations
+    will return elements of the cyclotomic field of `N`-th roots of unity.
+    Normally you will never need to change this but consider changing it
+    if :meth:`to_field` ever returns ``None``.
 
     This algebra has a basis (sometimes called *primary fields* but here
     called *simple objects*) indexed by the weights of level `\leq k`.
@@ -222,14 +229,16 @@ class FusionRing(WeylCharacterRing):
     Let `s` be the normalized S-matrix, and
     `t` the diagonal matrix whose entries are the twists of the simple
     objects. Let `s` the unitary S-matrix and `t` the matrix of twists,
-    and `C` the conjugation matrix :meth:`cc_matrix`. Let
+    and `C` the conjugation matrix :meth:`conj_matrix`. Let
     
     .. MATH::
 
-        D_+ = \sum_i d_i^2\theta_i, \qquad D_- = d_i^2\theta_i^{-1}.
+        D_+ = \sum_i d_i^2\theta_i, \qquad D_- = d_i^2\theta_i^{-1},
 
-    Let `c` be the virasoro central charge, a rational number that
-    is computed in :meth:`virasoro_central_charge`. It is known that
+    where `d_i` and `\theta_i` are the quantum dimensions and twists
+    of the simple objects. Let `c` be the virasoro central charge, a rational
+    number that is computed in :meth:`virasoro_central_charge`. It is known
+    that
 
     .. MATH::
 
@@ -248,7 +257,7 @@ class FusionRing(WeylCharacterRing):
         sage: R = FusionRing("G2",1)
         sage: S = R.s_matrix(unitary=True)
         sage: T = R.twists_matrix()
-        sage: C = R.cc_matrix()
+        sage: C = R.conj_matrix()
         sage: c = R.virasoro_central_charge(); c
         14/5
         sage: (S*T)^3 == R.to_field(c/4)*S^2
@@ -310,6 +319,7 @@ class FusionRing(WeylCharacterRing):
 
             sage: G22 = FusionRing("G2",2)
             sage: G22._test_verlinde()
+
         """
         tester = self._tester(**options)
         c = self.global_q_dimension()
@@ -326,10 +336,17 @@ class FusionRing(WeylCharacterRing):
         of the global quantum dimension. Check that it is
         real and positive. This indirectly test the
         Virasoro central charge.
+
+        EXAMPLES::
+
+            sage: G22 = FusionRing("G2",2)
+            sage: G22._test_total_q_order()
+
         """
         tester = self._tester(**options)
         tqo = self.total_q_order()
-        return tqo.is_real_positive() and tqo**2 == self.global_q_dimension()
+        tester.assertTrue(tqo.is_real_positive())
+        tester.assertTrue(tqo**2 == self.global_q_dimension())
 
     def fusion_labels(self, labels=None, inject_variables=False):
         r"""
@@ -432,7 +449,6 @@ class FusionRing(WeylCharacterRing):
             [1, -1, zeta24^4 - 1, zeta24^6, None, zeta24^4, None]
 
         """
-
         n = 2 * r * self._cyclotomic_order
         if n in ZZ:
             return self.field().gen()**n
@@ -480,14 +496,14 @@ class FusionRing(WeylCharacterRing):
         return [self.monomial(x) for x in self.fundamental_weights()
                 if self.level(x) <= self._k]
 
-    def fusion_k(self):
+    def fusion_level(self):
         r"""
-        Return the level of ``self``.
+        Return the level `k` of ``self``.
 
         EXAMPLES::
 
             sage: B22 = FusionRing('B2',2)
-            sage: B22.fusion_k()
+            sage: B22.fusion_level()
             2
         """
         return self._k
@@ -515,8 +531,7 @@ class FusionRing(WeylCharacterRing):
         return self._l
 
     def virasoro_central_charge(self):
-        r"""
-        Return the Virasoro central charge of the WZW conformal
+        r"""Return the Virasoro central charge of the WZW conformal
         field theory associated with the Fusion Ring. If `\mathfrak{g}`
         is the corresponding semisimple Lie algebra, this is
         
@@ -527,12 +542,12 @@ class FusionRing(WeylCharacterRing):
         where `k` is the level and `h^\vee` is the dual Coxeter number.
         See [DFMS1996]_ equation (15.61).
 
-        By Proposition 2.3 in [RoStWa2009]_ there exists
-        a rational number c such that `D_+/\sqrt{D}=e^{i\pi c/4}`
-        where `D_+=\sum d_i^2\theta_i` is computed in
-        :meth:`D_plus` and `D=\sum d_i^2>0` is computed
-        by :meth:`global_q_dimension`. Squaring this identity
-        and remembering that `D_+D_-=D` gives
+        Let `d_i` and `theta_i` be the quantum dimensions and
+        twists of the simple objects. By Proposition 2.3 in [RoStWa2009]_
+        there exists a rational number c such that `D_+/\sqrt{D}=e^{i\pi c/4}`
+        where `D_+=\sum d_i^2\theta_i` is computed in :meth:`D_plus` and
+        `D=\sum d_i^2>0` is computed by :meth:`global_q_dimension`. Squaring
+        this identity and remembering that `D_+D_-=D` gives
         
         .. MATH::
 
@@ -554,6 +569,22 @@ class FusionRing(WeylCharacterRing):
         dim_g = len(self.space().roots())+self.cartan_type()[1]
         return self._conj*self._k*dim_g/(self._k+self._h_check)
 
+    def conj_matrix(self):
+        r"""
+        Return the conjugation matrix, which is the permutation matrix
+        for the conjugation (dual) operation on basis elements.
+
+        EXAMPLES::
+
+            sage: FusionRing("A2",1).conj_matrix()
+            [1 0 0]
+            [0 0 1]
+            [0 1 0]
+
+        """
+        b = self.basis().list()
+        return matrix([[i==j.dual() for i in b] for j in b])
+
     def twists_matrix(self):
         r"""
         Return a diagonal matrix describing the twist corresponding to
@@ -574,21 +605,6 @@ class FusionRing(WeylCharacterRing):
         """
         B = self.basis()
         return diagonal_matrix(self.to_field(B[x].twist()) for x in self.get_order())
-
-    def cc_matrix(self):
-        r"""
-        Return the conjugation matrix, which is the permutation matrix
-        for the conjugation (dual) operation on basis elements.
-
-        EXAMPLES::
-
-            sage: FusionRing("A2",1).cc_matrix()
-            [1 0 0]
-            [0 0 1]
-            [0 1 0]
-        """
-        b = self.basis().list()
-        return matrix([[i==j.dual() for i in b] for j in b])
 
     @cached_method
     def N_ijk(self, elt_i, elt_j, elt_k):
@@ -741,8 +757,9 @@ class FusionRing(WeylCharacterRing):
 
     def D_plus(self):
         r"""
-        Return `\sum d_i^2\theta_i` where `i` runs through the simple objects and
-        `\theta_i` is the twist. This is denoted `p_+` in [BaKi2001]_ Chapter 3.
+        Return `\sum d_i^2\theta_i` where `i` runs through the simple objects,
+        `d_i` is the quantum dimension and `\theta_i` is the twist.
+        This is denoted `p_+` in [BaKi2001]_ Chapter 3.
 
         EXAMPLES::
 
@@ -763,8 +780,9 @@ class FusionRing(WeylCharacterRing):
 
     def D_minus(self):
         r"""
-        Return `\sum d_i^2\theta_i^{-1}` where `i` runs through the simple objects and
-        `\theta_i` is the twist. This is denoted `p_-` in [BaKi2001]_ Chapter 3.
+        Return `\sum d_i^2\theta_i^{-1}` where `i` runs through the simple objects,
+        `d_i` is the quantum dimension and `\theta_i` is the twist.
+        This is denoted `p_-` in [BaKi2001]_ Chapter 3.
 
         EXAMPLES::
 
@@ -828,21 +846,19 @@ class FusionRing(WeylCharacterRing):
             `h = \langle\lambda,\lambda+2\rho\rangle` where
             `\rho` is half the sum of the positive roots.
             As in [Row2006]_, this requires normalizing
-            the invariant bilinear form so that `\langle \alpha, \alpha
-            \rangle = 2` for short roots.
+            the invariant bilinear form so that 
+            `\langle \alpha, \alpha \rangle = 2` for short roots.
 
             EXAMPLES::
 
-                sage: G21 = FusionRing('G2', 1)
-                sage: G21.basis()
-                Finite family {(0, 0, 0): G21(0,0), (1, 0, -1): G21(1,0)}
-                sage: G21(1,0).twist()
-                4/5
-                sage: F41 = FusionRing('F4', 1, conjugate=True)
-                sage: F41.basis()
-                Finite family {(0, 0, 0, 0): F41(0,0,0,0), (1, 0, 0, 0): F41(0,0,0,1)}
-                sage: F41(0,0,0,1).twist()
-                4/5
+                sage: G21=FusionRing("G2",1)
+                sage: [x.twist() for x in G21.basis()]
+                [0, 4/5]
+                sage: [G21.to_field(x.twist()) for x in G21.basis()]
+                [1, zeta60^14 - zeta60^4]
+                sage: zeta60 = G21.field().gen()
+                sage: zeta60^((4/5)*(60/2))
+                zeta60^14 - zeta60^4
 
             """
             if not self.is_simple_object():

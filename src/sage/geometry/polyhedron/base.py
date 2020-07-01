@@ -2697,7 +2697,7 @@ class Polyhedron_base(Element):
         # Determine ``is_zero`` to save lots of time.
         if self.base_ring().is_exact():
             def is_zero(x):
-                return x == 0
+                return not x
         else:
             is_zero == self._is_zero
 

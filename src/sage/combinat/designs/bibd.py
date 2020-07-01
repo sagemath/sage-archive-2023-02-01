@@ -80,7 +80,7 @@ def biplane(n, existence=False):
 
         - ``False`` -- meaning that the design does not exist.
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         * :func:`balanced_incomplete_block_design`
 

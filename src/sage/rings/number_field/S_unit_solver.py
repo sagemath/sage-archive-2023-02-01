@@ -317,7 +317,7 @@ def possible_mu0s(SUK, v):
     ns = [beta[1] for beta in beta_and_ns if beta[0] != betak]
     betas = [beta[0] for beta in beta_and_ns if beta[0] != betak]
     mu0s = []
-    for rs in combinations_with_replacement(range( abs(nk), len(betas)):
+    for rs in combinations_with_replacement(range(abs(nk)), len(betas)):
         # n_0 = valuation_v of one of the coefficients of the equation = 0 for x + y = 1 p. 824
         n_rs = zip(ns, rs)
         sigma_tilde = -(sum([n_r[0]*n_r[1] for n_r in n_rs]))
@@ -1463,7 +1463,7 @@ def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
     - ``M_logp`` -- the p-adic logarithm of elements in `M`
     - ``m0`` -- an element of `K`, this is `\mu_0` from Lemma IX.3 of [Sma1998]_
     - ``c3`` -- a positive real constant
-    - ``prec`` -- the precision of the calculations (default: 106)
+    - ``prec`` -- the precision of the calculations (default: 106), i.e., values are known to O(p^prec)
 
     OUTPUT:
 
@@ -1571,7 +1571,7 @@ def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
     m = e * f
     u = 1
     while True:
-        if u > (prec * R(2).log()) / R(p).log():
+        if  prec <= u + c8:
             return 0, True
 
         #We construct the matrix A as a block matrix

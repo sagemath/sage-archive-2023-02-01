@@ -208,11 +208,11 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         raise EmptySetError("There exists no ({},{},{})-BIBD".format(v, k, lambd))
 
     # Non-esistence by BRC Theoerem
-    if v == (lmbd*v*(v-1))//(k*(k-1)):
+    if v == (lambd*v*(v-1))//(k*(k-1)):
         # only for symmetric BIBDs
         exists = False
         if v%2 == 0:
-            exists = is_square(k-lmbd)
+            exists = is_square(k-lambd)
         else:
             from sage.calculus.var import var
             from sage.symbolic.assumptions import assume, forget
@@ -224,7 +224,7 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
             assume(x, 'integer')
             assume(y, 'integer')
             assume(z, 'integer')
-            sol = solve(x**2 - ((k-lmbd) * y**2) == g * lmbd * z**2, x, y, z, algorithm="sympy")
+            sol = solve(x**2 - ((k-lambd) * y**2) == g * lambd * z**2, x, y, z, algorithm="sympy")
             if not isinstance(sol,tuple):
                 raise RuntimeError("The solve method returned a non-tuple")
 

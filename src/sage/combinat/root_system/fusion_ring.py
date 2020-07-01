@@ -829,8 +829,8 @@ class FusionRing(WeylCharacterRing):
             EXAMPLES::
 
                 sage: A21 = FusionRing("A2",1)
-                sage: sorted([x.weight() for x in A21.basis()])
-                [(0, 0, 0), (1/3, 1/3, -2/3), (2/3, -1/3, -1/3)]
+                sage: [x.weight() for x in A21.basis().list()]
+                [(0, 0, 0), (2/3, -1/3, -1/3), (1/3, 1/3, -2/3)]
             """
             if len(self._monomial_coefficients) != 1:
                 raise ValueError("fusion weight is valid for basis elements only")

@@ -63,14 +63,14 @@ class FreeFermionsLieConformalAlgebra(GradedLieConformalAlgebra):
     EXAMPLES::
 
         sage: R = lie_conformal_algebras.FreeFermions(QQbar); R
-        The free Fermions super Lie conformal algebra with generators (psi, K) over Algebraic Field.
+        The free Fermions super Lie conformal algebra with generators (psi, K) over Algebraic Field
         sage: R.inject_variables()
         Defining psi, K
         sage: psi.bracket(psi)
         {0: K}
 
         sage: R = lie_conformal_algebras.FreeFermions(QQbar,gram_matrix=Matrix([[0,1],[1,0]])); R
-        The free Fermions super Lie conformal algebra with generators (psi_0, psi_1, K) over Algebraic Field.
+        The free Fermions super Lie conformal algebra with generators (psi_0, psi_1, K) over Algebraic Field
         sage: R.inject_variables()
         Defining psi_0, psi_1, K
         sage: psi_0.bracket(psi_1)
@@ -138,8 +138,16 @@ class FreeFermionsLieConformalAlgebra(GradedLieConformalAlgebra):
         self._gram_matrix = gram_matrix
 
     def _repr_(self):
+        """
+        String representation.
+
+        EXAMPLES::
+
+            sage: lie_conformal_algebras.FreeFermions(QQ)
+            The free Fermions super Lie conformal algebra with generators (psi, K) over Rational Field
+        """
         return "The free Fermions super Lie conformal algebra "\
-                    "with generators {} over {}.".format(self.gens(),
+                    "with generators {} over {}".format(self.gens(),
                                                          self.base_ring())
 
     def gram_matrix(self):

@@ -19,6 +19,58 @@ user-defined classes implementing solvers.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-class MatrixSDPBackend:
+from .generic_sdp_backend import GenericSDPBackend
 
-    pass
+class MatrixSDPBackend(GenericSDPBackend):
+
+    def __init__(self, base_ring=None):
+
+        super(MatrixSDPBackend, self).__init__()
+
+        if base_ring is None:
+            from sage.rings.all import QQ
+            base_ring = QQ
+        self._base_ring = base_ring
+
+        self.set_sense(+1)
+
+    def set_sense(self, sense):
+        """
+        Set the direction (maximization/minimization).
+
+        INPUT:
+
+        - ``sense`` (integer) :
+
+            * +1 => Maximization
+            * -1 => Minimization
+
+        EXAMPLES::
+
+            sage: from sage.numerical.backends.matrix_sdp_backend import MatrixSDPBackend
+            sage: from sage.numerical.backends.generic_sdp_backend import get_solver
+            sage: p = get_solver(solver=MatrixSDPBackend)
+            sage: p.is_maximization()
+            True
+            sage: p.set_sense(-1)
+            sage: p.is_maximization()
+            False
+        """
+        self._sense = sense
+
+    def is_maximization(self):
+        """
+        Test whether the problem is a maximization
+
+        EXAMPLES::
+
+            sage: from sage.numerical.backends.matrix_sdp_backend import MatrixSDPBackend
+            sage: from sage.numerical.backends.generic_sdp_backend import get_solver
+            sage: p = get_solver(solver=MatrixSDPBackend)
+            sage: p.is_maximization()
+            True
+            sage: p.set_sense(-1)
+            sage: p.is_maximization()
+            False
+        """
+        return self._sense == +1

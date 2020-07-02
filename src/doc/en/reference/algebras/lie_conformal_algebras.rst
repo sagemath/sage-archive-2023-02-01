@@ -19,9 +19,16 @@ Implemented examples of Lie Conformal Algebras
 
 .. toctree::
 
+    ../sage/algebras/lie_conformal_algebras/abelian_lie_conformal_algebra
     ../sage/algebras/lie_conformal_algebras/affine_lie_conformal_algebra
+    ../sage/algebras/lie_conformal_algebras/bosonic_ghosts_lie_conformal_algebra
+    ../sage/algebras/lie_conformal_algebras/fermionic_ghosts_lie_conformal_algebra
+    ../sage/algebras/lie_conformal_algebras/free_bosons_lie_conformal_algebra
+    ../sage/algebras/lie_conformal_algebras/free_fermions_lie_conformal_algebra
+    ../sage/algebras/lie_conformal_algebras/n2_lie_conformal_algebra
     ../sage/algebras/lie_conformal_algebras/neveu_schwarz_lie_conformal_algebra
     ../sage/algebras/lie_conformal_algebras/virasoro_lie_conformal_algebra
+    ../sage/algebras/lie_conformal_algebras/weyl_lie_conformal_algebra
 
 
 See also

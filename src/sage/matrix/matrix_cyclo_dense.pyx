@@ -736,15 +736,16 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
         EXAMPLES:
 
-        We create a cyclotomic matrix.::
+        We create a cyclotomic matrix::
 
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [1,2/3*z+z^2,-z,1+z/2])
 
-        We make a copy of A.::
+        We make a copy of A::
+
             sage: C = A.__copy__()
 
-        We make another reference to A.::
+        We make another reference to A::
 
             sage: B = A
 
@@ -754,7 +755,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             sage: A[0,0]
             10
 
-        Changing the copy does not change A.::
+        Changing the copy does not change A::
 
             sage: C[0,0] = 20
             sage: C[0,0]
@@ -1486,6 +1487,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             [4, 9, 1, 3]
 
         The reduction matrix is cached::
+
             sage: w._reduction_matrix(7) is w._reduction_matrix(7)
             True
         """

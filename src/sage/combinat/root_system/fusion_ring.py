@@ -682,8 +682,6 @@ class FusionRing(WeylCharacterRing):
             sage: [G21.s_ij(x, y) for x in b for y in b]
             [1, -zeta60^14 + zeta60^6 + zeta60^4, -zeta60^14 + zeta60^6 + zeta60^4, -1]
         """
-        mc = (elt_i.dual() * elt_j).monomial_coefficients(copy=False)
-        b = self.basis()
         ijtwist = elt_i.twist() + elt_j.twist()
         return sum(k.q_dimension() * self.Nk_ij(elt_i, k, elt_j) * self.to_field(k.twist() - ijtwist) for k in self.basis())
 

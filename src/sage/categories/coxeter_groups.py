@@ -24,8 +24,6 @@ from sage.structure.element import have_same_parent, parent
 from sage.misc.flatten import flatten
 from copy import copy
 
-from sage.rings.integer_ring import ZZ
-
 
 class CoxeterGroups(Category_singleton):
     r"""
@@ -319,6 +317,7 @@ class CoxeterGroups(Category_singleton):
             braid_rels = self.braid_relations()
             I = self.index_set()
 
+            from sage.rings.integer_ring import ZZ
             be_careful = any(i not in ZZ for i in I)
 
             if be_careful:
@@ -455,7 +454,7 @@ class CoxeterGroups(Category_singleton):
 
             .. rubric:: Background
 
-            The weak order is returned as a :class:`SearchForest`.
+            The weak order is returned as a :class:`RecursivelyEnumeratedSet_forest`.
             This is achieved by assigning to each element `u1` of the
             ideal a single ancestor `u=u1 s_i`, where `i` is the
             smallest descent of `u`.
@@ -474,7 +473,7 @@ class CoxeterGroups(Category_singleton):
                 sage: [x.length() for x in W]
                 [0, 1, 1, 2, 2, 3]
             """
-            from sage.combinat.backtrack import SearchForest
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_forest
 
             def succ(u):
                 for i in u.descents(positive=True, side=side):
@@ -484,7 +483,7 @@ class CoxeterGroups(Category_singleton):
                 return
             from sage.categories.finite_coxeter_groups import FiniteCoxeterGroups
             default_category = FiniteEnumeratedSets() if self in FiniteCoxeterGroups() else EnumeratedSets()
-            return SearchForest((self.one(),), succ, algorithm='breadth',
+            return RecursivelyEnumeratedSet_forest((self.one(),), succ, algorithm='breadth',
                                 category=default_category.or_subcategory(category))
 
         @cached_method
@@ -736,7 +735,7 @@ class CoxeterGroups(Category_singleton):
                 
             """
             if base_ring is None:
-                from sage.rings.all import ZZ
+                from sage.rings.integer_ring import ZZ
                 base_ring = ZZ
             from sage.modules.with_basis.representation import SignRepresentationCoxeterGroup
             return SignRepresentationCoxeterGroup(self, base_ring)
@@ -1844,7 +1843,7 @@ class CoxeterGroups(Category_singleton):
                 sage: w0.binary_factorizations().category()
                 Category of finite enumerated sets
             """
-            from sage.combinat.backtrack import SearchForest
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_forest
             W = self.parent()
             if not predicate(W.one()):
                 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
@@ -1857,8 +1856,8 @@ class CoxeterGroups(Category_singleton):
                     u1 = u * s[i]
                     if i == u1.first_descent() and predicate(u1):
                         yield (u1, s[i] * v)
-            return SearchForest(((W.one(), self),), succ,
-                                category=FiniteEnumeratedSets())
+            return RecursivelyEnumeratedSet_forest(((W.one(), self),), succ,
+                                                   category=FiniteEnumeratedSets())
 
         @cached_in_parent_method
         def bruhat_lower_covers(self):

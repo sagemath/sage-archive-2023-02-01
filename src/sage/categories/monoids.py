@@ -13,7 +13,6 @@ Monoids
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc_c import prod
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.semigroups import Semigroups
 from sage.misc.lazy_import import LazyImport
@@ -154,6 +153,7 @@ class Monoids(CategoryWithAxiom):
                 sage: S.prod([S('a'), S('b')])
                 'ab'
             """
+            from sage.misc.misc_c import prod
             return prod(args, self.one())
 
         def _test_prod(self, **options):

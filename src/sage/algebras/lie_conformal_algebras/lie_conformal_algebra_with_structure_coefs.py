@@ -140,6 +140,13 @@ class LieConformalAlgebraWithStructureCoefficients(
         It contains superfluous information that can be obtained by
         skew-symmetry but that improves speed in computing OPE for
         vertex algebras.
+
+        EXAMPLES::
+
+            sage: virdict =  {('L','L'):{0:{('L',1):1}, 1:{('L',0): 2},3:{('C', 0):1/2}}}
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ)
+            sage: Vir._standardize_s_coeff(virdict, Family(('L',)), ('C',))
+            Finite family {('L', 'L'): ((0, ((('L', 1), 1),)),               (1, ((('L', 0), 2),)),               (3, ((('C', 0), 1/2),)))}
         """
         if parity is None:
             parity = (0,)*index_set.cardinality()

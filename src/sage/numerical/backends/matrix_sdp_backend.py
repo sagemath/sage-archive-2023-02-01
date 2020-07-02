@@ -33,6 +33,7 @@ class MatrixSDPBackend(GenericSDPBackend):
         self._base_ring = base_ring
 
         self.set_sense(+1)
+        self.problem_name("")
 
     def set_sense(self, sense):
         """
@@ -74,3 +75,26 @@ class MatrixSDPBackend(GenericSDPBackend):
             False
         """
         return self._sense == +1
+
+    def problem_name(self, name=None):
+        """
+        Return or define the problem's name
+
+        INPUT:
+
+        - ``name`` (``str``) -- the problem's name. When set to
+          ``None`` (default), the method returns the problem's name.
+
+        EXAMPLES::
+
+            sage: from sage.numerical.backends.matrix_sdp_backend import MatrixSDPBackend
+            sage: from sage.numerical.backends.generic_sdp_backend import get_solver
+            sage: p = get_solver(solver=MatrixSDPBackend)
+            sage: p.problem_name("There once was a french fry")
+            sage: print(p.problem_name())
+            There once was a french fry
+        """
+        if name is None:
+            return self._prob_name
+        else:
+            self._prob_name = name

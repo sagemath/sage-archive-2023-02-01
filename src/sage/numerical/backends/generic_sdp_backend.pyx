@@ -403,7 +403,7 @@ cdef class GenericSDPBackend:
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "Nonexistent_LP_solver")   # optional - Nonexistent_LP_solver
             sage: p.problem_name("There once was a french fry") # optional - Nonexistent_LP_solver
-            sage: print(p.get_problem_name())                     # optional - Nonexistent_LP_solver
+            sage: print(p.problem_name())                     # optional - Nonexistent_LP_solver
             There once was a french fry
         """
 

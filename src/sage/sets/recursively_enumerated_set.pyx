@@ -25,9 +25,10 @@ EXAMPLES:
 No hypothesis on the structure
 ------------------------------
 
-By "no hypothesis" is meant neither a forest nor symmetric nor
-graded, it may have other structure like not containing an oriented cycle but
-this does not help for enumeration.
+What we mean by "no hypothesis" is that the the set is not known
+to be a forest, symmetric, or graded. However, it may have other
+structure, like not containing an oriented cycle, that does not
+help with the enumeration.
 
 In this example, the seed is 0 and the successor function is either ``+2``
 or ``+3``. This is the set of non negative linear combinations of 2 and 3::
@@ -160,13 +161,16 @@ Breadth first search iterator::
     sage: [next(it) for _ in range(6)]
     ['', 'a', 'b', 'aa', 'ab', 'ba']
 
-Forest structure - Example 1 provided by Florent Hivert
--------------------------------------------------------
+Example: Forest structure
+-------------------------
 
-How to define a set using those classes ?
+This example was provided by Florent Hivert.
+
+How to define a set using those classes?
 
 Only two things are necessary to define a set using a
-:class:`RecursivelyEnumeratedSet` object (the other classes being very similar) :
+:class:`RecursivelyEnumeratedSet` object (the other
+classes being very similar):
 
 .. MATH::
 
@@ -206,17 +210,18 @@ Only two things are necessary to define a set using a
     \put(-215,-30){\vector(1,-1){40}}
     \end{picture}
 
-For the previous example, the two necessary pieces of information are :
+For the previous example, the two necessary pieces of information are:
 
-- The initial element ``""``
+- the initial element ``""``;
 
-- The function ``lambda x : [x+letter for letter in ['a', 'b', 'c']``
+- the function::
 
-Err.. Well, this would actually describe an **infinite** set, as such rules
-describes "all words" on 3 letters. Hence, it is a good idea to replace the
-function by
+      lambda x: [x + letter for letter in ['a', 'b', 'c']
 
-    ``lambda x : [x+letter for letter in ['a', 'b', 'c']] if len(x) < 2 else []``
+This would actually describe an **infinite** set, as such rules describes
+"all words" on 3 letters. Hence, it is a good idea to replace the function by::
+
+    lambda x: [x + letter for letter in ['a', 'b', 'c']] if len(x) < 2 else []
 
 or even::
 
@@ -225,9 +230,9 @@ or even::
     ....:         for letter in ['a', 'b', 'c']:
     ....:             yield x+letter
 
-We can then create the :class:`RecursivelyEnumeratedSet` object with either ::
+We can then create the :class:`RecursivelyEnumeratedSet` object with either::
 
-    sage: S = RecursivelyEnumeratedSet( [''],
+    sage: S = RecursivelyEnumeratedSet([''],
     ....:     lambda x: [x+letter for letter in ['a', 'b', 'c']]
     ....:               if len(x) < 2 else [],
     ....:     structure='forest', enumeration='depth',
@@ -235,21 +240,23 @@ We can then create the :class:`RecursivelyEnumeratedSet` object with either ::
     sage: S.list()
     ['', 'a', 'aa', 'ab', 'ac', 'b', 'ba', 'bb', 'bc', 'c', 'ca', 'cb', 'cc']
 
-Or::
+or::
 
-    sage: S = RecursivelyEnumeratedSet( [''], children,
+    sage: S = RecursivelyEnumeratedSet([''], children,
     ....:     structure='forest', enumeration='depth',
     ....:     category=FiniteEnumeratedSets())
     sage: S.list()
     ['', 'a', 'aa', 'ab', 'ac', 'b', 'ba', 'bb', 'bc', 'c', 'ca', 'cb', 'cc']
 
-Forest structure - Example 2 provided by Florent Hivert
--------------------------------------------------------
+Example: Forest structure 2
+---------------------------
+
+This example was provided by Florent Hivert.
 
 Here is a little more involved example. We want to iterate through all
-permutations of a given set S. One solution is to take elements of S one by
-one an insert them at every positions. So a node of the generating tree
-contains two informations
+permutations of a given set `S`. One solution is to take elements of `S` one
+by one an insert them at every positions. So a node of the generating tree
+contains two pieces of information:
 
 - the list ``lst`` of already inserted element;
 - the set ``st`` of the yet to be inserted element.
@@ -275,25 +282,25 @@ convention is that the generated elements are the ``s := f(n)``, except when
     ....:     structure='forest', enumeration='depth',
     ....:     category=FiniteEnumeratedSets())
     sage: S.list()
-    [(6, 3, 1, 8), (3, 6, 1, 8), (3, 1, 6, 8), (3, 1, 8, 6), (6, 1, 3, 8), (1, 6, 3, 8), (1, 3, 6, 8), (1, 3, 8, 6), (6, 1, 8, 3), (1, 6, 8, 3), (1, 8, 6, 3), (1, 8, 3, 6), (6, 3, 8, 1), (3, 6, 8, 1), (3, 8, 6, 1), (3, 8, 1, 6), (6, 8, 3, 1), (8, 6, 3, 1), (8, 3, 6, 1), (8, 3, 1, 6), (6, 8, 1, 3), (8, 6, 1, 3), (8, 1, 6, 3), (8, 1, 3, 6)]
+    [(6, 3, 1, 8), (3, 6, 1, 8), (3, 1, 6, 8), (3, 1, 8, 6), (6, 1, 3, 8),
+     (1, 6, 3, 8), (1, 3, 6, 8), (1, 3, 8, 6), (6, 1, 8, 3), (1, 6, 8, 3),
+     (1, 8, 6, 3), (1, 8, 3, 6), (6, 3, 8, 1), (3, 6, 8, 1), (3, 8, 6, 1),
+     (3, 8, 1, 6), (6, 8, 3, 1), (8, 6, 3, 1), (8, 3, 6, 1), (8, 3, 1, 6),
+     (6, 8, 1, 3), (8, 6, 1, 3), (8, 1, 6, 3), (8, 1, 3, 6)]
     sage: S.cardinality()
     24
-
 """
+
 # ****************************************************************************
 #       Copyright (C) 2014 Sebastien Labbe <slabqc at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+
 from sage.structure.parent cimport Parent
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.abstract_method import abstract_method

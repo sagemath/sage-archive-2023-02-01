@@ -71,6 +71,7 @@ class FreeFermionsLieConformalAlgebra(GradedLieConformalAlgebra):
 
         sage: R = lie_conformal_algebras.FreeFermions(QQbar,gram_matrix=Matrix([[0,1],[1,0]])); R
         The free Fermions super Lie conformal algebra with generators (psi_0, psi_1, K) over Algebraic Field
+        The free Fermions super Lie conformal algebra with generators (psi_0, psi_1, K) over Algebraic Field.
         sage: R.inject_variables()
         Defining psi_0, psi_1, K
         sage: psi_0.bracket(psi_1)

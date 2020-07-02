@@ -110,7 +110,7 @@ EXAMPLES:
 
 .. SEEALSO::
 
-    :mod:`sage.algebras.lie_conformal_algebras.examples` 
+    :mod:`sage.algebras.lie_conformal_algebras.examples`
 
 The base class for all Lie conformal algebras is
 :class:`LieConformalAlgebra`.
@@ -118,12 +118,16 @@ All subclasses are called through its method ``__classcall_private__``.
 This class provides no functionality besides calling the appropriate
 constructor.
 
+We provide some convenience classes to define named Lie conformal
+algebras. See
+:mod:`sage.algebras.lie_conformal_algebras.examples`.
+
 EXAMPLES:
 
 - We construct the Virasoro Lie conformal algebra, its universal
   enveloping vertex algebra and lift some elements::
 
-    sage: Vir = VirasoroLieConformalAlgebra(QQ)
+    sage: Vir = lie_conformal_algebras.Virasoro(QQ)
     sage: Vir.inject_variables()
     Defining L, C
     sage: L.bracket(L)
@@ -131,7 +135,7 @@ EXAMPLES:
 
 - We construct the Current algebra for `\mathfrak{sl}_2`::
 
-    sage: R = AffineLieConformalAlgebra(QQ, 'A1', names = ('e', 'h', 'f'))
+    sage: R = lie_conformal_algebras.Affine(QQ, 'A1', names = ('e', 'h', 'f'))
     sage: R.gens()
     (e, h, f, K)
     sage: R.inject_variables()
@@ -172,8 +176,9 @@ AUTHORS:
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.family import Family
 from sage.categories.commutative_rings import CommutativeRings
+from sage.structure.parent import Parent
 
-class LieConformalAlgebra(UniqueRepresentation):
+class LieConformalAlgebra(UniqueRepresentation, Parent):
     r"""
     Lie Conformal Algebras base class and factory.
 
@@ -258,8 +263,7 @@ class LieConformalAlgebra(UniqueRepresentation):
     .. Note::
 
         Any remaining keyword is currently passed to
-        :class:`CombinatorialFreeModule<sage.combinat.free_module.\
-        CombinatorialFreeModule>`.
+        :class:`CombinatorialFreeModule<sage.combinat.free_module.CombinatorialFreeModule>`.
 
     EXAMPLES:
 
@@ -306,18 +310,25 @@ class LieConformalAlgebra(UniqueRepresentation):
     def __classcall_private__(cls, R=None, arg0=None, index_set=None,
         central_elements=None, category=None, prefix=None,
         names=None, latex_names=None, parity=None, weights=None, **kwds):
+        """
+        Lie conformal algebra factory.
 
+        EXAMPLES::
+
+            sage: betagamma_dict = {('b','a'):{0:{('K',0):1}}}
+            sage: V = LieConformalAlgebra(QQ, betagamma_dict, names=('a','b'), weights=(1,0), central_elements=('K',))
+            sage: type(V)
+            <class 'sage.algebras.lie_conformal_algebras.graded_lie_conformal_algebra.GradedLieConformalAlgebra_with_category'>
+        """
         if not R in CommutativeRings():
-            raise ValueError("First argument must be a commutative ring" +
-                             " got {}".format(R))
+            raise ValueError("arg0 must be a commutative ring got {}".format(R))
 
         #This is the only exposed class so we clean keywords here
         known_keywords = ['category', 'prefix', 'bracket', 'latex_bracket',
                           'string_quotes', 'sorting_key', 'graded', 'super']
         for key in kwds:
             if key not in known_keywords:
-                raise ValueError("LieConformalAlgebra(): got an unexpected " +
-                                "keyword argument '%s'"%key)
+                raise ValueError("got an unexpected keyword argument '%s'"%key)
 
         if isinstance(arg0,dict) and arg0:
             graded=kwds.pop("graded", False)
@@ -337,5 +348,4 @@ class LieConformalAlgebra(UniqueRepresentation):
                        central_elements=central_elements, category=category,
                        prefix=prefix, names=names, latex_names=latex_names,
                        parity=parity, **kwds)
-        return NotImplementedError("Not implemented")
-
+        raise NotImplementedError("not implemented")

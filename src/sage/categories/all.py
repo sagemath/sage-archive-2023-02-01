@@ -139,5 +139,5 @@ from .classical_crystals import ClassicalCrystals
 # polyhedra
 lazy_import('sage.categories.polyhedra', 'PolyhedralSets')
 
-# vertex algebras
+# lie conformal algebras
 lazy_import('sage.categories.lie_conformal_algebras', 'LieConformalAlgebras')

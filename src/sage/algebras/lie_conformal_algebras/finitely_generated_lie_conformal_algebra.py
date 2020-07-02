@@ -18,19 +18,27 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras
-from .lie_conformal_algebra_with_generators import \
-                                            LieConformalAlgebraWithGenerators
+from .freely_generated_lie_conformal_algebra import \
+                                            FreelyGeneratedLieConformalAlgebra
 
-class FinitelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithGenerators):
+class FinitelyGeneratedLieConformalAlgebra(FreelyGeneratedLieConformalAlgebra):
+    """
+    Abstract base class for finitely generated Lie conformal
+    algebras.
+
+    This class provides minimal functionality, simply sets the
+    number of generators.
+    """
     def __init__(self, R, index_set=None, central_elements=None, category=None,
                   element_class=None, prefix=None, names=None, latex_names=None,
                   **kwds):
         """
-        Abstract base class for finitely generated Lie conformal
-        algebras.
+        Initialize self.
 
-        This class provides minimal functionality, simply sets the
-        number of generators.
+        TESTS::
+
+            sage: V = lie_conformal_algebras.Virasoro(QQ)
+            sage: TestSuite(V).run()
         """
         category = LieConformalAlgebras(R).FinitelyGenerated().or_subcategory(
                                                                       category)
@@ -69,7 +77,7 @@ class FinitelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithGenerators):
 
         EXAMPLES::
 
-            sage: R = NeveuSchwarzLieConformalAlgebra(QQ); R.an_element()
+            sage: R = lie_conformal_algebras.NeveuSchwarz(QQ); R.an_element()
             L + G + C
         """
         return self.sum(self.gens())
@@ -80,9 +88,9 @@ class FinitelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithGenerators):
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ); Vir.ngens()
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ); Vir.ngens()
             2
-            sage: V = AffineLieConformalAlgebra(QQ, 'A1'); V.ngens()
+            sage: V = lie_conformal_algebras.Affine(QQ, 'A1'); V.ngens()
             4
         """
         return self._ngens
@@ -99,14 +107,14 @@ class FinitelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithGenerators):
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ);
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ);
             sage: Vir.gens()
             (L, C)
 
         .. SEEALSO::
 
             :meth:`lie_conformal_algebra_generators<\
-            LieConformalAlgebraWithGenerators.\
+            FreelyGeneratedLieConformalAlgebra.\
             lie_conformal_algebra_generators>`
         """
         return self.lie_conformal_algebra_generators()
@@ -118,7 +126,7 @@ class FinitelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithGenerators):
 
         EXAMPLES::
 
-            sage: R = NeveuSchwarzLieConformalAlgebra(QQ); R.central_elements()
+            sage: R = lie_conformal_algebras.NeveuSchwarz(QQ); R.central_elements()
             (C,)
         """
-        return tuple(LieConformalAlgebraWithGenerators.central_elements(self))
+        return tuple(FreelyGeneratedLieConformalAlgebra.central_elements(self))

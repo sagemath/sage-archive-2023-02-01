@@ -111,6 +111,7 @@ Individual Categories
    sage/categories/graded_hopf_algebras_with_basis
    sage/categories/graded_lie_algebras
    sage/categories/graded_lie_algebras_with_basis
+   sage/categories/graded_lie_conformal_algebras
    sage/categories/graded_modules
    sage/categories/graded_modules_with_basis
    sage/categories/graphs

@@ -10,9 +10,5 @@
 
 
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.algebras.lie_conformal_algebras.lie_conformal_algebra',
-'LieConformalAlgebra')
-lazy_import('sage.algebras.lie_conformal_algebras.examples',
-    ('AffineLieConformalAlgebra',
-    'NeveuSchwarzLieConformalAlgebra',
-    'VirasoroLieConformalAlgebra'))
+lazy_import('sage.algebras.lie_conformal_algebras.lie_conformal_algebra','LieConformalAlgebra')
+lazy_import('sage.algebras.lie_conformal_algebras', 'examples', 'lie_conformal_algebras')

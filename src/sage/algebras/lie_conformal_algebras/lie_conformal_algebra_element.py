@@ -19,6 +19,7 @@ AUTHORS:
 
 from sage.functions.other import factorial
 from sage.misc.misc_c import prod
+from sage.combinat.partition import Partition
 from sage.misc.misc import repr_lincomb
 from sage.misc.latex import latex
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
@@ -42,7 +43,7 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ)
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ)
             sage: Vir.inject_variables()
             Defining L, C
             sage: L.T()
@@ -52,22 +53,13 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
             sage: C.T()
             0
 
-            sage: R = NeveuSchwarzLieConformalAlgebra(QQbar); R.inject_variables()
+            sage: R = lie_conformal_algebras.NeveuSchwarz(QQbar); R.inject_variables()
             Defining L, G, C
             sage: (L + 2*G.T() + 4*C).T(2)
             2*T^(2)L + 12*T^(3)G
-
-        TESTS::
-
-            sage: R = VirasoroLieConformalAlgebra(QQ); R.zero().T()
-            0
-            sage: (R.zero() + R.0).T()
-            TL
-            sage: R.0.T(0)
-            L
         """
-        from sage.rings.all import NN
-        if n not in NN:
+        from sage.rings.all import ZZ
+        if n not in ZZ or n < 0:
             raise ValueError("n must be a nonnegative Integer")
         if n == 0 or self.is_zero():
             return self
@@ -89,19 +81,10 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
             sage: (L + L.T()).is_monomial()
             False
             sage: L.T().is_monomial()
-            True
-
-        TESTS::
-
-            sage: R = AffineLieConformalAlgebra(AA,'A1',names=('e','h','f')); R.inject_variables()
-            Defining e, h, f, K
-            sage: R.zero().is_monomial()
-            True
-            sage: (e.T(2) + R.zero()).is_monomial()
             True
         """
         return len(self._monomial_coefficients) == 1 or self.is_zero()
@@ -119,7 +102,7 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
 
         EXAMPLES::
 
-            sage: R = NeveuSchwarzLieConformalAlgebra(QQ); R.inject_variables()
+            sage: R = lie_conformal_algebras.NeveuSchwarz(QQ); R.inject_variables()
             Defining L, G, C
             sage: L.is_even_odd()
             0
@@ -144,13 +127,13 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
             sage: L.bracket(L)
             {0: TL, 1: 2*L, 3: 1/2*C}
             sage: L.T().bracket(L)
             {1: -TL, 2: -4*L, 4: -2*C}
 
-            sage: R = AffineLieConformalAlgebra(QQbar, 'A1', names=('e','h','f')); R
+            sage: R = lie_conformal_algebras.Affine(QQbar, 'A1', names=('e','h','f')); R
             The affine Lie conformal algebra of type ['A', 1] over Algebraic Field
             sage: R.inject_variables()
             Defining e, h, f, K
@@ -197,7 +180,7 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
 
         EXAMPLES::
 
-            sage: V = VirasoroLieConformalAlgebra(QQ); V.inject_variables()
+            sage: V = lie_conformal_algebras.Virasoro(QQ); V.inject_variables()
             Defining L, C
             sage: v = L.T(5).nproduct(L,6); v
             -1440*L
@@ -206,7 +189,7 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
             sage: L.T(4)
             24*T^(4)L
 
-            sage: R = AffineLieConformalAlgebra(QQ, 'B3')
+            sage: R = lie_conformal_algebras.Affine(QQ, 'B3')
             sage: R.2.T()+3*R.3
             TB[alpha[1]] + 3*B[alpha[2] + alpha[3]]
         """
@@ -237,26 +220,24 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
 
         EXAMPLES::
 
-            sage: V = VirasoroLieConformalAlgebra(QQ); V.inject_variables()
+            sage: V = lie_conformal_algebras.Virasoro(QQ); V.inject_variables()
             Defining L, C
             sage: latex(L.T(2))
             2T^{(2)}L
 
-            sage: R = AffineLieConformalAlgebra(QQbar, 'A1', names=('e','h','f')); R.inject_variables()
+            sage: R = lie_conformal_algebras.Affine(QQbar, 'A1', names=('e','h','f')); R.inject_variables()
             Defining e, h, f, K
             sage: latex(e.bracket(f))
             \left\{0 : h, 1 : K\right\}
             sage: latex(e.T(3))
             6T^{(3)}e
 
-            sage: R = AffineLieConformalAlgebra(QQbar, 'A1')
+            sage: R = lie_conformal_algebras.Affine(QQbar, 'A1')
             sage: latex(R.0.bracket(R.2))
             \left\{0 : \alpha^\vee_{1}, 1 : \text{\texttt{K}}\right\}
 
-
-            sage: R = AffineLieConformalAlgebra(QQ, 'A1'); latex(R.0.T(3))
+            sage: R = lie_conformal_algebras.Affine(QQ, 'A1'); latex(R.0.T(3))
             6T^{(3)}\alpha_{1}
-
         """
         if self.is_zero():
             return "0";
@@ -291,23 +272,13 @@ class GradedLCAElement(LCAStructureCoefficientsElement):
 
         EXAMPLES::
 
-            sage: V = VirasoroLieConformalAlgebra(QQ)
+            sage: V = lie_conformal_algebras.Virasoro(QQ)
             sage: V.inject_variables()
             Defining L, C
             sage: C.degree()
             0
             sage: L.T(4).degree()
             6
-
-            sage: N = NeveuSchwarzLieConformalAlgebra(AA)
-            sage: N.inject_variables()
-            Defining L, G, C
-            sage: G.T().degree()
-            5/2
-            sage: L.degree()
-            2
-            sage: N.zero().degree()
-            +Infinity
         """
         if self.is_zero():
             from sage.rings.infinity import Infinity
@@ -321,4 +292,4 @@ class GradedLCAElement(LCAStructureCoefficientsElement):
             ls.append(ret)
         if ls[1:] == ls[:-1]:
             return ls[0]
-        raise ValueError("{} is not homogeneous!".format(self))
+        raise ValueError("{} is not homogeneous".format(self))

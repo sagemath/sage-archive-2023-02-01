@@ -1,5 +1,5 @@
 """
-Lie Conformal Algebras With Generators.
+Freely Generated Lie Conformal Algebras
 
 AUTHORS:
 
@@ -23,20 +23,28 @@ from sage.rings.integer import Integer
 from sage.sets.family import Family
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 
-class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
+class FreelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithBasis):
+    """
+    Base class for a central extension of a freely generated Lie
+    conformal algebra.
+
+    This class provides minimal functionality, it sets up the
+    family of Lie conformal algebra generators.
+
+    .. NOTE::
+
+        We now only accept direct sums of free modules plus
+        some central generators `C_i` such that `TC_i = 0`.
+    """
     def __init__(self,R, index_set=None, central_elements=None, category=None,
                  element_class=None, prefix=None, **kwds):
         """
-        Base class for a Lie conformal algebra with distinguished
-        generators.
+        Initialize self.
 
-        This class provides minimal functionality, it sets up the
-        family of Lie conformal algebra generators.
+        TESTS::
 
-        .. NOTE::
-
-            We now only accept direct sums of free modules plus
-            some central generators `C_i` such that `TC_i = 0`.
+            sage: V = lie_conformal_algebras.Virasoro(QQ)
+            sage: TestSuite(V).run()
         """
         self._generators = Family(index_set)
         E = cartesian_product([index_set, NonNegativeIntegers()])
@@ -46,7 +54,7 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
             E = DisjointUnionEnumeratedSets((cartesian_product([
                 Family(central_elements), {Integer(0)}]),E))
 
-        super(LieConformalAlgebraWithGenerators,self).__init__(R, basis_keys=E,
+        super(FreelyGeneratedLieConformalAlgebra,self).__init__(R, basis_keys=E,
             element_class=element_class, category=category, prefix=prefix,
             **kwds)
 
@@ -64,10 +72,10 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ)
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ)
             sage: Vir.lie_conformal_algebra_generators()
             (L, C)
-            sage: V = AffineLieConformalAlgebra(QQ,'A1')
+            sage: V = lie_conformal_algebras.Affine(QQ,'A1')
             sage: V.lie_conformal_algebra_generators()
             (B[alpha[1]], B[alphacheck[1]], B[-alpha[1]], B['K'])
         """
@@ -85,10 +93,10 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ)
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ)
             sage: Vir.central_elements()
             (C,)
-            sage: V = AffineLieConformalAlgebra(QQ, 'A1')
+            sage: V = lie_conformal_algebras.Affine(QQ, 'A1')
             sage: V.central_elements()
             (B['K'],)
         """

@@ -1745,8 +1745,8 @@ cpdef radius_DHV(g, weight_function=None, check_weight=True):
 
 cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
                                         BoostVecWeightedDiGraphU rev_g_boost, 
-                                        v_index source, int n,
-                                        str algorithm) :
+                                        v_index source,
+                                        str algorithm):
     r"""
     Returns lower bound on the diamter of weighted digraph using the weighted
     version of the algorithm proposed in [Broder2000]_.
@@ -1776,18 +1776,16 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
 
     - ``source`` -- starting node for forward and backward distance computation.
 
-    - ``n`` -- number of vertices in g_boost.
-
     - ``algorithm`` -- string; algorithm for computing single source shortest
       distances. If ``g_boost`` contains negative edge weights then it will be
       ``Bellman-Ford``, otherwise it will be ``Dijkstra_Boost``.
     """
     import sys
     # These variables are automatically deleted when the function terminates.
+    cdef int n = g_boost.num_verts()
     cdef v_index source_1, source_2, m, s, d, antipode_1, antipode_2, v
     cdef double LB_1 = 0, LB_2 = 0, LB, LB_m
     cdef result_distances result_1, result_2
-
     source_1 = source_2 = source
 
     # Algorithm
@@ -1904,6 +1902,179 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
 
     return (LB, s, m, d)
 
+cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
+                           BoostVecWeightedDiGraphU rev_g_boost,
+                           v_index source,
+                           str algorithm):
+    r"""
+    Return the diameter of a weighted directed graph.
+
+    The ``DiFUB`` (Directed iterative Fringe Upper Bound) algorithm calculates
+    the exact value of the diameter of an weighted directed graph [CGLM2012]_.
+
+    This algorithm starts from a vertex found through a 2Dsweep call (a directed
+    version of the 2sweep method). The worst case time complexity of the DiFUB
+    algorithm is `O(nm)`, but it can be very fast in practice. See the code's
+    documentation and [CGLM2012]_ for more details.
+
+    If the digraph is not strongly connected, the returned value is infinity.
+
+    INPUT:
+
+    - ``g_boost`` -- a boost weighted digraph.
+
+    - ``rev_g_boost`` -- a copy of ``g_boost`` with edges reversed.
+
+    - ``source`` -- starting node for forward and backward distance computation.
+
+    - ``algorithm`` -- string; algorithm for computing single source shortest
+      distances. If ``g_boost`` contains negative edge weights then it will be
+      ``Bellman-Ford``, otherwise it will be ``Dijkstra_Boost``.
+    """
+    import sys
+    # These variables are automatically deleted when the function terminates.
+    cdef int n = g_boost.num_verts()
+    cdef double LB, LB_1, LB_2, UB
+    cdef v_index s, m, d, v, tmp
+    cdef size_t i
+    cdef vector[double] distances
+    cdef vector[pair[double, v_index]] order_1, order_2
+
+    # We select a vertex with low eccentricity using 2Dsweep
+    LB, s, m, d = diameter_lower_bound_2Dsweep(g_boost, rev_g_boost,
+                                               source, algorithm)
+
+    # If the lower bound is a very large number, it means that the digraph is
+    # not strongly connected and so the diameter is infinite.
+    if LB == sys.float_info.max:
+        return LB
+
+    # Compute Forward distances from `m`.
+    if algorithm == 'Bellman-Ford':
+        sig_on()
+        distances = g_boost.bellman_ford_shortest_paths(m).distances
+        sig_off()
+    else:
+        sig_on()
+        distances = g_boost.dijkstra_shortest_paths(m).distances
+        sig_off()
+    if not distances.size():
+        raise ValueError("the graph contains a negative cycle")
+
+    # Obtain Forward eccentricity of `m` and store pair of
+    # forward distances, vertex in order_1
+    LB_1 = 0
+    for v in range(n):
+        LB_1 = max(LB_1, distances[v])
+        order_1.push_back(pair[double, v_index](distances[v], v))
+
+    # Compute Backward distances from `m`.
+    if algorithm == 'Bellman-Ford':
+        sig_on()
+        distances = rev_g_boost.bellman_ford_shortest_paths(m).distances
+        sig_off()
+    else:
+        sig_on()
+        distances = rev_g_boost.dijkstra_shortest_paths(m).distances
+        sig_off()
+    if not distances.size():
+        raise ValueError("the graph contains a negative cycle")
+
+    # Obtain Backward eccentricity of `m` and store pair of
+    # backward distances, vertex in order_2.
+    LB_2 = 0
+    for v in range(n):
+        LB_2 = max(LB_2, distances[v])
+        order_2.push_back(pair[double, v_index](distances[v], v))
+
+    # Now sort order_1 / order_2 in decreasing order of forward / backward
+    # distances respectively.
+    # Now order_1 and order_2 will contain order of vertices in which
+    # further distance computations will be done.
+    sorted(order_1, reverse=True)
+    sorted(order_2, reverse=True)
+
+    LB = max(LB, LB_1, LB_2)
+    if LB == sys.float_info.max:
+        return LB
+
+    # The algorithm:
+    #
+    # The diameter of the digraph is equal to the maximum forward or backward
+    # eccentricity of a vertex. Let `\[db_1, db_2,..., db_i\]` represents the
+    # different backward distances from `m` containing at least one vertex at
+    # that distance. Similarly, let `\[df_1, df_2,..., df_i\]` represents the
+    # different forward distances from `m` containing at least one vertex at
+    # that distance.
+    #
+    # The algorithm is based on the following two observations :
+    #
+    # 1). All the nodes `x` at a backward distance greater than `\[db_i\]` from
+    # `m` having forward eccentricity greater than `\[2db_{i-1}\]` have a
+    # corresponding node `y` whose backward eccentricity is greater than or
+    # equal to the forward eccentricity of `x`, at a forward distance greater
+    # than `\[db_i\]` from `m`.
+    #
+    # 2). All the nodes `x` at a forward distance greater than `\[df_i\]` from
+    # `m` having backward eccentricity greater than `\[2df_{i-1}\]` have a
+    # corresponding node `y` whose forward eccentricity is greater than or equal
+    # to the backward eccentricity of `x`, at a backward distance greater than
+    # `\[df_i\]` from `m`.
+    #
+    # Therefore, we calculate backward / forward eccentricity of all nodes at
+    # forward / backward distance `\[df_i / db_i\]` from `m` respectively. And
+    # their maximum is `LB`. If `LB` is greater than `2(next maximum forward /
+    # backward distance)` then we are done, else we proceed further.
+
+    i = 0
+    UB = max(2 * order_1[i].first, 2 * order_2[i].first)
+
+    while LB < UB:
+        v = order_1[i].second
+        if algorithm == 'Bellman-Ford':
+            sig_on()
+            distances = rev_g_boost.bellman_ford_shortest_paths(v).distances
+            sig_off()
+        else:
+            sig_on()
+            distances = rev_g_boost.dijkstra_shortest_paths(v).distances
+            sig_off()
+        if not distances.size():
+            raise ValueError("the graph contains a negative cycle")
+
+        LB_1 = 0
+        for tmp in range(n):
+            LB_1 = max(LB_1, distances[tmp])
+
+        v = order_2[i].second
+        if algorithm == 'Bellman-Ford':
+            sig_on()
+            distances = g_boost.bellman_ford_shortest_paths(v).distances
+            sig_off()
+        else:
+            sig_on()
+            distances = g_boost.dijkstra_shortest_paths(v).distances
+            sig_off()
+        if not distances.size():
+            raise ValueError("the graph contains a negative cycle")
+
+        LB_2 = 0
+        for tmp in range(n):
+            LB_2 = max(LB_2, distances[tmp])
+
+        # Update the lower bound
+        LB = max(LB, LB_1, LB_2)
+        i += 1
+
+        if LB == sys.float_info.max or i == n:
+            break
+
+        # next maximum forward / backward distance
+        UB = max( 2 * order_1[i].first, 2 * order_2[i].first)
+
+    # Finally return the computed diameter
+    return LB
+
 cpdef diameter(G, algorithm=None, source=None,
                weight_function=None, check_weight=True):
     r"""
@@ -1939,8 +2110,30 @@ cpdef diameter(G, algorithm=None, source=None,
 
     - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
       that the ``weight_function`` outputs a number for each edge.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.base.boost_graph import diameter
+        sage: G = DiGraph([(0,1,2), (1,0,-1)])
+        sage: diameter(G, algorithm='DiFUB')
+        1.0
+        sage: diameter(G, algorithm='DiFUB', weight_function=lambda e:e[2])
+        2.0
+
+    TESTS::
+
+    Diameter of weakly connected digraph is Infinity
+
+        sage: G = DiGraph(2)
+        sage: diameter(G, algorithm='DiFUB')
+        +Infinity
+        sage: diameter(G, algorithm='2Dsweep')
+        +Infinity
     """
     import sys
+
+    if not G.is_directed():
+        raise TypeError("this method works only for digraphs")
 
     cdef int n = G.order()
 
@@ -1994,11 +2187,11 @@ cpdef diameter(G, algorithm=None, source=None,
 
     if algorithm == '2Dsweep':
         LB = diameter_lower_bound_2Dsweep(g_boost, rev_g_boost,
-                                            isource, n, algo)[0]
+                                            isource, algo)[0]
 
-    #else:
-    #    LB = diameter_DiFUB(g_boost, rev_g_boost,
-    #                        isource, n, algo)
+    else:
+        LB = diameter_DiFUB(g_boost, rev_g_boost,
+                            isource, algo)
 
     if LB == sys.float_info.max:
         from sage.rings.infinity import Infinity

@@ -81,7 +81,7 @@ import itertools
 
 def column_Log(SUK, iota, U, prec=106):
     r"""
-    Return the log vector of ``iota``; i.e., the logs of all the valuations
+    Return the log vector of ``iota``; i.e., the logs of all the valuations.
 
     INPUT:
 
@@ -167,7 +167,7 @@ def c3_func(SUK, prec=106):
 
 def c4_func(SUK, v, A, prec=106):
     r"""
-    Return the constant `c_4` from Smart's TCDF paper, [Sma1995]_
+    Return the constant `c_4` from Smart's TCDF paper, [Sma1995]_.
 
     INPUT:
 
@@ -208,7 +208,7 @@ def c4_func(SUK, v, A, prec=106):
 
 def beta_k(betas_and_ns):
     r"""
-    Return a pair `[\beta_k,|beta_k|_v]`, where `\beta_k` has the smallest nonzero valuation in absolute value of the list ``betas_and_ns``
+    Return a pair `[\beta_k,|beta_k|_v]`, where `\beta_k` has the smallest nonzero valuation in absolute value of the list ``betas_and_ns``.
 
     INPUT:
 
@@ -245,7 +245,7 @@ def beta_k(betas_and_ns):
 
 def mus(SUK, v):
     r"""
-    Return a list `[\mu]`, for `\mu` defined in [AKMRVW]_
+    Return a list `[\mu]`, for `\mu` defined in [AKMRVW]_.
 
     INPUT:
 
@@ -284,7 +284,7 @@ def mus(SUK, v):
 
 def possible_mu0s(SUK, v):
     r"""
-    Return a list `[\mu_0]` of all possible `\mu_0` values defined in [AKMRVW]_
+    Return a list `[\mu_0]` of all possible `\mu_0` values defined in [AKMRVW]_.
 
     INPUT:
 
@@ -338,7 +338,7 @@ def possible_mu0s(SUK, v):
 
 def Yu_a1_kappa1_c1(p, dK, ep):
     r"""
-    Compute the constants a(1), kappa1, and c(1) of [Yu2007]_
+    Compute the constants a(1), kappa1, and c(1) of [Yu2007]_.
 
     INPUT:
 
@@ -704,7 +704,7 @@ def Yu_bound(SUK, v, prec=106):
 
 def K0_func(SUK, A, prec=106):
     r"""
-    Return the constant `K_0` from [AKMRVW]_
+    Return the constant `K_0` from [AKMRVW]_.
 
     INPUT:
 
@@ -753,7 +753,7 @@ def K0_func(SUK, A, prec=106):
 
 def c11_func(SUK, v, A, prec=106):
     r"""
-    Return the constant `c_{11}` from Smart's TCDF paper, [Sma1995]_
+    Return the constant `c_{11}` from Smart's TCDF paper, [Sma1995]_.
 
     INPUT:
 
@@ -794,7 +794,7 @@ def c11_func(SUK, v, A, prec=106):
 
 def c13_func(SUK, v, prec=106):
     r"""
-    Return the constant `c_{13}` from Smart's TCDF paper, [Sma1995]_
+    Return the constant `c_{13}` from Smart's TCDF paper, [Sma1995]_.
 
     INPUT:
 
@@ -845,7 +845,7 @@ def c13_func(SUK, v, prec=106):
 
 def K1_func(SUK, v, A, prec=106):
     r"""
-    Return the constant `K_1` from Smart's TCDF paper, [Sma1995]_
+    Return the constant `K_1` from Smart's TCDF paper, [Sma1995]_.
 
     INPUT:
 
@@ -1155,7 +1155,7 @@ def reduction_step_complex_case(place, B0, list_of_gens, torsion_gen, c13):
 
 def cx_LLL_bound(SUK, A, prec=106):
     r"""
-    Return the maximum of all of the `K_1`'s as they are LLL-optimized for each infinite place `v`
+    Return the maximum of all of the `K_1`'s as they are LLL-optimized for each infinite place `v`.
 
     INPUT:
 
@@ -1625,7 +1625,7 @@ def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
 
 def p_adic_LLL_bound(SUK, A, prec=106):
     r"""
-    Return the maximum of all of the `K_0`'s as they are LLL-optimized for each finite place `v`
+    Return the maximum of all of the `K_0`'s as they are LLL-optimized for each finite place `v`.
 
     INPUT:
 

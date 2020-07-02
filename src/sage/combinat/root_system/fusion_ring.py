@@ -282,7 +282,7 @@ class FusionRing(WeylCharacterRing):
             sage: F1 is F2 and F2 is F3
             True
 
-            sage: A23 = FusionRing('A2', 3)  # long time
+            sage: A23 = FusionRing('A2', 3)
             sage: TestSuite(A23).run()
 
             sage: B22 = FusionRing('B2', 2)

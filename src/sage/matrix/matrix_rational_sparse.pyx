@@ -272,7 +272,8 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
 # TODO
 ##     cpdef _lmul_(self, Element right):
 ##         """
-##         EXAMPLES:
+##         EXAMPLES::
+##
 ##             sage: a = matrix(QQ,2,range(6))
 ##             sage: (3/4) * a
 ##             [   0  3/4  3/2]

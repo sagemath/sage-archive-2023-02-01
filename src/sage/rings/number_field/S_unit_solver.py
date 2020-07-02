@@ -78,6 +78,7 @@ from sage.arith.all import gcd, lcm, CRT
 from copy import copy
 import itertools
 
+
 def column_Log(SUK, iota, U, prec=106):
     r"""
     Return the log vector of ``iota``; i.e., the logs of all the valuations
@@ -113,9 +114,10 @@ def column_Log(SUK, iota, U, prec=106):
 
     return [ R(SUK.number_field().abs_val(v, iota, prec)).log() for v in U]
 
+
 def c3_func(SUK, prec=106):
     r"""
-    Return the constant `c_3` from [AKMRVW].
+    Return the constant `c_3` from [AKMRVW]_.
 
     INPUT:
 
@@ -162,6 +164,7 @@ def c3_func(SUK, prec=106):
             c1 = R(max(poss_c1, c1))
     return R(0.9999999) / (c1*SUK.rank())
 
+
 def c4_func(SUK, v, A, prec=106):
     r"""
     Return the constant `c_4` from Smart's TCDF paper, [Sma1995]_
@@ -202,6 +205,7 @@ def c4_func(SUK, v, A, prec=106):
     """
     return max(SUK.number_field().abs_val(v, alpha, prec) for alpha in A)
 
+
 def beta_k(betas_and_ns):
     r"""
     Return a pair `[\beta_k,|beta_k|_v]`, where `\beta_k` has the smallest nonzero valuation in absolute value of the list ``betas_and_ns``
@@ -237,6 +241,7 @@ def beta_k(betas_and_ns):
         if ( abs(pair[1]) != 0 and abs(pair[1]) < abs(good_pair[1]) ):
             good_pair = pair
     return good_pair
+
 
 def mus(SUK, v):
     r"""
@@ -275,6 +280,7 @@ def mus(SUK, v):
         temp = [(beta[0]**good_pair[1])*(good_pair[0]**(-beta[1])) for beta in beta_and_ns]
         temp.remove(1)
         return temp
+
 
 def possible_mu0s(SUK, v):
     r"""
@@ -328,6 +334,7 @@ def possible_mu0s(SUK, v):
                 if alpha0*temp_prod not in mu0s:
                     mu0s.append(alpha0*temp_prod)
     return mu0s
+
 
 def Yu_a1_kappa1_c1(p, dK, ep):
     r"""
@@ -401,9 +408,10 @@ def Yu_a1_kappa1_c1(p, dK, ep):
 
     return a1, kappa1, c1
 
+
 def Yu_condition_115(K, v):
     r"""
-    Return ``True`` or ``False``, as the number field ``K`` and the finite place ``v`` satisfy condition (1.15) of [Yu2007]_
+    Return ``True`` or ``False``, as the number field ``K`` and the finite place ``v`` satisfy condition (1.15) of [Yu2007]_.
 
     INPUT:
 
@@ -412,7 +420,7 @@ def Yu_condition_115(K, v):
 
     OUTPUT:
 
-    ``True`` if (1.15) is satisfied, otherwise `False`.
+    ``True`` if (1.15) is satisfied, otherwise ``False``.
 
     EXAMPLES::
 
@@ -453,6 +461,7 @@ def Yu_condition_115(K, v):
             return True
 
     return False
+
 
 def Yu_modified_height(mu, n, v, prec=106):
     r"""
@@ -504,9 +513,10 @@ def Yu_modified_height(mu, n, v, prec=106):
     else:
         return h1
 
+
 def Omega_prime(dK, v, mu_list, prec=106):
     r"""
-    Return the constant Omega' appearing in [AKMRVW].
+    Return the constant Omega' appearing in [AKMRVW]_.
 
     INPUT:
 
@@ -519,7 +529,7 @@ def Omega_prime(dK, v, mu_list, prec=106):
 
     The constant `Omega'`.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import mus, Omega_prime
         sage: K.<a> = NumberField(x^3 - 3)
@@ -546,6 +556,7 @@ def Omega_prime(dK, v, mu_list, prec=106):
     omega_prime *= Yu_modified_height(mu_list[0], n, v, prec)
 
     return omega_prime
+
 
 def Yu_C1_star(n, v, prec=106):
     r"""
@@ -605,6 +616,7 @@ def Yu_C1_star(n, v, prec=106):
     C1_star = R((n+1) * C1)
 
     return C1_star
+
 
 def Yu_bound(SUK, v, prec=106):
     r"""
@@ -689,6 +701,7 @@ def Yu_bound(SUK, v, prec=106):
         C1star = Yu_C1_star(n, vL, prec)
         return max(exp(R(2))/R(2).log(), e_vL_v * largest_Omega_prime * C1star)
 
+
 def K0_func(SUK, A, prec=106):
     r"""
     Return the constant `K_0` from [AKMRVW]_
@@ -737,6 +750,7 @@ def K0_func(SUK, A, prec=106):
 
     return K0
 
+
 def c11_func(SUK, v, A, prec=106):
     r"""
     Return the constant `c_{11}` from Smart's TCDF paper, [Sma1995]_
@@ -776,6 +790,7 @@ def c11_func(SUK, v, A, prec=106):
         return R(4*c4_func(SUK, v, A, prec)).log() / c3_func(SUK, prec)
     else:
         return 2*R(4*(c4_func(SUK, v, A, prec)).sqrt()).log() / c3_func(SUK, prec)
+
 
 def c13_func(SUK, v, prec=106):
     r"""
@@ -826,6 +841,7 @@ def c13_func(SUK, v, prec=106):
         return c3_func(SUK, prec)
     else:
         return c3_func(SUK, prec)/2
+
 
 def K1_func(SUK, v, A, prec=106):
     r"""
@@ -895,6 +911,7 @@ def K1_func(SUK, v, A, prec=106):
 
     return max([c11, c15])
 
+
 def minimal_vector(A, y, prec=106):
     r"""
     INPUT:
@@ -955,6 +972,7 @@ def minimal_vector(A, y, prec=106):
         sigma = ybrace[len(ybrace)-1]
         return ((ALLL.rows()[0].norm())**2 * sigma) / c1
 
+
 def reduction_step_complex_case(place, B0, list_of_gens, torsion_gen, c13):
     r"""
     INPUT:
@@ -974,12 +992,12 @@ def reduction_step_complex_case(place, B0, list_of_gens, torsion_gen, c13):
 
     .. NOTE::
 
-        The constant ``c13``  in Section 5, [AKMRVW]
+        The constant ``c13``  in Section 5, [AKMRVW]_
         This function does handle both real and non-real infinite places.
 
     REFERENCES:
 
-    See [Sma1998]_., [AKMRVW]_.
+    See [Sma1998]_, [AKMRVW]_.
 
     EXAMPLES::
 
@@ -1013,7 +1031,7 @@ def reduction_step_complex_case(place, B0, list_of_gens, torsion_gen, c13):
         if abs(lg) > 2**(-place.codomain().precision()):
             npi.append(i)
     # someday make this a separate function
-    if len(npi) == 0:
+    if not npi:
         # this is the pure imaginary case.
         #we have only imaginary numbers
 
@@ -1060,7 +1078,7 @@ def reduction_step_complex_case(place, B0, list_of_gens, torsion_gen, c13):
         while not finish:
 
             A = copy(identity_matrix(ZZ, n+1))
-            #we redefine the imaginary parts in case any generator was negative
+            # We redefine the imaginary parts in case any generator was negative
             new_imag_part_log_gens = [0 for i in imag_part_log_gens[:-1]]+[imag_part_log_gens[-1]]
             A[n-1] = vector([(g*C).round() for g in real_part_log_gens])
             A[n] = vector([(g*C).round() for g in new_imag_part_log_gens])
@@ -1068,18 +1086,18 @@ def reduction_step_complex_case(place, B0, list_of_gens, torsion_gen, c13):
             if A.is_singular():
                 C *= 2
             else:
-                #We apply Lemma 5.3 from [AKMRVW]
+                # We apply Lemma 5.3 from [AKMRVW]
                 A = A.transpose()
                 l = minimal_vector(A, zero_vector(ZZ,n+1))
-                #Note that l is the a lower bound on the square of the magnitude of the shortest non-zero vector in the lattice generated by A
-                #Checking hypothesis of lemma 5.3 in [AKMRVW]
+                # Note that l is the a lower bound on the square of the magnitude of the shortest non-zero vector in the lattice generated by A
+                # Checking hypothesis of lemma 5.3 in [AKMRVW]
                 if l <= T**2 + S:
                     C *= 2
-                    #Need to check precision: must be at least two more than the number of digits in largest entry in A to ensure that we get true rounding--
+                    # Need to check precision: must be at least two more than the number of digits in largest entry in A to ensure that we get true rounding--
                     if prec < R(C*max_part_log).log()/R(2).log()+3:
                         return 0, True
                 else:
-                    #Need to check precision: must be at least two more than the number of digits in largest entry in A to ensure that we get true rounding--
+                    # Need to check precision: must be at least two more than the number of digits in largest entry in A to ensure that we get true rounding--
                     if prec < R(C*max_part_log).log()/R(2).log()+3:
                         return 0, True
                     else:
@@ -1133,6 +1151,7 @@ def reduction_step_complex_case(place, B0, list_of_gens, torsion_gen, c13):
                         Bnew = ((R(C * 2).log() - ((l-S).sqrt()-T).log()) / c13).round()
                         finish = True
                         return max(4,w,Bnew), False
+
 
 def cx_LLL_bound(SUK, A, prec=106):
     r"""
@@ -1188,6 +1207,7 @@ def cx_LLL_bound(SUK, A, prec=106):
         cx_LLL = max(cx_bound, cx_LLL)
         #compare this value with the complex LLL bounds we have found for the previous places, if it is bigger, replace that bound
     return cx_LLL
+
 
 def log_p(a, prime, prec):
     r"""
@@ -1251,6 +1271,7 @@ def log_p(a, prime, prec):
             local_terms.append(pr.gens()[1]**val)
 
     return log_p_series_part(a*prod(local_terms), prime, prec) - sum([log_p_series_part(b, prime, prec) for b in local_terms])
+
 
 def log_p_series_part(a, prime, prec):
     r"""
@@ -1345,6 +1366,7 @@ def log_p_series_part(a, prime, prec):
 
     return logp
 
+
 def defining_polynomial_for_Kp(prime, prec=106):
     r"""
     INPUT:
@@ -1403,12 +1425,13 @@ def defining_polynomial_for_Kp(prime, prec=106):
         L = [g.change_ring(ZZ) for g, _ in factors]
         A = [g for g in L if (g(theta)).valuation(prime) >= e*N/2];
 
-        #We narrow down the list unitl only one value rmains
+        #We narrow down the list unitl only one value remains
 
         if len(A) == 1: 
             return A[0].change_ring(Integers(p**prec)).change_ring(ZZ)
         else:
             N += 1
+
 
 def embedding_to_Kp(a, prime, prec):
     r"""
@@ -1452,6 +1475,7 @@ def embedding_to_Kp(a, prime, prec):
     f = K(a).lift()
 
     return K( sum([b*gen**j for j,b in enumerate(f.mod(g))]) )
+
 
 def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
     r"""
@@ -1598,6 +1622,7 @@ def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
         else:
             u += 1
 
+
 def p_adic_LLL_bound(SUK, A, prec=106):
     r"""
     Return the maximum of all of the `K_0`'s as they are LLL-optimized for each finite place `v`
@@ -1655,6 +1680,7 @@ def p_adic_LLL_bound(SUK, A, prec=106):
 
         LLL_K0_by_finite_place.append(val)
     return max(LLL_K0_by_finite_place)
+
 
 def split_primes_large_lcm(SUK, bound):
     r"""
@@ -1724,6 +1750,7 @@ def split_primes_large_lcm(SUK, bound):
             lcm_list.append(q)
     return lcm_list
 
+
 def sieve_ordering(SUK, q):
     r"""
     Returns ordered data for running sieve on the primes in `SUK` over the rational prime `q`.
@@ -1792,6 +1819,7 @@ def sieve_ordering(SUK, q):
     # zip() will change the list of n list of length m to m tuples of length n
     return zip(*q_data)
 
+
 def clean_rfv_dict(rfv_dictionary):
     r"""
     Given a residue field vector dictionary, removes some impossible keys and entries.
@@ -1829,6 +1857,7 @@ def clean_rfv_dict(rfv_dictionary):
     for a, val in list(rfv_dictionary.items()):
         if 1 in val:
             rfv_dictionary.pop(a)
+
 
 def construct_rfv_to_ev(rfv_dictionary, q, d, verbose=False):
     r"""
@@ -1963,6 +1992,7 @@ def construct_rfv_to_ev(rfv_dictionary, q, d, verbose=False):
         print("Returning dictionary P with ", len(P), " keys.")
     return P.copy()
 
+
 def construct_comp_exp_vec(rfv_to_ev_dict, q):
     r"""
     Constructs a dictionary associating complement vectors to residue field vectors.
@@ -2022,6 +2052,7 @@ def construct_comp_exp_vec(rfv_to_ev_dict, q):
             comp_exp_vec_dict[exponent_vector] = exponent_vector_complement_list
     return comp_exp_vec_dict
 
+
 def drop_vector(ev, p, q, complement_ev_dict):
     r"""
     Determines if the exponent vector, ``ev``, may be removed from the complement dictionary during construction.
@@ -2071,6 +2102,7 @@ def drop_vector(ev, p, q, complement_ev_dict):
                     if compatible_cv in complement_ev_dict[q][compatible_exp_vec]:
                         return False
     return True
+
 
 def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
     r"""
@@ -2148,7 +2180,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
 
     rfv_to_ev = {}
 
-    # We build a second dictionary of dictiories.
+    # We build a second dictionary of dictionaries.
     # comp_exp_vec[q] is the dictionary mod q which assigns to each exponent vector
     # a list of 'complementary' exponent vectors.
 
@@ -2162,6 +2194,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
         rho_images = rho_images_dict[q]
         if verbose:
             print("q = ", q)
+
         def epsilon_q(a, i):
             # a is an exponent vector
             # i is an index for one of the primes over q
@@ -2283,6 +2316,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
 
     return comp_exp_vec
 
+
 def compatible_vectors_check(a0, a1, g, l):
     r"""
     Given exponent vectors with respect to two moduli, determines if they are compatible.
@@ -2327,6 +2361,7 @@ def compatible_vectors_check(a0, a1, g, l):
     # exponent vectors must agree exactly in the 0th coordinate.
     return a0[0] == a1[0] and all((x0 - x1) % g == 0 for x0,x1 in zip(itertools.islice(a0, 1, l), itertools.islice(a1, 1, l)))
 
+
 def compatible_vectors(a, m0, m1, g):
     r"""
     Given an exponent vector ``a`` modulo ``m0``, returns an iterator over the exponent vectors for the modulus ``m1``, such that a lift to the lcm modulus exists.
@@ -2370,6 +2405,7 @@ def compatible_vectors(a, m0, m1, g):
     # recall that the 0th entry must be an exact match.
     ranges = [[a[0]]] + [range(a[i]%g, (a[i]%g) + m1, g) for i in range(1, len(a))]
     return itertools.product(*ranges)
+
 
 def compatible_systems(split_prime_list, complement_exp_vec_dict):
     r"""
@@ -2436,6 +2472,7 @@ def compatible_systems(split_prime_list, complement_exp_vec_dict):
                         system_list.append(new_system)
     return system_list
 
+
 def compatible_system_lift(compatible_system, split_primes_list):
     r"""
     Given a compatible system of exponent vectors and complementary exponent vectors, return a lift to the integers.
@@ -2496,6 +2533,7 @@ def compatible_system_lift(compatible_system, split_primes_list):
 
     return [tuple(exponent_vector_lift), tuple(complement_vector_lift)]
 
+
 def solutions_from_systems(SUK, bound, cs_list, split_primes_list):
     r"""
     Lifts compatible systems to the integers and returns the S-unit equation solutions the lifts yield.
@@ -2551,6 +2589,7 @@ def solutions_from_systems(SUK, bound, cs_list, split_primes_list):
 
     return solutions
 
+
 def clean_sfs(sfs_list):
     r"""
     Given a list of S-unit equation solutions, remove trivial redundancies.
@@ -2585,6 +2624,7 @@ def clean_sfs(sfs_list):
         if entry not in new_sfs and swapped_entry not in new_sfs:
             new_sfs.append(entry)
     return new_sfs
+
 
 def sieve_below_bound(K, S, bound=10, bump=10, split_primes_list=[], verbose=False):
     r"""
@@ -2644,6 +2684,7 @@ def sieve_below_bound(K, S, bound=10, bump=10, split_primes_list=[], verbose=Fal
     S_unit_solutions = clean_sfs(sfs_list)
 
     return S_unit_solutions
+
 
 def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=False, proof=None, verbose=False):
     r"""
@@ -2755,6 +2796,7 @@ def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=
         return S_unit_solutions, final_LLL_bound
     else:
         return S_unit_solutions
+
 
 def eq_up_to_order(A, B):
     """

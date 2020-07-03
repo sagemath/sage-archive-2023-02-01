@@ -1748,8 +1748,10 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
                                         v_index source,
                                         str algorithm):
     r"""
-    Returns lower bound on the diamter of weighted digraph using the weighted
-    version of the algorithm proposed in [Broder2000]_.
+    Return a lower bound on the diameter of `G`.
+
+    This method implements the weighted version of the algorithm proposed
+    in [Broder2000]_ to compute a lower bound of the weighted digraph `G`.
 
     In first part, it computes forward distances from `source` and selects a
     vertex `vf` at a maximum forward distance from `source` and then it
@@ -1967,7 +1969,6 @@ cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
     for v in range(n):
         LB_1 = max(LB_1, distances[v])
         order_1.push_back(pair[double, v_index](distances[v], v))
-
     # Compute Backward distances from `m`.
     if algorithm == 'Bellman-Ford':
         sig_on()

@@ -2156,8 +2156,8 @@ class DiGraph(GenericGraph):
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -2341,8 +2341,8 @@ class DiGraph(GenericGraph):
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -2383,7 +2383,7 @@ class DiGraph(GenericGraph):
             def weight_function(e):
                 return 1 if e[2] is None else e[2]
 
-        return min(self.eccentricity(v=list(self), by_weight=by_weight,
+        return min(self.eccentricity(v=None, by_weight=by_weight,
                                      weight_function=weight_function,
                                      check_weight=check_weight,
                                      algorithm=algorithm))
@@ -2409,50 +2409,53 @@ class DiGraph(GenericGraph):
           algorithms:
 
           - ``'BFS'``: the computation is done through a BFS centered on each
-            vertex successively. Works only if ``by_weight==False``.
+            vertex successively. Works only if ``by_weight==False``. It computes
+            all the eccentricities and return the maximum value.
 
           - ``'Floyd-Warshall-Cython'``: a Cython implementation of the
-            Floyd-Warshall algorithm. Works only if ``by_weight==False`` and ``v
-            is None``.
+            Floyd-Warshall algorithm. Works only if ``by_weight==False``. It
+            computes all the eccentricities and return the maximum value.
 
           - ``'Floyd-Warshall-Python'``: a Python implementation of the
             Floyd-Warshall algorithm. Works also with weighted graphs, even with
-            negative weights (but no negative cycle is allowed). However, ``v``
-            must be ``None``.
+            negative weights (but no negative cycle is allowed). It computes all
+            the eccentricities and return the maximum value.
 
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX. It works with weighted graphs, but no negative weight is
-            allowed.
+            allowed. It computes all the eccentricities and return the maximum
+            value.
 
           - ``'DiFUB'``, ``'2Dsweep'``: these algorithms are
             implemented in :func:`sage.graphs.distances_all_pairs.diameter` and
             :func:`sage.graphs.base.boost_graph.diameter`. ``'2Dsweep'`` returns
             lower bound on the diameter, while ``'DiFUB'`` returns the exact
-            computed diameter. They also works with negative weight, if there is
+            computed diameter. They also work with negative weight, if there is
             no negative cycle. See the functions documentation for more
             information.
 
           - ``'standard'`` : the standard algorithm is implemented in
             :func:`sage.graphs.distances_all_pairs.diameter`. It works only
             if ``by_weight==False``. See the function documentation for more
-            information.
+            information. It computes all the eccentricities and return the
+            maximum value.
 
           - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
-            (works only with positive weights).
+            (works only with positive weights). It computes all the
+            eccentricities and return the maximum value.
 
           - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
             Boost (works also with negative weights, if there is no negative
-            cycle).
+            cycle). It computes all the eccentricities and return the maximum
+            value.
 
-          - ``None`` (default): Sage chooses the best algorithm: ``'iFUB'`` for
-            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are positive,
-            ``'Johnson_Boost'`` otherwise.
+          - ``None`` (default): Sage chooses the best algorithm: ``'DiFUB'``.
 
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -2468,6 +2471,11 @@ class DiGraph(GenericGraph):
 
         TESTS::
 
+            sage: G = graphs.RandomGNP(40, 0.4).to_directed()
+            sage: d1 = G.diameter(algorithm='DiFUB', by_weight=True)
+            sage: d2 = max(G.eccentricity(algorithm='Dijkstra_Boost', by_weight=True))
+            sage: d1 == d2
+            True
             sage: G = digraphs.Path(5)
             sage: G.diameter(algorithm = 'DiFUB')
             +Infinity
@@ -2517,7 +2525,7 @@ class DiGraph(GenericGraph):
             from sage.graphs.distances_all_pairs import diameter
             return diameter(self, algorithm=algorithm)
 
-        return max(self.eccentricity(v=list(self), by_weight=by_weight,
+        return max(self.eccentricity(v=None, by_weight=by_weight,
                                      weight_function=weight_function,
                                      check_weight=check_weight,
                                      algorithm=algorithm))

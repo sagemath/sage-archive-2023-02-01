@@ -1787,13 +1787,14 @@ class PartitionTuples(UniqueRepresentation, Parent):
 
     - ``regular`` -- a positive integer or a tuple of non-negative
       integers; if an integer, the highest multiplicity an entry may
-      have in a component plus `1` with `0` representing `\infty`-regular
-      (equivalently, partitions without restrictions)
+      have in a component plus `1`.
 
     If a level `k` is specified and ``regular`` is a tuple of integers
     `\ell_1, \ldots, \ell_k`, then this specifies partition tuples `\mu`
     such that `\mu_i` is `\ell_i`-regular. If ``regular`` is an integer
-    `\ell`, then we set `\ell_i = \ell` for all `i`.
+    `\ell`, then we set `\ell_i = \ell` for all `i`, with `0`
+    representing `\infty`-regular (equivalently, partitions without
+    restrictions)
 
     TESTS::
 
@@ -1843,13 +1844,13 @@ class PartitionTuples(UniqueRepresentation, Parent):
 
         if isinstance(regular, (list, tuple)):
             if level is None:
-                raise ValueError("When no level is specified, regular must be"
+                raise ValueError("When no level is specified, regular must be "
                                  "a positive integer")
             if len(regular) != level:
                 raise ValueError("regular must be a list of length {}, got {}".format(
                                  level, regular))
         if regular == 0:
-            raise ValueError("regular must be a positive integer or a tuple"
+            raise ValueError("regular must be a positive integer or a tuple "
                              "of non-negative integers")
         if level is None:
             if size is None:

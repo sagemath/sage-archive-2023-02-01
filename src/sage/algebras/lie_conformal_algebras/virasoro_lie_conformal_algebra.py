@@ -39,7 +39,7 @@ class VirasoroLieConformalAlgebra(GradedLieConformalAlgebra):
 
         sage: Vir = lie_conformal_algebras.Virasoro(QQ)
         sage: Vir.category()
-        Category of finitely generated H-graded Lie conformal algebras with basis over Rational Field
+        Category of H-graded finitely generated Lie conformal algebras with basis over Rational Field
         sage: Vir.inject_variables()
         Defining L, C
         sage: L.bracket(L)

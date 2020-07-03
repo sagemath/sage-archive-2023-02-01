@@ -26,3 +26,7 @@ AUTHORS:
 from .affine_lie_conformal_algebra import AffineLieConformalAlgebra as Affine
 from .neveu_schwarz_lie_conformal_algebra import NeveuSchwarzLieConformalAlgebra as NeveuSchwarz
 from .virasoro_lie_conformal_algebra import VirasoroLieConformalAlgebra as Virasoro
+
+assert Affine
+assert NeveuSchwarz
+assert Virasoro

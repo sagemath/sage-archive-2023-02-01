@@ -98,7 +98,7 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
         sage: K.degree()
         0
         sage: R.category()
-        Category of finitely generated H-graded Lie conformal algebras with basis over Rational Field
+        Category of H-graded finitely generated Lie conformal algebras with basis over Rational Field
     """
     def __init__(self, R, s_coeff, index_set=None, central_elements=None,
                  category=None, prefix=None, names=None, latex_names=None,
@@ -111,8 +111,8 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
             sage: V = lie_conformal_algebras.Virasoro(QQ)
             sage: TestSuite(V).run()
         """
-        category = LieConformalAlgebras(R).Graded().WithBasis()\
-                   .FinitelyGenerated().or_subcategory(category)
+        category = LieConformalAlgebras(R).WithBasis().FinitelyGenerated().\
+                    Graded().or_subcategory(category)
         element_class = GradedLCAElement
         LieConformalAlgebraWithStructureCoefficients.__init__(self,R,
             s_coeff,index_set=index_set,central_elements=central_elements,

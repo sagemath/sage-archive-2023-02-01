@@ -18,18 +18,16 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.functions.other import binomial
-from sage.structure.indexed_generators import (IndexedGenerators,
-                                               standardize_names_index_set)
 from sage.sets.family import Family
 from .lie_conformal_algebra_element import LCAStructureCoefficientsElement
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras
-
-from .finitely_generated_lie_conformal_algebra import \
-                                           FinitelyGeneratedLieConformalAlgebra
+from .finitely_freely_generated_lca import FinitelyFreelyGeneratedLCA
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.structure.indexed_generators import (IndexedGenerators,
+                                               standardize_names_index_set)
 
 class LieConformalAlgebraWithStructureCoefficients(
-                                        FinitelyGeneratedLieConformalAlgebra):
+                                        FinitelyFreelyGeneratedLCA):
     r"""
     A Lie conformal algebra with a set of specified structure
     coefficients.
@@ -91,7 +89,7 @@ class LieConformalAlgebraWithStructureCoefficients(
         sage: betagamma_dict = {('b','a'):{0:{('K',0):1}}}
         sage: V = LieConformalAlgebra(QQ, betagamma_dict, names=('a','b'), weights=(1,0), central_elements=('K',))
         sage: V.category()
-        Category of finitely generated H-graded Lie conformal algebras with basis over Rational Field
+        Category of H-graded finitely generated Lie conformal algebras with basis over Rational Field
         sage: V.inject_variables()
         Defining a, b, K
         sage: a.bracket(b)
@@ -209,7 +207,6 @@ class LieConformalAlgebraWithStructureCoefficients(
     def __init__(self, R, s_coeff, index_set=None, central_elements=None,
                  category=None, element_class=None, prefix=None, names=None,
                  latex_names=None, parity=None, **kwds):
-        names, index_set = standardize_names_index_set(names,index_set)
         """
         Initialize self.
 
@@ -218,6 +215,7 @@ class LieConformalAlgebraWithStructureCoefficients(
             sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
             sage: TestSuite(V).run()
         """
+        names, index_set = standardize_names_index_set(names,index_set)
         if central_elements is None:
             central_elements= tuple()
 
@@ -272,7 +270,7 @@ class LieConformalAlgebraWithStructureCoefficients(
         if element_class is None:
             element_class=LCAStructureCoefficientsElement
 
-        FinitelyGeneratedLieConformalAlgebra.__init__(
+        FinitelyFreelyGeneratedLCA.__init__(
             self, R, index_set=index_set, central_elements=central_elements,
             category=category, element_class=element_class,
             prefix=prefix, names=names, latex_names=latex_names, **kwds)

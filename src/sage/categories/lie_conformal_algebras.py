@@ -137,6 +137,8 @@ from sage.structure.element import coerce_binop
 from sage.categories.graded_modules import GradedModulesCategory
 from sage.categories.super_modules import SuperModulesCategory
 from sage.categories.commutative_rings import CommutativeRings
+from sage.misc.lazy_import import LazyImport
+
 _CommutativeRings = CommutativeRings()
 
 class LieConformalAlgebras(Category_over_base_ring):
@@ -174,14 +176,6 @@ class LieConformalAlgebras(Category_over_base_ring):
 
     That is, we only consider gradings on super Lie conformal algebras
     that are compatible with the `\mathbb{Z}/2\mathbb{Z}` grading.
-    All four subcategories commute in this sense::
-
-        sage: C = LieConformalAlgebras(AA).Graded().FinitelyGenerated().WithBasis().Super()
-        sage: D = LieConformalAlgebras(AA).Super().WithBasis().Graded().FinitelyGenerated()
-        sage: C is D
-        True
-        sage: C
-        Category of finitely generated super H-graded Lie conformal algebras with basis over Algebraic Real Field
 
     The base ring needs to be a commutative ring::
 
@@ -272,8 +266,6 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             sage: LieConformalAlgebras(QQ)
             Category of Lie conformal algebras over Rational Field
-            sage: LieConformalAlgebras(QQ).Graded().FinitelyGenerated()
-            Category of finitely generated H-graded Lie conformal algebras over Rational Field
         """
         return "Lie conformal algebras over {}".format(self.base_ring())
 
@@ -365,14 +357,6 @@ class LieConformalAlgebras(Category_over_base_ring):
                 sage: E.bracket(F)
                 {0: B[alphacheck[1]], 1: B['K']}
 
-            With a super Lie conformal algebra::
-
-                sage: R = lie_conformal_algebras.NeveuSchwarz(QQbar)
-                sage: R.inject_variables()
-                Defining L, G, C
-                sage: G.bracket(G.T())
-                {0: 2*TL, 1: 2*L, 3: 2*C}
-
             .. NOTE::
 
                 This method coerces both elements to the same parent
@@ -412,7 +396,6 @@ class LieConformalAlgebras(Category_over_base_ring):
                 It is guaranteed that both are elements of the same
                 parent.
             """
-            raise NotImplementedError("Not implemented")
 
         @coerce_binop
         def nproduct(self,rhs,n):
@@ -445,9 +428,6 @@ class LieConformalAlgebras(Category_over_base_ring):
             r"""
             The ``n``-th product of these two elements.
 
-            If `n\geq 0` it returns the element of this Lie conformal
-            algebra. 
-
             EXAMPLES::
 
                 sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
@@ -470,7 +450,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             if n >= 0:
                 return self.bracket(rhs).get(n,self.parent().zero())
             else:
-                raise NotImplementedError("vertex algebras are not implemented yet")
+                raise NotImplementedError("vertex algebras are not implemented")
 
         @abstract_method
         def T(self, n=1):
@@ -500,11 +480,18 @@ class LieConformalAlgebras(Category_over_base_ring):
                 0
             """
 
-        @abstract_method
         def is_even_odd(self):
             """
             Return ``0`` if this element is *even* and ``1`` if it is
             *odd*.
+
+            .. NOTE::
+
+                This method returns ``0`` by default since every Lie
+                conformal algebra can be thought as a purely even Lie
+                conformal algebra. In order to
+                implement a super Lie conformal algebra, the user
+                needs to implement this method.
 
             EXAMPLES::
 
@@ -514,14 +501,13 @@ class LieConformalAlgebras(Category_over_base_ring):
                 sage: G.is_even_odd()
                 1
             """
-            raise NotImplementedError("Not Implemented")
+            return 0
 
     class SubcategoryMethods:
 
         def FinitelyGeneratedAsLieConformalAlgebra(self):
             """
-            The subcategory of finitely generated Lie conformal
-            algebras.
+            The subcategory of finitely generated Lie conformal algebras.
 
             EXAMPLES::
 
@@ -529,7 +515,6 @@ class LieConformalAlgebras(Category_over_base_ring):
                 Category of finitely generated Lie conformal algebras over Rational Field
             """
             return self._with_axiom("FinitelyGeneratedAsLieConformalAlgebra")
-
 
         def FinitelyGenerated(self):
             """
@@ -542,63 +527,24 @@ class LieConformalAlgebras(Category_over_base_ring):
             """
             return self._with_axiom("FinitelyGeneratedAsLieConformalAlgebra")
 
-        def Graded(self, base_ring=None):
-            """
-            The subcategory of H-Graded Lie conformal algebras.
-
-            EXAMPLES::
-
-                sage: C = LieConformalAlgebras(ZZ).WithBasis().Graded(); C
-                Category of H-graded Lie conformal algebras with basis over Integer Ring
-                sage: D = LieConformalAlgebras(ZZ).Graded().WithBasis()
-                sage: D is C
-                True
-            """
-            assert base_ring is None or base_ring is self.base_ring()
-            if isinstance(self, CategoryWithAxiom_over_base_ring):
-                axioms_whitelist = frozenset(["WithBasis",
-                                    "FinitelyGeneratedAsLieConformalAlgebra"])
-                axioms = axioms_whitelist.intersection(self.axioms())
-                return self.base_category().Graded()._with_axioms(axioms)
-            return GradedModulesCategory.category_of(self)
-
-        def Super(self, base_ring=None):
-            """
-            The subcategory of super Lie conformal algebras.
-
-            EXAMPLES::
-
-                sage: LieConformalAlgebras(AA).Super().WithBasis()
-                Category of super Lie conformal algebras with basis over Algebraic Real Field
-            """
-            assert base_ring is None or base_ring is self.base_ring()
-            if isinstance(self,CategoryWithAxiom_over_base_ring):
-                axioms_whitelist = frozenset(["WithBasis",
-                                    "FinitelyGeneratedAsLieConformalAlgebra"])
-                axioms = axioms_whitelist.intersection(self.axioms())
-                return self.base_category().Super()._with_axioms(axioms)
-            return SuperModulesCategory.category_of(self)
-
     class Super(SuperModulesCategory):
         """
         The subcategory of super Lie conformal algebras.
 
         EXAMPLES::
 
-            sage: LieConformalAlgebras(AA).Super().WithBasis()
-            Category of super Lie conformal algebras with basis over Algebraic Real Field
+            sage: LieConformalAlgebras(AA).Super()
+            Category of super Lie conformal algebras over Algebraic Real Field
         """
-        #Need to do all this to make Super commute with Graded.
         def extra_super_categories(self):
             """
             The extra super categories of this category
 
             EXAMPLES::
 
-                sage: LieConformalAlgebras(QQ).FinitelyGenerated().Graded().Super().super_categories()
-                [Category of super H-graded Lie conformal algebras over Rational Field,
-                 Category of finitely generated super Lie conformal algebras over Rational Field,
-                 Category of finitely generated H-graded Lie conformal algebras over Rational Field]
+                sage: LieConformalAlgebras(QQ).Super().super_categories()
+                [Category of super modules over Rational Field,
+                 Category of Lie conformal algebras over Rational Field]
             """
             return [self.base_category(),]
 
@@ -616,11 +562,9 @@ class LieConformalAlgebras(Category_over_base_ring):
             return NeveuSchwarzLieConformalAlgebra(self.base_ring())
 
         class SubcategoryMethods:
-
             def Graded(self, base_ring=None):
                 """
-                The subcategory of H-graded super Lie conformal
-                algebras.
+                The subcategory of super H-graded Lie conformal algebras.
 
                 EXAMPLES::
 
@@ -628,184 +572,74 @@ class LieConformalAlgebras(Category_over_base_ring):
                     Category of super H-graded Lie conformal algebras over Rational Field
                 """
                 assert base_ring is None or base_ring is self.base_ring()
-                if isinstance(self,CategoryWithAxiom_over_base_ring):
-                    axioms_whitelist = frozenset(["WithBasis",
-                                        "FinitelyGeneratedAsLieConformalAlgebra"])
-                    axioms = axioms_whitelist.intersection(self.axioms())
-                    return self.base_category().Graded()._with_axioms(axioms)
-
                 return GradedModulesCategory.category_of(
                                          self.base_category()).Super()
 
+    class Graded(GradedModulesCategory):
+        """
+        The subcategory of H-graded Lie conformal algebras.
 
-        class WithBasis(CategoryWithAxiom_over_base_ring):
+        EXAMPLES::
+
+            sage: LieConformalAlgebras(QQbar).Graded()
+            Category of H-graded Lie conformal algebras over Algebraic Field
+        """
+
+        def _repr_object_names(self):
             """
-            The subcategory of Super Lie conformal algebras with basis.
+            The names of the objects of this category
 
             EXAMPLES::
 
-                sage: LieConformalAlgebras(ZZ).Super().WithBasis()
-                Category of super Lie conformal algebras with basis over Integer Ring
-                sage: LieConformalAlgebras(ZZ).Super().WithBasis() is LieConformalAlgebras(ZZ).WithBasis().Super()
+                sage: LieConformalAlgebras(QQbar).Graded()
+                Category of H-graded Lie conformal algebras over Algebraic Field
+            """
+            return "H-graded {}".format(self.base_category().\
+                                        _repr_object_names())
+
+        class Super(SuperModulesCategory):
+            """
+            The subcategory of super H-graded Lie conformal algebras.
+
+            EXAMPLES::
+
+                sage: C = LieConformalAlgebras(QQbar)
+                sage: C.Graded().Super()
+                Category of super H-graded Lie conformal algebras over Algebraic Field
+                sage: C.Graded().Super() is C.Super().Graded()
                 True
             """
-
-            class FinitelyGeneratedAsLieConformalAlgebra(
-                                                CategoryWithAxiom_over_base_ring):
+            def extra_super_categories(self):
                 """
-                The subcategory of finitely generated super Lie
-                conformal algebras with basis.
+                The extra super categories of this category.
 
                 EXAMPLES::
 
-                    sage: LieConformalAlgebras(ZZ).Super().FinitelyGenerated().WithBasis()
-                    Category of finitely generated super Lie conformal algebras with basis over Integer Ring
+                    sage: C = LieConformalAlgebras(QQ).Graded().Super()
+                    sage: C.super_categories()
+                    [Category of super Lie conformal algebras over Rational Field,
+                     Category of H-graded Lie conformal algebras over Rational Field]
                 """
-                pass
-
-        class FinitelyGeneratedAsLieConformalAlgebra(
-                                            CategoryWithAxiom_over_base_ring):
-            """
-            The subcategory of finitely generated super Lie
-            conformal algebras.
-
-            EXAMPLES::
-
-                sage: LieConformalAlgebras(ZZ).Super().FinitelyGenerated()
-                Category of finitely generated super Lie conformal algebras over Integer Ring
-            """
-            pass
-
-    from .graded_lie_conformal_algebras import GradedLieConformalAlgebras
-    Graded = GradedLieConformalAlgebras
-    class WithBasis(CategoryWithAxiom_over_base_ring):
-        """
-        The subcategory of Lie conformal algebras with basis.
-
-        EXAMPLES::
-
-            sage: LieConformalAlgebras(QQbar).WithBasis()
-            Category of Lie conformal algebras over Algebraic Field with basis
-        """
-        def _repr_object_names(self):
-            """
-            The names of objects of this category.
-
-            EXAMPLES::
-
-                sage: LieConformalAlgebras(QQ).WithBasis()
-                Category of Lie conformal algebras over Rational Field with basis
-            """
-            return "{} with basis".format(self.base_category().\
-                                          _repr_object_names())
+                return [self.base_category(),]
 
         class ElementMethods:
-
-            def index(self):
+            @abstract_method
+            def degree(self):
                 """
-                The index of this basis element.
+                The degree of this element.
 
                 EXAMPLES::
 
-                    sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
-                    sage: V.inject_variables()
-                    Defining L, G, C
-                    sage: G.T(3).index()
-                    ('G', 3)
-                    sage: v = V.an_element(); v
-                    L + G + C
-                    sage: v.index()
-                    Traceback (most recent call last):
-                    ...
-                    ValueError: index can only be computed for monomials, got L + G + C
-                """
-                if self.is_zero():
-                    return None
-                if not self.is_monomial():
-                    raise ValueError ("index can only be computed for "\
-                                      "monomials, got {}".format(self))
-
-                return next(iter(self.monomial_coefficients()))
-
-        class SubcategoryMethods:
-            def FinitelyGenerated(self):
-                """
-                The subcategory of finitely generated Lie conformal
-                algebras with basis.
-
-                EXAMPLES::
-
-                    sage: LieConformalAlgebras(QQbar).WithBasis().FinitelyGenerated()
-                    Category of finitely generated Lie conformal algebras with basis over Algebraic Field
-                """
-                return self._with_axiom("FinitelyGeneratedAsLieConformalAlgebra")
-
-        class FinitelyGeneratedAsLieConformalAlgebra(
-                                            CategoryWithAxiom_over_base_ring):
-            """
-            The subcategory of finitely generated Lie conformal
-            algebras with basis.
-
-            EXAMPLES::
-
-                sage: LieConformalAlgebras(QQbar).WithBasis().FinitelyGenerated()
-                Category of finitely generated Lie conformal algebras with basis over Algebraic Field
-            """
-            pass
-
-
-    class FinitelyGeneratedAsLieConformalAlgebra(
-                                            CategoryWithAxiom_over_base_ring):
-        """
-        The subcategory of finitely generated Lie conformal
-        algebras with basis.
-
-        EXAMPLES::
-
-            sage: LieConformalAlgebras(QQbar).WithBasis().FinitelyGenerated()
-            Category of finitely generated Lie conformal algebras with basis over Algebraic Field
-        """
-        def _repr_object_names(self):
-            """
-            The names of objects of this category.
-
-            EXAMPLES::
-
-                sage: LieConformalAlgebras(QQ).FinitelyGenerated()
-                Category of finitely generated Lie conformal algebras over Rational Field
-            """
-            return "finitely generated {}".format(self.base_category().\
-                            _repr_object_names())
-
-        class ParentMethods:
-            def ngens(self):
-                r"""
-                The number of generators of this Lie conformal algebra.
-
-                EXAMPLES::
-
-                    sage: Vir = lie_conformal_algebras.Virasoro(QQ)
-                    sage: Vir.ngens()
+                    sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
+                    sage: L.degree()
                     2
-
-                    sage: V = lie_conformal_algebras.Affine(QQ, 'A2')
-                    sage: V.ngens()
-                    9
+                    sage: L.T(3).degree()
+                    5
                 """
-                return len(self.gens())
 
-            def gen(self,i):
-                r"""
-                The i-th generator of this Lie conformal algebra.
+    WithBasis = LazyImport('sage.categories.lie_conformal_algebras_with_basis',
+                           'LieConformalAlgebrasWithBasis')
 
-                EXAMPLES::
-
-                    sage: V = lie_conformal_algebras.Affine(QQ, 'A1')
-                    sage: V.gens()
-                    (B[alpha[1]], B[alphacheck[1]], B[-alpha[1]], B['K'])
-                    sage: V.gen(0)
-                    B[alpha[1]]
-                    sage: V.1
-                    B[alphacheck[1]]
-                """
-                return self.gens()[i]
+    FinitelyGeneratedAsLieConformalAlgebra = LazyImport(
+        'sage.categories.finitely_generated_lie_conformal_algebras',
+        'FinitelyGeneratedAsLieConformalAlgebra')

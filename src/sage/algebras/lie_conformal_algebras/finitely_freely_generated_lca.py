@@ -1,5 +1,5 @@
 """
-Finitely Generated Lie Conformal Algebras.
+Finitely and Freely Generated Lie Conformal Algebras.
 
 AUTHORS:
 
@@ -21,7 +21,7 @@ from sage.categories.lie_conformal_algebras import LieConformalAlgebras
 from .freely_generated_lie_conformal_algebra import \
                                             FreelyGeneratedLieConformalAlgebra
 
-class FinitelyGeneratedLieConformalAlgebra(FreelyGeneratedLieConformalAlgebra):
+class FinitelyFreelyGeneratedLCA(FreelyGeneratedLieConformalAlgebra):
     """
     Abstract base class for finitely generated Lie conformal
     algebras.
@@ -47,7 +47,7 @@ class FinitelyGeneratedLieConformalAlgebra(FreelyGeneratedLieConformalAlgebra):
         if index_set not in Sets().Finite():
             raise TypeError("index_set must be a finite set")
 
-        super(FinitelyGeneratedLieConformalAlgebra,self).__init__(R,
+        super(FinitelyFreelyGeneratedLCA,self).__init__(R,
                     index_set=index_set, central_elements=central_elements,
                     category=category, element_class=element_class,
                     prefix=prefix, **kwds)

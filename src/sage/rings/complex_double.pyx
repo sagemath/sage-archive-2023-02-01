@@ -396,7 +396,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
             sage: CDF(1) + RR(1)
             2.0
-            sage: CDF.0 - CC(1) - long(1) - RR(1) - QQbar(1)
+            sage: CDF.0 - CC(1) - int(1) - RR(1) - QQbar(1)
             -4.0 + 1.0*I
             sage: CDF.has_coerce_map_from(ComplexField(20))
             False
@@ -925,21 +925,6 @@ cdef class ComplexDoubleElement(FieldElement):
             1
         """
         raise TypeError("can't convert complex to int; use int(abs(z))")
-
-    def __long__(self):
-        """
-        Convert ``self`` to a ``long``.
-
-        EXAMPLES::
-
-            sage: long(CDF(1,1))  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to long; use long(abs(z))
-            sage: long(abs(CDF(1,1)))
-            1L
-        """
-        raise TypeError("can't convert complex to long; use long(abs(z))")
 
     def __float__(self):
         """

@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 """
 ntl_lzz_pX.pyx
 

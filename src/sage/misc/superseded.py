@@ -52,7 +52,6 @@ def _check_trac_number(trac_number):
         ...
         ValueError: 0 is not a valid trac issue number
         sage: _check_trac_number(int(10))
-        sage: _check_trac_number(long(1000))
         sage: _check_trac_number(10.0)
         Traceback (most recent call last):
         ...

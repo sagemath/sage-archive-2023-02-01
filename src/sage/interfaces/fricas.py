@@ -1011,15 +1011,6 @@ class FriCASElement(ExpectElement):
 
     __nonzero__ = __bool__
 
-    def __long__(self):
-        """
-        TESTS::
-
-            sage: long(fricas('1'))                                             # optional - fricas
-            1L
-        """
-        return long(self.sage())
-
     def __float__(self):
         """
         TESTS::

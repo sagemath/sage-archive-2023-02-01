@@ -595,20 +595,18 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         """
         cdef mzd_t *tmp
+        VS = VectorSpace(self._base_ring, self._nrows)
         if not isinstance(v, Vector_mod2_dense):
-            M = VectorSpace(self._base_ring, self._nrows)
-            v = M(v)
+            v = VS(v)
         if self.ncols() != v.degree():
             raise ArithmeticError("number of columns of matrix must equal degree of vector")
 
-        VS = VectorSpace(self._base_ring, self._nrows)
         # If the vector is 0-dimensional, the result will be the 0-vector
         if not self.ncols():
             return VS.zero()
         cdef Vector_mod2_dense c = Vector_mod2_dense.__new__(Vector_mod2_dense)
         sig_str("matrix allocation failed")
         c._init(self._nrows, VS)
-        c._entries = mzd_init(1, self._nrows)
         if c._entries.nrows and c._entries.ncols:
             tmp = mzd_init(self._nrows, 1)
             _mzd_mul_naive(tmp, self._entries, (<Vector_mod2_dense>v)._entries, 0)

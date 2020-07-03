@@ -412,9 +412,6 @@ class Permutation(CombinatorialElement):
         []
         sage: Permutation( [[], []] )
         []
-
-    .. automethod:: Permutation.left_action_product
-    .. automethod:: Permutation.right_action_product
     """
     @staticmethod
     def __classcall_private__(cls, l, check_input = True):

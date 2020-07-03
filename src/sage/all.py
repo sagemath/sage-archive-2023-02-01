@@ -22,7 +22,7 @@ except for the known bad apples::
     ....:     'IPython', 'prompt_toolkit', 'jedi',     # sage dependencies
     ....:     'threading', 'multiprocessing',  # doctest dependencies
     ....:     '__main__', 'sage.doctest',      # doctesting
-    ....:     'signal', 'enum',                # may appear in Python 3
+    ....:     'signal', 'enum', 'types'        # may appear in Python 3
     ....: ]
     sage: def is_not_allowed(frame):
     ....:     module = inspect.getmodule(frame)

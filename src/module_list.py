@@ -783,6 +783,9 @@ ext_modules = [
     Extension("sage.numerical.backends.generic_sdp_backend",
               ["sage/numerical/backends/generic_sdp_backend.pyx"]),
 
+    Extension("sage.numerical.backends.matrix_sdp_backend",
+              ["sage/numerical/backends/matrix_sdp_backend.pyx"]),
+
     Extension("sage.numerical.backends.glpk_backend",
               ["sage/numerical/backends/glpk_backend.pyx"]),
 

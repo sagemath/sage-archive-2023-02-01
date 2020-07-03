@@ -21,8 +21,6 @@ AUTHOR:
 # ***************************************************************************
 
 
-import sage
-
 from sage.misc.prandom import randint
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
@@ -31,6 +29,7 @@ from sage.structure.category_object import normalize_names
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.ring import Algebra
 from sage.rings.integer import Integer
+from sage.structure.element import Element
 
 from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.algebras import Algebras
@@ -381,6 +380,7 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
             sage: TestSuite(S).run()
         """
         if self.Element is None:
+            import sage.rings.polynomial.ore_polynomial_element
             self.Element = sage.rings.polynomial.ore_polynomial_element.OrePolynomial_generic_dense
         self.__is_sparse = sparse
         self._morphism = morphism
@@ -428,7 +428,7 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
         C = self.Element
         if isinstance(a, list):
             return C(self, a, check=check, construct=construct)
-        if isinstance(a, sage.structure.element.Element):
+        if isinstance(a, Element):
             P = a.parent()
             def build(check):
                 if a.is_zero():

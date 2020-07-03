@@ -664,13 +664,14 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             return self.base_ring().zero()
         return res
 
-    def _vector_(self, new_base_ring=None):
+    def _vector_(self, new_base_ring=None, order=None):
         """
         Returns ``self`` as a dense vector
 
         INPUT:
 
         - ``new_base_ring`` -- a ring (default: ``None``)
+        - ``order`` -- (optional) an ordering of the support of ``self``
 
         OUTPUT: a dense :func:`FreeModule` vector
 
@@ -735,8 +736,10 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         dense_free_module = self._parent._dense_free_module(new_base_ring)
         d = self._monomial_coefficients
         zero = dense_free_module.base_ring().zero()
+        if order is None:
+            order = self._parent.get_order()
         return dense_free_module.element_class(dense_free_module,
-                                               [d.get(m, zero) for m in self._parent.get_order()],
+                                               [d.get(m, zero) for m in order],
                                                coerce=True, copy=False)
 
     to_vector = _vector_

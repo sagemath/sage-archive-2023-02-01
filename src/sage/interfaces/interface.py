@@ -1319,16 +1319,6 @@ class InterfaceElement(Element):
 
     __nonzero__ = __bool__
 
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: m = maxima('1')
-            sage: long(m)
-            1L
-        """
-        return long(repr(self))
-
     def __float__(self):
         """
         EXAMPLES::

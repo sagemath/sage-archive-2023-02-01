@@ -283,6 +283,7 @@ cdef class OrePolynomial(AlgebraElement):
             sage: S(5).degree()
             0
         """
+        raise NotImplementedError
 
     cdef OrePolynomial _new_c(self, list coeffs, Parent P, char check=0):
         r"""

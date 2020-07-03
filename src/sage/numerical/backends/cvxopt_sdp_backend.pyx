@@ -29,7 +29,7 @@ cdef class CVXOPTSDPBackend(MatrixSDPBackend):
     cdef dict answer
     cdef dict param
 
-    def __init__(self, maximization=True):
+    def __init__(self, maximization=True, base_ring=None):
         """
         Cython constructor
 
@@ -41,7 +41,11 @@ cdef class CVXOPTSDPBackend(MatrixSDPBackend):
         """
 
         from sage.rings.all import RDF
-        MatrixSDPBackend.__init__(self, maximization, RDF)
+        if base_ring is None:
+            base_ring = RDF
+        if base_ring is not RDF:
+            raise ValueError("only base_ring=RDF is supported")
+        MatrixSDPBackend.__init__(self, maximization, base_ring=base_ring)
 
         self.param = {"show_progress":False,
                       "maxiters":100,

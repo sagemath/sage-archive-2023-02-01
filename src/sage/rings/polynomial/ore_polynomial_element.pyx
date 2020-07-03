@@ -1358,7 +1358,7 @@ cdef class OrePolynomial(AlgebraElement):
         
         .. MATH::
 
-            `U \cdot \text{self} = V \cdot \text{other} = L`
+            U \cdot \text{self} = V \cdot \text{other} = L.
         
         EXAMPLES::
 
@@ -1435,7 +1435,7 @@ cdef class OrePolynomial(AlgebraElement):
         
         .. MATH::
 
-            `\text{self} \cdot U = \text{other} \cdot V = L`
+            \text{self} \cdot U = \text{other} \cdot V = L.
         
         INPUT:
 

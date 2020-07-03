@@ -682,7 +682,7 @@ def tarjan_strongly_connected_components(G):
     the lowlink of `v`, that whole subtree is a new SCC.
 
     For more information, see the
-    :wikipedia:`Tarjan's_strongly_connected_components_algorithm`.
+    :wikipedia:`Tarjan%27s_strongly_connected_components_algorithm`.
 
     EXAMPLES::
 

@@ -42,7 +42,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.misc.abstract_method import abstract_method
 from sage.categories.homset import Hom
-from sage.categories.fields import Fields
+from sage.rings.ring import _Fields
 from sage.rings.integer cimport Integer
 from cpython.object cimport PyObject_RichCompare
 from sage.categories.map cimport Map
@@ -283,6 +283,7 @@ cdef class OrePolynomial(AlgebraElement):
             sage: S(5).degree()
             0
         """
+        raise NotImplementedError
 
     cdef OrePolynomial _new_c(self, list coeffs, Parent P, char check=0):
         r"""
@@ -390,10 +391,16 @@ cdef class OrePolynomial(AlgebraElement):
             sage: a = (t+1)*x^5 + t^2*x^3 + x
             sage: a.leading_coefficient()
             t + 1
+
+        By convention, the leading coefficient to the zero polynomial is
+        zero::
+
+            sage: S(0).leading_coefficient()
+            0
         """
         cdef int d = self.degree()
         if d == -1:
-            raise ValueError("the Ore polynomial must not be 0")
+            return self.base_ring()(0)
         return self[d]
 
     def is_unit(self):
@@ -427,7 +434,7 @@ cdef class OrePolynomial(AlgebraElement):
                 return False
         else:
             raise NotImplementedError("is_unit is not implemented for Ore polynomial rings "
-                                      "over base rings which are not integral domains.")
+                                      "over base rings which are not integral domains")
 
     def is_nilpotent(self):
         r"""
@@ -478,7 +485,7 @@ cdef class OrePolynomial(AlgebraElement):
             sage: a.is_monic()
             False
         """
-        return not self.is_zero() and self[self.degree()] == 1
+        return self.leading_coefficient() == 1
 
     def left_monic(self):
         r"""
@@ -606,8 +613,7 @@ cdef class OrePolynomial(AlgebraElement):
             ...
             NotImplementedError: the leading coefficient of the divisor is not invertible
         """
-        _,r = self.right_quo_rem(other)
-        return r
+        return self.right_quo_rem(other)[1]
 
     cpdef _floordiv_(self, right):
         r"""
@@ -841,8 +847,8 @@ cdef class OrePolynomial(AlgebraElement):
 
         - ``other`` -- a Ore polynomial in the same ring as ``self``
 
-        - ``monic`` -- boolean (default: ``True``). Return whether the left gcd
-          should be normalized to be monic.
+        - ``monic`` -- boolean (default: ``True``); return whether the left gcd
+          should be normalized to be monic
 
         OUTPUT:
 
@@ -912,7 +918,7 @@ cdef class OrePolynomial(AlgebraElement):
             NotImplementedError: inversion of the twisting morphism Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
                 Defn: t |--> t^2
         """
-        if self.base_ring() not in Fields:
+        if self.base_ring() not in _Fields:
             raise TypeError("the base ring must be a field")
         cdef OrePolynomial G = self
         cdef OrePolynomial U = self._parent.one()
@@ -1069,8 +1075,8 @@ cdef class OrePolynomial(AlgebraElement):
 
         - ``other`` -- a Ore polynomial in the same ring as ``self``
 
-        - ``monic`` -- boolean (default: ``True``). Return whether the right gcd
-          should be normalized to be monic.
+        - ``monic`` -- boolean (default: ``True``); return whether the right gcd
+          should be normalized to be monic
 
         OUTPUT:
 
@@ -1125,7 +1131,7 @@ cdef class OrePolynomial(AlgebraElement):
             ...
             TypeError: the base ring must be a field
         """
-        if self.base_ring() not in Fields:
+        if self.base_ring() not in _Fields:
             raise TypeError("the base ring must be a field")
         cdef OrePolynomial G = self
         cdef OrePolynomial U = self._parent.one()
@@ -1160,8 +1166,8 @@ cdef class OrePolynomial(AlgebraElement):
 
         - ``other`` -- a Ore polynomial in the same ring as ``self``
 
-        - ``monic`` -- boolean (default: ``True``). Return whether the right gcd
-          should be normalized to be monic.
+        - ``monic`` -- boolean (default: ``True``); return whether the right gcd
+          should be normalized to be monic
 
         OUTPUT:
 
@@ -1204,7 +1210,7 @@ cdef class OrePolynomial(AlgebraElement):
             ...
             TypeError: the base ring must be a field
         """
-        if self.base_ring() not in Fields:
+        if self.base_ring() not in _Fields:
             raise TypeError("the base ring must be a field")
         if other.is_zero():
             return self
@@ -1225,8 +1231,8 @@ cdef class OrePolynomial(AlgebraElement):
 
         - ``other`` -- a Ore polynomial in the same ring as ``self``
 
-        - ``monic`` -- boolean (default: ``True``). Return whether the left gcd
-          should be normalized to be monic.
+        - ``monic`` -- boolean (default: ``True``); return whether the left gcd
+          should be normalized to be monic
 
         OUTPUT:
 
@@ -1284,7 +1290,7 @@ cdef class OrePolynomial(AlgebraElement):
             NotImplementedError: inversion of the twisting morphism Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
                 Defn: t |--> t^2
         """
-        if self.base_ring() not in Fields:
+        if self.base_ring() not in _Fields:
             raise TypeError("the base ring must be a field")
         if other.is_zero():
             return self
@@ -1345,7 +1351,7 @@ cdef class OrePolynomial(AlgebraElement):
         
         .. MATH::
 
-            `U \cdot \text{self} = V \cdot \text{other} = L`
+            U \cdot \text{self} = V \cdot \text{other} = L.
         
         EXAMPLES::
 
@@ -1363,7 +1369,7 @@ cdef class OrePolynomial(AlgebraElement):
             sage: V*Q == L
             True
         """
-        if self.base_ring() not in Fields:
+        if self.base_ring() not in _Fields:
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError("division by zero is not valid")
@@ -1422,7 +1428,7 @@ cdef class OrePolynomial(AlgebraElement):
         
         .. MATH::
 
-            `\text{self} \cdot U = \text{other} \cdot V = L`
+            \text{self} \cdot U = \text{other} \cdot V = L.
         
         INPUT:
 
@@ -1446,7 +1452,7 @@ cdef class OrePolynomial(AlgebraElement):
             sage: Q*V == L
             True
         """
-        if self.base_ring() not in Fields:
+        if self.base_ring() not in _Fields:
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError("division by zero is not valid")
@@ -1470,8 +1476,8 @@ cdef class OrePolynomial(AlgebraElement):
 
         - ``other`` -- a Ore polynomial in the same ring as ``self``
 
-        - ``monic`` -- boolean (default: ``True``). Return whether the left lcm
-          should be normalized to be monic.
+        - ``monic`` -- boolean (default: ``True``); return whether the left lcm
+          should be normalized to be monic
 
         OUTPUT:
 
@@ -1520,7 +1526,7 @@ cdef class OrePolynomial(AlgebraElement):
             ...
             TypeError: the base ring must be a field
         """
-        if self.base_ring() not in Fields:
+        if self.base_ring() not in _Fields:
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError("division by zero is not valid")
@@ -1538,8 +1544,8 @@ cdef class OrePolynomial(AlgebraElement):
 
         - ``other`` -- a Ore polynomial in the same ring as ``self``
         
-        - ``monic`` -- boolean (default: ``True``). Return whether the right lcm
-          should be normalized to be monic.
+        - ``monic`` -- boolean (default: ``True``); return whether the right lcm
+          should be normalized to be monic
 
         OUTPUT:
 
@@ -1604,7 +1610,7 @@ cdef class OrePolynomial(AlgebraElement):
             NotImplementedError: inversion of the twisting morphism Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
                 Defn: t |--> t^2
         """
-        if self.base_ring() not in Fields:
+        if self.base_ring() not in _Fields:
             raise TypeError("the base ring must be a field")
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError("division by zero is not valid")
@@ -1748,7 +1754,7 @@ cdef class OrePolynomial(AlgebraElement):
             sage: bool(b)
             False
         """
-        return not self.is_zero()
+        return self.degree() > -1
 
     def base_ring(self):
         r"""

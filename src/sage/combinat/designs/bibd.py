@@ -340,6 +340,7 @@ def BruckRyserChowla_check(v, k, lambd):
     from sage.calculus.var import var
     from sage.symbolic.assumptions import assume, forget
     from sage.symbolic.relation import solve
+    from sage.rings.sum_of_squares import is_sum_of_two_squares_pyx
 
     # design is not symmetric
     if k*(k-1) != lambd*(v-1):
@@ -347,6 +348,14 @@ def BruckRyserChowla_check(v, k, lambd):
 
     if v%2 == 0:
         return is_square(k-lambd)
+
+    # easier check if lambda is 1
+    if lambd == 1:
+        if ((v-1)//2) %2 == 0:
+            # a solution is y=0, x=z
+            return True
+        else:
+            return is_sum_of_two_squares_pyx(k-lambd)
 
     # g = (-1)^((v-1)/2)
     g = 1 if v%4 == 1 else -1

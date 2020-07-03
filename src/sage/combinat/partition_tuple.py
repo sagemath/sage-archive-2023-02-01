@@ -1787,11 +1787,13 @@ class PartitionTuples(UniqueRepresentation, Parent):
 
     - ``regular`` -- a positive integer or a tuple of non-negative
       integers; if an integer, the highest multiplicity an entry may
-      have in a component plus `1`. If a level `k` is specified and
-      ``regular`` is a tuple of integers `l_1,..,l_k` then this
-      specifies partition tuples `\mu` such that
-      `\mu_i` is `l_i`-regular. The special case `l_i = 0` is treated
-      as `\infty`-regular, that is, partitions without restrictions.
+      have in a component plus `1` with `0` representing `\infty`-regular
+      (equivalently, partitions without restrictions)
+
+    If a level `k` is specified and ``regular`` is a tuple of integers
+    `\ell_1, \ldots, \ell_k`, then this specifies partition tuples `\mu`
+    such that `\mu_i` is `\ell_i`-regular. If ``regular`` is an integer
+    `\ell`, then we set `\ell_i = \ell` for all `i`.
 
     TESTS::
 
@@ -1829,26 +1831,25 @@ class PartitionTuples(UniqueRepresentation, Parent):
             Partition tuples of level 3 and size 8
             sage: PartitionTuples(level=3, regular=(0,2,4))
             (0, 2, 4)-Regular partition tuples of level 3
-            sage: PartitionTuples(level=1,regular=(4,)) == PartitionTuples(level=1,regular=4)
+            sage: PartitionTuples(level=1,regular=(4,)) is PartitionTuples(level=1, regular=4)
             True
         """
-
         # sanity testing
-        if level is not None and (not isinstance(level,(int,Integer)) or level<1):
+        if level is not None and (not isinstance(level, (int, Integer)) or level < 1):
             raise ValueError('the level must be a positive integer')
 
-        if size is not None and (not isinstance(size,(int,Integer)) or size<0):
+        if size is not None and (not isinstance(size, (int, Integer)) or size < 0):
             raise ValueError('the size must be a non-negative integer')
 
-        if isinstance(regular, (list,tuple)):
+        if isinstance(regular, (list, tuple)):
             if level is None:
-                raise ValueError("When no level is specified, regular must be"\
+                raise ValueError("When no level is specified, regular must be"
                                  "a positive integer")
             if len(regular) != level:
-                raise ValueError("regular must be a list of length {}, got "\
-                                 "{}".format(level,regular))
+                raise ValueError("regular must be a list of length {}, got {}".format(
+                                 level, regular))
         if regular == 0:
-            raise ValueError("regular must be a positive integer or a tuple"\
+            raise ValueError("regular must be a positive integer or a tuple"
                              "of non-negative integers")
         if level is None:
             if size is None:
@@ -1861,7 +1862,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
             return RegularPartitionTuples_size(size, regular)
 
         elif level == 1:
-            if isinstance(regular, (list,tuple)):
+            if isinstance(regular, (list, tuple)):
                 regular = regular[0]
             if size is None:
                 if regular is None or regular == 0:
@@ -1873,8 +1874,11 @@ class PartitionTuples(UniqueRepresentation, Parent):
             return RegularPartitions_n(size, regular)
 
         # Higher level
-        if regular is not None and not isinstance(regular, (list,tuple)):
-            regular = (regular,)*level
+        if regular is not None:
+            if not isinstance(regular, (list, tuple)):
+                regular = (regular,) * level
+            else:
+                regular = tuple(regular)
         if size is None:
             if regular is None:
                 return PartitionTuples_level(level)
@@ -1884,11 +1888,11 @@ class PartitionTuples(UniqueRepresentation, Parent):
         return RegularPartitionTuples_level_size(level, size, regular)
 
     Element = PartitionTuple
-    options=Partitions.options
+    options = Partitions.options
 
     # default for level
-    _level=None
-    _size=None
+    _level = None
+    _size = None
 
     def _element_constructor_(self, mu):
         r"""
@@ -2134,8 +2138,7 @@ class PartitionTuples_level(PartitionTuples):
     Class of partition tuples of a fixed level, but summing to an arbitrary
     integer.
     """
-
-    def __init__(self, level, **kwds):
+    def __init__(self, level, category=None):
         r"""
         Initializes this class.
 
@@ -2149,9 +2152,10 @@ class PartitionTuples_level(PartitionTuples):
         """
         if level not in NN:
             raise ValueError('level must be a non-negative integer')
-        category = kwds.pop('category', InfiniteEnumeratedSets())
+        if category is None:
+            category = InfiniteEnumeratedSets()
         super(PartitionTuples_level, self).__init__(category=category)
-        self._level=level
+        self._level = level
 
     def _repr_(self):
         """
@@ -2551,7 +2555,7 @@ class RegularPartitionTuples(PartitionTuples):
             return max(mu.to_exp() + [0]) < self._ell
         if isinstance(mu, PartitionTuple):
             return all(max(nu.to_exp() + [0]) < self._ell for nu in mu)
-        if len(mu) == 0:
+        if not mu:
             return True
         if mu in _Partitions:
             return all(mu.count(i) < self._ell for i in set(mu) if i > 0)
@@ -2639,54 +2643,60 @@ class RegularPartitionTuples_all(RegularPartitionTuples):
 
 
 class RegularPartitionTuples_level(PartitionTuples_level):
+    r"""
+    Regular Partition tuples of a fixed level.
+
+    INPUT:
+
+    - ``level`` -- a non-negative Integer; the level
+    - ``regular`` -- a positive integer or a tuple of non-negative
+      integers; if an integer, the highest multiplicity an entry may
+      have in a component plus `1` with `0` representing `\infty`-regular
+      (equivalently, partitions without restrictions)
+
+    ``regular`` is a tuple of integers `(\ell_1, \ldots, \ell_k)` that
+    specifies partition tuples `\mu` such that `\mu_i` is `\ell_i`-regular.
+    If ``regular`` is an integer `\ell`, then we set `\ell_i = \ell` for
+    all `i`.
+
+    EXAMPLES::
+
+        sage: RPT = PartitionTuples(level=4, regular=(2,3,0,2))
+        sage: RPT[:24]
+        [([], [], [], []),
+         ([1], [], [], []),
+         ([], [1], [], []),
+         ([], [], [1], []),
+         ([], [], [], [1]),
+         ([2], [], [], []),
+         ([1], [1], [], []),
+         ([1], [], [1], []),
+         ([1], [], [], [1]),
+         ([], [2], [], []),
+         ([], [1, 1], [], []),
+         ([], [1], [1], []),
+         ([], [1], [], [1]),
+         ([], [], [2], []),
+         ([], [], [1, 1], []),
+         ([], [], [1], [1]),
+         ([], [], [], [2]),
+         ([3], [], [], []),
+         ([2, 1], [], [], []),
+         ([2], [1], [], []),
+         ([2], [], [1], []),
+         ([2], [], [], [1]),
+         ([1], [2], [], []),
+         ([1], [1, 1], [], [])]
+        sage: [[1,1],[3],[5,5,5],[7,2]] in RPT
+        False
+        sage: [[3,1],[3],[5,5,5],[7,2]] in RPT
+        True
+        sage: [[3,1],[3],[5,5,5]] in RPT
+        False
+    """
     def __init__(self, level, regular):
         r"""
-        Regular Partition tuples of a fixed level.
-
-        INPUT:
-
-        - ``level`` -- a non-negative Integer; the level
-        - ``regular`` -- a tuple of non-negative integers with length
-          ``level`` or a non-negative integer; if it is a non-negative
-          integer it is converted into a tuple by repeating this
-          integer ``level`` times. the ``i``-th entry of this tuple,
-          if non-zero, is the maximum number that a part can appear in
-          the ``i``-th component plus one.
-
-        EXAMPLES::
-
-            sage: RPT = PartitionTuples(level=4, regular=(2,3,0,2))
-            sage: RPT[:24]
-            [([], [], [], []),
-             ([1], [], [], []),
-             ([], [1], [], []),
-             ([], [], [1], []),
-             ([], [], [], [1]),
-             ([2], [], [], []),
-             ([1], [1], [], []),
-             ([1], [], [1], []),
-             ([1], [], [], [1]),
-             ([], [2], [], []),
-             ([], [1, 1], [], []),
-             ([], [1], [1], []),
-             ([], [1], [], [1]),
-             ([], [], [2], []),
-             ([], [], [1, 1], []),
-             ([], [], [1], [1]),
-             ([], [], [], [2]),
-             ([3], [], [], []),
-             ([2, 1], [], [], []),
-             ([2], [1], [], []),
-             ([2], [], [1], []),
-             ([2], [], [], [1]),
-             ([1], [2], [], []),
-             ([1], [1, 1], [], [])]
-            sage: [[1,1],[3],[5,5,5],[7,2]] in RPT
-            False
-            sage: [[3,1],[3],[5,5,5],[7,2]] in RPT
-            True
-            sage: [[3,1],[3],[5,5,5]] in RPT
-            False
+        Initialize ``self``.
 
         TESTS::
 
@@ -2699,8 +2709,8 @@ class RegularPartitionTuples_level(PartitionTuples_level):
         if not level in NN:
             raise ValueError('level must be a non-negative integer')
         if not isinstance(regular, tuple):
-            #This should not happen if called from RegularPartitionTuples
-            regular = (regular,)*level
+            # This should not happen if called from RegularPartitionTuples
+            regular = (regular,) * level
         if any (r != 1 for r in regular):
             category = InfiniteEnumeratedSets()
         else:
@@ -2708,8 +2718,7 @@ class RegularPartitionTuples_level(PartitionTuples_level):
         if any (r not in NN for r in regular):
             raise ValueError('regular must be a tuple of non-negative integers')
         if len(regular) != level:
-            raise ValueError("regular must be a tuple with length {}".\
-                                                                format(level))
+            raise ValueError("regular must be a tuple with length {}".format(level))
         PartitionTuples_level.__init__(self, level, category=category)
         self._ell = regular
 
@@ -2728,7 +2737,7 @@ class RegularPartitionTuples_level(PartitionTuples_level):
             return '{}-Regular partition tuples of level {}'.format(self._ell[0],
                                                                     self._level)
         return '{}-Regular partition tuples of level {}'.format(self._ell,
-                                                                    self._level)
+                                                                self._level)
 
     def __contains__(self, mu):
         r"""
@@ -2745,42 +2754,51 @@ class RegularPartitionTuples_level(PartitionTuples_level):
             False
             sage: [4, 3, 2] in RPT
             False
+
             sage: RPT = PartitionTuples(level=3, regular=(2,1,4))
-            sage: [[4],[2],[5]] in RPT
+            sage: [[4], [2], [5]] in RPT
             False
-            sage: [[4],[],[5]] in RPT
+            sage: [[4], [], [5]] in RPT
             True
-            sage: [[4,3],[],[5]] in RPT
+            sage: [[4,3], [], [5]] in RPT
             True
-            sage: [[4,4],[],[5]] in RPT
+            sage: [[4,4], [], [5]] in RPT
             False
-            sage: [[4,3],[5]] in RPT
+            sage: [[4,3], [5]] in RPT
             False
-            sage: [5,4,3] in RPT
+            sage: [5, 4, 3] in RPT
             False
+            sage: [] in RPT
+            False
+            sage: [[], [], []] in RPT
+            True
+            sage: [[], [], [], [2]] in RPT
+            False
+
             sage: from sage.combinat.partition_tuple import RegularPartitionTuples_level
-            sage: RPT = RegularPartitionTuples_level(1,(3,)); RPT
+            sage: RPT = RegularPartitionTuples_level(1, (3,)); RPT
             3-Regular partition tuples of level 1
             sage: [[2,2]] in RPT
             True
             sage: [[2,2,2]] in RPT
             False
         """
-        if self._level != len(mu):
-            return False
+        if self._level == 1:
+            try:
+                if mu[0] in ZZ:
+                    return mu in RegularPartitions_all(self._ell[0])
+            except (TypeError, ValueError):
+                return False
+            return mu[0] in RegularPartitions_all(self._ell[0])
         if mu not in PartitionTuples_level(self._level):
             return False
-        if isinstance(mu, Partition):
-            if self._ell[0] == 0:
-                return True
-            return mu in RegularPartitions_all(self._ell[0])
+        if isinstance(mu, Partition):  # it is level 1
+            return False
         if isinstance(mu, PartitionTuple):
-            return all(max(p.to_exp() + [0]) < ell for p,ell in \
-                       zip(mu,self._ell) if ell > 0)
-        if len(mu) == 0:    #level = 0
-            return True
-        return all(p in RegularPartitions_all(ell) for p,ell in zip(mu,
-                   self._ell) if ell > 0)
+            return all(max(p.to_exp() + [0]) < ell for p, ell in zip(mu, self._ell)
+                       if ell > 0)
+        return all(p in RegularPartitions_all(ell) for p, ell in zip(mu, self._ell)
+                   if ell > 0)
 
     def __iter__(self):
         r"""
@@ -2928,49 +2946,55 @@ class RegularPartitionTuples_size(RegularPartitionTuples):
 
 
 class RegularPartitionTuples_level_size(PartitionTuples_level_size):
+    r"""
+    Class of `\ell`-regular partition tuples with a fixed level and
+    a fixed size.
+
+    INPUT:
+
+    - ``level`` -- a non-negative Integer; the level
+    - ``size`` -- a non-negative Integer; the size
+    - ``regular`` -- a positive integer or a tuple of non-negative
+      integers; if an integer, the highest multiplicity an entry may
+      have in a component plus `1` with `0` representing `\infty`-regular
+      (equivalently, partitions without restrictions)
+
+    ``regular`` is a tuple of integers `(\ell_1, \ldots, \ell_k)` that
+    specifies partition tuples `\mu` such that `\mu_i` is `\ell_i`-regular.
+    If ``regular`` is an integer `\ell`, then we set `\ell_i = \ell` for
+    all `i`.
+
+    EXAMPLES::
+
+        sage: PartitionTuples(level=3, size=7, regular=(2,1,3))[0:24]
+        [([7], [], []),
+         ([6, 1], [], []),
+         ([5, 2], [], []),
+         ([4, 3], [], []),
+         ([4, 2, 1], [], []),
+         ([6], [], [1]),
+         ([5, 1], [], [1]),
+         ([4, 2], [], [1]),
+         ([3, 2, 1], [], [1]),
+         ([5], [], [2]),
+         ([5], [], [1, 1]),
+         ([4, 1], [], [2]),
+         ([4, 1], [], [1, 1]),
+         ([3, 2], [], [2]),
+         ([3, 2], [], [1, 1]),
+         ([4], [], [3]),
+         ([4], [], [2, 1]),
+         ([3, 1], [], [3]),
+         ([3, 1], [], [2, 1]),
+         ([3], [], [4]),
+         ([3], [], [3, 1]),
+         ([3], [], [2, 2]),
+         ([3], [], [2, 1, 1]),
+         ([2, 1], [], [4])]
+    """
     def __init__(self, level, size, regular):
         r"""
-        Class of `\ell`-regular partition tuples with a fixed level and
-        a fixed size.
-
-        INPUT:
-
-        - ``level`` -- a non-negative Integer; the level
-        - ``size`` -- a non-negative Integer; the size
-        - ``regular`` -- a tuple of non-negative integers with length
-          ``level`` or a non-negative integer; if it is a non-negative
-          integer it is converted into a tuple by repeating this
-          integer ``level`` times. the ``i``-th entry of this tuple,
-          if non-zero, is the maximum number that a part can appear in
-          the ``i``-th component plus one.
-
-         EXAMPLES::
-
-            sage: PartitionTuples(level=3, size=7, regular=(2,1,3))[0:24]
-            [([7], [], []),
-             ([6, 1], [], []),
-             ([5, 2], [], []),
-             ([4, 3], [], []),
-             ([4, 2, 1], [], []),
-             ([6], [], [1]),
-             ([5, 1], [], [1]),
-             ([4, 2], [], [1]),
-             ([3, 2, 1], [], [1]),
-             ([5], [], [2]),
-             ([5], [], [1, 1]),
-             ([4, 1], [], [2]),
-             ([4, 1], [], [1, 1]),
-             ([3, 2], [], [2]),
-             ([3, 2], [], [1, 1]),
-             ([4], [], [3]),
-             ([4], [], [2, 1]),
-             ([3, 1], [], [3]),
-             ([3, 1], [], [2, 1]),
-             ([3], [], [4]),
-             ([3], [], [3, 1]),
-             ([3], [], [2, 2]),
-             ([3], [], [2, 1, 1]),
-             ([2, 1], [], [4])]
+        Initialize ``self``.
 
         TESTS::
 
@@ -2985,8 +3009,7 @@ class RegularPartitionTuples_level_size(PartitionTuples_level_size):
             #This should not happen if called from RegularPartitionTuples
             regular = (regular,)*level
         if len(regular) != level:
-            raise ValueError('regular must be a list with length'\
-                             ' {}'.format(level))
+            raise ValueError('regular must be a list with length {}'.format(level))
         if any (i not in NN for i in regular):
             raise ValueError('regular must be a list of non-negative integers')
         PartitionTuples_level_size.__init__(self, level, size)
@@ -3039,11 +3062,9 @@ class RegularPartitionTuples_level_size(PartitionTuples_level_size):
             sage: [4, 3, 2] in RPT
             False
         """
-        if mu not in PartitionTuples_level_size(self._level, self._size):
-            return False
         if mu not in RegularPartitionTuples_level(self._level, self._ell):
             return False
-        return True
+        return self._size == sum(map(sum, mu))
 
     def __iter__(self):
         r"""
@@ -3068,7 +3089,7 @@ class RegularPartitionTuples_level_size(PartitionTuples_level_size):
              ([], [], [2, 1])]
         """
         for iv in IntegerVectors(self._size, self._level):
-            p = [RegularPartitions_n(v, ell) if ell > 0 else Partitions_n(v)\
+            p = [RegularPartitions_n(v, ell) if ell > 0 else Partitions_n(v)
                  for v,ell  in zip(iv,self._ell)]
             for cp in itertools.product(*[p[i] for i in range(self._level)]):
                 yield self._element_constructor_(cp)
@@ -3090,3 +3111,4 @@ class RegularPartitionTuples_level_size(PartitionTuples_level_size):
                 mu[0] = [1]
                 mu[-1] = [self._size-1]
         return self.element_class(self, mu)
+

@@ -412,9 +412,6 @@ class Permutation(CombinatorialElement):
         []
         sage: Permutation( [[], []] )
         []
-
-    .. automethod:: Permutation.left_action_product
-    .. automethod:: Permutation.right_action_product
     """
     @staticmethod
     def __classcall_private__(cls, l, check_input = True):
@@ -6634,7 +6631,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             return self.n - 1
         if p in self:
             return Permutation(p).rank()
-        raise ValueError("x not in self")
+        raise ValueError("p not in self")
 
     def random_element(self):
         """

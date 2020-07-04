@@ -132,8 +132,6 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         sage: K.<a> = FiniteField(7^20, impl='pari_ffelt')
         sage: K(int(8))
         1
-        sage: K(long(-2^300))
-        6
 
     ::
 
@@ -1164,19 +1162,6 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             ValueError: element is not in the prime field
         """
         return int(self.lift())
-
-    def __long__(self):
-        """
-        Lift to a python long, if possible.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(3^17, impl='pari_ffelt')
-            sage: b = k(2)
-            sage: long(b)
-            2L
-        """
-        return long(self.lift())
 
     def __float__(self):
         """

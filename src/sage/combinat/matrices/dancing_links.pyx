@@ -91,6 +91,7 @@ cdef extern from "dancing_links_c.h":
         int search_is_started()
         int search()
 
+from sage.misc.cachefunc import cached_method
 
 cdef class dancing_linksWrapper:
     r"""
@@ -890,6 +891,114 @@ cdef class dancing_linksWrapper:
 
         indices = [i for (i,row) in enumerate(self._rows) if column in row]
         return sum(val for (args_kwds, val) in nb_sol(indices))
+
+    @cached_method
+    def to_sat_solver(self, solver=None):
+        r"""
+        Return the SAT solver solving an equivalent problem.
+
+        Note that row index `i` in the dancing links solver corresponds to
+        the boolean variable index `ì+1` for the SAT solver to avoid
+        the variable index `0`.
+
+        See also :mod:`sage.sat.solvers.satsolver`.
+
+        INPUT:
+
+        - ``solver`` -- string or ``None`` (default: ``None``),
+          possible values include ``'picosat'``, ``'cryptominisat'``,
+          ``'LP'``, ``'glucose'``, ``'glucose-syrup'``.
+
+        OUTPUT:
+
+        SAT solver instance
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [0,2], [1], [3]]
+            sage: x = dlx_solver(rows)
+            sage: s = x.to_sat_solver()
+
+        Using some optional SAT solvers::
+
+            sage: x.to_sat_solver('cryptominisat')          # optional cryptominisat
+            CryptoMiniSat solver: 4 variables, 7 clauses.
+
+        """
+        from sage.sat.solvers.satsolver import SAT
+        s = SAT(solver)
+
+        # Note that row number i is associated to SAT variable i+1 to
+        # avoid a variable zero
+        columns = [[] for _ in range(self.ncols())]
+        for i,row in enumerate(self.rows(), start=1):
+            for a in row:
+                columns[a].append(i)
+
+        # At least one 1 in each column
+        for clause in columns:
+            s.add_clause(clause)
+
+        # At most one 1 in each column
+        import itertools
+        for clause in columns:
+            for p,q in itertools.combinations(clause, 2):
+                sub_clause = [-p,-q]
+                s.add_clause(sub_clause)
+
+        return s
+
+    def one_solution_using_sat_solver(self, solver=None):
+        r"""
+        Return a solution found using a SAT solver.
+
+        INPUT:
+
+        - ``solver`` -- string or ``None`` (default: ``None``),
+          possible values include ``'picosat'``, ``'cryptominisat'``,
+          ``'LP'``, ``'glucose'``, ``'glucose-syrup'``.
+
+        OUTPUT:
+
+        list of rows or ``None`` if no solution is found
+
+        .. NOTE::
+
+            When comparing the time taken by method `one_solution`,
+            have in mind that `one_solution_using_sat_solver` first
+            creates the SAT solver instance from the dancing links
+            solver. This copy of data may take many seconds depending on
+            the size of the problem.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
+            sage: d = dlx_solver(rows)
+            sage: solutions = [[0,1], [2,3], [4,5]]
+            sage: d.one_solution_using_sat_solver() in solutions
+            True
+
+        Using optional solvers::
+
+            sage: s = d.one_solution_using_sat_solver('glucose') # optional glucose
+            sage: s in solutions                                 # optional glucose
+            True
+
+        When no solution is found::
+
+            sage: rows = [[0,1,2], [2,3,4,5], [0,1,2,3]]
+            sage: d = dlx_solver(rows)
+            sage: d.one_solution_using_sat_solver() is None
+            True
+
+        """
+        sat_solver = self.to_sat_solver(solver)
+        solution = sat_solver()
+        if not solution:
+            return None
+        return [key for (key,val) in enumerate(solution, start=-1) if val]
 
 def dlx_solver(rows):
     """

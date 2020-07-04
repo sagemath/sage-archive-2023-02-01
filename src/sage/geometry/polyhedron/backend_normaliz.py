@@ -332,12 +332,20 @@ class Polyhedron_normaliz(Polyhedron_base):
             [[7, 2], [1, 1]]
             sage: Pn._convert_to_pynormaliz([[1, 2], (3, 4)])
             [[1, 2], [3, 4]]
+
+        Check that :trac:`29836` is fixed::
+
+            sage: P = polytopes.simplex(backend='normaliz')  # optional - pynormaliz
+            sage: K.<sqrt2> = QuadraticField(2)              # optional - pynormaliz
+            sage: P.dilation(sqrt2)                          # optional - pynormaliz
+            A 3-dimensional polyhedron in (Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.41...)^4 defined as the convex hull of 4 vertices
         """
         def _QQ_pair(x):
             x = QQ(x)
             return [ int(x.numerator()), int(x.denominator())]
         from sage.rings.rational import Rational
-        if isinstance(x, list) or isinstance(x, tuple):
+        from types import GeneratorType
+        if isinstance(x, (list, tuple, GeneratorType)):
             return [ Polyhedron_normaliz._convert_to_pynormaliz(y) for y in x ]
         try:
             return int(ZZ(x))

@@ -2176,9 +2176,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         """
         return int(self.lift())
 
-    def __long__(self):
-        return long(self.lift())
-
     def __pow__(IntegerMod_gmp self, exp, m): # NOTE: m ignored, always use modulus of parent ring
         """
         EXAMPLES::
@@ -2567,9 +2564,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: v[Mod(10,7)]
             4
         """
-        return self.ivalue
-
-    def __long__(IntegerMod_int self):
         return self.ivalue
 
     def __lshift__(IntegerMod_int self, k):
@@ -3364,9 +3358,6 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: v[Mod(3, 2^20)]
             4
         """
-        return self.ivalue
-
-    def __long__(IntegerMod_int64 self):
         return self.ivalue
 
     def __lshift__(IntegerMod_int64 self, k):

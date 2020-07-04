@@ -121,7 +121,11 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
 
         sage: timeit('find_python_sources(SAGE_SRC)',         # random output
         ....:        number=1, repeat=1)
-        1 loops, best of 1: 18.8 ms per loop
+        1 loops, best of 1: 30 ms per loop
+
+        sage: timeit('find_python_sources(SAGE_SRC, distributions=[""])', # random output
+        ....:        number=1, repeat=1)
+        1 loops, best of 1: 850 ms per loop
 
         sage: find_python_sources(SAGE_SRC, modules=['sage_setup'])
         (['sage_setup', ...], [...'sage_setup.find'...], [])

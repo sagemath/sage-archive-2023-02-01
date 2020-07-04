@@ -1084,8 +1084,8 @@ class Rings(CategoryWithAxiom):
                 from sage.categories.morphism import Morphism
                 from sage.rings.derivation import RingDerivation
                 if len(arg) == 2 and isinstance(arg[1], (Morphism, RingDerivation)):
-                   from sage.rings.polynomial.ore_polynomial_ring import OrePolynomialRing
-                   return OrePolynomialRing(self, arg[1], names=arg[0])
+                    from sage.rings.polynomial.ore_polynomial_ring import OrePolynomialRing
+                    return OrePolynomialRing(self, arg[1], names=arg[0])
 
             # 2. Otherwise, if all specified elements are algebraic, try to
             #    return an algebraic extension

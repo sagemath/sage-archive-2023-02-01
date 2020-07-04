@@ -329,6 +329,93 @@ class LieConformalAlgebras(Category_over_base_ring):
             """
             return self in LieConformalAlgebras(self.base_ring()).Graded()
 
+        def is_finitely_generated(self):
+            """
+            Whether this Lie conformal algebra is finitely generated.
+
+            EXAMPLES::
+
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ)
+                sage: Vir.is_finitely_generated()
+                True
+            """
+            return self in LieConformalAlgebras(self.base_ring()).FinitelyGenerated()
+
+        def _test_jacobi(self, **options):
+            """
+            Test the Jacobi condition on the generators of this Lie
+            conformal algebra.
+
+            INPUT:
+
+            - ``options`` -- any keyword arguments acceptde by :meth:`_tester`
+
+            EXAMPLES:
+
+            By default, on a finitely generated Lie conformal algebra,
+            this method tests all generators::
+
+                sage: V = lie_conformal_algebras.Affine(QQ, 'B2')
+                sage: V._test_jacobi()
+
+            It works for super Lie conformal algebras too::
+
+                sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
+                sage: V._test_jacobi()
+
+            We can use specific elements by passing the ``elements``
+            keyword argument::
+
+                sage: V = lie_conformal_algebras.Affine(QQ, 'A1', names=('e', 'h', 'f'))
+                sage: V.inject_variables()
+                Defining e, h, f, K
+                sage: V._test_jacobi(elements=(e, 2*f+h, 3*h))
+
+            TESTS::
+
+                sage: wrongdict = {('a', 'a'): {0: {('b', 0): 1}}, ('b', 'a'): {0: {('a', 0): 1}}}
+                sage: V = LieConformalAlgebra(QQ, wrongdict, names=('a', 'b'), parity=(1, 0))
+                sage: V._test_jacobi()
+                Traceback (most recent call last):
+                ...
+                AssertionError
+            """
+            elements = options.get('elements', None)
+            if elements is None:
+                if self.is_finitely_generated():
+                    elements = self.gens()
+                else:
+                    elements = self.some_elements()
+            pz = self.zero()
+            tester = self._tester(**options)
+            from sage.misc.misc import some_tuples
+            from sage.functions.other import binomial
+            for x,y,z in some_tuples(elements, 3, tester._max_runs):
+                sgn = 1
+                if self.is_super():
+                    if x.is_even_odd()*y.is_even_odd():
+                        sgn = -1
+                brxy = x.bracket(y)
+                brxz = x.bracket(z)
+                bryz = y.bracket(z)
+                br1 = {k: x.bracket(v) for k,v in bryz.items()}
+                br2 = {k: v.bracket(z) for k,v in brxy.items()}
+                br3 = {k: y.bracket(v) for k,v in brxz.items()}
+                jac1 = {(j,k): v for k in br1 for j,v in br1[k].items()}
+                jac3 = {(k,j): v for k in br3 for j,v in br3[k].items()}
+                jac2 = {}
+                for k,br in br2.items():
+                    for j,v in br.items():
+                        for r in range(j+1):
+                            jac2[(k+r, j-r)] = jac2.get((k+r, j-r), pz)\
+                                              + binomial(k+r, r)*v
+                for k,v in jac2.items():
+                    jac1[k] = jac1.get(k, pz) - v
+                for k,v in jac3.items():
+                    jac1[k] = jac1.get(k, pz) - sgn*v
+                jacobiator = {k: v for k,v in jac1.items() if v}
+                assert not jacobiator
+
     class ElementMethods:
         @coerce_binop
         def bracket(self,rhs):

@@ -166,7 +166,7 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
         ret = {}
         pz = p.zero()
         for d in diclist:
-            for k in d.keys():
+            for k in d:
                 ret[k] = ret.get(k,pz) + d[k]
         return {k:v for k,v in ret.items() if v}
 

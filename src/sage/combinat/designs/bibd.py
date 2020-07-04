@@ -177,8 +177,6 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         sage: designs.balanced_incomplete_block_design(15,7,3)
         (15,7,3)-Balanced Incomplete Block Design
     """
-    from sage.arith.misc import is_square
-
     # Trivial BIBD
     if v == 1:
         if existence:
@@ -211,7 +209,7 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
     if BruckRyserChowla_check(v, k, lambd) is False:
         if existence:
             return False
-        raise EmptySetError("There exists no ({},{},{})-BIBD by Bruck-Ryser-Chowla Theorem".format(v,k,lmbd))
+        raise EmptySetError("There exists no ({},{},{})-BIBD by Bruck-Ryser-Chowla Theorem".format(v,k,lambd))
 
     if k == 2:
         if existence:
@@ -287,7 +285,7 @@ def BruckRyserChowla_check(v, k, lambd):
 
     INPUT:
 
-    - ``v, k, lambd` -- integers; parameters to check
+    - ``v, k, lambd`` -- integers; parameters to check
 
     OUTPUT:
 
@@ -337,10 +335,8 @@ def BruckRyserChowla_check(v, k, lambd):
 
     """
     from sage.arith.misc import is_square
-    from sage.calculus.var import var
-    from sage.symbolic.assumptions import assume, forget
-    from sage.symbolic.relation import solve
-    from sage.rings.sum_of_squares import is_sum_of_two_squares_pyx
+    from sage.schemes.plane_conics.constructor import Conic
+    from sage.rings.rational_field import QQ
 
     # design is not symmetric
     if k*(k-1) != lambd*(v-1):
@@ -349,26 +345,12 @@ def BruckRyserChowla_check(v, k, lambd):
     if v%2 == 0:
         return is_square(k-lambd)
 
-    # easier check if lambda is 1
-    if lambd == 1:
-        if ((v-1)//2) %2 == 0:
-            # a solution is y=0, x=z
-            return True
-        else:
-            return is_sum_of_two_squares_pyx(k-lambd)
-
-    # g = (-1)^((v-1)/2)
     g = 1 if v%4 == 1 else -1
-    x, y, z = var('x y z')
-    assume(x, 'integer')
-    assume(y, 'integer')
-    assume(z, 'integer')
-    sol = solve(x**2 - ((k-lambd) * y**2) == g * lambd * z**2, x, y, z, algorithm="sympy")
-    if not isinstance(sol,tuple):
-        raise RuntimeError("The solve method returned a non-tuple")
+    C = Conic(QQ, [1, lambd - k, -g * lambd])
 
-    forget()  # forget assumptions
-    return bool(sol[0]!= 0 and sol[1] != 0 and sol[2] != 0)
+    (flag, sol) = C.has_rational_point(point=True)
+
+    return flag
 
 def steiner_triple_system(n):
     r"""

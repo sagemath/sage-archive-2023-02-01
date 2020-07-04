@@ -173,7 +173,7 @@ Guide](https://doc.sagemath.org/html/en/installation).
 
     - [Git] Alternatively, clone the Sage git repository:
 
-            $ git clone --branch master git://trac.sagemath.org/sage.git
+            $ git clone -c core.symlinks=true --branch master git://trac.sagemath.org/sage.git
 
       This will create the subdirectory `sage`.
 
@@ -183,12 +183,9 @@ Guide](https://doc.sagemath.org/html/en/installation).
 
       Therefore it is crucial that you unpack the source tree from the
       Cygwin (or WSL) `bash` using the Cygwin (or WSL) `tar` utility
-      and not using other Windows tools (including mingw).  Likewise,
-      when using `git`, it is crucial that you use the Cygwin (or WSL)
-      version of `git`, and that you configure it as follows first:
-
-            $ git config --global core.autocrlf false
-            $ git config --global core.symlinks true
+      and not using other Windows tools (including mingw). Likewise,
+      when using `git`, it is recommended (but not necessary) to use the Cygwin (or WSL)
+      version of `git`.
 
 3. `cd` into the source/build directory:
 

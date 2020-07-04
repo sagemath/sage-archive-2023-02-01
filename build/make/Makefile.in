@@ -132,6 +132,10 @@ $(foreach pkgname,$(BUILT_PACKAGES),\
 $(foreach pkgname,$(DUMMY_PACKAGES),\
 	$(eval inst_$(pkgname) = $$(INST)/.dummy))
 
+# Override this for pip packages, for which we do not keep an installation record
+# in addition to what pip is already doing.
+$(foreach pkgname,$(PIP_PACKAGES),\
+	$(eval inst_$(pkgname) = $(pkgname)))
 
 # Dummy target for packages which are not installed
 $(INST)/.dummy:

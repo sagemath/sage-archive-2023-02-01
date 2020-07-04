@@ -5869,8 +5869,8 @@ class Permutations_mset(Permutations):
             mult = multinomial(m.values())
             # Now ``r = ci * mult / n + rank(p[i+1:])``, where ``ci`` is the
             # number of elements remaining in ``mset`` that are less than
-            # ``pi``. We know ``r`` and ``v``, but not ``rank(p[i+1:])``. We
-            # also know that ``ci`` is an integer.
+            # ``pi``. We know ``r`` and ``mult / n``, but not ``rank(p[i+1:])``
+            # nor ``ci``, except that we know both are integers.
             ti = r * n // mult
             if ti >= n:
                 raise range_error

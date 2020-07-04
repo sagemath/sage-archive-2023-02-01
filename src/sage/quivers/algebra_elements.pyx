@@ -18,7 +18,7 @@ AUTHORS:
 include "algebra_elements.pxi"
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import repr_lincomb
+from sage.misc.repr import repr_lincomb
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
 

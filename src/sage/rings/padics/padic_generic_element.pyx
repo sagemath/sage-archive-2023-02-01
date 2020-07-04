@@ -4009,29 +4009,28 @@ cdef class pAdicGenericElement(LocalGenericElement):
             True
             sage: a._is_base_elt(17)
             False
-
         """
         raise NotImplementedError
 
     def _polylog_res_1(self, n):
         """
         Return `Li_n(`self`)` , the `n`th `p`-adic polylogarithm of ``self``, assuming that self is congruent to 1 mod p.
+
         This is an internal function, used by :meth:`polylog`.
 
         INPUT:
 
-            - ``n`` -- a non-negative integer
+        - ``n`` -- a non-negative integer
 
         OUTPUT:
 
-            - Li_n(self)
+        - Li_n(self)
 
         EXAMPLES ::
 
             sage: Qp(2)(-1)._polylog_res_1(6) == 0
             True
 
-        ::
             sage: Qp(5)(1)._polylog_res_1(1)
             Traceback (most recent call last):
             ...

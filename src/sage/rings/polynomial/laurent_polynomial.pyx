@@ -774,6 +774,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         Return a dictionary representing ``self``.
 
         EXAMPLES::
+
             sage: R.<x,y> = ZZ[]
             sage: Q.<t> = LaurentPolynomialRing(R)
             sage: f = (x^3 + y/t^3)^3 + t^2; f

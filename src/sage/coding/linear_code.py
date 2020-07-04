@@ -211,12 +211,10 @@ from copy import copy
 
 from sage.cpython.string import bytes_to_str
 from sage.interfaces.all import gap
-from sage.categories.modules import Modules
 from sage.categories.cartesian_product import cartesian_product
 from sage.categories.fields import Fields
 from sage.matrix.matrix_space import MatrixSpace
 from sage.modules.free_module import VectorSpace
-from sage.modules.module import Module
 from sage.modules.free_module_element import vector
 from sage.arith.all import GCD, binomial
 from sage.groups.all import SymmetricGroup
@@ -226,7 +224,6 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-from sage.structure.parent import Parent
 from sage.misc.all import prod
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method
@@ -234,7 +231,6 @@ from sage.misc.randstate import current_randstate
 from sage.combinat.subset import Subsets
 from sage.features.gap import GapPackage
 from sage.coding.linear_code_no_metric import AbstractLinearCodeNoMetric
-from sage.coding.abstract_code import AbstractCode
 from .encoder import Encoder
 from .decoder import Decoder
 

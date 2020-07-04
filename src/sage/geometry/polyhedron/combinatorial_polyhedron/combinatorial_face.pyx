@@ -183,19 +183,19 @@ cdef class CombinatorialFace(SageObject):
             # Copy data from FaceIterator.
             it = data
             self._dual              = it.dual
-            self.face_mem           = ListOfFaces(1, it.face_length*64)
+            self.face_mem           = ListOfFaces(1, it.structure.face_length*64)
             self.face               = self.face_mem.data[0]
-            memcpy(self.face, it.face, it.face_length*8)
+            memcpy(self.face, it.structure.face, it.structure.face_length*8)
             self._mem               = MemoryAllocator()
-            self._dimension         = it.current_dimension
-            self._ambient_dimension = it.dimension
-            self.face_length        = it.face_length
+            self._dimension         = it.structure.current_dimension
+            self._ambient_dimension = it.structure.dimension
+            self.face_length        = it.structure.face_length
             self._ambient_Vrep      = it._Vrep
             self._ambient_facets    = it._facet_names
             self._equalities        = it._equalities
             self.atoms              = it.atoms
             self.coatoms            = it.coatoms
-            self._hash_index        = it._index
+            self._hash_index        = it.structure._index
 
         elif isinstance(data, PolyhedronFaceLattice):
             all_faces = data

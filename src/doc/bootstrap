@@ -77,3 +77,8 @@ done
 cat >> "$OUTPUT_INDEX" <<EOF
 .. include:: ../footer.txt
 EOF
+
+
+OUTPUT="src/doc/en/reference/repl/options.txt"
+echo >&2 $0:$LINENO: installing "$OUTPUT"
+./sage -advanced > "$OUTPUT"

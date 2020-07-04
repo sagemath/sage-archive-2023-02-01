@@ -470,28 +470,29 @@ cdef class FaceIterator(SageObject):
         cdef ListOfFaces some_list  # make Cython aware of type
 
         self.dual = dual
-        self.face = NULL
-        self.dimension = C.dimension()
-        self.current_dimension = self.dimension -1
+        self.structure.dual = dual
+        self.structure.face = NULL
+        self.structure.dimension = C.dimension()
+        self.structure.current_dimension = self.structure.dimension -1
         self._mem = MemoryAllocator()
 
         # We will not yield the empty face.
         # If there are `n` lines, than there
         # are no faces below dimension `n`.
         # The dimension of the level-sets in the face lattice jumps from `n` to `-1`.
-        self.lowest_dimension = 0
+        self.structure.lowest_dimension = 0
 
         if output_dimension is not None:
-            if not output_dimension in range(0,self.dimension):
+            if not output_dimension in range(0,self.structure.dimension):
                 raise ValueError("``output_dimension`` must be the dimension of proper faces")
             if self.dual:
                 # In dual mode, the dimensions are reversed.
-                self.output_dimension = self.dimension - 1 - output_dimension
+                self.structure.output_dimension = self.structure.dimension - 1 - output_dimension
             else:
-                self.output_dimension = output_dimension
-            self.lowest_dimension = max(0, self.output_dimension)
+                self.structure.output_dimension = output_dimension
+            self.structure.lowest_dimension = max(0, self.structure.output_dimension)
         else:
-            self.output_dimension = -2
+            self.structure.output_dimension = -2
 
         if dual:
             self.atoms = C.bitrep_facets()
@@ -499,36 +500,36 @@ cdef class FaceIterator(SageObject):
         else:
             self.coatoms = C.bitrep_facets()
             self.atoms = C.bitrep_Vrep()
-        self.face_length = self.coatoms.face_length
+        self.structure.face_length = self.coatoms.face_length
         self._Vrep = C.Vrep()
         self._facet_names = C.facet_names()
         self._equalities = C.equalities()
 
-        self.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
-        self.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))
+        self.structure.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
+        self.structure.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))
 
-        if self.dimension == 0 or self.coatoms.n_faces == 0:
+        if self.structure.dimension == 0 or self.coatoms.n_faces == 0:
             # As we will only yield proper faces,
             # there is nothing to yield in those cases.
             # We have to discontinue initialization,
             # as it assumes ``self.dimension > 0`` and ``self.n_faces > 0``.
-            self.current_dimension = self.dimension
+            self.structure.current_dimension = self.structure.dimension
             return
         # We may assume ``dimension > 0`` and ``n_faces > 0``.
 
         # Initialize ``maybe_newfaces``,
         # the place where the new faces are being stored.
         self.newfaces_lists = tuple(ListOfFaces(self.coatoms.n_faces, self.coatoms.n_atoms)
-                                    for i in range(self.dimension -1))
-        self.maybe_newfaces = <uint64_t ***> self._mem.allocarray((self.dimension -1), sizeof(uint64_t **))
-        for i in range(self.dimension -1):
+                                    for i in range(self.structure.dimension -1))
+        self.structure.maybe_newfaces = <uint64_t ***> self._mem.allocarray((self.structure.dimension -1), sizeof(uint64_t **))
+        for i in range(self.structure.dimension -1):
             some_list = self.newfaces_lists[i]
-            self.maybe_newfaces[i] = some_list.data
+            self.structure.maybe_newfaces[i] = some_list.data
 
         # Initialize ``visited_all``.
-        self.visited_all = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t *))
-        self.n_visited_all = <size_t *> self._mem.allocarray(self.dimension, sizeof(size_t))
-        self.n_visited_all[self.dimension -1] = 0
+        self.structure.visited_all = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t *))
+        self.structure.n_visited_all = <size_t *> self._mem.allocarray(self.structure.dimension, sizeof(size_t))
+        self.structure.n_visited_all[self.structure.dimension -1] = 0
         if not C.is_bounded():
             # Treating the far face as if we had visited all its elements.
             # Hence we will visit all intersections of facets unless contained in the far face.
@@ -539,26 +540,26 @@ cdef class FaceIterator(SageObject):
             # Hence it is fine to use the first entry already for the far face,
             # as ``self.visited_all`` holds ``n_facets`` pointers.
             some_list = C.far_face()
-            self.visited_all[0] = some_list.data[0]
-            self.n_visited_all[self.dimension -1] = 1
+            self.structure.visited_all[0] = some_list.data[0]
+            self.structure.n_visited_all[self.structure.dimension -1] = 1
 
         # Initialize ``newfaces``, which will point to the new faces of codimension 1,
         # which have not been visited yet.
-        self.newfaces = <uint64_t ***> self._mem.allocarray(self.dimension, sizeof(uint64_t **))
-        for i in range(self.dimension - 1):
-            self.newfaces[i] = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t *))
-        self.newfaces[self.dimension - 1] = self.coatoms.data  # we start with coatoms
+        self.structure.newfaces = <uint64_t ***> self._mem.allocarray(self.structure.dimension, sizeof(uint64_t **))
+        for i in range(self.structure.dimension - 1):
+            self.structure.newfaces[i] = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t *))
+        self.structure.newfaces[self.structure.dimension - 1] = self.coatoms.data  # we start with coatoms
 
         # Initialize ``n_newfaces``.
-        self.n_newfaces = <size_t *> self._mem.allocarray(self.dimension, sizeof(size_t))
-        self.n_newfaces[self.dimension - 1] = self.coatoms.n_faces
+        self.structure.n_newfaces = <size_t *> self._mem.allocarray(self.structure.dimension, sizeof(size_t))
+        self.structure.n_newfaces[self.structure.dimension - 1] = self.coatoms.n_faces
 
         # Initialize ``first_time``.
-        self.first_time = <bint *> self._mem.allocarray(self.dimension, sizeof(bint))
-        self.first_time[self.dimension - 1] = True
+        self.structure.first_time = <bint *> self._mem.allocarray(self.structure.dimension, sizeof(bint))
+        self.structure.first_time[self.structure.dimension - 1] = True
 
-        self.yet_to_visit = self.coatoms.n_faces
-        self._index = 0
+        self.structure.yet_to_visit = self.coatoms.n_faces
+        self.structure._index = 0
 
     def _repr_(self):
         r"""
@@ -572,16 +573,16 @@ cdef class FaceIterator(SageObject):
             sage: C.face_iter(1)
             Iterator over the 1-faces of a 3-dimensional combinatorial polyhedron
         """
-        if self.output_dimension != -2:
+        if self.structure.output_dimension != -2:
             if self.dual:
                 # ouput_dimension is stored with respect to the dual
-                intended_dimension = self.dimension - 1 - self.output_dimension
+                intended_dimension = self.structure.dimension - 1 - self.structure.output_dimension
             else:
-                intended_dimension = self.output_dimension
+                intended_dimension = self.structure.output_dimension
             output = "Iterator over the {}-faces".format(intended_dimension)
         else:
             output = "Iterator over the proper faces"
-        return output + " of a {}-dimensional combinatorial polyhedron".format(self.dimension)
+        return output + " of a {}-dimensional combinatorial polyhedron".format(self.structure.dimension)
 
     def __next__(self):
         r"""
@@ -601,7 +602,7 @@ cdef class FaceIterator(SageObject):
              A 1-dimensional face of a 3-dimensional combinatorial polyhedron]
         """
         cdef CombinatorialFace face = self.next_face()
-        if unlikely(self.current_dimension == self.dimension):
+        if unlikely(self.structure.current_dimension == self.structure.dimension):
             raise StopIteration
 
         return face
@@ -672,15 +673,15 @@ cdef class FaceIterator(SageObject):
         """
         if unlikely(self.dual):
             raise ValueError("only possible when not in dual mode")
-        if unlikely(self.face is NULL):
+        if unlikely(self.structure.face is NULL):
             raise ValueError("iterator not set to a face yet")
 
         # The current face is added to ``visited_all``.
         # This will make the iterator skip those faces.
         # Also, this face will not be added a second time to ``visited_all``,
         # as there are no new faces.
-        self.visited_all[self.n_visited_all[self.current_dimension]] = self.face
-        self.n_visited_all[self.current_dimension] += 1
+        self.structure.visited_all[self.structure.n_visited_all[self.structure.current_dimension]] = self.structure.face
+        self.structure.n_visited_all[self.structure.current_dimension] += 1
 
     def ignore_supfaces(self):
         r"""
@@ -705,15 +706,15 @@ cdef class FaceIterator(SageObject):
         """
         if unlikely(not self.dual):
             raise ValueError("only possible when in dual mode")
-        if unlikely(self.face is NULL):
+        if unlikely(self.structure.face is NULL):
             raise ValueError("iterator not set to a face yet")
 
         # The current face is added to ``visited_all``.
         # This will make the iterator skip those faces.
         # Also, this face will not be added a second time to ``visited_all``,
         # as there are no new faces.
-        self.visited_all[self.n_visited_all[self.current_dimension]] = self.face
-        self.n_visited_all[self.current_dimension] += 1
+        self.structure.visited_all[self.structure.n_visited_all[self.structure.current_dimension]] = self.structure.face
+        self.structure.n_visited_all[self.structure.current_dimension] += 1
 
     cdef inline CombinatorialFace next_face(self):
         r"""
@@ -721,7 +722,7 @@ cdef class FaceIterator(SageObject):
         :class:`sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace`.
         """
         self.next_dimension()
-        if unlikely(self.current_dimension == self.dimension):
+        if unlikely(self.structure.current_dimension == self.structure.dimension):
             return None
         return CombinatorialFace(self)
 
@@ -744,11 +745,11 @@ cdef class FaceIterator(SageObject):
             visiting sub-/supfaces instead of after. One cannot arbitrarily
             add faces to ``visited_all``, as visited_all has a maximal length.
         """
-        cdef int dim = self.dimension
-        while (not self.next_face_loop()) and (self.current_dimension < dim):
+        cdef int dim = self.structure.dimension
+        while (not self.next_face_loop()) and (self.structure.current_dimension < dim):
             sig_check()
-        self._index += 1
-        return self.current_dimension
+        self.structure._index += 1
+        return self.structure.current_dimension
 
     cdef inline int next_face_loop(self) except -1:
         r"""
@@ -758,53 +759,53 @@ cdef class FaceIterator(SageObject):
         If ``self.current_dimension == self.dimension``, then the iterator is
         consumed.
         """
-        if unlikely(self.current_dimension == self.dimension):
+        if unlikely(self.structure.current_dimension == self.structure.dimension):
             # The function is not supposed to be called,
             # just prevent it from crashing.
             raise StopIteration
 
         # Getting ``[faces, n_faces, n_visited_all]`` according to dimension.
-        cdef uint64_t **faces = self.newfaces[self.current_dimension]
-        cdef size_t n_faces = self.n_newfaces[self.current_dimension]
-        cdef size_t n_visited_all = self.n_visited_all[self.current_dimension]
+        cdef uint64_t **faces = self.structure.newfaces[self.structure.current_dimension]
+        cdef size_t n_faces = self.structure.n_newfaces[self.structure.current_dimension]
+        cdef size_t n_visited_all = self.structure.n_visited_all[self.structure.current_dimension]
 
-        if (self.output_dimension > -2) and (self.output_dimension != self.current_dimension):
+        if (self.structure.output_dimension > -2) and (self.structure.output_dimension != self.structure.current_dimension):
             # If only a specific dimension was requested (i.e. ``self.output_dimension > -2``),
             # then we will not yield faces in other dimension.
-            self.yet_to_visit = 0
+            self.structure.yet_to_visit = 0
 
-        if self.yet_to_visit:
+        if self.structure.yet_to_visit:
             # Set ``face`` to the next face.
-            self.yet_to_visit -= 1
-            self.face = faces[self.yet_to_visit]
+            self.structure.yet_to_visit -= 1
+            self.structure.face = faces[self.structure.yet_to_visit]
             return 1
 
-        if self.current_dimension <= self.lowest_dimension:
+        if self.structure.current_dimension <= self.structure.lowest_dimension:
             # We will not yield the empty face.
             # We will not yield below requested dimension.
-            self.current_dimension += 1
+            self.structure.current_dimension += 1
             return 0
 
         if n_faces <= 1:
             # There will be no more faces from intersections.
-            self.current_dimension += 1
+            self.structure.current_dimension += 1
             return 0
 
         # We will visit the last face now.
-        self.n_newfaces[self.current_dimension] -= 1
+        self.structure.n_newfaces[self.structure.current_dimension] -= 1
         n_faces -= 1
 
-        if not self.first_time[self.current_dimension]:
+        if not self.structure.first_time[self.structure.current_dimension]:
             # In this case there exists ``faces[n_faces + 1]``, of which we
             # have visited all faces, but which was not added to
             # ``visited_all`` yet.
-            self.visited_all[n_visited_all] = faces[n_faces + 1]
-            self.n_visited_all[self.current_dimension] += 1
-            n_visited_all = self.n_visited_all[self.current_dimension]
+            self.structure.visited_all[n_visited_all] = faces[n_faces + 1]
+            self.structure.n_visited_all[self.structure.current_dimension] += 1
+            n_visited_all = self.structure.n_visited_all[self.structure.current_dimension]
         else:
             # Once we have visited all faces of ``faces[n_faces]``, we want
             # to add it to ``visited_all``.
-            self.first_time[self.current_dimension] = False
+            self.structure.first_time[self.structure.current_dimension] = False
 
         # Get the faces of codimension 1 contained in ``faces[n_faces]``,
         # which we have not yet visited.
@@ -812,9 +813,9 @@ cdef class FaceIterator(SageObject):
 
         sig_on()
         newfacescounter = get_next_level(
-            faces, n_faces + 1, self.maybe_newfaces[self.current_dimension-1],
-            self.newfaces[self.current_dimension-1],
-            self.visited_all, n_visited_all, self.face_length)
+            faces, n_faces + 1, self.structure.maybe_newfaces[self.structure.current_dimension-1],
+            self.structure.newfaces[self.structure.current_dimension-1],
+            self.structure.visited_all, n_visited_all, self.structure.face_length)
         sig_off()
 
         if newfacescounter:
@@ -822,11 +823,11 @@ cdef class FaceIterator(SageObject):
             # We will visted them on next call, starting with codimension 1.
 
             # Setting the variables correclty for next call of ``next_face_loop``.
-            self.current_dimension -= 1
-            self.first_time[self.current_dimension] = True
-            self.n_newfaces[self.current_dimension] = newfacescounter
-            self.n_visited_all[self.current_dimension] = n_visited_all
-            self.yet_to_visit = newfacescounter
+            self.structure.current_dimension -= 1
+            self.structure.first_time[self.structure.current_dimension] = True
+            self.structure.n_newfaces[self.structure.current_dimension] = newfacescounter
+            self.structure.n_visited_all[self.structure.current_dimension] = n_visited_all
+            self.structure.yet_to_visit = newfacescounter
             return 0
         else:
             # ``faces[n_faces]`` contains no new faces.
@@ -836,7 +837,7 @@ cdef class FaceIterator(SageObject):
             #     this step needs to be done, as ``faces[n_faces]`` might
             #     have been added manually to ``visited_all``.
             #     So this step is required to respect boundaries of ``visited_all``.
-            self.first_time[self.current_dimension] = True
+            self.structure.first_time[self.structure.current_dimension] = True
             return 0
 
     cdef size_t n_atom_rep(self) except -1:
@@ -846,8 +847,8 @@ cdef class FaceIterator(SageObject):
 
         This is a shortcut of :class:`sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace.n_atom_rep`
         """
-        if self.face:
-            return count_atoms(self.face, self.face_length)
+        if self.structure.face:
+            return count_atoms(self.structure.face, self.structure.face_length)
 
         # The face was not initialized properly.
         raise LookupError("``FaceIterator`` does not point to a face")
@@ -861,9 +862,9 @@ cdef class FaceIterator(SageObject):
         """
         cdef size_t n_coatoms = self.coatoms.n_faces
         cdef uint64_t **coatoms = self.coatoms.data
-        cdef size_t face_length = self.face_length
-        return bit_rep_to_coatom_rep(self.face, coatoms, n_coatoms,
-                                       face_length, self.coatom_rep)
+        cdef size_t face_length = self.structure.face_length
+        return bit_rep_to_coatom_rep(self.structure.face, coatoms, n_coatoms,
+                                       face_length, self.structure.coatom_rep)
 
     cdef size_t set_atom_rep(self) except -1:
         r"""
@@ -872,5 +873,5 @@ cdef class FaceIterator(SageObject):
 
         This is a shortcut of :class:`sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace.set_atom_rep`
         """
-        cdef size_t face_length = self.face_length
-        return bit_rep_to_Vrep_list(self.face, self.atom_rep, face_length)
+        cdef size_t face_length = self.structure.face_length
+        return bit_rep_to_Vrep_list(self.structure.face, self.structure.atom_rep, face_length)

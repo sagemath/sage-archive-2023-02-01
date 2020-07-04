@@ -166,7 +166,7 @@ class LieAlgebras(Category_over_base_ring):
         """
         if gens is None:
             from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
-            from sage.rings.all import QQ
+            from sage.rings.rational_field import QQ
             gens = SymmetricGroupAlgebra(QQ, 3).algebra_generators()
         from sage.categories.examples.lie_algebras import Example
         return Example(gens)

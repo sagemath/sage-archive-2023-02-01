@@ -115,6 +115,7 @@ from sage.arith.all import gcd
 from .matrix2 import decomp_seq
 from .matrix0 import Matrix as Matrix_base
 
+
 from sage.misc.all import verbose, get_verbose, prod
 
 #########################################################
@@ -139,7 +140,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: type(a)
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
 
-        .. warning::
+        .. WARNING::
 
            This is for internal use only, or if you really know what
            you're doing.
@@ -264,6 +265,17 @@ cdef class Matrix_rational_dense(Matrix_dense):
         x = Rational.__new__(Rational)
         fmpq_get_mpq(x.value, fmpq_mat_entry(self._matrix, i, j))
         return x
+
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Return 1 if the entry (i, j) is zero, otherwise 0.
+
+        .. WARNING::
+
+           This is very unsafe; it assumes i and j are in the right
+           range.
+        """
+        return fmpq_is_zero(fmpq_mat_entry(self._matrix, i,j))
 
     cdef _add_ui_unsafe_assuming_int(self, Py_ssize_t i, Py_ssize_t j, unsigned long int n):
         # doesn't check immutability

@@ -17,7 +17,7 @@ from __future__ import print_function
 
 import numbers
 
-from sage.misc.misc import attrcall
+from sage.misc.call import attrcall
 from sage.misc.cachefunc import cached_method
 
 from sage.categories.sets_cat import Sets

@@ -403,7 +403,7 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             right = (<LieAlgebraElementWrapper> right).lift()
         return left * right
 
-    def __div__(self, x):
+    def __truediv__(self, x):
         """
         Division by coefficients.
 

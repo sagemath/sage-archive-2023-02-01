@@ -360,9 +360,6 @@ cdef class ntl_ZZX(object):
         result = make_ZZX_sig_off(q)
         return result
 
-    def __div__(self, other):
-        return self / other
-
     def __mod__(ntl_ZZX self, ntl_ZZX other):
         """
         Given polynomials a, b in ZZ[X], there exist polynomials q, r

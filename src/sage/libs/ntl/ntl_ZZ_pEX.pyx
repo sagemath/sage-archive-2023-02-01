@@ -379,9 +379,6 @@ cdef class ntl_ZZ_pEX(object):
             raise ArithmeticError("self (=%s) is not divisible by other (=%s)" % (self, other))
         return r
 
-    def __div__(self, other):
-        return self / other
-
     def __mod__(ntl_ZZ_pEX self, ntl_ZZ_pEX other):
         """
         Given polynomials a, b in ZZ_pE[X], if p is prime and the defining modulus irreducible,

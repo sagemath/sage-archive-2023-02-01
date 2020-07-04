@@ -886,20 +886,6 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         x_inv = B(x) ** -1
         return type(self)(F, scal(x_inv, D))
 
-    def __div__(left, right):
-        """
-        Forward old-style division to true division.
-
-        EXAMPLES::
-
-            sage: F = CombinatorialFreeModule(QQ, [1,2,3])
-            sage: x = F._from_dict({1:2, 2:3})
-            sage: x/2
-            B[1] + 3/2*B[2]
-        """
-        return left / right
-
-
 def _unpickle_element(C, d):
     """
     Unpickle an element in ``C`` given by ``d``.

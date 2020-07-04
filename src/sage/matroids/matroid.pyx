@@ -3784,18 +3784,6 @@ cdef class Matroid(SageObject):
         """
         return self.minor(contractions=X)
 
-    def __div__(self, X):
-        r"""
-        Shorthand for ``self.contract(X)``.
-
-        EXAMPLES::
-
-            sage: M = matroids.CompleteGraphic(4)
-            sage: M.contract(1) == M / 1  # indirect doctest
-            True
-        """
-        return self.contract(X)
-
     def __truediv__(self, X):
         r"""
         Shorthand for ``self.contract(X)``.

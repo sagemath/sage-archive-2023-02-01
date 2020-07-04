@@ -253,9 +253,6 @@ cdef class ntl_zz_p(object):
         sig_off()
         return q
 
-    def __div__(self, other):
-        return self / other
-
     def __pow__(ntl_zz_p self, long n, ignored):
         """
         Return the n-th nonnegative power of self.

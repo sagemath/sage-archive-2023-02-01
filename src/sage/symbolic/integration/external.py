@@ -94,8 +94,20 @@ def mma_free_integrator(expression, v, a=None, b=None):
 
     ::
 
+    Check that :trac:`14764` is resolved::
+
+        sage: integrate(x^2, x, 0, 1, algorithm="mathematica_free") # optional - internet
+        1/3
+        sage: integrate(sin(x), [x, 0, pi], algorithm="mathematica_free") # optional - internet
+        2
+        sage: integrate(sqrt(x), (x, 0, 1), algorithm="mathematica_free") # optional - internet
+        2/3
+
+    ::
+
         sage: mma_free_integrator(exp(-x^2)*log(x), x) # optional - internet
         1/2*sqrt(pi)*erf(x)*log(x) - x*hypergeometric((1/2, 1/2), (3/2, 3/2), -x^2)
+
 
     """
     math_expr = expression._mathematica_init_()

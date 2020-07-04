@@ -905,3 +905,24 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
                 new_entries.append(entry)
 
         return self.parent(new_entries)
+
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        r"""
+        Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
+
+        EXAMPLES::
+
+            sage: M = matrix(SR, [[0,1,0],[0,0,0]])
+            sage: M.zero_pattern_matrix()  # indirect doctest
+            [1 0 1]
+            [1 1 1]
+        """
+        entry = self.get_unsafe(i, j)
+        # See if we can avoid the full proof machinery that the entry is 0
+        if entry.is_trivial_zero():
+            return 1
+        if entry:
+            return 0
+        else:
+            return 1
+

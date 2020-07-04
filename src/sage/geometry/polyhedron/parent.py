@@ -173,16 +173,49 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: from sage.geometry.polyhedron.parent import Polyhedra
             sage: P = Polyhedra(QQ, 3)
             sage: TestSuite(P).run(skip='_test_pickling')
+            sage: P = Polyhedra(QQ, 0)
+            sage: TestSuite(P).run(skip='_test_pickling')
         """
         self._backend = backend
         self._ambient_dim = ambient_dim
         from sage.categories.polyhedra import PolyhedralSets
-        Parent.__init__(self, base=base_ring, category=PolyhedralSets(base_ring))
+        from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+        category = PolyhedralSets(base_ring)
+        if ambient_dim == 0:
+            category = category & FiniteEnumeratedSets()
+        else:
+            category = category.Infinite()
+
+        Parent.__init__(self, base=base_ring, category=category)
         self._Inequality_pool = []
         self._Equation_pool = []
         self._Vertex_pool = []
         self._Ray_pool = []
         self._Line_pool = []
+
+    def list(self):
+        """
+        Return the two polyhedra in ambient dimension 0, raise an error otherwise
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.parent import Polyhedra
+            sage: P = Polyhedra(QQ, 3)
+            sage: P.cardinality()
+            +Infinity
+
+            sage: P = Polyhedra(AA, 0)
+            sage: P.category()
+            Category of finite enumerated polyhedral sets over Algebraic Real Field
+            sage: P.list()
+            [The empty polyhedron in AA^0,
+             A 0-dimensional polyhedron in AA^0 defined as the convex hull of 1 vertex]
+            sage: P.cardinality()
+            2
+        """
+        if self.ambient_dim():
+            raise NotImplementedError
+        return [self.empty(), self.universe()]
 
     def recycle(self, polyhedron):
         """

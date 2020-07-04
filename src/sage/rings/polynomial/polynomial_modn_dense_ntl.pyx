@@ -1,3 +1,5 @@
+# distutils: libraries = ntl gmp
+# distutils: language = c++
 """
 Dense univariate polynomials over  `\ZZ/n\ZZ`, implemented using NTL
 

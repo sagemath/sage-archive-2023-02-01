@@ -1,4 +1,4 @@
-name: Run SAGE_ROOT/tox.ini
+name: Test Linux --without-system-gcc
 
 ## This GitHub Actions workflow runs SAGE_ROOT/tox.ini with select environments,
 ## whenever a GitHub pull request is opened or synchronized in a repository
@@ -34,8 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      max-parallel: 5
       matrix:
-        tox_system_factor: [ubuntu-trusty, ubuntu-xenial, ubuntu-bionic, ubuntu-eoan, ubuntu-focal, debian-jessie, debian-stretch, debian-buster, debian-bullseye, debian-sid, linuxmint-17, linuxmint-18, linuxmint-19, linuxmint-19.3, fedora-26, fedora-27, fedora-28, fedora-29, fedora-30, fedora-31, fedora-32, centos-7, centos-8, archlinux-latest, slackware-14.2, conda-forge, ubuntu-bionic-i386, ubuntu-eoan-i386, debian-buster-i386, centos-7-i386]
+        tox_system_factor: [ubuntu-trusty, ubuntu-focal, fedora-27, fedora-31, debian-buster-i386]
         tox_packages_factor: [minimal-gcc_spkg, standard-gcc_spkg]
     env:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
@@ -99,6 +100,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         tox_system_factor: [conda-forge-ubuntu]
         tox_packages_factor: [minimal-gcc_spkg, standard-gcc_spkg]

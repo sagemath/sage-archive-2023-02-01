@@ -3206,13 +3206,13 @@ cdef class Matrix(Matrix1):
             # Search for a non-zero entry in column m-1
             i = -1
             for r from m+1 <= r < n:
-                if self.get_unsafe(r, m-1) != zero:
+                if not self.get_is_zero_unsafe(r, m-1):
                     i = r
                     break
             if i != -1:
                 # Found a nonzero entry in column m-1 that is strictly below row m
                 # Now set i to be the first nonzero position >= m in column m-1
-                if self.get_unsafe(m,m-1) != zero:
+                if not self.get_is_zero_unsafe(m,m-1):
                     i = m
                 t = self.get_unsafe(i,m-1)
                 t_inv = None

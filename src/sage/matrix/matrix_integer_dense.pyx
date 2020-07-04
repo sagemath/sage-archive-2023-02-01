@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+# distutils: extra_compile_args = M4RI_CFLAGS
+# distutils: libraries = iml ntl gmp m CBLAS_LIBRARIES
+# distutils: library_dirs = CBLAS_LIBDIR
+# distutils: include_dirs = CBLAS_INCDIR
 """
 Dense matrices over the integer ring
 
@@ -117,6 +121,7 @@ from .matrix_modn_dense_double cimport Matrix_modn_dense_double
 
 from .matrix_mod2_dense import Matrix_mod2_dense
 from .matrix_mod2_dense cimport Matrix_mod2_dense
+from sage.rings.finite_rings.finite_field_constructor import GF
 
 
 from .matrix2 import decomp_seq
@@ -374,7 +379,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Returns (i, j) entry of self as a new Integer.
 
-        .. warning::
+        .. WARNING::
 
            This is very unsafe; it assumes i and j are in the right
            range.
@@ -402,7 +407,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Copy entry i,j of the matrix ``self`` to ``value``.
 
-        .. warning::
+        .. WARNING::
 
            This is very unsafe; it assumes i and j are in the right
            range.
@@ -428,7 +433,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Returns (j, i) entry of self as a new Integer.
 
-        .. warning::
+        .. WARNING::
 
            This is very unsafe; it assumes i and j are in the right
            range.
@@ -449,6 +454,17 @@ cdef class Matrix_integer_dense(Matrix_dense):
             6
         """
         return fmpz_get_d(fmpz_mat_entry(self._matrix, i, j))
+
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Return 1 if the entry (i, j) is zero, otherwise 0.
+
+        .. WARNING::
+
+           This is very unsafe; it assumes i and j are in the right
+           range.
+        """
+        return fmpz_is_zero(fmpz_mat_entry(self._matrix, i,j))
 
     def _pickle(self):
         """
@@ -677,7 +693,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Multiply matrices over ZZ using linbox.
 
-        .. warning::
+        .. WARNING::
 
            This is very slow right now, i.e., linbox is very slow.
 
@@ -1543,7 +1559,17 @@ cdef class Matrix_integer_dense(Matrix_dense):
             return self._mod_int_c(modulus)
 
     cdef _mod_two(self):
-        MS = matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols)
+        """
+        TESTS:
+
+        Check that bug discovered in :trac:`29839` is fixed::
+
+            sage: M = Matrix(ZZ, [[0,1],[0,1]])
+            sage: M._mod_int(2).transpose()
+            [0 0]
+            [1 1]
+        """
+        MS = matrix_space.MatrixSpace(GF(2), self._nrows, self._ncols)
         return Matrix_mod2_dense(MS, self, True, True)
 
     cdef _mod_int_c(self, mod_int p):
@@ -2236,7 +2262,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Return the elementary divisors of self, in order.
 
-        .. warning::
+        .. WARNING::
 
            This is MUCH faster than the :meth:`smith_form` function.
 
@@ -4843,7 +4869,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         a new matrix that is the echelon form of self with row appended to
         the bottom.
 
-        .. warning::
+        .. WARNING::
 
            It is assumed that self is in echelon form.
 

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# distutils: libraries = gmp zn_poly
+# distutils: extra_compile_args = -D_XPG6
 """
 `p`-adic distributions spaces
 

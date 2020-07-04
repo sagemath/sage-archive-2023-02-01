@@ -1332,8 +1332,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                     all_q = Set(t[0])
                     tens_q = {}
                     for a in all_q.subsets():
-                        left_q = sorted(list(a))
-                        right_q = sorted(list(all_q - a))
+                        left_q = sorted(a)
+                        right_q = sorted(all_q - a)
                         sign = Permutation(convert_perm(left_q + right_q)).signature()
                         tens_q[(tuple(left_q), tuple(right_q))] = sign
                     tens = {}

@@ -130,7 +130,6 @@ AUTHORS:
 
 from sage.categories.modules import Modules
 from .category_types import Category_over_base_ring
-from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import coerce_binop

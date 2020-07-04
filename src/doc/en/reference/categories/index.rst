@@ -95,6 +95,7 @@ Individual Categories
    sage/categories/finite_semigroups
    sage/categories/finite_sets
    sage/categories/finite_weyl_groups
+   sage/categories/finitely_generated_lie_conformal_algebras
    sage/categories/finitely_generated_magmas
    sage/categories/finitely_generated_semigroups
    sage/categories/function_fields
@@ -111,7 +112,6 @@ Individual Categories
    sage/categories/graded_hopf_algebras_with_basis
    sage/categories/graded_lie_algebras
    sage/categories/graded_lie_algebras_with_basis
-   sage/categories/graded_lie_conformal_algebras
    sage/categories/graded_modules
    sage/categories/graded_modules_with_basis
    sage/categories/graphs
@@ -132,6 +132,7 @@ Individual Categories
    sage/categories/lie_algebras
    sage/categories/lie_algebras_with_basis
    sage/categories/lie_conformal_algebras
+   sage/categories/lie_conformal_algebras_with_basis
    sage/categories/lie_groups
    sage/categories/loop_crystals
    sage/categories/l_trivial_semigroups

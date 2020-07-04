@@ -17,7 +17,6 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from sage.misc.abstract_method import abstract_method
 from sage.categories.graded_modules import GradedModulesCategory
 from sage.categories.super_modules import SuperModulesCategory
 

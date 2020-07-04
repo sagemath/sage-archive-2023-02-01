@@ -19,7 +19,6 @@ AUTHORS:
 
 from sage.functions.other import factorial
 from sage.misc.misc_c import prod
-from sage.combinat.partition import Partition
 from sage.misc.misc import repr_lincomb
 from sage.misc.latex import latex
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement

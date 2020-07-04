@@ -1,4 +1,4 @@
-$(PYTHON) r cffi | $(PYTHON_TOOLCHAIN) pycparser $(and $(filter-out no,$(SAGE_CHECK)), pytest)
+$(PYTHON) r cffi | $(PYTHON_TOOLCHAIN) pycparser $(and $(filter-out no,$(SAGE_CHECK)), pytest tzlocal numpy)
 
 ----------
 All lines of this file are ignored except the first.

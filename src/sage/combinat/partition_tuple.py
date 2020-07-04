@@ -1787,14 +1787,14 @@ class PartitionTuples(UniqueRepresentation, Parent):
 
     - ``regular`` -- a positive integer or a tuple of non-negative
       integers; if an integer, the highest multiplicity an entry may
-      have in a component plus `1`.
+      have in a component plus `1`
 
     If a level `k` is specified and ``regular`` is a tuple of integers
     `\ell_1, \ldots, \ell_k`, then this specifies partition tuples `\mu`
-    such that `\mu_i` is `\ell_i`-regular. If ``regular`` is an integer
-    `\ell`, then we set `\ell_i = \ell` for all `i`, with `0`
-    representing `\infty`-regular (equivalently, partitions without
-    restrictions)
+    such that `\mu_i` is `\ell_i`-regular, where `0` here
+    represents `\infty`-regular partitions (equivalently, partitions
+    without restrictions). If ``regular`` is an integer `\ell`, then
+    we set `\ell_i = \ell` for all `i`.
 
     TESTS::
 

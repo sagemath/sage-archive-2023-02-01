@@ -178,8 +178,11 @@ class Rings(CategoryWithAxiom):
                     if K is self.codomain():
                         return True
 
-            if self.domain().cardinality() > self.codomain().cardinality():
-                return False
+            try:
+                if self.domain().cardinality() > self.codomain().cardinality():
+                    return False
+            except AttributeError:
+                pass
 
             raise NotImplementedError
 

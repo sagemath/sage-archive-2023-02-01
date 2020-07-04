@@ -4030,17 +4030,9 @@ cpdef canonical_coercion(x, y):
     """
     return coercion_model.canonical_coercion(x,y)
 
+
 cpdef bin_op(x, y, op):
-    return coercion_model.bin_op(x,y,op)
-
-
-def coerce(Parent p, x):
-    from sage.misc.superseded import deprecation
-    deprecation(25236, "sage.structure.element.coerce is deprecated")
-    try:
-        return p._coerce_c(x)
-    except AttributeError:
-        return p(x)
+    return coercion_model.bin_op(x, y, op)
 
 
 # Make coercion_model accessible as Python object

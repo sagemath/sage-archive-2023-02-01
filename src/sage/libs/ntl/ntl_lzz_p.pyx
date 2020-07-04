@@ -165,7 +165,8 @@ cdef class ntl_zz_p(object):
         """
         For pickling.
 
-        TESTS:
+        TESTS::
+
             sage: f = ntl.zz_p(16,244)
             sage: loads(dumps(f)) == f
             True
@@ -420,11 +421,13 @@ cdef class ntl_zz_p(object):
         self.c.restore_c()
         zz_p_clear(self.x)
 
+
 def make_zz_p(val, context):
     """
     For unpickling.
 
-    TESTS:
+    TESTS::
+
         sage: f = ntl.zz_p(1, 12)
         sage: loads(dumps(f)) == f
         True

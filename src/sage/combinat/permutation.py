@@ -5690,7 +5690,7 @@ class Permutations_mset(Permutations):
 
         INPUT:
 
-        - ``p`` -- a permutation of `M`.
+        - ``p`` -- a permutation of `M`
 
         ALGORITHM:
 
@@ -5736,7 +5736,7 @@ class Permutations_mset(Permutations):
             ValueError: Invalid permutation
 
         Try with greater-than-unity multiplicity in the least and greatest
-        elements. ::
+        elements::
 
             sage: mset = list(range(10)) * 3
             sage: p = Permutations_mset(mset)
@@ -5748,7 +5748,7 @@ class Permutations_mset(Permutations):
             4386797336285844480000000
 
         Should match ``StandardPermutations_n`` when `M` is the set
-        `\{1, 2, \ldots, n\}`. ::
+        `\{1, 2, \ldots, n\}`::
 
             sage: ps = Permutations(4)
             sage: pm = Permutations_mset(list(range(1, 5)))
@@ -5774,7 +5774,7 @@ class Permutations_mset(Permutations):
         INPUT:
 
         - ``r`` -- an integer between ``0`` and ``self.cardinality()-1``
-          inclusive.
+          inclusive
 
         ALGORITHM:
 
@@ -5815,7 +5815,7 @@ class Permutations_mset(Permutations):
             ValueError: r must be between 0 and 90719 inclusive
 
         Try with a cardinality that exceeds the precise integer range of a
-        float. ::
+        float::
 
             sage: mset = list(range(10)) * 3
             sage: p = Permutations_mset(mset)
@@ -5825,7 +5825,7 @@ class Permutations_mset(Permutations):
             True
 
         Exhaustive check of roundtrip and lexicographic order for a single
-        multiset. ::
+        multiset::
 
             sage: p = Permutations_mset([2, 2, 3, 3, 3, 5, 5, 5, 5, 5])
             sage: prev = None
@@ -5837,7 +5837,7 @@ class Permutations_mset(Permutations):
             ....:     prev = perm
 
         Should match ``StandardPermutations_n`` when `M` is the set
-        `\{1, 2, \ldots, n\}`. ::
+        `\{1, 2, \ldots, n\}`::
 
             sage: ps = Permutations(4)
             sage: pm = Permutations_mset(list(range(1, 5)))

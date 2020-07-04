@@ -347,6 +347,9 @@ REFERENCES:
 
 **B**
 
+.. [BaKi2001] Bakalov and Kirillov, *Lectures on tensor categories and modular functors*,
+            AMS (2001).
+
 .. [Ba1994] Kaushik Basu. *The Traveler's Dilemma: Paradoxes of
             Rationality in Game Theory*. The American Economic Review
             (1994): 391-395.
@@ -1983,6 +1986,9 @@ REFERENCES:
              Journal of Combinatorial Theory, Series A, Volume 31, Issue 2,
              1981, Pages 108-125, ISSN 0097-3165,:doi:`10.1016/0097-3165(81)90007-8`.
              (http://www.sciencedirect.com/science/article/pii/0097316581900078)
+
+.. [EGNO2015] Pavel Etingof, Shlomo Gelaki, Dmitri Nikshych and Victor Ostrik,
+               *Tensor Categories*, AMS Mathematical Surveys and Monographs 205 (2015).
 
 .. [EGHLSVY] Pavel Etingof, Oleg Golberg, Sebastian Hensel, Tiankai
              Liu, Alex Schwendner, Dmitry Vaintrob, Elena Yudovina,
@@ -4123,6 +4129,10 @@ REFERENCES:
 
 **N**
 
+.. [NaiRow2011] Naidu and Rowell, A finiteness property for braided fusion
+                categories. Algebr. Represent. Theory 14 (2011), no. 5, 837–855.
+                :arXiv:`0903.4157`.
+
 .. [Nas1950] John Nash. *Equilibrium points in n-person games.*
              Proceedings of the National Academy of Sciences 36.1
              (1950): 48-49.
@@ -4612,6 +4622,13 @@ REFERENCES:
 .. [Rot2006] Ron Roth, Introduction to Coding Theory, Cambridge
              University Press, 2006
 
+.. [Row2006] Eric Rowell, *From quantum groups to unitary modular tensor categories*.
+             In Representations of algebraic groups, quantum groups, and Lie algebras,
+             Contemp. Math., **413**, Amer. Math. Soc., Providence, RI, 2006.
+             :arXiv:`math/0503226`.
+
+.. [RoStWa2009] Eric Rowell, Richard Stong and Zhenghan Wang, *On classification
+        of modular tensor categories*, Comm. Math. Phys. 292, 343--389, 2009.
 
 .. [RR1997] Arun Ram and Jeffrey Remmel. *Applications of the Frobenius
             formulas and the characters of the symmetric group and the

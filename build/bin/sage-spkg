@@ -68,7 +68,9 @@
 #*****************************************************************************
 
 # Avoid surprises with character ranges [a-z] in regular expressions
-export LC_ALL=C
+# See Trac #15791; some locales can produce different results for
+# character ranges (use C.UTF-8 to ensure UTF-8 default encoding in Python)
+export LC_ALL=C.UTF-8
 
 usage()
 {

@@ -49,7 +49,11 @@ build/make/Makefile: configure $(SPKG_COLLECT_FILES) $(CONFIG_FILES:%=%.in)
 	@if [ -x config.status ]; then \
 		./config.status --recheck && ./config.status; \
 	else \
-		./configure $$PREREQ_OPTIONS; \
+		echo >&2 '****************************************************************************'; \
+		echo >&2 'error: Sage source tree is unconfigured. Please run "./configure" first.'; \
+		echo >&2 'note:  Type "./configure --help" to see the available configuration options.'; \
+		echo >&2 '****************************************************************************'; \
+	        exit 1; \
 	fi
 
 # This is used to monitor progress towards Python 3 and prevent
@@ -114,7 +118,9 @@ maintainer-clean: distclean bootstrap-clean
 
 # Remove everything that is not necessary to run Sage and pass all its
 # doctests.
-micro_release: sagelib-clean misc-clean
+micro_release:
+	$(MAKE) sagelib-clean
+	$(MAKE) misc-clean
 	@echo "Stripping binaries ..."
 	LC_ALL=C find local/lib local/bin -type f -exec strip '{}' ';' 2>&1 | grep -v "File format not recognized" |  grep -v "File truncated" || true
 	@echo "Removing sphinx artifacts..."

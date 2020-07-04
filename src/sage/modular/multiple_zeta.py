@@ -151,6 +151,9 @@ REFERENCES:
 .. [Deli2012] Pierre Deligne, *Multizêtas, d’après Francis Brown*,
    Séminaire Bourbaki, janvier 2012. http://www.bourbaki.ens.fr/TEXTES/1048.pdf
 
+.. [Stie2020] \S. Stieberger, *Periods and Superstring Amplitudes*,
+   Periods in Quantum Field Theory and Arithmetic, Springer Proceedings
+   in Mathematics and Statistics 314, 2020
 """
 # ****************************************************************************
 #       Copyright (C) 2020     Frédéric Chapoton
@@ -197,7 +200,6 @@ B_data = [[], [], [(2,)], [(3,)], [], [(5,)], [], [(7,)], [(3, 5)], [(9,)],
           [(11, 5), (13, 3), (5, 5, 3, 3), (7, 3, 3, 3), (7, 5, 2, 2)],
           [(17,), (7, 5, 5), (9, 3, 5), (9, 5, 3), (11, 3, 3),
            (5, 3, 3, 3, 3), (5, 5, 3, 2, 2)]]
-
 
 Words10 = Words((1, 0), infinite=False)
 
@@ -340,13 +342,13 @@ def dual_composition(c):
 
 def minimize_term(w, cf):
     """
-    Return the smallest among w and the dual word of w.
+    Return the largest among ``w`` and the dual word of ``w``.
 
     INPUT:
 
-    - w -- a word in the letters 0 and 1
+    - ``w`` -- a word in the letters 0 and 1
 
-    - cf -- a coefficient
+    - ``cf`` -- a coefficient
 
     OUTPUT:
 
@@ -361,15 +363,15 @@ def minimize_term(w, cf):
 
         sage: from sage.modular.multiple_zeta import minimize_term, Words10
         sage: minimize_term(Words10((1,1,0)), 1)
-        (word: 110, 1)
+        (word: 100, -1)
         sage: minimize_term(Words10((1,0,0)), 1)
-        (word: 110, -1)
+        (word: 100, 1)
     """
     reverse_w = tuple(1 - t for t in reversed(w))
     for x, y in zip(w, reverse_w):
-        if x > y:
-            return (w, cf)
         if x < y:
+            return (w, cf)
+        if x > y:
             return (Words10(reverse_w), (-1)**len(w) * cf)
     return (w, cf)
 
@@ -436,6 +438,8 @@ class MultizetaValues(UniqueRepresentation):
 
     def reset(self, max_weight=8, prec=1024):
         r"""
+        Reset the cache to its default values or to given arguments.
+
         TESTS::
 
             sage: from sage.modular.multiple_zeta import MultizetaValues
@@ -487,7 +491,7 @@ class MultizetaValues(UniqueRepresentation):
         index = list(reversed(index))
         if weight <= self.max_weight:
             index = pari.zetamultconvert(index, 2)
-            return  self._data[index - 1]
+            return self._data[index - 1]
         else:
             return pari.zetamult(index, precision=self.prec)
 
@@ -520,7 +524,9 @@ class MultizetaValues(UniqueRepresentation):
         else:
             return pari.zetamult(index, precision=prec).sage().n(prec=prec)
 
+
 Values = MultizetaValues()
+
 
 def basis_f_odd_iterator(n):
     """
@@ -797,6 +803,8 @@ class Multizetas(CombinatorialFreeModule):
 
         This comes from half of the shuffle product.
 
+        .. WARNING:: This is not a motivic operation.
+
         INPUT:
 
         - ``w1``, ``w2`` -- elements
@@ -1053,7 +1061,7 @@ class Multizetas(CombinatorialFreeModule):
                 sage: M = Multizetas(QQ)
                 sage: z = 3*M((3,)) + 5*M((1,2))
                 sage: z.simplify()
-                8*ζ(1,2)
+                8*ζ(3)
             """
             return self.iterated().simplify().composition()
 
@@ -1309,6 +1317,8 @@ class Multizetas_iterated(CombinatorialFreeModule):
 
         This is half of the shuffle product.
 
+        .. WARNING:: This is not a motivic operation.
+
         INPUT:
 
         - ``w1``, ``w2`` -- monomials
@@ -1319,10 +1329,11 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: M = Multizetas_iterated(QQ)
             sage: x = Word([1,0])
             sage: M.half_product_on_basis(x,x)
-            I(1010) + 2*I(1100)
+            2*I(1100) + I(1010)
         """
         assert w1
-        u1 = Word([w1[0]])
+        W = self.basis().keys()
+        u1 = W([w1[0]])
         r1 = w1[1:]
         return sum(self.basis()[u1 + u] for u in r1.shuffle(w2))
 
@@ -1332,6 +1343,8 @@ class Multizetas_iterated(CombinatorialFreeModule):
         Compute half of the product of two elements.
 
         This is half of the shuffle product.
+
+        .. WARNING:: This is not a motivic operation.
 
         INPUT:
 
@@ -1343,7 +1356,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: M = Multizetas_iterated(QQ)
             sage: x = M(Word([1,0]))
             sage: M.half_product(x,x)
-            I(1010) + 2*I(1100)
+            2*I(1100) + I(1010)
         """
         half = self.half_product_on_basis
         return self._module_morphism(self._module_morphism(half, position=0,
@@ -1688,7 +1701,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
                 sage: M = Multizetas_iterated(QQ)
                 sage: z = 4*M((1,0,0)) + 3*M((1,1,0))
                 sage: z.simplify()
-                -I(110)
+                I(100)
             """
             summing = self.parent().sum_of_terms
             return summing(minimize_term(w, cf)
@@ -2540,7 +2553,7 @@ def rho_inverse(elt):
         return M_BR.zero()
 
     a, b = next(iter(elt))
-    N = sum(int(x[1]) for x in a) + 2 * b.degree()
+    N = sum(int(x[1:]) for x in a) + 2 * b.degree()
 
     v = f_to_vector(elt)
     w = v * rho_matrix_inverse(N)

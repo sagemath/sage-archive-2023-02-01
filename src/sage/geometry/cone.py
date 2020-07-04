@@ -2771,6 +2771,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: halfspace.incidence_matrix().is_immutable()
             True
+
+        Check that the base ring is ``ZZ``, see :trac:`29840`::
+
+            sage: halfspace.incidence_matrix().base_ring()
+            Integer Ring
         """
         normals = self.facet_normals()
         incidence_matrix = matrix(ZZ, self.nrays(),

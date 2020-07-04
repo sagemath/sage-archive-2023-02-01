@@ -13,7 +13,6 @@ from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import (Crystals, CrystalHomset,
                                       CrystalMorphismByGenerators)
 from sage.categories.tensor import TensorProductsCategory
-from sage.graphs.dot2tex_utils import have_dot2tex
 
 class HighestWeightCrystals(Category_singleton):
     """
@@ -331,7 +330,7 @@ class HighestWeightCrystals(Category_singleton):
                  + 36*q^12 + 44*q^13 + 57*q^14 + 70*q^15 + O(x^16)
 
             """
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             WLR = self.weight_lattice_realization()
             I = self.index_set()
             mg = self.highest_weight_vectors()
@@ -520,6 +519,7 @@ class HighestWeightCrystals(Category_singleton):
                 visited = recently_visited
 
             G = DiGraph(d)
+            from sage.graphs.dot2tex_utils import have_dot2tex
             if have_dot2tex():
                 G.set_latex_options(format="dot2tex",
                                     edge_labels=True,

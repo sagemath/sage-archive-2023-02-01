@@ -18,7 +18,6 @@ Here is some terminology used in this file:
 
 from sage.misc.abstract_method import abstract_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
-from sage.plot.plot import graphics_array
 
 class FinitePosets(CategoryWithAxiom):
     r"""
@@ -1435,6 +1434,7 @@ class FinitePosets(CategoryWithAxiom):
                 Graphics Array of size 1 x 1
 
             """
+            from sage.plot.plot import graphics_array
             plot_of_orb_plots=[]
             max_orbit_size = 0
             for orb in self.rowmotion_orbits():
@@ -1520,6 +1520,7 @@ class FinitePosets(CategoryWithAxiom):
                 Graphics Array of size 1 x 1
 
             """
+            from sage.plot.plot import graphics_array
             plot_of_orb_plots=[]
             max_orbit_size = 0
             for orb in self.toggling_orbits(vs):
@@ -1889,7 +1890,7 @@ class FinitePosets(CategoryWithAxiom):
             if facade is None:
                 facade = self._is_facade
             if as_ideals:
-                from sage.misc.misc import attrcall
+                from sage.misc.call import attrcall
                 from sage.sets.set import Set
                 ideals = [Set(self.order_ideal(antichain))
                           for antichain in self.antichains()]

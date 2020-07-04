@@ -3065,7 +3065,7 @@ class Polytopes():
         - ``intervals`` -- (default = None). It takes the following
           possible inputs:
 
-          - If ``None`` (the default), it returns the the `\pm 1`-cube of
+          - If ``None`` (the default), it returns the `\pm 1`-cube of
             dimension ``dim``.
 
           - ``'zero_one'`` -- (string). Return the `0/1`-cube.

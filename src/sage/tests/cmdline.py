@@ -184,12 +184,16 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--advanced"])
-        sage: out.find("search through the Sage documentation") >= 0
+        sage: out.find("run the Sage cleaner.") >= 0
         True
         sage: err
         ''
         sage: ret
         0
+        sage: out.find("print the Sage root directory") >= 0 # optional - build
+        True
+        sage: out.find("regular expression search through the Sage") >= 0 # optional - build
+        True
 
     Basic information about the Sage installation::
 

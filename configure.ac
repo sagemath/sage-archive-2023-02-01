@@ -414,23 +414,8 @@ AC_SUBST([SAGE_SPKG_OPTIONS])
 
 SAGE_SPKG_COLLECT()
 
-# We need sage-env-config to exist before running this.
-# TODO: fix this in Trac #21524
-touch "$SAGE_SRC/bin/sage-env-config"
-
-SAGE_SCRIPTS=''
-for file in "$SAGE_SRC/bin/"*; do
-    # Skip files with ".in" extension
-    ext=${file##*.}
-    if test "$ext" != in; then
-        SAGE_SCRIPTS="${SAGE_SCRIPTS} \\$(printf '\n    ')\$(SAGE_LOCAL)${file#$SAGE_SRC}"
-    fi
-done
-
-AC_SUBST([SAGE_SCRIPTS])
-
 dnl AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile src/Makefile])
+AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile])
 AC_CONFIG_FILES([src/bin/sage-env-config build/bin/sage-build-env-config])
 
 AC_CONFIG_FILES([build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg])

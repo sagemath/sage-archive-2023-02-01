@@ -659,7 +659,7 @@ cdef class Element(SageObject):
         return self._parent.base_ring()
 
     def category(self):
-        from sage.categories.all import Elements
+        from sage.categories.category_types import Elements
         return Elements(self._parent)
 
     def _test_new(self, **options):

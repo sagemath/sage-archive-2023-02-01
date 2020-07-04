@@ -647,7 +647,7 @@ cdef class CategoryObject(SageObject):
             return self._Hom_(codomain, cat)
         except (AttributeError, TypeError):
             pass
-        from sage.categories.all import Hom
+        from sage.categories.homset import Hom
         return Hom(self, codomain, cat)
 
     def latex_variable_names(self):

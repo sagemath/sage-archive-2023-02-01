@@ -1,2 +1,2 @@
 cd src
-sdh_pip_install --global-option="build_ext" --global-option="--symengine-dir=$SAGE_LOCAL" .
+sdh_pip_install .

@@ -134,8 +134,6 @@ AUTHOR:
 
     - clean up trianglefactory stuff
 """
-from __future__ import absolute_import
-
 from .tri_plot import Triangle, SmoothTriangle, TriangleFactory, TrianglePlot
 
 from sage.interfaces.tachyon import tachyon_rt
@@ -1024,7 +1022,7 @@ class Tachyon(WithEqualityById, SageObject):
             sage: t.parametric_plot(f,-5,5,'t',min_depth=6)
             sage: t.show(verbose=1)
             tachyon ...
-            Scene contains 514 objects.
+            Scene contains 482 objects.
             ...
         """
         self._objects.append(
@@ -1478,7 +1476,7 @@ class Axis_aligned_box(object):
 
     def str(self):
         r"""
-        Returns the scene string of the axis-aligned box.
+        Return the scene string of the axis-aligned box.
 
         EXAMPLES::
 
@@ -1596,7 +1594,7 @@ class TachyonTriangleFactory(TriangleFactory):
 
     def get_colors(self, list):
         r"""
-        Returns a list of color labels.
+        Return a list of color labels.
 
         EXAMPLES::
 
@@ -1632,7 +1630,7 @@ class ParametricPlot(object):
     def __init__(self, f, t_0, t_f, tex, r=.1, cylinders=True,
                  min_depth=4, max_depth=8, e_rel=.01, e_abs=.01):
         r"""
-        Creates the parametric plotting class.
+        Create the parametric plotting class.
 
         EXAMPLES::
 

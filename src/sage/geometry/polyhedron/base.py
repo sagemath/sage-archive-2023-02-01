@@ -2078,30 +2078,6 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             NotImplementedError: this function is not implemented for unbounded polyhedra
-
-        TESTS:
-
-        Checking for various inputs, that this actually works::
-
-            sage: def test_affine_basis(P):
-            ....:     b = P.an_affine_basis()
-            ....:     m = Matrix(b).transpose().stack(Matrix([[1]*len(b)]))
-            ....:     assert m.rank() == P.dim() + 1
-            ....:
-            sage: test_affine_basis(polytopes.permutahedron(5))
-            sage: test_affine_basis(polytopes.Birkhoff_polytope(4))
-            sage: test_affine_basis(polytopes.hypercube(6))
-            sage: test_affine_basis(polytopes.dodecahedron())
-            sage: test_affine_basis(polytopes.cross_polytope(5))
-
-        Small-dimensional cases:
-
-            sage: Polyhedron([[1]]).an_affine_basis()
-            [A vertex at (1)]
-            sage: Polyhedron([[]]).an_affine_basis()
-            [A vertex at ()]
-            sage: Polyhedron().an_affine_basis()
-            []
         """
         if not self.is_compact():
             raise NotImplementedError("this function is not implemented for unbounded polyhedra")
@@ -2131,6 +2107,23 @@ class Polyhedron_base(Element):
                 basis_indices.append(face[len(prev_face)])
 
         return [self.Vrepresentation()[i] for i in basis_indices]
+
+    def _test_an_affine_basis(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.an_affine_basis`
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_an_affine_basis()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+        if self.is_compact():
+            b = self.an_affine_basis()
+            m = matrix([1] + list(v) for v in b)
+            tester.assertEqual(m.rank(), self.dim() + 1)
+            for v in b:
+                tester.assertIn(v, self.vertices())
 
     def ray_generator(self):
         """

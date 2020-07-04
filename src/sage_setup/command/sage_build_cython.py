@@ -271,8 +271,6 @@ class sage_build_cython(Command):
 
         - Add dependencies on header files for certain libraries
 
-        - Ensure that C++ extensions link with -lstdc++
-
         - Sort the libraries according to the library order
 
         - Add some default compile/link args and directories
@@ -286,10 +284,8 @@ class sage_build_cython(Command):
         lang = kwds.get('language', 'c')
         cplusplus = (lang == "c++")
 
-        # Libraries: add stdc++ if needed and sort them
+        # Libraries: sort them
         libs = kwds.get('libraries', [])
-        if cplusplus:
-            libs = libs + ['stdc++']
         kwds['libraries'] = sorted(set(libs),
                 key=lambda lib: library_order.get(lib, 0))
 

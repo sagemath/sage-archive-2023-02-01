@@ -773,7 +773,7 @@ class Simplex(SageObject):
         try:
             return sorted(self) < sorted(other)
         except TypeError:
-            return sorted(map(str,self)) < sorted(map(str, other))
+            return sorted(map(str, self)) < sorted(map(str, other))
 
     def __hash__(self):
         """
@@ -4223,7 +4223,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             G = self.automorphism_group().subgroup(gens)
 
         invariant_f = [list(u) for u in self.face_iterator()
-                       if all(sorted([sigma(j) for j in u]) == sorted(list(u))
+                       if all(sorted(sigma(j) for j in u) == sorted(u)
                               for sigma in gens)]
         new_verts = [min(o) for o in G.orbits() if o in invariant_f]
         return SimplicialComplex([[s for s in f if s in new_verts]

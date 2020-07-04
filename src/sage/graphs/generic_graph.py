@@ -10511,7 +10511,7 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: g = graphs.CubeGraph(3)
-            sage: sorted(list(g.neighbor_iterator('010', closed=True)))
+            sage: sorted(g.neighbor_iterator('010', closed=True))
             ['000', '010', '011', '110']
 
         ::
@@ -10633,7 +10633,7 @@ class GenericGraph(GenericGraph_pyx):
         if (not sort) and key:
             raise ValueError('sort keyword is False, yet a key function is given')
         if sort:
-            return sorted(list(self.vertex_iterator()), key=key)
+            return sorted(self.vertex_iterator(), key=key)
         return list(self.vertex_iterator())
 
     def neighbors(self, vertex, closed=False):

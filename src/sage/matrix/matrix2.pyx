@@ -8812,6 +8812,40 @@ cdef class Matrix(Matrix1):
                         return False
         return True
 
+    def is_diagonal(self):
+        """
+        Return True if this matrix is a diagonal matrix.
+
+        OUTPUT:
+
+        - whether self is a diagonal matrix.
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ,2,2,range(4))
+            sage: m.is_diagonal()
+            False
+            sage: m = matrix(QQ,2,[5,0,0,5])
+            sage: m.is_diagonal()
+            True
+            sage: m = matrix(QQ,2,[1,0,0,1])
+            sage: m.is_diagonal()
+            True
+            sage: m = matrix(QQ,2,[1,1,1,1])
+            sage: m.is_diagonal()
+            False
+        """
+        if not self.is_square():
+            return False
+        cdef Py_ssize_t i, j
+
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                if i != j:
+                    if not self.get_unsafe(i,j).is_zero():
+                        return False
+        return True
+
     def is_unitary(self):
         r"""
         Returns ``True`` if the columns of the matrix are an orthonormal basis.

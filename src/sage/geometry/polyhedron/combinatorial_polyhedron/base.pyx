@@ -1487,7 +1487,37 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             sage: C.vertex_facet_graph(names=False).vertices()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+        TESTS:
+
+        Test that :trac:`29898` is fixed::
+
+            sage: Polyhedron().vertex_facet_graph()
+            Digraph on 0 vertices
+            sage: Polyhedron([[0]]).vertex_facet_graph()
+            Digraph on 2 vertices
+            sage: Polyhedron([[0]]).vertex_facet_graph(False)
+            Digraph on 2 vertices
         """
+        if self.dimension() == -1:
+            return DiGraph()
+        if self.dimension() == 0:
+            if not names:
+                return DiGraph([(0,1)])
+            else:
+                Vrep = self.Vrep()
+                if Vrep:
+                    v = Vrep[0]
+                else:
+                    v = ("V", 0)
+
+                facet_names = self.facet_names()
+                if facet_names:
+                    f = facet_names[0]
+                else:
+                    f = ("H", 0)
+                return DiGraph([(v, f)])
+
         # The face iterator will iterate through the facets in opposite order.
         facet_iter = self.face_iter(self.dimension() - 1, dual=False)
         n_facets = self.n_facets()

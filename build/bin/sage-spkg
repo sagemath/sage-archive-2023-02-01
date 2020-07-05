@@ -70,7 +70,11 @@
 # Avoid surprises with character ranges [a-z] in regular expressions
 # See Trac #15791; some locales can produce different results for
 # character ranges (use C.UTF-8 to ensure UTF-8 default encoding in Python)
-export LC_ALL=C.UTF-8
+if test x`locale -a | grep C\.UTF-8` != x; then
+ export LC_ALL=C.UTF-8;
+else
+ export LC_ALL=C;
+fi
 
 usage()
 {

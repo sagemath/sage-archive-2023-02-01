@@ -2728,7 +2728,7 @@ class Polyhedron_base(Element):
             def is_zero(x):
                 return not x
         else:
-            is_zero == self._is_zero
+            is_zero = self._is_zero
 
         for H in self.Hrep_generator():
             Hconst = H.b()

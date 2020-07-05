@@ -562,7 +562,7 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
             sage: P.is_combinatorially_isomorphic(R)
             True
 
-        The polyhedron with zero inequalites works correctly; see :trac:`29899`::
+        The polyhedron with zero inequalities works correctly; see :trac:`29899`::
 
             sage: Vrep = [[], [], [[1.0]]]
             sage: Hrep = [[], []]

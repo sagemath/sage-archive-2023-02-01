@@ -200,9 +200,19 @@ class Polyhedron_base(Element):
         if Vrep is not None:
             vertices, rays, lines = Vrep
 
-            # Detect the empty polyhedron.
-            # The damage is limited. We mainly have a generator to dispose
-            # of the Vrepresentation in case we don't need it.
+            # We build tuples out of generators now to detect the empty polyhedron.
+
+            # The damage is limited:
+            # The backend will have to obtain all elements from the generator anyway.
+            # The generators are mainly for saving time with initializing from
+            # Vrepresentation and Hrepresentation.
+            # If we dispose of one of them (see above), it is wasteful to have generated it.
+
+            # E.g. the dilate will be set up with new Vrepresentation and Hrepresentation
+            # regardless of the backend along with the argument ``pref_rep``.
+            # As we only use generators, there is no penalty to this approach
+            # (and the method ``dilation`` does not have to distinguish by backend).
+
             if not isinstance(vertices, (tuple, list)):
                 vertices = tuple(vertices)
             if not isinstance(rays, (tuple, list)):

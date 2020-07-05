@@ -65,8 +65,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
-
 import copy
 from sage.rings.integer import GCD_list, Integer
 from sage.rings.integer_ring import ZZ
@@ -75,7 +73,7 @@ from sage.modules.all import vector
 from sage.matrix.constructor import matrix
 from ppl import (
     C_Polyhedron, Linear_Expression, Variable,
-    point, ray, line, Generator, Generator_System,
+    point, line, Generator, Generator_System,
     Poly_Con_Relation )
 
 

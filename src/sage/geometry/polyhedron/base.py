@@ -2704,8 +2704,17 @@ class Polyhedron_base(Element):
 
         Check that :trac:`28828` is fixed::
 
-                sage: R.incidence_matrix().is_immutable()
-                True
+            sage: R.incidence_matrix().is_immutable()
+            True
+
+        Test that this method works for inexact base ring
+        (`cdd` sets the cache already)::
+
+            sage: P = polytopes.dodecahedron(exact=False)
+            sage: M = P.incidence_matrix.cache
+            sage: P.incidence_matrix.clear_cache()
+            sage: M == P.incidence_matrix()
+            True
         """
         if self.base_ring() in (ZZ, QQ):
             # Much faster for integers or rationals.

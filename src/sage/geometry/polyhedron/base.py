@@ -2708,7 +2708,7 @@ class Polyhedron_base(Element):
             True
 
         Test that this method works for inexact base ring
-        (`cdd` sets the cache already)::
+        (``cdd`` sets the cache already)::
 
             sage: P = polytopes.dodecahedron(exact=False)
             sage: M = P.incidence_matrix.cache

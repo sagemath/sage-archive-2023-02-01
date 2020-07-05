@@ -125,7 +125,9 @@ class SuperLieConformalAlgebras(SuperModulesCategory):
             from sage.functions.other import binomial
             pz = tester._instance.zero()
             for x,y,z in some_tuples(S, 3, tester._max_runs):
-                if x.is_even_odd() * y.is_even_odd():
+                if x.is_zero() or y.is_zero():
+                    sgn = 1
+                elif x.is_even_odd() * y.is_even_odd():
                     sgn = -1
                 else:
                     sgn = 1

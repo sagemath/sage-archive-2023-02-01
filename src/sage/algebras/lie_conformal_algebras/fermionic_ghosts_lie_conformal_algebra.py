@@ -63,7 +63,7 @@ class FermionicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
         sage: c.degree()
         0
         sage: R.category()
-        Category of finitely generated super H-graded Lie conformal algebras with basis over Rational Field
+        Category of H-graded super finitely generated Lie conformal algebras with basis over Rational Field
 
         sage: R = lie_conformal_algebras.FermionicGhosts(QQbar, ngens=4, names = 'abcd');R
         The Fermionic ghosts Lie conformal algebra with generators (a, b, c, d, K) over Algebraic Field

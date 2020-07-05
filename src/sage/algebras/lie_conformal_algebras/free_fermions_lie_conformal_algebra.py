@@ -78,7 +78,7 @@ class FreeFermionsLieConformalAlgebra(GradedLieConformalAlgebra):
         sage: psi_0.degree()
         1/2
         sage: R.category()
-        Category of finitely generated super H-graded Lie conformal algebras with basis over Algebraic Field
+        Category of H-graded super finitely generated Lie conformal algebras with basis over Algebraic Field
     """
     def __init__(self, R, ngens=None, gram_matrix=None, names=None,
                  index_set=None):

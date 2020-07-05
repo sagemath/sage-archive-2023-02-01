@@ -73,7 +73,7 @@ class BosonicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
     TESTS::
 
         sage: lie_conformal_algebras.BosonicGhosts(AA).category()
-        Category of finitely generated H-graded Lie conformal algebras with basis over Algebraic Real Field
+        Category of H-graded finitely generated Lie conformal algebras with basis over Algebraic Real Field
     """
 
     def __init__(self, R, ngens=2, names=None, index_set=None):

@@ -32,6 +32,8 @@ class FinitelyGeneratedLieConformalAlgebras(CategoryWithAxiom_over_base_ring):
     """
     _base_category_class_and_axiom = (LieConformalAlgebras, "FinitelyGeneratedAsLambdaBracketAlgebra")
 
+    class ParentMethods:
+
         def some_elements(self):
             """
             Some elements of this Lie conformal algebra.

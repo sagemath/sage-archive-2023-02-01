@@ -101,7 +101,7 @@ class WeylLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
 
         sage: R = lie_conformal_algebras.Weyl(QQ); R.category()
         Category of finitely generated Lie conformal algebras with basis over Rational Field
-        sage: R.is_graded()
+        sage: R in LieConformalAlgebras(QQ).Graded()
         False
         sage: R.inject_variables()
         Defining alpha0, alpha1, K

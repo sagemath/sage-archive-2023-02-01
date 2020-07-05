@@ -66,8 +66,8 @@ class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
             """
             Some elements of this Lie conformal algebra.
 
-            Returns a list with elements containing at least the
-            generators.
+            This method returns a list with elements containing at
+            least the generators.
 
             EXAMPLES::
 

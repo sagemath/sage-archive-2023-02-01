@@ -90,15 +90,14 @@ class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         """
         def _repr_object_names(self):
             """
-            The names of the objects of this category
+            The names of the objects of this category.
 
             EXAMPLES::
 
                 sage: LieConformalAlgebras(QQbar).WithBasis().Graded()
                 Category of H-graded Lie conformal algebras with basis over Algebraic Field
             """
-            return "H-graded {}".format(self.base_category().\
-                                        _repr_object_names())
+            return "H-graded {}".format(self.base_category()._repr_object_names())
 
         class Super(SuperModulesCategory):
             """

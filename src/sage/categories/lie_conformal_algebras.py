@@ -329,6 +329,18 @@ class LieConformalAlgebras(Category_over_base_ring):
             """
             return self in LieConformalAlgebras(self.base_ring()).Graded()
 
+        def is_with_basis(self):
+            """
+            Whether this Lie conformal algebra has a preferred basis.
+
+            EXAMPLES::
+
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ)
+                sage: Vir.is_with_basis()
+                True
+            """
+            return self in LieConformalAlgebras(self.base_ring()).WithBasis()
+
         def is_finitely_generated(self):
             """
             Whether this Lie conformal algebra is finitely generated.
@@ -352,8 +364,8 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             EXAMPLES:
 
-            By default, on a finitely generated Lie conformal algebra,
-            this method tests all generators::
+            By default, this method tests only the elements returned by
+            ``self.some_elements()``::
 
                 sage: V = lie_conformal_algebras.Affine(QQ, 'B2')
                 sage: V._test_jacobi()
@@ -378,21 +390,31 @@ class LieConformalAlgebras(Category_over_base_ring):
                 sage: V._test_jacobi()
                 Traceback (most recent call last):
                 ...
-                AssertionError
+                AssertionError: {(0, 0): -3*a} != {}
+                - {(0, 0): -3*a}
+                + {}
             """
-            elements = options.get('elements', None)
-            if elements is None:
-                if self.is_finitely_generated():
-                    elements = self.gens()
-                else:
-                    elements = self.some_elements()
-            pz = self.zero()
             tester = self._tester(**options)
+            S = tester.some_elements()
+            #Try our best to avoid non-homogeneous elements in super
+            #algebras:
+            if tester._instance.is_super():
+                elements = []
+                for s in S:
+                    try:
+                        s.is_even_odd()
+                    except ValueError:
+                        if tester._instance.is_with_basis():
+                            elements.extend(s.terms())
+                            continue
+                    elements.append(s)
+                S = elements
             from sage.misc.misc import some_tuples
             from sage.functions.other import binomial
-            for x,y,z in some_tuples(elements, 3, tester._max_runs):
+            pz = tester._instance.zero()
+            for x,y,z in some_tuples(S, 3, tester._max_runs):
                 sgn = 1
-                if self.is_super():
+                if tester._instance.is_super():
                     if x.is_even_odd()*y.is_even_odd():
                         sgn = -1
                 brxy = x.bracket(y)
@@ -414,7 +436,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                 for k,v in jac3.items():
                     jac1[k] = jac1.get(k, pz) - sgn*v
                 jacobiator = {k: v for k,v in jac1.items() if v}
-                assert not jacobiator
+                tester.assertDictEqual(jacobiator, {})
 
     class ElementMethods:
         @coerce_binop

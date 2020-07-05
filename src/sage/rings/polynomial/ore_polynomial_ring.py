@@ -1129,7 +1129,7 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
             :module:`sage.rings.polynomial.ore_function_field`
         """
         if self._fraction_field is None:
-            if self.base_ring() in Fields():
+            if self.base_ring() in _Fields:
                 self._fraction_field = self._fraction_field_class(self)
             else:
                 base = self.base_ring().fraction_field()

@@ -238,7 +238,7 @@ class Rings(CategoryWithAxiom):
             try:
                 if not self.is_injective():
                     raise ValueError("the morphism is not injective")
-            except NotImplementedError:   # we trust the user
+            except (NotImplementedError, TypeError):   # we trust the user
                 pass
             domain = self.domain().fraction_field()
             codomain = self.codomain().fraction_field()

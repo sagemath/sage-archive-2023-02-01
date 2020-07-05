@@ -509,7 +509,7 @@ class OreFunctionField(Algebra, UniqueRepresentation):
 
             sage: R.<t> = RR[]
             sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
+            sage: S.<x> = R['x', sigma]
             sage: K = S.fraction_field()
             sage: K.is_sparse()
             False

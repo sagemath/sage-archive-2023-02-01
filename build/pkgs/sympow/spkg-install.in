@@ -38,8 +38,6 @@ try_add_CFLAG()
     return 2
 }
 
-export ENDIANTUPLE="$( sage-python23 endiantuple.py )"
-
 # These flags never hurt, so add them if possible
 for FLAG in '-fno-fast-math' '-mfpmath=sse' '-Dx86'; do
     try_add_CFLAG $FLAG

@@ -2008,7 +2008,7 @@ cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
     # different forward distances from `m` containing at least one vertex at
     # that distance.
     #
-    # The algorithm is based on the following two observations :
+    # The algorithm is based on the following two observations:
     #
     # 1). All the nodes `x` at a backward distance greater than `\[db_i\]` from
     # `m` having forward eccentricity greater than `\[2db_{i-1}\]` have a

@@ -1349,7 +1349,7 @@ cdef uint32_t diameter_DiFUB(short_digraph sd,
     #
     # The diameter of the digraph is equal to the maximum forward or backward
     # eccentricity of a vertex. The algorithm is based on the following two
-    # observations :
+    # observations:
     # 1). All the nodes `x` above the level `i` in Backward BFS of `m` having
     # forward eccentricity greater than `2(i-1)` have a corresponding node `y`,
     # whose backward eccentricity is greater than or equal to the forward

@@ -422,7 +422,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         Check support for unicode characters (:trac:`29280`)::
 
-            sage: QQ['λ']('λ^2')  # py3
+            sage: QQ['λ']('λ^2')
             λ^2
         """
         C = self.element_class

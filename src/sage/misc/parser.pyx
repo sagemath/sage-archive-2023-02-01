@@ -103,7 +103,7 @@ cdef inline bint is_whitespace(c):
 
 
 cdef class Tokenizer:
-    cdef s
+    cdef str s
     cdef int token
     cdef int pos
     cdef int last_pos
@@ -173,7 +173,7 @@ cdef class Tokenizer:
 
         Check support for unicode characters (:trac:`29280`)::
 
-            sage: Tokenizer("λ+α_β0 Γ^ω").test()  # py3
+            sage: Tokenizer("λ+α_β0 Γ^ω").test()
             ['NAME(λ)', '+', 'NAME(α_β0)', 'NAME(Γ)', '^', 'NAME(ω)']
         """
         self.pos = 0
@@ -243,7 +243,7 @@ cdef class Tokenizer:
         """
         cdef bint seen_exp, seen_decimal
         cdef int type
-        s = self.s
+        cdef str s = self.s
         cdef int pos = self.pos
         cdef int s_len = len(s)
 
@@ -257,7 +257,7 @@ cdef class Tokenizer:
         if pos == s_len:
             return EOS
 
-        # dipthongs
+        # diphthongs
         if pos+1 < s_len:
             if s[pos+1] == '=':
                 if s[pos] == '<':
@@ -278,7 +278,7 @@ cdef class Tokenizer:
                 return '^'
 
         # simple tokens
-        if s[pos] in "+-*/^()=<>,[]{}!":
+        if s[pos] in "+-*/^()=><,[]{}!":
             type = ord(s[pos])
             self.pos += 1
             return type

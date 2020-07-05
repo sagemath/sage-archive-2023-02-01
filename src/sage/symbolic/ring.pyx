@@ -339,11 +339,11 @@ cdef class SymbolicRing(CommutativeRing):
 
         Check support for unicode characters (:trac:`29280`)::
 
-            sage: SR('λ + 2λ')  # py3
+            sage: SR('λ + 2λ')
             3*λ
-            sage: SR('μ') is var('μ')  # py3
+            sage: SR('μ') is var('μ')
             True
-            sage: SR('λ + * 1')  # py3
+            sage: SR('λ + * 1')
             Traceback (most recent call last):
             ...
             TypeError: Malformed expression: λ + * !!!  1

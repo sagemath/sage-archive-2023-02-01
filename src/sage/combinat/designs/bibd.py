@@ -4,7 +4,7 @@ Balanced Incomplete Block Designs (BIBD)
 This module gathers everything related to Balanced Incomplete Block Designs. One can build a
 BIBD (or check that it can be built) with :func:`balanced_incomplete_block_design`::
 
-    sage: BIBD = designs.balanced_incomplete_block_design(7,3)
+    sage: BIBD = designs.balanced_incomplete_block_design(7,3,1)
 
 In particular, Sage can build a `(v,k,1)`-BIBD when one exists for all `k\leq
 5`. The following functions are available:
@@ -103,16 +103,16 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
 
     EXAMPLES::
 
-        sage: designs.balanced_incomplete_block_design(7, 3).blocks()
+        sage: designs.balanced_incomplete_block_design(7, 3, 1).blocks()
         [[0, 1, 3], [0, 2, 4], [0, 5, 6], [1, 2, 6], [1, 4, 5], [2, 3, 5], [3, 4, 6]]
-        sage: B = designs.balanced_incomplete_block_design(66, 6, use_LJCR=True) # optional - internet
+        sage: B = designs.balanced_incomplete_block_design(66, 6, 1, use_LJCR=True) # optional - internet
         sage: B                                                              # optional - internet
         Incidence structure with 66 points and 143 blocks
         sage: B.blocks()                                                     # optional - internet
         [[0, 1, 2, 3, 4, 65], [0, 5, 22, 32, 38, 58], [0, 6, 21, 30, 43, 48], ...
-        sage: designs.balanced_incomplete_block_design(66, 6, use_LJCR=True)  # optional - internet
+        sage: designs.balanced_incomplete_block_design(66, 6, 1, use_LJCR=True)  # optional - internet
         Incidence structure with 66 points and 143 blocks
-        sage: designs.balanced_incomplete_block_design(216, 6)
+        sage: designs.balanced_incomplete_block_design(216, 6, 1)
         Traceback (most recent call last):
         ...
         NotImplementedError: I don't know how to build a (216,6,1)-BIBD!

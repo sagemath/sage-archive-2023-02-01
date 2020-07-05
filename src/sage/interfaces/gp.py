@@ -934,17 +934,6 @@ class GpElement(ExpectElement):
         """
         return repr(self.type()) == 't_STR'
 
-    def __long__(self):
-        """
-        Return Python long.
-
-        EXAMPLES::
-
-            sage: long(gp(10))
-            10L
-        """
-        return long(str(self))
-
     def __float__(self):
         """
         Return Python float.

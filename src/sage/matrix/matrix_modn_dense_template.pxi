@@ -3368,3 +3368,22 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         cdef celement *_from = self._entries+(i*self._ncols)
         for j in range(self._ncols):
             to[j] = <mod_int>_from[j]
+
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        r"""
+        Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
+
+        EXAMPLES::
+
+            sage: M = Matrix(GF(49), 2, [1,2,-2,0])
+            sage: M.zero_pattern_matrix()  # indirect doctest
+            [0 0]
+            [0 1]
+
+            sage: M = Matrix(Integers(10), 2, [1,2,-2,0])
+            sage: M.zero_pattern_matrix()  # indirect doctest
+            [0 0]
+            [0 1]
+        """
+        return self._entries[j+i*self._ncols] == 0
+

@@ -15,14 +15,13 @@ Hasse diagrams of posets
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
-
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
+from sage.functions.other import binomial
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 
 
@@ -161,17 +160,16 @@ class HasseDiagram(DiGraph):
 
             S = []
             if linext:
-                S = [x for x in H.neighbors_out(linext[-1])
-                     if all(low in linext for low in H.neighbors_in(x))]
+                S = [x for x in H.neighbor_out_iterator(linext[-1])
+                     if all(low in linext for low in H.neighbor_in_iterator(x))]
             if not S:
                 S_ = set(self).difference(set(linext))
                 S = [x for x in S_
-                     if not any(low in S_ for low in self.neighbors_in(x))]
+                     if not any(low in S_
+                                for low in self.neighbor_in_iterator(x))]
 
             for e in S:
-                # Python3-todo: use yield from
-                for tmp in greedy_rec(H, linext + [e]):
-                    yield tmp
+                yield from greedy_rec(H, linext + [e])
 
         return greedy_rec(self, [])
 
@@ -227,16 +225,14 @@ class HasseDiagram(DiGraph):
                     if not k:  # Start from new minimal element
                         S = [x for x in self.sources() if x not in linext]
                     else:
-                        S = [x for x in self.neighbors_out(linext[k - 1])
+                        S = [x for x in self.neighbor_out_iterator(linext[k - 1])
                              if x not in linext and
                              all(low in linext
-                                 for low in self.neighbors_in(x))]
+                                 for low in self.neighbor_in_iterator(x))]
                         k -= 1
 
                 for e in S:
-                    # Python3-todo: use yield from
-                    for tmp in supergreedy_rec(H, linext + [e]):
-                        yield tmp
+                    yield from supergreedy_rec(H, linext + [e])
 
         return supergreedy_rec(self, [])
 
@@ -254,15 +250,10 @@ class HasseDiagram(DiGraph):
             False
         """
         if lin_ext is None or lin_ext == list(range(len(self))):
-            for x, y in self.cover_relations_iterator():
-                if not x < y:
-                    return False
-            return True
+            return all(x < y for x, y in self.cover_relations_iterator())
         else:
-            for x, y in self.cover_relations_iterator():
-                if not lin_ext.index(x) < lin_ext.index(y):
-                    return False
-            return True
+            return all(lin_ext.index(x) < lin_ext.index(y)
+                       for x, y in self.cover_relations_iterator())
 
     def cover_relations_iterator(self):
         r"""
@@ -275,8 +266,7 @@ class HasseDiagram(DiGraph):
             sage: list(H.cover_relations_iterator())
             [(0, 2), (0, 3), (1, 3), (1, 4), (2, 5), (3, 5), (4, 5)]
         """
-        for u, v, l in self.edge_iterator():
-            yield (u, v)
+        yield from self.edge_iterator(labels=False)
 
     def cover_relations(self):
         r"""
@@ -321,7 +311,7 @@ class HasseDiagram(DiGraph):
 
     def is_less_than(self, x, y):
         r"""
-        Return ``True`` if ``x`` is less than or equal to ``y`` in the
+        Return ``True`` if ``x`` is less than but not equal to ``y`` in the
         poset, and ``False`` otherwise.
 
         EXAMPLES::
@@ -598,13 +588,11 @@ class HasseDiagram(DiGraph):
             True
         """
         n = self.order()
-
-        v_up = [frozenset(self.depth_first_search(v)) for v in range(n)]
+        v_up = (frozenset(self.depth_first_search(v)) for v in range(n))
         v_down = [frozenset(self.depth_first_search(v, neighbors=self.neighbors_in))
                   for v in range(n)]
         self._intervals = [[sorted(up.intersection(down)) for down in v_down]
                            for up in v_up]
-
         self.interval = self._alternate_interval
 
     def _alternate_interval(self, x, y):
@@ -627,7 +615,6 @@ class HasseDiagram(DiGraph):
             sage: P._hasse_diagram._precompute_intervals()
             sage: P.interval(1, 7)  # Uses this function
             [1, 3, 5, 7]
-
         """
         return self._intervals[x][y]
 
@@ -677,7 +664,7 @@ class HasseDiagram(DiGraph):
             []
         """
         ci = self.interval(x, y)
-        if len(ci) == 0:
+        if not ci:
             return []
         else:
             return ci[1:-1]
@@ -784,12 +771,12 @@ class HasseDiagram(DiGraph):
                 # look at the neighbors of y and set the ranks;
                 # then look at the neighbors of the neighbors ...
                 y = queue.pop()
-                for x in self.neighbors_out(y):
+                for x in self.neighbor_out_iterator(y):
                     if rank[x] is None:
                         rank[x] = rank[y] + 1
                         queue.add(x)
                         component.add(x)
-                for x in self.neighbors_in(y):
+                for x in self.neighbor_in_iterator(y):
                     if rank[x] is None:
                         rank[x] = rank[y] - 1
                         queue.add(x)
@@ -1099,7 +1086,7 @@ class HasseDiagram(DiGraph):
             sage: H.order_filter([3,8])
             [3, 7, 8, 9, 10, 11, 12, 13, 14, 15]
         """
-        return sorted(list(self.depth_first_search(elements)))
+        return sorted(self.depth_first_search(elements))
 
     def principal_order_filter(self, i):
         """
@@ -1126,8 +1113,8 @@ class HasseDiagram(DiGraph):
             sage: H.order_ideal([7,10])
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
         """
-        return sorted(list(
-            self.depth_first_search(elements, neighbors=self.neighbors_in)))
+        return sorted(self.depth_first_search(elements,
+                                              neighbors=self.neighbors_in))
 
     def principal_order_ideal(self, i):
         """
@@ -1158,7 +1145,7 @@ class HasseDiagram(DiGraph):
         greater_than = [set([i]) for i in range(n)]
         for i in range(n - 1, -1, -1):
             gt = greater_than[i]
-            for j in self.neighbors_out(i):
+            for j in self.neighbor_out_iterator(i):
                 gt = gt.union(greater_than[j])
             greater_than[i] = gt
 
@@ -1967,13 +1954,12 @@ class HasseDiagram(DiGraph):
                     new_unbinded = unbinded[1:]  # Remove next_to_fit
                     new_unbinded.remove(e)
 
-                    for i_want_python3_yield_from in recursive_fit(new_binded, new_unbinded):
-                        yield i_want_python3_yield_from
+                    yield from recursive_fit(new_binded, new_unbinded)
 
         start = [None] * n
         # A little optimization
         for e in range(n):
-            if len(comps[e]) == 0:  # Not any possible orthocomplement
+            if not comps[e]:  # Not any possible orthocomplement
                 return
             if len(comps[e]) == 1:  # Do not re-fit this every time
                 e_ = comps[e][0]
@@ -1988,8 +1974,7 @@ class HasseDiagram(DiGraph):
                     start[e_] = e
         start_unbinded = [e for e in range(n) if start[e] is None]
 
-        for i_want_python3_yield_from in recursive_fit(start, start_unbinded):
-            yield i_want_python3_yield_from
+        yield from recursive_fit(start, start_unbinded)
 
     def find_nonsemimodular_pair(self, upper):
         """
@@ -2310,7 +2295,6 @@ class HasseDiagram(DiGraph):
             sage: next(it)
             {0}
         """
-        # Python3-note: "yield from" would be simpler.
         yield elms
         for e in range(min_e, self.cardinality()):
             if e in elms:
@@ -2328,8 +2312,7 @@ class HasseDiagram(DiGraph):
                     gens.add(self._join[x, g])
                 current_set.add(g)
             else:
-                for x in self.sublattices_iterator(current_set, e + 1):
-                    yield x
+                yield from self.sublattices_iterator(current_set, e + 1)
 
     def maximal_sublattices(self):
         """
@@ -2497,10 +2480,10 @@ class HasseDiagram(DiGraph):
         if self.in_degree(uc) == 1:
             return uc
         lt_a = set(self.depth_first_search(a, neighbors=self.neighbors_in))
-        tmp = list(self.depth_first_search(uc, neighbors=lambda v: [v_ for v_ in self.neighbors_in(v) if v_ not in lt_a]))
+        tmp = list(self.depth_first_search(uc, neighbors=lambda v: [v_ for v_ in self.neighbor_in_iterator(v) if v_ not in lt_a]))
         result = None
         for e in tmp:
-            if all(x not in tmp for x in self.neighbors_in(e)):
+            if all(x not in tmp for x in self.neighbor_in_iterator(e)):
                 if result:
                     return None
                 result = e
@@ -2737,10 +2720,10 @@ class HasseDiagram(DiGraph):
         if self.out_degree(lc) == 1:
             return lc
         gt_a = set(self.depth_first_search(a))
-        tmp = list(self.depth_first_search(lc, neighbors=lambda v: [v_ for v_ in self.neighbors_out(v) if v_ not in gt_a]))
+        tmp = list(self.depth_first_search(lc, neighbors=lambda v: [v_ for v_ in self.neighbor_out_iterator(v) if v_ not in gt_a]))
         result = None
         for e in tmp:
-            if all(x not in tmp for x in self.neighbors_out(e)):
+            if all(x not in tmp for x in self.neighbor_out_iterator(e)):
                 if result:
                     return None
                 result = e
@@ -3172,6 +3155,164 @@ class HasseDiagram(DiGraph):
                     return False
 
         return True
+
+    @staticmethod
+    def _glue_spectra(a_spec, b_spec, orientation):
+        r"""
+        Return the `a`-spectrum of a poset by merging ``a_spec`` and ``b_spec``.
+
+        ``a_spec`` and ``b_spec`` are the `a`-spectrum and `b`-spectrum of two different
+        posets (see :meth:`atkinson` for the definition of `a`-spectrum).
+
+        The orientation determines whether `a < b` or `b < a` in the combined poset.
+
+        This is a helper method for :meth:`atkinson`.
+
+        INPUT:
+
+        - ``a_spec`` -- list; the `a`-spectrum of a poset `P`
+
+        - ``b_spec`` -- list; the `b`-spectrum of a poset `Q`
+
+        - ``orientation`` -- boolean; ``True`` if `a < b`, ``False`` otherwise
+
+        OUTPUT:
+
+        The `a`-spectrum (or `b`-spectrum, depending on orientation),
+        returned as a list, of the poset which is a disjoint union
+        of `P` and `Q`, together with the additional
+        covering relation `a < b`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: Pdata = [0, 1, 2, 0]
+            sage: Qdata = [1, 1, 0]
+            sage: HasseDiagram._glue_spectra(Pdata, Qdata, True)
+            [0, 20, 28, 18, 0, 0, 0]
+
+            sage: Pdata = [0, 0, 2]
+            sage: Qdata = [0, 1]
+            sage: HasseDiagram._glue_spectra(Pdata, Qdata, False)
+            [0, 0, 0, 0, 8]
+        """
+        new_a_spec = []
+
+        if not orientation:
+            a_spec, b_spec = b_spec, a_spec
+
+        p = len(a_spec)
+        q = len(b_spec)
+
+        for r in range(1, p+q+1):
+            new_a_spec.append(0)
+            for i in range(max(1, r-q), min(p, r) + 1):
+                k_val = binomial(r-1, i-1) * binomial(p+q-r, p-i)
+                if orientation:
+                    inner_sum = sum(b_spec[j-1] for j in range(r-i + 1, len(b_spec) + 1))
+                else:
+                    inner_sum = sum(b_spec[j-1] for j in range(1, r-i + 1))
+                new_a_spec[-1] = new_a_spec[-1] + (a_spec[i-1] * k_val * inner_sum)
+
+        return new_a_spec
+
+    def _split(self, a, b):
+        r"""
+        Return the two connected components obtained by deleting the covering
+        relation `a < b` from a Hasse diagram that is a tree.
+
+        This is a helper method for :meth:`FinitePoset.atkinson`.
+
+        INPUT:
+
+        - ``a`` -- an element of the poset
+        - ``b`` -- an element of the poset which covers ``a``
+
+        OUTPUT:
+
+        A list containing two posets which are the connected components
+        of this poset after deleting the covering relation `a < b`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [], 2: []})
+            sage: H._split(0, 1)
+            [Hasse diagram of a poset containing 2 elements, Hasse diagram of a poset containing 1 elements]
+
+            sage: H = HasseDiagram({0: [1], 1: [2], 2: [3], 3: [4], 4: []})
+            sage: H._split(1, 2)
+            [Hasse diagram of a poset containing 2 elements, Hasse diagram of a poset containing 3 elements]
+
+        TESTS::
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1,2,3], 1: [4, 5], 2: [4, 6], 3: [5, 6], 4: [7], 5: [7], 6: [7], 7: []})
+            sage: H._split(0, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: wrong number of connected components after the covering relation is deleted
+
+            sage: H = HasseDiagram({0: [1], 1: [], 2: []})
+            sage: H._split(0, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: wrong number of connected components after the covering relation is deleted
+        """
+        split_hasse = self.copy(self)
+        split_hasse.delete_edge(a,b)
+        components = split_hasse.connected_components_subgraphs()
+        if not len(components) == 2:
+            raise ValueError("wrong number of connected components after the covering relation is deleted")
+
+        c1, c2 = components
+        if a in c2:
+            c1, c2 = c2, c1
+
+        return [c1, c2]
+
+    def _spectrum_of_tree(self, a):
+        r"""
+        Return the `a`-spectrum of a poset whose underlying graph is a tree.
+
+        This is a helper method for :meth:`FinitePoset.atkinson`.
+
+        INPUT:
+
+        - ``a`` -- an element of the poset
+
+        OUTPUT:
+
+        The `a`-spectrum of this poset, returned as a list.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: H._spectrum_of_tree(0)
+            [2, 2, 0, 0, 0]
+
+            sage: H = HasseDiagram({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: H._spectrum_of_tree(2)
+            [0, 0, 4, 0, 0]
+
+            sage: H = HasseDiagram({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: H._spectrum_of_tree(3)
+            [0, 0, 0, 2, 2]
+        """
+        upper_covers = self.neighbors_out(a)
+        lower_covers = self.neighbors_in(a)
+        if not upper_covers and not lower_covers:
+            return [1]
+        if upper_covers:
+            b = upper_covers[0]
+            orientation = True
+        else:
+            (a, b) = (lower_covers[0], a)
+            orientation = False
+        P, Q = self._split(a, b)
+        a_spec = P._spectrum_of_tree(a)
+        b_spec = Q._spectrum_of_tree(b)
+        return HasseDiagram._glue_spectra(a_spec, b_spec, orientation)
 
 
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

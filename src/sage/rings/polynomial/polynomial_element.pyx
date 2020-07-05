@@ -1634,26 +1634,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         raise NotImplementedError("only implemented for certain base rings")
 
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: f = x - 902384
-            sage: long(f) # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot coerce nonconstant polynomial to long
-            sage: long(R(939392920202)) # py2
-            doctest:...: DeprecationWarning: converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3
-            See https://trac.sagemath.org/27675 for details.
-            939392920202L
-        """
-        if self.degree() > 0:
-            raise TypeError("cannot coerce nonconstant polynomial to long")
-        deprecation(27675, "converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3")
-        return long(self.get_coeff_c(0))
-
     cpdef _mul_(self, right):
         """
         EXAMPLES::

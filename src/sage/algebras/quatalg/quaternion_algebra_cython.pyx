@@ -1,3 +1,5 @@
+# distutils: language = c++
+# distutils: libraries = gmp m ntl
 """
 Optimized Cython code needed by quaternion algebras
 

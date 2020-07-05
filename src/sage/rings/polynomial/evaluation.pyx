@@ -1,3 +1,5 @@
+# distutils: libraries = ntl
+# distutils: language = c++
 r"""
 Fast evaluation of polynomials (Horner's rule)
 

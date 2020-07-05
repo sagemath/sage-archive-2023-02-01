@@ -254,10 +254,9 @@ def incidence_matrix_to_bit_rep_of_facets(matrix):
         ....: from sage.ext.memory_allocator cimport MemoryAllocator
         ....: from libc.stdint cimport uint64_t
         ....:
-        ....: def bit_rep_to_Vrep_list_wrapper(list_of_faces, index):
+        ....: def bit_rep_to_Vrep_list_wrapper(ListOfFaces faces, index):
         ....:     cdef MemoryAllocator mem = MemoryAllocator()
         ....:     cdef size_t *output
-        ....:     cdef ListOfFaces faces = list_of_faces
         ....:     output = <size_t *> mem.allocarray(faces.n_atoms,
         ....:                                        sizeof(size_t))
         ....:     cdef uint64_t * data = faces.data[index]
@@ -343,10 +342,9 @@ def incidence_matrix_to_bit_rep_of_Vrep(matrix):
         ....: from sage.ext.memory_allocator cimport MemoryAllocator
         ....: from libc.stdint cimport uint64_t
         ....:
-        ....: def bit_rep_to_Vrep_list_wrapper(list_of_faces, index):
+        ....: def bit_rep_to_Vrep_list_wrapper(ListOfFaces faces, index):
         ....:     cdef MemoryAllocator mem = MemoryAllocator()
         ....:     cdef size_t *output
-        ....:     cdef ListOfFaces faces = list_of_faces
         ....:     output = <size_t *> mem.allocarray(faces.n_atoms,
         ....:                                        sizeof(size_t))
         ....:     cdef uint64_t * data = faces.data[index]
@@ -439,10 +437,9 @@ def facets_tuple_to_bit_rep_of_facets(tuple facets_input, size_t n_Vrep):
         ....: from sage.ext.memory_allocator cimport MemoryAllocator
         ....: from libc.stdint cimport uint64_t
         ....:
-        ....: def bit_rep_to_Vrep_list_wrapper(list_of_faces, index):
+        ....: def bit_rep_to_Vrep_list_wrapper(ListOfFaces faces, index):
         ....:     cdef MemoryAllocator mem = MemoryAllocator()
         ....:     cdef size_t *output
-        ....:     cdef ListOfFaces faces = list_of_faces
         ....:     output = <size_t *> mem.allocarray(faces.n_atoms,
         ....:                                        sizeof(size_t))
         ....:     cdef uint64_t * data = faces.data[index]
@@ -506,10 +503,9 @@ def facets_tuple_to_bit_rep_of_Vrep(tuple facets_input, size_t n_Vrep):
         ....: from sage.ext.memory_allocator cimport MemoryAllocator
         ....: from libc.stdint cimport uint64_t
         ....:
-        ....: def bit_rep_to_Vrep_list_wrapper(list_of_faces, index):
+        ....: def bit_rep_to_Vrep_list_wrapper(ListOfFaces faces, index):
         ....:     cdef MemoryAllocator mem = MemoryAllocator()
         ....:     cdef size_t *output
-        ....:     cdef ListOfFaces faces = list_of_faces
         ....:     output = <size_t *> mem.allocarray(faces.n_atoms,
         ....:                                        sizeof(size_t))
         ....:     cdef uint64_t * data = faces.data[index]

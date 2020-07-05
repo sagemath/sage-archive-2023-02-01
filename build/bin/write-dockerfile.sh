@@ -56,6 +56,15 @@ EOF
         EXISTS="2>/dev/null >/dev/null yum install -y --downloadonly"
         INSTALL="yum install -y"
         ;;
+    gentoo*)
+        cat <<EOF
+ARG BASE_IMAGE=sheerluck/sage-on-gentoo-stage4:latest
+FROM \${BASE_IMAGE} as with-system-packages
+EOF
+        EXISTS="2>/dev/null >/dev/null emerge -f"
+        UPDATE="" # not needed. "FROM gentoo/portage" used instead
+        INSTALL="emerge -DNut --with-bdeps=y --complete-graph=y"
+        ;;
     slackware*)
         # https://docs.slackware.com/slackbook:package_management
         cat <<EOF
@@ -158,7 +167,6 @@ $RUN ./bootstrap
 FROM bootstrapped as configured
 #:configuring:
 ADD src/bin src/bin
-ADD src/Makefile.in src/Makefile.in
 RUN mkdir -p logs/pkgs; ln -s logs/pkgs/config.log config.log
 ARG EXTRA_CONFIGURE_ARGS=""
 EOF

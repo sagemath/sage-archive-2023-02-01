@@ -2484,6 +2484,18 @@ class Polyhedron_base(Element):
             (0, 0, 0, 0, 1) A ray in the direction (1, 1)
             (0, 0, 1, 1, 0) A vertex at (3, 0)
 
+        The vertex adjacency matrix has base ring integers. This way one can express various
+        counting questions::
+
+            sage: P = polytopes.cube()
+            sage: Q = P.stack(P.faces(2)[0])
+            sage: M = Q.vertex_adjacency_matrix()
+            sage: sum(M)
+            (4, 4, 3, 3, 4, 4, 4, 3, 3)
+            sage: G = Q.vertex_graph()
+            sage: G.degree()
+            [4, 4, 3, 3, 4, 4, 4, 3, 3]
+
         TESTS:
 
         Check that :trac:`28828` is fixed::
@@ -2565,6 +2577,15 @@ class Polyhedron_base(Element):
             [1 1 1 0 1]
             [1 1 1 1 0]
 
+        The facet adjacency matrix has base ring integers. This way one can express various
+        counting questions::
+
+            sage: P = polytopes.cube()
+            sage: Q = P.stack(P.faces(2)[0])
+            sage: M = Q.facet_adjacency_matrix()
+            sage: sum(M)
+            (4, 4, 4, 4, 3, 3, 3, 3, 4)
+
         TESTS:
 
         Check that :trac:`28828` is fixed::
@@ -2585,6 +2606,10 @@ class Polyhedron_base(Element):
             order :meth:`Hrepresentation`, the rows correspond to
             vertices/rays/lines in the order
             :meth:`Vrepresentation`.
+
+        .. SEEALSO::
+
+            :meth:`slack_matrix`.
 
         EXAMPLES::
 
@@ -2667,6 +2692,14 @@ class Polyhedron_base(Element):
             [0 1 0]
             [0 0 1]
 
+        The incidence matrix has base ring integers. This way one can express various
+        counting questions::
+
+            sage: P = polytopes.twenty_four_cell()
+            sage: M = P.incidence_matrix()
+            sage: sum(sum(x) for x in M) == P.flag_f_vector(0,3)
+            True
+
         TESTS:
 
         Check that :trac:`28828` is fixed::
@@ -2700,6 +2733,86 @@ class Polyhedron_base(Element):
 
         incidence_matrix.set_immutable()
         return incidence_matrix
+
+    @cached_method
+    def slack_matrix(self):
+        r"""
+        Return the slack matrix.
+
+        The entries correspond to the evaluation of the Hrepresentation
+        elements on the  Vrepresentation elements.
+
+        .. NOTE::
+
+            The columns correspond to inequalities/equations in the
+            order :meth:`Hrepresentation`, the rows correspond to
+            vertices/rays/lines in the order
+            :meth:`Vrepresentation`.
+
+        .. SEEALSO::
+
+            :meth:`incidence_matrix`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: P.slack_matrix()
+            [0 2 2 2 0 0]
+            [0 0 2 2 0 2]
+            [0 0 0 2 2 2]
+            [0 2 0 2 2 0]
+            [2 2 0 0 2 0]
+            [2 2 2 0 0 0]
+            [2 0 2 0 0 2]
+            [2 0 0 0 2 2]
+
+            sage: P = polytopes.cube(intervals='zero_one')
+            sage: P.slack_matrix()
+            [0 1 1 1 0 0]
+            [0 0 1 1 0 1]
+            [0 0 0 1 1 1]
+            [0 1 0 1 1 0]
+            [1 1 0 0 1 0]
+            [1 1 1 0 0 0]
+            [1 0 1 0 0 1]
+            [1 0 0 0 1 1]
+
+            sage: P = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
+            sage: P.slack_matrix()
+            [1/2*sqrt5 - 1/2               0               0               1 1/2*sqrt5 - 1/2               0]
+            [              0               0 1/2*sqrt5 - 1/2 1/2*sqrt5 - 1/2               1               0]
+            [              0 1/2*sqrt5 - 1/2               1               0 1/2*sqrt5 - 1/2               0]
+            [              1 1/2*sqrt5 - 1/2               0 1/2*sqrt5 - 1/2               0               0]
+            [1/2*sqrt5 - 1/2               1 1/2*sqrt5 - 1/2               0               0               0]
+
+            sage: P = Polyhedron(rays=[[1, 0], [0, 1]])
+            sage: P.slack_matrix()
+            [0 0]
+            [0 1]
+            [1 0]
+
+        TESTS::
+
+            sage: Polyhedron().slack_matrix()
+            []
+            sage: Polyhedron(base_ring=QuadraticField(2)).slack_matrix().base_ring()
+            Number Field in a with defining polynomial x^2 - 2 with a = 1.41...
+        """
+        if not self.n_Vrepresentation() or not self.n_Hrepresentation():
+            slack_matrix = matrix(self.base_ring(), self.n_Vrepresentation(),
+                                  self.n_Hrepresentation(), 0)
+        else:
+            Vrep_matrix = matrix(self.base_ring(), self.Vrepresentation())
+            Hrep_matrix = matrix(self.base_ring(), self.Hrepresentation())
+
+            # Getting homogenous coordinates of the Vrepresentation.
+            hom_helper = matrix(self.base_ring(), [1 if v.is_vertex() else 0 for v in self.Vrepresentation()])
+            hom_Vrep = hom_helper.stack(Vrep_matrix.transpose())
+
+            slack_matrix = (Hrep_matrix * hom_Vrep).transpose()
+
+        slack_matrix.set_immutable()
+        return slack_matrix
 
     def base_ring(self):
         """
@@ -4730,7 +4843,7 @@ class Polyhedron_base(Element):
         sign = one if scalar > 0 else -one
 
         make_new_Hrep = lambda h: tuple(scalar*sign*x if i == 0 else sign*x
-                                         for i, x in enumerate(h._vector))
+                                        for i, x in enumerate(h._vector))
 
         new_vertices = (tuple(scalar*x for x in v._vector) for v in self.vertex_generator())
         new_rays = (tuple(sign*x for x in r._vector) for r in self.ray_generator())
@@ -5595,7 +5708,7 @@ class Polyhedron_base(Element):
             raise ValueError("{} must not be a vertex or outside self".format(v))
 
         lambda_V = [u + [0] for u in V if u != v] + [v+[1]] + [v+[2]]
-        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+1)
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim() + 1)
         return parent.element_class(parent, [lambda_V, [], []], None)
 
     def lawrence_polytope(self):
@@ -5657,7 +5770,7 @@ class Polyhedron_base(Element):
         n = self.n_vertices()
         I_n = matrix.identity(n)
         lambda_V = block_matrix([[V, I_n], [V, 2*I_n]])
-        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+n)
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim() + n)
         return parent.element_class(parent, [lambda_V, [], []], None)
 
     def is_lawrence_polytope(self):
@@ -8003,6 +8116,7 @@ class Polyhedron_base(Element):
             return list(lp.points())
         return [p for p in lp.points() if self.contains(p)]
 
+    @cached_method(do_pickle=True)
     def h_star_vector(self):
         r"""
         Return the `h^*`-vector of the lattice polytope.
@@ -8066,6 +8180,12 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: The h_star vector is only defined for lattice polytopes
+
+        Check that the `h^*`-vector is pickled::
+
+            sage: new_cube = loads(dumps(cube))         # optional - pynormaliz
+            sage: new_cube.h_star_vector.is_in_cache()  # optional - pynormaliz
+            True
         """
         if self.is_empty():
             return 0

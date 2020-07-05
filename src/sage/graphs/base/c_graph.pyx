@@ -1,3 +1,4 @@
+# distutils: language = c++
 r"""
 Fast compiled graphs
 

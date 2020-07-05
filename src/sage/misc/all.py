@@ -7,7 +7,6 @@ from .misc import (BackslashOperator,
                   union, uniq, powerset, subsets,
                   exists, forall, is_iterator,
                   random_sublist, walltime,
-                  repr_lincomb,
                   pad_zeros,
                   SAGE_DB, SAGE_TMP,
                    newton_method_sizes, compose,
@@ -30,6 +29,8 @@ add = sum
 from .dev_tools import runsnake, import_statements
 
 from .html import html
+
+from .repr import repr_lincomb
 
 from .table import table
 

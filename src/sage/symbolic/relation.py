@@ -913,7 +913,8 @@ def solve(f, *args, **kwds):
     print them::
 
         sage: solve(sinh(x) - 2*cosh(x),x,algorithm='sympy')
-        ConditionSet(x, Eq((-exp(2*x) - 3)*exp(-x)/2, 0), Reals)
+        [ImageSet(Lambda(_n, I*(2*_n*pi + pi/2) + log(sqrt(3))), Integers),
+         ImageSet(Lambda(_n, I*(2*_n*pi - pi/2) + log(sqrt(3))), Integers)]
         sage: solve(2*sin(x) - 2*sin(2*x), x,algorithm='sympy')
         [ImageSet(Lambda(_n, 2*_n*pi), Integers),
          ImageSet(Lambda(_n, 2*_n*pi + pi), Integers),

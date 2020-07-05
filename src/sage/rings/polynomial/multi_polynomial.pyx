@@ -57,21 +57,6 @@ cdef class MPolynomial(CommutativeRingElement):
             return int(self.constant_coefficient())
         raise TypeError(f"unable to convert non-constant polynomial {self} to an integer")
 
-    def __long__(self):
-        """
-        TESTS::
-
-            sage: long(RR['x,y'](0)) # indirect doctest
-            0L
-            sage: long(ZZ['x,y'].gen(0))
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to convert non-constant polynomial x to an integer
-        """
-        if self.degree() <= 0:
-            return long(self.constant_coefficient())
-        raise TypeError(f"unable to convert non-constant polynomial {self} to an integer")
-
     def __float__(self):
         """
         TESTS::
@@ -357,7 +342,7 @@ cdef class MPolynomial(CommutativeRingElement):
         x = [etb.var(v) for v in my_vars]
         n = len(x)
 
-        expr = etb.constant(self.base_ring()(0))
+        expr = etb.constant(self.base_ring().zero())
         for (m, c) in self.dict().iteritems():
             monom = prod([ x[i]**m[i] for i in range(n) if m[i] != 0],
                              etb.constant(c))
@@ -1155,11 +1140,6 @@ cdef class MPolynomial(CommutativeRingElement):
         returning tuples of the form ``(coeff, mon)`` for each
         non-zero monomial.
 
-        .. NOTE::
-
-            This function creates the entire list upfront because Cython
-            doesn't (yet) support iterators.
-
         EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(QQ,3)
@@ -1170,8 +1150,34 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: sum(c*m for c,m in f) == f
             True
         """
-        L = zip(self.coefficients(), self.monomials())
-        return iter(L)
+        for exp, coeff in self.iterator_exp_coeff():
+            yield (coeff, self.monomial(exp))
+
+    def iterator_exp_coeff(self, as_ETuples=True):
+        """
+        Iterate over ``self`` as pairs of ((E)Tuple, coefficient).
+
+        INPUT:
+
+        - ``as_ETuples`` -- (default: ``True``) if ``True`` iterate over
+          pairs whose first element is an ETuple, otherwise as a tuples
+
+        EXAMPLES::
+
+            sage: R.<a,b,c> = QQ[]
+            sage: f = a*c^3 + a^2*b + 2*b^4
+            sage: list(f.iterator_exp_coeff())
+            [((0, 4, 0), 2), ((1, 0, 3), 1), ((2, 1, 0), 1)]
+            sage: list(f.iterator_exp_coeff(as_ETuples=False))
+            [((0, 4, 0), 2), ((1, 0, 3), 1), ((2, 1, 0), 1)]
+
+            sage: R.<a,b,c> = PolynomialRing(QQ, 3, order='lex')
+            sage: f = a*c^3 + a^2*b + 2*b^4
+            sage: list(f.iterator_exp_coeff())
+            [((2, 1, 0), 1), ((1, 0, 3), 1), ((0, 4, 0), 2)]
+        """
+        for exp in self.exponents():
+            yield (exp, self.monomial_coefficient(exp))
 
     def content(self):
         """

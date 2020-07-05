@@ -1,3 +1,5 @@
+# distutils: libraries = ntl gmp
+# distutils: language = c++
 r"""
 Bernoulli numbers modulo p
 

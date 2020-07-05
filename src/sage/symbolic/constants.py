@@ -685,6 +685,9 @@ TESTS::
 from sage.symbolic.constants_c import E
 e = E()
 
+# Allow for backtranslation to this symbol from Mathematica (#29833).
+register_symbol(e, {'mathematica': 'E'})
+
 class NotANumber(Constant):
     """
     Not a Number

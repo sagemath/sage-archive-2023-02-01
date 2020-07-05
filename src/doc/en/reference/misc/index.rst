@@ -31,6 +31,7 @@ Special Base Classes, Decorators, etc.
    sage/misc/method_decorator
    sage/misc/object_multiplexer
    sage/misc/fast_methods
+   sage/misc/call
 
 Lists and Iteration, etc.
 ~~~~~~~~~~~~~~~~~~~~~~~~~

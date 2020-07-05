@@ -5,7 +5,7 @@ This module provides the :class:`~sage.rings.polynomial.skew_polynomial_ring.Ske
 which constructs a general dense skew univariate polynomials over commutative base rings with
 automorphisms over the base rings. This is the set of formal polynomials where the coefficients
 are written on the left of the variable of the skew polynomial ring. The modified multiplication
-operation over elements of the base ring is extended to all elements of the skew poynomial ring
+operation over elements of the base ring is extended to all elements of the skew polynomial ring
 by associativity and distributivity.
 
 This module also provides :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_order`
@@ -385,7 +385,7 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
         - Multivariate Skew Polynomial Ring
         - Add derivations.
     """
-    Element = sage.rings.polynomial.skew_polynomial_element.SkewPolynomial_generic_dense
+    Element = None
 
     @staticmethod
     def __classcall_private__(cls, base_ring, twist_map=None, names=None, sparse=False):
@@ -409,14 +409,14 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
             sage: S is T
             True
 
-        When the twisting morphism has finite order, a special class
+        When the twisting morphism is a Frobenius over a finite field, a special class
         is used::
 
             sage: k.<a> = GF(7^5)
             sage: Frob = k.frobenius_endomorphism(2)
             sage: S.<x> = SkewPolynomialRing(k, Frob)
             sage: type(S)
-            <class 'sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_order_with_category'>
+            <class 'sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field_with_category'>
         """
         if base_ring not in CommutativeRings():
             raise TypeError('base_ring must be a commutative ring')
@@ -436,12 +436,21 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
         except IndexError:
             raise NotImplementedError("multivariate skew polynomials rings not supported")
 
-        # We check if the twisting morphism has finite order
+        # We find the best constructor
+        constructor = None
         if base_ring in Fields():
             try:
                 order = twist_map.order()
                 if order is not Infinity:
-                    return SkewPolynomialRing_finite_order(base_ring, twist_map, names, sparse)
+                    if base_ring.is_finite():
+                        constructor = SkewPolynomialRing_finite_field
+                    else:
+                        constructor = SkewPolynomialRing_finite_order
+            except (AttributeError, NotImplementedError):
+                pass
+        if constructor is not None:
+            try:
+                return constructor(base_ring, twist_map, names, sparse)
             except (AttributeError, NotImplementedError):
                 pass
 
@@ -476,6 +485,8 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
             0
             sage: TestSuite(S).run()
         """
+        if self.Element is None:
+            self.Element = sage.rings.polynomial.skew_polynomial_element.SkewPolynomial_generic_dense
         self.__is_sparse = sparse
         self._map = twist_map
         self._maps = {0: IdentityMorphism(base_ring), 1: self._map}
@@ -972,6 +983,56 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
             return self([R.random_element(*args, **kwds)
                          for _ in range(degree + 1)])
 
+    def random_irreducible(self, degree=2, monic=True, *args, **kwds):
+        r"""
+        Return a random irreducible skew polynomial.
+
+        .. WARNING::
+
+            Elements of this skew polynomial ring need to have a method
+            is_irreducible(). Currently, this method is implemented only
+            when the base ring is a finite field.
+
+        INPUT:
+
+        -  ``degree`` - Integer with degree (default: 2)
+           or a tuple of integers with minimum and maximum degrees
+
+        -  ``monic`` - if True, returns a monic skew polynomial
+           (default: True)
+
+        -  ``*args, **kwds`` - Passed on to the ``random_element`` method for
+           the base ring
+
+        OUTPUT:
+
+        -  A random skew polynomial
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: A = S.random_irreducible(); A
+            x^2 + (4*t^2 + 3*t + 4)*x + 4*t^2 + t
+            sage: A.is_irreducible()
+            True
+            sage: B = S.random_irreducible(degree=3,monic=False); B  # random
+            (4*t + 1)*x^3 + (t^2 + 3*t + 3)*x^2 + (3*t^2 + 2*t + 2)*x + 3*t^2 + 3*t + 1
+            sage: B.is_irreducible()
+            True
+        """
+        if isinstance(degree, (list, tuple)):
+            if len(degree) != 2:
+                raise ValueError("degree argument must be an integer or a tuple of 2 integers (min_degree, max_degree)")
+            if degree[0] > degree[1]:
+                raise ValueError("minimum degree must be less or equal than maximum degree")
+            degree = randint(*degree)
+        while True:
+            irred = self.random_element((degree,degree), monic=monic)
+            if irred.is_irreducible():
+                return irred
+
     def is_commutative(self):
         r"""
         Return ``True`` if this skew polynomial ring is commutative, i.e. if the
@@ -1292,9 +1353,6 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         :class:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing`
         :mod:`sage.rings.polynomial.skew_polynomial_finite_order`
     """
-    import sage.rings.polynomial.skew_polynomial_finite_order
-    Element = sage.rings.polynomial.skew_polynomial_finite_order.SkewPolynomial_finite_order_dense
-
     def __init__(self, base_ring, twist_map, name, sparse, category=None):
         r"""
         Initialize this skew polynomial
@@ -1323,6 +1381,9 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: S.center() is Z
             True
         """
+        if self.Element is None:
+            import sage.rings.polynomial.skew_polynomial_finite_order
+            self.Element = sage.rings.polynomial.skew_polynomial_finite_order.SkewPolynomial_finite_order_dense
         SkewPolynomialRing.__init__(self, base_ring, twist_map, name, sparse, category)
         self._order = twist_map.order()
         (self._constants, self._embed_constants) = twist_map.fixed_field()
@@ -1394,7 +1455,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: P.parent() is S
             True
 
-        together with a converion map in the reverse direction::
+        together with a conversion map in the reverse direction::
 
             sage: Zy(x^6 + 2*x^3 + 3)
             y^2 + 2*y + 3
@@ -1473,3 +1534,157 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         if default or (self._center_variable_name is None):
             self._center_variable_name = name
         return center
+
+
+# Special class for skew polynomial over finite fields
+######################################################
+
+class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
+    """
+    A specialized class for skew polynomial rings over finite fields.
+
+    .. SEEALSO::
+
+        :meth:`sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing`
+        :class:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general`
+        :mod:`sage.rings.polynomial.skew_polynomial_finite_field`
+
+    .. TODO::
+
+        Add methods related to center of skew polynomial ring, irreducibility, karatsuba
+        multiplication and factorization.
+    """
+    def __init__(self, base_ring, twist_map, names, sparse, category=None):
+        """
+        This method is a constructor for a general, dense univariate skew polynomial ring
+        over a finite field.
+
+        INPUT:
+
+        - ``base_ring`` -- a commutative ring
+
+        - ``map`` -- an automorphism of the base ring
+
+        - ``name`` -- string or list of strings representing the name of the variables of ring
+
+        - ``sparse`` -- boolean (default: ``False``)
+
+        - ``element_class`` -- class representing the type of element to be used in ring
+
+        ..NOTE::
+
+            Multivariate and Sparse rings are not implemented.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: T.<x> = k['x', Frob]; T
+            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+        """
+        if self.Element is None:
+            import sage.rings.polynomial.skew_polynomial_finite_field
+            self.Element = sage.rings.polynomial.skew_polynomial_finite_field.SkewPolynomial_finite_field_dense
+        SkewPolynomialRing_finite_order.__init__(self, base_ring, twist_map, names, sparse, category)
+        self._matrix_retraction = None
+
+    def _new_retraction_map(self, seed=None):
+        """
+        Create a retraction map from the ring of coefficient
+        of this skew polynomial ring to its fixed subfield under 
+        the twisting morphism
+
+        This is an internal function used in factorization.
+
+        INPUT:
+
+        - ``seed`` -- an element of the base ring or ``None``
+          (default: ``None``); it ``None``, a random element
+          is picked
+
+        TESTS::
+        
+            sage: k.<a> = GF(11^4)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x', Frob]
+
+            sage: S._new_retraction_map()
+            sage: S._matrix_retraction   # random
+            [ 9  4 10  4]
+
+        We can specify a seed::
+
+            sage: S._new_retraction_map(seed=a)
+            sage: S._matrix_retraction
+            [ 0  6  3 10]
+            sage: S._new_retraction_map(seed=a)
+            sage: S._matrix_retraction
+            [ 0  6  3 10]
+        """
+        k = self.base_ring()
+        base = k.base_ring()
+        (kfixed, embed) = self._maps[1].fixed_field()
+        section = embed.section()
+        if not kfixed.has_coerce_map_from(base):
+            raise NotImplementedError("No coercion map from %s to %s" % (base, kfixed))
+        if seed is None:
+            seed = k.random_element()
+        self._seed_retraction = seed
+        trace = [ ]
+        elt = seed
+        for _ in range(k.degree()):
+            x = elt
+            tr = elt
+            for _ in range(1, self._order):
+                x = self._map(x)
+                tr += x
+            elt *= k.gen()
+            trace.append(section(tr))
+        from sage.matrix.matrix_space import MatrixSpace
+        self._matrix_retraction = MatrixSpace(kfixed, 1, k.degree())(trace)
+
+    def _retraction(self, x, newmap=False, seed=None):
+        """
+        Return the image of `x` under the retraction map
+        (see also :meth:`_new_retraction_map`)
+
+        This is an internal function used in factorization.
+        
+        INPUT:
+
+        - ``newmap`` -- a boolean (default: ``False``); whether we
+          first create and use a new retraction map 
+
+        - ``seed`` -- an element of the base ring or ``None`` (default:
+          ``None``); if given, first create a new random retraction map
+          with given seed
+
+        TESTS::
+
+            sage: k.<a> = GF(11^4)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x', Frob]
+
+            sage: S._retraction(a)   # random
+            6
+
+        Note that a retraction map has been automatically created::
+
+            sage: S._matrix_retraction   # random
+            [ 0  6  3 10]
+
+        If we call again the method :meth:`_retraction`,
+        the same retraction map is used::
+
+            sage: S._retraction(a)   # random
+            6
+
+        We can specify a seed::
+
+            sage: S._retraction(a^2, seed=a)
+            10
+        """
+        # Better to return the retraction map but more difficult
+        if newmap or seed is not None or self._matrix_retraction is None:
+            self._new_retraction_map()
+        return (self._matrix_retraction*self.base_ring()(x)._vector_())[0]

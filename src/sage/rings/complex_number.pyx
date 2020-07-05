@@ -17,20 +17,21 @@ AUTHORS:
   ComplexNumber constructor support gmpy2.mpc parameter.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import math
 import operator
 
 from sage.libs.mpfr cimport *
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
+from sage.structure.richcmp cimport rich_to_bool
 from sage.categories.map cimport Map
 
 from .complex_double cimport ComplexDoubleElement
@@ -1119,28 +1120,6 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         raise TypeError("can't convert complex to int; use int(abs(z))")
 
-    def __long__(self):
-        r"""
-        Method for converting ``self`` to type ``long``.
-
-        Called by the ``long`` function. Note that calling this method
-        returns an error since, in general, complex numbers cannot be
-        coerced into integers.
-
-        EXAMPLES::
-
-            sage: a = ComplexNumber(2,1)
-            sage: long(a)   # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to long; use long(abs(z))
-            sage: a.__long__()   # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to long; use long(abs(z))
-        """
-        raise TypeError("can't convert complex to long; use long(abs(z))")
-
     def __float__(self):
         r"""
         Method for converting ``self`` to type ``float``.
@@ -1189,7 +1168,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         return complex(mpfr_get_d(self.__re, rnd),
                        mpfr_get_d(self.__im, rnd))
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Compare ``left`` and ``right``.
 
@@ -1204,20 +1183,20 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         a = mpfr_nan_p(left.__re)
         b = mpfr_nan_p((<ComplexNumber>right).__re)
         if a != b:
-            return -1
+            return rich_to_bool(op, -1)
 
         cdef int i
         i = mpfr_cmp(left.__re, (<ComplexNumber>right).__re)
         if i < 0:
-            return -1
+            return rich_to_bool(op, -1)
         elif i > 0:
-            return 1
+            return rich_to_bool(op, 1)
         i = mpfr_cmp(left.__im, (<ComplexNumber>right).__im)
         if i < 0:
-            return -1
+            return rich_to_bool(op, -1)
         elif i > 0:
-            return 1
-        return 0
+            return rich_to_bool(op, 1)
+        return rich_to_bool(op, 0)
 
     def multiplicative_order(self):
         """

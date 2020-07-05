@@ -156,7 +156,7 @@ a minimum the following files:
     |-- dependencies
     |-- package-version.txt
     |-- spkg-install.in
-    |-- SPKG.txt
+    |-- SPKG.rst
     `-- type
 
 The following are some additional files which can be added:
@@ -307,8 +307,9 @@ A script package has a single install script named ``spkg-install``.
 It needs to be an executable shell script; it is not subject to the templating
 described in the previous section.
 
-Sage runs ``spkg-install`` from the ``$SAGE_ROOT`` directory in the environment
-obtained by sourcing the files ``src/bin/sage-env`` and ``build/bin/sage-build-env-config``.
+Sage runs ``spkg-install`` from the directory ``$SAGE_ROOT/build/pkgs/<package>``
+in the environment obtained by sourcing the files ``src/bin/sage-env`` and
+``build/bin/sage-build-env-config``.
 
 .. _section-sdh-helpers:
 
@@ -459,8 +460,8 @@ example, the ``scipy`` ``spkg-check.in`` file contains the line
 
 .. _section-spkg-SPKG-txt:
 
-The SPKG.txt File
------------------
+The SPKG.rst or SPKG.txt File
+-----------------------------
 
 The ``SPKG.txt`` file should follow this pattern:
 
@@ -497,6 +498,8 @@ with ``PACKAGE_NAME`` replaced by the package name. Legacy
 ``SPKG.txt`` files have an additional changelog section, but this
 information is now kept in the git repository.
 
+It is now also possible to use an ``SPKG.rst`` file instead, with the same
+sections.
 
 .. _section-dependencies:
 
@@ -880,7 +883,7 @@ License Information
 
 If you are patching a standard Sage spkg, then you should make sure that
 the license information for that package is up-to-date, both in its
-``SPKG.txt`` file and in the file ``SAGE_ROOT/COPYING.txt``.  For
+``SPKG.rst`` or ``SPKG.txt`` file and in the file ``SAGE_ROOT/COPYING.txt``.  For
 example, if you are producing an spkg which upgrades the vanilla source
 to a new version, check whether the license changed between versions.
 

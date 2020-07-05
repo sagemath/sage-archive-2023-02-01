@@ -25,6 +25,7 @@ Comprehensive Module list
     sage/combinat/baxter_permutations
     sage/combinat/binary_recurrence_sequences
     sage/combinat/binary_tree
+    sage/combinat/blob_algebra
     sage/combinat/cartesian_product
     sage/combinat/catalog_partitions
     sage/combinat/chas/__init__
@@ -171,6 +172,9 @@ Comprehensive Module list
     sage/combinat/output
     sage/combinat/parallelogram_polyomino
     sage/combinat/parking_functions
+    sage/combinat/path_tableaux/catalog
+    sage/combinat/path_tableaux/dyck_path
+    sage/combinat/path_tableaux/path_tableau
     sage/combinat/plane_partition
     sage/combinat/partition
     sage/combinat/partition_algebra

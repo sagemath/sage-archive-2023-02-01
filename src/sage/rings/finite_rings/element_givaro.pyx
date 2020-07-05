@@ -1,3 +1,5 @@
+# distutils: libraries = givaro ntl gmp m
+# distutils: language = c++
 r"""
 Givaro Field Elements
 
@@ -344,8 +346,6 @@ cdef class Cache_givaro(SageObject):
             sage: k(2^100)
             1
             sage: k(int(2^100))
-            1
-            sage: k(long(2^100))
             1
             sage: k(-2^100)
             2

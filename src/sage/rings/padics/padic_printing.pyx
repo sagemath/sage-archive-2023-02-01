@@ -1,3 +1,5 @@
+# distutils: libraries = gmp ntl m
+# distutils: language = c++
 """
 p-Adic Printing
 

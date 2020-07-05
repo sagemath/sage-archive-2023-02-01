@@ -848,19 +848,6 @@ cdef class LazyImport(object):
         """
         return int(self.get_object())
 
-    def __long__(self):
-        """
-        TESTS::
-
-            sage: sage.all.foo = 10
-            sage: lazy_import('sage.all', 'foo')
-            sage: type(foo)
-            <type 'sage.misc.lazy_import.LazyImport'>
-            sage: long(foo)
-            10L
-        """
-        return long(self.get_object())
-
     def __float__(self):
         """
         TESTS::

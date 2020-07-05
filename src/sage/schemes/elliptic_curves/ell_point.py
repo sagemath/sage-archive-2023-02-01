@@ -2809,7 +2809,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         if K is rings.QQ:
             v = K.embeddings(RealField())[0]
         v_inf = refine_embedding(v, Infinity)
-
         v_is_real = v_inf(K.gen()).imag().is_zero()
 
         # Find a suitable working precision.  See trac#29666 for an

@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 """
 Matrices over the $\GF{2}$ via NTL
 

@@ -551,7 +551,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = Polyhedron(vertices=[[0,0]])
             sage: C = CombinatorialPolyhedron(P)
             sage: C._repr_()
-            'A 0-dimensional combinatorial polyhedron with 1 facet'
+            'A 0-dimensional combinatorial polyhedron with 0 facets'
 
             sage: P = Polyhedron(lines=[[0,0,1],[0,1,0]])
             sage: C = CombinatorialPolyhedron(P)
@@ -887,15 +887,18 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.n_facets()
             0
 
+        Facets are defined to be the maximal nontrivial faces.
+        The ``0``-dimensional polyhedron does not have nontrivial faces::
+
             sage: C = CombinatorialPolyhedron(0)
             sage: C.f_vector()
             (1, 1)
             sage: C.n_facets()
-            1
+            0
         """
         if unlikely(self._dimension == 0):
             # This trivial polyhedron needs special attention.
-            return smallInteger(1)
+            return smallInteger(0)
         return smallInteger(self._n_facets)
 
     def facets(self, names=True):
@@ -904,6 +907,8 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         If ``names`` is ``False``, then the Vrepresentatives in the facets
         are given by their indices in the Vrepresentation.
+
+        The facets are the maximal nontrivial faces.
 
         EXAMPLES::
 
@@ -941,11 +946,19 @@ cdef class CombinatorialPolyhedron(SageObject):
              (4, 5, 6, 7),
              (0, 1, 5, 6),
              (0, 3, 4, 5))
+
+        The empty face is trivial and hence the ``0``-dimensional
+        polyhedron does not have facets::
+
+            sage: C = CombinatorialPolyhedron(0)
+            sage: C.facets()
+            ()
         """
         if unlikely(self.dimension() == 0):
             # Special attention for this trivial case.
-            # There is actually one facet, but we have not initialized it.
-            return ((),)
+            # Facets are defined to be non-trival faces of codimension 1.
+            # The empty face is trivial.
+            return ()
 
         # It is essential to have the facets in the exact same order as
         # on input, so that pickle/unpickle by :meth:`reduce` works.
@@ -1495,28 +1508,22 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: Polyhedron().vertex_facet_graph()
             Digraph on 0 vertices
             sage: Polyhedron([[0]]).vertex_facet_graph()
-            Digraph on 2 vertices
+            Digraph on 1 vertex
             sage: Polyhedron([[0]]).vertex_facet_graph(False)
-            Digraph on 2 vertices
+            Digraph on 1 vertex
         """
         if self.dimension() == -1:
             return DiGraph()
         if self.dimension() == 0:
             if not names:
-                return DiGraph([(0,1)])
+                return DiGraph(1)
             else:
                 Vrep = self.Vrep()
                 if Vrep:
                     v = Vrep[0]
                 else:
                     v = ("V", 0)
-
-                facet_names = self.facet_names()
-                if facet_names:
-                    f = facet_names[0]
-                else:
-                    f = ("H", 0)
-                return DiGraph([(v, f)])
+                return DiGraph([[v], []])
 
         # The face iterator will iterate through the facets in opposite order.
         facet_iter = self.face_iter(self.dimension() - 1, dual=False)

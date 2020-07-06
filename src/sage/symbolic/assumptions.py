@@ -231,7 +231,7 @@ class GenericDeclaration(SageObject):
         if self._assumption in _valid_feature_strings:
             return
         # We get the list here because features may be added with time.
-        _valid_feature_strings = set(repr(x).strip() for x in list(maxima("features")))
+        _valid_feature_strings.update(repr(x).strip() for x in list(maxima("features")))
         if self._assumption in _valid_feature_strings:
             return
         raise ValueError("%s not a valid assumption, must be one of %s"

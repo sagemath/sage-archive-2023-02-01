@@ -1,4 +1,30 @@
+
+
+from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.modules.free_module import VectorSpace
+from sage.coding.linear_code import LinearCode
+
+
 def extended_Kasami_code(const int s, const int t):
+    r"""
+    Return the extended Kasami code with parameters `s,t`.
+
+    The extended Kasami code with parameters `(s,t)` is defined as
+    `\{ v \in GF(2)^s \mid \sum_{a\in GF(s)} v_a = \sum_{a \in GF(s)} a v_a = \sum_{a \in GF(s)} a^(t+1) v_a = 0 \}`
+
+    INPUT:
+
+    - ``s, t`` -- (integers); powers of 2; parameters of the code
+
+    OUTPUT:
+
+    A ``LinearCode`` object as in [reference to code]
+
+    EXAMPLES::
+
+    TESTS::
+
+    """
     #check s,t are good
     
     F2 = GF(2)

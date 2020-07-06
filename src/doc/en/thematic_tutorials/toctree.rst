@@ -25,5 +25,4 @@ Thematic tutorial document tree
    cython_interface
    numerical_sage/index
    explicit_methods_in_number_theory/index
-   sws2rst
    profiling

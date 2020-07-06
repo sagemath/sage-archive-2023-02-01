@@ -783,16 +783,6 @@ if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then
     exec sage-rst2txt "$@"
 fi
 
-if [ "$1" = '-rst2sws' -o "$1" = '--rst2sws' ]; then
-    shift
-    exec sage-rst2sws "$@"
-fi
-
-if [ "$1" = '-sws2rst' -o "$1" = '--sws2rst' ]; then
-    shift
-    exec sage-sws2rst "$@"
-fi
-
 #####################################################################
 # The notebook, grep, building Sage, testing Sage
 #####################################################################

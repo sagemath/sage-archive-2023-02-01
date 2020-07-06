@@ -188,7 +188,7 @@ class OreFunction(AlgebraElement):
         irreducible fraction of the form `s^{-1} t` representing this
         element. Here irreducible means that `s` and `t` have no
         nontrivial common left divisor.
-        Under this additional assumption, this method always return
+        Under this additional assumption, this method always returns
         this distinguished denominator `s`.
 
         On the contrary, when the twisting morphism is not bijective,
@@ -249,7 +249,7 @@ class OreFunction(AlgebraElement):
         irreducible fraction of the form `s^{-1} t` representing this
         element. Here irreducible means that `s` and `t` have no
         nontrivial common left divisor.
-        Under this additional assumption, this method always return
+        Under this additional assumption, this method always returns
         this distinguished numerator `t`.
 
         On the contrary, when the twisting morphism is not bijective,
@@ -323,7 +323,7 @@ class OreFunction(AlgebraElement):
         irreducible fraction of the form `t s^{-1}` representing this
         element. Here irreducible means that `s` and `t` have no
         nontrivial common right divisor.
-        Under this additional assumption, this method always return
+        Under this additional assumption, this method always returns
         this distinguished denominator `s`.
 
         On the contrary, when the twisting morphism is not bijective,
@@ -377,7 +377,7 @@ class OreFunction(AlgebraElement):
         irreducible fraction of the form `t s^{-1}` representing this
         element. Here irreducible means that `s` and `t` have no
         nontrivial common right divisor.
-        Under this additional assumption, this method always return
+        Under this additional assumption, this method always returns
         this distinguished numerator `t`.
 
         On the contrary, when the twisting morphism is not bijective,
@@ -916,7 +916,7 @@ class OreFunction_with_large_center(OreFunction):
         By default, the name of the central variable is usually ``z`` (see
         :meth:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomiaRing_finite_order.center`
         for more details about this).
-        However, the user can speciify a different variable name if desired::
+        However, the user can specify a different variable name if desired::
 
             sage: a.reduced_norm(var='u')
             (u + 2)/(u^2 + 4)

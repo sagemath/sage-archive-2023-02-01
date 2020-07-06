@@ -197,21 +197,57 @@ cdef class FreeAbelianMonoidElement(MonoidElement):
             sage: a^2 * b^3 * a^2 * b^4
             a^4*b^7
         """
-        s = ""
+        cdef str s = ""
         A = self._parent
-        x = A.variable_names()
-        v = self._element_vector
+        cdef tuple x = A.variable_names()
+        cdef mpz_t *v = self._element_vector
         cdef Integer val
         for i in range(self._n):
             val = _Integer_from_mpz(v[i])
             if val == 0:
                 continue
             elif val == 1:
-                if len(s) > 0: s += "*"
+                if s:
+                    s += "*"
                 s += "%s" % x[i]
             else:
-                if len(s) > 0: s += "*"
+                if s:
+                    s += "*"
                 s += "%s^%s" % (x[i], val)
+        if not s:
+            s = "1"
+        return s
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = FreeAbelianMonoid(2, 'alpha,beta')
+            sage: latex(F(1))
+            1
+            sage: a, b = F.gens()
+            sage: latex(a^2 * b^3 * a^2 * b^4)
+            \alpha^{4} \beta^{7}
+        """
+        cdef str s = ""
+        A = self._parent
+        cdef list x = A.latex_variable_names()
+        cdef mpz_t *v = self._element_vector
+        cdef Integer val
+        for i in range(self._n):
+            val = _Integer_from_mpz(v[i])
+            if val == 0:
+                continue
+            elif val == 1:
+                if s:
+                    s += " "
+                s += "%s" % x[i]
+            else:
+                if s:
+                    s += " "
+                s += "%s^{%s}" % (x[i], val)
         if not s:
             s = "1"
         return s

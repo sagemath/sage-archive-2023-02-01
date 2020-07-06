@@ -549,37 +549,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         dimension = G.rank()
         return GeneralizedReedSolomonCode(punctured_alphas, dimension, punctured_col_mults)
 
-    def decode_to_message(self, r):
-        r"""
-        Decode ``r`` to an element in message space of ``self``.
-
-        .. NOTE::
-
-            If the code associated to ``self`` has the same length as its
-            dimension, ``r`` will be unencoded as is. In that case,
-            if ``r`` is not a codeword, the output is unspecified.
-
-        INPUT:
-
-        - ``r`` -- a codeword of ``self``
-
-        OUTPUT:
-
-        - a vector of ``self`` message space
-
-        EXAMPLES::
-
-            sage: F = GF(11)
-            sage: n, k = 10, 5
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
-            sage: r = vector(F, (8, 2, 6, 10, 6, 10, 7, 6, 7, 2))
-            sage: C.decode_to_message(r)
-            (3, 6, 6, 3, 1)
-        """
-        if self.length() == self.dimension():
-            return self.encoder().unencode_nocheck(r)
-        return vector(self.decoder().decode_to_message(r))
-
 
 def ReedSolomonCode(base_field, length, dimension, primitive_root=None):
     r"""

@@ -886,12 +886,3 @@ Sageは，セッション全体を保存し再ロードするための非常に�
     sage: a
     389
 
-
-
-.. _section-notebook:
-
-ノートブックインターフェイス
-==================================
-
-SageMath is using the `Jupyter notebook
-<http://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_ as the default.

@@ -83,7 +83,8 @@ Sageの使いかた
 
 Sageを使うには以下のようなやり方がある．
 
-- **ノートブック グラフィカル インターフェイス:** レファレンスマニュアルのノートブックに関する節，および以下の :ref:`section-notebook` 節を参照．
+- **ノートブック グラフィカル インターフェイス:** run `sage -n jupyter`; see
+  `the Jupyter documentation on-line <https://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_.
 
 - **対話的コマンドライン:** :ref:`chapter-interactive_shell` 節を参照．
 

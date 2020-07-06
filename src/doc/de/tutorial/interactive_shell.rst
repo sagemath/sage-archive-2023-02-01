@@ -868,13 +868,3 @@ Variable ``b`` wurde nicht überschrieben.
     sage: a
     389
 
-
-
-.. _section-notebook:
-
-Die Notebook Umgebung
-=====================
-
-SageMath wird demnächst die `Jupyter notebook
-<http://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_
-als Hauptnotebookoption verwenden.

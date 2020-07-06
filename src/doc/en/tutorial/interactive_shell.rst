@@ -945,12 +945,3 @@ Each saved variable is again available. Moreover, the variable
     sage: a
     389
 
-
-
-.. _section-notebook:
-
-The Notebook Interface
-=============================
-
-SageMath is using the `Jupyter notebook
-<http://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_ as the default.

@@ -936,12 +936,3 @@ variável ``b`` não foi redefinida.
     sage: a
     389
 
-
-
-.. _section-notebook:
-
-A Interface do Notebook
-=======================
-
-SageMath está em transição para uso do
-`Jupyter <http://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_.

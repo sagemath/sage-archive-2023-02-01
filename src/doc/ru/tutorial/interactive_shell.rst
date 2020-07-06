@@ -840,12 +840,3 @@ Sage обладает очень гибкими возможностями со�
     sage: a
     389
 
-
-
-.. _section-notebook:
-
-Интерфейс Notebook
-=============================
-
-SageMath перешел на
-`Jupyter notebook <http://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_.

@@ -117,6 +117,19 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, colmults)
         sage: C
         [40, 12, 29] Generalized Reed-Solomon Code over GF(59)
+
+    TESTS:
+
+    Test that the bug in #30045 is fixed::
+
+        sage: F = GF(5)
+        sage: C = codes.GeneralizedReedSolomonCode(F.list()[:5], 2)
+        sage: D = codes.decoders.GRSErrorErasureDecoder(C)
+        sage: y = (vector(F, [3, 0, 3, 0, 3]), vector(GF(2),[0, 1, 0, 1, 0]))
+        sage: D.decode_to_code(y)
+        (3, 3, 3, 3, 3)
+        sage: D.decode_to_message(y)
+        (3, 0)
     """
     _registered_encoders = {}
     _registered_decoders = {}

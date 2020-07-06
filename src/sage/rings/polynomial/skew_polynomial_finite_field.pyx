@@ -32,7 +32,7 @@ from sage.matrix.matrix2 import NotFullRankError
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.skew_polynomial_element cimport SkewPolynomial
+from sage.rings.polynomial.ore_polynomial_element cimport OrePolynomial as SkewPolynomial
 from sage.rings.polynomial.skew_polynomial_finite_order cimport SkewPolynomial_finite_order_dense
 
 from sage.combinat.permutation import Permutation, Permutations
@@ -159,7 +159,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             []
 
         If `a = N`, the type is just `[r]` where `r` is the order
-        of the twist map ``Frob``::
+        of the twisting morphism ``Frob``::
 
             sage: N = x3^2 + x3 + 1
             sage: S(N).type(N)

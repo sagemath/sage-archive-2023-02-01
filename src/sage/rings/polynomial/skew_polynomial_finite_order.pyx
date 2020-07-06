@@ -50,7 +50,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             sage: R.<t> = GF(5^3)
             sage: Frob = R.frobenius_endomorphism()
             sage: S.<x> = R['x', Frob]; S
-            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            Ore Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
 
         We create a skew polynomial from a list::
 
@@ -157,7 +157,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
                     pol.append(l[k])
                 M.append(Polk(pol))
             for i from 0 <= i <= d:
-                l[i] = self._parent.twist_map()(l[i])
+                l[i] = self._parent.twisting_morphism()(l[i])
         return matrix(Polk, r, r, M)
 
 
@@ -216,12 +216,12 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             True
         """
         order = self.parent()._order
-        twist_map = self.parent().twist_map()
+        twisting_morphism = self.parent().twisting_morphism()
         coeffs = [ ]
         for i in range(0, self.degree()+1, order):
             tr = c = self._coeffs[i]
             for _ in range(order-1):
-                tr = c + twist_map(tr)
+                tr = c + twisting_morphism(tr)
             coeffs.append(tr)
         if var is False:
             return tuple(coeffs)

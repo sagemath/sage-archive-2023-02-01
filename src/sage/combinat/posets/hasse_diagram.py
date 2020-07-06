@@ -2267,7 +2267,11 @@ class HasseDiagram(DiGraph):
 
     def diamonds(self):
         r"""
-        Return a list of all diamonds in the Hasse Diagram.
+        Return in a tuple
+            - a list of all diamonds in the Hasse Diagram, 
+            - a Boolean checking that every w,x,y that form a ``V``, there is a unique element z 
+                which completes the diamond.
+        
         For a diamond
                     z
                    / \
@@ -2281,7 +2285,7 @@ class HasseDiagram(DiGraph):
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0: [1,2], 1: [3], 2: [3], 3: []})
             sage: H.diamonds()
-            [(0, 1, 2, 3)]
+            ([(0, 1, 2, 3)], True)
         
         TESTS::
 
@@ -2289,19 +2293,21 @@ class HasseDiagram(DiGraph):
             sage: P = posets.YoungDiagramPoset(Partition([3, 2, 2]))
             sage: H = P._hasse_diagram
             sage: H.diamonds()
-            [(0, 1, 3, 4), (3, 4, 5, 6)]
+            ([(0, 1, 3, 4), (3, 4, 5, 6)], False) 
         """
         diamonds = []
+        all_diamonds_completed = True
         for w in self.vertices():
             covers = self.neighbors_out(w)
             for i, x in enumerate(covers):
                 for y in covers[i+1:]:
                     zs = self.common_upper_covers([x, y])
+                    if len(zs) != 1 :
+                        all_diamonds_completed = False
                     for z in zs:
                         diamonds.append((w, x, y, z))
-        return diamonds
+        return (diamonds, all_diamonds_completed)
                     
-
     def common_upper_covers(self, vertices):
         r"""
         Return the list of all common upper covers of a list of vertices
@@ -2312,6 +2318,11 @@ class HasseDiagram(DiGraph):
             sage: H = HasseDiagram({0: [1,2], 1: [3], 2: [3], 3: []})
             sage: H.common_upper_covers([1, 2])
             [3]
+            
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: H = Posets.YoungDiagramPoset(Partition([3, 2, 2]))._hasse_diagram
+            sage: H.common_upper_covers([4, 5])
+            [6]
         """
         covers = set(self.neighbors_out(vertices.pop()))
 

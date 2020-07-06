@@ -78,7 +78,7 @@ class DCompletePoset(FinitePoset):
         min_diamond = {} # Maps max of double-tailed diamond to min of double-tailed diamond
         max_diamond = {} # Maps min of double-tailed diamond to max of double-tailed diamond
 
-        diamonds = self.diamonds() # Tuples of four elements that are diamonds
+        diamonds, _ = self.diamonds() # Tuples of four elements that are diamonds
         
         diamond_index = {} # Map max elmt of double tailed diamond to index of diamond
 
@@ -166,13 +166,6 @@ class DCompletePoset(FinitePoset):
 
         """
         return dict(self._hooks)
-
-    @staticmethod
-    def is_d_complete(cls, poset):
-        """
-        Check if a poset is d-complete
-        """
-        pass
 
     def linear_extensions(self, facade=False):
         r"""

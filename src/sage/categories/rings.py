@@ -231,6 +231,14 @@ class Rings(CategoryWithAxiom):
                 Traceback (most recent call last):
                 ...
                 ValueError: the morphism is not injective
+
+            TESTS::
+
+                sage: A.<x> = RR[]
+                sage: phi = A.hom([x+1])
+                sage: phi.extend_to_fraction_field()
+                Ring endomorphism of Fraction Field of Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+                  Defn: x |--> x + 1.00000000000000
             """
             from sage.rings.morphism import RingHomomorphism_from_fraction_field
             if self.domain().is_field() and self.codomain().is_field():

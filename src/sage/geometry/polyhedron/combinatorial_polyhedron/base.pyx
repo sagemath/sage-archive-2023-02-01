@@ -427,6 +427,12 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._n_Hrepresentation = data.ncols()
             self._n_Vrepresentation = data.nrows()
 
+            # Store the incidence matrix.
+            if not data.is_immutable():
+                data = data.__copy__()
+                data.set_immutable()
+            self.incidence_matrix.set_cache(data)
+
             # Initializing the facets in their Bit-representation.
             self._bitrep_facets = incidence_matrix_to_bit_rep_of_facets(data)
 
@@ -985,11 +991,22 @@ cdef class CombinatorialPolyhedron(SageObject):
             [0 0 0 1 1 1]
             [0 1 0 1 1 0]
             [0 1 1 1 0 0]
-            sage: P.incidence_matrix() == C.incidence_matrix()
+
+        In this case the incidence matrix is only computed once::
+
+            sage: P.incidence_matrix() is C.incidence_matrix()
             True
+            sage: C.incidence_matrix.clear_cache()
+            sage: C.incidence_matrix() is P.incidence_matrix()
+            False
+            sage: C.incidence_matrix() == P.incidence_matrix()
+            True
+
+        ::
 
             sage: P = polytopes.permutahedron(5)
             sage: C = P.combinatorial_polyhedron()
+            sage: C.incidence_matrix.clear_cache()
             sage: C.incidence_matrix() == P.incidence_matrix()
             True
 
@@ -999,6 +1016,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = Polyhedron([[0,0]])
             sage: P.incidence_matrix()
             [1 1]
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.incidence_matrix.clear_cache()
             sage: P.combinatorial_polyhedron().incidence_matrix()
             [1 1]
 
@@ -1007,11 +1026,19 @@ cdef class CombinatorialPolyhedron(SageObject):
         Check that :trac:`29455` is fixed::
 
             sage: C = Polyhedron([[0]]).combinatorial_polyhedron()
+            sage: C.incidence_matrix.clear_cache()
             sage: C.incidence_matrix()
             [1]
             sage: C = CombinatorialPolyhedron(-1)
+            sage: C.incidence_matrix.clear_cache()
             sage: C.incidence_matrix()
             []
+
+        Check that the base ring is ``ZZ``, see :trac:`29840`::
+
+            sage: C = CombinatorialPolyhedron([[0,1,2], [0,1,3], [0,2,3], [1,2,3]])
+            sage: C.incidence_matrix().base_ring()
+            Integer Ring
         """
         from sage.rings.all import ZZ
         from sage.matrix.constructor import matrix
@@ -1472,13 +1499,13 @@ cdef class CombinatorialPolyhedron(SageObject):
         else:
             facet_names = self.facet_names()
             if facet_names is None:
-                # No names where provided at initializiation.
-                facet_names = [("H",i) for i in range(n_facets)]
+                # No names were provided at initialisation.
+                facet_names = [("H", i) for i in range(n_facets)]
 
             Vrep = self.Vrep()
             if Vrep is None:
-                # No names where provided at initializiation.
-                Vrep = [("V",i) for i in range(n_Vrep)]
+                # No names were provided at initialisation.
+                Vrep = [("V", i) for i in range(n_Vrep)]
 
             vertices = Vrep + facet_names
             edges = tuple((Vrep[j], facet_names[n_facets - 1 - i]) for i,facet in enumerate(facet_iter) for j in facet.ambient_V_indices())
@@ -1862,7 +1889,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef simpliciality = dim - 1
 
         # For each face in the iterator, check if its a simplex.
-        face_iter.lowest_dimension = 2 # every 1-face is a simplex
+        face_iter.structure.lowest_dimension = 2 # every 1-face is a simplex
         d = face_iter.next_dimension()
         while (d < dim):
             sig_check()
@@ -1976,7 +2003,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef simplicity = dim - 1
 
         # For each coface in the iterator, check if its a simplex.
-        coface_iter.lowest_dimension = 2 # every coface of dimension 1 is a simplex
+        coface_iter.structure.lowest_dimension = 2 # every coface of dimension 1 is a simplex
         d = coface_iter.next_dimension()
         while (d < dim):
             sig_check()
@@ -2871,8 +2898,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                     face_iter.set_atom_rep()
 
                     # Copy the information.
-                    edges[one][2*two] = face_iter.atom_rep[0]
-                    edges[one][2*two + 1] = face_iter.atom_rep[1]
+                    edges[one][2*two] = face_iter.structure.atom_rep[0]
+                    edges[one][2*two + 1] = face_iter.structure.atom_rep[1]
                     counter += 1
 
             # Success, copy the data to ``CombinatorialPolyhedron``.
@@ -2923,8 +2950,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                         face_iter.set_atom_rep()
 
                         # Copy the information.
-                        edges[one][2*two] = face_iter.atom_rep[0]
-                        edges[one][2*two + 1] = face_iter.atom_rep[1]
+                        edges[one][2*two] = face_iter.structure.atom_rep[0]
+                        edges[one][2*two + 1] = face_iter.structure.atom_rep[1]
                         counter += 1
 
                     d = face_iter.next_dimension()  # Go to next face.
@@ -3044,8 +3071,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                 face_iter.set_coatom_rep()
 
                 # Copy the information.
-                ridges[one][2*two] = face_iter.coatom_rep[0]
-                ridges[one][2*two + 1] = face_iter.coatom_rep[1]
+                ridges[one][2*two] = face_iter.structure.coatom_rep[0]
+                ridges[one][2*two + 1] = face_iter.structure.coatom_rep[1]
                 counter += 1
 
         # Success, copy the data to ``CombinatorialPolyhedron``.

@@ -955,7 +955,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         return self._rank_basis(x)
 
-    def from_vector(self, vector):
+    def from_vector(self, vector, order=None):
         """
         Build an element of ``self`` from a (sparse) vector.
 
@@ -970,8 +970,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: a == b
             True
         """
-        cc = self.get_order()
-        return self._from_dict({cc[index]: coeff for (index,coeff) in vector.items()})
+        if order is None:
+            order = self.get_order()
+        return self._from_dict({order[index]: coeff for (index,coeff) in vector.items()})
 
     def sum(self, iter_of_elements):
         """

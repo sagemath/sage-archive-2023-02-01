@@ -256,6 +256,8 @@ List of Poset methods
     :meth:`~FinitePoset.rank` | Return the rank of an element, or the rank of the poset.
     :meth:`~FinitePoset.rank_function` | Return a rank function of the poset, if it exists.
     :meth:`~FinitePoset.unwrap` | Unwraps an element of this poset.
+    :meth:`~FinitePoset.atkinson` | Return the `a`-spectrum of a poset whose undirected Hasse diagram is a forest.
+    :meth:`~FinitePoset.spectrum` | Return the `a`-spectrum of this poset.
 
 Classes and functions
 ---------------------
@@ -278,6 +280,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.functions.other import floor
+from sage.functions.other import binomial
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -716,7 +719,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
             vertices = sorted(set(x for item in data for x in item))
             if len(vertices) != len(data):
                 # by default, assuming vertices are the range 0..n
-                vertices = list(range(len(data)))
+                vertices = range(len(data))
             D = DiGraph({v: [u for u in cov if u != v]
                          for v, cov in zip(vertices, data)},
                         format="dict_of_lists")
@@ -1553,7 +1556,7 @@ class FinitePoset(UniqueRepresentation, Parent):
     @cached_method
     def linear_extensions(self, facade=False):
         """
-        Returns the enumerated set of all the linear extensions of this poset
+        Return the enumerated set of all the linear extensions of this poset.
 
         INPUT:
 
@@ -1627,9 +1630,153 @@ class FinitePoset(UniqueRepresentation, Parent):
         from .linear_extensions import LinearExtensionsOfPoset
         return LinearExtensionsOfPoset(self, facade = facade)
 
+    def spectrum(self, a):
+        r"""
+        Return the `a`-spectrum of this poset.
+
+        The `a`-spectrum in a poset `P` is the list of integers whose
+        `i`-th position contains the number of linear extensions of `P`
+        that have `a` in the `i`-th location.
+
+        INPUT:
+
+        - ``a`` -- an element of this poset
+
+        OUTPUT:
+
+        The `a`-spectrum of this poset, returned as a list.
+
+        EXAMPLES::
+
+            sage: P = posets.ChainPoset(5)
+            sage: P.spectrum(2)
+            [0, 0, 1, 0, 0]
+            
+            sage: P = posets.BooleanLattice(3)
+            sage: P.spectrum(5)
+            [0, 0, 0, 4, 12, 16, 16, 0]
+
+            sage: P = posets.YoungDiagramPoset(Partition([3,2,1]))
+            sage: P.spectrum((0,1))
+            [0, 8, 6, 2, 0, 0]
+
+            sage: P = posets.AntichainPoset(4)
+            sage: P.spectrum(3)
+            [6, 6, 6, 6]
+
+        TESTS::
+
+            sage: P = posets.ChainPoset(5)
+            sage: P.spectrum(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: input element is not in poset
+        """
+        if a not in self:
+            raise ValueError("input element is not in poset")
+
+        a_spec = [0] * len(self)
+        for L in self.linear_extensions():
+            idx = L.index(a)
+            a_spec[idx] += 1
+
+        return a_spec
+
+    def atkinson(self, a):
+        r"""
+        Return the `a`-spectrum of a poset whose Hasse diagram is
+        cycle-free as an undirected graph.
+
+        Given an element `a` in a poset `P`, the `a`-spectrum is the list of
+        integers whose `i`-th term contains the number of linear extensions of
+        `P` with element `a` located in the i-th position.
+
+        INPUT:
+
+        - ``self`` -- a poset whose Hasse diagram is a forest
+
+        - ``a`` -- an element of the poset
+
+        OUTPUT:
+
+        The `a`-spectrum of this poset, returned as a list.
+
+        EXAMPLES::
+
+            sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: P.atkinson(0)
+            [2, 2, 0, 0, 0]
+
+            sage: P = Poset({0: [1], 1: [2, 3], 2: [], 3: [], 4: [5, 6], 5: [], 6: []})
+            sage: P.atkinson(5)
+            [0, 10, 18, 24, 28, 30, 30]
+
+            sage: P = posets.AntichainPoset(10)
+            sage: P.atkinson(0)
+            [362880, 362880, 362880, 362880, 362880, 362880, 362880, 362880, 362880, 362880]
+
+        TESTS::
+
+            sage: P = posets.ChainPoset(5)
+            sage: P.atkinson(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: input element is not in poset
+
+            sage: P = posets.BooleanLattice(2)
+            sage: P.atkinson(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: this poset is not a forest
+
+        .. NOTE::
+
+            This function is the implementation of the algorithm from [At1990]_.
+        """
+        if a not in self:
+            raise ValueError("input element is not in poset")
+
+        if not self._hasse_diagram.to_undirected().is_forest():
+            raise ValueError("this poset is not a forest")
+
+        n = self.cardinality()
+
+        # Compute the component of this poset containing `a` and its complement
+        components = self.connected_components()
+        remainder_poset = Poset()
+
+        
+        for X in components:
+            if a in X:
+                main = X
+            else:
+                remainder_poset = remainder_poset.disjoint_union(X)
+
+        hasse_a = main._element_to_vertex(a)
+        a_spec = main._hasse_diagram._spectrum_of_tree(hasse_a)
+
+        if not remainder_poset.cardinality():
+            return a_spec
+
+        b = remainder_poset.an_element()
+
+        b_spec = remainder_poset.atkinson(b)
+        n_lin_exts = sum(b_spec)
+
+        new_a_spec = []
+        k = main.cardinality()
+
+        # Compute number of shuffles of linear extensions of the two posets
+        for r in range(1, n+1):
+            new_a_spec.append(0)
+            for i in range(max(1, r-n+k), min(r,k) + 1):
+                k_val = binomial(r-1, i-1) * binomial(n - r, k - i)
+                new_a_spec[-1] += k_val * a_spec[i-1] * n_lin_exts
+        return new_a_spec
+
     def is_linear_extension(self, l):
         """
-        Returns whether ``l`` is a linear extension of ``self``
+        Return whether ``l`` is a linear extension of ``self``.
 
         INPUT:
 
@@ -2979,7 +3126,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             if max_chains[0] != sorted(max_chains[0]) or any( max_chains[i] == sorted(max_chains[i]) for i in range(1,len(max_chains)) ):
                 return False
             elif return_raising_chains:
-                raising_chains[(a,b)] = max_chains[0]
+                raising_chains[(a, b)] = max_chains[0]
         if return_raising_chains:
             return raising_chains
         else:
@@ -4178,7 +4325,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             Internally, this uses
             :class:`sage.combinat.subsets_pairwise.PairwiseCompatibleSubsets`
-            and :class:`SearchForest`. At this point, iterating
+            and :class:`RecursivelyEnumeratedSet_forest`. At this point, iterating
             through this set is about twice slower than using
             :meth:`antichains_iterator` (tested on
             ``posets.AntichainPoset(15)``). The algorithm is the same
@@ -4221,7 +4368,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return the width of the poset (the size of its longest antichain).
 
         It is computed through a matching in a bipartite graph; see
-        :wikipedia:`Dilworth's_theorem` for more information. The width is
+        :wikipedia:`Dilworth%27s_theorem` for more information. The width is
         also called Dilworth number.
 
         INPUT:
@@ -4273,7 +4420,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         partitioned into `\alpha` chains, where `\alpha` is the cardinality of
         its largest antichain. This method returns such a partition.
 
-        See :wikipedia:`Dilworth's_theorem`.
+        See :wikipedia:`Dilworth%27s_theorem`.
 
         ALGORITHM:
 
@@ -5742,9 +5889,9 @@ class FinitePoset(UniqueRepresentation, Parent):
                            category=self.category(),
                            facade=self._is_facade)
 
-    def graphviz_string(self,graph_string="graph",edge_string="--"):
+    def graphviz_string(self, graph_string="graph", edge_string="--"):
         r"""
-        Returns a representation in the DOT language, ready to render in
+        Return a representation in the DOT language, ready to render in
         graphviz.
 
         See http://www.graphviz.org/doc/info/lang.html for more information
@@ -6041,7 +6188,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             new = mins[new_index]
             result.append(new)
             mins = mins[:new_index]+mins[new_index+1:]
-            for u in H.neighbors_out(new):
+            for u in H.neighbor_out_iterator(new):
                 indegs[u] -= 1
                 if indegs[u] == 0:
                     mins.append(u)
@@ -6076,7 +6223,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: C.order_filter([])
             []
         """
-        vertices = sorted(map(self._element_to_vertex,elements))
+        vertices = sorted(map(self._element_to_vertex, elements))
         of = self._hasse_diagram.order_filter(vertices)
         return [self._vertex_to_element(_) for _ in of]
 
@@ -6383,8 +6530,6 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - ``partial`` -- list (optional); if present, find all maximal
           chains starting with the elements in partial
-
-        Returns list of the maximal chains of this poset.
 
         This is used in constructing the order complex for the poset.
 
@@ -8191,13 +8336,13 @@ class FinitePosets_n(UniqueRepresentation, Parent):
 
     def __iter__(self):
         """
-        Returns an iterator of representatives of the isomorphism classes
+        Return an iterator of representatives of the isomorphism classes
         of finite posets of a given size.
 
-        .. note::
+        .. NOTE::
 
-           This uses the DiGraph iterator as a backend to construct
-           transitively-reduced, acyclic digraphs.
+            This uses the DiGraph iterator as a backend to construct
+            transitively-reduced, acyclic digraphs.
 
         EXAMPLES::
 
@@ -8209,8 +8354,8 @@ class FinitePosets_n(UniqueRepresentation, Parent):
         for dig in DiGraphGenerators()(self._n, is_poset):
             # We need to relabel the digraph since range(self._n) must be a linear
             # extension. Too bad we need to compute this again. TODO: Fix this.
-            label_dict = dict(zip(dig.topological_sort(),range(dig.order())))
-            yield FinitePoset(dig.relabel(label_dict,inplace=False))
+            label_dict = dict(zip(dig.topological_sort(), range(dig.order())))
+            yield FinitePoset(dig.relabel(label_dict, inplace=False))
 
     def cardinality(self, from_iterator=False):
         r"""

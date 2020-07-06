@@ -58,6 +58,9 @@ case $system:$command in
     @(fedora*|redhat*|centos*):install)
         [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}yum install $system_packages"
         ;;
+    gentoo*:install)
+        [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}emerge $system_packages"
+        ;;
     arch*:install)
         [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}pacman -S $system_packages"
         ;;

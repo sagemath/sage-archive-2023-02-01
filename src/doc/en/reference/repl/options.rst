@@ -103,8 +103,8 @@ Command-line options for Sage
 
 - ``-f [options] [packages]`` -- shortcut for ``-i -f``: force build of
   the given Sage packages.
-- ``--info [packages]`` -- display the ``SPKG.txt`` file of the given
-  Sage packages.
+- ``--info [packages]`` -- display the ``SPKG.txt`` or ``SPKG.rst`` file of
+  the given Sage packages, and some additional information.
 - ``--standard`` -- list all standard packages that can be installed
 - ``--optional`` -- list all optional packages that can be installed
 - ``--experimental`` -- list all experimental packages that can be installed
@@ -211,9 +211,6 @@ Command-line options for Sage
 
 .. rubric:: Making Sage packages or distributions
 
-- ``--pkg dir`` -- create the Sage package ``dir.spkg`` from the
-  directory ``dir``
-- ``--pkg_nc dir`` -- as ``--pkg``, but do not compress the package
 - ``--merge`` -- run Sage's automatic merge and test script
 - ``--sdist`` -- build a source distribution of Sage
 

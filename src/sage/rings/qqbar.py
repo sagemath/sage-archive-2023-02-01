@@ -875,7 +875,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
             #
             # As nbruin pointed out during the review of Trac #25390,
             # this can be accomplished more efficiently using the resultant
-            # of the polynomial with the number field's minimial polynomial.
+            # of the polynomial with the number field's minimal polynomial.
             #
             # We use two auxiliary polynomial rings:
             #
@@ -6030,8 +6030,6 @@ class ANRational(ANDescr):
 
             sage: polygen(QQbar) / int(3)
             1/3*x
-            sage: QQbar(int(7)) / QQbar(long(2))
-            7/2
         """
         if isinstance(x, (sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):

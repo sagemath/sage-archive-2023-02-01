@@ -1588,20 +1588,6 @@ cdef class RealDoubleElement(FieldElement):
         """
         return int(self._value)
 
-    def __long__(self):
-        """
-        Returns long integer truncation of this real number.
-
-        EXAMPLES::
-
-            sage: int(RDF(10e15))
-            10000000000000000L                   # 32-bit
-            10000000000000000                    # 64-bit
-            sage: long(RDF(2^100)) == 2^100
-            True
-        """
-        return long(self._value)
-
     def _complex_mpfr_field_(self, CC):
         """
         EXAMPLES::

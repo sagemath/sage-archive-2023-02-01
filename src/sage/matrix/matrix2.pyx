@@ -3206,13 +3206,13 @@ cdef class Matrix(Matrix1):
             # Search for a non-zero entry in column m-1
             i = -1
             for r from m+1 <= r < n:
-                if self.get_unsafe(r, m-1) != zero:
+                if not self.get_is_zero_unsafe(r, m-1):
                     i = r
                     break
             if i != -1:
                 # Found a nonzero entry in column m-1 that is strictly below row m
                 # Now set i to be the first nonzero position >= m in column m-1
-                if self.get_unsafe(m,m-1) != zero:
+                if not self.get_is_zero_unsafe(m,m-1):
                     i = m
                 t = self.get_unsafe(i,m-1)
                 t_inv = None
@@ -13680,13 +13680,20 @@ cdef class Matrix(Matrix1):
             [0.750000000000000 0.800000000000000 0.833333333333333]
             [0.857142857142857 0.875000000000000 0.888888888888889]
             [0.900000000000000 0.909090909090909 0.916666666666667]
+
+        We check that :trac:`29700` is fixed::
+
+            sage: M = matrix(3,[1,1,1,1,0,0,0,1,0])
+            sage: A,B = M.diagonalization(QQbar)
+            sage: _ = A.n()
+
         """
         if prec is None:
             prec = digits_to_bits(digits)
 
         try:
             return self.change_ring(sage.rings.real_mpfr.RealField(prec))
-        except TypeError:
+        except (TypeError, ValueError):
             # try to return a complex result
             return self.change_ring(sage.rings.complex_field.ComplexField(prec))
 

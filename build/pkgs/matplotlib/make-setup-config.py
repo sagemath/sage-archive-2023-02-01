@@ -1,7 +1,4 @@
-try:
-    from configparser import SafeConfigParser   # Python 3
-except ImportError:
-    from ConfigParser import SafeConfigParser   # Python 2
+from configparser import SafeConfigParser
 import os
 
 config = SafeConfigParser()

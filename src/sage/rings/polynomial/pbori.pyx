@@ -1,3 +1,7 @@
+# distutils: libraries = brial brial_groebner M4RI_LIBRARIES LIBPNG_LIBRARIES
+# distutils: library_dirs = M4RI_LIBDIR LIBPNG_LIBDIR
+# distutils: include_dirs = M4RI_INCDIR LIBPNG_INCDIR
+# distutils: extra_compile_args = M4RI_CFLAGS
 r"""
 Boolean Polynomials
 
@@ -207,7 +211,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
 from sage.structure.element import coerce_binop
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.richcmp cimport richcmp, richcmp_not_equal
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal, rich_to_bool
 
 from sage.categories.action cimport Action
 
@@ -2241,7 +2245,7 @@ cdef class BooleanMonomial(MonoidElement):
         gens = self._parent.gens()
         return self._parent, (tuple(gens.index(x) for x in self.variables()),)
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Compare BooleanMonomial objects.
 
@@ -2267,7 +2271,7 @@ cdef class BooleanMonomial(MonoidElement):
         """
         cdef int res
         res = left._pbmonom.compare((<BooleanMonomial>right)._pbmonom)
-        return res
+        return rich_to_bool(op, res)
 
     def _repr_(self):
         """

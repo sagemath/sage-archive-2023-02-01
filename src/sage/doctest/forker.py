@@ -884,12 +884,6 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         """
         self.setters = {}
         randstate.set_random_seed(self.options.random_seed)
-        # scipy 1.18 introduced reprecation warnings on a number of things they are moving to
-        # numpy, e.g. DeprecationWarning: scipy.array is deprecated
-        #             and will be removed in SciPy 2.0.0, use numpy.array instead
-        # This affects networkx 2.2 up and including 2.4
-        # We filter them out here:
-        warnings.filterwarnings('ignore', '.*Deprec.*scipy.*instead',) # cf trac #29425
         warnings.showwarning = showwarning_with_traceback
         self.running_doctest_digest = hashlib.md5()
         self.test = test

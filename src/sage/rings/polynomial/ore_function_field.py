@@ -174,7 +174,7 @@ class OreFunctionField(Algebra, UniqueRepresentation):
             sage: der = k.derivation(a, twist=Frob)
             sage: S.<x> = k['x', der]
             sage: K = S.fraction_field()
-            sage: TestSuite(K).run(skip=['_test_elements'])  # test_category fails on elements
+            sage: TestSuite(K).run()
         """
         if self.Element is None:
             import sage.rings.polynomial.ore_function_element
@@ -208,7 +208,7 @@ class OreFunctionField(Algebra, UniqueRepresentation):
             sage: f
             (x + a^2)^(-1) * (x^2 + a)
         """
-        return self.Element(self, *args, **kwds)
+        return self.element_class(self, *args, **kwds)
 
     def _coerce_map_from_base_ring(self):
         r"""
@@ -826,7 +826,7 @@ class OreFunctionField_with_large_center(OreFunctionField):
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x', Frob]
             sage: K = S.fraction_field()
-            sage: TestSuite(K).run(skip=['_test_elements'])  # test_category fails on elements
+            sage: TestSuite(K).run()
         """
         if self.Element is None:
             self.Element = sage.rings.polynomial.ore_function_element.OreFunction_with_large_center

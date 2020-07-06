@@ -1,8 +1,8 @@
 Noncommutative Polynomials
 ==========================
 
-Ore polynomial rings
---------------------
+Univariate Ore polynomial rings
+-------------------------------
 
 .. toctree::
    :maxdepth: 2

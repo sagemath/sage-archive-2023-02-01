@@ -6,7 +6,6 @@ Thematic tutorial document tree
    :maxdepth: 2
 
    algebraic_combinatorics
-   tutorial-notebook-and-help-long
    sandpile
    group_theory
    lie

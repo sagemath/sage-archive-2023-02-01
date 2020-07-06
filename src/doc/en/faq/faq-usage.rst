@@ -788,13 +788,6 @@ You will need to do this from the command line.  Just run a command like this.
     $ BROWSER='open -a Firefox %s' ./sage --notebook jupyter
     $ BROWSER='open -a Google\ Chrome %s' ./sage --notebook jupyter
 
-  With the old SageNB notebook:
-
-  .. CODE-BLOCK:: shell-session
-
-    $ BROWSER='open -a Firefox' ./sage --notebook
-    $ BROWSER='open -a Google\ Chrome' ./sage --notebook
-
 
 Where is the source code for ``<function>``?
 """"""""""""""""""""""""""""""""""""""""""""

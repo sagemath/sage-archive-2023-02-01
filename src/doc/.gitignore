@@ -1,7 +1,5 @@
 /en/reference/*/sage
-/en/reference/*/sagenb
 /en/reference/sage
-/en/reference/sagenb
 /en/reference/spkg/*.rst
 /output
 /en/installation/*.txt

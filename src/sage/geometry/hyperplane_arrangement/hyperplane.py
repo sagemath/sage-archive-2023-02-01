@@ -550,8 +550,8 @@ class Hyperplane(LinearExpression):
         from sage.arith.all import lcm, gcd
         coeffs = self.coefficients()
         try:
-            d = lcm([x.denom() for x in coeffs])
-            n = gcd([x.numer() for x in coeffs])
+            d = lcm([x.denominator() for x in coeffs])
+            n = gcd([x.numerator() for x in coeffs])
         except AttributeError:
             return self
         if not signed:

@@ -299,6 +299,7 @@ from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import PosetElement
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.subset import Subsets
+from .linear_extensions import LinearExtensionsOfPoset
 
 
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
@@ -780,6 +781,10 @@ class FinitePoset(UniqueRepresentation, Parent):
       set to be the vertex set of the digraph. Note that if this option is set,
       then ``elements`` is considered as a specified linear extension of the poset
       and the `linear_extension` attribute is set.
+      
+    - ``lin_ext_type`` -- the type of linear extensions that should be returned.
+      
+    - ``desc`` -- a string representation used for _repr_.
 
     - ``category`` -- :class:`FinitePosets`, or a subcategory thereof.
 
@@ -1053,6 +1058,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         self._element_to_vertex_dict = {self._elements[i]: i
                                         for i in range(len(self._elements))}
         self._is_facade = facade
+        self._lin_ext_type = LinearExtensionsOfPoset
+        self._desc = 'Finite poset'
 
     @lazy_attribute
     def _list(self):
@@ -1370,7 +1377,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P5._repr_()
             'Finite poset containing 7 elements'
         """
-        s = "Finite poset containing %s elements" % self._hasse_diagram.order()
+        s = "%s containing %s elements" % (self._desc, self._hasse_diagram.order())
         if self._with_linear_extension:
             s += " with distinguished linear extension"
         return s
@@ -1627,8 +1634,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: list(D.linear_extensions())
             [[0, 1, 2, 3, 4], [0, 2, 1, 3, 4], [0, 2, 1, 4, 3], [0, 2, 4, 1, 3], [0, 1, 2, 4, 3]]
         """
-        from .linear_extensions import LinearExtensionsOfPoset
-        return LinearExtensionsOfPoset(self, facade = facade)
+        return self._lin_ext_type(self, facade = facade)
 
     def spectrum(self, a):
         r"""

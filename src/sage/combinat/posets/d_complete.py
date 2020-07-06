@@ -10,6 +10,7 @@
 
 from sage.combinat.posets.posets import Poset, FinitePoset
 from sage.misc.lazy_attribute import lazy_attribute
+from .linear_extensions import LinearExtensionsOfPosetWithHooks
 
 class DCompletePoset(FinitePoset):
     r"""
@@ -39,6 +40,11 @@ class DCompletePoset(FinitePoset):
 
     See also the other tests in the class documentation.
     """
+    
+    def __init__(self, hasse_diagram, elements, category, facade, key):
+        FinitePoset.__init__(self, hasse_diagram=hasse_diagram, elements=elements, category=category, facade=facade, key=key)
+        self._lin_ext_type = LinearExtensionsOfPosetWithHooks
+        self._desc = "Finite d-complete poset"
 
     def _repr_(self):
         r"""
@@ -213,6 +219,6 @@ class DCompletePoset(FinitePoset):
              [5, 2, 4, 3, 1, 0],
              [5, 4, 2, 3, 1, 0]]
         """
-        from .linear_extensions import LinearExtensionsOfPosetWithHooks
+        
         return LinearExtensionsOfPosetWithHooks(self, facade=facade)
     

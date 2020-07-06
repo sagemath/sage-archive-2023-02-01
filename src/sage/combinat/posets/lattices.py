@@ -227,25 +227,9 @@ class FiniteMeetSemilattice(FinitePoset):
     """
     Element = MeetSemilatticeElement
 
-    def _repr_(self):
-        r"""
-        TESTS::
-
-            sage: M = MeetSemilattice([[1,2],[3],[3]])
-            sage: M._repr_()
-            'Finite meet-semilattice containing 3 elements'
-
-        ::
-
-            sage: P = Poset([[1,2],[3],[3]])
-            sage: M = MeetSemilattice(P)
-            sage: M._repr_()
-            'Finite meet-semilattice containing 3 elements'
-        """
-        s = "Finite meet-semilattice containing %s elements" % self._hasse_diagram.order()
-        if self._with_linear_extension:
-            s += " with distinguished linear extension"
-        return s
+    def __init__(self, hasse_diagram, elements, category, facade, key):
+        FinitePoset.__init__(self, hasse_diagram=hasse_diagram, elements=elements, category=category, facade=facade, key=key)
+        self._desc = 'Finite meet-semilattice'
 
     def meet_matrix(self):
         """
@@ -566,26 +550,10 @@ class FiniteJoinSemilattice(FinitePoset):
 
     """
     Element = JoinSemilatticeElement
-
-    def _repr_(self):
-        r"""
-        TESTS::
-
-            sage: J = JoinSemilattice([[1,2],[3],[3]])
-            sage: J._repr_()
-            'Finite join-semilattice containing 3 elements'
-
-        ::
-
-            sage: P = Poset([[1,2],[3],[3]])
-            sage: J = JoinSemilattice(P)
-            sage: J._repr_()
-            'Finite join-semilattice containing 3 elements'
-        """
-        s = "Finite join-semilattice containing %s elements" % self._hasse_diagram.order()
-        if self._with_linear_extension:
-            s += " with distinguished linear extension"
-        return s
+    
+    def __init__(self, hasse_diagram, elements, category, facade, key):
+        FinitePoset.__init__(self, hasse_diagram=hasse_diagram, elements=elements, category=category, facade=facade, key=key)
+        self._desc = 'Finite join-semilattice'
 
     def join_matrix(self):
         """

@@ -860,6 +860,10 @@ class LinearExtensionsOfPosetWithHooks(LinearExtensionsOfPoset):
         Count the number of linear extensions using a hook-length formula
         """
         num_elmts = self._poset.cardinality()
+        
+        if num_elmts == 0:
+            return 1
+        
         hooks = self._poset.get_hooks()
         hook_product = prod(hooks.values())
         return factorial(num_elmts) // hook_product

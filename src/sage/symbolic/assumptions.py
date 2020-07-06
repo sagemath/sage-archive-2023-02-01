@@ -73,7 +73,8 @@ from sage.rings.all import ZZ, QQ, RR, CC
 from sage.symbolic.ring import is_SymbolicVariable
 from sage.structure.unique_representation import UniqueRepresentation
 
-_assumptions = []
+from collections import OrderedDict
+_assumptions = OrderedDict()
 
 _valid_feature_strings = set()
 
@@ -312,7 +313,7 @@ class GenericDeclaration(UniqueRepresentation):
 
         maxima.activate(self._context)
         self._var.decl_assume(self._assumption)
-        _assumptions.append(self)
+        _assumptions[self] = True
 
     def forget(self):
         """
@@ -335,8 +336,8 @@ class GenericDeclaration(UniqueRepresentation):
         from sage.calculus.calculus import maxima
         if self._context is not None:
             try:
-                _assumptions.remove(self)
-            except ValueError:
+                del _assumptions[self]
+            except KeyError:
                 return
             maxima.deactivate(self._context)
         else: # trying to forget a declaration explicitly rather than implicitly
@@ -849,9 +850,9 @@ def _forget_all():
     if not(_assumptions):
         return
     #maxima._eval_line('forget([%s]);'%(','.join([x._maxima_init_() for x in _assumptions])))
-    for x in _assumptions[:]: # need to do this because x.forget() removes x from _assumptions
+    for x in list(_assumptions): # need to do this because x.forget() removes x from _assumptions
         x.forget()
-    _assumptions = []
+    _assumptions = OrderedDict()
 
 
 class assuming:

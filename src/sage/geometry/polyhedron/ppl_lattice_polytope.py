@@ -215,20 +215,20 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             The empty lattice polytope in ZZ^0
         """
         desc = ''
-        if self.n_vertices()==0:
+        if self.n_vertices() == 0:
             desc += 'The empty lattice polytope'
         else:
             desc += 'A ' + repr(self.affine_dimension()) + '-dimensional lattice polytope'
         desc += ' in ZZ^' + repr(self.space_dimension())
 
-        if self.n_vertices()>0:
+        if self.n_vertices() > 0:
             desc += ' with '
             desc += repr(self.n_vertices())
-            if self.n_vertices()==1: desc += ' vertex'
-            else:                    desc += ' vertices'
+            if self.n_vertices() == 1:
+                desc += ' vertex'
+            else:
+                desc += ' vertices'
         return desc
-
-
 
     def is_bounded(self):
         """

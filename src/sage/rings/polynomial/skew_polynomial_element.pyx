@@ -36,10 +36,9 @@ AUTHORS:
 
 - Johan Rosenkilde (2016-08-03): changes for bug fixes, docstring and
   doctest errors
-
 """
 
-#############################################################################
+# ***************************************************************************
 #    Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -345,7 +344,8 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
             sage: a.operator_eval(t)
             2*t^2 + 2*t + 3
 
-        Evaluation points outside the base ring is usually not possible due to the twisting morphism::
+        Evaluation points outside the base ring is usually not possible
+        due to the twisting morphism::
 
             sage: R.<t> = QQ[]
             sage: sigma = R.hom([t+1])
@@ -354,7 +354,9 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
             sage: a.operator_eval(1/t)
             Traceback (most recent call last):
             ...
-            TypeError: 1/t fails to convert into the map's domain Univariate Polynomial Ring in t over Rational Field, but a `pushforward` method is not properly implemented
+            TypeError: 1/t fails to convert into the map's domain
+             Univariate Polynomial Ring in t over Rational Field,
+             but a `pushforward` method is not properly implemented
         """
         cdef RingHomomorphism sigma = self._parent.twisting_morphism()
         cdef list coefficients = self.list()
@@ -414,7 +416,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
         return r
 
     def multi_point_evaluation(self, eval_pts):
-        """
+        r"""
         Evaluate ``self`` at list of evaluation points.
 
         INPUT:
@@ -431,7 +433,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
             repeatedly. If fast skew polynomial multiplication is available, an
             asymptotically faster method is possible using standard divide and
             conquer techniques and
-            :meth:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general.minimal_vanishing_polynomial`.
+            :meth:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing.minimal_vanishing_polynomial`.
 
         EXAMPLES::
 
@@ -671,3 +673,4 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
             q.append(c)
         q.reverse()
         return (self._new_c(q, parent), self._new_c(a[:db], parent, 1))
+

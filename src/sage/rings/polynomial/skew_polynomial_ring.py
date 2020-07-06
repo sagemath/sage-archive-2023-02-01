@@ -1,18 +1,20 @@
 r"""
 Skew Univariate Polynomial Rings
 
-This module provides the :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing`.
-In the class hierarchy in Sage, the locution *Skew Polynomial* is used for a Ore polynomial
-without twisting derivation.
+This module provides the
+:class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing`.
+In the class hierarchy in Sage, the locution *Skew Polynomial* is used
+for a Ore polynomial without twisting derivation.
 
 This module also provides:
 
-- the class :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_order`
-  which is a specialized class for skew polynomial rings over fields equipped with an automorphism of
-  finite order. It inherits from :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing`
+- the class :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_order`,
+  which is a specialized class for skew polynomial rings over fields
+  equipped with an automorphism of finite order. It inherits from
+  :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing`
   but contains more methods and provides better algorithms.
 
-- the class :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field`
+- the class :class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field`,
   which is a specialized class for skew polynomial rings over finite fields.
 
 .. SEEALSO::
@@ -28,8 +30,8 @@ AUTHOR:
 
 - Johan Rosenkilde (2016-08-03): changes for bug fixes, docstring and
   doctest errors
-
 """
+
 # ***************************************************************************
 #    Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
 #
@@ -40,7 +42,7 @@ AUTHOR:
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
 
-from sage.structure.richcmp import op_EQ
+from sage.structure.richcmp import op_EQ, op_NE
 from sage.structure.category_object import normalize_names
 
 from sage.rings.ring import Field
@@ -59,18 +61,18 @@ WORKING_CENTER_MAX_TRIES = 1000
 # Helper functions
 
 def _base_ring_to_fraction_field(S):
-    """
+    r"""
     Return the unique skew polynomial ring over the fraction field of
     ``S.base_ring()`` which has ``S`` a sub-ring (internal method).
 
     INPUT:
 
-    - ``S`` -- a skew polynomial ring.
+    - ``S`` -- a skew polynomial ring
 
     OUTPUT:
 
-    - ``Q`` -- the skew polynomial ring over the fraction field of
-      ``S.base_ring``.
+    - ``Q`` -- the skew polynomial ring over the fraction field
+      of ``S.base_ring``
 
     EXAMPLES::
 
@@ -96,7 +98,7 @@ def _base_ring_to_fraction_field(S):
 
 
 def _minimal_vanishing_polynomial(R, eval_pts):
-    """
+    r"""
     Return the minimal vanishing polynomial (internal function).
 
     See the documentation for
@@ -104,7 +106,7 @@ def _minimal_vanishing_polynomial(R, eval_pts):
 
     INPUT:
 
-    - ``R`` -- A skew polynomial ring over a field.
+    - ``R`` -- a skew polynomial ring over a field
 
     - ``eval_pts`` -- a list of evaluation points
 
@@ -120,7 +122,8 @@ def _minimal_vanishing_polynomial(R, eval_pts):
         sage: S.<x> = k['x',Frob]
         sage: eval_pts = [1, t, t^2]
         sage: b = _minimal_vanishing_polynomial(S, eval_pts); b
-        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        doctest:...: FutureWarning: This class/method/function is marked as experimental.
+         It, its functionality or its interface might change without a formal deprecation.
         See http://trac.sagemath.org/13215 for details.
         x^3 + 4
     """
@@ -144,7 +147,7 @@ def _minimal_vanishing_polynomial(R, eval_pts):
 
 
 def _lagrange_polynomial(R, eval_pts, values):
-    """
+    r"""
     Return the Lagrange polynomial of the given points if it exists.
 
     Otherwise return an unspecified polynomial (internal method).
@@ -164,7 +167,7 @@ def _lagrange_polynomial(R, eval_pts, values):
 
     OUTPUT:
 
-    - the Lagrange polynomial.
+    - the Lagrange polynomial
 
     EXAMPLES::
 
@@ -189,13 +192,16 @@ def _lagrange_polynomial(R, eval_pts, values):
         Traceback (most recent call last):
         ...
         ValueError: the given evaluation points are linearly dependent over the fixed field of the twisting morphism,
-        so a Lagrange polynomial could not be determined (and might not exist).
+        so a Lagrange polynomial could not be determined (and might not exist)
     """
     l = len(eval_pts)
     if l == 1:
         if eval_pts[0].is_zero():
             # This is due to linear dependence among the eval_pts.
-            raise ValueError("the given evaluation points are linearly dependent over the fixed field of the twisting morphism, so a Lagrange polynomial could not be determined (and might not exist).")
+            raise ValueError("the given evaluation points are linearly dependent"
+                             " over the fixed field of the twisting morphism,"
+                             " so a Lagrange polynomial could not be determined"
+                             " (and might not exist)")
         return (values[0] / eval_pts[0]) * R.one()
     else:
         t = l // 2
@@ -250,17 +256,18 @@ class SkewPolynomialRing(OrePolynomialRing):
         OrePolynomialRing.__init__(self, base_ring, morphism, None, name, sparse, category)
 
     def minimal_vanishing_polynomial(self, eval_pts):
-        """
+        r"""
         Return the minimal-degree, monic skew polynomial which vanishes at all
         the given evaluation points.
 
         The degree of the vanishing polynomial is at most the length of
-        ``eval_pts``. Equality holds if and only if the elements of ``eval_pts``
-        are linearly independent over the fixed field of ``self.twisting_morphism()``.
+        ``eval_pts``. Equality holds if and only if the elements of
+        ``eval_pts`` are linearly independent over the fixed field of
+        ``self.twisting_morphism()``.
 
         - ``eval_pts`` -- list of evaluation points which are linearly
-          independent over the fixed field of the twisting morphism of the associated
-          skew polynomial ring
+          independent over the fixed field of the twisting morphism of
+          the associated skew polynomial ring
 
         OUTPUT:
 
@@ -275,14 +282,15 @@ class SkewPolynomialRing(OrePolynomialRing):
             sage: b = S.minimal_vanishing_polynomial(eval_pts); b
             x^3 + 4
 
-        The minimal vanishing polynomial evaluates to 0 at each of the evaluation points::
+        The minimal vanishing polynomial evaluates to 0 at each of
+        the evaluation points::
 
             sage: eval = b.multi_point_evaluation(eval_pts); eval
             [0, 0, 0]
 
-        If the evaluation points are linearly dependent over the fixed field of
-        the twisting morphism, then the returned polynomial has lower degree than the
-        number of evaluation points::
+        If the evaluation points are linearly dependent over the fixed
+        field of the twisting morphism, then the returned polynomial has
+        lower degree than the number of evaluation points::
 
             sage: S.minimal_vanishing_polynomial([t])
             x + 3*t^2 + 3*t
@@ -296,22 +304,23 @@ class SkewPolynomialRing(OrePolynomialRing):
         Return the minimal-degree polynomial which interpolates the given
         points.
 
-        More precisely, given `n` pairs `(x_1, y_1), ..., (x_n, y_n) \in R^2`,
-        where `R` is ``self.base_ring()``, compute a skew polynomial `p(x)` such
-        that `p(x_i) = y_i` for each `i`, under the condition that the `x_i` are
-        linearly independent over the fixed field of ``self.twisting_morphism()``.
+        More precisely, given `n` pairs `(x_1, y_1), \ldots, (x_n, y_n) \in R^2`,
+        where `R` is ``self.base_ring()``, compute a skew polynomial `p(x)`
+        such that `p(x_i) = y_i` for each `i`, under the condition that
+        the `x_i` are linearly independent over the fixed field of
+        ``self.twisting_morphism()``.
 
         If the `x_i` are linearly independent over the fixed field of
-        ``self.twisting_morphism()`` then such a polynomial is guaranteed to exist.
-        Otherwise, it might exist depending on the `y_i`, but the algorithm used
-        in this implementation does not support that, and so an error is always
-        raised.
+        ``self.twisting_morphism()`` then such a polynomial is guaranteed
+        to exist. Otherwise, it might exist depending on the `y_i`, but
+        the algorithm used in this implementation does not support that,
+        and so an error is always raised.
 
         INPUT:
 
-        - ``points`` -- a list of pairs ``(x_1, y_1),..., (x_n, y_n)`` of
-          elements of the base ring of ``self``. The `x_i` should be linearly
-          independent over the fixed field of ``self.twisting_morphism()``.
+        - ``points`` -- a list of pairs `(x_1, y_1), \ldots, (x_n, y_n)` of
+          elements of the base ring of ``self``; the `x_i` should be linearly
+          independent over the fixed field of ``self.twisting_morphism()``
 
         OUTPUT:
 
@@ -342,7 +351,7 @@ class SkewPolynomialRing(OrePolynomialRing):
             Traceback (most recent call last):
             ...
             ValueError: the given evaluation points are linearly dependent over the fixed field of the twisting morphism,
-            so a Lagrange polynomial could not be determined (and might not exist).
+            so a Lagrange polynomial could not be determined (and might not exist)
         """
         l = len(points)
         if not all(len(pair) == 2 for pair in points):
@@ -354,7 +363,7 @@ class SkewPolynomialRing(OrePolynomialRing):
             raise TypeError("the evaluation points must be distinct")
         zero_i = [i for i in range(l) if eval_pts[i].is_zero()]
         if zero_i and not values[zero_i[0]].is_zero():
-            raise TypeError("a skew polynomial always evaluates to 0 at 0, but a non-zero value was requested.")
+            raise TypeError("a skew polynomial always evaluates to 0 at 0, but a non-zero value was requested")
 
         return _lagrange_polynomial(_base_ring_to_fraction_field(self), eval_pts, values)
 
@@ -365,7 +374,7 @@ class SkewPolynomialRing(OrePolynomialRing):
 class SectionSkewPolynomialCenterInjection(Section):
     r"""
     Section of the canonical injection of the center of a skew
-    polynomial ring into this ring
+    polynomial ring into this ring.
 
     TESTS::
 
@@ -378,7 +387,7 @@ class SectionSkewPolynomialCenterInjection(Section):
     """
     def _call_(self, x):
         r"""
-        Return `x` viewed as an element of the center
+        Return `x` viewed as an element of the center.
 
         EXAMPLES::
 
@@ -412,7 +421,7 @@ class SectionSkewPolynomialCenterInjection(Section):
 
     def _richcmp_(self, right, op):
         r"""
-        Compare this morphism with ``right``
+        Compare this morphism with ``right``.
 
         TESTS::
 
@@ -425,18 +434,22 @@ class SectionSkewPolynomialCenterInjection(Section):
             sage: s = loads(dumps(sigma))
             sage: s == sigma
             True
+            sage: s != sigma
+            False
             sage: s is sigma
             False
         """
         if op == op_EQ:
             return (self.domain() is right.domain()) and (self.codomain() is right.codomain())
+        if op == op_NE:
+            return (self.domain() is not right.domain()) or (self.codomain() is not right.codomain())
         return NotImplemented
 
 
 class SkewPolynomialCenterInjection(RingHomomorphism):
     r"""
     Canonical injection of the center of a skew polynomial ring
-    into this ring
+    into this ring.
 
     TESTS::
 
@@ -448,7 +461,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
     """
     def __init__(self, domain, codomain, embed, order):
         r"""
-        Initialize this morphism
+        Initialize this morphism.
 
         EXAMPLES::
 
@@ -466,7 +479,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
 
     def _repr_(self):
         r"""
-        Return a string representation of this morphism
+        Return a string representation of this morphism.
 
         EXAMPLES::
 
@@ -483,7 +496,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
 
     def _call_(self, x):
         r"""
-        Return the image of `x` by this morphism
+        Return the image of `x` by this morphism.
 
         TESTS::
 
@@ -504,7 +517,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
 
     def _richcmp_(self, right, op):
         r"""
-        Compare this morphism with ``right``
+        Compare this morphism with ``right``.
 
         TESTS::
 
@@ -516,16 +529,20 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
             sage: i = loads(dumps(iota))
             sage: i == iota
             True
+            sage: i != iota
+            False
             sage: i is iota
             False
         """
         if op == op_EQ:
             return (self.domain() is right.domain()) and (self.codomain() is right.codomain())
+        if op == op_NE:
+            return (self.domain() is not right.domain()) or (self.codomain() is not right.codomain())
         return NotImplemented
 
     def section(self):
         r"""
-        Return a section of this morphism
+        Return a section of this morphism.
 
         EXAMPLES::
 
@@ -546,13 +563,12 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
 
     .. SEEALSO::
 
-        :meth:`sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing`
-        :class:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing`
-        :mod:`sage.rings.polynomial.skew_polynomial_finite_order`
+        - :class:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing`
+        - :mod:`sage.rings.polynomial.skew_polynomial_finite_order`
     """
     def __init__(self, base_ring, morphism, derivation, name, sparse, category=None):
         r"""
-        Initialize this skew polynomial
+        Initialize this skew polynomial.
 
         TESTS::
 
@@ -604,7 +620,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
 
         .. NOTE::
 
-            If F denotes the subring of R fixed by `\sigma` and `\sigma`
+            If `F` denotes the subring of `R` fixed by `\sigma` and `\sigma`
             has order `r`, the center of `K[x,\sigma]` is `F[x^r]`, that
             is a univariate polynomial ring over `F`.
 
@@ -669,7 +685,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: S1.center() is S2.center()
             True
 
-        ABOUT THE DEFAULT NAME OF THE CENTRAL VARIABLE:
+        .. RUBRIC:: About the default name of the central variable
 
         A priori, the default is ``z``.
 
@@ -737,14 +753,13 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
 ######################################################
 
 class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
-    """
+    r"""
     A specialized class for skew polynomial rings over finite fields.
 
     .. SEEALSO::
 
-        :meth:`sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing`
-        :class:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general`
-        :mod:`sage.rings.polynomial.skew_polynomial_finite_field`
+        - :class:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing`
+        - :mod:`sage.rings.polynomial.skew_polynomial_finite_field`
 
     .. TODO::
 
@@ -752,7 +767,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
         multiplication and factorization.
     """
     def __init__(self, base_ring, morphism, derivation, names, sparse, category=None):
-        """
+        r"""
         This method is a constructor for a general, dense univariate skew polynomial ring
         over a finite field.
 
@@ -786,7 +801,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
         self._matrix_retraction = None
 
     def _new_retraction_map(self, seed=None):
-        """
+        r"""
         Create a retraction map from the ring of coefficient
         of this skew polynomial ring to its fixed subfield under 
         the twisting morphism
@@ -836,7 +851,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
         self._matrix_retraction = MatrixSpace(self._constants, 1, k.degree())(trace)
 
     def _retraction(self, x, newmap=False, seed=None):
-        """
+        r"""
         Return the image of `x` under the retraction map
         (see also :meth:`_new_retraction_map`)
 
@@ -880,3 +895,4 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
         if newmap or seed is not None or self._matrix_retraction is None:
             self._new_retraction_map()
         return (self._matrix_retraction*self.base_ring()(x)._vector_())[0]
+

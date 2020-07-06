@@ -20,7 +20,7 @@ AUTHORS:
 - Xavier Caruso (2020-05)
 """
 
-#############################################################################
+# ***************************************************************************
 #    Copyright (C) 2020 Xavier Caruso <xavier.caruso@normalesup.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@ AUTHORS:
 #    the Free Software Foundation, either version 2 of the License, or
 #    (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#****************************************************************************
+# ***************************************************************************
 
 import re
 from cysignals.signals cimport sig_check

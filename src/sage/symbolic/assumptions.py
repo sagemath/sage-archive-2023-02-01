@@ -263,6 +263,8 @@ class GenericDeclaration(UniqueRepresentation):
             ValueError: Assumption is inconsistent
             sage: decl.forget()
         """
+        if self in _assumptions:
+            return
         from sage.calculus.calculus import maxima
         cur = None
         context = None
@@ -308,10 +310,9 @@ class GenericDeclaration(UniqueRepresentation):
                 if context is not None:
                     maxima.killcontext(context)
 
-        if not self in _assumptions:
-            maxima.activate(self._context)
-            self._var.decl_assume(self._assumption)
-            _assumptions.append(self)
+        maxima.activate(self._context)
+        self._var.decl_assume(self._assumption)
+        _assumptions.append(self)
 
     def forget(self):
         """

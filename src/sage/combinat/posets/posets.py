@@ -2307,8 +2307,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         
         min_diamond = {} # Maps max of double-tailed diamond to min of double-tailed diamond
         max_diamond = {} # Maps min of double-tailed diamond to max of double-tailed diamond
+        
+        H = poset._hasse_diagram
 
-        diamonds, all_diamonds_completed = poset.diamonds() # Tuples of four elements that are diamonds
+        diamonds, all_diamonds_completed = H.diamonds() # Tuples of four elements that are diamonds
         
         if not all_diamonds_completed:
             return False
@@ -2324,25 +2326,25 @@ class FinitePoset(UniqueRepresentation, Parent):
             min_elmt = d[0]
             max_elmt = d[3]
             
-            if len(poset.lower_covers(max_elmt)) != 2:
+            if len(H.neighbors_in(max_elmt)) != 2:
                 # Top of diamond cannot cover anything but the two side elements
                 return False
             
             while True:
-                potential_min = poset.lower_covers(min_elmt)
-                potential_max = poset.upper_covers(max_elmt)
+                potential_min = H.neighbors_in(min_elmt)
+                potential_max = H.neighbors_out(max_elmt)
                 max_dk_minus = max_elmt
                 
                 # Check if any of these make a longer double tailed diamond
                 found_diamond = False
                 for mn in potential_min:
-                    if len(poset._hasse_diagram.all_paths(poset._element_to_vertex(mn), poset._element_to_vertex(max_dk_minus))) > 2:
+                    if len(H.all_paths(mn, max_dk_minus)) > 2:
                         continue
                     for mx in potential_max:
                         
-                        if len(poset._hasse_diagram.all_paths(poset._element_to_vertex(mn), poset._element_to_vertex(mx))) == 2:
+                        if len(H.all_paths(mn, mx)) == 2:
                             
-                            if len(poset.lower_covers(mx)) != 1:
+                            if len(H.neighbors_in(mx)) != 1:
                                 # Max element covers something outside of double tailed diamond
                                 return False 
                             # Success

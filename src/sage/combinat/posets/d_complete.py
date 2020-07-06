@@ -77,8 +77,10 @@ class DCompletePoset(FinitePoset):
 
         min_diamond = {} # Maps max of double-tailed diamond to min of double-tailed diamond
         max_diamond = {} # Maps min of double-tailed diamond to max of double-tailed diamond
+        
+        H = self._hasse_diagram
 
-        diamonds, _ = self.diamonds() # Tuples of four elements that are diamonds
+        diamonds, _ = H.diamonds() # Tuples of four elements that are diamonds
         
         diamond_index = {} # Map max elmt of double tailed diamond to index of diamond
 
@@ -92,16 +94,16 @@ class DCompletePoset(FinitePoset):
             max_elmt = d[3]
 
             while True:
-                potential_min = self.lower_covers(min_elmt)
+                potential_min = H.neighbors_in(min_elmt)
                 
-                potential_max = self.upper_covers(max_elmt)
+                potential_max = H.neighbors_out(max_elmt)
 
                 # Check if any of these make a longer double tailed diamond
                 found_diamond = False
                 for (mn, mx) in [(i,j) for i in potential_min for j in potential_max]:
-                    if len(self.lower_covers(mx)) != 1:
+                    if len(H.neighbors_in(mx)) != 1:
                         continue
-                    if len(self._hasse_diagram.all_paths(self._element_to_vertex(mn), self._element_to_vertex(mx))) == 2:
+                    if len(H.all_paths(mn, mx)) == 2:
                         # Success
                         min_elmt = mn
                         max_elmt = mx
@@ -113,15 +115,13 @@ class DCompletePoset(FinitePoset):
                         break
                 if not found_diamond:
                     break
-
         # Compute the hooks
-        queue = deque(self.minimal_elements())
+        queue = deque(H.sources())
         enqueued = set()
         while queue:
             elmt = queue.popleft()
-            
             if elmt not in diamond_index:
-                hooks[elmt] = self.order_ideal_cardinality([elmt])
+                hooks[elmt] = H.order_ideal_cardinality([elmt])
             else:
                 diamond = diamonds[diamond_index[elmt]]
                 side1 = diamond[1]
@@ -129,12 +129,13 @@ class DCompletePoset(FinitePoset):
                 hooks[elmt] = hooks[side1] + hooks[side2] - hooks[min_diamond[elmt]]
             enqueued.add(elmt)
 
-            for c in self.upper_covers(elmt):
+            for c in H.neighbors_out(elmt):
                 if c not in enqueued:
                     queue.append(c)
                     enqueued.add(c)
 
-        return hooks
+        poset_hooks = {self._vertex_to_element(key): value for (key, value) in hooks.items()}
+        return poset_hooks
                 
     def get_hook(self, elmt):
         r"""

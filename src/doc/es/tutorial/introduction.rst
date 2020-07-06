@@ -104,8 +104,8 @@ Formas de usar Sage
 Puedes usar Sage de varias maneras.
 
 
--  **Interfáz gráfico del Notebook:** run `sage -n jupyter`; see
-   `the Jupyter documentation on-line <https://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_,
+-  **Interfáz gráfico del Notebook:** iniciar `sage -n jupyter`; leer 
+   `Jupyter documentation on-line <https://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_,
 
 -  **Línea de comandos interactiva:**,
 

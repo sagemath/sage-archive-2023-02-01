@@ -956,7 +956,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         if unlikely(self.dimension() == 0):
             # Special attention for this trivial case.
-            # Facets are defined to be non-trival faces of codimension 1.
+            # Facets are defined to be nontrivial faces of codimension 1.
             # The empty face is trivial.
             return ()
 

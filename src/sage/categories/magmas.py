@@ -608,9 +608,9 @@ class Magmas(Category_singleton):
                 """
                 Return the inverse of ``self``.
 
-                This an alias for inversion, defined in ``  invert__``.
+                This an alias for inversion, defined in ``__invert__``.
 
-                Element classes should implement ``  invert__`` only.
+                Element classes should implement ``__invert__`` only.
 
                 EXAMPLES::
 

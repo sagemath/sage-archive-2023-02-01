@@ -55,13 +55,19 @@ def handle_AA_and_QQbar(func):
 
             sage: return_base_ring(ideal(y,z))
             Rational Field
+
+            sage: J = QQbar['x,y'].ideal('x^2 - y')
+            sage: type(J.groebner_basis())
+            <class 'sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence_generic'>
         """
 
         from sage.misc.flatten import flatten
         from sage.rings.polynomial.polynomial_element import Polynomial
         from sage.rings.polynomial.multi_polynomial import MPolynomial
+        from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence, is_PolynomialSequence
         from sage.rings.ideal import Ideal, Ideal_generic
         from sage.rings.qqbar import AlgebraicField_common, number_field_elements_from_algebraics
+        from sage.structure.sequence import Sequence_generic, Sequence
 
         if not any([isinstance(a, (Polynomial, MPolynomial, Ideal_generic))
                     and isinstance(a.base_ring(), AlgebraicField_common) for a in args]):
@@ -93,6 +99,10 @@ def handle_AA_and_QQbar(func):
                 return item.map_coefficients(elem_dict.__getitem__, new_base_ring=numfield)
             elif isinstance(item, MPolynomial):
                 return item.map_coefficients(elem_dict.__getitem__, new_base_ring=numfield)
+            elif isinstance(item,Sequence_generic):
+                return Sequence(map(forward_map, item))
+            elif is_PolynomialSequence(item):
+                return PolynomialSequence(map(forward_map, item))
             elif isinstance(item, list):
                 return list(map(forward_map, item))
             elif isinstance(item, dict):
@@ -111,6 +121,10 @@ def handle_AA_and_QQbar(func):
                 return item.map_coefficients(morphism)
             elif isinstance(item, MPolynomial):
                 return item.map_coefficients(morphism)
+            elif isinstance(item,Sequence_generic):
+                return Sequence(map(reverse_map, item))
+            elif is_PolynomialSequence(item):
+                return PolynomialSequence(map(reverse_map, item))
             elif isinstance(item, list):
                 return list(map(reverse_map, item))
             elif isinstance(item, tuple):

@@ -21,29 +21,4 @@ SAGE_SPKG_CONFIGURE([gfortran], [
     if test "x$sage_spkg_install_gcc" = "xyes" -o x$SAGE_INSTALL_GCC = xexists; then
         sage_spkg_install_gfortran=no
     fi
-
-    # Copy CFLAGS to FCFLAGS if this is not set.
-    if test "x$ORIGINAL_FCFLAGS" = "x"; then
-        AC_SUBST(FCFLAGS, "$CFLAGS")
-        AC_SUBST(FCFLAGS_O3, "$CFLAGS_O3")
-        AC_SUBST(FCFLAGS_NON_NATIVE, "$CFLAGS_NON_NATIVE")
-        AC_SUBST(FCFLAGS_O3_NON_NATIVE, "$CFLAGS_O3_NON_NATIVE")
-    else
-        AC_SUBST(FCFLAGS_03, "$ORIGINAL_FCFLAGS")
-        AC_SUBST(FCFLAGS_NON_NATIVE, "$ORIGINAL_FCFLAGS")
-        AC_SUBST(FCFLAGS_O3_NON_NATIVE, "$ORIGINAL_FCFLAGS")
-    fi
-
-    # Copy FCFLAGS to F77FLAGS if this is not set.
-    if test "x$ORIGINAL_F77FLAGS" = "x"; then
-        AC_SUBST(F77FLAGS, "$FCFLAGS")
-        AC_SUBST(F77FLAGS_O3, "$FCFLAGS_O3")
-        AC_SUBST(F77FLAGS_NON_NATIVE, "$FCFLAGS_NON_NATIVE")
-        AC_SUBST(F77FLAGS_O3_NON_NATIVE, "$FCFLAGS_O3_NON_NATIVE")
-    else
-        AC_SUBST(F77FLAGS_03, "$ORIGINAL_F77FLAGS")
-        AC_SUBST(F77FLAGS_NON_NATIVE, "$ORIGINAL_F77FLAGS")
-        AC_SUBST(F77FLAGS_O3_NON_NATIVE, "$ORIGINAL_F77FLAGS")
-    fi
-
 ])

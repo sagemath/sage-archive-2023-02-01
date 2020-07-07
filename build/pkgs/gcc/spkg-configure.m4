@@ -208,39 +208,44 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
 
     # Determine which compiler flags should be set.
     if test "x$sage_use_march_native" = "xno"; then
-        march=""
+        SAGE_MARCH=""
     elif test "x$SAGE_FAT_BINARY" = "xyes"; then
-        march=""
-    elif test "x$SAGE_DEBUG" = "xyes"; then
-        march=""
+        SAGE_MARCH=""
     elif test "x$sage_spkg_install_gcc" =" xyes"; then
-        march=" -march=native"
+        SAGE_MARCH=" -march=native"
     else
-        AX_CHECK_COMPILE_FLAG("-march=native", [march=" -march=native"], [march=""], [], [])
+        AX_CHECK_COMPILE_FLAG("-march=native", [SAGE_MARCH=" -march=native"], [SAGE_MARCH=""], [], [])
     fi
+    AC_SUBST(SAGE_MARCH)
 
+    # We will only export SAGE_MARCH for now and redo this later.
+    # (Allow debugging of individual packages.)
+    # But we print the messages for convenience.
+    if test "x$SAGE_DEBUG" = "xyes"; then
+        SAGE_MARCH=""
+    fi
     if test "x$ORIGINAL_CFLAGS" = "x"; then
         # Evaluate SAGE_DEBUG:
         if test "x$SAGE_DEBUG" = "xyes" ; then
-            AC_SUBST(CFLAGS_NON_NATIVE, "-Og -g")
-            AC_SUBST(CFLAGS_O3_NON_NATIVE, "-Og -g")
+            CFLAGS_NON_NATIVE="-Og -g"
+            CFLAGS_O3_NON_NATIVE="-Og -g"
         else
             if test "x$SAGE_DEBUG" = "xno" ; then
-                AC_SUBST(CFLAGS_NON_NATIVE, "-O2")
-                AC_SUBST(CFLAGS_O3_NON_NATIVE, "-O3")
+                CFLAGS_NON_NATIVE="-O2"
+                CFLAGS_O3_NON_NATIVE="-O3"
             else
-                AC_SUBST(CFLAGS_NON_NATIVE, "-O2 -g")
-                AC_SUBST(CFLAGS_O3_NON_NATIVE, "-O3 -g")
+                CFLAGS_NON_NATIVE="-O2 -g"
+                CFLAGS_O3_NON_NATIVE="-O3 -g"
             fi
         fi
-        AC_SUBST(CFLAGS, "${CFLAGS_NON_NATIVE}${march}")
-        AC_SUBST(CFLAGS_O3, "${CFLAGS_O3_NON_NATIVE}${march}")
+        CFLAGS="${CFLAGS_NON_NATIVE}${SAGE_MARCH}
+        CFLAGS_O3="${CFLAGS_O3_NON_NATIVE}${SAGE_MARCH}
     else
         # Respect user environment variable.
-        AC_SUBST(CFLAGS, "${CFLAGS}")
-        AC_SUBST(CFLAGS_O3, "${CFLAGS}")
-        AC_SUBST(CFLAGS_NON_NATIVE, "${CFLAGS}")
-        AC_SUBST(CFLAGS_O3_NON_NATIVE, "${CFLAGS}")
+        CFLAGS="${CFLAGS}
+        CFLAGS_O3="${CFLAGS}
+        CFLAGS_NON_NATIVE="${CFLAGS}
+        CFLAGS_O3_NON_NATIVE="${CFLAGS}
     fi
 
     AC_MSG_NOTICE(ORIGINAL_CFLAGS=$ORIGINAL_CFLAGS)
@@ -248,18 +253,6 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
     AC_MSG_NOTICE(CFLAGS_O3=$CFLAGS_O3)
     AC_MSG_NOTICE(CFLAGS_NON_NATIVE=$CFLAGS_NON_NATIVE)
     AC_MSG_NOTICE(CFLAGS_O3_NON_NATIVE=$CFLAGS_O3_NON_NATIVE)
-
-    # Copy to CXXFLAGS if this is not set.
-    if test "x$ORIGINAL_CXXFLAGS" = "x"; then
-        AC_SUBST(CXXFLAGS, "$CFLAGS")
-        AC_SUBST(CXXFLAGS_O3, "$CFLAGS_O3")
-        AC_SUBST(CXXFLAGS_NON_NATIVE, "$CFLAGS_NON_NATIVE")
-        AC_SUBST(CXXFLAGS_O3_NON_NATIVE, "$CFLAGS_O3_NON_NATIVE")
-    else
-        AC_SUBST(CXXFLAGS_03, "$ORIGINAL_CXXFLAGS")
-        AC_SUBST(CXXFLAGS_NON_NATIVE, "$ORIGINAL_CXXFLAGS")
-        AC_SUBST(CXXFLAGS_O3_NON_NATIVE, "$ORIGINAL_CXXFLAGS")
-    fi
 
 ], , , [
     # Trac #27907: Find location of crti.o from the system CC, in case we build our own gcc

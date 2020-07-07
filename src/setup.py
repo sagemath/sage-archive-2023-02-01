@@ -19,9 +19,6 @@ from sage.env import *
 from sage_setup import excepthook
 sys.excepthook = excepthook
 
-# This import allows instancemethods to be pickable
-import sage_setup.fpickle_setup
-
 #########################################################
 ### List of Extensions
 ###

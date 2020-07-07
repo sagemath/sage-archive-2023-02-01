@@ -92,7 +92,7 @@ EOF
 ARG BASE_IMAGE=voidlinux:masterdir-x86_64-musl
 FROM \${BASE_IMAGE} as with-system-packages
 EOF
-        UPDATE="xbps-instal -Su &&"
+        UPDATE="xbps-install -Su &&"
         EXISTS="xbps-query"
         INSTALL="xbps-install --yes"
         ;;

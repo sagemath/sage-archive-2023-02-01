@@ -20,6 +20,12 @@ We check that it is a monoid::
     sage: M in Monoids()
     True
 
+REFERENCES:
+
+- :wikipedia:`Trace_monoid`
+
+- https://ncatlab.org/nlab/show/trace+monoid
+
 AUTHORS:
 
 - Pavlo Tokariev (2019-05-31): initial version

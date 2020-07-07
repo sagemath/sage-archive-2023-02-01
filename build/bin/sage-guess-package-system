@@ -25,6 +25,8 @@ elif zypper --version > /dev/null 2>&1; then
     echo opensuse
 elif apk --version > /dev/null 2>&1; then
     echo alpine
+elif xbps-install --version > /dev/null 2>&1; then
+    echo void
 else
     case `uname -s` in
         CYGWIN*)

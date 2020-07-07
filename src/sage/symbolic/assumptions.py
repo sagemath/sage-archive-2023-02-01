@@ -73,8 +73,11 @@ from sage.rings.all import ZZ, QQ, RR, CC
 from sage.symbolic.ring import is_SymbolicVariable
 from sage.structure.unique_representation import UniqueRepresentation
 
-from collections import OrderedDict
-_assumptions = OrderedDict()
+# #30074: We use the keys of a dict to store the assumptions.
+# As of Python 3.6.x, dicts preserve the insertion order.
+# In this way, we keep the same order of the assumptions
+# as previous code that was using lists.
+_assumptions = dict()
 
 _valid_feature_strings = set()
 
@@ -813,7 +816,7 @@ def _forget_all():
     #maxima._eval_line('forget([%s]);'%(','.join([x._maxima_init_() for x in _assumptions])))
     for x in list(_assumptions): # need to do this because x.forget() removes x from _assumptions
         x.forget()
-    _assumptions = OrderedDict()
+    _assumptions = dict()
 
 
 class assuming:

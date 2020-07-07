@@ -10,7 +10,7 @@ Root system data for dual Cartan types
 # ****************************************************************************
 from __future__ import print_function, absolute_import
 
-from sage.misc.misc import attrcall
+from sage.misc.call import attrcall
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.root_system import cartan_type

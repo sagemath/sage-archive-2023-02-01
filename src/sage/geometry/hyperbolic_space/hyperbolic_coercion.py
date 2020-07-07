@@ -27,7 +27,7 @@ from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.functions.other import real, imag, sqrt
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.misc.misc', 'attrcall')
+lazy_import('sage.misc.call', 'attrcall')
 
 class HyperbolicModelCoercion(Morphism):
     """

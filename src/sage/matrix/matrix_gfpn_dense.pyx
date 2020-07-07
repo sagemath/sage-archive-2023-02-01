@@ -120,6 +120,7 @@ cdef class FieldConverter_class:
             <sage.matrix.matrix_gfpn_dense.FieldConverter_class object at ...>
         """
         self.field = field._cache.fetch_int
+        self.zero_FEL = self.field_to_fel(field.zero())
 
     cpdef fel_to_field(self, FEL x):
         """
@@ -576,6 +577,21 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         # and that you assert that the matrix is not empty!
         # This method is here for speed!
         return FfToInt(FfExtract(MatGetPtr(self.Data,i), j))
+
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        r"""
+        Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
+
+        EXAMPLES::
+
+            sage: F.<z> = GF(9)
+            sage: M = MatrixSpace(F,2,5)(sorted(list(F))+[0])
+            sage: M.zero_pattern_matrix()  # indirect doctest
+            [1 0 0 0 0]
+            [0 0 0 0 1]
+        """
+        FfSetField(self.Data.Field)
+        return FfExtract(MatGetPtr(self.Data,i), j) == self._converter.zero_FEL
 
     cpdef Matrix_gfpn_dense get_slice(self, Py_ssize_t i, Py_ssize_t j):
         """

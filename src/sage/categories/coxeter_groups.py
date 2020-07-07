@@ -15,7 +15,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_import import LazyImport
 from sage.misc.constant_function import ConstantFunction
-from sage.misc.misc import attrcall
+from sage.misc.call import attrcall
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -23,8 +23,6 @@ from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
 from sage.structure.element import have_same_parent, parent
 from sage.misc.flatten import flatten
 from copy import copy
-
-from sage.rings.integer_ring import ZZ
 
 
 class CoxeterGroups(Category_singleton):
@@ -319,6 +317,7 @@ class CoxeterGroups(Category_singleton):
             braid_rels = self.braid_relations()
             I = self.index_set()
 
+            from sage.rings.integer_ring import ZZ
             be_careful = any(i not in ZZ for i in I)
 
             if be_careful:
@@ -736,7 +735,7 @@ class CoxeterGroups(Category_singleton):
                 
             """
             if base_ring is None:
-                from sage.rings.all import ZZ
+                from sage.rings.integer_ring import ZZ
                 base_ring = ZZ
             from sage.modules.with_basis.representation import SignRepresentationCoxeterGroup
             return SignRepresentationCoxeterGroup(self, base_ring)
@@ -1513,21 +1512,21 @@ class CoxeterGroups(Category_singleton):
                     y = tuple(y)
                     # Check that the reduced expressions differ by only
                     #   a single braid move
-                    i = 0
-                    while i < len(x) and x[i] == y[i]:
-                        i += 1
-                    if i == len(x):
+                    j = 0
+                    while j < len(x) and x[j] == y[j]:
+                        j += 1
+                    if j == len(x):
                         continue
-                    a, b = x[i], y[i]
+                    a, b = x[j], y[j]
                     m = P.coxeter_matrix()[a, b]
                     subword = [a, b] * (m // 2)
                     subword2 = [b, a] * (m // 2)
                     if m % 2:
                         subword.append(a)
                         subword2.append(b)
-                    if (x[i:i+m] != tuple(subword)
-                            or y[i:i+m] != tuple(subword2)
-                            or x[i+m:] != y[i+m:]):
+                    if (x[j:j+m] != tuple(subword)
+                            or y[j:j+m] != tuple(subword2)
+                            or x[j+m:] != y[j+m:]):
                         continue
                     edges.append([x, y, m])
             G = Graph(edges, immutable=True, format="list_of_edges")

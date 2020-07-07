@@ -4352,12 +4352,8 @@ def type_to_parent(P):
         ...
         TypeError: Not a scalar type.
     """
-    import sage.rings.all
-    if P is int:
-        return sage.rings.all.ZZ
-    elif P is float:
-        return sage.rings.all.RDF
-    elif P is complex:
-        return sage.rings.all.CDF
-    else:
+    from sage.structure.coerce import py_scalar_parent
+    parent = py_scalar_parent(P)
+    if parent is None:
         raise TypeError("Not a scalar type.")
+    return parent

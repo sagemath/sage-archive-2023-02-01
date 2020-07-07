@@ -3022,7 +3022,7 @@ def list_plot(data, plotjoined=False, **kwargs):
                     "and 'y' against each other, use 'list_plot(list(zip(x,y)))'.")
     if isinstance(data, dict):
         if plotjoined:
-            list_data = sorted(list(data.items()))
+            list_data = sorted(data.items())
         else:
             list_data = list(data.items())
         return list_plot(list_data, plotjoined=plotjoined, **kwargs)

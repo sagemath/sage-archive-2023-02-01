@@ -37,54 +37,94 @@ def extended_Kasami_code(const int s, const int t):
     The extended Kasami code with parameters `(s,t)` is defined as
 
     .. MATH::
-    
-        \{ v \in GF(2)^s \mid 
-        \sum_{a \in GF(s)} v_a = 
-        \sum_{a \in GF(s)} a v_a = 
+
+        \{ v \in GF(2)^s \mid
+        \sum_{a \in GF(s)} v_a =
+        \sum_{a \in GF(s)} a v_a =
         \sum_{a \in GF(s)} a^{t+1} v_a = 0 \}
 
-    If `q` is a power of 2, then the parameters `s,t` can only be:
-        * `s = q^{2j+1}`, `t = q^m` with `m \leq j` and `gcd(m,2j+1) = 1`
+    The only valid parameters `s,t` are given by the below, where `q` is a power of 2:
+        * `s = q^{2j+1}`, `t = q^m` with `m \leq j` and `\gcd(m,2j+1) = 1`
         * `s = q^2`, `t=q`
 
     INPUT:
 
-    - ``s, t`` -- (integers); powers of 2; parameters of the code
+    - ``s,t`` -- (integers); powers of 2; parameters of the code
 
     OUTPUT:
 
-    A ``LinearCode`` object as in [reference to code]
+    A ``LinearCode`` object as in :class:`sage.coding.linear_code.LinearCode`.
 
     EXAMPLES::
 
+        sage: codes.extended_Kasami_code(8,2)
+        [8, 1] linear code over GF(2)
+
+        sage: codes.extended_Kasami_code(16,4)
+        [16, 9] linear code over GF(2)
+        sage: _.minimum_distance()
+        4
+
+        sage: codes.extended_Kasami_code(8,4)
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameters(=8,4) are invalid. Check the documentation
+
+    The extended Kasami code is not the extension of the Kasami code::
+
+        sage: C = codes.Kasami_code(16,4)
+        sage: Cext = C.extended_code()
+        sage: D = codes.extended_Kasami_code(16,4)
+        sage: D.generator_matrix() == Cext.generator_matrix()
+        False
+
     .. SEEALSO::
 
-        :mod:`sage.coding.linear_code`
+        :mod:`sage.coding.linear_code`.
 
     ALGORITHM:
 
     We generate spanning sets for the subspaces:
-        * `\{v in GF(2)^s \mid \sum_{a \in GF(s)} v_a = 0\}`
-        * `\{v in GF(2)^s \mid \sum_{a \in GF(s)} v_a = 0\}`
-        * `\{v in GF(2)^s \mid \sum_{a \in GF(s)} v_a = 0\}`
-    Then we computer the codebook by taking the intersection of the subspaces
-    spanned by what we generated.
+        * `\{v \in GF(2)^s \mid \sum_{a \in GF(s)} v_a = 0\}`
+        * `\{v \in GF(2)^s \mid \sum_{a \in GF(s)} a v_a = 0\}`
+        * `\{v \in GF(2)^s \mid \sum_{a \in GF(s)} a^{t+1} v_a = 0\}`
+
+    Then we compute our codebook by taking the intersection of the above subspaces.
 
     REFERENCES:
-    
-    For more information on the Kasami codes and their use see [BCN1989]_.
+
+    For more information on Kasami codes and their use see [BCN1989]_.
 
     TESTS::
 
+        sage: C = codes.extended_Kasami_code(4,2)
+        sage: C.generator_matrix()
+        []
+
+        sage: C = codes.extended_Kasami_code(8,2)
+        sage: C.generator_matrix()
+        [1 1 1 1 1 1 1 1]
+
+        sage: C = codes.extended_Kasami_code(16,4)
+        sage: C.generator_matrix()
+        [1 0 0 0 0 0 0 0 0 1 0 0 1 1 1 1]
+        [0 1 0 0 0 0 0 0 0 1 1 0 1 0 0 0]
+        [0 0 1 0 0 0 0 0 0 0 1 1 0 1 0 0]
+        [0 0 0 1 0 0 0 0 0 0 0 1 1 0 1 0]
+        [0 0 0 0 1 0 0 0 0 0 0 0 1 1 0 1]
+        [0 0 0 0 0 1 0 0 0 1 1 0 1 1 1 0]
+        [0 0 0 0 0 0 1 0 0 0 1 1 0 1 1 1]
+        [0 0 0 0 0 0 0 1 0 1 1 1 0 0 1 1]
+        [0 0 0 0 0 0 0 0 1 1 0 1 0 0 0 1]
     """
     from sage.arith.misc import is_prime_power, gcd
 
-    
+
     # Check s,t are valid parameters
     (p,i) = is_prime_power(t,get_data=True)
     if p != 2:
         raise ValueError("The parameter t(={}) must be a power of 2".format(t))
-    
+
     if s != t*t:
         # then we must have s=q^{2j+1} and t = q^m
         (p,k) = is_prime_power(s,get_data=True)
@@ -95,15 +135,16 @@ def extended_Kasami_code(const int s, const int t):
         l = gcd(i,k)
         q = 2**l
         m = i // l
-        
+
         if (k//l) % 2 == 0:
             raise ValueError("The parameter s(={}) is invalid. Check the documentation".format(s))
-            
+
         j = ((k//l) - 1) // 2
 
-        if gcd(m, 2*j + 1) != 1:  # this may be superfluous
+        # gcd(m,2*j+1) = gcd( i/l, k/l) = 1
+        if m > j:
             raise ValueError("The parameters(={},{}) are invalid. Check the documentation".format(s,t))
-    
+
     F2 = GF(2)
     V = VectorSpace(F2, s)
     elemsFs = [x for x in GF(s)]
@@ -116,7 +157,7 @@ def extended_Kasami_code(const int s, const int t):
                 elemsFs[0] = elemsFs[i]
                 elemsFs[i] = a
                 break
-    
+
     FsToInt = { x : i for i,x in enumerate(elemsFs)}
     elemsFsT = [x**(t+1) for x in elemsFs]
     FsTToInt = { x: i for i,x in enumerate(elemsFsT)}
@@ -162,14 +203,76 @@ def extended_Kasami_code(const int s, const int t):
 
     W = W2.intersection(W3)
     codebook = W.intersection(W1)
-    
+
     return LinearCode(codebook.basis_matrix())
 
 def Kasami_code(const int s, const int t):
     r"""
-    take extended Kasami and truncate it
-    """
+    Return the Kasami code with parameters `s,t`.
 
+    The Kasami code `(s,t)` is obtained from the extended
+    Kasami code `(s,t)`, via truncation of all words.
+
+    INPUT:
+
+    - ``s,t`` -- (integers); powers of 2; parameters of the code
+
+    OUTPUT:
+
+    A ``LinearCode`` object as in :class:`sage.coding.linear_code.LinearCode`.
+
+    EXAMPLES::
+
+        sage: codes.Kasami_code(8,2)
+        [7, 1] linear code over GF(2)
+
+        sage: codes.Kasami_code(8,4)
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameters(=8,4) are invalid. Check the documentation
+
+        sage: codes.Kasami_code(4,2)
+        [3, 0] linear code over GF(2)
+
+    The extended Kasami code is not the extension of the Kasami code::
+
+        sage: C = codes.Kasami_code(16,4)
+        sage: Cext = C.extended_code()
+        sage: D = codes.extended_Kasami_code(16,4)
+        sage: D.generator_matrix() == Cext.generator_matrix()
+        False
+
+    .. SEEALSO::
+
+        :mod:`sage.coding.linear_code`,
+        :meth:`sage.coding.kasami_codes.extended_Kasami_code`.
+
+    REFERENCES:
+
+    For more information on Kasami codes and their use see [BCN1989]_.
+
+    TESTS::
+
+        sage: C = codes.Kasami_code(8,2)
+        sage: C.generator_matrix()
+        [1 1 1 1 1 1 1]
+
+        sage: C = codes.Kasami_code(4,2)
+        sage: C.generator_matrix()
+        []
+
+        sage: C = codes.Kasami_code(16,4)
+        sage: C.generator_matrix()
+        [1 0 0 0 0 0 0 0 0 1 0 0 1 1 1]
+        [0 1 0 0 0 0 0 0 0 1 1 0 1 0 0]
+        [0 0 1 0 0 0 0 0 0 0 1 1 0 1 0]
+        [0 0 0 1 0 0 0 0 0 0 0 1 1 0 1]
+        [0 0 0 0 1 0 0 0 0 1 0 0 0 0 1]
+        [0 0 0 0 0 1 0 0 0 1 1 0 1 1 1]
+        [0 0 0 0 0 0 1 0 0 1 1 1 1 0 0]
+        [0 0 0 0 0 0 0 1 0 0 1 1 1 1 0]
+        [0 0 0 0 0 0 0 0 1 0 0 1 1 1 1]
+    """
     C = extended_Kasami_code(s,t)
     codebook = [v[1:] for v in C.basis()]
     V = VectorSpace(GF(2),s-1)

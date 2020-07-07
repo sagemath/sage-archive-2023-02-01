@@ -73,6 +73,7 @@ from sage.rings.all import ZZ, QQ, RR, CC
 from sage.symbolic.ring import is_SymbolicVariable
 _assumptions = []
 
+_valid_feature_strings = set()
 
 class GenericDeclaration(SageObject):
     """
@@ -209,6 +210,33 @@ class GenericDeclaration(SageObject):
         """
         return (arg - self._var).is_trivial_zero()
 
+    def _validate_feature(self):
+        """
+        Check if this assumption is a known maxima feature, raise an error otherwise
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.assumptions import GenericDeclaration as GDecl
+            sage: var('b')
+            b
+            sage: GDecl(b, 'bougie')
+            b is bougie
+            sage: _.assume()
+            Traceback (most recent call last):
+            ...
+            ValueError: bougie not a valid assumption, must be one of ['analytic', ... 'symmetric']
+        """
+        from sage.calculus.calculus import maxima
+        global _valid_feature_strings
+        if self._assumption in _valid_feature_strings:
+            return
+        # We get the list here because features may be added with time.
+        _valid_feature_strings.update(repr(x).strip() for x in list(maxima("features")))
+        if self._assumption in _valid_feature_strings:
+            return
+        raise ValueError("%s not a valid assumption, must be one of %s"
+                         % (self._assumption, sorted(_valid_feature_strings)))
+
     def assume(self):
         """
         Make this assumption.
@@ -229,10 +257,7 @@ class GenericDeclaration(SageObject):
         """
         from sage.calculus.calculus import maxima
         if self._context is None:
-            # We get the list here because features may be added with time.
-            valid_features = list(maxima("features"))
-            if self._assumption not in [repr(x).strip() for x in list(valid_features)]:
-                raise ValueError("%s not a valid assumption, must be one of %s" % (self._assumption, valid_features))
+            self._validate_feature()
             cur = maxima.get("context")
             self._context = maxima.newcontext('context' + maxima._next_var_name())
             try:

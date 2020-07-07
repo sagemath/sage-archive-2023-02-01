@@ -419,10 +419,6 @@ usage_advanced() {
     echo "                         a Jupyter notebook (.ipynb)."
     echo "  --rst2txt [...]     -- Generates Sage worksheet text file from standalone"
     echo "                         reStructuredText source."
-    echo "  --rst2sws [...]     -- Generates Sage worksheet (.sws) from standalone"
-    echo "                         reStructuredText source."
-    echo "  --sws2rst <sws doc> -- Generates a reStructuredText source file from"
-    echo "                         a Sage worksheet (.sws) document."
     echo
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|

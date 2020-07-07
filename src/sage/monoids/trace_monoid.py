@@ -51,7 +51,6 @@ from sage.rings.infinity import infinity
 from sage.combinat.words.alphabet import Alphabet
 from sage.structure.element import MonoidElement
 from sage.structure.element_wrapper import ElementWrapper
-from sage.structure.parent import Set_generic
 from sage.structure.unique_representation import UniqueRepresentation
 
 
@@ -282,7 +281,7 @@ class TraceMonoidElement(ElementWrapper, MonoidElement):
             return self.min_hasse_diagram()
         else:
             raise ValueError("`alg` option must be `naive` "
-                             "or `min`, got `{}`.".format(alg))
+                             "or `min`, got `{}`.".format(algorithm))
 
     def min_hasse_diagram(self):
         r"""
@@ -441,6 +440,7 @@ class TraceMonoidElement(ElementWrapper, MonoidElement):
             return ZZ.one()
         return infinity
 
+
 class TraceMonoid(UniqueRepresentation, Monoid_class):
     r"""
     Return a free partially commuting monoid (trace monoid) on `n` generators
@@ -508,8 +508,7 @@ class TraceMonoid(UniqueRepresentation, Monoid_class):
         names = tuple(names)
 
         rels = set()
-        gen_from_str = {names[i]: gen for i,gen in enumerate(M.gens())}
-        gens = set(M.gens())
+        gen_from_str = {names[i]: gen for i, gen in enumerate(M.gens())}
         for (x, y) in I:
             try:
                 if isinstance(x, str):
@@ -938,12 +937,10 @@ class TraceMonoid(UniqueRepresentation, Monoid_class):
         if length == 1:
             return frozenset(self.gens())
 
-        return frozenset([
-                          word * suffix for word in self.words(length - 1)
+        return frozenset([word * suffix for word in self.words(length - 1)
                           for suffix in self.gens()
                           if not ((list(word.value)[-1][0], suffix.value) in self._independence
-                                  and list(word.value)[-1][0] > suffix.value)
-                          ])
+                                  and list(word.value)[-1][0] > suffix.value)])
 
     def _repr_(self):
         r"""
@@ -980,4 +977,3 @@ class TraceMonoid(UniqueRepresentation, Monoid_class):
                 for v1, v2 in sorted(self.independence())
             )
         )
-

@@ -15242,7 +15242,7 @@ class GenericGraph(GenericGraph_pyx):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge.
@@ -15370,7 +15370,8 @@ class GenericGraph(GenericGraph_pyx):
         if weight_function is not None:
             by_weight=True
         elif by_weight:
-            weight_function = lambda e: e[2]
+            def weight_function(e):
+                return 1 if e[2] is None else e[2]
 
         onlyone = False
         if vert in self:
@@ -16239,7 +16240,7 @@ class GenericGraph(GenericGraph_pyx):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         EXAMPLES:
 
@@ -16277,7 +16278,8 @@ class GenericGraph(GenericGraph_pyx):
 
         if by_weight or weight_function is not None:
             if weight_function is None:
-                weight_function = lambda e: e[2]
+                def weight_function(e):
+                    return 1 if e[2] is None else e[2]
             wt = 0
 
             for u, v in zip(path[:-1], path[1:]):
@@ -16841,7 +16843,7 @@ class GenericGraph(GenericGraph_pyx):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the weight_function outputs a number for each edge

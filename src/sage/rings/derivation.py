@@ -1278,6 +1278,26 @@ class RingDerivationWithoutTwist(RingDerivation):
         return M(arg)
 
     def extend_to_fraction_field(self):
+        r"""
+        Return the extension of this derivation to fraction fields of
+        the domain and the codomain.
+
+        EXAMPLES::
+
+            sage: S.<x> = QQ[]
+            sage: d = S.derivation()
+            sage: d
+            d/dx
+
+            sage: D = d.extend_to_fraction_field()
+            sage: D
+            d/dx
+            sage: D.domain()
+            Fraction Field of Univariate Polynomial Ring in x over Rational Field
+
+            sage: D(1/x)
+            -1/x^2
+        """
         parent = self.parent()
         domain = parent.domain().fraction_field()
         codomain = parent.codomain().fraction_field()
@@ -1286,7 +1306,7 @@ class RingDerivationWithoutTwist(RingDerivation):
             return M(self)
         except (ValueError, NotImplementedError):
             return M(self.list())
-            
+
 
 class RingDerivationWithoutTwist_zero(RingDerivationWithoutTwist):
     """
@@ -2270,7 +2290,6 @@ class RingDerivationWithTwist_generic(RingDerivation):
 
             sage: D != Dy
             True
-
         """
         if op == op_EQ:
             if isinstance(other, RingDerivationWithTwist_generic):
@@ -2285,6 +2304,27 @@ class RingDerivationWithTwist_generic(RingDerivation):
         return NotImplemented
 
     def extend_to_fraction_field(self):
+        r"""
+        Return the extension of this derivation to fraction fields of
+        the domain and the codomain.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = ZZ[]
+            sage: theta = R.hom([y,x])
+            sage: d = R.derivation(x, twist=theta)
+            sage: d
+            x*([x |--> y, y |--> x] - id)
+
+            sage: D = d.extend_to_fraction_field()
+            sage: D
+            x*([x |--> y, y |--> x] - id)
+            sage: D.domain()
+            Fraction Field of Multivariate Polynomial Ring in x, y over Integer Ring
+
+            sage: D(1/x)
+            (x - y)/y
+        """
         parent = self.parent()
         domain = parent.domain().fraction_field()
         codomain = parent.codomain().fraction_field()

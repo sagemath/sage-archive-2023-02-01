@@ -205,7 +205,7 @@ class Rings(CategoryWithAxiom):
 
         def extend_to_fraction_field(self):
             r"""
-            Return the extension of the morphism to fraction fields of
+            Return the extension of this morphism to fraction fields of
             the domain and the codomain.
 
             EXAMPLES::

@@ -602,7 +602,7 @@ class Magmas(Category_singleton):
                     [ 1 0]
                     [-1 1]
                 """
-                return self._parent.one()._div_(self)
+                return self.parent().one()._div_(self)
 
             def inverse(self):
                 """

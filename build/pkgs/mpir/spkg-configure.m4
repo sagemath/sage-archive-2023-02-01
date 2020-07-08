@@ -5,7 +5,7 @@ dnl Implement cases for what to do on different options here
             AC_CHECK_HEADER(gmp.h, [], [sage_spkg_install_mpir=yes])
             AC_CHECK_HEADER(gmpxx.h, [], [sage_spkg_install_mpir=yes])
             dnl mpq_cmp_z appeared in GMP 6.1.0 and is used by pynac
-            AC_SEARCH_LIBS([__gmpq_cmp_z], [gmp], [break],
+            AC_SEARCH_LIBS([__gmpq_cmp_z], [gmp], [],
                 [sage_spkg_install_mpir=yes])
             SAGE_MP_LIBRARY=mpir
             ;;
@@ -21,11 +21,12 @@ dnl Implement cases for what to do on different options here
 ], [], [
     AC_ARG_WITH([mp],
     [AS_HELP_STRING([--with-mp=system],
-        [use the system GMP as multiprecision library, if possible (default)])]
-    [AS_HELP_STRING([--with-mp=mpir],
-        [use the Sage SPKG for MPIR as multiprecision library])]
-    [AS_HELP_STRING([--with-mp=gmp],
-        [use the Sage SPKG for GMP as multiprecision library])])
+                    [use the system GMP as multiprecision library, if possible (default)])
+dnl Not indented because whitespace ends up in the help text
+AS_HELP_STRING([--with-mp=mpir],
+               [use the Sage SPKG for MPIR as multiprecision library])
+AS_HELP_STRING([--with-mp=gmp],
+               [use the Sage SPKG for GMP as multiprecision library])])
 
 dnl Just parse the options here
     case "$with_mp" in

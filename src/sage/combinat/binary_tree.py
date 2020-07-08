@@ -23,10 +23,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-# python3
-from __future__ import division, absolute_import
-from six import add_metaclass
-
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
@@ -45,8 +41,8 @@ from sage.sets.family import Family
 from sage.misc.cachefunc import cached_method
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class BinaryTree(AbstractClonableTree, ClonableArray):
+class BinaryTree(AbstractClonableTree, ClonableArray,
+        metaclass=InheritComparisonClasscallMetaclass):
     """
     Binary trees.
 
@@ -2017,15 +2013,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         if self.is_empty():
             yield self
             return
-        # TODO:: PYTHON 3
-        # yield from self[0].in_order_traversal_iter()
-        for left_subtree in self[0].in_order_traversal_iter():
-            yield left_subtree
+        yield from self[0].in_order_traversal_iter()
         yield self
-        # TODO:: PYTHON 3
-        # yield from self[1].in_order_traversal_iter()
-        for right_subtree in self[1].in_order_traversal_iter():
-            yield right_subtree
+        yield from self[1].in_order_traversal_iter()
 
     def in_order_traversal(self, node_action=None, leaf_action=None):
         r"""

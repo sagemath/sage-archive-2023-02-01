@@ -1,5 +1,7 @@
+# distutils: libraries = ntl gmp
+# distutils: language = c++
 """
-Univariate Polynomials over GF(p^e) via NTL's ZZ_pEX.
+Univariate Polynomials over GF(p^e) via NTL's ZZ_pEX
 
 AUTHOR:
 

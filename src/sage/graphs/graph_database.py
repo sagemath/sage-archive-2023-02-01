@@ -309,7 +309,8 @@ class GenericGraphQuery(SQLQuery):
             21                   D@O                  5                    2
             22                   D?[                  5                    3
         """
-        if database is None: database = GraphDatabase()
+        if database is None:
+            database = GraphDatabase()
         if not isinstance(database, GraphDatabase):
             raise TypeError('%s is not a valid GraphDatabase'%database)
         SQLQuery.__init__(self, database, query_string, param_tuple)
@@ -411,7 +412,8 @@ class GraphQuery(GenericGraphQuery):
             F_?Hg                7                    [1, 1, 1, 1, 1, 2, 3]
             F_?XO                7                    [1, 1, 1, 1, 2, 2, 2]
         """
-        if graph_db is None: graph_db = GraphDatabase()
+        if graph_db is None:
+            graph_db = GraphDatabase()
         if query_dict is not None:
             if query_dict['expression'][0] == 'degree_sequence':
                 query_dict['expression'][3] = degseq_to_data(query_dict['expression'][3])
@@ -438,11 +440,16 @@ class GraphQuery(GenericGraphQuery):
                                                 # them including repeats)
 
                 # set table name
-                if key in graph_data: qdict['table_name'] = 'graph_data'
-                elif key in aut_grp: qdict['table_name'] = 'aut_grp'
-                elif key in degrees: qdict['table_name'] = 'degrees'
-                elif key in misc: qdict['table_name'] = 'misc'
-                elif key in spectrum: qdict['table_name'] = 'spectrum'
+                if key in graph_data:
+                    qdict['table_name'] = 'graph_data'
+                elif key in aut_grp:
+                    qdict['table_name'] = 'aut_grp'
+                elif key in degrees:
+                    qdict['table_name'] = 'degrees'
+                elif key in misc:
+                    qdict['table_name'] = 'misc'
+                elif key in spectrum:
+                    qdict['table_name'] = 'spectrum'
 
                 # set expression
                 if not isinstance(kwds[key], list):
@@ -481,11 +488,16 @@ class GraphQuery(GenericGraphQuery):
             # organize display
             if display_cols is not None:
                 for col in display_cols:
-                    if col in graph_data: graph_data_disp.append(col)
-                    elif col in aut_grp: aut_grp_disp.append(col)
-                    elif col in degrees: degrees_disp.append(col)
-                    elif col in misc: misc_disp.append(col)
-                    elif col in spectrum: spectrum_disp.append(col)
+                    if col in graph_data:
+                        graph_data_disp.append(col)
+                    elif col in aut_grp:
+                        aut_grp_disp.append(col)
+                    elif col in degrees:
+                        degrees_disp.append(col)
+                    elif col in misc:
+                        misc_disp.append(col)
+                    elif col in spectrum:
+                        spectrum_disp.append(col)
 
                 # finish filling master join with display tables
                 for tab in disp_tables:
@@ -501,10 +513,14 @@ class GraphQuery(GenericGraphQuery):
                 disp_list = ['SELECT graph_data.graph6, ']
                 for col in graph_data_disp[1:]:
                     if col != 'graph6': disp_list.append('graph_data.%s, '%col)
-                for col in aut_grp_disp[1:]: disp_list.append('aut_grp.%s, '%col)
-                for col in degrees_disp[1:]: disp_list.append('degrees.%s, '%col)
-                for col in misc_disp[1:]: disp_list.append('misc.%s, '%col)
-                for col in spectrum_disp[1:]: disp_list.append('spectrum.%s, '%col)
+                for col in aut_grp_disp[1:]:
+                    disp_list.append('aut_grp.%s, '%col)
+                for col in degrees_disp[1:]:
+                    disp_list.append('degrees.%s, '%col)
+                for col in misc_disp[1:]:
+                    disp_list.append('misc.%s, '%col)
+                for col in spectrum_disp[1:]:
+                    disp_list.append('spectrum.%s, '%col)
                 disp_list[-1] = disp_list[-1].rstrip(', ') + ' '
                 disp_str = ''.join(disp_list)
 

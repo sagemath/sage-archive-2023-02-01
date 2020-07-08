@@ -1,5 +1,8 @@
+# distutils: language = c
+# distutils: libraries = fes
+# sage_setup: distribution = sage-fes
 """
-Binding for the FES library.
+Binding for the FES library
 
 Finding solutions of systems of boolean equations by exhaustive
 search, via the fes library. This is usually (much) faster than

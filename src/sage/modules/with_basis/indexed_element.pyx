@@ -24,8 +24,8 @@ from cpython.object cimport Py_NE, Py_EQ
 from sage.misc.misc import repr_lincomb
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.typeset.ascii_art import AsciiArt, empty_ascii_art
-from sage.typeset.unicode_art import UnicodeArt, empty_unicode_art
+from sage.typeset.ascii_art import AsciiArt, empty_ascii_art, ascii_art
+from sage.typeset.unicode_art import UnicodeArt, empty_unicode_art, unicode_art
 from sage.categories.all import Category, Sets, ModulesWithBasis
 from sage.data_structures.blas_dict cimport add, negate, scal, axpy
 
@@ -316,7 +316,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         if repr_monomial is None:
             repr_monomial = str
 
-        s = empty_ascii_art # ""
+        chunks = []
         first = True
 
         if scalar_mult is None:
@@ -345,8 +345,12 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                         break_points = [2]
                     else:
                         coeff = "%s"%coeff
-                s += AsciiArt([coeff], break_points) + b
+                if coeff:
+                    chunks.append(AsciiArt([coeff], break_points))
+                if b._l:
+                    chunks.append(b)
                 first = False
+        s = ascii_art(*chunks)
         if first:
             return AsciiArt(["0"])
         elif s == empty_ascii_art:
@@ -381,7 +385,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         if repr_monomial is None:
             repr_monomial = str
 
-        s = empty_unicode_art  # ""
+        chunks = []
         first = True
 
         if scalar_mult is None:
@@ -410,8 +414,12 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                         break_points = [2]
                     else:
                         coeff = "%s" % coeff
-                s += UnicodeArt([coeff], break_points) + b
+                if coeff:
+                    chunks.append(UnicodeArt([coeff], break_points))
+                if b._l:
+                    chunks.append(b)
                 first = False
+        s = unicode_art(*chunks)
         if first:
             return UnicodeArt(["0"])
         elif s == empty_unicode_art:
@@ -656,13 +664,14 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             return self.base_ring().zero()
         return res
 
-    def _vector_(self, new_base_ring=None):
+    def _vector_(self, new_base_ring=None, order=None):
         """
         Returns ``self`` as a dense vector
 
         INPUT:
 
         - ``new_base_ring`` -- a ring (default: ``None``)
+        - ``order`` -- (optional) an ordering of the support of ``self``
 
         OUTPUT: a dense :func:`FreeModule` vector
 
@@ -727,8 +736,10 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         dense_free_module = self._parent._dense_free_module(new_base_ring)
         d = self._monomial_coefficients
         zero = dense_free_module.base_ring().zero()
+        if order is None:
+            order = self._parent.get_order()
         return dense_free_module.element_class(dense_free_module,
-                                               [d.get(m, zero) for m in self._parent.get_order()],
+                                               [d.get(m, zero) for m in order],
                                                coerce=True, copy=False)
 
     to_vector = _vector_

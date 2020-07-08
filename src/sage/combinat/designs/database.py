@@ -47,8 +47,6 @@ Functions
 ---------
 """
 from __future__ import print_function, absolute_import
-from six import iteritems
-from six.moves import range, zip
 
 from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_matrix,
                                                      OA_from_Vmt,
@@ -1685,7 +1683,7 @@ def OA_10_469():
         blocks[len(B)].append(B)
 
     # Product of each symmetric design with the OA
-    for b_size,symmetric_design in iteritems(blocks):
+    for b_size,symmetric_design in blocks.items():
         matrix = _reorder_matrix(symmetric_design)
         OA.extend([[B[xx] for xx in R]
                    for R in incomplete_orthogonal_array(9,b_size,[1]*b_size)
@@ -2695,7 +2693,7 @@ Vmt_vectors = {
     (12,413) : ((0,1,436,546,977,467,242,3695,682,483,3026,461,1334),     _ref_Abel_v_12_t),
 }
 # Translate all V(m,t) into (mt+1,m+2;1,0;t)-QDM constructors
-for (m,t),(vec,source) in iteritems(Vmt_vectors):
+for (m,t),(vec,source) in Vmt_vectors.items():
     n,k,lmbda,mu,u = (m*t+1,m+2,1,0,t)
     if not (n+u,lmbda) in QDM:
         QDM[n+u,lmbda] = {}
@@ -4573,7 +4571,7 @@ def BIBD_201_6_1():
 # (n,k,lambda)-BIBD family.
 #
 # This dictionary is used by designs.BalancedIncompleteBlockDesign
-
+# Note that the values are a list of blocks and not a design object
 BIBD_constructions = {
     ( 45,9,8): BIBD_45_9_8,
     ( 66,6,1): BIBD_66_6_1,
@@ -4586,7 +4584,7 @@ BIBD_constructions = {
     (136,6,1): BIBD_136_6_1,
     (141,6,1): BIBD_141_6_1,
     (171,6,1): BIBD_171_6_1,
-    (176,50,14): HigmanSimsDesign,
+    (176,50,14): lambda : HigmanSimsDesign().blocks(),
     (196,6,1): BIBD_196_6_1,
     (201,6,1): BIBD_201_6_1,
 }

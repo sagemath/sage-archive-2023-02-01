@@ -65,19 +65,20 @@ class Rings(CategoryWithAxiom):
             """
             Return whether or not this morphism is injective.
 
-            EXAMPLES:
+            EXAMPLES::
 
-            This often raises a ``NotImplementedError`` as many homomorphisms do
-            not implement this method::
-
-                sage: R.<x> = QQ[]
-                sage: f = R.hom([x + 1]); f
-                Ring endomorphism of Univariate Polynomial Ring in x over Rational Field
-                  Defn: x |--> x + 1
-                sage: f.is_injective()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError
+                sage: R.<x,y> = QQ[]
+                sage: R.hom([x, y^2], R).is_injective()
+                True
+                sage: R.hom([x, x^2], R).is_injective()
+                False
+                sage: S.<u,v> = R.quotient(x^3*y)
+                sage: R.hom([v, u], S).is_injective()
+                False
+                sage: S.hom([-u, v], S).is_injective()
+                True
+                sage: S.cover().is_injective()
+                False
 
             If the domain is a field, the homomorphism is injective::
 
@@ -147,6 +148,13 @@ class Rings(CategoryWithAxiom):
                 # (unless the codomain is the zero ring.) Note that ring
                 # homomorphism must send the 1 element to the 1 element
                 return True
+
+            try:
+                ker = self.kernel()
+            except (NotImplementedError, AttributeError):
+                pass
+            else:
+                return ker.is_zero()
 
             if self.domain().characteristic() == 0:
                 if self.codomain().characteristic() != 0:
@@ -767,7 +775,6 @@ class Rings(CategoryWithAxiom):
                 ....:  def reduce(self, x):
                 ....:      R = self.ring()
                 ....:      return add([c*R(m) for m,c in x if len(m) < self._power], R(0))
-                ....:
                 sage: I = PowerIdeal(F,3)
                 sage: Q = Rings().parent_class.quotient(F, I); Q
                 Quotient of Free Algebra on 3 generators (x, y, z) over Rational Field by the ideal (x^3, x^2*y, x^2*z, x*y*x, x*y^2, x*y*z, x*z*x, x*z*y, x*z^2, y*x^2, y*x*y, y*x*z, y^2*x, y^3, y^2*z, y*z*x, y*z*y, y*z^2, z*x^2, z*x*y, z*x*z, z*y*x, z*y^2, z*y*z, z^2*x, z^2*y, z^3)
@@ -1071,7 +1078,7 @@ class Rings(CategoryWithAxiom):
             if isinstance(arg, tuple):
                 from sage.categories.morphism import Morphism
                 if len(arg) == 2 and isinstance(arg[1], Morphism):
-                   from sage.rings.polynomial.skew_polynomial_ring_constructor import SkewPolynomialRing
+                   from sage.rings.polynomial.skew_polynomial_ring import SkewPolynomialRing
                    return SkewPolynomialRing(self, arg[1], names=arg[0])
 
             # 2. Otherwise, if all specified elements are algebraic, try to

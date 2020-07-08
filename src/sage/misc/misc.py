@@ -38,11 +38,8 @@ Check the fix from :trac:`8323`::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import integer_types
 
 import os
-import stat
 import sys
 import time
 import resource
@@ -51,6 +48,11 @@ import warnings
 import sage.misc.prandom as random
 from .lazy_string import lazy_string
 import sage.server.support
+
+from sage.misc.lazy_import import lazy_import
+
+lazy_import("sage.misc.call", ["AttrCallObject", "attrcall", "call_method"],
+            deprecation=29869)
 
 from sage.env import DOT_SAGE, HOSTNAME
 
@@ -61,7 +63,7 @@ LOCAL_IDENTIFIER = '%s.%s' % (HOSTNAME, os.getpid())
 #################################################################
 
 
-def sage_makedirs(dirname):
+def sage_makedirs(dirname, mode=0o777):
     """
     Python version of ``mkdir -p``: try to create a directory, and also
     create all intermediate directories as necessary.  Succeed silently
@@ -89,33 +91,12 @@ def sage_makedirs(dirname):
             raise
 
 
-#################################################
-# Now that the variable DOT_SAGE has been set,
-# we make sure that the DOT_SAGE directory
-# has restrictive permissions, since otherwise
-# possibly just anybody can easily see every
-# command you type, since it is in the history,
-# and every worksheet you create, etc.
-# We do the following:
-#   1. If there is no DOT_SAGE, we create it.
-#   2. Check to see if the permissions on DOT_SAGE are
-#      sufficiently restrictive.  If not, we change them.
+# We create the DOT_SAGE directory (if it doesn't exist yet; note in particular
+# that it may already have been created by the bin/sage script) with
+# restrictive permissions, since otherwise possibly just anybody can easily see
+# every command you type.
 
-sage_makedirs(DOT_SAGE)
-
-if hasattr(os, 'chmod'):
-    _mode = os.stat(DOT_SAGE)[stat.ST_MODE]
-    _desired_mode = 0o40700     # drwx------
-    if _mode != _desired_mode:
-        # On Cygwin, if the sage directory is not in a filesystem mounted with
-        # 'acl' support, setting the permissions may fail silently, so only
-        # print the message after we've changed the permissions and confirmed
-        # that the change succeeded
-        os.chmod(DOT_SAGE, _desired_mode)
-        if os.stat(DOT_SAGE)[stat.ST_MODE] == _desired_mode:
-            print("Setting permissions of DOT_SAGE directory so only you "
-                  "can read and write it.")
-
+sage_makedirs(DOT_SAGE, mode=0o700)
 
 def try_read(obj, splitlines=False):
     r"""
@@ -800,7 +781,7 @@ def coeff_repr(c, is_latex=False):
             return c._coeff_repr()
         except AttributeError:
             pass
-    if isinstance(c, integer_types + (float,)):
+    if isinstance(c, (int, float)):
         return str(c)
     if is_latex and hasattr(c, '_latex_'):
         s = c._latex_()
@@ -1586,172 +1567,6 @@ def embedded():
         False
     """
     return sage.server.support.EMBEDDED_MODE
-
-
-#############################################
-# Operators
-#############################################
-class AttrCallObject(object):
-    def __init__(self, name, args, kwds):
-        """
-        TESTS::
-
-            sage: f = attrcall('core', 3); f
-            *.core(3)
-            sage: TestSuite(f).run()
-        """
-        self.name = name
-        self.args = args
-        self.kwds = kwds
-
-    def __call__(self, x, *args):
-        """
-        Gets the ``self.name`` method from ``x``, calls it with
-        ``self.args`` and ``args`` as positional parameters and
-        ``self.kwds`` as keyword parameters, and returns the result.
-
-        EXAMPLES::
-
-            sage: core = attrcall('core', 3)
-            sage: core(Partition([4,2]))
-            [4, 2]
-
-            sage: series = attrcall('series', x)
-            sage: series(sin(x), 4)
-            1*x + (-1/6)*x^3 + Order(x^4)
-        """
-        return getattr(x, self.name)(*(self.args + args), **self.kwds)
-
-    def __repr__(self):
-        """
-        Return a string representation of this object.
-
-        The star in the output represents the object passed into ``self``.
-
-        EXAMPLES::
-
-            sage: attrcall('core', 3)
-            *.core(3)
-            sage: attrcall('hooks', flatten=True)
-            *.hooks(flatten=True)
-            sage: attrcall('hooks', 3, flatten=True)
-            *.hooks(3, flatten=True)
-        """
-        s = "*.%s(%s" % (self.name, ", ".join(map(repr, self.args)))
-        if self.kwds:
-            if self.args:
-                s += ", "
-            s += ", ".join("%s=%s" % keyvalue for keyvalue in self.kwds.items())
-        s += ")"
-        return s
-
-    def __eq__(self, other):
-        """
-        Equality testing
-
-        EXAMPLES::
-
-            sage: attrcall('core', 3, flatten = True) == attrcall('core', 3, flatten = True)
-            True
-            sage: attrcall('core', 2) == attrcall('core', 3)
-            False
-            sage: attrcall('core', 2) == 1
-            False
-        """
-        return self.__class__ == other.__class__ and self.__dict__ == other.__dict__
-
-    def __ne__(self, other):
-        """
-        Equality testing
-
-        EXAMPLES::
-
-            sage: attrcall('core', 3, flatten = True) != attrcall('core', 3, flatten = True)
-            False
-            sage: attrcall('core', 2) != attrcall('core', 3)
-            True
-            sage: attrcall('core', 2) != 1
-            True
-        """
-        return not self == other
-
-    def __hash__(self):
-        """
-        Hash value
-
-        This method tries to ensure that, when two ``attrcall``
-        objects are equal, they have the same hash value.
-
-        .. warning:: dicts are not hashable, so we instead hash their
-        items; however the order of those items might differ. The
-        proper fix would be to use a frozen dict for ``kwds``, when
-        frozen dicts will be available in Python.
-
-        EXAMPLES::
-
-            sage: x = attrcall('core', 3, flatten = True, blah = 1)
-            sage: hash(x)       # random # indirect doctest
-            210434060
-            sage: type(hash(x))
-            <type 'int'>
-            sage: y = attrcall('core', 3, blah = 1, flatten = True)
-            sage: hash(y) == hash(x)
-            True
-            sage: y = attrcall('core', 3, flatten = True, blah = 2)
-            sage: hash(y) != hash(x)
-            True
-            sage: hash(attrcall('core', 2)) != hash(attrcall('core', 3))
-            True
-            sage: hash(attrcall('core', 2)) != hash(1)
-            True
-
-        Note: a missing ``__hash__`` method here used to break the
-        unique representation of parents taking ``attrcall`` objects
-        as input; see :trac:`8911`.
-        """
-        return hash((self.args, tuple(sorted(self.kwds.items()))))
-
-
-def attrcall(name, *args, **kwds):
-    """
-    Returns a callable which takes in an object, gets the method named
-    name from that object, and calls it with the specified arguments
-    and keywords.
-
-    INPUT:
-
-     -  ``name`` - a string of the name of the method you
-        want to call
-
-     -  ``args, kwds`` - arguments and keywords to be passed
-        to the method
-
-    EXAMPLES::
-
-        sage: f = attrcall('core', 3); f
-        *.core(3)
-        sage: [f(p) for p in Partitions(5)]
-        [[2], [1, 1], [1, 1], [3, 1, 1], [2], [2], [1, 1]]
-    """
-    return AttrCallObject(name, args, kwds)
-
-
-def call_method(obj, name, *args, **kwds):
-    """
-    Call the method ``name`` on ``obj``.
-
-    This has to exist somewhere in Python!!!
-
-    .. SEEALSO:: :func:`operator.methodcaller` :func:`attrcal`
-
-    EXAMPLES::
-
-        sage: from sage.misc.misc import call_method
-        sage: call_method(1, "__add__", 2)
-        3
-    """
-    return getattr(obj, name)(*args, **kwds)
-
 
 def is_in_string(line, pos):
     r"""

@@ -1,3 +1,5 @@
+# distutils: language = c++
+# distutils: libraries = gmp m ntl
 """
 Elements of Quaternion Algebras
 
@@ -27,7 +29,7 @@ Check that :trac:`20829` is fixed::
 # ****************************************************************************
 
 from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, Element
-from sage.structure.richcmp cimport rich_to_bool, richcmp_item
+from sage.structure.richcmp cimport rich_to_bool, rich_to_bool_sgn, richcmp_item
 from sage.algebras.quatalg.quaternion_algebra_element cimport QuaternionAlgebraElement_abstract
 from sage.rings.rational cimport Rational
 from sage.rings.integer cimport Integer
@@ -261,26 +263,6 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         if self.is_constant():
             return int(self[0])
-        raise TypeError
-
-    def __long__(self):
-        """
-        Try to coerce this quaternion to a Python long.
-
-        EXAMPLES::
-
-            sage: A.<i,j,k> = QuaternionAlgebra(-1,-2)
-            sage: long(A(-3))
-            -3L
-            sage: long(A(-3/2))
-            -1L
-            sage: long(-3 + i)
-            Traceback (most recent call last):
-            ...
-            TypeError
-        """
-        if self.is_constant():
-            return long(self[0])
         raise TypeError
 
     def __float__(self):
@@ -979,24 +961,26 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
             True
             sage: i == i
             True
+            sage: Q.one() != -Q.one()
+            True
         """
         cdef QuaternionAlgebraElement_rational_field right = _right
         cdef int i
         i = mpz_cmp(self.d, right.d)
         if i:
-            return rich_to_bool(op, i)
+            return rich_to_bool_sgn(op, i)
         i = mpz_cmp(self.x, right.x)
         if i:
-            return rich_to_bool(op, i)
+            return rich_to_bool_sgn(op, i)
         i = mpz_cmp(self.y, right.y)
         if i:
-            return rich_to_bool(op, i)
+            return rich_to_bool_sgn(op, i)
         i = mpz_cmp(self.z, right.z)
         if i:
-            return rich_to_bool(op, i)
+            return rich_to_bool_sgn(op, i)
         i = mpz_cmp(self.w, right.w)
         if i:
-            return rich_to_bool(op, i)
+            return rich_to_bool_sgn(op, i)
         return rich_to_bool(op, 0)
 
     def __init__(self, parent, v, bint check=True):

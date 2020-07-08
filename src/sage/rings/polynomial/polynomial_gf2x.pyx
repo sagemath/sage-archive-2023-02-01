@@ -1,5 +1,8 @@
+# distutils: libraries = gmp ntl
+# distutils: extra_compile_args = M4RI_CFLAGS
+# distutils: language = c++
 """
-Univariate Polynomials over GF(2) via NTL's GF2X.
+Univariate Polynomials over GF(2) via NTL's GF2X
 
 AUTHOR:
 - Martin Albrecht (2008-10) initial implementation

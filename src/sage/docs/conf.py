@@ -3,11 +3,11 @@ from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, MA
 import sage.version
 from sage.misc.sagedoc import extlinks
 import dateutil.parser
-from six import iteritems
 from docutils import nodes
 from docutils.transforms import Transform
 from sphinx.ext.doctest import blankline_re
 from sphinx import highlighting
+import sphinx.ext.intersphinx as intersphinx
 from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
 # If your extensions are in another directory, add it here.
@@ -33,6 +33,10 @@ extensions = ['inventory_builder',
 # through matplotlib, so that it will be displayed in the HTML doc
 plot_html_show_source_link = False
 plot_pre_code = """
+# Set locale to prevent having commas in decimal numbers
+# in tachyon input (see https://trac.sagemath.org/ticket/28971)
+import locale
+locale.setlocale(locale.LC_NUMERIC, 'C')
 def sphinx_plot(graphics, **kwds):
     import matplotlib.image as mpimg
     import matplotlib.pyplot as plt
@@ -169,13 +173,8 @@ todo_include_todos = True
 
 # Cross-links to other project's online documentation.
 python_version = sys.version_info.major
-intersphinx_mapping = {
-    'python': ('https://docs.python.org/',
-                os.path.join(SAGE_DOC_SRC, "common",
-                             "python{}.inv".format(python_version))),
-    'pplpy': (PPLPY_DOCS, None)}
 
-def set_intersphinx_mappings(app):
+def set_intersphinx_mappings(app, config):
     """
     Add precompiled inventory (the objects.inv)
     """
@@ -186,7 +185,11 @@ def set_intersphinx_mappings(app):
         app.config.intersphinx_mapping = {}
         return
 
-    app.config.intersphinx_mapping = intersphinx_mapping
+    app.config.intersphinx_mapping =  {
+    'python': ('https://docs.python.org/',
+                os.path.join(SAGE_DOC_SRC, "common",
+                             "python{}.inv".format(python_version))),
+    'pplpy': (PPLPY_DOCS, None)}
 
     # Add master intersphinx mapping
     dst = os.path.join(invpath, 'objects.inv')
@@ -201,6 +204,7 @@ def set_intersphinx_mappings(app):
             dst = os.path.join(invpath, directory, 'objects.inv')
             app.config.intersphinx_mapping[src] = dst
 
+    intersphinx.normalize_intersphinx_mapping(app, config)
 
 # By default document are not master.
 multidocs_is_master = True
@@ -452,6 +456,13 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{23AE}{\ensuremath{\|}} % integral extenison
 
     \DeclareUnicodeCharacter{2571}{/}   % Box drawings light diagonal upper right to lower left
+
+    \DeclareUnicodeCharacter{25CF}{\ensuremath{\bullet}}  % medium black circle
+    \DeclareUnicodeCharacter{26AC}{\ensuremath{\circ}}  % medium small white circle
+    \DeclareUnicodeCharacter{256D}{+}
+    \DeclareUnicodeCharacter{256E}{+}
+    \DeclareUnicodeCharacter{256F}{+}
+    \DeclareUnicodeCharacter{2570}{+}
 \fi
 
 \let\textLaTeX\LaTeX
@@ -552,7 +563,7 @@ def check_nested_class_picklability(app, what, name, obj, skip, options):
         # Check picklability of nested classes.  Adapted from
         # sage.misc.nested_class.modify_for_nested_pickle.
         module = sys.modules[obj.__module__]
-        for (nm, v) in iteritems(obj.__dict__):
+        for (nm, v) in obj.__dict__.items():
             if (isinstance(v, type) and
                 v.__name__ == nm and
                 v.__module__ == module.__name__ and
@@ -616,7 +627,6 @@ def process_dollars(app, what, name, obj, options, docstringlines):
     See sage.misc.sagedoc.process_dollars for more information.
     """
     if len(docstringlines) and name.find("process_dollars") == -1:
-        from six.moves import range
         from sage.misc.sagedoc import process_dollars as sagedoc_dollars
         s = sagedoc_dollars("\n".join(docstringlines))
         lines = s.split("\n")
@@ -665,11 +675,11 @@ def call_intersphinx(app, env, node, contnode):
         sage: for line in open(thematic_index).readlines():  # optional - dochtml
         ....:     if "padics" in line:
         ....:         _ = sys.stdout.write(line)
-        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics v...)"><span>Introduction to the p-adics</span></a></li>
+        <li><p><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage... Reference Manual: p-Adics v...)"><span>Introduction to the p-adics</span></a></p></li>
     """
     debug_inf(app, "???? Trying intersphinx for %s" % node['reftarget'])
     builder = app.builder
-    res =  sphinx.ext.intersphinx.missing_reference(
+    res =  intersphinx.missing_reference(
         app, env, node, contnode)
     if res:
         # Replace absolute links to $SAGE_DOC by relative links: this
@@ -852,11 +862,10 @@ def setup(app):
     if app.srcdir.startswith(SAGE_DOC_SRC):
         app.add_config_value('intersphinx_mapping', {}, False)
         app.add_config_value('intersphinx_cache_limit', 5, False)
+        app.connect('config-inited', set_intersphinx_mappings)
+        app.connect('builder-inited', intersphinx.load_mappings)
         # We do *not* fully initialize intersphinx since we call it by hand
         # in find_sage_dangling_links.
         #   app.connect('missing-reference', missing_reference)
         app.connect('missing-reference', find_sage_dangling_links)
-        import sphinx.ext.intersphinx
-        app.connect('builder-inited', set_intersphinx_mappings)
-        app.connect('builder-inited', sphinx.ext.intersphinx.load_mappings)
         app.connect('builder-inited', nitpick_patch_config)

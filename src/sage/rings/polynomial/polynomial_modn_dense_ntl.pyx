@@ -1,5 +1,7 @@
+# distutils: libraries = ntl gmp
+# distutils: language = c++
 """
-Dense univariate polynomials over  `\ZZ/n\ZZ`, implemented using NTL.
+Dense univariate polynomials over  `\ZZ/n\ZZ`, implemented using NTL
 
 This implementation is generally slower than the FLINT implementation in
 :mod:`~sage.rings.polynomial.polynomial_zmod_flint`, so we use FLINT by

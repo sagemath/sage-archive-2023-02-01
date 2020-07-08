@@ -1,6 +1,9 @@
 # distutils: depends = NTL/ZZ.h
+# distutils: libraries = ntl gmp
+# distutils: language = c++
+
 """
-Conversion between NTL's ``ZZ`` and various other types.
+Conversion between NTL's ``ZZ`` and various other types
 """
 
 #*****************************************************************************

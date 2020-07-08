@@ -9,10 +9,12 @@ from .misc import (BackslashOperator,
                   exists, forall, is_iterator,
                   random_sublist, walltime,
                   repr_lincomb,
-                  pad_zeros, attrcall,
+                  pad_zeros,
                   SAGE_DB, SAGE_TMP,
                    newton_method_sizes, compose,
                   nest)
+
+from .call import attrcall
 
 from .banner import version, banner
 
@@ -160,7 +162,7 @@ from .explain_pickle import explain_pickle, unpickle_newobj, unpickle_global, un
 
 from .decorators import specialize, sage_wraps, infix_operator
 
-from .unknown import Unknown
+from .unknown import Unknown, UnknownError
 
 lazy_import('sage.misc.inline_fortran', 'fortran')
 

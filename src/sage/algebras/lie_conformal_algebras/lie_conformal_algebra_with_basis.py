@@ -66,7 +66,12 @@ class LieConformalAlgebraWithBasis(CombinatorialFreeModule):
             kwds['bracket'] = ''
             kwds['string_quotes'] = False
 
-        category = LieConformalAlgebras(R).WithBasis().or_subcategory(category)
+        default_category = LieConformalAlgebras(R).WithBasis()
+        try:
+            category = default_category.or_subcategory(category)
+        except ValueError:
+            category = default_category.Super().or_subcategory(category)
+
         super(LieConformalAlgebraWithBasis,self).__init__(R,
                 basis_keys=basis_keys, element_class=element_class,
                 category=category, prefix=prefix, names=None, **kwds)

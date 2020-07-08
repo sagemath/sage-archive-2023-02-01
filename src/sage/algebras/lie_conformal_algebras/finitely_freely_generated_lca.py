@@ -40,8 +40,11 @@ class FinitelyFreelyGeneratedLCA(FreelyGeneratedLieConformalAlgebra):
             sage: V = lie_conformal_algebras.Virasoro(QQ)
             sage: TestSuite(V).run()
         """
-        category = LieConformalAlgebras(R).FinitelyGenerated().or_subcategory(
-                                                                      category)
+        default_category = LieConformalAlgebras(R).FinitelyGenerated()
+        try:
+            category = default_category.or_subcategory(category)
+        except ValueError:
+            category = default_category.Super().or_subcategory(category)
 
         from sage.categories.sets_cat import Sets
         if index_set not in Sets().Finite():

@@ -262,10 +262,11 @@ class LieConformalAlgebraWithStructureCoefficients(
             for i,ce in enumerate(central_elements):
                 self._index_to_pos[ce] = len(index_set)+i
 
-        category = LieConformalAlgebras(R).WithBasis().FinitelyGenerated()\
-                    .or_subcategory(category)
+        default_category = LieConformalAlgebras(R).WithBasis().FinitelyGenerated()
         if issuper:
-            category = category.Super()
+            category = default_category.Super().or_subcategory(category)
+        else:
+            category = default_category.or_subcategory(category)
 
         if element_class is None:
             element_class=LCAStructureCoefficientsElement

@@ -90,17 +90,72 @@ class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
             sage: LieConformalAlgebras(AA).FinitelyGenerated().Super()
             Category of super finitely generated Lie conformal algebras over Algebraic Real Field
         """
-        def extra_super_categories(self):
+        class ParentMethods:
+            def ngens(self):
+                r"""
+                The number of generators of this super Lie conformal algebra.
+
+                EXAMPLES::
+
+                    sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
+                    sage: V.ngens()
+                    3
+                """
+                return len(self.gens())
+
+            def gen(self,i):
+                r"""
+                The ``i``-th generator of this super Lie conformal algebra.
+
+                EXAMPLES::
+
+                    sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
+                    sage: V.gens()
+                    (L, G, C)
+                    sage: V.gen(0)
+                    L
+                """
+                return self.gens()[i]
+
+            def some_elements(self):
+                """
+                Some elements of this super Lie conformal algebra.
+
+                This method returns a list with elements containing at
+                least the generators.
+
+                EXAMPLES::
+
+                    sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
+                    sage: V.some_elements()
+                    [L, G, C, TG + 4*T^(2)L, TG + 4*T^(2)G, TL + 4*T^(2)L]
+                """
+                S = list(self.gens())
+                from sage.misc.misc import some_tuples
+                for x,y in some_tuples(S, 2, 0, max_samples=self.ngens()):
+                    S.append(x.T() + 2*y.T(2))
+                return S
+
+        class Graded(GradedModulesCategory):
             """
-            The extra super categories of this category
+            The category of H-graded super finitely generated Lie conformal algebras.
 
             EXAMPLES::
 
-                sage: LieConformalAlgebras(QQ).FinitelyGenerated().Super().super_categories()
-                [Category of super Lie conformal algebras over Rational Field,
-                 Category of finitely generated Lie conformal algebras over Rational Field]
+                sage: LieConformalAlgebras(QQbar).FinitelyGenerated().Super().Graded()
+                Category of H-graded super finitely generated Lie conformal algebras over Algebraic Field
             """
-            return [self.base_category(),]
+            def _repr_object_names(self):
+                """
+                The names of the objects of this category
+
+                EXAMPLES::
+
+                    sage: LieConformalAlgebras(QQbar).FinitelyGenerated().Super().Graded()
+                    Category of H-graded super finitely generated Lie conformal algebras over Algebraic Field
+                """
+                return "H-graded {}".format(self.base_category().\
+                                            _repr_object_names())
 
     class Graded(GradedModulesCategory):
         """
@@ -122,26 +177,3 @@ class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
             """
             return "H-graded {}".format(self.base_category().\
                                         _repr_object_names())
-
-        class Super(SuperModulesCategory):
-            """
-            The subcategory of super H-graded finitely generated Lie
-            conformal algebras.
-
-            EXAMPLES::
-
-                sage: LieConformalAlgebras(QQbar).FinitelyGenerated().Graded()
-                Category of H-graded finitely generated Lie conformal algebras over Algebraic Field
-            """
-            def extra_super_categories(self):
-                """
-                The extra super categories of this category.
-
-                EXAMPLES::
-
-                    sage: C = LieConformalAlgebras(QQ).FinitelyGenerated().Graded()
-                    sage: C.super_categories()
-                    [Category of H-graded Lie conformal algebras over Rational Field,
-                     Category of finitely generated Lie conformal algebras over Rational Field]
-                """
-                return [self.base_category(),]

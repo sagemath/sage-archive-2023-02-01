@@ -94,29 +94,6 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
     An element of a Lie conformal algebra given by structure
     coefficients.
     """
-
-    def is_even_odd(self):
-        """
-        Return ``0`` if this element is even or ``1`` if it is odd.
-
-        EXAMPLES::
-
-            sage: R = lie_conformal_algebras.NeveuSchwarz(QQ); R.inject_variables()
-            Defining L, G, C
-            sage: L.is_even_odd()
-            0
-            sage: G.is_odd()
-            True
-        """
-        if self.is_zero():
-            return 0
-        p = self.parent()
-        coefs = self.monomial_coefficients()
-        paritylist = [p._parity[p.monomial((k,0))] for k,v in coefs]
-        if paritylist[1:] == paritylist[:-1]:
-            return paritylist[0]
-        raise ValueError("{} is not homogeneous".format(self))
-
     def _bracket_(self, right):
         """
         The lambda bracket of these two elements.
@@ -260,35 +237,3 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
 
         return repr_lincomb(terms, is_latex=True, strip_one = True)
 
-class GradedLCAElement(LCAStructureCoefficientsElement):
-    """
-    Base class for H-graded Lie conformal algebras with structure
-    coefficients.
-    """
-    def degree(self):
-        """
-        The degree of this element.
-
-        EXAMPLES::
-
-            sage: V = lie_conformal_algebras.Virasoro(QQ)
-            sage: V.inject_variables()
-            Defining L, C
-            sage: C.degree()
-            0
-            sage: L.T(4).degree()
-            6
-        """
-        if self.is_zero():
-            from sage.rings.infinity import Infinity
-            return Infinity
-        p = self.parent()
-        ls = []
-        for gen,n in self.monomial_coefficients():
-            ret = n
-            if gen not in p._central_elements:
-                ret+= p._weights[p._index_to_pos[gen]]
-            ls.append(ret)
-        if ls[1:] == ls[:-1]:
-            return ls[0]
-        raise ValueError("{} is not homogeneous".format(self))

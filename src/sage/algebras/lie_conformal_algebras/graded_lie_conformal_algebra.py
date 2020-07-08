@@ -47,7 +47,6 @@ AUTHORS:
 
 
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras
-from .lie_conformal_algebra_element import GradedLCAElement
 from .lie_conformal_algebra_with_structure_coefs import \
                                 LieConformalAlgebraWithStructureCoefficients
 
@@ -111,12 +110,16 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
             sage: V = lie_conformal_algebras.Virasoro(QQ)
             sage: TestSuite(V).run()
         """
-        category = LieConformalAlgebras(R).WithBasis().FinitelyGenerated().\
-                    Graded().or_subcategory(category)
-        element_class = GradedLCAElement
+        is_super = kwds.get('super',None)
+        default_category = LieConformalAlgebras(R).WithBasis().FinitelyGenerated().Graded()
+        if is_super or parity:
+            category = default_category.Super().or_subcategory(category)
+        else:
+            category = default_category.or_subcategory(category)
+
         LieConformalAlgebraWithStructureCoefficients.__init__(self,R,
             s_coeff,index_set=index_set,central_elements=central_elements,
-            category=category, element_class=element_class, prefix=prefix,
+            category=category, prefix=prefix,
             names=names, latex_names=latex_names, parity=parity, **kwds)
 
         if weights is None:

@@ -153,9 +153,6 @@ cdef class ntl_GF2(object):
         GF2_div(r.x, (<ntl_GF2>self).x, (<ntl_GF2>other).x)
         return r
 
-    def __div__(self, other):
-        return self / other
-
     def __sub__(self, other):
         """
             sage: o = ntl.GF2(1)

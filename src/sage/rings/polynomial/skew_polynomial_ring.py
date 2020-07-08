@@ -762,13 +762,11 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
             sage: T.twist_map(-1)
             Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
 
-        Sometimes it fails, even if the twist map is actually invertible::
+        ::
 
             sage: S.twist_map(-1)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: inversion of the twist map Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
-                  Defn: t |--> t + 1
+            Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
+              Defn: t |--> t - 1
         """
         try:
             return self._map ** n

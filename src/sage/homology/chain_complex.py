@@ -681,7 +681,7 @@ class ChainComplex_class(Parent):
         self._degree_of_differential = degree_of_differential
         self._diff = differentials
 
-        from sage.categories.all import ChainComplexes
+        from sage.categories.chain_complexes import ChainComplexes
         category = ChainComplexes(base_ring)
         super(ChainComplex_class, self).__init__(base=base_ring, category=category)
 

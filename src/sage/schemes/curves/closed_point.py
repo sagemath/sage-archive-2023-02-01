@@ -71,7 +71,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
 from sage.structure.richcmp import richcmp
@@ -400,7 +400,7 @@ class IntegralProjectiveCurveClosedPoint(IntegralCurveClosedPoint):
             sage: p3.affine(1)
             Traceback (most recent call last):
             ...
-            ValueError: not in the the affine patch
+            ValueError: not in the affine patch
         """
         C = self.curve()
         P = C.ambient_space()
@@ -412,7 +412,7 @@ class IntegralProjectiveCurveClosedPoint(IntegralCurveClosedPoint):
                     break
         else:
             if P.gen(i) in ideal:
-                raise ValueError("not in the the affine patch")
+                raise ValueError("not in the affine patch")
 
         A = P.affine_patch(i)
         phi = A.projective_embedding(i, P)

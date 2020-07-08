@@ -63,7 +63,7 @@ class TestParent1(Parent):
             sage: sage.misc.nested_class_test.TestParent1()
             <sage.misc.nested_class_test.TestParent1_with_category object at ...>
         """
-        from sage.categories.all import Sets
+        from sage.categories.sets_cat import Sets
         Parent.__init__(self, category = Sets())
 
     class Element(ElementWrapper):
@@ -80,7 +80,7 @@ class TestParent2(Parent, metaclass=NestedClassMetaclass):
             ...
             TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
         """
-        from sage.categories.all import Sets
+        from sage.categories.sets_cat import Sets
         Parent.__init__(self, category = Sets())
 
     class Element(ElementWrapper):
@@ -96,7 +96,7 @@ class TestParent3(UniqueRepresentation, Parent):
             sage: sage.misc.nested_class_test.TestParent3()
             <sage.misc.nested_class_test.TestParent3_with_category object at ...>
         """
-        from sage.categories.all import Sets
+        from sage.categories.sets_cat import Sets
         Parent.__init__(self, category = Sets())
 
     class Element(ElementWrapper):
@@ -111,7 +111,7 @@ class TestParent4(Parent, metaclass=ClasscallMetaclass):
             sage: sage.misc.nested_class_test.TestParent4()
             <sage.misc.nested_class_test.TestParent4_with_category object at ...>
         """
-        from sage.categories.all import Sets
+        from sage.categories.sets_cat import Sets
         Parent.__init__(self, category=Sets())
 
     def __eq__(self, other):

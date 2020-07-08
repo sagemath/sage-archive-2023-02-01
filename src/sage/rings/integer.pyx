@@ -2013,7 +2013,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_mul(x.value, self.value, (<Integer>right).value)
         return x
 
-    def __div__(left, right):
+    def __truediv__(left, right):
         r"""
         TESTS::
 

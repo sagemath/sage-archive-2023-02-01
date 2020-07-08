@@ -126,7 +126,7 @@ Test if :trac:`9947` is fixed::
 
 Check the fix for :trac:`25251` and :trac:`25252`::
 
-    sage: e1 = sqrt(2)*I - sqrt(2) - 2 
+    sage: e1 = sqrt(2)*I - sqrt(2) - 2
     sage: e2 = sqrt(2)
     sage: e1 * e2
     sqrt(2)*((I - 1)*sqrt(2) - 2)
@@ -11730,11 +11730,11 @@ cdef class Expression(CommutativeRingElement):
             sage: sin(x).find_root(-1,1)
             0.0
 
-        This example was fixed along with :trac:`4942` - 
+        This example was fixed along with :trac:`4942` -
         there was an error in the example
         pi is a root for tan(x), but an asymptote to 1/tan(x)
         added an example to show handling of both cases::
-        
+
             sage: (tan(x)).find_root(3,3.5)
             3.1415926535...
             sage: (1/tan(x)).find_root(3, 3.5)

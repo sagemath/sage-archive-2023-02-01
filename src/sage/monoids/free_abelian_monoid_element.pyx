@@ -107,6 +107,12 @@ cdef class FreeAbelianMonoidElement(MonoidElement):
             Free abelian monoid on 5 generators (a, b, c, d, e)
             sage: F(1)
             1
+            sage: F(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: argument x (= 2) is of the wrong type
+            sage: F(int(1))
+            1
             sage: a, b, c, d, e = F.gens()
             sage: a^2 * b^3 * a^2 * b^4
             a^4*b^7
@@ -120,17 +126,20 @@ cdef class FreeAbelianMonoidElement(MonoidElement):
         cdef Py_ssize_t i
         cdef Integer z
 
-        MonoidElement.__init__(self, parent)
-        if isinstance(x, (int, Integer)) and x == 1:
-            x = tuple([0]*self._n)
-        if isinstance(x, (list, tuple)):
+        if isinstance(x, int):
+            if (<int> x) == 1:
+                return  # the _element_vector is already set to the 0 vector
+        elif isinstance(x, Integer):
+            if mpz_cmp_si((<Integer> x).value, 1) == 0:
+                return  # the _element_vector is already set to the 0 vector
+        elif isinstance(x, (list, tuple)):
             if len(x) != self._n:
                 raise IndexError("argument length (= %s) must be %s" % (len(x), self._n))
             for i in range(self._n):
                 z = Integer(x[i])
                 mpz_set(self._element_vector[i], z.value)
-        else:
-            raise TypeError("argument x (= %s) is of wrong type"%x)
+            return
+        raise TypeError("argument x (= %s) is of the wrong type" % x)
 
     def __dealloc__(self):
         """
@@ -310,12 +319,12 @@ cdef class FreeAbelianMonoidElement(MonoidElement):
 
     def __pow__(self, n, modulus):
         """
-        Raises self to the power of `n`.
+        Raises self to the power of ``n``.
 
         AUTHORS:
 
         - Tom Boothby (2007-08): Replaced O(log n) time, O(n) space
-          algorithm with O(1) time and space"algorithm".
+          algorithm with O(1) time and space "algorithm".
 
         EXAMPLES::
 
@@ -364,11 +373,11 @@ cdef class FreeAbelianMonoidElement(MonoidElement):
         return hash(tuple(self.list()))
 
     def list(self):
-        """
-        Return (a reference to) the underlying list used to represent this
-        element. If this is a monoid in an abelian monoid on `n`
-        generators, then this is a list of nonnegative integers of length
-        `n`.
+        r"""
+        Return the underlying list used to represent ``self``.
+
+        If this is a monoid in an abelian monoid on `n` generators,
+        then this is a list of nonnegative integers of length `n`.
 
         EXAMPLES::
 

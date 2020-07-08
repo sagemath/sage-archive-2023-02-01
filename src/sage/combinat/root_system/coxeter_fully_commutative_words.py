@@ -1,9 +1,15 @@
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.list_clone import NormalizedClonableList, ClonableArray
+from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets 
 from ..words.words import FiniteWords
 from ..words.word import FiniteWord_list
 from .coxeter_matrix import CoxeterMatrix
 from .cartan_type import CartanType
-
-from sage.misc.lazy_attribute import lazy_attribute
+from collections import deque
+from sage.rings.all import Infinity
 
 def FullyCommutativeReducedCoxeterWords(data):
     if isinstance(data, CoxeterMatrix):
@@ -15,14 +21,51 @@ def FullyCommutativeReducedCoxeterWords(data):
             raise ValueError('Input must be a CoxeterMatrix or data for a Cartan type.')
         return FullyCommutativeReducedCoxeterWords_class(t.coxeter_matrix())
 
-class FullyCommutativeReducedCoxeterWords_class(FiniteWords):
+class FullyCommutativeReducedCoxeterWord(NormalizedClonableList):
+    def check(self):
+        if not self.parent()._is_fully_commutative(self._get_list()):
+            raise ValueError('list does not represent a fully commutative word.')
+
+    def normalize(self):
+        self._require_mutable()
+        normalized = self.parent()._cartier_foata(self._get_list())
+        self._set_list(normalized)
+
+    # Provide public methods on the elements that wrap the private element
+    # methods in the parent.
+
+    def find_left_descent(self, s):
+        return self.parent()._find_left_descent(s, list(self))
+
+    def has_left_descent(self, s):
+        return self.find_left_descent(s) is not None
+
+    def left_descents(self):
+        return self.parent()._left_descents(list(self))
+
+    def still_reduced_fc_after_prepending(self, s):
+        return self.parent()._still_reduced_fc_after_prepending(s, list(self))
+
+
+class FullyCommutativeReducedCoxeterWords_class(Parent):
     def __init__(self, coxeter_matrix):
         self._matrix = coxeter_matrix
-        FiniteWords.__init__(self, sorted(self._matrix.index_set()))
 
-    @lazy_attribute
-    def _element_classes(self):
-        return {'list': FullyCommutativeReducedCoxeterWord_list}
+        category = InfiniteEnumeratedSets()
+        if self._matrix.is_finite():
+            category = FiniteEnumeratedSets()
+        else:
+            cartan_type = self._matrix.coxeter_type().cartan_type()
+            family, rank, affine = cartan_type.type(), cartan_type.rank(), cartan_type.is_affine()
+            if not affine and (rank == 2 or family in {'A', 'B', 'C', 'D', 'E', 'F', 'H'}):
+                category = FiniteEnumeratedSets()
+
+        Parent.__init__(self, category=category)
+
+    def _element_constructor_(self, lst):
+        return self.element_class(self, lst)
+
+    Element = FullyCommutativeReducedCoxeterWord
 
     def coxeter_matrix(self):
         return self._matrix
@@ -30,7 +73,7 @@ class FullyCommutativeReducedCoxeterWords_class(FiniteWords):
     def __iter__(self):
         m = self.coxeter_matrix()
 
-        empty_word = self._element_classes['list'](self, [])
+        empty_word = self.element_class(self, [], check=False)
         letters = self.coxeter_matrix().index_set()
 
         recent_words = {empty_word}
@@ -42,7 +85,7 @@ class FullyCommutativeReducedCoxeterWords_class(FiniteWords):
             for w in recent_words:
                 for s in letters:
                     if w.still_reduced_fc_after_prepending(s):
-                        sw = self._element_classes['list'](self, [s] + list(w)).cartier_foata()
+                        sw = self.element_class(self, [s] + list(w), check=False)
                         new_words.add(sw)
 
             if len(new_words) == 0:
@@ -52,10 +95,42 @@ class FullyCommutativeReducedCoxeterWords_class(FiniteWords):
             recent_words = new_words
             length += 1
 
-    # Operations on or between letters and words are implemented on the parent,
-    # all taking letters as integers and words as lists.
-    # This is for performance reasons; methods on the elements are provided
-    # that delegate to these functions on the parent.
+    def _is_fully_commutative(self, w):
+        matrix = self.coxeter_matrix()
+
+        def contains_long_braid(w):
+            for i in range(0, len(w)-2):
+                a = w[i]
+                b = w[i+1]
+                m = matrix[a, b]
+                if m > 2 and i+m <= len(w):
+                    ab_braid = (a, b) * (m // 2) + ((a,) if m % 2 == 1 else ())
+                    if w[i:i+m] == ab_braid:
+                        return True
+            return False
+
+        def commute_once(word, i):
+            return word[:i] + (word[i+1], word[i]) + word[i+2:]
+
+        w = tuple(w)
+
+        if contains_long_braid(w):
+            return False
+        else:
+            l, checked, queue = len(w), {w}, deque([w]) 
+            while queue:
+                word = queue.pop()
+                for i in range(l-1):
+                    a, b = word[i], word[i+1]
+                    if matrix[a, b] == 2:
+                        new_word = commute_once(word, i)
+                        if new_word not in checked:
+                            if contains_long_braid(new_word):
+                                return False
+                            else:
+                                checked.add(new_word)
+                                queue.appendleft(new_word)
+            return True
 
     def _find_left_descent(self, s, w):
         m = self.coxeter_matrix()
@@ -77,14 +152,14 @@ class FullyCommutativeReducedCoxeterWords_class(FiniteWords):
         out_word = []
         
         while len(cur_word) > 0:
-            for s in self.alphabet():
+            for s in self.coxeter_matrix().index_set():
                 i = self._find_left_descent(s, cur_word)
                 if i is not None:
                     out_word.append(s)
                     # cur_word = cur_word[:i] + cur_word[i+1:]
                     cur_word.pop(i)
             
-        return self._element_classes['list'](self, out_word)
+        return out_word
 
     def _still_reduced_fc_after_prepending(self, s, w):
         m = self.coxeter_matrix()
@@ -110,25 +185,3 @@ class FullyCommutativeReducedCoxeterWords_class(FiniteWords):
                 return True
 
         return False
-
-class FullyCommutativeReducedCoxeterWord_list(FiniteWord_list):
-    def _repr_(self):
-        return 'FC ' + super()._repr_()
-
-    # Provide public methods on the elements that wrap the private element
-    # methods in the parent.
-
-    def find_left_descent(self, s):
-        return self.parent()._find_left_descent(s, list(self))
-
-    def has_left_descent(self, s):
-        return self.find_left_descent(s) is not None
-
-    def left_descents(self):
-        return self.parent()._left_descents(list(self))
-
-    def cartier_foata(self):
-        return self.parent()._cartier_foata(list(self))
-
-    def still_reduced_fc_after_prepending(self, s):
-        return self.parent()._still_reduced_fc_after_prepending(s, list(self))

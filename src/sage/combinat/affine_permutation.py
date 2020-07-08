@@ -708,10 +708,14 @@ class AffinePermutationTypeA(AffinePermutation):
             T = [i]
             j = i
             for count in range(1,self.k):
-                if (typ[0],side[0]) == ('d','r'):  j=(j+1)%(k+1)
-                if (typ[0],side[0]) == ('i','r'):  j=(j-1)%(k+1)
-                if (typ[0],side[0]) == ('d','l'):  j=(j-1)%(k+1)
-                if (typ[0],side[0]) == ('i','l'):  j=(j+1)%(k+1)
+                if (typ[0],side[0]) == ('d','r'):
+                    j=(j+1)%(k+1)
+                if (typ[0],side[0]) == ('i','r'):
+                    j=(j-1)%(k+1)
+                if (typ[0],side[0]) == ('d','l'):
+                    j=(j-1)%(k+1)
+                if (typ[0],side[0]) == ('i','l'):
+                    j=(j+1)%(k+1)
                 if y.has_descent(j, side):
                     y=y.apply_simple_reflection(j,side)
                     T.append(j%(k+1))
@@ -849,9 +853,10 @@ class AffinePermutationTypeA(AffinePermutation):
                 a=self(i)
                 for j in range(i-self.k, i):
                     b=self(j)
-                    #A small rotation is necessary for the reduced word from
-                    #the lehmer code to match the element.
-                    if a<b: code[i-1]+=((b-a)//(self.k+1)+1)
+                    # A small rotation is necessary for the reduced word from
+                    # the lehmer code to match the element.
+                    if a<b:
+                        code[i-1]+=((b-a)//(self.k+1)+1)
         elif typ[0] == 'i' and side[0] == 'l':
             #Find number of positions to the right of i smaller than i, then
             #cyclically shift the resulting vector.
@@ -2329,7 +2334,8 @@ class AffinePermutationGroupTypeA(AffinePermutationGroupGeneric):
                     ll.append(residue)
                     l[pos] = [residue]
                     D[pos] -= 1
-            if side[0]=='l': ll.reverse()
+            if side[0] == 'l':
+                ll.reverse()
             listy.append(ll)
             row += 1
         if side[0] == 'r':
@@ -2341,6 +2347,7 @@ class AffinePermutationGroupTypeA(AffinePermutationGroupGeneric):
         return x
 
     Element = AffinePermutationTypeA
+
 
 class AffinePermutationGroupTypeC(AffinePermutationGroupGeneric):
     #------------------------

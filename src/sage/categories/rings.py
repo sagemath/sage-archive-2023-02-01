@@ -65,19 +65,20 @@ class Rings(CategoryWithAxiom):
             """
             Return whether or not this morphism is injective.
 
-            EXAMPLES:
+            EXAMPLES::
 
-            This often raises a ``NotImplementedError`` as many homomorphisms do
-            not implement this method::
-
-                sage: R.<x> = QQ[]
-                sage: f = R.hom([x + 1]); f
-                Ring endomorphism of Univariate Polynomial Ring in x over Rational Field
-                  Defn: x |--> x + 1
-                sage: f.is_injective()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError
+                sage: R.<x,y> = QQ[]
+                sage: R.hom([x, y^2], R).is_injective()
+                True
+                sage: R.hom([x, x^2], R).is_injective()
+                False
+                sage: S.<u,v> = R.quotient(x^3*y)
+                sage: R.hom([v, u], S).is_injective()
+                False
+                sage: S.hom([-u, v], S).is_injective()
+                True
+                sage: S.cover().is_injective()
+                False
 
             If the domain is a field, the homomorphism is injective::
 
@@ -148,6 +149,13 @@ class Rings(CategoryWithAxiom):
                 # homomorphism must send the 1 element to the 1 element
                 return True
 
+            try:
+                ker = self.kernel()
+            except (NotImplementedError, AttributeError):
+                pass
+            else:
+                return ker.is_zero()
+
             if self.domain().characteristic() == 0:
                 if self.codomain().characteristic() != 0:
                     return False
@@ -170,8 +178,11 @@ class Rings(CategoryWithAxiom):
                     if K is self.codomain():
                         return True
 
-            if self.domain().cardinality() > self.codomain().cardinality():
-                return False
+            try:
+                if self.domain().cardinality() > self.codomain().cardinality():
+                    return False
+            except AttributeError:
+                pass
 
             raise NotImplementedError
 
@@ -1055,7 +1066,7 @@ class Rings(CategoryWithAxiom):
             # 1. If arg is a list, try to return a power series ring.
 
             if isinstance(arg, list):
-                if arg == []:
+                if not arg:
                     raise TypeError("power series rings must have at least one variable")
                 elif len(arg) == 1:
                     # R[["a,b"]], R[[(a,b)]]...

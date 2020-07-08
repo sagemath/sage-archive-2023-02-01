@@ -423,14 +423,14 @@ class Link(SageObject):
         elif presentation == 'gauss_code':
             res = []
             for comp in self.gauss_code():
-                if not any(i<0 for i in comp):
+                if not any(i < 0 for i in comp):
                     res.append(comp)
                 else:
                     rescom = []
                     par = []
                     for i in comp:
                         par.append(i)
-                        if i<0:
+                        if i < 0:
                             rescom.append(copy(par))
                             par = [i]
                     rescom[0] = par + rescom[0]
@@ -795,7 +795,7 @@ class Link(SageObject):
             tails[C[2]] = C
             a = C[2]
             D = C
-            while not a in heads:
+            while a not in heads:
                 next_crossing = [x for x in pd_code if a in x and x != D]
                 if not next_crossing:
                     heads[a] = D
@@ -819,7 +819,7 @@ class Link(SageObject):
                 if a in x:
                     D = x
                     break
-            while not a in heads:
+            while a not in heads:
                 tails[a] = D
                 for x in pd_code:
                     if a in x and x != D:
@@ -1021,12 +1021,14 @@ class Link(SageObject):
             G = Graph()
             for j, cr in enumerate(crossings):
                 n = nmax + j
-                if not v[j]: # For negative crossings, we go from undercrossings to the left
+                if not v[j]:
+                    # For negative crossings, we go from undercrossings to the left
                     G.add_edge((cr[3], cr[0], n), cr[0])
                     G.add_edge((cr[3], cr[0], n), cr[3])
                     G.add_edge((cr[1], cr[2], n), cr[2])
                     G.add_edge((cr[1], cr[2], n), cr[1])
-                else: # positive crossings, from undercrossing to the right
+                else:
+                    # positive crossings, from undercrossing to the right
                     G.add_edge((cr[0], cr[1], n), cr[0])
                     G.add_edge((cr[0], cr[1], n), cr[1])
                     G.add_edge((cr[2], cr[3], n), cr[2])
@@ -1037,10 +1039,10 @@ class Link(SageObject):
             jmin = writhe + iindex - len(sm)
             jmax = writhe + iindex + len(sm)
             smoothings.append((tuple(v), sm, iindex, jmin, jmax))
-        states = [] # we got all the smoothings, now find all the states
+        states = []  # we got all the smoothings, now find all the states
         for sm in smoothings:
             for k in range(len(sm[1])+1):
-                for circpos in combinations(sorted(sm[1]), k): # Add each state
+                for circpos in combinations(sorted(sm[1]), k):  # Add each state
                     circneg = sm[1].difference(circpos)
                     j = writhe + sm[2] + len(circpos) - len(circneg)
                     states.append((sm[0], tuple(sorted(circneg)), tuple(circpos), sm[2], j))
@@ -1082,7 +1084,7 @@ class Link(SageObject):
         ncross = len(crossings)
         states = [(_0, set(_1), set(_2), _3, _4)
                   for (_0, _1, _2, _3, _4) in self._enhanced_states()]
-        bases = {} # arrange them by (i,j)
+        bases = {}  # arrange them by (i,j)
         for st in states:
             i, j = st[3], st[4]
             if j == height:
@@ -1102,7 +1104,7 @@ class Link(SageObject):
                         difs = [index for index,value in enumerate(V1[0]) if value != V20[index]]
                         if len(difs) == 1 and not (V2[2].intersection(V1[1]) or V2[1].intersection(V1[2])):
                             m[ii,jj] = (-1)**sum(V2[0][x] for x in range(difs[0]+1, ncross))
-                            #Here we have the matrix constructed, now we have to put it in the dictionary of complexes
+                            # Here we have the matrix constructed, now we have to put it in the dictionary of complexes
             else:
                 m = matrix(ring, len(bases[(i,j)]), 0)
             complexes[i] = m.transpose()
@@ -1570,39 +1572,25 @@ class Link(SageObject):
         """
         x = self._braid_word_components_vector()
         h = self._homology_generators()
-        hl = len(h)
-        A = matrix(ZZ, hl, hl)
         indices = [i for i, hi in enumerate(h) if hi]
-        for i in indices:
+        N = len(indices)
+        A = matrix(ZZ, N, N, 0)
+        for ni, i in enumerate(indices):
             hi = h[i]
-            for j in range(i, hl):
-                if i == j:
-                    A[i, j] = -(x[i] + x[hi]).sign()
-                elif hi > h[j]:
-                    A[i, j] = 0
-                    A[j, i] = 0
-                elif hi < j:
-                    A[i, j] = 0
-                    A[j, i] = 0
-                elif hi == j:
+            A[ni, ni] = -(x[i] + x[hi]).sign()
+            for nj in range(ni + 1, N):
+                j = indices[nj]
+                if hi > h[j] or hi < j:
+                    continue
+                if hi == j:
                     if x[j] > 0:
-                        A[i, j] = 0
-                        A[j, i] = 1
+                        A[nj, ni] = 1
                     else:
-                        A[i, j] = -1
-                        A[j, i] = 0
-                elif abs(abs(x[i]) - abs(x[j])) > 1:
-                    A[i, j] = 0
+                        A[ni, nj] = -1
                 elif abs(x[i]) - abs(x[j]) == 1:
-                    A[i, j] = 0
-                    A[j, i] = -1
+                    A[nj, ni] = -1
                 elif abs(x[j]) - abs(x[i]) == 1:
-                    A[i, j] = 1
-                    A[j, i] = 0
-                else:  # for debugging
-                    A[i, j] = 2
-                    A[j, i] = 2
-        A = A.matrix_from_rows_and_columns(indices, indices)
+                    A[ni, nj] = 1
         A.set_immutable()
         return A
 
@@ -1851,6 +1839,7 @@ class Link(SageObject):
         t = R.gen()
         seifert_matrix = self.seifert_matrix()
         f = (seifert_matrix - t * seifert_matrix.transpose()).determinant()
+        # could we use a charpoly here ? or faster determinant ?
         if f != 0:
             exp = f.exponents()
             return t ** ((-max(exp) - min(exp)) // 2) * f
@@ -1998,7 +1987,7 @@ class Link(SageObject):
         result = []
         # detect looped segments. They must be their own seifert circles
         for a in available_segments:
-            if any(C.count(a)>1 for C in self.pd_code()):
+            if any(C.count(a) > 1 for C in self.pd_code()):
                 result.append([a])
         # remove the looped segments from the available
         for a in result:
@@ -2011,7 +2000,7 @@ class Link(SageObject):
             else:
                 C = heads[a]
                 par = []
-                while not a in par:
+                while a not in par:
                     par.append(a)
                     posnext = C[(C.index(a) + 1) % 4]
                     if tails[posnext] == C and not [posnext] in result:
@@ -2099,7 +2088,7 @@ class Link(SageObject):
         while available_edges:
             edge = available_edges.pop()
             region = []
-            while not edge in region:
+            while edge not in region:
                 region.append(edge)
                 if edge > 0:
                     cros = heads[edge]
@@ -3054,7 +3043,7 @@ class Link(SageObject):
                     rev = segments[-e][1:]
                     rev.reverse()
                     sig = sign(s[edges.index(-e)])
-                    nregion+=[[a, -sig] for a in rev]
+                    nregion += [[a, -sig] for a in rev]
                     nregion.append([segments[-e][0], 1])
             nregions.append(nregion)
         N = max(segments) + 1
@@ -3182,8 +3171,8 @@ class Link(SageObject):
                     y1 = y0
                 elif direction == 3:
                     x1 = x0
-                    y1 = y0 -l
-                im.append(([[x0,y0],[x1,y1]], l, direction))
+                    y1 = y0 - l
+                im.append(([[x0, y0], [x1, y1]], l, direction))
                 direction = (direction + turn) % 4
                 x0 = x1
                 y0 = y1

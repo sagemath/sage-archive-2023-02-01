@@ -126,7 +126,7 @@ Test if :trac:`9947` is fixed::
 
 Check the fix for :trac:`25251` and :trac:`25252`::
 
-    sage: e1 = sqrt(2)*I - sqrt(2) - 2 
+    sage: e1 = sqrt(2)*I - sqrt(2) - 2
     sage: e2 = sqrt(2)
     sage: e1 * e2
     sqrt(2)*((I - 1)*sqrt(2) - 2)
@@ -1316,15 +1316,6 @@ cdef class Expression(CommutativeRingElement):
             raise ValueError("cannot convert %s to int" % self)
         else:
             return int(result)
-
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: long(sin(2)*100)
-            90L
-        """
-        return long(int(self))
 
     def _rational_(self):
         """
@@ -5869,14 +5860,10 @@ cdef class Expression(CommutativeRingElement):
 
         Indexing directly with ``t[1]`` causes problems with numpy types.
 
-            sage: t[1] # py2
+            sage: t[1]
             Traceback (most recent call last):
             ...
-            TypeError: 'sage.symbolic.expression.Expression' object does not support indexing
-            sage: t[1] # py3
-            Traceback (most recent call last):
-            ...
-            TypeError: 'sage.symbolic.expression.Expression' object is not subscriptable
+            TypeError: 'sage.symbolic.expression.Expression' object ...
         """
         if (is_a_symbol(self._gobj) or is_a_constant(self._gobj) or
             is_a_numeric(self._gobj)):
@@ -11743,11 +11730,11 @@ cdef class Expression(CommutativeRingElement):
             sage: sin(x).find_root(-1,1)
             0.0
 
-        This example was fixed along with :trac:`4942` - 
+        This example was fixed along with :trac:`4942` -
         there was an error in the example
         pi is a root for tan(x), but an asymptote to 1/tan(x)
         added an example to show handling of both cases::
-        
+
             sage: (tan(x)).find_root(3,3.5)
             3.1415926535...
             sage: (1/tan(x)).find_root(3, 3.5)

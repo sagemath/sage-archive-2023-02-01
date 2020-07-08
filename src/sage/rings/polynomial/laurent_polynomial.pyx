@@ -11,6 +11,7 @@ Elements of Laurent polynomial rings
 # ****************************************************************************
 
 from sage.rings.integer cimport Integer
+from sage.categories.map cimport Map
 from sage.structure.element import is_Element, coerce_binop
 from sage.misc.misc import union
 from sage.structure.factorization import Factorization
@@ -236,6 +237,65 @@ cdef class LaurentPolynomial(CommutativeAlgebraElement):
         """
         raise NotImplementedError
 
+    def map_coefficients(self, f, new_base_ring=None):
+        """
+        Apply ``f`` to the coefficients of ``self``.
+
+        If ``f`` is a :class:`sage.categories.map.Map`, then the resulting
+        polynomial will be defined over the codomain of ``f``. Otherwise, the
+        resulting polynomial will be over the same ring as ``self``. Set
+        ``new_base_ring`` to override this behavior.
+
+        INPUT:
+
+        - ``f`` -- a callable that will be applied to the coefficients of ``self``.
+
+        - ``new_base_ring`` (optional) -- if given, the resulting polynomial
+          will be defined over this ring.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(9)
+            sage: R.<x> = LaurentPolynomialRing(k)
+            sage: f = x*a + a
+            sage: f.map_coefficients(lambda a : a + 1)
+            (a + 1) + (a + 1)*x
+            sage: R.<x,y> = LaurentPolynomialRing(k, 2)
+            sage: f = x*a + 2*x^3*y*a + a
+            sage: f.map_coefficients(lambda a : a + 1)
+            (2*a + 1)*x^3*y + (a + 1)*x + a + 1
+
+        Examples with different base ring::
+
+            sage: R.<r> = GF(9); S.<s> = GF(81)
+            sage: h = Hom(R,S)[0]; h
+            Ring morphism:
+              From: Finite Field in r of size 3^2
+              To:   Finite Field in s of size 3^4
+              Defn: r |--> 2*s^3 + 2*s^2 + 1
+            sage: T.<X,Y> = LaurentPolynomialRing(R, 2)
+            sage: f = r*X+Y
+            sage: g = f.map_coefficients(h); g
+            (2*s^3 + 2*s^2 + 1)*X + Y
+            sage: g.parent()
+            Multivariate Laurent Polynomial Ring in X, Y over Finite Field in s of size 3^4
+            sage: h = lambda x: x.trace()
+            sage: g = f.map_coefficients(h); g
+            X - Y
+            sage: g.parent()
+            Multivariate Laurent Polynomial Ring in X, Y over Finite Field in r of size 3^2
+            sage: g = f.map_coefficients(h, new_base_ring=GF(3)); g
+            X - Y
+            sage: g.parent()
+            Multivariate Laurent Polynomial Ring in X, Y over Finite Field of size 3
+
+        """
+        R = self.parent()
+        if new_base_ring is not None:
+            R = R.change_ring(new_base_ring)
+        elif isinstance(f, Map):
+            R = R.change_ring(f.codomain())
+        return R(dict([(k,f(v)) for (k,v) in self.dict().items()]))
 
 cdef class LaurentPolynomial_univariate(LaurentPolynomial):
     """
@@ -774,6 +834,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         Return a dictionary representing ``self``.
 
         EXAMPLES::
+
             sage: R.<x,y> = ZZ[]
             sage: Q.<t> = LaurentPolynomialRing(R)
             sage: f = (x^3 + y/t^3)^3 + t^2; f

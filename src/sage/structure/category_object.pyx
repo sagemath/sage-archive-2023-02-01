@@ -647,7 +647,7 @@ cdef class CategoryObject(SageObject):
             return self._Hom_(codomain, cat)
         except (AttributeError, TypeError):
             pass
-        from sage.categories.all import Hom
+        from sage.categories.homset import Hom
         return Hom(self, codomain, cat)
 
     def latex_variable_names(self):
@@ -894,32 +894,6 @@ cdef class CategoryObject(SageObject):
 
         """
         return dir_with_other_class(self, self.category().parent_class)
-
-    ##############################################################################
-    # For compatibility with Python 2
-    ##############################################################################
-    def __div__(self, other):
-        """
-        Implement Python 2 division as true division.
-
-        EXAMPLES::
-
-            sage: V = QQ^2
-            sage: V.__div__(V.span([(1,3)]))  # py2
-            Vector space quotient V/W of dimension 1 over Rational Field where
-            V: Vector space of dimension 2 over Rational Field
-            W: Vector space of degree 2 and dimension 1 over Rational Field
-            Basis matrix:
-            [1 3]
-            sage: V.__truediv__(V.span([(1,3)]))
-            Vector space quotient V/W of dimension 1 over Rational Field where
-            V: Vector space of dimension 2 over Rational Field
-            W: Vector space of degree 2 and dimension 1 over Rational Field
-            Basis matrix:
-            [1 3]
-        """
-        return self / other
-
 
 cpdef normalize_names(Py_ssize_t ngens, names):
     r"""

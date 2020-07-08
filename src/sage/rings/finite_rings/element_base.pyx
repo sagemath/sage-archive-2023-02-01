@@ -42,7 +42,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
             sage: a = Zmod(17)(13)
             sage: a._nth_root_common(4, True, "Johnston", False)
             [3, 5, 14, 12]
-            sage: a._nth_root_common(4, True, "Johnston", cunningham = True) # optional - cunningham
+            sage: a._nth_root_common(4, True, "Johnston", cunningham = True) # optional - cunningham_tables
             [3, 5, 14, 12]
         """
         K = self.parent()

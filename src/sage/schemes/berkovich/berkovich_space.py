@@ -80,7 +80,7 @@ class Berkovich_Element(Element):
 
 class Berkovich_Element_Cp(Berkovich_Element):
     r"""
-    The abstract parent class for any element of Berkovich space over `\CC_p`. 
+    The abstract parent class for any element of Berkovich space over `\CC_p`.
     This class should never be instantiated, instead Berkovich_Element_Cp_Affine
     or Berkovich_Element_Cp_Projective should be used.
     """
@@ -226,7 +226,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         #check containment for the sequence of disks
                         previous_center = self._center_lst[i-1]
                         previous_radius = self._radius_lst[i-1]
-                        dist = (center[0] - previous_center[0]).abs()
+                        dist = self._custom_abs(center[0] - previous_center[0])
                         if previous_radius < radius or dist > radius:
                             raise ValueError("sequence of disks does not define a Type IV point as" + \
                                 "containment is not proper")
@@ -274,7 +274,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         #check containment for the sequence of disks
                         previous_center = self._center_lst[i-1]
                         previous_radius = self._radius_lst[i-1]
-                        dist = (center - previous_center).abs()
+                        dist = self._custom_abs(center - previous_center)
                         if previous_radius < radius or dist > radius:
                             raise ValueError("sequence of disks does not define a Type IV point as " + \
                                 "containment is not proper")
@@ -433,8 +433,11 @@ class Berkovich_Element_Cp(Berkovich_Element):
         Returns the absolute value of ``x`` with respect to the norm on ``Cp``.
 
         Used to simplify code, as ``x`` may be a point of a number field
-        or a padic field. 
+        or a padic field.
         """
+        if self._base_type == 'padic':
+            return x.abs()
+        return (self.prime())**(self._valuation)(x)
 
     def precision(self):
         """
@@ -570,7 +573,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
         Also referred to as the hyperbolic metric, or the big metric.
 
         On the set of Type II, III and IV points, the path distance metric
-        is a metric. Following Baker and Rumely, we extend 
+        is a metric. Following Baker and Rumely, we extend
         the path distance metric to Type I points x,y by p(x,x) = 0 and p(x,y) =
         infinity.
 
@@ -737,7 +740,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
             3
         """
         return self._p
-    
+
     def __ne__(self, other):
         """
         Non-equality operator.
@@ -818,18 +821,18 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     - Type III points are represented by a center in `\QQ_p` and a radius in `[0,\infty)`
 
-    - Type IV points are represented by a finite list of centers in `\QQ_p` and 
-      a finite list of radii in `[0,\infty)`. 
+    - Type IV points are represented by a finite list of centers in `\QQ_p` and
+      a finite list of radii in `[0,\infty)`.
 
     INPUT:
 
     - ``center`` -- For Type I, II, and III points, the center of the 
       corresponding disk in `\CC_p`. Must be an element of `\QQ_p`, a finite extension
       of `\QQ_p`, or coerce into `\QQ_p`. For Type IV points, can be a list of centers
-      used to approximate the point or a univariate function that computes the centers 
+      used to approximate the point or a univariate function that computes the centers
       (computation starts at 1).
 
-    - ``radius`` -- (optional) For Type I, II, and III points, the radius of the 
+    - ``radius`` -- (optional) For Type I, II, and III points, the radius of the
       corresponding disk in ``Cp``. Must coerce into the real numbers. For Type IV points,
       can be a list of radii used to approximate the point or a univariate function that
       computes the radii (computation starts at 1). 
@@ -840,8 +843,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
     - ``prec`` -- (default: 20) The number of disks to be used to approximate a Type IV point
 
     - ``error_check`` -- (default: True) If error checking should be run on input. If
-      input is correctly formatted, can be set to ``False`` for better performance. 
-      WARNING: with error check set to ``False``, any error in the input will lead to 
+      input is correctly formatted, can be set to ``False`` for better performance.
+      WARNING: with error check set to ``False``, any error in the input will lead to
       incorrect results.
 
     EXAMPLES:
@@ -866,7 +869,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         Type II point centered at 2 + O(3^20) of radius 3^1/2
         sage: c = B(2,1.6); c
         Type III point centered at 2 + O(3^20) of radius 1.60000000000000
-    
+
     Some Type II points may be mistaken for Type III points::
 
         sage: b = B(3, 3**0.5); b
@@ -876,7 +879,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         sage: b = B(3, power=RR(1/100000)); b
         Type II point centered at 3 + O(3^21) of radius 3^1/100000
-    
+
     Type IV points can be constructed in a number of ways, the first being
     from a list of centers and radii used to approximate the point::
 
@@ -900,9 +903,23 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
     to ``False``, any error in the input will lead to incorrect results::
 
         sage: d = B(f,g,prec=100,error_check=False); d
-        Type IV point of precision 100 with centers given by 
+        Type IV point of precision 100 with centers given by
         ((t^2 + 2*t + 1) + O(3^20))*x and radii given by (y + 1.00000000000000)/y
-        
+
+    When creating a Berkovich space backed by a number field, points can be created similarily::
+
+        sage: R.<x> = QQ[]
+        sage: A.<a> = NumberField(x^3+20)
+        sage: v = A.valuation(3)
+        sage: B = Berkovich_Cp_Projective(A,v)
+        sage: Q1 = B(a); Q1
+        Type I point centered at (a : 1)
+
+    ::
+
+        sage: Q2 = B(a+1, 3); Q2
+        Type II point centered at (a + 1 : 1) of radius 3^1
+
     TESTS::
 
         sage: A= Berkovich_Cp_Affine(Qp(3))
@@ -910,8 +927,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         Type II point centered at 3 + O(3^21) of radius 3^0
 
         sage: Q2=A(2.5,1); Q2
-        Type II point centered at 1 + 2*3 + 3^2 + 3^3 + 3^4 + 3^5 + 3^6 + 3^7 + 
-        3^8 + 3^9 + 3^10 + 3^11 + 3^12 + 3^13 + 3^14 + 3^15 + 3^16 + 3^17 + 
+        Type II point centered at 1 + 2*3 + 3^2 + 3^3 + 3^4 + 3^5 + 3^6 + 3^7 +
+        3^8 + 3^9 + 3^10 + 3^11 + 3^12 + 3^13 + 3^14 + 3^15 + 3^16 + 3^17 +
         3^18 + 3^19 + O(3^20) of radius 3^0
 
         sage: Q5=A(3,0); Q5
@@ -1045,7 +1062,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         elif stype in [2,3] and otype in [2,3]:
             if self.radius() != other.radius():
                 return False
-            center_dist = (self.center() - other.center()).abs()
+            center_dist = self._custom_abs(self.center() - other.center())
             return center_dist <= self.radius()
         else:
             return False
@@ -1071,11 +1088,11 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         The standard partial order on Berkovich space
 
         Roughly, the partial order corresponds to containment of
-        the corresponding disks in ``Cp``. 
+        the corresponding disks in ``Cp``.
 
-        For example, let x and y be points of Type II or III. 
-        If x has center ``c1`` and radius ``r1`` and y has center 
-        ``c2`` and radius ``r2``, x < y if and only if D(c1,r1) 
+        For example, let x and y be points of Type II or III.
+        If x has center ``c1`` and radius ``r1`` and y has center
+        ``c2`` and radius ``r2``, x < y if and only if D(c1,r1)
         is a subset of D(c2,r2) in ``Cp``.
 
         INPUT:
@@ -1137,7 +1154,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         INPUT:
 
         - ``other`` -- A point of the same Berkovich space as this point
-        - ``basepoint`` -- (default: Infinity) A point of the same 
+        - ``basepoint`` -- (default: Infinity) A point of the same
           Berkovich space as this point or the string 'infty'
 
         OUTPUT: A point of the same Berkovich space
@@ -1209,7 +1226,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         The involution map is the extension of the map ``z |-> 1/z`` map
         on ``Cp`` to Berkovich space.
 
-        For Affine Berkovich Space, not defined for the Type I 
+        For Affine Berkovich Space, not defined for the Type I
         point centered at 0.
 
         OUTPUT: A point of the same Berkovich space
@@ -1254,7 +1271,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
                     power = self.power()
                     return parent(0,power=-power)
                 return parent(0,RR(1/radius))
-            return parent(1/center,RR(radius/(center.abs()**2)))
+            return parent(1/center,RR(radius/(self._custom_abs(center)**2)))
 
         new_center_lst = []
         new_radius_lst = []
@@ -1266,7 +1283,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
                 new_radius = RR(1/radius[i])
             else:
                 new_center = 1/center[i]
-                new_radius = RR(radius[i]/(center[i].abs()**2))
+                new_radius = RR(radius[i]/(self._custom_abs(center[i])**2))
             new_center_lst.append(new_center)
             new_radius_lst.append(new_radius)
         return parent(new_center_lst,new_radius_lst,error_check=False)
@@ -1354,7 +1371,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         r"""
         The spherical kernel of this point with ``other``.
 
-        The spherical kernel is one possible extension of 
+        The spherical kernel is one possible extension of
         the spherical distance on `A^1(\CC_p)` to the Berkovich
         Affine line.
 
@@ -1427,12 +1444,12 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
                 return "oo"
         return (self.spherical_kernel(other))/ \
             (self.spherical_kernel(basepoint)*other.spherical_kernel(basepoint))
-    
+
     def diameter(self, basepoint="oo"):
         """
         Generalized diameter function.
 
-        If the basepoint is infinity, the diameter is equal to 
+        If the basepoint is infinity, the diameter is equal to
         the limit of the radii of the corresponding disks in ``Cp``.
 
         If the basepoint is not infinity, the diameter
@@ -1441,7 +1458,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         INPUT:
 
-        - ``basepoint`` -- (default = Infinity) A point of the 
+        - ``basepoint`` -- (default = Infinity) A point of the
           same Berkovich space as this point
 
         OUTPUT: A real number or Infinity
@@ -1487,16 +1504,16 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     INPUT:
 
-    - ``center`` -- For Type I, II, and III points, the center of the 
+    - ``center`` -- For Type I, II, and III points, the center of the
       corresponding disk in `P^1(\CC_p)`. Must be an element of `\QQ_p`, a finite extension
       of `\QQ_p`, or coerce into `\QQ_p`. For Type IV points, can be a list of centers
-      used to approximate the point or a univariate function that computes the centers 
+      used to approximate the point or a univariate function that computes the centers
       (computation starts at 1).
 
     - ``radius`` -- (optional) For Type I, II, and III points, the radius of the 
       corresponding disk in ``Cp``. Must coerce into the real numbers. For Type IV points,
       can be a list of radii used to approximate the point or a univariate function that
-      computes the radii (computation starts at 1). 
+      computes the radii (computation starts at 1).
 
     - ``power`` -- (optional) Rational number. Used for constructing Type II points; specifies
       the power of ``p`` such that p^ ``power`` = radius.
@@ -1545,7 +1562,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
          5^10 + 3*5^11 + 5^12 + 3*5^13 + 5^14 + 3*5^15 + 5^16 + 3*5^17 + 5^18 + 3*5^19 + O(5^20) : 
          1 + O(5^20))] ... with radii [1.76100000000000, 1.12300000000000] ...
 
-    Type IV points can also be created from univariate functions. Since the centers of 
+    Type IV points can also be created from univariate functions. Since the centers of
     the sequence of disks can not be the point at infinity in `P^1(\CC_p)`, only functions
     into `\CC_p` are supported::
 
@@ -1658,7 +1675,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                 return False
             scent = self.center()[0]
             ocent = other.center()[0]
-            center_dist = (scent - ocent).abs()
+            center_dist = self._custom_abs(scent - ocent)
             return  center_dist <= self.radius()
         else:
             return False
@@ -1670,7 +1687,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         EXAMPLES::
 
             sage: B = Berkovich_Cp_Projective(3)
-            sage: P = B.base_ring()
+            sage: P = ProjectiveSpace(B.base_ring(),1)
             sage: Q1 = B(P.point([2,2],False), RR(3**(1/2)))
             sage: Q2 = B([1,1], 3**(1/2))
             sage: hash(Q1) == hash(Q2)
@@ -1760,18 +1777,18 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                 return not s_less_than_o
         else:
             if other.type_of_point() == 1:
-                dist = (self.center()[0] - other.center()[0]).abs()
+                dist = self._custom_abs(self.center()[0] - other.center()[0])
                 if dist <= self.radius():
                     return True
                 return None
             if other.type_of_point() == 4:
                 center = other.center()[len(other.center())]
-                dist = (self.center()[0] - center[0]).abs()
+                dist = self._custom_abs(self.center()[0] - center[0])
                 if dist <= self.radius():
                     return True
                 return None
             else:
-                dist = (self.center()[0]-other.center()[0]).abs()
+                dist = self._custom_abs(self.center()[0]-other.center()[0])
                 if(dist <= self.radius()):
                     if(other.radius() <= self.radius()):
                         return True
@@ -1856,7 +1873,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         if basepoint == "infty" or basepoint == infty:
             if self == infty or other == infty:
                 return infty
-            dist = (self.center()[0] - other.center()[0]).abs()
+            dist = self._custom_abs(self.center()[0] - other.center()[0])
             return parent(self.center(),max(dist,self.radius(),other.radius())) #TODO optimize for Type II
 
         if not isinstance(basepoint, Berkovich_Element_Cp_Projective):
@@ -1889,8 +1906,8 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             if b_greater_than_o == None:
                 if b_greater_than_s == None:
                     #case where none of the points are comparable
-                    dist_b_s = (self.center()[0] - basepoint.center()[0]).abs()
-                    dist_b_o = (other.center()[0] - basepoint.center()[0]).abs()
+                    dist_b_s = self._custom_abs(self.center()[0] - basepoint.center()[0])
+                    dist_b_o = self._custom_abs(other.center()[0] - basepoint.center()[0])
                     return parent(basepoint.center(),\
                         min(max(dist_b_o,other.radius(),basepoint.radius()),\
                             max(dist_b_s,self.radius(),basepoint.radius())))
@@ -1978,7 +1995,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                     power = self.power()
                     return parent(0,power=-power)
                 return parent(0,1/radius)
-            return parent(1/center[0],radius/(center[0].abs()**2))
+            return parent(1/center[0],radius/(self._custom_abs(center[0])**2))
 
         new_center_lst = []
         new_radius_lst = []
@@ -1990,7 +2007,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                 new_radius = 1/radius[i]
             else:
                 new_center = 1/center[i][0]
-                new_radius = radius[i]/(center[i][0].abs()**2)
+                new_radius = radius[i]/(self._custom_abs(center[i][0])**2)
             new_center_lst.append(new_center)
             new_radius_lst.append(new_radius)
         return parent(new_center_lst,new_radius_lst)
@@ -2413,7 +2430,18 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
         Type I point centered at (2 + O(3) : 1 + O(3))
 
     Note that this point has very low precision, as S has low
-    precision cap.
+    precision cap. Berkovich space can also be created over
+    a number field, as long as a valuation is specified::
+
+        sage: R.<x> = QQ[]
+        sage: A.<a> = NumberField(x^2+1)
+        sage: v = A.valuation(a+1)
+        sage: B = Berkovich_Cp_Projective(A,v); B
+        Projective Berkovich line over Cp(2), with base
+        Number Field in a with defining polynomial x^2 + 1
+
+    Number fields have the benefit that computation is exact,
+    but lack support for all of `\CC_p`.
     """
 
     Element = Berkovich_Element_Cp_Projective
@@ -2495,15 +2523,13 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
 
             sage: B = Berkovich_Cp_Projective(3)
             sage: B.base_ring()
-            Projective Space of dimension 1 over 3-adic Field with 
-            capped relative precision 20
+            3-adic Field with capped relative precision 20
 
         ::
 
             sage: C = Berkovich_Cp_Projective(ProjectiveSpace(Qp(3,1),1))
             sage: C.base_ring()
-            Projective Space of dimension 1 over 3-adic Field with
-            capped relative precision 1
+            3-adic Field with capped relative precision 1
         """
         return self.base().base_ring()
 

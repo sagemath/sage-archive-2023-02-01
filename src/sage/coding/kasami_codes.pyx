@@ -4,10 +4,19 @@ Kasami code
 
 This module implements a construction for the extended Kasami codes.
 The "regular" Kasami codes are obtained from truncating the extended version.
+The coset graphs of the Kasami codes are distance-regular.
+
+In particular, the extended Kasami codes result in distance-regular graphs with intersection arrays:
+    * `[q^{2j+1}, q^{2j+1} - 1, q^{2j+1} - q, q^{2j+1} - q^{2j} + 1; 1, q, q^{2j} -1, q^{2j+1}]`
+    * `[q^2, q^2 - 1, q^2 - q, 1; 1, q, q^2 - 1, q^2]`
+
+The Kasami codes result in distance-regular graphs with intersection arrays:
+    * `[q^{2j+1} - 1, q^{2j+1} - q, q^{2j+1} - q^{2j} + 1; 1, q, q^{2j} -1]`
+    * `[q^2 - 1, q^2 - q, 1; 1, q, q^2 - 1]`
 
 REFERENCES:
 
-- [BCN1989]_ pp. 358 for a definition.
+- [BCN1989]_ p. 358 for a definition.
 
 AUTHORS:
 
@@ -104,6 +113,8 @@ def extended_Kasami_code(const int s, const int t):
         sage: C = codes.extended_Kasami_code(8,2)
         sage: C.generator_matrix()
         [1 1 1 1 1 1 1 1]
+        sage: C.minimum_distance()
+        8
 
         sage: C = codes.extended_Kasami_code(16,4)
         sage: C.generator_matrix()
@@ -116,6 +127,12 @@ def extended_Kasami_code(const int s, const int t):
         [0 0 0 0 0 0 1 0 0 0 1 1 0 1 1 1]
         [0 0 0 0 0 0 0 1 0 1 1 1 0 0 1 1]
         [0 0 0 0 0 0 0 0 1 1 0 1 0 0 0 1]
+        sage: C.minimum_distance()
+        4
+
+        sage: C = codes.extended_Kasami_code(64,4)
+        sage: C.minimum_distance()  # long time
+        4
     """
     from sage.arith.misc import is_prime_power, gcd
 
@@ -256,6 +273,8 @@ def Kasami_code(const int s, const int t):
         sage: C = codes.Kasami_code(8,2)
         sage: C.generator_matrix()
         [1 1 1 1 1 1 1]
+        sage: C.minimum_distance()
+        7
 
         sage: C = codes.Kasami_code(4,2)
         sage: C.generator_matrix()
@@ -272,6 +291,12 @@ def Kasami_code(const int s, const int t):
         [0 0 0 0 0 0 1 0 0 1 1 1 1 0 0]
         [0 0 0 0 0 0 0 1 0 0 1 1 1 1 0]
         [0 0 0 0 0 0 0 0 1 0 0 1 1 1 1]
+        sage: C.minimum_distance()
+        3
+
+        sage: C = codes.Kasami_code(64,4)
+        sage: C.minimum_distance()  # long time
+        3
     """
     C = extended_Kasami_code(s,t)
     codebook = [v[1:] for v in C.basis()]

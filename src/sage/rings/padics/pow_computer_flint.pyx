@@ -1,4 +1,5 @@
-
+# distutils: libraries = gmp ntl
+# distutils: language = c++
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 

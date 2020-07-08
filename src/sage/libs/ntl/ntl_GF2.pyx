@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
 #

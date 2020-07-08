@@ -721,8 +721,6 @@ derive from the one that follows.
 
 .. CODE-BLOCK:: python
 
-    :class:`sage.coding.repetition_code.BinaryRepetitionCode <sage.coding.repetition_code.BinaryRepetitionCode>`
-    #the line above creates a link to the class in the html documentation of coding theory library
     from sage.coding.repetition_code import BinaryRepetitionCode
 
 ``encoders_catalog.py`` (continued):

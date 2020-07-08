@@ -28,28 +28,67 @@ class FullyCommutativeReducedCoxeterWord(NormalizedClonableList):
 
     def normalize(self):
         self._require_mutable()
-        normalized = self.parent()._cartier_foata(self._get_list())
-        self._set_list(normalized)
+
+        out_word = []
+        
+        while len(self) > 0:
+            for s in self.parent().index_set():
+                i = self.find_left_descent(s)
+                if i is not None:
+                    out_word.append(s)
+                    self.pop(i)
+
+        self._set_list(out_word)
 
     # Provide public methods on the elements that wrap the private element
     # methods in the parent.
 
     def find_left_descent(self, s):
-        return self.parent()._find_left_descent(s, list(self))
+        m = self.parent().coxeter_matrix()
+        for (i, t) in enumerate(self):
+            if t == s and not any(m[x, t] > 2 for x in self[:i]):
+                return i
+        return None
 
     def has_left_descent(self, s):
         return self.find_left_descent(s) is not None
 
     def left_descents(self):
-        return self.parent()._left_descents(list(self))
+        m = self.parent().coxeter_matrix()
+        out = set()
+        for (i, t) in enumerate(self):
+            if not any(m[x, t] > 2 for x in self[:i]):
+                out.add(t)
+        return out
 
     def still_reduced_fc_after_prepending(self, s):
-        return self.parent()._still_reduced_fc_after_prepending(s, list(self))
+        m = self.parent().coxeter_matrix()
+        if self.has_left_descent(s):
+            return False
+
+        # Find the first letter in that doesn't commute with s.
+        try:
+            (j, t) = next((i, x) for (i, x) in enumerate(self) if m[s, x] >= 3)
+        except StopIteration:
+            return True
+
+        u = self.clone()
+        u._set_list(self[j:])
+        for c in range(m[s, t] - 1):
+            letter = t if c % 2 == 0 else s
+            i = u.find_left_descent(letter)
+            if i is not None:
+                u.pop(i)
+            else:
+                return True
+
+        return False
 
 
 class FullyCommutativeReducedCoxeterWords_class(Parent):
     def __init__(self, coxeter_matrix):
         self._matrix = coxeter_matrix
+        self._index_set = sorted(coxeter_matrix.index_set())
 
         category = InfiniteEnumeratedSets()
         if self._matrix.is_finite():
@@ -70,11 +109,14 @@ class FullyCommutativeReducedCoxeterWords_class(Parent):
     def coxeter_matrix(self):
         return self._matrix
 
+    def index_set(self):
+        return self._index_set
+
     def __iter__(self):
         m = self.coxeter_matrix()
 
         empty_word = self.element_class(self, [], check=False)
-        letters = self.coxeter_matrix().index_set()
+        letters = self.index_set()
 
         recent_words = {empty_word}
         yield empty_word
@@ -131,57 +173,3 @@ class FullyCommutativeReducedCoxeterWords_class(Parent):
                                 checked.add(new_word)
                                 queue.appendleft(new_word)
             return True
-
-    def _find_left_descent(self, s, w):
-        m = self.coxeter_matrix()
-        for (i, t) in enumerate(w):
-            if t == s and not any(m[x, t] > 2 for x in w[:i]):
-                return i
-        return None
-
-    def _left_descents(self, w):
-        m = self.coxeter_matrix()
-        out = set()
-        for (i, t) in enumerate(w):
-            if not any(m[x, t] > 2 for x in w[:i]):
-                out.add(t)
-        return out
-
-    def _cartier_foata(self, w):
-        cur_word = list(w)
-        out_word = []
-        
-        while len(cur_word) > 0:
-            for s in self.coxeter_matrix().index_set():
-                i = self._find_left_descent(s, cur_word)
-                if i is not None:
-                    out_word.append(s)
-                    # cur_word = cur_word[:i] + cur_word[i+1:]
-                    cur_word.pop(i)
-            
-        return out_word
-
-    def _still_reduced_fc_after_prepending(self, s, w):
-        m = self.coxeter_matrix()
-        if self._find_left_descent(s, w) is not None:
-            return False
-
-        # Find the first letter in that doesn't commute with s.
-        try:
-            (j, t) = next((i, x) for (i, x) in enumerate(w) if m[s, x] >= 3)
-        except StopIteration:
-            return True
-
-        u = w[j:]
-        for c in range(m[s, t] - 1):
-            letter = t if c % 2 == 0 else s
-            i = self._find_left_descent(letter, u)
-            if i is not None:
-                # Remove letter
-                # u = u[:i] + u[i+1:]
-                # u = u.with_index_removed(i)
-                u.pop(i)
-            else:
-                return True
-
-        return False

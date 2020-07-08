@@ -22,7 +22,7 @@ from sage.categories.super_modules import SuperModulesCategory
 
 class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
     """
-    The subcategory of finitely generated Lie conformal algebras.
+    The category of finitely generated Lie conformal algebras.
 
     EXAMPLES::
 
@@ -48,7 +48,7 @@ class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
 
         def gen(self,i):
             r"""
-            The i-th generator of this Lie conformal algebra.
+            The ``i``-th generator of this Lie conformal algebra.
 
             EXAMPLES::
 
@@ -83,7 +83,7 @@ class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
 
     class Super(SuperModulesCategory):
         """
-        The subcategory of super finitely generated Lie conformal algebras.
+        The category of super finitely generated Lie conformal algebras.
 
         EXAMPLES::
 
@@ -104,14 +104,13 @@ class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
 
     class Graded(GradedModulesCategory):
         """
-        The subcategory of H-graded finitely generated Lie conformal algebras.
+        The category of H-graded finitely generated Lie conformal algebras.
 
         EXAMPLES::
 
             sage: LieConformalAlgebras(QQbar).FinitelyGenerated().Graded()
             Category of H-graded finitely generated Lie conformal algebras over Algebraic Field
         """
-
         def _repr_object_names(self):
             """
             The names of the objects of this category

@@ -22,7 +22,7 @@ from sage.categories.super_modules import SuperModulesCategory
 
 class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
-    The subcategory of Lie conformal algebras with basis.
+    The category of Lie conformal algebras with basis.
 
     EXAMPLES::
 
@@ -52,14 +52,14 @@ class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             if self.is_zero():
                 return None
             if not self.is_monomial():
-                raise ValueError ("index can only be computed for "\
+                raise ValueError ("index can only be computed for "
                                   "monomials, got {}".format(self))
 
             return next(iter(self.monomial_coefficients()))
 
     class Super(SuperModulesCategory):
         """
-        The subcategory of super Lie conformal algebras with basis.
+        The category of super Lie conformal algebras with basis.
 
         EXAMPLES::
 
@@ -68,7 +68,7 @@ class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         """
         def extra_super_categories(self):
             """
-            The extra super categories of this category
+            The extra super categories of this category.
 
             EXAMPLES::
 
@@ -81,7 +81,7 @@ class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     class Graded(GradedModulesCategory):
         """
-        The subcategory of H-graded Lie conformal algebras with basis.
+        The category of H-graded Lie conformal algebras with basis.
 
         EXAMPLES::
 
@@ -101,7 +101,7 @@ class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         class Super(SuperModulesCategory):
             """
-            The subcategory of super H-graded Lie conformal algebras
+            The category of super H-graded Lie conformal algebras
             with basis.
 
             EXAMPLES::
@@ -127,7 +127,7 @@ class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
         """
-        The subcategory of finitely generated Lie conformal
+        The category of finitely generated Lie conformal
         algebras with basis.
 
         EXAMPLES::
@@ -140,7 +140,7 @@ class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         """
         class Super(SuperModulesCategory):
             """
-            The subcategory of super finitely generated Lie conformal
+            The category of super finitely generated Lie conformal
             algebras with basis.
 
             EXAMPLES::
@@ -165,7 +165,7 @@ class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         class Graded(GradedModulesCategory):
             """
-            The subcategory of H-graded finitely generated Lie conformal
+            The category of H-graded finitely generated Lie conformal
             algebras with basis.
 
             EXAMPLES::
@@ -187,7 +187,7 @@ class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             class Super(SuperModulesCategory):
                 """
-                The subcategory of super H-graded finitely generated
+                The category of super H-graded finitely generated
                 Lie conformal algebras with basis.
 
                 EXAMPLES::

@@ -1305,6 +1305,13 @@ REFERENCES:
                Computer Science, vol. 6346, 302-313. Springer (2010).
                :doi:`10.1007/978-3-642-15775-2_26`.
 
+.. [CGLM2012] \Crescenzi P., Grossi R., Lanzi L., Marino A. (2012)
+               *On Computing the Diameter of Real-World Directed (Weighted)
+               Graphs*. In: Klasing R. (eds) Experimental Algorithms. SEA 2012.
+               Lecture Notes in Computer Science, vol 7276.
+               Springer, Berlin, Heidelberg
+               :doi:`https://doi.org/10.1007/978-3-642-30850-5_10`.
+
 .. [CGW2013] Daniel Cabarcas, Florian Göpfert, and Patrick
              Weiden. Provably Secure LWE-Encryption with Uniform
              Secret. Cryptology ePrint Archive, Report 2013/164. 2013.

@@ -2467,9 +2467,10 @@ class Partition(CombinatorialElement):
             *
         """
         p = list(self)
-        if p == []:
+        if not p:
             return self
-        return Partition(conjugate(p))
+        par = Partitions_n(sum(self))
+        return par.element_class(par, conjugate(p))
 
     def suter_diagonal_slide(self, n, exp=1):
         r"""
@@ -3044,11 +3045,9 @@ class Partition(CombinatorialElement):
             [2, 1, 0, 2, 1, 0]
         """
         p = self
-        res = [[p[i]-(j+1) for j in range(p[i])] for i in range(len(p))]
-        if flat:
-            return sum(res, [])
-        else:
-            return res
+        if not flat:
+            return [[pi - (j + 1) for j in range(pi)] for pi in p]
+        return [pi - (j + 1) for pi in p for j in range(pi)]
 
     def arm_cells(self, i, j):
         r"""
@@ -3144,11 +3143,11 @@ class Partition(CombinatorialElement):
         """
         p = self
         conj = p.conjugate()
-        res = [[conj[j]-(i+1) for j in range(p[i])] for i in range(len(p))]
-        if flat:
-            return sum(res, [])
-        else:
-            return res
+        if not flat:
+            return [[conj[j] - (i + 1) for j in range(pi)]
+                    for i, pi in enumerate(p)]
+        return [conj[j] - (i + 1) for i, pi in enumerate(p)
+                for j in range(pi)]
 
     def leg_cells(self, i, j):
         r"""

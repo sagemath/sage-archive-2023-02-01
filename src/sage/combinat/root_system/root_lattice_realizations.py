@@ -14,7 +14,7 @@ Root lattice realizations
 from __future__ import print_function, absolute_import
 
 from sage.misc.abstract_method import abstract_method, AbstractMethod
-from sage.misc.misc import attrcall
+from sage.misc.call import attrcall
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import LazyImport

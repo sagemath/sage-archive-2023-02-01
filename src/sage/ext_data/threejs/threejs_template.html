@@ -303,12 +303,13 @@ SAGE_SCRIPTS
 
         var side = json.singleSide ? THREE.FrontSide : THREE.DoubleSide;
         var transparent = json.opacity < 1 ? true : false;
+        var flatShading = json.useFlatShading ? json.useFlatShading : false;
 
         var material = new THREE.MeshPhongMaterial( { side: side,
                                      color: useFaceColors ? 'white' : json.color,
                                      vertexColors: useFaceColors ? THREE.FaceColors : THREE.NoColors,
                                      transparent: transparent, opacity: json.opacity,
-                                     shininess: 20, flatShading: json.useFlatShading } );
+                                     shininess: 20, flatShading: flatShading } );
 
         var c = new THREE.Vector3();
         geometry.computeBoundingBox();

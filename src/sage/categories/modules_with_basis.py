@@ -29,7 +29,6 @@ from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
 from sage.categories.poor_man_map import PoorManMap
-from sage.rings.infinity import Infinity
 from sage.structure.element import Element, parent
 
 
@@ -967,6 +966,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: s.cardinality()
                 +Infinity
             """
+            from sage.rings.infinity import Infinity
             if self.dimension() == Infinity:
                 return Infinity
             return self.base_ring().cardinality() ** self.dimension()

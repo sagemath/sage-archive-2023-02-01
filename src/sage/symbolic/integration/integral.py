@@ -63,6 +63,14 @@ class IndefiniteIntegral(BuiltinFunction):
             sage: Ex = (1-2*x^(1/3))^(3/4)/x
             sage: integrate(Ex, x, algorithm="giac")  # long time
             4*(-2*x^(1/3) + 1)^(3/4) + 6*arctan((-2*x^(1/3) + 1)^(1/4)) - 3*log((-2*x^(1/3) + 1)^(1/4) + 1) + 3*log(abs((-2*x^(1/3) + 1)^(1/4) - 1))
+
+        Check for :trac:`29833`::
+
+            sage: (x,a,b)=var('x a b')
+            sage: assume(b > 0)
+            sage: f = (exp((x-a)/b) + 1)**(-1)
+            sage: (f*f).integrate(x, algorithm="mathematica_free") # optional -- internet
+            -b*log(e^(-(a - x)/b) + 1) + x + b/(e^(-(a - x)/b) + 1)
         """
         # The automatic evaluation routine will try these integrators
         # in the given order. This is an attribute of the class instead of
@@ -939,6 +947,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
         sage: (g.derivative() - f).full_simplify().full_simplify()
         0
+
+    Test for :trac:`24117`::
+
+        sage: integrate(sqrt(1-4*sin(x)^2),x, algorithm='maxima')
+        integrate(sqrt(-4*sin(x)^2 + 1), x)
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

@@ -662,7 +662,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 put on a more robust and systematic footing.
             """
             from sage.combinat.sf.sf import SymmetricFunctions
-            from sage.misc.misc import attrcall
+            from sage.misc.call import attrcall
             try:
                 return attrcall(self._basis)(SymmetricFunctions(R))
             except AttributeError:   # or except (AttributeError, ValueError):

@@ -77,3 +77,10 @@ done
 cat >> "$OUTPUT_INDEX" <<EOF
 .. include:: ../footer.txt
 EOF
+
+# #30064: Create the directory first
+OUTPUT_DIR="src/doc/en/reference/repl"
+mkdir -p "$OUTPUT_DIR"
+OUTPUT="$OUTPUT_DIR/options.txt"
+echo >&2 $0:$LINENO: installing "$OUTPUT"
+./sage -advanced > "$OUTPUT"

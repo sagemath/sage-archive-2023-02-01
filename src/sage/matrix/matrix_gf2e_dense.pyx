@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# distutils: libraries = m4rie M4RI_LIBRARIES m
+# distutils: library_dirs = M4RI_LIBDIR
+# distutils: include_dirs = M4RI_INCDIR
+# distutils: extra_compile_args = M4RI_CFLAGS
 """
 Dense matrices over `\GF{2^e}` for `2 \leq e \leq 16` using the M4RIE library
 
@@ -183,6 +188,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
         # cache elements
         self._zero = self._base_ring(0)
+        self._zero_word = poly_to_word(self._zero)
         self._one = self._base_ring(1)
 
     def __dealloc__(self):
@@ -289,6 +295,20 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         """
         cdef int r = mzed_read_elem(self._entries, i, j)
         return word_to_poly(r, self._base_ring)
+
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        r"""
+        Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(2^4)
+            sage: A = Matrix(K, 2, 2, a)
+            sage: A.zero_pattern_matrix()  # indirect doctest
+            [0 1]
+            [1 0]
+        """
+        return mzed_read_elem(self._entries, i, j) == self._zero_word
 
     cpdef _add_(self, right):
         """
@@ -707,6 +727,24 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
         return A
 
+    def __bool__(self):
+        """
+        Return if ``self`` is a zero matrix or not.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(2^4)
+            sage: A = Matrix(K, 2, 2, a)
+            sage: bool(A)
+            True
+            sage: zero = MatrixSpace(K, 3, 3).zero()
+            sage: bool(zero)
+            False
+        """
+        if self._nrows and self._ncols:
+            return not mzed_is_zero(self._entries)
+        return False
+
     def _list(self):
         """
         EXAMPLES::
@@ -950,7 +988,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         i = 0
         while i < self._nrows:
             for j from i <= j < nc:
-                if self.get_unsafe(i,j):
+                if not self.get_is_zero_unsafe(i,j):
                     pivots.append(j)
                     i += 1
                     break

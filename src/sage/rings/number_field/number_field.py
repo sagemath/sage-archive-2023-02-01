@@ -7379,7 +7379,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         import webbrowser
         from urllib.parse import quote
-        lmfdb_url = 'https://www.lmfdb.org/NumberField/?natural={}'
+        lmfdb_url = 'https://www.lmfdb.org/NumberField/?jump={}'
         poly = self.absolute_polynomial()
         f = poly.parent().change_var('x')(poly)
         poly = pari(f).polredabs()

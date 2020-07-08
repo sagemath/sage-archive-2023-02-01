@@ -590,7 +590,8 @@ class GraphPlot(SageObject):
         """
         for arg in edge_options:
             self._options[arg] = edge_options[arg]
-        if 'edge_colors' in edge_options: self._options['color_by_label'] = False
+        if 'edge_colors' in edge_options:
+            self._options['color_by_label'] = False
         if self._options['edge_labels_background'] == "transparent":
             self._options['edge_labels_background'] = "None"
 
@@ -661,10 +662,10 @@ class GraphPlot(SageObject):
 
             # Add unspecified edges (default color black set in DEFAULT_PLOT_OPTIONS)
             for edge in self._graph.edge_iterator():
-                if (edge[0], edge[1], edge[2]) not in edges_drawn and \
-                    ( self._graph.is_directed() or
-                      (edge[1], edge[0], edge[2]) not in edges_drawn
-                    ):
+                if ((edge[0], edge[1], edge[2]) not in edges_drawn and
+                    (self._graph.is_directed() or
+                     (edge[1], edge[0], edge[2]) not in edges_drawn
+                    )):
                     if v_to_int[edge[0]] < v_to_int[edge[1]]:
                         key = (edge[0], edge[1])
                         head = 1

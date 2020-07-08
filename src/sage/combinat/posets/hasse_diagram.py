@@ -23,6 +23,8 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.functions.other import binomial
 from sage.misc.rest_index_of_methods import gen_rest_table_index
+from sage.combinat.posets.hasse_cython import (moebius_matrix_fast,
+                                               coxeter_matrix_fast)
 
 
 class LatticeError(ValueError):
@@ -943,31 +945,29 @@ class HasseDiagram(DiGraph):
                     self._moebius_function_values[(i, j)] = -sum(self.moebius_function(i, k) for k in ci[:-1])
         return self._moebius_function_values[(i, j)]
 
-    def moebius_function_matrix(self, algorithm='recursive'):
+    def moebius_function_matrix(self, algorithm='cython'):
         r"""
         Return the matrix of the Möbius function of this poset.
 
-        This returns the sparse matrix over `\ZZ` whose ``(x, y)`` entry
+        This returns the matrix over `\ZZ` whose ``(x, y)`` entry
         is the value of the Möbius function of ``self`` evaluated on
-        ``x`` and ``y``, and redefines :meth:`moebius_function` to use
-        it.
+        ``x`` and ``y``, and redefines :meth:`moebius_function` to use it.
 
         INPUT:
 
-        - ``algorithm`` -- optional, ``'recursive'`` (default) or ``'matrix'``
+        - ``algorithm`` -- optional, ``'recursive'``, ``'matrix'``
+          or ``'cython'`` (default)
 
-        This uses either the recursive formula or one matrix inversion.
+        This uses either the recursive formula, a generic matrix inversion
+        or a specific matrix inversion coded in Cython.
+
+        OUTPUT:
+
+        a dense matrix for the algorithm ``cython``, a sparse matrix otherwise
 
         .. NOTE::
 
             The result is cached in :meth:`_moebius_function_matrix`.
-
-        .. TODO::
-
-            Try to make a specific multimodular matrix inversion
-            algorithm for this kind of sparse triangular matrices
-            where the non-zero entries of the inverse are in known
-            positions.
 
         .. SEEALSO:: :meth:`lequal_matrix`, :meth:`coxeter_transformation`
 
@@ -996,12 +996,23 @@ class HasseDiagram(DiGraph):
             True
 
             sage: H = posets.TamariLattice(3)._hasse_diagram
-            sage: H.moebius_function_matrix('matrix')
+            sage: M = H.moebius_function_matrix('matrix'); M
             [ 1 -1 -1  0  1]
             [ 0  1  0  0 -1]
             [ 0  0  1 -1  0]
             [ 0  0  0  1 -1]
             [ 0  0  0  0  1]
+            sage: _ = H.__dict__.pop('_moebius_function_matrix')
+            sage: H.moebius_function_matrix('cython') == M
+            True
+            sage: _ = H.__dict__.pop('_moebius_function_matrix')
+            sage: H.moebius_function_matrix('recursive') == M
+            True
+            sage: _ = H.__dict__.pop('_moebius_function_matrix')
+            sage: H.moebius_function_matrix('banana')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm
         """
         if not hasattr(self, '_moebius_function_matrix'):
             if algorithm == 'recursive':
@@ -1019,8 +1030,12 @@ class HasseDiagram(DiGraph):
                                                 for j in available
                                                 if k in greater_than[j])
                 M = matrix(ZZ, n, n, m, sparse=True)
-            else:
+            elif algorithm == "matrix":
                 M = self.lequal_matrix().inverse_of_unit()
+            elif algorithm == "cython":
+                M = moebius_matrix_fast(self._leq_storage)
+            else:
+                raise ValueError("unknown algorithm")
             self._moebius_function_matrix = M
             self._moebius_function_matrix.set_immutable()
             self.moebius_function = self._moebius_function_from_matrix
@@ -1048,30 +1063,51 @@ class HasseDiagram(DiGraph):
         return self._moebius_function_matrix[i, j]
 
     @cached_method
-    def coxeter_transformation(self):
+    def coxeter_transformation(self, algorithm='cython'):
         r"""
         Return the matrix of the Auslander-Reiten translation acting on
         the Grothendieck group of the derived category of modules on the
         poset, in the basis of simple modules.
 
+        INPUT:
+
+        - ``algorithm`` -- optional, ``'cython'`` (default) or ``'matrix'``
+
+        This uses either a specific matrix code in Cython, or generic matrices.
+
         .. SEEALSO:: :meth:`lequal_matrix`, :meth:`moebius_function_matrix`
 
         EXAMPLES::
 
-            sage: M = posets.PentagonPoset()._hasse_diagram.coxeter_transformation(); M
+            sage: P = posets.PentagonPoset()._hasse_diagram
+            sage: M = P.coxeter_transformation(); M
             [ 0  0  0  0 -1]
             [ 0  0  0  1 -1]
             [ 0  1  0  0 -1]
             [-1  1  1  0 -1]
             [-1  1  0  1 -1]
+            sage: P.__dict__['coxeter_transformation'].clear_cache()
+            sage: P.coxeter_transformation(algorithm="matrix") == M
+            True
 
         TESTS::
 
-            sage: M = posets.PentagonPoset()._hasse_diagram.coxeter_transformation()
+            sage: P = posets.PentagonPoset()._hasse_diagram
+            sage: M = P.coxeter_transformation()
             sage: M**8 == 1
             True
+            sage: P.__dict__['coxeter_transformation'].clear_cache()
+            sage: P.coxeter_transformation(algorithm="banana")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm
         """
-        return - self.lequal_matrix() * self.moebius_function_matrix().transpose()
+        if algorithm == 'matrix':
+            return - self.lequal_matrix() * self.moebius_function_matrix().transpose()
+        elif algorithm == 'cython':
+            return coxeter_matrix_fast(self._leq_storage)
+        else:
+            raise ValueError("unknown algorithm")
 
     def order_filter(self, elements):
         r"""
@@ -1213,12 +1249,9 @@ class HasseDiagram(DiGraph):
             Integer Ring
         """
         n = self.order()
-        one = ZZ.one()
         greater_than = self._leq_storage
-        D = {(i, j): one for i in range(n) for j in greater_than[i]}
-        M = matrix(ZZ, n, n, D, sparse=True)
-        M.set_immutable()
-        return M
+        D = {(i, j): 1 for i in range(n) for j in greater_than[i]}
+        return matrix(ZZ, n, n, D, sparse=True, immutable=True)
 
     def lequal_matrix(self, boolean=False):
         r"""

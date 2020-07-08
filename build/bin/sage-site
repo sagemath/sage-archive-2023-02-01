@@ -158,6 +158,7 @@ if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
     # tends to ask interactive questions if something goes wrong. These
     # cause the build to hang. If stdin is /dev/null, TeX just aborts.
     shift
+    export LANG=C # to ensure it is possible to scrape out non-EN locale warnings
     exec sage-python -m sage_setup.docbuild "$@" </dev/null
 fi
 

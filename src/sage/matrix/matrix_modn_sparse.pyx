@@ -482,17 +482,17 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     def _nonzero_positions_by_row(self, copy=True):
         """
-        Returns the list of pairs (i,j) such that self[i,j] != 0.
+        Return the list of pairs (i,j) such that self[i,j] != 0.
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
         EXAMPLES::
+
             sage: M = Matrix(GF(7), [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
             [0 1 0 0 0 0 1 0]
             sage: M.nonzero_positions()
             [(0, 3), (1, 1), (1, 6)]
-
         """
         x = self.fetch('nonzero_positions')
         if not x is None:

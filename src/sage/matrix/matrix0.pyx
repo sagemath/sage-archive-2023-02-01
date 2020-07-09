@@ -3889,14 +3889,19 @@ cdef class Matrix(sage.structure.element.Matrix):
                     return False
         return True
 
-    def is_hermitian(self):
-        r"""
-        Returns ``True`` if the matrix is equal to its conjugate-transpose.
+    def is_hermitian(self, skew=False):
+        r"""Returns ``True`` if the matrix is Hermitian.
+
+        INPUT:
+
+        - ``skew`` - default: ``False`` - Specifies the type of the
+          test. Set to ``True`` to check whether the matrix is
+          skew-Hermitian.
 
         OUTPUT:
 
-        ``True`` if the matrix is square and equal to the transpose
-        with every entry conjugated, and ``False`` otherwise.
+        ``True`` if the matrix is square and Hermitian, and ``False``
+        otherwise.
 
         Note that if conjugation has no effect on elements of the base
         ring (such as for integers), then the :meth:`is_symmetric`
@@ -3960,8 +3965,15 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A = matrix(QQ, 0, 0)
             sage: A.is_hermitian()
             True
+
+        A matrix that is skew-Hermitian. ::
+            sage: A = matrix(QQbar, [[-I, 2+I], [-2+I, 0]])
+            sage: A.is_hermitian()
+            False
+            sage: A.is_hermitian(skew = True)
+            True
         """
-        key = 'hermitian'
+        key = 'skew_hermitian' if skew else 'hermitian'
         h = self.fetch(key)
         if not h is None:
             return h
@@ -3972,11 +3984,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             self.cache(key, True)
             return True
 
+        s = -1 if skew else 1
         cdef Py_ssize_t i,j
         hermitian = True
         for i in range(self._nrows):
             for j in range(i+1):
-                if self.get_unsafe(i,j) != self.get_unsafe(j,i).conjugate():
+                if self.get_unsafe(i,j) != s*self.get_unsafe(j,i).conjugate():
                     hermitian = False
                     break
             if not hermitian:

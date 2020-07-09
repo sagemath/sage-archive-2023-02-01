@@ -2394,9 +2394,8 @@ cdef class Matrix_double_dense(Matrix_dense):
                     return False
         return True
 
-    def is_hermitian(self, tol = 1e-12, algorithm='orthonormal'):
-        r"""
-        Return ``True`` if the matrix is equal to its conjugate-transpose.
+    def is_hermitian(self, tol = 1e-12, algorithm='orthonormal', skew=False):
+        r"""Return ``True`` if the matrix is Hermitian.
 
         INPUT:
 
@@ -2408,10 +2407,14 @@ cdef class Matrix_double_dense(Matrix_dense):
           for a stable procedure and set to 'naive' for a fast
           procedure.
 
+        - ``skew`` - default: ``False`` - Specifies the type of the
+          test. Set to ``True`` to check whether the matrix is
+          skew-Hermitian.
+
         OUTPUT:
 
-        ``True`` if the matrix is square and equal to the transpose
-        with every entry conjugated, and ``False`` otherwise.
+        ``True`` if the matrix is square and Hermitian, and ``False``
+        otherwise.
 
         Note that if conjugation has no effect on elements of the base
         ring (such as for integers), then the :meth:`is_symmetric`
@@ -2498,6 +2501,13 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.is_hermitian()
             False
 
+        A matrix that is skew-Hermitian. ::
+            sage: A = matrix(CDF, [[-I, 2.0+I], [-2.0+I, 0.0]])
+            sage: A.is_hermitian()
+            False
+            sage: A.is_hermitian(skew = True)
+            True
+
         TESTS:
 
         The tolerance must be strictly positive.  ::
@@ -2528,7 +2538,8 @@ cdef class Matrix_double_dense(Matrix_dense):
         if not algorithm in ['naive', 'orthonormal']:
             raise ValueError("algorithm must be 'naive' or 'orthonormal', not {0}".format(algorithm))
 
-        key = 'hermitian_{0}_{1}'.format(algorithm, tol)
+        k = 'skew_hermitian' if skew else 'hermitian'
+        key = '{0}_{1}_{2}'.format(k, algorithm, tol)
         h = self.fetch(key)
         if not h is None:
             return h
@@ -2542,9 +2553,11 @@ cdef class Matrix_double_dense(Matrix_dense):
             import numpy
         cdef Py_ssize_t i, j
         cdef Matrix_double_dense T
+        # A matrix M is skew-hermitian iff I*M is hermitian
+        T = self.__mul__(1j) if skew else self.__copy__()
         if algorithm == 'orthonormal':
             # Schur decomposition over CDF will be diagonal and real iff Hermitian
-            _, T = self.schur(base_ring=sage.rings.complex_double.CDF)
+            _, T = T.schur(base_ring=sage.rings.complex_double.CDF)
             hermitian = T._is_lower_triangular(tol)
             if hermitian:
                 for i in range(T._nrows):
@@ -2553,9 +2566,9 @@ cdef class Matrix_double_dense(Matrix_dense):
                         break
         elif algorithm == 'naive':
             hermitian = True
-            for i in range(self._nrows):
+            for i in range(T._nrows):
                 for j in range(i+1):
-                    if abs(self.get_unsafe(i,j) - self.get_unsafe(j,i).conjugate()) > tol:
+                    if abs(T.get_unsafe(i,j) - T.get_unsafe(j,i).conjugate()) > tol:
                         hermitian = False
                         break
                 if not hermitian:

@@ -1602,8 +1602,9 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         if v == 1:
             if existence:
                 return True
+            from sage.rings.finite_rings.integer_mod_ring import Zmod
             l = [0] if k ==1 else []
-            return [0],[l]
+            return Zmod(1),[l]
 
         if existence:
             return False

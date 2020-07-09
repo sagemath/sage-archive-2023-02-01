@@ -92,9 +92,9 @@ def merge_environment(app, env):
             env.domaindata['citation']['citations'].update(newcite)
             # merge the py:module indexes
             newmodules = {}
-            for ind,(modpath,v1,v2,v3,v4) in (
-                docenv.domaindata['py']['modules'].items()):
-                newmodules[ind] = (fixpath(modpath),v1,v2,v3,v4)
+            from sphinx.domains.python import ModuleEntry
+            for ind,mod in docenv.domaindata['py']['modules'].items():
+                newmodules[ind] = ModuleEntry(fixpath(mod.docname), mod.node_id, mod.synopsis, mod.platform, mod.deprecated)
             env.domaindata['py']['modules'].update(newmodules)
             logger.info(", %s modules"%(len(newmodules)))
     logger.info('... done (%s todos, %s index, %s citations, %s modules)'%(

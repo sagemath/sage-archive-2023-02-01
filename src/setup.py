@@ -113,6 +113,63 @@ code = setup(name = 'sage',
                    'ext_data/valgrind/*',
                    'ext_data/threejs/*']
       },
+      scripts = [## The sage script
+                 'bin/sage',
+                 ## Other scripts that should be in the path also for OS packaging of sage:
+                 'bin/sage-eval',
+                 'bin/sage-runtests',          # because it is useful for doctesting user scripts too
+                 'bin/sage-fixdoctests',       # likewise
+                 'bin/sage-coverage',          # because it is useful for coverage-testing user scripts too
+                 'bin/sage-coverageall',       # likewise
+                 'bin/sage-cython',            # deprecated, might be used in user package install scripts
+                 ## Helper scripts invoked by sage script
+                 ## (they would actually belong to something like libexec)
+                 'bin/sage-cachegrind',
+                 'bin/sage-callgrind',
+                 'bin/sage-massif',
+                 'bin/sage-omega',
+                 'bin/sage-valgrind',
+                 'bin/sage-version.sh',
+                 'bin/sage-cleaner',
+                 ## Only makes sense in sage-the-distribution. TODO: Move to another installation script.
+                 'bin/sage-list-packages',
+                 'bin/sage-clone-source',
+                 'bin/sage-download-upstream',
+                 'bin/sage-sdist',
+                 'bin/sage-location',
+                 ## Uncategorized scripts in alphabetical order
+                 'bin/math-readline',
+                 'bin/sage-env',
+                 'bin/sage-env-config',
+                 # sage-env-config.in -- not to be installed',
+                 'bin/sage-gdb-commands',
+                 'bin/sage-grep',
+                 'bin/sage-grepdoc',
+                 'bin/sage-inline-fortran',
+                 'bin/sage-ipynb2rst',
+                 'bin/sage-ipython',
+                 'bin/sage-maxima.lisp',
+                 'bin/sage-native-execute',
+                 'bin/sage-notebook',
+                 'bin/sage-num-threads.py',
+                 'bin/sage-open',
+                 'bin/sage-preparse',
+                 'bin/sage-pypkg-location',
+                 'bin/sage-python',
+                 'bin/sage-rebase.bat',
+                 'bin/sage-rebase.sh',
+                 'bin/sage-rebaseall.bat',
+                 'bin/sage-rebaseall.sh',
+                 'bin/sage-rst2sws',
+                 'bin/sage-rst2txt',
+                 'bin/sage-run',
+                 'bin/sage-run-cython',
+                 'bin/sage-startuptime.py',
+                 'bin/sage-sws2rst',
+                 'bin/sage-update-src',
+                 'bin/sage-update-version',
+                 'bin/sage-upgrade',
+                 ],
       cmdclass = dict(build=sage_build,
                       build_cython=sage_build_cython,
                       build_ext=sage_build_ext,

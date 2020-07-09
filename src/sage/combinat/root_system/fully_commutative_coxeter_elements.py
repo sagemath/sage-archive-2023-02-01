@@ -29,17 +29,30 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
     def normalize(self):
         r"""
         Normalize ``self`` to Cartier--Foata normal form.
+
+        EXAMPLES:
+
+        Observe the normal form of three equivalent FC words in `B_5` ::
+
+            sage: FC = FullyCommutativeCoxeterElements(['B', 5])
+            sage: FC([1, 4, 3, 5, 2, 4, 3])
+            [1, 4, 3, 5, 2, 4, 3]
+            sage: FC([4, 1, 3, 5, 2, 4, 3])
+            [1, 4, 3, 5, 2, 4, 3]
+            sage: FC([4, 1, 5, 3, 4, 2, 3])
+            [1, 4, 3, 5, 2, 4, 3]
+            sage: FC([1, 4, 3, 5, 2, 4, 3]) == FC([4, 1, 3, 5, 2, 4, 3]) == FC([4, 1, 5, 3, 4, 2, 3])
+            True
         """
         self._require_mutable()
 
         out_word = []
         
         while len(self) > 0:
-            for s in self.parent().index_set():
-                i = self.find_left_descent(s)
-                if i is not None:
-                    out_word.append(s)
-                    self.pop(i)
+            fronts = self.left_descents()
+            out_word.extend(sorted(fronts))
+            for s in fronts:
+                self.remove(s)
 
         self._set_list(out_word)
 

@@ -1808,7 +1808,7 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
 
     LB_1 = 0
     for v in range(n):
-        if result_1.distances[v] > LB_1:
+        if result_1.distances[v] >= LB_1:
             LB_1 = result_1.distances[v]
             antipode_1 = v
 
@@ -1831,7 +1831,7 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
 
     LB_2 = 0
     for v in range(n):
-        if result_2.distances[v] > LB_2:
+        if result_2.distances[v] >= LB_2:
             LB_2 = result_2.distances[v]
             antipode_2 = v
 
@@ -1858,7 +1858,7 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
 
     LB_1 = 0
     for v in range(n):
-        if result_1.distances[v] > LB_1:
+        if result_1.distances[v] >= LB_1:
             LB_1 = result_1.distances[v]
             antipode_1 = v
 
@@ -1878,7 +1878,7 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
 
     LB_2 = 0
     for v in range(n):
-        if result_2.distances[v] > LB_2:
+        if result_2.distances[v] >= LB_2:
             LB_2 = result_2.distances[v]
             antipode_2 = v
 
@@ -2130,6 +2130,14 @@ cpdef diameter(G, algorithm=None, source=None,
         +Infinity
         sage: diameter(G, algorithm='2Dsweep')
         +Infinity
+
+    DiGraph containing negative cycle
+
+        sage: G = DiGraph([(0,1,-2), (1,0,1)])
+        sage: diameter(G, algorithm='2Dsweep', weight_function=lambda e:e[2])
+        Traceback (most recent call last):
+        ...
+        ValueError: the graph contains a negative cycle
     """
     import sys
 

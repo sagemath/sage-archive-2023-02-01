@@ -2263,7 +2263,7 @@ class FreeModuleTensor(ModuleElement):
             sage: e = M.basis('e')
             sage: a = M.tensor((2,0), name='a')
             sage: a[:] = [[4,0], [-2,5]]
-            sage: s = a.__div__(4) ; s
+            sage: s = a.__truediv__(4) ; s
             Type-(2,0) tensor on the 2-dimensional vector space M over the
              Rational Field
             sage: s[:]
@@ -2279,8 +2279,6 @@ class FreeModuleTensor(ModuleElement):
         for basis in self._components:
             result._components[basis] = self._components[basis] / other
         return result
-
-    __div__ = __truediv__
 
     def __call__(self, *args):
         r"""

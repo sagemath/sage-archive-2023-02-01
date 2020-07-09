@@ -155,15 +155,6 @@ cdef class OrePolynomial(AlgebraElement):
         sage: r == c % b
         True
 
-    Left euclidean division won't work over our current `S` because Sage can't
-    invert the twisting morphism::
-
-        sage: q,r = c.left_quo_rem(b)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: inversion of the twisting morphism Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
-            Defn: t |--> t + 1
-
     Here we can see the effect of the operator evaluation compared to the usual
     polynomial evaluation::
 
@@ -174,7 +165,7 @@ cdef class OrePolynomial(AlgebraElement):
         See http://trac.sagemath.org/13215 for details.
         t + 2
 
-    Here is a working example over a finite field::
+    Here is another example over a finite field::
 
         sage: k.<t> = GF(5^3)
         sage: Frob = k.frobenius_endomorphism()
@@ -991,16 +982,17 @@ cdef class OrePolynomial(AlgebraElement):
         In the following example, Sage does not know the inverse
         of the twisting morphism::
 
-            sage: R.<t> = ZZ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
+            sage: R.<t> = QQ[]
+            sage: K = R.fraction_field()
+            sage: sigma = K.hom([(t+1)/(t-1)])
+            sage: S.<x> = K['x',sigma]
             sage: a = (-2*t^2 - t + 1)*x^3 + (-t^2 + t)*x^2 + (-12*t - 2)*x - t^2 - 95*t + 1
             sage: b = x^2 + (5*t - 6)*x - 4*t^2 + 4*t - 1
             sage: a.left_quo_rem(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError: inversion of the twisting morphism Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
-                Defn: t |--> t + 1
+            NotImplementedError: inversion of the twisting morphism Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Rational Field
+              Defn: t |--> (t + 1)/(t - 1)
         """
         if not other:
             raise ZeroDivisionError("division by zero is not valid")

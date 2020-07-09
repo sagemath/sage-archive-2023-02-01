@@ -692,19 +692,21 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
         If ``n`` in negative, Sage tries to compute the inverse of the
         twisting morphism::
 
-            sage: k.<t> = GF(5^3)
+            sage: k.<a> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: T.<y> = k['y',Frob]
             sage: T.twisting_morphism(-1)
-            Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
+            Frobenius endomorphism a |--> a^(5^2) on Finite Field in a of size 5^3
 
         Sometimes it fails, even if the twisting morphism is actually invertible::
 
-            sage: S.twisting_morphism(-1)
+            sage: K = R.fraction_field()
+            sage: phi = K.hom([(t+1)/(t-1)])
+            sage: T.<y> = K['y', phi]
+            sage: T.twisting_morphism(-1)
             Traceback (most recent call last):
             ...
-            NotImplementedError: inversion of the twisting morphism Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
-                  Defn: t |--> t + 1
+            NotImplementedError: inverse not implemented for morphisms of Fraction Field of Univariate Polynomial Ring in t over Rational Field
 
         When the Ore polynomial ring is only twisted by a derivation, this
         method returns nothing::

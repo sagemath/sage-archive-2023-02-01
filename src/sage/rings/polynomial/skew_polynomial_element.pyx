@@ -399,11 +399,12 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
         EXAMPLES::
 
             sage: R.<t> = QQ[]
-            sage: sigma = R.hom([t+1])
-            sage: S.<x> = R['x',sigma]
+            sage: K = R.fraction_field()
+            sage: sigma = K.hom([1 + 1/t])
+            sage: S.<x> = K['x',sigma]
             sage: a = t*x^3 + (t^2 + 1)*x^2 + 2*t
             sage: b = a.conjugate(2); b
-            (t + 2)*x^3 + (t^2 + 4*t + 5)*x^2 + 2*t + 4
+            ((2*t + 1)/(t + 1))*x^3 + ((5*t^2 + 6*t + 2)/(t^2 + 2*t + 1))*x^2 + (4*t + 2)/(t + 1)
             sage: x^2*a == b*x^2
             True
 
@@ -413,8 +414,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
             sage: b = a.conjugate(-1)
             Traceback (most recent call last):
             ...
-            NotImplementedError: inversion of the twisting morphism Ring endomorphism of Univariate Polynomial Ring in t over Rational Field
-                Defn: t |--> t + 1
+            NotImplementedError: inverse not implemented for morphisms of Fraction Field of Univariate Polynomial Ring in t over Rational Field
 
         Here is a working example::
 

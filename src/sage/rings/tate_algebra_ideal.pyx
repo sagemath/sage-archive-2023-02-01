@@ -737,7 +737,7 @@ cdef TateAlgebraElement reduce(gb, TateAlgebraElement v, stopval):
     f._prec = v._prec
     while len(terms) > index:
         lt = terms[index]
-        if lt._valuation_c() >= stopval:
+        if (not lt) or (lt._valuation_c() >= stopval):
             break
         for i in range(len(gb)):
             if (<TateAlgebraTerm>ltds[i])._divides_c(lt, integral=True):
@@ -1102,6 +1102,13 @@ def groebner_basis_vapote(I, prec, verbose=0, interrupt_red_with_val=False, inte
         [...000000001*x^3 + ...222222222*y + O(3^9 * <x, y>),
          ...0000000001*x^2*y + ...1210121020 + O(3^10 * <x, y>),
          ...000000001*y^2 + ...210121020*x + O(3^9 * <x, y>)]
+
+    We check that :trac:`30101` is fixed::
+
+        sage: I.groebner_basis(algorithm="VaPoTe", prec=100)  # indirect doctest
+        [...0000000001*x^3 + ...2222222222*y + ...000000000*x^2*y^2 + O(3^99 * <x, y>),
+         ...0000000001*x^2*y + ...01210121020 + O(3^100 * <x, y>),
+         ...0000000001*y^2 + ...01210121020*x + ...000000000*x^2*y^3 + ...0000000000*x^3*y + O(3^99 * <x, y>)]
     """
     cdef TateAlgebraElement g, v
     cdef TateAlgebraTerm s, S, sv, ti, tj

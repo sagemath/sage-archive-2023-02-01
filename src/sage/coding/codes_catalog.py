@@ -21,7 +21,7 @@ Families of Codes (Rich representation)
     :meth:`~sage.coding.hamming_code.HammingCode` @ Hamming codes
     :meth:`~sage.coding.golay_code.GolayCode` @ Golay codes
     :meth:`~sage.coding.goppa_code.GoppaCode` @ Goppa codes
-
+    :meth:`~sage.coding.kasami_codes.KasamiCode` @ Kasami codes
 
 Families of Codes (Generator matrix representation)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -43,8 +43,6 @@ Families of Codes (Generator matrix representation)
     :meth:`~sage.coding.code_constructions.from_parity_check_matrix` @ Construct a code from a parity check matrix
     :meth:`~sage.coding.code_constructions.random_linear_code` @ Construct a random linear code
     :meth:`~sage.coding.guava.RandomLinearCodeGuava` @ Construct a random linear code through Guava (Requires GAP/Guava)
-    :meth:`~sage.coding.kasami_codes.extended_Kasami_code` @ Construct extended Kasami codes
-    :meth:`~sage.coding.kasami_codes.Kasami_code` @ Construct Kasami codes
 
 
 Derived Codes
@@ -102,7 +100,7 @@ _lazy_import('sage.coding.reed_muller_code', ['BinaryReedMullerCode', 'ReedMulle
 _lazy_import('sage.coding.hamming_code', 'HammingCode')
 _lazy_import('sage.coding.golay_code', 'GolayCode')
 _lazy_import('sage.coding.goppa_code', 'GoppaCode')
-_lazy_import('sage.coding.kasami_codes', ['extended_Kasami_code', 'Kasami_code'])
+_lazy_import('sage.coding.kasami_codes', 'KasamiCode')
 _lazy_import('sage.coding.linear_rank_metric', 'LinearRankMetricCode')
 
 _lazy_import('sage.coding.guava', ['QuasiQuadraticResidueCode', 'RandomLinearCodeGuava'])

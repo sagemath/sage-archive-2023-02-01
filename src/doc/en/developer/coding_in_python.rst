@@ -310,23 +310,25 @@ The  __hash__ Special Method
 Here is the definition of ``__hash__`` from the Python reference
 manual:
 
-    Called by built-in function ``hash()`` and for operations on members of
-    hashed collections including set, frozenset, and dict. ``__hash__()``
-    should return an integer. The only required property is that objects which
-    compare equal have the same hash value; it is advised to somehow mix
-    together (e.g. using exclusive or) the hash values for the components of
-    the object that also play a part in comparison of objects. If a class does
-    not define a
-    ``__cmp__()`` method it should not define a
-    ``__hash__()`` operation either; if it defines
-    ``__cmp__()`` or ``__eq__()`` but not
-    ``__hash__()``, its instances will not be usable as
-    dictionary keys. If a class defines mutable objects and implements
-    a ``__cmp__()`` or ``__eq__()`` method, it
-    should not implement ``__hash__()``, since the dictionary
-    implementation requires that a key's hash value is immutable (if
-    the object's hash value changes, it will be in the wrong hash
-    bucket).
+    Called by built-in function ``hash()`` and for operations on members
+    of hashed collections including ``set``, ``frozenset``, and
+    ``dict``. ``__hash__()`` should return an integer. The only required
+    property is that objects which compare equal have the same hash
+    value; it is advised to mix together the hash values of the
+    components of the object that also play a part in comparison of
+    objects by packing them into a tuple and hashing the tuple.
+
+    If a class does not define an ``__eq__()`` method it should not define
+    a ``__hash__()`` operation either; if it defines ``__eq__()`` but not
+    ``__hash__()``, its instances will not be usable as items in hashable
+    collections. If a class defines mutable objects and implements an
+    ``__eq__()`` method, it should not implement ``__hash__()``, since the
+    implementation of hashable collections requires that a key’s hash
+    value is immutable (if the object’s hash value changes, it will be
+    in the wrong hash bucket).
+
+See https://docs.python.org/3/reference/datamodel.html#object.__hash__ for more
+information on the subject.
 
 Notice the phrase, "The only required property is that objects which
 compare equal have the same hash value." This is an assumption made by

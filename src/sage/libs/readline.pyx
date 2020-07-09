@@ -1,3 +1,4 @@
+# distutils: libraries = readline
 """
 Readline
 

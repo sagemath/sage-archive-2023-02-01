@@ -109,6 +109,24 @@ resolvelinks() {
     echo "$out"
 }
 
+# See if we can obtain SAGE_SCRIPTS_DIR before determining SAGE_ROOT
+if [ -z "$SAGE_SCRIPTS_DIR" ]; then
+    ## Find the directory of this script (sage-env).
+    ## Note that it is *sourced* by various other scripts,
+    ## which is why `dirname $0` would not work ($0 is /bin/bash).
+    ## Instead we use a solution from
+    ## http://stackoverflow.com/questions/59895/can-a-bash-script-tell-which-directory-it-is-stored-in
+    ## It uses a bash feature: BASH_SOURCE[0] gives the source of
+    ## the "currently running function". See
+    ## https://www.gnu.org/software/bash/manual/html_node/Bash-Variables.html
+    ## (entries for FUNCNAME and BASH_SOURCE).
+    SAGE_SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+fi
+
+if [ -n "$SAGE_SCRIPTS_DIR" -a -r "$SAGE_SCRIPTS_DIR/sage-env-config" ]; then
+    # Set environment variables (like SAGE_LOCAL and SAGE_ROOT) depending on ./configure
+    . "$SAGE_SCRIPTS_DIR/sage-env-config"
+fi
 
 # New value for SAGE_ROOT: either SAGE_ROOT (if given)
 # or a guessed value based on pwd.
@@ -120,7 +138,7 @@ elif [ -f ../../sage -a -d ../../build ]; then
     NEW_SAGE_ROOT="../.."
 else
     # No idea what SAGE_ROOT should be...
-    echo >&2 "Error: You must set the SAGE_ROOT environment variable or run this"
+    echo >&2 "Error: You must set the SAGE_ROOT or SAGE_SCRIPTS_DIR environment variables or run this"
     echo >&2 "script from the SAGE_ROOT or SAGE_ROOT/local/bin/ directory."
     return 1
 fi
@@ -185,11 +203,13 @@ elif [ ! -f "$SAGE_SCRIPTS_DIR/sage-env-config" ]; then
     return 1
 fi
 
-# Set environment variables (like SAGE_LOCAL) depending on ./configure
-. "$SAGE_SCRIPTS_DIR/sage-env-config"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: failed to source $SAGE_SCRIPTS_DIR/sage-env-config"
-    return 1
+if [ -n $SAGE_ENV_CONFIG_SOURCED ]; then
+    # Set environment variables (like SAGE_LOCAL) depending on ./configure
+    . "$SAGE_SCRIPTS_DIR/sage-env-config"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: failed to source $SAGE_SCRIPTS_DIR/sage-env-config"
+        return 1
+    fi
 fi
 
 # The compilers are set in order of priority by

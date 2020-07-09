@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+# distutils: libraries = M4RI_LIBRARIES GDLIB_LIBRARIES LIBPNG_LIBRARIES ZLIB_LIBRARIES
+# distutils: library_dirs = M4RI_LIBDIR GDLIB_LIBDIR LIBPNG_LIBDIR ZLIB_LIBDIR
+# distutils: include_dirs = M4RI_INCDIR GDLIB_INCDIR LIBPNG_INCDIR ZLIB_INCDIR
+# distutils: extra_compile_args = M4RI_CFLAGS
 """
 Dense matrices over GF(2) using the M4RI library
 

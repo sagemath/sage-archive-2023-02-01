@@ -804,7 +804,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
           is picked
 
         TESTS::
-        
+
             sage: k.<a> = GF(11^4)
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x', Frob]

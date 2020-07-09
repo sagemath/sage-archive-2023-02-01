@@ -1174,13 +1174,13 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGN(25)
-            sage: D.edges(labels=False)  # random
-            [(1, 0), (2, 1), (3, 0), (4, 2), (5, 0), (6, 2), (7, 3), (8, 2), (9, 3), (10, 4), (11, 5), (12, 9), (13, 2), (14, 2), (15, 5), (16, 2), (17, 15), (18, 1), (19, 5), (20, 2), (21, 5), (22, 1), (23, 5), (24, 14)]
             sage: D.num_verts()
             25
             sage: D.num_edges()
             24
             sage: D.is_connected()
+            True
+            sage: D.parent() is DiGraph
             True
             sage: D.show()  # long time
         """
@@ -1245,12 +1245,11 @@ class DiGraphGenerators():
 
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: D = digraphs.RandomDirectedGNP(10, .2)
             sage: D.num_verts()
             10
-            sage: D.edges(labels=False)
-            [(1, 0), (1, 2), (3, 6), (3, 7), (4, 5), (4, 7), (4, 8), (5, 2), (6, 0), (7, 2), (8, 1), (8, 9), (9, 4)]
+            sage: D.parent() is DiGraph
+            True
         """
         from sage.graphs.graph_generators_pyx import RandomGNP
         if 0.0 > p or 1.0 < p:
@@ -1283,8 +1282,6 @@ class DiGraphGenerators():
             10
             sage: D.num_edges()
             5
-            sage: D.edges(labels=False)  # random
-            [(0, 3), (1, 5), (5, 1), (7, 0), (8, 5)]
 
         With loops::
 

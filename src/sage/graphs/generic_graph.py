@@ -7150,8 +7150,7 @@ class GenericGraph(GenericGraph_pyx):
         The heuristic totally agrees::
 
             sage: g = graphs.PetersenGraph()
-            sage: p = g.longest_path(algorithm="backtrack").edges(labels=False); p  # random
-            [(0, 1), (1, 2), (2, 3), (3, 4), (4, 9), (5, 7), (5, 8), (6, 8), (6, 9)]
+            sage: p = g.longest_path(algorithm="backtrack").edges(labels=False)
             sage: len(p)
             9
 
@@ -8313,20 +8312,25 @@ class GenericGraph(GenericGraph_pyx):
         Now, using the backtrack algorithm in the Heawood graph ::
 
             sage: G=graphs.HeawoodGraph()
-            sage: G.hamiltonian_cycle(algorithm='backtrack')  # random
-            (True, [11, 10, 1, 2, 3, 4, 9, 8, 7, 6, 5, 0, 13, 12])
+            sage: G.hamiltonian_cycle(algorithm='backtrack')
+            (True, [...])
 
         And now in the Petersen graph ::
 
             sage: G=graphs.PetersenGraph()
-            sage: G.hamiltonian_cycle(algorithm='backtrack')  # random
-            (False, [6, 8, 5, 0, 1, 2, 7, 9, 4, 3])
+            sage: B, P = G.hamiltonian_cycle(algorithm='backtrack')
+            sage: B
+            False
+            sage: len(P)
+            10
+            sage: G.has_edge(P[0], P[-1])
+            False
 
         Finally, we test the algorithm in a cube graph, which is Hamiltonian ::
 
             sage: G=graphs.CubeGraph(3)
-            sage: G.hamiltonian_cycle(algorithm='backtrack')  # random
-            (True, ['010', '110', '100', '000', '001', '101', '111', '011'])
+            sage: G.hamiltonian_cycle(algorithm='backtrack')
+            (True, [...])
 
         """
         if self.order() < 2:

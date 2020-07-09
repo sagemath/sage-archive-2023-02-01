@@ -82,6 +82,8 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
     def has_left_descent(self, s):
         r"""
         Determine if ``s`` is a left descent of ``self``.
+
+        OUTPUT: boolean
         """
         return self.find_left_descent(s) is not None
 
@@ -93,6 +95,14 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
 
         A set of integers representing the indices of generators which are left
         descents of ``self``.
+
+        EXAMPLES:
+
+        Determine the descents of an FC element in `A_5`::
+
+            sage: FC = FullyCommutativeCoxeterElements(['A', 5])
+            sage: sorted(FC([1, 4, 3, 5, 2, 4, 3]).left_descents())
+            [1, 4]
         """
         m = self.parent().coxeter_matrix()
         out = set()

@@ -20,8 +20,9 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras
 from .freely_generated_lie_conformal_algebra import \
                                             FreelyGeneratedLieConformalAlgebra
+from .finitely_generated_lie_conformal_algebra import FinitelyGeneratedLieConformalAlgebra
 
-class FinitelyFreelyGeneratedLCA(FreelyGeneratedLieConformalAlgebra):
+class FinitelyFreelyGeneratedLCA(FreelyGeneratedLieConformalAlgebra, FinitelyGeneratedLieConformalAlgebra):
     """
     Abstract base class for finitely generated Lie conformal
     algebras.

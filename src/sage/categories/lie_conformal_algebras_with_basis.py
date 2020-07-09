@@ -29,34 +29,6 @@ class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         sage: LieConformalAlgebras(QQbar).WithBasis()
         Category of Lie conformal algebras with basis over Algebraic Field
     """
-    class ElementMethods:
-
-        def index(self):
-            """
-            The index of this basis element.
-
-            EXAMPLES::
-
-                sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
-                sage: V.inject_variables()
-                Defining L, G, C
-                sage: G.T(3).index()
-                ('G', 3)
-                sage: v = V.an_element(); v
-                L + G + C
-                sage: v.index()
-                Traceback (most recent call last):
-                ...
-                ValueError: index can only be computed for monomials, got L + G + C
-            """
-            if self.is_zero():
-                return None
-            if not self.is_monomial():
-                raise ValueError ("index can only be computed for "
-                                  "monomials, got {}".format(self))
-
-            return next(iter(self.monomial_coefficients()))
-
     class Super(SuperModulesCategory):
         """
         The category of super Lie conformal algebras with basis.
@@ -85,34 +57,6 @@ class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     1
                 """
                 return self._parity[self.monomial((m[0],0))]
-
-        class ElementMethods:
-
-            def index(self):
-                """
-                The index of this basis element.
-
-                EXAMPLES::
-
-                    sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
-                    sage: V.inject_variables()
-                    Defining L, G, C
-                    sage: G.T(3).index()
-                    ('G', 3)
-                    sage: v = V.an_element(); v
-                    L + G + C
-                    sage: v.index()
-                    Traceback (most recent call last):
-                    ...
-                    ValueError: index can only be computed for monomials, got L + G + C
-                """
-                if self.is_zero():
-                    return None
-                if not self.is_monomial():
-                    raise ValueError ("index can only be computed for "
-                                      "monomials, got {}".format(self))
-
-                return next(iter(self.monomial_coefficients()))
 
         class Graded(GradedModulesCategory):
             """
@@ -205,23 +149,6 @@ class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     return "H-graded {}".format(self.base_category().\
                                                 _repr_object_names())
 
-                class ParentMethods:
-                
-                    def degree_on_basis(self, m):
-                        r"""
-                        Return the degree of the basis element indexed by ``m``
-                        in ``self``.
-
-                        EXAMPLES::
-
-                            sage: V = lie_conformal_algebras.Virasoro(QQ)
-                            sage: V.degree_on_basis(('L',2))
-                            4
-                        """
-                        if m[0] in self._central_elements:
-                            return 0
-                        return self._weights[self._index_to_pos[m[0]]] + m[1]
-
         class Graded(GradedModulesCategory):
             """
             The category of H-graded finitely generated Lie conformal
@@ -243,21 +170,3 @@ class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 """
                 return "H-graded {}".format(self.base_category().\
                                             _repr_object_names())
-
-            class ParentMethods:
-
-                def degree_on_basis(self, m):
-                    r"""
-                    Return the degree of the basis element indexed by ``m``
-                    in ``self``.
-
-                    EXAMPLES::
-
-                        sage: V = lie_conformal_algebras.Virasoro(QQ)
-                        sage: V.degree_on_basis(('L',2))
-                        4
-                    """
-                    if m[0] in self._central_elements:
-                        return 0
-                    return self._weights[self._index_to_pos[m[0]]] + m[1]
-

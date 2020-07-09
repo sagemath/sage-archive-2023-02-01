@@ -22,11 +22,184 @@ from sage.misc.misc_c import prod
 from sage.misc.misc import repr_lincomb
 from sage.misc.latex import latex
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
+from sage.structure.element import Element
+from sage.misc.abstract_method import abstract_method
+from sage.structure.element import coerce_binop
 
-class LCAWithGeneratorsElement(IndexedFreeModuleElement):
+class LieConformalAlgebraElement(Element):
     """
-    The element class of a Lie conformal algebra with a
-    preferred set of generators.
+    Base class for elements of (super) Lie conformal algebras.
+    """
+    @coerce_binop
+    def bracket(self, rhs):
+        r"""
+        The `\lambda`-bracket of these two elements.
+
+        EXAMPLES:
+
+        The brackets of the Virasoro Lie conformal algebra::
+
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
+            sage: L.bracket(L)
+            {0: TL, 1: 2*L, 3: 1/2*C}
+            sage: L.bracket(L.T())
+            {0: 2*T^(2)L, 1: 3*TL, 2: 4*L, 4: 2*C}
+
+        Now with a current algebra::
+
+            sage: V = lie_conformal_algebras.Affine(QQ, 'A1')
+            sage: V.gens()
+            (B[alpha[1]], B[alphacheck[1]], B[-alpha[1]], B['K'])
+            sage: E = V.0; H = V.1; F = V.2;
+            sage: H.bracket(H)
+            {1: 2*B['K']}
+            sage: E.bracket(F)
+            {0: B[alphacheck[1]], 1: B['K']}
+        """
+        return self._bracket_(rhs)
+
+    @abstract_method
+    def _bracket_(self, rhs):
+        r"""
+        The `\lambda`-bracket of these two elements.
+
+        .. NOTE::
+
+            It is guaranteed that both are elements of the same
+            parent.
+
+        EXAMPLES:
+
+        The brackets of the Virasoro Lie conformal Algebra::
+
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
+            sage: L._bracket_(L)
+            {0: TL, 1: 2*L, 3: 1/2*C}
+            sage: L._bracket_(L.T())
+            {0: 2*T^(2)L, 1: 3*TL, 2: 4*L, 4: 2*C}
+
+        Now with a current algebra::
+
+            sage: V = lie_conformal_algebras.Affine(QQ, 'A1')
+            sage: V.gens()
+            (B[alpha[1]], B[alphacheck[1]], B[-alpha[1]], B['K'])
+            sage: E = V.0; H = V.1; F = V.2;
+            sage: H._bracket_(H)
+            {1: 2*B['K']}
+            sage: E._bracket_(F)
+            {0: B[alphacheck[1]], 1: B['K']}
+        """
+
+    @coerce_binop
+    def nproduct(self, rhs, n):
+        r"""
+        The ``n``-th product of these two elements.
+
+        EXAMPLES::
+
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
+            sage: L.nproduct(L, 3)
+            1/2*C
+            sage: L.nproduct(L.T(), 0)
+            2*T^(2)L
+            sage: V = lie_conformal_algebras.Affine(QQ, 'A1')
+            sage: E = V.0; H = V.1; F = V.2;
+            sage: E.nproduct(H, 0) == - 2*E
+            True
+            sage: E.nproduct(F, 1)
+            B['K']
+        """
+        return self._nproduct_(rhs,n)
+
+    def _nproduct_(self, rhs, n):
+        r"""
+        The ``n``-th product of these two elements.
+
+        .. NOTE::
+
+            It is guaranteed that both are elements of the same
+            parent.
+
+        EXAMPLES::
+
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
+            sage: L._nproduct_(L,3)
+            1/2*C
+            sage: L._nproduct_(L.T(),0)
+            2*T^(2)L
+            sage: V = lie_conformal_algebras.Affine(QQ, 'A1')
+            sage: E = V.0; H = V.1; F = V.2;
+            sage: E._nproduct_(H,0) == - 2*E
+            True
+            sage: E._nproduct_(F,1)
+            B['K']
+        """
+        if n >= 0:
+            return self.bracket(rhs).get(n,self.parent().zero())
+        else:
+            raise NotImplementedError("vertex algebras are not implemented")
+
+    @abstract_method
+    def T(self, n=1):
+        r"""
+        The ``n``-th derivative of ``self``.
+
+        INPUT:
+
+        - ``n`` -- integer (default:``1``); how many times
+          to apply `T` to this element
+
+        OUTPUT:
+
+        `T^n a` where `a` is this element. Notice that we use the
+        *divided powers* notation `T^{(j)} = \frac{T^j}{j!}`.
+
+        EXAMPLES::
+
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ)
+            sage: Vir.inject_variables()
+            Defining L, C
+            sage: L.T()
+            TL
+            sage: L.T(3)
+            6*T^(3)L
+            sage: C.T()
+            0
+        """
+
+class LCAWithBasisElement(IndexedFreeModuleElement, LieConformalAlgebraElement):
+    """
+    Element class of a (super) Lie conformal algebra with basis.
+    """
+    def index(self):
+        """
+        The index of this basis element.
+
+        EXAMPLES::
+
+            sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
+            sage: V.inject_variables()
+            Defining L, G, C
+            sage: G.T(3).index()
+            ('G', 3)
+            sage: v = V.an_element(); v
+            L + G + C
+            sage: v.index()
+            Traceback (most recent call last):
+            ...
+            ValueError: index can only be computed for monomials, got L + G + C
+        """
+        if self.is_zero():
+            return None
+        if not self.is_monomial():
+            raise ValueError ("index can only be computed for "
+                              "monomials, got {}".format(self))
+
+        return next(iter(self.monomial_coefficients()))
+
+class FreelyGeneratedLCAElement(LCAWithBasisElement):
+    """
+    Element class of a freely generated (super) Lie conformal algebra.
     """
     def T(self,n=1):
         r"""
@@ -88,10 +261,9 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
         """
         return len(self._monomial_coefficients) == 1 or self.is_zero()
 
-
-class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
+class LCAStructureCoefficientsElement(FreelyGeneratedLCAElement):
     """
-    An element of a Lie conformal algebra given by structure
+    Element class of a (super) Lie conformal algebra given by structure
     coefficients.
     """
     def _bracket_(self, right):

@@ -130,3 +130,18 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
             raise ValueError("weights and (non-central) generator lists "\
                              "must be of same length")
         self._weights = weights
+
+    def degree_on_basis(self, m):
+        r"""
+        Return the degree of the basis element indexed by ``m``
+        in ``self``.
+
+        EXAMPLES::
+
+            sage: V = lie_conformal_algebras.Virasoro(QQ)
+            sage: V.degree_on_basis(('L',2))
+            4
+        """
+        if m[0] in self._central_elements:
+            return 0
+        return self._weights[self._index_to_pos[m[0]]] + m[1]

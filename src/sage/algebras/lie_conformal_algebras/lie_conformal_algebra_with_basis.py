@@ -18,8 +18,9 @@ AUTHORS:
 
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras
 from sage.combinat.free_module import CombinatorialFreeModule
+from .lie_conformal_algebra import LieConformalAlgebra
 
-class LieConformalAlgebraWithBasis(CombinatorialFreeModule):
+class LieConformalAlgebraWithBasis(CombinatorialFreeModule, LieConformalAlgebra):
     """
     Abstract base class for a Lie conformal algebra with a
     preferred basis.

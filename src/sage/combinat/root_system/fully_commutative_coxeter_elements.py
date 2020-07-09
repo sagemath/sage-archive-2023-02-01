@@ -163,10 +163,10 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
         Create the heap of a fully commutative element in `A_5` ::
 
             sage: FC = FullyCommutativeCoxeterElements(['A', 5])
-            sage: FC([1, 4, 3, 5, 4, 2]).heap().cover_relations()
-            [[1, 2], [1, 3], [2, 4], [3, 4], [3, 5], [0, 5]]
+            sage: FC([1, 4, 3, 5, 2, 4]).heap().cover_relations()
+            [[1, 2], [1, 3], [2, 5], [2, 4], [3, 5], [0, 4]]
             sage: FC([1, 4, 3, 5, 4, 2]).heap(one_index=True).cover_relations()
-            [[2, 3], [2, 4], [3, 5], [4, 5], [4, 6], [1, 6]]
+            [[2, 3], [2, 4], [3, 6], [3, 5], [4, 6], [1, 5]]
         """
         m = self.parent().coxeter_matrix()
 
@@ -331,8 +331,8 @@ class FullyCommutativeCoxeterElements(Parent):
     Elements are normalized to Cartier--Foata normal form upon construction ::
 
         sage: FC = FullyCommutativeCoxeterElements(['A', 3])
-        sage: FC([2, 1, 3, 2])
-        [2, 3, 1, 2]
+        sage: FC([2, 3, 1, 2])
+        [2, 1, 3, 2]
 
     """
     def __init__(self, data):

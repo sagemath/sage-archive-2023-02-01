@@ -7480,11 +7480,6 @@ cdef integer(x):
         return x
     return Integer(x)
 
-cdef inline Integer _Integer_from_mpz(mpz_t e):
-    cdef Integer z = Integer.__new__(Integer)
-    mpz_set(z.value, e)
-    return z
-
 def free_integer_pool():
     cdef int i
     cdef PyObject *o

@@ -6449,8 +6449,11 @@ class Polyhedron_base(Element):
         r"""
         Return the facets of the polyhedron.
 
+        Facets are the maximal nontrivial faces of polyhedra.
+        The empty face and the polyhedron itself are trivial.
+
         A facet of a `d`-dimensional polyhedron is a face of dimension
-        `d-1`.
+        `d-1`. For `d \neq 0` the converse is true as well.
 
         OUTPUT:
 
@@ -6490,7 +6493,15 @@ class Polyhedron_base(Element):
              A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
              A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
              A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices)
+
+        The ``0``-dimensional polyhedron does not have facets::
+
+            sage: P = Polyhedron([[0]])
+            sage: P.facets()
+            ()
         """
+        if self.dimension() == 0:
+            return ()
         return self.faces(self.dimension()-1)
 
     @cached_method(do_pickle=True)

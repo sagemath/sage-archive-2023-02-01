@@ -11,7 +11,6 @@ from .cartan_matrix import CartanMatrix
 from .coxeter_matrix import CoxeterMatrix
 from .coxeter_type import CoxeterType
 from .root_system import RootSystem, WeylDim
-from .fully_commutative_coxeter_elements import FullyCommutativeCoxeterElements
 lazy_import('sage.combinat.root_system.weyl_group', ['WeylGroup',
                                                      'WeylGroupElement'])
 lazy_import('sage.combinat.root_system.reflection_group_real',

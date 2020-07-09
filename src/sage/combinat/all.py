@@ -218,6 +218,8 @@ lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
 # sine-Gordon Y-systems
 lazy_import('sage.combinat.sine_gordon', 'SineGordonYsystem')
 
+lazy_import('sage.combinat.fully_commutative_coxeter_elements', 'FullyCommutativeCoxeterElements')
+
 # Fully Packed Loop
 lazy_import('sage.combinat.fully_packed_loop', ['FullyPackedLoop', 'FullyPackedLoops'])
 

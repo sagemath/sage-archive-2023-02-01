@@ -121,6 +121,7 @@ Comprehensive Module list
     sage/combinat/expnums
     sage/combinat/family
     sage/combinat/fast_vector_partitions
+    sage/combinat/fully_commutative_coxeter_elements
     sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
     sage/combinat/fqsym
@@ -239,7 +240,6 @@ Comprehensive Module list
     sage/combinat/root_system/coxeter_group
     sage/combinat/root_system/coxeter_matrix
     sage/combinat/root_system/coxeter_type
-    sage/combinat/root_system/fully_commutative_coxeter_elements
     sage/combinat/root_system/dynkin_diagram
     sage/combinat/root_system/hecke_algebra_representation
     sage/combinat/root_system/integrable_representations

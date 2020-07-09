@@ -58,7 +58,6 @@ Coxeter groups
 - :ref:`sage.combinat.root_system.fundamental_group`
 - :ref:`sage.combinat.root_system.braid_move_calculator`
 - :ref:`sage.combinat.root_system.braid_orbit`
-- :ref:`sage.combinat.root_system.fully_commutative_coxeter_elements`
 
 .. SEEALSO::
 

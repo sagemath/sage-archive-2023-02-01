@@ -1941,21 +1941,23 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
     This method implements the weighted version of the algorithm proposed
     in [Broder2000]_ to compute a lower bound of the weighted digraph `G`.
 
-    In first part, it computes forward distances from `source` and selects a
-    vertex `vf` at a maximum forward distance from `source` and then it
-    calculates backward eccentricity from `vf`. 
+    Firstly, this method fcomputes forward distances from `source` and selects a
+    vertex `vf` at maximum forward distance from `source` (i.e. an
+    antipode). Then, it computes backward eccentricity of `vf`. Observe that the
+    backward eccentricity of `vf` is at least the forward eccentricity of
+    `source`.
 
-    In second part, it computes backward distances from `source` and selects a
-    vertex `vb` at a maximum backward distance from `source` and then it
-    calculates forward eccentricity from `vb`.
+    Secondly, this method computes backward distances from `source` and selects
+    a vertex `vb` at maximum backward distance from `source`. Then, it computes
+    the forward eccentricity of `vb`, which is at least the backward
+    eccentricity of `source`.
 
-    It then calculates lower bound LB of diameter as the maximum of
-    backward eccentricity of `vf` and forward eccentricity of `vb` and `s` as
-    respective source vertex.
+    The lower bound on the diameter is the maximum among the backward
+    eccentricity of `vf` and forward eccentricity of `vb`.
 
-    This method returns (`LB`, `s`, `m`, `d`), where `LB` is best found lower
-    bound on diameter, `s` is vertex whose forward / backward eccentricity is
-    `LB`, `d` is vertex at a distance `LB` from / to `s` , `m` is vertex at
+    The method returns `(LB, s, m, d)`, where `LB` is best found lower bound on
+    diameter, `s` is a vertex whose forward / backward eccentricity is `LB`, `d`
+    is a vertex at a distance `LB` from / to `s` , and `m` is a vertex at
     distance `LB/2` from / to both `s` and `d`.
 
     INPUT:
@@ -1969,10 +1971,25 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
     - ``algorithm`` -- string; algorithm for computing single source shortest
       distances. If ``g_boost`` contains negative edge weights then it will be
       ``Bellman-Ford``, otherwise it will be ``Dijkstra_Boost``.
+
+    TESTS::
+
+        sage: from sage.graphs.base.boost_graph import diameter
+        sage: G = DiGraph()
+        sage: diameter(DiGraph(), algorithm='2Dsweep')
+        0
+        sage: diameter(DiGraph(1), algorithm='2Dsweep')
+        0
+        sage: diameter(DiGraph(2), algorithm='2Dsweep')
+        +Infinity
     """
     import sys
-    # These variables are automatically deleted when the function terminates.
+
     cdef int n = g_boost.num_verts()
+
+    if n == 1:
+        return (0, 0, 0, 0)
+
     cdef v_index source_1, source_2, m, s, d, antipode_1, antipode_2, v
     cdef double LB_1 = 0, LB_2 = 0, LB, LB_m
     cdef result_distances result_1, result_2
@@ -1980,9 +1997,8 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
 
     # Algorithm
 
-    # 1). Compute Forward distances from source_1 to all vertices and obtain its
-    # Forward eccentricity and obtain its antipode, that is vertex at maximum
-    # forward distance.
+    # 1) Compute forward distances from source_1.
+    # Get forward eccentricity and antipode (vertex at maximum forward distance)
     if algorithm == 'Bellman-Ford':
         sig_on()
         result_1 = g_boost.bellman_ford_shortest_paths(source_1)
@@ -1994,45 +2010,18 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
     if not result_1.distances.size():
         raise ValueError("the graph contains a negative cycle")
 
-    LB_1 = 0
+    LB_1 = -sys.float_info.max
     for v in range(n):
-        if result_1.distances[v] >= LB_1:
+        if result_1.distances[v] > LB_1:
             LB_1 = result_1.distances[v]
             antipode_1 = v
 
     if LB_1 == sys.float_info.max:
         return (LB_1, 0, 0, 0)
 
-    # 2). Compute Backward distances from source_2 to all vertices and obtain
-    # its Backward eccentricity and obtain its antipode, that is vertex at
-    # maximum backward distance.
-    if algorithm == 'Bellman-Ford':
-        sig_on()
-        result_2 = rev_g_boost.bellman_ford_shortest_paths(source_2)
-        sig_off()
-    else:
-        sig_on()
-        result_2 = rev_g_boost.dijkstra_shortest_paths(source_2)
-        sig_off()
-    if not result_2.distances.size():
-        raise ValueError("the graph contains a negative cycle")
 
-    LB_2 = 0
-    for v in range(n):
-        if result_2.distances[v] >= LB_2:
-            LB_2 = result_2.distances[v]
-            antipode_2 = v
-
-    if LB_2 == sys.float_info.max:
-        return (LB_2, 0, 0, 0)
-
-    # Now use antipode_1, antipode_2 as source_1, source_2 respectively.
-    source_1 = antipode_1
-    source_2 = antipode_2
-
-    # 3). Compute Backward distances from source_1 to all vertices and obtain
-    # its Backward eccentricity and obtain its antipode, that is vertex at
-    # maximum backward distance. LB_1 will be Backward eccentricity of source_1.
+    # 2) Compute backward distances from antipode_1.
+    source_1, antipode_1 = antipode_1, source_1
     if algorithm == 'Bellman-Ford':
         sig_on()
         result_1 = rev_g_boost.bellman_ford_shortest_paths(source_1)
@@ -2044,15 +2033,39 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
     if not result_1.distances.size():
         raise ValueError("the graph contains a negative cycle")
 
-    LB_1 = 0
     for v in range(n):
-        if result_1.distances[v] >= LB_1:
+        if result_1.distances[v] > LB_1:
             LB_1 = result_1.distances[v]
             antipode_1 = v
 
-    # 4). Compute Forward distances from source_2 to all vertices and obtain its
-    # Forward eccentricity and obtain its antipode, that is vertex at maximum
-    # forward distance. LB_2 will be Forward eccentricity of source_2.
+    if LB_1 == sys.float_info.max:
+        return (LB_1, 0, 0, 0)
+
+
+    # 3) Compute backward distances from source_2.
+    # Get backward eccentricity and antipode.
+    if algorithm == 'Bellman-Ford':
+        sig_on()
+        result_2 = rev_g_boost.bellman_ford_shortest_paths(source_2)
+        sig_off()
+    else:
+        sig_on()
+        result_2 = rev_g_boost.dijkstra_shortest_paths(source_2)
+        sig_off()
+    if not result_2.distances.size():
+        raise ValueError("the graph contains a negative cycle")
+
+    LB_2 = -sys.float_info.max
+    for v in range(n):
+        if result_2.distances[v] > LB_2:
+            LB_2 = result_2.distances[v]
+            antipode_2 = v
+
+    if LB_2 == sys.float_info.max:
+        return (LB_2, 0, 0, 0)
+
+    # 4) Compute forward distances from antipode_2.
+    source_2, antipode_2 = antipode_2, source_2
     if algorithm == 'Bellman-Ford':
         sig_on()
         result_2 = g_boost.bellman_ford_shortest_paths(source_2)
@@ -2064,15 +2077,17 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
     if not result_2.distances.size():
         raise ValueError("the graph contains a negative cycle")
 
-    LB_2 = 0
     for v in range(n):
-        if result_2.distances[v] >= LB_2:
+        if result_2.distances[v] > LB_2:
             LB_2 = result_2.distances[v]
             antipode_2 = v
 
-    # We will select best found lower bound as LB and s, d as corresponding
-    # source and antipode respectively. And m as vertex at a distance LB/2
-    # from/to both s and d.
+    if LB_2 == sys.float_info.max:
+        return (LB_2, 0, 0, 0)
+
+
+    # 5) Select best found lower bound as LB with corresponding source s and
+    # antipode d. Then find a vertex m at a distance LB/2 from/to both s and d.
     if LB_1 < LB_2:
         LB = LB_2
         s = source_2
@@ -2120,10 +2135,24 @@ cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
     - ``algorithm`` -- string; algorithm for computing single source shortest
       distances. If ``g_boost`` contains negative edge weights then it will be
       ``Bellman-Ford``, otherwise it will be ``Dijkstra_Boost``.
+
+    TESTS::
+
+        sage: from sage.graphs.base.boost_graph import diameter
+        sage: G = DiGraph()
+        sage: diameter(DiGraph(), algorithm='DiFUB')
+        0
+        sage: diameter(DiGraph(1), algorithm='DiFUB')
+        0
+        sage: diameter(DiGraph(2), algorithm='DiFUB')
+        +Infinity
     """
+    cdef int n = g_boost.num_verts()
+    if n <= 1:
+        return 0
+
     import sys
     # These variables are automatically deleted when the function terminates.
-    cdef int n = g_boost.num_verts()
     cdef double LB, LB_1, LB_2, UB
     cdef v_index s, m, d, v, tmp
     cdef size_t i
@@ -2153,10 +2182,10 @@ cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
 
     # Obtain Forward eccentricity of `m` and store pair of
     # forward distances, vertex in order_1
-    LB_1 = 0
+    LB_1 = -sys.float_info.max
     for v in range(n):
         LB_1 = max(LB_1, distances[v])
-        order_1.push_back(pair[double, v_index](distances[v], v))
+        order_1.push_back(pair[double,v_index](distances[v], v))
     # Compute Backward distances from `m`.
     if algorithm == 'Bellman-Ford':
         sig_on()
@@ -2171,10 +2200,10 @@ cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
 
     # Obtain Backward eccentricity of `m` and store pair of
     # backward distances, vertex in order_2.
-    LB_2 = 0
+    LB_2 = -sys.float_info.max
     for v in range(n):
         LB_2 = max(LB_2, distances[v])
-        order_2.push_back(pair[double, v_index](distances[v], v))
+        order_2.push_back(pair[double,v_index](distances[v], v))
 
     # Now sort order_1 / order_2 in decreasing order of forward / backward
     # distances respectively.
@@ -2231,7 +2260,7 @@ cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
         if not distances.size():
             raise ValueError("the graph contains a negative cycle")
 
-        LB_1 = 0
+        LB_1 = -sys.float_info.max
         for tmp in range(n):
             LB_1 = max(LB_1, distances[tmp])
 
@@ -2247,7 +2276,7 @@ cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
         if not distances.size():
             raise ValueError("the graph contains a negative cycle")
 
-        LB_2 = 0
+        LB_2 = -sys.float_info.max
         for tmp in range(n):
             LB_2 = max(LB_2, distances[tmp])
 
@@ -2303,15 +2332,18 @@ cpdef diameter(G, algorithm=None, source=None,
     EXAMPLES::
 
         sage: from sage.graphs.base.boost_graph import diameter
-        sage: G = DiGraph([(0,1,2), (1,0,-1)])
+        sage: G = DiGraph([(0, 1, 2), (1, 0, -1)])
         sage: diameter(G, algorithm='DiFUB')
         1.0
         sage: diameter(G, algorithm='DiFUB', weight_function=lambda e:e[2])
         2.0
+        sage: G = DiGraph([(0, 1, -1), (1, 0, 2)])
+        sage: diameter(G, algorithm='DiFUB', weight_function=lambda e:e[2])
+        2.0
 
-    TESTS::
+    TESTS:
 
-    Diameter of weakly connected digraph is Infinity
+    Diameter of weakly connected digraph is Infinity::
 
         sage: G = DiGraph(2)
         sage: diameter(G, algorithm='DiFUB')
@@ -2319,7 +2351,7 @@ cpdef diameter(G, algorithm=None, source=None,
         sage: diameter(G, algorithm='2Dsweep')
         +Infinity
 
-    DiGraph containing negative cycle
+    DiGraph containing negative cycle::
 
         sage: G = DiGraph([(0,1,-2), (1,0,1)])
         sage: diameter(G, algorithm='2Dsweep', weight_function=lambda e:e[2])

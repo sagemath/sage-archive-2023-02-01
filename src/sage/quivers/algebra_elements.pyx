@@ -18,7 +18,7 @@ AUTHORS:
 include "algebra_elements.pxi"
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import repr_lincomb
+from sage.misc.repr import repr_lincomb
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
 
@@ -1300,9 +1300,6 @@ cdef class PathAlgebraElement(RingElement):
                 sample = sample._parent._semigroup.algebra(x.parent())(0)
             return sample._new_(homog_poly_scale((<PathAlgebraElement>self).data, x))
         raise TypeError("Don't know how to divide {} by {}".format(x, self))
-
-    def __div__(self, x):
-        return self / x
 
 ## Multiplication in the algebra
 

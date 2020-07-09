@@ -378,7 +378,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
     assert(isinstance(hidden_keys, list))
     assert(isinstance(lazy, bool))
 
-    if hidden_keys == []:
+    if not hidden_keys:
         if hidden_function is not None:
             raise ValueError("hidden_function keyword only makes sense "
                              "together with hidden_keys keyword !")

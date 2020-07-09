@@ -1408,7 +1408,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sig_off()
         return new_mtx(mat, self)
 
-    def __div__(Matrix_gfpn_dense self, p):
+    def __truediv__(Matrix_gfpn_dense self, p):
         """
         Divide a matrix by a scalar.
 

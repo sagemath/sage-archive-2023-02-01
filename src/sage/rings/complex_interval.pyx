@@ -1607,22 +1607,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             return 1
         return 0
 
-    cpdef int _cmp_(self, other) except -2:
-        """
-        Deprecated method (:trac:`23133`)
-
-        EXAMPLES::
-
-            sage: a = CIF(RIF(0,1), RIF(0,1))
-            sage: a._cmp_(a)
-            doctest:...: DeprecationWarning: for CIF elements, do not use cmp
-            See http://trac.sagemath.org/23133 for details.
-            0
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(23133, 'for CIF elements, do not use cmp')
-        return self.lexico_cmp(other)
-
     ########################################################################
     # Transcendental (and other) functions
     ########################################################################

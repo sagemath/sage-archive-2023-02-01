@@ -1,3 +1,7 @@
+# distutils: libraries = brial brial_groebner M4RI_LIBRARIES LIBPNG_LIBRARIES
+# distutils: library_dirs = M4RI_LIBDIR LIBPNG_LIBDIR
+# distutils: include_dirs = M4RI_INCDIR LIBPNG_INCDIR
+# distutils: extra_compile_args = M4RI_CFLAGS
 r"""
 Boolean Polynomials
 
@@ -5219,6 +5223,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
     def __eq__(self, other):
         """
         EXAMPLES::
+
             sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
             sage: F,s = sr.polynomial_system()
             sage: I = F.ideal()
@@ -5239,6 +5244,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
     def __ne__(self, other):
         """
         EXAMPLES::
+
             sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
             sage: F,s = sr.polynomial_system()
             sage: I = F.ideal()
@@ -6870,6 +6876,7 @@ cdef class GroebnerStrategy:
         - ``v`` - the index of a variable
 
         EXAMPLES::
+
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
             sage: from brial import GroebnerStrategy
             sage: gb = GroebnerStrategy(B)

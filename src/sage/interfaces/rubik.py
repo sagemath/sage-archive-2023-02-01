@@ -65,6 +65,7 @@ optimal_solver_format = "UF UR UB UL DF DR DB DL FR FL BR BL UFR URB UBL ULF DRF
 class SingNot:
     """
     This class is to resolve difference between various Singmaster notation.
+
     Case is ignored, and the second and third letters may be swapped.
 
     EXAMPLES::
@@ -77,7 +78,7 @@ class SingNot:
     """
     def __init__(self, s):
         self.rep = s
-        self.canonical = (s[0] + "".join(sorted(list(s[1:])))).lower()
+        self.canonical = (s[0] + "".join(sorted(s[1:]))).lower()
     def __eq__(self, other):
         return isinstance(other, SingNot) and other.canonical == self.canonical
     def __repr__(self):
@@ -87,6 +88,7 @@ class SingNot:
 
 # This is our list
 singmaster_list = [''] + [SingNot(index2singmaster(i+1)) for i in range(48)]; singmaster_list
+
 
 class OptimalSolver:
     """

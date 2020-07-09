@@ -76,7 +76,6 @@ Command-line options for Sage
 - ``-R [...]`` -- run Sage's R with the given arguments
 - ``--scons [...]`` -- run Sage's scons
 - ``--singular [...]`` -- run Sage's singular with the given arguments
-- ``--twistd [...]`` -- run Twisted server
 - ``--sh [...]`` -- run a shell with Sage environment variables
   as they are set in the runtime of Sage
 - ``--buildsh [...]`` -- run a shell with Sage environment variables
@@ -211,9 +210,6 @@ Command-line options for Sage
 
 .. rubric:: Making Sage packages or distributions
 
-- ``--pkg dir`` -- create the Sage package ``dir.spkg`` from the
-  directory ``dir``
-- ``--pkg_nc dir`` -- as ``--pkg``, but do not compress the package
 - ``--merge`` -- run Sage's automatic merge and test script
 - ``--sdist`` -- build a source distribution of Sage
 

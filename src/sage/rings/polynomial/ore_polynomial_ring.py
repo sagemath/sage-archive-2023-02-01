@@ -425,7 +425,7 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
             sage: S(x, check=True)
             x
         """
-        C = self.Element
+        C = self.element_class
         if isinstance(a, list):
             return C(self, a, check=check, construct=construct)
         if isinstance(a, Element):

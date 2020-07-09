@@ -1,4 +1,5 @@
 # cython: binding=True
+# distutils: language = c++
 r"""
 Static Sparse Graphs
 

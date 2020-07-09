@@ -808,13 +808,14 @@ class FileDocTestSource(DocTestSource):
         actual = []
         tests, _ = self.create_doctests({})
         for dt in tests:
-            if len(dt.examples) > 0:
+            if dt.examples:
                 for ex in dt.examples[:-1]: # the last entry is a sig_on_count()
                     actual.append(dt.lineno + ex.lineno + 1)
-        shortfall = sorted(list(set(expected).difference(set(actual))))
-        extras = sorted(list(set(actual).difference(set(expected))))
+        shortfall = sorted(set(expected).difference(set(actual)))
+        extras = sorted(set(actual).difference(set(expected)))
         if len(actual) == len(expected):
-            if len(shortfall) == 0: return
+            if not shortfall:
+                return
             dif = extras[0] - shortfall[0]
             for e, s in zip(extras[1:],shortfall[1:]):
                 if dif != e - s:
@@ -833,6 +834,7 @@ class FileDocTestSource(DocTestSource):
                 print("    Tests on lines %s are not run" % (", ".join([str(n) for n in shortfall])))
             if check_extras and extras:
                 print("    Tests on lines %s seem extraneous" % (", ".join([str(n) for n in extras])))
+
 
 class SourceLanguage:
     """

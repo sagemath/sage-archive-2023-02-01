@@ -178,8 +178,11 @@ class Rings(CategoryWithAxiom):
                     if K is self.codomain():
                         return True
 
-            if self.domain().cardinality() > self.codomain().cardinality():
-                return False
+            try:
+                if self.domain().cardinality() > self.codomain().cardinality():
+                    return False
+            except AttributeError:
+                pass
 
             raise NotImplementedError
 
@@ -1068,7 +1071,7 @@ class Rings(CategoryWithAxiom):
             # 1. If arg is a list, try to return a power series ring.
 
             if isinstance(arg, list):
-                if arg == []:
+                if not arg:
                     raise TypeError("power series rings must have at least one variable")
                 elif len(arg) == 1:
                     # R[["a,b"]], R[[(a,b)]]...

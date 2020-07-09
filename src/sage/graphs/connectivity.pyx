@@ -1804,6 +1804,13 @@ def strong_articulation_points(G):
         Traceback (most recent call last):
         ...
         TypeError: the input must be a Sage DiGraph
+
+    Ticket :trac:`29958` is fixed::
+
+        sage: D = DiGraph('SA?GA??_??a???@?@OH_?@?I??b??G?AgGGCO??AC????a?????A@????AOCOQ?d??I?')
+        sage: SAP = strong_articulation_points(D)
+        sage: set(SAP) == {1, 2, 4, 17, 18}
+        True
     """
     from sage.graphs.digraph import DiGraph
     if not isinstance(G, DiGraph):
@@ -1822,10 +1829,7 @@ def strong_articulation_points(G):
     SAP = []
     for g in L:
         n = g.order()
-        if n <= 1:
-            continue
-        if n == 2:
-            SAP.extend(g.vertex_iterator())
+        if n <= 2:
             continue
 
         # 1. Choose arbitrarily a vertex r, and test whether r is a strong

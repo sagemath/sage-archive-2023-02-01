@@ -2542,7 +2542,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         sage: D = C.decoder("Syndrome", maximum_error_weight = 5) # long time
         sage: D.decoder_type() # long time
         {'complete', 'hard-decision', 'might-error'}
-        sage: D.decoding_radius() # long time 
+        sage: D.decoding_radius() # long time
         4
 
     In that case, the decoder might still return an unexpected codeword, but
@@ -2799,8 +2799,8 @@ class LinearCodeSyndromeDecoder(Decoder):
             ....:   [0, 0, 1, 0, 2, 0, 0, 2],
             ....:   [0, 0, 0, 1, 0, 2, 0, 1]])
             sage: C = LinearCode(G)
-            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, maximum_error_weight = 2)
-            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, maximum_error_weight = 1)
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 1)
             sage: c = C.random_element()
             sage: r = Chan(c)
             sage: c == D.decode_to_code(r)

@@ -97,6 +97,7 @@ class DocTestDefaults(SageObject):
         self.long = False
         self.warn_long = None
         self.randorder = None
+        self.random_seed = 0
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
         self.initial = False
@@ -410,6 +411,9 @@ class DocTestController(SageObject):
         self.stats = {}
         self.load_stats(options.stats_path)
         self._init_warn_long()
+
+        if self.options.random_seed is None:
+            self.options.random_seed = 0
 
     def __del__(self):
         if getattr(self, 'logfile', None) is not None:

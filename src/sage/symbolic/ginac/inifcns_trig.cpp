@@ -839,7 +839,7 @@ static ex cot_imag_part(const ex & x)
 {
 	ex a = GiNaC::real_part(mul(x, _ex2));
 	ex b = GiNaC::imag_part(mul(x, _ex2));
-	return sinh(b)/(cosh(b) - cos(a));
+	return -sinh(b)/(cosh(b) - cos(a));
 }
 
 static ex cot_series(const ex &x,

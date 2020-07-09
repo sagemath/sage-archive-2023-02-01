@@ -296,24 +296,24 @@ class FullyCommutativeCoxeterElements(Parent):
 
     Enumerate the reduced words of fully commutative elements in `A_3` ::
 
-        sage: FC = FullyCommutativeReducedCoxeterWords(['A', 3])
+        sage: FC = FullyCommutativeCoxeterElements(['A', 3])
         sage: FC.category()
         Category of finite enumerated sets
         sage: FC.list()
         [[],
+         [1],
          [2],
          [3],
-         [1],
-         [2, 3],
+         [2, 1],
+         [1, 3],
          [1, 2],
          [3, 2],
-         [1, 3],
-         [2, 1],
-         [1, 2, 3],
+         [2, 3],
          [3, 2, 1],
+         [2, 1, 3],
          [1, 3, 2],
-         [2, 3, 1],
-         [2, 3, 1, 2]]
+         [1, 2, 3],
+         [2, 1, 3, 2]]
 
     Count the FC elements in `B_8` ::
 
@@ -328,7 +328,7 @@ class FullyCommutativeCoxeterElements(Parent):
         sage: FC.category()
         Category of infinite enumerated sets
         sage: list(FC.iterate_to_length(2))
-        [[], [1], [2], [0], [1, 0], [0, 2], [0, 1], [1, 2], [2, 1], [2, 0]]
+        [[], [0], [1], [2], [1, 0], [2, 0], [0, 1], [2, 1], [0, 2], [1, 2]]
 
     Constructing an element that is not fully commutative throws an error ::
 
@@ -402,21 +402,27 @@ class FullyCommutativeCoxeterElements(Parent):
         empty_word = self.element_class(self, [], check=False)
         letters = self.index_set()
 
-        recent_words = {empty_word}
+        # In the following, we use a dictionary's keys as a replacement for a
+        # set. this is because dictinary keys are guaranteed be ordered in
+        # Python 3.7+, so this is an easy way to make this iterator
+        # deterministic.
+
+        recent_words = {empty_word: True}
         yield empty_word
 
         length = 1
         while True:
-            new_words = set()
-            for w in recent_words:
+            new_words = {}
+            for w in recent_words.keys():
                 for s in letters:
                     if w.still_reduced_fc_after_prepending(s):
                         sw = self.element_class(self, [s] + list(w), check=False)
-                        new_words.add(sw)
+                        # "Add" sw to the "set"
+                        new_words[sw] = True
 
             if len(new_words) == 0:
                 return
-            for w in new_words:
+            for w in new_words.keys():
                 yield w
             recent_words = new_words
             length += 1

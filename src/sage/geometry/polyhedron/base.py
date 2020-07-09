@@ -483,6 +483,29 @@ class Polyhedron_base(Element):
         """
         self.parent().recycle(self)
 
+    def _test_basic_properties(self, tester=None, **options):
+        """
+        Run some basic tests to see, that some general assertion on polyhedra hold.
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_basic_properties()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        tester.assertEqual(self.n_vertices() + self.n_rays() + self.n_lines(), self.n_Vrepresentation())
+        tester.assertEqual(self.n_inequalities() + self.n_equations(), self.n_Hrepresentation())
+        tester.assertEqual(self.dim() + self.n_equations(), self.ambient_dim())
+
+        tester.assertTrue(all(len(v[::]) == self.ambient_dim() for v in self.Vrep_generator()))
+        tester.assertTrue(all(len(h[::]) == self.ambient_dim() + 1 for h in self.Hrep_generator()))
+
+        if self.n_vertices() + self.n_rays() < 40:
+            tester.assertEqual(self, Polyhedron(vertices=self.vertices(), rays=self.rays(), lines=self.lines()))
+        if self.n_inequalities() < 40:
+            tester.assertEqual(self, Polyhedron(ieqs=self.inequalities(), eqns=self.equations()))
+
     def base_extend(self, base_ring, backend=None):
         """
         Return a new polyhedron over a larger base ring.

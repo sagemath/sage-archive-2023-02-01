@@ -2722,9 +2722,24 @@ class Polyhedron_base(Element):
 
         Check that :trac:`28828` is fixed::
 
-                sage: R.incidence_matrix().is_immutable()
-                True
+            sage: R.incidence_matrix().is_immutable()
+            True
+
+        Test that this method works for inexact base ring
+        (``cdd`` sets the cache already)::
+
+            sage: P = polytopes.dodecahedron(exact=False)
+            sage: M = P.incidence_matrix.cache
+            sage: P.incidence_matrix.clear_cache()
+            sage: M == P.incidence_matrix()
+            True
         """
+        if self.base_ring() in (ZZ, QQ):
+            # Much faster for integers or rationals.
+            incidence_matrix = self.slack_matrix().zero_pattern_matrix(ZZ)
+            incidence_matrix.set_immutable()
+            return incidence_matrix
+
         incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)
 
@@ -2735,18 +2750,25 @@ class Polyhedron_base(Element):
                                     for v in self.Vrep_generator()
                                     if not v.is_vertex())
 
+        # Determine ``is_zero`` to save lots of time.
+        if self.base_ring().is_exact():
+            def is_zero(x):
+                return not x
+        else:
+            is_zero = self._is_zero
+
         for H in self.Hrep_generator():
             Hconst = H.b()
             Hvec = H.A()
             Hindex = H.index()
             for Vvec, Vindex in Vvectors_vertices:
-                if self._is_zero(Hvec*Vvec + Hconst):
+                if is_zero(Hvec*Vvec + Hconst):
                     incidence_matrix[Vindex, Hindex] = 1
 
             # A ray or line is considered incident with a hyperplane,
             # if it is orthogonal to the normal vector of the hyperplane.
             for Vvec, Vindex in Vvectors_rays_lines:
-                if self._is_zero(Hvec*Vvec):
+                if is_zero(Hvec*Vvec):
                     incidence_matrix[Vindex, Hindex] = 1
 
         incidence_matrix.set_immutable()

@@ -100,8 +100,9 @@ from .conversions \
                facets_tuple_to_bit_rep_of_Vrep
 from sage.misc.cachefunc            import cached_method
 
-from sage.rings.integer             cimport smallInteger
-from cysignals.signals              cimport sig_check, sig_block, sig_unblock
+from sage.rings.integer                cimport smallInteger
+from cysignals.signals                 cimport sig_check, sig_block, sig_unblock
+from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -348,6 +349,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         # ``self._length_edges_list*2*sizeof(size_t *)``.
         self._length_edges_list = 16348
 
+        data_modified = None
+
         if isinstance(data, Polyhedron_base):
             # input is ``Polyhedron``
             Vrep = data.Vrepresentation()
@@ -360,7 +363,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             else:
                 self._bounded = True
 
+            P = data
             data = data.incidence_matrix()
+
+            # Delete equations
+            if P.n_equations():
+                data_modified = data.delete_columns([e.index() for e in P.equations()])
+            else:
+                data_modified = data
         elif isinstance(data, LatticePolytopeClass):
             # input is ``LatticePolytope``
             self._bounded = True
@@ -427,17 +437,28 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._n_Hrepresentation = data.ncols()
             self._n_Vrepresentation = data.nrows()
 
+            if not isinstance(data, Matrix_integer_dense):
+                from sage.rings.all  import ZZ
+                from sage.matrix.all import matrix
+                data = matrix(ZZ, data, sparse=False)
+                assert isinstance(data, Matrix_integer_dense), "conversion to ``Matrix_integer_dense`` didn't work"
+
             # Store the incidence matrix.
             if not data.is_immutable():
                 data = data.__copy__()
                 data.set_immutable()
             self.incidence_matrix.set_cache(data)
 
+
+            if data_modified is None:
+                # Delete equations.
+                data_modified = data.delete_columns([i for i in range(data.ncols()) if all(data[j,i] for j in range(data.nrows()))], check=False)
+
             # Initializing the facets in their Bit-representation.
-            self._bitrep_facets = incidence_matrix_to_bit_rep_of_facets(data)
+            self._bitrep_facets = incidence_matrix_to_bit_rep_of_facets(data_modified)
 
             # Initializing the Vrep as their Bit-representation.
-            self._bitrep_Vrep = incidence_matrix_to_bit_rep_of_Vrep(data)
+            self._bitrep_Vrep = incidence_matrix_to_bit_rep_of_Vrep(data_modified)
 
             self._n_facets = self.bitrep_facets().n_faces
 
@@ -1042,15 +1063,15 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         from sage.rings.all import ZZ
         from sage.matrix.constructor import matrix
-        incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
-                                  self.n_Hrepresentation(), 0)
+        cdef Matrix_integer_dense incidence_matrix = matrix(
+                ZZ, self.n_Vrepresentation(), self.n_Hrepresentation(), 0)
 
         if self.dim() < 1:
             # Small cases.
             if self.dim() == 0:
                 # To be consistent with ``Polyhedron_base``,
                 for i in range(self.n_Hrepresentation()):
-                    incidence_matrix[0,i] = 1
+                    incidence_matrix.set_unsafe_si(0, i, 1)
             incidence_matrix.set_immutable()
             return incidence_matrix
 
@@ -1060,13 +1081,13 @@ cdef class CombinatorialPolyhedron(SageObject):
             n_equalities = len(self.equalities())
             for Hindex in range(n_equalities):
                 for Vindex in range(self.n_Vrepresentation()):
-                    incidence_matrix[Vindex, Hindex] = 1
+                    incidence_matrix.set_unsafe_si(Vindex, Hindex, 1)
 
         facet_iter = self.face_iter(self.dimension() - 1, dual=False)
         for facet in facet_iter:
             Hindex = facet.ambient_H_indices()[0] + n_equalities
             for Vindex in facet.ambient_V_indices():
-                incidence_matrix[Vindex, Hindex] = 1
+                incidence_matrix.set_unsafe_si(Vindex, Hindex, 1)
 
         incidence_matrix.set_immutable()
 

@@ -177,7 +177,6 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         sage: designs.balanced_incomplete_block_design(15,7,3)
         (15,7,3)-Balanced Incomplete Block Design
     """
-
     # Trivial BIBD
     if v == 1:
         if existence:
@@ -205,6 +204,12 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         if existence:
             return False
         raise EmptySetError("There exists no ({},{},{})-BIBD".format(v, k, lambd))
+
+    # Non-esistence by BRC Theoerem
+    if BruckRyserChowla_check(v, k, lambd) is False:
+        if existence:
+            return False
+        raise EmptySetError("There exists no ({},{},{})-BIBD by Bruck-Ryser-Chowla Theorem".format(v,k,lambd))
 
     if k == 2:
         if existence:
@@ -270,6 +275,82 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         return Unknown
     else:
         raise NotImplementedError("I don't know how to build a ({},{},{})-BIBD!".format(v, k, lambd))
+
+def BruckRyserChowla_check(v, k, lambd):
+    r"""
+    Check whether the parameters passed satisfy the Bruck-Ryser-Chowla theorem.
+
+    For more information on the theorem, see the
+    :wikipedia:`corresponding Wikipedia entry <Bruck–Ryser–Chowla_theorem>`.
+
+    INPUT:
+
+    - ``v, k, lambd`` -- integers; parameters to check
+
+    OUTPUT:
+
+    - ``True`` -- the parameters satisfy the theorem
+
+    - ``False`` -- the theorem fails for the given parameters
+
+    - ``Unknown`` -- the preconditions of the theorem are not met
+
+    EXAMPLES:
+
+        sage: from sage.combinat.designs.bibd import BruckRyserChowla_check
+        sage: BruckRyserChowla_check(22,7,2)
+        False
+
+    Nonexistence of projective planes of order 6 and 14
+
+        sage: from sage.combinat.designs.bibd import BruckRyserChowla_check
+        sage: BruckRyserChowla_check(43,7,1)
+        False
+        sage: BruckRyserChowla_check(211,15,1)
+        False
+
+    Existence of symmetric BIBDs with parameters `(79,13,2)` and `(56,11,2)`
+
+        sage: from sage.combinat.designs.bibd import BruckRyserChowla_check
+        sage: BruckRyserChowla_check(79,13,2)
+        True
+        sage: BruckRyserChowla_check(56,11,2)
+        True
+
+    TESTS:
+
+    Test some non-symmetric parameters::
+
+        sage: from sage.combinat.designs.bibd import BruckRyserChowla_check
+        sage: BruckRyserChowla_check(89,11,3)
+        Unknown
+        sage: BruckRyserChowla_check(25,23,2)
+        Unknown
+
+    Clearly wrong parameters satisfying the theorem::
+
+        sage: from sage.combinat.designs.bibd import BruckRyserChowla_check
+        sage: BruckRyserChowla_check(13,25,50)
+        True
+
+    """
+    from sage.arith.misc import is_square
+    from sage.schemes.plane_conics.constructor import Conic
+    from sage.rings.rational_field import QQ
+
+    # design is not symmetric
+    if k*(k-1) != lambd*(v-1):
+        return Unknown
+
+    if v%2 == 0:
+        return is_square(k-lambd)
+
+    g = 1 if v%4 == 1 else -1
+    C = Conic(QQ, [1, lambd - k, -g * lambd])
+
+    (flag, sol) = C.has_rational_point(point=True)
+
+    return flag
 
 def steiner_triple_system(n):
     r"""

@@ -625,7 +625,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             sage: y = Chan(c)
             sage: y in Cp
             False
-            sage: D.decode_to_code(y) == c  # known bug
+            sage: D.decode_to_code(y) == c
             True
         """
         D = self.original_decoder()

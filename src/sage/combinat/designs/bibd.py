@@ -176,6 +176,17 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         (37,9,8)-Balanced Incomplete Block Design
         sage: designs.balanced_incomplete_block_design(15,7,3)
         (15,7,3)-Balanced Incomplete Block Design
+
+    Some BIBDs from the recursive construction ::
+
+        sage: designs.balanced_incomplete_block_design(76,16,4)
+        (76,16,4)-Balanced Incomplete Block Design
+        sage: designs.balanced_incomplete_block_design(10,4,2)
+        (10,4,2)-Balanced Incomplete Block Design
+        sage: designs.balanced_incomplete_block_design(50,25,24)
+        (50,25,24)-Balanced Incomplete Block Design
+        sage: designs.balanced_incomplete_block_design(29,15,15)
+        (29,15,15)-Balanced Incomplete Block Design
     """
     # Trivial BIBD
     if v == 1:
@@ -270,6 +281,22 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
                 return True
             else:
                 return B
+
+    if ( (k+lambd)*(k+lambd-1) == lambd*(v+k+lambd-1) and
+         balanced_incomplete_block_design(v+k+lambd, k+lambd, lambd, existence=True) is True):
+        # By removing a block and all points of that block from the
+        # symmetric (v+k+lambd, k+lambd, lambd) BIBD
+        # we get a (v, k, lambd) BIBD
+        if existence: return True
+
+        D = balanced_incomplete_block_design(v+k+lambd, k+lambd, lambd)
+        Br = D.blocks()[0]  # block to remove
+        blocks = D.blocks()[1:]
+
+        blocks = [set(B).difference(Br) for B in blocks]
+        points = set(D.ground_set()).difference(Br)
+
+        return BalancedIncompleteBlockDesign(points, blocks, k=k, lambd=lambd, copy=False)
 
     if existence:
         return Unknown

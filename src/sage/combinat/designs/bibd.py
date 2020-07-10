@@ -155,11 +155,9 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         [[0, 1, 3], [0, 2, 4], [0, 5, 6], [1, 2, 6], [1, 4, 5], [2, 3, 5], [3, 4, 6]]
         sage: B = designs.balanced_incomplete_block_design(66, 6, 1, use_LJCR=True) # optional - internet
         sage: B                                                              # optional - internet
-        Incidence structure with 66 points and 143 blocks
+        (66,6,1)-Balanced Incomplete Block Design
         sage: B.blocks()                                                     # optional - internet
         [[0, 1, 2, 3, 4, 65], [0, 5, 22, 32, 38, 58], [0, 6, 21, 30, 43, 48], ...
-        sage: designs.balanced_incomplete_block_design(66, 6, 1, use_LJCR=True)  # optional - internet
-        Incidence structure with 66 points and 143 blocks
         sage: designs.balanced_incomplete_block_design(216, 6, 1)
         Traceback (most recent call last):
         ...
@@ -314,21 +312,30 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         G, D = difference_family(v, k, l=lambd)
         return BalancedIncompleteBlockDesign(v, BIBD_from_difference_family(G, D, check=False), lambd=lambd, copy=False)
     if lambd == 1 and use_LJCR:
+        #print("LJCR with params {}, {}, 1".format(v,k))
         from .covering_design import best_known_covering_design_www
-        B = best_known_covering_design_www(v, k, 2)
+        values_in_db = False
+        try:
+            B = best_known_covering_design_www(v, k, 2)
+            values_in_db = True
+        except ValueError:
+            # the parameters are not in the LJCR database
+            pass
 
-        # Is it a BIBD or just a good covering ?
-        expected_n_of_blocks = binomial(v, 2)//binomial(k, 2)
-        if B.low_bd() > expected_n_of_blocks:
-            if existence:
-                return False
-            raise EmptySetError("There exists no ({},{},{})-BIBD".format(v, k, lambd))
-        B = B.incidence_structure()
-        if B.num_blocks() == expected_n_of_blocks:
-            if existence:
-                return True
-            else:
-                return B
+        if values_in_db:
+            # Is it a BIBD or just a good covering ?
+            expected_n_of_blocks = binomial(v, 2)//binomial(k, 2)
+            if B.low_bd() > expected_n_of_blocks:
+                if existence:
+                    return False
+                raise EmptySetError("There exists no ({},{},{})-BIBD".format(v, k, lambd))
+            B = B.incidence_structure()
+            if B.num_blocks() == expected_n_of_blocks:
+                if existence:
+                    return True
+                else:
+                    return BalancedIncompleteBlockDesign(B.ground_set(), B.blocks(), k=k, lambd=1, copy=False)
+
 
     if ( (k+lambd)*(k+lambd-1) == lambd*(v+k+lambd-1) and
          balanced_incomplete_block_design(v+k+lambd, k+lambd, lambd, existence=True) is True):

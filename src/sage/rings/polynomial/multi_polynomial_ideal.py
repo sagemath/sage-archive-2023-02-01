@@ -1226,6 +1226,12 @@ class MPolynomialIdeal_singular_repr(
             sage: I.vector_space_dimension()
             +Infinity
 
+        Due to integer overflow, the result is correct only modulo ``2^32``, see :trac:`8586`::
+
+            sage: P.<x,y,z> = PolynomialRing(GF(32003),3)
+            sage: sage.rings.ideal.FieldIdeal(P).vector_space_dimension()  # known bug
+            32777216864027
+
         TESTS:
 
         Check that this method works over QQbar (:trac:`25351`)::

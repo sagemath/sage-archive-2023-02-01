@@ -752,7 +752,7 @@ def is_transitive(g, certificate=False):
         sage: cert = D.is_transitive(certificate=True)
         sage: D.has_edge(*cert)
         False
-        sage: D.shortest_path(*cert) != []
+        sage: bool(D.shortest_path(*cert))
         True
         sage: digraphs.RandomDirectedGNP(20,.2).transitive_closure().is_transitive()
         True

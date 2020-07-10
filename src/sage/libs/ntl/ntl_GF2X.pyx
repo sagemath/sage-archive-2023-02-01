@@ -224,9 +224,6 @@ cdef class ntl_GF2X(object):
             raise ArithmeticError("self (=%s) is not divisible by b (=%s)" % (self, b))
         return q
 
-    def __div__(self, other):
-        return self / other
-
     def DivRem(ntl_GF2X self, b):
         """
         EXAMPLES::

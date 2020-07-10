@@ -2669,6 +2669,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         Return the determinant of this matrix computed using pari.
 
         EXAMPLES::
+
             sage: matrix(QQ,3,[1..9])._det_pari()
             0
             sage: matrix(QQ,3,[1..9])._det_pari(1)

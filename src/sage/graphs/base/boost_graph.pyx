@@ -1939,9 +1939,12 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
     Return a lower bound on the diameter of `G`.
 
     This method implements the weighted version of the algorithm proposed
-    in [Broder2000]_ to compute a lower bound of the weighted digraph `G`.
+    in [Broder2000]_ to compute a lower bound on the diameter of the
+    weighted digraph `G`.
 
-    Firstly, this method fcomputes forward distances from `source` and selects a
+    If the digraph is not strongly connected, the returned value is infinity.
+
+    Firstly, this method computes forward distances from `source` and selects a
     vertex `vf` at maximum forward distance from `source` (i.e. an
     antipode). Then, it computes backward eccentricity of `vf`. Observe that the
     backward eccentricity of `vf` is at least the forward eccentricity of
@@ -1987,7 +1990,7 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
 
     cdef int n = g_boost.num_verts()
 
-    if n == 1:
+    if n <= 1:
         return (0, 0, 0, 0)
 
     cdef v_index source_1, source_2, m, s, d, antipode_1, antipode_2, v
@@ -2086,7 +2089,7 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
         return (LB_2, 0, 0, 0)
 
 
-    # 5) Select best found lower bound as LB with corresponding source s and
+    # 5) Select the best found lower bound as LB with corresponding source s and
     # antipode d. Then find a vertex m at a distance LB/2 from/to both s and d.
     if LB_1 < LB_2:
         LB = LB_2

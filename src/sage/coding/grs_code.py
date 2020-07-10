@@ -129,7 +129,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     TESTS:
 
-    Test that the bug in #30045 is fixed::
+    Test that the bug in :trac:`30045` is fixed::
 
         sage: F = GF(5)
         sage: C = codes.GeneralizedReedSolomonCode(F.list()[:5], 2)

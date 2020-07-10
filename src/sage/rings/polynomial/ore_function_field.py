@@ -186,7 +186,7 @@ class OreFunctionField(Algebra, UniqueRepresentation):
         try:
             _ = ring.twisting_morphism(-1)
             self._simplification = True
-        except (TypeError, NotImplementedError):
+        except:
             self._simplification = False
         self._ring = ring
         base = ring.base_ring()

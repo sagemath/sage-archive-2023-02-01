@@ -434,12 +434,13 @@ def print_objects():
         if c == Cnil:
             break
 
-cdef cl_object python_to_ecl(pyobj) except NULL:
+cdef cl_object python_to_ecl(pyobj, bint read_strings) except NULL:
     # conversion of a python object into an ecl object
     # most conversions are straightforward. Noteworthy are:
     # python lists -> lisp (NIL terminated) lists
     # tuples -> dotted lists
-    # strings ->parsed by lisp reader
+    # strings -> if read_strings is true, parsed by lisp reader
+    #            otherwise creates a simple-string
 
     cdef bytes s
     cdef cl_object L, ptr
@@ -455,17 +456,26 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
         if pyobj >= MOST_NEGATIVE_FIXNUM and pyobj <= MOST_POSITIVE_FIXNUM:
             return ecl_make_integer(pyobj)
         else:
-            return python_to_ecl(Integer(pyobj))
+            return python_to_ecl(Integer(pyobj), read_strings)
     elif isinstance(pyobj,int):
         return ecl_make_integer(pyobj)
     elif isinstance(pyobj,float):
         return ecl_make_doublefloat(pyobj)
     elif isinstance(pyobj,unicode):
         s=str_to_bytes(pyobj)
-        return ecl_safe_read_string(s)
+        if read_strings:
+            return ecl_safe_read_string(s)
+        else:
+            b = ecl_cstring_to_base_string_or_nil(s)
+            # if b == Cnil:
+            #     raise NotImplementedError("Converting unicode to Lisp strings is not implemented")
+            return b
     elif isinstance(pyobj,bytes):
         s=<bytes>pyobj
-        return ecl_safe_read_string(s)
+        if read_strings:
+            return ecl_safe_read_string(s)
+        else:
+            return ecl_cstring_to_base_string_or_nil(s)
     elif isinstance(pyobj,Integer):
         if pyobj >= MOST_NEGATIVE_FIXNUM and pyobj <= MOST_POSITIVE_FIXNUM:
             return ecl_make_integer(pyobj)
@@ -473,32 +483,32 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
             return ecl_bignum_from_mpz( (<Integer>pyobj).value )
     elif isinstance(pyobj,Rational):
         return ecl_make_ratio(
-                python_to_ecl( (<Rational>pyobj).numerator()  ),
-                python_to_ecl( (<Rational>pyobj).denominator()))
+                python_to_ecl( (<Rational>pyobj).numerator(),   read_strings ),
+                python_to_ecl( (<Rational>pyobj).denominator(), read_strings ))
     elif isinstance(pyobj,EclObject):
         return (<EclObject>pyobj).obj
     elif isinstance(pyobj, list):
         if not pyobj:
             return Cnil
         else:
-            L=cl_cons(python_to_ecl(pyobj[0]),Cnil)
-            ptr=L
+            L = cl_cons(python_to_ecl(pyobj[0], read_strings),Cnil)
+            ptr = L
             for a in pyobj[1:]:
-                cl_rplacd(ptr,cl_cons(python_to_ecl(a),Cnil))
-                ptr=cl_cdr(ptr)
+                cl_rplacd(ptr, cl_cons(python_to_ecl(a, read_strings), Cnil))
+                ptr = cl_cdr(ptr)
             return L
     elif isinstance(pyobj, tuple):
         if not pyobj:
             return Cnil
         elif len(pyobj) == 1:
-            return python_to_ecl(pyobj[0])
+            return python_to_ecl(pyobj[0], read_strings)
         else:
-            L=cl_cons(python_to_ecl(pyobj[0]),Cnil)
-            ptr=L
+            L = cl_cons(python_to_ecl(pyobj[0], read_strings), Cnil)
+            ptr = L
             for a in pyobj[1:-1]:
-                cl_rplacd(ptr,cl_cons(python_to_ecl(a),Cnil))
-                ptr=cl_cdr(ptr)
-            cl_rplacd(ptr,python_to_ecl(pyobj[-1]))
+                cl_rplacd(ptr, cl_cons(python_to_ecl(a, read_strings), Cnil))
+                ptr = cl_cdr(ptr)
+            cl_rplacd(ptr, python_to_ecl(pyobj[-1], read_strings))
             return L
     else:
         raise TypeError("Unimplemented type for python_to_ecl")
@@ -595,6 +605,8 @@ cdef class EclObject:
 
         sage: EclObject( (false, true))
         <ECL: (NIL . T)>
+        sage: EclObject( (1, 2, 3) )
+        <ECL: (1 2 . 3)>
 
     Strings are fed to the reader, so a string normally results in a symbol::
 
@@ -605,6 +617,28 @@ cdef class EclObject:
 
         sage: EclObject('"Symbol"')
         <ECL: "Symbol">
+
+    Or any other object that the Lisp reader can construct::
+
+        sage: EclObject('#("I" am "just" a "simple" vector)')
+        <ECL: #("I" AM "just" A "simple" VECTOR)>
+
+    By means of Lisp reader macros, you can include arbitrary objects::
+
+        sage: EclObject([ 1, 2, '''#.(make-hash-table :test #'equal)''', 4])
+        <ECL: (1 2 #<hash-table ...> 4)>
+
+    Using an optional argument, you can control how strings are handled::
+
+        sage: EclObject("String", False)
+        <ECL: "String">
+        sage: EclObject('#(I may look like a vector but I am a string)', False)
+        <ECL: "#(I may look like a vector but I am a string)">
+
+    This also affects strings within nested lists and tuples ::
+
+        sage: EclObject([1, 2, "String", 4], False)
+        <ECL: (1 2 "String" 4)>
 
     EclObjects translate to themselves, so one can mix::
 
@@ -652,7 +686,7 @@ cdef class EclObject:
         if not(bint_fixnump(o) or bint_characterp(o) or bint_nullp(o)):
             self.node=insert_node_after(list_of_objects,o)
 
-    def __init__(self,*args):
+    def __init__(self, *args):
         r"""
         Create an EclObject
 
@@ -665,8 +699,14 @@ cdef class EclObject:
             <ECL: (NIL T NIL)>
 
         """
-        if len(args) != 0:
-            self.set_obj(python_to_ecl(args[0]))
+        if not args:
+            return
+        elif len(args) == 1:
+            self.set_obj(python_to_ecl(args[0], True))
+        elif len(args) == 2:
+            self.set_obj(python_to_ecl(args[0], args[1]))
+        else:
+            raise TypeError('EclObject.__init__ received a wrong number of arguments')
 
     def __reduce__(self):
         r"""

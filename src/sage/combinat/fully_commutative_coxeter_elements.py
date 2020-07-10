@@ -409,6 +409,64 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
         """
         return self._star_operation_inner(J, 'down', side)
 
+    def star_closure(self, side='left', **kargs):
+        r"""
+        Compute the star operation closure of ``self``.
+
+        OPTIONAL ARGUMENTS:
+
+        - ``side`` -- string (default 'left') if 'right', compute the right star
+          closure.
+        - ``upper_only`` -- boolean (default False) if passed, compute the upper
+          star closure.
+        - ``lower_only`` -- boolean (default False) if passed, compute the lower
+          star closure.
+
+        OUTPUT: set; the (upper, lower, or both) star closure of ``self``.
+
+        EXAMPLES:
+
+        Compute the left star closure of [1] in the group `I_8`. This should be
+        set of `\{1,2\}`-braids of lengths 1 through 7, and should be the same
+        as the left *upper* star closure ::
+
+            sage: FC = FullyCommutativeCoxeterElements(['I', 8])
+            sage: sorted(FC([1]).star_closure())
+            [[1],
+             [1, 2, 1],
+             [1, 2, 1, 2, 1],
+             [1, 2, 1, 2, 1, 2, 1],
+             [2, 1],
+             [2, 1, 2, 1],
+             [2, 1, 2, 1, 2, 1]]
+            sage: FC([1]).star_closure() == FC([1]).star_closure(upper_only=True)
+            True
+        """
+        m = self.parent().coxeter_matrix()
+        adjacent_pairs = [(a, b) for (a, b) in itertools.product(self.parent().index_set(), repeat=2) if a < b and m[a,b] > 2]
+        
+        directions = {'up', 'down'}
+        if 'upper_only' in kargs and kargs['upper_only']:
+            directions = {'up'}
+        elif 'lower_only' in kargs and kargs['lower_only']:
+            directions = {'down'}
+
+        closure = {self}
+        recent_words = {self}
+        while True:
+            new_words = set()
+            for w in recent_words:
+                for J in adjacent_pairs:
+                    for d in directions:
+                        n = w._star_operation_inner(J, d, side)
+                        if n is not None and n not in closure:
+                            new_words.add(n)
+            if len(new_words) == 0:
+                break
+            closure.update(new_words)
+            recent_words = new_words
+        return closure
+
 
 class FullyCommutativeCoxeterElements(Parent):
     r"""

@@ -237,19 +237,10 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
         OUTPUT: GraphicsObject
         """
         import sage.plot.all as plot
-        from sage.modules.free_module_element import vector
 
         m = self.parent().coxeter_matrix()
         letters = self.parent().index_set()
         graphics = []
-        
-        # Returns a line between two points that respects the space of the "nodes"
-        def short_line_between(a, b):
-            a, b = vector(a), vector(b)
-            d = (b - a).normalized()
-            a2 = a + 0.1*d
-            b2 = b - 0.1*d
-            return plot.line([a2, b2], color='black')
         
         h = self.heap()
         levels = h.level_sets()
@@ -261,14 +252,14 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
                 x = self[i]
 
                 # Draw the node
-                graphics.append(plot.circle((x, level), 0.1))
-                graphics.append(plot.text(str(x), (x, level)))
+                graphics.append(plot.circle((x, level), 0.1, fill=True, facecolor='white', edgecolor='blue', zorder=1))
+                graphics.append(plot.text(str(x), (x, level), color='blue', zorder=2))
 
                 neighbors = {z for z in letters if m[x, z] >= 3}
                 for other in neighbors:
                     highest_level = max((j + 1 for j in range(level_zero_index) if other in letters_at_level[j]), default=None)
                     if highest_level:
-                        graphics.append(short_line_between((other, highest_level), (x, level)))
+                        graphics.append(plot.line([(other, highest_level), (x, level)], color='black', zorder=0))
         
         g = sum(graphics)
         g.axes(False)

@@ -1786,7 +1786,7 @@ def strong_articulation_points(G):
         sage: D = digraphs.RandomDirectedGNP(20, 0.1)
         sage: X = sap_naive(D)
         sage: SAP = strong_articulation_points(D)
-        sage: set(X) == set(SAP)  # known bug
+        sage: set(X) == set(SAP)
         True
 
     Trivial cases::

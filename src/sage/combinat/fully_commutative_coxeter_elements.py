@@ -169,7 +169,7 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
         OPTIONAL ARGUMENTS:
 
         - ``one_index`` -- boolean (default False); make the Poset on the
-          indices {1, 2, ..., n} instead of {0, 1, ..., n-1}.
+          indices `\{1, 2, \dots, n\}` instead of `\{0, 1, \dots, n-1\}`.
 
         - ``display_labeling`` -- boolean (default False); make the elements of
           the resulting Poset be tuples `(i, w_i)` where `w_i` is the letter at
@@ -285,7 +285,7 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
 
         .. NOTE:
 
-        If ``J`` is generates a parabolic subgroup (i.e., ``J`` is a pair of
+        If ``J`` generates a parabolic subgroup (i.e., ``J`` is a pair of
         non-commuting generators), then the decomposition returned by this
         function is unique.
 
@@ -392,7 +392,7 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
         EXAMPLES:
 
         Perform right star operations on an element in `B_6`, with repsect to
-        the parabolic subgroup `\la 5, 6 \ra` (the long braid pair). Here both
+        the parabolic subgroup `\langle 5, 6 \rangle` (the long braid pair). Here both
         star operations are defined ::
 
             sage: FC = FullyCommutativeCoxeterElements(['B', 6])
@@ -413,7 +413,7 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
 
     def lower_star(self, J, side='left'):
         r"""
-        Perform a lower star operation on ``self``; see :ref:`upper_star` for
+        Perform a lower star operation on ``self``; see ``.upper_star`` for
         definitions and documentation.
         """
         return self._star_operation_inner(J, 'down', side)

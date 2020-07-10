@@ -75,7 +75,7 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
     .. RUBRIC:: The case of a twisting endomorphism
 
     We create the Ore ring `\GF{5^3}[x, \text{Frob}]` where Frob is the
-    Frobenius endomorphism.
+    Frobenius endomorphism::
 
         sage: k.<a> = GF(5^3)
         sage: Frob = k.frobenius_endomorphism()
@@ -96,7 +96,7 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
 
     We emphasize that it is necessary to repeat the name of the variable
     in the right hand side. Indeed, the following fails (it is interpreted
-    by Sage as a classical polynomial ring with variable name ``Frob``).
+    by Sage as a classical polynomial ring with variable name ``Frob``)::
 
         sage: T.<x> = k[Frob]
         Traceback (most recent call last):
@@ -166,18 +166,18 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
 
     .. RUBRIC:: Examples of variable name context
 
-        sage: R.<t> = ZZ[]
-        sage: sigma = R.hom([t+1])
-        sage: S.<x> = SkewPolynomialRing(R, sigma); S
-        Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
-         twisted by t |--> t + 1
-
     The names of the variables defined above cannot be arbitrarily
     modified because each Ore polynomial ring is unique in Sage and other
     objects in Sage could have pointers to that Ore polynomial ring.
 
     However, the variable can be changed within the scope of a ``with``
     block using the localvars context::
+
+        sage: R.<t> = ZZ[]
+        sage: sigma = R.hom([t+1])
+        sage: S.<x> = SkewPolynomialRing(R, sigma); S
+        Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
+         twisted by t |--> t + 1
 
         sage: with localvars(S, ['y']):
         ....:     print(S)

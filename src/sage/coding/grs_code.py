@@ -118,6 +118,15 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         sage: C
         [40, 12, 29] Generalized Reed-Solomon Code over GF(59)
 
+    SageMath implements efficient decoding algorithms for GRS codes::
+
+        sage: F = GF(11)
+        sage: n, k = 10, 5
+        sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
+        sage: r = vector(F, (8, 2, 6, 10, 6, 10, 7, 6, 7, 2))
+        sage: C.decode_to_message(r)
+        (3, 6, 6, 3, 1)
+
     TESTS:
 
     Test that the bug in #30045 is fixed::

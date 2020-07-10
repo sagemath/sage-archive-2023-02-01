@@ -49,7 +49,7 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
         out_word = []
         
         while len(self) > 0:
-            fronts = self.left_descents()
+            fronts = self.descents()
             out_word.extend(sorted(fronts))
             for s in fronts:
                 self.remove(s)
@@ -58,7 +58,7 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
 
     # Operations on fully commutative elements:
 
-    def find_left_descent(self, s):
+    def find_descent(self, s, side='left'):
         r"""
         Determine if ``s`` is a left descent of ``self``, and find the index of
         its occurrence in ``self``.
@@ -68,46 +68,62 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
         - ``s`` -- integer; the index of the generator (element of
           ``self.parent().index_set()``).
 
+        OPTIONAL ARGUMENTS:
+
+        - ``side`` -- string (default 'left') if 'right', find ``s`` as a right
+          descent.
+
         OUTPUT: 
-        
-        The index of ``s`` in ``self`` if ``s`` is a left-descent,
-        ``None`` if ``s`` is not a left descent.
+
+        The index of ``s`` in ``self`` if ``s`` is a descent on the appropriate
+        side, ``None`` if ``s`` is not a descent.
         """
         m = self.parent().coxeter_matrix()
-        for (i, t) in enumerate(self):
-            if t == s and not any(m[x, t] > 2 for x in self[:i]):
+        view = list(self) if side == 'left' else self[::-1]
+        for (i, t) in enumerate(view):
+            if t == s and not any(m[x, t] > 2 for x in view[:i]):
                 return i
         return None
 
-    def has_left_descent(self, s):
+    def has_descent(self, s, side='left'):
         r"""
-        Determine if ``s`` is a left descent of ``self``.
+        Determine if ``s`` is a descent on the appropriate side of ``self``.
+
+        OPTIONAL ARGUMENTS:
+
+        - ``side`` -- string (default 'left') if 'right', determine if ``self``
+          has ``s`` as a right descent.
 
         OUTPUT: boolean
         """
-        return self.find_left_descent(s) is not None
+        return self.find_descent(s, side=side) is not None
 
-    def left_descents(self):
+    def descents(self, side='left'):
         r"""
-        Obtain the set of left descents of ``self``.
+        Obtain the set of left or right descents of ``self``.
 
         OUTPUT:
 
         A set of integers representing the indices of generators which are left
         descents of ``self``.
 
+        OPTIONAL ARGUMENTS:
+
+        - ``side`` -- string (default 'left') if 'right', find right descents.
+
         EXAMPLES:
 
-        Determine the descents of an FC element in `A_5`::
+        Determine the left descents of an FC element in `A_5`::
 
             sage: FC = FullyCommutativeCoxeterElements(['A', 5])
-            sage: sorted(FC([1, 4, 3, 5, 2, 4, 3]).left_descents())
+            sage: sorted(FC([1, 4, 3, 5, 2, 4, 3]).descents())
             [1, 4]
         """
+        view = list(self) if side == 'left' else self[::-1]
         m = self.parent().coxeter_matrix()
         out = set()
-        for (i, t) in enumerate(self):
-            if not any(m[x, t] > 2 for x in self[:i]):
+        for (i, t) in enumerate(view):
+            if not any(m[x, t] > 2 for x in view[:i]):
                 out.add(t)
         return out
 
@@ -122,7 +138,7 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
           ``self.parent().index_set()``).
         """
         m = self.parent().coxeter_matrix()
-        if self.has_left_descent(s):
+        if self.has_descent(s):
             return False
 
         # Find the first letter in that doesn't commute with s.
@@ -135,7 +151,7 @@ class FullyCommutativeCoxeterElement(NormalizedClonableList):
         u._set_list(self[j:])
         for c in range(m[s, t] - 1):
             letter = t if c % 2 == 0 else s
-            i = u.find_left_descent(letter)
+            i = u.find_descent(letter)
             if i is not None:
                 u.pop(i)
             else:

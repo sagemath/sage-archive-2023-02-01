@@ -1255,7 +1255,9 @@ def RandomLobster(n, p, q, seed=None):
       number generator (default: ``None``).
 
 
-    EXAMPLES: We check a random graph with 12 backbone
+    EXAMPLES:
+
+    We check a random graph with 12 backbone
     nodes and probabilities `p = 0.7` and `q = 0.3`::
 
         sage: G = graphs.RandomLobster(12, 0.7, 0.3)

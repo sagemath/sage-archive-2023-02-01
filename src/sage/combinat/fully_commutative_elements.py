@@ -182,7 +182,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             for s in fronts:
                 self.remove(s)
 
-        self._set_list(out_word)
+        return self._set_list(out_word)
 
     # Operations on fully commutative elements:
 

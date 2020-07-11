@@ -1368,8 +1368,7 @@ cpdef EclObject ecl_eval(str s):
 
     """
     cdef cl_object o
-    o=ecl_safe_read_string(str_to_bytes(s))
-    o=ecl_safe_eval(o)
+    o=ecl_safe_eval(python_to_ecl(s))
     return ecl_wrap(o)
 
 init_ecl()

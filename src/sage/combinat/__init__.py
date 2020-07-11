@@ -18,7 +18,7 @@ Thematic indexes
   - :ref:`sage.combinat.crystals`
   - :ref:`sage.combinat.root_system`
   - :ref:`sage.combinat.sf`
-  - :ref:`sage.combinat.fully_commutative_coxeter_elements`
+  - :ref:`sage.combinat.fully_commutative_elements`
 
 - :ref:`sage.combinat.counting`
 - :ref:`sage.combinat.enumerated_sets`

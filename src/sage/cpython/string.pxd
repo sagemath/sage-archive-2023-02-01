@@ -10,8 +10,6 @@
 
 from __future__ import absolute_import
 
-from cpython.version cimport PY_MAJOR_VERSION
-
 
 cdef extern from "string_impl.h":
     str _cstr_to_str(const char* c, encoding, errors)
@@ -52,10 +50,7 @@ cpdef inline str bytes_to_str(b, encoding=None, errors=None):
     if type(b) is not bytes:
         raise TypeError(f"expected bytes, {type(b).__name__} found")
 
-    if PY_MAJOR_VERSION <= 2:
-        return <str>b
-    else:
-        return _cstr_to_str(<bytes>b, encoding, errors)
+    return _cstr_to_str(<bytes>b, encoding, errors)
 
 
 cpdef inline bytes str_to_bytes(s, encoding=None, errors=None):

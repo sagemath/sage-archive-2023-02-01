@@ -42,6 +42,9 @@ cdef bint bint_integerp(cl_object obj):
 cdef bint bint_rationalp(cl_object obj):
     return not(cl_rationalp(obj) == Cnil)
 
+cdef bint bint_base_string_p(cl_object obj):
+    return not(si_base_string_p(obj) == Cnil)
+
 cdef extern from "eclsig.h":
     int ecl_sig_on() except 0
     void ecl_sig_off()
@@ -98,6 +101,7 @@ cdef cl_object safe_apply_clobj        #our own error catching apply
 cdef cl_object safe_funcall_clobj      #our own error catching funcall
 cdef cl_object read_from_string_clobj  #our own error catching reader
 cdef cl_object make_unicode_string_clobj
+cdef cl_object unicode_string_codepoints_clobj
 
 cdef bint ecl_has_booted = 0
 
@@ -237,6 +241,7 @@ def init_ecl():
     global safe_funcall_clobj
     global read_from_string_clobj
     global make_unicode_string_clobj
+    global unicode_string_codepoints_clobj
     global ecl_has_booted
     cdef char *argv[1]
     cdef sigaction_t sage_action[32]
@@ -327,6 +332,12 @@ def init_ecl():
             (map 'string #'code-char codepoints))
         """))
     make_unicode_string_clobj = cl_eval(string_to_object(b"#'sage-make-unicode-string"))
+
+    cl_eval(string_to_object(b"""
+        (defun sage-unicode-string-codepoints (s)
+            (map 'list #'char-code s))
+        """))
+    unicode_string_codepoints_clobj = cl_eval(string_to_object(b"#'sage-unicode-string-codepoints"))
 
     ecl_has_booted = 1
 
@@ -770,8 +781,12 @@ cdef class EclObject:
 
         """
         cdef cl_object s
-        s = si_coerce_to_base_string(cl_write_to_string(1,self.obj))
-        return char_to_str(ecl_base_string_pointer_safe(s))
+        s = cl_write_to_string(1, self.obj)
+        if bint_base_string_p(s):
+            return char_to_str(ecl_base_string_pointer_safe(s))
+        else:
+            s = cl_funcall(2, unicode_string_codepoints_clobj, s)
+            return ''.join(chr(code) for code in ecl_to_python(s))
 
     def __hash__(self):
         r"""

@@ -15,7 +15,7 @@ Library interface to Embeddable Common Lisp (ECL)
 #adapted to work with pure Python types.
 
 from libc.stdlib cimport abort
-from libc.signal cimport SIGINT, SIGBUS, SIGSEGV, SIGCHLD
+from libc.signal cimport SIGINT, SIGBUS, SIGFPE, SIGSEGV
 from libc.signal cimport raise_ as signal_raise
 from posix.signal cimport sigaction, sigaction_t
 cimport cysignals.signals
@@ -50,9 +50,16 @@ cdef extern from "eclsig.h":
     void ecl_sig_off()
     cdef sigaction_t ecl_sigint_handler
     cdef sigaction_t ecl_sigbus_handler
+    cdef sigaction_t ecl_sigfpe_handler
     cdef sigaction_t ecl_sigsegv_handler
     cdef mpz_t ecl_mpz_from_bignum(cl_object obj)
     cdef cl_object ecl_bignum_from_mpz(mpz_t num)
+    cdef cl_object conditions_to_handle_clobj
+    void safe_cl_boot(int argc, char** argv)
+    cl_object safe_cl_funcall(cl_object *error, cl_object fun, cl_object arg)
+    cl_object safe_cl_apply(cl_object *error, cl_object fun, cl_object args)
+    cl_object safe_cl_eval(cl_object *error, cl_object form)
+
 
 cdef cl_object string_to_object(char * s):
     return ecl_read_from_cstring(s)
@@ -96,9 +103,6 @@ cdef void remove_node(cl_object node):
 
 cdef cl_object list_of_objects
 
-cdef cl_object safe_eval_clobj         #our own error catching eval
-cdef cl_object safe_apply_clobj        #our own error catching apply
-cdef cl_object safe_funcall_clobj      #our own error catching funcall
 cdef cl_object read_from_string_clobj  #our own error catching reader
 cdef cl_object make_unicode_string_clobj
 cdef cl_object unicode_string_codepoints_clobj
@@ -144,7 +148,6 @@ def test_ecl_options():
         ECL_OPT_TRAP_SIGINT = 1
         ECL_OPT_TRAP_SIGILL = 1
         ECL_OPT_TRAP_SIGBUS = 1
-        ECL_OPT_TRAP_SIGCHLD = 0
         ECL_OPT_TRAP_SIGPIPE = 1
         ECL_OPT_TRAP_INTERRUPT_SIGNAL = 1
         ECL_OPT_SIGNAL_HANDLING_THREAD = 0
@@ -158,7 +161,6 @@ def test_ecl_options():
         ECL_OPT_LISP_STACK_SAFETY_AREA = ...
         ECL_OPT_C_STACK_SIZE = ...
         ECL_OPT_C_STACK_SAFETY_AREA = ...
-        ECL_OPT_SIGALTSTACK_SIZE = 1
         ECL_OPT_HEAP_SIZE = ...
         ECL_OPT_HEAP_SAFETY_AREA = ...
         ECL_OPT_THREAD_INTERRUPT_SIGNAL = ...
@@ -176,8 +178,6 @@ def test_ecl_options():
         ecl_get_option(ECL_OPT_TRAP_SIGILL)))
     print('ECL_OPT_TRAP_SIGBUS = {0}'.format(
         ecl_get_option(ECL_OPT_TRAP_SIGBUS)))
-    print('ECL_OPT_TRAP_SIGCHLD = {0}'.format(
-        ecl_get_option(ECL_OPT_TRAP_SIGCHLD)))
     print('ECL_OPT_TRAP_SIGPIPE = {0}'.format(
         ecl_get_option(ECL_OPT_TRAP_SIGPIPE)))
     print('ECL_OPT_TRAP_INTERRUPT_SIGNAL = {0}'.format(
@@ -204,8 +204,6 @@ def test_ecl_options():
         ecl_get_option(ECL_OPT_C_STACK_SIZE)))
     print('ECL_OPT_C_STACK_SAFETY_AREA = {0}'.format(
         ecl_get_option(ECL_OPT_C_STACK_SAFETY_AREA)))
-    print('ECL_OPT_SIGALTSTACK_SIZE = {0}'.format(
-        ecl_get_option(ECL_OPT_SIGALTSTACK_SIZE)))
     print('ECL_OPT_HEAP_SIZE = {0}'.format(
         ecl_get_option(ECL_OPT_HEAP_SIZE)))
     print('ECL_OPT_HEAP_SAFETY_AREA = {0}'.format(
@@ -236,12 +234,10 @@ def init_ecl():
         RuntimeError: ECL is already initialized
     """
     global list_of_objects
-    global safe_eval_clobj
-    global safe_apply_clobj
-    global safe_funcall_clobj
     global read_from_string_clobj
     global make_unicode_string_clobj
     global unicode_string_codepoints_clobj
+    global conditions_to_handle_clobj
     global ecl_has_booted
     cdef char *argv[1]
     cdef sigaction_t sage_action[32]
@@ -249,9 +245,6 @@ def init_ecl():
 
     if ecl_has_booted:
         raise RuntimeError("ECL is already initialized")
-
-    # we need it to stop handling SIGCHLD
-    ecl_set_option(ECL_OPT_TRAP_SIGCHLD, 0);
 
     #we keep our own GMP memory functions. ECL should not claim them
     ecl_set_option(ECL_OPT_SET_GMP_MEMORY_FUNCTIONS,0);
@@ -266,18 +259,13 @@ def init_ecl():
 
     #initialize ECL
     ecl_set_option(ECL_OPT_SIGNAL_HANDLING_THREAD, 0)
-    cl_boot(1, argv)
+    safe_cl_boot(1, argv)
 
     #save signal handler from ECL
     sigaction(SIGINT, NULL, &ecl_sigint_handler)
     sigaction(SIGBUS, NULL, &ecl_sigbus_handler)
+    sigaction(SIGFPE, NULL, &ecl_sigfpe_handler)
     sigaction(SIGSEGV, NULL, &ecl_sigsegv_handler)
-
-    #verify that no SIGCHLD handler was installed
-    cdef sigaction_t sig_test
-    sigaction(SIGCHLD, NULL, &sig_test)
-    assert sage_action[SIGCHLD].sa_handler == NULL  # Sage does not set SIGCHLD handler
-    assert sig_test.sa_handler == NULL              # And ECL bootup did not set one 
 
     #and put the Sage signal handlers back
     for i in range(1,32):
@@ -300,32 +288,8 @@ def init_ecl():
 
     read_from_string_clobj=cl_eval(string_to_object(b"(symbol-function 'read-from-string)"))
 
-    cl_eval(string_to_object(b"""
-        (defun sage-safe-eval (form)
-            (handler-case
-                (values (eval form))
-                (serious-condition (cnd)
-                    (values nil (princ-to-string cnd)))))
-        """))
-    safe_eval_clobj=cl_eval(string_to_object(b"(symbol-function 'sage-safe-eval)"))
-
-    cl_eval(string_to_object(b"""
-        (defun sage-safe-apply (func args)
-            (handler-case
-                (values (apply func args))
-                (serious-condition (cnd)
-                    (values nil (princ-to-string cnd)))))
-        """))
-
-    safe_apply_clobj=cl_eval(string_to_object(b"(symbol-function 'sage-safe-apply)"))
-    cl_eval(string_to_object(b"""
-        (defun sage-safe-funcall (func arg)
-            (handler-case
-                (values (funcall func arg))
-                (serious-condition (cnd)
-                    (values nil (princ-to-string cnd)))))
-        """))
-    safe_funcall_clobj=cl_eval(string_to_object(b"(symbol-function 'sage-safe-funcall)"))
+    conditions_to_handle_clobj=ecl_list1(ecl_make_symbol(b"SERIOUS-CONDITION", b"COMMON-LISP"))
+    insert_node_after(list_of_objects,conditions_to_handle_clobj)
 
     cl_eval(string_to_object(b"""
         (defun sage-make-unicode-string (codepoints)
@@ -365,40 +329,43 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
         ...
         RuntimeError: ECL says: Console interrupt.
     """
+    cdef cl_object ret, error = NULL
+
     ecl_sig_on()
-    cl_funcall(2,safe_eval_clobj,form)
+    ret = safe_cl_eval(&error,form)
     ecl_sig_off()
 
-    if ecl_nvalues > 1:
+    if error != NULL:
         raise RuntimeError("ECL says: {}".format(
-            ecl_string_to_python(ecl_values(1))))
+            ecl_string_to_python(error)))
     else:
-        return ecl_values(0)
+        return ret
 
 cdef cl_object ecl_safe_funcall(cl_object func, cl_object arg) except NULL:
-    cdef cl_object l
-    l = cl_cons(func,cl_cons(arg,Cnil));
+    cdef cl_object ret, error = NULL
 
     ecl_sig_on()
-    cl_apply(2,safe_funcall_clobj,cl_cons(func,cl_cons(arg,Cnil)))
+    ret = safe_cl_funcall(&error,func,arg)
     ecl_sig_off()
 
-    if ecl_nvalues > 1:
+    if error != NULL:
         raise RuntimeError("ECL says: {}".format(
-            ecl_string_to_python(ecl_values(1))))
+            ecl_string_to_python(error)))
     else:
-        return ecl_values(0)
+        return ret
 
 cdef cl_object ecl_safe_apply(cl_object func, cl_object args) except NULL:
+    cdef cl_object ret, error = NULL
+
     ecl_sig_on()
-    cl_funcall(3,safe_apply_clobj,func,args)
+    ret = safe_cl_apply(&error,func,args)
     ecl_sig_off()
 
-    if ecl_nvalues > 1:
+    if error != NULL:
         raise RuntimeError("ECL says: {}".format(
-            ecl_string_to_python(ecl_values(1))))
+            ecl_string_to_python(error)))
     else:
-        return ecl_values(0)
+        return ret
 
 cdef cl_object ecl_safe_read_string(char * s) except NULL:
     cdef cl_object o

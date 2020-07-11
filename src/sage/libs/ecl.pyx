@@ -634,6 +634,19 @@ cdef class EclObject:
         True
         sage: EclObject(-i).python() == -i
         True
+
+    We check that symbols with Unicode names are converted correctly::
+
+        sage: EclObject('λ')
+        <ECL: Λ>
+        sage: EclObject('|λ|')
+        <ECL: |λ|>
+
+    We check that Unicode strings are converted correctly::
+
+        sage: EclObject('"Mαξιμα"')
+        <ECL: "Mαξιμα">
+
     """
     cdef cl_object obj   #the wrapped object
     cdef cl_object node  #linked list pointer: car(node) == obj
@@ -1327,6 +1340,15 @@ cpdef EclObject ecl_eval(str s):
         <ECL: FIBO>
         sage: ecl_eval("(mapcar 'fibo '(1 2 3 4 5 6 7))")
         <ECL: (1 1 2 3 5 8 13)>
+
+    TESTS:
+
+    We check that Unicode is handled correctly::
+
+        sage: ecl_eval('''(defun double-struck-number (n) (map 'string #'(lambda (c) (code-char (+ (char-code #\𝟘) (- (char-code c) (char-code #\\0))))) (format nil "~A" n)))''')
+        <ECL: DOUBLE-STRUCK-NUMBER>
+        sage: _(4711)
+        <ECL: "𝟜𝟟𝟙𝟙">
 
     """
     cdef cl_object o

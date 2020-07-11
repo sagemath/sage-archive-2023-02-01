@@ -455,10 +455,10 @@ def groebner_basis_buchberger(I, prec, py_integral):
     gb = [ ]
     l = 0
     for f in I.gens():
-        if f == 0:
+        if not f:
             continue
         g = f.add_bigoh(f.valuation() + prec)
-        if g == 0:
+        if not g:
             continue
         gb.append(g)
         l += 1
@@ -667,7 +667,7 @@ cdef TateAlgebraElement regular_reduce(sgb, TateAlgebraTerm s, TateAlgebraElemen
     while len(terms) > index:
         sig_check()
         lt = terms[index]
-        if lt._valuation_c() >= stopval:
+        if (not lt) or (lt._valuation_c() >= stopval):
             break
         for i in range(len(sgb)):
             sig_check()
@@ -737,7 +737,7 @@ cdef TateAlgebraElement reduce(gb, TateAlgebraElement v, stopval):
     f._prec = v._prec
     while len(terms) > index:
         lt = terms[index]
-        if lt._valuation_c() >= stopval:
+        if (not lt) or (lt._valuation_c() >= stopval):
             break
         for i in range(len(gb)):
             if (<TateAlgebraTerm>ltds[i])._divides_c(lt, integral=True):
@@ -855,9 +855,17 @@ def groebner_basis_pote(I, prec, verbose=0):
         [...000000001*x^3 + ...222222222*y + O(3^9 * <x, y>),
          ...0000000001*x^2*y + ...1210121020 + O(3^10 * <x, y>),
          ...000000001*y^2 + ...210121020*x + O(3^9 * <x, y>)]
+
+    We check that :trac:`30101` is fixed::
+
+        sage: I.groebner_basis(algorithm="PoTe", prec=100)  # indirect doctest
+        [...0000000001*x^3 + ...2222222222*y + ...000000000*x^2*y^2 + O(3^99 * <x, y>),
+         ...0000000001*x^2*y + ...01210121020 + O(3^100 * <x, y>),
+         ...0000000001*y^2 + ...01210121020*x + ...000000000*x^2*y^3 + ...0000000000*x^3*y + O(3^99 * <x, y>)]
     """
     cdef TateAlgebraElement g, v
     cdef TateAlgebraTerm s, sv, S, ti, tj
+    cdef list terms
     cdef TateAlgebraTerm term_one = I.ring().monoid_of_terms().one()
     cdef bint integral = not I.ring().base_ring().is_field()
 
@@ -865,7 +873,7 @@ def groebner_basis_pote(I, prec, verbose=0):
 
     for f in sorted(I.gens()):
         sig_check()
-        if f == 0: # Maybe reduce first?
+        if not f: # Maybe reduce first?
             continue
 
         # TODO: this should probably be a single function call
@@ -876,7 +884,7 @@ def groebner_basis_pote(I, prec, verbose=0):
             print("new generator: %s + ..." % f.leading_term())
         # Initial strong Grobner basis:
         # we add signatures
-        sgb = [ (None, g) for g in gb if g != 0 ]
+        sgb = [ (None, g) for g in gb if g ]
         # We compute initial J-pairs
         l = len(sgb)
         p = (term_one, f.add_bigoh(prec))
@@ -938,9 +946,14 @@ def groebner_basis_pote(I, prec, verbose=0):
             # We perform regular top-reduction
             sgb.append((None, v._positive_lshift_c(1)))
             v = regular_reduce(sgb, s, v, prec)
+            terms = v._terms_c()
+            if terms:
+                sv = terms[0]
+                if not sv:
+                    v = v.add_bigoh(sv._coeff.precision_absolute())
             del sgb[-1]
 
-            if v.valuation() >= prec:
+            if not v or v.valuation() >= prec:
                 # We have a new element in (I0:f) whose signature
                 # could be useful to strengthen the syzygy criterium
                 #print ("| add signature for syzygy criterium: %s" % s)
@@ -1089,18 +1102,27 @@ def groebner_basis_vapote(I, prec, verbose=0, interrupt_red_with_val=False, inte
         [...000000001*x^3 + ...222222222*y + O(3^9 * <x, y>),
          ...0000000001*x^2*y + ...1210121020 + O(3^10 * <x, y>),
          ...000000001*y^2 + ...210121020*x + O(3^9 * <x, y>)]
+
+    We check that :trac:`30101` is fixed::
+
+        sage: I.groebner_basis(algorithm="VaPoTe", prec=100)  # indirect doctest
+        [...0000000001*x^3 + ...2222222222*y + ...000000000*x^2*y^2 + O(3^99 * <x, y>),
+         ...0000000001*x^2*y + ...01210121020 + O(3^100 * <x, y>),
+         ...0000000001*y^2 + ...01210121020*x + ...000000000*x^2*y^3 + ...0000000000*x^3*y + O(3^99 * <x, y>)]
     """
     cdef TateAlgebraElement g, v
     cdef TateAlgebraTerm s, S, sv, ti, tj
+    cdef list terms
     cdef bint do_reduce, integral
     term_one = I.ring().monoid_of_terms().one()
     gb = [ ]
 
     gens = [ ]
     for f in I.gens():
-        val = f.valuation()
-        if val < prec:
-            heappush(gens, (val, f.add_bigoh(prec)))
+        if f:
+            val = f.valuation()
+            if val < prec:
+                heappush(gens, (val, f.add_bigoh(prec)))
 
     do_reduce = False
     integral = not I.ring().base_ring().is_field()
@@ -1135,14 +1157,14 @@ def groebner_basis_vapote(I, prec, verbose=0, interrupt_red_with_val=False, inte
         if verbose > 1:
             print("generator reduced")
 
-        if f == 0:
+        if not f:
             if verbose > 0:
                 print("reduction to zero")
             continue
 
         f = f.monic() << f.valuation()
         
-        if f.valuation() > val:
+        if f and f.valuation() > val:
             if verbose > 0:
                 print("reduction increases the valuation")
             heappush(gens, (f.valuation(), f))
@@ -1150,7 +1172,7 @@ def groebner_basis_vapote(I, prec, verbose=0, interrupt_red_with_val=False, inte
 
         # Initial strong Grobner basis:
         # we add signatures
-        sgb = [ (None, g) for g in gb if g != 0 ]
+        sgb = [ (None, g) for g in gb if g ]
         # We compute initial J-pairs
         l = len(sgb)
         p = (term_one, f.add_bigoh(prec))
@@ -1213,18 +1235,22 @@ def groebner_basis_vapote(I, prec, verbose=0, interrupt_red_with_val=False, inte
             sgb.append((None, v._positive_lshift_c(1)))
             tgtval = val + 1 if interrupt_red_with_val else prec
             v = regular_reduce(sgb, s, v, tgtval)
+            terms = v._terms_c()
+            if terms:
+                sv = terms[0]
+                if not sv:
+                    v = v.add_bigoh(sv._coeff.precision_absolute())
             del sgb[-1]
 
-            if v != 0:
+            if v:
                 v = v.monic() << v.valuation()
-            # if v == 0:
             if v.valuation() > val:
                 # We have a new element in (I0:f) whose signature
                 # could be useful to strengthen the syzygy criterium
                 if verbose > 1:
                     print ("| add signature for syzygy criterium: %s" % s)
                 gb0.append(s)
-                if v != 0:
+                if v:
                     heappush(gens, (v.valuation(), v))
             else:
                 # We update the current strong Grobner basis

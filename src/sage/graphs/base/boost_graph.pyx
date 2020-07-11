@@ -212,9 +212,7 @@ cpdef edge_connectivity(g):
 
         sage: from sage.graphs.base.boost_graph import edge_connectivity
         sage: g = graphs.GridGraph([2,2])
-        sage: edge_connectivity(g)  # py2
-        (2, [((0, 1), (1, 1)), ((0, 1), (0, 0))])
-        sage: edge_connectivity(g)  # py3
+        sage: edge_connectivity(g)
         (2, [((0, 0), (0, 1)), ((0, 0), (1, 0))])
     """
     from sage.graphs.graph import Graph
@@ -541,13 +539,9 @@ cpdef bandwidth_heuristics(g, algorithm='cuthill_mckee'):
         sage: from sage.graphs.base.boost_graph import bandwidth_heuristics
         sage: bandwidth_heuristics(graphs.PathGraph(10))
         (1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-        sage: bandwidth_heuristics(graphs.GridGraph([3,3]))  # py2
-        (3, [(2, 2), (2, 1), (1, 2), (2, 0), (1, 1), (0, 2), (1, 0), (0, 1), (0, 0)])
-        sage: bandwidth_heuristics(graphs.GridGraph([3,3]), algorithm='king')  # py2
-        (3, [(2, 2), (2, 1), (1, 2), (2, 0), (1, 1), (0, 2), (1, 0), (0, 1), (0, 0)])
-        sage: bandwidth_heuristics(graphs.GridGraph([3,3]))  # py3
+        sage: bandwidth_heuristics(graphs.GridGraph([3,3]))
         (3, [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (2, 1), (1, 2), (2, 2)])
-        sage: bandwidth_heuristics(graphs.GridGraph([3,3]), algorithm='king')  # py3
+        sage: bandwidth_heuristics(graphs.GridGraph([3,3]), algorithm='king')
         (3, [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (2, 1), (1, 2), (2, 2)])
 
     TESTS:

@@ -37,8 +37,14 @@ echo ""
 # Use newer version of config.guess and config.sub (see Trac #19732)
 cp "$SAGE_ROOT"/config/config.* src
 
+# ECL 2020 needs modern makeinfo
+command -v texi2any >/dev/null 2>&1
+if [ $? -ne 0 ]; then # texi2any not found -> makeinfo too old, if present
+  ECL_CONFIGURE="$ECL_CONFIGURE --enable-manual=no"
+fi
+
 sdh_configure $SAGE_CONFIGURE_GMP --disable-threads \
-              --enable-unicode=yes $ECL_CONFIGURE
+              --enable-unicode=yes --with-defsystem $ECL_CONFIGURE
 
 # Before running make we touch build/TAGS so its building process is never triggered
 touch build/TAGS

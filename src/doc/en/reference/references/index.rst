@@ -3794,6 +3794,10 @@ REFERENCES:
              No. 2001.02.069
              (2002). http://www.eg-models.de/models/Classical_Models/2001.02.069/_direct_link.html
 
+.. [Lus1985] George Lusztig, *Cells in affine Weyl groups*, Algebraic Groups
+             and Related Topics, Advanced Studies in Pure mathematics 6, 1985, 
+             pp. 255-287.
+
 .. [Lut2005] Frank H. Lutz, "Triangulated Manifolds with Few Vertices:
              Combinatorial Manifolds", preprint (2005),
              :arxiv:`math/0506372`

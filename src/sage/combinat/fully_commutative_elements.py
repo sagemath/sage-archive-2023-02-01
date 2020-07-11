@@ -717,45 +717,35 @@ class FullyCommutativeElement(NormalizedClonableList):
 
 class FullyCommutativeElements(Parent):
     r"""
-    The combinatorial class of reduced words of fully commutative elements in a
-    Coxeter group.
+    Class for the set of fully commutative (FC) elements of a Coxeter systems
 
-    Given a Coxeter system with Coxeter matrix `m`, a *fully commutative*
-    element `w` is an element with the property that any reduced word for `w`
-    can be transformed into any other reduced word for `w` by applying
-    commutation relations only. Equivalently, `w` is an element such that no
-    reduced word for `w` contains a long braid.
-
-    Fully commutative elements of a Coxeter system have a unique canonical form
-    called the *Cartier--Foata normal form*. All elements of this class are
-    automatically normalized to Cartier--Foata form, and equality of elements is
-    decied by the equality of their normal forms.
-
-    Certain Coxeter systems are *FC-finite*, meaning they contain finitely many
-    fully commutative elements. The seven FC-finite Coxeter group families are
-    (non-affine) `A_n`, `B_n = C_n`, `D_n`, `E_n`, `F_n`, `H_n` and `I_2(m)`.
+    Coxeter systems with finitely many FC elements, or *FC-finite* Coxeter
+    systems, are classfied by Stembridge in [Ste1996]_. They fall into seven
+    families, namely the groups of types $A_n, B_n, D_n, E_n, F_n, H_n$ and
+    $I_2(m)$. 
 
     INPUT:
 
-    - ``data`` -- either data describing a Cartan type, or a CoxeterMatrix. Same
-      datum as the :func:`sage.combinat.root_system.coxeter_group.CoxeterGroup`
-      constructor.
+    - ``data`` -- Coxeter matrix or data describing the Cartan type; the
+      latter should be formatted in the same way as required by the
+      CoxeterGroup constructor from
+      :func:`sage.combinat.root_system.coxeter_group.CoxeterGroup`.
 
     OUTPUT:
 
-    The class of reduced words of fully commutative elements in the Coxeter
-    group described by ``data``. This will belong to either the category of
-    infinite enumerated sets or finite enumerated sets depending on if the group
-    is FC-finite.
+    The class of fully commutative elements in the Coxeter group constructed
+    from ``data``. This will belong to either the category of infinite
+    enumerated sets or finite enumerated sets depending on if the group is
+    FC-finite.
 
     EXAMPLES:
 
-    Enumerate the reduced words of fully commutative elements in `A_3` ::
+    Enumerate the FC elements in `A_3` in their Cartier--Foata forms ::
 
-        sage: FC = FullyCommutativeElements(['A', 3])
-        sage: FC.category()
+        sage: FCA3 = FullyCommutativeElements(['A', 3])
+        sage: FCA3.category()
         Category of finite enumerated sets
-        sage: FC.list()
+        sage: FCA3.list()
         [[],
          [1],
          [2],
@@ -773,31 +763,30 @@ class FullyCommutativeElements(Parent):
 
     Count the FC elements in `B_8` ::
 
-        sage: FC = FullyCommutativeElements(['B', 8])
-        sage: len(FC) # long time (7 seconds)
+        sage: FCB8 = FullyCommutativeElements(['B', 8])
+        sage: len(FCB8) # long time (7 seconds)
         14299
 
-    Iterate through the fully commutative elements of length up to 3 in the non
-    FC-finite group affine `A_2` ::
+    Iterate through the FC elements of length up to 3 in the non FC-finite
+    group affine `A_2` ::
 
-        sage: FC = FullyCommutativeElements(['A', 2, 1])
-        sage: FC.category()
+        sage: FCAffineA2 = FullyCommutativeElements(['A', 2, 1])
+        sage: FCAffineA2.category()
         Category of infinite enumerated sets
-        sage: list(FC.iterate_to_length(2))
+        sage: list(FCAffineA2.iterate_to_length(2))
         [[], [0], [1], [2], [1, 0], [2, 0], [0, 1], [2, 1], [0, 2], [1, 2]]
 
     Constructing an element that is not fully commutative throws an error ::
 
-        sage: FC = FullyCommutativeElements(['A', 3])
-        sage: FC([1,2,1])
-        Traceback (most recent call last):
+        sage: FCA3([1,2,1])
+        ValueError      Traceback (most recent call last)
         ...
-        ValueError: list does not represent a fully commutative word.
+        ValueError: The input is not a reduced word of a fully commutative
+        elements. 
 
     Elements are normalized to Cartier--Foata normal form upon construction ::
 
-        sage: FC = FullyCommutativeElements(['A', 3])
-        sage: FC([2, 3, 1, 2])
+        sage: FCA3([2, 3, 1, 2])
         [2, 1, 3, 2]
 
     """
@@ -840,7 +829,7 @@ class FullyCommutativeElements(Parent):
 
     def index_set(self):
         r"""
-        Obtain the index set of the generators / simple reflections of the
+        Obtain the set of the generators / simple reflections of the
         associated Coxeter system.
 
         OUTPUT: iterable of integers
@@ -859,9 +848,8 @@ class FullyCommutativeElements(Parent):
         letters = self.index_set()
 
         # In the following, we use a dictionary's keys as a replacement for a
-        # set. this is because dictinary keys are guaranteed be ordered in
-        # Python 3.7+, so this is an easy way to make this iterator
-        # deterministic.
+        # set. Dictinary keys are guaranteed to be ordered in Python 3.7+, so
+        # this is an easy way to make this iterator deterministic.
 
         recent_words = {empty_word: True}
         yield empty_word

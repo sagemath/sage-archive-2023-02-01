@@ -25,7 +25,8 @@ from cysignals.signals cimport sig_on, sig_off
 from cysignals.memory cimport check_malloc, sig_free
 
 from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph, out_degree
-from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, compute_out_neighborhood_cardinality, popcount32
+include "sage/data_structures/binary_matrix.pxi"
+from sage.graphs.base.static_dense_graph cimport dense_graph_init
 
 from sage.rings.infinity import Infinity
 from sage.rings.rational_field import QQ
@@ -334,16 +335,26 @@ def vertex_isoperimetric_number(g):
         sage: [graphs.CompleteGraph(k).vertex_isoperimetric_number() for k in range(2,15)]
         [1, 2, 1, 3/2, 1, 4/3, 1, 5/4, 1, 6/5, 1, 7/6, 1]
 
-    The vertex-isoperimetric constant of a cycle on `n` vertices is
+    The vertex-isoperimetric number of a cycle on `n` vertices is
     `2/\lfloor n/2 \rfloor`::
 
         sage: [graphs.CycleGraph(k).vertex_isoperimetric_number() for k in range(2,15)]
         [1, 2, 1, 1, 2/3, 2/3, 1/2, 1/2, 2/5, 2/5, 1/3, 1/3, 2/7]
 
-    And the vertex-isoperimetric constant of a disconnected graph is `0`::
+    And the vertex-isoperimetric number of a disconnected graph is `0`::
 
         sage: Graph([[1,2,3],[(1,2)]]).vertex_isoperimetric_number()
         0
+
+    The vertex-isoperimetric number is independent of edge multiplicity::
+
+        sage: G = graphs.CycleGraph(6)
+        sage: G.vertex_isoperimetric_number()
+        2/3
+        sage: G.allow_multiple_edges(True)
+        sage: G.add_edges(G.edges())
+        sage: G.vertex_isoperimetric_number()
+        2/3
 
     TESTS::
 
@@ -351,40 +362,89 @@ def vertex_isoperimetric_number(g):
         Traceback (most recent call last):
         ...
         ValueError: vertex-isoperimetric number not defined for the empty graph
-
-        sage: graphs.CompleteGraph(64).vertex_isoperimetric_number()
-        Traceback (most recent call last):
-        ...
-        ValueError: vertex-isoperimetric number can not be computed on graphs with more than 32 vertices
     """
     if g.is_directed():
         raise ValueError("vertex-isoperimetric number is only defined on non-oriented graph")
-    g._scream_if_not_simple()
-    if g.num_verts() == 0:
+    if not g:
         raise ValueError("vertex-isoperimetric number not defined for the empty graph")
-    elif g.num_verts() == 1:
+    elif g.order() == 1:
         return Infinity
     elif not g.is_connected():
-        return QQ((0,1))
-    elif g.num_verts() > 32:
-        raise ValueError("vertex-isoperimetric number can not be computed on graphs with more than 32 vertices")
+        return QQ((0, 1))
 
-    cdef FastDigraph FG = FastDigraph(g)
-
-    cdef int card, boundary, S
-    cdef int mc = FG.n // 2
-    cdef int p = FG.n
-    cdef int q = 0
+    # We convert the graph to a static dense graph
+    cdef binary_matrix_t DG
+    dense_graph_init(DG, g)
+    cdef int n = g.order()
+    cdef int k = n / 2   # maximum size of a subset
 
     sig_on()
 
-    for S in range(1, 2**FG.n):
-        card = popcount32(S)
-        if card <= mc:
-            boundary = compute_out_neighborhood_cardinality(FG, S)
-            if boundary * q < p * card:
-                p = boundary
-                q = card
+    # We use a stack of bitsets. For that, we need 3 bitsets per level with at
+    # most n/2 + 1 levels, so 3 * (n / 2) + 3 bitsets. We also need another
+    # bitset that we create at the same time, so overall 3 * (n / 2) + 4 bitsets
+    cdef binary_matrix_t stack
+    binary_matrix_init(stack, 3 * (n / 2) + 4, n)
 
+    cdef bitset_t candidates = stack.rows[3 * (n / 2) + 3]
+    cdef bitset_t left     # vertices not yet explored
+    cdef bitset_t current  # vertices in the current subset
+    cdef bitset_t boundary # union of neighbors of vertices in current subset
+
+    cdef int l = 0
+    cdef int p = n
+    cdef int q = 0
+    cdef int c, b, v
+
+    # We initialize the first level
+    for v in range(3):
+        bitset_clear(stack.rows[v])
+    bitset_complement(stack.rows[0], stack.rows[0])
+
+    while l >= 0:
+
+        # We take the values at the top of the stack
+        left = stack.rows[l]
+        current = stack.rows[l + 1]
+        boundary = stack.rows[l + 2]
+
+        if bitset_isempty(current):
+            bitset_copy(candidates, left)
+        else:
+            bitset_and(candidates, left, boundary)
+
+        if bitset_isempty(candidates):
+            # We decrease l to pop the stack
+            l -= 3
+
+            # If the current set if non empty, we update the lower bound
+            c = bitset_len(current)
+            if c:
+                bitset_difference(boundary, boundary, current)
+                b = bitset_len(boundary)
+                if b * q < p * c:
+                    p = b
+                    q = c
+
+        else:
+            # Choose a candidate vertex v
+            v = bitset_first(candidates)
+            bitset_discard(left, v)
+
+            # Since we have not modified l, the bitsets for iterating without v
+            # in the subset current are now at the top of the stack, with
+            # correct values
+
+            if bitset_len(current) < k:
+                # We continue with v in the subset current
+                l += 3
+                bitset_copy(stack.rows[l], left)
+                bitset_copy(stack.rows[l + 1], current)
+                bitset_add(stack.rows[l + 1], v)
+                bitset_union(stack.rows[l + 2], boundary, DG.rows[v])
+
+    binary_matrix_free(stack)
+    binary_matrix_free(DG)
     sig_off()
-    return QQ((p,q))
+
+    return QQ((p, q))

@@ -16,7 +16,7 @@ import sage.env
 sage.env.SAGE_SRC = os.getcwd()
 from sage.env import *
 
-from sage_setup import excepthook
+from sage_setup.excepthook import excepthook
 sys.excepthook = excepthook
 
 #########################################################

@@ -2488,6 +2488,10 @@ REFERENCES:
 .. [Gre2006] \R. M. Green, *Star reducible Coxeter groups*, Glasgow 
             Mathematical Journal, Volume 48, Issue 3, pp. 583-609.
 
+.. [GX2020] \R. M. Green, Tianyuan Xu, *Classification of Coxeter groups with
+            finitely many elements of a-value 2*, Algebraic Combinatorics, 
+            Volume 3 (2020) no. 2, pp. 331-364.
+
 .. [Gr2006] Matthew Greenberg,
             "Heegner points and rigid analytic modular forms",
             Ph.D. Thesis, McGill University, 2006.

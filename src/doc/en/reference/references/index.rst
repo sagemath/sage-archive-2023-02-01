@@ -91,6 +91,10 @@ REFERENCES:
                Journal of Combinatorial Theory, Series B, vol 98, n.6,
                pp 1119-1164, 2008. :doi:`10.1016/j.jctb.2007.12.006`.
 
+.. [ABS2004] N. Alon, I. Benjamini and Alan Stacey, Percolation on finite
+             graphs and isoperimetric inequalities, The Annals of Probability
+             32 (2004), no.  3A, 1727–1745.
+
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
               Transitive Closure of a Directed Graph.'
@@ -613,6 +617,13 @@ REFERENCES:
 .. [Bel1927] E.T. Bell, "Partition Polynomials",
              Annals of Mathematics,
              Second Series, Vol. 29, No. 1/4 (1927 - 1928), pp. 38-46
+
+.. [Ben1998] I. Benjamini, Expanders are not hyperbolic, Israel Journal of
+             Mathematics 108 (1998), 33–36.
+
+.. [BS1997] I. Benjamini and O. Schramm, Every graph with a positive Cheeger
+            constant contains a tree with a positive Cheeger constant,
+            Geometric and Functional Analysis 7 (1997), no. 3, 403–419.
 
 .. [Benasque2009] Fernando Rodriguez Villegas, *The L-function of the quintic*,
    http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
@@ -1357,6 +1368,9 @@ REFERENCES:
              Experience, 4:1-10 (2001).
              http://www.hipersoft.rice.edu/grads/publications/dom14.pdf
 
+.. [Chu2007] F. Chung, Random walks and local cuts in graphs, Linear Algebra
+             and its Applications 423 (2007), no. 1, 22–32.
+
 .. [CHPSS18] C. Cid, T. Huang, T. Peyrin, Y. Sasaki, L. Song.
              *Boomerang Connectivity Table: A New Cryptanalysis Tool* (2018)
              IACR Transactions on Symmetric Cryptology. Vol 2017, Issue 4.
@@ -1645,6 +1659,10 @@ REFERENCES:
 .. [CTTL2014] \C. Carlet, Deng Tang, Xiaohu Tang, and Qunying Liao: *New
             Construction of Differentially 4-Uniform Bijections*, Inscrypt,
             pp. 22-38, 2013.
+
+.. [CT1998] F. Chung and P. Tetali, Isoperimetric inequalities for
+            Cartesian products of graphs, Combinatorics, Probability and
+            Computing 7 (1998), no. 2, 141–148.
 
 .. [Cu1984] \R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu
             group `M_{12}`, and the kitten. *Computational group
@@ -3983,6 +4001,10 @@ REFERENCES:
 
 .. [MM2015] \J. Matherne and \G. Muller, *Computing upper cluster algebras*,
             Int. Math. Res. Not. IMRN, 2015, 3121-3149.
+
+.. [Moh1988] B. Mohar, Isoperimetric inequalities, growth, and the spectrum
+             of graphs, Linear Algebra and its Applications 103 (1988),
+             119–131.
 
 .. [MNO1994] Alexander Molev, Maxim Nazarov, and Grigori Olshanski.
              *Yangians and classical Lie algebras*. (1994)

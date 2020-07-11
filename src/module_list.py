@@ -240,6 +240,9 @@ ext_modules = [
     Extension('sage.graphs.independent_sets',
               sources = ['sage/graphs/independent_sets.pyx']),
 
+    Extension('sage.graphs.isoperimetric_inequalities',
+              sources = ['sage/graphs/isoperimetric_inequalities.pyx']),
+
     Extension('sage.graphs.graph_decompositions.fast_digraph',
               sources = ['sage/graphs/graph_decompositions/fast_digraph.pyx']),
 

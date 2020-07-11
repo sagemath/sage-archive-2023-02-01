@@ -1459,17 +1459,17 @@ def plot(funcs, *args, **kwds):
 
     .. PLOT::
 
-        g = plot(sin(x), (x,0,10), plot_points=20, linestyle='', marker='.')
+        g = plot(sin(x), (x, 0, 10), plot_points=20, linestyle='', marker='.')
         sphinx_plot(g)
 
     The marker can be a TeX symbol as well::
 
-        sage: plot(sin(x), (x,0,10), plot_points=20, linestyle='', marker=r'$\checkmark$')
+        sage: plot(sin(x), (x, 0, 10), plot_points=20, linestyle='', marker=r'$\checkmark$')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-        g = plot(sin(x), (x,0,10), plot_points=20, linestyle='', marker=r'$\checkmark$')
+        g = plot(sin(x), (x, 0, 10), plot_points=20, linestyle='', marker=r'$\checkmark$')
         sphinx_plot(g)
 
     Sage currently ignores points that cannot be evaluated
@@ -1477,7 +1477,7 @@ def plot(funcs, *args, **kwds):
     ::
 
         sage: set_verbose(-1)
-        sage: plot(-x*log(x), (x,0,1))  # this works fine since the failed endpoint is just skipped.
+        sage: plot(-x*log(x), (x, 0, 1))  # this works fine since the failed endpoint is just skipped.
         Graphics object consisting of 1 graphics primitive
         sage: set_verbose(0)
 
@@ -1487,42 +1487,42 @@ def plot(funcs, *args, **kwds):
     ::
 
         sage: set_verbose(-1)
-        sage: plot(x^(1/3), (x,-1,1))
+        sage: plot(x^(1/3), (x, -1, 1))
         Graphics object consisting of 1 graphics primitive
         sage: set_verbose(0)
 
     .. PLOT::
 
         set_verbose(-1)
-        g = plot(x**(1.0/3.0), (x,-1,1))
+        g = plot(x**(1.0/3.0), (x, -1, 1))
         sphinx_plot(g)
         set_verbose(0)
 
 
-    Plotting the real cube root function for negative input
-    requires avoiding the complex numbers one would usually get.
-    The easiest way is to use absolute value::
+    Plotting the real cube root function for negative input requires avoiding
+    the complex numbers one would usually get.  The easiest way is to use
+    :class:`real_nth_root(x, n)<sage.functions.other.Function_real_nth_root>` ::
 
-        sage: plot(sign(x)*abs(x)^(1/3), (x,-1,1))
+        sage: plot(real_nth_root(x, 3), (x, -1, 1))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-       g = plot(sign(x)*abs(x)**(1.0/3.0), (x,-1,1))
+       g = plot(real_nth_root(x, 3), (x, -1, 1))
        sphinx_plot(g)
 
-    We can also use the following::
+    We can also get the same plot in the following way::
 
-        sage: plot(sign(x)*(x*sign(x))^(1/3), (x,-4,4))
+        sage: plot(sign(x)*abs(x)^(1/3), (x, -1, 1))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-       g = plot(sign(x)*(x*sign(x))**(1.0/3.0), (x,-4,4))
+       g = plot(sign(x)*abs(x)**(1./3.), (x, -1, 1))
        sphinx_plot(g)
 
-    A way that points to how to plot other functions without
-    symbolic variants is using lambda functions::
+    A way to plot other functions without symbolic variants is to use lambda
+    functions::
 
         sage: plot(lambda x : RR(x).nth_root(3), (x,-1, 1))
         Graphics object consisting of 1 graphics primitive
@@ -2277,7 +2277,7 @@ def _plot(funcs, xrange, parametric=False,
                                  for x in excluded_points], [])
     else:
         initial_points = None
-    
+
     # If we are a log scale plot on the x axis, do a change of variables
     # so we sample the range in log scale
     is_log_scale = ('scale' in options.keys() and
@@ -2306,7 +2306,7 @@ def _plot(funcs, xrange, parametric=False,
         # add an exclusion point.
         if abs(data[i+1][0] - data[i][0]) > 2*average_distance_between_points:
             excluded_points.append((data[i][0] + data[i+1][0])/2)
-    
+
     # If we did a change in variables, undo it now
     if is_log_scale:
         for i,(a,fa) in enumerate(data):

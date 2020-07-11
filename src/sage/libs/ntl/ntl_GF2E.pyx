@@ -284,9 +284,6 @@ cdef class ntl_GF2E(object):
         GF2E_div(r.x, self.x, (<ntl_GF2E>other).x)
         return r
 
-    def __div__(self, other):
-        return self / other
-
     def __neg__(ntl_GF2E self):
         """
         EXAMPLES::

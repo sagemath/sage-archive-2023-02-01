@@ -41,8 +41,8 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-from sage.misc.all import latex
-from sage.misc.misc import repr_lincomb
+from sage.misc.latex import latex
+from sage.misc.repr import repr_lincomb
 from sage.misc.search import search
 from sage.rings.all import ZZ
 from sage.structure.formal_sum import FormalSum

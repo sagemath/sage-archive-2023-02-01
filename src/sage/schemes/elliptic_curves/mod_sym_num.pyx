@@ -1374,7 +1374,7 @@ cdef class ModularSymbolNumerical:
         r"""
         Given a point `\tau` in the upper half plane
         this returns a complex number that is a close
-        approximation to the the integral of the modular
+        approximation to the integral of the modular
         form from `i\infty` to `\tau`.
 
         INPUT:
@@ -1448,7 +1448,7 @@ cdef class ModularSymbolNumerical:
         Given a point `\tau` in the upper half plane
         this returns a complex number that is a close
         approximation to `\lambda(tau)`,
-        the the integral of the modular
+        the integral of the modular
         form from `i\infty` to `\tau`.
 
         INPUT:
@@ -3784,7 +3784,7 @@ def _test_against_table(range_of_conductors, other_implementation="sage", list_o
 #    """finds all n with y(n) > B for some bound B"""
 #    li = [1]
 #    old = [1]
-#    while old != []:
+#    while old:
 #        new = []
 #        p = 1
 #        boo = True

@@ -141,17 +141,17 @@ class AttrCallObject(object):
 
 def attrcall(name, *args, **kwds):
     """
-    Returns a callable which takes in an object, gets the method named
+    Return a callable which takes in an object, gets the method named
     name from that object, and calls it with the specified arguments
     and keywords.
 
     INPUT:
 
-     -  ``name`` - a string of the name of the method you
-        want to call
+    -  ``name`` - a string of the name of the method you
+       want to call
 
-     -  ``args, kwds`` - arguments and keywords to be passed
-        to the method
+    -  ``args, kwds`` - arguments and keywords to be passed
+       to the method
 
     EXAMPLES::
 

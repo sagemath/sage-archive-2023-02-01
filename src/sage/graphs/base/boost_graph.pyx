@@ -720,9 +720,9 @@ cpdef min_spanning_tree(g,
         result = g_boost.prim_min_spanning_tree()
         sig_off()
 
-    cdef size_t n = g.num_verts()
+    cdef v_index n = g.num_verts()
 
-    if result.size() != 2 * (n - 1):
+    if <v_index> result.size() != 2 * (n - 1):
         return []
     else:
         edges = [(int_to_vertex[<int> result[2*i]], int_to_vertex[<int> result[2*i+1]]) for i in range(n-1)]
@@ -1665,7 +1665,7 @@ cpdef eccentricity_DHV(g, vertex_list=None, weight_function=None, check_weight=T
     if g.is_directed():
         raise TypeError("the 'DHV' algorithm only works on undirected graphs")
 
-    cdef int n = g.order()
+    cdef v_index n = g.order()
     if not n:
         return []
     if n == 1:
@@ -1696,7 +1696,7 @@ cpdef eccentricity_DHV(g, vertex_list=None, weight_function=None, check_weight=T
     import sys
     cdef v_index u, antipode, v
     cdef double ecc_u, ecc_antipode, tmp
-    cdef size_t i, idx
+    cdef v_index i, idx
 
     cdef list active = list(range(n))
     cdef vector[double] ecc_lower_bound
@@ -1994,7 +1994,7 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
         return (0, 0, 0, 0)
 
     cdef v_index source_1, source_2, m, s, d, antipode_1, antipode_2, v
-    cdef double LB_1 = 0, LB_2 = 0, LB, LB_m
+    cdef double LB_1, LB_2, LB, LB_m
     cdef result_distances result_1, result_2
     source_1 = source_2 = source
 
@@ -2113,7 +2113,7 @@ cdef tuple diameter_lower_bound_2Dsweep(BoostVecWeightedDiGraphU g_boost,
 cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
                            BoostVecWeightedDiGraphU rev_g_boost,
                            v_index source,
-                           str algorithm):
+                           str algorithm) except? -1:
     r"""
     Return the diameter of a weighted directed graph.
 
@@ -2150,7 +2150,7 @@ cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
         sage: diameter(DiGraph(2), algorithm='DiFUB')
         +Infinity
     """
-    cdef int n = g_boost.num_verts()
+    cdef v_index n = g_boost.num_verts()
     if n <= 1:
         return 0
 
@@ -2158,7 +2158,7 @@ cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
     # These variables are automatically deleted when the function terminates.
     cdef double LB, LB_1, LB_2, UB
     cdef v_index s, m, d, v, tmp
-    cdef size_t i
+    cdef v_index i
     cdef vector[double] distances
     cdef vector[pair[double, v_index]] order_1, order_2
 
@@ -2185,7 +2185,7 @@ cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
 
     # Obtain Forward eccentricity of `m` and store pair of
     # forward distances, vertex in order_1
-    LB_1 = -sys.float_info.max
+    LB_1 = sys.float_info.min
     for v in range(n):
         LB_1 = max(LB_1, distances[v])
         order_1.push_back(pair[double,v_index](distances[v], v))
@@ -2203,7 +2203,7 @@ cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
 
     # Obtain Backward eccentricity of `m` and store pair of
     # backward distances, vertex in order_2.
-    LB_2 = -sys.float_info.max
+    LB_2 = sys.float_info.min
     for v in range(n):
         LB_2 = max(LB_2, distances[v])
         order_2.push_back(pair[double,v_index](distances[v], v))
@@ -2263,7 +2263,7 @@ cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
         if not distances.size():
             raise ValueError("the graph contains a negative cycle")
 
-        LB_1 = -sys.float_info.max
+        LB_1 = sys.float_info.min
         for tmp in range(n):
             LB_1 = max(LB_1, distances[tmp])
 
@@ -2279,7 +2279,7 @@ cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
         if not distances.size():
             raise ValueError("the graph contains a negative cycle")
 
-        LB_2 = -sys.float_info.max
+        LB_2 = sys.float_info.min
         for tmp in range(n):
             LB_2 = max(LB_2, distances[tmp])
 
@@ -2418,12 +2418,9 @@ cpdef diameter(G, algorithm=None, source=None,
     cdef double LB
 
     if algorithm == '2Dsweep':
-        LB = diameter_lower_bound_2Dsweep(g_boost, rev_g_boost,
-                                            isource, algo)[0]
-
+        LB = diameter_lower_bound_2Dsweep(g_boost, rev_g_boost, isource, algo)[0]
     else:
-        LB = diameter_DiFUB(g_boost, rev_g_boost,
-                            isource, algo)
+        LB = diameter_DiFUB(g_boost, rev_g_boost, isource, algo)
 
     if LB == sys.float_info.max:
         from sage.rings.infinity import Infinity

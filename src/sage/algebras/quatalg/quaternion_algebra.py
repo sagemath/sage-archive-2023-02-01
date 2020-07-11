@@ -522,17 +522,27 @@ class QuaternionAlgebra_abstract(Algebra):
 
         EXAMPLES::
 
-            sage: QuaternionAlgebra(QQ[sqrt(2)],-3,7).random_element()  # random
-            (sqrt2 + 2)*i + (-12*sqrt2 - 2)*j + (-sqrt2 + 1)*k
-            sage: QuaternionAlgebra(-3,19).random_element()  # random
-            -1 + 2*i - j - 6/5*k
-            sage: QuaternionAlgebra(GF(17)(2),3).random_element()  # random
-            14 + 10*i + 4*j + 7*k
+            sage: g = QuaternionAlgebra(QQ[sqrt(2)], -3, 7).random_element()
+            sage: g.parent() is QuaternionAlgebra(QQ[sqrt(2)], -3, 7)
+            True
+            sage: g = QuaternionAlgebra(-3, 19).random_element()
+            sage: g.parent() is QuaternionAlgebra(-3, 19)
+            True
+            sage: g = QuaternionAlgebra(GF(17)(2), 3).random_element()
+            sage: g.parent() is QuaternionAlgebra(GF(17)(2), 3)
+            True
 
         Specify the numerator and denominator bounds::
 
-            sage: QuaternionAlgebra(-3,19).random_element(10^6,10^6)  # random
-            -979933/553629 + 255525/657688*i - 3511/6929*j - 700105/258683*k
+            sage: g = QuaternionAlgebra(-3,19).random_element(10^6, 10^6)
+            sage: for h in g:
+            ....:     assert h.denominator() in range(-10^6, 10^6 + 1)
+            ....:     assert h.numerator() in range(-10^6, 10^6 + 1)
+
+            sage: g = QuaternionAlgebra(-3,19).random_element(5, 4)
+            sage: for h in g:
+            ....:     assert h.denominator() in range(-5, 5 + 1)
+            ....:     assert h.numerator() in range(-4, 4 + 1)
         """
         K = self.base_ring()
         return self([K.random_element(*args, **kwds) for _ in range(4)])

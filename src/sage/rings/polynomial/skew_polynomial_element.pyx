@@ -183,7 +183,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
 
             sage: a.right_power_mod(100, modulus)
             (2*t^2 + 3)*x^2 + (t^2 + 4*t + 2)*x + t^2 + 2*t + 1
-        
+
         Negative exponents are supported:
 
             sage: a^(-5)

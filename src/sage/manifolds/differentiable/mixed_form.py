@@ -582,15 +582,21 @@ class MixedForm(AlgebraElement):
             sage: G.set_restriction(F.restrict(V))
             sage: F == G  # True now
             True
+            sage: H = M.mixed_form([f, 0, 0])
+            sage: F != H  # this is fixed by ticket #30108
+            True
             sage: F.parent().zero() == 0
             True
 
         """
-        # Compare all elements separately:
-        for j in self.irange():
-            if not richcmp(self[j], other[j], op):
-                return False
-        return True
+        from sage.structure.richcmp import op_NE, op_EQ
+        if op == op_NE:
+            return not self == other
+        elif op == op_EQ:
+            # Compare all elements separately:
+            return all(self[j] == other[j] for j in self.irange())
+        # Fall back on default implementation:
+        return AlgebraElement._richcmp_(self, other, op)
 
     def _add_(self, other):
         r"""

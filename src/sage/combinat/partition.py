@@ -1055,8 +1055,6 @@ class Partition(CombinatorialElement):
 
         return SkewPartition([self[:], p])
 
-    __div__ = __truediv__
-
     def power(self, k):
         r"""
         Return the cycle type of the `k`-th power of any permutation

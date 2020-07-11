@@ -5200,8 +5200,6 @@ class Polyhedron_base(Element):
         """
         return self.dilation(1/scalar)
 
-    __div__ = __truediv__
-
     @coerce_binop
     def convex_hull(self, other):
         """

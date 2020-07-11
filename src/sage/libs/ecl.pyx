@@ -341,6 +341,13 @@ def init_ecl():
 
     ecl_has_booted = 1
 
+cdef ecl_string_to_python(cl_object s):
+    if bint_base_string_p(s):
+        return char_to_str(ecl_base_string_pointer_safe(s))
+    else:
+        s = cl_funcall(2, unicode_string_codepoints_clobj, s)
+        return ''.join(chr(code) for code in ecl_to_python(s))
+
 cdef cl_object ecl_safe_eval(cl_object form) except NULL:
     """
     TESTS:
@@ -358,20 +365,18 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
         ...
         RuntimeError: ECL says: Console interrupt.
     """
-    cdef cl_object s
     ecl_sig_on()
     cl_funcall(2,safe_eval_clobj,form)
     ecl_sig_off()
 
     if ecl_nvalues > 1:
-        s = si_coerce_to_base_string(ecl_values(1))
         raise RuntimeError("ECL says: {}".format(
-            char_to_str(ecl_base_string_pointer_safe(s))))
+            ecl_string_to_python(ecl_values(1))))
     else:
         return ecl_values(0)
 
 cdef cl_object ecl_safe_funcall(cl_object func, cl_object arg) except NULL:
-    cdef cl_object l, s
+    cdef cl_object l
     l = cl_cons(func,cl_cons(arg,Cnil));
 
     ecl_sig_on()
@@ -379,22 +384,19 @@ cdef cl_object ecl_safe_funcall(cl_object func, cl_object arg) except NULL:
     ecl_sig_off()
 
     if ecl_nvalues > 1:
-        s = si_coerce_to_base_string(ecl_values(1))
         raise RuntimeError("ECL says: {}".format(
-            char_to_str(ecl_base_string_pointer_safe(s))))
+            ecl_string_to_python(ecl_values(1))))
     else:
         return ecl_values(0)
 
 cdef cl_object ecl_safe_apply(cl_object func, cl_object args) except NULL:
-    cdef cl_object s
     ecl_sig_on()
     cl_funcall(3,safe_apply_clobj,func,args)
     ecl_sig_off()
 
     if ecl_nvalues > 1:
-        s = si_coerce_to_base_string(ecl_values(1))
         raise RuntimeError("ECL says: {}".format(
-            char_to_str(ecl_base_string_pointer_safe(s))))
+            ecl_string_to_python(ecl_values(1))))
     else:
         return ecl_values(0)
 
@@ -527,13 +529,6 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
             return L
     else:
         raise TypeError("Unimplemented type for python_to_ecl")
-
-cdef ecl_string_to_python(cl_object s):
-    if bint_base_string_p(s):
-        return char_to_str(ecl_base_string_pointer_safe(s))
-    else:
-        s = cl_funcall(2, unicode_string_codepoints_clobj, s)
-        return ''.join(chr(code) for code in ecl_to_python(s))
 
 cdef ecl_to_python(cl_object o):
     cdef cl_object s

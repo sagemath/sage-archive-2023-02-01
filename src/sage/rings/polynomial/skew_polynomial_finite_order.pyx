@@ -5,11 +5,11 @@ AUTHOR::
 
 - Xavier Caruso (2012-06-29): initial version
 
-- Arpit Merchant (2016-08-04): improved docstrings, fixed doctests and refactored classes and methods
-
+- Arpit Merchant (2016-08-04): improved docstrings, fixed doctests
+  and refactored classes and methods
 """
 
-#############################################################################
+# ***************************************************************************
 #    Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -68,7 +68,6 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             t^2 + 1
             sage: x.parent() is S
             True
-
         """
         SkewPolynomial_generic_dense.__init__ (self, parent, x, check, construct, **kwds)
         self._norm = None
@@ -180,7 +179,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             3*z + 4
 
         The reduced trace lies in the center of `S`, which is a univariate
-        polynomial ring in the variable `z = x^3` over `GF(5)`. 
+        polynomial ring in the variable `z = x^3` over `\GF{5}`::
 
             sage: tr.parent()
             Univariate Polynomial Ring in z over Finite Field of size 5
@@ -193,7 +192,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             3*x^3 + 4
 
         By default, the name of the central variable is usually ``z`` (see
-        :meth:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomiaRing_finite_order.center`
+        :meth:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_order.center`
         for more details about this). 
         However, the user can specify a different variable name if desired:: 
 
@@ -251,7 +250,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             z^3 + 4*z^2 + 4
 
         The reduced norm lies in the center of `S`, which is a univariate
-        polynomial ring in the variable `z = x^3` over `GF(5)`. 
+        polynomial ring in the variable `z = x^3` over `\GF{5}`::
 
             sage: N.parent()
             Univariate Polynomial Ring in z over Finite Field of size 5
@@ -264,7 +263,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             x^9 + 4*x^6 + 4
 
         By default, the name of the central variable is usually ``z`` (see
-        :meth:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomiaRing_finite_order.center`
+        :meth:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_order.center`
         for more details about this). 
         However, the user can speciify a different variable name if desired::
 
@@ -338,8 +337,8 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
 
     def is_central(self):
-        """
-        Return True if this skew polynomial lies in the center.
+        r"""
+        Return ``True`` if this skew polynomial lies in the center.
 
         EXAMPLES::
 
@@ -363,7 +362,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
 
     def bound(self):
-        """
+        r"""
         Return a bound of this skew polynomial (i.e. a multiple
         of this skew polynomial lying in the center).
 
@@ -398,8 +397,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             z^2 + z + 4
 
         We observe that the bound is explicity given as an element of the
-        center (which is a univariate polynomial ring in the variable
-        `z`).
+        center (which is a univariate polynomial ring in the variable `z`).
         We can use conversion to send it in the skew polynomial ring::
 
             sage: S(b)
@@ -446,7 +444,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
 
     def optimal_bound(self):
-        """
+        r"""
         Return the optimal bound of this skew polynomial (i.e.
         the monic multiple of this skew polynomial of minimal
         degree lying in the center).
@@ -468,8 +466,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             z + 3
 
         We observe that the bound is explicity given as an element of the
-        center (which is a univariate polynomial ring in the variable
-        `z`).
+        center (which is a univariate polynomial ring in the variable `z`).
         We can use conversion to send it in the skew polynomial ring::
 
             sage: S(b)
@@ -495,4 +492,5 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
      # TODO:
      # fast multiplication
-     # reduced characteristic polynomial     
+     # reduced characteristic polynomial
+

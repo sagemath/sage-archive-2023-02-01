@@ -454,7 +454,7 @@ cdef cl_object python_to_ecl(pyobj, bint read_strings) except NULL:
             s = str_to_bytes(pyobj, 'ascii')
         except UnicodeEncodeError:
             o = cl_funcall(2, make_unicode_string_clobj,
-                           python_to_ecl([ord(c) for c in pyobj]))
+                           python_to_ecl([ord(c) for c in pyobj], read_strings))
         else:
             o = ecl_cstring_to_base_string_or_nil(s)
 
@@ -1390,7 +1390,7 @@ cpdef EclObject ecl_eval(str s):
 
     """
     cdef cl_object o
-    o=ecl_safe_eval(python_to_ecl(s))
+    o=ecl_safe_eval(python_to_ecl(s, True))
     return ecl_wrap(o)
 
 init_ecl()

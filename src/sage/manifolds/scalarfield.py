@@ -1265,8 +1265,8 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        from .mixed_form import MixedForm
-        
+        from sage.manifolds.differentiable.mixed_form import MixedForm
+
         if other is self:
             return True
         if isinstance(other, MixedForm):

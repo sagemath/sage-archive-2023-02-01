@@ -536,13 +536,13 @@ class QuaternionAlgebra_abstract(Algebra):
 
             sage: g = QuaternionAlgebra(-3,19).random_element(10^6, 10^6)
             sage: for h in g:
-            ....:     assert h.denominator() in range(-10^6, 10^6 + 1)
             ....:     assert h.numerator() in range(-10^6, 10^6 + 1)
+            ....:     assert h.denominator() in range(10^6 + 1)
 
             sage: g = QuaternionAlgebra(-3,19).random_element(5, 4)
             sage: for h in g:
-            ....:     assert h.denominator() in range(-5, 5 + 1)
-            ....:     assert h.numerator() in range(-4, 4 + 1)
+            ....:     assert h.numerator() in range(-5, 5 + 1)
+            ....:     assert h.denominator() in range(4 + 1)
         """
         K = self.base_ring()
         return self([K.random_element(*args, **kwds) for _ in range(4)])

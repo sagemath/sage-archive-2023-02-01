@@ -528,6 +528,13 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
     else:
         raise TypeError("Unimplemented type for python_to_ecl")
 
+cdef ecl_string_to_python(cl_object s):
+    if bint_base_string_p(s):
+        return char_to_str(ecl_base_string_pointer_safe(s))
+    else:
+        s = cl_funcall(2, unicode_string_codepoints_clobj, s)
+        return ''.join(chr(code) for code in ecl_to_python(s))
+
 cdef ecl_to_python(cl_object o):
     cdef cl_object s
     cdef Integer N
@@ -564,8 +571,8 @@ cdef ecl_to_python(cl_object o):
                 return tuple(L)
         return L
     else:
-        s = si_coerce_to_base_string(cl_write_to_string(1,o))
-        return char_to_str(ecl_base_string_pointer_safe(s))
+        s = cl_write_to_string(1, o)
+        return ecl_string_to_python(s)
 
 #Maxima's BFLOAT multiprecision float type can be read with:
 #def bfloat_to_python(e):
@@ -782,11 +789,7 @@ cdef class EclObject:
         """
         cdef cl_object s
         s = cl_write_to_string(1, self.obj)
-        if bint_base_string_p(s):
-            return char_to_str(ecl_base_string_pointer_safe(s))
-        else:
-            s = cl_funcall(2, unicode_string_codepoints_clobj, s)
-            return ''.join(chr(code) for code in ecl_to_python(s))
+        return ecl_string_to_python(s)
 
     def __hash__(self):
         r"""

@@ -522,16 +522,16 @@ class QuaternionAlgebra_abstract(Algebra):
 
         EXAMPLES::
 
-            sage: QuaternionAlgebra(QQ[sqrt(2)],-3,7).random_element()
+            sage: QuaternionAlgebra(QQ[sqrt(2)],-3,7).random_element()  # random
             (sqrt2 + 2)*i + (-12*sqrt2 - 2)*j + (-sqrt2 + 1)*k
-            sage: QuaternionAlgebra(-3,19).random_element()
+            sage: QuaternionAlgebra(-3,19).random_element()  # random
             -1 + 2*i - j - 6/5*k
-            sage: QuaternionAlgebra(GF(17)(2),3).random_element()
+            sage: QuaternionAlgebra(GF(17)(2),3).random_element()  # random
             14 + 10*i + 4*j + 7*k
 
         Specify the numerator and denominator bounds::
 
-            sage: QuaternionAlgebra(-3,19).random_element(10^6,10^6)
+            sage: QuaternionAlgebra(-3,19).random_element(10^6,10^6)  # random
             -979933/553629 + 255525/657688*i - 3511/6929*j - 700105/258683*k
         """
         K = self.base_ring()
@@ -1526,9 +1526,9 @@ class QuaternionOrder(Algebra):
 
         EXAMPLES::
 
-            sage: QuaternionAlgebra(-11,-1).maximal_order().random_element()
+            sage: QuaternionAlgebra(-11,-1).maximal_order().random_element()  # random
             -4 - 4*i + j - k
-            sage: QuaternionAlgebra(-11,-1).maximal_order().random_element(-10,10)
+            sage: QuaternionAlgebra(-11,-1).maximal_order().random_element(-10,10)  # random
             -9/2 - 7/2*i - 7/2*j - 3/2*k
         """
         return sum(ZZ.random_element(*args, **kwds) * b for b in self.basis())

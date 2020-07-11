@@ -134,6 +134,7 @@ Command-line options for Sage
     run the lines which are unlabeled or labeled ``#optional`` or labeled
     ``#optional tag`` for any of the tags given.
   - ``--randorder[=seed]`` -- randomize order of tests
+  - ``--random_seed[=seed]`` -- random seed for fuzzing doctests
   - ``--short[=seconds]`` -- run as many doctests as possible in about 300
     seconds (or the number of seconds given.) This runs the tests for each
     module from the top of the file and skips tests once it exceeds the budget

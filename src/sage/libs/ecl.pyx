@@ -97,6 +97,7 @@ cdef cl_object safe_eval_clobj         #our own error catching eval
 cdef cl_object safe_apply_clobj        #our own error catching apply
 cdef cl_object safe_funcall_clobj      #our own error catching funcall
 cdef cl_object read_from_string_clobj  #our own error catching reader
+cdef cl_object make_unicode_string_clobj
 
 cdef bint ecl_has_booted = 0
 
@@ -235,6 +236,7 @@ def init_ecl():
     global safe_apply_clobj
     global safe_funcall_clobj
     global read_from_string_clobj
+    global make_unicode_string_clobj
     global ecl_has_booted
     cdef char *argv[1]
     cdef sigaction_t sage_action[32]
@@ -319,6 +321,12 @@ def init_ecl():
                     (values nil (princ-to-string cnd)))))
         """))
     safe_funcall_clobj=cl_eval(string_to_object(b"(symbol-function 'sage-safe-funcall)"))
+
+    cl_eval(string_to_object(b"""
+        (defun sage-make-unicode-string (codepoints)
+            (map 'string #'code-char codepoints))
+        """))
+    make_unicode_string_clobj = cl_eval(string_to_object(b"#'sage-make-unicode-string"))
 
     ecl_has_booted = 1
 
@@ -442,7 +450,7 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
     # strings ->parsed by lisp reader
 
     cdef bytes s
-    cdef cl_object L, ptr
+    cdef cl_object L, ptr, o
 
     if isinstance(pyobj,bool):
         if pyobj:
@@ -461,8 +469,14 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
     elif isinstance(pyobj,float):
         return ecl_make_doublefloat(pyobj)
     elif isinstance(pyobj,unicode):
-        s=str_to_bytes(pyobj)
-        return ecl_safe_read_string(s)
+        try:
+            s = str_to_bytes(pyobj, 'ascii')
+        except UnicodeEncodeError:
+            o = cl_funcall(2, make_unicode_string_clobj,
+                           python_to_ecl([ord(c) for c in pyobj]))
+        else:
+            o = ecl_cstring_to_base_string_or_nil(s)
+        return ecl_safe_funcall(read_from_string_clobj, o)
     elif isinstance(pyobj,bytes):
         s=<bytes>pyobj
         return ecl_safe_read_string(s)

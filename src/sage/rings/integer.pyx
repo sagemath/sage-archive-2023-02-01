@@ -7480,7 +7480,6 @@ cdef integer(x):
         return x
     return Integer(x)
 
-
 def free_integer_pool():
     cdef int i
     cdef PyObject *o

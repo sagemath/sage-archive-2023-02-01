@@ -459,7 +459,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         [GX2020]_. 
 
         EXAMPLES: 
-            sage: FC = FullyCommutativeCoxeterElements(['A', 5])
+            sage: FC = FullyCommutativeElements(['A', 5])
             sage: FC([1,3]).n_value()
             2
             sage: FC([1,2,3]).n_value()

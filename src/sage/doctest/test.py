@@ -527,7 +527,7 @@ run it may have increased. Try increasing the limit. ::
 
 Test that random tests are reproducible::
 
-    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--random-seed=0", -random_seed.rst"], **kwds)  # long time
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--random-seed=0", "random_seed.rst"], **kwds)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t --warn-long 0.0 --random-seed=0 random_seed.rst

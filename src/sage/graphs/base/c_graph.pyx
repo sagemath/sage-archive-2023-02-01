@@ -2439,7 +2439,8 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``weight_function`` -- function (default: ``None``); a function that
           inputs an edge ``(u, v, l)`` and outputs its weight. If ``None``, we
-          use the edge label ``l`` as a weight.
+          use the edge label ``l`` as a weight, if ``l`` is not ``None``, else
+          ``1`` as a weight.
 
         - ``distance_flag`` -- boolean (default: ``False``); when set to
           ``True``, the shortest path distance from ``x`` to ``y`` is returned
@@ -2663,7 +2664,8 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``weight_function`` -- function (default: ``None``); a function that
           inputs an edge ``(u, v, l)`` and outputs its weight. If ``None``, we
-          use the edge label ``l`` as a weight.
+          use the edge label ``l`` as a weight, if ``l`` is not ``None``, else
+          ``1`` as a weight.
 
         - ``distance_flag`` -- boolean (default: ``False``); when set to
           ``True``, the shortest path distance from ``x`` to ``y`` is returned
@@ -2760,7 +2762,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int meeting_vertex = -1
 
         if weight_function is None:
-            weight_function = lambda e:e[2]
+            def weight_function(e):
+                return 1 if e[2] is None else e[2]
 
         # As long as the current side (x or y) is not totally explored ...
         while not pq.empty():

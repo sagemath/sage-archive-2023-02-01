@@ -37,7 +37,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         """
         if not self.parent()._is_fully_commutative(self._get_list()):
-            raise ValueError('The word does not represent a fully commutative element.') 
+            raise ValueError('list does not represent a fully commutative word.') 
 
     def normalize(self):
         r"""

@@ -1897,12 +1897,7 @@ def floyd_warshall(gg, paths=True, distances=False):
 
         sage: g = graphs.Grid2dGraph(2,2)
         sage: from sage.graphs.distances_all_pairs import floyd_warshall
-        sage: print(floyd_warshall(g))  # py2
-        {(0, 1): {(0, 1): None, (1, 0): (0, 0), (0, 0): (0, 1), (1, 1): (0, 1)},
-         (1, 0): {(0, 1): (0, 0), (1, 0): None, (0, 0): (1, 0), (1, 1): (1, 0)},
-         (0, 0): {(0, 1): (0, 0), (1, 0): (0, 0), (0, 0): None, (1, 1): (0, 1)},
-         (1, 1): {(0, 1): (1, 1), (1, 0): (1, 1), (0, 0): (0, 1), (1, 1): None}}
-        sage: print(floyd_warshall(g))  # py3
+        sage: print(floyd_warshall(g))
         {(0, 0): {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (0, 1)},
          (0, 1): {(0, 1): None, (0, 0): (0, 1), (1, 0): (0, 0), (1, 1): (0, 1)},
          (1, 0): {(1, 0): None, (0, 0): (1, 0), (0, 1): (0, 0), (1, 1): (1, 0)},

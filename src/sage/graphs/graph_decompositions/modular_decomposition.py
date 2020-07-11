@@ -2540,20 +2540,20 @@ def habib_maurer_algorithm(graph, g_classes=None):
     The Icosahedral graph is Prime::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import *
-        sage: print_md_tree(habib_maurer_algorithm(graphs.IcosahedralGraph()))  # py2
+        sage: print_md_tree(habib_maurer_algorithm(graphs.IcosahedralGraph()))
         PRIME
-         8
-         0
-         1
-         3
-         7
-         4
-         5
-         2
-         10
-         11
-         9
-         6
+        1
+        5
+        7
+        8
+        11
+        0
+        2
+        6
+        3
+        9
+        4
+        10
 
     The Octahedral graph is not Prime::
 

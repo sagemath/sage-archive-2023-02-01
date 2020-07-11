@@ -7688,16 +7688,12 @@ class Graph(GenericGraph):
 
         The Bull Graph is prime::
 
-            sage: graphs.BullGraph().modular_decomposition()  # py2
-            (PRIME, [0, 3, 4, 2, 1])
-            sage: graphs.BullGraph().modular_decomposition()  # py3
+            sage: graphs.BullGraph().modular_decomposition()
             (PRIME, [1, 2, 0, 3, 4])
 
         The Petersen Graph too::
 
-            sage: graphs.PetersenGraph().modular_decomposition()  # py2
-            (PRIME, [6, 2, 5, 1, 9, 3, 0, 7, 8, 4])
-            sage: graphs.PetersenGraph().modular_decomposition()  # py3
+            sage: graphs.PetersenGraph().modular_decomposition()
             (PRIME, [1, 4, 5, 0, 2, 6, 3, 7, 8, 9])
 
         This a clique on 5 vertices with 2 pendant edges, though, has a more

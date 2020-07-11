@@ -3034,9 +3034,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             ....: "Wurzburg": ["Frankfurt","Erfurt","Nurnberg"],
             ....: "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
             ....: "Stuttgart": ["Nurnberg"], "Erfurt": ["Wurzburg"]})
-            sage: list(G.depth_first_search("Stuttgart"))  # py2
-            ['Stuttgart', 'Nurnberg', 'Wurzburg', 'Frankfurt', 'Kassel', 'Munchen', 'Augsburg', 'Karlsruhe', 'Mannheim', 'Erfurt']
-            sage: list(G.depth_first_search("Stuttgart"))  # py3
+            sage: list(G.depth_first_search("Stuttgart"))
             ['Stuttgart', 'Nurnberg', ...]
         """
         return Search_iterator(self,

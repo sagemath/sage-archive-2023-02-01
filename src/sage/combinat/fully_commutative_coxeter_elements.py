@@ -1,5 +1,10 @@
 r"""
-Fully commutative Coxeter group elements
+Fully commutative elements of Coxeter groups
+
+An element $w$ in a Coxeter system (W,S) is fully commutative (FC) if
+every two reduced word of w can be related by a sequence of only
+commutation relations, i.e., relations of the form $st=ts$ where $s,t$ are
+commuting generators in $S$. See [Ste1996]_.
 """
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -12,19 +17,27 @@ from collections import deque
 from sage.combinat.posets.posets import Poset
 import itertools
 
-class FullyCommutativeCoxeterElement(NormalizedClonableList):
+class FullyCommutativeElement(NormalizedClonableList):
     r"""
-    A (reduced word of a) fully commutative element in the Coxeter system.
-    """
+    A (reduced word of a) fully commutative (FC) element in a Coxeter system.
 
+    An element $w$ in a Coxeter system (W,S) is fully commutative (FC) if
+    every two reduced word of w can be related by a sequence of only
+    commutation relations, i.e., relations of the form $st=ts$ where $s,t$ are
+    commuting generators in $S$. See [Ste1996]_.
+
+    """
+  
     # Methods required as a subclass of NormalizedClonableList:
     def check(self):
         r"""
-        Determine if the word ``self`` actually represents a fully commutative
-        reduced word. Raises a ValueError if this is not the case.
+        Check if ``self`` is the reduced word of an FC element. 
+
+        .. NOTE:: 
+
         """
         if not self.parent()._is_fully_commutative(self._get_list()):
-            raise ValueError('list does not represent a fully commutative word.')
+            raise ValueError('The word does not represent a fully commutative element.') 
 
     def normalize(self):
         r"""
@@ -581,7 +594,7 @@ class FullyCommutativeCoxeterElements(Parent):
     def _element_constructor_(self, lst):
         return self.element_class(self, lst)
 
-    Element = FullyCommutativeCoxeterElement
+    Element = FullyCommutativeElement
 
     def coxeter_matrix(self):
         r"""

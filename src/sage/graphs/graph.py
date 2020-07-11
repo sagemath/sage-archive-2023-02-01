@@ -9408,7 +9408,7 @@ _additional_categories = {
     "minimal_dominating_sets"   : "Domination",
     "lex_M"                     : "Traversals",
     "maximum_cardinality_search" : "Traversals",
-    "maximum_cardinality_search_M" : "Traversals"
+    "maximum_cardinality_search_M" : "Traversals",
     "cheeger_constant"          : "Expansion properties",
     "edge_isoperimetric_number" : "Expansion properties",
     "vertex_isoperimetric_number": "Expansion properties"

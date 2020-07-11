@@ -2485,6 +2485,9 @@ REFERENCES:
 .. [GR2001] Chris Godsil and Gordon Royle, *Algebraic Graph Theory*. Graduate
             Texts in Mathematics, Springer, 2001.
 
+.. [Gre2006] \R. M. Green, *Star reducible Coxeter groups*, Glasgow 
+            Mathematical Journal, Volume 48, Issue 3, pp. 583-609.
+
 .. [Gr2006] Matthew Greenberg,
             "Heegner points and rigid analytic modular forms",
             Ph.D. Thesis, McGill University, 2006.
@@ -5073,6 +5076,13 @@ REFERENCES:
               Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of
               Anders Björner,
               Research Paper 9, 24 pp.
+
+.. [Ste1996] John R. Stembridge, *On the fully commutative elements of Coxeter
+             groups*, Journal of Algebraic Combinatorics, 5,  pp. 355-385
+
+.. [Ste1998] John R. Stembridge, *The enumeration of the fully commutative
+             elements of Coxeter groups*, Journal of Algebraic Combinatorics,
+             7,  pp. 291-320.
 
 .. [Ste2003] John R. Stembridge, *A local characterization of
              simply-laced crystals*, Transactions of the American

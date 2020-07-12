@@ -6557,7 +6557,7 @@ class Graph(GenericGraph):
             (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
           - If ``algorithm = "mcqd"``, uses the MCQD solver
-            (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+            (`<http://insilab.org/maxclique/>`_). Note that the MCQD
             package must be installed.
 
         - ``cliques`` -- an optional list of cliques that can be input if
@@ -9297,14 +9297,14 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``certificate`` -- boolean (default: ``False``); whether to return 
+        - ``certificate`` -- boolean (default: ``False``); whether to return
           a certificate.
 
         OUTPUT:
 
         When ``certificate = True``, then the function returns `(a, F)`
-        where `a` is the arboricity and `F` is a list of `a` disjoint forests 
-        that partitions the edge set of `g`. The forests are represented as 
+        where `a` is the arboricity and `F` is a list of `a` disjoint forests
+        that partitions the edge set of `g`. The forests are represented as
         subgraphs of the original graph.
 
         If ``certificate = False``, the function returns just a integer
@@ -9330,7 +9330,7 @@ class Graph(GenericGraph):
 
             sage: g = Graph()
             sage: g.arboricity(True)
-            (0, []) 
+            (0, [])
         """
         from sage.matroids.constructor import Matroid
         P = Matroid(self).partition()

@@ -725,6 +725,38 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
                             repr_monomial=self._parent._latex_term,
                             is_latex=True, strip_one=True)
 
+    def _ascii_art_(self):
+        r"""
+        Return an ascii art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LieAlgebra(QQ, {('x','y'): {'x':1}})
+            sage: ascii_art(x - 3/2 * y)
+            x - 3/2*y
+        """
+        from sage.typeset.ascii_art import ascii_art
+        return ascii_art(repr_lincomb(self._sorted_items_for_printing(),
+                                      scalar_mult=ascii_art(self._parent._print_options['scalar_mult']),
+                                      repr_monomial=ascii_art,
+                                      strip_one=True))
+
+    def _unicode_art_(self):
+        r"""
+        Return a unicode art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LieAlgebra(QQ, {('x','y'): {'x':1}})
+            sage: unicode_art(x - 3/2 * y)
+            x - 3/2·y
+        """
+        from sage.typeset.unicode_art import unicode_art
+        return unicode_art(repr_lincomb(self._sorted_items_for_printing(),
+                                        scalar_mult=unicode_art('·'),
+                                        repr_monomial=unicode_art,
+                                        strip_one=True))
+
     cpdef bracket(self, right):
         """
         Return the Lie bracket ``[self, right]``.

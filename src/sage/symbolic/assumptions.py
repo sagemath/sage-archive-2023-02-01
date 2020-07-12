@@ -442,7 +442,7 @@ def assume(*args):
 
     If everything goes as planned, there is no output.
 
-    If you assume something that isn't one of the two forms above, then
+    If you assume something that is not one of the two forms above, then
     an ``AttributeError`` is raised as we try to call its ``assume``
     method.
 
@@ -451,7 +451,7 @@ def assume(*args):
 
     .. WARNING::
 
-        Don't use python's chained comparison notation in assumptions.
+        Do not use Python's chained comparison notation in assumptions.
         Python literally translates the expression ``0 < x < 1`` to
         ``(0 < x) and (x < 1)``, but the value of ``bool(0 < x)`` is
         ``False`` when ``x`` is a symbolic variable. Therefore, by the

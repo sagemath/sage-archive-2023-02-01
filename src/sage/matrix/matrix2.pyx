@@ -13494,7 +13494,7 @@ cdef class Matrix(Matrix1):
         There is also a shortcut for the conjugate transpose, or "Hermitian transpose"::
 
             sage: M.H
-             [   I + 2  6*I + 9]
+            [   I + 2  6*I + 9]
             [-4*I + 3     -5*I]
 
         Matrices over base rings that can be embedded in the

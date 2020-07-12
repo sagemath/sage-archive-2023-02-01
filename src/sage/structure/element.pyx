@@ -47,7 +47,7 @@ abstract base classes.
                                     EuclideanDomainElement
                         FieldElement
                         CommutativeAlgebraElement
-                    AlgebraElement   (note -- can't derive from module, since no multiple inheritance)
+                    AlgebraElement
                         Matrix
                     InfinityElement
                 AdditiveGroupElement
@@ -2922,8 +2922,8 @@ cdef class CommutativeRingElement(RingElement):
             sage: f.mod(x + 1)
             -1
 
-        When little is implemented about a given ring, then mod may
-        return simply return `f`.
+        When little is implemented about a given ring, then ``mod`` may
+        simply return `f`.
 
         EXAMPLES: Multivariate polynomials
         We reduce a polynomial in two variables modulo a polynomial

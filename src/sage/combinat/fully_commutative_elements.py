@@ -57,19 +57,19 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: FC([])
             []
             sage: FC([1,2])
-            [1,2] 
+            [1, 2] 
             sage: FC([2,3,2])
-            [2,3,2]
+            [2, 3, 2]
             sage: FC([3,2,3])
-            [3,2,3]
+            [3, 2, 3]
 
         The output is the normalized form of ``self``, which may be a
         different reduced word of the element represented by the input ::
 
             sage: FC([3,1])
-            [1,3]
+            [1, 3]
             sage: FC([2,3,1])
-            [2,1,3] 
+            [2, 1, 3] 
             sage: FC([1,3]) == FC([3,1])
             True
         
@@ -77,29 +77,26 @@ class FullyCommutativeElement(NormalizedClonableList):
         ValueEror ::
 
             sage: FC([1,2,1])
-            ValueError      Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
-            ValueError: The input is not a reduced word of a fully commutative
-            elements. 
+            ValueError: The input is not a reduced word of a fully commutative element. 
 
             sage: FC([2,3,2,3])
-            ValueError      Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
-            ValueError: The input is not a reduced word of a fully commutative
-            elements. 
+            ValueError: The input is not a reduced word of a fully commutative element. 
             
         .. SEEALSO::
             :func:`_is_fully_commutative`
             :func:`normalize`
         """
-        if not self._is_fully_commutative(self._get_list()):
-            raise ValueError('The input is not a reduced word of a fully commutative element.') 
+        return self._is_fully_commutative()
 
     def normalize(self):
         r"""
         Normalize ``self`` to the Cartier--Foata normal form.
         """
-        return cartier_foata_form(self)
+        return self._cartier_foata_form()
 
 
     def _is_fully_commutative(self):
@@ -108,7 +105,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         criterion.        
         """
         matrix = self.parent().coxeter_matrix()
-        w = self
+        w = tuple(self)
 
         def contains_long_braid(w):
             for i in range(0, len(w)-2):
@@ -116,7 +113,7 @@ class FullyCommutativeElement(NormalizedClonableList):
                 b = w[i+1]
                 m = matrix[a, b]
                 if m > 2 and i+m <= len(w):
-                    ab_braid = [a, b] * (m // 2) + ([a,] if m % 2 == 1 else [])
+                    ab_braid = (a, b) * (m // 2) + ((a,) if m % 2 == 1 else ())
                     if w[i:i+m] == ab_braid:
                         return True
             return False
@@ -124,8 +121,9 @@ class FullyCommutativeElement(NormalizedClonableList):
         def commute_once(word, i):
             return word[:i] + (word[i+1], word[i]) + word[i+2:]
 
+        not_fc = ValueError('The input is not a reduced word of a fully commutative element.')
         if contains_long_braid(w):
-            return False
+            raise not_fc
         else:
             l, checked, queue = len(w), {w}, deque([w]) 
             while queue:
@@ -136,14 +134,14 @@ class FullyCommutativeElement(NormalizedClonableList):
                         new_word = commute_once(word, i)
                         if new_word not in checked:
                             if contains_long_braid(new_word):
-                                return False
+                                raise not_fc
                             else:
                                 checked.add(new_word)
                                 queue.appendleft(new_word)
             return True
 
 
-    def cartier_foata_form(self):
+    def _cartier_foata_form(self):
         r"""
         Return the Cartier--Foata form of ``self``.
 
@@ -153,11 +151,11 @@ class FullyCommutativeElement(NormalizedClonableList):
         The following reduced words express the same FC elements in `B_5` ::
 
             sage: FC = FullyCommutativeElements(['B', 5])
-            sage: FC([1, 4, 3, 5, 2, 4, 3]).cartier_foata_form()
+            sage: FC([1, 4, 3, 5, 2, 4, 3])
             [1, 4, 3, 5, 2, 4, 3]
-            sage: FC([4, 1, 3, 5, 2, 4, 3]).cartier_foata_form()
+            sage: FC([4, 1, 3, 5, 2, 4, 3])
             [1, 4, 3, 5, 2, 4, 3]
-            sage: FC([4, 3, 1, 5, 4, 2, 3]).cartier_foata_form()
+            sage: FC([4, 3, 1, 5, 4, 2, 3])
             [1, 4, 3, 5, 2, 4, 3]
     
         .. NOTE::
@@ -182,7 +180,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             for s in fronts:
                 self.remove(s)
 
-        return self._set_list(out_word)
+        self._set_list(out_word)
 
 
     ########## Descents ########## 
@@ -224,15 +222,13 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: w.find_descent(1)
             0
             sage: w.find_descent(1, side='right')
-            None
+            <BLANKLINE>
             sage: w.find_descent(4)
             1
             sage: w.find_descent(4, side='right')
-            None
+            <BLANKLINE>
             sage: w.find_descent(3)
-            None
-            sage: w.find_descent(4, side='right')
-            6 
+            <BLANKLINE>
 
         .. NOTE::
             A generator $s$ is a left descent of an FC element $w$ if
@@ -338,10 +334,10 @@ class FullyCommutativeElement(NormalizedClonableList):
 
             sage: FC = FullyCommutativeElements(['B', 6])
             sage: w = FC([1, 6, 2, 5, 4, 6, 5])
-            sage: w.coset_decompostion({1})
+            sage: w.coset_decomposition({1})
             ([1], [6, 2, 5, 4, 6, 5])
-            sage: w.coset_decompostion({1}, side = 'right')
-            ([], [1, 6, 2, 5, 4, 6, 5])
+            sage: w.coset_decomposition({1}, side = 'right')
+            ([1, 6, 2, 5, 4, 6, 5], [])
             sage: w.coset_decomposition({5, 6})
             ([6, 5, 6], [1, 2, 4, 5])
             sage: w.coset_decomposition({5, 6}, side='right')
@@ -407,7 +403,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             False
             sage: w.still_reduced_fc_after_prepending(3)
             True
-            sage: u = FC([3,1,2])            
+            sage: u = FCB3([3,1,2])            
             sage: u.still_reduced_fc_after_prepending(1)
             False
             sage: u.still_reduced_fc_after_prepending(2)
@@ -433,21 +429,21 @@ class FullyCommutativeElement(NormalizedClonableList):
             $w = w_J \cdot w^J$ of $w$ with respect to $J := \{s, t\}$ 
             is the element $...tst$ of length $m(s,t)-1$.
 
-            # and the following conditions
-            # hold simultaneously for the leftmost such letter $t$:
+            and the following conditions
+            hold simultaneously for the leftmost such letter $t$:
 
-                # (1) $t$ is left descent of the word $u_1$  obtained by
-                # removing the leftmost $s$ from $w$;
-                # (2) $t$ is left descent of the word $u_2$  obtained by
-                # removing the leftmost $t$ from $u_1$;
-                # ...
-                # (m-1) the appropriate element in $\{s, t\}$ is a left descent
-                # of the word $u_{m-1}$ obtained by removing the leftmost letter
-                # required to be a descent in Condition (m-2) from $u_{m-2}$.
+                (1) $t$ is left descent of the word $u_1$  obtained by
+                removing the leftmost $s$ from $w$;
+                (2) $t$ is left descent of the word $u_2$  obtained by
+                removing the leftmost $t$ from $u_1$;
+                ...
+                (m-1) the appropriate element in $\{s, t\}$ is a left descent
+                of the word $u_{m-1}$ obtained by removing the leftmost letter
+                required to be a descent in Condition (m-2) from $u_{m-2}$.
             
-            # In the last example above, we have $s=5$, $t=4$, Condition (1)
-            # holds, but Condition (2) fails, therefore $5w$ is still a
-            # reduced word of an FC element.
+            In the last example above, we have $s=5$, $t=4$, Condition (1)
+            holds, but Condition (2) fails, therefore $5w$ is still a
+            reduced word of an FC element.
 
         REFERENCES:
 
@@ -511,7 +507,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         # from the coset decomposition has length at least 2; when defined, it
         # removes the outmost letter in $w_J$:
         if direction == 'down' and 2 <= len(string) <= mst - 1:
-            decrease the length of the J-string:
+            # decrease the length of the J-string:
             new_string = cur_string[1:] if side == 'left' else cur_string[:-1]
         # The upper star operation is defined if the parabolic factor $w_J$
         # from the coset decomposition has length at most $m(s,t)-2$; when
@@ -557,11 +553,11 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: w.coset_decomposition({5, 6})
             ([6, 5, 6], [1, 2, 4, 5])
             sage: w.upper_star({5,6})
-            None
+            <BLANKLINE>
             sage: w.coset_decomposition({5, 6}, side='right')
             ([1, 6, 2, 5, 4], [6, 5])
             sage: w.upper_star((5, 6), side='right')
-            [1, 6, 2, 5, 4, 6, 5 ,6]
+            [1, 6, 2, 5, 4, 6, 5, 6]
             sage: v = FC([1, 6, 2, 5, 4, 6])
             sage: v.coset_decomposition({5, 6}, side='right')
             ([1, 6, 2, 5, 4], [6])
@@ -608,7 +604,9 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: w.coset_decomposition({5, 6})
             ([6, 5, 6], [1, 2, 4, 5])
             sage: w.lower_star({5,6})
-            [5, 6, 1, 2, 4, 5]
+            [1, 5, 2, 4, 6, 5]
+            sage: w.lower_star({5,6}).coset_decomposition({5, 6})
+            ([5, 6], [1, 2, 4, 5])
             sage: w.coset_decomposition({5, 6}, side='right')
             ([1, 6, 2, 5, 4], [6, 5])
             sage: w.lower_star((5, 6), side='right')
@@ -617,7 +615,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: v.coset_decomposition({5, 6}, side='right')
             ([1, 6, 2, 5, 4], [6])
             sage: v.lower_star({5, 6}, side='right')
-            None
+            <BLANKLINE>
 
         .. NOTE::
             As the examples illustrate, the left lower star operation is
@@ -895,10 +893,9 @@ class FullyCommutativeElements(Parent):
     Constructing an element that is not fully commutative throws an error ::
 
         sage: FCA3([1,2,1])
-        ValueError      Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
-        ValueError: The input is not a reduced word of a fully commutative
-        elements. 
+        ValueError: The input is not a reduced word of a fully commutative element. 
 
     Elements are normalized to Cartier--Foata normal form upon construction ::
 

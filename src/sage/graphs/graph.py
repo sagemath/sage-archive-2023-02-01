@@ -7537,6 +7537,7 @@ class Graph(GenericGraph):
             [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
             sage: (graphs.FruchtGraph()).cores(with_labels=True)
             {0: 3, 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 3, 11: 3}
+            sage: set_random_seed(0)
             sage: a = random_matrix(ZZ, 20, x=2, sparse=True, density=.1)
             sage: b = Graph(20)
             sage: b.add_edges(a.nonzero_positions(), loops=False)
@@ -9297,14 +9298,14 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``certificate`` -- boolean (default: ``False``); whether to return 
+        - ``certificate`` -- boolean (default: ``False``); whether to return
           a certificate.
 
         OUTPUT:
 
         When ``certificate = True``, then the function returns `(a, F)`
-        where `a` is the arboricity and `F` is a list of `a` disjoint forests 
-        that partitions the edge set of `g`. The forests are represented as 
+        where `a` is the arboricity and `F` is a list of `a` disjoint forests
+        that partitions the edge set of `g`. The forests are represented as
         subgraphs of the original graph.
 
         If ``certificate = False``, the function returns just a integer
@@ -9330,7 +9331,7 @@ class Graph(GenericGraph):
 
             sage: g = Graph()
             sage: g.arboricity(True)
-            (0, []) 
+            (0, [])
         """
         from sage.matroids.constructor import Matroid
         P = Matroid(self).partition()

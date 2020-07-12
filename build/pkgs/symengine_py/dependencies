@@ -1,4 +1,4 @@
-symengine $(PYTHON) | cmake pip setuptools nose
+symengine $(PYTHON) | cmake pip setuptools $(and $(filter-out no,$(SAGE_CHECK_symengine_py)), nose)
 
 ----------
 All lines of this file are ignored except the first.

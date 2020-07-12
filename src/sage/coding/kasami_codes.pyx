@@ -308,58 +308,57 @@ class KasamiCode(AbstractLinearCode):
                     elemsFs[i] = a
                     break
 
-        FsToInt = { x : i for i,x in enumerate(elemsFs)}
-        elemsFsT = [x**(self._t+1) for x in elemsFs]
-        FsTToInt = { x: i for i,x in enumerate(elemsFsT)}
+        FsToInt = {x : i for i,x in enumerate(elemsFs)}
+        elemsFsT = [x**(self._t + 1) for x in elemsFs]
+        FsTToInt = {x: i for i,x in enumerate(elemsFsT)}
 
         e1 = [0]*self._s
         e1[0] = 1
-        e1 = vector(F2,e1,immutable=True)
+        e1 = vector(F2, e1, immutable=True)
 
         W1_basis = []
-        for i in range(self._s-1):
+        for i in range(self._s - 1):
             v = [0]*self._s
             v[i] = 1
-            v[s-1] = 1
+            v[self._s - 1] = 1
             W1_basis.append(v)
         W1 = V.span(W1_basis)  # W1 satisfies \sum v[i] = 0
 
         W2_basis = set([e1])  # not really a basis...
-        for i in range(1,slef._s):  # avoid x = 0
+        for i in range(1, self._s):  # avoid x = 0
             x = elemsFs[i]
-            for j in range(i+1,self._s):
+            for j in range(i+1, self._s):
                 y = elemsFs[j]
-                v = [0]*s
+                v = [0]*self._s
                 v[i] = 1
                 v[j] = 1
-                v[ FsToInt[(x+y)] ] = 1
-                v = vector(F2,v,immutable=True)
+                v[FsToInt[(x+y)]] = 1
+                v = vector(F2, v, immutable=True)
                 W2_basis.add(v)
         W2 = V.span(W2_basis)  # W2 satisfies \sum v[i]elemsFs[i] = 0
 
 
         W3_basis = set([e1])  # again not really a basis
-        for i in range(1,self._s):  # avoid x = 0^(t+1) = 0
+        for i in range(1, self._s):  # avoid x = 0^(t+1) = 0
             x = elemsFsT[i]
-            for j in range(i+1,self._s):
+            for j in range(i+1, self._s):
                 y = elemsFsT[j]
-                v = [0]*s
+                v = [0]*self._s
                 v[i] = 1
                 v[j] = 1
-                v[ FsTToInt[(x+y)] ] = 1
-                v=vector(F2,v,immutable=True)
+                v[FsTToInt[(x+y)]] = 1
+                v=vector(F2, v, immutable=True)
                 W3_basis.add(v)
         W3 = V.span(W3_basis)
 
         W = W2.intersection(W3)
         codebook = W.intersection(W1)
+        M = codebook.basis_matrix()
 
         if self.length() == self._s:  # Extended code
-            return codebook.basis_matrix()
+            return M
 
-        M = _extended_Kasami_code(s,t)
         newM = [v[:-1] for v in M]
-
         return matrix(GF(2), newM)
 
 

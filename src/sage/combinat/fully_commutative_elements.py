@@ -414,7 +414,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: FCA5 = FullyCommutativeElements(['A',5])
             sage: w = FCA5([2,4,1,3,2,5])
             sage: w.still_reduced_fc_after_prepending(5)
-            True
+            False
 
 
         .. NOTE::
@@ -424,18 +424,19 @@ class FullyCommutativeElement(NormalizedClonableList):
             is a reduced word of an FC element and $s$ is not a left descent
             $w$. In this case, Lemma 4.1 of [Ste1996]_ implies that $sw$ is
             not a reduced word of an FC element if and only if some letter in
-            $w$ does not commute with $s$ and for the leftmost such letter
-            $t$, the parabolic factor $w_J$ from the coset decomposition 
-            $w = w_J \cdot w^J$ of $w$ with respect to $J := \{s, t\}$ 
-            is the element $...tst$ of length $m(s,t)-1$.
-
-            and the following conditions
+            $w$ does not commute with $s$ and the following conditions
             hold simultaneously for the leftmost such letter $t$:
 
-                (1) $t$ is left descent of the word $u_1$  obtained by
-                removing the leftmost $s$ from $w$;
-                (2) $t$ is left descent of the word $u_2$  obtained by
+
+                (1) $t$ is left descent of the word $u_1$ obtained by removing
+                all letters to the left of the aforementioned $t$ from $w$;
+                (this condition is automatically true)
+
+                (2) $s$ is left descent of the word $u_2$  obtained by
                 removing the leftmost $t$ from $u_1$;
+
+                (3) $t$ is left descent of the word $u_3$  obtained by
+                removing the leftmost $s$ from $u_2$;
                 ...
                 (m-1) the appropriate element in $\{s, t\}$ is a left descent
                 of the word $u_{m-1}$ obtained by removing the leftmost letter
@@ -444,6 +445,12 @@ class FullyCommutativeElement(NormalizedClonableList):
             In the last example above, we have $s=5$, $t=4$, Condition (1)
             holds, but Condition (2) fails, therefore $5w$ is still a
             reduced word of an FC element.
+
+            Note that the conditions (1)--(m-1) are equivalent to the
+            condition that the parabolic factor $u_J$ from the coset
+            decomposition $u_1 = u_J \cdot u^J$ of $u_1$ with respect to
+            $J := \{s, t\}$ is the element $tst...$ of length $m(s,t)-1$.
+
 
         REFERENCES:
 
@@ -461,8 +468,10 @@ class FullyCommutativeElement(NormalizedClonableList):
             return True
 
         
-        u, v = self.coset_decomposition({s, t})
-        return len(u) != m[s,t]-1
+        u = self.clone()
+        u._set_list(self[j:])
+        x, y= u.coset_decomposition({s, t})
+        return len(x) != m[s,t]-1
 
         # u = self.clone()
         # u._set_list(self[j:])

@@ -6243,7 +6243,7 @@ class Polyhedron_base(Element):
         return lattice_from_incidences(atoms_incidences, coatoms_incidences,
              face_constructor=face_constructor, required_atoms=atoms_vertices)
 
-    def face_generator(self, face_dimension=None):
+    def face_generator(self, face_dimension=None, dual=None):
         r"""
         Return an iterator over the faces of given dimension.
 
@@ -6253,10 +6253,15 @@ class Polyhedron_base(Element):
 
         - ``face_dimension`` -- integer (default ``None``),
           yield only faces of this dimension if specified
+        - ``dual`` -- boolean (default ``None``);
+          if ``True``, generate the faces using the vertices;
+          if ``False``, generate the faces using the facets;
+          if ``None``, pick automatically
 
         OUTPUT:
 
-        Each face is given as
+        A :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator_geom`.
+        This class iterates over faces as
         :class:`~sage.geometry.polyhedron.face.PolyhedronFace`. See
         :mod:`~sage.geometry.polyhedron.face` for details. The order
         is random but fixed.
@@ -6264,7 +6269,10 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: P = polytopes.cube()
-            sage: list(P.face_generator())
+            sage: it = P.face_generator()
+            sage: it
+            Iterator over the faces of a 3-dimensional polyhedron in ZZ^3
+            sage: list(it)
             [A 3-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 8 vertices,
              A -1-dimensional face of a Polyhedron in ZZ^3,
              A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
@@ -6301,7 +6309,7 @@ class Polyhedron_base(Element):
               A 2-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 4 vertices,
               A 2-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 4 vertices]
 
-        If a polytope has more facets than vertices, the output will be somewhat reversed::
+        If a polytope has more facets than vertices, the dual mode is chosen::
 
             sage: P = polytopes.cross_polytope(3)
             sage: list(P.face_generator())
@@ -6334,6 +6342,98 @@ class Polyhedron_base(Element):
              A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices,
              A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices]
 
+        The face iterator can also be slightly modified.
+        In non-dual mode we can skip subfaces of the current (proper) face::
+
+            sage: P = polytopes.cube()
+            sage: it = P.face_generator(dual=False)
+            sage: _ = next(it), next(it)
+            sage: face = next(it)
+            sage: face.ambient_H_indices()
+            (5,)
+            sage: it.ignore_subfaces()
+            sage: face = next(it)
+            sage: face.ambient_H_indices()
+            (4,)
+            sage: it.ignore_subfaces()
+            sage: [face.ambient_H_indices() for face in it]
+            [(3,),
+             (2,),
+             (1,),
+             (0,),
+             (2, 3),
+             (1, 3),
+             (1, 2, 3),
+             (1, 2),
+             (0, 2),
+             (0, 1, 2),
+             (0, 1)]
+
+        In dual mode we can skip supfaces of the current (proper) face::
+
+            sage: P = polytopes.cube()
+            sage: it = P.face_generator(dual=True)
+            sage: _ = next(it), next(it)
+            sage: face = next(it)
+            sage: face.ambient_V_indices()
+            (7,)
+            sage: it.ignore_supfaces()
+            sage: next(it)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: face = next(it)
+            sage: face.ambient_V_indices()
+            (5,)
+            sage: it.ignore_supfaces()
+            sage: [face.ambient_V_indices() for face in it]
+            [(4,),
+             (3,),
+             (2,),
+             (1,),
+             (0,),
+             (1, 6),
+             (3, 4),
+             (2, 3),
+             (0, 3),
+             (0, 1, 2, 3),
+             (1, 2),
+             (0, 1)]
+
+        In non-dual mode, we cannot skip supfaces::
+
+            sage: it = P.face_generator(dual=False)
+            sage: _ = next(it), next(it)
+            sage: next(it)
+            A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: it.ignore_supfaces()
+            Traceback (most recent call last):
+            ...
+            ValueError: only possible when in dual mode
+
+        In dual mode, we cannot skip subfaces::
+
+            sage: it = P.face_generator(dual=True)
+            sage: _ = next(it), next(it)
+            sage: next(it)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: it.ignore_subfaces()
+            Traceback (most recent call last):
+            ...
+            ValueError: only possible when not in dual mode
+
+        We can only skip sub-/supfaces of proper faces::
+
+            sage: it = P.face_generator(dual=False)
+            sage: next(it)
+            A 3-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+            sage: it.ignore_subfaces()
+            Traceback (most recent call last):
+            ...
+            ValueError: iterator not set to a face yet
+
+        .. SEEALSO::
+
+            :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator_geom`.
+
         ALGORITHM:
 
         See :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`.
@@ -6358,23 +6458,8 @@ class Polyhedron_base(Element):
             sage: f.ambient_Hrepresentation()
             (An equation (1, 1, 1) x - 6 == 0,)
         """
-        from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
-
-        if face_dimension is None or face_dimension == self.dimension():
-            # Yield the polyhedron.
-            equations = [eq.index() for eq in self.equation_generator()]
-            yield PolyhedronFace(self, range(self.n_Vrepresentation()), equations)
-
-        if face_dimension is None or face_dimension == -1:
-            if not self.dimension() == -1:
-                # Yield the empty face.
-                yield PolyhedronFace(self, [], range(self.n_Hrepresentation()))
-
-        if face_dimension is None or -1 < face_dimension < self.dimension():
-            # Yield proper faces.
-            it = self.combinatorial_polyhedron().face_iter(dimension=face_dimension)
-            for comb_face in it:
-                yield combinatorial_face_to_polyhedral_face(self, comb_face)
+        from sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator import FaceIterator_geom
+        return FaceIterator_geom(self, output_dimension=face_dimension, dual=dual)
 
     def faces(self, face_dimension):
         """

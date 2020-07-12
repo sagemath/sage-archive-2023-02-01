@@ -521,7 +521,7 @@ def best_known_covering_design_www(v, k, t, verbose=False):
     k = int(k)
     t = int(t)
     param = "?v=%s&k=%s&t=%s" % (v, k, t)
-    url = "http://ljcr.dmgordon.org/cover/get_cover.php" + param
+    url = "https://ljcr.dmgordon.org/cover/get_cover.php" + param
     if verbose:
         print("Looking up the bounds at %s" % url)
 

@@ -20,13 +20,13 @@ from .hyperbolic import ( tanh, sinh, cosh, coth, sech, csch,
 reciprocal_trig_functions = {'sec': cos, 'csc': sin, 'cot': tan, 'sech': cosh, 'csch': sinh, 'coth': tanh}
 
 
-from .other import ( ceil, floor, abs_symbolic, sqrt,
+from .other import ( ceil, floor, abs_symbolic, sqrt, real_nth_root,
                     arg, real_part, real, frac,
                     factorial, binomial,
                     imag_part, imag, imaginary, conjugate, cases,
                     complex_root_of)
-from .log import (exp, exp_polar, log, ln, polylog, dilog, lambert_w, harmonic_number)
 
+from .log import (exp, exp_polar, log, ln, polylog, dilog, lambert_w, harmonic_number)
 
 from .transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,
                             dickman_rho, stieltjes)

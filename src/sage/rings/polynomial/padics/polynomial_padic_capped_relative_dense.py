@@ -52,6 +52,14 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             sage: R(f.dict())
             0
 
+        Check that :trac:`29829` has been fixed::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: f = x + 5
+            sage: S.<y> = PolynomialRing(Qp(5))
+            sage: g2 = S(f)
+            sage: 25*g2
+            (5^2 + O(5^22))*y + 5^3 + O(5^23)
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         self._polygon = None
@@ -92,7 +100,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
                     self._adjust_prec_info(absprec, relprec)
                 return
             elif x.base_ring() is ZZ:
-                self._poly = x
+                self._poly = PolynomialRing(ZZ, parent.variable_name())(x)
                 self._valbase = Integer(0)
                 p = parentbr.prime()
                 self._relprecs = [c.valuation(p) + parentbr.precision_cap() for c in x.list()]

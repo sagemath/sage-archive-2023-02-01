@@ -596,14 +596,13 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
            sage: CartanType(['F', 4, 1]).dual()._repr_(compact = True)
            'F4~*'
         """
-        dual_str = self.options.dual_str
         if self.options.notation == "Kac":
             if self._type.type() == 'B':
                 if compact:
                     return 'A%s^2'%(self.classical().rank()*2-1)
                 return "['A', %s, 2]"%(self.classical().rank()*2-1)
             elif self._type.type() == 'BC':
-                dual_str = '+'  # UNUSED ?
+                pass
             elif self._type.type() == 'C':
                 if compact:
                     return 'D%s^2'%(self.rank())

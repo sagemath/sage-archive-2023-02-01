@@ -1,10 +1,10 @@
 r"""
 Fully commutative elements of Coxeter groups
 
-An element $w$ in a Coxeter system (W,S) is fully commutative (FC) if
+An element `w` in a Coxeter system (W,S) is fully commutative (FC) if
 every two reduced word of w can be related by a sequence of only
-commutation relations, i.e., relations of the form $st=ts$ where $s,t$ are
-commuting generators in $S$. See [Ste1996]_.
+commutation relations, i.e., relations of the form `st=ts` where `s,t` are
+commuting generators in `S`. See [Ste1996]_.
 """
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -21,16 +21,16 @@ class FullyCommutativeElement(NormalizedClonableList):
     r"""
     A (reduced word of a) fully commutative (FC) element in a Coxeter system.
 
-    An element $w$ in a Coxeter system (W,S) is fully commutative (FC) if
-    every two reduced word of w can be related by a sequence of only
-    commutation relations, i.e., relations of the form $st=ts$ where $s,t$ are
-    commuting generators in $S$. Equivalently, $w$ is FC if and only if for
-    every pair of generators $s,t \in S$ for which $m(s,t)>2$, no reduced word
-    of $w$ contains the "braid" word $sts...$ of length $m(s,t)$ as a contiguous
-    subword. See [Ste1996]_. We will use the braid-avoidance criterion to
-    check if an element is FC.
+    An element `w` in a Coxeter system (W,S) is fully commutative (FC) if every
+    two reduced word of w can be related by a sequence of only commutation
+    relations, i.e., relations of the form `st=ts` where `s,t` are commuting
+    generators in `S`. Equivalently, `w` is FC if and only if for every pair of
+    generators `s,t \in S` for which `m(s,t)>2`, no reduced word of `w` contains
+    the "braid" word `sts...` of length `m(s,t)` as a contiguous subword. See
+    [Ste1996]_. We will use the braid-avoidance criterion to check if an element
+    is FC.
 
-    Every FC element has a canonical reduced word called its Cartier--Foata 
+    Every FC element has a canonical reduced word called its Cartier--Foata
     form. See [Gre2006]_. We will normalize each FC element to this form. 
 
     """
@@ -38,7 +38,25 @@ class FullyCommutativeElement(NormalizedClonableList):
     # Methods required as a subclass of NormalizedClonableList:
     def check(self):
         r"""
-        Check if ``self`` is the reduced word of an FC element. 
+        Called automatically when an element is created. Alias of
+        :func:`is_fully_commutative`
+        """
+        return self.is_fully_commutative()
+
+    def normalize(self):
+        r"""
+        Called automatically when an element is created. Alias of
+        :func:`cartier_foata_form`
+        """
+        return self.cartier_foata_form()
+
+
+    def is_fully_commutative(self):
+        r"""
+        Check if ``self`` is the reduced word of an FC element.
+
+        :func:`check` is an alias of this method, and is called automatically
+        when an element is created.
 
         EXAMPLES:
 
@@ -63,8 +81,8 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: FC([3,2,3])
             [3, 2, 3]
 
-        The output is the normalized form of ``self``, which may be a
-        different reduced word of the element represented by the input ::
+        The output is the normalized form of ``self``, which may be a different
+        reduced word of the element represented by the input ::
 
             sage: FC([3,1])
             [1, 3]
@@ -72,7 +90,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             [2, 1, 3] 
             sage: FC([1,3]) == FC([3,1])
             True
-        
+
         If the input is not the reduced word of an FC element, return a
         ValueEror ::
 
@@ -84,25 +102,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: FC([2,3,2,3])
             Traceback (most recent call last):
             ...
-            ValueError: The input is not a reduced word of a fully commutative element. 
-            
-        .. SEEALSO::
-            :func:`_is_fully_commutative`
-            :func:`normalize`
-        """
-        return self._is_fully_commutative()
-
-    def normalize(self):
-        r"""
-        Normalize ``self`` to the Cartier--Foata normal form.
-        """
-        return self._cartier_foata_form()
-
-
-    def _is_fully_commutative(self):
-        r"""
-        Determine if ``self`` represents an FC element via the braid-avoidance
-        criterion.        
+            ValueError: The input is not a reduced word of a fully commutative element.
         """
         matrix = self.parent().coxeter_matrix()
         w = tuple(self)
@@ -141,10 +141,12 @@ class FullyCommutativeElement(NormalizedClonableList):
             return True
 
 
-    def _cartier_foata_form(self):
+    def cartier_foata_form(self):
         r"""
         Return the Cartier--Foata form of ``self``.
 
+        :func:`normalize` is an alias of this method, and is called
+        automatically when an element is created.
 
         EXAMPLES:
 
@@ -157,18 +159,18 @@ class FullyCommutativeElement(NormalizedClonableList):
             [1, 4, 3, 5, 2, 4, 3]
             sage: FC([4, 3, 1, 5, 4, 2, 3])
             [1, 4, 3, 5, 2, 4, 3]
-    
-        .. NOTE::
-            The Cartier--Foata form of a reduced word of an FC element w can be
-            found recursively by repeatedly moving left descents of elements
-            to the left and ordering the left descents from small to large. In
-            the above example, the left descents of the element are 4 and 1,
-            therefore the Cartier--Foata form of the element is the
-            concatenation of [1,4] with the Cartier--Foata form of the
-            remaining part of the word. See [Gre2006]_.
 
-        .. SEEALSO::
-            :func:`descents`
+        .. NOTE::
+
+            The Cartier--Foata form of a reduced word of an FC element w
+            can be found recursively by repeatedly moving left descents of
+            elements to the left and ordering the left descents from small to
+            large. In the above example, the left descents of the element are 4
+            and 1, therefore the Cartier--Foata form of the element is the
+            concatenation of [1,4] with the Cartier--Foata form of the remaining
+            part of the word. See [Gre2006]_.
+
+        .. SEEALSO:: :func:`descents`
         """
         self._require_mutable()
 
@@ -209,10 +211,9 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         OPTIONAL ARGUMENTS:
 
-        - ``side`` -- string (default: 'left'); if the argument is set
-          to 'right', the function checks if ``s`` is a right descent of
-          ``self`` and finds the index of the rightmost occurrence of ``s``
-          if so.
+        - ``side`` -- string (default: 'left'); if the argument is set to
+          'right', the function checks if ``s`` is a right descent of ``self``
+          and finds the index of the rightmost occurrence of ``s`` if so.
 
 
         EXAMPLES::
@@ -230,11 +231,12 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: w.find_descent(3)
             <BLANKLINE>
 
-        .. NOTE::
-            A generator $s$ is a left descent of an FC element $w$ if
-            and only if for one (equivalently, every) reduced word of $w$, $s$
+        .. NOTE:: 
+
+            A generator `s` is a left descent of an FC element `w` if and
+            only if for one (equivalently, every) reduced word of `w`, `s`
             appears to in the word and every generator to the left of the
-            leftmost $s$ in the word commutes with $s$. A similar result holds
+            leftmost `s` in the word commutes with `s`. A similar result holds
             for right descents of FC elements. 
 
         """
@@ -253,8 +255,8 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         OPTIONAL ARGUMENTS:
 
-        - ``side`` -- string (default: 'left'); if set to 'right',
-          determine if ``self`` has ``s`` as a right descent.
+        - ``side`` -- string (default: 'left'); if set to 'right', determine if
+          ``self`` has ``s`` as a right descent.
 
         EXAMPLES::
 
@@ -269,8 +271,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: w.has_descent(4, side='right')
             False
 
-        .. SEEALSO::
-            :func:`find_descent`
+        .. SEEALSO:: :func:`find_descent`
         """
         return self.find_descent(s, side=side) is not None
 
@@ -280,16 +281,16 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         OPTIONAL ARGUMENTS:
 
-        - ``side`` -- string (default: 'left'); if set to 'right',
-          find the right descents.
+        - ``side`` -- string (default: 'left'); if set to 'right', find the
+          right descents.
 
         EXAMPLES::
 
 
             sage: FC = FullyCommutativeElements(['B', 5])
             sage: w = FC([1, 4, 3, 5, 2, 4, 3])
-            sage: w.descents()
-            {1, 4}
+            sage: sorted(w.descents())
+            [1, 4]
             sage: w.descents(side='right')
             {3}
         
@@ -309,28 +310,28 @@ class FullyCommutativeElement(NormalizedClonableList):
     # coset decomposition for FC elements
     def coset_decomposition(self, J, side='left'):
         r"""
-        Return the coset decomposition of ``self`` with repsect to the
-        parabolic subgroup generated by ``J``.
- 
+        Return the coset decomposition of ``self`` with repsect to the parabolic
+        subgroup generated by ``J``.
+
         INPUT: 
 
-        - ``J`` -- subset of the generating set $S$ of the Coxeter system.
+        - ``J`` -- subset of the generating set `S` of the Coxeter system.
 
         OUTPUT:
 
-        The tuple of elements $(w_J, w^J)$ such that $w=w_J \cdot w^J$,
-        $w_J$ is generated by the elements in $J$, and $w^J$ has no left
-        descent from $J$. This tuple is unique and satisfies the equation
-        $l(w) = l(w_J) + l(w^J)$ where $l$ denotes Coxeter length by
-        general theory; see Proposition 2.4.4 of [BB2005]_. 
+        The tuple of elements `(w_J, w^J)` such that `w=w_J \cdot w^J`, `w_J` is
+        generated by the elements in `J`, and `w^J` has no left descent from
+        `J`. This tuple is unique and satisfies the equation `l(w) = l(w_J) +
+        l(w^J)` where `l` denotes Coxeter length by general theory; see
+        Proposition 2.4.4 of [BB2005]_. 
 
         OPTIONAL ARGUMENTS:
 
         - ``side`` -- string (default: 'left'); if the value is set to 'right',
-        then the function returns the tuple $(w'^J, w'_J)$ from the coset
-        decomposition $w = w'^J \cdot w'_J$ of $w$ with respect to $J$.  
+          then the function returns the tuple `(w'^J, w'_J)` from the coset
+          decomposition `w = w'^J \cdot w'_J` of `w` with respect to `J`.  
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: FC = FullyCommutativeElements(['B', 6])
             sage: w = FC([1, 6, 2, 5, 4, 6, 5])
@@ -345,12 +346,13 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         .. NOTE::
 
-        The factor $w_J$ of the coset decomposition $w = w_J \cdot w^J$ can
-        be obtained by greedily "pulling left descents of $w$ that are in $J$
-        to the left"; see the proof of [BB2005]_. This greedy algorithm works
-        for all elements in Coxeter group, but it becomes especially simple
-        for FC elements because descents are easier to find for FC elements. 
-        
+            The factor `w_J` of the coset decomposition `w = w_J \cdot
+            w^J` can be obtained by greedily "pulling left descents of `w` that
+            are in `J` to the left"; see the proof of [BB2005]_. This greedy
+            algorithm works for all elements in Coxeter group, but it becomes
+            especially simple for FC elements because descents are easier to
+            find for FC elements. 
+
         """
         string = []  # The J-string
         remaining = self.clone()  # The remainder
@@ -380,8 +382,8 @@ class FullyCommutativeElement(NormalizedClonableList):
 
     def still_reduced_fc_after_prepending(self, s):
         r"""
-        Determine if ``self`` prepended with ``s`` is still a reduced word of
-        an FC element in the Coxeter system.
+        Determine if ``self`` prepended with ``s`` is still a reduced word of an
+        FC element in the Coxeter system.
 
         INPUT:
 
@@ -417,39 +419,40 @@ class FullyCommutativeElement(NormalizedClonableList):
             False
 
 
-        .. NOTE::
-            If $w$ is a reduced word of an element, then the concatenation
-            $sw$ is still a reduced word if and only if $s$ is not a left
-            descent of $w$ by general Coxeter group theory. So now assume $w$
-            is a reduced word of an FC element and $s$ is not a left descent
-            $w$. In this case, Lemma 4.1 of [Ste1996]_ implies that $sw$ is
-            not a reduced word of an FC element if and only if some letter in
-            $w$ does not commute with $s$ and the following conditions
-            hold simultaneously for the leftmost such letter $t$:
+        .. NOTE:: 
+
+            If `w` is a reduced word of an element, then the concatenation
+            `sw` is still a reduced word if and only if `s` is not a left
+            descent of `w` by general Coxeter group theory. So now assume `w` is
+            a reduced word of an FC element and `s` is not a left descent `w`.
+            In this case, Lemma 4.1 of [Ste1996]_ implies that `sw` is not a
+            reduced word of an FC element if and only if some letter in `w` does
+            not commute with `s` and the following conditions hold
+            simultaneously for the leftmost such letter `t`:
 
 
-                (1) $t$ is left descent of the word $u_1$ obtained by removing
-                all letters to the left of the aforementioned $t$ from $w$;
-                (this condition is automatically true)
+            (1) `t` is left descent of the word `u_1` obtained by removing
+            all letters to the left of the aforementioned `t` from `w`;
+            (this condition is automatically true)
 
-                (2) $s$ is left descent of the word $u_2$  obtained by
-                removing the leftmost $t$ from $u_1$;
+            (2) `s` is left descent of the word `u_2`  obtained by
+            removing the leftmost `t` from `u_1`;
 
-                (3) $t$ is left descent of the word $u_3$  obtained by
-                removing the leftmost $s$ from $u_2$;
-                ...
-                (m-1) the appropriate element in $\{s, t\}$ is a left descent
-                of the word $u_{m-1}$ obtained by removing the leftmost letter
-                required to be a descent in Condition (m-2) from $u_{m-2}$.
-            
-            In the last example above, we have $s=5$, $t=4$, Condition (1)
-            holds, but Condition (2) fails, therefore $5w$ is still a
+            (3) `t` is left descent of the word `u_3`  obtained by
+            removing the leftmost `s` from `u_2`;
+            ...
+            (m-1) the appropriate element in `\{s, t\}` is a left descent
+            of the word `u_{m-1}` obtained by removing the leftmost letter
+            required to be a descent in Condition (m-2) from `u_{m-2}`.
+
+            In the last example above, we have `s=5`, `t=4`, Condition (1)
+            holds, but Condition (2) fails, therefore `5w` is still a
             reduced word of an FC element.
 
             Note that the conditions (1)--(m-1) are equivalent to the
-            condition that the parabolic factor $u_J$ from the coset
-            decomposition $u_1 = u_J \cdot u^J$ of $u_1$ with respect to
-            $J := \{s, t\}$ is the element $tst...$ of length $m(s,t)-1$.
+            condition that the parabolic factor `u_J` from the coset
+            decomposition `u_1 = u_J \cdot u^J` of `u_1` with respect to
+            `J := \{s, t\}` is the element `tst...` of length `m(s,t)-1`.
 
 
         REFERENCES:
@@ -473,26 +476,14 @@ class FullyCommutativeElement(NormalizedClonableList):
         x, y= u.coset_decomposition({s, t})
         return len(x) != m[s,t]-1
 
-        # u = self.clone()
-        # u._set_list(self[j:])
-        # for c in range(m[s, t] - 1):
-            # letter = t if c % 2 == 0 else s
-            # i = u.find_descent(letter)
-            # if i is not None:
-                # u.pop(i)
-            # else:
-                # return True
-
-        # return False
-
 
     # Second application of coset decompositions: star operations.
 
     # Star operations were first defined on elements of Coxeter groups by
-    # Kazhdan and Lusztig in [KL1979]_ with respect to pair of generators $s,t$
-    # such that $m(s,t)=3$. Later, Lusztig generalized the definition in
+    # Kazhdan and Lusztig in [KL1979]_ with respect to pair of generators `s,t`
+    # such that `m(s,t)=3`. Later, Lusztig generalized the definition in
     # [Lus1985]_, via coset decompositions, to allow star operations with
-    # respect to any pair of generators $s,t$ such that $m(s,t)\ge 3$. Given
+    # respect to any pair of generators `s,t` such that `m(s,t)\ge 3`. Given
     # such a pair, we can potentially perform four types of star operations:
     # left upper, left lower, right upper and right lower; see [Gre2006]_. 
 
@@ -512,17 +503,17 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         # From the coset decomposition, perform the upper or lower operation:  
 
-        # The lower star operation is defined if the parabolic factor $w_J$
-        # from the coset decomposition has length at least 2; when defined, it
-        # removes the outmost letter in $w_J$:
         if direction == 'down' and 2 <= len(string) <= mst - 1:
+            # The lower star operation is defined if the parabolic factor `w_J`
+            # from the coset decomposition has length at least 2; when defined, it
+            # removes the outmost letter in `w_J`:
             # decrease the length of the J-string:
             new_string = cur_string[1:] if side == 'left' else cur_string[:-1]
-        # The upper star operation is defined if the parabolic factor $w_J$
-        # from the coset decomposition has length at most $m(s,t)-2$; when
-        # defined, it adds the appropriate letter $x$ from $J$ to $w_J$,
-        # extending its length by 1.  
         elif direction == 'up' and 1 <= len(string) <= mst - 2:
+            # The upper star operation is defined if the parabolic factor `w_J`
+            # from the coset decomposition has length at most `m(s,t)-2`; when
+            # defined, it adds the appropriate letter `x` from `J` to `w_J`,
+            # extending its length by 1.
             ending_letter = cur_string[0] if side == 'left' else cur_string[-1]
             other = next(x for x in J if x != ending_letter)
             new_string = [other] + cur_string if side == 'left' else cur_string + [other]
@@ -546,8 +537,8 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         OUTPUT: 
 
-        The result of the star operation if it is defined on ``self``,
-        ``None`` otherwise.
+        The result of the star operation if it is defined on ``self``, ``None``
+        otherwise.
 
         OPTIONAL ARGUEMNTS:
 
@@ -555,7 +546,7 @@ class FullyCommutativeElement(NormalizedClonableList):
           right upper star operation.
 
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: FC = FullyCommutativeElements(['B', 6])
             sage: w = FC([1, 6, 2, 5, 4, 6, 5])
@@ -573,22 +564,22 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: v.upper_star({5, 6}, side='right')
             [1, 6, 2, 5, 4, 6, 5]
 
-        .. NOTE::
+        .. NOTE:: 
+
             As the examples illustrate, the left upper star operation is
-            defined if and only if in the coset decomposition $w = w_J \cdot
-            {}^J w$, the parabolic part has length $1\le l(w_J) \le m(s,t)-2$.
-            When this is the case, the operation returns $x\cdot w_J\cdot w^J$
-            where $x$ is the letter $J$ different from the leftmost letter of
-            $w_J$. Similar facts hold for right upper star operations. See
+            defined if and only if in the coset decomposition `w = w_J \cdot
+            {}^J w`, the parabolic part has length `1\le l(w_J) \le m(s,t)-2`.
+            When this is the case, the operation returns `x\cdot w_J\cdot w^J`
+            where `x` is the letter `J` different from the leftmost letter of
+            `w_J`. Similar facts hold for right upper star operations. See
             [Gre2006]_.
         """
         return self._star_operation_inner(J, 'up', side)
 
     def lower_star(self, J, side='left'):
-
         r"""
-        Perform a lower star operation on ``self`` with respect to the
-        parabolic subgroup generated by ``J``.
+        Perform a lower star operation on ``self`` with respect to the parabolic
+        subgroup generated by ``J``.
 
         INPUT:
 
@@ -597,8 +588,8 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         OUTPUT: 
 
-        The result of the star operation if it is defined on ``self``,
-        ``None`` otherwise.
+        The result of the star operation if it is defined on ``self``, ``None``
+        otherwise.
 
         OPTIONAL ARGUEMNTS:
 
@@ -606,7 +597,7 @@ class FullyCommutativeElement(NormalizedClonableList):
           right lower star operation.
 
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: FC = FullyCommutativeElements(['B', 6])
             sage: w = FC([1, 6, 2, 5, 4, 6, 5])
@@ -627,12 +618,13 @@ class FullyCommutativeElement(NormalizedClonableList):
             <BLANKLINE>
 
         .. NOTE::
+        
             As the examples illustrate, the left lower star operation is
-            defined if and only if in the coset decomposition $w = w_J \cdot
-            {}^J w$, the parabolic part has length $2\le l(w_J) \le m(s,t)-1$.
-            When this is the case, the operation removes the leftmost letter
-            of $w_J$ from $w$.  Similar facts hold for right upper star
-            operations. See [Gre2006]_.
+            defined if and only if in the coset decomposition `w = w_J \cdot
+            {}^J w`, the parabolic part has length `2\le l(w_J) \le m(s,t)-1`.
+            When this is the case, the operation removes the leftmost letter of
+            `w_J` from `w`.  Similar facts hold for right upper star operations.
+            See [Gre2006]_.
 
         """
         return self._star_operation_inner(J, 'down', side)
@@ -644,69 +636,67 @@ class FullyCommutativeElement(NormalizedClonableList):
     # Kazhdan--Lusztig cells. For example, ...
 
 
-    # def star_orbit(self, side='left', **kargs):
-        # r"""
-        # Compute the star operation orbit of ``self``.
+    def star_orbit(self, side='left', **kargs):
+        r"""
+        Compute the star operation orbit of ``self``.
 
-        # OUTPUT: 
-        # The set containing all elements that can be obtained from ``self`` via
-        # a sequence of star operation of the specified type.  
+        OUTPUT: The set containing all elements that can be obtained from
+        ``self`` via a sequence of star operation of the specified type.  
 
-        # OPTIONAL ARGUMENTS:
+        OPTIONAL ARGUMENTS:
 
-        # - ``side`` -- string (default: 'left'); if set to 'right', the
-          # function compute the orbit for the specified type of right star
-          # operations. 
-        # - ``upper_only`` -- boolean (default: False); if passed, compute only
-          # the set of elements that can be obtained from ``self`` via upper
-          # star operations on the specified side.
-        # - ``lower_only`` -- boolean (default: False); if passed, compute only
-          # the set of elements that can be obtained from ``self`` via lower
-          # star operations on the specified side.
+        - ``side`` -- string (default: 'left'); if set to 'right', the function
+          compute the orbit for the specified type of right star operations. 
+        - ``upper_only`` -- boolean (default: False); if passed, compute only
+          the set of elements that can be obtained from ``self`` via upper star
+          operations on the specified side.
+        - ``lower_only`` -- boolean (default: False); if passed, compute only
+          the set of elements that can be obtained from ``self`` via lower star
+          operations on the specified side.
 
 
-        # EXAMPLES:
+        EXAMPLES:
 
-        # Compute the left star closure of [1] in the group `I_8`. This should be
-        # set of `\{1,2\}`-braids of lengths 1 through 7, and should be the same
-        # as the left *upper* star closure ::
+        Compute the left star closure of [1] in the group `I_8`. This should be
+        set of `\{1,2\}`-braids of lengths 1 through 7, and should be the same
+        as the left *upper* star closure ::
 
-            # sage: FC = FullyCommutativeElements(['I', 8])
-            # sage: sorted(FC([1]).star_closure())
-            # [[1],
-             # [1, 2, 1],
-             # [1, 2, 1, 2, 1],
-             # [1, 2, 1, 2, 1, 2, 1],
-             # [2, 1],
-             # [2, 1, 2, 1],
-             # [2, 1, 2, 1, 2, 1]]
-            # sage: FC([1]).star_closure() == FC([1]).star_closure(upper_only=True)
-            # True
-        # """
-        # m = self.parent().coxeter_matrix()
-        # adjacent_pairs = [(a, b) for (a, b) in itertools.product(self.parent().index_set(), repeat=2) if a < b and m[a,b] > 2]
+            sage: FC = FullyCommutativeElements(['I', 8])
+            sage: sorted(FC([1]).star_orbit())
+            [[1],
+             [1, 2, 1],
+             [1, 2, 1, 2, 1],
+             [1, 2, 1, 2, 1, 2, 1],
+             [2, 1],
+             [2, 1, 2, 1],
+             [2, 1, 2, 1, 2, 1]]
+            sage: FC([1]).star_orbit() == FC([1]).star_orbit(upper_only=True)
+            True
+        """
+        m = self.parent().coxeter_matrix()
+        adjacent_pairs = [(a, b) for (a, b) in itertools.product(self.parent().index_set(), repeat=2) if a < b and m[a,b] > 2]
         
-        # directions = {'up', 'down'}
-        # if 'upper_only' in kargs and kargs['upper_only']:
-            # directions = {'up'}
-        # elif 'lower_only' in kargs and kargs['lower_only']:
-            # directions = {'down'}
+        directions = {'up', 'down'}
+        if 'upper_only' in kargs and kargs['upper_only']:
+            directions = {'up'}
+        elif 'lower_only' in kargs and kargs['lower_only']:
+            directions = {'down'}
 
-        # closure = {self}
-        # recent_words = {self}
-        # while True:
-            # new_words = set()
-            # for w in recent_words:
-                # for J in adjacent_pairs:
-                    # for d in directions:
-                        # n = w._star_operation_inner(J, d, side)
-                        # if n is not None and n not in closure:
-                            # new_words.add(n)
-            # if len(new_words) == 0:
-                # break
-            # closure.update(new_words)
-            # recent_words = new_words
-        # return closure
+        closure = {self}
+        recent_words = {self}
+        while True:
+            new_words = set()
+            for w in recent_words:
+                for J in adjacent_pairs:
+                    for d in directions:
+                        n = w._star_operation_inner(J, d, side)
+                        if n is not None and n not in closure:
+                            new_words.add(n)
+            if len(new_words) == 0:
+                break
+            closure.update(new_words)
+            recent_words = new_words
+        return closure
 
 
     ########## Heaps ########## 
@@ -717,32 +707,26 @@ class FullyCommutativeElement(NormalizedClonableList):
         r"""
         Create the heap poset of ``self``.
 
-        The heap of an FC element $w$ is a labeled poset that can be defined 
-        from any reduced word of $w$. Different reduced words yield
-        isomorphic labeled posets, so the heap is well defined. 
+        The heap of an FC element `w` is a labeled poset that can be defined
+        from any reduced word of `w`. Different reduced words yield isomorphic
+        labeled posets, so the heap is well defined. 
 
-        Input:
+        INPUT:
 
-        - ``self`` -- list, a reduced word $w=s_0... s_{k-1}$ of an FC element.
+        - ``self`` -- list, a reduced word `w=s_0... s_{k-1}` of an FC element.
 
-        OUTPUT: 
-        A labeled poset where the underlying set is $\{0,1,...,k-1\}$ and
-        where each element $i$ carries $s_i$ as its label.
+        OUTPUT: A labeled poset where the underlying set is `\{0,1,...,k-1\}`
+        and where each element `i` carries `s_i` as its label.
 
         OPTIONAL ARGUMENTS:
 
-        - ``one_index`` -- boolean (default: False). Setting the value
-          to True will change the underlying set of the poset to $\{1, 2,
-          \dots, n\}$.
+        - ``one_index`` -- boolean (default: False). Setting the value to True
+          will change the underlying set of the poset to `\{1, 2, \dots, n\}`.
 
-        - ``display_labeling`` -- boolean (default: False). Setting
-          the value to True will display the label $s_i$ for each element $i$
-          of the poset.
+        - ``display_labeling`` -- boolean (default: False). Setting the value to
+          True will display the label `s_i` for each element `i` of the poset.
 
-
-        EXAMPLES:
-
-        Create the heap of a fully commutative element in `A_5` ::
+        EXAMPLES::
 
             sage: FC = FullyCommutativeElements(['A', 5])
             sage: FC([1, 4, 3, 5, 2, 4]).heap().cover_relations()
@@ -751,8 +735,9 @@ class FullyCommutativeElement(NormalizedClonableList):
             [[2, 3], [2, 4], [3, 6], [3, 5], [4, 6], [1, 5]]
 
         .. NOTE::
-            The partial order in the heap is defined by declaring $i\prec j$
-            if $i<j$ and $m(s_i,s_j)\neq 2$. See [Ste1996]_.
+
+            The partial order in the heap is defined by declaring `i\prec
+            j` if `i<j` and `m(s_i,s_j)\neq 2`. See [Ste1996]_.
         """
         m = self.parent().coxeter_matrix()
 
@@ -781,7 +766,8 @@ class FullyCommutativeElement(NormalizedClonableList):
         affine Weyl groups as well as so-called star-reducible groups; see
         [GX2020]_. 
 
-        EXAMPLES: 
+        EXAMPLES::
+
             sage: FC = FullyCommutativeElements(['A', 5])
             sage: FC([1,3]).n_value()
             2
@@ -799,12 +785,12 @@ class FullyCommutativeElement(NormalizedClonableList):
         r"""
         Display the Hasse diagram of the heap of ``self``.
 
-        The Hasse diagram is rendered in the lattice $S \times \N$, with every
-        element $i$ in the poset drawn as a point labelled by its label $s_i$. 
-        Every point is placed in the column for its label at a certain level.
-        The levels start at 0 and the level k of an element $i$ is the maximal
-        number $k$ such that the heap contains a chain $i_0\prec i_1\prec ...
-        \prec i_k$ where $i_k=i$. See [Ste1996]_ and [GX2020]_. 
+        The Hasse diagram is rendered in the lattice `S \times \mathbb{N}`, with
+        every element `i` in the poset drawn as a point labelled by its label
+        `s_i`. Every point is placed in the column for its label at a certain
+        level. The levels start at 0 and the level k of an element `i` is the
+        maximal number `k` such that the heap contains a chain `i_0\prec
+        i_1\prec ... \prec i_k` where `i_k=i`. See [Ste1996]_ and [GX2020]_. 
 
 
         OUTPUT: GraphicsObject
@@ -844,8 +830,8 @@ class FullyCommutativeElements(Parent):
 
     Coxeter systems with finitely many FC elements, or *FC-finite* Coxeter
     systems, are classfied by Stembridge in [Ste1996]_. They fall into seven
-    families, namely the groups of types $A_n, B_n, D_n, E_n, F_n, H_n$ and
-    $I_2(m)$. 
+    families, namely the groups of types `A_n, B_n, D_n, E_n, F_n, H_n` and
+    `I_2(m)`. 
 
     INPUT:
 

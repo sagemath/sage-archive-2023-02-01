@@ -203,7 +203,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
             sage: R.<x> = QQ[]
             sage: H = HyperellipticCurve(x^5+2)
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: H.is_singular()
             False
             sage: from sage.schemes.curves.projective_curve import ProjectivePlaneCurve
@@ -230,7 +231,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
             sage: R.<x> = GF(27, 'a')[]
             sage: H = HyperellipticCurve(x^10+2)
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: H.is_smooth()
             True
             sage: from sage.schemes.curves.projective_curve import ProjectivePlaneCurve

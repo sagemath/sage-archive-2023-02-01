@@ -2361,6 +2361,10 @@ cpdef diameter(G, algorithm=None, source=None,
         Traceback (most recent call last):
         ...
         ValueError: the graph contains a negative cycle
+        sage: diameter(G, algorithm='DiFUB', weight_function=lambda e:e[2])
+        Traceback (most recent call last):
+        ...
+        ValueError: the graph contains a negative cycle
     """
     import sys
 

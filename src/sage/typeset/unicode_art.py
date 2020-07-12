@@ -158,19 +158,23 @@ def unicode_art(*obj, **kwds):
                                             baseline=baseline)
 
 _subscript_dict = {'0': u'₀', '1': u'₁', '2': u'₂', '3': u'₃', '4': u'₄',
-                   '5': u'₅', '6': u'₆', '7': u'₇', '8': u'₈', '9': u'₉'}
+                   '5': u'₅', '6': u'₆', '7': u'₇', '8': u'₈', '9': u'₉',
+                   '-': u'₋', '+': u'₊'}
 _superscript_dict = {'0': u'⁰', '1': u'¹', '2': u'²', '3': u'³', '4': u'⁴',
-                     '5': u'⁵', '6': u'⁶', '7': u'⁷', '8': u'⁸', '9': u'⁹'}
+                     '5': u'⁵', '6': u'⁶', '7': u'⁷', '8': u'⁸', '9': u'⁹',
+                     '-': u'⁻', '+': u'⁺', '/': u'ᐟ'}
 
 def unicode_superscript(x):
     r"""
-    Return the integer ``x`` as a superscript.
+    Return the rational number ``x`` as a superscript.
 
     EXAMPLES::
 
         sage: from sage.typeset.unicode_art import unicode_superscript
         sage: unicode_superscript(15123902)
         '¹⁵¹²³⁹⁰²'
+        sage: unicode_superscript(-712/5)
+        '⁻⁷¹²ᐟ⁵'
     """
     return u''.join(_superscript_dict[i] for i in str(x))
 
@@ -183,6 +187,8 @@ def unicode_subscript(x):
         sage: from sage.typeset.unicode_art import unicode_subscript
         sage: unicode_subscript(15123902)
         '₁₅₁₂₃₉₀₂'
+        sage: unicode_subscript(-712)
+        '₋₇₁₂'
     """
     return u''.join(_subscript_dict[i] for i in str(x))
 

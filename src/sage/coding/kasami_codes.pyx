@@ -45,6 +45,22 @@ class KasamiCode(AbstractLinearCode):
     r"""
     Representation of a Kasami Code.
 
+    The extended Kasami code with parameters `(s,t)` is defined as
+
+    .. MATH::
+
+        \{ v \in GF(2)^s \mid
+        \sum_{a \in GF(s)} v_a =
+        \sum_{a \in GF(s)} a v_a =
+        \sum_{a \in GF(s)} a^{t+1} v_a = 0 \}
+
+    The only valid parameters `s,t` are given by the below, where `q` is a power of 2:
+        * `s = q^{2j+1}`, `t = q^m` with `m \leq j` and `\gcd(m,2j+1) = 1`
+        * `s = q^2`, `t=q`
+
+    The Kasami code `(s,t)` is obtained from the extended
+    Kasami code `(s,t)`, via truncation of all words.
+
     INPUT:
 
     - ``s,t`` -- (integer) the parameters of the Kasami code
@@ -56,6 +72,11 @@ class KasamiCode(AbstractLinearCode):
 
         sage: codes.KasamiCode(16,4)
         (16, 4) Extended Kasami code
+        sage: _.minimum_distance()
+        4
+
+        sage: codes.KasamiCode(8, 2, extended=False)
+        (8, 2) Kasami code
 
         sage: codes.KasamiCode(8,4)
         Traceback (most recent call last):
@@ -86,7 +107,7 @@ class KasamiCode(AbstractLinearCode):
          True
          sage: C1 == C2
          False
-         sage: C1.minimum_distance() == C2.minimum_distance()+1 
+         sage: C1.minimum_distance() == C2.minimum_distance()+1
          True
 
          sage: C = codes.KasamiCode(4,2)
@@ -149,7 +170,7 @@ class KasamiCode(AbstractLinearCode):
         length = s-1
         if extended:
             length += 1
-        
+
         super(KasamiCode, self).__init__(GF(2), length, "GeneratorMatrix", "Syndrome")
 
     def parameters(self):
@@ -234,187 +255,112 @@ class KasamiCode(AbstractLinearCode):
             [0 0 0 0 0 0 1 0 0 0 1 1 0 1 1]
             [0 0 0 0 0 0 0 1 0 1 1 1 0 0 1]
             [0 0 0 0 0 0 0 0 1 1 0 1 0 0 0]
+
+        ALGORITHM:
+
+        We generate spanning sets for the subspaces:
+            * `\{v \in GF(2)^s \mid \sum_{a \in GF(s)} v_a = 0\}`
+            * `\{v \in GF(2)^s \mid \sum_{a \in GF(s)} a v_a = 0\}`
+            * `\{v \in GF(2)^s \mid \sum_{a \in GF(s)} a^{t+1} v_a = 0\}`
+
+        Then we compute our codebook by taking the intersection of the above subspaces.
+
+        For the extened Kasami codes, we return the basis matrix of the codebook.
+        For the Kasami codes, we truncate the last entry of all vectors.
+
+        TESTS::
+
+            sage: C = codes.KasamiCode(4,2)
+            sage: C.generator_matrix()
+            []
+
+            sage: C = codes.KasamiCode(8,2)
+            sage: C.generator_matrix()
+            [1 1 1 1 1 1 1 1]
+            sage: C.minimum_distance()
+            8
+
+            sage: C = codes.KasamiCode(8, 2, extended=False)
+            sage: C.generator_matrix()
+            [1 1 1 1 1 1 1]
+            sage: C.minimum_distance()
+            7
+
+            sage: C = codes.KasamiCode(4, 2, extended=False)
+            sage: C.generator_matrix()
+            []
+
+            sage: C = codes.KasamiCode(16, 4, extended=False)
+            sage: C.minimum_distance()
+            3
         """
-        if self.length() == self._s:
-            return _extended_Kasami_code(self._s,self._t)
-        return _Kasami_code(self._s,self._t)
 
-def _extended_Kasami_code(const int s, const int t):
-    r"""
-    Return a generator matrix for the  extended Kasami code with parameters `s,t`.
+        F2 = GF(2)
+        V = VectorSpace(F2, self._s)
+        elemsFs = [x for x in GF(self._s)]
 
-    The extended Kasami code with parameters `(s,t)` is defined as
+        # we ensure that 0 is the first element of elemsFs
+        if not elemsFs[0].is_zero():
+            for i in range(self._s):
+                if elemsFs[i].is_zero:
+                    a = elemsFs[0]
+                    elemsFs[0] = elemsFs[i]
+                    elemsFs[i] = a
+                    break
 
-    .. MATH::
+        FsToInt = { x : i for i,x in enumerate(elemsFs)}
+        elemsFsT = [x**(self._t+1) for x in elemsFs]
+        FsTToInt = { x: i for i,x in enumerate(elemsFsT)}
 
-        \{ v \in GF(2)^s \mid
-        \sum_{a \in GF(s)} v_a =
-        \sum_{a \in GF(s)} a v_a =
-        \sum_{a \in GF(s)} a^{t+1} v_a = 0 \}
+        e1 = [0]*self._s
+        e1[0] = 1
+        e1 = vector(F2,e1,immutable=True)
 
-    The only valid parameters `s,t` are given by the below, where `q` is a power of 2:
-        * `s = q^{2j+1}`, `t = q^m` with `m \leq j` and `\gcd(m,2j+1) = 1`
-        * `s = q^2`, `t=q`
-
-    INPUT:
-
-    - ``s,t`` -- (integers); powers of 2; parameters of the code
-
-
-    EXAMPLES::
-
-        sage: C = codes.KasamiCode(16,4)
-        sage: C.minimum_distance()
-        4
-
-        sage: codes.KasamiCode(8,4)
-        Traceback (most recent call last):
-        ...
-        ValueError: The parameters(=8,4) are invalid. Check the documentation
-
-    .. SEEALSO::
-
-        :class:`sage.coding.kasami_codes.KasamiCode`.
-
-    ALGORITHM:
-
-    We generate spanning sets for the subspaces:
-        * `\{v \in GF(2)^s \mid \sum_{a \in GF(s)} v_a = 0\}`
-        * `\{v \in GF(2)^s \mid \sum_{a \in GF(s)} a v_a = 0\}`
-        * `\{v \in GF(2)^s \mid \sum_{a \in GF(s)} a^{t+1} v_a = 0\}`
-
-    Then we compute our codebook by taking the intersection of the above subspaces.
-
-    TESTS::
-
-        sage: C = codes.KasamiCode(4,2)
-        sage: C.generator_matrix()
-        []
-
-        sage: C = codes.KasamiCode(8,2)
-        sage: C.generator_matrix()
-        [1 1 1 1 1 1 1 1]
-        sage: C.minimum_distance()
-        8
-
-        sage: C = codes.KasamiCode(16,4)
-        sage: C.minimum_distance()
-        4
-
-        sage: C = codes.KasamiCode(64,4)
-        sage: C.minimum_distance()  # long time
-        4
-    """
-    F2 = GF(2)
-    V = VectorSpace(F2, s)
-    elemsFs = [x for x in GF(s)]
-
-    #we ensure that 0 is the first element of elemsFs
-    if not elemsFs[0].is_zero():
-        for i in range(s):
-            if elemsFs[i].is_zero:
-                a = elemsFs[0]
-                elemsFs[0] = elemsFs[i]
-                elemsFs[i] = a
-                break
-
-    FsToInt = { x : i for i,x in enumerate(elemsFs)}
-    elemsFsT = [x**(t+1) for x in elemsFs]
-    FsTToInt = { x: i for i,x in enumerate(elemsFsT)}
-
-    e1 = [0]*s
-    e1[0] = 1
-    e1 = vector(F2,e1,immutable=True)
-
-    W1_basis = []
-    for i in range(s-1):
-        v = [0]*s
-        v[i] = 1
-        v[s-1] = 1
-        W1_basis.append(v)
-    W1 = V.span(W1_basis) #W1 satisfies \sum v[i] = 0
-
-    W2_basis = set([e1])#not really a basis...
-    for i in range(1,s):#avoid x = 0
-        x = elemsFs[i]
-        for j in range(i+1,s):
-            y = elemsFs[j]
-            v = [0]*s
+        W1_basis = []
+        for i in range(self._s-1):
+            v = [0]*self._s
             v[i] = 1
-            v[j] = 1
-            v[ FsToInt[(x+y)] ] = 1
-            v = vector(F2,v,immutable=True)
-            W2_basis.add(v)
-    W2 = V.span(W2_basis) #W2 satisfies \sum v[i]elemsFs[i] = 0
+            v[s-1] = 1
+            W1_basis.append(v)
+        W1 = V.span(W1_basis)  # W1 satisfies \sum v[i] = 0
+
+        W2_basis = set([e1])  # not really a basis...
+        for i in range(1,slef._s):  # avoid x = 0
+            x = elemsFs[i]
+            for j in range(i+1,self._s):
+                y = elemsFs[j]
+                v = [0]*s
+                v[i] = 1
+                v[j] = 1
+                v[ FsToInt[(x+y)] ] = 1
+                v = vector(F2,v,immutable=True)
+                W2_basis.add(v)
+        W2 = V.span(W2_basis)  # W2 satisfies \sum v[i]elemsFs[i] = 0
 
 
-    W3_basis = set([e1]) #again not really a basis
-    for i in range(1,s): #avoid x = 0^(t+1) = 0
-        x = elemsFsT[i]
-        for j in range(i+1,s):
-            y = elemsFsT[j]
-            v = [0]*s
-            v[i] = 1
-            v[j] = 1
-            v[ FsTToInt[(x+y)] ] = 1
-            v=vector(F2,v,immutable=True)
-            W3_basis.add(v)
-    W3 = V.span(W3_basis)
+        W3_basis = set([e1])  # again not really a basis
+        for i in range(1,self._s):  # avoid x = 0^(t+1) = 0
+            x = elemsFsT[i]
+            for j in range(i+1,self._s):
+                y = elemsFsT[j]
+                v = [0]*s
+                v[i] = 1
+                v[j] = 1
+                v[ FsTToInt[(x+y)] ] = 1
+                v=vector(F2,v,immutable=True)
+                W3_basis.add(v)
+        W3 = V.span(W3_basis)
 
-    W = W2.intersection(W3)
-    codebook = W.intersection(W1)
+        W = W2.intersection(W3)
+        codebook = W.intersection(W1)
 
-    return codebook.basis_matrix()
+        if self.length() == self._s:  # Extended code
+            return codebook.basis_matrix()
 
-def _Kasami_code(const int s, const int t):
-    r"""
-    Return the generator matrix of the Kasami code with parameters `s,t`.
+        M = _extended_Kasami_code(s,t)
+        newM = [v[:-1] for v in M]
 
-    The Kasami code `(s,t)` is obtained from the extended
-    Kasami code `(s,t)`, via truncation of all words.
-
-    INPUT:
-
-    - ``s,t`` -- (integers); powers of 2; parameters of the code
-
-    EXAMPLES::
-
-        sage: codes.KasamiCode(8, 2, extended=False)
-        (8, 2) Kasami code
-
-        sage: codes.KasamiCode(4, 2, extended=False)
-        (4, 2) Kasami code
-
-    .. SEEALSO::
-
-        :class:`sage.coding.kasami_codes.KasamiCode`,
-        :meth:`sage.coding.kasami_codes._extended_Kasami_code`.
-
-    TESTS::
-
-        sage: C = codes.KasamiCode(8, 2, extended=False)
-        sage: C.generator_matrix()
-        [1 1 1 1 1 1 1]
-        sage: C.minimum_distance()
-        7
-
-        sage: C = codes.KasamiCode(4, 2, extended=False)
-        sage: C.generator_matrix()
-        []
-
-        sage: C = codes.KasamiCode(16, 4, extended=False)
-        sage: C.minimum_distance()
-        3
-
-        sage: C = codes.KasamiCode(64,4, extended=False)
-        sage: C.minimum_distance()  # long time
-        3
-    """
-    M = _extended_Kasami_code(s,t)
-    newM = [v[:-1] for v in M]
-    
-    return matrix(GF(2), newM)
-
+        return matrix(GF(2), newM)
 
 
 KasamiCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder

@@ -416,8 +416,10 @@ def print_objects():
     cdef cl_object c, s
     c = list_of_objects
     while True:
-        s = si_coerce_to_base_string(cl_write_to_string(1,cl_car(c)))
-        print(char_to_str(ecl_base_string_pointer_safe(s)))
+
+        s = cl_write_to_string(1, cl_car(c))
+        print(ecl_string_to_python(s))
+
         c = cl_cadr(c)
         if c == Cnil:
             break
@@ -1368,7 +1370,7 @@ cdef EclObject ecl_wrap(cl_object o):
 
 #convenience routine to more easily evaluate strings
 cpdef EclObject ecl_eval(str s):
-    """
+    r"""
     Read and evaluate string in Lisp and return the result
 
     EXAMPLES::

@@ -18,16 +18,22 @@ from sage_setup.util import stable_uniq, have_module
 from sage_setup.find import find_extra_files
 from sage_setup.library_order import library_order
 
-from sage.env import (SAGE_INC, cython_aliases, sage_include_directories)
+from sage.env import (cython_aliases, sage_include_directories)
 
 # Do not put all, but only the most common libraries and their headers
 # (that are likely to change on an upgrade) here:
 # [At least at the moment. Make sure the headers aren't copied with "-p",
 # or explicitly touch them in the respective spkg's spkg-install.]
-lib_headers = { "gmp":     [ os.path.join(SAGE_INC, 'gmp.h') ],   # cf. #8664, #9896
-                "gmpxx":   [ os.path.join(SAGE_INC, 'gmpxx.h') ],
-                "ntl":     [ os.path.join(SAGE_INC, 'NTL', 'config.h') ]
-              }
+lib_headers = dict()
+
+# Set by build/bin/sage-build-env-config. Empty if the system package is used.
+gmp_prefix = os.environ.get("SAGE_GMP_PREFIX", "")
+if gmp_prefix:
+    lib_headers["gmp"] = [os.path.join(gmp_prefix, 'include', 'gmp.h')]  # cf. #8664, #9896
+    lib_headers["gmpxx"] = [os.path.join(gmp_prefix, 'include', 'gmpxx.h')]
+ntl_prefix = os.environ.get("SAGE_NTL_PREFIX", "")
+if ntl_prefix:
+    lib_headers["ntl"] = [os.path.join(ntl_prefix, 'include', 'NTL', 'config.h')]
 
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
 # and disappears from the default flags if the user has set CFLAGS.

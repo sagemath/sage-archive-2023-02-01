@@ -837,7 +837,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_clear(right_nm)
         return x
 
-    def __rdiv__(self, left):
+    def __rtruediv__(self, left):
         r"""
         Returns the quotient of left with ``self``, that is:
 
@@ -852,7 +852,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: a = ComplexNumber(2,0)
-            sage: a.__rdiv__(CC(1))
+            sage: a.__rtruediv__(CC(1))
             0.500000000000000
             sage: CC(1)/a
             0.500000000000000

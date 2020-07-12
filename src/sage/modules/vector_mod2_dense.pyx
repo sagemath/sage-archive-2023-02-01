@@ -348,6 +348,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
     cpdef _dot_product_(self, Vector right):
         """
         EXAMPLES::
+
            sage: VS = VectorSpace(GF(2),3)
            sage: v = VS([1,1,1]); w = VS([0,0,0])
            sage: v * w, w * v #indirect doctest

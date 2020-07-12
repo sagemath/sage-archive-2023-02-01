@@ -778,7 +778,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             raise ValueError("G must not be constant")
 
         from itertools import islice
-        from sage.misc.misc import verbose
+        from sage.misc.verbose import verbose
         verbose("Augmenting %s towards %s" % (self, G), level=10)
 
         if not G.is_monic():
@@ -1286,7 +1286,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         valuation, phi_divides, F = self._equivalence_reduction(f, coefficients=coefficients, valuations=valuations, degree_bound=degree_bound)
         F = F.factor()
-        from sage.misc.misc import verbose
+        from sage.misc.verbose import verbose
         verbose("%s factors as %s = %s in reduction"%(f, F.prod(), F), level=20)
 
         unit = self.domain().one()

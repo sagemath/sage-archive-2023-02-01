@@ -674,10 +674,11 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
 
     cdef int _set_from_ZZX_both(self, ZZX_c poly, long absprec, long relprec) except -1:
         """
-        Sets ``self`` from a ``ZZX`` with relative precision bounded by
+        Set ``self`` from a ``ZZX`` with relative precision bounded by
         ``relprec`` and absolute precision bounded by ``absprec``.
 
         EXAMPLES::
+
             sage: R = ZpCA(5,5)
             sage: S.<x> = ZZ[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5

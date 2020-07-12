@@ -4747,8 +4747,8 @@ class FiniteWord_class(Word_class):
            return False
         for i in range(1, l - 1):
             return_lengths = [x.length() for x in self.return_words(self[:i])]
-            if return_lengths != []:
-               if (max(return_lengths) <= i and self[l-i:l] == self[:i]):
+            if return_lengths:
+               if max(return_lengths) <= i and self[l-i:l] == self[:i]:
                   return True
         return False
 
@@ -6758,8 +6758,8 @@ class FiniteWord_class(Word_class):
         if key_error or not isinstance(mpl_cmap, C):
             possibilities = ', '.join(str(x) for x, val in cm.__dict__.items()
                                       if isinstance(val, C))
-            import sage.misc.misc
-            sage.misc.misc.verbose("The possible color maps include: %s" % possibilities, level=0)
+            import sage.misc.verbose
+            sage.misc.verbose.verbose("The possible color maps include: %s" % possibilities, level=0)
             raise RuntimeError("Color map %s not known" % cmap)
 
         #Drawing the colored vector...

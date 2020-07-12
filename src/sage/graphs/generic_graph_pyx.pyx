@@ -79,24 +79,38 @@ def layout_split(layout_function, G, **options):
     left = 0
     buffer = 1/sqrt(len(G))
 
+    on_embedding = options.get('on_embedding', None)
+    forest_roots = options.get('forest_roots', None)
+    try:
+        forest_roots = list(forest_roots) if forest_roots else None
+    except TypeError:
+        raise TypeError('forest_roots should be an iterable of vertices')
+
+    if forest_roots or on_embedding:
+        options = copy(options)
+        options.pop('forest_roots', None)
+        options.pop('on_embedding', None)
+
     for g in Gs:
-        if options.get('on_embedding', None):
-            em = options['on_embedding']
-            options_g = copy(options)
-            # Restriction of `on_embedding` to `g`
-            options_g['on_embedding'] = {v: em[v] for v in g}
-            cur_pos = layout_function(g, **options_g)
+        if on_embedding:
+            # Restrict ``on_embedding`` to ``g``
+            embedding_g = {v: on_embedding[v] for v in g}
+            cur_pos = layout_function(g, on_embedding=embedding_g, **options)
+        elif forest_roots:
+            # Find a root for ``g`` (if any)
+            tree_root = next((v for v in forest_roots if v in g), None)
+            cur_pos = layout_function(g, tree_root=tree_root, **options)
         else:
             cur_pos = layout_function(g, **options)
+
         xmin = min(x[0] for x in cur_pos.values())
         xmax = max(x[0] for x in cur_pos.values())
         if len(g) > 1:
-            buffer = (xmax - xmin)/sqrt(len(g))
+            buffer = max(1, (xmax - xmin)/sqrt(len(g)))
         for v, loc in cur_pos.items():
             loc[0] += left - xmin + buffer
             pos[v] = loc
         left += xmax - xmin + buffer
-
 
     if options.get('set_embedding', None):
         embedding = dict()

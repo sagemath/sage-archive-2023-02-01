@@ -833,8 +833,8 @@ class ImplicitSuffixTree(SageObject):
             sage: t.to_digraph()
             Digraph on 8 vertices
         """
-        if self._letters == []:
-            d = {0:{}}
+        if not self._letters:
+            d = {0: {}}
             return DiGraph(d)
         d = self.transition_function_dictionary()
         for u in d:

@@ -1154,10 +1154,14 @@ class FullyPackedLoop(Element, metaclass=InheritComparisonClasscallMetaclass):
             i,j = unrank(k)
 
             # initial direction
-            if i == -1: d = R
-            elif i == n: d = L
-            elif j == -1: d = U
-            elif j == n: d = D
+            if i == -1:
+                d = R
+            elif i == n:
+                d = L
+            elif j == -1:
+                d = U
+            elif j == n:
+                d = D
 
             # go through the link
             while True:

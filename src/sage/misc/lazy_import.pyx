@@ -640,19 +640,6 @@ cdef class LazyImport(object):
         """
         return obj(left) @ obj(right)
 
-    def __div__(left, right):
-        """
-        TESTS::
-
-            sage: sage.all.foo = 10
-            sage: lazy_import('sage.all', 'foo')
-            sage: type(foo)
-            <type 'sage.misc.lazy_import.LazyImport'>
-            sage: foo / 2
-            5
-        """
-        return obj(left) / obj(right)
-
     def __floordiv__(left, right):
         """
         TESTS::
@@ -847,19 +834,6 @@ cdef class LazyImport(object):
             10
         """
         return int(self.get_object())
-
-    def __long__(self):
-        """
-        TESTS::
-
-            sage: sage.all.foo = 10
-            sage: lazy_import('sage.all', 'foo')
-            sage: type(foo)
-            <type 'sage.misc.lazy_import.LazyImport'>
-            sage: long(foo)
-            10L
-        """
-        return long(self.get_object())
 
     def __float__(self):
         """

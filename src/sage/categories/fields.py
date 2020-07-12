@@ -20,7 +20,6 @@ from sage.categories.category_singleton import Category_contains_method_by_paren
 from sage.categories.euclidean_domains import EuclideanDomains
 from sage.categories.division_rings import DivisionRings
 
-import sage.rings.ring
 from sage.structure.element import coerce_binop
 
 class Fields(CategoryWithAxiom):
@@ -119,6 +118,7 @@ class Fields(CategoryWithAxiom):
             0
 
         """
+        import sage.rings.ring
         try:
             return self._contains_helper(x) or sage.rings.ring._is_Field(x)
         except Exception:
@@ -559,7 +559,7 @@ class Fields(CategoryWithAxiom):
             """
             if self.is_zero():
                 raise ValueError("euclidean degree not defined for the zero element")
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             return ZZ.zero()
 
         def quo_rem(self, other):

@@ -74,7 +74,7 @@ from sage.structure.sequence import Sequence
 from sage.structure.coerce cimport coercion_model
 from sage.structure.element import is_Vector
 from sage.structure.element cimport have_same_parent
-from sage.misc.misc import verbose, get_verbose
+from sage.misc.verbose import verbose, get_verbose
 from sage.categories.fields import Fields
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -3206,13 +3206,13 @@ cdef class Matrix(Matrix1):
             # Search for a non-zero entry in column m-1
             i = -1
             for r from m+1 <= r < n:
-                if self.get_unsafe(r, m-1) != zero:
+                if not self.get_is_zero_unsafe(r, m-1):
                     i = r
                     break
             if i != -1:
                 # Found a nonzero entry in column m-1 that is strictly below row m
                 # Now set i to be the first nonzero position >= m in column m-1
-                if self.get_unsafe(m,m-1) != zero:
+                if not self.get_is_zero_unsafe(m,m-1):
                     i = m
                 t = self.get_unsafe(i,m-1)
                 t_inv = None
@@ -3694,6 +3694,7 @@ cdef class Matrix(Matrix1):
             ....:                 [4, -1, 0, -6, 2]],
             ....:            sparse=False)
             sage: B = copy(A).sparse_matrix()
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(1)
             sage: D = A.right_kernel(); D
             verbose 1 (<module>) computing a right kernel for 4x5 matrix over Rational Field

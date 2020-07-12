@@ -47,6 +47,7 @@ INNER_HTML_TEMPLATE = \
 </head>
 <body>
   <script type="text/javascript">
+    delete Jmol._tracker; // Prevent JSmol from phoning home.
     var script = {script};
     var Info = {{
       width: '{width}',

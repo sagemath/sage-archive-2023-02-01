@@ -13,7 +13,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_function
 from sage.rings.all import PowerSeriesRing, ZZ
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.structure.sequence import Sequence
 from sage.modular.arithgroup.all import Gamma0, GammaH
 from sage.modular.arithgroup.arithgroup_generic import ArithmeticSubgroup

@@ -1063,7 +1063,7 @@ class ClusterAlgebraSeed(SageObject):
                 raise ValueError('cannot mutate in direction ' + str(k))
 
             # store new mutation path
-            if to_mutate._path != [] and to_mutate._path[-1] == k:
+            if to_mutate._path and to_mutate._path[-1] == k:
                 to_mutate._path.pop()
             else:
                 to_mutate._path.append(k)

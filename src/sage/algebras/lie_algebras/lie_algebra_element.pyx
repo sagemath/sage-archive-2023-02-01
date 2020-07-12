@@ -231,76 +231,35 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
         True
         sage: L.zero() < 0
         False
+
+    We check the display of elements::
+
+        sage: R = FreeAlgebra(QQ, 3, 'x')
+        sage: L.<l0,l1,l2> = LieAlgebra(associative=R.gens())
+        sage: elt = l0 + l1
+        sage: elt
+        x0 + x1
+        sage: latex(elt)
+        x_{0} + x_{1}
+
+        sage: s = SymmetricFunctions(QQ).s()
+        sage: L = LieAlgebra(associative=s)
+        sage: P = Partition([4,2,2,1])
+        sage: x = L.basis()[P]
+        sage: ascii_art(x)
+        s
+         ****
+         **
+         **
+         *
+        sage: unicode_art(x)
+        s
+         ┌┬┬┬┐
+         ├┼┼┴┘
+         ├┼┤
+         ├┼┘
+         └┘
     """
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
-            sage: L.<x,y,z> = LieAlgebra(associative=R.gens())
-            sage: x + y
-            x + y
-        """
-        return repr(self.value)
-
-    def _latex_(self):
-        r"""
-        Return a `\LaTeX` representation of ``self``.
-
-        EXAMPLES::
-
-            sage: R = FreeAlgebra(QQ, 3, 'x')
-            sage: L.<x0,x1,x2> = LieAlgebra(associative=R.gens())
-            sage: latex(x0 + x1)
-            x_{0} + x_{1}
-        """
-        from sage.misc.latex import latex
-        return latex(self.value)
-
-    def _ascii_art_(self):
-        """
-        Return an ascii art representation of ``self``.
-
-        EXAMPLES::
-
-            sage: s = SymmetricFunctions(QQ).s()
-            sage: L = LieAlgebra(associative=s)
-            sage: P = Partition([4,2,2,1])
-            sage: x = L.basis()[P]
-            sage: ascii_art(x)
-            s
-             ****
-             **
-             **
-             *
-        """
-        from sage.typeset.ascii_art import ascii_art
-        return ascii_art(self.value)
-
-    def _unicode_art_(self):
-        """
-        Return a unicode art representation of ``self``.
-
-        EXAMPLES::
-
-            sage: s = SymmetricFunctions(QQ).s()
-            sage: L = LieAlgebra(associative=s)
-            sage: P = Partition([4,2,2,1])
-            sage: x = L.basis()[P]
-            sage: unicode_art(x)
-            s
-             ┌┬┬┬┐
-             ├┼┼┴┘
-             ├┼┤
-             ├┼┘
-             └┘
-        """
-        from sage.typeset.unicode_art import unicode_art
-        return unicode_art(self.value)
-
     def __nonzero__(self):
         """
         Return if ``self`` is non-zero.

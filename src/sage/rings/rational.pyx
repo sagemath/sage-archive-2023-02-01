@@ -1,3 +1,4 @@
+# distutils: libraries = ntl
 r"""
 Rational Numbers
 
@@ -2403,7 +2404,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpq_mul(x.value, self.value, (<Rational>right).value)
         return x
 
-    def __div__(left, right):
+    def __truediv__(left, right):
         """
         Return ``left`` divided by ``right``
 

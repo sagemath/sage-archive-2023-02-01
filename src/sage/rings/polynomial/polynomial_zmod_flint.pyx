@@ -1,3 +1,5 @@
+# distutils: libraries = gmp ntl zn_poly
+# distutils: language = c++
 """
 Dense univariate polynomials over `\ZZ/n\ZZ`, implemented using FLINT
 

@@ -719,7 +719,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
             vertices = sorted(set(x for item in data for x in item))
             if len(vertices) != len(data):
                 # by default, assuming vertices are the range 0..n
-                vertices = list(range(len(data)))
+                vertices = range(len(data))
             D = DiGraph({v: [u for u in cov if u != v]
                          for v, cov in zip(vertices, data)},
                         format="dict_of_lists")
@@ -1556,7 +1556,7 @@ class FinitePoset(UniqueRepresentation, Parent):
     @cached_method
     def linear_extensions(self, facade=False):
         """
-        Return the enumerated set of all the linear extensions of this poset
+        Return the enumerated set of all the linear extensions of this poset.
 
         INPUT:
 
@@ -1776,7 +1776,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_linear_extension(self, l):
         """
-        Return whether ``l`` is a linear extension of ``self``
+        Return whether ``l`` is a linear extension of ``self``.
 
         INPUT:
 
@@ -3126,7 +3126,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             if max_chains[0] != sorted(max_chains[0]) or any( max_chains[i] == sorted(max_chains[i]) for i in range(1,len(max_chains)) ):
                 return False
             elif return_raising_chains:
-                raising_chains[(a,b)] = max_chains[0]
+                raising_chains[(a, b)] = max_chains[0]
         if return_raising_chains:
             return raising_chains
         else:
@@ -5889,9 +5889,9 @@ class FinitePoset(UniqueRepresentation, Parent):
                            category=self.category(),
                            facade=self._is_facade)
 
-    def graphviz_string(self,graph_string="graph",edge_string="--"):
+    def graphviz_string(self, graph_string="graph", edge_string="--"):
         r"""
-        Returns a representation in the DOT language, ready to render in
+        Return a representation in the DOT language, ready to render in
         graphviz.
 
         See http://www.graphviz.org/doc/info/lang.html for more information
@@ -6188,7 +6188,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             new = mins[new_index]
             result.append(new)
             mins = mins[:new_index]+mins[new_index+1:]
-            for u in H.neighbors_out(new):
+            for u in H.neighbor_out_iterator(new):
                 indegs[u] -= 1
                 if indegs[u] == 0:
                     mins.append(u)
@@ -6223,7 +6223,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: C.order_filter([])
             []
         """
-        vertices = sorted(map(self._element_to_vertex,elements))
+        vertices = sorted(map(self._element_to_vertex, elements))
         of = self._hasse_diagram.order_filter(vertices)
         return [self._vertex_to_element(_) for _ in of]
 
@@ -6530,8 +6530,6 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - ``partial`` -- list (optional); if present, find all maximal
           chains starting with the elements in partial
-
-        Returns list of the maximal chains of this poset.
 
         This is used in constructing the order complex for the poset.
 
@@ -8338,13 +8336,13 @@ class FinitePosets_n(UniqueRepresentation, Parent):
 
     def __iter__(self):
         """
-        Returns an iterator of representatives of the isomorphism classes
+        Return an iterator of representatives of the isomorphism classes
         of finite posets of a given size.
 
-        .. note::
+        .. NOTE::
 
-           This uses the DiGraph iterator as a backend to construct
-           transitively-reduced, acyclic digraphs.
+            This uses the DiGraph iterator as a backend to construct
+            transitively-reduced, acyclic digraphs.
 
         EXAMPLES::
 
@@ -8356,8 +8354,8 @@ class FinitePosets_n(UniqueRepresentation, Parent):
         for dig in DiGraphGenerators()(self._n, is_poset):
             # We need to relabel the digraph since range(self._n) must be a linear
             # extension. Too bad we need to compute this again. TODO: Fix this.
-            label_dict = dict(zip(dig.topological_sort(),range(dig.order())))
-            yield FinitePoset(dig.relabel(label_dict,inplace=False))
+            label_dict = dict(zip(dig.topological_sort(), range(dig.order())))
+            yield FinitePoset(dig.relabel(label_dict, inplace=False))
 
     def cardinality(self, from_iterator=False):
         r"""

@@ -1,3 +1,6 @@
+# distutils: libraries = m ntl Lfunction
+# distutils: extra_compile_args = -O3 -ffast-math
+# distutils: language = c++
 r"""
 Rubinstein's lcalc library
 

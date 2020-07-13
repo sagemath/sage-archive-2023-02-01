@@ -524,7 +524,7 @@ def addlp(M, M1, L, P, ptsdict, G=None, limits=None):
     if P:
         # create list of lists where inner lists are parallel classes
         pcls = []
-        gnd = sorted(list(M1.groundset()))
+        gnd = sorted(M1.groundset())
         for g in gnd:
             pcl = [g]
             for p in P:

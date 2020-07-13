@@ -1553,14 +1553,14 @@ class BipartiteGraph(Graph):
 
             sage: B = BipartiteGraph()
             sage: algorithms = ["Hopcroft-Karp", "Eppstein", "Edmonds", "LP"]
-            sage: all(B.matching(algorithm=algo) == [] for algo in algorithms)
+            sage: not any(B.matching(algorithm=algo) for algo in algorithms)
             True
             sage: all(B.matching(algorithm=algo, value_only=True) == 0 for algo in algorithms)
             True
             sage: B.add_vertex(1, left=True)
             sage: B.add_vertex(2, left=True)
             sage: B.add_vertex(3, right=True)
-            sage: all(B.matching(algorithm=algo) == [] for algo in algorithms)
+            sage: not any(B.matching(algorithm=algo) for algo in algorithms)
             True
             sage: all(B.matching(algorithm=algo, value_only=True) == 0 for algo in algorithms)
             True

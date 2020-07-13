@@ -11,7 +11,7 @@ then type in the following commands in a terminal:
 
 * Add the conda-forge channel: ``conda config --add channels conda-forge``
 * Create a new environment containing SageMath: ``conda create -n sage sage python=X``, where
-  ``X`` is version of Python, e.g. ``2.7``
+  ``X`` is version of Python, e.g. ``3.7``
 * Enter the new environment: ``conda activate sage``
 * Start SageMath: ``sage``
 

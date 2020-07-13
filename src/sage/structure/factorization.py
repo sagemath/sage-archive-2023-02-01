@@ -185,8 +185,6 @@ from sage.structure.sage_object import SageObject
 from sage.structure.element import Element
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
-from sage.rings.integer import Integer
-from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 
 
@@ -294,6 +292,7 @@ class Factorization(SageObject):
             (Ambient free module of rank 2 over the principal ideal domain Integer Ring)^5 *
             (Ambient free module of rank 3 over the principal ideal domain Integer Ring)^2
         """
+        from sage.rings.integer import Integer
         x = [(p, Integer(e)) for (p, e) in x]
 
         try:
@@ -1112,6 +1111,7 @@ class Factorization(SageObject):
             sage: F**2
             x^3 * y^2 * x^4 * y^2 * x
         """
+        from sage.rings.integer import Integer
         if not isinstance(n, Integer):
             try:
                 n = Integer(n)
@@ -1173,8 +1173,6 @@ class Factorization(SageObject):
             return self / Factorization([(other, 1)])
         return self * other**-1
 
-    __div__ = __truediv__
-
     def value(self):
         """
         Return the product of the factors in the factorization, multiplied out.
@@ -1192,6 +1190,7 @@ class Factorization(SageObject):
             sage: F.value()
             x^3*y^2*x
         """
+        from sage.misc.misc_c import prod
         return prod([p**e for p, e in self.__x], self.__unit)
 
     # Two aliases for ``value(self)``.
@@ -1347,4 +1346,5 @@ class Factorization(SageObject):
         """
         if not all(e > 0 for p, e in self.__x):
             raise ValueError("All exponents in the factorization must be positive.")
+        from sage.misc.misc_c import prod
         return prod([p for p, e in self.__x])

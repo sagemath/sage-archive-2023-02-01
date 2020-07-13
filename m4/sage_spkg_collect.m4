@@ -240,23 +240,25 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     # Packages that should be included in the source distribution
     # This includes all standard packages and two special cases
     case "$SPKG_NAME" in
-    mpir|python2)
+    mpir)
         in_sdist=yes
         ;;
     esac
-
-    if test "$in_sdist" = yes; then
-        SAGE_SDIST_PACKAGES="${SAGE_SDIST_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
-    fi
 
     # Determine package source
     #
     if test -f "$DIR/requirements.txt"; then
         SPKG_SOURCE=pip
+        in_sdist=no
     elif test ! -f "$DIR/checksums.ini"; then
         SPKG_SOURCE=script
+        in_sdist=no
     else
         SPKG_SOURCE=normal
+    fi
+
+    if test "$in_sdist" = yes; then
+        SAGE_SDIST_PACKAGES="${SAGE_SDIST_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
     fi
 
     # Determine package dependencies

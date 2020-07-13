@@ -28,8 +28,8 @@
 #      - SAGE_OPTIONAL_PACKAGES - lists the names of packages with the
 #        "optional" type that should be installed.
 #
-#      - SAGE_SDIST_PACKAGES - lists the names of all packages that should be
-#        included in the source distribution.
+#      - SAGE_SDIST_PACKAGES - lists the names of all packages whose sources
+#        need to be downloaded to be included in the source distribution.
 #
 #      - SAGE_PACKAGE_VERSIONS - this template variable defines multiple
 #        Makefile variables in the format "vers_<packagename>" the value
@@ -249,9 +249,20 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     #
     if test -f "$DIR/requirements.txt"; then
         SPKG_SOURCE=pip
+        # Since pip packages are downloaded and installed by pip, we don't
+        # include them in the source tarball. At the time of this writing,
+        # all pip packages are optional.
         in_sdist=no
     elif test ! -f "$DIR/checksums.ini"; then
         SPKG_SOURCE=script
+        # We assume that either (a) the sources for an optional script
+        # package will be downloaded by the script, or (b) that a
+        # standard script package's sources are already a part of the
+        # sage repository (and thus the release tarball). As a result,
+        # we don't need to download the sources, which is what
+        # "in_sdist" really means. At the time of this writing, the
+        # only standard script package is sage_conf, and its source is
+        # included under build/pkgs/sage_conf.
         in_sdist=no
     else
         SPKG_SOURCE=normal

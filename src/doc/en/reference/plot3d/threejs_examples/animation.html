@@ -186,14 +186,8 @@ input[type=range].slider:focus::-ms-fill-upper {
 
 <body>
 
-<script src=&quot;/nbextensions/threejs/build/three.min.js&quot;></script>
-<script src=&quot;/nbextensions/threejs/examples/js/controls/OrbitControls.js&quot;></script>
-<script>
-  if ( !window.THREE ) document.write(' \
-<script src=&quot;https://cdn.jsdelivr.net/gh/mrdoob/three.js@r110/build/three.min.js&quot;><\/script> \
-<script src=&quot;https://cdn.jsdelivr.net/gh/mrdoob/three.js@r110/examples/js/controls/OrbitControls.js&quot;><\/script> \
-            ');
-</script>
+<script src=&quot;https://cdn.jsdelivr.net/gh/mrdoob/three.js@r117/build/three.min.js&quot;></script>
+<script src=&quot;https://cdn.jsdelivr.net/gh/mrdoob/three.js@r117/examples/js/controls/OrbitControls.js&quot;></script>
 
 <script>
 
@@ -205,7 +199,7 @@ input[type=range].slider:focus::-ms-fill-upper {
     renderer.setClearColor( 0xffffff, 1 );
     document.body.appendChild( renderer.domElement );
 
-    var options = {&quot;animate&quot;: true, &quot;animationControls&quot;: true, &quot;aspectRatio&quot;: [1.0, 1.0, 1.0], &quot;autoPlay&quot;: false, &quot;axes&quot;: false, &quot;axesLabels&quot;: [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], &quot;decimals&quot;: 2, &quot;delay&quot;: 5, &quot;frame&quot;: true, &quot;loop&quot;: true, &quot;projection&quot;: &quot;orthographic&quot;};
+    var options = {&quot;animate&quot;: true, &quot;animationControls&quot;: true, &quot;aspectRatio&quot;: [1.0, 1.0, 1.0], &quot;autoPlay&quot;: false, &quot;axes&quot;: false, &quot;axesLabels&quot;: [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], &quot;decimals&quot;: 2, &quot;delay&quot;: 5, &quot;frame&quot;: true, &quot;loop&quot;: true, &quot;projection&quot;: &quot;orthographic&quot;, &quot;viewpoint&quot;: false};
     var animate = options.animate;
 
     var b = [{&quot;x&quot;:-1.0, &quot;y&quot;:-1.0, &quot;z&quot;:0.0}, {&quot;x&quot;:1.0, &quot;y&quot;:1.0, &quot;z&quot;:6.283185307179586}]; // bounds
@@ -299,10 +293,10 @@ input[type=range].slider:focus::-ms-fill-upper {
         var sprite = new THREE.Sprite( new THREE.SpriteMaterial( { map: texture } ) );
         sprite.position.set( x, y, z );
 
-        // Set the initial scale based on plot size to accomodate orthographic projection.
+        // Set the initial scale based on plot size to accommodate orthographic projection.
         // For other projections, the scale will get reset each frame based on camera distance.
         var scale = midToCorner/2;
-        sprite.scale.set( scale, scale*.25 ); // ratio of canvas width to height
+        sprite.scale.set( scale, scale*.25, 1 ); // ratio of canvas width to height
 
         scene.add( sprite );
 
@@ -314,7 +308,23 @@ input[type=range].slider:focus::-ms-fill-upper {
 
     var camera = createCamera();
     camera.up.set( 0, 0, 1 );
-    camera.position.set( a[0]*(xMid+xRange), a[1]*(yMid+yRange), a[2]*(zMid+zRange) );
+    camera.position.set( a[0]*xMid, a[1]*yMid, a[2]*zMid );
+
+    var offset = new THREE.Vector3( a[0]*xRange, a[1]*yRange, a[2]*zRange );
+
+    if ( options.viewpoint ) {
+
+        var aa = options.viewpoint;
+        var axis = new THREE.Vector3( aa[0][0], aa[0][1], aa[0][2] ).normalize();
+        var angle = aa[1] * Math.PI / 180;
+        var q = new THREE.Quaternion().setFromAxisAngle( axis, angle ).inverse();
+
+        offset.set( 0, 0, offset.length() );
+        offset.applyQuaternion( q );
+
+    }
+
+    camera.position.add( offset );
 
     function createCamera() {
 
@@ -477,12 +487,13 @@ input[type=range].slider:focus::-ms-fill-upper {
 
         var side = json.singleSide ? THREE.FrontSide : THREE.DoubleSide;
         var transparent = json.opacity < 1 ? true : false;
+        var flatShading = json.useFlatShading ? json.useFlatShading : false;
 
         var material = new THREE.MeshPhongMaterial( { side: side,
                                      color: useFaceColors ? 'white' : json.color,
                                      vertexColors: useFaceColors ? THREE.FaceColors : THREE.NoColors,
                                      transparent: transparent, opacity: json.opacity,
-                                     shininess: 20, flatShading: json.useFlatShading } );
+                                     shininess: 20, flatShading: flatShading } );
 
         var c = new THREE.Vector3();
         geometry.computeBoundingBox();
@@ -538,14 +549,14 @@ input[type=range].slider:focus::-ms-fill-upper {
         renderer.render( scene, camera );
 
         // Resize text based on distance from camera.
-        // Not neccessary for orthographic due to the nature of the projection (preserves sizes).
+        // Not necessary for orthographic due to the nature of the projection (preserves sizes).
         if ( !camera.isOrthographicCamera ) {
             for ( var i=0 ; i < scene.children.length ; i++ ) {
                 if ( scene.children[i].type === 'Sprite' ) {
                     var sprite = scene.children[i];
                     var adjust = scratch.addVectors( sprite.position, scene.position )
                                     .sub( camera.position ).length() / 5;
-                    sprite.scale.set( adjust, .25*adjust ); // ratio of canvas width to height
+                    sprite.scale.set( adjust, .25*adjust, 1 ); // ratio of canvas width to height
                 }
             }
         }
@@ -612,7 +623,7 @@ input[type=range].slider:focus::-ms-fill-upper {
 
     }
 
-</script><canvas width=&quot;2465&quot; height=&quot;1000&quot; style=&quot;width: 986px; height: 400px;&quot; tabindex=&quot;0&quot;></canvas>
+</script>
 
 <div id=&quot;menu-container&quot; onclick=&quot;toggleMenu()&quot;>ⓘ
 <div id=&quot;menu-message&quot;></div>
@@ -670,17 +681,17 @@ Apache license version 2.0
         </button>
 
         <button class=&quot;slower&quot; title=&quot;Decrease playback speed&quot;>
-            <!-- fast_forward (outline) -->
-            <svg xmlns=&quot;http://www.w3.org/2000/svg&quot; enable-background=&quot;new 0 0 24 24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;#3131ff&quot; width=&quot;24px&quot; height=&quot;24px&quot;>
-                <rect fill=&quot;none&quot; height=&quot;24&quot; width=&quot;24&quot;></rect>
-                <path d=&quot;M15,9.86L18.03,12L15,14.14V9.86 M6,9.86L9.03,12L6,14.14V9.86 M13,6v12l8.5-6L13,6L13,6z M4,6v12l8.5-6L4,6L4,6z&quot;></path>
+            <!-- switch_right -->
+            <svg xmlns=&quot;http://www.w3.org/2000/svg&quot; enable-background=&quot;new 0 0 24 24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;#3131ff&quot; width=&quot;24&quot; height=&quot;24&quot;>
+                <rect fill=&quot;none&quot; width=&quot;24&quot; height=&quot;24&quot; transform=&quot;matrix(-1 -1.224647e-16 1.224647e-16 -1 24 24)&quot;></rect>
+                <path d=&quot;M15.5,15.38V8.62L18.88,12L15.5,15.38 M14,19l7-7l-7-7V19L14,19z M10,19V5l-7,7L10,19z&quot;></path>
             </svg>
         </button>
         <button class=&quot;faster&quot; title=&quot;Increase playback speed&quot;>
-            <!-- fast_forward (filled) -->
-            <svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;#3131ff&quot; width=&quot;24px&quot; height=&quot;24px&quot;>
-                <path d=&quot;M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z&quot;></path>
-                <path d=&quot;M0 0h24v24H0z&quot; fill=&quot;none&quot;></path>
+            <!-- switch_left -->
+            <svg xmlns=&quot;http://www.w3.org/2000/svg&quot; enable-background=&quot;new 0 0 24 24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;#3131ff&quot; width=&quot;24&quot; height=&quot;24&quot;>
+                <rect fill=&quot;none&quot; height=&quot;24&quot; width=&quot;24&quot;></rect>
+                <path d=&quot;M8.5,8.62v6.76L5.12,12L8.5,8.62 M10,5l-7,7l7,7V5L10,5z M14,5v14l7-7L14,5z&quot;></path>
             </svg>
         </button>
 

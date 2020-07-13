@@ -1659,12 +1659,12 @@ end_scene""" % (render_params.antialiasing,
 
         - ``filename`` -- string. Where to save the image or object.
 
-        - ``**kwds`` -- When specifying an HTML file or an image file to be
-          rendered by Tachyon or Jmol, any of the viewing options accepted by
-          show() are valid as keyword arguments to this function and they will
-          behave in the same way. Accepted keywords include: ``viewer``,
-          ``verbosity``, ``figsize``, ``aspect_ratio``, ``frame_aspect_ratio``,
-          ``zoom``, ``frame``, and ``axes``. Default values are provided.
+        - ``**kwds`` -- When specifying an image file to be rendered by Tachyon
+          or Jmol, any of the viewing options accepted by show() are valid as
+          keyword arguments to this function and they will behave in the same
+          way. Accepted keywords include: ``viewer``, ``verbosity``,
+          ``figsize``, ``aspect_ratio``, ``frame_aspect_ratio``, ``zoom``,
+          ``frame``, and ``axes``. Default values are provided.
 
         EXAMPLES::
 

@@ -315,6 +315,7 @@ from sage.arith.long cimport integer_check_long_py
 from sage.arith.power cimport generic_power as arith_generic_power
 from sage.arith.numerical_approx cimport digits_to_bits
 from sage.misc.decorators import sage_wraps
+from sage.misc.superseded import deprecation
 
 
 def make_element(_class, _dict, parent):
@@ -373,7 +374,6 @@ cdef class Element(SageObject):
     Subtypes must either call ``__init__()`` to set ``_parent``, or may
     set ``_parent`` themselves if that would be more efficient.
 
-    .. automethod:: _cmp_
     .. automethod:: _richcmp_
     .. automethod:: __add__
     .. automethod:: __sub__
@@ -1075,18 +1075,12 @@ cdef class Element(SageObject):
         return self.parent(), str(self)
 
     ####################################################################
-    # In a Cython or a Python class, you must define either _cmp_
-    # (if your subclass is totally ordered), _richcmp_ (if your subclass
-    # is partially ordered), or both (if your class has both a total order
-    # and a partial order, or if that gives better performance).
+    # In a Cython or a Python class, you must define _richcmp_
     #
-    # Rich comparisons (like a < b) will default to using _richcmp_,
-    # three-way comparisons (like cmp(a,b)) will default to using
-    # _cmp_. But if you define just one of _richcmp_ and _cmp_, it will
-    # be used for all kinds of comparisons.
+    # Rich comparisons (like a < b) will use _richcmp_
     #
-    # In the _cmp_ and _richcmp_ methods, you can assume that both
-    # arguments have identical parents.
+    # In the _richcmp_ method, you can assume that both arguments have
+    # identical parents.
     ####################################################################
     def __richcmp__(self, other, int op):
         """
@@ -1118,13 +1112,12 @@ cdef class Element(SageObject):
 
     cpdef _richcmp_(left, right, int op):
         r"""
-        Default implementation of rich comparisons for elements with
+        Basic default implementation of rich comparisons for elements with
         equal parents.
 
-        It tries to see if ``_cmp_`` is implemented. Otherwise it does a
-        comparison by id for ``==`` and ``!=``. Calling this default method
-        with ``<``, ``<=``, ``>`` or ``>=`` will raise a
-        ``NotImplementedError``.
+        It does a comparison by id for ``==`` and ``!=``. Calling this
+        default method with ``<``, ``<=``, ``>`` or ``>=`` will return
+        ``NotImplemented``.
 
         EXAMPLES::
 
@@ -1139,7 +1132,7 @@ cdef class Element(SageObject):
             sage: e1 < e2     # indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError: comparison not implemented for <... 'sage.structure.element.Element'>
+            TypeError: '<' not supported between instances of 'sage.structure.element.Element' and 'sage.structure.element.Element'
 
         We now create an ``Element`` class where we define ``_richcmp_``
         and check that comparison works::
@@ -1160,44 +1153,23 @@ cdef class Element(SageObject):
             sage: b = FloatCmp(2)
             sage: a <= b, b <= a
             (True, False)
-
-        This works despite ``_cmp_`` not being implemented::
-
-            sage: a._cmp_(b)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: comparison not implemented for <... '...FloatCmp'>
         """
         # Obvious case
         if left is right:
             return rich_to_bool(op, 0)
-
-        cdef int c
-        try:
-            c = left._cmp_(right)
-        except NotImplementedError:
-            # Check equality by id(), knowing that left is not right
-            if op == Py_EQ:
-                return False
-            if op == Py_NE:
-                return True
-            raise
-        assert -1 <= c <= 1
-        return rich_to_bool(op, c)
+        # Check equality by id(), knowing that left is not right
+        if op == Py_EQ:
+            return False
+        if op == Py_NE:
+            return True
+        return NotImplemented
 
     cpdef int _cmp_(left, right) except -2:
         """
-        Default three-way comparison method which only checks for a
-        Python class defining ``__cmp__``.
+        This was the old comparison framework. Now deprecated. Do not use.
         """
-        try:
-            left_cmp = left.__cmp__
-        except AttributeError:
-            pass
-        else:
-            return left_cmp(right)
-        msg = LazyFormat("comparison not implemented for %r") % type(left)
-        raise NotImplementedError(msg)
+        deprecation(30130, "please use _richcmp_ for comparison methods")
+        raise NotImplementedError("__cmp__ and _cmp_ are deprecated")
 
     ##################################################
     # Arithmetic using the coercion model

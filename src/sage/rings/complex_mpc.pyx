@@ -70,6 +70,7 @@ from sage.libs.mpc cimport *
 from sage.structure.parent cimport Parent
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.element cimport RingElement, Element, ModuleElement
+from sage.structure.richcmp cimport rich_to_bool
 from sage.categories.map cimport Map
 from sage.libs.pari.all import pari
 
@@ -912,20 +913,21 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: b = C(393.39203845902384098234098230948209384028340)
             sage: loads(dumps(b)) == b
             True
-            sage: C(1)
-            1.0000000000000000000000000000000000000000000000000000000000
-            sage: b = C(1)/C(0); b
-            NaN + NaN*I
-            sage: loads(dumps(b)) == b
-            True
-            sage: b = C(-1)/C(0.); b
-            NaN + NaN*I
-            sage: loads(dumps(b)) == b
-            True
             sage: b = C(-1).sqrt(); b
             1.0000000000000000000000000000000000000000000000000000000000*I
             sage: loads(dumps(b)) == b
             True
+
+        Some tests with ``NaN``, which cannot be compared to anything::
+
+            sage: b = C(1)/C(0); b
+            NaN + NaN*I
+            sage: loads(dumps(b))
+            NaN + NaN*I
+            sage: b = C(-1)/C(0.); b
+            NaN + NaN*I
+            sage: loads(dumps(b))
+            NaN + NaN*I
         """
         s = self.str(32)
         return (__create_MPComplexNumber_version0, (self._parent, s, 32))
@@ -1259,7 +1261,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         """
         return gmpy2.GMPy_MPC_From_mpfr(self.value.re, self.value.im)
 
-    cpdef int _cmp_(self, other) except -2:
+    cpdef _richcmp_(self, other, int op):
         r"""
         Compare ``self`` to ``other``.
 
@@ -1275,19 +1277,16 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         """
         cdef MPComplexNumber z = <MPComplexNumber>other
         # NaN should compare to nothing
-        if mpfr_nan_p (self.value.re) or mpfr_nan_p (self.value.im) or mpfr_nan_p (z.value.re) or mpfr_nan_p (z.value.im):
+        if mpfr_nan_p(self.value.re) or mpfr_nan_p(self.value.im) or mpfr_nan_p(z.value.re) or mpfr_nan_p(z.value.im):
             return False
         cdef int c = mpc_cmp(self.value, z.value)
         cdef int cre = MPC_INEX_RE(c)
         cdef int cim
         if cre:
-            if cre>0: return 1
-            else: return -1
+            return rich_to_bool(op, cre)
         else:
             cim = MPC_INEX_IM(c)
-            if cim>0: return 1
-            elif cim<0: return -1
-            else: return 0
+            return rich_to_bool(op, cim)
 
     def __nonzero__(self):
         """

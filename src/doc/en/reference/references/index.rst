@@ -3106,6 +3106,15 @@ REFERENCES:
              subcodes of the second order binary Reed-Muller codes*.
              Information and Control, 18, pp. 369-394, 1971.
 
+.. [Kas1966a] \T. Kasami: *Weight Distributions of
+              Bose-Chaudhuri-Hocquenghem Codes*. Coordinated Science
+              Laboratory, University of Illinois at Urbana-Champaign.
+              1966 http://hdl.handle.net/2142/74459
+
+.. [Kas1966b] \T. Kasami: *Weight Distribution Formula for Some Class
+              of Cyclic Codes*. Coordinated Science Laboratory,
+              University of Illinois at Urbana-Champaign. 1966
+
 .. [Kas2018] András Kaszanyitzky. *The GraftalLace Cellular Automata*.
              Preprint, :arxiv:`1805.11532`.
 

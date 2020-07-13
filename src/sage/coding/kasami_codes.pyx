@@ -4,10 +4,30 @@ Kasami code
 
 This module implements a construction for the extended Kasami codes.
 The "regular" Kasami codes are obtained from truncating the extended version.
+
+The extended Kasami code with parameters `(s,t)` is defined as
+
+.. MATH::
+
+    \{ v \in GF(2)^s \mid
+    \sum_{a \in GF(s)} v_a =
+    \sum_{a \in GF(s)} a v_a =
+    \sum_{a \in GF(s)} a^{t+1} v_a = 0 \}
+
+It follows that these are subfield subcodes of
+the code having those three equations as parity checks.
+
+The only valid parameters `s,t` are given by the below,
+where `q` is a power of 2:
+    * `s = q^{2j+1}`, `t = q^m` with `m \leq j` and `\gcd(m,2j+1) = 1`
+    * `s = q^2`, `t=q`
+
 The coset graphs of the Kasami codes are distance-regular.
 
-In particular, the extended Kasami codes result in distance-regular graphs with intersection arrays:
-    * `[q^{2j+1}, q^{2j+1} - 1, q^{2j+1} - q, q^{2j+1} - q^{2j} + 1; 1, q, q^{2j} -1, q^{2j+1}]`
+In particular, the extended Kasami codes result in
+distance-regular graphs with intersection arrays:
+    * `[q^{2j+1}, q^{2j+1} - 1, q^{2j+1} - q, q^{2j+1} - q^{2j} + 1;`
+      `1, q, q^{2j} -1, q^{2j+1}]`
     * `[q^2, q^2 - 1, q^2 - q, 1; 1, q, q^2 - 1, q^2]`
 
 The Kasami codes result in distance-regular graphs with intersection arrays:
@@ -17,6 +37,12 @@ The Kasami codes result in distance-regular graphs with intersection arrays:
 REFERENCES:
 
 - [BCN1989]_ p. 358 for a definition.
+
+- [Kas1966a]_
+
+- [Kas1966b]_
+
+- [Kas1971]_
 
 AUTHORS:
 
@@ -34,11 +60,9 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.finite_rings.finite_field_constructor import GF
-from sage.modules.free_module import VectorSpace
-from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
-from sage.coding.linear_code import LinearCode
-from sage.coding.linear_code import AbstractLinearCode, LinearCodeGeneratorMatrixEncoder
+from sage.coding.linear_code import (AbstractLinearCode,
+                                     LinearCodeGeneratorMatrixEncoder)
 from sage.arith.misc import is_prime_power, gcd
 
 class KasamiCode(AbstractLinearCode):
@@ -54,7 +78,8 @@ class KasamiCode(AbstractLinearCode):
         \sum_{a \in GF(s)} a v_a =
         \sum_{a \in GF(s)} a^{t+1} v_a = 0 \}
 
-    The only valid parameters `s,t` are given by the below, where `q` is a power of 2:
+    The only valid parameters `s,t` are given by the below,
+    where `q` is a power of 2:
         * `s = q^{2j+1}`, `t = q^m` with `m \leq j` and `\gcd(m,2j+1) = 1`
         * `s = q^2`, `t=q`
 
@@ -65,18 +90,18 @@ class KasamiCode(AbstractLinearCode):
 
     - ``s,t`` -- (integer) the parameters of the Kasami code
 
-    - ``extended`` -- (default: ``True``) if set to ``True``, creates an extended Kasami
-      code.
+    - ``extended`` -- (default: ``True``) if set to ``True``,
+      creates an extended Kasami code.
 
     EXAMPLES::
 
         sage: codes.KasamiCode(16,4)
-        (16, 4) Extended Kasami code
+        [16, 9] Extended (16, 4)-Kasami code
         sage: _.minimum_distance()
         4
 
         sage: codes.KasamiCode(8, 2, extended=False)
-        (8, 2) Kasami code
+        [7, 1] (8, 2)-Kasami code
 
         sage: codes.KasamiCode(8,4)
         Traceback (most recent call last):
@@ -97,7 +122,14 @@ class KasamiCode(AbstractLinearCode):
 
     REFERENCES:
 
-    For more information on Kasami codes and their use see [BCN1989]_.
+    For more information on Kasami codes and their use see [BCN1989]_
+    or the following:
+
+    - [Kas1966a]_
+
+    - [Kas1966b]_
+
+    - [Kas1971]_
 
     TESTS:
 
@@ -128,10 +160,10 @@ class KasamiCode(AbstractLinearCode):
         TESTS::
 
             sage: codes.KasamiCode(64,8)
-            (64, 8) Extended Kasami code
+            [64, 54] Extended (64, 8)-Kasami code
 
             sage: codes.KasamiCode(64,8, extended=False)
-            (64, 8) Kasami code
+            [63, 54] (64, 8)-Kasami code
 
             sage: codes.KasamiCode(3,5)
             Traceback (most recent call last):
@@ -141,13 +173,13 @@ class KasamiCode(AbstractLinearCode):
         # Check validity of s and t
         (p,i) = is_prime_power(t,get_data=True)
         if p != 2:
-            raise ValueError("The parameter t(={}) must be a power of 2".format(t))
+            raise ValueError(f"The parameter t(={t}) must be a power of 2")
 
         if s != t*t:
             # then we must have s=q^{2j+1} and t = q^m
             (p,k) = is_prime_power(s,get_data=True)
             if p != 2:
-                raise ValueError("The parameter s(={}) must be a power of 2".format(s))
+                raise ValueError(f"The parameter s(={s}) must be a power of 2")
 
             # q= 2^l here l = gcd(k,i)
             l = gcd(i,k)
@@ -155,23 +187,28 @@ class KasamiCode(AbstractLinearCode):
             m = i // l
 
             if (k//l) % 2 == 0:
-                raise ValueError("The parameter s(={}) is invalid. Check the documentation".format(s))
+                raise ValueError(
+                    f"The parameter s(={s}) is invalid. Check the documentation")
 
             j = ((k//l) - 1) // 2
 
             # gcd(m,2*j+1) = gcd( i/l, k/l) = 1
             if m > j:
-                raise ValueError("The parameters(={},{}) are invalid. Check the documentation".format(s,t))
+                raise ValueError(
+                    (f"The parameters(={s},{t}) are invalid. "
+                     "Check the documentation"))
 
         # s and t are valid!!!
         self._s = s
         self._t = t
+        self._extended = extended
 
         length = s-1
         if extended:
             length += 1
 
-        super(KasamiCode, self).__init__(GF(2), length, "GeneratorMatrix", "Syndrome")
+        super(KasamiCode, self).__init__(GF(2), length,
+                                         "GeneratorMatrix", "Syndrome")
 
     def parameters(self):
         r"""
@@ -214,13 +251,13 @@ class KasamiCode(AbstractLinearCode):
         EXAMPLES::
 
             sage: codes.KasamiCode(4,2,extended=True)
-            (4, 2) Extended Kasami code
+            [4, 0] Extended (4, 2)-Kasami code
         """
         ext = ""
-        if self.length() == self._s:
+        if self._extended:
             ext = " Extended"
-        return "(%s, %s)%s Kasami code"\
-                % (self._s, self._t, ext)
+        return "[%s, %s]%s (%s, %s)-Kasami code"\
+                % (self.length(),self.dimension(), ext, self._s, self._t)
 
     def _latex_(self):
         r"""
@@ -230,13 +267,13 @@ class KasamiCode(AbstractLinearCode):
 
             sage: C = codes.KasamiCode(16,4)
             sage: latex(C)
-            (16, 4) \textnormal{ Extended Kasami code }
+            [16, 9]\textnormal{ Extended} (16, 4)\textnormal{-Kasami code}
         """
         ext = ""
-        if self.length() == self._s:
-            ext = "Extended"
-        return "(%s, %s) \\textnormal{ %s Kasami code }"\
-                % (self._s, self._t, ext)
+        if self._extended:
+            ext = " Extended"
+        return "[%s, %s]\\textnormal{%s} (%s, %s)\\textnormal{-Kasami code}"\
+                % (self.length(), self.dimension(), ext, self._s, self._t)
 
     def generator_matrix(self):
         r"""
@@ -258,15 +295,12 @@ class KasamiCode(AbstractLinearCode):
 
         ALGORITHM:
 
-        We generate spanning sets for the subspaces:
-            * `\{v \in GF(2)^s \mid \sum_{a \in GF(s)} v_a = 0\}`
-            * `\{v \in GF(2)^s \mid \sum_{a \in GF(s)} a v_a = 0\}`
-            * `\{v \in GF(2)^s \mid \sum_{a \in GF(s)} a^{t+1} v_a = 0\}`
+        We build the parity check matrix given by the three equations that
+        the codewords must satisfy. Then we generate the parity check matrix
+        over `GF(2)` and from this the obtain the generator matrix for the
+        extended Kasami codes.
 
-        Then we compute our codebook by taking the intersection of the above subspaces.
-
-        For the extened Kasami codes, we return the basis matrix of the codebook.
-        For the Kasami codes, we truncate the last entry of all vectors.
+        For the Kasami codes, we truncate the last column.
 
         TESTS::
 
@@ -294,72 +328,33 @@ class KasamiCode(AbstractLinearCode):
             sage: C.minimum_distance()
             3
         """
+        from sage.functions.log import log
 
-        F2 = GF(2)
-        V = VectorSpace(F2, self._s)
-        elemsFs = [x for x in GF(self._s)]
+        m = log(self._s, 2)
+        F = GF(self._s)
 
-        # we ensure that 0 is the first element of elemsFs
-        if not elemsFs[0].is_zero():
-            for i in range(self._s):
-                if elemsFs[i].is_zero:
-                    a = elemsFs[0]
-                    elemsFs[0] = elemsFs[i]
-                    elemsFs[i] = a
-                    break
+        def exp(row):
+            return matrix(F,
+                          [x + [0]*(m - len(x)) for x in
+                            [a.polynomial().list() for a in row]]).transpose()
 
-        FsToInt = {x : i for i,x in enumerate(elemsFs)}
-        elemsFsT = [x**(self._t + 1) for x in elemsFs]
-        FsTToInt = {x: i for i,x in enumerate(elemsFsT)}
+        # Parity check matrix over GF(s)
+        Hs = matrix(F, [[1]*self._s,
+                        F.list(),
+                        [a**(self._t + 1) for a in F]])
 
-        e1 = [0]*self._s
-        e1[0] = 1
-        e1 = vector(F2, e1, immutable=True)
+        # Parity check matrix over GF(2)
+        H = matrix.block(GF(2), 3, 1, [exp(row) for row in Hs.rows()])
 
-        W1_basis = []
-        for i in range(self._s - 1):
-            v = [0]*self._s
-            v[i] = 1
-            v[self._s - 1] = 1
-            W1_basis.append(v)
-        W1 = V.span(W1_basis)  # W1 satisfies \sum v[i] = 0
+        # Generator matrix
+        G = H.right_kernel().basis_matrix()
 
-        W2_basis = set([e1])  # not really a basis...
-        for i in range(1, self._s):  # avoid x = 0
-            x = elemsFs[i]
-            for j in range(i+1, self._s):
-                y = elemsFs[j]
-                v = [0]*self._s
-                v[i] = 1
-                v[j] = 1
-                v[FsToInt[(x+y)]] = 1
-                v = vector(F2, v, immutable=True)
-                W2_basis.add(v)
-        W2 = V.span(W2_basis)  # W2 satisfies \sum v[i]elemsFs[i] = 0
+        if self._extended:
+            return G
+
+        newG = [v[:-1] for v in G]
+        return matrix(GF(2), newG)
 
 
-        W3_basis = set([e1])  # again not really a basis
-        for i in range(1, self._s):  # avoid x = 0^(t+1) = 0
-            x = elemsFsT[i]
-            for j in range(i+1, self._s):
-                y = elemsFsT[j]
-                v = [0]*self._s
-                v[i] = 1
-                v[j] = 1
-                v[FsTToInt[(x+y)]] = 1
-                v=vector(F2, v, immutable=True)
-                W3_basis.add(v)
-        W3 = V.span(W3_basis)
-
-        W = W2.intersection(W3)
-        codebook = W.intersection(W1)
-        M = codebook.basis_matrix()
-
-        if self.length() == self._s:  # Extended code
-            return M
-
-        newM = [v[:-1] for v in M]
-        return matrix(GF(2), newM)
-
-
-KasamiCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder
+KasamiCode._registered_encoders[
+    "GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder

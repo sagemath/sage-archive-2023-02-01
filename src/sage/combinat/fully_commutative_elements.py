@@ -533,6 +533,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
     # The following function uses coset decompositions and will help us
     # generate all FC elements in a Coxeter group by induction on length. 
+
     def still_reduced_fc_after_prepending(self, s):
         r"""
         Determine if ``self`` prepended with ``s`` is still a reduced word of
@@ -612,7 +613,6 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         See Lemma 4.1 of  [Ste1996]_.
         """
-
         m = self.parent().coxeter_matrix()
         if self.has_descent(s):
             return False
@@ -645,8 +645,8 @@ class FullyCommutativeElement(NormalizedClonableList):
     [Lus1985]_, via coset decompositions, to allow star operations with
     respect to any pair of generators `s,t` such that `m(s,t)\ge 3`. Given
     such a pair, we can potentially perform four types of star operations
-    corresponding to all combinations of a 'side' and a 'direction':
-    left upper, left lower, right upper and right lower; see [Gre2006]_. 
+    corresponding to all combinations of a 'direction' and a 'side':
+    upper left, lower left, upper right and lower right; see [Gre2006]_. 
 
     Let `w` be an element in `W` and let `J` be any pair `\{s, t\}` of
     noncommuting generators in `S`. Consider the coset decomposition `w = w_J
@@ -716,13 +716,8 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         sage: w.star_operation({5, 6}, 'lower', side='right')
         [1, 6, 2, 5, 4, 6]
-
-
     """
-
         assert len(J) == 2, 'J needs to contain a pair of generators.' 
-        assert direction = 'upper' or direction == 'lower', 'The direction
-        argument needs to be "upper" or "lower".'
         s, t = J
         mst = self.parent().coxeter_matrix()[s,t]
 
@@ -735,10 +730,10 @@ class FullyCommutativeElement(NormalizedClonableList):
         cur_string = list(string)
 
         # From the coset decomposition, perform the upper or lower operation:  
-        if direction == 'down' and 2 <= len(string) <= mst - 1:
+        if direction == 'lower' and 2 <= len(string) <= mst - 1:
             # the lower star operation 
             new_string = cur_string[1:] if side == 'left' else cur_string[:-1]
-        elif direction == 'up' and 1 <= len(string) <= mst - 2:
+        elif direction == 'upper' and 1 <= len(string) <= mst - 2:
             # the upper star operation 
             ending_letter = cur_string[0] if side == 'left' else cur_string[-1]
             other = next(x for x in J if x != ending_letter)

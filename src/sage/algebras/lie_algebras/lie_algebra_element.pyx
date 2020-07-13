@@ -753,8 +753,7 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
         """
         from sage.typeset.unicode_art import unicode_art
         return unicode_art(repr_lincomb(self._sorted_items_for_printing(),
-                                        scalar_mult=unicode_art('·'),
-                                        repr_monomial=unicode_art,
+                                        scalar_mult='·',
                                         strip_one=True))
 
     cpdef bracket(self, right):
@@ -928,6 +927,52 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
         return (_build_untwisted_affine_element,
                 (self._parent, self._t_dict, self._c_coeff, self._d_coeff))
 
+    def _repr_generic(self, style, coeff, t_disp, mult, tensor_symb):
+        """
+        Return a representation of ``self`` based on ``style``.
+
+        INPUT:
+
+        - ``style`` -- a function for how to convert the objects
+        - ``coeff`` -- a function for how to display the coefficients
+        - ``t_disp`` -- a function for how to display the powers of `t`
+        - ``mult`` -- the multiplication symbol; must be compatible
+          with ``style``
+        - ``tensor_symb`` -- the tensor symbol; must be compatible
+          with ``style``
+        """
+        ret = style('')
+        mult = style(mult)
+        tensor_symb = style(tensor_symb)
+        for t,g in self._t_dict.iteritems():
+            if ret:
+                ret += style(' + ')
+            if coeff == str:
+                # We need to special case this because of the necessary added
+                #   comma by Python
+                ret += "({})".format(g) + tensor_symb + style(t_disp(t))
+            else:
+                ret += coeff((g,)) + tensor_symb + style(t_disp(t))
+        if self._c_coeff != 0:
+            if ret:
+                ret += style(' + ')
+            if self._c_coeff != 1:
+                ret += coeff(self._c_coeff) + mult + style('c')
+            else:
+                ret += style('c')
+
+        if self._d_coeff != 0:
+            if ret:
+                ret += style(' + ')
+            if self._d_coeff != 1:
+                ret += coeff(self._d_coeff) + mult + style('d')
+            else:
+                ret += style('d')
+
+        if not ret:
+            return style('0')
+        return ret
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -955,27 +1000,7 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
             (E[alpha[1]] - h1 + 2*E[-alpha[1]])#t^0 + (E[-alpha[1]])#t^1
              + 3*c + -2*d
         """
-        ret = ' + '.join('({})#t^{}'.format(g, t)
-                         for t,g in self._t_dict.iteritems())
-        if self._c_coeff != 0:
-            if ret:
-                ret += ' + '
-            if self._c_coeff != 1:
-                ret += repr(self._c_coeff) + '*c'
-            else:
-                ret += 'c'
-
-        if self._d_coeff != 0:
-            if ret:
-                ret += ' + '
-            if self._d_coeff != 1:
-                ret += repr(self._d_coeff) + '*d'
-            else:
-                ret += 'd'
-
-        if not ret:
-            return '0'
-        return ret
+        return self._repr_generic(str, str, lambda t: "t^{}".format(t), '*', '#')
 
     def _latex_(self):
         r"""
@@ -985,47 +1010,54 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
 
             sage: L = lie_algebras.Affine(QQ, ['A',1,1])
             sage: [latex(g) for g in L.lie_algebra_generators()]
-            [(E_{\alpha_{1}}) \otimes t^{0},
-             (E_{-\alpha_{1}}) \otimes t^{0},
-             (E_{\alpha^\vee_{1}}) \otimes t^{0},
-             (E_{-\alpha_{1}}) \otimes t^{1},
-             (E_{\alpha_{1}}) \otimes t^{-1},
+            [\left(E_{\alpha_{1}}\right) \otimes t^{0},
+             \left(E_{-\alpha_{1}}\right) \otimes t^{0},
+             \left(E_{\alpha^\vee_{1}}\right) \otimes t^{0},
+             \left(E_{-\alpha_{1}}\right) \otimes t^{1},
+             \left(E_{\alpha_{1}}\right) \otimes t^{-1},
              c,
              d]
             sage: latex(L.an_element())
-            (E_{\alpha_{1}} + E_{\alpha^\vee_{1}} + E_{-\alpha_{1}}) \otimes t^{0}
-             + (E_{-\alpha_{1}}) \otimes t^{1} + (E_{\alpha_{1}}) \otimes t^{-1}
+            \left(E_{\alpha_{1}} + E_{\alpha^\vee_{1}} + E_{-\alpha_{1}}\right) \otimes t^{0}
+             + \left(E_{-\alpha_{1}}\right) \otimes t^{1}
+             + \left(E_{\alpha_{1}}\right) \otimes t^{-1}
              + c + d
             sage: latex(L.zero())
             0
 
             sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
             sage: latex(e1 + 2*f1 - h1 + e0 + 3*c - 2*d)
-            (E_{\alpha_{1}} - E_{\alpha^\vee_{1}} + 2E_{-\alpha_{1}}) \otimes t^{0}
-             + (E_{-\alpha_{1}}) \otimes t^{1} + 3 c + -2 d
+            \left(E_{\alpha_{1}} - E_{\alpha^\vee_{1}} + 2E_{-\alpha_{1}}\right) \otimes t^{0}
+             + \left(E_{-\alpha_{1}}\right) \otimes t^{1} + 3 c + -2 d
         """
         from sage.misc.latex import latex
-        ret = ' + '.join('({}) \otimes t^{{{}}}'.format(latex(g), t)
-                         for t,g in self._t_dict.iteritems())
-        if self._c_coeff != 0:
-            if ret:
-                ret += ' + '
-            if self._c_coeff != 1:
-                ret += latex(self._c_coeff) + ' c'
-            else:
-                ret += 'c'
+        return self._repr_generic(str, latex, lambda t: "t^{{{}}}".format(t), ' ', ' \\otimes ')
 
-        if self._d_coeff != 0:
-            if ret:
-                ret += ' + '
-            if self._d_coeff != 1:
-                ret += latex(self._d_coeff) + ' d'
-            else:
-                ret += 'd'
+    def _unicode_art_(self):
+        r"""
+        Return a unicode art representation of ``self``.
 
-        if not ret:
-            return '0'
-        return ret
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['A',1,1])
+            sage: unicode_art([g for g in L.lie_algebra_generators()])
+            [ ( alpha[1] )⊗t⁰, ( -alpha[1] )⊗t⁰, ( alphacheck[1] )⊗t⁰, ( -alpha[1] )⊗t¹,
+            <BLANKLINE>
+             ( alpha[1] )⊗t⁻¹, c, d ]
+            sage: unicode_art(L.an_element())
+            ( alpha[1] + alphacheck[1] + -alpha[1] )⊗t⁰ + ( -alpha[1] )⊗t¹ + ( alpha[1] )⊗
+            <BLANKLINE>
+            t⁻¹ + c + d
+            sage: unicode_art(L.zero())
+            0
+
+            sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
+            sage: unicode_art(e1 + 2*f1 - h1 + e0 + 3*c - 2*d)
+            ( alpha[1] - alphacheck[1] + 2·-alpha[1] )⊗t⁰ + ( -alpha[1] )⊗t¹ + 3⋅c + -2⋅d
+        """
+        from sage.typeset.unicode_art import unicode_art, unicode_superscript
+        return self._repr_generic(unicode_art, unicode_art, lambda t: "t" + unicode_superscript(t),
+                                  unicode_art('⋅'), unicode_art('⊗'))
 
     cpdef dict t_dict(self):
         r"""

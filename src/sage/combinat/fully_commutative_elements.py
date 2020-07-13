@@ -64,7 +64,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         :func:`check` is an alias of this method, and is called automatically
         when an element is created.
 
-        EXAMPLES:
+        EXAMPLES::
 
         To construct an FC element, first call the parent class
         FullyCommutativeElements. The parent class contains information about
@@ -111,9 +111,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             ...
             ValueError: The input is not a reduced word of a fully commutative
             element.
-
         """
-
         matrix = self.parent().coxeter_matrix()
         w = tuple(self)
 
@@ -132,6 +130,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             return word[:i] + (word[i+1], word[i]) + word[i+2:]
 
         not_fc = ValueError('The input is not a reduced word of a fully commutative element.')
+
         if contains_long_braid(w):
             raise not_fc
         else:
@@ -158,7 +157,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         :func:`normalize` is an alias of this method, and is called
         automatically when an element is created.
 
-        EXAMPLES:
+        EXAMPLES::
 
         The following reduced words express the same FC elements in `B_5` ::
 
@@ -258,12 +257,13 @@ class FullyCommutativeElement(NormalizedClonableList):
         r"""
         Display the Hasse diagram of the heap of ``self``.
 
-        The Hasse diagram is rendered in the lattice `S \times \mathbb{N}`, with
-        every element `i` in the poset drawn as a point labelled by its label
-        `s_i`. Every point is placed in the column for its label at a certain
-        level. The levels start at 0 and the level k of an element `i` is the
-        maximal number `k` such that the heap contains a chain `i_0\prec
-        i_1\prec ... \prec i_k` where `i_k=i`. See [Ste1996]_ and [GX2020]_. 
+        The Hasse diagram is rendered in the lattice `S \times \mathbb{N}`,
+        with every element `i` in the poset drawn as a point labelled by its
+        label `s_i`. Every point is placed in the column for its label at a
+        certain level. The levels start at 0 and the level k of an element `i`
+        is the maximal number `k` such that the heap contains a chain
+        `i_0\prec i_1\prec ... \prec i_k` where `i_k=i`. See [Ste1996]_ and
+        [GX2020]_. 
 
 
         OUTPUT: GraphicsObject
@@ -319,7 +319,6 @@ class FullyCommutativeElement(NormalizedClonableList):
             2
             sage: FC([1,3,2,5]).n_value()
             3
-
         """
         return self.heap().width()
     
@@ -380,7 +379,6 @@ class FullyCommutativeElement(NormalizedClonableList):
             <BLANKLINE>
             sage: w.find_descent(3)
             <BLANKLINE>
-
         """
         m = self.parent().coxeter_matrix()
         view = list(self) if side == 'left' else self[::-1]
@@ -434,7 +432,6 @@ class FullyCommutativeElement(NormalizedClonableList):
           right descents.
 
         EXAMPLES::
-
 
             sage: FC = FullyCommutativeElements(['B', 5])
             sage: w = FC([1, 4, 3, 5, 2, 4, 3])
@@ -501,7 +498,6 @@ class FullyCommutativeElement(NormalizedClonableList):
             algorithm works for all elements in Coxeter group, but it becomes
             especially simple for FC elements because descents are easier to
             find for FC elements. 
-
         """
         string = []  # The J-string
         remaining = self.clone()  # The remainder
@@ -636,87 +632,88 @@ class FullyCommutativeElement(NormalizedClonableList):
     
     # Generalized star operations
     def star_operation(self, J, direction, side = 'left'):
-    r"""
-    Apply a star operation on ``self`` relative to two noncommuting generators. 
-    
-    Star operations were first defined on elements of Coxeter groups by
-    Kazhdan and Lusztig in [KL1979]_ with respect to pair of generators `s,t`
-    such that `m(s,t)=3`. Later, Lusztig generalized the definition in
-    [Lus1985]_, via coset decompositions, to allow star operations with
-    respect to any pair of generators `s,t` such that `m(s,t)\ge 3`. Given
-    such a pair, we can potentially perform four types of star operations
-    corresponding to all combinations of a 'direction' and a 'side':
-    upper left, lower left, upper right and lower right; see [Gre2006]_. 
+        r"""
+        Apply a star operation on ``self`` relative to two noncommuting
+        generators. 
+        
+        Star operations were first defined on elements of Coxeter groups by
+        Kazhdan and Lusztig in [KL1979]_ with respect to pair of generators
+        `s,t` such that `m(s,t)=3`. Later, Lusztig generalized the definition
+        in [Lus1985]_, via coset decompositions, to allow star operations with
+        respect to any pair of generators `s,t` such that `m(s,t)\ge 3`. Given
+        such a pair, we can potentially perform four types of star operations
+        corresponding to all combinations of a 'direction' and a 'side': upper
+        left, lower left, upper right and lower right; see [Gre2006]_. 
 
-    Let `w` be an element in `W` and let `J` be any pair `\{s, t\}` of
-    noncommuting generators in `S`. Consider the coset decomposition `w = w_J
-    \cdot {}^J w` of `w` relative to `J`. Then an upper left star operation is
-    defined on `w` if and only if  `1 \le l(w_J) \le m(s,t)-2`; when this is
-    the case, the operation returns `x\cdot w_J\cdot w^J` where `x` is the
-    letter `J` different from the leftmost letter of `w_J`. A lower left star
-    operation is defined on `w` if and only if `2 \le l(w_J) \le m(s,t)-1`;
-    when this is the case, the operation removes the leftmost letter of `w_J`
-    from `w`.  Similar facts hold for right upper star operations. See
-    [Gre2006]_. 
+        Let `w` be an element in `W` and let `J` be any pair `\{s, t\}` of
+        noncommuting generators in `S`. Consider the coset decomposition `w =
+        w_J \cdot {}^J w` of `w` relative to `J`. Then an upper left star
+        operation is defined on `w` if and only if  `1 \le l(w_J) \le
+        m(s,t)-2`; when this is the case, the operation returns `x\cdot
+        w_J\cdot w^J` where `x` is the letter `J` different from the leftmost
+        letter of `w_J`. A lower left star operation is defined on `w` if and
+        only if `2 \le l(w_J) \le m(s,t)-1`; when this is the case, the
+        operation removes the leftmost letter of `w_J` from `w`.  Similar
+        facts hold for right upper star operations. See [Gre2006]_. 
 
-    The facts of the previous paragraph hold in general, even if `w` is not
-    FC.  Note that if `f` is a star operation of any kind, then for every
-    element `w \in W`, the elements `w` and `f(w)` are either both FC or both
-    not FC. 
-
-
-    INPUT:
-
-    - ``J`` -- a set of two integers representing two noncommuting
-      generators of the Coxeter system. 
-
-    - ``direction`` -- string, either 'upper' or 'lower'; the function
-      performs an upper or lower star operation as ``direction`` specifies.
-
-    - ``side`` -- string (default: 'left'); if 'right', perform a right star
-      operation.
-
-    OUTPUT: 
-
-    The result of the star operation if it is defined on ``self``, ``None``
-    otherwise.
+        The facts of the previous paragraph hold in general, even if `w` is
+        not FC.  Note that if `f` is a star operation of any kind, then for
+        every element `w \in W`, the elements `w` and `f(w)` are either both
+        FC or both not FC. 
 
 
-    EXAMPLES::
-     
-    We will compute all star operations on the following FC element in type
-    `B_6` relative to `J = \{5, 6\}` ::
+        INPUT:
 
-        sage: FC = FullyCommutativeElements(['B', 6])
-        sage: w = FC([1, 6, 2, 5, 4, 6, 5])
+        - ``J`` -- a set of two integers representing two noncommuting
+          generators of the Coxeter system. 
 
-    Whether and how a left star operations can be applied depend on the coset
-    decomposition `w = w_J \cdot w^J` ::
+        - ``direction`` -- string, either 'upper' or 'lower'; the function
+          performs an upper or lower star operation as ``direction`` specifies.
 
-        sage: w.coset_decomposition({5, 6})
-        ([6, 5, 6], [1, 2, 4, 5])
+        - ``side`` -- string (default: 'left'); if 'right', perform a right star
+          operation.
 
-    Only the lower star operation is defined on the left for this example ::
+        OUTPUT: 
 
-        sage: w.star_operation({5,6}, 'upper')
-        <BLANKLINE>
-        sage: w.star_operation({5,6}, 'lower')
-        [1, 5, 2, 4, 6, 5]
+        The result of the star operation if it is defined on ``self``, ``None``
+        otherwise.
 
-    Whether and how a right star operations can be applied depend on the coset
-    decomposition `w = w^J \cdot w_J` ::
 
-        sage: w.coset_decomposition({5, 6}, side='right')
-        ([1, 6, 2, 5, 4], [6, 5])
+        EXAMPLES::
+         
+        We will compute all star operations on the following FC element in type
+        `B_6` relative to `J = \{5, 6\}` ::
 
-    Both types of right star operations on defined for this example ::
+            sage: FC = FullyCommutativeElements(['B', 6])
+            sage: w = FC([1, 6, 2, 5, 4, 6, 5])
 
-        sage: w.star_operation({5, 6}, 'upper', side='right')
-        [1, 6, 2, 5, 4, 6, 5, 6]
+        Whether and how a left star operations can be applied depend on the
+        coset decomposition `w = w_J \cdot w^J` ::
 
-        sage: w.star_operation({5, 6}, 'lower', side='right')
-        [1, 6, 2, 5, 4, 6]
-    """
+            sage: w.coset_decomposition({5, 6})
+            ([6, 5, 6], [1, 2, 4, 5])
+
+        Only the lower star operation is defined on the left for this example ::
+
+            sage: w.star_operation({5,6}, 'upper')
+            <BLANKLINE>
+            sage: w.star_operation({5,6}, 'lower')
+            [1, 5, 2, 4, 6, 5]
+
+        Whether and how a right star operations can be applied depend on the
+        coset decomposition `w = w^J \cdot w_J` ::
+
+            sage: w.coset_decomposition({5, 6}, side='right')
+            ([1, 6, 2, 5, 4], [6, 5])
+
+        Both types of right star operations on defined for this example ::
+
+            sage: w.star_operation({5, 6}, 'upper', side='right')
+            [1, 6, 2, 5, 4, 6, 5, 6]
+
+            sage: w.star_operation({5, 6}, 'lower', side='right')
+            [1, 6, 2, 5, 4, 6]
+        """
         assert len(J) == 2, 'J needs to contain a pair of generators.' 
         s, t = J
         mst = self.parent().coxeter_matrix()[s,t]
@@ -760,17 +757,17 @@ class FullyCommutativeElement(NormalizedClonableList):
     # Kazhdan--Lusztig cells. For example, ...
 
 
-    def star_orbit(self, side='left', **kargs):
+    def star_closure(self, side='left', **kargs):
         r"""
-        Compute the star operation orbit of ``self``.
+        Compute the star operation closure of ``self``.
 
         OUTPUT: The set containing all elements that can be obtained from
         ``self`` via a sequence of star operation of the specified type.  
 
         OPTIONAL ARGUMENTS:
 
-        - ``side`` -- string (default: 'left'); if set to 'right', the function
-          compute the orbit for the specified type of right star operations. 
+        - ``side`` -- string (default: 'left'); if this is set to 'right', the
+          function compute the closure for right star operations. 
         - ``upper_only`` -- boolean (default: False); if passed, compute only
           the set of elements that can be obtained from ``self`` via upper star
           operations on the specified side.
@@ -779,14 +776,14 @@ class FullyCommutativeElement(NormalizedClonableList):
           operations on the specified side.
 
 
-        EXAMPLES:
+        EXAMPLES::
 
         Compute the left star closure of [1] in the group `I_8`. This should be
         set of `\{1,2\}`-braids of lengths 1 through 7, and should be the same
         as the left *upper* star closure ::
 
             sage: FC = FullyCommutativeElements(['I', 8])
-            sage: sorted(FC([1]).star_orbit())
+            sage: sorted(FC([1]).star_closure())
             [[1],
              [1, 2, 1],
              [1, 2, 1, 2, 1],
@@ -794,17 +791,17 @@ class FullyCommutativeElement(NormalizedClonableList):
              [2, 1],
              [2, 1, 2, 1],
              [2, 1, 2, 1, 2, 1]]
-            sage: FC([1]).star_orbit() == FC([1]).star_orbit(upper_only=True)
+            sage: FC([1]).star_closure() == FC([1]).star_closure(upper_only=True)
             True
         """
         m = self.parent().coxeter_matrix()
         adjacent_pairs = [(a, b) for (a, b) in itertools.product(self.parent().index_set(), repeat=2) if a < b and m[a,b] > 2]
         
-        directions = {'up', 'down'}
+        directions = {'upper', 'lower'}
         if 'upper_only' in kargs and kargs['upper_only']:
-            directions = {'up'}
+            directions = {'upper'}
         elif 'lower_only' in kargs and kargs['lower_only']:
-            directions = {'down'}
+            directions = {'lower'}
 
         closure = {self}
         recent_words = {self}
@@ -813,7 +810,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             for w in recent_words:
                 for J in adjacent_pairs:
                     for d in directions:
-                        n = w._star_operation_inner(J, d, side)
+                        n = w.star_operation(J, d, side)
                         if n is not None and n not in closure:
                             new_words.add(n)
             if len(new_words) == 0:
@@ -826,7 +823,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
 class FullyCommutativeElements(Parent):
     r"""
-    Class for the set of fully commutative (FC) elements of a Coxeter systems
+    Class for the set of fully commutative (FC) elements of a Coxeter system.
 
     Coxeter systems with finitely many FC elements, or *FC-finite* Coxeter
     systems, are classfied by Stembridge in [Ste1996]_. They fall into seven
@@ -847,7 +844,7 @@ class FullyCommutativeElements(Parent):
     enumerated sets or finite enumerated sets depending on if the group is
     FC-finite.
 
-    EXAMPLES:
+    EXAMPLES::
 
     Enumerate the FC elements in `A_3` in their Cartier--Foata forms ::
 
@@ -890,7 +887,7 @@ class FullyCommutativeElements(Parent):
         sage: FCA3([1,2,1])
         Traceback (most recent call last):
         ...
-        ValueError: The input is not a reduced word of a fully commutative element. 
+        ValueError: The input is not a reduced word of a fully commutative element.  
 
     Elements are normalized to Cartier--Foata normal form upon construction ::
 

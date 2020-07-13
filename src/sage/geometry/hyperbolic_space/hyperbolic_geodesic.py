@@ -1397,12 +1397,48 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             ...
             ValueError: the length must be finite
 
-        """
+        TESTS:
 
+        Check the result is independent of the order::
+
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: g = UHP.get_geodesic(1+I,2+0.5*I)
+            sage: h = g.perpendicular_bisector()
+            sage: c = lambda x: x.coordinates()
+            sage: bool(c(g.intersection(h)[0]) - c(g.midpoint()) < 10**-9)
+            True
+
+            sage: g = UHP.get_geodesic(2+0.5*I,1+I)
+            sage: h = g.perpendicular_bisector()
+            sage: c = lambda x: x.coordinates()
+            sage: bool(c(g.intersection(h)[0]) - c(g.midpoint()) < 10**-9)
+            True
+
+        ::
+
+            sage: g = UHP.get_geodesic(2+I,2+0.5*I)
+            sage: h = g.perpendicular_bisector()
+            sage: c = lambda x: x.coordinates()
+            sage: bool(c(g.intersection(h)[0]) - c(g.midpoint()) < 10**-9)
+            True
+
+            sage: g = UHP.get_geodesic(2+0.5*I,2+I)
+            sage: h = g.perpendicular_bisector()
+            sage: c = lambda x: x.coordinates()
+            sage: bool(c(g.intersection(h)[0]) - c(g.midpoint()) < 10**-9)
+            True
+        """
         if self.length() == infinity:
             raise ValueError("the length must be finite")
         start = self._start.coordinates()
-        d = self._model._dist_points(start, self._end.coordinates()) / 2
+        end = self._end.coordinates()
+        # Since the complete geodesic p1 -> p2 always returns p1 < p2,
+        #   we need to swap start and end when that happens
+        if ((real(start - end) > EPSILON) or
+            (abs(real(start - end)) < EPSILON and
+                imag(start - end) > 0)):
+            start, end = end, start
+        d = self._model._dist_points(start, end) / 2
         S = self.complete()._to_std_geod(start)
         T1 = matrix([[exp(d/2), 0], [0, exp(-d/2)]])
         s2 = sqrt(2) * 0.5

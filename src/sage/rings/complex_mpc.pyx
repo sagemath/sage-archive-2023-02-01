@@ -837,6 +837,8 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
                 return
             elif isinstance(z, str):
                 a, b = split_complex_string(z, base)
+                if a is None and b is None:
+                    raise TypeError("unable to convert {!r} to a MPComplexNumber".format(z))
                 # set real part
                 if a is None:
                     mpfr_set_ui(self.value.re, 0, MPFR_RNDN)
@@ -845,8 +847,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
                                  base, rnd_re(rnd))
                 # set imag part
                 if b is None:
-                    if a is None:
-                        raise TypeError("unable to convert {!r} to a MPComplexNumber".format(z))
+                    mpfr_set_ui(self.value.im, 0, MPFR_RNDN)
                 else:
                     mpfr_set_str(self.value.im, str_to_bytes(b),
                                  base, rnd_im(rnd))
@@ -2443,6 +2444,7 @@ def __create__MPComplexField_version0 (prec, rnd):
 
         sage: sage.rings.complex_mpc.__create__MPComplexField_version0(200, 'RNDDZ')
         Complex Field with 200 bits of precision and rounding RNDDZ
+
     """
     return MPComplexField(prec, rnd)
 
@@ -2455,6 +2457,9 @@ def __create__MPComplexNumber_version0 (parent, s, base=10):
         sage: C = MPComplexField(prec=20, rnd='RNDUU')
         sage: sage.rings.complex_mpc.__create__MPComplexNumber_version0(C, 3.2+2*i)
         3.2001 + 2.0000*I
+        sage: C = MPComplexField(prec=20, rnd='RNDUU')
+        sage: sage.rings.complex_mpc.__create__MPComplexNumber_version0(C,"33.",10)
+        33.000
     """
     return MPComplexNumber(parent, s, base=base)
 

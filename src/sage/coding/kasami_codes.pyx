@@ -19,14 +19,14 @@ It follows that these are subfield subcodes of
 the code having those three equations as parity checks.
 
 The only valid parameters `s,t` are given by the below,
-  where `q` is a power of 2:
+where `q` is a power of 2:
     * `s = q^{2j+1}`, `t = q^m` with `m \leq j` and `\gcd(m,2j+1) = 1`
     * `s = q^2`, `t=q`
 
 The coset graphs of the Kasami codes are distance-regular.
 
 In particular, the extended Kasami codes result in
-  distance-regular graphs with intersection arrays:
+distance-regular graphs with intersection arrays:
     * `[q^{2j+1}, q^{2j+1} - 1, q^{2j+1} - q, q^{2j+1} - q^{2j} + 1;`
       `1, q, q^{2j} -1, q^{2j+1}]`
     * `[q^2, q^2 - 1, q^2 - q, 1; 1, q, q^2 - 1, q^2]`

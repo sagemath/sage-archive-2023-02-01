@@ -1260,14 +1260,13 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
 
         parent = self.parent()
         a = parent(a)
-        b = v = parent(1)
+        v = parent.one()
         x = self % a
-        while(not x.is_zero()):
+        while not x.is_zero():
             a += (v * x) % a
             b, x = self.quo_rem(a)
             b %= a
-            v = (v * (2 - b*v)) % a
-
+            v = (v * (2 - b * v)) % a
         return a
 
     def factor_of_slope(self, slope=None):

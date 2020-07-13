@@ -1160,7 +1160,6 @@ def check_parallel(graph, root, left, right,
     # module can be formed
     if source_index != new_right_index:
         node = create_parallel_node()
-        temp = source_index
         for temp in range(source_index, new_right_index + 1):
 
             # if module X to be included in the new parallel module Y is also

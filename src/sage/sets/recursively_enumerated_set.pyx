@@ -268,7 +268,8 @@ function to the element is done by the ``post_process = f`` argument. The
 convention is that the generated elements are the ``s := f(n)``, except when
 ``s`` not ``None`` when no element is generated at all. Here is the code::
 
-    sage: def children((lst, st)):
+    sage: def children(node):
+    ....:     (lst, st) = node
     ....:     st = set(st) # make a copy
     ....:     if st:
     ....:        el = st.pop()
@@ -276,9 +277,11 @@ convention is that the generated elements are the ``s := f(n)``, except when
     ....:            yield (lst[0:i]+[el]+lst[i:], st)
     sage: list(children(([1,2], {3,7,9})))
     [([9, 1, 2], {3, 7}), ([1, 9, 2], {3, 7}), ([1, 2, 9], {3, 7})]
+    sage: def post_process(node):
+    ....:     (l, s) = node
+    ....:     return tuple(l) if not s else None
     sage: S = RecursivelyEnumeratedSet( [([], {1,3,6,8})],
-    ....:     children,
-    ....:     post_process = lambda (l, s): tuple(l) if not s else None,
+    ....:     children, post_process=post_process,
     ....:     structure='forest', enumeration='depth',
     ....:     category=FiniteEnumeratedSets())
     sage: S.list()

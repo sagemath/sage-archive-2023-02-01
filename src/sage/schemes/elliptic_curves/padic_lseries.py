@@ -74,7 +74,8 @@ from sage.arith.all import valuation, binomial, kronecker_symbol, gcd, prime_div
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
 
-from sage.misc.all import verbose, denominator, get_verbose
+from sage.misc.all import denominator
+from sage.misc.verbose import verbose, get_verbose
 import sage.arith.all as arith
 
 from sage.modules.free_module_element import vector

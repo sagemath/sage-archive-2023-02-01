@@ -3174,7 +3174,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray,
         else:
             return B([self[0], self[1].over(bt)])
 
-    __div__ = over
     __truediv__ = over
 
     @combinatorial_map(name="Under operation on Binary Trees")

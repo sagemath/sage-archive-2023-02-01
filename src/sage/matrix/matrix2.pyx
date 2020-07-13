@@ -74,7 +74,7 @@ from sage.structure.sequence import Sequence
 from sage.structure.coerce cimport coercion_model
 from sage.structure.element import is_Vector
 from sage.structure.element cimport have_same_parent
-from sage.misc.misc import verbose, get_verbose
+from sage.misc.verbose import verbose, get_verbose
 from sage.categories.fields import Fields
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -3694,6 +3694,7 @@ cdef class Matrix(Matrix1):
             ....:                 [4, -1, 0, -6, 2]],
             ....:            sparse=False)
             sage: B = copy(A).sparse_matrix()
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(1)
             sage: D = A.right_kernel(); D
             verbose 1 (<module>) computing a right kernel for 4x5 matrix over Rational Field

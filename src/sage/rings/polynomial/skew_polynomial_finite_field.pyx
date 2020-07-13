@@ -1,19 +1,21 @@
 r"""
 Univariate Dense Skew Polynomials over Finite Fields
 
-This module provides the :class:`~sage.rings.polynomial.skew_polynomial_finite_field.SkewPolynomial_finite_field_dense`
-which constructs a single univariate skew polynomial over a finite field equipped with the Frobenius
-endomorphism. Among other things, it implements the fast factorization algorithm designed in [CL2017]_.
+This module provides the 
+class:`~sage.rings.polynomial.skew_polynomial_finite_field.SkewPolynomial_finite_field_dense`,
+which constructs a single univariate skew polynomial over a finite field
+equipped with the Frobenius endomorphism. Among other things, it implements
+the fast factorization algorithm designed in [CL2017]_.
 
 AUTHOR::
 
 - Xavier Caruso (2012-06-29): initial version
 
-- Arpit Merchant (2016-08-04): improved docstrings, fixed doctests and refactored classes and methods
-
+- Arpit Merchant (2016-08-04): improved docstrings, fixed doctests and
+  refactored classes and methods
 """
 
-#############################################################################
+# ***************************************************************************
 #    Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -32,7 +34,7 @@ from sage.matrix.matrix2 import NotFullRankError
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.skew_polynomial_element cimport SkewPolynomial
+from sage.rings.polynomial.ore_polynomial_element cimport OrePolynomial as SkewPolynomial
 from sage.rings.polynomial.skew_polynomial_finite_order cimport SkewPolynomial_finite_order_dense
 
 from sage.combinat.permutation import Permutation, Permutations
@@ -55,8 +57,8 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         return self._norm_factor
 
     def is_irreducible(self):
-        """
-        Return True if this skew polynomial is irreducible.
+        r"""
+        Return ``True`` if this skew polynomial is irreducible.
 
         EXAMPLES::
 
@@ -103,13 +105,13 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
 
     def type(self, N):
-        """
+        r"""
         Return the `N`-type of this skew polynomial (see definition below).
 
         INPUT:
 
-        -  ``N`` -- an irreducible polynomial in the
-           center of the underlying skew polynomial ring
+        - ``N`` -- an irreducible polynomial in the
+          center of the underlying skew polynomial ring
 
         .. NOTE::
 
@@ -118,11 +120,11 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         DEFINITION:
 
         The `N`-type of a skew polynomial `a` is the Partition
-        `(t_0, t_1, t_2, ...)` defined by
+        `(t_0, t_1, t_2, \ldots)` defined by
 
         .. MATH::
 
-            t_0 + \cdots + t_i = \frac{\deg gcd(a,N^i)}{\deg N}
+            t_0 + \cdots + t_i = \frac{\deg gcd(a,N^i)}{\deg N},
 
         where `\deg N` is the degree of `N` considered as an
         element in the center.
@@ -159,7 +161,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             []
 
         If `a = N`, the type is just `[r]` where `r` is the order
-        of the twist map ``Frob``::
+        of the twisting morphism ``Frob``::
 
             sage: N = x3^2 + x3 + 1
             sage: S(N).type(N)
@@ -215,7 +217,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
     # ----------------
 
     cdef SkewPolynomial_finite_field_dense _rdivisor_c(self, N):
-        """
+        r"""
         Return a right divisor of this skew polynomial whose
         reduced norm is `N`.
 
@@ -322,11 +324,11 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             sage: Q._reduced_norm_factor_uniform()
             z + 1
 
-        Now, we consider the product `R = P*Q`; it admits 32 irreducible
-        divisors but among them, only one has norm `z + 2`, the others
-        having norm `z + 1`.
-        Therefore this method outputs `z + 2` with probability 1/32
-        and `z + 1` with probability 31/32.
+        Now, we consider the product `R = P \cdot Q`; it admits `32`
+        irreducible divisors but among them, only one has norm `z + 2`,
+        the others having norm `z + 1`.
+        Therefore this method outputs `z + 2` with probability `1 / 32`
+        and `z + 1` with probability `31 / 32`::
 
             sage: R = P*Q
             sage: counts = { z+1: 0, z+2: 0 }
@@ -360,7 +362,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
 
     def _irreducible_divisors(self, bint right):
-        """
+        r"""
         Return an iterator over all irreducible monic
         divisors of this skew polynomial.
 
@@ -472,7 +474,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
 
     def right_irreducible_divisor(self, uniform=False):
-        """
+        r"""
         Return a right irreducible divisor of this skew polynomial.
 
         INPUT:
@@ -517,7 +519,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             x^3 + x^2 + (4*t^2 + 2*t + 4)*x + t^2 + 3
 
         By convention, the zero skew polynomial has no irreducible
-        divisor:
+        divisor::
 
             sage: S(0).right_irreducible_divisor()
             Traceback (most recent call last):
@@ -547,7 +549,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         return D
 
     def left_irreducible_divisor(self, uniform=False):
-        """
+        r"""
         Return a left irreducible divisor of this skew polynomial.
 
         INPUT:
@@ -585,7 +587,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             x^3 + (t^2 + t + 2)*x^2 + (3*t^2 + t)*x + 2*t + 1
 
         By convention, the zero skew polynomial has no irreducible
-        divisor:
+        divisor::
 
             sage: S(0).left_irreducible_divisor()
             Traceback (most recent call last):
@@ -620,11 +622,11 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
 
     def right_irreducible_divisors(self):
-        """
+        r"""
         Return an iterator over all irreducible monic right divisors
         of this skew polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
@@ -655,11 +657,11 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         return self._irreducible_divisors(True)
 
     def left_irreducible_divisors(self):
-        """
+        r"""
         Return an iterator over all irreducible monic left divisors
         of this skew polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
@@ -691,7 +693,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
 
     def count_irreducible_divisors(self):
-        """
+        r"""
         Return the number of irreducible monic divisors of
         this skew polynomial.
 
@@ -708,7 +710,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             sage: S.<x> = k['x',Frob]
 
         We illustrate that a skew polynomial may have a number of irreducible
-        divisors greater than its degree.
+        divisors greater than its degree::
 
             sage: a = x^4 + (4*t + 3)*x^3 + t^2*x^2 + (4*t^2 + 3*t)*x + 3*t
             sage: a.count_irreducible_divisors()
@@ -752,7 +754,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
     # ----------------------
 
     cdef _factor_c(self):
-        """
+        r"""
         Compute a factorization of ``self``.
 
         This is the low level implementation of :meth:`factor`.
@@ -824,7 +826,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
 
     cdef _factor_uniform_c(self):
-        """
+        r"""
         Compute a uniformly distrbuted factorization of ``self``.
 
         This is the low level implementation of :meth:`factor`.
@@ -932,7 +934,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
 
     def factor(self, uniform=False):
-        """
+        r"""
         Return a factorization of this skew polynomial.
 
         INPUT:
@@ -970,7 +972,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         There is a priori no guarantee on the distribution of the 
         factorizations we get. Passing in the keyword ``uniform=True``
         ensures the output is uniformly distributed among all
-        factorizations.
+        factorizations::
 
             sage: a.factor(uniform=True)   # random
             (x + t^2 + 4) * (x + t) * (x + t + 3)
@@ -979,7 +981,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             sage: a.factor(uniform=True)   # random
             (x + 2*t^2 + 3*t) * (x + 4*t + 2) * (x + 2*t + 2)
 
-        By convention, the zero skew polynomial has no factorization:
+        By convention, the zero skew polynomial has no factorization::
 
             sage: S(0).factor()
             Traceback (most recent call last):
@@ -1000,7 +1002,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
 
     def count_factorizations(self):
-        """
+        r"""
         Return the number of factorizations (as a product of a
         unit and a product of irreducible monic factors) of this
         skew polynomial.
@@ -1045,7 +1047,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
     # Not optimized:
     # many calls to reduced_norm, reduced_norm_factor, _rdivisor_c, which are slow
     def factorizations(self):
-        """
+        r"""
         Return an iterator over all factorizations (as a product
         of a unit and a product of irreducible monic factors) of
         this skew polynomial.
@@ -1104,3 +1106,4 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         unit = self.leading_coefficient()
         for factors in factorizations_rec(~unit*self):
             yield Factorization(factors, sort=False, unit=unit)
+

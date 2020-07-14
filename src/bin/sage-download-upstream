@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 for pkg in $SAGE_ROOT/build/pkgs/*
 do

@@ -6915,11 +6915,12 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         A dynamical system has good reduction at ``prime`` if after the coefficients
         are reduced modulo ``prime`` the degree remains the same. A dynamical system
         `f` has `\textit{potential}` good reduction if there exists
-        `\phi \in PGL(n,\overline{K})` such that `\phi^{-1} \circ f \circ phi`
+        `\phi \in PGL(n,\overline{K})` such that `\phi^{-1} \circ f \circ \phi`
         has good reduction.
 
-        If this dynamical system has potential good reduction at ``prime``, the map
-        `\phi` is returned.
+        If this dynamical system `f` has potential good reduction at ``prime``,
+        a dynamical system `g = \phi^{-1} \circ f \circ \phi` which has good
+        reduction at ``prime`` is returned.
 
         This dynamical system must have as its domain `\mathbb{P}^1(K)`, where
         `K` is a number field.
@@ -6933,15 +6934,16 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         OUTPUT:
 
         - ``False`` if this dynamical system does not have good reduction
-        - If this dynamical system `f` has potential good reduction, an element `phi`
-          of `PGL2` such that `phi^{-1} \circ f \circ \phi` has good reduction
+        - If this dynamical system `f` has potential good reduction, a
+          dynamical system `g` such that `g = \phi^{-1} \circ f \circ \phi`
+          and `g` has good reduction at ``prime``.
 
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: system = DynamicalSystem_projective([x^2-y^2,2*x*y])
             sage: prime = system.field_of_definition_periodic(1).prime_above(2)
-            sage: new_system = potential_good_reduction(system, prime)
+            sage: new_system = system.potential_good_reduction(prime)
             sage: new_system
             Dynamical System of Projective Space of dimension 1 over Number Field
             in a with defining polynomial x^2 + 1
@@ -6960,6 +6962,14 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: prime = system.field_of_definition_periodic(1).prime_above(3)
             sage: system.potential_good_reduction(prime)
             False
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: system = DynamicalSystem_projective([x^5-x*y^4,5*y^5])
+            sage: prime = system.field_of_definition_periodic(1).prime_above(5)
+            sage: system.potential_good_reduction(prime)
+            False
         """
         if self.domain().base_ring() not in NumberFields:
             raise ValueError('dynamical system must be defined over number field')
@@ -6970,7 +6980,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             raise ValueError('prime must be an ideal of a number field or an element of QQ')
         if field_of_definition_periodic is not QQ:
             if prime.number_field() != field_of_definition_periodic:
-                raise ValueError('prime ideal defined over %s ' %prime.number_field() + \
+                raise ValueError('prime ideal of %s ' %prime.number_field() + \
                     'but field of definition of fixed points is %s' %self.domain().base_ring())
         else:
             if prime not in QQ:

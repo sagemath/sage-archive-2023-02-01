@@ -973,4 +973,5 @@ class assuming:
             forget(assumptions())
             assume(self.OldAss)
         else:
-            if len(self.Ass)>0: forget(self.Ass)
+            if len(self.Ass) > 0:
+                forget(self.Ass)

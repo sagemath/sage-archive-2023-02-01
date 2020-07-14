@@ -9,31 +9,30 @@ The extended Kasami code with parameters `(s,t)` is defined as
 
 .. MATH::
 
-  \{ v \in GF(2)^s \mid
-  \sum_{a \in GF(s)} v_a =
-  \sum_{a \in GF(s)} a v_a =
-  \sum_{a \in GF(s)} a^{t+1} v_a = 0 \}
+    \{ v \in GF(2)^s \mid
+    \sum_{a \in GF(s)} v_a =
+    \sum_{a \in GF(s)} a v_a =
+    \sum_{a \in GF(s)} a^{t+1} v_a = 0 \}
 
 
-It follows that these are subfield subcodes of
-the code having those three equations as parity checks.
+It follows that these are subfield subcodes of the code having those three
+equations as parity checks.  The only valid parameters `s,t` are given by the
+below, where `q` is a power of 2
 
-The only valid parameters `s,t` are given by the below,
-where `q` is a power of 2:
-    * `s = q^{2j+1}`, `t = q^m` with `m \leq j` and `\gcd(m,2j+1) = 1`
-    * `s = q^2`, `t=q`
+* `s = q^{2j+1}`, `t = q^m` with `m \leq j` and `\gcd(m,2j+1) = 1`
+* `s = q^2`, `t=q`
 
-The coset graphs of the Kasami codes are distance-regular.
+The coset graphs of the Kasami codes are distance-regular.  In particular, the
+extended Kasami codes result in distance-regular graphs with intersection arrays
 
-In particular, the extended Kasami codes result in
-distance-regular graphs with intersection arrays:
-    * `[q^{2j+1}, q^{2j+1} - 1, q^{2j+1} - q, q^{2j+1} - q^{2j} + 1;`
-      `1, q, q^{2j} -1, q^{2j+1}]`
-    * `[q^2, q^2 - 1, q^2 - q, 1; 1, q, q^2 - 1, q^2]`
+* `[q^{2j+1}, q^{2j+1} - 1, q^{2j+1} - q, q^{2j+1} - q^{2j} + 1;`
+  `1, q, q^{2j} -1, q^{2j+1}]`
+* `[q^2, q^2 - 1, q^2 - q, 1; 1, q, q^2 - 1, q^2]`
 
-The Kasami codes result in distance-regular graphs with intersection arrays:
-    * `[q^{2j+1} - 1, q^{2j+1} - q, q^{2j+1} - q^{2j} + 1; 1, q, q^{2j} -1]`
-    * `[q^2 - 1, q^2 - q, 1; 1, q, q^2 - 1]`
+The Kasami codes result in distance-regular graphs with intersection arrays
+
+* `[q^{2j+1} - 1, q^{2j+1} - q, q^{2j+1} - q^{2j} + 1; 1, q, q^{2j} -1]`
+* `[q^2 - 1, q^2 - q, 1; 1, q, q^2 - 1]`
 
 REFERENCES:
 
@@ -81,6 +80,7 @@ class KasamiCode(AbstractLinearCode):
 
     The only valid parameters `s,t` are given by the below,
     where `q` is a power of 2:
+
         * `s = q^{2j+1}`, `t = q^m` with `m \leq j` and `\gcd(m,2j+1) = 1`
         * `s = q^2`, `t=q`
 
@@ -124,31 +124,23 @@ class KasamiCode(AbstractLinearCode):
     REFERENCES:
 
     For more information on Kasami codes and their use see [BCN1989]_
-    or the following:
+    or [Kas1966a]_, [Kas1966b]_, [Kas1971]_
 
-    - [Kas1966a]_
+    TESTS::
 
-    - [Kas1966b]_
-
-    - [Kas1971]_
-
-    TESTS:
-
-         sage: C1 = codes.KasamiCode(16, 4)
-         sage: C2 = codes.KasamiCode(16, 4, extended=False)
-         sage: C1.parameters() == C2.parameters()
-         True
-         sage: C1 == C2
-         False
-         sage: C1.minimum_distance() == C2.minimum_distance()+1
-         True
-
-         sage: C = codes.KasamiCode(4,2)
-         sage: C.dimension()
-         0
-         sage: C.generator_matrix()
-         []
-
+        sage: C1 = codes.KasamiCode(16, 4)
+        sage: C2 = codes.KasamiCode(16, 4, extended=False)
+        sage: C1.parameters() == C2.parameters()
+        True
+        sage: C1 == C2
+        False
+        sage: C1.minimum_distance() == C2.minimum_distance()+1
+        True
+        sage: C = codes.KasamiCode(4,2)
+        sage: C.dimension()
+        0
+        sage: C.generator_matrix()
+        []
     """
 
     _registered_encoders = {}
@@ -215,7 +207,7 @@ class KasamiCode(AbstractLinearCode):
         r"""
         Return the parameters `s,t` of ``self``.
 
-        Examples::
+        EXAMPLES::
 
             sage: C = codes.KasamiCode(16, 4, extended=True)
             sage: C.parameters()
@@ -223,7 +215,6 @@ class KasamiCode(AbstractLinearCode):
             sage: D = codes.KasamiCode(16, 4, extended=False)
             sage: D.parameters()
             (16, 4)
-
             sage: C = codes.KasamiCode(8,2)
             sage: C.parameters()
             (8, 2)
@@ -314,23 +305,19 @@ class KasamiCode(AbstractLinearCode):
             sage: C = codes.KasamiCode(4,2)
             sage: C.generator_matrix()
             []
-
             sage: C = codes.KasamiCode(8,2)
             sage: C.generator_matrix()
             [1 1 1 1 1 1 1 1]
             sage: C.minimum_distance()
             8
-
             sage: C = codes.KasamiCode(8, 2, extended=False)
             sage: C.generator_matrix()
             [1 1 1 1 1 1 1]
             sage: C.minimum_distance()
             7
-
             sage: C = codes.KasamiCode(4, 2, extended=False)
             sage: C.generator_matrix()
             []
-
             sage: C = codes.KasamiCode(16, 4, extended=False)
             sage: C.minimum_distance()
             3

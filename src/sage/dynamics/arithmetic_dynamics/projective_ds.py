@@ -6908,6 +6908,108 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             return gccc, m * mc * mc2, psi
         return gccc
 
+    def potential_good_reduction(self, prime):
+        r"""
+        Return if this dynamical system has potential good reduction at ``prime``.
+
+        A dynamical system has good reduction at ``prime`` if after the coefficients
+        are reduced modulo ``prime`` the degree remains the same. A dynamical system
+        `f` has `\textit{potential}` good reduction if there exists
+        `\phi \in PGL(n,\overline{K})` such that `\phi^{-1} \circ f \circ phi`
+        has good reduction.
+
+        If this dynamical system has potential good reduction at ``prime``, the map
+        `\phi` is returned.
+
+        This dynamical system must have as its domain `\mathbb{P}^1(K)`, where
+        `K` is a number field.
+
+        INPUT:
+
+        - ``prime`` -- a prime ideal of the field of definition of the fixed
+          points of the map, or a prime number in `\QQ` if the field of definition
+          of the fixed points is `\QQ`.
+
+        OUTPUT:
+
+        - ``False`` if this dynamical system does not have good reduction
+        - If this dynamical system `f` has potential good reduction, an element `phi`
+          of `PGL2` such that `phi^{-1} \circ f \circ \phi` has good reduction
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: system = DynamicalSystem_projective([x^2-y^2,2*x*y])
+            sage: prime = system.field_of_definition_periodic(1).prime_above(2)
+            sage: new_system = potential_good_reduction(system, prime)
+            sage: new_system
+            Dynamical System of Projective Space of dimension 1 over Number Field
+            in a with defining polynomial x^2 + 1
+              Defn: Defined on coordinates by sending (x : y) to
+                    ((-1/2*a)*x^2 + (-5/2*a)*y^2 : (-a)*x*y + y^2)
+
+        Note that this map has good reduction at 2::
+
+            sage: new_system.resultant()
+            1
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: system = DynamicalSystem_projective([3^4*x^3+3*x*y^2+y^3,3^6*y^3])
+            sage: prime = system.field_of_definition_periodic(1).prime_above(3)
+            sage: system.potential_good_reduction(prime)
+            False
+        """
+        if self.domain().base_ring() not in NumberFields:
+            raise ValueError('dynamical system must be defined over number field')
+
+        field_of_definition_periodic = self.field_of_definition_periodic(1)
+
+        if not (isinstance(prime, NumberFieldFractionalIdeal) or prime in QQ):
+            raise ValueError('prime must be an ideal of a number field or an element of QQ')
+        if field_of_definition_periodic is not QQ:
+            if prime.number_field() != field_of_definition_periodic:
+                raise ValueError('prime ideal defined over %s ' %prime.number_field() + \
+                    'but field of definition of fixed points is %s' %self.domain().base_ring())
+        else:
+            if prime not in QQ:
+                raise ValueError('field of definition of fixed points is QQ but prime not in QQ')
+
+        system = self.change_ring(field_of_definition_periodic)
+        fixed_points = system.periodic_points(1)
+        multipliers = [system.multiplier(i, 1)[0][0] for i in fixed_points]
+        indifferent_point = None
+        for mult in multipliers:
+            if field_of_definition_periodic is not QQ:
+                valuation = mult.valuation(prime)/(prime.absolute_ramification_index())
+            else:
+                valuation = mult.valuation(prime)
+            if valuation < 0:
+                return False
+            elif valuation == 0:
+                indifferent_point = fixed_points[multipliers.index(mult)]
+        if indifferent_point is not None:
+            preimages = [indifferent_point]
+            point = indifferent_point
+            for i in [1,2]:
+                field_of_definition = system.field_of_definition_preimage(point, 1)
+                system = system.change_ring(field_of_definition)
+                preimages_of_point = system.rational_preimages(point, 1)
+                for preimage in preimages_of_point:
+                    if preimage != point:
+                        preimages.append(preimage)
+                        point = preimage
+                        break
+        else:
+            preimages = [fixed_points[0],fixed_points[1],fixed_points[2]]
+            field_of_definition = field_of_definition_periodic
+        P = ProjectiveSpace(field_of_definition,1)
+        preimages = [P(i) for i in preimages]
+        conjugation = P.point_transformation_matrix(preimages,[P(0),P(1),P([1,0])])
+        new_system = system.change_ring(field_of_definition)
+        return new_system.conjugate(conjugation)
+
     def reduce_base_field(self):
         """
         Return this map defined over the field of definition of the coefficients.

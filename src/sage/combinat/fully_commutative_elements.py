@@ -64,7 +64,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         :func:`check` is an alias of this method, and is called automatically
         when an element is created.
 
-        EXAMPLES::
+        EXAMPLES:
 
         To construct an FC element, first call the parent class
         FullyCommutativeElements. The parent class contains information about
@@ -157,7 +157,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         :func:`normalize` is an alias of this method, and is called
         automatically when an element is created.
 
-        EXAMPLES::
+        EXAMPLES:
 
         The following reduced words express the same FC elements in `B_5` ::
 
@@ -679,7 +679,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         otherwise.
 
 
-        EXAMPLES::
+        EXAMPLES:
          
         We will compute all star operations on the following FC element in type
         `B_6` relative to `J = \{5, 6\}` ::
@@ -776,7 +776,7 @@ class FullyCommutativeElement(NormalizedClonableList):
           operations on the specified side.
 
 
-        EXAMPLES::
+        EXAMPLES:
 
         Compute the left star closure of [1] in the group `I_8`. This should be
         set of `\{1,2\}`-braids of lengths 1 through 7, and should be the same
@@ -844,7 +844,7 @@ class FullyCommutativeElements(Parent):
     enumerated sets or finite enumerated sets depending on if the group is
     FC-finite.
 
-    EXAMPLES::
+    EXAMPLES:
 
     Enumerate the FC elements in `A_3` in their Cartier--Foata forms ::
 

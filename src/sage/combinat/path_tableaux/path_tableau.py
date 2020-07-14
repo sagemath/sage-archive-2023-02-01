@@ -24,7 +24,7 @@ AUTHORS:
 - Bruce Westbury (2018): initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2018 Bruce Westbury <bruce.westbury@gmail.com>,
 #
 # This program is free software: you can redistribute it and/or modify
@@ -45,6 +45,7 @@ from sage.structure.list_clone import ClonableArray
 from sage.misc.latex import latex
 #from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 #from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+
 
 class PathTableau(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
     r"""
@@ -279,8 +280,7 @@ class PathTableau(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
         """
         tester = self._tester(**options)
         for i in range(self.size()-2):
-            tester.assertTrue(self.local_rule(i+1).local_rule(i+1) == self)
-
+            tester.assertEqual(self.local_rule(i+1).local_rule(i + 1), self)
 
     def _test_involution_cactus(self, **options):
         """

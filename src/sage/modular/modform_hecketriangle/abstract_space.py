@@ -1837,7 +1837,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         # of the column size until A has maximal rank:
         if (A.rank() < column_size):
             if (incr_prec_by == 0):
-                from sage.misc.misc import verbose
+                from sage.misc.verbose import verbose
                 verbose("Encountered a base change matrix with not-yet-maximal rank (rare, please report)!")
             incr_prec_by += column_size//ZZ(5) + 1
             return self._quasi_form_matrix(min_exp=min_exp, order_1=order_1, incr_prec_by=incr_prec_by)

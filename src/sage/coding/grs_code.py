@@ -117,6 +117,28 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, colmults)
         sage: C
         [40, 12, 29] Generalized Reed-Solomon Code over GF(59)
+
+    SageMath implements efficient decoding algorithms for GRS codes::
+
+        sage: F = GF(11)
+        sage: n, k = 10, 5
+        sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
+        sage: r = vector(F, (8, 2, 6, 10, 6, 10, 7, 6, 7, 2))
+        sage: C.decode_to_message(r)
+        (3, 6, 6, 3, 1)
+
+    TESTS:
+
+    Test that the bug in :trac:`30045` is fixed::
+
+        sage: F = GF(5)
+        sage: C = codes.GeneralizedReedSolomonCode(F.list()[:5], 2)
+        sage: D = codes.decoders.GRSErrorErasureDecoder(C)
+        sage: y = (vector(F, [3, 0, 3, 0, 3]), vector(GF(2),[0, 1, 0, 1, 0]))
+        sage: D.decode_to_code(y)
+        (3, 3, 3, 3, 3)
+        sage: D.decode_to_message(y)
+        (3, 0)
     """
     _registered_encoders = {}
     _registered_decoders = {}
@@ -548,37 +570,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         G = G.delete_columns(list(points))
         dimension = G.rank()
         return GeneralizedReedSolomonCode(punctured_alphas, dimension, punctured_col_mults)
-
-    def decode_to_message(self, r):
-        r"""
-        Decode ``r`` to an element in message space of ``self``.
-
-        .. NOTE::
-
-            If the code associated to ``self`` has the same length as its
-            dimension, ``r`` will be unencoded as is. In that case,
-            if ``r`` is not a codeword, the output is unspecified.
-
-        INPUT:
-
-        - ``r`` -- a codeword of ``self``
-
-        OUTPUT:
-
-        - a vector of ``self`` message space
-
-        EXAMPLES::
-
-            sage: F = GF(11)
-            sage: n, k = 10, 5
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
-            sage: r = vector(F, (8, 2, 6, 10, 6, 10, 7, 6, 7, 2))
-            sage: C.decode_to_message(r)
-            (3, 6, 6, 3, 1)
-        """
-        if self.length() == self.dimension():
-            return self.encoder().unencode_nocheck(r)
-        return vector(self.decoder().decode_to_message(r))
 
 
 def ReedSolomonCode(base_field, length, dimension, primitive_root=None):

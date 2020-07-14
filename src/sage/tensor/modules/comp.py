@@ -1889,7 +1889,7 @@ class Components(SageObject):
             sage: from sage.tensor.modules.comp import Components
             sage: a = Components(QQ, [1,2,3], 1)
             sage: a[:] = 1, 0, -3
-            sage: s = a.__div__(3) ; s
+            sage: s = a.__truediv__(3) ; s
             1-index components w.r.t. [1, 2, 3]
             sage: s[:]
             [1/3, 0, -1]
@@ -1906,8 +1906,6 @@ class Components(SageObject):
         for ind, val in self._comp.items():
             result._comp[ind] = val / other
         return result
-
-    __div__ = __truediv__
 
     def trace(self, pos1, pos2):
         r"""

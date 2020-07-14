@@ -68,7 +68,7 @@ import sage.rings.polynomial.polynomial_ring
 
 from sage.libs.ntl.ZZX cimport *
 
-from sage.rings.polynomial.evaluation cimport ZZX_evaluation_mpfr, ZZX_evaluation_mpfi
+from sage.rings.polynomial.evaluation_ntl cimport ZZX_evaluation_mpfr, ZZX_evaluation_mpfi
 
 cdef class Polynomial_integer_dense_ntl(Polynomial):
     r"""

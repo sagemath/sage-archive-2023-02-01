@@ -3830,7 +3830,7 @@ class ParallelogramPolyominoesFactory(SetFactory):
         sage: PPS
         Parallelogram polyominoes of size 4
 
-        sage: sorted(list(PPS))
+        sage: sorted(PPS)
         [[[0, 0, 0, 1], [1, 0, 0, 0]],
          [[0, 0, 1, 1], [1, 0, 1, 0]],
          [[0, 0, 1, 1], [1, 1, 0, 0]],
@@ -3860,7 +3860,7 @@ class ParallelogramPolyominoesFactory(SetFactory):
             sage: PPS = ParallelogramPolyominoes(size=4)
             sage: PPS
             Parallelogram polyominoes of size 4
-            sage: sorted(list(PPS))
+            sage: sorted(PPS)
             [[[0, 0, 0, 1], [1, 0, 0, 0]],
              [[0, 0, 1, 1], [1, 0, 1, 0]],
              [[0, 0, 1, 1], [1, 1, 0, 0]],
@@ -3935,7 +3935,7 @@ class ParallelogramPolyominoes_size(
         sage: PPS = ParallelogramPolyominoes(4)
         sage: PPS
         Parallelogram polyominoes of size 4
-        sage: sorted(list(PPS))
+        sage: sorted(PPS)
         [[[0, 0, 0, 1], [1, 0, 0, 0]],
          [[0, 0, 1, 1], [1, 0, 1, 0]],
          [[0, 0, 1, 1], [1, 1, 0, 0]],

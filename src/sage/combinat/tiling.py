@@ -443,7 +443,8 @@ def ncube_isometry_group_cosets(n, orientation_preserving=True):
 
     G_todo = set(G)
     # Make sure that H is a subset of G
-    for h in H: h.set_immutable()
+    for h in H:
+        h.set_immutable()
     assert all(h in G_todo for h in H), "H must be a subset of G"
 
     # Construct the cosets

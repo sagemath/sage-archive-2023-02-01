@@ -126,7 +126,7 @@ Test if :trac:`9947` is fixed::
 
 Check the fix for :trac:`25251` and :trac:`25252`::
 
-    sage: e1 = sqrt(2)*I - sqrt(2) - 2 
+    sage: e1 = sqrt(2)*I - sqrt(2) - 2
     sage: e2 = sqrt(2)
     sage: e1 * e2
     sqrt(2)*((I - 1)*sqrt(2) - 2)
@@ -1316,15 +1316,6 @@ cdef class Expression(CommutativeRingElement):
             raise ValueError("cannot convert %s to int" % self)
         else:
             return int(result)
-
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: long(sin(2)*100)
-            90L
-        """
-        return long(int(self))
 
     def _rational_(self):
         """
@@ -5869,14 +5860,10 @@ cdef class Expression(CommutativeRingElement):
 
         Indexing directly with ``t[1]`` causes problems with numpy types.
 
-            sage: t[1] # py2
+            sage: t[1]
             Traceback (most recent call last):
             ...
-            TypeError: 'sage.symbolic.expression.Expression' object does not support indexing
-            sage: t[1] # py3
-            Traceback (most recent call last):
-            ...
-            TypeError: 'sage.symbolic.expression.Expression' object is not subscriptable
+            TypeError: 'sage.symbolic.expression.Expression' object ...
         """
         if (is_a_symbol(self._gobj) or is_a_constant(self._gobj) or
             is_a_numeric(self._gobj)):
@@ -9205,6 +9192,7 @@ cdef class Expression(CommutativeRingElement):
             3.17805383034795
             sage: SR(5-1).factorial().log()
             log(24)
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(-1); plot(lambda x: SR(x).log_gamma(), -7,8, plot_points=1000).show()
             sage: math.exp(0.5)
             1.6487212707001282
@@ -9651,20 +9639,17 @@ cdef class Expression(CommutativeRingElement):
 
         INPUT:
 
-
-        -  ``var`` - variable name or string (default: first
-           variable)
-
+        -  ``var`` -- variable name or string (default: first variable)
 
         OUTPUT:
 
-        A symbolic expression.
+        A symbolic expression
+
+        .. SEEALSO:: :meth:`partial_fraction_decomposition`
 
         EXAMPLES::
 
             sage: f = x^2/(x+1)^3
-            sage: f.partial_fraction()
-            1/(x + 1) - 2/(x + 1)^2 + 1/(x + 1)^3
             sage: f.partial_fraction()
             1/(x + 1) - 2/(x + 1)^2 + 1/(x + 1)^3
 
@@ -9688,6 +9673,51 @@ cdef class Expression(CommutativeRingElement):
         if var is None:
             var = self.default_variable()
         return self.parent()(self._maxima_().partfrac(var))
+
+    def partial_fraction_decomposition(self, var=None):
+        r"""
+        Return the partial fraction decomposition of ``self`` with
+        respect to the given variable.
+
+        INPUT:
+
+        -  ``var`` -- variable name or string (default: first variable)
+
+        OUTPUT:
+
+        A list of symbolic expressions
+
+        .. SEEALSO:: :meth:`partial_fraction`
+
+        EXAMPLES::
+
+            sage: f = x^2/(x+1)^3
+            sage: f.partial_fraction_decomposition()
+            [1/(x + 1), -2/(x + 1)^2, (x + 1)^(-3)]
+            sage: (4+f).partial_fraction_decomposition()
+            [1/(x + 1), -2/(x + 1)^2, (x + 1)^(-3), 4]
+
+        Notice that the first variable in the expression is used by
+        default::
+
+            sage: y = var('y')
+            sage: f = y^2/(y+1)^3
+            sage: f.partial_fraction_decomposition()
+            [1/(y + 1), -2/(y + 1)^2, (y + 1)^(-3)]
+
+            sage: f = y^2/(y+1)^3 + x/(x-1)^3
+            sage: f.partial_fraction_decomposition()
+            [y^2/(y^3 + 3*y^2 + 3*y + 1), (x - 1)^(-2), (x - 1)^(-3)]
+
+        You can explicitly specify which variable is used::
+
+            sage: f.partial_fraction_decomposition(y)
+            [1/(y + 1), -2/(y + 1)^2, (y + 1)^(-3), x/(x^3 - 3*x^2 + 3*x - 1)]
+        """
+        if var is None:
+            var = self.default_variable()
+        return [self.parent()(ex)
+                for ex in self._maxima_().partfrac(var).args()]
 
     def maxima_methods(self):
         """
@@ -11743,11 +11773,11 @@ cdef class Expression(CommutativeRingElement):
             sage: sin(x).find_root(-1,1)
             0.0
 
-        This example was fixed along with :trac:`4942` - 
+        This example was fixed along with :trac:`4942` -
         there was an error in the example
         pi is a root for tan(x), but an asymptote to 1/tan(x)
         added an example to show handling of both cases::
-        
+
             sage: (tan(x)).find_root(3,3.5)
             3.1415926535...
             sage: (1/tan(x)).find_root(3, 3.5)

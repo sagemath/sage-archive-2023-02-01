@@ -35,14 +35,15 @@ import sys
 from docutils.statemachine import ViewList
 
 import sphinx
-from sphinx.ext.autodoc.importer import mock, import_object, get_object_members
+from sphinx.ext.autodoc import mock
+from sphinx.ext.autodoc.importer import import_object, get_object_members, get_module_members
 from sphinx.locale import _, __
 from sphinx.pycode import ModuleAnalyzer
 from sphinx.errors import PycodeError
 from sphinx.util import logging
 from sphinx.util import rpartition, force_decode
 from sphinx.util.docstrings import prepare_docstring
-from sphinx.util.inspect import isdescriptor, safe_getmembers, \
+from sphinx.util.inspect import isdescriptor, \
     safe_getattr, object_description, is_builtin_class_method, \
     isenumattribute, isclassmethod, isstaticmethod, getdoc
 
@@ -536,7 +537,7 @@ class Documenter(object):
 
         # add content from docstrings
         if not no_docstring:
-            encoding = self.analyzer and self.analyzer.encoding
+            encoding = self.analyzer and self.analyzer._encoding
             docstrings = self.get_doc(encoding)
             if not docstrings:
                 # append at least a dummy docstring, so that the event
@@ -882,7 +883,7 @@ class ModuleDocumenter(Documenter):
             if not hasattr(self.object, '__all__'):
                 # for implicit module members, check __module__ to avoid
                 # documenting imported objects
-                return True, safe_getmembers(self.object)
+                return True, get_module_members(self.object)
             else:
                 memberlist = self.object.__all__
                 # Sometimes __all__ is broken...
@@ -893,7 +894,7 @@ class ModuleDocumenter(Documenter):
                         '(in module %s) -- ignoring __all__' %
                         (memberlist, self.fullname))
                     # fall back to all members
-                    return True, safe_getmembers(self.object)
+                    return True, get_module_members(self.object)
         else:
             memberlist = self.options.members or []
         ret = []

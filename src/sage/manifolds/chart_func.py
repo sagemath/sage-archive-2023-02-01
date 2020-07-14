@@ -912,7 +912,7 @@ class ChartFunction(AlgebraElement):
         resu._order = self._order
         return resu
 
-    def diff(self, coord):
+    def derivative(self, coord):
         r"""
         Partial derivative with respect to a coordinate.
 
@@ -937,28 +937,38 @@ class ChartFunction(AlgebraElement):
             sage: X.<x,y> = M.chart(calc_method='SR')
             sage: f = X.function(x^2+3*y+1); f
             x^2 + 3*y + 1
-            sage: f.diff(x)
+            sage: f.derivative(x)
             2*x
-            sage: f.diff(y)
+            sage: f.derivative(y)
             3
 
-        Each partial derivatives is itself a chart function::
+        An alias is ``diff``::
+
+            sage: f.diff(x)
+            2*x
+
+        Each partial derivative is itself a chart function::
 
             sage: type(f.diff(x))
             <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
+
+        The same result is returned by the function ``diff``::
+
+            sage: diff(f, x)
+            2*x
 
         An index can be used instead of the coordinate symbol::
 
             sage: f.diff(0)
             2*x
-            sage: f.diff(1)
+            sage: diff(f, 1)
             3
 
         The index range depends on the convention used on the chart's domain::
 
             sage: M = Manifold(2, 'M', structure='topological', start_index=1)
-            sage: X.<x,y> = M.chart(calc_method='sympy')
-            sage: f = X.function(x**2+3*y+1)
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x^2+3*y+1)
             sage: f.diff(0)
             Traceback (most recent call last):
             ...
@@ -1006,6 +1016,8 @@ class ChartFunction(AlgebraElement):
             return self._der[coordsi]
         else:
             return self._der[self._chart[:].index(coord)]
+
+    diff = derivative
 
     def __eq__(self, other):
         r"""

@@ -1132,29 +1132,6 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         """
         raise TypeError("can't convert complex to int; use int(abs(z))")
 
-    def __long__(self):
-        r"""
-        Method for converting ``self`` to type ``long``.
-
-        Called by the ``long`` function. Note that calling this method
-        returns an error since, in general, complex numbers cannot be
-        coerced into integers.
-
-        EXAMPLES::
-
-            sage: MPC = MPComplexField()
-            sage: a = MPC(2,1)
-            sage: long(a)  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to long; use long(abs(z))
-            sage: a.__long__()  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to long; use long(abs(z))
-        """
-        raise TypeError("can't convert complex to long; use long(abs(z))")
-
     def __float__(self):
         r"""
         Method for converting ``self`` to type ``float``.
@@ -1596,7 +1573,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         mpc_norm(x.value, self.value, (<RealField_class>x._parent).rnd)
         return x
 
-    def __rdiv__(self, left):
+    def __rtruediv__(self, left):
         r"""
         Returns the quotient of ``left`` with ``self``, that is: ``left/self``
         as a complex number.
@@ -1609,7 +1586,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
             sage: MPC = MPComplexField()
             sage: a = MPC(2, 2)
-            sage: a.__rdiv__(MPC(1))
+            sage: a.__rtruediv__(MPC(1))
             0.250000000000000 - 0.250000000000000*I
             sage: MPC(1)/a
             0.250000000000000 - 0.250000000000000*I

@@ -501,7 +501,7 @@ def CompleteBipartiteGraph(n1, n2, set_position=True):
         ...
         ValueError: the arguments n1(=1) and n2(=-1) must be positive integers
     """
-    if n1<0 or n2<0:
+    if n1 < 0 or n2 < 0:
         raise ValueError('the arguments n1(={}) and n2(={}) must be positive integers'.format(n1,n2))
 
     G = Graph(n1+n2, name="Complete bipartite graph of order {}+{}".format(n1, n2))
@@ -899,20 +899,20 @@ def GridGraph(dim_list):
 
     g = Graph()
     n_dim = len(dim)
-    if n_dim==1:
+    if n_dim == 1:
         # Vertices are labeled from 0 to dim[0]-1
         g = PathGraph(dim[0])
-    elif n_dim==2:
+    elif n_dim == 2:
         # We use the Grid2dGraph generator to also get the positions
         g = Grid2dGraph(*dim)
-    elif n_dim>2:
+    elif n_dim > 2:
         # Vertices are tuples of dimension n_dim, and the graph contains at
         # least vertex (0, 0, ..., 0)
         g.add_vertex(tuple([0]*n_dim))
         import itertools
         for u in itertools.product(*[range(d) for d in dim]):
             for i in range(n_dim):
-                if u[i]+1<dim[i]:
+                if u[i] + 1 < dim[i]:
                     v = list(u)
                     v[i] = u[i]+1
                     g.add_edge(u, tuple(v))
@@ -1087,10 +1087,13 @@ def PathGraph(n, pos=None):
 
     # Choose appropriate drawing pattern
     circle = False
-    if pos == "circle": circle = True
-    elif pos == "line": circle = False
+    if pos == "circle":
+        circle = True
+    elif pos == "line":
+        circle = False
     # Otherwise use default by size of n
-    elif 10 < n < 41: circle = True
+    elif 10 < n < 41:
+        circle = True
 
     # Draw 'circle'
     if circle:
@@ -1114,8 +1117,10 @@ def PathGraph(n, pos=None):
                     x = 9 - j
                 pos_dict[counter] = (x,y)
                 counter += 1
-            if lr: lr = False
-            else: lr = True
+            if lr:
+                lr = False
+            else:
+                lr = True
         y = -rows
         for j in range(rem): # last row
             if lr:

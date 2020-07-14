@@ -1126,21 +1126,25 @@ class Graph(GenericGraph):
         if format == 'weighted_adjacency_matrix':
             if weighted is False:
                 raise ValueError("Format was weighted_adjacency_matrix but weighted was False.")
-            if weighted   is None: weighted   = True
-            if multiedges is None: multiedges = False
+            if weighted is None:
+                weighted = True
+            if multiedges is None:
+                multiedges = False
             format = 'adjacency_matrix'
 
         # At this point, 'format' has been set. We build the graph
 
         if format == 'graph6':
-            if weighted   is None: weighted   = False
+            if weighted is None:
+                weighted = False
             self.allow_loops(loops if loops else False, check=False)
             self.allow_multiple_edges(multiedges if multiedges else False, check=False)
             from .graph_input import from_graph6
             from_graph6(self, data)
 
         elif format == 'sparse6':
-            if weighted   is None: weighted   = False
+            if weighted is None:
+                weighted = False
             self.allow_loops(False if loops is False else True, check=False)
             self.allow_multiple_edges(False if multiedges is False else True, check=False)
             from .graph_input import from_sparse6
@@ -1163,9 +1167,12 @@ class Graph(GenericGraph):
             from .graph_input import from_seidel_adjacency_matrix
             from_seidel_adjacency_matrix(self, data)
         elif format == 'Graph':
-            if loops is None:      loops      = data.allows_loops()
-            if multiedges is None: multiedges = data.allows_multiple_edges()
-            if weighted is None:   weighted   = data.weighted()
+            if loops is None:
+                loops = data.allows_loops()
+            if multiedges is None:
+                multiedges = data.allows_multiple_edges()
+            if weighted is None:
+                weighted = data.weighted()
             self.allow_loops(loops, check=False)
             self.allow_multiple_edges(multiedges, check=False)
             if data.get_pos() is not None:
@@ -1213,8 +1220,10 @@ class Graph(GenericGraph):
         elif format == 'rule':
             f = data[1]
             verts = data[0]
-            if loops is None: loops = any(f(v,v) for v in verts)
-            if weighted is None: weighted = False
+            if loops is None:
+                loops = any(f(v,v) for v in verts)
+            if weighted is None:
+                weighted = False
             self.allow_loops(loops, check=False)
             self.allow_multiple_edges(True if multiedges else False, check=False)
             self.add_vertices(verts)
@@ -1253,7 +1262,8 @@ class Graph(GenericGraph):
         else:
             raise ValueError("Unknown input format '{}'".format(format))
 
-        if weighted   is None: weighted   = False
+        if weighted is None:
+            weighted = False
         self._weighted = getattr(self, '_weighted', weighted)
 
         self._pos = copy(pos)
@@ -2801,9 +2811,12 @@ class Graph(GenericGraph):
 
         # Stupid cases
         if not g.order():
-            if certificate: return Graph()
-            elif k is None: return -1
-            else:           return True
+            if certificate:
+                return Graph()
+            elif k is None:
+                return -1
+            else:
+                return True
 
         if k is not None and k >= g.order() - 1:
             if certificate:
@@ -5223,14 +5236,21 @@ class Graph(GenericGraph):
           - ``'BFS'`` - the computation is done through a BFS centered on each
             vertex successively. Works only if ``by_weight==False``.
 
+          - ``'DHV'`` - the computation is done using the algorithm proposed in
+            [Dragan2018]_. Works only if ``self`` has non-negative edge weights
+            and ``v is None`` or ``v`` should contain all vertices of ``self``.
+            For more information see method
+            :func:`sage.graphs.distances_all_pairs.eccentricity` and
+            :func:`sage.graphs.base.boost_graph.eccentricity_DHV`.
+
           - ``'Floyd-Warshall-Cython'`` - a Cython implementation of the
             Floyd-Warshall algorithm. Works only if ``by_weight==False`` and
-            ``v is None``.
+            ``v is None`` or ``v`` should contain all vertices of ``self``.
 
           - ``'Floyd-Warshall-Python'`` - a Python implementation of the
             Floyd-Warshall algorithm. Works also with weighted graphs, even with
             negative weights (but no negative cycle is allowed). However, ``v``
-            must be ``None``.
+            must be ``None`` or ``v`` should contain all vertices of ``self``.
 
           - ``'Dijkstra_NetworkX'`` - the Dijkstra algorithm, implemented in
             NetworkX. It works with weighted graphs, but no negative weight is
@@ -5241,7 +5261,8 @@ class Graph(GenericGraph):
 
           - ``'Johnson_Boost'`` - the Johnson algorithm, implemented in
             Boost (works also with negative weights, if there is no negative
-            cycle).
+            cycle). Works only if ``v is None`` or ``v`` should contain all
+            vertices of ``self``.
 
           - ``'From_Dictionary'`` - uses the (already computed) distances, that
             are provided by input variable ``dist_dict``.
@@ -5255,7 +5276,7 @@ class Graph(GenericGraph):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -5303,6 +5324,10 @@ class Graph(GenericGraph):
             [2, 1, 2]
             sage: G.eccentricity(dist_dict = G.shortest_path_all_pairs(by_weight = True)[0])
             [2, 1, 2]
+            sage: G.eccentricity(by_weight = False, algorithm = 'DHV')
+            [1, 1, 1]
+            sage: G.eccentricity(by_weight = True, algorithm = 'DHV')
+            [2.0, 1.0, 2.0]
 
         TESTS:
 
@@ -5339,12 +5364,16 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: algorithm 'Johnson_Boost' works only if all eccentricities are needed
+            sage: G.eccentricity(0, algorithm = 'DHV')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm 'DHV' works only if all eccentricities are needed
         """
         if weight_function is not None:
             by_weight = True
         elif by_weight:
             def weight_function(e):
-                return e[2]
+                return 1 if e[2] is None else e[2]
 
         if algorithm is None:
             if dist_dict is not None:
@@ -5363,7 +5392,12 @@ class Graph(GenericGraph):
             if algorithm is None:
                 algorithm = 'Dijkstra_Boost'
 
-        if v is None:
+        if v is not None and not isinstance(v, list):
+            v = [v]
+
+        if v is None or all(u in v for u in self):
+            if v is None:
+                v = list(self)
             # If we want to use BFS, we use the Cython routine
             if algorithm == 'BFS':
                 if by_weight:
@@ -5371,10 +5405,28 @@ class Graph(GenericGraph):
                 from sage.graphs.distances_all_pairs import eccentricity
                 algo = 'bounds'
                 if with_labels:
-                    vertex_list = list(self)
-                    return dict(zip(vertex_list, eccentricity(self, algorithm=algo, vertex_list=vertex_list)))
+                    return dict(zip(v, eccentricity(self, algorithm=algo, vertex_list=v)))
                 else:
-                    return eccentricity(self, algorithm=algo)
+                    return eccentricity(self, algorithm=algo,vertex_list=v)
+
+            if algorithm == 'DHV':
+                if by_weight:
+                    from sage.graphs.base.boost_graph import eccentricity_DHV
+                    if with_labels:
+                        return dict(zip(v, eccentricity_DHV(self, vertex_list=v,
+                                                            weight_function=weight_function,
+                                                            check_weight=check_weight)))
+                    else:
+                        return eccentricity_DHV(self, vertex_list=v,
+                                                weight_function=weight_function,
+                                                check_weight=check_weight)
+                else:
+                    from sage.graphs.distances_all_pairs import eccentricity
+                    if with_labels:
+                        return dict(zip(v, eccentricity(self, algorithm=algorithm,
+                                                        vertex_list=v)))
+                    else:
+                        return eccentricity(self, algorithm=algorithm, vertex_list=v)
 
             if algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
                 dist_dict = self.shortest_path_all_pairs(by_weight, algorithm,
@@ -5382,14 +5434,10 @@ class Graph(GenericGraph):
                                                          check_weight)[0]
                 algorithm = 'From_Dictionary'
 
-            v = self.vertices()
-
-        elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
+        elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost','DHV']:
             raise ValueError("algorithm '" + algorithm + "' works only if all" +
                              " eccentricities are needed")
 
-        if not isinstance(v, list):
-            v = [v]
         ecc = {}
 
         from sage.rings.infinity import Infinity
@@ -5420,7 +5468,7 @@ class Graph(GenericGraph):
             return [ecc[u] for u in v]
 
     @doc_index("Distances")
-    def radius(self, by_weight=False, algorithm=None, weight_function=None,
+    def radius(self, by_weight=False, algorithm='DHV', weight_function=None,
                check_weight=True):
         r"""
         Return the radius of the graph.
@@ -5436,14 +5484,21 @@ class Graph(GenericGraph):
         - ``by_weight`` -- boolean (default: ``False``); if ``True``, edge
           weights are taken into account; if False, all edges have weight 1
 
-        - ``algorithm`` -- string (default: ``None``); see method
-          :meth:`eccentricity` for the list of available algorithms
+        - ``algorithm`` -- string (default: ``'DHV'``).
+
+          - ``'DHV'`` - Radius computation is done using the algorithm proposed
+            in [Dragan2018]_. Works for graph with non-negative edge weights.
+            For more information see method
+            :func:`sage.graphs.distances_all_pairs.radius_DHV` and
+            :func:`sage.graphs.base.boost_graph.radius_DHV`.
+
+          - see method :meth:`eccentricity` for the list of remaining algorithms
 
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -5477,7 +5532,26 @@ class Graph(GenericGraph):
         if not self.order():
             raise ValueError("radius is not defined for the empty graph")
 
-        return min(self.eccentricity(v=list(self), by_weight=by_weight,
+        if weight_function is not None:
+            by_weight = True
+
+        if by_weight and not weight_function:
+            def weight_function(e):
+                return 1 if e[2] is None else e[2]
+
+        if not algorithm:
+            algorithm = 'DHV'
+
+        if algorithm == 'DHV':
+            if by_weight:
+                from sage.graphs.base.boost_graph import radius_DHV
+                return radius_DHV(self, weight_function=weight_function,
+                                  check_weight=check_weight)
+            else:
+                from sage.graphs.distances_all_pairs import radius_DHV
+                return radius_DHV(self)
+
+        return min(self.eccentricity(v=None,by_weight=by_weight,
                                      weight_function=weight_function,
                                      check_weight=check_weight,
                                      algorithm=algorithm))
@@ -5624,7 +5698,7 @@ class Graph(GenericGraph):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -5696,7 +5770,7 @@ class Graph(GenericGraph):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -7614,16 +7688,12 @@ class Graph(GenericGraph):
 
         The Bull Graph is prime::
 
-            sage: graphs.BullGraph().modular_decomposition()  # py2
-            (PRIME, [0, 3, 4, 2, 1])
-            sage: graphs.BullGraph().modular_decomposition()  # py3
+            sage: graphs.BullGraph().modular_decomposition()
             (PRIME, [1, 2, 0, 3, 4])
 
         The Petersen Graph too::
 
-            sage: graphs.PetersenGraph().modular_decomposition()  # py2
-            (PRIME, [6, 2, 5, 1, 9, 3, 0, 7, 8, 4])
-            sage: graphs.PetersenGraph().modular_decomposition()  # py3
+            sage: graphs.PetersenGraph().modular_decomposition()
             (PRIME, [1, 4, 5, 0, 2, 6, 3, 7, 8, 9])
 
         This a clique on 5 vertices with 2 pendant edges, though, has a more

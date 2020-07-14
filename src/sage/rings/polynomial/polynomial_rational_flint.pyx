@@ -1,3 +1,5 @@
+# distutils: libraries = ntl gmp
+# distutils: language = c++
 r"""
 Univariate polynomials over `\QQ` implemented via FLINT
 

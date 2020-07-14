@@ -71,7 +71,6 @@ specifying the universe of the sequence::
 
 from __future__ import print_function
 
-from sage.misc.latex import list_function as list_latex_function
 import sage.structure.sage_object
 import sage.structure.coerce
 
@@ -232,8 +231,8 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
         x = list(x) # make a copy even if x is a list, we're going to change it
 
         if len(x) == 0:
-            import sage.categories.all
-            universe = sage.categories.all.Objects()
+            from sage.categories.objects import Objects
+            universe = Objects()
         else:
             import sage.structure.element
             if use_sage_types:
@@ -244,8 +243,8 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
                 try:
                     x[i], x[i+1] = sage.structure.element.canonical_coercion(x[i],x[i+1])
                 except TypeError:
-                    import sage.categories.all
-                    universe = sage.categories.all.Objects()
+                    from sage.categories.objects import Objects
+                    universe = Objects()
                     x = list(orig_x)
                     check = False  # no point
                     break
@@ -683,6 +682,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: latex(t)
             \left[\sqrt{x}, e^{x}, x^{x - 1}\right]
         """
+        from sage.misc.latex import list_function as list_latex_function
         return list_latex_function(self)
 
     def __str__(self):

@@ -234,6 +234,10 @@ class KasamiCode(AbstractLinearCode):
         r"""
         Test equality between Kasami Code objects.
 
+        Two Kasami codes are the same if they
+        have the same `s,t` values and are both
+        extended or both regular.
+
         EXAMPLES::
 
             sage: C1 = codes.KasamiCode(8,2)

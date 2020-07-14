@@ -273,7 +273,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.planar_dual` | Return the planar dual of an embedded graph.
     :meth:`~GenericGraph.get_pos` | Return the position dictionary
     :meth:`~GenericGraph.set_pos` | Set the position dictionary.
-    :meth:`~GenericGraph.set_planar_positions` | Compute a planar layout for self using Schnyder's algorithm
     :meth:`~GenericGraph.layout_planar` | Compute a planar layout of the graph using Schnyder's algorithm.
     :meth:`~GenericGraph.is_drawn_free_of_edge_crossings` | Check whether the position dictionary gives a planar embedding.
     :meth:`~GenericGraph.latex_options` | Return an instance of :class:`~sage.graphs.graph_latex.GraphLatex` for the graph.
@@ -5165,38 +5164,10 @@ class GenericGraph(GenericGraph_pyx):
                     self._embedding = graph._embedding.copy()
 
             if (set_pos and set_embedding):
-                self.set_planar_positions()
+                self.layout(layout="planar", save_pos=True, test=False)
 
         del graph
         return result
-
-    def set_planar_positions(self, test=False, **layout_options):
-        """
-        Compute a planar layout for self using Schnyder's algorithm,
-        and save it as default layout.
-
-        EXAMPLES::
-
-            sage: g = graphs.CycleGraph(7)
-            sage: g.set_planar_positions(test=True)
-            doctest:...: DeprecationWarning: This method is replaced by the method layout. Please use layout(layout="planar", save_pos=True) instead.
-            See http://trac.sagemath.org/24494 for details.
-            True
-
-        This method is deprecated since Sage-4.4.1.alpha2. Please use instead:
-
-            sage: g.layout(layout = "planar", save_pos = True)
-            {0: [1, 4], 1: [5, 1], 2: [0, 5], 3: [1, 0], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
-        """
-        deprecation(24494, 'This method is replaced by the method layout. '
-                           'Please use layout(layout="planar", save_pos=True) '
-                           'instead.')
-        self.layout(layout="planar", save_pos=True, test=test, **layout_options)
-        if test: # Optional error-checking (looking for edge-crossings O(n^2))
-            # returns true if tests pass
-            return self.is_drawn_free_of_edge_crossings()
-        else:
-            return
 
     def layout_planar(self, set_embedding=False, on_embedding=None,
                       external_face=None, test=False, circular=False,

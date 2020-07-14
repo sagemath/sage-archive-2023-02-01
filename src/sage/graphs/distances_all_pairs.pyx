@@ -1530,6 +1530,130 @@ cdef uint32_t diameter_DiFUB(short_digraph sd,
 
     # Finally return the computed diameter
     return LB
+cdef uint32_t diameter_DHV(short_digraph g):
+    r"""
+    Return the diameter of unweighted graph `g`.
+
+    This method computes the diameter of unweighted undirected graph using the
+    algorithm proposed in [Dragan2018]_.
+
+    This method returns Infinity if graph is not connected.
+
+    INPUT:
+
+    - ``g`` -- a short_digraph
+
+    EXAMPLES::
+
+        sage: from sage.graphs.distances_all_pairs import diameter
+        sage: G = graphs.PathGraph(5)
+        sage: diameter(G, algorithm='DHV')
+        4
+
+    TESTS:
+
+        sage: G = graphs.RandomGNP(20,0.3)
+        sage: G.diameter() == diameter(G, algorithm='DHV')
+        True
+
+        sage: G = Graph([(0, 1)])
+        sage: diameter(G, algorithm='DHV')
+        1
+    """
+    cdef uint32_t n = g.n
+    if n <= 1:
+        return 0
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *>mem.malloc(4 * n * sizeof(uint32_t))
+    if not distances:
+        raise MemoryError()
+
+    cdef uint32_t * waiting_list = distances + n
+
+    # For storing upper and lower bounds on eccentricity of nodes
+    cdef uint32_t * ecc_upper_bound = distances + 2 * n
+    cdef uint32_t * ecc_lower_bound = distances + 3 * n
+    memset(ecc_upper_bound, <char>-1, n * sizeof(uint32_t))
+    memset(ecc_lower_bound, 0, n * sizeof(uint32_t))
+
+    cdef uint32_t u, ecc_u
+    cdef uint32_t x, ecc_x
+    cdef uint32_t antipode, ecc_antipode
+    cdef uint32_t LB = 0
+    cdef uint32_t UB = UINT32_MAX
+    cdef uint32_t v, tmp
+    cdef size_t i, idx
+    cdef bitset_t seen
+    bitset_init(seen, n)
+
+    cdef list active = list(range(n))
+
+    # Algorithm
+    while LB < UB and active:
+        # 1. Select vertex u with maximum eccentricity upper bound
+        tmp = 0
+        for i, v in enumerate(active):
+            if ecc_upper_bound[v] > tmp:
+                tmp = ecc_upper_bound[v]
+                idx = i
+        active[idx], active[-1] = active[-1], active[idx]
+        u = active.pop()
+
+        # Compute the eccentricity of u and update eccentricity lower bounds
+        ecc_u = simple_BFS(g, u, distances, NULL, waiting_list, seen)
+        LB = max(LB, ecc_u)
+        if LB == UINT32_MAX:  # Disconnected graph
+            break
+
+        for v in active:
+            ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
+
+        # 2. Select x such that dist(u, x) + ecc[x] == ecc[u].
+        # Since we don't know ecc[x], we select x with minimum eccentricity
+        # lower bound.  If ecc[x] == ecc_lb[x], we are done. Otherwise, we
+        # update eccentricity lower bounds and repeat
+        while active:
+            # Select v with minimum eccentricity lower bound
+            tmp = UINT32_MAX
+            for i, v in enumerate(active):
+                if ecc_lower_bound[v] < tmp:
+                    tmp = ecc_lower_bound[v]
+                    idx = i
+            active[idx], active[-1] = active[-1], active[idx]
+            x = active.pop()
+            ecc_x = simple_BFS(g, x, distances, NULL, waiting_list, seen)
+            LB = max(LB, ecc_x)
+
+            if ecc_x == ecc_lower_bound[x]:
+                # We found the good vertex x
+                # We update eccentricity upper bounds of the remaining vertices,
+                # set UB to the largest of these values and break
+                UB = 0
+                for v in active:
+                    ecc_upper_bound[v] = min(ecc_upper_bound[v], distances[v] + ecc_x)
+                    UB = max(UB, ecc_upper_bound[v])
+                break
+
+            else:
+                # x was not a good choice
+                # We use its antipode to update eccentricity lower bounds.
+                # Observe that this antipode might have already been seen.
+                antipode = waiting_list[n-1]
+                for i, v in enumerate(active):
+                    if v == antipode:
+                        active[i] = active[-1]
+                        tmp = active.pop()
+                        break
+
+                ecc_antipode = simple_BFS(g, antipode, distances, NULL, waiting_list, seen)
+                LB = max(LB, ecc_antipode)
+                for v in active:
+                    ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
+
+    bitset_free(seen)
+    return LB
+
 
 def diameter(G, algorithm=None, source=None):
     r"""
@@ -1560,6 +1684,9 @@ def diameter(G, algorithm=None, source=None):
         directed graph using directed version of ``2sweep`` as proposed in
         [Broder2000]_. If the digraph is not strongly connected, the returned
         value is infinity.
+
+      - ``'DHV'`` -- Computes diameter of unweighted undirected graph using the
+        algorithm proposed in [Dragan2018]_.
 
       - ``'multi-sweep'`` -- Computes a lower bound on the diameter of an
         unweighted undirected graph using several iterations of the ``2sweep``
@@ -1638,7 +1765,8 @@ def diameter(G, algorithm=None, source=None):
         sage: d1 = diameter(G, algorithm='standard')
         sage: d2 = diameter(G, algorithm='iFUB')
         sage: d3 = diameter(G, algorithm='iFUB', source=G.random_vertex())
-        sage: if d1 != d2 or d1 != d3: print("Something goes wrong!")
+        sage: d4 = diameter(G, algorithm='DHV')
+        sage: if d1 != d2 or d1 != d3 or d1 != d4: print("Something goes wrong!")
 
     Comparison of lower bound algorithms::
 
@@ -1664,7 +1792,7 @@ def diameter(G, algorithm=None, source=None):
         0
     """
     cdef uint32_t n = G.order()
-    if not n:
+    if n <= 1:
         return 0
 
     if G.is_directed():
@@ -1675,7 +1803,7 @@ def diameter(G, algorithm=None, source=None):
     else:
         if algorithm is None:
             algorithm = 'iFUB'
-        elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB', 'standard']:
+        elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB', 'standard', 'DHV']:
             raise ValueError("unknown algorithm for computing the diameter of undirected graph")
 
     if algorithm == 'standard':
@@ -1724,6 +1852,9 @@ def diameter(G, algorithm=None, source=None):
 
     elif algorithm == 'DiFUB':
         LB = diameter_DiFUB(sd, isource)
+
+    elif algorithm == 'DHV':
+        LB = diameter_DHV(sd)
 
     else: # algorithm == 'iFUB'
         LB = diameter_iFUB(sd, isource)

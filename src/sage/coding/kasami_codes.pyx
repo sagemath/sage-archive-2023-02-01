@@ -241,9 +241,11 @@ class KasamiCode(AbstractLinearCode):
             sage: C1.__eq__(C2)
             True
         """
+        # Check that s, t, extended values of both
+        # objects are the same
         return isinstance(other, KasamiCode) \
                 and self.parameters() == other.parameters() \
-                and self.length() == other.length()
+                and self._extended == other._extended
 
     def _repr_(self):
         r"""

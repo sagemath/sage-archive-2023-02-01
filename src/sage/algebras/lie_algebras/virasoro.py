@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Virasoro Algebra and Related Lie Algebras
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # Run the system python.
 #
@@ -25,7 +25,7 @@ fi
 PYTHONS="python python3 python3.8 python3.7 python2.7 python3.6 python2"
 for PY in $PYTHONS; do
     PYTHON="$(PATH="$SAGE_ORIG_PATH" command -v $PY)"
-    if [[ -n "$PYTHON" ]]; then
+    if [ -n "$PYTHON" ]; then
         if "$PYTHON" -c 'import urllib'; then
             exec "$PYTHON" "$@"
         fi

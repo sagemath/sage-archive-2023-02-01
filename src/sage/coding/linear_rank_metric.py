@@ -860,6 +860,15 @@ class LinearRankMetricCodeNearestNeighborDecoder(Decoder):
         OUTPUT:
 
         - a vector of ``self``'s message space
+
+        EXAMPLES::
+
+            sage: F.<a> = GF(4)
+            sage: G = Matrix(F, [[1,1,0]])
+            sage: C = codes.LinearRankMetricCode(G, GF(2))
+            sage: D = codes.decoders.LinearRankMetricCodeNearestNeighborDecoder(C)
+            sage: D.decode_to_code(vector(F, [a, a, 1]))
+            (a, a, 0)
         """
         C = self.code()
         c_min = C.zero()

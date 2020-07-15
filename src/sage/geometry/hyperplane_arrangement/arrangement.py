@@ -66,11 +66,12 @@ supported::
 
 Number fields are also possible::
 
-    sage: NF.<a> = NumberField(x^4 - 5*x^2 + 5,embedding=1.90)
+    sage: x = var('x')
+    sage: NF.<a> = NumberField(x**4 - 5*x**2 + 5,embedding=1.90)
     sage: H.<y,z> = HyperplaneArrangements(NF)
-    sage: A = H([[(-a^3 + 3*a, -a^2 + 4), 1], [(a^3 - 4*a, -1), 1],
-    ....:        [(0, 2*a^2 - 6), 1], [(-a^3 + 4*a, -1), 1],
-    ....:        [(a^3 - 3*a, -a^2 + 4), 1]])
+    sage: A = H([[(-a**3 + 3*a, -a**2 + 4), 1], [(a**3 - 4*a, -1), 1],
+    ....:        [(0, 2*a**2 - 6), 1], [(-a**3 + 4*a, -1), 1],
+    ....:        [(a**3 - 3*a, -a**2 + 4), 1]])
     sage: A
     Arrangement of 5 hyperplanes of dimension 2 and rank 2
     sage: A.base_ring()
@@ -1729,9 +1730,12 @@ class HyperplaneArrangementElement(Element):
         It is possible to specify the backend::
 
             sage: K.<q> = CyclotomicField(9)
-            sage: L.<r9> = NumberField((q+q^(-1)).minpoly(),embedding = AA(q+q^-1))
-            sage: norms = [[1,1/3*(-2*r9^2-r9+1),0],[1,-r9^2-r9,0],
-                           [1,-r9^2+1,0],[1,-r9^2,0],[1,r9^2-4,-r9^2+3]]
+            sage: L.<r9> = NumberField((q+q**(-1)).minpoly(),embedding = AA(q+q**-1))
+            sage: norms = [[1,1/3*(-2*r9**2-r9+1),0], \
+                           [1,-r9**2-r9,0], \
+                           [1,-r9**2+1,0], \
+                           [1,-r9**2,0], \
+                           [1,r9**2-4,-r9**2+3]]
             sage: H.<x,y,z> = HyperplaneArrangements(L)
             sage: A = H(backend='normaliz')
             sage: for v in norms:

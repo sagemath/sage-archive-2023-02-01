@@ -8694,7 +8694,6 @@ class Graph(GenericGraph):
     def has_perfect_matching(self, algorithm="Edmonds", solver=None, verbose=0):
         r"""
         Return whether this graph has a perfect matching.
-
         INPUT:
 
         - ``algorithm`` -- string (default: ``"Edmonds"``)
@@ -9368,6 +9367,7 @@ class Graph(GenericGraph):
     from sage.graphs.domination import minimal_dominating_sets
     from sage.graphs.traversals import (lex_M, maximum_cardinality_search,
                                         maximum_cardinality_search_M)
+    from sage.graphs.isoperimetric_inequalities import cheeger_constant, edge_isoperimetric_number, vertex_isoperimetric_number
 
 _additional_categories = {
     "is_long_hole_free"         : "Graph properties",
@@ -9404,7 +9404,10 @@ _additional_categories = {
     "minimal_dominating_sets"   : "Domination",
     "lex_M"                     : "Traversals",
     "maximum_cardinality_search" : "Traversals",
-    "maximum_cardinality_search_M" : "Traversals"
+    "maximum_cardinality_search_M" : "Traversals",
+    "cheeger_constant"          : "Expansion properties",
+    "edge_isoperimetric_number" : "Expansion properties",
+    "vertex_isoperimetric_number": "Expansion properties"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

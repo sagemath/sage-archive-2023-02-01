@@ -62,6 +62,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # Assume current directory is SAGE_ROOT.
 SAGE_ROOT=`pwd -P`
+AC_SUBST(SAGE_ROOT)
 
 SAGE_LOCAL="$prefix"
 # The following line is necessary because the code below

@@ -10,10 +10,9 @@ The two main classes are :class:`Berkovich_Cp_Affine` and
 :class:`Berkovich_Cp_Projective`, which implement the affine and
 projective lines, respectively.
 
-:class:`Berkovich_Cp_Affine` takes as input a prime `p` or a finite
-extension of `\QQ_p`, while :class:`Berkovich_Cp_Projective` takes
-as input a prime `p` or projective space of dimension 1 over a 
-finite extension of `\QQ_p`.
+:class:`Berkovich_Cp_Affine` and :class:`Berkovich_Cp_Projective`
+take as input one of the following: the prime `p`, a finite
+extension of `\QQ_p`, or a number field and a place.
 
 AUTHORS:
 
@@ -82,8 +81,19 @@ class Berkovich_Element(Element):
 class Berkovich_Element_Cp(Berkovich_Element):
     r"""
     The abstract parent class for any element of Berkovich space over `\CC_p`.
-    This class should never be instantiated, instead Berkovich_Element_Cp_Affine
-    or Berkovich_Element_Cp_Projective should be used.
+    This class should never be instantiated, instead use :class:`Berkovich_Element_Cp_Affine`
+    or :class:`Berkovich_Element_Cp_Projective`.
+
+    EXAMPLES::
+
+        sage: B = Berkovich_Cp_Affine(3)
+        sage: B(2)
+        Type I point centered at 2 + O(3^20)
+
+    ::
+
+        sage: B(0,1)
+        Type II point centered at 0 of radius 3^0
     """
 
     def __init__(self, parent, center, radius=None, power=None, prec=20, child=None, error_check=True):
@@ -470,7 +480,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
         OUTPUT:
 
-        - An integer for type II points
+        - A rational for type II points
         - A real number for type III points
 
         EXAMPLES::
@@ -570,15 +580,15 @@ class Berkovich_Element_Cp(Berkovich_Element):
         return self._radius
 
     def path_distance_metric(self, other):
-        """
+        r"""
         Returns the path distance metric distance between ``self`` and ``other``.
 
         Also referred to as the hyperbolic metric, or the big metric.
 
         On the set of type II, III and IV points, the path distance metric
         is a metric. Following Baker and Rumely, we extend
-        the path distance metric to type I points x,y by p(x,x) = 0 and p(x,y) =
-        infinity.
+        the path distance metric to type I points `x`, `y` by `\rho(x,x) = 0` and `\rho(x,y) =
+        \infty`.
 
         INPUT:
 
@@ -919,7 +929,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
       computes the radii (computation starts at 1).
 
     - ``power`` -- (optional) Rational number. Used for constructing type II points; specifies
-      the power of ``p`` such that p^ ``power`` = radius
+      the power of ``p`` such that `p^\text{power}` = radius
 
     - ``prec`` -- (default: 20) The number of disks to be used to approximate a type IV point
 
@@ -1196,8 +1206,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         For example, let x and y be points of type II or III.
         If x has center `c_1` and radius `r_1` and y has center
-        `c_2` and radius `r_2`, x < y if and only if `D(c_1,r_1)`
-        is a subset of `D(c_2,r_2) in `\CC_p`.
+        `c_2` and radius `r_2`, `x < y` if and only if `D(c_1,r_1)`
+        is a subset of `D(c_2,r_2)` in `\CC_p`.
 
         INPUT:
 
@@ -1247,13 +1257,13 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         proj_other = B(other)
         return proj_self.partial_order(proj_other)
 
-    def join(self, other, basepoint="infty"):
+    def join(self, other, basepoint=Infinity):
         """
         Computes the join of this point and ``other`` with respect to ``basepoint``.
 
         The join is first point that lies on the interesection
-        of the path from self to basepoint and the path from other to
-        basepoint.
+        of the path from this point to ``basepoint`` and the path from ``other`` to
+        ``basepoint``.
 
         INPUT:
 
@@ -1309,7 +1319,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         proj_self = B(self)
         proj_other = B(other)
 
-        if basepoint == "infty":
+        if basepoint == Infinity:
             return parent(proj_self.join(proj_other))
 
         if not isinstance(basepoint, Berkovich_Element_Cp_Affine):
@@ -1324,11 +1334,11 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
 
     def involution_map(self):
-        """
+        r"""
         Returns the image of this point under the involution map.
 
         The involution map is the extension of the map ``z |-> 1/z`` map
-        on ``Cp`` to Berkovich space.
+        on `\CC_p` to Berkovich space.
 
         For Affine Berkovich Space, not defined for the type I
         point centered at 0.
@@ -1394,7 +1404,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def contained_in_interval(self, start, end):
         """
-        Checks if this point is an element of the interval [``start``,``end``].
+        Checks if this point is an element of the interval [``start``, ``end``].
 
         INPUT:
 
@@ -1403,7 +1413,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         OUTPUT:
 
-        - ``True`` if this point is an element of [``start``,``end``]
+        - ``True`` if this point is an element of [``start``, ``end``]
         - ``False`` otherwise
 
         EXAMPLES::
@@ -1503,11 +1513,11 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         return (self.prime())**(-1*dist)
 
     def diameter(self, basepoint=Infinity):
-        """
+        r"""
         Generalized diameter function.
 
         If the basepoint is infinity, the diameter is equal to
-        the limit of the radii of the corresponding disks in ``Cp``.
+        the limit of the radii of the corresponding disks in `\CC_p`.
 
         If the basepoint is not infinity, the diameter
         is the Hsia kernel of this point with itself at
@@ -1541,44 +1551,49 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
     r"""
     Element class of the Berkovich projective line over `\CC_p`.
 
-    Elements are categorized into four Types, which are represented as follows:
+    Elements are categorized into four types, represented by specific data:
 
-    - Type I points are represented by a center in projective Space of dimension 1 over
-      `\QQ_p` or over a finite extension of `\QQ_p`.
+    - Type I points are represented by a center in the ``base`` of the parent Berkovich space,
+      which is projective space of dimension 1 over either `\QQ_p`, a finite extension of `\QQ_p`,
+      or a number field.
 
-    - Type II points are represented by a center in projective Space of dimension 1 over
-      `\QQ_p` or over a finite extension of `\QQ_p` and a rational power of `p`.
-      Type II points cannot be centered at the point at infinity.
+    - Type II points are represented by a center in the ``base`` of the parent Berkovich space,
+      and a rational power of `p`.
 
-    - Type III points are represented by a center in projective Space of dimension 1 over
-      `\QQ_p` or over a finite extension of `\QQ_p` and a radius in `[0,\infty)`.
-      Type III points are cannot be centered at the point at infinity.
+    - Type III points are represented by a center in the ``base`` of the parent Berkovich space,
+      and a radius in `[0,\infty)`.
 
-    - Type IV points are represented by finite list of centers in projective Space of dimension 1 over
-      `\QQ_p` or over a finite extension of `\QQ_p` and by a finite list of radii in `[0,\infty)`.
-      None of the centers can be the point at infinity.
+    - Type IV points are represented by a finite list of centers in the ``base`` of the parent
+      Berkovich space and a finite list of radii in `[0,\infty)`.
+
+    The projective Berkovich line is viewed as the one-point compactification of
+    the affine Berkovich line. The projective Berkovich line therefore contains
+    every point of the affine Berkovich line, along with a type I point centered
+    at infinity.
 
     INPUT:
 
-    - ``center`` -- For type I, II, and III points, the center of the
-      corresponding disk in `P^1(\CC_p)`. Must be an element of `\QQ_p`, a finite extension
-      of `\QQ_p`, or coerce into `\QQ_p`. For type IV points, can be a list of centers
-      used to approximate the point or a univariate function that computes the centers
-      (computation starts at 1).
+    - ``center`` -- For type I, II, and III points, the center of the 
+      corresponding disk in `P^1(\CC_p)`. If the parent Berkovich space was created using a number field
+      `K`, then ``center`` can be an element of `P^1(K)` or `K`. Otherwise, ``center`` can be an element
+      of a p-adic field, or projective space of dimension 1 over a padic field.
+      For type IV points, can be a list of centers used to approximate the point or a
+      univariate function that computes the centers (computation starts at 1).
 
-    - ``radius`` -- (optional) For type I, II, and III points, the radius of the 
-      corresponding disk in ``Cp``. Must coerce into the real numbers. For type IV points,
+    - ``radius`` -- (optional) For type I, II, and III points, the radius of the
+      corresponding disk in `\CC_p`. Must coerce into the real numbers. For type IV points,
       can be a list of radii used to approximate the point or a univariate function that
       computes the radii (computation starts at 1).
 
     - ``power`` -- (optional) Rational number. Used for constructing type II points; specifies
-      the power of ``p`` such that p^ ``power`` = radius.
+      the power of ``p`` such that `p^\text{power}` = radius
 
-    - ``prec`` -- (default: 20) The number of disks to be used to approximate a type IV point.
+    - ``prec`` -- (default: 20) The number of disks to be used to approximate a type IV point
 
     - ``error_check`` -- (default: True) If error checking should be run on input. If
       input is correctly formatted, can be set to ``False`` for better performance.
-      WARNING: Setting error_check to ``False`` can lead to incorrect results.
+      WARNING: with error check set to ``False``, any error in the input will lead to
+      incorrect results.
 
     EXAMPLES:
 
@@ -1767,16 +1782,16 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         return hash(str(self.radius()))
 
     def partial_order(self,other):
-        """
+        r"""
         The standard partial order on Berkovich space.
 
         Roughly, the partial order corresponds to containment of
         the corresponding disks in ``Cp``. 
 
         For example, let x and y be points of type II or III. 
-        If x has center ``c1`` and radius ``r1`` and y has center 
-        ``c2`` and radius ``r2``, x < y if and only if D(c1,r1) 
-        is a subset of D(c2,r2) in ``Cp``.
+        If x has center `c_1` and radius `r_1` and y has center 
+        `c_2` and radius `r_2`, `x < y` if and only if `D(c_1,r_1)` 
+        is a subset of `D(c_2,r_2)` in `\CC_p`.
 
         INPUT:
 
@@ -1866,19 +1881,19 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                         return False
                     return None
 
-    def join(self, other, basepoint="infty"):
+    def join(self, other, basepoint=Infinity):
         """
         Computes the join of this point and ``other``, with respect to ``basepoint``. 
 
         The join is first point that lies on the interesection
-        of the path from self to basepoint and the path from other to
-        basepoint.
+        of the path from this point to ``basepoint`` and the path from ``other`` to
+        ``basepoint``.
 
         INPUT:
 
         - ``other`` -- A point of the same Berkovich space as this point
         - ``basepoint`` -- (default: Infinity) A point of the same
-          Berkovich space as this point or the string 'infty'
+          Berkovich space as this point, or Infinity
 
         OUTPUT: A point of the same Berkovich space
 
@@ -1961,7 +1976,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         infty = parent((1,0))
 
-        if basepoint == "infty" or basepoint == infty:
+        if basepoint == Infinity or basepoint == infty:
             if self == infty or other == infty:
                 return infty
             dist = self._custom_abs(self.center()[0] - other.center()[0])
@@ -2041,11 +2056,11 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             return other.join(self,basepoint)
 
     def involution_map(self):
-        """
+        r"""
         Returns the image of this point under the involution map.
 
         The involution map is the extension of the map ``z |-> 1/z`` map
-        on projective space over ``Cp`` to Berkovich space.
+        on `P^1(\CC_p)` to Berkovich space.
 
         OUTPUT: A point of the same Berkovich space
 
@@ -2180,7 +2195,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         - ``other`` -- A point of the same Berkovich space as this point
         - ``basepoint`` -- A point of the same Berkovich space as this point
 
-        OUTPUT: A real number or the infinity symbol 'oo'
+        OUTPUT: A finite or infinite real number
 
         EXAMPLES::
 
@@ -2242,11 +2257,11 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         return (self.prime())**(-1*dist)
 
     def diameter(self, basepoint=Infinity):
-        """
+        r"""
         Generalized diameter function.
 
         If the basepoint is infinity, the diameter is equal to 
-        the limit of the radii of the corresponding disks in ``Cp``.
+        the limit of the radii of the corresponding disks in `\CC_p`.
 
         If the basepoint is not infinity, the diameter
         is the Hsia kernel of this point with itself at
@@ -2370,7 +2385,7 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
     The Berkovich Affine line over `\CC_p`.
     
     The Berkovich Affine line is the set of seminorms on `\CC_p[x]`,
-    with the weakest topology that makes the map `| \cdot | \to |f|` continuous
+    with the weakest topology such that the map `| \cdot | \to |f|` continuous
     for all `f \in \CC_p[x]`.
 
     INPUT:
@@ -2460,20 +2475,6 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
         self._ideal = ideal
         self._p = prime
         Parent.__init__(self, base=base, category=TopologicalSpaces())
-
-    def residue_characteristic(self):
-        """
-        The residue characteristic of the ``base``.
-
-        EXAMPLES::
-
-            sage: B = Berkovich_Cp_Affine(3)
-            sage: B.residue_characteristic()
-            3
-        """
-        return self._p
-
-    prime = residue_characteristic
 
     def _repr_(self):
         """
@@ -2617,10 +2618,9 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
 
     def base_ring(self):
         r"""
-        The base of this Berkovich Space.
+        The base ring of this Berkovich Space.
 
-        OUTPUT: A projective Space of dimension 1 over `\QQ_p`
-        or a finite extension.
+        OUTPUT: A field
 
         EXAMPLES::
 
@@ -2633,6 +2633,15 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
             sage: C = Berkovich_Cp_Projective(ProjectiveSpace(Qp(3,1),1))
             sage: C.base_ring()
             3-adic Field with capped relative precision 1
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: A.<a> = NumberField(x^3+20)
+            sage: ideal = A.prime_above(3)
+            sage: D = Berkovich_Cp_Projective(A, ideal)
+            sage: D.base_ring()
+            Number Field in a with defining polynomial x^3 + 20
         """
         return self.base().base_ring()
 

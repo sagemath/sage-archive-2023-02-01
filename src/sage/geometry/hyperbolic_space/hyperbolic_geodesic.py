@@ -1399,49 +1399,34 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
         TESTS:
 
-        Check the result is independent of the order::
+        Check the result is independent of the order (:trac:`29936`)::
 
-            sage: UHP = HyperbolicPlane().UHP()
-            sage: g = UHP.get_geodesic(1+I,2+0.5*I)
-            sage: h = g.perpendicular_bisector()
-            sage: c = lambda x: x.coordinates()
-            sage: bool(c(g.intersection(h)[0]) - c(g.midpoint()) < 10**-9)
-            True
-
-            sage: g = UHP.get_geodesic(2+0.5*I,1+I)
-            sage: h = g.perpendicular_bisector()
-            sage: c = lambda x: x.coordinates()
-            sage: bool(c(g.intersection(h)[0]) - c(g.midpoint()) < 10**-9)
-            True
-
-        ::
-
-            sage: g = UHP.get_geodesic(2+I,2+0.5*I)
-            sage: h = g.perpendicular_bisector()
-            sage: c = lambda x: x.coordinates()
-            sage: bool(c(g.intersection(h)[0]) - c(g.midpoint()) < 10**-9)
-            True
-
-            sage: g = UHP.get_geodesic(2+0.5*I,2+I)
-            sage: h = g.perpendicular_bisector()
-            sage: c = lambda x: x.coordinates()
-            sage: bool(c(g.intersection(h)[0]) - c(g.midpoint()) < 10**-9)
-            True
+            sage: def works_both_ways(a, b):
+            ....:     UHP = HyperbolicPlane().UHP()
+            ....:     g = UHP.get_geodesic(a, b)
+            ....:     h = UHP.get_geodesic(b, a)
+            ....:     p = g.perpendicular_bisector()
+            ....:     q = h.perpendicular_bisector()
+            ....:     c = lambda x: x.coordinates()
+            ....:     assert bool(c(g.intersection(p)[0]) - c(g.midpoint()) < 1e-9)
+            ....:     assert bool(c(h.intersection(q)[0]) - c(g.midpoint()) < 1e-9)
+            sage: works_both_ways(1 + I, 2 + 0.5*I)
+            sage: works_both_ways(2 + I, 2 + 0.5*I)
         """
         if self.length() == infinity:
             raise ValueError("the length must be finite")
         start = self._start.coordinates()
         end = self._end.coordinates()
-        # Since the complete geodesic p1 -> p2 always returns p1 < p2,
-        #   we need to swap start and end when that happens
+        # The complete geodesic p1 -> p2 always returns p1 < p2,
+        #   so we might need to swap start and end
         if ((real(start - end) > EPSILON) or
             (abs(real(start - end)) < EPSILON and
                 imag(start - end) > 0)):
             start, end = end, start
-        d = self._model._dist_points(start, end) / 2
         S = self.complete()._to_std_geod(start)
+        d = self._model._dist_points(start, end) / 2
         T1 = matrix([[exp(d/2), 0], [0, exp(-d/2)]])
-        s2 = sqrt(2) * 0.5
+        s2 = sqrt(0.5)
         T2 = matrix([[s2, -s2], [s2, s2]])
         isom_mtrx = S.inverse() * (T1 * T2) * S
         # We need to clean this matrix up.

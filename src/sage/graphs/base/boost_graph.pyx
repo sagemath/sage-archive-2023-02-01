@@ -1980,11 +1980,11 @@ cpdef diameter_DHV(g, weight_function=None, check_weight=True):
         g._check_weight_function(weight_function)
 
     if weight_function is not None:
-        for e in g.edge_iterator():
+        for e in g.edges(sort=False):
             if float(weight_function(e)) < 0:
                 raise ValueError("graph contains negative edge weights, use Johnson_Boost instead")
     elif g.weighted():
-        for _,_,w in g.edge_iterator():
+        for _,_,w in g.edges(sort=False):
             if w and float(w) < 0:
                 raise ValueError("graph contains negative edge weights, use Johnson_Boost instead")
 

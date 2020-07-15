@@ -5094,6 +5094,21 @@ class Polyhedron_base(Element):
 
         return new_parent.element_class(new_parent, [tuple(new_vertices), tuple(new_rays), tuple(new_lines)], None)
 
+    def _test_linear_transformation(self, tester=None, **options):
+        """
+        Run some tests on linear transformation.
+
+        TESTS::
+
+            Polyhedron(rays=[(0,1)])._test_linear_transformation()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        # Check that :trac:`30146` is fixed.
+        from sage.matrix.special import identity_matrix
+        tester.assertEqual(self, self.linear_transformation(identity_matrix(self.ambient_dim())))
+
     def _acted_upon_(self, actor, self_on_left):
         """
         Implement the action by scalars, vectors, matrices or other polyhedra.

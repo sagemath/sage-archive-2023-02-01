@@ -1210,10 +1210,6 @@ def _get_r_s_t_u(v):
         t,u = 30*s+5,  5
     elif x <= 51:
         t,u = 30*s+5,  x-25
-    elif x <= 66:
-        t,u = 30*s+11, x-55
-    elif x <= 96:
-        t,u = 30*s+11, x-55
     elif x <= 121:
         t,u = 30*s+11, x-55
     elif x <= 146:

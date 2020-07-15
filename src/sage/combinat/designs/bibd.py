@@ -341,7 +341,8 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         # By removing a block and all points of that block from the
         # symmetric (v+k+lambd, k+lambd, lambd) BIBD
         # we get a (v, k, lambd) BIBD
-        if existence: return True
+        if existence:
+            return True
 
         D = balanced_incomplete_block_design(v+k+lambd, k+lambd, lambd)
         Br = D.blocks()[0]  # block to remove
@@ -1195,19 +1196,31 @@ def _get_r_s_t_u(v):
     s = r//150
     x = r%150
 
-    if   x == 0:   t,u = 30*s-5,  25
-    elif x == 1:   t,u = 30*s-5,  26
-    elif x <= 21:  t,u = 30*s+1,  x-5
-    elif x == 25:  t,u = 30*s+5,  0
-    elif x == 26:  t,u = 30*s+5,  1
-    elif x == 30:  t,u = 30*s+5,  5
-    elif x <= 51:  t,u = 30*s+5,  x-25
-    elif x <= 66:  t,u = 30*s+11, x-55
-    elif x <= 96:  t,u = 30*s+11, x-55
-    elif x <= 121: t,u = 30*s+11, x-55
-    elif x <= 146: t,u = 30*s+25, x-125
+    if   x == 0:
+        t,u = 30*s-5,  25
+    elif x == 1:
+        t,u = 30*s-5,  26
+    elif x <= 21:
+        t,u = 30*s+1,  x-5
+    elif x == 25:
+        t,u = 30*s+5,  0
+    elif x == 26:
+        t,u = 30*s+5,  1
+    elif x == 30:
+        t,u = 30*s+5,  5
+    elif x <= 51:
+        t,u = 30*s+5,  x-25
+    elif x <= 66:
+        t,u = 30*s+11, x-55
+    elif x <= 96:
+        t,u = 30*s+11, x-55
+    elif x <= 121:
+        t,u = 30*s+11, x-55
+    elif x <= 146:
+        t,u = 30*s+25, x-125
 
     return r,s,t,u
+
 
 def PBD_from_TD(k,t,u):
     r"""
@@ -1279,9 +1292,10 @@ def BIBD_5q_5_for_q_prime_power(q):
 
     return B
 
+
 def BIBD_from_arc_in_desarguesian_projective_plane(n,k,existence=False):
     r"""
-    Returns a `(n,k,1)`-BIBD from a maximal arc in a projective plane.
+    Return a `(n,k,1)`-BIBD from a maximal arc in a projective plane.
 
     This function implements a construction from Denniston [Denniston69]_, who
     describes a maximal :meth:`arc

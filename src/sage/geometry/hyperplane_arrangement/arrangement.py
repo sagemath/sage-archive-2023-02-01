@@ -591,7 +591,7 @@ class HyperplaneArrangementElement(Element):
 
            sage: H = HyperplaneArrangements(QQ)
            sage: A = H()
-           sage: A.backend() 
+           sage: A.backend()
 
         Otherwise, one may specify a polyhedral backend::
 
@@ -738,7 +738,7 @@ class HyperplaneArrangementElement(Element):
         P = self.parent()
         names = (variable,) + P._names
         H = HyperplaneArrangements(self.parent().base_ring(), names=names)
-        return H(*hyperplanes,backend=self._backend)
+        return H(*hyperplanes, backend=self._backend)
 
     @cached_method
     def intersection_poset(self):
@@ -924,7 +924,7 @@ class HyperplaneArrangementElement(Element):
                 planes.remove(hyperplane)
             except ValueError:
                 raise ValueError('hyperplane is not in the arrangement')
-        return parent(*planes,backend=self._backend)
+        return parent(*planes, backend=self._backend)
 
     def restriction(self, hyperplane):
         r"""
@@ -1023,7 +1023,7 @@ class HyperplaneArrangementElement(Element):
             sage: A = H([(1,1), 0], [(2,3), -1])
             sage: A.change_ring(FiniteField(2))
             Arrangement <y + 1 | x + y>
-        
+
         TESTS:
 
         Checks that changing the ring preserves the backend::
@@ -1263,7 +1263,7 @@ class HyperplaneArrangementElement(Element):
             Ker = m.right_kernel()
             from sage.geometry.polyhedron.constructor import Polyhedron
             return (True, Polyhedron(base_ring=R, vertices=[x],
-                                     lines=Ker.basis(), 
+                                     lines=Ker.basis(),
                                      backend=self._backend))
         else:
             return True
@@ -1340,7 +1340,6 @@ class HyperplaneArrangementElement(Element):
         # Check that the number of facets for each region is equal to rank
         rank = self.rank()
         return all(R.n_facets() == rank for R in self.regions())
-
 
     @cached_method
     def essentialization(self):
@@ -1670,7 +1669,7 @@ class HyperplaneArrangementElement(Element):
         Return the regions of the hyperplane arrangement.
 
         The base field must have characteristic zero.
-        
+
         OUTPUT:
 
         A tuple containing the regions as polyhedra.
@@ -1894,19 +1893,19 @@ class HyperplaneArrangementElement(Element):
             for r in R:
                 # Since it's graded, it suffices to look at the regions of the previous rank
                 for b in curTest:
-                    if self.distance_between_regions(b,r) == 1:
+                    if self.distance_between_regions(b, r) == 1:
                         nextTest.add(r)
                         if numbered_labels:
-                            edges.append([RX.index(b),RX.index(r)])
+                            edges.append([RX.index(b), RX.index(r)])
                         else:
-                            edges.append([b,r])
+                            edges.append([b, r])
             for x in nextTest:
                 R.discard(x)
 
         if numbered_labels:
-            return Poset([range(len(RX)),edges])
+            return Poset([range(len(RX)), edges])
         else:
-            return Poset([RX,edges])
+            return Poset([RX, edges])
 
     @cached_method
     def closed_faces(self, labelled=True):
@@ -2794,7 +2793,7 @@ class HyperplaneArrangementElement(Element):
             sage: c.distance_enumerator(c.region_containing_point([1,1,1]))
             x^3 + 3*x^2 + 3*x + 1
         """
-        d = [self.distance_between_regions(r,base_region) for r in self.regions()]
+        d = [self.distance_between_regions(r, base_region) for r in self.regions()]
         d = [d.count(i) for i in range(max(d)+1)]
         from sage.rings.polynomial.polynomial_ring import polygen
         x = polygen(QQ, 'x')
@@ -2842,7 +2841,7 @@ class HyperplaneArrangementElement(Element):
             for j in range(i+1, k):
                 t = prod(h[p] for p in range(k) if
                          self.is_separating_hyperplane(region[i], region[j], self[p]))
-                v[i,j] = v[j,i] = t
+                v[i, j] = v[j, i] = t
         v.set_immutable()
         return v
 
@@ -2985,7 +2984,7 @@ class HyperplaneArrangementElement(Element):
                 d = list(d)
                 dep = V.linear_dependence([norms[j] for j in d])
                 w = W.zero().list()
-                for j,k in enumerate(d):
+                for j, k in enumerate(d):
                     w[k] = dep[0][j]
                 sol.append(w)
             mat = matrix(sol)
@@ -3081,7 +3080,7 @@ class HyperplaneArrangementElement(Element):
         from sage.geometry.hyperplane_arrangement.check_freeness import construct_free_chain
         return construct_free_chain(self)
 
-    @cached_method(key=lambda self,a: None)
+    @cached_method(key=lambda self, a: None)
     def is_free(self, algorithm="singular"):
         r"""
         Return if ``self`` is free.
@@ -3216,14 +3215,14 @@ class HyperplaneArrangementElement(Element):
         """
         alg = algorithm # prevent possible changes to a global variable
         if alg == "singular":
-            #import sage.libs.singular.function_factory
-            #syz = sage.libs.singular.function_factory.ff.syz
+            # import sage.libs.singular.function_factory
+            # syz = sage.libs.singular.function_factory.ff.syz
             f = self.defining_polynomial()
             I = f + f.jacobian_ideal()
             IS = I._singular_()
             ISS = IS.syz()
             MSTD = ISS.mstd()
-            basis = MSTD[2]._sage_().transpose().submatrix(0,1)
+            basis = MSTD[2]._sage_().transpose().submatrix(0, 1)
             try:
                 det = basis.det()
                 # Check using Saito's criterion
@@ -3248,6 +3247,7 @@ class HyperplaneArrangementElement(Element):
             return None
         else:
             raise ValueError("invalid algorithm")
+
 
 class HyperplaneArrangements(Parent, UniqueRepresentation):
     """
@@ -3297,7 +3297,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: TestSuite(K).run()
         """
         from sage.categories.all import Fields, Sets
-        if not base_ring in Fields:
+        if base_ring not in Fields:
             raise ValueError('base ring must be a field')
         super(HyperplaneArrangements, self).__init__(category=Sets())
         self._base_ring = base_ring
@@ -3567,4 +3567,3 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
         if isinstance(P, HyperplaneArrangements):
             return self.base_ring().has_coerce_map_from(P.base_ring())
         return super(HyperplaneArrangements, self)._coerce_map_from_(P)
-

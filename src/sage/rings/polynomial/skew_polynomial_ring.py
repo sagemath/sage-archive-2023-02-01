@@ -559,7 +559,8 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
 
 class SkewPolynomialRing_finite_order(SkewPolynomialRing):
     """
-    A specialized class for skew polynomial rings over finite fields.
+    A specialized class for skew polynomial rings whose twising morphism
+    has finite order.
 
     .. SEEALSO::
 
@@ -568,7 +569,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
     """
     def __init__(self, base_ring, morphism, derivation, name, sparse, category=None):
         r"""
-        Initialize this skew polynomial.
+        Initialize this skew polynomial ring.
 
         TESTS::
 
@@ -597,6 +598,9 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         if self.Element is None:
             import sage.rings.polynomial.skew_polynomial_finite_order
             self.Element = sage.rings.polynomial.skew_polynomial_finite_order.SkewPolynomial_finite_order_dense
+        if self._fraction_field_class is None:
+            from sage.rings.polynomial.ore_function_field import OreFunctionField_with_large_center
+            self._fraction_field_class = OreFunctionField_with_large_center
         SkewPolynomialRing.__init__(self, base_ring, morphism, derivation, name, sparse, category)
         self._order = morphism.order()
         (self._constants, self._embed_constants) = morphism.fixed_field()
@@ -723,7 +727,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             IndexError: the number of names must equal the number of generators
         """
         if name is not None and names is not None:
-            raise ValueError
+            raise ValueError("you must specify the name of the variable")
         if names is None:
             if name is None:
                 name = self._center_variable_name

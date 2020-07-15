@@ -184,6 +184,12 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
     However, the variable can be changed within the scope of a ``with``
     block using the localvars context::
 
+        sage: R.<t> = ZZ[]
+        sage: sigma = R.hom([t+1])
+        sage: S.<x> = SkewPolynomialRing(R, sigma); S
+        Ore Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
+         twisted by t |--> t + 1
+
         sage: with localvars(S, ['y']):
         ....:     print(S)
         Ore Polynomial Ring in y over Univariate Polynomial Ring in t over Integer Ring
@@ -250,6 +256,7 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
         - Multivariate Ore Polynomial Ring
     """
     Element = None
+    _fraction_field_class = None
 
     @staticmethod
     def __classcall_private__(cls, base_ring, twist=None, names=None, sparse=False):
@@ -377,7 +384,7 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
 
             sage: R.<t> = ZZ[]
             sage: sigma = R.hom([t+1])
-            sage: S.<x> = SkewPolynomialRing(R,sigma)
+            sage: S.<x> = SkewPolynomialRing(R, sigma)
             sage: S.category()
             Category of algebras over Univariate Polynomial Ring in t over Integer Ring
             sage: S([1]) + S([-1])
@@ -387,11 +394,36 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
         if self.Element is None:
             import sage.rings.polynomial.ore_polynomial_element
             self.Element = sage.rings.polynomial.ore_polynomial_element.OrePolynomial_generic_dense
+        if self._fraction_field_class is None:
+            from sage.rings.polynomial.ore_function_field import OreFunctionField
+            self._fraction_field_class = OreFunctionField
         self.__is_sparse = sparse
         self._morphism = morphism
         self._derivation = derivation
+        self._fraction_field = None
         category = Algebras(base_ring).or_subcategory(category)
         Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
+
+    def __reduce__(self):
+        r"""
+        TESTS::
+
+            sage: k.<a> = GF(11^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x', Frob]
+            sage: loads(dumps(S)) is S
+            True
+
+            sage: der = k.derivation(a, twist=Frob)
+            sage: T.<y> = k['y', der]
+            sage: loads(dumps(T)) is T
+            True
+        """
+        if self._derivation is None:
+            twist = self._morphism
+        else:
+            twist = self._derivation
+        return OrePolynomialRing, (self.base_ring(), twist, self.variable_names(), self.__is_sparse)
 
     def _element_constructor_(self, a=None, check=True, construct=False, **kwds):
         r"""
@@ -545,10 +577,6 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
-
-        The locution *Ore Polynomial Ring* is used when the twisting
-        derivation is zero.
-        Otherwise the locution *Ore Polynomial Ring* is used.
 
         EXAMPLES::
 
@@ -808,6 +836,13 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
 
             sage: S.parameter() is S.gen()
             True
+
+        TESTS::
+
+            sage: S.gen(1)
+            Traceback (most recent call last):
+            ...
+            IndexError: generator 1 not defined
         """
         if n != 0:
             raise IndexError("generator %s not defined" % n)
@@ -1060,3 +1095,86 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
         """
         return self._morphism is None and self._derivation is None
 
+    def is_field(self):
+        r"""
+        Return always ``False`` since Ore polynomial rings are never
+        fields.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x', Frob]
+            sage: S.is_field()
+            False
+        """
+        return False
+
+    def fraction_field(self):
+        r"""
+        Return the fraction field of this skew ring.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x', Frob]
+            sage: K = S.fraction_field(); K
+            Ore Function Field in x over Finite Field in a of size 5^3 twisted by a |--> a^5
+
+            sage: f = 1/(x + a); f
+            (x + a)^(-1)
+            sage: f.parent() is K
+            True
+
+        Below is another example with differentiel operators::
+
+            sage: R.<t> = QQ[]
+            sage: der = R.derivation()
+            sage: A.<d> = R['d', der]
+            sage: A.fraction_field()
+            Ore Function Field in d over Fraction Field of Univariate Polynomial Ring in t over Rational Field twisted by d/dt
+
+            sage: f = t/d; f
+            (d - 1/t)^(-1) * t
+            sage: f*d
+            t
+
+        .. SEEALSO::
+
+            :mod:`sage.rings.polynomial.ore_function_field`
+        """
+        if self._fraction_field is None:
+            if self.base_ring() in _Fields:
+                self._fraction_field = self._fraction_field_class(self)
+            else:
+                base = self.base_ring().fraction_field()
+                if self._derivation is None:
+                    twist = self._morphism.extend_to_fraction_field()
+                else:
+                    twist = self._derivation.extend_to_fraction_field()
+                name = self.variable_name()
+                sparse = self.is_sparse()
+                ring = OrePolynomialRing(base, twist, name, sparse)
+                self._fraction_field = self._fraction_field_class(ring)
+                self._fraction_field.register_coercion(self)
+        return self._fraction_field
+
+    def _pushout_(self, other):
+        r"""
+        Return the pushout of this Ore polynomial ring and ``other``.
+
+        TESTS::
+
+            sage: from sage.categories.pushout import pushout
+            sage: k.<a> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S = k['x', Frob]
+            sage: K = S.fraction_field()
+            sage: Z = K.center()
+            sage: pushout(S,Z)  # indirect doctest
+            Ore Function Field in x over Finite Field in a of size 5^3 twisted by a |--> a^5
+        """
+        frac = self._fraction_field
+        if frac is not None and frac.has_coerce_map_from(other):
+            return frac

@@ -112,16 +112,19 @@ def build_many(target, args, processes=None):
         ...
         WorkerDiedException: worker for 4 died with non-zero exit code -9
     """
-    from multiprocessing import Process, Queue, cpu_count
+    import multiprocessing
+    # For Python 3.8 compatibility with OS X, force use of 'fork' instead of 'spawn'.
+    if os.uname().sysname == 'Darwin':
+        multiprocessing.set_start_method('fork', force=True)
     from six.moves.queue import Empty
 
     if processes is None:
-        processes = cpu_count()
+        processes = multiprocessing.cpu_count()
 
     workers = [None] * processes
     tasks = enumerate(args)
     results = []
-    result_queue = Queue()
+    result_queue = multiprocessing.Queue()
 
     ### Utility functions ###
     def run_worker(target, queue, idx, task):
@@ -222,7 +225,7 @@ def build_many(target, args, processes=None):
                 except StopIteration:
                     pass
                 else:
-                    w = Process(target=run_worker,
+                    w = multiprocessing.Process(target=run_worker,
                                 args=((target, result_queue) + task))
                     w.start()
                     # Pair the new worker with the task it's performing (mostly

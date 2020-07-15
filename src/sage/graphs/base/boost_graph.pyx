@@ -2385,12 +2385,12 @@ cpdef diameter(G, algorithm=None, source=None,
     # If digraph contains negative edge weight then
     # algo is set to `Bellman-Ford`
     if weight_function is not None:
-        for e in G.edge_iterator():
+        for e in G.edges(sort=False):
             if float(weight_function(e)) < 0:
                 algo = 'Bellman-Ford'
                 break
     elif G.weighted():
-        for _,_,w in G.edge_iterator():
+        for _,_,w in G.edges(sort=False):
             if w and float(w) < 0:
                 algo = 'Bellman-Ford'
                 break

@@ -28,8 +28,8 @@
 #      - SAGE_OPTIONAL_PACKAGES - lists the names of packages with the
 #        "optional" type that should be installed.
 #
-#      - SAGE_SDIST_PACKAGES - lists the names of all packages that should be
-#        included in the source distribution.
+#      - SAGE_SDIST_PACKAGES - lists the names of all packages whose sources
+#        need to be downloaded to be included in the source distribution.
 #
 #      - SAGE_PACKAGE_VERSIONS - this template variable defines multiple
 #        Makefile variables in the format "vers_<packagename>" the value
@@ -240,23 +240,38 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     # Packages that should be included in the source distribution
     # This includes all standard packages and two special cases
     case "$SPKG_NAME" in
-    mpir|python2)
+    mpir)
         in_sdist=yes
         ;;
     esac
-
-    if test "$in_sdist" = yes; then
-        SAGE_SDIST_PACKAGES="${SAGE_SDIST_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
-    fi
 
     # Determine package source
     #
     if test -f "$DIR/requirements.txt"; then
         SPKG_SOURCE=pip
+        # Since pip packages are downloaded and installed by pip, we don't
+        # include them in the source tarball. At the time of this writing,
+        # all pip packages are optional.
+        in_sdist=no
     elif test ! -f "$DIR/checksums.ini"; then
         SPKG_SOURCE=script
+        # We assume that either (a) the sources for an optional script
+        # package will be downloaded by the script, or (b) that a
+        # standard script package's sources are already a part of the
+        # sage repository (and thus the release tarball). As a result,
+        # we don't need to download the sources, which is what
+        # "in_sdist" really means. At the time of this writing, the
+        # only standard script packages are sage_conf and sagelib.
+        # The source of sage_conf is included under build/pkgs/sage_conf/src,
+        # and the source of sagelib is provided by symlinks in
+        # build/pkgs/sagelib/src.
+        in_sdist=no
     else
         SPKG_SOURCE=normal
+    fi
+
+    if test "$in_sdist" = yes; then
+        SAGE_SDIST_PACKAGES="${SAGE_SDIST_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
     fi
 
     # Determine package dependencies

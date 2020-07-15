@@ -176,3 +176,91 @@ jobs:
         run: |
           .github/workflows/scan-logs.sh "artifacts/$LOGS_ARTIFACT_NAME"
         if: always()
+
+  dist:
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 500
+      - name: fetch tags
+        run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - name: Install bootstrap prerequisites
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install $(sed "s/#.*//;" build/pkgs/debian-bootstrap.txt)
+      - name: Bootstrap with sage-update-version
+        # We set SAGE_ROOT and SAGE_SRC by hand
+        # because 'sage -sh' does not work with an unconfigured tree,
+        # giving: Error: SAGE_SCRIPTS_DIR is set to a bad value
+        run: |
+          git config --global user.email "nobody@example.com"
+          git config --global user.name "Sage GitHub CI"
+          SAGE_ROOT=. SAGE_SRC=./src src/bin/sage-update-version $(git describe)
+      - name: make dist
+        run: |
+          ./configure && make dist
+      - uses: actions/upload-artifact@v2
+        with:
+          path: "dist/*.tar.gz"
+          name: dist
+
+  local-macos-nohomebrew:
+
+    needs: [dist]
+
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        tox_system_factor: [macos-nobootstrap, macos-nobootstrap-python3_pythonorg]
+        tox_packages_factor: [minimal]
+    env:
+      TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+    steps:
+      - uses: actions/checkout@v2
+        if: "!contains(matrix.tox_system_factor, 'nobootstrap')"
+      - uses: actions/download-artifact@v2
+        with:
+          path: .
+          name: dist
+        if: contains(matrix.tox_system_factor, 'nobootstrap')
+      - name: Unpack sage dist
+        run: |
+          tar xf sage*.tar.gz --strip-components=1
+        if: contains(matrix.tox_system_factor, 'nobootstrap')
+      - name: Move homebrew away
+        run: |
+          (cd /usr/local && for a in bin etc include lib opt sbin share; do mv $a $a-moved; done)
+      - name: Install test prerequisites
+        run: |
+          /usr/bin/python3 -m pip install --user tox
+      - name: Install python3 from python.org
+        # As of 2020-03-30 (https://github.com/actions/virtual-environments/blob/master/images/macos/macos-10.15-Readme.md),
+        # Python 3.7.7 is installed on GitHub Actions runners.  But we install our own copy from the python.org binary package.
+        run: |
+          curl -o python3.pkg https://www.python.org/ftp/python/3.7.7/python-3.7.7-macosx10.9.pkg
+          sudo installer -verbose -pkg python3.pkg -target /
+        if: contains(matrix.tox_system_factor, 'python3_pythonorg')
+      - name: Build and test with tox
+        # We use a high parallelization on purpose in order to catch possible parallelization bugs in the build scripts.
+        # For doctesting, we use a lower parallelization to avoid timeouts.
+        run: |
+          MAKE="make -j12" tox -e $TOX_ENV -- SAGE_NUM_THREADS=4 $TARGETS
+      - name: Prepare logs artifact
+        run: |
+          mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; cp -r .tox/*/log "artifacts/$LOGS_ARTIFACT_NAME"
+        if: always()
+      - uses: actions/upload-artifact@v1
+        with:
+          path: artifacts
+          name: ${{ env.LOGS_ARTIFACT_NAME }}
+        if: always()
+      - name: Print out logs for immediate inspection
+        # and markup the output with GitHub Actions logging commands
+        run: |
+          .github/workflows/scan-logs.sh "artifacts/$LOGS_ARTIFACT_NAME"
+        if: always()

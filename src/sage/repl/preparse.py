@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The Sage Preparser
 
@@ -90,6 +91,11 @@ Raw and hex work correctly::
     <type 'int'>
     sage: type(0Xa1R)
     <type 'int'>
+
+The preparser can handle PEP 515 (see :trac:`28490`)::
+
+    sage: 1_000_000 + 3_000 # py3
+    1003000
 
 In Sage, methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error)::
@@ -222,7 +228,6 @@ from __future__ import print_function
 
 import os
 import re
-import six
 
 from sage.repl.load import load_wrap
 
@@ -230,15 +235,24 @@ implicit_mul_level = False
 numeric_literal_prefix = '_sage_const_'
 
 def implicit_multiplication(level=None):
-    """
-    Turns implicit multiplication on or off, optionally setting a
-    specific ``level``.  Returns the current ``level`` if no argument
-    is given.
+    r"""
+    Turn implicit multiplication on or off, optionally setting a
+    specific ``level``.
 
     INPUT:
 
-    - ``level`` - an integer (default: None); see :func:`implicit_mul`
-      for a list
+    - ``level`` -- a boolean or integer (default: 5); how aggressive to be in
+      placing \*'s
+
+      -  0 - Do nothing
+      -  1 - Numeric followed by alphanumeric
+      -  2 - Closing parentheses followed by alphanumeric
+      -  3 - Spaces between alphanumeric
+      - 10 - Adjacent parentheses (may mangle call statements)
+
+    OUTPUT:
+
+    The current ``level`` if no argument is given.
 
     EXAMPLES::
 
@@ -250,6 +264,21 @@ def implicit_multiplication(level=None):
       sage: implicit_multiplication(False)
       sage: preparse('2x')
       '2x'
+
+    Note that the `IPython automagic
+    <https://ipython.readthedocs.io/en/stable/interactive/magics.html#magic-automagic>`_
+    feature cannot be used if ``level >= 3``::
+
+        sage: implicit_multiplication(3)
+        sage: preparse('cd Documents')
+        'cd*Documents'
+        sage: implicit_multiplication(2)
+        sage: preparse('cd Documents')
+        'cd Documents'
+        sage: implicit_multiplication(False)
+
+    In this case, one can use the explicit syntax for IPython magics such as
+    ``%cd Documents``.
     """
     global implicit_mul_level
     if level is None:
@@ -277,16 +306,6 @@ def isalphadigit_(s):
         False
     """
     return s.isalpha() or s.isdigit() or s == "_"
-
-keywords = """
-and       del       from      not       while
-as        elif      global    or        with
-assert    else      if        pass      yield
-break     except    import    print
-class     exec      in        raise
-continue  finally   is        return
-def       for       lambda    try
-""".split()
 
 in_single_quote = False
 in_double_quote = False
@@ -373,11 +392,13 @@ def strip_string_literals(code, state=None):
         dbl_q = code.find('"', q)
         hash_q = code.find('#', q)
         q = min(sig_q, dbl_q)
-        if q == -1: q = max(sig_q, dbl_q)
+        if q == -1:
+            q = max(sig_q, dbl_q)
         if not in_quote and hash_q != -1 and (q == -1 or hash_q < q):
             # it's a comment
             newline = code.find('\n', hash_q)
-            if newline == -1: newline = len(code)
+            if newline == -1:
+                newline = len(code)
             counter += 1
             label = "L%s" % counter
             literals[label] = code[hash_q+1:newline]
@@ -736,6 +757,68 @@ def preparse_numeric_literals(code, extract=False):
         '0xEA'
         sage: preparse_numeric_literals('0x1012Fae')
         'Integer(0x1012Fae)'
+
+    Test underscores as digit separators (PEP 515,
+    https://www.python.org/dev/peps/pep-0515/)::
+
+        sage: preparse_numeric_literals('123_456')
+        'Integer(123_456)'
+        sage: preparse_numeric_literals('123_456.78_9_0')
+        "RealNumber('123_456.78_9_0')"
+        sage: preparse_numeric_literals('0b11_011')
+        'Integer(0b11_011)'
+        sage: preparse_numeric_literals('0o76_321')
+        'Integer(0o76_321)'
+        sage: preparse_numeric_literals('0xaa_aaa')
+        'Integer(0xaa_aaa)'
+        sage: preparse_numeric_literals('1_3.2_5e-2_2')
+        "RealNumber('1_3.2_5e-2_2')"
+
+        sage: for f in ["1_1.", "11_2.", "1.1_1", "1_1.1_1", ".1_1", ".1_1e1_1", ".1e1_1",
+        ....:           "1e12_3", "1_1e1_1", "1.1_3e1_2", "1_1e1_1", "1e1", "1.e1_1",
+        ....:           "1.0", "1_1.0"]:
+        ....:     preparse_numeric_literals(f)
+        ....:     assert preparse(f) == preparse_numeric_literals(f), f
+        "RealNumber('1_1.')"
+        "RealNumber('11_2.')"
+        "RealNumber('1.1_1')"
+        "RealNumber('1_1.1_1')"
+        "RealNumber('.1_1')"
+        "RealNumber('.1_1e1_1')"
+        "RealNumber('.1e1_1')"
+        "RealNumber('1e12_3')"
+        "RealNumber('1_1e1_1')"
+        "RealNumber('1.1_3e1_2')"
+        "RealNumber('1_1e1_1')"
+        "RealNumber('1e1')"
+        "RealNumber('1.e1_1')"
+        "RealNumber('1.0')"
+        "RealNumber('1_1.0')"
+
+    Having consecutive underscores is not valid Python syntax, so
+    it is not preparsed, and similarly with a trailing underscore::
+
+        sage: preparse_numeric_literals('123__45')
+        '123__45'
+        sage: 123__45 # py2
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid syntax
+        sage: 123__45 # py3
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid token
+
+        sage: preparse_numeric_literals('3040_1_')
+        '3040_1_'
+        sage: 3040_1_ # py2
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid syntax
+        sage: 3040_1_ # py3
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid token
     """
     literals = {}
     last = 0
@@ -743,14 +826,13 @@ def preparse_numeric_literals(code, extract=False):
 
     global all_num_regex
     if all_num_regex is None:
-        dec_num = r"\b\d+"
-        hex_num = r"\b0x[0-9a-f]+"
-        oct_num = r"\b0o[0-7]+"
-        bin_num = r"\b0b[01]+"
+        hex_num = r"\b0x[0-9a-f]+(_[0-9a-f]+)*"
+        oct_num = r"\b0o[0-7]+(_[0-7]+)*"
+        bin_num = r"\b0b[01]+(_[01]+)*"
         # This is slightly annoying as floating point numbers may start
         # with a decimal point, but if they do the \b will not match.
-        float_num = r"((\b\d+([.]\d*)?)|([.]\d+))(e[-+]?\d+)?"
-        all_num = r"((%s)|(%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (hex_num, oct_num, bin_num, float_num, dec_num)
+        float_num = r"((\b\d+(_\d+)*([.](\d+(_\d+)*)?)?)|([.]\d+(_\d+)*))(e[-+]?\d+(_\d+)*)?"
+        all_num = r"((%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (hex_num, oct_num, bin_num, float_num)
         all_num_regex = re.compile(all_num, re.I)
 
     for m in all_num_regex.finditer(code):
@@ -759,14 +841,10 @@ def preparse_numeric_literals(code, extract=False):
         postfix = m.groups()[-1].upper()
 
         if 'R' in postfix:
-            if not six.PY2:
-                postfix = postfix.replace('L', '')
+            postfix = postfix.replace('L', '')
             num_name = num_make = num + postfix.replace('R', '')
         elif 'L' in postfix:
-            if six.PY2:
-                continue
-            else:
-                num_name = num_make = num + postfix.replace('L', '')
+            num_name = num_make = num + postfix.replace('L', '')
         else:
 
             # The Sage preparser does extra things with numbers, which we need to handle here.
@@ -776,15 +854,15 @@ def preparse_numeric_literals(code, extract=False):
                         # handle Ellipsis
                         start += 1
                         num = num[1:]
-                    elif re.match(r'[a-zA-Z0-9_\])]', code[start-1]):
+                    elif re.match(r'[\w\])]', code[start-1]):
                         # handle R.0
                         continue
                 elif end < len(code) and num[-1] == '.':
-                    if re.match('[a-zA-Z_]', code[end]):
+                    if re.match(r'[^\W\d]', code[end]):
                         # handle 4.sqrt()
                         end -= 1
                         num = num[:-1]
-            elif end < len(code) and code[end] == '.' and not postfix and re.match(r'\d+$', num):
+            elif end < len(code) and code[end] == '.' and not postfix and re.match(r'\d+(_\d+)*$', num):
                 # \b does not match after the . for floating point
                 # two dots in a row would be an ellipsis
                 if end+1 == len(code) or code[end+1] != '.':
@@ -853,7 +931,7 @@ def strip_prompts(line):
 
 
 def preparse_calculus(code):
-    """
+    r"""
     Supports calculus-like function assignment, e.g., transforms::
 
        f(x,y,z) = sin(x^3 - 4*y) + y^x
@@ -925,11 +1003,16 @@ def preparse_calculus(code):
         Traceback (most recent call last):
         ...
         ValueError: Argument names should be valid python identifiers.
+
+    Check support for unicode characters (:trac:`29278`)::
+
+        sage: preparse("μ(x) = x^2")  # py3
+        '__tmp__=var("x"); μ = symbolic_expression(x**Integer(2)).function(x)'
     """
     new_code = []
     last_end = 0
-    #                                   f         (  vars  )   =      expr
-    for m in re.finditer(r";(\s*)([a-zA-Z_]\w*) *\(([^()]+)\) *= *([^;#=][^;#]*)", code):
+    #                                 f         (  vars  )   =      expr
+    for m in re.finditer(r";(\s*)([^\W\d]\w*) *\(([^()]+)\) *= *([^;#=][^;#]*)", code):
         ident, func, vars, expr = m.groups()
         stripped_vars = [v.strip() for v in vars.split(',')]
         # if the variable name starts with numeric_literal_prefix
@@ -1067,15 +1150,20 @@ def preparse_generators(code):
         sage: preparse_generators(";  R.<x>=ZZ[];")
         ";  R = ZZ['x']; (x,) = R._first_ngens(1);"
 
-    See :trac:`16731` ::
+    See :trac:`16731`::
 
         sage: preparse_generators('R.<x> = ')
         'R.<x> = '
+
+    Check support for unicode characters (:trac:`29278`)::
+
+        sage: preparse('Ω.<λ,μ> = QQ[]')  # py3
+        "Ω = QQ['λ, μ']; (λ, μ,) = Ω._first_ngens(2)"
     """
     new_code = []
     last_end = 0
-    #                                  obj       .< gens >      ,  other   =   constructor
-    for m in re.finditer(r";(\s*)([a-zA-Z_]\w*)\.<([^>]+)> *((?:,[\w, ]+)?)= *([^;#]+)", code):
+    #                                obj       .< gens >      ,  other   =   constructor
+    for m in re.finditer(r";(\s*)([^\W\d]\w*)\.<([^>]+)> *((?:,[\w, ]+)?)= *([^;#]+)", code):
         ident, obj, gens, other_objs, constructor = m.groups()
         gens = [v.strip() for v in gens.split(',')]
         constructor = constructor.rstrip()
@@ -1171,6 +1259,13 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
         sage: preparse("time R.<x> = ZZ[]", do_time=True)
         '__time__=misc.cputime(); __wall__=misc.walltime(); R = ZZ[\'x\']; print("Time: CPU %.2f s, Wall: %.2f s"%(misc.cputime(__time__), misc.walltime(__wall__))); (x,) = R._first_ngens(1)'
+
+    TESTS:
+
+    Check support for unicode characters (:trac:`29278`)::
+
+        sage: preparse("Ω.0")  # py3
+        'Ω.gen(0)'
     """
     global quote_state
     if reset:
@@ -1213,7 +1308,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
     # Generators
     # R.0 -> R.gen(0)
-    L = re.sub(r'([_a-zA-Z]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
+    L = re.sub(r'(\b[^\W\d]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
 
     # Use ^ for exponentiation and ^^ for xor
     # (A side effect is that **** becomes xor as well.)
@@ -1290,7 +1385,7 @@ def preparse_file(contents, globals=None, numeric_literals=True):
         _sage_const_100 = Integer(100)
         type(100 ), type(_sage_const_100 )
     """
-    if not isinstance(contents, six.string_types):
+    if not isinstance(contents, str):
         raise TypeError("contents must be a string")
 
     if globals is None:
@@ -1310,7 +1405,8 @@ def preparse_file(contents, globals=None, numeric_literals=True):
             # Stick the assignments at the top, trying not to shift
             # the lines down.
             ix = contents.find('\n')
-            if ix == -1: ix = len(contents)
+            if ix == -1:
+                ix = len(contents)
             if not re.match(r"^ *(#.*)?$", contents[:ix]):
                 contents = "\n"+contents
             assignments = ["%s = %s" % x for x in nums.items()]
@@ -1354,14 +1450,8 @@ def implicit_mul(code, level=5):
 
     - ``code``  -- a string; the code with missing \*'s
 
-    - ``level`` -- an integer (default: 5); how aggressive to be in
-      placing \*'s
-
-      -  0 - Do nothing
-      -  1 - Numeric followed by alphanumeric
-      -  2 - Closing parentheses followed by alphanumeric
-      -  3 - Spaces between alphanumeric
-      - 10 - Adjacent parentheses (may mangle call statements)
+    - ``level`` -- an integer (default: 5); see :func:`implicit_multiplication`
+      for a list
 
     OUTPUT:
 
@@ -1378,12 +1468,37 @@ def implicit_mul(code, level=5):
         '1r + 1e3 + 5*exp(2)'
         sage: implicit_mul('f(a)(b)', level=10)
         'f(a)*(b)'
+
+    TESTS:
+
+    Check handling of Python 3 keywords (:trac:`29391`)::
+
+        sage: implicit_mul('nonlocal a')  # py3
+        'nonlocal a'
+
+    Although these are not keywords in Python 3, we explicitly avoid implicit
+    multiplication in these cases because the error message will be more
+    helpful (:trac:`29391`)::
+
+        sage: implicit_mul('print 2')
+        'print 2'
+        sage: implicit_mul('exec s')
+        'exec s'
+
+    Check support for unicode characters (:trac:`29278`)::
+
+        sage: implicit_mul('3λ')  # py3
+        '3*λ'
     """
+    from keyword import iskeyword
+    keywords_py2 = ['print', 'exec']
+
     def re_no_keyword(pattern, code):
         for _ in range(2): # do it twice in because matches don't overlap
             for m in reversed(list(re.finditer(pattern, code))):
                 left, right = m.groups()
-                if left not in keywords and right not in keywords:
+                if not iskeyword(left) and not iskeyword(right) \
+                   and left not in keywords_py2:
                     code = "%s%s*%s%s" % (code[:m.start()],
                                           left,
                                           right,
@@ -1397,7 +1512,7 @@ def implicit_mul(code, level=5):
         code = re.sub(r'( *)time ', r'\1time %s' % no_mul_token, code)  # first word may be magic 'time'
         code = re.sub(r'\b(\d+(?:\.\d+)?(?:e\d+)?)([rR]\b)', r'\1%s\2' % no_mul_token, code)  # exclude such things as 10r
         code = re.sub(r'\b(\d+(?:\.\d+)?)e([-\d])', r'\1%se%s\2' % (no_mul_token, no_mul_token), code)  # exclude such things as 1e5
-        code = re_no_keyword(r'\b((?:\d+(?:\.\d+)?)|(?:%s[0-9eEpn]*\b)) *([a-zA-Z_(]\w*)\b' % numeric_literal_prefix, code)
+        code = re_no_keyword(r'\b((?:\d+(?:\.\d+)?)|(?:%s[0-9eEpn]*\b)) *([^\W\d(]\w*)\b' % numeric_literal_prefix, code)
     if level >= 2:
         code = re.sub(r'(\%\(L\d+\))s', r'\1%ss%s' % (no_mul_token, no_mul_token), code) # literal strings
         code = re_no_keyword(r'(\)) *(\w+)', code)

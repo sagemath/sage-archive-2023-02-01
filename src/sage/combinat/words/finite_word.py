@@ -216,10 +216,6 @@ Left-special and bispecial factors::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
-from builtins import zip
-
-from six import iteritems
-from six.moves import range
 from collections import defaultdict
 from itertools import islice, cycle
 from sage.combinat.words.abstract_word import Word_class
@@ -3551,7 +3547,7 @@ class FiniteWord_class(Word_class):
                     current_exp = QQ((current_pos+1, current_pos+1-m))
                     if current_exp > best_exp:
                         best_exp = current_exp
-                for ((i,j),u) in iteritems(st._transition_function[v]):
+                for ((i,j),u) in st._transition_function[v].items():
                     if j is None:
                         j = self.length()
                     queue.append((u, i, j, l+j-i+1))
@@ -4751,8 +4747,8 @@ class FiniteWord_class(Word_class):
            return False
         for i in range(1, l - 1):
             return_lengths = [x.length() for x in self.return_words(self[:i])]
-            if return_lengths != []:
-               if (max(return_lengths) <= i and self[l-i:l] == self[:i]):
+            if return_lengths:
+               if max(return_lengths) <= i and self[l-i:l] == self[:i]:
                   return True
         return False
 
@@ -4868,7 +4864,7 @@ class FiniteWord_class(Word_class):
             sage: sorted(Word("abcaccab").evaluation_sparse())
             [('a', 3), ('b', 2), ('c', 3)]
         """
-        return list(iteritems(self.evaluation_dict()))
+        return list(self.evaluation_dict().items())
 
     def evaluation_partition(self):
         r"""
@@ -6762,8 +6758,8 @@ class FiniteWord_class(Word_class):
         if key_error or not isinstance(mpl_cmap, C):
             possibilities = ', '.join(str(x) for x, val in cm.__dict__.items()
                                       if isinstance(val, C))
-            import sage.misc.misc
-            sage.misc.misc.verbose("The possible color maps include: %s" % possibilities, level=0)
+            import sage.misc.verbose
+            sage.misc.verbose.verbose("The possible color maps include: %s" % possibilities, level=0)
             raise RuntimeError("Color map %s not known" % cmap)
 
         #Drawing the colored vector...

@@ -31,6 +31,7 @@ class BackendIPython(BackendBase):
         sage: from sage.repl.rich_output.backend_ipython import BackendIPython
         sage: BackendIPython()._repr_()
         Traceback (most recent call last):
+        ...
         NotImplementedError: derived classes must implement this method
     """
 
@@ -543,6 +544,7 @@ class BackendIPythonNotebook(BackendIPython):
             return ({u'text/plain': rich_output.unicode_art.get_unicode()}, {})
         elif isinstance(rich_output, OutputLatex):
             return ({u'text/html':  rich_output.mathjax(),
+                     u'text/latex': rich_output.inline_equation(),
                      u'text/plain': plain_text.text.get_unicode(),
             }, {})
         elif isinstance(rich_output, OutputHtml):

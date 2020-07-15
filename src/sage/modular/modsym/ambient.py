@@ -70,12 +70,11 @@ from __future__ import absolute_import
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ################################################################################
-from six.moves import range
 # Sage packages
 import sage.misc.latex as latex
-import sage.misc.misc as misc
+from sage.misc.verbose import verbose
 
 import sage.matrix.matrix_space as matrix_space
 from sage.modular.arithgroup.arithgroup_element import M2Z
@@ -85,7 +84,7 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
 from sage.rings.all import Integer, QQ, ZZ, Ring
-from sage.arith.all import is_prime, gcd, divisors, number_of_divisors, crt
+from sage.arith.all import is_prime, divisors, number_of_divisors, crt
 import sage.rings.polynomial.multi_polynomial_element
 import sage.structure.formal_sum as formal_sum
 import sage.categories.all as cat
@@ -982,7 +981,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             self._hecke_matrices = {}
         except KeyError:
             pass
-        tm = misc.verbose("Computing Hecke operator T_%s"%p)
+        tm = verbose("Computing Hecke operator T_%s"%p)
 
         if is_prime(p):
             H = heilbronn.HeilbronnCremona(p)
@@ -1007,15 +1006,15 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
                         # W[j,f] = W[j,f] + s*K(x)
                         W.add_to_entry(j, f, s * K(x))
             j += 1
-        tm = misc.verbose("start matrix multiply",tm)
+        tm = verbose("start matrix multiply",tm)
         if hasattr(W, '_matrix_times_matrix_dense'):
             Tp = W._matrix_times_matrix_dense(R)
-            misc.verbose("done matrix multiply and computing Hecke operator",tm)
+            verbose("done matrix multiply and computing Hecke operator",tm)
         else:
             Tp = W * R
-            tm = misc.verbose("done matrix multiply",tm)
+            tm = verbose("done matrix multiply",tm)
             Tp = Tp.dense_matrix()
-            misc.verbose("done making Hecke operator matrix dense",tm)
+            verbose("done making Hecke operator matrix dense",tm)
         self._hecke_matrices[(p,rows)] = Tp
         return Tp
 
@@ -2182,21 +2181,15 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             sage: M = ModularSymbols(37,2,0,K)
             sage: M.twisted_winding_element(0,eps)
             2*(1,23) - 2*(1,32) + 2*(1,34)
-
         """
-
         if not dirichlet.is_DirichletCharacter(eps):
             raise TypeError("eps must be a Dirichlet character.")
-        if (i < 0) or (i > self.weight()-2):
+        if (i < 0) or (i > self.weight() - 2):
             raise ValueError("i must be between 0 and k-2.")
 
         m = eps.modulus()
-        s = self(0)
-
-        for a in ([ x for x in range(1,m) if gcd(x, m) == 1 ]):
-            s += eps(a) * self.modular_symbol([i, Cusp(0), Cusp(a/m)])
-
-        return s
+        return self.sum(eps(a) * self.modular_symbol([i, Cusp(0), Cusp(a / m)])
+                        for a in m.coprime_integers(m))
 
     ######################################################################
     # Z-module of integral modular symbols.
@@ -2851,7 +2844,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             self._hecke_matrices = {}
         except KeyError:
             pass
-        tm = misc.verbose("Computing Hecke operator T_%s"%p)
+        tm = verbose("Computing Hecke operator T_%s"%p)
 
         H = heilbronn.HeilbronnCremona(p)
         ##H = heilbronn.HeilbronnMerel(p)
@@ -2865,7 +2858,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         R = self.manin_gens_to_basis()
         W = R.new_matrix(nrows=len(B), ncols = R.nrows())  # the 0 with given number of rows and cols.
         j = 0
-        tm = misc.verbose("Matrix non-reduced", tm)
+        tm = verbose("Matrix non-reduced", tm)
         for i in B:
             # The following step is where most of the time is spent.
             c,d = P1[i]
@@ -2888,17 +2881,17 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
                     if s != 0:
                         W[j,f] = W[j,f] + s*m
             j += 1
-        tm = misc.verbose("done making non-reduced matrix",tm)
-        misc.verbose("start matrix-matrix (%s x %s) times (%s x %s) multiply to get Tp"%(W.nrows(), W.ncols(),
+        tm = verbose("done making non-reduced matrix",tm)
+        verbose("start matrix-matrix (%s x %s) times (%s x %s) multiply to get Tp"%(W.nrows(), W.ncols(),
                                                                                          R.nrows(), R.ncols()))
         if hasattr(W, '_matrix_times_matrix_dense'):
             Tp = W._matrix_times_matrix_dense(R)
-            misc.verbose("done matrix multiply and computing Hecke operator",tm)
+            verbose("done matrix multiply and computing Hecke operator",tm)
         else:
             Tp = W * R
-            tm = misc.verbose("done multiplying",tm)
+            tm = verbose("done multiplying",tm)
             Tp = Tp.dense_matrix()
-            misc.verbose("done making Hecke operator dense", tm)
+            verbose("done making Hecke operator dense", tm)
         if rows is None:
             self._hecke_matrices[(p,rows)] = Tp
         return Tp

@@ -324,8 +324,6 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
 from sage.categories.fields import Fields
 from sage.categories.manifolds import Manifolds
@@ -2254,12 +2252,23 @@ class TopologicalManifold(ManifoldSubset):
             F: M --> R
                (x, y) |--> x^2 + cos(y)*sin(x)
 
+        The calculus method chosen via ``set_calculus_method()`` applies to any
+        chart defined subsequently on the manifold::
+
+            sage: M.set_calculus_method('sympy')
+            sage: Y.<u,v> = M.chart()  # a new chart
+            sage: Y.calculus_method()
+            Available calculus methods (* = current):
+             - SR (default)
+             - sympy (*)
+
         .. SEEALSO::
 
             :meth:`~sage.manifolds.chart.Chart.calculus_method` for a
             control of the calculus method chart by chart
 
         """
+        self._calculus_method = method
         for chart in self._atlas:
             chart.calculus_method().set(method)
 
@@ -2339,7 +2348,6 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: def simpl_trig(a):
             ....:     return a.simplify_trig()
-            ....:
             sage: M.set_simplify_function(simpl_trig)
             sage: s = f + g
             sage: s.expr()
@@ -2362,7 +2370,6 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: def simpl_trig_sympy(a):
             ....:     return a.trigsimp()
-            ....:
             sage: M.set_simplify_function(simpl_trig_sympy, method='sympy')
 
         Then, it becomes active as soon as we change the calculus engine to

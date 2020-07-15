@@ -75,7 +75,6 @@ Libraries of algorithms
    sage/graphs/matchpoly
    sage/graphs/genus
    sage/graphs/lovasz_theta
-   sage/graphs/linearextensions
    sage/graphs/schnyder
    sage/graphs/planarity
    sage/graphs/traversals
@@ -87,6 +86,7 @@ Libraries of algorithms
    sage/graphs/graph_decompositions/cutwidth
    sage/graphs/graph_decompositions/graph_products
    sage/graphs/graph_decompositions/modular_decomposition
+   sage/graphs/graph_decompositions/clique_separators
    sage/graphs/convexity_properties
    sage/graphs/weakly_chordal
    sage/graphs/distances_all_pairs

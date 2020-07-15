@@ -14,7 +14,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #                         http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function, division
-from six.moves import range
+
 import sys
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -697,11 +697,9 @@ def RandomNewmanWattsStrogatz(n, k, p, seed=None):
     We check that the generated graph contains a cycle of order `n`::
 
         sage: G = graphs.RandomNewmanWattsStrogatz(7, 2, 0.2)
-        sage: G.order(), G.size()   # py3
+        sage: G.order(), G.size()
         (7, 9)                      # 64-bit
         (7, 10)                     # 32-bit
-        sage: G.order(), G.size()   # py2
-        (7, 9)
         sage: C7 = graphs.CycleGraph(7)
         sage: G.subgraph_search(C7)
         Subgraph of (): Graph on 7 vertices

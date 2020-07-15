@@ -40,8 +40,6 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
-from six import itervalues
-
 from sage.structure.element import CommutativeAlgebraElement
 from sage.symbolic.expression import Expression
 from sage.manifolds.chart_func import ChartFunction
@@ -1144,7 +1142,7 @@ class ScalarField(CommutativeAlgebraElement):
         if not self._express:
             # undefined scalar field
             return True
-        for funct in itervalues(self._express):
+        for funct in self._express.values():
             if not funct.is_zero():
                 self._is_zero = False
                 return True
@@ -2264,7 +2262,7 @@ class ScalarField(CommutativeAlgebraElement):
                         if (chart2, chart1) in coord_changes:
                             self.coord_function(chart2, from_chart=chart1)
                             resu.append(chart2)
-        if resu == []:
+        if not resu:
             return None
         else:
             return resu
@@ -2691,7 +2689,7 @@ class ScalarField(CommutativeAlgebraElement):
                         var_not_in_chart = [s for s in var
                                             if not s in chart_coords]
                         any_in_other_chart = False
-                        if var_not_in_chart != []:
+                        if var_not_in_chart:
                             for other_chart in self._domain.atlas():
                                 other_chart_coords = other_chart[:]
                                 for s in var_not_in_chart:

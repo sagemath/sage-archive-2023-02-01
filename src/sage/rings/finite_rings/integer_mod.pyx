@@ -58,8 +58,7 @@ TESTS::
     sage: type(IntegerModRing(2^31).an_element())
     <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 Robert Bradshaw <robertwb@math.washington.edu>
 #                     2006 William Stein <wstein@gmail.com>
 #
@@ -68,7 +67,7 @@ TESTS::
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import print_function, division, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off, sig_check
@@ -101,6 +100,7 @@ cimport sage.rings.integer
 from sage.rings.integer cimport Integer
 
 from sage.structure.coerce cimport py_scalar_to_element
+from sage.structure.richcmp import rich_to_bool_sgn, rich_to_bool
 import sage.structure.element
 cimport sage.structure.element
 coerce_binop = sage.structure.element.coerce_binop
@@ -428,9 +428,9 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: abs(Mod(2,3))
             Traceback (most recent call last):
             ...
-            ArithmeticError: absolute valued not defined on integers modulo n.
+            ArithmeticError: absolute value not defined on integers modulo n.
         """
-        raise ArithmeticError("absolute valued not defined on integers modulo n.")
+        raise ArithmeticError("absolute value not defined on integers modulo n.")
 
     def __reduce__(IntegerMod_abstract self):
         """
@@ -1394,7 +1394,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         Check that the code path cunningham might be used::
 
             sage: a = Mod(9,11)
-            sage: a.nth_root(2, False, True, 'Johnston', cunningham = True) # optional - cunningham
+            sage: a.nth_root(2, False, True, 'Johnston', cunningham = True) # optional - cunningham_tables
             [3, 8]
 
         ALGORITHMS:
@@ -2007,7 +2007,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
                 mpz_fdiv_q_2exp(x.value, self.value, -k)
             return x
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         EXAMPLES::
 
@@ -2020,12 +2020,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         """
         cdef int i
         i = mpz_cmp((<IntegerMod_gmp>left).value, (<IntegerMod_gmp>right).value)
-        if i < 0:
-            return -1
-        elif i == 0:
-            return 0
-        else:
-            return 1
+        return rich_to_bool_sgn(op, i)
 
     cpdef bint is_one(IntegerMod_gmp self):
         """
@@ -2180,9 +2175,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             4
         """
         return int(self.lift())
-
-    def __long__(self):
-        return long(self.lift())
 
     def __pow__(IntegerMod_gmp self, exp, m): # NOTE: m ignored, always use modulus of parent ring
         """
@@ -2374,9 +2366,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
     cdef int_fast32_t get_int_value(IntegerMod_int self):
         return self.ivalue
 
-
-
-    cpdef int _cmp_(self, right) except -2:
+    cpdef _richcmp_(self, right, int op):
         """
         EXAMPLES::
 
@@ -2392,11 +2382,11 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             True
         """
         if self.ivalue == (<IntegerMod_int>right).ivalue:
-            return 0
+            return rich_to_bool(op, 0)
         elif self.ivalue < (<IntegerMod_int>right).ivalue:
-            return -1
+            return rich_to_bool(op, -1)
         else:
-            return 1
+            return rich_to_bool(op, 1)
 
     cpdef bint is_one(IntegerMod_int self):
         """
@@ -2574,9 +2564,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: v[Mod(10,7)]
             4
         """
-        return self.ivalue
-
-    def __long__(IntegerMod_int self):
         return self.ivalue
 
     def __lshift__(IntegerMod_int self, k):
@@ -3187,8 +3174,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
     cdef int_fast64_t get_int_value(IntegerMod_int64 self):
         return self.ivalue
 
-
-    cpdef int _cmp_(self, right) except -2:
+    cpdef _richcmp_(self, right, int op):
         """
         EXAMPLES::
 
@@ -3203,9 +3189,12 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: mod(0, 13^5) == int(0)
             True
         """
-        if self.ivalue == (<IntegerMod_int64>right).ivalue: return 0
-        elif self.ivalue < (<IntegerMod_int64>right).ivalue: return -1
-        else: return 1
+        if self.ivalue == (<IntegerMod_int64>right).ivalue:
+            return rich_to_bool(op, 0)
+        elif self.ivalue < (<IntegerMod_int64>right).ivalue:
+            return rich_to_bool(op, -1)
+        else:
+            return rich_to_bool(op, 1)
 
     cpdef bint is_one(IntegerMod_int64 self):
         """
@@ -3369,9 +3358,6 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: v[Mod(3, 2^20)]
             4
         """
-        return self.ivalue
-
-    def __long__(IntegerMod_int64 self):
         return self.ivalue
 
     def __lshift__(IntegerMod_int64 self, k):

@@ -37,9 +37,7 @@ TESTS::
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
-from six.moves import range
 
-import six
 import sage.rings.number_field.all
 from . import polynomial_element
 import sage.rings.rational_field
@@ -57,7 +55,7 @@ from sage.structure.category_object import normalize_names
 from sage.structure.factory import UniqueFactory
 
 from sage.rings.polynomial.infinite_polynomial_ring import GenDictWithBasering
-from sage.all import sage_eval, parent
+from sage.all import sage_eval
 
 from sage.structure.richcmp import richcmp
 
@@ -311,7 +309,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         sage: P.<x> = QQ[]
         sage: Q = P.quotient(x^2+2)
         sage: Q.category()
-        Category of commutative no zero divisors quotients of algebras over Rational Field
+        Category of commutative no zero divisors quotients of algebras over
+         (number fields and quotient fields and metric spaces)
 
     We verify that the elements belong to the correct element class.
     Also, we list the attributes that are provided by the element
@@ -330,8 +329,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         sage: Q in Fields()
         True
         sage: Q.category()
-        Category of commutative division no zero divisors
-        quotients of algebras over Rational Field
+        Category of commutative division no zero divisors quotients of algebras
+         over (number fields and quotient fields and metric spaces)
         sage: first_class == Q.__class__
         False
         sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]
@@ -399,7 +398,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
         self.__ring = ring
         self.__polynomial = polynomial
-        category = CommutativeAlgebras(ring.base_ring()).Quotients().or_subcategory(category)
+        category = CommutativeAlgebras(ring.base_ring().category()).Quotients().or_subcategory(category)
         CommutativeRing.__init__(self, ring, names=name, category=category)
 
     def _element_constructor_(self, x):
@@ -488,10 +487,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             -x
 
         """
-        P = parent(x)
-        if P is self:
-            return x
-        if not isinstance(x, six.string_types):
+        if not isinstance(x, str):
             try:
                 return self.element_class(self, self.__ring(x) , check=True)
             except TypeError:
@@ -1283,7 +1279,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: K.<a> = QuadraticField(-5)
             sage: R.<x> = K[]
             sage: S.<xbar> = R.quotient((x^2 + 23)*(x^2 + 31))
-            sage: S.S_class_group([])
+            sage: S.S_class_group([])  # representation varies, not tested
             [((1/4*xbar^2 + 31/4,
                (-1/8*a + 1/8)*xbar^2 - 31/8*a + 31/8,
                1/16*xbar^3 + 1/16*xbar^2 + 31/16*xbar + 31/16,
@@ -1315,6 +1311,41 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: type(CG[0][1])
             <type 'sage.rings.integer.Integer'>
 
+        TESTS:
+
+        We verify the above test, where the representation depends on the PARI version::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: R.<x> = K[]
+            sage: S.<xbar> = R.quotient((x^2 + 23)*(x^2 + 31))
+            sage: C = S.S_class_group([])
+            sage: C[:2]
+            [((1/4*xbar^2 + 31/4,
+               (-1/8*a + 1/8)*xbar^2 - 31/8*a + 31/8,
+               1/16*xbar^3 + 1/16*xbar^2 + 31/16*xbar + 31/16,
+               -1/16*a*xbar^3 + (1/16*a + 1/8)*xbar^2 - 31/16*a*xbar + 31/16*a + 31/8),
+              6),
+             ((-1/4*xbar^2 - 23/4,
+               (1/8*a - 1/8)*xbar^2 + 23/8*a - 23/8,
+               -1/16*xbar^3 - 1/16*xbar^2 - 23/16*xbar - 23/16,
+               1/16*a*xbar^3 + (-1/16*a - 1/8)*xbar^2 + 23/16*a*xbar - 23/16*a - 23/8),
+              6)]
+            sage: C[2][1]
+            2
+            sage: gens = C[2][0]
+            sage: expected_gens = (
+            ....:     -5/4*xbar^2 - 115/4,
+            ....:     1/4*a*xbar^2 + 23/4*a,
+            ....:     -1/16*xbar^3 - 7/16*xbar^2 - 23/16*xbar - 161/16,
+            ....:     1/16*a*xbar^3 - 1/16*a*xbar^2 + 23/16*a*xbar - 23/16*a)
+            sage: gens[0] == expected_gens[0]
+            True
+            sage: gens[1] in (expected_gens[1], expected_gens[1]/2 + expected_gens[0]/2)
+            True
+            sage: gens[2] in (expected_gens[2], expected_gens[2] + expected_gens[0]/2)
+            True
+            sage: gens[3] in (expected_gens[3], expected_gens[3] + expected_gens[0]/2)
+            True
         """
         fields, isos, iso_classes = self._S_decomposition(tuple(S))
         n = len(fields)
@@ -1415,7 +1446,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: K.<a> = QuadraticField(-5)
             sage: R.<x> = K[]
             sage: S.<xbar> = R.quotient((x^2 + 23)*(x^2 + 31))
-            sage: S.class_group()
+            sage: S.class_group()  # representation varies, not tested
             [((1/4*xbar^2 + 31/4,
                (-1/8*a + 1/8)*xbar^2 - 31/8*a + 31/8,
                1/16*xbar^3 + 1/16*xbar^2 + 31/16*xbar + 31/16,
@@ -1787,7 +1818,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
             # recursively try to rewrite the isomorphic_quotient
             isomorphic_ring_to_isomorphic_quotient, isomorphic_quotient_to_isomorphic_ring, isomorphic_ring = isomorphic_quotient._isomorphic_ring()
-            
+
             # the process has likely refined the category of
             # isomorphic_quotient (to Fields e.g.) so we use the same category
             # for self
@@ -1859,7 +1890,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             x = A.solve_left(A.column_space().basis()[1])
             primitive_element = sum(c*b for c,b in zip(x.list(), basis))
             from_isomorphic_ring = isomorphic_ring.hom([primitive_element], check=False)
-            
+
             return from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring
 
         from sage.categories.all import NumberFields
@@ -2057,8 +2088,17 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, IntegralDoma
 
             sage: S in IntegralDomains()
             True
+
+        Check that :trac:`29017` is fixed::
+
+            sage: R.<x> = ZZ[]
+            sage: Q = R.quo(x-1)
+            sage: H = R.Hom(Q)
+            sage: h = R.hom(Q)
+            sage: h.parent() is H
+            True
         """
-        category = CommutativeAlgebras(ring.base_ring()).Quotients().NoZeroDivisors().or_subcategory(category)
+        category = CommutativeAlgebras(ring.base_ring().category()).Quotients().NoZeroDivisors().or_subcategory(category)
         PolynomialQuotientRing_generic.__init__(self, ring, polynomial, name, category)
 
     def field_extension(self, names):

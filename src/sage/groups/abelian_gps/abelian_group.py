@@ -203,8 +203,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
-import six
 
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -540,7 +538,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: A.category()
             Category of infinite commutative groups
         """
-        assert isinstance(names, (six.string_types, tuple))
+        assert isinstance(names, (str, tuple))
         assert isinstance(generator_orders, tuple)
         assert all(isinstance(order,Integer) for order in generator_orders)
         self._gens_orders = generator_orders
@@ -1147,7 +1145,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             TypeError: Abelian group must be finite
         """
         # GAP does not support infinite permutation groups
-        if not self.is_finite(): 
+        if not self.is_finite():
             raise TypeError('Abelian group must be finite')
         from sage.groups.perm_gps.permgroup import PermutationGroup
         s = 'Image(IsomorphismPermGroup(%s))'%self._gap_init_()
@@ -1362,7 +1360,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         if not self.is_finite():
             raise ValueError("group must be finite")
-        from sage.misc.misc import verbose
+        from sage.misc.verbose import verbose
 
         if self.is_trivial():
             return [self]

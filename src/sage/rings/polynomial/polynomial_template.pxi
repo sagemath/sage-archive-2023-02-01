@@ -451,8 +451,7 @@ cdef class Polynomial_template(Polynomial):
             sage: (x^2 + 1) % x^2
             1
 
-
-        TESTS::
+        TESTS:
 
         We test that :trac:`10578` is fixed::
 
@@ -500,23 +499,6 @@ cdef class Polynomial_template(Polynomial):
 
         celement_quorem(&q.x, &r.x, &(<Polynomial_template>self).x, &right.x, (<Polynomial_template>self)._cparent)
         return q,r
-
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: P.<x> = GF(2)[]
-            sage: int(x)
-            Traceback (most recent call last):
-            ...
-            ValueError: Cannot coerce polynomial with degree 1 to integer.
-
-            sage: int(P(1))
-            1
-        """
-        if celement_len(&self.x, (<Polynomial_template>self)._cparent) > 1:
-            raise ValueError("Cannot coerce polynomial with degree %d to integer."%(self.degree()))
-        return int(self[0])
 
     def __nonzero__(self):
         """

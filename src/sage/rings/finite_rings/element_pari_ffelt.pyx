@@ -7,15 +7,14 @@ AUTHORS:
   element_ext_pari.py by William Stein et al. and
   element_ntl_gf2e.pyx by Martin Albrecht.
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #      Copyright (C) 2013 Peter Bruin <peter.bruin@math.uzh.ch>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cysignals.memory cimport sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -37,6 +36,8 @@ from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.polynomial.multi_polynomial_element import MPolynomial
 from sage.rings.rational import Rational
 from sage.structure.element cimport Element, ModuleElement, RingElement
+from sage.structure.richcmp cimport rich_to_bool
+
 
 cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
     """
@@ -131,8 +132,6 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         sage: K.<a> = FiniteField(7^20, impl='pari_ffelt')
         sage: K(int(8))
         1
-        sage: K(long(-2^300))
-        6
 
     ::
 
@@ -574,7 +573,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         x.construct(self.val)
         return x
 
-    cpdef int _cmp_(self, other) except -2:
+    cpdef _richcmp_(self, other, int op):
         """
         Comparison of finite field elements.
 
@@ -632,7 +631,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         sig_on()
         r = cmp_universal(self.val, (<FiniteFieldElement_pari_ffelt>other).val)
         sig_off()
-        return r
+        return rich_to_bool(op, r)
 
     cpdef _add_(self, right):
         """
@@ -1163,19 +1162,6 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             ValueError: element is not in the prime field
         """
         return int(self.lift())
-
-    def __long__(self):
-        """
-        Lift to a python long, if possible.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(3^17, impl='pari_ffelt')
-            sage: b = k(2)
-            sage: long(b)
-            2L
-        """
-        return long(self.lift())
 
     def __float__(self):
         """

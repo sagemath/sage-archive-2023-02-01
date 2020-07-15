@@ -1,5 +1,7 @@
+# distutils: libraries = ntl gmp
+# distutils: language = c++
 """
-Dense univariate polynomials over  `\ZZ/n\ZZ`, implemented using NTL.
+Dense univariate polynomials over  `\ZZ/n\ZZ`, implemented using NTL
 
 This implementation is generally slower than the FLINT implementation in
 :mod:`~sage.rings.polynomial.polynomial_zmod_flint`, so we use FLINT by
@@ -519,6 +521,7 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
     We know that the error is `\le 2^{\text{hidden}}-1` and that the modulus
     we are looking for is `\ge \sqrt{N}`::
 
+        sage: from sage.misc.verbose import set_verbose
         sage: set_verbose(2)
         sage: d = f.small_roots(X=2^hidden-1, beta=0.5)[0] # time random
         verbose 2 (<module>) m = 4
@@ -540,7 +543,7 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
     PhD thesis, University of Paderborn, 2003.
     http://www.cs.uni-paderborn.de/uploads/tx_sibibtex/bp.pdf
     """
-    from sage.misc.misc import verbose
+    from sage.misc.verbose import verbose
     from sage.matrix.constructor import Matrix
     from sage.rings.all import RR
 

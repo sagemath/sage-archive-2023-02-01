@@ -172,8 +172,8 @@ We find the `x` such that `e^x - 3x = 0`.
 
 ::
 
-    sage: e = mathematica('Exp[x] - 3x == 0') # optional - mathematica
-    sage: e.FindRoot(['x', 2])                # optional - mathematica
+    sage: eqn = mathematica('Exp[x] - 3x == 0') # optional - mathematica
+    sage: eqn.FindRoot(['x', 2])                # optional - mathematica
     {x -> 1.512134551657842}
 
 Note that this agrees with what the PARI interpreter gp produces::
@@ -308,7 +308,7 @@ OTHER Examples::
     sage: def math_bessel_K(nu,x):
     ....:     return mathematica(nu).BesselK(x).N(20)
     sage: math_bessel_K(2,I)                      # optional - mathematica
-    -2.5928861754911969782 + 0.1804899720669620266 I
+    -2.59288617549119697817 + 0.18048997206696202663*I
 
 ::
 
@@ -339,6 +339,30 @@ AUTHORS:
 
 - Felix Lawrence (2009-08-21): Added support for importing Mathematica lists
   and floats with exponents.
+
+TESTS:
+
+Check that numerical approximations via Mathematica's `N[]` function work
+correctly (:trac:`18888`, :trac:`28907`)::
+
+    sage: mathematica('Pi/2').N(10)           # optional -- mathematica
+    1.5707963268
+    sage: mathematica('Pi').N(10)             # optional -- mathematica
+    3.1415926536
+    sage: mathematica('Pi').N(50)             # optional -- mathematica
+    3.14159265358979323846264338327950288419716939937511
+    sage: str(mathematica('Pi*x^2-1/2').N())  # optional -- mathematica
+                    2
+    -0.5 + 3.14159 x
+
+Check that Mathematica's `E` exponential symbol is correctly backtranslated
+as Sage's `e` (:trac:`29833`)::
+
+    sage: x = var('x')
+    sage: (e^x)._mathematica_().sage()  # optional -- mathematica
+    e^x
+    sage: exp(x)._mathematica_().sage() # optional -- mathematica
+    e^x
 """
 
 #*****************************************************************************
@@ -353,7 +377,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
 
@@ -366,6 +390,7 @@ from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
 from sage.interfaces.interface import AsciiArtString
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
+from sage.structure.richcmp import rich_to_bool
 
 
 def clean_output(s):
@@ -676,7 +701,7 @@ class MathematicaElement(ExpectElement):
         return float(P.eval('N[%s,%s]'%(self.name(),precision)))
 
     def _reduce(self):
-        return self.parent().eval('InputForm[%s]'%self.name())
+        return self.parent().eval('InputForm[%s]' % self.name()).strip()
 
     def __reduce__(self):
         return reduce_load, (self._reduce(), )
@@ -967,19 +992,15 @@ class MathematicaElement(ExpectElement):
     def str(self):
         return str(self)
 
-    def _cmp_(self, other):
-        #if not (isinstance(other, ExpectElement) and other.parent() is self.parent()):
-        #    return coerce.cmp(self, other)
+    def _richcmp_(self, other, op):
         P = self.parent()
         if P.eval("%s < %s"%(self.name(), other.name())).strip() == 'True':
-            return -1
+            return rich_to_bool(op, -1)
         elif P.eval("%s > %s"%(self.name(), other.name())).strip() == 'True':
-            return 1
+            return rich_to_bool(op, 1)
         elif P.eval("%s == %s"%(self.name(), other.name())).strip() == 'True':
-            return 0
-        else:
-            return -1  # everything is supposed to be comparable in Python, so we define
-                       # the comparison thus when no comparable in interfaced system.
+            return rich_to_bool(op, 0)
+        return NotImplemented
 
     def __bool__(self):
         """
@@ -1002,37 +1023,6 @@ class MathematicaElement(ExpectElement):
         return P.eval(cmd).strip() != P._true_symbol()
 
     __nonzero__ = __bool__
-
-    def N(self, precision=None):
-        r"""
-        Numerical approximation by calling Mathematica's `N[]`
-
-        Calling Mathematica's `N[]` function, with optional precision in decimal digits.
-        Unlike Sage's `n()`, `N()` can be applied to symbolic Mathematica objects.
-
-        A workaround for :trac:`18888` backtick issue, stripped away by `get()`,
-        is included.
-
-        .. note::
-
-            The base class way up the hierarchy defines an `N` (modeled
-            after Mathematica's)  which overwrites the Mathematica one,
-            and doesn't work at all. We restore it here.
-
-        EXAMPLES::
-
-            sage: mathematica('Pi/2').N(10)        # optional -- mathematica
-            1.570796327
-            sage: mathematica('Pi').N(50)          # optional -- mathematica
-            3.1415926535897932384626433832795028841971693993751
-            sage: mathematica('Pi*x^2-1/2').N()    # optional -- mathematica
-                            2
-            -0.5 + 3.14159 x
-        """
-        P = self.parent()
-        if precision is None:
-            return P.eval('N[%s]'%self.name())
-        return P.eval('N[%s,%s]'%(self.name(),precision))
 
     def n(self, *args, **kwargs):
         r"""

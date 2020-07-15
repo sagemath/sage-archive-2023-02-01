@@ -66,9 +66,9 @@ A list containing the characteristic series of the U_23 operator modulo 23^10 on
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  https://www.gnu.org/licenses/
-# ****************************************************************************
-from six.moves import range
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.functions.all import floor, ceil
 from sage.arith.all import valuation
 from sage.rings.all import ZZ, Zmod, Infinity, Integer
@@ -78,7 +78,8 @@ from sage.modular.dims import dimension_modular_forms
 from sage.misc.functional import dimension,transpose,charpoly
 from sage.matrix.constructor import matrix, random_matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.misc.misc import cputime, verbose
+from sage.misc.misc import cputime
+from sage.misc.verbose import verbose
 
 # AUXILIARY CODE: SPACES OF MODULAR FORMS AND LINEAR ALGEBRA
 

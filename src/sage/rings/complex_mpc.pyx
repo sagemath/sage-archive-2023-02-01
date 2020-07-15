@@ -1132,29 +1132,6 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         """
         raise TypeError("can't convert complex to int; use int(abs(z))")
 
-    def __long__(self):
-        r"""
-        Method for converting ``self`` to type ``long``.
-
-        Called by the ``long`` function. Note that calling this method
-        returns an error since, in general, complex numbers cannot be
-        coerced into integers.
-
-        EXAMPLES::
-
-            sage: MPC = MPComplexField()
-            sage: a = MPC(2,1)
-            sage: long(a)  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to long; use long(abs(z))
-            sage: a.__long__()  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to long; use long(abs(z))
-        """
-        raise TypeError("can't convert complex to long; use long(abs(z))")
-
     def __float__(self):
         r"""
         Method for converting ``self`` to type ``float``.
@@ -1596,7 +1573,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         mpc_norm(x.value, self.value, (<RealField_class>x._parent).rnd)
         return x
 
-    def __rdiv__(self, left):
+    def __rtruediv__(self, left):
         r"""
         Returns the quotient of ``left`` with ``self``, that is: ``left/self``
         as a complex number.
@@ -1609,7 +1586,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
             sage: MPC = MPComplexField()
             sage: a = MPC(2, 2)
-            sage: a.__rdiv__(MPC(1))
+            sage: a.__rtruediv__(MPC(1))
             0.250000000000000 - 0.250000000000000*I
             sage: MPC(1)/a
             0.250000000000000 - 0.250000000000000*I
@@ -1976,23 +1953,27 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         """
         return (~self).arccosh()
 
-    def cotan(self):
+    def cot(self):
         """
         Return the cotangent of this complex number.
 
         EXAMPLES::
 
             sage: MPC = MPComplexField(53)
+            sage: (1+MPC(I)).cot()
+            0.217621561854403 - 0.868014142895925*I
             sage: (1+MPC(I)).cotan()
             0.217621561854403 - 0.868014142895925*I
             sage: i = MPComplexField(200).0
-            sage: (1+i).cotan()
+            sage: (1+i).cot()
             0.21762156185440268136513424360523807352075436916785404091068 - 0.86801414289592494863584920891627388827343874994609327121115*I
             sage: i = MPComplexField(220).0
-            sage: (1+i).cotan()
+            sage: (1+i).cot()
             0.21762156185440268136513424360523807352075436916785404091068124239 - 0.86801414289592494863584920891627388827343874994609327121115071646*I
         """
         return ~(self.tan())
+
+    cotan = cot # provide this alias for backward compatibility in #29409
 
     ################################
     # Other functions

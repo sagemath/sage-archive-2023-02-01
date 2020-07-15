@@ -78,7 +78,7 @@ class Groups(CategoryWithAxiom):
             sage: F.<x,y,z> = Groups().free(); F
             Free Group on generators {x, y, z}
         """
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         if index_set in ZZ or (index_set is None and names is not None):
             from sage.groups.free_group import FreeGroup
             if names is None:

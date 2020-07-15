@@ -27,8 +27,7 @@ on:
 env:
   TARGETS_PRE: build/make/Makefile
   TARGETS:     build/make/Makefile
-  # Test all optional packages, but do not test huge packages
-  ALL_TARGETS_OPTIONAL: "$(echo $(PATH=build/bin:$PATH build/bin/sage-package list :optional: | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d))"
+  # TARGETS_OPTIONAL see below
 
 jobs:
   docker:
@@ -44,7 +43,8 @@ jobs:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       DOCKER_TARGETS: configured with-targets with-targets-optional
-      TARGETS_OPTIONAL: "{{ env.ALL_TARGETS_OPTIONAL }} | grep '^[${{ matrix.targets_pattern }}]'"
+      # Test all optional packages, but do not test huge packages
+      TARGETS_OPTIONAL: "$( echo $(PATH=build/bin:$PATH build/bin/sage-package list :optional: | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d | grep '^[${{ matrix.targets_pattern }}]' ) )"
     steps:
       - uses: actions/checkout@v2
         with:
@@ -111,7 +111,8 @@ jobs:
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
-      TARGETS_OPTIONAL: "{{ env.ALL_TARGETS_OPTIONAL }} | grep '^[${{ matrix.targets_pattern }}]'"
+      # Test all optional packages, but do not test huge packages
+      TARGETS_OPTIONAL: "$( echo $(PATH=build/bin:$PATH build/bin/sage-package list :optional: | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d | grep '^[${{ matrix.targets_pattern }}]' ) )"
     steps:
       - uses: actions/checkout@v2
       - name: Install test prerequisites

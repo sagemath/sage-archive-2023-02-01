@@ -5035,11 +5035,11 @@ class Polyhedron_base(Element):
             else:
                 new_vertices = ()
             if self.n_rays():
-                new_rays = ( r for r in (linear_transf*matrix(R, self.rays()).transpose()).transpose() )
+                new_rays = ( r for r in matrix(R, self.rays())*linear_transf.transpose() )
             else:
                 new_rays = ()
             if self.n_lines():
-                new_lines = ( l for l in (linear_transf*matrix(R, self.lines()).transpose()).transpose() )
+                new_lines = ( l for l in matrix(R, self.lines())*linear_transf.transpose() )
             else:
                 new_lines = ()
 

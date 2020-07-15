@@ -157,6 +157,22 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
         - ``default_decoder_name`` -- the name of the default decoder of ``self``
 
         - ``metric`` -- (default: ``Hamming``) the metric of ``self``
+
+        EXAMPLES:
+
+            sage: from sage.coding.linear_code_no_metric import AbstractLinearCodeNoMetric
+            sage: from sage.coding.linear_code import LinearCodeSyndromeDecoder
+            sage: class MyLinearCode(AbstractLinearCodeNoMetric):
+            ....:   def __init__(self, field, length, dimension, generator_matrix):
+            ....:       self._registered_decoders['Syndrome'] = LinearCodeSyndromeDecoder
+            ....:       AbstractLinearCodeNoMetric.__init__(self, field, length, "Systematic", "Syndrome")
+            ....:       self._dimension = dimension
+            ....:       self._generator_matrix = generator_matrix
+            ....:   def generator_matrix(self):
+            ....:       return self._generator_matrix
+            ....:   def _repr_(self):
+            ....:       return "[%d, %d] dummy code over GF(%s)" % (self.length(), self.dimension(), self.base_field().cardinality())
+            sage: C = MyLinearCode(GF(2), 1, 1, matrix(GF(2), [1]))
         """
 
         self._registered_encoders['Systematic'] = LinearCodeSystematicEncoder

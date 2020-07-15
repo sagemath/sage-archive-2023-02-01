@@ -68,7 +68,6 @@ Assumptions are added and in some cases checked for consistency::
     ValueError: Assumption is inconsistent
     sage: forget()
 """
-from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ, QQ, RR, CC
 from sage.symbolic.ring import is_SymbolicVariable
 from sage.structure.unique_representation import UniqueRepresentation

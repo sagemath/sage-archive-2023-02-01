@@ -558,10 +558,11 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
 
         EXAMPLES::
 
-            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C = codes.LinearRankMetricCode(G, GF(4))
+            sage: F.<a> = GF(8)
+            sage: G = Matrix(F, [[1,a,a^2,0]])
+            sage: C = codes.LinearRankMetricCode(G, GF(2))
             sage: C.minimum_distance()
-            1
+            3
         """
         d = Infinity
         for c in self:
@@ -886,11 +887,12 @@ class LinearRankMetricCodeNearestNeighborDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C = codes.LinearRankMetricCode(G, GF(4))
+            sage: F.<a> = GF(8)
+            sage: G = Matrix(F, [[1,a,a^2,0]])
+            sage: C = codes.LinearRankMetricCode(G, GF(2))
             sage: D = codes.decoders.LinearRankMetricCodeNearestNeighborDecoder(C)
             sage: D.decoding_radius()
-            0
+            1
         """
         return (self.code().minimum_distance()-1) // 2
 

@@ -339,7 +339,6 @@ usage_advanced() {
     echo "  --python [...], --python3 [...]"
     echo "                      -- run the Python 3 interpreter"
     echo "  -R [...]            -- run Sage's R with the given arguments"
-    echo "  --scons [...]       -- run Sage's scons"
     echo "  --singular [...]    -- run Sage's singular with the given arguments"
     echo "  --sqlite3 [...]     -- run Sage's sqlite3 with given arguments"
     echo
@@ -609,11 +608,6 @@ fi
 if [ "$1" = '-M2' -o "$1" = '--M2' ]; then
     shift
     exec M2 "$@"
-fi
-
-if [ "$1" = '-scons' -o "$1" = '--scons' ]; then
-    shift
-    exec scons "$@"
 fi
 
 if [ "$1" = '-R' -o "$1" = '--R' ]; then

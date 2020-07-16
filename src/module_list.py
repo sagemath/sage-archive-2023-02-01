@@ -655,6 +655,9 @@ ext_modules = [
     ################################
 
     Extension('*', ['sage/misc/*.pyx']),
+    Extension('sage.misc.sage_ostools',
+              sources = ['sage/misc/sage_ostools.pyx'],
+              libraries = ['sqlite3']),
 
     ################################
     ##
@@ -1120,10 +1123,10 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.ore_polynomial_element',
               sources = ['sage/rings/polynomial/ore_polynomial_element.pyx']),
-    
+
     Extension('sage.rings.polynomial.skew_polynomial_element',
               sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
-    
+
     Extension('sage.rings.polynomial.skew_polynomial_finite_order',
               sources = ['sage/rings/polynomial/skew_polynomial_finite_order.pyx']),
 

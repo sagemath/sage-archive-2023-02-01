@@ -803,7 +803,7 @@ fi
 
 build_sage() {
     maybe_sage_location
-    ( cd "$SAGE_SRC" && $MAKE ) || exit $?
+    ( cd "$SAGE_ROOT/build/make" && $MAKE sagelib-no-deps ) || exit $?
 }
 
 if [[ "$1" =~ ^--notebook=.* || "$1" =~ ^-n=.* || "$1" =~ ^-notebook=.* ]] ; then
@@ -855,7 +855,7 @@ if [ "$1" = '-r' ]; then
 fi
 
 if [ "$1" = '-ba' -o "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
-    ( cd "$SAGE_SRC" && make clean )
+    ( cd "$SAGE_ROOT/build/make" && make sagelib-clean )
     build_sage
     exit $?
 fi

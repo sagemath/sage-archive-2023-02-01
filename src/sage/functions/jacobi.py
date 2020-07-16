@@ -125,7 +125,7 @@ equations:
 
 REFERENCES:
 
-- :wikipedia:`Jacobi's_elliptic_functions`
+- :wikipedia:`Jacobi%27s_elliptic_functions`
 
 - [KS2002]_
 

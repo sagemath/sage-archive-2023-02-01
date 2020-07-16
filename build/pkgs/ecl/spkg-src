@@ -53,5 +53,5 @@ autoreconf -ivf
 
 cd ../..
 tar c ecl-$ECLVERSION | bzip2 -c >"$ECLTARBALL"
-sage-fix-pkg-checksums "$ECLTARBALL"
+sage --package fix-checksum "$ECLTARBALL"
 rm -rf ecl-*

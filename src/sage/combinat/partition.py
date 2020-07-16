@@ -258,7 +258,7 @@ We can compute the Frobenius coordinates and go back and forth::
     sage: Partition(frobenius_coordinates=([6,1],[2,0]))
     [7, 3, 1]
     sage: all(mu == Partition(frobenius_coordinates=mu.frobenius_coordinates())
-    ....:     for n in range(30) for mu in Partitions(n))
+    ....:     for n in range(12) for mu in Partitions(n))
     True
 
 We use the lexicographic ordering::
@@ -286,6 +286,7 @@ from copy import copy
 from sage.libs.all import pari
 from sage.libs.flint.arith import number_of_partitions as flint_number_of_partitions
 
+from sage.arith.misc import multinomial
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -317,11 +318,13 @@ from sage.combinat.partitions import number_of_partitions as bober_number_of_par
 from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_lists import IntegerListsLex
+from sage.combinat.combinat_cython import conjugate
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.functions.other import binomial
+
 
 class Partition(CombinatorialElement):
     r"""
@@ -1052,8 +1055,6 @@ class Partition(CombinatorialElement):
 
         return SkewPartition([self[:], p])
 
-    __div__ = __truediv__
-
     def power(self, k):
         r"""
         Return the cycle type of the `k`-th power of any permutation
@@ -1241,7 +1242,7 @@ class Partition(CombinatorialElement):
 
         REFERENCES:
 
-        - :wikipedia:`Zolotarev's_lemma`
+        - :wikipedia:`Zolotarev%27s_lemma`
         """
         return (-1)**(self.size()-self.length())
 
@@ -2464,10 +2465,11 @@ class Partition(CombinatorialElement):
             *
             *
         """
-        p = list(self)
-        if p == []:
-            return self
-        return Partition(conjugate(p))
+        if not self:
+            par = Partitions_n(0)
+            return par.element_class(par, [])
+        par = Partitions_n(sum(self))
+        return par.element_class(par, conjugate(self))
 
     def suter_diagonal_slide(self, n, exp=1):
         r"""
@@ -2802,12 +2804,14 @@ class Partition(CombinatorialElement):
 
         g=self.garnir_tableau(cell)   # start with the Garnir tableau and modify
 
-        if e==0: return g             # no more dominant tableau of the same residue
+        if e==0:
+            return g             # no more dominant tableau of the same residue
 
         a=e*int((self[row]-col)/e)    # number of cells in the e-bricks in row `row`
         b=e*int((col+1)/e)            # number of cells in the e-bricks in row `row+1`
 
-        if a==0 or b==0: return g
+        if a==0 or b==0:
+            return g
 
         t=g.to_list()
         m=g[row+1][0]                 # smallest  number in 0-Garnir belt
@@ -3040,11 +3044,9 @@ class Partition(CombinatorialElement):
             [2, 1, 0, 2, 1, 0]
         """
         p = self
-        res = [[p[i]-(j+1) for j in range(p[i])] for i in range(len(p))]
-        if flat:
-            return sum(res, [])
-        else:
-            return res
+        if not flat:
+            return [[pi - (j + 1) for j in range(pi)] for pi in p]
+        return [pi - (j + 1) for pi in p for j in range(pi)]
 
     def arm_cells(self, i, j):
         r"""
@@ -3140,11 +3142,11 @@ class Partition(CombinatorialElement):
         """
         p = self
         conj = p.conjugate()
-        res = [[conj[j]-(i+1) for j in range(p[i])] for i in range(len(p))]
-        if flat:
-            return sum(res, [])
-        else:
-            return res
+        if not flat:
+            return [[conj[j] - (i + 1) for j in range(pi)]
+                    for i, pi in enumerate(p)]
+        return [conj[j] - (i + 1) for i, pi in enumerate(p)
+                for j in range(pi)]
 
     def leg_cells(self, i, j):
         r"""
@@ -3668,7 +3670,7 @@ class Partition(CombinatorialElement):
             sage: Partition([2,2,2]).aut()
             48
         """
-        size = prod(i ** mi * factorial(mi)
+        size = prod(i**mi * factorial(mi)
                     for i, mi in self.to_exp_dict().items())
         if t or q:
             size *= prod((ZZ.one() - q ** j) / (ZZ.one() - t ** j)
@@ -4347,7 +4349,7 @@ class Partition(CombinatorialElement):
 
             :meth:`core`, :class:`Core`
         """
-        return not k in self.hooks()
+        return k not in self.hooks()
 
     def k_interior(self, k):
         r"""
@@ -5107,7 +5109,7 @@ class Partition(CombinatorialElement):
             # if we know the total length alloted for each of the paths (sizes), and the number
             # of paths for each component. A multinomial picks the ordering of the components where
             # each step is taken.
-                return prod(path_counts) * factorial(sum(sizes)) / prod([factorial(_) for _ in sizes])
+                return prod(path_counts) * multinomial(sizes)
 
             sizes = [larger_quotients[i].size()-smaller_quotients[i].size() for i in range(k)]
             path_counts = [larger_quotients[i].dimension(smaller_quotients[i]) for i in range(k)]
@@ -6226,7 +6228,7 @@ class Partitions_all(Partitions):
             True
         """
         from .partition_tuple import PartitionTuple, PartitionTuples
-        if not quotient in PartitionTuples():
+        if quotient not in PartitionTuples():
             raise ValueError('the quotient %s must be a tuple of partitions'%quotient)
         components = PartitionTuple(quotient).components()
         length = len(components)
@@ -8793,31 +8795,6 @@ def number_of_partitions_length(n, k, algorithm='hybrid'):
         # Fall back to GAP
     from sage.libs.gap.libgap import libgap
     return ZZ(libgap.NrPartitions(ZZ(n), ZZ(k)))
-
-
-##########
-## Helper functions
-
-def conjugate(p):
-    """
-    Return the conjugate partition associated to the partition ``p``
-    as a list.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.partition import conjugate
-        sage: conjugate([2,2])
-        [2, 2]
-        sage: conjugate([6,3,1])
-        [3, 2, 2, 1, 1, 1]
-    """
-    l = len(p)
-    if l == 0:
-        return []
-    conj = [l] * p[-1]
-    for j in range(l - 1, 0, -1):
-        conj.extend([j] * (p[j - 1] - p[j]))
-    return conj
 
 
 ##########

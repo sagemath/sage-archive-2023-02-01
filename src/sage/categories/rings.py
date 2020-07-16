@@ -65,19 +65,20 @@ class Rings(CategoryWithAxiom):
             """
             Return whether or not this morphism is injective.
 
-            EXAMPLES:
+            EXAMPLES::
 
-            This often raises a ``NotImplementedError`` as many homomorphisms do
-            not implement this method::
-
-                sage: R.<x> = QQ[]
-                sage: f = R.hom([x + 1]); f
-                Ring endomorphism of Univariate Polynomial Ring in x over Rational Field
-                  Defn: x |--> x + 1
-                sage: f.is_injective()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError
+                sage: R.<x,y> = QQ[]
+                sage: R.hom([x, y^2], R).is_injective()
+                True
+                sage: R.hom([x, x^2], R).is_injective()
+                False
+                sage: S.<u,v> = R.quotient(x^3*y)
+                sage: R.hom([v, u], S).is_injective()
+                False
+                sage: S.hom([-u, v], S).is_injective()
+                True
+                sage: S.cover().is_injective()
+                False
 
             If the domain is a field, the homomorphism is injective::
 
@@ -148,6 +149,13 @@ class Rings(CategoryWithAxiom):
                 # homomorphism must send the 1 element to the 1 element
                 return True
 
+            try:
+                ker = self.kernel()
+            except (NotImplementedError, AttributeError):
+                pass
+            else:
+                return ker.is_zero()
+
             if self.domain().characteristic() == 0:
                 if self.codomain().characteristic() != 0:
                     return False
@@ -170,8 +178,11 @@ class Rings(CategoryWithAxiom):
                     if K is self.codomain():
                         return True
 
-            if self.domain().cardinality() > self.codomain().cardinality():
-                return False
+            try:
+                if self.domain().cardinality() > self.codomain().cardinality():
+                    return False
+            except AttributeError:
+                pass
 
             raise NotImplementedError
 
@@ -915,12 +926,17 @@ class Rings(CategoryWithAxiom):
                 sage: GF(17)['a']['b']
                 Univariate Polynomial Ring in b over Univariate Polynomial Ring in a over Finite Field of size 17
 
-            We can create skew polynomial rings::
+            We can create Ore polynomial rings::
 
                 sage: k.<t> = GF(5^3)
                 sage: Frob = k.frobenius_endomorphism()
-                sage: k['x',Frob]
-                Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+                sage: k['x', Frob]
+                Ore Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+
+                sage: R.<t> = QQ[]
+                sage: der = R.derivation()
+                sage: R['d', der]
+                Ore Polynomial Ring in d over Univariate Polynomial Ring in t over Rational Field twisted by d/dt
 
             We can also create power series rings by using double brackets::
 
@@ -1055,7 +1071,7 @@ class Rings(CategoryWithAxiom):
             # 1. If arg is a list, try to return a power series ring.
 
             if isinstance(arg, list):
-                if arg == []:
+                if not arg:
                     raise TypeError("power series rings must have at least one variable")
                 elif len(arg) == 1:
                     # R[["a,b"]], R[[(a,b)]]...
@@ -1069,9 +1085,10 @@ class Rings(CategoryWithAxiom):
 
             if isinstance(arg, tuple):
                 from sage.categories.morphism import Morphism
-                if len(arg) == 2 and isinstance(arg[1], Morphism):
-                   from sage.rings.polynomial.skew_polynomial_ring import SkewPolynomialRing
-                   return SkewPolynomialRing(self, arg[1], names=arg[0])
+                from sage.rings.derivation import RingDerivation
+                if len(arg) == 2 and isinstance(arg[1], (Morphism, RingDerivation)):
+                    from sage.rings.polynomial.ore_polynomial_ring import OrePolynomialRing
+                    return OrePolynomialRing(self, arg[1], names=arg[0])
 
             # 2. Otherwise, if all specified elements are algebraic, try to
             #    return an algebraic extension

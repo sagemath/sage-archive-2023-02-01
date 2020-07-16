@@ -7,8 +7,7 @@ AUTHORS:
 
 - David Roe (2012-03-27) -- initial version, based on Robert Bradshaw's code.
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 David Roe <roed.math@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          William Stein <wstein@gmail.com>
@@ -18,11 +17,17 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, division, print_function
 
-import random, os, sys, time, json, re, types
+import random
+import os
+import sys
+import time
+import json
+import re
+import types
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC, SAGE_LOCAL, SAGE_EXTCODE
@@ -89,7 +94,6 @@ class DocTestDefaults(SageObject):
         self.memlimit = 0
         self.all = False
         self.logfile = None
-        self.sagenb = False
         self.long = False
         self.warn_long = None
         self.randorder = None
@@ -321,7 +325,7 @@ class DocTestController(SageObject):
                 options.timeout *= 2
         if options.nthreads == 0:
             options.nthreads = int(os.getenv('SAGE_NUM_THREADS_PARALLEL',1))
-        if options.failed and not (args or options.new or options.sagenb):
+        if options.failed and not (args or options.new):
             # If the user doesn't specify any files then we rerun all failed files.
             options.all = True
         if options.global_iterations == 0:
@@ -626,7 +630,6 @@ class DocTestController(SageObject):
             ...
             RuntimeError: refusing to run doctests...
         """
-        import os
         import stat
         is_world_writeable = bool(os.stat(dir or os.getcwd()).st_mode & stat.S_IWOTH)
         if is_world_writeable:
@@ -652,7 +655,7 @@ class DocTestController(SageObject):
 
     def add_files(self):
         r"""
-        Checks for the flags '--all', '--new' and '--sagenb'.
+        Checks for the flags '--all' and '--new'.
 
         For each one present, this function adds the appropriate directories and files to the todo list.
 
@@ -675,15 +678,6 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DD, [])
             sage: DC.add_files()
             Doctesting ...
-
-        ::
-
-            sage: DD = DocTestDefaults(sagenb = True)
-            sage: DC = DocTestController(DD, [])
-            sage: DC.add_files()  # py2 # optional - sagenb
-            Doctesting the Sage notebook.
-            sage: DC.files[0][-6:]  # py2 # optional - sagenb
-            'sagenb'
         """
         opj = os.path.join
         from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT, SAGE_ROOT_GIT
@@ -702,7 +696,6 @@ class DocTestController(SageObject):
             if have_git:
                 self.files.append(opj(SAGE_SRC, 'sage_setup'))
             self.files.append(SAGE_DOC_SRC)
-            self.options.sagenb = True
 
         if self.options.all or (self.options.new and not have_git):
             self.log("Doctesting entire Sage library.")
@@ -728,18 +721,6 @@ class DocTestController(SageObject):
                          filename.endswith(".pyx") or
                          filename.endswith(".rst"))):
                     self.files.append(os.path.relpath(opj(SAGE_ROOT,filename)))
-        if self.options.sagenb:
-            if not PythonModule('sagenb').is_present():
-                if not self.options.all:
-                    self.log("Skipping doctesting of the Sage notebook: "
-                             "not installed on Python 3")
-                return
-
-            if not self.options.all:
-                self.log("Doctesting the Sage notebook.")
-            from pkg_resources import Requirement, working_set
-            sagenb_loc = working_set.find(Requirement.parse('sagenb')).location
-            self.files.append(opj(sagenb_loc, 'sagenb'))
 
     def expand_files_into_sources(self):
         r"""
@@ -1021,10 +1002,9 @@ class DocTestController(SageObject):
         """
         cmd = "sage-runtests --serial "
         opt = dict_difference(self.options.__dict__, DocTestDefaults().__dict__)
-        for o in ("all", "sagenb"):
-            if o in opt:
-                raise ValueError("You cannot run gdb/valgrind on the whole sage%s library"%("" if o == "all" else "nb"))
-        for o in ("all", "sagenb", "long", "force_lib", "verbose", "failed", "new"):
+        if "all" in opt:
+            raise ValueError("You cannot run gdb/valgrind on the whole sage library")
+        for o in ("all", "long", "force_lib", "verbose", "failed", "new"):
             if o in opt:
                 cmd += "--%s "%o
         for o in ("timeout", "memlimit", "randorder", "stats_path"):
@@ -1122,7 +1102,8 @@ class DocTestController(SageObject):
         os.putenv('CYSIGNALS_CRASH_LOGS', tmp_dir("crash_logs_"))
         init_cysignals()
 
-        import signal, subprocess
+        import signal
+        import subprocess
         p = subprocess.Popen(cmd, shell=True)
         if opt.timeout > 0:
             signal.alarm(opt.timeout)

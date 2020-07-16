@@ -1,3 +1,7 @@
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc
+# distutils: language = c++
+# distutils: extra_compile_args = -std=c++11
+
 r"""
 List of faces
 
@@ -302,8 +306,10 @@ cdef class ListOfFaces:
             ....:     points = tuple(tuple(randint(-1000,1000) for _ in range(10))
             ....:                    for _ in range(randint(3,15)))
             ....:     P = Polyhedron(vertices=points)
-            ....:     facets = incidence_matrix_to_bit_rep_of_facets(P.incidence_matrix())
-            ....:     vertices = incidence_matrix_to_bit_rep_of_Vrep(P.incidence_matrix())
+            ....:     inc = P.incidence_matrix()
+            ....:     mod_inc = inc.delete_columns([i for i,V in enumerate(P.Hrepresentation()) if V.is_equation()])
+            ....:     facets = incidence_matrix_to_bit_rep_of_facets(mod_inc)
+            ....:     vertices = incidence_matrix_to_bit_rep_of_Vrep(mod_inc)
             ....:     d1 = P.dimension()
             ....:     if d1 == 0:
             ....:         continue
@@ -347,7 +353,7 @@ cdef class ListOfFaces:
             return count_atoms(faces[0], face_length)
 
         # ``maybe_newfaces`` are all intersection of ``faces[n_faces -1]`` with previous faces.
-        # It needs to be allcoated to store those faces.
+        # It needs to be allocated to store those faces.
         cdef ListOfFaces maybe_newfaces_mem = ListOfFaces(n_faces, face_length*64)
         cdef uint64_t **maybe_newfaces = maybe_newfaces_mem.data
 

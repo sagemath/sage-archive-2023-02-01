@@ -141,7 +141,7 @@ coordinates in the root lattice::
 One can also customize the projection by specifying a function. Here,
 we display all the roots for type `E_8` using the projection from its
 eight dimensional ambient space onto 3D described on
-:wikipedia:`Wikipedia's E8 3D picture <File:E8_3D.png>`::
+:wikipedia:`Wikipedia%27s E8 3D picture <File:E8_3D.png>`::
 
     sage: M = matrix([[0., -0.556793440452, 0.19694925177, -0.19694925177, 0.0805477263944, -0.385290876171, 0., 0.385290876171],
     ....:             [0.180913155536, 0., 0.160212955043, 0.160212955043, 0., 0.0990170516545, 0.766360424875, 0.0990170516545],

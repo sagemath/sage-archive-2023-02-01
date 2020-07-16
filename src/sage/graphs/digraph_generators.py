@@ -577,14 +577,14 @@ class DiGraphGenerators():
         - ``options`` (str) -- a string passed to directg as if it was run at
           a system command line. Available options from directg --help::
 
-            -e# | -e#:#  specify a value or range of the total number of arcs
-            -o     orient each edge in only one direction, never both
-            -f#  Use only the subgroup that fixes the first # vertices setwise
-            -V  only output graphs with nontrivial groups (including exchange of
-                  isolated vertices).  The -f option is respected.
-            -s#/#  Make only a fraction of the orientations: The first integer is
-                    the part number (first is 0) and the second is the number of
-                    parts. Splitting is done per input graph independently.
+            -e<int> | -e<int>:<int>  specify a value or range of the total number of arcs
+            -o       orient each edge in only one direction, never both
+            -f<int>  Use only the subgroup that fixes the first <int> vertices setwise
+            -V       only output graphs with nontrivial groups (including exchange of
+                     isolated vertices).  The -f option is respected.
+            -s<int>/<int>  Make only a fraction of the orientations: The first integer is
+                     the part number (first is 0) and the second is the number of
+                     parts. Splitting is done per input graph independently.
 
         - ``debug`` (boolean) -- default: ``False`` - if ``True``
           directg standard error and standard output are displayed.

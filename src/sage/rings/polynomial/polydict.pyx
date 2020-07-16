@@ -493,6 +493,26 @@ cdef class PolyDict:
         # exponent sums is at most 1.
         return len(set(map(sum, self.__repn))) <= 1
 
+    def is_constant(self):
+        """
+        Return ``True`` if ``self`` is a constant and ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import PolyDict
+            sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
+            sage: f.is_constant()
+            False
+            sage: g = PolyDict({(0,0):2})
+            sage: g.is_constant()
+            True
+            sage: h = PolyDict({})
+            sage: h.is_constant()
+            True
+        """
+        cdef int ell = len(self.__repn)
+        return ell == 0 or (ell == 1 and sum(sum(k) for k in self.__repn) == 0)
+
     def homogenize(PolyDict self, var):
         R = self.__repn
         H = {}

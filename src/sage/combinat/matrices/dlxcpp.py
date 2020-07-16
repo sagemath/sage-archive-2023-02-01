@@ -79,8 +79,8 @@ def DLXCPP(rows):
         sage: [x for x in DLXCPP(rows)]
         [[3, 0], [3, 1, 2]]
     """
-
-    if len(rows) == 0: return
+    if not rows:
+        return
 
     x = dlx_solver(rows)
 

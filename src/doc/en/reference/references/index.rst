@@ -2632,9 +2632,6 @@ REFERENCES:
              Algebras, J. Ramanujan Math. Soc., 25 (2010),
              113--145. :arxiv:`0309168v3` :mathscinet:`MR2642451`
 
-.. [HLF] :wikipedia:`Hook_length_formula`, accessed 27th
-                 June 2020.
-
 .. [HL1999] \L. Heath and N. Loehr (1999).  New algorithms for
             generating Conway polynomials over finite fields.
             Proceedings of the tenth annual ACM-SIAM symposium on
@@ -3391,7 +3388,7 @@ REFERENCES:
             CMS Conf. Proc., **24**, Amer. Math. Soc., Providence, RI, 1998.
             :mathscinet:`MR1648638`
 
-.. [KY2019] Kim, Jang Soo, and Meesue Yoo. 
+.. [KY2019] Jang Soo Kim, Meesue Yoo. 
             "Hook length property of d-complete posets via q-integrals." 
             Journal of Combinatorial Theory, Series A 162 (2019): 167-221.
 
@@ -4348,7 +4345,7 @@ REFERENCES:
              Providence, RI, 2013.
              :arxiv:`1112.6163`
 
-.. [Proc1999] R. A. Proctor. Minuscule elements of Weyl groups, the numbers game, 
+.. [Proc1999] R. A. Proctor, Minuscule elements of Weyl groups, the numbers game, 
               and d-complete posets. J. Algebra, 213(1):272–303, 1999.
 
 .. [PDynk1999] R. A. Proctor. Dynkin diagram classification of λ-minuscule Bruhat lattices 

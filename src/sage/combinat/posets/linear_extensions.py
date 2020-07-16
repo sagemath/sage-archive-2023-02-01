@@ -851,13 +851,18 @@ class LinearExtensionsOfPosetWithHooks(LinearExtensionsOfPoset):
     A subclass of ``LinearExtensionOfPoset`` where the poset
     has well-defined hook lengths (ie. d-complete).
     """
-
-    def __init__(self, poset, facade):
-        LinearExtensionsOfPoset.__init__(self, poset=poset, facade=facade)
     
     def cardinality(self):
         r"""
         Count the number of linear extensions using a hook-length formula
+        
+        TESTS::
+        
+            sage: from sage.combinat.posets.d_complete import DComplete
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: P = Posets.YoungDiagramPoset(Partition([3,2]), dual=True)
+            sage: P.linear_extensions().cardinality()
+            5
         """
         num_elmts = self._poset.cardinality()
         
@@ -873,13 +878,22 @@ class LinearExtensionsOfForest(LinearExtensionsOfPoset):
     A subclass of ``LinearExtensionOfPoset`` where the poset
     is a forest.
     """
-
-    def __init__(self, poset, facade):
-        LinearExtensionsOfPoset.__init__(self, poset=poset, facade=facade)
     
     def cardinality(self):
         r"""
         Use Atkinson's algorithm to compute the number of linear extensions
+        
+        TESTS::
+        
+            sage: from sage.combinat.posets.forest import ForestPoset
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: P.linear_extensions().cardinality()
+            4
+
+            sage: Q = Poset({0: [1], 1: [2, 3], 2: [], 3: [], 4: [5, 6], 5: [], 6: []})
+            sage: Q.linear_extensions().cardinality()
+            140
         """
         return sum(self.atkinson(self._elements[0]))
-        
+    

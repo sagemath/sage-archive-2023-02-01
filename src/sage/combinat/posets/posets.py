@@ -781,10 +781,6 @@ class FinitePoset(UniqueRepresentation, Parent):
       set to be the vertex set of the digraph. Note that if this option is set,
       then ``elements`` is considered as a specified linear extension of the poset
       and the `linear_extension` attribute is set.
-      
-    - ``lin_ext_type`` -- the type of linear extensions that should be returned.
-      
-    - ``desc`` -- a string representation used for _repr_.
 
     - ``category`` -- :class:`FinitePosets`, or a subcategory thereof.
 
@@ -925,7 +921,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         sage: Q == P
         True
     """
-
+    _lin_ext_type = LinearExtensionsOfPoset
+    _desc = 'Finite poset'
+    
     # The parsing of the construction data (like a list of cover relations)
     #   into a :class:`DiGraph` is done in :func:`Poset`.
     @staticmethod
@@ -1058,8 +1056,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         self._element_to_vertex_dict = {self._elements[i]: i
                                         for i in range(len(self._elements))}
         self._is_facade = facade
-        self._lin_ext_type = LinearExtensionsOfPoset
-        self._desc = 'Finite poset'
 
     @lazy_attribute
     def _list(self):
@@ -2239,8 +2235,8 @@ class FinitePoset(UniqueRepresentation, Parent):
     def diamonds(self):
         r"""
         Returns in a tuple
-            - a list of all diamonds in the Hasse Diagram, 
-            - a Boolean checking that every w,x,y that form a ``V``, there is a unique element z 
+          - a list of all diamonds in the Hasse Diagram, 
+          - a Boolean checking that every w,x,y that form a ``V``, there is a unique element z 
                 which completes the diamond.
         
         For a diamond
@@ -2281,8 +2277,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         vertices = list(map(self._element_to_vertex, elmts))
         return list(map(self._vertex_to_element, self._hasse_diagram.common_upper_covers(vertices)))
     
-    @staticmethod
-    def is_d_complete(poset):
+    def is_d_complete(self):
         r"""
         Return True if a poset is d-complete. Otherwise, return False.
         
@@ -2290,31 +2285,31 @@ class FinitePoset(UniqueRepresentation, Parent):
             
             sage: from sage.combinat.posets.posets import FinitePoset
             sage: A = Poset({0: [1,2]})
-            sage: FinitePoset.is_d_complete(A)
+            sage: A.is_d_complete()
             False
                 
             sage: from sage.combinat.posets.poset_examples import Posets
             sage: B = Posets.DoubleTailedDiamond(3)
-            sage: FinitePoset.is_d_complete(B)
+            sage: B.is_d_complete()
             True
             
             sage: C = Poset({0: [2], 1: [2], 2: [3, 4], 3: [5], 4: [5], 5: [6]})
-            sage: FinitePoset.is_d_complete(C)
+            sage: C.is_d_complete()
             False
             
             sage: D = Poset({0: [1, 2], 1: [4], 2: [4], 3: [4]})
-            sage: FinitePoset.is_d_complete(D)
+            sage: D.is_d_complete()
             False
             
-            sage: E = Posets.YoungDiagramPoset(Partition([3, 2, 2]), dual=True)
-            sage: FinitePoset.is_d_complete(E)
+            sage: P = Posets.YoungDiagramPoset(Partition([3, 2, 2]), dual=True)
+            sage: P.is_d_complete()
             True
         """
         
         min_diamond = {} # Maps max of double-tailed diamond to min of double-tailed diamond
         max_diamond = {} # Maps min of double-tailed diamond to max of double-tailed diamond
         
-        H = poset._hasse_diagram
+        H = self._hasse_diagram
 
         diamonds, all_diamonds_completed = H.diamonds() # Tuples of four elements that are diamonds
         

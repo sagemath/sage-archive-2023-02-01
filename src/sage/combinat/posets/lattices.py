@@ -226,10 +226,7 @@ class FiniteMeetSemilattice(FinitePoset):
         sage: TestSuite(M).run()
     """
     Element = MeetSemilatticeElement
-
-    def __init__(self, hasse_diagram, elements, category, facade, key):
-        FinitePoset.__init__(self, hasse_diagram=hasse_diagram, elements=elements, category=category, facade=facade, key=key)
-        self._desc = 'Finite meet-semilattice'
+    _desc = 'Finite meet-semilattice'
 
     def meet_matrix(self):
         """
@@ -550,10 +547,7 @@ class FiniteJoinSemilattice(FinitePoset):
 
     """
     Element = JoinSemilatticeElement
-    
-    def __init__(self, hasse_diagram, elements, category, facade, key):
-        FinitePoset.__init__(self, hasse_diagram=hasse_diagram, elements=elements, category=category, facade=facade, key=key)
-        self._desc = 'Finite join-semilattice'
+    _desc = 'Finite join-semilattice'
 
     def join_matrix(self):
         """

@@ -9,15 +9,24 @@
 # ****************************************************************************
 
 from sage.combinat.posets.posets import Poset, FinitePoset
+from sage.combinat.posets.d_complete import DCompletePoset
 from sage.misc.lazy_attribute import lazy_attribute
-from .linear_extensions import LinearExtensionsOfForest
+#from .linear_extensions import LinearExtensionsOfForest
 
-class ForestPoset(FinitePoset):
+class MobilePoset(FinitePoset):
     r"""
-    A forest poset is a poset where the underlying Hasse diagram and is 
-    directed acyclic graph. 
+    Mobile posets are an extension of d-complete posets which permit a determinant
+    formula for counting linear extensions. 
 
     """
     
-    _lin_ext_type = LinearExtensionsOfForest
-    _desc = 'Finite forest poset'
+    #_lin_ext_type = LinearExtensionsOfForest
+    _desc = 'Finite mobile poset'
+    
+    def _compute_mobile_structure(self):
+        pass
+            
+            
+    
+    
+    

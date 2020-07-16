@@ -25,7 +25,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.functions.other import binomial
 from sage.misc.rest_index_of_methods import gen_rest_table_index
-
+from collections import deque
 
 class LatticeError(ValueError):
     """
@@ -1143,7 +1143,6 @@ class HasseDiagram(DiGraph):
             sage: H.order_ideal_cardinality([7,10])
             10
         """
-        from collections import deque
         seen = set()
         q = deque(elements)
         size = 0

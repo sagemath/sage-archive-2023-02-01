@@ -194,6 +194,7 @@ Comprehensive Module list
     sage/combinat/posets/poset_examples
     sage/combinat/posets/posets
     sage/combinat/posets/d_complete
+    sage/combinat/posets/forest
     sage/combinat/q_analogues
     sage/combinat/q_bernoulli
     sage/combinat/quickref

@@ -1382,6 +1382,8 @@ class Posets(metaclass=ClasscallMetaclass):
         INPUT:
 
         - ``lam`` -- a partition
+        
+        - ``dual`` -- Determines the orientation of the poset
 
         EXAMPLES::
 

@@ -11,13 +11,15 @@
 from sage.combinat.posets.posets import Poset, FinitePoset
 from sage.misc.lazy_attribute import lazy_attribute
 from .linear_extensions import LinearExtensionsOfPosetWithHooks
+from .lattices import FiniteJoinSemilattice
+from collections import deque
 
-class DCompletePoset(FinitePoset):
+class DCompletePoset(FiniteJoinSemilattice):
     r"""
     D-complete posets are a class of posets introduced by Proctor in [Proc1999].
     It includes common families such as shapes, shifted shapes, and rooted forests. Proctor showed in [PDynk1999]
     that d-complete posets have decompositions in ``irreducible`` posets, and showed in [Proc2014] that
-    d-complete posets admit a hook-length formula (see [HLF]). A complete proof of the hook-length formula
+    d-complete posets admit a hook-length formula (see [1]). A complete proof of the hook-length formula
     can be found in [KY2019].
   
     EXAMPLES::
@@ -39,27 +41,15 @@ class DCompletePoset(FinitePoset):
         sage: TestSuite(P).run()
 
     See also the other tests in the class documentation.
+    
+    REFERENCES::
+    
+        .. [1] :wikipedia:`Hook_length_formula`, accessed 27th
+                 June 2020.
     """
     
-    def __init__(self, hasse_diagram, elements, category, facade, key):
-        FinitePoset.__init__(self, hasse_diagram=hasse_diagram, elements=elements, category=category, facade=facade, key=key)
-        self._lin_ext_type = LinearExtensionsOfPosetWithHooks
-        self._desc = "Finite d-complete poset"
-
-    def _repr_(self):
-        r"""
-        TESTS::
-
-            sage: from sage.combinat.posets.d_complete import DCompletePoset
-            sage: P = DCompletePoset(DiGraph({0: [1], 0: [2], 1: [3], 2: [3], 3: []}))
-            sage: P._repr_()
-            'Finite d-complete poset containing 4 elements'
-        """
-        s = "Finite d-complete poset containing %s elements" % self._hasse_diagram.order()
-        if self._with_linear_extension:
-            s += " with distinguished linear extension"
-        return s
-
+    _lin_ext_type = LinearExtensionsOfPosetWithHooks
+    _desc = "Finite d-complete poset"
 
     @lazy_attribute
     def _hooks(self):
@@ -78,7 +68,6 @@ class DCompletePoset(FinitePoset):
             sage: P._hooks
             {0: 5, 1: 3, 2: 1, 3: 3, 4: 1, 5: 1}
         """
-        from collections import deque
         hooks = {}
 
         min_diamond = {} # Maps max of double-tailed diamond to min of double-tailed diamond
@@ -173,52 +162,4 @@ class DCompletePoset(FinitePoset):
 
         """
         return dict(self._hooks)
-
-    def linear_extensions(self, facade=False):
-        r"""
-        Return the enumerated set of all the linear extensions of this poset with hook lengths.
-
-        INPUT:
-
-        - ``facade`` -- a boolean (default: ``False``);
-          whether to return the linear extensions as plain lists
-
-        EXAMPLES::
-
-            sage: from sage.combinat.posets.d_complete import DCompletePoset
-            sage: P = DCompletePoset(DiGraph({0: [1, 2], 1: [3], 2: [3], 3: [4]}))
-            sage: L = P.linear_extensions()
-            sage: L.cardinality()
-            2
-            sage: L.list()
-            [[0, 1, 2, 3, 4], [0, 2, 1, 3, 4]]
-
-        TESTS::
-
-            sage: from sage.combinat.posets.d_complete import DCompletePoset
-            sage: from sage.combinat.posets.poset_examples import Posets
-            sage: P = DCompletePoset(Posets.YoungDiagramPoset(Partition([3,2,1]))._hasse_diagram.reverse()) 
-            sage: L = P.linear_extensions()
-            sage: L.cardinality()
-            16
-            sage: L.list()
-            [[5, 4, 3, 2, 1, 0],
-             [4, 5, 3, 2, 1, 0],
-             [4, 5, 2, 3, 1, 0],
-             [4, 2, 5, 3, 1, 0],
-             [2, 4, 5, 3, 1, 0],
-             [2, 4, 5, 1, 3, 0],
-             [2, 4, 1, 5, 3, 0],
-             [4, 2, 1, 5, 3, 0],
-             [4, 2, 5, 1, 3, 0],
-             [4, 5, 2, 1, 3, 0],
-             [5, 4, 2, 1, 3, 0],
-             [5, 2, 4, 1, 3, 0],
-             [2, 5, 4, 1, 3, 0],
-             [2, 5, 4, 3, 1, 0],
-             [5, 2, 4, 3, 1, 0],
-             [5, 4, 2, 3, 1, 0]]
-        """
-        
-        return LinearExtensionsOfPosetWithHooks(self, facade=facade)
     

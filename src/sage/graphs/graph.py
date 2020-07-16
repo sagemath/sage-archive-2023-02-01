@@ -5276,7 +5276,7 @@ class Graph(GenericGraph):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -5498,7 +5498,7 @@ class Graph(GenericGraph):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -5698,7 +5698,7 @@ class Graph(GenericGraph):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -5770,7 +5770,7 @@ class Graph(GenericGraph):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -7688,16 +7688,12 @@ class Graph(GenericGraph):
 
         The Bull Graph is prime::
 
-            sage: graphs.BullGraph().modular_decomposition()  # py2
-            (PRIME, [0, 3, 4, 2, 1])
-            sage: graphs.BullGraph().modular_decomposition()  # py3
+            sage: graphs.BullGraph().modular_decomposition()
             (PRIME, [1, 2, 0, 3, 4])
 
         The Petersen Graph too::
 
-            sage: graphs.PetersenGraph().modular_decomposition()  # py2
-            (PRIME, [6, 2, 5, 1, 9, 3, 0, 7, 8, 4])
-            sage: graphs.PetersenGraph().modular_decomposition()  # py3
+            sage: graphs.PetersenGraph().modular_decomposition()
             (PRIME, [1, 4, 5, 0, 2, 6, 3, 7, 8, 9])
 
         This a clique on 5 vertices with 2 pendant edges, though, has a more

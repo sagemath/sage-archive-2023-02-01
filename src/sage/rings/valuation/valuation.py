@@ -663,7 +663,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         if R.base_ring() is not self.domain():
             raise ValueError("G must be defined over the domain of this valuation")
 
-        from sage.misc.misc import verbose
+        from sage.misc.verbose import verbose
         verbose("Approximants of %r on %r towards %r"%(self, self.domain(), G), level=3)
 
         from sage.rings.valuation.gauss_valuation import GaussValuation

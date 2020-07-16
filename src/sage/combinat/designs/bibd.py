@@ -60,6 +60,54 @@ from sage.arith.all import binomial, is_prime_power
 from .group_divisible_designs import GroupDivisibleDesign
 from .designs_pyx import is_pairwise_balanced_design
 
+def biplane(n, existence=False):
+    r"""
+    Return a biplane of order `n`.
+
+    A biplane of order `n` is a symmetric `(1+\frac {(n+1)(n+2)} {2}, n+2, 2)`-BIBD.
+    A symmetric (or square) `(v,k,\lambda)`-BIBD is a `(v,k,\lambda)`-BIBD with `v` blocks.
+
+    INPUT:
+
+    - ``n`` -- (integer) order of the biplane
+
+     - ``existence`` (boolean) -- instead of building the design, return:
+
+        - ``True`` -- meaning that Sage knows how to build the design
+
+        - ``Unknown`` -- meaning that Sage does not know how to build the
+          design, but that the design may exist (see :mod:`sage.misc.unknown`).
+
+        - ``False`` -- meaning that the design does not exist.
+
+    .. SEEALSO::
+
+        * :func:`balanced_incomplete_block_design`
+
+    EXAMPLES::
+
+        sage: designs.biplane(4)
+        (16,6,2)-Balanced Incomplete Block Design
+        sage: designs.biplane(7, existence=True)
+        True
+        sage: designs.biplane(11)
+        (79,13,2)-Balanced Incomplete Block Design
+
+    TESTS::
+
+        sage: designs.biplane(9)
+        (56,11,2)-Balanced Incomplete Block Design
+
+    Check all knwon biplanes::
+
+        sage: [n for n in [0,1,2,3,4,7,9,11] if designs.biplane(n, existence=True) is True]
+        [0, 1, 2, 3, 4, 7, 9, 11]
+    """
+    k = n+2
+    v = (k*(k-1))//2 + 1
+    return balanced_incomplete_block_design(v, k, lambd=2, existence=existence)
+
+
 def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=False):
     r"""
     Return a BIBD of parameters `v,k, \lambda`.
@@ -176,8 +224,18 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         (37,9,8)-Balanced Incomplete Block Design
         sage: designs.balanced_incomplete_block_design(15,7,3)
         (15,7,3)-Balanced Incomplete Block Design
-    """
 
+    Some BIBDs from the recursive construction ::
+
+        sage: designs.balanced_incomplete_block_design(76,16,4)
+        (76,16,4)-Balanced Incomplete Block Design
+        sage: designs.balanced_incomplete_block_design(10,4,2)
+        (10,4,2)-Balanced Incomplete Block Design
+        sage: designs.balanced_incomplete_block_design(50,25,24)
+        (50,25,24)-Balanced Incomplete Block Design
+        sage: designs.balanced_incomplete_block_design(29,15,15)
+        (29,15,15)-Balanced Incomplete Block Design
+    """
     # Trivial BIBD
     if v == 1:
         if existence:
@@ -205,6 +263,12 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         if existence:
             return False
         raise EmptySetError("There exists no ({},{},{})-BIBD".format(v, k, lambd))
+
+    # Non-esistence by BRC Theoerem
+    if BruckRyserChowla_check(v, k, lambd) is False:
+        if existence:
+            return False
+        raise EmptySetError("There exists no ({},{},{})-BIBD by Bruck-Ryser-Chowla Theorem".format(v,k,lambd))
 
     if k == 2:
         if existence:
@@ -266,10 +330,102 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
             else:
                 return B
 
+    if ( (k+lambd)*(k+lambd-1) == lambd*(v+k+lambd-1) and
+         balanced_incomplete_block_design(v+k+lambd, k+lambd, lambd, existence=True) is True):
+        # By removing a block and all points of that block from the
+        # symmetric (v+k+lambd, k+lambd, lambd) BIBD
+        # we get a (v, k, lambd) BIBD
+        if existence: return True
+
+        D = balanced_incomplete_block_design(v+k+lambd, k+lambd, lambd)
+        Br = D.blocks()[0]  # block to remove
+        blocks = D.blocks()[1:]
+
+        blocks = [set(B).difference(Br) for B in blocks]
+        points = set(D.ground_set()).difference(Br)
+
+        return BalancedIncompleteBlockDesign(points, blocks, k=k, lambd=lambd, copy=False)
+
     if existence:
         return Unknown
     else:
         raise NotImplementedError("I don't know how to build a ({},{},{})-BIBD!".format(v, k, lambd))
+
+def BruckRyserChowla_check(v, k, lambd):
+    r"""
+    Check whether the parameters passed satisfy the Bruck-Ryser-Chowla theorem.
+
+    For more information on the theorem, see the
+    :wikipedia:`corresponding Wikipedia entry <Bruck–Ryser–Chowla_theorem>`.
+
+    INPUT:
+
+    - ``v, k, lambd`` -- integers; parameters to check
+
+    OUTPUT:
+
+    - ``True`` -- the parameters satisfy the theorem
+
+    - ``False`` -- the theorem fails for the given parameters
+
+    - ``Unknown`` -- the preconditions of the theorem are not met
+
+    EXAMPLES:
+
+        sage: from sage.combinat.designs.bibd import BruckRyserChowla_check
+        sage: BruckRyserChowla_check(22,7,2)
+        False
+
+    Nonexistence of projective planes of order 6 and 14
+
+        sage: from sage.combinat.designs.bibd import BruckRyserChowla_check
+        sage: BruckRyserChowla_check(43,7,1)
+        False
+        sage: BruckRyserChowla_check(211,15,1)
+        False
+
+    Existence of symmetric BIBDs with parameters `(79,13,2)` and `(56,11,2)`
+
+        sage: from sage.combinat.designs.bibd import BruckRyserChowla_check
+        sage: BruckRyserChowla_check(79,13,2)
+        True
+        sage: BruckRyserChowla_check(56,11,2)
+        True
+
+    TESTS:
+
+    Test some non-symmetric parameters::
+
+        sage: from sage.combinat.designs.bibd import BruckRyserChowla_check
+        sage: BruckRyserChowla_check(89,11,3)
+        Unknown
+        sage: BruckRyserChowla_check(25,23,2)
+        Unknown
+
+    Clearly wrong parameters satisfying the theorem::
+
+        sage: from sage.combinat.designs.bibd import BruckRyserChowla_check
+        sage: BruckRyserChowla_check(13,25,50)
+        True
+
+    """
+    from sage.arith.misc import is_square
+    from sage.schemes.plane_conics.constructor import Conic
+    from sage.rings.rational_field import QQ
+
+    # design is not symmetric
+    if k*(k-1) != lambd*(v-1):
+        return Unknown
+
+    if v%2 == 0:
+        return is_square(k-lambd)
+
+    g = 1 if v%4 == 1 else -1
+    C = Conic(QQ, [1, lambd - k, -g * lambd])
+
+    (flag, sol) = C.has_rational_point(point=True)
+
+    return flag
 
 def steiner_triple_system(n):
     r"""

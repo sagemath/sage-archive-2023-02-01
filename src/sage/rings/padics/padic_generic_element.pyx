@@ -4039,7 +4039,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         from sage.rings.power_series_ring import PowerSeriesRing
         from sage.functions.other import ceil,floor
         from sage.rings.padics.factory import Qp
-        from sage.misc.all import verbose
+        from sage.misc.verbose import verbose
 
         if self == 1:
             raise ValueError('Polylogarithm is not defined for 1.')
@@ -4160,7 +4160,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         from sage.rings.power_series_ring import PowerSeriesRing
         from sage.rings.padics.factory import Qp
-        from sage.misc.all import verbose
+        from sage.misc.verbose import verbose
         from sage.functions.other import ceil,floor
         from sage.rings.infinity import PlusInfinity
 

@@ -51,7 +51,7 @@ from sage.structure.richcmp cimport rich_to_bool
 
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element
-from sage.rings.polynomial.evaluation cimport ZZX_evaluation_mpfi
+from sage.rings.polynomial.evaluation_ntl cimport ZZX_evaluation_mpfi
 import sage.rings.rational_field
 import sage.rings.rational
 import sage.rings.integer_ring

@@ -26,9 +26,7 @@ usage_advanced() {
     echo "  -b                  -- build Sage library -- do this if you have"
     echo "                         modified any source code files in SAGE_ROOT/src/sage/"
     echo "  -ba                 -- same as -b, but rebuild *all* Cython"
-    echo "                         code.  This could take a while, so you will be asked"
-    echo "                         if you want to proceed."
-    echo "  --ba-force          -- same as -ba, but don't query before rebuilding"
+    echo "                         code."
     echo "  -br                 -- build and run Sage"
     echo
     echo "  -bt [...]           -- build Sage and test; same options as -t"

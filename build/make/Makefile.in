@@ -427,6 +427,11 @@ $$(INST)/$(1)-$(2): $(3)
 
 $(1): $$(INST)/$(1)-$(2)
 
+$(1)-no-deps:
+	+$(AM_V_at)sage-logger -p '$$(SAGE_SPKG) $$(SAGE_SPKG_OPTIONS) \
+		$(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-existing) \
+		$(1)-$(2)' '$$(SAGE_LOGS)/$(1)-$(2).log'
+
 $(1)-clean:
 	sage-spkg-uninstall $(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-files) \
 		$(1) '$(SAGE_LOCAL)'
@@ -462,6 +467,9 @@ define PIP_PACKAGE_templ
 $(1)-build-deps: $(2)
 
 $(1): $(2)
+	$(AM_V_at)sage-logger -p 'sage --pip install -r "$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt"' '$$(SAGE_LOGS)/$(1).log'
+
+$(1)-no-deps:
 	$(AM_V_at)sage-logger -p 'sage --pip install -r "$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt"' '$$(SAGE_LOGS)/$(1).log'
 
 $(1)-clean:
@@ -513,6 +521,12 @@ $$(INST)/$(1)-$(2): $(3)
 	touch "$$@"
 
 $(1): $$(INST)/$(1)-$(2)
+
+$(1)-no-deps:
+	$(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)' && \
+		. '$$(SAGE_ROOT)/src/bin/sage-env' && . '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
+		sage-logger -p '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$$(SAGE_LOGS)/$(1)-$(2).log'
+	touch "$$@"
 
 $(1)-uninstall:
 	-$(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)' && \

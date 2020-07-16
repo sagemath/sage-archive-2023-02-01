@@ -67,6 +67,9 @@ __append_to_doc(
      "CompleteGraph",
      "CompleteMultipartiteGraph",
      "DiamondGraph",
+     "GemGraph",
+     "DartGraph",
+     "ForkGraph",
      "DipoleGraph",
      "EmptyGraph",
      "Grid2dGraph",
@@ -1887,6 +1890,9 @@ class GraphGenerators():
     CompleteBipartiteGraph   = staticmethod(basic.CompleteBipartiteGraph)
     CompleteMultipartiteGraph= staticmethod(basic.CompleteMultipartiteGraph)
     DiamondGraph             = staticmethod(basic.DiamondGraph)
+    GemGraph                 = staticmethod(basic.GemGraph)
+    DartGraph                = staticmethod(basic.DartGraph)
+    ForkGraph                = staticmethod(basic.ForkGraph)
     EmptyGraph               = staticmethod(basic.EmptyGraph)
     Grid2dGraph              = staticmethod(basic.Grid2dGraph)
     GridGraph                = staticmethod(basic.GridGraph)

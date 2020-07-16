@@ -27,7 +27,7 @@ on:
 env:
   TARGETS_PRE: build/make/Makefile
   TARGETS:     build/make/Makefile
-  TARGETS_OPTIONAL: $(echo $(PATH=build/bin:$PATH build/bin/sage-package list :experimental:))
+  # TARGETS_OPTIONAL see below
 
 jobs:
   docker:
@@ -36,12 +36,14 @@ jobs:
       fail-fast: false
       max-parallel: 6
       matrix:
-        tox_system_factor: [ubuntu-trusty, ubuntu-xenial, ubuntu-bionic, ubuntu-eoan, ubuntu-focal, debian-jessie, debian-stretch, debian-buster, debian-bullseye, debian-sid, linuxmint-17, linuxmint-18, linuxmint-19, linuxmint-19.3, fedora-26, fedora-27, fedora-28, fedora-29, fedora-30, fedora-31, centos-7, centos-8, archlinux-latest, slackware-14.2, conda-forge, ubuntu-bionic-i386, ubuntu-eoan-i386, debian-buster-i386, centos-7-i386]
+        tox_system_factor: [ubuntu-trusty, ubuntu-xenial, ubuntu-bionic, ubuntu-eoan, ubuntu-focal, debian-jessie, debian-stretch, debian-buster, debian-bullseye, debian-sid, linuxmint-17, linuxmint-18, linuxmint-19, linuxmint-19.3, fedora-26, fedora-27, fedora-28, fedora-29, fedora-30, fedora-31, centos-7, centos-8, gentoo, archlinux-latest, slackware-14.2, conda-forge, ubuntu-bionic-i386, ubuntu-eoan-i386, debian-buster-i386, centos-7-i386]
         tox_packages_factor: [maximal]
+        targets_pattern: [0-g, h-o, p-z]
     env:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       DOCKER_TARGETS: configured with-targets with-targets-optional
+      TARGETS_OPTIONAL: "$( echo $(PATH=build/bin:$PATH build/bin/sage-package list :experimental: | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d | grep '^[${{ matrix.targets_pattern }}]' ) )"
     steps:
       - uses: actions/checkout@v2
         with:
@@ -104,9 +106,11 @@ jobs:
       matrix:
         tox_system_factor: [homebrew-macos, homebrew-macos-python3_xcode, homebrew-macos-python3_xcode-nokegonly, homebrew-macos-python3_pythonorg, conda-forge-macos]
         tox_packages_factor: [maximal]
+        targets_pattern: [0-g, h-o, p-z]
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+      TARGETS_OPTIONAL: "$( echo $(PATH=build/bin:$PATH build/bin/sage-package list :experimental: | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d | grep '^[${{ matrix.targets_pattern }}]' ) )"
     steps:
       - uses: actions/checkout@v2
       - name: Install test prerequisites

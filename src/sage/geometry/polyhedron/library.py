@@ -564,7 +564,7 @@ class Polytopes():
             8
             sage: octagon.volume()                                            # optional - pynormaliz
             2*a
-            sage: TestSuite(octagon).run()
+            sage: TestSuite(octagon).run()                                    # long time
             sage: TestSuite(polytopes.regular_polygon(5, exact=False)).run()
         """
         n = ZZ(n)

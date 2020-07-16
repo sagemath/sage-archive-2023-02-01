@@ -159,13 +159,13 @@ RUN mkdir -p /sage
 WORKDIR /sage
 ADD Makefile VERSION.txt README.md bootstrap configure.ac sage ./
 ADD src/doc/bootstrap src/doc/bootstrap
+ADD src/bin src/bin
 ADD m4 ./m4
 ADD build ./build
 $RUN ./bootstrap
 
 FROM bootstrapped as configured
 #:configuring:
-ADD src/bin src/bin
 RUN mkdir -p logs/pkgs; ln -s logs/pkgs/config.log config.log
 ARG EXTRA_CONFIGURE_ARGS=""
 EOF

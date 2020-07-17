@@ -385,7 +385,7 @@ pkg_deps = \
 # rules in the form:
 #
 # $(INST)/<pkgname>-<pkgvers>: <dependencies>
-#     +$(AM_V_at)sage-logger -p '$(SAGE_SPKG) <pkgname>-<pkgvers>' '$(SAGE_LOGS)/<pkgname>-<pkgvers>.log'
+#     $(MAKE) $(1)-no-deps
 #
 # <pkgname>: $(INST)/<pkgname>-<pkgvers>
 #
@@ -431,9 +431,7 @@ define NORMAL_PACKAGE_templ
 $(1)-build-deps: $(3)
 
 $$(INST)/$(1)-$(2): $(3)
-	+$(AM_V_at)sage-logger -p '$$(SAGE_SPKG) $$(SAGE_SPKG_OPTIONS) \
-		$(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-existing) \
-		$(1)-$(2)' '$$(SAGE_LOGS)/$(1)-$(2).log'
+	$(MAKE) $(1)-no-deps
 
 $(1): $$(INST)/$(1)-$(2)
 
@@ -477,7 +475,7 @@ define PIP_PACKAGE_templ
 $(1)-build-deps: $(2)
 
 $(1): $(2)
-	$(AM_V_at)sage-logger -p 'sage --pip install -r "$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt"' '$$(SAGE_LOGS)/$(1).log'
+	$(MAKE) $(1)-no-deps
 
 $(1)-no-deps:
 	$(AM_V_at)sage-logger -p 'sage --pip install -r "$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt"' '$$(SAGE_LOGS)/$(1).log'
@@ -523,12 +521,7 @@ define SCRIPT_PACKAGE_templ
 $(1)-build-deps: $(3)
 
 $$(INST)/$(1)-$(2): $(3)
-	$(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)' && \
-		. '$$(SAGE_ROOT)/src/bin/sage-env-config' && \
-		. '$$(SAGE_ROOT)/src/bin/sage-env' && \
-		. '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
-		sage-logger -p '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$$(SAGE_LOGS)/$(1)-$(2).log'
-	touch "$$@"
+	$(MAKE) $(1)-no-deps
 
 $(1): $$(INST)/$(1)-$(2)
 

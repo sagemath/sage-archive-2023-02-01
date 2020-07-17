@@ -782,11 +782,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def normalize_coordinates(self):
         """
         Ensures that this morphism has integral coefficients, and,
-        if the number field has a GCD, then it ensures that the
+        if the coordinate ring has a GCD, then it ensures that the
         coefficients have no common factor.
 
         Also, makes the leading coefficients of the first polynomial
-        positive. This is done in place.
+        positive (if positive has meaning in the coordinate ring).
+        This is done in place.
 
         OUTPUT:
 
@@ -851,6 +852,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Defn: Defined on coordinates by sending (x : y) to
                     (-100*x^2 + (140*b^2 + 140*b + 140)*x*y + (-77*b^2 - 567*b - 1057)*y^2 : 100*y^2)
 
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+            sage: f = DynamicalSystem_projective([3*x^2+6*y^2, 9*x*y])
+            sage: f.normalize_coordinates(); f
+            Dynamical System of Projective Space of dimension 1 over 3-adic Field with capped relative precision 20
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 + (2 + O(3^20))*y^2 : (3 + O(3^21))*x*y)
         """
         # clear any denominators from the coefficients
         N = self.codomain().ambient_space().dimension_relative() + 1
@@ -879,20 +888,26 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             self.scale_by(R(1) / GCD)
 
         # scales by 1/gcd of the coefficients.
+        from sage.rings.padics.generic_nodes import is_pAdicField
         if R in _NumberFields:
             O = R.maximal_order()
         elif is_FiniteField(R):
             O = R
         elif isinstance(R, QuotientRing_generic):
             O = R.ring()
+        elif is_pAdicField(R):
+            O = R.integer_ring()
         else:
             O = R
         GCD = gcd([O(c) for poly in self for c in poly.coefficients()])
 
         if GCD != 1:
             self.scale_by(1/GCD)
-        if self[0].lc() < 0:
-            self.scale_by(-1)
+        from sage.rings.padics.padic_base_generic import pAdicGeneric
+        # if R is not padic, we make the first coordinate positive
+        if not isinstance(R, pAdicGeneric):
+            if self[0].lc() < 0:
+                self.scale_by(-1)
 
     def degree(self):
         r"""

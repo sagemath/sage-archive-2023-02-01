@@ -342,7 +342,7 @@ errors, e.g.
 
 .. CODE-BLOCK:: text
 
-    TypeError: function not supported for these types, and can't coerce safely to supported types.
+    TypeError: function not supported for these types, and can...t coerce safely to supported types.
 
 When you type in numbers into Sage, the pre-processor converts them to
 a base ring, which you can see by doing::

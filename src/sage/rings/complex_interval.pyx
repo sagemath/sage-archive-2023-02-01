@@ -1416,7 +1416,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: int(CIF(1,1))
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex interval to int
+            TypeError: can...t convert complex interval to int
         """
         raise TypeError("can't convert complex interval to int")
 
@@ -1431,7 +1431,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: float(CIF(1,1))
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex interval to float
+            TypeError: can...t convert complex interval to float
         """
         if self.imag() == 0:
             return float(self.real().n(self._prec))
@@ -1817,7 +1817,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(RIF(-1,1),RIF(-1,1)).log()
             Traceback (most recent call last):
             ...
-            ValueError: Can't take the argument of interval strictly containing zero
+            ValueError: Can...t take the argument of interval strictly containing zero
 
         But we allow the exact input zero::
 

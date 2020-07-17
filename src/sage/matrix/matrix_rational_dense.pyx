@@ -1443,7 +1443,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: a.change_ring(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: matrix has denominators so can't change to ZZ.
+            TypeError: matrix has denominators so can...t change to ZZ.
             sage: b = a.change_ring(QQ['x']); b
             [1/2  -1]
             [  2   3]

@@ -1978,7 +1978,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: x.str(digits=-10)
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to size_t
+            OverflowError: can...t convert negative value to size_t
             sage: x.str(base=16, truncate=True)
             Traceback (most recent call last):
             ...

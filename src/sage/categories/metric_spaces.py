@@ -9,6 +9,7 @@ Metric Spaces
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 from sage.categories.category import Category
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
@@ -113,7 +114,7 @@ class MetricSpaces(MetricSpacesCategory):
         return "metric spaces"
 
     class ParentMethods:
-        def _test_metric(self, **options):
+        def _test_metric_function(self, **options):
             r"""
             Test that this metric space has a properly implemented metric.
 
@@ -125,13 +126,13 @@ class MetricSpaces(MetricSpacesCategory):
             EXAMPLES::
 
                 sage: UHP = HyperbolicPlane().UHP()
-                sage: UHP._test_metric()
+                sage: UHP._test_metric_function()
                 sage: elts = [UHP.random_element() for i in range(5)]
-                sage: UHP._test_metric(some_elements=elts)
+                sage: UHP._test_metric_function(some_elements=elts)
             """
             tester = self._tester(**options)
             S = tester.some_elements()
-            dist = self.metric()
+            dist = self.metric_function()
             for a in S:
                 for b in S:
                     d = dist(a, b)
@@ -140,20 +141,22 @@ class MetricSpaces(MetricSpacesCategory):
                     else:
                         tester.assertEqual(d, 0)
 
-        def metric(self):
+        def metric_function(self):
             """
-            Return the metric of ``self``.
+            Return the metric function of ``self``.
 
             EXAMPLES::
 
                 sage: UHP = HyperbolicPlane().UHP()
-                sage: m = UHP.metric()
+                sage: m = UHP.metric_function()
                 sage: p1 = UHP.get_point(5 + 7*I)
                 sage: p2 = UHP.get_point(1.0 + I)
                 sage: m(p1, p2)
                 2.23230104635820
             """
             return lambda a,b: a.dist(b)
+
+        metric = deprecated_function_alias(30062, metric_function)
 
         def dist(self, a, b):
             """

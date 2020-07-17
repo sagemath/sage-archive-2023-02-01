@@ -7985,10 +7985,14 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = posets.AntichainPoset(3)
             sage: Pc = P.cuts()
-            sage: [list(c) for c in Pc]
-            [[0], [], [0, 1, 2], [2], [1]]
-            sage: Pc[0]
-            frozenset({0})
+            sage: Pc # random
+            [frozenset({0}),
+             frozenset(),
+             frozenset({0, 1, 2}),
+             frozenset({2}),
+             frozenset({1})]
+            sage: sorted(list(c) for c in Pc)
+            [[], [0], [0, 1, 2], [1], [2]]
 
         .. SEEALSO::
 

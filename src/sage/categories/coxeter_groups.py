@@ -279,8 +279,8 @@ class CoxeterGroups(Category_singleton):
                 sage: sorted(W.braid_orbit(word))
                 [[0, 1, 2, 1], [0, 2, 1, 2], [2, 0, 1, 2]]
 
-                sage: W.braid_orbit([2,1,1,2,1])
-                [[2, 2, 1, 2, 2], [2, 1, 1, 2, 1], [1, 2, 1, 1, 2], [2, 1, 2, 1, 2]]
+                sage: sorted(W.braid_orbit([2,1,1,2,1]))
+                [[1, 2, 1, 1, 2], [2, 1, 1, 2, 1], [2, 1, 2, 1, 2], [2, 2, 1, 2, 2]]
 
                 sage: W = ReflectionGroup(['A',3], index_set=["AA","BB",5])  # optional - gap3
                 sage: w = W.long_element()                                   # optional - gap3

@@ -299,3 +299,35 @@ class MetricSpaces(MetricSpacesCategory):
         The category of complete metric spaces.
         """
 
+        class CartesianProducts(CartesianProductsCategory):
+
+            def extra_super_categories(self):
+                r"""
+                Implement the fact that a (finite) Cartesian product of complete
+                metric spaces is a complete metric space.
+
+                EXAMPLES::
+
+                    sage: from sage.categories.metric_spaces import MetricSpaces
+                    sage: C = MetricSpaces().Complete().CartesianProducts()
+                    sage: C.extra_super_categories()
+                    [Category of complete metric spaces]
+                    sage: C.super_categories()
+                    [Category of Cartesian products of metric spaces,
+                     Category of complete metric spaces]
+                    sage: C.axioms()
+                    frozenset({'Complete'})
+
+                    sage: R2 = RR.cartesian_product(RR)
+                    sage: R2 in MetricSpaces()
+                    True
+                    sage: R2 in MetricSpaces().Complete()
+                    True
+
+                    sage: QR = QQ.cartesian_product(RR)
+                    sage: QR in MetricSpaces()
+                    True
+                    sage: QR in MetricSpaces().Complete()
+                    False
+                """
+                return [MetricSpaces().Complete()]

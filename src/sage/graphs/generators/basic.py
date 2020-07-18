@@ -610,7 +610,7 @@ def DiamondGraph():
 
 def GemGraph():
     """
-    Returns a gem graph with 5 nodes.
+    Return a gem graph with 5 nodes.
 
     A gem graph is a fan graph (4,1).
 
@@ -618,9 +618,9 @@ def GemGraph():
     override the spring-layout algorithm. By convention, the gem
     graph is drawn as a gem, with the sharp part on the bottom.
 
-    EXAMPLES: Construct and show a gem graph
+    EXAMPLES:
 
-    ::
+    Construct and show a gem graph::
 
         sage: g = graphs.GemGraph()
         sage: g.show()
@@ -631,7 +631,7 @@ def GemGraph():
 
 def ForkGraph():
     """
-    Returns a fork graph with 5 nodes.
+    Return a fork graph with 5 nodes.
 
     A fork graph, sometimes also called chair graph, is 5 vertex tree.
 
@@ -639,9 +639,9 @@ def ForkGraph():
     override the spring-layout algorithm. By convention, the fork
     graph is drawn as a fork, with the sharp part on the bottom.
 
-    EXAMPLES: Construct and show a fork graph
+    EXAMPLES:
 
-    ::
+    Construct and show a fork graph::
 
         sage: g = graphs.ForkGraph()
         sage: g.show()
@@ -652,15 +652,15 @@ def ForkGraph():
 
 def DartGraph():
     """
-    Returns a dart graph with 5 nodes.
+    Return a dart graph with 5 nodes.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the dart
     graph is drawn as a dart, with the sharp part on the bottom.
 
-    EXAMPLES: Construct and show a dart graph
+    EXAMPLES:
 
-    ::
+    Construct and show a dart graph::
 
         sage: g = graphs.DartGraph()
         sage: g.show()

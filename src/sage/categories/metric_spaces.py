@@ -246,7 +246,8 @@ class MetricSpaces(MetricSpacesCategory):
                 sage: C.extra_super_categories()
                 [Category of metric spaces]
                 sage: C.super_categories()
-                [Category of Cartesian products of sets, Category of metric spaces]
+                [Category of Cartesian products of topological spaces,
+                 Category of metric spaces]
                 sage: C.axioms()
                 frozenset()
             """

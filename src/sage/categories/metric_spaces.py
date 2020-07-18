@@ -11,6 +11,7 @@ Metric Spaces
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
 from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 
@@ -231,6 +232,48 @@ class MetricSpaces(MetricSpacesCategory):
                 """
                 R = self.a_realization()
                 return R.dist(R(a), R(b))
+
+    class CartesianProducts(CartesianProductsCategory):
+        def extra_super_categories(self):
+            r"""
+            Implement the fact that a (finite) Cartesian product of metric spaces is
+            a metric space.
+
+            EXAMPLES::
+
+                sage: from sage.categories.metric_spaces import MetricSpaces
+                sage: C = MetricSpaces().CartesianProducts()
+                sage: C.extra_super_categories()
+                [Category of metric spaces]
+                sage: C.super_categories()
+                [Category of Cartesian products of sets, Category of metric spaces]
+                sage: C.axioms()
+                frozenset()
+            """
+            return [MetricSpaces()]
+
+        class ParentMethods:
+
+            def dist(self, a, b):
+                r"""
+                Return the distance between ``a`` and ``b`` in ``self``.
+
+                It is defined as the maximum of the distances within
+                the Cartesian factors.
+
+                EXAMPLES::
+
+                    sage: from sage.categories.metric_spaces import MetricSpaces
+                    sage: Q2 = QQ.cartesian_product(QQ)
+                    sage: Q2.category()
+                    Join of Category of Cartesian products of commutative rings and Category of Cartesian products of metric spaces
+                    sage: Q2 in MetricSpaces()
+                    True
+                    sage: Q2.dist((0, 0), (2, 3))
+                    3
+                """
+                return max(x.dist(y) for x, y in zip(self(a).cartesian_factors(),
+                                                     self(b).cartesian_factors()))
 
     class SubcategoryMethods:
         @cached_method

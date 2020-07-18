@@ -277,10 +277,11 @@ cdef class CoxGroup(SageObject):
         # with the relabelling on the appropriate sides:
         if hasattr(self.cartan_type, '_relabelling'):
             r = self.cartan_type._relabelling
+            r_inv = {v: k for (k, v) in r.items()}
             # Pre-compose in_ordering with r
             self.in_ordering = {i: self.in_ordering[r[i]] for i in self.in_ordering}
-            # Post-compose out_ordering with r
-            self.out_ordering = {i: r[self.out_ordering[i]] for i in self.out_ordering}
+            # Post-compose out_ordering with r inverse
+            self.out_ordering = {i: r_inv[self.out_ordering[i]] for i in self.out_ordering}
 
         # Check that the Coxeter matrices match up.
         cox_mat = CoxeterMatrix(self.coxeter_matrix(), self.cartan_type.index_set())

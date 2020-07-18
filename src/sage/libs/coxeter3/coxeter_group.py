@@ -31,6 +31,8 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             sage: from sage.libs.coxeter3.coxeter_group import CoxeterGroup # optional - coxeter3
             sage: CoxeterGroup(['B',2])                                     # optional - coxeter3
             Coxeter group of type ['B', 2] implemented by Coxeter3
+            sage: CoxeterGroup(CartanType(['B', 3]).relabel({1: 3, 2: 2, 3: 1}))
+            Coxeter group of type ['B', 3] relabelled by {1: 3, 2: 2, 3: 1} implemented by Coxeter3
 
         """
         from sage.combinat.all import CartanType

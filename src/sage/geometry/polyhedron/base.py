@@ -216,6 +216,18 @@ class Polyhedron_base(Element):
                     raise ValueError("``pref_rep`` must be one of ``(None, 'Vrep', 'Hrep')``")
         if Vrep is not None:
             vertices, rays, lines = Vrep
+
+            # Detect the empty polyhedron.
+            # The damage is limited. We mainly have a generator to dispose
+            # of the Vrepresentation in case we don't need it.
+            from types import GeneratorType
+            if isinstance(vertices, GeneratorType):
+                vertices = tuple(vertices)
+            if isinstance(rays, GeneratorType):
+                rays = tuple(rays)
+            if isinstance(lines, GeneratorType):
+                lines = tuple(lines)
+
             if vertices or rays or lines:
                 self._init_from_Vrepresentation(vertices, rays, lines, **kwds)
             else:
@@ -4872,27 +4884,6 @@ class Polyhedron_base(Element):
             ()
             sage: (0*p).lines()
             ()
-
-        Dilation respects backend::
-
-            sage: P = polytopes.simplex(backend='field')
-            sage: P.dilation(3).backend()
-            'field'
-
-        Dilation with both Vrep and Hrep works correctly::
-
-            sage: def test_dilation(P):
-            ....:     Q = P.change_ring(P.base_ring(), backend='field')
-            ....:     assert 2*Q == 2*P
-            ....:     assert 1/2*Q == 1/2*P
-            ....:     assert (-3)*Q == (-3)*P
-            ....:     assert (-1/2)*Q == (-1/2)*P
-            sage: test_dilation(polytopes.cube())
-            sage: test_dilation(polytopes.cross_polytope(3))
-            sage: test_dilation(polytopes.simplex(4))
-            sage: test_dilation(polytopes.permutahedron(3))
-            sage: test_dilation(polytopes.permutahedron(3)*Polyhedron(rays=[[0,0,1],[0,1,1],[1,2,3]]))
-            sage: test_dilation(polytopes.permutahedron(3)*Polyhedron(rays=[[0,0,1],[0,1,1]], lines=[[1,0,0]]))
         """
         parent = self.parent().base_extend(scalar)
 
@@ -4920,6 +4911,66 @@ class Polyhedron_base(Element):
                                     [new_inequalities, new_equations],
                                     Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
+    def _test_dilation(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.dilation`.
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_dilation()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        # Testing that the backend is preserved.
+        tester.assertEqual(self.dilation(2*self.base_ring().gen()).backend(), self.backend())
+        tester.assertEqual(self.dilation(ZZ(3)).backend(), self.backend())
+
+        if self.n_vertices() > 40:
+            # Avoid long time computations.
+            return
+
+        # Testing that the double description is set up correctly.
+        if self.base_ring().is_exact():
+            p = self.base_extend(self.base_ring(), backend='field')
+            (ZZ(2)*p)._test_basic_properties(tester)
+            (ZZ(2)/2*p)._test_basic_properties(tester)
+            (ZZ(-3)*p)._test_basic_properties(tester)
+            (ZZ(-1)/2*p)._test_basic_properties(tester)
+        else:
+            tester.assertIsInstance(ZZ(1)/3*self, Polyhedron_base)
+
+        if self.n_vertices() > 20:
+            # Avoid long time computations.
+            return
+
+        # Some sanity check on the volume (only run for relativly small instances).
+        if self.dim() > -1 and self.is_compact() and self.base_ring().is_exact():
+            tester.assertEqual(self.dilation(3).volume(measure='induced'), self.volume(measure='induced')*3**self.dim())
+
+        # Testing coercion with algebraic numbers.
+        from sage.rings.number_field.number_field import QuadraticField
+        K1 = QuadraticField(2, embedding=AA(2).sqrt())
+        sqrt2 = K1.gen()
+        K2 = QuadraticField(3, embedding=AA(3).sqrt())
+        sqrt3 = K2.gen()
+
+        if self.base_ring() in (QQ,ZZ,AA,RDF):
+            tester.assertIsInstance(sqrt2*self, Polyhedron_base)
+            tester.assertIsInstance(sqrt3*self, Polyhedron_base)
+        elif hasattr(self.base_ring(), "composite_fields"):
+            for scalar, K in ((sqrt2, K1), (sqrt3, K2)):
+                new_ring = None
+                try:
+                    new_ring = self.base_ring().composite_fields()[0]
+                except:
+                    # This isn't about testing composite fields.
+                    pass
+                if new_ring:
+                    p = self.change_ring(new_ring)
+                    tester.assertIsInstance(scalar*p, Polyhedron_base)
+
+    def linear_transformation(self, linear_transf):
     def linear_transformation(self, linear_transf, new_base_ring=None):
         """
         Return the linear transformation of ``self``.

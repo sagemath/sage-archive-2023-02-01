@@ -41,6 +41,15 @@ for i in doc/info/*.html ; do
     touch "${i}"
 done
 touch doc/info/maxima.info*
+# Maxima 5.44.0 build_html.sh is not compatible with makeinfo 4.8
+# (which is /usr/bin/makeinfo on macOS).  #30063
+# Do not build the HTML docs unless the user asks for it,
+# in which case it is their problem to install a better
+# makeinfo version.
+if [[ "$SAGE_SPKG_INSTALL_DOCS" != yes ]] ; then
+touch doc/info/maxima_toc.html interfaces/xmaxima/doc/xmaxima.html
+fi
+
 #---------------------------------------------------------------
 
 sdh_make

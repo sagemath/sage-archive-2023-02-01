@@ -1,4 +1,4 @@
-name: Test optional packages with tox
+name: Test experimental packages with tox
 
 ## This GitHub Actions workflow runs SAGE_ROOT/tox.ini with select environments,
 ## whenever a GitHub pull request is opened or synchronized in a repository
@@ -43,9 +43,7 @@ jobs:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       DOCKER_TARGETS: configured with-targets with-targets-optional
-      # Test all optional packages, but do not test huge packages,
-      # and do not test packages that require external software
-      TARGETS_OPTIONAL: "$( echo $(PATH=build/bin:$PATH build/bin/sage-package list :optional: | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d | grep -v cplex | grep -v gurobi | grep '^[${{ matrix.targets_pattern }}]' ) )"
+      TARGETS_OPTIONAL: "$( echo $(PATH=build/bin:$PATH build/bin/sage-package list :experimental: | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d | grep '^[${{ matrix.targets_pattern }}]' ) )"
     steps:
       - uses: actions/checkout@v2
         with:
@@ -112,9 +110,7 @@ jobs:
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
-      # Test all optional packages, but do not test huge packages
-      # and do not test packages that require external software
-      TARGETS_OPTIONAL: "$( echo $(PATH=build/bin:$PATH build/bin/sage-package list :optional: | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d | grep -v cplex | grep -v gurobi | grep '^[${{ matrix.targets_pattern }}]' ) )"
+      TARGETS_OPTIONAL: "$( echo $(PATH=build/bin:$PATH build/bin/sage-package list :experimental: | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d | grep '^[${{ matrix.targets_pattern }}]' ) )"
     steps:
       - uses: actions/checkout@v2
       - name: Install test prerequisites

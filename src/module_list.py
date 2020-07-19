@@ -121,6 +121,9 @@ ext_modules = [
     Extension('sage.coding.codecan.codecan',
               sources = ['sage/coding/codecan/codecan.pyx']),
 
+    Extension('sage.coding.kasami_codes',
+              sources = ['sage/coding/kasami_codes.pyx']),
+
     Extension('*', ['sage/coding/**/*.pyx']),
 
     ################################

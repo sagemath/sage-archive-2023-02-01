@@ -43,7 +43,7 @@ if [ $? -ne 0 ]; then # texi2any not found -> makeinfo too old, if present
   ECL_CONFIGURE="$ECL_CONFIGURE --enable-manual=no"
 fi
 
-sdh_configure $SAGE_CONFIGURE_GMP --disable-threads \
+sdh_configure $SAGE_CONFIGURE_GMP --disable-threads --disable-manual \
               --enable-unicode=yes --with-defsystem $ECL_CONFIGURE
 
 # Before running make we touch build/TAGS so its building process is never triggered

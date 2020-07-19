@@ -446,7 +446,7 @@ usage_advanced() {
     echo "                         files are named sage-omega.PID can be found in"
     echo "                         \$DOT_SAGE"
     echo "  --valgrind          -- this is an alias for --memcheck"
-    if [ -n "$SAGE_ROOT/" ]; then
+    if [ -n "$SAGE_ROOT" ]; then
         exec "$SAGE_ROOT/build/bin/sage-site" "--advanced"
     fi
     echo

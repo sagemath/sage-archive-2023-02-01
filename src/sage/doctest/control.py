@@ -39,7 +39,6 @@ from .forker import DocTestDispatcher
 from .reporting import DocTestReporter
 from .util import Timer, count_noun, dict_difference
 from .external import external_software, available_software
-from sage.features import PythonModule
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')
@@ -100,6 +99,7 @@ class DocTestDefaults(SageObject):
         self.random_seed = 0
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
+        self.environment = "sage.repl.ipython_kernel.all_jupyter"
         self.initial = False
         self.exitfirst = False
         self.force_lib = False
@@ -500,6 +500,25 @@ class DocTestController(SageObject):
             'DocTest Controller'
         """
         return "DocTest Controller"
+
+    def load_environment(self):
+        """
+        Return the module that provides the global environment.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: DC = DocTestController(DocTestDefaults(), [])
+            sage: 'BipartiteGraph' in DC.load_environment().__dict__
+            True
+            sage: DC = DocTestController(DocTestDefaults(environment='sage.doctest.all'), [])
+            sage: 'BipartiteGraph' in  DC.load_environment().__dict__
+            False
+            sage: 'run_doctests' in DC.load_environment().__dict__
+            True
+        """
+        from importlib import import_module
+        return import_module(self.options.environment)
 
     def load_stats(self, filename):
         """

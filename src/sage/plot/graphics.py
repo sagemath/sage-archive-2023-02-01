@@ -2352,14 +2352,14 @@ class Graphics(WithEqualityById, SageObject):
             (<matplotlib.axes._subplots.AxesSubplot object at ...>,
             <matplotlib.ticker.MaxNLocator object at ...>,
             <matplotlib.ticker.MaxNLocator object at ...>,
-            <matplotlib.ticker.OldScalarFormatter object at ...>,
-            <matplotlib.ticker.OldScalarFormatter object at ...>)
+            <matplotlib.ticker.ScalarFormatter object at ...>,
+            <matplotlib.ticker.ScalarFormatter object at ...>)
         """
         # This function is created to refactor some code that is repeated
         # in the matplotlib function
         from matplotlib.ticker import (FixedLocator, Locator,
                 LogFormatterMathtext, LogLocator, MaxNLocator,
-                MultipleLocator, NullLocator, OldScalarFormatter)
+                MultipleLocator, NullLocator, ScalarFormatter)
 
         x_locator, y_locator = ticks
         #---------------------- Location of x-ticks ---------------------#
@@ -2415,7 +2415,7 @@ class Graphics(WithEqualityById, SageObject):
             if scale[0] == 'log':
                 x_formatter = LogFormatterMathtext(base=base[0])
             else:
-                x_formatter = OldScalarFormatter()
+                x_formatter = ScalarFormatter()
         elif x_formatter in SR:
             x_const = x_formatter
             x_formatter = FuncFormatter(lambda n,pos:
@@ -2440,7 +2440,7 @@ class Graphics(WithEqualityById, SageObject):
             if scale[1] == 'log':
                 y_formatter = LogFormatterMathtext(base=base[1])
             else:
-                y_formatter = OldScalarFormatter()
+                y_formatter = ScalarFormatter()
         elif y_formatter in SR:
             y_const = y_formatter
             y_formatter = FuncFormatter(lambda n,pos:

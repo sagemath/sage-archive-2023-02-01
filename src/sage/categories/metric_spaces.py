@@ -267,7 +267,9 @@ class MetricSpaces(MetricSpacesCategory):
                     sage: from sage.categories.metric_spaces import MetricSpaces
                     sage: Q2 = QQ.cartesian_product(QQ)
                     sage: Q2.category()
-                    Join of Category of Cartesian products of commutative rings and Category of Cartesian products of metric spaces
+                    Join of
+                    Category of Cartesian products of commutative rings and
+                    Category of Cartesian products of metric spaces
                     sage: Q2 in MetricSpaces()
                     True
                     sage: Q2.dist((0, 0), (2, 3))

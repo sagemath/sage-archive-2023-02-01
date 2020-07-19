@@ -1404,15 +1404,15 @@ class Graphics(WithEqualityById, SageObject):
         if scale == 'linear':
             basex = basey = 10
         elif scale == 'loglog':
-            subplot.set_xscale('log', basex=basex)
-            subplot.set_yscale('log', basey=basey)
+            subplot.set_xscale('log', base=basex)
+            subplot.set_yscale('log', base=basey)
             xscale = yscale = 'log'
         elif scale == 'semilogx':
-            subplot.set_xscale('log', basex=basex)
+            subplot.set_xscale('log', base=basex)
             basey = 10
             xscale = 'log'
         elif scale == 'semilogy':
-            subplot.set_yscale('log', basey=basey)
+            subplot.set_yscale('log', base=basey)
             basex = 10
             yscale = 'log'
 

@@ -4970,7 +4970,6 @@ class Polyhedron_base(Element):
                     p = self.change_ring(new_ring)
                     tester.assertIsInstance(scalar*p, Polyhedron_base)
 
-    def linear_transformation(self, linear_transf):
     def linear_transformation(self, linear_transf, new_base_ring=None):
         """
         Return the linear transformation of ``self``.

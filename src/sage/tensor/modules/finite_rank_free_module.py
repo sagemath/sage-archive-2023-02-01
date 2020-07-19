@@ -2527,10 +2527,16 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
           distinguished basis on ``codomain``
         - ``codomain`` -- (default: ``None``) the codomain of the
           isomorphism represented by a free module within the category
-          ``ModulesWithBasis`` with the same rank and base ring as ``self``; if
-          ``None`` a free module represented by
+          :class:`~sage.categories.modules_with_basis.ModulesWithBasis` with
+          the same rank and base ring as ``self``; if ``None`` a free module
+          represented by
           :class:`~sage.combinat.free_module.CombinatorialFreeModule` is
           constructed
+
+        OUTPUT:
+
+        - a module morphism represented by
+          :class:`~sage.modules.with_basis.morphism.ModuleMorphismFromFunction`
 
         EXAMPLES::
 

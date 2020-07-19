@@ -3860,7 +3860,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            - ``'pari'`` - (default) use the PARI library
 
            - ``'kash'`` - use the KASH computer algebra system (requires
-             the optional kash package)
+             kash)
 
            - ``'magma'`` - use the MAGMA computer algebra system (requires
              an installation of MAGMA)

@@ -5100,7 +5100,7 @@ class Polyhedron_base(Element):
 
         TESTS::
 
-            Polyhedron(rays=[(0,1)])._test_linear_transformation()
+            sage: Polyhedron(rays=[(0,1)])._test_linear_transformation()
         """
         if tester is None:
             tester = self._tester(**options)

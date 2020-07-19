@@ -190,6 +190,14 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: _init_Hrepresentation() takes exactly 3 arguments (9 given)
+
+        The empty polyhedron is detected when the Vrepresentation is given with generator;
+        see :trac:`29899`::
+
+            sage: from sage.geometry.polyhedron.backend_cdd import Polyhedron_QQ_cdd
+            sage: from sage.geometry.polyhedron.parent import Polyhedra_QQ_cdd
+            sage: parent = Polyhedra_QQ_cdd(QQ, 0, 'cdd')
+            sage: p = Polyhedron_QQ_cdd(parent, [iter([]), iter([]), iter([])], None)
         """
         Element.__init__(self, parent=parent)
         if Vrep is not None and Hrep is not None:
@@ -216,6 +224,27 @@ class Polyhedron_base(Element):
                     raise ValueError("``pref_rep`` must be one of ``(None, 'Vrep', 'Hrep')``")
         if Vrep is not None:
             vertices, rays, lines = Vrep
+
+            # We build tuples out of generators now to detect the empty polyhedron.
+
+            # The damage is limited:
+            # The backend will have to obtain all elements from the generator anyway.
+            # The generators are mainly for saving time with initializing from
+            # Vrepresentation and Hrepresentation.
+            # If we dispose of one of them (see above), it is wasteful to have generated it.
+
+            # E.g. the dilate will be set up with new Vrepresentation and Hrepresentation
+            # regardless of the backend along with the argument ``pref_rep``.
+            # As we only use generators, there is no penalty to this approach
+            # (and the method ``dilation`` does not have to distinguish by backend).
+
+            if not isinstance(vertices, (tuple, list)):
+                vertices = tuple(vertices)
+            if not isinstance(rays, (tuple, list)):
+                rays = tuple(rays)
+            if not isinstance(lines, (tuple, list)):
+                lines = tuple(lines)
+
             if vertices or rays or lines:
                 self._init_from_Vrepresentation(vertices, rays, lines, **kwds)
             else:

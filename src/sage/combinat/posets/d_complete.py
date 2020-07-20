@@ -1,3 +1,11 @@
+r"""
+D-Complete Posets
+
+AUTHORS:
+
+- Stefan Grosser (06-2020): initial implementation
+"""
+
 # ****************************************************************************
 #       Copyright (C) 2020 Stefan Grosser <stefan.grosser1@gmail.com>
 #
@@ -16,46 +24,31 @@ from collections import deque
 
 class DCompletePoset(FiniteJoinSemilattice):
     r"""
-    D-complete posets are a class of posets introduced by Proctor in [Proc1999].
-    It includes common families such as shapes, shifted shapes, and rooted forests. Proctor showed in [PDynk1999]
-    that d-complete posets have decompositions in ``irreducible`` posets, and showed in [Proc2014] that
-    d-complete posets admit a hook-length formula (see [1]). A complete proof of the hook-length formula
-    can be found in [KY2019].
-  
+    A d-complete poset.
+
+    D-complete posets are a class of posets introduced by Proctor
+    in [Proc1999]_. It includes common families such as shapes, shifted
+    shapes, and rooted forests. Proctor showed in [PDynk1999]_ that
+    d-complete posets have decompositions in *irreducible* posets,
+    and showed in [Proc2014]_ that d-complete posets admit a hook-length
+    formula (see :wikipedia:`Hook_length_formula`). A complete proof of
+    the hook-length formula can be found in [KY2019]_.
+
     EXAMPLES::
 
         sage: from sage.combinat.posets.poset_examples import Posets
         sage: P = Posets.DoubleTailedDiamond(2)
-        sage: type(P)
-        <class 'sage.combinat.posets.d_complete.DCompletePoset_with_category'>
-
-    The additional internal data structure consists of:
-
-    - the hook lengths of the elements of the poset
-
-        sage: P._hooks
-        {1: 1, 2: 2, 3: 3, 4: 3, 5: 4, 6: 5}
-
-    TESTS::
-
         sage: TestSuite(P).run()
-
-    See also the other tests in the class documentation.
-    
-    REFERENCES::
-    
-        .. [1] :wikipedia:`Hook_length_formula`, accessed 27th
-                 June 2020.
     """
-    
     _lin_ext_type = LinearExtensionsOfPosetWithHooks
     _desc = "Finite d-complete poset"
 
     @lazy_attribute
     def _hooks(self):
         r"""
-        The hook lengths of the elements of the d-complete poset. For the definition 
-        of hook lengths for d-complete posets, see [KY2019].
+        The hook lengths of the elements of the d-complete poset.
+
+        See [KY2019]_ for the definition of hook lengths for d-complete posets.
 
         TESTS::
 
@@ -64,7 +57,7 @@ class DCompletePoset(FiniteJoinSemilattice):
             sage: P._hooks
             {0: 1, 1: 2, 2: 2, 3: 3}
             sage: from sage.combinat.posets.poset_examples import Posets
-            sage: P = DCompletePoset(Posets.YoungDiagramPoset(Partition([3,2,1]))._hasse_diagram.reverse()) 
+            sage: P = DCompletePoset(Posets.YoungDiagramPoset(Partition([3,2,1]))._hasse_diagram.reverse())
             sage: P._hooks
             {0: 5, 1: 3, 2: 1, 3: 3, 4: 1, 5: 1}
         """
@@ -72,14 +65,14 @@ class DCompletePoset(FiniteJoinSemilattice):
 
         min_diamond = {} # Maps max of double-tailed diamond to min of double-tailed diamond
         max_diamond = {} # Maps min of double-tailed diamond to max of double-tailed diamond
-        
+
         H = self._hasse_diagram
 
         diamonds, _ = H.diamonds() # Tuples of four elements that are diamonds
-        
+
         diamond_index = {} # Map max elmt of double tailed diamond to index of diamond
 
-        # Find all the double-tailed diamonds and map the mins and maxes. 
+        # Find all the double-tailed diamonds and map the mins and maxes
         for index, d in enumerate(diamonds):
             min_diamond[d[3]] = d[0]
             max_diamond[d[0]] = d[3]
@@ -90,7 +83,6 @@ class DCompletePoset(FiniteJoinSemilattice):
 
             while True:
                 potential_min = H.neighbors_in(min_elmt)
-                
                 potential_max = H.neighbors_out(max_elmt)
 
                 # Check if any of these make a longer double tailed diamond
@@ -131,12 +123,12 @@ class DCompletePoset(FiniteJoinSemilattice):
 
         poset_hooks = {self._vertex_to_element(key): value for (key, value) in hooks.items()}
         return poset_hooks
-                
+
     def get_hook(self, elmt):
         r"""
-        Get the hook length of a specific element.
+        Return the hook length of the element ``elmt``.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.combinat.posets.d_complete import DCompletePoset
             sage: P = DCompletePoset(DiGraph({0: [1], 1: [2]}))
@@ -146,20 +138,19 @@ class DCompletePoset(FiniteJoinSemilattice):
         return self._hooks[elmt]
 
     def get_hooks(self):
-        """
-        Get all the hook lengths returned in a dictionary
-        
-        TESTS::
+        r"""
+        Return all the hook lengths as a dictionary.
+
+        EXAMPLES::
 
             sage: from sage.combinat.posets.d_complete import DCompletePoset
             sage: P = DCompletePoset(DiGraph({0: [1, 2], 1: [3], 2: [3], 3: []}))
             sage: P.get_hooks()
             {0: 1, 1: 2, 2: 2, 3: 3}
             sage: from sage.combinat.posets.poset_examples import Posets
-            sage: P = DCompletePoset(Posets.YoungDiagramPoset(Partition([3,2,1]))._hasse_diagram.reverse()) 
+            sage: P = DCompletePoset(Posets.YoungDiagramPoset(Partition([3,2,1]))._hasse_diagram.reverse())
             sage: P.get_hooks()
             {0: 5, 1: 3, 2: 1, 3: 3, 4: 1, 5: 1}
-
         """
         return dict(self._hooks)
-    
+

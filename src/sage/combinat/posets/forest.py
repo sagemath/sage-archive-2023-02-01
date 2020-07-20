@@ -1,3 +1,11 @@
+r"""
+Forest Posets
+
+AUTHORS:
+
+- Stefan Grosser (06-2020): initial implementation
+"""
+
 # ****************************************************************************
 #       Copyright (C) 2020 Stefan Grosser <stefan.grosser1@gmail.com>
 #
@@ -10,14 +18,13 @@
 
 from sage.combinat.posets.posets import Poset, FinitePoset
 from sage.misc.lazy_attribute import lazy_attribute
-from .linear_extensions import LinearExtensionsOfForest
+from sage.combinat.posets.linear_extensions import LinearExtensionsOfForest
 
 class ForestPoset(FinitePoset):
     r"""
-    A forest poset is a poset where the underlying Hasse diagram and is 
-    directed acyclic graph. 
-
+    A forest poset is a poset where the underlying Hasse diagram and is
+    directed acyclic graph.
     """
-    
     _lin_ext_type = LinearExtensionsOfForest
     _desc = 'Finite forest poset'
+

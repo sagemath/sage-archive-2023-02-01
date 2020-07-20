@@ -30,5 +30,5 @@ If you are looking for Poset-related :mod:`categories
 :class:`~sage.categories.finite_posets.FinitePosets`,
 :class:`~sage.categories.lattice_posets.LatticePosets` and
 :class:`~sage.categories.finite_lattice_posets.FiniteLatticePosets`.
+"""
 
-  """

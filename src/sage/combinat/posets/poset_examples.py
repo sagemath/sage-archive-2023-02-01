@@ -1382,38 +1382,42 @@ class Posets(metaclass=ClasscallMetaclass):
         INPUT:
 
         - ``lam`` -- a partition
-        
-        - ``dual`` -- Determines the orientation of the poset
+        - ``dual`` -- (default: ``False``) determines the orientation
+          of the poset; if ``True``, then it is a join semilattice,
+          otherwise it is a meet semilattice
 
         EXAMPLES::
 
-            sage: P = posets.YoungDiagramPoset(Partition([2,2])); P
+            sage: P = posets.YoungDiagramPoset(Partition([2, 2])); P
             Finite meet-semilattice containing 4 elements
 
             sage: sorted(P.cover_relations())
             [[(0, 0), (0, 1)], [(0, 0), (1, 0)], [(0, 1), (1, 1)], [(1, 0), (1, 1)]]
+
+            sage: posets.YoungDiagramPoset([3, 2], dual=True)
+            Finite join-semilattice containing 5 elements
         """
-        def cell_leq(a, b):
-            """
-            Nested function that returns `True` if the cell `a` is
-            to the left or above
-            the cell `b` in the (English) Young diagram.
-            """
-            return ((a[0] == b[0] - 1 and a[1] == b[1]) or
-                    (a[1] == b[1] - 1 and a[0] == b[0]))
-        
-        def cell_geq(a, b):
-            """
-            Nested function that returns `True` if the cell `a` is
-            to the right or below
-            the cell `b` in the (English) Young diagram.
-            """
-            return ((a[0] == b[0] + 1 and a[1] == b[1]) or
-                    (a[1] == b[1] + 1 and a[0] == b[0]))
-        
+        from sage.combinat.partition import Partition
+        lam = Partition(lam)
         if dual:
+            def cell_geq(a, b):
+                """
+                Nested function that returns `True` if the cell `a` is
+                to the right or below
+                the cell `b` in the (English) Young diagram.
+                """
+                return ((a[0] == b[0] + 1 and a[1] == b[1]) or
+                        (a[1] == b[1] + 1 and a[0] == b[0]))
             return JoinSemilattice((lam.cells(), cell_geq), cover_relations=True)
         else:
+            def cell_leq(a, b):
+                """
+                Nested function that returns `True` if the cell `a` is
+                to the left or above
+                the cell `b` in the (English) Young diagram.
+                """
+                return ((a[0] == b[0] - 1 and a[1] == b[1]) or
+                        (a[1] == b[1] - 1 and a[0] == b[0]))
             return MeetSemilattice((lam.cells(), cell_leq), cover_relations=True)
 
     @staticmethod
@@ -1551,9 +1555,9 @@ class Posets(metaclass=ClasscallMetaclass):
     @staticmethod
     def DoubleTailedDiamond(n):
         r"""
-        Return a double-tailed diamond of 2n + 2 elements
+        Return a double-tailed diamond of `2n + 2` elements.
 
-        Input:
+        INPUT:
 
         - ``n`` -- a positive integer
 
@@ -1570,15 +1574,12 @@ class Posets(metaclass=ClasscallMetaclass):
             raise TypeError("number of elements must be an integer, not {}".format(n))
         if n <= 0:
             raise ValueError("number of elements must be nonnegative, not {}".format(n))
-        
-        edges = [(i,i+1) for i in range(1, n)]
+
+        edges = [(i, i+1) for i in range(1, n)]
         edges.extend([(n, n+1), (n, n+2), (n+1, n+3), (n+2, n+3)])
         edges.extend([(i, i+1) for i in range(n+3, 2*n+2)])
         p = DiGraph([list(range(1, 2*n + 3)), edges])
-
         return DCompletePoset(p)
-
-        
 
     @staticmethod
     def PermutationPattern(n):

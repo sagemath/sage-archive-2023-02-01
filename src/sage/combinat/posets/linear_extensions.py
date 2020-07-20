@@ -7,6 +7,7 @@ This module defines two classes:
 - :class:`LinearExtensionOfPoset`
 - :class:`LinearExtensionsOfPoset`
 - :class:`LinearExtensionsOfPosetWithHooks`
+- :class:`LinearExtensionsOfForest`
 
 Classes and methods
 -------------------
@@ -848,16 +849,15 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
 
 class LinearExtensionsOfPosetWithHooks(LinearExtensionsOfPoset):
     r"""
-    A subclass of ``LinearExtensionOfPoset`` where the poset
-    has well-defined hook lengths (ie. d-complete).
+    Linear extensions such that the poset has well-defined
+    hook lengths (i.e., d-complete).
     """
-    
     def cardinality(self):
         r"""
-        Count the number of linear extensions using a hook-length formula
-        
-        TESTS::
-        
+        Count the number of linear extensions using a hook-length formula.
+
+        EXAMPLES::
+
             sage: from sage.combinat.posets.d_complete import DComplete
             sage: from sage.combinat.posets.poset_examples import Posets
             sage: P = Posets.YoungDiagramPoset(Partition([3,2]), dual=True)
@@ -865,26 +865,24 @@ class LinearExtensionsOfPosetWithHooks(LinearExtensionsOfPoset):
             5
         """
         num_elmts = self._poset.cardinality()
-        
+
         if num_elmts == 0:
             return 1
-        
+
         hooks = self._poset.get_hooks()
         hook_product = prod(hooks.values())
         return factorial(num_elmts) // hook_product
 
 class LinearExtensionsOfForest(LinearExtensionsOfPoset):
     r"""
-    A subclass of ``LinearExtensionOfPoset`` where the poset
-    is a forest.
+    Linear extensions such that the poset is a forest.
     """
-    
     def cardinality(self):
         r"""
-        Use Atkinson's algorithm to compute the number of linear extensions
-        
-        TESTS::
-        
+        Use Atkinson's algorithm to compute the number of linear extensions.
+
+        EXAMPLES::
+
             sage: from sage.combinat.posets.forest import ForestPoset
             sage: from sage.combinat.posets.poset_examples import Posets
             sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
@@ -896,4 +894,4 @@ class LinearExtensionsOfForest(LinearExtensionsOfPoset):
             140
         """
         return sum(self.atkinson(self._elements[0]))
-    
+

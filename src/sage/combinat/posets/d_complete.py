@@ -16,7 +16,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.combinat.posets.posets import Poset, FinitePoset
 from sage.misc.lazy_attribute import lazy_attribute
 from .linear_extensions import LinearExtensionsOfPosetWithHooks
 from .lattices import FiniteJoinSemilattice

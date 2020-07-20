@@ -16,8 +16,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.combinat.posets.posets import Poset, FinitePoset
-from sage.misc.lazy_attribute import lazy_attribute
+from sage.combinat.posets.posets import FinitePoset
 from sage.combinat.posets.linear_extensions import LinearExtensionsOfForest
 
 class ForestPoset(FinitePoset):

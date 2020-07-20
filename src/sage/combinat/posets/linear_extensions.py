@@ -858,7 +858,6 @@ class LinearExtensionsOfPosetWithHooks(LinearExtensionsOfPoset):
 
         EXAMPLES::
 
-            sage: from sage.combinat.posets.d_complete import DComplete
             sage: from sage.combinat.posets.poset_examples import Posets
             sage: P = Posets.YoungDiagramPoset(Partition([3,2]), dual=True)
             sage: P.linear_extensions().cardinality()

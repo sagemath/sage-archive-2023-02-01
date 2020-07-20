@@ -2324,7 +2324,7 @@ class HasseDiagram(DiGraph):
             for i, x in enumerate(covers):
                 for y in covers[i+1:]:
                     zs = self.common_upper_covers([x, y])
-                    if len(zs) != 1 :
+                    if len(zs) != 1:
                         all_diamonds_completed = False
                     for z in zs:
                         diamonds.append((w, x, y, z))

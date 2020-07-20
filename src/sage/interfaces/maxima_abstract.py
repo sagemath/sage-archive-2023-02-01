@@ -293,8 +293,14 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         # in Maxima 5.19.1, apropos returns all commands that contain
         # the given string, instead of all commands that start with
         # the given string
-        cmd_list = self._eval_line('apropos("%s")'%s, error_check=False).replace('\\ - ','-')
-        cmd_list = [x for x in cmd_list[1:-1].split(',') if x[0] != '?']
+        #
+        # Maxima 5.44 changed DEFMFUN so that it creates both $NAME
+        # and $NAME-IMPL (although the documentation suggests it would
+        # create NAME-IMPL, without the leading $).  This causes
+        # name-impl to show up in $APROPOS.  We remove it.
+        # https://sourceforge.net/p/maxima/bugs/3643/
+        cmd_list = self._eval_line('apropos("%s")'%s, error_check=False).replace('\\ - ','-').replace('\\-','-')
+        cmd_list = [x for x in cmd_list[1:-1].split(',') if x[0] != '?' and not x.endswith('-impl')]
         return [x for x in cmd_list if x.find(s) == 0]
 
     def _commands(self, verbose=True):

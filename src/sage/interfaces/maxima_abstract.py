@@ -177,10 +177,14 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         if redirect:
             res = bytes_to_str(subprocess.check_output(cmd, shell=True,
                                                        env=env))
-            # We get 4 lines of commented verbosity every time Maxima starts
-            # and the input is echoed, so we need to get rid of them
-            for _ in range(5):
-                res = res[res.find('\n')+1:]
+            # We get a few lines of commented verbosity every time Maxima starts
+            while res.startswith(';;;'):
+                newline = res.find('\n')
+                if newline == -1:
+                    break
+                res = res[newline + 1:]
+            # The input is echoed, so we need to get rid of it
+            res = res[res.find('\n')+1:]
 
             return AsciiArtString(res)
         else:

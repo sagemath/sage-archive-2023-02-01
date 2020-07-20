@@ -44,6 +44,12 @@ else
     command -v texi2any >/dev/null 2>&1
     if [ $? -ne 0 ]; then # texi2any not found -> makeinfo too old, if present
         ECL_CONFIGURE="$ECL_CONFIGURE --enable-manual=no"
+    else
+        if makeinfo -c foo 2>&1 | grep -q invalid; then
+            # makeinfo found but does not support all options that ecl
+            # likes to use
+            ECL_CONFIGURE="$ECL_CONFIGURE --enable-manual=no"
+        fi
     fi
 fi
 

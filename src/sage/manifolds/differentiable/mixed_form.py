@@ -595,7 +595,7 @@ class MixedForm(AlgebraElement):
             # Compare all elements separately:
             return all(self[j] == other[j] for j in self.irange())
         # Fall back on default implementation:
-        return AlgebraElement._richcmp_(self, other, op)
+        return super()._richcmp_(self, other, op)
 
     def _add_(self, other):
         r"""

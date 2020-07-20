@@ -382,7 +382,7 @@ class HyperplaneArrangementElement(Element):
           to check input
 
         - ``backend`` -- string (optional; default: ``None``); the backend to
-          use for the related polyhedral objects.
+          use for the related polyhedral objects
 
         EXAMPLES::
 
@@ -399,7 +399,7 @@ class HyperplaneArrangementElement(Element):
             sage: A = H(sqrt5*x+2*y+3*z, backend='normaliz')
             sage: A.backend()
             'normaliz'
-            sage: A.regions()[0].backend()
+            sage: A.regions()[0].backend()  # optional - pynormaliz
             'normaliz'
         """
         super(HyperplaneArrangementElement, self).__init__(parent)
@@ -579,11 +579,11 @@ class HyperplaneArrangementElement(Element):
 
     def backend(self):
         """
-        Return the backend used for polyhedral objects.
+        Return the backend used for polyhedral objects
 
         OUTPUT:
 
-        A string giving the backend or None (default)
+        A string giving the backend or ``None`` if none is specified.
 
         EXAMPLES:
 
@@ -1653,8 +1653,8 @@ class HyperplaneArrangementElement(Element):
 
         Checks that it creates the regions with the appropriate backend::
 
-            sage: h = H(x,backend='normaliz')
-            sage: h._make_region([x, 1-x, y, 1-y]).backend()
+            sage: h = H(x,backend='normaliz')                 # optional - pynormaliz
+            sage: h._make_region([x, 1-x, y, 1-y]).backend()  # optional - pynormaliz
             'normaliz'
         """
         ieqs = [h.dense_coefficient_list() for h in hyperplanes]
@@ -1730,10 +1730,10 @@ class HyperplaneArrangementElement(Element):
 
             sage: K.<q> = CyclotomicField(9)
             sage: L.<r9> = NumberField((q+q**(-1)).minpoly(),embedding = AA(q+q**-1))
-            sage: norms = [[1,1/3*(-2*r9**2-r9+1),0], \
-                           [1,-r9**2-r9,0], \
-                           [1,-r9**2+1,0], \
-                           [1,-r9**2,0], \
+            sage: norms = [[1,1/3*(-2*r9**2-r9+1),0], 
+                           [1,-r9**2-r9,0],
+                           [1,-r9**2+1,0],
+                           [1,-r9**2,0],
                            [1,r9**2-4,-r9**2+3]]
             sage: H.<x,y,z> = HyperplaneArrangements(L)
             sage: A = H(backend='normaliz')
@@ -3296,8 +3296,9 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: K = HyperplaneArrangements(QQ)
             sage: TestSuite(K).run()
         """
-        from sage.categories.all import Fields, Sets
-        if base_ring not in Fields:
+        from sage.categories.all import Sets
+        from sage.rings.ring import _Fields
+        if base_ring not in _Fields:
             raise ValueError('base ring must be a field')
         super(HyperplaneArrangements, self).__init__(category=Sets())
         self._base_ring = base_ring

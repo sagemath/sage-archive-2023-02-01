@@ -1731,10 +1731,10 @@ class HyperplaneArrangementElement(Element):
             sage: K.<q> = CyclotomicField(9)
             sage: L.<r9> = NumberField((q+q**(-1)).minpoly(),embedding = AA(q+q**-1))
             sage: norms = [[1,1/3*(-2*r9**2-r9+1),0], 
-                           [1,-r9**2-r9,0],
-                           [1,-r9**2+1,0],
-                           [1,-r9**2,0],
-                           [1,r9**2-4,-r9**2+3]]
+            ....:          [1,-r9**2-r9,0],
+            ....:          [1,-r9**2+1,0],
+            ....:          [1,-r9**2,0],
+            ....:          [1,r9**2-4,-r9**2+3]]
             sage: H.<x,y,z> = HyperplaneArrangements(L)
             sage: A = H(backend='normaliz')
             sage: for v in norms:

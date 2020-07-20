@@ -1307,9 +1307,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
-                sage: x = DihedralGroup(6).algebra(QQ).random_element(); x  # random
-                -1/95*() - 1/2*(1,4)(2,5)(3,6)
-                sage: x in DihedralGroup(6).algebra(QQ)
+                sage: x = DihedralGroup(6).algebra(QQ).random_element()
+                sage: x.parent() is DihedralGroup(6).algebra(QQ)
                 True
 
             Note, this result can depend on the PRNG state in libgap in a way
@@ -1318,14 +1317,11 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: libgap.set_seed(0)
                 0
-                sage: m = SU(2, 13).algebra(QQ).random_element(1); m  # random
-                1/2*[       1  9*a + 2]
-                [2*a + 12        2]
-                sage: m in SU(2, 13).algebra(QQ)
+                sage: m = SU(2, 13).algebra(QQ).random_element(1)
+                sage: m.parent() is SU(2, 13).algebra(QQ)
                 True
-                sage: p = CombinatorialFreeModule(ZZ, Partitions(4)).random_element(); p # random
-                2*B[[2, 1, 1]] + B[[2, 2]]
-                sage: p in CombinatorialFreeModule(ZZ, Partitions(4))
+                sage: p = CombinatorialFreeModule(ZZ, Partitions(4)).random_element()
+                sage: p.parent() is CombinatorialFreeModule(ZZ, Partitions(4))
                 True
 
             TESTS:

@@ -479,13 +479,11 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: C = FiniteEnumeratedSets().example()
-                sage: n = C.random_element(); n  # random
-                1
+                sage: n = C.random_element()
                 sage: n in C
                 True
 
-                sage: n = C._random_element_from_unrank(); n  # random
-                2
+                sage: n = C._random_element_from_unrank()
                 sage: n in C
                 True
 

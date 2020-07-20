@@ -299,6 +299,7 @@ from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import PosetElement
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.subset import Subsets
+from .linear_extensions import LinearExtensionsOfPoset
 
 
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
@@ -920,7 +921,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         sage: Q == P
         True
     """
-
+    _lin_ext_type = LinearExtensionsOfPoset
+    _desc = 'Finite poset'
+    
     # The parsing of the construction data (like a list of cover relations)
     #   into a :class:`DiGraph` is done in :func:`Poset`.
     @staticmethod
@@ -1370,7 +1373,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P5._repr_()
             'Finite poset containing 7 elements'
         """
-        s = "Finite poset containing %s elements" % self._hasse_diagram.order()
+        s = "%s containing %s elements" % (self._desc, self._hasse_diagram.order())
         if self._with_linear_extension:
             s += " with distinguished linear extension"
         return s
@@ -1627,8 +1630,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: list(D.linear_extensions())
             [[0, 1, 2, 3, 4], [0, 2, 1, 3, 4], [0, 2, 1, 4, 3], [0, 2, 4, 1, 3], [0, 1, 2, 4, 3]]
         """
-        from .linear_extensions import LinearExtensionsOfPoset
-        return LinearExtensionsOfPoset(self, facade = facade)
+        return self._lin_ext_type(self, facade = facade)
 
     def spectrum(self, a):
         r"""
@@ -2229,6 +2231,139 @@ class FinitePoset(UniqueRepresentation, Parent):
         - Rob Beezer (2011-05-04)
         """
         return list(self.relations_iterator())
+
+    def diamonds(self):
+        r"""
+        Returns in a tuple
+          - a list of all diamonds in the Hasse Diagram, 
+          - a Boolean checking that every w,x,y that form a ``V``, there is a unique element z 
+                which completes the diamond.
+        
+        For a diamond
+                    z
+                   / \
+                  x   y
+                   \ /
+                    w
+        the format would be (w, x, y, z).
+
+        EXAMPLES::
+
+            sage: P = Poset({0: [1,2], 1: [3], 2: [3], 3: []})
+            sage: P.diamonds()
+            ([(0, 1, 2, 3)], True)
+        
+        TESTS::
+
+            sage: P = posets.YoungDiagramPoset(Partition([3, 2, 2]))
+            sage: P.diamonds()
+            ([((0, 0), (0, 1), (1, 0), (1, 1)), ((1, 0), (1, 1), (2, 0), (2, 1))], False)
+            
+        """
+
+        diamonds, all_diamonds_completed = self._hasse_diagram.diamonds()
+        return ([tuple(map(self._vertex_to_element, d)) for d in diamonds], all_diamonds_completed)
+
+    def common_upper_covers(self, elmts):
+        r"""
+        Return the list of all common upper covers of a list of elemements
+
+        EXAMPLES::
+
+            sage: P = Poset({0: [1,2], 1: [3], 2: [3], 3: []})
+            sage: P.common_upper_covers([1, 2])
+            [3]
+        """
+        vertices = list(map(self._element_to_vertex, elmts))
+        return list(map(self._vertex_to_element, self._hasse_diagram.common_upper_covers(vertices)))
+    
+    def is_d_complete(self):
+        r"""
+        Return True if a poset is d-complete. Otherwise, return False.
+        
+        TESTS::
+            
+            sage: from sage.combinat.posets.posets import FinitePoset
+            sage: A = Poset({0: [1,2]})
+            sage: A.is_d_complete()
+            False
+                
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: B = Posets.DoubleTailedDiamond(3)
+            sage: B.is_d_complete()
+            True
+            
+            sage: C = Poset({0: [2], 1: [2], 2: [3, 4], 3: [5], 4: [5], 5: [6]})
+            sage: C.is_d_complete()
+            False
+            
+            sage: D = Poset({0: [1, 2], 1: [4], 2: [4], 3: [4]})
+            sage: D.is_d_complete()
+            False
+            
+            sage: P = Posets.YoungDiagramPoset(Partition([3, 2, 2]), dual=True)
+            sage: P.is_d_complete()
+            True
+        """
+        
+        min_diamond = {} # Maps max of double-tailed diamond to min of double-tailed diamond
+        max_diamond = {} # Maps min of double-tailed diamond to max of double-tailed diamond
+        
+        H = self._hasse_diagram
+
+        diamonds, all_diamonds_completed = H.diamonds() # Tuples of four elements that are diamonds
+        
+        if not all_diamonds_completed:
+            return False
+        
+        diamond_index = {} # Map max elmt of double tailed diamond to index of diamond
+
+        # Find all the double-tailed diamonds and map the mins and maxes. 
+        for index, d in enumerate(diamonds):
+            min_diamond[d[3]] = d[0]
+            max_diamond[d[0]] = d[3]
+            diamond_index[d[3]] = index
+
+            min_elmt = d[0]
+            max_elmt = d[3]
+            
+            if len(H.neighbors_in(max_elmt)) != 2:
+                # Top of diamond cannot cover anything but the two side elements
+                return False
+            
+            while True:
+                potential_min = H.neighbors_in(min_elmt)
+                potential_max = H.neighbors_out(max_elmt)
+                max_dk_minus = max_elmt
+                
+                # Check if any of these make a longer double tailed diamond
+                found_diamond = False
+                for mn in potential_min:
+                    if len(H.all_paths(mn, max_dk_minus)) > 2:
+                        continue
+                    for mx in potential_max:
+                        
+                        if len(H.all_paths(mn, mx)) == 2:
+                            
+                            if len(H.neighbors_in(mx)) != 1:
+                                # Max element covers something outside of double tailed diamond
+                                return False 
+                            # Success
+                            if mx in min_diamond or mn in max_diamond:
+                                # Two double tail diamonds that differ by minimal element 
+                                # or the dual
+                                return False 
+                            min_elmt = mn
+                            max_elmt = mx
+
+                            min_diamond[mx] = mn
+                            max_diamond[mn] = mx
+                            diamond_index[mx] = index
+                            found_diamond = True
+                if not found_diamond:
+                    break
+                
+        return True
 
     def intervals_poset(self):
         r"""
@@ -6258,6 +6393,22 @@ class FinitePoset(UniqueRepresentation, Parent):
         vertices = [self._element_to_vertex(_) for _ in elements]
         oi = self._hasse_diagram.order_ideal(vertices)
         return [self._vertex_to_element(_) for _ in oi]
+    
+    def order_ideal_cardinality(self, elements):
+        r"""
+        Return the cardinality of the order ideal generated by a list of elements.
+
+        `I` is an order ideal if, for any `x` in `I` and `y` such that
+        `y \le x`, then `y` is in `I`.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: P.order_ideal_cardinality([7,10])
+            10
+        """
+        vertices = list(map(self._element_to_vertex, elements))
+        return self._hasse_diagram.order_ideal_cardinality(vertices)
 
     def order_ideal_plot(self, elements):
         r"""

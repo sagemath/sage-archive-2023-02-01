@@ -86,6 +86,7 @@ from sage.misc.classcall_metaclass import ClasscallMetaclass
 import sage.categories.posets
 from sage.combinat.permutation import Permutations, Permutation, to_standard
 from sage.combinat.posets.posets import Poset, FinitePoset, FinitePosets_n
+from sage.combinat.posets.d_complete import DCompletePoset
 from sage.combinat.posets.lattices import (LatticePoset, MeetSemilattice,
                                            JoinSemilattice, FiniteLatticePoset)
 from sage.categories.finite_posets import FinitePosets
@@ -1374,13 +1375,15 @@ class Posets(metaclass=ClasscallMetaclass):
         return Poset((range(n), covers), cover_relations=True)
 
     @staticmethod
-    def YoungDiagramPoset(lam):
+    def YoungDiagramPoset(lam, dual=False):
         """
         Return the poset of cells in the Young diagram of a partition.
 
         INPUT:
 
         - ``lam`` -- a partition
+        
+        - ``dual`` -- Determines the orientation of the poset
 
         EXAMPLES::
 
@@ -1398,7 +1401,20 @@ class Posets(metaclass=ClasscallMetaclass):
             """
             return ((a[0] == b[0] - 1 and a[1] == b[1]) or
                     (a[1] == b[1] - 1 and a[0] == b[0]))
-        return MeetSemilattice((lam.cells(), cell_leq), cover_relations=True)
+        
+        def cell_geq(a, b):
+            """
+            Nested function that returns `True` if the cell `a` is
+            to the right or below
+            the cell `b` in the (English) Young diagram.
+            """
+            return ((a[0] == b[0] + 1 and a[1] == b[1]) or
+                    (a[1] == b[1] + 1 and a[0] == b[0]))
+        
+        if dual:
+            return JoinSemilattice((lam.cells(), cell_geq), cover_relations=True)
+        else:
+            return MeetSemilattice((lam.cells(), cell_leq), cover_relations=True)
 
     @staticmethod
     def YoungsLattice(n):
@@ -1531,6 +1547,38 @@ class Posets(metaclass=ClasscallMetaclass):
         D = DiGraph([[], covers], format='vertices_and_edges')
         D.relabel(lambda v: Word(v), inplace=True)
         return FiniteMeetSemilattice(hasse_diagram=D, category=FinitePosets())
+
+    @staticmethod
+    def DoubleTailedDiamond(n):
+        r"""
+        Return a double-tailed diamond of 2n + 2 elements
+
+        Input:
+
+        - ``n`` -- a positive integer
+
+        EXAMPLES::
+
+            sage: P = posets.DoubleTailedDiamond(2); P
+            Finite d-complete poset containing 6 elements
+            sage: P.cover_relations()
+            [[1, 2], [2, 3], [2, 4], [3, 5], [4, 5], [5, 6]]
+        """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {}".format(n))
+        if n <= 0:
+            raise ValueError("number of elements must be nonnegative, not {}".format(n))
+        
+        edges = [(i,i+1) for i in range(1, n)]
+        edges.extend([(n, n+1), (n, n+2), (n+1, n+3), (n+2, n+3)])
+        edges.extend([(i, i+1) for i in range(n+3, 2*n+2)])
+        p = DiGraph([list(range(1, 2*n + 3)), edges])
+
+        return DCompletePoset(p)
+
+        
 
     @staticmethod
     def PermutationPattern(n):

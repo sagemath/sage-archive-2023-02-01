@@ -318,6 +318,7 @@ from sage.combinat.partitions import number_of_partitions as bober_number_of_par
 from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_lists import IntegerListsLex
+from sage.combinat.combinat_cython import conjugate
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -1053,8 +1054,6 @@ class Partition(CombinatorialElement):
             raise ValueError("To form a skew partition p/q, q must be contained in p.")
 
         return SkewPartition([self[:], p])
-
-    __div__ = __truediv__
 
     def power(self, k):
         r"""
@@ -2466,10 +2465,11 @@ class Partition(CombinatorialElement):
             *
             *
         """
-        p = list(self)
-        if p == []:
-            return self
-        return Partition(conjugate(p))
+        if not self:
+            par = Partitions_n(0)
+            return par.element_class(par, [])
+        par = Partitions_n(sum(self))
+        return par.element_class(par, conjugate(self))
 
     def suter_diagonal_slide(self, n, exp=1):
         r"""
@@ -3044,11 +3044,9 @@ class Partition(CombinatorialElement):
             [2, 1, 0, 2, 1, 0]
         """
         p = self
-        res = [[p[i]-(j+1) for j in range(p[i])] for i in range(len(p))]
-        if flat:
-            return sum(res, [])
-        else:
-            return res
+        if not flat:
+            return [[pi - (j + 1) for j in range(pi)] for pi in p]
+        return [pi - (j + 1) for pi in p for j in range(pi)]
 
     def arm_cells(self, i, j):
         r"""
@@ -3144,11 +3142,11 @@ class Partition(CombinatorialElement):
         """
         p = self
         conj = p.conjugate()
-        res = [[conj[j]-(i+1) for j in range(p[i])] for i in range(len(p))]
-        if flat:
-            return sum(res, [])
-        else:
-            return res
+        if not flat:
+            return [[conj[j] - (i + 1) for j in range(pi)]
+                    for i, pi in enumerate(p)]
+        return [conj[j] - (i + 1) for i, pi in enumerate(p)
+                for j in range(pi)]
 
     def leg_cells(self, i, j):
         r"""
@@ -8797,31 +8795,6 @@ def number_of_partitions_length(n, k, algorithm='hybrid'):
         # Fall back to GAP
     from sage.libs.gap.libgap import libgap
     return ZZ(libgap.NrPartitions(ZZ(n), ZZ(k)))
-
-
-##########
-## Helper functions
-
-def conjugate(p):
-    """
-    Return the conjugate partition associated to the partition ``p``
-    as a list.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.partition import conjugate
-        sage: conjugate([2,2])
-        [2, 2]
-        sage: conjugate([6,3,1])
-        [3, 2, 2, 1, 1, 1]
-    """
-    l = len(p)
-    if l == 0:
-        return []
-    conj = [l] * p[-1]
-    for j in range(l - 1, 0, -1):
-        conj.extend([j] * (p[j - 1] - p[j]))
-    return conj
 
 
 ##########

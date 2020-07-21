@@ -397,8 +397,6 @@ class pRational:
             val = self._valuation - other._valuation
         return self.__class__(self.p, self.x / other.x, self.exponent - other.exponent, valuation=val)
 
-    __div__ = __truediv__
-
     def _quo_rem(self, other):
         """
         Quotient with remainder.

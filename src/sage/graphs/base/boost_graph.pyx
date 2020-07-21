@@ -212,9 +212,7 @@ cpdef edge_connectivity(g):
 
         sage: from sage.graphs.base.boost_graph import edge_connectivity
         sage: g = graphs.GridGraph([2,2])
-        sage: edge_connectivity(g)  # py2
-        (2, [((0, 1), (1, 1)), ((0, 1), (0, 0))])
-        sage: edge_connectivity(g)  # py3
+        sage: edge_connectivity(g)
         (2, [((0, 0), (0, 1)), ((0, 0), (1, 0))])
     """
     from sage.graphs.graph import Graph
@@ -541,13 +539,9 @@ cpdef bandwidth_heuristics(g, algorithm='cuthill_mckee'):
         sage: from sage.graphs.base.boost_graph import bandwidth_heuristics
         sage: bandwidth_heuristics(graphs.PathGraph(10))
         (1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-        sage: bandwidth_heuristics(graphs.GridGraph([3,3]))  # py2
-        (3, [(2, 2), (2, 1), (1, 2), (2, 0), (1, 1), (0, 2), (1, 0), (0, 1), (0, 0)])
-        sage: bandwidth_heuristics(graphs.GridGraph([3,3]), algorithm='king')  # py2
-        (3, [(2, 2), (2, 1), (1, 2), (2, 0), (1, 1), (0, 2), (1, 0), (0, 1), (0, 0)])
-        sage: bandwidth_heuristics(graphs.GridGraph([3,3]))  # py3
+        sage: bandwidth_heuristics(graphs.GridGraph([3,3]))
         (3, [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (2, 1), (1, 2), (2, 2)])
-        sage: bandwidth_heuristics(graphs.GridGraph([3,3]), algorithm='king')  # py3
+        sage: bandwidth_heuristics(graphs.GridGraph([3,3]), algorithm='king')
         (3, [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (2, 1), (1, 2), (2, 2)])
 
     TESTS:
@@ -852,7 +846,8 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
 
     - ``weight_function`` -- function (default: ``None``); a function that
       associates a weight to each edge. If ``None`` (default), the weights of
-      ``g`` are used, if available, otherwise all edges have weight 1.
+      ``g`` are used, if ``g.weighted()==True``, otherwise all edges have
+      weight 1.
 
     - ``algorithm`` -- string (default: ``None``); one of the following
       algorithms:
@@ -951,7 +946,7 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
                 if float(weight_function(e)) < 0:
                     algorithm = 'Bellman-Ford'
                     break
-        else:
+        elif g.weighted():
             for _,_,w in g.edge_iterator():
                 if float(w) < 0:
                     algorithm = 'Bellman-Ford'
@@ -1096,7 +1091,8 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
 
     - ``weight_function`` -- function (default: ``None``); a function that
       associates a weight to each edge. If ``None`` (default), the weights of
-      ``g`` are used, if available, otherwise all edges have weight 1.
+      ``g`` are used, if ``g.weighted()==True``, otherwise all edges have
+      weight 1.
       
     - ``distances`` -- boolean (default: ``True``); whether to return the
       dictionary of shortest distances
@@ -1251,7 +1247,8 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
 
     - ``weight_function`` -- function (default: ``None``); a function that
       associates a weight to each edge. If ``None`` (default), the weights of
-      ``g`` are used, if available, otherwise all edges have weight 1.
+      ``g`` are used, if ``g.weighted()==True``, otherwise all edges have
+      weight 1.
       
     - ``distances`` -- boolean (default: ``True``); whether to return
       the dictionary of shortest distances
@@ -1403,7 +1400,8 @@ cpdef johnson_closeness_centrality(g, weight_function=None):
 
     - ``weight_function`` -- function (default: ``None``); a function that
       associates a weight to each edge. If ``None`` (default), the weights of
-      ``g`` are used, if available, otherwise all edges have weight 1.
+      ``g`` are used, if ``g.weighted()==True``, otherwise all edges have
+      weight 1.
 
     OUTPUT:
 
@@ -1510,7 +1508,8 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
     - ``weight_function`` -- function (default: ``None``); a function that takes
       as input an edge ``(u, v, l)`` and outputs its weight. If not ``None``,
       ``by_weight`` is automatically set to ``True``. If ``None`` and
-      ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
+      ``by_weight`` is ``True``, the weights of ``g_sage`` are used, if
+      ``g_sage.weighted()==True``, otherwise all edges have weight 1.
 
     - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges in
       the graph are weighted, otherwise all edges have weight 1

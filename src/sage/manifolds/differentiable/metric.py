@@ -211,6 +211,7 @@ class PseudoRiemannianMetric(TensorField):
 
     The volume form (Levi-Civita tensor) associated with `g`::
 
+        sage: M.set_orientation([c_xy, c_uv])
         sage: eps = g.volume_form() ; eps
         2-form eps_g on the 2-dimensional differentiable manifold S^2
         sage: eps.display(eU)
@@ -1620,7 +1621,11 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Volume form (Levi-Civita tensor) `\epsilon` associated with the metric.
 
-        This assumes that the manifold is orientable.
+        .. NOTE::
+
+            This assumes that the manifold admits an orientation, see
+            :meth:`~sage.manifolds.manifold.TopologicalManifold.has_orientation`
+            for details.
 
         The volume form `\epsilon` is a `n`-form (`n` being the manifold's
         dimension) such that for any vector basis `(e_i)` that is orthonormal
@@ -1718,10 +1723,13 @@ class PseudoRiemannianMetric(TensorField):
             True
 
         """
+        dom = self.domain()
+        orient = dom.get_orientation()
+        if orient is None:
+            raise ValueError('{} must admit an orientation.'.format(dom))
         if self._vol_forms == []:
             # a new computation is necessary
             manif = self._ambient_domain
-            dom = self._domain
             ndim = manif.dimension()
             # The result is constructed on the vector field module,
             # so that dest_map is taken automatically into account:
@@ -1729,7 +1737,8 @@ class PseudoRiemannianMetric(TensorField):
                                 latex_name=r'\epsilon_{'+self._latex_name+r'}')
             si = manif.start_index()
             ind = tuple(range(si, si+ndim))
-            for frame in dom._top_frames:
+            for c in orient:
+                frame = c.frame()
                 if frame.destination_map() is frame.domain().identity_map():
                     eps.add_comp(frame)[[ind]] = self.sqrt_abs_det(frame)
             self._vol_forms.append(eps)  # Levi-Civita tensor constructed
@@ -1747,6 +1756,12 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Compute the Hodge dual of a differential form with respect to the
         metric.
+
+        .. NOTE::
+
+            This assumes that the manifold admits an orientation, see
+            :meth:`~sage.manifolds.manifold.TopologicalManifold.has_orientation`
+            for details.
 
         If the differential form is a `p`-form `A`, its *Hodge dual* with
         respect to the metric `g` is the

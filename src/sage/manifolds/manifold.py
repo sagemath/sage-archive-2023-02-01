@@ -573,6 +573,7 @@ class TopologicalManifold(ManifoldSubset):
         self._top_charts = []  # list of charts defined on subsets of self
                         # that are not subcharts of charts on larger subsets
         self._def_chart = None  # default chart
+        self._orientation = None # set a priori no orientation
         self._charts_by_coord = {} # dictionary of charts whose domain is self
                                    # (key: string formed by the coordinate
                                    #  symbols separated by a white space)
@@ -866,7 +867,8 @@ class TopologicalManifold(ManifoldSubset):
 
         """
         resu = TopologicalManifold(self._dim, name, self._field,
-                                   self._structure, base_manifold=self._manifold,
+                                   self._structure,
+                                   base_manifold=self._manifold,
                                    latex_name=latex_name,
                                    start_index=self._sindex)
         resu._calculus_method = self._calculus_method
@@ -885,6 +887,9 @@ class TopologicalManifold(ManifoldSubset):
             for chart2 in coord_def:
                 if chart2 != chart1 and (chart1, chart2) in self._coord_changes:
                     self._coord_changes[(chart1, chart2)].restrict(resu)
+        # Take over possible orientation:
+        if self._orientation is not None:
+            resu._orientation = [c.restrict(resu) for c in self._orientation]
         return resu
 
     def get_chart(self, coordinates, domain=None):
@@ -1556,6 +1561,58 @@ class TopologicalManifold(ManifoldSubset):
             True
 
         """
+        return True
+
+    def set_orientation(self, orientation):
+        r"""
+        Set the default orientation of ``self``.
+
+        """
+        chart_type = self._structure.chart
+        if isinstance(orientation, chart_type):
+            orientation = [orientation]
+        elif isinstance(orientation, (tuple, list)):
+            orientation = list(orientation)
+        else:
+            raise TypeError("orientation must be a chart or a list/tuple of "
+                            "charts")
+        dom_union = None
+        for c in orientation:
+            if not isinstance(c, chart_type):
+                raise ValueError("orientation must consist of charts")
+            dom = c.domain()
+            if not dom.is_subset(self):
+                raise ValueError("{} must be defined ".format(c) +
+                                 "on a subset of {}".format(self))
+            if dom_union is not None:
+                dom_union = dom.union(dom_union)
+            else:
+                dom_union = dom
+        if dom_union != self:
+            raise ValueError("chart domains must cover {}".format(self))
+        self._orientation = orientation
+
+    def get_orientation(self):
+        r"""
+        Get the orientation of ``self`` if available.
+
+        """
+        if self._orientation is not None:
+            return list(self._orientation)
+        else:
+            # Trivial case:
+            for c in self._top_charts:
+                if c.domain() == self:
+                    return [c]
+            return None
+
+    def has_orientation(self):
+        r"""
+        Check whether ``self`` admits an obvious or by user set orientation.
+
+        """
+        if self.get_orientation() is None:
+            return False
         return True
 
     def vector_bundle(self, rank, name, field='real', latex_name=None):

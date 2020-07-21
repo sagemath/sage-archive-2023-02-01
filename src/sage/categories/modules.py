@@ -569,6 +569,10 @@ class Modules(Category_module):
                 Element -e_0 of the 2-dimensional vector space over the Rational Field
 
             """
+            # Make sure that we only create a module morphism, even if
+            # domain and codomain have more structure
+            if category is None:
+                category = Modules(self.base_ring())
             return SetMorphism(Hom(self, codomain, category), function)
 
     class ElementMethods:

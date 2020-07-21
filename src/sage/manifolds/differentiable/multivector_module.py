@@ -36,7 +36,7 @@ REFERENCES:
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.rings.integer import Integer
+from sage.symbolic.ring import ZZ
 from sage.categories.modules import Modules
 from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
 from sage.manifolds.differentiable.multivectorfield import (
@@ -301,9 +301,9 @@ class MultivectorModule(UniqueRepresentation, Parent):
             True
 
         """
-        if isinstance(comp, (int, Integer)) and comp == 0:
+        if comp in ZZ and comp == 0:
             return self.zero()
-        if isinstance(comp, (MultivectorField, MultivectorFieldParal)):
+        elif isinstance(comp, (MultivectorField, MultivectorFieldParal)):
             # coercion by domain restriction
             if (self._degree == comp._tensor_type[0]
                    and self._domain.is_subset(comp._domain)
@@ -316,8 +316,12 @@ class MultivectorModule(UniqueRepresentation, Parent):
         # standard construction
         resu = self.element_class(self._vmodule, self._degree,
                                   name=name, latex_name=latex_name)
-        if comp:
-            resu.set_comp(frame)[:] = comp
+        if comp != []:
+            try:
+                resu.set_comp(frame)[:] = comp
+            except AttributeError:
+                raise TypeError("cannot convert the {} ".format(comp) +
+                                "to an element of {}".format(self))
         return resu
 
     def _an_element_(self):

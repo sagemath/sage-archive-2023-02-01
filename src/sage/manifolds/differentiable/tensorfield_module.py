@@ -41,7 +41,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
-from sage.rings.integer import Integer
+from sage.symbolic.ring import ZZ
 from sage.tensor.modules.tensor_free_module import TensorFreeModule
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
@@ -310,7 +310,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             True
 
         """
-        if isinstance(comp, (int, Integer)) and comp == 0:
+        if comp in ZZ and comp == 0:
             return self.zero()
         if isinstance(comp, DiffForm):
             # coercion of a p-form to a type-(0,p) tensor field:
@@ -378,7 +378,11 @@ class TensorFieldModule(UniqueRepresentation, Parent):
                                   name=name, latex_name=latex_name,
                                   sym=sym, antisym=antisym)
         if comp != []:
-            resu.set_comp(frame)[:] = comp
+            try:
+                resu.set_comp(frame)[:] = comp
+            except AttributeError:
+                raise TypeError("cannot convert the {} ".format(comp) +
+                                "to an element of {}".format(self))
         return resu
 
     def _an_element_(self):
@@ -793,9 +797,9 @@ class TensorFieldFreeModule(TensorFreeModule):
             True
 
         """
-        if isinstance(comp, (int, Integer)) and comp == 0:
+        if comp in ZZ and comp == 0:
             return self.zero()
-        if isinstance(comp, DiffFormParal):
+        elif isinstance(comp, DiffFormParal):
             # coercion of a p-form to a type-(0,p) tensor field:
             form = comp # for readability
             p = form.degree()
@@ -814,7 +818,7 @@ class TensorFieldFreeModule(TensorFreeModule):
             for frame, cp in form._components.items():
                 resu._components[frame] = cp.copy()
             return resu
-        if isinstance(comp, MultivectorFieldParal):
+        elif isinstance(comp, MultivectorFieldParal):
             # coercion of a p-vector field to a type-(p,0) tensor field:
             pvect = comp # for readability
             p = pvect.degree()
@@ -833,7 +837,7 @@ class TensorFieldFreeModule(TensorFreeModule):
             for frame, cp in pvect._components.items():
                 resu._components[frame] = cp.copy()
             return resu
-        if isinstance(comp, AutomorphismFieldParal):
+        elif isinstance(comp, AutomorphismFieldParal):
             # coercion of an automorphism to a type-(1,1) tensor:
             autom = comp # for readability
             if (self._tensor_type != (1,1) or
@@ -846,7 +850,7 @@ class TensorFieldFreeModule(TensorFreeModule):
             for basis, comp in autom._components.items():
                 resu._components[basis] = comp.copy()
             return resu
-        if isinstance(comp, TensorField):
+        elif isinstance(comp, TensorField):
             # coercion by domain restriction
             if (self._tensor_type == comp._tensor_type
                 and self._domain.is_subset(comp._domain)
@@ -861,7 +865,12 @@ class TensorFieldFreeModule(TensorFreeModule):
                                   name=name, latex_name=latex_name,
                                   sym=sym, antisym=antisym)
         if comp != []:
-            resu.set_comp(frame)[:] = comp
+            try:
+                resu.set_comp(frame)[:] = comp
+            except AttributeError:
+                raise NotImplementedError("cannot convert "
+                                          "the {} ".format(comp) +
+                                          "to an element of {}".format(self))
         return resu
 
     # Rem: _an_element_ is declared in the superclass TensorFreeModule

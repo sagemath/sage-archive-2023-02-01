@@ -42,7 +42,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
 from sage.misc.cachefunc import cached_method
-from sage.rings.integer import Integer
+from sage.symbolic.ring import ZZ
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.manifolds.differentiable.vectorfield import (VectorField,
                                                        VectorFieldParal)
@@ -268,9 +268,9 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             True
 
         """
-        if isinstance(comp, (int, Integer)) and comp == 0:
+        if comp in ZZ and comp == 0:
             return self.zero()
-        if isinstance(comp, VectorField):
+        elif isinstance(comp, VectorField):
             if (self._domain.is_subset(comp._domain)
                    and self._ambient_domain.is_subset(comp._ambient_domain)):
                 return comp.restrict(self._domain)
@@ -279,7 +279,11 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                                  "to a vector field in {}".format(self))
         resu = self.element_class(self, name=name, latex_name=latex_name)
         if comp != []:
-            resu.set_comp(frame)[:] = comp
+            try:
+                resu.set_comp(frame)[:] = comp
+            except AttributeError:
+                raise TypeError("cannot convert the {} ".format(comp) +
+                                "to an element of {}".format(self))
         return resu
 
     def _an_element_(self):

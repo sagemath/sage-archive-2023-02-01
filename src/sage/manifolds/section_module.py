@@ -32,7 +32,7 @@ from sage.rings.infinity import infinity
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
-from sage.rings.integer import Integer
+from sage.symbolic.ring import ZZ
 from sage.categories.modules import Modules
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.manifolds.section import Section, TrivialSection
@@ -222,9 +222,9 @@ class SectionModule(UniqueRepresentation, Parent):
             True
 
         """
-        if isinstance(comp, (int, Integer)) and comp == 0:
+        if comp in ZZ and comp == 0:
             return self.zero()
-        if isinstance(comp, Section):
+        elif isinstance(comp, Section):
             if self._domain.is_subset(comp._domain):
                 return comp.restrict(self._domain)
             else:
@@ -232,7 +232,11 @@ class SectionModule(UniqueRepresentation, Parent):
                                  "to a local section in {}".format(self))
         resu = self.element_class(self, name=name, latex_name=latex_name)
         if comp != []:
-            resu.set_comp(frame)[:] = comp
+            try:
+                resu.set_comp(frame)[:] = comp
+            except AttributeError:
+                raise TypeError("cannot convert the {} ".format(comp) +
+                                "to an element of {}".format(self))
         return resu
 
     def _an_element_(self):

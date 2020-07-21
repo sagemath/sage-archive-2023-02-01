@@ -334,7 +334,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
         """
         if comp in ZZ and comp == 0:
             return self.zero()
-        if isinstance(comp, (DiffForm, DiffFormParal)):
+        elif isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction
             if (self._degree == comp._tensor_type[1]
                    and self._domain.is_subset(comp._domain)
@@ -343,7 +343,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
             else:
                 raise TypeError("cannot convert the {} ".format(comp) +
                                 "to an element of {}".format(self))
-        if isinstance(comp, TensorField):
+        elif isinstance(comp, TensorField):
             # coercion of a tensor of type (0,1) to a linear form
             tensor = comp # for readability
             if (tensor.tensor_type() == (0,1) and self._degree == 1
@@ -356,7 +356,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
             else:
                 raise TypeError("cannot convert the {} ".format(tensor) +
                                 "to an element of {}".format(self))
-        if isinstance(comp, ScalarField):
+        elif isinstance(comp, ScalarField):
             # since the degree of self is >= 1, we cannot coerce scalar fields:
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
@@ -364,7 +364,11 @@ class DiffFormModule(UniqueRepresentation, Parent):
         resu = self.element_class(self._vmodule, self._degree, name=name,
                                   latex_name=latex_name)
         if comp != []:
-            resu.set_comp(frame)[:] = comp
+            try:
+                resu.set_comp(frame)[:] = comp
+            except AttributeError:
+                raise TypeError("cannot convert the {} ".format(comp) +
+                                "to an element of {}".format(self))
         return resu
 
     def _an_element_(self):

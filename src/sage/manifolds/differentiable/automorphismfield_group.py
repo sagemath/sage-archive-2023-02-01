@@ -210,6 +210,9 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         """
         if comp == 1:
             return self.one()
+        if not isinstance(comp, (list, tuple, slice)):
+            raise TypeError("cannot convert the {} ".format(comp) +
+                            "to an element of {}".format(self))
         # standard construction
         resu = self.element_class(self._vmodule, name=name,
                                   latex_name=latex_name)

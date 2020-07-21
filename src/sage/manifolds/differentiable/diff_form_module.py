@@ -356,19 +356,14 @@ class DiffFormModule(UniqueRepresentation, Parent):
             else:
                 raise TypeError("cannot convert the {} ".format(tensor) +
                                 "to an element of {}".format(self))
-        elif isinstance(comp, ScalarField):
-            # since the degree of self is >= 1, we cannot coerce scalar fields:
+        elif not isinstance(comp, (list, tuple, slice)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction
         resu = self.element_class(self._vmodule, self._degree, name=name,
                                   latex_name=latex_name)
         if comp != []:
-            try:
-                resu.set_comp(frame)[:] = comp
-            except AttributeError:
-                raise TypeError("cannot convert the {} ".format(comp) +
-                                "to an element of {}".format(self))
+            resu.set_comp(frame)[:] = comp
         return resu
 
     def _an_element_(self):
@@ -808,7 +803,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
         """
         if comp in ZZ and comp == 0:
             return self.zero()
-        if isinstance(comp, (DiffForm, DiffFormParal)):
+        elif isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction
             if (self._degree == comp._tensor_type[1]
                     and self._domain.is_subset(comp._domain)
@@ -817,7 +812,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
             else:
                 raise TypeError("cannot convert the {} ".format(comp) +
                                 "to a differential form in {}".format(self))
-        if isinstance(comp, TensorFieldParal):
+        elif isinstance(comp, TensorFieldParal):
             # coercion of a tensor of type (0,1) to a linear form
             tensor = comp # for readability
             if (tensor.tensor_type() == (0,1) and self._degree == 1
@@ -830,10 +825,10 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
             else:
                 raise TypeError("cannot convert the {} ".format(tensor) +
                                 "to an element of {}".format(self))
-        if isinstance(comp, ScalarField):
-            # since the degree of self is >= 1, we cannot coerce scalar fields:
+        elif not isinstance(comp, (list, tuple, slice)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
+        # standard construction
         resu = self.element_class(self._fmodule, self._degree, name=name,
                                   latex_name=latex_name)
         if comp != []:

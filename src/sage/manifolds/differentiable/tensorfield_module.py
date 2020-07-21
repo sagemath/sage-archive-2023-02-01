@@ -312,7 +312,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         """
         if comp in ZZ and comp == 0:
             return self.zero()
-        if isinstance(comp, DiffForm):
+        elif isinstance(comp, DiffForm):
             # coercion of a p-form to a type-(0,p) tensor field:
             form = comp # for readability
             p = form.degree()
@@ -331,7 +331,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             for dom, rst in form._restrictions.items():
                 resu._restrictions[dom] = dom.tensor_field_module((0,p))(rst)
             return resu
-        if isinstance(comp, MultivectorField):
+        elif isinstance(comp, MultivectorField):
             # coercion of a p-vector field to a type-(p,0) tensor:
             pvect = comp # for readability
             p = pvect.degree()
@@ -350,7 +350,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             for dom, rst in pvect._restrictions.items():
                 resu._restrictions[dom] = dom.tensor_field_module((p,0))(rst)
             return resu
-        if isinstance(comp, AutomorphismField):
+        elif isinstance(comp, AutomorphismField):
             # coercion of an automorphism to a type-(1,1) tensor:
             autom = comp # for readability
             if (self._tensor_type != (1,1) or
@@ -363,7 +363,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             for dom, rest in autom._restrictions.items():
                 resu._restrictions[dom] = dom.tensor_field_module((1,1))(rest)
             return resu
-        if isinstance(comp, TensorField):
+        elif isinstance(comp, TensorField):
             # coercion by domain restriction
             if (self._tensor_type == comp._tensor_type
                 and self._domain.is_subset(comp._domain)
@@ -372,17 +372,15 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             else:
                raise TypeError("cannot convert the {}".format(comp) +
                                " to an element of {}".format(self))
-
+        elif not isinstance(comp, (list, tuple, slice)):
+            raise TypeError("cannot convert the {} ".format(comp) +
+                            "to an element of {}".format(self))
         # standard construction
         resu = self.element_class(self._vmodule, self._tensor_type,
                                   name=name, latex_name=latex_name,
                                   sym=sym, antisym=antisym)
         if comp != []:
-            try:
-                resu.set_comp(frame)[:] = comp
-            except AttributeError:
-                raise TypeError("cannot convert the {} ".format(comp) +
-                                "to an element of {}".format(self))
+            resu.set_comp(frame)[:] = comp
         return resu
 
     def _an_element_(self):
@@ -860,17 +858,15 @@ class TensorFieldFreeModule(TensorFreeModule):
             else:
                 raise TypeError("cannot convert the {}".format(comp) +
                                 " to an element of {}".format(self))
+        elif not isinstance(comp, (list, tuple, slice)):
+            raise TypeError("cannot convert the {} ".format(comp) +
+                            "to an element of {}".format(self))
         # Standard construction
         resu = self.element_class(self._fmodule, self._tensor_type,
                                   name=name, latex_name=latex_name,
                                   sym=sym, antisym=antisym)
         if comp != []:
-            try:
-                resu.set_comp(frame)[:] = comp
-            except AttributeError:
-                raise NotImplementedError("cannot convert "
-                                          "the {} ".format(comp) +
-                                          "to an element of {}".format(self))
+            resu.set_comp(frame)[:] = comp
         return resu
 
     # Rem: _an_element_ is declared in the superclass TensorFreeModule

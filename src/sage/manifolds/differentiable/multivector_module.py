@@ -313,15 +313,14 @@ class MultivectorModule(UniqueRepresentation, Parent):
             else:
                 raise TypeError("cannot convert the {} ".format(comp) +
                                 "to an element of {}".format(self))
+        elif not isinstance(comp, (list, tuple, slice)):
+            raise TypeError("cannot convert the {} ".format(comp) +
+                            "to an element of {}".format(self))
         # standard construction
         resu = self.element_class(self._vmodule, self._degree,
                                   name=name, latex_name=latex_name)
         if comp != []:
-            try:
-                resu.set_comp(frame)[:] = comp
-            except AttributeError:
-                raise TypeError("cannot convert the {} ".format(comp) +
-                                "to an element of {}".format(self))
+            resu.set_comp(frame)[:] = comp
         return resu
 
     def _an_element_(self):
@@ -726,7 +725,7 @@ class MultivectorFreeModule(ExtPowerFreeModule):
             True
 
         """
-        if isinstance(comp, (int, Integer)) and comp == 0:
+        if comp in ZZ and comp == 0:
             return self.zero()
         if isinstance(comp, (MultivectorField, MultivectorFieldParal)):
             # coercion by domain restriction
@@ -738,6 +737,9 @@ class MultivectorFreeModule(ExtPowerFreeModule):
             else:
                 raise TypeError("cannot convert the {} ".format(comp) +
                                 "to a multivector field in {}".format(self))
+        elif not isinstance(comp, (list, tuple, slice)):
+            raise TypeError("cannot convert the {} ".format(comp) +
+                            "to an element of {}".format(self))
         # standard construction
         resu = self.element_class(self._fmodule, self._degree, name=name,
                                   latex_name=latex_name)

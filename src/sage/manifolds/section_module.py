@@ -230,13 +230,13 @@ class SectionModule(UniqueRepresentation, Parent):
             else:
                 raise ValueError("cannot convert the {} ".format(comp) +
                                  "to a local section in {}".format(self))
+        elif not isinstance(comp, (list, tuple, slice)):
+            raise TypeError("cannot convert the {} ".format(comp) +
+                            "to an element of {}".format(self))
+        # standard construction
         resu = self.element_class(self, name=name, latex_name=latex_name)
         if comp != []:
-            try:
-                resu.set_comp(frame)[:] = comp
-            except AttributeError:
-                raise TypeError("cannot convert the {} ".format(comp) +
-                                "to an element of {}".format(self))
+            resu.set_comp(frame)[:] = comp
         return resu
 
     def _an_element_(self):
@@ -641,7 +641,7 @@ class SectionFreeModule(FiniteRankFreeModule):
             True
 
         """
-        if isinstance(comp, (int, Integer)) and comp == 0:
+        if comp in ZZ and comp == 0:
             return self.zero()
         if isinstance(comp, Section):
             if self._domain.is_subset(comp._domain):
@@ -649,6 +649,10 @@ class SectionFreeModule(FiniteRankFreeModule):
             else:
                 raise ValueError("cannot convert the {}".format(comp) +
                                  "to a local section in {}".format(self))
+        elif not isinstance(comp, (list, tuple, slice)):
+            raise TypeError("cannot convert the {} ".format(comp) +
+                            "to an element of {}".format(self))
+        # standard construction
         resu = self.element_class(self, name=name, latex_name=latex_name)
         if comp != []:
             resu.set_comp(basis)[:] = comp

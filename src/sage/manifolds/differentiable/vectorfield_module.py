@@ -277,13 +277,13 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             else:
                 raise ValueError("cannot convert the {} ".format(comp) +
                                  "to a vector field in {}".format(self))
+        elif not isinstance(comp, (list, tuple, slice)):
+            raise TypeError("cannot convert the {} ".format(comp) +
+                            "to an element of {}".format(self))
+        # standard construction
         resu = self.element_class(self, name=name, latex_name=latex_name)
         if comp != []:
-            try:
-                resu.set_comp(frame)[:] = comp
-            except AttributeError:
-                raise TypeError("cannot convert the {} ".format(comp) +
-                                "to an element of {}".format(self))
+            resu.set_comp(frame)[:] = comp
         return resu
 
     def _an_element_(self):
@@ -773,7 +773,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                 return self.automorphism(name=name,
                                          latex_name=latex_name)
         elif tensor_type[0] == 0 and tensor_type[1] > 1 and antisym:
-            if isinstance(antisym[0], (int, Integer)):
+            if antisym[0] in ZZ:
                 # a single antisymmetry is provided as a tuple or a
                 # range object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
@@ -785,7 +785,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                 return self.alternating_form(tensor_type[1], name=name,
                                              latex_name=latex_name)
         elif tensor_type[0] > 1 and tensor_type[1] == 0 and antisym:
-            if isinstance(antisym[0], (int, Integer)):
+            if antisym[0] in ZZ:
                 # a single antisymmetry is provided as a tuple or a
                 # range object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
@@ -1090,7 +1090,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         ndim = self._ambient_domain.dimension()
         try:
             for elt in signature:
-                if (elt<0) or (not isinstance(elt, (int, Integer))):
+                if (elt<0) or elt not in ZZ:
                     raise ValueError("{} must be a positive integer".format(elt))
                 if elt > ndim:
                     raise ValueError("{} must be less than {}".format(elt,ndim))
@@ -1106,7 +1106,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             pass
         if signature is None:
             signature = (ndim,0)
-        if isinstance(signature, (Integer, int)):
+        if signature in ZZ:
             if (signature+ndim)%2 == 1:
                 if ndim%2 == 0:
                     raise ValueError("the metric signature must be even")
@@ -1471,7 +1471,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             True
 
         """
-        if isinstance(comp, (int, Integer)) and comp == 0:
+        if comp in ZZ and comp == 0:
             return self.zero()
         if isinstance(comp, VectorField):
             if (self._domain.is_subset(comp._domain)
@@ -1480,6 +1480,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             else:
                 raise ValueError("cannot convert the {}".format(comp) +
                                  "to a vector field in {}".format(self))
+        elif not isinstance(comp, (list, tuple, slice)):
+            raise TypeError("cannot convert the {} ".format(comp) +
+                            "to an element of {}".format(self))
+        # standard construction
         resu = self.element_class(self, name=name, latex_name=latex_name)
         if comp != []:
             resu.set_comp(basis=basis)[:] = comp
@@ -2008,7 +2012,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                           (AutomorphismField, AutomorphismFieldParal)):
                 return self.automorphism(name=name, latex_name=latex_name)
         elif tensor_type[0] == 0 and tensor_type[1] > 1 and antisym:
-            if isinstance(antisym[0], (int, Integer)):
+            if antisym[0] in ZZ:
                 # a single antisymmetry is provided as a tuple or a
                 # range object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
@@ -2020,7 +2024,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                 return self.alternating_form(tensor_type[1], name=name,
                                              latex_name=latex_name)
         elif tensor_type[0] > 1 and tensor_type[1] == 0 and antisym:
-            if isinstance(antisym[0], (int, Integer)):
+            if antisym[0] in ZZ:
                 # a single antisymmetry is provided as a tuple or a
                 # range object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
@@ -2227,7 +2231,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         ndim = self._ambient_domain.dimension()
         try:
             for elt in signature:
-                if (elt<0) or (not isinstance(elt, (int, Integer))):
+                if (elt<0) or elt not in ZZ:
                     raise ValueError("{} must be a positive integer".format(elt))
             sign = signature[0]+signature[1]+signature[2]
             if sign!=ndim:
@@ -2241,7 +2245,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             pass
         if signature is None:
             signature = (ndim,0)
-        if isinstance(signature, (Integer, int)):
+        if signature in ZZ:
             if (signature+ndim)%2 == 1:
                 if ndim%2 == 0:
                     raise ValueError("the metric signature must be even")

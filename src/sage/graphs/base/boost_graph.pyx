@@ -1929,3 +1929,126 @@ cpdef radius_DHV(g, weight_function=None, check_weight=True):
         return +Infinity
 
     return UB
+
+cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, algorithm=None):
+    r"""
+    """
+    import sys
+    from sage.graphs.generic_graph import GenericGraph
+
+    if not isinstance(g, GenericGraph):
+        raise TypeError("the input must be a Sage graph")
+
+    if not isinstance(vertex_list, list):
+        vertex_list = [vertex_list]
+
+    for v in vertex_list:
+        if v not in g:
+            raise ValueError("the starting vertex " + str(v) + " is not in " +
+                             "the graph")
+
+    if vertex_list == None:
+        vertex_list = list(g)
+
+    # These variables are automatically deleted when the function terminates.
+    cdef v_index vi, vert
+    cdef dict int_to_v = dict(enumerate(g))
+    cdef dict v_to_int = {vv: vi for vi, vv in enumerate(g)}
+    cdef result_distances result
+    cdef BoostVecWeightedDiGraphU g_boost_dir
+    cdef BoostVecWeightedGraph g_boost_und
+
+    if g.is_directed():
+        boost_weighted_graph_from_sage_graph(&g_boost_dir, g, v_to_int, weight_function)
+    else:
+        boost_weighted_graph_from_sage_graph(&g_boost_und, g, v_to_int, weight_function)
+
+    if algorithm is None:
+        # Check if there are edges with negative weights
+        if weight_function is not None:
+            for e in g.edge_iterator():
+                if float(weight_function(e)) < 0:
+                    algorithm = 'Bellman-Ford'
+                    break
+        elif g.weighted():
+            for _,_,w in g.edge_iterator():
+                if float(w) < 0:
+                    algorithm = 'Bellman-Ford'
+                    break
+
+        if algorithm is None:
+            algorithm = 'Dijkstra'
+
+    try:
+        if weight_function is not None:
+            correct_type = type(weight_function(next(g.edge_iterator())))
+        elif g.weighted():
+            correct_type = type(next(g.edge_iterator())[2])
+        else:
+            correct_type = int
+    except StopIteration:
+        correct_type = int
+
+    # Needed for rational curves.
+    from sage.rings.real_mpfr import RealNumber, RR
+    if correct_type == RealNumber:
+        correct_type = RR
+
+    distances = {}
+    predecessors = {}
+
+    for v in vertex_list:
+        vi = v_to_int[v]
+        if g.is_directed():
+
+            if algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']:
+                sig_on()
+                result = g_boost_dir.bellman_ford_shortest_paths(vi)
+                sig_off()
+
+            elif algorithm in ['Dijkstra', 'Dijkstra_Boost']:
+                try:
+                    sig_on()
+                    result = g_boost_dir.dijkstra_shortest_paths(vi)
+                    sig_off()
+                    if not result.distances.size():
+                        raise RuntimeError("Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead")
+                except RuntimeError:
+                    raise RuntimeError("Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead")
+            else:
+                raise ValueError(f"unknown algorithm {algorithm!r}")
+        else:
+            if algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']:
+                sig_on()
+                result = g_boost_und.bellman_ford_shortest_paths(vi)
+                sig_off()
+
+            elif algorithm in ['Dijkstra', 'Dijkstra_Boost']:
+                try:
+                    sig_on()
+                    result = g_boost_und.dijkstra_shortest_paths(vi)
+                    sig_off()
+                    if not result.distances.size():
+                        raise RuntimeError("Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead")
+                except RuntimeError:
+                    raise RuntimeError("Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead")
+            else:
+                raise ValueError(f"unknown algorithm {algorithm!r}")
+
+        dist_v = {}
+        pred_v = {}
+
+        for vert in range(g.num_verts()):
+            if result.distances[vert] != sys.float_info.max:
+                w = int_to_v[vert]
+                dist_v[w] = correct_type(result.distances[vert])
+                pred_v[w] = int_to_v[result.predecessors[vert]] if result.predecessors[vert] != vert else None
+
+        distances[v] = dist_v
+        predecessors[v] = pred_v
+
+    if len(vertex_list) == 1:
+        v = vertex_list[0]
+        return (distances[v], predecessors[v])
+
+    return (distances, predecessors)

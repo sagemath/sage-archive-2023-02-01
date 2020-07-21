@@ -2553,7 +2553,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             Category of finite dimensional vector spaces with basis over
              Rational Field
             sage: phi_e(e[1] + 2 * e[2])
-            B[1] + 2*B[2]
+            e[1] + 2*e[2]
 
         Providing a codomain::
 
@@ -2584,7 +2584,8 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         if codomain is None:
             from sage.combinat.free_module import CombinatorialFreeModule
 
-            codomain = CombinatorialFreeModule(base_ring, list(self.irange()))
+            codomain = CombinatorialFreeModule(base_ring, list(self.irange()),
+                                               prefix=basis._symbol)
         else:
             if codomain.rank() != self.rank():
                 raise ValueError("domain and codomain must have the same rank")

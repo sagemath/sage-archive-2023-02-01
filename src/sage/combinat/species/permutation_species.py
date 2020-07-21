@@ -51,9 +51,9 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
 
             sage: p = PermutationGroupElement((2,3,4))
             sage: P = species.PermutationSpecies()
-            sage: a = P.structures(["a", "b", "c", "d"]).random_element(); a  # random
+            sage: a = P.structures(["a", "b", "c", "d"])[2]; a
             ['a', 'c', 'b', 'd']
-            sage: a.permutation_group_element()  # random
+            sage: a.permutation_group_element()
             (2,3)
         """
         return Permutation(self._list).to_permutation_group_element()
@@ -65,10 +65,9 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: p = PermutationGroupElement((2,3,4))
             sage: P = species.PermutationSpecies()
-            sage: a = P.structures(["a", "b", "c", "d"]).random_element(); a
+            sage: a = P.structures(["a", "b", "c", "d"])[2]; a
             ['a', 'c', 'b', 'd']
             sage: a.transport(p)
             ['a', 'd', 'c', 'b']
@@ -87,7 +86,7 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
             sage: set_random_seed(0)
             sage: p = PermutationGroupElement((2,3,4))
             sage: P = species.PermutationSpecies()
-            sage: a = P.structures(["a", "b", "c", "d"]).random_element(); a
+            sage: a = P.structures(["a", "b", "c", "d"])[2]; a
             ['a', 'c', 'b', 'd']
             sage: a.automorphism_group()
             Permutation Group with generators [(2,3), (1,4)]

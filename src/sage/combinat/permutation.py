@@ -5200,9 +5200,7 @@ class Permutations(UniqueRepresentation, Parent):
         Standard permutations of 5 avoiding [[3, 4, 1, 2], [4, 2, 3, 1]]
         sage: p.cardinality()
         88
-        sage: s = p.random_element(); s  # random
-        [5, 1, 2, 4, 3]
-        sage: s in p
+        sage: p.random_element().parent() is p
         True
     """
     @staticmethod
@@ -5509,8 +5507,7 @@ class Permutations_nk(Permutations):
         """
         EXAMPLES::
 
-            sage: s = Permutations(3,2).random_element(); s  # random
-            [1, 2]
+            sage: s = Permutations(3,2).random_element()
             sage: s in Permutations(3,2)
             True
         """
@@ -6027,9 +6024,8 @@ class Permutations_set(Permutations):
         """
         EXAMPLES::
 
-            sage: s = Permutations([1,2,3]).random_element(); s  # random
-            [1, 2, 3]
-            sage: s in Permutations([1,2,3])
+            sage: s = Permutations([1,2,3]).random_element()
+            sage: s.parent() is Permutations([1,2,3])
             True
         """
         return sample(self._set, len(self._set))
@@ -6201,8 +6197,7 @@ class Permutations_setk(Permutations_set):
         """
         EXAMPLES::
 
-            sage: s = Permutations([1,2,4], 2).random_element(); s  # random
-            [1, 2]
+            sage: s = Permutations([1,2,4], 2).random_element()
             sage: s in Permutations([1,2,4], 2)
             True
         """

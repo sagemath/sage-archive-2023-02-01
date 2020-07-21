@@ -434,8 +434,7 @@ class Derangements(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: D = Derangements(4)
-            sage: d = D._rand_der(); d  # random
-            [2, 3, 4, 1]
+            sage: d = D._rand_der()
             sage: d in D
             True
         """

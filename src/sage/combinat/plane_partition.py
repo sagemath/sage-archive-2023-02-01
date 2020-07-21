@@ -870,9 +870,8 @@ class PlanePartitions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = PlanePartitions((4,3,5))
-            sage: p = P.random_element(); p  # random
-            Plane partition [[4, 3, 3], [4, 0, 0], [2, 0, 0], [0, 0, 0]]
-            sage: p in P
+            sage: p = P.random_element()
+            sage: p.parent() is P
             True
         """
         def leq(thing1, thing2):

@@ -1166,15 +1166,27 @@ class GelfandTsetlinPatterns(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: g = GelfandTsetlinPatterns(4, 5)
-            sage: x = g.random_element(); x  # random
-            [[5, 2, 2, 1], [2, 2, 1], [2, 1], [1]]
+            sage: x = g.random_element()
             sage: x in g
             True
+            sage: len(x)
+            4
+            sage: all(y in range(0, 5+1) for z in x for y in z)
+            True
+            sage: x.check()
+
+        ::
 
             sage: g = GelfandTsetlinPatterns(4, 5, strict=True)
-            sage: x = g.random_element(); x  # random
-            [[5, 4, 1, 0], [5, 2, 1], [2, 1], [2]]
+            sage: x = g.random_element()
             sage: x in g
+            True
+            sage: len(x)
+            4
+            sage: all(y in range(0, 5+1) for z in x for y in z)
+            True
+            sage: x.check()
+            sage: x.is_strict()
             True
         """
         if self._n is not None and self._k is not None:
@@ -1385,16 +1397,22 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
         EXAMPLES::
 
             sage: g = GelfandTsetlinPatterns(top_row = [4, 3, 1, 1])
-            sage: x = g.random_element(); x  # random
-            [[4, 3, 1, 1], [4, 3, 1], [4, 1], [3]]
+            sage: x = g.random_element()
             sage: x in g
             True
+            sage: x[0] == [4, 3, 1, 1]
+            True
+            sage: x.check()
 
             sage: g = GelfandTsetlinPatterns(top_row=[4, 3, 2, 1], strict=True)
-            sage: x = g.random_element(); x  # random
-            [[4, 3, 2, 1], [4, 2, 1], [4, 1], [2]]
+            sage: x = g.random_element()
             sage: x in g
             True
+            sage: x[0] == [4, 3, 2, 1]
+            True
+            sage: x.is_strict()
+            True
+            sage: x.check()
         """
         if self._strict:
             return self._cftp(1)

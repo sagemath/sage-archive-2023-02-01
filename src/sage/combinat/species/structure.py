@@ -273,9 +273,8 @@ class SpeciesStructureWrapper(GenericSpeciesStructure):
         """
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: P = species.PartitionSpecies()
-            sage: s = (P+P).structures([1,2,3]).random_element(); s
+            sage: s = (P+P).structures([1,2,3])[1]; s
             {{1, 3}, {2}}
             sage: s.transport(PermutationGroupElement((2,3)))
             {{1, 2}, {3}}
@@ -286,9 +285,8 @@ class SpeciesStructureWrapper(GenericSpeciesStructure):
         """
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: P = species.PartitionSpecies()
-            sage: s = (P+P).structures([1,2,3]).random_element(); s
+            sage: s = (P+P).structures([1,2,3])[1]; s
             {{1, 3}, {2}}
             sage: s.canonical_label()
             {{1, 2}, {3}}

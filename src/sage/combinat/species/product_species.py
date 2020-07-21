@@ -42,11 +42,10 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: S = species.SetSpecies()
-            sage: (S*S).structures(['a','b','c']).random_element()
+            sage: (S*S).structures(['a','b','c'])[0]
             {}*{'a', 'b', 'c'}
-            sage: (S*S*S).structures(['a','b','c']).random_element()
+            sage: (S*S*S).structures(['a','b','c'])[13]
             ({'c'}*{'a'})*{'b'}
         """
         left, right = map(repr, self._list)
@@ -133,10 +132,9 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: S = species.SetSpecies()
             sage: F = S * S
-            sage: a = F.structures(['a','b','c']).random_element(); a
+            sage: a = F.structures(['a','b','c'])[0]; a
             {}*{'a', 'b', 'c'}
             sage: a.change_labels([1,2,3])
             {}*{1, 2, 3}
@@ -154,11 +152,10 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
         """
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: p = PermutationGroupElement((2,3))
             sage: S = species.SetSpecies()
             sage: F = S * S
-            sage: a = F.structures([1,2,3,4]).random_element(); a
+            sage: a = F.structures([1,2,3,4])[1]; a
             {1}*{2, 3, 4}
             sage: a.automorphism_group()
             Permutation Group with generators [(2,3), (2,3,4)]
@@ -175,7 +172,7 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
 
         ::
 
-            sage: a = F.structures([1,2,3,4]).random_element(); a
+            sage: a = F.structures([1,2,3,4])[8]; a
             {2, 3}*{1, 4}
             sage: [a.transport(g) for g in a.automorphism_group()]
             [{2, 3}*{1, 4}, {2, 3}*{1, 4}, {2, 3}*{1, 4}, {2, 3}*{1, 4}]

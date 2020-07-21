@@ -45,9 +45,8 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
         """
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: S = species.PartitionSpecies()
-            sage: a = S.structures(["a","b","c"]).random_element(); a
+            sage: a = S.structures(["a","b","c"])[0]; a
             {{'a', 'b', 'c'}}
         """
         s = GenericSpeciesStructure.__repr__(self)

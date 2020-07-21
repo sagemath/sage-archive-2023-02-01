@@ -52,8 +52,9 @@ class WeightedIntegerVectors(Parent, UniqueRepresentation):
         [8, 0, 0]
         sage: WeightedIntegerVectors(8, [1,1,2]).cardinality()
         25
-        sage: WeightedIntegerVectors(8, [1,1,2]).random_element()  # random
-        [1, 1, 3]
+        sage: w = WeightedIntegerVectors(8, [1,1,2]).random_element()
+        sage: w.parent() is WeightedIntegerVectors(8, [1,1,2])
+        True
 
         sage: WeightedIntegerVectors([1,1,2])
         Integer vectors weighted by [1, 1, 2]

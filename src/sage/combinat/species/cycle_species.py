@@ -26,9 +26,8 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
         """
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: S = species.CycleSpecies()
-            sage: a = S.structures(["a","b","c"]).random_element(); a
+            sage: S.structures(["a","b","c"])[0]
             ('a', 'b', 'c')
         """
         s = GenericSpeciesStructure.__repr__(self)
@@ -51,9 +50,8 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: F = species.CycleSpecies()
-            sage: a = F.structures(["a", "b", "c"]).random_element(); a
+            sage: a = F.structures(["a", "b", "c"])[0]; a
             ('a', 'b', 'c')
             sage: a.permutation_group_element()
             (1,2,3)
@@ -68,9 +66,8 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: F = species.CycleSpecies()
-            sage: a = F.structures(["a", "b", "c"]).random_element(); a
+            sage: a = F.structures(["a", "b", "c"])[0]; a
             ('a', 'b', 'c')
             sage: p = PermutationGroupElement((1,2))
             sage: a.transport(p)
@@ -90,9 +87,8 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: P = species.CycleSpecies()
-            sage: a = P.structures([1, 2, 3, 4]).random_element(); a
+            sage: a = P.structures([1, 2, 3, 4])[0]; a
             (1, 2, 3, 4)
             sage: a.automorphism_group()
             Permutation Group with generators [(1,2,3,4)]

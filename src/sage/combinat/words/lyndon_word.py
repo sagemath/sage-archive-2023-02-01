@@ -488,8 +488,8 @@ def StandardBracketedLyndonWords(n, k):
         [[2, 3], 3]
         sage: SBLW33.cardinality()
         8
-        sage: SBLW33.random_element()  # random
-        [1, [1, 2]]
+        sage: SBLW33.random_element() in SBLW33  # known bug
+        True
     """
     return StandardBracketedLyndonWords_nk(n, k)
 

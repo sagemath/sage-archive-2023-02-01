@@ -334,7 +334,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
         """
         if comp in ZZ and comp == 0:
             return self.zero()
-        elif isinstance(comp, (DiffForm, DiffFormParal)):
+        if isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction
             if (self._degree == comp._tensor_type[1]
                    and self._domain.is_subset(comp._domain)
@@ -343,7 +343,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
             else:
                 raise TypeError("cannot convert the {} ".format(comp) +
                                 "to an element of {}".format(self))
-        elif isinstance(comp, TensorField):
+        if isinstance(comp, TensorField):
             # coercion of a tensor of type (0,1) to a linear form
             tensor = comp # for readability
             if (tensor.tensor_type() == (0,1) and self._degree == 1
@@ -356,7 +356,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
             else:
                 raise TypeError("cannot convert the {} ".format(tensor) +
                                 "to an element of {}".format(self))
-        elif not isinstance(comp, (list, tuple)):
+        if not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction
@@ -777,7 +777,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
 
     #### Parent methods
 
-    def _element_constructor_(self, comp=[], frame=None, name=None,
+        def _element_constructor_(self, comp=[], frame=None, name=None,
                               latex_name=None):
         r"""
         Construct a differential form.
@@ -803,7 +803,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
         """
         if comp in ZZ and comp == 0:
             return self.zero()
-        elif isinstance(comp, (DiffForm, DiffFormParal)):
+        if isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction
             if (self._degree == comp._tensor_type[1]
                     and self._domain.is_subset(comp._domain)
@@ -812,7 +812,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
             else:
                 raise TypeError("cannot convert the {} ".format(comp) +
                                 "to a differential form in {}".format(self))
-        elif isinstance(comp, TensorFieldParal):
+        if isinstance(comp, TensorFieldParal):
             # coercion of a tensor of type (0,1) to a linear form
             tensor = comp # for readability
             if (tensor.tensor_type() == (0,1) and self._degree == 1
@@ -825,7 +825,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
             else:
                 raise TypeError("cannot convert the {} ".format(tensor) +
                                 "to an element of {}".format(self))
-        elif not isinstance(comp, (list, tuple, slice)):
+        if not isinstance(comp, (list, tuple, slice)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction

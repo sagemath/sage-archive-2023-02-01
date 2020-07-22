@@ -362,7 +362,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
         # standard construction
         resu = self.element_class(self._vmodule, self._degree, name=name,
                                   latex_name=latex_name)
-        if comp != []:
+        if comp:
             resu.set_comp(frame)[:] = comp
         return resu
 
@@ -831,7 +831,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
         # standard construction
         resu = self.element_class(self._fmodule, self._degree, name=name,
                                   latex_name=latex_name)
-        if comp != []:
+        if comp:
             resu.set_comp(frame)[:] = comp
         return resu
 

@@ -217,7 +217,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         # standard construction
         resu = self.element_class(self._vmodule, name=name,
                                   latex_name=latex_name)
-        if comp != []:
+        if comp:
             resu.set_comp(frame)[:] = comp
         return resu
 

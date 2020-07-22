@@ -235,7 +235,7 @@ class SectionModule(UniqueRepresentation, Parent):
                             "to an element of {}".format(self))
         # standard construction
         resu = self.element_class(self, name=name, latex_name=latex_name)
-        if comp != []:
+        if comp:
             resu.set_comp(frame)[:] = comp
         return resu
 
@@ -654,7 +654,7 @@ class SectionFreeModule(FiniteRankFreeModule):
                             "to an element of {}".format(self))
         # standard construction
         resu = self.element_class(self, name=name, latex_name=latex_name)
-        if comp != []:
+        if comp:
             resu.set_comp(basis)[:] = comp
         return resu
 

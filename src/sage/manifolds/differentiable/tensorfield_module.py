@@ -379,7 +379,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         resu = self.element_class(self._vmodule, self._tensor_type,
                                   name=name, latex_name=latex_name,
                                   sym=sym, antisym=antisym)
-        if comp != []:
+        if comp:
             resu.set_comp(frame)[:] = comp
         return resu
 
@@ -865,7 +865,7 @@ class TensorFieldFreeModule(TensorFreeModule):
         resu = self.element_class(self._fmodule, self._tensor_type,
                                   name=name, latex_name=latex_name,
                                   sym=sym, antisym=antisym)
-        if comp != []:
+        if comp:
             resu.set_comp(frame)[:] = comp
         return resu
 

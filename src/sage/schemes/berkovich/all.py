@@ -1,5 +1,5 @@
 """nodoctest
-all.py -- export of projective schemes to Sage
+all.py -- export of Berkovich spaces to all of Sage
 """
 from __future__ import absolute_import
 

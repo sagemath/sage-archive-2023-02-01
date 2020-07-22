@@ -31,6 +31,7 @@ AUTHORS:
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
+from sage.categories.number_fields import NumberFields
 from sage.categories.topological_spaces import TopologicalSpaces
 from sage.symbolic.expression import is_Expression
 from sage.rings.real_mpfr import RR, is_RealNumber
@@ -38,7 +39,7 @@ from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
 from sage.rings.padics.generic_nodes import is_pAdicField
 from sage.rings.padics.factory import Qp
-from sage.schemes.projective.projective_space import ProjectiveSpace
+from sage.schemes.projective.projective_space import is_ProjectiveSpace, ProjectiveSpace
 from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_field
 from sage.schemes.generic.morphism import is_SchemeMorphism
 from sage.schemes.affine.affine_space import AffineSpace
@@ -46,7 +47,6 @@ from sage.schemes.generic.scheme import Scheme
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
-from sage.rings.number_field.number_field import is_NumberField
 from sage.rings.infinity import Infinity
 
 def is_Berkovich(space):
@@ -251,8 +251,8 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         previous_center = self._center_lst[i-1]
                         previous_radius = self._radius_lst[i-1]
                         dist = self._custom_abs(center[0] - previous_center[0])
-                        if previous_radius < radius or dist > radius:
-                            raise ValueError("sequence of disks does not define a type IV point as" + \
+                        if previous_radius < radius or dist > previous_radius:
+                            raise ValueError("sequence of disks does not define a type IV point as " + \
                                 "containment is not proper")
                     self._center_lst[i] = center
                     self._radius_lst[i] = radius
@@ -295,7 +295,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         previous_center = self._center_lst[i-1]
                         previous_radius = self._radius_lst[i-1]
                         dist = self._custom_abs(center - previous_center)
-                        if previous_radius < radius or dist > radius:
+                        if previous_radius < radius or dist > previous_radius:
                             raise ValueError("sequence of disks does not define a type IV point as " + \
                                 "containment is not proper")
                     self._center_lst[i] = center
@@ -475,6 +475,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
         EXAMPLES::
 
+            sage: B = Berkovich_Cp_Projective(5)
             sage: L.<t> = PolynomialRing(Qp(5))
             sage: T = FractionField(L)
             sage: f = T(1/t)
@@ -502,6 +503,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
         EXAMPLES::
 
+            sage: B = Berkovich_Cp_Projective(5)
             sage: L.<t> = PolynomialRing(Qp(5))
             sage: T = FractionField(L)
             sage: f = T(1/t)
@@ -689,9 +691,9 @@ class Berkovich_Element_Cp(Berkovich_Element):
             0
         """
         if not isinstance(other, type(self)):
-            raise TypeError('other was not a point of Berkovich space')
+            raise TypeError('other must be a point of Berkovich space. other was %s' %other)
         if self.parent() != other.parent():
-            raise ValueError("other was an element of a different Berkovich space")
+            raise ValueError("other must be a point of the same Berkovich space")
         if self.type_of_point() == 1 or other.type_of_point() == 1:
             if self == other:
                 return 0
@@ -740,13 +742,13 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
         """
         if not isinstance(other, type(self)):
-            raise TypeError('other was not a point of Berkovich space')
+            raise TypeError('other must be a point of Berkovich space. other was %s' %other)
         if self.parent() != other.parent():
-            raise ValueError("other was an element of a different Berkovich line")
+            raise ValueError("other must be a point of the same Berkovich space")
         if not isinstance(basepoint, type(self)):
-            raise TypeError('basepoint was not a point of Berkovich space')
+            raise TypeError('basepoint must be a point of Berkovich space. basepoint was %s' %basepoint)
         if basepoint.parent() != self.parent():
-            raise ValueError("basepoint was an element of a different Berkovich line")
+            raise ValueError("basepoint must be a point of the same Berkovich space")
         if basepoint.type_of_point() == 1:
             if self == basepoint or other == basepoint:
                 return RR(Infinity)
@@ -794,9 +796,9 @@ class Berkovich_Element_Cp(Berkovich_Element):
             1.75000000000000
         """
         if not isinstance(other, Berkovich_Element_Cp):
-            raise TypeError('other was not a point of Berkovich space')
+            raise TypeError('other must be a point of affine Berkovich space. other was %s' %other)
         if self.parent() != other.parent():
-            raise ValueError('other was a point of a different Berkovich space')
+            raise ValueError('other must be a point of the same Berkovich space')
         gauss = self.parent()(RR(0), RR(1))
         g_greater_than_s = gauss.partial_order(self)
         g_greater_than_o = gauss.partial_order(other)
@@ -1139,13 +1141,6 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         sage: B = Berkovich_Cp_Affine(Qp(5))
         sage: B(w, power=1)
         Type II point centered at w + O(w^41) of radius 5^1
-
-        sage: C = Berkovich_Cp_Projective(QQ, 3)
-        sage: C(Q1)
-        Traceback (most recent call last):
-        ...
-        ValueError: cannot convert from Berkovich space over
-        a padic field to Berkovich space over a number field
     """
     def __init__(self, parent, center, radius=None, power=None, prec=20, error_check=True):
         #we call Berkovich_Element_Cp constructor which is shared with projective Berkovich space
@@ -1160,8 +1155,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         if isinstance(center, Berkovich_Element_Cp_Projective):
             raise TypeError('use as_affine_point to convert to affine Berkovich space')
 
-        Berkovich_Element_Cp.__init__(self,parent=parent,center=center,radius=radius,power=power,\
-            prec=prec,space_type="affine",error_check=error_check)
+        Berkovich_Element_Cp.__init__(self, parent=parent, center=center, radius=radius, power=power, \
+            prec=prec, space_type="affine", error_check=error_check)
 
     def as_projective_point(self):
         r"""
@@ -1189,7 +1184,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             sage: Y = FractionField(R)
             sage: g = (40*pi)/x
             sage: Q2 = B(f, g)
-            sage: Q2.as_affine_point()
+            sage: Q2.as_projective_point()
             Type IV point of precision 20 with centers given by (1 + O(5^20))/((1 + O(5^20))*t)
             and radii given by 40.0000000000000*pi/x
         """
@@ -1212,7 +1207,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def center(self):
         """
-        Returns the center of the corresponding disk (or sequence of disks) in ``Cp``
+        Returns the center of the corresponding disk (or sequence of disks) in ``Cp``.
 
         OUTPUT:
 
@@ -1245,6 +1240,24 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             sage: Q2 = B(1, 3**(1/2))
             sage: Q1 == Q2
             True
+
+        ::
+
+            sage: Q3 = B(1)
+            sage: Q4 = B(4)
+            sage: Q3 == Q4
+            False
+
+        ::
+
+            sage: Q5 = B(1, 4)
+            sage: Q1 == Q5
+            False
+
+        ::
+
+            sage: Q1 == Q3
+            False
         """
         if other is self:
             return True
@@ -1292,12 +1305,12 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         if self.type_of_point() == 1:
             return hash(str(self.center()))
         elif self.type_of_point() == 4:
-            raise ValueError('hash not defined for type IV points')
+            raise NotImplementedError('hash not defined for type IV points')
         return hash(str(self.radius()))
 
     def partial_order(self,other):
         r"""
-        The standard partial order on Berkovich space
+        The standard partial order on Berkovich space.
 
         Roughly, the partial order corresponds to containment of
         the corresponding disks in `\CC_p`.
@@ -1334,26 +1347,20 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         ::
 
             sage: Q4 = B(1/81, 1)
-            sage: print(Q4.partial_order(Q1))
-            None
+            sage: Q4.partial_order(Q1) is None
+            True
 
         ::
 
-            sage: print(Q4.partial_order(Q3))
-            None
+            sage: Q4.partial_order(Q3) is None
+            True
         """
         #error check, then convert to projective berkovich space to do the partial order
-        if not isinstance(other,Berkovich_Element_Cp_Affine):
-            raise ValueError("partial order takes another point of " + \
-                "the Berkovich Affine line, not %s" %(other))
+        if not isinstance(other, Berkovich_Element_Cp_Affine):
+            raise TypeError('other must be a point of affine Berkovich space. other was %s' %other)
         if self.parent() != other.parent():
-            raise ValueError("partial order takes another point of " + \
-                "the same Berkovich Affine line")
-        base = self._base_space
-        B = Berkovich_Cp_Projective(ProjectiveSpace(base,1))
-        proj_self = B(self)
-        proj_other = B(other)
-        return proj_self.partial_order(proj_other)
+            raise ValueError('other must be a point of the same affine Berkovich space')
+        return self.as_projective_point().partial_order(other.as_projective_point())
 
     def join(self, other, basepoint=Infinity):
         """
@@ -1367,7 +1374,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         - ``other`` -- A point of the same Berkovich space as this point.
         - ``basepoint`` -- (default: Infinity) A point of the same
-          Berkovich space as this point or the string 'infty'.
+          Berkovich space as this point or Infinity.
 
         OUTPUT: A point of the same Berkovich space.
 
@@ -1379,63 +1386,65 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             sage: Q1.join(Q2)
             Type III point centered at 2 + O(3^20) of radius 2.00000000000000
 
+        ::
+
             sage: Q3 = B(5)
             sage: Q3.join(Q1)
             Type II point centered at 2 + 3 + O(3^20) of radius 3^0
+
+        ::
 
             sage: Q3.join(Q1, basepoint=Q2)
             Type II point centered at 2 + O(3^20) of radius 3^0
 
         TESTS::
 
-            sage: Q4 = B(1/3**8+2, 1)
+            sage: Q4 = B(1/3**8 + 2, 1)
             sage: Q2.join(Q4, basepoint = Q1)
             Type III point centered at 2 + O(3^20) of radius 2.00000000000000
+
+        ::
 
             sage: Q5 = B(2, 1/9)
             sage: Q6 = B(1, 1/27)
             sage: Q4.join(Q5, basepoint=Q6)
             Type II point centered at 1 + O(3^20) of radius 3^0
 
+        ::
+
             sage: Q7 = B(1/27, 1/27)
             sage: Q1.join(Q7, Q2)
             Type III point centered at 2 + O(3^20) of radius 2.00000000000000
-
         """
         #we error check and then pass to projective space to do the join
-        if not isinstance(other,Berkovich_Element_Cp_Affine):
-            raise ValueError("join of a point of the Berkovich Affine line " + \
-                "takes another point of the Berkovich Affine line, not %s" %(other))
+        if not isinstance(other, Berkovich_Element_Cp_Affine):
+            raise TypeError('other must be a point of affine Berkovich space. other was %s' %other)
         if self.parent() != other.parent():
-            raise ValueError("join takes two points in the same Berkovich Affine line")
+            raise ValueError('other must be a point of the same affine Berkovich space')
         if self.type_of_point() == 4 or other.type_of_point() == 4:
             raise NotImplementedError("join with type IV points not implemented")
 
-        parent = self.parent()
-        base = self._base_space
-        B = Berkovich_Cp_Projective(ProjectiveSpace(base,1))
-        proj_self = B(self)
-        proj_other = B(other)
+        proj_self = self.as_projective_point()
+        proj_other = other.as_projective_point()
 
         if basepoint == Infinity:
-            return parent(proj_self.join(proj_other))
+            return proj_self.join(proj_other).as_affine_point()
 
         if not isinstance(basepoint, Berkovich_Element_Cp_Affine):
-            raise ValueError("basepoint for join must be a point of the Berkovich " + \
-                "Affine line over Cp")
+            raise TypeError('basepoint must a point of affine Berkovich space. basepoint was %s' %basepoint)
         if basepoint.parent() != self.parent():
-            raise ValueError("basepoint must be a point of the same Berkovich Affine line")
+            raise ValueError("basepoint must be a point of the same affine Berkovich space")
         if basepoint.type_of_point() == 4:
             raise NotImplementedError("join not implemented for type IV basepoint")
-        proj_basepoint = B(basepoint)
-        return parent(proj_self.join(proj_other, proj_basepoint))
+        proj_basepoint = basepoint.as_projective_point()
+        return proj_self.join(proj_other, proj_basepoint).as_affine_point()
 
 
     def involution_map(self):
         r"""
         Returns the image of this point under the involution map.
 
-        The involution map is the extension of the map ``z |-> 1/z`` map
+        The involution map is the extension of the map ``z |-> 1/z``
         on `\CC_p` to Berkovich space.
 
         For Affine Berkovich Space, not defined for the type I
@@ -1465,15 +1474,12 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             Type II point centered at 3 + O(3^21) of radius 3^-3
 
         """
-        parent = self.parent()
-        center = self.center()
-
         if self.type_of_point() == 1:
-            if center == 0:
+            if self.center() == 0:
                 raise ValueError("involution map not deffined on affine type I point centered at 0")
-            return parent(1/center)
+            return self.parent()(1/self.center())
 
-        zero = parent(QQ(0))
+        zero = self.parent()(QQ(0))
         radius = self.radius()
 
         if self.type_of_point() in [2,3]:
@@ -1481,24 +1487,24 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             if zero_contained_in_self:
                 if self.type_of_point() == 2:
                     power = self.power()
-                    return parent(0,power=-power)
-                return parent(0,RR(1/radius))
-            return parent(1/center,RR(radius/(self._custom_abs(center)**2)))
+                    return self.parent()(0, power=-power)
+                return self.parent()(0, RR(1/radius))
+            return self.parent()(1/self.center(), RR( radius / (self._custom_abs(self.center())**2) ) )
 
         new_center_lst = []
         new_radius_lst = []
         for i in range(len(center)):
-            berk_point = parent(center[i],radius[i])
+            berk_point = self.parent()(self.center()[i], radius[i])
             zero_check = berk_point.partial_order(zero)
             if zero_check:
                 new_center = 0
                 new_radius = RR(1/radius[i])
             else:
-                new_center = 1/center[i]
-                new_radius = RR(radius[i]/(self._custom_abs(center[i])**2))
+                new_center = 1/self.center()[i]
+                new_radius = RR(radius[i] / (self._custom_abs(self.center()[i])**2))
             new_center_lst.append(new_center)
             new_radius_lst.append(new_radius)
-        return parent(new_center_lst,new_radius_lst,error_check=False)
+        return self.parent()(new_center_lst, new_radius_lst, error_check=False)
 
     def contained_in_interval(self, start, end):
         """
@@ -1529,22 +1535,23 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             sage: Q2.contained_in_interval(Q1, Q4.join(Q1))
             True
         """
-        if not isinstance(start, Berkovich_Element_Cp):
-            raise ValueError("start must be a point of Berkovich space")
+        if not isinstance(start, Berkovich_Element_Cp_Affine):
+            raise TypeError("start must be a point of affine Berkovich space. start was %s" %start)
         if start.parent() != self.parent():
             raise ValueError("start must be a point of the same Berkovich space as this point")
-        if not isinstance(end, Berkovich_Element_Cp):
-            raise ValueError("start must be a point of Berkovich space")
+        if not isinstance(end, Berkovich_Element_Cp_Affine):
+            raise TypeError("end must be a point of affine Berkovich space. end was %s" %end)
         if end.parent() != self.parent():
-            raise ValueError("start must be a point of the same Berkovich space as this point")
+            raise ValueError("end must be a point of the same Berkovich space as this point")
 
-        base = self._base_space
-        P = Berkovich_Cp_Projective(ProjectiveSpace(base,1))
-        return P(self).contained_in_interval(P(start),P(end))
+        proj_self = self.as_projective_point()
+        proj_start = start.as_projective_point()
+        proj_end = end.as_projective_point()
+        return proj_self.contained_in_interval(proj_start, proj_end)
 
     def potential_kernel(self, other, basepoint):
         """
-        The potential kernel of this point with ``other``, with basepoint ``basepoint``.
+        The potential kernel of this point with ``other`` with basepoint ``basepoint``.
 
         The potential kernel is the hyperbolic distance between ``basepoint`` and the join
         of this point with ``other`` relative to ``basepoint``.
@@ -1565,19 +1572,15 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             sage: Q3.potential_kernel(Q1, Q2)
             0.369070246428543
         """
-        if not isinstance(other,Berkovich_Element_Cp_Affine):
-            raise ValueError("potential kernel of a point of the " + \
-                "Berkovich Affine line takes another point of the Berkovich " + \
-                "Affine line, not %s" %(other))
+        if not isinstance(other, Berkovich_Element_Cp_Affine):
+            raise TypeError('other must be a point of affine Berkovich space. other was %s' %other)
         if self.parent() != other.parent():
-            raise ValueError("potential kernel takes two points in the " + \
-                "same Berkovich Affine line")
+            raise ValueError('other must be a point of the same affine Berkovich space')
         if not isinstance(basepoint, Berkovich_Element_Cp_Affine):
-            raise ValueError("basepoint must be a point of the Berkovich " + \
-                "Affine line over Cp")
+            raise TypeError('basepoint must be a point of affine Berkovich space. basepoint was %s' %basepoint)
         if basepoint.parent() != self.parent():
-            raise ValueError("basepoint must be a point of the same Berkovich Affine line")
-        return basepoint.path_distance_metric((self.join(other,basepoint)))
+            raise ValueError('basepoint must be a point of the same affine Berkovich space')
+        return basepoint.path_distance_metric(self.join(other, basepoint))
 
     def spherical_kernel(self,other):
         r"""
@@ -1599,11 +1602,10 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         """
         if not isinstance(other,Berkovich_Element_Cp_Affine):
-            raise ValueError("spherical kernel of a point of the Berkovich Affine " + \
-                "line takes another point of the Berkovich Affine line, not %s" %(other))
+            raise TypeError('other must be a point of an affine Berkovich space. other was %s' %other)
         if self.parent() != other.parent():
-            raise ValueError("spherical kernel takes two points in the same Berkovich Affine line")
-        gauss_point = (self.parent())(RR(0),RR(1))
+            raise ValueError('other was not a point of the same affine Berkovich space')
+        gauss_point = self.parent()(RR(0), RR(1))
         w = self.join(other,gauss_point)
         dist = gauss_point.path_distance_metric(w)
         if dist == Infinity:
@@ -1643,7 +1645,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         """
         if basepoint == Infinity:
             return super().diameter()
-        return self.Hsia_kernel(self,basepoint)
+        return self.Hsia_kernel(self, basepoint)
 
 class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
     r"""
@@ -1659,7 +1661,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
       and a rational power of `p`.
 
     - Type III points are represented by a center in the ``base`` of the parent Berkovich space,
-      and a radius in `[0,\infty)`.
+      and by a radius, a real number, in `[0,\infty)`.
 
     - Type IV points are represented by a finite list of centers in the ``base`` of the parent
       Berkovich space and a finite list of radii in `[0,\infty)`.
@@ -1673,8 +1675,8 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     - ``center`` -- For type I, II, and III points, the center of the 
       corresponding disk in `P^1(\CC_p)`. If the parent Berkovich space was created using a number field
-      `K`, then ``center`` can be an element of `P^1(K)` or `K`. Otherwise, ``center`` can be an element
-      of a p-adic field, or projective space of dimension 1 over a padic field.
+      `K`, then ``center`` can be an element of `P^1(K)`. Otherwise, ``center``
+      must be an element of a projective space of dimension 1 over a padic field.
       For type IV points, can be a list of centers used to approximate the point or a
       univariate function that computes the centers (computation starts at 1).
 
@@ -1701,7 +1703,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         sage: P = Berkovich_Cp_Projective(S); P
         Projective Berkovich line over Cp(5) of precision 20
 
-        sage: a = S((0,1))
+        sage: a = S(0,1)
         sage: Q1 = P(a); Q1
         Type I point centered at (0 : 1 + O(5^20))
 
@@ -1856,6 +1858,24 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             sage: Q2 = B([1, 1], 3**(1/2))
             sage: Q1 == Q2
             True
+
+        ::
+
+            sage: Q3 = B(1)
+            sage: Q4 = B(4)
+            sage: Q3 == Q4
+            False
+
+        ::
+
+            sage: Q5 = B(1, 4)
+            sage: Q1 == Q5
+            False
+
+        ::
+
+            sage: Q1 == Q3
+            False
         """
         if other is self:
             return True
@@ -1904,7 +1924,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             True
         """
         if self.type_of_point() == 1:
-            return hash(str(self.center().normalize_coordinates()))
+            return hash(str(self.center()))
         elif self.type_of_point() == 4:
             raise ValueError('hash not defined for type IV points')
         return hash(str(self.radius()))
@@ -1914,11 +1934,11 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         The standard partial order on Berkovich space.
 
         Roughly, the partial order corresponds to containment of
-        the corresponding disks in ``Cp``. 
+        the corresponding disks in ``Cp``.
 
-        For example, let x and y be points of type II or III. 
-        If x has center `c_1` and radius `r_1` and y has center 
-        `c_2` and radius `r_2`, `x < y` if and only if `D(c_1,r_1)` 
+        For example, let x and y be points of type II or III.
+        If x has center `c_1` and radius `r_1` and y has center
+        `c_2` and radius `r_2`, `x < y` if and only if `D(c_1,r_1)`
         is a subset of `D(c_2,r_2)` in `\CC_p`.
 
         INPUT:
@@ -1927,7 +1947,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         OUTPUT:
 
-        - ``True`` - If self > other in the standard partial order.
+        - ``True`` - If self => other in the standard partial order.
         - ``False`` - If other > self in the standard partial order.
         - ``None`` - If the two points are not comparable.
 
@@ -1948,8 +1968,8 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         ::
 
             sage: Q4 = B(1/81, 1)
-            sage: print(Q4.partial_order(Q1))
-            None
+            sage: Q4.partial_order(Q1) == None
+            True
 
         We check infinity works in the partial order::
 
@@ -1957,18 +1977,80 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             sage: Q6 = B(3, 3)
             sage: Q6.partial_order(Q5)
             True
+
+        TESTS::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: Q1 = B((1,0))
+            sage: Q2 = B(0)
+            sage: Q1.partial_order(Q2) == None
+            True
+
+        ::
+
+            sage: Q2.partial_order(Q2)
+            True
+
+        ::
+
+            sage: Q3 = B(2)
+            sage: Q2.partial_order(Q3) == None
+            True
+
+        ::
+
+            sage: Q4 = B(1/27, 1)
+            sage: Q4.partial_order(Q2) == None
+            True
+
+        ::
+
+            sage: Q2.partial_order(Q4) == None
+            True
+
+        ::
+
+            sage: Q5 = B(0,1)
+            sage: Q2.partial_order(Q5)
+            False
+
+        ::
+
+            sage: Q6 = B([3,2],[4,1/27])
+            sage: Q4.partial_order(Q6) == None
+            True
+
+        ::
+
+            sage: Q5.partial_order(Q6)
+            True
+
+        ::
+
+            sage: Q7 = B(0,1/27)
+            sage: Q5.partial_order(Q7)
+            True
+
+        ::
+
+            sage: Q8 = B(0, 2)
+            sage: Q5.partial_order(Q8)
+            False
+
+        ::
+
+            sage: Q9 = B(1/9,10)
+            sage: Q5.partial_order(Q9)
+            False
         """
-        if not isinstance(other,Berkovich_Element_Cp_Projective):
-            raise ValueError("partial order takes another point of " + \
-                "the Berkovich projective line, not %s" %(other))
+        if not isinstance(other, Berkovich_Element_Cp_Projective):
+            raise TypeError('other must be a point of a projective Berkovich space, but was %s' %other)
         if self.parent() != other.parent():
-            raise ValueError("partial order takes another point of the " + \
-                "same Berkovich projective line")
+            raise ValueError('other must be a point of the same projective Berkovich space')
 
         #if self or other is infinity, we apply the involution map
-        parent = self.parent()
-        infty = parent((1,0))
-        zero = parent(0)
+        infty = self.parent()((1,0))
+        zero = self.parent()(0)
         if self == infty or other == infty:
             if self == zero or other == zero:
                 return None
@@ -1992,26 +2074,26 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                 if dist <= self.radius():
                     return True
                 return None
-            if other.type_of_point() == 4:
-                center = other.center()[len(other.center())]
+            elif other.type_of_point() == 4:
+                center = other.center()[-1]
                 dist = self._custom_abs(self.center()[0] - center[0])
-                if dist <= self.radius():
+                if dist <= self.radius() and other.radius()[-1] <= self.radius():
                     return True
                 return None
             else:
                 dist = self._custom_abs(self.center()[0]-other.center()[0])
-                if(dist <= self.radius()):
-                    if(other.radius() <= self.radius()):
+                if dist <= self.radius():
+                    if other.radius() <= self.radius():
                         return True
                     return False
                 else:
-                    if(dist <= other.radius()):
+                    if dist <= other.radius():
                         return False
                     return None
 
     def join(self, other, basepoint=Infinity):
         """
-        Computes the join of this point and ``other``, with respect to ``basepoint``. 
+        Computes the join of this point and ``other``, with respect to ``basepoint``.
 
         The join is first point that lies on the interesection
         of the path from this point to ``basepoint`` and the path from ``other`` to
@@ -2047,7 +2129,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         TESTS::
 
             sage: Q4 = B(1/3**8+2, 1)
-            sage: Q2.join(Q4, basepoint = Q1)
+            sage: Q2.join(Q4, basepoint=Q1)
             Type III point centered at (2 + O(3^20) : 1 + O(3^20)) of radius 2.00000000000000
 
             sage: Q5 = B(2, 1/9)
@@ -2081,28 +2163,23 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             sage: Q11.join(Q10)
             Type II point centered at (0 : 1) of radius 3^0
         """
-        parent = self.parent()
-
-        if not isinstance(other,Berkovich_Element_Cp_Projective):
-            raise ValueError("join of a point of the Berkovich projective " + \
-                "line takes another point of the Berkovich projective line, not %s" %(other))
-        if other.parent() != parent:
-            raise ValueError("join takes two points in the same Berkovich projective line")
+        if not isinstance(other, Berkovich_Element_Cp_Projective):
+            raise TypeError('other must be a point of a projective Berkovich line, instead was %s' %other)
+        if other.parent() != self.parent():
+            raise ValueError('other must be a point of the same projective Berkovich line')
 
         #if either self or other is type IV, we use the last disk in the approximation
-
         if self.type_of_point() == 4:
-            new_center = self.center()[self.prec()-1]
-            new_radius = self.radius()[self.prec()-1]
-            return parent(new_center,new_radius).join(other)
+            new_center = self.center()[-1]
+            new_radius = self.radius()[-1]
+            return self.parent()(new_center,new_radius).join(other)
         if  other.type_of_point() == 4:
-            new_center = other.center()[other.prec()-1]
-            new_radius = other.radius()[other.prec()-1]
-            return self.join(parent(new_center,new_radius))
+            new_center = other.center()[-1]
+            new_radius = other.radius()[-1]
+            return self.join(self.parent()(new_center,new_radius))
 
         #we deal with the point at infinity as a special case
-
-        infty = parent((1,0))
+        infty = self.parent()((1,0))
 
         if basepoint == Infinity or basepoint == infty:
             if self == infty or other == infty:
@@ -2111,22 +2188,21 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             maximum = max(dist, self.radius(), other.radius())
             #optimize for when self or other are type II
             if maximum == self.radius() and self.type_of_point() == 2:
-                return parent(self.center(), power=self.power())
+                return self.parent()(self.center(), power=self.power())
             if maximum == other.radius() and other.type_of_point() == 2:
-                return parent(self.center(), power=other.power())
-            return parent(self.center(), maximum)
+                return self.parent()(self.center(), power=other.power())
+            return self.parent()(self.center(), maximum)
 
         if not isinstance(basepoint, Berkovich_Element_Cp_Projective):
-            raise ValueError("basepoint for join must be a point of the Berkovich projective line over Cp")
-        if basepoint.parent() != parent:
+            raise TypeError('basepoint must be a point of a projective Berkovich line, instead was %s' %basepoint)
+        if basepoint.parent() != self.parent():
             raise ValueError("basepoint must be a point of the same Berkovich projective line")
 
         #if the basepoint is type IV, we use the last disk in the approximation
-
         if basepoint.type_of_point() == 4:
-            new_center = other.center()[other.prec()-1]
-            new_radius = other.radius()[other.prec()-1]
-            return self.join(other, parent(new_center,new_radius))
+            new_center = other.center()[-1]
+            new_radius = other.radius()[-1]
+            return self.join(other, self.parent()(new_center,new_radius))
 
         if self == infty:
             return other.join(basepoint)
@@ -2135,21 +2211,19 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         #since none of the self, other, and basepoint are infinity, we can now treat them
         #as affine points
-
         b_greater_than_s = basepoint.partial_order(self)
         b_greater_than_o = basepoint.partial_order(other)
         s_greater_than_o = self.partial_order(other)
 
         #we deal with all the cases where self and other are not comparable first
-
         if s_greater_than_o == None:
             if b_greater_than_o == None:
                 if b_greater_than_s == None:
                     #case where none of the points are comparable
                     dist_b_s = self._custom_abs(self.center()[0] - basepoint.center()[0])
                     dist_b_o = self._custom_abs(other.center()[0] - basepoint.center()[0])
-                    return parent(basepoint.center(),\
-                        min(max(dist_b_o,other.radius(),basepoint.radius()),\
+                    return self.parent()(basepoint.center(),\
+                        min(max(dist_b_o,other.radius(),basepoint.radius()), \
                             max(dist_b_s,self.radius(),basepoint.radius())))
 
                 #case where self and basepoint are comparable
@@ -2167,7 +2241,6 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                     return other
 
         #now the cases where self > other
-
         elif s_greater_than_o:
             if b_greater_than_s == None:
                 return self
@@ -2179,7 +2252,6 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                 return other
 
         #join is symmetric, so we flip self and other so that self > other
-
         else:
             return other.join(self,basepoint)
 
@@ -2187,7 +2259,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         r"""
         Returns the image of this point under the involution map.
 
-        The involution map is the extension of the map ``z |-> 1/z`` map
+        The involution map is the extension of the map ``z |-> 1/z``
         on `P^1(\CC_p)` to Berkovich space.
 
         OUTPUT: A point of the same Berkovich space.
@@ -2196,7 +2268,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         The involution map is 1/z on type I points::
 
-            sage: B = Berkovich_Cp_Projective((3))
+            sage: B = Berkovich_Cp_Projective(3)
             sage: Q1 = B(1/2)
             sage: Q1.involution_map()
             Type I point centered at (2 + O(3^20) : 1 + O(3^20))
@@ -2212,44 +2284,56 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             sage: Q3 = B(1/3, 1/3)
             sage: Q3.involution_map()
             Type II point centered at (3 + O(3^21) : 1 + O(3^20)) of radius 3^-3
+
+        TESTS::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: B((1,0)).involution_map()
+            Type I point centered at (0 : 1 + O(3^20))
+
+        ::
+
+            sage: B(0).involution_map()
+            Type I point centered at (1 + O(3^20) : 0)
+
+        ::
+
+            sage: B(1/81, 1.5).involution_map()
+            Type III point centered at (3^4 + O(3^24) : 1 + O(3^20)) of radius 0.000228623685413809
         """
-        parent = self.parent()
-        center = self.center()
-        infty = parent((1,0))
-        zero = parent(0)
+        infty = self.parent()((1,0))
+        zero = self.parent()(0)
 
         if self.type_of_point() == 1:
             if self == infty:
                 return zero
             if self == zero:
                 return infty
-            return parent(1/center[0])
-
-        radius = self.radius()
+            return self.parent()(1/self.center()[0])
 
         if self.type_of_point() in [2,3]:
             zero_contained_in_self = self.partial_order(zero)
             if zero_contained_in_self:
                 if self.type_of_point() == 2:
                     power = self.power()
-                    return parent(0,power=-power)
-                return parent(0,1/radius)
-            return parent(1/center[0],radius/(self._custom_abs(center[0])**2))
+                    return self.parent()(0, power=-power)
+                return self.parent()(0, 1/self.radius())
+            return self.parent()(1/self.center()[0], self.radius()/(self._custom_abs(self.center()[0])**2))
 
         new_center_lst = []
         new_radius_lst = []
-        for i in range(len(center)):
-            berk_point = parent(center[i],radius[i])
+        for i in range(len(self.center())):
+            berk_point = self.parent()(self.center()[i], self.radius()[i])
             zero_check = berk_point.partial_order(zero)
             if zero_check:
                 new_center = 0
-                new_radius = 1/radius[i]
+                new_radius = 1/self.radius()[i]
             else:
-                new_center = 1/center[i][0]
-                new_radius = radius[i]/(self._custom_abs(center[i][0])**2)
+                new_center = 1/self.center()[i][0]
+                new_radius = self.radius()[i]/(self._custom_abs(self.center()[i][0])**2)
             new_center_lst.append(new_center)
             new_radius_lst.append(new_radius)
-        return parent(new_center_lst,new_radius_lst)
+        return self.parent()(new_center_lst, new_radius_lst)
 
     def contained_in_interval(self, start, end):
         """
@@ -2267,7 +2351,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         EXAMPLES::
 
-            sage: B = Berkovich_Cp_Projective((3))
+            sage: B = Berkovich_Cp_Projective(3)
             sage: Q1 = B(2, 1)
             sage: Q2 = B(2, 4)
             sage: Q3 = B(1/3)
@@ -2278,6 +2362,37 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
             sage: Q4 = B(1/81, 1)
             sage: Q2.contained_in_interval(Q1, Q4.join(Q1))
+            True
+
+        TESTS::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: infty = B((1,0))
+            sage: zero = B(0)
+            sage: gauss = B(0,1)
+            sage: infty.contained_in_interval(zero, gauss)
+            False
+
+        ::
+
+            sage: Q1 = B(1,3)
+            sage: infty.contained_in_interval(gauss, Q1)
+            False
+
+        ::
+
+            sage: zero.contained_in_interval(infty, gauss)
+            False
+
+        ::
+
+            sage: gauss.contained_in_interval(zero, infty)
+            True
+
+        ::
+
+            sage: Q2 = B(81, 1/3)
+            sage: gauss.contained_in_interval(infty, Q2)
             True
         """
         if not isinstance(start, Berkovich_Element_Cp):
@@ -2290,8 +2405,8 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             raise ValueError("start must be a point of the same Berkovich space as this point")
 
         #we treat infinity as a special case
-        infty = (self.parent())((1,0))
-        zero = (self.parent())(0)
+        infty = self.parent()((1, 0))
+        zero = self.parent()(ZZ(0))
         if self == infty:
             if start == zero or end == zero:
                 return end == infty or start == infty
@@ -2301,9 +2416,9 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             if self == zero:
                 return end == zero or start == zero
             if start == zero or end == zero:
-                gauss = (self.parent())(0,1)
+                gauss = self.parent()(ZZ(0),ZZ(1))
                 return self.contained_in_interval(start,gauss) or self.contained_in_interval(gauss,end)
-            return (self.involution_map()).contained_in_interval(start.involution_map(),\
+            return self.involution_map().contained_in_interval(start.involution_map(), \
                 end.involution_map())
         join = start.join(end)
         return join.partial_order(self) and (self.partial_order(start) \
@@ -2334,16 +2449,15 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             sage: Q3.potential_kernel(Q1, Q2)
             0.369070246428543
         """
-        if not isinstance(other,Berkovich_Element_Cp_Projective):
-            raise ValueError("potential kernel of a point of the Berkovich " + \
-            "projective line takes another point of the Berkovich projective line, not %s" %(other))
-        if self.parent() != other.parent():
-            raise ValueError("potential kernel takes two points in the same Berkovich projective line")
+        if not isinstance(other, Berkovich_Element_Cp_Projective):
+            raise TypeError('other must be a point of a projective Berkovich line, instead was %s' %other)
+        if other.parent() != self.parent():
+            raise ValueError('other must be a point of the same projective Berkovich line')
         if not isinstance(basepoint, Berkovich_Element_Cp_Projective):
-            raise ValueError("basepoint must be a point of the Berkovich projective line over Cp")
+            raise TypeError('basepoint must be a point of a projective Berkovich line, instead was %s' %basepoint)
         if basepoint.parent() != self.parent():
-            raise ValueError("basepoint must be a point of the same Berkovich projective line")
-        return basepoint.path_distance_metric((self.join(other,basepoint)))
+            raise ValueError('basepoint must be a point of the same projective Berkovich line')
+        return basepoint.path_distance_metric(self.join(other, basepoint))
 
     def spherical_kernel(self,other):
         r"""
@@ -2361,8 +2475,8 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         EXAMPLES::
 
             sage: B = Berkovich_Cp_Projective(3)
-            sage: Q1 = B(2,2)
-            sage: Q2 = B(1/9,1)
+            sage: Q1 = B(2, 2)
+            sage: Q2 = B(1/9, 1)
             sage: Q1.spherical_kernel(Q2)
             0.500000000000000
 
@@ -2372,17 +2486,16 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             sage: Q3.spherical_kernel(Q3)
             0
         """
-        if not isinstance(other,Berkovich_Element_Cp_Projective):
-            raise ValueError("spherical kernel of a point of the Berkovich projective " + \
-                "line takes another point of the Berkovich projective line, not %s" %(other))
-        if self.parent() != other.parent():
-            raise ValueError("spherical kernel takes two points in the same Berkovich projective line")
-        gauss_point = (self.parent())(RR(0),RR(1))
+        if not isinstance(other, Berkovich_Element_Cp_Projective):
+            raise TypeError('other must be a point of a projective Berkovich line, instead was %s' %other)
+        if other.parent() != self.parent():
+            raise ValueError('other must be a point of the same projective Berkovich line')
+        gauss_point = self.parent()(ZZ(0), ZZ(1))
         w = self.join(other,gauss_point)
         dist = gauss_point.path_distance_metric(w)
         if dist == Infinity:
             return 0
-        return (self.prime())**(-1*dist)
+        return self.prime()**(-1*dist)
 
     def diameter(self, basepoint=Infinity):
         r"""
@@ -2418,7 +2531,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         if basepoint == Infinity:
             return super().diameter()
         else:
-            return self.Hsia_kernel(self,basepoint)
+            return self.Hsia_kernel(self, basepoint)
 
 class Berkovich(UniqueRepresentation, Parent):
     """
@@ -2597,7 +2710,7 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
     The Berkovich Affine line over `\CC_p`.
     
     The Berkovich Affine line is the set of seminorms on `\CC_p[x]`,
-    with the weakest topology such that the map `| \cdot | \to |f|` continuous
+    with the weakest topology such that the map `| \cdot | \to |f|` is continuous
     for all `f \in \CC_p[x]`.
 
     INPUT:
@@ -2660,7 +2773,7 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
                 base = Qp(base) #TODO chance to Qpbar
             else:
                 raise ValueError("non-prime pased into Berkovich space")
-        if is_NumberField(base):
+        if base in NumberFields():
             if ideal == None:
                 raise ValueError('passed a number field but not an ideal')
             if base is not QQ:
@@ -2697,6 +2810,15 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
             sage: B = Berkovich_Cp_Affine(3)
             sage: B
             Affine Berkovich line over Cp(3) of precision 20
+
+        ::
+
+            sage: R.<z> = QQ[]
+            sage: A.<a> = NumberField(z^2 + 1)
+            sage: ideal = A.prime_above(3)
+            sage: B = Berkovich_Cp_Affine(A, ideal)
+            Affine Berkovich line over Cp(3), with base Number Field
+            in a with defining polynomial z^2 + 1
         """
         if self._base_type == 'padic field':
             return "Affine Berkovich line over Cp(%s) of precision %s" %(self.prime(),\
@@ -2705,7 +2827,6 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
             return  "Affine Berkovich line over Cp(%s), with base %s" %(self.prime(),\
                 self.base())
 
-    
     def _latex_(self):
         r"""
         LaTeX representation of this Berkovich Space.
@@ -2783,14 +2904,11 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
     def __init__(self, base, ideal=None):
         if base in ZZ:
             if base.is_prime():
-                base = ProjectiveSpace(Qp(base),1)
+                base = ProjectiveSpace(Qp(base), 1)
             else:
                 raise ValueError("non-prime pased into Berkovich space")
-        if is_NumberField(base):
+        if base in NumberFields() or is_pAdicField(base):
             base = ProjectiveSpace(base, 1)
-        if is_pAdicField(base):
-            base = ProjectiveSpace(base, 1)
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if not is_ProjectiveSpace(base):
             raise ValueError("base of projective Berkovich space must be projective space")
         if not (is_pAdicField(base.base_ring())):
@@ -2818,10 +2936,7 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
             prime = base.base_ring().prime()
             ideal = None
             self._base_type = 'padic field'
-        if base.ambient_space() != base:
-            raise ValueError("base of projective Berkovich space must be " + \
-                "projective space over Qp or a number field")
-        if base.dimension() != 1:
+        if base.dimension_relative() != 1:
             raise ValueError("base of projective Berkovich space must be " + \
                 "projective space of dimension 1 over Qp or a number field")
         self._p = prime

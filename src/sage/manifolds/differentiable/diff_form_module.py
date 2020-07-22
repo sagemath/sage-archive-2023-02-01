@@ -777,7 +777,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
 
     #### Parent methods
 
-        def _element_constructor_(self, comp=[], frame=None, name=None,
+    def _element_constructor_(self, comp=[], frame=None, name=None,
                               latex_name=None):
         r"""
         Construct a differential form.
@@ -825,7 +825,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
             else:
                 raise TypeError("cannot convert the {} ".format(tensor) +
                                 "to an element of {}".format(self))
-        if not isinstance(comp, (list, tuple, slice)):
+        if not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction

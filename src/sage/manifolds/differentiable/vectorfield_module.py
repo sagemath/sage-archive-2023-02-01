@@ -271,14 +271,14 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         """
         if comp in ZZ and comp == 0:
             return self.zero()
-        elif isinstance(comp, VectorField):
+        if isinstance(comp, VectorField):
             if (self._domain.is_subset(comp._domain)
                    and self._ambient_domain.is_subset(comp._ambient_domain)):
                 return comp.restrict(self._domain)
             else:
                 raise ValueError("cannot convert the {} ".format(comp) +
                                  "to a vector field in {}".format(self))
-        elif not isinstance(comp, (list, tuple)):
+        if not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction
@@ -1474,14 +1474,14 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         """
         if comp in ZZ and comp == 0:
             return self.zero()
-        elif isinstance(comp, VectorField):
+        if isinstance(comp, VectorField):
             if (self._domain.is_subset(comp._domain)
                    and self._ambient_domain.is_subset(comp._ambient_domain)):
                 return comp.restrict(self._domain)
             else:
                 raise ValueError("cannot convert the {}".format(comp) +
                                  "to a vector field in {}".format(self))
-        elif not isinstance(comp, (list, tuple)):
+        if not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction

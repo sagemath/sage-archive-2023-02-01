@@ -303,7 +303,7 @@ class MultivectorModule(UniqueRepresentation, Parent):
         """
         if comp in ZZ and comp == 0:
             return self.zero()
-        elif isinstance(comp, (MultivectorField, MultivectorFieldParal)):
+        if isinstance(comp, (MultivectorField, MultivectorFieldParal)):
             # coercion by domain restriction
             if (self._degree == comp._tensor_type[0]
                    and self._domain.is_subset(comp._domain)
@@ -313,7 +313,7 @@ class MultivectorModule(UniqueRepresentation, Parent):
             else:
                 raise TypeError("cannot convert the {} ".format(comp) +
                                 "to an element of {}".format(self))
-        elif not isinstance(comp, (list, tuple)):
+        if not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction
@@ -737,7 +737,7 @@ class MultivectorFreeModule(ExtPowerFreeModule):
             else:
                 raise TypeError("cannot convert the {} ".format(comp) +
                                 "to a multivector field in {}".format(self))
-        elif not isinstance(comp, (list, tuple, slice)):
+        if not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction

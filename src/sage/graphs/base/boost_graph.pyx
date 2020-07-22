@@ -1944,8 +1944,7 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
 
     for v in vertex_list:
         if v not in g:
-            raise ValueError("the starting vertex " + str(v) + " is not in " +
-                             "the graph")
+            raise ValueError(f"the starting vertex {v} is not in the graph")
 
     if vertex_list == None:
         vertex_list = list(g)
@@ -2012,9 +2011,13 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
                     result = g_boost_dir.dijkstra_shortest_paths(vi)
                     sig_off()
                     if not result.distances.size():
-                        raise RuntimeError("Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead")
+                        raise RuntimeError("Dijkstra algorithm does not "
+                                           "work with negative weights, "
+                                           "use Bellman-Ford instead")
                 except RuntimeError:
-                    raise RuntimeError("Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead")
+                    raise RuntimeError("Dijkstra algorithm does not "
+                                        "work with negative weights, "
+                                        "use Bellman-Ford instead")
             else:
                 raise ValueError(f"unknown algorithm {algorithm!r}")
         else:
@@ -2029,9 +2032,13 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
                     result = g_boost_und.dijkstra_shortest_paths(vi)
                     sig_off()
                     if not result.distances.size():
-                        raise RuntimeError("Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead")
+                        raise RuntimeError("Dijkstra algorithm does not "
+                                           "work with negative weights, "
+                                           "use Bellman-Ford instead")
                 except RuntimeError:
-                    raise RuntimeError("Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead")
+                    raise RuntimeError("Dijkstra algorithm does not "
+                                        "work with negative weights, "
+                                        "use Bellman-Ford instead")
             else:
                 raise ValueError(f"unknown algorithm {algorithm!r}")
 
@@ -2049,6 +2056,6 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
 
     if len(vertex_list) == 1:
         v = vertex_list[0]
-        return (distances[v], predecessors[v])
+        return distances[v], predecessors[v]
 
-    return (distances, predecessors)
+    return distances, predecessors

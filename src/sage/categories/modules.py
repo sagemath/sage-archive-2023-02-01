@@ -15,7 +15,9 @@ from __future__ import absolute_import
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.categories.morphism import SetMorphism
 from sage.categories.homsets import HomsetsCategory
+from sage.categories.homset import Hom
 from .category import Category
 from .category_types import Category_module
 from sage.categories.tensor import TensorProductsCategory, tensor
@@ -537,6 +539,41 @@ class Modules(Category_module):
                  group of order 6 as a permutation group over Rational Field
             """
             return tensor([self, self])
+
+        def module_morphism(self, *, function, category=None, codomain, **keywords):
+            r"""
+            Construct a module morphism from ``self`` to ``codomain``.
+
+            Let ``self`` be a module `X` over a ring `R`.
+            This constructs a morphism `f: X \to Y`.
+
+            INPUT:
+
+            - ``self`` -- a parent `X` in ``Modules(R)``.
+
+            - ``function`` -- a function `f` from `X` to `Y`
+
+            - ``codomain`` -- the codomain `Y` of the morphism (default:
+              ``f.codomain()`` if it's defined; otherwise it must be specified)
+
+            - ``category`` -- a category or ``None`` (default: ``None``)
+
+            EXAMPLES::
+
+                sage: V = FiniteRankFreeModule(QQ, 2)
+                sage: e = V.basis('e'); e
+                Basis (e_0,e_1) on the 2-dimensional vector space over the Rational Field
+                sage: neg = V.module_morphism(function=operator.neg, codomain=V); neg
+                Generic endomorphism of 2-dimensional vector space over the Rational Field
+                sage: neg(e[0])
+                Element -e_0 of the 2-dimensional vector space over the Rational Field
+
+            """
+            # Make sure that we only create a module morphism, even if
+            # domain and codomain have more structure
+            if category is None:
+                category = Modules(self.base_ring())
+            return SetMorphism(Hom(self, codomain, category), function)
 
     class ElementMethods:
         pass

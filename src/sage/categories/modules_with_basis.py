@@ -255,7 +255,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             - ``codomain`` -- the codomain `Y` of the morphism (default:
               ``f.codomain()`` if it's defined; otherwise it must be specified)
 
-            - ``category`` -- a category or ``None`` (default: `None``)
+            - ``category`` -- a category or ``None`` (default: ``None``)
 
             - ``zero`` -- the zero of the codomain (default: ``codomain.zero()``);
               can be used (with care) to define affine maps.

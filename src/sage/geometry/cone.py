@@ -2279,9 +2279,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: face = L.level_sets()[1][0]
             sage: D = L.hasse_diagram()
-            sage: D.neighbors(face)
-            [2-d cone in 2-d lattice N,
-             0-d face of 2-d cone in 2-d lattice N]
+            sage: sorted(D.neighbors(face))
+            [0-d face of 2-d cone in 2-d lattice N,
+             2-d cone in 2-d lattice N]
 
         However, you can achieve some of this functionality using
         :meth:`facets`, :meth:`facet_of`, and :meth:`adjacent` methods::
@@ -4059,8 +4059,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: halfplane.semigroup_generators()
             (N(0, 1), N(1, 0), N(-1, 0))
             sage: line = Cone([(1,1,1),(-1,-1,-1)])
-            sage: line.semigroup_generators()
-            (N(1, 1, 1), N(-1, -1, -1))
+            sage: sorted(line.semigroup_generators())
+            [N(-1, -1, -1), N(1, 1, 1)]
             sage: wedge = Cone([ (1,0,0), (1,2,0), (0,0,1), (0,0,-1) ])
             sage: sorted(wedge.semigroup_generators())
             [N(0, 0, -1), N(0, 0, 1), N(1, 0, 0), N(1, 1, 0), N(1, 2, 0)]

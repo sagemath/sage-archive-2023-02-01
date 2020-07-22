@@ -821,10 +821,10 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             [2, 4, 4, 2, 1, 2, 4, 4]
             sage: all(T.is_divisible_by(3) for T in tor)
             True
-            sage: Set([T for T in tor if T.is_divisible_by(2)])
-            {(0 : 1 : 0), (1 : 0 : 1)}
-            sage: Set([2*T for T in tor])
-            {(0 : 1 : 0), (1 : 0 : 1)}
+            sage: sorted(T for T in tor if T.is_divisible_by(2))
+            [(0 : 1 : 0), (1 : 0 : 1)]
+            sage: sorted(Set([2*T for T in tor]))
+            [(0 : 1 : 0), (1 : 0 : 1)]
         """
         # Coerce the input m to an integer
         m = Integer(m)

@@ -300,13 +300,13 @@ class Curve_generic(AlgebraicScheme_subscheme):
             sage: C = Curve([359/12*x*y^2*z^2 + 2*y*z^4 + 187/12*y^3*z^2 + x*z^4\
             + 67/3*x^2*y*z^2 + 117/4*y^5 + 9*x^5 + 6*x^3*z^2 + 393/4*x*y^4\
             + 145*x^2*y^3 + 115*x^3*y^2 + 49*x^4*y], P)
-            sage: C.singular_points(K)
-            [(b^6 : -b^6 : 1),
+            sage: sorted(C.singular_points(K), key=str)
+            [(-1/2*b^5 - 1/2*b^3 + 1/2*b - 1 : 1 : 0),
+             (-2/3*b^4 + 1/3 : 0 : 1),
              (-b^6 : b^6 : 1),
              (1/2*b^5 + 1/2*b^3 - 1/2*b - 1 : 1 : 0),
-             (-1/2*b^5 - 1/2*b^3 + 1/2*b - 1 : 1 : 0),
              (2/3*b^4 - 1/3 : 0 : 1),
-             (-2/3*b^4 + 1/3 : 0 : 1)]
+             (b^6 : -b^6 : 1)]
         """
         if F is None:
             if not self.base_ring() in Fields():

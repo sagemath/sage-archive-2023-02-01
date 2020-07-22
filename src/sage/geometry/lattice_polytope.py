@@ -1919,10 +1919,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: face = L.level_sets()[1][0]
             sage: D = L.hasse_diagram()
-            sage: D.neighbors(face)
-            [1-d face of 2-d lattice polytope in 2-d lattice M,
+            sage: sorted(D.neighbors(face))
+            [-1-d face of 2-d lattice polytope in 2-d lattice M,
              1-d face of 2-d lattice polytope in 2-d lattice M,
-             -1-d face of 2-d lattice polytope in 2-d lattice M]
+             1-d face of 2-d lattice polytope in 2-d lattice M]
 
         However, you can achieve some of this functionality using
         :meth:`facets`, :meth:`facet_of`, and :meth:`adjacent` methods::
@@ -3981,7 +3981,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             raise ValueError("Boundary can be traversed only for 2-polytopes!")
         zero_faces = set(self.faces(0))
         l = [self.faces(0)[0]]
-        prev, next = zero_faces.intersection(l[0].adjacent())
+        prev, next = sorted(zero_faces.intersection(l[0].adjacent()))
         l = [prev, l[0], next]
         while len(l) < self.nvertices():
             prev, next = zero_faces.intersection(l[-1].adjacent())

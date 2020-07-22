@@ -677,7 +677,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         There is currently no guarantee that the algorithm converges as the
         working precision is increased.
 
-        See the `Arb documentation <http://arblib.org/acb_mat.html#c.acb_mat_eig_multiple>`_
+        See the `Arb documentation <http://arblib.org/acb_mat.html#c.acb_mat_eig_multiple>`__
         for more information.
 
         EXAMPLES::
@@ -746,7 +746,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
 
         No guarantees are made about the accuracy of the output.
 
-        See the `Arb documentation <http://arblib.org/acb_mat.html#c.acb_mat_approx_eig_qr>`_
+        See the `Arb documentation <http://arblib.org/acb_mat.html#c.acb_mat_approx_eig_qr>`__
         for more information.
 
         EXAMPLES::
@@ -802,7 +802,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         Additionally, there is currently no guarantee that the algorithm
         converges as the working precision is increased.
 
-        See the `Arb documentation <http://arblib.org/acb_mat.html#c.acb_mat_eig_simple>`_
+        See the `Arb documentation <http://arblib.org/acb_mat.html#c.acb_mat_eig_simple>`__
         for more information.
 
         EXAMPLES::

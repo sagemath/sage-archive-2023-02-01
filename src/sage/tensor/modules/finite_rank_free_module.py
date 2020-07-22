@@ -2604,8 +2604,6 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
                 raise ValueError("domain and codomain must have the same "
                                  "base ring")
 
-        from sage.modules.with_basis.morphism import ModuleMorphismFromFunction
-
         codomain_basis = list(codomain.basis())
 
         def _isomorphism(x):
@@ -2615,8 +2613,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             return codomain.sum(x[basis, i] * codomain_basis[i - self._sindex]
                                 for i in self.irange())
 
-        return ModuleMorphismFromFunction(self, _isomorphism, codomain,
-                                          category=Modules(base_ring))
+        return self.module_morphism(function=_isomorphism, codomain=codomain)
 
     def endomorphism(self, matrix_rep, basis=None, name=None, latex_name=None):
         r"""

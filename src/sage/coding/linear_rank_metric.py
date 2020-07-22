@@ -153,8 +153,8 @@ def to_matrix_representation(v, sub_field=None, basis=None):
 
     - ``basis`` -- (default: ``None``) a basis of `F_{q^m}` as a vector space over
       ``sub_field``. If not specified, given that `q = p^s`, let
-      `1,\beta,\ldots,\beta^{sm}` be the power basis that SageMath uses to
-      represent `F_{q^m}`. The default basis is then `1,\beta,\ldots,beta^{m-1}`.
+      `1,β,\ldots,β^{sm}` be the power basis that SageMath uses to
+      represent `F_{q^m}`. The default basis is then `1,β,\ldots,β^{m-1}`.
 
     EXAMPLES::
 
@@ -204,8 +204,8 @@ def from_matrix_representation(w, base_field=None, basis=None):
 
     - ``basis`` -- (default: ``None``) a basis of `F_{q^m}` as a vector space over
       ``F_q``. If not specified, given that `q = p^s`, let
-      `1,\beta,\ldots,\beta^{sm}` be the power basis that SageMath uses to
-      represent `F_{q^m}`. The default basis is then `1,\beta,\ldots,beta^{m-1}`.
+      `1,β,\ldots,β^{sm}` be the power basis that SageMath uses to
+      represent `F_{q^m}`. The default basis is then `1,β,\ldots,β^{m-1}`.
 
     EXAMPLES::
 
@@ -247,8 +247,8 @@ def rank_weight(c, sub_field=None, basis=None):
 
     - ``basis`` -- (default: ``None``) a basis of `F_{q^m}` as a vector space over
       ``sub_field``. If not specified, given that `q = p^s`, let
-      `1,\beta,\ldots,\beta^{sm}` be the power basis that SageMath uses to
-      represent `F_{q^m}`. The default basis is then `1,\beta,\ldots,beta^{m-1}`.
+      `1,β,\ldots,β^{sm}` be the power basis that SageMath uses to
+      represent `F_{q^m}`. The default basis is then `1,β,\ldots,β^{m-1}`.
 
     EXAMPLES::
 
@@ -284,8 +284,8 @@ def rank_distance(a, b, sub_field=None, basis=None):
 
     - ``basis`` -- (default: ``None``) a basis of `F_{q^m}` as a vector space over
       ``sub_field``. If not specified, given that `q = p^s`, let
-      `1,\beta,\ldots,\beta^{sm}` be the power basis that SageMath uses to
-      represent `F_{q^m}`. The default basis is then `1,\beta,\ldots,beta^{m-1}`.
+      `1,β,\ldots,β^{sm}` be the power basis that SageMath uses to
+      represent `F_{q^m}`. The default basis is then `1,β,\ldots,β^{m-1}`.
 
     EXAMPLES::
 
@@ -386,8 +386,8 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
 
         - ``basis`` -- (default: ``None``) a basis of `F_{q^m}` as a vector space over
           ``sub_field``. If not specified, given that `q = p^s`, let
-          `1,\beta,\ldots,\beta^{sm}` be the power basis that SageMath uses to
-          represent `F_{q^m}`. The default basis is then `1,\beta,\ldots,beta^{m-1}`.
+          `1,β,\ldots,β^{sm}` be the power basis that SageMath uses to
+          represent `F_{q^m}`. The default basis is then `1,β,\ldots,β^{m-1}`.
 
         EXAMPLES:
 
@@ -682,8 +682,8 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
 
         - ``basis`` -- (default: ``None``) a basis of `F_{q^m}` as a vector space over
           ``sub_field``. If not specified, given that `q = p^s`, let
-          `1,\beta,\ldots,\beta^{sm}` be the power basis that SageMath uses to
-          represent `F_{q^m}`. The default basis is then `1,\beta,\ldots,beta^{m-1}`.
+          `1,β,\ldots,β^{sm}` be the power basis that SageMath uses to
+          represent `F_{q^m}`. The default basis is then `1,β,\ldots,β^{m-1}`.
 
         EXAMPLES::
 

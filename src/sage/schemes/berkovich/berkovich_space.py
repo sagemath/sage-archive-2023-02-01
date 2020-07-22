@@ -2157,7 +2157,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             sage: Q10.join(Q9)
             Traceback (most recent call last):
             ...
-            ValueError: join takes two points in the same Berkovich projective line
+            ValueError: other must be a point of the same projective Berkovich line
 
             sage: Q11 = C(0, 1/3)
             sage: Q11.join(Q10)
@@ -2816,7 +2816,7 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
             sage: R.<z> = QQ[]
             sage: A.<a> = NumberField(z^2 + 1)
             sage: ideal = A.prime_above(3)
-            sage: B = Berkovich_Cp_Affine(A, ideal)
+            sage: B = Berkovich_Cp_Affine(A, ideal); B
             Affine Berkovich line over Cp(3), with base Number Field
             in a with defining polynomial z^2 + 1
         """
@@ -2912,7 +2912,7 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
         if not is_ProjectiveSpace(base):
             raise ValueError("base of projective Berkovich space must be projective space")
         if not (is_pAdicField(base.base_ring())):
-            if not (is_NumberField(base.base_ring())):
+            if base.base_ring() not in NumberFields():
                 raise ValueError("base of projective Berkovich space must be " + \
                     "projective space over Qp or a number field")
             else:

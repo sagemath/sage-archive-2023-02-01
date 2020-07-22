@@ -20,8 +20,8 @@ half-open intervals does not work::
     sage: RealSet([0,1))
     Traceback (most recent call last):
     ...
-    SyntaxError: invalid syntax
-    
+    SyntaxError: ...
+
 Instead, you can use the following construction functions::
 
     sage: RealSet.open_closed(0,1)

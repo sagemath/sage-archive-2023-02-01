@@ -164,7 +164,7 @@ TESTS::
     sage: M(9) = x                                          # optional - scilab
     Traceback (most recent call last):
     ...
-    SyntaxError: can't assign to function call (..., line 1)
+    SyntaxError: can...t assign to function call (..., line 1)
 
 AUTHORS:
 

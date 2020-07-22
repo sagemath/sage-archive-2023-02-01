@@ -356,7 +356,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: A.dehomogenize([0,0])
             Traceback (most recent call last):
             ...
-            ValueError: can't dehomogenize at 0 coordinate
+            ValueError: can...t dehomogenize at 0 coordinate
         """
         PP = self.codomain()
         A = PP.affine_patch(L)

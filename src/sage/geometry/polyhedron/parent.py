@@ -13,16 +13,19 @@ from __future__ import absolute_import
 from sage.structure.parent import Parent
 from sage.structure.element import get_coercion_model
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.modules.free_module import is_FreeModule
+from sage.modules.free_module import FreeModule, is_FreeModule
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.rings.all import ZZ, QQ, RDF, CommutativeRing
 from sage.categories.fields import Fields
+from sage.categories.rings import Rings
+
 
 from sage.geometry.polyhedron.base import is_Polyhedron
 from .representation import Inequality, Equation, Vertex, Ray, Line
 
 
-def Polyhedra(base_ring, ambient_dim, backend=None):
+def Polyhedra(ambient_space_or_base_ring=None, ambient_dim=None, backend=None, *,
+              ambient_space=None, base_ring=None):
     r"""
     Construct a suitable parent class for polyhedra
 
@@ -32,6 +35,8 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
       `\QQ`, and `\RDF`.
 
     - ``ambient_dim`` -- integer. The ambient space dimension.
+
+    - ``ambient_space`` -- A free module.
 
     - ``backend`` -- string. The name of the backend for computations. There are
        several backends implemented:
@@ -72,6 +77,16 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         sage: Polyhedra(ZZ, 3, backend='cdd')
         Polyhedra in QQ^3
 
+    Using a more general form of the constructor::
+
+        sage: V = VectorSpace(QQ, 3)
+        sage: Polyhedra(V) is Polyhedra(QQ, 3)
+        True
+        sage: Polyhedra(V, backend='field') is Polyhedra(QQ, 3, 'field')
+        True
+        sage: Polyhedra(backend='field', ambient_space=V) is Polyhedra(QQ, 3, 'field')
+        True
+
     TESTS::
 
         sage: Polyhedra(RR, 3, backend='field')
@@ -88,6 +103,18 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         ValueError: invalid base ring: Number Field in I with defining polynomial x^2 + 1 with I = 1*I cannot be coerced to a real field
 
     """
+    if ambient_space_or_base_ring is not None:
+        if ambient_space_or_base_ring in Rings():
+            base_ring = ambient_space_or_base_ring
+        else:
+            ambient_space = ambient_space_or_base_ring
+    if ambient_space is not None:
+        if base_ring is None:
+            base_ring = ambient_space.base_ring()
+        if ambient_dim is None:
+            ambient_dim = ambient_space.dimension()
+        if ambient_space is not FreeModule(base_ring, ambient_dim):
+            raise NotImplementedError('ambient_space must be standard free module')
     if backend is None:
         if base_ring is ZZ or base_ring is QQ:
             backend = 'ppl'

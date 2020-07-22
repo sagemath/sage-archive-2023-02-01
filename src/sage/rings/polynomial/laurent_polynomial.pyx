@@ -3446,7 +3446,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     def is_square(self, root=False):
         r"""
-        Test whether this Laurent polynomial is a square root.
+        Test whether this Laurent polynomial is a square.
 
         INPUT:
 
@@ -3492,4 +3492,111 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             ans._mon = mon
             ans._poly = root
             return (True, ans)
+
+    cpdef rescale_vars(self, d, h=None, new_ring=None):
+        r"""
+        Rescale variables in a Laurent polynomial.
+
+        The optional argument ``h`` is a map to be applied to coefficients.
+        This is done after rescaling.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LaurentPolynomialRing(QQ, 2)
+            sage: p = x^2*y + x*y^2
+            sage: p.rescale_vars({0: 2, 1: 3})
+            12*x^2*y + 18*x*y^2
+        """
+        cdef int i
+        if new_ring is None:
+            P = self.parent()
+        else:
+            P = new_ring
+        df = self.dict()
+        df2 = {}
+        for v in df:
+            w = df[v]
+            for i in d:
+                w *= d[i]**v[i]
+            if h is not None:
+                w = h(w)
+            df2[v] = w
+        return P(df2)
+
+    cpdef toric_coordinate_change(self, M, h=None, new_ring=None):
+        r"""
+        Apply a matrix to the exponents in a Laurent polynomial.
+
+        For efficiency, we implement this directly, rather than as a substitution.
+
+        The optional argument ``h`` is a map to be applied to coefficients.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LaurentPolynomialRing(QQ,2)
+            sage: p = 2*x^2 + y + x*y
+            sage: p.toric_coordinate_change(Matrix([[1,-3],[1,1]]))
+            2*x^2*y^2 + x^-2*y^2 + x^-3*y
+            sage: F = GF(2)
+            sage: p.toric_coordinate_change(Matrix([[1,-3],[1,1]]), new_ring=L.change_ring(F))
+            x^-2*y^2 + x^-3*y
+        """
+        cdef n, i, j
+        if new_ring is None:
+            P = self.parent()
+        else:
+            P = new_ring
+        n = P.ngens()
+        if self == 0:
+            return P.zero()
+        l = []
+        for j in range(n):
+            l.append(ETuple(tuple(M.column(j))))
+        d = self.dict()
+        d2 = {}
+        for v in d:
+            x = d[v]
+            t = ETuple({}, n)
+            for j in range(n):
+                t = t.eadd(l[j].emul(v[j]))
+            if h is not None:
+                x = h(x)
+            d2[t] = x
+        return P(d2)
+
+    cpdef toric_substitute(self, v, v1, a, h=None, new_ring=None):
+        r"""
+        Perform a single-variable substitution up to a toric coordinate change.
+
+        The optional argument ``h`` is a map to be applied to coefficients.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LaurentPolynomialRing(QQ, 2)
+            sage: p = x + y
+            sage: p.toric_substitute((2,3), (-1,1), 2)
+            1/2*x^3*y^3 + 2*x^-2*y^-2
+            sage: F = GF(5)
+            sage: p.toric_substitute((2,3), (-1,1), 2, new_ring=L.change_ring(F))
+            3*x^3*y^3 + 2*x^-2*y^-2
+        """
+        if new_ring is None:
+            P = self.parent()
+        else:
+            P = new_ring
+        d = self.dict()
+        d2 = {}
+        v = ETuple(v)
+        v1 = ETuple(v1)
+        for w in d:
+            x = d[w]
+            if h is not None:
+                x = h(x)
+            t = w.dotprod(v1)
+            w1 = w.eadd(v.emul(-t))
+            if w1 in d2:
+                d2[w1] += x * a**t
+            else:
+                d2[w1] = x * a**t
+        return P(d2)
 

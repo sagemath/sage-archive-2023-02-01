@@ -230,7 +230,7 @@ class SectionModule(UniqueRepresentation, Parent):
             else:
                 raise ValueError("cannot convert the {} ".format(comp) +
                                  "to a local section in {}".format(self))
-        elif not isinstance(comp, (list, tuple, slice)):
+        elif not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction
@@ -643,13 +643,13 @@ class SectionFreeModule(FiniteRankFreeModule):
         """
         if comp in ZZ and comp == 0:
             return self.zero()
-        if isinstance(comp, Section):
+        elif isinstance(comp, Section):
             if self._domain.is_subset(comp._domain):
                 return comp.restrict(self._domain)
             else:
                 raise ValueError("cannot convert the {}".format(comp) +
                                  "to a local section in {}".format(self))
-        elif not isinstance(comp, (list, tuple, slice)):
+        elif not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction

@@ -356,7 +356,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
             else:
                 raise TypeError("cannot convert the {} ".format(tensor) +
                                 "to an element of {}".format(self))
-        elif not isinstance(comp, (list, tuple, slice)):
+        elif not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction

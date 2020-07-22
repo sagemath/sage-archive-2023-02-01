@@ -210,7 +210,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         """
         if comp == 1:
             return self.one()
-        if not isinstance(comp, (list, tuple, slice)):
+        if not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction

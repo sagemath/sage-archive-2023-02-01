@@ -42,7 +42,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
 from sage.misc.cachefunc import cached_method
-from sage.symbolic.ring import ZZ
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.manifolds.differentiable.vectorfield import (VectorField,
                                                        VectorFieldParal)
@@ -277,7 +278,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             else:
                 raise ValueError("cannot convert the {} ".format(comp) +
                                  "to a vector field in {}".format(self))
-        elif not isinstance(comp, (list, tuple, slice)):
+        elif not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction
@@ -773,7 +774,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                 return self.automorphism(name=name,
                                          latex_name=latex_name)
         elif tensor_type[0] == 0 and tensor_type[1] > 1 and antisym:
-            if antisym[0] in ZZ:
+            if isinstance(antisym[0], (int, Integer)):
                 # a single antisymmetry is provided as a tuple or a
                 # range object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
@@ -785,7 +786,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                 return self.alternating_form(tensor_type[1], name=name,
                                              latex_name=latex_name)
         elif tensor_type[0] > 1 and tensor_type[1] == 0 and antisym:
-            if antisym[0] in ZZ:
+            if isinstance(antisym[0], (int, Integer)):
                 # a single antisymmetry is provided as a tuple or a
                 # range object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
@@ -1090,7 +1091,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         ndim = self._ambient_domain.dimension()
         try:
             for elt in signature:
-                if (elt<0) or elt not in ZZ:
+                if (elt<0) or (not isinstance(elt, (int, Integer))):
                     raise ValueError("{} must be a positive integer".format(elt))
                 if elt > ndim:
                     raise ValueError("{} must be less than {}".format(elt,ndim))
@@ -1106,7 +1107,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             pass
         if signature is None:
             signature = (ndim,0)
-        if signature in ZZ:
+        if isinstance(signature, (Integer, int)):
             if (signature+ndim)%2 == 1:
                 if ndim%2 == 0:
                     raise ValueError("the metric signature must be even")
@@ -1473,14 +1474,14 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         """
         if comp in ZZ and comp == 0:
             return self.zero()
-        if isinstance(comp, VectorField):
+        elif isinstance(comp, VectorField):
             if (self._domain.is_subset(comp._domain)
                    and self._ambient_domain.is_subset(comp._ambient_domain)):
                 return comp.restrict(self._domain)
             else:
                 raise ValueError("cannot convert the {}".format(comp) +
                                  "to a vector field in {}".format(self))
-        elif not isinstance(comp, (list, tuple, slice)):
+        elif not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction
@@ -2012,7 +2013,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                           (AutomorphismField, AutomorphismFieldParal)):
                 return self.automorphism(name=name, latex_name=latex_name)
         elif tensor_type[0] == 0 and tensor_type[1] > 1 and antisym:
-            if antisym[0] in ZZ:
+            if isinstance(antisym[0], (int, Integer)):
                 # a single antisymmetry is provided as a tuple or a
                 # range object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
@@ -2024,7 +2025,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                 return self.alternating_form(tensor_type[1], name=name,
                                              latex_name=latex_name)
         elif tensor_type[0] > 1 and tensor_type[1] == 0 and antisym:
-            if antisym[0] in ZZ:
+            if isinstance(antisym[0], (int, Integer)):
                 # a single antisymmetry is provided as a tuple or a
                 # range object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
@@ -2231,7 +2232,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         ndim = self._ambient_domain.dimension()
         try:
             for elt in signature:
-                if (elt<0) or elt not in ZZ:
+                if (elt<0) or (not isinstance(elt, (int, Integer))):
                     raise ValueError("{} must be a positive integer".format(elt))
             sign = signature[0]+signature[1]+signature[2]
             if sign!=ndim:
@@ -2245,7 +2246,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             pass
         if signature is None:
             signature = (ndim,0)
-        if signature in ZZ:
+        if isinstance(signature, (Integer, int)):
             if (signature+ndim)%2 == 1:
                 if ndim%2 == 0:
                     raise ValueError("the metric signature must be even")

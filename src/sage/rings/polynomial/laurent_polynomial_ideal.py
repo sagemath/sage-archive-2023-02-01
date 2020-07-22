@@ -302,12 +302,15 @@ class LaurentPolynomialIdeal( Ideal_generic ):
             sage: I = P.ideal([x+1, y-1])
             sage: I.apply_map(lambda z: z+2)
             Ideal (x + 3, y + 1) of Multivariate Laurent Polynomial Ring in x, y over Rational Field
+            sage: K.<i> = CyclotomicField(4)
+            sage: I.apply_map(lambda z: z+2, new_base_ring=K)
+            Ideal (x + 3, y + 1) of Multivariate Laurent Polynomial Ring in x, y over Cyclotomic Field of order 4 and degree 2
         """
         ring = self.ring()
         if new_ring is not None:
             R = new_ring
         elif new_base_ring is not None:
-            R = R.change_ring(new_base_ring)
+            R = ring.change_ring(new_base_ring)
         else:
             R = ring
         if apply_to_hint:
@@ -330,12 +333,16 @@ class LaurentPolynomialIdeal( Ideal_generic ):
             sage: h = K.hom([z^2])
             sage: I.apply_coeff_map(h)
             Ideal (x - z - 1, y + z + 1) of Multivariate Laurent Polynomial Ring in x, y over Cyclotomic Field of order 3 and degree 2
+            sage: K1.<z1> = CyclotomicField(12)
+            sage: h1 = K.hom([z1^4])
+            sage: I.apply_coeff_map(h1, new_base_ring=K1)
+            Ideal (x + z1^2 - 1, y - z1^2 + 1) of Multivariate Laurent Polynomial Ring in x, y over Cyclotomic Field of order 12 and degree 4
         """
         ring = self.ring()
         if new_base_ring is None:
             R = ring
         else:
-            R = R.change_ring(new_base_ring)
+            R = ring.change_ring(new_base_ring)
         if forward_hint:
             apply_to_hint = lambda x,f=f: x.map_coefficients(f)
         else:

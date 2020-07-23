@@ -30,18 +30,20 @@ AUTHORS:
 - Michael Jung (2019) : initial version
 
 """
-#******************************************************************************
+# ******************************************************************************
 #       Copyright (C) 2019 Michael Jung <micjung@uni-potsdam.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#******************************************************************************
+# ******************************************************************************
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
-from sage.manifolds.differentiable.vector_bundle import DifferentiableVectorBundle
+from sage.manifolds.differentiable.vector_bundle import \
+    DifferentiableVectorBundle
+
 
 class BundleConnection(SageObject):
     r"""
@@ -59,8 +61,8 @@ class BundleConnection(SageObject):
 
     EXAMPLES:
 
-    Define a bundle connection on a rank 2 vector bundle over some 3-dimensional
-    smooth manifold::
+    Define a bundle connection on a rank 2 vector bundle over some
+    3-dimensional smooth manifold::
 
         sage: M = Manifold(3, 'M', start_index=1)
         sage: X.<x,y,z> = M.chart()
@@ -70,40 +72,102 @@ class BundleConnection(SageObject):
         Bundle connection nabla on the Differentiable real vector bundle E -> M
          of rank 2 over the base space 3-dimensional differentiable manifold M
 
-    The bundle connection is specified by the connection 1-forms::
+    First, let us initialize all connection 1-forms w.r.t. the frame ``e`` to
+    zero::
 
-        sage: nab[:] = 0  # initialize with zero
+        sage: nab[e, :] = [[0, 0], [0, 0]]
+
+    This line can be shortened by the following::
+
+        sage: nab[e, :] = 0  # initialize to zero
+
+    Now, we want to specify some non-zero entries::
+
+        sage: nab[e, 1, 2] = [x*z, y*z, z^2]
+        sage: nab[e, 2, 1] = [x, x^2, x^3]
+        sage: nab[e, 1, 2].display()
+        connection (1,2) of bundle connection nabla w.r.t. Local frame
+         (E|_M, (e_1,e_2)) = x*z dx + y*z dy + z^2 dz
+        sage: nab[e, 2, 1].display()
+        connection (2,1) of bundle connection nabla w.r.t. Local frame
+         (E|_M, (e_1,e_2)) = x dx + x^2 dy + x^3 dz
+
+    The other entries remain zero::
+
+        sage: nab[e, 1, 1].display()
+        connection (1,1) of bundle connection nabla w.r.t. Local frame
+         (E|_M, (e_1,e_2)) = 0
+        sage: nab[e, 2, 2].display()
+        connection (2,2) of bundle connection nabla w.r.t. Local frame
+         (E|_M, (e_1,e_2)) = 0
+
+    Notice, when we omit the frame, the default frame of the vector bundle is
+    assumed (in this case ``e``)::
+
+        sage: nab[2, 2].display()
+        connection (2,2) of bundle connection nabla w.r.t. Local frame
+         (E|_M, (e_1,e_2)) = 0
+
+    The same holds for the assignment::
+
+        sage: nab[:] = 0
+        sage: nab[e, 1, 2].display()
+        connection (1,2) of bundle connection nabla w.r.t. Local frame
+         (E|_M, (e_1,e_2)) = 0
+
+    We can also use :meth:`set_connection_form` to specify the connection
+    1-forms::
+
+        sage: nab[:] = 0  # re-initialize to zero
         sage: nab.set_connection_form(1, 2)[:] = [x*z, y*z, z^2]
-        sage: nab.set_connection_form(1, 1)[:] = [x, x^2, x^3]
+        sage: nab.set_connection_form(2, 1)[:] = [x, x^2, x^3]
+        sage: nab[1, 2].display()
+        connection (1,2) of bundle connection nabla w.r.t. Local frame
+         (E|_M, (e_1,e_2)) = x*z dx + y*z dy + z^2 dz
+        sage: nab[2, 1].display()
+        connection (2,1) of bundle connection nabla w.r.t. Local frame
+         (E|_M, (e_1,e_2)) = x dx + x^2 dy + x^3 dz
 
-    From this, the connection 2-forms can be derived::
+    .. NOTE::
 
+        Notice that list assignments and :meth:`set_connection_form` delete
+        the connection 1-forms w.r.t. other frames for consistency reasons. To
+        avoid this behavior, :meth:`add_connection_form` must be used instead.
+
+    After the connection has been specified, the curvature 2-forms can be
+    derived::
+
+        sage: Omega = nab.curvature_form
         sage: for i in E.irange():
         ....:     for j in E.irange():
-        ....:         print(nab.curvature_form(i ,j).display())
+        ....:         print(Omega(i ,j, e).display())
         curvature (1,1) of bundle connection nabla w.r.t. Local frame
+         (E|_M, (e_1,e_2)) = -(x^3 - x*y)*z dx/\dy + (-x^4*z + x*z^2) dx/\dz +
+         (-x^3*y*z + x^2*z^2) dy/\dz
+         curvature (1,2) of bundle connection nabla w.r.t. Local frame
+         (E|_M, (e_1,e_2)) = -x dx/\dz - y dy/\dz
+         curvature (2,1) of bundle connection nabla w.r.t. Local frame
          (E|_M, (e_1,e_2)) = 2*x dx/\dy + 3*x^2 dx/\dz
-        curvature (1,2) of bundle connection nabla w.r.t. Local frame
-         (E|_M, (e_1,e_2)) = (x^3 - x*y)*z dx/\dy + (x^4*z - x*z^2 - x) dx/\dz +
-         (x^3*y*z - x^2*z^2 - y) dy/\dz
-        curvature (2,1) of bundle connection nabla w.r.t. Local frame
-         (E|_M, (e_1,e_2)) = 0
-        curvature (2,2) of bundle connection nabla w.r.t. Local frame
-         (E|_M, (e_1,e_2)) = 0
+         curvature (2,2) of bundle connection nabla w.r.t. Local frame
+         (E|_M, (e_1,e_2)) = (x^3 - x*y)*z dx/\dy + (x^4*z - x*z^2) dx/\dz +
+         (x^3*y*z - x^2*z^2) dy/\dz
 
-    They certainly obey the structure equation::
+    The derived forms certainly obey the structure equations, see
+    :meth:`curvature_form` for details::
 
         sage: omega = nab.connection_form
         sage: check = []
         sage: for i in E.irange():  # long time
         ....:     for j in E.irange():
-        ....:         check.append(nab.curvature_form(i,j,e) == \
+        ....:         check.append(Omega(i,j,e) == \
         ....:                       omega(i,j,e).exterior_derivative() + \
-        ....:         sum(omega(k,j,e).wedge(omega(i,k,e)) for k in E.irange()))
+        ....:         sum(omega(k,j,e).wedge(omega(i,k,e))
+        ....:             for k in E.irange()))
         sage: check  # long time
         [True, True, True, True]
 
     """
+
     def __init__(self, vbundle, name, latex_name=None):
         r"""
         Construct a bundle connection.
@@ -112,7 +176,8 @@ class BundleConnection(SageObject):
 
             sage: M = Manifold(3, 'M')
             sage: E = M.vector_bundle(2, 'E')
-            sage: from sage.manifolds.differentiable.bundle_connection import BundleConnection
+            sage: from sage.manifolds.differentiable.bundle_connection \
+            ....:                                       import BundleConnection
             sage: nab = BundleConnection(E, 'nabla', latex_name=r'\nabla')
             sage: nab
             Bundle connection nabla on the Differentiable real vector bundle
@@ -135,8 +200,7 @@ class BundleConnection(SageObject):
             self._latex_name = self._name
         else:
             self._latex_name = latex_name
-        self._connection_forms = {}  # dict. of connection coefficients, with
-                                     # the local frames as keys
+        self._connection_forms = {}  # dict. of con. forms, with frames as keys
         self._coefficients = self._connection_forms
         # Initialization of derived quantities:
         self._init_derived()
@@ -201,7 +265,7 @@ class BundleConnection(SageObject):
 
         """
         self._curvature_forms = {}  # dict. of dict. of curvature forms
-                                    # (key: local frame)
+        # (key: local frame)
         self._hash = -1
 
     def _del_derived(self):
@@ -357,7 +421,7 @@ class BundleConnection(SageObject):
                 name += "connection " + self._name + " w.r.t. {}".format(frame)
                 latex_name = r"\omega^" + str(j) + r"_{\ \, " + str(i) + "}"
                 form = dom.diff_form(1, name=name, latex_name=latex_name)
-                forms_dict[(i,j)] = form
+                forms_dict[(i, j)] = form
         return forms_dict
 
     def connection_forms(self, frame=None):
@@ -400,8 +464,10 @@ class BundleConnection(SageObject):
             sage: nab[:] = 0  # initialize curvature forms
             sage: nab.connection_forms() # random
             {(1, 1): 1-form a on the 3-dimensional differentiable manifold M,
-             (1, 2): 1-form zero on the 3-dimensional differentiable manifold M,
-             (2, 1): 1-form zero on the 3-dimensional differentiable manifold M,
+             (1, 2): 1-form zero on the 3-dimensional differentiable
+             manifold M,
+             (2, 1): 1-form zero on the 3-dimensional differentiable
+             manifold M,
              (2, 2): 1-form b on the 3-dimensional differentiable manifold M}
 
         """
@@ -462,7 +528,7 @@ class BundleConnection(SageObject):
              (E|_M, (e_0,e_1)) = y^2 dx + y dy
 
         """
-        return self.connection_forms(frame)[(i,j)]
+        return self.connection_forms(frame)[(i, j)]
 
     def add_connection_form(self, i, j, frame=None):
         r"""
@@ -490,7 +556,7 @@ class BundleConnection(SageObject):
 
         OUTPUT:
 
-        - connection 1-form `\omega^i_j` in the given frame, as an instance of
+        - connection 1-form `\omega^j_i` in the given frame, as an instance of
           the class :class:`~sage.manifolds.differentiable.diff_form.DiffForm`;
           if such connection 1-form did not exist previously, it is created.
           See method :meth:`connection_forms` for the storage convention of the
@@ -544,8 +610,8 @@ class BundleConnection(SageObject):
                 raise ValueError("the {} is not".format(frame) +
                                  " a frame on the {}".format(self._base_space))
             self._connection_forms[frame] = self._new_forms(frame)
-        self._del_derived() # deletes the derived quantities
-        return self._connection_forms[frame][(i,j)]
+        self._del_derived()  # deletes the derived quantities
+        return self._connection_forms[frame][(i, j)]
 
     def set_connection_form(self, i, j, frame=None):
         r"""
@@ -568,7 +634,7 @@ class BundleConnection(SageObject):
 
         OUTPUT:
 
-        - connection 1-form `\omega^i_j` in the given frame, as an instance of
+        - connection 1-form `\omega^j_i` in the given frame, as an instance of
           the class :class:`~sage.manifolds.differentiable.diff_form.DiffForm`;
           if such connection 1-form did not exist previously, it is created.
           See method :meth:`connection_forms` for the storage convention of the
@@ -686,7 +752,7 @@ class BundleConnection(SageObject):
         frame.
 
         The *curvature 2-forms* with respect to the frame `e` are the 2-forms
-        `\Omega^i_j` given by the formula
+        `\Omega^j_i` given by the formula
 
         .. MATH::
 
@@ -695,14 +761,14 @@ class BundleConnection(SageObject):
 
         INPUT:
 
-        - ``i``, ``j`` -- indices identifying the 2-form `\Omega^i_j`
+        - ``i``, ``j`` -- indices identifying the 2-form `\Omega^j_i`
         - ``frame`` -- (default: ``None``) local frame relative to which the
           curvature 2-forms are defined; if ``None``, the default frame
           of the vector bundle is assumed.
 
         OUTPUT:
 
-        - the 2-form `\Omega^i_j`, as an instance of
+        - the 2-form `\Omega^j_i`, as an instance of
           :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
 
         EXAMPLES::
@@ -729,14 +795,14 @@ class BundleConnection(SageObject):
         if frame not in self._curvature_forms:
             self._curvature_forms[frame] = {}
         if (i, j) not in self._curvature_forms[frame]:
-            name = "curvature ({},{}) of bundle connection ".format(i,j) + \
+            name = "curvature ({},{}) of bundle connection ".format(i, j) + \
                    self._name + " w.r.t. {}".format(frame)
             latex_name = r"\Omega^" + str(i) + r"_{\ \, " + \
-                        str(j) + "}"
+                         str(j) + "}"
             omega = self.connection_form
-            curv_form = omega(i, j, frame).exterior_derivative() + \
-                        sum(omega(k, j, frame).wedge(omega(i, k, frame))
-                            for k in self._vbundle.irange())
+            curv_form = omega(i, j, frame).exterior_derivative()
+            curv_form += sum(omega(k, j, frame).wedge(omega(i, k, frame))
+                             for k in self._vbundle.irange())
             curv_form.set_name(name=name, latex_name=latex_name)
             self._curvature_forms[frame][(i, j)] = curv_form
         return self._curvature_forms[frame][(i, j)]

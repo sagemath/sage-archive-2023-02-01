@@ -1,18 +1,20 @@
 r"""
-Berkovich Space over `\CC_p`
+Elements of Berkovich space.
 
-The Berkovich affine line is the set of seminorms on `\CC_p[x]`,
-with the weakest topology that makes the map `| \cdot | \to |f|` continuous
-for all `f \in \CC_p[x]`. The Berkovich projective line is the
-one-point compactification of the Berkovich affine line.
+:class:`Berkovich_Element` is abstract parent class for elements of any Berkovich space.
 
-The two main classes are :class:`Berkovich_Cp_Affine` and
-:class:`Berkovich_Cp_Projective`, which implement the affine and
-projective lines, respectively.
+:class:`Berkovich_Element_Cp_Affine` and :class:`Berkovich_Element_Cp_Projective`
+implement elements of Berkovich space over `\CC_p` and `P^1(\CC_p)`. Elements are
+determined by specific data and fall into one of the four following types:
 
-:class:`Berkovich_Cp_Affine` and :class:`Berkovich_Cp_Projective`
-take as input one of the following: the prime `p`, a finite
-extension of `\QQ_p`, or a number field and a place.
+- Type I points are represented by a center.
+
+- Type II points are represented by a center and a rational power of `p`.
+
+- Type III points are represented by a center and a non-negative real radius.
+
+- Type IV points are represented by a finite list of centers and a finite list of
+  non-negative radii.
 
 AUTHORS:
 
@@ -43,7 +45,6 @@ from sage.schemes.generic.scheme import Scheme
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import Infinity
-
 
 class Berkovich_Element(Element):
     """
@@ -968,7 +969,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
       and a rational power of `p`.
 
     - Type III points are represented by a center in the ``base`` of the parent Berkovich space,
-      and a radius in `[0,\infty)`.
+      and a radius, a real number in `[0,\infty)`.
 
     - Type IV points are represented by a finite list of centers in the ``base`` of the parent
       Berkovich space and a finite list of radii in `[0,\infty)`. Type IV points can be created

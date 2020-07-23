@@ -237,11 +237,17 @@ class Berkovich_Cp(Berkovich):
 
 class Berkovich_Cp_Affine(Berkovich_Cp):
     r"""
-    The Berkovich Affine line over `\CC_p`.
+    The Berkovich affine line over `\CC_p`.
     
-    The Berkovich Affine line is the set of seminorms on `\CC_p[x]`,
+    The Berkovich affine line is the set of seminorms on `\CC_p[x]`,
     with the weakest topology such that the map `| \cdot | \to |f|` is continuous
     for all `f \in \CC_p[x]`.
+
+    We can represent the Berkovich affine line in two seperate ways:
+    either using a p-adic field to represent elements or using
+    a number field to represent elements while storing an ideal
+    of the ring of integers of the number field, which specifies
+    an embedding of the number field into `\CC_p`. See the examples.
 
     INPUT:
 
@@ -265,7 +271,21 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
         sage: B = Berkovich_Cp_Affine(3); B
         Affine Berkovich line over Cp(3) of precision 20
 
-    Initializing by passing in ``Qp`` looks the same::
+    We can create elements::
+
+        sage: Q1 = B(-2); Q1
+        Type I point centered at 1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5
+        + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + 2*3^12 + 2*3^13
+        + 2*3^14 + 2*3^15 + 2*3^16 + 2*3^17 + 2*3^18 + 2*3^19 + O(3^20)
+
+    ::
+
+        sage: Q2 = B(1, 2); Q2
+        Type III point centered at 1 + O(3^20) of radius 2.00000000000000
+
+    For details on element creation, see the documentation
+    of :class:`Berkovich_Element_Cp_Affine`. Initializing by
+    passing in `\QQ_p` looks the same::
 
         sage: B = Berkovich_Cp_Affine(Qp(3)); B
         Affine Berkovich line over Cp(3) of precision 20
@@ -275,15 +295,23 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
         sage: B = Berkovich_Cp_Affine(Qp(3, 1)); B
         Affine Berkovich line over Cp(3) of precision 1
 
-        sage: Q1 = B(1/2); Q1
+        sage: Q2 = B(1/2); Q2
         Type I point centered at 2 + O(3)
 
-    Note that this point has very low precision, as B was initialized
+    Note that this point has very low precision, as ``B`` was initialized
     with a padic field of capped-relative precision one. For high precision,
     pass in a high precision padic field::
 
         sage: B = Berkovich_Cp_Affine(Qp(3, 1000)); B
         Affine Berkovich line over Cp(3) of precision 1000
+
+    Points of Berkovich space can be created from points of
+    extensions of `\QQ_p`::
+
+        sage: B = Berkovich_Cp_Affine(3)
+        sage: A.<a> = Qp(3).extension(x^3-3)
+        sage: B(a)
+        Type I point centered at a + O(a^61)
 
     For exact computation, a number field can be used::
 
@@ -293,6 +321,30 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
         sage: B = Berkovich_Cp_Affine(A, ideal); B
         Affine Berkovich line over Cp(3), with base Number
         Field in a with defining polynomial x^3 + 20
+
+    Number fields a major advantage of exact computation.
+
+    Number fields also have added functionality. Arbitrary extensions of
+    `\QQ` are supported, while there is currently limited functionality
+    for extensions of `\QQ_p`. As seen above, constructing a Berkovich
+    space backed by a number field requires specifying an ideal of the
+    ring of integers of the number field. Specifying the ideal uniquely
+    specifies an embedding of the number field into `\CC_p`.
+
+    Unlike in the case where Berkovich space is backed by a p-adic
+    field, any point of a Berkovich space backed by a number field
+    must be centered at a point of that number field::
+
+        sage: R.<x> = QQ[]
+        sage: A.<a> = NumberField(x^3 + 20)
+        sage: ideal = A.prime_above(3)
+        sage: B = Berkovich_Cp_Affine(A, ideal)
+        sage: C.<c> = NumberField(x^2 + 1)
+        sage: B(c)
+        Traceback (most recent call last):
+        ...
+        ValueError: could not convert c to Number Field in a
+        with defining polynomial x^3 + 20
     """
 
     Element = Berkovich_Element_Cp_Affine
@@ -398,7 +450,13 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
     The Berkovich projective line over `\CC_p`.
 
     The Berkovich projective line is the one-point compactification
-    of the Berkovich Affine line.
+    of the Berkovich affine line.
+
+    We can represent the Berkovich projective line in two seperate ways:
+    either using a p-adic field to represent elements or using
+    a number field to represent elements while storing an ideal
+    of the ring of integers of the number field, which specifies
+    an embedding of the number field into `\CC_p`. See the examples.
 
     INPUT:
 
@@ -423,7 +481,21 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
         sage: B = Berkovich_Cp_Projective(3); B
         Projective Berkovich line over Cp(3) of precision 20
 
-    Initializing by passing in a padic space looks the same::
+    Elements can be constructed::
+
+        sage: B(1/2)
+        Type I point centered at (2 + 3 + 3^2 + 3^3 + 3^4 + 3^5
+        + 3^6 + 3^7 + 3^8 + 3^9 + 3^10 + 3^11 + 3^12 + 3^13 + 3^14
+        + 3^15 + 3^16 + 3^17 + 3^18 + 3^19 + O(3^20) : 1 + O(3^20))
+    
+    ::
+
+        sage: B(2, 1)
+        Type II point centered at (2 + O(3^20) : 1 + O(3^20)) of radius 3^0
+
+    For details about element construction, see the documentation of
+    :class:`Berkovich_Element_Cp_Projective`. Initializing a Berkovich projective
+    line by passing in a padic space looks the same::
 
         sage: B = Berkovich_Cp_Projective(Qp(3)); B
         Projective Berkovich line over Cp(3) of precision 20
@@ -451,6 +523,29 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
 
     Number fields have the benefit that computation is exact,
     but lack support for all of `\CC_p`.
+
+    Number fields also have the advantage of added functionality,
+    as arbitrary extensions of `\QQ` can be constructed while
+    there is currently limited functionality for extensions of `\QQ_p`.
+    As seen above, constructing a Berkovich space backed by a number
+    field requires specifying an ideal of the ring of integers
+    of the number field. Specifying the ideal uniquely specifies
+    an embedding of the number field into `\CC_p`.
+
+    Unlike in the case where Berkovich space is backed by a p-adic
+    field, any point of a Berkovich space backed by a number field
+    must be centered at a point of that number field::
+
+        sage: R.<x> = QQ[]
+        sage: A.<a> = NumberField(x^3 + 20)
+        sage: ideal = A.prime_above(3)
+        sage: B = Berkovich_Cp_Projective(A, ideal)
+        sage: C.<c> = NumberField(x^2 + 1)
+        sage: B(c)
+        Traceback (most recent call last):
+        ...
+        TypeError: could not convert c to Projective Space
+        of dimension 1 over Number Field in a with defining polynomial x^3 + 20
     """
 
     Element = Berkovich_Element_Cp_Projective

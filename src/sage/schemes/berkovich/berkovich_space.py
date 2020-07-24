@@ -14,6 +14,9 @@ projective lines, respectively.
 take as input one of the following: the prime `p`, a finite
 extension of `\QQ_p`, or a number field and a place.
 
+For an exposition of Berkovich space over `\CC_p`, see Chapter 6 of [Ben2019]_. For a more
+involved exposition, see Chapter 1 and 2 of [BR2010]_.
+
 AUTHORS:
 
  - Alexander Galarraga (2020-06-22): initial implementation

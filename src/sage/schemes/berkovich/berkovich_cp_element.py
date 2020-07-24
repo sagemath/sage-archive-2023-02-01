@@ -16,6 +16,9 @@ determined by specific data and fall into one of the four following types:
 - Type IV points are represented by a finite list of centers and a finite list of
   non-negative radii.
 
+For an exposition of Berkovich space over `\CC_p`, see Chapter 6 of [Ben2019]_. For a more
+involved exposition, see Chapter 1 and 2 of [BR2010]_.
+
 AUTHORS:
 
  - Alexander Galarraga (2020-06-22): initial implementation
@@ -636,7 +639,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
         On the set of type II, III and IV points, the path distance metric
         is a metric. Following Baker and Rumely, we extend
         the path distance metric to type I points `x`, `y` by `\rho(x,x) = 0` and `\rho(x,y) =
-        \infty`.
+        \infty`. See [BR2010]_.
 
         INPUT:
 
@@ -1657,7 +1660,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         The spherical kernel is one possible extension of
         the spherical distance on `A^1(\CC_p)` to the Berkovich
-        Affine line.
+        Affine line. See [BR2010]_ for details.
 
         OUTPUT: A real number.
 
@@ -2538,6 +2541,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         The spherical kernel is one possible extension of the spherical
         distance on `P^1(\CC_p)` to the projective Berkovich line.
+        See [BR2010]_ for details.
 
         INPUT:
 

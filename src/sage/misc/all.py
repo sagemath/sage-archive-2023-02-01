@@ -3,17 +3,19 @@ from .lazy_attribute import lazy_attribute, lazy_class_attribute
 from .lazy_import import lazy_import
 
 from .misc import (BackslashOperator,
-                  cputime, verbose, set_verbose, set_verbose_files,
-                  get_verbose_files, unset_verbose_files, get_verbose,
+                  cputime,
                   union, uniq, powerset, subsets,
                   exists, forall, is_iterator,
                   random_sublist, walltime,
-                  repr_lincomb,
                   pad_zeros,
                   SAGE_DB, SAGE_TMP,
                    newton_method_sizes, compose,
                   nest)
 
+from .verbose import (set_verbose, set_verbose_files,
+                      get_verbose_files, unset_verbose_files, get_verbose)
+lazy_import('sage.misc.verbose', 'verbose',
+            deprecation=17815)
 from .call import attrcall
 
 from .banner import version, banner
@@ -27,6 +29,8 @@ add = sum
 from .dev_tools import runsnake, import_statements
 
 from .html import html
+
+from .repr import repr_lincomb
 
 from .table import table
 

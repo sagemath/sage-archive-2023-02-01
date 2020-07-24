@@ -1586,19 +1586,6 @@ cdef class mpnumber:
         """
         return binop(OP_MUL, self, other, global_opts)
 
-    def __div__(self, other):
-        """
-        Division of mpmath numbers. Compatible numerical types
-        are automatically converted to mpmath numbers ::
-
-            sage: from mpmath import mpf, mpc
-            sage: mpf(10) / mpc(5)
-            mpc(real='2.0', imag='0.0')
-            sage: float(9) / mpf(3)
-            mpf('3.0')
-        """
-        return binop(OP_DIV, self, other, global_opts)
-
     def __truediv__(self, other):
         """
         Division of mpmath numbers. Compatible numerical types

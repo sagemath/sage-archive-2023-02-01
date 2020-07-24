@@ -5681,6 +5681,228 @@ class Permutations_mset(Permutations):
 
         return ZZ(multinomial(d.values()))
 
+    def rank(self, p):
+        r"""
+        Return the rank of ``p`` in lexicographic order.
+
+        INPUT:
+
+        - ``p`` -- a permutation of `M`
+
+        ALGORITHM:
+
+        The algorithm uses the recurrence from the solution to exercise 4 in
+        [Knu2011]_, Section 7.2.1.2:
+
+        .. MATH::
+
+            \mathrm{rank}(p_1 \ldots p_n) =
+            \mathrm{rank}(p_2 \ldots p_n)
+            + \frac{1}{n} \genfrac{(}{)}{0pt}{0}{n}{n_1, \ldots, n_t}
+                \sum_{j=1}^t n_j \left[ x_j < p_1 \right],
+
+        where `x_j, n_j` are the distinct elements of `p` with their
+        multiplicities, `n` is the sum of `n_1, \ldots, n_t`,
+        `\genfrac{(}{)}{0pt}{1}{n}{n_1, \ldots, n_t}` is the multinomial
+        coefficient `\frac{n!}{n_1! \ldots n_t!}`, and
+        `\sum_{j=1}^t n_j \left[ x_j < p_1 \right]` means "the number of
+        elements to the right of the first element that are less than the first
+        element".
+
+        EXAMPLES::
+
+            sage: mset = [1, 1, 2, 3, 4, 5, 5, 6, 9]
+            sage: p = Permutations(mset)
+            sage: p.rank(list(sorted(mset)))
+            0
+            sage: p.rank(list(reversed(sorted(mset)))) == p.cardinality() - 1
+            True
+            sage: p.rank([3, 1, 4, 1, 5, 9, 2, 6, 5])
+            30991
+
+        TESTS::
+
+            sage: from sage.combinat.permutation import Permutations_mset
+            sage: p = Permutations_mset([])
+            sage: p.rank([])
+            0
+            sage: p = Permutations_mset([1, 1, 2, 3, 4, 5, 5, 6, 9])
+            sage: p.rank([1, 2, 3, 4, 5, 6, 9])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid permutation
+
+        Try with greater-than-unity multiplicity in the least and greatest
+        elements::
+
+            sage: mset = list(range(10)) * 3
+            sage: p = Permutations_mset(mset)
+            sage: p.rank(list(sorted(mset)))
+            0
+            sage: p.rank(list(reversed(sorted(mset))))
+            4386797336285844479999999
+            sage: p.cardinality()
+            4386797336285844480000000
+
+        Should match ``StandardPermutations_n`` when `M` is the set
+        `\{1, 2, \ldots, n\}`::
+
+            sage: ps = Permutations(4)
+            sage: pm = Permutations_mset(list(range(1, 5)))
+            sage: ps.rank([2, 3, 1, 4]) == pm.rank([2, 3, 1, 4])
+            True
+        """
+        self(p).check()
+        m = {}
+        r = 0
+        for n in range(1, len(p)+1):
+            # ``p1`` is the first element of ``p[-n:]`` (i.e., the last ``n``
+            # elements of ``p``). ``m`` represents the multiset of ``p[-n:]`` in
+            # the form element→count.
+            p1 = p[-n]
+            m[p1] = m.get(p1, 0) + 1
+            r += multinomial(m.values()) * sum(nj for xj, nj in m.items() if xj < p1) // n
+        return r
+
+    def unrank(self, r):
+        r"""
+        Return the permutation of `M` having lexicographic rank ``r``.
+
+        INPUT:
+
+        - ``r`` -- an integer between ``0`` and ``self.cardinality()-1``
+          inclusive
+
+        ALGORITHM:
+
+        The algorithm is adapted from the solution to exercise 4 in [Knu2011]_,
+        Section 7.2.1.2.
+
+        EXAMPLES::
+
+            sage: mset = [1, 1, 2, 3, 4, 5, 5, 6, 9]
+            sage: p = Permutations(mset)
+            sage: p.unrank(30991)
+            [3, 1, 4, 1, 5, 9, 2, 6, 5]
+            sage: p.rank(p.unrank(10))
+            10
+            sage: p.unrank(0) == list(sorted(mset))
+            True
+            sage: p.unrank(p.cardinality()-1) == list(reversed(sorted(mset)))
+            True
+
+        TESTS::
+
+            sage: from sage.combinat.permutation import Permutations_mset
+            sage: p = Permutations_mset([])
+            sage: p.unrank(0)
+            []
+            sage: p.unrank(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: r must be between 0 and 0 inclusive
+            sage: p = Permutations_mset([1, 1, 2, 3, 4, 5, 5, 6, 9])
+            sage: p.unrank(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: r must be between 0 and 90719 inclusive
+            sage: p.unrank(p.cardinality())
+            Traceback (most recent call last):
+            ...
+            ValueError: r must be between 0 and 90719 inclusive
+
+        Try with a cardinality that exceeds the precise integer range of a
+        float::
+
+            sage: mset = list(range(10)) * 3
+            sage: p = Permutations_mset(mset)
+            sage: p.unrank(p.rank(mset)) == mset
+            True
+            sage: p.unrank(p.cardinality()-1) == list(reversed(sorted(mset)))
+            True
+
+        Exhaustive check of roundtrip and lexicographic order for a single
+        multiset::
+
+            sage: p = Permutations_mset([2, 2, 3, 3, 3, 5, 5, 5, 5, 5])
+            sage: prev = None
+            sage: for rank, perm in enumerate(p):
+            ....:     perm = tuple(perm)
+            ....:     assert p.rank(perm) == rank, (rank, perm, p.rank(perm))
+            ....:     assert tuple(p.unrank(rank)) == perm, (rank, perm, p.unrank(rank))
+            ....:     assert prev is None or prev < perm
+            ....:     prev = perm
+
+        Should match ``StandardPermutations_n`` when `M` is the set
+        `\{1, 2, \ldots, n\}`::
+
+            sage: ps = Permutations(4)
+            sage: pm = Permutations_mset(list(range(1, 5)))
+            sage: ps.unrank(5) == pm.unrank(5)
+            True
+        """
+        range_error = ValueError("r must be between %d and %d inclusive" % (0, self.cardinality()-1))
+        if r < 0:
+            raise range_error
+
+        # ``mset`` is a working copy of the remaining multiset, initially set to
+        # ``self.mset`` and always kept sorted. ``m`` represents ``mset`` in
+        # element→count form. One element is removed from both representations
+        # of the multiset in each loop iteration.
+        mset = list(sorted(self.mset))
+        m = {}
+        for x in mset:
+            m[x] = m.get(x, 0) + 1
+
+        from bisect import bisect_left
+
+        # We will build up ``p`` from left to right. For each element ``pi``, we
+        # use the residual rank to compute how many elements to the right of
+        # position ``i`` have a value less than ``pi``. We use that count of
+        # elements to index what remains of ``mset`` to get the value of ``pi``.
+        p = []
+        while mset:
+            n = len(mset)
+            mult = multinomial(m.values())
+            # Now ``r = ci * mult / n + rank(p[i+1:])``, where ``ci`` is the
+            # number of elements remaining in ``mset`` that are less than
+            # ``pi``. We know ``r`` and ``mult / n``, but not ``rank(p[i+1:])``
+            # nor ``ci``, except that we know both are integers.
+            ti = r * n // mult
+            if ti >= n:
+                raise range_error
+            # ``ti`` is an upper bound for ``ci``. The true value is
+            # ``ci = (r - rank(p[i+1:])) * n / mult``, but we do not know
+            # ``rank(p[i+1:])`` yet. When ``pi`` has multiplicity 1, ``ti = ci``
+            # exactly, because in that case ``rank(p[i+1:]) < mult / n``. When
+            # ``pi`` has multiplicity greater than 1, ``ti`` is equal to the
+            # number of elements that are less than ``pi``, *plus* some fraction
+            # of those that are equal to ``pi``. We need to search left from
+            # ``ti`` to find the lowest-indexed element equal to ``mset[ti]``,
+            # to find ``ci`` which counts only elements that are strictly less
+            # than ``pi``. We do a binary search in ``mset`` to the left of
+            # position ``ti`` to find the leftmost index whose value is equal to
+            # ``mset[ti]``. We do not have to look more places to the left than
+            # the multiplicity of ``pi`` (``m[mset[ti]]``).
+            ci = bisect_left(mset, mset[ti], max(0, ti + 1 - m[mset[ti]]), ti + 1)
+            # Now that we know ``ci``, we can set ``r = rank(p[i+1:])`` for the
+            # next iteration.
+            r -= ci * mult // n
+            # Because ``mset`` is sorted, the element that is greater than
+            # ``ci`` other elements is at index ``ci``. Add that element to the
+            # permutation and remove it from the multiset for the next
+            # iteration.
+            pi = mset.pop(ci)
+            m[pi] -= 1
+            if m[pi] == 0:
+                del m[pi]
+            p.append(pi)
+
+        if r > 0:
+            raise range_error
+
+        return p
+
 
 class Permutations_set(Permutations):
     """
@@ -6409,7 +6631,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             return self.n - 1
         if p in self:
             return Permutation(p).rank()
-        raise ValueError("x not in self")
+        raise ValueError("p not in self")
 
     def random_element(self):
         """

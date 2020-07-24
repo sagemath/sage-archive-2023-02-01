@@ -54,7 +54,7 @@ import sage.matrix.matrix_space
 from .matrix_integer_sparse cimport Matrix_integer_sparse
 from .matrix_rational_dense cimport Matrix_rational_dense
 
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 
 cdef class Matrix_rational_sparse(Matrix_sparse):
     def __cinit__(self):
@@ -285,7 +285,8 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
 # TODO
 ##     cpdef _lmul_(self, Element right):
 ##         """
-##         EXAMPLES:
+##         EXAMPLES::
+##
 ##             sage: a = matrix(QQ,2,range(6))
 ##             sage: (3/4) * a
 ##             [   0  3/4  3/2]

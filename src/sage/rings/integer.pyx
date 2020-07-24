@@ -2013,7 +2013,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_mul(x.value, self.value, (<Integer>right).value)
         return x
 
-    def __div__(left, right):
+    def __truediv__(left, right):
         r"""
         TESTS::
 
@@ -7479,7 +7479,6 @@ cdef integer(x):
     if isinstance(x, Integer):
         return x
     return Integer(x)
-
 
 def free_integer_pool():
     cdef int i

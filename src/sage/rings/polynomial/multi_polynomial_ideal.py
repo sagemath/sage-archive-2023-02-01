@@ -247,7 +247,8 @@ from sage.structure.sequence import Sequence
 from sage.structure.richcmp import (richcmp_method, op_EQ, op_NE,
                                     op_LT, op_GT, op_LE, op_GE, rich_to_bool)
 from sage.misc.cachefunc import cached_method
-from sage.misc.all import prod, verbose, get_verbose
+from sage.misc.all import prod
+from sage.misc.verbose import verbose, get_verbose
 from sage.misc.method_decorator import MethodDecorator
 
 from sage.rings.integer_ring import ZZ
@@ -1225,6 +1226,12 @@ class MPolynomialIdeal_singular_repr(
             1
             sage: I.vector_space_dimension()
             +Infinity
+
+        Due to integer overflow, the result is correct only modulo ``2^32``, see :trac:`8586`::
+
+            sage: P.<x,y,z> = PolynomialRing(GF(32003),3)
+            sage: sage.rings.ideal.FieldIdeal(P).vector_space_dimension()  # known bug
+            32777216864027
 
         TESTS:
 
@@ -4074,6 +4081,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         protocol did not appear during doctests, so, we skip the
         examples with protocol output.  ::
 
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(2)
             sage: I = R*[x^3+y^2,x^2*y+1]
             sage: I.groebner_basis()  # not tested

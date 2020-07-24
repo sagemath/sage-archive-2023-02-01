@@ -33,6 +33,7 @@ from sage.structure.element import coercion_model
 from sage.structure.all import parent as s_parent
 
 from sage.functions.trig import arctan2
+
 from sage.arith.all import binomial as arith_binomial
 
 one_half = SR.one() / SR(2)
@@ -617,6 +618,7 @@ class Function_floor(BuiltinFunction):
 
 floor = Function_floor()
 
+
 class Function_Order(GinacFunction):
     def __init__(self):
         r"""
@@ -676,7 +678,6 @@ class Function_Order(GinacFunction):
         # else there are no roots, e.g. O(1), so we leave arg unchanged
         import sympy
         return sympy.O(*sympy.sympify(arg, evaluate=False))
-
 
 Order = Function_Order()
 
@@ -750,6 +751,7 @@ class Function_frac(BuiltinFunction):
         return None
 
 frac = Function_frac()
+
 
 def _do_sqrt(x, prec=None, extend=True, all=False):
         r"""
@@ -908,6 +910,162 @@ symbol_table['functions']['sqrt'] = sqrt
 Function_sqrt = type('deprecated_sqrt', (),
         {'__call__': staticmethod(sqrt),
             '__setstate__': lambda x, y: None})
+
+
+class Function_real_nth_root(BuiltinFunction):
+    r"""
+    Real `n`-th root function `x^\frac{1}{n}`.
+
+    The function assumes positive integer `n` and real number `x`.
+
+    EXAMPLES::
+
+        sage: v = real_nth_root(2, 3)
+        sage: v
+        real_nth_root(2, 3)
+        sage: v^3
+        2
+        sage: v = real_nth_root(-2, 3)
+        sage: v
+        real_nth_root(-2, 3)
+        sage: v^3
+        -2
+        sage: real_nth_root(8, 3)
+        2
+        sage: real_nth_root(-8, 3)
+        -2
+
+    For numeric input, it gives a numerical approximation. ::
+
+        sage: real_nth_root(2., 3)
+        1.25992104989487
+        sage: real_nth_root(-2., 3)
+        -1.25992104989487
+
+    Some symbolic calculus::
+
+        sage: f = real_nth_root(x, 5)^3
+        sage: f
+        real_nth_root(x^3, 5)
+        sage: f.diff()
+        3/5*x^2*real_nth_root(x^(-12), 5)
+        sage: f.integrate(x)
+        integrate((abs(x)^3)^(1/5)*sgn(x^3), x)
+        sage: _.diff()
+        (abs(x)^3)^(1/5)*sgn(x^3)
+
+    """
+    def __init__(self):
+        r"""
+        Initialize.
+
+        TESTS::
+
+            sage: cube_root = real_nth_root(x, 3)
+            sage: loads(dumps(cube_root))
+            real_nth_root(x, 3)
+
+        ::
+
+            sage: f = real_nth_root(x, 3)
+            sage: f._sympy_()
+            Piecewise((Abs(x)**(1/3)*sign(x), Eq(im(x), 0)), (x**(1/3), True))
+
+        """
+        BuiltinFunction.__init__(self, "real_nth_root", nargs=2,
+                                 conversions=dict(sympy='real_root',
+                                                  mathematica='Surd',
+                                                  maple='surd'))
+
+    def _print_latex_(self, base, exp):
+        r"""
+        TESTS::
+
+            sage: latex(real_nth_root(x, 3))
+            x^{\frac{1}{3}}
+            sage: latex(real_nth_root(x^2 + x, 3))
+            {\left(x^{2} + x\right)}^{\frac{1}{3}}
+        """
+        return latex(base**(1/exp))
+
+    def _evalf_(self, base, exp, parent=None):
+        """
+        TESTS::
+
+            sage: real_nth_root(RIF(2), 3)
+            1.259921049894873?
+            sage: real_nth_root(RBF(2), 3)
+            [1.259921049894873 +/- 3.92e-16]
+            sage: real_nth_root(-2, 4)
+            Traceback (most recent call last):
+            ...
+            ValueError: no real nth root of negative real number with even n
+        """
+        negative = base < 0
+
+        if negative:
+            if exp % 2 == 0:
+                raise ValueError('no real nth root of negative real number with even n')
+            base = -base
+
+        r = base**(1/exp)
+
+        if negative:
+            return -r
+        else:
+            return r
+
+    def _eval_(self, base, exp):
+        """
+        TESTS::
+
+            sage: real_nth_root(x, 1)
+            x
+            sage: real_nth_root(x, 3)
+            real_nth_root(x, 3)
+        """
+        if not isinstance(base, Expression) and not isinstance(exp, Expression):
+            if isinstance(base, Integer):
+                try:
+                    return base.nth_root(exp)
+                except ValueError:
+                    pass
+            self._evalf_(base, exp, parent=s_parent(base))
+
+        if isinstance(exp, Integer) and exp.is_one():
+            return base
+
+    def _power_(self, base, exp, power_param=None):
+        """
+        TESTS::
+
+            sage: f = real_nth_root(x, 3)
+            sage: f^5
+            real_nth_root(x^5, 3)
+        """
+        return self(base**power_param, exp)
+
+    def _derivative_(self, base, exp, diff_param=None):
+        """
+        TESTS::
+
+            sage: f = real_nth_root(x, 3)
+            sage: f.diff()
+            1/3*real_nth_root(x^(-2), 3)
+            sage: f = real_nth_root(-x, 3)
+            sage: f.diff()
+            -1/3*real_nth_root(x^(-2), 3)
+            sage: f = real_nth_root(x, 4)
+            sage: f.diff()
+            1/4*real_nth_root(x^(-3), 4)
+            sage: f = real_nth_root(-x, 4)
+            sage: f.diff()
+            -1/4*real_nth_root(-1/x^3, 4)
+        """
+        return 1/exp * self(base, exp)**(1-exp)
+
+real_nth_root = Function_real_nth_root()
+
 
 class Function_arg(BuiltinFunction):
     def __init__(self):
@@ -1152,6 +1310,7 @@ class Function_real_part(GinacFunction):
 
 real = real_part = Function_real_part()
 
+
 class Function_imag_part(GinacFunction):
     def __init__(self):
         r"""
@@ -1297,6 +1456,7 @@ class Function_conjugate(GinacFunction):
                                                 giac='conj'))
 
 conjugate = Function_conjugate()
+
 
 class Function_factorial(GinacFunction):
     def __init__(self):
@@ -1487,6 +1647,7 @@ class Function_factorial(GinacFunction):
                 return gamma(x + 1)
 
 factorial = Function_factorial()
+
 
 class Function_binomial(GinacFunction):
     def __init__(self):
@@ -1993,6 +2154,14 @@ class Function_cases(GinacFunction):
             cases(((x == 0, pi), (1, 0)))
             sage: latex(ex)
             \begin{cases}{\pi} & {x = 0}\\{0} & {1}\end{cases}
+
+        TESTS:
+
+        Verify that :trac:`25624` is fixed::
+
+            sage: L = latex(cases([(x == 0, 0), (1, 1)]))
+            sage: L
+            \begin{cases}{0} & {x = 0}\\{1} & {1}\end{cases}
         """
         if not isinstance(l, (list, tuple)):
             raise ValueError("cases() argument must be a list")
@@ -2004,7 +2173,7 @@ class Function_cases(GinacFunction):
             else:
                 right = pair
             str += r"{%s} & {%s}\\" % (latex(left), latex(right))
-        print(str[:-2] + r"\end{cases}")
+        return str[:-2] + r"\end{cases}"
 
     def _sympy_(self, l):
         """

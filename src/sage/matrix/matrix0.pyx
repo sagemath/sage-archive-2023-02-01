@@ -30,7 +30,7 @@ import sage.misc.latex
 import sage.rings.integer
 
 from sage.arith.power cimport generic_power
-from sage.misc.misc import verbose, get_verbose
+from sage.misc.verbose import verbose, get_verbose
 from sage.structure.sequence import Sequence
 from sage.structure.parent cimport Parent
 
@@ -566,7 +566,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 ##         This function it can very easily !! SEG FAULT !! if you call
 ##         it with invalid input.  Use with *extreme* caution.
 
-##         EXAMPLES:
+##         EXAMPLES::
+##
 ##             sage: a = matrix(ZZ,2,range(4))
 ##             sage: a._get_very_unsafe(0,1)
 ##             1

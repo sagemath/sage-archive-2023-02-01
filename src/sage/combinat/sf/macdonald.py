@@ -572,10 +572,11 @@ def c1(part, q, t):
         sage: c1(Partition([1,1]),q,t)
         q^2*t - q*t - q + 1
     """
-    res = q.parent().one()
-    for i in range(part.size()):
-        res *= 1-q**(sum(part.arm_lengths(),[])[i]+1)*t**(sum(part.leg_lengths(),[])[i])
-    return res
+    R = q.parent()
+    arms = part.arm_lengths(flat=True)
+    legs = part.leg_lengths(flat=True)
+    return R.prod(1 - q**(a + 1) * t**l for a, l in zip(arms, legs))
+
 
 def c2(part, q, t):
     r"""
@@ -603,10 +604,11 @@ def c2(part, q, t):
         sage: c2(Partition([2,1]),q,t)
         -q*t^4 + 2*q*t^3 - q*t^2 + t^2 - 2*t + 1
     """
-    res = q.parent().one()
-    for i in range(part.size()):
-        res *= 1-q**(sum(part.arm_lengths(),[])[i])*t**(sum(part.leg_lengths(),[])[i]+1)
-    return res
+    R = q.parent()
+    arms = part.arm_lengths(flat=True)
+    legs = part.leg_lengths(flat=True)
+    return R.prod(1 - q**a * t**(l + 1) for a, l in zip(arms, legs))
+
 
 @cached_function
 def cmunu1(mu, nu):

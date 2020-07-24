@@ -319,6 +319,7 @@ that our form actually represents the Euler class appropriately.
 #******************************************************************************
 
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
 from sage.symbolic.ring import SR
 
@@ -621,6 +622,96 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
 
         """
         return self._func
+
+    @cached_method
+    def sequence(self, ring=SR):
+        r"""
+        Return the multiplicative/additive sequence (depending on the class
+        type of ``self``) of ``self.function`` in terms of elementary symmetric
+        functions `e_i`.
+
+        If `f(x)` is the function with respect to ``self`` then its
+        multiplicative sequence is given by
+
+        .. MATH::
+
+            \Pi_{i = 1}^n f(x_i) = \sum^n_{i=0} c_i \, e_i(x_1, \ldots, x_n)
+
+        whereas its additive sequence is given by
+
+        .. MATH::
+
+            \sum_{i = 1}^n f(x_i) = \sum^n_{i=0} c_i \, e_i(x_1, \ldots, x_n).
+
+        Here, `e_i` denotes the `i`-th elementary symmetric function.
+
+        INPUT:
+
+        - ``ring`` -- (default: ``SR``) the base ring of the symmetric
+          function ring; in most cases, one can assume ``QQ`` which is
+          supposed to work faster
+
+        OUTPUT:
+
+        - a symmetric function in the elementary symmetric basis represented
+          by an instance of
+          :class:`~sage.combinat.sf.elementary.SymmetricFunctionAlgebra_elementary`
+
+        EXAMPLE:
+
+        Consider the multiplicative sequence of the `\hat{A}` class::
+
+            sage: M = Manifold(8, 'M')
+            sage: A = M.tangent_bundle().characteristic_class('AHat')
+            sage: A.sequence()
+            e[] - 1/24*e[1] + 7/5760*e[1, 1] - 1/1440*e[2]
+
+        This is an element of the symmetric functions over the symbolic ring::
+
+            sage: A.sequence().parent()
+            Symmetric Functions over Symbolic Ring in the elementary basis
+
+        To get the sequence as an element of usual polynomial ring, we can do
+        the following::
+
+            sage: P = PolynomialRing(SR, 'e', 3)
+            sage: poly = P(sum(c * prod(P.gens()[i] for i in p)
+            ....:          for p, c in A.sequence()))
+            sage: poly
+            7/5760*e1^2 + (-1/24)*e1 + (-1/1440)*e2 + 1
+
+        ..SEEALSO::
+
+            See :class:`~sage.combinat.sf.elementary.SymmetricFunctionAlgebra_elementary`
+            for detailed information about elementary symmetric functions.
+
+        """
+        if self._class_type == 'Pfaffian':
+            return NotImplementedError('this functionality is not supported '
+                                       'for characteristic classes of '
+                                       'Pfaffian type')
+
+        from sage.combinat.sf.sf import SymmetricFunctions
+        from sage.misc.misc_c import prod
+
+        Sym = SymmetricFunctions(ring)
+
+        coeff = self._get_coeff_list(distinct_real=False)
+        if self._class_type == 'multiplicative':
+            from sage.combinat.partition import Partitions
+            # Get the multiplicative sequence in the monomial basis:
+            mon_pol = Sym.m().sum(prod(ring(coeff[i]) for i in p) * Sym.m()[p]
+                                  for k in range(len(coeff))
+                                  for p in Partitions(k))
+        elif self._class_type == 'additive':
+            # Express the additive sequence in the monomial basis:
+            summands = [ring(coeff[k]) * Sym.m()[k]
+                        for k in range(1, len(coeff))]
+            # The 0th order term must be treated separately:
+            summands.append(self._vbundle._rank * coeff[0] * Sym.m()[0])
+            mon_pol = Sym.m().sum(summands)
+        # Convert to elementary symmetric polynomials:
+        return Sym.e()(mon_pol)
 
     def get_form(self, connection, cmatrices=None):
         r"""

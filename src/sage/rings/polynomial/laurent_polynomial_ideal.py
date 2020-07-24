@@ -23,6 +23,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.rings.ideal import Ideal_generic
+from sage.structure.richcmp import richcmp, op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE
 
 class LaurentPolynomialIdeal( Ideal_generic ):
     def __init__(self, ring, gens, coerce=True, hint=None):
@@ -132,12 +133,13 @@ class LaurentPolynomialIdeal( Ideal_generic ):
         return self._hint
     
     # Comparisons, using the associated polynomial ideal.
-    def __eq__(self, other):
-        """
-        Implement equality comparison (==) for Laurent polynomial ideals.
+    def _richcmp_(self, right_r, op):
+        r"""
+        Comparison of ``self`` and ``right_r``.
 
-        To save time, we check equality of generators before
-        comparing polynomial ideals.
+        When testing equality, we first check generators to save time.
+
+        When testing ideal containment, we do not saturate the smaller ideal.
 
         EXAMPLES::
 
@@ -146,96 +148,35 @@ class LaurentPolynomialIdeal( Ideal_generic ):
             sage: I2 = P.ideal([x*y*z+x*y+2*y^2+x+z, x+z])
             sage: I1 == I2
             True
-        """
-        if set(self.gens()) == set(other.gens()): # Early abort
-            return True
-        return self.polynomial_ideal() == other.polynomial_ideal()
-
-    def __ne__(self, other):
-        """
-        Implement inequality comparison (!=) for Laurent polynomial ideals.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z> = LaurentPolynomialRing(QQ, 3)
-            sage: I1 = P.ideal([x*y*z+x*y+2*y^2, x+z])
-            sage: I2 = P.ideal([x*y*z+x*y+2*y^2+x+z, x+z])
             sage: I1 != I2
             False
-        """
-        return not (self == other)
-
-    def __le__(self, other):
-        """
-        Implement less-than-or-equal-to comparison (<=) for Laurent polynomial ideals.
-
-        When testing ideal containment, it is not necessary to saturate
-        the smaller ideal.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z> = LaurentPolynomialRing(QQ, 3)
-            sage: I1 = P.ideal([x*y*z+x*y+2*y^2, x+z])
             sage: I3 = P.ideal([x*y*z+x*y+2*y^2+x+z, x+z, y])
             sage: I1 <= I3
             True
-        """
-        if not isinstance(other, Ideal_generic):
-            raise NotImplementedError
-        if all(f in other.gens() for f in self.gens()): # Early abort
-            return True
-        return self.polynomial_ideal(saturate=False) <= other.polynomial_ideal()
-
-    def __ge__(self, other):
-        """
-        Implement greater-than-or-equal-to comparison (>=) for Laurent polynomial ideals.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z> = LaurentPolynomialRing(QQ, 3)
-            sage: I1 = P.ideal([x*y*z+x*y+2*y^2, x+z])
-            sage: I3 = P.ideal([x*y*z+x*y+2*y^2+x+z, x+z, y])
             sage: I3 >= I1
             True
-        """
-        if not isinstance(other, Ideal_generic):
-            raise NotImplementedError            
-        if all(f in self.gens() for f in other.gens()): # Early abort
-            return True
-        return other.polynomial_ideal(saturate=False) <= self.polynomial_ideal()
-
-    def __lt__(self, other):
-        """
-        Implement less-than comparison (<) for Laurent polynomial ideals.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z> = LaurentPolynomialRing(QQ, 3)
-            sage: I1 = P.ideal([x*y*z+x*y+2*y^2, x+z])
-            sage: I3 = P.ideal([x*y*z+x*y+2*y^2+x+z, x+z, y])
             sage: I1 < I3
             True
-        """
-        if not isinstance(other, Ideal_generic):
-            raise NotImplementedError            
-        return (self <= other and not self == other)
-
-    def __gt__(self, other):
-        """
-        Implement greater-than comparison (>) for Laurent polynomial ideals.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z> = LaurentPolynomialRing(QQ, 3)
-            sage: I1 = P.ideal([x*y*z+x*y+2*y^2, x+z])
-            sage: I3 = P.ideal([x*y*z+x*y+2*y^2+x+z, x+z, y])
             sage: I3 > I1
             True
         """
-        if not isinstance(other, Ideal_generic):
-            raise NotImplementedError            
-        return (other <= self and not self == other)
-    
+        if op in (op_EQ, op_NE):
+            if set(self.gens()) == set(right_r.gens()): # Early abort
+                return (op == op_EQ)
+            return ((self.polynomial_ideal() == right_r.polynomial_ideal()) == (op == op_EQ))
+        elif op == op_LE:
+            if all(f in right_r.gens() for f in self.gens()): # Early abort
+                return True
+            return self.polynomial_ideal(saturate=False) <= right_r.polynomial_ideal()
+        elif op == op_GE:
+            return right_r._richcmp_(self, op_LE)
+        elif op == op_LT:
+            return self._richcmp_(right_r, op_LE) and self._richcmp_(right_r, op_NE)
+        elif op == op_GT:
+            return right_r._richcmp_(self, op_LE) and right_r._richcmp_(self, op_NE)
+        else:
+            raise ValueError("invalid comparison")
+
     def __contains__(self, f):
         """
         Implement containment testing (in) for Laurent polynomial ideals.
@@ -393,7 +334,7 @@ class LaurentPolynomialIdeal( Ideal_generic ):
         ring = self.ring()
         ring2 = other.ring()
         if ring != ring2:
-            return ValueError("Ambient rings are not equal")
+            return ValueError("ambient rings are not equal")
         hint = self._hint
         if hint.is_zero():
             hint = other._hint

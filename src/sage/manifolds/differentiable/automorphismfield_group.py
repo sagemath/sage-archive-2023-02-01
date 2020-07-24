@@ -41,7 +41,6 @@ REFERENCES:
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.symbolic.ring import ZZ
 from sage.categories.groups import Groups
 from sage.misc.cachefunc import cached_method
 from sage.tensor.modules.free_module_linear_group import FreeModuleLinearGroup
@@ -209,7 +208,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
             a = (x^2 + 1) d/dx*dx + (y^2 + 1) d/dy*dy
 
         """
-        if comp in ZZ and comp == 1:
+        if comp == 1:
             return self.one()
         if not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +

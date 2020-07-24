@@ -27,7 +27,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.categories.graded_algebras import GradedAlgebras
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.symbolic.ring import ZZ, SR
+from sage.symbolic.ring import SR
 from sage.manifolds.differentiable.mixed_form import MixedForm
 
 class MixedFormAlgebra(Parent, UniqueRepresentation):
@@ -193,9 +193,9 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         res = self.element_class(self, name=name, latex_name=latex_name)
         if comp is None:
             return res
-        elif comp in ZZ and comp == 0:
+        elif comp == 0:
             return self.zero()
-        elif comp in ZZ and comp == 1:
+        elif comp == 1:
             return self.one()
         elif isinstance(comp, (tuple, list)):
             if len(comp) != self._max_deg + 1:

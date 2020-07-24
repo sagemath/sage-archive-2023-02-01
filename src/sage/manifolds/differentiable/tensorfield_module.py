@@ -41,7 +41,6 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
-from sage.symbolic.ring import ZZ
 from sage.tensor.modules.tensor_free_module import TensorFreeModule
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
@@ -310,7 +309,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             True
 
         """
-        if comp in ZZ and comp == 0:
+        if comp == 0:
             return self.zero()
         if isinstance(comp, DiffForm):
             # coercion of a p-form to a type-(0,p) tensor field:
@@ -795,7 +794,7 @@ class TensorFieldFreeModule(TensorFreeModule):
             True
 
         """
-        if comp in ZZ and comp == 0:
+        if comp == 0:
             return self.zero()
         if isinstance(comp, DiffFormParal):
             # coercion of a p-form to a type-(0,p) tensor field:

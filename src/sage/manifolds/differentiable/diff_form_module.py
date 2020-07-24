@@ -38,7 +38,6 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
-from sage.symbolic.ring import ZZ
 from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
 from sage.manifolds.differentiable.diff_form import DiffForm, DiffFormParal
 from sage.manifolds.differentiable.tensorfield import TensorField
@@ -331,7 +330,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
             True
 
         """
-        if comp in ZZ and comp == 0:
+        if comp == 0:
             return self.zero()
         if isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction
@@ -800,7 +799,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
             False
 
         """
-        if comp in ZZ and comp == 0:
+        if comp == 0:
             return self.zero()
         if isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction

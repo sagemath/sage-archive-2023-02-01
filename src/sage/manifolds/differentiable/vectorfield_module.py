@@ -43,7 +43,6 @@ from sage.structure.parent import Parent
 from sage.categories.modules import Modules
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
-from sage.rings.integer_ring import ZZ
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.manifolds.differentiable.vectorfield import (VectorField,
                                                        VectorFieldParal)
@@ -269,7 +268,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             True
 
         """
-        if comp in ZZ and comp == 0:
+        if comp == 0:
             return self.zero()
         if isinstance(comp, VectorField):
             if (self._domain.is_subset(comp._domain)
@@ -1472,7 +1471,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             True
 
         """
-        if comp in ZZ and comp == 0:
+        if comp == 0:
             return self.zero()
         if isinstance(comp, VectorField):
             if (self._domain.is_subset(comp._domain)

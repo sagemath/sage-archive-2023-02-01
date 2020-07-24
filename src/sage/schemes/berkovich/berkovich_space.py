@@ -409,30 +409,6 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
             return  "Affine Berkovich line over Cp(%s), with base %s" %(self.prime(),\
                 self.base())
 
-    def _projective_space(self):
-        """
-        Creates a projective Berkovich space with the same characteristics as this space.
-
-        OUTPUT: A projective Berkovich space over ``Cp``.
-
-        EXAMPLES::
-
-            sage: B = Berkovich_Cp_Affine(3)
-            sage: B._projective_space()
-            Projective Berkovich line over Cp(3) of precision 20
-
-        ::
-
-            sage: R.<z> = QQ[]
-            sage: A.<a> = NumberField(z^3 + 20)
-            sage: ideal = A.prime_above(3)
-            sage: B = Berkovich_Cp_Affine(A, ideal)
-            sage: B._projective_space()
-            Projective Berkovich line over Cp(3), with base Number Field
-            in a with defining polynomial z^3 + 20
-        """
-        return Berkovich_Cp_Projective(self.base_ring(), self.ideal())
-
     def _latex_(self):
         r"""
         LaTeX representation of this Berkovich Space.
@@ -620,30 +596,6 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
             Number Field in a with defining polynomial x^3 + 20
         """
         return self.base().base_ring()
-
-    def _affine_space(self):
-        """
-        Creates an affine Berkovich space with the same characteristics as this space.
-
-        OUTPUT: An affine Berkovich space over ``Cp``.
-
-        EXAMPLES::
-
-            sage: B = Berkovich_Cp_Projective(3)
-            sage: B._affine_space()
-            Affine Berkovich line over Cp(3) of precision 20
-
-        ::
-
-            sage: R.<z> = QQ[]
-            sage: A.<a> = NumberField(z^3+20)
-            sage: ideal = A.prime_above(3)
-            sage: B = Berkovich_Cp_Projective(A, ideal)
-            sage: B._affine_space()
-            Affine Berkovich line over Cp(3), with base Number Field in
-            a with defining polynomial z^3 + 20
-        """
-        return Berkovich_Cp_Affine(self.base_ring(), self.ideal())
 
     def _repr_(self):
         """

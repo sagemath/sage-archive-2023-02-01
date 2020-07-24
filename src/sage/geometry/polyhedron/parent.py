@@ -18,7 +18,7 @@ from sage.misc.cachefunc import cached_method, cached_function
 from sage.rings.all import ZZ, QQ, RDF, CommutativeRing
 from sage.categories.fields import Fields
 from sage.categories.rings import Rings
-
+from sage.categories.modules import Modules
 
 from sage.geometry.polyhedron.base import is_Polyhedron
 from .representation import Inequality, Equation, Vertex, Ray, Line
@@ -87,6 +87,10 @@ def Polyhedra(ambient_space_or_base_ring=None, ambient_dim=None, backend=None, *
         sage: Polyhedra(backend='field', ambient_space=V) is Polyhedra(QQ, 3, 'field')
         True
 
+        sage: M = FreeModule(ZZ, 2)
+        sage: Polyhedra(M, backend='ppl') is Polyhedra(ZZ, 2, 'ppl')
+        True
+
     TESTS::
 
         sage: Polyhedra(RR, 3, backend='field')
@@ -109,12 +113,21 @@ def Polyhedra(ambient_space_or_base_ring=None, ambient_dim=None, backend=None, *
         else:
             ambient_space = ambient_space_or_base_ring
     if ambient_space is not None:
+        if ambient_space not in Modules:
+            # There is no category of free modules, unfortunately
+            # (see https://trac.sagemath.org/ticket/30164)...
+            raise ValueError('ambient_space must be a free module')
         if base_ring is None:
             base_ring = ambient_space.base_ring()
         if ambient_dim is None:
-            ambient_dim = ambient_space.dimension()
+            try:
+                ambient_dim = ambient_space.rank()
+            except AttributeError:
+                # ... so we test whether it is free using the existence of
+                # a rank method
+                raise ValueError('ambient_space must be a free module')
         if ambient_space is not FreeModule(base_ring, ambient_dim):
-            raise NotImplementedError('ambient_space must be standard free module')
+            raise NotImplementedError('ambient_space must be a standard free module')
     if backend is None:
         if base_ring is ZZ or base_ring is QQ:
             backend = 'ppl'

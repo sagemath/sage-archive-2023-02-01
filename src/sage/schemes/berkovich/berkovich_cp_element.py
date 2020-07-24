@@ -1277,10 +1277,10 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             True
         """
         if self.type_of_point() == 1:
-            return hash(str(self.center()))
+            return hash(self.center())
         elif self.type_of_point() == 4:
             raise NotImplementedError('hash not defined for type IV points')
-        return hash(str(self.radius()))
+        return hash(self.radius())
 
     def partial_order(self,other):
         r"""
@@ -1898,10 +1898,10 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             True
         """
         if self.type_of_point() == 1:
-            return hash(str(self.center()))
+            return hash(self.center())
         elif self.type_of_point() == 4:
             raise ValueError('hash not defined for type IV points')
-        return hash(str(self.radius()))
+        return hash(self.radius())
 
     def partial_order(self,other):
         r"""

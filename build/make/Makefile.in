@@ -517,6 +517,7 @@ endif
 #
 # $(INST)/<pkgname>-<pkgvers>: <dependencies>
 #     $(AM_V_at)cd '$SAGE_ROOT' && \\
+#         . '$SAGE_ROOT/src/bin/sage-env-config' && \\
 #         . '$SAGE_ROOT/src/bin/sage-env' && \\
 #         sage-logger -p '$SAGE_ROOT/build/pkgs/<pkgname>/spkg-install' '$(SAGE_LOGS)/<pkgname>.log'
 #
@@ -524,6 +525,7 @@ endif
 #
 # <pkgname>-clean:
 #     -$(AM_V_at)cd '$SAGE_ROOT' && \\
+#         . '$SAGE_ROOT/src/bin/sage-env-config' && \\
 #         . '$SAGE_ROOT/src/bin/sage-env' && \\
 #         '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'
 
@@ -536,7 +538,9 @@ $(1)-build-deps: $(3)
 
 $$(INST)/$(1)-$(2): $(3)
 	$(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)' && \
-		. '$$(SAGE_ROOT)/src/bin/sage-env' && . '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
+		. '$$(SAGE_ROOT)/src/bin/sage-env-config' && \
+		. '$$(SAGE_ROOT)/src/bin/sage-env' && \
+		. '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		sage-logger -p '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$$(SAGE_LOGS)/$(1)-$(2).log'
 	touch "$$@"
 
@@ -544,7 +548,9 @@ $(1): $$(INST)/$(1)-$(2)
 
 $(1)-uninstall:
 	-$(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)' && \
-		. '$$(SAGE_ROOT)/src/bin/sage-env' && . '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
+		. '$$(SAGE_ROOT)/src/bin/sage-env-config' && \
+		. '$$(SAGE_ROOT)/src/bin/sage-env' && \
+		. '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
 	-rm -f "$$(INST)/$(1)-$(2)"
 

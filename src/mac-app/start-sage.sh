@@ -17,6 +17,7 @@ NB_TYPE="$3"
 
 # Read environment variables
 cd $(dirname $SAGE_EXECUTABLE)
+source local/bin/sage-env-config
 source local/bin/sage-env
 
 

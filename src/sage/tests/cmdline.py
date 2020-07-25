@@ -24,7 +24,6 @@ test.spyx
 --help
 --info
 --ipython
---kash
 --lisp
 --maxima
 --min
@@ -539,14 +538,6 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: out.find('(gdb) ') >= 0  # optional - gdb
         True
         sage: ret  # optional - gdb
-        0
-
-        sage: (out, err, ret) = test_executable(["sage", "--kash", "-b", "3^33;\n"])  # optional - kash
-        sage: out.find("5559060566555523") >= 0  # optional - kash
-        True
-        sage: err  # optional - kash
-        ''
-        sage: ret  # optional - kash
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--mwrank", "-v0", "-q", "-o"], "0 0 1 -7 6 0 0 0 0 0\n")

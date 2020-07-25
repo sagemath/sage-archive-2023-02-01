@@ -31,7 +31,7 @@ export SAGE_ENV_CONFIG_SOURCED=1
 export SAGE_LOCAL="@prefix@"
 
 # SAGE_ROOT is the location of the Sage source/build tree.
-export SAGE_ROOT="@abs_top_srcdir@"
+export SAGE_ROOT="@SAGE_ROOT@"
 
 #######################################
 # Compilers set at configuration time

@@ -51,6 +51,11 @@ cdef class NumberField(Field):
     # is rather confusing.
     def _pushout_(self, other):
         r"""
+        If ``self`` and/or ``other`` are embedded, use this embedding to
+        discover a common parent.
+
+        Currently embeddings into ``AA`` and ``QQbar` are supported.
+
         TESTS:
 
         Pushout is implemented for number field embedded in ``AA``::
@@ -87,12 +92,42 @@ cdef class NumberField(Field):
             sage: K.<cbrt2> = NumberField(x^3 - 2, embedding=AA(2)**(1/3))
             sage: (cbrt2 + a) * b
             4.231287179063857?
+            sage: b + QQbar(-3).sqrt()
+            1.414213562373095? + 1.732050807568878?*I
+
+        Pushout is implemented for number field embedded in ``QQbar``::
+
+            sage: Km2.<sqrtm2> = NumberField(x^2 + 2, embedding=QQbar(-2).sqrt())
+            sage: b + sqrtm2
+            1.414213562373095? + 1.414213562373095?*I
+            sage: sqrtm2 + b
+            1.414213562373095? + 1.414213562373095?*I
+            sage: sqrtm2 + AA(3).sqrt()
+            1.732050807568878? + 1.414213562373095?*I
         """
-        if isinstance(other, NumberField) and \
-            self._embedded_real and \
-            (<NumberField>other)._embedded_real:
-            from sage.rings.qqbar import AA
+        # Use the embedding of ``self``, if it exists.
+        if self._embedding:
+            codomain_self = self._embedding.codomain()
+        else:
+            codomain_self = self
+
+        # Use the embedding of ``other``, if it exists.
+        if isinstance(other, NumberField):
+            embedding = (<NumberField>other)._embedding
+            if embedding:
+                codomain_other = embedding.codomain()
+            else:
+                codomain_other = other
+        else:
+            codomain_other = other
+
+        from sage.rings.qqbar import AA
+        if codomain_self is AA and codomain_other is AA:
             return AA
+
+        from sage.rings.qqbar import QQbar
+        if codomain_self in (AA, QQbar) and codomain_other in (AA, QQbar):
+            return QQbar
 
     def ring_of_integers(self, *args, **kwds):
         r"""

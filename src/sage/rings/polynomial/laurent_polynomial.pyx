@@ -3493,7 +3493,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             ans._poly = root
             return (True, ans)
 
-    cpdef rescale_vars(self, d, h=None, new_ring=None):
+    cpdef rescale_vars(self, dict d, h=None, new_ring=None):
         r"""
         Rescale variables in a Laurent polynomial.
 
@@ -3506,22 +3506,28 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: p = x^2*y + x*y^2
             sage: p.rescale_vars({0: 2, 1: 3})
             12*x^2*y + 18*x*y^2
+            sage: F = GF(2)
+            sage: p.rescale_vars({0: 3, 1: 7}, new_ring=L.change_ring(F))
+            x^2*y + x*y^2
         """
         cdef int i
+        cdef dict df
+        cdef ETuple v
+
+        df = self.dict()
+        if h is None:
+            for v in df:
+                for i in d:
+                    df[v] *= d[i]**v[i]
+        else:
+            for v in df:
+                for i in d:
+                    df[v] = h(df[v]*d[i]**v[i])
         if new_ring is None:
             P = self.parent()
         else:
             P = new_ring
-        df = self.dict()
-        df2 = {}
-        for v in df:
-            w = df[v]
-            for i in d:
-                w *= d[i]**v[i]
-            if h is not None:
-                w = h(w)
-            df2[v] = w
-        return P(df2)
+        return P(df)
 
     cpdef toric_coordinate_change(self, M, h=None, new_ring=None):
         r"""
@@ -3541,13 +3547,16 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: p.toric_coordinate_change(Matrix([[1,-3],[1,1]]), new_ring=L.change_ring(F))
             x^-2*y^2 + x^-3*y
         """
-        cdef n, i, j
+        cdef int n, i, j
+        cdef dict d, d2
+        cdef ETuple v, t
+        
         if new_ring is None:
             P = self.parent()
         else:
             P = new_ring
         n = P.ngens()
-        if self == 0:
+        if not self:
             return P.zero()
         l = []
         for j in range(n):
@@ -3580,23 +3589,26 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: p.toric_substitute((2,3), (-1,1), 2, new_ring=L.change_ring(F))
             3*x^3*y^3 + 2*x^-2*y^-2
         """
-        if new_ring is None:
-            P = self.parent()
-        else:
-            P = new_ring
+        cdef dict d, d2
+        cdef ETuple ve, v1e, w, w1
+        
         d = self.dict()
         d2 = {}
-        v = ETuple(v)
-        v1 = ETuple(v1)
+        ve = ETuple(v)
+        v1e = ETuple(v1)
         for w in d:
             x = d[w]
             if h is not None:
                 x = h(x)
-            t = w.dotprod(v1)
-            w1 = w.eadd(v.emul(-t))
+            t = w.dotprod(v1e)
+            w1 = w.eadd(ve.emul(-t))
             if w1 in d2:
                 d2[w1] += x * a**t
             else:
                 d2[w1] = x * a**t
+        if new_ring is None:
+            P = self.parent()
+        else:
+            P = new_ring
         return P(d2)
 

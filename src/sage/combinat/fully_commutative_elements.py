@@ -9,7 +9,6 @@ commuting generators in `S`. See [Ste1996]_.
 from sage.structure.parent import Parent
 from sage.structure.list_clone import NormalizedClonableList
 from sage.categories.enumerated_sets import EnumeratedSets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from .root_system.coxeter_matrix import CoxeterMatrix
 from .root_system.cartan_type import CartanType
 from collections import deque
@@ -816,7 +815,7 @@ class FullyCommutativeElements(Parent):
 
         sage: FCAffineA2 = FullyCommutativeElements(['A', 2, 1])
         sage: FCAffineA2.category()
-        Category of enumerated sets
+        Category of infinite enumerated sets
         sage: list(FCAffineA2.iterate_to_length(2))
         [[], [0], [1], [2], [1, 0], [2, 0], [0, 1], [2, 1], [0, 2], [1, 2]]
 
@@ -846,20 +845,27 @@ class FullyCommutativeElements(Parent):
 
         self._index_set = sorted(self._matrix.index_set())
 
-        # Try to determine if this group is FC-finite, and refine our category
-        # to FiniteEnumeratedSets. This does not detect all FC-finite Coxeter
-        # matrices, but does detect ones with known Cartan types.
+
+        # Start with the category of enumerated sets and see if we can refine it
+        # to finite or infinite by detecting if the group is FC-finite.
         category = EnumeratedSets()
         if self._matrix.is_finite():
-            category = FiniteEnumeratedSets()
+            # Finite groups will be FC-finite.
+            category = category.Finite()
         else:
             try:
+                # The only infinite Cartan types that are FC-finite are those
+                # affine types which correspond to F_5 and E_9 in Stembridge's
+                # notation, that is affine F4 and affine E8.
                 cartan_type = self._matrix.coxeter_type().cartan_type()
                 family, rank, affine = cartan_type.type(), cartan_type.rank(), cartan_type.is_affine()
-                if not affine and (rank == 2 or family in {'A', 'B', 'C', 'D', 'E', 'F', 'H'}):
-                    category = FiniteEnumeratedSets()
+                if affine:
+                    category = category.Finite() if (family == 'F' and rank == 4) or (family == 'E' and rank == 8) else category.Infinite()
+                else:
+                    category = category.Infinite()
             except:
-                # Cannot recognize the matrix as a Cartan type
+                # Cannot recognize the matrix as a Cartan type, just stay with
+                # plain enumerated sets.
                 pass
 
         Parent.__init__(self, category=category)
@@ -982,7 +988,7 @@ class FullyCommutativeElements(Parent):
 
             sage: FCAffineA2 = FullyCommutativeElements(['A', 2, 1])
             sage: FCAffineA2.category()
-            Category of enumerated sets
+            Category of infinite enumerated sets
             sage: list(FCAffineA2.iterate_to_length(4))
             [[], [0], [1], [2], [1, 0], [2, 0], [0, 1], [2, 1], [0, 2], [1,
             2], [2, 1, 0], [1, 2, 0], [2, 0, 1], [0, 2, 1], [1, 0, 2], [0, 1,

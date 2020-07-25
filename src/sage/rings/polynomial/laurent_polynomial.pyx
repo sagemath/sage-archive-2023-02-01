@@ -3563,13 +3563,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             l.append(ETuple(tuple(M.column(j))))
         d = self.dict()
         d2 = {}
+        if h is not None:
+            for v in d:
+                d[v] = h(d[v])
         for v in d:
             x = d[v]
             t = ETuple({}, n)
             for j in range(n):
                 t = t.eadd(l[j].emul(v[j]))
-            if h is not None:
-                x = h(x)
             d2[t] = x
         return P(d2)
 
@@ -3596,10 +3597,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         d2 = {}
         ve = ETuple(v)
         v1e = ETuple(v1)
+        if h is not None:
+            for w in d:
+                d[w] = h(d[w])
         for w in d:
             x = d[w]
-            if h is not None:
-                x = h(x)
             t = w.dotprod(v1e)
             w1 = w.eadd(ve.emul(-t))
             if w1 in d2:

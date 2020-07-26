@@ -14,7 +14,7 @@ Numerical computation of newforms
 
 from sage.arith.all              import prime_range
 from sage.matrix.constructor     import matrix
-from sage.misc.misc              import verbose
+from sage.misc.verbose           import verbose
 from sage.misc.cachefunc         import cached_method
 from sage.misc.prandom           import randint
 from sage.modular.arithgroup.all import Gamma0

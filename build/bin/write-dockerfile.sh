@@ -43,6 +43,11 @@ case $SYSTEM in
 ARG BASE_IMAGE=ubuntu:latest
 FROM \${BASE_IMAGE} as with-system-packages
 EOF
+        if [ -n "$DIST_UPGRADE" ]; then
+            cat <<EOF
+RUN sed -i.bak $DIST_UPGRADE /etc/apt/sources.list && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
+EOF
+        fi
         EXISTS="2>/dev/null >/dev/null apt-cache show"
         UPDATE="apt-get update &&"
         INSTALL="DEBIAN_FRONTEND=noninteractive apt-get install -qqq --no-install-recommends --yes"
@@ -159,13 +164,13 @@ RUN mkdir -p /sage
 WORKDIR /sage
 ADD Makefile VERSION.txt README.md bootstrap configure.ac sage ./
 ADD src/doc/bootstrap src/doc/bootstrap
+ADD src/bin src/bin
 ADD m4 ./m4
 ADD build ./build
 $RUN ./bootstrap
 
 FROM bootstrapped as configured
 #:configuring:
-ADD src/bin src/bin
 RUN mkdir -p logs/pkgs; ln -s logs/pkgs/config.log config.log
 ARG EXTRA_CONFIGURE_ARGS=""
 EOF

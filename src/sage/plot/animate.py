@@ -841,7 +841,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
         If ``savefile`` is not specified: in notebook mode, display
         the animation; otherwise, save it to a default file name.  Use
-        :func:`sage.misc.misc.set_verbose` with ``level=1`` to see
+        :func:`sage.misc.verbose.set_verbose` with ``level=1`` to see
         additional output.
 
         EXAMPLES::
@@ -928,12 +928,12 @@ please install it and try again."""
             cmd = 'cd "%s"; sage-native-execute ffmpeg -y -f image2 %s -i %s %s %s' % (pngdir, early_options, pngs, ffmpeg_options, savefile)
             from subprocess import check_call, CalledProcessError, PIPE
             try:
-                if sage.misc.misc.get_verbose() > 0:
+                if sage.misc.verbose.get_verbose() > 0:
                     set_stderr = None
                 else:
                     set_stderr = PIPE
-                sage.misc.misc.verbose("Executing '%s'" % cmd,level=1)
-                sage.misc.misc.verbose("\n---- ffmpeg output below ----\n")
+                sage.misc.verbose.verbose("Executing '%s'" % cmd,level=1)
+                sage.misc.verbose.verbose("\n---- ffmpeg output below ----\n")
                 check_call(cmd, shell=True, stderr=set_stderr)
                 if show_path:
                     print("Animation saved to file %s." % savefile)

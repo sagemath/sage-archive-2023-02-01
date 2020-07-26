@@ -12091,11 +12091,11 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES:
         
         sage: G = graphs.CompleteGraph(5)
-        sage: G.vertices_with_degree(5)
+        sage: G.vertices_with_degree(4)
         [0, 1, 2, 3, 4]
         sage: P = graphs.PathGraph(5)
         sage: P.vertices_with_degree(1)
-        [0, 19]
+        [0, 4]
         """
         vertices = []
         for v in self.vertex_iterator():

@@ -413,7 +413,7 @@ e.g. ::
     sage: list(map(ord, "Big Mac"))
     [66, 105, 103, 32, 77, 97, 99]
 
-How can I wrote multiplication implicitly as in Mathematica?
+How can I write multiplication implicitly as in Mathematica?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Sage has a function that enables this::

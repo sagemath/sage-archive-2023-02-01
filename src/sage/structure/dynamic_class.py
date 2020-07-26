@@ -47,7 +47,7 @@ by inheritance::
     class MyPermutation(UniqueRepresentation, PermutationCycleType):
          ...
 
-Finaly, we may want to endow the permutations in `S` with further
+Finally, we may want to endow the permutations in `S` with further
 operations coming from the (algebraic) structure of `S`:
 
 - group operations

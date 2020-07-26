@@ -5099,11 +5099,11 @@ class Polyhedron_base(Element):
             else:
                 new_vertices = ()
             if self.n_rays():
-                new_rays = ( r for r in (linear_transf*matrix(R, self.rays()).transpose()) )
+                new_rays = ( r for r in matrix(R, self.rays())*linear_transf.transpose() )
             else:
                 new_rays = ()
             if self.n_lines():
-                new_lines = ( l for l in (linear_transf*matrix(R, self.lines()).transpose()) )
+                new_lines = ( l for l in matrix(R, self.lines())*linear_transf.transpose() )
             else:
                 new_lines = ()
 
@@ -5157,6 +5157,21 @@ class Polyhedron_base(Element):
                                             Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
         return new_parent.element_class(new_parent, [tuple(new_vertices), tuple(new_rays), tuple(new_lines)], None)
+
+    def _test_linear_transformation(self, tester=None, **options):
+        """
+        Run some tests on linear transformation.
+
+        TESTS::
+
+            sage: Polyhedron(rays=[(0,1)])._test_linear_transformation()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        # Check that :trac:`30146` is fixed.
+        from sage.matrix.special import identity_matrix
+        tester.assertEqual(self, self.linear_transformation(identity_matrix(self.ambient_dim())))
 
     def _acted_upon_(self, actor, self_on_left):
         """

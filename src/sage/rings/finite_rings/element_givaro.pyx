@@ -1595,7 +1595,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             b
             sage: c is b
             True
-            sage: copy(5r) is 5r
+            sage: copy(5r) == 5r
             True
         """
         return self

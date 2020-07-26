@@ -90,7 +90,7 @@ related ?
 
 ::
 
-    sage: p.cross_references(fetch=True)                # optional -- internet
+    sage: p.cross_references(fetch=True)        # optional -- internet   # random
     0: A000798: Number of different quasi-orders (or topologies, or transitive digraphs) with n labeled elements.
     1: A001035: Number of partially ordered sets ("posets") with n labeled elements (or labeled acyclic transitive digraphs).
     2: A001930: Number of topologies, or transitive digraphs with n unlabeled nodes.

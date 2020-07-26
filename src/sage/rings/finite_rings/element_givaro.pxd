@@ -1,4 +1,5 @@
 # distutils: extra_compile_args = GIVARO_CFLAGS
+# distutils: include_dirs = GIVARO_INCDIR
 
 from libcpp.vector cimport vector
 ctypedef vector[int] intvec

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 #  sage-spkg-info SPKG
 #  Format information about a Sage package

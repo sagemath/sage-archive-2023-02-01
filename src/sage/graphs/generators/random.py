@@ -697,11 +697,8 @@ def RandomNewmanWattsStrogatz(n, k, p, seed=None):
     We check that the generated graph contains a cycle of order `n`::
 
         sage: G = graphs.RandomNewmanWattsStrogatz(7, 2, 0.2)
-        sage: G.order(), G.size()   # py3
-        (7, 9)                      # 64-bit
-        (7, 10)                     # 32-bit
-        sage: G.order(), G.size()   # py2
-        (7, 9)
+        sage: G.order()
+        7
         sage: C7 = graphs.CycleGraph(7)
         sage: G.subgraph_search(C7)
         Subgraph of (): Graph on 7 vertices
@@ -1258,12 +1255,20 @@ def RandomLobster(n, p, q, seed=None):
       number generator (default: ``None``).
 
 
-    EXAMPLES: We show the edge list of a random graph with 3 backbone
+    EXAMPLES:
+
+    We check a random graph with 12 backbone
     nodes and probabilities `p = 0.7` and `q = 0.3`::
 
-        sage: graphs.RandomLobster(3, 0.7, 0.3).edges(labels=False)
-        []                                                                  # 32-bit
-        [(0, 1), (0, 5), (1, 2), (1, 6), (2, 3), (2, 7), (3, 4), (3, 8)]    # 64-bit
+        sage: G = graphs.RandomLobster(12, 0.7, 0.3)
+        sage: leaves = [v for v in G.vertices() if G.degree(v) == 1]
+        sage: G.delete_vertices(leaves)                                 # caterpillar
+        sage: leaves = [v for v in G.vertices() if G.degree(v) == 1]
+        sage: G.delete_vertices(leaves)                                 # path
+        sage: s = G.degree_sequence()
+        sage: if G:
+        ....:     assert s[-2:] == [1, 1]
+        ....:     assert all(d == 2 for d in s[:-2])
 
     ::
 

@@ -806,7 +806,7 @@ class DiGraph(GenericGraph):
             from_dict_of_lists(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'NX':
-            # adjust for empty dicts instead of None in NetworkX default edge 
+            # adjust for empty dicts instead of None in NetworkX default edge
             # labels
             if convert_empty_dict_labels_to_None is None:
                 convert_empty_dict_labels_to_None = (format == 'NX')
@@ -1971,7 +1971,7 @@ class DiGraph(GenericGraph):
                 tempG.delete_edge(u, v, label)
                 tempG.add_edge(v, u, label)
 
-            # If user does not want to force digraph to allow parallel edges, 
+            # If user does not want to force digraph to allow parallel edges,
             # we delete edge u to v and overwrite v,u with the label of u,v
             elif multiedges is False:
                 tempG.delete_edge(u,v,label)
@@ -2415,8 +2415,8 @@ class DiGraph(GenericGraph):
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
 
-          - ``'standard'``, ``'2Dsweep'``: these algorithms are implemented in
-            :func:`sage.graphs.distances_all_pairs.diameter`.
+          - ``'standard'``, ``'2Dsweep'``, ``'DiFUB'``: these algorithms are
+            implemented in :func:`sage.graphs.distances_all_pairs.diameter`.
             They work only if ``by_weight==False``. See the function
             documentation for more information.
 
@@ -2451,6 +2451,9 @@ class DiGraph(GenericGraph):
 
         TESTS::
 
+            sage: G = digraphs.Path(5)
+            sage: G.diameter(algorithm = 'DiFUB')
+            +Infinity
             sage: G = DiGraph()
             sage: G.diameter()
             Traceback (most recent call last):
@@ -2469,11 +2472,11 @@ class DiGraph(GenericGraph):
             by_weight = True
 
         if algorithm is None and not by_weight:
-            algorithm = 'standard'
+            algorithm = 'DiFUB'
         elif algorithm == 'BFS':
             algorithm = 'standard'
 
-        if algorithm in ['standard', '2Dsweep']:
+        if algorithm in ['standard', '2Dsweep', 'DiFUB']:
             if by_weight:
                 raise ValueError("algorithm '" + algorithm + "' does not work" +
                                  " on weighted DiGraphs")
@@ -2509,7 +2512,7 @@ class DiGraph(GenericGraph):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -2580,7 +2583,7 @@ class DiGraph(GenericGraph):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -2732,11 +2735,11 @@ class DiGraph(GenericGraph):
             if len(path) > 1 and path[0] == path[-1]:
                 yield path
             # Makes sure that the current cycle is not too long
-            # Also if a cycle has been encountered and only simple cycles are 
+            # Also if a cycle has been encountered and only simple cycles are
             # allowed, Then it discards the current path
             if len(path) <= max_length and (not simple or path.count(path[-1]) == 1):
                 for neighbor in h.neighbor_out_iterator(path[-1]):
-                    # If cycles are not rooted, makes sure to keep only the 
+                    # If cycles are not rooted, makes sure to keep only the
                     # minimum cycle according to the lexicographic order
                     if rooted or neighbor not in starting_vertices or path[0] <= neighbor:
                         queue.append(path + [neighbor])
@@ -3257,7 +3260,7 @@ class DiGraph(GenericGraph):
 
             sage: H = DiGraph({0: [1, 2], 1: [3], 2: [3], 3: [], 5: [1, 6], 6: [2, 3]})
             sage: H.layout_acyclic_dummy()
-            {0: [1.00..., 0], 1: [1.00..., 1], 2: [1.51..., 2], 3: [1.50..., 3], 5: [2.01..., 0], 6: [2.00..., 1]}
+            {0: [1.0..., 0], 1: [1.0..., 1], 2: [1.5..., 2], 3: [1.5..., 3], 5: [2.0..., 0], 6: [2.0..., 1]}
 
             sage: H = DiGraph({0: [1]})
             sage: H.layout_acyclic_dummy(rankdir='up')
@@ -3783,7 +3786,7 @@ class DiGraph(GenericGraph):
         contains all vertices of the digraph.
 
         If no spanning out branching rooted at ``source`` exist, raises
-        ValueError or return non spanning out branching rooted at ``source``, 
+        ValueError or return non spanning out branching rooted at ``source``,
         depending on the value of ``spanning``.
 
         INPUT:
@@ -3792,7 +3795,7 @@ class DiGraph(GenericGraph):
 
         - ``spanning`` -- boolean (default: ``True``); if ``False`` return
           maximum out branching from ``source``. Otherwise, return spanning out
-          branching if exists. 
+          branching if exists.
 
         OUTPUT:
 
@@ -3848,7 +3851,7 @@ class DiGraph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: no spanning out branching from vertex (0) exist
- 
+
         With a non connected ``DiGraph`` and ``spanning = False``::
 
             sage: g=DiGraph([(0,1), (0,1), (1,2), (3,4)],multiedges=True)
@@ -3862,7 +3865,7 @@ class DiGraph(GenericGraph):
             6
 
         With a DiGraph already being a spanning out branching::
-        
+
             sage: G = DiGraph({0:[1,2], 1:[3,4], 2:[5], 3:[], 4:[], 5:[]}, format='dict_of_lists')
             sage: next(G.out_branchings(0)) == G
             True
@@ -3944,7 +3947,7 @@ class DiGraph(GenericGraph):
             D.merge_vertices((source, x))
 
             list_merged_edges.add(l)
-            
+
             for out_branch in _rec_out_branchings(depth - 1):
                 yield out_branch
 
@@ -3979,7 +3982,7 @@ class DiGraph(GenericGraph):
             # if vertex is isolated
             if not depth:
                 return _singleton_out_branching()
-                
+
         # We build a copy of self in which each edge has a distinct label.
         # On the way, we remove loops and edges incoming to source.
         D = DiGraph(multiedges=True, loops=True)
@@ -4000,7 +4003,7 @@ class DiGraph(GenericGraph):
         contains all vertices of the digraph.
 
         If no spanning in branching rooted at ``source`` exist, raises
-        ValueError or return non spanning in branching rooted at ``source``, 
+        ValueError or return non spanning in branching rooted at ``source``,
         depending on the value of ``spanning``.
 
         INPUT:
@@ -4079,7 +4082,7 @@ class DiGraph(GenericGraph):
             6
 
         With a DiGraph already being a spanning in branching::
-        
+
             sage: G = DiGraph({0:[], 1:[0], 2:[0], 3:[1], 4:[1], 5:[2]}, format='dict_of_lists')
             sage: next(G.in_branchings(0)) == G
             True
@@ -4161,12 +4164,12 @@ class DiGraph(GenericGraph):
             D.merge_vertices((source, x))
 
             list_merged_edges.add(l)
-            
+
             for in_branch in _rec_in_branchings(depth - 1):
                 yield in_branch
 
             list_merged_edges.remove(l)
-             
+
             # unmerge the end vertices of e
             D.delete_vertex(source)
             D.add_edges(saved_edges)
@@ -4181,7 +4184,7 @@ class DiGraph(GenericGraph):
 
         if not self.has_vertex(source):
             raise ValueError("vertex ({0}) is not a vertex of the digraph".format(source))
-        
+
         # check if self.order == 1
         if self.order() == 1:
             return _singleton_in_branching()
@@ -4196,7 +4199,7 @@ class DiGraph(GenericGraph):
             # if vertex is isolated
             if not depth:
                 return _singleton_in_branching()
-            
+
         # We build a copy of self in which each edge has a distinct label.
         # On the way, we remove loops and edges incoming to source.
         D = DiGraph(multiedges=True, loops=True)

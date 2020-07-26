@@ -11,7 +11,7 @@ SAGE_NAUTY_BINS_PREFIX = "@SAGE_NAUTY_BINS_PREFIX@"
 # The following must not be used during build to determine source or installation
 # location of sagelib.  See comments in SAGE_ROOT/src/Makefile.in
 SAGE_LOCAL = "@prefix@"
-SAGE_ROOT = "@abs_top_srcdir@"
+SAGE_ROOT = "@SAGE_ROOT@"
 
 # Entry point 'sage-config'.  It does not depend on any packages.
 

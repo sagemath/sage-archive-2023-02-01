@@ -2154,6 +2154,14 @@ class Function_cases(GinacFunction):
             cases(((x == 0, pi), (1, 0)))
             sage: latex(ex)
             \begin{cases}{\pi} & {x = 0}\\{0} & {1}\end{cases}
+
+        TESTS:
+
+        Verify that :trac:`25624` is fixed::
+
+            sage: L = latex(cases([(x == 0, 0), (1, 1)]))
+            sage: L
+            \begin{cases}{0} & {x = 0}\\{1} & {1}\end{cases}
         """
         if not isinstance(l, (list, tuple)):
             raise ValueError("cases() argument must be a list")
@@ -2165,7 +2173,7 @@ class Function_cases(GinacFunction):
             else:
                 right = pair
             str += r"{%s} & {%s}\\" % (latex(left), latex(right))
-        print(str[:-2] + r"\end{cases}")
+        return str[:-2] + r"\end{cases}"
 
     def _sympy_(self, l):
         """

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Univariate Polynomial Rings
 
@@ -407,6 +408,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: x = SR.var('x')
             sage: QQbar[x](x^6+x^5+x^4-x^3+x^2-x+2/5)
             x^6 + x^5 + x^4 - x^3 + x^2 - x + 2/5
+
+        Check support for unicode characters (:trac:`29280`)::
+
+            sage: QQ['λ']('λ^2')
+            λ^2
         """
         C = self.element_class
         if isinstance(x, (list, tuple)):

@@ -327,7 +327,7 @@ AC_DEFUN([SAGE_SYSTEM_PACKAGE_NOTICE], [
     AS_IF([test -n "$SAGE_NEED_SYSTEM_PACKAGES"], [
         AC_MSG_NOTICE([notice: the following SPKGs did not find equivalent system packages:$SAGE_NEED_SYSTEM_PACKAGES])
         AC_MSG_CHECKING([for the package system in use])
-        SYSTEM=$(build/bin/sage-guess-package-system)
+        SYSTEM=$(build/bin/sage-guess-package-system 2>& AS_MESSAGE_FD)
         AC_MSG_RESULT([$SYSTEM])
         AS_IF([test $SYSTEM != unknown], [
             SYSTEM_PACKAGES=$(build/bin/sage-get-system-packages $SYSTEM $SAGE_NEED_SYSTEM_PACKAGES)

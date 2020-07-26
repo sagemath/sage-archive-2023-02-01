@@ -6,7 +6,7 @@
 * `x.x` — all stable releases of Sage are tagged with their version number.
 * `x.x.{beta,rc}x` - betas and release candidates of Sage as [tagged in our git repository](https://github.com/sagemath/sage/tags).
 * `develop` — the current development version of Sage which gets merged into the `master` branch when a new version of Sage is released [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/sagemath/sage/develop.svg)](https://github.com/sagemath/sage/commits/develop) [![GitLab CI](https://gitlab.com/sagemath/sage/badges/develop/pipeline.svg)](https://gitlab.com/sagemath/sage/commits/develop)
-* `-py3` - in the past, we distinguished Python 2 and Python 3 builds. Now, since 9.1, we only provide Python 3 based images so the `-py3` suffix is only there for historic reasons.
+* `-py3` - until Sage 9.1, we provided Python 2 builds (with no suffix) and Python 3 builds (with the `-py3` suffix). From Sage 9.2.beta0 on, all images we provide are based on Python 3 and the `-py3` suffix survives only for historical reasons: with or without it, you get Python 3.
 
 # What is SageMath
 

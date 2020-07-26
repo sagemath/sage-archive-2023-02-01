@@ -27,7 +27,7 @@ else
   cat "$SECRET_DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
   docker push ${DOCKER_NAMESPACE:-sagemath}/$1:$DOCKER_TAG
 
-  # For historic reasons, we also provide a -py3 tag. It's identical to the non-py3 tag.
+  # For historical reasons, we also provide a -py3 tag. It's identical to the non-py3 tag.
   docker tag ${DOCKER_NAMESPACE:-sagemath}/$1:$DOCKER_TAG ${DOCKER_NAMESPACE:-sagemath}/$1:$DOCKER_TAG-py3
   docker push ${DOCKER_NAMESPACE:-sagemath}/$1:$DOCKER_TAG-py3
 fi

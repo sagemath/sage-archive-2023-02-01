@@ -211,8 +211,8 @@ class Debug(object):
         else:
             file = filename
 
-        import cgi
-        t = """%s<hr>> %s"""%(cgi.escape(code), file)
+        import html
+        t = """%s<hr>> %s"""%(html.escape(code), file)
         return t
 
     def interact(self):

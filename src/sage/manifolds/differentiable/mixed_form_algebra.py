@@ -190,9 +190,6 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
              manifold M
 
         """
-        res = self.element_class(self, name=name, latex_name=latex_name)
-        if comp is None:
-            return res
         try:
             if comp.is_trivial_zero():
                 return self.zero()
@@ -203,7 +200,10 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
                 return self.zero()
             if comp == 1:
                 return self.one()
-        if isinstance(comp, (tuple, list)):
+        res = self.element_class(self, name=name, latex_name=latex_name)
+        if comp is None:
+            return res
+        elif isinstance(comp, (tuple, list)):
             if len(comp) != self._max_deg + 1:
                 raise IndexError("input list must have "
                                  "length {}".format(self._max_deg + 1))

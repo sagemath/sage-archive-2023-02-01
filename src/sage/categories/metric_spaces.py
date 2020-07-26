@@ -14,6 +14,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
 from sage.categories.with_realizations import WithRealizationsCategory
+from sage.categories.homsets import HomsetsCategory
 
 class MetricSpacesCategory(RegressiveCovariantConstructionCategory):
 
@@ -213,6 +214,45 @@ class MetricSpaces(MetricSpacesCategory):
                 arccosh(33/7)
             """
             return self.parent().dist(self, b)
+
+    class Homsets(HomsetsCategory):
+        """
+        The category of homsets of metric spaces
+
+        It consists of the metric maps, that is, the Lipschitz functions
+        with Lipschitz constant 1.
+        """
+
+        class ElementMethods:
+
+            def _test_metric_map(self, **options):
+                r"""
+                Test that this metric space morphism is a metric map,
+                that is, a Lipschitz function with Lipschitz constant 1.
+
+                EXAMPLES::
+
+                    sage: from sage.categories.metric_spaces import MetricSpaces
+                    sage: from sage.categories.morphism import SetMorphism
+                    sage: Q_abs = SetMorphism(Hom(QQ, QQ, MetricSpaces()), operator.__abs__)
+                    sage: TestSuite(Q_abs).run()
+
+                TESTS::
+
+                    sage: Q_square = SetMorphism(Hom(QQ, QQ, MetricSpaces()), lambda x: x ** 2)
+                    sage: TestSuite(Q_square).run(skip=['_test_pickling'])
+                    Failure in _test_metric_map:
+                    Traceback (most recent call last):
+                    ...
+                    AssertionError: ... not less than or equal to ...
+                    ...
+                    The following tests failed: _test_metric_map
+                """
+                tester = self._tester(**options)
+                S = self.domain().some_elements()
+                for a in S:
+                    for b in S:
+                        tester.assertLessEqual(self(a).dist(self(b)), a.dist(b))
 
     class WithRealizations(WithRealizationsCategory):
         class ParentMethods:

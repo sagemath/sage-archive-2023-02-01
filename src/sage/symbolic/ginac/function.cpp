@@ -21,6 +21,7 @@
  */
 
 #define register
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include "py_funcs.h"
 #include "function.h"

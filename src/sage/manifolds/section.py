@@ -466,7 +466,7 @@ class Section(ModuleElement):
                     frame, chart = frame
                 self.add_comp(frame)[:, chart] = components
         elif isinstance(comp0, str):
-            # For compatibility with previous use of tensor_field():
+            # For consistency with tensor fields:
             self.set_name(comp0)
         else:
             if hasattr(comp0, '__getitem__'):

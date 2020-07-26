@@ -746,6 +746,100 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
         """
         return 1
 
+    def _xgcd_univariate_polynomial(self, f, g):
+        """
+        Extended gcd for univariate polynomial rings over self.
+
+        Should not be called directly. Use f.xgcd(g) instead.
+
+        INPUT:
+
+         - ``f``, ``g`` - the polynomials of which to take the xgcd
+
+        OUTPUT:
+
+         - A tuple (a, b, c) which satisfies `a = b*f + c*g`. There
+           is not guarentee that a, b, and c are minimal.
+
+        .. WARNING::
+
+            The computations are performed using the standard Euclidean
+            algorithm which might produce mathematically incorrect results in
+            some cases. See :trac:`13439`.
+
+
+        EXAMPLES::
+
+            sage: R.<x> = Zp(3,3)[]
+            sage: f = x + 1
+            sage: f.xgcd(f^2)
+            ((1 + O(3^3))*x + 1 + O(3^3), 1 + O(3^3), 0)
+
+        We check that :trac:`13439` has been fixed::
+
+            sage: R.<x> = Zp(3,3)[]
+            sage: f = 3*x + 7
+            sage: g = 5*x + 9
+            sage: f.xgcd(f*g)
+            ((3 + O(3^4))*x + 1 + 2*3 + O(3^3), 1 + O(3^3), 0)
+
+            sage: R.<x> = Zp(3)[]
+            sage: f = 357555295953*x + 257392844
+            sage: g = 225227399*x - 511940255230575
+            sage: f.xgcd(f*g)
+            ((3^9 + O(3^29))*x + 2 + 2*3 + 3^2 + 2*3^5 + 3^6 + 3^7
+             + 3^8 + 3^10 + 3^11 + 2*3^13 + 3^14 + 3^16 + 2*3^19 +
+            O(3^20), 1 + 2*3^2 + 3^4 + 2*3^5 + 3^6 + 3^7 +
+             2*3^8 + 2*3^10 + 2*3^12 + 3^13 + 3^14 + 3^15 + 2*3^17
+             + 3^18 + O(3^20), 0)
+
+        We check low precision computations::
+
+            sage: R.<x> = Zp(3,1)[]
+            sage: h = 3*x + 7
+            sage: i = 4*x + 9
+            sage: h.xgcd(h*i)
+            ((3 + O(3^2))*x + 1 + O(3), 1 + O(3), 0)
+        """
+        from sage.misc.stopgap import stopgap
+        stopgap("Extended gcd computations over p-adic fields are performed using the standard Euclidean algorithm which might produce mathematically incorrect results in some cases.", 13439)
+
+        base_ring = f.base_ring()
+        fracfield = base_ring.fraction_field()
+        f_field = f.change_ring(fracfield)
+        g_field = g.change_ring(fracfield)
+        xgcd = fracfield._xgcd_univariate_polynomial(f_field,g_field)
+        lcm = base_ring(1)
+        for f in xgcd:
+            for i in f:
+                lcm = (i.denominator()).lcm(lcm)
+        returnlst = []
+        for f in xgcd:
+            f *= lcm
+            returnlst.append(f.change_ring(base_ring))
+        return tuple(returnlst)
+
+    def _gcd_univariate_polynomial(self, f, g):
+        """
+        gcd for univariate polynomial rings over self.
+
+        INPUT:
+
+         - ``f``, ``g`` - the polynomials of which to take the gcd
+
+        OUTPUT: A polynomial
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(27)
+            sage: K.<x> = R[]
+            sage: h = 3*x + a
+            sage: i = 4*x + 2
+            sage: h.gcd(h*i)
+            (3 + O(3^21))*x + a + O(3^20)
+        """
+        return self._xgcd_univariate_polynomial(f , g)[0]
+
 def is_pAdicField(R):
     """
     Returns ``True`` if and only if ``R`` is a `p`-adic field.

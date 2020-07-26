@@ -2244,7 +2244,7 @@ class DifferentialGCAlgebra(GCAlgebra):
 
         TESTS:
 
-        Check that the issue discovered in :trac:`28155`is solved::
+        Check that the issue discovered in :trac:`28155` is solved::
 
             sage: A.<e1,e2,e3,e4,e5> = GradedCommutativeAlgebra(QQ)
             sage: B = A.cdg_algebra({e5:e1*e2+e3*e4})

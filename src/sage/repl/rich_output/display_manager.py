@@ -489,6 +489,7 @@ class DisplayManager(SageObject):
         One of
         :class:`~sage.repl.rich_output.output_basic.OutputPlainText`,
         :class:`~sage.repl.rich_output.output_basic.OutputAsciiArt`,
+        :class:`~sage.repl.rich_output.output_basic.OutputUnicodeArt`,
         or
         :class:`~sage.repl.rich_output.output_basic.OutputLatex`
         containing the preferred textual representation of ``obj``

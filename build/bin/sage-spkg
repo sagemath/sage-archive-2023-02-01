@@ -10,10 +10,10 @@
 #   -k: do not uninstall existing installation of this package before
 #       installing; instead simply overwrite existing files.
 #   -c: after installing, run the test suite for the spkg. This should
-#       override the settings of SAGE_CHECK and SAGE_CHECK_PACKAGES.
+#       override the settings of SAGE_CHECK.
 #       Exit with an error if the test suite fails.
 #   -w: after installing, run the test suite for the spkg. This should
-#       override the settings of SAGE_CHECK and SAGE_CHECK_PACKAGES.
+#       override the settings of SAGE_CHECK.
 #       Print a warning if the test suite fails.
 #   -d: only download the package
 #   -y: automatically reply "y" for all prompts regarding
@@ -166,6 +166,7 @@ fi
 # The following sets environment variables for building packages.
 # Since this is sourced, it returns a non-zero value on errors rather
 # than exiting.  Using dot suggested by W. Cheung.
+. sage-env-config
 . sage-env
 
 
@@ -227,10 +228,8 @@ while true; do
         -s)
             export SAGE_KEEP_BUILT_SPKGS=yes;;
         -c|--check)
-            SAGE_CHECK_PACKAGES=x  # nonempty, so not set to default later
             export SAGE_CHECK=yes;;
         -w|--check-warning-only)
-            SAGE_CHECK_PACKAGES=x  # nonempty, so not set to default later
             export SAGE_CHECK=warn;;
         -k|--keep-existing)
             KEEP_EXISTING=yes;;
@@ -490,7 +489,7 @@ export PKG_NAME="$PKG_NAME"
 export PKG_BASE="$PKG_BASE"
 export PKG_VER="$PKG_VER"
 
-for lib in "\$SAGE_ROOT/build/bin/sage-dist-helpers" "\$SAGE_SRC/bin/sage-env" "\$SAGE_ROOT/build/bin/sage-build-env-config"; do
+for lib in "\$SAGE_ROOT/build/bin/sage-dist-helpers" "\$SAGE_SRC/bin/sage-env-config" "\$SAGE_SRC/bin/sage-env" "\$SAGE_ROOT/build/bin/sage-build-env-config"; do
     source "\$lib"
     if [ \$? -ne 0 ]; then
         echo >&2 "Error: failed to source \$lib"
@@ -566,26 +565,6 @@ if [ ! -f spkg-install ]; then
     fi
     chmod +x spkg-install
 fi
-
-
-# SAGE_CHECK_PACKAGES: if this contains "!pkg", skip tests for "pkg",
-# so set SAGE_CHECK=no.  If this contains "pkg", run tests, so set
-# SAGE_CHECK=yes.  Check this now and export SAGE_CHECK so that the
-# package's spkg-install script can use this variable.
-#
-# Since Python's self-tests seem to fail on all platforms, we disable
-# its test suite by default.  However, if SAGE_CHECK=warn, we do not
-# do that.
-if [ x"$SAGE_CHECK" = xyes -a -z "$SAGE_CHECK_PACKAGES" ]; then
-    SAGE_CHECK_PACKAGES='!python2,!python3'
-fi
-# Allow spaces, commas, or colons as separator (the documentation suggests commas).
-if echo ",$SAGE_CHECK_PACKAGES," | grep -i "[ ,:]\!$PKG_BASE[ ,:]" > /dev/null ; then
-    export SAGE_CHECK=no
-elif echo ",$SAGE_CHECK_PACKAGES," | grep -i "[ ,:]$PKG_BASE[ ,:]" > /dev/null ; then
-    export SAGE_CHECK=yes
-fi
-
 
 echo "****************************************************"
 echo "Host system:"

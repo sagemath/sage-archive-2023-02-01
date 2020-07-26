@@ -196,7 +196,8 @@ fi
 # append -env to that). We redirect stdout to stderr, which is safer
 # for scripts.
 #####################################################################
-if [ -f "$0-env" ]; then
+if [ -f "$0-env-config" ] && [ -f "$0-env" ]; then
+    . "$0-env-config" >&2
     . "$0-env" >&2
     if [ $? -ne 0 ]; then
         echo >&2 "Error setting environment variables by sourcing '$0-env';"
@@ -372,6 +373,7 @@ usage_advanced() {
     echo "                         labeled \"# optional\" or labeled"
     echo "                         \"# optional tag\" for any of the tags given."
     echo "     --randorder[=seed] -- randomize order of tests"
+    echo "     --random-seed[=seed]  -- random seed for fuzzing doctests"
     echo "     --new            -- only test files modified since last commit"
     echo "     --initial        -- only show the first failure per block"
     echo "     --debug          -- drop into PDB after an unexpected error"
@@ -444,7 +446,7 @@ usage_advanced() {
     echo "                         files are named sage-omega.PID can be found in"
     echo "                         \$DOT_SAGE"
     echo "  --valgrind          -- this is an alias for --memcheck"
-    if [ -n "$SAGE_ROOT/" ]; then
+    if [ -n "$SAGE_ROOT" ]; then
         exec "$SAGE_ROOT/build/bin/sage-site" "--advanced"
     fi
     echo

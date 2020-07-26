@@ -23,12 +23,17 @@ export PKG_CONFIG_PATH
 LIBRARY_PATH="$HOMEBREW/lib$LIBRARY_PATH"
 [ -z "$CPATH" ] || CPATH=":${CPATH}"
 CPATH="$HOMEBREW/include$CPATH"
-for l in readline; do
+for l in readline ; do
     if [ -d "$HOMEBREW/opt/$l/lib" ]; then
         LIBRARY_PATH="$HOMEBREW/opt/$l/lib:$LIBRARY_PATH"
     fi
     if [ -d "$HOMEBREW/opt/$l/include" ]; then
         CPATH="$HOMEBREW/opt/$l/include:$CPATH"
+    fi
+done
+for l in "gcc@9/lib/gcc/9"; do
+    if [ -d "$HOMEBREW/opt/$l" ]; then
+        LIBRARY_PATH="$HOMEBREW/opt/$l:$LIBRARY_PATH"
     fi
 done
 export LIBRARY_PATH

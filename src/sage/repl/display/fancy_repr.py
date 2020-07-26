@@ -199,7 +199,10 @@ class LargeMatrixHelpRepr(ObjectReprABC):
         if not p.toplevel():
             # Do not print the help for matrices inside containers
             return False
-        from sage.matrix.matrix1 import Matrix
+        try:
+            from sage.matrix.matrix1 import Matrix
+        except ModuleNotFoundError:
+            return False
         if not isinstance(obj, Matrix):
             return False
         from sage.matrix.matrix0 import max_rows, max_cols

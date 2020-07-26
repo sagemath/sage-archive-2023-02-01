@@ -47,10 +47,8 @@ SAGE_SPKG_CONFIGURE([ntl], [
 ], [], [], [
     if test x$sage_spkg_install_ntl = xyes; then
         AC_SUBST(SAGE_NTL_PREFIX, ['$SAGE_LOCAL'])
-        AC_MSG_RESULT([using Sage's ntl SPKG])
     else
         AC_SUBST(SAGE_NTL_PREFIX, [''])
-        AC_MSG_RESULT([using ntl library from the system])
     fi
 ])
 

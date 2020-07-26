@@ -158,8 +158,6 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         (66,6,1)-Balanced Incomplete Block Design
         sage: B.blocks()                                                     # optional - internet
         [[0, 1, 2, 3, 4, 65], [0, 5, 22, 32, 38, 58], [0, 6, 21, 30, 43, 48], ...
-        sage: designs.balanced_incomplete_block_design(66, 6, 1, use_LJCR=True)  # optional - internet
-        (66,6,1)-Balanced Incomplete Block Design
         sage: designs.balanced_incomplete_block_design(216, 6, 1)
         Traceback (most recent call last):
         ...
@@ -240,12 +238,12 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
     if v == 1:
         if existence:
             return True
-        return BalancedIncompleteBlockDesign(v, [], check=False)
+        return BIBD(v, [], check=False)
 
     if k == v:
         if existence:
             return True
-        return BalancedIncompleteBlockDesign(v, [list(range(v)) for _ in range(lambd)],lambd=lambd, check=False, copy=False)
+        return BIBD(v, [list(range(v)) for _ in range(lambd)],lambd=lambd, check=False, copy=False)
 
     # Non-existence of BIBD
     if (v < k or
@@ -273,7 +271,7 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
     if k == 2:
         if existence:
             return True
-        return BalancedIncompleteBlockDesign(v, [[x, y] for _ in range(lambd) for x in range(v) for y in range(x+1, v) if x != y], lambd=lambd, check=False, copy=True)
+        return BIBD(v, [[x, y] for _ in range(lambd) for x in range(v) for y in range(x+1, v) if x != y], lambd=lambd, check=False, copy=True)
     if k == 3 and lambd == 1:
         if existence:
             return v%6 == 1 or v%6 == 3
@@ -281,11 +279,11 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
     if k == 4 and lambd == 1:
         if existence:
             return v%12 == 1 or v%12 == 4
-        return BalancedIncompleteBlockDesign(v, v_4_1_BIBD(v), copy=False)
+        return BIBD(v, v_4_1_BIBD(v), copy=False)
     if k == 5 and lambd == 1:
         if existence:
             return v%20 == 1 or v%20 == 5
-        return BalancedIncompleteBlockDesign(v, v_5_1_BIBD(v), copy=False)
+        return BIBD(v, v_5_1_BIBD(v), copy=False)
 
     from .difference_family import difference_family
     from .database import BIBD_constructions
@@ -293,42 +291,50 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
     if (v, k, lambd) in BIBD_constructions:
         if existence:
             return True
-        return BalancedIncompleteBlockDesign(v,BIBD_constructions[(v, k, lambd)](), lambd=lambd, copy=False)
+        return BIBD(v,BIBD_constructions[(v, k, lambd)](), lambd=lambd, copy=False)
     if lambd == 1 and BIBD_from_arc_in_desarguesian_projective_plane(v, k, existence=True):
         if existence:
             return True
         B = BIBD_from_arc_in_desarguesian_projective_plane(v, k)
-        return BalancedIncompleteBlockDesign(v, B, copy=False)
+        return BIBD(v, B, copy=False)
     if lambd == 1 and BIBD_from_TD(v, k, existence=True) is True:
         if existence:
             return True
-        return BalancedIncompleteBlockDesign(v, BIBD_from_TD(v, k), copy=False)
+        return BIBD(v, BIBD_from_TD(v, k), copy=False)
     if lambd == 1 and v == (k-1)**2+k and is_prime_power(k-1):
         if existence:
             return True
         from .block_design import projective_plane
-        return BalancedIncompleteBlockDesign(v, projective_plane(k-1),copy=False)
+        return BIBD(v, projective_plane(k-1),copy=False)
     if difference_family(v, k, l=lambd, existence=True) is True:
         if existence:
             return True
         G, D = difference_family(v, k, l=lambd)
-        return BalancedIncompleteBlockDesign(v, BIBD_from_difference_family(G, D, check=False), lambd=lambd, copy=False)
+        return BIBD(v, BIBD_from_difference_family(G, D, check=False), lambd=lambd, copy=False)
     if lambd == 1 and use_LJCR:
         from .covering_design import best_known_covering_design_www
-        B = best_known_covering_design_www(v, k, 2)
+        values_in_db = False
+        try:
+            B = best_known_covering_design_www(v, k, 2)
+            values_in_db = True
+        except ValueError:
+            # the parameters are not in the LJCR database
+            pass
 
-        # Is it a BIBD or just a good covering ?
-        expected_n_of_blocks = binomial(v, 2)//binomial(k, 2)
-        if B.low_bd() > expected_n_of_blocks:
-            if existence:
-                return False
-            raise EmptySetError("There exists no ({},{},{})-BIBD".format(v, k, lambd))
-        B = B.incidence_structure()
-        if B.num_blocks() == expected_n_of_blocks:
-            if existence:
-                return True
-            else:
-                return B
+        if values_in_db:
+            # Is it a BIBD or just a good covering?
+            expected_n_of_blocks = binomial(v, 2) // binomial(k, 2)
+            if B.low_bd() > expected_n_of_blocks:
+                if existence:
+                    return False
+                raise EmptySetError(f"there exists no ({v},{k},{lambd})-BIBD")
+            B = B.incidence_structure()
+            if B.num_blocks() == expected_n_of_blocks:
+                if existence:
+                    return True
+                else:
+                    return BIBD(B.ground_set(), B.blocks(), k=k, lambd=1, copy=False)
+
 
     if ( (k+lambd)*(k+lambd-1) == lambd*(v+k+lambd-1) and
          balanced_incomplete_block_design(v+k+lambd, k+lambd, lambd, existence=True) is True):
@@ -511,7 +517,7 @@ def steiner_triple_system(n):
     # apply T and remove duplicates
     sts = set(frozenset(T(xx) for xx in x) for x in sts)
 
-    return BalancedIncompleteBlockDesign(n, sts, name=name,check=False)
+    return BIBD(n, sts, name=name,check=False)
 
 
 def BIBD_from_TD(v,k,existence=False):
@@ -1204,10 +1210,6 @@ def _get_r_s_t_u(v):
         t,u = 30*s+5,  5
     elif x <= 51:
         t,u = 30*s+5,  x-25
-    elif x <= 66:
-        t,u = 30*s+11, x-55
-    elif x <= 96:
-        t,u = 30*s+11, x-55
     elif x <= 121:
         t,u = 30*s+11, x-55
     elif x <= 146:
@@ -1638,3 +1640,5 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
             p.add_constraint(p.sum(b[k] for k in i) <= s)
         p.solve(log=verbose)
         return [self._points[i] for (i,j) in p.get_values(b).items() if j == 1]
+
+BIBD = BalancedIncompleteBlockDesign

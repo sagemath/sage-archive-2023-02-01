@@ -30,8 +30,8 @@ manifold endowed with a positive definite metric tensor::
 
     sage: E.category()
     Join of
-    Category of differentiable manifolds over Real Field with 53 bits of precision and
-    Category of metric spaces
+     Category of smooth manifolds over Real Field with 53 bits of precision and
+     Category of complete metric spaces
     sage: E.base_field() is RR
     True
     sage: E.metric()

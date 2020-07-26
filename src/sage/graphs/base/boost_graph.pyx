@@ -2121,7 +2121,9 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
 
     - ``g`` -- the input Sage graph
 
-    - ``vertex_list`` -- the list of vertices to compute shortest paths from
+    - ``vertex_list`` -- list (default: ``None``); list of vertices to compute
+      shortest paths from. By default (``None``), compute shortest paths from
+      all vertices.
 
     - ``weight_function`` -- function (default: ``None``); a function that
       associates a weight to each edge. If ``None`` (default), the weights of
@@ -2200,19 +2202,20 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
     if not isinstance(g, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
-    if not isinstance(vertex_list, list):
-        vertex_list = [vertex_list]
+    if vertex_list is None:
+        vertex_list = g
 
-    for v in vertex_list:
-        if v not in g:
-            raise ValueError(f"the starting vertex {v} is not in the graph")
+    else:
+        if not isinstance(vertex_list, list):
+            vertex_list = [vertex_list]
 
-    if vertex_list == None:
-        vertex_list = list(g)
+        for v in vertex_list:
+            if v not in g:
+                raise ValueError(f"the starting vertex {v} is not in the graph")
 
     # These variables are automatically deleted when the function terminates.
-    cdef v_index vi, vert
-    cdef dict int_to_v = dict(enumerate(g))
+    cdef v_index vi, vert, pred
+    cdef list int_to_v = list(g)
     cdef dict v_to_int = {vv: vi for vi, vv in enumerate(g)}
     cdef result_distances result
     cdef BoostVecWeightedDiGraphU g_boost_dir
@@ -2241,9 +2244,9 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
 
     try:
         if weight_function is not None:
-            correct_type = type(weight_function(next(g.edge_iterator())))
+            correct_type = type(weight_function(g.edges()[0]))
         elif g.weighted():
-            correct_type = type(next(g.edge_iterator())[2])
+            correct_type = type(g.edges()[0][2])
         else:
             correct_type = int
     except StopIteration:
@@ -2254,8 +2257,8 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
     if correct_type == RealNumber:
         correct_type = RR
 
-    distances = {}
-    predecessors = {}
+    cdef dict distances = {}
+    cdef dict predecessors = {}
 
     for v in vertex_list:
         vi = v_to_int[v]
@@ -2276,10 +2279,8 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
                         raise RuntimeError("Dijkstra algorithm does not "
                                            "work with negative weights, "
                                            "use Bellman-Ford instead")
-                except RuntimeError:
-                    raise RuntimeError("Dijkstra algorithm does not "
-                                        "work with negative weights, "
-                                        "use Bellman-Ford instead")
+                except RuntimeError as msg:
+                    raise RuntimeError(msg)
             else:
                 raise ValueError(f"unknown algorithm {algorithm!r}")
         else:
@@ -2299,10 +2300,8 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
                         raise RuntimeError("Dijkstra algorithm does not "
                                            "work with negative weights, "
                                            "use Bellman-Ford instead")
-                except RuntimeError:
-                    raise RuntimeError("Dijkstra algorithm does not "
-                                        "work with negative weights, "
-                                        "use Bellman-Ford instead")
+                except RuntimeError as msg:
+                    raise RuntimeError(msg)
             else:
                 raise ValueError(f"unknown algorithm {algorithm!r}")
 
@@ -2313,7 +2312,8 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
             if result.distances[vert] != sys.float_info.max:
                 w = int_to_v[vert]
                 dist_v[w] = correct_type(result.distances[vert])
-                pred_v[w] = int_to_v[result.predecessors[vert]] if result.predecessors[vert] != vert else None
+                pred = result.predecessors[vert]
+                pred_v[w] = int_to_v[pred] if pred != vert else None
 
         distances[v] = dist_v
         predecessors[v] = pred_v

@@ -309,8 +309,12 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             True
 
         """
-        if comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, DiffForm):
             # coercion of a p-form to a type-(0,p) tensor field:
             form = comp # for readability
@@ -794,8 +798,12 @@ class TensorFieldFreeModule(TensorFreeModule):
             True
 
         """
-        if comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, DiffFormParal):
             # coercion of a p-form to a type-(0,p) tensor field:
             form = comp # for readability

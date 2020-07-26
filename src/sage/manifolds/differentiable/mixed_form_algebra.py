@@ -193,11 +193,17 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         res = self.element_class(self, name=name, latex_name=latex_name)
         if comp is None:
             return res
-        elif comp == 0:
-            return self.zero()
-        elif comp == 1:
-            return self.one()
-        elif isinstance(comp, (tuple, list)):
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+            if (comp - 1).is_trivial_zero():
+                return self.one()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
+            if comp == 1:
+                return self.one()
+        if isinstance(comp, (tuple, list)):
             if len(comp) != self._max_deg + 1:
                 raise IndexError("input list must have "
                                  "length {}".format(self._max_deg + 1))

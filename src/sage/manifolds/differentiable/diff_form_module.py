@@ -330,8 +330,12 @@ class DiffFormModule(UniqueRepresentation, Parent):
             True
 
         """
-        if comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction
             if (self._degree == comp._tensor_type[1]
@@ -799,8 +803,12 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
             False
 
         """
-        if comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction
             if (self._degree == comp._tensor_type[1]

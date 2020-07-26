@@ -2663,8 +2663,10 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        if number == 0:
+        if number.is_trivial_zero():
             return self.parent().zero()
+        if (number - 1).is_trivial_zero():
+            return self.parent().one()
         result = type(self)(self.parent())
         if isinstance(number, Expression):
             var = number.variables()  # possible symbolic variables in number

@@ -300,8 +300,12 @@ class MultivectorModule(UniqueRepresentation, Parent):
             True
 
         """
-        if comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, (MultivectorField, MultivectorFieldParal)):
             # coercion by domain restriction
             if (self._degree == comp._tensor_type[0]
@@ -724,8 +728,12 @@ class MultivectorFreeModule(ExtPowerFreeModule):
             True
 
         """
-        if comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, (MultivectorField, MultivectorFieldParal)):
             # coercion by domain restriction
             if (self._degree == comp._tensor_type[0]

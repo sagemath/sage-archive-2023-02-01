@@ -3797,10 +3797,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             ([(-1/4*a + 3/4 : 59/8*a - 317/8 : 1)], 2, 0.344624259712631)
         """
         full_saturation = (max_prime == 0) and (one_prime == 0)
-        Plist = [self(P) for P in points]
-        Plist = [P for P in points if P.has_infinite_order()]
+        Plist = (self(P) for P in points)
+        Plist = [P for P in Plist if P.has_infinite_order()]
         n = len(Plist)
-        index = ZZ(1)
+        index = ZZ.one()
 
         if n == 0:
             return Plist, index, RealField()(1)

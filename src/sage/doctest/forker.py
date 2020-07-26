@@ -115,7 +115,7 @@ def _sorted_dict_pprinter_factory(start, end):
     return inner
 
 
-def init_sage():
+def init_sage(controller=None):
     """
     Import the Sage library.
 
@@ -195,8 +195,16 @@ def init_sage():
     from sage.cpython._py2_random import Random
     sage.misc.randstate.DEFAULT_PYTHON_RANDOM = Random
 
-    import sage.repl.ipython_kernel.all_jupyter
-    sage.interfaces.quit.invalidate_all()
+    if controller is None:
+        import sage.repl.ipython_kernel.all_jupyter
+    else:
+        controller.load_environment()
+
+    try:
+        from sage.interfaces.quit import invalidate_all
+        invalidate_all()
+    except ModuleNotFoundError:
+        pass
 
     # Disable cysignals debug messages in doctests: this is needed to
     # make doctests pass when cysignals was built with debugging enabled
@@ -875,14 +883,13 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             TestResults(failed=0, attempted=4)
         """
         self.setters = {}
-        randstate.set_random_seed(0)
+        randstate.set_random_seed(self.options.random_seed)
         # scipy 1.18 introduced reprecation warnings on a number of things they are moving to
         # numpy, e.g. DeprecationWarning: scipy.array is deprecated
         #             and will be removed in SciPy 2.0.0, use numpy.array instead
         # This affects networkx 2.2 up and including 2.4
         # We filter them out here:
         warnings.filterwarnings('ignore', '.*Deprec.*scipy.*instead',) # cf trac #29425
-
         warnings.showwarning = showwarning_with_traceback
         self.running_doctest_digest = hashlib.md5()
         self.test = test
@@ -1660,7 +1667,7 @@ class DocTestDispatcher(SageObject):
             <sage.doctest.forker.DocTestDispatcher object at ...>
         """
         self.controller = controller
-        init_sage()
+        init_sage(controller)
 
     def serial_dispatch(self):
         """
@@ -2049,7 +2056,7 @@ class DocTestWorker(multiprocessing.Process):
     """
     The DocTestWorker process runs one :class:`DocTestTask` for a given
     source. It returns messages about doctest failures (or all tests if
-    verbose doctesting) though a pipe and returns results through a
+    verbose doctesting) through a pipe and returns results through a
     ``multiprocessing.Queue`` instance (both these are created in the
     :meth:`start` method).
 
@@ -2541,7 +2548,8 @@ class DocTestTask(object):
         """
         # Import Jupyter globals to doctest the Jupyter
         # implementation of widgets and interacts
-        import sage.repl.ipython_kernel.all_jupyter as sage_all
+        from importlib import import_module
+        sage_all = import_module(options.environment)
         dict_all = sage_all.__dict__
         # Remove '__package__' item from the globals since it is not
         # always in the globals in an actual Sage session.

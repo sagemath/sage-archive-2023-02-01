@@ -167,7 +167,8 @@ ADD src/doc/bootstrap src/doc/bootstrap
 ADD src/bin src/bin
 ADD m4 ./m4
 ADD build ./build
-$RUN ./bootstrap
+ARG BOOTSTRAP=./bootstrap
+$RUN sh -x -c "\${BOOTSTRAP}"
 
 FROM bootstrapped as configured
 #:configuring:

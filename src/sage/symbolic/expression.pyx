@@ -998,6 +998,15 @@ cdef class Expression(CommutativeRingElement):
             sin(%e+2)
             sage: _.parent() is sage.calculus.calculus.maxima
             True
+
+        TESTS:
+
+        We test that unicode characters are handled correctly
+        :trac:`30122`::
+
+            sage: var('ξ')._maxima_()
+            _SAGE_VAR_ξ
+
         """
         if session is None:
             # This chooses the Maxima interface used by calculus

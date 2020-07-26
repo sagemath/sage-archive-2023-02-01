@@ -75,5 +75,6 @@ lazy_import('sage.coding.linear_code', ['LinearCodeNearestNeighborDecoder',
 lazy_import('sage.coding.punctured_code', 'PuncturedCodeOriginalCodeDecoder')
 lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcodeOriginalCodeDecoder')
 lazy_import('sage.coding.information_set_decoder', 'LinearCodeInformationSetDecoder')
+lazy_import('sage.coding.linear_rank_metric', 'LinearRankMetricCodeNearestNeighborDecoder')
 
 del lazy_import

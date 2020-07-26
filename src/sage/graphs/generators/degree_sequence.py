@@ -191,6 +191,8 @@ def DegreeSequenceTree(deg_sequence):
     EXAMPLES::
 
         sage: G = graphs.DegreeSequenceTree([3,1,3,3,1,1,1,2,1])
+        sage: G
+        Graph on 9 vertices
         sage: G.show()  # long time
     """
     import networkx
@@ -217,9 +219,8 @@ def DegreeSequenceExpected(deg_sequence, seed=None):
     EXAMPLES::
 
         sage: G = graphs.DegreeSequenceExpected([1,2,3,2,3])
-        sage: G.edges(labels=False)
-        [(0, 3), (1, 3), (1, 4), (4, 4)]                    # 32-bit 
-        [(0, 3), (1, 4), (2, 2), (2, 3), (2, 4), (4, 4)]    # 64-bit
+        sage: G
+        Looped graph on 5 vertices
         sage: G.show()  # long time
 
     REFERENCE:

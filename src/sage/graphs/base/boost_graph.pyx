@@ -1825,7 +1825,7 @@ cpdef radius_DHV(g, weight_function=None, check_weight=True):
         sage: radius_DHV(G) == G.radius(algorithm='Dijkstra_Boost')
         True
 
-    TESTS:
+    TESTS::
 
         sage: G = Graph()
         sage: radius_DHV(G)
@@ -1844,6 +1844,7 @@ cpdef radius_DHV(g, weight_function=None, check_weight=True):
         Traceback (most recent call last):
         ...
         TypeError: this method works for undirected graphs only
+
     """
     if g.is_directed():
         raise TypeError("this method works for undirected graphs only")
@@ -1863,7 +1864,6 @@ cpdef radius_DHV(g, weight_function=None, check_weight=True):
         for _,_,w in g.edge_iterator():
             if w and float(w) < 0:
                 raise ValueError("graphs contains negative weights, use Johnson_Boost instead")
-
 
     # These variables are automatically deleted when the function terminates.
     cdef dict v_to_int = {vv: vi for vi, vv in enumerate(g)}
@@ -1929,3 +1929,173 @@ cpdef radius_DHV(g, weight_function=None, check_weight=True):
         return +Infinity
 
     return UB
+
+cpdef diameter_DHV(g, weight_function=None, check_weight=True):
+    r"""
+    Return the diameter of weighted graph `g`.
+
+    This method computes the diameter of undirected graph using the
+    algorithm proposed in [Dragan2018]_.
+
+    This method returns Infinity if graph is not connected.
+
+    INPUT:
+
+    - ``g`` -- the input Sage graph
+
+    - ``weight_function`` -- function (default: ``None``); a function that
+      associates a weight to each edge. If ``None`` (default), the weights of
+      ``g`` are used, if ``g.weighted()==True``, otherwise all edges have
+      weight 1.
+
+    - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+      that the ``weight_function`` outputs a number for each edge
+
+    EXAMPLES::
+
+        sage: from sage.graphs.base.boost_graph import diameter_DHV
+        sage: G = graphs.ButterflyGraph()
+        sage: diameter_DHV(G)
+        2.0
+
+    TESTS::
+
+        sage: G = graphs.RandomBarabasiAlbert(17,6)
+        sage: diameter_DHV(G) == G.diameter(algorithm = 'Dijkstra_Boost')
+        True
+        sage: G = Graph([(0,1,-1)], weighted=True)
+        sage: diameter_DHV(G)
+        Traceback (most recent call last):
+        ...
+        ValueError: graph contains negative edge weights, use Johnson_Boost instead
+    """
+    if g.is_directed():
+        raise TypeError("this method works for undirected graphs only")
+
+    cdef int n = g.order()
+    if n <= 1:
+        return 0
+
+    if weight_function and check_weight:
+        g._check_weight_function(weight_function)
+
+    if weight_function is not None:
+        for e in g.edges(sort=False):
+            if float(weight_function(e)) < 0:
+                raise ValueError("graph contains negative edge weights, use Johnson_Boost instead")
+    elif g.weighted():
+        for _,_,w in g.edges(sort=False):
+            if w and float(w) < 0:
+                raise ValueError("graph contains negative edge weights, use Johnson_Boost instead")
+
+    # These variables are automatically deleted when the function terminates.
+    cdef dict v_to_int = {vv: vi for vi, vv in enumerate(g)}
+    cdef BoostVecWeightedGraph g_boost
+    boost_weighted_graph_from_sage_graph(&g_boost, g, v_to_int, weight_function)
+
+    import sys
+    cdef v_index u, x, antipode
+    cdef double ecc_u, ecc_x, ecc_antipode
+    cdef double LB = 0
+    cdef double UB = sys.float_info.max
+    cdef v_index v
+    cdef double tmp
+    cdef size_t i, idx
+
+    cdef list active = list(range(n))
+    cdef vector[double] ecc_lower_bound, ecc_upper_bound, distances
+
+    for i in range(n):
+        ecc_lower_bound.push_back(0)
+        ecc_upper_bound.push_back(sys.float_info.max)
+
+    # Algorithm
+    while LB < UB and active:
+        # 1. Select vertex u with maximum eccentricity upper bound
+        tmp = 0
+        for i, v in enumerate(active):
+            if ecc_upper_bound[v] > tmp:
+                tmp = ecc_upper_bound[v]
+                idx = i
+        active[idx], active[-1] = active[-1], active[idx]
+        u = active.pop()
+
+        # Compute the distances from u
+        sig_on()
+        distances = g_boost.dijkstra_shortest_paths(u).distances
+        sig_off()
+
+        # compute the eccentricity of u and update eccentricity lower bounds
+        ecc_u = 0
+        for v in range(n):
+            ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
+            ecc_u = max(ecc_u, distances[v])
+
+        LB = max(LB, ecc_u)
+
+        if LB == sys.float_info.max:  # Disconnected graph
+            break
+
+        # 2. Select x such that dist(u, x) + ecc[x] == ecc[u].
+        # Since we don't know ecc[x], we select x with minimum eccentricity
+        # lower bound.  If ecc[x] == ecc_lb[x], we are done. Otherwise, we
+        # update eccentricity lower bounds and repeat
+        while active:
+            # Select v with minimum eccentricity lower bound
+            tmp = sys.float_info.max
+            for i, v in enumerate(active):
+                if ecc_lower_bound[v] < tmp:
+                    tmp = ecc_lower_bound[v]
+                    idx = i
+            active[idx], active[-1] = active[-1], active[idx]
+            x = active.pop()
+
+            # compute the distances from x
+            sig_on()
+            distances = g_boost.dijkstra_shortest_paths(x).distances
+            sig_off()
+
+            # compute the eccentricity of x and its antipode
+            ecc_x = 0
+            for v in range(n):
+                if distances[v] > ecc_x:
+                    ecc_x = distances[v]
+                    antipode = v
+            LB = max(LB,ecc_x)
+
+            if ecc_x == ecc_lower_bound[x]:
+                # We found the good vertex x
+                # We update eccentricity upper bounds and break
+                UB = ecc_x
+                for v in active:
+                    ecc_upper_bound[v] = min(ecc_upper_bound[v], distances[v] + ecc_x)
+                    UB = max(UB, ecc_upper_bound[v])
+                break
+            else:
+                # x was not a good choice
+                # We use its antipode to update eccentricity lower bounds.
+                # Observe that this antipode might have already been seen.
+                for i, v in enumerate(active):
+                    if v == antipode:
+                        active[i] = active[-1]
+                        active.pop()
+                        break
+
+                # compute the distances from antipode
+                sig_on()
+                distances = g_boost.dijkstra_shortest_paths(antipode).distances
+                sig_off()
+
+                # compute the eccentricity of antipode and update
+                # eccentricity lower bounds
+                ecc_antipode = 0
+                for v in range(n):
+                    ecc_antipode = max(ecc_antipode, distances[v])
+                    ecc_lower_bound[v] = max(ecc_lower_bound[v], distances[v])
+                LB = max(LB, ecc_antipode)
+
+    if LB == sys.float_info.max:
+        from sage.rings.infinity import Infinity
+        return +Infinity
+
+    return LB

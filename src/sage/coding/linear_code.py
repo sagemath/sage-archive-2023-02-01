@@ -231,6 +231,7 @@ from sage.misc.randstate import current_randstate
 from sage.combinat.subset import Subsets
 from sage.features.gap import GapPackage
 from sage.coding.linear_code_no_metric import AbstractLinearCodeNoMetric
+from sage.coding.abstract_code import AbstractCode
 from .encoder import Encoder
 from .decoder import Decoder
 

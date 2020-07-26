@@ -208,7 +208,7 @@ class Rings(CategoryWithAxiom):
 
         def extend_to_fraction_field(self):
             r"""
-            Return the extension of the morphism to fraction fields of
+            Return the extension of this morphism to fraction fields of
             the domain and the codomain.
 
             EXAMPLES::
@@ -234,6 +234,14 @@ class Rings(CategoryWithAxiom):
                 Traceback (most recent call last):
                 ...
                 ValueError: the morphism is not injective
+
+            TESTS::
+
+                sage: A.<x> = RR[]
+                sage: phi = A.hom([x+1])
+                sage: phi.extend_to_fraction_field()
+                Ring endomorphism of Fraction Field of Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+                  Defn: x |--> x + 1.00000000000000
             """
             from sage.rings.morphism import RingHomomorphism_from_fraction_field
             if self.domain().is_field() and self.codomain().is_field():
@@ -241,7 +249,7 @@ class Rings(CategoryWithAxiom):
             try:
                 if not self.is_injective():
                     raise ValueError("the morphism is not injective")
-            except NotImplementedError:   # we trust the user
+            except (NotImplementedError, TypeError):   # we trust the user
                 pass
             domain = self.domain().fraction_field()
             codomain = self.codomain().fraction_field()

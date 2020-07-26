@@ -42,6 +42,9 @@ cdef bint bint_integerp(cl_object obj):
 cdef bint bint_rationalp(cl_object obj):
     return not(cl_rationalp(obj) == Cnil)
 
+cdef bint bint_base_string_p(cl_object obj):
+    return not(si_base_string_p(obj) == Cnil)
+
 cdef extern from "eclsig.h":
     int ecl_sig_on() except 0
     void ecl_sig_off()
@@ -101,6 +104,8 @@ cdef void remove_node(cl_object node):
 cdef cl_object list_of_objects
 
 cdef cl_object read_from_string_clobj  #our own error catching reader
+cdef cl_object make_unicode_string_clobj
+cdef cl_object unicode_string_codepoints_clobj
 
 cdef bint ecl_has_booted = 0
 
@@ -230,6 +235,8 @@ def init_ecl():
     """
     global list_of_objects
     global read_from_string_clobj
+    global make_unicode_string_clobj
+    global unicode_string_codepoints_clobj
     global conditions_to_handle_clobj
     global ecl_has_booted
     cdef char *argv[1]
@@ -284,7 +291,26 @@ def init_ecl():
     conditions_to_handle_clobj=ecl_list1(ecl_make_symbol(b"SERIOUS-CONDITION", b"COMMON-LISP"))
     insert_node_after(list_of_objects,conditions_to_handle_clobj)
 
+    cl_eval(string_to_object(b"""
+        (defun sage-make-unicode-string (codepoints)
+            (map 'string #'code-char codepoints))
+        """))
+    make_unicode_string_clobj = cl_eval(string_to_object(b"#'sage-make-unicode-string"))
+
+    cl_eval(string_to_object(b"""
+        (defun sage-unicode-string-codepoints (s)
+            (map 'list #'char-code s))
+        """))
+    unicode_string_codepoints_clobj = cl_eval(string_to_object(b"#'sage-unicode-string-codepoints"))
+
     ecl_has_booted = 1
+
+cdef ecl_string_to_python(cl_object s):
+    if bint_base_string_p(s):
+        return char_to_str(ecl_base_string_pointer_safe(s))
+    else:
+        s = cl_funcall(2, unicode_string_codepoints_clobj, s)
+        return ''.join(chr(code) for code in ecl_to_python(s))
 
 cdef cl_object ecl_safe_eval(cl_object form) except NULL:
     """
@@ -310,9 +336,8 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
     ecl_sig_off()
 
     if error != NULL:
-        error = si_coerce_to_base_string(error)
         raise RuntimeError("ECL says: {}".format(
-            char_to_str(ecl_base_string_pointer_safe(error))))
+            ecl_string_to_python(error)))
     else:
         return ret
 
@@ -324,9 +349,8 @@ cdef cl_object ecl_safe_funcall(cl_object func, cl_object arg) except NULL:
     ecl_sig_off()
 
     if error != NULL:
-        error = si_coerce_to_base_string(error)
         raise RuntimeError("ECL says: {}".format(
-            char_to_str(ecl_base_string_pointer_safe(error))))
+            ecl_string_to_python(error)))
     else:
         return ret
 
@@ -338,9 +362,8 @@ cdef cl_object ecl_safe_apply(cl_object func, cl_object args) except NULL:
     ecl_sig_off()
 
     if error != NULL:
-        error = si_coerce_to_base_string(error)
         raise RuntimeError("ECL says: {}".format(
-            char_to_str(ecl_base_string_pointer_safe(error))))
+            ecl_string_to_python(error)))
     else:
         return ret
 
@@ -393,8 +416,10 @@ def print_objects():
     cdef cl_object c, s
     c = list_of_objects
     while True:
-        s = si_coerce_to_base_string(cl_write_to_string(1,cl_car(c)))
-        print(char_to_str(ecl_base_string_pointer_safe(s)))
+
+        s = cl_write_to_string(1, cl_car(c))
+        print(ecl_string_to_python(s))
+
         c = cl_cadr(c)
         if c == Cnil:
             break
@@ -407,7 +432,7 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
     # strings ->parsed by lisp reader
 
     cdef bytes s
-    cdef cl_object L, ptr
+    cdef cl_object L, ptr, o
 
     if isinstance(pyobj,bool):
         if pyobj:
@@ -426,8 +451,14 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
     elif isinstance(pyobj,float):
         return ecl_make_doublefloat(pyobj)
     elif isinstance(pyobj,unicode):
-        s=str_to_bytes(pyobj)
-        return ecl_safe_read_string(s)
+        try:
+            s = str_to_bytes(pyobj, 'ascii')
+        except UnicodeEncodeError:
+            o = cl_funcall(2, make_unicode_string_clobj,
+                           python_to_ecl([ord(c) for c in pyobj]))
+        else:
+            o = ecl_cstring_to_base_string_or_nil(s)
+        return ecl_safe_funcall(read_from_string_clobj, o)
     elif isinstance(pyobj,bytes):
         s=<bytes>pyobj
         return ecl_safe_read_string(s)
@@ -504,8 +535,8 @@ cdef ecl_to_python(cl_object o):
                 return tuple(L)
         return L
     else:
-        s = si_coerce_to_base_string(cl_write_to_string(1,o))
-        return char_to_str(ecl_base_string_pointer_safe(s))
+        s = cl_write_to_string(1, o)
+        return ecl_string_to_python(s)
 
 #Maxima's BFLOAT multiprecision float type can be read with:
 #def bfloat_to_python(e):
@@ -605,6 +636,19 @@ cdef class EclObject:
         True
         sage: EclObject(-i).python() == -i
         True
+
+    We check that symbols with Unicode names are converted correctly::
+
+        sage: EclObject('λ')
+        <ECL: Λ>
+        sage: EclObject('|λ|')
+        <ECL: |λ|>
+
+    We check that Unicode strings are converted correctly::
+
+        sage: EclObject('"Mαξιμα"')
+        <ECL: "Mαξιμα">
+
     """
     cdef cl_object obj   #the wrapped object
     cdef cl_object node  #linked list pointer: car(node) == obj
@@ -721,8 +765,8 @@ cdef class EclObject:
 
         """
         cdef cl_object s
-        s = si_coerce_to_base_string(cl_write_to_string(1,self.obj))
-        return char_to_str(ecl_base_string_pointer_safe(s))
+        s = cl_write_to_string(1, self.obj)
+        return ecl_string_to_python(s)
 
     def __hash__(self):
         r"""
@@ -1288,7 +1332,7 @@ cdef EclObject ecl_wrap(cl_object o):
 
 #convenience routine to more easily evaluate strings
 cpdef EclObject ecl_eval(str s):
-    """
+    r"""
     Read and evaluate string in Lisp and return the result
 
     EXAMPLES::
@@ -1299,10 +1343,18 @@ cpdef EclObject ecl_eval(str s):
         sage: ecl_eval("(mapcar 'fibo '(1 2 3 4 5 6 7))")
         <ECL: (1 1 2 3 5 8 13)>
 
+    TESTS:
+
+    We check that Unicode is handled correctly::
+
+        sage: ecl_eval('''(defun double-struck-number (n) (map 'string #'(lambda (c) (code-char (+ (char-code #\𝟘) (- (char-code c) (char-code #\\0))))) (format nil "~A" n)))''')
+        <ECL: DOUBLE-STRUCK-NUMBER>
+        sage: _(4711)
+        <ECL: "𝟜𝟟𝟙𝟙">
+
     """
     cdef cl_object o
-    o=ecl_safe_read_string(str_to_bytes(s))
-    o=ecl_safe_eval(o)
+    o=ecl_safe_eval(python_to_ecl(s))
     return ecl_wrap(o)
 
 init_ecl()

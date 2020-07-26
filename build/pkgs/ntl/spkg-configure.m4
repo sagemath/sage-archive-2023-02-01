@@ -29,12 +29,17 @@ SAGE_SPKG_CONFIGURE([ntl], [
             [[#include <NTL/version.h>
               #include <stdio.h>
             ]], [[
-              printf("%s\n", NTL_VERSION);
+              fprintf(stderr, "%s\n", NTL_VERSION);
               if (NTL_MAJOR_VERSION >]] SAGE_NTL_VERSION_MAJOR[[) return 0;
               else if (NTL_MAJOR_VERSION ==]] SAGE_NTL_VERSION_MAJOR[[ &&
                        NTL_MINOR_VERSION >=]] SAGE_NTL_VERSION_MINOR[[) return 0;
               else return 1;
-            ]])], [], [sage_spkg_install_ntl=yes])
+            ]])], [
+                AC_MSG_RESULT([yes])
+            ], [
+                AC_MSG_RESULT([no])
+                sage_spkg_install_ntl=yes
+            ])
     fi
 
     m4_popdef([SAGE_NTL_VERSION_MAJOR])

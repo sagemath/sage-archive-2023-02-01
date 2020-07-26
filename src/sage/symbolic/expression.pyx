@@ -2030,7 +2030,7 @@ cdef class Expression(CommutativeRingElement):
             pynac_assume_rel(self._gobj)
             if str(s._sage_()[0]) in ['meaningless','inconsistent','redundant']:
                 raise ValueError("Assumption is %s" % str(s._sage_()[0]))
-            _assumptions.append(self)
+            _assumptions[self] = True
 
     def forget(self):
         """
@@ -2076,8 +2076,8 @@ cdef class Expression(CommutativeRingElement):
         m = self._maxima_init_assume_()
         maxima.forget(m)
         try:
-            _assumptions.remove(self)
-        except ValueError:
+            del _assumptions[self]
+        except KeyError:
             pass
 
     def _maxima_init_assume_(self):

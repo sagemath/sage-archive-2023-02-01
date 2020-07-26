@@ -1492,10 +1492,10 @@ cdef class CombinatorialPolyhedron(SageObject):
              A vertex at (0, 1, -1),
              A vertex at (0, 1, 1),
              A vertex at (1, 0, 0))
-            sage: G.neighbors_out(C.Vrepresentation()[4])
-            [An inequality (-1, 0, -1) x + 1 >= 0,
+            sage: sorted(G.neighbors_out(C.Vrepresentation()[4]))
+            [An inequality (-1, -1, 0) x + 1 >= 0,
+             An inequality (-1, 0, -1) x + 1 >= 0,
              An inequality (-1, 0, 1) x + 1 >= 0,
-             An inequality (-1, -1, 0) x + 1 >= 0,
              An inequality (-1, 1, 0) x + 1 >= 0]
 
         If ``names`` is ``True`` (the default) but the combinatorial polyhedron

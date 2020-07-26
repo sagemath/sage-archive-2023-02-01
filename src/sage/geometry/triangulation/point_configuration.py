@@ -1523,8 +1523,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         EXAMPLES::
 
             sage: p = PointConfiguration([(1,0,0),(0,1,0),(0,0,1),(-2,0,-1),(-2,-1,0),(-3,-1,-1),(1,1,1),(-1,0,0),(0,0,0)])
-            sage: p.positive_circuits(8)
-            ((0, 7), (0, 1, 4), (0, 2, 3), (0, 5, 6), (0, 1, 2, 5), (0, 3, 4, 6))
+            sage: sorted(p.positive_circuits(8))
+            [(0, 1, 2, 5), (0, 1, 4), (0, 2, 3), (0, 3, 4, 6), (0, 5, 6), (0, 7)]
             sage: p.positive_circuits(0,5,6)
             ((8,),)
         """

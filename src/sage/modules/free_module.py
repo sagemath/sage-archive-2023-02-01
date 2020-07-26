@@ -409,9 +409,9 @@ def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_m
 
     """
     if rank_or_basis_keys is not None:
-        if rank_or_basis_keys in sage.rings.integer_ring.IntegerRing():
-            rank = rank_or_basis_keys
-        else:
+        try:
+            rank = sage.rings.integer_ring.ZZ(rank_or_basis_keys)
+        except:
             basis_keys = rank_or_basis_keys
     if not with_basis:
         if inner_product_matrix is not None:

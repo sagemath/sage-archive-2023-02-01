@@ -592,6 +592,14 @@ cdef class SageObject:
             ...
             AssertionError: Not implemented method: bla
 
+        Check that only errors triggered by ``AbstractMethod`` are caught
+        (:trac:`29694`)::
+
+            sage: class NotAbstract(SageObject):
+            ....:     @lazy_attribute
+            ....:     def bla(self):
+            ....:         raise NotImplementedError("not implemented")
+            sage: NotAbstract()._test_not_implemented_methods()
         """
         tester = self._tester(**options)
         try:
@@ -601,9 +609,9 @@ cdef class SageObject:
             for name in dir(self):
                 try:
                     getattr(self, name)
-                except NotImplementedError:
-                    # It would be best to make sure that this NotImplementedError was triggered by AbstractMethod
-                    tester.fail("Not implemented method: %s"%name)
+                except NotImplementedError as e:
+                    if 'abstract method' in str(e):
+                        tester.fail("Not implemented method: %s" % name)
                 except Exception:
                     pass
         finally:

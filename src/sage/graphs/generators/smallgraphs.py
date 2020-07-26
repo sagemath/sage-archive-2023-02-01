@@ -3138,10 +3138,10 @@ def HoffmanSingletonGraph():
 
     Note that you get a different layout each time you create the graph.  ::
 
-        sage: HS.layout()[1]
+        sage: HS.layout()[1]  # random
         (-0.844..., 0.535...)
         sage: HS = graphs.HoffmanSingletonGraph()
-        sage: HS.layout()[1]
+        sage: HS.layout()[1]  # random
         (-0.904..., 0.425...)
     """
     H = Graph({

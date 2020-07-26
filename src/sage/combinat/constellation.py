@@ -218,9 +218,8 @@ class Constellation_class(Element):
         EXAMPLES::
 
             sage: c = Constellation(([0,2,1],[2,1,0],[1,2,0]), mutable=False)
-            sage: c.__hash__()
-            5481133608926415725  # 64-bit
-            511937389  # 32-bit
+            sage: hash(c) == hash(tuple(c._g))
+            True
         """
         if self._mutable:
             raise ValueError("can not hash mutable constellation")

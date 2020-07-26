@@ -153,8 +153,8 @@ def to_matrix_representation(v, sub_field=None, basis=None):
 
     - ``basis`` -- (default: ``None``) a basis of `F_{q^m}` as a vector space over
       ``sub_field``. If not specified, given that `q = p^s`, let
-      `1,\beta,\ldots,\beta^{sm}` be the power basis that SageMath uses to
-      represent `F_{q^m}`. The default basis is then `1,\beta,\ldots,beta^{m-1}`.
+      `1,β,\ldots,β^{sm}` be the power basis that SageMath uses to
+      represent `F_{q^m}`. The default basis is then `1,β,\ldots,β^{m-1}`.
 
     EXAMPLES::
 
@@ -204,8 +204,8 @@ def from_matrix_representation(w, base_field=None, basis=None):
 
     - ``basis`` -- (default: ``None``) a basis of `F_{q^m}` as a vector space over
       ``F_q``. If not specified, given that `q = p^s`, let
-      `1,\beta,\ldots,\beta^{sm}` be the power basis that SageMath uses to
-      represent `F_{q^m}`. The default basis is then `1,\beta,\ldots,beta^{m-1}`.
+      `1,β,\ldots,β^{sm}` be the power basis that SageMath uses to
+      represent `F_{q^m}`. The default basis is then `1,β,\ldots,β^{m-1}`.
 
     EXAMPLES::
 
@@ -247,8 +247,8 @@ def rank_weight(c, sub_field=None, basis=None):
 
     - ``basis`` -- (default: ``None``) a basis of `F_{q^m}` as a vector space over
       ``sub_field``. If not specified, given that `q = p^s`, let
-      `1,\beta,\ldots,\beta^{sm}` be the power basis that SageMath uses to
-      represent `F_{q^m}`. The default basis is then `1,\beta,\ldots,beta^{m-1}`.
+      `1,β,\ldots,β^{sm}` be the power basis that SageMath uses to
+      represent `F_{q^m}`. The default basis is then `1,β,\ldots,β^{m-1}`.
 
     EXAMPLES::
 
@@ -284,8 +284,8 @@ def rank_distance(a, b, sub_field=None, basis=None):
 
     - ``basis`` -- (default: ``None``) a basis of `F_{q^m}` as a vector space over
       ``sub_field``. If not specified, given that `q = p^s`, let
-      `1,\beta,\ldots,\beta^{sm}` be the power basis that SageMath uses to
-      represent `F_{q^m}`. The default basis is then `1,\beta,\ldots,beta^{m-1}`.
+      `1,β,\ldots,β^{sm}` be the power basis that SageMath uses to
+      represent `F_{q^m}`. The default basis is then `1,β,\ldots,β^{m-1}`.
 
     EXAMPLES::
 
@@ -386,8 +386,8 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
 
         - ``basis`` -- (default: ``None``) a basis of `F_{q^m}` as a vector space over
           ``sub_field``. If not specified, given that `q = p^s`, let
-          `1,\beta,\ldots,\beta^{sm}` be the power basis that SageMath uses to
-          represent `F_{q^m}`. The default basis is then `1,\beta,\ldots,beta^{m-1}`.
+          `1,β,\ldots,β^{sm}` be the power basis that SageMath uses to
+          represent `F_{q^m}`. The default basis is then `1,β,\ldots,β^{m-1}`.
 
         EXAMPLES:
 
@@ -558,10 +558,11 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
 
         EXAMPLES::
 
-            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C = codes.LinearRankMetricCode(G, GF(4))
+            sage: F.<a> = GF(8)
+            sage: G = Matrix(F, [[1,a,a^2,0]])
+            sage: C = codes.LinearRankMetricCode(G, GF(2))
             sage: C.minimum_distance()
-            1
+            3
         """
         d = Infinity
         for c in self:
@@ -681,8 +682,8 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
 
         - ``basis`` -- (default: ``None``) a basis of `F_{q^m}` as a vector space over
           ``sub_field``. If not specified, given that `q = p^s`, let
-          `1,\beta,\ldots,\beta^{sm}` be the power basis that SageMath uses to
-          represent `F_{q^m}`. The default basis is then `1,\beta,\ldots,beta^{m-1}`.
+          `1,β,\ldots,β^{sm}` be the power basis that SageMath uses to
+          represent `F_{q^m}`. The default basis is then `1,β,\ldots,β^{m-1}`.
 
         EXAMPLES::
 
@@ -860,6 +861,15 @@ class LinearRankMetricCodeNearestNeighborDecoder(Decoder):
         OUTPUT:
 
         - a vector of ``self``'s message space
+
+        EXAMPLES::
+
+            sage: F.<a> = GF(4)
+            sage: G = Matrix(F, [[1,1,0]])
+            sage: C = codes.LinearRankMetricCode(G, GF(2))
+            sage: D = codes.decoders.LinearRankMetricCodeNearestNeighborDecoder(C)
+            sage: D.decode_to_code(vector(F, [a, a, 1]))
+            (a, a, 0)
         """
         C = self.code()
         c_min = C.zero()
@@ -877,11 +887,12 @@ class LinearRankMetricCodeNearestNeighborDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C = codes.LinearRankMetricCode(G, GF(4))
+            sage: F.<a> = GF(8)
+            sage: G = Matrix(F, [[1,a,a^2,0]])
+            sage: C = codes.LinearRankMetricCode(G, GF(2))
             sage: D = codes.decoders.LinearRankMetricCodeNearestNeighborDecoder(C)
             sage: D.decoding_radius()
-            0
+            1
         """
         return (self.code().minimum_distance()-1) // 2
 

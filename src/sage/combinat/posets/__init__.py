@@ -14,6 +14,7 @@ Poset-related classes:
 - :ref:`sage.combinat.posets.linear_extensions`
 - :ref:`sage.combinat.posets.d_complete`
 - :ref:`sage.combinat.posets.forest`
+- :ref:`sage.combinat.posets.mobile`
 - :ref:`sage.combinat.posets.incidence_algebras`
 
 - :ref:`sage.combinat.posets.cartesian_product`

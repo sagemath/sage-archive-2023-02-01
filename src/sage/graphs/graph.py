@@ -4836,6 +4836,23 @@ class Graph(GenericGraph):
             return g_mad.average_degree()
         else:
             return g_mad
+    
+    @doc_index("Graph properties")
+    def is_path(self):
+    r"""
+    Return true if the graph is a path (has degree sequence of n-2 2's and two 1's).
+    
+    EXAMPLES:
+    
+    sage: G = graphs.PathGraph(5)
+    sage: G.is_path()
+    True
+    sage: H = graphs.CycleGraph(5)
+    sage: H.is_path()
+    False
+    """
+    ds = self.degree_sequence()
+    return all(map(lambda x: x[0] == x[1], zip(ds, ([2] * (self.order() - 2) + ([1] * 2)))))
 
     @doc_index("Algorithmically hard stuff")
     def independent_set_of_representatives(self, family, solver=None, verbose=0):

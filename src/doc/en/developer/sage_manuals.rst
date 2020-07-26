@@ -45,9 +45,6 @@ Sage's manuals are written in `ReST <http://docutils.sourceforge.net/rst.html>`_
 Editing the documentation
 =========================
 
-(*Do you want to convert a Sage worksheet into documentation?* `Click here
-<../thematic_tutorials/sws2rst.html>`_)
-
 After modifying some files in the Sage tutorial
 (``SAGE_ROOT/src/doc/en/tutorial/``), you will want to visualize the result. In
 order to build a **html** version of this document, type::

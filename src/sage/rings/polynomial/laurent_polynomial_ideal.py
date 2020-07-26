@@ -23,7 +23,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.rings.ideal import Ideal_generic
-from sage.structure.richcmp import richcmp, op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE
+from sage.structure.richcmp import op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE
 
 class LaurentPolynomialIdeal( Ideal_generic ):
     def __init__(self, ring, gens, coerce=True, hint=None):

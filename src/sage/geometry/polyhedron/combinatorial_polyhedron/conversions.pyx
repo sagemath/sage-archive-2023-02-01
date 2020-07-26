@@ -140,7 +140,7 @@ cdef int Vrep_list_to_bit_rep(tuple Vrep_list, uint64_t *output,
         sage: Vrep_list_to_bit_rep_wrapper((-1, 12))  # long time
         Traceback (most recent call last):
         ...
-        OverflowError: can't convert negative value to size_t
+        OverflowError: can...t convert negative value to size_t
         sage: Vrep_list_to_bit_rep_wrapper((0, 0))  # long time
         Traceback (most recent call last):
         ...

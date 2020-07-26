@@ -386,7 +386,7 @@ def add_symmetric(self, c, i, j, in_place = False):
         sage: Q.add_symmetric(-3/2, 2, 0)     ## ERROR: -3/2 isn't in the base ring ZZ
         Traceback (most recent call last):
         ...
-        RuntimeError: Oops!  This coefficient can't be coerced to an element of the base ring for the quadratic form.
+        RuntimeError: Oops!  This coefficient can...t be coerced to an element of the base ring for the quadratic form.
 
     ::
 

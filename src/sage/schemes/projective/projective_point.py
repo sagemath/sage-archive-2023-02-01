@@ -653,7 +653,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q.dehomogenize(2)
             Traceback (most recent call last):
             ...
-            ValueError: can't dehomogenize at 0 coordinate
+            ValueError: can...t dehomogenize at 0 coordinate
         """
         if self[n] == 0:
             raise ValueError("can't dehomogenize at 0 coordinate")

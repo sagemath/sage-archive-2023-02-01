@@ -800,25 +800,17 @@ def preparse_numeric_literals(code, extract=False):
 
         sage: preparse_numeric_literals('123__45')
         '123__45'
-        sage: 123__45 # py2
+        sage: 123__45
         Traceback (most recent call last):
         ...
-        SyntaxError: invalid syntax
-        sage: 123__45 # py3
-        Traceback (most recent call last):
-        ...
-        SyntaxError: invalid token
+        SyntaxError: invalid ...
 
         sage: preparse_numeric_literals('3040_1_')
         '3040_1_'
-        sage: 3040_1_ # py2
+        sage: 3040_1_
         Traceback (most recent call last):
         ...
-        SyntaxError: invalid syntax
-        sage: 3040_1_ # py3
-        Traceback (most recent call last):
-        ...
-        SyntaxError: invalid token
+        SyntaxError: invalid ...
     """
     literals = {}
     last = 0
@@ -1006,7 +998,7 @@ def preparse_calculus(code):
 
     Check support for unicode characters (:trac:`29278`)::
 
-        sage: preparse("μ(x) = x^2")  # py3
+        sage: preparse("μ(x) = x^2")
         '__tmp__=var("x"); μ = symbolic_expression(x**Integer(2)).function(x)'
     """
     new_code = []
@@ -1157,7 +1149,7 @@ def preparse_generators(code):
 
     Check support for unicode characters (:trac:`29278`)::
 
-        sage: preparse('Ω.<λ,μ> = QQ[]')  # py3
+        sage: preparse('Ω.<λ,μ> = QQ[]')
         "Ω = QQ['λ, μ']; (λ, μ,) = Ω._first_ngens(2)"
     """
     new_code = []
@@ -1264,7 +1256,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
     Check support for unicode characters (:trac:`29278`)::
 
-        sage: preparse("Ω.0")  # py3
+        sage: preparse("Ω.0")
         'Ω.gen(0)'
     """
     global quote_state
@@ -1473,7 +1465,7 @@ def implicit_mul(code, level=5):
 
     Check handling of Python 3 keywords (:trac:`29391`)::
 
-        sage: implicit_mul('nonlocal a')  # py3
+        sage: implicit_mul('nonlocal a')
         'nonlocal a'
 
     Although these are not keywords in Python 3, we explicitly avoid implicit
@@ -1487,7 +1479,7 @@ def implicit_mul(code, level=5):
 
     Check support for unicode characters (:trac:`29278`)::
 
-        sage: implicit_mul('3λ')  # py3
+        sage: implicit_mul('3λ')
         '3*λ'
     """
     from keyword import iskeyword

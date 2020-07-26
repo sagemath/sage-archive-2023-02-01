@@ -413,7 +413,7 @@ cdef class PeriodicRegion:
             sage: S / (-1)
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to unsigned int
+            OverflowError: can...t convert negative value to unsigned int
         """
         cdef unsigned int i, j, a, b, rows, cols
         if n <= 1:

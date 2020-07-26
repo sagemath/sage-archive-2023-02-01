@@ -1127,11 +1127,11 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: int(a)
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to int; use int(abs(z))
+            TypeError: can...t convert complex to int; use int(abs(z))
             sage: a.__int__()
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to int; use int(abs(z))
+            TypeError: can...t convert complex to int; use int(abs(z))
         """
         raise TypeError("can't convert complex to int; use int(abs(z))")
 
@@ -1152,11 +1152,11 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: float(a)
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to float; use abs(z)
+            TypeError: can...t convert complex to float; use abs(z)
             sage: a.__float__()
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to float; use abs(z)
+            TypeError: can...t convert complex to float; use abs(z)
         """
         if mpfr_zero_p(self.value.im):
             return mpfr_get_d(self.value.re,\

@@ -3513,7 +3513,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         cdef int i
         cdef dict df
         cdef ETuple v
+        cdef LaurentPolynomial_mpair ans
 
+        if self._prod is None:
+            self._compute_polydict()
         df = self.dict()
         if h is None:
             for v in df:
@@ -3522,12 +3525,15 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         else:
             for v in df:
                 for i in d:
-                    df[v] = h(df[v]*d[i]**v[i])
+                    df[v] = df[v]*d[i]**v[i]
+                df[v] = h(df[v])
         if new_ring is None:
-            P = self.parent()
+            ans = self._new_c()
+            ans._prod = PolyDict(df)
+            return ans
         else:
             P = new_ring
-        return P(df)
+            return P(df)
 
     cpdef toric_coordinate_change(self, M, h=None, new_ring=None):
         r"""
@@ -3550,14 +3556,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         cdef int n, i, j
         cdef dict d, d2
         cdef ETuple v, t
+        cdef LaurentPolynomial_mpair ans
         
-        if new_ring is None:
-            P = self.parent()
-        else:
-            P = new_ring
-        n = P.ngens()
         if not self:
-            return P.zero()
+            if new_ring is None:
+                return self._parent.zero()
+            else:
+                return new_ring.zero()
+        n = self._parent.ngens()
         l = []
         for j in range(n):
             l.append(ETuple(tuple(M.column(j))))
@@ -3572,7 +3578,12 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             for j in range(n):
                 t = t.eadd(l[j].emul(v[j]))
             d2[t] = x
-        return P(d2)
+        if new_ring is None:
+            ans = self._new_c()
+            ans._prod = PolyDict(d2)
+            return ans
+        else:
+            return new_ring(d2)
 
     cpdef toric_substitute(self, v, v1, a, h=None, new_ring=None):
         r"""
@@ -3592,6 +3603,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         """
         cdef dict d, d2
         cdef ETuple ve, v1e, w, w1
+        cdef LaurentPolynomial_mpair ans
         
         d = self.dict()
         d2 = {}
@@ -3609,8 +3621,9 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             else:
                 d2[w1] = x * a**t
         if new_ring is None:
-            P = self.parent()
+            ans = self._new_c()
+            ans._prod = PolyDict(d2)
+            return ans
         else:
-            P = new_ring
-        return P(d2)
+            return new_ring(d2)
 

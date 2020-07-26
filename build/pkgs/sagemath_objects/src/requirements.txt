@@ -1,0 +1,5 @@
+Cython >=0.29.17
+pkgconfig     # really needed?
+cysignals
+gmpy2 ==2.1.0b5
+ipython >=7

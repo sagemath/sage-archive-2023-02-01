@@ -466,7 +466,6 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
                 # restriction of the scalar field to self._domain:
                 return coord_expression.restrict(self._domain)
         else:
-            ###
             # Anything going wrong here should produce a readable error:
             try:
                 # generic constructor:

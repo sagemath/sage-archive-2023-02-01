@@ -3497,13 +3497,19 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         r"""
         Rescale variables in a Laurent polynomial.
 
-        The optional argument ``h`` is a map to be applied to coefficients.
-        This is done after rescaling.
+        INPUT:
+
+        - ``d`` -- a ``dict`` whose keys are the generator indices
+          and values are the coefficients; so a pair ``(i, v)``
+          means `x_i \mapsto v x_i`
+        - ``h`` -- (optional) a map to be applied to coefficients
+          done after rescaling
+        - ``new_ring`` -- (optional) a new ring to map the result into
 
         EXAMPLES::
 
             sage: L.<x,y> = LaurentPolynomialRing(QQ, 2)
-            sage: p = x^2*y + x*y^2
+            sage: p = x^-2*y + x*y^-2
             sage: p.rescale_vars({0: 2, 1: 3})
             12*x^2*y + 18*x*y^2
             sage: F = GF(2)
@@ -3517,23 +3523,28 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
         if self._prod is None:
             self._compute_polydict()
-        df = self.dict()
+
+        ans = <LaurentPolynomial_mpair> self._new_c()
+        df = self._prod.dict()  # This makes a copy for us to manipulate
+        ans._mon = self._mon
         if h is None:
             for v in df:
+                val = df[v]
                 for i in d:
-                    df[v] *= d[i]**v[i]
+                    val *= d[i]**v[i]
+                df[v] = val
         else:
+            R = self._parent._base
             for v in df:
+                val = df[v]
                 for i in d:
-                    df[v] = df[v]*d[i]**v[i]
-                df[v] = h(df[v])
-        if new_ring is None:
-            ans = self._new_c()
-            ans._prod = PolyDict(df)
-            return ans
-        else:
-            P = new_ring
-            return P(df)
+                    val *= d[i]**v[i]
+                df[v] = R(h(val))
+        ans._prod = PolyDict(df)
+        ans._poly = <MPolynomial> self._poly._parent({v.esub(ans._mon): df[v] for v in df})
+        if new_ring is not None:
+            return new_ring(ans)
+        return ans
 
     cpdef toric_coordinate_change(self, M, h=None, new_ring=None):
         r"""

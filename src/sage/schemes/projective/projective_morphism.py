@@ -854,7 +854,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+            sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
             sage: f = DynamicalSystem_projective([3*x^2+6*y^2, 9*x*y])
             sage: f.normalize_coordinates(); f
             Dynamical System of Projective Space of dimension 1 over 3-adic Field with capped relative precision 20

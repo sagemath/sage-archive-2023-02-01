@@ -6977,14 +6977,15 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         field_of_definition_periodic = self.field_of_definition_periodic(1)
 
         if not (isinstance(prime, NumberFieldFractionalIdeal) or prime in QQ):
-            raise ValueError('prime must be an ideal of a number field or an element of QQ')
-        if field_of_definition_periodic is not QQ:
+            raise TypeError('prime must be an ideal of a number field or an element of QQ')
+        if prime not in QQ:
             if prime.number_field() != field_of_definition_periodic:
                 raise ValueError('prime ideal of %s ' %prime.number_field() + \
-                    'but field of definition of fixed points is %s' %self.domain().base_ring())
+                    'but field of definition of fixed points is %s' %field_of_definition_periodic)
         else:
-            if prime not in QQ:
-                raise ValueError('field of definition of fixed points is QQ but prime not in QQ')
+            if field_of_definition_periodic is not QQ:
+                raise ValueError('field of definition of fixed ' + \
+                    'points is %s but prime is in QQ. ' %field_of_definition_periodic)
 
         system = self.change_ring(field_of_definition_periodic)
         fixed_points = system.periodic_points(1)
@@ -6992,7 +6993,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         indifferent_point = None
         for mult in multipliers:
             if field_of_definition_periodic is not QQ:
-                valuation = mult.valuation(prime)/(prime.absolute_ramification_index())
+                valuation = mult.valuation(prime) / prime.absolute_ramification_index()
             else:
                 valuation = mult.valuation(prime)
             if valuation < 0:
@@ -7012,7 +7013,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                         point = preimage
                         break
         else:
-            preimages = [fixed_points[0],fixed_points[1],fixed_points[2]]
+            preimages = [fixed_points[0], fixed_points[1], fixed_points[2]]
             field_of_definition = field_of_definition_periodic
         P = ProjectiveSpace(field_of_definition,1)
         preimages = [P(i) for i in preimages]

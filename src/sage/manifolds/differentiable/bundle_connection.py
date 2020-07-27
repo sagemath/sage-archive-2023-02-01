@@ -350,7 +350,7 @@ class BundleConnection(SageObject):
 
         TESTS::
 
-             sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: E = M.vector_bundle(2, 'E')
             sage: e = E.local_frame('e')  # standard frame for E
@@ -530,7 +530,7 @@ class BundleConnection(SageObject):
         """
         return self.connection_forms(frame)[(i, j)]
 
-    def add_connection_form(self, i, j, frame=None):
+    def add_connection_form(self, i, j, form=None, frame=None):
         r"""
         Return the connection form `\omega^j_i` in a given frame for
         assignment.
@@ -611,9 +611,15 @@ class BundleConnection(SageObject):
                                  " a frame on the {}".format(self._base_space))
             self._connection_forms[frame] = self._new_forms(frame)
         self._del_derived()  # deletes the derived quantities
+        if form:
+            # TODO: Remove input `form` in Sage 9.3
+            import warnings
+            warnings.warn("the input 'form' is outdated and will be removed "
+                          "in a future version of Sage", DeprecationWarning)
+            self._connection_forms[frame][(i, j)] = form.copy()
         return self._connection_forms[frame][(i, j)]
 
-    def set_connection_form(self, i, j, frame=None):
+    def set_connection_form(self, i, j, form=None, frame=None):
         r"""
         Return the connection form `\omega^j_i` in a given frame for
         assignment.
@@ -681,7 +687,7 @@ class BundleConnection(SageObject):
         To keep them, use the method :meth:`add_connection_form` instead.
 
         """
-        omega = self.add_connection_form(i, j, frame=frame)
+        omega = self.add_connection_form(i, j, form=None, frame=frame)
         self.del_other_forms(frame)
         return omega
 

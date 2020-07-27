@@ -19,7 +19,7 @@ from sage.misc.derivative import multi_derivative
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.structure.richcmp cimport richcmp, rich_to_bool
-
+from sage.matrix.matrix0 cimport Matrix
 
 cdef class LaurentPolynomial(CommutativeAlgebraElement):
     """
@@ -3511,10 +3511,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: L.<x,y> = LaurentPolynomialRing(QQ, 2)
             sage: p = x^-2*y + x*y^-2
             sage: p.rescale_vars({0: 2, 1: 3})
-            12*x^2*y + 18*x*y^2
+            2/9*x*y^-2 + 3/4*x^-2*y
             sage: F = GF(2)
             sage: p.rescale_vars({0: 3, 1: 7}, new_ring=L.change_ring(F))
-            x^2*y + x*y^2
+            x*y^-2 + x^-2*y
         """
         cdef int i
         cdef dict df
@@ -3525,7 +3525,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             self._compute_polydict()
 
         ans = <LaurentPolynomial_mpair> self._new_c()
-        df = self._prod.dict()  # This makes a copy for us to manipulate
+        df = dict(self._prod.__repn)  # This makes a copy for us to manipulate
         ans._mon = self._mon
         if h is None:
             for v in df:
@@ -3556,45 +3556,62 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
         EXAMPLES::
 
-            sage: L.<x,y> = LaurentPolynomialRing(QQ,2)
-            sage: p = 2*x^2 + y + x*y
+            sage: L.<x,y> = LaurentPolynomialRing(QQ, 2)
+            sage: p = 2*x^2 + y - x*y
             sage: p.toric_coordinate_change(Matrix([[1,-3],[1,1]]))
-            2*x^2*y^2 + x^-2*y^2 + x^-3*y
+            2*x^2*y^2 - x^-2*y^2 + x^-3*y
             sage: F = GF(2)
             sage: p.toric_coordinate_change(Matrix([[1,-3],[1,1]]), new_ring=L.change_ring(F))
             x^-2*y^2 + x^-3*y
         """
-        cdef int n, i, j
-        cdef dict d, d2
-        cdef ETuple v, t
+        cdef int n, i, j, x
+        cdef dict d, dr
+        cdef ETuple v
         cdef LaurentPolynomial_mpair ans
-        
+        cdef list L, mon, exp
+        cdef Matrix mat = M
+
+        n = self._parent.ngens()
+        if mat.dimensions() != (n, n):
+            raise ValueError("the matrix M must be a {k} x {k} matrix".format(k=n))
+
         if not self:
             if new_ring is None:
                 return self._parent.zero()
             else:
                 return new_ring.zero()
-        n = self._parent.ngens()
-        l = []
-        for j in range(n):
-            l.append(ETuple(tuple(M.column(j))))
-        d = self.dict()
-        d2 = {}
-        if h is not None:
-            for v in d:
-                d[v] = h(d[v])
+
+        if self._prod is None:
+            self._compute_polydict()
+
+        ans = <LaurentPolynomial_mpair> self._new_c()
+        d = self._prod.__repn
+        dr = {}
+        mon = [0] * n
         for v in d:
-            x = d[v]
-            t = ETuple({}, n)
+            # Make a copy of mon as this might be faster than creating the data from scratch.
+            # We will set every entry, so no need to clear the data.
+            exp = list(mon)
             for j in range(n):
-                t = t.eadd(l[j].emul(v[j]))
-            d2[t] = x
-        if new_ring is None:
-            ans = self._new_c()
-            ans._prod = PolyDict(d2)
-            return ans
-        else:
-            return new_ring(d2)
+                x = 0
+                for i in range(n):
+                    if not mat.get_is_zero_unsafe(j, i):
+                        x += (<int> v[i]) * int(mat.get_unsafe(j, i))
+                if x < (<int> mon[j]):
+                    mon[j] = x
+                exp[j] = x
+            dr[ETuple(exp)] = d[v]
+
+        if h is not None:
+            for v in dr:
+                dr[v] = self._parent._base(h(dr[v]))
+
+        ans._prod = PolyDict(dr)
+        ans._mon = ETuple(mon)
+        ans._poly = <MPolynomial> self._poly._parent({v.esub(ans._mon): dr[v] for v in dr})
+        if new_ring is not None:
+            return new_ring(ans)
+        return ans
 
     cpdef toric_substitute(self, v, v1, a, h=None, new_ring=None):
         r"""

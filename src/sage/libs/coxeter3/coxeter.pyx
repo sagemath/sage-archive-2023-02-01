@@ -261,7 +261,6 @@ cdef class CoxGroup(SageObject):
         type, rank = self.cartan_type.type(), self.cartan_type.rank()
         if self.cartan_type.is_affine():
             type = type.lower()
-            rank = rank + 1
 
         type = 'B' if type == 'C' else type
 

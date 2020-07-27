@@ -2336,6 +2336,10 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         The involution map is the extension of the map ``z |-> 1/z``
         on `P^1(\CC_p)` to Berkovich space.
 
+        If zero is contained in every disk approximating a type IV point,
+        then the image under the involution map is not defined. To avoid
+        this error, increase precision.
+
         OUTPUT: A point of the same Berkovich space.
 
         EXAMPLES:
@@ -2374,6 +2378,21 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
             sage: B(1/81, 1.5).involution_map()
             Type III point centered at (3^4 + O(3^24) : 1 + O(3^20)) of radius 0.000228623685413809
+
+        ::
+
+            sage: B([1, 2], [3, 1]).involution_map()
+            Traceback (most call last):
+            ...
+            ValueError: precision of type IV is not high enough to define image
+
+        ::
+
+            sage: B([1/81, 10/81], [10, 9]).involution_map()
+            Type IV point of precision 2, approximated by disks centered at
+            [(3^4 + O(3^24) : 1 + O(3^20)), (3^4 + 2*3^6 + 2*3^7 + 2*3^10 + 2*3^11 +
+            2*3^14 + 2*3^15 + 2*3^18 + 2*3^19 + 2*3^22 + 2*3^23 + O(3^24) : 1 + O(3^20))]
+            ... with radii [0.00152415790275873, 0.00137174211248285] ...
         """
         infty = self.parent()((1,0))
         zero = self.parent()(0)
@@ -2400,13 +2419,14 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             berk_point = self.parent()(self.center()[i], self.radius()[i])
             zero_check = berk_point.gt(zero)
             if zero_check:
-                new_center = 0
-                new_radius = 1/self.radius()[i]
+                continue
             else:
                 new_center = 1/self.center()[i][0]
                 new_radius = self.radius()[i]/(self._custom_abs(self.center()[i][0])**2)
-            new_center_lst.append(new_center)
-            new_radius_lst.append(new_radius)
+                new_center_lst.append(new_center)
+                new_radius_lst.append(new_radius)
+        if len(new_center_lst) == 0:
+            raise ValueError('precision of type IV is not high enough to define image')
         return self.parent()(new_center_lst, new_radius_lst)
 
     def contained_in_interval(self, start, end):

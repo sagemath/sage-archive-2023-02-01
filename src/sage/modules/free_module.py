@@ -269,21 +269,32 @@ FreeModuleFactory_with_standard_basis = FreeModuleFactory("FreeModule")
 def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_matrix=None, *,
                with_basis='standard', rank=None, basis_keys=None, **args):
     """
-    Create a free module over the given commutative ``base_ring`` of the given
-    rank.
+    Create a free module over the given commutative ``base_ring``
+
+    ``FreeModule`` can be called with the following positional arguments:
+
+    - ``FreeModule(base_ring, rank, ...)``
+
+    - ``FreeModule(base_ring, basis_keys, ...)``
 
     INPUT:
-
 
     -  ``base_ring`` - a commutative ring
 
     -  ``rank`` - a nonnegative integer
 
+    -  ``basis_keys`` - a finite or enumerated family of arbitrary objects
+
     -  ``sparse`` - bool; (default False)
 
-    -  ``inner_product_matrix`` - the inner product
-       matrix (default None)
+    -  ``inner_product_matrix`` - the inner product matrix (default ``None``)
 
+    -  ``with_basis`` - either ``"standard"`` (the default), in which case
+       a free module with the standard basis as the distinguished basis is created;
+       or ``None``, in which case a free module without distinguished basis is
+       created.
+
+    -  further options may be accepted by various implementation classes
 
     OUTPUT: a free module
 

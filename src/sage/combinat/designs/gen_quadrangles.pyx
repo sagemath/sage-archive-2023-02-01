@@ -17,6 +17,12 @@ EXAMPLES::
     True
     sage: GQ2.is_isomorphic(GQ3) # long time
     True
+
+REFERENCES:
+
+- [PT2009]_
+
+- [TP1994]_
     
 AUTHORS:
 
@@ -66,6 +72,11 @@ def generalised_quadrangle_with_spread(const int s, const int t,
         Incidence structure with 325 points and 1105 blocks
         sage: designs.generalised_quadrangle_with_spread(0, 2, existence=True)
         False
+
+    REFERENCES:
+
+    For more on generalised quadrangles and their spread see [PT2009]_ or
+    [TP1994]_.
 
     TESTS::
 
@@ -251,6 +262,11 @@ def generalised_quadrangle_hermitian(const int q):
         65
         sage: t[0].is_generalized_quadrangle()  # long time
         True
+
+    REFERENCES:
+
+    For more on `H(3,q^2)` and the construction implemented here see [PT2009]_
+    or [TP1994]_.
 
     TESTS::
 

@@ -104,6 +104,7 @@ Comprehensive Module list
     sage/combinat/designs/difference_matrices
     sage/combinat/designs/evenly_distributed_sets
     sage/combinat/designs/ext_rep
+    sage/combinat/designs/gen_quadrangles
     sage/combinat/designs/incidence_structures
     sage/combinat/designs/latin_squares
     sage/combinat/designs/orthogonal_arrays

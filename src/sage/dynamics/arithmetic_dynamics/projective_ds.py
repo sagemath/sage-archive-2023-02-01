@@ -6940,8 +6940,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: system = DynamicalSystem_projective([x^2-y^2,2*x*y])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: system = DynamicalSystem_projective([x^2-y^2, 2*x*y])
             sage: prime = system.field_of_definition_periodic(1).prime_above(2)
             sage: new_system = system.potential_good_reduction(prime)
             sage: new_system
@@ -6957,19 +6957,32 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: system = DynamicalSystem_projective([3^4*x^3+3*x*y^2+y^3,3^6*y^3])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: system = DynamicalSystem_projective([3^4*x^3+3*x*y^2+y^3, 3^6*y^3])
             sage: prime = system.field_of_definition_periodic(1).prime_above(3)
             sage: system.potential_good_reduction(prime)
             False
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: system = DynamicalSystem_projective([x^5-x*y^4,5*y^5])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: system = DynamicalSystem_projective([x^5-x*y^4, 5*y^5])
             sage: prime = system.field_of_definition_periodic(1).prime_above(5)
             sage: system.potential_good_reduction(prime)
             False
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: R.<z> = QQ[]
+            sage: A.<a> = NumberField(z^2 + 1)
+            sage: prime = A.prime_above(2)
+            sage: system = DynamicalSystem_projective([x^2 - y^2, 2*x*y])
+            sage: system.potential_good_reduction(prime)
+            Dynamical System of Projective Space of dimension 1 over Number Field
+            in a with defining polynomial x^2 + 1
+              Defn: Defined on coordinates by sending (x : y) to
+                    ((-1/2*a)*x^2 + (-5/2*a)*y^2 : (-a)*x*y + y^2)
         """
         if self.domain().base_ring() not in NumberFields:
             raise ValueError('dynamical system must be defined over number field')

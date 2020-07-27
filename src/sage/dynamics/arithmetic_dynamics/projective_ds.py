@@ -6980,8 +6980,17 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             raise TypeError('prime must be an ideal of a number field or an element of QQ')
         if prime not in QQ:
             if prime.number_field() != field_of_definition_periodic:
-                raise ValueError('prime ideal of %s ' %prime.number_field() + \
-                    'but field of definition of fixed points is %s' %field_of_definition_periodic)
+                K = prime.number_field()
+                old_parent = K.defining_polynomial().parent()
+                new_parent = field_of_definition_periodic.defining_polynomial().parent()
+                hom = old_parent.hom([new_parent.gens()[0]])
+                if hom(K.defining_polynomial()) != \
+                    field_of_definition_periodic.defining_polynomial():
+                    raise ValueError('prime ideal of %s ' %K + \
+                        'but field of definition of fixed points is %s. ' %L + \
+                        'see documentation for examples')
+                embedding = K.embeddings(field_of_definition_periodic)[0]
+                prime = embedding(prime)
         else:
             if field_of_definition_periodic is not QQ:
                 raise ValueError('field of definition of fixed ' + \

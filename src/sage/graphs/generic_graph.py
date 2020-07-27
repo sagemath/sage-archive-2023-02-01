@@ -5186,7 +5186,7 @@ class GenericGraph(GenericGraph_pyx):
         This method is deprecated since Sage-4.4.1.alpha2. Please use instead:
 
             sage: g.layout(layout = "planar", save_pos = True)
-            {0: [1, 4], 1: [5, 1], 2: [0, 5], 3: [1, 0], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
+            {0: [0, 5], 1: [5, 1], 2: [1, 0], 3: [4, 1], 4: [1, 1], 5: [2, 2], 6: [1, 2]}
         """
         deprecation(24494, 'This method is replaced by the method layout. '
                            'Please use layout(layout="planar", save_pos=True) '
@@ -5240,25 +5240,25 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.PathGraph(10)
             sage: g.layout(layout='planar', save_pos=True, test=True)
-            {0: [3, 2],
-             1: [4, 3],
-             2: [3, 4],
-             3: [4, 4],
-             4: [2, 6],
-             5: [8, 1],
-             6: [1, 7],
-             7: [0, 8],
-             8: [1, 1],
-             9: [1, 0]}
+            {0: [0, 8],
+             1: [8, 1],
+             2: [1, 0],
+             3: [7, 1],
+             4: [1, 1],
+             5: [5, 3],
+             6: [2, 3],
+             7: [2, 4],
+             8: [1, 6],
+             9: [2, 5]}
             sage: g = graphs.BalancedTree(3, 4)
             sage: pos = g.layout(layout='planar', save_pos=True, test=True)
             sage: pos[0]
-            [2, 116]
+            [0, 119]
             sage: pos[120]
-            [3, 64]
+            [21, 37]
             sage: g = graphs.CycleGraph(7)
             sage: g.layout(layout='planar', save_pos=True, test=True)
-            {0: [1, 4], 1: [5, 1], 2: [0, 5], 3: [1, 0], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
+            {0: [0, 5], 1: [5, 1], 2: [1, 0], 3: [4, 1], 4: [1, 1], 5: [2, 2], 6: [1, 2]}
             sage: g = graphs.CompleteGraph(5)
             sage: g.layout(layout='planar', save_pos=True, test=True, set_embedding=True)
             Traceback (most recent call last):
@@ -5877,17 +5877,17 @@ class GenericGraph(GenericGraph_pyx):
             sage: T = graphs.TetrahedralGraph()
             sage: T.faces({0: [1, 3, 2], 1: [0, 2, 3], 2: [0, 3, 1], 3: [0, 1, 2]})
             [[(0, 1), (1, 2), (2, 0)],
-             [(3, 2), (2, 1), (1, 3)],
-             [(3, 0), (0, 2), (2, 3)],
-             [(3, 1), (1, 0), (0, 3)]]
+             [(0, 2), (2, 3), (3, 0)],
+             [(0, 3), (3, 1), (1, 0)],
+             [(1, 3), (3, 2), (2, 1)]]
 
         With no embedding provided::
 
             sage: graphs.TetrahedralGraph().faces()
             [[(0, 1), (1, 2), (2, 0)],
-             [(3, 2), (2, 1), (1, 3)],
-             [(3, 0), (0, 2), (2, 3)],
-             [(3, 1), (1, 0), (0, 3)]]
+             [(0, 2), (2, 3), (3, 0)],
+             [(0, 3), (3, 1), (1, 0)],
+             [(1, 3), (3, 2), (2, 1)]]
 
         With no embedding provided (non-planar graph)::
 
@@ -5933,7 +5933,9 @@ class GenericGraph(GenericGraph_pyx):
 
         # Storage for face paths
         faces = []
-        path = [edgeset.pop()]
+        minedge = min(edgeset)
+        path = [minedge]
+        edgeset.discard(minedge)
 
         # Trace faces
         while edgeset:
@@ -5943,7 +5945,9 @@ class GenericGraph(GenericGraph_pyx):
             e = (v, next_node)
             if e == path[0]:
                 faces.append(path)
-                path = [edgeset.pop()]
+                minedge = min(edgeset)
+                path = [minedge]
+                edgeset.discard(minedge)
             else:
                 path.append(e)
                 edgeset.discard(e)

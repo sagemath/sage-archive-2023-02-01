@@ -177,7 +177,7 @@ def _normal_label(g, comb_emb, external_face):
         True
         sage: faces = g.faces(g._embedding)
         sage: _triangulate(g, g._embedding)
-        [(2, 0), (4, 2), (6, 4), (1, 3), (6, 1), (3, 5), (4, 0), (6, 3)]
+        [(2, 0), (4, 2), (6, 4), (5, 0), (3, 5), (1, 3), (4, 0), (3, 0)]
         sage: tn = _normal_label(g, g._embedding, faces[0])
         sage: _realizer(g, tn)
         ({0: [<sage.graphs.schnyder.TreeNode object at ...>]},
@@ -401,7 +401,7 @@ def _realizer(g, x, example=False):
         True
         sage: faces = g.faces(g._embedding)
         sage: _triangulate(g, g._embedding)
-        [(2, 0), (4, 2), (6, 4), (1, 3), (6, 1), (3, 5), (4, 0), (6, 3)]
+        [(2, 0), (4, 2), (6, 4), (5, 0), (3, 5), (1, 3), (4, 0), (3, 0)]
         sage: tn = _normal_label(g, g._embedding, faces[0])
         sage: _realizer(g, tn)
         ({0: [<sage.graphs.schnyder.TreeNode object at ...>]},
@@ -488,12 +488,12 @@ def _compute_coordinates(g, x):
         True
         sage: faces = g.faces(g._embedding)
         sage: _triangulate(g, g._embedding)
-        [(2, 0), (4, 2), (6, 4), (1, 3), (6, 1), (3, 5), (4, 0), (6, 3)]
+        [(2, 0), (4, 2), (6, 4), (5, 0), (3, 5), (1, 3), (4, 0), (3, 0)]
         sage: tn = _normal_label(g, g._embedding, faces[0])
         sage: r = _realizer(g, tn)
         sage: _compute_coordinates(g,r)
         sage: g.get_pos()
-        {0: [0, 5], 1: [5, 1], 2: [1, 0], 3: [4, 1], 4: [1, 1], 5: [2, 2], 6: [1, 4]}
+        {0: [0, 5], 1: [5, 1], 2: [1, 0], 3: [4, 1], 4: [1, 1], 5: [2, 2], 6: [1, 2]}
     """
 
     tree_nodes, (v1, v2, v3) = x

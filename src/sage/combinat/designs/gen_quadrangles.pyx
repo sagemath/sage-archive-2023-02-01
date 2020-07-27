@@ -13,20 +13,19 @@ EXAMPLES::
     sage: GQ2
     Incidence structure with 1105 points and 325 blocks
     sage: GQ3 = GQ.dual()
-    sage: set(GQ3._points) == set([x-1 for x in GQ2._points])
+    sage: set(GQ3._points) == set(GQ2._points)
     True
-    sage: blocks2 = [set(map(lambda x: x-1, b)) for b in GQ2._blocks]
-    sage: all([set(b) in blocks2 for b in GQ3._blocks])
+    sage: GQ2.is_isomorphic(GQ3) # long time
     True
     
 AUTHORS:
 
-- YOUR NAME (2005-01-03): initial version
+- Ivo Maffei (2020-07-26): initial version
 
 """
 
 # ****************************************************************************
-#       Copyright (C) 2013 IVO MAFFEI <ivomaffei@gmail.com>
+#       Copyright (C) 2020 Ivo Maffei <ivomaffei@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -132,7 +131,7 @@ def is_GQ_with_spread(GQ, S, s=None, t=None):
         sage: is_GQ_with_spread(*t)
         Traceback (most recent call last):
         ...
-        TypeError: 'sage.libs.gap.element.GapElement_Integer' object is not iterable
+        TypeError: 'int' object is not iterable
         sage: t = dual_GQ_ovoid(*t)
         sage: is_GQ_with_spread(*t)
         True
@@ -229,8 +228,9 @@ def dual_GQ_ovoid(GQ,O):
 
 def generalised_quadrangle_hermitian(const int q):
     r"""
-    Construct the generalised quadrangle `H(3,q^2)` with an ovoid
-    The GQ has order `(q^2,q)`
+    Construct the generalised quadrangle `H(3,q^2)` with an ovoid.
+
+    The GQ has order `(q^2,q)`.
 
     INPUT:
 
@@ -292,7 +292,9 @@ def generalised_quadrangle_hermitian(const int q):
     line = libgap.Set([pointInt[p] for p in lineAsPoints])
 
     lines = libgap.Orbit(GUp, line, libgap.OnSets)  # all isotropic lines
-    # lines degines the GQ H(3,q^2)
+    lines = [list(map(lambda x: int(x-1), b)) for b in lines]  # convert to int
+    # lines defines the GQ H(3,q^2)
+
 
     # to find an ovoid, we embed H(3,q^2) in H(4,q^2)
     # the embedding is (a,b,c,d) -> (a,b,0,c,d)
@@ -318,7 +320,7 @@ def generalised_quadrangle_hermitian(const int q):
     xq = p[3]**q
     for p2 in points:
         if p2[1]*xq + p2[2] == zero:  # p collinear to p2
-            ovoid.append(libgap(pointInt[p2]))
+            ovoid.append(pointInt[p2] - 1)
 
     D = IncidenceStructure(lines)
     return (D, ovoid)

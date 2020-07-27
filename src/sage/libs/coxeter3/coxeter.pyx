@@ -258,8 +258,8 @@ cdef class CoxGroup(SageObject):
         self.cartan_type = CartanType(cartan_type)
         ordering = self._ordering_from_cartan_type(self.cartan_type)
 
-        type, rank = cartan_type.type(), cartan_type.rank()
-        if cartan_type.is_affine():
+        type, rank = self.cartan_type.type(), self.cartan_type.rank()
+        if self.cartan_type.is_affine():
             type = type.lower()
             rank = rank + 1
 

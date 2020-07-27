@@ -1519,8 +1519,12 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         The involution map is the extension of the map ``z |-> 1/z``
         on `\CC_p` to Berkovich space.
 
-        For Affine Berkovich Space, not defined for the type I
+        For affine Berkovich Space, not defined for the type I
         point centered at 0.
+
+        If zero is contained in every disk approximating a type IV point,
+        then the image under the involution map is not defined. To avoid
+        this error, increase precision.
 
         OUTPUT: A point of the same Berkovich space.
 
@@ -1545,6 +1549,33 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             sage: Q3.involution_map()
             Type II point centered at 3 + O(3^21) of radius 3^-3
 
+        TESTS::
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: B(0).involution_map()
+            Traceback (most recent call last):
+            ...
+            ValueError: involution map not deffined on affine type I point centered at 0
+
+        ::
+
+            sage: B(1/81, 1.5).involution_map()
+            Type III point centered at 3^4 + O(3^24) of radius 0.000228623685413809
+
+        ::
+
+            sage: Q1 = B([1, 2], [3, 1])
+            sage: Q1.involution_map()
+            Traceback (most recent call last):
+            ...
+            ValueError: precision of type IV is not high enough to define image
+
+        ::
+
+            sage: B([1/81, 10/81], [10, 9]).involution_map()
+            Type IV point of precision 2, approximated by disks centered at [3^4 + O(3^24),
+            3^4 + 2*3^6 + 2*3^7 + 2*3^10 + 2*3^11 + 2*3^14 + 2*3^15 + 2*3^18 + 2*3^19 + 2*3^22
+            + 2*3^23 + O(3^24)] ... with radii [0.00152415790275873, 0.00137174211248285] ...
         """
         if self.type_of_point() == 1:
             if self.center() == 0:
@@ -1566,16 +1597,17 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         new_center_lst = []
         new_radius_lst = []
         for i in range(len(self.center())):
-            berk_point = self.parent()(self.center()[i], radius[i])
+            berk_point = self.parent()(self.center()[i], self.radius()[i])
             zero_check = berk_point.gt(zero)
             if zero_check:
-                new_center = 0
-                new_radius = RR(1/radius[i])
+                continue
             else:
                 new_center = 1/self.center()[i]
-                new_radius = RR(radius[i] / (self._custom_abs(self.center()[i])**2))
-            new_center_lst.append(new_center)
-            new_radius_lst.append(new_radius)
+                new_radius = self.radius()[i]/(self._custom_abs(self.center()[i])**2)
+                new_center_lst.append(new_center)
+                new_radius_lst.append(new_radius)
+        if len(new_center_lst) == 0:
+            raise ValueError('precision of type IV is not high enough to define image')
         return self.parent()(new_center_lst, new_radius_lst, error_check=False)
 
     def contained_in_interval(self, start, end):
@@ -2382,7 +2414,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         ::
 
             sage: B([1, 2], [3, 1]).involution_map()
-            Traceback (most call last):
+            Traceback (most recent call last):
             ...
             ValueError: precision of type IV is not high enough to define image
 

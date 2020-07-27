@@ -3633,6 +3633,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         cdef dict d, dr
         cdef ETuple ve, v1e, w, w1, mon
         cdef LaurentPolynomial_mpair ans
+        cdef int t
 
         if self._prod is None:
             self._compute_polydict()
@@ -3649,7 +3650,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         for w in d:
             x = d[w]
             t = w.dotprod(v1e)
-            w1 = w.eadd(ve.emul(-t))
+            w1 = w.eadd_scaled(ve, -t)
             if w1 in dr:
                 dr[w1] += x * a**t
             else:

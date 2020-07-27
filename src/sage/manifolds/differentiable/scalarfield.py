@@ -392,9 +392,9 @@ class DiffScalarField(ScalarField):
     field::
 
         sage: s = f + 1 ; s
-        Scalar field on the 2-dimensional differentiable manifold M
+        Scalar field f+1 on the 2-dimensional differentiable manifold M
         sage: s.display()
-        M --> R
+        f+1: M --> R
         on U: (x, y) |--> (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
         on V: (u, v) |--> (2*u^2 + 2*v^2 + 1)/(u^2 + v^2 + 1)
         sage: (f+1)-1 == f

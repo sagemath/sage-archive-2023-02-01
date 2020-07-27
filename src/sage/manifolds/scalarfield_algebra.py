@@ -454,7 +454,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         try:
             if coord_expression.is_trivial_zero():
                 return self.zero()
-            if (coord_expression - 1).is_trivial_zero():
+            elif (coord_expression - 1).is_trivial_zero():
                 return self.one()
         except AttributeError:
             if coord_expression == 0:

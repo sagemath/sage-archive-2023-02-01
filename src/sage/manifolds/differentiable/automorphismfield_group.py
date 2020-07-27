@@ -208,12 +208,11 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
             a = (x^2 + 1) d/dx*dx + (y^2 + 1) d/dy*dy
 
         """
-        try:
+        if hasattr(comp, 'is_trivial_zero'):
             if (comp - 1).is_trivial_zero():
                 return self.one()
-        except AttributeError:
-            if comp == 1:
-                return self.one()
+        elif comp == 1:
+            return self.one()
         if not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))

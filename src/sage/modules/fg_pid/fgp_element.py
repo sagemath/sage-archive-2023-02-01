@@ -350,7 +350,7 @@ class FGP_Element(ModuleElement):
             True
 
             sage: A = AdditiveAbelianGroup([3])
-            sage: hash(A.an_element()) == hash(tuple([1]))
+            sage: hash(A.an_element()) == hash((1,))
             True
         """
         return hash(self.vector())

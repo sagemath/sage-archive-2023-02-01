@@ -88,9 +88,9 @@ class FreeMonoidElement(MonoidElement):
         TESTS::
 
             sage: R.<x,y> = FreeMonoid(2)
-            sage: hash(x) == hash(tuple([(0, 1)]))
+            sage: hash(x) == hash(((0, 1),))
             True
-            sage: hash(y) == hash(tuple([(1, 1)]))
+            sage: hash(y) == hash(((1, 1),))
             True
             sage: hash(x*y) == hash(((0, 1), (1, 1)))
             True

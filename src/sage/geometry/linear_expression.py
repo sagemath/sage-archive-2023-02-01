@@ -383,7 +383,7 @@ class LinearExpression(ModuleElement):
 
             sage: from sage.geometry.linear_expression import LinearExpressionModule
             sage: L.<x> = LinearExpressionModule(QQ)
-            sage: hash(L([0,1])) == hash(tuple([1]))
+            sage: hash(L([0,1])) == hash((1,))
             True
         """
         return hash(self._coeffs) ^ hash(self._const)

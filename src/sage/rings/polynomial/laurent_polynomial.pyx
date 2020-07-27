@@ -3524,9 +3524,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         if self._prod is None:
             self._compute_polydict()
 
-        ans = <LaurentPolynomial_mpair> self._new_c()
         df = dict(self._prod.__repn)  # This makes a copy for us to manipulate
-        ans._mon = self._mon
         if h is None:
             for v in df:
                 val = df[v]
@@ -3540,7 +3538,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
                 for i in d:
                     val *= d[i]**v[i]
                 df[v] = R(h(val))
+
+        ans = <LaurentPolynomial_mpair> self._new_c()
         ans._prod = PolyDict(df)
+        ans._mon = self._mon
         ans._poly = <MPolynomial> self._poly._parent({v.esub(ans._mon): df[v] for v in df})
         if new_ring is not None:
             return new_ring(ans)
@@ -3584,7 +3585,6 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         if self._prod is None:
             self._compute_polydict()
 
-        ans = <LaurentPolynomial_mpair> self._new_c()
         d = self._prod.__repn
         dr = {}
         mon = [0] * n
@@ -3606,6 +3606,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             for v in dr:
                 dr[v] = self._parent._base(h(dr[v]))
 
+        ans = <LaurentPolynomial_mpair> self._new_c()
         ans._prod = PolyDict(dr)
         ans._mon = ETuple(mon)
         ans._poly = <MPolynomial> self._poly._parent({v.esub(ans._mon): dr[v] for v in dr})
@@ -3629,29 +3630,37 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: p.toric_substitute((2,3), (-1,1), 2, new_ring=L.change_ring(F))
             3*x^3*y^3 + 2*x^-2*y^-2
         """
-        cdef dict d, d2
-        cdef ETuple ve, v1e, w, w1
+        cdef dict d, dr
+        cdef ETuple ve, v1e, w, w1, mon
         cdef LaurentPolynomial_mpair ans
+
+        if self._prod is None:
+            self._compute_polydict()
         
-        d = self.dict()
-        d2 = {}
+        d = self._prod.__repn
+        dr = {}
         ve = ETuple(v)
         v1e = ETuple(v1)
+        mon = self._mon
         if h is not None:
+            d = dict(d)  # Make a copy so we can manipulate it
             for w in d:
                 d[w] = h(d[w])
         for w in d:
             x = d[w]
             t = w.dotprod(v1e)
             w1 = w.eadd(ve.emul(-t))
-            if w1 in d2:
-                d2[w1] += x * a**t
+            if w1 in dr:
+                dr[w1] += x * a**t
             else:
-                d2[w1] = x * a**t
-        if new_ring is None:
-            ans = self._new_c()
-            ans._prod = PolyDict(d2)
-            return ans
-        else:
-            return new_ring(d2)
+                dr[w1] = x * a**t
+            mon = mon.emin(w1)
+
+        ans = <LaurentPolynomial_mpair> self._new_c()
+        ans._prod = PolyDict(dr)
+        ans._mon = mon
+        ans._poly = <MPolynomial> self._poly._parent({v.esub(ans._mon): dr[v] for v in dr})
+        if new_ring is not None:
+            return new_ring(ans)
+        return ans
 

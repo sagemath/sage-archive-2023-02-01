@@ -235,9 +235,8 @@ class FreeGroupElement(ElementLibGAP):
         TESTS::
 
             sage: G.<a,b> = FreeGroup()
-            sage: hash(a*b*b*~a)
-            -485698212495963022 # 64-bit
-            -1876767630         # 32-bit
+            sage: hash(a*b*b*~a) == hash(tuple([1, 2, 2, -1]))
+            True
         """
         return hash(self.Tietze())
 

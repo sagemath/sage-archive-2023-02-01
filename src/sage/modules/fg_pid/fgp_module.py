@@ -1895,9 +1895,8 @@ class FGP_Module_class(Module):
         EXAMPLES::
 
             sage: A = (ZZ**2) / span([[4,0],[0,3]], ZZ)
-            sage: hash(A)
-            1328975982 # 32-bit
-            -7071641102956720018 # 64-bit
+            sage: hash(A) == hash(((2, ZZ), ((4, 0), (0, 3))))
+            True
         """
         return hash((self.V(), self.W()))
 

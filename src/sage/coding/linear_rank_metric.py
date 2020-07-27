@@ -130,7 +130,7 @@ from .decoder import Decoder
 
 def to_matrix_representation(v, sub_field=None, basis=None):
     r"""
-    Returns a matrix representation of ``v`` over ``sub_field`` in terms of
+    Return a matrix representation of ``v`` over ``sub_field`` in terms of
     ``basis``.
 
     Let `(b_1, b_2, \ldots, b_m)`, `b_i \in GF(q^m)`, be a basis of `GF(q^m)` as
@@ -184,7 +184,7 @@ def to_matrix_representation(v, sub_field=None, basis=None):
 
 def from_matrix_representation(w, base_field=None, basis=None):
     r"""
-    Returns a vector representation of a matrix ``w`` over ``base_field`` in terms
+    Return a vector representation of a matrix ``w`` over ``base_field`` in terms
     of ``basis``.
 
     Given an `m \times n` matrix over `F_q` and some ``basis`` of `F_{q^m}`
@@ -233,7 +233,7 @@ def from_matrix_representation(w, base_field=None, basis=None):
 
 def rank_weight(c, sub_field=None, basis=None):
     r"""
-    Returns the rank of ``c`` as a matrix over ``sub_field``.
+    Return the rank of ``c`` as a matrix over ``sub_field``.
 
     If ``c`` is a vector over some field `F_{q^m}`, the function converts it
     into a matrix over `F_q`.
@@ -264,7 +264,7 @@ def rank_weight(c, sub_field=None, basis=None):
 
 def rank_distance(a, b, sub_field=None, basis=None):
     r"""
-    Returns the rank of ``a`` - ``b`` as a matrix over ``sub_field``.
+    Return the rank of ``a`` - ``b`` as a matrix over ``sub_field``.
 
     Take two vectors ``a``, ``b`` over some field `F_{q^m}`. This function
     converts them to matrices over `F_q` and calculates the rank of their
@@ -313,7 +313,6 @@ def rank_distance(a, b, sub_field=None, basis=None):
         Traceback (most recent call last):
         ...
         ValueError: The length of (z6 + 1, z6 + 1, 1) and (1, 0) has to be the same
-
     """
     if not (a.base_ring() == b.base_ring()):
         raise ValueError("The base field of {} and {} has to be the same".format(a, b))
@@ -363,8 +362,8 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
 
     def __init__(self, base_field, sub_field, length, default_encoder_name,
             default_decoder_name, basis=None):
-        """
-        Initializes mandatory parameters that every linear rank metric code has.
+        r"""
+        Initialize mandatory parameters that every linear rank metric code has.
 
         This method only exists for inheritance purposes as it initializes
         parameters that need to be known by every linear rank metric code.
@@ -393,7 +392,7 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
 
         The following example demonstrates how to use subclass
         `AbstractLinearRankMetricCode` for representing a new family of rank
-        metric codes. The example is a rank repetition code:
+        metric codes. The example is a rank repetition code::
 
              sage: from sage.coding.linear_rank_metric import AbstractLinearRankMetricCode
              sage: class RankRepetitionCode(AbstractLinearRankMetricCode):
@@ -415,7 +414,7 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
             sage: C
             [3, 1] rank-metric repetition code over GF(8)
 
-        We can encode a vector:
+        We can encode a vector::
 
             sage: word = vector(C.base_field(), [1])
             sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
@@ -423,14 +422,14 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
             sage: codeword
             (1, z3, z3^2)
 
-        We can get the matrix representation of the codeword:
+        We can get the matrix representation of the codeword::
 
             sage: C.matrix_form_of_vector(codeword)
             [1 0 0]
             [0 1 0]
             [0 0 1]
 
-        We can decode the vector representation of the codeword:
+        We can decode the vector representation of the codeword::
 
             sage: D = codes.decoders.LinearRankMetricCodeNearestNeighborDecoder(C)
             sage: D.decode_to_code(codeword)
@@ -461,7 +460,7 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
             ...
             ValueError: 'sub_field' must be a field (and Integer Ring is not one)
 
-        If ``sub_field`` is not a subfield of ``base_field``, an error is raised:
+        If ``sub_field`` is not a subfield of ``base_field``, an error is raised::
 
             sage: C = RankRepetitionCode(GF(8), GF(3), 2)
             Traceback (most recent call last):
@@ -482,8 +481,8 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
         super(AbstractLinearRankMetricCode, self).__init__(base_field, length, default_encoder_name, default_decoder_name, "rank")
 
     def sub_field(self):
-        """
-        Returns the sub field of ``self``.
+        r"""
+        Return the sub field of ``self``.
 
         EXAMPLES::
 
@@ -496,7 +495,7 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
 
     def extension_degree(self):
         r"""
-        Returns `m`, the degree of the field extension of ``self``.
+        Return `m`, the degree of the field extension of ``self``.
 
         Let ``base_field`` be `GF(q^m)` and ``sub_field`` be `GF(q)`. Then this
         function returns `m`.
@@ -512,13 +511,13 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
         return self._extension_degree
 
     def field_extension(self):
-        """
-        Returns the field extension of ``self``.
+        r"""
+        Return the field extension of ``self``.
 
         Let ``base_field`` be some field `F_{q^m}` and ``sub_field`` `F_{q}`.
         This function returns the vector space of dimension `m` over `F_{q}`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
             sage: C = codes.LinearRankMetricCode(G, GF(4))
@@ -528,8 +527,8 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
         return self.base_field().vector_space(self.sub_field(), map=False)
 
     def rank_distance_between_vectors(self, left, right):
-        """
-        Returns the rank of the matrix of ``left`` - ``right``.
+        r"""
+        Return the rank of the matrix of ``left`` - ``right``.
 
         INPUT:
 
@@ -551,7 +550,7 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
 
     def minimum_distance(self):
         r"""
-        Returns the minimum distance of ``self``.
+        Return the minimum distance of ``self``.
 
         This algorithm simply iterates over all the elements of the code and
         returns the minimum weight.
@@ -571,8 +570,8 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
         return d
 
     def rank_weight_of_vector(self, word):
-        """
-        Returns the weight of the word, i.e. its rank.
+        r"""
+        Return the weight of the word, i.e. its rank.
 
         INPUT:
 
@@ -590,8 +589,8 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
         return rank_weight(word, self.sub_field())
 
     def matrix_form_of_vector(self, word):
-        """
-        Returns the matrix representation of a word.
+        r"""
+        Return the matrix representation of a word.
 
         INPUT:
 
@@ -611,8 +610,8 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
         return to_matrix_representation(word, self.sub_field())
 
     def vector_form_of_matrix(self, word):
-        """
-        Returns the vector representation of a word.
+        r"""
+        Return the vector representation of a word.
 
         INPUT:
 
@@ -720,7 +719,7 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
 
     def _repr_(self):
         r"""
-        Returns a string representation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -752,7 +751,7 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
 
     def generator_matrix(self, encoder_name=None, **kwargs):
         r"""
-        Returns a generator matrix of ``self``.
+        Return a generator matrix of ``self``.
 
         INPUT:
 
@@ -807,7 +806,7 @@ class LinearRankMetricCodeNearestNeighborDecoder(Decoder):
 
     def __eq__(self, other):
         r"""
-        Tests equality between LinearRankMetricCodeNearestNeighborDecoder objects.
+        Test equality between LinearRankMetricCodeNearestNeighborDecoder objects.
 
         EXAMPLES::
 
@@ -823,7 +822,7 @@ class LinearRankMetricCodeNearestNeighborDecoder(Decoder):
 
     def _repr_(self):
         r"""
-        Returns a string representation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -837,7 +836,7 @@ class LinearRankMetricCodeNearestNeighborDecoder(Decoder):
 
     def _latex_(self):
         r"""
-        Returns a latex representation of ``self``.
+        Return a latex representation of ``self``.
 
         EXAMPLES::
 

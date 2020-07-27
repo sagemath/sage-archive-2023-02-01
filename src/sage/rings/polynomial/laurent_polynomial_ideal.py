@@ -31,8 +31,8 @@ class LaurentPolynomialIdeal( Ideal_generic ):
         Create an ideal in a Laurent polynomial ring.
 
         To compute structural properties of an ideal in the Laurent polynomial ring
-        `R[x_1^{\pm},\dots,x_n^{\pm}]`, we form the corresponding ideal in the
-        associated ordinary polynomial ring `R[x_1,\dots,x_n]` which is saturated
+        `R[x_1^{\pm},\ldots,x_n^{\pm}]`, we form the corresponding ideal in the
+        associated ordinary polynomial ring `R[x_1,\ldots,x_n]` which is saturated
         with respect to the ideal `(x_1 \cdots x_n)`. Since computing the saturation
         can be expensive, we employ some strategies to reduce the need for it.
     
@@ -46,11 +46,10 @@ class LaurentPolynomialIdeal( Ideal_generic ):
 
         INPUT:
 
-        - ``ring`` - the ring the ideal is defined in
-
-        - ``gens`` - a list of generators for the ideal
-
-        - ``coerce`` - coerce elements to the ring ``ring``?
+        - ``ring`` -- the ring the ideal is defined in
+        - ``gens`` -- a list of generators for the ideal
+        - ``coerce`` -- whether or not to coerce elements into ``ring``
+        - ``hint`` -- an ideal in the associated polynomial ring (optional; see above)
 
         EXAMPLES::
 

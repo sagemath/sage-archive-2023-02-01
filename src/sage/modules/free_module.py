@@ -430,7 +430,8 @@ def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_m
     else:
         raise NotImplementedError
 
-def VectorSpace(K, dimension, sparse=False, inner_product_matrix=None):
+def VectorSpace(K, dimension_or_basis_keys=None, sparse=False, inner_product_matrix=None, *,
+                with_basis='standard', dimension=None, basis_keys=None, **args):
     """
     EXAMPLES:
 
@@ -461,7 +462,9 @@ def VectorSpace(K, dimension, sparse=False, inner_product_matrix=None):
         raise TypeError("Argument K (= %s) must be a field." % K)
     if not sparse in (True,False):
         raise TypeError("Argument sparse (= %s) must be a boolean."%sparse)
-    return FreeModule(K, rank=dimension, sparse=sparse, inner_product_matrix=inner_product_matrix)
+    return FreeModule(K, dimension_or_basis_keys, sparse, inner_product_matrix,
+                      with_basis=with_basis, rank=dimension, basis_keys=basis_keys,
+                      **args)
 
 ###############################################################################
 #

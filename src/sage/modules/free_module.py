@@ -196,7 +196,80 @@ from sage.structure.factory import UniqueFactory
 
 class FreeModuleFactory(UniqueFactory):
     r"""
-    Create the free module over the given commutative ring of the given
+    Factory class for the finite-dimensional free modules with standard basis
+    """
+    def create_key(self, base_ring, rank, sparse=False, inner_product_matrix=None):
+        """
+        TESTS::
+
+            sage: loads(dumps(ZZ^6)) is ZZ^6
+            True
+            sage: loads(dumps(RDF^3)) is RDF^3
+            True
+
+        TODO: replace the above by ``TestSuite(...).run()``, once
+        :meth:`_test_pickling` will test unique representation and not
+        only equality.
+        """
+        rank = int(sage.rings.integer.Integer(rank))
+
+        if not (inner_product_matrix is None):
+            inner_product_matrix = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)(inner_product_matrix)
+            inner_product_matrix.set_immutable()
+
+        return (base_ring, rank, sparse, inner_product_matrix)
+
+    def create_object(self, version, key):
+
+        base_ring, rank, sparse, inner_product_matrix = key
+
+        if inner_product_matrix is not None:
+            from .free_quadratic_module import FreeQuadraticModule
+            return FreeQuadraticModule(base_ring, rank, inner_product_matrix=inner_product_matrix, sparse=sparse)
+
+        if not isinstance(sparse,bool):
+            raise TypeError("Argument sparse (= %s) must be True or False" % sparse)
+
+        if not (hasattr(base_ring,'is_commutative') and base_ring.is_commutative()):
+            warn("""You are constructing a free module
+over a noncommutative ring. Sage does not have a concept
+of left/right and both sided modules, so be careful.
+It's also not guaranteed that all multiplications are
+done from the right side.""")
+
+        #            raise TypeError, "The base_ring must be a commutative ring."
+
+        try:
+            if not sparse and isinstance(base_ring,sage.rings.real_double.RealDoubleField_class):
+                return RealDoubleVectorSpace_class(rank)
+
+            elif not sparse and isinstance(base_ring,sage.rings.complex_double.ComplexDoubleField_class):
+                return ComplexDoubleVectorSpace_class(rank)
+
+            elif base_ring.is_field():
+                return FreeModule_ambient_field(base_ring, rank, sparse=sparse)
+
+            elif base_ring in PrincipalIdealDomains():
+                return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
+
+            elif isinstance(base_ring, sage.rings.number_field.order.Order) \
+                and base_ring.is_maximal() and base_ring.class_number() == 1:
+                return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
+
+            elif isinstance(base_ring, ring.IntegralDomain) or base_ring.is_integral_domain():
+                return FreeModule_ambient_domain(base_ring, rank, sparse=sparse)
+
+            else:
+                return FreeModule_ambient(base_ring, rank, sparse=sparse)
+        except NotImplementedError:
+            return FreeModule_ambient(base_ring, rank, sparse=sparse)
+
+FreeModuleFactory_with_standard_basis = FreeModuleFactory("FreeModule")
+
+def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_matrix=None, *,
+               with_basis='standard', rank=None, basis_keys=None, **args):
+    """
+    Create a free module over the given commutative ``base_ring`` of the given
     rank.
 
     INPUT:
@@ -322,78 +395,6 @@ class FreeModuleFactory(UniqueFactory):
         Refactor modules such that it only counts what category the base
         ring belongs to, but not what is its Python class.
 
-    """
-    def create_key(self, base_ring, rank, sparse=False, inner_product_matrix=None):
-        """
-        TESTS::
-
-            sage: loads(dumps(ZZ^6)) is ZZ^6
-            True
-            sage: loads(dumps(RDF^3)) is RDF^3
-            True
-
-        TODO: replace the above by ``TestSuite(...).run()``, once
-        :meth:`_test_pickling` will test unique representation and not
-        only equality.
-        """
-        rank = int(sage.rings.integer.Integer(rank))
-
-        if not (inner_product_matrix is None):
-            inner_product_matrix = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)(inner_product_matrix)
-            inner_product_matrix.set_immutable()
-
-        return (base_ring, rank, sparse, inner_product_matrix)
-
-    def create_object(self, version, key):
-
-        base_ring, rank, sparse, inner_product_matrix = key
-
-        if inner_product_matrix is not None:
-            from .free_quadratic_module import FreeQuadraticModule
-            return FreeQuadraticModule(base_ring, rank, inner_product_matrix=inner_product_matrix, sparse=sparse)
-
-        if not isinstance(sparse,bool):
-            raise TypeError("Argument sparse (= %s) must be True or False" % sparse)
-
-        if not (hasattr(base_ring,'is_commutative') and base_ring.is_commutative()):
-            warn("""You are constructing a free module
-over a noncommutative ring. Sage does not have a concept
-of left/right and both sided modules, so be careful.
-It's also not guaranteed that all multiplications are
-done from the right side.""")
-
-        #            raise TypeError, "The base_ring must be a commutative ring."
-
-        try:
-            if not sparse and isinstance(base_ring,sage.rings.real_double.RealDoubleField_class):
-                return RealDoubleVectorSpace_class(rank)
-
-            elif not sparse and isinstance(base_ring,sage.rings.complex_double.ComplexDoubleField_class):
-                return ComplexDoubleVectorSpace_class(rank)
-
-            elif base_ring.is_field():
-                return FreeModule_ambient_field(base_ring, rank, sparse=sparse)
-
-            elif base_ring in PrincipalIdealDomains():
-                return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
-
-            elif isinstance(base_ring, sage.rings.number_field.order.Order) \
-                and base_ring.is_maximal() and base_ring.class_number() == 1:
-                return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
-
-            elif isinstance(base_ring, ring.IntegralDomain) or base_ring.is_integral_domain():
-                return FreeModule_ambient_domain(base_ring, rank, sparse=sparse)
-
-            else:
-                return FreeModule_ambient(base_ring, rank, sparse=sparse)
-        except NotImplementedError:
-            return FreeModule_ambient(base_ring, rank, sparse=sparse)
-
-FreeModuleFactory_with_standard_basis = FreeModuleFactory("FreeModule")
-
-def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_matrix=None, *,
-               with_basis='standard', rank=None, basis_keys=None, **args):
-    """
 
     EXAMPLES::
 

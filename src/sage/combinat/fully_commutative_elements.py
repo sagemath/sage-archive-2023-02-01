@@ -5,7 +5,25 @@ An element `w` in a Coxeter system (W,S) is fully commutative (FC) if
 every two reduced words of w can be related by a sequence of only
 commutation relations, i.e., relations of the form `st=ts` where `s,t` are
 commuting generators in `S`. See [Ste1996]_.
+
+Authors:
+
+- Chase Meadors, Tianyuan Xu (2020): Initial version
+
+Acknowledgements
+----------------
+
+A draft of this code was written during an REU project at University of
+Colorado Boulder. We thank Rachel Castro, Joel Courtney, Thomas Magnuson and
+Natalie Schoenhals for their contribution to the project and the code.
 """
+#*****************************************************************************
+#  Copyright (C) 2020 Chase Meadors <Chase.Meadors at colorado.edu>,
+#                     Tianyuan Xu   <Tianyuan.Xu at colorado.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.structure.parent import Parent
 from sage.structure.list_clone import NormalizedClonableList
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -53,11 +71,11 @@ class FullyCommutativeElement(NormalizedClonableList):
         r"""
         Check if ``self`` is the reduced word of an FC element.
 
-        To check if `self` is fully commutative, we use the well-known
-        characterization that an element `w` in a Coxeter system `(W,S)` is FC
-        if and only if for every pair of generators `s,t \in S` for which
-        `m(s,t)>2`, no reduced word of `w` contains the 'braid' word `sts...` of
-        length `m(s,t)` as a contiguous subword. See [Ste1996]_.
+        To check if `self` is FC, we use the well-known characterization that
+        an element `w` in a Coxeter system `(W,S)` is FC if and only if for
+        every pair of generators `s,t \in S` for which `m(s,t)>2`, no reduced
+        word of `w` contains the 'braid' word `sts...` of length `m(s,t)` as a
+        contiguous subword. See [Ste1996]_.
 
         :func:`check` is an alias of this method, and is called automatically
         when an element is created.
@@ -112,7 +130,8 @@ class FullyCommutativeElement(NormalizedClonableList):
         """
         matrix = self.parent().coxeter_matrix()
         w = tuple(self)
-
+        
+        # The following function detects 'braid' words.
         def contains_long_braid(w):
             for i in range(0, len(w) - 2):
                 a = w[i]
@@ -124,12 +143,15 @@ class FullyCommutativeElement(NormalizedClonableList):
                         return True
             return False
 
+        # The following function applies a commutation relation on a word.
         def commute_once(word, i):
             return word[:i] + (word[i + 1], word[i]) + word[i + 2:]
 
         not_fc = ValueError(
             'The input is not a reduced word of a fully commutative element.')
 
+        # A word is the reduced word of an FC element iff no sequence of
+        # commutation relations on it yields a word with a 'braid' word: 
         if contains_long_braid(w):
             raise not_fc
         else:
@@ -201,25 +223,26 @@ class FullyCommutativeElement(NormalizedClonableList):
         from any reduced word of `w`. Different reduced words yield isomorphic
         labeled posets, so the heap is well defined.
 
-        Heaps are very useful for visualizing and studying FC elements; see, for
-        example, [Ste1996]_ and [GX2020]_.
+        Heaps are very useful for visualizing and studying FC elements; see,
+        for example, [Ste1996]_ and [GX2020]_.
 
         INPUT:
 
         - ``self`` -- list, a reduced word `w=s_0... s_{k-1}` of an FC element.
 
         OUTPUT: A labeled poset where the underlying set is `\{0,1,...,k-1\}`
-        and where each element `i` carries `s_i` as its label. The partial order
-        `\prec` on the poset is defined by declaring `i\prec j` if `i<j` and
-        `m(s_i,s_j)\neq 2`.
+        and where each element `i` carries `s_i` as its label. The partial
+        order `\prec` on the poset is defined by declaring `i\prec j` if `i<j`
+        and `m(s_i,s_j)\neq 2`.
 
         OPTIONAL ARGUMENTS:
 
         - ``one_index`` -- boolean (default: False). Setting the value to True
           will change the underlying set of the poset to `\{1, 2, \dots, n\}`.
 
-        - ``display_labeling`` -- boolean (default: False). Setting the value to
-          True will display the label `s_i` for each element `i` of the poset.
+        - ``display_labeling`` -- boolean (default: False). Setting the value
+          to True will display the label `s_i` for each element `i` of the
+          poset.
 
         EXAMPLES::
 
@@ -251,18 +274,17 @@ class FullyCommutativeElement(NormalizedClonableList):
         else:
             return p.relabel(lambda i: (i, letter(i)))
 
-    # Hasse diagrams of heaps help visualizing FC elements:
+    # Hasse diagrams of heaps help visualize FC elements:
     def plot_heap(self):
         r"""
         Display the Hasse diagram of the heap of ``self``.
 
-        The Hasse diagram is rendered in the lattice `S \times \mathbb{N}`, with
-        every element `i` in the poset drawn as a point labelled by its label
-        `s_i`. Every point is placed in the column for its label at a certain
-        level. The levels start at 0 and the level k of an element `i` is the
-        maximal number `k` such that the heap contains a chain `i_0\prec
+        The Hasse diagram is rendered in the lattice `S \times \mathbb{N}`,
+        with every element `i` in the poset drawn as a point labelled by its
+        label `s_i`. Every point is placed in the column for its label at a
+        certain level. The levels start at 0 and the level k of an element `i`
+        is the maximal number `k` such that the heap contains a chain `i_0\prec
         i_1\prec ... \prec i_k` where `i_k=i`. See [Ste1996]_ and [GX2020]_.
-
 
         OUTPUT: GraphicsObject
 
@@ -461,8 +483,8 @@ class FullyCommutativeElement(NormalizedClonableList):
     # Coset decompositions
     def coset_decomposition(self, J, side='left'):
         r"""
-        Return the coset decomposition of ``self`` with repsect to the parabolic
-        subgroup generated by ``J``.
+        Return the coset decomposition of ``self`` with repsect to the
+        parabolic subgroup generated by ``J``.
 
         INPUT:
 
@@ -470,8 +492,8 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         OUTPUT:
 
-        The tuple of elements `(w_J, w^J)` such that `w=w_J \cdot w^J`, `w_J` is
-        generated by the elements in `J`, and `w^J` has no left descent from
+        The tuple of elements `(w_J, w^J)` such that `w=w_J \cdot w^J`, `w_J`
+        is generated by the elements in `J`, and `w^J` has no left descent from
         `J`. This tuple is unique and satisfies the equation `l(w) = l(w_J) +
         l(w^J)`, where `l` denotes Coxeter length, by general theory; see
         Proposition 2.4.4 of [BB2005]_.
@@ -535,14 +557,13 @@ class FullyCommutativeElement(NormalizedClonableList):
     # generate all FC elements in a Coxeter group by induction on length.
     def still_reduced_fc_after_prepending(self, s):
         r"""
-        Determine if ``self`` prepended with ``s`` is still a reduced word of an
-        FC element in the Coxeter system.
+        Determine if ``self`` prepended with ``s`` is still a reduced word of
+        an FC element in the Coxeter system.
 
         INPUT:
 
         - ``s`` -- integer representing a generator of the Coxeter system.
         - ``self`` -- a reduced word of an FC element
-
 
         EXAMPLES:
 
@@ -651,8 +672,8 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         Star operations were first defined on elements of Coxeter groups by
         Kazhdan and Lusztig in [KL1979]_ with respect to pair of generators
-        `s,t` such that `m(s,t)=3`. Later, Lusztig generalized the definition in
-        [Lus1985]_, via coset decompositions, to allow star operations with
+        `s,t` such that `m(s,t)=3`. Later, Lusztig generalized the definition
+        in [Lus1985]_, via coset decompositions, to allow star operations with
         respect to any pair of generators `s,t` such that `m(s,t)\ge 3`. Given
         such a pair, we can potentially perform four types of star operations
         corresponding to all combinations of a 'direction' and a 'side': upper
@@ -661,16 +682,16 @@ class FullyCommutativeElement(NormalizedClonableList):
         Let `w` be an element in `W` and let `J` be any pair `\{s, t\}` of
         noncommuting generators in `S`. Consider the coset decomposition `w =
         w_J \cdot {}^J w` of `w` relative to `J`. Then an upper left star
-        operation is defined on `w` if and only if  `1 \le l(w_J) \le m(s,t)-2`;
-        when this is the case, the operation returns `x\cdot w_J\cdot w^J` where
-        `x` is the letter `J` different from the leftmost letter of `w_J`. A
-        lower left star operation is defined on `w` if and only if `2 \le l(w_J)
-        \le m(s,t)-1`; when this is the case, the operation removes the leftmost
-        letter of `w_J` from `w`.  Similar facts hold for right star operations.
-        See [Gre2006]_.
+        operation is defined on `w` if and only if  `1 \le l(w_J) \le
+        m(s,t)-2`; when this is the case, the operation returns `x\cdot
+        w_J\cdot w^J` where `x` is the letter `J` different from the leftmost
+        letter of `w_J`. A lower left star operation is defined on `w` if and
+        only if `2 \le l(w_J) \le m(s,t)-1`; when this is the case, the
+        operation removes the leftmost letter of `w_J` from `w`.  Similar facts
+        hold for right star operations.  See [Gre2006]_.
 
         The facts of the previous paragraph hold in general, even if `w` is not
-        FC.  Note that if `f` is a star operation of any kind, then for every
+        FC. Note that if `f` is a star operation of any kind, then for every
         element `w \in W`, the elements `w` and `f(w)` are either both FC or
         both not FC.
 
@@ -704,7 +725,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: w.coset_decomposition({5, 6})
             ([6, 5, 6], [1, 2, 4, 5])
 
-        Only the lower star operation is defined on the left for this example ::
+        Only the lower star operation is defined on the left on `w` :: 
 
             sage: w.star_operation({5,6}, 'upper')
             <BLANKLINE>
@@ -777,10 +798,23 @@ class FullyCommutativeElements(Parent):
     OUTPUT:
 
     The class of fully commutative elements in the Coxeter group constructed
-    from ``data``. This will belong to either the category of infinite
-    enumerated sets or finite enumerated sets depending on if the group is
-    FC-finite.
+    from ``data``. This will belong to the category of enumerated sets. If the
+    Coxeter data corresponds to a Cartan type, the category is further refined
+    to either finite enumerated sets or infinite enumerated sets depending on i
+    whether the Coxeter group is FC-finite; the refinement is not carried out
+    if ``data`` is a Coxeter matrix not corresponding to a Cartan type.
+    
+    .. NOTE::
 
+        It would be ideal to implement the aforementioned refinement to finite
+        and infinite enumerated sets for all possible ``data``, regardless of
+        whether it corresponds to a Cartan type. Doing so requires determining
+        if an arbitrary Coxeter matrix corresponds to a Cartan type. It may be
+        best to address this issue in `sage.combinat.root_system`. On the other
+        hand, the refinement in the general case may be unnecessary in light of
+        the fact that Stembridge's classification of FC-finite groups contains
+        a very small number of easily-recognizable families.
+        
     EXAMPLES:
 
     Enumerate the FC elements in `A_3` in their Cartier--Foata forms ::
@@ -807,11 +841,11 @@ class FullyCommutativeElements(Parent):
     Count the FC elements in `B_8` ::
 
         sage: FCB8 = FullyCommutativeElements(['B', 8])
-        sage: len(FCB8) # long time (7 seconds)
+        sage: len(FCB8)    # long time (7 seconds)
         14299
 
-    Iterate through the FC elements of length up to 2 in the non-FC-finite group
-    affine `A_2` ::
+    Iterate through the FC elements of length up to 2 in the non-FC-finite
+    group affine `A_2` ::
 
         sage: FCAffineA2 = FullyCommutativeElements(['A', 2, 1])
         sage: FCAffineA2.category()
@@ -824,7 +858,8 @@ class FullyCommutativeElements(Parent):
         sage: FCA3([1,2,1])
         Traceback (most recent call last):
         ...
-        ValueError: The input is not a reduced word of a fully commutative element.
+        ValueError: The input is not a reduced word of a fully commutative
+        element.
 
     Elements are normalized to Cartier--Foata normal form upon construction ::
 
@@ -845,27 +880,27 @@ class FullyCommutativeElements(Parent):
 
         self._index_set = sorted(self._matrix.index_set())
 
+        # Start with the category of enumerated sets and refine it to finite or
+        # infinite enumerated sets for Coxeter groups of Cartan types.
+        category = EnumeratedSets() 
 
-        # Start with the category of enumerated sets and see if we can refine it
-        # to finite or infinite by detecting if the group is FC-finite.
-        category = EnumeratedSets()
+        # Finite groups will be FC-finite.
         if self._matrix.is_finite():
-            # Finite groups will be FC-finite.
-            category = category.Finite()
-        else:
+            category = category.Finite() 
+        else: 
             try:
-                # The only infinite Cartan types that are FC-finite are those
-                # affine types which correspond to F_5 and E_9 in Stembridge's
-                # notation, that is affine F4 and affine E8.
-                cartan_type = self._matrix.coxeter_type().cartan_type()
-                family, rank, affine = cartan_type.type(), cartan_type.rank(), cartan_type.is_affine()
-                if affine:
-                    category = category.Finite() if (family == 'F' and rank == 4) or (family == 'E' and rank == 8) else category.Infinite()
-                else:
-                    category = category.Infinite()
+                cartan_type = self._matrix.coxeter_type().cartan_type() family,
+                rank, affine = cartan_type.type(), cartan_type.rank(),
+                cartan_type.is_affine() 
+                # The only groups of Cartan types that are infinite but
+                # FC-finite are affine `F_4` and affine `E_8`, which appear as
+                # `F_5` and `E_9` in [Ste1996]_.
+                if affine: 
+                    category = category.Finite() if (family == 'F' and rank == 4) or (family == 'E' and rank == 8) else category.Infinite() 
+                else: 
+                    category = category.Infinite() 
             except:
-                # Cannot recognize the matrix as a Cartan type, just stay with
-                # plain enumerated sets.
+                # no refinement for groups not corresponding to a Cartan type:
                 pass
 
         Parent.__init__(self, category=category)
@@ -900,11 +935,10 @@ class FullyCommutativeElements(Parent):
 
     def index_set(self):
         r"""
-        Obtain the set of the generators / simple reflections of the associated
+        Obtain the set of the generators/simple reflections of the associated
         Coxeter system.
 
         OUTPUT: iterable of integers
-
 
         EXAMPLES::
 
@@ -928,13 +962,10 @@ class FullyCommutativeElements(Parent):
         empty_word = self.element_class(self, [], check=False)
         letters = self.index_set()
 
-        # In the following, we use a dictionary's keys as a replacement for a
-        # set. Dictinary keys are guaranteed to be ordered in Python 3.7+, so
-        # this is an easy way to make this iterator deterministic.
-
+        # To make the iterator deterministic, use a dictionary rather than a
+        # set, for the keys are then ordered by default by Python 3.7+:
         recent_words = {empty_word: True}
         yield empty_word
-
         length = 1
         while True:
             new_words = {}

@@ -18,6 +18,8 @@ from sage.structure.richcmp import richcmp
 from sage.categories.all import CoxeterGroups
 from sage.structure.parent import Parent
 
+from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
+
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -218,7 +220,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             [2 3 1]
 
         """
-        return self._coxgroup.coxeter_matrix()
+        return CoxeterMatrix(self._coxgroup.coxeter_matrix(), self.index_set())
 
     def root_system(self):
         """

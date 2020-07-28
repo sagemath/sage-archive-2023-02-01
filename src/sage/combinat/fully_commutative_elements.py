@@ -84,7 +84,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         To construct an FC element, first call the parent class
         FullyCommutativeElements. The parent class contains information about
-        the Coxeter matrix of the ambient Coxeter system ::
+        the Coxeter matrix of the ambient Coxeter system::
 
             sage: FC = FullyCommutativeElements(['B', 3])
             sage: FC.coxeter_matrix()
@@ -92,7 +92,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             [3 1 4]
             [2 4 1]
 
-        We can construct FC elements as follows ::
+        We can construct FC elements as follows::
 
             sage: FC([])
             []
@@ -104,7 +104,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             [3, 2, 3]
 
         The output is the normalized form of ``self``, which may be a different
-        reduced word of the element represented by the input ::
+        reduced word of the element represented by the input::
 
             sage: FC([3,1])
             [1, 3]
@@ -114,7 +114,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             True
 
         If the input is not the reduced word of an FC element, return a
-        ValueEror ::
+        ValueEror::
 
             sage: FC([1,2,1])
             Traceback (most recent call last):
@@ -180,7 +180,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         EXAMPLES:
 
-        The following reduced words express the same FC elements in `B_5` ::
+        The following reduced words express the same FC elements in `B_5`::
 
             sage: FC = FullyCommutativeElements(['B', 5])
             sage: FC([1, 4, 3, 5, 2, 4, 3])
@@ -572,7 +572,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         EXAMPLES:
 
-        Consider the FC element `w = 12` in the group `B_3` ::
+        Consider the FC element `w = 12` in the group `B_3`::
 
             sage: FCB3 = FullyCommutativeElements(['B', 3])
             sage: FCB3.coxeter_matrix()
@@ -581,23 +581,23 @@ class FullyCommutativeElement(NormalizedClonableList):
             [2 4 1]
             sage: w = FCB3([1,2])
 
-        When `s=1`, `sw` is 112, which is not reduced ::
+        When `s=1`, `sw` is 112, which is not reduced::
 
             sage: w.still_reduced_fc_after_prepending(1)
             False
 
 
-        When `s=2`, `sw` is 212, which is reduced but not FC ::
+        When `s=2`, `sw` is 212, which is reduced but not FC::
 
             sage: w.still_reduced_fc_after_prepending(2)
             False
 
-        When `s=31, `sw` is 312, which is reduced and FC ::
+        When `s=31, `sw` is 312, which is reduced and FC::
 
             sage: w.still_reduced_fc_after_prepending(3)
             True
 
-        More examples ::
+        More examples::
 
             sage: u = FCB3([3,1,2])
             sage: u.still_reduced_fc_after_prepending(1)
@@ -719,18 +719,18 @@ class FullyCommutativeElement(NormalizedClonableList):
         EXAMPLES:
 
         We will compute all star operations on the following FC element in type
-        `B_6` relative to `J = \{5, 6\}` ::
+        `B_6` relative to `J = \{5, 6\}`::
 
             sage: FC = FullyCommutativeElements(['B', 6])
             sage: w = FC([1, 6, 2, 5, 4, 6, 5])
 
         Whether and how a left star operations can be applied depend on the
-        coset decomposition `w = w_J \cdot w^J` ::
+        coset decomposition `w = w_J \cdot w^J`::
 
             sage: w.coset_decomposition({5, 6})
             ([6, 5, 6], [1, 2, 4, 5])
 
-        Only the lower star operation is defined on the left on `w` :: 
+        Only the lower star operation is defined on the left on `w`:: 
 
             sage: w.star_operation({5,6}, 'upper')
             <BLANKLINE>
@@ -738,12 +738,12 @@ class FullyCommutativeElement(NormalizedClonableList):
             [1, 5, 2, 4, 6, 5]
 
         Whether and how a right star operations can be applied depend on the
-        coset decomposition `w = w^J \cdot w_J` ::
+        coset decomposition `w = w^J \cdot w_J`::
 
             sage: w.coset_decomposition({5, 6}, side='right')
             ([1, 6, 2, 5, 4], [6, 5])
 
-        Both types of right star operations on defined for this example ::
+        Both types of right star operations on defined for this example::
 
             sage: w.star_operation({5, 6}, 'upper', side='right')
             [1, 6, 2, 5, 4, 6, 5, 6]
@@ -821,7 +821,7 @@ class FullyCommutativeElements(Parent):
 
     EXAMPLES:
 
-    Enumerate the FC elements in `A_3` in their Cartier--Foata forms ::
+    Enumerate the FC elements in `A_3` in their Cartier--Foata forms::
 
         sage: FCA3 = FullyCommutativeElements(['A', 3])
         sage: FCA3.category()
@@ -842,14 +842,14 @@ class FullyCommutativeElements(Parent):
          [1, 2, 3],
          [2, 1, 3, 2]]
 
-    Count the FC elements in `B_8` ::
+    Count the FC elements in `B_8`::
 
         sage: FCB8 = FullyCommutativeElements(['B', 8])
         sage: len(FCB8)    # long time (7 seconds)
         14299
 
     Iterate through the FC elements of length up to 2 in the non-FC-finite group
-    affine `A_2` ::
+    affine `A_2`::
 
         sage: FCAffineA2 = FullyCommutativeElements(['A', 2, 1])
         sage: FCAffineA2.category()
@@ -857,7 +857,7 @@ class FullyCommutativeElements(Parent):
         sage: list(FCAffineA2.iterate_to_length(2))
         [[], [0], [1], [2], [1, 0], [2, 0], [0, 1], [2, 1], [0, 2], [1, 2]]
 
-    Constructing an element that is not fully commutative throws an error ::
+    Constructing an element that is not fully commutative throws an error::
 
         sage: FCA3([1,2,1])
         Traceback (most recent call last):
@@ -865,7 +865,7 @@ class FullyCommutativeElements(Parent):
         ValueError: The input is not a reduced word of a fully commutative
         element.
 
-    Elements are normalized to Cartier--Foata normal form upon construction ::
+    Elements are normalized to Cartier--Foata normal form upon construction::
 
         sage: FCA3([2, 3, 1, 2])
         [2, 1, 3, 2]
@@ -999,14 +999,14 @@ class FullyCommutativeElements(Parent):
         EXAMPLES:
 
         The following example produces all FC elements of length up to 2 in the
-        group `A_3` ::
+        group `A_3`::
 
             sage: FCA3 = FullyCommutativeElements(['A', 3])
             sage: list(FCA3.iterate_to_length(2))
             [[], [1], [2], [3], [2, 1], [1, 3], [1, 2], [3, 2], [2, 3]]
 
         The lists for length 4 and 5 are the same since 4 is the maximum length
-        of an FC element in `A_3` ::
+        of an FC element in `A_3`::
 
             sage: list(FCA3.iterate_to_length(4))
             [[], [1], [2], [3], [2, 1], [1, 3], [1, 2], [3, 2], [2, 3], [3, 2,
@@ -1018,7 +1018,7 @@ class FullyCommutativeElements(Parent):
             True
 
         The following example produces all FC elements of length up to 4 in the
-        affine Weyl group `\tilde A_2` ::
+        affine Weyl group `\tilde A_2`::
 
             sage: FCAffineA2 = FullyCommutativeElements(['A', 2, 1])
             sage: FCAffineA2.category()

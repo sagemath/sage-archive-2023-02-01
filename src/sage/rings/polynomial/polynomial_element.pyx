@@ -7930,7 +7930,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         # integer
                         c = self.content_ideal().gen()
                         self = self//c
-                    except (AttributeError, NotImplementedError):
+                    except (AttributeError, NotImplementedError, TypeError):
                         pass
                 return self._roots_from_factorization(self.factor(), multiplicities)
             else:

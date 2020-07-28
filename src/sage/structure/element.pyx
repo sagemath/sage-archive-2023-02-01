@@ -1602,15 +1602,15 @@ cdef class Element(SageObject):
             sage: matmul(e, e)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for @: '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for @: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: matmul(1, e)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for @: 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for @: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: matmul(e, 1)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for @: '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for @: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: matmul(int(1), e)
             Traceback (most recent call last):
             ...

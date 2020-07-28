@@ -919,8 +919,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
             [-4, lam - 3, 0, 4*lam, 7*lam + 6, 9*lam + 5, 15*lam + 6, 33*lam + 21]
             sage: for key in sorted(G._conj_prim):
             ....:     print(sorted(G._conj_prim[key]))
-            [[S]]
-            [[U]]
+            [[S], [S]]
+            [[U], [U]]
             [[V(4)]]
             [[V(3)], [V(2)]]
             [[V(1)*V(4)]]
@@ -932,7 +932,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
 
             sage: for key in sorted(G._conj_nonprim):
             ....:     print(sorted(G._conj_nonprim[key]))
-            [[U^(-2)], [U^2], [U^(-2)], [U^2]]
+            [[U^(-2)], [U^(-2)], [U^2], [U^2]]
             [[U^(-1)], [U^(-1)]]
             [[V(3)^2], [V(2)^2]]
 
@@ -1108,7 +1108,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
             [(1, 2, 1, 3), (1, 4)]
 
             sage: R = G.class_representatives(32, primitive=False)
-            sage: R
+            sage: sorted(R)
             [[V(3)^2*V(1)], [V(1)^2*V(3)], [V(2)^2]]
 
             sage: G.element_repr_method("default")

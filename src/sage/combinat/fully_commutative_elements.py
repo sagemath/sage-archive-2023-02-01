@@ -796,10 +796,9 @@ class FullyCommutativeElements(Parent):
 
     INPUT:
 
-    - ``data`` -- Coxeter matrix or data describing the Cartan type; the latter
-      should be formatted in the same way as required by the CoxeterGroup
-      constructor from
-      :func:`sage.combinat.root_system.coxeter_group.CoxeterGroup`.
+    - ``data`` -- CoxeterMatrix, CartanType, or the usual datum that can is
+      taken in the constructors for these classes (see 
+      :func:`sage.combinat.root_system.coxeter_group.CoxeterGroup`)
 
     OUTPUT:
 
@@ -810,13 +809,13 @@ class FullyCommutativeElements(Parent):
     whether the Coxeter group is FC-finite; the refinement is not carried out
     if ``data`` is a Coxeter matrix not corresponding to a Cartan type.
     
-    .. NOTE::
+    .. TODO::
 
         It would be ideal to implement the aforementioned refinement to finite
         and infinite enumerated sets for all possible ``data``, regardless of
         whether it corresponds to a Cartan type. Doing so requires determining
         if an arbitrary Coxeter matrix corresponds to a Cartan type. It may be
-        best to address this issue in `sage.combinat.root_system`. On the other
+        best to address this issue in ``sage.combinat.root_system``. On the other
         hand, the refinement in the general case may be unnecessary in light of
         the fact that Stembridge's classification of FC-finite groups contains
         a very small number of easily-recognizable families.

@@ -3798,6 +3798,9 @@ REFERENCES:
              and Related Topics, Advanced Studies in Pure mathematics 6, 1985, 
              pp. 255-287.
 
+.. [Lus2013] George Lusztig, *Hecke algebras with unequal parameters*,
+             :arxiv:`math/0208154`. 
+
 .. [Lut2005] Frank H. Lutz, "Triangulated Manifolds with Few Vertices:
              Combinatorial Manifolds", preprint (2005),
              :arxiv:`math/0506372`

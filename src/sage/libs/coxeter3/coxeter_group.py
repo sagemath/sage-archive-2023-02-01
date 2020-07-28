@@ -214,10 +214,12 @@ class CoxeterGroup(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: W = CoxeterGroup(['A', 3], implementation='coxeter3')    # optional - coxeter3
-            sage: W.coxeter_matrix()                                       # optional - coxeter3
+            sage: m = W.coxeter_matrix(); m                                # optional - coxeter3
             [1 3 2]
             [3 1 3]
             [2 3 1]
+            sage: m.index_set() == W.index_set()                           # optional - coxeter3
+            True
 
         """
         return CoxeterMatrix(self._coxgroup.coxeter_matrix(), self.index_set())

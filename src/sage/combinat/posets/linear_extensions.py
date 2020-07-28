@@ -6,6 +6,8 @@ This module defines two classes:
 
 - :class:`LinearExtensionOfPoset`
 - :class:`LinearExtensionsOfPoset`
+- :class:`LinearExtensionsOfPosetWithHooks`
+- :class:`LinearExtensionsOfForest`
 
 Classes and methods
 -------------------
@@ -34,6 +36,8 @@ from sage.graphs.digraph import DiGraph
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.structure.list_clone import ClonableArray
+from sage.misc.misc_c import prod
+from sage.functions.other import factorial
 
 
 class LinearExtensionOfPoset(ClonableArray,
@@ -842,3 +846,51 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             return self.element_class(self, lst, check)
 
     Element = LinearExtensionOfPoset
+
+class LinearExtensionsOfPosetWithHooks(LinearExtensionsOfPoset):
+    r"""
+    Linear extensions such that the poset has well-defined
+    hook lengths (i.e., d-complete).
+    """
+    def cardinality(self):
+        r"""
+        Count the number of linear extensions using a hook-length formula.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: P = Posets.YoungDiagramPoset(Partition([3,2]), dual=True)
+            sage: P.linear_extensions().cardinality()
+            5
+        """
+        num_elmts = self._poset.cardinality()
+
+        if num_elmts == 0:
+            return 1
+
+        hooks = self._poset.get_hooks()
+        hook_product = prod(hooks.values())
+        return factorial(num_elmts) // hook_product
+
+class LinearExtensionsOfForest(LinearExtensionsOfPoset):
+    r"""
+    Linear extensions such that the poset is a forest.
+    """
+    def cardinality(self):
+        r"""
+        Use Atkinson's algorithm to compute the number of linear extensions.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.forest import ForestPoset
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: P.linear_extensions().cardinality()
+            4
+
+            sage: Q = Poset({0: [1], 1: [2, 3], 2: [], 3: [], 4: [5, 6], 5: [], 6: []})
+            sage: Q.linear_extensions().cardinality()
+            140
+        """
+        return sum(self.atkinson(self._elements[0]))
+

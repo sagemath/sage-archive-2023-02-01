@@ -119,14 +119,14 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: FC([1,2,1])
             Traceback (most recent call last):
             ...
-            ValueError: The input is not a reduced word of a fully commutative
-            element.
+            ValueError: the input is not a reduced word of a fully commutative
+            element
 
             sage: FC([2,3,2,3])
             Traceback (most recent call last):
             ...
-            ValueError: The input is not a reduced word of a fully commutative
-            element.
+            ValueError: the input is not a reduced word of a fully commutative
+            element
         """
         matrix = self.parent().coxeter_matrix()
         w = tuple(self)
@@ -148,7 +148,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             return word[:i] + (word[i + 1], word[i]) + word[i + 2:]
 
         not_fc = ValueError(
-            'The input is not a reduced word of a fully commutative element.')
+            'the input is not a reduced word of a fully commutative element')
 
         # A word is the reduced word of an FC element iff no sequence of
         # commutation relations on it yields a word with a 'braid' word: 
@@ -862,8 +862,8 @@ class FullyCommutativeElements(Parent):
         sage: FCA3([1,2,1])
         Traceback (most recent call last):
         ...
-        ValueError: The input is not a reduced word of a fully commutative
-        element.
+        ValueError: the input is not a reduced word of a fully commutative
+        element
 
     Elements are normalized to Cartier--Foata normal form upon construction::
 
@@ -879,7 +879,7 @@ class FullyCommutativeElements(Parent):
                 t = CartanType(data)
             except (TypeError, ValueError):
                 raise ValueError(
-                    'Input must be a CoxeterMatrix or data describing a Cartan type.')
+                    'input must be a CoxeterMatrix or data describing a Cartan type')
             self._matrix = t.coxeter_matrix()
 
         self._index_set = sorted(self._matrix.index_set())

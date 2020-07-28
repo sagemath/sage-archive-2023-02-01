@@ -361,15 +361,10 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
             '4th exterior power of the Rank-5 free module M over the Integer Ring'
             sage: M.exterior_power(5)._repr_()
             '5th exterior power of the Rank-5 free module M over the Integer Ring'
-
+            sage: M.exterior_power(21)._repr_()
+            '21st exterior power of the Rank-5 free module M over the Integer Ring'
         """
-        description = "{}".format(self._degree)
-        if self._degree == 2:
-            description += "nd"
-        elif self._degree == 3:
-            description += "rd"
-        else:
-            description += "th"
+        description = "{}".format(self._degree.ordinal_str())
         description += " exterior power of the {}".format(self._fmodule)
         return description
 
@@ -823,17 +818,13 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
             '4th exterior power of the dual of the Rank-5 free module M over the Integer Ring'
             sage: M.dual_exterior_power(5)._repr_()
             '5th exterior power of the dual of the Rank-5 free module M over the Integer Ring'
+            sage: M.dual_exterior_power(21)._repr_()
+            '21st exterior power of the dual of the Rank-5 free module M over the Integer Ring'
 
         """
         if self._degree == 1:
             return "Dual of the {}".format(self._fmodule)
-        description = "{}".format(self._degree)
-        if self._degree == 2:
-            description += "nd"
-        elif self._degree == 3:
-            description += "rd"
-        else:
-            description += "th"
+        description = "{}".format(self._degree.ordinal_str())
         description += " exterior power of the dual of the {}".format(
                                                                  self._fmodule)
         return description

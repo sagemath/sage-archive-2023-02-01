@@ -2126,12 +2126,12 @@ class DiGraph(GenericGraph):
 
           - ``'Floyd-Warshall-Cython'`` - a Cython implementation of the
             Floyd-Warshall algorithm. Works only if ``by_weight==False`` and
-            ``v is None``.
+            ``v is None`` or ``v`` should contain all vertices of ``self``.
 
           - ``'Floyd-Warshall-Python'`` - a Python implementation of the
             Floyd-Warshall algorithm. Works also with weighted graphs, even with
             negative weights (but no negative cycle is allowed). However, ``v``
-            must be ``None``.
+            must be ``None`` or ``v`` should contain all vertices of ``self``.
 
           - ``'Dijkstra_NetworkX'`` - the Dijkstra algorithm, implemented in
             NetworkX. It works with weighted graphs, but no negative weight is
@@ -2142,7 +2142,8 @@ class DiGraph(GenericGraph):
 
           - ``'Johnson_Boost'`` - the Johnson algorithm, implemented in
             Boost (works also with negative weights, if there is no negative
-            cycle).
+            cycle). Works only if ``v is None`` or ``v`` should contain all
+            vertices of ``self``.
 
           - ``'From_Dictionary'`` - uses the (already computed) distances, that
             are provided by input variable ``dist_dict``.
@@ -2155,8 +2156,8 @@ class DiGraph(GenericGraph):
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -2242,7 +2243,7 @@ class DiGraph(GenericGraph):
             by_weight = True
         elif by_weight:
             def weight_function(e):
-                return e[2]
+                return 1 if e[2] is None else e[2]
 
         if algorithm is None:
             if dist_dict is not None:
@@ -2261,7 +2262,13 @@ class DiGraph(GenericGraph):
             if algorithm is None:
                 algorithm = 'Dijkstra_Boost'
 
-        if v is None:
+        if v is not None and not isinstance(v, list):
+            v = [v]
+
+        if v is None or all(u in v for u in self):
+            if v is None:
+                v = list(self)
+
             # If we want to use BFS, we use the Cython routine
             if algorithm == 'BFS':
                 if by_weight:
@@ -2269,8 +2276,7 @@ class DiGraph(GenericGraph):
                 from sage.graphs.distances_all_pairs import eccentricity
                 algo = 'standard'
                 if with_labels:
-                    vertex_list = list(self)
-                    return dict(zip(vertex_list, eccentricity(self, algorithm=algo, vertex_list=vertex_list)))
+                    return dict(zip(v, eccentricity(self, algorithm=algo, vertex_list=v)))
                 else:
                     return eccentricity(self, algorithm=algo)
 
@@ -2280,14 +2286,10 @@ class DiGraph(GenericGraph):
                                                          check_weight)[0]
                 algorithm = 'From_Dictionary'
 
-            v = self.vertices()
-
         elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
             raise ValueError("algorithm '" + algorithm + "' works only if all" +
                              " eccentricities are needed")
 
-        if not isinstance(v, list):
-            v = [v]
         ecc = {}
 
         from sage.rings.infinity import Infinity
@@ -2339,8 +2341,8 @@ class DiGraph(GenericGraph):
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -2374,7 +2376,14 @@ class DiGraph(GenericGraph):
         if not self.order():
             raise ValueError("radius is not defined for the empty DiGraph")
 
-        return min(self.eccentricity(v=list(self), by_weight=by_weight,
+        if weight_function is not None:
+                by_weight = True
+
+        if by_weight and not weight_function:
+            def weight_function(e):
+                return 1 if e[2] is None else e[2]
+
+        return min(self.eccentricity(v=None, by_weight=by_weight,
                                      weight_function=weight_function,
                                      check_weight=check_weight,
                                      algorithm=algorithm))
@@ -2400,42 +2409,53 @@ class DiGraph(GenericGraph):
           algorithms:
 
           - ``'BFS'``: the computation is done through a BFS centered on each
-            vertex successively. Works only if ``by_weight==False``.
+            vertex successively. Works only if ``by_weight==False``. It computes
+            all the eccentricities and return the maximum value.
 
           - ``'Floyd-Warshall-Cython'``: a Cython implementation of the
-            Floyd-Warshall algorithm. Works only if ``by_weight==False`` and ``v
-            is None``.
+            Floyd-Warshall algorithm. Works only if ``by_weight==False``. It
+            computes all the eccentricities and return the maximum value.
 
           - ``'Floyd-Warshall-Python'``: a Python implementation of the
             Floyd-Warshall algorithm. Works also with weighted graphs, even with
-            negative weights (but no negative cycle is allowed). However, ``v``
-            must be ``None``.
+            negative weights (but no negative cycle is allowed). It computes all
+            the eccentricities and return the maximum value.
 
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX. It works with weighted graphs, but no negative weight is
-            allowed.
+            allowed. It computes all the eccentricities and return the maximum
+            value.
 
-          - ``'standard'``, ``'2Dsweep'``, ``'DiFUB'``: these algorithms are
-            implemented in :func:`sage.graphs.distances_all_pairs.diameter`.
-            They work only if ``by_weight==False``. See the function
-            documentation for more information.
+          - ``'DiFUB'``, ``'2Dsweep'``: these algorithms are
+            implemented in :func:`sage.graphs.distances_all_pairs.diameter` and
+            :func:`sage.graphs.base.boost_graph.diameter`. ``'2Dsweep'`` returns
+            lower bound on the diameter, while ``'DiFUB'`` returns the exact
+            computed diameter. They also work with negative weight, if there is
+            no negative cycle. See the functions documentation for more
+            information.
+
+          - ``'standard'`` : the standard algorithm is implemented in
+            :func:`sage.graphs.distances_all_pairs.diameter`. It works only
+            if ``by_weight==False``. See the function documentation for more
+            information. It computes all the eccentricities and return the
+            maximum value.
 
           - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
-            (works only with positive weights).
+            (works only with positive weights). It computes all the
+            eccentricities and return the maximum value.
 
           - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
             Boost (works also with negative weights, if there is no negative
-            cycle).
+            cycle). It computes all the eccentricities and return the maximum
+            value.
 
-          - ``None`` (default): Sage chooses the best algorithm: ``'iFUB'`` for
-            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are positive,
-            ``'Johnson_Boost'`` otherwise.
+          - ``None`` (default): Sage chooses the best algorithm: ``'DiFUB'``.
 
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -2451,19 +2471,27 @@ class DiGraph(GenericGraph):
 
         TESTS::
 
+            sage: G = graphs.RandomGNP(40, 0.4).to_directed()
+            sage: d1 = G.diameter(algorithm='DiFUB', by_weight=True)
+            sage: d2 = max(G.eccentricity(algorithm='Dijkstra_Boost', by_weight=True))
+            sage: d1 == d2
+            True
             sage: G = digraphs.Path(5)
             sage: G.diameter(algorithm = 'DiFUB')
             +Infinity
+            sage: G = DiGraph([(1,2,4), (2,1,7)])
+            sage: G.diameter(algorithm='2Dsweep', by_weight=True)
+            7.0
+            sage: G.delete_edge(2,1,7); G.add_edge(2,1,-5);
+            sage: G.diameter(algorithm='2Dsweep', by_weight=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: the graph contains a negative cycle
             sage: G = DiGraph()
             sage: G.diameter()
             Traceback (most recent call last):
             ...
             ValueError: diameter is not defined for the empty DiGraph
-            sage: g = DiGraph([(1, 2, {'weight': 1})])
-            sage: g.diameter(algorithm='2Dsweep', weight_function=lambda e: e[2]['weight'])
-            Traceback (most recent call last):
-            ...
-            ValueError: algorithm '2Dsweep' does not work on weighted DiGraphs
         """
         if not self.order():
             raise ValueError("diameter is not defined for the empty DiGraph")
@@ -2471,19 +2499,33 @@ class DiGraph(GenericGraph):
         if weight_function is not None:
             by_weight = True
 
-        if algorithm is None and not by_weight:
+        if by_weight and not weight_function:
+            def weight_function(e):
+                return 1 if e[2] is None else e[2]
+
+        if algorithm is None:
             algorithm = 'DiFUB'
         elif algorithm == 'BFS':
             algorithm = 'standard'
 
-        if algorithm in ['standard', '2Dsweep', 'DiFUB']:
+        if algorithm in ['2Dsweep', 'DiFUB']:
+            if not by_weight:
+                from sage.graphs.distances_all_pairs import diameter
+                return diameter(self, algorithm=algorithm)
+            else:
+                from sage.graphs.base.boost_graph import diameter
+                return diameter(self, algorithm=algorithm,
+                                weight_function=weight_function,
+                                check_weight=check_weight)
+
+        if algorithm == 'standard':
             if by_weight:
                 raise ValueError("algorithm '" + algorithm + "' does not work" +
                                  " on weighted DiGraphs")
             from sage.graphs.distances_all_pairs import diameter
             return diameter(self, algorithm=algorithm)
 
-        return max(self.eccentricity(v=list(self), by_weight=by_weight,
+        return max(self.eccentricity(v=None, by_weight=by_weight,
                                      weight_function=weight_function,
                                      check_weight=check_weight,
                                      algorithm=algorithm))

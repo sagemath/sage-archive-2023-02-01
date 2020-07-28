@@ -186,7 +186,7 @@ class SagePtyProcess(PtyProcess):
             sage: s = SageSpawn("sleep 1000")
             sage: s.close()
             sage: while s.isalive():  # long time (5 seconds)
-            ....:     sleep(0.1)
+            ....:     sleep(float(0.1))
         """
         if not self.closed:
             if self.quit_string is not None:
@@ -231,7 +231,7 @@ class SagePtyProcess(PtyProcess):
             ....:     try:
             ....:         os.kill(s.pid, 0)
             ....:     except OSError:
-            ....:         sleep(0.1)
+            ....:         sleep(float(0.1))
             ....:     else:
             ....:         break  # process got killed
         """

@@ -2360,7 +2360,7 @@ class DocTestWorker(multiprocessing.Process):
             True
             sage: W.killed
             True
-            sage: time.sleep(0.2)  # Worker doesn't die
+            sage: time.sleep(float(0.2))  # Worker doesn't die
             sage: W.kill()         # Worker dies now
             True
             sage: time.sleep(1)

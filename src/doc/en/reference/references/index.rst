@@ -625,6 +625,9 @@ REFERENCES:
             constant contains a tree with a positive Cheeger constant*,
             Geometric and Functional Analysis 7 (1997), no. 3, 403-419.
 
+.. [Ben2019] Benedetto, Robert L. Dynamics in one non-archimedean variable.
+             Graduate Studies in Mathematics, Volume 198. 2019.
+
 .. [Benasque2009] Fernando Rodriguez Villegas, *The L-function of the quintic*,
    http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
 
@@ -1011,6 +1014,10 @@ REFERENCES:
 .. [BPU2016] Alex Biryukov, Léo Perrin, Aleksei Udovenko,
              *Reverse-Engineering the S-Box of Streebog, Kuznyechik and STRIBOBr1*; in
              EuroCrypt'16, pp. 372-402.
+
+.. [BR2010] Matthew Baker and Robert Rumely. Potential theory and dynamics on the
+            Berkovich projective line. Mathematical Surveys and Monographs,
+            Volumne 159. 2010.
 
 .. [Brandes01] Ulrik Brandes,
                A faster algorithm for betweenness centrality,

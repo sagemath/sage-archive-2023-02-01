@@ -293,6 +293,12 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: FC = FullyCommutativeElements(['B', 5])
             sage: FC([3,2,4,3,1]).plot_heap()
             Graphics object consisting of 15 graphics primitives
+
+        .. PLOT::
+
+            FC = FullyCommutativeElements(['B', 5])
+            g = FC([3,2,4,3,1]).plot_heap()
+            sphinx_plot(g)
         """
         import sage.plot.all as plot
 

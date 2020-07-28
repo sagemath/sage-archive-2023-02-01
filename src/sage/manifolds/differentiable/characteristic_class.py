@@ -657,7 +657,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
           by an instance of
           :class:`~sage.combinat.sf.elementary.SymmetricFunctionAlgebra_elementary`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Consider the multiplicative sequence of the `\hat{A}` class::
 
@@ -680,7 +680,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
             sage: poly
             7/5760*e1^2 + (-1/24)*e1 + (-1/1440)*e2 + 1
 
-        ..SEEALSO::
+        .. SEEALSO::
 
             See :class:`~sage.combinat.sf.elementary.SymmetricFunctionAlgebra_elementary`
             for detailed information about elementary symmetric functions.

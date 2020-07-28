@@ -260,6 +260,12 @@ cdef class CoxGroup(SageObject):
 
         type, rank = self.cartan_type.type(), self.cartan_type.rank()
         if self.cartan_type.is_affine():
+            # Only untwisted affine groups are supported
+            try:
+                if not self.cartan_type.is_untwisted_affine():
+                    raise NotImplementedError('Twisted affine groups are not supported in coxeter3.')
+            except:
+                pass
             type = type.lower()
 
         type = 'B' if type == 'C' else type

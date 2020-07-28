@@ -438,6 +438,9 @@ class BundleConnection(SageObject):
         consisting of one forms is called *connection matrix of* `\nabla` *with
         respect to* `e`.
 
+        If the connection coefficients are not known already, they are computed
+        from the above formula.
+
         INPUT:
 
         - ``frame`` -- (default: ``None``) local frame relative to which the
@@ -498,6 +501,10 @@ class BundleConnection(SageObject):
         r"""
         Return the connection 1-form corresponding to the given index and
         local frame.
+
+        .. SEEALSO::
+
+            Consult :meth:`connection_forms` for detailed information.
 
         INPUT:
 

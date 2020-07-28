@@ -889,9 +889,8 @@ class FullyCommutativeElements(Parent):
             category = category.Finite() 
         else: 
             try:
-                cartan_type = self._matrix.coxeter_type().cartan_type() family,
-                rank, affine = cartan_type.type(), cartan_type.rank(),
-                cartan_type.is_affine() 
+                cartan_type = self._matrix.coxeter_type().cartan_type()
+                family, rank, affine = cartan_type.type(), cartan_type.rank(), cartan_type.is_affine() 
                 # The only groups of Cartan types that are infinite but
                 # FC-finite are affine `F_4` and affine `E_8`, which appear as
                 # `F_5` and `E_9` in [Ste1996]_.

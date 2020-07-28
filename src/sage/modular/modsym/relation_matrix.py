@@ -561,7 +561,7 @@ def sparse_2term_quotient(rels, n, F):
     ZERO = F.zero()
     coef = [ONE for i in range(n)]
     related_to_me = [[] for i in range(n)]
-    for v0, v1 in rels:
+    for v0, v1 in sorted(rels):
         c0 = coef[v0[0]] * F(v0[1])
         c1 = coef[v1[0]] * F(v1[1])
 

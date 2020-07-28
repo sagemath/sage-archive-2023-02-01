@@ -540,6 +540,14 @@ class Modules(Category_module):
                 """
                 Implement the fact that a (finite) tensor product of
                 finite dimensional modules is a finite dimensional module.
+
+                EXAMPLES::
+
+                    sage: Modules(ZZ).FiniteDimensional().TensorProducts().extra_super_categories()
+                    [Category of finite dimensional modules over Integer Ring]
+                    sage: Modules(QQ).FiniteDimensional().TensorProducts().extra_super_categories()
+                    FIXME
+
                 """
                 return [self.base_category()]
 

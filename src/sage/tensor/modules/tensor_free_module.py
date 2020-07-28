@@ -125,7 +125,7 @@ class TensorFreeModule(FiniteRankFreeModule):
     ``T`` is a module (actually a free module) over `\ZZ`::
 
         sage: T.category()
-        Category of finite dimensional modules over Integer Ring
+        Category of tensor products of finite dimensional modules over Integer Ring
         sage: T in Modules(ZZ)
         True
         sage: T.rank()

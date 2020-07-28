@@ -534,6 +534,15 @@ class Modules(Category_module):
             else:
                 return []
 
+        class TensorProducts(TensorProductsCategory):
+
+            def extra_super_categories(self):
+                """
+                Implement the fact that a (finite) tensor product of
+                finite dimensional modules is a finite dimensional module.
+                """
+                return [self.base_category()]
+
     class FinitelyPresented(CategoryWithAxiom_over_base_ring):
 
         def extra_super_categories(self):

@@ -665,9 +665,9 @@ class TransitionMap(SageObject):
             sage: phi_U_to_phi_V = phi_U.transition_map(phi_V, [[0,1],[1,0]])
             sage: matrix = phi_U_to_phi_V.matrix(); matrix
             [Scalar field zero on the Open subset W of the 2-dimensional
-             topological manifold S^2      Scalar field on the Open subset W of
-             the 2-dimensional topological manifold S^2]
-             [     Scalar field on the Open subset W of the 2-dimensional
+             topological manifold S^2      Scalar field 1 on the Open subset
+             W of the 2-dimensional topological manifold S^2]
+             [     Scalar field 1 on the Open subset W of the 2-dimensional
              topological manifold S^2 Scalar field zero on the Open subset W of
              the 2-dimensional topological manifold S^2]
 
@@ -678,11 +678,11 @@ class TransitionMap(SageObject):
                 (x, y) |--> 0
                 (u, v) |--> 0
             sage: matrix[0,1].display()
-            W --> R
+            1: W --> R
              (x, y) |--> 1
              (u, v) |--> 1
             sage: matrix[1,0].display()
-            W --> R
+            1: W --> R
              (x, y) |--> 1
              (u, v) |--> 1
             sage: matrix[1,1].display()

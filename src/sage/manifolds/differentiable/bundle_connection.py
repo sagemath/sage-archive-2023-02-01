@@ -617,7 +617,7 @@ class BundleConnection(SageObject):
             msg = "the input 'form' is outdated and will be removed in a "
             msg += "future version of Sage"
             deprecation(30208, msg)
-            self._connection_forms[frame][(i, j)] = form.copy()
+            self._connection_forms[frame][(i, j)].copy_from(form)
         return self._connection_forms[frame][(i, j)]
 
     def set_connection_form(self, i, j, form=None, frame=None):
@@ -694,7 +694,7 @@ class BundleConnection(SageObject):
             msg = "the input 'form' is outdated and will be removed in a "
             msg += "future version of Sage"
             deprecation(30208, msg)
-        omega = self.add_connection_form(i, j, form=None, frame=frame)
+        omega = self.add_connection_form(i, j, form=form, frame=frame)
         self.del_other_forms(frame)
         return omega
 

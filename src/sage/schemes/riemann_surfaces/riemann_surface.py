@@ -1504,7 +1504,7 @@ class RiemannSurface(object):
             2
 
         """
-        cycles = sorted(self.homology_basis())
+        cycles = self.homology_basis()
         def normalize_pairs(L):
             r"""
             Returns a list of edges encoded by the path in L.

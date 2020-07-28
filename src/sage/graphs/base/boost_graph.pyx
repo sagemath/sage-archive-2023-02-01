@@ -997,9 +997,9 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     pred = {}
 
     if weight_function is not None:
-        correct_type = type(weight_function(next(g.edge_iterator())))
+        correct_type = type(weight_function(g.edges()[0])
     elif g.weighted():
-        correct_type = type(next(g.edge_iterator())[2])
+        correct_type = type(next(g.edges()[0][2])
     else:
         correct_type = int
     # Needed for rational curves.
@@ -2197,6 +2197,7 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
         ValueError: the starting vertex 55 is not in the graph
     """
     import sys
+    from sage.rings.infinity import Infinity
     from sage.graphs.generic_graph import GenericGraph
 
     if not isinstance(g, GenericGraph):
@@ -2257,8 +2258,8 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
     if correct_type == RealNumber:
         correct_type = RR
 
-    cdef dict distances = {}
-    cdef dict predecessors = {}
+    cdef list distances = []
+    cdef list predecessors = []
 
     for v in vertex_list:
         vi = v_to_int[v]
@@ -2305,21 +2306,22 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
             else:
                 raise ValueError(f"unknown algorithm {algorithm!r}")
 
-        dist_v = {}
-        pred_v = {}
+        dist_v = []
+        pred_v = []
 
         for vert in range(g.num_verts()):
             if result.distances[vert] != sys.float_info.max:
-                w = int_to_v[vert]
-                dist_v[w] = correct_type(result.distances[vert])
+                dist_v.append(correct_type(result.distances[vert]))
                 pred = result.predecessors[vert]
-                pred_v[w] = int_to_v[pred] if pred != vert else None
+                if pred != vert:
+                    pred_v.append(pred)
+                else:
+                    pred_v.append(None)
+            else:
+                dist_v.append(+Infinity)
+                pred_v.append(None)
 
-        distances[v] = dist_v
-        predecessors[v] = pred_v
-
-    if len(vertex_list) == 1:
-        v = vertex_list[0]
-        return distances[v], predecessors[v]
+        distances.append(dist_v)
+        predecessors.append(pred_v)
 
     return distances, predecessors

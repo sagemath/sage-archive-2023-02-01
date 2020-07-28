@@ -32,7 +32,6 @@ from sage.rings.infinity import infinity
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
-from sage.symbolic.ring import ZZ
 from sage.categories.modules import Modules
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.manifolds.section import Section, TrivialSection
@@ -222,8 +221,12 @@ class SectionModule(UniqueRepresentation, Parent):
             True
 
         """
-        if comp in ZZ and comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, Section):
             if self._domain.is_subset(comp._domain):
                 return comp.restrict(self._domain)
@@ -641,8 +644,12 @@ class SectionFreeModule(FiniteRankFreeModule):
             True
 
         """
-        if comp in ZZ and comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, Section):
             if self._domain.is_subset(comp._domain):
                 return comp.restrict(self._domain)

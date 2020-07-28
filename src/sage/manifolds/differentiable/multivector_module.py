@@ -36,7 +36,6 @@ REFERENCES:
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.symbolic.ring import ZZ
 from sage.categories.modules import Modules
 from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
 from sage.manifolds.differentiable.multivectorfield import (
@@ -301,8 +300,12 @@ class MultivectorModule(UniqueRepresentation, Parent):
             True
 
         """
-        if comp in ZZ and comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, (MultivectorField, MultivectorFieldParal)):
             # coercion by domain restriction
             if (self._degree == comp._tensor_type[0]
@@ -725,8 +728,12 @@ class MultivectorFreeModule(ExtPowerFreeModule):
             True
 
         """
-        if comp in ZZ and comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, (MultivectorField, MultivectorFieldParal)):
             # coercion by domain restriction
             if (self._degree == comp._tensor_type[0]

@@ -225,6 +225,8 @@ from sage.combinat.words.word_options import word_options
 from sage.rings.all import Integer, Infinity, ZZ, QQ
 from sage.sets.set import Set
 
+from sage.misc.superseded import deprecated_function_alias
+
 class FiniteWord_class(Word_class):
     def __str__(self):
         r"""
@@ -567,13 +569,15 @@ class FiniteWord_class(Word_class):
             sage: w.content()
             [0, 1, 0, 1]
         """
+        from collections import Counter
+        c = Counter(self)
         if n is not None:
             alphabet = range(1,n+1)
         elif not self.parent().alphabet().cardinality() == +Infinity:
             alphabet = self.parent().alphabet()
         else:
-            alphabet = sorted(self.letters())
-        return [self.count(i) for i in alphabet]
+            alphabet = sorted(c.keys())
+        return [Integer(c[a]) for a in alphabet]
 
     def is_yamanouchi(self, n=None):
         r"""
@@ -4624,6 +4628,33 @@ class FiniteWord_class(Word_class):
         # return only the number of occurrences of self
         return occ[-1]
 
+    def number_of_occurrences_of_letter(self, letter):
+        r"""
+        Return the number of occurrences of ``letter`` in ``self``.
+
+        INPUT:
+
+        - ``letter`` - a letter
+
+        OUTPUT:
+
+        - integer
+
+        EXAMPLES::
+
+            sage: Word('abbabaab').number_of_occurrences_of_letter('a')
+            4
+            sage: Word('abbabaab').number_of_occurrences_of_letter('ab')
+            0
+
+        .. SEEALSO::
+
+            :meth:`sage.combinat.words.finite_word.FiniteWord_class.nb_factor_occurrences_in`
+
+        """
+        return Integer(sum(1 for a in self if a == letter))
+    count = deprecated_function_alias(30187, number_of_occurrences_of_letter)
+
     def _return_words_list(self, fact):
         r"""
         Return the return words as a list in the order they appear in the word.
@@ -5414,17 +5445,6 @@ class FiniteWord_class(Word_class):
             from sage.combinat.words.morphism import WordMorphism
             f = WordMorphism(f)
             return f(self).reversal().iterated_right_palindromic_closure(f=f)
-
-    def count(self, letter):
-        r"""
-        Count the number of occurrences of ``letter`` in ``self``.
-
-        EXAMPLES::
-
-            sage: Word('abbabaab').count('a')
-            4
-        """
-        return Integer(sum(1 for a in self if a == letter))
 
     def balance(self):
         r"""

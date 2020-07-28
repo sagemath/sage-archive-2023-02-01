@@ -997,9 +997,9 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     pred = {}
 
     if weight_function is not None:
-        correct_type = type(weight_function(g.edges()[0])
+        correct_type = type(weight_function(g.edges()[0]))
     elif g.weighted():
-        correct_type = type(next(g.edges()[0][2])
+        correct_type = type(g.edges()[0][2])
     else:
         correct_type = int
     # Needed for rational curves.

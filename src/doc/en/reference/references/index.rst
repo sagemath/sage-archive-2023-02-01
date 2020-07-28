@@ -209,6 +209,10 @@ REFERENCES:
             Math. Z. 233 (2000), no. 3, 601–623.
             :mathscinet:`MR1750939`
 
+.. [AM2020] \A. L. Agore and G. Militaru.
+            *A new invariant for finite dimensional Leibniz/Lie algebras*.
+            Preprint, :arxiv:`2006.00711` (2020).
+
 .. [AMOZ2006] Asahiro, Y. and Miyano, E. and Ono, H. and Zenmyo, K.,
               *Graph orientation algorithms to minimize the maximum outdegree*.
               Proceedings of the 12th Computing: The Australasian Theory

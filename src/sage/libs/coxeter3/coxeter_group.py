@@ -250,21 +250,6 @@ class CoxeterGroup(UniqueRepresentation, Parent):
         """
         return self.element_class(self, [])
 
-    def m(self, i, j):
-        """
-        Return the entry in the Coxeter matrix between the generator
-        with label ``i`` and the generator with label ``j``.
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup(['A', 3], implementation='coxeter3')   # optional - coxeter3
-            sage: W.m(1,1)                                                # optional - coxeter3
-            1
-            sage: W.m(1,0)                                                # optional - coxeter3
-            2
-        """
-        return self.coxeter_matrix()[i-1,j-1]
-
     def kazhdan_lusztig_polynomial(self, u, v, constant_term_one=True):
         r"""
         Return the Kazhdan-Lusztig polynomial `P_{u,v}`.

@@ -412,6 +412,9 @@ REFERENCES:
 from sage.functions.trig import cos, sin, atan2
 from sage.functions.other import sqrt
 from sage.misc.latex import latex
+from sage.rings.real_mpfr import RR
+from sage.categories.manifolds import Manifolds
+from sage.categories.metric_spaces import MetricSpaces
 from sage.manifolds.differentiable.pseudo_riemannian import \
                                                        PseudoRiemannianManifold
 
@@ -612,10 +615,12 @@ class EuclideanSpace(PseudoRiemannianManifold):
         sage: latex(E)
         \mathbb{E}^{4}
 
-    ``E`` is a real smooth manifold of dimension `4`::
+    ``E`` is both a real smooth manifold of dimension `4` and a complete metric
+    space::
 
         sage: E.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Join of Category of smooth manifolds over Real Field with 53 bits of
+         precision and Category of complete metric spaces
         sage: dim(E)
         4
 
@@ -742,10 +747,8 @@ class EuclideanSpace(PseudoRiemannianManifold):
           an Euclidean space; the created object is then an open subset
           of ``base_manifold``
         - ``category`` -- (default: ``None``) to specify the category;
-          if ``None``, ``Manifolds(RR).Differentiable()`` (or
-          ``Manifolds(RR).Smooth()`` if ``diff_degree`` = ``infinity``)
-          is assumed (see the category
-          :class:`~sage.categories.manifolds.Manifolds`)
+          if ``None``,
+          ``Manifolds(RR).Smooth() & MetricSpaces().Complete()`` is assumed
         - ``init_coord_methods`` -- (default: ``None``) dictionary of
           methods to initialize the various type of coordinates, with each
           key being a string describing the type of coordinates; to be
@@ -772,6 +775,10 @@ class EuclideanSpace(PseudoRiemannianManifold):
             name = 'E^{}'.format(n)
             if latex_name is None:
                 latex_name = r'\mathbb{E}^{' + str(n) + '}'
+        if category is None:
+            category = Manifolds(RR).Smooth() & MetricSpaces().Complete()
+            # NB: RR is a proxy for the field of real numbers, until
+            #     Trac #24456 is ready
         PseudoRiemannianManifold.__init__(self, n, name, metric_name=metric_name,
                                           signature=n, base_manifold=base_manifold,
                                           latex_name=latex_name,
@@ -948,6 +955,39 @@ class EuclideanSpace(PseudoRiemannianManifold):
         # we simply return this frame:
         return self._cartesian_chart.frame()
 
+    def dist(self, p, q):
+        r"""
+        Euclidean distance between two points.
+
+        INPUT:
+
+        - ``p`` -- an element of ``self``
+        - ``q`` -- an element of ``self``
+
+        OUTPUT:
+
+        - the Euclidean distance `d(p, q)`
+
+        EXAMPLES::
+
+            sage: E.<x,y> = EuclideanSpace()
+            sage: p = E((1,0))
+            sage: q = E((0,2))
+            sage: E.dist(p, q)
+            sqrt(5)
+            sage: p.dist(q)  # indirect doctest
+            sqrt(5)
+
+        """
+        chart = self.cartesian_coordinates()
+        coords_p = chart(p)
+        coords_q = chart(q)
+        d2 = 0
+        for xp, xq in zip(coords_p, coords_q):
+            dx = xp - xq
+            d2 += dx*dx
+        return sqrt(d2)
+
 ###############################################################################
 
 class EuclideanPlane(EuclideanSpace):
@@ -998,9 +1038,7 @@ class EuclideanPlane(EuclideanSpace):
     - ``base_manifold`` -- (default: ``None``) if not ``None``, must be an
       Euclidean plane; the created object is then an open subset of ``base_manifold``
     - ``category`` -- (default: ``None``) to specify the category; if ``None``,
-      ``Manifolds(RR).Differentiable()`` (or ``Manifolds(RR).Smooth()``
-      if ``diff_degree`` = ``infinity``) is assumed (see the category
-      :class:`~sage.categories.manifolds.Manifolds`)
+      ``Manifolds(RR).Smooth() & MetricSpaces().Complete()`` is assumed
     - ``names`` -- (default: ``None``) unused argument, except if
       ``symbols`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
@@ -1025,10 +1063,12 @@ class EuclideanPlane(EuclideanSpace):
         sage: E.<x,y> = EuclideanSpace(); E
         Euclidean plane E^2
 
-    ``E`` is a real smooth manifold of dimension 2::
+    ``E`` is both a real smooth manifold of dimension `2` and a complete metric
+    space::
 
         sage: E.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Join of Category of smooth manifolds over Real Field with 53 bits of
+         precision and Category of complete metric spaces
         sage: dim(E)
         2
 
@@ -1518,9 +1558,7 @@ class Euclidean3dimSpace(EuclideanSpace):
       Euclidean 3-space; the created object is then an open subset of
       ``base_manifold``
     - ``category`` -- (default: ``None``) to specify the category; if ``None``,
-      ``Manifolds(RR).Differentiable()`` (or ``Manifolds(RR).Smooth()``
-      if ``diff_degree`` = ``infinity``) is assumed (see the category
-      :class:`~sage.categories.manifolds.Manifolds`)
+      ``Manifolds(RR).Smooth() & MetricSpaces().Complete()`` is assumed
     - ``names`` -- (default: ``None``) unused argument, except if
       ``symbols`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
@@ -1553,10 +1591,12 @@ class Euclidean3dimSpace(EuclideanSpace):
         sage: type(E)
         <class 'sage.manifolds.differentiable.euclidean.Euclidean3dimSpace_with_category'>
 
-    ``E`` is a real smooth manifold of dimension 3::
+    ``E`` is both a real smooth manifold of dimension `3` and a complete metric
+    space::
 
         sage: E.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Join of Category of smooth manifolds over Real Field with 53 bits of
+         precision and Category of complete metric spaces
         sage: dim(E)
         3
 

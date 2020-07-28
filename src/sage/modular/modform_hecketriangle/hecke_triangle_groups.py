@@ -918,23 +918,23 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
             sage: [key for key in sorted(G._conj_prim)]
             [-4, lam - 3, 0, 4*lam, 7*lam + 6, 9*lam + 5, 15*lam + 6, 33*lam + 21]
             sage: for key in sorted(G._conj_prim):
-            ....:     print(G._conj_prim[key])
-            [[S], [S]]
-            [[U], [U]]
+            ....:     print(sorted(G._conj_prim[key]))
+            [[S]]
+            [[U]]
             [[V(4)]]
             [[V(3)], [V(2)]]
             [[V(1)*V(4)]]
             [[V(3)*V(4)], [V(1)*V(2)]]
-            [[V(1)*V(3)], [V(2)*V(4)]]
+            [[V(2)*V(4)], [V(1)*V(3)]]
             [[V(2)*V(3)]]
             sage: [key for key in sorted(G._conj_nonprim)]
             [-lam - 2, lam - 3, 32*lam + 16]
 
             sage: for key in sorted(G._conj_nonprim):
-            ....:     print(G._conj_nonprim[key])
+            ....:     print(sorted(G._conj_nonprim[key]))
             [[U^(-2)], [U^2], [U^(-2)], [U^2]]
             [[U^(-1)], [U^(-1)]]
-            [[V(2)^2], [V(3)^2]]
+            [[V(3)^2], [V(2)^2]]
 
             sage: G.element_repr_method("default")
         """
@@ -1102,9 +1102,9 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
             [(1, 2, 2), (3,)]
 
             sage: R = G.class_representatives(32)
-            sage: R
+            sage: sorted(R)
             [[V(3)^2*V(1)], [V(1)^2*V(3)]]
-            sage: [v.continued_fraction()[1] for v in R]
+            sage: [v.continued_fraction()[1] for v in sorted(R)]
             [(1, 2, 1, 3), (1, 4)]
 
             sage: R = G.class_representatives(32, primitive=False)

@@ -472,16 +472,16 @@ class DynamicalSystem(SchemeMorphism_polynomial,
             [(0 : 1), (1 : 0), (1 : 1)]
             sage: N.<a> = f.field_of_definition_periodic(3); N
             Number Field in a with defining polynomial x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
-            sage: f.periodic_points(3,minimal=False, R=N)
-            [(0 : 1),
-             (a : 1),
-             (a^5 : 1),
-             (a^2 : 1),
-             (-a^5 - a^4 - a^3 - a^2 - a - 1 : 1),
-             (a^4 : 1),
+            sage: sorted(f.periodic_points(3,minimal=False, R=N), key=str)
+            [(-a^5 - a^4 - a^3 - a^2 - a - 1 : 1),
+             (0 : 1),
              (1 : 0),
+             (1 : 1),
+             (a : 1),
+             (a^2 : 1),
              (a^3 : 1),
-             (1 : 1)]
+             (a^4 : 1),
+             (a^5 : 1)]
 
         ::
 

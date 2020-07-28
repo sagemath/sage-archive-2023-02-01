@@ -902,7 +902,7 @@ class FullyCommutativeElements(Parent):
                     category = category.Finite() if (family == 'F' and rank == 4) or (family == 'E' and rank == 8) else category.Infinite() 
                 else: 
                     category = category.Infinite() 
-            except:
+            except AttributeError:
                 # no refinement for groups not corresponding to a Cartan type:
                 pass
 

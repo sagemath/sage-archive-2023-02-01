@@ -246,11 +246,11 @@ cdef class CoxGroup(SageObject):
             ...
             NotImplementedError: Coxeter group of type ['A',0] using Coxeter 3 not yet implemented
 
-        Successfully initializes from a relabeled Cartan type ::
+        Successfully initializes from a relabeled Cartan type::
 
             sage: ctype = CartanType(['B', 3]).relabel({1: 3, 2: 2, 3: 1})
-            sage: W = CoxGroup(ctype)
-            sage: CoxeterMatrix(W.coxeter_matrix(), ctype.index_set()) == CoxeterMatrix(ctype)
+            sage: W = CoxGroup(ctype)                                               # optional - coxeter3
+            sage: CoxeterMatrix(W.coxeter_matrix(), ctype.index_set()) == CoxeterMatrix(ctype) # optional - coxeter3
             True
         """
         from sage.combinat.root_system.cartan_type import CartanType

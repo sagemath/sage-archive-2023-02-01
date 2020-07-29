@@ -2591,6 +2591,35 @@ class DifferentiableManifold(TopologicalManifold):
         vmodule = self.vector_field_module(dest_map)
         return vmodule.identity_map(name=name, latex_name=latex_name)
 
+    def set_orientation(self, orientation):
+        r"""
+        Set the default orientation of ``self``.
+
+        """
+        chart_type = self._structure.chart
+        if isinstance(orientation, chart_type):
+            orientation = orientation.frame()
+        elif isinstance(orientation[0], chart_type):
+            orientation = [c.frame() for c in orientation]
+        tbundle = self.tangent_bundle()
+        tbundle.set_orientation(orientation)
+
+    def orientation(self):
+        r"""
+        Get the orientation of ``self`` if available.
+
+        """
+        tbundle = self.tangent_bundle()
+        return tbundle.orientation()
+
+    def has_orientation(self):
+        r"""
+        Check whether ``self`` admits an obvious or by user set orientation.
+
+        """
+        tbundle = self.tangent_bundle()
+        return tbundle.has_orientation()
+
     def default_frame(self):
         r"""
         Return the default vector frame defined on ``self``.

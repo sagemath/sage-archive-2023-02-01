@@ -246,6 +246,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         self._diff_degree = 0
         self._base_space = base_space
         self._total_space = None
+        self._orientation = None
         ###
         # Set names:
         self._name = name
@@ -1142,6 +1143,52 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
                              "the {}".format(self))
         frame._fmodule.set_default_basis(frame)
         self._def_frame = frame
+
+    def set_orientation(self, orientation):
+        r"""
+        Set the default orientation of ``self``.
+
+        """
+        if isinstance(orientation, (tuple, list)):
+            orientation = list(orientation)
+        else:
+            orientation = [orientation]
+        dom_union = None
+        for frame in orientation:
+            if frame not in self.frames():
+                raise ValueError("{} must be a frame".format(frame) +
+                                 "defined on {}".format(self))
+            dom = frame.domain()
+            if dom_union is not None:
+                dom_union = dom.union(dom_union)
+            else:
+                dom_union = dom
+        base_space = self._base_space
+        if dom_union != base_space:
+            raise ValueError("the frames's domains must "
+                             "cover {}".format(base_space))
+        self._orientation = orientation
+
+    def orientation(self):
+        r"""
+        Get the orientation of ``self`` if available.
+
+        """
+        if not self._orientation:
+            # try to find an obvious orientation:
+            for f in self.frames():
+                if f.domain() == self.base_space():
+                    return f
+        return self._orientation
+
+    def has_orientation(self):
+        r"""
+        Check whether ``self`` admits an obvious or by user set orientation.
+
+        """
+        if self.orientation():
+            return True
+        return False
 
     def irange(self, start=None):
         r"""

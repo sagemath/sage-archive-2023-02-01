@@ -727,6 +727,25 @@ class FusionRing(WeylCharacterRing):
         else:
             return S
         
+    def rmatrix(self,i,j,k):
+        """
+        Returns the value of the R-matrix on the subobject
+        of type `k` in `i\otimes j`. This is mainly of
+        interest if `N_{ij}^k=1`.
+        """
+        if self.Nk_ij(i,j,k) == 0:
+            return 0
+        rho = self.space().rho()
+        v = [self._nf*x.weight().inner_product(x.weight()+rho) for x in [i,j,k]]
+        r = self.root_of_unity((v[0]+v[1]-v[2])/4)
+        print (v,r)
+        if i != j:
+            return r
+        elif k.weight() in i.symmetric_power(2).monomial_coefficients():
+            return r
+        elif k.weight() in i.exterior_power(2).monomial_coefficients():
+            return -r
+
     def global_q_dimension(self):
         r"""
         Return `\sum d_i^2`, where the sum is over all simple objects

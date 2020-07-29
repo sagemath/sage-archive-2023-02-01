@@ -192,7 +192,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             else:
                 self._fg = 1
             if cyclotomic_order is None:
-                self._cyclotomic_order = self._fg * self._l
+                self._cyclotomic_order = 2 * self._fg * self._l
             else:
                 self._cyclotomic_order = cyclotomic_order
 

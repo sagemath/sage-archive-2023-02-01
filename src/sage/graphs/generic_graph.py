@@ -16737,13 +16737,17 @@ class GenericGraph(GenericGraph_pyx):
     def wiener_index(self, by_weight=False, algorithm=None,
                      weight_function=None, check_weight=True):
         r"""
-        Return the Wiener index of the graph.
+        Return the Wiener index of ``self``.
 
         The graph is expected to have no cycles of negative weight.
 
-        The Wiener index of a graph `G` is `W(G) = \frac{1}{2} \sum_{u,v\in G}
-        d(u,v)` where `d(u,v)` denotes the distance between vertices `u` and `v`
-        (see [KRG1996]_).
+        The Wiener index of a undirected graph `G` is `W(G) = \frac{1}{2}
+        \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the distance between
+        vertices `u` and `v` (see [KRG1996]_).
+
+        The Wiener index of a directed graph `G` is defined as the sum of the
+        distances between each pairs of vertices, i.e.,
+        `W(G) = \sum_{u,v\in G} d(u,v)`.
 
         For more information on the input variables and more examples, we refer
         to :meth:`~GenericGraph.shortest_paths` and
@@ -16818,6 +16822,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.wiener_index(algorithm='Dijkstra_NetworkX')
             15
 
+        Wiener index of complete (di)graphs::
+
+            sage: n = 5
+            sage: g = graphs.CompleteGraph(n)
+            sage: g.wiener_index() == (n * (n - 1)) / 2
+            True
+            sage: g = digraphs.Complete(n)
+            sage: g.wiener_index() == n * (n - 1)
+            True
+
         TESTS::
 
             sage: G.wiener_index(algorithm='BFS', weight_function=lambda e:(e[2] if e[2] is not None else 200))
@@ -16852,7 +16866,7 @@ class GenericGraph(GenericGraph_pyx):
         for u in distances.values():
             total += sum(u.values())
 
-        return total // 2
+        return total if self.is_directed() else (total // 2)
 
     def average_distance(self, by_weight=False, algorithm=None,
                          weight_function=None):
@@ -16917,6 +16931,8 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("average distance is not defined for empty or one-element graph")
         WI =  self.wiener_index(by_weight=by_weight, algorithm=algorithm,
                                     weight_function=weight_function)
+        if WI in QQ:
+            return QQ((2 * WI, (self.order() * (self.order() - 1))))
         return 2 * WI / (self.order() * (self.order() - 1))
 
     def szeged_index(self):

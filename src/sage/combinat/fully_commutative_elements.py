@@ -52,6 +52,15 @@ class FullyCommutativeElement(NormalizedClonableList):
         r"""
         Called automatically when an element is created. Alias of
         :func:`is_fully_commutative`
+
+        TESTS::
+
+            sage: FullyCommutativeElements(['A', 3])([1, 2]) # indirect doctest
+            [1, 2]
+            sage: FullyCommutativeElements(['A', 3])([1, 2, 1]) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: the input is not a reduced word of a fully commutative element
         """
         if not self.is_fully_commutative():
             raise ValueError('the input is not a reduced word of a fully commutative element')
@@ -60,6 +69,11 @@ class FullyCommutativeElement(NormalizedClonableList):
         r"""
         Called automatically when an element is created. Alias of
         :func:`cartier_foata_form`
+
+        TESTS::
+
+            sage: FullyCommutativeElements(['A', 3])([3, 1]) # indirect doctest
+            [1, 3]
         """
         return self.cartier_foata_form()
 
@@ -80,6 +94,14 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         :func:`check` is an alias of this method, and is called automatically
         when an element is created.
+        
+        TESTS::
+
+            sage: FC = FullyCommutativeElements(['A', 3]) 
+            sage: x = FC([1, 2]); x.is_fully_commutative()
+            True
+            sage: x = FC.element_class(FC, [1, 2, 1], check=False); x.is_fully_commutative()
+            False
         """
         matrix = self.parent().coxeter_matrix()
         w = tuple(self)
@@ -133,11 +155,11 @@ class FullyCommutativeElement(NormalizedClonableList):
         The following reduced words express the same FC elements in `B_5`::
 
             sage: FC = FullyCommutativeElements(['B', 5])
-            sage: FC([1, 4, 3, 5, 2, 4, 3])
+            sage: FC([1, 4, 3, 5, 2, 4, 3]) # indirect doctest
             [1, 4, 3, 5, 2, 4, 3]
-            sage: FC([4, 1, 3, 5, 2, 4, 3])
+            sage: FC([4, 1, 3, 5, 2, 4, 3]) # indirect doctest
             [1, 4, 3, 5, 2, 4, 3]
-            sage: FC([4, 3, 1, 5, 4, 2, 3])
+            sage: FC([4, 3, 1, 5, 4, 2, 3]) # indirect doctest
             [1, 4, 3, 5, 2, 4, 3]
 
         .. NOTE::
@@ -850,6 +872,16 @@ class FullyCommutativeElements(Parent):
     """
 
     def __init__(self, data):
+        r"""
+        EXAMPLES::
+
+            sage: FullyCommutativeElements(['B', 3])
+            Fully commutative elements in Coxeter system with Cartan type ['B', 3]
+            sage: FullyCommutativeElements(CartanType(['B', 3]))
+            Fully commutative elements in Coxeter system with Cartan type ['B', 3]
+            sage: FullyCommutativeElements(CartanType(['B', 3]).relabel({1: 3, 2: 2, 3: 1}))
+            Fully commutative elements in Coxeter system with Cartan type ['B', 3] relabelled by {1: 3, 2: 2, 3: 1}
+        """
         if isinstance(data, CoxeterMatrix):
             self._matrix = data
         else:
@@ -908,6 +940,13 @@ class FullyCommutativeElements(Parent):
             return 'Fully commutative elements in Coxeter system with Coxeter matrix\n{}'.format(str(self.coxeter_matrix()))
 
     def _element_constructor_(self, lst):
+        r"""
+        TESTS::
+
+            sage: FC = FullyCommutativeElements(['A', 3])
+            sage: FC([1, 2]) # indirect doctest
+            [1, 2]
+        """
         return self.element_class(self, lst)
 
     Element = FullyCommutativeElement
@@ -958,6 +997,12 @@ class FullyCommutativeElements(Parent):
         Enumerate the elements of this set by length, starting with the empty
         word and, if the group is FC-finite, ending with the longest fully
         commutative element.
+
+        TESTS::
+
+            sage: FC = FullyCommutativeElements(['A', 10])
+            sage: next(iter(FC)) # indirect doctest
+            []
         """
         empty_word = self.element_class(self, [], check=False)
         letters = self.index_set()

@@ -1189,15 +1189,17 @@ class DifferentiableManifold(TopologicalManifold):
         if dest_map is None:
             dest_map = self.identity_map()
         if dest_map not in self._tensor_bundles:
-            from sage.manifolds.differentiable.vector_bundle import TensorBundle
-            self._tensor_bundles[dest_map] = {(k, l): TensorBundle(self, k, l,
-                                                             dest_map=dest_map)}
+            from sage.manifolds.differentiable.vector_bundle \
+                                                            import TensorBundle
+            self._tensor_bundles[dest_map] = {(k, l):
+                                              TensorBundle(self, k, l,
+                                                           dest_map=dest_map)}
         else:
             if (k, l) not in self._tensor_bundles[dest_map]:
-                from sage.manifolds.differentiable.vector_bundle import \
-                    TensorBundle
-                self._tensor_bundles[dest_map][(k, l)] = TensorBundle(self, k, l,
-                                                              dest_map=dest_map)
+                from sage.manifolds.differentiable.vector_bundle \
+                                                            import TensorBundle
+                self._tensor_bundles[dest_map][(k, l)] = TensorBundle(self, k,
+                                                          l, dest_map=dest_map)
         return self._tensor_bundles[dest_map][(k, l)]
 
     def vector_field_module(self, dest_map=None, force_free=False):
@@ -2595,30 +2597,210 @@ class DifferentiableManifold(TopologicalManifold):
         r"""
         Set the default orientation of ``self``.
 
+        .. WARNING::
+
+            It is the user's responsibility that the orientation set here
+            is indeed an orientation. There is no check going on in the
+            background. See :meth:`orientation` for the definition of an
+            orientation.
+
+        INPUT:
+
+        - an orientation; either a chart / list of charts, or a vector frame /
+          list of vector frames, covering ``self``
+
+        .. SEEALSO::
+
+            Consult :meth:`orientation` for details about orientations.
+
+        EXAMPLES:
+
+        Set an orientation on a manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart(); c_uv.<u,v> = M.chart()
+            sage: M.set_orientation(c_uv)
+            sage: M.orientation()
+            [Coordinate frame (M, (d/du,d/dv))]
+
+        Instead of a chart, a vector frame can be given, too::
+
+            sage: M.set_orientation(c_xy.frame())
+            sage: M.orientation()
+            [Coordinate frame (M, (d/dx,d/dy))]
+
+        Set an orientation in the non-trivial case::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: M.set_orientation([c_xy, c_uv])
+            sage: M.orientation()
+            [Coordinate frame (U, (d/dx,d/dy)),
+             Coordinate frame (V, (d/du,d/dv))]
+
+        Again, the vector frame notion can be used instead::
+
+            sage: M.set_orientation([c_xy.frame(), c_uv.frame()])
+            sage: M.orientation()
+            [Coordinate frame (U, (d/dx,d/dy)),
+             Coordinate frame (V, (d/du,d/dv))]
+
         """
+        from .vectorframe import VectorFrame
         chart_type = self._structure.chart
         if isinstance(orientation, chart_type):
-            orientation = orientation.frame()
-        elif isinstance(orientation[0], chart_type):
-            orientation = [c.frame() for c in orientation]
-        tbundle = self.tangent_bundle()
-        tbundle.set_orientation(orientation)
+            orientation = [orientation.frame()]
+        elif isinstance(orientation, VectorFrame):
+            orientation = [orientation]
+        elif isinstance(orientation, (list, tuple)):
+            if isinstance(orientation[0], chart_type):
+                orientation = [c.frame() for c in orientation]
+            else:
+                orientation = list(orientation)
+        else:
+            raise TypeError("orientation must be a chart/frame or a "
+                            "list/tuple of charts/frames")
+        dom_union = None
+        for frame in orientation:
+            if not isinstance(frame, VectorFrame):
+                raise ValueError("orientation must consist of vector frames")
+            dom = frame.domain()
+            if not dom.is_subset(self):
+                raise ValueError("{} must be defined ".format(frame) +
+                                 "on a subset of {}".format(self))
+            if dom_union is not None:
+                dom_union = dom.union(dom_union)
+            else:
+                dom_union = dom
+        if dom_union != self:
+            raise ValueError("frame domains must cover {}".format(self))
+        self._orientation = orientation
 
     def orientation(self):
         r"""
         Get the orientation of ``self`` if available.
 
+        An *orientation* on a differentiable manifold is an atlas of charts
+        whose transition maps are pairwise orientation preserving, i.e. whose
+        Jacobian determinants are pairwise positive.
+
+        A differentiable manifold with an orientation is called *orientable*.
+
+        A differentiable manifold is orientable if and only if the tangent
+        bundle is orientable in terms of a vector bundle,
+        see :meth:`~sage.manifolds.vector_bundle.TopologicalVectorBundle.orientation`.
+
+        .. NOTE::
+
+            In contrast to topological manifolds,
+            see :meth:`~sage.manifolds.manifold.TopologicalManifold.orientation`,
+            differentiable manifolds preferrably use the notion of
+            orientability in terms of the tangent bundle.
+
+        The trivial case corresponds to the manifold being parallelizable,
+        i.e. admitting one frame covering the whole manifold. In that case,
+        if no orientation has been set manually before, this frame is set to
+        the default orientation and returned here.
+
+        EXAMPLES:
+
+        In case one frame already covers the manifold, an orientation
+        is readily obtained::
+
+            sage: M = Manifold(3, 'M')
+            sage: c.<x,y,z> = M.chart()
+            sage: M.orientation()
+            [Coordinate frame (M, (d/dx,d/dy,d/dz))]
+
+        However, orientations are usually not easy to obtain::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: M.orientation()
+            []
+
+        In that case, the orientation can be set by the user; either in
+        terms of charts or in terms of frames::
+
+            sage: M.set_orientation([c_xy, c_uv])
+            sage: M.orientation()
+            [Coordinate frame (U, (d/dx,d/dy)),
+             Coordinate frame (V, (d/du,d/dv))]
+            sage: M.set_orientation([c_xy.frame(), c_uv.frame()])
+            sage: M.orientation()
+            [Coordinate frame (U, (d/dx,d/dy)),
+             Coordinate frame (V, (d/du,d/dv))]
+
+        The orientation on submanifolds are inherited from the ambient
+        manifold::
+
+            sage: W = U.intersection(V, name='W')
+            sage: W.orientation()
+            [Vector frame (W, (d/dx,d/dy)), Vector frame (W, (d/du,d/dv))]
+
         """
-        tbundle = self.tangent_bundle()
-        return tbundle.orientation()
+        if not self._orientation:
+            # try to get an orientation from super domains:
+            for sdom in self._supersets:
+                sorient = sdom._orientation
+                if sorient:
+                    self._orientation = [f.restrict(self) for f in sorient]
+                    break
+            else:
+                # cover the trivial case:
+                for frame in self._top_frames:
+                    dom = frame.domain()
+                    dest_map = frame.destination_map()
+                    if dom == self and dest_map.is_identity():
+                        self._orientation = [frame]
+                        break
+        return list(self._orientation)
 
     def has_orientation(self):
         r"""
-        Check whether ``self`` admits an obvious or by user set orientation.
+        Check whether ``self`` admits an obvious or by user defined
+        orientation.
+
+        .. SEEALSO::
+
+            Consult :meth:`orientation` for details about orientations.
+
+        .. NOTE::
+
+            Notice that if :meth:`has_orientation` returns ``False`` this
+            does not necessarily mean that the manifold admits no orientation.
+            It just means that the user has to set an orientation manually
+            in that case, see :meth:`set_orientation`.
+
+        EXAMPLES:
+
+        The trivial case::
+
+            sage: M = Manifold(3, 'M')
+            sage: c.<x,y,z> = M.chart()
+            sage: M.has_orientation()
+            True
+
+        The non-trivial case::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: M.has_orientation()
+            False
+            sage: M.set_orientation([c_xy, c_uv])
+            sage: M.has_orientation()
+            True
 
         """
-        tbundle = self.tangent_bundle()
-        return tbundle.has_orientation()
+        if self.orientation():
+            return True
+        return False
 
     def default_frame(self):
         r"""

@@ -573,7 +573,7 @@ class TopologicalManifold(ManifoldSubset):
         self._top_charts = []  # list of charts defined on subsets of self
                         # that are not subcharts of charts on larger subsets
         self._def_chart = None  # default chart
-        self._orientation = None # set a priori no orientation
+        self._orientation = [] # set a priori no orientation
         self._charts_by_coord = {} # dictionary of charts whose domain is self
                                    # (key: string formed by the coordinate
                                    #  symbols separated by a white space)
@@ -887,9 +887,6 @@ class TopologicalManifold(ManifoldSubset):
             for chart2 in coord_def:
                 if chart2 != chart1 and (chart1, chart2) in self._coord_changes:
                     self._coord_changes[(chart1, chart2)].restrict(resu)
-        # Take over possible orientation:
-        if self._orientation is not None:
-            resu._orientation = [c.restrict(resu) for c in self._orientation]
         return resu
 
     def get_chart(self, coordinates, domain=None):
@@ -1597,14 +1594,13 @@ class TopologicalManifold(ManifoldSubset):
         Get the orientation of ``self`` if available.
 
         """
-        if self._orientation is not None:
-            return list(self._orientation)
-        else:
+        if not self._orientation:
             # Trivial case:
             for c in self._top_charts:
                 if c.domain() == self:
-                    return [c]
-            return None
+                    self._orientation = [c]
+                    break
+        return list(self._orientation)
 
     def has_orientation(self):
         r"""

@@ -82,8 +82,8 @@ def locally_GQ42_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.locally_GQ42_graph()
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.locally_GQ42_graph()  # optional - gap_packages
+        sage: G.is_distance_regular(True)  # optional - gap_packages
         ([45, 32, 12, 1, None], [None, 1, 6, 32, 45])
 
     .. NOTE::
@@ -197,8 +197,8 @@ def graph_3O73():
 
     EXAMPLES::
 
-        sage: G = graphs.graph_3O73()
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.graph_3O73()  # optional - gap_packages
+        sage: G.is_distance_regular(True)  # optional - gap_packages
         ([117, 80, 24, 1, None], [None, 1, 12, 80, 117])
 
     .. NOTE::
@@ -207,6 +207,6 @@ def graph_3O73():
         Install it via ``sage -i gap_packages``.
     """
     group = libgap.AtlasGroup("3.O7(3)",libgap.NrMovedPoints,1134)
-    G = Graph(group.Orbit([1,3], libgap.OnSets), format='list_of_edges')
+    G = Graph(libgap.Orbit(group, [1, 3], libgap.OnSets), format='list_of_edges')
     G.name("Distance transitive graph with automorphism group 3.O_7(3)")
     return G

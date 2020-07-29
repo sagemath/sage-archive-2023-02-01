@@ -1222,7 +1222,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         An *orientation* on a vector bundle is a choice of local frames whose
 
-        1. domains cover the base space,
+        1. union of domains cover the base space,
         2. changes of frames are pairwise orientation preserving, i.e. have
            positive determinant.
 

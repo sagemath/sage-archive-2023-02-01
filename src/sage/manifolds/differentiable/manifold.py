@@ -2597,21 +2597,17 @@ class DifferentiableManifold(TopologicalManifold):
         r"""
         Set the default orientation of ``self``.
 
+        INPUT:
+
+        - an orientation; either a chart / list of charts, or a vector frame /
+          list of vector frames, covering ``self``
+
         .. WARNING::
 
             It is the user's responsibility that the orientation set here
             is indeed an orientation. There is no check going on in the
             background. See :meth:`orientation` for the definition of an
             orientation.
-
-        INPUT:
-
-        - an orientation; either a chart / list of charts, or a vector frame /
-          list of vector frames, covering ``self``
-
-        .. SEEALSO::
-
-            Consult :meth:`orientation` for details about orientations.
 
         EXAMPLES:
 
@@ -2701,8 +2697,8 @@ class DifferentiableManifold(TopologicalManifold):
 
         The trivial case corresponds to the manifold being parallelizable,
         i.e. admitting one frame covering the whole manifold. In that case,
-        if no orientation has been set manually before, this frame is set to
-        the default orientation and returned here.
+        if no orientation has been manually set before, this frame is
+        set to the default orientation and returned here.
 
         EXAMPLES:
 
@@ -2740,7 +2736,7 @@ class DifferentiableManifold(TopologicalManifold):
 
             sage: W = U.intersection(V, name='W')
             sage: W.orientation()
-            [Vector frame (W, (d/dx,d/dy)), Vector frame (W, (d/du,d/dv))]
+            [Vector frame (W, (d/dx,d/dy))]
 
         """
         if not self._orientation:
@@ -2748,59 +2744,19 @@ class DifferentiableManifold(TopologicalManifold):
             for sdom in self._supersets:
                 sorient = sdom._orientation
                 if sorient:
-                    self._orientation = [f.restrict(self) for f in sorient]
+                    rst_orient = [f.restrict(self) for f in sorient]
+                    # clear multiple domains:
+                    rst_orient = list(self._get_min_covering(rst_orient))
+                    self._orientation = rst_orient
                     break
             else:
                 # cover the trivial case:
-                for frame in self._top_frames:
-                    dom = frame.domain()
+                for frame in self._covering_frames:
                     dest_map = frame.destination_map()
-                    if dom == self and dest_map.is_identity():
+                    if dest_map.is_identity():
                         self._orientation = [frame]
                         break
         return list(self._orientation)
-
-    def has_orientation(self):
-        r"""
-        Check whether ``self`` admits an obvious or by user defined
-        orientation.
-
-        .. SEEALSO::
-
-            Consult :meth:`orientation` for details about orientations.
-
-        .. NOTE::
-
-            Notice that if :meth:`has_orientation` returns ``False`` this
-            does not necessarily mean that the manifold admits no orientation.
-            It just means that the user has to set an orientation manually
-            in that case, see :meth:`set_orientation`.
-
-        EXAMPLES:
-
-        The trivial case::
-
-            sage: M = Manifold(3, 'M')
-            sage: c.<x,y,z> = M.chart()
-            sage: M.has_orientation()
-            True
-
-        The non-trivial case::
-
-            sage: M = Manifold(2, 'M')
-            sage: U = M.open_subset('U'); V = M.open_subset('V')
-            sage: M.declare_union(U, V)
-            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
-            sage: M.has_orientation()
-            False
-            sage: M.set_orientation([c_xy, c_uv])
-            sage: M.has_orientation()
-            True
-
-        """
-        if self.orientation():
-            return True
-        return False
 
     def default_frame(self):
         r"""

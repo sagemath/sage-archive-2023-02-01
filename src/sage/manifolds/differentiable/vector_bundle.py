@@ -1599,7 +1599,8 @@ class TensorBundle(DifferentiableVectorBundle):
         r"""
         Get the orientation of ``self`` if available.
 
-        The tensor bundle `` of a manifold is
+        The tensor bundle `\Phi^* T^{(k,l)}N` of a manifold is orientable if
+        and only if the manifold `\Phi(M)` is orientable.
 
         """
         return self._base_space

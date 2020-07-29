@@ -408,8 +408,20 @@ class BundleConnection(SageObject):
             sage: E = M.vector_bundle(2, 'E')
             sage: e = E.local_frame('e')
             sage: nab = E.bundle_connection('nabla', latex_name=r'\nabla')
-            sage: nab._new_forms(e)  # random
-            dict of forms
+            sage: forms = nab._new_forms(e)
+            sage: [forms[k] for k in sorted(forms)]
+            [1-form connection (1,1) of bundle connection nabla w.r.t. Local
+             frame (E|_M, (e_1,e_2)) on the 2-dimensional differentiable
+             manifold M,
+            1-form connection (1,2) of bundle connection nabla w.r.t. Local
+             frame (E|_M, (e_1,e_2)) on the 2-dimensional differentiable
+             manifold M,
+            1-form connection (2,1) of bundle connection nabla w.r.t. Local
+             frame (E|_M, (e_1,e_2)) on the 2-dimensional differentiable
+             manifold M,
+            1-form connection (2,2) of bundle connection nabla w.r.t. Local
+            frame (E|_M, (e_1,e_2)) on the 2-dimensional differentiable
+            manifold M]
 
         """
         dom = frame._domain
@@ -465,13 +477,20 @@ class BundleConnection(SageObject):
             sage: e = E.local_frame('e')
             sage: nab = E.bundle_connection('nabla', r'\nabla')
             sage: nab[:] = 0  # initialize curvature forms
-            sage: nab.connection_forms() # random
-            {(1, 1): 1-form a on the 3-dimensional differentiable manifold M,
-             (1, 2): 1-form zero on the 3-dimensional differentiable
+            sage: forms = nab.connection_forms()
+            sage: [forms[k] for k in sorted(forms)]
+            [1-form connection (1,1) of bundle connection nabla w.r.t. Local
+             frame (E|_M, (e_1,e_2)) on the 3-dimensional differentiable
              manifold M,
-             (2, 1): 1-form zero on the 3-dimensional differentiable
+            1-form connection (1,2) of bundle connection nabla w.r.t. Local
+             frame (E|_M, (e_1,e_2)) on the 3-dimensional differentiable
              manifold M,
-             (2, 2): 1-form b on the 3-dimensional differentiable manifold M}
+            1-form connection (2,1) of bundle connection nabla w.r.t. Local
+             frame (E|_M, (e_1,e_2)) on the 3-dimensional differentiable
+             manifold M,
+            1-form connection (2,2) of bundle connection nabla w.r.t. Local
+             frame (E|_M, (e_1,e_2)) on the 3-dimensional differentiable
+             manifold M]
 
         """
         if frame is None:

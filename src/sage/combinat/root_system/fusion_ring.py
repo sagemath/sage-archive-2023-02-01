@@ -731,14 +731,29 @@ class FusionRing(WeylCharacterRing):
         """
         Returns the value of the R-matrix on the subobject
         of type `k` in `i\otimes j`. This is mainly of
-        interest if `N_{ij}^k=1`.
+        interest if `N_{ij}^k=1`. 
+
+        EXAMPLES::
+
+            sage: I = FusionRing("E8",2,conjugate=True) # Ising MTC
+            sage: I.fusion_labels(["i0","p","s"],inject_variables=True)
+            sage: I.rmatrix(s,s,i0) == I.root_of_unity(-1/8)
+            True
+            sage: I.rmatrix(p,p,i0)
+            -1
+            sage: I.rmatrix(p,s,s) == I.root_of_unity(-1/2)
+            True
+            sage: I.rmatrix(s,p,s) == I.root_of_unity(-1/2)
+            True
+            sage: I.rmatrix(s,s,p) == I.root_of_unity(3/8)
+            True
+
         """
         if self.Nk_ij(i,j,k) == 0:
             return 0
         rho = self.space().rho()
-        v = [self._nf*x.weight().inner_product(x.weight()+rho) for x in [i,j,k]]
-        r = self.root_of_unity((v[0]+v[1]-v[2])/4)
-        print (v,r)
+        v = [self._nf*x.weight().inner_product(x.weight()+2*rho) for x in [i,j,k]]
+        r = self.root_of_unity((k.twist()-i.twist()-j.twist())/2)
         if i != j:
             return r
         elif k.weight() in i.symmetric_power(2).monomial_coefficients():

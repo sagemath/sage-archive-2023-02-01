@@ -1724,7 +1724,7 @@ class PseudoRiemannianMetric(TensorField):
 
         """
         dom = self.domain()
-        orient = dom.get_orientation()
+        orient = dom.orientation()
         if orient is None:
             raise ValueError('{} must admit an orientation.'.format(dom))
         if self._vol_forms == []:
@@ -1737,8 +1737,7 @@ class PseudoRiemannianMetric(TensorField):
                                 latex_name=r'\epsilon_{'+self._latex_name+r'}')
             si = manif.start_index()
             ind = tuple(range(si, si+ndim))
-            for c in orient:
-                frame = c.frame()
+            for frame in orient:
                 if frame.destination_map() is frame.domain().identity_map():
                     eps.add_comp(frame)[[ind]] = self.sqrt_abs_det(frame)
             self._vol_forms.append(eps)  # Levi-Civita tensor constructed

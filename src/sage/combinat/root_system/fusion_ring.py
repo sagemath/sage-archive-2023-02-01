@@ -947,6 +947,6 @@ class FusionRing(WeylCharacterRing):
                     expr /= q_int(P._nf * val, q)**(-exp)
             expr = R(expr)
             expr = expr.substitute(q=q**4) / (q**(2*expr.degree()))
-            zet = P.field().gen() ** P._fg
+            zet = P.field().gen() ** (P._cyclotomic_order/P._l)
             return expr.substitute(q=zet)
 

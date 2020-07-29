@@ -960,8 +960,6 @@ class FullyCommutativeElements(Parent):
         word and, if the group is FC-finite, ending with the longest fully
         commutative element.
         """
-        m = self.coxeter_matrix()
-
         empty_word = self.element_class(self, [], check=False)
         letters = self.index_set()
 

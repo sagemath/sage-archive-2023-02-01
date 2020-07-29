@@ -773,7 +773,8 @@ class FullyCommutativeElements(Parent):
 
     Create the enumerate set of fully commutative elements in `B_3`::
 
-        sage: FC = FullyCommutativeElements(['B', 3])
+        sage: FC = FullyCommutativeElements(['B', 3]); FC
+        Fully commutative elements in Coxeter system with Cartan type ['B', 3]
         sage: FC.coxeter_matrix()
         [1 3 2]
         [3 1 4]
@@ -884,6 +885,27 @@ class FullyCommutativeElements(Parent):
                 pass
 
         Parent.__init__(self, category=category)
+
+    def _repr_(self):
+        r"""
+        EXAMPLES::
+
+            sage: FullyCommutativeElements(['H', 4])
+            Fully commutative elements in Coxeter system with Cartan type ['H', 4]
+            sage: m = CoxeterMatrix([(1, 5, 2, 2, 2), (5, 1, 3, 2, 2), (2, 3, 1, 3, 2), (2, 2, 3, 1, 3), (2, 2, 2, 3, 1)])
+            sage: FullyCommutativeElements(m)
+            Fully commutative elements in Coxeter system with Coxeter matrix
+            [1 5 2 2 2]
+            [5 1 3 2 2]
+            [2 3 1 3 2]
+            [2 2 3 1 3]
+            [2 2 2 3 1]
+        """
+        try:
+            ctype = self.coxeter_matrix().coxeter_type().cartan_type()
+            return 'Fully commutative elements in Coxeter system with Cartan type {}'.format(str(ctype))
+        except AttributeError:
+            return 'Fully commutative elements in Coxeter system with Coxeter matrix\n{}'.format(str(self.coxeter_matrix()))
 
     def _element_constructor_(self, lst):
         return self.element_class(self, lst)

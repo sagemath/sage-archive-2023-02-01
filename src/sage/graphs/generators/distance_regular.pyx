@@ -1,5 +1,9 @@
 r"""
+<<<<<<< HEAD
 Database of distance regular graphs
+=======
+Dabase of distance regular graphs
+>>>>>>> moved file to generators; fixed tests
 
 In this module we construct several distance regular graphs
 and group them in a function that maps intersection arrays
@@ -39,7 +43,11 @@ def cocliques_HoffmannSingleton():
     r"""
     Return the graph obtained from the cocliques of the Hoffmann-Singleton graph.
 
+<<<<<<< HEAD
     This is a distance-regular graph with intersection array
+=======
+    This is a distance-regular graph with intersecion array
+>>>>>>> moved file to generators; fixed tests
     `[15, 14, 10, 3; 1, 5, 12, 15]`.
 
     EXAMPLES::
@@ -53,6 +61,7 @@ def cocliques_HoffmannSingleton():
     The construction of this graph can be found in [BCN1989]_ p. 392.
     """
     from sage.graphs.graph_generators import GraphGenerators
+<<<<<<< HEAD
     import itertools
 
     D = GraphGenerators.HoffmanSingletonGraph()
@@ -72,6 +81,29 @@ def locally_GQ42_distance_transitive_graph():
     r"""
     Return the unique amply regular graph with `\mu = 6` which is locally
     a generalised quadrangle.
+=======
+    D = GraphGenerators.HoffmanSingletonGraph()
+    DC = D.complement()
+
+    cocliques = DC.cliques_maximum()  # 100 of this
+
+    edges = []
+    for i in range(100):
+        sC = frozenset(cocliques[i])
+        for j in range(i+1,100):
+            if len(sC.intersection(cocliques[j])) == 8:
+                sC2 = frozenset(cocliques[j])
+                edges.append( (sC,sC2) )
+
+    G = Graph(edges,format="list_of_edges")
+    return G
+
+
+def locally_GQ42_graph():
+    r"""
+    Return the unique amply regular graph which is locally a generalised
+    quadrangle.
+>>>>>>> moved file to generators; fixed tests
 
     This graph is distance-regular with intersection array
     `[45, 32, 12, 1; 1, 6, 32, 45]`.
@@ -80,6 +112,7 @@ def locally_GQ42_distance_transitive_graph():
 
     EXAMPLES::
 
+<<<<<<< HEAD
         sage: G = graphs.locally_GQ42_distance_transitive_graph()  # optional - internet
         sage: G.is_distance_regular(True)  # optional - internet
         ([45, 32, 12, 1, None], [None, 1, 6, 32, 45])
@@ -90,13 +123,30 @@ def locally_GQ42_distance_transitive_graph():
     This construction is due to Dima Pasechnik.
     """
     H = libgap.AtlasGroup("3^2.U4(3).D8", libgap.NrMovedPoints, 756)
+=======
+        sage: G = graphs.locally_GQ42_graph()  # optional - gap_packages
+        sage: G.is_distance_regular(True)  # optional - gap_packages
+        ([45, 32, 12, 1, None], [None, 1, 6, 32, 45])
+
+    .. NOTE::
+
+        This function needs the GAP's package AtlasRep [WPNBBAtl]_.
+        Install it via ``sage -i gap_packages``.
+    """
+    H = libgap.AtlasGroup("3^2.U4(3).D8",libgap.NrMovedPoints,756)
+>>>>>>> moved file to generators; fixed tests
     Ns = H.NormalSubgroups()
     for N in Ns:
         if len(N.GeneratorsSmallest()) == 7:  # there is only one
             break
 
+<<<<<<< HEAD
     G = Graph(libgap.Orbit(N, [1, 9], libgap.OnSets), format='list_of_edges')
     G.name("locally GQ(4,2) distance transitive graph")
+=======
+    G = Graph(libgap.Orbit(N,[1,9],libgap.OnSets), format='list_of_edges')
+    G.name("locally GQ(4,2) graph")
+>>>>>>> moved file to generators; fixed tests
     return G
 
 
@@ -112,6 +162,7 @@ def ConwaySmith_for_3S7():
         sage: G = graphs.ConwaySmith_for_3S7()
         sage: G.is_distance_regular(True)
         ([10, 6, 4, 1, None], [None, 1, 2, 6, 10])
+<<<<<<< HEAD
 
     REFERENCES:
 
@@ -120,12 +171,20 @@ def ConwaySmith_for_3S7():
     """
     from sage.rings.number_field.number_field import CyclotomicField
     import itertools
+=======
+    """
+    from sage.rings.number_field.number_field import CyclotomicField
+>>>>>>> moved file to generators; fixed tests
 
     F = CyclotomicField(3)
     w = F.gen()
 
     V= VectorSpace(GF(4), 6)
+<<<<<<< HEAD
     z2 = GF(4)('z2') # GF(4) = {0, 1, z2, z2+1}
+=======
+    z2 = GF(4)('z2') # GF(4) = {0,1,z2, z2+1}
+>>>>>>> moved file to generators; fixed tests
 
     W = V.span([(0,0,1,1,1,1), (0,1,0,1,z2,z2+1), (1,0,0,1,z2+1,z2)])
     # we only need the 45 vectors with 2 zero entries
@@ -133,10 +192,17 @@ def ConwaySmith_for_3S7():
 
     K = []
     for v in W:
+<<<<<<< HEAD
         # check zero entries
         zeros = 0
         for x in v:
             if x.is_zero():
+=======
+        #check zero entries
+        zeros = 0
+        for x in v:
+            if x == 0:
+>>>>>>> moved file to generators; fixed tests
                 zeros += 1
 
         if zeros == 2:
@@ -147,10 +213,17 @@ def ConwaySmith_for_3S7():
             for x in v:
                 if x == z2:
                     vv.append(w)
+<<<<<<< HEAD
                 elif x == z2 + 1:
                     vv.append(w**2)
                 else:
                     vv.append(int(x))
+=======
+                elif x == z2+1:
+                    vv.append(w**2)
+                else:
+                    vv.append(int(x))  # this is weirdly needed for some reason
+>>>>>>> moved file to generators; fixed tests
 
             # now vv is the new vector in F
             vv = vector(F, vv)
@@ -158,8 +231,13 @@ def ConwaySmith_for_3S7():
 
     # we need to add other vectors
     for i in range(6):
+<<<<<<< HEAD
         # create e_i
         ei = [0, 0, 0, 0, 0, 0]
+=======
+        #create e_i
+        ei = [0]*6
+>>>>>>> moved file to generators; fixed tests
         ei[i] = 1
         ei = vector(F, ei)
 
@@ -168,6 +246,7 @@ def ConwaySmith_for_3S7():
         K.append(2 * w**2 * ei)
     # now K is all the 63 vertices
 
+<<<<<<< HEAD
     for v in K:
         v.set_immutable()
 
@@ -178,6 +257,25 @@ def ConwaySmith_for_3S7():
     for Ki, Kj in itertools.combinations(K, 2):
         if has_edge(Ki, Kj):
             G.add_edge((Ki, Kj))
+=======
+    def has_edge(u,v):
+        com = 0
+        for i in range(6):
+            com += u[i].conjugate() * v[i]
+
+        if com == 2:
+            return True
+        return False
+
+    G = Graph()
+    length = len(K)
+    for i in range(length):
+        K[i].set_immutable()
+        for j in range(i+1, length):
+            if has_edge(K[i], K[j]):
+                K[j].set_immutable()
+                G.add_edge((K[i], K[j]))
+>>>>>>> moved file to generators; fixed tests
 
     G.name("Conway-Smith graph for 3S7")
     return G
@@ -194,6 +292,7 @@ def graph_3O73():
 
     EXAMPLES::
 
+<<<<<<< HEAD
         sage: G = graphs.graph_3O73()  # optional - internet
         sage: G.is_distance_regular(True)  # optional - internet
         ([117, 80, 24, 1, None], [None, 1, 12, 80, 117])
@@ -204,6 +303,18 @@ def graph_3O73():
     [BCN1989]_ p. 400.
     """
     group = libgap.AtlasGroup("3.O7(3)", libgap.NrMovedPoints, 1134)
+=======
+        sage: G = graphs.graph_3O73()  # optional - gap_packages
+        sage: G.is_distance_regular(True)  # optional - gap_packages
+        ([117, 80, 24, 1, None], [None, 1, 12, 80, 117])
+
+    .. NOTE::
+
+        This function needs the GAP's package AtlasRep [WPNBBAtl]_.
+        Install it via ``sage -i gap_packages``.
+    """
+    group = libgap.AtlasGroup("3.O7(3)",libgap.NrMovedPoints,1134)
+>>>>>>> moved file to generators; fixed tests
     G = Graph(libgap.Orbit(group, [1, 3], libgap.OnSets), format='list_of_edges')
     G.name("Distance transitive graph with automorphism group 3.O_7(3)")
     return G

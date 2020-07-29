@@ -16855,7 +16855,8 @@ class GenericGraph(GenericGraph_pyx):
             from .distances_all_pairs import wiener_index
             return wiener_index(self)
 
-        if not self.is_connected():
+        if (not self.is_connected()
+            or (self.is_directed() and not self.is_strongly_connected())):
             from sage.rings.infinity import Infinity
             return Infinity
 
@@ -16908,6 +16909,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.average_distance()==w(10)
             True
 
+        Average distance of a circuit::
+
+            sage: g = digraphs.Circuit(6)
+            sage: g.average_distance()
+            3
+
         TESTS:
 
         Giving an empty graph::
@@ -16931,9 +16938,10 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("average distance is not defined for empty or one-element graph")
         WI =  self.wiener_index(by_weight=by_weight, algorithm=algorithm,
                                     weight_function=weight_function)
+        f = 1 if self.is_directed() else 2
         if WI in QQ:
-            return QQ((2 * WI, (self.order() * (self.order() - 1))))
-        return 2 * WI / (self.order() * (self.order() - 1))
+            return QQ((f * WI, self.order() * (self.order() - 1)))
+        return f * WI / (self.order() * (self.order() - 1))
 
     def szeged_index(self):
         r"""

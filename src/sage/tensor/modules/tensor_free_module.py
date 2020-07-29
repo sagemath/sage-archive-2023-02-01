@@ -392,14 +392,7 @@ class TensorFreeModule(FiniteRankFreeModule):
         FiniteRankFreeModule.__init__(self, fmodule._ring, rank, name=name,
                                       latex_name=latex_name,
                                       start_index=fmodule._sindex,
-                                    output_formatter=fmodule._output_formatter)
-        # Unique representation:
-        if self._tensor_type in self._fmodule._tensor_modules:
-            raise ValueError("the module of tensors of type {}".format(
-                                                          self._tensor_type) +
-                             " has already been created")
-        else:
-            self._fmodule._tensor_modules[self._tensor_type] = self
+                                      output_formatter=fmodule._output_formatter)
 
     #### Parent Methods
 

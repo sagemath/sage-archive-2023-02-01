@@ -3296,6 +3296,7 @@ def random_md_tree(max_depth, max_fan_out, leaf_probability):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+        sage: set_random_seed(0)
         sage: tree_to_nested_tuple(random_md_tree(2, 5, 0.5))
         (PRIME, [0, 1, (PRIME, [2, 3, 4, 5, 6]), 7, (PARALLEL, [8, 9, 10])])
     """

@@ -120,7 +120,7 @@ class FullyCommutativeElement(NormalizedClonableList):
                             else:
                                 checked.add(new_word)
                                 queue.appendleft(new_word)
-            return True
+            return
 
     # Representing FC elements: Canonical forms
     def cartier_foata_form(self):

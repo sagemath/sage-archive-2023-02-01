@@ -782,13 +782,12 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         # Dictionary of the tensor modules built on self
         #   (keys = (k,l) --the tensor type)
         # This dictionary is to be extended on need by the method tensor_module
-        self._tensor_modules = {(1,0): self} # self is considered as the set
-                                             # of tensors of type (1,0)
+        self._tensor_modules = {}
         # Dictionaries of exterior powers of self and of its dual
         #   (keys = p --the power degree)
         # These dictionaries are to be extended on need by the methods
         # exterior_power and dual_exterior_power
-        self._exterior_powers = {1: self}
+        self._exterior_powers = {}
         self._dual_exterior_powers = {}
         # List of known bases on the free module:
         self._known_bases = []
@@ -954,10 +953,16 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         for more documentation.
 
         """
-        from sage.tensor.modules.tensor_free_module import TensorFreeModule
-        if (k,l) not in self._tensor_modules:
-            self._tensor_modules[(k,l)] = TensorFreeModule(self, (k,l))
-        return self._tensor_modules[(k,l)]
+        try:
+            return self._tensor_modules[(k,l)]
+        except KeyError:
+            if (k, l) == (1, 0):
+                T = self
+            else:
+                from sage.tensor.modules.tensor_free_module import TensorFreeModule
+                T = TensorFreeModule(self, (k,l))
+            self._tensor_modules[(k,l)] = T
+            return T
 
     def exterior_power(self, p):
         r"""
@@ -1020,12 +1025,18 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         for more documentation.
 
         """
-        from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
-        if p == 0:
-            return self._ring
-        if p not in self._exterior_powers:
-            self._exterior_powers[p] = ExtPowerFreeModule(self, p)
-        return self._exterior_powers[p]
+        try:
+            return self._exterior_powers[p]
+        except KeyError:
+            if p == 0:
+                L = self._ring
+            elif p == 1:
+                L = self
+            else:
+                from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
+                L = ExtPowerFreeModule(self, p)
+            self._exterior_powers[p] = L
+            return L
 
     def dual_exterior_power(self, p):
         r"""
@@ -1085,12 +1096,16 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`
         for more documentation.
         """
-        from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
-        if p == 0:
-            return self._ring
-        if p not in self._dual_exterior_powers:
-            self._dual_exterior_powers[p] = ExtPowerDualFreeModule(self, p)
-        return self._dual_exterior_powers[p]
+        try:
+            return self._dual_exterior_powers[p]
+        except KeyError:
+            if p == 0:
+                L = self._ring
+            else:
+                from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
+                L = ExtPowerDualFreeModule(self, p)
+            self._dual_exterior_powers[p] = L
+            return L
 
     def general_linear_group(self):
         r"""

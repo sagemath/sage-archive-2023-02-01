@@ -1001,7 +1001,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         Return the linear combination `\lambda_1 v_1 + \cdots +
         \lambda_k v_k` (resp.  the linear combination `v_1 \lambda_1 +
         \cdots + v_k \lambda_k`) where ``iter_of_elements_coeff`` iterates
-        through the sequence `((\lambda_1, v_1), ..., (\lambda_k, v_k))`.
+        through the sequence `((v_1, \lambda_1), ..., (v_k, \lambda_k))`.
 
         INPUT:
 

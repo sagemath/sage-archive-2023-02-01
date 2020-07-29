@@ -33,7 +33,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.all import verbose
+from sage.misc.verbose import verbose
 from sage.rings.all import ZZ, CC, RR
 from sage.rings.rational_field import is_RationalField
 from sage.categories.fields import Fields

@@ -53,7 +53,8 @@ class FullyCommutativeElement(NormalizedClonableList):
         Called automatically when an element is created. Alias of
         :func:`is_fully_commutative`
         """
-        return self.is_fully_commutative()
+        if not self.is_fully_commutative():
+            raise ValueError('the input is not a reduced word of a fully commutative element')
 
     def normalize(self):
         r"""
@@ -99,13 +100,10 @@ class FullyCommutativeElement(NormalizedClonableList):
         def commute_once(word, i):
             return word[:i] + (word[i + 1], word[i]) + word[i + 2:]
 
-        not_fc = ValueError(
-            'the input is not a reduced word of a fully commutative element')
-
         # A word is the reduced word of an FC element iff no sequence of
         # commutation relations on it yields a word with a 'braid' word: 
         if contains_long_braid(w):
-            raise not_fc
+            return False
         else:
             l, checked, queue = len(w), {w}, deque([w])
             while queue:
@@ -116,11 +114,11 @@ class FullyCommutativeElement(NormalizedClonableList):
                         new_word = commute_once(word, i)
                         if new_word not in checked:
                             if contains_long_braid(new_word):
-                                raise not_fc
+                                return False
                             else:
                                 checked.add(new_word)
                                 queue.appendleft(new_word)
-            return
+            return True
 
     # Representing FC elements: Canonical forms
     def cartier_foata_form(self):

@@ -79,54 +79,6 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         :func:`check` is an alias of this method, and is called automatically
         when an element is created.
-
-        EXAMPLES:
-
-        To construct an FC element, first call the parent class
-        FullyCommutativeElements. The parent class contains information about
-        the Coxeter matrix of the ambient Coxeter system::
-
-            sage: FC = FullyCommutativeElements(['B', 3])
-            sage: FC.coxeter_matrix()
-            [1 3 2]
-            [3 1 4]
-            [2 4 1]
-
-        We can construct FC elements as follows::
-
-            sage: FC([])
-            []
-            sage: FC([1,2])
-            [1, 2]
-            sage: FC([2,3,2])
-            [2, 3, 2]
-            sage: FC([3,2,3])
-            [3, 2, 3]
-
-        The output is the normalized form of ``self``, which may be a different
-        reduced word of the element represented by the input::
-
-            sage: FC([3,1])
-            [1, 3]
-            sage: FC([2,3,1])
-            [2, 1, 3]
-            sage: FC([1,3]) == FC([3,1])
-            True
-
-        If the input is not the reduced word of an FC element, return a
-        ValueEror::
-
-            sage: FC([1,2,1])
-            Traceback (most recent call last):
-            ...
-            ValueError: the input is not a reduced word of a fully commutative
-            element
-
-            sage: FC([2,3,2,3])
-            Traceback (most recent call last):
-            ...
-            ValueError: the input is not a reduced word of a fully commutative
-            element
         """
         matrix = self.parent().coxeter_matrix()
         w = tuple(self)
@@ -821,7 +773,47 @@ class FullyCommutativeElements(Parent):
 
     EXAMPLES:
 
-    Enumerate the FC elements in `A_3` in their Cartier--Foata forms::
+    Create the enumerate set of fully commutative elements in `B_3`::
+
+        sage: FC = FullyCommutativeElements(['B', 3])
+        sage: FC.coxeter_matrix()
+        [1 3 2]
+        [3 1 4]
+        [2 4 1]
+
+    Construct elements::
+
+        sage: FC([])
+        []
+        sage: FC([1,2])
+        [1, 2]
+        sage: FC([2,3,2])
+        [2, 3, 2]
+        sage: FC([3,2,3])
+        [3, 2, 3]
+
+    Elements are normalized to Cartier--Foata normal form upon construction::
+
+        sage: FC([3,1])
+        [1, 3]
+        sage: FC([2,3,1])
+        [2, 1, 3]
+        sage: FC([1,3]) == FC([3,1])
+        True
+
+    Attempting to create an element from an input that is not the reduced word
+    of a fully commutative element throws a ``ValueError``::
+
+        sage: FC([1,2,1])
+        Traceback (most recent call last):
+        ...
+        ValueError: the input is not a reduced word of a fully commutative element
+        sage: FC([2,3,2,3])
+        Traceback (most recent call last):
+        ...
+        ValueError: the input is not a reduced word of a fully commutative element
+
+    Enumerate the FC elements in `A_3`::
 
         sage: FCA3 = FullyCommutativeElements(['A', 3])
         sage: FCA3.category()
@@ -856,19 +848,6 @@ class FullyCommutativeElements(Parent):
         Category of infinite enumerated sets
         sage: list(FCAffineA2.iterate_to_length(2))
         [[], [0], [1], [2], [1, 0], [2, 0], [0, 1], [2, 1], [0, 2], [1, 2]]
-
-    Constructing an element that is not fully commutative throws an error::
-
-        sage: FCA3([1,2,1])
-        Traceback (most recent call last):
-        ...
-        ValueError: the input is not a reduced word of a fully commutative
-        element
-
-    Elements are normalized to Cartier--Foata normal form upon construction::
-
-        sage: FCA3([2, 3, 1, 2])
-        [2, 1, 3, 2]
     """
 
     def __init__(self, data):

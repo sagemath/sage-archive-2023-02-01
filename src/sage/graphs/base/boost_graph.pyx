@@ -996,22 +996,11 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     dist = {}
     pred = {}
 
-    if weight_function is not None:
-        correct_type = type(weight_function(g.edges()[0]))
-    elif g.weighted():
-        correct_type = type(g.edges()[0][2])
-    else:
-        correct_type = int
-    # Needed for rational curves.
-    from sage.rings.real_mpfr import RealNumber, RR
-    if correct_type == RealNumber:
-        correct_type = RR
-
     import sys
     for v in range(g.num_verts()):
         if result.distances[v] != sys.float_info.max:
             w = int_to_v[v]
-            dist[w] = correct_type(result.distances[v])
+            dist[w] = result.distances[v]
             pred[w] = int_to_v[result.predecessors[v]] if result.predecessors[v] != v else None
     return (dist, pred)
 
@@ -2243,21 +2232,6 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
         if algorithm is None:
             algorithm = 'Dijkstra'
 
-    try:
-        if weight_function is not None:
-            correct_type = type(weight_function(g.edges()[0]))
-        elif g.weighted():
-            correct_type = type(g.edges()[0][2])
-        else:
-            correct_type = int
-    except StopIteration:
-        correct_type = int
-
-    # Needed for rational curves.
-    from sage.rings.real_mpfr import RealNumber, RR
-    if correct_type == RealNumber:
-        correct_type = RR
-
     cdef list distances = []
     cdef list predecessors = []
 
@@ -2311,7 +2285,7 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
 
         for vert in range(g.num_verts()):
             if result.distances[vert] != sys.float_info.max:
-                dist_v.append(correct_type(result.distances[vert]))
+                dist_v.append(result.distances[vert])
                 pred = result.predecessors[vert]
                 if pred != vert:
                     pred_v.append(pred)

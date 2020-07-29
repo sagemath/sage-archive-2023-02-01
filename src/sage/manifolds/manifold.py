@@ -1592,7 +1592,7 @@ class TopologicalManifold(ManifoldSubset):
             raise ValueError("chart domains must cover {}".format(self))
         self._orientation = orientation
 
-    def get_orientation(self):
+    def orientation(self):
         r"""
         Get the orientation of ``self`` if available.
 
@@ -1611,9 +1611,9 @@ class TopologicalManifold(ManifoldSubset):
         Check whether ``self`` admits an obvious or by user set orientation.
 
         """
-        if self.get_orientation() is None:
-            return False
-        return True
+        if self.get_orientation():
+            return True
+        return False
 
     def vector_bundle(self, rank, name, field='real', latex_name=None):
         r"""

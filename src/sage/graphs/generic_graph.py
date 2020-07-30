@@ -16806,9 +16806,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.wiener_index()
             15
             sage: G.wiener_index(weight_function=lambda e:(e[2] if e[2] is not None else 1))
-            20
+            20.0
             sage: G.wiener_index(weight_function=lambda e:(e[2] if e[2] is not None else 200))
-            820
+            820.0
             sage: G.wiener_index(algorithm='BFS')
             15
             sage: G.wiener_index(algorithm='Floyd-Warshall-Cython')
@@ -16816,7 +16816,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.wiener_index(algorithm='Floyd-Warshall-Python')
             15
             sage: G.wiener_index(algorithm='Dijkstra_Boost')
-            15
+            15.0
             sage: G.wiener_index(algorithm='Johnson_Boost')
             15
             sage: G.wiener_index(algorithm='Dijkstra_NetworkX')
@@ -16854,6 +16854,12 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("BFS algorithm does not work on weighted graphs")
             from .distances_all_pairs import wiener_index
             return wiener_index(self)
+
+        if algorithm in ['Dijkstra_Boost', 'Bellman-Ford_Boost'] or (algorithm is None and by_weight):
+            from .base.boost_graph import wiener_index
+            return wiener_index(self, algorithm=algorithm,
+                                weight_function=weight_function,
+                                check_weight=check_weight)
 
         if (not self.is_connected()
             or (self.is_directed() and not self.is_strongly_connected())):
@@ -16928,7 +16934,7 @@ class GenericGraph(GenericGraph_pyx):
         :trac:`22885`::
 
             sage: G = graphs.PetersenGraph()
-            sage: G2 = Graph([(u, v, 2) for u,v in G.edge_iterator(labels=False)])
+            sage: G2 = Graph([(u, v, 2) for u,v in G.edge_iterator(labels=False)], weighted=True)
             sage: G2.average_distance()
             5/3
             sage: G2.average_distance(by_weight=True)

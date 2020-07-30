@@ -2099,3 +2099,152 @@ cpdef diameter_DHV(g, weight_function=None, check_weight=True):
         return +Infinity
 
     return LB
+
+cpdef wiener_index(g, algorithm=None, weight_function=None, check_weight=True):
+    r"""
+    Return the Wiener index of the graph.
+
+    The Wiener index of an undirected graph `G` can be defined in two equivalent
+    ways [KRG1996]_ :
+
+    - `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the
+      distance between vertices `u` and `v`.
+
+    - Let `\Omega` be a set of `\frac {n(n-1)} 2` paths in `G` such that `\Omega`
+      contains exactly one shortest `u-v` path for each set `\{u,v\}` of
+      vertices in `G`. Besides, `\forall e\in E(G)`, let `\Omega(e)` denote the
+      paths from `\Omega` containing `e`. We then have
+      `W(G) = \sum_{e\in E(G)}|\Omega(e)|`.
+
+    The Wiener index of a directed graph `G` is defined as the sum of the
+    distances between each pairs of vertices, `W(G) = \sum_{u,v\in G} d(u,v)`.
+
+    INPUT:
+
+    - ``g`` -- the input Sage graph
+
+    - ``algorithm`` -- string (default: ``None``); one of the following
+      algorithms:
+
+      - ``'Dijkstra'``, ``'Dijkstra_Boost'``: the Dijkstra algorithm implemented
+        in Boost (works only with positive weights)
+
+      - ``'Bellman-Ford'``, ``'Bellman-Ford_Boost'``: the Bellman-Ford algorithm
+        implemented in Boost (works also with negative weights, if there is no
+        negative cycle)
+
+    - ``weight_function`` -- function (default: ``None``); a function that
+      associates a weight to each edge. If ``None`` (default), the weights of
+      ``g`` are used, if ``g.weighted()==True``, otherwise all edges have
+      weight 1.
+
+    - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+      that the ``weight_function`` outputs a number for each edge.
+
+    EXAMPLES:
+
+        sage: from sage.graphs.base.boost_graph import wiener_index
+        sage: g = Graph([(0,1,9), (1,2,7), (2,3,4), (3,0,3)])
+        sage: wiener_index(g)
+        8.0
+        sage: g.weighted(True)
+        sage: wiener_index(g)
+        41.0
+
+    Wiener index of circuit digraphs::
+
+        sage: n = 10
+        sage: g = digraphs.Circuit(n)
+        sage: w = lambda x: (x*x*(x-1))/2
+        sage: g.wiener_index() == w(10)
+        True
+    """
+    import sys
+    cdef int n = g.order()
+    if n < 2:
+        raise ValueError("Wiener index is not defined for empty or one-element graph")
+
+    if weight_function and check_weight:
+        g._check_weight_function(weight_function)
+
+    if algorithm is None:
+        # Check if there are edges with negative weights
+        if weight_function is not None:
+            for e in g.edge_iterator():
+                if float(weight_function(e)) < 0:
+                    algorithm = 'Bellman-Ford'
+                    break
+        elif g.weighted():
+            for _,_,w in g.edge_iterator():
+                if float(w) < 0:
+                    algorithm = 'Bellman-Ford'
+                    break
+
+        if algorithm is None:
+            algorithm = 'Dijkstra'
+
+    # These variables are automatically deleted when the function terminates.
+    cdef v_index vi, u, v
+    cdef dict int_to_v = dict(enumerate(g))
+    cdef dict v_to_int = {vv: vi for vi, vv in enumerate(g)}
+    cdef BoostVecWeightedDiGraphU g_boost_dir
+    cdef BoostVecWeightedGraph g_boost_und
+    cdef vector[double] distances
+    cdef double s = 0
+
+    if g.is_directed():
+        boost_weighted_graph_from_sage_graph(&g_boost_dir, g, v_to_int, weight_function)
+    else:
+        boost_weighted_graph_from_sage_graph(&g_boost_und, g, v_to_int, weight_function)
+
+    for u in range(n):
+        if g.is_directed():
+            if algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']:
+                sig_on()
+                distances = g_boost_dir.bellman_ford_shortest_paths(u).distances
+                sig_off()
+                if not distances.size():
+                   raise ValueError("the graph contains a negative cycle")
+            elif algorithm in ['Dijkstra', 'Dijkstra_Boost']:
+                try:
+                    sig_on()
+                    distances = g_boost_dir.dijkstra_shortest_paths(u).distances
+                    sig_off()
+                    if not distances.size():
+                       raise RuntimeError("Dijkstra algorithm does not "
+                                           "work with negative weights, "
+                                           "use Bellman-Ford instead")
+                except RuntimeError as msg:
+                   raise RuntimeError(msg)
+            else:
+                raise ValueError(f"unknown algorithm {algorithm!r}")
+        else:
+            if algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']:
+                sig_on()
+                distances = g_boost_und.bellman_ford_shortest_paths(u).distances
+                sig_off()
+                if not distances.size():
+                   raise ValueError("the graph contains a negative cycle")
+
+            elif algorithm in ['Dijkstra', 'Dijkstra_Boost']:
+                try:
+                    sig_on()
+                    distances = g_boost_und.dijkstra_shortest_paths(u).distances
+                    sig_off()
+                    if not distances.size():
+                        raise RuntimeError("Dijkstra algorithm does not "
+                                          "work with negative weights, "
+                                           "use Bellman-Ford instead")
+                except RuntimeError as msg:
+                    raise RuntimeError(msg)
+            else:
+                raise ValueError(f"unknown algorithm {algorithm!r}")
+
+        for v in range(0 if g.is_directed() else (u+1), n):
+            if distances[v] == sys.float_info.max:
+                from sage.rings.infinity import Infinity
+                return +Infinity
+            else:
+                s += distances[v]
+
+    return s

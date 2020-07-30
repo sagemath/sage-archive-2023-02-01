@@ -193,6 +193,8 @@ cdef class ModuleElement(Element):
 
 cdef class ModuleElementWithMutability(ModuleElement):
     cdef bint _is_mutable
+    cpdef bint is_immutable(self)
+    cpdef bint is_mutable(self)
 
 cdef class MonoidElement(Element):
     cpdef _pow_int(self, n)

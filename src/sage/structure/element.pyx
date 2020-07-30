@@ -2383,7 +2383,7 @@ cdef class ModuleElementWithMutability(ModuleElement):
         """
         self._is_mutable = 0
 
-    def is_mutable(self):
+    cpdef bint is_mutable(self):
         """
         Return True if this vector is mutable, i.e., the entries can be
         changed.
@@ -2398,7 +2398,7 @@ cdef class ModuleElementWithMutability(ModuleElement):
         """
         return self._is_mutable
 
-    def is_immutable(self):
+    cpdef bint is_immutable(self):
         """
         Return True if this vector is immutable, i.e., the entries cannot
         be changed.

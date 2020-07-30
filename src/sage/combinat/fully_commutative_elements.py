@@ -58,9 +58,9 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         TESTS::
 
-            sage: FullyCommutativeElements(['A', 3])([1, 2]) # indirect doctest
+            sage: CoxeterGroup(['A', 3]).fully_commutative_elements()([1, 2]) # indirect doctest
             [1, 2]
-            sage: FullyCommutativeElements(['A', 3])([1, 2, 1]) # indirect doctest
+            sage: CoxeterGroup(['A', 3]).fully_commutative_elements()([1, 2, 1]) # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: the input is not a reduced word of a fully commutative element
@@ -75,7 +75,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         TESTS::
 
-            sage: FullyCommutativeElements(['A', 3])([3, 1]) # indirect doctest
+            sage: CoxeterGroup(['A', 3]).fully_commutative_elements()([3, 1]) # indirect doctest
             [1, 3]
         """
         return self.cartier_foata_form()
@@ -100,7 +100,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         
         TESTS::
 
-            sage: FC = FullyCommutativeElements(['A', 3]) 
+            sage: FC = CoxeterGroup(['A', 3]).fully_commutative_elements() 
             sage: x = FC([1, 2]); x.is_fully_commutative()
             True
             sage: x = FC.element_class(FC, [1, 2, 1], check=False); x.is_fully_commutative()
@@ -157,7 +157,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         The following reduced words express the same FC elements in `B_5`::
 
-            sage: FC = FullyCommutativeElements(['B', 5])
+            sage: FC = CoxeterGroup(['B', 5]).fully_commutative_elements()
             sage: FC([1, 4, 3, 5, 2, 4, 3]) # indirect doctest
             [1, 4, 3, 5, 2, 4, 3]
             sage: FC([4, 1, 3, 5, 2, 4, 3]) # indirect doctest
@@ -220,7 +220,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         EXAMPLES::
 
-            sage: FC = FullyCommutativeElements(['A', 5])
+            sage: FC = CoxeterGroup(['A', 5]).fully_commutative_elements()
             sage: FC([1, 4, 3, 5, 2, 4]).heap().cover_relations()
             [[1, 2], [1, 3], [2, 5], [2, 4], [3, 5], [0, 4]]
             sage: FC([1, 4, 3, 5, 4, 2]).heap(one_index=True).cover_relations()
@@ -264,7 +264,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         EXAMPLES::
 
-            sage: FC = FullyCommutativeElements(['B', 5])
+            sage: FC = CoxeterGroup(['B', 5]).fully_commutative_elements()
             sage: FC([3,2,4,3,1]).plot_heap()
             Graphics object consisting of 15 graphics primitives
 
@@ -319,7 +319,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         EXAMPLES::
 
-            sage: FC = FullyCommutativeElements(['A', 5])
+            sage: FC = CoxeterGroup(['A', 5]).fully_commutative_elements()
             sage: FC([1,3]).n_value()
             2
             sage: FC([1,2,3]).n_value()
@@ -374,7 +374,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         EXAMPLES::
 
-            sage: FC = FullyCommutativeElements(['B', 5])
+            sage: FC = CoxeterGroup(['B', 5]).fully_commutative_elements()
             sage: w = FC([1, 4, 3, 5, 2, 4, 3])
             sage: w.find_descent(1)
             0
@@ -407,7 +407,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         EXAMPLES::
 
-            sage: FC = FullyCommutativeElements(['B', 5])
+            sage: FC = CoxeterGroup(['B', 5]).fully_commutative_elements()
             sage: w = FC([1, 4, 3, 5, 2, 4, 3])
             sage: w.has_descent(1)
             True
@@ -440,13 +440,13 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         EXAMPLES::
 
-            sage: FC = FullyCommutativeElements(['B', 5])
+            sage: FC = CoxeterGroup(['B', 5]).fully_commutative_elements()
             sage: w = FC([1, 4, 3, 5, 2, 4, 3])
             sage: sorted(w.descents())
             [1, 4]
             sage: w.descents(side='right')
             {3}
-            sage: FC = FullyCommutativeElements(['A', 5])
+            sage: FC = CoxeterGroup(['A', 5]).fully_commutative_elements()
             sage: sorted(FC([1, 4, 3, 5, 2, 4, 3]).descents())
             [1, 4]
 
@@ -486,7 +486,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         EXAMPLES::
 
-            sage: FC = FullyCommutativeElements(['B', 6])
+            sage: FC = CoxeterGroup(['B', 6]).fully_commutative_elements()
             sage: w = FC([1, 6, 2, 5, 4, 6, 5])
             sage: w.coset_decomposition({1})
             ([1], [6, 2, 5, 4, 6, 5])
@@ -549,7 +549,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         Consider the FC element `w = 12` in the group `B_3`::
 
-            sage: FCB3 = FullyCommutativeElements(['B', 3])
+            sage: FCB3 = CoxeterGroup(['B', 3]).fully_commutative_elements()
             sage: FCB3.coxeter_matrix()
             [1 3 2]
             [3 1 4]
@@ -582,7 +582,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: u.still_reduced_fc_after_prepending(3)
             False
 
-            sage: FCA5 = FullyCommutativeElements(['A',5])
+            sage: FCA5 = CoxeterGroup(['A', 5]).fully_commutative_elements()
             sage: w = FCA5([2,4,1,3,2,5])
             sage: w.still_reduced_fc_after_prepending(5)
             False
@@ -696,7 +696,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         We will compute all star operations on the following FC element in type
         `B_6` relative to `J = \{5, 6\}`::
 
-            sage: FC = FullyCommutativeElements(['B', 6])
+            sage: FC = CoxeterGroup(['B', 6]).fully_commutative_elements()
             sage: w = FC([1, 6, 2, 5, 4, 6, 5])
 
         Whether and how a left star operations can be applied depend on the
@@ -798,7 +798,7 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
 
     Create the enumerate set of fully commutative elements in `B_3`::
 
-        sage: FC = FullyCommutativeElements(['B', 3]); FC
+        sage: FC = CoxeterGroup(['B', 3]).fully_commutative_elements(); FC
         Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? with Coxeter matrix:
         [1 3 2]
         [3 1 4]
@@ -842,7 +842,7 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
 
     Enumerate the FC elements in `A_3`::
 
-        sage: FCA3 = FullyCommutativeElements(['A', 3])
+        sage: FCA3 = CoxeterGroup(['A', 3]).fully_commutative_elements()
         sage: FCA3.category()
         Category of finite enumerated sets
         sage: FCA3.list()
@@ -863,14 +863,14 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
 
     Count the FC elements in `B_8`::
 
-        sage: FCB8 = FullyCommutativeElements(['B', 8])
+        sage: FCB8 = CoxeterGroup(['B', 8]).fully_commutative_elements()
         sage: len(FCB8)    # long time (7 seconds)
         14299
 
     Iterate through the FC elements of length up to 2 in the non-FC-finite group
     affine `A_2`::
 
-        sage: FCAffineA2 = FullyCommutativeElements(['A', 2, 1])
+        sage: FCAffineA2 = CoxeterGroup(['A', 2, 1]).fully_commutative_elements()
         sage: FCAffineA2.category()
         Category of infinite enumerated sets
         sage: list(FCAffineA2.iterate_to_length(2))
@@ -881,12 +881,13 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
         r"""
         EXAMPLES::
 
+            sage: from sage.combinat.fully_commutative_elements import FullyCommutativeElements
             sage: x1 = FullyCommutativeElements(CoxeterGroup(['B', 3])); x1
             Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? with Coxeter matrix:
             [1 3 2]
             [3 1 4]
             [2 4 1]
-            sage: x2 = FullyCommutativeElements(['B', 3]); x2
+            sage: x2 = CoxeterGroup(['B', 3]).fully_commutative_elements(); x2
             Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? with Coxeter matrix:
             [1 3 2]
             [3 1 4]
@@ -916,6 +917,7 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
         r"""
         EXAMPLES::
 
+            sage: from sage.combinat.fully_commutative_elements import FullyCommutativeElements
             sage: FullyCommutativeElements(CoxeterGroup(['H', 4]))
             Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790? with Coxeter matrix:
             [1 3 2 2]
@@ -949,7 +951,7 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
         r"""
         EXAMPLES::
 
-            sage: FullyCommutativeElements(['H', 4])
+            sage: CoxeterGroup(['H', 4]).fully_commutative_elements()
             Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790? with Coxeter matrix:
             [1 3 2 2]
             [3 1 3 2]
@@ -962,7 +964,7 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
         r"""
         TESTS::
 
-            sage: FC = FullyCommutativeElements(['A', 3])
+            sage: FC = CoxeterGroup(['A', 3]).fully_commutative_elements()
             sage: FC([1, 2]) # indirect doctest
             [1, 2]
         """
@@ -976,7 +978,7 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: FCA3 = FullyCommutativeElements(['A', 3])
+            sage: FCA3 = CoxeterGroup(['A', 3]).fully_commutative_elements()
             sage: FCA3.coxeter_group()
             Finite Coxeter group over Integer Ring with Coxeter matrix:
             [1 3 2]
@@ -993,12 +995,12 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: FCA3 = FullyCommutativeElements(['A', 3])
+            sage: FCA3 = CoxeterGroup(['A', 3]).fully_commutative_elements()
             sage: FCA3.coxeter_matrix()
             [1 3 2]
             [3 1 3]
             [2 3 1]
-            sage: FCB5 = FullyCommutativeElements(['B', 5])
+            sage: FCB5 = CoxeterGroup(['B', 5]).fully_commutative_elements()
             sage: FCB5.coxeter_matrix()
             [1 3 2 2 2]
             [3 1 3 2 2]
@@ -1017,10 +1019,10 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: FCA3 = FullyCommutativeElements(['A', 3])
+            sage: FCA3 = CoxeterGroup(['A', 3]).fully_commutative_elements()
             sage: FCA3.index_set()
             (1, 2, 3)
-            sage: FCB5 = FullyCommutativeElements(['B', 5])
+            sage: FCB5 = CoxeterGroup(['B', 5]).fully_commutative_elements()
             sage: FCB5.index_set()
             (1, 2, 3, 4, 5)
         """
@@ -1034,7 +1036,7 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
 
         TESTS::
 
-            sage: FC = FullyCommutativeElements(['A', 10])
+            sage: FC = CoxeterGroup(['A', 10]).fully_commutative_elements()
             sage: next(iter(FC)) # indirect doctest
             []
         """
@@ -1077,7 +1079,7 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
         The following example produces all FC elements of length up to 2 in the
         group `A_3`::
 
-            sage: FCA3 = FullyCommutativeElements(['A', 3])
+            sage: FCA3 = CoxeterGroup(['A', 3]).fully_commutative_elements()
             sage: list(FCA3.iterate_to_length(2))
             [[], [1], [2], [3], [2, 1], [1, 3], [1, 2], [3, 2], [2, 3]]
 
@@ -1096,7 +1098,7 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
         The following example produces all FC elements of length up to 4 in the
         affine Weyl group `\tilde A_2`::
 
-            sage: FCAffineA2 = FullyCommutativeElements(['A', 2, 1])
+            sage: FCAffineA2 = CoxeterGroup(['A', 2, 1]).fully_commutative_elements()
             sage: FCAffineA2.category()
             Category of infinite enumerated sets
             sage: list(FCAffineA2.iterate_to_length(4))

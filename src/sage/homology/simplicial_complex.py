@@ -1045,7 +1045,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
         else:
             vertex_set = range(n + 1)
 
-        vertices = tuple(vertex_set)
+        try:               # use natural order if vertices are integers
+            vertices = tuple(sorted(vertex_set))
+        except TypeError:  # incomparable vertices
+            vertices = tuple(sorted(vertex_set, key=str))
 
         gen_dict = {}
         for v in vertices:

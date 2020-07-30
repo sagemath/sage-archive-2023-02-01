@@ -948,7 +948,7 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
             # The only groups of Cartan types that are infinite but
             # FC-finite are affine `F_4` and affine `E_8`, which appear as
             # `F_5` and `E_9` in [Ste1996]_.
-            if not ctype.is_affine() or (family == 'F' and rank == 5) or (family == 'E' and rank == 8):
+            if not ctype.is_affine() or (family == 'F' and rank == 5) or (family == 'E' and rank == 9):
                 category = category.Finite()
             else:
                 category = category.Infinite()

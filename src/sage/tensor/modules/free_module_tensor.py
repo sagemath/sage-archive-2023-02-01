@@ -1319,17 +1319,17 @@ class FreeModuleTensor(ModuleElementWithMutability):
             [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
              Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
 
-        Since zero is a special element, its components cannot be changed::
+        Since zero is an immutable element, its components cannot be changed::
 
             sage: z = M.tensor_module(1, 1).zero()
             sage: z.set_comp(e)[0,1] = 1
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the zero element cannot be changed
+            AssertionError: the components of an immutable element cannot be changed
 
         """
-        if self is self.parent().zero():
-            raise AssertionError("the components of the zero element "
+        if self.is_immutable():
+            raise AssertionError("the components of an immutable element "
                                  "cannot be changed")
         self._is_zero = False  # a priori
         return self._set_comp_unsafe(basis)
@@ -1456,17 +1456,17 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: t.display(e)
             t = -3 e_0*e^1 + 2 e_1*e^2
 
-        Since zero is a special element, its components cannot be changed::
+        Since zero is an immutable element, its components cannot be changed::
 
             sage: z = M.tensor_module(1, 1).zero()
             sage: z.add_comp(e)[0,1] = 1
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the zero element cannot be changed
+            AssertionError: the components of an immutable element cannot be changed
 
         """
-        if self is self.parent().zero():
-            raise AssertionError("the components of the zero element "
+        if self.is_immutable():
+            raise AssertionError("the components of an immutable element "
                                  "cannot be changed")
         self._is_zero = False  # a priori
         return self._add_comp_unsafe(basis)

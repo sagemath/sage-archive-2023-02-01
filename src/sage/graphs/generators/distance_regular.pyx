@@ -1,5 +1,5 @@
 r"""
-Dabase of distance regular graphs
+Database of distance regular graphs
 
 In this module we construct several distance regular graphs
 and group them in a function that maps intersection arrays
@@ -39,7 +39,7 @@ def cocliques_HoffmannSingleton():
     r"""
     Return the graph obtained from the cocliques of the Hoffmann-Singleton graph.
 
-    This is a distance-regular graph with intersecion array
+    This is a distance-regular graph with intersection array
     `[15, 14, 10, 3; 1, 5, 12, 15]`.
 
     EXAMPLES::
@@ -61,14 +61,12 @@ def cocliques_HoffmannSingleton():
     edges = []
     for i in range(100):
         sC = frozenset(cocliques[i])
-        for j in range(i+1,100):
+        for j in range(i + 1, 100):
             if len(sC.intersection(cocliques[j])) == 8:
-                sC2 = frozenset(cocliques[j])
-                edges.append( (sC,sC2) )
+                edges.append((sC, frozenset(cocliques[j])))
 
-    G = Graph(edges,format="list_of_edges")
+    G = Graph(edges, format="list_of_edges")
     return G
-
 
 def locally_GQ42_graph():
     r"""
@@ -91,13 +89,13 @@ def locally_GQ42_graph():
         This function needs the GAP's package AtlasRep [WPNBBAtl]_.
         Install it via ``sage -i gap_packages``.
     """
-    H = libgap.AtlasGroup("3^2.U4(3).D8",libgap.NrMovedPoints,756)
+    H = libgap.AtlasGroup("3^2.U4(3).D8", libgap.NrMovedPoints, 756)
     Ns = H.NormalSubgroups()
     for N in Ns:
         if len(N.GeneratorsSmallest()) == 7:  # there is only one
             break
 
-    G = Graph(libgap.Orbit(N,[1,9],libgap.OnSets), format='list_of_edges')
+    G = Graph(libgap.Orbit(N, [1, 9], libgap.OnSets), format='list_of_edges')
     G.name("locally GQ(4,2) graph")
     return G
 
@@ -121,7 +119,7 @@ def ConwaySmith_for_3S7():
     w = F.gen()
 
     V= VectorSpace(GF(4), 6)
-    z2 = GF(4)('z2') # GF(4) = {0,1,z2, z2+1}
+    z2 = GF(4)('z2') # GF(4) = {0, 1, z2, z2+1}
 
     W = V.span([(0,0,1,1,1,1), (0,1,0,1,z2,z2+1), (1,0,0,1,z2+1,z2)])
     # we only need the 45 vectors with 2 zero entries
@@ -129,10 +127,10 @@ def ConwaySmith_for_3S7():
 
     K = []
     for v in W:
-        #check zero entries
+        # check zero entries
         zeros = 0
         for x in v:
-            if x == 0:
+            if x.is_zero():
                 zeros += 1
 
         if zeros == 2:
@@ -143,7 +141,7 @@ def ConwaySmith_for_3S7():
             for x in v:
                 if x == z2:
                     vv.append(w)
-                elif x == z2+1:
+                elif x == z2 + 1:
                     vv.append(w**2)
                 else:
                     vv.append(int(x))  # this is weirdly needed for some reason
@@ -154,8 +152,8 @@ def ConwaySmith_for_3S7():
 
     # we need to add other vectors
     for i in range(6):
-        #create e_i
-        ei = [0]*6
+        # create e_i
+        ei = [0, 0, 0, 0, 0, 0]
         ei[i] = 1
         ei = vector(F, ei)
 
@@ -164,22 +162,17 @@ def ConwaySmith_for_3S7():
         K.append(2 * w**2 * ei)
     # now K is all the 63 vertices
 
-    def has_edge(u,v):
-        com = 0
-        for i in range(6):
-            com += u[i].conjugate() * v[i]
+    for v in K:
+        v.set_immutable()
 
-        if com == 2:
-            return True
-        return False
+    def has_edge(u, v):
+        return sum(u[i].conjugate() * v[i] for i in range(6)) == 2
 
     G = Graph()
     length = len(K)
     for i in range(length):
-        K[i].set_immutable()
-        for j in range(i+1, length):
+        for j in range(i + 1, length):
             if has_edge(K[i], K[j]):
-                K[j].set_immutable()
                 G.add_edge((K[i], K[j]))
 
     G.name("Conway-Smith graph for 3S7")
@@ -206,7 +199,7 @@ def graph_3O73():
         This function needs the GAP's package AtlasRep [WPNBBAtl]_.
         Install it via ``sage -i gap_packages``.
     """
-    group = libgap.AtlasGroup("3.O7(3)",libgap.NrMovedPoints,1134)
+    group = libgap.AtlasGroup("3.O7(3)", libgap.NrMovedPoints, 1134)
     G = Graph(libgap.Orbit(group, [1, 3], libgap.OnSets), format='list_of_edges')
     G.name("Distance transitive graph with automorphism group 3.O_7(3)")
     return G

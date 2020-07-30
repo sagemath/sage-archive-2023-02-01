@@ -1485,53 +1485,6 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         return self.parent()([ a.subs(in_dict, **kwds) for a in self.list() ])
 
-    def set_immutable(self):
-        """
-        Make this vector immutable. This operation can't be undone.
-
-        EXAMPLES::
-
-            sage: v = vector([1..5]); v
-            (1, 2, 3, 4, 5)
-            sage: v[1] = 10
-            sage: v.set_immutable()
-            sage: v[1] = 10
-            Traceback (most recent call last):
-            ...
-            ValueError: vector is immutable; please change a copy instead (use copy())
-        """
-        self._is_mutable = 0
-
-    def is_mutable(self):
-        """
-        Return True if this vector is mutable, i.e., the entries can be
-        changed.
-
-        EXAMPLES::
-
-            sage: v = vector(QQ['x,y'], [1..5]); v.is_mutable()
-            True
-            sage: v.set_immutable()
-            sage: v.is_mutable()
-            False
-        """
-        return self._is_mutable
-
-    def is_immutable(self):
-        """
-        Return True if this vector is immutable, i.e., the entries cannot
-        be changed.
-
-        EXAMPLES::
-
-            sage: v = vector(QQ['x,y'], [1..5]); v.is_immutable()
-            False
-            sage: v.set_immutable()
-            sage: v.is_immutable()
-            True
-        """
-        return not self._is_mutable
-
     def change_ring(self, R):
         """
         Change the base ring of this vector.

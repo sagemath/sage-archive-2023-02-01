@@ -191,6 +191,9 @@ cdef class ModuleElement(Element):
     # self._lmul_(x) is self * x
     cpdef _rmul_(self, Element left)
 
+cdef class ModuleElementWithMutability(ModuleElement):
+    cdef bint _is_mutable
+
 cdef class MonoidElement(Element):
     cpdef _pow_int(self, n)
 
@@ -234,7 +237,7 @@ cdef class InfinityElement(RingElement):
     pass
 
 
-cdef class Vector(ModuleElement):
+cdef class Vector(ModuleElementWithMutability):
     cdef Py_ssize_t _degree
 
     # Return the dot product using the simple metric

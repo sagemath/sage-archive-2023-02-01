@@ -195,7 +195,7 @@ tensor ``t`` acts on pairs formed by a linear form and a module element::
 from __future__ import absolute_import
 
 from sage.rings.integer import Integer
-from sage.structure.element import ModuleElement
+from sage.structure.element import ModuleElementWithMutability
 from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
                                       CompFullyAntiSym)
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
@@ -206,7 +206,7 @@ from sage.manifolds.chart import Chart
 # TODO: remove the import of Chart after _preparse_display has been redefined
 # in tensor fields
 
-class FreeModuleTensor(ModuleElement):
+class FreeModuleTensor(ModuleElementWithMutability):
     r"""
     Tensor over a free module of finite rank over a commutative ring.
 
@@ -281,7 +281,7 @@ class FreeModuleTensor(ModuleElement):
         """
         if parent is None:
             parent = fmodule.tensor_module(*tensor_type)
-        ModuleElement.__init__(self, parent)
+        super().__init__(parent)
         self._fmodule = fmodule
         self._tensor_type = tuple(tensor_type)
         self._tensor_rank = self._tensor_type[0] + self._tensor_type[1]

@@ -898,12 +898,17 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
             [1 3 2]
             [3 1 4]
             [2 4 1]
-            sage: x2 = CoxeterGroup(['B', 3]).fully_commutative_elements(); x2
+            sage: x2 = FullyCommutativeElements(['B', 3]); x2
             Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? with Coxeter matrix:
             [1 3 2]
             [3 1 4]
             [2 4 1]
-            sage: x1 is x2
+            sage: x3 = FullyCommutativeElements(CoxeterMatrix([[1, 3, 2], [3, 1, 4], [2, 4, 1]])); x3
+            Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? with Coxeter matrix:
+            [1 3 2]
+            [3 1 4]
+            [2 4 1]
+            sage: x1 is x2 is x3
             True
             sage: FullyCommutativeElements(CartanType(['B', 3]).relabel({1: 3, 2: 2, 3: 1}))
             Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? with Coxeter matrix:

@@ -98,6 +98,7 @@ Berkovich Analytic Space
 .. toctree::
    :maxdepth: 1
 
+   sage/schemes/berkovich/berkovich_cp_element
    sage/schemes/berkovich/berkovich_space
 
 .. include:: ../footer.txt

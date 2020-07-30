@@ -579,17 +579,21 @@ class Berkovich_Element_Cp(Berkovich_Element):
             return self._radius_lst
         return self._radius
 
-    def diameter(self):
-        """
-        Diameter function on Berkovich space.
+    def diameter(self, basepoint=Infinity):
+        r"""
+        Generalized diameter function on Berkovich space.
 
-        For type I, II, and III points, returns the radius.
+        If the basepoint is infinity, the diameter is equal to
+        the limit of the radii of the corresponding disks in `\CC_p`.
 
-        For type IV points returns either the last radius
-        in the finite approximation, or if a generating function
-        was given for the radii, the diameter is computed
-        as the limit of the function as it's variable tends
-        to infinity.
+        If the basepoint is not infinity, the diameter
+        is the Hsia kernel of this point with itself at
+        basepoint ``basepoint``.
+
+        INPUT:
+
+        - ``basepoint`` -- (default = Infinity) A point of the
+          same Berkovich space as this point.
 
         OUTPUT: A real number.
 
@@ -615,22 +619,41 @@ class Berkovich_Element_Cp(Berkovich_Element):
             sage: g = (y+1)/y
             sage: B(f,g).diameter()
             1.0
+
+        ::
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: Q1 = B(1/81, 1)
+            sage: Q2 = B(1/3)
+            sage: Q1.diameter(Q2)
+            0.00137174211248285
+
+        ::
+
+            sage: Q2.diameter(Q2)
+            +infinity
         """
-        if self._type == 4:
-            if self._radius_func == None:
-                return self._radius_lst[-1]
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            R = PolynomialRing(QQ, names="x")
-            x = R.gens()[0]
-            if is_Expression(self._radius_func):
-                radius_func_variable = self._radius_func.variables()[0]
-                radius_expr = self._radius_func.subs({radius_func_variable:x})
-            else:
-                radius_expr = self._radius_func(x)
-                from sage.symbolic.ring import SymbolicRing as SR
-                radius_expr = SR(RR)(radius_expr)
-            return radius_expr.limit(x="oo")
-        return self._radius
+        if basepoint == Infinity:
+            if self._type == 4:
+                if self._radius_func == None:
+                    return self._radius_lst[-1]
+                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+                R = PolynomialRing(QQ, names="x")
+                x = R.gens()[0]
+                if is_Expression(self._radius_func):
+                    radius_func_variable = self._radius_func.variables()[0]
+                    radius_expr = self._radius_func.subs({radius_func_variable:x})
+                else:
+                    radius_expr = self._radius_func(x)
+                    from sage.symbolic.ring import SymbolicRing as SR
+                    radius_expr = SR(RR)(radius_expr)
+                return radius_expr.limit(x="oo")
+            return self._radius
+        if not isinstance(basepoint, Berkovich_Element_Cp):
+            raise TypeError('basepoint must be a point of Berkovich space, not %s' %basepoint)
+        if basepoint.parent() != self.parent():
+            raise ValueError('basepoint must be a point of the same Berkovich space')
+        return self.Hsia_kernel(self, basepoint)
 
     def path_distance_metric(self, other):
         r"""
@@ -792,6 +815,89 @@ class Berkovich_Element_Cp(Berkovich_Element):
             new_other = other
         return 2*(new_self.join(new_other,gauss).diameter()) \
             - new_self.diameter() - new_other.diameter()
+
+    def potential_kernel(self, other, basepoint):
+        """
+        The potential kernel of this point with ``other``,
+        with basepoint ``basepoint``.
+
+        The potential kernel is the hyperbolic distance
+        between ``basepoint`` and the join of this point
+        with ``other`` relative to ``basepoint``.
+
+        INPUT:
+
+        - ``other`` -- A point of the same Berkovich space as this point.
+        - ``basepoint`` -- A point of the same Berkovich space as this point.
+
+        OUTPUT: A finite or infinite real number.
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: Q1 = B(27, 1)
+            sage: Q2 = B(1/3, 2)
+            sage: Q3 = B(1/9, 1/2)
+            sage: Q3.potential_kernel(Q1, Q2)
+            0.369070246428543
+
+        ::
+
+            sage: B = Berkovich_Cp_Affine(3)
+            sage: Q1 = B(27, 1)
+            sage: Q2 = B(1/3, 2)
+            sage: Q3 = B(1/9, 1/2)
+            sage: Q3.potential_kernel(Q1, Q2)
+            0.369070246428543
+        """
+        if not isinstance(other, type(self)):
+            raise TypeError('other must be a point of a Berkovich space, not %s' %other)
+        if other.parent() != self.parent():
+            raise ValueError('other must be a point of the same Berkovich space')
+        if not isinstance(basepoint, type(self)):
+            raise TypeError('basepoint must be a point of Berkovich line, not %s' %basepoint)
+        if basepoint.parent() != self.parent():
+            raise ValueError('basepoint must be a point of the same Berkovich space')
+        return basepoint.path_distance_metric(self.join(other, basepoint))
+
+    def spherical_kernel(self,other):
+        r"""
+        The spherical kernel of this point with ``other``.
+
+        The spherical kernel is one possible extension of the spherical
+        distance on `P^1(\CC_p)` to the projective Berkovich line.
+        See [BR2010]_ for details.
+
+        INPUT:
+
+        - ``other`` -- A point of the same Berkovich space as this point.
+
+        OUTPUT: A real number.
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: Q1 = B(2, 2)
+            sage: Q2 = B(1/9, 1)
+            sage: Q1.spherical_kernel(Q2)
+            0.500000000000000
+
+        ::
+
+            sage: Q3 = B(2)
+            sage: Q3.spherical_kernel(Q3)
+            0
+        """
+        if not isinstance(other, type(self)):
+            raise TypeError('other must be a point of Berkovich space, not %s' %other)
+        if other.parent() != self.parent():
+            raise ValueError('other must be a point of the same Berkovich space')
+        gauss_point = self.parent()(ZZ(0), ZZ(1))
+        w = self.join(other,gauss_point)
+        dist = gauss_point.path_distance_metric(w)
+        if dist == Infinity:
+            return 0
+        return self.prime()**(-1*dist)
 
     def Hsia_kernel_infinity(self, other):
         r"""
@@ -1190,30 +1296,6 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         else:
             radius = self.radius_function()
         return new_space(center, radius, prec=self.prec())
-
-    def center(self):
-        """
-        Returns the center of the corresponding disk (or sequence of disks) in ``Cp``.
-
-        OUTPUT:
-
-        - For type I-III points, a point of ``Cp``.
-        - For type IV points, a list of points of ``Cp``.
-
-        EXAMPLES::
-
-            sage: B = Berkovich_Cp_Affine(3)
-            sage: Q1 = B(2, 1)
-            sage: Q1.center()
-            2 + O(3^20)
-
-        ::
-
-            sage: d = B([4, 2], [4, 2])
-            sage: d.center()
-            [1 + 3 + O(3^20), 2 + O(3^20)]
-        """
-        return super().center()
 
     def __eq__(self, other):
         """
@@ -1662,104 +1744,6 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         proj_end = end.as_projective_point()
         return proj_self.contained_in_interval(proj_start, proj_end)
 
-    def potential_kernel(self, other, basepoint):
-        """
-        The potential kernel of this point with ``other`` with basepoint ``basepoint``.
-
-        The potential kernel is the hyperbolic distance between ``basepoint`` and the join
-        of this point with ``other`` relative to ``basepoint``.
-
-        INPUT:
-
-        - ``other`` -- A point of the same Berkovich space as this point.
-        - ``basepoint`` -- A point of the same Berkovich space as this point.
-
-        OUTPUT: A finite or infinite real number.
-
-        EXAMPLES::
-
-            sage: B = Berkovich_Cp_Affine(3)
-            sage: Q1 = B(27, 1)
-            sage: Q2 = B(1/3, 2)
-            sage: Q3 = B(1/9, 1/2)
-            sage: Q3.potential_kernel(Q1, Q2)
-            0.369070246428543
-        """
-        if not isinstance(other, Berkovich_Element_Cp_Affine):
-            raise TypeError('other must be a point of affine Berkovich space. other was %s' %other)
-        if self.parent() != other.parent():
-            raise ValueError('other must be a point of the same affine Berkovich space')
-        if not isinstance(basepoint, Berkovich_Element_Cp_Affine):
-            raise TypeError('basepoint must be a point of affine Berkovich space. basepoint was %s' %basepoint)
-        if basepoint.parent() != self.parent():
-            raise ValueError('basepoint must be a point of the same affine Berkovich space')
-        return basepoint.path_distance_metric(self.join(other, basepoint))
-
-    def spherical_kernel(self,other):
-        r"""
-        The spherical kernel of this point with ``other``.
-
-        The spherical kernel is one possible extension of
-        the spherical distance on `A^1(\CC_p)` to the Berkovich
-        Affine line. See [BR2010]_ for details.
-
-        OUTPUT: A real number.
-
-        EXAMPLES::
-
-            sage: B = Berkovich_Cp_Affine(Qp(3))
-            sage: Q1 = B(2, 9)
-            sage: Q2 = B(1/27, 1/27)
-            sage: Q1.spherical_kernel(Q2)
-            0.111111111111111
-
-        """
-        if not isinstance(other,Berkovich_Element_Cp_Affine):
-            raise TypeError('other must be a point of an affine Berkovich space. other was %s' %other)
-        if self.parent() != other.parent():
-            raise ValueError('other was not a point of the same affine Berkovich space')
-        gauss_point = self.parent()(RR(0), RR(1))
-        w = self.join(other,gauss_point)
-        dist = gauss_point.path_distance_metric(w)
-        if dist == Infinity:
-            return 0
-        return (self.prime())**(-1*dist)
-
-    def diameter(self, basepoint=Infinity):
-        r"""
-        Generalized diameter function.
-
-        If the basepoint is infinity, the diameter is equal to
-        the limit of the radii of the corresponding disks in `\CC_p`.
-
-        If the basepoint is not infinity, the diameter
-        is the Hsia kernel of this point with itself at
-        basepoint ``basepoint``.
-
-        INPUT:
-
-        - ``basepoint`` -- (default = Infinity) A point of the
-          same Berkovich space as this point.
-
-        OUTPUT: A finite or infinite real number.
-
-        EXAMPLES::
-
-            sage: B = Berkovich_Cp_Affine(3)
-            sage: Q1 = B(1/81, 1)
-            sage: Q2 = B(1/3)
-            sage: Q1.diameter(Q2)
-            0.00137174211248285
-
-        ::
-
-            sage: Q2.diameter(Q2)
-            +infinity
-        """
-        if basepoint == Infinity:
-            return super().diameter()
-        return self.Hsia_kernel(self, basepoint)
-
 class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
     r"""
     Element class of the Berkovich projective line over `\CC_p`.
@@ -1947,30 +1931,6 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         else:
             radius = self.radius_function()
         return new_space(center, radius, prec=self.prec())
-
-    def center(self):
-        r"""
-        Returns the center of the corresponding disk (or sequence of disks) in `P^1(\CC_p)`.
-
-        OUTPUT:
-
-        - For type I-III points, a point of `P^1(\CC_p)`.
-        - For type IV points, a list of points of `P^1(\CC_p)`.
-
-        EXAMPLES::
-
-            sage: B = Berkovich_Cp_Projective(3)
-            sage: Q1 = B(2, 1)
-            sage: Q1.center()
-            (2 + O(3^20) : 1 + O(3^20))
-
-        ::
-
-            sage: d = B([4, 2], [4, 2])
-            sage: d.center()
-            [(1 + 3 + O(3^20) : 1 + O(3^20)), (2 + O(3^20) : 1 + O(3^20))]
-        """
-        return super().center()
 
     def __eq__(self, other):
         """
@@ -2571,113 +2531,3 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         s_ge_start = self.gt(start) or self == start
         s_ge_end = self.gt(end) or self == end
         return j_ge_s and (s_ge_end or s_ge_start)
-
-    def potential_kernel(self, other, basepoint):
-        """
-        The potential kernel of this point with ``other``,
-        with basepoint ``basepoint``.
-
-        The potential kernel is the hyperbolic distance
-        between ``basepoint`` and the join of this point
-        with ``other`` relative to ``basepoint``.
-
-        INPUT:
-
-        - ``other`` -- A point of the same Berkovich space as this point.
-        - ``basepoint`` -- A point of the same Berkovich space as this point.
-
-        OUTPUT: A finite or infinite real number.
-
-        EXAMPLES::
-
-            sage: B = Berkovich_Cp_Projective(3)
-            sage: Q1 = B(27, 1)
-            sage: Q2 = B(1/3, 2)
-            sage: Q3 = B(1/9, 1/2)
-            sage: Q3.potential_kernel(Q1, Q2)
-            0.369070246428543
-        """
-        if not isinstance(other, Berkovich_Element_Cp_Projective):
-            raise TypeError('other must be a point of a projective Berkovich line, instead was %s' %other)
-        if other.parent() != self.parent():
-            raise ValueError('other must be a point of the same projective Berkovich line')
-        if not isinstance(basepoint, Berkovich_Element_Cp_Projective):
-            raise TypeError('basepoint must be a point of a projective Berkovich line, instead was %s' %basepoint)
-        if basepoint.parent() != self.parent():
-            raise ValueError('basepoint must be a point of the same projective Berkovich line')
-        return basepoint.path_distance_metric(self.join(other, basepoint))
-
-    def spherical_kernel(self,other):
-        r"""
-        The spherical kernel of this point with ``other``.
-
-        The spherical kernel is one possible extension of the spherical
-        distance on `P^1(\CC_p)` to the projective Berkovich line.
-        See [BR2010]_ for details.
-
-        INPUT:
-
-        - ``other`` -- A point of the same Berkovich space as this point.
-
-        OUTPUT: A real number.
-
-        EXAMPLES::
-
-            sage: B = Berkovich_Cp_Projective(3)
-            sage: Q1 = B(2, 2)
-            sage: Q2 = B(1/9, 1)
-            sage: Q1.spherical_kernel(Q2)
-            0.500000000000000
-
-        ::
-
-            sage: Q3 = B(2)
-            sage: Q3.spherical_kernel(Q3)
-            0
-        """
-        if not isinstance(other, Berkovich_Element_Cp_Projective):
-            raise TypeError('other must be a point of a projective Berkovich line, instead was %s' %other)
-        if other.parent() != self.parent():
-            raise ValueError('other must be a point of the same projective Berkovich line')
-        gauss_point = self.parent()(ZZ(0), ZZ(1))
-        w = self.join(other,gauss_point)
-        dist = gauss_point.path_distance_metric(w)
-        if dist == Infinity:
-            return 0
-        return self.prime()**(-1*dist)
-
-    def diameter(self, basepoint=Infinity):
-        r"""
-        Generalized diameter function.
-
-        If the basepoint is infinity, the diameter is equal to 
-        the limit of the radii of the corresponding disks in `\CC_p`.
-
-        If the basepoint is not infinity, the diameter
-        is the Hsia kernel of this point with itself at
-        basepoint ``basepoint``.
-
-        INPUT:
-
-        - ``basepoint`` -- (default = Infinity) A point of the same
-          Berkovich space as this point, or infinity.
-
-        OUTPUT: A real number or infinity.
-
-        EXAMPLES::
-
-            sage: B = Berkovich_Cp_Projective(3)
-            sage: Q1 = B(1/81, 1)
-            sage: Q2 = B(1/3)
-            sage: Q1.diameter(Q2)
-            0.00137174211248285
-
-        ::
-
-            sage: Q2.diameter(Q2)
-            +infinity
-        """
-        if basepoint == Infinity:
-            return super().diameter()
-        else:
-            return self.Hsia_kernel(self, basepoint)

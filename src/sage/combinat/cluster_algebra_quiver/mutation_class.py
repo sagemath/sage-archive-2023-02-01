@@ -508,8 +508,8 @@ def _graph_without_edge_labels(dg, vertices):
     """
     vertices = list(vertices)
     edges = dg.edge_iterator(labels=True)
-    edge_labels = tuple(set(label for _, _, label in edges
-                            if label != (1, -1)))
+    edge_labels = tuple(sorted(set(label for _, _, label in edges
+                            if label != (1, -1))))
     edge_partition = [[] for _ in edge_labels]
     i = 0
     while i in vertices:

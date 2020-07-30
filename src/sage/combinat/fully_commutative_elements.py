@@ -80,6 +80,25 @@ class FullyCommutativeElement(NormalizedClonableList):
         """
         return self.cartier_foata_form()
 
+    def group_element(self):
+        r"""
+        Get the actual element of the Coxeter group associated with
+        ``self.parent()`` corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A', 3])
+            sage: FC = W.fully_commutative_elements()
+            sage: x = FC([1, 2])
+            sage: x.group_element()
+            [ 0 -1  1]
+            [ 1 -1  1]
+            [ 0  0  1]
+            sage: x.group_element() in W
+            True
+        """
+        return self.parent().coxeter_group().from_reduced_word(self)
+
     ###########################################################################
     # Characterization and representation of FC elements                      #
     ###########################################################################

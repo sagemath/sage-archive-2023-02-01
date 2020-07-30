@@ -753,7 +753,7 @@ class FusionRing(WeylCharacterRing):
             return 0
         rho = self.space().rho()
         v = [self._nf*x.weight().inner_product(x.weight()+2*rho) for x in [i,j,k]]
-        r = self.root_of_unity((k.twist()-i.twist()-j.twist())/2)
+        r = self.root_of_unity((k.twist(reduce=False)-i.twist(reduce=False)-j.twist(reduce=False))/2)
         if i != j:
             return r
         elif k.weight() in i.symmetric_power(2).monomial_coefficients():
@@ -872,7 +872,7 @@ class FusionRing(WeylCharacterRing):
                 raise ValueError("fusion weight is valid for basis elements only")
             return next(iter(self._monomial_coefficients))
 
-        def twist(self):
+        def twist(self, reduce=True):
             r"""
             Return a rational number `h` such that `\theta = e^{i \pi h}` 
             is the twist of ``self``.
@@ -914,9 +914,15 @@ class FusionRing(WeylCharacterRing):
             inner = lam.inner_product(lam + 2*rho)
             twist = P._conj * P._nf * inner / P.fusion_l()
             # Reduce to canonical form
-            f = twist.floor()
-            twist -= f
-            return twist + (f % 2)
+            if reduce:
+                f = twist.floor()
+                twist -= f
+                return twist + (f % 2)
+            else:
+                return twist
+
+        def theta(self):
+            return self.parent().root_of_unity(self.twist())
 
         @cached_method
         def q_dimension(self):

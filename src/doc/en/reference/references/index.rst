@@ -4514,6 +4514,11 @@ REFERENCES:
              **75** (1997). 99-133. :arxiv:`math/9511223v1`.
              http://www.ms.unimelb.edu.au/~ram/Publications/1997PLMSv75p99.pdf
 
+.. [LedRam1997] Robert Leduc and Arun Ram, A ribbon Hopf algebra approach to
+             the irreducible representations of centralizer algebras: the
+             Brauer, Birman-Wenzl, and type A Iwahori-Hecke algebras.
+             Adv. Math. 125 (1997), no. 1, 1–94.
+
 .. [Rau1979] Gerard Rauzy, *Échanges d'intervalles et transformations
              induites*, Acta Arith. 34, no. 3, 203-212, 1980
 

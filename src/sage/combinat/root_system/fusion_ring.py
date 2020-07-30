@@ -113,9 +113,10 @@ class FusionRing(WeylCharacterRing):
         [B22(0,0), B22(1,0), B22(0,1), B22(2,0), B22(1,1), B22(0,2)]
 
     The fusion ring has a number of methods that reflect its role
-    as the Grothendieck ring of a *modular tensor category*. These
-    include a twist method :meth:`Element.twist` for its elements related
-    to the ribbon structure, and the S-matrix :meth:`s_ij`.
+    as the Grothendieck ring of a *modular tensor category* (MTC). These
+    include twist methods :meth:`Element.twist` and :meth:`Element.ribbon`
+    for its elements related to the ribbon structure, and the 
+    S-matrix :meth:`s_ij`.
 
     There are two natural normalizations of the S-matrix. Both
     are explained in Chapter 3 of [BaKi2001]_. The one that is computed
@@ -203,6 +204,8 @@ class FusionRing(WeylCharacterRing):
         [[i0, p, s], [p, i0, s], [s, s, i0 + p]]
         sage: [x.twist() for x in b]
         [0, 1, 1/8]
+        sage: [x.ribbon() for x in b]
+        [1, -1, zeta128^8]
         sage: I.global_q_dimension()
         4
         sage: I.total_q_order()
@@ -546,7 +549,7 @@ class FusionRing(WeylCharacterRing):
         where `k` is the level and `h^\vee` is the dual Coxeter number.
         See [DFMS1996]_ Equation (15.61).
 
-        Let `d_i` and `theta_i` be the quantum dimensions and
+        Let `d_i` and `\theta_i` be the quantum dimensions and
         twists of the simple objects. By Proposition 2.3 in [RoStWa2009]_,
         there exists a rational number `c` such that
         `D_+ / \sqrt{D} = e^{i\pi c/4}`, where `D_+ = \sum d_i^2 \theta_i`
@@ -606,7 +609,7 @@ class FusionRing(WeylCharacterRing):
             [        0         0 zeta32^10]
         """
         B = self.basis()
-        return diagonal_matrix(B[x].theta() for x in self.get_order())
+        return diagonal_matrix(B[x].ribbon() for x in self.get_order())
 
     @cached_method
     def N_ijk(self, elt_i, elt_j, elt_k):
@@ -728,10 +731,29 @@ class FusionRing(WeylCharacterRing):
             return S
         
     def rmatrix(self,i,j,k):
-        """
-        Returns the value of the R-matrix on the subobject
-        of type `k` in `i\otimes j`. This is mainly of
-        interest if `N_{ij}^k=1`. 
+        r"""
+        The R-matrix is a homomorphism `i\otimes j\rightarrow j\otimes i`. 
+        This may be hard to describe since the object `i\otimes j`
+        may be reducible. However if `k` is a simple subobject of
+        `i\otimes j` it is also a subobject of `j\otimes i`. If we fix
+        embeddings `k\rightarrow i\otimes j`, `k\rightarrow j\otimes i`
+        we may ask for the scalar automorphism of `k`
+        induced by the R-matrix. This method computes that
+        scalar. It is possible to fix the embeddings so
+        that this scalar equals
+        
+        .. MATH::
+
+            \pm \sqrt{\frac{ \theta_k }{ \theta_i \theta_j }}.
+
+        If `i=j` then we must be careful about the sign
+        of the square root. This sign is `+` if
+        `k` is a subobject of the symmetric square of
+        `i` and `-` if it is a subobject of the exterior
+        square. See [LedRam1997]_ Corollary 2.22 (actually
+        due to Reshetikhin).
+
+        This method is mainly of interest if `N_{ij}^k=1`.
 
         EXAMPLES::
 
@@ -812,7 +834,7 @@ class FusionRing(WeylCharacterRing):
             sage: Dp/Dm == B31.root_of_unity(c/2)
             True
         """
-        return sum((x.q_dimension())**2 * x.theta() for x in self.basis())
+        return sum((x.q_dimension())**2 * x.ribbon() for x in self.basis())
 
     def D_minus(self):
         r"""
@@ -832,7 +854,7 @@ class FusionRing(WeylCharacterRing):
             sage: Dp*Dm == E83.global_q_dimension()
             True
         """
-        return sum((x.q_dimension())**2 / x.theta() for x in self.basis())
+        return sum((x.q_dimension())**2 / x.ribbon() for x in self.basis())
 
     class Element(WeylCharacterRing.Element):
         """
@@ -875,7 +897,8 @@ class FusionRing(WeylCharacterRing):
         def twist(self, reduce=True):
             r"""
             Return a rational number `h` such that `\theta = e^{i \pi h}` 
-            is the twist of ``self``.
+            is the twist of ``self``. The quantity `e^{i \pi h}` is
+            also available using :meth:`ribbon`.
 
             This method is only available for simple objects. If
             `\lambda` is the weight of the object, then
@@ -921,7 +944,23 @@ class FusionRing(WeylCharacterRing):
             else:
                 return twist
 
-        def theta(self):
+        def ribbon(self):
+            """
+            Returns the twist or ribbon element of ``self``. An additive 
+            version of this is available as :meth:`twist`. If `h` is the
+            rational number modulo 2 produced by ``self.twist()``, this 
+            method produces `e^{i\pi h}`.
+
+            EXAMPLES::
+
+                sage: F = FusionRing("A1",3)
+                sage: [x.twist() for x in F.basis()]
+                [0, 3/10, 4/5, 3/2]
+                sage: [x.ribbon() for x in F.basis()]
+                [1, zeta40^6, zeta40^12 - zeta40^8 + zeta40^4 - 1, -zeta40^10]
+                sage: [F.root_of_unity(x) for x in [0, 3/10, 4/5, 3/2]]
+                [1, zeta40^6, zeta40^12 - zeta40^8 + zeta40^4 - 1, -zeta40^10]
+            """
             return self.parent().root_of_unity(self.twist())
 
         @cached_method

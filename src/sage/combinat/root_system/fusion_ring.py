@@ -606,7 +606,7 @@ class FusionRing(WeylCharacterRing):
             [        0         0 zeta32^10]
         """
         B = self.basis()
-        return diagonal_matrix(self.root_of_unity(B[x].twist()) for x in self.get_order())
+        return diagonal_matrix(B[x].theta() for x in self.get_order())
 
     @cached_method
     def N_ijk(self, elt_i, elt_j, elt_k):
@@ -812,7 +812,7 @@ class FusionRing(WeylCharacterRing):
             sage: Dp/Dm == B31.root_of_unity(c/2)
             True
         """
-        return sum((x.q_dimension())**2 * self.root_of_unity(x.twist()) for x in self.basis())
+        return sum((x.q_dimension())**2 * x.theta() for x in self.basis())
 
     def D_minus(self):
         r"""
@@ -832,7 +832,7 @@ class FusionRing(WeylCharacterRing):
             sage: Dp*Dm == E83.global_q_dimension()
             True
         """
-        return sum((x.q_dimension())**2 * self.root_of_unity(-x.twist()) for x in self.basis())
+        return sum((x.q_dimension())**2 / x.theta() for x in self.basis())
 
     class Element(WeylCharacterRing.Element):
         """
@@ -913,7 +913,7 @@ class FusionRing(WeylCharacterRing):
             lam = next(iter(self._monomial_coefficients))
             inner = lam.inner_product(lam + 2*rho)
             twist = P._conj * P._nf * inner / P.fusion_l()
-            # Reduce to canonical form
+            # Reduce modulo 2
             if reduce:
                 f = twist.floor()
                 twist -= f

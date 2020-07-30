@@ -125,7 +125,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: x = FC.element_class(FC, [1, 2, 1], check=False); x.is_fully_commutative()
             False
         """
-        matrix = self.parent().coxeter_matrix()
+        matrix = self.parent().coxeter_group().coxeter_matrix()
         w = tuple(self)
         
         # The following function detects 'braid' words.
@@ -245,7 +245,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: FC([1, 4, 3, 5, 4, 2]).heap(one_index=True).cover_relations()
             [[2, 3], [2, 4], [3, 6], [3, 5], [4, 6], [1, 5]]
         """
-        m = self.parent().coxeter_matrix()
+        m = self.parent().coxeter_group().coxeter_matrix()
 
         one_index = kargs.get('one_index', False)
         display_labeling = kargs.get('display_labeling', False)
@@ -295,8 +295,8 @@ class FullyCommutativeElement(NormalizedClonableList):
         """
         import sage.plot.all as plot
 
-        m = self.parent().coxeter_matrix()
-        letters = self.parent().index_set()
+        m = self.parent().coxeter_group().coxeter_matrix()
+        letters = self.parent().coxeter_group().index_set()
         graphics = []
 
         h = self.heap()
@@ -406,7 +406,7 @@ class FullyCommutativeElement(NormalizedClonableList):
             sage: w.find_descent(3)
             <BLANKLINE>
         """
-        m = self.parent().coxeter_matrix()
+        m = self.parent().coxeter_group().coxeter_matrix()
         view = list(self) if side == 'left' else self[::-1]
         for (i, t) in enumerate(view):
             if t == s and not any(m[x, t] > 2 for x in view[:i]):
@@ -472,7 +472,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         .. SEEALSO:: :func:`find_descent`
         """
         view = list(self) if side == 'left' else self[::-1]
-        m = self.parent().coxeter_matrix()
+        m = self.parent().coxeter_group().coxeter_matrix()
         out = set()
         for (i, t) in enumerate(view):
             if not any(m[x, t] > 2 for x in view[:i]):
@@ -569,10 +569,6 @@ class FullyCommutativeElement(NormalizedClonableList):
         Consider the FC element `w = 12` in the group `B_3`::
 
             sage: FCB3 = CoxeterGroup(['B', 3]).fully_commutative_elements()
-            sage: FCB3.coxeter_matrix()
-            [1 3 2]
-            [3 1 4]
-            [2 4 1]
             sage: w = FCB3([1,2])
 
         When `s=1`, `sw` is 112, which is not reduced::
@@ -644,7 +640,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         See Lemma 4.1 of  [Ste1996]_.
         """
-        m = self.parent().coxeter_matrix()
+        m = self.parent().coxeter_group().coxeter_matrix()
         if self.has_descent(s):
             return False
 
@@ -747,7 +743,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         """
         assert len(J) == 2, 'J needs to contain a pair of generators.'
         s, t = J
-        mst = self.parent().coxeter_matrix()[s, t]
+        mst = self.parent().coxeter_group().coxeter_matrix()[s, t]
 
         # Perform the coset decomposition on the specified side:
         if side == 'left':
@@ -819,10 +815,6 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
 
         sage: FC = CoxeterGroup(['B', 3]).fully_commutative_elements(); FC
         Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? with Coxeter matrix:
-        [1 3 2]
-        [3 1 4]
-        [2 4 1]
-        sage: FC.coxeter_matrix()
         [1 3 2]
         [3 1 4]
         [2 4 1]
@@ -1006,47 +998,6 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
         """
         return self._coxeter_group
 
-    def coxeter_matrix(self):
-        r"""
-        Obtain the Coxeter matrix of the associated Coxter system.
-
-        OUTPUT: CoxeterMatrix
-
-        EXAMPLES::
-
-            sage: FCA3 = CoxeterGroup(['A', 3]).fully_commutative_elements()
-            sage: FCA3.coxeter_matrix()
-            [1 3 2]
-            [3 1 3]
-            [2 3 1]
-            sage: FCB5 = CoxeterGroup(['B', 5]).fully_commutative_elements()
-            sage: FCB5.coxeter_matrix()
-            [1 3 2 2 2]
-            [3 1 3 2 2]
-            [2 3 1 3 2]
-            [2 2 3 1 4]
-            [2 2 2 4 1]
-        """
-        return self._coxeter_group.coxeter_matrix()
-
-    def index_set(self):
-        r"""
-        Obtain the set of the generators/simple reflections of the associated
-        Coxeter system.
-
-        OUTPUT: iterable of integers
-
-        EXAMPLES::
-
-            sage: FCA3 = CoxeterGroup(['A', 3]).fully_commutative_elements()
-            sage: FCA3.index_set()
-            (1, 2, 3)
-            sage: FCB5 = CoxeterGroup(['B', 5]).fully_commutative_elements()
-            sage: FCB5.index_set()
-            (1, 2, 3, 4, 5)
-        """
-        return self._coxeter_group.index_set()
-
     def __iter__(self):
         r"""
         Enumerate the elements of this set by length, starting with the empty
@@ -1060,7 +1011,7 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
             []
         """
         empty_word = self.element_class(self, [], check=False)
-        letters = self.index_set()
+        letters = self.coxeter_group().index_set()
 
         # To make the iterator deterministic, use a dictionary rather than a
         # set, for the keys are then ordered by default by Python 3.7+:

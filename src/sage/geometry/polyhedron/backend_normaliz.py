@@ -595,6 +595,18 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: p = Polyhedron(ieqs=[(1, a, 0)], backend='normaliz')        # optional - pynormaliz
             sage: p & p == p                                                  # optional - pynormaliz
             True
+
+        Check that :trac:`30248` is fixed, that maps as input works::
+
+            sage: q = Polyhedron(backend='normaliz', base_ring=AA,            # optional - pynormaliz
+            ....:                rays=[(0, 0, 1), (0, 1, -1), (1, 0, -1)])
+            sage: make_new_Hrep = lambda h: tuple(x if i == 0 else -1*x for i, x in enumerate(h._vector))
+            sage: new_inequalities = map(make_new_Hrep, q.inequality_generator())  # optional - pynormaliz
+            sage: new_equations = map(make_new_Hrep, q.equation_generator())  # optional - pynormaliz
+            sage: parent = q.parent()                                         # optional - pynormaliz
+            sage: new_q = parent.element_class(parent,None,[new_inequalities,new_equations])  # optional - pynormaliz
+            sage: new_q                                                       # optional - pynormaliz
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 1 vertex and 3 rays
         """
 
         def nmz_ieqs_eqns_NF(ieqs, eqns):
@@ -829,7 +841,13 @@ class Polyhedron_normaliz(Polyhedron_base):
             ...
             ValueError: invalid base ring: Number Field in a ... is not real embedded
 
+        Checks that :trac:`30248` is fixed::
 
+            sage: q = Polyhedron(backend='normaliz', base_ring=AA,   # indirect doctest # optional - pynormaliz
+            ....:                rays=[(0, 0, 1), (0, 1, -1), (1, 0, -1)]); q
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 1 vertex and 3 rays
+            sage: -q                                                                    # optional - pynormaliz
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 1 vertex and 3 rays
         """
         from sage.categories.number_fields import NumberFields
         from sage.rings.all import RDF
@@ -838,6 +856,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             normaliz_field = QQ
             nmz_data_lists = convert_QQ(*data_lists)
         else:
+            # Allows to re-iterate if K is QQ below when data_lists contain
+            # iterators:
+            data_lists = [tuple(_) for _ in data_lists]
             nmz_data_lists = convert_NF(*data_lists)
             if self.base_ring() in NumberFields:
                 if not RDF.has_coerce_map_from(self.base_ring()):

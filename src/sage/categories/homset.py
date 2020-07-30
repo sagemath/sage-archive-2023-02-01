@@ -601,9 +601,6 @@ class Homset(Set_generic):
             ...
             TypeError: category (=1) must be a category
 
-            sage: H
-            Set of Morphisms from X to Y in Category of monoids
-            sage: TestSuite(H).run()
             sage: H = MyHomset(X, Y, category=1, base = ZZ, check = False)
             Traceback (most recent call last):
             ...

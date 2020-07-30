@@ -53,17 +53,17 @@ def cocliques_HoffmannSingleton():
     The construction of this graph can be found in [BCN1989]_ p. 392.
     """
     from sage.graphs.graph_generators import GraphGenerators
+    import itertools
+
     D = GraphGenerators.HoffmanSingletonGraph()
     DC = D.complement()
 
-    cocliques = DC.cliques_maximum()  # 100 of this
+    cocliques = [frozenset(c) for c in DC.cliques_maximum()]  # 100 of this
 
     edges = []
-    for i in range(100):
-        sC = frozenset(cocliques[i])
-        for j in range(i + 1, 100):
-            if len(sC.intersection(cocliques[j])) == 8:
-                edges.append((sC, frozenset(cocliques[j])))
+    for c1, c2 in itertools.combinations(cocliques, 2):
+        if len(c1.intersection(c2)) == 8:
+                edges.append((c1, c2))
 
     G = Graph(edges, format="list_of_edges")
     return G
@@ -114,6 +114,7 @@ def ConwaySmith_for_3S7():
         ([10, 6, 4, 1, None], [None, 1, 2, 6, 10])
     """
     from sage.rings.number_field.number_field import CyclotomicField
+    import itertools
 
     F = CyclotomicField(3)
     w = F.gen()
@@ -144,7 +145,7 @@ def ConwaySmith_for_3S7():
                 elif x == z2 + 1:
                     vv.append(w**2)
                 else:
-                    vv.append(int(x))  # this is weirdly needed for some reason
+                    vv.append(int(x))
 
             # now vv is the new vector in F
             vv = vector(F, vv)
@@ -169,11 +170,9 @@ def ConwaySmith_for_3S7():
         return sum(u[i].conjugate() * v[i] for i in range(6)) == 2
 
     G = Graph()
-    length = len(K)
-    for i in range(length):
-        for j in range(i + 1, length):
-            if has_edge(K[i], K[j]):
-                G.add_edge((K[i], K[j]))
+    for Ki, Kj in itertools.combinations(K, 2):
+        if has_edge(Ki, Kj):
+            G.add_edge((Ki, Kj))
 
     G.name("Conway-Smith graph for 3S7")
     return G

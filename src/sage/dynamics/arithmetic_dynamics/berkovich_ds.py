@@ -40,7 +40,7 @@ class DynamicalSystem_Berkovich(Element):
     r"""
     A dynamical system on Berkovich space over `\CC_p`.
 
-    A dynamical system on Berkovich space over `\CC_p` is 
+    A dynamical system on Berkovich space over `\CC_p` is
     determined by a dynamical system on `A^1(\CC_p)` or `P^1(\CC_p)`,
     which naturally induces a dynamical system on affine or
     projective Berkovich space.
@@ -51,7 +51,7 @@ class DynamicalSystem_Berkovich(Element):
       over affine or projective space. If this input is not defined
       over a padic field, then ``domain`` MUST be specified.
 
-    - ``domain`` -- (optional) affine or projective Berkovich space 
+    - ``domain`` -- (optional) affine or projective Berkovich space
       over `\CC_p`. ``domain`` must be specified if ``dynamical_system``
       is defined over a number field, otherwise it is ignored.
 
@@ -70,26 +70,59 @@ class DynamicalSystem_Berkovich(Element):
     Or directly from polynomials::
 
         sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
-        sage: DynamicalSystem_Berkovich([x^2+y^2, y^2])
+        sage: DynamicalSystem_Berkovich([x^2 + y^2, y^2])
         Dynamical system of Projective Berkovich line over Cp(3) of precision 20 induced by the map
           Defn: Defined on coordinates by sending (x : y) to
                 (x^2 + y^2 : y^2)
+
+    :class:`DynamicalSystem_Berkovich` defaults to projective::
+
+        sage: R.<x,y> = Qp(3)[]
+        sage: DynamicalSystem_Berkovich([x^2, y^2])
+        Dynamical system of Projective Berkovich line over Cp(3) of precision 20 induced by the map
+          Defn: Defined on coordinates by sending (x : y) to
+                (x^2 : y^2)
+
+    To create an affine dynamical system on Berkovich space, pass an
+    affine system to :class:`DynamicalSystem_Berkovich`::
+
+        sage: A.<z> = AffineSpace(Qp(3), 1)
+        sage: f = DynamicalSystem_affine(z^2+1)
+        sage: DynamicalSystem_Berkovich(f)
+        Dynamical system of Affine Berkovich line over Cp(3) of precision 20 induced by the map
+          Defn: Defined on coordinates by sending (z) to
+                (z^2 + 1 + O(3^20))
 
     ``domain`` is ignored unless ``dynamical_system`` is not defined over
     a p-adic field::
 
         sage: A.<z> = AffineSpace(Qp(3), 1)
-        sage: f = DynamicalSystem_affine(z^2+1) #affine dynamical system
+        sage: f = DynamicalSystem_affine(z^2 + 1) #affine dynamical system
         sage: C = Berkovich_Cp_Projective(P) # projective domain
         sage: DynamicalSystem_Berkovich(f, C) # affine Berkovich system
         Dynamical system of Affine Berkovich line over Cp(3) of precision 20 induced by the map
           Defn: Defined on coordinates by sending (z) to
                 (z^2 + 1 + O(3^20))
 
-    Creating a map on Berkovich space creates the Berkovich space
-    it acts on::
+    We can create dynamical systems which act on Berkovich spaces backed by number fields,
+    although some care must be taken::
 
-        sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+        sage: R.<z> = QQ[]
+        sage: A.<a> = NumberField(z^2 + 1)
+        sage: ideal = A.prime_above(2)
+        sage: P.<x,y> = ProjectiveSpace(A, 1)
+        sage: B = Berkovich_Cp_Projective(P, ideal)
+        sage: f = DynamicalSystem_Berkovich([x^2 + y^2, 2*a*x*y], B); f
+        Dynamical system of Projective Berkovich line over Cp(2), with base Number Field
+        in a with defining polynomial z^2 + 1 induced by the map
+          Defn: Defined on coordinates by sending (x : y) to
+                (x^2 + y^2 : (2*a)*x*y)
+
+    Note the how it was necessary to create the Berkovich space
+    from the projective space. Creating a map on Berkovich space
+    creates the Berkovich space it acts on::
+
+        sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
         sage: f = DynamicalSystem_projective([x^2, y^2])
         sage: g = DynamicalSystem_Berkovich(f)
         sage: B = g.domain(); B
@@ -101,21 +134,11 @@ class DynamicalSystem_Berkovich(Element):
         sage: g(Q1)
         Type I point centered at (1 + 3 + O(3^20) : 1 + O(3^20))
 
-    We can create dynamical systems which act on Berkovich spaces backed by number fields,
-    although some care must be taken::
+    ::
 
-        sage: R.<z> = QQ[]
-        sage: A.<a> = NumberField(z^2 + 1)
-        sage: ideal = A.prime_above(2)
-        sage: P.<x,y> = ProjectiveSpace(A, 1)
-        sage: B = Berkovich_Cp_Projective(P, ideal)
-        sage: f = DynamicalSystem_Berkovich([x^2 + y^2, 2*a*x*y], B); f
-        Dynamical system of Projective Berkovich line over Cp(2), with base Number Field 
-        in a with defining polynomial z^2 + 1 induced by the map
-          Defn: Defined on coordinates by sending (x : y) to
-                (x^2 + y^2 : (2*a)*x*y)
-
-    Note the how it was necessary to create the Berkovich space from the projective space.
+        sage: Q2 = B(0, 1)
+        sage: g(Q2)
+        Type II point centered at (0 : 1 + O(3^20)) of radius 3^0
     """
 
     @staticmethod
@@ -144,7 +167,7 @@ class DynamicalSystem_Berkovich(Element):
         if is_AffineSpace(morphism_domain):
             return DynamicalSystem_Berkovich_affine(dynamical_system, domain)
 
-        return DynamicalSystem_Berkovich_projective(dynamical_system,domain)
+        return DynamicalSystem_Berkovich_projective(dynamical_system, domain)
 
     def __init__(self, dynamical_system, domain):
         r"""
@@ -152,7 +175,7 @@ class DynamicalSystem_Berkovich(Element):
 
         TESTS::
 
-            sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+            sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
             sage: f = DynamicalSystem_projective([2*x^2 + 4*y^2, 3*x^2 + 9*y^2])
             sage: g = DynamicalSystem_Berkovich(f)
             sage: isinstance(g, DynamicalSystem_Berkovich)
@@ -168,7 +191,7 @@ class DynamicalSystem_Berkovich(Element):
 
         EXAMPLES::
 
-            sage: R.<x, y> = ProjectiveSpace(Qp(3), 1)
+            sage: R.<x,y> = ProjectiveSpace(Qp(3), 1)
             sage: f = DynamicalSystem_Berkovich([x^2, y^2])
             sage: f == f
             True
@@ -204,8 +227,8 @@ class DynamicalSystem_Berkovich(Element):
 
         EXAMPLES::
 
-            sage: Q.<x,y> = ProjectiveSpace(Qp(3),1)
-            sage: f = DynamicalSystem_projective([3*x^2,2*y^2])
+            sage: Q.<x,y> = ProjectiveSpace(Qp(3), 1)
+            sage: f = DynamicalSystem_projective([3*x^2, 2*y^2])
             sage: g = DynamicalSystem_Berkovich(f)
             sage: g.domain()
             Projective Berkovich line over Cp(3) of precision 20
@@ -226,7 +249,7 @@ class DynamicalSystem_Berkovich(Element):
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+            sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
             sage: f = DynamicalSystem_projective([x^2 + y^2, 2*y^2])
             sage: g = DynamicalSystem_Berkovich(f)
             sage: g[0]
@@ -245,7 +268,7 @@ class DynamicalSystem_Berkovich(Element):
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+            sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
             sage: f = DynamicalSystem_projective([2*x^2 + 4*y^2, 3*x^2 + 9*y^2])
             sage: g = DynamicalSystem_Berkovich(f)
             sage: g.defining_polynomials()
@@ -262,8 +285,8 @@ class DynamicalSystem_Berkovich(Element):
 
         EXAMPLES::
 
-            sage: Q.<x,y> = ProjectiveSpace(Qp(3),1)
-            sage: f = DynamicalSystem_projective([3*x^2,2*y^2])
+            sage: Q.<x,y> = ProjectiveSpace(Qp(3), 1)
+            sage: f = DynamicalSystem_projective([3*x^2, 2*y^2])
             sage: f = DynamicalSystem_Berkovich(f)
             sage: f._repr_()
             'Dynamical system of Projective Berkovich line over Cp(3) of precision 20 induced by the map\n
@@ -298,7 +321,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
     We can easily create a dynamical system on Berkovich space
     using a dynamical system on projective space over `\QQ_p`::
 
-        sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+        sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
         sage: f = DynamicalSystem_projective([1/2*x^2 + x*y + 3*y^2, 3*x^2 + 9*y^2])
         sage: DynamicalSystem_Berkovich(f)
         Dynamical system of Projective Berkovich line over Cp(3) of precision 20
@@ -310,7 +333,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
 
     Or from a morphism::
 
-        sage: P1.<x,y> = ProjectiveSpace(Qp(3),1)
+        sage: P1.<x,y> = ProjectiveSpace(Qp(3), 1)
         sage: H = End(P1)
         sage: DynamicalSystem_Berkovich(H([y, x]))
         Dynamical system of Projective Berkovich line over Cp(3) of precision 20
@@ -320,7 +343,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
 
     Or from polynomials::
 
-        sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+        sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
         sage: DynamicalSystem_Berkovich([x^2+y^2, y^2])
         Dynamical system of Projective Berkovich line over Cp(3) of precision 20
         induced by the map
@@ -465,10 +488,10 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+            sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
             sage: f = DynamicalSystem_projective([x^2 + y^2, 2*y^2])
             sage: g = DynamicalSystem_Berkovich(f)
-            sage: g.conjugate(Matrix([[1,1],[0,1]]))
+            sage: g.conjugate(Matrix([[1, 1], [0, 1]]))
             Dynamical system of Projective Berkovich line over Cp(3) of precision 20 induced by the map
               Defn: Defined on coordinates by sending (x : y) to
                     (x^2 + (2 + O(3^20))*x*y : (2 + O(3^20))*y^2)
@@ -491,7 +514,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+            sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
             sage: f = DynamicalSystem_projective([x^2 + y^2, x*y + y^2])
             sage: g = DynamicalSystem_Berkovich(f)
             sage: g.dehomogenize(1)
@@ -510,37 +533,45 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
 
         INPUT:
 
-        - ``x`` -- a point of Berkovich space over ``Cp``
+        - ``x`` -- a point of projective Berkovich space over ``Cp``
 
         EXAMPLES:
 
-        The image of Type I point is the image of the center::
+        The image of type I point is the image of the center::
 
-            sage: P.<x,y> = ProjectiveSpace(Qp(3),1)
+            sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
             sage: F = DynamicalSystem_Berkovich([x^2, y^2])
             sage: B = F.domain()
             sage: Q1 = B(2)
             sage: F(Q1)
             Type I point centered at (1 + 3 + O(3^20) : 1 + O(3^20))
 
-        For Type II/III points with no poles in the corresponding disk,
-        the image is the Type II/III point corresponding to the image
+        For type II/III points with no poles in the corresponding disk,
+        the image is the type II/III point corresponding to the image
         of the disk::
 
-            sage: Q2 = B(1,3)
+            sage: Q2 = B(0, 3)
             sage: F(Q2)
             Type II point centered at (0 : 1 + O(3^20)) of radius 3^2
 
-        The image of Type II points can be computed even when there
+        The image of type II points can be computed even when there
         are poles in the disk::
 
             sage: g = DynamicalSystem_projective([x^2 + y^2, x*y])
             sage: G = DynamicalSystem_Berkovich(g)
-            sage: Q3 = B(0,1)
+            sage: Q3 = B(0, 1)
             sage: G(Q3)
             Type II point centered at (0 : 1 + O(3^20)) of radius 3^0
+
+        For Berkovich spaces backed by p-adic fields, the image of
+
+        ALGORITHM:
+
+        - For type II points, we use the approach outlined in Example
+          7.37 of [Ben2019]_
+        - For type III points, we use Proposition 7.6 of [Ben2019]_
         """
-        if not isinstance(x.parent(), type(self._domain)):
+        if not isinstance(x.parent(), Berkovich_Cp_Projective):
             try:
                 x = self.domain()(x)
             except:
@@ -554,8 +585,6 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         if x.type_of_point() == 4:
             raise NotImplementedError('action on Type IV points not implemented')
         f = self._system
-        #for Type II points, we use the approach outlined in example 7.37 in
-        #'Dynamics in One Non-Archimedean Variable' by Benedetto
         if x.type_of_point() == 2:
             from sage.matrix.constructor import Matrix
             from sage.modules.free_module_element import vector
@@ -608,8 +637,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                 f = f.conjugate(Matrix([[0, 1], [1 , 0]]))
                 g = DynamicalSystem_Berkovich(f)
                 return g(self.domain()(QQ(0), QQ(1))).involution_map()
-            #if the reduction is not constant, the image
-            #is the Gauss point
+            # if the reduction is not constant, the image is the Gauss point
             if not(num.is_constant() and dem.is_constant()):
                 return self.domain()(QQ(0), QQ(1))
             if self.domain().is_padic_base():
@@ -629,24 +657,33 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                 if val == Infinity:
                     return self.domain()(inverse_map(0), 0)
                 return self.domain()(inverse_map(0), x.prime()**(-1 * val))
-        # TODO write a better check for zeros in disk
+        affine_system = f.dehomogenize(1)
+        dem = affine_system.defining_polynomials()[0].denominator().univariate_polynomial()
         if self.domain().is_padic_base():
-            P = f.domain()
-            if P.gens()[0] in f.defining_polynomials()[1].variables():
-                raise NotImplementedError('for padic backed spaces, action on type III points ' + \
-                    'only implemented for polynomials')
+            factorization = [i[0] for i in dem.factor()]
+            for factor in factorization:
+                if factor.degree() >= 2:
+                    try:
+                        factor_root_field = factor.root_field('a')
+                        factor = factor.change_ring(factor_root_field)
+                    except:
+                        raise NotImplementedError('cannot check if poles lie in type III disk')
+                else:
+                    factor_root_field = factor.base_ring()
+                center = factor_root_field(x.center()[0])
+                for pole in [i[0] for i in factor.roots()]:
+                    if (center - pole).abs() <= x.radius():
+                        raise NotImplementedError('image of type III point not implemented when poles in disk')
         else:
-            affine_system = f.dehomogenize(1)
-            dem = affine_system.defining_polynomials()[0].denominator().univariate_polynomial()
             dem_splitting_field, embedding = dem.splitting_field('a', True)
-            poles = dem.roots(dem_splitting_field)
+            poles = [i[0] for i in dem.roots(dem_splitting_field)]
             primes_above = dem_splitting_field.primes_above(self.domain().ideal())
-            # check if any embedding which commutes is such that the roots
-            # are outside of the type III disk
+            # check if any prime of the extension maps the roots to outside
+            # the disk corresponding to the type III point
             for prime in primes_above:
                 usable_prime = True
                 for pole in poles:
-                    valuation = (embedding(x.center()) - pole).valuation(prime)
+                    valuation = (embedding(x.center()[0]) - pole).valuation(prime)
                     if valuation == Infinity:
                         pass
                     elif x.prime()**(-1 * valuation) <= x.radius():

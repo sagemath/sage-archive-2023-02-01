@@ -513,6 +513,18 @@ class CoxeterTypeFromCartanType(UniqueRepresentation, CoxeterType):
         """
         return self._cartan_type
 
+    def type(self):
+        """
+        Return the type of ``self``.
+
+        EXAMPLES::
+
+            sage: C = CoxeterType(['A', 4])
+            sage: C.type()
+            'A'
+        """
+        return self._cartan_type.type()
+
     def rank(self):
         """
         Return the rank of ``self``.

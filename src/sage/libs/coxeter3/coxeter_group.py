@@ -255,11 +255,11 @@ class CoxeterGroup(UniqueRepresentation, Parent):
     def m(self, i, j):
         r"""
         This is deprecated, use ``self.coxeter_matrix()[i,j]`` instead.
-        
+
         TESTS::
 
             sage: W = CoxeterGroup(['A', 3], implementation='coxeter3') # optional - coxeter3
-            sage: W.m(1, 2)
+            sage: W.m(1, 2)                                             # optional - coxeter3
             doctest:warning...:
             DeprecationWarning: the .m(i, j) method has been deprecated; use .coxeter_matrix()[i,j] instead.
             See https://trac.sagemath.org/30237 for details.

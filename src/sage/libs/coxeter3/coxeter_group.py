@@ -254,6 +254,8 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
     def m(self, i, j):
         r"""
+        This is deprecated, use ``self.coxeter_matrix()[i,j]`` instead.
+        
         TESTS::
 
             sage: W = CoxeterGroup(['A', 3], implementation='coxeter3') # optional - coxeter3

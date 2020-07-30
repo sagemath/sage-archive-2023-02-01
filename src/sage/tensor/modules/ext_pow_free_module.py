@@ -57,6 +57,7 @@ REFERENCES:
 
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.alternating_contr_tensor import AlternatingContrTensor
@@ -237,7 +238,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
         """
         from sage.functions.other import binomial
         self._fmodule = fmodule
-        self._degree = degree
+        self._degree = ZZ(degree)
         rank = binomial(fmodule._rank, degree)
         if name is None and fmodule._name is not None:
             name = r'/\^{}('.format(degree) + fmodule._name + ')'
@@ -620,7 +621,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
         """
         from sage.functions.other import binomial
         self._fmodule = fmodule
-        self._degree = degree
+        self._degree = ZZ(degree)
         rank = binomial(fmodule._rank, degree)
         if degree == 1:  # case of the dual
             if name is None and fmodule._name is not None:

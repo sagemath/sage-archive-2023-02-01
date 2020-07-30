@@ -27,10 +27,13 @@ Natalie Schoenhals for their contribution to the project and the code.
 from sage.structure.parent import Parent
 from sage.structure.list_clone import NormalizedClonableList
 from sage.categories.enumerated_sets import EnumeratedSets
+from sage.structure.unique_representation import UniqueRepresentation
 from .root_system.coxeter_matrix import CoxeterMatrix
 from .root_system.cartan_type import CartanType
 from collections import deque
 from sage.combinat.posets.posets import Poset
+from sage.categories.coxeter_groups import CoxeterGroups
+from sage.combinat.root_system.coxeter_group import CoxeterGroup
 import itertools
 
 
@@ -756,7 +759,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         return self.parent().element_class(self.parent(), combined_data, check=False)
 
 
-class FullyCommutativeElements(Parent):
+class FullyCommutativeElements(Parent, UniqueRepresentation):
     r"""
     Class for the set of fully commutative (FC) elements of a Coxeter system.
 
@@ -796,7 +799,10 @@ class FullyCommutativeElements(Parent):
     Create the enumerate set of fully commutative elements in `B_3`::
 
         sage: FC = FullyCommutativeElements(['B', 3]); FC
-        Fully commutative elements in Coxeter system with Cartan type ['B', 3]
+        Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? with Coxeter matrix:
+        [1 3 2]
+        [3 1 4]
+        [2 4 1]
         sage: FC.coxeter_matrix()
         [1 3 2]
         [3 1 4]
@@ -870,51 +876,72 @@ class FullyCommutativeElements(Parent):
         sage: list(FCAffineA2.iterate_to_length(2))
         [[], [0], [1], [2], [1, 0], [2, 0], [0, 1], [2, 1], [0, 2], [1, 2]]
     """
-
-    def __init__(self, data):
+    @staticmethod
+    def __classcall_private__(cls, data):
         r"""
         EXAMPLES::
 
-            sage: FullyCommutativeElements(['B', 3])
-            Fully commutative elements in Coxeter system with Cartan type ['B', 3]
-            sage: FullyCommutativeElements(CartanType(['B', 3]))
-            Fully commutative elements in Coxeter system with Cartan type ['B', 3]
+            sage: x1 = FullyCommutativeElements(CoxeterGroup(['B', 3])); x1
+            Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? with Coxeter matrix:
+            [1 3 2]
+            [3 1 4]
+            [2 4 1]
+            sage: x2 = FullyCommutativeElements(['B', 3]); x2
+            Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? with Coxeter matrix:
+            [1 3 2]
+            [3 1 4]
+            [2 4 1]
+            sage: x1 is x2
+            True
             sage: FullyCommutativeElements(CartanType(['B', 3]).relabel({1: 3, 2: 2, 3: 1}))
-            Fully commutative elements in Coxeter system with Cartan type ['B', 3] relabelled by {1: 3, 2: 2, 3: 1}
+            Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? with Coxeter matrix:
+            [1 4 2]
+            [4 1 3]
+            [2 3 1]
+            sage: m = CoxeterMatrix([(1, 5, 2, 2, 2), (5, 1, 3, 2, 2), (2, 3, 1, 3, 2), (2, 2, 3, 1, 3), (2, 2, 2, 3, 1)]); FullyCommutativeElements(m)
+            Fully commutative elements of Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+            [1 5 2 2 2]
+            [5 1 3 2 2]
+            [2 3 1 3 2]
+            [2 2 3 1 3]
+            [2 2 2 3 1]
         """
-        if isinstance(data, CoxeterMatrix):
-            self._matrix = data
+        if data in CoxeterGroups():
+            group = data
         else:
-            try:
-                t = CartanType(data)
-            except (TypeError, ValueError):
-                raise ValueError(
-                    'input must be a CoxeterMatrix or data describing a Cartan type')
-            self._matrix = t.coxeter_matrix()
+            group = CoxeterGroup(data)
+        return super(cls, FullyCommutativeElements).__classcall__(cls, group)
 
-        self._index_set = sorted(self._matrix.index_set())
+    def __init__(self, coxeter_group):
+        r"""
+        EXAMPLES::
+
+            sage: FullyCommutativeElements(CoxeterGroup(['H', 4]))
+            Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790? with Coxeter matrix:
+            [1 3 2 2]
+            [3 1 3 2]
+            [2 3 1 5]
+            [2 2 5 1]
+        """
+        self._coxeter_group = coxeter_group
 
         # Start with the category of enumerated sets and refine it to finite or
         # infinite enumerated sets for Coxeter groups of Cartan types.
         category = EnumeratedSets() 
 
-        # Finite groups will be FC-finite.
-        if self._matrix.is_finite():
-            category = category.Finite() 
-        else: 
-            try:
-                cartan_type = self._matrix.coxeter_type().cartan_type()
-                family, rank, affine = cartan_type.type(), cartan_type.rank(), cartan_type.is_affine() 
-                # The only groups of Cartan types that are infinite but
-                # FC-finite are affine `F_4` and affine `E_8`, which appear as
-                # `F_5` and `E_9` in [Ste1996]_.
-                if affine: 
-                    category = category.Finite() if (family == 'F' and rank == 4) or (family == 'E' and rank == 8) else category.Infinite() 
-                else: 
-                    category = category.Infinite() 
-            except AttributeError:
-                # no refinement for groups not corresponding to a Cartan type:
-                pass
+        ctype = self._coxeter_group.coxeter_type()
+        try:
+            family, rank = ctype.type(), ctype.rank()
+            # The only groups of Cartan types that are infinite but
+            # FC-finite are affine `F_4` and affine `E_8`, which appear as
+            # `F_5` and `E_9` in [Ste1996]_.
+            if not ctype.is_affine() or (family == 'F' and rank == 5) or (family == 'E' and rank == 8):
+                category = category.Finite()
+            else:
+                category = category.Infinite()
+        except AttributeError:
+            # ctype may just be a CoxeterMatrix, and we cannot identify it as a Cartan type.
+            pass
 
         Parent.__init__(self, category=category)
 
@@ -923,21 +950,13 @@ class FullyCommutativeElements(Parent):
         EXAMPLES::
 
             sage: FullyCommutativeElements(['H', 4])
-            Fully commutative elements in Coxeter system with Cartan type ['H', 4]
-            sage: m = CoxeterMatrix([(1, 5, 2, 2, 2), (5, 1, 3, 2, 2), (2, 3, 1, 3, 2), (2, 2, 3, 1, 3), (2, 2, 2, 3, 1)])
-            sage: FullyCommutativeElements(m)
-            Fully commutative elements in Coxeter system with Coxeter matrix
-            [1 5 2 2 2]
-            [5 1 3 2 2]
-            [2 3 1 3 2]
-            [2 2 3 1 3]
-            [2 2 2 3 1]
+            Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790? with Coxeter matrix:
+            [1 3 2 2]
+            [3 1 3 2]
+            [2 3 1 5]
+            [2 2 5 1]
         """
-        try:
-            ctype = self.coxeter_matrix().coxeter_type().cartan_type()
-            return 'Fully commutative elements in Coxeter system with Cartan type {}'.format(str(ctype))
-        except AttributeError:
-            return 'Fully commutative elements in Coxeter system with Coxeter matrix\n{}'.format(str(self.coxeter_matrix()))
+        return 'Fully commutative elements of {}'.format(str(self.coxeter_group()))
 
     def _element_constructor_(self, lst):
         r"""
@@ -950,6 +969,21 @@ class FullyCommutativeElements(Parent):
         return self.element_class(self, lst)
 
     Element = FullyCommutativeElement
+
+    def coxeter_group(self):
+        r"""
+        Obtain the Coxeter group associated with ``self``.
+
+        EXAMPLES::
+
+            sage: FCA3 = FullyCommutativeElements(['A', 3])
+            sage: FCA3.coxeter_group()
+            Finite Coxeter group over Integer Ring with Coxeter matrix:
+            [1 3 2]
+            [3 1 3]
+            [2 3 1]
+        """
+        return self._coxeter_group
 
     def coxeter_matrix(self):
         r"""
@@ -972,7 +1006,7 @@ class FullyCommutativeElements(Parent):
             [2 2 3 1 4]
             [2 2 2 4 1]
         """
-        return self._matrix
+        return self._coxeter_group.coxeter_matrix()
 
     def index_set(self):
         r"""
@@ -985,12 +1019,12 @@ class FullyCommutativeElements(Parent):
 
             sage: FCA3 = FullyCommutativeElements(['A', 3])
             sage: FCA3.index_set()
-            [1, 2, 3]
+            (1, 2, 3)
             sage: FCB5 = FullyCommutativeElements(['B', 5])
             sage: FCB5.index_set()
-            [1, 2, 3, 4, 5]
+            (1, 2, 3, 4, 5)
         """
-        return self._index_set
+        return self._coxeter_group.index_set()
 
     def __iter__(self):
         r"""

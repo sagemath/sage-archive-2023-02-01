@@ -370,7 +370,7 @@ class TensorFreeModule(FiniteRankFreeModule):
 
             sage: from sage.tensor.modules.tensor_free_module import TensorFreeModule
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: T = TensorFreeModule(M, (2,3), name='T23', latex_name=r'T^2_3')
+            sage: T = M.tensor_module(2, 3)
             sage: TestSuite(T).run()
 
         """
@@ -392,14 +392,8 @@ class TensorFreeModule(FiniteRankFreeModule):
         FiniteRankFreeModule.__init__(self, fmodule._ring, rank, name=name,
                                       latex_name=latex_name,
                                       start_index=fmodule._sindex,
-                                    output_formatter=fmodule._output_formatter)
-        # Unique representation:
-        if self._tensor_type in self._fmodule._tensor_modules:
-            raise ValueError("the module of tensors of type {}".format(
-                                                          self._tensor_type) +
-                             " has already been created")
-        else:
-            self._fmodule._tensor_modules[self._tensor_type] = self
+                                      output_formatter=fmodule._output_formatter)
+        fmodule._all_modules.add(self)
 
     #### Parent Methods
 

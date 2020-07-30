@@ -248,14 +248,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
                                       name=name, latex_name=latex_name,
                                       start_index=fmodule._sindex,
                              output_formatter=fmodule._output_formatter)
-        # Unique representation:
-        if self._degree == 1 or \
-           self._degree in self._fmodule._exterior_powers:
-            raise ValueError("the {}th exterior power of ".format(degree) +
-                             "{}".format(self._fmodule) +
-                             " has already been created")
-        else:
-            self._fmodule._exterior_powers[self._degree] = self
+        fmodule._all_modules.add(self)
 
     #### Parent methods
 
@@ -658,13 +651,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
                                       latex_name=latex_name,
                                       start_index=fmodule._sindex,
                                     output_formatter=fmodule._output_formatter)
-        # Unique representation:
-        if self._degree in self._fmodule._dual_exterior_powers:
-            raise ValueError("the {}th exterior power of ".format(degree) +
-                             "the dual of {}".format(self._fmodule) +
-                             " has already been created")
-        else:
-            self._fmodule._dual_exterior_powers[self._degree] = self
+        fmodule._all_modules.add(self)
 
     #### Parent methods
 

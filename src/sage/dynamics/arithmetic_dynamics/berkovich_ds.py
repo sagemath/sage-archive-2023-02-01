@@ -527,13 +527,19 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         new_domain = Berkovich_Cp_Affine(base_ring)
         return DynamicalSystem_Berkovich_affine(new_system, new_domain)
 
-    def __call__(self, x):
+    def __call__(self, x, type_3_pole_check=True):
         """
         Makes dynamical systems on Berkovich space over ``Cp`` callable.
 
         INPUT:
 
-        - ``x`` -- a point of projective Berkovich space over ``Cp``
+        - ``x`` -- a point of projective Berkovich space over ``Cp``.
+
+        - type_3_pole_check -- (default ``True``) A bool. WARNING: 
+          changing the value of type_3_pole_check can lead to mathematically
+          incorrect answers. Only set to ``False`` if there are NO
+          poles of the dynamical system in the disk corresponding
+          to the type III point ``x``. See Examples.
 
         EXAMPLES:
 
@@ -554,8 +560,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             sage: F(Q2)
             Type II point centered at (0 : 1 + O(3^20)) of radius 3^2
 
-        The image of type II points can be computed even when there
-        are poles in the disk::
+        The image of any type II point can be computed::
 
             sage: g = DynamicalSystem_projective([x^2 + y^2, x*y])
             sage: G = DynamicalSystem_Berkovich(g)
@@ -563,7 +568,49 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             sage: G(Q3)
             Type II point centered at (0 : 1 + O(3^20)) of radius 3^0
 
-        For Berkovich spaces backed by p-adic fields, the image of
+        The image of type III points can be computed has long as the
+        corresponding disk contains no poles of the dynamical system::
+
+            sage: Q4 = B(1/9, 1.5)
+            sage: G(Q4)
+            Type III point centered at (3^-2 + 3^2 + O(3^18) : 1 + O(3^20))
+            of radius 1.50000000000000
+
+        Sometimes, however, the poles are contained in an extension of
+        ``Qp`` that Sage does not support::
+
+            sage: H = DynamicalSystem_Berkovich([x*y^2, x^3 + 20*y^3])
+            sage: H(Q4) # not tested
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot check if poles lie in type III disk
+
+        ``Q4``, however, does not contain any poles of ``H`` (this
+        can be checked using pencil and paper or the number field functionality
+        in Sage). There are two ways around this error: the first and simplest is
+        to have ``H`` act on a Berkovich space backed by a number field::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: B = Berkovich_Cp_Projective(P, 3)
+            sage: H = DynamicalSystem_Berkovich([x*y^2, x^3 + 20*y^3], B)
+            sage: Q4 = B(1/9, 1.5)
+            sage: H(Q4)
+            Type III point centered at (81/14581 : 1) of radius 0.0749794263377711
+
+        Alternatively, if checking for poles in the disk has been done already,
+        ``type_3_pole_check`` can be set to ``False``::
+
+            sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
+            sage: H = DynamicalSystem_Berkovich([x*y^2, x^3 + 20*y^3])
+            sage: B = H.domain()
+            sage: Q4 = B(1/9, 1.5)
+            sage: H(Q4, False)
+            Type III point centered at (3^4 + 3^10 + 2*3^11 + 2*3^13 + 2*3^14 +
+            2*3^15 + 3^17 + 2*3^18 + 2*3^19 + 3^20 + 3^21 + 3^22 + O(3^24) : 1 +
+            O(3^20)) of radius 0.00205761316872428
+
+        WARNING: setting ``type_3_pole_check`` to ``False`` can lead to
+        mathematically incorrect answers.
 
         ALGORITHM:
 
@@ -659,40 +706,41 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                 return self.domain()(inverse_map(0), x.prime()**(-1 * val))
         affine_system = f.dehomogenize(1)
         dem = affine_system.defining_polynomials()[0].denominator().univariate_polynomial()
-        if self.domain().is_padic_base():
-            factorization = [i[0] for i in dem.factor()]
-            for factor in factorization:
-                if factor.degree() >= 2:
-                    try:
-                        factor_root_field = factor.root_field('a')
-                        factor = factor.change_ring(factor_root_field)
-                    except:
-                        raise NotImplementedError('cannot check if poles lie in type III disk')
-                else:
-                    factor_root_field = factor.base_ring()
-                center = factor_root_field(x.center()[0])
-                for pole in [i[0] for i in factor.roots()]:
-                    if (center - pole).abs() <= x.radius():
-                        raise NotImplementedError('image of type III point not implemented when poles in disk')
-        else:
-            dem_splitting_field, embedding = dem.splitting_field('a', True)
-            poles = [i[0] for i in dem.roots(dem_splitting_field)]
-            primes_above = dem_splitting_field.primes_above(self.domain().ideal())
-            # check if any prime of the extension maps the roots to outside
-            # the disk corresponding to the type III point
-            for prime in primes_above:
-                usable_prime = True
-                for pole in poles:
-                    valuation = (embedding(x.center()[0]) - pole).valuation(prime)
-                    if valuation == Infinity:
-                        pass
-                    elif x.prime()**(-1 * valuation) <= x.radius():
-                        usable_prime = False
+        if type_3_pole_check:
+            if self.domain().is_padic_base():
+                factorization = [i[0] for i in dem.factor()]
+                for factor in factorization:
+                    if factor.degree() >= 2:
+                        try:
+                            factor_root_field = factor.root_field('a')
+                            factor = factor.change_ring(factor_root_field)
+                        except:
+                            raise NotImplementedError('cannot check if poles lie in type III disk')
+                    else:
+                        factor_root_field = factor.base_ring()
+                    center = factor_root_field(x.center()[0])
+                    for pole in [i[0] for i in factor.roots()]:
+                        if (center - pole).abs() <= x.radius():
+                            raise NotImplementedError('image of type III point not implemented when poles in disk')
+            else:
+                dem_splitting_field, embedding = dem.splitting_field('a', True)
+                poles = [i[0] for i in dem.roots(dem_splitting_field)]
+                primes_above = dem_splitting_field.primes_above(self.domain().ideal())
+                # check if any prime of the extension maps the roots to outside
+                # the disk corresponding to the type III point
+                for prime in primes_above:
+                    usable_prime = True
+                    for pole in poles:
+                        valuation = (embedding(x.center()[0]) - pole).valuation(prime)
+                        if valuation == Infinity:
+                            pass
+                        elif x.prime()**(-1 * valuation) <= x.radius():
+                            usable_prime = False
+                            break
+                    if usable_prime:
                         break
-                if usable_prime:
-                    break
-            if not usable_prime:
-                raise NotImplementedError('image of type III not implemented when poles in disk')
+                if not usable_prime:
+                    raise NotImplementedError('image of type III not implemented when poles in disk')
         nth_derivative = f.dehomogenize(1).defining_polynomials()[0]
         variable = nth_derivative.parent().gens()[0]
         a = x.center()[0]

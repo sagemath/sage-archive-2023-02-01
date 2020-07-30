@@ -535,7 +535,6 @@ class TensorFreeModule(FiniteRankFreeModule):
 
             sage: M = FiniteRankFreeModule(QQ, 2, name='M')
             sage: T = M.tensor_module(1,1)
-            sage: e = M.basis('e')
             sage: t = T._an_element_() ; t
             Type-(1,1) tensor on the 2-dimensional vector space M over the
              Rational Field
@@ -548,10 +547,11 @@ class TensorFreeModule(FiniteRankFreeModule):
 
         """
         resu = self.element_class(self._fmodule, self._tensor_type)
-        if self._fmodule._def_basis is not None:
-            sindex = self._fmodule._sindex
-            ind = [sindex for i in range(resu._tensor_rank)]
-            resu.set_comp()[ind] = self._fmodule._ring.an_element()
+        # Make sure that the base module has a default basis
+        self._fmodule.an_element()
+        sindex = self._fmodule._sindex
+        ind = [sindex for i in range(resu._tensor_rank)]
+        resu.set_comp()[ind] = self._fmodule._ring.an_element()
         return resu
 
     def _coerce_map_from_(self, other):

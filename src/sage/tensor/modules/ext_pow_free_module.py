@@ -312,12 +312,28 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
             sage: a.display()
             1/2 e_0/\e_1/\e_2/\e_3
 
+        TESTS:
+
+        When the base module has no default basis, a default
+        basis will be set for it::
+
+            sage: M2 = FiniteRankFreeModule(QQ, 4, name='M2')
+            sage: a = M2.exterior_power(2)._an_element_(); a
+            Alternating contravariant tensor of degree 2
+            on the 4-dimensional vector space M2 over the Rational Field
+            sage: a + a
+            Alternating contravariant tensor of degree 2
+            on the 4-dimensional vector space M2 over the Rational Field
+            sage: M2.default_basis()
+            Basis (e_0,e_1,e_2,e_3) on the 4-dimensional vector space M2 over the Rational Field
+
         """
         resu = self.element_class(self._fmodule, self._degree)
-        if self._fmodule._def_basis is not None:
-            sindex = self._fmodule._sindex
-            ind = [sindex + i for i in range(resu._tensor_rank)]
-            resu.set_comp()[ind] = self._fmodule._ring.an_element()
+        # Make sure that the base module has a default basis
+        self._fmodule.an_element()
+        sindex = self._fmodule._sindex
+        ind = [sindex + i for i in range(resu._tensor_rank)]
+        resu.set_comp()[ind] = self._fmodule._ring.an_element()
         return resu
 
     #### End of parent methods
@@ -731,12 +747,26 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
             sage: a.display()
             1/2 e^0/\e^1/\e^2/\e^3
 
+        TESTS:
+
+        When the base module has no default basis, a default
+        basis will be set for it::
+
+            sage: M2 = FiniteRankFreeModule(QQ, 4, name='M2')
+            sage: a = M2.dual_exterior_power(2)._an_element_(); a
+            Alternating form of degree 2 on the 4-dimensional vector space M2 over the Rational Field
+            sage: a + a
+            Alternating form of degree 2 on the 4-dimensional vector space M2 over the Rational Field
+            sage: M2.default_basis()
+            Basis (e_0,e_1,e_2,e_3) on the 4-dimensional vector space M2 over the Rational Field
+
         """
         resu = self.element_class(self._fmodule, self._degree)
-        if self._fmodule._def_basis is not None:
-            sindex = self._fmodule._sindex
-            ind = [sindex + i for i in range(resu._tensor_rank)]
-            resu.set_comp()[ind] = self._fmodule._ring.an_element()
+        # Make sure that the base module has a default basis
+        self._fmodule.an_element()
+        sindex = self._fmodule._sindex
+        ind = [sindex + i for i in range(resu._tensor_rank)]
+        resu.set_comp()[ind] = self._fmodule._ring.an_element()
         return resu
 
     def _coerce_map_from_(self, other):

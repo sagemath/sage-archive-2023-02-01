@@ -33,6 +33,7 @@ from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
 from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective
 from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
 from sage.rings.rational_field import QQ
+from sage.rings.infinity import Infinity
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class DynamicalSystem_Berkovich(Element):
@@ -558,6 +559,9 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         if x.type_of_point() == 2:
             from sage.matrix.constructor import Matrix
             from sage.modules.free_module_element import vector
+            if self.domain().is_number_field_base():
+                ideal = self.domain().ideal()
+                ring_of_integers = self.domain().base_ring().ring_of_integers()
             field = f.domain().base_ring()
             M = Matrix([[field(x.prime()**(-1*x.power())),x.center()[0]],[field(0),field(1)]])
             X = M * vector(f[0].parent().gens())
@@ -590,7 +594,10 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             for poly in F:
                 new_poly = []
                 for i in poly:
-                    new_poly.append((i).residue())
+                    if self.domain().is_padic_base():
+                        new_poly.append(i.residue())
+                    else:
+                        new_poly.append(ring_of_integers(i).mod(ideal))
                 new_poly = R(new_poly)
                 fraction.append((new_poly))
             gcd = fraction[0].gcd(fraction[1])
@@ -605,26 +612,61 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             #is the Gauss point
             if not(num.is_constant() and dem.is_constant()):
                 return self.domain()(QQ(0), QQ(1))
-            reduced_value = field(num * dem.inverse_of_unit()).lift_to_precision(field.precision_cap())
+            if self.domain().is_padic_base():
+                reduced_value = field(num * dem.inverse_of_unit()).lift_to_precision(field.precision_cap())
+            else:
+                reduced_value = field(num * dem.inverse_of_unit())
             new_num = F[0]-reduced_value*F[1]
-            power_of_p = min([i.valuation() for i in new_num])
+            if self.domain().is_padic_base():
+                power_of_p = min([i.valuation() for i in new_num])
+            else:
+                power_of_p = min([i.valuation(ideal) for i in new_num])
             inverse_map = field(x.prime()**power_of_p) * z + reduced_value
-            return self.domain()(inverse_map(0), (inverse_map(1) - inverse_map(0)).abs())
-        #TODO write a better check for zeros in disk
-        P = f.domain()
-        if P.gens()[0] in f.defining_polynomials()[1].variables():
-            raise ValueError('action on Type III points only implemented for polynomials')
+            if self.domain().is_padic_base():
+                return self.domain()(inverse_map(0), (inverse_map(1) - inverse_map(0)).abs())
+            else:
+                val = (inverse_map(1) - inverse_map(0)).valuation(ideal)
+                if val == Infinity:
+                    return self.domain()(inverse_map(0), 0)
+                return self.domain()(inverse_map(0), x.prime()**(-1 * val))
+        # TODO write a better check for zeros in disk
+        if self.domain().is_padic_base():
+            P = f.domain()
+            if P.gens()[0] in f.defining_polynomials()[1].variables():
+                raise NotImplementedError('for padic backed spaces, action on type III points ' + \
+                    'only implemented for polynomials')
+        else:
+            affine_system = f.dehomogenize(1)
+            dem = affine_system.defining_polynomials()[0].denominator().univariate_polynomial()
+            dem_splitting_field, embedding = dem.splitting_field('a', True)
+            poles = dem.roots(dem_splitting_field)
+            primes_above = dem_splitting_field.primes_above(self.domain().ideal())
+            # check if any embedding which commutes is such that the roots
+            # are outside of the type III disk
+            for prime in primes_above:
+                usable_prime = True
+                for pole in poles:
+                    valuation = (embedding(x.center()) - pole).valuation(prime)
+                    if valuation == Infinity:
+                        pass
+                    elif x.prime()**(-1 * valuation) <= x.radius():
+                        usable_prime = False
+                        break
+                if usable_prime:
+                    break
+            if not usable_prime:
+                raise NotImplementedError('image of type III not implemented when poles in disk')
         nth_derivative = f.dehomogenize(1).defining_polynomials()[0]
         variable = nth_derivative.parent().gens()[0]
         a = x.center()[0]
         Taylor_expansion = []
         from sage.functions.other import factorial
         for i in range(f.degree()+1):
-            Taylor_expansion.append(nth_derivative(a)*1/factorial(i))
+            Taylor_expansion.append(nth_derivative(a) * 1/factorial(i))
             nth_derivative = nth_derivative.derivative(variable)
         r = x.radius()
         new_center = f(a)
-        new_radius = max([Taylor_expansion[i].abs()*r**i for i in range(1,len(Taylor_expansion))])
+        new_radius = max([Taylor_expansion[i].abs()*r**i for i in range(1, len(Taylor_expansion))])
         return self.domain()(new_center, new_radius)
 
 class DynamicalSystem_Berkovich_affine(DynamicalSystem_Berkovich):

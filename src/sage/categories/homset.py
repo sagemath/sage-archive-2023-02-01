@@ -586,11 +586,10 @@ class Homset(Set_generic):
 
             sage: X = ZZ['x']; X.rename("X")
             sage: Y = ZZ['y']; Y.rename("Y")
+            sage: f = X.hom([0], Y)
             sage: class MyHomset(Homset):
-            ....:     def my_function(self, x):
-            ....:         return Y(x[0])
             ....:     def _an_element_(self):
-            ....:         return sage.categories.morphism.SetMorphism(self, self.my_function)
+            ....:         return sage.categories.morphism.SetMorphism(self, f)
             sage: import __main__; __main__.MyHomset = MyHomset # fakes MyHomset being defined in a Python module
             sage: H = MyHomset(X, Y, category=Monoids(), base = ZZ)
             sage: H
@@ -1239,11 +1238,10 @@ class HomsetWithBase(Homset):
 
             sage: X = ZZ['x']; X.rename("X")
             sage: Y = ZZ['y']; Y.rename("Y")
+            sage: f = X.hom([0], Y)
             sage: class MyHomset(HomsetWithBase):
-            ....:     def my_function(self, x):
-            ....:         return Y(x[0])
             ....:     def _an_element_(self):
-            ....:         return sage.categories.morphism.SetMorphism(self, self.my_function)
+            ....:         return sage.categories.morphism.SetMorphism(self, f)
             sage: import __main__; __main__.MyHomset = MyHomset # fakes MyHomset being defined in a Python module
             sage: H = MyHomset(X, Y, category=Monoids())
             sage: H

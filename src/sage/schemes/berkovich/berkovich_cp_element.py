@@ -1,7 +1,7 @@
 r"""
 Elements of Berkovich space.
 
-:class:`Berkovich_Element` is abstract parent class for elements of any Berkovich space.
+:class:`Berkovich_Element` is an abstract parent class for elements of any Berkovich space.
 
 :class:`Berkovich_Element_Cp_Affine` and :class:`Berkovich_Element_Cp_Projective`
 implement elements of Berkovich space over `\CC_p` and `P^1(\CC_p)`. Elements are
@@ -1673,7 +1673,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
                 raise ValueError("involution map not deffined on affine type I point centered at 0")
             return self.parent()(1/self.center())
 
-        zero = self.parent()(QQ(0))
+        zero = self.parent()(ZZ(0))
         radius = self.radius()
 
         if self.type_of_point() in [2,3]:
@@ -1681,9 +1681,9 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             if zero_contained_in_self:
                 if self.type_of_point() == 2:
                     power = self.power()
-                    return self.parent()(0, power=-power)
-                return self.parent()(0, RR(1/radius))
-            return self.parent()(1/self.center(), RR( radius / (self._custom_abs(self.center())**2) ) )
+                    return self.parent()(ZZ(0), power=-power)
+                return self.parent()(ZZ(0), RR(1/radius))
+            return self.parent()(1/self.center(), RR(radius / (self._custom_abs(self.center())**2)))
 
         new_center_lst = []
         new_radius_lst = []
@@ -2421,8 +2421,8 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             if zero_contained_in_self:
                 if self.type_of_point() == 2:
                     power = self.power()
-                    return self.parent()(0, power=-power)
-                return self.parent()(0, 1/self.radius())
+                    return self.parent()(ZZ(0), power=-power)
+                return self.parent()(ZZ(0), 1/self.radius())
             return self.parent()(1/self.center()[0], self.radius()/(self._custom_abs(self.center()[0])**2))
 
         new_center_lst = []

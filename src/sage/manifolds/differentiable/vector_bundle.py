@@ -116,7 +116,7 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
                                          field=field,
                                          latex_name=latex_name,
                                          category=category)
-        self._diff_degree = diff_degree # Override diff degree
+        self._diff_degree = diff_degree  # Override diff degree
 
     def _repr_(self):
         r"""
@@ -1592,6 +1592,49 @@ class TensorBundle(DifferentiableVectorBundle):
         r"""
         Set the default orientation of ``self``.
 
+        INPUT:
+
+        - an orientation; a vector frame or a list of vector frames, covering
+          the base space of ``self``
+
+        .. NOTE::
+
+            If the destination map is the identity, the default orientation
+            of the base manifold gets changed here as well.
+
+        .. WARNING::
+
+            It is the user's responsibility that the orientation set here
+            is indeed an orientation. There is no check going on in the
+            background. See :meth:`orientation` for the definition of an
+            orientation.
+
+        EXAMPLES:
+
+        Set an orientation on a tensor bundle::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: T11 = M.tensor_bundle(1, 1)
+            sage: e = T11.local_frame('e'); e
+            Vector frame (M, (e_0,e_1))
+            sage: T11.set_orientation(e)
+            sage: T11.orientation()
+            [Vector frame (M, (e_0,e_1))]
+
+        Set an orientation in the non-trivial case::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: T12 = M.tensor_bundle(1, 2)
+            sage: e = T12.local_frame('e', domain=U)
+            sage: f = T12.local_frame('f', domain=V)
+            sage: T12.set_orientation([e, f])
+            sage: T12.orientation()
+            Vector frame (U, (e_0,e_1)), Vector frame (V, (f_0,f_1))]
+
         """
         if self._dest_map.is_identity():
             base_space = self._base_space
@@ -1608,20 +1651,100 @@ class TensorBundle(DifferentiableVectorBundle):
         for details regarding orientations on vector bundles.
 
         The tensor bundle `\Phi^* T^{(k,l)}N` of a manifold is orientable if
-        the manifold `\Phi(M)` is orientable. Notice that the converse is in
-        general not true.
+        the manifold `\Phi(M)` is orientable. The converse does not
+        necessarily hold true. The usual case corresponds to `\Phi`
+        being the identity map, where the tensor bundle `T^{(k,l)}M` is
+        orientable if and only if the manifold `M` is orientable.
+
+        .. NOTE::
+
+            Notice that the orientation of a general tensor bundle
+            `\Phi^* T^{(k,l)}N` is canonically induced by the orientation of
+            the tensor bundle `\Phi^* T^{(1,0)}N` as each local frame there
+            induces the frames on `\Phi^* T^{(k,l)}N` in a canonical way.
+
+        If no orientation has been set before, and if the ambient space
+        already admits an orientation, the corresponding orientation is
+        returned and henceforth fixed for the tensor bundle.
+
+        EXAMPLES:
+
+        In the trivial case, i.e. if the destination map is the identitiy
+        and the tangent bundle is covered by one frame, the orientation is
+        easily obtained::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: T11 = M.tensor_bundle(1, 1)
+            sage: T11.orientation()
+            [Coordinate frame (M, (d/dx,d/dy))]
+
+        The same holds true if the ambient domain admits a trivial
+        orientation::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: R = Manifold(1, 'R')
+            sage: c_t.<t> = R.chart()
+            sage: Phi = R.diff_map(M, name='Phi')
+            sage: PhiT22 = R.tensor_bundle(2, 2, dest_map=Phi); PhiT22
+            Tensor bundle Phi^*T^(2,2)M over the 1-dimensional differentiable
+             manifold R along the Differentiable map Phi from the 1-dimensional
+             differentiable manifold R to the 2-dimensional differentiable
+             manifold M
+            sage: PhiT22.local_frame()  # initialize frame
+            Vector frame (R, (d/dx,d/dy)) with values on the 2-dimensional
+             differentiable manifold M
+            sage: PhiT22.orientation()
+            [Vector frame (R, (d/dx,d/dy)) with values on the 2-dimensional
+             differentiable manifold M]
+            sage: PhiT22.local_frame() is PhiT22.orientation()[0]
+            True
+
+        In the non-trivial case, however, the orientation must be set
+        manually by the user::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: T11 = M.tensor_bundle(1, 1); T11
+            Tensor bundle T^(1,1)M over the 2-dimensional differentiable
+             manifold M
+            sage: T11.orientation()
+            []
+            sage: T11.set_orientation([c_xy.frame(), c_uv.frame()])
+            sage: T11.orientation()
+            [Coordinate frame (U, (d/dx,d/dy)), Coordinate frame
+             (V, (d/du,d/dv))]
+
+        If the destination map is the identity, the orientation is
+        automatically set for the manifold, too::
+
+            sage: M.orientation()
+            [Coordinate frame (U, (d/dx,d/dy)), Coordinate frame
+             (V, (d/du,d/dv))]
+
+        Conversely, if one sets an orientation on the manifold,
+        the orientation on its tensor bundles is set accordingly::
+
+            sage: c_tz.<t,z> = U.chart()
+            sage: M.set_orientation([c_tz, c_uv])
+            sage: T11.orientation()
+            [Coordinate frame (U, (d/dt,d/dz)), Coordinate frame
+             (V, (d/du,d/dv))]
 
         """
+        if self._dest_map.is_identity():
+            self._orientation = self._base_space.orientation()
         if not self._orientation:
-            if self._dest_map.is_identity():
-                base_space = self._base_space
-                orientation = base_space.orientation()
-                self._orientation = orientation
-            else:
+            if not self._dest_map.is_identity():
                 # try to get orientation from ambient space:
                 ambient_domain = self._ambient_domain
-                orientation = ambient_domain.orientation()
-                if orientation:
-                    for ambient_frame in orientation:
-                        frame_dom = ambient_frame.domain()
-                        module = frame_dom
+                amb_orient = ambient_domain.orientation()
+                if amb_orient:
+                    for frame in self.frames():
+                        from_frame = frame._from_frame
+                        if from_frame in amb_orient:
+                            self._orientation.append(frame)
+        return list(self._orientation)

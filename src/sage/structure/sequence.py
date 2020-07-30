@@ -821,9 +821,9 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: t = copy(s)
             sage: t == s
             True
-            sage: t.is_immutable == s.is_immutable
+            sage: t.is_immutable() == s.is_immutable()
             True
-            sage: t.is_mutable == s.is_mutable
+            sage: t.is_mutable() == s.is_mutable()
             True
 
         """

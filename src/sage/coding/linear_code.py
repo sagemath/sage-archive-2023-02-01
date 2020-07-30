@@ -2101,6 +2101,107 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         T = RT.gen()
         return P/((1-T)*(1-q*T))
 
+    def cosetGraph(self):
+        r"""
+        Return the coset graph of this linear code.
+
+        The coset graph of a linear code `C` is the graph whose vertices
+        are the cosets of `C` and two cosets are adjacent if they have
+        representatives whose hamming distance is 1.
+
+        EXAMPLES::
+
+            sage: C = codes.GolayCode(GF(3))
+            sage: G = C.cosetGraph()
+            sage: G.is_distance_regular()
+            True
+            sage: C = codes.KasamiCode(8,2)
+            sage: G = C.cosetGraph()
+            sage: G.is_distance_regular()
+            True
+
+        ALGORITHM:
+
+        Instead of working with cosets we compute the (direct sum) complement
+        of `C`. Let `P` be the projection of the cosets to the newly found
+        subspace. Then two vectors are adjacent if they differ by
+        `\lambda P(e_i)` for some `i`.
+
+        TESTS::
+
+            sage: C = codes.KasamiCode(4,2)
+            sage: C.cosetGraph()
+            Hamming Graph with parameters 4,2: Graph on 16 vertices
+            sage: M = matrix.identity(GF(3), 7)
+            sage: C = LinearCode(M)
+            sage: G = C.cosetGraph()
+            sage: G.vertices()
+            [0]
+            sage: G.edges()
+            []
+        """
+        from sage.matrix.constructor import matrix
+        from sage.graphs.graph import Graph
+
+        F = self.base_field()
+
+        def e(i):
+            v = [0]*self.length()
+            v[i-1] = 1
+            return vector(F, v, immutable=True)
+
+        # Handle special cases
+        if len(self.basis()) == self.length():
+            G = Graph(1)
+            G.name(f"coset graph of {self.__repr__()}")
+            return G
+        if len(self.basis()) == 0:
+            from sage.graphs.graph_generators import GraphGenerators
+            return GraphGenerators.HammingGraph(self.length(), F.order())
+
+        M = matrix(F, self.basis())
+        M.echelonize()  # don't think this is needed
+        C_basis = M.rows()
+        U_basis = [e(i) for i in range(len(C_basis)+1, self.length()+1)]
+
+        V = VectorSpace(F, self.length())
+        U = V.span(U_basis)
+        vertices = list(U)
+
+        # build matrix whose columns are the basis of U and C
+        A = matrix(F, U_basis)
+        A = A.stack(matrix(F, C_basis))
+        A = A.transpose()
+        Ainv = A.inverse()
+
+        Pei = []  # projection of e_i on U
+        for i in range(1, self.length()+1):
+            ei = e(i)
+            if ei in U:
+                Pei.append(ei)
+            else:
+                a = Ainv * ei
+                # get zero vector and sum a[i]u_i to it
+                v = vector(F, [0]*self.length())
+                for i in range(len(U_basis)):
+                    v += a[i]*U_basis[i]
+                v.set_immutable()
+                Pei.append(v)
+
+        lPei = [l*u for l in F for u in Pei if not l.is_zero()]
+
+        edges = []
+        for v in vertices:
+            v.set_immutable()
+            for u in lPei:
+                w = v + u
+                w.set_immutable()
+                edges.append((v, w))
+
+        G = Graph(edges, format='list_of_edges')
+        G.name(f"coset graph of {self.__repr__()}")
+        return G
+
 
 ############################ linear codes python class ########################
 
@@ -2543,7 +2644,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         sage: D = C.decoder("Syndrome", maximum_error_weight = 5) # long time
         sage: D.decoder_type() # long time
         {'complete', 'hard-decision', 'might-error'}
-        sage: D.decoding_radius() # long time 
+        sage: D.decoding_radius() # long time
         4
 
     In that case, the decoder might still return an unexpected codeword, but

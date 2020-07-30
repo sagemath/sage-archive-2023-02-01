@@ -264,6 +264,25 @@ class VectorSpaces(Category_module):
                     base_ring = self.base_ring()
                 return FilteredPartitionModule(base_ring=base_ring)
 
+    class FiniteDimensional(CategoryWithAxiom_over_base_ring):
+
+        class TensorProducts(TensorProductsCategory):
+
+            def extra_super_categories(self):
+                """
+                Implement the fact that a (finite) tensor product of
+                finite dimensional modules is a finite dimensional module.
+
+                EXAMPLES::
+
+                    sage: VectorSpaces(QQ).FiniteDimensional().TensorProducts().extra_super_categories()
+                    [Category of finite dimensional vector spaces over Rational Field]
+                    sage: VectorSpaces(QQ).FiniteDimensional().TensorProducts().FiniteDimensional()
+                    Category of tensor products of finite dimensional vector spaces over Rational Field
+
+                """
+                return [self.base_category()]
+
     class DualObjects(DualObjectsCategory):
 
         def extra_super_categories(self):

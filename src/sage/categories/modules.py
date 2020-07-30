@@ -545,8 +545,8 @@ class Modules(Category_module):
 
                     sage: Modules(ZZ).FiniteDimensional().TensorProducts().extra_super_categories()
                     [Category of finite dimensional modules over Integer Ring]
-                    sage: Modules(QQ).FiniteDimensional().TensorProducts().extra_super_categories()
-                    FIXME
+                    sage: Modules(QQ).FiniteDimensional().TensorProducts().FiniteDimensional()
+                    Category of tensor products of finite dimensional vector spaces over Rational Field
 
                 """
                 return [self.base_category()]

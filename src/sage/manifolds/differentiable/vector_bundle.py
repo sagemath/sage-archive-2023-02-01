@@ -1467,7 +1467,7 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: Phi.display()
             Phi: R --> M
                t |--> (x, y) = (cos(t), sin(t))
-            sage: PhiT11 = R.tensor_bundle(1, 1, dest_map=Phi)
+                sage: PhiT11 = R.tensor_bundle(1, 1, dest_map=Phi)
             sage: PhiT11.ambient_domain()
             2-dimensional differentiable manifold M
 
@@ -1593,23 +1593,35 @@ class TensorBundle(DifferentiableVectorBundle):
         Set the default orientation of ``self``.
 
         """
-
+        if self._dest_map.is_identity():
+            base_space = self._base_space
+            base_space.set_orientation(orientation)
+            self._orientation = base_space._orientation
+        else:
+            super().set_orientation(orientation)
 
     def orientation(self):
         r"""
         Get the orientation of ``self`` if available.
 
+        See :meth:`~sage.manifolds.vector_bundle.TopologicalVectorBundle.orientation`
+        for details regarding orientations on vector bundles.
+
         The tensor bundle `\Phi^* T^{(k,l)}N` of a manifold is orientable if
-        and only if the manifold `\Phi(M)` is orientable.
+        the manifold `\Phi(M)` is orientable. Notice that the converse is in
+        general not true.
 
         """
-        return self._base_space
-
-    def has_orientation(self):
-        r"""
-        Check whether ``self`` admits an obvious or by user set orientation.
-
-        """
-        if self.orientation():
-            return True
-        return False
+        if not self._orientation:
+            if self._dest_map.is_identity():
+                base_space = self._base_space
+                orientation = base_space.orientation()
+                self._orientation = orientation
+            else:
+                # try to get orientation from ambient space:
+                ambient_domain = self._ambient_domain
+                orientation = ambient_domain.orientation()
+                if orientation:
+                    for ambient_frame in orientation:
+                        frame_dom = ambient_frame.domain()
+                        module = frame_dom

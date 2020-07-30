@@ -1579,7 +1579,7 @@ class TopologicalManifold(ManifoldSubset):
 
         Set an orientation on a manifold::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M', structure='top')
             sage: c_xy.<x,y> = M.chart(); c_uv.<u,v> = M.chart()
             sage: M.set_orientation(c_uv)
             sage: M.orientation()
@@ -1587,14 +1587,13 @@ class TopologicalManifold(ManifoldSubset):
 
         Set an orientation in the non-trivial case::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
             sage: M.declare_union(U, V)
             sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
             sage: M.set_orientation([c_xy, c_uv])
             sage: M.orientation()
-            [Coordinate frame (U, (d/dx,d/dy)),
-             Coordinate frame (V, (d/du,d/dv))]
+            [Chart (U, (x, y)), Chart (V, (u, v))]
 
         """
         chart_type = self._structure.chart
@@ -1625,14 +1624,31 @@ class TopologicalManifold(ManifoldSubset):
         r"""
         Get the orientation of ``self`` if available.
 
-        An *orientation* of a topologial manifold is an atlas of charts whose
-        transition maps are orientation preserving. A homeomorphism
-        `f \colon U \to V` for open subsets `U, V \subset \RR` is called
-        *orientation preservion* if for each `x \in U`...
+        An *orientation* of an `n`-dimensional topologial manifold is an
+        atlas of charts whose transition maps are orientation preserving. A
+        homeomorphism `f \colon U \to V` for open subsets `U, V \subset \RR^n`
+        is called *orientation preservion* if for each `x \in U` the
+        following map between singular homologies is the identity:
+
+        .. MATH::
+
+            H_n(\RR^n, \RR^n - 0; \ZZ) \cong H_n(U, U - x; \ZZ)
+            \xrightarrow{f_*} H_n(V, V - f(x)) \cong H_n(\RR^n, \RR^n - 0; \ZZ)
+
+        See `this link
+        <http://www.map.mpim-bonn.mpg.de/Orientation_of_manifolds>`_
+        for details.
+
+        .. NOTE::
+
+            Notice that for differentiable manifolds, the notion of
+            orientability does not need homology theory. See
+            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.orientation`
+            for details
 
         The trivial case corresponds to the manifold being covered by only
         one chart. In that case, if no orientation has been manually set
-        before, this frame is set to the default orientation and returned here.
+        before, this chart is set to the default orientation and returned here.
 
         EXAMPLES:
 
@@ -1644,7 +1660,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: M.orientation()
             [Chart (M, (x, y, z))]
 
-        Usually, the orientation cannot be obtained so easily::
+        Usually, an orientation cannot be obtained so easily::
 
             sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
@@ -1703,14 +1719,14 @@ class TopologicalManifold(ManifoldSubset):
 
         The trivial case::
 
-            sage: M = Manifold(3, 'M')
+            sage: M = Manifold(3, 'M', structure='top')
             sage: c.<x,y,z> = M.chart()
             sage: M.has_orientation()
             True
 
         The non-trivial case::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M', structure='top')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
             sage: M.declare_union(U, V)
             sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()

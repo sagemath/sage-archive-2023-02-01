@@ -90,7 +90,7 @@ class Berkovich_Cp(Berkovich):
         ::
 
             sage: R.<x> = QQ[]
-            sage: A.<a> = NumberField(x^3+20)
+            sage: A.<a> = NumberField(x^3 + 20)
             sage: ideal = A.ideal(-1/2*a^2 + a - 3)
             sage: B = Berkovich_Cp_Affine(A, ideal)
             sage: B.residue_characteristic()
@@ -106,8 +106,8 @@ class Berkovich_Cp(Berkovich):
 
         OUTPUT:
 
-        - ``True`` if this Berkovich space was created with a p-adic field
-        - ``False`` otherwise
+        - ``True`` if this Berkovich space was created with a p-adic field.
+        - ``False`` otherwise.
 
         EXAMPLES::
 
@@ -129,8 +129,8 @@ class Berkovich_Cp(Berkovich):
 
         OUTPUT:
 
-        - ``True`` if this Berkovich space was created with a number field
-        - ``False`` otherwise
+        - ``True`` if this Berkovich space was created with a number field.
+        - ``False`` otherwise.
 
         EXAMPLES::
 
@@ -164,7 +164,7 @@ class Berkovich_Cp(Berkovich):
         EXAMPLES::
 
             sage: R.<z> = QQ[]
-            sage: A.<a> = NumberField(z^2+1)
+            sage: A.<a> = NumberField(z^2 + 1)
             sage: ideal = A.prime_above(5)
             sage: B = Berkovich_Cp_Projective(A, ideal)
             sage: B.ideal()
@@ -179,8 +179,8 @@ class Berkovich_Cp(Berkovich):
         ::
 
             sage: B = Berkovich_Cp_Projective(Qp(3))
-            sage: print(B.ideal())
-            None
+            sage: B.ideal() is None
+            True
         """
         return self._ideal
 
@@ -199,9 +199,9 @@ class Berkovich_Cp(Berkovich):
         ::
 
             sage: R.<x> = QQ[]
-            sage: A.<a> = NumberField(x^2+1)
+            sage: A.<a> = NumberField(x^2 + 1)
             sage: A_ideal = A.prime_above(2)
-            sage: B.<b> = NumberField(x^4+1)
+            sage: B.<b> = NumberField(x^4 + 1)
             sage: B_ideal = B.prime_above(2)
             sage: C = Berkovich_Cp_Projective(A, A_ideal)
             sage: D = Berkovich_Cp_Projective(B, B_ideal)
@@ -276,14 +276,14 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
 
     We can create elements::
 
-        sage: Q1 = B(-2); Q1
+        sage: B(-2)
         Type I point centered at 1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5
         + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + 2*3^12 + 2*3^13
         + 2*3^14 + 2*3^15 + 2*3^16 + 2*3^17 + 2*3^18 + 2*3^19 + O(3^20)
 
     ::
 
-        sage: Q2 = B(1, 2); Q2
+        sage: B(1, 2)
         Type III point centered at 1 + O(3^20) of radius 2.00000000000000
 
     For details on element creation, see the documentation
@@ -298,12 +298,12 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
         sage: B = Berkovich_Cp_Affine(Qp(3, 1)); B
         Affine Berkovich line over Cp(3) of precision 1
 
-        sage: Q2 = B(1/2); Q2
+        sage: B(1/2)
         Type I point centered at 2 + O(3)
 
     Note that this point has very low precision, as ``B`` was initialized
-    with a padic field of capped-relative precision one. For high precision,
-    pass in a high precision padic field::
+    with a p-adic field of capped-relative precision one. For high precision,
+    pass in a high precision p-adic field::
 
         sage: B = Berkovich_Cp_Affine(Qp(3, 1000)); B
         Affine Berkovich line over Cp(3) of precision 1000
@@ -312,7 +312,7 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
     extensions of `\QQ_p`::
 
         sage: B = Berkovich_Cp_Affine(3)
-        sage: A.<a> = Qp(3).extension(x^3-3)
+        sage: A.<a> = Qp(3).extension(x^3 - 3)
         sage: B(a)
         Type I point centered at a + O(a^61)
 
@@ -325,7 +325,7 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
         Affine Berkovich line over Cp(3), with base Number
         Field in a with defining polynomial x^3 + 20
 
-    Number fields a major advantage of exact computation.
+    Number fields have a major advantage of exact computation.
 
     Number fields also have added functionality. Arbitrary extensions of
     `\QQ` are supported, while there is currently limited functionality
@@ -401,7 +401,7 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
             sage: R.<z> = QQ[]
             sage: A.<a> = NumberField(z^2 + 1)
             sage: ideal = A.prime_above(3)
-            sage: B = Berkovich_Cp_Affine(A, ideal); B
+            sage: Berkovich_Cp_Affine(A, ideal)
             Affine Berkovich line over Cp(3), with base Number Field
             in a with defining polynomial z^2 + 1
         """
@@ -466,7 +466,7 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
         Type I point centered at (2 + 3 + 3^2 + 3^3 + 3^4 + 3^5
         + 3^6 + 3^7 + 3^8 + 3^9 + 3^10 + 3^11 + 3^12 + 3^13 + 3^14
         + 3^15 + 3^16 + 3^17 + 3^18 + 3^19 + O(3^20) : 1 + O(3^20))
-    
+
     ::
 
         sage: B(2, 1)
@@ -474,7 +474,7 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
 
     For details about element construction, see the documentation of
     :class:`Berkovich_Element_Cp_Projective`. Initializing a Berkovich projective
-    line by passing in a padic space looks the same::
+    line by passing in a p-adic space looks the same::
 
         sage: B = Berkovich_Cp_Projective(Qp(3)); B
         Projective Berkovich line over Cp(3) of precision 20
@@ -494,7 +494,7 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
     a number field, as long as an ideal is specified::
 
         sage: R.<x> = QQ[]
-        sage: A.<a> = NumberField(x^2+1)
+        sage: A.<a> = NumberField(x^2 + 1)
         sage: ideal = A.prime_above(2)
         sage: B = Berkovich_Cp_Projective(A, ideal); B
         Projective Berkovich line over Cp(2), with base
@@ -592,7 +592,7 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
         ::
 
             sage: R.<x> = QQ[]
-            sage: A.<a> = NumberField(x^3+20)
+            sage: A.<a> = NumberField(x^3 + 20)
             sage: ideal = A.prime_above(3)
             sage: D = Berkovich_Cp_Projective(A, ideal)
             sage: D.base_ring()
@@ -613,9 +613,9 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
         ::
 
             sage: R.<x> = QQ[]
-            sage: A.<a> = NumberField(x^2+1)
-            sage: v = A.ideal(a+1)
-            sage: B = Berkovich_Cp_Projective(A, v); B
+            sage: A.<a> = NumberField(x^2 + 1)
+            sage: v = A.ideal(a + 1)
+            sage: Berkovich_Cp_Projective(A, v)
             Projective Berkovich line over Cp(2), with base Number Field in a with defining polynomial x^2 + 1
         """
         if self._base_type == 'padic field':

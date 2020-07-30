@@ -58,6 +58,7 @@ class Berkovich_Element(Element):
 class Berkovich_Element_Cp(Berkovich_Element):
     r"""
     The abstract parent class for any element of Berkovich space over `\CC_p`.
+
     This class should never be instantiated, instead use :class:`Berkovich_Element_Cp_Affine`
     or :class:`Berkovich_Element_Cp_Projective`.
 
@@ -416,7 +417,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
         Returns the absolute value of ``x`` with respect to the norm on ``Cp``.
 
         Used to simplify code, as ``x`` may be a point of a number field
-        or a padic field.
+        or a p-adic field.
 
         EXAMPLES::
 
@@ -500,6 +501,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
         """
         Returns the precision of a type IV point.
 
+        This integer is the number of disks used in the approximation of the type IV point.
         Not defined for type I, II, or III points.
 
         OUTPUT: An integer.
@@ -815,7 +817,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
         ::
 
             sage: R.<x> = QQ[]
-            sage: A.<a> = NumberField(x^3+20)
+            sage: A.<a> = NumberField(x^3 + 20)
             sage: ideal = A.ideal(-1/2*a^2 + a - 3)
             sage: B = Berkovich_Cp_Projective(A, ideal)
             sage: Q1 = B(4)
@@ -850,7 +852,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
             sage: A.<a> = NumberField(x^3 + 20)
             sage: ideal = A.ideal(-1/2*a^2 + a - 3)
             sage: B = Berkovich_Cp_Projective(A, ideal)
-            sage: B(a^2+4).center()
+            sage: B(a^2 + 4).center()
             (a^2 + 4 : 1)
         """
         if self._type == 4:
@@ -1005,38 +1007,36 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
     Type I points can be created by specifying the corresponding point of ``Cp``::
 
         sage: B = Berkovich_Cp_Affine(Qp(3))
-        sage: a = B(4)
-        sage: a
+        sage: B(4)
         Type I point centered at 1 + 3 + O(3^20)
 
     The center of a point can be an element of a finite extension of ``Qp``::
 
         sage: A.<t> = Qq(27)
-        sage: a = B(1+t)
-        sage: a
+        sage: B(1 + t)
         Type I point centered at (t + 1) + O(3^20)
 
     Type II and III points can be created by specifying a center and a radius::
 
-        sage: b = B(2, 3**(1/2)); b
+        sage: B(2, 3**(1/2))
         Type II point centered at 2 + O(3^20) of radius 3^1/2
-        sage: c = B(2, 1.6); c
+        sage: B(2, 1.6)
         Type III point centered at 2 + O(3^20) of radius 1.60000000000000
 
     Some type II points may be mistaken for type III points::
 
-        sage: b = B(3, 3**0.5); b #not tested
+        sage: B(3, 3**0.5) #not tested
         Type III point centered at 3 + O(3^21) of radius 1.73205080756888
 
     To avoid these errors, specify the power instead of the radius::
 
-        sage: b = B(3, power=RR(1/100000)); b
+        sage: B(3, power=RR(1/100000))
         Type II point centered at 3 + O(3^21) of radius 3^1/100000
 
     Type IV points can be constructed in a number of ways, the first being
     from a list of centers and radii used to approximate the point::
 
-        sage: d = B([Qp(3)(2), Qp(3)(2), Qp(3)(2)], [1.761, 1.123, 1.112]); d
+        sage: B([Qp(3)(2), Qp(3)(2), Qp(3)(2)], [1.761, 1.123, 1.112])
         Type IV point of precision 3, approximated by disks centered at 
         [2 + O(3^20), 2 + O(3^20)] ... with radii [1.76100000000000, 1.12300000000000] ...
 
@@ -1044,10 +1044,10 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
         sage: A.<t> = Qq(27)
         sage: R.<x> = PolynomialRing(A)
-        sage: f = (1+t)^2*x
+        sage: f = (1 + t)^2*x
         sage: S.<y> = PolynomialRing(RR)
         sage: S = FractionField(S)
-        sage: g = (y+1)/y
+        sage: g = (y + 1)/y
         sage: d = B(f, g, prec=100); d
         Type IV point of precision 100 with centers given by 
         ((t^2 + 2*t + 1) + O(3^20))*x and radii given by (y + 1.00000000000000)/y
@@ -1055,7 +1055,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
     For increased performance, error_check can be set to ``False``. WARNING: with error check set
     to ``False``, any error in the input will lead to incorrect results::
 
-        sage: d = B(f, g, prec=100,error_check=False); d
+        sage: B(f, g, prec=100,error_check=False)
         Type IV point of precision 100 with centers given by
         ((t^2 + 2*t + 1) + O(3^20))*x and radii given by (y + 1.00000000000000)/y
 
@@ -1070,7 +1070,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     ::
 
-        sage: Q2 = B(a+1, 3); Q2
+        sage: B(a+1, 3)
         Type II point centered at (a + 1 : 1) of radius 3^1
 
     TESTS::
@@ -1119,6 +1119,15 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         Type II point centered at w + O(w^41) of radius 5^1
     """
     def __init__(self, parent, center, radius=None, power=None, prec=20, error_check=True):
+        """
+        Initialization function.
+
+        EXAMPLES::
+
+            sage: A = Berkovich_Cp_Affine(Qp(17))
+            sage: A(5, 1)
+            Type II point centered at 5 + O(17^20) of radius 17^0
+        """
         #we call Berkovich_Element_Cp constructor which is shared with projective Berkovich space
         #unless we are passed a point of projective Berkovich space
         Element.__init__(self, parent)
@@ -1127,7 +1136,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         self._base_type = parent._base_type
         self._ideal = parent._ideal
 
-        #if this is a point of projective berkovich space, we raise an error
+        #if this is a point of projective Berkovich space, we raise an error
         if isinstance(center, Berkovich_Element_Cp_Projective):
             raise TypeError('use as_affine_point to convert to affine Berkovich space')
 
@@ -1138,7 +1147,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         r"""
         Returns the corresponding point of projective Berkovich space.
 
-        We identify affine Berkovich space with the subset `P^1_{\text{Berk}}(C_p) - (1 : 0)`.
+        We identify affine Berkovich space with the subset `P^1_{\text{Berk}}(C_p) - \{(1 : 0)\}`.
 
         EXAMPLES::
 
@@ -1519,7 +1528,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         The involution map is the extension of the map ``z |-> 1/z``
         on `\CC_p` to Berkovich space.
 
-        For affine Berkovich Space, not defined for the type I
+        For affine Berkovich space, not defined for the type I
         point centered at 0.
 
         If zero is contained in every disk approximating a type IV point,
@@ -1860,9 +1869,18 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     """
     def __init__(self, parent, center, radius=None, power=None, prec=20, error_check=True):
+        """
+        Initialization function.
+
+        EXAMPLES::
+
+            sage: S = ProjectiveSpace(Qp(7), 1)
+            sage: P = Berkovich_Cp_Projective(S)
+            sage: P(0,1)
+            Type II point centered at (0 : 1 + O(7^20)) of radius 7^0
+        """
         #if we are given a point of Affine Berkovich Space, we do the conversion
         #otherwise we call the Berkovich_Element_Cp constructor with space_type="projective"
-
         Element.__init__(self, parent)
         self._p = parent.prime()
         self._base_space = parent.base()
@@ -1890,8 +1908,10 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         ::
 
-            sage: B(0, 1).as_affine_point()
+            sage: Q=B(0, 1).as_affine_point(); Q
             Type II point centered at 0 of radius 5^0
+            sage: Q.parent()
+            Affine Berkovich line over Cp(5) of precision 20
 
         ::
 
@@ -2233,7 +2253,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         TESTS::
 
-            sage: Q4 = B(1/3**8+2, 1)
+            sage: Q4 = B(1/3**8 + 2, 1)
             sage: Q2.join(Q4, basepoint=Q1)
             Type III point centered at (2 + O(3^20) : 1 + O(3^20)) of radius 2.00000000000000
 
@@ -2255,7 +2275,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             Type II point centered at (0 : 1 + O(3^20)) of radius 3^1/2
 
             sage: R.<x> = QQ[]
-            sage: A.<a> = NumberField(x^3+20)
+            sage: A.<a> = NumberField(x^3 + 20)
             sage: ideal = A.prime_above(3)
             sage: C = Berkovich_Cp_Projective(A, ideal)
             sage: Q10 = C(a, 1/9)
@@ -2493,9 +2513,9 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         TESTS::
 
             sage: B = Berkovich_Cp_Projective(3)
-            sage: infty = B((1,0))
+            sage: infty = B((1, 0))
             sage: zero = B(0)
-            sage: gauss = B(0,1)
+            sage: gauss = B(0, 1)
             sage: infty.contained_in_interval(zero, gauss)
             False
 

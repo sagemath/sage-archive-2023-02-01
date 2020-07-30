@@ -252,6 +252,10 @@ class CoxeterGroup(UniqueRepresentation, Parent):
         """
         return self.element_class(self, [])
 
+    def m(self, i, j):
+        from sage.misc.superseded import deprecation
+        deprecation(30237, "the .m(i, j) method has been deprecated; use .coxeter_matrix()[i,j] instead.")
+
     def kazhdan_lusztig_polynomial(self, u, v, constant_term_one=True):
         r"""
         Return the Kazhdan-Lusztig polynomial `P_{u,v}`.

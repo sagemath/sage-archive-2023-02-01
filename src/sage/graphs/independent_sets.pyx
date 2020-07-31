@@ -370,7 +370,7 @@ cdef class IndependentSets:
             True
         """
         if not self.n:
-            return S == []
+            return not S
 
         cdef int i
         # Set of vertices as a bitset

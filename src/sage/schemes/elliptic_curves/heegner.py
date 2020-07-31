@@ -94,7 +94,8 @@ The above is consistent with the following analytic computation::
 
 from __future__ import print_function, absolute_import, division
 
-from sage.misc.all import verbose, prod
+from sage.misc.all import prod
+from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
 
 from sage.structure.sage_object import SageObject

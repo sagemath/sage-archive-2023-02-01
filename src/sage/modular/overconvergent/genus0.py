@@ -174,7 +174,7 @@ classical) does not apply.
 from __future__ import print_function, absolute_import
 
 from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
-from sage.misc.misc         import verbose
+from sage.misc.verbose      import verbose
 from sage.misc.cachefunc    import cached_method
 from sage.modular.all       import (trivial_character, EtaProduct,
                                     j_invariant_qexp, hecke_operator_on_qexp)

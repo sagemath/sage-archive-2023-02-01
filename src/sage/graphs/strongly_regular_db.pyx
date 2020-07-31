@@ -1459,9 +1459,7 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
         sage: from sage.graphs.strongly_regular_db import is_twograph_descendant_of_srg
         sage: t = is_twograph_descendant_of_srg(27, 10, 1, 5); t
         (<cyfunction is_twograph_descendant_of_srg.<locals>.la at...
-        sage: g = t[0](*t[1:]); g  # py2
-        descendant of complement(Johnson graph with parameters 8,2) at {5, 7}: Graph on 27 vertices
-        sage: g = t[0](*t[1:]); g  # py3
+        sage: g = t[0](*t[1:]); g
         descendant of complement(Johnson graph with parameters 8,2) at {0, 1}: Graph on 27 vertices
         sage: g.is_strongly_regular(parameters=True)
         (27, 10, 1, 5)

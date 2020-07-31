@@ -480,7 +480,7 @@ cdef class SageObject:
     #############################################################################
 
     def category(self):
-        from sage.categories.all import Objects
+        from sage.categories.objects import Objects
         return Objects()
 
     def _test_category(self, **options):

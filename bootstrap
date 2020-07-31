@@ -147,7 +147,7 @@ save () {
     set -e
 
     # Check that config.guess is sufficiently recent
-    if ! grep '^timestamp=.*201[5-9]' config/config.guess >/dev/null; then
+    if ! grep '^timestamp=.*20\(1[5-9]\|2[0-9]\)' config/config.guess >/dev/null; then
         echo >&2 "Error: config.guess is outdated:"
         grep >&2 '^timestamp=' config/config.guess
         echo >&2 "You should update the 'gnuconfig' or 'automake' package and try again"
@@ -206,6 +206,7 @@ mkdir config 2>/dev/null
 # Get autotools from our own package into PATH (Trac #21214).
 # If Sage has not been built yet, this will fail due to a missing
 # sage-env-config. We just ignore that error.
+source src/bin/sage-env-config 2>/dev/null
 source src/bin/sage-env 2>/dev/null
 
 

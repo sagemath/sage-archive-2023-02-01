@@ -77,12 +77,8 @@ Hier geben wir nur ein paar Kommentare ab.
    weiter benutzt, müssen Sie diese Programme  nicht separat
    installieren, da diese in der Sage-Distribution enthalten
    sind. Jedoch müssen Sie, um bestimmte Sage Zusatzfunktionen, zum
-   Beispiel Macaulay oder KASH, nutzen zu können, diese entsprechenden
-   optionalen Pakete installieren, oder zumindest die relevanten
-   Programme auf ihrem Computer schon installiert haben.  Macaulay und
-   KASH sind Sage-Pakete (um eine Liste aller verfügbaren Sage-Pakete
-   zu sehen,  geben Sie ``sage -optional`` ein, oder rufen  Sie die
-   "Download" Seite auf der Sage Webseite auf).
+   Beispiel Macaulay oder KASH, nutzen zu können, die relevanten
+   Programme auf ihrem Computer schon installiert haben.
 
 #. Die vorkompilierte Binärversion von Sage (zu finden auf der
    Sage-Webseite) ist vielleicht einfacher und

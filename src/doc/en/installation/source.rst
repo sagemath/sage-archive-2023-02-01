@@ -489,7 +489,7 @@ in order to check that Sage will not try to build GCC. Namely, there should be l
        ...
        gfortran-7.2.0 will not be installed (configure check)
 
-indicating that Sage will no attempt to build ``gcc/g++/gfortran``.
+indicating that Sage will not attempt to build ``gcc/g++/gfortran``.
 
 If you are interested in working on support for commercial compilers from
 `HP <http://docs.hp.com/en/5966-9844/ch01s03.html>`_,

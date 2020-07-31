@@ -434,9 +434,6 @@ cdef class PeriodicRegion:
                             new_data[(a*rows+i)//n, (b*cols+j)//n] = data[i,j]
         return PeriodicRegion(self.w1, self.w2, new_data)
 
-    def __div__(self, other):
-        return self / other
-
     def __invert__(self):
         """
         Returns the complement of this region.

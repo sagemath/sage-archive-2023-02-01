@@ -284,6 +284,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.layout_extend_randomly` | Extend randomly a partial layout
     :meth:`~GenericGraph.layout_circular` | Return a circular layout for this graph
     :meth:`~GenericGraph.layout_tree` | Return an ordered tree layout for this graph
+    :meth:`~GenericGraph.layout_forest` | Return an ordered forest layout for this graph
     :meth:`~GenericGraph.layout_graphviz` | Call ``graphviz`` to compute a layout of the vertices of this graph.
     :meth:`~GenericGraph._circle_embedding` | Set some vertices on a circle in the embedding of this graph.
     :meth:`~GenericGraph._line_embedding` | Set some vertices on a line in the embedding of this graph.
@@ -3997,9 +3998,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph([['D', 'G', 'H', 'L'],
             ....:            [('D', 'H'), ('D', 'L'), ('G', 'H'), ('G', 'L'), ('H', 'L'), ('H', 'L')]],
             ....:           multiedges=True)
-            sage: G.eulerian_circuit(labels=False)  # py2
-            [('H', 'L'), ('L', 'G'), ('G', 'H'), ('H', 'L'), ('L', 'D'), ('D', 'H')]
-            sage: G.eulerian_circuit(labels=False)  # py3
+            sage: G.eulerian_circuit(labels=False)
             [('D', 'L'), ('L', 'H'), ('H', 'L'), ('L', 'G'), ('G', 'H'), ('H', 'D')]
             sage: Graph({0: [0, 1, 1, 1, 1]}).eulerian_circuit(labels=False)
             [(0, 1), (1, 0), (0, 1), (1, 0), (0, 0)]
@@ -4102,10 +4101,10 @@ class GenericGraph(GenericGraph_pyx):
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight. The ``weight_function`` can be used to transform the label
-          into a weight (note that, if the weight returned is not convertible
-          to a float, an error is raised)
+          and ``by_weight`` is ``True``, we use the edge label ``l`` , if ``l``
+          is not ``None``, else ``1`` as a weight. The ``weight_function`` can
+          be used to transform the label into a weight (note that, if the weight
+          returned is not convertible to a float, an error is raised)
 
         - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
           in the graph are weighted, otherwise all edges have weight 1
@@ -4355,7 +4354,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if weight_function is None and by_weight:
             def weight_function(e):
-                return e[2]
+                return 1 if e[2] is None else e[2]
 
         if not by_weight:
             weight_function = lambda e: 1
@@ -4578,23 +4577,12 @@ class GenericGraph(GenericGraph_pyx):
         A cycle basis in Petersen's Graph ::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.cycle_basis()  # py2
-            [[1, 2, 7, 5, 0], [8, 3, 2, 7, 5], [4, 3, 2, 7, 5, 0], [4, 9, 7, 5, 0], [8, 6, 9, 7, 5], [1, 6, 9, 7, 5, 0]]
-            sage: g.cycle_basis()  # py3
+            sage: g.cycle_basis()
             [[1, 6, 8, 5, 0], [4, 9, 6, 8, 5, 0], [7, 9, 6, 8, 5], [4, 3, 8, 5, 0], [1, 2, 3, 8, 5, 0], [7, 2, 3, 8, 5]]
 
         One can also get the result as a list of lists of edges::
 
-            sage: g.cycle_basis(output='edge')  # py2
-            [[(1, 2, None), (2, 7, None), (7, 5, None), (5, 0, None),
-            (0, 1, None)], [(8, 3, None), (3, 2, None), (2, 7, None),
-            (7, 5, None), (5, 8, None)], [(4, 3, None), (3, 2, None),
-            (2, 7, None), (7, 5, None), (5, 0, None), (0, 4, None)],
-            [(4, 9, None), (9, 7, None), (7, 5, None), (5, 0, None),
-            (0, 4, None)], [(8, 6, None), (6, 9, None), (9, 7, None),
-            (7, 5, None), (5, 8, None)], [(1, 6, None), (6, 9, None),
-            (9, 7, None), (7, 5, None), (5, 0, None), (0, 1, None)]]
-            sage: g.cycle_basis(output='edge')  # py3
+            sage: g.cycle_basis(output='edge')
             [[(1, 6, None), (6, 8, None), (8, 5, None), (5, 0, None),
             (0, 1, None)], [(4, 9, None), (9, 6, None), (6, 8, None),
             (8, 5, None), (5, 0, None), (0, 4, None)], [(7, 9, None),
@@ -4646,13 +4634,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_cycle(["Hey", "Wuuhuu", "Really ?"])
             sage: [sorted(c) for c in G.cycle_basis()]
             [['Hey', 'Really ?', 'Wuuhuu'], [0, 2], [0, 1, 2]]
-            sage: [sorted(c) for c in G.cycle_basis(output='edge')]  # py2
-            [[('Hey', 'Wuuhuu', None),
-              ('Really ?', 'Hey', None),
-              ('Wuuhuu', 'Really ?', None)],
-             [(0, 2, 'a'), (2, 0, 'b')],
-             [(0, 2, 'b'), (1, 0, 'c'), (2, 1, 'd')]]
-            sage: [sorted(c) for c in G.cycle_basis(output='edge')]  # py3
+            sage: [sorted(c) for c in G.cycle_basis(output='edge')]
             [[('Hey', 'Really ?', None),
               ('Really ?', 'Wuuhuu', None),
               ('Wuuhuu', 'Hey', None)],
@@ -4740,8 +4722,8 @@ class GenericGraph(GenericGraph_pyx):
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
 
         - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
           in the graph are weighted, otherwise all edges have weight 1
@@ -4789,14 +4771,16 @@ class GenericGraph(GenericGraph_pyx):
 
         if weight_function is not None:
             by_weight = True
-        if weight_function is None and by_weight:
-            def weight_function(e):
-                return e[2]
         if by_weight:
-            self._check_weight_function(weight_function)
+            if weight_function is None:
+                def weight_function(e):
+                    return 1 if e[2] is None else e[2]
         else:
             def weight_function(e):
                 return 1
+        if by_weight:
+            self._check_weight_function(weight_function)
+
         if algorithm:
             algorithm = algorithm.lower()
         if algorithm == "networkx":
@@ -7149,8 +7133,9 @@ class GenericGraph(GenericGraph_pyx):
         The heuristic totally agrees::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.longest_path(algorithm="backtrack").edges(labels=False)
-            [(0, 1), (1, 2), (2, 3), (3, 4), (4, 9), (5, 7), (5, 8), (6, 8), (6, 9)]
+            sage: p = g.longest_path(algorithm="backtrack").edges(labels=False)
+            sage: len(p)
+            9
 
         .. PLOT::
 
@@ -8311,19 +8296,24 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G=graphs.HeawoodGraph()
             sage: G.hamiltonian_cycle(algorithm='backtrack')
-            (True, [11, 10, 1, 2, 3, 4, 9, 8, 7, 6, 5, 0, 13, 12])
+            (True, [...])
 
         And now in the Petersen graph ::
 
             sage: G=graphs.PetersenGraph()
-            sage: G.hamiltonian_cycle(algorithm='backtrack')
-            (False, [6, 8, 5, 0, 1, 2, 7, 9, 4, 3])
+            sage: B, P = G.hamiltonian_cycle(algorithm='backtrack')
+            sage: B
+            False
+            sage: len(P)
+            10
+            sage: G.has_edge(P[0], P[-1])
+            False
 
         Finally, we test the algorithm in a cube graph, which is Hamiltonian ::
 
             sage: G=graphs.CubeGraph(3)
             sage: G.hamiltonian_cycle(algorithm='backtrack')
-            (True, ['010', '110', '100', '000', '001', '101', '111', '011'])
+            (True, [...])
 
         """
         if self.order() < 2:
@@ -9716,8 +9706,8 @@ class GenericGraph(GenericGraph_pyx):
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
 
         - ``dangling`` -- dict (default: ``None``); a dictionary keyed by a
           vertex the outedge of "dangling" vertices, (i.e., vertices without
@@ -9841,9 +9831,13 @@ class GenericGraph(GenericGraph_pyx):
         if weight_function is not None:
             by_weight = True
 
-        if weight_function is None and by_weight:
+        if by_weight:
+            if weight_function is None:
+                def weight_function(e):
+                    return 1 if e[2] is None else e[2]
+        else:
             def weight_function(e):
-                return e[2]
+                return 1
 
         if by_weight:
             self._check_weight_function(weight_function)
@@ -10184,7 +10178,7 @@ class GenericGraph(GenericGraph_pyx):
         triple ``(u, v, l)`` of values, in which ``l`` is the label of edge
         ``(u, v)``::
 
-            sage: g.random_edge()
+            sage: g.random_edge()  # random
             (3, 4, None)
 
         TESTS::
@@ -12076,17 +12070,11 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: D = digraphs.DeBruijn(4, 2)
             sage: D.delete_vertex('20')
-            sage: print(D.degree())                       # py2
-            [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
-            sage: print(D.degree(vertices=list(D)))       # py2
-            [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
-            sage: print(D.degree(vertices=D.vertices()))  # py2
+            sage: print(D.degree())
             [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
-            sage: print(D.degree())                       # py3
+            sage: print(D.degree(vertices=list(D)))
             [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
-            sage: print(D.degree(vertices=list(D)))       # py3
-            [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
-            sage: print(D.degree(vertices=D.vertices()))  # py3
+            sage: print(D.degree(vertices=D.vertices()))
             [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
         """
         if labels:
@@ -12186,32 +12174,16 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = graphs.Grid2dGraph(3, 4)
-            sage: for i in G.degree_iterator():  # py2
-            ....:     print(i)                   # py2
-            3
-            4
-            2
-            ...
-            2
-            4
-            sage: for i in G.degree_iterator():  # py3
-            ....:     print(i)                   # py3
+            sage: for i in G.degree_iterator():
+            ....:     print(i)
             2
             3
             3
             ...
             3
             2
-            sage: for i in G.degree_iterator(labels=True):  # py2
-            ....:  print(i)                                 # py2
-            ((0, 1), 3)
-            ((1, 2), 4)
-            ((0, 0), 2)
-            ...
-            ((0, 3), 2)
-            ((1, 1), 4)
-            sage: for i in G.degree_iterator(labels=True):  # py3
-            ....:  print(i)                                 # py3
+            sage: for i in G.degree_iterator(labels=True):
+            ....:     print(i)
             ((0, 0), 2)
             ((0, 1), 3)
             ((0, 2), 3)
@@ -12222,29 +12194,15 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: D = graphs.Grid2dGraph(2,4).to_directed()
-            sage: for i in D.degree_iterator():              # py2
-            ....:     print(i)                               # py2
-            6
-            6
-            ...
-            4
-            6
-            sage: for i in D.degree_iterator():              # py3
-            ....:     print(i)                               # py3
+            sage: for i in D.degree_iterator():
+            ....:     print(i)
             4
             6
             ...
             6
             4
-            sage: for i in D.degree_iterator(labels=True):  # py2
-            ....:     print(i)                              # py2
-            ((0, 1), 6)
-            ((1, 2), 6)
-            ...
-            ((1, 0), 4)
-            ((0, 2), 6)
-            sage: for i in D.degree_iterator(labels=True):  # py3
-            ....:     print(i)                              # py3
+            sage: for i in D.degree_iterator(labels=True):
+            ....:     print(i)
             ((0, 0), 4)
             ((0, 1), 6)
             ...
@@ -12256,13 +12214,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: V = list(D)
             sage: D = digraphs.DeBruijn(4, 2)
             sage: D.delete_vertex('20')
-            sage: print(list(D.degree_iterator()))  # py2
-            [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
-            sage: print([D.degree(v) for v in D])   # py2
-            [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
-            sage: print(list(D.degree_iterator()))  # py3
+            sage: print(list(D.degree_iterator()))
             [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
-            sage: print([D.degree(v) for v in D])   # py3
+            sage: print([D.degree(v) for v in D])
             [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
         """
         if vertices is None:
@@ -13191,7 +13145,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: P = graphs.PetersenGraph()
             sage: P.random_subgraph(.25)
-            Subgraph of (Petersen graph): Graph on 4 vertices
+            Subgraph of (Petersen graph): Graph on ... vert...
         """
         p = float(p)
         if p < 0 or p > 1:
@@ -14540,8 +14494,8 @@ class GenericGraph(GenericGraph_pyx):
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); whether to check that
           the ``weight_function`` outputs a number for each edge.
@@ -15236,7 +15190,7 @@ class GenericGraph(GenericGraph_pyx):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge.
@@ -15364,7 +15318,8 @@ class GenericGraph(GenericGraph_pyx):
         if weight_function is not None:
             by_weight=True
         elif by_weight:
-            weight_function = lambda e: e[2]
+            def weight_function(e):
+                return 1 if e[2] is None else e[2]
 
         onlyone = False
         if vert in self:
@@ -15624,8 +15579,8 @@ class GenericGraph(GenericGraph_pyx):
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the weight_function outputs a number for each edge
@@ -15721,10 +15676,6 @@ class GenericGraph(GenericGraph_pyx):
                 return all_paths[v]
             return []
 
-        if weight_function is None and by_weight:
-            def weight_function(e):
-                return e[2]
-
         if u == v:  # to avoid a NetworkX bug
             return [u]
 
@@ -15732,6 +15683,11 @@ class GenericGraph(GenericGraph_pyx):
             if algorithm == 'BFS_Bid':
                 raise ValueError("the 'BFS_Bid' algorithm does not "
                                  "work on weighted graphs")
+
+            if not weight_function:
+                def weight_function(e):
+                    return 1 if e[2] is None else e[2]
+
             if check_weight:
                 self._check_weight_function(weight_function)
         else:
@@ -15812,8 +15768,8 @@ class GenericGraph(GenericGraph_pyx):
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the weight_function outputs a number for each edge
@@ -15910,10 +15866,6 @@ class GenericGraph(GenericGraph_pyx):
         if algorithm is None:
             algorithm = 'Dijkstra_Bid' if by_weight else 'BFS_Bid'
 
-        if weight_function is None and by_weight:
-            def weight_function(e):
-                return e[2]
-
         if algorithm in ['BFS', 'Dijkstra_NetworkX', 'Bellman-Ford_Boost']:
             all_path_lengths = self.shortest_path_lengths(u, by_weight, algorithm, weight_function, check_weight)
             if v in all_path_lengths:
@@ -15925,6 +15877,11 @@ class GenericGraph(GenericGraph_pyx):
             if algorithm == 'BFS_Bid':
                 raise ValueError("the 'BFS_Bid' algorithm does not "
                                  "work on weighted graphs")
+
+            if not weight_function:
+                def weight_function(e):
+                    return 1 if e[2] is None else e[2]
+
             if check_weight:
                 self._check_weight_function(weight_function)
         else:
@@ -16048,8 +16005,8 @@ class GenericGraph(GenericGraph_pyx):
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the weight_function outputs a number for each edge
@@ -16156,7 +16113,7 @@ class GenericGraph(GenericGraph_pyx):
             by_weight = True
         elif by_weight:
             def weight_function(e):
-                return e[2]
+                return 1 if e[2] is None else e[2]
         else:
             def weight_function(e):
                 return 1
@@ -16231,7 +16188,7 @@ class GenericGraph(GenericGraph_pyx):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         EXAMPLES:
 
@@ -16269,7 +16226,8 @@ class GenericGraph(GenericGraph_pyx):
 
         if by_weight or weight_function is not None:
             if weight_function is None:
-                weight_function = lambda e: e[2]
+                def weight_function(e):
+                    return 1 if e[2] is None else e[2]
             wt = 0
 
             for u, v in zip(path[:-1], path[1:]):
@@ -16320,8 +16278,8 @@ class GenericGraph(GenericGraph_pyx):
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the weight_function outputs a number for each edge
@@ -16380,7 +16338,7 @@ class GenericGraph(GenericGraph_pyx):
             by_weight = True
         elif by_weight:
             def weight_function(e):
-                return e[2]
+                return 1 if e[2] is None else e[2]
         else:
             def weight_function(e):
                 return 1
@@ -16466,8 +16424,8 @@ class GenericGraph(GenericGraph_pyx):
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the weight_function outputs a number for each edge
@@ -16668,9 +16626,17 @@ class GenericGraph(GenericGraph_pyx):
         """
         if weight_function is not None:
             by_weight = True
-        elif by_weight:
+
+        if by_weight:
+            if not weight_function:
+                def weight_function(e):
+                    return 1 if e[2] is None else e[2]
+
+            if check_weight:
+                self._check_weight_function(weight_function)
+        else:
             def weight_function(e):
-                return e[2]
+                return 1
 
         if algorithm is None:
             if by_weight:
@@ -16700,16 +16666,10 @@ class GenericGraph(GenericGraph_pyx):
             return floyd_warshall(self, distances=True)
 
         elif algorithm == "Floyd-Warshall_Boost":
-            if not by_weight:
-                def weight_function(e):
-                    return 1
             from sage.graphs.base.boost_graph import floyd_warshall_shortest_paths
             return floyd_warshall_shortest_paths(self, weight_function, distances=True, predecessors=True)
 
         elif algorithm == "Johnson_Boost":
-            if not by_weight:
-                def weight_function(e):
-                    return 1
             from sage.graphs.base.boost_graph import johnson_shortest_paths
             return johnson_shortest_paths(self, weight_function, distances=True, predecessors=True)
 
@@ -16717,9 +16677,6 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.base.boost_graph import shortest_paths
             dist = dict()
             pred = dict()
-            if by_weight and weight_function is None:
-                def weight_function(e):
-                    return e[2]
             for u in self:
                 dist[u], pred[u] = shortest_paths(self, u, weight_function, algorithm)
             return dist, pred
@@ -16742,13 +16699,6 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
         from sage.rings.infinity import Infinity
-
-        if by_weight:
-            if weight_function is None:
-                def weight_function(e):
-                    return e[2]
-            if check_weight:
-                self._check_weight_function(weight_function)
 
         if self.is_directed():
             neighbor = self.neighbor_out_iterator
@@ -16841,7 +16791,7 @@ class GenericGraph(GenericGraph_pyx):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the weight_function outputs a number for each edge
@@ -16929,8 +16879,8 @@ class GenericGraph(GenericGraph_pyx):
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the weight_function outputs a number for each edge
@@ -17349,7 +17299,7 @@ class GenericGraph(GenericGraph_pyx):
                 queue = [(v, 0) for v in reversed(start)]
             else:
                 queue = [(start, 0)]
-            
+
             if not edges:
                 while queue:
                     v, d = queue.pop()
@@ -17365,7 +17315,7 @@ class GenericGraph(GenericGraph_pyx):
                     v, w, d = queue.pop()
                     if w not in seen:
                         if v is not None:
-                            yield v, w                        
+                            yield v, w
                         seen.add(w)
                         for x in neighbors(w):
                             if x not in seen:
@@ -18428,9 +18378,7 @@ class GenericGraph(GenericGraph_pyx):
         We first request the coloring as a function::
 
             sage: f = G._color_by_label(as_function=True)
-            sage: [f(1), f(2), f(3)]  # py2
-            ['#ff0000', '#0000ff', '#00ff00']
-            sage: [f(1), f(2), f(3)]  # py3
+            sage: [f(1), f(2), f(3)]
             ['#0000ff', '#ff0000', '#00ff00']
             sage: f = G._color_by_label({1: "blue", 2: "red", 3: "green"}, as_function=True)
             sage: [f(1), f(2), f(3)]
@@ -18444,20 +18392,12 @@ class GenericGraph(GenericGraph_pyx):
 
         The default output is a dictionary assigning edges to colors::
 
-            sage: G._color_by_label()  # py2
-            {'#0000ff': [((1,3,2,4), (1,2,4), 2), ...],
-             '#00ff00': [((1,3,2,4), (1,4)(2,3), 3), ...],
-             '#ff0000': [((1,3,2,4), (1,3)(2,4), 1), ...]}
-            sage: G._color_by_label()  # py3
+            sage: G._color_by_label()
             {'#0000ff': [((), (1,2), 1), ...],
              '#00ff00': [((), (3,4), 3), ...],
              '#ff0000': [((), (2,3), 2), ...]}
 
-            sage: G._color_by_label({1: "blue", 2: "red", 3: "green"})  # py2
-            {'blue': [((1,3,2,4), (1,3)(2,4), 1), ...],
-             'green': [((1,3,2,4), (1,4)(2,3), 3), ...],
-             'red': [((1,3,2,4), (1,2,4), 2), ...]}
-            sage: G._color_by_label({1: "blue", 2: "red", 3: "green"})  # py3
+            sage: G._color_by_label({1: "blue", 2: "red", 3: "green"})
             {'blue': [((), (1,2), 1), ...],
              'green': [((), (3,4), 3), ...],
              'red': [((), (2,3), 2), ...]}
@@ -18570,8 +18510,8 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``layout`` -- string (default: ``None``); specifies a layout algorithm
           among ``"acyclic"``, ``"acyclic_dummy"``, ``"circular"``,
-          ``"ranked"``, ``"graphviz"``, ``"planar"``, ``"spring"``, or
-          ``"tree"``
+          ``"ranked"``, ``"graphviz"``, ``"planar"``, ``"spring"``,
+          ``"forest"`` or ``"tree"``
 
         - ``pos`` -- dictionary (default: ``None``); a dictionary of positions
 
@@ -18633,6 +18573,7 @@ class GenericGraph(GenericGraph_pyx):
             ....:     print("option {} : {}".format(key, value))
             option by_component : Whether to do the spring layout by connected component -- a boolean.
             option dim : The dimension of the layout -- 2 or 3.
+            option forest_roots : An iterable specifying which vertices to use as roots for the ``layout='forest'`` option. If no root is specified for a tree, then one is chosen close to the center of the tree. Ignored unless ``layout='forest'``.
             option heights : A dictionary mapping heights to the list of vertices at this height.
             option iterations : The number of times to execute the spring layout algorithm.
             option layout : A layout algorithm -- one of : "acyclic", "circular" (plots the graph with vertices evenly distributed on a circle), "ranked", "graphviz", "planar", "spring" (traditional spring layout, using the graph's current positions as initial positions), or "tree" (the tree will be plotted in levels, depending on minimum distance for the root).
@@ -18640,7 +18581,7 @@ class GenericGraph(GenericGraph_pyx):
             option save_pos : Whether or not to save the computed position for the graph.
             option spring : Use spring layout to finalize the current layout.
             option tree_orientation : The direction of tree branches -- 'up', 'down', 'left' or 'right'.
-            option tree_root : A vertex designation for drawing trees. A vertex of the tree to be used as the root for the ``layout='tree'`` option. If no root is specified, then one is chosen close to the center of the tree. Ignored unless ``layout='tree'``
+            option tree_root : A vertex designation for drawing trees. A vertex of the tree to be used as the root for the ``layout='tree'`` option. If no root is specified, then one is chosen close to the center of the tree. Ignored unless ``layout='tree'``.
 
         Some of them only apply to certain layout algorithms. For details, see
         :meth:`.layout_acyclic`, :meth:`.layout_planar`,
@@ -18700,13 +18641,13 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = graphs.LadderGraph(3) #TODO!!!!
-            sage: g.layout_spring()
-            {0: [0.73..., -0.29...],
-             1: [1.37..., 0.30...],
-             2: [2.08..., 0.89...],
-             3: [1.23..., -0.83...],
-             4: [1.88..., -0.30...],
-             5: [2.53..., 0.22...]}
+            sage: g.layout_spring()  # random
+            {0: [1.0, -0.29...],
+            1: [1.64..., 0.30...],
+            2: [2.34..., 0.89...],
+            3: [1.49..., -0.83...],
+            4: [2.14..., -0.30...],
+            5: [2.80..., 0.22...]}
             sage: g = graphs.LadderGraph(7)
             sage: g.plot(layout="spring")
             Graphics object consisting of 34 graphics primitives
@@ -18740,7 +18681,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = graphs.LadderGraph(3)
-            sage: g.layout_ranked(heights={i: (i, i+3) for i in range(3)})
+            sage: g.layout_ranked(heights={i: (i, i+3) for i in range(3)})  # random
             {0: [0.668..., 0],
              1: [0.667..., 1],
              2: [0.677..., 2],
@@ -18885,12 +18826,78 @@ class GenericGraph(GenericGraph_pyx):
         return self._circle_embedding(self.vertices(), center=(0, 0), radius=1,
                                           shift=0, angle=pi/2, return_dict=True)
 
+    def layout_forest(self, tree_orientation="down", forest_roots=None,
+                      **options):
+        """
+        Return an ordered forest layout for this graph.
+
+        The function relies on :meth:`~GenericGraph.layout_tree` to deal with
+        each connected component.
+
+        INPUT:
+
+        - ``forest_roots`` -- an iterable of vertices (default: ``None``);
+          the root vertices of the trees in the forest; a vertex is chosen
+          close to the center of each component for which no root is specified
+          in ``forest_roots`` or if ``forest_roots`` is ``None``
+
+        - ``tree_orientation`` -- string (default: ``'down'``); the direction in
+          which the tree is growing, can be ``'up'``, ``'down'``, ``'left'`` or
+          ``'right'``
+
+        - ``**options`` -- other parameters ignored here
+
+        EXAMPLES::
+
+            sage: G = graphs.RandomTree(4) + graphs.RandomTree(5) + graphs.RandomTree(6)
+            sage: p = G.layout_forest()
+            sage: G.plot(pos=p) # random
+            Graphics object consisting of 28 graphics primitives
+
+            sage: H = graphs.PathGraph(5) + graphs.PathGraph(5) + graphs.BalancedTree(2,2)
+            sage: p = H.layout_forest(forest_roots=[14,3])
+            sage: H.plot(pos=p)
+            Graphics object consisting of 32 graphics primitives
+
+        TESTS::
+
+            sage: G = Graph(0)
+            sage: G.plot(layout='forest')
+            Graphics object consisting of 0 graphics primitives
+
+        Works for forests that are trees::
+
+            sage: g = graphs.StarGraph(4)
+            sage: p = g.layout_forest(forest_roots=[1])
+            sage: sorted(p.items())
+            [(0, [2.0, -1]), (1, [2.0, 0]), (2, [3.0, -2]), (3, [2.0, -2]), (4, [1.0, -2])]
+
+        The parameter ``forest_roots`` should be an iterable (or ``None``)::
+
+            sage: H = graphs.PathGraph(5)
+            sage: p = H.layout_forest(forest_roots=3)
+            Traceback (most recent call last):
+            ...
+            TypeError: forest_roots should be an iterable of vertices
+        """
+        if not self:
+            return dict()
+        else:
+            # Compute the layout component by component
+            return layout_split(self.__class__.layout_tree,
+                                self,
+                                tree_orientation=tree_orientation,
+                                forest_roots=forest_roots,
+                                **options)
+
     def layout_tree(self, tree_orientation="down", tree_root=None,
                     dim=2, **options):
         r"""
         Return an ordered tree layout for this graph.
 
-        The graph must be a tree (no non-oriented cycles).
+        The graph must be a tree (no non-oriented cycles). In case of doubt
+        whether the graph is connected or not, prefer
+        :meth:`~GenericGraph.layout_forest`.
 
         INPUT:
 
@@ -18929,13 +18936,13 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.BalancedTree(2, 2)
             sage: G.layout_tree(tree_root=0)
-            {0: (1.5, 0),
-             1: (2.5, -1),
-             2: (0.5, -1),
-             3: (3.0, -2),
-             4: (2.0, -2),
-             5: (1.0, -2),
-             6: (0.0, -2)}
+            {0: [1.5, 0],
+             1: [2.5, -1],
+             2: [0.5, -1],
+             3: [3.0, -2],
+             4: [2.0, -2],
+             5: [1.0, -2],
+             6: [0.0, -2]}
 
             sage: G = graphs.BalancedTree(2, 4)
             sage: G.plot(layout="tree", tree_root=0, tree_orientation="up")
@@ -18947,28 +18954,44 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.set_embedding({0: [1, 6, 3], 1: [2, 5, 0], 2: [1], 3: [4, 7, 8, 0],
             ....:     4: [3], 5: [1], 6: [0], 7: [3], 8: [3]})
             sage: T.layout_tree()
-            {0: (2.166..., 0),
-             1: (3.5, -1),
-             2: (4.0, -2),
-             3: (1.0, -1),
-             4: (2.0, -2),
-             5: (3.0, -2),
-             6: (2.0, -1),
-             7: (1.0, -2),
-             8: (0.0, -2)}
+            {0: [2.166..., 0],
+             1: [3.5, -1],
+             2: [4.0, -2],
+             3: [1.0, -1],
+             4: [2.0, -2],
+             5: [3.0, -2],
+             6: [2.0, -1],
+             7: [1.0, -2],
+             8: [0.0, -2]}
             sage: T.plot(layout="tree", tree_root=3)
             Graphics object consisting of 18 graphics primitives
 
         TESTS::
+
+            sage: G = graphs.BalancedTree(2, 2)
+            sage: G.layout_tree(tree_root=0, tree_orientation='left')
+            {0: [0, 1.5],
+             1: [-1, 2.5],
+             2: [-1, 0.5],
+             3: [-2, 3.0],
+             4: [-2, 2.0],
+             5: [-2, 1.0],
+             6: [-2, 0.0]}
 
             sage: G = graphs.CycleGraph(3)
             sage: G.plot(layout='tree')
             Traceback (most recent call last):
             ...
             RuntimeError: cannot use tree layout on this graph: self.is_tree() returns False
+            sage: G = Graph(0)
+            sage: G.plot(layout='tree')
+            Graphics object consisting of 0 graphics primitives
         """
         if dim != 2:
             raise ValueError('only implemented in 2D')
+
+        if not self:
+            return dict()
 
         from sage.graphs.all import Graph
         if not Graph(self).is_tree():
@@ -19026,7 +19049,7 @@ class GenericGraph(GenericGraph_pyx):
                     x, y = pos[u]
                     x += dx
                     obstruction[y] = max(x + 1, obstruction[y])
-                    pos[u] = x, y
+                    pos[u] = [x, y]
                     nextlevel += children[u]
 
                 level = nextlevel
@@ -19045,12 +19068,12 @@ class GenericGraph(GenericGraph_pyx):
                     # If p has no children, we draw it at the leftmost position
                     # which has not been forbidden
                     x = obstruction[y]
-                    pos[p] = x, y
+                    pos[p] = [x, y]
                 else:
                     # If p has children, we put v on a vertical line going
                     # through the barycenter of its children
                     x = sum(pos[c][0] for c in cp) / len(cp)
-                    pos[p] = x, y
+                    pos[p] = [x, y]
                     ox = obstruction[y]
                     if x < ox:
                         slide(p, ox - x)
@@ -19082,7 +19105,7 @@ class GenericGraph(GenericGraph_pyx):
                 stick.append(t)
 
         if tree_orientation in ['right', 'left']:
-            return {p: (py, px) for p, (px, py) in pos.items()}
+            return {p: [py, px] for p, [px, py] in pos.items()}
 
         return pos
 
@@ -20495,23 +20518,7 @@ class GenericGraph(GenericGraph_pyx):
 
         The following digraph has tuples as vertices::
 
-            sage: print(DiGraph(graphs.Grid2dGraph(2,2)).graphviz_string())  # py2
-            digraph {
-              node_0  [label="(0, 1)"];
-              node_1  [label="(1, 0)"];
-              node_2  [label="(0, 0)"];
-              node_3  [label="(1, 1)"];
-            <BLANKLINE>
-              node_0 -> node_2;
-              node_0 -> node_3;
-              node_1 -> node_2;
-              node_1 -> node_3;
-              node_2 -> node_0;
-              node_2 -> node_1;
-              node_3 -> node_0;
-              node_3 -> node_1;
-            }
-            sage: print(DiGraph(graphs.Grid2dGraph(2,2)).graphviz_string())  # py3
+            sage: print(DiGraph(graphs.Grid2dGraph(2,2)).graphviz_string())
             digraph {
               node_0  [label="(0, 0)"];
               node_1  [label="(0, 1)"];
@@ -22464,9 +22471,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g, c = g1.canonical_label(algorithm='sage', certificate=True)
             sage: g
             Grid Graph for [2, 3]: Graph on 6 vertices
-            sage: c  # py2
-            {(0, 0): 2, (0, 1): 4, (0, 2): 3, (1, 0): 1, (1, 1): 5, (1, 2): 0}
-            sage: c  # py3
+            sage: c
             {(0, 0): 3, (0, 1): 4, (0, 2): 2, (1, 0): 0, (1, 1): 5, (1, 2): 1}
 
         Multigraphs and directed graphs work too::

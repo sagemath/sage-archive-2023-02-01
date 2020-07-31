@@ -2262,7 +2262,7 @@ class ScalarField(CommutativeAlgebraElement):
                         if (chart2, chart1) in coord_changes:
                             self.coord_function(chart2, from_chart=chart1)
                             resu.append(chart2)
-        if resu == []:
+        if not resu:
             return None
         else:
             return resu
@@ -2689,7 +2689,7 @@ class ScalarField(CommutativeAlgebraElement):
                         var_not_in_chart = [s for s in var
                                             if not s in chart_coords]
                         any_in_other_chart = False
-                        if var_not_in_chart != []:
+                        if var_not_in_chart:
                             for other_chart in self._domain.atlas():
                                 other_chart_coords = other_chart[:]
                                 for s in var_not_in_chart:

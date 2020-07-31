@@ -46,7 +46,6 @@ from __future__ import absolute_import
 from . import heegner
 
 from sage.rings.all import (LaurentSeriesRing, RationalField, ComplexField, QQ)
-from sage.misc.misc import verbose
 
 
 class ModularParameterization:
@@ -183,6 +182,7 @@ class ModularParameterization:
             `E`, then use the Weierstrass `\wp` function to map it to the
             curve itself.
         """
+        from sage.misc.verbose import verbose
         if isinstance(z, heegner.HeegnerPointOnX0N):
             return z.map_to_curve(self.curve())
         # Map to the CC of CC/PeriodLattice.

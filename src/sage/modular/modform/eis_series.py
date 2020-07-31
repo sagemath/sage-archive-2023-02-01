@@ -13,7 +13,7 @@ Eisenstein Series
 # ****************************************************************************
 from __future__ import absolute_import
 
-from sage.misc.all import verbose, cputime
+from sage.misc.all import cputime
 import sage.modular.dirichlet as dirichlet
 from sage.modular.arithgroup.congroup_gammaH import GammaH_class
 from sage.rings.all import Integer, CyclotomicField, ZZ, QQ
@@ -214,6 +214,8 @@ def __find_eisen_chars(character, k):
         ((-1, 1), (1, 1), 9),
         ((-1, -1), (1, -1), 1)]
     """
+    from sage.misc.verbose import verbose
+
     N = character.modulus()
     if character.is_trivial():
         if k % 2:

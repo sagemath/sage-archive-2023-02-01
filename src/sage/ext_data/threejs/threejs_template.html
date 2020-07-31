@@ -20,7 +20,7 @@
     #menu-content div { border-top: 1px solid black; padding: 10px; white-space: nowrap; }
 
     #menu-content div:hover { background-color: #FEFEFE;; }
-  
+
 </style>
 </head>
 
@@ -110,33 +110,49 @@ SAGE_SCRIPTS
 
     }
 
-    function addLabel( text, x, y, z, color='black', fontsize=14  ) {
+    function addLabel( text, x, y, z, color='black', fontsize=14 ) {
 
         var canvas = document.createElement( 'canvas' );
-        var pixelRatio = Math.round( window.devicePixelRatio );
-        canvas.width = 128 * pixelRatio;
-        canvas.height = 32 * pixelRatio; // powers of two
-        canvas.style.width = '128px';
-        canvas.style.height = '32px';
-
         var context = canvas.getContext( '2d' );
+        var pixelRatio = Math.round( window.devicePixelRatio );
+
+        context.font = fontsize + 'px monospace';
+        var width = context.measureText( text ).width;
+        var height = fontsize;
+
+        // The dimensions of the canvas's underlying image data need to be powers
+        // of two in order for the resulting texture to support mipmapping.
+        canvas.width = THREE.MathUtils.ceilPowerOfTwo( width * pixelRatio );
+        canvas.height = THREE.MathUtils.ceilPowerOfTwo( height * pixelRatio );
+
+        // Re-compute the unscaled dimensions after the power of two conversion.
+        width = canvas.width / pixelRatio;
+        height = canvas.height / pixelRatio;
+
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+
         context.scale( pixelRatio, pixelRatio );
         context.fillStyle = color;
-        context.font = fontsize + 'px monospace';
+        context.font = fontsize + 'px monospace'; // Must be set again after measureText.
         context.textAlign = 'center';
         context.textBaseline = 'middle';
-        context.fillText( text, canvas.width/2/pixelRatio, canvas.height/2/pixelRatio );
+        context.fillText( text, width/2, height/2 );
 
         var texture = new THREE.Texture( canvas );
         texture.needsUpdate = true;
 
-        var sprite = new THREE.Sprite( new THREE.SpriteMaterial( { map: texture } ) );
+        var materialOptions = { map: texture, sizeAttenuation: false };
+        var sprite = new THREE.Sprite( new THREE.SpriteMaterial( materialOptions ) );
         sprite.position.set( x, y, z );
 
-        // Set the initial scale based on plot size to accommodate orthographic projection.
-        // For other projections, the scale will get reset each frame based on camera distance.
-        var scale = midToCorner/2;
-        sprite.scale.set( scale, scale*.25, 1 ); // ratio of canvas width to height
+        // Scaling factor, chosen somewhat arbitrarily so that the size of the text
+        // is consistent with previously generated plots.
+        var scale = 1/625;
+        if ( options.projection === 'orthographic' ) {
+            scale = midToCorner/256; // Needs to scale along with the plot itself.
+        }
+        sprite.scale.set( scale * width, scale * height, 1 );
 
         scene.add( sprite );
 
@@ -146,7 +162,23 @@ SAGE_SCRIPTS
 
     var camera = createCamera();
     camera.up.set( 0, 0, 1 );
-    camera.position.set( a[0]*(xMid+xRange), a[1]*(yMid+yRange), a[2]*(zMid+zRange) );
+    camera.position.set( a[0]*xMid, a[1]*yMid, a[2]*zMid );
+
+    var offset = new THREE.Vector3( a[0]*xRange, a[1]*yRange, a[2]*zRange );
+
+    if ( options.viewpoint ) {
+
+        var aa = options.viewpoint;
+        var axis = new THREE.Vector3( aa[0][0], aa[0][1], aa[0][2] ).normalize();
+        var angle = aa[1] * Math.PI / 180;
+        var q = new THREE.Quaternion().setFromAxisAngle( axis, angle ).inverse();
+
+        offset.set( 0, 0, offset.length() );
+        offset.applyQuaternion( q );
+
+    }
+
+    camera.position.add( offset );
 
     function createCamera() {
 
@@ -204,11 +236,11 @@ SAGE_SCRIPTS
     controls.addEventListener( 'change', function() { if ( !animate ) render(); } );
 
     window.addEventListener( 'resize', function() {
-        
+
         renderer.setSize( window.innerWidth, window.innerHeight );
         updateCameraAspect( camera, window.innerWidth / window.innerHeight );
         if ( !animate ) render();
-        
+
     } );
 
     var texts = SAGE_TEXTS;
@@ -353,27 +385,13 @@ SAGE_SCRIPTS
 
     }
 
-    var scratch = new THREE.Vector3();
-
     function render() {
 
         if ( animate ) requestAnimationFrame( render );
         renderer.render( scene, camera );
 
-        // Resize text based on distance from camera.
-        // Not necessary for orthographic due to the nature of the projection (preserves sizes).
-        if ( !camera.isOrthographicCamera ) {
-            for ( var i=0 ; i < scene.children.length ; i++ ) {
-                if ( scene.children[i].type === 'Sprite' ) {
-                    var sprite = scene.children[i];
-                    var adjust = scratch.addVectors( sprite.position, scene.position )
-                                    .sub( camera.position ).length() / 5;
-                    sprite.scale.set( adjust, .25*adjust, 1 ); // ratio of canvas width to height
-                }
-            }
-        }
     }
-    
+
     render();
     controls.update();
     if ( !animate ) render();

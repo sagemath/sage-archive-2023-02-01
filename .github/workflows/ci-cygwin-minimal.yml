@@ -11,7 +11,7 @@ env:
   MAKE: make -j8
   SAGE_NUM_THREADS: 3
   SAGE_CHECK: warn
-  SAGE_CHECK_PACKAGES: "!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
+  SAGE_CHECK_PACKAGES: "!cython,!r,!python3,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
   CYGWIN: winsymlinks:native
   CONFIGURE_ARGS: --enable-experimental-packages --enable-download-from-upstream-url
   SAGE_FAT_BINARY: yes

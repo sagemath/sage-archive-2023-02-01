@@ -257,6 +257,22 @@ class FlatteningMorphism(Morphism):
         """
         return UnflatteningMorphism(self.codomain(), self.domain())
 
+    def inverse(self):
+        """
+        Return the inverse of this flattening morphism.
+
+        This is the same as calling :meth:`section`.
+
+        EXAMPLES::
+
+            sage: f = QQ['x,y']['u,v'].flattening_morphism()
+            sage: f.inverse()
+            Unflattening morphism:
+              From: Multivariate Polynomial Ring in x, y, u, v over Rational Field
+              To:   Multivariate Polynomial Ring in u, v over Multivariate Polynomial Ring in x, y over Rational Field
+        """
+        return self.section()
+
 
 class UnflatteningMorphism(Morphism):
     r"""

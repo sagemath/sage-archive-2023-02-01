@@ -2227,9 +2227,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return wrapperdescr_fastcall(RingElement.__truediv__,
                 left, (right,), <object>NULL)
 
-    def __div__(left, right):
-        return PyNumber_TrueDivide(left, right)
-
     def __pow__(left, right, modulus):
         """
         EXAMPLES::

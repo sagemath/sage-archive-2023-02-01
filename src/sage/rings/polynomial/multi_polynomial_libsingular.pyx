@@ -1205,7 +1205,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             sage: P._singular_().name() == P._singular_().name()
             True
 
-        TESTS:
+        TESTS::
+
             sage: P.<x> = QQ[]
             sage: P._singular_()
             polynomial ring, over a field, global ordering

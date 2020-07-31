@@ -58,6 +58,7 @@ This module gathers the following designs:
     :meth:`~sage.combinat.designs.bibd.steiner_triple_system`
     :meth:`~sage.combinat.designs.steiner_quadruple_systems.steiner_quadruple_system`
     :meth:`~sage.combinat.designs.block_design.projective_plane`
+    :meth:`~sage.combinat.designs.biplane`
 
 And the :meth:`designs.best_known_covering_design_from_LJCR
 <sage.combinat.designs.covering_design.best_known_covering_design_www>` function
@@ -105,7 +106,7 @@ lazy_import('sage.combinat.designs.difference_family', 'difference_family')
 lazy_import('sage.combinat.designs.difference_matrices', 'difference_matrix')
 
 lazy_import('sage.combinat.designs.bibd',
-            ('balanced_incomplete_block_design', 'steiner_triple_system'))
+            ('balanced_incomplete_block_design', 'steiner_triple_system', 'biplane'))
 lazy_import('sage.combinat.designs.resolvable_bibd',
             ('resolvable_balanced_incomplete_block_design',
              'kirkman_triple_system'))

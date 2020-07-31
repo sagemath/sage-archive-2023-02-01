@@ -5,7 +5,7 @@ The class :class:`FiniteRankFreeModule` implements free modules of finite rank
 over a commutative ring.
 
 A *free module of finite rank* over a commutative ring `R` is a module `M` over
-`R` that admits a *finite basis*, i.e. a finite familly of linearly independent
+`R` that admits a *finite basis*, i.e. a finite family of linearly independent
 generators. Since `R` is commutative, it has the invariant basis number
 property, so that the rank of the free module `M` is defined uniquely, as the
 cardinality of any basis of `M`.
@@ -545,7 +545,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
     Free module of finite rank over a commutative ring.
 
     A *free module of finite rank* over a commutative ring `R` is a module `M`
-    over `R` that admits a *finite basis*, i.e. a finite familly of linearly
+    over `R` that admits a *finite basis*, i.e. a finite family of linearly
     independent generators. Since `R` is commutative, it has the invariant
     basis number property, so that the rank of the free module `M` is defined
     uniquely, as the cardinality of any basis of `M`.

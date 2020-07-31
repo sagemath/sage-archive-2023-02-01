@@ -374,6 +374,7 @@ cdef class Graphics3d(SageObject):
         js_options['decimals'] = options.get('decimals', 2)
         js_options['frame'] = options.get('frame', True)
         js_options['projection'] = options.get('projection', 'perspective')
+        js_options['viewpoint'] = options.get('viewpoint', False)
 
         if js_options['projection'] not in ['perspective', 'orthographic']:
             import warnings
@@ -383,6 +384,19 @@ cdef class Graphics3d(SageObject):
         # Normalization of options values for proper JSONing
         js_options['aspectRatio'] = [float(i) for i in js_options['aspectRatio']]
         js_options['decimals'] = int(js_options['decimals'])
+
+        if js_options['viewpoint']:
+            if len(js_options['viewpoint']) != 2 or len(js_options['viewpoint'][0]) != 3:
+                import warnings
+                warnings.warn('viewpoint must be of the form [[x,y,z],angle]')
+                js_options['viewpoint'] = False
+            else:
+                if type(js_options['viewpoint']) is tuple:
+                    js_options['viewpoint'] = list(js_options['viewpoint']) 
+                if type(js_options['viewpoint'][0]) is tuple:
+                    js_options['viewpoint'][0] = list(js_options['viewpoint'][0]) 
+                js_options['viewpoint'][0] = [float(i) for i in js_options['viewpoint'][0]]
+                js_options['viewpoint'][1] = float(js_options['viewpoint'][1])
 
         if not js_options['frame']:
             js_options['axesLabels'] = False

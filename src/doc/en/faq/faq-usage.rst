@@ -12,7 +12,7 @@ You can try out Sage without downloading anything:
 
 * **CoCalc™:** Go to https://cocalc.com and set up a free account.
 
-  If you log in, you will gain access to the latest version of Sage and to 
+  If you log in, you will gain access to the latest version of Sage and to
   many other programs.
 
   Note that this website is an independent commercial service.
@@ -413,13 +413,13 @@ e.g. ::
     sage: list(map(ord, "Big Mac"))
     [66, 105, 103, 32, 77, 97, 99]
 
-How can I wrote multiplication implicitly as in Mathematica?
+How can I write multiplication implicitly as in Mathematica?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Sage has a function that enables this::
 
     sage: implicit_multiplication(True)
-    sage: x 2 x  # Not tested
+    sage: x 2 x  # not tested
     2*x^2
     sage: implicit_multiplication(False)
 
@@ -435,7 +435,7 @@ complicated situation. To see what the preparser does::
 
 See https://wiki.sagemath.org/sage_mathematica for more information
 about Mathematica vs. SageMath.
-    
+
 Can I make Sage automatically execute commands on startup?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -684,14 +684,19 @@ How do I plot the cube root (or other odd roots) for negative input?
 This is one of the most frequently asked questions.  There are several
 methods mentioned in the plot documentation, but this one is easiest::
 
-    sage: plot(sign(x)*abs(x)^(1/3),-1,1)
+    sage: plot(real_nth_root(x, 3), (x, -1, 1))
     Graphics object consisting of 1 graphics primitive
 
-The *reason* this is necessary is that Sage returns complex numbers
-for odd roots of negative numbers when numerically approximated, which
-is a `standard convention <https://en.wikipedia.org/wiki/Cube_root#Complex_numbers>`_.
+On the other hand, note that the straightforward ::
 
-    sage: N((-1)^(1/3))
+    sage: plot(x^(1/3), (x, -1, 1))  # not tested
+
+produces the expected plot only for positive `x`. The *reason* is that Sage
+returns complex numbers for odd roots of negative numbers when numerically
+approximated, which is a `standard convention
+<https://en.wikipedia.org/wiki/Cube_root#Complex_numbers>`_. ::
+
+    sage: numerical_approx( (-1)^(1/3) )
     0.500000000000000 + 0.866025403784439*I
 
 How do I use the bitwise XOR operator in Sage?
@@ -799,7 +804,7 @@ on the IPython command line with the ``??`` shortcut::
 
     sage: plot??                            # not tested
     Signature: plot(*args, **kwds)
-    Source:   
+    Source:
     ...
 
 Objects that are built into Python or IPython are compiled and will

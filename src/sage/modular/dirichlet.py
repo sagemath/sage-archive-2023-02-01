@@ -1342,34 +1342,49 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e.kloosterman_sum(3,5)
             -2*zeta6 + 1
             sage: G = DirichletGroup(20)
-            sage: e = G([1 for  u in G.unit_gens()])
+            sage: e = G([1 for u in G.unit_gens()])
             sage: e.kloosterman_sum(7,17)
             -2*zeta20^6 + 2*zeta20^4 + 4
 
+        TESTS::
+
+            sage: G = DirichletGroup(20, UniversalCyclotomicField())
+            sage: e = G([1 for u in G.unit_gens()])
+            sage: e.kloosterman_sum(7,17)
+            -2*E(5) - 4*E(5)^2 - 4*E(5)^3 - 2*E(5)^4
+
+            sage: G = DirichletGroup(12, QQbar)
+            sage: e = G.gens()[0]
+            sage: e.kloosterman_sum(5,11)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Kloosterman sums not implemented over this ring
         """
         G = self.parent()
-        K = G.base_ring()
-        if not (number_field.is_CyclotomicField(K) or is_RationalField(K)):
-            raise NotImplementedError("Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ.")
-        g = 0
+        zo = G.zeta_order()
         m = G.modulus()
-        L = rings.CyclotomicField(lcm(m,G.zeta_order()))
+        g = 0
+        L = rings.CyclotomicField(m.lcm(zo))
         zeta = L.gen(0)
+        try:
+            self(1) * zeta**(a+b)
+        except TypeError:
+            raise NotImplementedError('Kloosterman sums not implemented '
+                                      'over this ring')
         n = zeta.multiplicative_order()
-        zeta = zeta ** (n // m)
-        for c in range(1,m):
-            if gcd(c,m)==1:
-                e = rings.Mod(c,m)
-                z = zeta ** int(a*e + b*(e**(-1)))
-                g += self(c)*z
+        zeta = zeta**(n // m)
+        for c in m.coprime_integers(m):
+            e = rings.Mod(c, m)
+            g += self(c) * zeta**int(a*e + b*e**(-1))
         return g
 
-    def kloosterman_sum_numerical(self, prec=53, a=1,b=0):
+    def kloosterman_sum_numerical(self, prec=53, a=1, b=0):
         r"""
         Return the Kloosterman sum associated to this Dirichlet character as
-        an approximate complex number with prec bits of precision. See also
-        :meth:`.kloosterman_sum`, which calculates the sum exactly (which is
-        generally slower).
+        an approximate complex number with prec bits of precision.
+
+        See also :meth:`.kloosterman_sum`, which calculates the sum
+        exactly (which is generally slower).
 
         INPUT:
 
@@ -1403,12 +1418,10 @@ class DirichletCharacter(MultiplicativeGroupElement):
         g = 0
         m = G.modulus()
         zeta = CC.zeta(m)
-
-        for c in range(1,m):
-            if gcd(c,m)==1:
-                e = rings.Mod(c,m)
-                z = zeta ** int(a*e + b*(e**(-1)))
-                g += phi(self(c))*z
+        for c in m.coprime_integers(m):
+            e = rings.Mod(c, m)
+            z = zeta ** int(a*e + b*(e**(-1)))
+            g += phi(self(c))*z
         return g
 
     @cached_method

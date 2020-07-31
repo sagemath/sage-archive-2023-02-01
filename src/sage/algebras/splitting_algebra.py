@@ -36,7 +36,7 @@ AUTHORS:
 
 from warnings import warn
 
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_domain
 from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement

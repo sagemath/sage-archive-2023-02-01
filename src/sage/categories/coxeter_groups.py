@@ -799,7 +799,7 @@ class CoxeterGroups(Category_singleton):
             if not x.bruhat_le(y):
                 return ret
             ret.append([y])
-            while ret[-1] != []:
+            while ret[-1]:
                 nextlayer = []
                 for z in ret[-1]:
                     for t in z.bruhat_lower_covers():

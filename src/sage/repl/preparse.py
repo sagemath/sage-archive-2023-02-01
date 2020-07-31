@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The Sage Preparser
 
@@ -391,11 +392,13 @@ def strip_string_literals(code, state=None):
         dbl_q = code.find('"', q)
         hash_q = code.find('#', q)
         q = min(sig_q, dbl_q)
-        if q == -1: q = max(sig_q, dbl_q)
+        if q == -1:
+            q = max(sig_q, dbl_q)
         if not in_quote and hash_q != -1 and (q == -1 or hash_q < q):
             # it's a comment
             newline = code.find('\n', hash_q)
-            if newline == -1: newline = len(code)
+            if newline == -1:
+                newline = len(code)
             counter += 1
             label = "L%s" % counter
             literals[label] = code[hash_q+1:newline]
@@ -851,11 +854,11 @@ def preparse_numeric_literals(code, extract=False):
                         # handle Ellipsis
                         start += 1
                         num = num[1:]
-                    elif re.match(r'[a-zA-Z0-9_\])]', code[start-1]):
+                    elif re.match(r'[\w\])]', code[start-1]):
                         # handle R.0
                         continue
                 elif end < len(code) and num[-1] == '.':
-                    if re.match('[a-zA-Z_]', code[end]):
+                    if re.match(r'[^\W\d]', code[end]):
                         # handle 4.sqrt()
                         end -= 1
                         num = num[:-1]
@@ -928,7 +931,7 @@ def strip_prompts(line):
 
 
 def preparse_calculus(code):
-    """
+    r"""
     Supports calculus-like function assignment, e.g., transforms::
 
        f(x,y,z) = sin(x^3 - 4*y) + y^x
@@ -1000,11 +1003,16 @@ def preparse_calculus(code):
         Traceback (most recent call last):
         ...
         ValueError: Argument names should be valid python identifiers.
+
+    Check support for unicode characters (:trac:`29278`)::
+
+        sage: preparse("μ(x) = x^2")  # py3
+        '__tmp__=var("x"); μ = symbolic_expression(x**Integer(2)).function(x)'
     """
     new_code = []
     last_end = 0
-    #                                   f         (  vars  )   =      expr
-    for m in re.finditer(r";(\s*)([a-zA-Z_]\w*) *\(([^()]+)\) *= *([^;#=][^;#]*)", code):
+    #                                 f         (  vars  )   =      expr
+    for m in re.finditer(r";(\s*)([^\W\d]\w*) *\(([^()]+)\) *= *([^;#=][^;#]*)", code):
         ident, func, vars, expr = m.groups()
         stripped_vars = [v.strip() for v in vars.split(',')]
         # if the variable name starts with numeric_literal_prefix
@@ -1142,15 +1150,20 @@ def preparse_generators(code):
         sage: preparse_generators(";  R.<x>=ZZ[];")
         ";  R = ZZ['x']; (x,) = R._first_ngens(1);"
 
-    See :trac:`16731` ::
+    See :trac:`16731`::
 
         sage: preparse_generators('R.<x> = ')
         'R.<x> = '
+
+    Check support for unicode characters (:trac:`29278`)::
+
+        sage: preparse('Ω.<λ,μ> = QQ[]')  # py3
+        "Ω = QQ['λ, μ']; (λ, μ,) = Ω._first_ngens(2)"
     """
     new_code = []
     last_end = 0
-    #                                  obj       .< gens >      ,  other   =   constructor
-    for m in re.finditer(r";(\s*)([a-zA-Z_]\w*)\.<([^>]+)> *((?:,[\w, ]+)?)= *([^;#]+)", code):
+    #                                obj       .< gens >      ,  other   =   constructor
+    for m in re.finditer(r";(\s*)([^\W\d]\w*)\.<([^>]+)> *((?:,[\w, ]+)?)= *([^;#]+)", code):
         ident, obj, gens, other_objs, constructor = m.groups()
         gens = [v.strip() for v in gens.split(',')]
         constructor = constructor.rstrip()
@@ -1246,6 +1259,13 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
         sage: preparse("time R.<x> = ZZ[]", do_time=True)
         '__time__=misc.cputime(); __wall__=misc.walltime(); R = ZZ[\'x\']; print("Time: CPU %.2f s, Wall: %.2f s"%(misc.cputime(__time__), misc.walltime(__wall__))); (x,) = R._first_ngens(1)'
+
+    TESTS:
+
+    Check support for unicode characters (:trac:`29278`)::
+
+        sage: preparse("Ω.0")  # py3
+        'Ω.gen(0)'
     """
     global quote_state
     if reset:
@@ -1288,7 +1308,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
     # Generators
     # R.0 -> R.gen(0)
-    L = re.sub(r'(\b[_a-zA-Z]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
+    L = re.sub(r'(\b[^\W\d]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
 
     # Use ^ for exponentiation and ^^ for xor
     # (A side effect is that **** becomes xor as well.)
@@ -1385,7 +1405,8 @@ def preparse_file(contents, globals=None, numeric_literals=True):
             # Stick the assignments at the top, trying not to shift
             # the lines down.
             ix = contents.find('\n')
-            if ix == -1: ix = len(contents)
+            if ix == -1:
+                ix = len(contents)
             if not re.match(r"^ *(#.*)?$", contents[:ix]):
                 contents = "\n"+contents
             assignments = ["%s = %s" % x for x in nums.items()]
@@ -1463,6 +1484,11 @@ def implicit_mul(code, level=5):
         'print 2'
         sage: implicit_mul('exec s')
         'exec s'
+
+    Check support for unicode characters (:trac:`29278`)::
+
+        sage: implicit_mul('3λ')  # py3
+        '3*λ'
     """
     from keyword import iskeyword
     keywords_py2 = ['print', 'exec']
@@ -1486,7 +1512,7 @@ def implicit_mul(code, level=5):
         code = re.sub(r'( *)time ', r'\1time %s' % no_mul_token, code)  # first word may be magic 'time'
         code = re.sub(r'\b(\d+(?:\.\d+)?(?:e\d+)?)([rR]\b)', r'\1%s\2' % no_mul_token, code)  # exclude such things as 10r
         code = re.sub(r'\b(\d+(?:\.\d+)?)e([-\d])', r'\1%se%s\2' % (no_mul_token, no_mul_token), code)  # exclude such things as 1e5
-        code = re_no_keyword(r'\b((?:\d+(?:\.\d+)?)|(?:%s[0-9eEpn]*\b)) *([a-zA-Z_(]\w*)\b' % numeric_literal_prefix, code)
+        code = re_no_keyword(r'\b((?:\d+(?:\.\d+)?)|(?:%s[0-9eEpn]*\b)) *([^\W\d(]\w*)\b' % numeric_literal_prefix, code)
     if level >= 2:
         code = re.sub(r'(\%\(L\d+\))s', r'\1%ss%s' % (no_mul_token, no_mul_token), code) # literal strings
         code = re_no_keyword(r'(\)) *(\w+)', code)

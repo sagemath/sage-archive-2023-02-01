@@ -1461,7 +1461,7 @@ class TensorBundle(DifferentiableVectorBundle):
 
     def destination_map(self):
         r"""
-        Return the the destination map.
+        Return the destination map.
 
         OUTPUT:
 

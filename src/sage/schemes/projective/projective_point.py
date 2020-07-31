@@ -924,6 +924,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(-1)
             sage: P.<x,y,z> = ProjectiveSpace(QQbar,2)
             sage: f = DynamicalSystem_projective([x^2, QQbar(sqrt(-1))*y^2, z^2], domain=P)

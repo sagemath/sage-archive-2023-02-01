@@ -91,6 +91,10 @@ REFERENCES:
                Journal of Combinatorial Theory, Series B, vol 98, n.6,
                pp 1119-1164, 2008. :doi:`10.1016/j.jctb.2007.12.006`.
 
+.. [ABS2004] \N. Alon, I. Benjamini and Alan Stacey, *Percolation on finite
+             graphs and isoperimetric inequalities*, The Annals of Probability
+             32 (2004), no.  3A, 1727-1745.
+
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
               Transitive Closure of a Directed Graph.'
@@ -346,6 +350,9 @@ REFERENCES:
 .. _ref-B:
 
 **B**
+
+.. [BaKi2001] Bakalov and Kirillov, *Lectures on tensor categories and modular functors*,
+            AMS (2001).
 
 .. [Ba1994] Kaushik Basu. *The Traveler's Dilemma: Paradoxes of
             Rationality in Game Theory*. The American Economic Review
@@ -610,6 +617,13 @@ REFERENCES:
 .. [Bel1927] E.T. Bell, "Partition Polynomials",
              Annals of Mathematics,
              Second Series, Vol. 29, No. 1/4 (1927 - 1928), pp. 38-46
+
+.. [Ben1998] \I. Benjamini, *Expanders are not hyperbolic*, Israel Journal of
+             Mathematics 108 (1998), 33-36.
+
+.. [BS1997] \I. Benjamini and O. Schramm, *Every graph with a positive Cheeger
+            constant contains a tree with a positive Cheeger constant*,
+            Geometric and Functional Analysis 7 (1997), no. 3, 403-419.
 
 .. [Benasque2009] Fernando Rodriguez Villegas, *The L-function of the quintic*,
    http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
@@ -1305,6 +1319,13 @@ REFERENCES:
                Computer Science, vol. 6346, 302-313. Springer (2010).
                :doi:`10.1007/978-3-642-15775-2_26`.
 
+.. [CGLM2012] \Crescenzi P., Grossi R., Lanzi L., Marino A. (2012)
+               *On Computing the Diameter of Real-World Directed (Weighted)
+               Graphs*. In: Klasing R. (eds) Experimental Algorithms. SEA 2012.
+               Lecture Notes in Computer Science, vol 7276.
+               Springer, Berlin, Heidelberg
+               :doi:`https://doi.org/10.1007/978-3-642-30850-5_10`.
+
 .. [CGW2013] Daniel Cabarcas, Florian Göpfert, and Patrick
              Weiden. Provably Secure LWE-Encryption with Uniform
              Secret. Cryptology ePrint Archive, Report 2013/164. 2013.
@@ -1354,7 +1375,10 @@ REFERENCES:
              Experience, 4:1-10 (2001).
              http://www.hipersoft.rice.edu/grads/publications/dom14.pdf
 
-.. [CHPSS18] C. Cid, T. Huang, T. Peyrin, Y. Sasaki, L. Song.
+.. [Chu2007] \F. Chung, *Random walks and local cuts in graphs*, Linear Algebra
+             and its Applications 423 (2007), no. 1, 22-32.
+
+.. [CHPSS18] \C. Cid, T. Huang, T. Peyrin, Y. Sasaki, L. Song.
              *Boomerang Connectivity Table: A New Cryptanalysis Tool* (2018)
              IACR Transactions on Symmetric Cryptology. Vol 2017, Issue 4.
              pre-print available at https://eprint.iacr.org/2018/161.pdf
@@ -1642,6 +1666,10 @@ REFERENCES:
 .. [CTTL2014] \C. Carlet, Deng Tang, Xiaohu Tang, and Qunying Liao: *New
             Construction of Differentially 4-Uniform Bijections*, Inscrypt,
             pp. 22-38, 2013.
+
+.. [CT1998] \F. Chung and P. Tetali, *Isoperimetric inequalities for
+            Cartesian products of graphs*, Combinatorics, Probability and
+            Computing 7 (1998), no. 2, 141-148.
 
 .. [Cu1984] \R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu
             group `M_{12}`, and the kitten. *Computational group
@@ -1983,6 +2011,9 @@ REFERENCES:
              Journal of Combinatorial Theory, Series A, Volume 31, Issue 2,
              1981, Pages 108-125, ISSN 0097-3165,:doi:`10.1016/0097-3165(81)90007-8`.
              (http://www.sciencedirect.com/science/article/pii/0097316581900078)
+
+.. [EGNO2015] Pavel Etingof, Shlomo Gelaki, Dmitri Nikshych and Victor Ostrik,
+               *Tensor Categories*, AMS Mathematical Surveys and Monographs 205 (2015).
 
 .. [EGHLSVY] Pavel Etingof, Oleg Golberg, Sebastian Hensel, Tiankai
              Liu, Alex Schwendner, Dmitry Vaintrob, Elena Yudovina,
@@ -3093,6 +3124,15 @@ REFERENCES:
              subcodes of the second order binary Reed-Muller codes*.
              Information and Control, 18, pp. 369-394, 1971.
 
+.. [Kas1966a] \T. Kasami: *Weight Distributions of
+              Bose-Chaudhuri-Hocquenghem Codes*. Coordinated Science
+              Laboratory, University of Illinois at Urbana-Champaign.
+              1966 http://hdl.handle.net/2142/74459
+
+.. [Kas1966b] \T. Kasami: *Weight Distribution Formula for Some Class
+              of Cyclic Codes*. Coordinated Science Laboratory,
+              University of Illinois at Urbana-Champaign. 1966
+
 .. [Kas2018] András Kaszanyitzky. *The GraftalLace Cellular Automata*.
              Preprint, :arxiv:`1805.11532`.
 
@@ -3256,6 +3296,9 @@ REFERENCES:
 
 .. [Knu1995] Donald E. Knuth, *Overlapping Pfaffians*,
              :arxiv:`math/9503234v1`.
+
+.. [Knu2011] Donald E. Knuth, *The Art of Computer Programming. Volume 4A.
+             Combinatorial Algorithms, Part 1*.
 
 .. [Knu2005] Lars R. Knudsen, *SMASH - A Cryptographic Hash Function*; in
              FSE'05, (2005), pp. 228-242.
@@ -3978,6 +4021,10 @@ REFERENCES:
 .. [MM2015] \J. Matherne and \G. Muller, *Computing upper cluster algebras*,
             Int. Math. Res. Not. IMRN, 2015, 3121-3149.
 
+.. [Moh1988] \B. Mohar, *Isoperimetric inequalities, growth, and the spectrum
+             of graphs*, Linear Algebra and its Applications 103 (1988),
+             119–131.
+
 .. [MNO1994] Alexander Molev, Maxim Nazarov, and Grigori Olshanski.
              *Yangians and classical Lie algebras*. (1994)
              :arxiv:`hep-th/9409025`
@@ -4122,6 +4169,10 @@ REFERENCES:
 .. _ref-N:
 
 **N**
+
+.. [NaiRow2011] Naidu and Rowell, A finiteness property for braided fusion
+                categories. Algebr. Represent. Theory 14 (2011), no. 5, 837–855.
+                :arXiv:`0903.4157`.
 
 .. [Nas1950] John Nash. *Equilibrium points in n-person games.*
              Proceedings of the National Academy of Sciences 36.1
@@ -4612,6 +4663,13 @@ REFERENCES:
 .. [Rot2006] Ron Roth, Introduction to Coding Theory, Cambridge
              University Press, 2006
 
+.. [Row2006] Eric Rowell, *From quantum groups to unitary modular tensor categories*.
+             In Representations of algebraic groups, quantum groups, and Lie algebras,
+             Contemp. Math., **413**, Amer. Math. Soc., Providence, RI, 2006.
+             :arXiv:`math/0503226`.
+
+.. [RoStWa2009] Eric Rowell, Richard Stong and Zhenghan Wang, *On classification
+        of modular tensor categories*, Comm. Math. Phys. 292, 343--389, 2009.
 
 .. [RR1997] Arun Ram and Jeffrey Remmel. *Applications of the Frobenius
             formulas and the characters of the symmetric group and the

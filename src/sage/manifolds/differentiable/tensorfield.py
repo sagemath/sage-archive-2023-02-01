@@ -2750,7 +2750,7 @@ class TensorField(ModuleElement):
             f: M --> R
             on U: (x, y) |--> 1/(x^2 + y^2 + 1)
             on V: (u, v) |--> 2/(u^2 + v^2 + 2)
-            sage: s = a.__div__(f); s
+            sage: s = a.__truediv__(f); s
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
@@ -2761,7 +2761,7 @@ class TensorField(ModuleElement):
 
         Division by a number::
 
-            sage: s = a.__div__(2); s
+            sage: s = a.__truediv__(2); s
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
@@ -2779,8 +2779,6 @@ class TensorField(ModuleElement):
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst / scalar
         return resu
-
-    __div__ = __truediv__
 
     def __call__(self, *args):
         r"""

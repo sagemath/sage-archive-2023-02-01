@@ -68,12 +68,8 @@ Sage en tu computador. Aquí hacemos simplemente dos comentarios:
    Maxima, NTL, GMP, etc., no necesitas instalarlos por separado
    pues ya están incluidos con la distribución de Sage.
    Sin embargo, para utilizar ciertas características de Sage, por ejemplo,
-   Macaulay o KASH, debes
-   instalar el paquete opcional relevante o al menos tener los programas
-   pertinentes ya instalados en tu computador. Macaulay y KASH son
-   paquetes opcionales de Sage (para una lista de los paquetes opcionales
-   disponibles, teclea ``sage -optional``, o navega por la página de descarga
-   "Download" en el sitio web de Sage).
+   Macaulay o KASH, debes tener los programas
+   pertinentes ya instalados en tu computador.
 
 #. La versión binaria precompilada de Sage (que se encuentra en el
    sitio web de Sage) puede ser más rápida y fácil de instalar que la

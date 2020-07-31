@@ -53,21 +53,39 @@ tolerance_pattern = re.compile(r'\b((?:abs(?:olute)?)|(?:rel(?:ative)?))? *?tol(
 backslash_replacer = re.compile(r"""(\s*)sage:(.*)\\\ *
 \ *(((\.){4}:)|((\.){3}))?\ *""")
 
-# Use this real interval field for doctest tolerances. It allows large
-# numbers like 1e1000, it parses strings with spaces like RIF(" - 1 ")
-# out of the box and it carries a lot of precision. The latter is
-# useful for testing libraries using arbitrary precision but not
-# guaranteed rounding such as PARI. We use 1044 bits of precision,
-# which should be good to deal with tolerances on numbers computed with
-# 1024 bits of precision.
-#
-# The interval approach also means that we do not need to worry about
-# rounding errors and it is also very natural to see a number with
-# tolerance as an interval.
-# We need to import from sage.all to avoid circular imports.
-from sage.all import RealIntervalField
-RIFtol = RealIntervalField(1044)
+_RIFtol = None
 
+def RIFtol(*args):
+    """
+    Create an element of the real interval field used for doctest tolerances.
+
+    It allows large numbers like 1e1000, it parses strings with spaces
+    like ``RIF(" - 1 ")`` out of the box and it carries a lot of
+    precision. The latter is useful for testing libraries using
+    arbitrary precision but not guaranteed rounding such as PARI. We use
+    1044 bits of precision, which should be good to deal with tolerances
+    on numbers computed with 1024 bits of precision.
+
+    The interval approach also means that we do not need to worry about
+    rounding errors and it is also very natural to see a number with
+    tolerance as an interval.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.parsing import RIFtol
+        sage: RIFtol(-1, 1)
+        0.?
+        sage: RIFtol(" - 1 ")
+        -1
+        sage: RIFtol("1e1000")
+        1.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000?e1000
+    """
+    global _RIFtol
+    if _RIFtol is None:
+        # We need to import from sage.all to avoid circular imports.
+        from sage.all import RealIntervalField
+        _RIFtol = RealIntervalField(1044)
+    return _RIFtol(*args)
 
 # This is the correct pattern to match ISO/IEC 6429 ANSI escape sequences:
 #

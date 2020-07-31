@@ -1067,6 +1067,87 @@ cdef class ComplexDoubleElement(FieldElement):
 
         return s + double_repr(y) + "*I"
 
+    def __format__(self, format_spec):
+        """
+        Return a formatted string representation of this complex number.
+
+        INPUT:
+
+        - ``format_spec`` -- string; a floating point format specificier as
+          defined by :python:`the format specification mini-language
+          <library/string.html#formatspec>` in Python
+
+        EXAMPLES::
+
+            sage: format(CDF(32/3, 0), ' .4f')
+            ' 10.6667 + 0.0000*I'
+            sage: format(CDF(-2/3, -2/3), '.4e')
+            '-6.6667e-01 - 6.6667e-01*I'
+            sage: format(CDF(3, 0), '.4g')
+            '3 + 0*I'
+            sage: format(CDF(3, 0), '#.4g')
+            '3.000 + 0.000*I'
+
+        If the representation type character is absent, the output matches the
+        string representation of the complex number. This has the effect that
+        real and imaginary part are only shown if they are not zero::
+
+            sage: format(CDF(0, 2/3), '.4')
+            '0.6667*I'
+            sage: format(CDF(2, 0), '.4')
+            '2.0'
+            sage: format(CDF(0, 0), '+#.4')
+            '+0.000'
+
+        TESTS::
+
+            sage: s = format(CDF(1/80, -1/2), '25'); s
+            '           0.0125 - 0.5*I'
+            sage: len(s) == 25
+            True
+            sage: '{:=^ 25}'.format(CDF(1/80, -1/2))
+            '===== 0.0125 - 0.5*I====='
+            sage: format(float(3), '#.4') == format(CDF(3, 0), '#.4')
+            True
+            sage: format(CDF(1, 2), '=+20')
+            Traceback (most recent call last):
+            ...
+            ValueError: '=' alignment not allowed in complex format specifier
+        """
+        import re
+        match = re.match(r'^(.?[><=^])?'         # 1: fill and align
+                         r'([ +-]?)'             # 2: sign
+                         r'[^\d\.]*?0?(\d*)'     # 3: width
+                         r'.*?([eEfFgGn%])?$',   # 4: type
+                         format_spec)
+        if not match:
+            raise ValueError("invalid format specifier %s" % format_spec)
+
+        # format floats without align and width
+        float_format = (format_spec[match.start(2):match.start(3)]
+                        + format_spec[match.end(3):])
+
+        use_str_format = not match.group(4)
+        if use_str_format and self._complex.imag == 0:
+            result = format(self._complex.real, float_format)
+        elif use_str_format and self._complex.real == 0:
+            result = format(self._complex.imag, float_format) + '*I'
+        else:
+            real = format(self._complex.real, float_format)
+            imag = format(self._complex.imag,
+                          '+' + format_spec[match.end(2):match.start(3)]
+                          + format_spec[match.end(3):])
+            result = f"{real} {imag[:1]} {imag[1:]}*I"
+
+        width = match.group(3)
+        if width:
+            align = match.group(1) or '>'
+            if align.endswith('='):
+                raise ValueError("'=' alignment not allowed in "
+                                 "complex format specifier")
+            result = format(result, align + width)
+        return result
+
     def _latex_(self):
         """
         Return a latex representation of ``self``.

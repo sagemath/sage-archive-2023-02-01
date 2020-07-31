@@ -5,6 +5,14 @@ A dynamical system on Berkovich space over `\CC_p` is
 determined by a dynamical system on `A^1(\CC_p)` or `P^1(\CC_p)`,
 which naturally induces a dynamical system on affine or
 projective Berkovich space.
+
+For an exposition of dynamical systems on Berkovich space, see chapter
+7 of [Ben2019]_, or for a more involved exposition, chapter 2 of [BR2010]_.
+
+AUTHORS:
+
+ - Alexander Galarraga: initial implementation.
+
 """
 
 #*****************************************************************************
@@ -394,6 +402,23 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         """
         DynamicalSystem_Berkovich.__init__(self, dynamical_system, domain)
 
+    def as_scheme_dynamical_system(self):
+        r"""
+        Return this dynamical system as :class:`DynamicalSystem`.
+
+        OUTPUT: An affine or projective dynamical system.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
+            sage: f = DynamicalSystem_Berkovich([x^2 + y^2, x*y])
+            sage: f.as_scheme_dynamical_system()
+            Dynamical System of Projective Space of dimension 1 over 3-adic Field with capped relative precision 20
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 + y^2 : x*y)
+        """
+        return self._system
+
     def scale_by(self, t):
         """
         Scales each coordinate of the inducing map by a factor of ``t``.
@@ -595,7 +620,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             sage: H = DynamicalSystem_Berkovich([x*y^2, x^3 + 20*y^3], B)
             sage: Q4 = B(1/9, 1.5)
             sage: H(Q4)
-            Type III point centered at (81/14581 : 1) of radius 0.0749794263377711
+            Type III point centered at (81/14581 : 1) of radius 0.00205761316872428
 
         Alternatively, if checking for poles in the disk has been done already,
         ``type_3_pole_check`` can be set to ``False``::
@@ -734,7 +759,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                         valuation = (embedding(x.center()[0]) - pole).valuation(prime)
                         if valuation == Infinity:
                             pass
-                        elif x.prime()**(-1 * valuation) <= x.radius():
+                        elif x.prime()**(-1 * valuation/prime.absolute_ramification_index()) <= x.radius():
                             usable_prime = False
                             break
                     if usable_prime:
@@ -746,12 +771,22 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         a = x.center()[0]
         Taylor_expansion = []
         from sage.functions.other import factorial
-        for i in range(f.degree()+1):
+        for i in range(f.degree() + 1):
             Taylor_expansion.append(nth_derivative(a) * 1/factorial(i))
             nth_derivative = nth_derivative.derivative(variable)
         r = x.radius()
         new_center = f(a)
-        new_radius = max([Taylor_expansion[i].abs()*r**i for i in range(1, len(Taylor_expansion))])
+        if self.domain().is_padic_base():
+            new_radius = max([Taylor_expansion[i].abs()*r**i for i in range(1, len(Taylor_expansion))])
+        else:
+            if prime is None:
+                prime = x.parent().ideal()
+                dem_splitting_field = x.parent().base_ring()
+            p = x.prime()
+            new_radius = 0
+            for i in range(1, len(Taylor_expansion)):
+                valuation = dem_splitting_field(Taylor_expansion[i]).valuation(prime)
+                new_radius = max(new_radius, p**(-valuation/prime.absolute_ramification_index())*r**i)
         return self.domain()(new_center, new_radius)
 
 class DynamicalSystem_Berkovich_affine(DynamicalSystem_Berkovich):

@@ -1725,7 +1725,7 @@ class PseudoRiemannianMetric(TensorField):
         """
         dom = self.domain()
         orient = dom.orientation()
-        if orient is None:
+        if not orient:
             raise ValueError('{} must admit an orientation.'.format(dom))
         if self._vol_forms == []:
             # a new computation is necessary

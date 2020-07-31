@@ -2106,8 +2106,9 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         Return the coset graph of this linear code.
 
         The coset graph of a linear code `C` is the graph whose vertices
-        are the cosets of `C` and two cosets are adjacent if they have
-        representatives whose Hamming distance is 1.
+        are the cosets of `C`, considered as a subgroup of the additive
+        group of the ambient vector space, and two cosets are adjacent
+        if they have representatives that differ in exactly one coordinate.
 
         EXAMPLES::
 

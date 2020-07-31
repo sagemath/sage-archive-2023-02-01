@@ -1633,7 +1633,7 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: f = T12.local_frame('f', domain=V)
             sage: T12.set_orientation([e, f])
             sage: T12.orientation()
-            Vector frame (U, (e_0,e_1)), Vector frame (V, (f_0,f_1))]
+            [Vector frame (U, (e_0,e_1)), Vector frame (V, (f_0,f_1))]
 
         """
         if self._dest_map.is_identity():

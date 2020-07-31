@@ -1583,7 +1583,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: c_xy.<x,y> = M.chart(); c_uv.<u,v> = M.chart()
             sage: M.set_orientation(c_uv)
             sage: M.orientation()
-            [Coordinate frame (M, (d/du,d/dv))]
+            [Chart (M, (u, v))]
 
         Set an orientation in the non-trivial case::
 

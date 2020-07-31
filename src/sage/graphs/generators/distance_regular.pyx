@@ -80,14 +80,9 @@ def locally_GQ42_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.locally_GQ42_graph()  # optional - gap_packages
-        sage: G.is_distance_regular(True)  # optional - gap_packages
+        sage: G = graphs.locally_GQ42_graph()  # optional - internet
+        sage: G.is_distance_regular(True)  # optional - internet
         ([45, 32, 12, 1, None], [None, 1, 6, 32, 45])
-
-    .. NOTE::
-
-        This function needs the GAP's package AtlasRep [WPNBBAtl]_.
-        Install it via ``sage -i gap_packages``.
     """
     H = libgap.AtlasGroup("3^2.U4(3).D8", libgap.NrMovedPoints, 756)
     Ns = H.NormalSubgroups()
@@ -189,14 +184,9 @@ def graph_3O73():
 
     EXAMPLES::
 
-        sage: G = graphs.graph_3O73()  # optional - gap_packages
-        sage: G.is_distance_regular(True)  # optional - gap_packages
+        sage: G = graphs.graph_3O73()  # optional - internet
+        sage: G.is_distance_regular(True)  # optional - internet
         ([117, 80, 24, 1, None], [None, 1, 12, 80, 117])
-
-    .. NOTE::
-
-        This function needs the GAP's package AtlasRep [WPNBBAtl]_.
-        Install it via ``sage -i gap_packages``.
     """
     group = libgap.AtlasGroup("3.O7(3)", libgap.NrMovedPoints, 1134)
     G = Graph(libgap.Orbit(group, [1, 3], libgap.OnSets), format='list_of_edges')

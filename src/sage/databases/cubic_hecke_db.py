@@ -29,7 +29,7 @@ from enum import Enum
 
 from sage.structure.sage_object import SageObject
 from sage.misc.persist import db_save, db, save, load
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.env import SAGE_SHARE, SAGE_ROOT
 from sage.matrix.constructor import matrix, Matrix  # uppercase version used in Marin's file `MatricesRegH4.maple`
 from sage.rings.integer_ring import ZZ

@@ -13,5 +13,5 @@ as given on 'http://www.lamfa.u-picardie.fr/marin/softs/H4
 
 === cubic_hecke_marin-20200513.tar.bz2 (Sebastian Oehms, 13 May 2020) ===
 
- * #?????: Initial version
+ * #29717: Initial version
 

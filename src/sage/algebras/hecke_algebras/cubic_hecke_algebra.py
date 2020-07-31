@@ -123,7 +123,7 @@ from warnings import warn
 
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.groups.cubic_braid import CubicBraidGroup
 from sage.rings.integer_ring import ZZ
 from sage.algebras.splitting_algebra import solve_with_extension

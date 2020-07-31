@@ -30,7 +30,7 @@ AUTHORS:
 
 from enum import Enum
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.rings.integer import Integer
 from sage.matrix.matrix_generic_dense import Matrix_generic_dense
 from sage.matrix.matrix_space import MatrixSpace

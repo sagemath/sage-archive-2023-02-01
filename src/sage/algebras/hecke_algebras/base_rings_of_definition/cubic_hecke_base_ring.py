@@ -27,7 +27,7 @@ from sage.structure.category_object import normalize_names
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import get_coercion_model
 from sage.categories.action import Action
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.misc.functional import cyclotomic_polynomial
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer_ring import ZZ

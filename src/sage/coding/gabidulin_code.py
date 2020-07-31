@@ -21,8 +21,8 @@ from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.modules.free_module import VectorSpace
 from sage.rings.integer import Integer
-from encoder import Encoder
-from decoder import Decoder, DecodingError
+from sage.coding.encoder import Encoder
+from sage.coding.decoder import Decoder, DecodingError
 from sage.rings.integer_ring import ZZ
 from sage.functions.other import floor
 from sage.coding.linear_rank_metric import *
@@ -504,12 +504,13 @@ class GabidulinVectorEvaluationEncoder(Encoder):
             sage: list(C.generator_matrix().row(1)) == [C.evaluation_points()[i]**(2**3) for i in range(3)]
             True
         """
+        from functools import reduce
         C = self.code()
         eval_pts = C.evaluation_points()
         k = C.dimension()
         sigma = C.twisting_homomorphism()
         create_matrix_elements = lambda A,k,f: reduce(lambda L,x: [x] + \
-                map(lambda l: map(f,l), L), [A]*k, [])
+                list(map(lambda l: list(map(f,l)), L)), [A]*k, [])
         return matrix(C.base_field(), C.dimension(), C.length(), \
                 create_matrix_elements(eval_pts, C.dimension(), sigma))
 
@@ -654,7 +655,7 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
             sage: C = codes.GabidulinCode(Fqm, 4, 4, Fq)
             sage: E = codes.encoders.GabidulinPolynomialEvaluationEncoder(C)
             sage: E.message_space()
-            Skew Polynomial Ring in x over Finite Field in z20 of size 5^20 twisted by z20 |--> z20^(5^4)
+            Ore Polynomial Ring in x over Finite Field in z20 of size 5^20 twisted by z20 |--> z20^(5^4)
         """
         C = self.code()
         return C.base_field()['x', C.twisting_homomorphism()]
@@ -715,7 +716,7 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
             sage: codeword_vector = E.encode(q, "vector"); codeword_vector
             Traceback (most recent call last):
             ...
-            ValueError: the message to encode must be in Skew Polynomial Ring in x over Finite Field in z9 of size 2^9 twisted by z9 |--> z9^(2^3)
+            ValueError: the message to encode must be in Ore Polynomial Ring in x over Finite Field in z9 of size 2^9 twisted by z9 |--> z9^(2^3)
         """
         C = self.code()
         M = self.message_space()

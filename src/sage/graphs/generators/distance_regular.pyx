@@ -318,3 +318,104 @@ def graph_3O73():
     G = Graph(libgap.Orbit(group, [1, 3], libgap.OnSets), format='list_of_edges')
     G.name("Distance transitive graph with automorphism group 3.O_7(3)")
     return G
+
+def FosterGraph3S6():
+    r"""
+    Return the Foster graph for `3.Sym(6)`.
+
+    This graph is distance-regular with intersection array
+    `[6, 4, 2, 1; 1, 1, 4, 6]`.
+
+    The graph is also distance transitive.
+
+    EXAMPLES::
+
+        sage: G = graphs.FosterGraph3S6()
+        sage: G.is_distance_regular(True)
+        ([6, 4, 2, 1, None], [None, 1, 1, 4, 6])
+    """
+
+    a = libgap.eval(("(2,6)(3,5)(4,11)(7,17)(8,16)(9,14)(13,22)(15,25)"
+                    "(18,29)(19,28)(20,21)(24,30)(26,35)(27,33)(31,39)"
+                     "(34,38)(36,43)(37,40)(42,44)"))
+    b = libgap.eval(("(1,2,7,12,4)(3,8,18,20,10)(5,9,19,21,11)(6,13,17,26,15)"
+                     "(14,23,28,31,24)(16,22,29,36,27)(25,32,35,42,34)"
+                     "(30,37,39,44,38)(33,40,43,45,41)"))
+
+    group = libgap.Group(a,b)
+
+    G = Graph(group.Orbit([1, 7], libgap.OnSets), format='list_of_edges')
+    G.name("Foster graph for 3.Sym(6) graph")
+    return G
+
+def J2Graph():
+    r"""
+    Return the distance-transitive graph with automorphism group `J_2`.
+
+    EXAMPLES::
+
+        sage: G = graphs.J2Graph()  # optional - gap_packages
+        sage: G.is_distance_regular(True) # optional - gap_packages
+        ([10, 8, 8, 2, None], [None, 1, 1, 4, 5])
+
+    .. NOTE::
+
+        This function needs the GAP's package AtlasRep [WPNBBAtl]_.
+        Install it via ``sage -i gap_packages``.
+    """
+    group = libgap.AtlasGroup("J2", libgap.NrMovedPoints, 315)
+    G = Graph(group.Orbit([1, 9], libgap.OnSets), format='list_of_edges')
+    G.name("J_2 graph")
+    return G
+
+def IvanovIvanovFaradjevGraph():
+    r"""
+    Return the IvanovIvanovFaradjev graph.
+
+    The graph is distance-transitive with automorphism group `3.M_{22}`.
+
+    EXAMPLES::
+
+        sage: G = graphs.IvanovIvanovFaradjevGraph()
+        sage: G.is_distance_regular(True)
+        ([7, 6, 4, 4, 4, 1, 1, 1, None], [None, 1, 1, 1, 2, 4, 4, 6, 7])
+
+    .. NOTE::
+
+        This function needs the GAP's package AtlasRep [WPNBBAtl]_.
+        Install it via ``sage -i gap_packages``.
+    """
+
+    group = libgap.AtlasGroup("3.M22", libgap.NrMovedPoints, 990)
+    graph = Graph(group.Orbit([1, 22], libgap.OnSets), format='list_of_edges')
+
+    graph.name("Ivanov-Ivanov-Faradjev Graph")
+    return graph
+
+def LargeWittGraph():
+    r"""
+    Return the large Witt graph.
+
+    The construction is taken from
+    http://mathworld.wolfram.com/LargeWittGraph.html
+
+    EXAMPLES:
+
+        sage: g = graphs.LargeWittGraph()
+        sage: g.is_distance_regular(True)
+        ([30, 28, 24, None], [None, 1, 3, 15])
+    """
+    from sage.coding import codes_catalog as codes
+    import itertools
+
+    C = codes.GolayCode(GF(2), extended=True)
+    vertices = [c for c in C if c.hamming_weight() == 8]
+
+    edges = []
+    for v, w in itertools.combinations(vertices, 2):
+        if not set(v.support()).intersection(w.support()):
+            edges.append((v, w))
+
+    W = Graph(edges, format='list_of_edges')
+    W.name("Large Witt graph")
+    return W

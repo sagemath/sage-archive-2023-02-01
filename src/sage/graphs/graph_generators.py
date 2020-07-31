@@ -119,6 +119,7 @@ __append_to_doc(
      "FlowerSnark",
      "FolkmanGraph",
      "FosterGraph",
+     "FosterGraph3S6",
      "FranklinGraph",
      "FruchtGraph",
      "GoldnerHararyGraph",
@@ -139,12 +140,15 @@ __append_to_doc(
      "HoltGraph",
      "HortonGraph",
      "IoninKharaghani765Graph",
+     "IvanovIvanovFaradjevGraph",
+     "J2Graph",
      "JankoKharaghaniGraph",
      "JankoKharaghaniTonchevGraph",
      "KittellGraph",
      "KrackhardtKiteGraph",
      "Klein3RegularGraph",
      "Klein7RegularGraph",
+     "LargeWittGraph",
      "locally_GQ42_distance_transitive_graph",
      "LocalMcLaughlinGraph",
      "LjubljanaGraph",
@@ -1942,6 +1946,7 @@ class GraphGenerators():
     FlowerSnark              = staticmethod(smallgraphs.FlowerSnark)
     FolkmanGraph             = staticmethod(smallgraphs.FolkmanGraph)
     FosterGraph              = staticmethod(smallgraphs.FosterGraph)
+    FosterGraph3S6           = staticmethod(distance_regular.FosterGraph3S6)
     FranklinGraph            = staticmethod(smallgraphs.FranklinGraph)
     FruchtGraph              = staticmethod(smallgraphs.FruchtGraph)
     GoldnerHararyGraph       = staticmethod(smallgraphs.GoldnerHararyGraph)
@@ -1963,12 +1968,15 @@ class GraphGenerators():
     HoltGraph                = staticmethod(smallgraphs.HoltGraph)
     HortonGraph              = staticmethod(smallgraphs.HortonGraph)
     IoninKharaghani765Graph  = staticmethod(smallgraphs.IoninKharaghani765Graph)
+    IvanovIvanovFaradjevGraph = staticmethod(distance_regular.IvanovIvanovFaradjevGraph)
+    J2Graph                  = staticmethod(distance_regular.J2Graph)
     JankoKharaghaniGraph     = staticmethod(smallgraphs.JankoKharaghaniGraph)
     JankoKharaghaniTonchevGraph  = staticmethod(smallgraphs.JankoKharaghaniTonchevGraph)
     KittellGraph             = staticmethod(smallgraphs.KittellGraph)
     KrackhardtKiteGraph      = staticmethod(smallgraphs.KrackhardtKiteGraph)
     Klein3RegularGraph       = staticmethod(smallgraphs.Klein3RegularGraph)
     Klein7RegularGraph       = staticmethod(smallgraphs.Klein7RegularGraph)
+    LargeWittGraph           = staticmethod(distance_regular.LargeWittGraph)
     locally_GQ42_distance_transitive_graph = staticmethod(distance_regular.locally_GQ42_distance_transitive_graph)
     LocalMcLaughlinGraph     = staticmethod(smallgraphs.LocalMcLaughlinGraph)
     LjubljanaGraph           = staticmethod(smallgraphs.LjubljanaGraph)

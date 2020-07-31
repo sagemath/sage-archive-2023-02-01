@@ -538,7 +538,10 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
         if base in NumberFields() or is_pAdicField(base):
             base = ProjectiveSpace(base, 1)
         if not is_ProjectiveSpace(base):
-            raise ValueError("base of projective Berkovich space must be projective space")
+            try:
+                base = ProjectiveSpace(base)
+            except:
+                raise ValueError("base of projective Berkovich space must be projective space")
         if not (is_pAdicField(base.base_ring())):
             if base.base_ring() not in NumberFields():
                 raise ValueError("base of projective Berkovich space must be " + \

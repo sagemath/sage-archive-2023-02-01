@@ -1725,8 +1725,10 @@ class PseudoRiemannianMetric(TensorField):
         """
         dom = self.domain()
         orient = dom.orientation()
-        if not orient:
-            raise ValueError('{} must admit an orientation.'.format(dom))
+        if orient is None:
+            raise ValueError('{} must admit an orientation. '.format(dom) +
+                             'use set_orientation to define a default '
+                             'orientation on {}'.format(dom))
         if self._vol_forms == []:
             # a new computation is necessary
             manif = self._ambient_domain

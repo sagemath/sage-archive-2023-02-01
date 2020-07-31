@@ -364,11 +364,10 @@ class Berkovich_Element_Cp(Berkovich_Element):
                 raise ValueError('type II and III points can not be centered at infinity')
         if power != None:
             if error_check:
-                if not(power.parent() is QQ):
-                    try:
-                        power = QQ(power)
-                    except TypeError:
-                        raise TypeError("power must convert to rationals")
+                try:
+                    power = QQ(power)
+                except TypeError:
+                    raise TypeError("power must convert to rationals")
                 if radius != None:
                     if radius != RR(self._p**power):
                         raise ValueError("conflicting inputs for power and radius")
@@ -569,7 +568,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
             sage: Q1.radius()
             0.400000000000000
 
-            ::
+        ::
 
             sage: d = B([2, 2, 2], [1.761, 1.123, 1.112])
             sage: d.radius()
@@ -604,7 +603,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
             sage: Q1.diameter()
             0
 
-            ::
+        ::
 
             sage: Q2 = B(1/2, 9)
             sage: Q2.diameter()

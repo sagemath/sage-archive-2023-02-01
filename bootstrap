@@ -75,7 +75,21 @@ install_config_rpath() {
 bootstrap () {
     rm -f m4/sage_spkg_configures.m4
     spkg_configures=""
-    for filename in $(find build/pkgs -type f -name spkg-configure.m4); do
+    for filename in $(find build/pkgs -type f -name type); do
+        pkgtype="$(cat $filename)"
+        pkgname="$(echo $filename | cut -d/ -f3)"
+        case "$pkgtype" in
+            optional|experimental)
+                # Trac #29629: Temporary solution for Sage 9.1: Do not provide
+                # --enable-SPKG options for installing pip packages
+                if [ ! -f "$(dirname $filename)/requirements.txt" ]; then
+                    spkg_configures="$spkg_configures
+SAGE_SPKG_ENABLE([$pkgname], [$pkgtype])"
+                fi
+                ;;
+        esac
+    done
+    for filename in $(find build/pkgs -type f -name spkg-configure.m4 | sort); do
         pkgname="$(echo $filename | cut -d/ -f3)"
         echo "m4_sinclude([$filename])" >> m4/sage_spkg_configures.m4
         spkg_configures="$spkg_configures
@@ -83,6 +97,7 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
     done
     echo "$spkg_configures" >> m4/sage_spkg_configures.m4
 
+    SAGE_ROOT="$SAGE_ROOT" src/doc/bootstrap && \
     install_config_rpath && \
     aclocal -I m4 && \
     automake --add-missing --copy build/make/Makefile-auto && \
@@ -132,7 +147,7 @@ save () {
     set -e
 
     # Check that config.guess is sufficiently recent
-    if ! grep '^timestamp=.*201[5-9]' config/config.guess >/dev/null; then
+    if ! grep '^timestamp=.*20\(1[5-9]\|2[0-9]\)' config/config.guess >/dev/null; then
         echo >&2 "Error: config.guess is outdated:"
         grep >&2 '^timestamp=' config/config.guess
         echo >&2 "You should update the 'gnuconfig' or 'automake' package and try again"
@@ -145,7 +160,7 @@ save () {
     # Create configure tarball
     echo "Creating $NEWCONFBALL..."
     mkdir -p upstream
-    tar zcf "$NEWCONFBALL" configure config/* build/make/Makefile-auto.in
+    tar zcf "$NEWCONFBALL" configure config/* build/make/Makefile-auto.in src/doc/en/installation/*.txt src/doc/en/reference/spkg/*.rst src/doc/en/reference/repl/*.txt
     
     # Update version
     echo "$NEWCONFVERSION" >$PKG/package-version.txt
@@ -191,6 +206,7 @@ mkdir config 2>/dev/null
 # Get autotools from our own package into PATH (Trac #21214).
 # If Sage has not been built yet, this will fail due to a missing
 # sage-env-config. We just ignore that error.
+source src/bin/sage-env-config 2>/dev/null
 source src/bin/sage-env 2>/dev/null
 
 

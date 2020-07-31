@@ -41,8 +41,6 @@ This can then be lifted to an overconvergent `p`-adic modular form::
 """
 from __future__ import print_function, division
 
-from six.moves import zip, filter
-
 from sage.modular.btquotients.btquotient import DoubleCosetReduction
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.richcmp import op_EQ, op_NE
@@ -59,7 +57,7 @@ from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.modular.hecke.all import (AmbientHeckeModule, HeckeModuleElement)
 from sage.rings.infinity import Infinity
 import sage.modular.hecke.hecke_operator
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.rings.real_mpfr import RR
 from sage.modular.pollack_stevens.sigma0 import Sigma0ActionAdjuster
 from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
@@ -1201,7 +1199,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         d = self._k - 1
         for e in self._E:
             try:
-                g = next(filter(lambda g: g[2], S[e.label]))
+                g = next((g for g in S[e.label] if g[2]))
                 C = self._U.acting_matrix(self._Sigma0(self.embed_quaternion(g[0])), d).transpose()  # Warning - Need to allow the check = True
                 C -= self._U.acting_matrix(self._Sigma0(Matrix(QQ, 2, 2, p ** g[1])), d).transpose()  # Warning - Need to allow the check = True
                 stab_conds.append([e.label, C])
@@ -1212,12 +1210,16 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         self._M = Matrix(self._R, (nV + n_stab_conds) * d, nE * d, 0,
                          sparse=True)
         for v in self._V:
-            for e in filter(lambda e: e.parity == 0, v.leaving_edges):
+            for e in v.leaving_edges:
+                if e.parity:
+                    continue
                 C = sum([self._U.acting_matrix(self.embed_quaternion(x[0]), d)
                          for x in e.links],
                         Matrix(self._R, d, d, 0)).transpose()
                 self._M.set_block(v.label * d, e.label * d, C)
-            for e in filter(lambda e: e.parity == 0, v.entering_edges):
+            for e in v.entering_edges:
+                if e.parity:
+                    continue
                 C = sum([self._U.acting_matrix(self.embed_quaternion(x[0]), d)
                          for x in e.opposite.links],
                         Matrix(self._R, d, d, 0)).transpose()

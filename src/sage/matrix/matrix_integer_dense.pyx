@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+# distutils: extra_compile_args = M4RI_CFLAGS
+# distutils: libraries = iml ntl gmp m CBLAS_LIBRARIES
+# distutils: library_dirs = CBLAS_LIBDIR
+# distutils: include_dirs = CBLAS_INCDIR
 """
 Dense matrices over the integer ring
 
@@ -58,8 +62,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from libc.stdint cimport int64_t
 from libc.string cimport strcpy, strlen
 
@@ -72,13 +74,15 @@ from sage.libs.gmp.mpz cimport *
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 
-from sage.misc.misc import verbose, get_verbose, cputime
+from sage.misc.misc import cputime
+from sage.misc.verbose import verbose, get_verbose
 
 from sage.arith.all import previous_prime
 from sage.arith.long cimport integer_check_long_py
 from sage.arith.power cimport generic_power
 from sage.structure.element cimport Element
 from sage.structure.proof.proof import get_flag as get_proof_flag
+from sage.structure.richcmp cimport rich_to_bool
 from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
@@ -117,6 +121,7 @@ from .matrix_modn_dense_double cimport Matrix_modn_dense_double
 
 from .matrix_mod2_dense import Matrix_mod2_dense
 from .matrix_mod2_dense cimport Matrix_mod2_dense
+from sage.rings.finite_rings.finite_field_constructor import GF
 
 
 from .matrix2 import decomp_seq
@@ -374,7 +379,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Returns (i, j) entry of self as a new Integer.
 
-        .. warning::
+        .. WARNING::
 
            This is very unsafe; it assumes i and j are in the right
            range.
@@ -402,7 +407,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Copy entry i,j of the matrix ``self`` to ``value``.
 
-        .. warning::
+        .. WARNING::
 
            This is very unsafe; it assumes i and j are in the right
            range.
@@ -428,7 +433,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Returns (j, i) entry of self as a new Integer.
 
-        .. warning::
+        .. WARNING::
 
            This is very unsafe; it assumes i and j are in the right
            range.
@@ -449,6 +454,17 @@ cdef class Matrix_integer_dense(Matrix_dense):
             6
         """
         return fmpz_get_d(fmpz_mat_entry(self._matrix, i, j))
+
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Return 1 if the entry (i, j) is zero, otherwise 0.
+
+        .. WARNING::
+
+           This is very unsafe; it assumes i and j are in the right
+           range.
+        """
+        return fmpz_is_zero(fmpz_mat_entry(self._matrix, i,j))
 
     def _pickle(self):
         """
@@ -588,7 +604,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
     # x * cdef _add_
     # x * cdef _sub_
     # x * cdef _mul_
-    # x * cpdef _cmp_
+    # x * cpdef _richcmp_
     # x * __neg__
     # x * __invert__  -> SEE LEVEL 3 FUNCTIONALITIES
     # x * __copy__
@@ -677,7 +693,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Multiply matrices over ZZ using linbox.
 
-        .. warning::
+        .. WARNING::
 
            This is very slow right now, i.e., linbox is very slow.
 
@@ -876,7 +892,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: M(range(9)) ** -1
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Matrix is singular
+            ZeroDivisionError: matrix must be nonsingular
 
         TESTS::
 
@@ -977,8 +993,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         return M
 
-
-    cpdef int _cmp_(self, right) except -2:
+    cpdef _richcmp_(self, right, int op):
         r"""
         Compare ``self`` with ``right``, examining entries in
         lexicographic (row major) ordering.
@@ -998,17 +1013,18 @@ cdef class Matrix_integer_dense(Matrix_dense):
         cdef int k
 
         sig_on()
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
-                k = fmpz_cmp(fmpz_mat_entry(self._matrix,i,j),fmpz_mat_entry((<Matrix_integer_dense>right)._matrix,i,j))
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                k = fmpz_cmp(fmpz_mat_entry(self._matrix,i,j),
+                             fmpz_mat_entry((<Matrix_integer_dense>right)._matrix,i,j))
                 if k:
                     sig_off()
                     if k < 0:
-                        return -1
+                        return rich_to_bool(op, -1)
                     else:
-                        return 1
+                        return rich_to_bool(op, 1)
         sig_off()
-        return 0
+        return rich_to_bool(op, 0)
 
     # TODO: Implement better
     cdef _vector_times_matrix_(self, Vector v):
@@ -1017,9 +1033,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         INPUT:
 
-
         -  ``v`` - a free module element.
-
 
         OUTPUT: The vector times matrix product v\*A.
 
@@ -1226,7 +1240,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         return self, ZZ(1)
 
     def charpoly(self, var='x', algorithm=None):
-        """
+        r"""
         .. NOTE::
 
             The characteristic polynomial is defined as `\det(xI-A)`.
@@ -1348,7 +1362,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         return g
 
     def minpoly(self, var='x', algorithm=None):
-        """
+        r"""
         INPUT:
 
 
@@ -1545,7 +1559,17 @@ cdef class Matrix_integer_dense(Matrix_dense):
             return self._mod_int_c(modulus)
 
     cdef _mod_two(self):
-        MS = matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols)
+        """
+        TESTS:
+
+        Check that bug discovered in :trac:`29839` is fixed::
+
+            sage: M = Matrix(ZZ, [[0,1],[0,1]])
+            sage: M._mod_int(2).transpose()
+            [0 0]
+            [1 1]
+        """
+        MS = matrix_space.MatrixSpace(GF(2), self._nrows, self._ncols)
         return Matrix_mod2_dense(MS, self, True, True)
 
     cdef _mod_int_c(self, mod_int p):
@@ -2238,7 +2262,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Return the elementary divisors of self, in order.
 
-        .. warning::
+        .. WARNING::
 
            This is MUCH faster than the :meth:`smith_form` function.
 
@@ -4068,7 +4092,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         fmpz_clear(fden)
         if res == 0:
-            raise ZeroDivisionError('Matrix is singular')
+            raise ZeroDivisionError('matrix must be nonsingular')
         if den < 0:
             return -M, -den
         else:
@@ -4105,7 +4129,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: ~M.zero_matrix()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Matrix is singular
+            ZeroDivisionError: matrix must be nonsingular
         """
         A, d = self._invert_flint()
         return A / d
@@ -4163,7 +4187,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         .. NOTE::
 
-           In Sage one can also write ``A  B`` for
+           In Sage one can also write ``A \ B`` for
            ``A.solve_right(B)``, i.e., Sage implements the "the
            MATLAB/Octave backslash operator".
 
@@ -4258,7 +4282,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
         # in the non-full rank case.  In any case, we do this for now,
         # since rank is very fast and infinite loops are evil.
         if check_rank and self.rank() < self.nrows():
-            raise ValueError("self must be of full rank.")
+            from .matrix2 import NotFullRankError
+            raise NotFullRankError
 
         if not self.is_square():
             raise NotImplementedError("the input matrix must be square.")
@@ -4844,7 +4869,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         a new matrix that is the echelon form of self with row appended to
         the bottom.
 
-        .. warning::
+        .. WARNING::
 
            It is assumed that self is in echelon form.
 
@@ -5014,24 +5039,24 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         INPUT:
 
-
-        -  ``D`` - a small integer that is assumed to be a
+        -  ``D`` -- a small integer that is assumed to be a
            multiple of 2\*det(self)
-
 
         OUTPUT:
 
+        -  ``matrix`` -- the Hermite normal form of self
 
-        -  ``matrix`` - the Hermite normal form of self.
+        EXAMPLES:
 
-        A ValueError is raised if the matrix is not square, fixing :trac:`5548`::
+        A ``ValueError`` is raised if the matrix is not square,
+        fixing :trac:`5548`::
 
             sage: random_matrix(ZZ,16,4)._hnf_mod(100)
             Traceback (most recent call last):
             ...
             ValueError: matrix is not square
         """
-        t = verbose('hermite mod %s'%D, caller_name='matrix_integer_dense')
+        t = verbose('hermite mod %s' % D, caller_name='matrix_integer_dense')
         if self._nrows != self._ncols:
             raise ValueError("matrix is not square")
         cdef Matrix_integer_dense res = self._new(self._nrows,self._ncols)
@@ -5430,7 +5455,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             [ 1  0  3]
             [-1  0  5]
         """
-        if len(cols) == 0:
+        if not cols:
             return self
         cdef Py_ssize_t i, c, r, nc = max(self._ncols + len(cols), max(cols)+1)
         cdef Matrix_integer_dense A = self.new_matrix(self._nrows, nc)

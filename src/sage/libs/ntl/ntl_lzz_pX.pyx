@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 """
 ntl_lzz_pX.pyx
 
@@ -16,8 +19,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import absolute_import, division
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -164,7 +165,8 @@ cdef class ntl_zz_pX(object):
 
     def __reduce__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: f = ntl.zz_pX([10,10^30+1], 20)
             sage: f == loads(dumps(f))
             True
@@ -350,9 +352,6 @@ cdef class ntl_zz_pX(object):
         if not divisible:
             raise ArithmeticError("self (=%s) is not divisible by other (=%s)" % (self, other))
         return q
-
-    def __div__(self, other):
-        return self / other
 
     def __mod__(ntl_zz_pX self, other):
         """
@@ -893,7 +892,8 @@ def make_zz_pX(L, context):
     """
     For unpickling.
 
-    TESTS:
+    TESTS::
+
         sage: f = ntl.zz_pX(range(16), 12)
         sage: loads(dumps(f)) == f
         True

@@ -55,8 +55,6 @@ from sage.rings.integer import Integer
 import inspect
 from sage.misc.sageinspect import sage_getargspec
 
-from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-
 
 def _explain_constructor(cl):
     r"""
@@ -222,7 +220,8 @@ class AbstractCode(Parent):
             sage: C
             Dummy code of length 6
 
-        We can list its elements and check if an element is in the code:
+        We can list its elements and check if an element is in the code::
+
             sage: list(C)
             [(0, 0, 0, 0, 0, 0),
             (1, 0, 0, 0, 0, 0),

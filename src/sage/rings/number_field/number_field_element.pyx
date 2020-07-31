@@ -1,3 +1,5 @@
+# distutils: libraries = ntl
+# distutils: language = c++
 """
 Number Field Elements
 
@@ -28,8 +30,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 import operator
 
 from cpython.int cimport *
@@ -51,7 +51,7 @@ from sage.structure.richcmp cimport rich_to_bool
 
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element
-from sage.rings.polynomial.evaluation cimport ZZX_evaluation_mpfi
+from sage.rings.polynomial.evaluation_ntl cimport ZZX_evaluation_mpfi
 import sage.rings.rational_field
 import sage.rings.rational
 import sage.rings.integer_ring
@@ -456,7 +456,7 @@ cdef class NumberFieldElement(FieldElement):
         K = self.number_field()
         return str(x).replace(x.parent().variable_name(), K.variable_name())
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         This is used in computing homomorphisms between number fields.
 
@@ -469,6 +469,7 @@ cdef class NumberFieldElement(FieldElement):
             b^2 + 1
             sage: (a+1)._im_gens_(m, [b^2])
             b^2 + 1
+
         """
         # NOTE -- if you ever want to change this so relative number
         # fields are in terms of a root of a poly.  The issue is that
@@ -477,7 +478,12 @@ cdef class NumberFieldElement(FieldElement):
         # gives the image of gen, which need not be a generator for
         # the absolute field.  The morphism has to be *over* the
         # relative element.
-        return codomain(self.polynomial()(im_gens[0]))
+        f = self.polynomial()
+        # The current implementation won't productively use base_map
+        # since the coefficients of f are in QQ.
+        if base_map is not None:
+            f = f.map_coefficients(base_map)
+        return codomain(f(im_gens[0]))
 
     def _latex_(self):
         """
@@ -1728,7 +1734,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<a> = NumberField(x^3 + x^2 - 2*x - 1, 'a')
             sage: P.<X> = K[]
             sage: L = NumberField(X^2 + a^2 + 2*a + 1, 'b')
-            sage: K(17)._rnfisnorm(L)
+            sage: K(17)._rnfisnorm(L)  # representation depends, not tested
             ((a^2 - 2)*b - 4, 1)
 
             sage: K.<a> = NumberField(x^3 + x + 1)
@@ -1763,6 +1769,20 @@ cdef class NumberFieldElement(FieldElement):
             sage: L.<b> = K.extension(x^2 - 1/2)
             sage: a._rnfisnorm(L)
             (a*b + a + 1/2, 1)
+
+        We test the above doctest, which was not tested.
+        The representation depends on the PARI version::
+
+            sage: K.<a> = NumberField(x^3 + x^2 - 2*x - 1, 'a')
+            sage: P.<X> = K[]
+            sage: L.<b> = NumberField(X^2 + a^2 + 2*a + 1, 'b')
+            sage: (xbar, q) = K(17)._rnfisnorm(L)
+            sage: q == 1
+            1
+            sage: xbar.norm()
+            4913
+            sage: xbar in ((a^2 - 2)*b - 4, (a^2 - 2)*b + 4)
+            True
 
         AUTHORS:
 
@@ -2350,6 +2370,8 @@ cdef class NumberFieldElement(FieldElement):
         cdef ZZ_c gcd
         cdef ZZ_c t1
         cdef ZZX_c t2
+        if ZZ_IsOne(self.__denominator):
+            return
         ZZX_content(t1, self.__numerator)
         ZZ_GCD(gcd, t1, self.__denominator)
         if ZZ_sign(gcd) != ZZ_sign(self.__denominator):
@@ -2372,11 +2394,16 @@ cdef class NumberFieldElement(FieldElement):
         """
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
+        cdef ZZ_c g, q1, q2
         x = self._new()
-        ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
+        ZZ_GCD(g, self.__denominator, _right.__denominator)
+        ZZ_div(q1, self.__denominator, g)
+        ZZ_div(q2, _right.__denominator, g)
+        ZZ_mul(x.__denominator, q1, q2)
+        ZZ_mul(x.__denominator, x.__denominator, g)
         cdef ZZX_c t1, t2
-        ZZX_mul_ZZ(t1, self.__numerator, _right.__denominator)
-        ZZX_mul_ZZ(t2, _right.__numerator, self.__denominator)
+        ZZX_mul_ZZ(t1, self.__numerator, q2)
+        ZZX_mul_ZZ(t2, _right.__numerator, q1)
         ZZX_add(x.__numerator, t1, t2)
         x._reduce_c_()
         return x
@@ -2391,11 +2418,16 @@ cdef class NumberFieldElement(FieldElement):
         """
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
+        cdef ZZ_c g, q1, q2
         x = self._new()
-        ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
+        ZZ_GCD(g, self.__denominator, _right.__denominator)
+        ZZ_div(q1, self.__denominator, g)
+        ZZ_div(q2, _right.__denominator, g)
+        ZZ_mul(x.__denominator, q1, q2)
+        ZZ_mul(x.__denominator, x.__denominator, g)
         cdef ZZX_c t1, t2
-        ZZX_mul_ZZ(t1, self.__numerator, _right.__denominator)
-        ZZX_mul_ZZ(t2, _right.__numerator, self.__denominator)
+        ZZX_mul_ZZ(t1, self.__numerator, q2)
+        ZZX_mul_ZZ(t2, _right.__numerator, q1)
         ZZX_sub(x.__numerator, t1, t2)
         x._reduce_c_()
         return x
@@ -2623,32 +2655,6 @@ cdef class NumberFieldElement(FieldElement):
             13
         """
         return int(self.polynomial())
-
-    def __long__(self):
-        """
-        Attempt to convert this number field element to a Python long, if
-        possible.
-
-        EXAMPLES::
-
-            sage: K.<a> = NumberField(x^10 - x - 1)
-            sage: long(a)  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot coerce nonconstant polynomial to long
-            sage: long(K(1234)) # py2
-            doctest:...: DeprecationWarning: converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3
-            See https://trac.sagemath.org/27675 for details.
-            1234L
-
-        The value does not have to be preserved, in the case of fractions.
-
-        ::
-
-            sage: long(K(393/29))
-            13L
-        """
-        return long(self.polynomial())
 
     def __invert__(self):
         """
@@ -3026,7 +3032,8 @@ cdef class NumberFieldElement(FieldElement):
             sage: g is f.polynomial()
             False
         """
-        return QQ[var](self._coefficients())
+        from sage.rings.polynomial.polynomial_ring_constructor import _single_variate as Pol
+        return Pol(QQ, var)(self._coefficients())
 
     def __hash__(self):
         """

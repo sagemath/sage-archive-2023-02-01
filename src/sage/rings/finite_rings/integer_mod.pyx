@@ -1,3 +1,4 @@
+# cython: language_level=2
 r"""
 Elements of `\ZZ/n\ZZ`
 
@@ -57,8 +58,7 @@ TESTS::
     sage: type(IntegerModRing(2^31).an_element())
     <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 Robert Bradshaw <robertwb@math.washington.edu>
 #                     2006 William Stein <wstein@gmail.com>
 #
@@ -66,8 +66,8 @@ TESTS::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, division, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off, sig_check
@@ -85,7 +85,8 @@ import operator
 cdef bint use_32bit_type(int_fast64_t modulus):
     return modulus <= INTEGER_MOD_INT32_LIMIT
 
-from sage.arith.long cimport integer_check_long, integer_check_long_py, ERR_OVERFLOW
+from sage.arith.long cimport (
+    integer_check_long, integer_check_long_py, is_small_python_int, ERR_OVERFLOW)
 
 import sage.rings.rational as rational
 from sage.libs.pari.all import pari, PariError
@@ -99,6 +100,7 @@ cimport sage.rings.integer
 from sage.rings.integer cimport Integer
 
 from sage.structure.coerce cimport py_scalar_to_element
+from sage.structure.richcmp import rich_to_bool_sgn, rich_to_bool
 import sage.structure.element
 cimport sage.structure.element
 coerce_binop = sage.structure.element.coerce_binop
@@ -107,7 +109,6 @@ from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
 from sage.misc.persist import register_unpickle_override
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.structure.parent cimport Parent
 
@@ -427,9 +428,9 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: abs(Mod(2,3))
             Traceback (most recent call last):
             ...
-            ArithmeticError: absolute valued not defined on integers modulo n.
+            ArithmeticError: absolute value not defined on integers modulo n.
         """
-        raise ArithmeticError("absolute valued not defined on integers modulo n.")
+        raise ArithmeticError("absolute value not defined on integers modulo n.")
 
     def __reduce__(IntegerMod_abstract self):
         """
@@ -445,7 +446,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         return sage.rings.finite_rings.integer_mod.mod, (self.lift(), self.modulus(), self.parent())
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` under the map that sends the
         generators of the parent to ``im_gens``.
@@ -457,6 +458,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: a._im_gens_(R, (R(1),))
             2
         """
+        # The generators are irrelevant (Zmod(n) is its own base), so we ignore base_map
         return codomain._coerce_(self)
 
     def __mod__(self, modulus):
@@ -941,8 +943,6 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         else:
             return x - n
 
-    centerlift = deprecated_function_alias(15804,lift_centered)
-
     cpdef bint is_one(self):
         raise NotImplementedError
 
@@ -1394,7 +1394,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         Check that the code path cunningham might be used::
 
             sage: a = Mod(9,11)
-            sage: a.nth_root(2, False, True, 'Johnston', cunningham = True) # optional - cunningham
+            sage: a.nth_root(2, False, True, 'Johnston', cunningham = True) # optional - cunningham_tables
             [3, 8]
 
         ALGORITHMS:
@@ -1883,11 +1883,11 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         EXAMPLES::
 
             sage: F.<a> = GF(13)
-            sage: V = F.vector_space()
+            sage: V = F.vector_space(map=False)
             sage: V(a)
             (1)
         """
-        return self.parent().vector_space()([self])
+        return self.parent().vector_space(map=False)([self])
 
 
 ######################################################################
@@ -2007,7 +2007,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
                 mpz_fdiv_q_2exp(x.value, self.value, -k)
             return x
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         EXAMPLES::
 
@@ -2020,12 +2020,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         """
         cdef int i
         i = mpz_cmp((<IntegerMod_gmp>left).value, (<IntegerMod_gmp>right).value)
-        if i < 0:
-            return -1
-        elif i == 0:
-            return 0
-        else:
-            return 1
+        return rich_to_bool_sgn(op, i)
 
     cpdef bint is_one(IntegerMod_gmp self):
         """
@@ -2180,9 +2175,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             4
         """
         return int(self.lift())
-
-    def __long__(self):
-        return long(self.lift())
 
     def __pow__(IntegerMod_gmp self, exp, m): # NOTE: m ignored, always use modulus of parent ring
         """
@@ -2374,9 +2366,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
     cdef int_fast32_t get_int_value(IntegerMod_int self):
         return self.ivalue
 
-
-
-    cpdef int _cmp_(self, right) except -2:
+    cpdef _richcmp_(self, right, int op):
         """
         EXAMPLES::
 
@@ -2392,11 +2382,11 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             True
         """
         if self.ivalue == (<IntegerMod_int>right).ivalue:
-            return 0
+            return rich_to_bool(op, 0)
         elif self.ivalue < (<IntegerMod_int>right).ivalue:
-            return -1
+            return rich_to_bool(op, -1)
         else:
-            return 1
+            return rich_to_bool(op, 1)
 
     cpdef bint is_one(IntegerMod_int self):
         """
@@ -2574,9 +2564,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: v[Mod(10,7)]
             4
         """
-        return self.ivalue
-
-    def __long__(IntegerMod_int self):
         return self.ivalue
 
     def __lshift__(IntegerMod_int self, k):
@@ -3187,8 +3174,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
     cdef int_fast64_t get_int_value(IntegerMod_int64 self):
         return self.ivalue
 
-
-    cpdef int _cmp_(self, right) except -2:
+    cpdef _richcmp_(self, right, int op):
         """
         EXAMPLES::
 
@@ -3203,9 +3189,12 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: mod(0, 13^5) == int(0)
             True
         """
-        if self.ivalue == (<IntegerMod_int64>right).ivalue: return 0
-        elif self.ivalue < (<IntegerMod_int64>right).ivalue: return -1
-        else: return 1
+        if self.ivalue == (<IntegerMod_int64>right).ivalue:
+            return rich_to_bool(op, 0)
+        elif self.ivalue < (<IntegerMod_int64>right).ivalue:
+            return rich_to_bool(op, -1)
+        else:
+            return rich_to_bool(op, 1)
 
     cpdef bint is_one(IntegerMod_int64 self):
         """
@@ -3369,9 +3358,6 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: v[Mod(3, 2^20)]
             4
         """
-        return self.ivalue
-
-    def __long__(IntegerMod_int64 self):
         return self.ivalue
 
     def __lshift__(IntegerMod_int64 self, k):
@@ -3636,9 +3622,8 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 cdef int mpz_pow_helper(mpz_t res, mpz_t base, object exp, mpz_t modulus) except -1:
     cdef bint invert = False
     cdef long long_exp
-
-    if type(exp) is int:
-        long_exp = PyInt_AS_LONG(exp)
+    if is_small_python_int(exp):
+        long_exp = exp
         if long_exp < 0:
             long_exp = -long_exp
             invert = True

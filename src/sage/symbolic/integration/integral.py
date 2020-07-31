@@ -56,6 +56,21 @@ class IndefiniteIntegral(BuiltinFunction):
             sage: indefinite_integral(exp(x), 2*x)
             2*e^x
 
+        TESTS:
+
+        Check for :trac:`28913`::
+
+            sage: Ex = (1-2*x^(1/3))^(3/4)/x
+            sage: integrate(Ex, x, algorithm="giac")  # long time
+            4*(-2*x^(1/3) + 1)^(3/4) + 6*arctan((-2*x^(1/3) + 1)^(1/4)) - 3*log((-2*x^(1/3) + 1)^(1/4) + 1) + 3*log(abs((-2*x^(1/3) + 1)^(1/4) - 1))
+
+        Check for :trac:`29833`::
+
+            sage: (x,a,b)=var('x a b')
+            sage: assume(b > 0)
+            sage: f = (exp((x-a)/b) + 1)**(-1)
+            sage: (f*f).integrate(x, algorithm="mathematica_free") # optional -- internet
+            -b*log(e^(-(a - x)/b) + 1) + x + b/(e^(-(a - x)/b) + 1)
         """
         # The automatic evaluation routine will try these integrators
         # in the given order. This is an attribute of the class instead of
@@ -77,6 +92,14 @@ class IndefiniteIntegral(BuiltinFunction):
             e^x
             sage: indefinite_integral(exp(x), x^2)
             2*(x - 1)*e^x
+
+        TESTS:
+
+        Check that :trac:`28842` is fixed::
+
+            sage: integrate(1/(x^4 + x^3 + 1), x)
+            integrate(1/(x^4 + x^3 + 1), x)
+
         """
         # Check for x
         if not is_SymbolicVariable(x):
@@ -92,7 +115,7 @@ class IndefiniteIntegral(BuiltinFunction):
         for integrator in self.integrators:
             try:
                 A = integrator(f, x)
-            except (NotImplementedError, TypeError):
+            except (NotImplementedError, TypeError, AttributeError):
                 pass
             except ValueError:
                 # maxima is telling us something
@@ -171,7 +194,7 @@ class DefiniteIntegral(BuiltinFunction):
 
     def _eval_(self, f, x, a, b):
         """
-        Return the results of symbolic evaluation of the integral
+        Return the results of symbolic evaluation of the integral.
 
         EXAMPLES::
 
@@ -195,7 +218,7 @@ class DefiniteIntegral(BuiltinFunction):
         for integrator in self.integrators:
             try:
                 A = integrator(*args)
-            except (NotImplementedError, TypeError):
+            except (NotImplementedError, TypeError, AttributeError):
                 pass
             except ValueError:
                 # maxima is telling us something
@@ -209,12 +232,13 @@ class DefiniteIntegral(BuiltinFunction):
 
     def _evalf_(self, f, x, a, b, parent=None, algorithm=None):
         """
-        Return a numerical approximation of the integral
+        Return a numerical approximation of the integral.
 
         EXAMPLES::
 
             sage: from sage.symbolic.integration.integral import definite_integral
-            sage: h = definite_integral(sin(x)*log(x)/x^2, x, 1, 2); h
+            sage: f = sin(x)*log(x)/x^2
+            sage: h = definite_integral(f, x, 1, 2, hold=True); h
             integrate(log(x)*sin(x)/x^2, x, 1, 2)
             sage: h.n() # indirect doctest
             0.14839875208053...
@@ -233,7 +257,7 @@ class DefiniteIntegral(BuiltinFunction):
 
     def _tderivative_(self, f, x, a, b, diff_param=None):
         """
-        Return the derivative of symbolic integration
+        Return the derivative of symbolic integration.
 
         EXAMPLES::
 
@@ -246,14 +270,27 @@ class DefiniteIntegral(BuiltinFunction):
             -f(a)
             sage: h.diff(b)
             f(b)
+
+        TESTS:
+
+        Check for :trac:`28656`::
+
+            sage: t = var("t")
+            sage: f = function("f")
+            sage: F(x) = integrate(f(t),t,0,x)
+            sage: F(x).diff(x)
+            f(x)
         """
         if not x.has(diff_param):
             # integration variable != differentiation variable
             ans = definite_integral(f.diff(diff_param), x, a, b)
         else:
             ans = SR.zero()
-        return (ans + f.subs(x == b) * b.diff(diff_param)
-                    - f.subs(x == a) * a.diff(diff_param))
+        if hasattr(b, 'diff'):
+            ans += f.subs(x == b) * b.diff(diff_param)
+        if hasattr(a, 'diff'):
+            ans -= f.subs(x == a) * a.diff(diff_param)
+        return ans
 
     def _print_latex_(self, f, x, a, b):
         r"""
@@ -884,6 +921,37 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
         sage: integrate(abs(x^2 - 1), x, -2, 2)
         4
+
+    Some tests for :trac:`17468`::
+
+        sage: integral(log(abs(2*sin(x))), x, 0, pi/3)
+        1/36*I*pi^2 + I*dilog(1/2*I*sqrt(3) + 1/2) + I*dilog(-1/2*I*sqrt(3) - 1/2)
+        sage: integral(log(abs(sin(x))), x, 0, pi/2)
+        -1/2*pi*log(2)
+
+    Check that :trac:`25823` is fixed::
+
+        sage: f = log(sin(x))*sin(x)^2
+        sage: g = integrate(f, x) ; g
+        1/4*I*x^2
+        - 1/2*I*x*arctan2(sin(x), cos(x) + 1)
+        + 1/2*I*x*arctan2(sin(x), -cos(x) + 1)
+        - 1/4*x*log(cos(x)^2 + sin(x)^2 + 2*cos(x) + 1)
+        - 1/4*x*log(cos(x)^2 + sin(x)^2 - 2*cos(x) + 1)
+        + 1/4*(2*x - sin(2*x))*log(sin(x))
+        + 1/4*x
+        + 1/2*I*dilog(-e^(I*x))
+        + 1/2*I*dilog(e^(I*x)) + 1/8*sin(2*x)
+
+    Indeed::
+
+        sage: (g.derivative() - f).full_simplify().full_simplify()
+        0
+
+    Test for :trac:`24117`::
+
+        sage: integrate(sqrt(1-4*sin(x)^2),x, algorithm='maxima')
+        integrate(sqrt(-4*sin(x)^2 + 1), x)
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

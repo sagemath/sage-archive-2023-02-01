@@ -57,7 +57,7 @@ Here is what the module can do:
 Methods
 -------
 """
-from __future__ import absolute_import
+
 from sage.rings.integer cimport Integer
 from cysignals.memory cimport sig_malloc, sig_free
 
@@ -1804,6 +1804,13 @@ def strong_articulation_points(G):
         Traceback (most recent call last):
         ...
         TypeError: the input must be a Sage DiGraph
+
+    Ticket :trac:`29958` is fixed::
+
+        sage: D = DiGraph('SA?GA??_??a???@?@OH_?@?I??b??G?AgGGCO??AC????a?????A@????AOCOQ?d??I?')
+        sage: SAP = strong_articulation_points(D)
+        sage: set(SAP) == {1, 2, 4, 17, 18}
+        True
     """
     from sage.graphs.digraph import DiGraph
     if not isinstance(G, DiGraph):
@@ -1822,10 +1829,7 @@ def strong_articulation_points(G):
     SAP = []
     for g in L:
         n = g.order()
-        if n <= 1:
-            continue
-        if n == 2:
-            SAP.extend(g.vertex_iterator())
+        if n <= 2:
             continue
 
         # 1. Choose arbitrarily a vertex r, and test whether r is a strong
@@ -2261,7 +2265,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
         sage: T = G.spqr_tree(algorithm="cleave")
         sage: Counter(u[0] for u in T)
         Counter({'R': 1})
-        sage: for u,v in G.edges(labels=False, sort=False):
+        sage: for u,v in list(G.edges(labels=False, sort=False)):
         ....:     G.add_path([u, G.add_vertex(), G.add_vertex(), v])
         sage: T = G.spqr_tree(algorithm="Hopcroft_Tarjan")
         sage: sorted(Counter(u[0] for u in T).items())
@@ -2269,7 +2273,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
         sage: T = G.spqr_tree(algorithm="cleave")
         sage: sorted(Counter(u[0] for u in T).items())
         [('P', 15), ('R', 1), ('S', 15)]
-        sage: for u,v in G.edges(labels=False, sort=False):
+        sage: for u,v in list(G.edges(labels=False, sort=False)):
         ....:     G.add_path([u, G.add_vertex(), G.add_vertex(), v])
         sage: T = G.spqr_tree(algorithm="Hopcroft_Tarjan")
         sage: sorted(Counter(u[0] for u in T).items())
@@ -2805,19 +2809,19 @@ cdef class TriconnectivitySPQR:
         sage: T = tric.get_spqr_tree()
         sage: G.is_isomorphic(spqr_tree_to_graph(T))
         True
-        sage: tric.print_triconnected_components()  # py2
-        Polygon: [(6, 7, None), (5, 6, None), (7, 5, 'newVEdge0')]
-        Bond: [(7, 5, 'newVEdge0'), (5, 7, 'newVEdge1'), (5, 7, None)]
-        Polygon: [(5, 7, 'newVEdge1'), (4, 7, None), (5, 4, 'newVEdge2')]
-        Bond: [(4, 5, None), (5, 4, 'newVEdge2'), (5, 4, 'newVEdge3')]
-        Polygon: [(5, 8, None), (5, 4, 'newVEdge3'), (1, 8, 'newVEdge8'), (1, 4, 'newVEdge9')]
-        Triconnected: [(8, 9, None), (9, 12, None), (9, 11, None), (8, 11, None), (10, 11, None), (9, 10, None), (10, 12, None), (8, 12, 'newVEdge5')]
-        Bond: [(8, 12, 'newVEdge5'), (12, 8, 'newVEdge6'), (8, 12, None)]
-        Polygon: [(1, 12, None), (12, 8, 'newVEdge6'), (1, 8, 'newVEdge7')]
-        Bond: [(1, 8, None), (1, 8, 'newVEdge7'), (1, 8, 'newVEdge8')]
-        Bond: [(1, 4, None), (1, 4, 'newVEdge9'), (1, 4, 'newVEdge10')]
-        Polygon: [(1, 4, 'newVEdge10'), (3, 4, None), (1, 3, 'newVEdge11')]
-        Triconnected: [(2, 3, None), (2, 13, None), (1, 2, None), (1, 3, 'newVEdge11'), (1, 13, None), (3, 13, None)]
+        sage: tric.print_triconnected_components()
+        Triconnected: [(8, 9, None), (9, 12, None), (9, 11, None), (8, 11, None), (10, 11, None), (9, 10, None), (10, 12, None), (8, 12, 'newVEdge0')]
+        Bond: [(8, 12, None), (8, 12, 'newVEdge0'), (8, 12, 'newVEdge1')]
+        Polygon: [(6, 7, None), (5, 6, None), (7, 5, 'newVEdge2')]
+        Bond: [(7, 5, 'newVEdge2'), (5, 7, 'newVEdge3'), (5, 7, None)]
+        Polygon: [(5, 7, 'newVEdge3'), (4, 7, None), (5, 4, 'newVEdge4')]
+        Bond: [(5, 4, 'newVEdge4'), (4, 5, 'newVEdge5'), (4, 5, None)]
+        Polygon: [(4, 5, 'newVEdge5'), (5, 8, None), (1, 4, 'newVEdge9'), (1, 8, 'newVEdge10')]
+        Triconnected: [(1, 2, None), (2, 13, None), (1, 13, None), (3, 13, None), (2, 3, None), (1, 3, 'newVEdge7')]
+        Polygon: [(1, 3, 'newVEdge7'), (3, 4, None), (1, 4, 'newVEdge8')]
+        Bond: [(1, 4, None), (1, 4, 'newVEdge8'), (1, 4, 'newVEdge9')]
+        Bond: [(1, 8, None), (1, 8, 'newVEdge10'), (1, 8, 'newVEdge11')]
+        Polygon: [(8, 12, 'newVEdge1'), (1, 8, 'newVEdge11'), (1, 12, None)]
 
     An example from [Gut2001]_::
 
@@ -3840,8 +3844,9 @@ cdef class TriconnectivitySPQR:
     cdef __assemble_triconnected_components(self):
         """
         Iterate through all the split components built by :meth:`__path_finder`
-        and merges two bonds or two polygons that share an edge for contructing
+        and merges two bonds or two polygons that share an edge for constructing
         the final triconnected components.
+
         Subsequently, convert the edges in triconnected components into original
         vertices and edges. The triconnected components are stored in
         ``self.comp_final_edge_list`` and ``self.comp_type``.
@@ -4021,20 +4026,7 @@ cdef class TriconnectivitySPQR:
             sage: T = tric.get_spqr_tree()
             sage: G.is_isomorphic(spqr_tree_to_graph(T))
             True
-            sage: tric.print_triconnected_components()  # py2
-            Polygon: [(6, 7, None), (5, 6, None), (7, 5, 'newVEdge0')]
-            Bond: [(7, 5, 'newVEdge0'), (5, 7, 'newVEdge1'), (5, 7, None)]
-            Polygon: [(5, 7, 'newVEdge1'), (4, 7, None), (5, 4, 'newVEdge2')]
-            Bond: [(4, 5, None), (5, 4, 'newVEdge2'), (5, 4, 'newVEdge3')]
-            Polygon: [(5, 8, None), (5, 4, 'newVEdge3'), (1, 8, 'newVEdge8'), (1, 4, 'newVEdge9')]
-            Triconnected: [(8, 9, None), (9, 12, None), (9, 11, None), (8, 11, None), (10, 11, None), (9, 10, None), (10, 12, None), (8, 12, 'newVEdge5')]
-            Bond: [(8, 12, 'newVEdge5'), (12, 8, 'newVEdge6'), (8, 12, None)]
-            Polygon: [(1, 12, None), (12, 8, 'newVEdge6'), (1, 8, 'newVEdge7')]
-            Bond: [(1, 8, None), (1, 8, 'newVEdge7'), (1, 8, 'newVEdge8')]
-            Bond: [(1, 4, None), (1, 4, 'newVEdge9'), (1, 4, 'newVEdge10')]
-            Polygon: [(1, 4, 'newVEdge10'), (3, 4, None), (1, 3, 'newVEdge11')]
-            Triconnected: [(2, 3, None), (2, 13, None), (1, 2, None), (1, 3, 'newVEdge11'), (1, 13, None), (3, 13, None)]
-            sage: tric.print_triconnected_components()  # py3
+            sage: tric.print_triconnected_components()
             Triconnected: [(8, 9, None), (9, 12, None), (9, 11, None), (8, 11, None), (10, 11, None), (9, 10, None), (10, 12, None), (8, 12, 'newVEdge0')]
             Bond: [(8, 12, None), (8, 12, 'newVEdge0'), (8, 12, 'newVEdge1')]
             Polygon: [(6, 7, None), (5, 6, None), (7, 5, 'newVEdge2')]
@@ -4066,7 +4058,7 @@ cdef class TriconnectivitySPQR:
             sage: from sage.graphs.connectivity import TriconnectivitySPQR
             sage: G = Graph(2)
             sage: for i in range(3):
-            ....:     G.add_path([0, G.add_vertex(), G.add_vertex(), 1]) 
+            ....:     G.add_path([0, G.add_vertex(), G.add_vertex(), 1])
             sage: tric = TriconnectivitySPQR(G)
             sage: tric.get_triconnected_components()
             [('Polygon', [(4, 5, None), (0, 4, None), (1, 5, None), (1, 0, 'newVEdge1')]),

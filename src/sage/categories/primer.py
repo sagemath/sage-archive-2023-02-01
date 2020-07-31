@@ -852,7 +852,7 @@ And rerun the test::
       File ".../sage/categories/semigroups.py", line ..., in _test_associativity
         tester.assertTrue((x * y) * z == x * (y * z))
     ...
-    AssertionError: False is not true
+    AssertionError: '((aa)a)' != '(a(aa))'
 
 We can recover instantly the actual values of ``x``, ``y``, ``z``, that is,
 a counterexample to the associativity of our broken semigroup, using post
@@ -948,10 +948,7 @@ what to do, ask your parent); it's also a speed critical method::
     sage: x._mul_??                             # not tested
     sage: x._mul_.__module__
     'sage.categories.coercion_methods'
-    sage: from six import get_method_function as gmf
-    sage: gmf(x._mul_) is gmf(Magmas.ElementMethods._mul_parent)  # py2
-    True
-    sage: gmf(x._mul_) is Magmas.ElementMethods._mul_parent  # py3
+    sage: x._mul_.__func__ is Magmas.ElementMethods._mul_parent  # py3
     True
 
 ``product`` is a mathematical method implemented by the parent::
@@ -1096,7 +1093,7 @@ algebraic structure. This includes:
   See :meth:`Modules().DualObjects <Modules.SubcategoryMethods.DualObjects>`.
 
 - Algebras, as in group algebras, monoid algebras, ...:
-  See: :meth:`Sets.ParentMethods.algebras`.
+  See: :meth:`Sets.ParentMethods.algebra`.
 
 Let for example `A` and `B` be two parents, and let us construct the
 Cartesian product `A \times B \times B`::

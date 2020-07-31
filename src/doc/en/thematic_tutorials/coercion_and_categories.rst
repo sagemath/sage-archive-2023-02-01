@@ -133,7 +133,6 @@ This base class provides a lot more methods than a general parent::
      'algebraic_closure',
      'base_extend',
      'class_group',
-     'coerce_map_from_c',
      'content',
      'derivation',
      'derivation_module',
@@ -145,7 +144,6 @@ This base class provides a lot more methods than a general parent::
      'gcd',
      'gen',
      'gens',
-     'has_coerce_map_from_c',
      'ideal',
      'ideal_monoid',
      'integral_closure',
@@ -155,9 +153,9 @@ This base class provides a lot more methods than a general parent::
      'is_integrally_closed',
      'is_noetherian',
      'is_prime_field',
-     'is_ring',
      'is_subring',
      'krull_dimension',
+     'localization',
      'ngens',
      'one',
      'order',
@@ -301,14 +299,12 @@ considerations:
   etc. **We do not override the default double underscore __add__, __mul__**,
   since otherwise, we could not use Sage's coercion model.
 
-- Comparisons can be implemented using ``_richcmp_`` or
-  ``_cmp_``. This automatically makes the relational operators like
-  ``==`` and ``<`` work. **Beware**: in these methods, calling the
-  Python2-only ``cmp`` function should be avoided for compatibility
-  with Python3. You can use instead the ``richcmp`` function provided
-  by sage.
+- Comparisons can be implemented using ``_richcmp_``.
+  This automatically makes the relational operators like
+  ``==`` and ``<`` work. Inside this method, you can use
+  the ``richcmp`` functions and related tools provided by sage.
 
-  Note that either ``_cmp_`` or ``_richcmp_`` should be provided,
+  Note that ``_richcmp_`` should be provided,
   since otherwise comparison does not work::
 
       sage: class Foo(sage.structure.element.Element):
@@ -321,7 +317,7 @@ considerations:
       sage: a <= b
       Traceback (most recent call last):
       ...
-      NotImplementedError: comparison not implemented for <class '__main__.Foo'>
+      TypeError: '<=' not supported between instances of 'Foo' and 'Foo'
 
 - In the single underscore methods, we can assume that
   *both arguments belong to the same parent*.
@@ -449,10 +445,10 @@ Sage's category framework can differentiate the two cases::
 And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
-    sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    81
-    sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    119
+    sage: L1 = len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
+    sage: L2 = len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
+    sage: L1 < L2
+    True
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::

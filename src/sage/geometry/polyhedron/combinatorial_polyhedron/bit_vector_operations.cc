@@ -105,13 +105,15 @@ size_t get_next_level(\
             not visited yet.
     */
 
+    // We keep track, which face in ``maybe_newfaces`` is a new face.
+    int is_not_newface[n_faces -1];
+
     // Step 1:
     for (size_t j = 0; j < n_faces - 1; j++){
         intersection(faces[j], faces[n_faces - 1], maybe_newfaces[j], face_length);
+        is_not_newface[j] = 0;
     }
 
-    // We keep track, which face in ``maybe_newfaces`` is a new face.
-    int *is_not_newface = new int[n_faces -1]();
 
     // For each face we will Step 2 and Step 3.
     for (size_t j = 0; j < n_faces-1; j++){
@@ -166,11 +168,10 @@ size_t get_next_level(\
         newfaces[n_newfaces] = maybe_newfaces[j];
         n_newfaces++;
     }
-    delete[] is_not_newface;
     return n_newfaces;
 }
 
-size_t bit_repr_to_coatom_repr(uint64_t *face, uint64_t **coatoms, \
+size_t bit_rep_to_coatom_rep(uint64_t *face, uint64_t **coatoms, \
                                size_t n_coatoms, size_t face_length, \
                                size_t *output){
     /*
@@ -183,7 +184,7 @@ size_t bit_repr_to_coatom_repr(uint64_t *face, uint64_t **coatoms, \
     for (size_t i = 0; i < n_coatoms; i++){
         if (is_subset(face, coatoms[i], face_length)){
             // ``face`` is contain in ``coatoms[i]``,
-            // then ``i`` is an element in the coatom-represention.
+            // then ``i`` is an element in the coatom-representation.
             output[count_length] = i;
             count_length++;
         }

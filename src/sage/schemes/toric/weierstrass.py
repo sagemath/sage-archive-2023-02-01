@@ -134,7 +134,7 @@ REFERENCES:
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ########################################################################
 from __future__ import print_function
 
@@ -143,8 +143,6 @@ from sage.rings.infinity import Infinity
 from sage.modules.all import vector
 from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
 from sage.rings.invariants.all import invariant_theory
-
-import six
 
 
 ######################################################################
@@ -346,7 +344,7 @@ def Newton_polygon_embedded(polynomial, variables):
     embedding = newton_polytope.embed_in_reflexive_polytope('points')
     x, y = variables[0:2]
     embedded_polynomial = polynomial.parent().zero()
-    for e, c in six.iteritems(p_dict):
+    for e, c in p_dict.items():
         e_embed = embedding[e]
         embedded_polynomial += c * x**(e_embed[0]) * y**(e_embed[1])
     return newton_polytope, embedded_polynomial, (x, y)
@@ -606,9 +604,9 @@ def _extract_coefficients(polynomial, monomials, variables):
         i = index(m)
         coeffs[i] = c*m + coeffs.pop(i, R.zero())
     result = tuple(coeffs.pop(index(m), R.zero()) // m for m in monomials)
-    if len(coeffs) != 0:
+    if coeffs:
         raise ValueError('The polynomial contains more monomials than '
-                         'given: '+str(coeffs))
+                         'given: ' + str(coeffs))
     return result
 
 

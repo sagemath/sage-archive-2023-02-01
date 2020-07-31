@@ -1,3 +1,7 @@
+# distutils: libraries = brial brial_groebner M4RI_LIBRARIES LIBPNG_LIBRARIES
+# distutils: library_dirs = M4RI_LIBDIR LIBPNG_LIBDIR
+# distutils: include_dirs = M4RI_INCDIR LIBPNG_INCDIR
+# distutils: extra_compile_args = M4RI_CFLAGS
 r"""
 Boolean Polynomials
 
@@ -174,7 +178,6 @@ native PolyBoRi counterparts. For instance, sets of points can be
 represented as tuples of tuples (Sage) or as ``BooleSet`` (PolyBoRi)
 and naturally the second option is faster.
 """
-from __future__ import print_function, absolute_import
 
 from cpython.object cimport Py_EQ, Py_NE
 from cython.operator cimport dereference as deref
@@ -208,7 +211,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
 from sage.structure.element import coerce_binop
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.richcmp cimport richcmp, richcmp_not_equal
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal, rich_to_bool
 
 from sage.categories.action cimport Action
 
@@ -2046,13 +2049,13 @@ class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
                         (type(other), str(self)))
 
     def _element_constructor_(self, other=None):
-        """
+        r"""
         Convert elements of other objects to elements of this monoid.
 
         INPUT:
 
         - ``other`` - element to convert, if ``None`` a
-           :class:`BooleanMonomial` representing 1 is returned only
+          :class:`BooleanMonomial` representing 1 is returned only
           :class:`BooleanPolynomial`s with the same parent ring as ``self``
           which have a single monomial is converted
 
@@ -2242,7 +2245,7 @@ cdef class BooleanMonomial(MonoidElement):
         gens = self._parent.gens()
         return self._parent, (tuple(gens.index(x) for x in self.variables()),)
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Compare BooleanMonomial objects.
 
@@ -2268,7 +2271,7 @@ cdef class BooleanMonomial(MonoidElement):
         """
         cdef int res
         res = left._pbmonom.compare((<BooleanMonomial>right)._pbmonom)
-        return res
+        return rich_to_bool(op, res)
 
     def _repr_(self):
         """
@@ -5220,6 +5223,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
     def __eq__(self, other):
         """
         EXAMPLES::
+
             sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
             sage: F,s = sr.polynomial_system()
             sage: I = F.ideal()
@@ -5240,6 +5244,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
     def __ne__(self, other):
         """
         EXAMPLES::
+
             sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
             sage: F,s = sr.polynomial_system()
             sage: I = F.ideal()
@@ -6871,6 +6876,7 @@ cdef class GroebnerStrategy:
         - ``v`` - the index of a variable
 
         EXAMPLES::
+
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
             sage: from brial import GroebnerStrategy
             sage: gb = GroebnerStrategy(B)

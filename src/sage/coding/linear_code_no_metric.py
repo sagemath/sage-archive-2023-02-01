@@ -226,6 +226,9 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
         E = self.encoder(encoder_name, **kwargs)
         return E.generator_matrix()
 
+    def __eq__(self, other):
+        return self.generator_matrix() == other.generator_matrix()
+
     def dimension(self):
         r"""
         Returns the dimension of this code.

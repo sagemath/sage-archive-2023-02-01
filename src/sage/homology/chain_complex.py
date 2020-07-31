@@ -47,7 +47,6 @@ complex.
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
-from six import iteritems
 
 from copy import copy
 
@@ -394,7 +393,7 @@ class Chain_class(ModuleElement):
             return 'Trivial chain'
 
         if n == 1:
-            deg, vec = next(iteritems(self._vec))
+            deg, vec = next(iter(self._vec.items()))
             return 'Chain({0}:{1})'.format(deg, vec)
 
         return 'Chain with {0} nonzero terms over {1}'.format(
@@ -460,13 +459,13 @@ class Chain_class(ModuleElement):
             sage: unicode_art(c)
                                         ⎛1⎞
                d_2       d_1  ⎛4⎞  d_0  ⎜2⎟  d_-1
-            0 ⟵──── (0) ⟵──── ⎝5⎠ ⟵──── ⎝3⎠ ⟵───── 0
+            0 <──── (0) <──── ⎝5⎠ <──── ⎝3⎠ <───── 0
         """
         from sage.typeset.unicode_art import UnicodeArt
 
         def arrow_art(d):
             d_str = [u'  d_{0}  '.format(d)]
-            arrow = u' ⟵' + u'─' * (len(d_str[0]) - 3) + u' '
+            arrow = u' <' + u'─' * (len(d_str[0]) - 3) + u' '
             d_str.append(arrow)
             return UnicodeArt(d_str, baseline=0)
 
@@ -510,7 +509,7 @@ class Chain_class(ModuleElement):
             True
         """
         chain_complex = self.parent()
-        for d, v in iteritems(self._vec):
+        for d, v in self._vec.items():
             dv = chain_complex.differential(d) * v
             if not dv.is_zero():
                 return False
@@ -540,7 +539,7 @@ class Chain_class(ModuleElement):
             True
         """
         chain_complex = self.parent()
-        for d, v in iteritems(self._vec):
+        for d, v in self._vec.items():
             d = chain_complex.differential(d - chain_complex.degree_of_differential()).transpose()
             if v not in d.image():
                 return False
@@ -584,7 +583,7 @@ class Chain_class(ModuleElement):
             True
         """
         vectors = dict()
-        for d, v in iteritems(self._vec):
+        for d, v in self._vec.items():
             v = scalar * v
             if not v.is_zero():
                 v.set_immutable()
@@ -673,16 +672,16 @@ class ChainComplex_class(Parent):
             raise ValueError('grading_group must be either ZZ or multiplicative')
         # all differentials (excluding the 0x0 ones) must be specified to the constructor
         if any(dim+degree_of_differential not in differentials and d.nrows() != 0
-               for dim, d in iteritems(differentials)):
+               for dim, d in differentials.items()):
             raise ValueError('invalid differentials')
         if any(dim-degree_of_differential not in differentials and d.ncols() != 0
-               for dim, d in iteritems(differentials)):
+               for dim, d in differentials.items()):
             raise ValueError('invalid differentials')
         self._grading_group = grading_group
         self._degree_of_differential = degree_of_differential
         self._diff = differentials
 
-        from sage.categories.all import ChainComplexes
+        from sage.categories.chain_complexes import ChainComplexes
         category = ChainComplexes(base_ring)
         super(ChainComplex_class, self).__init__(base=base_ring, category=category)
 
@@ -708,7 +707,7 @@ class ChainComplex_class(Parent):
         if isinstance(vectors, Chain_class):
             vectors = vectors._vec
         data = dict()
-        for degree, vec in iteritems(vectors):
+        for degree, vec in vectors.items():
             if not is_Vector(vec):
                 vec = vector(self.base_ring(), vec)
                 vec.set_immutable()
@@ -823,7 +822,7 @@ class ChainComplex_class(Parent):
             sage: D.nonzero_degrees()
             (0, 1, 2, 3, 6, 7)
         """
-        return tuple(sorted(n for n, d in iteritems(self._diff)
+        return tuple(sorted(n for n, d in self._diff.items()
                             if d.ncols()))
 
     @cached_method
@@ -875,7 +874,7 @@ class ChainComplex_class(Parent):
         if start is None:
             result = []
             degrees = set(self._diff)
-            while len(degrees) > 0:
+            while degrees:
                 ordered = self.ordered_degrees(degrees.pop())
                 degrees.difference_update(ordered)
                 if exclude_first:
@@ -1083,13 +1082,13 @@ class ChainComplex_class(Parent):
             return False
         R = self.base_ring()
         equal = True
-        for d, mat in iteritems(self.differential()):
+        for d, mat in self.differential().items():
             if d not in other.differential():
                 equal = equal and mat.ncols() == 0 and mat.nrows() == 0
             else:
                 equal = (equal and
                          other.differential()[d].change_ring(R) == mat.change_ring(R))
-        for d, mat in iteritems(other.differential()):
+        for d, mat in other.differential().items():
             if d not in self.differential():
                 equal = equal and mat.ncols() == 0 and mat.nrows() == 0
         return equal
@@ -1420,7 +1419,7 @@ class ChainComplex_class(Parent):
 
     def betti(self, deg=None, base_ring=None):
         """
-        The Betti number the chain complex.
+        The Betti number of the chain complex.
 
         That is, write the homology in this degree as a direct sum
         of a free module and a torsion module; the Betti number is the
@@ -1467,7 +1466,7 @@ class ChainComplex_class(Parent):
         H = self.homology(deg, base_ring=base_ring)
         if isinstance(H, dict):
             return {deg: homology_group.dimension()
-                    for deg, homology_group in iteritems(H)}
+                    for deg, homology_group in H.items()}
         else:
             return H.dimension()
 
@@ -1803,22 +1802,22 @@ class ChainComplex_class(Parent):
             sage: unicode_art(C)
                                 ⎛3 0 0⎞
                       (0 0)     ⎝0 0 0⎠
-            0 ⟵── C_2 ⟵──── C_1 ⟵────── C_0 ⟵── 0
+            0 <── C_2 <──── C_1 <────── C_0 <── 0
 
             sage: one = matrix(ZZ, [[1]])
             sage: D = ChainComplex({0: one, 2: one, 6:one})
             sage: unicode_art(D)
                       (1)                           (1)     (0)     (1)
-            0 ⟵── C_7 ⟵── C_6 ⟵── 0  ...  0 ⟵── C_3 ⟵── C_2 ⟵── C_1 ⟵── C_0 ⟵── 0
+            0 <── C_7 <── C_6 <── 0  ...  0 <── C_3 <── C_2 <── C_1 <── C_0 <── 0
         """
         from sage.typeset.unicode_art import UnicodeArt
 
         def arrow_art(n):
             d_n = self.differential(n)
             if not d_n.nrows() or not d_n.ncols():
-                return UnicodeArt([u'⟵──'])
+                return UnicodeArt([u'<──'])
             d_str = list(d_n._unicode_art_())
-            arrow = u'⟵' + u'─' * (len(d_str[0]) - 1)
+            arrow = u'<' + u'─' * (len(d_str[0]) - 1)
             d_str.append(arrow)
             return UnicodeArt(d_str)
 

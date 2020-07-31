@@ -62,7 +62,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from sage.rings.integer import Integer
 from sage.rings.all import QQ
@@ -230,7 +229,7 @@ class ParkingFunctions_all(InfiniteAbstractCombinatorialClass):
 
     def _infinite_cclass_slice(self, n):
         """
-        Needed by InfiniteAbstractCombinatorialClass to buid __iter__.
+        Needed by InfiniteAbstractCombinatorialClass to build __iter__.
 
         TESTS::
 

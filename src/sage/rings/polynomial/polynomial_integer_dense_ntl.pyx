@@ -1,3 +1,5 @@
+# distutils: libraries = ntl gmp
+# distutils: language = c++
 r"""
 Dense univariate polynomials over `\ZZ`, implemented using NTL.
 
@@ -31,8 +33,6 @@ do::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import absolute_import, print_function
 
 from cysignals.memory cimport sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -68,7 +68,7 @@ import sage.rings.polynomial.polynomial_ring
 
 from sage.libs.ntl.ZZX cimport *
 
-from sage.rings.polynomial.evaluation cimport ZZX_evaluation_mpfr, ZZX_evaluation_mpfi
+from sage.rings.polynomial.evaluation_ntl cimport ZZX_evaluation_mpfr, ZZX_evaluation_mpfi
 
 cdef class Polynomial_integer_dense_ntl(Polynomial):
     r"""

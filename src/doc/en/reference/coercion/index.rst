@@ -63,9 +63,9 @@ either parents or have a parent. Typically whenever one sees the word
     (1 + O(5^20))*t^3 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + 4*5^12 + 4*5^13 + 4*5^14 + 4*5^15 + 4*5^16 + 4*5^17 + 4*5^18 + 4*5^19 + 4*5^20 + O(5^21)
     sage: parent(f)
     Univariate Polynomial Ring in t over 5-adic Field with capped relative precision 20
-    sage: f = EllipticCurve('37a').lseries().taylor_series(10); f
-    0.990010459847588 + 0.0191338632530789*z - 0.0197489006172923*z^2 + 0.0137240085327618*z^3 - 0.00703880791607153*z^4 + 0.00280906165766519*z^5 + O(z^6)           # 32-bit
-    0.997997869801216 + 0.00140712894524925*z - 0.000498127610960097*z^2 + 0.000118835596665956*z^3 - 0.0000215906522442707*z^4 + (3.20363155418419e-6)*z^5 + O(z^6)  # 64-bit
+    sage: f = EllipticCurve('37a').lseries().taylor_series(10); f  # abs tol 1e-14
+    0.997997869801216 + 0.00140712894524925*z - 0.000498127610960097*z^2 + 0.000118835596665956*z^3 - 0.0000215906522442708*z^4 + (3.20363155418421e-6)*z^5 + O(z^6)  # 32-bit
+    0.997997869801216 + 0.00140712894524925*z - 0.000498127610960097*z^2 + 0.000118835596665956*z^3 - 0.0000215906522442708*z^4 + (3.20363155418427e-6)*z^5 + O(z^6)  # 64-bit
     sage: parent(f)
     Power Series Ring in z over Complex Field with 53 bits of precision
 
@@ -84,7 +84,7 @@ There is an important distinction between Parents and types::
     sage: parent(a) == parent(b)
     False
 
-However, non-Sage objects don't really have parents, but we still want
+However, non-Sage objects do not really have parents, but we still want
 to be able to reason with them, so their type is used instead::
 
     sage: a = int(10)

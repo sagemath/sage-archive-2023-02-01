@@ -1,3 +1,6 @@
+# distutils: libraries = m ntl Lfunction
+# distutils: extra_compile_args = -O3 -ffast-math
+# distutils: language = c++
 r"""
 Rubinstein's lcalc library
 
@@ -20,7 +23,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 

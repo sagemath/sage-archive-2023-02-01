@@ -71,12 +71,8 @@ computer. Here we merely make a few comments.
    words, although Sage uses Python, IPython, PARI, GAP, Singular,
    Maxima, NTL, GMP, and so on, you do not need to install them
    separately as they are included with the Sage distribution.
-   However, to use certain Sage features, e.g., Macaulay or KASH, you must
-   install the relevant optional package or at least have the relevant
-   programs installed on your computer already. Macaulay and KASH are
-   Sage packages (for a list of available optional packages, type
-   ``sage -optional``, or browse the "Download" page on the Sage
-   website).
+   However, to use certain Sage features, e.g., Macaulay or KASH, you
+   must have the relevant programs installed on your computer already.
 
 #. The pre-compiled binary version of Sage (found on the Sage web
    site) may be easier and quicker to install than the source code

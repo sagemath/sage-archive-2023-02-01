@@ -524,7 +524,7 @@ def addlp(M, M1, L, P, ptsdict, G=None, limits=None):
     if P:
         # create list of lists where inner lists are parallel classes
         pcls = []
-        gnd = sorted(list(M1.groundset()))
+        gnd = sorted(M1.groundset())
         for g in gnd:
             pcl = [g]
             for p in P:
@@ -743,7 +743,7 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
       correspond to a basis of ``M1`` and will be placed as vertices of the
       triangle in the geometric representation of ``M1``.
     - ``lineorders1`` -- (optional) A list of ordered lists of elements of
-      ``M1.grondset()`` such that if a line in geometric representation is
+      ``M1.groundset()`` such that if a line in geometric representation is
       setwise same as any of these then points contained will be traversed in
       that order thus overriding internal order deciding heuristic.
     - ``pd`` - (optional) A dictionary mapping ground set elements to their

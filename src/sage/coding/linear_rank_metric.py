@@ -525,7 +525,7 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
             sage: C.field_extension()
             Vector space of dimension 3 over Finite Field in z2 of size 2^2
         """
-        return self.base_field().vector_space(self.sub_field())
+        return self.base_field().vector_space(self.sub_field(), map=False)
 
     def rank_distance_between_vectors(self, left, right):
         """

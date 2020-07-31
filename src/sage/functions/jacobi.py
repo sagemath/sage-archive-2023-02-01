@@ -125,7 +125,7 @@ equations:
 
 REFERENCES:
 
-- :wikipedia:`Jacobi's_elliptic_functions`
+- :wikipedia:`Jacobi%27s_elliptic_functions`
 
 - [KS2002]_
 
@@ -1140,7 +1140,7 @@ jacobi_am = JacobiAmplitude()
 
 def inverse_jacobi_f(kind, x, m):
     r"""
-    Internal function for numerical evaluation of a continous complex branch
+    Internal function for numerical evaluation of a continuous complex branch
     of each inverse Jacobi function, as described in [Tee1997]_. Only accepts
     real arguments.
 

@@ -14,7 +14,6 @@ Miscellaneous arithmetic functions
 # ****************************************************************************
 
 from __future__ import absolute_import, print_function
-from six.moves import range
 
 import math
 import collections
@@ -366,8 +365,8 @@ def bernoulli(n, algorithm='default', num_threads=1):
         return arb_arith.bernoulli(n)
     elif algorithm == 'flint':
         if n >= 100000:
-            import warnings
-            warnings.warn("flint is known to not be accurate for large Bernoulli numbers")
+            from warnings import warn
+            warn("flint is known to not be accurate for large Bernoulli numbers")
         return flint_arith.bernoulli_number(n)
     elif algorithm == 'pari':
         x = pari(n).bernfrac()         # Use the PARI C library
@@ -2023,8 +2022,8 @@ def xkcd(n=""):
     from sage.misc.html import html
 
     # import compatible with py2 and py3
-    from six.moves.urllib.request import urlopen
-    from six.moves.urllib.error import HTTPError, URLError
+    from urllib.request import urlopen
+    from urllib.error import HTTPError, URLError
 
     data = None
     url = "http://dynamic.xkcd.com/api-0/jsonp/comic/{}".format(n)
@@ -2450,8 +2449,8 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
        - ``'pari'`` - (default) use the PARI c library
 
-       - ``'kash'`` - use KASH computer algebra system (requires the
-         optional kash package be installed)
+       - ``'kash'`` - use KASH computer algebra system (requires that
+         kash be installed)
 
        - ``'magma'`` - use Magma (requires magma be installed)
 
@@ -5228,7 +5227,7 @@ def three_squares(n):
                 break
             x -= 2
     else:  # 7 mod 8
-        raise ValueError("%s is not a sum of 3 squares"%n)
+        raise ValueError("%s is not a sum of 3 squares" % n)
 
     if x < 0:
         # We found no good x, brute force instead.

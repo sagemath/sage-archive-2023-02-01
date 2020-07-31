@@ -65,7 +65,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ##############################################################################
 
-import six
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.lazy_attribute import lazy_attribute
@@ -310,7 +309,7 @@ class Braid(FiniteTypeArtinGroupElement):
                         A[-j-1, -j-1] = -t**(-1)
                         if -j > 1:
                             A[-j-1, -j-2] = 1
-                        if -j < n-1 :
+                        if -j < n - 1:
                             A[-j-1, -j] = t**(-1)
                     M = M * A
 
@@ -1210,7 +1209,7 @@ class Braid(FiniteTypeArtinGroupElement):
 
         INPUT:
 
-        - ``other`` -- the other breaid to check for conjugacy
+        - ``other`` -- the other braid to check for conjugacy
 
         EXAMPLES::
 
@@ -2246,7 +2245,7 @@ def BraidGroup(n=None, names='s'):
             n = None
     # derive n from counting names
     if n is None:
-        if isinstance(names, six.string_types):
+        if isinstance(names, str):
             n = len(names.split(','))
         else:
             names = list(names)

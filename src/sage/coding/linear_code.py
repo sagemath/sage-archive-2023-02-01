@@ -192,31 +192,29 @@ TESTS::
     sage: C == loads(dumps(C))
     True
 """
-#******************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2005 David Joyner <wdjoyner@gmail.com>
 #                     2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your preference).
 #
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
-from __future__ import division, print_function
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
+from __future__ import division, print_function, absolute_import
 
-from six.moves import range
-from six import iteritems
+import os
+import subprocess
 
-import inspect
+from io import StringIO
 from copy import copy
 
 from sage.cpython.string import bytes_to_str
 from sage.interfaces.all import gap
-from sage.categories.modules import Modules
 from sage.categories.cartesian_product import cartesian_product
 from sage.categories.fields import Fields
 from sage.matrix.matrix_space import MatrixSpace
 from sage.modules.free_module import VectorSpace
-from sage.modules.module import Module
 from sage.modules.free_module_element import vector
 from sage.arith.all import GCD, binomial
 from sage.groups.all import SymmetricGroup
@@ -226,16 +224,14 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-from sage.structure.parent import Parent
 from sage.misc.all import prod
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method
-from sage.misc.sageinspect import sage_getargspec
 from sage.misc.randstate import current_randstate
 from sage.combinat.subset import Subsets
 from sage.features.gap import GapPackage
 from sage.coding.linear_code_no_metric import AbstractLinearCodeNoMetric
-
+from sage.coding.abstract_code import AbstractCode
 from .encoder import Encoder
 from .decoder import Decoder
 
@@ -349,7 +345,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         It is thus strongly recommended to set an encoder with a generator matrix implemented
         as a default encoder.
 
-        TESTS::
+        TESTS:
 
         This class uses the following experimental feature:
         :class:`sage.coding.relative_finite_field_extension.RelativeFiniteFieldExtension`.
@@ -1724,7 +1720,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
                         weights[wt].append(c)
                 weights.pop(0)
                 AutGps = []
-                for wt, words in iteritems(weights):
+                for wt, words in weights.items():
                     M = MatrixStruct(matrix(words))
                     autgp = M.automorphism_group()
                     L = [[j+1 for j in gen] for gen in autgp[0]]
@@ -1916,10 +1912,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             guava_bin_dir = gap.eval('DirectoriesPackagePrograms("guava")[1]')
             guava_bin_dir = guava_bin_dir[guava_bin_dir.index('"') + 1:guava_bin_dir.rindex('"')]
             input = _dump_code_in_leon_format(self) + "::code"
-            import os
-            import subprocess
             lines = subprocess.check_output([os.path.join(guava_bin_dir, 'wtdist'), input])
-            from six import StringIO
             # to use the already present output parser
             wts = [0] * (n + 1)
             for L in StringIO(bytes_to_str(lines)).readlines():
@@ -2280,6 +2273,11 @@ class LinearCode(AbstractLinearCode):
         self._dimension = generator.rank()
         self._minimum_distance = d
 
+    def __hash__(self):
+        Str = str(self)
+        G = self.generator_matrix()
+        return hash((Str, G))
+
     def _repr_(self):
         r"""
         See the docstring for :meth:`LinearCode`.
@@ -2542,10 +2540,10 @@ class LinearCodeSyndromeDecoder(Decoder):
     And now, we build a third syndrome decoder, whose ``maximum_error_weight``
     is bigger than both the covering radius and half the minimum distance::
 
-        sage: D = C.decoder("Syndrome", maximum_error_weight = 5)
-        sage: D.decoder_type()
+        sage: D = C.decoder("Syndrome", maximum_error_weight = 5) # long time
+        sage: D.decoder_type() # long time
         {'complete', 'hard-decision', 'might-error'}
-        sage: D.decoding_radius()
+        sage: D.decoding_radius() # long time 
         4
 
     In that case, the decoder might still return an unexpected codeword, but
@@ -2863,12 +2861,12 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: D.syndrome_table()
             {(0, 0, 0): (0, 0, 0, 0, 0, 0, 0),
-             (0, 0, 1): (0, 0, 0, 1, 0, 0, 0),
-             (0, 1, 0): (0, 1, 0, 0, 0, 0, 0),
-             (0, 1, 1): (0, 0, 0, 0, 0, 1, 0),
              (1, 0, 0): (1, 0, 0, 0, 0, 0, 0),
-             (1, 0, 1): (0, 0, 0, 0, 1, 0, 0),
+             (0, 1, 0): (0, 1, 0, 0, 0, 0, 0),
              (1, 1, 0): (0, 0, 1, 0, 0, 0, 0),
+             (0, 0, 1): (0, 0, 0, 1, 0, 0, 0),
+             (1, 0, 1): (0, 0, 0, 0, 1, 0, 0),
+             (0, 1, 1): (0, 0, 0, 0, 0, 1, 0),
              (1, 1, 1): (0, 0, 0, 0, 0, 0, 1)}
         """
         return self._lookup_table

@@ -3,7 +3,7 @@ Spanning trees
 
 This module is a collection of algorithms on spanning trees. Also included in
 the collection are algorithms for minimum spanning trees. See the book
-[JoynerNguyenCohen2010]_ for descriptions of spanning tree algorithms,
+[JNC2010]_ for descriptions of spanning tree algorithms,
 including minimum spanning trees.
 
 .. SEEALSO::
@@ -16,32 +16,6 @@ including minimum spanning trees.
     - Rewrite :func:`kruskal` to use priority queues.
     - Parallel version of Boruvka's algorithm.
     - Randomized spanning tree construction.
-
-REFERENCES:
-
-.. [Aldous90] \D. Aldous, *The random walk construction of
-  uniform spanning trees*, SIAM J Discrete Math 3 (1990),
-  450-465.
-
-.. [Broder89] \A. Broder, *Generating random spanning trees*,
-  Proceedings of the 30th IEEE Symposium on Foundations of
-  Computer Science, 1989, pp. 442-447. :doi:`10.1109/SFCS.1989.63516`,
-  <http://www.cs.cmu.edu/~15859n/RelatedWork/Broder-GenRanSpanningTrees.pdf>_
-
-.. [CormenEtAl2001] Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest,
-  and Clifford Stein. *Introduction to Algorithms*. 2nd edition, The MIT Press,
-  2001.
-
-.. [GoodrichTamassia2001] Michael T. Goodrich and Roberto Tamassia.
-  *Data Structures and Algorithms in Java*. 2nd edition, John Wiley & Sons,
-  2001.
-
-.. [JoynerNguyenCohen2010] David Joyner, Minh Van Nguyen, and Nathann Cohen.
-  *Algorithmic Graph Theory*. 2010,
-  http://code.google.com/p/graph-theory-algorithms-book/
-
-.. [Sahni2000] Sartaj Sahni. *Data Structures, Algorithms, and Applications
-  in Java*. McGraw-Hill, 2000.
 
 
 Methods
@@ -60,7 +34,6 @@ Methods
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 cimport cython
 from sage.ext.memory_allocator cimport MemoryAllocator
@@ -132,7 +105,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
 
     EXAMPLES:
 
-    An example from pages 727--728 in [Sahni2000]_. ::
+    An example from pages 727--728 in [Sah2000]_. ::
 
         sage: from sage.graphs.spanning_tree import kruskal
         sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
@@ -166,7 +139,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         sage: sum(e[2] for e in kruskal(G, check=True)) == sum(e[2] for e in kruskal(H, check=True))
         True
 
-    An example from pages 599--601 in [GoodrichTamassia2001]_. ::
+    An example from pages 599--601 in [GT2001]_. ::
 
         sage: G = Graph({"SFO":{"BOS":2704, "ORD":1846, "DFW":1464, "LAX":337},
         ....: "BOS":{"ORD":867, "JFK":187, "MIA":1258},
@@ -180,7 +153,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         sage: kruskal(G, check=True)
         [('JFK', 'PVD', 144), ('BWI', 'JFK', 184), ('BOS', 'JFK', 187), ('LAX', 'SFO', 337), ('BWI', 'ORD', 621), ('DFW', 'ORD', 802), ('BWI', 'MIA', 946), ('DFW', 'LAX', 1235)]
 
-    An example from pages 568--569 in [CormenEtAl2001]_. ::
+    An example from pages 568--569 in [CLRS2001]_. ::
 
         sage: G = Graph({"a":{"b":4, "h":8}, "b":{"c":8, "h":11},
         ....: "c":{"d":7, "f":4, "i":2}, "d":{"e":9, "f":14},
@@ -254,7 +227,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     If the input graph is a tree, then return its edges::
 
         sage: T = graphs.RandomTree(randint(1, 50))  # long time
-        sage: sorted(T.edge_iterator()) == kruskal(T, check=True)  # long time
+        sage: sorted(T.edge_iterator()) == sorted(kruskal(T, check=True))  # long time
         True
 
     If the input is not a Graph::
@@ -313,6 +286,7 @@ def kruskal_iterator(G, wfunction=None, bint check=False):
                                            weighted=G.weighted(),
                                            weight_function=wfunction)
 
+
 def kruskal_iterator_from_edges(edges, union_find, weighted=False, weight_function=None):
     """
     Return an iterator implementation of Kruskal algorithm on list of edges.
@@ -368,6 +342,7 @@ def kruskal_iterator_from_edges(edges, union_find, weighted=False, weight_functi
              union_find.union(u, v)
              if union_find.number_of_subsets() == 1:
                  return
+
 
 def filter_kruskal(G, threshold=10000, weight_function=None, bint check=False):
     """
@@ -428,7 +403,7 @@ def filter_kruskal(G, threshold=10000, weight_function=None, bint check=False):
     .. SEEALSO::
 
         - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
-        - :wikipedia:`Kruskal's_algorithm`
+        - :wikipedia:`Kruskal%27s_algorithm`
         - :func:`kruskal`
         - :func:`filter_kruskal_iterator`
 
@@ -445,6 +420,7 @@ def filter_kruskal(G, threshold=10000, weight_function=None, bint check=False):
     """
     return list(filter_kruskal_iterator(G, threshold=threshold, weight_function=weight_function, check=check))
 
+
 def filter_kruskal_iterator(G, threshold=10000, weight_function=None, bint check=False):
     r"""
     Return an iterator implementation of Filter Kruskal's algorithm.
@@ -456,14 +432,14 @@ def filter_kruskal_iterator(G, threshold=10000, weight_function=None, bint check
     .. SEEALSO::
 
         - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
-        - :wikipedia:`Kruskal's_algorithm`
+        - :wikipedia:`Kruskal%27s_algorithm`
         - :func:`kruskal`
         - :func:`filter_kruskal`
 
     EXAMPLES:
 
     The edges of a minimum spanning tree of ``G``, if one exists, otherwise
-    returns the empty list.
+    returns the empty list. ::
 
         sage: from sage.graphs.spanning_tree import filter_kruskal_iterator
         sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
@@ -644,7 +620,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
       connected, and has at least one vertex. Otherwise, you should set
       ``check=True`` to perform some sanity checks and preprocessing on the
       input graph.
-    
+
     - ``by_weight`` -- boolean (default: ``False``); whether to find MST by
       using weights of edges provided.  Default: ``by_weight=True``. If
       ``wfunction`` is given, MST is calculated using the weights of edges as
@@ -664,7 +640,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
 
     EXAMPLES:
 
-    An example from pages 727--728 in [Sahni2000]_::
+    An example from pages 727--728 in [Sah2000]_::
 
         sage: from sage.graphs.spanning_tree import boruvka
         sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
@@ -693,11 +669,11 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
         []
 
     TESTS:
-    
+
     If the input graph is a tree, then return its edges::
 
         sage: T = graphs.RandomTree(randint(1, 10))
-        sage: T.edges() == sorted(boruvka(T, check=True))
+        sage: list(T.edges(sort=True)) == sorted(boruvka(T, check=True))
         True
 
     Check if the weight of MST returned by Prim's and Boruvka's is the same::
@@ -818,12 +794,13 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
 
     return T
 
+
 @cython.binding(True)
 def random_spanning_tree(self, output_as_graph=False):
     r"""
     Return a random spanning tree of the graph.
 
-    This uses the Aldous-Broder algorithm ([Broder89]_, [Aldous90]_) to generate
+    This uses the Aldous-Broder algorithm ([Bro1989]_, [Ald1990]_) to generate
     a random spanning tree with the uniform distribution, as follows.
 
     Start from any vertex. Perform a random walk by choosing at every step one

@@ -18,6 +18,8 @@ REFERENCES:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from __future__ import absolute_import
+
 from .linear_code import AbstractLinearCode
 from sage.matrix.matrix_space import MatrixSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace
@@ -56,6 +58,7 @@ class HammingCode(AbstractLinearCode):
             ValueError: base_field has to be a finite field
 
         If ``order`` is not a Sage Integer or a Python int, an exception is raised::
+
             sage: codes.HammingCode(GF(3), 3.14)
             Traceback (most recent call last):
             ...

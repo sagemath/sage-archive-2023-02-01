@@ -60,7 +60,7 @@ class SimplifySqrtReal(ExpressionTreeWalker):
         sage: a.simplify_full()
         sqrt(x^2 - 2*x + 1)
 
-    and the more agressive method :meth:`~sage.symbolic.expression.Expression.canonicalize_radical()`
+    and the more aggressive method :meth:`~sage.symbolic.expression.Expression.canonicalize_radical()`
     yields a wrong result, given that `x<1`::
 
         sage: a.canonicalize_radical()  # wrong output!

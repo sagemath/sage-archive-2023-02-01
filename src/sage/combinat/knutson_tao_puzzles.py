@@ -1315,7 +1315,8 @@ class PuzzleFilling(object):
 
         def tikztriangle_edges(color, k, d, i, label1, label2, label3):
             s = ""
-            if i == 1: return s
+            if i == 1:
+                return s
             tikzcmd = r"""\draw[color=%s, fill=none] (%s, %s) -- (%s, %s);""" + "\n"
             if edge_colors[label1]:
                 s += tikzcmd % (edge_colors[label1], k-1, d-1, k+1, d-1)

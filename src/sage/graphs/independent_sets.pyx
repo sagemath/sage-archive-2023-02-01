@@ -14,7 +14,6 @@ Classes and methods
 -------------------
 
 """
-from __future__ import print_function
 
 include "sage/data_structures/binary_matrix.pxi"
 from sage.misc.cachefunc import cached_method
@@ -371,7 +370,7 @@ cdef class IndependentSets:
             True
         """
         if not self.n:
-            return S == []
+            return not S
 
         cdef int i
         # Set of vertices as a bitset

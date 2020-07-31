@@ -203,8 +203,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
-import six
 
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -218,7 +216,6 @@ from sage.misc.all import prod
 from sage.misc.mrange import mrange, cartesian_product_iterator
 from sage.groups.group import AbelianGroup as AbelianGroupBase
 from sage.categories.groups import Groups
-
 
 # TODO: this uses perm groups - the AbelianGroupElement instance method
 # uses a different implementation.
@@ -541,7 +538,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: A.category()
             Category of infinite commutative groups
         """
-        assert isinstance(names, (six.string_types, tuple))
+        assert isinstance(names, (str, tuple))
         assert isinstance(generator_orders, tuple)
         assert all(isinstance(order,Integer) for order in generator_orders)
         self._gens_orders = generator_orders
@@ -851,6 +848,38 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         return r"$\mathrm{AbelianGroup}( %s, %s )$" % (self.ngens(),
                                                        self.gens_orders())
 
+    @cached_method
+    def _libgap_(self):
+        r"""
+        Return a GAP group corresponding to this group.
+
+        EXAMPLES::
+
+            sage: G = AbelianGroup([2,3,9])
+            sage: libgap(G)
+            <pc group of size 54 with 3 generators>
+
+        The result is cached::
+
+            sage: libgap(G) is libgap(G)
+            True
+
+        Requires the optional ``gap_packages`` for infinite groups::
+
+            sage: G = AbelianGroup(3, [0,3,4], names="abc")
+            sage: libgap(G)   # optional - gap_packages
+            Pcp-group with orders [ 0, 3, 4 ]
+        """
+        from sage.libs.gap.libgap import libgap
+
+        if self.is_finite():
+            return libgap.AbelianGroup(self.gens_orders())
+
+        # Make sure to LoadPackage("Polycyclic") in gap
+        from sage.features.gap import GapPackage
+        GapPackage("polycyclic", spkg="gap_packages").require()
+        return libgap.AbelianPcpGroup(self.gens_orders())
+
     def _gap_init_(self):
         r"""
         Return string that defines corresponding abelian group in GAP.
@@ -1116,7 +1145,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             TypeError: Abelian group must be finite
         """
         # GAP does not support infinite permutation groups
-        if not self.is_finite(): 
+        if not self.is_finite():
             raise TypeError('Abelian group must be finite')
         from sage.groups.perm_gps.permgroup import PermutationGroup
         s = 'Image(IsomorphismPermGroup(%s))'%self._gap_init_()
@@ -1331,7 +1360,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         if not self.is_finite():
             raise ValueError("group must be finite")
-        from sage.misc.misc import verbose
+        from sage.misc.verbose import verbose
 
         if self.is_trivial():
             return [self]

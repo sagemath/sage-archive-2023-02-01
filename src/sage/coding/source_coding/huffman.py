@@ -31,8 +31,6 @@ from __future__ import print_function
 
 from collections import defaultdict
 
-import six
-
 from sage.structure.sage_object import SageObject
 
 ###########################################################################
@@ -132,7 +130,7 @@ class Huffman(SageObject):
 
     In either case, the alphabet must consist of at least two symbols.
 
-    Examples::
+    EXAMPLES::
 
         sage: from sage.coding.source_coding.huffman import Huffman, frequency_table
         sage: h1 = Huffman("There once was a french fry")
@@ -251,7 +249,7 @@ class Huffman(SageObject):
         # index of each alphabetic symbol
         self._index = None
 
-        if isinstance(source, six.string_types):
+        if isinstance(source, str):
             self._build_code(frequency_table(source))
         elif isinstance(source, dict):
             self._build_code(source)

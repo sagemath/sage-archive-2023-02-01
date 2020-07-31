@@ -91,9 +91,7 @@ from .ell_generic import is_EllipticCurve
 from .ell_point import EllipticCurvePoint_number_field
 from .constructor import EllipticCurve
 from sage.rings.all import PolynomialRing, ZZ, QQ, RealField, Integer
-from sage.misc.all import cached_method, verbose, prod, union
-from six import reraise as raise_
-
+from sage.misc.all import cached_method, prod, union
 
 class EllipticCurve_number_field(EllipticCurve_field):
     r"""
@@ -302,7 +300,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             (3,
              3,
              [(0 : 0 : 1),
-              (-1/2*zeta43_0^2 - 1/2*zeta43_0 + 7 : -3/2*zeta43_0^2 - 5/2*zeta43_0 + 18 : 1)])
+              (-1/2*zeta43_0^2 - 1/2*zeta43_0 + 7 : -3/2*zeta43_0^2 - 5/2*zeta43_0 + 18 : 1)...)
         """
         verbose = int(verbose)
         if known_points is None:
@@ -463,6 +461,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
           ``splitting_field`` method, moved from ``gal_reps.py``, make
           it work over number fields.
         """
+        from sage.misc.verbose import verbose
         p = Integer(p)
         if not p.is_prime():
             raise ValueError("p must be a prime number")
@@ -809,7 +808,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<v> = NumberField(x^2 + 161*x - 150)
             sage: E = EllipticCurve([25105/216*v - 3839/36, 634768555/7776*v - 98002625/1296, 634768555/7776*v - 98002625/1296, 0, 0])
-            sage: E.global_integral_model()
+            sage: M = E.global_integral_model(); M # choice varies, not tested
             Elliptic Curve defined by y^2 + (2094779518028859*v-1940492905300351)*x*y + (477997268472544193101178234454165304071127500*v-442791377441346852919930773849502871958097500)*y = x^3 + (26519784690047674853185542622500*v-24566525306469707225840460652500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
 
         :trac:`14476`::
@@ -820,6 +819,24 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.global_integral_model()
             Elliptic Curve defined by y^2 + (15*g^3-48*g-42)*x*y + (-111510*g^3-162162*g^2-44145*g+37638)*y = x^3 + (-954*g^3-1134*g^2+81*g+576)*x^2 over Number Field in g with defining polynomial t^4 - t^3 - 3*t^2 - t + 1
 
+        TESTS:
+
+        Check the skipped test from above::
+
+            sage: K.<v> = NumberField(x^2 + 161*x - 150)
+            sage: E = EllipticCurve([25105/216*v - 3839/36, 634768555/7776*v - 98002625/1296, 634768555/7776*v - 98002625/1296, 0, 0])
+            sage: M = E.global_integral_model()
+            sage: b = M.ainvs()
+            sage: b[0] in (2094779518028859*v-1940492905300351, 33872485050625*v - 31078224284250)
+            True
+            sage: b[1] in (26519784690047674853185542622500*v - 24566525306469707225840460652500,
+            ....:          6933305282258321342920781250*v - 6422644400723486559914062500)
+            True
+            sage: b[2] in (477997268472544193101178234454165304071127500*v -442791377441346852919930773849502871958097500,
+            ....:          2020602604156076340058146664245468750000*v - 1871778534673615560803175189398437500000)
+            True
+            sage: b[3:]
+            (0, 0)
         """
         K = self.base_field()
         ai = self.a_invariants()
@@ -886,10 +903,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         try:
             a1, a2, a3, a4, a6 = (ZK(a) for a in self.a_invariants())
         except TypeError:
-            import sys
-            raise_(TypeError,
-                   TypeError("_reduce_model() requires an integral model."),
-                   sys.exc_info()[2])
+            raise TypeError("_reduce_model() requires an integral model.")
 
         # N.B. Must define s, r, t in the right order.
         if ZK.absolute_degree() == 1:
@@ -918,7 +932,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         EXAMPLES::
 
            sage: K.<a> = NumberField(x^2-10)
-           sage: u = K.units()[0]
+           sage: u = a + 3
+           sage: u.is_unit()
+           True
            sage: E = EllipticCurve([0, 0, 0, 4536*a + 14148, -163728*a - 474336])
            sage: E1 = E.scale_curve(u^5)
            sage: E1.ainvs()
@@ -2025,77 +2041,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
             raise ValueError("The curve must have good reduction at the place.")
         Fv = OK.residue_field(place)
         return self.change_ring(Fv)
-
-    def _torsion_bound(self, number_of_places=20):
-        r"""
-        An upper bound on the order of the torsion subgroup.
-
-        INPUT:
-
-        - ``number_of_places`` (positive integer, default = 20) -- the
-          number of places that will be used to find the bound.
-
-        OUTPUT:
-
-        (integer) An upper bound on the torsion order.
-
-        ALGORITHM:
-
-        An upper bound on the order of the torsion.group of the
-        elliptic curve is obtained by counting points modulo several
-        primes of good reduction.  Note that the upper bound returned
-        by this function is a multiple of the order of the torsion
-        group, and in general will be greater than the order.
-
-        EXAMPLES::
-
-            sage: CDB=CremonaDatabase()
-            sage: [E._torsion_bound() for E in CDB.iter([14])]
-            [6, 6, 6, 6, 6, 6]
-            sage: [E.torsion_order() for E in CDB.iter([14])]
-            [6, 6, 2, 6, 2, 6]
-
-        An example over a relative number field (see :trac:`16011`)::
-
-            sage: R.<x> = QQ[]
-            sage: F.<a> = QuadraticField(5)
-            sage: K.<b> = F.extension(x^2-3)
-            sage: E = EllipticCurve(K,[0,0,0,b,1])
-            sage: E.torsion_subgroup().order()
-            1
-
-        """
-        E = self
-        bound = ZZ.zero()
-        k = 0
-        K = E.base_field()
-        disc = E.discriminant()
-        p = ZZ.one()
-        # runs through primes, decomposes them into prime ideals
-        while k < number_of_places:
-            p = p.next_prime()
-            f = K.primes_above(p)
-            # runs through prime ideals above p
-            for qq in f:
-                fqq = qq.residue_class_degree()
-                charqq = qq.smallest_integer()
-                # take only places with small residue field (so that the
-                # number of points will be small)
-                if fqq == 1 or charqq**fqq < 3*number_of_places:
-                    # check if the model is integral at the place
-                    if all(K.ideal(a).valuation(qq) >= 0
-                           for a in E.a_invariants()):
-                        eqq = qq.absolute_ramification_index()
-                        # check if the formal group at the place is torsion-free
-                        # if so the torsion injects into the reduction
-                        if eqq < charqq - 1 and disc.valuation(qq) == 0:
-                            Etilda = E.reduction(qq)
-                            Npp = Etilda.cardinality()
-                            bound = bound.gcd(Npp)
-                            if bound == 1:
-                                return bound
-                            k += 1
-        return bound
 
     @cached_method
     def torsion_subgroup(self):
@@ -3873,7 +3818,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         from sage.rings.all import prime_range
         if full_saturation:
             if lower_ht_bound is None:
-                # TODO (robertb): verify this for rank > 1
+                # TODO (robertwb): verify this for rank > 1
                 if verbose:
                     print("Computing lower height bound..")
                 lower_ht_bound = self.height_function().min(.1, 5) ** n

@@ -20,7 +20,7 @@ AUTHORS:
 from copy import copy
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
-from sage.misc.misc import repr_lincomb
+from sage.misc.repr import repr_lincomb
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.structure.element cimport have_same_parent, parent
 from sage.structure.coerce cimport coercion_model
@@ -82,7 +82,7 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
             right = (<LieAlgebraElement> right).lift()
         return left * right
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` in ``codomain`` under the
         map that sends the generators of the parent of ``self``
@@ -119,7 +119,9 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
         if not self: # If we are 0
             return s
         names = self.parent().variable_names()
-        return codomain.sum(c * t._im_gens_(codomain, im_gens, names)
+        if base_map is None:
+            base_map = lambda x: x
+        return codomain.sum(base_map(c) * t._im_gens_(codomain, im_gens, names)
                             for t, c in self._monomial_coefficients.iteritems())
 
     cpdef lift(self):
@@ -401,7 +403,7 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             right = (<LieAlgebraElementWrapper> right).lift()
         return left * right
 
-    def __div__(self, x):
+    def __truediv__(self, x):
         """
         Division by coefficients.
 

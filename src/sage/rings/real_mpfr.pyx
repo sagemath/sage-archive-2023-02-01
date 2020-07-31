@@ -117,8 +117,6 @@ Make sure we don't have a new field for every new literal::
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 import math # for log
 import sys
 import re
@@ -167,6 +165,8 @@ import sage.rings.infinity
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.arith.numerical_approx cimport digits_to_bits
 from sage.arith.constants cimport M_LN2_LN10
+from sage.arith.long cimport is_small_python_int
+
 
 cimport gmpy2
 gmpy2.import_gmpy2()
@@ -398,7 +398,7 @@ cpdef RealField(int prec=53, int sci_not=0, rnd=MPFR_RNDN):
       - ``'RNDU'`` -- round towards plus infinity
       - ``'RNDA'`` -- round away from zero
       - ``'RNDF'`` -- faithful rounding (currently experimental; not
-                      guaranteed correct for every operation)
+        guaranteed correct for every operation)
       - for specialized applications, the rounding mode can also be
         given as an integer value of type ``mpfr_rnd_t``. However, the
         exact values are unspecified.
@@ -719,7 +719,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         TESTS::
 
-            sage: 1.0 - ZZ(1) - int(1) - long(1) - QQ(1) - RealField(100)(1) - AA(1) - RLF(1)
+            sage: 1.0 - ZZ(1) - int(1) - 1 - QQ(1) - RealField(100)(1) - AA(1) - RLF(1)
             -6.00000000000000
             sage: R = RR['x']   # Hold reference to avoid garbage collection, see Trac #24709
             sage: R.get_action(ZZ)
@@ -897,7 +897,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         """
         return [self.gen()]
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """
         Return ``True`` if the map from ``self`` to ``codomain`` sending
         ``self(1)`` to the unique element of ``im_gens`` is a valid field
@@ -1402,6 +1402,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
         TESTS::
 
             sage: TestSuite(R).run()
+
+        Test underscores as digit separators (PEP 515,
+        https://www.python.org/dev/peps/pep-0515/)::
+
+            sage: RealNumber('1_3.1e-32_45')
+            1.31000000000000e-3244
         """
         if x is not None:
             self._set(x, base)
@@ -1483,7 +1489,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif type(x) is gmpy2.mpz:
             mpfr_set_z(self.value, (<gmpy2.mpz>x).z, parent.rnd)
         else:
-            s = str(x).replace(' ','')
+            s = str(x).replace(' ','').replace('_', '')
             s_lower = s.lower()
             if s_lower == 'infinity':
                 raise ValueError('can only convert signed infinity to RR')
@@ -1776,7 +1782,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return hash(float(self))
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` under the homomorphism from the rational
         field to ``codomain``.
@@ -2369,7 +2375,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         Return a sympy object of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: RealField(100)(1/7)._sympy_()
+            0.14285714285714285714285714286
+            sage: type(_)
+            <class 'sympy.core.numbers.Float'>
+
+        TESTS:
 
         An indirect doctest to check this (see :trac:`14915`)::
 
@@ -2377,9 +2390,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: integrate(y, y, 0.5, 8*log(x), algorithm='sympy')
             32*log(x)^2 - 0.125000000000000
 
+        Check that :trac:`28903` is fixed::
+
+            sage: (10.0^400)._sympy_()
+            1.00000000000000e+400
         """
-        from sympy import simplify
-        return simplify(float(self))
+        import sympy
+        return sympy.Float(self, precision=self._parent.precision())
 
     cpdef _mul_(self, right):
         """
@@ -3099,22 +3116,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_get_z(z.value, self.value, MPFR_RNDZ)
         return z.__int__()
 
-    def __long__(self):
-        """
-        Returns Python long integer truncation of this real number.
-
-        EXAMPLES::
-
-            sage: long(RR(pi))
-            3L
-        """
-        if not mpfr_number_p(self.value):
-            raise ValueError('Cannot convert infinity or NaN to Python long')
-
-        cdef Integer z = Integer()
-        mpfr_get_z(z.value, self.value, MPFR_RNDZ)
-        return z.__long__()
-
     def __complex__(self):
         """
         Return a Python complex number equal to ``self``.
@@ -3379,24 +3380,52 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR('nan').exact_rational()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert NaN or infinity to rational number
+            ValueError: unable to convert NaN to a rational number
             sage: RR('-infinity').exact_rational()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert NaN or infinity to rational number
+            ValueError: unable to convert -infinity to a rational number
         """
         if not mpfr_number_p(self.value):
-            raise ValueError('Cannot convert NaN or infinity to rational number')
-
-        cdef Integer mantissa = Integer()
-        cdef mp_exp_t exponent
+            raise ValueError(f"unable to convert {self} to a rational number")
 
         if mpfr_sgn(self.value) == 0:
             return Rational(0)
 
+        mantissa = <Integer>Integer.__new__(Integer)
         exponent = mpfr_get_z_exp(mantissa.value, self.value)
 
-        return Rational(mantissa) * Integer(2) ** exponent
+        return Rational(mantissa) << exponent
+
+    def as_integer_ratio(self):
+        """
+        Return a coprime pair of integers ``(a, b)`` such that ``self``
+        equals ``a / b`` exactly.
+
+        EXAMPLES::
+
+            sage: RR(0).as_integer_ratio()
+            (0, 1)
+            sage: RR(1/3).as_integer_ratio()
+            (6004799503160661, 18014398509481984)
+            sage: RR(37/16).as_integer_ratio()
+            (37, 16)
+            sage: RR(3^60).as_integer_ratio()
+            (42391158275216203520420085760, 1)
+            sage: RR('nan').as_integer_ratio()
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to convert NaN to a rational number
+
+        This coincides with Python floats::
+
+            sage: pi = RR.pi()
+            sage: pi.as_integer_ratio()
+            (884279719003555, 281474976710656)
+            sage: float(pi).as_integer_ratio() == pi.as_integer_ratio()
+            True
+        """
+        return self.exact_rational().as_integer_ratio()
 
     def simplest_rational(self):
         """
@@ -4216,7 +4245,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             rounding_mode = (<RealField_class>base._parent).rnd
             x = base._new()
             sig_on()
-            if isinstance(exponent, int):
+            if is_small_python_int(exponent):
                 mpfr_pow_si(x.value, base.value, exponent, rounding_mode)
             elif isinstance(exponent, Integer):
                 mpfr_pow_z(x.value, base.value, (<Integer>exponent).value, rounding_mode)

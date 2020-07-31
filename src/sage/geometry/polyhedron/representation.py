@@ -32,11 +32,12 @@ from copy import copy
 #                  /       \               /      |    \
 #           Inequality  Equation        Vertex   Ray   Line
 
+
 @richcmp_method
 class PolyhedronRepresentation(SageObject):
     """
     The internal base class for all representation objects of
-    ``Polyhedron`` (vertices/rays/lines and inequalites/equations)
+    ``Polyhedron`` (vertices/rays/lines and inequalities/equations)
 
     .. note::
 
@@ -181,7 +182,7 @@ class PolyhedronRepresentation(SageObject):
             sage: C = polytopes.cube()
             sage: C.vertices()[0].vector()[0] = 3
             sage: C.vertices()[0]
-            A vertex at (-1, -1, -1)
+            A vertex at (1, -1, -1)
         """
         if (base_ring is None) or (base_ring is self._base_ring):
             return copy(self._vector)
@@ -219,14 +220,14 @@ class PolyhedronRepresentation(SageObject):
 
     def index(self):
         """
-        Returns an arbitrary but fixed number according to the internal
+        Return an arbitrary but fixed number according to the internal
         storage order.
 
         NOTES:
 
         H-representation and V-representation objects are enumerated
         independently. That is, amongst all vertices/rays/lines there
-        will be one with ``index()==0``, and amongs all
+        will be one with ``index()==0``, and amongst all
         inequalities/equations there will be one with ``index()==0``,
         unless the polyhedron is empty or spans the whole space.
 
@@ -428,7 +429,7 @@ class Hrepresentation(PolyhedronRepresentation):
             sage: C = polytopes.cube()
             sage: C.inequalities()[0].A()[2] = 5
             sage: C.inequalities()[0]
-            An inequality (0, 0, -1) x + 1 >= 0
+            An inequality (-1, 0, 0) x + 1 >= 0
         """
         return copy(self._A)
 
@@ -447,7 +448,9 @@ class Hrepresentation(PolyhedronRepresentation):
 
     def neighbors(self):
         """
-        Iterate over the adjacent facets (i.e. inequalities/equations)
+        Iterate over the adjacent facets (i.e. inequalities).
+
+        Only defined for inequalities.
 
         EXAMPLES::
 
@@ -459,11 +462,36 @@ class Hrepresentation(PolyhedronRepresentation):
             An inequality (0, -1, 0) x + 1 >= 0
             sage: list(a[0])
             [1, 0, -1, 0]
+
+        TESTS:
+
+        Checking that :trac:`28463` is fixed::
+
+            sage: P = polytopes.simplex()
+            sage: F1 = P.Hrepresentation()[1]
+            sage: list(F1.neighbors())
+            [An inequality (0, 1, 0, 0) x + 0 >= 0,
+             An inequality (0, 0, 1, 0) x + 0 >= 0,
+             An inequality (0, 0, 0, 1) x + 0 >= 0]
+
+        Does not work for equalities::
+
+            sage: F0 = P.Hrepresentation()[0]
+            sage: list(F0.neighbors())
+            Traceback (most recent call last):
+            ...
+            TypeError: must be inequality
         """
+        # The adjacency matrix does not include equations.
+        n_eqs = self.polyhedron().n_equations()
+        if not self.is_inequality():
+            raise TypeError("must be inequality")
+
         adjacency_matrix = self.polyhedron().facet_adjacency_matrix()
         for x in self.polyhedron().Hrep_generator():
-            if adjacency_matrix[self.index(), x.index()] == 1:
-                yield x
+            if not x.is_equation():
+                if adjacency_matrix[self.index()-n_eqs, x.index()-n_eqs] == 1:
+                    yield x
 
     def adjacent(self):
         """
@@ -723,7 +751,7 @@ class Inequality(Hrepresentation):
             [True, True, True, True, True, True]
             sage: p2 = 3*polytopes.hypercube(3)
             sage: [i1.contains(q) for q in p2.vertex_generator()]
-            [True, False, False, False, True, True, True, False]
+            [True, True, False, True, False, True, False, False]
         """
         try:
             if Vobj.is_vector(): # assume we were passed a point
@@ -750,7 +778,7 @@ class Inequality(Hrepresentation):
             [False, True, True, False, False, True]
             sage: p2 = 3*polytopes.hypercube(3)
             sage: [i1.interior_contains(q) for q in p2.vertex_generator()]
-            [True, False, False, False, True, True, True, False]
+            [True, True, False, True, False, True, False, False]
 
         If you pass a vector, it is assumed to be the coordinate vector of a point::
 
@@ -777,9 +805,9 @@ class Inequality(Hrepresentation):
         Return the outer normal vector of ``self``.
 
         OUTPUT:
-        
+
         The normal vector directed away from the interior of the polyhedron.
-        
+
         EXAMPLES::
 
             sage: p = Polyhedron(vertices = [[0,0,0],[1,1,0],[1,2,0]])
@@ -1077,12 +1105,12 @@ class Vrepresentation(PolyhedronRepresentation):
             sage: p = polytopes.hypercube(3)
             sage: h1 = next(p.inequality_generator())
             sage: h1
-            An inequality (0, 0, -1) x + 1 >= 0
+            An inequality (-1, 0, 0) x + 1 >= 0
             sage: v1 = next(p.vertex_generator())
             sage: v1
-            A vertex at (-1, -1, -1)
+            A vertex at (1, -1, -1)
             sage: v1.is_incident(h1)
-            False
+            True
         """
         return self.polyhedron().incidence_matrix()[self.index(), Hobj.index()] == 1
 
@@ -1096,7 +1124,7 @@ class Vrepresentation(PolyhedronRepresentation):
             sage: h1 = next(p.inequality_generator())
             sage: v1 = next(p.vertex_generator())
             sage: v1.__mul__(h1)
-            2
+            0
         """
         return self.evaluated_on(Hobj)
 
@@ -1224,11 +1252,11 @@ class Vertex(Vrepresentation):
             sage: v = next(p.vertex_generator())
             sage: h = next(p.inequality_generator())
             sage: v
-            A vertex at (-1, -1, -1)
+            A vertex at (1, -1, -1)
             sage: h
-            An inequality (0, 0, -1) x + 1 >= 0
+            An inequality (-1, 0, 0) x + 1 >= 0
             sage: v.evaluated_on(h)
-            2
+            0
         """
         return Hobj.A() * self.vector() + Hobj.b()
 

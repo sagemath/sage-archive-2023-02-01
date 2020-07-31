@@ -54,7 +54,6 @@ AUTHOR:
 
 # Keep OLD division semantics for Python 2 compatibility, such that
 # lazy imports support old and true division.
-from __future__ import absolute_import
 
 cimport cython
 from cpython.object cimport PyObject_RichCompare
@@ -64,7 +63,7 @@ cdef extern from *:
     int likely(int) nogil  # Defined by Cython
 
 import os
-from six.moves import cPickle as pickle
+import pickle
 import inspect
 from . import sageinspect
 
@@ -381,9 +380,8 @@ cdef class LazyImport(object):
         """
         TESTS::
 
-            sage: import six
             sage: lazy_import('sage.all', 'ZZ'); lazy_ZZ = ZZ
-            sage: six.text_type(lazy_ZZ)
+            sage: str(lazy_ZZ)
             u'Integer Ring'
         """
         return unicode(self.get_object())
@@ -642,19 +640,6 @@ cdef class LazyImport(object):
         """
         return obj(left) @ obj(right)
 
-    def __div__(left, right):
-        """
-        TESTS::
-
-            sage: sage.all.foo = 10
-            sage: lazy_import('sage.all', 'foo')
-            sage: type(foo)
-            <type 'sage.misc.lazy_import.LazyImport'>
-            sage: foo / 2
-            5
-        """
-        return obj(left) / obj(right)
-
     def __floordiv__(left, right):
         """
         TESTS::
@@ -849,19 +834,6 @@ cdef class LazyImport(object):
             10
         """
         return int(self.get_object())
-
-    def __long__(self):
-        """
-        TESTS::
-
-            sage: sage.all.foo = 10
-            sage: lazy_import('sage.all', 'foo')
-            sage: type(foo)
-            <type 'sage.misc.lazy_import.LazyImport'>
-            sage: long(foo)
-            10L
-        """
-        return long(self.get_object())
 
     def __float__(self):
         """

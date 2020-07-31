@@ -324,8 +324,6 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
 from sage.categories.fields import Fields
 from sage.categories.manifolds import Manifolds
@@ -1376,7 +1374,7 @@ class TopologicalManifold(ManifoldSubset):
               Chart (M, (r, s))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (r, s))}
 
         """
-        return self._coord_changes
+        return self._coord_changes.copy()
 
     def is_manifestly_coordinate_domain(self):
         r"""
@@ -1559,6 +1557,36 @@ class TopologicalManifold(ManifoldSubset):
 
         """
         return True
+
+    def vector_bundle(self, rank, name, field='real', latex_name=None):
+        r"""
+        Return a topological vector bundle over the given field with given rank
+        over this topological manifold.
+
+        INPUT:
+
+        - ``rank`` -- rank of the vector bundle
+        - ``name`` -- name given to the total space
+        - ``field`` -- (default: ``'real'``) topological field giving the
+          vector space structure to the fibers
+        - ``latex_name`` -- optional LaTeX name for the total space
+
+        OUTPUT:
+
+        - a topological vector bundle as an instance of
+          :class:`~sage.manifolds.vector_bundle.TopologicalVectorBundle`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: M.vector_bundle(2, 'E')
+            Topological real vector bundle E -> M of rank 2 over the base space
+             2-dimensional topological manifold M
+
+        """
+        from sage.manifolds.vector_bundle import TopologicalVectorBundle
+        return TopologicalVectorBundle(rank, name, self, field=field,
+                                       latex_name=latex_name)
 
     def scalar_field_algebra(self):
         r"""
@@ -2224,12 +2252,23 @@ class TopologicalManifold(ManifoldSubset):
             F: M --> R
                (x, y) |--> x^2 + cos(y)*sin(x)
 
+        The calculus method chosen via ``set_calculus_method()`` applies to any
+        chart defined subsequently on the manifold::
+
+            sage: M.set_calculus_method('sympy')
+            sage: Y.<u,v> = M.chart()  # a new chart
+            sage: Y.calculus_method()
+            Available calculus methods (* = current):
+             - SR (default)
+             - sympy (*)
+
         .. SEEALSO::
 
             :meth:`~sage.manifolds.chart.Chart.calculus_method` for a
             control of the calculus method chart by chart
 
         """
+        self._calculus_method = method
         for chart in self._atlas:
             chart.calculus_method().set(method)
 
@@ -2309,7 +2348,6 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: def simpl_trig(a):
             ....:     return a.simplify_trig()
-            ....:
             sage: M.set_simplify_function(simpl_trig)
             sage: s = f + g
             sage: s.expr()
@@ -2332,7 +2370,6 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: def simpl_trig_sympy(a):
             ....:     return a.trigsimp()
-            ....:
             sage: M.set_simplify_function(simpl_trig_sympy, method='sympy')
 
         Then, it becomes active as soon as we change the calculus engine to
@@ -2357,6 +2394,8 @@ class TopologicalManifold(ManifoldSubset):
 
 ##############################################################################
 ## Constructor function
+
+_manifold_id = Integer(0)
 
 def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
              start_index=0, **extra_kwds):
@@ -2445,7 +2484,12 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
       subclasses
       :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
       or
-      :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
+      :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`,
+      or, if the keyword ``ambient`` is used, one of the subclasses
+      :class:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold`,
+      :class:`~sage.manifolds.differentiable.differentiable_submanifold.DifferentiableSubmanifold`,
+      or
+      :class:`~sage.manifolds.differentiable.pseudo_riemannian_submanifold.PseudoRiemannianSubmanifold`.
 
     EXAMPLES:
 
@@ -2514,12 +2558,29 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         sage: M.diff_degree()
         +Infinity
 
-    See the documentation of classes
+    Submanifolds are constructed by means of the keyword ``ambient``::
+
+        sage: N = Manifold(2, 'N', field='complex', ambient=M); N
+        2-dimensional differentiable submanifold N immersed in the
+         3-dimensional complex manifold M
+
+    The immersion `N\to M` has to be specified in a second stage, via the
+    method
+    :meth:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold.set_immersion`
+    or
+    :meth:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold.set_embedding`.
+
+    For more detailed examples, see the documentation of
     :class:`~sage.manifolds.manifold.TopologicalManifold`,
     :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
     and
-    :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
-    for more detailed examples.
+    :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`,
+    or the documentation of
+    :class:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold`,
+    :class:`~sage.manifolds.differentiable.differentiable_submanifold.DifferentiableSubmanifold`
+    and
+    :class:`~sage.manifolds.differentiable.pseudo_riemannian_submanifold.PseudoRiemannianSubmanifold`
+    for submanifolds.
 
     .. RUBRIC:: Uniqueness of manifold objects
 
@@ -2588,18 +2649,25 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         sage: isinstance(M, sage.misc.fast_methods.WithEqualityById)
         True
     """
-    from time import time
     from sage.rings.infinity import infinity
     from sage.manifolds.differentiable.manifold import DifferentiableManifold
     from sage.manifolds.differentiable.pseudo_riemannian import PseudoRiemannianManifold
+    from sage.manifolds.differentiable.degenerate import DegenerateManifold
     from sage.manifolds.topological_submanifold import TopologicalSubmanifold
     from sage.manifolds.differentiable.differentiable_submanifold import DifferentiableSubmanifold
     from sage.manifolds.differentiable.pseudo_riemannian_submanifold import PseudoRiemannianSubmanifold
+    from sage.manifolds.differentiable.degenerate_submanifold import DegenerateSubmanifold
+
+    global _manifold_id
+
     # Some sanity checks
     if not isinstance(dim, (int, Integer)):
         raise TypeError("the manifold dimension must be an integer")
     if dim < 1:
         raise ValueError("the manifold dimension must be strictly positive")
+
+    _manifold_id += 1
+    unique_tag = lambda: getrandbits(128)*_manifold_id
 
     if structure in ['topological', 'top']:
         if field == 'real' or isinstance(field, RealField_class):
@@ -2617,11 +2685,11 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                           ambient=ambient,
                                           latex_name=latex_name,
                                           start_index=start_index,
-                                          unique_tag=getrandbits(128)*time())
+                                          unique_tag=unique_tag())
         return TopologicalManifold(dim, name, field, structure,
                                    latex_name=latex_name,
                                    start_index=start_index,
-                                   unique_tag=getrandbits(128)*time())
+                                   unique_tag=unique_tag())
     elif structure in ['differentiable', 'diff', 'smooth']:
         if 'diff_degree' in extra_kwds:
             diff_degree = extra_kwds['diff_degree']
@@ -2646,13 +2714,13 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                              diff_degree=diff_degree,
                                              latex_name=latex_name,
                                              start_index=start_index,
-                                             unique_tag=getrandbits(128)*time())
+                                             unique_tag=unique_tag())
         return DifferentiableManifold(dim, name, field, structure,
                                       diff_degree=diff_degree,
                                       latex_name=latex_name,
                                       start_index=start_index,
-                                      unique_tag=getrandbits(128)*time())
-    elif structure in ['pseudo-Riemannian', 'Riemannian', 'Lorentzian']:
+                                      unique_tag=unique_tag())
+    elif structure in ['pseudo-Riemannian', 'Riemannian', 'Lorentzian','degenerate_metric']:
         if 'diff_degree' in extra_kwds:
             diff_degree = extra_kwds['diff_degree']
         else:
@@ -2672,6 +2740,8 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                 signature = None
         elif structure == 'Riemannian':
             signature = dim
+        elif structure == 'degenerate_metric':
+            signature = (0,dim-1,1)
         elif structure == 'Lorentzian':
             if 'signature' in extra_kwds:
                 signat = extra_kwds['signature']
@@ -2687,27 +2757,43 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                 signature = dim - 2  # default value for a Lorentzian manifold
         if 'ambient' in extra_kwds:
             ambient = extra_kwds['ambient']
-            if not isinstance(ambient, PseudoRiemannianManifold):
+            if not isinstance(ambient, (PseudoRiemannianManifold, DegenerateManifold)):
                 raise TypeError("ambient must be a pseudo-Riemannian manifold")
             if dim>ambient._dim:
                 raise ValueError("the submanifold must be of smaller "
                                  + "dimension than its ambient manifold")
-            return PseudoRiemannianSubmanifold(dim, name, ambient=ambient,
+            if structure == 'degenerate_metric':
+                return DegenerateSubmanifold(dim, name, ambient = ambient,
                                                metric_name=metric_name,
                                                signature=signature,
                                                diff_degree=diff_degree,
                                                latex_name=latex_name,
                                                metric_latex_name=metric_latex_name,
                                                start_index=start_index,
-                                               unique_tag=getrandbits(128)*time())
-
+                                               unique_tag=unique_tag())
+            return PseudoRiemannianSubmanifold(dim, name, ambient = ambient,
+                                               metric_name=metric_name,
+                                               signature=signature,
+                                               diff_degree=diff_degree,
+                                               latex_name=latex_name,
+                                               metric_latex_name=metric_latex_name,
+                                               start_index=start_index,
+                                               unique_tag=unique_tag())
+        if structure == 'degenerate_metric':
+                return DegenerateManifold(dim, name, metric_name=metric_name,
+                                               signature=signature,
+                                               diff_degree=diff_degree,
+                                               latex_name=latex_name,
+                                               metric_latex_name=metric_latex_name,
+                                               start_index=start_index,
+                                               unique_tag=unique_tag())
         return PseudoRiemannianManifold(dim, name, metric_name=metric_name,
                                         signature=signature,
                                         diff_degree=diff_degree,
                                         latex_name=latex_name,
                                         metric_latex_name=metric_latex_name,
                                         start_index=start_index,
-                                        unique_tag=getrandbits(128)*time())
+                                        unique_tag=unique_tag())
     raise NotImplementedError("manifolds of type {} are ".format(structure) +
                               "not implemented")
 

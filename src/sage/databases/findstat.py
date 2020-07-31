@@ -172,8 +172,6 @@ Classes and methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
-from six import iteritems, add_metaclass, string_types
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
@@ -185,7 +183,7 @@ from sage.categories.sets_cat import Sets
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp
 
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.rings.integer import Integer
 from sage.databases.oeis import FancyTuple
 
@@ -198,10 +196,9 @@ import inspect
 import json
 import cgi
 
-# import compatible with py2 and py3
-from six.moves.urllib.parse import urlencode
-from six.moves.urllib.request import Request, urlopen
-from six.moves.urllib.error import HTTPError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 # Combinatorial collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
@@ -534,7 +531,7 @@ class FindStat(SageObject):
             we expect a dictionary from objects or strings to
             integers
             """
-            l = iteritems(query)
+            l = query.items()
             (key, value) = next(l)
 
             (collection, to_str) = get_collection(collection, key)
@@ -803,7 +800,7 @@ class FindStatStatistic(SageObject):
 
             sage: from sage.databases.findstat import FindStatStatistic
             sage: FindStatStatistic(1)._find_by_id()                            # optional -- internet
-            St000001: The number of ways to write a permutation as a minimal length product of simple transpositions.
+            St000001: The number of reduced words for a permutation.
         """
         self._depth = depth
         self._query = None
@@ -1000,12 +997,12 @@ class FindStatStatistic(SageObject):
         gf                          = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
         self._generating_functions_dict  = { literal_eval(key):
                                              { literal_eval(inner_key): inner_value
-                                               for inner_key, inner_value in iteritems(value) }
-                                             for key, value in iteritems(gf) }
+                                               for inner_key, inner_value in value.items() }
+                                             for key, value in gf.items() }
 
         from_str = self._collection.from_string()
         # we want to keep FindStat's ordering here!
-        self._first_terms = [(from_str(obj), Integer(val)) for (obj, val) in iteritems(self._raw[FINDSTAT_STATISTIC_DATA])]
+        self._first_terms = [(from_str(obj), Integer(val)) for (obj, val) in self._raw[FINDSTAT_STATISTIC_DATA].items()]
         return self
 
     ######################################################################
@@ -1414,14 +1411,16 @@ class FindStatStatistic(SageObject):
             sage: st = findstat(18)                                             # optional -- internet
 
             sage: st.generating_functions()                                     # optional -- internet
-            {2: q + 1,
+            {1: 1,
+             2: q + 1,
              3: q^3 + 2*q^2 + 2*q + 1,
              4: q^6 + 3*q^5 + 5*q^4 + 6*q^3 + 5*q^2 + 3*q + 1,
              5: q^10 + 4*q^9 + 9*q^8 + 15*q^7 + 20*q^6 + 22*q^5 + 20*q^4 + 15*q^3 + 9*q^2 + 4*q + 1,
              6: q^15 + 5*q^14 + 14*q^13 + 29*q^12 + 49*q^11 + 71*q^10 + 90*q^9 + 101*q^8 + 101*q^7 + 90*q^6 + 71*q^5 + 49*q^4 + 29*q^3 + 14*q^2 + 5*q + 1}
 
             sage: st.generating_functions(style="dictionary")                   # optional -- internet
-            {2: {0: 1, 1: 1},
+            {1: {0: 1},
+             2: {0: 1, 1: 1},
              3: {0: 1, 1: 2, 2: 2, 3: 1},
              4: {0: 1, 1: 3, 2: 5, 3: 6, 4: 5, 5: 3, 6: 1},
              5: {0: 1, 1: 4, 2: 9, 3: 15, 4: 20, 5: 22, 6: 20, 7: 15, 8: 9, 9: 4, 10: 1},
@@ -1443,7 +1442,8 @@ class FindStatStatistic(SageObject):
               15: 1}}
 
             sage: st.generating_functions(style="list")                         # optional -- internet
-            {2: [1, 1],
+            {1: [1],
+             2: [1, 1],
              3: [1, 2, 2, 1],
              4: [1, 3, 5, 6, 5, 3, 1],
              5: [1, 4, 9, 15, 20, 22, 20, 15, 9, 4, 1],
@@ -1462,8 +1462,8 @@ class FindStatStatistic(SageObject):
             P = PolynomialRing(ZZ,"q")
             q = P.gen()
             return { level : sum( coefficient * q**exponent
-                                  for exponent,coefficient in iteritems(gen_dict) )
-                     for level, gen_dict in iteritems(gfs)}
+                                  for exponent,coefficient in gen_dict.items() )
+                     for level, gen_dict in gfs.items()}
         else:
             raise ValueError("The argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'." % style)
 
@@ -1490,14 +1490,12 @@ class FindStatStatistic(SageObject):
             sage: st = findstat(18)                                             # optional -- internet
 
             sage: st.oeis_search()                                              # optional -- internet
-            Searching the OEIS for "1,1  1,2,2,1  1,3,5,6,5,3,1  1,4,9,15,20,22,20,15,9,4,1  1,5,14,29,49,71,90,101"
+            Searching the OEIS for "1  1,1  1,2,2,1  1,3,5,6,5,3,1  1,4,9,15,20,22,20,15,9,4,1  ..."
             0: A008302: Triangle of Mahonian numbers T(n,k)...
 
             sage: st.oeis_search(search_size=13)                                # optional -- internet
-            Searching the OEIS for "1,1  1,2,2,1  1,3,5,6,5,3,1"
+            Searching the OEIS for "1  1,1  1,2,2,1  ..."
             0: A008302: Triangle of Mahonian numbers T(n,k)...
-            1: A115570: Array read by rows: row n (n>= 1) gives the Betti numbers...
-            2: A187447: Array for all multiset choices...
         """
         from sage.databases.oeis import oeis
 
@@ -1539,9 +1537,9 @@ class FindStatStatistic(SageObject):
         EXAMPLES::
 
             sage: print(findstat(1).description())                              # optional -- internet
-            The number of ways to write a permutation as a minimal length product of simple transpositions.
+            The number of reduced words for a permutation.
             <BLANKLINE>
-            That is, the number of reduced words for the permutation.  E.g., there are two reduced words for $[3,2,1] = (1,2)(2,3)(1,2) = (2,3)(1,2)(2,3)$.
+            This is...
         """
         return self._description
 
@@ -1593,7 +1591,7 @@ class FindStatStatistic(SageObject):
         EXAMPLES::
 
             sage: findstat(1).name()                                            # optional -- internet
-            'The number of ways to write a permutation as a minimal length product of simple transpositions.'
+            'The number of reduced words for a permutation.'
         """
         # this needs to be decided how to do properly
         if hasattr(self,"_name"):
@@ -1859,7 +1857,7 @@ class FindStatStatistic(SageObject):
             f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %FINDSTAT_URL_NEW)
         else:
             f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %(FINDSTAT_URL_EDIT+self.id_str()))
-        for key, value in iteritems(args):
+        for key, value in args.items():
             verbose("writing argument %s" % key, caller_name='FindStat')
             value_encoded = cgi.escape(str(value), quote=True)
             verbose("%s" % value_encoded, caller_name='FindStat')
@@ -1907,8 +1905,7 @@ def _finite_irreducible_cartan_types_by_rank(n):
     return cartan_types
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class FindStatCollection(Element):
+class FindStatCollection(Element, metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A FindStat collection.
 
@@ -2050,7 +2047,7 @@ class FindStatCollection(Element):
 
     def __hash__(self):
         """
-        Returns a hash value for the collection.
+        Return a hash value for the collection.
 
         EXAMPLES::
 
@@ -2516,7 +2513,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
             c[1] = j[FINDSTAT_COLLECTION_NAME_PLURAL]
             c[2] = j[FINDSTAT_COLLECTION_NAME_WIKI]
             c[5] = {literal_eval(key):value for key,value in
-                    iteritems(j[FINDSTAT_COLLECTION_LEVELS])}
+                    j[FINDSTAT_COLLECTION_LEVELS].items()}
 
         Parent.__init__(self, category=Sets())
 
@@ -2573,7 +2570,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
         if isinstance(entry, FindStatCollection):
             return entry
 
-        if isinstance(entry, string_types):
+        if isinstance(entry, str):
             # find by name in _findstat_collections
             for id, c in self._findstat_collections.items():
                 if entry.upper() in (c[0].upper(), c[1].upper(), c[2].upper()):
@@ -2650,8 +2647,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
     Element = FindStatCollection
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class FindStatMap(Element):
+class FindStatMap(Element, metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A FindStat map.
 
@@ -2821,7 +2817,7 @@ class FindStatMap(Element):
 
     def __hash__(self):
         """
-        Returns a hash value for the map.
+        Return a hash value for the map.
 
         EXAMPLES::
 
@@ -3002,7 +2998,7 @@ class FindStatMaps(Parent, UniqueRepresentation):
         elif entry in self._findstat_maps:
             return self.element_class(self, entry)
 
-        elif isinstance(entry, string_types):
+        elif isinstance(entry, str):
             # find by name in _findstat_maps
             for c in self._findstat_maps:
                 if entry.upper() == c[FINDSTAT_MAP_NAME].upper():

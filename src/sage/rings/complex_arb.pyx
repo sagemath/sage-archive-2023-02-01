@@ -141,7 +141,6 @@ Classes and Methods
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 import operator, sys, warnings
 from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
@@ -186,6 +185,7 @@ from sage.rings.ring import Field
 from sage.structure.element cimport Element, ModuleElement
 from sage.structure.parent cimport Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.arith.long cimport is_small_python_int
 
 from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
@@ -2666,7 +2666,7 @@ cdef class ComplexBall(RingElement):
                             .format(type(val).__name__, type(shift).__name__))
         cdef ComplexBall self = val
         cdef ComplexBall res = self._new()
-        if isinstance(shift, int):
+        if is_small_python_int(shift):
              acb_mul_2exp_si(res.value, self.value, PyInt_AS_LONG(shift))
         elif isinstance(shift, Integer):
             sig_on()
@@ -2807,7 +2807,7 @@ cdef class ComplexBall(RingElement):
         """
         cdef fmpz_t tmpz
         cdef ComplexBall res = self._new()
-        if isinstance(expo, int):
+        if is_small_python_int(expo):
             if _do_sig(prec(self)): sig_on()
             acb_pow_si(res.value, self.value, PyInt_AS_LONG(expo), prec(self))
             if _do_sig(prec(self)): sig_off()
@@ -3479,6 +3479,8 @@ cdef class ComplexBall(RingElement):
             if _do_sig(prec(self)): sig_off()
         return res
 
+    gamma_inc = gamma
+
     def log_gamma(self, analytic=False):
         r"""
         Return the image of this ball by the logarithmic Gamma function.
@@ -3594,6 +3596,48 @@ cdef class ComplexBall(RingElement):
             if _do_sig(prec(self)): sig_on()
             acb_hurwitz_zeta(res.value, self.value, a_ball.value, prec(self))
             if _do_sig(prec(self)): sig_off()
+        return res
+
+    def zetaderiv(self, k):
+        r"""
+        Return the image of this ball by the k-th derivative of the Riemann
+        zeta function.
+
+        For a more flexible interface, see the low-level method
+        ``_zeta_series`` of polynomials with complex ball coefficients.
+
+        EXAMPLES::
+
+            sage: CBF(1/2, 3).zetaderiv(1)
+            [0.191759884092721...] + [-0.073135728865928...]*I
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        Pol = PolynomialRing(self._parent, 'x')
+        ser = Pol([self, 1])._zeta_series(k + 1)
+        return ser[k]
+
+    def lambert_w(self, branch=0):
+        r"""
+        Return the image of this ball by the specified branch of the Lambert W
+        function.
+
+        EXAMPLES::
+
+            sage: CBF(1 + I).lambert_w()
+            [0.6569660692304...] + [0.3254503394134...]*I
+            sage: CBF(1 + I).lambert_w(2)
+            [-2.1208839379437...] + [11.600137110774...]*I
+            sage: CBF(1 + I).lambert_w(2^100)
+            [-70.806021532123...] + [7.9648836259913...]*I
+        """
+        cdef fmpz_t _branch
+        fmpz_init(_branch)
+        fmpz_set_mpz(_branch, (<Integer> Integer(branch)).value)
+        cdef ComplexBall res = self._new()
+        sig_on()
+        acb_lambertw(res.value, self.value, _branch, 0, prec(self))
+        sig_off()
+        fmpz_clear(_branch)
         return res
 
     def polylog(self, s):

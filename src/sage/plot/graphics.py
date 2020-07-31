@@ -17,13 +17,14 @@ AUTHORS:
 
 - Eric Gourgoulhon (2015-03-19): Add parameter axes_labels_size (:trac:`18004`)
 
-- Eric Gourgoulhon (2019-05-18): :class:`~sage.plot.multigraphics.GraphicsArray`
+- Eric Gourgoulhon (2019-05-24): :class:`~sage.plot.multigraphics.GraphicsArray`
   moved to new module :mod:`~sage.plot.multigraphics`; various improvements and
-  fixes in :meth:`Graphics.matplotlib` and ``Graphics._set_scale``.
+  fixes in :meth:`Graphics.matplotlib` and ``Graphics._set_scale``; new method
+  :meth:`Graphics.inset`
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>
 #       Copyright (C) 2006-2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Jason Grout
@@ -31,15 +32,13 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import zip
-from six import integer_types
 
 import os
 from math import isnan
-import sage.misc.misc
+import sage.misc.verbose
 from sage.misc.temporary_file import tmp_filename
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
@@ -69,6 +68,7 @@ def is_Graphics(x):
     """
     return isinstance(x, Graphics)
 
+
 def _parse_figsize(figsize):
     r"""
     Helper function to get a figure size in matplotlib format.
@@ -78,9 +78,9 @@ def _parse_figsize(figsize):
     - ``figsize`` -- width or [width, height] in inches; if only the width is
       provided, the height is computed from matplotlib's default aspect ratio
 
-    OUPUT:
+    OUTPUT:
 
-    - a pair of ``float``'s represening ``(width, height)``
+    - a pair of ``float``'s representing ``(width, height)``
 
     EXAMPLES::
 
@@ -507,6 +507,72 @@ class Graphics(WithEqualityById, SageObject):
         except AttributeError:
             self._axes_range = {}
             return self._axes_range
+
+    def set_flip(self, flip_x=None, flip_y=None):
+        """
+        Set the flip options for this graphics object.
+
+        INPUT:
+
+        - ``flip_x`` -- boolean (default: ``None``); if not ``None``, set the
+          ``flip_x`` option to this value
+        - ``flip_y`` -- boolean (default: ``None``); if not ``None``, set the
+          ``flip_y`` option to this value
+
+        EXAMPLES::
+
+            sage: L = line([(1, 0), (2, 3)])
+            sage: L.set_flip(flip_y=True)
+            sage: L.flip()
+            (False, True)
+            sage: L.set_flip(True, False)
+            sage: L.flip()
+            (True, False)
+        """
+        if flip_x is not None:
+            self._extra_kwds['flip_x'] = flip_x
+        if flip_y is not None:
+            self._extra_kwds['flip_y'] = flip_y
+
+    def flip(self, flip_x=False, flip_y=False):
+        """
+        Get the flip options and optionally mirror this graphics object.
+
+        INPUT:
+
+        - ``flip_x`` -- boolean (default: ``False``); if ``True``, replace the
+          current ``flip_x`` option by its opposite
+        - ``flip_y`` -- boolean (default: ``False``); if ``True``, replace the
+          current ``flip_y`` option by its opposite
+
+        OUTPUT: a tuple containing the new flip options
+
+        EXAMPLES:
+
+        When called without arguments, this just returns the current flip
+        options::
+
+            sage: L = line([(1, 0), (2, 3)])
+            sage: L.flip()
+            (False, False)
+
+        Otherwise, the specified options are changed and the new options are
+        returned::
+
+            sage: L.flip(flip_y=True)
+            (False, True)
+            sage: L.flip(True, True)
+            (True, False)
+        """
+        a = self._extra_kwds.get('flip_x', self.SHOW_OPTIONS['flip_x'])
+        b = self._extra_kwds.get('flip_y', self.SHOW_OPTIONS['flip_y'])
+        if flip_x:
+            a = not a
+            self._extra_kwds['flip_x'] = a
+        if flip_y:
+            b = not b
+            self._extra_kwds['flip_y'] = b
+        return (a, b)
 
     def fontsize(self, s=None):
         """
@@ -1053,7 +1119,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: print(sum(v))
             Graphics object consisting of 2 graphics primitives
         """
-        if isinstance(other, integer_types) and other == 0:
+        if isinstance(other, int) and other == 0:
             return self
         raise TypeError
 
@@ -1115,6 +1181,12 @@ class Graphics(WithEqualityById, SageObject):
             sage: p3._legend_opts
             {'shadow': False}
 
+        Flipped axes take precedence over non-flipped axes::
+
+            sage: p1 = plot(x, x, 0, 1, flip_x=True, flip_y=True)
+            sage: p2 = plot(x^2, x, 0, 1)
+            sage: [p._extra_kwds[k] for p in [p1 + p2, p2 + p1] for k in ['flip_x', 'flip_y']]
+            [True, True, True, True]
         """
         if isinstance(other, int) and other == 0:
             return self
@@ -1131,6 +1203,12 @@ class Graphics(WithEqualityById, SageObject):
         g._legend_colors = self._legend_colors + other._legend_colors
         g._legend_opts.update(self._legend_opts)
         g._legend_opts.update(other._legend_opts)
+        if 'flip_x' in self._extra_kwds and 'flip_x' in other._extra_kwds:
+            g._extra_kwds['flip_x'] = (self._extra_kwds['flip_x']
+                                       or other._extra_kwds['flip_x'])
+        if 'flip_y' in self._extra_kwds and 'flip_y' in other._extra_kwds:
+            g._extra_kwds['flip_y'] = (self._extra_kwds['flip_y']
+                                       or other._extra_kwds['flip_y'])
         if self.aspect_ratio()=='automatic':
             g.set_aspect_ratio(other.aspect_ratio())
         elif other.aspect_ratio()=='automatic':
@@ -1353,6 +1431,7 @@ class Graphics(WithEqualityById, SageObject):
                         axes=None, axes_labels=None, axes_labels_size=None,
                         axes_pad=None, base=None, scale=None,
                         xmin=None, xmax=None, ymin=None, ymax=None,
+                        flip_x=False, flip_y=False,
                         # Figure options
                         aspect_ratio=None, dpi=DEFAULT_DPI, fig_tight=True,
                         figsize=None, fontsize=None, frame=False,
@@ -1606,6 +1685,12 @@ class Graphics(WithEqualityById, SageObject):
 
         - ``ymax`` -- ending y value in the rendered figure.
 
+        - ``flip_x`` -- (default: False) boolean. If True, flip the horizontal
+          axis.
+
+        - ``flip_y`` -- (default: False) boolean. If True, flip the vertical
+          axis.
+
         - ``typeset`` -- (default: ``"default"``) string. The type of
           font rendering that should be used for the text. The possible
           values are
@@ -1739,6 +1824,14 @@ class Graphics(WithEqualityById, SageObject):
             sage: x, y = var('x, y')
             sage: G =  plot_vector_field((2^x,y^2),(x,1,10),(y,1,100))
             sage: G.show(scale='semilogx',base=2)
+
+        Flip the horizontal or vertical axis.
+
+        ::
+
+            sage: G = plot(x^3, -2, 3)
+            sage: G.show(flip_x=True)
+            sage: G.show(flip_y=True)
 
         Add grid lines at the major ticks of the axes.
 
@@ -2166,16 +2259,16 @@ class Graphics(WithEqualityById, SageObject):
             ymax = max(d['ymax'] for d in minmax_data)
             if isnan(xmin):
                 xmin=0
-                sage.misc.misc.verbose("xmin was NaN (setting to 0)", level=0)
+                sage.misc.verbose.verbose("xmin was NaN (setting to 0)", level=0)
             if isnan(xmax):
                 xmax=0
-                sage.misc.misc.verbose("xmax was NaN (setting to 0)", level=0)
+                sage.misc.verbose.verbose("xmax was NaN (setting to 0)", level=0)
             if isnan(ymin):
                 ymin=0
-                sage.misc.misc.verbose("ymin was NaN (setting to 0)", level=0)
+                sage.misc.verbose.verbose("ymin was NaN (setting to 0)", level=0)
             if isnan(ymax):
                 ymax=0
-                sage.misc.misc.verbose("ymax was NaN (setting to 0)", level=0)
+                sage.misc.verbose.verbose("ymax was NaN (setting to 0)", level=0)
         else:
             xmin = xmax = ymin = ymax = 0
 
@@ -2510,6 +2603,7 @@ class Graphics(WithEqualityById, SageObject):
                    xmin=None, xmax=None, ymin=None, ymax=None,
                    figsize=None, figure=None, sub=None,
                    axes=None, axes_labels=None, axes_labels_size=None,
+                   flip_x=False, flip_y=False,
                    fontsize=None, frame=False, verify=True,
                    aspect_ratio = None,
                    gridlines=None, gridlinesstyle=None,
@@ -2603,6 +2697,15 @@ class Graphics(WithEqualityById, SageObject):
             sage: f = lambda x, y : (abs(cos((x + I * y) ** 4)) - 1) # long time
             sage: g = implicit_plot(f,(-4, 4),(-3, 3),linewidth=0.6) # long time
             sage: gm = g.matplotlib() # long time # without the patch, this goes BOOM -- er, TypeError
+
+        If the axes are flipped, the limits of the axes get swapped::
+
+            sage: p = plot(2*x, 1, 2)
+            sage: sub, = p.matplotlib(flip_y=True, flip_x=True).axes
+            sage: xmin, xmax = sub.get_xlim()
+            sage: ymin, ymax = sub.get_ylim()
+            sage: xmin > xmax, ymin > ymax
+            (True, True)
         """
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)
@@ -2684,10 +2787,10 @@ class Graphics(WithEqualityById, SageObject):
         #---------------- Set the axes limits and scale ------------------#
         self.set_axes_range(xmin, xmax, ymin, ymax)
         d = self.get_axes_range()
-        xmin = d['xmin']
-        xmax = d['xmax']
-        ymin = d['ymin']
-        ymax = d['ymax']
+        xmin = d['xmax' if flip_x else 'xmin']
+        xmax = d['xmin' if flip_x else 'xmax']
+        ymin = d['ymax' if flip_y else 'ymin']
+        ymax = d['ymin' if flip_y else 'ymax']
 
         xscale, yscale, basex, basey = self._set_scale(subplot, scale=scale,
                                                        base=base)
@@ -2735,7 +2838,8 @@ class Graphics(WithEqualityById, SageObject):
             color = lopts.pop('back_color', 'white')
             leg = subplot.legend(prop=prop, **lopts)
             if leg is None:
-                sage.misc.misc.warn("legend requested but no items are labeled")
+                from warnings import warn
+                warn("legend requested but no items are labeled")
             else:
                 # color
                 lframe = leg.get_frame()
@@ -3298,12 +3402,12 @@ class Graphics(WithEqualityById, SageObject):
         EXAMPLES::
 
             sage: print(polytopes.hypercube(2).plot().description())
-            Polygon defined by 4 points: [(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)]
-            Line defined by 2 points: [(-1.0, -1.0), (-1.0, 1.0)]
-            Line defined by 2 points: [(-1.0, -1.0), (1.0, -1.0)]
-            Line defined by 2 points: [(-1.0, 1.0), (1.0, 1.0)]
+            Polygon defined by 4 points: [(-1.0, -1.0), (1.0, -1.0), (1.0, 1.0), (-1.0, 1.0)]
+            Line defined by 2 points: [(-1.0, 1.0), (-1.0, -1.0)]
+            Line defined by 2 points: [(1.0, -1.0), (-1.0, -1.0)]
             Line defined by 2 points: [(1.0, -1.0), (1.0, 1.0)]
-            Point set defined by 4 point(s): [(-1.0, -1.0), (-1.0, 1.0), (1.0, -1.0), (1.0, 1.0)]
+            Line defined by 2 points: [(1.0, 1.0), (-1.0, 1.0)]
+            Point set defined by 4 point(s): [(1.0, -1.0), (1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0)]
         """
         data = []
         for g in self:
@@ -3315,3 +3419,111 @@ class Graphics(WithEqualityById, SageObject):
             data.append([g_zorder, g_str, g])
         data.sort()
         return '\n'.join(g[1] for g in data)
+
+    def inset(self, graphics, pos=None, fontsize=None):
+        r"""
+        Add a graphics object as an inset.
+
+        INPUT:
+
+        - ``graphics`` -- the graphics object (instance of :class:`Graphics`)
+          to be added as an inset to the current graphics
+
+        - ``pos`` -- (default: ``None``) 4-tuple
+          ``(left, bottom, width, height)``
+          specifying the location and size of the inset on the final figure,
+          all quantities being in fractions of the figure width and height; if
+          ``None``, the value ``(0.7, 0.7, 0.2, 0.2)`` is used
+
+        - ``fontsize`` -- (default: ``None``)  integer, font size (in points)
+          for the inset; if ``None``, the value of 6 points is used, unless
+          ``fontsize`` has been explicitly set in the construction of
+          ``graphics`` (in this case, it is not overwritten here)
+
+        OUTPUT:
+
+        - instance of :class:`~sage.plot.multigraphics.MultiGraphics`
+
+        EXAMPLES::
+
+            sage: f(x) = x^2*sin(1/x)
+            sage: g1 = plot(f(x), (x, -2, 2), axes_labels=['$x$', '$y$'])
+            sage: g2 = plot(f(x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'],
+            ....:           frame=True)
+            sage: g1.inset(g2)
+            Multigraphics with 2 elements
+
+        .. PLOT::
+
+            f = (x**2*sin(1/x)).function(x)
+            g1 = plot(f(x), (x, -2, 2), axes_labels=['$x$', '$y$'])
+            g2 = plot(f(x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'], \
+                      frame=True)
+            sphinx_plot(g1.inset(g2))
+
+        Using non-default values for the position/size and the font size::
+
+            sage: g1.inset(g2, pos=(0.15, 0.7, 0.25, 0.25), fontsize=8)
+            Multigraphics with 2 elements
+
+        .. PLOT::
+
+            f = (x**2*sin(1/x)).function(x)
+            g1 = plot(f(x), (x, -2, 2), axes_labels=['$x$', '$y$'])
+            g2 = plot(f(x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'], \
+                      frame=True)
+            sphinx_plot(g1.inset(g2, pos=(0.15, 0.7, 0.25, 0.25), fontsize=8))
+
+        We can add another inset by invoking ``inset`` on the last output::
+
+            sage: g1g2 = _
+            sage: g3 = plot(f(x), (x, -0.05, 0.05), axes_labels=['$x$', '$y$'],
+            ....:           frame=True)
+            sage: g1g2.inset(g3, pos=(0.65, 0.12, 0.25, 0.25))
+            Multigraphics with 3 elements
+
+        .. PLOT::
+
+            f = (x**2*sin(1/x)).function(x)
+            g1 = plot(f(x), (x, -2, 2), axes_labels=['$x$', '$y$'])
+            g2 = plot(f(x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'], \
+                      frame=True)
+            g1g2 = g1.inset(g2, pos=(0.15, 0.7, 0.25, 0.25), fontsize=8)
+            g3 = plot(f(x), (x, -0.05, 0.05), axes_labels=['$x$', '$y$'], \
+                      frame=True)
+            sphinx_plot(g1g2.inset(g3, pos=(0.65, 0.12, 0.25, 0.25)))
+
+        """
+        from .multigraphics import MultiGraphics
+        if pos is None:
+            pos = (0.7, 0.7, 0.2, 0.2)
+        pos0 = (0.05, 0.05, 0.9, 0.9)
+        if fontsize is not None:
+            graphics._extra_kwds['fontsize'] = fontsize
+        elif 'fontsize' not in graphics._extra_kwds:
+            graphics._extra_kwds['fontsize'] = 6
+        return MultiGraphics([(self, pos0), (graphics, pos)])
+
+# Deprecation notice for GraphicsArray import
+def GraphicsArray(*args, **kwargs):
+    r"""
+    This is deprecated (see :trac:`28675`).
+    Use :class:`sage.plot.multigraphics.GraphicsArray` instead.
+
+    TESTS::
+
+        sage: from sage.plot.graphics import GraphicsArray
+        sage: c = circle((0,0), 1)
+        sage: G = GraphicsArray([c, c])
+        doctest:...: DeprecationWarning: GraphicsArray must be imported from sage.plot.multigraphics and no longer from sage.plot.graphics.
+        See https://trac.sagemath.org/28675 for details.
+        sage: G
+        Graphics Array of size 1 x 2
+
+    """
+    from .multigraphics import GraphicsArray as NewGraphicsArray
+    from sage.misc.superseded import deprecation
+    deprecation(28675, "GraphicsArray must be imported from "
+                "sage.plot.multigraphics and no longer from "
+                "sage.plot.graphics.")
+    return NewGraphicsArray(*args, **kwargs)

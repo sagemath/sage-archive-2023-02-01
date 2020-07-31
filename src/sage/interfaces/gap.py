@@ -176,13 +176,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import, print_function
-import six
-from six import string_types
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from .gap_workspace import gap_workspace_file, prepare_workspace_dir
 from sage.cpython.string import bytes_to_str
-from sage.env import SAGE_LOCAL, SAGE_EXTCODE
+from sage.env import SAGE_EXTCODE
 from sage.misc.misc import is_in_string
 from sage.misc.cachefunc import cached_method
 from sage.docs.instancedoc import instancedoc
@@ -480,14 +478,13 @@ class Gap_generic(ExtraTabCompletion, Expect):
         ::
 
             sage: filename = tmp_filename()
-            sage: f = open(filename, 'w')
-            sage: _ = f.write('xx := 22;\n')
-            sage: f.close()
+            sage: with open(filename, 'w') as f:
+            ....:     _ = f.write('xx := 22;\n')
             sage: gap.read(filename)
             sage: gap.get('xx').strip()
             '22'
         """
-        return 'Read("%s");'%filename
+        return 'Read("%s");' % filename
 
     def _continuation_prompt(self):
         """
@@ -561,6 +558,14 @@ class Gap_generic(ExtraTabCompletion, Expect):
             'Hi how are you?'
             sage: gap.eval('fi')
             ''
+
+        TESTS:
+
+        Whitespace is not stripped from the front of the result
+        (:trac:`28439`)::
+
+            sage: gap.eval(r'Print("  -\n\\\\-  ")')
+            '  -\n\\\\-'
         """
         # '"
         #We remove all of the comments:  On each line, we try
@@ -583,7 +588,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         result = Expect.eval(self, input_line, **kwds)
         if not newlines:
             result = result.replace("\\\n","")
-        return result.strip()
+        return result.rstrip()
 
 
     def _execute_line(self, line, wait_for_prompt=True, expect_eof=False):
@@ -617,10 +622,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
                     current_outputs.append(b'@')
                 elif x == 2: #special char
                     c = ord(E.after[1:2]) - ord(b'A') + 1
-                    if six.PY2:
-                        s = chr(c)
-                    else:
-                        s = bytes([c])
+                    s = bytes([c])
                     current_outputs.append(s)
                 elif x == 3: # garbage collection info, ignore
                     pass
@@ -735,13 +737,11 @@ class Gap_generic(ExtraTabCompletion, Expect):
             sage: a
             3
         """
-        E = None
         expect_eof = self._quit_string() in line
 
         try:
             if self._expect is None:
                 self._start()
-            E = self._expect
             if allow_use_file and wait_for_prompt and len(line) > self._eval_using_file_cutoff:
                 return self._eval_line_using_file(line)
 
@@ -764,7 +764,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             if not len(normal):
                 return ''
 
-            if isinstance(wait_for_prompt, string_types) and normal.ends_with(wait_for_prompt):
+            if isinstance(wait_for_prompt, str) and normal.ends_with(wait_for_prompt):
                 n = len(wait_for_prompt)
             elif normal.endswith(bytes_to_str(self._prompt)):
                 n = len(self._prompt)
@@ -1012,7 +1012,7 @@ class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
         # the MRO.
         return self._operation("+", other)
 
-    def bool(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -1026,6 +1026,7 @@ class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
         P = self._check_valid()
         return self != P(0) and repr(self) != 'false'
 
+    __nonzero__ = __bool__
 
     def __len__(self):
         """
@@ -1435,7 +1436,8 @@ class Gap(Gap_generic):
             if os.path.exists(tmp):
                 os.unlink(tmp)
             self.eval('PrintTo("%s", %s);'%(tmp,var), strip=False)
-            r = open(tmp).read()
+            with open(tmp) as f:
+                r = f.read()
             r = r.strip().replace("\\\n","")
             os.unlink(tmp)
             return r

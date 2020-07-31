@@ -25,6 +25,7 @@ Comprehensive Module list
     sage/combinat/baxter_permutations
     sage/combinat/binary_recurrence_sequences
     sage/combinat/binary_tree
+    sage/combinat/blob_algebra
     sage/combinat/cartesian_product
     sage/combinat/catalog_partitions
     sage/combinat/chas/__init__
@@ -119,6 +120,7 @@ Comprehensive Module list
     sage/combinat/enumeration_mod_permgroup
     sage/combinat/expnums
     sage/combinat/family
+    sage/combinat/fast_vector_partitions
     sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
     sage/combinat/fqsym
@@ -170,10 +172,14 @@ Comprehensive Module list
     sage/combinat/output
     sage/combinat/parallelogram_polyomino
     sage/combinat/parking_functions
+    sage/combinat/path_tableaux/catalog
+    sage/combinat/path_tableaux/dyck_path
+    sage/combinat/path_tableaux/path_tableau
     sage/combinat/plane_partition
     sage/combinat/partition
     sage/combinat/partition_algebra
     sage/combinat/partition_kleshchev
+    sage/combinat/partition_shifting_algebras
     sage/combinat/partition_tuple
     sage/combinat/partitions
     sage/combinat/perfect_matching
@@ -276,6 +282,7 @@ Comprehensive Module list
     sage/combinat/root_system/weight_lattice_realizations
     sage/combinat/root_system/weight_space
     sage/combinat/root_system/weyl_characters
+    sage/combinat/root_system/fusion_ring
     sage/combinat/root_system/weyl_group
     sage/combinat/rooted_tree
     sage/combinat/rsk
@@ -346,9 +353,11 @@ Comprehensive Module list
     sage/combinat/subsets_pairwise
     sage/combinat/subword
     sage/combinat/subword_complex
+    sage/combinat/super_tableau
     sage/combinat/superpartition
     sage/combinat/symmetric_group_algebra
     sage/combinat/symmetric_group_representations
+    sage/combinat/super_tableau
     sage/combinat/tableau
     sage/combinat/tableau_residues
     sage/combinat/tableau_tuple

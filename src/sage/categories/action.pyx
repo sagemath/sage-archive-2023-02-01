@@ -53,8 +53,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 from cpython.tuple cimport PyTuple_GET_ITEM
 
 from .functor cimport Functor
@@ -73,8 +71,8 @@ cdef inline category(x):
     try:
         return x.category()
     except AttributeError:
-        import sage.categories.all
-        return sage.categories.all.Objects()
+        from sage.categories.objects import Objects
+        return Objects()
 
 
 cdef class Action(Functor):
@@ -571,5 +569,3 @@ cdef class ActionEndomorphism(Morphism):
                 return ActionEndomorphism(self._action, inv_g)
             else:
                 return (~self._action)(self._g)
-
-

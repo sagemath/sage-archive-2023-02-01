@@ -1624,7 +1624,7 @@ class PseudoRiemannianMetric(TensorField):
         .. NOTE::
 
             This assumes that the manifold admits an orientation, see
-            :meth:`~sage.manifolds.manifold.TopologicalManifold.has_orientation`
+            :meth:`~sage.manifolds.manifold.DifferentiableManifold.orientation`
             for details.
 
         The volume form `\epsilon` is a `n`-form (`n` being the manifold's
@@ -1726,9 +1726,7 @@ class PseudoRiemannianMetric(TensorField):
         dom = self.domain()
         orient = dom.orientation()
         if orient is None:
-            raise ValueError('{} must admit an orientation. '.format(dom) +
-                             'use set_orientation to define a default '
-                             'orientation on {}'.format(dom))
+            raise ValueError('{} must admit an orientation'.format(dom))
         if self._vol_forms == []:
             # a new computation is necessary
             manif = self._ambient_domain
@@ -1761,7 +1759,7 @@ class PseudoRiemannianMetric(TensorField):
         .. NOTE::
 
             This assumes that the manifold admits an orientation, see
-            :meth:`~sage.manifolds.manifold.TopologicalManifold.has_orientation`
+            :meth:`~sage.manifolds.manifold.DifferentiableManifold.orientation`
             for details.
 
         If the differential form is a `p`-form `A`, its *Hodge dual* with

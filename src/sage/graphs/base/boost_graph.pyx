@@ -2156,7 +2156,7 @@ cpdef wiener_index(g, algorithm=None, weight_function=None, check_weight=True):
         sage: n = 10
         sage: g = digraphs.Circuit(n)
         sage: w = lambda x: (x*x*(x-1))/2
-        sage: g.wiener_index() == w(10)
+        sage: wiener_index(g) == w(n)
         True
     """
     import sys

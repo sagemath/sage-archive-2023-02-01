@@ -16780,6 +16780,9 @@ class GenericGraph(GenericGraph_pyx):
 
           - For graphs with negative weights:
 
+            - ``'Bellman-Ford_Boost'``: the Bellman-Ford algorithm, implemented
+              in Boost.
+
             - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
               Boost.
 
@@ -16817,6 +16820,8 @@ class GenericGraph(GenericGraph_pyx):
             15
             sage: G.wiener_index(algorithm='Dijkstra_Boost')
             15.0
+            sage: G.wiener_index(algorithm='Bellman-Ford_Boost')
+            15.0
             sage: G.wiener_index(algorithm='Johnson_Boost')
             15
             sage: G.wiener_index(algorithm='Dijkstra_NetworkX')
@@ -16830,6 +16835,14 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: g = digraphs.Complete(n)
             sage: g.wiener_index() == n * (n - 1)
+            True
+
+        Wiener index of circuit digraphs::
+
+            sage: n = 7
+            sage: g = digraphs.Circuit(n)
+            sage: w = lambda x: (x*x*(x-1))/2
+            sage: g.wiener_index(algorithm='Dijkstra_Boost') == w(n)
             True
 
         TESTS::

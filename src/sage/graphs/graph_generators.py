@@ -110,6 +110,7 @@ __append_to_doc(
      "DesarguesGraph",
      "DejterGraph",
      "DoubleStarSnark",
+     "DoublyTruncatedWittGraph",
      "DurerGraph",
      "DyckGraph",
      "EllinghamHorton54Graph",
@@ -177,6 +178,7 @@ __append_to_doc(
      "TietzeGraph",
      "TruncatedIcosidodecahedralGraph",
      "TruncatedTetrahedralGraph",
+     "TruncatedWittGraph",
      "Tutte12Cage",
      "TutteCoxeterGraph",
      "TutteGraph",
@@ -1937,6 +1939,7 @@ class GraphGenerators():
     DejterGraph              = staticmethod(smallgraphs.DejterGraph)
     DesarguesGraph           = staticmethod(smallgraphs.DesarguesGraph)
     DoubleStarSnark          = staticmethod(smallgraphs.DoubleStarSnark)
+    DoublyTruncatedWittGraph = staticmethod(distance_regular.DoublyTruncatedWittGraph)
     DurerGraph               = staticmethod(smallgraphs.DurerGraph)
     DyckGraph                = staticmethod(smallgraphs.DyckGraph)
     EllinghamHorton54Graph   = staticmethod(smallgraphs.EllinghamHorton54Graph)
@@ -2005,7 +2008,8 @@ class GraphGenerators():
     TietzeGraph              = staticmethod(smallgraphs.TietzeGraph)
     Tutte12Cage              = staticmethod(smallgraphs.Tutte12Cage)
     TruncatedIcosidodecahedralGraph = staticmethod(smallgraphs.TruncatedIcosidodecahedralGraph)
-    TruncatedTetrahedralGraph= staticmethod(smallgraphs.TruncatedTetrahedralGraph)
+    TruncatedTetrahedralGraph = staticmethod(smallgraphs.TruncatedTetrahedralGraph)
+    TruncatedWittGraph       = staticmethod(distance_regular.TruncatedWittGraph)
     TutteCoxeterGraph        = staticmethod(smallgraphs.TutteCoxeterGraph)
     TutteGraph               = staticmethod(smallgraphs.TutteGraph)
     U42Graph216              = staticmethod(smallgraphs.U42Graph216)

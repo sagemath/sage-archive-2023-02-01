@@ -399,7 +399,10 @@ def LargeWittGraph():
     The construction is taken from
     http://mathworld.wolfram.com/LargeWittGraph.html
 
-    EXAMPLES:
+    This is a distance-regular graph with intersection array
+    `[30,28,24;1,3,15]`.
+
+    EXAMPLES::
 
         sage: g = graphs.LargeWittGraph()
         sage: g.is_distance_regular(True)
@@ -419,3 +422,50 @@ def LargeWittGraph():
     W = Graph(edges, format='list_of_edges')
     W.name("Large Witt graph")
     return W
+
+def TruncatedWittGraph():
+    r"""
+    Return the truncated Witt graph.
+
+    This builds the large Witt graph, then removes
+    all vertices whose codeword start with a 1.
+
+    The graph is distance-regular with intersection array
+    `[15,14,12;1,1,9]`.
+
+    EXAMPLES::
+
+         sage: G = graphs.TruncatedWittGraph()
+         sage: G.is_distance_regular(True)
+         ([15, 14, 12, None], [None, 1, 1, 9])
+
+    """
+    # get large witt graph and remove all vertices which start with a 1
+    G = LargeWittGraph()
+    G.delete_vertices(filter(lambda x : x[0] == 1, G.vertices()))
+
+    G.name("Truncated Witt graph")
+    return G
+
+def DoublyTruncatedWittGraph():
+    r"""
+    Return the doubly truncated Witt graph.
+
+    This builds the truncated Witt graph, then removes
+    all vertices whose codeword start with a 1.
+
+    The graph is distance-regular with intersection array
+    `[7,6,4,4;1,1,1,6]`.
+
+    EXAMPLES::
+
+         sage: G = graphs.DoublyTruncatedWittGraph()
+         sage: G.is_distance_regular(True)
+         ([7, 6, 4, 4, None], [None, 1, 1, 1, 6])
+    """
+
+    G = TruncatedWittGraph()
+    G.delete_vertices(filter(lambda x : x[1] == 1, G.vertices()))
+
+    G.name("Doubly Truncated Witt graph")
+    return G

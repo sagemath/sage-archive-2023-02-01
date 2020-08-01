@@ -2123,7 +2123,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
         ALGORITHM:
 
-        Instead of working with cosets we compute the (direct sum) complement
+        Instead of working with cosets we compute a (direct sum) complement
         of `C`. Let `P` be the projection of the cosets to the newly found
         subspace. Then two vectors are adjacent if they differ by
         `\lambda P(e_i)` for some `i`.

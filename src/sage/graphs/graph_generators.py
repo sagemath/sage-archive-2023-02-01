@@ -145,7 +145,7 @@ __append_to_doc(
      "KrackhardtKiteGraph",
      "Klein3RegularGraph",
      "Klein7RegularGraph",
-     "locally_GQ42_graph",
+     "locally_GQ42_distance_transitive_graph",
      "LocalMcLaughlinGraph",
      "LjubljanaGraph",
      "LivingstoneGraph",
@@ -1969,7 +1969,7 @@ class GraphGenerators():
     KrackhardtKiteGraph      = staticmethod(smallgraphs.KrackhardtKiteGraph)
     Klein3RegularGraph       = staticmethod(smallgraphs.Klein3RegularGraph)
     Klein7RegularGraph       = staticmethod(smallgraphs.Klein7RegularGraph)
-    locally_GQ42_graph       = staticmethod(distance_regular.locally_GQ42_graph)
+    locally_GQ42_distance_transitive_graph = staticmethod(distance_regular.locally_GQ42_distance_transitive_graph)
     LocalMcLaughlinGraph     = staticmethod(smallgraphs.LocalMcLaughlinGraph)
     LjubljanaGraph           = staticmethod(smallgraphs.LjubljanaGraph)
     LivingstoneGraph         = staticmethod(smallgraphs.LivingstoneGraph)

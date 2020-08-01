@@ -68,10 +68,10 @@ def cocliques_HoffmannSingleton():
     G = Graph(edges, format="list_of_edges")
     return G
 
-def locally_GQ42_graph():
+def locally_GQ42_distance_transitive_graph():
     r"""
-    Return the unique amply regular graph which is locally a generalised
-    quadrangle.
+    Return the unique amply regular graph with `\mu = 6` which is locally
+    a generalised quadrangle.
 
     This graph is distance-regular with intersection array
     `[45, 32, 12, 1; 1, 6, 32, 45]`.
@@ -80,9 +80,14 @@ def locally_GQ42_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.locally_GQ42_graph()  # optional - internet
+        sage: G = graphs.locally_GQ42_distance_transitive_graph()  # optional - internet
         sage: G.is_distance_regular(True)  # optional - internet
         ([45, 32, 12, 1, None], [None, 1, 6, 32, 45])
+
+    REFERENCES:
+
+    A description of this graph can be found in [BCN1989]_ p.399.
+    This construction is due to Dima Pasechnik.
     """
     H = libgap.AtlasGroup("3^2.U4(3).D8", libgap.NrMovedPoints, 756)
     Ns = H.NormalSubgroups()
@@ -107,6 +112,11 @@ def ConwaySmith_for_3S7():
         sage: G = graphs.ConwaySmith_for_3S7()
         sage: G.is_distance_regular(True)
         ([10, 6, 4, 1, None], [None, 1, 2, 6, 10])
+
+    REFERENCES:
+
+    A description and construction of this graph can be found in
+    [BCN1989]_ p. 399.
     """
     from sage.rings.number_field.number_field import CyclotomicField
     import itertools
@@ -187,6 +197,11 @@ def graph_3O73():
         sage: G = graphs.graph_3O73()  # optional - internet
         sage: G.is_distance_regular(True)  # optional - internet
         ([117, 80, 24, 1, None], [None, 1, 12, 80, 117])
+
+    REFERENCES:
+
+    A description and construction of this graph can be found in
+    [BCN1989]_ p. 400.
     """
     group = libgap.AtlasGroup("3.O7(3)", libgap.NrMovedPoints, 1134)
     G = Graph(libgap.Orbit(group, [1, 3], libgap.OnSets), format='list_of_edges')

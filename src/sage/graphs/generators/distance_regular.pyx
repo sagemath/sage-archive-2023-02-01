@@ -63,7 +63,7 @@ def cocliques_HoffmannSingleton():
     edges = []
     for c1, c2 in itertools.combinations(cocliques, 2):
         if len(c1.intersection(c2)) == 8:
-                edges.append((c1, c2))
+            edges.append((c1, c2))
 
     G = Graph(edges, format="list_of_edges")
     return G

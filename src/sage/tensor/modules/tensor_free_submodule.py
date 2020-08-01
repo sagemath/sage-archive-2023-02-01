@@ -14,7 +14,6 @@ Free submodules of tensor products of free modules
 from sage.misc.cachefunc import cached_method
 from .tensor_free_module import TensorFreeModule
 from .finite_rank_free_module import FiniteRankFreeModule
-from .tensor_free_submodule_basis import TensorFreeSubmoduleBasis_comp
 
 class TensorFreeSubmodule_comp(TensorFreeModule):
     r"""
@@ -70,24 +69,3 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
 
         """
         raise NotImplementedError
-
-    @cached_method
-    def basis(self, symbol):
-        r"""
-
-        EXAMPLES::
-
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
-            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: Sym2M = TensorFreeSubmodule_comp(M, (2, 0), sym=range(2))
-            sage: e_Sym2M = Sym2M.basis('e'); e_Sym2M
-            <sage.tensor.modules.tensor_free_submodule_basis.TensorFreeSubmoduleBasis_comp object at ...>
-            sage: for a in e_Sym2M: a.display()
-            e_0*e_0
-            e_0*e_1
-            e_0*e_2
-            e_1*e_1
-            e_1*e_2
-            e_2*e_2
-        """
-        return TensorFreeSubmoduleBasis_comp(self, symbol)

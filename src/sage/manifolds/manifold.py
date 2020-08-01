@@ -1627,7 +1627,7 @@ class TopologicalManifold(ManifoldSubset):
         An *orientation* of an `n`-dimensional topologial manifold is an
         atlas of charts whose transition maps are orientation preserving. A
         homeomorphism `f \colon U \to V` for open subsets `U, V \subset \RR^n`
-        is called *orientation preservion* if for each `x \in U` the
+        is called *orientation preserving* if for each `x \in U` the
         following map between singular homologies is the identity:
 
         .. MATH::
@@ -1642,7 +1642,7 @@ class TopologicalManifold(ManifoldSubset):
         .. NOTE::
 
             Notice that for differentiable manifolds, the notion of
-            orientability does not need homology theory. See
+            orientability does not need homology theory at all. See
             :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.orientation`
             for details
 

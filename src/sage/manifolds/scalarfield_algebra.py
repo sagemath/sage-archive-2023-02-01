@@ -587,6 +587,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
                                   coord_expression=coord_express,
                                   name='zero', latex_name='0')
         zero._is_zero = True
+        zero.set_immutable()
         return zero
 
     @cached_method
@@ -616,6 +617,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         """
         coord_express = {chart: chart.one_function()
                          for chart in self._domain.atlas()}
-        return self.element_class(self,
-                                  coord_expression=coord_express,
-                                  name='1', latex_name='1')
+        one = self.element_class(self, coord_expression=coord_express,
+                                 name='1', latex_name='1')
+        one.set_immutable()
+        return one

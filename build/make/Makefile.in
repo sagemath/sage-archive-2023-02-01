@@ -470,12 +470,12 @@ comma := ,
 ifeq "$(origin SAGE_CHECK_PACKAGES)" "undefined"
 SAGE_CHECK_PACKAGES := $(SAGE_CHECK_PACKAGES_DEFAULT$(SAGE_CHECK))
 endif
-SAGE_CHECK_PACKAGES := $(subst $(comma), ,$(SAGE_CHECK_PACKAGES))
-SAGE_CHECK_PACKAGES := $(subst :, ,$(SAGE_CHECK_PACKAGES))
+SAGE_CHECK_PACKAGES_sep := $(subst $(comma), ,$(SAGE_CHECK_PACKAGES))
+SAGE_CHECK_PACKAGES_sep := $(subst :, ,$(SAGE_CHECK_PACKAGES_sep))
 define SET_SAGE_CHECK
 $(eval SAGE_CHECK_$(1) := $(2))
 endef
-$(foreach clause, $(SAGE_CHECK_PACKAGES),					\
+$(foreach clause, $(SAGE_CHECK_PACKAGES_sep),					\
      $(if $(findstring !,$(clause)),						\
 	  $(eval $(call SET_SAGE_CHECK,$(subst !,,$(clause)),no)),		\
 	  $(if $(findstring ?,$(clause)),					\

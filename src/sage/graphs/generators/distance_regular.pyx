@@ -96,7 +96,7 @@ def locally_GQ42_distance_transitive_graph():
             break
 
     G = Graph(libgap.Orbit(N, [1, 9], libgap.OnSets), format='list_of_edges')
-    G.name("locally GQ(4,2) graph")
+    G.name("locally GQ(4,2) distance transitive graph")
     return G
 
 

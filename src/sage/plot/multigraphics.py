@@ -1294,12 +1294,12 @@ class GraphicsArray(MultiGraphics):
             sage: g1 = plot(sin(x), (x, -pi, pi))
             sage: g2 = circle((0,1), 1.)
             sage: G = graphics_array([g1, g2])
-            sage: G.position(0)  # tol 1.0e-13
+            sage: G.position(0)  # tol 1.0e-3
             (0.025045451349937315,
              0.03415488992713045,
              0.4489880779745068,
              0.9345951100728696)
-            sage: G.position(1)  # tol 1.0e-13
+            sage: G.position(1)  # tol 1.0e-3
             (0.5170637412999687,
              0.20212705964722733,
              0.4489880779745068,

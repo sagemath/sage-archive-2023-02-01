@@ -105,10 +105,10 @@ potential `A(t)`::
     sage: nab = E.bundle_connection('nabla^E', latex_name=r'\nabla^E')
     sage: omega = M.one_form(name='omega')
     sage: A = function('A')
-    sage: omega[1] = I*A(t)
-    sage: omega.display()
-    omega = I*A(t) dx
-    sage: nab.set_connection_form(0, 0, omega)
+    sage: nab.set_connection_form(0, 0)[1] = I*A(t)
+    sage: nab[0, 0].display()
+    connection (0,0) of bundle connection nabla^E w.r.t. Local frame
+     (E|_M, (e_0)) = I*A(t) dx
 
 The Chern character is then given by::
 
@@ -181,7 +181,7 @@ is given by `1+|z|^2`::
     sage: nab = E.bundle_connection('nabla')
     sage: omega = U.one_form(name='omega')
     sage: omega[c_comp.frame(),1,c_comp] = zbar/(1+z*zbar)
-    sage: nab.set_connection_form(1, 1, omega, frame=e)
+    sage: nab[e, 1, 1] = omega
 
 Now, the Chern class can be constructed::
 
@@ -669,10 +669,10 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
             sage: nab = E.bundle_connection('nabla^E', latex_name=r'\nabla^E')
             sage: omega = M.one_form(name='omega')
             sage: A = function('A')
-            sage: omega[1] = I*A(t)
-            sage: omega.display()
-            omega = I*A(t) dx
-            sage: nab.set_connection_form(0, 0, omega)
+            sage: nab.set_connection_form(0, 0)[1] = I*A(t)
+            sage: nab[0, 0].display()
+            connection (0,0) of bundle connection nabla^E w.r.t. Local frame
+             (E|_M, (e_0)) = I*A(t) dx
 
         The Chern character is then given by::
 

@@ -14,7 +14,6 @@ User Interface
 
 * :doc:`Command Line Interface (REPL) <repl/index>`
 * For the Jupyter notebook interface, visit `its documentation <https://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_.
-* For the legacy notebook interface, which is no longer actively maintained, visit the `source repository <https://github.com/sagemath/sagenb>`_.
 
 Graphics
 ========

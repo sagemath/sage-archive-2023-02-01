@@ -1158,60 +1158,6 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         G = left.augment(right)
         return LinearCode(G)
 
-    def __eq__(self, right):
-        """
-        Checks if ``self`` is equal to ``right``.
-
-        EXAMPLES::
-
-            sage: C1 = codes.HammingCode(GF(2), 3)
-            sage: C2 = codes.HammingCode(GF(2), 3)
-            sage: C1 == C2
-            True
-
-        TESTS:
-
-        We check that :trac:`16644` is fixed::
-
-            sage: C = codes.HammingCode(GF(2), 3)
-            sage: C == ZZ
-            False
-        """
-        if not (isinstance(right, LinearCode)\
-                and self.length() == right.length()\
-                and self.dimension() == right.dimension()\
-                and self.base_ring() == right.base_ring()):
-            return False
-        Ks = self.parity_check_matrix().right_kernel()
-        rbas = right.gens()
-        if not all(c in Ks for c in rbas):
-            return False
-        Kr = right.parity_check_matrix().right_kernel()
-        sbas = self.gens()
-        if not all(c in Kr for c in sbas):
-            return False
-        return True
-
-    def __ne__(self, other):
-        r"""
-        Tests inequality of ``self`` and ``other``.
-
-        This is a generic implementation, which returns the inverse of ``__eq__`` for self.
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C1 = LinearCode(G)
-            sage: C2 = LinearCode(G)
-            sage: C1 != C2
-            False
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,1,1]])
-            sage: C2 = LinearCode(G)
-            sage: C1 != C2
-            True
-        """
-        return not self == other
-
     def extended_code(self):
         r"""
         Returns `self` as an extended code.

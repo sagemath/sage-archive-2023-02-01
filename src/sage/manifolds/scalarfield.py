@@ -391,9 +391,9 @@ class ScalarField(CommutativeAlgebraElement):
     field::
 
         sage: s = f + 1 ; s
-        Scalar field on the 2-dimensional topological manifold M
+        Scalar field f+1 on the 2-dimensional topological manifold M
         sage: s.display()
-        M --> R
+        f+1: M --> R
         on U: (x, y) |--> (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
         on V: (u, v) |--> (2*u^2 + 2*v^2 + 1)/(u^2 + v^2 + 1)
         sage: (f+1)-1 == f
@@ -850,9 +850,9 @@ class ScalarField(CommutativeAlgebraElement):
     field::
 
         sage: s = f + 1 ; s
-        Scalar field on the 2-dimensional topological manifold M
+        Scalar field f+1 on the 2-dimensional topological manifold M
         sage: s.display()
-        M --> R
+        f+1: M --> R
         on U: (x, y) |--> (x**2 + y**2 + 2)/(x**2 + y**2 + 1)
         on V: (u, v) |--> (2*u**2 + 2*v**2 + 1)/(u**2 + v**2 + 1)
         sage: (f+1)-1 == f
@@ -1265,8 +1265,13 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
+        from sage.manifolds.differentiable.mixed_form import MixedForm
+
         if other is self:
             return True
+        if isinstance(other, MixedForm):
+            # use comparison of MixedForm:
+            return other == self
         if not isinstance(other, ScalarField):
             # We try a conversion of other to a scalar field, except if
             # other is None (since this would generate an undefined scalar
@@ -2663,8 +2668,17 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        if number == 0:
-            return self.parent().zero()
+        try:
+            if number.is_trivial_zero():
+                return self.parent().zero()
+            if (number - 1).is_trivial_zero():
+                return self
+        except AttributeError:
+            # in case base ring is not SR:
+            if number == 0:
+                return self.parent().zero()
+            if number == 1:
+                return self
         result = type(self)(self.parent())
         if isinstance(number, Expression):
             var = number.variables()  # possible symbolic variables in number

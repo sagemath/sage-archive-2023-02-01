@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 
 # Run the Python interpreter that we are currently building Sage with

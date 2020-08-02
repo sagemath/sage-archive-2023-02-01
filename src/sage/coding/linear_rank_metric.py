@@ -54,9 +54,9 @@ computing the minimum distance, etc. Many of these algorithms are slow,
 e.g. exponential in the code length. It also contains methods for swapping
 between vector and matrix representation of elements.
 
-``AbstractLinearCode`` is an abstract class for linear rank metric codes,
+``AbstractLinearCodeNoMetric`` is an abstract class for linear rank metric codes,
 so any linear rank metric code  class should inherit from this class.
-Also ``AbstractLinearCode`` should never itself be instantiated.
+Also ``AbstractLinearCodeNoMetric`` should never itself be instantiated.
 
 See :class:`sage.coding.linear_rank_metric.AbstractLinearRankMetricCode`
 for details and examples.

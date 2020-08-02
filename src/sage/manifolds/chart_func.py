@@ -2604,7 +2604,7 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
 
     EXAMPLES:
 
-    The ring of all chart function w.r.t. to a chart::
+    The ring of all chart functions w.r.t. to a chart::
 
         sage: M = Manifold(2, 'M', structure='topological')
         sage: X.<x,y> = M.chart()

@@ -515,6 +515,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
                                     start_index=fmodule._sindex,
                                     output_formatter=fmodule._output_formatter)
         resu._is_identity = True
+        resu.set_immutable()
         return resu
 
     #### End of monoid methods ####

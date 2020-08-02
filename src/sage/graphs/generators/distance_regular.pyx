@@ -222,6 +222,11 @@ def FosterGraph3S6():
         sage: G = graphs.FosterGraph3S6()
         sage: G.is_distance_regular(True)
         ([6, 4, 2, 1, None], [None, 1, 1, 4, 6])
+
+    REFERENCES:
+
+    A description and construction of this graph can be found in
+    [BCN1989]_ p. 397.
     """
 
     a = libgap.eval(("(2,6)(3,5)(4,11)(7,17)(8,16)(9,14)(13,22)(15,25)"
@@ -243,14 +248,14 @@ def J2Graph():
 
     EXAMPLES::
 
-        sage: G = graphs.J2Graph()  # optional - gap_packages
-        sage: G.is_distance_regular(True) # optional - gap_packages
+        sage: G = graphs.J2Graph()  # optional - internet
+        sage: G.is_distance_regular(True) # optional - internet
         ([10, 8, 8, 2, None], [None, 1, 1, 4, 5])
 
-    .. NOTE::
+    REFERENCES:
 
-        This function needs the GAP's package AtlasRep [WPNBBAtl]_.
-        Install it via ``sage -i gap_packages``.
+    A description and construction of this graph can be found in
+    [BCN1989]_ p. 408.
     """
     group = libgap.AtlasGroup("J2", libgap.NrMovedPoints, 315)
     G = Graph(group.Orbit([1, 9], libgap.OnSets), format='list_of_edges')
@@ -265,14 +270,14 @@ def IvanovIvanovFaradjevGraph():
 
     EXAMPLES::
 
-        sage: G = graphs.IvanovIvanovFaradjevGraph()
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.IvanovIvanovFaradjevGraph()  # optional - internet
+        sage: G.is_distance_regular(True)  # optional - internet
         ([7, 6, 4, 4, 4, 1, 1, 1, None], [None, 1, 1, 1, 2, 4, 4, 6, 7])
 
-    .. NOTE::
+    REFERENCES:
 
-        This function needs the GAP's package AtlasRep [WPNBBAtl]_.
-        Install it via ``sage -i gap_packages``.
+    A description and construction of this graph can be found in
+    [BCN1989]_ p. 369.
     """
 
     group = libgap.AtlasGroup("3.M22", libgap.NrMovedPoints, 990)
@@ -285,9 +290,6 @@ def LargeWittGraph():
     r"""
     Return the large Witt graph.
 
-    The construction is taken from
-    http://mathworld.wolfram.com/LargeWittGraph.html
-
     This is a distance-regular graph with intersection array
     `[30,28,24;1,3,15]`.
 
@@ -296,6 +298,13 @@ def LargeWittGraph():
         sage: g = graphs.LargeWittGraph()
         sage: g.is_distance_regular(True)
         ([30, 28, 24, None], [None, 1, 3, 15])
+
+    REFERENCES:
+
+    A description of this graph can be found in
+    [BCN1989]_ p. 366.
+    This construction is taken from
+    http://mathworld.wolfram.com/LargeWittGraph.html
     """
     from sage.coding import codes_catalog as codes
     import itertools
@@ -328,6 +337,10 @@ def TruncatedWittGraph():
          sage: G.is_distance_regular(True)
          ([15, 14, 12, None], [None, 1, 1, 9])
 
+    REFERENCES:
+
+    A description and construction of this graph can be found in
+    [BCN1989]_ p. 367.
     """
     # get large witt graph and remove all vertices which start with a 1
     G = LargeWittGraph()
@@ -351,6 +364,11 @@ def DoublyTruncatedWittGraph():
          sage: G = graphs.DoublyTruncatedWittGraph()
          sage: G.is_distance_regular(True)
          ([7, 6, 4, 4, None], [None, 1, 1, 1, 6])
+
+    REFERENCES:
+
+    A description and construction of this graph can be found in
+    [BCN1989]_ p. 368.
     """
 
     G = TruncatedWittGraph()

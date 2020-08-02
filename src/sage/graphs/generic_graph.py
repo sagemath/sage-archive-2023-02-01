@@ -12088,6 +12088,10 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return a list of vertices with the indicated degree.
         
+        INPUT:
+
+        - ``degree`` -- a degree to match with each vertex in the graph
+        
         EXAMPLES:
         
         sage: G = graphs.CompleteGraph(5)

@@ -2160,10 +2160,18 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             from sage.graphs.graph_generators import GraphGenerators
             return GraphGenerators.HammingGraph(self.length(), F.order())
 
+        # we need to find a basis for the complement
         M = matrix(F, self.basis())
-        M.echelonize()  # don't think this is needed
+        M.echelonize()
         C_basis = M.rows()
-        U_basis = [e(i) for i in range(len(C_basis)+1, self.length()+1)]
+
+        # we use Steinitz exchange lemma on [e_1, ..., e_n]
+        # to obtain a basis of V which includes C_basis
+        U_basis = list(range(self.length()))  # i represents e_{i+1}
+        for v in C_basis:
+            i = v.support()[0]
+            U_basis.remove(i)  # swap e_{i+1} with v
+        U_basis = [e(i+1) for i in U_basis]
 
         V = VectorSpace(F, self.length())
         U = V.span(U_basis)
@@ -2186,8 +2194,9 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
                 v = vector(F, [0]*self.length())
                 for i in range(len(U_basis)):
                     v += a[i]*U_basis[i]
-                v.set_immutable()
-                Pei.append(v)
+                if not v.is_zero():  # don't care about 0 vectors
+                    v.set_immutable()
+                    Pei.append(v)
 
         lPei = [l*u for l in F for u in Pei if not l.is_zero()]
 

@@ -1084,6 +1084,19 @@ cdef class RealDoubleElement(FieldElement):
         """
         return double_repr(self._value)
 
+    def __format__(self, format_spec):
+        """
+        Return a formatted string representation of this real number.
+
+        EXAMPLES::
+
+            sage: format(RDF(32/3), '.4f')
+            '10.6667'
+            sage: '{:.4e}'.format(RDF(2/3))
+            '6.6667e-01'
+        """
+        return format(float(self), format_spec)
+
     def _latex_(self):
         r"""
         Return a latex representation of ``self``.

@@ -141,13 +141,14 @@ cdef class ntl_ZZ_pEX(object):
 
     def __reduce__(self):
         """
-        TESTS:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: loads(dumps(f)) == f
-        True
+        TESTS::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: loads(dumps(f)) == f
+            True
         """
         return make_ZZ_pEX, (self.list(), self.get_modulus_context())
 
@@ -155,13 +156,14 @@ cdef class ntl_ZZ_pEX(object):
         """
         Returns a string representation of self.
 
-        TESTS:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f
-        [[3 2] [1 2] [1 2]]
+        TESTS::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f
+            [[3 2] [1 2] [1 2]]
         """
         self.c.restore_c()
         return ccrepr(self.x)
@@ -170,20 +172,21 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return a copy of self.
 
-        TESTS:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f
-        [[3 2] [1 2] [1 2]]
-        sage: y = copy(f)
-        sage: y == f
-        True
-        sage: y is f
-        False
-        sage: f[0] = 0; y
-        [[3 2] [1 2] [1 2]]
+        TESTS::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f
+            [[3 2] [1 2] [1 2]]
+            sage: y = copy(f)
+            sage: y == f
+            True
+            sage: y is f
+            False
+            sage: f[0] = 0; y
+            [[3 2] [1 2] [1 2]]
         """
         cdef ntl_ZZ_pEX r = self._new()
         #self.c.restore_c() ## _new() restores
@@ -378,9 +381,6 @@ cdef class ntl_ZZ_pEX(object):
         if not divisible:
             raise ArithmeticError("self (=%s) is not divisible by other (=%s)" % (self, other))
         return r
-
-    def __div__(self, other):
-        return self / other
 
     def __mod__(ntl_ZZ_pEX self, ntl_ZZ_pEX other):
         """

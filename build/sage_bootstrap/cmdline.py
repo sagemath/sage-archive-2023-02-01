@@ -69,6 +69,13 @@ EXAMPLE:
     autotools
     [...]
     zn_poly
+
+    $ sage --package list :standard: | sort
+    arb
+    atlas
+    backports_ssl_match_hostname
+    [...]
+    zn_poly
 """
 
 
@@ -115,6 +122,16 @@ EXAMPLE:
 """
 
 
+epilog_update_latest = \
+"""
+Update a package to the latest version. This modifies the Sage sources. 
+    
+EXAMPLE:
+
+    $ sage --package update-latest ipython
+"""
+
+
 epilog_download = \
 """
 Download the tarball for a package and print the filename to stdout
@@ -124,6 +141,17 @@ EXAMPLE:
     $ sage --package download pari
     Using cached file /home/vbraun/Code/sage.git/upstream/pari-2.8-2044-g89b0f1e.tar.gz
     /home/vbraun/Code/sage.git/upstream/pari-2.8-2044-g89b0f1e.tar.gz
+"""
+
+
+epilog_upload = \
+"""
+Upload the tarball to the Sage mirror network (requires ssh key authentication)
+    
+EXAMPLE:
+
+    $ sage --package upload pari
+    Uploading /home/vbraun/Code/sage.git/upstream/pari-2.8-2044-g89b0f1e.tar.gz
 """
 
 
@@ -170,6 +198,10 @@ def make_parser():
         'list', epilog=epilog_list,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         help='Print a list of all available packages')
+    parser_list.add_argument(
+        'package_class',
+        type=str, default=':all:', nargs='?',
+        help='Package class like :all: (default) or :standard:')
 
     parser_name = subparsers.add_parser(
         'name', epilog=epilog_name,
@@ -202,15 +234,29 @@ def make_parser():
     parser_update.add_argument(
         '--url', type=str, default=None, help='Download URL')
 
+    parser_update_latest = subparsers.add_parser(
+        'update-latest', epilog=epilog_update_latest,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        help='Update a package to the latest version. This modifies the Sage sources.')
+    parser_update_latest.add_argument(
+        'package_name', type=str, help='Package name (:all: for all packages)')
+
     parser_download = subparsers.add_parser(
         'download', epilog=epilog_download,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         help='Download tarball')
     parser_download.add_argument(
-        'package_name', type=str, help='Package name')
+        'package_name', type=str, help='Package name or :type:')
     parser_download.add_argument(
         '--allow-upstream', action="store_true",
         help='Whether to fall back to downloading from the upstream URL')
+
+    parser_upload = subparsers.add_parser(
+        'upload', epilog=epilog_upload,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        help='Upload tarball to Sage mirrors')
+    parser_upload.add_argument(
+        'package_name', type=str, help='Package name or :type:')
     
     parser_fix_checksum = subparsers.add_parser(
         'fix-checksum', epilog=epilog_fix_checksum,
@@ -254,7 +300,7 @@ def run():
     if args.subcommand == 'config':
         app.config()
     elif args.subcommand == 'list':
-        app.list()
+        app.list_cls(args.package_class)
     elif args.subcommand == 'name':
         app.name(args.tarball_filename)
     elif args.subcommand == 'tarball':
@@ -263,10 +309,17 @@ def run():
         app.apropos(args.incorrect_name)
     elif args.subcommand == 'update':
         app.update(args.package_name, args.new_version, url=args.url)
+    elif args.subcommand == 'update-latest':
+        if args.package_name == ':all:':
+            app.update_latest_all()
+        else:
+            app.update_latest(args.package_name)
     elif args.subcommand == 'download':
-        app.download(args.package_name, args.allow_upstream)
+        app.download_cls(args.package_name, args.allow_upstream)
     elif args.subcommand == 'create':
         app.create(args.package_name, args.version, args.tarball, args.type, args.url)
+    elif args.subcommand == 'upload':
+        app.upload_cls(args.package_name)
     elif args.subcommand == 'fix-checksum':
         if args.package_name is None:
             app.fix_all_checksums()

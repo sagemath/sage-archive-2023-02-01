@@ -937,14 +937,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
         elif isinstance(right, Rational):
             c = -mpq_cmp_z((<Rational>right).value, (<Integer>left).value)
-        elif isinstance(right, long):
+        elif isinstance(right, int):
             mpz_init(mpz_tmp)
             mpz_set_pylong(mpz_tmp, right)
             c = mpz_cmp((<Integer>left).value, mpz_tmp)
             mpz_clear(mpz_tmp)
-        elif isinstance(right, int):
-            # this case should only occur in python 2
-            c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
         elif isinstance(right, float):
             d = right
             if isnan(d):
@@ -955,20 +952,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return rich_to_bool_sgn(op, c)
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         r"""
         EXAMPLES::
 
-            sage: 1._cmp_(2)
-            -1
-            sage: 0._cmp_(0)
-            0
-            sage: (-3**10 + 1)._cmp_(-3**10)
-            1
+            sage: from sage.structure.richcmp import op_EQ, op_NE, op_LT, op_GE
+            sage: 1._richcmp_(2, op_LT)
+            True
+            sage: 0._richcmp_(0, op_EQ)
+            True
+            sage: (-4)._richcmp_(-4, op_NE)
+            False
+            sage: (-3**10 + 1)._richcmp_(-3**10, op_GE)
+            True
         """
         cdef int c
         c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
-        return (c > 0) - (c < 0)
+        return rich_to_bool_sgn(op, c)
 
     def __copy__(self):
         """
@@ -2013,7 +2013,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_mul(x.value, self.value, (<Integer>right).value)
         return x
 
-    def __div__(left, right):
+    def __truediv__(left, right):
         r"""
         TESTS::
 
@@ -3860,7 +3860,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            - ``'pari'`` - (default) use the PARI library
 
            - ``'kash'`` - use the KASH computer algebra system (requires
-             the optional kash package)
+             kash)
 
            - ``'magma'`` - use the MAGMA computer algebra system (requires
              an installation of MAGMA)
@@ -7479,7 +7479,6 @@ cdef integer(x):
     if isinstance(x, Integer):
         return x
     return Integer(x)
-
 
 def free_integer_pool():
     cdef int i

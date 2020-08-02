@@ -23,7 +23,10 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.functions.other import binomial
 from sage.misc.rest_index_of_methods import gen_rest_table_index
+from sage.combinat.posets.hasse_cython import (moebius_matrix_fast,
+                                               coxeter_matrix_fast)
 
+from collections import deque
 
 class LatticeError(ValueError):
     """
@@ -943,31 +946,29 @@ class HasseDiagram(DiGraph):
                     self._moebius_function_values[(i, j)] = -sum(self.moebius_function(i, k) for k in ci[:-1])
         return self._moebius_function_values[(i, j)]
 
-    def moebius_function_matrix(self, algorithm='recursive'):
+    def moebius_function_matrix(self, algorithm='cython'):
         r"""
         Return the matrix of the Möbius function of this poset.
 
-        This returns the sparse matrix over `\ZZ` whose ``(x, y)`` entry
+        This returns the matrix over `\ZZ` whose ``(x, y)`` entry
         is the value of the Möbius function of ``self`` evaluated on
-        ``x`` and ``y``, and redefines :meth:`moebius_function` to use
-        it.
+        ``x`` and ``y``, and redefines :meth:`moebius_function` to use it.
 
         INPUT:
 
-        - ``algorithm`` -- optional, ``'recursive'`` (default) or ``'matrix'``
+        - ``algorithm`` -- optional, ``'recursive'``, ``'matrix'``
+          or ``'cython'`` (default)
 
-        This uses either the recursive formula or one matrix inversion.
+        This uses either the recursive formula, a generic matrix inversion
+        or a specific matrix inversion coded in Cython.
+
+        OUTPUT:
+
+        a dense matrix for the algorithm ``cython``, a sparse matrix otherwise
 
         .. NOTE::
 
             The result is cached in :meth:`_moebius_function_matrix`.
-
-        .. TODO::
-
-            Try to make a specific multimodular matrix inversion
-            algorithm for this kind of sparse triangular matrices
-            where the non-zero entries of the inverse are in known
-            positions.
 
         .. SEEALSO:: :meth:`lequal_matrix`, :meth:`coxeter_transformation`
 
@@ -996,12 +997,23 @@ class HasseDiagram(DiGraph):
             True
 
             sage: H = posets.TamariLattice(3)._hasse_diagram
-            sage: H.moebius_function_matrix('matrix')
+            sage: M = H.moebius_function_matrix('matrix'); M
             [ 1 -1 -1  0  1]
             [ 0  1  0  0 -1]
             [ 0  0  1 -1  0]
             [ 0  0  0  1 -1]
             [ 0  0  0  0  1]
+            sage: _ = H.__dict__.pop('_moebius_function_matrix')
+            sage: H.moebius_function_matrix('cython') == M
+            True
+            sage: _ = H.__dict__.pop('_moebius_function_matrix')
+            sage: H.moebius_function_matrix('recursive') == M
+            True
+            sage: _ = H.__dict__.pop('_moebius_function_matrix')
+            sage: H.moebius_function_matrix('banana')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm
         """
         if not hasattr(self, '_moebius_function_matrix'):
             if algorithm == 'recursive':
@@ -1019,8 +1031,12 @@ class HasseDiagram(DiGraph):
                                                 for j in available
                                                 if k in greater_than[j])
                 M = matrix(ZZ, n, n, m, sparse=True)
-            else:
+            elif algorithm == "matrix":
                 M = self.lequal_matrix().inverse_of_unit()
+            elif algorithm == "cython":
+                M = moebius_matrix_fast(self._leq_storage)
+            else:
+                raise ValueError("unknown algorithm")
             self._moebius_function_matrix = M
             self._moebius_function_matrix.set_immutable()
             self.moebius_function = self._moebius_function_from_matrix
@@ -1048,30 +1064,51 @@ class HasseDiagram(DiGraph):
         return self._moebius_function_matrix[i, j]
 
     @cached_method
-    def coxeter_transformation(self):
+    def coxeter_transformation(self, algorithm='cython'):
         r"""
         Return the matrix of the Auslander-Reiten translation acting on
         the Grothendieck group of the derived category of modules on the
         poset, in the basis of simple modules.
 
+        INPUT:
+
+        - ``algorithm`` -- optional, ``'cython'`` (default) or ``'matrix'``
+
+        This uses either a specific matrix code in Cython, or generic matrices.
+
         .. SEEALSO:: :meth:`lequal_matrix`, :meth:`moebius_function_matrix`
 
         EXAMPLES::
 
-            sage: M = posets.PentagonPoset()._hasse_diagram.coxeter_transformation(); M
+            sage: P = posets.PentagonPoset()._hasse_diagram
+            sage: M = P.coxeter_transformation(); M
             [ 0  0  0  0 -1]
             [ 0  0  0  1 -1]
             [ 0  1  0  0 -1]
             [-1  1  1  0 -1]
             [-1  1  0  1 -1]
+            sage: P.__dict__['coxeter_transformation'].clear_cache()
+            sage: P.coxeter_transformation(algorithm="matrix") == M
+            True
 
         TESTS::
 
-            sage: M = posets.PentagonPoset()._hasse_diagram.coxeter_transformation()
+            sage: P = posets.PentagonPoset()._hasse_diagram
+            sage: M = P.coxeter_transformation()
             sage: M**8 == 1
             True
+            sage: P.__dict__['coxeter_transformation'].clear_cache()
+            sage: P.coxeter_transformation(algorithm="banana")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm
         """
-        return - self.lequal_matrix() * self.moebius_function_matrix().transpose()
+        if algorithm == 'matrix':
+            return - self.lequal_matrix() * self.moebius_function_matrix().transpose()
+        elif algorithm == 'cython':
+            return coxeter_matrix_fast(self._leq_storage)
+        else:
+            raise ValueError("unknown algorithm")
 
     def order_filter(self, elements):
         r"""
@@ -1115,6 +1152,32 @@ class HasseDiagram(DiGraph):
         """
         return sorted(self.depth_first_search(elements,
                                               neighbors=self.neighbors_in))
+
+    def order_ideal_cardinality(self, elements):
+        r"""
+        Return the cardinality of the order ideal generated by ``elements``.
+
+        `I` is an order ideal if, for any `x` in `I` and `y` such that
+        `y \le x`, then `y` is in `I`.
+
+        EXAMPLES::
+
+            sage: H = posets.BooleanLattice(4)._hasse_diagram
+            sage: H.order_ideal_cardinality([7,10])
+            10
+        """
+        seen = set()
+        q = deque(elements)
+        size = 0
+        while q:
+            v = q.popleft()
+            if v in seen:
+                continue
+            size += 1
+            seen.add(v)
+            q.extend(self.neighbors_in(v))
+
+        return size
 
     def principal_order_ideal(self, i):
         """
@@ -1213,12 +1276,9 @@ class HasseDiagram(DiGraph):
             Integer Ring
         """
         n = self.order()
-        one = ZZ.one()
         greater_than = self._leq_storage
-        D = {(i, j): one for i in range(n) for j in greater_than[i]}
-        M = matrix(ZZ, n, n, D, sparse=True)
-        M.set_immutable()
-        return M
+        D = {(i, j): 1 for i in range(n) for j in greater_than[i]}
+        return matrix(ZZ, n, n, D, sparse=True, immutable=True)
 
     def lequal_matrix(self, boolean=False):
         r"""
@@ -2221,6 +2281,75 @@ class HasseDiagram(DiGraph):
         return PairwiseCompatibleSubsets(vertices,
                                          self.are_comparable,
                                          element_class=element_class)
+
+    def diamonds(self):
+        r"""
+        Return the list of diamonds of ``self``.
+
+        A diamond is the following subgraph of the Hasse diagram::
+
+                    z
+                   / \
+                  x   y
+                   \ /
+                    w
+
+        Thus each edge represents a cover relation in the Hasse diagram.
+        We represent his as the tuple `(w, x, y, z)`.
+
+        OUTPUT:
+
+        A tuple with
+
+        - a list of all diamonds in the Hasse Diagram,
+        - a boolean checking that every `w,x,y` that form a ``V``, there is a
+          unique element `z`, which completes the diamond.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1,2], 1: [3], 2: [3], 3: []})
+            sage: H.diamonds()
+            ([(0, 1, 2, 3)], True)
+
+            sage: P = posets.YoungDiagramPoset(Partition([3, 2, 2]))
+            sage: H = P._hasse_diagram
+            sage: H.diamonds()
+            ([(0, 1, 3, 4), (3, 4, 5, 6)], False)
+        """
+        diamonds = []
+        all_diamonds_completed = True
+        for w in self.vertices():
+            covers = self.neighbors_out(w)
+            for i, x in enumerate(covers):
+                for y in covers[i+1:]:
+                    zs = self.common_upper_covers([x, y])
+                    if len(zs) != 1:
+                        all_diamonds_completed = False
+                    for z in zs:
+                        diamonds.append((w, x, y, z))
+        return (diamonds, all_diamonds_completed)
+
+    def common_upper_covers(self, vertices):
+        r"""
+        Return the list of all common upper covers of ``vertices``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1,2], 1: [3], 2: [3], 3: []})
+            sage: H.common_upper_covers([1, 2])
+            [3]
+
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: H = Posets.YoungDiagramPoset(Partition([3, 2, 2]))._hasse_diagram
+            sage: H.common_upper_covers([4, 5])
+            [6]
+        """
+        covers = set(self.neighbors_out(vertices.pop()))
+        for v in vertices:
+            covers = covers.intersection(self.neighbors_out(v))
+        return list(covers)
 
     def _trivial_nonregular_congruence(self):
         """

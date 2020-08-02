@@ -153,7 +153,7 @@ class Function_exp(GinacFunction):
             e^x
         """
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
-                                   conversions=dict(maxima='exp', fricas='exp'))
+                               conversions=dict(maxima='exp', fricas='exp'))
 
 exp = Function_exp()
 
@@ -263,8 +263,8 @@ class Function_log2(GinacFunction):
             log
         """
         GinacFunction.__init__(self, 'log', ginac_name='logb', nargs=2,
-                            latex_name=r'\log',
-                            conversions=dict(maxima='log'))
+                               latex_name=r'\log',
+                               conversions=dict(maxima='log'))
 
 logb = Function_log2()
 
@@ -409,7 +409,7 @@ def log(*args, **kwds):
         -I*log(3)/pi
         sage: log(int(8),2)
         3
-        sage: log(8,int(2))  # known bug, see #21518
+        sage: log(8,int(2))
         3
         sage: log(8,2)
         3
@@ -417,7 +417,7 @@ def log(*args, **kwds):
         -3
         sage: log(1/8,1/2)
         3
-        sage: log(8,1/2)  # known bug, see #21517
+        sage: log(8,1/2)
         -3
 
         sage: log(1000, 10, base=5)

@@ -6,7 +6,8 @@ AUTHORS:
 - \R. Andrew Ohana (2012): Initial version.
 
 Verify that importing ``sage.all`` works in Sage's Python without any ``SAGE_``
-environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``::
+environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``
+(see also :trac:`29446`)::
 
     sage: env = {k:v for (k,v) in os.environ.items() if not k.startswith("SAGE_")}
     sage: from subprocess import check_output

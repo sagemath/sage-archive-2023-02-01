@@ -129,6 +129,9 @@ ext_modules = [
     Extension('sage.coding.codecan.codecan',
               sources = ['sage/coding/codecan/codecan.pyx']),
 
+    Extension('sage.coding.kasami_codes',
+              sources = ['sage/coding/kasami_codes.pyx']),
+
     Extension('*', ['sage/coding/**/*.pyx']),
 
     ################################
@@ -247,6 +250,9 @@ ext_modules = [
 
     Extension('sage.graphs.independent_sets',
               sources = ['sage/graphs/independent_sets.pyx']),
+
+    Extension('sage.graphs.isoperimetric_inequalities',
+              sources = ['sage/graphs/isoperimetric_inequalities.pyx']),
 
     Extension('sage.graphs.graph_decompositions.fast_digraph',
               sources = ['sage/graphs/graph_decompositions/fast_digraph.pyx']),
@@ -661,6 +667,9 @@ ext_modules = [
     ################################
 
     Extension('*', ['sage/misc/*.pyx']),
+    Extension('sage.misc.sage_ostools',
+              sources = ['sage/misc/sage_ostools.pyx'],
+              libraries = ['sqlite3']),
 
     ################################
     ##
@@ -677,6 +686,14 @@ ext_modules = [
     ################################
 
     Extension('*', ['sage/modules/**/*.pyx']),
+
+    ################################
+    ##
+    ## sage.monoids
+    ##
+    ################################
+
+    Extension('*', ['sage/monoids/**/*.pyx']),
 
     ################################
     ##
@@ -1034,8 +1051,11 @@ ext_modules = [
     Extension('sage.rings.polynomial.cyclotomic',
               sources = ['sage/rings/polynomial/cyclotomic.pyx']),
 
-    Extension('sage.rings.polynomial.evaluation',
-              sources = ['sage/rings/polynomial/evaluation.pyx']),
+    Extension('sage.rings.polynomial.evaluation_flint',
+              sources = ['sage/rings/polynomial/evaluation_flint.pyx']),
+
+    Extension('sage.rings.polynomial.evaluation_ntl',
+              sources = ['sage/rings/polynomial/evaluation_ntl.pyx']),
 
     Extension('sage.rings.polynomial.laurent_polynomial',
               sources = ['sage/rings/polynomial/laurent_polynomial.pyx']),
@@ -1113,9 +1133,12 @@ ext_modules = [
     Extension('sage.rings.polynomial.symmetric_reduction',
               sources = ['sage/rings/polynomial/symmetric_reduction.pyx']),
 
+    Extension('sage.rings.polynomial.ore_polynomial_element',
+              sources = ['sage/rings/polynomial/ore_polynomial_element.pyx']),
+
     Extension('sage.rings.polynomial.skew_polynomial_element',
               sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
-    
+
     Extension('sage.rings.polynomial.skew_polynomial_finite_order',
               sources = ['sage/rings/polynomial/skew_polynomial_finite_order.pyx']),
 

@@ -60,7 +60,7 @@ algebra.
 #*****************************************************************************
 
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.misc.misc import repr_lincomb
+from sage.misc.repr import repr_lincomb
 from sage.misc.cachefunc import cached_method
 from sage.categories.all import AlgebrasWithBasis
 from sage.structure.element import Element

@@ -206,6 +206,7 @@ def is_line_graph(g, certificate=False):
         True
 
     Verify that :trac:`29740` is fixed::
+
         sage: g = Graph('O{e[{}^~z`MDZBZBkXzE^')
         sage: g.is_line_graph()
         False

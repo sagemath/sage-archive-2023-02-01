@@ -205,6 +205,7 @@ def late_import():
                                        GapElement_Cyclotomic)
     from sage.interfaces import (gap, gap3)
 
+
 def UCF_sqrt_int(N, UCF):
     r"""
     Return the square root of the integer ``N``.
@@ -234,15 +235,16 @@ def UCF_sqrt_int(N, UCF):
         return UCF.zero()
 
     res = UCF.one() if N > 0 else UCF.zeta(4)
-    for p,e in N.factor():
+    for p, e in N.factor():
         if p == 2:
-            res *= (UCF.zeta(8) + UCF.zeta(8,7))**e
+            res *= (UCF.zeta(8) + UCF.zeta(8, 7))**e
         else:
             res *= UCF.sum(UCF.zeta(p, n**2) for n in range(p))**e
         if p % 4 == 3:
             res *= (UCF.zeta(4))**e
 
     return res
+
 
 class UCFtoQQbar(Morphism):
     r"""
@@ -1114,10 +1116,10 @@ class UniversalCyclotomicFieldElement(FieldElement):
         k = self._obj.Conductor()
         coeffs = self._obj.CoeffsCyc(k).sage()
         if sum(bool(x) for x in coeffs) == 1:
-            for i,x in enumerate(coeffs):
+            for i, x in enumerate(coeffs):
                 if x:
                     break
-            return UCF(x).sqrt() * UCF.zeta(2*k, i)
+            return UCF(x).sqrt() * UCF.zeta(2 * k, i)
 
         # no method to construct square roots yet...
         if extend:
@@ -1639,7 +1641,6 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             sage: p(r[0][0])
             0
         """
-        from sage.arith.all import gcd
         from sage.structure.factorization import Factorization
 
         UCF = self
@@ -1663,7 +1664,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         f = f.change_ring(QQ)
 
         factors = []
-        for p,e in f.factor():
+        for p, e in f.factor():
             if p.degree() == 1:
                 factors.append((x + p[0], e))
 
@@ -1671,9 +1672,9 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 c = p[0]
                 b = p[1]
                 a = p[2]
-                D = UCF(b**2 - 4*a*c).sqrt()
-                r1 = (-b - D) / (2*a)
-                r2 = (-b + D) / (2*a)
+                D = UCF(b**2 - 4 * a * c).sqrt()
+                r1 = (-b - D) / (2 * a)
+                r2 = (-b + D) / (2 * a)
                 factors.append((x - r1, e))
                 factors.append((x - r2, e))
 
@@ -1681,12 +1682,10 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 m = p.is_cyclotomic(certificate=True)
                 if not m:
                     raise NotImplementedError('no known factorization for this polynomial')
-                for i in range(1, m):
-                    if gcd(m, i) == 1:
-                        factors.append((x - UCF.zeta(m, i), e))
+                for i in m.coprime_integers(m):
+                    factors.append((x - UCF.zeta(m, i), e))
 
         return Factorization(factors, unit)
-
 
     def degree(self):
         r"""

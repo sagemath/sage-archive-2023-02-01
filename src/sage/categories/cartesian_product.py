@@ -40,7 +40,7 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
         [['a', 1], ['a', 2], ['b', 1], ['b', 2], ['c', 1], ['c', 2]]
 
     If those sets are endowed with more structure, say they are
-    monoids (hence in the category `Monoids()`), then the result is
+    monoids (hence in the category ``Monoids()``), then the result is
     automatically endowed with its natural monoid structure::
 
         sage: M = Monoids().example()

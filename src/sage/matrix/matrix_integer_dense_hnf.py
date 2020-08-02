@@ -9,11 +9,11 @@ from __future__ import print_function
 
 from copy import copy
 
-from sage.misc.misc import verbose, cputime
+from sage.misc.misc import cputime
+from sage.misc.verbose import verbose
 from sage.matrix.constructor import (random_matrix, matrix, identity_matrix)
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
 from sage.rings.integer import Integer
 from sage.arith.all import previous_prime, CRT_list

@@ -297,11 +297,11 @@ class SteinWatkinsAllData:
             try:
                 E = next(it)
             except StopIteration:
-                if C != []:
+                if C:
                     yield C
                 return
             if E.conductor != N:
-                if C != []:
+                if C:
                     yield C
                 C = [E]
                 N = E.conductor

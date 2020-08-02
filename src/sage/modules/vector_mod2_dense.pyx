@@ -188,7 +188,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             sage: (GF(2)**5)(1)
             Traceback (most recent call last):
             ...
-            TypeError: can't initialize vector from nonzero non-list
+            TypeError: can...t initialize vector from nonzero non-list
             sage: (GF(2)**0).zero_vector()
             ()
         """
@@ -348,6 +348,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
     cpdef _dot_product_(self, Vector right):
         """
         EXAMPLES::
+
            sage: VS = VectorSpace(GF(2),3)
            sage: v = VS([1,1,1]); w = VS([0,0,0])
            sage: v * w, w * v #indirect doctest

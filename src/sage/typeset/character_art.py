@@ -4,7 +4,7 @@ Base Class for Character-Based Art
 
 This is the common base class for
 :class:`sage.typeset.ascii_art.AsciiArt` and
-:class:`sage.typeset.ascii_art.UnicodeArt`. They implement simple
+:class:`sage.typeset.unicode_art.UnicodeArt`. They implement simple
 graphics by placing characters on a rectangular grid, in other words,
 using monospace fonts. The difference is that one is restricted to
 7-bit ascii, the other uses all unicode code points.

@@ -1505,11 +1505,13 @@ class Sets(Category_singleton):
                 sage: cartesian_product([ZZ, ZZ]).category()
                 Join of
                 Category of Cartesian products of commutative rings and
+                Category of Cartesian products of metric spaces and
                 Category of Cartesian products of enumerated sets
                 sage: cartesian_product([ZZ, ZZ], extra_category=Posets()).category()
                 Join of
                 Category of Cartesian products of commutative rings and
                 Category of posets and
+                Category of Cartesian products of metric spaces and
                 Category of Cartesian products of enumerated sets
             """
             category = kwargs.pop('category', None)

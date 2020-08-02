@@ -255,7 +255,7 @@ a connection::
     sage: g[eV,1,1], g[eV,2,2] = 4/(1+u^2+v^2)^2, 4/(1+u^2+v^2)^2
     sage: nab = g.connection()
 
-In case of the the Euler class, skew-symmetric curvature matrices are needed
+In case of the Euler class, skew-symmetric curvature matrices are needed
 for the Pfaffian. For this, we need to define the curvature matrices by
 hand::
 

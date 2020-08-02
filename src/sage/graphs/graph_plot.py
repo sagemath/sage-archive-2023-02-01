@@ -109,17 +109,31 @@ previously::
 """
 
 layout_options =   {
-                    'layout': 'A layout algorithm -- one of : "acyclic", "circular" (plots the graph with vertices evenly distributed on a circle), "ranked", "graphviz", "planar", "spring" (traditional spring layout, using the graph\'s current positions as initial positions), or "tree" (the tree will be plotted in levels, depending on minimum distance for the root).',
-                    'iterations': 'The number of times to execute the spring layout algorithm.',
-                    'heights': 'A dictionary mapping heights to the list of vertices at this height.',
-                    'spring': 'Use spring layout to finalize the current layout.',
-                    'tree_root': 'A vertex designation for drawing trees. A vertex of the tree to be used as the root for the ``layout=\'tree\'`` option. If no root is specified, then one is chosen close to the center of the tree. Ignored unless ``layout=\'tree\'``',
-                    'tree_orientation': 'The direction of tree branches -- \'up\', \'down\', \'left\' or \'right\'.',
-                    'save_pos': 'Whether or not to save the computed position for the graph.',
-                    'dim': 'The dimension of the layout -- 2 or 3.',
-                    'prog': 'Which graphviz layout program to use -- one of "circo", "dot", "fdp", "neato", or "twopi".',
-                    'by_component': 'Whether to do the spring layout by connected component -- a boolean.',
-                    }
+    'layout': 'A layout algorithm -- one of : "acyclic", "circular" (plots the '
+        'graph with vertices evenly distributed on a circle), "ranked", '
+        '"graphviz", "planar", "spring" (traditional spring layout, using the '
+        'graph\'s current positions as initial positions), or "tree" (the tree '
+        'will be plotted in levels, depending on minimum distance for the root).',
+    'iterations': 'The number of times to execute the spring layout algorithm.',
+    'heights': 'A dictionary mapping heights to the list of vertices at this height.',
+    'spring': 'Use spring layout to finalize the current layout.',
+    'tree_root': 'A vertex designation for drawing trees. A vertex of the tree '
+        'to be used as the root for the ``layout=\'tree\'`` option. If no root '
+        'is specified, then one is chosen close to the center of the tree. '
+        'Ignored unless ``layout=\'tree\'``.',
+    'forest_roots': 'An iterable specifying which vertices to use as roots for '
+        'the ``layout=\'forest\'`` option. If no root is specified for a tree, '
+        'then one is chosen close to the center of the tree. '
+        'Ignored unless ``layout=\'forest\'``.',
+    'tree_orientation': 'The direction of tree branches -- \'up\', \'down\', '
+        '\'left\' or \'right\'.',
+    'save_pos': 'Whether or not to save the computed position for the graph.',
+    'dim': 'The dimension of the layout -- 2 or 3.',
+    'prog': 'Which graphviz layout program to use -- one of "circo", "dot", '
+        '"fdp", "neato", or "twopi".',
+    'by_component': 'Whether to do the spring layout by connected component '
+        '-- a boolean.',
+    }
 
 graphplot_options = layout_options.copy()
 

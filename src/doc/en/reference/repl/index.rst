@@ -91,7 +91,6 @@ Miscellaneous
    sage/repl/interface_magic
    sage/repl/ipython_kernel/interact
    sage/repl/ipython_kernel/widgets
-   sage/repl/ipython_kernel/widgets_sagenb
    sage/repl/ipython_kernel/install
    sage/repl/ipython_kernel/kernel
    sage/repl/ipython_tests

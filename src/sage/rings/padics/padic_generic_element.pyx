@@ -2455,7 +2455,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         NOTE::
 
             The function does not check that its argument ``self`` is 
-            1 in the residue field. If this assumption is not fullfiled
+            1 in the residue field. If this assumption is not fulfilled
             the behaviour of the function is not specified.
 
         ALGORITHM:
@@ -3036,7 +3036,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             The function does not check that its argument ``self`` is 
             the disk of convergence of ``exp``. If this assumption is not 
-            fullfiled the behaviour of the function is not specified.
+            fulfilled the behaviour of the function is not specified.
 
         ALGORITHM:
 
@@ -3087,7 +3087,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             The function does not check that its argument ``self`` is 
             the disk of convergence of ``exp``. If this assumption is not 
-            fullfiled the behaviour of the function is not specified.
+            fulfilled the behaviour of the function is not specified.
 
         ALGORITHM:
 
@@ -4009,29 +4009,28 @@ cdef class pAdicGenericElement(LocalGenericElement):
             True
             sage: a._is_base_elt(17)
             False
-
         """
         raise NotImplementedError
 
     def _polylog_res_1(self, n):
         """
         Return `Li_n(`self`)` , the `n`th `p`-adic polylogarithm of ``self``, assuming that self is congruent to 1 mod p.
+
         This is an internal function, used by :meth:`polylog`.
 
         INPUT:
 
-            - ``n`` -- a non-negative integer
+        - ``n`` -- a non-negative integer
 
         OUTPUT:
 
-            - Li_n(self)
+        - Li_n(self)
 
         EXAMPLES ::
 
             sage: Qp(2)(-1)._polylog_res_1(6) == 0
             True
 
-        ::
             sage: Qp(5)(1)._polylog_res_1(1)
             Traceback (most recent call last):
             ...
@@ -4040,7 +4039,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         from sage.rings.power_series_ring import PowerSeriesRing
         from sage.functions.other import ceil,floor
         from sage.rings.padics.factory import Qp
-        from sage.misc.all import verbose
+        from sage.misc.verbose import verbose
 
         if self == 1:
             raise ValueError('Polylogarithm is not defined for 1.')
@@ -4161,7 +4160,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         from sage.rings.power_series_ring import PowerSeriesRing
         from sage.rings.padics.factory import Qp
-        from sage.misc.all import verbose
+        from sage.misc.verbose import verbose
         from sage.functions.other import ceil,floor
         from sage.rings.infinity import PlusInfinity
 

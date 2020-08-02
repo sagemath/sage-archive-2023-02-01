@@ -11,6 +11,7 @@ Elements of Laurent polynomial rings
 # ****************************************************************************
 
 from sage.rings.integer cimport Integer
+from sage.categories.map cimport Map
 from sage.structure.element import is_Element, coerce_binop
 from sage.misc.misc import union
 from sage.structure.factorization import Factorization
@@ -18,7 +19,7 @@ from sage.misc.derivative import multi_derivative
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.structure.richcmp cimport richcmp, rich_to_bool
-
+from sage.matrix.matrix0 cimport Matrix
 
 cdef class LaurentPolynomial(CommutativeAlgebraElement):
     """
@@ -236,6 +237,65 @@ cdef class LaurentPolynomial(CommutativeAlgebraElement):
         """
         raise NotImplementedError
 
+    def map_coefficients(self, f, new_base_ring=None):
+        """
+        Apply ``f`` to the coefficients of ``self``.
+
+        If ``f`` is a :class:`sage.categories.map.Map`, then the resulting
+        polynomial will be defined over the codomain of ``f``. Otherwise, the
+        resulting polynomial will be over the same ring as ``self``. Set
+        ``new_base_ring`` to override this behavior.
+
+        INPUT:
+
+        - ``f`` -- a callable that will be applied to the coefficients of ``self``.
+
+        - ``new_base_ring`` (optional) -- if given, the resulting polynomial
+          will be defined over this ring.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(9)
+            sage: R.<x> = LaurentPolynomialRing(k)
+            sage: f = x*a + a
+            sage: f.map_coefficients(lambda a : a + 1)
+            (a + 1) + (a + 1)*x
+            sage: R.<x,y> = LaurentPolynomialRing(k, 2)
+            sage: f = x*a + 2*x^3*y*a + a
+            sage: f.map_coefficients(lambda a : a + 1)
+            (2*a + 1)*x^3*y + (a + 1)*x + a + 1
+
+        Examples with different base ring::
+
+            sage: R.<r> = GF(9); S.<s> = GF(81)
+            sage: h = Hom(R,S)[0]; h
+            Ring morphism:
+              From: Finite Field in r of size 3^2
+              To:   Finite Field in s of size 3^4
+              Defn: r |--> 2*s^3 + 2*s^2 + 1
+            sage: T.<X,Y> = LaurentPolynomialRing(R, 2)
+            sage: f = r*X+Y
+            sage: g = f.map_coefficients(h); g
+            (2*s^3 + 2*s^2 + 1)*X + Y
+            sage: g.parent()
+            Multivariate Laurent Polynomial Ring in X, Y over Finite Field in s of size 3^4
+            sage: h = lambda x: x.trace()
+            sage: g = f.map_coefficients(h); g
+            X - Y
+            sage: g.parent()
+            Multivariate Laurent Polynomial Ring in X, Y over Finite Field in r of size 3^2
+            sage: g = f.map_coefficients(h, new_base_ring=GF(3)); g
+            X - Y
+            sage: g.parent()
+            Multivariate Laurent Polynomial Ring in X, Y over Finite Field of size 3
+
+        """
+        R = self.parent()
+        if new_base_ring is not None:
+            R = R.change_ring(new_base_ring)
+        elif isinstance(f, Map):
+            R = R.change_ring(f.codomain())
+        return R(dict([(k,f(v)) for (k,v) in self.dict().items()]))
 
 cdef class LaurentPolynomial_univariate(LaurentPolynomial):
     """
@@ -774,6 +834,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         Return a dictionary representing ``self``.
 
         EXAMPLES::
+
             sage: R.<x,y> = ZZ[]
             sage: Q.<t> = LaurentPolynomialRing(R)
             sage: f = (x^3 + y/t^3)^3 + t^2; f
@@ -3385,7 +3446,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     def is_square(self, root=False):
         r"""
-        Test whether this Laurent polynomial is a square root.
+        Test whether this Laurent polynomial is a square.
 
         INPUT:
 
@@ -3431,4 +3492,176 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             ans._mon = mon
             ans._poly = root
             return (True, ans)
+
+    cpdef rescale_vars(self, dict d, h=None, new_ring=None):
+        r"""
+        Rescale variables in a Laurent polynomial.
+
+        INPUT:
+
+        - ``d`` -- a ``dict`` whose keys are the generator indices
+          and values are the coefficients; so a pair ``(i, v)``
+          means `x_i \mapsto v x_i`
+        - ``h`` -- (optional) a map to be applied to coefficients
+          done after rescaling
+        - ``new_ring`` -- (optional) a new ring to map the result into
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LaurentPolynomialRing(QQ, 2)
+            sage: p = x^-2*y + x*y^-2
+            sage: p.rescale_vars({0: 2, 1: 3})
+            2/9*x*y^-2 + 3/4*x^-2*y
+            sage: F = GF(2)
+            sage: p.rescale_vars({0: 3, 1: 7}, new_ring=L.change_ring(F))
+            x*y^-2 + x^-2*y
+        """
+        cdef int i
+        cdef dict df
+        cdef ETuple v
+        cdef LaurentPolynomial_mpair ans
+
+        if self._prod is None:
+            self._compute_polydict()
+
+        df = dict(self._prod.__repn)  # This makes a copy for us to manipulate
+        if h is None:
+            for v in df:
+                val = df[v]
+                for i in d:
+                    val *= d[i]**v[i]
+                df[v] = val
+        else:
+            R = self._parent._base
+            for v in df:
+                val = df[v]
+                for i in d:
+                    val *= d[i]**v[i]
+                df[v] = R(h(val))
+
+        ans = <LaurentPolynomial_mpair> self._new_c()
+        ans._prod = PolyDict(df)
+        ans._mon = self._mon
+        ans._poly = <MPolynomial> self._poly._parent({v.esub(ans._mon): df[v] for v in df})
+        if new_ring is not None:
+            return new_ring(ans)
+        return ans
+
+    cpdef toric_coordinate_change(self, M, h=None, new_ring=None):
+        r"""
+        Apply a matrix to the exponents in a Laurent polynomial.
+
+        For efficiency, we implement this directly, rather than as a substitution.
+
+        The optional argument ``h`` is a map to be applied to coefficients.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LaurentPolynomialRing(QQ, 2)
+            sage: p = 2*x^2 + y - x*y
+            sage: p.toric_coordinate_change(Matrix([[1,-3],[1,1]]))
+            2*x^2*y^2 - x^-2*y^2 + x^-3*y
+            sage: F = GF(2)
+            sage: p.toric_coordinate_change(Matrix([[1,-3],[1,1]]), new_ring=L.change_ring(F))
+            x^-2*y^2 + x^-3*y
+        """
+        cdef int n, i, j, x
+        cdef dict d, dr
+        cdef ETuple v
+        cdef LaurentPolynomial_mpair ans
+        cdef list L, mon, exp
+        cdef Matrix mat = M
+
+        n = self._parent.ngens()
+        if mat.dimensions() != (n, n):
+            raise ValueError("the matrix M must be a {k} x {k} matrix".format(k=n))
+
+        if not self:
+            if new_ring is None:
+                return self._parent.zero()
+            else:
+                return new_ring.zero()
+
+        if self._prod is None:
+            self._compute_polydict()
+
+        d = self._prod.__repn
+        dr = {}
+        mon = [0] * n
+        for v in d:
+            # Make a copy of mon as this might be faster than creating the data from scratch.
+            # We will set every entry, so no need to clear the data.
+            exp = list(mon)
+            for j in range(n):
+                x = 0
+                for i in range(n):
+                    if not mat.get_is_zero_unsafe(j, i):
+                        x += (<int> v[i]) * int(mat.get_unsafe(j, i))
+                if x < (<int> mon[j]):
+                    mon[j] = x
+                exp[j] = x
+            dr[ETuple(exp)] = d[v]
+
+        if h is not None:
+            for v in dr:
+                dr[v] = self._parent._base(h(dr[v]))
+
+        ans = <LaurentPolynomial_mpair> self._new_c()
+        ans._prod = PolyDict(dr)
+        ans._mon = ETuple(mon)
+        ans._poly = <MPolynomial> self._poly._parent({v.esub(ans._mon): dr[v] for v in dr})
+        if new_ring is not None:
+            return new_ring(ans)
+        return ans
+
+    cpdef toric_substitute(self, v, v1, a, h=None, new_ring=None):
+        r"""
+        Perform a single-variable substitution up to a toric coordinate change.
+
+        The optional argument ``h`` is a map to be applied to coefficients.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LaurentPolynomialRing(QQ, 2)
+            sage: p = x + y
+            sage: p.toric_substitute((2,3), (-1,1), 2)
+            1/2*x^3*y^3 + 2*x^-2*y^-2
+            sage: F = GF(5)
+            sage: p.toric_substitute((2,3), (-1,1), 2, new_ring=L.change_ring(F))
+            3*x^3*y^3 + 2*x^-2*y^-2
+        """
+        cdef dict d, dr
+        cdef ETuple ve, v1e, w, w1, mon
+        cdef LaurentPolynomial_mpair ans
+        cdef int t
+
+        if self._prod is None:
+            self._compute_polydict()
+        
+        d = self._prod.__repn
+        dr = {}
+        ve = ETuple(v)
+        v1e = ETuple(v1)
+        mon = self._mon
+        if h is not None:
+            d = dict(d)  # Make a copy so we can manipulate it
+            for w in d:
+                d[w] = h(d[w])
+        for w in d:
+            x = d[w]
+            t = w.dotprod(v1e)
+            w1 = w.eadd_scaled(ve, -t)
+            if w1 in dr:
+                dr[w1] += x * a**t
+            else:
+                dr[w1] = x * a**t
+            mon = mon.emin(w1)
+
+        ans = <LaurentPolynomial_mpair> self._new_c()
+        ans._prod = PolyDict(dr)
+        ans._mon = mon
+        ans._poly = <MPolynomial> self._poly._parent({v.esub(ans._mon): dr[v] for v in dr})
+        if new_ring is not None:
+            return new_ring(ans)
+        return ans
 

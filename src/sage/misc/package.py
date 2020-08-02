@@ -234,9 +234,17 @@ def list_packages(*pkg_types, **opts):
 
     installed = installed_packages(exclude_pip)
 
-    pkgs = {}
     SAGE_PKGS = sage.env.SAGE_PKGS
-    for p in os.listdir(SAGE_PKGS):
+    if not SAGE_PKGS:
+        return {}
+
+    try:
+        lp = os.listdir(SAGE_PKGS)
+    except FileNotFoundError:
+        return {}
+
+    pkgs = {}
+    for p in lp:
         try:
             f = open(os.path.join(SAGE_PKGS, p, "type"))
         except IOError:
@@ -310,8 +318,13 @@ def installed_packages(exclude_pip=True):
     if not exclude_pip:
         installed.update(pip_installed_packages())
     # Sage packages should override pip packages (Trac #23997)
-    installed.update(pkgname_split(pkgname)
-                     for pkgname in os.listdir(sage.env.SAGE_SPKG_INST))
+    SAGE_SPKG_INST = sage.env.SAGE_SPKG_INST
+    if SAGE_SPKG_INST:
+        try:
+            lp = os.listdir(SAGE_SPKG_INST)
+            installed.update(pkgname_split(pkgname) for pkgname in lp)
+        except FileNotFoundError:
+            pass
     return installed
 
 

@@ -20,7 +20,7 @@ AUTHORS:
 from copy import copy
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
-from sage.misc.misc import repr_lincomb
+from sage.misc.repr import repr_lincomb
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.structure.element cimport have_same_parent, parent
 from sage.structure.coerce cimport coercion_model
@@ -403,7 +403,7 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             right = (<LieAlgebraElementWrapper> right).lift()
         return left * right
 
-    def __div__(self, x):
+    def __truediv__(self, x):
         """
         Division by coefficients.
 

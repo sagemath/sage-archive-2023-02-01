@@ -19,7 +19,7 @@ cimport sage.matrix.matrix0 as matrix0
 from sage.structure.element cimport Element, RingElement, ModuleElement, Vector
 from sage.structure.richcmp cimport richcmp_item, rich_to_bool
 from sage.rings.ring import is_Ring
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 
 from cpython cimport *
 from cpython.object cimport Py_EQ, Py_NE

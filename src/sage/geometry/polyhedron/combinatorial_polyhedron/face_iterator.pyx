@@ -589,6 +589,7 @@ cdef class FaceIterator(SageObject):
         Return the next face.
 
         EXAMPLES::
+
             sage: P = polytopes.cube()
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()

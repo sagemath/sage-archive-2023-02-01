@@ -203,6 +203,19 @@ cdef class TateAlgebraTerm(MonoidElement):
         """
         return TateAlgebraTerm, (self.parent(), self._coeff, self._exponent)
 
+    def __nonzero__(self):
+        r"""
+        Return ``True`` if this term is nonzero, ``False`` otherwise.
+
+        TESTS::
+
+            sage: A.<x,y> = TateAlgebra(Zp(2))
+            sage: t = x.leading_term()
+            sage: bool(t)
+            True
+        """
+        return bool(self._coeff)
+
     def _repr_(self):
         r"""
         Return a string representation of this Tate algebra term.
@@ -2069,6 +2082,23 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         """
         return (<TateAlgebraElement>self)._lshift_c(-n)
+
+    def __nonzero__(self):
+        r"""
+        Return ``True`` if this term is nonzero, ``False`` otherwise.
+
+        TESTS::
+
+            sage: R = Zp(2, print_mode='digits', prec=10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = x + 2*x^2 + y^3
+            sage: bool(f)
+            True
+            sage: bool(f-f)
+            False
+        """
+        cdef list terms = self._terms_c(include_zero=False)
+        return bool(terms) and (<TateAlgebraTerm>terms[0])._valuation_c() < self._prec
 
     def is_zero(self, prec=None):
         r"""

@@ -188,7 +188,9 @@ Comprehensive Module list
     sage/combinat/posets/__init__
     sage/combinat/posets/all
     sage/combinat/posets/cartesian_product
+    sage/combinat/posets/d_complete
     sage/combinat/posets/elements
+    sage/combinat/posets/forest
     sage/combinat/posets/hasse_diagram
     sage/combinat/posets/incidence_algebras
     sage/combinat/posets/lattices
@@ -282,6 +284,7 @@ Comprehensive Module list
     sage/combinat/root_system/weight_lattice_realizations
     sage/combinat/root_system/weight_space
     sage/combinat/root_system/weyl_characters
+    sage/combinat/root_system/fusion_ring
     sage/combinat/root_system/weyl_group
     sage/combinat/rooted_tree
     sage/combinat/rsk

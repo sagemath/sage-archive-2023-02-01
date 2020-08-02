@@ -37,7 +37,8 @@ from .series_order import  bounded_decrement, increment, inf, unk
 from sage.rings.all import Integer
 from sage.misc.all import prod
 from functools import partial
-from sage.misc.misc import repr_lincomb, is_iterator
+from sage.misc.misc import is_iterator
+from sage.misc.repr import repr_lincomb
 from sage.misc.cachefunc import cached_method
 
 from sage.algebras.algebra import Algebra

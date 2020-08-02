@@ -751,6 +751,33 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
 
     Element = FiniteRankFreeModuleElement
 
+    @staticmethod
+    def __classcall_private__(cls, ring, rank, name=None, latex_name=None, start_index=0,
+                              output_formatter=None, category=None):
+        r"""
+        Normalize init arguments for ``UniqueRepresentation``
+
+        TESTS::
+
+            sage: FiniteRankFreeModule(QQ, 3) is FiniteRankFreeModule(QQ, 3, name=None)
+            True
+            sage: FiniteRankFreeModule(QQ, 3, name='M') is FiniteRankFreeModule(QQ, 3, name='M', latex_name='M')
+            True
+            sage: FiniteRankFreeModule(QQ, 3) is FiniteRankFreeModule(QQ, 3, start_index=0)
+            True
+            sage: FiniteRankFreeModule(QQ, 3) is FiniteRankFreeModule(QQ, 3, output_formatter=None)
+            True
+            sage: FiniteRankFreeModule(QQ, 3) is FiniteRankFreeModule(QQ, 3, category=Modules(QQ).FiniteDimensional())
+            True
+        """
+        if ring not in Rings().Commutative():
+            raise TypeError("the module base ring must be commutative")
+        category = Modules(ring).FiniteDimensional().or_subcategory(category)
+        if latex_name is None:
+            latex_name = name
+        return super(FiniteRankFreeModule, cls).__classcall__(
+            cls, ring, rank, name, latex_name, start_index, output_formatter, category)
+
     def __init__(self, ring, rank, name=None, latex_name=None, start_index=0,
                  output_formatter=None, category=None):
         r"""
@@ -766,6 +793,8 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: TestSuite(M).run()
 
         """
+        # This duplicates the normalization done in __classcall_private__,
+        # but it is needed for various subclasses.
         if ring not in Rings().Commutative():
             raise TypeError("the module base ring must be commutative")
         category = Modules(ring).FiniteDimensional().or_subcategory(category)
@@ -773,6 +802,8 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         self._ring = ring # same as self._base
         self._rank = rank
         self._name = name
+        # This duplicates the normalization done in __classcall_private__,
+        # but it is needed for various subclasses.
         if latex_name is None:
             self._latex_name = self._name
         else:

@@ -772,7 +772,7 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
             [1 1 0]
             [0 0 1]
         """
-        if encoder_name is None or encoder_name is 'GeneratorMatrix':
+        if encoder_name is None or encoder_name == 'GeneratorMatrix':
             g = self._generator_matrix
         else:
             g = super(LinearRankMetricCode, self).generator_matrix(encoder_name, **kwargs)

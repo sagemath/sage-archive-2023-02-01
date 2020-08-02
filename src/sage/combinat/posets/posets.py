@@ -2373,6 +2373,25 @@ class FinitePoset(UniqueRepresentation, Parent):
                     break
 
         return True
+    
+    @staticmethod
+    def slant_sum(cls, P1, P2, P1_element, P2_element):
+        r"""
+        Return the slant sum poset of posets P1 and P2 by connecting them with a
+        cover relation (P1_element, P2_element). Element names of P1 and P2 must be distinct.
+        
+        INPUT: 
+        
+            - ``P1`` -- The first poset
+            - ``P2`` -- The second poset
+            - ``P1_element`` -- The element of P1 that is the bottom of the new cover relation
+            - ``P2_element`` -- The element of P2 that is the top of the new cover relation
+            
+        """
+        elements = P1._elements + P2._elements
+        cover_relations = P1.cover_relations() + P2.cover_relations()
+        cover_relations.append((P1_element, P2_element))
+        return Poset([elements, cover_relations])
 
     def intervals_poset(self):
         r"""

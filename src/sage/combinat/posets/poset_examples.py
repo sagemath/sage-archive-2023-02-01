@@ -1761,6 +1761,35 @@ class Posets(metaclass=ClasscallMetaclass):
         elem = [item for sublist in elem for item in sublist]
         return Poset([elem,rel])
 
+    @staticmethod
+    def RibbonPoset(n, descents):
+        r"""
+        Return a ribbon poset on ``n`` vertices with descents at ``descents``
+        
+        INPUT:
+
+            - ``n`` -- the number of vertices
+            - ``descents`` -- (an iterable) the indices on the ribbon where y > x.
+        """
+        return Poset([list(range(n)), [(i+1, i) if i in descents else (i, i+1) for i in range(n-1) ]])
+
+    @staticmethod
+    def Mobile(ribbon, hangers, anchor=None):
+        r"""
+        Return a mobile poset with the ribbon ``ribbon`` and with hanging d-complete
+        posets specified in ``hangers`` and a d-complete poset attached above,
+        specified in ``anchor``. The elements specified in ``ribbon``, ``hangers``, and ``anchor``
+        should all be uniquely named. 
+        
+        INPUT:
+        
+            - ``ribbon`` -- a finite poset that is a ribbon
+            - ``hangers`` -- a dictionary mapping an element on the ribbon to a list of d-complete posets
+                that it covers.
+            - ``anchor`` -- (default None) a tuple (ribbon_elmt, anchor_elmt, plant_poset), 
+                where anchor_elmt covers ribbon_elmt, and plant_elmt is an acyclic element of plant_poset.
+        """
+        pass
 
 
 

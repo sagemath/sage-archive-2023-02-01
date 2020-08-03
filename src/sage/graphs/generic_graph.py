@@ -16803,6 +16803,10 @@ class GenericGraph(GenericGraph_pyx):
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the weight_function outputs a number for each edge
 
+        .. NOTE::
+
+            Boost algorithms will return the double version of Wiener index.
+
         EXAMPLES::
 
             sage: G = Graph( { 0: {1: None}, 1: {2: None}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True)
@@ -16886,7 +16890,7 @@ class GenericGraph(GenericGraph_pyx):
         for u in distances.values():
             total += sum(u.values())
 
-        return total if self.is_directed() else (total // 2)
+        return total if self.is_directed() else (total / 2)
 
     def average_distance(self, by_weight=False, algorithm=None,
                          weight_function=None):

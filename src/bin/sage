@@ -340,7 +340,6 @@ usage_advanced() {
     echo "  --python [...], --python3 [...]"
     echo "                      -- run the Python 3 interpreter"
     echo "  -R [...]            -- run Sage's R with the given arguments"
-    echo "  --scons [...]       -- run Sage's scons"
     echo "  --singular [...]    -- run Sage's singular with the given arguments"
     echo "  --sqlite3 [...]     -- run Sage's sqlite3 with given arguments"
     echo
@@ -421,10 +420,6 @@ usage_advanced() {
     echo "                         a Jupyter notebook (.ipynb)."
     echo "  --rst2txt [...]     -- Generates Sage worksheet text file from standalone"
     echo "                         reStructuredText source."
-    echo "  --rst2sws [...]     -- Generates Sage worksheet (.sws) from standalone"
-    echo "                         reStructuredText source."
-    echo "  --sws2rst <sws doc> -- Generates a reStructuredText source file from"
-    echo "                         a Sage worksheet (.sws) document."
     echo
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
@@ -613,11 +608,6 @@ if [ "$1" = '-M2' -o "$1" = '--M2' ]; then
     exec M2 "$@"
 fi
 
-if [ "$1" = '-scons' -o "$1" = '--scons' ]; then
-    shift
-    exec scons "$@"
-fi
-
 if [ "$1" = '-R' -o "$1" = '--R' ]; then
     shift
     exec R "$@"
@@ -785,16 +775,6 @@ if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then
     exec sage-rst2txt "$@"
 fi
 
-if [ "$1" = '-rst2sws' -o "$1" = '--rst2sws' ]; then
-    shift
-    exec sage-rst2sws "$@"
-fi
-
-if [ "$1" = '-sws2rst' -o "$1" = '--sws2rst' ]; then
-    shift
-    exec sage-sws2rst "$@"
-fi
-
 #####################################################################
 # The notebook, grep, building Sage, testing Sage
 #####################################################################
@@ -804,7 +784,7 @@ fi
 
 build_sage() {
     maybe_sage_location
-    ( cd "$SAGE_SRC" && $MAKE ) || exit $?
+    ( cd "$SAGE_ROOT/build/make" && $MAKE sagelib-no-deps ) || exit $?
 }
 
 if [[ "$1" =~ ^--notebook=.* || "$1" =~ ^-n=.* || "$1" =~ ^-notebook=.* ]] ; then
@@ -856,7 +836,7 @@ if [ "$1" = '-r' ]; then
 fi
 
 if [ "$1" = '-ba' -o "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
-    ( cd "$SAGE_SRC" && make clean )
+    ( cd "$SAGE_ROOT/build/make" && make sagelib-clean )
     build_sage
     exit $?
 fi

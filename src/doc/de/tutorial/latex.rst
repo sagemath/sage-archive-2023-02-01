@@ -484,18 +484,3 @@ alle Berechnungs- oder LaTeX-Formatierungseigenschaften von Sage automatisch gen
 Als Beispiel hierfür kann in einer mathematischen Betrachtung die korrekte Reihenfolge
 von Fragen und Antworten beibehalten werden, indem sagetex dazu genutzt wird Sage die einen
 aus den anderen berechnen zu lassen. Siehe hierfür auch :ref:`sec-sagetex`
-
-tex2sws beginnt mit einem LaTeX-Dokument, aber definiert einige zusätzliche
-Umgebungen für Sage Code. Wenn es richtig genutzt wird, ist das Ergebnis ein
-Sage Arbeitsblatt mit korrekt von MathJax formatiertem Inhalt und dem dazugehörigen
-Sage Code in den Eingabezellen. Ein Lehrbuch oder Artikel kann also mit Sage Code Blöcken
-in LaTeX gesetzt werden und es kann "live" das ganze Dokument in ein Sage Arbeitsblatt überführt werden;
-unter Beibehaltung der Sage Code Blöcke und mit schön formatiertem mathematischen Text.
-Momentan in Arbeit, siehe `tex2sws @ BitBucket
-<http://bitbucket.org/rbeezer/tex2sws/>`_ .
-
-sws2tex kehrt den Prozess um, indem es mit einem Sage Arbeitsblatt beginnt, und
-es in ein legitimes LaTeX-Dokument zur weiteren Bearbeitung mit allen
-LaTeX-Werkzeugen verwandelt.
-Momentan in Arbeit, siehe `sws2tex @ BitBucket
-<http://bitbucket.org/whuss/sws2tex/>`_ .

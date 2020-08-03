@@ -1112,11 +1112,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: int(a)
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to int; use int(abs(z))
+            TypeError: can...t convert complex to int; use int(abs(z))
             sage: a.__int__()
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to int; use int(abs(z))
+            TypeError: can...t convert complex to int; use int(abs(z))
         """
         raise TypeError("can't convert complex to int; use int(abs(z))")
 

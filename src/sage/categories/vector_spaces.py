@@ -147,7 +147,26 @@ class VectorSpaces(Category_module):
         return None
 
     class ParentMethods:
-        pass
+
+        def dimension(self):
+            """
+            Return the dimension of this vector space.
+
+            EXAMPLES::
+
+                sage: M = FreeModule(FiniteField(19), 100)
+                sage: W = M.submodule([M.gen(50)])
+                sage: W.dimension()
+                1
+
+                sage: M = FiniteRankFreeModule(QQ, 3)
+                sage: M.dimension()
+                3
+                sage: M.tensor_module(1,2).dimension()
+                27
+
+            """
+            return self.rank()
 
     class ElementMethods:
         pass

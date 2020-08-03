@@ -2824,3 +2824,30 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
                     latex_name = name
                 self._identity_map.set_name(name=name, latex_name=latex_name)
         return self._identity_map
+
+    def ambient_module(self):
+        """
+        Return the ambient module associated to this module.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M.ambient_module() is M
+            True
+        """
+        return self
+
+    def is_submodule(self, other):
+        """
+        Return ``True`` if ``self`` is a submodule of ``other``.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: N = FiniteRankFreeModule(ZZ, 4, name='M')
+            sage: M.is_submodule(M)
+            True
+            sage: M.is_submodule(N)
+            False
+        """
+        return self == other

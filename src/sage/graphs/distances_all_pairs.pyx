@@ -124,7 +124,8 @@ Functions
 
 include "sage/data_structures/binary_matrix.pxi"
 from libc.string cimport memset
-from libc.stdint cimport uint64_t, uint32_t, INT32_MAX, UINT32_MAX
+from libc.stdint cimport uint64_t, UINT64_MAX
+from libc.stdint cimport uint32_t, INT32_MAX, UINT32_MAX
 from cysignals.memory cimport sig_malloc, sig_calloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
@@ -1973,6 +1974,7 @@ def radius_DHV(G):
                 LB = ecc_lower_bound[v]
                 source = v  # vertex with minimum eccentricity lower bound
 
+    free_short_digraph(sd)
     bitset_free(seen)
     if UB == UINT32_MAX:
         from sage.rings.infinity import Infinity
@@ -1988,7 +1990,7 @@ def wiener_index(G):
     r"""
     Return the Wiener index of the graph.
 
-    The Wiener index of a graph `G` can be defined in two equivalent
+    The Wiener index of an undirected graph `G` can be defined in two equivalent
     ways [KRG1996]_ :
 
     - `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the
@@ -2000,6 +2002,9 @@ def wiener_index(G):
       paths from `\Omega` containing `e`. We then have
       `W(G) = \sum_{e\in E(G)}|\Omega(e)|`.
 
+    The Wiener index of a directed graph `G` is defined as the sum of the
+    distances between each pairs of vertices, `W(G) = \sum_{u,v\in G} d(u,v)`.
+
     EXAMPLES:
 
     From [GYLL1993]_, cited in [KRG1996]_::
@@ -2008,20 +2013,53 @@ def wiener_index(G):
         sage: w=lambda x: (x*(x*x -1)/6)
         sage: g.wiener_index()==w(10)
         True
+
+    Wiener index of complete (di)graphs::
+
+        sage: n = 5
+        sage: g = graphs.CompleteGraph(n)
+        sage: g.wiener_index() == (n * (n - 1)) / 2
+        True
+        sage: g = digraphs.Complete(n)
+        sage: g.wiener_index() == n * (n - 1)
+        True
     """
-    if not G.is_connected():
+    cdef unsigned int n = G.order()
+    if n < 2:
+        raise ValueError("Wiener index is not defined for empty or one-element graph")
+
+    # Copying the whole graph to obtain the list of neighbors quicker than by
+    # calling out_neighbors.  This data structure is well documented in the
+    # module sage.graphs.base.static_sparse_graph
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=list(G))
+
+    # allocated some data structures
+    cdef bitset_t seen
+    bitset_init(seen, n)
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *> mem.allocarray(2 * n, sizeof(uint32_t))
+    cdef uint32_t * waiting_list = distances + n
+
+    cdef uint64_t s = 0
+    cdef uint32_t u, v
+    cdef uint32_t ecc
+    for u in range(n):
+        ecc = simple_BFS(sd, u, distances, NULL, waiting_list, seen)
+        if ecc == UINT32_MAX:
+            # the graph is not  connected
+            s = UINT64_MAX
+            break
+        for v in range(0 if G.is_directed() else (u + 1), n):
+            s += distances[v]
+
+    free_short_digraph(sd)
+    bitset_free(seen)
+
+    if s == UINT64_MAX:
         from sage.rings.infinity import Infinity
         return +Infinity
-
-    from sage.rings.integer import Integer
-    cdef unsigned short* distances = c_distances_all_pairs(G, vertex_list=list(G))
-    cdef unsigned int NN = G.order() * G.order()
-    cdef unsigned int i
-    cdef uint64_t s = 0
-    for i in range(NN):
-        s += distances[i]
-    sig_free(distances)
-    return Integer(s) / 2
+    return s
 
 ##########################
 # Distances distribution #

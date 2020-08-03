@@ -800,17 +800,18 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                 # check if any prime of the extension maps the roots to outside
                 # the disk corresponding to the type III point
                 for prime in primes_above:
-                    usable_prime = True
+                    no_poles = True
                     for pole in poles:
                         valuation = (embedding(x.center()[0]) - pole).valuation(prime)
                         if valuation == Infinity:
-                            pass
-                        elif x.prime()**(-1 * valuation/prime.absolute_ramification_index()) <= x.radius():
-                            usable_prime = False
+                            no_poles = False
                             break
-                    if usable_prime:
+                        elif x.prime()**(-1 * valuation/prime.absolute_ramification_index()) <= x.radius():
+                            no_poles = False
+                            break
+                    if not no_poles:
                         break
-                if not usable_prime:
+                if not no_poles:
                     raise NotImplementedError('image of type III not implemented when poles in disk')
         nth_derivative = f.dehomogenize(1).defining_polynomials()[0]
         variable = nth_derivative.parent().gens()[0]

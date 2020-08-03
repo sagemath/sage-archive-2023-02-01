@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-cd "$SAGE_SRC"
+cd src
 ## All sagelib-building is done by setup.py.
 ## This is so that sagelib can be installed by standard Python procedures,
 ## such as "./setup.py install" or "pip install ."

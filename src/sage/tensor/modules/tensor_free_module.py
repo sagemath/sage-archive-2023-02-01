@@ -699,7 +699,7 @@ class TensorFreeModule(FiniteRankFreeModule):
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: T = M.tensor_module(1,1)
             sage: e_T = T.basis('e'); e_T
-            <sage.tensor.modules.tensor_free_submodule_basis.TensorFreeSubmoduleBasis_comp object at 0x7f8190a69150>
+            <sage.tensor.modules.tensor_free_submodule_basis.TensorFreeSubmoduleBasis_comp object at ...>
             sage: for a in e_T: a.display()
             e_0*e^0
             e_0*e^1

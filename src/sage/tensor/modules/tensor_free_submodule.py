@@ -54,7 +54,8 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
 
         EXAMPLES::
 
-            sage: M = FiniteRankFreeModule(QQ, 2, name='M')
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: Sym2M = TensorFreeSubmodule_comp(M, (2, 0), sym=range(2)); Sym2M
             Free module of type-(2,0) tensors
             with Fully symmetric 2-indices components w.r.t. [0, 1, 2]

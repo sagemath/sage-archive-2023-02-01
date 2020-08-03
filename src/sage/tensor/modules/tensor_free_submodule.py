@@ -12,6 +12,7 @@ Free submodules of tensor products of free modules
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.sets.disjoint_set import DisjointSet
 from .tensor_free_module import TensorFreeModule
 from .finite_rank_free_module import FiniteRankFreeModule
 
@@ -67,5 +68,61 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         r"""
         Return ``True`` if ``self`` is a submodule of ``other``.
 
+        EXAMPLES::
+
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: T60M = M.tensor_module(6, 0)
+            sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: Sym012x345M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2), (3, 4, 5)))
+            sage: Sym012345M  = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3, 4, 5)))
+            sage: Sym012345M.is_submodule(Sym012345M)
+            True
+            sage: Sym012345M.is_submodule(Sym0123x45M)
+            True
+            sage: Sym0123x45M.is_submodule(Sym012345M)
+            False
+            sage: Sym012x345M.is_submodule(Sym0123x45M)
+            False
+            sage: all(S.is_submodule(T60M) for S in (Sym0123x45M, Sym012x345M, Sym012345M))
+            True
+
         """
-        raise NotImplementedError
+        if self == other:
+            return True
+        self_base_module = self.base_module()
+        self_tensor_type = self.tensor_type()
+        try:
+            other_base_module = other.base_module()
+            other_tensor_type = other.tensor_type()
+        except AttributeError:
+            return False
+        if self_base_module != other_base_module:
+            return False
+        if self_tensor_type != other_tensor_type:
+            return False
+        # Use the union-find data structure
+        def is_coarsening_of(self_sym_list, other_sym_list):
+            S = DisjointSet(self_tensor_type[0] + self_tensor_type[1])
+            for index_set in self_sym_list:
+                i = index_set[0]
+                for j in index_set[1:]:
+                    S.union(i, j)
+            for index_set in other_sym_list:
+                i = S.find(index_set[0])
+                for j in index_set[1:]:
+                    if S.find(j) != i:
+                        return False
+            return True
+        # Similar code is in Component.contract, should refactor.
+        try:
+            other_sym = other._comp._sym
+            other_antisym = other._comp._antisym
+        except AttributeError:
+            # other is full tensor module (no symmetry)
+            return True
+        if not is_coarsening_of(self._comp._sym, other_sym):
+            return False
+        if not is_coarsening_of(self._comp._antisym, other._comp._antisym):
+            return False
+        return True

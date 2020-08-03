@@ -65,7 +65,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         return "Free module of type-({},{}) tensors with {} on the {}".format(
             self._tensor_type[0], self._tensor_type[1], self._comp, self._fmodule)
 
-    def ambient_module(self):
+    def ambient_module(self): # compatible with sage.modules.free_module.FreeModule_generic
         """
         Return the ambient module associated to this module.
 
@@ -79,6 +79,8 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             True
         """
         return self.base_module().tensor_module(*self.tensor_type())
+
+    ambient = ambient_module # compatible with sage.modules.with_basis.subquotient.SubmoduleWithBasis
 
     def is_submodule(self, other):
         r"""

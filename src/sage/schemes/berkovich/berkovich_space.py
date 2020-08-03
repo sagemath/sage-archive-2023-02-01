@@ -34,6 +34,7 @@ AUTHORS:
 from sage.schemes.berkovich.berkovich_cp_element import (Berkovich_Element_Cp_Affine,
                                                          Berkovich_Element_Cp_Projective)
 from sage.structure.parent import Parent
+from sage.schemes.affine.affine_space import is_AffineSpace
 from sage.schemes.projective.projective_space import is_ProjectiveSpace, ProjectiveSpace
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.number_fields import NumberFields
@@ -348,6 +349,12 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
         ...
         ValueError: could not convert c to Number Field in a
         with defining polynomial x^3 + 20
+
+    TESTS::
+
+        sage: A.<x> = AffineSpace(Qp(3), 1)
+        sage: Berkovich_Cp_Affine(A)
+        Affine Berkovich line over Cp(3) of precision 20
     """
 
     Element = Berkovich_Element_Cp_Affine
@@ -358,6 +365,8 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
                 base = Qp(base) #TODO chance to Qpbar
             else:
                 raise ValueError("non-prime pased into Berkovich space")
+        if is_AffineSpace(base):
+            base = base.base_ring()
         if base in NumberFields():
             if ideal == None:
                 raise ValueError('passed a number field but not an ideal')

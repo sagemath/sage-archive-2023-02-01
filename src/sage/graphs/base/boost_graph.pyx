@@ -2741,7 +2741,7 @@ cpdef wiener_index(g, algorithm=None, weight_function=None, check_weight=True):
             else:
                 raise ValueError(f"unknown algorithm {algorithm!r}")
 
-        for v in range(0 if g.is_directed() else (u+1), n):
+        for v in range(0 if g.is_directed() else (u + 1), n):
             if distances[v] == sys.float_info.max:
                 from sage.rings.infinity import Infinity
                 return +Infinity

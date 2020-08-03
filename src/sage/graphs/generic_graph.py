@@ -16805,7 +16805,8 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            Boost algorithms will return the double version of Wiener index.
+            When using Boost algorithms, the returned value is a floating point
+            number.
 
         EXAMPLES::
 

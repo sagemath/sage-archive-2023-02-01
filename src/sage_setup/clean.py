@@ -80,7 +80,7 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
         sage: from sage.env import SAGE_SRC, SAGE_LIB
         sage: cythonized_dir = os.path.join(SAGE_SRC, "build", "cythonized")
         sage: from sage_setup.find import find_python_sources, find_extra_files
-        sage: python_packages, python_modules = find_python_sources(
+        sage: python_packages, python_modules, cython_modules = find_python_sources(
         ....:     SAGE_SRC, ['sage', 'sage_setup'])
         sage: extra_files = list(find_extra_files(SAGE_SRC,
         ....:     ['sage', 'sage_setup'], cythonized_dir, []).items())

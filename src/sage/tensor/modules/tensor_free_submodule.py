@@ -30,6 +30,25 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         Free module of type-(2,0) tensors
         with Fully symmetric 2-indices components w.r.t. [0, 1, 2]
         on the Rank-3 free module M over the Integer Ring
+
+    Canonical injections from submodules are coercions::
+
+        sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+        sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+        sage: T60M = M.tensor_module(6, 0)
+        sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+        sage: Sym012x345M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2), (3, 4, 5)))
+        sage: Sym012345M  = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3, 4, 5)))
+        sage: Sym0123x45M.has_coerce_map_from(Sym012345M)
+        True
+        sage: T60M.has_coerce_map_from(Sym0123x45M)
+        True
+
+    TESTS::
+
+        sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+        sage: TestSuite(Sym0123x45M).run()
+
     """
     def __init__(self, fmodule, tensor_type, name=None, latex_name=None,
                  sym=None, antisym=None):

@@ -688,16 +688,6 @@ class TensorFreeModule(FiniteRankFreeModule):
         """
         return self._tensor_type
 
-    def basis(self, symbol, latex_symbol=None, from_family=None,
-              indices=None, latex_indices=None, symbol_dual=None,
-              latex_symbol_dual=None):
-        from sage.tensor.modules.free_module_comp_basis import FreeModuleCompTensorBasis
-        return FreeModuleCompTensorBasis(self, symbol, latex_symbol=latex_symbol,
-                               indices=indices, latex_indices=latex_indices,
-                               symbol_dual=symbol_dual,
-                               latex_symbol_dual=latex_symbol_dual)
-
-
     @cached_method
     def basis(self, symbol, latex_symbol=None, from_family=None,
               indices=None, latex_indices=None, symbol_dual=None,

@@ -64,6 +64,21 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         return "Free module of type-({},{}) tensors with {} on the {}".format(
             self._tensor_type[0], self._tensor_type[1], self._comp, self._fmodule)
 
+    def ambient_module(self):
+        """
+        Return the ambient module associated to this module.
+
+        EXAMPLES::
+
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: T60M = M.tensor_module(6, 0)
+            sage: Sym0123x45M.ambient_module() is T60M
+            True
+        """
+        return self.base_module().tensor_module(*self.tensor_type())
+
     def is_submodule(self, other):
         r"""
         Return ``True`` if ``self`` is a submodule of ``other``.

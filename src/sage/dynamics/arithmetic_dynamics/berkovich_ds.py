@@ -1,7 +1,7 @@
 r"""
 Dynamical systmes on Berkovich space over `\CC_p`.
 
-A dynamical system on Berkovich space over `\CC_p` is 
+A dynamical system on Berkovich space over `\CC_p` is
 determined by a dynamical system on `A^1(\CC_p)` or `P^1(\CC_p)`,
 which naturally induces a dynamical system on affine or
 projective Berkovich space.
@@ -370,7 +370,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
     r"""
     A dynamical system on projective Berkovich space over `\CC_p`.
 
-    A dynamical system on projective Berkovich space over `\CC_p` is 
+    A dynamical system on projective Berkovich space over `\CC_p` is
     determined by a dynamical system on `A^1(\CC_p)` or `P^1(\CC_p)`,
     which naturally induces a dynamical system on affine or
     projective Berkovich space.
@@ -381,8 +381,8 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
       of absolute dimension 1. If this input is not defined
       over a p-adic field, then ``domain`` MUST be specified.
 
-    - ``domain`` -- (optional) projective Berkovich space 
-      over `\CC_p`. If the input to ``dynamical_system`` is 
+    - ``domain`` -- (optional) projective Berkovich space
+      over `\CC_p`. If the input to ``dynamical_system`` is
       not defined over a p-adic field, ``domain``
       must be specified.
 
@@ -407,7 +407,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         sage: H = End(P1)
         sage: DynamicalSystem_Berkovich(H([y, x]))
         Dynamical system of Projective Berkovich line over Cp(3) of precision 20
-        induced by the map 
+        induced by the map
             Defn: Defined on coordinates by sending (x : y) to
                 (y : x)
 
@@ -606,7 +606,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
 
         - ``x`` -- a point of projective Berkovich space over ``Cp``.
 
-        - type_3_pole_check -- (default ``True``) A bool. WARNING: 
+        - type_3_pole_check -- (default ``True``) A bool. WARNING:
           changing the value of type_3_pole_check can lead to mathematically
           incorrect answers. Only set to ``False`` if there are NO
           poles of the dynamical system in the disk corresponding
@@ -845,8 +845,8 @@ class DynamicalSystem_Berkovich_affine(DynamicalSystem_Berkovich):
     - ``dynamical_system`` -- A dynamical system
       of affine or projective space of dimension 1.
 
-    - ``domain`` -- (optional) affine or projective Berkovich space 
-      over `\CC_p`. If the input to ``dynamical_system`` is 
+    - ``domain`` -- (optional) affine or projective Berkovich space
+      over `\CC_p`. If the input to ``dynamical_system`` is
       not defined over `\QQ_p` or a finite extension, ``domain``
       must be specified.
 
@@ -855,7 +855,7 @@ class DynamicalSystem_Berkovich_affine(DynamicalSystem_Berkovich):
     A dynamical system of the affine Berkovich line is
     induced by a dynamical system on `\QQ_p` or an extension
     of `\QQ_p`::
-    
+
         sage: A.<x> = AffineSpace(Qp(5), 1)
         sage: f = DynamicalSystem_affine([(x^2 + 1)/x])
         sage: DynamicalSystem_Berkovich(f)
@@ -931,7 +931,7 @@ class DynamicalSystem_Berkovich_affine(DynamicalSystem_Berkovich):
             sage: f.homogenize(1)
             Dynamical system of Projective Berkovich line over Cp(3) of precision 20 induced by the map
                   Defn: Defined on coordinates by sending (x0 : x1) to
-                        (x1 : x0)W
+                        (x1 : x0)
         """
         new_system = self._system.homogenize(n)
         ideal = self.domain().ideal()

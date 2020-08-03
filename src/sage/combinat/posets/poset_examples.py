@@ -1761,8 +1761,67 @@ class Posets(metaclass=ClasscallMetaclass):
         elem = [item for sublist in elem for item in sublist]
         return Poset([elem,rel])
 
+    @staticmethod
+    def RibbonPoset(n, descents):
+        r"""
+        Return a ribbon poset on ``n`` vertices with descents at ``descents``
+        
+        INPUT:
 
+            - ``n`` -- the number of vertices
+            - ``descents`` -- (an iterable) the indices on the ribbon where y > x.
+        
+        EXAMPLES::
+        
+            sage: R = Posets.RibbonPoset(5, [1,2])
+            sage: R.cover_relations()
+            [[3, 4], [3, 2], [2, 1], [0, 1]]    
+        """
+        return Poset([list(range(n)), [(i+1, i) if i in descents else (i, i+1) for i in range(n-1) ]])
 
+    @staticmethod
+    def Mobile(ribbon, hangers, anchor=None):
+        r"""
+        Return a mobile poset with the ribbon ``ribbon`` and with hanging d-complete
+        posets specified in ``hangers`` and a d-complete poset attached above,
+        specified in ``anchor``. The elements specified in ``ribbon``, ``hangers``, and ``anchor``
+        should all be uniquely named. 
+        
+        INPUT:
+        
+            - ``ribbon`` -- a finite poset that is a ribbon
+            - ``hangers`` -- a dictionary mapping an element on the ribbon to a list of d-complete posets
+                that it covers.
+            - ``anchor`` -- (default None) a tuple (ribbon_elmt, anchor_elmt, anchor_poset), 
+                where anchor_elmt covers ribbon_elmt, and anchor_elmt is an acyclic element of anchor_poset.
+                
+        EXAMPLES::
+        
+            sage: R = Posets.RibbonPoset(5, [1,2])
+            sage: H = Poset([[5, 6, 7], [(5, 6), (6,7)]])
+            sage: M = Posets.Mobile(R, {3: H})
+            sage: M.cover_relations()
+            [[5, 6], [6, 7], [7, 3], [3, 4], [3, 2], [2, 1], [0, 1]]
+        """
+        elements = []
+        cover_relations = []
+        
+        cover_relations.extend(ribbon.cover_relations())
+        elements.extend(ribbon._elements)
+        
+        if anchor:
+            cover_relations.extend(anchor[2].cover_relations())
+            cover_relations.append((anchor[0], anchor[1]))
+            elements.extend(anchor[2]._elements)
+
+        for r, p in hangers.items():
+            elements.extend(p._elements)
+            cover_relations.extend(p.cover_relations())
+            cover_relations.append((p.top(), r))
+        
+        return Poset([elements, cover_relations])
+             
+        
 
 ## RANDOM LATTICES
 

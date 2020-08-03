@@ -20,6 +20,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from .linear_extensions import LinearExtensionsOfPosetWithHooks
 from .lattices import FiniteJoinSemilattice
 from collections import deque
+from sage.misc.misc_c import prod
 
 class DCompletePoset(FiniteJoinSemilattice):
     r"""
@@ -153,3 +154,11 @@ class DCompletePoset(FiniteJoinSemilattice):
         """
         return dict(self._hooks)
 
+    def hook_product(self):
+        r"""
+        Return the hook product for the poset.
+        """
+        if self._poset.cardinality() == 0:
+            return 1
+        
+        return prod(self._hooks.values())

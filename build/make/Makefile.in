@@ -119,7 +119,7 @@ SCRIPT_PACKAGES = @SAGE_SCRIPT_PACKAGES@
 #
 # For example:
 #
-# inst_python2 = $(INST)/python2-$(vers_python2)
+# inst_python3 = $(INST)/python3-$(vers_python3)
 #
 # inst_git = $(INST)/.dummy
 
@@ -360,11 +360,11 @@ _clean-broken-gcc:
 # Define a function for generating the list of a package's dependencies
 # as $(inst_<pkgname>) variables.  For example, takes:
 #
-#     deps_cysignals = python2 cython pari | pip
+#     deps_cysignals = python3 cython pari | pip
 #
 # to:
 #
-#     $(inst_python2) $(inst_cython) $(inst_pari) | $(inst_pip)
+#     $(inst_python3) $(inst_cython) $(inst_pari) | $(inst_pip)
 #
 # If some value in the dependencies list is not a package name (e.g. it is
 # the name of some arbitrary file, or it is the '|' symbol) then it is just
@@ -382,25 +382,35 @@ pkg_deps = \
 
 # ============================= normal packages ==============================
 # Generate build rules for 'normal' packages; this template is used to generate
-# three rules in the form:
+# rules in the form:
 #
 # $(INST)/<pkgname>-<pkgvers>: <dependencies>
-#     +$(AM_V_at)sage-logger -p '$(SAGE_SPKG) <pkgname>-<pkgvers>' '$(SAGE_LOGS)/<pkgname>-<pkgvers>.log'
+#     $(MAKE) $(1)-no-deps
 #
 # <pkgname>: $(INST)/<pkgname>-<pkgvers>
+#
+# <pkgname>-build-deps: <dependencies>
+#
+# <pkgname>-no-deps:
+#     +$(AM_V_at)sage-logger -p '$(SAGE_SPKG) <pkgname>-<pkgvers>' '$(SAGE_LOGS)/<pkgname>-<pkgvers>.log'
 #
 # <pkgname>-clean:
 #     sage-spkg-uninstall <pkgname> '$(SAGE_LOCAL)'
 #
-# For example, for python2 this will expand to:
+# So <pkgname>-build-deps installs just the dependencies, while
+# <pkgname>-no-deps tries to install the package without its
+# dependencies. This is currently used in SAGE_SRC/bin/sage when
+# running 'sage -b' to build the Sage library.
 #
-# $(INST)/python2-2.7.14: $(inst_zlib) $(inst_readline) $(inst_sqlite) $(inst_libpng) $(inst_bzip2)
-#     +$(AM_V_at)sage-logger -p '$(SAGE_SPKG) python2-2.7.14' '$(SAGE_LOGS)/python2-2.7.14.log'
+# For example, for python3 this will expand to:
 #
-# python2: $(INST)/python2-2.7.14
+# $(INST)/python3-3.7.3: $(inst_zlib) $(inst_readline) $(inst_sqlite) $(inst_libpng) $(inst_bzip2) $(inst_xz) $(inst_libffi)
+#     +$(AM_V_at)sage-logger -p '$(SAGE_SPKG) python3-3.7.3' '$(SAGE_LOGS)/python3-3.7.3.log'
 #
-# python2-clean:
-#     sage-spkg-uninstall python2 '$(SAGE_LOCAL)'
+# python3: $(INST)/python3-3.7.3
+#
+# python3-clean:
+#     sage-spkg-uninstall python3 '$(SAGE_LOCAL)'
 #
 # Note: In these rules the $(INST)/<pkgname>-<pkgvers> target is used
 # explicitly, rather than expanding the $(inst_<pkgname>) variable, since
@@ -428,17 +438,20 @@ SAGE_CHECK_$(1) := $(SAGE_CHECK)
 $(1)-build-deps: $(3)
 
 $$(INST)/$(1)-$(2): $(3)
+	$(MAKE) $(1)-no-deps
+
+$(1): $$(INST)/$(1)-$(2)
+
+$(1)-no-deps:
 	+$(AM_V_at)sage-logger -p 'SAGE_CHECK=$$(SAGE_CHECK_$(1)) $$(SAGE_SPKG) $$(SAGE_SPKG_OPTIONS) \
 		$(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-existing) \
 		$(1)-$(2)' '$$(SAGE_LOGS)/$(1)-$(2).log'
-
-$(1): $$(INST)/$(1)-$(2)
 
 $(1)-clean:
 	sage-spkg-uninstall $(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-files) \
 		$(1) '$(SAGE_LOCAL)'
 
-.PHONY: $(1) $(1)-clean $(1)-build-deps
+.PHONY: $(1) $(1)-clean $(1)-build-deps $(1)-no-deps
 endef #################################################################
 
 $(foreach pkgname, $(NORMAL_PACKAGES),\
@@ -494,12 +507,15 @@ define PIP_PACKAGE_templ
 $(1)-build-deps: $(2)
 
 $(1): $(2)
+	$(MAKE) $(1)-no-deps
+
+$(1)-no-deps:
 	$(AM_V_at)sage-logger -p 'sage --pip install -r "$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt"' '$$(SAGE_LOGS)/$(1).log'
 
 $(1)-clean:
 	-sage --pip uninstall -y -r '$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt'
 
-.PHONY: $(1) $(1)-clean $(1)-build-deps
+.PHONY: $(1) $(1)-clean $(1)-build-deps $(1)-no-deps
 endef
 
 $(foreach pkgname,$(PIP_PACKAGES),\
@@ -537,14 +553,17 @@ define SCRIPT_PACKAGE_templ
 $(1)-build-deps: $(3)
 
 $$(INST)/$(1)-$(2): $(3)
+	$(MAKE) $(1)-no-deps
+
+$(1): $$(INST)/$(1)-$(2)
+
+$(1)-no-deps:
 	$(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)' && \
 		. '$$(SAGE_ROOT)/src/bin/sage-env-config' && \
 		. '$$(SAGE_ROOT)/src/bin/sage-env' && \
 		. '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		sage-logger -p '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$$(SAGE_LOGS)/$(1)-$(2).log'
-	touch "$$@"
-
-$(1): $$(INST)/$(1)-$(2)
+	touch "$$(INST)/$(1)-$(2)"
 
 $(1)-uninstall:
 	-$(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)' && \
@@ -554,7 +573,7 @@ $(1)-uninstall:
 		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
 	-rm -f "$$(INST)/$(1)-$(2)"
 
-.PHONY: $(1) $(1)-uninstall $(1)-build-deps
+.PHONY: $(1) $(1)-uninstall $(1)-build-deps $(1)-no-deps $(1)-clean
 endef
 
 $(foreach pkgname,$(SCRIPT_PACKAGES),\
@@ -577,7 +596,4 @@ list:
 	done
 
 
-.PHONY: $(NORMAL_PACKAGES) $(addsuffix -clean,$(NORMAL_PACKAGES)) \
-        $(PIP_PACKAGES) $(addsuffix -clean,$(PIP_PACKAGES)) \
-        $(SCRIPT_PACKAGES) $(addsuffix -clean,$(SCRIPT_PACKAGES)) \
-		list
+.PHONY: list

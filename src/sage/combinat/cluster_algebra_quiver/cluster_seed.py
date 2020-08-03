@@ -4554,9 +4554,8 @@ class ClusterSeed(SageObject):
         finalP = []
         #Laurent polynomial for each vector in {0,1}^n
         for i in range(len(vd)):
-            final = 1
             numerator = 0
-            if cList[i] != []:
+            if cList[i]:
             #If the vector in vd is negative then it did not contribute any compatible vectors. It will only contribute a Laurent monomial. This is the case when cList[i]=[]
             #Each compatible sequence gives a term in the numerator of the Laurent polynomial.
                 for s in cList[i]:
@@ -4586,6 +4585,7 @@ class ClusterSeed(SageObject):
         for p in finalP:
             laurentP *= p
         return laurentP
+
 
 def _bino(n, k):
     """

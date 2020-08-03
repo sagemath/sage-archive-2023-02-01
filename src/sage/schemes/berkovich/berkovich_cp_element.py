@@ -1049,8 +1049,8 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
             sage: B = Berkovich_Cp_Projective(3)
             sage: latex(B(2, 1))
-            \text{type 2 Point of } \text{Projective Berkovich line over } 
-            \Bold{C}_{3} \text{equivalent to the disk centered at 
+            \text{type 2 Point of } \text{Projective Berkovich line over }
+            \Bold{C}_{3} \text{equivalent to the disk centered at
             (2 + O(3^20) : 1 + O(3^20)) of radius 1.00000000000000 in } \Bold{C}_3
         """
         from sage.misc.latex import latex
@@ -1086,7 +1086,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     INPUT:
 
-    - ``center`` -- For type I, II, and III points, the center of the 
+    - ``center`` -- For type I, II, and III points, the center of the
       corresponding disk in `\CC_p`. If the parent Berkovich space was created using a number field
       `K`, then ``center`` must be an element of `K`. Otherwise, ``center`` must be an element of a
       p-adic field. For type IV points, can be a list of centers used to approximate the point or a
@@ -1145,7 +1145,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
     from a list of centers and radii used to approximate the point::
 
         sage: B([Qp(3)(2), Qp(3)(2), Qp(3)(2)], [1.761, 1.123, 1.112])
-        Type IV point of precision 3, approximated by disks centered at 
+        Type IV point of precision 3, approximated by disks centered at
         [2 + O(3^20), 2 + O(3^20)] ... with radii [1.76100000000000, 1.12300000000000] ...
 
     Type IV points can be constructed from univariate functions, with arbitrary precision::
@@ -1157,7 +1157,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         sage: S = FractionField(S)
         sage: g = (y + 1)/y
         sage: d = B(f, g, prec=100); d
-        Type IV point of precision 100 with centers given by 
+        Type IV point of precision 100 with centers given by
         ((t^2 + 2*t + 1) + O(3^20))*x and radii given by (y + 1.00000000000000)/y
 
     For increased performance, error_check can be set to ``False``. WARNING: with error check set
@@ -1771,7 +1771,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     INPUT:
 
-    - ``center`` -- For type I, II, and III points, the center of the 
+    - ``center`` -- For type I, II, and III points, the center of the
       corresponding disk in `P^1(\CC_p)`. If the parent Berkovich space was created using a number field
       `K`, then ``center`` can be an element of `P^1(K)`. Otherwise, ``center``
       must be an element of a projective space of dimension 1 over a padic field.
@@ -1830,11 +1830,11 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         sage: L = [b, c, d]
         sage: R = [1.761, 1.123, 1.112]
         sage: Q5 = P(L, R); Q5
-        Type IV point of precision 3, approximated by disks centered at 
+        Type IV point of precision 3, approximated by disks centered at
         [(4 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + 2*5^10 +
-         2*5^11 + 2*5^12 + 2*5^13 + 2*5^14 + 2*5^15 + 2*5^16 + 2*5^17 + 2*5^18 + 2*5^19 + O(5^20) : 
-         1 + O(5^20)), (3 + 3*5 + 5^2 + 3*5^3 + 5^4 + 3*5^5 + 5^6 + 3*5^7 + 5^8 + 3*5^9 + 
-         5^10 + 3*5^11 + 5^12 + 3*5^13 + 5^14 + 3*5^15 + 5^16 + 3*5^17 + 5^18 + 3*5^19 + O(5^20) : 
+         2*5^11 + 2*5^12 + 2*5^13 + 2*5^14 + 2*5^15 + 2*5^16 + 2*5^17 + 2*5^18 + 2*5^19 + O(5^20) :
+         1 + O(5^20)), (3 + 3*5 + 5^2 + 3*5^3 + 5^4 + 3*5^5 + 5^6 + 3*5^7 + 5^8 + 3*5^9 +
+         5^10 + 3*5^11 + 5^12 + 3*5^13 + 5^14 + 3*5^15 + 5^16 + 3*5^17 + 5^18 + 3*5^19 + O(5^20) :
          1 + O(5^20))] ... with radii [1.76100000000000, 1.12300000000000] ...
 
     Type IV points can also be created from univariate functions. Since the centers of

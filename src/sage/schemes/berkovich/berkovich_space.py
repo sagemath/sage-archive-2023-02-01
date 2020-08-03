@@ -242,7 +242,7 @@ class Berkovich_Cp(Berkovich):
 class Berkovich_Cp_Affine(Berkovich_Cp):
     r"""
     The Berkovich affine line over `\CC_p`.
-    
+
     The Berkovich affine line is the set of seminorms on `\CC_p[x]`,
     with the weakest topology such that the map `| \cdot | \to |f|` is continuous
     for all `f \in \CC_p[x]`.

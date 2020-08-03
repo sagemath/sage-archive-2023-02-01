@@ -1799,7 +1799,7 @@ class Posets(metaclass=ClasscallMetaclass):
         
             sage: R = Posets.RibbonPoset(5, [1,2])
             sage: H = Poset([[5, 6, 7], [(5, 6), (6,7)]])
-            sage: M = Posets.Mobile(R, {3: H})
+            sage: M = Posets.Mobile(R, {3: [H]})
             sage: M.cover_relations()
             [[5, 6], [6, 7], [7, 3], [3, 4], [3, 2], [2, 1], [0, 1]]
         """
@@ -1814,10 +1814,11 @@ class Posets(metaclass=ClasscallMetaclass):
             cover_relations.append((anchor[0], anchor[1]))
             elements.extend(anchor[2]._elements)
 
-        for r, p in hangers.items():
-            elements.extend(p._elements)
-            cover_relations.extend(p.cover_relations())
-            cover_relations.append((p.top(), r))
+        for r, hangs in hangers.items():
+            for h in hangs:
+                elements.extend(h._elements)
+                cover_relations.extend(h.cover_relations())
+                cover_relations.append((h.top(), r))
         
         return Poset([elements, cover_relations])
              

@@ -196,7 +196,8 @@ AUTHORS:
 from __future__ import print_function
 
 # imports
-from sage.misc.all import prod, verbose
+from sage.misc.all import prod
+from sage.misc.verbose import verbose
 from sage.rings.all import Integer, ZZ, QQ, PolynomialRing, GF, CommutativeRing
 
 from sage.algebras.quatalg.quaternion_algebra import QuaternionAlgebra, basis_for_quaternion_lattice

@@ -785,8 +785,6 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         from sage.combinat.skew_tableau import SkewTableau
         return SkewTableau(st)
 
-    __div__ = __truediv__
-
     def __call__(self, *cell):
         r"""
 

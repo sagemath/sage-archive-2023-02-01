@@ -115,8 +115,8 @@ from sage.arith.all import gcd
 from .matrix2 import decomp_seq
 from .matrix0 import Matrix as Matrix_base
 
-
-from sage.misc.all import verbose, get_verbose, prod
+from sage.misc.all import prod
+from sage.misc.verbose import verbose, get_verbose
 
 #########################################################
 # PARI C library
@@ -1443,7 +1443,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: a.change_ring(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: matrix has denominators so can't change to ZZ.
+            TypeError: matrix has denominators so can...t change to ZZ.
             sage: b = a.change_ring(QQ['x']); b
             [1/2  -1]
             [  2   3]

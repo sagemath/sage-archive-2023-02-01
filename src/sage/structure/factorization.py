@@ -1173,8 +1173,6 @@ class Factorization(SageObject):
             return self / Factorization([(other, 1)])
         return self * other**-1
 
-    __div__ = __truediv__
-
     def value(self):
         """
         Return the product of the factors in the factorization, multiplied out.

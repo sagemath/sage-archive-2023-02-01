@@ -1518,7 +1518,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         EXAMPLES::
 
             sage: maxima('exp(-sqrt(x))').nintegral('x',0,1)
-            (0.5284822353142306, 0.41633141378838...e-10, 231, 0)
+            (0.5284822353142306, 4.1633141378838...e-11, 231, 0)
 
         Note that GP also does numerical integration, and can do so to very
         high precision very quickly::

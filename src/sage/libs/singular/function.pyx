@@ -107,7 +107,7 @@ from sage.libs.singular.singular import error_messages
 
 from sage.interfaces.singular import get_docstring
 
-from sage.misc.misc import get_verbose
+from sage.misc.verbose import get_verbose
 
 from sage.structure.sequence import Sequence, Sequence_generic
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence, PolynomialSequence_generic
@@ -1554,7 +1554,7 @@ cdef class SingularLibraryFunction(SingularFunction):
     """
     def __init__(self, name):
         """
-        Construct a new Singular kernel function.
+        Construct a new Singular library function.
 
         EXAMPLES::
 

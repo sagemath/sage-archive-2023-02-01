@@ -29,6 +29,10 @@ for SYSTEM in arch debian fedora cygwin homebrew; do
         if [ -d $PKG_SCRIPTS ]; then
             PKG_BASE=$(basename $PKG_SCRIPTS)
             SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/distros/$SYSTEM.txt
+            if [ ! -f $PKG_SCRIPTS/type ]; then
+                echo >&2 "Warning: $PKG_SCRIPTS/type is missing."
+                continue
+            fi
             PKG_TYPE=$(cat $PKG_SCRIPTS/type)
             if [ -f $SYSTEM_PACKAGES_FILE -a -f $PKG_SCRIPTS/spkg-configure.m4 ]; then
                PKG_SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} $SYSTEM_PACKAGES_FILE))
@@ -78,7 +82,9 @@ cat >> "$OUTPUT_INDEX" <<EOF
 .. include:: ../footer.txt
 EOF
 
-
-OUTPUT="src/doc/en/reference/repl/options.txt"
+# #30064: Create the directory first
+OUTPUT_DIR="src/doc/en/reference/repl"
+mkdir -p "$OUTPUT_DIR"
+OUTPUT="$OUTPUT_DIR/options.txt"
 echo >&2 $0:$LINENO: installing "$OUTPUT"
 ./sage -advanced > "$OUTPUT"

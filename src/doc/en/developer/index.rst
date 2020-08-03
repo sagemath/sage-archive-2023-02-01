@@ -160,14 +160,6 @@ Packaging Third-Party Code
 
    packaging
 
-Sage Notebook Developer Guide
-=============================
-
-.. toctree::
-   :maxdepth: 3
-
-   sagenb/index
-
 
 Indices and tables
 ==================

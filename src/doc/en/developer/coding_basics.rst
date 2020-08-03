@@ -347,7 +347,7 @@ information. You can use the existing functions of Sage as templates.
            :mod:`sage.some.related.module`.
 
    See :ref:`chapter-sage_manuals_links` for details on how to setup
-   link in Sage.
+   links in Sage.
 
 -  An **ALGORITHM** block (optional).
 

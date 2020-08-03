@@ -745,6 +745,7 @@ def projective_plane(n, check=True, existence=False):
         Unknown
     """
     from sage.rings.sum_of_squares import is_sum_of_two_squares_pyx
+    from sage.combinat.designs.bibd import BruckRyserChowla_check
 
     if n <= 1:
         if existence:
@@ -758,7 +759,7 @@ def projective_plane(n, check=True, existence=False):
                "projective planes of order 10\" (1989), Canad. J. Math.")
         raise EmptySetError("No projective plane of order 10 exists by %s"%ref)
 
-    if (n%4) in [1,2] and not is_sum_of_two_squares_pyx(n):
+    if BruckRyserChowla_check(n*n+n+1, n+1, 1) is False:
         if existence:
             return False
         raise EmptySetError("By the Bruck-Ryser theorem, no projective"

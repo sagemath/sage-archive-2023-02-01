@@ -2741,7 +2741,7 @@ def SierpinskiGasketGraph(n):
 
     .. SEEALSO::
 
-        There is another familly of graphs called Sierpinski graphs,
+        There is another family of graphs called Sierpinski graphs,
         where all vertices but 3 have valence 3. They are available using
         ``graphs.HanoiTowerGraph(3, n)``.
 

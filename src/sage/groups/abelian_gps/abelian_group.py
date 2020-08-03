@@ -1360,7 +1360,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         if not self.is_finite():
             raise ValueError("group must be finite")
-        from sage.misc.misc import verbose
+        from sage.misc.verbose import verbose
 
         if self.is_trivial():
             return [self]

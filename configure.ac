@@ -62,6 +62,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # Assume current directory is SAGE_ROOT.
 SAGE_ROOT=`pwd -P`
+AC_SUBST(SAGE_ROOT)
 
 SAGE_LOCAL="$prefix"
 # The following line is necessary because the code below
@@ -313,7 +314,9 @@ SAGE_CHECK_CONDA_COMPILERS
 AC_PROG_CC()
 AC_PROG_CPP()
 AC_PROG_CXX()
-AC_PROG_FC()
+# Search for gfortran-9 first. #30067
+# This is a temporary workaround until we support gfortran 10.
+AC_PROG_FC([gfortran-9 gfortran g95 xlf95 f95 fort ifort ifc efc pgfortran pgf95 lf95 ftn nagfor xlf90 f90 pgf90 pghpf epcf90 g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77])
 
 AC_SUBST(CC)
 AC_SUBST(FC)

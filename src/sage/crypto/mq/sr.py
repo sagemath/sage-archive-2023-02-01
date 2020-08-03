@@ -315,7 +315,7 @@ from sage.structure.element import is_Matrix
 from sage.matrix.constructor import Matrix, random_matrix
 from sage.matrix.matrix_space import MatrixSpace
 
-from sage.misc.misc import get_verbose
+from sage.misc.verbose import get_verbose
 from sage.misc.flatten import flatten
 
 from sage.modules.vector_modn_dense import Vector_modn_dense
@@ -1263,6 +1263,7 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: k = sr.base_ring()
             sage: plain = '3243f6a8885a308d313198a2e0370734'
             sage: key = '2b7e151628aed2a6abf7158809cf4f3c'
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(2)
             sage: cipher = sr(plain, key)
             R[01].start   193DE3BEA0F4E22B9AC68D2AE9F84808

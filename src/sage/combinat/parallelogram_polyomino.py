@@ -1061,22 +1061,22 @@ class ParallelogramPolyomino(ClonableList,
             sage: pp = ParallelogramPolyomino([[0], [0]]) # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the lower or the upper path can't be equal to [0]
+            ValueError: the lower or the upper path can...t be equal to [0]
 
             sage: pp = ParallelogramPolyomino([[], [0]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the lower or the upper path can't be equal to []
+            ValueError: the lower or the upper path can...t be equal to []
 
             sage: pp = ParallelogramPolyomino([[0], []])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the lower or the upper path can't be equal to []
+            ValueError: the lower or the upper path can...t be equal to []
 
             sage: pp = ParallelogramPolyomino([[], []])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the lower or the upper path can't be equal to []
+            ValueError: the lower or the upper path can...t be equal to []
         """
         lower_path = self.lower_path()
         upper_path = self.upper_path()

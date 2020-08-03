@@ -1,27 +1,28 @@
-diff -Naur a/src/Makefile.in b/src/Makefile.in
---- a/src/Makefile.in	2016-05-11 13:10:51.816673752 +1200
-+++ b/src/Makefile.in	2016-05-11 13:33:52.743812049 +1200
-@@ -184,10 +184,14 @@
+diff --git a/src/Makefile.in b/src/Makefile.in
+index 18f0af21f..cc7edf043 100644
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -220,10 +220,14 @@ install:
  	  if test -s $$i ; then \
  	   if echo $$i | grep dll; then \
  	    $(INSTALL_LIBRARY) $$i $(DESTDIR)$(bindir); \
--	   fi; \
--	   $(INSTALL_LIBRARY) $$i $(DESTDIR)$(libdir); \
 +	   else \
 +	    $(INSTALL_LIBRARY) $$i $(DESTDIR)$(libdir); \
-+	   fi \
+ 	   fi; \
+-	   $(INSTALL_LIBRARY) $$i $(DESTDIR)$(libdir); \
  	  fi \
  	done
 +	if [ "x@IMPLIB_NAME@" != "x" -a -f "@IMPLIB_NAME@" ]; then \
 +	  $(INSTALL_LIBRARY) @IMPLIB_NAME@ $(DESTDIR)$(libdir); \
 +	fi
- 	if [ "x@SONAME3@" != "x" -a -f "@SONAME3@" ]; then \
+ 	if [ "x@SONAME3@" != "x" -a -f "@SONAME3@" -a "@SONAME@" != "@SONAME3@" ]; then \
  	  ( $(INSTALL_LIBRARY) @SONAME3@ $(DESTDIR)$(libdir) && \
  	    cd $(DESTDIR)$(libdir) && $(RM) -f @SONAME2@ @SONAME1@ @SONAME@ && \
-diff -Naur a/src/aclocal.m4 b/src/aclocal.m4
---- a/src/aclocal.m4	2016-05-11 13:10:51.816673752 +1200
-+++ b/src/aclocal.m4	2016-05-11 13:27:44.983968151 +1200
-@@ -232,6 +232,8 @@
+diff --git a/src/aclocal.m4 b/src/aclocal.m4
+index 3f905e473..b29296ab9 100644
+--- a/src/aclocal.m4
++++ b/src/aclocal.m4
+@@ -246,6 +246,8 @@ AC_SUBST(LIBPREFIX)dnl	Name components of a statically linked library
  AC_SUBST(LIBEXT)
  AC_SUBST(SHAREDEXT)dnl	Name components of a dynamically linked library
  AC_SUBST(SHAREDPREFIX)
@@ -30,7 +31,7 @@ diff -Naur a/src/aclocal.m4 b/src/aclocal.m4
  AC_SUBST(OBJEXT)dnl	These are set by autoconf
  AC_SUBST(EXEEXT)
  AC_SUBST(INSTALL_TARGET)dnl Which type of installation: flat directory or unix like.
-@@ -241,6 +243,8 @@
+@@ -257,6 +259,8 @@ ECL_GC_DIR=bdwgc
  ECL_LDRPATH=''
  SHAREDEXT='so'
  SHAREDPREFIX='lib'
@@ -39,16 +40,16 @@ diff -Naur a/src/aclocal.m4 b/src/aclocal.m4
  LIBPREFIX='lib'
  LIBEXT='a'
  PICFLAG='-fPIC'
-@@ -252,6 +256,8 @@
- clibs=''
+@@ -268,6 +272,8 @@ THREAD_OBJ="$THREAD_OBJ threads/process threads/queue threads/mutex threads/cond
+ clibs='-lm'
  SONAME=''
  SONAME_LDFLAGS=''
 +IMPLIB_NAME=''
 +IMPLIB_LDFLAGS=''
  case "${host_os}" in
-         linux-androideabi)
+         linux-android*)
                  thehost='android'
-@@ -369,10 +375,14 @@
+@@ -385,10 +391,14 @@ case "${host_os}" in
                  shared='yes'
                  THREAD_CFLAGS='-D_THREAD_SAFE'
                  THREAD_LIBS='-lpthread'
@@ -66,28 +67,27 @@ diff -Naur a/src/aclocal.m4 b/src/aclocal.m4
                  PICFLAG=''
                  if test "x$host_cpu" = "xx86_64" ; then
                     # Our GMP library is too old and does not support
-@@ -387,11 +397,15 @@
+@@ -405,10 +415,14 @@ case "${host_os}" in
                  enable_threads='yes'
                  THREAD_CFLAGS='-D_THREAD_SAFE'
                  THREAD_GC_FLAGS='--enable-threads=win32'
--                SHARED_LDFLAGS=''
--                BUNDLE_LDFLAGS=''
-+                SHARED_LDFLAGS="-shared -Wl,--enable-auto-image-base ${LDFLAGS}"
-+                BUNDLE_LDFLAGS="-shared -Wl,--enable-auto-image-base ${LDFLAGS}"
+-                SHARED_LDFLAGS="-Wl,--stack,${ECL_DEFAULT_C_STACK_SIZE}"
+-                BUNDLE_LDFLAGS="-Wl,--stack,${ECL_DEFAULT_C_STACK_SIZE}"
++                SHARED_LDFLAGS="-shared -Wl,--enable-auto-image-base ${LDFLAGS} -Wl,--stack,${ECL_DEFAULT_C_STACK_SIZE}"
++                BUNDLE_LDFLAGS="-shared -Wl,--enable-auto-image-base ${LDFLAGS} -Wl,--stack,${ECL_DEFAULT_C_STACK_SIZE}"
                  SHAREDPREFIX=''
                  SHAREDEXT='dll'
--                PICFLAG=''
 +                IMPLIB_PREFIX='lib'
 +                IMPLIB_EXT='dll.a'
 +                IMPLIB_NAME="${IMPLIB_PREFIX}ecl.${IMPLIB_EXT}"
 +                IMPLIB_LDFLAGS="-Wl,--out-implib,${IMPLIB_NAME}"
-+                PICFLAG=''
+                 PICFLAG=''
                  INSTALL_TARGET='flatinstall'
                  TCPLIBS='-lws2_32'
-                 ;;
-diff -Naur a/src/compile.lsp.in b/src/compile.lsp.in
---- a/src/compile.lsp.in	2016-05-11 13:10:51.888673915 +1200
-+++ b/src/compile.lsp.in	2016-05-11 13:30:13.270308872 +1200
+diff --git a/src/compile.lsp.in b/src/compile.lsp.in
+index 7d0a681cf..c01f94ec2 100755
+--- a/src/compile.lsp.in
++++ b/src/compile.lsp.in
 @@ -61,7 +61,7 @@
  ;;;
  ;;; * Add include path to not yet installed headers, and remove include flag
@@ -97,7 +97,7 @@ diff -Naur a/src/compile.lsp.in b/src/compile.lsp.in
  ;;;   with an already installed copy of ECL.
  ;;;
  (setq c::*cc-flags*
-@@ -143,7 +143,7 @@
+@@ -145,7 +145,7 @@
  ;;;
  ;;; We do not need the -rpath flag for the library, nor -lecl.
  ;;;
@@ -106,10 +106,11 @@ diff -Naur a/src/compile.lsp.in b/src/compile.lsp.in
                               #+msvc "@SHARED_LDFLAGS@ @LDFLAGS@ @STATICLIBS@ @CLIBS@")
         (c::*cc-flags* (concatenate 'string "-DECL_API -I@true_builddir@/c " c::*cc-flags*))
         (extra-args nil))
-diff -Naur a/src/configure.ac b/src/configure.ac
---- a/src/configure.ac	2016-05-11 13:10:51.889673917 +1200
-+++ b/src/configure.ac	2016-05-11 13:19:07.721791089 +1200
-@@ -600,6 +600,20 @@
+diff --git a/src/configure.ac b/src/configure.ac
+index 0184a1820..0a834625b 100644
+--- a/src/configure.ac
++++ b/src/configure.ac
+@@ -625,6 +625,20 @@ AC_SUBST(SONAME1)
  AC_SUBST(SONAME)
  AC_SUBST(SONAME_LDFLAGS)
  
@@ -130,3 +131,6 @@ diff -Naur a/src/configure.ac b/src/configure.ac
  dnl Related to that, the package version number
  ECL_VERSION_NUMBER=$(($PACKAGE_MAJOR * 10000 + $PACKAGE_MINOR * 100 + $PACKAGE_LEAST))
  AC_SUBST(ECL_VERSION_NUMBER)
+-- 
+2.20.1
+

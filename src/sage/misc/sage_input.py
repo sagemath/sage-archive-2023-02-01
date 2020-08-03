@@ -1497,8 +1497,6 @@ class SageInputExpression(object):
         """
         return self._sie_binop('/', other)
 
-    __div__ = __truediv__
-
     def __add__(self, other):
         r"""
         Compute an expression tree for ``self + other``.

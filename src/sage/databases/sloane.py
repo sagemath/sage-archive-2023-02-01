@@ -88,7 +88,7 @@ import re
 
 from urllib.request import urlretrieve
 
-from sage.misc.all import verbose
+from sage.misc.verbose import verbose
 from sage.env import SAGE_SHARE
 from sage.rings.integer_ring import ZZ
 

@@ -31,7 +31,7 @@ from sage.interfaces.gp import gp
 from sage.libs.pari import pari
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from copy import copy, deepcopy
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.interfaces.magma import magma
 from sage.functions.gamma import gamma
 from sage.functions.transcendental import zeta

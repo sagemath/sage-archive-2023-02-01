@@ -47,7 +47,7 @@ from sage.rings.padics.factory import Qp
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.padics.padic_generic import pAdicGeneric
 from sage.arith.all import next_prime, gcd, kronecker
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.rings.padics.precision_error import PrecisionError
 
 from sage.categories.action import Action

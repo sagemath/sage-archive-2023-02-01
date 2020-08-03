@@ -1,4 +1,5 @@
 from sage.libs.gmp.types cimport __mpz_struct, mpz_t, mpz_ptr
+from sage.libs.gmp.mpz cimport mpz_set
 from sage.libs.ntl.types cimport ZZ_c
 
 from sage.structure.element cimport EuclideanDomainElement, RingElement
@@ -37,6 +38,11 @@ cdef class Integer(EuclideanDomainElement):
 cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1
 
 cdef Integer smallInteger(long value)
+
+cdef inline Integer _Integer_from_mpz(mpz_t e):
+    cdef Integer z = Integer.__new__(Integer)
+    mpz_set(z.value, e)
+    return z
 
 cdef class int_to_Z(Morphism):
     pass

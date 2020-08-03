@@ -569,8 +569,6 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
 
         return self.__class__(F, {t: D[t]._divide_if_possible(x) for t in D})
 
-    __div__ = __truediv__
-
     def factor_differentials(self):
         """
         Return a dict representing ``self`` with the differentials

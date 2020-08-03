@@ -978,6 +978,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         singular values are always real. ::
 
             sage: A = matrix(CDF, 4, range(16))
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(1)
             sage: sv = A.singular_values(eps='auto'); sv
             verbose 1 (<module>) singular values,
@@ -1002,7 +1003,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         - Rob Beezer - (2011-02-18)
         """
-        from sage.misc.misc import verbose
+        from sage.misc.verbose import verbose
         from sage.rings.real_double import RDF
         global scipy
         # get SVD decomposition, which is a cached quantity

@@ -303,20 +303,6 @@ def gale_transform_to_polytope(vectors, base_ring=None, backend=None):
         Traceback (most recent call last):
         ...
         ValueError: the gale transform does not correspond to a polytope
-
-    TESTS::
-
-        sage: def test(P):
-        ....:     P1 = gale_transform_to_polytope(
-        ....:             P.gale_transform(), base_ring=P.base_ring(),
-        ....:             backend=P.backend())
-        ....:     assert P1.is_combinatorially_isomorphic(P)
-
-        sage: test(polytopes.cube())
-        sage: test(polytopes.permutahedron(4))
-        sage: test(polytopes.regular_polygon(5))
-        sage: test(polytopes.regular_polygon(7, exact=False))
-        sage: test(polytopes.snub_cube(exact=True, backend='normaliz'))   # optional - pynormaliz
     """
     vertices = gale_transform_to_primal(vectors, base_ring, backend)
     P = Polyhedron(vertices=vertices, base_ring=base_ring, backend=backend)
@@ -564,7 +550,7 @@ class Polytopes():
             8
             sage: octagon.volume()                                            # optional - pynormaliz
             2*a
-            sage: TestSuite(octagon).run()
+            sage: TestSuite(octagon).run()                                    # long time
             sage: TestSuite(polytopes.regular_polygon(5, exact=False)).run()
         """
         n = ZZ(n)
@@ -1337,7 +1323,7 @@ class Polytopes():
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 24 vertices
             sage: sc_inexact.f_vector()
             (1, 24, 60, 38, 1)
-            sage: sc_exact = polytopes.snub_cube(exact=True)  # long time - 30secs
+            sage: sc_exact = polytopes.snub_cube(exact=True)  # long time
             sage: sc_exact.f_vector()               # long time
             (1, 24, 60, 38, 1)
             sage: sorted(sc_exact.vertices())       # long time
@@ -1365,7 +1351,7 @@ class Polytopes():
              A vertex at (1, -z^2, -z),
              A vertex at (1, z^2, z),
              A vertex at (1, z, -z^2)]
-            sage: sc_exact.is_combinatorially_isomorphic(sc_inexact) #long time
+            sage: sc_exact.is_combinatorially_isomorphic(sc_inexact)  # long time
             True
 
         TESTS::
@@ -1492,7 +1478,7 @@ class Polytopes():
 
             sage: id = polytopes.icosidodecahedron(exact=False); id
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 30 vertices
-            sage: TestSuite(id).run()
+            sage: TestSuite(id).run(skip="_test_is_combinatorially_isomorphic")
 
             sage: id = polytopes.icosidodecahedron(backend='normaliz')  # optional - pynormaliz
             sage: id.f_vector()                                         # optional - pynormaliz

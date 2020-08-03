@@ -91,6 +91,10 @@ REFERENCES:
                Journal of Combinatorial Theory, Series B, vol 98, n.6,
                pp 1119-1164, 2008. :doi:`10.1016/j.jctb.2007.12.006`.
 
+.. [ABS2004] \N. Alon, I. Benjamini and Alan Stacey, *Percolation on finite
+             graphs and isoperimetric inequalities*, The Annals of Probability
+             32 (2004), no.  3A, 1727-1745.
+
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
               Transitive Closure of a Directed Graph.'
@@ -613,6 +617,13 @@ REFERENCES:
 .. [Bel1927] E.T. Bell, "Partition Polynomials",
              Annals of Mathematics,
              Second Series, Vol. 29, No. 1/4 (1927 - 1928), pp. 38-46
+
+.. [Ben1998] \I. Benjamini, *Expanders are not hyperbolic*, Israel Journal of
+             Mathematics 108 (1998), 33-36.
+
+.. [BS1997] \I. Benjamini and O. Schramm, *Every graph with a positive Cheeger
+            constant contains a tree with a positive Cheeger constant*,
+            Geometric and Functional Analysis 7 (1997), no. 3, 403-419.
 
 .. [Benasque2009] Fernando Rodriguez Villegas, *The L-function of the quintic*,
    http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
@@ -1308,6 +1319,13 @@ REFERENCES:
                Computer Science, vol. 6346, 302-313. Springer (2010).
                :doi:`10.1007/978-3-642-15775-2_26`.
 
+.. [CGLM2012] \Crescenzi P., Grossi R., Lanzi L., Marino A. (2012)
+               *On Computing the Diameter of Real-World Directed (Weighted)
+               Graphs*. In: Klasing R. (eds) Experimental Algorithms. SEA 2012.
+               Lecture Notes in Computer Science, vol 7276.
+               Springer, Berlin, Heidelberg
+               :doi:`https://doi.org/10.1007/978-3-642-30850-5_10`.
+
 .. [CGW2013] Daniel Cabarcas, Florian Göpfert, and Patrick
              Weiden. Provably Secure LWE-Encryption with Uniform
              Secret. Cryptology ePrint Archive, Report 2013/164. 2013.
@@ -1357,7 +1375,10 @@ REFERENCES:
              Experience, 4:1-10 (2001).
              http://www.hipersoft.rice.edu/grads/publications/dom14.pdf
 
-.. [CHPSS18] C. Cid, T. Huang, T. Peyrin, Y. Sasaki, L. Song.
+.. [Chu2007] \F. Chung, *Random walks and local cuts in graphs*, Linear Algebra
+             and its Applications 423 (2007), no. 1, 22-32.
+
+.. [CHPSS18] \C. Cid, T. Huang, T. Peyrin, Y. Sasaki, L. Song.
              *Boomerang Connectivity Table: A New Cryptanalysis Tool* (2018)
              IACR Transactions on Symmetric Cryptology. Vol 2017, Issue 4.
              pre-print available at https://eprint.iacr.org/2018/161.pdf
@@ -1645,6 +1666,10 @@ REFERENCES:
 .. [CTTL2014] \C. Carlet, Deng Tang, Xiaohu Tang, and Qunying Liao: *New
             Construction of Differentially 4-Uniform Bijections*, Inscrypt,
             pp. 22-38, 2013.
+
+.. [CT1998] \F. Chung and P. Tetali, *Isoperimetric inequalities for
+            Cartesian products of graphs*, Combinatorics, Probability and
+            Computing 7 (1998), no. 2, 141-148.
 
 .. [Cu1984] \R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu
             group `M_{12}`, and the kitten. *Computational group
@@ -3099,6 +3124,15 @@ REFERENCES:
              subcodes of the second order binary Reed-Muller codes*.
              Information and Control, 18, pp. 369-394, 1971.
 
+.. [Kas1966a] \T. Kasami: *Weight Distributions of
+              Bose-Chaudhuri-Hocquenghem Codes*. Coordinated Science
+              Laboratory, University of Illinois at Urbana-Champaign.
+              1966 http://hdl.handle.net/2142/74459
+
+.. [Kas1966b] \T. Kasami: *Weight Distribution Formula for Some Class
+              of Cyclic Codes*. Coordinated Science Laboratory,
+              University of Illinois at Urbana-Champaign. 1966
+
 .. [Kas2018] András Kaszanyitzky. *The GraftalLace Cellular Automata*.
              Preprint, :arxiv:`1805.11532`.
 
@@ -3262,6 +3296,9 @@ REFERENCES:
 
 .. [Knu1995] Donald E. Knuth, *Overlapping Pfaffians*,
              :arxiv:`math/9503234v1`.
+
+.. [Knu2011] Donald E. Knuth, *The Art of Computer Programming. Volume 4A.
+             Combinatorial Algorithms, Part 1*.
 
 .. [Knu2005] Lars R. Knudsen, *SMASH - A Cryptographic Hash Function*; in
              FSE'05, (2005), pp. 228-242.
@@ -3437,6 +3474,10 @@ REFERENCES:
             Algebras and modules, II (Geiranger, 1996), 365–386,
             CMS Conf. Proc., **24**, Amer. Math. Soc., Providence, RI, 1998.
             :mathscinet:`MR1648638`
+
+.. [KY2019] Jang Soo Kim, Meesue Yoo.
+            *Hook length property of d-complete posets via q-integrals*.
+            J. Combin. Theory Ser. A, **162** (2019), pp. 167-221.
 
 .. [KZ2003] \M. Kontsevich, A. Zorich "Connected components of the
             moduli space of Abelian differentials with prescripebd
@@ -3984,6 +4025,10 @@ REFERENCES:
 .. [MM2015] \J. Matherne and \G. Muller, *Computing upper cluster algebras*,
             Int. Math. Res. Not. IMRN, 2015, 3121-3149.
 
+.. [Moh1988] \B. Mohar, *Isoperimetric inequalities, growth, and the spectrum
+             of graphs*, Linear Algebra and its Applications 103 (1988),
+             119–131.
+
 .. [MNO1994] Alexander Molev, Maxim Nazarov, and Grigori Olshanski.
              *Yangians and classical Lie algebras*. (1994)
              :arxiv:`hep-th/9409025`
@@ -4400,6 +4445,17 @@ REFERENCES:
              Geometry, Contemp. Math., 605, Amer. Math. Soc.,
              Providence, RI, 2013.
              :arxiv:`1112.6163`
+
+.. [Proc1999] \R. A. Proctor, *Minuscule elements of Weyl groups, the numbers game,
+              and d-complete posets*. J. Algebra, 213(1):272–303, 1999.
+
+.. [PDynk1999] \R. A. Proctor. *Dynkin diagram classification of λ-minuscule
+               Bruhat lattices and of d-complete posets*. J. Algebraic Combin.,
+               9(1):61-94, 1999.
+
+.. [Proc2014] \R. A. Proctor. `d`-*complete posets generalize Young diagrams
+              for the hook product formula: Partial Presentation of Proof*.
+              RIMS Kôkyûroku, 1913:120-140, 2014.
 
 .. [PR2003] Perrin-Riou, *Arithmétique des courbes elliptiques à
             réduction supersingulière en `p`*,

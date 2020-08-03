@@ -923,7 +923,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: int(CDF(1,1))
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to int; use int(abs(z))
+            TypeError: can...t convert complex to int; use int(abs(z))
             sage: int(abs(CDF(1,1)))
             1
         """

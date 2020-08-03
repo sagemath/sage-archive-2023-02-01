@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The symbolic ring
 """
@@ -218,7 +219,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return True
 
     def _element_constructor_(self, x):
-        """
+        r"""
         Coerce `x` into the symbolic expression ring SR.
 
         EXAMPLES::
@@ -335,6 +336,17 @@ cdef class SymbolicRing(CommutativeRing):
             Traceback (most recent call last):
             ...
             TypeError: positive characteristic not allowed in symbolic computations
+
+        Check support for unicode characters (:trac:`29280`)::
+
+            sage: SR('λ + 2λ')
+            3*λ
+            sage: SR('μ') is var('μ')
+            True
+            sage: SR('λ + * 1')
+            Traceback (most recent call last):
+            ...
+            TypeError: Malformed expression: λ + * !!!  1
         """
         cdef GEx exp
         if is_Expression(x):
@@ -347,8 +359,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return self(symbolic_expression_from_string(x))
             except SyntaxError as err:
                 msg, s, pos = err.args
-                raise TypeError("%s: %s !!! %s" %
-                        (msg, bytes_to_str(s[:pos]), bytes_to_str(s[pos:])))
+                raise TypeError("%s: %s !!! %s" % (msg, s[:pos], s[pos:]))
 
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)

@@ -66,7 +66,7 @@ class FreeMonoidElement(MonoidElement):
             if check:
                 x2 = []
                 for v in x:
-                    if not isinstance(v, tuple) and len(v) == 2:
+                    if not (isinstance(v, tuple) and len(v) == 2):
                         raise TypeError("x (= %s) must be a list of 2-tuples or 1."%x)
                     if not (isinstance(v[0], (int, Integer)) and
                             isinstance(v[1], (int, Integer))):

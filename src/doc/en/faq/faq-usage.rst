@@ -413,7 +413,7 @@ e.g. ::
     sage: list(map(ord, "Big Mac"))
     [66, 105, 103, 32, 77, 97, 99]
 
-How can I wrote multiplication implicitly as in Mathematica?
+How can I write multiplication implicitly as in Mathematica?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Sage has a function that enables this::
@@ -787,13 +787,6 @@ You will need to do this from the command line.  Just run a command like this.
 
     $ BROWSER='open -a Firefox %s' ./sage --notebook jupyter
     $ BROWSER='open -a Google\ Chrome %s' ./sage --notebook jupyter
-
-  With the old SageNB notebook:
-
-  .. CODE-BLOCK:: shell-session
-
-    $ BROWSER='open -a Firefox' ./sage --notebook
-    $ BROWSER='open -a Google\ Chrome' ./sage --notebook
 
 
 Where is the source code for ``<function>``?

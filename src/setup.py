@@ -16,11 +16,8 @@ import sage.env
 sage.env.SAGE_SRC = os.getcwd()
 from sage.env import *
 
-from sage_setup import excepthook
+from sage_setup.excepthook import excepthook
 sys.excepthook = excepthook
-
-# This import allows instancemethods to be pickable
-import sage_setup.fpickle_setup
 
 #########################################################
 ### Configuration
@@ -92,6 +89,7 @@ code = setup(name = 'sage',
       packages    = python_packages,
       package_data = {
           'sage.libs.gap': ['sage.gaprc'],
+          'sage.interfaces': ['sage-maxima.lisp'],
           'sage.doctest':  ['tests/*'],
           'sage': ['ext_data/*',
                    'ext_data/kenzo/*',
@@ -153,7 +151,6 @@ code = setup(name = 'sage',
                  'bin/sage-inline-fortran',
                  'bin/sage-ipynb2rst',
                  'bin/sage-ipython',
-                 'bin/sage-maxima.lisp',
                  'bin/sage-native-execute',
                  'bin/sage-notebook',
                  'bin/sage-num-threads.py',
@@ -165,12 +162,10 @@ code = setup(name = 'sage',
                  'bin/sage-rebase.sh',
                  'bin/sage-rebaseall.bat',
                  'bin/sage-rebaseall.sh',
-                 'bin/sage-rst2sws',
                  'bin/sage-rst2txt',
                  'bin/sage-run',
                  'bin/sage-run-cython',
                  'bin/sage-startuptime.py',
-                 'bin/sage-sws2rst',
                  'bin/sage-update-src',
                  'bin/sage-update-version',
                  'bin/sage-upgrade',

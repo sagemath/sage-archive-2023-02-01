@@ -757,7 +757,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
 
     @staticmethod
     def __classcall_private__(cls, ring, rank, name=None, latex_name=None, start_index=0,
-                              output_formatter=None, category=None):
+                              output_formatter=None, category=None, ambient=None):
         r"""
         Normalize init arguments for ``UniqueRepresentation``
 
@@ -791,6 +791,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         start_index: int = 0,
         output_formatter=None,
         category=None,
+        ambient=None,
     ):
         r"""
         See :class:`FiniteRankFreeModule` for documentation and examples.
@@ -810,8 +811,12 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         if ring not in Rings().Commutative():
             raise TypeError("the module base ring must be commutative")
         category = Modules(ring).FiniteDimensional().or_subcategory(category)
-        Parent.__init__(self, base=ring, category=category)
+        Parent.__init__(self, base=ring, category=category, facade=ambient)
         self._ring = ring # same as self._base
+        if ambient is None:
+            self._ambient_module = self
+        else:
+            self._ambient_module = ambient
         self._rank = rank
         self._name = name
         # This duplicates the normalization done in __classcall_private__,
@@ -2825,7 +2830,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
                 self._identity_map.set_name(name=name, latex_name=latex_name)
         return self._identity_map
 
-    def ambient_module(self):
+    def ambient_module(self): # compatible with sage.modules.free_module.FreeModule_generic
         """
         Return the ambient module associated to this module.
 
@@ -2834,8 +2839,17 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: M.ambient_module() is M
             True
+
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: T60M = M.tensor_module(6, 0)
+            sage: Sym0123x45M.ambient_module() is T60M
+            True
         """
-        return self
+        return self._ambient_module
+
+    ambient = ambient_module # compatible with sage.modules.with_basis.subquotient.SubmoduleWithBasis
 
     def is_submodule(self, other):
         """
@@ -2850,4 +2864,4 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: M.is_submodule(N)
             False
         """
-        return self == other
+        return self == other or self == self.ambient_module()

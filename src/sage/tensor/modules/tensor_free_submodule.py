@@ -51,7 +51,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
 
     """
     def __init__(self, fmodule, tensor_type, name=None, latex_name=None,
-                 sym=None, antisym=None):
+                 sym=None, antisym=None, *, ambient=None, category=None):
         self._fmodule = fmodule
         self._tensor_type = tuple(tensor_type)
         # Create a tensor only because we need a Components object
@@ -61,11 +61,13 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         frame = list(fmodule.irange())
         self._comp = tensor._new_comp(frame)
         rank = len(list(self._comp.non_redundant_index_generator()))
+        category = fmodule.category().TensorProducts().FiniteDimensional().Subobjects().or_subcategory(category)
         # Skip TensorFreeModule.__init__
         FiniteRankFreeModule.__init__(self, fmodule._ring, rank, name=name,
                                       latex_name=latex_name,
                                       start_index=fmodule._sindex,
-                                    output_formatter=fmodule._output_formatter)
+                                      output_formatter=fmodule._output_formatter,
+                                      ambient=ambient, category=category)
 
     def _repr_(self):
         r"""
@@ -84,22 +86,6 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         return "Free module of type-({},{}) tensors with {} on the {}".format(
             self._tensor_type[0], self._tensor_type[1], self._comp, self._fmodule)
 
-    def ambient_module(self): # compatible with sage.modules.free_module.FreeModule_generic
-        """
-        Return the ambient module associated to this module.
-
-        EXAMPLES::
-
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
-            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
-            sage: T60M = M.tensor_module(6, 0)
-            sage: Sym0123x45M.ambient_module() is T60M
-            True
-        """
-        return self.base_module().tensor_module(*self.tensor_type())
-
-    ambient = ambient_module # compatible with sage.modules.with_basis.subquotient.SubmoduleWithBasis
 
     def is_submodule(self, other):
         r"""

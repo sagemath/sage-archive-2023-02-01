@@ -2864,4 +2864,4 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: M.is_submodule(N)
             False
         """
-        return self == other or self == self.ambient_module()
+        return self == other or self.ambient_module() == other

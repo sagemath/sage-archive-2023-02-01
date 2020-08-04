@@ -127,9 +127,9 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         if not finer_sym and not finer_antisym:
             return True
         coarser_sym, coarser_antisym = sym_antisym(coarser_comp)
-        if not is_coarsening_of(self._comp._sym, other_sym):
+        if not is_coarsening_of(coarser_sym, finer_sym):
             return False
-        if not is_coarsening_of(self._comp._antisym, other_antisym):
+        if not is_coarsening_of(coarser_antisym, finer_antisym):
             return False
         return True
 

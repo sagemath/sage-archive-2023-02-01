@@ -567,7 +567,8 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
               Defn: Defined on coordinates by sending (x : y) to
                     (x^2 + (2 + O(3^20))*x*y : (2 + O(3^20))*y^2)
         """
-        return DynamicalSystem_Berkovich(self._system.conjugate(M, adjugate=adjugate))
+        domain = self.domain()
+        return DynamicalSystem_Berkovich(self._system.conjugate(M, adjugate=adjugate), domain=domain)
 
     def dehomogenize(self, n):
         """

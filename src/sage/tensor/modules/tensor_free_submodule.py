@@ -41,9 +41,9 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         sage: Sym012x345M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2), (3, 4, 5)))
         sage: Sym012345M  = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3, 4, 5)))
         sage: Sym0123x45M.has_coerce_map_from(Sym012345M)
-        False
+        True
         sage: T60M.has_coerce_map_from(Sym0123x45M)
-        False
+        True
         sage: t = e[0] * e[0] * e[0] * e[0] * e[0] * e[0]
         sage: t.parent()
         Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring

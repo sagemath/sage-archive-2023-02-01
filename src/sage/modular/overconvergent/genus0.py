@@ -1086,17 +1086,16 @@ class OverconvergentModularFormsSpace(Module):
         eigenfunctions = []
         verbose("Expected %s eigenvalues, got %s" % (n, len(eigenvalues)))
         for (r, d) in eigenvalues:
-            v = r.valuation()
             if d != 1:
                 continue
 
-            mr = (m.__pari__() - r.__pari__())
+            mr = m.__pari__() - r.__pari__()
             # Annoying thing: r isn't quite as precise as it claims to be
             # (bug reported to sage-support list)
             while F(mr.matdet()) != 0:
                 verbose("p-adic solver returned wrong result in slope %s; refining" % r.valuation(), level=2)
                 r = r - cp(r)/cp.derivative()(r)
-                mr2 = (m.__pari__() - r.__pari__())
+                mr2 = m.__pari__() - r.__pari__()
                 if mr2.matdet().valuation(self.prime()) > mr.matdet().valuation(self.prime()):
                     mr = mr2
                 else:

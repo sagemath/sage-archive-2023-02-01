@@ -203,7 +203,6 @@ fi
 $MAKE bootstrap-clean 2>/dev/null
 mkdir config 2>/dev/null
 
-# Get autotools from our own package into PATH (Trac #21214).
 # If Sage has not been built yet, this will fail due to a missing
 # sage-env-config. We just ignore that error.
 source src/bin/sage-env-config 2>/dev/null

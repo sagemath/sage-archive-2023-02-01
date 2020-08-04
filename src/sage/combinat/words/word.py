@@ -511,7 +511,7 @@ class InfiniteWord_iter_with_caching(WordDatatype_iter_with_caching, InfiniteWor
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        TypeError: can't pickle generator objects
+        TypeError: can...t...pickle...generator...object...
     """
     pass
 
@@ -549,7 +549,7 @@ class InfiniteWord_iter(WordDatatype_iter, InfiniteWord_class):
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        TypeError: can't pickle generator objects
+        TypeError: can...t...pickle...generator...object...
     """
     pass
 
@@ -648,7 +648,7 @@ class Word_iter_with_caching(WordDatatype_iter_with_caching, Word_class):
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        TypeError: can't pickle generator objects
+        TypeError: can...t...pickle...generator...object...
     """
     pass
 
@@ -684,7 +684,7 @@ class Word_iter(WordDatatype_iter, Word_class):
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        TypeError: can't pickle generator objects
+        TypeError: can...t...pickle...generator...object...
     """
     pass
 

@@ -34,6 +34,8 @@ from sage.libs.gap.libgap import libgap
 from sage.modules.free_module import VectorSpace
 from sage.modules.free_module_element import vector
 from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.matrix.constructor import Matrix
+import itertools
 
 def cocliques_HoffmannSingleton():
     r"""
@@ -53,7 +55,6 @@ def cocliques_HoffmannSingleton():
     The construction of this graph can be found in [BCN1989]_ p. 392.
     """
     from sage.graphs.graph_generators import GraphGenerators
-    import itertools
 
     D = GraphGenerators.HoffmanSingletonGraph()
     DC = D.complement()
@@ -119,7 +120,6 @@ def ConwaySmith_for_3S7():
     [BCN1989]_ p. 399.
     """
     from sage.rings.number_field.number_field import CyclotomicField
-    import itertools
 
     F = CyclotomicField(3)
     w = F.gen()
@@ -375,4 +375,163 @@ def DoublyTruncatedWittGraph():
     G.delete_vertices(filter(lambda x : x[1] == 1, G.vertices()))
 
     G.name("Doubly Truncated Witt graph")
+    return G
+
+def distance_3_doubly_truncated_Golay_code_graph():
+    r"""
+    Return a distance-regular graph with intersection array
+    `[9, 8, 6, 3; 1, 1, 3, 8]`.
+
+    EXAMPLES::
+
+        sage: G = graphs.distance_3_doubly_truncated_Golay_code_graph()
+        sage: G.is_distance_regular(True)
+        ([9, 8, 6, 3, None], [None, 1, 1, 3, 8])
+
+    ALGORITHM:
+
+    Compute the binary Golay code and truncate it twice. Compute its coset graph.
+    Take a vertex and compute the set of vertices at distance 3
+    from the vertex choosen. This set constitutes the set of vertices of our
+    distance-regular graph. Moreover we have an edge `(u,v)` if the coset graph
+    contains such edge.
+    """
+    from sage.coding import codes_catalog as codes
+
+    G = codes.GolayCode(GF(2),extended=False).punctured([0,1]).cosetGraph()
+    v = G.vertices(sort=False)[0]
+    it = G.breadth_first_search(v, distance=3, report_distance=True)
+    vertices = [w for (w,d) in it if d == 3]
+
+    # now we have the vertices
+
+    edges =[(a ,b) for a, b in itertools.combinations(vertices, 2)
+            if G.has_edge((a, b))]
+
+    H = Graph(edges, format='list_of_edges')
+    return H
+
+def shortened_00_11_binary_Golay_code_graph():
+    r"""
+    Return a distance-regular graph with intersection array
+    `[21, 20, 16, 6, 2, 1; 1, 2, 6, 16, 20, 21]`.
+
+    EXAMPLES::
+
+        sage: G = graphs.shortened_00_11_binary_Golay_code_graph() # long time (25 s)
+        sage: G.is_distance_regular(True)
+        ([21, 20, 16, 6, 2, 1, None], [None, 1, 2, 6, 16, 20, 21])
+
+    ALGORITHM:
+
+    Compute the binary Golay code. Compute the subcode whose codewords start
+    with 00 or 11. Remove the first two entries from all codewords of the newly
+    found linear code and compute its coset graph.
+    """
+    from sage.coding import codes_catalog as codes
+    from sage.coding.linear_code import LinearCode
+
+    code = codes.GolayCode(GF(2), False)
+    C_basis = code.basis()
+
+    # Now special shortening
+    v = C_basis[0] + C_basis[1] # v has 11 at the start
+    C_basis = C_basis[2:]
+    C_basis.append(v)
+    C_basis = list(map(lambda x: x[2:], C_basis))
+
+    code = LinearCode(Matrix(GF(2), C_basis))
+
+    G = code.cosetGraph()
+    G.name("Shortened 00 11 binary Golay code")
+    return G
+
+def shortened_000_111_extended_binary_Golay_code_graph():
+    r"""
+    Return a distance-regular graph with intersection array
+    `[21, 20, 16, 9, 2, 1; 1, 2, 3, 16, 20, 21]`.
+
+    EXAMPLES::
+
+        sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # long time (3 min)
+        sage: G.is_distance_regular(True)
+        ([21, 20, 16, 9, 2, 1, None], [None, 1, 2, 3, 16, 20, 21])
+
+    ALGORITHM:
+
+    Compute the extended binary Golay code. Compute its subcode whose codewords
+    start with 000 or 111. Remove the first 3 entries from all the codewords
+    from the new linear code and compute its coset graph.f
+    """
+    from sage.coding import codes_catalog as codes
+    from sage.coding.linear_code import LinearCode
+
+    code = codes.GolayCode(GF(2))
+    C_basis = code.basis()
+
+    # now special shortening
+    v = C_basis[0] + C_basis[1] + C_basis[2] # v has 111 at the start
+    C_basis = C_basis[3:]
+    C_basis.append(v)
+    C_basis = list(map(lambda x: x[3:], C_basis))
+
+    code = LinearCode(Matrix(GF(2), C_basis))
+
+    G = code.cosetGraph()
+    G.name("Shortened 000 111 extended binary Golay code")
+    return G
+
+def LintSchrijverGraph():
+    r"""
+    Return the Lint-Schrijver graph.
+
+    The graph is distance-regular with intersection array
+    `[6, 5, 5, 4; 1, 1, 2, 6]`.
+
+    EXAMPLES::
+
+         sage: G = graphs.LintSchrijverGraph()
+         sage: G.is_distance_regular(True)
+         ([6, 5, 5, 4, None], [None, 1, 1, 2, 6])
+    """
+    from sage.coding.linear_code import LinearCode
+
+    one = vector(GF(3), [1, 1, 1, 1, 1, 1])
+    G = LinearCode(Matrix(GF(3), one)).cosetGraph()
+
+    vertices = [v for v in G.vertices() if v.dot_product(one) in {1, 2}]
+    edges = [(v, w) for v, w in itertools.combinations(vertices, 2)
+             if G.has_edge((v, w))]
+
+    H = Graph(edges, format='list_of_edges')
+    H.name("Linst-Schrijver graph")
+    return H
+
+def LeonardGraph():
+    r"""
+    Return the Leonard graph.
+
+    The graph is distance-regular with intersection array
+    `[12, 11, 10, 7; 1, 2, 5, 12]`.
+
+    EXAMPLES::
+
+         sage: G = graphs.LeonardGraph()
+         sage: G.is_distance_regular(True)
+         ([12, 11, 10, 7, None], [None, 1, 2, 5, 12])
+    """
+    from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
+
+    M = hadamard_matrix(12)
+    edges = []
+    for i, j, k, l in itertools.product(range(12), repeat=4):
+        if i == k or j == l: continue
+        if M[i, j] * M[i, l] * M[k, j] * M[k, l] == -1:
+            edges.append(((i, j), (k, l)))
+
+    D = Graph(edges, format="list_of_edges")
+    blocks = [frozenset(cl) for cl in D.cliques_maximum()]
+
+    edges = [(p, b) for b in blocks for p in b]
+    G = Graph(edges, format="list_of_edges")
     return G

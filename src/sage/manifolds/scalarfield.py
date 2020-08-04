@@ -3512,11 +3512,14 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: U = M.open_subset('U', coord_def={X: x^2+y^2<1})
+            sage: U = M.open_subset('U', coord_def={X: x^2+y^2<1})  # disk
+            sage: V = M.open_subset('U', coord_def={X: x>0})  # half plane
             sage: f = M.scalar_field(x^2, name='f')
             sage: fU = f.restrict(U)
             sage: f.set_immutable()
             sage: fU.is_immutable()
+            True
+            sage: f.restrict(V).is_immutable()
             True
 
         """

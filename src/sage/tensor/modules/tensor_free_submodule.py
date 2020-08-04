@@ -41,14 +41,14 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         sage: Sym012x345M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2), (3, 4, 5)))
         sage: Sym012345M  = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3, 4, 5)))
         sage: Sym0123x45M.has_coerce_map_from(Sym012345M)
-        True
+        False
         sage: T60M.has_coerce_map_from(Sym0123x45M)
-        True
-        sage: t = e[0]^6
+        False
+        sage: t = e[0] * e[0] * e[0] * e[0] * e[0] * e[0]
         sage: t.parent()
-        FIXME
+        Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring
         sage: Sym012345M(t) is t
-        FIXME
+        False
 
     TESTS::
 
@@ -69,6 +69,8 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         rank = len(list(self._comp.non_redundant_index_generator()))
         category = fmodule.category().TensorProducts().FiniteDimensional().Subobjects().or_subcategory(category)
         # Skip TensorFreeModule.__init__
+        if ambient is None:
+            ambient = fmodule.tensor_module(*tensor_type)
         FiniteRankFreeModule.__init__(self, fmodule._ring, rank, name=name,
                                       latex_name=latex_name,
                                       start_index=fmodule._sindex,
@@ -155,7 +157,8 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             sym = self._comp._sym
         if antisym is None:
             sym = self._comp._antisym
-        resu = super()._element_constructor_(comp=comp, basis=basis, name=name,
+        resu = super()._element_constructor_(comp=comp,
+                                             basis=basis, name=name,
                                              latex_name=latex_name,
                                              sym=sym, antisym=antisym)
         return resu

@@ -12,6 +12,7 @@ Free submodules of tensor products of free modules
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.sets.disjoint_set import DisjointSet
 from .tensor_free_module import TensorFreeModule
 from .finite_rank_free_module import FiniteRankFreeModule
@@ -207,3 +208,25 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             # other is full tensor module (no symmetry)
             return True
         return self._is_symmetry_coarsening_of(self._comp, other_comp)
+
+    @lazy_attribute
+    def lift(self):
+        r"""
+        The lift (embedding) map from ``self`` to the ambient space.
+
+        EXAMPLES::
+
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: Sym0123x45M.lift
+            Generic morphism:
+              From: Free module of type-(6,0) tensors
+                    with 6-indices components w.r.t. [0, 1, 2],
+                    with symmetry on the index positions (0, 1, 2, 3),
+                    with symmetry on the index positions (4, 5)
+                    on the Rank-3 free module M over the Integer Ring
+              To:   Free module of type-(6,0) tensors
+                    on the Rank-3 free module M over the Integer Ring
+         """
+        return self.module_morphism(function=lambda x: x, codomain=self.ambient())

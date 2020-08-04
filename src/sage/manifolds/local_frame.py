@@ -646,7 +646,7 @@ class LocalFrame(FreeModuleBasis):
                     smodule.set_default_frame(self)
                 # Initialization of the zero element of the section module:
                 if not isinstance(smodule, FiniteRankFreeModule):
-                    smodule(0).add_comp(self)
+                    smodule(0)._add_comp_unsafe(self)
                     # (since new components are initialized to zero)
         ###
         # Add this frame to the list of frames of the overlying vector bundle:

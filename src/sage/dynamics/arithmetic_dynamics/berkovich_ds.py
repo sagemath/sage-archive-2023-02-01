@@ -40,6 +40,7 @@ from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
 from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective
 from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
 from sage.categories.number_fields import NumberFields
+from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
 
@@ -539,7 +540,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         self._system.normalize_coordinates()
         self._polys = self._system._polys
 
-    def conjugate(self, M, adjugate=False):
+    def conjugate(self, M, adjugate=False, new_ideal=None):
         r"""
         Conjugate this dynamical system by ``M``, i.e. `M^{-1} \circ f \circ M`.
 
@@ -555,6 +556,10 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
           of its cofactor matrix. Used for conjugation in place of inverse
           when specified ``'True'``. Functionality is the same in projective space.
 
+        - ``new_ideal`` -- (optional) an ideal of the ``base_ring`` of ``M``.
+          Used to specify an extension in the case where ``M`` is not defined
+          over the same number field as this dynamical system.
+
         OUTPUT: a dynamical system
 
         EXAMPLES::
@@ -566,9 +571,40 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             Dynamical system of Projective Berkovich line over Cp(3) of precision 20 induced by the map
               Defn: Defined on coordinates by sending (x : y) to
                     (x^2 + (2 + O(3^20))*x*y : (2 + O(3^20))*y^2)
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_Berkovich([x^2 + y^2, y^2], ideal=5)
+            sage: R.<z> = QQ[]
+            sage: A.<a> = NumberField(z^2 + 1)
+            sage: conj = Matrix([[1, a], [0, 1]])
+            sage: f.conjugate(conj)
+            Dynamical system of Projective Berkovich line over Cp(5), with base Number Field
+            in a with defining polynomial z^2 + 1 induced by the map
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 + (2*a)*x*y + (-a)*y^2 : y^2)
+
+        We can use ``new_ideal`` to specify a new domain when
+        the base ring of ``M`` and of this dynamical system are not the
+        same::
+
+            sage: ideal = A.ideal(5).factor()[1][0]; ideal
+            Fractional ideal (2*a + 1)
+            sage: g = f.conjugate(conj, new_ideal=ideal)
+            sage: g.domain().ideal()
+            Fractional ideal (2*a + 1)
         """
-        domain = self.domain()
-        return DynamicalSystem_Berkovich(self._system.conjugate(M, adjugate=adjugate), domain=domain)
+        if self.domain().is_padic_base():
+            return DynamicalSystem_Berkovich(self._system.conjugate(M, adjugate=adjugate))
+        from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
+        if not (isinstance(new_ideal, NumberFieldFractionalIdeal) or new_ideal is None or new_ideal in ZZ):
+            raise TypeError('new_ideal must be an ideal of a number field, not %s' %new_ideal)
+        new_system = self._system.conjugate(M, adjugate=adjugate)
+        system_domain = new_system.domain()
+        if new_ideal is None:
+            new_ideal = system_domain.base_ring().prime_above(self.domain().ideal())
+        return DynamicalSystem_Berkovich(new_system, ideal=new_ideal)
 
     def dehomogenize(self, n):
         """

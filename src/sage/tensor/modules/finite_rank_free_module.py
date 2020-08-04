@@ -1992,6 +1992,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             resu._add_comp_unsafe(basis)
             # (since new components are initialized to zero)
         resu._is_zero = True # This element is certainly zero
+        resu.set_immutable()
         return resu
 
     def dual(self):

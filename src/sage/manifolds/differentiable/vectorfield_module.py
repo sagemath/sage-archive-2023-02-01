@@ -1004,7 +1004,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         - instance of
           :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
 
-        EXAMPLES::
+        EXAMPLES:
 
         Get the identity map on a vector field module::
 

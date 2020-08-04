@@ -89,7 +89,7 @@ def locally_GQ42_distance_transitive_graph():
     A description of this graph can be found in [BCN1989]_ p.399.
     This construction is due to Dima Pasechnik.
     """
-    H = libgap.AtlasGroup("3^2.U4(3).D8",libgap.NrMovedPoints,756)
+    H = libgap.AtlasGroup("3^2.U4(3).D8", libgap.NrMovedPoints, 756)
     Ns = H.NormalSubgroups()
     for N in Ns:
         if len(N.GeneratorsSmallest()) == 7:  # there is only one

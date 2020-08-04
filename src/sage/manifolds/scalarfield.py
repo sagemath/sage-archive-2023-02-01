@@ -3554,5 +3554,5 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         if self.is_mutable():
             raise ValueError('element must be immutable in order to be '
                              'hashable')
-        return hash(self._manifold)
+        return hash((type(self).__name__, self._domain))
 

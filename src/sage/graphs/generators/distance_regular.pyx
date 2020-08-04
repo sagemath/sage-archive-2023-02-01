@@ -395,6 +395,10 @@ def distance_3_doubly_truncated_Golay_code_graph():
     from the vertex choosen. This set constitutes the set of vertices of our
     distance-regular graph. Moreover we have an edge `(u,v)` if the coset graph
     contains such edge.
+
+    REFERENCES:
+
+    Description and construction of this graph are taken from [BCN1989]_ p. 364.
     """
     from sage.coding import codes_catalog as codes
 
@@ -402,8 +406,6 @@ def distance_3_doubly_truncated_Golay_code_graph():
     v = G.vertices(sort=False)[0]
     it = G.breadth_first_search(v, distance=3, report_distance=True)
     vertices = [w for (w,d) in it if d == 3]
-
-    # now we have the vertices
 
     edges =[(a ,b) for a, b in itertools.combinations(vertices, 2)
             if G.has_edge((a, b))]
@@ -419,7 +421,7 @@ def shortened_00_11_binary_Golay_code_graph():
     EXAMPLES::
 
         sage: G = graphs.shortened_00_11_binary_Golay_code_graph() # long time (25 s)
-        sage: G.is_distance_regular(True)
+        sage: G.is_distance_regular(True) # long time
         ([21, 20, 16, 6, 2, 1, None], [None, 1, 2, 6, 16, 20, 21])
 
     ALGORITHM:
@@ -427,6 +429,10 @@ def shortened_00_11_binary_Golay_code_graph():
     Compute the binary Golay code. Compute the subcode whose codewords start
     with 00 or 11. Remove the first two entries from all codewords of the newly
     found linear code and compute its coset graph.
+
+    REFERENCES:
+
+    Description and construction of this graph can be found in [BCN1989]_ p. 365.
     """
     from sage.coding import codes_catalog as codes
     from sage.coding.linear_code import LinearCode
@@ -454,14 +460,18 @@ def shortened_000_111_extended_binary_Golay_code_graph():
     EXAMPLES::
 
         sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # long time (3 min)
-        sage: G.is_distance_regular(True)
+        sage: G.is_distance_regular(True)  # long time
         ([21, 20, 16, 9, 2, 1, None], [None, 1, 2, 3, 16, 20, 21])
 
     ALGORITHM:
 
     Compute the extended binary Golay code. Compute its subcode whose codewords
     start with 000 or 111. Remove the first 3 entries from all the codewords
-    from the new linear code and compute its coset graph.f
+    from the new linear code and compute its coset graph.
+
+    REFERENCES:
+
+    Description and construction of this graph can be found in [BCN1989]_ p. 365.
     """
     from sage.coding import codes_catalog as codes
     from sage.coding.linear_code import LinearCode
@@ -493,6 +503,10 @@ def LintSchrijverGraph():
          sage: G = graphs.LintSchrijverGraph()
          sage: G.is_distance_regular(True)
          ([6, 5, 5, 4, None], [None, 1, 1, 2, 6])
+
+    REFERENCES:
+
+    For a description of this graph see [BCN1989]_ p. 373.
     """
     from sage.coding.linear_code import LinearCode
 
@@ -519,6 +533,10 @@ def LeonardGraph():
          sage: G = graphs.LeonardGraph()
          sage: G.is_distance_regular(True)
          ([12, 11, 10, 7, None], [None, 1, 2, 5, 12])
+
+    REFERENCES:
+
+    For a description of this graph see [BCN1989]_ p. 371.
     """
     from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
 

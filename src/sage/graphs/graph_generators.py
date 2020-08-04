@@ -1911,8 +1911,7 @@ class GraphGenerators():
 ###########################################################################
 # Small Graphs
 ###########################################################################
-    from .generators import smallgraphs
-    from sage.graphs.generators import distance_regular
+    from .generators import smallgraphs, distance_regular
     Balaban10Cage            = staticmethod(smallgraphs.Balaban10Cage)
     Balaban11Cage            = staticmethod(smallgraphs.Balaban11Cage)
     BidiakisCube             = staticmethod(smallgraphs.BidiakisCube)

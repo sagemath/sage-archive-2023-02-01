@@ -1396,6 +1396,18 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
                                  "linearly independent")
         return resu
 
+    def _test_basis(self, **options):
+        r"""
+        Test that the ``basis`` method works correctly.
+        """
+        tester = self._tester(**options)
+        b = self.basis('test')
+        # Test uniqueness
+        b_again = self.basis('test')
+        tester.assertTrue(b is b_again)
+        # Test rank
+        tester.assertEqual(len(b), self.rank())
+
     def tensor(self, tensor_type, name=None, latex_name=None, sym=None,
                antisym=None):
         r"""

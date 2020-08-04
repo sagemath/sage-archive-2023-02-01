@@ -110,6 +110,7 @@ __append_to_doc(
      "DesarguesGraph",
      "DejterGraph",
      "DoubleStarSnark",
+     "DoublyTruncatedWittGraph",
      "DurerGraph",
      "DyckGraph",
      "EllinghamHorton54Graph",
@@ -119,6 +120,7 @@ __append_to_doc(
      "FlowerSnark",
      "FolkmanGraph",
      "FosterGraph",
+     "FosterGraph3S6",
      "FranklinGraph",
      "FruchtGraph",
      "GoldnerHararyGraph",
@@ -139,12 +141,15 @@ __append_to_doc(
      "HoltGraph",
      "HortonGraph",
      "IoninKharaghani765Graph",
+     "IvanovIvanovFaradjevGraph",
+     "J2Graph",
      "JankoKharaghaniGraph",
      "JankoKharaghaniTonchevGraph",
      "KittellGraph",
      "KrackhardtKiteGraph",
      "Klein3RegularGraph",
      "Klein7RegularGraph",
+     "LargeWittGraph",
      "locally_GQ42_distance_transitive_graph",
      "LocalMcLaughlinGraph",
      "LjubljanaGraph",
@@ -173,6 +178,7 @@ __append_to_doc(
      "TietzeGraph",
      "TruncatedIcosidodecahedralGraph",
      "TruncatedTetrahedralGraph",
+     "TruncatedWittGraph",
      "Tutte12Cage",
      "TutteCoxeterGraph",
      "TutteGraph",
@@ -1932,6 +1938,7 @@ class GraphGenerators():
     DejterGraph              = staticmethod(smallgraphs.DejterGraph)
     DesarguesGraph           = staticmethod(smallgraphs.DesarguesGraph)
     DoubleStarSnark          = staticmethod(smallgraphs.DoubleStarSnark)
+    DoublyTruncatedWittGraph = staticmethod(distance_regular.DoublyTruncatedWittGraph)
     DurerGraph               = staticmethod(smallgraphs.DurerGraph)
     DyckGraph                = staticmethod(smallgraphs.DyckGraph)
     EllinghamHorton54Graph   = staticmethod(smallgraphs.EllinghamHorton54Graph)
@@ -1941,6 +1948,7 @@ class GraphGenerators():
     FlowerSnark              = staticmethod(smallgraphs.FlowerSnark)
     FolkmanGraph             = staticmethod(smallgraphs.FolkmanGraph)
     FosterGraph              = staticmethod(smallgraphs.FosterGraph)
+    FosterGraph3S6           = staticmethod(distance_regular.FosterGraph3S6)
     FranklinGraph            = staticmethod(smallgraphs.FranklinGraph)
     FruchtGraph              = staticmethod(smallgraphs.FruchtGraph)
     GoldnerHararyGraph       = staticmethod(smallgraphs.GoldnerHararyGraph)
@@ -1962,12 +1970,15 @@ class GraphGenerators():
     HoltGraph                = staticmethod(smallgraphs.HoltGraph)
     HortonGraph              = staticmethod(smallgraphs.HortonGraph)
     IoninKharaghani765Graph  = staticmethod(smallgraphs.IoninKharaghani765Graph)
+    IvanovIvanovFaradjevGraph = staticmethod(distance_regular.IvanovIvanovFaradjevGraph)
+    J2Graph                  = staticmethod(distance_regular.J2Graph)
     JankoKharaghaniGraph     = staticmethod(smallgraphs.JankoKharaghaniGraph)
     JankoKharaghaniTonchevGraph  = staticmethod(smallgraphs.JankoKharaghaniTonchevGraph)
     KittellGraph             = staticmethod(smallgraphs.KittellGraph)
     KrackhardtKiteGraph      = staticmethod(smallgraphs.KrackhardtKiteGraph)
     Klein3RegularGraph       = staticmethod(smallgraphs.Klein3RegularGraph)
     Klein7RegularGraph       = staticmethod(smallgraphs.Klein7RegularGraph)
+    LargeWittGraph           = staticmethod(distance_regular.LargeWittGraph)
     locally_GQ42_distance_transitive_graph = staticmethod(distance_regular.locally_GQ42_distance_transitive_graph)
     LocalMcLaughlinGraph     = staticmethod(smallgraphs.LocalMcLaughlinGraph)
     LjubljanaGraph           = staticmethod(smallgraphs.LjubljanaGraph)
@@ -1996,7 +2007,8 @@ class GraphGenerators():
     TietzeGraph              = staticmethod(smallgraphs.TietzeGraph)
     Tutte12Cage              = staticmethod(smallgraphs.Tutte12Cage)
     TruncatedIcosidodecahedralGraph = staticmethod(smallgraphs.TruncatedIcosidodecahedralGraph)
-    TruncatedTetrahedralGraph= staticmethod(smallgraphs.TruncatedTetrahedralGraph)
+    TruncatedTetrahedralGraph = staticmethod(smallgraphs.TruncatedTetrahedralGraph)
+    TruncatedWittGraph       = staticmethod(distance_regular.TruncatedWittGraph)
     TutteCoxeterGraph        = staticmethod(smallgraphs.TutteCoxeterGraph)
     TutteGraph               = staticmethod(smallgraphs.TutteGraph)
     U42Graph216              = staticmethod(smallgraphs.U42Graph216)

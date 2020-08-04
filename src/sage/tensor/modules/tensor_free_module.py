@@ -484,6 +484,17 @@ class TensorFreeModule(FiniteRankFreeModule):
                                       latex_name=autom._latex_name)
             for basis, comp in autom._components.items():
                 resu._components[basis] = comp.copy()
+        elif isinstance(comp, FreeModuleTensor):
+            tensor = comp
+            if self._tensor_type != tensor._tensor_type or \
+               self._fmodule != tensor.base_module():
+                raise TypeError("cannot coerce the {}".format(tensor) +
+                                " to an element of {}".format(self))
+            resu = self.element_class(self._fmodule, self._tensor_type,
+                                      name=name, latex_name=latex_name,
+                                      sym=sym, antisym=antisym)
+            for basis, comp in tensor._components.items():
+                resu._components[basis] = comp.copy()
         else:
             # Standard construction:
             resu = self.element_class(self._fmodule, self._tensor_type,

@@ -87,6 +87,18 @@ class Basis_abstract(UniqueRepresentation, SageObject):
         for i in self._fmodule.irange():
             yield self[i]
 
+    def _test_iter_len(self, **options):
+        r"""
+        Test that __iter__ and __len__ work correctly.
+        """
+        tester = self._tester(**options)
+        g = iter(self)
+        b = list(g)
+        for x in b:
+            tester.assertTrue(x in self.free_module())
+        tester.assertEqual(len(b), len(self))
+        tester.assertEqual(len(b), self.free_module().rank())
+
     def __len__(self):
         r"""
         Return the basis length, i.e. the rank of the free module.
@@ -371,6 +383,10 @@ class FreeModuleCoBasis(Basis_abstract):
         sage: f[3](e[1]), f[3](e[2]), f[3](e[3])
         (0, 0, 1)
 
+    TESTS::
+
+        sage: TestSuite(f).run()
+
     """
     def __init__(self, basis, symbol, latex_symbol=None, indices=None,
                  latex_indices=None):
@@ -520,6 +536,12 @@ class FreeModuleBasis(Basis_abstract):
         Element a of the Rank-3 free module M over the Integer Ring
         sage: g.dual_basis()[1]
         Linear form A on the Rank-3 free module M over the Integer Ring
+
+    TESTS::
+
+        sage: TestSuite(e).run()
+        sage: TestSuite(f).run()
+        sage: TestSuite(g).run()
 
     """
     # The following class attribute must be redefined by any derived class:

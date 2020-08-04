@@ -609,6 +609,13 @@ class TensorFreeModule(FiniteRankFreeModule):
             sage: M.tensor_module(0,2)._coerce_map_from_(N.dual_exterior_power(2))
             False
 
+        Coercion from submodules::
+
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: Sym01M = TensorFreeSubmodule_comp(M, (2, 0), sym=((0, 1)))
+            sage: M.tensor_module(2,0)._coerce_map_from_(Sym01M)
+            True
+
         """
         from .free_module_homset import FreeModuleHomset
         from .ext_pow_free_module import (ExtPowerFreeModule,
@@ -634,6 +641,11 @@ class TensorFreeModule(FiniteRankFreeModule):
             # Coercion of an automorphism to a type-(1,1) tensor:
             return self._tensor_type == (1,1) and \
                                     self._fmodule is other.base_module()
+        try:
+            if other.is_submodule(self):
+                return True
+        except AttributeError:
+            pass
         return False
 
     #### End of parent methods

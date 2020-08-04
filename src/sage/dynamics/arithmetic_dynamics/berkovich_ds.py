@@ -211,8 +211,9 @@ class DynamicalSystem_Berkovich(Element):
                     else:
                         domain = Berkovich_Cp_Projective(morphism_domain, ideal)
                 else:
-                    if ideal != domain.ideal():
-                        raise ValueError('conflicting inputs for ideal and domain')
+                    if ideal != None:
+                        if ideal != domain.ideal():
+                            raise ValueError('conflicting inputs for ideal and domain')
             else:
                 raise ValueError('base ring of domain of dynamical_system must be p-adic or a number field ' + \
                     'not %s' %morphism_domain.base_ring())

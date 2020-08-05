@@ -245,6 +245,7 @@ class Section(ModuleElementWithMutability):
         self._domain = section_module.domain()
         self._base_space = section_module.base_space()
         self._vbundle = section_module.vector_bundle()
+        self._is_zero = False  # a priori
         self._name = name
         if latex_name is None:
             self._latex_name = self._name

@@ -2620,7 +2620,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         return homset(matrix_rep, bases=bases, name=name,
                       latex_name=latex_name)
 
-    def isomorphism_with_fixed_basis(self, basis, codomain=None):
+    def isomorphism_with_fixed_basis(self, basis=None, codomain=None):
         r"""
         Construct the canonical isomorphism from the free module ``self``
         to a free module in which ``basis`` of ``self`` is mapped to the
@@ -2628,8 +2628,9 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``basis`` -- the basis of ``self`` which should be mapped to the
-          distinguished basis on ``codomain``
+        - ``basis`` -- (default: ``None``) the basis of ``self`` which
+          should be mapped to the distinguished basis on ``codomain``;
+          if ``None``, the default basis is assumed.
         - ``codomain`` -- (default: ``None``) the codomain of the
           isomorphism represented by a free module within the category
           :class:`~sage.categories.modules_with_basis.ModulesWithBasis` with
@@ -2694,6 +2695,8 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             ValueError: domain and codomain must have the same base ring
         """
         base_ring = self.base_ring()
+        if basis is None:
+            basis = self.default_basis()
         if codomain is None:
             from sage.combinat.free_module import CombinatorialFreeModule
             if isinstance(basis._symbol, str):
@@ -2719,6 +2722,20 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
                                 for i in self.irange())
 
         return self.module_morphism(function=_isomorphism, codomain=codomain)
+
+    def _test_isomorphism_with_fixed_basis(self, **options):
+        r"""
+        Test that the method ``isomorphism_with_fixed_basis`` works correctly.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M._test_isomorphism_with_fixed_basis()
+        """
+        tester = self._tester(**options)
+        basis = self.basis('test')
+        morphism = self.isomorphism_with_fixed_basis(basis)
+        tester.assertEqual(morphism.codomain().rank(), self.rank())
 
     def endomorphism(self, matrix_rep, basis=None, name=None, latex_name=None):
         r"""

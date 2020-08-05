@@ -779,7 +779,6 @@ class FusionRing(WeylCharacterRing):
         """
         if self.Nk_ij(i,j,k) == 0:
             return 0
-        rho = self.space().rho()
         r = self.root_of_unity((k.twist(reduce=False)-i.twist(reduce=False)-j.twist(reduce=False))/2)
         if i != j:
             return r
@@ -951,7 +950,7 @@ class FusionRing(WeylCharacterRing):
 
         def ribbon(self):
             r"""
-            Returns the twist or ribbon element of ``self``. An additive 
+            Return the twist or ribbon element of ``self``. An additive 
             version of this is available as :meth:`twist`. If `h` is the
             rational number modulo 2 produced by ``self.twist()``, this 
             method produces `e^{i\pi h}`.

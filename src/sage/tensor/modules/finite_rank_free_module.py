@@ -1396,11 +1396,28 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
                                  "linearly independent")
         return resu
 
-    def _test_basis(self, **options):
+    def _test_basis(self, tester=None, **options):
         r"""
         Test that the ``basis`` method works correctly.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M._test_basis(verbose=True)
+            <BLANKLINE>
+              Running the test suite of self.basis('test')
+              running ._test_category() . . . pass
+              running ._test_new() . . . pass
+              running ._test_not_implemented_methods() . . . pass
+              running ._test_pickling() . . . pass
+
         """
-        tester = self._tester(**options)
+        from sage.misc.sage_unittest import TestSuite
+        # The intention is to raise an exception only if this is
+        # run as a sub-testsuite of a larger testsuite.
+        # (from _test_elements)
+        is_sub_testsuite = (tester is not None)
+        tester = self._tester(tester=tester, **options)
         b = self.basis('test')
         # Test uniqueness
         b_again = self.basis('test')
@@ -1412,7 +1429,10 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         # Test basis indexing
         for index, element in zip(indices, b):
             tester.assertTrue(element is b[index])
-            tester.assertTrue(element in self)
+        # Run test suite of the basis object (similar to _test_elements)
+        tester.info("\n  Running the test suite of self.basis('test')")
+        TestSuite(b).run(verbose=tester._verbose, prefix=tester._prefix + "  ",
+                         raise_on_failure=is_sub_testsuite)
 
     def tensor(self, tensor_type, name=None, latex_name=None, sym=None,
                antisym=None):

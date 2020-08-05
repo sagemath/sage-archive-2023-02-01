@@ -459,7 +459,7 @@ def shortened_000_111_extended_binary_Golay_code_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # long time (3 min)
+        sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # long time (2 min)
         sage: G.is_distance_regular(True)  # long time
         ([21, 20, 16, 9, 2, 1, None], [None, 1, 2, 3, 16, 20, 21])
 
@@ -493,7 +493,7 @@ def shortened_000_111_extended_binary_Golay_code_graph():
 
 def LintSchrijverGraph():
     r"""
-    Return the Lint-Schrijver graph.
+    Return the van Lint-Schrijver graph.
 
     The graph is distance-regular with intersection array
     `[6, 5, 5, 4; 1, 1, 2, 6]`.

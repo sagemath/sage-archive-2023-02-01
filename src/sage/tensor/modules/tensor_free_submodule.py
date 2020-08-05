@@ -61,17 +61,16 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
                  sym=None, antisym=None, *, ambient=None, category=None):
         self._fmodule = fmodule
         self._tensor_type = tuple(tensor_type)
+        if ambient is None:
+            ambient = fmodule.tensor_module(*tensor_type)
+        self._ambient_module = ambient
         # Create a tensor only because we need a Components object
         tensor = fmodule.tensor(tensor_type,
                                 name=name, latex_name=latex_name,
                                 sym=sym, antisym=antisym)
-        frame = list(fmodule.irange())
-        self._comp = tensor._new_comp(frame)
-        rank = len(list(self._comp.non_redundant_index_generator()))
+        rank = len(list(self.irange()))
         category = fmodule.category().TensorProducts().FiniteDimensional().Subobjects().or_subcategory(category)
         # Skip TensorFreeModule.__init__
-        if ambient is None:
-            ambient = fmodule.tensor_module(*tensor_type)
         FiniteRankFreeModule.__init__(self, fmodule._ring, rank, name=name,
                                       latex_name=latex_name,
                                       start_index=fmodule._sindex,
@@ -93,7 +92,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
 
         """
         return "Free module of type-({},{}) tensors with {} on the {}".format(
-            self._tensor_type[0], self._tensor_type[1], self._comp, self._fmodule)
+            self._tensor_type[0], self._tensor_type[1], self._basis_comp(), self._fmodule)
 
     def _is_symmetry_coarsening_of(self, coarser_comp, finer_comp):
         self_tensor_type = self.tensor_type()
@@ -141,7 +140,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         if sym is not None or antisym is not None:
             # Refuse to create a tensor with finer symmetries
             # than those defining the subspace
-            if not self._is_symmetry_coarsening_of((sym, antisym), self._comp):
+            if not self._is_symmetry_coarsening_of((sym, antisym), self._basis_comp()):
                 raise ValueError("cannot create a tensor with symmetries {} as an element of {}".
                                  format((sym, antisym), self))
         try:
@@ -152,12 +151,12 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             resu = comp
             # comp is already a tensor.  If its declared symmetries are coarser
             # than the symmetries defining self, we can use it directly.
-            if self._is_symmetry_coarsening_of(resu, self._comp):
+            if self._is_symmetry_coarsening_of(resu, self._basis_comp()):
                 return resu
         if sym is None:
-            sym = self._comp._sym
+            sym = self._basis_comp()._sym
         if antisym is None:
-            sym = self._comp._antisym
+            antisym = self._basis_comp()._antisym
         resu = super()._element_constructor_(comp=comp,
                                              basis=basis, name=name,
                                              latex_name=latex_name,
@@ -202,12 +201,8 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         if self_tensor_type != other_tensor_type:
             return False
 
-        try:
-            other_comp = other._comp
-        except AttributeError:
-            # other is full tensor module (no symmetry)
-            return True
-        return self._is_symmetry_coarsening_of(self._comp, other_comp)
+        other_comp = other._basis_comp()
+        return self._is_symmetry_coarsening_of(self._basis_comp(), other_comp)
 
     @lazy_attribute
     def lift(self):

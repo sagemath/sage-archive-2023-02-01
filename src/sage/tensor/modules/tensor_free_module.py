@@ -747,3 +747,16 @@ class TensorFreeModule(FiniteRankFreeModule):
             e_2*e_2
         """
         return TensorFreeSubmoduleBasis_comp(self, symbol)
+
+    @cached_method
+    def _basis_comp(self):
+        # Data for TensorFreeSubmoduleBasis_comp
+        frame = tuple(self.base_module().irange())
+        tensor = self.ambient()()
+        return tensor._new_comp(frame)
+
+    def irange(self):
+        r"""
+        Index generator, labelling the elements of a basis of ``self``.
+        """
+        yield from self._basis_comp().non_redundant_index_generator()

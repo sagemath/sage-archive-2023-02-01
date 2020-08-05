@@ -43,14 +43,7 @@ class TensorFreeSubmoduleBasis_comp(Basis_abstract):
                                               latex_indices, symbol_dual, latex_symbol_dual)
         super().__init__(tensor_module, symbol, latex_symbol, indices, latex_indices)
         self._base_module_basis = base_module_basis
-        try:
-            # TensorFreeSubmodule_comp
-            self._comp = tensor_module._comp
-        except AttributeError:
-            # TensorFreeModule
-            tensor = tensor_module()
-            frame = list(base_module.irange())
-            self._comp = tensor._new_comp(frame)
+        self._comp = tensor_module._basis_comp()
 
     def keys(self):
         yield from self._comp.non_redundant_index_generator()

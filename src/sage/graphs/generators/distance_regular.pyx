@@ -80,8 +80,8 @@ def locally_GQ42_distance_transitive_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.locally_GQ42_distance_transitive_graph()  # optional - internet
-        sage: G.is_distance_regular(True)  # optional - internet
+        sage: G = graphs.locally_GQ42_distance_transitive_graph()  # optional - internet gap_packages
+        sage: G.is_distance_regular(True)  # optional - internet gap_packages
         ([45, 32, 12, 1, None], [None, 1, 6, 32, 45])
 
     REFERENCES:
@@ -194,8 +194,8 @@ def graph_3O73():
 
     EXAMPLES::
 
-        sage: G = graphs.graph_3O73()  # optional - internet
-        sage: G.is_distance_regular(True)  # optional - internet
+        sage: G = graphs.graph_3O73()  # optional - internet gap_packages
+        sage: G.is_distance_regular(True)  # optional - internet gap_packages
         ([117, 80, 24, 1, None], [None, 1, 12, 80, 117])
 
     REFERENCES:

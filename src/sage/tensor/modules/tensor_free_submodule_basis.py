@@ -52,20 +52,52 @@ class TensorFreeSubmoduleBasis_comp(Basis_abstract):
             frame = list(base_module.irange())
             self._comp = tensor._new_comp(frame)
 
+    def keys(self):
+        yield from self._comp.non_redundant_index_generator()
+
     def __iter__(self):
         r"""
         Generate the basis elements of ``self``.
         """
+        for ind in self.keys():
+            yield self[ind]
+
+    def __getitem__(self, index):
+        r"""
+        Return the basis element corresponding to a given index.
+
+        INPUT:
+
+        - ``index`` -- the index of the basis element
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: T11 = M.tensor_module(1,1)
+            sage: e11 = T11.basis('e')
+            sage: e11[1, 2].display()
+            e_1*e^2
+
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: Sym2M = TensorFreeSubmodule_comp(M, (2, 0), sym=range(2)); Sym2M
+            Free module of type-(2,0) tensors
+            with Fully symmetric 2-indices components w.r.t. [0, 1, 2]
+            on the Rank-3 free module M over the Integer Ring
+            sage: eSym2M = Sym2M.basis('e')
+            sage: eSym2M[1, 1].display()
+            e_1*e_1
+            sage: eSym2M[1, 2].display()
+            e_1*e_2 + e_2*e_1
+
+        """
         tensor_module = self._fmodule
         base_module = tensor_module.base_module()
         base_module_basis = self._base_module_basis
-        for ind in self._comp.non_redundant_index_generator():
-            element = tensor_module.element_class(base_module, tensor_module._tensor_type)
-            element.set_comp(base_module_basis)[ind] = 1
-            yield element
+        element = tensor_module([])
+        element.set_comp(base_module_basis)[index] = 1
+        return element
 
 # Todo: Make it a Family
-#       symmetrize/antisymmetrize it
 #       dual basis
 #       add test for dual
 # lift/reduce/retract

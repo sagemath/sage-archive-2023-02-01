@@ -488,7 +488,7 @@ class DiffChart(Chart):
             sage: ey = c_xy.frame()[1] ; ey
             Vector field d/dy on the 2-dimensional differentiable manifold M
             sage: dx(ex).display()
-             dx(d/dx): M --> R
+            dx(d/dx): M --> R
                (x, y) |--> 1
             sage: dx(ey).display()
             dx(d/dy): M --> R

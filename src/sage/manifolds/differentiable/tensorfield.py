@@ -4538,7 +4538,7 @@ class TensorField(ModuleElement):
             sage: v.display(P.frame(), P)
             (p^2 - q^2 - 2*p - 2*q) d/dp + (2*pi - 2*pi^2 - 2*(pi - pi^2)*p) d/dq
             sage: v.display(P.frame(), X)
-            (x^2 - y^2) d/dp - 2*(pi - pi^2)*x d/dq
+            (x + y)*(x - y) d/dp + 2*pi*(pi - 1)*x d/dq
 
         By default, the components of ``v`` in frames distinct from the
         specified one have been deleted::
@@ -4553,7 +4553,7 @@ class TensorField(ModuleElement):
         is effective in ``X.frame()`` as well::
 
             sage: v.display(X.frame(), X)
-            (x^2 - y^2) d/dx - 2*(pi - pi^2)*x d/dy
+            (x + y)*(x - y) d/dx + 2*pi*(pi - 1)*x d/dy
 
         When the requested operation does not change the value of the tensor
         field, one can use the keyword argument ``keep_other_components=True``,

@@ -1071,45 +1071,39 @@ class ContinuousMap(Morphism):
             r"""
             Helper function for :meth:`display`.
             """
-            from sage.misc.latex import latex
             try:
+                # get coordinate expression
                 coord_func = self.coord_functions(chart1, chart2)
                 expression = coord_func.expr()
-                coords1 = chart1[:]
-                if len(coords1) == 1:
-                    coords1 = coords1[0]
-                coords2 = chart2[:]
-                if len(coords2) == 1:
-                    coords2 = coords2[0]
-                if chart1._domain == self._domain:
-                    result._txt += "   "
-                    result._latex += " & "
-                else:
-                    result._txt += "on " + chart1._domain._name + ": "
-                    result._latex += r"\mbox{on}\ " + latex(chart1._domain) + \
-                                    r": & "
-                result._txt += repr(coords1) + " |--> "
-                result._latex += latex(coords1) + r"& \longmapsto & "
-                if chart2 == chart1:
-                    if len(expression) == 1:
-                        result._txt += repr(expression[0]) + "\n"
-                        result._latex += latex(coord_func[0]) + r"\\"
-                    else:
-                        result._txt += repr(expression) + "\n"
-                        result._latex += latex(coord_func) + r"\\"
-                else:
-                    if len(expression) == 1:
-                        result._txt += repr(coords2) + " = " + \
-                                      repr(expression[0]) + "\n"
-                        result._latex += latex(coords2) + " = " + \
-                                        latex(coord_func[0]) + r"\\"
-                    else:
-                        result._txt += repr(coords2) + " = " + \
-                                      repr(expression) + "\n"
-                        result._latex += latex(coords2) + " = " + \
-                                        latex(coord_func) + r"\\"
             except (TypeError, ValueError):
-                pass
+                return
+            # if that succeeds, proceed:
+            coords1 = chart1[:]
+            if len(coords1) == 1:
+                coords1 = coords1[0]
+            coords2 = chart2[:]
+            if len(coords2) == 1:
+                coords2 = coords2[0]
+            if len(expression) == 1:
+                expression = expression[0]
+                coord_func = coord_func[0]
+            if chart1._domain == self._domain:
+                result._txt += "   "
+                result._latex += " & "
+            else:
+                result._txt += "on " + chart1._domain._name + ": "
+                result._latex += r"\mbox{on}\ " + latex(chart1._domain) + \
+                                r": & "
+            result._txt += repr(coords1) + " |--> "
+            result._latex += latex(coords1) + r"& \longmapsto & "
+            if chart2 == chart1:
+                result._txt += repr(expression) + "\n"
+                result._latex += latex(coord_func) + r"\\"
+            else:
+                result._txt += repr(coords2) + " = " + \
+                              repr(expression) + "\n"
+                result._latex += latex(coords2) + " = " + \
+                                latex(coord_func) + r"\\"
 
         result = FormattedExpansion()
         if self._name is None:

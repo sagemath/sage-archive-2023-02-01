@@ -1975,23 +1975,25 @@ class ScalarField(CommutativeAlgebraElement):
             Helper function for :meth:`display`.
             """
             try:
+                # get coordinate expression
                 expression = self.coord_function(chart)
-                coords = chart[:]
-                if len(coords) == 1:
-                    coords = coords[0]
-                if chart._domain == self._domain:
-                    if self._name is not None:
-                        result._txt += "   "
-                    result._latex += " & "
-                else:
-                    result._txt += "on " + chart._domain._name + ": "
-                    result._latex += r"\mbox{on}\ " + latex(chart._domain) + \
-                                     r": & "
-                result._txt += repr(coords) + " |--> " + repr(expression) + "\n"
-                result._latex += latex(coords) + r"& \longmapsto & " + \
-                                 latex(expression) + r"\\"
             except (TypeError, ValueError):
                 pass
+            # if that succeeds, proceed:
+            coords = chart[:]
+            if len(coords) == 1:
+                coords = coords[0]
+            if chart._domain == self._domain:
+                if self._name is not None:
+                    result._txt += "   "
+                result._latex += " & "
+            else:
+                result._txt += "on " + chart._domain._name + ": "
+                result._latex += r"\mbox{on}\ " + latex(chart._domain) + \
+                                 r": & "
+            result._txt += repr(coords) + " |--> " + repr(expression) + "\n"
+            result._latex += latex(coords) + r"& \longmapsto & " + \
+                             latex(expression) + r"\\"
 
         # Name of the base field:
         field = self._domain.base_field()

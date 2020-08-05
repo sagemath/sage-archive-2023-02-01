@@ -1085,7 +1085,7 @@ class ContinuousMap(Morphism):
                         result._latex += latex(coord_func) + r"\\"
                 else:
                     if len(expression) == 1:
-                        result._txt += repr(coords2[0]) + " = " + \
+                        result._txt += repr(coords2) + " = " + \
                                       repr(expression[0]) + "\n"
                         result._latex += latex(coords2[0]) + " = " + \
                                         latex(coord_func[0]) + r"\\"

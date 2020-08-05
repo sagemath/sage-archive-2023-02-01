@@ -1407,6 +1407,12 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         tester.assertTrue(b is b_again)
         # Test rank
         tester.assertEqual(len(b), self.rank())
+        indices = list(self.irange())
+        tester.assertEqual(len(b), len(indices))
+        # Test basis indexing
+        for index, element in zip(indices, b):
+            tester.assertTrue(element is b[index])
+            tester.assertTrue(element in self)
 
     def tensor(self, tensor_type, name=None, latex_name=None, sym=None,
                antisym=None):

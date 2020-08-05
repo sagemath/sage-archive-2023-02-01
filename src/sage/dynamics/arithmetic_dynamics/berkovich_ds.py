@@ -349,6 +349,30 @@ class DynamicalSystem_Berkovich(Element):
         """
         return self._polys
 
+    def base_ring(self):
+        """
+        The base ring of this dynamical system, that is, the field of definition of the coefficients.
+
+        OUTPUT: A field.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
+            sage: f = DynamicalSystem_Berkovich([x^2 + y^2, y^2])
+            sage: f.base_ring()
+            3-adic Field with capped relative precision 20
+
+        ::
+
+            sage: R.<z> = QQ[]
+            sage: A.<a> = NumberField(z^3 + 20)
+            sage: P.<x,y> = ProjectiveSpace(A, 1)
+            sage: f = DynamicalSystem_Berkovich([x^2, x^2 + y^2], ideal=A.prime_above(2))
+            sage: f.base_ring()
+            Number Field in a with defining polynomial z^3 + 20
+        """
+        return self.domain().base_ring()
+
     def _repr_(self):
         r"""
         Return a string representation of this dynamical system.
@@ -605,6 +629,38 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         if new_ideal is None:
             new_ideal = system_domain.base_ring().prime_above(self.domain().ideal())
         return DynamicalSystem_Berkovich(new_system, ideal=new_ideal)
+
+    def resultant(self, normalize=False):
+        r"""
+        Computes the resultant of the defining polynomials of
+        this dynamical system.
+
+        If ``normalize`` is ``True``, then first normalize the coordinate
+        functions with :meth:`normalize_coordinates`.
+
+        INPUT:
+
+        - ``normalize`` -- (default: ``False``) boolean.
+
+        OUTPUT: an element of the base ring of this map.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(Qp(3), 1)
+            sage: f = DynamicalSystem_Berkovich([x^2 + y^2, y^2])
+            sage: f.resultant()
+            1 + O(3^20)
+
+        ::
+
+            sage: R.<z> = QQ[]
+            sage: A.<a> = NumberField(z^3 + 20)
+            sage: P.<x,y> = ProjectiveSpace(A, 1)
+            sage: f = DynamicalSystem_Berkovich([2*x^2, x^2 + y^2], ideal=A.prime_above(2))
+            sage: f.resultant()
+            4
+        """
+        return self._system.resultant(normalize=normalize)
 
     def dehomogenize(self, n):
         """

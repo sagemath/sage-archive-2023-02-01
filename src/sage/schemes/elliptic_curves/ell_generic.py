@@ -814,7 +814,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: 2*P
             ((1/4*x^4 - 4*x)/(x^3 + 2) : ((1/8*x^6 + 5*x^3 - 4)/(x^6 + 4*x^3 + 4))*y : 1)
 
-        Check that :trac:`` is fixed::
+        Check that :trac:`30297` is fixed::
 
             sage: K = Qp(5)
             sage: E = EllipticCurve([K(0), K(1)])

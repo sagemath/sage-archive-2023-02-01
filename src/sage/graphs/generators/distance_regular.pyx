@@ -248,8 +248,8 @@ def J2Graph():
 
     EXAMPLES::
 
-        sage: G = graphs.J2Graph()  # optional - internet
-        sage: G.is_distance_regular(True) # optional - internet
+        sage: G = graphs.J2Graph()  # optional - internet gap_packages
+        sage: G.is_distance_regular(True) # optional - internet gap_packages
         ([10, 8, 8, 2, None], [None, 1, 1, 4, 5])
 
     REFERENCES:
@@ -270,8 +270,8 @@ def IvanovIvanovFaradjevGraph():
 
     EXAMPLES::
 
-        sage: G = graphs.IvanovIvanovFaradjevGraph()  # optional - internet
-        sage: G.is_distance_regular(True)  # optional - internet
+        sage: G = graphs.IvanovIvanovFaradjevGraph()  # optional - internet gap_packages
+        sage: G.is_distance_regular(True)  # optional - internet gap_packages
         ([7, 6, 4, 4, 4, 1, 1, 1, None], [None, 1, 1, 1, 2, 4, 4, 6, 7])
 
     REFERENCES:

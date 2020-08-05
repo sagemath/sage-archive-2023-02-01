@@ -884,6 +884,9 @@ REFERENCES:
             group actions}, (preprint March 2003, available on
             Mitter's MIT website).
 
+.. [Bond2007] P. Bonderson, Nonabelian anyons and interferometry,
+            Dissertation (2007). https://thesis.library.caltech.edu/2447/
+
 .. [BM2004] John M. Boyer and Wendy J. Myrvold, *On the Cutting Edge:
             *Simplified `O(n)` Planarity by Edge Addition*. Journal of Graph
             Algorithms and Applications, Vol. 8, No. 3, pp. 241-273,

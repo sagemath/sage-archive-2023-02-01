@@ -52,6 +52,7 @@ class FusionRing(WeylCharacterRing):
     - [Fuchs1994]_
     - [Row2006]_
     - [Walton1990]_
+    - [Wan2010]_
 
     EXAMPLES::
 
@@ -206,6 +207,10 @@ class FusionRing(WeylCharacterRing):
         [0, 1, 1/8]
         sage: [x.ribbon() for x in b]
         [1, -1, zeta128^8]
+        sage: [I.rmatrix(i,j,k) for (i,j,k) in [(s,s,i0), (p,p,i0), (p,s,s), (s,p,s), (s,s,p)]]
+        [-zeta128^56, -1, -zeta128^32, -zeta128^32, zeta128^24]
+        sage: I.rmatrix(s,s,i0)==I.root_of_unity(-1/8)
+        True
         sage: I.global_q_dimension()
         4
         sage: I.total_q_order()
@@ -731,29 +736,30 @@ class FusionRing(WeylCharacterRing):
             return S
         
     def rmatrix(self,i,j,k):
-        r"""
-        The R-matrix is a homomorphism `i\otimes j\rightarrow j\otimes i`. 
+        r"""The R-matrix is a homomorphism `i\otimes j\rightarrow j\otimes i`. 
         This may be hard to describe since the object `i\otimes j`
         may be reducible. However if `k` is a simple subobject of
         `i\otimes j` it is also a subobject of `j\otimes i`. If we fix
         embeddings `k\rightarrow i\otimes j`, `k\rightarrow j\otimes i`
-        we may ask for the scalar automorphism of `k`
-        induced by the R-matrix. This method computes that
-        scalar. It is possible to fix the embeddings so
-        that this scalar equals
+        we may ask for the scalar automorphism of `k` induced by the
+        R-matrix. This method computes that scalar. It is possible to
+        adjust the set of embeddings `k \rightarrow i\otimes j` (called
+        a *gauge*) so that this scalar equals
         
         .. MATH::
 
             \pm \sqrt{\frac{ \theta_k }{ \theta_i \theta_j }}.
 
-        If `i=j` then we must be careful about the sign
-        of the square root. This sign is `+` if
-        `k` is a subobject of the symmetric square of
-        `i` and `-` if it is a subobject of the exterior
-        square. See [LedRam1997]_ Corollary 2.22 (actually
-        due to Reshetikhin).
+        If `i\neq j`, the gauge may be used to control the sign of
+        the square root. But if `i=j` then we must be careful
+        about the sign.  of the square root. This sign is `+` if
+        `k` is a subobject of the symmetric square of `i` and `-`
+        if it is a subobject of the exterior square. See
+        [LedRam1997]_ Corollary 2.22 (actually due to Reshetikhin).
 
-        This method is mainly of interest if `N_{ij}^k=1`.
+        This method only gives complete information when `N_{ij}^k=1`
+        (an important special case). Tables of MTC including R-matrices
+        may be found in Section 5.3 of [RoStWa2009]_ and in [Bond2007]_.
 
         EXAMPLES::
 

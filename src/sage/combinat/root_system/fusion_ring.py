@@ -752,10 +752,10 @@ class FusionRing(WeylCharacterRing):
 
         If `i\neq j`, the gauge may be used to control the sign of
         the square root. But if `i=j` then we must be careful
-        about the sign.  of the square root. This sign is `+` if
-        `k` is a subobject of the symmetric square of `i` and `-`
-        if it is a subobject of the exterior square. See
-        [LedRam1997]_ Corollary 2.22 (actually due to Reshetikhin).
+        about the sign. This sign is `+` if `k` is a subobject of 
+        the symmetric square of `i` and `-` if it is a subobject of 
+        the exterior square. See [LedRam1997]_ Corollary 2.22 
+        (actually due to Reshetikhin).
 
         This method only gives complete information when `N_{ij}^k=1`
         (an important special case). Tables of MTC including R-matrices

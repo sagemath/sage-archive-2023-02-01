@@ -90,6 +90,13 @@ class Basis_abstract(UniqueRepresentation, SageObject):
     def _test_iter_len(self, **options):
         r"""
         Test that __iter__ and __len__ work correctly.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: e._test_iter_len()
+
         """
         tester = self._tester(**options)
         g = iter(self)
@@ -416,6 +423,28 @@ class FreeModuleCoBasis(Basis_abstract):
         self.set_name(symbol, latex_symbol=latex_symbol, indices=indices,
                       latex_indices=latex_indices, index_position='up')
 
+    def _test_iter_len(self, **options):
+        r"""
+        Test that __iter__ and __len__ work correctly.
+
+        This method overrides ``Basis_abstract`` so that containment
+        of elements in the dual of ``self.free_module()`` is tested instead.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: f = e.dual_basis()
+            sage: f._test_iter_len()
+
+        """
+        tester = self._tester(**options)
+        g = iter(self)
+        b = list(g)
+        for x in b:
+            tester.assertTrue(x in self.free_module().dual())
+        tester.assertEqual(len(b), len(self))
+        tester.assertEqual(len(b), self.free_module().rank())
 
     def _repr_(self):
         r"""

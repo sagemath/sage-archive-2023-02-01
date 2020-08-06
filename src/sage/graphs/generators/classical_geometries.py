@@ -758,7 +758,7 @@ def UnitaryDualPolarGraph(m, q):
     """
     from sage.libs.gap.libgap import libgap
     G = _polar_graph(m, q**2, libgap.GeneralUnitaryGroup(m, q),
-            intersection_size=(q**(2*(m//2-1))-1)/(q**2-1))
+                     intersection_size=int((q**(2*(m//2-1))-1)/(q**2-1)))
     G.relabel()
     G.name("Unitary Dual Polar Graph DU" + str((m, q)))
     if m==4:
@@ -799,7 +799,7 @@ def SymplecticDualPolarGraph(m, q):
     """
     from sage.libs.gap.libgap import libgap
     G = _polar_graph(m, q, libgap.SymplecticGroup(m, q),
-             intersection_size=(q**(m/2-1)-1)/(q-1))
+                     intersection_size=int((q**(m/2-1)-1)/(q-1)))
 
     G.relabel()
     G.name("Symplectic Dual Polar Graph DSp" + str((m, q)))

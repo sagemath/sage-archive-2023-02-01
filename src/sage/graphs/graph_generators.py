@@ -226,6 +226,7 @@ __append_to_doc(
      "CubeGraph",
      "CubeConnectedCycle",
      "DorogovtsevGoltsevMendesGraph",
+     "DualPolarOrthogonalGraph",
      "EgawaGraph",
      "FibonacciTree",
      "FoldedCubeGraph",
@@ -265,6 +266,7 @@ __append_to_doc(
      "trees",
      "triangulations",
      "TuranGraph",
+     "UstimenkoGraph",
      "WheelGraph",
      "WindmillGraph"])
 
@@ -2054,6 +2056,7 @@ class GraphGenerators():
     CubeConnectedCycle     = staticmethod(families.CubeConnectedCycle)
     DipoleGraph            = staticmethod(families.DipoleGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(families.DorogovtsevGoltsevMendesGraph)
+    DualPolarOrthogonalGraph = staticmethod(distance_regular.DualPolarOrthogonalGraph)
     EgawaGraph             = staticmethod(families.EgawaGraph)
     FibonacciTree          = staticmethod(families.FibonacciTree)
     FoldedCubeGraph        = staticmethod(families.FoldedCubeGraph)
@@ -2090,6 +2093,7 @@ class GraphGenerators():
     TadpoleGraph           = staticmethod(families.TadpoleGraph)
     trees                  = staticmethod(families.trees)
     TuranGraph             = staticmethod(families.TuranGraph)
+    UstimenkoGraph         = staticmethod(distance_regular.UstimenkoGraph)
     WheelGraph             = staticmethod(families.WheelGraph)
     WindmillGraph          = staticmethod(families.WindmillGraph)
 

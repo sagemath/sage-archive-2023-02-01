@@ -2350,6 +2350,69 @@ cdef class ModuleElement(Element):
         """
         raise NotImplementedError
 
+cdef class ModuleElementWithMutability(ModuleElement):
+    """
+    Generic element of a module with mutability.
+    """
+
+    def __init__(self, parent):
+        """
+        EXAMPLES::
+
+            sage: v = sage.modules.free_module_element.FreeModuleElement(QQ^3)
+            sage: type(v)
+            <type 'sage.modules.free_module_element.FreeModuleElement'>
+        """
+        self._parent = parent
+        self._is_mutable = 1
+
+    def set_immutable(self):
+        """
+        Make this vector immutable. This operation can't be undone.
+
+        EXAMPLES::
+
+            sage: v = vector([1..5]); v
+            (1, 2, 3, 4, 5)
+            sage: v[1] = 10
+            sage: v.set_immutable()
+            sage: v[1] = 10
+            Traceback (most recent call last):
+            ...
+            ValueError: vector is immutable; please change a copy instead (use copy())
+        """
+        self._is_mutable = 0
+
+    cpdef bint is_mutable(self):
+        """
+        Return True if this vector is mutable, i.e., the entries can be
+        changed.
+
+        EXAMPLES::
+
+            sage: v = vector(QQ['x,y'], [1..5]); v.is_mutable()
+            True
+            sage: v.set_immutable()
+            sage: v.is_mutable()
+            False
+        """
+        return self._is_mutable
+
+    cpdef bint is_immutable(self):
+        """
+        Return True if this vector is immutable, i.e., the entries cannot
+        be changed.
+
+        EXAMPLES::
+
+            sage: v = vector(QQ['x,y'], [1..5]); v.is_immutable()
+            False
+            sage: v.set_immutable()
+            sage: v.is_immutable()
+            True
+        """
+        return not self._is_mutable
+
 ########################################################################
 # Monoid
 ########################################################################
@@ -3099,7 +3162,7 @@ cdef class CommutativeRingElement(RingElement):
 
     ##############################################
 
-cdef class Vector(ModuleElement):
+cdef class Vector(ModuleElementWithMutability):
     cdef bint is_sparse_c(self):
         raise NotImplementedError
 

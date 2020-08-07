@@ -738,3 +738,235 @@ def DualPolarOrthogonalGraph(const int e, const int  d, const int q):
     G = Graph(edges, format="list_of_edges")
     G.name("Dual Polar Graph on Orthogonal group (%d, %d, %d)"%(e, m, q))
     return G
+
+def BilinearFormGraph(const int d, const int e, const int q):
+    r"""
+    Return a bilienar form graph with the given parameters.
+
+    This build a graph whose vertices are all ``d``x``e`` matrices over
+    ``GF(q)``. Two vertices are adjecent if the difference of the two
+    matrices has rank 1.
+
+    The graph is distance-regular with classical parameters
+    `(\min(d, e), q, q-1 , q^{\max(d, e)}-1)`.
+
+    INPUT:
+
+    - ``d, e`` -- integers; dimension of the matrices
+    - ``q`` -- integer; a prime power
+
+    EXAMPLES::
+
+        sage: G = graphs.BilinearFormGraph(3, 3, 2)
+        sage: G.is_distance_regular(True)
+        ([49, 36, 16, None], [None, 1, 6, 28])
+        sage: G = graphs.BilinearFormGraph(3,3,3)  # long time (1 min)
+        sage: G.order()  # long time (because of above)
+        19683
+    
+    .. NOTE::
+
+        This function needs the additional package MeatAxe.
+        Install it with ``sage -i meataxe``.
+
+    REFERENCES:
+
+    See [BCN1989]_ pp. 280-282 for a rather detailed discussion, otherwise
+    see [VDKT2016]_ p. 21.
+
+    TESTS::
+
+        sage: G = graphs.BilinearFormGraph(2,3,2)
+        sage: G.is_distance_regular(True)
+        ([21, 12, None], [None, 1, 6])
+        sage: H = graphs.BilinearFormGraph(3,2,2)
+        sage: H.is_isomorphic(G)
+        Trueg
+        sage: G = graphs.BilinearFormGraph(5, 1, 3)
+        sage: K = graphs.CompleteGraph(G.order())
+        sage: K.is_isomorphic(G)
+        True
+    """
+    from sage.matrix.matrix_space import MatrixSpace
+
+    matricesOverq = MatrixSpace(GF(q), d, e, implementation='meataxe')
+
+    rank1Matrices = []
+    for m in matricesOverq:
+        sig_check()
+        if m.rank() == 1:
+            rank1Matrices.append(m)
+
+    edges = []
+    for m1 in matricesOverq:
+        m1.set_immutable()
+        for m2 in rank1Matrices:
+            sig_check()  # this loop may take a long time; check for interrupts
+            m3 = m1 + m2
+            m3.set_immutable()
+            edges.append((m1, m3))
+
+    G = Graph(edges, format='list_of_edges')
+    G.name("Bilinear form graphs over F_%d with parameters (%d, %d)"%(q, d, e))
+    return G
+
+def AlternatingFormGraph(const int n, const int q):
+    r"""
+    Return the alternating form graph with the given parameters.
+
+    This construct a graph whose vertices are all ``n``x``n`` skew symmetric
+    matrices over ``GF(q)`` with zero diagonal. Two vertices are adjecent
+    if and only if the difference of the tow matrices has rank 2.
+
+    This grap is distance-regular with classical parameters
+    `(\lfloor \frac n 2 \rfloor,  q^2, q^2 - 1, q^{2 \lceil \frac n 2 \rceil -1})`.
+
+    INPUT:
+
+    - ``n`` -- integer
+    - ``q`` -- a prime power
+
+    EXAMPLES::
+
+        sage: G = graphs.AlternatingFormGraph(5,2)
+        sage: G.is_distance_regular(True)
+        ([155, 112, None], [None, 1, 20])
+
+    .. NOTE::
+
+        This function needs the additional package MeatAxe.
+        Install it with ``sage -i meataxe``.
+
+    REFERENCES:
+
+    See [BCN1989]_ pp. 282-284 for a rather detailed discussion, otherwise
+    see [VDKT2016]_ p. 22.
+
+    TESTS::
+    
+         sage: %time G = graphs.AlternatingFormGraph(6,2)  # long time (8 min)
+         sage: G.order()  # long time (because of above)
+         32768
+         sage: G.is_distance_regular(True)  # long time (33 min)
+         ([651, 560, 256, None], [None, 1, 20, 336])
+         sage: G = graphs.AlternatingFormGraph(4,2)
+         sage: G.is_distance_regular(True)
+         ([35, 16, None], [None, 1, 20])
+    """
+    from sage.matrix.matrix_space import MatrixSpace
+
+    def symmetry(x):
+        return -x
+
+    def diagonal(x):
+        return 0
+
+    matrices = MatrixSpace(GF(q), n, n, implementation="meataxe")
+    skewSymmetricMatrices = matrices.symmetric_matrices(symmetry, diagonal)
+
+    rank2Matrices = []
+    for mat in skewSymmetricMatrices:
+        sig_check()
+        if mat.rank() == 2:
+            rank2Matrices.append(mat)
+
+    # refresh iterator
+    skewSymmetricMatrices = matrices.symmetric_matrices(symmetry, diagonal)
+
+    # now we have all matrices of rank 2
+    edges = []
+    for m1 in skewSymmetricMatrices:
+        m1.set_immutable()
+        for m2 in rank2Matrices:
+            sig_check()
+            m3 = m1 + m2
+            m3.set_immutable()
+            edges.append((m1, m3))
+
+    G = Graph(edges, format='list_of_edges')
+    G.name("Alternating form graph on (F_%d)^%d"%(q, n))
+    return G
+
+def HermitianFormGraph(const int n, const int q):
+    r"""
+    Return the Hermitian from graph with the given parameters.
+
+    We build a graph whose vertices are all ``n``x``n`` Hermitian matrices
+    over ``GF(q)``. Two  vertices are adjecent if the difference of the two
+    vertices has rank 1.
+
+    This graph is distance-regular with classical parameters
+    `(n, - \sqrt{q}, - \sqrt{q} - 1, - (- \sqrt{q})^d - 1)`.
+
+    INPUT:
+
+    - ``n`` -- integer
+    - ``q`` -- square of aprime power
+
+    EXAMPLES::
+
+        sage: G = graphs.HermitianFormGraph(2,4)
+        sage: G.is_distance_regular(True)
+        ([5, 4, None], [None, 1, 2])
+        sage: G = graphs.HermitianFormGraph(3,9)  # long time (30 s)
+        sage: G.order()
+        19683
+
+    .. NOTES::
+
+        If ``q`` does not satisfy the requirements, then this function
+        will raise a ``ValueError``.
+        This function needs the additional package MeatAxe.
+        Install it with ``sage -i meataxe``.
+
+    REFERENCES:
+    
+    See [BCN1989]_ p. 285 or [VDKT2016]_ p. 22.
+    
+    TESTS::
+
+         sage: G = graphs.HermitianFormGraph(3,4)
+         sage: G.is_distance_regular(True)
+         ([21, 20, 16, None], [None, 1, 2, 12])
+         sage: G = graphs.HermitianFormGraph(2,9)
+         sage: G.is_distance_regular(True)
+         ([20, 18, None], [None, 1, 6])
+    """
+    from sage.matrix.matrix_space import MatrixSpace
+    from sage.arith.misc import is_prime_power
+
+    b, k = is_prime_power(q, get_data=True)
+    if k == 0 or k % 2 != 0:
+        raise ValueError("We need q=r^2 where r is a prime power")
+
+    MS = MatrixSpace(GF(q), n, n, implementation="meataxe")
+
+    # here we have b^k = q, b is prime and k is even
+    r = b**(k//2)
+    # so r^2 = b^k = q
+
+    def symmetry(x):
+        return x**r
+
+    hermitianMatrices = MS.symmetric_matrices(symmetry)
+
+    rank1Matrices = []
+    for mat in hermitianMatrices:
+        sig_check()
+        if mat.rank() == 1:
+            rank1Matrices.append(mat)
+
+    # refresh generator
+    hermitianMatrices = MS.symmetric_matrices(symmetry)
+    edges = []
+    for mat in hermitianMatrices:
+        mat.set_immutable()
+        for mat2 in rank1Matrices:
+            sig_check()
+            mat3 = mat + mat2
+            mat3.set_immutable()
+            edges.append((mat, mat3))
+
+    G = Graph(edges, format='list_of_edges')
+    G.name("Hermitian form graph on (F_%d)^%d"%(q, n))
+    return G

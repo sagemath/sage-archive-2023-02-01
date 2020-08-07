@@ -40,12 +40,13 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
-from sage.structure.element import CommutativeAlgebraElement
+from sage.structure.element import (CommutativeAlgebraElement,
+                                    ModuleElementWithMutability)
 from sage.symbolic.expression import Expression
 from sage.manifolds.chart_func import ChartFunction
+from sage.misc.cachefunc import cached_method
 
-
-class ScalarField(CommutativeAlgebraElement):
+class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
     r"""
     Scalar field on a topological manifold.
 
@@ -276,6 +277,48 @@ class ScalarField(CommutativeAlgebraElement):
 
         sage: zer is M.scalar_field_algebra().zero()
         True
+
+    The constant scalar fields zero and one are immutable, and therefore
+    their expressions cannot be changed::
+
+        sage: zer.is_immutable()
+        True
+        sage: zer.set_expr(x)
+        Traceback (most recent call last):
+        ...
+        AssertionError: the expressions of an immutable element cannot be
+         changed
+        sage: one = M.one_scalar_field()
+        sage: one.is_immutable()
+        True
+        sage: one.set_expr(x)
+        Traceback (most recent call last):
+        ...
+        AssertionError: the expressions of an immutable element cannot be
+         changed
+
+    Other scalar fields can be declared immutable, too::
+
+        sage: c.is_immutable()
+        False
+        sage: c.set_immutable()
+        sage: c.is_immutable()
+        True
+        sage: c.set_expr(y^2)
+        Traceback (most recent call last):
+        ...
+        AssertionError: the expressions of an immutable element cannot be
+         changed
+        sage: c.set_name('b')
+        Traceback (most recent call last):
+        ...
+        AssertionError: the name of an immutable element cannot be changed
+
+    Immutable elements are hashable and can therefore be used as keys for
+    dictionaries::
+
+        sage: {c: 1}[c]
+        1
 
     By definition, a scalar field acts on the manifold's points, sending
     them to elements of the manifold's base field (real numbers in the
@@ -1077,7 +1120,7 @@ class ScalarField(CommutativeAlgebraElement):
             sage: TestSuite(f).run()
 
         """
-        CommutativeAlgebraElement.__init__(self, parent)
+        super().__init__(parent)  # both super classes have same signature
         domain = parent._domain
         self._domain = domain
         self._manifold = domain.manifold()
@@ -1442,6 +1485,9 @@ class ScalarField(CommutativeAlgebraElement):
             \Phi
 
         """
+        if self.is_immutable():
+            raise AssertionError("the name of an immutable element "
+                                 "cannot be changed")
         if name is not None:
             self._name = name
             if latex_name is None:
@@ -1723,17 +1769,19 @@ class ScalarField(CommutativeAlgebraElement):
             sage: z.set_expr(3*y)
             Traceback (most recent call last):
             ...
-            AssertionError: the expressions of the element zero cannot be changed
+            AssertionError: the expressions of an immutable element cannot be
+             changed
             sage: one = M.one_scalar_field()
             sage: one.set_expr(3*y)
             Traceback (most recent call last):
             ...
-            AssertionError: the expressions of the element 1 cannot be changed
+            AssertionError: the expressions of an immutable element cannot be
+             changed
 
         """
-        if self is self.parent().one() or self is self.parent().zero():
-            raise AssertionError("the expressions of the element "
-                                 "{} cannot be changed".format(self._name))
+        if self.is_immutable():
+            raise AssertionError("the expressions of an immutable element "
+                                 "cannot be changed")
         if chart is None:
             chart = self._domain._def_chart
         self._express.clear()
@@ -1785,17 +1833,19 @@ class ScalarField(CommutativeAlgebraElement):
             sage: z.add_expr(cos(u)-sin(v), c_uv)
             Traceback (most recent call last):
             ...
-            AssertionError: the expressions of the element zero cannot be changed
+            AssertionError: the expressions of an immutable element cannot be
+             changed
             sage: one = M.one_scalar_field()
             sage: one.add_expr(cos(u)-sin(v), c_uv)
             Traceback (most recent call last):
             ...
-            AssertionError: the expressions of the element 1 cannot be changed
+            AssertionError: the expressions of an immutable element cannot be
+             changed
 
         """
-        if self is self.parent().one() or self is self.parent().zero():
-            raise AssertionError("the expressions of the element "
-                                 "{} cannot be changed".format(self._name))
+        if self.is_immutable():
+            raise AssertionError("the expressions of an immutable element "
+                                 "cannot be changed")
         if chart is None:
             chart = self._domain._def_chart
         self._express[chart] = chart.function(coord_expression)
@@ -1863,6 +1913,9 @@ class ScalarField(CommutativeAlgebraElement):
             on V: (u, v) |--> arctan(1/(u^2 + v^2))
 
         """
+        if self.is_immutable():
+            raise AssertionError("the expressions of an immutable element "
+                                 "cannot be changed")
         if not chart._domain.is_subset(self._domain):
             raise ValueError("the chart is not defined on a subset of " +
                              "the scalar field domain")
@@ -1898,6 +1951,9 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
+        if self.is_immutable():
+            raise AssertionError("the expressions of an immutable element "
+                                 "cannot be changed")
         if not isinstance(rst, ScalarField):
             raise TypeError("the argument must be a scalar field")
         if not rst._domain.is_subset(self._domain):
@@ -2124,6 +2180,8 @@ class ScalarField(CommutativeAlgebraElement):
                 resu = type(self)(subdomain.scalar_field_algebra(),
                                   coord_expression=sexpress, name=self._name,
                                   latex_name=self._latex_name)
+                if self.is_immutable():
+                    resu.set_immutable()  # restriction must be immutable, too
                 self._restrictions[subdomain] = resu
         return self._restrictions[subdomain]
 
@@ -3459,3 +3517,59 @@ class ScalarField(CommutativeAlgebraElement):
             if truncate:
                 expr.simplify()
         self._del_derived()
+
+    def set_immutable(self):
+        r"""
+        Set ``self`` and all restrictions of ``self`` immutable.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: U = M.open_subset('U', coord_def={X: x^2+y^2<1})  # disk
+            sage: V = M.open_subset('U', coord_def={X: x>0})  # half plane
+            sage: f = M.scalar_field(x^2, name='f')
+            sage: fU = f.restrict(U)
+            sage: f.set_immutable()
+            sage: fU.is_immutable()
+            True
+            sage: f.restrict(V).is_immutable()
+            True
+
+        """
+        for rst in self._restrictions.values():
+            rst.set_immutable()
+        super().set_immutable()
+
+    @cached_method
+    def __hash__(self):
+        r"""
+        Hash function.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field(x^2, name='f')
+            sage: f.set_immutable()
+            sage: g = M.scalar_field(x^2, name='g')
+            sage: g.set_immutable()
+
+        Check whether equality implies equality of hash::
+
+            sage: f == g
+            True
+            sage: hash(f) == hash(g)
+            True
+
+        Let us check that ``f`` can be used as a dictionary key::
+
+            sage: {f: 1}[f]
+            1
+
+        """
+        if self.is_mutable():
+            raise ValueError('element must be immutable in order to be '
+                             'hashable')
+        return hash((type(self).__name__, self._domain))
+

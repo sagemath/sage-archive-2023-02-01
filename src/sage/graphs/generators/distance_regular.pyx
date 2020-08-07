@@ -763,7 +763,7 @@ def BilinearFormGraph(const int d, const int e, const int q):
         sage: G = graphs.BilinearFormGraph(3,3,3)  # long time (1 min)
         sage: G.order()  # long time (because of above)
         19683
-    
+
     .. NOTE::
 
         This function needs the additional package MeatAxe.
@@ -781,7 +781,7 @@ def BilinearFormGraph(const int d, const int e, const int q):
         ([21, 12, None], [None, 1, 6])
         sage: H = graphs.BilinearFormGraph(3,2,2)
         sage: H.is_isomorphic(G)
-        Trueg
+        True
         sage: G = graphs.BilinearFormGraph(5, 1, 3)
         sage: K = graphs.CompleteGraph(G.order())
         sage: K.is_isomorphic(G)
@@ -843,7 +843,7 @@ def AlternatingFormGraph(const int n, const int q):
     see [VDKT2016]_ p. 22.
 
     TESTS::
-    
+
          sage: %time G = graphs.AlternatingFormGraph(6,2)  # long time (8 min)
          sage: G.order()  # long time (because of above)
          32768
@@ -909,7 +909,7 @@ def HermitianFormGraph(const int n, const int q):
         sage: G.is_distance_regular(True)
         ([5, 4, None], [None, 1, 2])
         sage: G = graphs.HermitianFormGraph(3,9)  # long time (30 s)
-        sage: G.order()
+        sage: G.order()  # long time (bacuase of the above)
         19683
 
     .. NOTES::
@@ -920,9 +920,9 @@ def HermitianFormGraph(const int n, const int q):
         Install it with ``sage -i meataxe``.
 
     REFERENCES:
-    
+
     See [BCN1989]_ p. 285 or [VDKT2016]_ p. 22.
-    
+
     TESTS::
 
          sage: G = graphs.HermitianFormGraph(3,4)

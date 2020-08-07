@@ -900,6 +900,48 @@ class AffineConnection(SageObject):
         for other_frame in to_be_deleted:
             del self._coefficients[other_frame]
 
+    def copy(self, name, latex_name=None):
+        r"""
+        Return an exact copy of ``self``.
+
+        INPUT:
+
+        - ``name`` -- name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
+
+        .. NOTE::
+
+            The name and the derived quantities are not copied.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: eX = X.frame()
+            sage: nab.set_coef(eX)[1,2,1] = x*y
+            sage: nab.set_coef(eX)[1,2,2] = x+y
+            sage: nab.display()
+            Gam^x_yx = x*y
+            Gam^x_yy = x + y
+            sage: nab_copy = nab.copy(name='nabla_1', latex_name=r'\nabla_1')
+            sage: nab is nab_copy
+            False
+            sage: nab == nab_copy
+            True
+            sage: nab_copy.display()
+            Gam^x_yx = x*y
+            Gam^x_yy = x + y
+
+        """
+        copy = type(self)(self._domain, name, latex_name=latex_name)
+        for dom, rst in self._restrictions.items():
+            copy._restrictions[dom] = rst.copy(name, latex_name=latex_name)
+        for frame, coef in self._coefficients.items():
+            copy._coefficients[frame] = coef.copy()
+        return copy
+
     def __getitem__(self, args):
         r"""
         Return the connection coefficient w.r.t. some frame corresponding to

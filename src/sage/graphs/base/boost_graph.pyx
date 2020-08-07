@@ -2605,17 +2605,9 @@ cpdef wiener_index(g, algorithm=None, weight_function=None, check_weight=True):
     r"""
     Return the Wiener index of the graph.
 
-    The Wiener index of an undirected graph `G` can be defined in two equivalent
-    ways [KRG1996]_ :
-
-    - `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the
-      distance between vertices `u` and `v`.
-
-    - Let `\Omega` be a set of `\frac {n(n-1)} 2` paths in `G` such that `\Omega`
-      contains exactly one shortest `u-v` path for each set `\{u,v\}` of
-      vertices in `G`. Besides, `\forall e\in E(G)`, let `\Omega(e)` denote the
-      paths from `\Omega` containing `e`. We then have
-      `W(G) = \sum_{e\in E(G)}|\Omega(e)|`.
+    The Wiener index of an undirected graph `G` is defined as
+    `W(G) = \frac{1}{2} \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the
+    distance between vertices `u` and `v` (see [KRG1996]_).
 
     The Wiener index of a directed graph `G` is defined as the sum of the
     distances between each pairs of vertices, `W(G) = \sum_{u,v\in G} d(u,v)`.

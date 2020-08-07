@@ -1211,6 +1211,63 @@ class ScalarField(CommutativeAlgebraElement):
             return True
         return all(func.is_trivial_zero() for func in self._express.values())
 
+    def is_trivial_one(self):
+        r"""
+        Check if ``self`` is trivially equal to one without any
+        simplification.
+
+        This method is supposed to be fast as compared with
+        ``self == 1`` and is intended to be used in library code where
+        trying to obtain a mathematically correct result by applying
+        potentially expensive rewrite rules is not desirable.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: 1})
+            sage: f.is_trivial_one()
+            True
+            sage: f = M.scalar_field(1)
+            sage: f.is_trivial_one()
+            True
+            sage: M.one_scalar_field().is_trivial_one()
+            True
+            sage: f = M.scalar_field({X: x+y})
+            sage: f.is_trivial_one()
+            False
+
+        Scalar field defined by means of two charts::
+
+            sage: U1 = M.open_subset('U1'); X1.<x1,y1> = U1.chart()
+            sage: U2 = M.open_subset('U2'); X2.<x2,y2> = U2.chart()
+            sage: f = M.scalar_field({X1: 1, X2: 1})
+            sage: f.is_trivial_one()
+            True
+            sage: f = M.scalar_field({X1: 0, X2: 1})
+            sage: f.is_trivial_one()
+            False
+
+        No simplification is attempted, so that ``False`` is returned for
+        non-trivial cases::
+
+            sage: f = M.scalar_field({X: cos(x)^2 + sin(x)^2})
+            sage: f.is_trivial_one()
+            False
+
+        On the contrary, the method
+        :meth:`~sage.structure.element.Element.is_zero` and the direct
+        comparison to one involve some simplification algorithms and
+        return ``True``::
+
+            sage: (f - 1).is_zero()
+            True
+            sage: f == 1
+            True
+
+        """
+        return all(func.is_trivial_one() for func in self._express.values())
+
     # TODO: Remove this method as soon as ticket #28629 is solved?
     def is_unit(self):
         r"""
@@ -2555,9 +2612,9 @@ class ScalarField(CommutativeAlgebraElement):
         # Trivial cases:
         if self.is_trivial_zero() or other.is_trivial_zero():
             return self._domain.zero_scalar_field()
-        if (self - 1).is_trivial_zero():
+        if self.is_trivial_one():
             return other
-        if (other - 1).is_trivial_zero():
+        if other.is_trivial_one():
             return self
         # Generic case:
         from sage.tensor.modules.format_utilities import (format_mul_txt,

@@ -855,6 +855,53 @@ class ChartFunction(AlgebraElement):
         curr = self._calc_method._current
         return self._calc_method.is_trivial_zero(self.expr(curr))
 
+    def is_trivial_one(self):
+        r"""
+        Check if ``self`` is trivially equal to one without any
+        simplification.
+
+        This method is supposed to be fast as compared with
+        ``self == 1`` and is intended to be used in library code where
+        trying to obtain a mathematically correct result by applying
+        potentially expensive rewrite rules is not desirable.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(1)
+            sage: f.is_trivial_one()
+            True
+            sage: f = X.function(float(1.0))
+            sage: f.is_trivial_one()
+            True
+            sage: f = X.function(x-x+1)
+            sage: f.is_trivial_one()
+            True
+            sage: X.one_function().is_trivial_one()
+            True
+
+        No simplification is attempted, so that ``False`` is returned for
+        non-trivial cases::
+
+            sage: f = X.function(cos(x)^2 + sin(x)^2)
+            sage: f.is_trivial_one()
+            False
+
+        On the contrary, the method
+        :meth:`~sage.structure.element.Element.is_zero` and the direct
+        comparison to one involve some simplification algorithms and
+        return ``True``::
+
+            sage: (f - 1).is_zero()
+            True
+            sage: f == 1
+            True
+
+        """
+        curr = self._calc_method._current
+        return self._calc_method.is_trivial_zero(self.expr(curr) - SR.one())
+
     # TODO: Remove this method as soon as ticket #28629 is solved?
     def is_unit(self):
         r"""

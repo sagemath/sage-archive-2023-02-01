@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Free Lie Algebras
 
@@ -114,6 +115,42 @@ class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, IndexedGenerators, Bind
             \left[ x , y \right]
         """
         return x._latex_()
+
+    def _ascii_art_term(self, x):
+        r"""
+        Return an ascii art representation for ``x``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, 'x,y')
+            sage: H = L.Hall()
+            sage: x,y = H.gens()
+            sage: H._ascii_art_term(x.leading_support())
+            x
+            sage: a = H([x, y]).leading_support()
+            sage: H._ascii_art_term(a)
+            [x, y]
+        """
+        from sage.typeset.ascii_art import ascii_art
+        return ascii_art(x)
+
+    def _unicode_art_term(self, x):
+        r"""
+        Return a unicode art representation for ``x``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, 'x,y')
+            sage: H = L.Hall()
+            sage: x,y = H.gens()
+            sage: H._unicode_art_term(x.leading_support())
+            x
+            sage: a = H([x, y]).leading_support()
+            sage: H._unicode_art_term(a)
+            [x, y]
+        """
+        from sage.typeset.unicode_art import unicode_art
+        return unicode_art(x)
 
     def _element_constructor_(self, x):
         """

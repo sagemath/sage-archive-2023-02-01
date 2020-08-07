@@ -912,7 +912,7 @@ def HermitianFormGraph(const int n, const int q):
         sage: G.order()  # long time (bacuase of the above)
         19683
 
-    .. NOTES::
+    .. NOTE::
 
         If ``q`` does not satisfy the requirements, then this function
         will raise a ``ValueError``.

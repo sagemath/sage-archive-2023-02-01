@@ -281,7 +281,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
         """
         if parent is None:
             parent = fmodule.tensor_module(*tensor_type)
-        super().__init__(parent)
+        ModuleElementWithMutability.__init__(self, parent)
         self._fmodule = fmodule
         self._tensor_type = tuple(tensor_type)
         self._tensor_rank = self._tensor_type[0] + self._tensor_type[1]
@@ -1669,6 +1669,9 @@ class FreeModuleTensor(ModuleElementWithMutability):
             False
 
         """
+        if self.is_immutable():
+            raise AssertionError("the components of an immutable element "
+                                 "cannot be changed")
         if other not in self.parent():
             raise TypeError("the original must be an element "
                             + "of {}".format(self.parent()))

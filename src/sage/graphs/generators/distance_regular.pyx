@@ -570,7 +570,7 @@ def UstimenkoGraph(const int m, const int q):
 
         sage: G = graphs.UstimenkoGraph(4, 2)
         sage: G.is_distance_regular(True)
-        ([70, 32, None], [None, 1, 35])  # actually strongly regular
+        ([70, 32, None], [None, 1, 35])
 
     REFERENCES:
 

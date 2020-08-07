@@ -16,9 +16,11 @@ import types
 from io import StringIO
 
 from IPython.lib.pretty import (
-    _safe_getattr, _baseclass_reprs,
+    _safe_getattr,
     _type_pprinters,
 )
+
+_baseclass_reprs = (object.__repr__,)
 
 from sage.repl.display.util import format_list
 

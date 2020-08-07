@@ -1128,10 +1128,32 @@ class VectorField(MultivectorField):
             h(u,v): E^2 --> R
                (x, y) |--> -(x^3*y - x*y^3)/((x^2 + 1)*y^2 + x^2 + 1)
 
+        Scalar product of two vector fields along a curve (a lemniscate of
+        Gerono)::
+
+            sage: R.<t> = RealLine()
+            sage: C = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='C')
+            sage: u = C.tangent_vector_field(name='u')
+            sage: u.display()
+            u = cos(t) e_x + (2*cos(t)^2 - 1) e_y
+            sage: I = C.domain(); I
+            Real interval (0, 2*pi)
+            sage: v = I.vector_field(cos(t), -1, dest_map=C, name='v')
+            sage: v.display()
+            v = cos(t) e_x - e_y
+            sage: s = u.dot_product(v); s
+            Scalar field u.v on the Real interval (0, 2*pi)
+            sage: s.display()
+            u.v: (0, 2*pi) --> R
+               t |--> sin(t)^2
+
         """
         default_metric = metric is None
         if default_metric:
-            metric = self._domain.metric()
+            metric = self._ambient_domain.metric()
+        dest_map = self.parent().destination_map()
+        if dest_map is not self._domain.identity_map():
+            metric = metric.along(dest_map)
         resu = metric(self, other)
         # From the above operation the name of resu is "g(u,v')" where
         # g = metric._name, u = self._name, v = other._name
@@ -1208,10 +1230,26 @@ class VectorField(MultivectorField):
             |v|_h: E^2 --> R
                (x, y) |--> sqrt((2*x^2 + 1)*y^2 + x^2)/(sqrt(x^2 + 1)*sqrt(y^2 + 1))
 
+        Norm of the tangent vector field to a curve (a lemniscate of Gerono)::
+
+            sage: R.<t> = RealLine()
+            sage: C = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='C')
+            sage: v = C.tangent_vector_field()
+            sage: v.display()
+            C' = cos(t) e_x + (2*cos(t)^2 - 1) e_y
+            sage: s = v.norm(); s
+            Scalar field |C'| on the Real interval (0, 2*pi)
+            sage: s.display()
+            |C'|: (0, 2*pi) --> R
+               t |--> sqrt(4*cos(t)^4 - 3*cos(t)^2 + 1)
+
         """
         default_metric = metric is None
         if default_metric:
-            metric = self._domain.metric()
+            metric = self._ambient_domain.metric()
+        dest_map = self.parent().destination_map()
+        if dest_map is not self._domain.identity_map():
+            metric = metric.along(dest_map)
         resu = metric(self, self).sqrt()
         if self._name is not None:
             if default_metric:
@@ -1299,14 +1337,38 @@ class VectorField(MultivectorField):
             sage: w.display()
             -(x^2 + y^2)*sqrt(x^2 + 1)/(sqrt(y^2 + 1)*sqrt(z^2 + 1)) e_z
 
+        Cross product of two vector fields along a curve (arc of a helix)::
+
+            sage: R.<t> = RealLine()
+            sage: C = M.curve((cos(t), sin(t), t), (t, 0, 2*pi), name='C')
+            sage: u = C.tangent_vector_field()
+            sage: u.display()
+            C' = -sin(t) e_x + cos(t) e_y + e_z
+            sage: I = C.domain(); I
+            Real interval (0, 2*pi)
+            sage: v = I.vector_field(-cos(t), sin(t), 0, dest_map=C)
+            sage: v.display()
+            -cos(t) e_x + sin(t) e_y
+            sage: w = u.cross_product(v); w
+            Vector field along the Real interval (0, 2*pi) with values on the
+             Euclidean space E^3
+            sage: w.parent().destination_map()
+            Curve C in the Euclidean space E^3
+            sage: w.display()
+            -sin(t) e_x - cos(t) e_y + (2*cos(t)^2 - 1) e_z
+
         """
-        if self._domain.dim() != 3:
+        if self._ambient_domain.dim() != 3:
             raise ValueError("the cross product is not defined in dimension " +
                              "different from 3")
         default_metric = metric is None
         if default_metric:
-            metric = self._domain.metric()
-        eps = metric.volume_form(1)
+            metric = self._ambient_domain.metric()
+        dest_map = self.parent().destination_map()
+        if dest_map is self._domain.identity_map():
+            eps = metric.volume_form(1)
+        else:
+            eps = metric.volume_form(1).along(dest_map)
         resu = eps.contract(1, 2, self.wedge(other), 0, 1) / 2
         # The result is named "u x v" only for a default metric:
         if (default_metric and self._name is not None and

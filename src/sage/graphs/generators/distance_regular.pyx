@@ -36,6 +36,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.matrix.constructor import Matrix
 import itertools
+from cysignals.signals cimport sig_check
 
 def cocliques_HoffmannSingleton():
     r"""
@@ -683,6 +684,7 @@ def DualPolarOrthogonalGraph(const int e, const int  d, const int q):
         while K.dimension() < d:
             found = False
             while not found:
+                sig_check()
                 v = candidates.pop()
                 if v*M*v == 0:
                     # found another isotropic point
@@ -727,6 +729,7 @@ def DualPolarOrthogonalGraph(const int e, const int  d, const int q):
     edges = []
     n = len(allIsoSubspaces)
     for i, j in itertools.combinations(range(n), 2):
+        sig_check()
         if libgap.Size(libgap.Intersection(allIsoSubspaces[i],
                                            allIsoSubspaces[j])) \
                                            == intersection_size:

@@ -368,7 +368,6 @@ class TensorFreeModule(FiniteRankFreeModule):
         r"""
         TESTS::
 
-            sage: from sage.tensor.modules.tensor_free_module import TensorFreeModule
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: T = M.tensor_module(2, 3)
             sage: TestSuite(T).run()

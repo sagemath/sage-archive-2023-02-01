@@ -1114,7 +1114,7 @@ class CombinatorialObject(SageObject):
                 sage: sorted(L)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: comparison not implemented for <class '__main__.Bar'>
+                TypeError: '<' not supported between instances of 'Bar' and 'Bar'
         """
         if isinstance(other, CombinatorialObject):
             return self._list == other._list

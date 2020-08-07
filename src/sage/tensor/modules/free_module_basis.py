@@ -389,11 +389,11 @@ class FreeModuleCoBasis(Basis_abstract):
                                 indices, latex_indices)
         # The individual linear forms:
         vl = list()
-        for i in self._fmodule.irange():
-            v = self._fmodule.linear_form()
-            for j in self._fmodule.irange():
-                v.set_comp(basis)[j] = 0
-            v.set_comp(basis)[i] = 1
+        fmodule = self._fmodule
+        ring_one = fmodule._ring.one()
+        for i in fmodule.irange():
+            v = fmodule.linear_form()
+            v.set_comp(basis)[i] = ring_one
             vl.append(v)
         self._vec = tuple(vl)
         # The names:
@@ -583,11 +583,10 @@ class FreeModuleBasis(Basis_abstract):
         fmodule._known_bases.append(self)
         # The individual vectors:
         vl = list()
+        ring_one = fmodule._ring.one()
         for i in fmodule.irange():
             v = fmodule.element_class(fmodule)
-            for j in fmodule.irange():
-                v.set_comp(self)[j] = fmodule._ring.zero()
-            v.set_comp(self)[i] = fmodule._ring.one()
+            v.set_comp(self)[i] = ring_one
             vl.append(v)
         self._vec = tuple(vl)
         # The names:

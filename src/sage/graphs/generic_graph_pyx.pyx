@@ -1186,6 +1186,10 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
 
     EXAMPLES:
 
+    For demonstration purposes we fix a random seed::
+
+        sage: set_random_seed(0)
+
     First we try the algorithm in the Dodecahedral graph, which is
     Hamiltonian, so we are able to find a Hamiltonian cycle and a
     Hamiltonian path::

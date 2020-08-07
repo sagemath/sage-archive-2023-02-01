@@ -561,7 +561,7 @@ class FileDocTestSource(DocTestSource):
             sage: L = list(FDS)
             Traceback (most recent call last):
             ...
-            UnicodeDecodeError: 'utf...8' codec can't decode byte 0xf4 in position 18: invalid continuation byte
+            UnicodeDecodeError: 'utf...8' codec can...t decode byte 0xf4 in position 18: invalid continuation byte
 
         This works if we add a PEP 0263 encoding declaration::
 

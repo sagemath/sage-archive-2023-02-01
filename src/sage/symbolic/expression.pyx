@@ -998,6 +998,15 @@ cdef class Expression(CommutativeRingElement):
             sin(%e+2)
             sage: _.parent() is sage.calculus.calculus.maxima
             True
+
+        TESTS:
+
+        We test that unicode characters are handled correctly
+        :trac:`30122`::
+
+            sage: var('ξ')._maxima_()
+            _SAGE_VAR_ξ
+
         """
         if session is None:
             # This chooses the Maxima interface used by calculus
@@ -2021,7 +2030,7 @@ cdef class Expression(CommutativeRingElement):
             pynac_assume_rel(self._gobj)
             if str(s._sage_()[0]) in ['meaningless','inconsistent','redundant']:
                 raise ValueError("Assumption is %s" % str(s._sage_()[0]))
-            _assumptions.append(self)
+            _assumptions[self] = True
 
     def forget(self):
         """
@@ -2067,8 +2076,8 @@ cdef class Expression(CommutativeRingElement):
         m = self._maxima_init_assume_()
         maxima.forget(m)
         try:
-            _assumptions.remove(self)
-        except ValueError:
+            del _assumptions[self]
+        except KeyError:
             pass
 
     def _maxima_init_assume_(self):

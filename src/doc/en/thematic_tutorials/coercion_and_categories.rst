@@ -299,14 +299,12 @@ considerations:
   etc. **We do not override the default double underscore __add__, __mul__**,
   since otherwise, we could not use Sage's coercion model.
 
-- Comparisons can be implemented using ``_richcmp_`` or
-  ``_cmp_``. This automatically makes the relational operators like
-  ``==`` and ``<`` work. **Beware**: in these methods, calling the
-  Python2-only ``cmp`` function should be avoided for compatibility
-  with Python3. You can use instead the ``richcmp`` function provided
-  by sage.
+- Comparisons can be implemented using ``_richcmp_``.
+  This automatically makes the relational operators like
+  ``==`` and ``<`` work. Inside this method, you can use
+  the ``richcmp`` functions and related tools provided by sage.
 
-  Note that either ``_cmp_`` or ``_richcmp_`` should be provided,
+  Note that ``_richcmp_`` should be provided,
   since otherwise comparison does not work::
 
       sage: class Foo(sage.structure.element.Element):
@@ -319,7 +317,7 @@ considerations:
       sage: a <= b
       Traceback (most recent call last):
       ...
-      NotImplementedError: comparison not implemented for <class '__main__.Foo'>
+      TypeError: '<=' not supported between instances of 'Foo' and 'Foo'
 
 - In the single underscore methods, we can assume that
   *both arguments belong to the same parent*.

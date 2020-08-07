@@ -589,18 +589,19 @@ def UstimenkoGraph(const int m, const int q):
     """
     from sage.graphs.graph_generators import graphs
 
-    G = graphs.SymplecticDualPolarGraph(2*m-2,q)
+    G = graphs.SymplecticDualPolarGraph(2*m - 2, q)
 
     edgesToAdd = []
-    for v in G.vertices(sort=False):
-        for w in G.neighbors(v):
-            for u in G.neighbors(w):
-                if u != v and not G.has_edge(u,v):
+    for v in G:
+        for w in G.neighbor_iterator(v):
+            for u in G.neighbor_iterator(w):
+                sig_check()
+                if u != v and not G.has_edge(u, v):
                     # then u,v are at distance 2
                     edgesToAdd.append((u, v))
 
     G.add_edges(edgesToAdd)
-    G.name(f"Ustimenko graph ({m},{q})")
+    G.name(f"Ustimenko graph ({m}, {q})")
     return G
 
 def DualPolarOrthogonalGraph(const int e, const int  d, const int q):
@@ -688,7 +689,7 @@ def DualPolarOrthogonalGraph(const int e, const int  d, const int q):
                     # check if we can add it to K
                     found  = True
                     for w in isotropicBasis:
-                        if w*M*v+v*M*w != 0:
+                        if w*M*v + v*M*w != 0:
                             found  = False
                             break
             # here we found a valid point
@@ -696,7 +697,7 @@ def DualPolarOrthogonalGraph(const int e, const int  d, const int q):
 
             # remove new points of K
             newVectors = map(hashable,
-                             [k+l*v for k in K for l in nonZeroScalars])
+                             [k + l*v for k in K for l in nonZeroScalars])
             candidates.difference(newVectors)
             K = V.span(isotropicBasis)
 
@@ -721,7 +722,7 @@ def DualPolarOrthogonalGraph(const int e, const int  d, const int q):
     allIsoSubspaces = libgap.Orbit(permutation, isoSPointsInt, libgap.OnSets)
 
     # number of projective points in a (d-1)-subspace
-    intersection_size = (q**(d - 1) - 1) / (q-1)
+    intersection_size = (q**(d-1) - 1) / (q-1)
 
     edges = []
     n = len(allIsoSubspaces)
@@ -732,5 +733,5 @@ def DualPolarOrthogonalGraph(const int e, const int  d, const int q):
                 edges.append((i, j))
 
     G = Graph(edges, format="list_of_edges")
-    G.name("Dual Polar Graph on Orthogonal group (%d,%d,%d)"%(e,m,q))
+    G.name("Dual Polar Graph on Orthogonal group (%d, %d, %d)"%(e, m, q))
     return G

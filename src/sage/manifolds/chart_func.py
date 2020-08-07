@@ -33,7 +33,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from sage.structure.element import AlgebraElement
+from sage.structure.element import AlgebraElement, ModuleElementWithMutability
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -44,7 +44,7 @@ from sage.symbolic.ring import SR
 import sympy
 
 
-class ChartFunction(AlgebraElement):
+class ChartFunction(AlgebraElement, ModuleElementWithMutability):
     r"""
     Function of coordinates of a given chart.
 
@@ -349,7 +349,7 @@ class ChartFunction(AlgebraElement):
             sage: TestSuite(g).run()
 
         """
-        AlgebraElement.__init__(self, parent)
+        super().__init__(parent)
         self._chart = parent._chart
         self._nc = len(self._chart[:])
         self._express = {}
@@ -416,7 +416,6 @@ class ChartFunction(AlgebraElement):
 
         """
         return self._chart
-
 
     def scalar_field(self, name=None, latex_name=None):
         r"""
@@ -589,6 +588,9 @@ class ChartFunction(AlgebraElement):
             ValueError: Expressions are not equal
 
         """
+        if self.is_immutable():
+            raise AssertionError("the expressions of an immutable element "
+                                 "cannot be changed")
         for vv in self._express.values():
             if not bool(self._calc_method._tranf[calc_method](expression) ==
                         self._calc_method._tranf[calc_method](vv)):
@@ -2716,7 +2718,9 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
             elt = SR.zero()
         else:
             elt = self._chart.manifold().base_field().zero()
-        return self.element_class(self, elt)
+        res = self.element_class(self, elt)
+        res.set_immutable()
+        return res
 
     @cached_method
     def one(self):
@@ -2740,7 +2744,9 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
             elt = SR.one()
         else:
             elt = self._chart.manifold().base_field().one()
-        return self.element_class(self, elt)
+        res = self.element_class(self, elt)
+        res.set_immutable()
+        return res
 
     is_field = is_integral_domain
 
@@ -2853,6 +2859,7 @@ class MultiCoordFunction(SageObject):
         self._chart = chart
         self._nc = len(self._chart._xx)   # number of coordinates
         self._nf = len(expressions)       # number of functions
+        self._is_immutable = False
         self._functions = tuple(chart.function(express)
                                 for express in expressions)
 
@@ -3229,3 +3236,72 @@ class MultiCoordFunction(SageObject):
         func = self._functions[0]
         return type(func)(func.parent(), func._calc_method.simplify(det, method='SR'),
                           calc_method=self._chart._calc_method._current)
+
+    def set_immutable(self):
+        r"""
+        Set ``self`` and all chart functions of ``self`` immutable.
+
+        EXAMPLES:
+
+        Declare a coordinate function immutable::
+
+            sage: M = Manifold(3, 'M', structure='topological')
+            sage: X.<x,y,z> = M.chart()
+            sage: f = X.multifunction(x+y+z, x*y*z)
+            sage: f.is_immutable()
+            False
+            sage: f.set_immutable()
+            sage: f.is_immutable()
+            True
+
+        The chart functions are now immutable, too::
+
+            sage: f[0].parent()
+            Ring of chart functions on Chart (M, (x, y, z))
+            sage: f[0].is_immutable()
+            True
+
+        """
+        for func in self._functions:
+            func.set_immutable()
+        self._is_immutable = True
+
+    def is_immutable(self):
+        r"""
+        Return ``True`` if this object is immutable, i.e. its expressions
+        cannot be chanced, and ``False`` if it is not.
+
+        To set a coordinate function immutable, use :meth:`set_immutable`.
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure='topological')
+            sage: X.<x,y,z> = M.chart()
+            sage: f = X.multifunction(x+y+z, x*y*z)
+            sage: f.is_immutable()
+            False
+            sage: f.set_immutable()
+            sage: f.is_immutable()
+            True
+
+        """
+        return self._is_immutable
+
+    def is_mutable(self):
+        r"""
+        Return ``True`` if this object is mutable, i.e. its expressions can
+        be changed, and ``False`` if it is not.
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure='topological')
+            sage: X.<x,y,z> = M.chart()
+            sage: f = X.multifunction(x+y+z, x*y*z)
+            sage: f.is_mutable()
+            True
+            sage: f.set_immutable()
+            sage: f.is_mutable()
+            False
+
+        """
+        return not self._is_immutable

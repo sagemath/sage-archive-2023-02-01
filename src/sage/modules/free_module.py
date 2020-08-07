@@ -207,9 +207,11 @@ class FreeModuleFactory(UniqueFactory):
             sage: loads(dumps(RDF^3)) is RDF^3
             True
 
-        TODO: replace the above by ``TestSuite(...).run()``, once
-        :meth:`_test_pickling` will test unique representation and not
-        only equality.
+        .. TODO::
+
+            Replace the above by ``TestSuite(...).run()``, once
+            :meth:`_test_pickling` will test unique representation
+            and not only equality.
         """
         rank = int(sage.rings.integer.Integer(rank))
 

@@ -1460,8 +1460,8 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: R = Manifold(1, 'R')
             sage: T.<t> = R.chart()  # canonical chart on R
             sage: Phi = R.diff_map(M, [cos(t), sin(t)], name='Phi') ; Phi
-            Differentiable map Phi from the 1-dimensional differentiable 
-            manifold R to the 2-dimensional differentiable manifold M
+            Differentiable map Phi from the 1-dimensional differentiable
+             manifold R to the 2-dimensional differentiable manifold M
             sage: Phi.display()
             Phi: R --> M
                t |--> (x, y) = (cos(t), sin(t))

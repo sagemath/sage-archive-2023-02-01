@@ -16805,8 +16805,9 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            When using Boost algorithms, the returned value is a floating point
-            number.
+            Some algorithms (e.g., Boost algorithms) use floating point numbers
+            for internal computations. Whenever the solution is integral, we try
+            to convert the returned value to an integer.
 
         EXAMPLES::
 
@@ -16814,9 +16815,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.wiener_index()
             15
             sage: G.wiener_index(weight_function=lambda e:(e[2] if e[2] is not None else 1))
-            20.0
+            20
             sage: G.wiener_index(weight_function=lambda e:(e[2] if e[2] is not None else 200))
-            820.0
+            820
             sage: G.wiener_index(algorithm='BFS')
             15
             sage: G.wiener_index(algorithm='Floyd-Warshall-Cython')
@@ -16824,9 +16825,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.wiener_index(algorithm='Floyd-Warshall-Python')
             15
             sage: G.wiener_index(algorithm='Dijkstra_Boost')
-            15.0
+            15
             sage: G.wiener_index(algorithm='Bellman-Ford_Boost')
-            15.0
+            15
             sage: G.wiener_index(algorithm='Johnson_Boost')
             15
             sage: G.wiener_index(algorithm='Dijkstra_NetworkX')
@@ -16875,23 +16876,26 @@ class GenericGraph(GenericGraph_pyx):
 
         if algorithm in ['Dijkstra_Boost', 'Bellman-Ford_Boost'] or (algorithm is None and by_weight):
             from .base.boost_graph import wiener_index
-            return wiener_index(self, algorithm=algorithm,
+            WI = wiener_index(self, algorithm=algorithm,
                                 weight_function=weight_function,
                                 check_weight=check_weight)
 
-        if (not self.is_connected()
+        elif (not self.is_connected()
             or (self.is_directed() and not self.is_strongly_connected())):
             from sage.rings.infinity import Infinity
             return Infinity
 
-        distances = self.shortest_path_all_pairs(by_weight=by_weight,
-                    algorithm=algorithm, weight_function=weight_function,
-                    check_weight=check_weight)[0]
-        total = 0
-        for u in distances.values():
-            total += sum(u.values())
+        else:
+            distances = self.shortest_path_all_pairs(by_weight=by_weight,
+                            algorithm=algorithm, weight_function=weight_function,
+                            check_weight=check_weight)[0]
+            total = sum(sum(u.values()) for u in distances.values())
+            WI = total if self.is_directed() else (total / 2)
 
-        return total if self.is_directed() else (total / 2)
+        if WI in ZZ:
+            WI = Integer(WI)
+
+        return WI
 
     def average_distance(self, by_weight=False, algorithm=None,
                          weight_function=None):

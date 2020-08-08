@@ -1189,15 +1189,14 @@ class DifferentiableManifold(TopologicalManifold):
         if dest_map is None:
             dest_map = self.identity_map()
         if dest_map not in self._tensor_bundles:
-            from sage.manifolds.differentiable.vector_bundle \
-                                                            import TensorBundle
+            from sage.manifolds.differentiable.vector_bundle import TensorBundle
             self._tensor_bundles[dest_map] = {(k, l):
                                               TensorBundle(self, k, l,
                                                            dest_map=dest_map)}
         else:
             if (k, l) not in self._tensor_bundles[dest_map]:
-                from sage.manifolds.differentiable.vector_bundle \
-                                                            import TensorBundle
+                from sage.manifolds.differentiable.vector_bundle import \
+                                                                    TensorBundle
                 self._tensor_bundles[dest_map][(k, l)] = TensorBundle(self, k,
                                                           l, dest_map=dest_map)
         return self._tensor_bundles[dest_map][(k, l)]

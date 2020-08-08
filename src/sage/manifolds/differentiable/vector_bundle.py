@@ -499,11 +499,9 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: TM # indirect doctest
             Tangent bundle TM over the 2-dimensional differentiable manifold M
             sage: repr(TM) # indirect doctest
-            'Tangent bundle TM over the 2-dimensional differentiable
-             manifold M'
+            'Tangent bundle TM over the 2-dimensional differentiable manifold M'
             sage: TM._repr_()
-            'Tangent bundle TM over the 2-dimensional differentiable
-             manifold M'
+            'Tangent bundle TM over the 2-dimensional differentiable manifold M'
             sage: cTM = M.cotangent_bundle()
             sage: cTM._repr_()
             'Cotangent bundle T*M over the 2-dimensional differentiable
@@ -1153,7 +1151,7 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: TM.transitions()
             {(Chart (M, (x, y)),
               Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y))
-              to Chart (M, (u, v))}
+               to Chart (M, (u, v))}
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: TM.transitions()  # random (dictionary output)
             {(Chart (M, (u, v)),
@@ -1161,33 +1159,33 @@ class TensorBundle(DifferentiableVectorBundle):
               to Chart (M, (x, y)),
              (Chart (M, (x, y)),
               Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y))
-              to Chart (M, (u, v))}
+               to Chart (M, (u, v))}
             sage: c_rs.<r,s> = M.chart()
             sage: uv_to_rs = c_uv.transition_map(c_rs, [-u+2*v, 3*u-v])
             sage: TM.transitions()  # random (dictionary output)
             {(Chart (M, (u, v)),
               Chart (M, (r, s))): Change of coordinates from Chart (M, (u, v))
-              to Chart (M, (r, s)),
+               to Chart (M, (r, s)),
              (Chart (M, (u, v)),
               Chart (M, (x, y))): Change of coordinates from Chart (M, (u, v))
               to Chart (M, (x, y)),
              (Chart (M, (x, y)),
               Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y))
-              to Chart (M, (u, v))}
+               to Chart (M, (u, v))}
             sage: xy_to_rs = uv_to_rs * xy_to_uv
             sage: TM.transitions()  # random (dictionary output)
             {(Chart (M, (u, v)),
               Chart (M, (r, s))): Change of coordinates from Chart (M, (u, v))
-              to Chart (M, (r, s)),
+               to Chart (M, (r, s)),
              (Chart (M, (u, v)),
               Chart (M, (x, y))): Change of coordinates from Chart (M, (u, v))
               to Chart (M, (x, y)),
              (Chart (M, (x, y)),
               Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y))
-              to Chart (M, (u, v)),
+               to Chart (M, (u, v)),
              (Chart (M, (x, y)),
               Chart (M, (r, s))): Change of coordinates from Chart (M, (x, y))
-              to Chart (M, (r, s))}
+               to Chart (M, (r, s))}
 
         """
         return self._ambient_domain.coord_changes()
@@ -1462,8 +1460,8 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: R = Manifold(1, 'R')
             sage: T.<t> = R.chart()  # canonical chart on R
             sage: Phi = R.diff_map(M, [cos(t), sin(t)], name='Phi') ; Phi
-            Differentiable map Phi from the 1-dimensional differentiable
-             manifold R to the 2-dimensional differentiable manifold M
+            Differentiable map Phi from the 1-dimensional differentiable 
+            manifold R to the 2-dimensional differentiable manifold M
             sage: Phi.display()
             Phi: R --> M
                t |--> (x, y) = (cos(t), sin(t))

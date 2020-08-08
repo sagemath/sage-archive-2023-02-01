@@ -1195,10 +1195,9 @@ class DifferentiableManifold(TopologicalManifold):
                                                            dest_map=dest_map)}
         else:
             if (k, l) not in self._tensor_bundles[dest_map]:
-                from sage.manifolds.differentiable.vector_bundle import \
-                                                                    TensorBundle
+                from sage.manifolds.differentiable.vector_bundle import TensorBundle
                 self._tensor_bundles[dest_map][(k, l)] = TensorBundle(self, k,
-                                                          l, dest_map=dest_map)
+                                                           l, dest_map=dest_map)
         return self._tensor_bundles[dest_map][(k, l)]
 
     def vector_field_module(self, dest_map=None, force_free=False):

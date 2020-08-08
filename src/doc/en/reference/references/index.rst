@@ -896,7 +896,7 @@ REFERENCES:
             Mitter's MIT website).
 
 .. [Bond2007] P. Bonderson, Nonabelian anyons and interferometry,
-            Dissertation (2007). https://thesis.library.caltech.edu/2447/
+              Dissertation (2007). https://thesis.library.caltech.edu/2447/
 
 .. [BM2004] John M. Boyer and Wendy J. Myrvold, *On the Cutting Edge:
             *Simplified `O(n)` Planarity by Edge Addition*. Journal of Graph
@@ -3720,6 +3720,12 @@ REFERENCES:
              Advances in Cryptology --
              EUROCRYPT 2010. Springer 2010. :doi:`10.1007/978-3-642-13190-5_1`
 
+
+.. [LR1997] Robert Leduc and Arun Ram, A ribbon Hopf algebra approach to
+            the irreducible representations of centralizer algebras: the
+            Brauer, Birman-Wenzl, and type A Iwahori-Hecke algebras.
+            Adv. Math. 125 (1997), no. 1, 1–94.
+
 .. [LR1998] Jean-Louis Loday and Maria O. Ronco.
             *Hopf algebra of the planar binary trees*,
             Advances in Mathematics, volume 139, issue 2,
@@ -4562,11 +4568,6 @@ REFERENCES:
              and Iwahori-Hecke algebras*. Proc. London Math. Soc. (3)
              **75** (1997). 99-133. :arxiv:`math/9511223v1`.
              http://www.ms.unimelb.edu.au/~ram/Publications/1997PLMSv75p99.pdf
-
-.. [LedRam1997] Robert Leduc and Arun Ram, A ribbon Hopf algebra approach to
-             the irreducible representations of centralizer algebras: the
-             Brauer, Birman-Wenzl, and type A Iwahori-Hecke algebras.
-             Adv. Math. 125 (1997), no. 1, 1–94.
 
 .. [Rau1979] Gerard Rauzy, *Échanges d'intervalles et transformations
              induites*, Acta Arith. 34, no. 3, 203-212, 1980

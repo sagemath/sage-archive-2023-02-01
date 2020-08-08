@@ -207,9 +207,9 @@ class FusionRing(WeylCharacterRing):
         [0, 1, 1/8]
         sage: [x.ribbon() for x in b]
         [1, -1, zeta128^8]
-        sage: [I.rmatrix(i,j,k) for (i,j,k) in [(s,s,i0), (p,p,i0), (p,s,s), (s,p,s), (s,s,p)]]
+        sage: [I.r_matrix(i, j, k) for (i,j,k) in [(s,s,i0), (p,p,i0), (p,s,s), (s,p,s), (s,s,p)]]
         [-zeta128^56, -1, -zeta128^32, -zeta128^32, zeta128^24]
-        sage: I.rmatrix(s,s,i0)==I.root_of_unity(-1/8)
+        sage: I.r_matrix(s, s, i0) == I.root_of_unity(-1/8)
         True
         sage: I.global_q_dimension()
         4
@@ -735,57 +735,61 @@ class FusionRing(WeylCharacterRing):
         else:
             return S
         
-    def rmatrix(self,i,j,k):
-        r"""The R-matrix is a homomorphism `i\otimes j\rightarrow j\otimes i`. 
-        This may be hard to describe since the object `i\otimes j`
+    def r_matrix(self, i, j, k):
+        r"""
+        Return the R-matrix entry corresponding to the subobject ``k``
+        in the tensor product of ``i`` with ``j``.
+
+        The R-matrix is a homomorphism `i \otimes j \rightarrow j \otimes i`.
+        This may be hard to describe since the object `i \otimes j`
         may be reducible. However if `k` is a simple subobject of
-        `i\otimes j` it is also a subobject of `j\otimes i`. If we fix
-        embeddings `k\rightarrow i\otimes j`, `k\rightarrow j\otimes i`
+        `i \otimes j` it is also a subobject of `j \otimes i`. If we fix
+        embeddings `k \rightarrow i \otimes j`, `k \rightarrow j \otimes i`
         we may ask for the scalar automorphism of `k` induced by the
         R-matrix. This method computes that scalar. It is possible to
-        adjust the set of embeddings `k \rightarrow i\otimes j` (called
+        adjust the set of embeddings `k \rightarrow i \otimes j` (called
         a *gauge*) so that this scalar equals
         
         .. MATH::
 
             \pm \sqrt{\frac{ \theta_k }{ \theta_i \theta_j }}.
 
-        If `i\neq j`, the gauge may be used to control the sign of
-        the square root. But if `i=j` then we must be careful
+        If `i \neq j`, the gauge may be used to control the sign of
+        the square root. But if `i = j` then we must be careful
         about the sign. This sign is `+` if `k` is a subobject of 
         the symmetric square of `i` and `-` if it is a subobject of 
-        the exterior square. See [LedRam1997]_ Corollary 2.22 
+        the exterior square. See [LR1997]_ Corollary 2.22
         (actually due to Reshetikhin).
 
-        This method only gives complete information when `N_{ij}^k=1`
+        This method only gives complete information when `N_{ij}^k = 1`
         (an important special case). Tables of MTC including R-matrices
         may be found in Section 5.3 of [RoStWa2009]_ and in [Bond2007]_.
 
         EXAMPLES::
 
-            sage: I = FusionRing("E8",2,conjugate=True) # Ising MTC
-            sage: I.fusion_labels(["i0","p","s"],inject_variables=True)
-            sage: I.rmatrix(s,s,i0) == I.root_of_unity(-1/8)
+            sage: I = FusionRing("E8", 2, conjugate=True)  # Ising MTC
+            sage: I.fusion_labels(["i0","p","s"], inject_variables=True)
+            sage: I.r_matrix(s,s,i0) == I.root_of_unity(-1/8)
             True
-            sage: I.rmatrix(p,p,i0)
+            sage: I.r_matrix(p,p,i0)
             -1
-            sage: I.rmatrix(p,s,s) == I.root_of_unity(-1/2)
+            sage: I.r_matrix(p,s,s) == I.root_of_unity(-1/2)
             True
-            sage: I.rmatrix(s,p,s) == I.root_of_unity(-1/2)
+            sage: I.r_matrix(s,p,s) == I.root_of_unity(-1/2)
             True
-            sage: I.rmatrix(s,s,p) == I.root_of_unity(3/8)
+            sage: I.r_matrix(s,s,p) == I.root_of_unity(3/8)
             True
-
         """
-        if self.Nk_ij(i,j,k) == 0:
+        if self.Nk_ij(i, j, k) == 0:
             return 0
-        r = self.root_of_unity((k.twist(reduce=False)-i.twist(reduce=False)-j.twist(reduce=False))/2)
+        r = self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
         if i != j:
             return r
-        elif k.weight() in i.symmetric_power(2).monomial_coefficients():
+        wt = k.weight()
+        if wt in i.symmetric_power(2).monomial_coefficients():
             return r
-        elif k.weight() in i.exterior_power(2).monomial_coefficients():
-            return -r
+        # We instead have wt in i.exterior_power(2).monomial_coefficients():
+        return -r
 
     def global_q_dimension(self):
         r"""
@@ -898,7 +902,7 @@ class FusionRing(WeylCharacterRing):
                 raise ValueError("fusion weight is valid for basis elements only")
             return next(iter(self._monomial_coefficients))
 
-        def twist(self, reduce=True):
+        def twist(self, reduced=True):
             r"""
             Return a rational number `h` such that `\theta = e^{i \pi h}` 
             is the twist of ``self``. The quantity `e^{i \pi h}` is
@@ -911,6 +915,11 @@ class FusionRing(WeylCharacterRing):
             As in [Row2006]_, this requires normalizing
             the invariant bilinear form so that 
             `\langle \alpha, \alpha \rangle = 2` for short roots.
+
+            INPUT:
+
+            - ``reduced`` -- (default: ``True``) boolean; if ``True``
+              then return the twist reduced modulo 2
 
             EXAMPLES::
 
@@ -941,7 +950,7 @@ class FusionRing(WeylCharacterRing):
             inner = lam.inner_product(lam + 2*rho)
             twist = P._conj * P._nf * inner / P.fusion_l()
             # Reduce modulo 2
-            if reduce:
+            if reduced:
                 f = twist.floor()
                 twist -= f
                 return twist + (f % 2)
@@ -950,10 +959,14 @@ class FusionRing(WeylCharacterRing):
 
         def ribbon(self):
             r"""
-            Return the twist or ribbon element of ``self``. An additive 
-            version of this is available as :meth:`twist`. If `h` is the
-            rational number modulo 2 produced by ``self.twist()``, this 
-            method produces `e^{i\pi h}`.
+            Return the twist or ribbon element of ``self``.
+
+            If `h` is the rational number modulo 2 produced by
+            ``self.twist()``, this  method produces `e^{i\pi h}`.
+
+            .. SEEALSO::
+
+                An additive version of this is available as :meth:`twist`.
 
             EXAMPLES::
 

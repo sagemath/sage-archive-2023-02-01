@@ -315,8 +315,10 @@ class DifferentiableCurve(DiffMap):
 
     The Frenet-Serret frame is orthonormal::
 
-        sage: [[u.dot(v).expr() for v in FS] for u in FS]
-        [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+        sage: matrix([[u.dot(v).expr() for v in FS] for u in FS])
+        [1 0 0]
+        [0 1 0]
+        [0 0 1]
 
     The derivative vectors `N'` and `B'`::
 

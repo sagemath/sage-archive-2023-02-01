@@ -623,7 +623,7 @@ def GemGraph():
     Construct and show a gem graph::
 
         sage: g = graphs.GemGraph()
-        sage: g.show()
+        sage: g.show() # long time
     """
     pos_dict = {0:(0.5,0),1:(0,0.75),2:(0.25,1),3:(0.75,1),4:(1,0.75)}
     edges = [(0, 1), (0, 2), (0, 3), (0, 4), (1, 2), (2, 3), (3, 4)]
@@ -644,7 +644,7 @@ def ForkGraph():
     Construct and show a fork graph::
 
         sage: g = graphs.ForkGraph()
-        sage: g.show()
+        sage: g.show() # long time
     """
     pos_dict = {0:(0,0),1:(1,0),2:(0,1),3:(1,1),4:(0,2)}
     edges = [(0, 2), (2, 3), (3, 1), (2, 4)]
@@ -663,7 +663,7 @@ def DartGraph():
     Construct and show a dart graph::
 
         sage: g = graphs.DartGraph()
-        sage: g.show()
+        sage: g.show() # long time
     """
     pos_dict = {0:(0,1),1:(-1,0),2:(1,0),3:(0,-1),4:(0,0)}
     edges = [(0, 1), (0, 2), (1, 4), (2, 4), (0, 4), (3, 4)]

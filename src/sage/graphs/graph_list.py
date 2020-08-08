@@ -319,7 +319,7 @@ def show_graphs(graph_list, **kwds):
     Check that length is <= 20::
 
         sage: len(glist)
-        14
+        17
 
     Show the graphs in a graphics array::
 

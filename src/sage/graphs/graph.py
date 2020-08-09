@@ -3231,6 +3231,37 @@ class Graph(GenericGraph):
                 self.is_edge_transitive() and not
                 self.is_vertex_transitive())
 
+    @doc_index("Graph properties")
+    def is_path(self):
+        r"""
+        Return true if the graph is a path (has degree sequence of n-2 2's and two 1's).
+
+        EXAMPLES:
+
+            sage: G = graphs.PathGraph(5)
+            sage: G.is_path()
+            True
+            sage: H = graphs.CycleGraph(5)
+            sage: H.is_path()
+            False
+        """
+        deg_one_counter = 0
+        seen_counter = 0
+        for v in self.depth_first_search(self.vertices()[0]):
+            seen_counter += 1
+
+            if deg_one_counter > 2:
+                return False
+
+            if self.degree(v) == 1:
+                deg_one_counter += 1
+
+            elif self.degree(v) != 2:
+                return False
+
+        return seen_counter == self.order() and deg_one_counter == 2
+
+
     @doc_index("Connectivity, orientations, trees")
     def degree_constrained_subgraph(self, bounds, solver=None, verbose=0):
         r"""

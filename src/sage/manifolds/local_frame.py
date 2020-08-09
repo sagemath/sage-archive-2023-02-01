@@ -119,7 +119,7 @@ created, which, by default, bares the same name (here `e`)::
 Let us check that the coframe `(e^i)` is indeed the dual of the vector
 frame `(e_i)`::
 
-    sage: e_dual[1](e[1]) # the linear form e^1 applied to the local section e_1
+    sage: e_dual[1](e[1]) # linear form e^1 applied to local section e_1
     Scalar field e^1(e_1) on the Open subset U of the 3-dimensional topological
      manifold M
     sage: e_dual[1](e[1]).expr() # the explicit expression of e^1(e_1)

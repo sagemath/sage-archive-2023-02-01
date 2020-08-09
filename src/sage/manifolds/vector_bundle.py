@@ -1228,9 +1228,11 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         A vector bundle endowed with an orientation is called *orientable*.
 
-        If no preferred orientation has been set before and there is one frame
-        coverering the whole base space, one of those frames is set
-        automatically to the preferred orientation and returned here.
+        The trivial case corresponds to ``self`` being trivial, i.e. ``self``
+        can be covered by one frame. In that case, if no preferred
+        orientation has been set before, one of those frames (usually the
+        default frame) is set automatically to the preferred orientation and
+        returned here.
 
         EXAMPLES:
 
@@ -1271,11 +1273,19 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         """
         if not self._orientation:
-            # try to find an obvious orientation:
-            for frame in self.frames():
-                if frame._domain == self._base_space:
-                    self._orientation = [frame]
-                    break
+            # Trivial case:
+            if self.is_manifestly_trivial():
+                # Try the default frame:
+                def_frame = self._def_frame
+                if def_frame is not None:
+                    if def_frame._domain is self._base_space:
+                        self._orientation = [def_frame]
+                # Still no orientation? Choose arbitrary frame:
+                if not self._orientation:
+                    for frame in self.frames():
+                        if frame._domain is self._base_space:
+                            self._orientation = [frame]
+                            break
         return list(self._orientation)
 
     def has_orientation(self):

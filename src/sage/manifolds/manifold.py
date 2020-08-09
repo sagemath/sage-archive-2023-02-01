@@ -1646,10 +1646,10 @@ class TopologicalManifold(ManifoldSubset):
             :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.orientation`
             for details
 
-        The trivial case corresponds to the manifold being covered by only
+        The trivial case corresponds to the manifold being covered by
         one chart. In that case, if no preferred orientation has been manually
-        set before, one of these charts is set to the preferred orientation and
-        returned here.
+        set before, one of those charts (usually the default chart) is
+        set to the preferred orientation and returned here.
 
         EXAMPLES:
 
@@ -1696,9 +1696,17 @@ class TopologicalManifold(ManifoldSubset):
                     break
             else:
                 # Trivial case:
-                covering_charts = self._covering_charts
-                if covering_charts:
-                    self._orientation = [covering_charts[0]]
+                if self.is_manifestly_coordinate_domain():
+                    # Try the default chart:
+                    def_chart = self._def_chart
+                    if def_chart is not None:
+                        if def_chart._domain is self:
+                            self._orientation = [self._def_chart]
+                    # Still no orientation? Choose arbitrary chart:
+                    if not self._orientation:
+                        for chart in self._covering_charts:
+                            self._orientation = [chart]
+                            break
         return list(self._orientation)
 
     def has_orientation(self):

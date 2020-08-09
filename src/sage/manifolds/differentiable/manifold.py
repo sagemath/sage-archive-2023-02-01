@@ -2690,14 +2690,14 @@ class DifferentiableManifold(TopologicalManifold):
 
             In contrast to topological manifolds,
             see :meth:`~sage.manifolds.manifold.TopologicalManifold.orientation`,
-            differentiable manifolds preferrably use the notion of
+            differentiable manifolds preferably use the notion of
             orientability in terms of the tangent bundle.
 
         The trivial case corresponds to the manifold being parallelizable,
-        i.e. admitting one frame covering the whole manifold. In that case,
-        if no preferred orientation has been manually set before, the default
-        frame covering ``self`` is set to the preferred orientation on
-        ``self`` and returned here.
+        i.e. admitting a frame covering the whole manifold. In that case,
+        if no preferred orientation has been manually set before, one of those
+        frames (usually the default frame) is set to the preferred
+        orientation on ``self`` and returned here.
 
         EXAMPLES:
 
@@ -2749,12 +2749,20 @@ class DifferentiableManifold(TopologicalManifold):
                     self._orientation = rst_orient
                     break
             else:
-                # cover the trivial case:
-                for frame in self._covering_frames:
-                    dest_map = frame.destination_map()
-                    if dest_map.is_identity():
-                        self._orientation = [frame]
-                        break
+                # Trivial case:
+                if self.is_manifestly_parallelizable():
+                    # Try the default frame:
+                    def_frame = self._def_frame
+                    if def_frame is not None:
+                        if def_frame._domain is self:
+                            self._orientation = [def_frame]
+                    # Still no orientation? Choose arbitrary frame:
+                    if not self._orientation:
+                        for frame in self._covering_frames:
+                            dest_map = frame.destination_map()
+                            if dest_map.is_identity():
+                                self._orientation = [frame]
+                                break
         return list(self._orientation)
 
     def default_frame(self):
@@ -2765,7 +2773,7 @@ class DifferentiableManifold(TopologicalManifold):
         at each point `p`, a vector basis of the tangent space at `p`.
 
         Unless changed via :meth:`set_default_frame`, the default frame is
-        the first one defined on the manifold, usually implicitely as the
+        the first one defined on the manifold, usually implicitly as the
         coordinate basis associated with the first chart defined on the
         manifold.
 

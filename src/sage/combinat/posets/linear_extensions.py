@@ -902,6 +902,18 @@ class LinearExtensionsOfMobile(LinearExtensionOfPoset):
         r"""
         Return the number of linear extensions by using the determinant
         formula for counting linear extensions of mobiles.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.mobile import MobilePoset
+            sage: M = MobilePoset(DiGraph([[0,1,2,3,4,5,6,7,8], [(1,0),(3,0),(2,1),(2,3),(4,
+            ....: 3), (5,4),(5,6),(7,4),(7,8)]]))
+            sage: M.linear_extensions().cardinality()
+            1098
+
+            sage: M1 = posets.RibbonPoset(6, [1,3])
+            sage: M1.linear_extensions().cardinality()
+            61
         """
         import sage.combinat.posets.d_complete as dc
         import sage.combinat.posets.posets as fp

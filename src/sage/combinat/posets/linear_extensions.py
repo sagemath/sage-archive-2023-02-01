@@ -38,7 +38,6 @@ from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.structure.list_clone import ClonableArray
 from sage.misc.misc_c import prod
 from sage.functions.other import factorial
-from sage.combinat.posets.d_complete import DCompletePoset
 
 
 class LinearExtensionOfPoset(ClonableArray,
@@ -894,7 +893,7 @@ class LinearExtensionsOfForest(LinearExtensionsOfPoset):
             140
         """
         return sum(self.atkinson(self._elements[0]))
-    
+
 class LinearExtensionsOfMobile(LinearExtensionOfPoset):
     r"""
     Linear extensions for a mobile poset.
@@ -904,41 +903,53 @@ class LinearExtensionsOfMobile(LinearExtensionOfPoset):
         Return the number of linear extensions by using the determinant
         formula for counting linear extensions of mobiles.
         """
-        
+        import sage.combinat.posets.d_complete as dc
+        import sage.combinat.posets.posets as fp
         # Find folds
         if self._poset._anchor:
             anchor_index = self._poset._ribbon.indexOf(self._poset._anchor[0])
         else:
             anchor_index = len(self._poset._ribbon)
-        
+
         fold_up = []
         fold_down = []
-        
+
         for ind, r in enumerate(self._poset._ribbon[:-1]):
             if ind < anchor_index and self._poset.is_greater_than(r, self._poset._ribbon[ind+1]):
                 fold_up.append((self._poset._ribbon[ind + 1], r))
             elif ind >= anchor_index and self._poset.is_less_than(r, self._poset._ribbon[ind+1]):
                 fold_down.append((r, self._poset._ribbon[ind+1]))
-        
+
         folds = fold_up + fold_down
         # Get ordered connected components
-        
+
         cr = self._poset.cover_relations()
         foldless_cr = [r for c in cr if (not r in folds)]
-        
+
         elmts = self._poset._elements
-        
+
         poset_components = DiGraph([elmts, foldless_cr])
-        ordered_poset_components = list(map(lambda l: poset_components.connected_component_containing_vertex(l), [fold[0] for fold in folds]))
-        ordered_poset_components.append(poset_components.connected_component_containing_vertex(folds[-1][1]))
-        
+        ordered_poset_components = list(map(lambda l: poset_components.connected_component_containing_vertex(l),
+                                            [fold[1] for fold in fold_up] + [fold[0] for fold in fold_down]))
+        ordered_poset_components.append(poset_components.connected_component_containing_vertex(
+            folds[-1][1] if len(fold_down) > 0 else folds[-1][0]
+            ))
+
         # Return determinant
-        matrix = []
+        mat = []
         for i in range(len(folds)):
-            mat_poset = DCompletePoset(self._poset.subposet(ordered_poset_components[i]))
+            mat_poset = dc.DCompletePoset(self._poset.subposet(ordered_poset_components[i]))
             row = [0] * (i-1 if i-1 > 0 else 0) + [1] * (1 if i >= 1 else 0)
-            for j,f in enumerate(folds[i:]):
+            for j, f in enumerate(folds[i:]):
                 row.append(1 / mat_poset.hook_product())
-                
-                
+                if j + i < len(folds) - 1:
+                    next_poset = self._poset.subposet(ordered_poset_components[j+i+1])
+
+                    mat_poset = dc.DCompletePoset(fp.FinitePoset.slant_sum(mat_poset, next_poset, f[1], f[0]))
+
+            mat.append(row)
+
+        return matrix(QQ, mat).determinant() * factorial(self._poset.cardinality())
+
+
 

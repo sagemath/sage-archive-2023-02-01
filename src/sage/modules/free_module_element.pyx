@@ -736,6 +736,7 @@ def zero_vector(arg0, arg1=None):
         TypeError: first argument must be a ring
     """
     if arg1 is None:
+        arg0 = ZZ(arg0)
         # default to a zero vector over the integers (ZZ) if no ring given
         return (ZZ**arg0).zero_vector()
     if is_Ring(arg0):

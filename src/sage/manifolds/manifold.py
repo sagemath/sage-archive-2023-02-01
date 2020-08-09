@@ -1280,13 +1280,8 @@ class TopologicalManifold(ManifoldSubset):
         from .chart import Chart
         if not isinstance(chart, Chart):
             raise TypeError("{} is not a chart".format(chart))
-        if chart._domain is not self:
-            if self.is_manifestly_coordinate_domain():
-                raise TypeError("the chart domain must coincide with " +
-                                "the {}".format(self))
-            if chart not in self._atlas:
-                raise ValueError("the chart must be defined on the " +
-                                 "{}".format(self))
+        if chart not in self._atlas:
+            raise ValueError("the chart must be defined on the {}".format(self))
         self._def_chart = chart
 
     def coord_change(self, chart1, chart2):

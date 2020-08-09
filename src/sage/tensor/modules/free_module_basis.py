@@ -87,6 +87,25 @@ class Basis_abstract(UniqueRepresentation, SageObject):
         for i in self._fmodule.irange():
             yield self[i]
 
+    def _test_iter_len(self, **options):
+        r"""
+        Test that __iter__ and __len__ work correctly.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: e._test_iter_len()
+
+        """
+        tester = self._tester(**options)
+        g = iter(self)
+        b = list(g)
+        for x in b:
+            tester.assertTrue(x in self.free_module())
+        tester.assertEqual(len(b), len(self))
+        tester.assertEqual(len(b), self.free_module().rank())
+
     def __len__(self):
         r"""
         Return the basis length, i.e. the rank of the free module.
@@ -371,6 +390,10 @@ class FreeModuleCoBasis(Basis_abstract):
         sage: f[3](e[1]), f[3](e[2]), f[3](e[3])
         (0, 0, 1)
 
+    TESTS::
+
+        sage: TestSuite(f).run()
+
     """
     def __init__(self, basis, symbol, latex_symbol=None, indices=None,
                  latex_indices=None):
@@ -400,6 +423,28 @@ class FreeModuleCoBasis(Basis_abstract):
         self.set_name(symbol, latex_symbol=latex_symbol, indices=indices,
                       latex_indices=latex_indices, index_position='up')
 
+    def _test_iter_len(self, **options):
+        r"""
+        Test that __iter__ and __len__ work correctly.
+
+        This method overrides ``Basis_abstract`` so that containment
+        of elements in the dual of ``self.free_module()`` is tested instead.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: f = e.dual_basis()
+            sage: f._test_iter_len()
+
+        """
+        tester = self._tester(**options)
+        g = iter(self)
+        b = list(g)
+        for x in b:
+            tester.assertTrue(x in self.free_module().dual())
+        tester.assertEqual(len(b), len(self))
+        tester.assertEqual(len(b), self.free_module().rank())
 
     def _repr_(self):
         r"""
@@ -520,6 +565,12 @@ class FreeModuleBasis(Basis_abstract):
         Element a of the Rank-3 free module M over the Integer Ring
         sage: g.dual_basis()[1]
         Linear form A on the Rank-3 free module M over the Integer Ring
+
+    TESTS::
+
+        sage: TestSuite(e).run()
+        sage: TestSuite(f).run()
+        sage: TestSuite(g).run()
 
     """
     # The following class attribute must be redefined by any derived class:

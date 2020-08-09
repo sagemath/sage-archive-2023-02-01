@@ -288,6 +288,7 @@ Fortunately, both curvature matrices are already skew-symmetric::
      (V, (d/du,d/dv)) = -4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
     curvature (2,2) of connection nabla_g w.r.t. Coordinate frame
      (V, (d/du,d/dv)) = 0
+    sage: nab.set_immutable()  # make nab immutable
 
 Now the representative of the Euler class with respect to the connection
 `\nabla_g` induced by the standard metric can be computed::

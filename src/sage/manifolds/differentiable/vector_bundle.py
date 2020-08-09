@@ -220,8 +220,9 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
         Let us introduce the corresponding Levi-Civita connection::
 
             sage: nab = g.connection(); nab
-            Levi-Civita connection nabla_g associated with the Lorentzian metric
-             g on the 4-dimensional Lorentzian manifold M
+            Levi-Civita connection nabla_g associated with the Lorentzian
+             metric g on the 4-dimensional Lorentzian manifold M
+            sage: nab.set_immutable()  # make nab immutable
 
         Of course, `\nabla_g` is flat::
 

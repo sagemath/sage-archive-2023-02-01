@@ -707,11 +707,13 @@ def fractional_chromatic_number(G, solver='PPL', verbose=0, only_maximal=True,
         return 1
     if check_bipartite and G.is_bipartite():
         # at this point we've already ascertained g.size() > 0
-        # so g contains a clique of size at least 2
+        # so g is a bipartite graph with at least one edge
         return 2
     if check_components:
-        return max(fractional_chromatic_number(h, solver, verbose,
-                                only_maximal, False, check_bipartite)
+        return max(fractional_chromatic_number(h, solver=solver, verbose=verbose,
+                                                   only_maximal=only_maximal,
+                                                   check_components=False,
+                                                   check_bipartite=check_bipartite)
                    for h in G.connected_components_subgraphs())
 
     Is = [frozenset(I) for I in IndependentSets(G, maximal=only_maximal)]
@@ -824,7 +826,7 @@ def fractional_chromatic_index(G, solver="PPL", verbose_constraints=False, verbo
 
     # We want to select at most one incident edge per vertex (matching)
     for u in G:
-        M.add_constraint(M.sum(b[frozenset(e)] for e in G.edges_incident(u, labels=0)) <= 1)
+        M.add_constraint(M.sum(b[frozenset(e)] for e in G.edges_incident(u, labels=False)) <= 1)
 
     #
     # Initialize LP for fractional chromatic number

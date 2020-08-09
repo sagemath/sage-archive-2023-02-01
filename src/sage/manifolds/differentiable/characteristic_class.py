@@ -714,7 +714,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
                         "'cmatrices' to insert a dictionary of skew-symmetric "
                         "curvature matrices by hand, instead.")
                 cmatrices = {}
-                for frame in base_space._get_min_covering(connection._coefficients.keys()):
+                for frame in base_space._get_min_covering(connection._coefficients):
                     cmatrix = [[connection.curvature_form(i, j, frame)
                                     for j in self._vbundle.irange()]
                                         for i in self._vbundle.irange()]

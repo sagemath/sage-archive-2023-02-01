@@ -246,7 +246,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         self._diff_degree = 0
         self._base_space = base_space
         self._total_space = None
-        self._orientation = []
+        self._orientation = []  # set no orientation a priori
         ###
         # Set names:
         self._name = name
@@ -1146,11 +1146,11 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
     def set_orientation(self, orientation):
         r"""
-        Set the default orientation of ``self``.
+        Set the preferred orientation of ``self``.
 
         INPUT:
 
-        - an orientation, i.e. a local frame or a list of local frames whose
+        - ``orientation`` -- a local frame or a list of local frames whose
           domains cover the base space
 
         .. WARNING::
@@ -1228,9 +1228,9 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         A vector bundle endowed with an orientation is called *orientable*.
 
-        If no orientation has been set before and there is one frame
-        coverering the whole base space, this frame is set automatically to
-        the default orientation and returned here.
+        If no preferred orientation has been set before and there is one frame
+        coverering the whole base space, one of those frames is set
+        automatically to the preferred orientation and returned here.
 
         EXAMPLES:
 
@@ -1273,7 +1273,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         if not self._orientation:
             # try to find an obvious orientation:
             for frame in self.frames():
-                if frame.domain() == self.base_space():
+                if frame._domain == self._base_space:
                     self._orientation = [frame]
                     break
         return list(self._orientation)
@@ -1318,9 +1318,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             True
 
         """
-        if self.orientation():
-            return True
-        return False
+        return bool(self.orientation())
 
     def irange(self, start=None):
         r"""

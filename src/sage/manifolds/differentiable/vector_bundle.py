@@ -1588,16 +1588,16 @@ class TensorBundle(DifferentiableVectorBundle):
 
     def set_orientation(self, orientation):
         r"""
-        Set the default orientation of ``self``.
+        Set the preferred orientation of ``self``.
 
         INPUT:
 
-        - an orientation; a vector frame or a list of vector frames, covering
+        - ``orientation`` -- a vector frame or a list of vector frames, covering
           the base space of ``self``
 
         .. NOTE::
 
-            If the destination map is the identity, the default orientation
+            If the destination map is the identity, the preferred orientation
             of the base manifold gets changed here as well.
 
         .. WARNING::
@@ -1643,7 +1643,7 @@ class TensorBundle(DifferentiableVectorBundle):
 
     def orientation(self):
         r"""
-        Get the orientation of ``self`` if available.
+        Get the preferred orientation of ``self`` if available.
 
         See :meth:`~sage.manifolds.vector_bundle.TopologicalVectorBundle.orientation`
         for details regarding orientations on vector bundles.
@@ -1661,9 +1661,9 @@ class TensorBundle(DifferentiableVectorBundle):
             the tensor bundle `\Phi^* T^{(1,0)}N` as each local frame there
             induces the frames on `\Phi^* T^{(k,l)}N` in a canonical way.
 
-        If no orientation has been set before, and if the ambient space
-        already admits an orientation, the corresponding orientation is
-        returned and henceforth fixed for the tensor bundle.
+        If no preferred orientation has been set before, and if the ambient
+        space already admits a preferred orientation, the corresponding
+        orientation is returned and henceforth fixed for the tensor bundle.
 
         EXAMPLES:
 

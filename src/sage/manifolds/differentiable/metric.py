@@ -1623,11 +1623,12 @@ class PseudoRiemannianMetric(TensorField):
 
         .. NOTE::
 
-            This assumes that the manifold admits an orientation, see
+            This assumes that the manifold is orientatable and requires
+            a preferred orientation on the manifold, see
             :meth:`~sage.manifolds.manifold.DifferentiableManifold.orientation`
             for details.
 
-        The volume form `\epsilon` is a `n`-form (`n` being the manifold's
+        The volume form `\epsilon` is an `n`-form (`n` being the manifold's
         dimension) such that for any vector basis `(e_i)` that is orthonormal
         with respect to the metric,
 
@@ -1723,7 +1724,7 @@ class PseudoRiemannianMetric(TensorField):
             True
 
         """
-        dom = self.domain()
+        dom = self._domain
         orient = dom.orientation()
         if orient is None:
             raise ValueError('{} must admit an orientation'.format(dom))
@@ -1758,7 +1759,8 @@ class PseudoRiemannianMetric(TensorField):
 
         .. NOTE::
 
-            This assumes that the manifold admits an orientation, see
+            This assumes that the manifold is orientatable and requires
+            a preferred orientation on the manifold, see
             :meth:`~sage.manifolds.manifold.DifferentiableManifold.orientation`
             for details.
 

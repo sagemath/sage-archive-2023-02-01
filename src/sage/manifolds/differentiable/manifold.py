@@ -2593,12 +2593,12 @@ class DifferentiableManifold(TopologicalManifold):
 
     def set_orientation(self, orientation):
         r"""
-        Set the default orientation of ``self``.
+        Set the preferred orientation of ``self``.
 
         INPUT:
 
-        - an orientation; either a chart / list of charts, or a vector frame /
-          list of vector frames, covering ``self``
+        - ``orientation`` -- either a chart / list of charts, or a vector
+          frame / list of vector frames, covering ``self``
 
         .. WARNING::
 
@@ -2660,7 +2660,7 @@ class DifferentiableManifold(TopologicalManifold):
         for frame in orientation:
             if not isinstance(frame, VectorFrame):
                 raise ValueError("orientation must consist of vector frames")
-            dom = frame.domain()
+            dom = frame._domain
             if not dom.is_subset(self):
                 raise ValueError("{} must be defined ".format(frame) +
                                  "on a subset of {}".format(self))
@@ -2674,7 +2674,7 @@ class DifferentiableManifold(TopologicalManifold):
 
     def orientation(self):
         r"""
-        Get the orientation of ``self`` if available.
+        Get the preferred orientation of ``self`` if available.
 
         An *orientation* on a differentiable manifold is an atlas of charts
         whose transition maps are pairwise orientation preserving, i.e. whose
@@ -2695,8 +2695,9 @@ class DifferentiableManifold(TopologicalManifold):
 
         The trivial case corresponds to the manifold being parallelizable,
         i.e. admitting one frame covering the whole manifold. In that case,
-        if no orientation has been manually set before, this frame is
-        set to the default orientation and returned here.
+        if no preferred orientation has been manually set before, the default
+        frame covering ``self`` is set to the preferred orientation on
+        ``self`` and returned here.
 
         EXAMPLES:
 

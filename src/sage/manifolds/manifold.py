@@ -573,7 +573,7 @@ class TopologicalManifold(ManifoldSubset):
         self._top_charts = []  # list of charts defined on subsets of self
                         # that are not subcharts of charts on larger subsets
         self._def_chart = None  # default chart
-        self._orientation = [] # set a priori no orientation
+        self._orientation = [] # set no orientation a priori
         self._charts_by_coord = {} # dictionary of charts whose domain is self
                                    # (key: string formed by the coordinate
                                    #  symbols separated by a white space)
@@ -1562,11 +1562,11 @@ class TopologicalManifold(ManifoldSubset):
 
     def set_orientation(self, orientation):
         r"""
-        Set the default orientation of ``self``.
+        Set the preferred orientation of ``self``.
 
         INPUT:
 
-        - an orientation, i.e. a chart or a list of charts
+        - ``orientation`` -- a chart or a list of charts
 
         .. WARNING::
 
@@ -1608,7 +1608,7 @@ class TopologicalManifold(ManifoldSubset):
         for c in orientation:
             if not isinstance(c, chart_type):
                 raise ValueError("orientation must consist of charts")
-            dom = c.domain()
+            dom = c._domain
             if not dom.is_subset(self):
                 raise ValueError("{} must be defined ".format(c) +
                                  "on a subset of {}".format(self))
@@ -1622,7 +1622,7 @@ class TopologicalManifold(ManifoldSubset):
 
     def orientation(self):
         r"""
-        Get the orientation of ``self`` if available.
+        Get the preferred orientation of ``self`` if available.
 
         An *orientation* of an `n`-dimensional topologial manifold is an
         atlas of charts whose transition maps are orientation preserving. A
@@ -1647,8 +1647,9 @@ class TopologicalManifold(ManifoldSubset):
             for details
 
         The trivial case corresponds to the manifold being covered by only
-        one chart. In that case, if no orientation has been manually set
-        before, this chart is set to the default orientation and returned here.
+        one chart. In that case, if no preferred orientation has been manually
+        set before, one of these charts is set to the preferred orientation and
+        returned here.
 
         EXAMPLES:
 
@@ -1737,9 +1738,7 @@ class TopologicalManifold(ManifoldSubset):
             True
 
         """
-        if self.orientation():
-            return True
-        return False
+        return bool(self.orientation())
 
     def _get_min_covering(self, object_list):
         r"""

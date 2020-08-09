@@ -85,3 +85,7 @@ from .hypergeometric import hypergeometric, hypergeometric_M, hypergeometric_U
 
 from .gamma import (gamma, psi, beta, log_gamma,
                     gamma_inc, gamma_inc_lower)
+
+Γ = gamma
+ψ = psi
+ζ = zeta

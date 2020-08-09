@@ -4659,8 +4659,10 @@ class Graph(GenericGraph):
             sage: g.fractional_clique_number()
             7/3
         """
-        return self.fractional_chromatic_number(solver, verbose, only_maximal,
-                                                check_components, check_bipartite)
+        return self.fractional_chromatic_number(solver=solver, verbose=verbose,
+                                                only_maximal=only_maximal,
+                                                check_components=check_components,
+                                                check_bipartite=check_bipartite)
 
     @doc_index("Leftovers")
     def maximum_average_degree(self, value_only=True, solver=None, verbose=0):

@@ -1785,8 +1785,7 @@ class Posets(metaclass=ClasscallMetaclass):
         Return a mobile poset with the ribbon ``ribbon`` and
         with hanging d-complete posets specified in ``hangers``
         and a d-complete poset attached above, specified in ``anchor``.
-        The elements specified in ``ribbon``, ``hangers``, and ``anchor``
-        should all be uniquely named.
+        The elements specified in ``ribbon``, ``hangers``, and ``anchor``.
 
         INPUT:
 
@@ -1804,10 +1803,24 @@ class Posets(metaclass=ClasscallMetaclass):
             sage: H = Poset([[5, 6, 7], [(5, 6), (6,7)]])
             sage: M = Posets.Mobile(R, {3: [H]})
             sage: M.cover_relations()
-            [[5, 6], [6, 7], [7, 3], [3, 4], [3, 2], [2, 1], [0, 1]]
+            [[0, 1],
+             [(3, 0, 5), (3, 0, 6)],
+             [(3, 0, 6), (3, 0, 7)],
+             [(3, 0, 7), 3],
+             [3, 2],
+             [3, 4],
+             [2, 1]]
         """
         elements = []
         cover_relations = []
+
+        for k, v in hangers.items():
+            for i, p in enumerate(v):
+                hangers[k][i] = p.relabel(lambda x: (k, i, x))
+
+        if anchor:
+            anchor[1] = (anchor[0], anchor[1])
+            anchor[2] = anchor[2].relabel(lambda x: (anchor[0], x))
 
         cover_relations.extend(ribbon.cover_relations())
         elements.extend(ribbon._elements)

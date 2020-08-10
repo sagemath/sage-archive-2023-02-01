@@ -2213,10 +2213,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.is_pyramid()
             True
             sage: C.is_pyramid(certificate=True)
-            (True, A vertex at (0, -1, 0, 0, 0))
+            (True, A vertex at (1, 0, 0, 0, 0))
             sage: C = polytopes.simplex(5).combinatorial_polyhedron()
             sage: C.is_pyramid(certificate=True)
-            (True, A vertex at (0, 0, 0, 0, 0, 1))
+            (True, A vertex at (1, 0, 0, 0, 0, 0))
 
         For unbounded polyhedra, an error is raised::
 
@@ -2236,6 +2236,11 @@ cdef class CombinatorialPolyhedron(SageObject):
             True
             sage: CombinatorialPolyhedron(0).is_pyramid(True)
             (True, 0)
+
+        Check that :trac:`30292` is fixed::
+
+            sage: Polyhedron([[0, -1, -1], [0, -1, 1], [0, 1, -1], [0, 1, 1], [1, 0, 0]]).is_pyramid(certificate=True)
+            (True, A vertex at (1, 0, 0))
         """
         if not self.is_bounded():
             raise ValueError("polyhedron has to be compact")
@@ -2253,10 +2258,10 @@ cdef class CombinatorialPolyhedron(SageObject):
         # Find a vertex that is incident to all elements in Hrepresentation but one.
         vertex_iter = self._face_iter(True, 0)
         n_facets = self.n_facets()
-        for index, vertex in enumerate(vertex_iter):
+        for vertex in vertex_iter:
             if vertex.n_ambient_Hrepresentation() == n_facets - 1:
                 if certificate:
-                    return (True, self.Vrepresentation()[index])
+                    return (True, vertex.ambient_Vrepresentation()[0])
                 return True
 
         if certificate:

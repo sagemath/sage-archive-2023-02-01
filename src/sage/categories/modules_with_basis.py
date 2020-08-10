@@ -255,7 +255,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             - ``codomain`` -- the codomain `Y` of the morphism (default:
               ``f.codomain()`` if it's defined; otherwise it must be specified)
 
-            - ``category`` -- a category or ``None`` (default: `None``)
+            - ``category`` -- a category or ``None`` (default: ``None``)
 
             - ``zero`` -- the zero of the codomain (default: ``codomain.zero()``);
               can be used (with care) to define affine maps.
@@ -1112,37 +1112,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 2 + (0, -3)
             """
             return self.sum(self.term(index, coeff) for (index, coeff) in terms)
-
-        def linear_combination(self, iter_of_elements_coeff, factor_on_left=True):
-            r"""
-            Return the linear combination `\lambda_1 v_1 + \cdots +
-            \lambda_k v_k` (resp.  the linear combination `v_1 \lambda_1 +
-            \cdots + v_k \lambda_k`) where ``iter_of_elements_coeff`` iterates
-            through the sequence `((\lambda_1, v_1), ..., (\lambda_k, v_k))`.
-
-            INPUT:
-
-            - ``iter_of_elements_coeff`` -- iterator of pairs
-              ``(element, coeff)`` with ``element`` in ``self`` and
-              ``coeff`` in ``self.base_ring()``
-
-            - ``factor_on_left`` -- (optional) if ``True``, the coefficients
-              are multiplied from the left; if ``False``, the coefficients
-              are multiplied from the right
-
-            EXAMPLES::
-
-                sage: m = matrix([[0,1],[1,1]])
-                sage: J.<a,b,c> = JordanAlgebra(m)
-                sage: J.linear_combination(((a+b, 1), (-2*b + c, -1)))
-                1 + (3, -1)
-            """
-            if factor_on_left:
-                return self.sum(coeff * element
-                                for element, coeff in iter_of_elements_coeff)
-            else:
-                return self.sum(element * coeff
-                                for element, coeff in iter_of_elements_coeff)
 
         def _apply_module_morphism(self, x, on_basis, codomain=False):
             """

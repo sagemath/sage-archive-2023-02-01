@@ -465,6 +465,9 @@ class Section(ModuleElement):
                     # frame is actually a pair (frame, chart):
                     frame, chart = frame
                 self.add_comp(frame)[:, chart] = components
+        elif isinstance(comp0, str):
+            # For consistency with tensor fields:
+            self.set_name(comp0)
         else:
             if hasattr(comp0, '__getitem__'):
                 # comp0 is a list/vector of components

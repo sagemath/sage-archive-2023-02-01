@@ -2192,12 +2192,17 @@ class TensorField(ModuleElement):
             sage: t.parent().zero() == 0
             True
         """
+        from .mixed_form import MixedForm
+
         if other is self:
             return True
         if other in ZZ: # to compare with 0
             if other == 0:
                 return self.is_zero()
             return False
+        elif isinstance(other, MixedForm):
+            # use comparison of MixedForm:
+            return other == self
         elif not isinstance(other, TensorField):
             return False
         else: # other is another tensor field

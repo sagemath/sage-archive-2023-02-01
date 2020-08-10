@@ -289,11 +289,9 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     sage: C = Example()
                     sage: list(C)
                     hello!
-                    hello!
                     ...
                     [1, 2, 3]
                     sage: list(C)
-                    hello!
                     hello!
                     ...
                     [1, 2, 3]

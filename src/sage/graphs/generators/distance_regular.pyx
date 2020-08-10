@@ -970,3 +970,240 @@ def HermitianFormGraph(const int n, const int q):
     G = Graph(edges, format='list_of_edges')
     G.name("Hermitian form graph on (F_%d)^%d"%(q, n))
     return G
+
+def DoubleOddGraph(const int n):
+    r"""
+    Return the double odd graph on `2*n+1` points.
+
+    The graph is obtained using the subsets of size `n` and `n+1`
+    of `{1, 2, ..., 2*n+1}` as vertices. Two vertices are adjacent if one 
+    is included in the other.
+
+    The graph is distance-transitive.
+
+    INPUT:
+
+    - ``n`` -- integer; must be greater than 0
+
+    EXAMPLES::
+
+         sage: G = graphs.DoubleOddGraph(5)
+         sage: G.is_distance_regular(True)
+         ([6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, None],
+          [None, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6])
+         sage: G = graphs.DoubleOddGraph(3)
+         sage: G.diameter()
+         7
+         sage: G.is_distance_regular(True)
+         ([4, 3, 3, 2, 2, 1, 1, None], [None, 1, 1, 2, 2, 3, 3, 4])
+
+    REFERENCES:
+
+    See [BCN1989]_ pp. 259-261 or [VDKT2016]_ p. 25.
+
+    TESTS:
+
+    DoubleOddGraph is bipartite double of OddGraph::
+
+         sage: H = graphs.OddGraph(4)
+         sage: G1 = graphs.DoubleOddGraph(3)
+         sage: vertices = [(x, 0) for x in H] + [(x, 1) for x in H]
+         sage: G2 = Graph([vertices, lambda i, j: i[1] != j[1] and H.has_edge(i[0], j[0])])
+         sage: G2.is_isomorphic(G1)
+         True
+    """
+    from sage.combinat.integer_vector import IntegerVectors
+    
+    if n < 1:
+        raise ValueError("n must be >= 1")
+
+    cdef list edges, s1
+    cdef int i
+
+    # a binary vector of size 2n + 1 represents a set
+    edges = []
+    for s in IntegerVectors(n, k=2*n + 1, max_part=1):
+        s1 = list(s)
+        for i in range(2*n + 1):
+            sig_check()
+            if s1[i] == 0:
+                s2 = list(s)  # duplicate list
+                s2[i] = 1
+                edges.append((tuple(s1), tuple(s2)))
+
+    G = Graph(edges, format='list_of_edges')
+    G.name("Bipartite double of Odd graph on a set of %d elements"%(2*n + 1))
+    return G
+
+def HalfCube(int n):
+    r"""
+    Return the halved cube in `n` dimensions.
+
+    The graph is distance-regular with calssical parameters
+    `(\lfloor \frac n 2 \rfloor, 1, 2, 2 \lceil \frac n 2 \rceil -1)`.
+
+    INPUT:
+
+    - ``n`` -- integer; must be greater than 2
+
+    EXAMPLES::
+
+        sage: G = graphs.HalfCube(8)
+        sage: G.is_distance_regular(True)
+        ([28, 15, 6, 1, None], [None, 1, 6, 15, 28])
+        sage: G = graphs.HalfCube(4)
+        sage: G.is_distance_regular(True)
+        ([6, 1, None], [None, 1, 6])
+
+    REFERENCES:
+    
+    See [BCN1989]_ pp. 264, 265 or [VDKT2016]_ p. 21.
+    This construction can be found on 
+    https://en.wikipedia.org/wiki/Halved_cube_graph#Equivalent_constructions
+
+    TESTS:
+
+    HalfCube is a half of the CubeGraph::
+
+         sage: H = graphs.CubeGraph(8)
+         sage: s1, s2 = H.bipartite_sets()
+         sage: G1 = Graph([s1, lambda i, j: H.distance(i, j) == 2])
+         sage: G2 = graphs.HalfCube(8)
+         sage: G1.is_isomorphic(G2)
+         True
+    """
+    from sage.graphs.graph_generators import graphs
+    
+    def hamming_distance(str v, str w):
+        cdef int i, counter
+        
+        counter = 0
+        for i in range(len(v)):
+            if (v[i] != w[i]):
+                counter = counter + 1
+
+        return counter
+
+    if n <= 2:
+        raise ValueError("we need n > 2")
+
+    G = graphs.CubeGraph(n-1)
+    # we use the fact that the vertices are strings
+    # and their distance is their hamming_distance
+    for v, w in itertools.combinations(G, 2):
+        sig_check()
+        if hamming_distance(v, w) == 2:
+            G.add_edge(v, w)
+
+    G.relabel()  # relabel vertices to 0,1,2,...
+
+    G.name("Half %d Cube"%n)
+    return G
+
+
+def GrassmannGraph(const int q, const int n, const int input_e):
+    r"""
+    Return the Grassmann graph with parameters `(q, n, e)`.
+
+    This build the Grassmann graph $J_q(n,e)$. That is, for a vector
+    space $V = \mathbb F(q))^n$ the output is the graph on the subspaces
+    of dimension $e$ where two subspaces are adjancent if their intersection
+    has dimension $e-1$.
+
+    This graph is distance-regular with classical parameters
+    `(\min(e, n-e), q, q, \gbinom {n-e+1} 1 _q -1)`
+
+    INPUT:
+
+    - ``q`` -- a prime power
+    - ``n, e`` -- integers with ``n > e+1``
+
+    EXAMPLES::
+
+        sage: G = graphs.GrassmannGraph(2, 4, 2)
+        sage: G.is_distance_regular(True)
+        ([18, 8, None], [None, 1, 9])
+
+    REFERENCES:
+
+    See [BCN1989]_ pp. 268-272 or [VDKT2016]_ p. 21.
+
+    TESTS::
+
+        sage: G = graphs.GrassmannGraph(2, 6, 3)
+        sage: G.is_distance_regular(True)
+        ([98, 72, 32, None], [None, 1, 9, 49])
+        sage: G = graphs.GrassmannGraph(3, 4, 2)
+        sage: G.is_distance_regular(True)
+        ([48, 27, None], [None, 1, 16])
+    """
+    from sage.combinat.designs import design_catalog as designs
+    
+    if n <= input_e + 1:
+        raise ValueError(
+            "Impossible parameters n <= e+1 (%d > %d)" %(n,input_e) )
+
+    e = input_e
+    if n < 2*input_e:
+        e = n - input_e
+
+    PG = designs.ProjectiveGeometryDesign(n-1, e-1, q)
+    # we want the intersection graph
+    # the size of the intersection must be (q^{e-1} - 1) / (q-1)
+    size = (q**(e-1) -  1) / (q-1)
+    G = PG.intersection_graph([size])
+    G.name("Grassmann graph J_%d(%d, %d)"%(q, n, e))
+    return G
+
+def DoubleGrassmannGraph(const int q, const int e):
+    r"""
+    Return the bipartite double of the distance-`e` graph of the 
+    Grassmann graph with parameters `(q, 2*e+1, e)`.
+    
+    This graph is distance-transitive.
+
+    INPUT:
+
+    - ``q`` -- a prime power
+    - ``e`` -- integer
+
+    EXAMPLES::
+    
+        sage: G = graphs.DoubleGrassmannGraph(2,1)
+        sage: G.diameter()
+        3
+        sage: G.is_distance_regular(True)
+        ([3, 2, 2, None], [None, 1, 1, 3])
+    
+
+    REFERENCES:
+
+    See [BCN1989]_ pp. 272, 273 or [VDKT2016]_ p. 25.
+
+    TESTS::
+
+         sage: G = graphs.DoubleGrassmannGraph(5,1)
+         sage: G.order()
+         62
+         sage: G.is_distance_regular(True)
+         ([6, 5, 5, None], [None, 1, 1, 6])
+         sage: G = graphs.DoubleGrassmannGraph(3, 2)
+         sage: G.order()
+         2420
+         sage: G.is_distance_regular(True)
+         ([13, 12, 12, 9, 9, None], [None, 1, 1, 4, 4, 13])
+    """
+    n = 2*e+1
+    V = VectorSpace(GF(q), n)
+
+    edges = []
+    for W in V.subspaces(e + 1):
+        Wbasis = frozenset(W.basis())
+        for U in W.subspaces(e):
+            sig_check()
+            Ubasis = frozenset(U.basis())
+            edges.append((Wbasis, Ubasis))
+
+    G = Graph(edges, format='list_of_edges')
+    G.name("Double Grassmann graph (%d, %d, %d)"%(n, e, q))
+    return G

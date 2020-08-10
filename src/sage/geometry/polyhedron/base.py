@@ -525,15 +525,17 @@ class Polyhedron_base(Element):
 
         tester.assertEqual(self.n_vertices() + self.n_rays() + self.n_lines(), self.n_Vrepresentation())
         tester.assertEqual(self.n_inequalities() + self.n_equations(), self.n_Hrepresentation())
-        tester.assertEqual(self.dim() + self.n_equations(), self.ambient_dim())
+        if self.n_vertices():
+            # Depending on the backend, this does not hold for the empty polyhedron.
+            tester.assertEqual(self.dim() + self.n_equations(), self.ambient_dim())
 
         tester.assertTrue(all(len(v[::]) == self.ambient_dim() for v in self.Vrep_generator()))
         tester.assertTrue(all(len(h[::]) == self.ambient_dim() + 1 for h in self.Hrep_generator()))
 
         if self.n_vertices() + self.n_rays() < 40:
-            tester.assertEqual(self, Polyhedron(vertices=self.vertices(), rays=self.rays(), lines=self.lines()))
+            tester.assertEqual(self, Polyhedron(vertices=self.vertices(), rays=self.rays(), lines=self.lines(), ambient_dim=self.ambient_dim()))
         if self.n_inequalities() < 40:
-            tester.assertEqual(self, Polyhedron(ieqs=self.inequalities(), eqns=self.equations()))
+            tester.assertEqual(self, Polyhedron(ieqs=self.inequalities(), eqns=self.equations(), ambient_dim=self.ambient_dim()))
 
     def base_extend(self, base_ring, backend=None):
         """
@@ -4646,6 +4648,13 @@ class Polyhedron_base(Element):
 
         lines = chain((tuple(l) + other_zero for l in  self.line_generator()),
                       (self_zero + tuple(l)  for l in other.line_generator()))
+
+        if self.n_vertices() == 0 or other.n_vertices() == 0:
+            # In this case we obtain the empty polyhedron.
+            # There is not vertex to attach the rays or lines to.
+            # By our convenction, in this case the polyhedron shall also not have rays or lines.
+            rays = ()
+            lines = ()
 
         ieqs = chain((tuple(i) + other_zero               for i in  self.inequality_generator()),
                      ((i.b(),) + self_zero + tuple(i.A()) for i in other.inequality_generator()))

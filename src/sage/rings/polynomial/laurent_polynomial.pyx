@@ -3629,6 +3629,16 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: F = GF(5)
             sage: p.toric_substitute((2,3), (-1,1), 2, new_ring=L.change_ring(F))
             3*x^3*y^3 + 2*x^-2*y^-2
+
+        TESTS:
+
+        foo::
+
+            sage: P.<x> = LaurentPolynomialRing(QQ, 1)
+            sage: u = x - 1
+            sage: v = u.toric_substitute((-1,), (-1,), 1)
+            sage: v.is_zero()
+            True
         """
         cdef dict d, dr
         cdef ETuple ve, v1e, w, w1, mon
@@ -3656,6 +3666,9 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             else:
                 dr[w1] = x * a**t
             mon = mon.emin(w1)
+        for v in tuple(dr.keys()):
+            if not dr[v]:
+                del dr[v]
 
         ans = <LaurentPolynomial_mpair> self._new_c()
         ans._prod = PolyDict(dr)

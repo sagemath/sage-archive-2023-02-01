@@ -605,16 +605,16 @@ def p_projections(Eq, Plist, p, debug=False):
 
     OUTPUT:
 
-    A list of $r\le2$ vectors in $\F_p^n$, the images of the points in
-    $G \otimes \F_p$, where $r$ is the number of vectors is the
+    A list of $r\le2$ vectors in $\GF{p^n}$, the images of the points in
+    $G \otimes \GF{p}$, where $r$ is the number of vectors is the
     $p$-rank of `Eq`.
 
     ALGORITHM:
 
     First project onto the $p$-primary part of `Eq`.  If that has
     $p$-rank 1 (i.e. is cyclic), use discrete logs there to define a
-    map to $\F_p$, otherwise use the Weil pairing to define two
-    independent maps to $\F_p$.
+    map to $\GF{p}$, otherwise use the Weil pairing to define two
+    independent maps to $\GF{p}$.
 
     EXAMPLES:
 

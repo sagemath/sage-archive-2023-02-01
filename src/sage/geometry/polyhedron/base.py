@@ -6101,7 +6101,7 @@ class Polyhedron_base(Element):
                 tester.assertTrue(Q.is_combinatorially_isomorphic(R))
                 '''
 
-        if self.n_vertices() >= 12:
+        if self.n_vertices() >= 12 or self.base_ring() not in (ZZ, QQ):
             # Avoid very long tests.
             return
 

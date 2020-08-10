@@ -451,12 +451,21 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
                (x, y) |--> y^2 + x
 
         """
+        try:
+            if coord_expression.is_trivial_zero():
+                return self.zero()
+            elif (coord_expression - 1).is_trivial_zero():
+                return self.one()
+        except AttributeError:
+            if coord_expression == 0:
+                return self.zero()
+            if coord_expression == 1:
+                return self.one()
         if isinstance(coord_expression, ScalarField):
             if self._domain.is_subset(coord_expression._domain):
                 # restriction of the scalar field to self._domain:
                 return coord_expression.restrict(self._domain)
         else:
-            ###
             # Anything going wrong here should produce a readable error:
             try:
                 # generic constructor:

@@ -4,7 +4,7 @@
 # Adapted from examples in https://docs.python.org/3/library/venv.html
 
 import venv
-import os
+import sys
 import argparse
 
 parser = argparse.ArgumentParser(prog=__name__,
@@ -37,8 +37,8 @@ options = parser.parse_args()
 if options.upgrade and options.clear:
     raise ValueError('you cannot supply --upgrade and --clear together.')
 
-if os.name == 'nt':
-    # default for Windows
+if sys.platform == 'cygwin':
+    # default for Cygwin; see https://trac.sagemath.org/ticket/30149
     use_symlinks = False
 else:
     # default for posix

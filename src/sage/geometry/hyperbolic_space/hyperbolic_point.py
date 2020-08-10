@@ -589,7 +589,7 @@ class HyperbolicPointUHP(HyperbolicPoint):
             sage: HyperbolicPlane().UHP().get_point(infinity).show()
             Traceback (most recent call last):
             ...
-            NotImplementedError: can't draw the point infinity
+            NotImplementedError: can...t draw the point infinity
         """
         p = self.coordinates()
         if p == infinity:

@@ -106,8 +106,8 @@ Wie man Sage benutzen kann
 
 Sie können Sage auf verschiedene Weise benutzen.
 
--  **graphisches Notebook-Interface:** lesen Sie den Abschnitt
-   zum Notebook im Referenzhandbuch und :ref:`section-notebook` weiter unten,
+-  **graphisches Notebook-Interface:** rufen Sie `sage -n jupyter` auf; lesen Sie
+   `Jupyter documentation on-line <https://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_,
 
 -  **interaktive Kommandozeile:** lesen Sie :ref:`chapter-interactive_shell`,
 

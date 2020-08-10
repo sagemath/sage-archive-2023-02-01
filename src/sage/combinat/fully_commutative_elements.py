@@ -1026,22 +1026,18 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
         # set, for the keys are then ordered by default by Python 3.7+:
         recent_words = {empty_word: True}
         yield empty_word
-        length = 1
-        while True:
+        while recent_words:
             new_words = {}
-            for w in recent_words.keys():
+            for w in recent_words:
                 for s in letters:
                     if w.still_reduced_fc_after_prepending(s):
                         sw = self.element_class(
                             self, [s] + list(w), check=False)
                         # "Add" sw to the "set"
                         new_words[sw] = True
-            if len(new_words) == 0:
-                return
-            for w in new_words.keys():
+            for w in new_words:
                 yield w
             recent_words = new_words
-            length += 1
 
     def iterate_to_length(self, length):
         r"""

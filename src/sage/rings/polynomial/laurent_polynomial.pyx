@@ -3515,6 +3515,12 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: F = GF(2)
             sage: p.rescale_vars({0: 3, 1: 7}, new_ring=L.change_ring(F))
             x*y^-2 + x^-2*y
+
+        Test for :trac:`30331`::
+
+            sage: F.<z> = CyclotomicField(3)
+            sage: p.rescale_vars({0: 2, 1: z}, new_ring=L.change_ring(F))
+            2*z*x*y^-2 + 1/4*z*x^-2*y
         """
         cdef int i
         cdef dict df
@@ -3525,6 +3531,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             self._compute_polydict()
 
         df = dict(self._prod.__repn)  # This makes a copy for us to manipulate
+        if new_ring is None:
+            R = self._parent._base
+        else:
+            R = new_ring._base
         if h is None:
             for v in df:
                 val = df[v]
@@ -3532,7 +3542,6 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
                     val *= d[i]**v[i]
                 df[v] = val
         else:
-            R = self._parent._base
             for v in df:
                 val = df[v]
                 for i in d:
@@ -3542,7 +3551,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         ans = <LaurentPolynomial_mpair> self._new_c()
         ans._prod = PolyDict(df)
         ans._mon = self._mon
-        ans._poly = <MPolynomial> self._poly._parent({v.esub(ans._mon): df[v] for v in df})
+        if new_ring is None:
+            S = self._poly._parent
+        else:
+            S = self._poly._parent.change_ring(R)
+        ans._poly = <MPolynomial> S({v.esub(ans._mon): df[v] for v in df})
         if new_ring is not None:
             return new_ring(ans)
         return ans
@@ -3564,6 +3577,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: F = GF(2)
             sage: p.toric_coordinate_change(Matrix([[1,-3],[1,1]]), new_ring=L.change_ring(F))
             x^-2*y^2 + x^-3*y
+
         """
         cdef int n, i, j, x
         cdef dict d, dr

@@ -7147,6 +7147,54 @@ class Polyhedron_base(Element):
         parent = self.parent().base_extend(self.center().parent(), ambient_dim=self.ambient_dim()+1)
         return parent.element_class(parent, [new_verts, [], []], None)
 
+    def _test_pyramid(self, tester=None, **options):
+        """
+        Run tests on the methods related to pyramids.
+
+        TESTS:
+
+            sage: polytopes.regular_polygon(4)._test_pyramid()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        def check_pyramid_certificate(P, cert):
+            others = set(v for v in P.vertices() if not v == cert)
+            if len(others):
+                tester.assertTrue(any(set(f.ambient_Vrepresentation()) == others for f in P.facets()))
+
+        if self.is_compact():
+            b, cert = self.is_pyramid(certificate=True)
+            if b:
+                check_pyramid_certificate(self, cert)
+
+            if self.n_vertices():
+                pyr = self.pyramid()
+                b, cert = pyr.is_pyramid(certificate=True)
+                tester.assertTrue(b)
+                check_pyramid_certificate(pyr, cert)
+        else:
+            with tester.assertRaises(AssertionError):
+                pyr = self.pyramid()
+
+        if self.is_compact() and self.n_vertices() > 1:
+            # Check the pyramid of the polar.
+            self_fraction_field = self.base_extend(QQ)
+
+            polar = self_fraction_field.polar(in_affine_span=True)
+            pyr_polar = polar.pyramid()
+            b, cert = pyr_polar.is_pyramid(certificate=True)
+            tester.assertTrue(b)
+            check_pyramid_certificate(pyr_polar, cert)
+
+            pyr = self_fraction_field.pyramid()
+            polar_pyr = pyr.polar(in_affine_span=True)
+            b, cert = polar_pyr.is_pyramid(certificate=True)
+            tester.assertTrue(b)
+            check_pyramid_certificate(polar_pyr, cert)
+
+            tester.assertTrue(pyr_polar.is_combinatorially_isomorphic(pyr_polar))
+
     def bipyramid(self):
         """
         Return a polyhedron that is a bipyramid over the original.

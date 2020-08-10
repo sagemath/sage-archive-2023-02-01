@@ -1478,7 +1478,7 @@ class Polytopes():
 
             sage: id = polytopes.icosidodecahedron(exact=False); id
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 30 vertices
-            sage: TestSuite(id).run(skip="_test_is_combinatorially_isomorphic")
+            sage: TestSuite(id).run(skip=["_test_is_combinatorially_isomorphic", "_test_pyramid"])
 
             sage: id = polytopes.icosidodecahedron(backend='normaliz')  # optional - pynormaliz
             sage: id.f_vector()                                         # optional - pynormaliz
@@ -2469,7 +2469,7 @@ class Polytopes():
             A 6-dimensional polyhedron in RDF^6 defined as the convex hull of 35 vertices
             sage: h_7_3.f_vector()
             (1, 35, 210, 350, 245, 84, 14, 1)
-            sage: TestSuite(h_7_3).run()
+            sage: TestSuite(h_7_3).run(skip="_test_pyramid")
         """
         verts = Permutations([0] * (dim - k) + [1] * k).list()
         if project:

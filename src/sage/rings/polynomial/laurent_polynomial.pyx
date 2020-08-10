@@ -3632,7 +3632,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
         TESTS:
 
-        foo::
+        Test for :trac:`30331`::
 
             sage: P.<x> = LaurentPolynomialRing(QQ, 1)
             sage: u = x - 1

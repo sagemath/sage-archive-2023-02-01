@@ -5952,21 +5952,6 @@ class Polyhedron_base(Element):
         REFERENCES:
 
             For more information, see Section 6.6 of [Zie2007]_.
-
-        TESTS::
-
-            sage: P = polytopes.simplex(2, backend='cdd')
-            sage: P.lawrence_extension(P.vertices()[0]).backend()
-            'cdd'
-
-            sage: P = polytopes.simplex(2, backend='ppl')
-            sage: P.lawrence_extension(P.vertices()[0]).backend()
-            'ppl'
-
-        Check that :trac:`28725` is fixed::
-
-            sage: P = polytopes.regular_polygon(3)
-            sage: Q = P.lawrence_extension(P.vertices()[0])
         """
         if not self.is_compact():
             raise NotImplementedError("self must be a polytope")
@@ -5978,7 +5963,7 @@ class Polyhedron_base(Element):
             raise ValueError("{} must not be a vertex or outside self".format(v))
 
         lambda_V = [u + [0] for u in V if u != v] + [v+[1]] + [v+[2]]
-        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim() + 1)
+        parent = self.parent().base_extend(vector(v), ambient_dim=self.ambient_dim() + 1)
         return parent.element_class(parent, [lambda_V, [], []], None)
 
     def lawrence_polytope(self):
@@ -6015,21 +6000,6 @@ class Polyhedron_base(Element):
         REFERENCES:
 
             For more information, see Section 6.6 of [Zie2007]_.
-
-        TESTS::
-
-            sage: P = polytopes.simplex(2, backend='cdd')
-            sage: P.lawrence_polytope().backend()
-            'cdd'
-
-            sage: P = polytopes.simplex(2, backend='ppl')
-            sage: P.lawrence_polytope().backend()
-            'ppl'
-
-        Check that :trac:`28725` is fixed::
-
-            sage: P = polytopes.regular_polygon(3)
-            sage: Q = P.lawrence_polytope()
         """
         from sage.matrix.constructor import block_matrix
 
@@ -6070,6 +6040,86 @@ class Polyhedron_base(Element):
             raise NotImplementedError("self must be a polytope")
 
         return self.combinatorial_polyhedron().is_lawrence_polytope()
+
+    def _test_lawrence(self, tester=None, **options):
+        """
+        Run tests on the methods related to lawrence extensions.
+
+        TESTS:
+
+        Check that :trac:`28725` is fixed::
+
+            sage: polytopes.regular_polygon(3)._test_lawrence()
+
+        Check that :trac:`30293` is fixed::
+
+            sage: polytopes.cube()._test_lawrence()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        if not self.is_compact():
+            with tester.assertRaises(NotImplementedError):
+                self.lawrence_polytope()
+            with tester.assertRaises(NotImplementedError):
+                self.lawrence_extension(self.vertices()[0])
+            return
+
+        if self.n_vertices() > 1:
+            # ``v`` must be a vertex or outside ``self``.
+            with tester.assertRaises(ValueError):
+                self.lawrence_extension(self.center())
+
+        if self.n_vertices() >= 40:
+            # Avoid very long tests.
+            return
+
+        if self.n_vertices():
+            from sage.misc.prandom import randint
+            v = self.vertices()[randint(0, self.n_vertices()-1)].vector()
+
+            # A lawrence extension with a vertex.
+            P = self.lawrence_extension(v)
+            tester.assertEqual(self.dim() + 1, P.dim())
+            tester.assertEqual(self.n_vertices() + 1, P.n_vertices())
+            tester.assertEqual(self.backend(), P.backend())
+
+            if self.n_vertices() > 1:
+                # A lawrence extension with a point outside of the polyhedron.
+                Q = self.lawrence_extension(2*v - self.center())
+                tester.assertEqual(self.dim() + 1, Q.dim())
+                tester.assertEqual(self.n_vertices() + 2, Q.n_vertices())
+                tester.assertEqual(self.backend(), Q.backend())  # Any backend should handle the fraction field.
+
+                '''
+                # Known bug.
+                # See :trac:`30328`.
+                R = self.lawrence_extension(2.0*v - self.center())
+                tester.assertEqual(self.dim() + 1, R.dim())
+                tester.assertEqual(self.n_vertices() + 2, R.n_vertices())
+
+                tester.assertTrue(Q.is_combinatorially_isomorphic(R))
+                '''
+
+        if self.n_vertices() >= 12:
+            # Avoid very long tests.
+            return
+
+        P = self.lawrence_polytope()
+        tester.assertEqual(self.dim() + self.n_vertices(), P.dim())
+        tester.assertEqual(self.n_vertices()*2, P.n_vertices())
+        tester.assertEqual(self.backend(), P.backend())
+        tester.assertTrue(P.is_lawrence_polytope())
+
+        # Construct the lawrence polytope iteratively by lawrence extensions.
+        V = self.vertices_list()
+        Q = self
+        i = 0
+        for v in V:
+            v = v + i*[0]
+            Q = Q.lawrence_extension(v)
+            i = i + 1
+        tester.assertEqual(P, Q)
 
     def barycentric_subdivision(self, subdivision_frac=None):
         r"""

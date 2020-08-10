@@ -1,1 +1,1 @@
-$(PYTHON) sagelib sphinx six | $(PYTHON_TOOLCHAIN)
+$(PYTHON) sphinx six | $(PYTHON_TOOLCHAIN) sagelib

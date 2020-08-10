@@ -1621,24 +1621,20 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Volume form (Levi-Civita tensor) `\epsilon` associated with the metric.
 
-        .. NOTE::
-
-            This assumes that the manifold is orientatable and requires
-            a preferred orientation on the manifold, see
-            :meth:`~sage.manifolds.manifold.DifferentiableManifold.orientation`
-            for details.
-
         The volume form `\epsilon` is an `n`-form (`n` being the manifold's
-        dimension) such that for any vector basis `(e_i)` that is orthonormal
-        with respect to the metric,
+        dimension) such that for any oriented vector basis `(e_i)` which is
+        orthonormal with respect to the metric, the condition
 
         .. MATH::
 
-            \epsilon(e_1,\ldots,e_n) = \pm 1
+            \epsilon(e_1,\ldots,e_n) = 1
 
-        There are only two such `n`-forms, which are opposite of each other.
-        The volume form `\epsilon` is selected such that the domain's default
-        frame is right-handed with respect to it.
+        holds.
+
+        Notice that that a volume form requires an orientable manifold with
+        a preferred orientation, see
+        :meth:`~sage.manifolds.manifold.DifferentiableManifold.orientation`
+        for details.
 
         INPUT:
 
@@ -1757,13 +1753,6 @@ class PseudoRiemannianMetric(TensorField):
         Compute the Hodge dual of a differential form with respect to the
         metric.
 
-        .. NOTE::
-
-            This assumes that the manifold is orientatable and requires
-            a preferred orientation on the manifold, see
-            :meth:`~sage.manifolds.manifold.DifferentiableManifold.orientation`
-            for details.
-
         If the differential form is a `p`-form `A`, its *Hodge dual* with
         respect to the metric `g` is the
         `(n-p)`-form `*A` defined by
@@ -1776,6 +1765,11 @@ class PseudoRiemannianMetric(TensorField):
         where `n` is the manifold's dimension, `\epsilon` is the volume
         `n`-form associated with `g` (see :meth:`volume_form`) and the indices
         `k_1,\ldots, k_p` are raised with `g`.
+
+        Notice that that the hodge star dual requires an orientable
+        manifold with a preferred orientation, see
+        :meth:`~sage.manifolds.manifold.DifferentiableManifold.orientation`
+        for details.
 
         INPUT:
 

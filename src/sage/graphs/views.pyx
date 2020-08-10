@@ -695,7 +695,7 @@ cdef class EdgesView:
             sage: E * 1.5
             Traceback (most recent call last):
             ...
-            TypeError: can't multiply sequence by non-int of type 'sage.rings.real_mpfr.RealLiteral'
+            TypeError: can...t multiply sequence by non-int of type 'sage.rings.real_mpfr.RealLiteral'
         """
         if isinstance(left, EdgesView):
             return list(left) * right

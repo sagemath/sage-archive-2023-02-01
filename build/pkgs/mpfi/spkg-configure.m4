@@ -21,13 +21,13 @@ SAGE_SPKG_CONFIGURE([mpfi], [
             [[#include <mpfi.h>
               #include <stdio.h>
             ]], [[
-              printf("%s\n", MPFI_VERSION_STRING);
+              fprintf(stderr, "%s\n", MPFI_VERSION_STRING);
               if (MPFI_VERSION_MAJOR >]] SAGE_MPFI_VERSION_MAJOR[[) return 0;
               else if (MPFI_VERSION_MAJOR ==]] SAGE_MPFI_VERSION_MAJOR[[ &&
                        MPFI_VERSION_MINOR >=]] SAGE_MPFI_VERSION_MINOR[[) return 0;
               else return 1;
-            ]])], [AC_MSG_RESULT([.. yes])], [
-                   AC_MSG_RESULT([.. no])
+            ]])], [AC_MSG_RESULT([yes])], [
+                   AC_MSG_RESULT([no])
                    sage_spkg_install_mpfi=yes])
         AC_LANG_POP(C)], [sage_spkg_install_mpfi=yes])
     fi

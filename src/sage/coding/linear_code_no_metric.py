@@ -157,6 +157,22 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
         - ``default_decoder_name`` -- the name of the default decoder of ``self``
 
         - ``metric`` -- (default: ``Hamming``) the metric of ``self``
+
+        EXAMPLES:
+
+            sage: from sage.coding.linear_code_no_metric import AbstractLinearCodeNoMetric
+            sage: from sage.coding.linear_code import LinearCodeSyndromeDecoder
+            sage: class MyLinearCode(AbstractLinearCodeNoMetric):
+            ....:   def __init__(self, field, length, dimension, generator_matrix):
+            ....:       self._registered_decoders['Syndrome'] = LinearCodeSyndromeDecoder
+            ....:       AbstractLinearCodeNoMetric.__init__(self, field, length, "Systematic", "Syndrome")
+            ....:       self._dimension = dimension
+            ....:       self._generator_matrix = generator_matrix
+            ....:   def generator_matrix(self):
+            ....:       return self._generator_matrix
+            ....:   def _repr_(self):
+            ....:       return "[%d, %d] dummy code over GF(%s)" % (self.length(), self.dimension(), self.base_field().cardinality())
+            sage: C = MyLinearCode(GF(2), 1, 1, matrix(GF(2), [1]))
         """
 
         self._registered_encoders['Systematic'] = LinearCodeSystematicEncoder
@@ -227,7 +243,63 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
         return E.generator_matrix()
 
     def __eq__(self, other):
-        return self.generator_matrix() == other.generator_matrix()
+        r"""
+        Tests equality between two linear codes.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C1 = LinearCode(G)
+            sage: C1 == 5
+            False
+            sage: C2 = LinearCode(G)
+            sage: C1 == C2
+            True
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,1,1]])
+            sage: C2 = LinearCode(G)
+            sage: C1 == C2
+            False
+            sage: G = Matrix(GF(3), [[1,2,1,0,0,0,0]])
+            sage: C3 = LinearCode(G)
+            sage: C1 == C3
+            False
+        """
+        # Fail without computing the generator matrix if possible:
+        if not (isinstance(other, AbstractLinearCodeNoMetric)\
+                and self.length() == other.length()\
+                and self.dimension() == other.dimension()\
+                and self.base_ring() == other.base_ring()):
+            return False
+        # Check that basis elements of `other` are all in `self.`
+        # Since we're over a field and since the dimensions match, the codes
+        # must be equal.
+        # This implementation may avoid linear algebra altogether, if `self`
+        # implements an efficient way to obtain a parity check matrix, and in
+        # the worst case does only one system solving.
+        for c in other.gens():
+            if not (c in self):
+                return False
+        return True
+
+    def __ne__(self, other):
+        r"""
+        Tests inequality of ``self`` and ``other``.
+
+        This is a generic implementation, which returns the inverse of ``__eq__`` for self.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C1 = LinearCode(G)
+            sage: C2 = LinearCode(G)
+            sage: C1 != C2
+            False
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,1,1]])
+            sage: C2 = LinearCode(G)
+            sage: C1 != C2
+            True
+        """
+        return not self == other
 
     def dimension(self):
         r"""

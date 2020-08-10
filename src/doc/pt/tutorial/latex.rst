@@ -492,21 +492,3 @@ ser executados automaticamente. Como um exemplo, um exame matemático
 pode manter uma correspondência entre questões e respostas usando o
 sagetex para fazer cálculos com o Sage. Veja :ref:`sec-sagetex` para
 mais informações.
-
-O tex2sws começa com um documento LaTeX, mas define ambientes
-adicionais para inserir código em Sage. Quando processado com as
-ferramentas adequadas, o resultado é uma folha de trabalho do Sage,
-com conteúdo apropriadamente formatado para o MathJax e com código em
-Sage incorporado como células de entrada. Então um livro texto ou
-artigo pode ser criado em LaTeX, ter blocos de código em Sage
-incluídos, e o documento todo pode ser transformado em uma folha de
-trabalho do Sage onde o texto matemático é bem formatado e os blocos
-de código em Sage podem ser facilmente executados. Atualmente em
-desenvolvimento, veja `tex2sws @ BitBucket
-<http://bitbucket.org/rbeezer/tex2sws/>`_ para mais informações.
-
-O sws2tex reverte o processo partindo de uma folha de trabalho do Sage
-e convertendo o conteúdo para LaTeX para ser posteriormente processado
-com as ferramentas disponíveis para documentos em LaTeX. Atualmente em
-desenvolvimento, veja `sws2tex @ BitBucket
-<http://bitbucket.org/whuss/sws2tex/>`_ para mais informações.

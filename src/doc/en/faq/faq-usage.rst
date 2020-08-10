@@ -111,8 +111,8 @@ How do I import Sage into a Python script?
 
 You can import Sage as a library in a Python script. One caveat is
 that you need to run that Python script using the version of Python
-that is bundled with Sage; currently Python 2.6.x. To import Sage, put
-the following in your Python script:
+that is bundled with Sage (Sage 9.2 ships with Python 3.7.x).
+To import Sage, put the following in your Python script:
 
 .. CODE-BLOCK:: python
 
@@ -445,20 +445,6 @@ environment variable ``DOT_SAGE`` points to the hidden directory
 ``$HOME/.sage``, which by default is the case.
 
 
-My Sage upgrade failed with missing gmp symbols on OSX 10.4. What can I do?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-Moving a Sage install on Mac OS X 10.4 and then upgrading anything
-that is linked against NTL leads to link errors due to missing gmp
-symbols. The problem is the link mode with which the dynamic NTL is
-created. There is have a fix, but it still being verified that it
-really fixes the issue. Everything that is linked against NTL needs to
-be recompiled, i.e. singular and cremona at the moment. To add to the
-confusion: This is not an issue on Mac OS X 10.5. A fix for this issue
-went into Sage 2.8.15, so please report if you see this with a more
-current Sage release.
-
-
 When I compile Sage my computer beeps and shuts down or hangs.
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -787,13 +773,6 @@ You will need to do this from the command line.  Just run a command like this.
 
     $ BROWSER='open -a Firefox %s' ./sage --notebook jupyter
     $ BROWSER='open -a Google\ Chrome %s' ./sage --notebook jupyter
-
-  With the old SageNB notebook:
-
-  .. CODE-BLOCK:: shell-session
-
-    $ BROWSER='open -a Firefox' ./sage --notebook
-    $ BROWSER='open -a Google\ Chrome' ./sage --notebook
 
 
 Where is the source code for ``<function>``?

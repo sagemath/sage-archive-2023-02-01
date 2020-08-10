@@ -2520,8 +2520,7 @@ class DifferentiableManifold(TopologicalManifold):
             resu._init_components(*comp, **kwargs)
         return resu
 
-    def tangent_identity_field(self, name='Id', latex_name=None,
-                               dest_map=None):
+    def tangent_identity_field(self, dest_map=None):
         r"""
         Return the field of identity maps in the tangent spaces on ``self``.
 
@@ -2589,7 +2588,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         vmodule = self.vector_field_module(dest_map)
-        return vmodule.identity_map(name=name, latex_name=latex_name)
+        return vmodule.identity_map()
 
     def set_orientation(self, orientation):
         r"""

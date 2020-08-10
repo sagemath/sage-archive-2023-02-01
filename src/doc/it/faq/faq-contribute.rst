@@ -59,9 +59,9 @@ radice di ogni male".
 
 Se non conosci Python dovresti iniziare ad imparare il linguaggio.
 Un buon posto dove iniziare è il
-`Tutorial Ufficiale per Python <http://docs.python.org/tutorial>`_
+`Tutorial Ufficiale per Python <https://docs.python.org/tutorial>`_
 e altra documentazione si trova in
-`Documentazione standard di Python <http://docs.python.org>`_.
+`Documentazione standard di Python <https://docs.python.org>`_.
 Un altro posto da guardare è al link
 `Dive Into Python <http://www.diveintopython.net>`_ di Marc Pilgrim,
 che può essere veramente d'aiuto su temi specifici come
@@ -103,7 +103,7 @@ italiano, o aiutare a tradurre i tutorial ufficiali di Sage in italiano.
 La suddetta è una lista molto breve.
 Ci sono molti, molti più modi in cui puoi dare il tuo aiuto. Sentiti libero di
 inviare una email alla mailing list
-`sage-devel <http://groups.google.com/group/sage-devel>`_ per chiedere in quali
+`sage-devel <https://groups.google.com/group/sage-devel>`_ per chiedere in quali
 modi potresti essere d'aiuto, o per suggerire un'idea sul progetto.
 
 
@@ -122,8 +122,8 @@ Ulteriori risorse possono essere trovate cercando sul web.
 * `PyChecker <http://pychecker.sourceforge.net>`_
 * `PyFlakes <http://divmod.org/trac/wiki/DivmodPyflakes>`_
 * `Pylint <http://www.logilab.org/project/pylint>`_
-* `Python <http://www.python.org>`_ home page e la
-  `Documentazione standard su Python <http://docs.python.org>`_
+* `Python <https://www.python.org>`_ home page e la
+  `Documentazione standard su Python <https://docs.python.org>`_
 * `Snakefood <http://furius.ca/snakefood>`_
 * `Sphinx <http://sphinx.pocoo.org>`_
 * `XDot <http://code.google.com/p/jrfonseca/wiki/XDot>`_

@@ -775,7 +775,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         return self.parent().element_class(self.parent(), combined_data, check=False)
 
 
-class FullyCommutativeElements(Parent, UniqueRepresentation):
+class FullyCommutativeElements(UniqueRepresentation, Parent):
     r"""
     Class for the set of fully commutative (FC) elements of a Coxeter system.
 
@@ -1082,7 +1082,6 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
             2], [0, 2, 1, 0], [0, 1, 2, 0], [1, 2, 0, 1], [1, 0, 2, 1], [2, 1,
             0, 2], [2, 0, 1, 2]]
         """
-        assert length >= 0
         for w in self:
             if len(w) > length:
                 break

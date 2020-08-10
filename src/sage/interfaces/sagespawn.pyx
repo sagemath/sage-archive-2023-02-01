@@ -94,7 +94,7 @@ class SageSpawn(spawn):
             sage: s  # indirect doctest
             stupid process with PID ... running .../true
             sage: while s.isalive():  # Wait until the process finishes
-            ....:     sleep(0.1)
+            ....:     sleep(float(0.1))
             sage: s  # indirect doctest
             stupid process finished running .../true
         """

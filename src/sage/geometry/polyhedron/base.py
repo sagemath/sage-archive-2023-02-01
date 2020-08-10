@@ -3571,7 +3571,7 @@ class Polyhedron_base(Element):
             sage: P.is_pyramid()
             True
             sage: P.is_pyramid(certificate=True)
-            (True, A vertex at (0, 0, 0, 1))
+            (True, A vertex at (1, 0, 0, 0))
             sage: egyptian_pyramid = polytopes.regular_polygon(4).pyramid()
             sage: egyptian_pyramid.is_pyramid()
             True

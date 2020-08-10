@@ -62,7 +62,7 @@ def cdd_Vrepresentation(cdd_type, vertices, rays, lines, file_output=None):
         vertices = [[0]*ambient_dim]
         num += 1
 
-    if cdd_type is 'real':
+    if cdd_type == 'real':
         from sage.rings.all import RDF
         base_ring = RDF
     else:
@@ -122,7 +122,7 @@ def cdd_Hrepresentation(cdd_type, ieqs, eqns, file_output=None):
     num, ambient_dim = _common_length_of(ieqs, eqns)
     ambient_dim -= 1
 
-    if cdd_type is 'real':
+    if cdd_type == 'real':
         from sage.rings.all import RDF
         base_ring = RDF
     else:

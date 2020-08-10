@@ -288,8 +288,9 @@ class FullyCommutativeElement(NormalizedClonableList):
             Graphics object consisting of 15 graphics primitives
 
         .. PLOT::
+            :width: 400px
 
-            FC = FullyCommutativeElements(['B', 5])
+            FC = CoxeterGroup(['B', 5]).fully_commutative_elements()
             g = FC([3,2,4,3,1]).plot_heap()
             sphinx_plot(g)
         """
@@ -1048,7 +1049,7 @@ class FullyCommutativeElements(Parent, UniqueRepresentation):
 
         INPUT:
 
-        - ``length`` -- integer; maximum length of element to generate.
+        - ``length`` -- integer; maximum length of element to generate
 
         OUTPUT: generator for elements of ``self`` of length up to ``length``
 

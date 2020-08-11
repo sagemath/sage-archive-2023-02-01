@@ -2541,8 +2541,7 @@ class Polytopes():
         Check that precomputed data is correct::
 
             sage: P = polytopes.permutahedron(5, backend='field')
-            sage: assert P == Polyhedron(P.vertices())
-            sage: assert P == Polyhedron(ieqs=P.inequalities(), eqns=P.equations())
+            sage: TestSuite(P).run()  # long time
         """
         verts = itertools.permutations(range(1, n + 1))
         if project:

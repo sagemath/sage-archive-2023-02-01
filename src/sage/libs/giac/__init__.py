@@ -32,6 +32,7 @@ EXAMPLES::
 
 from sage.structure.proof.all import polynomial as proof_polynomial
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+from .giac import giacsettings, libgiac
 
 #  Remarks for doctests:
 #     1) The first time that the c++ library giac is loaded a message appears.
@@ -52,18 +53,13 @@ class GiacSettingsDefaultContext:
         EXAMPLES::
 
            sage: from sage.libs.giac import GiacSettingsDefaultContext  # optional - giacpy_sage
-           sage: from giacpy_sage import giacsettings # optional - giacpy_sage
+           sage: from sage.libs.giac.giac import giacsettings # optional - giacpy_sage
            sage: giacsettings.proba_epsilon = 1e-16 # optional - giacpy_sage
            sage: with GiacSettingsDefaultContext(): giacsettings.proba_epsilon = 1e-12 # optional - giacpy_sage
            sage: giacsettings.proba_epsilon < 1e-14 # optional - giacpy_sage
            True
 
         """
-        try:
-            from giacpy_sage import giacsettings, libgiac
-        except ImportError:
-            raise ImportError("""One of the optional packages giac or giacpy_sage is missing""")
-
         self.proba_epsilon = giacsettings.proba_epsilon
         self.threads = giacsettings.threads
         # Change the debug level at the end to not have messages at each modification
@@ -74,18 +70,13 @@ class GiacSettingsDefaultContext:
         EXAMPLES::
 
            sage: from sage.libs.giac import GiacSettingsDefaultContext  # optional - giacpy_sage
-           sage: from giacpy_sage import giacsettings # optional - giacpy_sage
+           sage: from sage.libs.giac.giac import giacsettings # optional - giacpy_sage
            sage: giacsettings.proba_epsilon = 1e-16 # optional - giacpy_sage
            sage: with GiacSettingsDefaultContext(): giacsettings.proba_epsilon = 1e-30 # optional - giacpy_sage
            sage: giacsettings.proba_epsilon < 1e-20 # optional - giacpy_sage
            False
 
         """
-        try:
-            from giacpy_sage import giacsettings, libgiac
-        except ImportError:
-            raise ImportError("""One of the optional packages giac or giacpy_sage is missing""")
-
         # Restore the debug level first to not have messages at each modification
         libgiac('debug_infolevel')(self.debuginfolevel)
         # NB: giacsettings.epsilon has a different meaning that giacsettings.proba_epsilon.
@@ -104,7 +95,7 @@ def local_giacsettings(func):
         ....:    giacsettings.threads = b+2
         ....:    return (giacsettings.proba_epsilon, giacsettings.threads)
 
-        sage: from giacpy_sage import giacsettings  # optional - giacpy_sage
+        sage: from sage.libs.giac.giac import giacsettings # optional - giacpy_sage
         sage: from sage.libs.giac import local_giacsettings  # optional - giacpy_sage
         sage: gporig, gtorig = (giacsettings.proba_epsilon,giacsettings.threads)  # optional - giacpy_sage
         sage: gp, gt = local_giacsettings(testf)(giacsettings.proba_epsilon,giacsettings.threads)  # optional - giacpy_sage
@@ -253,7 +244,7 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False,
 
     TESTS::
 
-        sage: from giacpy_sage import libgiac # optional - giacpy_sage
+        sage: from sage.libs.giac.giac import libgiac # optional - giacpy_sage
         sage: libgiac("x2:=22; x4:='whywouldyoudothis'") # optional - giacpy_sage
         22,whywouldyoudothis
         sage: gb_giac(I) # optional - giacpy_sage
@@ -291,11 +282,6 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False,
         (True, True)
 
     """
-    try:
-        from giacpy_sage import libgiac, giacsettings
-    except ImportError:
-        raise ImportError("""One of the optional packages giac or giacpy_sage is missing""")
-
     try:
         iter(gens)
     except TypeError:

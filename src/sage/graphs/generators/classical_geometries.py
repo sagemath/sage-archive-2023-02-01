@@ -1418,7 +1418,7 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
     G.relabel()
     return G
 
-def OrthogonalDualPolarGraph(const int e, const int  d, const int q):
+def OrthogonalDualPolarGraph(e, d, q):
     r"""
     Return dual polar graph on $GO^e(n,q)$ of diameter `d`.
     The value of `n` is determinded by `d` and `e`.
@@ -1466,6 +1466,11 @@ def OrthogonalDualPolarGraph(const int e, const int  d, const int q):
         sage: G.is_distance_regular(True)
         ([15, 14, 12, 8, None], [None, 1, 3, 7, 15])
     """
+    from sage.libs.gap.libgap import libgap
+    from sage.matrix.constructor import Matrix
+    from sage.modules.free_module import VectorSpace
+    from sage.rings.finite_rings.finite_field_constructor import GF
+    import itertools
 
     def hashable(v):
         v.set_immutable()
@@ -1497,7 +1502,6 @@ def OrthogonalDualPolarGraph(const int e, const int  d, const int q):
         while K.dimension() < d:
             found = False
             while not found:
-                sig_check()
                 v = candidates.pop()
                 if v*M*v == 0:
                     # found another isotropic point
@@ -1542,7 +1546,6 @@ def OrthogonalDualPolarGraph(const int e, const int  d, const int q):
     edges = []
     n = len(allIsoSubspaces)
     for i, j in itertools.combinations(range(n), 2):
-        sig_check()
         if libgap.Size(libgap.Intersection(allIsoSubspaces[i],
                                            allIsoSubspaces[j])) \
                                            == intersection_size:

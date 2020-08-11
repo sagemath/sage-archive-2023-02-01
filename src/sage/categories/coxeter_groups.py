@@ -608,10 +608,11 @@ class CoxeterGroups(Category_singleton):
 
         def fully_commutative_elements(self):
             r"""
-            Return the combinatorial class of fully commutative elements in this
-            Coxeter group. See
-            :class:`~sage.combinat.fully_commutative_elements.FullyCommutativeElements`
-            for details.
+            Return the set of fully commutative elements in this Coxeter group.
+
+            .. SEEALSO::
+
+                :class:`~sage.combinat.fully_commutative_elements.FullyCommutativeElements`
 
             EXAMPLES::
 

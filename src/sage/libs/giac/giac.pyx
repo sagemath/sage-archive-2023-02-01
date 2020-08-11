@@ -1415,8 +1415,18 @@ cdef class Pygen:
         EXAMPLES::
 
             sage: from sage.libs.giac.giac import libgiac
-            sage: latex(libgiac('(x^4 - y)/(y^2-3*x)'))
-            \frac{(x^{4}-y)}{(y^{2}-3\cdot x)}
+            sage: M = matrix(QQ, [[1, 2], [3, 4]])
+            sage: latex(M)
+            \left(\begin{array}{rr}
+            1 & 2 \\
+            3 & 4
+            \end{array}\right)
+            sage: gM = libgiac(M)
+            sage: latex(gM)
+            \left(\begin{array}{cc}1&2\\3&4\end{array}\right)
+            sage: gf = libgiac('(x^4 - y)/(y^2-3*x)')
+            sage: latex(gf)          # output changed slightly from 1.5.0-63 to 1.5.0-87
+            \frac{...x^{4}...-...y...}{...y^{2}-3...x...}
         """
         sig_on()
         result=decstring23(GIAC_gen2tex(self.gptr[0], context_ptr).c_str()) #python3

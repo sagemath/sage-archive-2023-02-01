@@ -1225,6 +1225,8 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         sage: B = Berkovich_Cp_Affine(5)
         sage: B(w, power=1)
         Type II point centered at w + O(w^41) of radius 5^1
+
+        sage: TestSuite(Q5).run()
     """
     def __init__(self, parent, center, radius=None, power=None, prec=20, error_check=True):
         """
@@ -1858,6 +1860,9 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         ...
         ValueError: type II and III points can not be centered at infinity
 
+        sage: B = Berkovich_Cp_Projective(3)
+        sage: Q1 = B(3)
+        sage: TestSuite(Q1).run()
     """
     def __init__(self, parent, center, radius=None, power=None, prec=20, error_check=True):
         """

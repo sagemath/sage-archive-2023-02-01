@@ -1,3 +1,5 @@
+# distutils: libraries = giac
+# distutils: language = c++
 r"""
 Interface to the c++ giac library.
 

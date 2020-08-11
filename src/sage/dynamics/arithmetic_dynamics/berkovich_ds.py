@@ -43,6 +43,7 @@ from sage.categories.number_fields import NumberFields
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
+from sage.matrix.constructor import Matrix
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class DynamicalSystem_Berkovich(Element):
@@ -801,7 +802,6 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             raise NotImplementedError('action on Type IV points not implemented')
         f = self._system
         if x.type_of_point() == 2:
-            from sage.matrix.constructor import Matrix
             from sage.modules.free_module_element import vector
             if self.domain().is_number_field_base():
                 ideal = self.domain().ideal()

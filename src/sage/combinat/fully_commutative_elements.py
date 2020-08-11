@@ -17,13 +17,16 @@ A draft of this code was written during an REU project at University of
 Colorado Boulder. We thank Rachel Castro, Joel Courtney, Thomas Magnuson and
 Natalie Schoenhals for their contribution to the project and the code.
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2020 Chase Meadors <Chase.Meadors at colorado.edu>,
 #                     Tianyuan Xu   <Tianyuan.Xu at colorado.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.structure.parent import Parent
 from sage.structure.list_clone import NormalizedClonableList
 from sage.categories.enumerated_sets import EnumeratedSets

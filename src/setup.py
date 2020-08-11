@@ -136,9 +136,7 @@ code = setup(name = 'sage',
                  'bin/sage-cleaner',
                  ## Only makes sense in sage-the-distribution. TODO: Move to another installation script.
                  'bin/sage-list-packages',
-                 'bin/sage-clone-source',
                  'bin/sage-download-upstream',
-                 'bin/sage-sdist',
                  'bin/sage-location',
                  ## Uncategorized scripts in alphabetical order
                  'bin/math-readline',

@@ -95,7 +95,7 @@ EOF
         # https://hub.docker.com/r/nixos/nix
         cat <<EOF
 ARG BASE_IMAGE=nixos/nix:latest
-FROM \${BASE_IMAGE}
+FROM \${BASE_IMAGE} as with-system-packages
 RUN nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs
 RUN nix-channel --update
 EOF

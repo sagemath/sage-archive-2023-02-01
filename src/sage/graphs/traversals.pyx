@@ -49,7 +49,99 @@ from libcpp.queue cimport priority_queue
 from libcpp.pair cimport pair
 from libcpp.vector cimport vector
 
-def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
+
+cdef lex_BFS_fast_short_digraph(short_digraph sd, uint32_t *sigma, uint32_t *pred):
+    r"""
+    Perform a lexicographic breadth first search (LexBFS) on the graph.
+
+    This method implements the `O(n+m)` time algorithm proposed in [HMPV2000]_.
+
+    The method assumes that the initial vertex is vertex `0` and feeds input
+    arrays ``sigma`` and ``pred`` with respectively the ordering of the vertices
+    and the predecessor in the traversal.
+
+    INPUT:
+
+    - ``sd`` -- a ``short_digraph``
+
+    - ``sigma`` -- array of size ``n`` to store the ordering of the vertices
+      resulting from the LexBFS traversal from vertex 0. This method assumes
+      that this array has already been allocated. However, there is no need to
+      initialize it.
+
+    - ``pred`` -- array of size ``n`` to store the predecessor of a vertex in
+      the LexBFS traversal from vertex 0. This method assumes that this array
+      has already been allocated and initialized (e.g., ``pred[i] = i``).
+
+    EXAMPLES:
+
+    Lex BFS ordering of the 3-sun graph::
+
+        sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
+        sage: g.lex_BFS(algorithm="fast")
+        [1, 2, 3, 5, 4, 6]
+    """
+    cdef uint32_t n = sd.n
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t *slice_of = <uint32_t *>mem.allocarray(n, 4 * sizeof(uint32_t))
+    cdef uint32_t *slice_head = slice_of + n
+    cdef uint32_t *subslice = slice_of + 2 * n
+    cdef uint32_t *sigma_inv = slice_of + 3 * n
+    cdef uint32_t i, j, k, l, a, old_k, v
+    cdef int wi
+
+    # Initialize slices (slice_of, slice_head, subslice) to 0
+    memset(slice_of, 0, 3 * n * sizeof(uint32_t))
+    # Initialize the position of vertices in sigma
+    for i in range(n):
+        sigma[i] = i
+        sigma_inv[i] = i
+
+    k = 1
+    for i in range(n):
+        old_k = k
+        v = sigma[i]
+
+        # We update the labeling of all unordered neighbors of v
+        for wi in range(out_degree(sd, v)):
+            w = sd.neighbors[v][wi]
+            j = sigma_inv[w]
+            if j <= i:
+                # w has already been ordered
+                continue
+
+            # Get the name of the slice for position j
+            a = slice_of[j]
+            if slice_head[a] <= i:
+                # This slice cannot start at a position less than i
+                slice_head[a] = i + 1
+
+            # Get the position of the head of the slice
+            l = slice_head[a]
+            if l < n - 1:
+                if slice_of[l + 1] != a:
+                    # The next position starts another slice
+                    continue
+                if l != j:
+                    # Place w at the position of the head of the slice
+                    u = sigma[l]
+                    sigma_inv[u], sigma_inv[w] = j, l
+                    sigma[j], sigma[l] = u, w
+                    j = l
+                slice_head[a] += 1
+                if subslice[a] < old_k:
+                    # Form a new slice
+                    subslice[a] = k
+                    slice_head[k] = j
+                    k += 1
+
+            # Finally, we update the name of the slice for position j and set v
+            # as predecessor of w
+            slice_of[j] = subslice[a]
+            pred[w] = v
+
+
+def lex_BFS(G, reverse=False, tree=False, initial_vertex=None, algorithm="fast"):
     r"""
     Perform a lexicographic breadth first search (LexBFS) on the graph.
 
@@ -67,17 +159,23 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
     - ``initial_vertex`` -- (default: ``None``); the first vertex to
       consider
 
-    ALGORITHM:
+    - ``algorithm`` -- string (default: ``"fast"``); algorithm to use among:
 
-    This algorithm maintains for each vertex left in the graph a code
-    corresponding to the vertices already removed. The vertex of maximal
-    code (according to the lexicographic order) is then removed, and the
-    codes are updated.
+      - ``"slow"`` -- This algorithm maintains for each vertex left in the graph
+        a code corresponding to the vertices already removed. The vertex of
+        maximal code (according to the lexicographic order) is then removed, and
+        the codes are updated. See for instance [CK2008]_ for more details.  The
+        time complexity of this algorithm as described in [CK2008]_ is in
+        `O(n+m)`, where `n` is the number of vertices and `m` is the number of
+        edges, but our implementation is in `O(n^2)`.
 
-    Time complexity is `O(n+m)` where `n` is the number of vertices and `m` is
-    the number of edges.
+      - ``"fast"`` -- This algorithm uses the notion of *slices* to refine the
+        position of the vertices in the ordering. The time complexity of this
+        algorithm is in `O(n+m)`, and our implementation follows that
+        complexity. See [HMPV2000]_ for more details.
 
-    See [CK2008]_ for more details on the algorithm.
+      Both algorithms have time complexity in `O(n+m)`, where `n` is the number
+      of vertices and `m` is the number of edges.
 
     .. SEEALSO::
 
@@ -106,7 +204,9 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
     The method also works for directed graphs::
 
         sage: G = DiGraph([(1, 2), (2, 3), (1, 3)])
-        sage: G.lex_BFS(initial_vertex=2)
+        sage: G.lex_BFS(initial_vertex=2, algorithm="slow")
+        [2, 3, 1]
+        sage: G.lex_BFS(initial_vertex=2, algorithm="fast")
         [2, 3, 1]
 
     For a Chordal Graph, a reversed Lex BFS is a Perfect Elimination Order::
@@ -128,7 +228,9 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
     Different orderings for different traversals::
 
         sage: G = digraphs.DeBruijn(2,3)
-        sage: G.lex_BFS(initial_vertex='000')
+        sage: G.lex_BFS(initial_vertex='000', algorithm="fast")
+        ['000', '001', '100', '010', '011', '110', '101', '111']
+        sage: G.lex_BFS(initial_vertex='000', algorithm="slow")
         ['000', '001', '100', '010', '011', '110', '101', '111']
         sage: G.lex_DFS(initial_vertex='000')
         ['000', '001', '100', '010', '101', '110', '011', '111']
@@ -169,73 +271,83 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
     """
     if initial_vertex is not None and initial_vertex not in G:
         raise ValueError("'{}' is not a graph vertex".format(initial_vertex))
+    if algorithm not in ['slow', 'fast']:
+        raise ValueError("unknown algorithm '{}'".format(algorithm))
+    if tree:
+        from sage.graphs.digraph import DiGraph
 
     # Loops and multiple edges are not needed in Lex BFS
-    if G.allows_loops() or G.allows_multiple_edges():
+    if G.has_loops() or G.has_multiple_edges():
         G = G.to_simple(immutable=False)
 
-    cdef int nV = G.order()
-
-    if not nV:
-        if tree:
-            from sage.graphs.digraph import DiGraph
-            g = DiGraph(sparse=True)
-            return [], g
-        else:
-            return []
+    cdef size_t n = G.order()
+    if not n:
+        return ([], DiGraph(sparse=True)) if tree else []
 
     # Build adjacency list of G
     cdef list int_to_v = list(G)
 
+    # If an initial vertex is given, we place it at first position
+    cdef size_t i
+    if initial_vertex is not None:
+        i = int_to_v.index(initial_vertex)
+        int_to_v[0], int_to_v[i] = int_to_v[i], int_to_v[0]
+
+    # Copying the whole graph to obtain the list of neighbors quicker than by
+    # calling out_neighbors. This data structure is well documented in the
+    # module sage.graphs.base.static_sparse_graph
     cdef short_digraph sd
     init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_v)
 
-    # Perform Lex BFS
-
-    cdef list code = [[] for i in range(nV)]
-
-    def l_func(x):
-        return code[x]
-
-    cdef list value = []
-
     # Initialize the predecessors array
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef int *pred = <int *>mem.allocarray(nV, sizeof(int))
-    memset(pred, -1, nV * sizeof(int))
+    cdef uint32_t *sigma_int = <uint32_t *>mem.allocarray(n, sizeof(uint32_t))
+    cdef uint32_t *pred = <uint32_t *>mem.allocarray(n, sizeof(uint32_t))
+    for i in range(n):
+        pred[i] = i
 
-    cdef set vertices = set(range(nV))
+    cdef list sigma = []
+    cdef set vertices
+    cdef list code
+    cdef int now, v, vi, int_neighbor
 
-    cdef int source = 0 if initial_vertex is None else int_to_v.index(initial_vertex)
-    code[source].append(nV + 1)
+    # Perform Lex BFS
+    if algorithm is "fast":
+        lex_BFS_fast_short_digraph(sd, sigma_int, pred)
+        sigma = [int_to_v[sigma_int[i]] for i in range(n)]
 
-    cdef int now = 1, v, int_neighbor
-    while vertices:
-        v = max(vertices, key=l_func)
-        vertices.remove(v)
-        for i in range(0, out_degree(sd, v)):
-            int_neighbor = sd.neighbors[v][i]
-            if int_neighbor in vertices:
-                code[int_neighbor].append(nV - now)
-                pred[int_neighbor] = v
-        value.append(int_to_v[v])
-        now += 1
+    else:  # "slow" algorithm
+        vertices = set(range(n))
+        code = [[] for i in range(n)]
+
+        def l_func(x):
+            return code[x]
+
+        # The initial_vertex is at position 0 and so named 0 in sd
+        code[0].append(n + 1)
+        now = 1
+        while vertices:
+            v = max(vertices, key=l_func)
+            vertices.remove(v)
+            sigma.append(int_to_v[v])
+            for vi in range(out_degree(sd, v)):
+                int_neighbor = sd.neighbors[v][vi]
+                if int_neighbor in vertices:
+                    code[int_neighbor].append(n - now)
+                    pred[int_neighbor] = v
+            now += 1
 
     free_short_digraph(sd)
 
     if reverse:
-        value.reverse()
+        sigma.reverse()
 
     if tree:
-        from sage.graphs.digraph import DiGraph
-        g = DiGraph(sparse=True)
-        g.add_vertices(G)
-        edges = [(int_to_v[i], int_to_v[pred[i]]) for i in range(nV) if pred[i] != -1]
-        g.add_edges(edges)
-        return value, g
-
+        edges = [(int_to_v[i], int_to_v[pred[i]]) for i in range(n) if pred[i] != i]
+        g = DiGraph([G, edges], format='vertices_and_edges', sparse=True)
+        return sigma, g
     else:
-        return value
+        return sigma
 
 def lex_UP(G, reverse=False, tree=False, initial_vertex=None):
     r"""

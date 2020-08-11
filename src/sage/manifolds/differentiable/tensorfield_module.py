@@ -580,9 +580,10 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         resu = self._element_constructor_(name='zero', latex_name='0')
         for frame in self._domain._frames:
             if self._dest_map.restrict(frame._domain) == frame._dest_map:
-                resu._add_comp_unsafe(frame)
+                resu.add_comp(frame)
                 # (since new components are initialized to zero)
         resu._is_zero = True  # This element is certainly zero
+        resu.set_immutable()
         return resu
 
 #***********************************************************************

@@ -406,8 +406,10 @@ def cython_aliases():
             aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
             pc = pkgconfig.parse(lib)
             libs = pkgconfig.libs(lib)
-        # INCDIR should be redundant because the -I options are also
-        # passed in CFLAGS
+        # It may seem that INCDIR is redundant because the -I options are also
+        # passed in CFLAGS.  However, "extra_compile_args" are put at the end
+        # of the compiler command line.  "include_dirs" go to the front; the
+        # include search order matters.
         aliases[var + "INCDIR"] = pc['include_dirs']
         aliases[var + "LIBDIR"] = pc['library_dirs']
         aliases[var + "LIBEXTRA"] = list(filter(lambda s: not s.startswith(('-l','-L')), libs.split()))

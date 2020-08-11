@@ -218,11 +218,11 @@ or a list of graphs or ...)
 """
 
 __append_to_doc(
-    ["AlternatingFormGraph",
+    ["AlternatingFormsGraph",
      "AztecDiamondGraph",
      "BalancedTree",
      "BarbellGraph",
-     "BilinearFormGraph",
+     "BilinearFormsGraph",
      "BubbleSortGraph",
      "CaiFurerImmermanGraph",
      "chang_graphs",
@@ -244,7 +244,7 @@ __append_to_doc(
      "HammingGraph",
      "HanoiTowerGraph",
      "HararyGraph",
-     "HermitianFormGraph",
+     "HermitianFormsGraph",
      "HyperStarGraph",
      "JohnsonGraph",
      "KneserGraph",
@@ -2054,11 +2054,11 @@ class GraphGenerators():
 ###########################################################################
     from .generators import families
     from . import strongly_regular_db
-    AlternatingFormGraph   = staticmethod(distance_regular.AlternatingFormGraph)
+    AlternatingFormsGraph   = staticmethod(distance_regular.AlternatingFormsGraph)
     AztecDiamondGraph      = staticmethod(families.AztecDiamondGraph)
     BalancedTree           = staticmethod(families.BalancedTree)
     BarbellGraph           = staticmethod(families.BarbellGraph)
-    BilinearFormGraph      = staticmethod(distance_regular.BilinearFormGraph)
+    BilinearFormsGraph      = staticmethod(distance_regular.BilinearFormsGraph)
     BubbleSortGraph        = staticmethod(families.BubbleSortGraph)
     CaiFurerImmermanGraph  = staticmethod(families.CaiFurerImmermanGraph)
     chang_graphs           = staticmethod(families.chang_graphs)
@@ -2078,7 +2078,7 @@ class GraphGenerators():
     HammingGraph           = staticmethod(families.HammingGraph)
     HanoiTowerGraph        = staticmethod(families.HanoiTowerGraph)
     HararyGraph            = staticmethod(families.HararyGraph)
-    HermitianFormGraph     = staticmethod(distance_regular.HermitianFormGraph)
+    HermitianFormsGraph     = staticmethod(distance_regular.HermitianFormsGraph)
     HyperStarGraph         = staticmethod(families.HyperStarGraph)
     JohnsonGraph           = staticmethod(families.JohnsonGraph)
     KneserGraph            = staticmethod(families.KneserGraph)

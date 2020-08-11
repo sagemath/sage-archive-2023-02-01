@@ -605,9 +605,9 @@ def UstimenkoGraph(const int m, const int q):
     G.name(f"Ustimenko graph ({m}, {q})")
     return G
 
-def BilinearFormGraph(const int d, const int e, const int q):
+def BilinearFormsGraph(const int d, const int e, const int q):
     r"""
-    Return a bilienar form graph with the given parameters.
+    Return a bilienar forms graph with the given parameters.
 
     This build a graph whose vertices are all ``d``x``e`` matrices over
     ``GF(q)``. Two vertices are adjecent if the difference of the two
@@ -623,11 +623,11 @@ def BilinearFormGraph(const int d, const int e, const int q):
 
     EXAMPLES::
 
-        sage: G = graphs.BilinearFormGraph(3, 3, 2)
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.BilinearFormsGraph(3, 3, 2)  # optional - meataxe
+        sage: G.is_distance_regular(True)  # optional - meataxe; due to above
         ([49, 36, 16, None], [None, 1, 6, 28])
-        sage: G = graphs.BilinearFormGraph(3,3,3)  # long time (1 min)
-        sage: G.order()  # long time (because of above)
+        sage: G = graphs.BilinearFormsGraph(3,3,3)  # long time (1 min)  optional - meataxe
+        sage: G.order()  # long time; optional - meataxe (because of above)
         19683
 
     .. NOTE::
@@ -642,15 +642,15 @@ def BilinearFormGraph(const int d, const int e, const int q):
 
     TESTS::
 
-        sage: G = graphs.BilinearFormGraph(2,3,2)
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.BilinearFormsGraph(2,3,2)  # optional - meataxe
+        sage: G.is_distance_regular(True)  # optional - meataxe; due to above
         ([21, 12, None], [None, 1, 6])
-        sage: H = graphs.BilinearFormGraph(3,2,2)
-        sage: H.is_isomorphic(G)
+        sage: H = graphs.BilinearFormsGraph(3,2,2)  # optional - meataxe
+        sage: H.is_isomorphic(G)  # optional - meataxe; due to above
         True
-        sage: G = graphs.BilinearFormGraph(5, 1, 3)
-        sage: K = graphs.CompleteGraph(G.order())
-        sage: K.is_isomorphic(G)
+        sage: G = graphs.BilinearFormsGraph(5, 1, 3)  # optional - meataxe
+        sage: K = graphs.CompleteGraph(G.order())  # optional - meataxe; due to above
+        sage: K.is_isomorphic(G)  # optional - meataxe
         True
     """
     from sage.matrix.matrix_space import MatrixSpace
@@ -673,12 +673,12 @@ def BilinearFormGraph(const int d, const int e, const int q):
             edges.append((m1, m3))
 
     G = Graph(edges, format='list_of_edges')
-    G.name("Bilinear form graphs over F_%d with parameters (%d, %d)"%(q, d, e))
+    G.name("Bilinear forms graphs over F_%d with parameters (%d, %d)"%(q, d, e))
     return G
 
-def AlternatingFormGraph(const int n, const int q):
+def AlternatingFormsGraph(const int n, const int q):
     r"""
-    Return the alternating form graph with the given parameters.
+    Return the alternating forms graph with the given parameters.
 
     This construct a graph whose vertices are all ``n``x``n`` skew symmetric
     matrices over ``GF(q)`` with zero diagonal. Two vertices are adjecent
@@ -694,7 +694,7 @@ def AlternatingFormGraph(const int n, const int q):
 
     EXAMPLES::
 
-        sage: G = graphs.AlternatingFormGraph(5,2)
+        sage: G = graphs.AlternatingFormsGraph(5,2)
         sage: G.is_distance_regular(True)
         ([155, 112, None], [None, 1, 20])
 
@@ -710,13 +710,13 @@ def AlternatingFormGraph(const int n, const int q):
 
     TESTS::
 
-         sage: %time G = graphs.AlternatingFormGraph(6,2)  # long time (8 min)
-         sage: G.order()  # long time (because of above)
+         sage: G = graphs.AlternatingFormsGraph(6,2)  # long time (8 min);  optional - meataxe
+         sage: G.order()  # long time; optional - meataxe (because of above) 
          32768
-         sage: G.is_distance_regular(True)  # long time (33 min)
+         sage: G.is_distance_regular(True)  # long time (33 min) optional - meataxe
          ([651, 560, 256, None], [None, 1, 20, 336])
-         sage: G = graphs.AlternatingFormGraph(4,2)
-         sage: G.is_distance_regular(True)
+         sage: G = graphs.AlternatingFormsGraph(4,2) # optional - meataxe
+         sage: G.is_distance_regular(True) # optional - meataxe; due to above
          ([35, 16, None], [None, 1, 20])
     """
     from sage.matrix.matrix_space import MatrixSpace
@@ -750,12 +750,12 @@ def AlternatingFormGraph(const int n, const int q):
             edges.append((m1, m3))
 
     G = Graph(edges, format='list_of_edges')
-    G.name("Alternating form graph on (F_%d)^%d"%(q, n))
+    G.name("Alternating forms graph on (F_%d)^%d"%(q, n))
     return G
 
-def HermitianFormGraph(const int n, const int q):
+def HermitianFormsGraph(const int n, const int q):
     r"""
-    Return the Hermitian from graph with the given parameters.
+    Return the Hermitian froms graph with the given parameters.
 
     We build a graph whose vertices are all ``n``x``n`` Hermitian matrices
     over ``GF(q)``. Two  vertices are adjecent if the difference of the two
@@ -771,11 +771,11 @@ def HermitianFormGraph(const int n, const int q):
 
     EXAMPLES::
 
-        sage: G = graphs.HermitianFormGraph(2,4)
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.HermitianFormsGraph(2,4)  # optional - meataxe
+        sage: G.is_distance_regular(True)  # optional - meataxe; due to above
         ([5, 4, None], [None, 1, 2])
-        sage: G = graphs.HermitianFormGraph(3,9)  # long time (30 s)
-        sage: G.order()  # long time (bacuase of the above)
+        sage: G = graphs.HermitianFormsGraph(3,9)  # long time (30 s) optional - meataxe
+        sage: G.order()  # long time optional - meataxe (bacuase of the above)
         19683
 
     .. NOTE::
@@ -791,11 +791,11 @@ def HermitianFormGraph(const int n, const int q):
 
     TESTS::
 
-         sage: G = graphs.HermitianFormGraph(3,4)
-         sage: G.is_distance_regular(True)
+         sage: G = graphs.HermitianFormsGraph(3,4)  # optional - meataxe
+         sage: G.is_distance_regular(True)  # optional - meataxe; due to above
          ([21, 20, 16, None], [None, 1, 2, 12])
-         sage: G = graphs.HermitianFormGraph(2,9)
-         sage: G.is_distance_regular(True)
+         sage: G = graphs.HermitianFormsGraph(2,9)  # optional - meataxe
+         sage: G.is_distance_regular(True)  # optional - meataxe; due to above
          ([20, 18, None], [None, 1, 6])
     """
     from sage.matrix.matrix_space import MatrixSpace
@@ -834,5 +834,5 @@ def HermitianFormGraph(const int n, const int q):
             edges.append((mat, mat3))
 
     G = Graph(edges, format='list_of_edges')
-    G.name("Hermitian form graph on (F_%d)^%d"%(q, n))
+    G.name("Hermitian forms graph on (F_%d)^%d"%(q, n))
     return G

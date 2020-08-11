@@ -3646,7 +3646,13 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
         TESTS:
 
-        Test for :trac:`30331`::
+        Tests for :trac:`30331`::
+
+            sage: L.<x,y> = LaurentPolynomialRing(QQ, 2)
+            sage: p = x + y
+            sage: F.<z> = CyclotomicField(3)
+            sage: p.toric_substitute((2,3), (-1,1), z, new_ring=L.change_ring(F))
+            (-z - 1)*x^3*y^3 + z*x^-2*y^-2
 
             sage: P.<x> = LaurentPolynomialRing(QQ, 1)
             sage: u = x - 1
@@ -3684,10 +3690,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             if not dr[v]:
                 del dr[v]
 
+        if new_ring is None:
+            S = self._poly._parent
+        else:
+            S = self._poly._parent.change_ring(new_ring._base)
         ans = <LaurentPolynomial_mpair> self._new_c()
         ans._prod = PolyDict(dr)
         ans._mon = mon
-        ans._poly = <MPolynomial> self._poly._parent({v.esub(ans._mon): dr[v] for v in dr})
+        ans._poly = <MPolynomial> S({v.esub(ans._mon): dr[v] for v in dr})
         if new_ring is not None:
             return new_ring(ans)
         return ans

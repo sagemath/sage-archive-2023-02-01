@@ -792,9 +792,10 @@ class Polyhedron_normaliz(Polyhedron_base):
             nmz_lattice = [[x for x in y] for y in lattice]
 
             if Matrix(ZZ, nmz_vertices + nmz_rays).rank() == Matrix(ZZ, nmz_rays).rank() + 1:
+                # The recession cone is full-dimensional.
                 # In this case the homogenized inequalities
                 # do not ensure nonnegativy in the last coordinate.
-                # In the homogenous cone there is a facet defined just by rays and not a single vertex.
+                # In the homogeneous cone the far face is a facet.
                 pos_ieq = [ZZ.zero()]*len(nmz_vertices[0])
                 pos_ieq[-1] = ZZ.one()
                 nmz_ieqs.append(pos_ieq)
@@ -817,9 +818,10 @@ class Polyhedron_normaliz(Polyhedron_base):
             nmz_lattice = [[x for x in y] for y in lattice]
 
             if Matrix(nmz_vertices + nmz_rays).rank() == Matrix(nmz_rays).rank() + 1:
+                # The recession cone is full-dimensional.
                 # In this case the homogenized inequalities
                 # do not ensure nonnegativy in the last coordinate.
-                # In the homogenous cone there is a facet defined just by rays and not a single vertex.
+                # In the homogeneous cone the far face is a facet.
                 pos_ieq = [0]*len(nmz_vertices[0])
                 pos_ieq[-1] = 1
                 nmz_ieqs.append(pos_ieq)
@@ -844,6 +846,47 @@ class Polyhedron_normaliz(Polyhedron_base):
         if number_field_data:
             data["number_field"] = number_field_data
         return self._cone_from_normaliz_data(data, verbose=verbose)
+
+    def _test_far_facet_condition(self, tester=None, **options):
+        """
+        Test that we add an extra inequality in the correct cases.
+
+        TESTS::
+
+            sage: P = Polyhedron(rays=[[1,1]], backend='normaliz')     # optional - pynormaliz
+            sage: P._test_far_facet_condition()                        # optional - pynormaliz
+
+            sage: P = Polyhedron(vertices=[[1,0], [0,1]],
+            ....:                rays=[[1,1]], backend='normaliz')     # optional - pynormaliz
+            sage: P._test_far_facet_condition()                        # optional - pynormaliz
+
+            sage: P = Polyhedron(rays=[[1,1,0]],
+            ....:                lines=[[0,0,1]], backend='normaliz')  # optional - pynormaliz
+            sage: P._test_far_facet_condition()                        # optional - pynormaliz
+
+            sage: P = Polyhedron(vertices=[[1,0,0], [0,1,0]],
+            ....:                rays=[[1,1,0]],
+            ....:                lines=[[0,0,1]], backend='normaliz')  # optional - pynormaliz
+            sage: P._test_far_facet_condition()                        # optional - pynormaliz
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        if self.is_empty():
+            return
+
+        nmz_vertices = self._nmz_result(self._normaliz_cone, "VerticesOfPolyhedron")
+        nmz_rays = self._nmz_result(self._normaliz_cone, "ExtremeRays")
+        nmz_ieqs = self._nmz_result(self._normaliz_cone, "SupportHyperplanes")
+
+        from sage.matrix.constructor import Matrix
+        far_facet_condition = Matrix(nmz_vertices + nmz_rays).rank() == Matrix(nmz_rays).rank() + 1
+
+        tester.assertEqual(far_facet_condition, self.n_inequalities() != len(nmz_ieqs))
+
+        if far_facet_condition:
+            tester.assertEqual(self.n_inequalities() + 1, len(nmz_ieqs))
+            tester.assertTrue(any(ieq == [0]*self.ambient_dim() + [1] for ieq in nmz_ieqs))
 
     def _compute_nmz_data_lists_and_field(self, data_lists, convert_QQ, convert_NF):
         r"""

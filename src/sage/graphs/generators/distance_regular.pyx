@@ -711,7 +711,7 @@ def AlternatingFormsGraph(const int n, const int q):
     TESTS::
 
          sage: G = graphs.AlternatingFormsGraph(6,2)  # long time (8 min);  optional - meataxe
-         sage: G.order()  # long time; optional - meataxe (because of above) 
+         sage: G.order()  # long time; optional - meataxe (because of above)
          32768
          sage: G.is_distance_regular(True)  # long time (33 min) optional - meataxe
          ([651, 560, 256, None], [None, 1, 20, 336])
@@ -842,7 +842,7 @@ def DoubleOddGraph(const int n):
     Return the double odd graph on `2*n+1` points.
 
     The graph is obtained using the subsets of size `n` and `n+1`
-    of `{1, 2, ..., 2*n+1}` as vertices. Two vertices are adjacent if one 
+    of `{1, 2, ..., 2*n+1}` as vertices. Two vertices are adjacent if one
     is included in the other.
 
     The graph is distance-transitive.
@@ -879,7 +879,7 @@ def DoubleOddGraph(const int n):
          True
     """
     from sage.combinat.integer_vector import IntegerVectors
-    
+
     if n < 1:
         raise ValueError("n must be >= 1")
 
@@ -922,9 +922,9 @@ def HalfCube(int n):
         ([6, 1, None], [None, 1, 6])
 
     REFERENCES:
-    
+
     See [BCN1989]_ pp. 264, 265 or [VDKT2016]_ p. 21.
-    This construction can be found on 
+    This construction can be found on
     https://en.wikipedia.org/wiki/Halved_cube_graph#Equivalent_constructions
 
     TESTS:
@@ -939,10 +939,10 @@ def HalfCube(int n):
          True
     """
     from sage.graphs.graph_generators import graphs
-    
+
     def hamming_distance(str v, str w):
         cdef int i, counter
-        
+
         counter = 0
         for i in range(len(v)):
             if (v[i] != w[i]):
@@ -1004,7 +1004,7 @@ def GrassmannGraph(const int q, const int n, const int input_e):
         ([48, 27, None], [None, 1, 16])
     """
     from sage.combinat.designs import design_catalog as designs
-    
+
     if n <= input_e + 1:
         raise ValueError(
             "Impossible parameters n <= e+1 (%d > %d)" %(n,input_e) )
@@ -1023,9 +1023,9 @@ def GrassmannGraph(const int q, const int n, const int input_e):
 
 def DoubleGrassmannGraph(const int q, const int e):
     r"""
-    Return the bipartite double of the distance-`e` graph of the 
+    Return the bipartite double of the distance-`e` graph of the
     Grassmann graph with parameters `(q, 2*e+1, e)`.
-    
+
     This graph is distance-transitive.
 
     INPUT:
@@ -1034,13 +1034,13 @@ def DoubleGrassmannGraph(const int q, const int e):
     - ``e`` -- integer
 
     EXAMPLES::
-    
+
         sage: G = graphs.DoubleGrassmannGraph(2,1)
         sage: G.diameter()
         3
         sage: G.is_distance_regular(True)
         ([3, 2, 2, None], [None, 1, 1, 3])
-    
+
 
     REFERENCES:
 
@@ -1072,4 +1072,112 @@ def DoubleGrassmannGraph(const int q, const int e):
 
     G = Graph(edges, format='list_of_edges')
     G.name("Double Grassmann graph (%d, %d, %d)"%(n, e, q))
+    return G
+
+
+def is_from_GQ_spread(list arr):
+    r"""
+    Return a pair `(s, t)` if the graph obtained from a GQ of order `(s, t)`
+    with a spread has the intersection array passed. We also require that such
+    GQ can be built by Sage.
+    If no such pair exists, then return ``False``.
+
+    INPUT:
+
+    - ``arr`` -- list; an intersection array
+
+    EXAMPLES::
+
+         sage: from sage.graphs.generators.distance_regular import \
+         ....: is_from_GQ_spread, graph_from_GQ_spread
+         sage: is_from_GQ_spread([125, 120, 1, 1, 24, 125])
+         (5, 25)
+         sage: G = graph_from_GQ_spread(5, 25)
+         sage: G.is_distance_regular(True)
+         ([125, 120, 1, None], [None, 1, 24, 125])
+
+    TESTS::
+
+         sage: from sage.graphs.generators.distance_regular import \
+         ....: is_from_GQ_spread
+         sage: is_from_GQ_spread([343, 336, 1, 1, 48, 343])
+         (7, 49)
+         sage: is_from_GQ_spread([343, 336, 1, 2, 48, 343])
+         False
+
+    Check that we don't get ``True`` for inexisting GQs:
+         sage: from sage.graphs.generators.distance_regular import \
+         ....: is_from_GQ_spread
+         sage: s = 5
+         sage: t = 6
+         sage: [s * t, s * (t-1), 1, 1, t - 1, s * t]
+         [30, 25, 1, 1, 5, 30]
+         sage: is_from_GQ_spread([30, 25, 1, 1, 5, 30])
+         False
+    """
+    from sage.combinat.designs import design_catalog as designs
+
+    if len(arr) != 6:
+        return False
+
+    t = arr[4] + 1
+    if t <= 1:  # avoid division by 0
+        return False
+
+    s = arr[1] // (t-1)
+    if s == 1 and t == 1:  # in this case we don't get a connected graph
+        return False
+
+    if arr != [s * t, s * (t-1), 1, 1, t - 1, s * t]:
+        return False
+
+    # check Sage can build it (it may not exist)
+    if designs.generalised_quadrangle_with_spread(s, t, existence=True) \
+       is not True:
+        return False
+
+    return (s,t)
+
+def graph_from_GQ_spread(const int s, const int t):
+    r"""
+    Return the point graph of the generalised quandrangle with
+    order `(s, t)` after removing one of its spreads.
+
+    INPUT:
+
+    - ``s, t`` -- integers; order of the generalised quadrangle
+
+    EXAMPLES::
+
+         sage: from sage.graphs.generators.distance_regular import \
+         ....: graph_from_GQ_spread
+         sage: G = graph_from_GQ_spread(4, 16)
+         sage: G.is_distance_regular(True)
+         ([64, 60, 1, None], [None, 1, 15, 64])
+
+    TESTS::
+
+         sage: from sage.graphs.generators.distance_regular import \
+         ....: graph_from_GQ_spread, is_from_GQ_spread
+         sage: is_from_GQ_spread([64, 60, 1, 1, 15, 64])
+         (4, 16)
+         sage: graph_from_GQ_spread(*is_from_GQ_spread([27, 24, 1, 1, 8, 27]))
+         Graph on 112 vertices
+         sage: _.is_distance_regular(True)
+         ([27, 24, 1, None], [None, 1, 8, 27])
+    """
+    from sage.combinat.designs import design_catalog as designs
+
+    (GQ, S) = designs.generalised_quadrangle_with_spread(s, t, check=False)
+
+    k = len(GQ.blocks()[0])
+    edges = []
+    for b in GQ.blocks():
+        if b in S:  # skip blocks in spread
+            continue
+        for p1, p2 in itertools.combinations(b, 2):
+            sig_check()
+            edges.append((p1, p2))
+
+    G = Graph(edges, format="list_of_edges")
     return G

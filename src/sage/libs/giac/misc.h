@@ -2,6 +2,8 @@
 #define GIACPYMISC_H
 #include <giac/giac.h>
 
+#include <fstream>
+
 using namespace std;
 using namespace giac;
 

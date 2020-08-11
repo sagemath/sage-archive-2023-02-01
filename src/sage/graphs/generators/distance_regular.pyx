@@ -1096,6 +1096,11 @@ def is_from_GQ_spread(list arr):
          sage: G.is_distance_regular(True)
          ([125, 120, 1, None], [None, 1, 24, 125])
 
+    REFERENCES:
+
+    The graphs we are looking for are antipodal covers of complete graphs.
+    See [BCN1989]_ pp. 385, 386 for a discussion on these particular case.
+
     TESTS::
 
          sage: from sage.graphs.generators.distance_regular import \
@@ -1105,7 +1110,8 @@ def is_from_GQ_spread(list arr):
          sage: is_from_GQ_spread([343, 336, 1, 2, 48, 343])
          False
 
-    Check that we don't get ``True`` for inexisting GQs:
+    Check that we don't get ``True`` for inexisting GQs::
+
          sage: from sage.graphs.generators.distance_regular import \
          ....: is_from_GQ_spread
          sage: s = 5
@@ -1143,6 +1149,9 @@ def graph_from_GQ_spread(const int s, const int t):
     Return the point graph of the generalised quandrangle with
     order `(s, t)` after removing one of its spreads.
 
+    These graphs are antipodal covers of complete graphs and, in particular,
+    distance-regular graphs of diameter 3.
+
     INPUT:
 
     - ``s, t`` -- integers; order of the generalised quadrangle
@@ -1154,6 +1163,10 @@ def graph_from_GQ_spread(const int s, const int t):
          sage: G = graph_from_GQ_spread(4, 16)
          sage: G.is_distance_regular(True)
          ([64, 60, 1, None], [None, 1, 15, 64])
+
+    REFERENCES:
+
+    The graphs constructed here follow [BCN1989]_ pp. 385, 386.
 
     TESTS::
 

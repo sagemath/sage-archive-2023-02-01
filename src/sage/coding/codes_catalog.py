@@ -102,6 +102,7 @@ _lazy_import('sage.coding.golay_code', 'GolayCode')
 _lazy_import('sage.coding.goppa_code', 'GoppaCode')
 _lazy_import('sage.coding.kasami_codes', 'KasamiCode')
 _lazy_import('sage.coding.linear_rank_metric', 'LinearRankMetricCode')
+_lazy_import('sage.coding.gabidulin_code', 'GabidulinCode')
 
 _lazy_import('sage.coding.guava', ['QuasiQuadraticResidueCode', 'RandomLinearCodeGuava'])
 

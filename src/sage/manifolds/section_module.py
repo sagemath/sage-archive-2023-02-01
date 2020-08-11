@@ -421,6 +421,7 @@ class SectionModule(UniqueRepresentation, Parent):
             if frame._domain.is_subset(self._domain):
                 res.add_comp(frame)
                 # (since new components are initialized to zero)
+        res.set_immutable()
         return res
 
     def default_frame(self):

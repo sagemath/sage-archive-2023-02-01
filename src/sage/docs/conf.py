@@ -426,6 +426,32 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{2309}{\rceil}
     \DeclareUnicodeCharacter{22C5}{\ensuremath{\cdot}}
 
+    \DeclareUnicodeCharacter{2070}{\ensuremath{{}^0}}
+    \DeclareUnicodeCharacter{00B9}{\ensuremath{{}^1}}
+    \DeclareUnicodeCharacter{00B2}{\ensuremath{{}^2}}
+    \DeclareUnicodeCharacter{00B3}{\ensuremath{{}^3}}
+    \DeclareUnicodeCharacter{2074}{\ensuremath{{}^4}}
+    \DeclareUnicodeCharacter{2075}{\ensuremath{{}^5}}
+    \DeclareUnicodeCharacter{2076}{\ensuremath{{}^6}}
+    \DeclareUnicodeCharacter{2077}{\ensuremath{{}^7}}
+    \DeclareUnicodeCharacter{2078}{\ensuremath{{}^8}}
+    \DeclareUnicodeCharacter{2079}{\ensuremath{{}^9}}
+    \DeclareUnicodeCharacter{207A}{\ensuremath{{}^+}}
+    \DeclareUnicodeCharacter{207B}{\ensuremath{{}^-}}
+    \DeclareUnicodeCharacter{141F}{\ensuremath{{}^/}}
+    \DeclareUnicodeCharacter{2080}{\ensuremath{{}_0}}
+    \DeclareUnicodeCharacter{2081}{\ensuremath{{}_1}}
+    \DeclareUnicodeCharacter{2082}{\ensuremath{{}_2}}
+    \DeclareUnicodeCharacter{2083}{\ensuremath{{}_3}}
+    \DeclareUnicodeCharacter{2084}{\ensuremath{{}_4}}
+    \DeclareUnicodeCharacter{2085}{\ensuremath{{}_5}}
+    \DeclareUnicodeCharacter{2086}{\ensuremath{{}_6}}
+    \DeclareUnicodeCharacter{2087}{\ensuremath{{}_7}}
+    \DeclareUnicodeCharacter{2088}{\ensuremath{{}_8}}
+    \DeclareUnicodeCharacter{2089}{\ensuremath{{}_9}}
+    \DeclareUnicodeCharacter{208A}{\ensuremath{{}_+}}
+    \DeclareUnicodeCharacter{208B}{\ensuremath{{}_-}}
+
     \newcommand{\sageMexSymbol}[1]
     {{\fontencoding{OMX}\fontfamily{cmex}\selectfont\raisebox{0.75em}{\symbol{#1}}}}
     \DeclareUnicodeCharacter{239B}{\sageMexSymbol{"30}} % parenlefttp

@@ -953,19 +953,25 @@ class FullyCommutativeElements(UniqueRepresentation, Parent):
 
         ctype = self._coxeter_group.coxeter_type()
         try:
-            # A 'letter' family is defined if and only if the Coxeter group is finite or affine:
             family, rank = ctype.type(), ctype.rank()
-            # All finite Coxeter groups are certainly FC-finite. Of the affine Coxeter groups only 
-            # the groups affine `F_4` and affine `E_8` are FC-finite; they have rank 5 and rank 9
-            # and correspond to the groups `F_5` and `E_9` in [Ste1996]_, respectively: 
-            if ctype.is_finite() or (family == 'F' and rank == 5) or (family == 'E' and rank == 9):
-                category = category.Finite()
-            else:
-                category = category.Infinite()
         except AttributeError:
-            # No refinement is specified for Coxeter groups that are not finite or affine 
-            # (Note that this includes  groups of the form E_n (n>9), F_n (n>5) and H_n (n>4)
-            # from [Ste1996]_ which are known to be FC-finite)
+            family, rank = None, None
+
+        if ctype.is_finite():
+            # Finite Coxeter groups are certainly FC-finite
+            category = category.Finite()
+        elif (family == 'F' and rank == 5) or (family == 'E' and rank == 9):
+            # Of the affine Coxeter groups only the groups affine `F_4` and
+            # affine `E_8` are FC-finite; they have rank 5 and rank 9 and
+            # correspond to the groups `F_5` and `E_9` in [Ste1996]_.
+            category = category.Finite()
+        elif family is not None and family != 'reducible':
+            # This covers all remaining affine types that are not the two above.
+            category = category.Infinite()
+        else:
+            # Specify no refinement for reducible types or indefinite types
+            # (Note that this includes  groups of the form E_n (n>9), F_n (n>5)
+            # and H_n (n>4) from [Ste1996]_ which are known to be FC-finite)
             pass
 
         Parent.__init__(self, category=category)

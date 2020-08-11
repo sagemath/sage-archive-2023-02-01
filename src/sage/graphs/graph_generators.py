@@ -218,11 +218,11 @@ or a list of graphs or ...)
 """
 
 __append_to_doc(
-    ["AlternatingFormGraph",
+    ["AlternatingFormsGraph",
      "AztecDiamondGraph",
      "BalancedTree",
      "BarbellGraph",
-     "BilinearFormGraph",
+     "BilinearFormsGraph",
      "BubbleSortGraph",
      "CaiFurerImmermanGraph",
      "chang_graphs",
@@ -233,7 +233,6 @@ __append_to_doc(
      "DorogovtsevGoltsevMendesGraph",
      "DoubleGrassmannGraph",
      "DoubleOddGraph",
-     "DualPolarOrthogonalGraph",
      "EgawaGraph",
      "FibonacciTree",
      "FoldedCubeGraph",
@@ -249,7 +248,7 @@ __append_to_doc(
      "HammingGraph",
      "HanoiTowerGraph",
      "HararyGraph",
-     "HermitianFormGraph",
+     "HermitianFormsGraph",
      "HyperStarGraph",
      "JohnsonGraph",
      "KneserGraph",
@@ -293,6 +292,7 @@ __append_to_doc(
      "AhrensSzekeresGeneralizedQuadrangleGraph",
      "NonisotropicOrthogonalPolarGraph",
      "NonisotropicUnitaryPolarGraph",
+     "OrthogonalDualPolarGraph",
      "OrthogonalPolarGraph",
      "SymplecticDualPolarGraph",
      "SymplecticPolarGraph",
@@ -2058,11 +2058,11 @@ class GraphGenerators():
 ###########################################################################
     from .generators import families
     from . import strongly_regular_db
-    AlternatingFormGraph   = staticmethod(distance_regular.AlternatingFormGraph)
+    AlternatingFormsGraph   = staticmethod(distance_regular.AlternatingFormsGraph)
     AztecDiamondGraph      = staticmethod(families.AztecDiamondGraph)
     BalancedTree           = staticmethod(families.BalancedTree)
     BarbellGraph           = staticmethod(families.BarbellGraph)
-    BilinearFormGraph      = staticmethod(distance_regular.BilinearFormGraph)
+    BilinearFormsGraph      = staticmethod(distance_regular.BilinearFormsGraph)
     BubbleSortGraph        = staticmethod(families.BubbleSortGraph)
     CaiFurerImmermanGraph  = staticmethod(families.CaiFurerImmermanGraph)
     chang_graphs           = staticmethod(families.chang_graphs)
@@ -2073,7 +2073,6 @@ class GraphGenerators():
     DorogovtsevGoltsevMendesGraph = staticmethod(families.DorogovtsevGoltsevMendesGraph)
     DoubleGrassmannGraph   = staticmethod(distance_regular.DoubleGrassmannGraph)
     DoubleOddGraph         = staticmethod(distance_regular.DoubleOddGraph)
-    DualPolarOrthogonalGraph = staticmethod(distance_regular.DualPolarOrthogonalGraph)
     EgawaGraph             = staticmethod(families.EgawaGraph)
     FibonacciTree          = staticmethod(families.FibonacciTree)
     FoldedCubeGraph        = staticmethod(families.FoldedCubeGraph)
@@ -2087,7 +2086,7 @@ class GraphGenerators():
     HammingGraph           = staticmethod(families.HammingGraph)
     HanoiTowerGraph        = staticmethod(families.HanoiTowerGraph)
     HararyGraph            = staticmethod(families.HararyGraph)
-    HermitianFormGraph     = staticmethod(distance_regular.HermitianFormGraph)
+    HermitianFormsGraph     = staticmethod(distance_regular.HermitianFormsGraph)
     HyperStarGraph         = staticmethod(families.HyperStarGraph)
     JohnsonGraph           = staticmethod(families.JohnsonGraph)
     KneserGraph            = staticmethod(families.KneserGraph)
@@ -2125,18 +2124,19 @@ class GraphGenerators():
     AhrensSzekeresGeneralizedQuadrangleGraph = staticmethod(classical_geometries.AhrensSzekeresGeneralizedQuadrangleGraph)
     NonisotropicOrthogonalPolarGraph = staticmethod(classical_geometries.NonisotropicOrthogonalPolarGraph)
     NonisotropicUnitaryPolarGraph = staticmethod(classical_geometries.NonisotropicUnitaryPolarGraph)
-    OrthogonalPolarGraph   = staticmethod(classical_geometries.OrthogonalPolarGraph)
+    OrthogonalDualPolarGraph = staticmethod(classical_geometries.OrthogonalDualPolarGraph)
+    OrthogonalPolarGraph = staticmethod(classical_geometries.OrthogonalPolarGraph)
     SymplecticDualPolarGraph = staticmethod(classical_geometries.SymplecticDualPolarGraph)
-    SymplecticPolarGraph   = staticmethod(classical_geometries.SymplecticPolarGraph)
+    SymplecticPolarGraph = staticmethod(classical_geometries.SymplecticPolarGraph)
     TaylorTwographDescendantSRG = \
              staticmethod(classical_geometries.TaylorTwographDescendantSRG)
-    TaylorTwographSRG      = staticmethod(classical_geometries.TaylorTwographSRG)
-    T2starGeneralizedQuadrangleGraph      = staticmethod(classical_geometries.T2starGeneralizedQuadrangleGraph)
+    TaylorTwographSRG = staticmethod(classical_geometries.TaylorTwographSRG)
+    T2starGeneralizedQuadrangleGraph = staticmethod(classical_geometries.T2starGeneralizedQuadrangleGraph)
     Nowhere0WordsTwoWeightCodeGraph = staticmethod(classical_geometries.Nowhere0WordsTwoWeightCodeGraph)
-    HaemersGraph      = staticmethod(classical_geometries.HaemersGraph)
+    HaemersGraph = staticmethod(classical_geometries.HaemersGraph)
     CossidentePenttilaGraph = staticmethod(classical_geometries.CossidentePenttilaGraph)
-    UnitaryDualPolarGraph  = staticmethod(classical_geometries.UnitaryDualPolarGraph)
-    UnitaryPolarGraph      = staticmethod(classical_geometries.UnitaryPolarGraph)
+    UnitaryDualPolarGraph = staticmethod(classical_geometries.UnitaryDualPolarGraph)
+    UnitaryPolarGraph = staticmethod(classical_geometries.UnitaryPolarGraph)
 
 ###########################################################################
 # Chessboard Graphs

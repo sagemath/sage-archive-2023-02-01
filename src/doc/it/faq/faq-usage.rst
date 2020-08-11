@@ -402,9 +402,9 @@ Potresti voler convertire caratteri ASCII come "Big Mac" nel
 corrispondente codice numerico per ulteriori elaborazioni. In Sage e
 Python puoi usare ``ord``. Ad esempio::
 
-    sage: map(ord, "abcde")
+    sage: list(map(ord, "abcde"))
     [97, 98, 99, 100, 101]
-    sage: map(ord, "Big Mac")
+    sage: list(map(ord, "Big Mac"))
     [66, 105, 103, 32, 77, 97, 99]
 
 Come posso scrivere le multiplicazioni in modo implicito come in Mathematica?

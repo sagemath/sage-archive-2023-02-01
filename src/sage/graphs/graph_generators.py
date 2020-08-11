@@ -66,6 +66,9 @@ __append_to_doc(
      "CompleteGraph",
      "CompleteMultipartiteGraph",
      "DiamondGraph",
+     "GemGraph",
+     "DartGraph",
+     "ForkGraph",
      "DipoleGraph",
      "EmptyGraph",
      "Grid2dGraph",
@@ -228,7 +231,6 @@ __append_to_doc(
      "CubeGraph",
      "CubeConnectedCycle",
      "DorogovtsevGoltsevMendesGraph",
-     "DualPolarOrthogonalGraph",
      "EgawaGraph",
      "FibonacciTree",
      "FoldedCubeGraph",
@@ -286,6 +288,7 @@ __append_to_doc(
      "AhrensSzekeresGeneralizedQuadrangleGraph",
      "NonisotropicOrthogonalPolarGraph",
      "NonisotropicUnitaryPolarGraph",
+     "OrthogonalDualPolarGraph",
      "OrthogonalPolarGraph",
      "SymplecticDualPolarGraph",
      "SymplecticPolarGraph",
@@ -1913,6 +1916,9 @@ class GraphGenerators():
     CompleteBipartiteGraph   = staticmethod(basic.CompleteBipartiteGraph)
     CompleteMultipartiteGraph= staticmethod(basic.CompleteMultipartiteGraph)
     DiamondGraph             = staticmethod(basic.DiamondGraph)
+    GemGraph                 = staticmethod(basic.GemGraph)
+    DartGraph                = staticmethod(basic.DartGraph)
+    ForkGraph                = staticmethod(basic.ForkGraph)
     EmptyGraph               = staticmethod(basic.EmptyGraph)
     Grid2dGraph              = staticmethod(basic.Grid2dGraph)
     GridGraph                = staticmethod(basic.GridGraph)
@@ -2061,7 +2067,6 @@ class GraphGenerators():
     CubeConnectedCycle     = staticmethod(families.CubeConnectedCycle)
     DipoleGraph            = staticmethod(families.DipoleGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(families.DorogovtsevGoltsevMendesGraph)
-    DualPolarOrthogonalGraph = staticmethod(distance_regular.DualPolarOrthogonalGraph)
     EgawaGraph             = staticmethod(families.EgawaGraph)
     FibonacciTree          = staticmethod(families.FibonacciTree)
     FoldedCubeGraph        = staticmethod(families.FoldedCubeGraph)
@@ -2111,18 +2116,19 @@ class GraphGenerators():
     AhrensSzekeresGeneralizedQuadrangleGraph = staticmethod(classical_geometries.AhrensSzekeresGeneralizedQuadrangleGraph)
     NonisotropicOrthogonalPolarGraph = staticmethod(classical_geometries.NonisotropicOrthogonalPolarGraph)
     NonisotropicUnitaryPolarGraph = staticmethod(classical_geometries.NonisotropicUnitaryPolarGraph)
-    OrthogonalPolarGraph   = staticmethod(classical_geometries.OrthogonalPolarGraph)
+    OrthogonalDualPolarGraph = staticmethod(classical_geometries.OrthogonalDualPolarGraph)
+    OrthogonalPolarGraph = staticmethod(classical_geometries.OrthogonalPolarGraph)
     SymplecticDualPolarGraph = staticmethod(classical_geometries.SymplecticDualPolarGraph)
-    SymplecticPolarGraph   = staticmethod(classical_geometries.SymplecticPolarGraph)
+    SymplecticPolarGraph = staticmethod(classical_geometries.SymplecticPolarGraph)
     TaylorTwographDescendantSRG = \
              staticmethod(classical_geometries.TaylorTwographDescendantSRG)
-    TaylorTwographSRG      = staticmethod(classical_geometries.TaylorTwographSRG)
-    T2starGeneralizedQuadrangleGraph      = staticmethod(classical_geometries.T2starGeneralizedQuadrangleGraph)
+    TaylorTwographSRG = staticmethod(classical_geometries.TaylorTwographSRG)
+    T2starGeneralizedQuadrangleGraph = staticmethod(classical_geometries.T2starGeneralizedQuadrangleGraph)
     Nowhere0WordsTwoWeightCodeGraph = staticmethod(classical_geometries.Nowhere0WordsTwoWeightCodeGraph)
-    HaemersGraph      = staticmethod(classical_geometries.HaemersGraph)
+    HaemersGraph = staticmethod(classical_geometries.HaemersGraph)
     CossidentePenttilaGraph = staticmethod(classical_geometries.CossidentePenttilaGraph)
-    UnitaryDualPolarGraph  = staticmethod(classical_geometries.UnitaryDualPolarGraph)
-    UnitaryPolarGraph      = staticmethod(classical_geometries.UnitaryPolarGraph)
+    UnitaryDualPolarGraph = staticmethod(classical_geometries.UnitaryDualPolarGraph)
+    UnitaryPolarGraph = staticmethod(classical_geometries.UnitaryPolarGraph)
 
 ###########################################################################
 # Chessboard Graphs

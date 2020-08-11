@@ -465,28 +465,35 @@ $(foreach pkgname, $(NORMAL_PACKAGES),\
 	                                   $(call pkg_deps,$(pkgname)))))
 endif
 
-# SAGE_CHECK_PACKAGES: if this contains "!pkg", skip tests for "pkg",
-# so set SAGE_CHECK=no.  If this contains "pkg", run tests, so set
-# SAGE_CHECK=yes.  Check this now and export SAGE_CHECK so that the
-# package's spkg-install script can use this variable.
+# Parsing the SAGE_CHECK_PACKAGES variable:
+# - if this contains "!pkg", set SAGE_CHECK_pkg=no.
+# - if this contains "?pkg", set SAGE_CHECK_pkg=warn.
+# - if this contains "pkg",  set SAGE_CHECK_pkg=yes.
+#
+# We check this now and export SAGE_CHECK_pkg for
+# dependencies and the Makefile rules.
 #
 # Since Python's self-tests seem to fail on all platforms, we disable
-# its test suite by default.  However, if SAGE_CHECK=warn, we do not
-# do that.
-SAGE_CHECK_PACKAGES_DEFAULT := !python3
+# its test suite by default.
+# However, if SAGE_CHECK=warn, we do not do that.
+SAGE_CHECK_PACKAGES_DEFAULT_yes := !python3
+SAGE_CHECK_PACKAGES_DEFAULT_warn :=
+SAGE_CHECK_PACKAGES_DEFAULT_no :=
 comma := ,
 ifeq "$(origin SAGE_CHECK_PACKAGES)" "undefined"
-SAGE_CHECK_PACKAGES := $(if $(findstring yes,$(SAGE_CHECK)),$(SAGE_CHECK_PACKAGES_DEFAULT))
+SAGE_CHECK_PACKAGES := $(SAGE_CHECK_PACKAGES_DEFAULT$(SAGE_CHECK))
 endif
-SAGE_CHECK_PACKAGES := $(subst $(comma), ,$(SAGE_CHECK_PACKAGES))
-SAGE_CHECK_PACKAGES := $(subst :, ,$(SAGE_CHECK_PACKAGES))
+SAGE_CHECK_PACKAGES_sep := $(subst $(comma), ,$(SAGE_CHECK_PACKAGES))
+SAGE_CHECK_PACKAGES_sep := $(subst :, ,$(SAGE_CHECK_PACKAGES_sep))
 define SET_SAGE_CHECK
 $(eval SAGE_CHECK_$(1) := $(2))
 endef
-$(foreach clause, $(SAGE_CHECK_PACKAGES), \
-     $(if $(findstring !,$(clause)), \
-	             $(eval $(call SET_SAGE_CHECK,$(subst !,,$(clause)),no)), \
-		     $(eval $(call SET_SAGE_CHECK,$(clause),yes))))
+$(foreach clause, $(SAGE_CHECK_PACKAGES_sep),					\
+     $(if $(findstring !,$(clause)),						\
+	  $(eval $(call SET_SAGE_CHECK,$(subst !,,$(clause)),no)),		\
+	  $(if $(findstring ?,$(clause)),					\
+	       $(eval $(call SET_SAGE_CHECK,$(subst ?,,$(clause)),warn)),	\
+	       $(eval $(call SET_SAGE_CHECK,$(clause),yes)))))
 debug-check:
 	@echo $(foreach pkgname, $(NORMAL_PACKAGES), SAGE_CHECK_$(pkgname) = $(SAGE_CHECK_$(pkgname)))
 

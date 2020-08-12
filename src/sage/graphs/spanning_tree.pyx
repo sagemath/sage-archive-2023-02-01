@@ -227,7 +227,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     If the input graph is a tree, then return its edges::
 
         sage: T = graphs.RandomTree(randint(1, 50))  # long time
-        sage: sorted(T.edge_iterator()) == kruskal(T, check=True)  # long time
+        sage: sorted(T.edge_iterator()) == sorted(kruskal(T, check=True))  # long time
         True
 
     If the input is not a Graph::
@@ -620,7 +620,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
       connected, and has at least one vertex. Otherwise, you should set
       ``check=True`` to perform some sanity checks and preprocessing on the
       input graph.
-    
+
     - ``by_weight`` -- boolean (default: ``False``); whether to find MST by
       using weights of edges provided.  Default: ``by_weight=True``. If
       ``wfunction`` is given, MST is calculated using the weights of edges as
@@ -669,7 +669,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
         []
 
     TESTS:
-    
+
     If the input graph is a tree, then return its edges::
 
         sage: T = graphs.RandomTree(randint(1, 10))

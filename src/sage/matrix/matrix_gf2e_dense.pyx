@@ -1019,8 +1019,13 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         cdef Matrix_gf2e_dense A
         A = Matrix_gf2e_dense.__new__(Matrix_gf2e_dense, self._parent, 0, 0, 0)
 
-        if self._nrows and self._nrows == self._ncols:
+        if self.rank() != self._nrows:
+            raise ZeroDivisionError("Matrix does not have full rank.")
+
+        if self._nrows:
+            sig_on()
             mzed_invert_newton_john(A._entries, self._entries)
+            sig_off()
 
         return A
 

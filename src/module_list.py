@@ -1,3 +1,11 @@
+#########################################################
+###
+### OBSOLETE FILE - DO NOT ADD TO IT
+###
+### See https://trac.sagemath.org/ticket/29701
+###
+#########################################################
+
 import os
 from distutils.extension import Extension
 from sage.env import SAGE_LOCAL
@@ -121,6 +129,9 @@ ext_modules = [
     Extension('sage.coding.codecan.codecan',
               sources = ['sage/coding/codecan/codecan.pyx']),
 
+    Extension('sage.coding.kasami_codes',
+              sources = ['sage/coding/kasami_codes.pyx']),
+
     Extension('*', ['sage/coding/**/*.pyx']),
 
     ################################
@@ -240,6 +251,9 @@ ext_modules = [
     Extension('sage.graphs.independent_sets',
               sources = ['sage/graphs/independent_sets.pyx']),
 
+    Extension('sage.graphs.isoperimetric_inequalities',
+              sources = ['sage/graphs/isoperimetric_inequalities.pyx']),
+
     Extension('sage.graphs.graph_decompositions.fast_digraph',
               sources = ['sage/graphs/graph_decompositions/fast_digraph.pyx']),
 
@@ -306,8 +320,7 @@ ext_modules = [
               sources = ['sage/graphs/strongly_regular_db.pyx']),
 
     Extension('sage.graphs.graph_decompositions.rankwidth',
-              sources = ['sage/graphs/graph_decompositions/rankwidth.pyx'],
-              libraries=['rw']),
+              sources = ['sage/graphs/graph_decompositions/rankwidth.pyx']),
 
     Extension('sage.graphs.graph_decompositions.bandwidth',
               sources = ['sage/graphs/graph_decompositions/bandwidth.pyx']),
@@ -317,7 +330,6 @@ ext_modules = [
 
     OptionalExtension('sage.graphs.graph_decompositions.tdlib',
               sources = ['sage/graphs/graph_decompositions/tdlib.pyx'],
-              language="c++",
               package = 'tdlib'),
 
     Extension('sage.graphs.graph_decompositions.clique_separators',
@@ -655,6 +667,9 @@ ext_modules = [
     ################################
 
     Extension('*', ['sage/misc/*.pyx']),
+    Extension('sage.misc.sage_ostools',
+              sources = ['sage/misc/sage_ostools.pyx'],
+              libraries = ['sqlite3']),
 
     ################################
     ##
@@ -1120,10 +1135,10 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.ore_polynomial_element',
               sources = ['sage/rings/polynomial/ore_polynomial_element.pyx']),
-    
+
     Extension('sage.rings.polynomial.skew_polynomial_element',
               sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
-    
+
     Extension('sage.rings.polynomial.skew_polynomial_finite_order',
               sources = ['sage/rings/polynomial/skew_polynomial_finite_order.pyx']),
 

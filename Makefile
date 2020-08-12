@@ -220,7 +220,7 @@ list:
 	@$(MAKE) --silent build/make/Makefile >&2
 	@$(MAKE) --silent -f build/make/Makefile SAGE_SPKG_INST=local $@
 
-.PHONY: default build install micro_release \
+.PHONY: default build dist install micro_release \
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \
 	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong \

@@ -890,6 +890,24 @@ class FullyCommutativeElements(UniqueRepresentation, Parent):
         Category of infinite enumerated sets
         sage: list(FCAffineA2.iterate_to_length(2))
         [[], [0], [1], [2], [1, 0], [2, 0], [0, 1], [2, 1], [0, 2], [1, 2]]
+
+    The cardinality of the set is determined from the classification of
+    FC-finite Coxeter groups::
+
+        sage: CoxeterGroup('A2').fully_commutative_elements().category()
+        Category of finite enumerated sets
+        sage: CoxeterGroup('B7').fully_commutative_elements().category()
+        Category of finite enumerated sets
+        sage: CoxeterGroup('A3~').fully_commutative_elements().category()
+        Category of infinite enumerated sets
+        sage: CoxeterGroup('F4~').fully_commutative_elements().category()
+        Category of finite enumerated sets
+        sage: CoxeterGroup('E8~').fully_commutative_elements().category()
+        Category of finite enumerated sets
+        sage: CoxeterGroup('F4~xE8~').fully_commutative_elements().category()
+        Category of finite enumerated sets
+        sage: CoxeterGroup('B4~xE8~').fully_commutative_elements().category()
+        Category of infinite enumerated sets
     """
     @staticmethod
     def __classcall_private__(cls, data):
@@ -962,9 +980,9 @@ class FullyCommutativeElements(UniqueRepresentation, Parent):
             for ctype in ctypes:
                 family, rank = ctype.type(), ctype.rank()
                 # Finite Coxeter groups are certainly FC-finite.
-                    # Of the affine Coxeter groups only the groups affine `F_4` and
-                    # affine `E_8` are FC-finite; they have rank 5 and rank 9 and
-                    # correspond to the groups `F_5` and `E_9` in [Ste1996]_.
+                # Of the affine Coxeter groups only the groups affine `F_4` and
+                # affine `E_8` are FC-finite; they have rank 5 and rank 9 and
+                # correspond to the groups `F_5` and `E_9` in [Ste1996]_.
                 if not (ctype.is_finite() or (family == 'F' and rank == 5) or (family == 'E' and rank == 9)):
                     # Finite Coxeter groups are certainly FC-finite
                     is_finite = False

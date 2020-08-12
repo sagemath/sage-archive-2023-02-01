@@ -107,6 +107,8 @@ __append_to_doc(
      "Cell120",
      "ChvatalGraph",
      "ClebschGraph",
+     "cocliques_HoffmannSingleton",
+     "ConwaySmith_for_3S7",
      "CoxeterGraph",
      "DesarguesGraph",
      "DejterGraph",
@@ -125,6 +127,7 @@ __append_to_doc(
      "GoldnerHararyGraph",
      "GolombGraph",
      "GossetGraph",
+     "graph_3O73",
      "GrayGraph",
      "GrotzschGraph",
      "HallJankoGraph",
@@ -145,6 +148,7 @@ __append_to_doc(
      "KrackhardtKiteGraph",
      "Klein3RegularGraph",
      "Klein7RegularGraph",
+     "locally_GQ42_distance_transitive_graph",
      "LocalMcLaughlinGraph",
      "LjubljanaGraph",
      "LivingstoneGraph",
@@ -1913,7 +1917,7 @@ class GraphGenerators():
 ###########################################################################
 # Small Graphs
 ###########################################################################
-    from .generators import smallgraphs
+    from .generators import smallgraphs, distance_regular
     Balaban10Cage            = staticmethod(smallgraphs.Balaban10Cage)
     Balaban11Cage            = staticmethod(smallgraphs.Balaban11Cage)
     BidiakisCube             = staticmethod(smallgraphs.BidiakisCube)
@@ -1928,6 +1932,8 @@ class GraphGenerators():
     Cell120                  = staticmethod(smallgraphs.Cell120)
     ChvatalGraph             = staticmethod(smallgraphs.ChvatalGraph)
     ClebschGraph             = staticmethod(smallgraphs.ClebschGraph)
+    cocliques_HoffmannSingleton = staticmethod(distance_regular.cocliques_HoffmannSingleton)
+    ConwaySmith_for_3S7      = staticmethod(distance_regular.ConwaySmith_for_3S7)
     CoxeterGraph             = staticmethod(smallgraphs.CoxeterGraph)
     DejterGraph              = staticmethod(smallgraphs.DejterGraph)
     DesarguesGraph           = staticmethod(smallgraphs.DesarguesGraph)
@@ -1946,6 +1952,7 @@ class GraphGenerators():
     GoldnerHararyGraph       = staticmethod(smallgraphs.GoldnerHararyGraph)
     GolombGraph              = staticmethod(smallgraphs.GolombGraph)
     GossetGraph              = staticmethod(smallgraphs.GossetGraph)
+    graph_3O73               = staticmethod(distance_regular.graph_3O73)
     GrayGraph                = staticmethod(smallgraphs.GrayGraph)
     GrotzschGraph            = staticmethod(smallgraphs.GrotzschGraph)
     HallJankoGraph           = staticmethod(smallgraphs.HallJankoGraph)
@@ -1967,6 +1974,7 @@ class GraphGenerators():
     KrackhardtKiteGraph      = staticmethod(smallgraphs.KrackhardtKiteGraph)
     Klein3RegularGraph       = staticmethod(smallgraphs.Klein3RegularGraph)
     Klein7RegularGraph       = staticmethod(smallgraphs.Klein7RegularGraph)
+    locally_GQ42_distance_transitive_graph = staticmethod(distance_regular.locally_GQ42_distance_transitive_graph)
     LocalMcLaughlinGraph     = staticmethod(smallgraphs.LocalMcLaughlinGraph)
     LjubljanaGraph           = staticmethod(smallgraphs.LjubljanaGraph)
     LivingstoneGraph         = staticmethod(smallgraphs.LivingstoneGraph)

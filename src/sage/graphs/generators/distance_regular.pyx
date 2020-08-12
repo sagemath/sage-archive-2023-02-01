@@ -29,6 +29,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from sage.coding import codes_catalog as codes
 from sage.graphs.graph import Graph
 from sage.libs.gap.libgap import libgap
 from sage.modules.free_module import VectorSpace
@@ -307,7 +308,6 @@ def LargeWittGraph():
     This construction is taken from
     http://mathworld.wolfram.com/LargeWittGraph.html
     """
-    from sage.coding import codes_catalog as codes
     import itertools
 
     C = codes.GolayCode(GF(2), extended=True)
@@ -401,8 +401,6 @@ def distance_3_doubly_truncated_Golay_code_graph():
 
     Description and construction of this graph are taken from [BCN1989]_ p. 364.
     """
-    from sage.coding import codes_catalog as codes
-
     G = codes.GolayCode(GF(2),extended=False).punctured([0,1]).cosetGraph()
     v = G.vertices(sort=False)[0]
     it = G.breadth_first_search(v, distance=3, report_distance=True)
@@ -435,7 +433,6 @@ def shortened_00_11_binary_Golay_code_graph():
 
     Description and construction of this graph can be found in [BCN1989]_ p. 365.
     """
-    from sage.coding import codes_catalog as codes
     from sage.coding.linear_code import LinearCode
 
     code = codes.GolayCode(GF(2), False)
@@ -474,7 +471,6 @@ def shortened_000_111_extended_binary_Golay_code_graph():
 
     Description and construction of this graph can be found in [BCN1989]_ p. 365.
     """
-    from sage.coding import codes_catalog as codes
     from sage.coding.linear_code import LinearCode
 
     code = codes.GolayCode(GF(2))
@@ -816,7 +812,6 @@ def HermitianFormsGraph(const int n, const int r):
         sage: G = graphs.HermitianFormsGraph(3, 3)  # not tested (2 min)
         sage: G.order()  # not tested (bacuase of the above)
         19683
-
     REFERENCES:
 
     See [BCN1989]_ p. 285 or [VDKT2016]_ p. 22.
@@ -1741,12 +1736,12 @@ def _line_graph_generalised_polygon(H):
     G = Graph(edges, format="list_of_edges")
     return G
 
-def _intersection_array_grom_graph(G):
+def _intersection_array_from_graph(G):
     r"""
     Return the intersection array of the graph `G`.
     If `G` is not distance-regular, then return ``False``.
 
-    This is a simple wrapper around 
+    This is a simple wrapper around
     :meth:`sage.graphs.distances_all_pairs.is_distance_regular` to return a list
     instead of a pair of lists
 
@@ -1766,7 +1761,85 @@ def _intersection_array_grom_graph(G):
 
     return t[0][:-1] + t[1][1:]
 
+# given functions f,g
+# returns function (f.g)
+# f is expected to have only 1 input
+#def _compose(f, g):
+#    return lambda *x: f(g(*x))
+
+# dictionary intersection_array (as tuple)  -> construction
+# of spordaic distance-regular graphs
+from sage.graphs.generators.smallgraphs import (FosterGraph, BiggsSmithGraph,
+                                                CoxeterGraph, LivingstoneGraph,
+                                                WellsGraph, GossetGraph)
+from sage.graphs.generators.platonic_solids import DodecahedralGraph
+_sporadic_graph_database = {
+    (3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3) : FosterGraph,
+    (7, 6, 4, 4, 4, 1, 1, 1, 1, 1, 1, 2, 4, 4, 6, 7) : IvanovIvanovFaradjevGraph,
+    (3, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3) : BiggsSmithGraph,
+    #(22, 21, 20, 16, 6, 2, 1, 1, 2, 6, 16, 20, 21, 22) : _compose(bipartite_double_graph, truncated_binary_Golay_code_graph),
+    #(23, 22, 21, 20, 3, 2, 1, 1, 2, 3, 20, 21, 22, 23) : _compose(bipartite_double_graph, binary_Golay_code_graph),
+    (21, 20, 16, 6, 2, 1, 1, 2, 6, 16, 20, 21) : \
+    shortened_00_11_binary_Golay_code_graph,
+    (21, 20, 16, 9, 2, 1, 1, 2, 3, 16, 20, 21) : \
+    shortened_000_111_extended_binary_Golay_code_graph,
+    (22, 21, 20, 3, 2, 1, 1, 2, 3, 20, 21, 22) : \
+    codes.GolayCode(GF(2), extended=False).shortened([0]).cosetGraph,
+    (3, 2, 1, 1, 1, 1, 1, 1, 2, 3) : DodecahedralGraph,
+    (22, 20, 18, 2, 1, 1, 2, 9, 20, 22) : \
+    codes.GolayCode(GF(3)).shortened([0]).cosetGraph,
+    #(7, 6, 6, 1, 1, 1, 1, 6, 6, 7) : _compose(bipartite_double_graph, graphs.HoffmanSingletonGraph),
+    #(10, 9, 8, 2, 1, 1, 2, 8, 9, 10) : _compose(bipartite_double_graph, graphs.SimsGewirtzGraph),
+    #(16, 15, 12, 4, 1, 1, 4, 12, 15, 16) : lambda : bipartite_double_graph(graphs.strongly_regular_graph(77,16,0)),
+    #(22, 21, 16, 6, 1, 1, 6, 16, 21, 22) : _compose(bipartite_double_graph, graphs.HigmanSimsGraph),
+    (3, 2, 2, 1, 1, 1, 1, 2) : CoxeterGraph,
+    (6, 5, 5, 4, 1, 1, 2, 6) : LintSchrijverGraph,
+    (7, 6, 4, 4, 1, 1, 1, 6) : DoublyTruncatedWittGraph,
+    (9, 8, 6, 3, 1, 1, 3, 8) : distance_3_doubly_truncated_Golay_code_graph,
+    (10, 8, 8, 2, 1, 1, 4, 5) : J2Graph,
+    (11, 10, 6, 1, 1, 1, 5, 11) : LivingstoneGraph,
+    (5, 4, 1, 1, 1, 1, 4, 5) : WellsGraph,
+    (6, 4, 2, 1, 1, 1, 4, 6) : FosterGraph3S6,
+    (10, 6, 4, 1, 1, 2, 6, 10) :  ConwaySmith_for_3S7,
+    (20, 18, 4, 1, 1, 2, 18, 20) : \
+    codes.GolayCode(GF(3), extended=False).shortened([0]).cosetGraph,
+    (45, 32, 12, 1, 1, 6, 32, 45) : locally_GQ42_distance_transitive_graph,
+    (117, 80, 24, 1, 1, 12, 80, 117) : graph_3O73,
+    (22, 21, 20, 1, 2, 6): \
+    codes.GolayCode(GF(2), extended=False).punctured([0]).cosetGraph,
+    (23, 22, 21, 1, 2, 3): codes.GolayCode(GF(2), extended=False).cosetGraph,
+    (24, 23, 22, 21, 1, 2, 3, 24): codes.GolayCode(GF(2)).cosetGraph,
+    (12,11,10,7,1,2,5,12): LeonardGraph,
+    (15,14,10,3,1,5,12,15): cocliques_HoffmannSingleton,
+    (27,10,1,1,10,27): GossetGraph,
+    (30,28,24,1,3,15): LargeWittGraph,
+    (15,14,12,1,1,9): TruncatedWittGraph,
+    (24,22,20,1,2,12): codes.GolayCode(GF(3)).cosetGraph,
+    (21,20,16,1,2,12): \
+    codes.GolayCode(GF(2), extended=False).punctured([0, 1]).cosetGraph
+}
+
 def distance_regular_graph(list arr, existence=False, check=True):
+    r"""
+    Return a distance-regular graph with the intersection array given.
+
+    INPUT:
+
+    - ``arr`` -- list; intersection array of the graph
+
+    - ``existence`` -- boolean
+
+    - ``check`` -- boolean (optional); if ``True``, then checks that the result
+      of this function has the given intersection array. Default: ``True``
+
+    EXAMPLES::
+
+    REFERENCES:
+
+    TESTS::
+    """
+    from sage.misc.unknown import Unknown
+    from sage.categories.sets_cat import EmptySetError
 
     # check if drg module is installed
     try:
@@ -1793,8 +1866,8 @@ def distance_regular_graph(list arr, existence=False, check=True):
 
     n = len(arr)
     d = n // 2
-    
-    #check that arr makes sense:
+
+    # check that arr makes sense:
     if drgModule:
         try:
             parameters = drg.DRGParameters(arr[:d],arr[d:])
@@ -1804,6 +1877,7 @@ def distance_regular_graph(list arr, existence=False, check=True):
                                  f"parameters {arr} exists; reason: {err}"))
     else:
         #implement basic checks
+        pass
 
     # handle diameter < 3
     if d == 1 and arr[1] == 1:
@@ -1811,15 +1885,15 @@ def distance_regular_graph(list arr, existence=False, check=True):
             return True
         from sage.graphs.generators.basic import CompleteGraph
         return result(CompleteGraph(arr[0] + 1))
-    
+
     if d == 2:
         from sage.graphs.strongly_regular_db import strongly_regular_graph
-        
+
         k = arr[0]
         mu = arr[3]
         l = k - arr[1] - 1  # a1 = k - b1 - c1
         v = (k * (k-l-1)) // mu + k + 1
-        
+
         if existence:
             return strongly_regular_graph(v, k, l, mu, existence=True)
         return result(strongly_regular_graph(v, k, l, mu))
@@ -1830,15 +1904,16 @@ def distance_regular_graph(list arr, existence=False, check=True):
             return True
         return result(_sporadic_graph_database[t]())
 
+    r"""
     for (f, g) in _infinite_families:
         t = f(arr)
         if t is not False:
             if existence:
                 return True
-            
+
             G = g(*t) if is_iterable(t) else g(t)
             return result(G)
-
+    """
     #now try drg feasibility
     if drgModule:
         try:
@@ -1848,7 +1923,7 @@ def distance_regular_graph(list arr, existence=False, check=True):
                 return False
             raise EmptySetError(("No distance-regular graphs with "
                                  f"parameters {arr} exists; reason: {err}"))
-    
+
     if existence:
         return Unknown
     raise RuntimeError(

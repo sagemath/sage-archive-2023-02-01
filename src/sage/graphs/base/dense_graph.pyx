@@ -517,8 +517,6 @@ def _test_adjacency_sequence_out():
 # Dense Graph Backend
 ###########################################
 
-from .c_graph cimport CGraphBackend
-
 cdef class DenseGraphBackend(CGraphBackend):
     """
     Backend for Sage graphs using DenseGraphs.
@@ -570,7 +568,6 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         """
         self._cg = DenseGraph(n)
-        self._cg_rev = None
         self._directed = directed
         self.vertex_labels = {}
         self.vertex_ints = {}

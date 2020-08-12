@@ -1300,10 +1300,10 @@ def GeneralisedDodecagonGraph(const int s, const int t):
         ([4, 3, 3, 3, 3, 3, None], [None, 1, 1, 1, 1, 1, 4])
         sage: G = graphs.GeneralisedDodecagonGraph(1, 2)  # optional - gap_packages internet
         sage: G.is_distance_regular(True)  # optional - gap_packages internet
-        (3, 2, 2, 2, 2, 2, None], [None, 1, 1, 1, 1, 1, 3])
+        ([3, 2, 2, 2, 2, 2, None], [None, 1, 1, 1, 1, 1, 3])
         sage: G = graphs.GeneralisedDodecagonGraph(1, 1)  # optional - gap_packages internet
         sage: G.is_distance_regular(True)  # optional - gap_packages internet
-        (2, 1, 1, 1, 1, 1, None], [None, 1, 1, 1, 1, 1, 2])
+        ([2, 1, 1, 1, 1, 1, None], [None, 1, 1, 1, 1, 1, 2])
 
     Now test all graphs of order `(q, 1)`::
 
@@ -1313,7 +1313,7 @@ def GeneralisedDodecagonGraph(const int s, const int t):
         sage: G = graphs.GeneralisedDodecagonGraph(3, 1)  # optional - gap_packages internet
         sage: G.is_distance_regular(True)  # optional - gap_packages internet
         ([6, 3, 3, 3, 3, 3, None], [None, 1, 1, 1, 1, 1, 2])
-        sage: G = graphs.GeneralisedDodecagonGraph(3, 1)  # optional - gap_packages internet
+        sage: G = graphs.GeneralisedDodecagonGraph(2, 1)  # optional - gap_packages internet
         sage: G.is_distance_regular(True)  # optional - gap_packages internet
         ([4, 2, 2, 2, 2, 2, None], [None, 1, 1, 1, 1, 1, 2])
 
@@ -1394,7 +1394,7 @@ def GeneralisedOctagonGraph(const int s, const int t):
 
     TESTS::
 
-        sage: G = graphs.GeneralisedOctagonGraph(8, 16)
+        sage: G = graphs.GeneralisedOctagonGraph(8, 64)
         Traceback (most recent call last):
         ...
         NotImplementedError: Graph would be too big
@@ -1639,7 +1639,7 @@ def _extract_lines(G):
 
         sage: from sage.graphs.generators.distance_regular import _extract_lines
         sage: G = graphs.GeneralisedHexagonGraph(1, 8)
-        sage: lines = _extract_lines(G))
+        sage: lines = _extract_lines(G)
         sage: len(lines)
         657
         sage: type(lines)

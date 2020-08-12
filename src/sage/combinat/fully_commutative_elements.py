@@ -951,27 +951,39 @@ class FullyCommutativeElements(UniqueRepresentation, Parent):
         # infinite enumerated sets for Coxeter groups of Cartan types.
         category = EnumeratedSets() 
 
-        ctype = self._coxeter_group.coxeter_type()
-        try:
-            family, rank = ctype.type(), ctype.rank()
-        except AttributeError:
-            family, rank = None, None
+        coxeter_type = self._coxeter_group.coxeter_type()
 
-        if ctype.is_finite():
-            # Finite Coxeter groups are certainly FC-finite
-            category = category.Finite()
-        elif (family == 'F' and rank == 5) or (family == 'E' and rank == 9):
-            # Of the affine Coxeter groups only the groups affine `F_4` and
-            # affine `E_8` are FC-finite; they have rank 5 and rank 9 and
-            # correspond to the groups `F_5` and `E_9` in [Ste1996]_.
-            category = category.Finite()
-        elif family is not None and family != 'reducible':
-            # This covers all remaining affine types that are not the two above.
-            category = category.Infinite()
+        if not isinstance(coxeter_type, CoxeterMatrix):
+            # This case handles all finite or affine Coxeter types (or products thereof)
+            ctypes = [coxeter_type] if coxeter_type.is_irreducible() else coxeter_type.component_types()
+            
+            is_finite = True
+            # this type will be FC-finite if and only if each component type is:
+            for ctype in ctypes:
+                family, rank = ctype.type(), ctype.rank()
+                if ctype.is_finite():
+                    # Finite Coxeter groups are certainly FC-finite
+                    continue
+                elif (family == 'F' and rank == 5) or (family == 'E' and rank == 9):
+                    # Of the affine Coxeter groups only the groups affine `F_4` and
+                    # affine `E_8` are FC-finite; they have rank 5 and rank 9 and
+                    # correspond to the groups `F_5` and `E_9` in [Ste1996]_.
+                    continue
+                else:
+                    # ctype is an affine group that is not one of the two in the
+                    # previous case and is thus not FC-finite.
+                    is_finite = False
+                    break
+            
+            if is_finite:
+                category = category.Finite()
+            else:
+                category = category.Infinite()
         else:
-            # Specify no refinement for reducible types or indefinite types
-            # (Note that this includes  groups of the form E_n (n>9), F_n (n>5)
-            # and H_n (n>4) from [Ste1996]_ which are known to be FC-finite)
+            # coxeter_type is a plain CoxeterMatrix, i.e. it is an indefinite
+            # type, and we do not specify any refinement. (Note that this
+            # includes  groups of the form E_n (n>9), F_n (n>5) and H_n (n>4)
+            # from [Ste1996]_ which are known to be FC-finite).
             pass
 
         Parent.__init__(self, category=category)

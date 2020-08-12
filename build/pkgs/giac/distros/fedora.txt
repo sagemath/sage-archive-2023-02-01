@@ -1,1 +1,2 @@
 giac
+giac-devel

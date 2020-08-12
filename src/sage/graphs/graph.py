@@ -9361,6 +9361,83 @@ class Graph(GenericGraph):
         else:
           return len(P)
 
+    @doc_index("Basic methods")
+    def bipartite_double(self, extended=False):
+        r"""
+        Return the (extended) bipartite double of this graph.
+
+        The bipartite double of a graph `G` has vertices
+        `\{ (v,0), (v,1) : v \in G\}` and for any edge `(u, v)` in `G`
+        we have edges `((u,0),(v,1))` and `((u,1),(v,0))`.
+        Note that this is the tensor product of `G` with `K_2`.
+        See :
+
+        The extended bipartite double of `G` is the bipartite double of
+        `G` after added all edges `((v,0),(v,1))` for all vertices `v`.
+
+        INPUT:
+
+        - ``extended`` -- boolean (optional); if ``True`` return the extended
+          bipartite double, else the bipartite double. Default: ``False``.
+
+        OUTPUT:
+
+        A graph; ``self`` is left untouched.
+
+        EXAMPLES::
+
+            sage: G = graphs.PetersenGraph()
+            sage: H = G.bipartite_double()
+            sage: G == graphs.PetersenGraph()  # G is left invariant
+            True
+            sage: H.order() == 2 * G.order()
+            True
+            sage: H.size() == 2 * G.size()
+            True
+            sage: H.is_bipartite()
+            True
+            sage: H.bipartite_sets() == (set([(v, 0) for v in G]),
+            ....: set([(v, 1) for v in G]))
+            True
+
+        REFERENCES:
+
+        See :wikipedia:`Bipartite_double_cover` or
+        `WolframAlpha Bipartite Double
+        <https://mathworld.wolfram.com/BipartiteDoubleGraph.html>`_.
+        Also see [VDKT2016]_ p. 20 for the extended bipartite double.
+
+        TETS::
+
+            sage: G = graphs.PetersenGraph()
+            sage: H = G.bipartite_double(True)
+            sage: G == graphs.PetersenGraph()  # G is left invariant
+            True
+            sage: H.order() == 2 * G.order()
+            True
+            sage: H.size() == 2 * G.size() + G.order()
+            True
+            sage: H.is_bipartite()
+            True
+            sage: H.bipartite_sets() == (set([(v, 0) for v in G]),
+            ....: set([(v, 1) for v in G]))
+            True
+        """
+        from sage.graphs.generators.basic import CompleteGraph
+
+        G = self.tensor_product(CompleteGraph(2))
+
+        if extended:
+            for v in self:
+                v1 = (0, v)
+                v2 = (1, v)
+
+                G.add_edge((v1, v2))
+
+        prefix = "Extended " if extended else ""
+        G.name("%sBipartite Double of %s"%(prefix, self.name()))
+        return G
+
     # Aliases to functions defined in other modules
     from sage.graphs.weakly_chordal import is_long_hole_free, is_long_antihole_free, is_weakly_chordal
     from sage.graphs.asteroidal_triples import is_asteroidal_triple_free

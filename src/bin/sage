@@ -294,6 +294,8 @@ usage_advanced() {
     echo "                         .sage directory instead."
     echo "  --gthread, --qthread, --q4thread, --wthread, --pylab"
     echo "                      -- pass the option through to IPython"
+    echo "  --simple-prompt     -- pass the option through to IPython: use"
+    echo "                         this option with sage-shell mode in emacs"
     if [ -n "$SAGE_SRC" -a -d "$SAGE_SRC" ]; then
         echo "  --grep [options] <string>"
         echo "                      -- regular expression search through the Sage"
@@ -835,7 +837,16 @@ if [ "$1" = '-r' ]; then
     interactive_sage
 fi
 
-if [ "$1" = '-ba' -o "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
+if [ "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
+    echo
+    echo "WARNING: 'sage --ba-force' is deprecated; use 'sage -ba' instead."
+    echo
+    ( cd "$SAGE_ROOT/build/make" && make sagelib-clean )
+    build_sage
+    exit $?
+fi
+
+if [ "$1" = '-ba' ]; then
     ( cd "$SAGE_ROOT/build/make" && make sagelib-clean )
     build_sage
     exit $?
@@ -1036,7 +1047,7 @@ if [ "$1" = '-omega' -o "$1" = "--omega" ]; then
     exec sage-omega "$@"
 fi
 
-if [ "$1" = '-gthread' -o "$1" = '-qthread' -o "$1" = '-q4thread' -o "$1" = '-wthread' -o "$1" = '-pylab' ]; then
+if [ "$1" = '-gthread' -o "$1" = '-qthread' -o "$1" = '-q4thread' -o "$1" = '-wthread' -o "$1" = '-pylab' -o "$1" = '--simple-prompt' -o "$1" = '-simple-prompt' ]; then
     # Intentionally no "shift" here
     interactive_sage "$@"
 fi

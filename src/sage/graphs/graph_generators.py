@@ -112,6 +112,7 @@ __append_to_doc(
      "CoxeterGraph",
      "DesarguesGraph",
      "DejterGraph",
+     "distance_3_doubly_truncated_Golay_code_graph",
      "DoubleStarSnark",
      "DoublyTruncatedWittGraph",
      "DurerGraph",
@@ -153,10 +154,12 @@ __append_to_doc(
      "Klein3RegularGraph",
      "Klein7RegularGraph",
      "LargeWittGraph",
+     "LeonardGraph",
+     "LjubljanaGraph",
+     "LintSchrijverGraph",
+     "LivingstoneGraph",
      "locally_GQ42_distance_transitive_graph",
      "LocalMcLaughlinGraph",
-     "LjubljanaGraph",
-     "LivingstoneGraph",
      "M22Graph",
      "MarkstroemGraph",
      "MathonStronglyRegularGraph",
@@ -172,6 +175,8 @@ __append_to_doc(
      "PetersenGraph",
      "RobertsonGraph",
      "SchlaefliGraph",
+     "shortened_00_11_binary_Golay_code_graph",
+     "shortened_000_111_extended_binary_Golay_code_graph",
      "ShrikhandeGraph",
      "SimsGewirtzGraph",
      "SousselierGraph",
@@ -1943,6 +1948,7 @@ class GraphGenerators():
     CoxeterGraph             = staticmethod(smallgraphs.CoxeterGraph)
     DejterGraph              = staticmethod(smallgraphs.DejterGraph)
     DesarguesGraph           = staticmethod(smallgraphs.DesarguesGraph)
+    distance_3_doubly_truncated_Golay_code_graph = staticmethod(distance_regular.distance_3_doubly_truncated_Golay_code_graph)
     DoubleStarSnark          = staticmethod(smallgraphs.DoubleStarSnark)
     DoublyTruncatedWittGraph = staticmethod(distance_regular.DoublyTruncatedWittGraph)
     DurerGraph               = staticmethod(smallgraphs.DurerGraph)
@@ -1985,10 +1991,12 @@ class GraphGenerators():
     Klein3RegularGraph       = staticmethod(smallgraphs.Klein3RegularGraph)
     Klein7RegularGraph       = staticmethod(smallgraphs.Klein7RegularGraph)
     LargeWittGraph           = staticmethod(distance_regular.LargeWittGraph)
+    LeonardGraph             = staticmethod(distance_regular.LeonardGraph)
+    LjubljanaGraph           = staticmethod(smallgraphs.LjubljanaGraph)
+    LintSchrijverGraph       = staticmethod(distance_regular.LintSchrijverGraph)
+    LivingstoneGraph         = staticmethod(smallgraphs.LivingstoneGraph)
     locally_GQ42_distance_transitive_graph = staticmethod(distance_regular.locally_GQ42_distance_transitive_graph)
     LocalMcLaughlinGraph     = staticmethod(smallgraphs.LocalMcLaughlinGraph)
-    LjubljanaGraph           = staticmethod(smallgraphs.LjubljanaGraph)
-    LivingstoneGraph         = staticmethod(smallgraphs.LivingstoneGraph)
     M22Graph                 = staticmethod(smallgraphs.M22Graph)
     MarkstroemGraph          = staticmethod(smallgraphs.MarkstroemGraph)
     MathonStronglyRegularGraph = staticmethod(smallgraphs.MathonStronglyRegularGraph)
@@ -2004,6 +2012,8 @@ class GraphGenerators():
     PetersenGraph            = staticmethod(smallgraphs.PetersenGraph)
     RobertsonGraph           = staticmethod(smallgraphs.RobertsonGraph)
     SchlaefliGraph           = staticmethod(smallgraphs.SchlaefliGraph)
+    shortened_00_11_binary_Golay_code_graph = staticmethod(distance_regular.shortened_00_11_binary_Golay_code_graph)
+    shortened_000_111_extended_binary_Golay_code_graph = staticmethod(distance_regular.shortened_000_111_extended_binary_Golay_code_graph)
     ShrikhandeGraph          = staticmethod(smallgraphs.ShrikhandeGraph)
     SimsGewirtzGraph         = staticmethod(smallgraphs.SimsGewirtzGraph)
     SousselierGraph          = staticmethod(smallgraphs.SousselierGraph)

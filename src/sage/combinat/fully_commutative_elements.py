@@ -961,17 +961,12 @@ class FullyCommutativeElements(UniqueRepresentation, Parent):
             # this type will be FC-finite if and only if each component type is:
             for ctype in ctypes:
                 family, rank = ctype.type(), ctype.rank()
-                if ctype.is_finite():
-                    # Finite Coxeter groups are certainly FC-finite
-                    continue
-                elif (family == 'F' and rank == 5) or (family == 'E' and rank == 9):
+                # Finite Coxeter groups are certainly FC-finite.
                     # Of the affine Coxeter groups only the groups affine `F_4` and
                     # affine `E_8` are FC-finite; they have rank 5 and rank 9 and
                     # correspond to the groups `F_5` and `E_9` in [Ste1996]_.
-                    continue
-                else:
-                    # ctype is an affine group that is not one of the two in the
-                    # previous case and is thus not FC-finite.
+                if not (ctype.is_finite() or (family == 'F' and rank == 5) or (family == 'E' and rank == 9)):
+                    # Finite Coxeter groups are certainly FC-finite
                     is_finite = False
                     break
             

@@ -297,7 +297,7 @@ cdef class DenseGraph(CGraph):
 
         INPUT:
 
-        - ``u``, ``v`` -- non-negative integers
+        - ``u, v`` -- non-negative integers
 
         """
         cdef int place = (u * self.num_longs) + (v / radix)
@@ -314,7 +314,7 @@ cdef class DenseGraph(CGraph):
 
         INPUT:
 
-        - ``u``, ``v`` -- non-negative integers, must be in self
+        - ``u, v`` -- non-negative integers, must be in self
 
         OUTPUT:
             0 -- False
@@ -331,7 +331,7 @@ cdef class DenseGraph(CGraph):
 
         INPUT:
 
-        - ``u``, ``v`` -- non-negative integers, must be in self
+        - ``u, v`` -- non-negative integers, must be in self
 
         """
         cdef int place = (u * self.num_longs) + (v / radix)
@@ -578,7 +578,7 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         INPUT:
 
-        - ``u,v`` -- the vertices of the edge
+        - ``u, v`` -- the vertices of the edge
 
         - ``l`` -- the edge label (ignored)
 
@@ -656,7 +656,7 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         INPUT:
 
-        - ``u,v`` -- the vertices of the edge
+        - ``u, v`` -- the vertices of the edge
 
         - ``l`` -- the edge label (ignored)
 
@@ -706,7 +706,7 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         INPUT:
 
-        - ``u,v`` -- the vertices of the edge
+        - ``u, v`` -- the vertices of the edge
 
         EXAMPLES::
 
@@ -747,7 +747,7 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         INPUT:
 
-        - ``u,v`` -- the vertices of the edge
+        - ``u, v`` -- the vertices of the edge
 
         - ``l`` -- the edge label (ignored)
 
@@ -920,7 +920,7 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         INPUT:
 
-        - ``u,v`` -- the vertices of the edge
+        - ``u, v`` -- the vertices of the edge
 
         - ``l`` -- the edge label
 

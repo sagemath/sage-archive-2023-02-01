@@ -60,6 +60,32 @@ cdef lex_BFS_fast_short_digraph(short_digraph sd, uint32_t *sigma, uint32_t *pre
     arrays ``sigma`` and ``pred`` with respectively the ordering of the vertices
     and the predecessor in the traversal.
 
+    This algorithm uses the notion of *slices*, i.e., subsets of consecutive
+    vertices in the ordering, and iteratively refines the slices by subdividing
+    them into sub-slices to determine the exact position of the vertices in the
+    ordering.
+
+    Consider an ordering `\sigma` of the vertices. For a vertex `v`, we define
+    `N_i(v) = \{u | u \in N(v) \text{ and } \sigma(u) < i\}`, that is the subset
+    of neighbors of `v` appearing before the `i`-th vertex in the ordering
+    `\sigma`. Now, a slice of an ordering `\sigma` is a set of consecutive
+    vertices, `S = `{u | i \leq \sigma(u) \leq j\}`, such that for any `u \in
+    S`, we have `N_i(u) = N_i(\sigma^{-1}(i))` and for any `v` such that `j <
+    \sigma(v)`, `N_i(v) \neq N_i(\sigma^{-1}(i))`. The *head* of a slice is the
+    first position of its vertices.
+
+    The algorithm starts with a single slice containing all vertices. Then, when
+    the position of the `i`-th vertex `v` is fixed, it explores the neighbors of
+    `v` that have not yet been ordered. Consider a slice `S` such that `N(x)\cap
+    S \neq \emptyset`. The algorithm will rearrange the ordering of the vertices
+    in `S` so that the first vertices are the neighbors of `v`. The sub-slice
+    containing the neighbors of `v` is assigned a new slice name, and the head
+    of slice `S` is set to the position of the first vertex of `S \setminus
+    N(v)` in the ordering `\sigma`.
+
+    Observe that each arc of the graph can induce the subdivision of a
+    slice. Hence, the algorithm can use up to `m + 1` different slices.
+
     INPUT:
 
     - ``sd`` -- a ``short_digraph``
@@ -82,16 +108,20 @@ cdef lex_BFS_fast_short_digraph(short_digraph sd, uint32_t *sigma, uint32_t *pre
         [1, 2, 3, 5, 4, 6]
     """
     cdef uint32_t n = sd.n
+    cdef uint32_t n_slice = sd.m + 1
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef uint32_t *slice_of = <uint32_t *>mem.allocarray(n, 4 * sizeof(uint32_t))
-    cdef uint32_t *slice_head = slice_of + n
-    cdef uint32_t *subslice = slice_of + 2 * n
-    cdef uint32_t *sigma_inv = slice_of + 3 * n
+    cdef uint32_t *sigma_inv = <uint32_t *>mem.allocarray(n, sizeof(uint32_t))
+    cdef uint32_t *slice_of = <uint32_t *>mem.allocarray(n, sizeof(uint32_t))
+    cdef uint32_t *slice_head = <uint32_t *>mem.allocarray(n_slice, sizeof(uint32_t))
+    cdef uint32_t *subslice = <uint32_t *>mem.allocarray(n_slice, sizeof(uint32_t))
     cdef uint32_t i, j, k, l, a, old_k, v
     cdef int wi
 
     # Initialize slices (slice_of, slice_head, subslice) to 0
-    memset(slice_of, 0, 3 * n * sizeof(uint32_t))
+    memset(slice_of, 0, n * sizeof(uint32_t))
+    slice_head[0] = 0
+    subslice[0] = 0
+
     # Initialize the position of vertices in sigma
     for i in range(n):
         sigma[i] = i
@@ -118,10 +148,7 @@ cdef lex_BFS_fast_short_digraph(short_digraph sd, uint32_t *sigma, uint32_t *pre
 
             # Get the position of the head of the slice
             l = slice_head[a]
-            if l < n - 1:
-                if slice_of[l + 1] != a:
-                    # The next position starts another slice
-                    continue
+            if l < n - 1 and slice_of[l + 1] == a:
                 if l != j:
                     # Place w at the position of the head of the slice
                     u = sigma[l]
@@ -129,11 +156,12 @@ cdef lex_BFS_fast_short_digraph(short_digraph sd, uint32_t *sigma, uint32_t *pre
                     sigma[j], sigma[l] = u, w
                     j = l
                 slice_head[a] += 1
-                if subslice[a] < old_k:
-                    # Form a new slice
-                    subslice[a] = k
-                    slice_head[k] = j
-                    k += 1
+            if subslice[a] < old_k:
+                # Form a new slice
+                subslice[a] = k
+                slice_head[k] = j
+                subslice[k] = 0
+                k += 1
 
             # Finally, we update the name of the slice for position j and set v
             # as predecessor of w

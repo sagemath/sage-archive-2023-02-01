@@ -984,7 +984,6 @@ class FullyCommutativeElements(UniqueRepresentation, Parent):
                 # affine `E_8` are FC-finite; they have rank 5 and rank 9 and
                 # correspond to the groups `F_5` and `E_9` in [Ste1996]_.
                 if not (ctype.is_finite() or (family == 'F' and rank == 5) or (family == 'E' and rank == 9)):
-                    # Finite Coxeter groups are certainly FC-finite
                     is_finite = False
                     break
             

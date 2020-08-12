@@ -680,7 +680,7 @@ def AlternatingFormsGraph(const int n, const int q):
     r"""
     Return the alternating forms graph with the given parameters.
 
-    This construct a graph whose vertices are all ``n``x``n`` skew symmetric
+    This construct a graph whose vertices are all ``n``x``n`` skew-symmetric
     matrices over ``GF(q)`` with zero diagonal. Two vertices are adjecent
     if and only if the difference of the tow matrices has rank 2.
 
@@ -694,7 +694,7 @@ def AlternatingFormsGraph(const int n, const int q):
 
     EXAMPLES::
 
-        sage: G = graphs.AlternatingFormsGraph(5,2)
+        sage: G = graphs.AlternatingFormsGraph(5,2)  # long time (5 min) optional - meataxe
         sage: G.is_distance_regular(True)
         ([155, 112, None], [None, 1, 20])
 
@@ -710,25 +710,46 @@ def AlternatingFormsGraph(const int n, const int q):
 
     TESTS::
 
-         sage: G = graphs.AlternatingFormsGraph(6,2)  # long time (8 min);  optional - meataxe
-         sage: G.order()  # long time; optional - meataxe (because of above) 
+         sage: G = graphs.AlternatingFormsGraph(6,2)  # long time (> 30 min) optional - meataxe
+         sage: G.order()  # long time (because of above)
          32768
-         sage: G.is_distance_regular(True)  # long time (33 min) optional - meataxe
+         sage: G.is_distance_regular(True)  # long time (33 min)  optional - meataxe
          ([651, 560, 256, None], [None, 1, 20, 336])
-         sage: G = graphs.AlternatingFormsGraph(4,2) # optional - meataxe
-         sage: G.is_distance_regular(True) # optional - meataxe; due to above
+         sage: G = graphs.AlternatingFormsGraph(4,2)  # optional - meataxe
+         sage: G.is_distance_regular(True)
          ([35, 16, None], [None, 1, 20])
     """
-    from sage.matrix.matrix_space import MatrixSpace
+    def build_matrix(v):
+        # v represents upper triangular entries
+        # w represents lower triangular entries
+        v = list(v)
+        w = list(map(lambda x: -x, v))
 
-    def symmetry(x):
-        return -x
+        mat = []  # our matrix
 
-    def diagonal(x):
-        return 0
+        # number entries used from v/w
+        used_v = 0
+        used_w = 0
 
-    matrices = MatrixSpace(GF(q), n, n, implementation="meataxe")
-    skewSymmetricMatrices = matrices.symmetric_matrices(symmetry, diagonal)
+        row_constructed = 0
+        while row_constructed < n:
+            sig_check()
+            row = (w[used_w : used_w + row_constructed] + [0] +
+                   v[used_v : used_v + (n - 1 - row_constructed)])
+            mat.append(row)
+
+            used_w += row_constructed
+            used_v += n - 1 - row_constructed
+            row_constructed += 1
+
+        return Matrix(GF(q), mat, immutable=True, implementation="meataxe")
+
+    # n x n zero-diagonal skew-symmetric matrix
+    # can be represented by the upper triangular entries
+    # there are n*(n+1) // 2 of them
+    size = (n * (n+1)) // 2
+    V = VectorSpace(GF(q), size)
+    skewSymmetricMatrices = [build_matrix(v) for v in V]
 
     rank2Matrices = []
     for mat in skewSymmetricMatrices:
@@ -736,13 +757,9 @@ def AlternatingFormsGraph(const int n, const int q):
         if mat.rank() == 2:
             rank2Matrices.append(mat)
 
-    # refresh iterator
-    skewSymmetricMatrices = matrices.symmetric_matrices(symmetry, diagonal)
-
     # now we have all matrices of rank 2
     edges = []
     for m1 in skewSymmetricMatrices:
-        m1.set_immutable()
         for m2 in rank2Matrices:
             sig_check()
             m3 = m1 + m2
@@ -772,18 +789,17 @@ def HermitianFormsGraph(const int n, const int q):
     EXAMPLES::
 
         sage: G = graphs.HermitianFormsGraph(2,4)  # optional - meataxe
-        sage: G.is_distance_regular(True)  # optional - meataxe; due to above
+        sage: G.is_distance_regular(True)
         ([5, 4, None], [None, 1, 2])
-        sage: G = graphs.HermitianFormsGraph(3,9)  # long time (30 s) optional - meataxe
-        sage: G.order()  # long time optional - meataxe (bacuase of the above)
+        sage: G = graphs.HermitianFormsGraph(3,9)  # long time (> 10 min)  optional - meataxe
+        sage: G.order()  # long time (bacuase of the above)
         19683
 
     .. NOTE::
 
         If ``q`` does not satisfy the requirements, then this function
-        will raise a ``ValueError``.
-        This function needs the additional package MeatAxe.
-        Install it with ``sage -i meataxe``.
+        will raise a ``ValueError``. This function needs the additional 
+        package MeatAxe. Install it with ``sage -i meataxe``.
 
     REFERENCES:
 
@@ -791,30 +807,55 @@ def HermitianFormsGraph(const int n, const int q):
 
     TESTS::
 
-         sage: G = graphs.HermitianFormsGraph(3,4)  # optional - meataxe
-         sage: G.is_distance_regular(True)  # optional - meataxe; due to above
+         sage: G = graphs.HermitianFormsGraph(3,4) # long time (5 min)  optional - meataxe
+         sage: G.is_distance_regular(True)
          ([21, 20, 16, None], [None, 1, 2, 12])
-         sage: G = graphs.HermitianFormsGraph(2,9)  # optional - meataxe
-         sage: G.is_distance_regular(True)  # optional - meataxe; due to above
+         sage: G = graphs.HermitianFormsGraph(2,9) # long time (50 s)  optional - meataxe
+         sage: G.is_distance_regular(True)
          ([20, 18, None], [None, 1, 6])
     """
-    from sage.matrix.matrix_space import MatrixSpace
     from sage.arith.misc import is_prime_power
 
     b, k = is_prime_power(q, get_data=True)
     if k == 0 or k % 2 != 0:
         raise ValueError("We need q=r^2 where r is a prime power")
 
-    MS = MatrixSpace(GF(q), n, n, implementation="meataxe")
-
     # here we have b^k = q, b is prime and k is even
     r = b**(k//2)
     # so r^2 = b^k = q
 
-    def symmetry(x):
-        return x**r
+    def build_matrix(v, d):
+        # v represents upper triangular entries
+        # d represents the diagonal entries
+        # w represents lower triangular entries
+        v = list(v)
+        d = list(d)
+        w = list(map(lambda x: x**r, v))
 
-    hermitianMatrices = MS.symmetric_matrices(symmetry)
+        mat = []  # our matrix
+
+        # number entries used from v/w
+        used_v = 0
+        used_w = 0
+
+        row_constructed = 0
+        while row_constructed < n:
+            sig_check()
+            row = (w[used_w : used_w + row_constructed] + [d[row_constructed]] +
+                   v[used_v : used_v + (n - 1 - row_constructed)])
+            mat.append(row)
+
+            used_w += row_constructed
+            used_v += n - 1 - row_constructed
+            row_constructed += 1
+
+        return Matrix(GF(q), mat, immutable=True, implementation="meataxe")
+
+
+    size = (n * (n+1)) // 2
+    V = VectorSpace(GF(q), size)  # upper triangular entries
+    D = VectorSpace(GF(r), n)  # diagonal entries
+    hermitianMatrices = [build_matrix(v, d) for v in V for d in D]
 
     rank1Matrices = []
     for mat in hermitianMatrices:
@@ -822,11 +863,8 @@ def HermitianFormsGraph(const int n, const int q):
         if mat.rank() == 1:
             rank1Matrices.append(mat)
 
-    # refresh generator
-    hermitianMatrices = MS.symmetric_matrices(symmetry)
     edges = []
     for mat in hermitianMatrices:
-        mat.set_immutable()
         for mat2 in rank1Matrices:
             sig_check()
             mat3 = mat + mat2

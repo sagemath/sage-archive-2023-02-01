@@ -240,6 +240,9 @@ __append_to_doc(
      "FurerGadget",
      "fusenes",
      "FuzzyBallGraph",
+     "GeneralisedDodecagonGraph",
+     "GeneralisedHexagonGraph",
+     "GeneralisedOctagonGraph",
      "GeneralizedPetersenGraph",
      "GoethalsSeidelGraph",
      "GrassmannGraph",
@@ -2078,6 +2081,9 @@ class GraphGenerators():
     FriendshipGraph        = staticmethod(families.FriendshipGraph)
     FurerGadget            = staticmethod(families.FurerGadget)
     FuzzyBallGraph         = staticmethod(families.FuzzyBallGraph)
+    GeneralisedDodecagonGraph = staticmethod(distance_regular.GeneralisedDodecagonGraph)
+    GeneralisedHexagonGraph = staticmethod(distance_regular.GeneralisedHexagonGraph)
+    GeneralisedOctagonGraph = staticmethod(distance_regular.GeneralisedOctagonGraph)
     GeneralizedPetersenGraph = staticmethod(families.GeneralizedPetersenGraph)
     GoethalsSeidelGraph    = staticmethod(families.GoethalsSeidelGraph)
     GrassmannGraph         = staticmethod(distance_regular.GrassmannGraph)

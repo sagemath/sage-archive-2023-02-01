@@ -1257,3 +1257,486 @@ def graph_from_GQ_spread(const int s, const int t):
 
     G = Graph(edges, format="list_of_edges")
     return G
+
+def GeneralisedDodecagonGraph(const int s, const int t):
+    r"""
+    Return the point-graph of a generalised dodecagon of order `(s,t)`.
+
+    INPUT:
+
+    - ``s, t`` -- integers; order of the generalised dodecagon
+
+    EXAMPLES::
+
+        sage: G = graphs.GeneralisedDodecagonGraph(1, 5)  # optional - gap_packages internet
+        sage: G.is_distance_regular(True)  # optional - gap_packages internet
+        ([6, 5, 5, 5, 5, 5, None], [None, 1, 1, 1, 1, 1, 6])
+        sage: H = graphs.GeneralisedDodecagonGraph(5, 1)  # optional - gap_packages internet
+        sage: H.order()  # optional - gap_packages internet
+        23436
+        sage: H.is_distance_regular(True) # long time (6 min); optional - gap_packages internet
+        ([10, 5, 5, 5, 5, 5, None], [None, 1, 1, 1, 1, 1, 2])
+
+    .. NOTE::
+
+        This function indirectly uses the GAP's AtlasRep package.
+        Thus you may need an internet connection and the optional Sage's
+        package ``gap_packages``.
+
+    REFERENCES:
+
+    See [BCN1989]_ pp. 200-205 for a discussion of distance-regular graphs from
+    generalised polygons.
+
+    TESTS:
+
+    Test all graphs of order `(1, q)`::
+
+        sage: G = graphs.GeneralisedDodecagonGraph(1, 4)  # optional - gap_packages internet
+        sage: G.is_distance_regular(True)  # optional - gap_packages internet
+        ([5, 4, 4, 4, 4, 4, None], [None, 1, 1, 1, 1, 1, 5])
+        sage: G = graphs.GeneralisedDodecagonGraph(1, 3)  # optional - gap_packages internet
+        sage: G.is_distance_regular(True)  # optional - gap_packages internet
+        ([4, 3, 3, 3, 3, 3, None], [None, 1, 1, 1, 1, 1, 4])
+        sage: G = graphs.GeneralisedDodecagonGraph(1, 2)  # optional - gap_packages internet
+        sage: G.is_distance_regular(True)  # optional - gap_packages internet
+        (3, 2, 2, 2, 2, 2, None], [None, 1, 1, 1, 1, 1, 3])
+        sage: G = graphs.GeneralisedDodecagonGraph(1, 1)  # optional - gap_packages internet
+        sage: G.is_distance_regular(True)  # optional - gap_packages internet
+        (2, 1, 1, 1, 1, 1, None], [None, 1, 1, 1, 1, 1, 2])
+
+    Now test all graphs of order `(q, 1)`::
+
+        sage: G = graphs.GeneralisedDodecagonGraph(4, 1)  # optional - gap_packages internet
+        sage: G.is_distance_regular(True)  # optional - gap_packages internet
+        ([8, 4, 4, 4, 4, 4, None], [None, 1, 1, 1, 1, 1, 2])
+        sage: G = graphs.GeneralisedDodecagonGraph(3, 1)  # optional - gap_packages internet
+        sage: G.is_distance_regular(True)  # optional - gap_packages internet
+        ([6, 3, 3, 3, 3, 3, None], [None, 1, 1, 1, 1, 1, 2])
+        sage: G = graphs.GeneralisedDodecagonGraph(3, 1)  # optional - gap_packages internet
+        sage: G.is_distance_regular(True)  # optional - gap_packages internet
+        ([4, 2, 2, 2, 2, 2, None], [None, 1, 1, 1, 1, 1, 2])
+
+    """
+    from sage.arith.misc import is_prime_power
+
+    cdef int q = 0
+    cdef int orderType = 0
+
+    # decide the type of graph
+    if s == 1:  # (1, q)
+        q = t
+    elif t == 1:  # (q, 1)
+        q = s
+        orderType = 1
+    else:
+        raise ValueError(f"No generalised dodacagon of order ({s}, {t}) exists")
+
+    if q == 1:  # order (1, 1)
+        from sage.graphs.generators.basic import CycleGraph
+        return CycleGraph(12)
+
+    if not is_prime_power(q):
+        raise ValueError(f"No generalised dodacagon of order ({s}, {t}) exists")
+
+    if orderType == 0:
+        # incidence graph of hexagon (q,q)
+        H = GeneralisedHexagonGraph(q, q)
+        lines = _extract_lines(H)
+
+        edges = []
+        for l in lines:
+            for p in l:
+                sig_check()
+                edges.append((p, l))
+
+        G = Graph(edges, format='list_of_edges')
+        G.name("Generalised dodecagon of order (1, %d)"%q)
+        return G
+
+    else:  # orderType == 1
+        # dual
+        H = GeneralisedDodecagonGraph(t, s)
+        G = _line_graph_generalised_polygon(H)
+        G.name("Generalised dodecagon of order (%s, %d)"%(s, t))
+        return G
+
+def GeneralisedOctagonGraph(const int s, const int t):
+    r"""
+    Return the point-graph of a generalised octagon of order `(s,t)`.
+
+    INPUT:
+
+    - ``s, t`` -- integers; order of the generalised octagon
+
+    EXAMPLES::
+
+         sage: G = graphs.GeneralisedOctagonGraph(1, 4)
+         sage: G.is_distance_regular(True)
+         ([5, 4, 4, 4, None], [None, 1, 1, 1, 5])
+         sage: G = graphs.GeneralisedOctagonGraph(2, 4)  # optional - gap_packages internet
+         sage: G.is_distance_regular(True)  # optional - gap_packages internet
+         ([10, 8, 8, 8, None], [None, 1, 1, 1, 5])
+         sage: G = graphs.GeneralisedOctagonGraph(5, 1)
+         sage: G.is_distance_regular(True)
+         ([10, 5, 5, 5, None], [None, 1, 1, 1, 2])
+
+    .. NOTE::
+
+        This function uses the GAP's AtlasRep package to build the graphs
+        of order `(2, 4)` or `(4, 2)`. For those graphs you need an internet
+        connection and Sage's optional package ``gap_packages``.
+
+    REFERENCES:
+
+    See [BCN1989]_ pp. 200-205 for a discussion of distance-regular graphs from
+    generalised polygons.
+
+    TESTS::
+
+        sage: G = graphs.GeneralisedOctagonGraph(8, 16)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Graph would be too big
+        sage: G = graphs.GeneralisedOctagonGraph(4, 16)
+        Traceback (most recent call last):
+        ...
+        ValueError: generalised octagons of order (q, q^2) exist only for q odd powers of 2
+
+    """
+    from sage.arith.misc import is_prime_power
+    from sage.libs.gap.libgap import libgap
+    from sage.graphs.strongly_regular_db import strongly_regular_graph
+
+    cdef int q = 0
+    cdef int orderType = 0
+
+    if s == 1:  # (1, q)
+        q = t
+    elif t == 1:  # (q, 1)
+        q = s
+        orderType = 1
+    elif s**2 ==  t:  # (q, q^2)
+        q = s
+        (p, k) = is_prime_power(q, get_data=True)
+
+        if p != 2 or k % 2 != 1:
+            raise ValueError(("generalised octagons of order (q, q^2) "
+                              "exist only for q odd powers of 2"))
+        orderType = 2
+    elif t**2 == s:  # (q^2, q)
+        q = t
+        orderType = 1
+    else:
+        raise ValueError(f"No generalised octagon of order ({s}, {t}) exists")
+
+    if q == 1:  # order (1, 1)
+        from sage.graphs.generators.basic import CycleGraph
+        return CycleGraph(8)
+
+    if not is_prime_power(q):
+        raise ValueError(f"No generalised octagon of order ({s}, {t}) exists")
+
+    if orderType == 0:
+        # incidence graph of generalised quadrangle (q, q)
+
+        H = strongly_regular_graph((q+1) * (q*q + 1), q * (q+1), q - 1, q + 1,
+                                   check=False)
+
+        lines = _extract_lines(H)
+
+        edges = []
+        for l in lines:
+            for p in l:
+                sig_check()
+                edges.append((p, l))
+
+        G = Graph(edges, format='list_of_edges')
+        G.name("Generalised octagon of order (1, %d)"%q)
+        return G
+
+    elif orderType == 1:
+        # dual
+        H = GeneralisedOctagonGraph(t,s)
+        G = _line_graph_generalised_polygon(H)
+        G.name("Generalised octagon of order(%d, %d)"%(s, t))
+        return G
+    else:
+        if q == 2:
+            group = libgap.AtlasGroup("2F4(2)", libgap.NrMovedPoints, 1755)
+            G = Graph(libgap.Orbit(group, [1, 73], libgap.OnSets),
+                      format='list_of_edges')
+            G.name("Generalised octagon of order (2, 4)")
+            return G
+        else:
+            raise NotImplementedError("Graph would be too big")
+
+
+def GeneralisedHexagonGraph(const int s, const int t):
+    r"""
+    Return the point-graph of a generalised octagon of order `(s,t)`.
+
+    INPUT:
+
+    - ``s, t`` -- integers; order of the generalised octagon
+
+    EXAMPLES::
+
+        sage: G = graphs.GeneralisedHexagonGraph(5, 5)  # optional - gap_packages internet
+        sage: G.is_distance_regular(True)  # optional - gap_packages internet
+        ([30, 25, 25, None], [None, 1, 1, 6])
+        sage: G = graphs.GeneralisedHexagonGraph(7, 1)
+        sage: G.is_distance_regular(True)
+        ([14, 7, 7, None], [None, 1, 1, 2])
+        sage: graphs.GeneralisedHexagonGraph(1, 1)
+        Cycle graph: Graph on 6 vertices
+
+    .. NOTE::
+
+        This function uses the GAP's AtlasRep package to build the graphs
+        of order `(q, q)`, `(q, q^3)` or `(q^3, q)`. For those graphs you need
+        an internet connection and Sage's optional package ``gap_packages``.
+
+    REFERENCES:
+
+    See [BCN1989]_ pp. 200-205 for a discussion of distance-regular graphs from
+    generalised polygons.
+
+    TESTS::
+
+        sage: G = graphs.GeneralisedHexagonGraph(4, 4)  # optional - gap_packages internet
+        sage: G.is_distance_regular(True)  # optional - gap_packages internet
+        ([20, 16, 16, None], [None, 1, 1, 5])
+        sage: G = graphs.GeneralisedHexagonGraph(3, 3)  # optional - gap_packages internet
+        sage: G.is_distance_regular(True)  # optional - gap_packages internet
+        ([12, 9, 9, None], [None, 1, 1, 4])
+        sage: G = graphs.GeneralisedHexagonGraph(2, 2)  # optional - gap_packages internet
+        sage: G.is_distance_regular(True)  # optional - gap_packages internet
+        ([6, 4, 4, None], [None, 1, 1, 3])
+        sage: G = graphs.GeneralisedHexagonGraph(2, 8)  # optional - gap_packages internet
+        sage: G.is_distance_regular(True)  # optional - gap_packages internet
+        ([18, 16, 16, None], [None, 1, 1, 9])
+
+    """
+    from sage.arith.misc import is_prime_power
+    from sage.libs.gap.libgap import libgap
+    from sage.combinat.designs import design_catalog as designs
+
+    cdef int q = 0
+    cdef int orderType = 0
+
+    if s == 1:  # (1, q)
+        q = t
+    elif t == 1:  # (q, 1)
+        q = s
+        orderType = 1
+    elif s == t:  # (q, q)
+        q = s
+        orderType = 2
+    elif s**3 == t:  # (q, q^3)
+        q = s
+        orderType = 3
+    elif t**3 == s:  # (q^3, q)
+        q = t
+        orderType = 1
+    else:
+        raise ValueError(f"No generalised octagon of order ({s}, {t}) exists")
+
+    if q == 1:  # order (1, 1)
+        from sage.graphs.generators.basic import CycleGraph
+        return CycleGraph(6)
+
+    if not is_prime_power(q):
+        raise ValueError(f"No generalised octagon of order ({s}, {t}) exists")
+
+    if orderType == 0:
+        # incident graph of generalised 3-gon of order (q, q)
+        PG2 = designs.ProjectiveGeometryDesign(2,1,q)
+
+        edges = []
+        for l in PG2.blocks():
+            for p in l:
+                sig_check()
+                edges.append((p, tuple(l)))
+
+        G = Graph(edges, format='list_of_edges')
+        G.name("Generalised hexagon of order (1, %d)"%q)
+        return G
+
+    elif orderType == 1:
+        # dual graph
+        H = GeneralisedHexagonGraph(t, s)
+        G = _line_graph_generalised_polygon(H)
+        G.name("Generalised hexagon of order(%d, %d)"%(s, t))
+        return G
+
+    elif orderType == 2:
+        # we use the group G2(q)
+        # if q == 2, then G2(2) is isomorphic to U3(3).2
+        if q == 2:
+            group = libgap.AtlasGroup("U3(3).2", libgap.NrMovedPoints, 63)
+            G = Graph(libgap.Orbit(group, [1, 19], libgap.OnSets),
+                      format='list_of_edges')
+            G.name("Generalised hexagon of order (%d, %d)"%(q, q))
+            return G
+
+        elif q == 3:  # we don't have permutation representation; so we build it
+            matrixRep = libgap.AtlasGroup("G2(3)", libgap.Position, 7)
+            e1 = vector(GF(3), [1, 0, 0, 0, 0, 0, 0])
+            orb = libgap.Orbit(matrixRep, e1, libgap.OnLines)
+            group = libgap.Action(matrixRep, orb, libgap.OnLines)
+
+            # now group is our permutation representation
+            G = Graph(libgap.Orbit(group, [1, 52], libgap.OnSets),
+                      format='list_of_edges')
+            G.name("Generealised hexagon of order (%d, %d)"%(q, q))
+            return G
+
+        elif q <= 5:
+            n = 1365 if q == 4 else 3906
+            p = 43 if q == 4 else 185
+            group = libgap.AtlasGroup("G2(%d)"%q, libgap.NrMovedPoints, n)
+
+            G = Graph(libgap.Orbit(group, [1, p], libgap.OnSets),
+                      format='list_of_edges')
+            G.name("Generalised hexagon of order (%d, %d)"%(q, q))
+            return G
+
+        else:
+            raise NotImplementedError("Graph would be too big")
+
+    elif orderType == 3:
+        if q > 3:
+            raise NotImplementedError("Graph would be too big")
+
+        movedPoints = 819 if q==2 else 26572
+        group = libgap.AtlasGroup("3D4(%d)"%q, libgap.NrMovedPoints, movedPoints)
+
+        G = Graph(libgap.Orbit(group, [1, 2],libgap.OnSets),
+                  format='list_of_edges')
+        G.name("Generalised hexagon of order (%d, %d)"%(q, q**3))
+        return G
+
+def _extract_lines(G):
+    r"""
+    Return the set of lines from the point-graph of a generalised polygon.
+
+    In particular, given a graph `G` we return the set of singular lines:
+    Let `(x,y)` be an edge, then `\{x,y\}^\bot^\bot` is a singular line.
+    We define `x^\bot =` neighbours of `x` and `x` for `x` a vertex and
+    `S^\bot =` intersection of `x^\bot` for all `x \in S`.
+
+    INPUT:
+
+    - ``G`` -- a graph
+
+    OUTPUT:
+
+    A list of tuples where each tuple represent a line through the vertices
+    contained in that line.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.distance_regular import _extract_lines
+        sage: G = graphs.GeneralisedHexagonGraph(1, 8)
+        sage: lines = _extract_lines(G))
+        sage: len(lines)
+        657
+        sage: type(lines)
+        <class 'list'>
+        sage: line = lines[0]
+        sage: type(line)
+        <class 'tuple'>
+        sage: line[0] in G  # elements in line are vertices
+        True
+
+    REFERENCES:
+
+    See [BCN1989]_ pp. 200-205 for a discussion of distance-regular graphs from
+    generalised polygons. See also [BCN1989]_ pp. 28, 29 for some theory about
+    singular lines.
+    """
+
+    lines = []
+    edges = set(G.edges(labels=False, sort=False))
+
+    while edges :
+        (x, y) = edges.pop()
+
+        #compute line
+        botX = set(G.neighbors(x, closed=True))
+        botY = set(G.neighbors(y, closed=True))
+        bot1 = botX.intersection(botY)
+
+        b = bot1.pop()
+        bot2 = frozenset(G.neighbors(b, closed=True))
+        for v in bot1:
+            sig_check()
+            s = frozenset(G.neighbors(v, closed=True))
+            bot2 = bot2.intersection(s)
+
+        # now bot2 is a line
+        lines.append(tuple(bot2))  # we need tuple or GAP will complain later
+
+        # remove already handled edges
+        for u, v in itertools.product(bot2, repeat=2):
+            try :
+                edges.remove((u, v))
+            except KeyError:
+                pass  # ignore this
+    #end while edges
+
+    return lines
+
+def _line_graph_generalised_polygon(H):
+    r"""
+    Return the line-graph of the generalised polygon whose point-graph is `H`.
+
+    In particular, return the line-graph of the incidence structure defined
+    by the singular lines of the graph `H`.
+
+    See also :func:`sage.graphs.generators.distance_regular._extract_lines`.
+
+    INPUT:
+
+    - ``H`` -- a graph
+
+    EXAMPLES::
+
+         sage: from sage.graphs.generators.distance_regular import \
+         ....: _line_graph_generalised_polygon
+         sage: G = graphs.GeneralisedHexagonGraph(1, 8)
+         sage: H = _line_graph_generalised_polygon(G)
+         sage: H.is_distance_regular(True)
+         ([16, 8, 8, None], [None, 1, 1, 2])
+         sage: G = graphs.GeneralisedHexagonGraph(3, 3)
+         sage: H = _line_graph_generalised_polygon(G)
+         sage: G.is_isomorphic(H)
+         True
+
+    REFERENCES:
+
+    See [BCN1989]_ pp. 200-205 for a discussion of distance-regular graphs from
+    generalised polygons. See also [BCN1989]_ pp. 28, 29 for some theory about
+    singular lines.
+    """
+    lines = _extract_lines(H)
+
+    # get a map (point -> all lines incident to point)
+    vToLines = {v: [] for v in H}
+    for l in lines:
+        for p in l:
+            sig_check()
+            vToLines[p].append(l)
+
+    k = len(vToLines[lines[0][0]])
+
+    edges = []
+    for v in vToLines:
+        lines = vToLines[v]
+        for l1, l2 in itertools.combinations(lines, 2):
+            sig_check()
+            edges.append((l1, l2))
+
+    G = Graph(edges, format="list_of_edges")
+    return G

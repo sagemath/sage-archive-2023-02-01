@@ -695,7 +695,7 @@ def AlternatingFormsGraph(const int n, const int q):
     EXAMPLES::
 
         sage: G = graphs.AlternatingFormsGraph(5,2)  # long time (5 min) optional - meataxe
-        sage: G.is_distance_regular(True)
+        sage: G.is_distance_regular(True) # long time; optional - meataxe (due to above)
         ([155, 112, None], [None, 1, 20])
 
     .. NOTE::
@@ -711,36 +711,38 @@ def AlternatingFormsGraph(const int n, const int q):
     TESTS::
 
          sage: G = graphs.AlternatingFormsGraph(6,2)  # long time (> 30 min) optional - meataxe
-         sage: G.order()  # long time (because of above)
+         sage: G.order()  # long time optional - meataxe (because of above)
          32768
          sage: G.is_distance_regular(True)  # long time (33 min)  optional - meataxe
          ([651, 560, 256, None], [None, 1, 20, 336])
          sage: G = graphs.AlternatingFormsGraph(4,2)  # optional - meataxe
-         sage: G.is_distance_regular(True)
+         sage: G.is_distance_regular(True) # optional - meataxe
          ([35, 16, None], [None, 1, 20])
     """
     def build_matrix(v):
         # v represents upper triangular entries
-        # w represents lower triangular entries
         v = list(v)
-        w = list(map(lambda x: -x, v))
 
         mat = []  # our matrix
 
-        # number entries used from v/w
+        # number entries used from v
         used_v = 0
-        used_w = 0
 
         row_constructed = 0
+        zeros = [0] * (n-1)
         while row_constructed < n:
             sig_check()
-            row = (w[used_w : used_w + row_constructed] + [0] +
+            row = (zeros[:row_constructed] + [0] +
                    v[used_v : used_v + (n - 1 - row_constructed)])
             mat.append(row)
 
-            used_w += row_constructed
             used_v += n - 1 - row_constructed
             row_constructed += 1
+
+        # fix lower diagonal
+        for r in range(n):
+            for c in range(r):
+                mat[r][c] = - mat[c][r]
 
         return Matrix(GF(q), mat, immutable=True, implementation="meataxe")
 
@@ -789,7 +791,7 @@ def HermitianFormsGraph(const int n, const int q):
     EXAMPLES::
 
         sage: G = graphs.HermitianFormsGraph(2,4)  # optional - meataxe
-        sage: G.is_distance_regular(True)
+        sage: G.is_distance_regular(True) # optional - meataxe
         ([5, 4, None], [None, 1, 2])
         sage: G = graphs.HermitianFormsGraph(3,9)  # long time (> 10 min)  optional - meataxe
         sage: G.order()  # long time (bacuase of the above)
@@ -808,10 +810,10 @@ def HermitianFormsGraph(const int n, const int q):
     TESTS::
 
          sage: G = graphs.HermitianFormsGraph(3,4) # long time (5 min)  optional - meataxe
-         sage: G.is_distance_regular(True)
+         sage: G.is_distance_regular(True) # long time optional - meataxe; due to above
          ([21, 20, 16, None], [None, 1, 2, 12])
-         sage: G = graphs.HermitianFormsGraph(2,9) # long time (50 s)  optional - meataxe
-         sage: G.is_distance_regular(True)
+         sage: G = graphs.HermitianFormsGraph(2,9) # optional - meataxe
+         sage: G.is_distance_regular(True) # optional - meataxe; due to above
          ([20, 18, None], [None, 1, 6])
     """
     from sage.arith.misc import is_prime_power
@@ -827,27 +829,29 @@ def HermitianFormsGraph(const int n, const int q):
     def build_matrix(v, d):
         # v represents upper triangular entries
         # d represents the diagonal entries
-        # w represents lower triangular entries
         v = list(v)
         d = list(d)
-        w = list(map(lambda x: x**r, v))
 
         mat = []  # our matrix
 
-        # number entries used from v/w
+        # number entries used from v
         used_v = 0
-        used_w = 0
 
         row_constructed = 0
+        zeros = [0] * (n-1)
         while row_constructed < n:
             sig_check()
-            row = (w[used_w : used_w + row_constructed] + [d[row_constructed]] +
+            row = (zeros[:row_constructed] + [d[row_constructed]] +
                    v[used_v : used_v + (n - 1 - row_constructed)])
             mat.append(row)
 
-            used_w += row_constructed
             used_v += n - 1 - row_constructed
             row_constructed += 1
+
+        # fix lower diagonal
+        for row in range(n):
+            for c in range(row):
+                mat[row][c] = (mat[c][row])**r
 
         return Matrix(GF(q), mat, immutable=True, implementation="meataxe")
 

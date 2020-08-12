@@ -290,6 +290,7 @@ cdef class SparseGraph(CGraph):
                     nverts * self.hash_length, sizeof(SparseGraphBTNode *))
         else:
             self.vertices_rev = self.vertices
+        self._directed = directed
 
         self.in_degrees = <int *>check_calloc(nverts, sizeof(int))
         self.out_degrees = <int *>check_calloc(nverts, sizeof(int))
@@ -334,7 +335,7 @@ cdef class SparseGraph(CGraph):
                     temp[0] = NULL
                     temp = &(self.vertices[i])
 
-        if self.vertices != self.vertices_rev:
+        if self.is_directed():
 
             # Freeing the list of arcs attached to each vertex (going in)
             for i in range(self.active_vertices.size * self.hash_length):
@@ -419,10 +420,9 @@ cdef class SparseGraph(CGraph):
                 return -1
             bitset_free(bits)
 
-        cdef bint directed = self.vertices != self.vertices_rev
         self.vertices = <SparseGraphBTNode **>check_reallocarray(
                 self.vertices, s_total * self.hash_length, sizeof(SparseGraphBTNode *))
-        if directed:
+        if self.is_directed():
             self.vertices_rev = <SparseGraphBTNode **>check_reallocarray(
                     self.vertices_rev, s_total * self.hash_length, sizeof(SparseGraphBTNode *))
         else:
@@ -439,7 +439,7 @@ cdef class SparseGraph(CGraph):
             # self.vertices
             memset(self.vertices + self.active_vertices.size * self.hash_length, 0,
                    new_vertices * self.hash_length * sizeof(SparseGraphBTNode *))
-            if directed:
+            if self.is_directed():
                 memset(self.vertices_rev + self.active_vertices.size * self.hash_length, 0,
                        new_vertices * self.hash_length * sizeof(SparseGraphBTNode *))
 
@@ -453,6 +453,22 @@ cdef class SparseGraph(CGraph):
 
         # self.active_vertices
         bitset_realloc(self.active_vertices, s_total)
+
+    cpdef inline bint is_directed(self):
+        r"""
+        Return whether the graph is directed.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.is_directed()
+            True
+            sage: G = SparseGraph(5, directed=False)
+            sage: G.is_directed()
+            False
+        """
+        return self._directed
 
     ###################################
     # Unlabeled arc functions
@@ -495,7 +511,7 @@ cdef class SparseGraph(CGraph):
         - ``u, v`` -- non-negative integers
         """
         self._add_arc_unsafe(u, v, self.vertices)
-        if u != v or self.vertices != self.vertices_rev:
+        if u != v or self.is_directed():
             # We add the reverse copy only if u != v or graph is directed.
             self._add_arc_unsafe(v, u, self.vertices_rev)
             if self.vertices == self.vertices_rev:
@@ -644,7 +660,7 @@ cdef class SparseGraph(CGraph):
 
         """
         cdef int n_arcs = self._del_arc_unsafe(u, v, self.vertices)
-        if u != v or self.vertices != self.vertices_rev:
+        if u != v or self.is_directed():
             # We remove the reverse copy only if u != v or graph is directed.
             self._del_arc_unsafe(v, u, self.vertices_rev)
             if self.vertices == self.vertices_rev:
@@ -685,7 +701,6 @@ cdef class SparseGraph(CGraph):
             return 0
 
         cdef SparseGraphBTNode ** pointers[1]
-        cdef list l = []
         cdef int n_neighbors = self.out_neighbors_BTNode_unsafe(u, pointers)
         if size >= n_neighbors:
             for i in range(n_neighbors):
@@ -843,7 +858,6 @@ cdef class SparseGraph(CGraph):
             return 0
 
         cdef SparseGraphBTNode ** pointers[1]
-        cdef list l = []
         cdef int n_neighbors = self.in_neighbors_BTNode_unsafe(v, pointers)
         if size >= n_neighbors:
             for i in range(n_neighbors):
@@ -1033,7 +1047,7 @@ cdef class SparseGraph(CGraph):
 
         """
         self._add_arc_label_unsafe(u, v, l, self.vertices)
-        if u != v or self.vertices != self.vertices_rev:
+        if u != v or self.is_directed():
             # We add the reverse copy only if u != v or graph is directed.
             self._add_arc_label_unsafe(v, u, l, self.vertices_rev)
             if self.vertices == self.vertices_rev:
@@ -1310,7 +1324,7 @@ cdef class SparseGraph(CGraph):
         if self._del_arc_label_unsafe(u, v, l, self.vertices):
             return 1 # indicate an error
 
-        if u != v or self.vertices != self.vertices_rev:
+        if u != v or self.is_directed():
             # We remove the reverse copy only if u != v or graph is directed.
             self._del_arc_label_unsafe(v, u, l, self.vertices_rev)
             if self.vertices == self.vertices_rev:

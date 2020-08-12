@@ -29,6 +29,8 @@ cdef class SparseGraph(CGraph):
     cdef int hash_mask
     cdef SparseGraphBTNode **vertices
     cdef SparseGraphBTNode **vertices_rev
+    cdef bint _directed
+    cpdef bint is_directed(self)
 
     cdef int _add_arc_unsafe(self, int, int, SparseGraphBTNode **) except -1
     cdef int _del_arc_unsafe(self, int, int, SparseGraphBTNode **) except -1

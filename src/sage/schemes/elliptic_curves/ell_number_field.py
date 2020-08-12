@@ -526,12 +526,18 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         INPUT:
 
-        - points -- either a list of points, which must be on this
-          curve, or (default) None, in which case self.gens() will be
-          used.
+        - ``points`` (list or ``None`` (default)) -- a list of points
+          on this curve, or ``None``, in which case self.gens() will
+          be used.
 
-        - precision -- number of bits of precision of result
-          (default: None, for default RealField precision)
+        - ``precision`` (int or ``None`` (default)) -- number of bits
+          of precision of result, or ``None``, for default RealField
+          precision.
+
+        - ``normalised`` (bool, default ``True``) -- if ``True``, use
+          normalised heights which are independent of base change.
+          Otherwise use the non-normalised Néron-Tate height, as
+          required for the regulator in the BSD conjecture.
 
         EXAMPLES::
 
@@ -621,9 +627,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
           in bits of the result (default real precision if None)
 
         - ``normalised`` (bool, default ``True``) -- if ``True``, use
-          normalised heights which are independent on base change.
+          normalised heights which are independent of base change.
           Otherwise use the non-normalised Néron-Tate height, as
-          required for the regulator in the BSD conjecture.
+          required for the regulator in the BSD conjecture
 
         EXAMPLES::
 

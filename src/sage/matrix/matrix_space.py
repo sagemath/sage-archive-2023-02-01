@@ -1427,193 +1427,41 @@ class MatrixSpace(UniqueRepresentation, Parent):
             ...
             NotImplementedError: len() of an infinite set
         """
-        from sage.combinat.integer_vector import IntegerVectors
-
-        # Make sure that we can iterate over the base ring
+        #Make sure that we can iterate over the base ring
         base_ring = self.base_ring()
         base_iter = iter(base_ring)
 
-        number_of_entries = (self.__nrows * self.__ncols)
+        number_of_entries = (self.__nrows*self.__ncols)
 
-        # If the number of entries is zero, then just
-        # yield the empty matrix in that case and return
+        #If the number of entries is zero, then just
+        #yield the empty matrix in that case and return
         if number_of_entries == 0:
             yield self(0)
             return
 
+        import sage.combinat.integer_vector
+
         if not base_ring.is_finite():
-            # When the base ring is not finite, then we should go
-            # through and yield the matrices by "weight", which is
-            # the total number of iterations that need to be done
-            # on the base ring to reach the matrix.
-            base_elements = [next(base_iter)]
+            #When the base ring is not finite, then we should go
+            #through and yield the matrices by "weight", which is
+            #the total number of iterations that need to be done
+            #on the base ring to reach the matrix.
+            base_elements = [ next(base_iter) ]
             weight = 0
             while True:
-                for iv in IntegerVectors(weight, number_of_entries):
+                for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries):
                     yield self(entries=[base_elements[i] for i in iv])
                 weight += 1
-                base_elements.append(next(base_iter))
+                base_elements.append( next(base_iter) )
         else:
-            # In the finite case, we do a similar thing except that
-            # the "weight" of each entry is bounded by the number
-            # of elements in the base ring
+            #In the finite case, we do a similar thing except that
+            #the "weight" of each entry is bounded by the number
+            #of elements in the base ring
             order = base_ring.order()
             base_elements = list(base_ring)
-            for weight in range((order - 1)*number_of_entries + 1):
-                for iv in IntegerVectors(weight, number_of_entries, max_part=(order - 1)):
+            for weight in range((order-1)*number_of_entries+1):
+                for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries, max_part=(order-1)):
                    yield self(entries=[base_elements[i] for i in iv])
-
-
-    def symmetric_matrices(self, f=None, g=None):
-        r"""
-        Return a generator of all matrices in this matrix space
-        that are "symmetric" as defined by `f` and `g`.
-
-        This means subdiagonal entries are images by ``f``
-        of the corresponding superdiagonal entries, i.e.
-        for any ``i < j`` we have ``A[j,i] = f(A[i,j])``,
-        and diagonal elements are stable by ``g`` ,
-        i.e. for any ``i`` we have ``A[i,i] = g(A[i,i])``.
-
-        The default value of ``None`` for ``f`` means
-        ``f`` is the identity, and the default value
-        of ``None`` for ``g`` means ``g`` is ``f``.
-
-        .. NOTE::
-
-            If the matrix space doesn't contain square matrices, then a
-            ``ValueError`` is raised.
-
-        INPUT:
-
-        - ``f`` -- (optional) function; if it is ``None``, then we assume `f(x) = x`
-
-        - ``g`` -- (optional) function; if it is ``None``, then we assume `g=f`,
-          default value: ``None``.
-
-        EXAMPLES:
-
-        Skew-symmetric matrices::
-
-            sage: f = lambda x: -x
-            sage: MS = MatrixSpace(GF(3), 2, 2)
-            sage: list(MS.symmetric_matrices(f))
-            [
-            [0 0]  [0 1]  [0 2]
-            [0 0], [2 0], [1 0]
-            ]
-            sage: g = lambda x : 1
-            sage: list(MS.symmetric_matrices(f,g))
-            [
-            [1 0]  [1 1]  [1 2]
-            [0 1], [2 1], [1 1]
-            ]
-
-        TESTS::
-
-            sage: f = lambda x: -x
-            sage: MS = MatrixSpace(ZZ, 3, 3)
-            sage: gen = MS.symmetric_matrices(f)
-            sage: [next(gen) for _ in range(3)]
-            [
-            [0 0 0]  [ 0  1  0]  [ 0  0  1]
-            [0 0 0]  [-1  0  0]  [ 0  0  0]
-            [0 0 0], [ 0  0  0], [-1  0  0]
-            ]
-
-        """
-        from sage.combinat.integer_vector import IntegerVectors
-
-        if self.__nrows != self.__ncols:
-            raise ValueError("symmetric matrices must be square")
-
-        if f is None:
-            f = lambda x: x
-
-        if g is None:
-            g = f
-
-        def make_symmetric(M):
-            for i in range(M.nrows()):
-                for j in range(i + 1, M.nrows()):
-                    M[j,i] = f(M[i,j])
-
-        # Make sure that we can iterate over the base ring
-        base_ring = self.base_ring()
-        base_iter = iter(base_ring)
-
-        nrows = self.__nrows
-        number_of_entries = nrows ** 2
-        entries_in_upper_half = (nrows * (nrows - 1)) // 2
-
-        # If no entries, yield empty matrix and return
-        if number_of_entries == 0:
-            yield self(0)
-            return
-
-        if not base_ring.is_finite():
-            # For infinite rings, yield matrices by "weight",
-            # i.e. by number of iterations needed to reach them.
-            base_elements = [next(base_iter)]
-            weight = 0
-            while True:
-                for v in IntegerVectors(weight, entries_in_upper_half + nrows):
-                    # Now we need to contruct the entries of the matrix so that it is symmetric
-                    # with respect to f and g
-                    matrix_entries = []  # the upper half (with diagonal) entries of the matrix
-                    length_of_row = nrows  # == self.__ncols
-                    valid_diagonal = True  # if false, then we need a new integer vector
-                    for _ in range(nrows):
-                        # check diagonal
-                        if base_elements[v[0]] != g(base_elements[v[0]]):
-                            valid_diagonal = False
-                            break
-
-                        # now construct the row
-                        zeros = [0] * (nrows - length_of_row)
-                        row = zeros + [base_elements[i] for i in v[:length_of_row]]
-                        matrix_entries.extend(row)
-
-                        v = v[length_of_row:]
-                        length_of_row -= 1
-
-                    if valid_diagonal:
-                        M = self(entries=matrix_entries)
-                        make_symmetric(M)
-                        yield M
-
-                    # else iterate
-
-                weight += 1
-                base_elements.append(next(base_iter))
-        else:
-            # For finite rings, precompute all valid diagonal entries.
-            order = base_ring.order()
-            base_elements = list(base_ring)
-            diagonal_elements = [x for x in base_elements if g(x) == x]
-            number_diagonal_elements = len(diagonal_elements)
-
-            # Yield the matrices by "weight" as in the infinite case
-            for weight1 in range((order - 1)*entries_in_upper_half + 1):
-                for v2 in IntegerVectors(weight1, entries_in_upper_half, max_part=(order - 1)):
-                    for weight2 in range((number_diagonal_elements - 1)*nrows + 1):
-                        for dia in IntegerVectors(weight2, nrows, max_part=(number_diagonal_elements - 1)):
-                            v = v2.clone()  # v is going to be changed within the next loop, so we keep a copy v2
-
-                            # construct upper half matrix
-                            matrix_entries = []  # entries of matrix with lower half 0
-                            length_of_row = nrows - 1
-                            for r in range(nrows):
-                                zeros = [0] * (nrows - length_of_row - 1)
-                                row = zeros + [diagonal_elements[dia[r]]] + [base_elements[i] for i in v[:length_of_row]]
-                                matrix_entries.extend(row)
-
-                                v = v[length_of_row:]
-                                length_of_row -= 1
-
-                            M = self(entries=matrix_entries)
-                            make_symmetric(M)
-                            yield M
 
     def __getitem__(self, x):
         """

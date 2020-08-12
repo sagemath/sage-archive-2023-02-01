@@ -36,6 +36,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.matrix.constructor import Matrix
 import itertools
+from cysignals.signals cimport sig_check
 
 def cocliques_HoffmannSingleton():
     r"""
@@ -552,4 +553,54 @@ def LeonardGraph():
 
     edges = [(p, b) for b in blocks for p in b]
     G = Graph(edges, format="list_of_edges")
+    return G
+
+def UstimenkoGraph(const int m, const int q):
+    r"""
+    Return the Ustimenko graph with parameters `(m, q)`.
+
+    This is the distance 1 or 2 graph of the dual polar graph `C_{m-1}(q)`.
+    The graph is distance-regular with classical with parameters
+    `(d,q^2, qbinom(3,1,q) -1, qbinom(m+1,1,q) -1)`
+
+    INPUT:
+
+    - ``m, q`` -- integers; ``q`` must be a prime power and ``m > 1``.
+
+    EXAMPLES::
+
+        sage: G = graphs.UstimenkoGraph(4, 2)
+        sage: G.is_distance_regular(True)
+        ([70, 32, None], [None, 1, 35])
+
+    REFERENCES:
+
+    See [BCN1989]_ p. 279 or [VDKT2016]_ p. 22.
+
+    TESTS::
+
+        sage: G = graphs.UstimenkoGraph(5, 2)
+        sage: G.order()
+        2295
+        sage: G.is_distance_regular(True)
+        ([310, 224, None], [None, 1, 35])
+        sage: G = graphs.UstimenkoGraph(4,3)
+        sage: G.is_distance_regular(True)
+        ([390, 243, None], [None, 1, 130])
+    """
+    from sage.graphs.graph_generators import graphs
+
+    G = graphs.SymplecticDualPolarGraph(2*m - 2, q)
+
+    edgesToAdd = []
+    for v in G:
+        for w in G.neighbor_iterator(v):
+            for u in G.neighbor_iterator(w):
+                sig_check()
+                if u != v and not G.has_edge(u, v):
+                    # then u,v are at distance 2
+                    edgesToAdd.append((u, v))
+
+    G.add_edges(edgesToAdd)
+    G.name(f"Ustimenko graph ({m}, {q})")
     return G

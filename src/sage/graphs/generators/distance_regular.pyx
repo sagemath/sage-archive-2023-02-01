@@ -1740,3 +1740,116 @@ def _line_graph_generalised_polygon(H):
 
     G = Graph(edges, format="list_of_edges")
     return G
+
+def _intersection_array_grom_graph(G):
+    r"""
+    Return the intersection array of the graph `G`.
+    If `G` is not distance-regular, then return ``False``.
+
+    This is a simple wrapper around 
+    :meth:`sage.graphs.distances_all_pairs.is_distance_regular` to return a list
+    instead of a pair of lists
+
+    INPUT:
+
+    - G -- a graph
+
+    EXAMPLES::
+
+    TESTS::
+
+    """
+
+    t = G.is_distance_regular(True)
+    if t is False:
+        return False
+
+    return t[0][:-1] + t[1][1:]
+
+def distance_regular_graph(list arr, existence=False, check=True):
+
+    # check if drg module is installed
+    try:
+        import drg
+        from drg import InfeasibleError
+        drgModule = True
+    except ModuleNotFoundError:
+        drgModule = False
+
+    def result(G):
+        if check:
+            array = _intersection_array_from_graph(G)
+            if array != arr:
+                raise RuntimeError(("Sage built the wrong distance-regular "
+                                    f"graph; expected {arr}, result {array}"))
+        return G
+
+    def is_iterable(obj):
+        try:
+            iter(obj)
+            return True
+        except TypeError:
+            return False
+
+    n = len(arr)
+    d = n // 2
+    
+    #check that arr makes sense:
+    if drgModule:
+        try:
+            parameters = drg.DRGParameters(arr[:d],arr[d:])
+        except (AssertionError, InfeasibleError, TypeError) as err:
+            if existence: return False
+            raise EmptySetError(("No distance-regular graphs with "
+                                 f"parameters {arr} exists; reason: {err}"))
+    else:
+        #implement basic checks
+
+    # handle diameter < 3
+    if d == 1 and arr[1] == 1:
+        if existence:
+            return True
+        from sage.graphs.generators.basic import CompleteGraph
+        return result(CompleteGraph(arr[0] + 1))
+    
+    if d == 2:
+        from sage.graphs.strongly_regular_db import strongly_regular_graph
+        
+        k = arr[0]
+        mu = arr[3]
+        l = k - arr[1] - 1  # a1 = k - b1 - c1
+        v = (k * (k-l-1)) // mu + k + 1
+        
+        if existence:
+            return strongly_regular_graph(v, k, l, mu, existence=True)
+        return result(strongly_regular_graph(v, k, l, mu))
+
+    t = tuple(arr)
+    if t in _sporadic_graph_database:
+        if existence:
+            return True
+        return result(_sporadic_graph_database[t]())
+
+    for (f, g) in _infinite_families:
+        t = f(arr)
+        if t is not False:
+            if existence:
+                return True
+            
+            G = g(*t) if is_iterable(t) else g(t)
+            return result(G)
+
+    #now try drg feasibility
+    if drgModule:
+        try:
+            parameters.check_feasible()
+        except (InfeasibleError, TypeError, AssertionError) as err:
+            if existence:
+                return False
+            raise EmptySetError(("No distance-regular graphs with "
+                                 f"parameters {arr} exists; reason: {err}"))
+    
+    if existence:
+        return Unknown
+    raise RuntimeError(
+        f"No distance-regular graph with intersection array {arr} known")

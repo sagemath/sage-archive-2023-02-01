@@ -244,7 +244,7 @@ class TensorWithIndices(SageObject):
         Traceback (most recent call last):
         ...
         ValueError: index conventions not satisfied
-        sage: a["^♣♥"]  # non-word-constituent
+        sage: a["^\u2663\u2665"]  # non-word-constituent
         Traceback (most recent call last):
         ...
         ValueError: index conventions not satisfied
@@ -305,11 +305,11 @@ class TensorWithIndices(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: index conventions not satisfied
-            sage: TensorWithIndices._parse_indices("^®")  # non-word-constituents are not allowed as names
+            sage: TensorWithIndices._parse_indices("^\u00ae")  # non-word-constituents are not allowed as names
             Traceback (most recent call last):
             ...
             ValueError: index conventions not satisfied
-            sage: TensorWithIndices._parse_indices("^◢")  # non-word-constituents are not allowed as names
+            sage: TensorWithIndices._parse_indices("^\u25e2")  # non-word-constituents are not allowed as names
             Traceback (most recent call last):
             ...
             ValueError: index conventions not satisfied

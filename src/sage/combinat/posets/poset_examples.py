@@ -1,5 +1,5 @@
 r"""
-A catalog of posets and lattices.
+Catalog of posets and lattices
 
 Some common posets can be accessed through the ``posets.<tab>`` object::
 
@@ -81,12 +81,12 @@ Constructions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import add_metaclass, string_types
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 import sage.categories.posets
 from sage.combinat.permutation import Permutations, Permutation, to_standard
 from sage.combinat.posets.posets import Poset, FinitePoset, FinitePosets_n
+from sage.combinat.posets.d_complete import DCompletePoset
 from sage.combinat.posets.lattices import (LatticePoset, MeetSemilattice,
                                            JoinSemilattice, FiniteLatticePoset)
 from sage.categories.finite_posets import FinitePosets
@@ -95,8 +95,7 @@ from sage.graphs.digraph import DiGraph
 from sage.rings.integer import Integer
 
 
-@add_metaclass(ClasscallMetaclass)
-class Posets(object):
+class Posets(metaclass=ClasscallMetaclass):
     r"""
     A collection of posets and lattices.
 
@@ -849,7 +848,7 @@ class Posets(object):
             D.relabel([i-1 for i in Permutations(n).random_element()])
             return LatticePoset(D, cover_relations=True)
 
-        if isinstance(properties, string_types):
+        if isinstance(properties, str):
             properties = set([properties])
         else:
             properties = set(properties)
@@ -933,7 +932,7 @@ class Posets(object):
     @staticmethod
     def SSTPoset(s, f=None):
         """
-        The poset on semistandard tableaux of shape ``s`` and largest
+        The lattice poset on semistandard tableaux of shape ``s`` and largest
         entry ``f`` that is ordered by componentwise comparison of the
         entries.
 
@@ -945,16 +944,18 @@ class Posets(object):
           argument.  If no maximal number is given, it will use
           the number of cells in the shape.
 
-        NOTE: This is a basic implementation and most certainly
-        not the most efficient.
+        .. NOTE::
+
+            This is a basic implementation and most certainly
+            not the most efficient.
 
         EXAMPLES::
 
             sage: posets.SSTPoset([2,1])
-            Finite poset containing 8 elements
+            Finite lattice containing 8 elements
 
             sage: posets.SSTPoset([2,1],4)
-            Finite poset containing 20 elements
+            Finite lattice containing 20 elements
 
             sage: posets.SSTPoset([2,1],2).cover_relations()
             [[[[1, 1], [2]], [[1, 2], [2]]]]
@@ -968,22 +969,12 @@ class Posets(object):
         from sage.combinat.tableau import SemistandardTableaux
 
         def tableaux_is_less_than(a, b):
-            atstring = []
-            btstring = []
-            for i in a:
-                atstring += i
-            for i in b:
-                btstring += i
-            for i in range(len(atstring)):
-                if atstring[i] > btstring[i]:
-                    return False
-            return True
+            return all(ix <= iy for x, y in zip(a, b) for ix, iy in zip(x, y))
+
         if f is None:
-            f=0
-            for i in s:
-                f += i
+            f = sum(i for i in s)
         E = SemistandardTableaux(s, max_entry=f)
-        return Poset((E, tableaux_is_less_than))
+        return LatticePoset((E, tableaux_is_less_than))
 
     @staticmethod
     def StandardExample(n, facade=None):
@@ -1384,31 +1375,50 @@ class Posets(object):
         return Poset((range(n), covers), cover_relations=True)
 
     @staticmethod
-    def YoungDiagramPoset(lam):
+    def YoungDiagramPoset(lam, dual=False):
         """
         Return the poset of cells in the Young diagram of a partition.
 
         INPUT:
 
         - ``lam`` -- a partition
+        - ``dual`` -- (default: ``False``) determines the orientation
+          of the poset; if ``True``, then it is a join semilattice,
+          otherwise it is a meet semilattice
 
         EXAMPLES::
 
-            sage: P = posets.YoungDiagramPoset(Partition([2,2])); P
+            sage: P = posets.YoungDiagramPoset(Partition([2, 2])); P
             Finite meet-semilattice containing 4 elements
 
             sage: sorted(P.cover_relations())
             [[(0, 0), (0, 1)], [(0, 0), (1, 0)], [(0, 1), (1, 1)], [(1, 0), (1, 1)]]
+
+            sage: posets.YoungDiagramPoset([3, 2], dual=True)
+            Finite join-semilattice containing 5 elements
         """
-        def cell_leq(a, b):
-            """
-            Nested function that returns `True` if the cell `a` is
-            to the left or above
-            the cell `b` in the (English) Young diagram.
-            """
-            return ((a[0] == b[0] - 1 and a[1] == b[1]) or
-                    (a[1] == b[1] - 1 and a[0] == b[0]))
-        return MeetSemilattice((lam.cells(), cell_leq), cover_relations=True)
+        from sage.combinat.partition import Partition
+        lam = Partition(lam)
+        if dual:
+            def cell_geq(a, b):
+                """
+                Nested function that returns `True` if the cell `a` is
+                to the right or below
+                the cell `b` in the (English) Young diagram.
+                """
+                return ((a[0] == b[0] + 1 and a[1] == b[1]) or
+                        (a[1] == b[1] + 1 and a[0] == b[0]))
+            return JoinSemilattice((lam.cells(), cell_geq), cover_relations=True)
+        else:
+            def cell_leq(a, b):
+                """
+                Nested function that returns `True` if the cell `a` is
+                to the left or above
+                the cell `b` in the (English) Young diagram.
+                """
+                return ((a[0] == b[0] - 1 and a[1] == b[1]) or
+                        (a[1] == b[1] - 1 and a[0] == b[0]))
+            return MeetSemilattice((lam.cells(), cell_leq), cover_relations=True)
 
     @staticmethod
     def YoungsLattice(n):
@@ -1541,6 +1551,35 @@ class Posets(object):
         D = DiGraph([[], covers], format='vertices_and_edges')
         D.relabel(lambda v: Word(v), inplace=True)
         return FiniteMeetSemilattice(hasse_diagram=D, category=FinitePosets())
+
+    @staticmethod
+    def DoubleTailedDiamond(n):
+        r"""
+        Return a double-tailed diamond of `2n + 2` elements.
+
+        INPUT:
+
+        - ``n`` -- a positive integer
+
+        EXAMPLES::
+
+            sage: P = posets.DoubleTailedDiamond(2); P
+            Finite d-complete poset containing 6 elements
+            sage: P.cover_relations()
+            [[1, 2], [2, 3], [2, 4], [3, 5], [4, 5], [5, 6]]
+        """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {}".format(n))
+        if n <= 0:
+            raise ValueError("number of elements must be nonnegative, not {}".format(n))
+
+        edges = [(i, i+1) for i in range(1, n)]
+        edges.extend([(n, n+1), (n, n+2), (n+1, n+3), (n+2, n+3)])
+        edges.extend([(i, i+1) for i in range(n+3, 2*n+2)])
+        p = DiGraph([list(range(1, 2*n + 3)), edges])
+        return DCompletePoset(p)
 
     @staticmethod
     def PermutationPattern(n):

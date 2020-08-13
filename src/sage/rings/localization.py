@@ -7,7 +7,6 @@ integral domain such that it contains the inverses of a finite set of elements b
 allow non injective homomorphic images this construction will be needed. See the example
 on Ariki-Koike algebras below for such an application.
 
-
 EXAMPLES::
 
     sage: LZ = Localization(ZZ, (5,11))
@@ -167,7 +166,7 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
 
@@ -237,8 +236,6 @@ def normalize_additional_units(base_ring, add_units, warning=True):
             break
 
     return sorted(set(add_units_result))
-
-
 
 
 class LocalizationElement(IntegralDomainElement):
@@ -441,20 +438,76 @@ class LocalizationElement(IntegralDomainElement):
         return parent.element_class(parent, ~(parent._fraction_field(self)))
 
     def _richcmp_(self, other, op):
-         """
-         EXAMPLES::
+        """
+        EXAMPLES::
 
-            sage: P.<x,y,z> = GF(7)[]
-            sage: L = Localization(P, (x, y, z))
-            sage: L(1/x) < L(3/(x*y*z)**3)
-            False
-            sage: ~L(y*z/x) == L(x/(y*z))
+           sage: P.<x,y,z> = GF(7)[]
+           sage: L = Localization(P, (x, y, z))
+           sage: L(1/x) < L(3/(x*y*z)**3)
+           False
+           sage: ~L(y*z/x) == L(x/(y*z))
+           True
+        """
+        sval = self._value
+        oval = other._value
+        return sval._richcmp_(oval, op)
+
+    def __hash__(self):
+        """
+        Return the hash of the corresponding fraction field element.
+
+        EXAMPLES::
+
+            sage: L = ZZ.localization(5)
+            sage: l5 = L(5); l7 = L(7)
+            sage: {l5: ~l5, l7: 7}              # indirect doctest
+            {5: 1/5, 7: 7}
+        """
+        return hash(self._value)
+
+    def _rational_(self):
+        r"""
+        Convert ``self``  to a rational.
+
+        This is only possible if its base ring is the ring of integers.
+
+        OUTPUT:
+
+        A rational.
+
+        TESTS::
+
+            sage: L = ZZ.localization(5)
+            sage: cp3 = cyclotomic_polynomial(3).change_ring(L)
+            sage: cp3.splitting_field('t')      #   indirect doctest
+            Number Field in t with defining polynomial x^2 + x + 1
+        """
+        from sage.rings.rational_field import QQ
+        if not self._value.parent() == QQ:
+            raise ValueError('{} is not a rational'.format(self))
+        return self._value
+
+    def _integer_(self, Z=None):
+        r"""
+        Convert ``self``  to an integer.
+
+        This is only possible if its base ring is the ring of integers and
+        the denominator of ``self`` is one.
+
+        OUTPUT:
+
+        An integer.
+
+        TESTS::
+
+            sage: L = ZZ.localization(5)
+            sage: L(5) in ZZ                  # indirect doctest
             True
-         """
-         sval = self._value
-         oval = other._value
-         return sval._richcmp_(oval, op)
-
+        """
+        from sage.rings.rational_field import QQ
+        if not self._value.parent() == QQ:
+            raise ValueError('{} is not a rational'.format(self))
+        return self._value._integer_(Z=Z)
 
 
 
@@ -462,7 +515,7 @@ class LocalizationElement(IntegralDomainElement):
 
 
 class Localization(IntegralDomain, UniqueRepresentation):
-    """
+    r"""
     The localization generalizes the construction of the field of fractions of an integral domain to
     an arbitrary ring. Given a (not necessarily commutative) ring `R` and a subset `S` of `R`,
     there exists a ring `R[S^{-1}]` together with the ring homomorphism `R \longrightarrow R[S^{-1}]`
@@ -481,13 +534,12 @@ class Localization(IntegralDomain, UniqueRepresentation):
     the exact division operator `//` (:meth:`sage.structure.element.Element.__floordiv__`) in order to guarantee
     an successful application.
 
-
     INPUT:
 
     - ``base_ring`` -- an instance of :class:`Ring` allowing the construction of :meth:`fraction_field` (that is an integral domain)
     - ``additional_units`` -- tuple of elements of ``base_ring`` which should be turned into units
     - ``names`` -- passed to :class:`IntegralDomain`
-    - ``normalize`` -- (optinal, default: True) passed to :class:`IntegralDomain`
+    - ``normalize`` -- (optional, default: True) passed to :class:`IntegralDomain`
     - ``category`` -- (optional, default: None) passed to :class:`IntegralDomain`
     - ``warning`` -- (optional, default: True) to supress a warning which is thrown if self cannot be represented uniquely
 
@@ -495,7 +547,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
 
     - :wikipedia:`Ring_(mathematics)#Localization`
 
-    EAXAMPLES::
+    EXAMPLES::
 
         sage: L = Localization(ZZ, (3,5))
         sage: 1/45 in L
@@ -554,7 +606,7 @@ class Localization(IntegralDomain, UniqueRepresentation):
         """
         Python constructor of Localization.
 
-        TEST::
+        TESTS::
 
             sage: L = Localization(ZZ, (3,5))
             sage: TestSuite(L).run()
@@ -647,11 +699,13 @@ class Localization(IntegralDomain, UniqueRepresentation):
             Traceback (most recent call last):
             ...
             ValueError: images of some localized elements fail to be units
+
             sage: phi=R.hom([5], codomain=QQ)
             sage: L._is_valid_homomorphism_(ZZ, [5], base_map=phi)
             Traceback (most recent call last):
             ...
             ValueError: codomain of base_map must be Integer Ring
+
             sage: L._is_valid_homomorphism_(QQ, [5], base_map=phi)
             True
         """
@@ -851,3 +905,52 @@ class Localization(IntegralDomain, UniqueRepresentation):
             5
         """
         return self.base_ring().characteristic()
+
+    def krull_dimension(self):
+        """
+        Return the Krull dimension of this localization.
+
+        Since the current implementation just allows integral domains as base ring
+        and localization at a finite set of elements the spectrum of ``self`` 
+        is open in the irreducible spectrum of its base ring.
+        Therefore, by density we may take the dimension from there.
+
+        EXAMPLES::
+
+            sage: R = ZZ.localization((2,3))
+            sage: R.krull_dimension()
+            1
+        """
+        return self.base_ring().krull_dimension()
+
+
+    def is_field(self, proof = True):
+        """
+        Return ``True`` if this ring is a field.
+
+        INPUT:
+
+        - ``proof`` -- (default: ``True``) Determines what to do in unknown
+          cases
+
+        ALGORITHM:
+
+        If the parameter ``proof`` is set to ``True``, the returned value is
+        correct but the method might throw an error.  Otherwise, if it is set
+        to ``False``, the method returns True if it can establish that self is
+        a field and False otherwise.
+
+        EXAMPLES::
+
+            sage: R = ZZ.localization((2,3))
+            sage: R.is_field()
+            False
+        """
+        if proof:
+            try:
+                if self.krull_dimension() > 0:
+                    return False
+            except NotImplementedError:
+                pass
+        return super(Localization, self).is_field(proof=proof)
+

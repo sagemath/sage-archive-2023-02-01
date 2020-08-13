@@ -5870,7 +5870,7 @@ cdef class RegularMatroid(LinearMatroid):
         ALGORITHM:
 
         Since the matroid is regular, we use Kirchhoff's Matrix-Tree Theorem.
-        See also :wikipedia:`Kirchhoff's_theorem`.
+        See also :wikipedia:`Kirchhoff%27s_theorem`.
         """
         if self._bases_count is None:
             R = self._basic_representation()._matrix_()

@@ -79,8 +79,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
-from six import integer_types
 
 from sage.arith.all import gcd, binomial, srange
 from sage.rings.all import (PolynomialRing,
@@ -245,7 +243,7 @@ def ProjectiveSpace(n, R=None, names=None):
         return A
     if names is None:
         names = 'x'
-    if isinstance(R, integer_types + (Integer,)):
+    if isinstance(R, (Integer, int)):
         n, R = R, n
     if R is None:
         R = ZZ  # default is the integers
@@ -1681,7 +1679,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         INPUT:
 
         - ``F`` -- a polynomial, or a list or tuple of polynomials in
-          the coordinate ring of this projective space.
+          the coordinate ring of this projective space
 
         EXAMPLES::
 
@@ -1691,6 +1689,37 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         """
         from sage.schemes.curves.constructor import Curve
         return Curve(F, self)
+
+    def line_through(self, p, q):
+        """
+        Return the line through ``p`` and ``q``.
+
+        INPUT:
+
+        - ``p``, ``q`` -- distinct rational points of the projective space
+
+        EXAMPLES::
+
+            sage: P3.<x0,x1,x2,x3> = ProjectiveSpace(3, QQ)
+            sage: p1 = P3(1, 2, 3, 4)
+            sage: p2 = P3(4, 3, 2, 1)
+            sage: P3.line_through(p1, p2)
+            Projective Curve over Rational Field defined by -5/4*x0 + 5/2*x1 - 5/4*x2,
+            -5/2*x0 + 15/4*x1 - 5/4*x3, -5/4*x0 + 15/4*x2 - 5/2*x3, -5/4*x1 + 5/2*x2 - 5/4*x3
+            sage: p3 = P3(2,4,6,8)
+            sage: P3.line_through(p1, p3)
+            Traceback (most recent call last):
+            ...
+            ValueError: not distinct points
+
+        """
+        if p == q:
+            raise ValueError("not distinct points")
+
+        from sage.schemes.curves.constructor import Curve
+
+        m = matrix(3, list(self.gens()) + list(p) + list(q))
+        return Curve([f for f in m.minors(3) if f])
 
 
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):

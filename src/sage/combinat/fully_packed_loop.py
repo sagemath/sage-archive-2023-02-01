@@ -25,7 +25,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import division, print_function
-from six import add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
@@ -96,8 +95,8 @@ def _make_color_list(n, colors=None,  color_map=None, randomize=False):
 
     return colors
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class FullyPackedLoop(Element):
+
+class FullyPackedLoop(Element, metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A class for fully packed loops.
 
@@ -1155,10 +1154,14 @@ class FullyPackedLoop(Element):
             i,j = unrank(k)
 
             # initial direction
-            if i == -1: d = R
-            elif i == n: d = L
-            elif j == -1: d = U
-            elif j == n: d = D
+            if i == -1:
+                d = R
+            elif i == n:
+                d = L
+            elif j == -1:
+                d = U
+            elif j == n:
+                d = D
 
             # go through the link
             while True:

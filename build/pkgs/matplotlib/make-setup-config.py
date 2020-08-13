@@ -1,15 +1,13 @@
-try:
-    from configparser import SafeConfigParser   # Python 3
-except ImportError:
-    from ConfigParser import SafeConfigParser   # Python 2
+from configparser import ConfigParser
 import os
 
-config = SafeConfigParser()
+config = ConfigParser()
 
 config.add_section('directories')
 config.set('directories', 'basedirlist', os.environ['SAGE_LOCAL'])
 
-
+config.add_section('libs')
+config.set('libs', 'system_freetype', 'True')
 
 #####################################################################
 # Sage code -- all this code just sets the graphical_backend variable.

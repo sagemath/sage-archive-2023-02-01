@@ -1084,6 +1084,19 @@ cdef class RealDoubleElement(FieldElement):
         """
         return double_repr(self._value)
 
+    def __format__(self, format_spec):
+        """
+        Return a formatted string representation of this real number.
+
+        EXAMPLES::
+
+            sage: format(RDF(32/3), '.4f')
+            '10.6667'
+            sage: '{:.4e}'.format(RDF(2/3))
+            '6.6667e-01'
+        """
+        return format(float(self), format_spec)
+
     def _latex_(self):
         r"""
         Return a latex representation of ``self``.
@@ -1587,20 +1600,6 @@ cdef class RealDoubleElement(FieldElement):
             -2
         """
         return int(self._value)
-
-    def __long__(self):
-        """
-        Returns long integer truncation of this real number.
-
-        EXAMPLES::
-
-            sage: int(RDF(10e15))
-            10000000000000000L                   # 32-bit
-            10000000000000000                    # 64-bit
-            sage: long(RDF(2^100)) == 2^100
-            True
-        """
-        return long(self._value)
 
     def _complex_mpfr_field_(self, CC):
         """

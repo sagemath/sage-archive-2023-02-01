@@ -1,6 +1,7 @@
 queries:
   - exclude: py/call/wrong-named-class-argument
   - exclude: py/call/wrong-number-class-arguments
+  - exclude: py/similar-function
   - exclude: py/unsafe-cyclic-import
 path_classifiers:
   imports_only:
@@ -9,6 +10,7 @@ path_classifiers:
     - "**/species/library.py"
     - "**/categories/basic.py"
     - "**/combinat/ribbon.py"
+    - "**/combinat/family.py"
     - "**/interacts/geometry.py"
     - "**/matroids/advanced.py"
     - "**/matroids/named_matroids.py"

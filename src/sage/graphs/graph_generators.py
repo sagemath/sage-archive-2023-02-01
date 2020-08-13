@@ -16,8 +16,6 @@ More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
 from __future__ import print_function, absolute_import, division
-from six.moves import range
-from six import PY2
 from sage.env import SAGE_NAUTY_BINS_PREFIX as nautyprefix
 
 import subprocess
@@ -69,6 +67,9 @@ __append_to_doc(
      "CompleteGraph",
      "CompleteMultipartiteGraph",
      "DiamondGraph",
+     "GemGraph",
+     "DartGraph",
+     "ForkGraph",
      "DipoleGraph",
      "EmptyGraph",
      "Grid2dGraph",
@@ -211,6 +212,7 @@ __append_to_doc(
      "CirculantGraph",
      "cospectral_graphs",
      "CubeGraph",
+     "CubeConnectedCycle",
      "DorogovtsevGoltsevMendesGraph",
      "EgawaGraph",
      "FibonacciTree",
@@ -793,7 +795,8 @@ class GraphGenerators():
             gens = []
             for i in range(vertices-1):
                 gen = list(range(i))
-                gen.append(i+1); gen.append(i)
+                gen.append(i+1)
+                gen.append(i)
                 gen += list(range(i + 2, vertices))
                 gens.append(gen)
             for gg in canaug_traverse_edge(g, gens, property, loops=loops, sparse=sparse):
@@ -824,25 +827,25 @@ class GraphGenerators():
 
         The possible options, obtained as output of ``geng --help``::
 
-                 n    : the number of vertices
-            mine:maxe : a range for the number of edges
-                        #:0 means '# or more' except in the case 0:0
+                 n       : the number of vertices
+            mine:maxe    : <int>:<int> a range for the number of edges
+                            <int>:0 means '<int> or more' except in the case 0:0
               res/mod : only generate subset res out of subsets 0..mod-1
 
-                -c    : only write connected graphs
-                -C    : only write biconnected graphs
-                -t    : only generate triangle-free graphs
-                -f    : only generate 4-cycle-free graphs
-                -b    : only generate bipartite graphs
-                            (-t, -f and -b can be used in any combination)
-                -m    : save memory at the expense of time (only makes a
-                            difference in the absence of -b, -t, -f and n <= 28).
-                -d#   : a lower bound for the minimum degree
-                -D#   : a upper bound for the maximum degree
-                -v    : display counts by number of edges
-                -l    : canonically label output graphs
+                -c       : only write connected graphs
+                -C       : only write biconnected graphs
+                -t       : only generate triangle-free graphs
+                -f       : only generate 4-cycle-free graphs
+                -b       : only generate bipartite graphs
+                              (-t, -f and -b can be used in any combination)
+                -m       : save memory at the expense of time (only makes a
+                              difference in the absence of -b, -t, -f and n <= 28).
+                -d<int>  : a lower bound for the minimum degree
+                -D<int>  : a upper bound for the maximum degree
+                -v       : display counts by number of edges
+                -l       : canonically label output graphs
 
-                -q    : suppress auxiliary output (except from -v)
+                -q       : suppress auxiliary output (except from -v)
 
         Options which cause ``geng`` to use an output format different than the
         graph6 format are not listed above (-u, -g, -s, -y, -h) as they will
@@ -891,6 +894,12 @@ class GraphGenerators():
             sage: len(list(gen))
             853
 
+        A list of connected degree exactly 2 graphs on 5 vertices. ::
+
+            sage: gen = graphs.nauty_geng("5 -c -d2 -D2")
+            sage: len(list(gen))
+            1
+
         The ``debug`` switch can be used to examine ``geng``'s reaction to the
         input in the ``options`` string.  We illustrate success.  (A failure
         will be a string beginning with ">E".)  Passing the "-q" switch to
@@ -918,15 +927,11 @@ class GraphGenerators():
             sage: list(graphs.nauty_geng("-c 3", debug=True))
             ['>A ...geng -cd1D2 n=3 e=2-3\n', Graph on 3 vertices, Graph on 3 vertices]
         """
-        if PY2:
-            enc_kwargs = {}
-        else:
-            enc_kwargs = {'encoding': 'latin-1'}
 
         sp = subprocess.Popen(nautyprefix+"geng {0}".format(options), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
-                              **enc_kwargs)
+                              encoding='latin-1')
         msg = sp.stderr.readline()
         if debug:
             yield msg
@@ -1094,7 +1099,7 @@ class GraphGenerators():
         The following example creates a small planar code file in memory and
         reads it using the ``_read_planar_code`` method::
 
-            sage: from six import StringIO
+            sage: from io import StringIO
             sage: code_input = StringIO('>>planar_code<<')
             sage: _ = code_input.write('>>planar_code<<')
             sage: for c in [4,2,3,4,0,1,4,3,0,1,2,4,0,1,3,2,0]:
@@ -1260,18 +1265,12 @@ class GraphGenerators():
 
         command = 'buckygen -'+('I' if ipr else '')+'d {0}d'.format(order)
 
-        if PY2:
-            enc_kwargs = {}
-        else:
-            enc_kwargs = {'encoding': 'latin-1'}
-
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
-                              **enc_kwargs)
+                              encoding='latin-1')
 
-        if not PY2:
-            sp.stdout.reconfigure(newline='')
+        sp.stdout.reconfigure(newline='')
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -1353,18 +1352,12 @@ class GraphGenerators():
 
         command = 'benzene '+('b' if benzenoids else '')+' {0} p'.format(hexagon_count)
 
-        if PY2:
-            enc_kwargs = {}
-        else:
-            enc_kwargs = {'encoding': 'latin-1'}
-
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
-                              **enc_kwargs)
+                              encoding='latin-1')
 
-        if not PY2:
-            sp.stdout.reconfigure(newline='')
+        sp.stdout.reconfigure(newline='')
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -1551,18 +1544,12 @@ class GraphGenerators():
                              'd' if dual else '',
                              order)
 
-        if PY2:
-            enc_kwargs = {}
-        else:
-            enc_kwargs = {'encoding': 'latin-1'}
-
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
-                              **enc_kwargs)
+                              encoding='latin-1')
 
-        if not PY2:
-            sp.stdout.reconfigure(newline='')
+        sp.stdout.reconfigure(newline='')
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -1742,18 +1729,12 @@ class GraphGenerators():
                              'd' if dual else '',
                              order)
 
-        if PY2:
-            enc_kwargs = {}
-        else:
-            enc_kwargs = {'encoding': 'latin-1'}
-
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
-                              **enc_kwargs)
+                              encoding='latin-1')
 
-        if not PY2:
-            sp.stdout.reconfigure(newline='')
+        sp.stdout.reconfigure(newline='')
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -1892,18 +1873,12 @@ class GraphGenerators():
                              'd' if dual else '',
                              order)
 
-        if PY2:
-            enc_kwargs = {}
-        else:
-            enc_kwargs = {'encoding': 'latin-1'}
-
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
-                              **enc_kwargs)
+                              encoding='latin-1')
 
-        if not PY2:
-            sp.stdout.reconfigure(newline='')
+        sp.stdout.reconfigure(newline='')
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -1921,6 +1896,9 @@ class GraphGenerators():
     CompleteBipartiteGraph   = staticmethod(basic.CompleteBipartiteGraph)
     CompleteMultipartiteGraph= staticmethod(basic.CompleteMultipartiteGraph)
     DiamondGraph             = staticmethod(basic.DiamondGraph)
+    GemGraph                 = staticmethod(basic.GemGraph)
+    DartGraph                = staticmethod(basic.DartGraph)
+    ForkGraph                = staticmethod(basic.ForkGraph)
     EmptyGraph               = staticmethod(basic.EmptyGraph)
     Grid2dGraph              = staticmethod(basic.Grid2dGraph)
     GridGraph                = staticmethod(basic.GridGraph)
@@ -2049,6 +2027,7 @@ class GraphGenerators():
     chang_graphs           = staticmethod(families.chang_graphs)
     CirculantGraph         = staticmethod(families.CirculantGraph)
     CubeGraph              = staticmethod(families.CubeGraph)
+    CubeConnectedCycle     = staticmethod(families.CubeConnectedCycle)
     DipoleGraph            = staticmethod(families.DipoleGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(families.DorogovtsevGoltsevMendesGraph)
     EgawaGraph             = staticmethod(families.EgawaGraph)
@@ -2426,7 +2405,8 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, sparse=T
         max_size = n*(n-1)
     else:
         max_size = (n*(n-1))>>1 # >> 1 is just / 2 (this is n choose 2)
-    if loops: max_size += n
+    if loops:
+        max_size += n
     if g.size() < max_size:
         # build a list representing C(g) - the edge to be added
         # is one of max_size choices

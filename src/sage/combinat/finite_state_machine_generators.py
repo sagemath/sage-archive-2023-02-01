@@ -1990,7 +1990,7 @@ class TransducerGenerators(object):
         if missing_initial_values:
             raise ValueError(
                 "Missing initial values for %s." %
-                sorted(list(missing_initial_values)))
+                sorted(missing_initial_values))
 
         for cycle in recursion_digraph.all_simple_cycles():
             assert cycle[0] is cycle[-1]
@@ -2020,7 +2020,7 @@ class TransducerGenerators(object):
         if superfluous_initial_values:
             raise ValueError(
                 "Superfluous initial values for %s." %
-                sorted(list(superfluous_initial_values)))
+                sorted(superfluous_initial_values))
 
         for state in T.iter_states():
             state.is_final = True

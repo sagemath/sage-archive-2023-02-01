@@ -623,8 +623,8 @@ class Variable(CachedRepresentation, SageObject):
             ...
             TypeError: Cannot substitute in 1/x in
             <class 'sage.rings.asymptotic.growth_group.Variable'>.
-            > *previous* TypeError: unsupported operand type(s) for /:
-            'sage.rings.integer.Integer' and 'str'
+            > *previous* TypeError: unsupported operand parent(s) for /:
+            'Integer Ring' and '<class 'str'>'
             sage: Variable('1/x')._substitute_({'x': 0})
             Traceback (most recent call last):
             ...
@@ -2258,6 +2258,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent, WithLocals):
         - ``other`` -- a growth group
 
         EXAMPLES::
+
             sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, ExponentialNonGrowthGroup
             sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: EQ = ExponentialGrowthGroup(QQ, 'n')

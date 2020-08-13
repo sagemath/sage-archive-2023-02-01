@@ -141,7 +141,7 @@ coordinates in the root lattice::
 One can also customize the projection by specifying a function. Here,
 we display all the roots for type `E_8` using the projection from its
 eight dimensional ambient space onto 3D described on
-:wikipedia:`Wikipedia's E8 3D picture <File:E8_3D.png>`::
+:wikipedia:`Wikipedia%27s E8 3D picture <File:E8_3D.png>`::
 
     sage: M = matrix([[0., -0.556793440452, 0.19694925177, -0.19694925177, 0.0805477263944, -0.385290876171, 0., 0.385290876171],
     ....:             [0.180913155536, 0., 0.160212955043, 0.160212955043, 0., 0.0990170516545, 0.766360424875, 0.0990170516545],
@@ -805,7 +805,6 @@ Enjoy and please post your best pictures on the
 # ****************************************************************************
 from __future__ import print_function
 
-import six
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.latex import latex
 from sage.misc.lazy_import import lazy_import
@@ -988,13 +987,13 @@ class PlotOptions(object):
         """
         if self.labels:
             if self.dimension <= 2:
-                if not isinstance(label, six.string_types):
+                if not isinstance(label, str):
                     label = "$"+str(latex(label))+"$"
                 from sage.plot.text import text
                 return text(label, position, fontsize=15, rgbcolor=rgbcolor)
             elif self.dimension == 3:
                 # LaTeX labels not yet supported in 3D
-                if isinstance(label, six.string_types):
+                if isinstance(label, str):
                     label = label.replace("{","").replace("}","").replace("$","").replace("_","")
                 else:
                     label = str(label)

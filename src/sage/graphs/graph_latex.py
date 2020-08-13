@@ -1071,7 +1071,7 @@ class GraphLatex(SageObject):
         #   shape" to mirror vertex shapes
         # - "line width" works for vertices, should be configurable
         # - allow injection of latex code to style a pre-built style for
-        #   example, \SetUpVertex[style={fill=green}] could overide color
+        #   example, \SetUpVertex[style={fill=green}] could override color
         #   selection in a style like "Art"
         # - "inner sep" is distance from vertex label to edge of vertex this
         #   should be set as small as possible - but bigger than the line width.
@@ -1313,6 +1313,37 @@ class GraphLatex(SageObject):
             \Edge[lw=0.1cm,style={color=cv0v1,},](v0)(v1)
             %
             \end{tikzpicture}
+
+        We check that :trac:`22070` is fixed::
+
+            sage: edges = [(i,(i+1)%3,a) for i,a in enumerate('abc')]
+            sage: G_with_labels = DiGraph(edges)
+            sage: C = [[0,1], [2]]
+            sage: kwds = dict(subgraph_clusters=C,color_by_label=True,prog='dot',format='dot2tex')
+            sage: opts = G_with_labels.latex_options()
+            sage: opts.set_options(edge_labels=True, **kwds) # optional - dot2tex graphviz
+            sage: latex(G_with_labels)                       # optional - dot2tex graphviz
+            \begin{tikzpicture}[>=latex,line join=bevel,]
+            %%
+            \begin{scope}
+              \pgfsetstrokecolor{black}
+              \definecolor{strokecol}{rgb}{...};
+              \pgfsetstrokecolor{strokecol}
+              \definecolor{fillcol}{rgb}{...};
+              \pgfsetfillcolor{fillcol}
+              \filldraw ... cycle;
+            \end{scope}
+            \begin{scope}
+              \pgfsetstrokecolor{black}
+              \definecolor{strokecol}{rgb}{...};
+              \pgfsetstrokecolor{strokecol}
+              \definecolor{fillcol}{rgb}{...};
+              \pgfsetfillcolor{fillcol}
+              \filldraw ... cycle;
+            \end{scope}
+            ...
+            \end{tikzpicture}
+
         """
         format = self.get_option('format')
         if format == "tkz_graph":

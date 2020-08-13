@@ -25,7 +25,6 @@ Class hierarchy:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import, division
-from six.moves import range
 
 import sage.modular.hecke.element as element
 
@@ -34,7 +33,7 @@ from sage.arith.srange import xsrange
 from sage.matrix.constructor import matrix
 from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.modular.dirichlet import DirichletGroup
 from sage.modular.modsym.modsym import ModularSymbols
 from sage.modular.modsym.p1list import lift_to_sl2z

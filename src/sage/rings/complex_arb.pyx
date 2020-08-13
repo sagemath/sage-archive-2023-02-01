@@ -185,6 +185,7 @@ from sage.rings.ring import Field
 from sage.structure.element cimport Element, ModuleElement
 from sage.structure.parent cimport Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.arith.long cimport is_small_python_int
 
 from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
@@ -1623,7 +1624,7 @@ cdef class ComplexBall(RingElement):
             sage: float(CBF(1,1))
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex ball to float
+            TypeError: can...t convert complex ball to float
         """
         if not arb_is_zero(acb_imagref(self.value)):
             raise TypeError("can't convert complex ball to float")
@@ -1664,7 +1665,7 @@ cdef class ComplexBall(RingElement):
             sage: RDF(CBF(1 + I))
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex ball to float
+            TypeError: can...t convert complex ball to float
 
             sage: RDF(CBF(3)).parent()
             Real Double Field
@@ -2665,7 +2666,7 @@ cdef class ComplexBall(RingElement):
                             .format(type(val).__name__, type(shift).__name__))
         cdef ComplexBall self = val
         cdef ComplexBall res = self._new()
-        if isinstance(shift, int):
+        if is_small_python_int(shift):
              acb_mul_2exp_si(res.value, self.value, PyInt_AS_LONG(shift))
         elif isinstance(shift, Integer):
             sig_on()
@@ -2806,7 +2807,7 @@ cdef class ComplexBall(RingElement):
         """
         cdef fmpz_t tmpz
         cdef ComplexBall res = self._new()
-        if isinstance(expo, int):
+        if is_small_python_int(expo):
             if _do_sig(prec(self)): sig_on()
             acb_pow_si(res.value, self.value, PyInt_AS_LONG(expo), prec(self))
             if _do_sig(prec(self)): sig_off()

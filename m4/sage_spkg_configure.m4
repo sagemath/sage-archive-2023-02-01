@@ -159,7 +159,7 @@ AC_DEFUN([SAGE_SPKG_CONFIGURE], [
 AC_DEFUN([SAGE_SPKG_DEPCHECK], [
     m4_foreach_w([DEP], $1, [
        AC_REQUIRE([SAGE_SPKG_CONFIGURE_]m4_toupper(DEP))])
-    AC_MSG_CHECKING([whether any of $1 is installed or will be installed as SPKG])
+    AC_MSG_CHECKING([whether any of $1 is installed as or will be installed as SPKG])
     AS_IF([test x = y m4_foreach_w([DEP], $1, [ -o [x$sage_spkg_install_]DEP = xyes])], [
         AC_MSG_RESULT([yes; install SPKG_NAME as well])
         [sage_spkg_install_]SPKG_NAME=yes], [

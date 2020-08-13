@@ -3724,6 +3724,23 @@ cdef class RealIntervalFieldElement(RingElement):
             False
             sage: RIF(1, 2) != RIF(0, 1)
             False
+
+        Check that ``_richcmp_`` is also working for intervals with different
+        precisions (:trac:`29220`)::
+
+            sage: from sage.structure.richcmp import op_LT, op_GT
+            sage: R1 = RealIntervalField(2)
+            sage: R2 = RealIntervalField(4)
+            sage: r1 = R1(1, 3/2)
+            sage: r2 = R2(7/4, 15/8)
+            sage: r1._richcmp_(r2, op_GT)
+            False
+            sage: r1._richcmp_(r2, op_LT)
+            True
+            sage: r2._richcmp_(r1, op_GT)
+            True
+            sage: r2._richcmp_(r1, op_LT)
+            False
         """
         cdef RealIntervalFieldElement lt, rt
 

@@ -147,8 +147,8 @@
     // We have to run it through a shell so that the default arguments are parsed properly
     NSString *command = [NSString stringWithFormat:
                          @"'%@' --notebook=jupyter %@ 2>&1 | tee -a '%@' |"
-                         " grep -i --context 1 'Notebook is running at' |"
-                         " grep -o http://.*",
+                         " grep -i --line-buffered --context=1 'Notebook is running at' |"
+                         " grep --line-buffered -o http://.*",
                          escSageBin,
                          // default args are ready to be
                          (defArgs == nil) ? @"" : defArgs,
@@ -852,9 +852,9 @@ You can change it later in Preferences."];
 
 // TODO: make installing packages easy -- stringByLaunchingPath:withArguments:error:
 // TODO: maybe this should be written in py-objc so that we can call into sage directly (but then we would have to worry about environment etc.)
-// TODO: make some services (search for NSSendTypes) -- pack/unpack spkg, extract sws from pdf, crap/fixdoctests/preparse/Test/coverage/pkg/pkg_nc/etc.
+// TODO: make some services (search for NSSendTypes) -- pack/unpack spkg, crap/fixdoctests/preparse/Test/coverage/pkg/pkg_nc/etc.
 
-// TODO: open files such as .sws, .sage, .py, .spkg, -- .pdf (and extract sws from them), .htm, whatever else I can handle
+// TODO: open files such as .sage, .py, .spkg, -- .pdf, .htm, whatever else I can handle
 // TODO: quicklook generator, spotlight importer -- use UTI
 // NOTE: http://developer.apple.com/mac/library/documentation/Miscellaneous/Reference/UTIRef/Articles/System-DeclaredUniformTypeIdentifiers.html
 // TODO: icons for files -- they need some help with the alpha channel.  I clearly don't know what I'm doing.  I should really make them all from by script...

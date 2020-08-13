@@ -29,6 +29,7 @@ save member functions and commands.
 
 import io
 import os
+import pickle
 import sys
 
 from textwrap import dedent
@@ -37,8 +38,6 @@ from textwrap import dedent
 # slows down loading any data stored in the other format
 import zlib; comp = zlib
 import bz2; comp_other = bz2
-
-from six.moves import cPickle as pickle
 
 from .misc import SAGE_DB
 from .sage_unittest import TestSuite
@@ -834,7 +833,7 @@ class SagePickler(_BasePickler):
         sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII') #py3
         Traceback (most recent call last):
         ...
-        UnicodeDecodeError: 'ascii' codec can't decode byte 0x80 in position 0: ordinal not in range(128)
+        UnicodeDecodeError: 'ascii' codec can...t decode byte 0x80 in position 0: ordinal not in range(128)
 
     """
 
@@ -1024,7 +1023,7 @@ def loads(s, compress=True, **kwargs):
         sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII') #py3
         Traceback (most recent call last):
         ...
-        UnicodeDecodeError: 'ascii' codec can't decode byte 0x80 in position 0: ordinal not in range(128)
+        UnicodeDecodeError: 'ascii' codec can...t decode byte 0x80 in position 0: ordinal not in range(128)
 
     """
     if not isinstance(s, bytes):

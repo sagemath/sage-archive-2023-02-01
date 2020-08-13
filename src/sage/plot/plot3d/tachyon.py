@@ -143,7 +143,7 @@ from sage.interfaces.tachyon import tachyon_rt
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 
-from sage.misc.misc import get_verbose
+from sage.misc.verbose import get_verbose
 from sage.misc.temporary_file import tmp_filename
 
 #from sage.ext import fast_tachyon_routines
@@ -449,7 +449,7 @@ class Tachyon(WithEqualityById, SageObject):
 
         -  ``verbose`` - integer (default: None); if no verbosity setting 
            is supplied, the verbosity level set by 
-           sage.misc.misc.set_verbose is used.
+           ``sage.misc.verbose.set_verbose`` is used.
 
         -  ``0`` - silent
 
@@ -528,6 +528,7 @@ class Tachyon(WithEqualityById, SageObject):
             sage: def f(x,y): return float(sin(x*y))
             sage: h.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
             sage: h.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3, num_colors=60)  # increase min_depth for better picture
+            sage: from sage.misc.verbose import set_verbose, get_verbose
             sage: set_verbose(0)
             sage: h.show() 
             

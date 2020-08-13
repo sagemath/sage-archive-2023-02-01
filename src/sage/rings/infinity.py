@@ -216,7 +216,6 @@ We check that :trac:`17990` is fixed::
 #*****************************************************************************
 # python3
 from __future__ import division
-from six import integer_types
 
 from sys import maxsize
 from sage.rings.ring import Ring
@@ -719,10 +718,7 @@ class UnsignedInfinityRing_class(Singleton, Ring):
 
         # Handle all ways to represent infinity first
         if isinstance(x, InfinityElement):
-            if x.parent() is self:
-                return x
-            else:
-                return self.gen()
+            return self.gen()
         elif isinstance(x, float):
             if x in [float('+inf'), float('-inf')]:
                 return self.gen()
@@ -755,7 +751,7 @@ class UnsignedInfinityRing_class(Singleton, Ring):
             sage: UnsignedInfinityRing.has_coerce_map_from(SymmetricGroup(13))
             False
         """
-        return isinstance(R, Ring) or R in integer_types + (float, complex)
+        return isinstance(R, Ring) or R in (int, float, complex)
 
 UnsignedInfinityRing = UnsignedInfinityRing_class()
 
@@ -867,6 +863,27 @@ class LessThanInfinity(_uniq, RingElement):
         if isinstance(other, UnsignedInfinity):
             return rich_to_bool(op, -1)
         return rich_to_bool(op, 0)
+
+    def sign(self):
+        """
+        Raise an error because the sign of self is not well defined.
+
+        EXAMPLES::
+
+            sage: sign(UnsignedInfinityRing(2))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: sign of number < oo is not well defined
+            sage: sign(UnsignedInfinityRing(0))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: sign of number < oo is not well defined
+            sage: sign(UnsignedInfinityRing(-2))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: sign of number < oo is not well defined
+        """
+        raise NotImplementedError("sign of number < oo is not well defined")
 
 
 class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
@@ -1466,6 +1483,34 @@ class FiniteNumber(RingElement):
         if self.value == 0:
             return FiniteNumber(self.parent(), 0)
         return FiniteNumber(self.parent(), 1)
+
+    def sign(self):
+        """
+        Return the sign of self.
+
+        EXAMPLES::
+
+            sage: sign(InfinityRing(2))
+            1
+            sage: sign(InfinityRing(0))
+            0
+            sage: sign(InfinityRing(-2))
+            -1
+
+        TESTS::
+
+            sage: sgn(InfinityRing(7))
+            1
+            sage: sgn(InfinityRing(0))
+            0
+            sage: sgn(InfinityRing(-7))
+            -1
+        """
+        if self.value == 0:
+            return 0
+        if self.value > 0:
+            return 1
+        return -1
 
     def sqrt(self):
         """

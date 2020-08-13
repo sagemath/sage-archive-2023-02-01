@@ -50,7 +50,6 @@ and library interfaces to Maxima.
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
-from six import string_types
 
 import os
 import re
@@ -646,11 +645,11 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         name = self._next_var_name()
         if isinstance(defn, MaximaAbstractElement):
             defn = defn.str()
-        elif not isinstance(defn, string_types):
+        elif not isinstance(defn, str):
             defn = str(defn)
         if isinstance(args, MaximaAbstractElement):
             args = args.str()
-        elif not isinstance(args, string_types):
+        elif not isinstance(args, str):
             args = str(args)
         cmd = '%s(%s) := %s' % (name, args, defn)
         self._eval_line(cmd)
@@ -856,7 +855,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             sage: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'],[1,1])
             y=-%e^-1*(5*%e^x-3*%e*x-3*%e)
         """
-        if not isinstance(vars, string_types):
+        if not isinstance(vars, str):
             str_vars = '%s, %s'%(vars[1], vars[0])
         else:
             str_vars = vars
@@ -1519,7 +1518,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         EXAMPLES::
 
             sage: maxima('exp(-sqrt(x))').nintegral('x',0,1)
-            (0.5284822353142306, 0.41633141378838...e-10, 231, 0)
+            (0.5284822353142306, 4.1633141378838...e-11, 231, 0)
 
         Note that GP also does numerical integration, and can do so to very
         high precision very quickly::

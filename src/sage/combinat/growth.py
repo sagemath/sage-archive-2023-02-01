@@ -471,7 +471,9 @@ The labels are now alternating between vertices and edge-colors::
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
 
-from six.moves import zip_longest
+from copy import copy
+from itertools import zip_longest
+
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.posets.posets import Poset
@@ -485,7 +487,6 @@ from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.core import Core, Cores
 from sage.combinat.k_tableau import WeakTableau, StrongTableau
 from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableau
-from copy import copy
 from sage.graphs.digraph import DiGraph
 
 def _make_partition(l):

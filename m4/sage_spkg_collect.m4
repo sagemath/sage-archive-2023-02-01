@@ -28,8 +28,8 @@
 #      - SAGE_OPTIONAL_PACKAGES - lists the names of packages with the
 #        "optional" type that should be installed.
 #
-#      - SAGE_SDIST_PACKAGES - lists the names of all packages that should be
-#        included in the source distribution.
+#      - SAGE_SDIST_PACKAGES - lists the names of all packages whose sources
+#        need to be downloaded to be included in the source distribution.
 #
 #      - SAGE_PACKAGE_VERSIONS - this template variable defines multiple
 #        Makefile variables in the format "vers_<packagename>" the value
@@ -92,7 +92,7 @@ newest_version() {
     if test -f "$SAGE_ROOT/build/pkgs/$SPKG/package-version.txt" ; then
         cat "$SAGE_ROOT/build/pkgs/$SPKG/package-version.txt"
     else
-        echo "$SPKG"
+        echo none
     fi
 }
 
@@ -100,34 +100,33 @@ newest_version() {
 # not required on this platform or that can be taken from the underlying system
 # installation. Note that this contains packages that are not actually going to
 # be installed by most users because they are optional/experimental.
-SAGE_BUILT_PACKAGES='\
-'
+SAGE_BUILT_PACKAGES=''
+
 # The complement of SAGE_BUILT_PACKAGES, i.e., packages that are not required
 # on this platform or packages where we found a suitable package on the
 # underlying system.
-SAGE_DUMMY_PACKAGES='\
-'
+SAGE_DUMMY_PACKAGES=''
+
 # Standard packages
-SAGE_STANDARD_PACKAGES='\
-'
+SAGE_STANDARD_PACKAGES=''
+
 # List of currently installed and to-be-installed optional packages - filled in SAGE_SPKG_ENABLE
 #SAGE_OPTIONAL_INSTALLED_PACKAGES
 # List of optional packages to be uninstalled - filled in SAGE_SPKG_ENABLE
 #SAGE_OPTIONAL_CLEANED_PACKAGES
 
 # List of all packages that should be downloaded
-SAGE_SDIST_PACKAGES='\
-'
+SAGE_SDIST_PACKAGES=''
+
 # Generate package version and dependency lists
 SAGE_PACKAGE_VERSIONS=""
 SAGE_PACKAGE_DEPENDENCIES=""
 # Lists of packages categorized according to their build rules
-SAGE_NORMAL_PACKAGES='\
-'
-SAGE_PIP_PACKAGES='\
-'
-SAGE_SCRIPT_PACKAGES='\
-'
+SAGE_NORMAL_PACKAGES=''
+SAGE_PIP_PACKAGES=''
+SAGE_SCRIPT_PACKAGES=''
+
+SAGE_NEED_SYSTEM_PACKAGES=""
 
 # for each package in pkgs/, add them to the SAGE_PACKAGE_VERSIONS and
 # SAGE_PACKAGE_DEPENDENCIES lists, and to one or more of the above variables
@@ -157,7 +156,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         message="came preinstalled with the SageMath tarball"
         ;;
     standard)
-        SAGE_STANDARD_PACKAGES+="    $SPKG_NAME \\"$'\n'
+        SAGE_STANDARD_PACKAGES="${SAGE_STANDARD_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
         in_sdist=yes
         message="will be installed as an SPKG"
         ;;
@@ -169,20 +168,39 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         message="experimental, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
         uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
         ;;
-    script)
-        message="use \"$srcdir/configure --enable-$SPKG_NAME\" to install as an SPKG"
-        ;;
-    pip)
-        message="use \"$srcdir/configure --enable-$SPKG_NAME\" to install as an SPKG"
-        ;;
     *)
-        AC_MSG_ERROR([The content of "$SPKG_TYPE_FILE" must be 'base', 'standard', 'optional', 'experimental', 'script', or 'pip'])
+        AC_MSG_ERROR([The content of "$SPKG_TYPE_FILE" must be 'base', 'standard', 'optional', or 'experimental'])
         ;;
     esac
 
-    SAGE_PACKAGE_VERSIONS+="vers_$SPKG_NAME = $SPKG_VERSION"$'\n'
+    case "$SPKG_TYPE" in
+    optional|experimental)
+        stampfile=""
+        for f in "$SAGE_SPKG_INST/$SPKG_NAME"-*; do
+            AS_IF([test -r "$f"], [
+                AS_IF([test -n "$stampfile"], [
+                    AC_MSG_ERROR(m4_normalize([
+                        multiple installation records for $SPKG_NAME:
+                        m4_newline($(ls -l "$SAGE_SPKG_INST/$SPKG_NAME"-*))
+                        m4_newline([only one should exist, so please delete some or all
+                        of these files and re-run \"$srcdir/configure\"])
+                    ]))
+                ])
+                stampfile=yes
+            ])
+        done
+        ;;
+    esac
 
-    if test "$SPKG_NAME" != "$SPKG_VERSION"; then
+    # Trac #29629: Temporary solution for Sage 9.1: Do not advertise installing pip packages
+    # using ./configure --enable-SPKG
+    if test -f "$DIR/requirements.txt"; then
+        message="$SPKG_TYPE pip package; use \"./sage -i $SPKG_NAME\" to install"
+        uninstall_message="$SPKG_TYPE pip package (installed)"
+    fi
+
+    SAGE_PACKAGE_VERSIONS="${SAGE_PACKAGE_VERSIONS}$(printf '\nvers_')${SPKG_NAME} = ${SPKG_VERSION}"
+
         AS_VAR_PUSHDEF([sage_spkg_install], [sage_spkg_install_${SPKG_NAME}])dnl
         AS_VAR_PUSHDEF([sage_require], [sage_require_${SPKG_NAME}])dnl
         AS_VAR_PUSHDEF([sage_use_system], [sage_use_system_${SPKG_NAME}])dnl
@@ -192,17 +210,19 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         # "./sage -i SPKG_NAME" will still install the package.
         AS_VAR_IF([sage_spkg_install], [no], [
             dnl We will use the system package (or not required for this platform.)
-            SAGE_DUMMY_PACKAGES+="    $SPKG_NAME \\"$'\n'
+            SAGE_DUMMY_PACKAGES="${SAGE_DUMMY_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
             AS_VAR_IF([sage_require], [yes], [ message="using system package; SPKG will not be installed"
             ],                               [ message="not required on your platform; SPKG will not be installed"
             ])
         ], [
             dnl We won't use the system package.
-            SAGE_BUILT_PACKAGES+="    $SPKG_NAME \\"$'\n'
+            SAGE_BUILT_PACKAGES="${SAGE_BUILT_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
             AS_VAR_SET_IF([sage_use_system], [
                 AS_VAR_COPY([reason], [sage_use_system])
                 AS_CASE([$reason],
-                [yes],                       [ message="no suitable system package; $message" ],
+                [yes],                       [ message="no suitable system package; $message"
+                                               AS_VAR_APPEND([SAGE_NEED_SYSTEM_PACKAGES], [" $SPKG_NAME"])
+                                             ],
                 [installed],                 [ message="already installed as an SPKG$uninstall_message" ],
                                              [ message="$reason; $message" ])
             ], [
@@ -216,54 +236,76 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         AS_VAR_POPDEF([sage_use_system])dnl
         AS_VAR_POPDEF([sage_require])dnl
         AS_VAR_POPDEF([sage_spkg_install])dnl
-    fi
 
     # Packages that should be included in the source distribution
     # This includes all standard packages and two special cases
     case "$SPKG_NAME" in
-    mpir|python2)
+    mpir)
         in_sdist=yes
         ;;
     esac
 
+    # Determine package source
+    #
+    if test -f "$DIR/requirements.txt"; then
+        SPKG_SOURCE=pip
+        # Since pip packages are downloaded and installed by pip, we don't
+        # include them in the source tarball. At the time of this writing,
+        # all pip packages are optional.
+        in_sdist=no
+    elif test ! -f "$DIR/checksums.ini"; then
+        SPKG_SOURCE=script
+        # We assume that either (a) the sources for an optional script
+        # package will be downloaded by the script, or (b) that a
+        # standard script package's sources are already a part of the
+        # sage repository (and thus the release tarball). As a result,
+        # we don't need to download the sources, which is what
+        # "in_sdist" really means. At the time of this writing, the
+        # only standard script packages are sage_conf and sagelib.
+        # The source of sage_conf is included under build/pkgs/sage_conf/src,
+        # and the source of sagelib is provided by symlinks in
+        # build/pkgs/sagelib/src.
+        in_sdist=no
+    else
+        SPKG_SOURCE=normal
+    fi
+
     if test "$in_sdist" = yes; then
-        SAGE_SDIST_PACKAGES+="    $SPKG_NAME \\"$'\n'
+        SAGE_SDIST_PACKAGES="${SAGE_SDIST_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
     fi
 
     # Determine package dependencies
-    DEP_FILE="$SAGE_ROOT/build/pkgs/$SPKG_NAME/dependencies"
+    #
+    DEP_FILE="$DIR/dependencies"
     if test -f "$DEP_FILE"; then
         # - the # symbol is treated as comment which is removed
         DEPS=`sed 's/^ *//; s/ *#.*//; q' $DEP_FILE`
     else
-        case "$SPKG_TYPE" in
-        optional)
-            DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
-            ;;
-        script)
-            DEPS=' | $(STANDARD_PACKAGES)' # default for script-only packages
-            ;;
+        ORDER_ONLY_DEPS=""
+        case "$SPKG_SOURCE" in
         pip)
-            DEPS=' | pip'
-            ;;
-        *)
-            DEPS=""
+            ORDER_ONLY_DEPS='pip'
             ;;
         esac
+        if test -n "$ORDER_ONLY_DEPS"; then
+            DEPS="| $ORDER_ONLY_DEPS"
+        else
+            DEPS=""
+        fi
     fi
 
-    SAGE_PACKAGE_DEPENDENCIES+="deps_$SPKG_NAME = $DEPS"$'\n'
+    SAGE_PACKAGE_DEPENDENCIES="${SAGE_PACKAGE_DEPENDENCIES}$(printf '\ndeps_')${SPKG_NAME} = ${DEPS}"
 
     # Determine package build rules
-    case "$SPKG_TYPE" in
+    case "$SPKG_SOURCE" in
     pip)
-        SAGE_PIP_PACKAGES+="    $SPKG_NAME \\"$'\n'
+        SAGE_PIP_PACKAGES="${SAGE_PIP_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
         ;;
     script)
-        SAGE_SCRIPT_PACKAGES+="    $SPKG_NAME \\"$'\n'
+        SAGE_SCRIPT_PACKAGES="${SAGE_SCRIPT_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
         ;;
-    *)
-        SAGE_NORMAL_PACKAGES+="    $SPKG_NAME \\"$'\n'
+    normal)
+        SAGE_NORMAL_PACKAGES="${SAGE_NORMAL_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
         ;;
     esac
 done
@@ -279,4 +321,26 @@ AC_SUBST([SAGE_STANDARD_PACKAGES])
 AC_SUBST([SAGE_OPTIONAL_INSTALLED_PACKAGES])
 AC_SUBST([SAGE_OPTIONAL_CLEANED_PACKAGES])
 AC_SUBST([SAGE_SDIST_PACKAGES])
+])
+
+AC_DEFUN([SAGE_SYSTEM_PACKAGE_NOTICE], [
+    AS_IF([test -n "$SAGE_NEED_SYSTEM_PACKAGES"], [
+        AC_MSG_NOTICE([notice: the following SPKGs did not find equivalent system packages:$SAGE_NEED_SYSTEM_PACKAGES])
+        AC_MSG_CHECKING([for the package system in use])
+        SYSTEM=$(build/bin/sage-guess-package-system 2>& AS_MESSAGE_FD)
+        AC_MSG_RESULT([$SYSTEM])
+        AS_IF([test $SYSTEM != unknown], [
+            SYSTEM_PACKAGES=$(build/bin/sage-get-system-packages $SYSTEM $SAGE_NEED_SYSTEM_PACKAGES)
+            AS_IF([test -n "$SYSTEM_PACKAGES"], [
+                PRINT_SYS="build/bin/sage-print-system-package-command $SYSTEM --verbose --prompt --sudo"
+                COMMAND=$($PRINT_SYS update && $PRINT_SYS install $SYSTEM_PACKAGES && SAGE_ROOT=$SAGE_ROOT $PRINT_SYS setup-build-env )
+                AC_MSG_NOTICE([hint: installing the following system packages is recommended and may avoid building some of the above SPKGs from source:])
+                AC_MSG_NOTICE([$COMMAND])
+                AC_MSG_NOTICE([After installation, re-run configure using:])
+                AC_MSG_NOTICE([  \$ ./config.status --recheck && ./config.status])
+            ], [
+                AC_MSG_NOTICE([No equivalent system packages for $SYSTEM are known to Sage])
+            ])
+        ])
+    ])
 ])

@@ -1184,7 +1184,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def map_coefficients(self, f, new_base_ring=None):
         r"""
-        Returns the series obtained by applying ``f`` to the non-zero
+        Return the series obtained by applying ``f`` to the non-zero
         coefficients of ``self``.
 
         If ``f`` is a :class:`sage.categories.map.Map`, then the resulting
@@ -1244,6 +1244,75 @@ cdef class PowerSeries(AlgebraElement):
         else:
             return self.parent()(res, self.prec())
 
+    def jacobi_continued_fraction(self):
+        r"""
+        Return the Jacobi continued fraction of ``self``.
+
+        The J-fraction or Jacobi continued fraction of a power series
+        is a continued fraction expansion with steps of size two. We use
+        the following convention
+
+        .. MATH::
+
+            1 / (1 + A_0 t + B_0 t^2 / (1 + A_1 t + B_1 t^2 / (1 + \cdots)))
+
+        OUTPUT:
+
+        tuple of pairs `(A_n, B_n)` for `n \geq 0`
+
+        The expansion is done as long as possible given the precision.
+        Whenever the expansion is not well-defined, because it would
+        require to divide by zero, an exception is raised.
+
+        See section 2.7 of [Kra1999det]_ for the close relationship
+        of this kind of expansion with Hankel determinants and
+        orthogonal polynomials.
+
+        EXAMPLES::
+
+            sage: t = PowerSeriesRing(QQ, 't').gen()
+            sage: s = sum(factorial(k) * t**k for k in range(12)).O(12)
+            sage: s.jacobi_continued_fraction()
+            ((-1, -1), (-3, -4), (-5, -9), (-7, -16), (-9, -25))
+
+        Another example::
+
+            sage: (log(1+t)/t).jacobi_continued_fraction()
+            ((1/2, -1/12),
+             (1/2, -1/15),
+             (1/2, -9/140),
+             (1/2, -4/63),
+             (1/2, -25/396),
+             (1/2, -9/143),
+             (1/2, -49/780),
+             (1/2, -16/255),
+             (1/2, -81/1292))
+
+        TESTS::
+
+             sage: (t).jacobi_continued_fraction()
+             Traceback (most recent call last):
+             ...
+             ValueError: vanishing constant term, no expansion
+             sage: (1/(1+3*t)).jacobi_continued_fraction()
+             Traceback (most recent call last):
+             ...
+             ValueError: vanishing term, no further expansion
+        """
+        t = self.parent().gen()
+        if self[0] == 0:
+            raise ValueError('vanishing constant term, no expansion')
+        serie = self / self[0]
+        resu = []
+        while serie.prec() >= 3:
+            u = serie.inverse()
+            A, B = u[1], u[2]
+            resu.append((A, B))
+            if B == 0:
+                raise ValueError('vanishing term, no further expansion')
+            serie = (u - 1 - A * t) / (B * t ** 2)
+        return tuple(resu)
+        
     def is_square(self):
         """
         Return True if this function has a square root in this ring, e.g.,
@@ -2285,7 +2354,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def egf_to_ogf(self):
         r"""
-        Returns the ordinary generating function power series,
+        Return the ordinary generating function power series,
         assuming self is an exponential generating function power series.
 
         This function is known as ``serlaplace`` in PARI/GP.
@@ -2301,7 +2370,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def ogf_to_egf(self):
         r"""
-        Returns the exponential generating function power series,
+        Return the exponential generating function power series,
         assuming self is an ordinary generating function power series.
 
         This can also be computed as ``serconvol(f,exp(t))`` in PARI/GP.

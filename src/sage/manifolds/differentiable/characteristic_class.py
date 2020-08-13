@@ -1,18 +1,18 @@
 r"""
 Characteristic Classes
 
-Let `E \to M` be a topological vector bundle of rank `n` over a topological
-manifold `M` and `R` be any ring.
-A *characteristic class* `c(E)` is an element of the cohomology ring
-`H^{*}(M, R)` such that for any continuous map `f: M \to N`, where `N` is
-another topological manifold, the *naturality condition* is satisfied:
+A *characteristic class* `\kappa` is a natural transformation that
+associates to each vector bundle `E \to M` a cohomology class
+`\kappa(E) \in H^*(M;R)` such that for any continuous map `f\colon N \to M`
+from another topological manifold `N`, the *naturality condition* is
+satisfied:
 
 .. MATH::
 
-    c(f^*E) = f^*c(E) .
+    f^*\kappa(E) = \kappa(f^* E) \in H^*(N;R)
 
-Roughly speaking, characteristic classes measure the non-triviality of the
-vector bundle `E`.
+Roughly speaking, characteristic classes measure the non-triviality of
+vector bundles.
 
 One way to obtain and compute characteristic classes in the de Rham cohomology
 with coefficients in the ring `\CC` is via the so-called *Chern-Weil theory*
@@ -70,9 +70,10 @@ we call
     \left[\mathrm{tr}\left( f\left( \frac{\Omega}{2 \pi i} \right)
         \right)\right] \in H^{2*}_{\mathrm{dR}}(M, \CC)
 
-the *additive Chern f-genus*.
+the *additive characteristic class associated to* `f` of the complex vector
+bundle `E`.
 
-Important and predefined additive Chern genera are:
+Important and predefined additive classes are:
 
 - *Chern Character* with `f(x) = \exp(x)`
 
@@ -84,7 +85,8 @@ In the **real** case, let `g` be a holomorphic function around zero with
     \left[\mathrm{tr}\left( \frac{1}{2} g\left( -\frac{\Omega^2}{4 \pi^2}
         \right) \right)\right] \in H^{4*}_{\mathrm{dR}}(M, \CC)
 
-the *additive Pontryagin g-genus*.
+the *additive characteristic class associated to* `g` of the **real** vector
+bundle `E`.
 
 EXAMPLES:
 
@@ -103,10 +105,10 @@ potential `A(t)`::
     sage: nab = E.bundle_connection('nabla^E', latex_name=r'\nabla^E')
     sage: omega = M.one_form(name='omega')
     sage: A = function('A')
-    sage: omega[1] = I*A(t)
-    sage: omega.display()
-    omega = I*A(t) dx
-    sage: nab.set_connection_form(0, 0, omega)
+    sage: nab.set_connection_form(0, 0)[1] = I*A(t)
+    sage: nab[0, 0].display()
+    connection (0,0) of bundle connection nabla^E w.r.t. Local frame
+     (E|_M, (e_0)) = I*A(t) dx
 
 The Chern character is then given by::
 
@@ -130,9 +132,10 @@ Then we call
     \left[\det\left( f\left( \frac{\Omega}{2 \pi i} \right)
         \right)\right] \in H^{2*}_{\mathrm{dR}}(M, \CC)
 
-the *multiplicative Chern f-genus*.
+the *multiplicative characteristic class associated to* `f` of the complex
+vector bundle `E`.
 
-Important and predefined multiplicative Chern genera are:
+Important and predefined multiplicative classes on complex vector bundles are:
 
 - *Chern class* with `f(x) = 1+x`
 - *Todd class* with `f(x) = \frac{x}{1-\exp(-x)}`
@@ -145,9 +148,10 @@ In the **real** case, let `g` be a holomorphic function around zero with
     \left[\det\left( \sqrt{ g \left( -\frac{\Omega^2}{4 \pi^2} \right) } \right)
         \right] \in H^{4*}_{\mathrm{dR}}(M, \CC)
 
-the *multiplicative Pontryagin g-genus*.
+the *multiplicative characteristic class associated to* `g` on the **real**
+vector bundle `E`.
 
-Important and predefined multiplicative Pontryagin genera are:
+Important and predefined multiplicative classes on real vector bundles are:
 
 - *Pontryagin class* with `g(x) = 1+x`
 - `\hat{A}` *class* with `g(x) = \frac{\sqrt{x}/2}{\sinh(\sqrt{x}/2)}`
@@ -177,7 +181,7 @@ is given by `1+|z|^2`::
     sage: nab = E.bundle_connection('nabla')
     sage: omega = U.one_form(name='omega')
     sage: omega[c_comp.frame(),1,c_comp] = zbar/(1+z*zbar)
-    sage: nab.set_connection_form(1, 1, omega, frame=e)
+    sage: nab[e, 1, 1] = omega
 
 Now, the Chern class can be constructed::
 
@@ -251,7 +255,7 @@ a connection::
     sage: g[eV,1,1], g[eV,2,2] = 4/(1+u^2+v^2)^2, 4/(1+u^2+v^2)^2
     sage: nab = g.connection()
 
-In case of the the Euler class, skew-symmetric curvature matrices are needed
+In case of the Euler class, skew-symmetric curvature matrices are needed
 for the Pfaffian. For this, we need to define the curvature matrices by
 hand::
 
@@ -284,6 +288,7 @@ Fortunately, both curvature matrices are already skew-symmetric::
      (V, (d/du,d/dv)) = -4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
     curvature (2,2) of connection nabla_g w.r.t. Coordinate frame
      (V, (d/du,d/dv)) = 0
+    sage: nab.set_immutable()  # make nab immutable
 
 Now the representative of the Euler class with respect to the connection
 `\nabla_g` induced by the standard metric can be computed::
@@ -665,10 +670,10 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
             sage: nab = E.bundle_connection('nabla^E', latex_name=r'\nabla^E')
             sage: omega = M.one_form(name='omega')
             sage: A = function('A')
-            sage: omega[1] = I*A(t)
-            sage: omega.display()
-            omega = I*A(t) dx
-            sage: nab.set_connection_form(0, 0, omega)
+            sage: nab.set_connection_form(0, 0)[1] = I*A(t)
+            sage: nab[0, 0].display()
+            connection (0,0) of bundle connection nabla^E w.r.t. Local frame
+             (E|_M, (e_0)) = I*A(t) dx
 
         The Chern character is then given by::
 

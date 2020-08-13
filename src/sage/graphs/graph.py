@@ -9429,8 +9429,8 @@ class Graph(GenericGraph):
 
         if extended:
             for v in self:
-                v1 = (0, v)
-                v2 = (1, v)
+                v1 = (v, 0)
+                v2 = (v, 1)
 
                 G.add_edge((v1, v2))
 

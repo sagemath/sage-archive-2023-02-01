@@ -13,10 +13,10 @@ from sage.categories.modules import Modules
 from sage.modules.free_module import VectorSpace
 from sage.coding.encoder import Encoder
 from sage.misc.cachefunc import cached_method
-from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer import Integer
 from sage.structure.parent import Parent
 from sage.rings.integer_ring import ZZ
+
 
 class AbstractLinearCodeNoMetric(AbstractCode, Module):
     r"""

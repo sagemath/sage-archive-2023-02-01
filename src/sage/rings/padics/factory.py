@@ -25,7 +25,7 @@ TESTS::
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import, print_function
 
@@ -36,7 +36,6 @@ from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
 from sage.structure.factorization import Factorization
 from sage.rings.integer_ring import ZZ
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.structure.element import is_Element
 from .padic_base_leaves import (pAdicRingCappedRelative,

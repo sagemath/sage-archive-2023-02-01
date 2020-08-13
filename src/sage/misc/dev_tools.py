@@ -315,13 +315,16 @@ def find_object_modules(obj):
         module_to_obj2 = {}
         for module_name, obj_names in module_to_obj.items():
             module_to_obj2[module_name] = []
-            src = sageinspect.sage_getsource(sys.modules[module_name])
-            m = dec_pattern.search(src)
-            while m:
-                if m.group(1) in obj_names:
-                    module_to_obj2[module_name].append(m.group(1))
-                m = dec_pattern.search(src, m.end())
-
+            try:
+                src = sageinspect.sage_getsource(sys.modules[module_name])
+            except TypeError:
+                pass
+            else:
+                m = dec_pattern.search(src)
+                while m:
+                    if m.group(1) in obj_names:
+                        module_to_obj2[module_name].append(m.group(1))
+                    m = dec_pattern.search(src, m.end())
             if not module_to_obj2[module_name]:
                 del module_to_obj2[module_name]
 

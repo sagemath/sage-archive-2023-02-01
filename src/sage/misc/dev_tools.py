@@ -593,6 +593,8 @@ def import_statements(*objects, **kwds):
         modules = find_object_modules(obj)
         if '__main__' in modules:
             del modules['__main__']
+        if '__mp_main__' in modules:
+            del modules['__mp_main__']
 
         if not modules:
             raise ValueError("no import statement found for '{}'.".format(obj))

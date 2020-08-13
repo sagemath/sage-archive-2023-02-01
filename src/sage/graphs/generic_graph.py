@@ -16859,6 +16859,15 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: Wiener index is not defined for empty or one-element graph
+            sage: Graph(1).wiener_index()
+            Traceback (most recent call last):
+            ...
+            ValueError: Wiener index is not defined for empty or one-element graph
+
+            sage: Graph([(0, 1, 1)]).wiener_index(algorithm="coco beach")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm "coco beach"
         """
         by_weight = by_weight or (weight_function is not None)
 
@@ -16874,18 +16883,36 @@ class GenericGraph(GenericGraph_pyx):
         if algorithm in ['Dijkstra_Boost', 'Bellman-Ford_Boost'] or (algorithm is None and by_weight):
             from .base.boost_graph import wiener_index
             WI = wiener_index(self, algorithm=algorithm,
-                                weight_function=weight_function,
-                                check_weight=check_weight)
+                              weight_function=weight_function,
+                              check_weight=check_weight)
 
         elif (not self.is_connected()
-            or (self.is_directed() and not self.is_strongly_connected())):
+              or (self.is_directed() and not self.is_strongly_connected())):
             from sage.rings.infinity import Infinity
             return Infinity
 
+        elif algorithm == "Dijkstra_NetworkX":
+            import networkx
+            if by_weight:
+                if self.is_directed():
+                    G = networkx.DiGraph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
+                else:
+                    G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
+            else:
+                # Needed to remove labels.
+                if self.is_directed():
+                    G = networkx.DiGraph(list(self.edges(labels=False, sort=False)))
+                else:
+                    G = networkx.Graph(list(self.edges(labels=False, sort=False)))
+            G.add_nodes_from(self)
+            total = sum(sum(networkx.single_source_dijkstra_path_length(G, u).values())
+                            for u in G)
+            WI = total if self.is_directed() else (total / 2)
+
         else:
-            distances = self.shortest_path_all_pairs(by_weight=by_weight,
-                            algorithm=algorithm, weight_function=weight_function,
-                            check_weight=check_weight)[0]
+            distances = self.shortest_path_all_pairs(
+                by_weight=by_weight, algorithm=algorithm,
+                weight_function=weight_function, check_weight=check_weight)[0]
             total = sum(sum(u.values()) for u in distances.values())
             WI = total if self.is_directed() else (total / 2)
 
@@ -16964,7 +16991,7 @@ class GenericGraph(GenericGraph_pyx):
         WI =  self.wiener_index(by_weight=by_weight, algorithm=algorithm,
                                     weight_function=weight_function)
         f = 1 if self.is_directed() else 2
-        if WI in QQ:
+        if WI in ZZ:
             return QQ((f * WI, self.order() * (self.order() - 1)))
         return f * WI / (self.order() * (self.order() - 1))
 

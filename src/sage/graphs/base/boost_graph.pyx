@@ -2651,6 +2651,28 @@ cpdef wiener_index(g, algorithm=None, weight_function=None, check_weight=True):
         sage: w = lambda x: (x*x*(x-1))/2
         sage: wiener_index(g) == w(n)
         True
+
+    TESTS:
+
+    Using ``"Dijkstra"`` on a graph with negative weights::
+
+        sage: g = Graph([(0, 1, -1), (1, 2, 1)])
+        sage: def weight_of(e):
+        ....:     return e[2]
+        sage: wiener_index(g, algorithm="Dijkstra", weight_function=weight_of)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead
+
+    Directed graph with a negative weight cycle::
+
+        sage: g = DiGraph([(0, 1, -1), (1, 2, -1), (2, 0, -1)])
+        sage: def weight_of(e):
+        ....:     return e[2]
+        sage: wiener_index(g, algorithm="Bellman-Ford", weight_function=weight_of)
+        Traceback (most recent call last):
+        ...
+        ValueError: the graph contains a negative cycle
     """
     import sys
     cdef int n = g.order()
@@ -2705,8 +2727,8 @@ cpdef wiener_index(g, algorithm=None, weight_function=None, check_weight=True):
                     sig_off()
                     if not distances.size():
                        raise RuntimeError("Dijkstra algorithm does not "
-                                           "work with negative weights, "
-                                           "use Bellman-Ford instead")
+                                          "work with negative weights, "
+                                          "use Bellman-Ford instead")
                 except RuntimeError as msg:
                    raise RuntimeError(msg)
             else:
@@ -2726,7 +2748,7 @@ cpdef wiener_index(g, algorithm=None, weight_function=None, check_weight=True):
                     sig_off()
                     if not distances.size():
                         raise RuntimeError("Dijkstra algorithm does not "
-                                          "work with negative weights, "
+                                           "work with negative weights, "
                                            "use Bellman-Ford instead")
                 except RuntimeError as msg:
                     raise RuntimeError(msg)

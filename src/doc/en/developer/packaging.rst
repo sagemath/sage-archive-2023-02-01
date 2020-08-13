@@ -248,6 +248,30 @@ something like the following to install it:
         sdh_install doc/ "$SAGE_SHARE"/doc/PACKAGE_NAME
     fi
 
+At build time :envvar:`CFLAGS`, :envvar:`CXXFLAGS`, :envvar:`FCFLAGS`,
+and :envvar:`F77FLAGS` are usually set to ``-g -O2 -march=native``
+(according to `debugging options <../installation/source.html#sage-debug>`_
+and whether building
+`fat binaries <../installation/source.html#sage-fat-binary>`_).
+
+Slightly modified versions are available:
+
+.. CODE-BLOCK:: bash
+
+    # No ``-march=native``.
+    export CFLAGS=$CFLAGS_NON_NATIVE
+
+    # ``-O3`` instead of ``-O2``.
+    export CFLAGS=$CFLAGS_O3
+
+    # No ``-march=native`` and ``-O3`` instead of ``-O2``.
+    export CFLAGS=$CFLAGS_O3_NON_NATIVE
+
+    # Use flags as set by the user, possibly empty.
+    export CFLAGS=$ORIGINAL_CFLAGS
+
+Likewise for :envvar:`CXXFLAGS`, :envvar:`FCFLAGS`, and :envvar:`F77FLAGS`.
+
 .. note::
 
     Prior to Sage 9.1, the script templates were called ``spkg-build``,
@@ -619,7 +643,7 @@ For example, considering the layout:
     SAGE_ROOT/build/pkgs/foo
     |-- patches
     |   |-- solaris
-    |   |   |-- solaris.patch 
+    |   |   |-- solaris.patch
     |   |-- bar.patch
     |   `-- baz.patch
 
@@ -674,7 +698,7 @@ When to patch, when to repackage, when to autoconfiscate
 
 - If the upstream Makefile does not build shared libraries,
   don't bother trying to patch it.
-  
+
   Autoconfiscate the package instead and use the standard facilities
   of Automake and Libtool.  This ensures that the shared library build
   is portable between Linux and macOS.
@@ -718,7 +742,7 @@ We recommend the following workflow for maintaining a set of patches.
       rm -Rf SAGE_ROOT/build/pkgs/PACKAGE/patches
       mkdir SAGE_ROOT/build/pkgs/PACKAGE/patches
       git format-patch -o SAGE_ROOT/build/pkgs/PACKAGE/patches/ upstream
-  
+
 - Optionally, create an ``spkg-src`` file in the Sage package's
   directory that regenerates the patch directory using the above
   commands.

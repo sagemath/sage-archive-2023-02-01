@@ -41,6 +41,11 @@ PCFILES = @SAGE_SYSTEM_FACADE_PC_FILES@
 LN = ln
 SED = sed
 
+# In recursive invocations of make, remove "-jNUMJOBS" options that may
+# be in $(MAKE) when users follow the recommendations in our manuals.
+# We also get rid of excessive "Entering directory" messages.
+MAKE_REC = $(MAKE:-j%=) --no-print-directory
+
 # We need to be able to override this to support ./sage -i -c PKG
 SAGE_SPKG = sage-spkg
 
@@ -187,17 +192,17 @@ endif
 # the doc build takes the most time and should be started as soon as
 # possible.
 all-start: toolchain-deps
-	$(MAKE) doc all-sage
-	$(MAKE) '$(STARTED)'
+	$(MAKE_REC) doc all-sage
+	$(MAKE_REC) '$(STARTED)'
 
 # Build everything except the documentation
 all-build: toolchain-deps
-	$(MAKE) all-sage
+	$(MAKE_REC) all-sage
 
 
 # The 2 preliminary build phases: base and toolchain.
 base-toolchain: _clean-broken-gcc base
-	$(MAKE) toolchain
+	$(MAKE_REC) toolchain
 
 # All targets except for the base packages
 all-sage: \
@@ -209,7 +214,7 @@ all-sage: \
 # Download all packages which should be inside an sdist tarball (the -B
 # option to make forces all targets to be built unconditionally)
 download-for-sdist:
-	env SAGE_INSTALL_FETCH_ONLY=yes $(MAKE) -B SAGERUNTIME= \
+	env SAGE_INSTALL_FETCH_ONLY=yes $(MAKE_REC) -B SAGERUNTIME= \
 		$(SDIST_PACKAGES)
 
 # TOOLCHAIN consists of dependencies determined by configure.
@@ -229,12 +234,13 @@ TOOLCHAIN_DEP_INSTS = \
 	$(foreach pkgname,$(TOOLCHAIN_DEPS),$(inst_$(pkgname)))
 
 toolchain-deps:
-	for target in $(TOOLCHAIN_DEP_INSTS); do \
-	    $(MAKE) $$target; \
+	@for target in $(TOOLCHAIN_DEP_INSTS); do \
+	    echo $(MAKE_REC) $$target; \
+	    $(MAKE_REC) $$target; \
 	done
 
 all-toolchain: base-toolchain
-	$(MAKE) toolchain-deps
+	$(MAKE_REC) toolchain-deps
 
 # All packages needed as a prerequisite to install other Python packages with
 # pip or which are otherwise used by the Python build tools; these should be
@@ -247,13 +253,13 @@ SAGERUNTIME = sagelib $(inst_ipython) $(inst_pexpect) \
 		$(inst_psutil)
 
 all-sageruntime: toolchain-deps
-	$(MAKE) $(SAGERUNTIME)
+	$(MAKE_REC) $(SAGERUNTIME)
 
 
 # Start Sage at least once to check that it works
 # (i.e. when we just installed Sage for the first time).
 build-start: all-build
-	$(MAKE) '$(STARTED)'
+	$(MAKE_REC) '$(STARTED)'
 
 # We make this depend on all standard packages because running
 # sage-starts runs sage-location, which should be run after installing
@@ -438,7 +444,7 @@ SAGE_CHECK_$(1) := $(SAGE_CHECK)
 $(1)-build-deps: $(3)
 
 $$(INST)/$(1)-$(2): $(3)
-	$(MAKE) $(1)-no-deps
+	$(MAKE_REC) $(1)-no-deps
 
 $(1): $$(INST)/$(1)-$(2)
 
@@ -514,7 +520,7 @@ define PIP_PACKAGE_templ
 $(1)-build-deps: $(2)
 
 $(1): $(2)
-	$(MAKE) $(1)-no-deps
+	$(MAKE_REC) $(1)-no-deps
 
 $(1)-no-deps:
 	$(AM_V_at)sage-logger -p 'sage --pip install -r "$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt"' '$$(SAGE_LOGS)/$(1).log'
@@ -560,7 +566,7 @@ define SCRIPT_PACKAGE_templ
 $(1)-build-deps: $(3)
 
 $$(INST)/$(1)-$(2): $(3)
-	$(MAKE) $(1)-no-deps
+	$(MAKE_REC) $(1)-no-deps
 
 $(1): $$(INST)/$(1)-$(2)
 

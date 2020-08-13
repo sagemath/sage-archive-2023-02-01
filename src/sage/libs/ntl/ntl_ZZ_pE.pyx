@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -12,8 +15,6 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import absolute_import, print_function
 
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
@@ -66,6 +67,7 @@ cdef class ntl_ZZ_pE(object):
     This class takes care of making sure that the C++ library NTL global
     variable is set correctly before performing any arithmetic.
     """
+
     def __init__(self, v=None, modulus=None):
         r"""
         Initializes an ntl ZZ_pE.
@@ -77,8 +79,6 @@ cdef class ntl_ZZ_pE(object):
             [1 3]
             sage: c.ZZ_pE(Integer(95413094))
             [7]
-            sage: c.ZZ_pE(long(223895239852389582988))
-            [5]
             sage: c.ZZ_pE('[1]')
             [1]
 
@@ -111,9 +111,7 @@ cdef class ntl_ZZ_pE(object):
                 self.x = ZZ_pX_to_ZZ_pE((<ntl_ZZ_pX>v).x)
             elif isinstance(v, list) or isinstance(v, tuple):
                 tmp_zzpx = <ntl_ZZ_pX>ntl_ZZ_pX(v, self.c.pc)
-                # random values without the following restore call
-                # surely because the above call restore things and breaks the modulus
-                self.c.restore_c()
+                self.c.restore_c()   # allocating tmp_zzpx can change the current modulus trac #25790
                 self.x = ZZ_pX_to_ZZ_pE(tmp_zzpx.x)
             elif isinstance(v, long):
                 PyLong_to_ZZ(&temp, v)
@@ -128,7 +126,9 @@ cdef class ntl_ZZ_pE(object):
                 (<Integer>v)._to_ZZ(&temp)
                 self.x = ZZ_to_ZZ_pE(temp)
             else:
-                ccreadstr(self.x, str(v))
+                str_v = str(v)  # can cause modulus to change  trac #25790
+                self.c.restore_c()
+                ccreadstr(self.x, str_v)
 
     def __cinit__(ntl_ZZ_pE self, v=None, modulus=None):
         #################### WARNING ###################
@@ -334,6 +334,7 @@ cdef class ntl_ZZ_pE(object):
         cdef ntl_ZZ_pX r = ntl_ZZ_pX(v = None, modulus=self.c.pc)
         r.x = (<ntl_ZZ_pX>self.c.f).x
         return r
+
 
 def make_ZZ_pE(x, c):
     """

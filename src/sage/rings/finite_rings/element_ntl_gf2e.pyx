@@ -1,3 +1,5 @@
+# distutils: libraries = ntl
+# distutils: language = c++
 r"""
 Finite Fields of characteristic 2.
 
@@ -18,7 +20,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from cysignals.memory cimport check_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off

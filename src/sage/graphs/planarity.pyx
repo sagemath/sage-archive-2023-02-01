@@ -1,5 +1,6 @@
+# distutils: libraries = planarity
 """
-Wrapper for Boyer's (C) planarity algorithm.
+Wrapper for Boyer's (C) planarity algorithm
 """
 
 cdef extern from "planarity/graph.h":

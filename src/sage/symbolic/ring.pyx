@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The symbolic ring
 """
@@ -12,7 +13,6 @@ The symbolic ring
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from sage.ext.cplusplus cimport ccrepr
 
@@ -203,7 +203,7 @@ cdef class SymbolicRing(CommutativeRing):
 
             from .subring import GenericSymbolicSubring
 
-            if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
+            if R._is_numerical():
                 # Almost anything with a coercion into any precision of CC
                 return R not in (RLF, CLF)
             elif is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R) or is_LaurentPolynomialRing(R):
@@ -219,7 +219,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return True
 
     def _element_constructor_(self, x):
-        """
+        r"""
         Coerce `x` into the symbolic expression ring SR.
 
         EXAMPLES::
@@ -238,7 +238,7 @@ cdef class SymbolicRing(CommutativeRing):
             x + y0/y1
             sage: x.subs(x=y0/y1)
             y0/y1
-            sage: x + long(1)
+            sage: x + int(1)
             x + 1
 
         If `a` is already in the symbolic expression ring, coercing returns
@@ -336,13 +336,21 @@ cdef class SymbolicRing(CommutativeRing):
             Traceback (most recent call last):
             ...
             TypeError: positive characteristic not allowed in symbolic computations
+
+        Check support for unicode characters (:trac:`29280`)::
+
+            sage: SR('λ + 2λ')
+            3*λ
+            sage: SR('μ') is var('μ')
+            True
+            sage: SR('λ + * 1')
+            Traceback (most recent call last):
+            ...
+            TypeError: Malformed expression: λ + * !!!  1
         """
         cdef GEx exp
         if is_Expression(x):
-            if (<Expression>x)._parent is self:
-                return x
-            else:
-                return new_Expression_from_GEx(self, (<Expression>x)._gobj)
+            return new_Expression_from_GEx(self, (<Expression>x)._gobj)
         if hasattr(x, '_symbolic_'):
             return x._symbolic_(self)
         elif isinstance(x, str):
@@ -351,8 +359,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return self(symbolic_expression_from_string(x))
             except SyntaxError as err:
                 msg, s, pos = err.args
-                raise TypeError("%s: %s !!! %s" %
-                        (msg, bytes_to_str(s[:pos]), bytes_to_str(s[pos:])))
+                raise TypeError("%s: %s !!! %s" % (msg, s[:pos], s[pos:]))
 
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
@@ -914,8 +921,8 @@ cdef class SymbolicRing(CommutativeRing):
         return ccrepr(x._gobj)
 
     def _latex_element_(self, Expression x):
-        """
-        Returns the standard LaTeX version of the expression *x*.
+        r"""
+        Returns the standard LaTeX version of the expression `x`.
 
         EXAMPLES::
 

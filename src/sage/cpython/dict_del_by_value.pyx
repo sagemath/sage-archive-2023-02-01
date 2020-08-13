@@ -16,7 +16,7 @@ AUTHORS:
 - Nils Bruin (2017-05)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Nils Bruin <nbruin@sfu.ca>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -24,9 +24,7 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
-
-from __future__ import print_function, absolute_import
+# ****************************************************************************
 
 import weakref
 from weakref import KeyedRef
@@ -34,7 +32,7 @@ from weakref import KeyedRef
 from cpython.list cimport PyList_New
 from cpython cimport Py_XINCREF, Py_XDECREF
 
-IF PY_VERSION_HEX<=0x02ffffff:
+IF PY_VERSION_HEX <= 0x02ffffff:
     cdef extern from "Python.h":
         ctypedef struct PyDictEntry:
             Py_ssize_t me_hash

@@ -1,4 +1,5 @@
 # cython: binding=True
+# distutils: language = c++
 r"""
 Static Sparse Graphs
 
@@ -180,7 +181,6 @@ with C arguments).
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 include "sage/data_structures/bitset.pxi"
 cimport cpython
@@ -683,7 +683,7 @@ def tarjan_strongly_connected_components(G):
     the lowlink of `v`, that whole subtree is a new SCC.
 
     For more information, see the
-    :wikipedia:`Tarjan's_strongly_connected_components_algorithm`.
+    :wikipedia:`Tarjan%27s_strongly_connected_components_algorithm`.
 
     EXAMPLES::
 

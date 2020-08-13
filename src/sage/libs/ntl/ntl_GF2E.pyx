@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
@@ -13,8 +16,6 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import absolute_import, division
 
 from sage.ext.cplusplus cimport ccrepr
 
@@ -282,9 +283,6 @@ cdef class ntl_GF2E(object):
         r = self._new()
         GF2E_div(r.x, self.x, (<ntl_GF2E>other).x)
         return r
-
-    def __div__(self, other):
-        return self / other
 
     def __neg__(ntl_GF2E self):
         """

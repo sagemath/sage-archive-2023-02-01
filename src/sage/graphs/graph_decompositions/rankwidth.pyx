@@ -1,4 +1,5 @@
 # cython: binding=True
+# distutils: libraries = rw
 r"""
 Rank Decompositions of graphs
 
@@ -102,8 +103,6 @@ Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import print_function
 
 from cysignals.memory cimport check_allocarray, sig_free
 from cysignals.signals cimport *

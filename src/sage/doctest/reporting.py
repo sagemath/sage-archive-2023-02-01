@@ -184,6 +184,8 @@ class DocTestReporter(SageObject):
             cmd += " --warn-long"
             if warnlong != 1.0:
                 cmd += " %.1f"%(warnlong)
+        seed = self.controller.options.random_seed
+        cmd += " --random-seed={}".format(seed)
         cmd += " " + source.printpath
         return cmd
 
@@ -483,10 +485,10 @@ class DocTestReporter(SageObject):
                             if not self.controller.options.long:
                                 if self.controller.options.show_skipped:
                                     log("    %s not run"%(count_noun(nskipped, "long test")))
-                        elif tag == "high_mem":
+                        elif tag == "memlimit":
                             if self.controller.options.memlimit <= 0:
                                 seen_other = True
-                                log("    %s not run"%(count_noun(nskipped, "high mem")))
+                                log("    %s not run"%(count_noun(nskipped, "memlimit")))
                         elif tag == "not tested":
                             if self.controller.options.show_skipped:
                                 log("    %s not run"%(count_noun(nskipped, "not tested test")))

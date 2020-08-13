@@ -5,19 +5,19 @@ AUTHORS:
 
 - Nicolas Thiery (2010-03): initial version
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Nicolas Thiery <nthiery at users.sf.net>,
 #                          Mike Hansen <mhansen@gmail.com>,
 #                          Florent Hivert <Florent.Hivert@univ-rouen.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 import numbers
 
-from sage.misc.misc import attrcall
+from sage.misc.call import attrcall
 from sage.misc.cachefunc import cached_method
 
 from sage.categories.sets_cat import Sets
@@ -121,7 +121,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             sage: R(-5)
             (-5, -5)
         """
-        # NOTE: should we more generlly allow diagonal embedding
+        # NOTE: should we more generally allow diagonal embedding
         # if we have a conversion?
         if self in _Rings and isinstance(x, numbers.Integral):
             return x * self.one()
@@ -295,6 +295,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             if len(S_factors) == len(R_factors):
                 if all(r.has_coerce_map_from(s) for r, s in zip(R_factors, S_factors)):
                     return True
+        return super(CartesianProduct, self)._coerce_map_from_(S)
 
     an_element = Sets.CartesianProducts.ParentMethods.an_element
 
@@ -373,4 +374,3 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 <... 'tuple'>
             """
             return self.value
-

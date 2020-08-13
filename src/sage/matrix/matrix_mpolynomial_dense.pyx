@@ -280,7 +280,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
                 for c in xrange(self.ncols()):
                     self.set_unsafe(r, c, R._zero_element)
 
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             l = [ZZ(e-1) for e in l]
 
             self.cache('in_echelon_form_bareiss',True)
@@ -538,7 +538,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             D = self.fetch('charpoly')
             if not D is None:
                 c = D[0]
-                if self._nrows % 2 != 0:
+                if self._nrows % 2:
                     c = -c
                 d = self._coerce_element(c)
         else:

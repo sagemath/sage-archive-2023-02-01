@@ -46,8 +46,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 cimport cython
 from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
 from libc.math cimport exp, floor, log, pow, sqrt
@@ -1674,7 +1672,8 @@ cdef class TimeSeries:
 
     def hurst_exponent(self):
         """
-        Returns an estimate of the Hurst exponent of this time series.
+        Return an estimate of the Hurst exponent of this time series.
+
         We use the algorithm from pages 61 -- 63 of [Peteres, Fractal
         Market Analysis (1994); see Google Books].
 

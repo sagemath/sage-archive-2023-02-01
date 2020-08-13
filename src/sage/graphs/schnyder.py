@@ -64,12 +64,32 @@ def _triangulate(g, comb_emb):
         sage: new_edges = _triangulate(g, g._embedding)
         sage: [sorted(e) for e in new_edges]
         [[0, 2]]
+
+    TESTS:
+
+    :trac:`29522` is fixed::
+
+        sage: g = Graph(2)
+        sage: _triangulate(g, {})
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: _triangulate() only knows how to handle connected graphs
+        sage: g = Graph([(0, 1)])
+        sage: _triangulate(g, {})
+        Traceback (most recent call last):
+        ...
+        ValueError: a Graph with less than 3 vertices doesn't have any triangulation
+        sage: g = Graph(3)
+        sage: _triangulate(g, {})
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: _triangulate() only knows how to handle connected graphs
     """
     # first make sure that the graph has at least 3 vertices, and that it is connected
-    if g.order() < 3:
-        raise ValueError("A Graph with less than 3 vertices doesn't have any triangulation.")
     if not g.is_connected():
-        raise NotImplementedError("_triangulate() only knows how to handle connected graphs.")
+        raise NotImplementedError("_triangulate() only knows how to handle connected graphs")
+    if g.order() < 3:
+        raise ValueError("a Graph with less than 3 vertices doesn't have any triangulation")
 
     # At this point we know that the graph is connected, has at least 3
     # vertices. This is where the real work starts.
@@ -223,7 +243,7 @@ def _normal_label(g, comb_emb, external_face):
     labels[v2] = {(v1, v3): 2}
     labels[v3] = {(v1, v2): 3}
 
-    while len(contracted):
+    while contracted:
         v, new_neighbors, neighbors_to_delete = contracted.pop()
         # going to add back vertex v
         labels[v] = {}
@@ -267,7 +287,7 @@ def _normal_label(g, comb_emb, external_face):
             angle_set = Set(angles_out_of_v1)
 
             vertices_in_order.append(l[i])
-            while len(angles_out_of_v1) > 0:
+            while angles_out_of_v1:
                 for angle in angles_out_of_v1:
                     if vertices_in_order[-1] in angle:
                         break

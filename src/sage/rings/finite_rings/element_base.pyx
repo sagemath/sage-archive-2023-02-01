@@ -42,7 +42,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
             sage: a = Zmod(17)(13)
             sage: a._nth_root_common(4, True, "Johnston", False)
             [3, 5, 14, 12]
-            sage: a._nth_root_common(4, True, "Johnston", cunningham = True) # optional - cunningham
+            sage: a._nth_root_common(4, True, "Johnston", cunningham = True) # optional - cunningham_tables
             [3, 5, 14, 12]
         """
         K = self.parent()
@@ -456,7 +456,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         """
         f = self.charpoly('x')
         n = f[0]
-        if f.degree() % 2 != 0:
+        if f.degree() % 2:
             return -n
         else:
             return n
@@ -840,9 +840,8 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             True
         """
         [(p, k2)] = list(self.parent().cardinality().factor())
-        if k2 % 2 != 0:
+        if k2 % 2:
             raise TypeError("cardinality of the field must be a square number")
         k = k2 / 2
 
         return self.pth_power(k=k)
-

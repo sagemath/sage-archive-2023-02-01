@@ -39,8 +39,6 @@ heavily modified:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cysignals.signals cimport sig_on, sig_off
 
@@ -1418,22 +1416,9 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: int(CIF(1,1))
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex interval to int
+            TypeError: can...t convert complex interval to int
         """
         raise TypeError("can't convert complex interval to int")
-
-    def __long__(self):
-        """
-        Convert ``self`` to a ``lon``.
-
-        EXAMPLES::
-
-            sage: long(CIF(1,1))  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex interval to long
-        """
-        raise TypeError("can't convert complex interval to long")
 
     def __float__(self):
         """
@@ -1446,7 +1431,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: float(CIF(1,1))
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex interval to float
+            TypeError: can...t convert complex interval to float
         """
         if self.imag() == 0:
             return float(self.real().n(self._prec))
@@ -1621,22 +1606,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         elif i > 0:
             return 1
         return 0
-
-    cpdef int _cmp_(self, other) except -2:
-        """
-        Deprecated method (:trac:`23133`)
-
-        EXAMPLES::
-
-            sage: a = CIF(RIF(0,1), RIF(0,1))
-            sage: a._cmp_(a)
-            doctest:...: DeprecationWarning: for CIF elements, do not use cmp
-            See http://trac.sagemath.org/23133 for details.
-            0
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(23133, 'for CIF elements, do not use cmp')
-        return self.lexico_cmp(other)
 
     ########################################################################
     # Transcendental (and other) functions
@@ -1848,7 +1817,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(RIF(-1,1),RIF(-1,1)).log()
             Traceback (most recent call last):
             ...
-            ValueError: Can't take the argument of interval strictly containing zero
+            ValueError: Can...t take the argument of interval strictly containing zero
 
         But we allow the exact input zero::
 

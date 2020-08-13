@@ -86,7 +86,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from cysignals.memory cimport sig_malloc, sig_free
 
@@ -798,17 +797,6 @@ cdef class FastDoubleFunc:
         """
         return binop(left, right, DIV)
 
-    def __div__(left, right):
-        """
-        EXAMPLES::
-
-            sage: from sage.ext.fast_eval import fast_float_arg
-            sage: f = fast_float_arg(0) / 7
-            sage: f(14)
-            2.0
-        """
-        return binop(left, right, DIV)
-
     def __pow__(FastDoubleFunc left, right, dummy):
         """
         EXAMPLES::
@@ -1400,7 +1388,8 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
         if old:
             return f._fast_float_(*vars)
         else:
-            return fast_callable(f, vars=vars, domain=float, _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality=True, expect_one_var=expect_one_var)
+            return fast_callable(f, vars=vars, domain=float,
+                                 expect_one_var=expect_one_var)
     except AttributeError:
         pass
 

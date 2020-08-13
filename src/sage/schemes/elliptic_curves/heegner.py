@@ -4,9 +4,9 @@ Heegner points on elliptic curves over the rational numbers
 
 AUTHORS:
 
-    - William Stein (August 2009)-- most of the initial version
+- William Stein (August 2009)-- most of the initial version
 
-    - Robert Bradshaw (July 2009) -- an early version of some specific code
+- Robert Bradshaw (July 2009) -- an early version of some specific code
 
 EXAMPLES::
 
@@ -94,9 +94,8 @@ The above is consistent with the following analytic computation::
 
 from __future__ import print_function, absolute_import, division
 
-from six.moves import range
-
-from sage.misc.all import verbose, prod
+from sage.misc.all import prod
+from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
 
 from sage.structure.sage_object import SageObject
@@ -107,8 +106,7 @@ import sage.rings.number_field.number_field_element
 import sage.rings.number_field.number_field as number_field
 import sage.rings.all as rings
 from sage.rings.all import (ZZ, GF, QQ, CDF,
-                            Integers, RealField, ComplexField, QuadraticField,
-                            is_fundamental_discriminant)
+                            Integers, RealField, ComplexField, QuadraticField)
 from sage.arith.all import (gcd, xgcd, lcm, prime_divisors, factorial,
         binomial)
 from sage.rings.factorint import factor_trial_division
@@ -1133,8 +1131,10 @@ class GaloisGroup(SageObject):
         M = self.field()
         c = M.conductor()
         D = M.quadratic_field().discriminant()
-        if c.gcd(D) != 1: return False
-        if not c.is_squarefree(): return False
+        if c.gcd(D) != 1:
+            return False
+        if not c.is_squarefree():
+            return False
         for p in c.prime_divisors():
             if not is_inert(D,p):
                 return False
@@ -2302,8 +2302,10 @@ def is_kolyvagin_conductor(N, E, D, r, n, c):
         False
     """
     ND = N*D
-    if ND.gcd(c) != 1: return False
-    if not c.is_squarefree(): return False
+    if ND.gcd(c) != 1:
+        return False
+    if not c.is_squarefree():
+        return False
     P = c.prime_factors()
     if r is not None and len(P) != r:
         return False
@@ -2592,7 +2594,8 @@ class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_dis
                     if g not in U:
                         U.append(g)
                         R.append(HeegnerPointOnX0N(N,D,c,f))
-                        if len(U) >= h: break
+                        if len(U) >= h:
+                            break
             a += 1
         return tuple(sorted(R))
 
@@ -3276,7 +3279,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: E = EllipticCurve('389a'); P = E.heegner_point(-7, 5); P
             Heegner point of discriminant -7 and conductor 5 on elliptic curve of conductor 389
             sage: numerical_approx(P)
-            (0.675507556926806 + 0.344749649302635*I : -0.377142931401887 + 0.843366227137146*I : 1.00000000000000)
+            (0.675507556926807 + 0.344749649302635*I : -0.377142931401887 + 0.843366227137146*I : 1.00000000000000)
             sage: P.numerical_approx()
             (0.6755075569268... + 0.3447496493026...*I : -0.3771429314018... + 0.8433662271371...*I : 1.00000000000000)
             sage: E.heegner_point(-7, 11).numerical_approx()
@@ -3490,7 +3493,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         f = self.x_poly_exact(prec, algorithm=algorithm)
         if f.degree() == 1:
             v = E.lift_x(-f[0], all=True)
-            if len(v) > 0:
+            if v:
                 return v[0]
 
         g, d = make_monic(f)
@@ -4163,7 +4166,7 @@ class KolyvaginPoint(HeegnerPoint):
                 f = x.algdep(2)
                 K = self.quadratic_field()
                 roots = [r[0] for r in f.roots(K)]
-                if len(roots) == 0:
+                if not roots:
                     raise RuntimeError("insufficient precision to find exact point")
                 if len(roots) == 1:
                     X = roots[0]
@@ -4179,7 +4182,7 @@ class KolyvaginPoint(HeegnerPoint):
                 Q = F.lift_x(X, all=True)
                 if len(Q) == 1:
                     return Q[0]
-                if len(Q) == 0:
+                if not Q:
                     raise RuntimeError("insufficient precision")
                 y = P[1]
                 d = [abs(C(r[1])-y) for r in Q]
@@ -4294,7 +4297,7 @@ class KolyvaginPoint(HeegnerPoint):
 
             sage: E = EllipticCurve('43a'); P = E.heegner_point(-20).kolyvagin_point()
             sage: PP = P.numerical_approx(); PP
-            (...e-16 : -1.00000000000000 : 1.00000000000000)
+            (0.000000000000000 : -1.00000000000000 : 1.00000000000000)
             sage: P._recognize_point_over_QQ(PP, 4)
             (0 : -1 : 1)
         """
@@ -5532,11 +5535,6 @@ class HeegnerQuatAlg(SageObject):
         i = min(v.nonzero_positions())
         return self.kolyvagin_sigma_operator(D, c, i)
 
-        #w = 0
-        #for i, a in six.iteritems(v.dict()):
-        #    w += a * self.kolyvagin_sigma_operator(D, c, i)
-        # return w
-
     @cached_method
     def kolyvagin_point_on_curve(self, D, c, E, p, bound=10):
         r"""
@@ -5717,7 +5715,7 @@ def kolyvagin_reduction_data(E, q, first_only=True):
         # both ell_1 and ell_2 are inert
         D = -5
         while True:
-            if is_fundamental_discriminant(D) and \
+            if number_field.is_fundamental_discriminant(D) and \
                D % ell_1 and D % ell_2 and \
                E.satisfies_heegner_hypothesis(D) and \
                is_inert(D, ell_1) and is_inert(D, ell_2) and \
@@ -5761,7 +5759,8 @@ def kolyvagin_reduction_data(E, q, first_only=True):
             ell_1 = ell_1.next_prime()
         # compute kernel of reduction modulo ell_1
         G1 = set(kernel_of_reduction(ell_1))
-        if len(G1) == q: break
+        if len(G1) == q:
+            break
         ell_1 = ell_1.next_prime()
 
     # compute next good odd prime with distinct kernel of order q
@@ -6085,8 +6084,9 @@ def class_number(D):
         ValueError: D (=-5) must be a fundamental discriminant
     """
     if not number_field.is_fundamental_discriminant(D):
-        raise ValueError("D (=%s) must be a fundamental discriminant"%D)
-    return QuadraticField(D,'a').class_number()
+        raise ValueError("D (=%s) must be a fundamental discriminant" % D)
+    return QuadraticField(D, 'a').class_number()
+
 
 def is_inert(D, p):
     r"""
@@ -6236,7 +6236,8 @@ def satisfies_weak_heegner_hypothesis(N, D):
     """
     if not number_field.is_fundamental_discriminant(D):
         return False
-    if D >= 0: return False
+    if D >= 0:
+        return False
     for p, e in N.factor():
         if D % p == 0:
             if e > 1:
@@ -6648,9 +6649,8 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
 
     However when we search higher, we find the points we need::
 
-        sage: E.heegner_index(-8, descent_second_limit=16, check_rank=False)
+        sage: E.heegner_index(-8, descent_second_limit=16, check_rank=False)  # long time
         2.00000?
-
 
     Two higher rank examples (of ranks 2 and 3)::
 
@@ -7254,7 +7254,8 @@ def satisfies_heegner_hypothesis(self, D):
     if not number_field.is_fundamental_discriminant(D):
         return False
     D = ZZ(D)
-    if D >= 0: return False
+    if D >= 0:
+        return False
     if D.gcd(self.conductor()) != 1:
         return False
     for p, _ in self.conductor().factor():

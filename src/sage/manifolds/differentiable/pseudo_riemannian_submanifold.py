@@ -724,8 +724,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             n_comp = (n_form.contract(*args) / factorial(self._dim)).contract(
                 self.ambient_metric().inverse().along(self._immersion))
             if self._ambient._dim - self._dim == 1:
-                n_comp = n_comp / n_comp.norm(
-                    self.ambient_metric().along(self._immersion))
+                n_comp = n_comp / n_comp.norm(self.ambient_metric())
 
             norm_rst = self._normal.restrict(chart.domain())
             norm_rst.add_comp(max_frame.restrict(chart.domain()))[:] = n_comp[:]
@@ -1517,6 +1516,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: N.principal_curvatures(stereoN)[0].display()  # long time
             k_0: N --> R
             on U: x |--> -1
+            on W: y |--> -1
 
         """
         if self._ambient._dim - self._dim != 1:

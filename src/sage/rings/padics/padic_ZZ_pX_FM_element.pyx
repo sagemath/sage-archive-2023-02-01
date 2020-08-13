@@ -1,3 +1,5 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
 """
 `p`-Adic ``ZZ_pX`` FM Element
 
@@ -145,7 +147,6 @@ from sage.interfaces.gp import GpElement
 from sage.rings.finite_rings.integer_mod import is_IntegerMod
 from sage.rings.all import IntegerModRing
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_FM_Eis
-from sage.misc.superseded import deprecated_function_alias, deprecation
 
 
 cdef class pAdicZZpXFMElement(pAdicZZpXElement):
@@ -1332,11 +1333,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         else:
             zero = Integer(0)
         ordp = self.valuation()
-        if n in ('simple', 'smallest', 'teichmuller'):
-            deprecation(14825, "Interface to expansion has changed; first argument now n")
-            lift_mode = n
-            n = None
-        elif isinstance(n, slice):
+        if isinstance(n, slice):
             return self.slice(n.start, n.stop, n.step)
         elif n is not None:
             if self.is_zero() or n >= self.prime_pow.ram_prec_cap or n < ordp:
@@ -1360,8 +1357,6 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             except IndexError:
                 return zero
         return [zero] * ordp + ulist
-
-    list = deprecated_function_alias(14825, expansion)
 
     def teichmuller_expansion(self, n = None):
         r"""
@@ -1451,8 +1446,6 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             return L
         else:
             return self.parent()(0)
-
-    teichmuller_list = deprecated_function_alias(14825, teichmuller_expansion)
 
     def _teichmuller_set_unsafe(self):
         """

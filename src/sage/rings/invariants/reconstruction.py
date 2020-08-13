@@ -10,16 +10,14 @@ AUTHORS:
 - Jesper Noordsij (2018-06): initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #     Copyright (C) 2018 Jesper Noordsij <jesper.noordsij@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 3 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 
 def binary_quadratic_coefficients_from_invariants(discriminant, invariant_choice='default'):
@@ -28,7 +26,7 @@ def binary_quadratic_coefficients_from_invariants(discriminant, invariant_choice
 
     INPUT:
 
-    - ``discriminant`` -- The value of the the discriminant of the
+    - ``discriminant`` -- The value of the discriminant of the
       binary quadratic.
 
     - ``invariant_choice`` -- The type of invariants provided. The accepted
@@ -69,7 +67,7 @@ def binary_cubic_coefficients_from_invariants(discriminant, invariant_choice='de
 
     INPUT:
 
-    - ``discriminant`` -- The value of the the discriminant of the
+    - ``discriminant`` -- The value of the discriminant of the
       binary cubic.
 
     - ``invariant_choice`` -- The type of invariants provided. The accepted

@@ -584,7 +584,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
         r"""
         Create the group algebra with given base ring over ``self.group()``.
 
-        INPUT :
+        INPUT:
 
         - ``base_ring`` -- the base ring of the group algebra
 

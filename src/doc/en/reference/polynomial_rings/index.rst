@@ -29,16 +29,6 @@ Multivariate Polynomials
    invariant_theory
    polynomial_rings_toy_implementations
 
-Skew Polynomials
-----------------
-
-.. toctree::
-   :maxdepth: 2
-
-   sage/rings/polynomial/skew_polynomial_element
-   sage/rings/polynomial/skew_polynomial_ring_constructor
-   sage/rings/polynomial/skew_polynomial_ring
-
 Rational Functions
 ------------------
 
@@ -78,13 +68,5 @@ Boolean Polynomials
    :maxdepth: 1
 
    sage/rings/polynomial/pbori
-
-Noncommutative Polynomials
---------------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   sage/rings/polynomial/plural
 
 .. include:: ../footer.txt

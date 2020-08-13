@@ -1,3 +1,5 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
 """
 `p`-Adic ``ZZ_pX`` CR Element
 
@@ -182,7 +184,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.stdsage cimport PY_NEW
@@ -209,7 +210,6 @@ from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_small_Eis
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_big_Eis
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.padics.unramified_extension_generic import UnramifiedExtensionGeneric
-from sage.misc.superseded import deprecated_function_alias, deprecation
 
 from sage.rings.real_double cimport RealDoubleElement
 
@@ -2524,6 +2524,13 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             [1 + O(5^4), 1 + O(5^4)]
             sage: (1 + w + O(w^11))._polynomial_list(pad=True)
             [1 + O(5^4), 1 + O(5^4), O(5^3)]
+            sage: T.<a> = Qp(5).extension(x^2-5)
+            sage: T(1/5)._polynomial_list()
+            [5^-1 + O(5^19)]
+            sage: T(a^-800)._polynomial_list()
+            [5^-400 + O(5^-380)]
+            sage: T(O(a^-2))._polynomial_list()
+            []
         """
         R = self.base_ring()
         if self.is_zero():
@@ -2539,9 +2546,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         prec = self.relprec + self.ordp
         e = self.parent().e()
         if e == 1:
-            return [R(c, prec) >> k for c in L]
+            return [R(c, prec-k) << k for c in L]
         else:
-            return [R(c, (prec - i - 1) // e + 1) >> k for i, c in enumerate(L)]
+            return [R(c, (((prec - i - 1) // e) + 1) - k) << k for i, c in enumerate(L)]
 
     def polynomial(self, var='x'):
         """
@@ -2767,11 +2774,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             zero = []
         else:
             zero = Integer(0)
-        if n in ('simple', 'smallest', 'teichmuller'):
-            deprecation(14825, "Interface to expansion has changed; first argument now n")
-            lift_mode = n
-            n = None
-        elif isinstance(n, slice):
+        if isinstance(n, slice):
             return self.slice(n.start, n.stop, n.step)
         elif n is not None:
             if self._is_exact_zero() or n < self.ordp:
@@ -2800,8 +2803,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         if self.prime_pow.in_field == 0 and self.ordp > 0:
             ulist = [zero] * self.ordp + ulist
         return ulist
-
-    list = deprecated_function_alias(14825, expansion)
 
     def matrix_mod_pn(self):
         """
@@ -2993,8 +2994,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             v = self._new_c(0)
             v._set_inexact_zero(rp)
             return v
-
-    teichmuller_list = deprecated_function_alias(14825, teichmuller_expansion)
 
     def _teichmuller_set_unsafe(self):
         """

@@ -25,7 +25,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import division, print_function
-from six import add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
@@ -96,8 +95,8 @@ def _make_color_list(n, colors=None,  color_map=None, randomize=False):
 
     return colors
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class FullyPackedLoop(Element):
+
+class FullyPackedLoop(Element, metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A class for fully packed loops.
 
@@ -632,7 +631,7 @@ class FullyPackedLoop(Element):
             ret += '\n  '
             # Do the top row
             for i,entry in enumerate(row):
-                if (i+j) % 2 == 0:
+                if (i + j) % 2 == 0:
                     ret += ascii1[entry][0]
                 else:
                     ret += ascii2[entry][0]
@@ -646,7 +645,7 @@ class FullyPackedLoop(Element):
 
             # Do the middle row
             for i,entry in enumerate(row):
-                if (i+j) % 2 == 0:
+                if (i + j) % 2 == 0:
                     ret += ascii1[entry][3] + plus_sign + ascii1[entry][1]
                 else:
                     ret += ascii2[entry][3] + plus_sign + ascii2[entry][1]
@@ -660,7 +659,7 @@ class FullyPackedLoop(Element):
             # Do the bottom row
             ret += '\n  '
             for i,entry in enumerate(row):
-                if (i+j) % 2 ==0:
+                if (i + j) % 2 ==0:
                     ret += ascii1[entry][2]
                 else:
                     ret += ascii2[entry][2]
@@ -980,14 +979,14 @@ class FullyPackedLoop(Element):
         orbit = [pos]
         sv = self._six_vertex_model
         n = len(sv)
-        i,j = pos
+        i, j = pos
 
         # deal with boundary cases
         if i < -1 or i > n or j < -1 or j > n:
             raise ValueError('indices out of range')
-        if (i == -1 or i == n) and (i+j)%2 != 1:
+        if (i == -1 or i == n) and not (i + j) % 2:
             raise ValueError('left and right boundary values must have odd sum')
-        if (j == -1 or j == n) and (i+j)%2 != 0:
+        if (j == -1 or j == n) and (i + j) % 2:
             raise ValueError('up and down boundary values must have even sum')
 
         if i == -1:
@@ -999,8 +998,8 @@ class FullyPackedLoop(Element):
         elif j == n:
             d = D
         elif d0 is None:
-            d = FPL_edges[(i + j)%2][sv[i][j]][0]
-        elif d0 in FPL_edges[(i+j)%2][sv[i][j]]:
+            d = FPL_edges[(i + j) % 2][sv[i][j]][0]
+        elif d0 in FPL_edges[(i + j) % 2][sv[i][j]]:
             d = d0
         else:
             raise ValueError('invalid direction')
@@ -1155,10 +1154,14 @@ class FullyPackedLoop(Element):
             i,j = unrank(k)
 
             # initial direction
-            if i == -1: d = R
-            elif i == n: d = L
-            elif j == -1: d = U
-            elif j == n: d = D
+            if i == -1:
+                d = R
+            elif i == n:
+                d = L
+            elif j == -1:
+                d = U
+            elif j == n:
+                d = D
 
             # go through the link
             while True:

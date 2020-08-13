@@ -53,7 +53,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 import types
 
@@ -538,8 +537,9 @@ cdef class UniqueFactory(SageObject):
 
         EXAMPLES::
 
-            sage: V = FreeModule(ZZ, 5)
-            sage: factory, data = FreeModule.reduce_data(V)
+            sage: from sage.modules.free_module import FreeModuleFactory_with_standard_basis as F
+            sage: V = F(ZZ, 5)
+            sage: factory, data = F.reduce_data(V)
             sage: factory(*data)
             Ambient free module of rank 5 over the principal ideal domain Integer Ring
             sage: factory(*data) is V
@@ -635,8 +635,9 @@ def generic_factory_unpickle(factory, *args):
 
     EXAMPLES::
 
-        sage: V = FreeModule(ZZ, 5)
-        sage: func, data = FreeModule.reduce_data(V)
+        sage: from sage.modules.free_module import FreeModuleFactory_with_standard_basis as F
+        sage: V = F(ZZ, 5)
+        sage: func, data = F.reduce_data(V)
         sage: func is sage.structure.factory.generic_factory_unpickle
         True
         sage: sage.structure.factory.generic_factory_unpickle(*data) is V

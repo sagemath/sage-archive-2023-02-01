@@ -263,8 +263,6 @@ Methods
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from libc.string cimport memset
 from cysignals.memory cimport check_malloc, sig_malloc, sig_free
 from cysignals.signals cimport sig_check, sig_on, sig_off
@@ -916,9 +914,7 @@ def vertex_separation_exp(G, verbose=False):
 
         sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation_exp
         sage: D=digraphs.DeBruijn(2,3)
-        sage: vertex_separation_exp(D)  # py2
-        (2, ['010', '110', '111', '011', '001', '000', '100', '101'])
-        sage: vertex_separation_exp(D)  # py3
+        sage: vertex_separation_exp(D)
         (2, ['000', '001', '100', '010', '101', '011', '110', '111'])
 
     Given a too large graph::

@@ -1,7 +1,11 @@
 # Shell functions for making spkg-install scripts a little easier to write,
 # eliminating duplication.  All Sage helper functions begin with sdh_ (for
 # Sage-distribution helper).  Consult the below documentation for the list of
-# available helper functions:
+# available helper functions.
+#
+# This documentation is also repeated in the Sage docs in
+# src/doc/en/developer/packaging.rst, so if anything here changes, or
+# if you add anything, please modify that file accordingly.
 #
 # - sdh_die MESSAGE
 #
@@ -136,7 +140,7 @@ sdh_check_vars() {
     while [ -n "$1" ]; do
         [ -n "$(eval "echo "\${${1}+isset}"")" ] || sdh_die << _EOF_
 ${1} undefined ... exiting
-Maybe run 'sage --sh'?
+Maybe run 'sage --buildsh'?
 _EOF_
         shift
     done
@@ -179,6 +183,11 @@ sdh_make() {
     ${MAKE:-make} "$@" || sdh_die "Error building $PKG_NAME"
 }
 
+
+sdh_make_check() {
+    echo "Checking $PKG_NAME"
+    ${MAKE:-make} check "$@" || sdh_die "Failures checking $PKG_NAME"
+}
 
 sdh_make_install() {
     echo "Installing $PKG_NAME"

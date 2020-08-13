@@ -147,7 +147,6 @@ Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from libc.string cimport memset
 from cysignals.memory cimport check_allocarray, sig_free
@@ -1153,8 +1152,10 @@ def hyperbolicity(G,
         (1/2, [0, 1, 2, 3], 1/2)
         sage: L,C,U = hyperbolicity(G, algorithm='basic'); L,sorted(C),U
         (1/2, [0, 1, 2, 3], 1/2)
-        sage: L,C,U = hyperbolicity(G, algorithm='dom'); L,sorted(C),U
-        (0, [0, 1, 2, 6], 1)
+        sage: L,C,U = hyperbolicity(G, algorithm='dom'); L,U
+        (0, 1)
+        sage: sorted(C)  # random
+        [0, 1, 2, 6]
 
     Asking for an approximation in a grid graph::
 

@@ -19,20 +19,32 @@ AUTHORS:
 
 - Travis Scrimshaw (07-15-2013): Initial implementation
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013-2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra
 from sage.algebras.lie_algebras.rank_two_heisenberg_virasoro import RankTwoHeisenbergVirasoro
 from sage.algebras.lie_algebras.onsager import OnsagerAlgebra
 from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra as Affine
+from sage.algebras.lie_algebras.classical_lie_algebra import gl
+from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra as ClassicalMatrix
+
+
+# the next 6 lines are here to silent pyflakes and lgtm warnings
+assert VirasoroAlgebra
+assert RankTwoHeisenbergVirasoro
+assert OnsagerAlgebra
+assert Affine
+assert gl
+assert ClassicalMatrix
+
 
 def three_dimensional(R, a, b, c, d, names=['X', 'Y', 'Z']):
     r"""
@@ -392,8 +404,6 @@ def strictly_upper_triangular_matrices(R, n):
 #####################################################################
 ## Classical Lie algebras
 
-from sage.algebras.lie_algebras.classical_lie_algebra import gl
-from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra as ClassicalMatrix
 
 def sl(R, n, representation='bracket'):
     r"""
@@ -568,6 +578,7 @@ def so(R, n, representation='bracket'):
         return so_matrix(R, n)
     raise ValueError("invalid representation")
 
+
 def sp(R, n, representation='bracket'):
     r"""
     The Lie algebra `\mathfrak{sp}_n`.
@@ -637,7 +648,7 @@ def sp(R, n, representation='bracket'):
         [0 0 0 0]
         [0 0 0 0]
     """
-    if n % 2 != 0:
+    if n % 2:
         raise ValueError("n must be even")
     if representation == 'bracket':
         from sage.algebras.lie_algebras.classical_lie_algebra import LieAlgebraChevalleyBasis
@@ -646,4 +657,3 @@ def sp(R, n, representation='bracket'):
         from sage.algebras.lie_algebras.classical_lie_algebra import sp as sp_matrix
         return sp_matrix(R, n)
     raise ValueError("invalid representation")
-

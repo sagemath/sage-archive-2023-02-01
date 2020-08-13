@@ -452,7 +452,6 @@ examples.
 #  Distributed under the terms of the GNU General Public License (GPL)
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
 
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.lazy_attribute import lazy_attribute
@@ -1333,8 +1332,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                     all_q = Set(t[0])
                     tens_q = {}
                     for a in all_q.subsets():
-                        left_q = sorted(list(a))
-                        right_q = sorted(list(all_q - a))
+                        left_q = sorted(a)
+                        right_q = sorted(all_q - a)
                         sign = Permutation(convert_perm(left_q + right_q)).signature()
                         tens_q[(tuple(left_q), tuple(right_q))] = sign
                     tens = {}
@@ -2173,7 +2172,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
     def basis(self, d=None):
         """
-        Returns basis for self, either the whole basis or the basis in
+        Return basis for ``self``, either the whole basis or the basis in
         degree `d`.
 
         INPUT:
@@ -3473,12 +3472,12 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             """
             def excess_odd(mono):
                 """
-                Excess of mono, where mono has the form ((s0, s1, ...), (r1, r2,
-                ...)).
+                Excess of mono, where mono has the form
+                ((s0, s1, ...), (r1, r2, ...)).
 
-                Returns the length of the first component, since that is the number
-                of factors, plus twice the sum of the terms in the second
-                component.
+                Return the length of the first component, since that
+                is the number of factors, plus twice the sum of the
+                terms in the second component.
                 """
                 if not mono:
                     return 0

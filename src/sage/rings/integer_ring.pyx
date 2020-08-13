@@ -1,3 +1,4 @@
+# distutils: libraries = ntl
 r"""
 Ring `\ZZ` of Integers
 
@@ -42,8 +43,6 @@ other types will also coerce to the integers, when it makes sense.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import absolute_import, print_function
 
 from cpython.int cimport *
 from cpython.list cimport *

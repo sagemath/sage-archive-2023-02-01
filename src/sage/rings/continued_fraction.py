@@ -200,7 +200,6 @@ AUTHORS:
 """
 # python3
 from __future__ import division, print_function, absolute_import
-from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, rich_to_bool
@@ -1687,12 +1686,6 @@ class ContinuedFraction_real(ContinuedFraction_base):
             False
         """
         try:
-            # The following is crazy and prevent us from using cmp(self.value(),
-            # other.value()). On sage-5.10.beta2:
-            #     sage: cmp(pi, 4)
-            #     -1
-            #     sage: cmp(pi, pi+4)
-            #     1
             if self.value() == other.value():
                 return rich_to_bool(op, 0)
             if self.value() - other.value() > 0:

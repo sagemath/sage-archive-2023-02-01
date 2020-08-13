@@ -163,6 +163,12 @@ class DiffForm(TensorField):
         sage: da.display(eV)
         da = -du/\dv
 
+    The exterior derivative can also be obtained by applying the function
+    ``diff`` to a differentiable form::
+
+        sage: diff(a) is a.exterior_derivative()
+        True
+
     Another 1-form defined by its components in ``eU``::
 
         sage: b = M.one_form(1+x*y, x^2, frame=eU, name='b')
@@ -196,11 +202,11 @@ class DiffForm(TensorField):
 
         sage: f = M.scalar_field({c_xy: (x+y)^2, c_uv: u^2}, name='f')
         sage: s = f*a ; s
-        1-form on the 2-dimensional differentiable manifold M
+        1-form f*a on the 2-dimensional differentiable manifold M
         sage: s.display(eU)
-        (-x^2*y - 2*x*y^2 - y^3) dx + (x^3 + 2*x^2*y + x*y^2) dy
+        f*a = (-x^2*y - 2*x*y^2 - y^3) dx + (x^3 + 2*x^2*y + x*y^2) dy
         sage: s.display(eV)
-        1/2*u^2*v du - 1/2*u^3 dv
+        f*a = 1/2*u^2*v du - 1/2*u^3 dv
 
 
     .. RUBRIC:: Examples with SymPy as the symbolic engine
@@ -263,9 +269,9 @@ class DiffForm(TensorField):
         sage: f = M.scalar_field({c_xy: (x+y)^2, c_uv: u^2}, name='f')
         sage: s = f*a
         sage: s.display(eU)
-        -y*(x**2 + 2*x*y + y**2) dx + x*(x**2 + 2*x*y + y**2) dy
+        f*a = -y*(x**2 + 2*x*y + y**2) dx + x*(x**2 + 2*x*y + y**2) dy
         sage: s.display(eV)
-        u**2*v/2 du - u**3/2 dv
+        f*a = u**2*v/2 du - u**3/2 dv
 
     """
     def __init__(self, vector_field_module, degree, name=None, latex_name=None):
@@ -275,7 +281,7 @@ class DiffForm(TensorField):
         TESTS:
 
         Construction via ``parent.element_class``, and not via a direct call
-        to ``DiffForm`, to fit with the category framework::
+        to ``DiffForm``, to fit with the category framework::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
@@ -422,19 +428,16 @@ class DiffForm(TensorField):
             True
 
         Instead of invoking the method :meth:`exterior_derivative`, one may
-        use the global function
-        :func:`~sage.manifolds.utilities.exterior_derivative`
-        or its alias :func:`~sage.manifolds.utilities.xder`::
+        use the global function ``diff``::
 
-            sage: from sage.manifolds.utilities import xder
-            sage: xder(a) is a.exterior_derivative()
+            sage: diff(a) is a.exterior_derivative()
             True
 
         Let us check Cartan's identity::
 
             sage: v = M.vector_field({e_xy: [-y, x]}, name='v')
             sage: v.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: a.lie_der(v) == v.contract(xder(a)) + xder(a(v))  # long time
+            sage: a.lie_der(v) == v.contract(diff(a)) + diff(a(v))  # long time
             True
 
         """
@@ -448,6 +451,9 @@ class DiffForm(TensorField):
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst.exterior_derivative()
         return resu
+
+    derivative = exterior_derivative  # allows one to use functional notation,
+                                      # e.g. diff(a) for a.exterior_derivative()
 
     def wedge(self, other):
         r"""
@@ -511,7 +517,7 @@ class DiffForm(TensorField):
             sage: f.add_expr_by_continuation(c_uv, W)
             sage: t = a.wedge(f)
             sage: t.display()
-            x*y dx + x^2 dy
+            f*a = x*y dx + x^2 dy
 
         """
         if other._tensor_rank == 0:
@@ -525,6 +531,21 @@ class DiffForm(TensorField):
                 raise ValueError("incompatible ambient domains for exterior product")
         dom_resu = self._domain.intersection(other._domain)
         ambient_dom_resu = self._ambient_domain.intersection(other._ambient_domain)
+        resu_degree = self._tensor_rank + other._tensor_rank
+        dest_map = self._vmodule._dest_map
+        dest_map_resu = dest_map.restrict(dom_resu,
+                                          subcodomain=ambient_dom_resu)
+        # Facilitate computations involving zero:
+        if resu_degree > ambient_dom_resu._dim:
+            return dom_resu.diff_form_module(resu_degree,
+                                             dest_map=dest_map_resu).zero()
+        if self._is_zero or other._is_zero:
+            return dom_resu.diff_form_module(resu_degree,
+                                             dest_map=dest_map_resu).zero()
+        if self is other and (self._tensor_rank % 2) == 1:
+            return dom_resu.diff_form_module(resu_degree,
+                                             dest_map=dest_map_resu).zero()
+        # Generic case:
         self_r = self.restrict(dom_resu)
         other_r = other.restrict(dom_resu)
         if ambient_dom_resu.is_manifestly_parallelizable():
@@ -549,11 +570,7 @@ class DiffForm(TensorField):
             if not is_atomic(olname):
                 olname = '(' + olname + ')'
             resu_latex_name = slname + r'\wedge ' + olname
-        dest_map = self._vmodule._dest_map
-        dest_map_resu = dest_map.restrict(dom_resu,
-                                          subcodomain=ambient_dom_resu)
         vmodule = dom_resu.vector_field_module(dest_map=dest_map_resu)
-        resu_degree = self._tensor_rank + other._tensor_rank
         resu = vmodule.alternating_form(resu_degree, name=resu_name,
                                         latex_name=resu_latex_name)
         for dom in self_r._restrictions:
@@ -1035,7 +1052,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         no symmetry;  antisymmetry: (0, 1)
 
     The exterior derivative of a differential form is obtained by means
-    of the :meth:`exterior_derivative`::
+    of the method :meth:`exterior_derivative`::
 
         sage: da = a.exterior_derivative() ; da
         2-form dA on the 3-dimensional differentiable manifold R3
@@ -1047,6 +1064,11 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         dB = cos(x) dx/\dy + sin(z) dx/\dz - sin(y) dy/\dz
         sage: dab = ab.exterior_derivative() ; dab
         3-form d(A/\B) on the 3-dimensional differentiable manifold R3
+
+    or by applying the function ``diff`` to the differential form::
+
+        sage: diff(a) is a.exterior_derivative()
+        True
 
     As a 3-form over a 3-dimensional manifold, ``d(A/\B)`` is necessarily
     proportional to the volume 3-form::
@@ -1308,12 +1330,9 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             True
 
         Instead of invoking the method :meth:`exterior_derivative`, one may
-        use the global function
-        :func:`~sage.manifolds.utilities.exterior_derivative`
-        or its alias :func:`~sage.manifolds.utilities.xder`::
+        use the global function ``diff``::
 
-            sage: from sage.manifolds.utilities import xder
-            sage: xder(a) is a.exterior_derivative()
+            sage: diff(a) is a.exterior_derivative()
             True
 
         The exterior derivative is nilpotent::
@@ -1328,7 +1347,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         Let us check Cartan's identity::
 
             sage: v = M.vector_field(-y, x, t, z, name='v')
-            sage: a.lie_der(v) == v.contract(xder(a)) + xder(a(v)) # long time
+            sage: a.lie_der(v) == v.contract(diff(a)) + diff(a(v)) # long time
             True
 
         """
@@ -1388,6 +1407,9 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             resu._components[frame] = dc
         return resu
 
+    derivative = exterior_derivative  # allows one to use functional notation,
+                                      # e.g. diff(a) for a.exterior_derivative()
+
     def wedge(self, other):
         r"""
         Exterior product of ``self`` with another differential form.
@@ -1430,7 +1452,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: f = M.scalar_field(x, name='f')
             sage: t = a.wedge(f)
             sage: t.display()
-            2*x dx + (x^2 + x) dy + x*y*z dz
+            f*a = 2*x dx + (x^2 + x) dy + x*y*z dz
 
         """
         if other._tensor_rank == 0:

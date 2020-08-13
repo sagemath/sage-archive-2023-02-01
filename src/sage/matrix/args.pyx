@@ -14,8 +14,6 @@ Helpers for creating matrices
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, generator_stop
-
 cimport cython
 from cpython.sequence cimport PySequence_Fast
 from cysignals.signals cimport sig_check
@@ -23,7 +21,9 @@ from cypari2.gen cimport Gen
 from cypari2.types cimport typ, t_MAT, t_VEC, t_COL, t_VECSMALL, t_LIST, t_STR, t_CLOSURE
 
 from .matrix_space import MatrixSpace
-from sage.rings.all import ZZ, RDF, CDF
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_double import RDF
+from sage.rings.complex_double import CDF
 from sage.structure.coerce cimport (coercion_model,
         is_numpy_type, py_scalar_parent)
 from sage.structure.element cimport Element, RingElement, Vector

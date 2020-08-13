@@ -61,9 +61,8 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  https://www.gnu.org/licenses/
-# ****************************************************************************
-from six.moves import range
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element
@@ -72,7 +71,6 @@ from sage.modular.dirichlet import DirichletGroup, trivial_character
 from sage.rings.all import ZZ, QQ, IntegerModRing, Qp, Infinity
 from sage.arith.all import divisors
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
-from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method
 from sage.rings.padics.precision_error import PrecisionError
 import weakref
@@ -725,6 +723,7 @@ class ArbitraryWeight(WeightCharacter):
             sage: kappa(2 + 2*23 + 11*23^2 + O(23^3))
             16 + 7*23 + O(23^3)
         """
+        from sage.misc.verbose import verbose
 
         if not isinstance(x, pAdicGenericElement):
             x = Qp(self._p)(x)

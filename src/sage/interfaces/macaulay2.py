@@ -117,7 +117,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function
-from six import string_types
 
 import os
 import re
@@ -126,8 +125,10 @@ from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
                                     FunctionElement)
 from sage.interfaces.interface import AsciiArtString
 from sage.misc.multireplace import multiple_replace
+from sage.misc.superseded import deprecated_function_alias
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
+from sage.structure.global_options import GlobalOptions
 
 
 def remove_output_labels(s):
@@ -159,7 +160,7 @@ def remove_output_labels(s):
         sage: remove_output_labels(output)
         'QQ [x, y]\n\nPolynomialRing\n'
     """
-    label = re.compile("^o[0-9]+ (=|:) |^ *")
+    label = re.compile(r"^o+[0-9]+ (=|:) |^ *")
     lines = s.split("\n")
     matches = [label.match(l) for l in lines if l]
     if not matches:
@@ -170,6 +171,7 @@ def remove_output_labels(s):
 
 
 PROMPT = "_EGAS_ : "
+PROMPT_LOAD = "_EGAS_LOAD_ : "
 
 
 class Macaulay2(ExtraTabCompletion, Expect):
@@ -202,8 +204,10 @@ class Macaulay2(ExtraTabCompletion, Expect):
             command = os.getenv('SAGE_MACAULAY2_COMMAND') or 'M2'
         init_str = (
             # Prompt changing commands
-            """ZZ#{Standard,Core#"private dictionary"#"InputPrompt"} = lineno -> "%s";""" % PROMPT +
-            """ZZ#{Standard,Core#"private dictionary"#"InputContinuationPrompt"} = lineno -> "%s";""" % PROMPT +
+            'sageLoadMode = false;'
+            'ZZ#{Standard,Core#"private dictionary"#"InputPrompt"} = '
+            'ZZ#{Standard,Core#"private dictionary"#"InputContinuationPrompt"} = ' +
+            'lineno -> if(sageLoadMode) then "%s" else "%s";' % (PROMPT_LOAD, PROMPT) +
             # Also prevent line wrapping in Macaulay2
             "printWidth = 0;" +
             # And make all output labels to be of the same width
@@ -252,7 +256,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
         OUTPUT:
 
         Returns Macaulay2 command loading and executing commands in
-        ``filename``, that is, ``'load "filename"'``.
+        ``filename``.
         Return type: string
 
         TESTS::
@@ -261,18 +265,38 @@ class Macaulay2(ExtraTabCompletion, Expect):
             sage: f = open(filename, "w")
             sage: _ = f.write("sage_test = 7;")
             sage: f.close()
-            sage: command = macaulay2._read_in_file_command(filename)
-            sage: macaulay2.eval(command)  # optional - macaulay2
+            sage: macaulay2.read(filename)  # indirect doctest, optional - macaulay2
             sage: macaulay2.eval("sage_test")  # optional - macaulay2
             7
             sage: import os
             sage: os.unlink(filename)
-            sage: macaulay2._read_in_file_command("test")
-            'load "test"'
             sage: macaulay2(10^10000) == 10^10000  # optional - macaulay2
             True
         """
-        return 'load "%s"' % filename
+        # We use `input` because `load` does not echo the output values
+        return 'sageLoadMode=true;input "%s";sageLoadMode=false;' % filename
+
+    def _post_process_from_file(self, s):
+        r"""
+        TESTS:
+
+        Check that evaluating using a file gives the same result as without (:trac:`25903`)::
+
+            sage: from sage.interfaces.macaulay2 import remove_output_labels
+            sage: s1 = macaulay2._eval_line_using_file('ZZ^2')  # indirect doctest, optional - macaulay2
+            sage: s2 = macaulay2._eval_line('ZZ^2', allow_use_file=False)  # optional - macaulay2
+            sage: remove_output_labels(s1) == remove_output_labels(s2)  # optional - macaulay2
+            True
+
+        Test multiline input from file::
+
+            sage: (macaulay2.eval('ZZ^2\nZZ^3', allow_use_file=False) ==     # indirect doctest, optional - macaulay2
+            ....:     macaulay2.eval('ZZ^2\n%sZZ^3' % (' ' * macaulay2._eval_using_file_cutoff)))
+            True
+        """
+        s = '\n'.join(line for line in s.split('\n')
+                      if not line.startswith(PROMPT_LOAD))
+        return s
 
     def eval(self, code, strip=True, **kwds):
         """
@@ -332,6 +356,36 @@ class Macaulay2(ExtraTabCompletion, Expect):
         self.eval('setRandomSeed(%d)' % seed)
         self._seed = seed
         return seed
+
+    class options(GlobalOptions):
+        r"""
+        Global options for Macaulay2 elements.
+
+        @OPTIONS@
+
+        EXAMPLES::
+
+            sage: macaulay2.options.after_print = True  # optional - macaulay2
+            sage: A = macaulay2(matrix([[1, 2], [3, 6]])); A  # optional - macaulay2
+            | 1 2 |
+            | 3 6 |
+            <BLANKLINE>
+                     2        2
+            Matrix ZZ  <--- ZZ
+            sage: A.kernel()  # optional - macaulay2
+            image | 2  |
+                  | -1 |
+            <BLANKLINE>
+                                      2
+            ZZ-module, submodule of ZZ
+            sage: macaulay2.options.after_print = False  # optional - macaulay2
+        """
+        NAME = 'Macaulay2'
+        module = 'sage.interfaces.macaulay2'
+        after_print = dict(default=False,
+                           description='append AfterPrint type information to '
+                                       'textual representations',
+                           checker=lambda val: isinstance(val, bool))
 
     def get(self, var):
         """
@@ -686,12 +740,14 @@ class Macaulay2(ExtraTabCompletion, Expect):
             sage: macaulay2.ring('QQ', '[a_0..a_2,b..<d,f]').vars()     # optional - macaulay2
             | a_0 a_1 a_2 b c f |
         """
-        return self.new(_macaulay2_input_ring(base_ring, vars, order))
+        return self.new(self._macaulay2_input_ring(base_ring, vars, order))
 
     def help(self, s):
         """
         EXAMPLES::
 
+            sage: macaulay2.help("load")  # optional - macaulay2 - 1st call might be chatty...
+            ...
             sage: macaulay2.help("load")  # optional - macaulay2
             load...
             ****...
@@ -790,39 +846,25 @@ class Macaulay2(ExtraTabCompletion, Expect):
         value = self(value)
         return self.new("new %s from %s"%(type.name(), value.name()))
 
+    def _macaulay2_input_ring(self, base_ring, vars, order='GRevLex'):
+        """
+        Build a string representation of a polynomial ring which can be used as
+        Macaulay2 input.
 
-def _macaulay2_input_ring(base_ring, vars, order='GRevLex'):
-    """
-    Build a string representation of a polynomial ring which can be used as
-    Macaulay2 input.
+        TESTS::
 
-    TESTS::
+            sage: R = GF(101)['x']
+            sage: macaulay2._macaulay2_input_ring(R.base_ring(), R.gens(), 'Lex')   # optional - macaulay2
+            'sage...[symbol x, MonomialSize=>16, MonomialOrder=>Lex]'
+        """
+        if not isinstance(base_ring, str):
+            base_ring = self(base_ring).name()
 
-        sage: R = GF(101)['x']
-        sage: from sage.interfaces.macaulay2 import _macaulay2_input_ring
-        sage: _macaulay2_input_ring(R.base_ring(), R.gens(), 'Lex')
-        'ZZ/101[symbol x, MonomialSize=>16, MonomialOrder=>Lex]'
-    """
-    if not isinstance(base_ring, string_types):
-        from sage.rings.integer_ring import is_IntegerRing
-        if base_ring.is_prime_field():
-            if base_ring.characteristic() == 0:
-                base_ring = "QQ"
-            else:
-                # Note that we explicitly use ZZ/p, since computations are
-                # faster than with GF p in Macaulay2 (2019).
-                base_ring = "ZZ/" + str(base_ring.characteristic())
-        elif is_IntegerRing(base_ring):
-            base_ring = "ZZ"
-        else:
-            raise TypeError("no conversion of %s to a Macaulay2 ring defined"
-                            % base_ring)
-
-    varstr = str(vars)[1:-1].rstrip(',')
-    r = re.compile(r"(?<=,)|(?<=\.\.<)|(?<=\.\.)(?!<)")
-    varstr = "symbol " + r.sub("symbol ", varstr)
-    return '%s[%s, MonomialSize=>16, MonomialOrder=>%s]' % (base_ring, varstr,
-                                                            order)
+        varstr = str(vars)[1:-1].rstrip(',')
+        r = re.compile(r"(?<=,)|(?<=\.\.<)|(?<=\.\.)(?!<)")
+        varstr = "symbol " + r.sub("symbol ", varstr)
+        return '%s[%s, MonomialSize=>16, MonomialOrder=>%s]' % (base_ring, varstr,
+                                                                order)
 
 
 @instancedoc
@@ -890,9 +932,32 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             23, 24, 25)
             sage: str(macaulay2('1..25'))  # optional - macaulay2
             (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)
+
+        If ``AfterPrint`` is enabled, the ``repr`` contains type information,
+        but the string representation does not::
+
+            sage: macaulay2.options.after_print = True  # optional - macaulay2
+            sage: repr(macaulay2('1..25'))  # optional - macaulay2
+            (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+            --------------------------------------------------------------------------------
+            23, 24, 25)
+            <BLANKLINE>
+            Sequence
+            sage: str(macaulay2('1..25'))  # optional - macaulay2
+            (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)
+            sage: macaulay2.options.after_print = False  # optional - macaulay2
         """
         from sage.typeset.ascii_art import empty_ascii_art
         P = self.parent()
+        if P.options.after_print:
+            # In M2, the wrapped output is indented by the width of the prompt,
+            # which we strip in Sage. We hardcode the width of the prompt to
+            # 14=len('o1000000001 = '), which is tested in the doctests by the
+            # output getting wrapped at 80 characters.
+            width = 14 + empty_ascii_art._terminal_width()
+            return P.eval('printWidth=%d;%s' % (width, self._name))
+        # Otherwise manually wrap the net representation which does not display
+        # AfterPrint text
         return P.eval('print(wrap(%d,"-",net %s))'
                       % (empty_ascii_art._terminal_width(), self._name),
                       strip=False)
@@ -954,7 +1019,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         """
         if new_name is None:
             return self._name
-        if not isinstance(new_name, string_types):
+        if not isinstance(new_name, str):
             raise TypeError("new_name must be a string")
 
         P = self.parent()
@@ -983,7 +1048,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             <... 'int'>
         """
         self._check_valid()
-        return int(self.parent()("#%s"%self.name()))
+        # we use str instead of repr to avoid wrapping
+        return int(str(self.parent()("#%s"%self.name())))
 
     def __getitem__(self, n):
         """
@@ -1088,6 +1154,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
     def __bool__(self):
         """
+        Return whether this Macaulay2 element is not ``False`` or not ``0``.
+
         EXAMPLES::
 
             sage: a = macaulay2(0)  # optional - macaulay2
@@ -1095,9 +1163,22 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             True
             sage: bool(a)           # optional - macaulay2
             False
+
+        TESTS:
+
+        Check that :trac:`28705` is fixed::
+
+            sage: t = macaulay2(True); t     # optional - macaulay2
+            true
+            sage: bool(t)                    # optional - macaulay2
+            True
+            sage: bool(macaulay2('false'))   # optional - macaulay2
+            False
+            sage: bool(macaulay2('"a"'))     # optional - macaulay2
+            True
         """
         P = self.parent()
-        return P.eval('%s == 0'%self.name()) == 'false'
+        return P.eval('{0}===false or {0}==0'.format(self._name)) != 'true'
 
     __nonzero__ = __bool__
 
@@ -1222,6 +1303,29 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         """
         return self.parent()("class %s"%self.name())
 
+    def after_print_text(self):
+        r"""
+        Obtain type information for this Macaulay2 element.
+
+        This is the text that is displayed using ``AfterPrint`` in a Macaulay2
+        interpreter.
+
+        Macaulay2 by default includes this information in the output.
+        In Sage, this behavior can optionally be enabled by setting the option
+        ``after_print`` in :class:`Macaulay2.options`.
+
+        EXAMPLES::
+
+            sage: B = macaulay2(matrix([[1, 2], [3, 6]])).kernel(); B  # optional - macaulay2
+            image | 2  |
+                  | -1 |
+            sage: B.after_print_text()  # optional - macaulay2
+                                      2
+            ZZ-module, submodule of ZZ
+        """
+        return self.parent().eval('(lookup({topLevelMode,AfterPrint},' +
+                                  'class {0}))({0})'.format(self._name))
+
     ##########################
     #Aliases for M2 operators#
     ##########################
@@ -1293,7 +1397,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
     #Conversion to Sage#
     ####################
     def _sage_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: macaulay2(ZZ).sage()         # optional - macaulay2, indirect doctest
@@ -1349,9 +1453,20 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: macaulay2("QQ[x_0..x_25]").sage()    # optional - macaulay2
             Multivariate Polynomial Ring in x_0, x_1,..., x_25 over Rational Field
 
-            sage: X = R/I       # optional - macaulay2
-            sage: X.sage()      # optional - macaulay2
-            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x, y)
+            sage: S = ZZ['x,y'].quotient('x^2-y')
+            sage: macaulay2(S).sage() == S         # optional - macaulay2
+            True
+            sage: S = GF(101)['x,y'].quotient('x^2-y')
+            sage: macaulay2(S).sage() == S         # optional - macaulay2
+            True
+
+            sage: R = GF(13)['a,b']['c,d']
+            sage: macaulay2(R).sage() == R  # optional - macaulay2
+            True
+            sage: macaulay2('a^2 + c').sage() == R('a^2 + c')  # optional - macaulay2
+            True
+            sage: macaulay2.substitute('a', R).sage().parent() is R  # optional - macaulay2
+            True
 
             sage: R = macaulay2("QQ^2")  # optional - macaulay2
             sage: R.sage()               # optional - macaulay2
@@ -1365,6 +1480,60 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: m = macaulay2('"hello"')  # optional - macaulay2
             sage: m.sage()                  # optional - macaulay2
             'hello'
+
+            sage: gg = macaulay2.needsPackage('"Graphs"') # optional - macaulay2
+            sage: g = macaulay2.barbellGraph(3)         # optional - macaulay2
+            sage: g.sage()                              # optional - macaulay2
+            Graph on 6 vertices
+            sage: g.sage().edges(labels=False)          # optional - macaulay2
+            [(0, 1), (0, 2), (1, 2), (2, 3), (3, 4), (3, 5), (4, 5)]
+
+            sage: d = 'digraph ({{1,2},{2,1},{3,1}}, EntryMode => "edges")'
+            sage: g = macaulay2(d)                      # optional - macaulay2
+            sage: g.sage()                              # optional - macaulay2
+            Digraph on 3 vertices
+            sage: g.sage().edges(labels=False)          # optional - macaulay2
+            [(1, 2), (2, 1), (3, 1)]
+
+        Chain complexes and maps of chain complexes can be converted::
+
+            sage: R = ZZ['a,b,c']
+            sage: C = macaulay2(ideal(R.gens())).resolution()  # optional - macaulay2
+            sage: ascii_art(C.sage())                          # optional - macaulay2
+                                      [-b  0 -c]       [ c]
+                                      [ a -c  0]       [ a]
+                        [a b c]       [ 0  b  a]       [-b]
+             0 <-- C_0 <-------- C_1 <----------- C_2 <----- C_3 <-- 0
+            sage: F = C.dot('dd')  # optional - macaulay2
+            sage: G = F.sage()     # optional - macaulay2
+            sage: G.in_degree(2)   # optional - macaulay2
+            [-b  0 -c]
+            [ a -c  0]
+            [ 0  b  a]
+            sage: F.underscore(2).sage() == G.in_degree(2)  # optional - macaulay2
+            True
+            sage: (F^2).sage()     # optional - macaulay2
+            Chain complex morphism:
+              From: Chain complex with at most 4 nonzero terms over Multivariate Polynomial Ring in a, b, c over Integer Ring
+              To:   Chain complex with at most 4 nonzero terms over Multivariate Polynomial Ring in a, b, c over Integer Ring
+
+        Quotient rings in Macaulay2 inherit variable names from the ambient
+        ring, so we mimic this behaviour in Sage::
+
+            sage: R = macaulay2("ZZ/7[x,y]")            # optional - macaulay2
+            sage: I = macaulay2("ideal (x^3 - y^2)")    # optional - macaulay2
+            sage: (R/I).gens()                          # optional - macaulay2
+            {x, y}
+            sage: (R/I).sage().gens()                   # optional - macaulay2
+            (x, y)
+
+        Elements of quotient rings::
+
+            sage: x, y = (R/I).gens()                   # optional - macaulay2
+            sage: f = ((x^3 + 2*y^2*x)^7).sage(); f     # optional - macaulay2
+            2*x*y^18 + y^14
+            sage: f.parent()                            # optional - macaulay2
+            Quotient of Multivariate Polynomial Ring in x, y over Finite Field of size 7 by the ideal (x^3 - y^2)
 
         """
         repr_str = str(self)
@@ -1392,7 +1561,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 return parent.ideal(*gens)
             elif cls_str == "QuotientRing":
                 #Handle the ZZ/n case
-                if "ZZ" in repr_str and "--" in repr_str:
+                ambient = self.ambient()
+                if ambient.external_string() == 'ZZ':
                     from sage.rings.all import ZZ, GF
                     external_string = self.external_string()
                     zz, n = external_string.split("/")
@@ -1400,10 +1570,10 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                     #Note that n must be prime since it is
                     #coming from Macaulay 2
                     return GF(ZZ(n))
-
-                ambient = self.ambient()._sage_()
-                ideal = self.ideal()._sage_()
-                return ambient.quotient(ideal)
+                else:
+                    ambient_ring = ambient._sage_()
+                    ideal = self.ideal()._sage_()
+                    return ambient_ring.quotient(ideal, names=ambient_ring.variable_names())
             elif cls_str == "PolynomialRing":
                 from sage.rings.all import PolynomialRing
                 from sage.rings.polynomial.term_order import inv_macaulay2_name_mapping
@@ -1415,7 +1585,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 gens = str(self.gens().toString())[1:-1]
 
                 # Check that we are dealing with default degrees, i.e. 1's.
-                if self.degrees().any("x -> x != {1}")._sage_():
+                if self.options().sharp("Degrees").any("x -> x != {1}")._sage_():
                     raise ValueError("cannot convert Macaulay2 polynomial ring with non-default degrees to Sage")
                 #Handle the term order
                 external_string = self.external_string()
@@ -1452,6 +1622,41 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                     ring = self.ring()._sage_()
                     rank = self.rank()._sage_()
                     return FreeModule(ring, rank)
+            elif cls_str in ("Graph", "Digraph"):
+                if cls_str == "Graph":
+                    from sage.graphs.graph import Graph
+                    graph_cls = Graph
+                else:
+                    from sage.graphs.digraph import DiGraph
+                    graph_cls = DiGraph
+                adj_mat = self.adjacencyMatrix().sage()
+                g = graph_cls(adj_mat, format='adjacency_matrix')
+                g.relabel(self.vertices())
+                return g
+            elif cls_str == "ChainComplex":
+                from sage.homology.chain_complex import ChainComplex
+                ring = self.ring()._sage_()
+                dd = self.dot('dd')
+                degree = dd.degree()._sage_()
+                a = self.min()._sage_()
+                b = self.max()._sage_()
+                matrices = {i: dd.underscore(i)._matrix_(ring)
+                            for i in range(a, b+1)}
+                return ChainComplex(matrices, degree=degree)
+            elif cls_str == "ChainComplexMap":
+                from sage.homology.chain_complex_morphism import ChainComplexMorphism
+                ring = self.ring()._sage_()
+                source = self.source()
+                a = source.min()._sage_()
+                b = source.max()._sage_()
+                degree = self.degree()._sage_()
+                matrices = {i: self.underscore(i)._matrix_(ring)
+                            for i in range(a, b+1)}
+                C = source._sage_()
+                # in Sage, chain complex morphisms are degree-preserving,
+                # so we shift the degrees of the target
+                D = self.target()._operator(' ', '[%s]' % degree)._sage_()
+                return ChainComplexMorphism(matrices, C, D)
         else:
             #Handle the integers and rationals separately
             if cls_str == "ZZ":
@@ -1467,10 +1672,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             m2_parent = self.cls()
             parent = m2_parent._sage_()
 
-            if cls_cls_str == "PolynomialRing":
-                from sage.misc.sage_eval import sage_eval
-                gens_dict = parent.gens_dict()
-                return sage_eval(self.external_string(), gens_dict)
+            if cls_cls_str in ("PolynomialRing", "QuotientRing"):
+                return parent(self.external_string())
             elif cls_cls_str == "Module":
                 entries = self.entries()._sage_()
                 return parent._element_constructor_(entries)
@@ -1481,7 +1684,6 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         except Exception:
             raise NotImplementedError("cannot convert %s to a Sage object"%repr_str)
 
-    from sage.misc.superseded import deprecated_function_alias
     to_sage = deprecated_function_alias(27848, ExpectElement.sage)
 
     def _matrix_(self, R):
@@ -1501,9 +1703,22 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: matrix(QQ, A)                          # optional - macaulay2, indirect doctest
             [1 2]
             [3 4]
+
+        TESTS:
+
+        Check that degenerate matrix dimensions are preserved (:trac:`28591`)::
+
+            sage: m = macaulay2('matrix {{},{}}')  # optional - macaulay2
+            sage: matrix(ZZ, m).dimensions()  # optional - macaulay2
+            (2, 0)
+            sage: matrix(ZZ, m.transpose()).dimensions()  # optional - macaulay2
+            (0, 2)
         """
         from sage.matrix.all import matrix
-        return matrix(R, self.entries()._sage_())
+        m = matrix(R, self.entries()._sage_())
+        if not m.nrows():
+            return matrix(R, 0, self.numcols()._sage_())
+        return m
 
 
 @instancedoc

@@ -9,7 +9,6 @@ existence of this file -- is now a non-issue, since some bugs in
 Cython were fixed.  Probably all this code should be moved into the
 relevant classes and this file deleted.
 """
-from __future__ import absolute_import
 
 from cysignals.signals cimport sig_check
 
@@ -45,7 +44,7 @@ from sage.rings.real_mpfr import  is_RealField
 from sage.rings.real_mpfr cimport RealNumber
 
 
-from sage.misc.misc import verbose, get_verbose
+from sage.misc.verbose import verbose, get_verbose
 
 def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer N):
     """

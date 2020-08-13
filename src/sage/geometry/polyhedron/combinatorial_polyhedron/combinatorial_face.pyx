@@ -74,6 +74,7 @@ import numbers
 from sage.rings.integer         cimport smallInteger
 from .conversions               cimport bit_rep_to_Vrep_list
 from .base                      cimport CombinatorialPolyhedron
+from .face_iterator             cimport FaceIterator_base
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 from libc.string                cimport memcpy
 
@@ -174,10 +175,10 @@ cdef class CombinatorialFace(SageObject):
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace).run()
         """
-        cdef FaceIterator it
+        cdef FaceIterator_base it
         cdef PolyhedronFaceLattice all_faces
 
-        if isinstance(data, FaceIterator):
+        if isinstance(data, FaceIterator_base):
             assert dimension is None and index is None, "dimension and index must be ``None``, when providing a face iterator"
 
             # Copy data from FaceIterator.

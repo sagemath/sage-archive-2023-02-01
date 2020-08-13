@@ -210,11 +210,6 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
 
     # reduce cp mod prec
     degree = len(charpoly_prec) - 1
-    # the number of coefficients that we will compute
-    # the rest will be deduced using the functional equation
-    # as up to scaling of the variable
-    # this is either reciprocal or antireciprocal polynomial
-    halfdegree = degree // 2 + 1
     mod = [0] * (degree + 1)
     for i in range(len(charpoly_prec)):
         mod[-i] = p**charpoly_prec[-i]
@@ -231,7 +226,9 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
         # For the moment I will not worry about this case
         if known_factor != [1]:
             raise NotImplementedError()
-        for i in range(halfdegree):
+        # we compare ith coffecient and  (degree - i)th coefficient to deduce the sign
+        # note, if degree is even, the middle coefficient will not help us determine the sign
+        for i in range((degree + 1)//2):
             p_power = p**min(
                 charpoly_prec[i],
                 charpoly_prec[degree - i] + (a * (degree - 2 * i) * weight / 2),
@@ -245,8 +242,14 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
                     sign = 1
                 assert (-sign * cp[i] + other) % p_power == 0
                 break
-    cp[0] = sign * p**(a * degree * weight / 2)
+    # halfdegree is the number of coefficients that we will compute
+    # the rest will be deduced using the functional equation
+    # as up to scaling of the variable
+    # the polynomial is either reciprocal or antireciprocal polynomial
+    # note, this includes the middle coefficient if degree is even
+    halfdegree = degree // 2 + 1
 
+    cp[0] = sign * p**(a * degree * weight / 2)
     # calculate the i-th power sum of the roots and correct cp along the way
     e = cp[-halfdegree:]
     e.reverse()

@@ -1531,6 +1531,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: Polyhedron([[0]]).vertex_facet_graph(False)
             Digraph on 1 vertex
         """
+        from sage.graphs.digraph import DiGraph
         if self.dimension() == -1:
             return DiGraph()
         if self.dimension() == 0:
@@ -1565,7 +1566,6 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             vertices = Vrep + facet_names
             edges = tuple((Vrep[j], facet_names[n_facets - 1 - i]) for i,facet in enumerate(facet_iter) for j in facet.ambient_V_indices())
-        from sage.graphs.digraph import DiGraph
         return DiGraph([vertices, edges], format='vertices_and_edges', immutable=True)
 
     @cached_method

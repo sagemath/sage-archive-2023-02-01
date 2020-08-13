@@ -226,7 +226,7 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
         # For the moment I will not worry about this case
         if known_factor != [1]:
             raise NotImplementedError()
-        # we compare ith coffecient and  (degree - i)th coefficient to deduce the sign
+        # we compare ith coefficient and  (degree - i)th coefficient to deduce the sign
         # note, if degree is even, the middle coefficient will not help us determine the sign
         for i in range((degree + 1)//2):
             p_power = p**min(

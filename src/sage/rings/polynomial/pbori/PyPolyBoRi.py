@@ -64,7 +64,7 @@ AUTHOR:
 """
 
 from sage import all
-from sage.rings.polynomial.pbori.pbori import *
+from sage.rings.polynomial.pbori.pbori.pbori import *
 
 import weakref
 

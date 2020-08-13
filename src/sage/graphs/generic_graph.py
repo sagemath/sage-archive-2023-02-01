@@ -16734,13 +16734,17 @@ class GenericGraph(GenericGraph_pyx):
     def wiener_index(self, by_weight=False, algorithm=None,
                      weight_function=None, check_weight=True):
         r"""
-        Return the Wiener index of the graph.
+        Return the Wiener index of ``self``.
 
         The graph is expected to have no cycles of negative weight.
 
-        The Wiener index of a graph `G` is `W(G) = \frac{1}{2} \sum_{u,v\in G}
-        d(u,v)` where `d(u,v)` denotes the distance between vertices `u` and `v`
-        (see [KRG1996]_).
+        The Wiener index of a undirected graph `G` is `W(G) = \frac{1}{2}
+        \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the distance between
+        vertices `u` and `v` (see [KRG1996]_).
+
+        The Wiener index of a directed graph `G` is defined as the sum of the
+        distances between each pairs of vertices, i.e.,
+        `W(G) = \sum_{u,v\in G} d(u,v)`.
 
         For more information on the input variables and more examples, we refer
         to :meth:`~GenericGraph.shortest_paths` and
@@ -16773,6 +16777,9 @@ class GenericGraph(GenericGraph_pyx):
 
           - For graphs with negative weights:
 
+            - ``'Bellman-Ford_Boost'``: the Bellman-Ford algorithm, implemented
+              in Boost.
+
             - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
               Boost.
 
@@ -16793,6 +16800,12 @@ class GenericGraph(GenericGraph_pyx):
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the weight_function outputs a number for each edge
 
+        .. NOTE::
+
+            Some algorithms (e.g., Boost algorithms) use floating point numbers
+            for internal computations. Whenever the solution is integral, we try
+            to convert the returned value to an integer.
+
         EXAMPLES::
 
             sage: G = Graph( { 0: {1: None}, 1: {2: None}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True)
@@ -16810,10 +16823,30 @@ class GenericGraph(GenericGraph_pyx):
             15
             sage: G.wiener_index(algorithm='Dijkstra_Boost')
             15
+            sage: G.wiener_index(algorithm='Bellman-Ford_Boost')
+            15
             sage: G.wiener_index(algorithm='Johnson_Boost')
             15
             sage: G.wiener_index(algorithm='Dijkstra_NetworkX')
             15
+
+        Wiener index of complete (di)graphs::
+
+            sage: n = 5
+            sage: g = graphs.CompleteGraph(n)
+            sage: g.wiener_index() == (n * (n - 1)) / 2
+            True
+            sage: g = digraphs.Complete(n)
+            sage: g.wiener_index() == n * (n - 1)
+            True
+
+        Wiener index of circuit digraphs::
+
+            sage: n = 7
+            sage: g = digraphs.Circuit(n)
+            sage: w = lambda x: (x*x*(x-1))/2
+            sage: g.wiener_index(algorithm='Dijkstra_Boost') == w(n)
+            True
 
         TESTS::
 
@@ -16838,18 +16871,28 @@ class GenericGraph(GenericGraph_pyx):
             from .distances_all_pairs import wiener_index
             return wiener_index(self)
 
-        if not self.is_connected():
+        if algorithm in ['Dijkstra_Boost', 'Bellman-Ford_Boost'] or (algorithm is None and by_weight):
+            from .base.boost_graph import wiener_index
+            WI = wiener_index(self, algorithm=algorithm,
+                                weight_function=weight_function,
+                                check_weight=check_weight)
+
+        elif (not self.is_connected()
+            or (self.is_directed() and not self.is_strongly_connected())):
             from sage.rings.infinity import Infinity
             return Infinity
 
-        distances = self.shortest_path_all_pairs(by_weight=by_weight,
-                    algorithm=algorithm, weight_function=weight_function,
-                    check_weight=check_weight)[0]
-        total = 0
-        for u in distances.values():
-            total += sum(u.values())
+        else:
+            distances = self.shortest_path_all_pairs(by_weight=by_weight,
+                            algorithm=algorithm, weight_function=weight_function,
+                            check_weight=check_weight)[0]
+            total = sum(sum(u.values()) for u in distances.values())
+            WI = total if self.is_directed() else (total / 2)
 
-        return total // 2
+        if WI in ZZ:
+            WI = Integer(WI)
+
+        return WI
 
     def average_distance(self, by_weight=False, algorithm=None,
                          weight_function=None):
@@ -16891,6 +16934,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.average_distance()==w(10)
             True
 
+        Average distance of a circuit::
+
+            sage: g = digraphs.Circuit(6)
+            sage: g.average_distance()
+            3
+
         TESTS:
 
         Giving an empty graph::
@@ -16904,7 +16953,7 @@ class GenericGraph(GenericGraph_pyx):
         :trac:`22885`::
 
             sage: G = graphs.PetersenGraph()
-            sage: G2 = Graph([(u, v, 2) for u,v in G.edge_iterator(labels=False)])
+            sage: G2 = Graph([(u, v, 2) for u,v in G.edge_iterator(labels=False)], weighted=True)
             sage: G2.average_distance()
             5/3
             sage: G2.average_distance(by_weight=True)
@@ -16914,7 +16963,10 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("average distance is not defined for empty or one-element graph")
         WI =  self.wiener_index(by_weight=by_weight, algorithm=algorithm,
                                     weight_function=weight_function)
-        return 2 * WI / (self.order() * (self.order() - 1))
+        f = 1 if self.is_directed() else 2
+        if WI in QQ:
+            return QQ((f * WI, self.order() * (self.order() - 1)))
+        return f * WI / (self.order() * (self.order() - 1))
 
     def szeged_index(self):
         r"""

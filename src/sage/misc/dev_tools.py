@@ -599,6 +599,25 @@ def import_statements(*objects, **kwds):
         if not modules:
             raise ValueError("no import statement found for '{}'.".format(obj))
 
+        if name is None:
+            # if the object is available under both ascii and unicode names,
+            # prefer the ascii version.
+            def is_ascii(s):
+                """
+                Equivalent of `str.isascii` in Python >= 3.7
+                """
+                return all(ord(c) < 128 for c in s)
+            if any(is_ascii(s)
+                   for (module_name, obj_names) in modules.items()
+                   for s in obj_names):
+                for module_name, obj_names in list(modules.items()):
+                    if any(not is_ascii(s) for s in obj_names):
+                        obj_names = [name for name in obj_names if is_ascii(name)]
+                        if not obj_names:
+                            del modules[module_name]
+                        else:
+                            modules[module_name] = obj_names
+
         if len(modules) == 1:  # the module is well defined
             (module_name, obj_names), = modules.items()
             if name is None:

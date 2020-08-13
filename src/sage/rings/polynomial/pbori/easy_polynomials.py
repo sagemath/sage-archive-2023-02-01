@@ -5,7 +5,7 @@ from .PyPolyBoRi import easy_linear_factors
 def easy_linear_polynomials(p):
     """ Get linear polynomials implied by given polynomial.
 
-    >>> from brial.frontend import *
+    >>> from sage.rings.polynomial.pbori.brial.frontend import *
     >>> easy_linear_polynomials(x(1)*x(2) + 1)
     [x(1) + 1, x(2) + 1]
     >>> easy_linear_polynomials(x(1)*x(2) + 0)
@@ -28,7 +28,7 @@ def easy_linear_polynomials_via_interpolation(p):
     """ Get linear polynomials implied by given polynomial using interpolation
     of the variety.
 
-    >>> from brial.frontend import *
+    >>> from sage.rings.polynomial.pbori.brial.frontend import *
     >>> easy_linear_polynomials_via_interpolation(x(1)*x(2) + 1)
     [x(1) + 1, x(2) + 1]
     >>> easy_linear_polynomials_via_interpolation(x(1)*x(2) + 0)

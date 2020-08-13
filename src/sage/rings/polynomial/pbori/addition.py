@@ -6,7 +6,7 @@ from .ll import ll_encode, ll_red_nf_redsb
 
 def add_bits_old(bits):
     """Adds n bits
-    >>> from brial import *
+    >>> from sage.rings.polynomial.pbori.brial import *
     >>> r=Ring(10)
     >>> add_bits_old([r.variable(i) for i in xrange(3)])
     [x(0) + x(1) + x(2), x(0)*x(1) + x(0)*x(2) + x(1)*x(2)]
@@ -33,7 +33,7 @@ def add_bits_old(bits):
 
 def add_bits(bits):
     """Adds n bit variables, by Lucas theorem
-    >>> from brial import *
+    >>> from sage.rings.polynomial.pbori.brial import *
     >>> r=Ring(10)
     >>> add_bits([r.variable(i) for i in xrange(3)])
     [x(0) + x(1) + x(2), x(0)*x(1) + x(0)*x(2) + x(1)*x(2)]
@@ -59,7 +59,7 @@ def add_bits(bits):
 def add_bit_expressions(bit_expressions):
     """Adds n bits, which can be arbitrary expressions, the first n variables of the ring    are reversed for usage in this function.
 
-    >>> from brial import *
+    >>> from sage.rings.polynomial.pbori.brial import *
     >>> r=Ring(20)
     >>> add_bit_expressions([r.variable(i) for i in xrange(10,13)])
     [x(10) + x(11) + x(12), x(10)*x(11) + x(10)*x(12) + x(11)*x(12)]
@@ -85,7 +85,7 @@ def add_bit_expressions(bit_expressions):
 
 def add_words(words):
     """def adds n words, this words are supposed to consists of list of their bits.
-    >>> from brial import *
+    >>> from sage.rings.polynomial.pbori.brial import *
     >>> r=Ring(1000)
     >>> add_words([[r.variable(100+i*3+j) for i in xrange(2)] for j in xrange(3)])
     [x(100) + x(101) + x(102), x(100)*x(101) + x(100)*x(102) + x(101)*x(102) + x(103) + x(104) + x(105), x(100)*x(101)*x(103) + x(100)*x(101)*x(104) + x(100)*x(101)*x(105) + x(100)*x(102)*x(103) + x(100)*x(102)*x(104) + x(100)*x(102)*x(105) + x(101)*x(102)*x(103) + x(101)*x(102)*x(104) + x(101)*x(102)*x(105) + x(103)*x(104) + x(103)*x(105) + x(104)*x(105), x(100)*x(101)*x(103)*x(104)*x(105) + x(100)*x(102)*x(103)*x(104)*x(105) + x(101)*x(102)*x(103)*x(104)*x(105)]
@@ -112,7 +112,7 @@ def add_words(words):
 
 def multiply_by_addition(word_a, word_b):
     """Multiply two words
-    >>> from brial import Ring
+    >>> from sage.rings.polynomial.pbori.brial import Ring
     >>> r=Ring(1000)
     >>> x = r.variable
     >>> n=7

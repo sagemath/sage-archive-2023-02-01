@@ -8,7 +8,7 @@ AUTHOR:
 
             Examples:
 
-            >>> from brial.frontend import *
+            >>> from sage.rings.polynomial.pbori.brial.frontend import *
             >>> r=declare_ring(["x0","x1","x2","y0","y1","y2"], globals())
             >>> x0>x1
             True

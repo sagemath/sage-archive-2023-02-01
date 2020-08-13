@@ -17,7 +17,7 @@ x(9999)
 >>> x(9999) + x(9999)
 0
 
->>> from brial.frontend import *
+>>> from sage.rings.polynomial.pbori.brial.frontend import *
 >>> context = dict(globals())
 >>> polybori_start(context) # doctest: +ELLIPSIS
 ipbori...

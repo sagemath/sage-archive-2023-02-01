@@ -40,7 +40,7 @@ def to_fast_pickable(l):
         Each code c refers to the c-2-th position in the conversion list, if c >=2, else to
         the corresponding Boolean constant if c in {0, 1}
     EXAMPLES:
-        >>> from brial.PyPolyBoRi import Ring
+        >>> from sage.rings.polynomial.pbori.brial.PyPolyBoRi import Ring
         >>> r=Ring(1000)
         >>> x=r.variable
         >>> to_fast_pickable([Polynomial(1, r)])
@@ -109,7 +109,7 @@ def from_fast_pickable(l, r):
     OUTPUT:
         a list of Boolean polynomials
     EXAMPLES:
-        >>> from brial.PyPolyBoRi import Ring
+        >>> from sage.rings.polynomial.pbori.brial.PyPolyBoRi import Ring
         >>> r=Ring(1000)
         >>> x = r.variable
         >>> from_fast_pickable([[1], []], r)
@@ -257,7 +257,7 @@ def groebner_basis_first_finished(I, *l):
         - tries to compute groebner_basis(I, **kwd) for kwd in l
         - returns the result of the first terminated computation
     EXAMPLES:
-        >>> from brial.PyPolyBoRi import Ring
+        >>> from sage.rings.polynomial.pbori.brial.PyPolyBoRi import Ring
         >>> r=Ring(1000)
         >>> ideal = [r.variable(1)*r.variable(2)+r.variable(2)+r.variable(1)]
         >>> #groebner_basis_first_finished(ideal, dict(heuristic=True), dict(heuristic=False))

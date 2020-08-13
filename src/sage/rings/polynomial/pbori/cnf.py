@@ -14,7 +14,7 @@ class CNFEncoder(object):
 
     def zero_blocks(self, f):
         """divides the zero set of f into blocks
-        >>> from brial import *
+        >>> from sage.rings.polynomial.pbori.brial import *
         >>> r = declare_ring(["x", "y", "z"], dict())
         >>> e = CNFEncoder(r)
         >>> e.zero_blocks(r.variable(0)*r.variable(1)*r.variable(2))
@@ -78,7 +78,7 @@ class CNFEncoder(object):
 
     def clauses(self, f):
         """
-        >>> from brial import *
+        >>> from sage.rings.polynomial.pbori.brial import *
         >>> r = declare_ring(["x", "y", "z"], dict())
         >>> e = CNFEncoder(r)
         >>> e.clauses(r.variable(0)*r.variable(1)*r.variable(2)) # doctest:+ELLIPSIS
@@ -102,7 +102,7 @@ class CNFEncoder(object):
 
     def polynomial_clauses(self, f):
         """
-        >>> from brial import *
+        >>> from sage.rings.polynomial.pbori.brial import *
         >>> r = declare_ring(["x", "y", "z"], dict())
         >>> e = CNFEncoder(r)
         >>> e.polynomial_clauses(r.variable(0)*r.variable(1)*r.variable(2))
@@ -141,7 +141,7 @@ class CNFEncoder(object):
 
     def dimacs_encode_polynomial(self, p):
         """
-         >>> from brial import *
+         >>> from sage.rings.polynomial.pbori.brial import *
          >>> d=dict()
          >>> r = declare_ring(["x", "y", "z"], d)
          >>> e = CNFEncoder(r)
@@ -156,7 +156,7 @@ class CNFEncoder(object):
 
     def dimacs_cnf(self, polynomial_system):
         r"""
-        >>> from brial import *
+        >>> from sage.rings.polynomial.pbori.brial import *
         >>> r = declare_ring(["x", "y", "z"], dict())
         >>> e = CNFEncoder(r)
         >>> e.dimacs_cnf([r.variable(0)*r.variable(1)*r.variable(2)])
@@ -182,7 +182,7 @@ class CryptoMiniSatEncoder(CNFEncoder):
 
     def dimacs_encode_polynomial(self, p):
         r"""
-         >>> from brial import *
+         >>> from sage.rings.polynomial.pbori.brial import *
          >>> d=dict()
          >>> r = declare_ring(["x", "y", "z"], d)
          >>> e = CryptoMiniSatEncoder(r)
@@ -216,7 +216,7 @@ class CryptoMiniSatEncoder(CNFEncoder):
 
     def dimacs_cnf(self, polynomial_system):
         r"""
-            >>> from brial import *
+            >>> from sage.rings.polynomial.pbori.brial import *
             >>> r = declare_ring(["x", "y", "z"], dict())
             >>> e = CryptoMiniSatEncoder(r)
             >>> e.dimacs_cnf([r.variable(0)*r.variable(1)*r.variable(2)])

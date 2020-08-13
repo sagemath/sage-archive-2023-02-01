@@ -33,7 +33,7 @@ class IntegerPolynomial(object):
 
     def __add__(self, other):
         """
-        >>> from brial import *
+        >>> from sage.rings.polynomial.pbori.brial import *
         >>> r= declare_ring([Block("x",1000)], globals()) # doctest: +ELLIPSIS
         >>> p=IntegerPolynomial(x(1))
         >>> p

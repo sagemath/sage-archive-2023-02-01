@@ -387,7 +387,7 @@ def variety_size_from_gb(I):
 
 def other_ordering_pre(I, option_set, kwds):
     """
-    >>> from brial.blocks import declare_ring
+    >>> from sage.rings.polynomial.pbori.brial.blocks import declare_ring
     >>> r = declare_ring(['x0', 'x1', 'x2', 'x3', 'x4'], globals())
     >>> id = [x1*x3 + x1 + x2*x3 + x3 + x4, x0*x3 + x0 + x1*x2 + x2 + 1,  x1*x3 + x1*x4 + x3*x4 + x4 + 1, x0*x2 + x0*x4 + x1 + x3 + x4]
     >>> groebner_basis(id)

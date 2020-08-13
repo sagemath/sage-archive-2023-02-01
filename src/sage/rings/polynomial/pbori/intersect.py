@@ -16,8 +16,8 @@ def intersect(i, j, **gb_opts):
     This functions intersects two ideals. The first ring variable is used as helper variable for this
     intersection. It is assumed, that it doesn't occur in the ideals, and that we have an elimination ordering
     for this variables. Both assumptions are checked.
-    >>> from brial.frontend import declare_ring
-    >>> from brial import Block
+    >>> from sage.rings.polynomial.pbori.brial.frontend import declare_ring
+    >>> from sage.rings.polynomial.pbori.brial import Block
     >>> r=declare_ring(Block("x", 1000), globals())
     >>> x = r.variable
     >>> intersect([x(1),x(2)+1],[x(1),x(2)])

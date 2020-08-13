@@ -25,7 +25,7 @@ def fglm(I, from_ring, to_ring):
     converts *reduced* Groebner Basis in from_ring to a GroebnerBasis in to_ring.
     It acts independend of the global ring, which is restored at the end of the
     computation,
-    >>> from brial.PyPolyBoRi import OrderCode
+    >>> from sage.rings.polynomial.pbori.brial.PyPolyBoRi import OrderCode
     >>> dp_asc = OrderCode.dp_asc
     >>> r=declare_ring(['x','y','z'],dict())
     >>> old_ring = r
@@ -44,9 +44,9 @@ def fglm(I, from_ring, to_ring):
 def vars_real_divisors(monomial, monomial_set):
     """
     returns all elements of of monomial_set, which result multiplied by a variable in monomial.
-    >>> from brial.PyPolyBoRi import OrderCode
+    >>> from sage.rings.polynomial.pbori.brial.PyPolyBoRi import OrderCode
     >>> dp_asc = OrderCode.dp_asc
-    >>> from brial.PyPolyBoRi import Ring
+    >>> from sage.rings.polynomial.pbori.brial.PyPolyBoRi import Ring
     >>> r=Ring(1000)
     >>> x = r.variable
     >>> b=BooleSet([x(1)*x(2),x(2)])
@@ -60,7 +60,7 @@ def vars_real_divisors(monomial, monomial_set):
 def m_k_plus_one(completed_elements, variables):
     """ calculates $m_{k+1}$ from the FGLM algorithm as described in Wichmanns diploma thesis
     It would be nice to be able to efficiently extract the smallest term of a polynomial
-    >>> from brial.PyPolyBoRi import OrderCode
+    >>> from sage.rings.polynomial.pbori.brial.PyPolyBoRi import OrderCode
     >>> dp_asc = OrderCode.dp_asc
     >>> r=Ring(1000)
     >>> x = r.variable

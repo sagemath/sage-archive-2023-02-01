@@ -35,7 +35,7 @@ def sparse_random_system(ring, number_of_polynomials,
     generates a system, which is sparse in the sense, that each polynomial
     contains only a small subset of variables. In each variable that occurrs in a polynomial it is dense in the terms up to the given degree (every term occurs with probability 1/2).
     The system will be satisfiable by at least one solution.
-    >>> from brial import *
+    >>> from sage.rings.polynomial.pbori.brial import *
     >>> r=Ring(10)
     >>> s=sparse_random_system(r, number_of_polynomials = 20, variables_per_polynomial = 3, degree=2, random_seed=123)
     >>> [p.deg() for p in s]

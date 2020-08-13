@@ -209,7 +209,7 @@ def eliminate_ll_ranked(ll_system, to_reduce,
 class RingMap(object):
     """Define a mapping between two rings by common variable names.
 
-    >>> from brial.frontend import *
+    >>> from sage.rings.polynomial.pbori.brial.frontend import *
     >>> to_ring = declare_ring([Block("x", 10)], globals())
     >>> from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
     >>> mapping = RingMap(to_ring, from_ring)
@@ -232,7 +232,7 @@ class RingMap(object):
     def __init__(self, to_ring, from_ring):
         """Initialize map by two given rings.
 
-        >>> from brial.frontend import *
+        >>> from sage.rings.polynomial.pbori.brial.frontend import *
         >>> to_ring = declare_ring([Block("x", 10)], globals())
         >>> from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
         >>> mapping = RingMap(to_ring, from_ring)
@@ -268,7 +268,7 @@ class RingMap(object):
     def __call__(self, poly):
         """Execute the map to change rings.
 
-        >>> from brial.frontend import *
+        >>> from sage.rings.polynomial.pbori.brial.frontend import *
         >>> to_ring = declare_ring([Block("x", 10)], globals())
         >>> from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
         >>> mapping = RingMap(to_ring, from_ring)
@@ -280,7 +280,7 @@ class RingMap(object):
     def invert(self, poly):
         """Inverted map to initial ring.
 
-        >>> from brial.frontend import *
+        >>> from sage.rings.polynomial.pbori.brial.frontend import *
         >>> to_ring = declare_ring([Block("x", 10)], globals())
         >>> from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
         >>> mapping = RingMap(to_ring, from_ring)

@@ -643,7 +643,7 @@ def symmGB_F2_C(G, opt_exchange=True,
 
 def normal_form(poly, ideal, reduced=True):
     """ Simple normal form computation of a polynomial  against an ideal.
-    >>> from brial import declare_ring, normal_form
+    >>> from sage.rings.polynomial.pbori.brial import declare_ring, normal_form
     >>> r=declare_ring(['x','y'], globals())
     >>> normal_form(x+y, [y],reduced=True)
     x

@@ -270,7 +270,7 @@ cdef class CombinatorialFace(SageObject):
         then this is the index of the occurence in the iterator.
 
         If the face was constructed from
-        :meth:`sage:geometry.polyhedron.combinatorial_polyhedronn.base.CombinatorialPolyhedron.face_by_face_lattice_index`,
+        :meth:`sage:geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron.face_by_face_lattice_index`,
         then this the index in the level set plus the number of lower dimension (or higher dimension).
 
         EXAMPLES::
@@ -294,6 +294,33 @@ cdef class CombinatorialFace(SageObject):
             sage: G = F.relabel(C.face_by_face_lattice_index)
         """
         return self._hash_index
+
+    def __lt__(self, other):
+        r"""
+        Compare faces of the same polyhedron.
+
+        This is a helper function.
+        In order to construct a Hasse diagram (a digraph) with combinatorial faces,
+        we must define some order relation that is compatible with the Hasse diagram.
+
+        Any order relation compatible with ordering by dimension is suitable.
+        We us :meth:`__hash__` to define the relation.
+
+        EXAMPLES::
+
+            sage: P = polytopes.simplex()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: F1 = C.face_by_face_lattice_index(0)
+            sage: F2 = C.face_by_face_lattice_index(1)
+            sage: F1 < F2
+            True
+            sage: for i,j in Combinations(range(16), 2):
+            ....:     F1 = C.face_by_face_lattice_index(i)
+            ....:     F2 = C.face_by_face_lattice_index(j)
+            ....:     if F1.dim() != F2.dim():
+            ....:          assert (F1.dim() < F2.dim()) == (F1 < F2)
+        """
+        return hash(self) < hash(other)
 
     def dimension(self):
         r"""

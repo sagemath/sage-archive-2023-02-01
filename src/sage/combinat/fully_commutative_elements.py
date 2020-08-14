@@ -275,7 +275,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         r"""
         Display the Hasse diagram of the heap of ``self``.
 
-        The Hasse diagram is rendered in the lattice `S \times \mathbb{N}`, with
+        The Hasse diagram is rendered in the lattice `S \times \NN`, with
         every element `i` in the poset drawn as a point labelled by its label
         `s_i`. Every point is placed in the column for its label at a certain
         level. The levels start at 0 and the level k of an element `i` is the

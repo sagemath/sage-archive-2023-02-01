@@ -1434,7 +1434,7 @@ cdef class Pygen:
             \end{array}\right)
             sage: gM = libgiac(M)
             sage: latex(gM)
-            \left(\begin{array}{cc}1&2\\3&4\end{array}\right)
+            \left...\begin{array}{cc}...1...&...2...\\...3...&...4...\end{array}\right...
             sage: gf = libgiac('(x^4 - y)/(y^2-3*x)')
             sage: latex(gf)          # output changed slightly from 1.5.0-63 to 1.5.0-87
             \frac{...x^{4}...-...y...}{...y^{2}-3...x...}

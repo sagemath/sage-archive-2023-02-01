@@ -2652,6 +2652,18 @@ cpdef wiener_index(g, algorithm=None, weight_function=None, check_weight=True):
         sage: wiener_index(g) == w(n)
         True
 
+    Wiener index of a graph of order 1::
+
+        sage: wiener_index(Graph(1))
+        0
+
+    The Wiener index is not defined on the empty graph::
+
+        sage: wiener_index(Graph())
+        Traceback (most recent call last):
+        ...
+        ValueError: Wiener index is not defined for the empty graph
+
     TESTS:
 
     Using ``"Dijkstra"`` on a graph with negative weights::
@@ -2674,10 +2686,14 @@ cpdef wiener_index(g, algorithm=None, weight_function=None, check_weight=True):
         ...
         ValueError: the graph contains a negative cycle
     """
+    if not g:
+        raise ValueError("Wiener index is not defined for the empty graph")
+
+    cdef unsigned int n = g.order()
+    if n == 1:
+        return 0
+
     import sys
-    cdef int n = g.order()
-    if n < 2:
-        raise ValueError("Wiener index is not defined for empty or one-element graph")
 
     if weight_function and check_weight:
         g._check_weight_function(weight_function)

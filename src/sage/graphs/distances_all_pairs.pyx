@@ -2015,10 +2015,25 @@ def wiener_index(G):
         sage: g = digraphs.Complete(n)
         sage: g.wiener_index() == n * (n - 1)
         True
+
+    Wiener index of a graph of order 1::
+
+        sage: Graph(1).wiener_index()
+        0
+
+    The Wiener index is not defined on the empty graph::
+
+        sage: Graph().wiener_index()
+        Traceback (most recent call last):
+        ...
+        ValueError: Wiener index is not defined for the empty graph
     """
+    if not G:
+        raise ValueError("Wiener index is not defined for the empty graph")
+
     cdef unsigned int n = G.order()
-    if n < 2:
-        raise ValueError("Wiener index is not defined for empty or one-element graph")
+    if n == 1:
+        return 0
 
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors.  This data structure is well documented in the

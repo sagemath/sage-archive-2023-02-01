@@ -16848,21 +16848,24 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.wiener_index(algorithm='Dijkstra_Boost') == w(n)
             True
 
+        Wiener index of a graph of order 1::
+
+            sage: Graph(1).wiener_index()
+            0
+
+        The Wiener index is not defined on the empty graph::
+
+            sage: Graph().wiener_index()
+            Traceback (most recent call last):
+            ...
+            ValueError: Wiener index is not defined for the empty graph
+
         TESTS::
 
             sage: G.wiener_index(algorithm='BFS', weight_function=lambda e:(e[2] if e[2] is not None else 200))
             Traceback (most recent call last):
             ...
             ValueError: BFS algorithm does not work on weighted graphs
-
-            sage: graphs.EmptyGraph().wiener_index()
-            Traceback (most recent call last):
-            ...
-            ValueError: Wiener index is not defined for empty or one-element graph
-            sage: Graph(1).wiener_index()
-            Traceback (most recent call last):
-            ...
-            ValueError: Wiener index is not defined for empty or one-element graph
 
             sage: Graph([(0, 1, 1)]).wiener_index(algorithm="coco beach")
             Traceback (most recent call last):
@@ -16871,8 +16874,10 @@ class GenericGraph(GenericGraph_pyx):
         """
         by_weight = by_weight or (weight_function is not None)
 
-        if self.order() < 2:
-            raise ValueError("Wiener index is not defined for empty or one-element graph")
+        if not self:
+            raise ValueError("Wiener index is not defined for the empty graph")
+        elif self.order() == 1:
+            return 0
 
         if algorithm == 'BFS' or (algorithm is None and not by_weight):
             if by_weight:

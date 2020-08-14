@@ -10038,7 +10038,7 @@ cdef class Expression(CommutativeRingElement):
             ....:  .simplify_hypergeometric(algorithm='sage'))
             hypergeometric((hypergeometric((e^x,), (1,), x),), (1,), x)
             sage: hypergeometric_M(1, 3, x).simplify_hypergeometric()
-            -2*(x - e^x + 1)/x^2
+            -2*((x + 1)*e^(-x) - 1)*e^x/x^2
             sage: (2 * hypergeometric_U(1, 3, x)).simplify_hypergeometric()
             2*(x + 1)/x^2
 

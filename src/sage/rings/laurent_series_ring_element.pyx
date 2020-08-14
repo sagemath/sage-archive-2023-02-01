@@ -125,6 +125,14 @@ cdef class LaurentSeries(AlgebraElement):
             Laurent Series Ring in s over Finite Field of size 5
             sage: parent(S(t)[1])
             Finite Field of size 5
+
+        TESTS:
+
+        Check that :trac:`30073` is fixed::
+
+            sage: P.<x> = LaurentSeriesRing(QQ)
+            sage: P({-3: 1})
+            x^-3
         """
         AlgebraElement.__init__(self, parent)
 
@@ -136,6 +144,14 @@ cdef class LaurentSeries(AlgebraElement):
                 f = parent._power_series_ring((<LaurentSeries>f).__u)
         elif isinstance(f, LaurentPolynomial_univariate):
             f = f(parent.gen())
+        elif isinstance(f, dict):
+            ## Sanitize input to make sure all exponents are nonnegative,
+            ## adjusting n to match.
+            n1 = min(f.keys())
+            if n1 < 0:
+               f = {e-n1: c for e,c in f.items()}
+               n += n1
+            f = parent._power_series_ring(f)
         elif not isinstance(f, PowerSeries):
             f = parent._power_series_ring(f)
         ## now this is a power series, over a different ring ...

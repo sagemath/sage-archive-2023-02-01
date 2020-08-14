@@ -40,6 +40,7 @@ cdef extern from "giac/giac.h" namespace "giac":
          vecteur(int)
          vecteur()
          void push_back(gen &)
+         int size()
     cdef struct ref_vecteur:
          pass
     cdef struct ref_sparse_poly1:
@@ -73,6 +74,7 @@ cdef extern from "giac/giac.h" namespace "giac":
 
          mpz_t * ref_ZINTptr() except +
          gen * ref_MODptr() except +
+         vecteur * ref_VECTptr() except +
 
          #
          unsigned char type

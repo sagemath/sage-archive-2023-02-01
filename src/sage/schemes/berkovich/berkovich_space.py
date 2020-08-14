@@ -215,6 +215,13 @@ class Berkovich_Cp(Berkovich):
             sage: D = Berkovich_Cp_Affine(B, B_ideal)
             sage: C == D
             False
+
+        ::
+
+            sage: A_ideal_2 = A.prime_above(5)
+            sage: E = Berkovich_Cp_Affine(A, A_ideal_2)
+            sage: C == E
+            False
         """
         if not isinstance(right, Berkovich_Cp):
             return False
@@ -223,7 +230,7 @@ class Berkovich_Cp(Berkovich):
         if self._base_type == 'padic field':
             return self.prime() == right.prime()
         else:
-            return self.base() == right.base()
+            return self.base() == right.base() and self.ideal() == right.ideal()
 
     def __ne__(self,right):
         """
@@ -238,6 +245,27 @@ class Berkovich_Cp(Berkovich):
             False
         """
         return not(self == right)
+
+    def __hash__(self):
+        """
+        Hash function.
+
+        EXAMPLES::
+
+            sage: hash(Berkovich_Cp_Projective(3))
+            3
+
+        ::
+
+            sage: R.<z> = QQ[]
+            sage: A.<a> = NumberField(z^2 + 1)
+            sage: B = Berkovich_Cp_Projective(A, A.prime_above(5))
+            sage: hash(B)
+            1629824360745675264
+        """
+        if self._base_type == 'padic field':
+            return hash(self.prime())
+        return hash(self.ideal())
 
 class Berkovich_Cp_Affine(Berkovich_Cp):
     r"""
@@ -355,6 +383,11 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
         sage: A.<x> = AffineSpace(Qp(3), 1)
         sage: Berkovich_Cp_Affine(A)
         Affine Berkovich line over Cp(3) of precision 20
+
+    ::
+
+        sage: B = Berkovich_Cp_Projective(3)
+        sage: TestSuite(B).run()
     """
 
     Element = Berkovich_Element_Cp_Affine
@@ -534,6 +567,11 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
         ...
         TypeError: could not convert c to Projective Space
         of dimension 1 over Number Field in a with defining polynomial x^3 + 20
+
+    TESTS::
+
+        sage: B = Berkovich_Cp_Projective(3)
+        sage: TestSuite(B).run()
     """
 
     Element = Berkovich_Element_Cp_Projective

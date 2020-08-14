@@ -225,13 +225,13 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         INPUT:
 
-        - ``self`` -- list, a reduced word `w=s_0... s_{k-1}` of an FC element.
+        - ``self`` -- list, a reduced word `w=s_0... s_{k-1}` of an FC element
 
         - ``one_index`` -- boolean (default: False). Setting the value to True
-          will change the underlying set of the poset to `\{1, 2, \dots, n\}`.
+          will change the underlying set of the poset to `\{1, 2, \dots, n\}`
 
         - ``display_labeling`` -- boolean (default: False). Setting the value to
-          True will display the label `s_i` for each element `i` of the poset.
+          True will display the label `s_i` for each element `i` of the poset
 
         OUTPUT: A labeled poset where the underlying set is `\{0,1,...,k-1\}`
         and where each element `i` carries `s_i` as its label. The partial order
@@ -378,11 +378,11 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         INPUT:
 
-        - ``s`` -- integer representing a generator of the Coxeter system.
+        - ``s`` -- integer representing a generator of the Coxeter system
 
         - ``side`` -- string (default: ``'left'``); if the argument is set to
           'right', the function checks if ``s`` is a right descent of ``self``
-          and finds the index of the rightmost occurrence of ``s`` if so.
+          and finds the index of the rightmost occurrence of ``s`` if so
 
         OUTPUT:
 
@@ -420,7 +420,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         INPUT:
 
         - ``side`` -- string (default: ``'left'``); if set to 'right', determine
-          if ``self`` has ``s`` as a right descent.
+          if ``self`` has ``s`` as a right descent
 
         OUTPUT: a boolean value
 
@@ -448,7 +448,7 @@ class FullyCommutativeElement(NormalizedClonableList):
         INPUT:
 
         - ``side`` -- string (default: ``'left'``); if set to 'right', find the
-          right descents.
+          right descents
 
         A generator `s` is called a left or right descent of an element `w` if
         `l(sw)` or `l(ws)` is smaller than `l(w)`, respectively. If `w` is FC,
@@ -487,11 +487,11 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         INPUT:
 
-        - ``J`` -- subset of the generating set `S` of the Coxeter system.
+        - ``J`` -- subset of the generating set `S` of the Coxeter system
 
         - ``side`` -- string (default: ``'left'``); if the value is set to
           'right', then the function returns the tuple `(w'^J, w'_J)` from the
-          coset decomposition `w = w'^J \cdot w'_J` of `w` with respect to `J`.
+          coset decomposition `w = w'^J \cdot w'_J` of `w` with respect to `J`
 
         OUTPUT:
 
@@ -559,7 +559,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         INPUT:
 
-        - ``s`` -- integer representing a generator of the Coxeter system.
+        - ``s`` -- integer representing a generator of the Coxeter system
         - ``self`` -- a reduced word of an FC element
 
         EXAMPLES:
@@ -693,13 +693,13 @@ class FullyCommutativeElement(NormalizedClonableList):
         INPUT:
 
         - ``J`` -- a set of two integers representing two noncommuting
-          generators of the Coxeter system.
+          generators of the Coxeter system
 
         - ``direction`` -- string, 'upper' or 'lower'; the function performs an
-          upper or lower star operation according to ``direction``.
+          upper or lower star operation according to ``direction``
 
         - ``side`` -- string (default: ``'left'``); if this is set to 'right',
-          the function performs a right star operation.
+          the function performs a right star operation
 
         OUTPUT:
 

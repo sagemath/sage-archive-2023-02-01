@@ -54,8 +54,23 @@ from . import padic_printing
 # factory when it finds a given class in the ground ring of the tower.
 ######################################################
 
-from .padic_extension_leaves import *
-from .relative_extension_leaves import *
+from .padic_extension_leaves import (EisensteinExtensionFieldCappedRelative,
+                                     EisensteinExtensionRingFixedMod,
+                                     EisensteinExtensionRingCappedAbsolute,
+                                     EisensteinExtensionRingCappedRelative,
+                                     UnramifiedExtensionFieldCappedRelative,
+                                     UnramifiedExtensionRingCappedRelative,
+                                     UnramifiedExtensionRingCappedAbsolute,
+                                     UnramifiedExtensionRingFixedMod,
+                                     UnramifiedExtensionFieldFloatingPoint,
+                                     UnramifiedExtensionRingFloatingPoint)
+from .relative_extension_leaves import \
+        (RelativeRamifiedExtensionRingFixedMod,
+         RelativeRamifiedExtensionRingCappedAbsolute,
+         RelativeRamifiedExtensionRingCappedRelative,
+         RelativeRamifiedExtensionFieldCappedRelative,
+         RelativeRamifiedExtensionRingFloatingPoint,
+         RelativeRamifiedExtensionFieldFloatingPoint)
 from functools import reduce
 #This imports all of the classes used in the ext_table below.
 
@@ -215,7 +230,8 @@ def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_se
         if 'ram_name' in print_mode:
             print_ram_name = print_mode['ram_name']
         if 'unram_name' in print_mode:
-            print_unram_name = print_mode['unram_name']
+            # print_unram_name = print_mode['unram_name']
+            pass
         if 'sep' in print_mode:
             print_sep = print_mode['sep']
         if 'alphabet' in print_mode:

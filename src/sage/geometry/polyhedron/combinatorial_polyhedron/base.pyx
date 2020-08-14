@@ -687,12 +687,12 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: C.Hrepresentation()
             (An equation (1, 1, 1) x - 6 == 0,
-             An inequality (0, -1, -1) x + 5 >= 0,
-             An inequality (0, 0, -1) x + 3 >= 0,
-             An inequality (0, -1, 0) x + 3 >= 0,
+             An inequality (1, 1, 0) x - 3 >= 0,
+             An inequality (-1, -1, 0) x + 5 >= 0,
              An inequality (0, 1, 0) x - 1 >= 0,
-             An inequality (0, 1, 1) x - 3 >= 0,
-             An inequality (0, 0, 1) x - 1 >= 0)
+             An inequality (-1, 0, 0) x + 3 >= 0,
+             An inequality (1, 0, 0) x - 1 >= 0,
+             An inequality (0, -1, 0) x + 3 >= 0)
 
             sage: points = [(1,0,0), (0,1,0), (0,0,1),
             ....: (-1,0,0), (0,-1,0), (0,0,-1)]
@@ -1285,10 +1285,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.permutahedron(2)
             sage: C = CombinatorialPolyhedron(P)
             sage: C.ridges()
-            ((An inequality (0, -1) x + 2 >= 0, An inequality (0, 1) x - 1 >= 0),)
+            ((An inequality (1, 0) x - 1 >= 0, An inequality (-1, 0) x + 2 >= 0),)
             sage: C.ridges(add_equalities=True)
-            (((An inequality (0, -1) x + 2 >= 0, An equation (1, 1) x - 3 == 0),
-              (An inequality (0, 1) x - 1 >= 0, An equation (1, 1) x - 3 == 0)),)
+            (((An inequality (1, 0) x - 1 >= 0, An equation (1, 1) x - 3 == 0),
+              (An inequality (-1, 0) x + 2 >= 0, An equation (1, 1) x - 3 == 0)),)
 
             sage: P = polytopes.cyclic_polytope(4,5)
             sage: C = CombinatorialPolyhedron(P)
@@ -2296,29 +2296,33 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: face = next(it); face
             A 2-dimensional face of a 4-dimensional combinatorial polyhedron
             sage: face.ambient_Vrepresentation()
-            (A vertex at (4, 1, 5, 2, 3),
-             A vertex at (4, 2, 5, 1, 3),
-             A vertex at (5, 1, 4, 2, 3),
-             A vertex at (5, 2, 4, 1, 3))
+            (A vertex at (1, 3, 2, 5, 4),
+             A vertex at (2, 3, 1, 5, 4),
+             A vertex at (3, 1, 2, 5, 4),
+             A vertex at (3, 2, 1, 5, 4),
+             A vertex at (2, 1, 3, 5, 4),
+             A vertex at (1, 2, 3, 5, 4))
             sage: face = next(it); face
             A 2-dimensional face of a 4-dimensional combinatorial polyhedron
             sage: face.ambient_Vrepresentation()
-            (A vertex at (4, 1, 5, 2, 3),
-             A vertex at (4, 1, 5, 3, 2),
-             A vertex at (5, 1, 4, 2, 3),
-             A vertex at (5, 1, 4, 3, 2))
+            (A vertex at (2, 1, 4, 5, 3),
+             A vertex at (3, 2, 4, 5, 1),
+             A vertex at (3, 1, 4, 5, 2),
+             A vertex at (1, 3, 4, 5, 2),
+             A vertex at (1, 2, 4, 5, 3),
+             A vertex at (2, 3, 4, 5, 1))
             sage: face.ambient_Hrepresentation()
-            (An inequality (0, 1, 0, 0, 0) x - 1 >= 0,
-             An inequality (0, 1, 0, 1, 1) x - 6 >= 0,
+            (An inequality (0, 0, -1, -1, 0) x + 9 >= 0,
+             An inequality (0, 0, 0, -1, 0) x + 5 >= 0,
              An equation (1, 1, 1, 1, 1) x - 15 == 0)
             sage: face.ambient_H_indices()
             (25, 29)
             sage: face = next(it); face
             A 2-dimensional face of a 4-dimensional combinatorial polyhedron
             sage: face.ambient_H_indices()
-            (12, 29)
+            (24, 29)
             sage: face.ambient_V_indices()
-            (76, 77, 82, 83, 88, 89)
+            (32, 89, 90, 94)
 
             sage: C = CombinatorialPolyhedron([[0,1,2],[0,1,3],[0,2,3],[1,2,3]])
             sage: it = C.face_iter()
@@ -2603,7 +2607,7 @@ cdef class CombinatorialPolyhedron(SageObject):
              A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
              A 2-dimensional face of a 3-dimensional combinatorial polyhedron]
             sage: [face.ambient_V_indices() for face in chain]
-            [(13,), (13, 15), (13, 15, 19, 21)]
+            [(16,), (15, 16), (8, 9, 14, 15, 16, 17)]
 
             sage: P = Polyhedron(rays=[[1,0]], lines=[[0,1]])
             sage: C = P.combinatorial_polyhedron()

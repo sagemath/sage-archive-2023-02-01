@@ -2520,6 +2520,15 @@ class Polytopes():
             sage: perm4.graph().is_isomorphic(graphs.BubbleSortGraph(4))
             True
 
+        As both Hrepresentation an Vrepresentation are known, the permutahedron can be set
+        up with both using the backend ``field``. The following takes very very long time
+        to recompute, e.g. with backend ``ppl``::
+
+            sage: polytopes.permutahedron(8, backend='field')  # (~1s)
+            A 7-dimensional polyhedron in QQ^8 defined as the convex hull of 40320 vertices
+            sage: polytopes.permutahedron(9, backend='field')  # not tested (memory consumption)  # (~5s)
+            A 8-dimensional polyhedron in QQ^9 defined as the convex hull of 362880 vertices
+
         .. SEEALSO::
 
             * :meth:`~sage.graphs.graph_generators.GraphGenerators.BubbleSortGraph`
@@ -2528,11 +2537,34 @@ class Polytopes():
 
             sage: p4 = polytopes.permutahedron(4,backend='normaliz')   # optional - pynormaliz
             sage: TestSuite(p4).run()                                  # optional - pynormaliz
+
+        Check that precomputed data is correct::
+
+            sage: P = polytopes.permutahedron(5, backend='field')
+            sage: TestSuite(P).run()  # long time
         """
-        verts = list(itertools.permutations(range(1, n + 1)))
+        verts = itertools.permutations(range(1, n + 1))
         if project:
             verts = project_points(*verts)
-        return Polyhedron(vertices=verts, backend=backend)
+            return Polyhedron(vertices=verts, backend=backend)
+        else:
+            parent = Polyhedra(ZZ, n, backend=backend)
+            def tri(m):
+                return (m*(m+1))//2
+
+            # Each proper `S \subset [n]` corresponds exactly to
+            # a facet that minimizes the coordinates in `S`.
+            # The minimal sum for `m` coordinates is `(m*(m+1))/2`.
+            ieqs = ((-tri(sum(x)),) + x
+                    for x in itertools.product([0,1], repeat=n)
+                    if 0 < sum(x) < n)
+
+            # Adding the defining equality.
+            eqns = ((-tri(n),) + tuple(1 for _ in range(n)),)
+
+            return parent([verts, [], []], [ieqs, eqns],
+                          Vrep_minimal=True, Hrep_minimal=True, pref_rep="Hrep")
+
 
     def generalized_permutahedron(self, coxeter_type, point=None, exact=True, regular=False, backend=None):
         r"""

@@ -1594,50 +1594,50 @@ class Polyhedron_base(Element):
             sage: P = polytopes.permutahedron(3)
             sage: print(P.Hrepresentation_str())
             x0 + x1 + x2 ==  6
-                -x1 - x2 >= -5
-                     -x2 >= -3
-                     -x1 >= -3
+                 x0 + x1 >=  3
+                -x0 - x1 >= -5
                       x1 >=  1
-                 x1 + x2 >=  3
-                      x2 >=  1
+                     -x0 >= -3
+                      x0 >=  1
+                     -x1 >= -3
 
             sage: print(P.Hrepresentation_str(style='<='))
             -x0 - x1 - x2 == -6
-                  x1 + x2 <=  5
-                       x2 <=  3
-                       x1 <=  3
+                 -x0 - x1 <= -3
+                  x0 + x1 <=  5
                       -x1 <= -1
-                 -x1 - x2 <= -3
-                      -x2 <= -1
+                       x0 <=  3
+                      -x0 <= -1
+                       x1 <=  3
 
             sage: print(P.Hrepresentation_str(style='positive'))
             x0 + x1 + x2 == 6
-                       5 >= x1 + x2
-                       3 >= x2
-                       3 >= x1
+                 x0 + x1 >= 3
+                       5 >= x0 + x1
                       x1 >= 1
-                 x1 + x2 >= 3
-                      x2 >= 1
+                       3 >= x0
+                      x0 >= 1
+                       3 >= x1
 
             sage: print(P.Hrepresentation_str(latex=True))
             \begin{array}{rcl}
             x_{0} + x_{1} + x_{2} & =    &  6 \\
-                   -x_{1} - x_{2} & \geq & -5 \\
-                           -x_{2} & \geq & -3 \\
-                           -x_{1} & \geq & -3 \\
+                    x_{0} + x_{1} & \geq &  3 \\
+                   -x_{0} - x_{1} & \geq & -5 \\
                             x_{1} & \geq &  1 \\
-                    x_{1} + x_{2} & \geq &  3 \\
-                            x_{2} & \geq &  1
+                           -x_{0} & \geq & -3 \\
+                            x_{0} & \geq &  1 \\
+                           -x_{1} & \geq & -3
             \end{array}
 
             sage: print(P.Hrepresentation_str(align=False))
             x0 + x1 + x2 == 6
-            -x1 - x2 >= -5
-            -x2 >= -3
-            -x1 >= -3
+            x0 + x1 >= 3
+            -x0 - x1 >= -5
             x1 >= 1
-            x1 + x2 >= 3
-            x2 >= 1
+            -x0 >= -3
+            x0 >= 1
+            -x1 >= -3
 
             sage: c = polytopes.cube()
             sage: c.Hrepresentation_str(separator=', ', style='positive')
@@ -2117,11 +2117,11 @@ class Polyhedron_base(Element):
 
             sage: P = polytopes.permutahedron(5)
             sage: P.an_affine_basis()
-            [A vertex at (4, 1, 5, 2, 3),
-             A vertex at (5, 1, 4, 2, 3),
-             A vertex at (4, 2, 5, 1, 3),
-             A vertex at (4, 1, 5, 3, 2),
-             A vertex at (1, 2, 3, 4, 5)]
+            [A vertex at (1, 2, 3, 5, 4),
+             A vertex at (2, 1, 3, 5, 4),
+             A vertex at (1, 3, 2, 5, 4),
+             A vertex at (4, 1, 3, 5, 2),
+             A vertex at (4, 2, 5, 3, 1)]
 
         The method is not implemented for unbounded polyhedra::
 
@@ -9852,7 +9852,7 @@ class Polyhedron_base(Element):
             sage: A, b = P.affine_hull_projection(orthonormal=True, as_affine_map=True, extend=True)
             sage: Q = P.affine_hull_projection(orthonormal=True, extend=True)
             sage: Q.center()
-            (0.7071067811865475?, 0.7071067811865475?, 2.000000000000000?)
+            (0.7071067811865475?, 1.224744871391589?, 1.732050807568878?)
             sage: A(P.center()) + b == Q.center()
             True
 

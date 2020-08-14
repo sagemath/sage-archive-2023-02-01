@@ -5303,6 +5303,9 @@ REFERENCES:
 .. [Terwilliger2011] Paul Terwilliger. *The universal Askey-Wilson algebra*.
                      SIGMA **7** (2011), 069, 24 pages. :arxiv:`1104.2813`.
 
+.. [TP1994] \J. Thas, S. Payne, *Spreads and ovoids in finite generalized
+            quadrangles*. Geometriae Dedicata, Vol. 52, pp. 227-253, 1994.
+
 .. [Tho2010] \T. Thongjunthug, Computing a lower bound for the canonical
              height on elliptic curves over number fields, Math. Comp. 79
              (2010), pages 2431-2449.
@@ -5395,6 +5398,9 @@ REFERENCES:
              framework for vector M-Padé and matrix rational interpolation."
              Numer. Algorithms, 3:451-462, 1992.
              :doi:`10.1007/BF02141952`
+
+.. [VDKT2016] \E. R. van Dam, J. H. Koolen, H. Tanaka, *Distance Regular graphs*
+              The Electronic Journal of Combinatorics. 2016
 
 .. [Vee1978] William Veech, "Interval exchange
              transformations", J. Analyse Math. 33 (1978), 222-272
@@ -5533,6 +5539,11 @@ REFERENCES:
 .. [Wor1984] Worley, Dale Raymond, *A theory of shifted Young
              tableaux*. Dissertation, Massachusetts Institute of
              Technology, 1984.
+
+.. [WPNBBAtl] \R. A. Wilson, R. A. Parker, S. Nickerson, J. N. Bray,
+              \T. Breuer, *AtlasRep, a GAP interface to the atlas
+              of group representations*.
+              http://www.math.rwth-aachen.de/~Thomas.Breuer/atlasrep
 
 .. [WP-Bessel] :wikipedia:`Bessel_function`
 

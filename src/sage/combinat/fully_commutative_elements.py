@@ -695,8 +695,8 @@ class FullyCommutativeElement(NormalizedClonableList):
         - ``J`` -- a set of two integers representing two noncommuting
           generators of the Coxeter system
 
-        - ``direction`` -- string, 'upper' or 'lower'; the function performs an
-          upper or lower star operation according to ``direction``
+        - ``direction`` -- string, ``'upper'`` or ``'lower'``; the function
+          performs an upper or lower star operation according to ``direction``
 
         - ``side`` -- string (default: ``'left'``); if this is set to 'right',
           the function performs a right star operation

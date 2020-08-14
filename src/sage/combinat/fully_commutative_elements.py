@@ -761,14 +761,12 @@ class FullyCommutativeElement(NormalizedClonableList):
             # the upper star operation
             ending_letter = cur_string[0] if side == 'left' else cur_string[-1]
             other = next(x for x in J if x != ending_letter)
-            new_string = [other] + \
-                cur_string if side == 'left' else cur_string + [other]
+            new_string = [other] + cur_string if side == 'left' else cur_string + [other]
         else:
             return None
 
         # concatenate w_J and w^J in the appropriate order
-        combined_data = new_string + \
-            list(remaining) if side == 'left' else list(remaining) + new_string
+        combined_data = new_string + list(remaining) if side == 'left' else list(remaining) + new_string
 
         # return the result of the star operation in its canonical form
         return self.parent().element_class(self.parent(), combined_data, check=False)

@@ -9,9 +9,15 @@ For a survey on distance-regular graph see [BCN1989]_ or [VDKT2016]_.
 
 EXAMPLES::
 
-   sage: G = graphs.cocliques_HoffmannSingleton()
-   sage: G.is_distance_regular()
-   True
+    sage: G = graphs.cocliques_HoffmannSingleton()
+    sage: G.is_distance_regular()
+    True
+    sage: H = graphs.distance_regular_graph([15, 14, 10, 3, 1, 5, 12, 15])
+    sage: H == G
+    True
+    sage: G = graphs.distance_regular([27, 10, 1, 1, 10, 27])
+    sage: G.is_distance_regular(True)
+    ([27, 10, 1, None], [None, 1, 10, 27])
 
 AUTHORS:
 
@@ -1761,24 +1767,24 @@ def _intersection_array_from_graph(G):
 
     return t[0][:-1] + t[1][1:]
 
-# given functions f,g
-# returns function (f.g)
-# f is expected to have only 1 input
-#def _compose(f, g):
-#    return lambda *x: f(g(*x))
-
 # dictionary intersection_array (as tuple)  -> construction
 # of spordaic distance-regular graphs
 from sage.graphs.generators.smallgraphs import (FosterGraph, BiggsSmithGraph,
                                                 CoxeterGraph, LivingstoneGraph,
-                                                WellsGraph, GossetGraph)
+                                                WellsGraph, GossetGraph,
+                                                HoffmanSingletonGraph,
+                                                SimsGewirtzGraph,
+                                                HigmanSimsGraph)
 from sage.graphs.generators.platonic_solids import DodecahedralGraph
+from sage.graphs.strongly_regular_db import strongly_regular_graph
 _sporadic_graph_database = {
     (3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3) : FosterGraph,
     (7, 6, 4, 4, 4, 1, 1, 1, 1, 1, 1, 2, 4, 4, 6, 7) : IvanovIvanovFaradjevGraph,
     (3, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3) : BiggsSmithGraph,
-    #(22, 21, 20, 16, 6, 2, 1, 1, 2, 6, 16, 20, 21, 22) : _compose(bipartite_double_graph, truncated_binary_Golay_code_graph),
-    #(23, 22, 21, 20, 3, 2, 1, 1, 2, 3, 20, 21, 22, 23) : _compose(bipartite_double_graph, binary_Golay_code_graph),
+    (22, 21, 20, 16, 6, 2, 1, 1, 2, 6, 16, 20, 21, 22) : lambda : \
+    codes.GolayCode(GF(2), False).punctured([0]).cosetGraph().bipartite_double(),
+    (23, 22, 21, 20, 3, 2, 1, 1, 2, 3, 20, 21, 22, 23) : lambda : \
+    codes.GolayCode(GF(2), False).cosetGraph().bipartite_double(),
     (21, 20, 16, 6, 2, 1, 1, 2, 6, 16, 20, 21) : \
     shortened_00_11_binary_Golay_code_graph,
     (21, 20, 16, 9, 2, 1, 1, 2, 3, 16, 20, 21) : \
@@ -1788,10 +1794,11 @@ _sporadic_graph_database = {
     (3, 2, 1, 1, 1, 1, 1, 1, 2, 3) : DodecahedralGraph,
     (22, 20, 18, 2, 1, 1, 2, 9, 20, 22) : \
     codes.GolayCode(GF(3)).shortened([0]).cosetGraph,
-    #(7, 6, 6, 1, 1, 1, 1, 6, 6, 7) : _compose(bipartite_double_graph, graphs.HoffmanSingletonGraph),
-    #(10, 9, 8, 2, 1, 1, 2, 8, 9, 10) : _compose(bipartite_double_graph, graphs.SimsGewirtzGraph),
-    #(16, 15, 12, 4, 1, 1, 4, 12, 15, 16) : lambda : bipartite_double_graph(graphs.strongly_regular_graph(77,16,0)),
-    #(22, 21, 16, 6, 1, 1, 6, 16, 21, 22) : _compose(bipartite_double_graph, graphs.HigmanSimsGraph),
+    (7, 6, 6, 1, 1, 1, 1, 6, 6, 7) : HoffmanSingletonGraph().bipartite_double,
+    (10, 9, 8, 2, 1, 1, 2, 8, 9, 10) : SimsGewirtzGraph().bipartite_double,
+    (16, 15, 12, 4, 1, 1, 4, 12, 15, 16) : \
+    strongly_regular_graph(77, 16, 0, check=False).bipartite_double,
+    (22, 21, 16, 6, 1, 1, 6, 16, 21, 22) : HigmanSimsGraph().bipartite_double,
     (3, 2, 2, 1, 1, 1, 1, 2) : CoxeterGraph,
     (6, 5, 5, 4, 1, 1, 2, 6) : LintSchrijverGraph,
     (7, 6, 4, 4, 1, 1, 1, 6) : DoublyTruncatedWittGraph,
@@ -1809,13 +1816,13 @@ _sporadic_graph_database = {
     codes.GolayCode(GF(2), extended=False).punctured([0]).cosetGraph,
     (23, 22, 21, 1, 2, 3): codes.GolayCode(GF(2), extended=False).cosetGraph,
     (24, 23, 22, 21, 1, 2, 3, 24): codes.GolayCode(GF(2)).cosetGraph,
-    (12,11,10,7,1,2,5,12): LeonardGraph,
-    (15,14,10,3,1,5,12,15): cocliques_HoffmannSingleton,
-    (27,10,1,1,10,27): GossetGraph,
-    (30,28,24,1,3,15): LargeWittGraph,
-    (15,14,12,1,1,9): TruncatedWittGraph,
-    (24,22,20,1,2,12): codes.GolayCode(GF(3)).cosetGraph,
-    (21,20,16,1,2,12): \
+    (12, 11, 10, 7, 1, 2, 5, 12): LeonardGraph,
+    (15, 14, 10, 3, 1, 5, 12, 15): cocliques_HoffmannSingleton,
+    (27, 10, 1, 1, 10, 27): GossetGraph,
+    (30, 28, 24, 1, 3, 15): LargeWittGraph,
+    (15, 14, 12, 1, 1, 9): TruncatedWittGraph,
+    (24, 22, 20, 1, 2, 12): codes.GolayCode(GF(3)).cosetGraph,
+    (21, 20, 16, 1, 2, 12): \
     codes.GolayCode(GF(2), extended=False).punctured([0, 1]).cosetGraph
 }
 
@@ -1827,16 +1834,45 @@ def distance_regular_graph(list arr, existence=False, check=True):
 
     - ``arr`` -- list; intersection array of the graph
 
-    - ``existence`` -- boolean
+    - ``existence`` -- boolean (optional); instead of building the graph return:
+      * ``True`` - if a graph with the given intersection array exists;
+      * ``False`` - if there is no graph with the given intersection array;
+      * ``Unknown`` - if Sage doesn't know if such a graph exists.
 
     - ``check`` -- boolean (optional); if ``True``, then checks that the result
       of this function has the given intersection array. Default: ``True``
 
     EXAMPLES::
 
+        sage: graphs.distance_regular_graph([21,20,16,1,2,12], existence=True)
+        True
+        sage: G = graphs.distance_regular_graph([12,11,10,7,1,2,5,12], check=False)
+        sage: G.is_distance_regular(True)
+        ([12, 11, 10, 7, None], [None, 1, 2, 5, 12])
+
+    Not all distance-regular graphs can be built with this function::
+
+        sage: G = graphs.DoubleOddGraph(3)
+        sage: G.is_distance_regular(True)
+        ([3, 2, 2, 1, 1, None], [None, 1, 1, 2, 2, 3])
+        sage: graphs.distance_regular_graph([3, 2, 2, 1, 1, 1, 1, 2, 2, 3])
+        Traceback (most recent call last):
+        ...
+        RuntimeError: No distance-regular graph with intersection array [3, 2, 2, 1, 1, 1, 1, 2, 2, 3] known
+
     REFERENCES:
 
+    See [BCN1989]_ and [VDKT2016]_.
+
     TESTS::
+
+        sage: graphs.distance_regular_graph([3, 2, 2, 1, 1, 1, 1, 2, 2, 3],
+        ....: existence=True)
+        Unknown
+        sage: graphs.distance_regular_graph([3, 2, 2, 1, 2, 1, 1, 2, 2, 3],
+        ....: existence=True)
+        False
+
     """
     from sage.misc.unknown import Unknown
     from sage.categories.sets_cat import EmptySetError
@@ -1874,10 +1910,15 @@ def distance_regular_graph(list arr, existence=False, check=True):
         except (AssertionError, InfeasibleError, TypeError) as err:
             if existence: return False
             raise EmptySetError(("No distance-regular graphs with "
-                                 f"parameters {arr} exists; reason: {err}"))
+                                 f"parameters {arr} exists; error: {err}"))
     else:
-        #implement basic checks
-        pass
+        # basic checks
+        if len(arr) % 2 == 1 or any([i <= 0 for i in arr]) or \
+           any([x != int(x) for x in arr]) or \
+           any([(arr[i] - arr[i+1]) < 0 for i in range(d)]) or \
+           any([(arr[d+i+1] - arr[d+i]) < 0 for i in range(d)]):
+            raise EmptySetError(("No distance-regular graphs with "
+                                 f"parameters {arr} exists"))
 
     # handle diameter < 3
     if d == 1 and arr[1] == 1:
@@ -1887,8 +1928,6 @@ def distance_regular_graph(list arr, existence=False, check=True):
         return result(CompleteGraph(arr[0] + 1))
 
     if d == 2:
-        from sage.graphs.strongly_regular_db import strongly_regular_graph
-
         k = arr[0]
         mu = arr[3]
         l = k - arr[1] - 1  # a1 = k - b1 - c1
@@ -1904,17 +1943,7 @@ def distance_regular_graph(list arr, existence=False, check=True):
             return True
         return result(_sporadic_graph_database[t]())
 
-    r"""
-    for (f, g) in _infinite_families:
-        t = f(arr)
-        if t is not False:
-            if existence:
-                return True
-
-            G = g(*t) if is_iterable(t) else g(t)
-            return result(G)
-    """
-    #now try drg feasibility
+    # now try drg feasibility
     if drgModule:
         try:
             parameters.check_feasible()

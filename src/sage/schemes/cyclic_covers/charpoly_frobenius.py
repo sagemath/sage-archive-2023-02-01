@@ -229,13 +229,13 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
         # we compare ith coefficient and  (degree - i)th coefficient to deduce the sign
         # note, if degree is even, the middle coefficient will not help us determine the sign
         for i in range((degree + 1)//2):
+            # Note: degree*weight is even
             p_power = p**min(
                 charpoly_prec[i],
-                charpoly_prec[degree - i] + (a * (degree - 2 * i) * weight / 2),
+                charpoly_prec[degree - i] + ((a * (degree - 2 * i) * weight) // 2),
             )
-            # Note: degree*weight = 0 mod 2
             if cp[i] % p_power != 0 and cp[degree - i] % p_power != 0:
-                other = cp[degree - i] * p**(a * (degree - 2 * i) * weight / 2)
+                other = cp[degree - i] * p**((a * (degree - 2 * i) * weight) // 2)
                 if (cp[i] + other) % p_power == 0:
                     sign = -1
                 else:
@@ -249,7 +249,7 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
     # note, this includes the middle coefficient if degree is even
     halfdegree = degree // 2 + 1
 
-    cp[0] = sign * p**(a * degree * weight / 2)
+    cp[0] = sign * p**((a * degree * weight) // 2) # Note: degree*weight is even
     # calculate the i-th power sum of the roots and correct cp along the way
     e = cp[-halfdegree:]
     e.reverse()
@@ -281,7 +281,7 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
     # s[k] = \sum x_i ^k for k>0
     s = [None] * (halfdegree)
     res = [None] * len(charpoly_prec)
-    res[0] = sign * p**(a * degree * weight / 2)
+    res[0] = sign * p**((a * degree * weight) // 2) # Note: degree*weight is even
     res[-1] = 1
     e[1] -= fix_e[1]
     e[1] = e[1] % mod[degree - 1]
@@ -308,7 +308,8 @@ def charpoly_frobenius(frob_matrix, charpoly_prec, p, weight, a=1, known_factor=
         e[k] = (-S + (-1)**(k - 1) * s[k]) // k
         assert (-S + (-1)**(k - 1) * s[k]) % k == 0
         res[degree - k] = e[k] if k % 2 == 0 else -e[k]
-        res[k] = sign * res[degree - k] * p**(a * (degree - 2 * k) * weight / 2)
+        # Note: degree*weight is even
+        res[k] = sign * res[degree - k] * p**((a * (degree - 2 * k) * weight) // 2)
         # fix e[k + 1]
         if k + 1 < halfdegree:
             e[k + 1] -= sum([fix_e[k + 1 - i] * e[i] for i in range(k + 1)])

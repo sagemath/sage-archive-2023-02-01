@@ -9399,6 +9399,8 @@ class Graph(GenericGraph):
             sage: H.bipartite_sets() == (set([(v, 0) for v in G]),
             ....: set([(v, 1) for v in G]))
             True
+            sage: H == G.tensor_product(graphs.CompleteGraph(2))
+            True
 
         REFERENCES:
 
@@ -9422,6 +9424,8 @@ class Graph(GenericGraph):
             sage: H.bipartite_sets() == (set([(v, 0) for v in G]),
             ....: set([(v, 1) for v in G]))
             True
+            sage: H == G.tensor_product(graphs.CompleteGraph(2))
+            False
         """
         from sage.graphs.generators.basic import CompleteGraph
 

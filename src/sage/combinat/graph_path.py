@@ -40,8 +40,9 @@ def GraphPaths(g, source=None, target=None):
         Paths in Multi-digraph on 5 vertices
         sage: p.cardinality()
         37
-        sage: p.random_element()
-        [1, 2, 3, 4, 5]
+        sage: path = p.random_element()
+        sage: all(G.has_edge(*path[i:i+2]) for i in range(len(path) -1))
+        True
 
     If the source is specified, then the returned class contains all of
     the paths starting at the vertex source (including the trivial

@@ -27,7 +27,8 @@ in giac, but the mathematical computation  is not done. This class is mainly
 for cython users.  Here A is a Pygen element, and it is ready for any giac
 function.::
 
-    sage: from sage.libs.giac.giac import *
+    sage: from sage.libs.giac.giac import *     # random
+    //...
     sage: A = Pygen('2+2')
     sage: A
     2+2
@@ -937,17 +938,28 @@ cdef class Pygen:
         return result
 
      def __len__(self):
-       #if (self.gptr != NULL):
-         try:
-           sig_on()
-           rep=GIAC_size(self.gptr[0],context_ptr).val
-           sig_off()
-           #GIAC_size return a gen. we take the int: val
-           return rep
-         except:
-           raise RuntimeError
-       #else:
-       #  raise MemoryError,"This Pygen is not associated to a giac gen"
+        """
+        TESTS::
+
+           sage: from sage.libs.giac.giac import libgiac
+           sage: l=libgiac("seq[]");len(l) # 29552 comment28
+           0
+
+        """
+        if (self._type == 7):
+            sig_on()
+            rep=(self.gptr.ref_VECTptr()).size()
+            sig_off()
+            return rep
+        else:
+          try:
+             sig_on()
+             rep=GIAC_size(self.gptr[0],context_ptr).val
+             sig_off()
+             #GIAC_size return a gen. we take the int: val
+             return rep
+          except:
+             raise RuntimeError
 
 
      def __getitem__(self,i):  #TODO?: add gen support for indexes
@@ -979,7 +991,6 @@ cdef class Pygen:
            sage: l=Pygen()
            sage: l[0]
            Traceback (most recent call last):
-             File "<stdin>", line 1, in <module>
            ...
            IndexError: list index 0 out of range
         """

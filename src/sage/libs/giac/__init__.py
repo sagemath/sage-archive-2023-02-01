@@ -12,7 +12,7 @@ AUTHORS:
 
 EXAMPLES::
 
-    sage: from sage.libs.giac import groebner_basis as gb_giac
+    sage: from sage.libs.giac import groebner_basis as gb_giac # random
     sage: P = PolynomialRing(QQ, 6, 'x')
     sage: I = sage.rings.ideal.Cyclic(P)
     sage: B = gb_giac(I.gens()) # random

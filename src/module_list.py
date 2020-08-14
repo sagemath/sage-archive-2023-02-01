@@ -1,3 +1,11 @@
+#########################################################
+###
+### OBSOLETE FILE - DO NOT ADD TO IT
+###
+### See https://trac.sagemath.org/ticket/29701
+###
+#########################################################
+
 import os
 from distutils.extension import Extension
 from sage.env import SAGE_LOCAL
@@ -312,8 +320,7 @@ ext_modules = [
               sources = ['sage/graphs/strongly_regular_db.pyx']),
 
     Extension('sage.graphs.graph_decompositions.rankwidth',
-              sources = ['sage/graphs/graph_decompositions/rankwidth.pyx'],
-              libraries=['rw']),
+              sources = ['sage/graphs/graph_decompositions/rankwidth.pyx']),
 
     Extension('sage.graphs.graph_decompositions.bandwidth',
               sources = ['sage/graphs/graph_decompositions/bandwidth.pyx']),
@@ -323,7 +330,6 @@ ext_modules = [
 
     OptionalExtension('sage.graphs.graph_decompositions.tdlib',
               sources = ['sage/graphs/graph_decompositions/tdlib.pyx'],
-              language="c++",
               package = 'tdlib'),
 
     Extension('sage.graphs.graph_decompositions.clique_separators',

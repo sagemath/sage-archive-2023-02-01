@@ -230,6 +230,7 @@ __append_to_doc(
      "cospectral_graphs",
      "CubeGraph",
      "CubeConnectedCycle",
+     "distance_regular_graph",
      "DorogovtsevGoltsevMendesGraph",
      "DoubleGrassmannGraph",
      "DoubleOddGraph",

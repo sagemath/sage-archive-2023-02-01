@@ -950,12 +950,8 @@ class FullyCommutativeElements(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.combinat.fully_commutative_elements import FullyCommutativeElements
-            sage: FullyCommutativeElements(CoxeterGroup(['H', 4]))
-            Fully commutative elements of Finite Coxeter group over Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790? with Coxeter matrix:
-            [1 3 2 2]
-            [3 1 3 2]
-            [2 3 1 5]
-            [2 2 5 1]
+            sage: FC = FullyCommutativeElements(CoxeterGroup(['H', 4]))
+            sage: TestSuite(FC).run()
         """
         self._coxeter_group = coxeter_group
 

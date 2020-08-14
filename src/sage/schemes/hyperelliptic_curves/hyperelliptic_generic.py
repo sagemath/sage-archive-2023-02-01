@@ -654,7 +654,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
              (1 : a : 1)]
         """
         from sage.schemes.curves.constructor import Curve
-        # we change C to be a plain curve to allow the generic rational
+        # we change C to be a plane curve to allow the generic rational
         # points code to reduce mod any prime, whereas a HyperellipticCurve
         # can only be base changed to good primes.
         C = self

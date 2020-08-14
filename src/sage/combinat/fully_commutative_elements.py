@@ -558,7 +558,7 @@ class FullyCommutativeElement(NormalizedClonableList):
 
     # The following function uses coset decompositions and will help us
     # generate all FC elements in a Coxeter group by induction on length.
-    def still_reduced_fc_after_prepending(self, s):
+    def _still_reduced_fc_after_prepending(self, s):
         r"""
         Determine if ``self`` prepended with ``s`` is still a reduced word of an
         FC element in the Coxeter system.
@@ -577,33 +577,33 @@ class FullyCommutativeElement(NormalizedClonableList):
 
         When `s=1`, `sw` is 112, which is not reduced::
 
-            sage: w.still_reduced_fc_after_prepending(1)
+            sage: w._still_reduced_fc_after_prepending(1)
             False
 
 
         When `s=2`, `sw` is 212, which is reduced but not FC::
 
-            sage: w.still_reduced_fc_after_prepending(2)
+            sage: w._still_reduced_fc_after_prepending(2)
             False
 
         When `s=31, `sw` is 312, which is reduced and FC::
 
-            sage: w.still_reduced_fc_after_prepending(3)
+            sage: w._still_reduced_fc_after_prepending(3)
             True
 
         More examples::
 
             sage: u = FCB3([3,1,2])
-            sage: u.still_reduced_fc_after_prepending(1)
+            sage: u._still_reduced_fc_after_prepending(1)
             False
-            sage: u.still_reduced_fc_after_prepending(2)
+            sage: u._still_reduced_fc_after_prepending(2)
             True
-            sage: u.still_reduced_fc_after_prepending(3)
+            sage: u._still_reduced_fc_after_prepending(3)
             False
 
             sage: FCA5 = CoxeterGroup(['A', 5]).fully_commutative_elements()
             sage: w = FCA5([2,4,1,3,2,5])
-            sage: w.still_reduced_fc_after_prepending(5)
+            sage: w._still_reduced_fc_after_prepending(5)
             False
 
         .. NOTE::
@@ -1063,7 +1063,7 @@ class FullyCommutativeElements(UniqueRepresentation, Parent):
             new_words = {}
             for w in recent_words:
                 for s in letters:
-                    if w.still_reduced_fc_after_prepending(s):
+                    if w._still_reduced_fc_after_prepending(s):
                         sw = self.element_class(
                             self, [s] + list(w), check=False)
                         # "Add" sw to the "set"

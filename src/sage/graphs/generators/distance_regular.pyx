@@ -15,7 +15,7 @@ EXAMPLES::
     sage: H = graphs.distance_regular_graph([15, 14, 10, 3, 1, 5, 12, 15])
     sage: H == G
     True
-    sage: G = graphs.distance_regular([27, 10, 1, 1, 10, 27])
+    sage: G = graphs.distance_regular_graph([27, 10, 1, 1, 10, 27])
     sage: G.is_distance_regular(True)
     ([27, 10, 1, None], [None, 1, 10, 27])
 
@@ -1835,9 +1835,12 @@ def distance_regular_graph(list arr, existence=False, check=True):
     - ``arr`` -- list; intersection array of the graph
 
     - ``existence`` -- boolean (optional); instead of building the graph return:
-      * ``True`` - if a graph with the given intersection array exists;
-      * ``False`` - if there is no graph with the given intersection array;
-      * ``Unknown`` - if Sage doesn't know if such a graph exists.
+
+      - ``True`` - if a graph with the given intersection array exists;
+
+      - ``False`` - if there is no graph with the given intersection array;
+
+      - ``Unknown`` - if Sage doesn't know if such a graph exists.
 
     - ``check`` -- boolean (optional); if ``True``, then checks that the result
       of this function has the given intersection array. Default: ``True``
@@ -1852,7 +1855,7 @@ def distance_regular_graph(list arr, existence=False, check=True):
 
     Not all distance-regular graphs can be built with this function::
 
-        sage: G = graphs.DoubleOddGraph(3)
+        sage: G = graphs.DoubleOddGraph(2)
         sage: G.is_distance_regular(True)
         ([3, 2, 2, 1, 1, None], [None, 1, 1, 2, 2, 3])
         sage: graphs.distance_regular_graph([3, 2, 2, 1, 1, 1, 1, 2, 2, 3])

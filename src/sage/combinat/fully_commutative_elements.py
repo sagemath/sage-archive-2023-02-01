@@ -53,36 +53,6 @@ class FullyCommutativeElement(NormalizedClonableList):
     form. See [Gre2006]_. We will normalize each FC element to this form.
     """
 
-    # Methods required as a subclass of NormalizedClonableList:
-    def check(self):
-        r"""
-        Called automatically when an element is created. Alias of
-        :func:`is_fully_commutative`
-
-        TESTS::
-
-            sage: CoxeterGroup(['A', 3]).fully_commutative_elements()([1, 2]) # indirect doctest
-            [1, 2]
-            sage: CoxeterGroup(['A', 3]).fully_commutative_elements()([1, 2, 1]) # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: the input is not a reduced word of a fully commutative element
-        """
-        if not self.is_fully_commutative():
-            raise ValueError('the input is not a reduced word of a fully commutative element')
-
-    def normalize(self):
-        r"""
-        Called automatically when an element is created. Alias of
-        :func:`cartier_foata_form`
-
-        TESTS::
-
-            sage: CoxeterGroup(['A', 3]).fully_commutative_elements()([3, 1]) # indirect doctest
-            [1, 3]
-        """
-        return self.cartier_foata_form()
-
     def group_element(self):
         r"""
         Get the actual element of the Coxeter group associated with
@@ -105,6 +75,63 @@ class FullyCommutativeElement(NormalizedClonableList):
     ###########################################################################
     # Characterization and representation of FC elements                      #
     ###########################################################################
+
+    # Methods required as a subclass of NormalizedClonableList:
+    def check(self):
+        r"""
+        Called automatically when an element is created.
+
+        TESTS::
+
+            sage: CoxeterGroup(['A', 3]).fully_commutative_elements()([1, 2]) # indirect doctest
+            [1, 2]
+            sage: CoxeterGroup(['A', 3]).fully_commutative_elements()([1, 2, 1]) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: the input is not a reduced word of a fully commutative element
+        """
+        if not self.is_fully_commutative():
+            raise ValueError('the input is not a reduced word of a fully commutative element')
+
+    def normalize(self):
+        r"""
+        Return the Cartier--Foata normal form of ``self``.
+
+        EXAMPLES:
+
+        The following reduced words express the same FC elements in `B_5`::
+
+            sage: FC = CoxeterGroup(['B', 5]).fully_commutative_elements()
+            sage: FC([1, 4, 3, 5, 2, 4, 3]) # indirect doctest
+            [1, 4, 3, 5, 2, 4, 3]
+            sage: FC([4, 1, 3, 5, 2, 4, 3]) # indirect doctest
+            [1, 4, 3, 5, 2, 4, 3]
+            sage: FC([4, 3, 1, 5, 4, 2, 3]) # indirect doctest
+            [1, 4, 3, 5, 2, 4, 3]
+
+        .. NOTE::
+
+            The Cartier--Foata form of a reduced word of an FC element `w` can
+            be found recursively by repeatedly moving left descents of
+            elements to the left and ordering the left descents from small to
+            large. In the above example, the left descents of the element are
+            4 and 1, therefore the Cartier--Foata form of the element is the
+            concatenation of [1,4] with the Cartier--Foata form of the
+            remaining part of the word. See [Gre2006]_.
+
+        .. SEEALSO:: :func:`descents`
+        """
+        self._require_mutable()
+
+        out_word = []
+
+        while len(self) > 0:
+            fronts = self.descents()
+            out_word.extend(sorted(fronts))
+            for s in fronts:
+                self.remove(s)
+
+        self._set_list(out_word)
 
     # Full commutativity test
     def is_fully_commutative(self):
@@ -166,50 +193,6 @@ class FullyCommutativeElement(NormalizedClonableList):
                                 checked.add(new_word)
                                 queue.appendleft(new_word)
             return True
-
-    # Representing FC elements: Canonical forms
-    def cartier_foata_form(self):
-        r"""
-        Return the Cartier--Foata normal form of ``self``.
-
-        :func:`normalize` is an alias of this method, and is called
-        automatically when an element is created.
-
-        EXAMPLES:
-
-        The following reduced words express the same FC elements in `B_5`::
-
-            sage: FC = CoxeterGroup(['B', 5]).fully_commutative_elements()
-            sage: FC([1, 4, 3, 5, 2, 4, 3]) # indirect doctest
-            [1, 4, 3, 5, 2, 4, 3]
-            sage: FC([4, 1, 3, 5, 2, 4, 3]) # indirect doctest
-            [1, 4, 3, 5, 2, 4, 3]
-            sage: FC([4, 3, 1, 5, 4, 2, 3]) # indirect doctest
-            [1, 4, 3, 5, 2, 4, 3]
-
-        .. NOTE::
-
-            The Cartier--Foata form of a reduced word of an FC element `w` can
-            be found recursively by repeatedly moving left descents of
-            elements to the left and ordering the left descents from small to
-            large. In the above example, the left descents of the element are
-            4 and 1, therefore the Cartier--Foata form of the element is the
-            concatenation of [1,4] with the Cartier--Foata form of the
-            remaining part of the word. See [Gre2006]_.
-
-        .. SEEALSO:: :func:`descents`
-        """
-        self._require_mutable()
-
-        out_word = []
-
-        while len(self) > 0:
-            fronts = self.descents()
-            out_word.extend(sorted(fronts))
-            for s in fronts:
-                self.remove(s)
-
-        self._set_list(out_word)
 
     # Representing FC elements: Heaps
     def heap(self, **kargs):

@@ -1620,8 +1620,8 @@ class Permutation(CombinatorialElement):
             sage: d.edges(labels=False)
             [(1, 1)]
         """
-        E = [(i + 1, self[i]) for i in range(len(self))]
-        return DiGraph([self, E], format='vertices_and_edges', loops=True)
+        return DiGraph([self, enumerate(self, start=1)],
+                       format='vertices_and_edges', loops=True)
 
     def show(self, representation="cycles", orientation="landscape", **args):
         r"""

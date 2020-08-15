@@ -9366,19 +9366,18 @@ class Graph(GenericGraph):
         r"""
         Return the (extended) bipartite double of this graph.
 
-        The bipartite double of a graph `G` has vertices
+        The bipartite double of a graph `G` has vertex set
         `\{ (v,0), (v,1) : v \in G\}` and for any edge `(u, v)` in `G`
-        we have edges `((u,0),(v,1))` and `((u,1),(v,0))`.
+        it has edges `((u,0),(v,1))` and `((u,1),(v,0))`.
         Note that this is the tensor product of `G` with `K_2`.
-        See :
 
         The extended bipartite double of `G` is the bipartite double of
         `G` after added all edges `((v,0),(v,1))` for all vertices `v`.
 
         INPUT:
 
-        - ``extended`` -- boolean (optional); if ``True`` return the extended
-          bipartite double, else the bipartite double. Default: ``False``.
+        - ``extended`` -- boolean (default: ``False``); Whether to return the
+          extended bipartite double, or only the bipartite double (default)
 
         OUTPUT:
 
@@ -9399,17 +9398,28 @@ class Graph(GenericGraph):
             sage: H.bipartite_sets() == (set([(v, 0) for v in G]),
             ....: set([(v, 1) for v in G]))
             True
-            sage: H == G.tensor_product(graphs.CompleteGraph(2))
+            sage: H.is_isomorphic(G.tensor_product(graphs.CompleteGraph(2)))
             True
 
-        REFERENCES:
+        Behaviour with disconnected graphs::
 
-        See :wikipedia:`Bipartite_double_cover` or
-        `WolframAlpha Bipartite Double
-        <https://mathworld.wolfram.com/BipartiteDoubleGraph.html>`_.
-        Also see [VDKT2016]_ p. 20 for the extended bipartite double.
+            sage: G1 = graphs.PetersenGraph()
+            sage: G2 = graphs.HoffmanGraph()
+            sage: G = G1.disjoint_union(G2)
+            sage: H = G.bipartite_double()
+            sage: H1 = G1.bipartite_double()
+            sage: H2 = G2.bipartite_double()
+            sage: H.is_isomorphic(H1.disjoint_union(H2))
+            True
 
-        TETS::
+        .. SEEALSO::
+
+            :wikipedia:`Bipartite_double_cover`,
+            `WolframAlpha Bipartite Double
+            <https://mathworld.wolfram.com/BipartiteDoubleGraph.html>`_,
+            [VDKT2016]_ p. 20 for the extended bipartite double.
+
+        TESTS::
 
             sage: G = graphs.PetersenGraph()
             sage: H = G.bipartite_double(True)
@@ -9424,19 +9434,30 @@ class Graph(GenericGraph):
             sage: H.bipartite_sets() == (set([(v, 0) for v in G]),
             ....: set([(v, 1) for v in G]))
             True
-            sage: H == G.tensor_product(graphs.CompleteGraph(2))
+            sage: H.is_isomorphic(G.tensor_product(graphs.CompleteGraph(2)))
             False
-        """
-        from sage.graphs.generators.basic import CompleteGraph
 
-        G = self.tensor_product(CompleteGraph(2))
+        Test edge cases::
+
+            sage: G = Graph()
+            sage: H = G.bipartite_double()
+            sage: H.size() + H.order()
+            0
+            sage: H = G.bipartite_double(True)
+            sage: H.size() + H.order()
+            0
+            sage: G = Graph(1)
+            sage: H = G.bipartite_double()
+            sage: H.size() == 0 and H.order() == 2
+            True
+            sage: H = G.bipartite_double(True)
+            sage: H.is_isomorphic(Graph([(0, 1)]))
+            True
+        """
+        G = self.tensor_product(Graph([(0, 1)]))
 
         if extended:
-            for v in self:
-                v1 = (v, 0)
-                v2 = (v, 1)
-
-                G.add_edge((v1, v2))
+            G.add_edges(((v, 0), (v, 1)) for v in self)
 
         prefix = "Extended " if extended else ""
         G.name("%sBipartite Double of %s"%(prefix, self.name()))

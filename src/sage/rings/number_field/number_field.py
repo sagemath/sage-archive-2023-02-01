@@ -5376,7 +5376,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         B = self.pari_bnf(proof).bnfisintnorm(n)
         return [self(x, check=False) for x in B]
 
-    def extension(self, poly, name=None, names=None, *args, **kwds):
+    def extension(self, poly, name=None, names=None, latex_name=None, *args, **kwds):
         """
         Return the relative extension of this field by a given polynomial.
 
@@ -5427,7 +5427,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             name = names
         if isinstance(name, tuple):
             name = name[0]
-        return NumberField(poly, name, *args, **kwds)
+        return NumberField(poly, name, latex_name=latex_name, *args, **kwds)
 
     def factor(self, n):
         r"""

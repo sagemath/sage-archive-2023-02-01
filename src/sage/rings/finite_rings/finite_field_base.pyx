@@ -1349,7 +1349,8 @@ cdef class FiniteField(Field):
             return (AlgebraicExtensionFunctor([self.polynomial()], [self.variable_name()], [None]),
                     self.base_ring())
 
-    def extension(self, modulus, name=None, names=None, map=False, embedding=None, **kwds):
+    def extension(self, modulus, name=None, names=None, map=False, embedding=None,
+                  latex_name=None, **kwds):
         """
         Return an extension of this finite field.
 

@@ -998,7 +998,7 @@ class Singular(ExtraTabCompletion, Expect):
               return 'list(' + ','.join([strify(i) for i in x]) + ')'
            elif isinstance(x, SingularElement):
               return x.name()
-           elif isinstance(x, integer_types + (sage.rings.integer.Integer,)):
+           elif isinstance(x, (int, sage.rings.integer.Integer)):
               return repr(x)
            elif hasattr(x, '_singular_'):
               e = x._singular_()

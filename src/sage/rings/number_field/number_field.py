@@ -1540,10 +1540,18 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: a*b
             a*b
 
+        The construction preserves latex variable names::
+
+            sage: K.<a,b,c> = NumberField([x^3+x^2+1, x^2+1, x^7+x+1], latex_name=['alpha', 'beta', 'gamma'])
+            sage: F, R = K.construction()
+            sage: F(R) == K
+            True
+
         """
         from sage.categories.pushout import AlgebraicExtensionFunctor
         from sage.all import QQ
         names = self.variable_names()
+        latex_names = self.latex_variable_names()
         polys = []
         embeddings = []
         structures = []
@@ -1553,7 +1561,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             embeddings.append(None if K.coerce_embedding() is None else K.coerce_embedding()(K.gen()))
             structures.append(K._structure)
             K = K.base_field()
-        return (AlgebraicExtensionFunctor(polys, names, embeddings, structures), QQ)
+        return (AlgebraicExtensionFunctor(polys, names, embeddings, structures,
+                                          latex_names=latex_names), QQ)
 
     def _element_constructor_(self, x, check=True):
         r"""

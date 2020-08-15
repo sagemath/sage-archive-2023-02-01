@@ -1552,15 +1552,16 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         from sage.categories.pushout import AlgebraicExtensionFunctor
         from sage.all import QQ
         names = self.variable_names()
-        latex_names = self.latex_variable_names()
         polys = []
         embeddings = []
         structures = []
+        latex_names = []
         K = self
         while K is not QQ:
             polys.append(K.relative_polynomial())
             embeddings.append(None if K.coerce_embedding() is None else K.coerce_embedding()(K.gen()))
             structures.append(K._structure)
+            latex_names.append(K.latex_variable_names()[0])
             K = K.base_field()
         return (AlgebraicExtensionFunctor(polys, names, embeddings, structures,
                                           latex_names=latex_names), QQ)

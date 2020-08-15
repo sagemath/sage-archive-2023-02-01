@@ -2062,18 +2062,17 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             
         TESTS:
         
-        Tests for `trac`:30341::
+        Tests for :trac:`30341`::
 
             sage: P.<t> = PolynomialRing(QQ)
             sage: l = [-27563611963/4251528, -48034411/104976, -257/54, 1]
-            sage: u1 = P(l)
-            sage: u2 = P(magma(u1).sage())
-            sage: u1 == u2
+            sage: u = P(l)
+            sage: u == P(magma(u).sage()) # optional - magma
             True
             
             sage: P.<x,y> = PolynomialRing(QQ, 2)
             sage: u = x + 27563611963/4251528*y
-            sage: magma(u).sage()
+            sage: magma(u).sage() # optional - magma
             x + 27563611963/4251528*y
         """
         z, preparse = self.Sage(nvals=2)

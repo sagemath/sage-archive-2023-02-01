@@ -2901,7 +2901,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
     rank = 3
 
     def __init__(self, polys, names, embeddings=None, structures=None,
-                 cyclotomic=None, precs=None, implementations=None, **kwds):
+                 cyclotomic=None, precs=None, implementations=None,
+                 *, latex_names=None, **kwds):
         """
         INPUT:
 
@@ -2930,6 +2931,9 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         - ``implementations`` -- (optional) list of strings.
           If it is provided, it is used to determine an implementation in the
           p-adic case.
+
+        - ``latex_names`` -- (optional) list of strings of the same length
+          as the list ``polys``
 
         - ``**kwds`` -- further keywords; when the functor is applied
           to a ring `R`, these are passed to the ``extension()``
@@ -3018,7 +3022,9 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             precs = [None] * n
         if implementations is None:
             implementations = [None] * n
-        if not (len(names) == len(embeddings) == len(structures) == n):
+        if latex_names is None:
+            latex_names = [None] * n
+        if not (len(names) == len(embeddings) == len(structures) == len(latex_names) == n):
             raise ValueError("All arguments must be of the same length")
         self.polys = list(polys)
         self.names = list(names)
@@ -3027,6 +3033,14 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         self.cyclotomic = int(cyclotomic) if cyclotomic is not None else None
         self.precs = list(precs)
         self.implementations = list(implementations)
+        # Normalize latex_names:  Use None when latex_name does not override the default.
+        latex_names = list(latex_names)
+        for i, name in enumerate(self.names):
+            if latex_names[i] is not None:
+                from sage.misc.latex import latex_variable_name
+                if latex_names[i] == latex_variable_name(name):
+                    latex_names[i] = None
+        self.latex_names = latex_names
         self.kwds = kwds
 
     def _apply_functor(self, R):
@@ -3062,19 +3076,34 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         if len(self.polys) == 1:
             return R.extension(self.polys[0], names=self.names[0], embedding=self.embeddings[0],
                                structure=self.structures[0], prec=self.precs[0],
-                               implementation=self.implementations[0], **self.kwds)
+                               implementation=self.implementations[0],
+                               latex_name=self.latex_names[0], **self.kwds)
         return R.extension(self.polys, names=self.names, embedding=self.embeddings,
                            structure=self.structures, prec=self.precs,
-                           implementation=self.implementations, **self.kwds)
+                           implementation=self.implementations,
+                           latex_name=self.latex_names, **self.kwds)
 
     def __eq__(self, other):
         """
+        Check whether ``self`` is equal to ``other``.
+
         TESTS::
 
             sage: K.<a>=NumberField(x^3+x^2+1)
             sage: F = K.construction()[0]
             sage: F == loads(dumps(F))
             True
+
+            sage: K2.<a> = NumberField(x^3+x^2+1, latex_name='a')
+            sage: F2 = K2.construction()[0]
+            sage: F2 == F
+            True
+
+            sage: K3.<a> = NumberField(x^3+x^2+1, latex_name='alpha')
+            sage: F3 = K3.construction()[0]
+            sage: F3 == F
+            False
+
         """
         if not isinstance(other, AlgebraicExtensionFunctor):
             return False
@@ -3082,7 +3111,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         return (self.polys == other.polys and
                 self.embeddings == other.embeddings and
                 self.structures == other.structures and
-                self.precs == other.precs)
+                self.precs == other.precs and
+                self.latex_names == other.latex_names)
 
     def __ne__(self, other):
         """
@@ -3234,7 +3264,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
 
     def __mul__(self, other):
         """
-        Compose construction functors to a composit construction functor, unless one of them is the identity.
+        Compose construction functors to a composite construction functor, unless one of them is the identity.
 
         .. NOTE::
 
@@ -3261,6 +3291,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
                                              self.structures + other.structures,
                                              precs=self.precs + other.precs,
                                              implementations=self.implementations + other.implementations,
+                                             latex_names=self.latex_names + other.latex_names,
                                              **self.kwds)
         elif (isinstance(other, CompositeConstructionFunctor)
               and isinstance(other.all[-1], AlgebraicExtensionFunctor)):
@@ -3294,7 +3325,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             return [self]
         return [AlgebraicExtensionFunctor([self.polys[i]], [self.names[i]], [self.embeddings[i]],
                                           [self.structures[i]], precs=[self.precs[i]],
-                                          implementations=[self.implementations[i]], **self.kwds)
+                                          implementations=[self.implementations[i]],
+                                          latex_names=[self.latex_names[i]], **self.kwds)
                 for i in range(n)]
 
 

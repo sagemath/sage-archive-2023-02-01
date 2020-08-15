@@ -8122,9 +8122,9 @@ class OrderedPartitions(Partitions):
             sage: OrderedPartitions(3,2) # indirect doctest
             Ordered partitions of 3 of length 2
         """
-        string = "Ordered partitions of %s"%self.n
+        string = "Ordered partitions of %s" % self.n
         if self.k is not None:
-            string += " of length %s"%self.k
+            string += " of length %s" % self.k
         return string
 
     def list(self):
@@ -8138,14 +8138,14 @@ class OrderedPartitions(Partitions):
             sage: OrderedPartitions(3,2).list()
             [[2, 1], [1, 2]]
         """
-        from sage.interfaces.all import gap
+        from sage.libs.gap.libgap import libgap
         n = self.n
         k = self.k
         if k is None:
-            ans=gap.eval("OrderedPartitions(%s)" % (ZZ(n)))
+            ans = libgap.OrderedPartitions(ZZ(n))
         else:
-            ans=gap.eval("OrderedPartitions(%s,%s)" % (ZZ(n), ZZ(k)))
-        result = eval(ans.replace('\n',''))
+            ans = libgap.OrderedPartitions(ZZ(n), ZZ(k))
+        result = ans.sage()
         result.reverse()
         return result
 

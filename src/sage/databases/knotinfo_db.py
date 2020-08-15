@@ -35,6 +35,23 @@ from sage.misc.cachefunc import cached_method
 from sage.env import SAGE_SHARE, SAGE_ROOT
 
 
+def is_knotinfo_available():
+    r"""
+    Return wether the KnotInfo databases are installed or not.
+
+    EXAMPLES::
+
+        sage: from sage.databases.knotinfo_db import is_knotinfo_available
+        sage: is_knotinfo_available()
+        True
+    """
+    ki_db = KnotInfoDataBase()
+    try:
+        ki_db.read_num_knots()
+        return True
+    except FileNotFoundError:
+        return False
+
 
 class KnotInfoColumnTypes(Enum):
     r"""
@@ -291,9 +308,6 @@ class KnotInfoDataBase(SageObject):
         self._knot_prefix  = 'K'
         self._import_path  = os.path.join(SAGE_SHARE, self._package)
 
-        from sage.misc.misc import sage_makedirs
-        sage_makedirs(self._import_path)
-
         self._knot_list = None
         self._link_list = None
 
@@ -303,7 +317,7 @@ class KnotInfoDataBase(SageObject):
         Return the data fetched from the web-page as a csv file
         such that it can be parsed via pythons ``csv`` class.
 
-        INOUT:
+        INPUT:
 
         - ``filename`` - instance of :class:`KnotInfoDataBase.filename`
         - ``path_for_src`` - string giving the pathname where to store
@@ -365,7 +379,6 @@ class KnotInfoDataBase(SageObject):
         os.system('cd %s; tar -cvjSf %s/upstream/%s-%s.tar.bz2 src' %(path, SAGE_ROOT, self._package, self._version) )
 
 
-    @cached_method
     def version(self):
         r"""
         Return the current version.
@@ -438,6 +451,9 @@ class KnotInfoDataBase(SageObject):
 
         link_list = self.link_list()
         link_column_names = link_list[0]
+
+        from sage.misc.misc import sage_makedirs
+        sage_makedirs(self._import_path)
 
         num_knots = len_knots - 1 
         save(num_knots, '%s/%s' %(self._import_path, self.filename.knots.sobj_num_knots()))

@@ -88,16 +88,6 @@ def eval_knotinfo(string, locals={}, to_tuple=True):
 
 
 
-class KnotInfoNotation(Enum):
-    r"""
-    """
-
-    braid = 'braid'
-    PD    = 'planar diagram'
-    DT    = 'Docker Thistlewait'
-    Gauss = 'Gauss code'
-
-
 class KnotInfoBase(Enum):
     r"""
     Enum class to select the knots and links provided by http://www.indiana.edu/~knotinfo
@@ -117,7 +107,7 @@ class KnotInfoBase(Enum):
             sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L4a1_0
             sage: it = L.items
-            sage: [it.name for it in it if it.name.endswith('notation')]
+            sage: [i.name for i in it if i.name.endswith('notation')]
             ['dt_notation',
              'conway_notation',
              'two_bridge_notation',
@@ -499,6 +489,96 @@ class KnotInfoBase(Enum):
         return self.num_components() == 1
 
     @cached_method
+    def symmetry_type(self):
+        r"""
+        Return the symmetry type of ``self``.
+
+        From the KnotInfo description page:
+
+            If a knot is viewed as the oriented diffeomorphism
+            class of an oriented pair, `K = (S_3, S_1), with `S_i`
+            diffeomorphic to `S^i`, there are four oriented knots
+            associated to any particular knot `K`. In addition to
+            `K` itself, there is the reverse, `K^r = (S_3, -S_1)`,
+            the concordance inverse, `-K = (-S_3, -S_1)`, and the
+            mirror image, `K^m = (-S3, S1)`. A knot is called
+            reversible if `K = K^r`, negative amphicheiral if
+            `K = -K`, and positive amphicheiral if `K = K^m`.
+
+            A knot possessing any two of these types of symmetry
+            has all three. Thus, in the table, a knot is called
+            reversible if that is the only type of symmetry it has,
+            and likewise for negative amphicheiral. If it has none
+            of these types of symmetry it is called chiral, and if
+            it has all three it is called fully amphicheiral.
+
+            For prime knots with fewer than 12 crossings, all
+            amphicheiral knots are negative amphicheiral.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: [(L.name, L.symmetry_type()) for L in KnotInfo if L.is_knot() and L.crossing_number() < 6]
+            [('K0_1', 'fully amphicheiral'),
+            ('K3_1', 'reversible'),
+            ('K4_1', 'fully amphicheiral'),
+            ('K5_1', 'reversible'),
+            ('K5_2', 'reversible')]
+        """
+        if not self.is_knot():
+            raise NotImplementedError('This is only available for knots')
+        if not self[self.items.symmetry_type] and self.crossing_number() == 0:
+            return 'fully amphicheiral'
+        return self[self.items.symmetry_type]
+
+
+    def is_reversible(self):
+        r"""
+        Return wether ``self`` is reversible.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.K6_3.is_reversible()
+            True
+        """
+        if self.symmetry_type() == 'reversible':
+            return True
+        if self.symmetry_type() == 'fully amphicheiral':
+            return True
+        return False
+
+    def is_amphicheiral(self, positive=False):
+        r"""
+        Return wether ``self`` is amphicheiral.
+
+        INPUT:
+
+        - ``positive`` -- Boolean (default False) wether to check
+          if ``self`` is positive or negative amphicheiral (see
+          doctest of :meth:`symmetry_type`)
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: K = KnotInfo.K12a_427
+            sage: K.is_amphicheiral()
+            False
+            sage: K.is_amphicheiral(positive=True)
+            True
+        """
+        if positive:
+            if self.symmetry_type() == 'positive amphicheiral':
+                return True
+        else:
+            if self.symmetry_type() == 'negative amphicheiral':
+                return True
+        if self.symmetry_type() == 'fully amphicheiral':
+            return True
+        return False
+
+
+    @cached_method
     def homfly_polynomial(self, var1='L', var2='M', original=False):
         r"""
         Return the value of column ``homfly_polynomial`` for this
@@ -611,7 +691,8 @@ class KnotInfoBase(Enum):
           that should be used to construct the link. Allowed values
           are:
           -- self.items.pd_notation
-          -- self.items.dt_notation (only for knots)
+          -- self.items.dt_notation    (only for knots)
+          -- self.items.gauss_notation (only for knots)
           -- self.items.braid_notation
 
         .. NOTE::
@@ -630,6 +711,11 @@ class KnotInfoBase(Enum):
 
             Therefore, we have to take the mirror_image of the
             link!
+
+            Furthermore, note that the mirror version may depend
+            on the used KnotInfo-notation. For example for the
+            knot `5_1` the Gauss- and the DT-notation refer to
+            the mirror image (see example below).
 
         EXAMPLES::
 
@@ -670,6 +756,14 @@ class KnotInfoBase(Enum):
             [[4, 1, 5, 2], [8, 5, 1, 6], [6, 4, 7, 3], [2, 8, 3, 7]]
             sage: K4_1.pd_notation()
             [[4, 2, 5, 1], [8, 6, 1, 5], [6, 3, 7, 4], [2, 7, 3, 8]]
+
+            sage: K5_1 = KnotInfo.K5_1
+            sage: K5_1.link().braid()
+            s^5
+            sage: K5_1.link(K5_1.items.dt_notation).braid()
+            s^-5
+            sage: K5_1.link(K5_1.items.gauss_notation).braid()
+            s^-5
         """
         if not isinstance(use_item, KnotInfoColumns):
             raise TypeError('%s must be an instance of %s' %(use_item, KnotInfoColumns))
@@ -688,6 +782,11 @@ class KnotInfoBase(Enum):
                 raise NotImplementedError('%s only implemented for knots' %use_item)
             from sage.knots.knot import Knots
             return Knots().from_dowker_code(self.dt_notation())
+        elif use_item == self.items.gauss_notation:
+            if not self.is_knot():
+                raise NotImplementedError('%s only implemented for knots' %use_item)
+            from sage.knots.knot import Knots
+            return Knots().from_gauss_code(self.gauss_notation())
         else:
             raise ValueError('Construction using %s not possible' %use_item)
 

@@ -20,7 +20,7 @@ https://linkinfo.sitehost.iu.edu'
 
  * #30352: Initial version
 
- The tarbal has been created from the both download files at the
+ The tarball has been created from the both download files at the
  given date:
 
  `knotinfo_data_complete.xls`

@@ -19,7 +19,6 @@ fields (generally `\RR` or `\CC`).
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 import sage.rings.complex_double
 
@@ -184,13 +183,13 @@ cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
         sage: from sage.rings.number_field.number_field_morphisms import EmbeddedNumberFieldMorphism
         sage: EmbeddedNumberFieldMorphism(K,L,CDF)
         Generic morphism:
-          From: Number Field in i with defining polynomial x^2 + 1
-          To:   Number Field in i with defining polynomial x^2 + 1
+          From: Number Field in i with defining polynomial x^2 + 1 with i = I
+          To:   Number Field in i with defining polynomial x^2 + 1 with i = -I
           Defn: i -> -i
         sage: EmbeddedNumberFieldMorphism(K,L,QQbar)
         Generic morphism:
-          From: Number Field in i with defining polynomial x^2 + 1
-          To:   Number Field in i with defining polynomial x^2 + 1
+          From: Number Field in i with defining polynomial x^2 + 1 with i = I
+          To:   Number Field in i with defining polynomial x^2 + 1 with i = -I
           Defn: i -> -i
 
     """
@@ -227,7 +226,7 @@ cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
             sage: F1.gen() + F2.gen()
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for +: 'Number Field in a with defining polynomial x^3 + 2' and 'Number Field in a with defining polynomial x^3 + 2'
+            TypeError: unsupported operand parent(s) for +: 'Number Field in a with defining polynomial x^3 + 2 with a = -1.259921049894873?' and 'Number Field in a with defining polynomial x^3 + 2 with a = 0.6299605249474365? + 1.091123635971722?*I'
 
         The following was fixed to raise a ``TypeError`` in :trac:`15331`::
 
@@ -488,9 +487,9 @@ def root_from_approx(f, a):
     P = a.parent()
     if P.is_exact() and not f(a):
         return a
-    elif RealField(mpfr_prec_min()).has_coerce_map_from(P):
+    elif P._is_real_numerical():
         return LazyAlgebraic(RLF, f, a, prec=0)
-    elif ComplexField(mpfr_prec_min()).has_coerce_map_from(P):
+    elif P._is_numerical():
         return LazyAlgebraic(CLF, f, a, prec=0)
     # p-adic lazy, when implemented, would go here
     else:

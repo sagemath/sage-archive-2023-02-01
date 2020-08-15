@@ -213,6 +213,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=No
 
     We can enable verbose messages::
 
+        sage: from sage.misc.verbose import set_verbose
         sage: set_verbose(2)
         sage: K.<a> = (x^3 - x + 1).splitting_field()
         verbose 1 (...: splitting_field.py, splitting_field) Starting field: y
@@ -339,7 +340,8 @@ def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=No
           To:   Number Field in x with defining polynomial x
           Defn: 1 |--> 1)
     """
-    from sage.misc.all import verbose, cputime
+    from sage.misc.all import cputime
+    from sage.misc.verbose import verbose
 
     degree_multiple = Integer(degree_multiple or 0)
     abort_degree = Integer(abort_degree or 0)

@@ -118,15 +118,15 @@ AUTHOR:
 - Miguel Angel Marco Buzunariz
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Miguel Angel Marco Buzunariz <mmarco@unizar.es>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
@@ -134,15 +134,8 @@ from sage.groups.libgap_mixin import GroupMixinLibGAP
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.libs.gap.libgap import libgap
 from sage.libs.gap.element import GapElement
-from sage.rings.integer import Integer
-from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.groups.free_group import FreeGroupElement
-
-from sage.structure.element import Element, MultiplicativeGroupElement
-from sage.interfaces.gap import gap
-from sage.rings.integer import Integer
-from sage.rings.integer_ring import IntegerRing
 from sage.functions.generalized import sign
 from sage.matrix.constructor import matrix
 from sage.categories.morphism import SetMorphism
@@ -744,6 +737,7 @@ class RewritingSystem(object):
         except ValueError:
             raise ValueError('could not make the system confluent')
 
+
 class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     Group, ParentLibGAP):
     """
@@ -785,7 +779,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     """
     Element = FinitelyPresentedGroupElement
 
-    def __init__(self, free_group, relations):
+    def __init__(self, free_group, relations, category=None):
         """
         The Python constructor.
 
@@ -810,9 +804,9 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         self._free_group = free_group
         self._relations = relations
         self._assign_names(free_group.variable_names())
-        parent_gap = free_group.gap() / libgap([ rel.gap() for rel in relations])
+        parent_gap = free_group.gap() / libgap([rel.gap() for rel in relations])
         ParentLibGAP.__init__(self, parent_gap)
-        Group.__init__(self)
+        Group.__init__(self, category=category)
 
     def _repr_(self):
         """
@@ -1396,7 +1390,6 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         Uses GAP.
         """
         I = self.gap().IsomorphismSimplifiedFpGroup()
-        domain = self
         codomain = wrap_FpGroup(I.Range())
         phi = lambda x: codomain(I.ImageElm(x.gap()))
         HS = self.Hom(codomain)
@@ -1475,7 +1468,6 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         Uses libgap's GQuotients function.
         """
         from sage.misc.misc_c import prod
-        from sage.functions.generalized import sign
         HomSpace = self.Hom(H)
         Gg = libgap(self)
         Hg = libgap(H)

@@ -31,6 +31,7 @@ class BackendIPython(BackendBase):
         sage: from sage.repl.rich_output.backend_ipython import BackendIPython
         sage: BackendIPython()._repr_()
         Traceback (most recent call last):
+        ...
         NotImplementedError: derived classes must implement this method
     """
 
@@ -411,14 +412,21 @@ class BackendIPythonCommandline(BackendIPython):
             sage: backend.threejs_offline_scripts()
             '...<script ...</script>...'
         """
-        from sage.env import SAGE_SHARE
+        from sage.env import THREEJS_DIR
 
-        scripts = [os.path.join(SAGE_SHARE, 'threejs', script)
-                   for script in ['three.min.js', 'OrbitControls.js']]
+        scripts = [
+            os.path.join(THREEJS_DIR, script)
+            for script in [
+                'build/three.min.js',
+                'examples/js/controls/OrbitControls.js',
+            ]
+        ]
 
         if sys.platform == 'cygwin':
             import cygwin
-            scripts = [cygwin.cygpath(script, 'w') for script in scripts]
+            def normpath(p):
+                return 'file:///' + cygwin.cygpath(p, 'w').replace('\\', '/')
+            scripts = [normpath(script) for script in scripts]
 
         return '\n'.join('<script src="{0}"></script>'.format(script)
                          for script in scripts)
@@ -536,11 +544,12 @@ class BackendIPythonNotebook(BackendIPython):
             return ({u'text/plain': rich_output.unicode_art.get_unicode()}, {})
         elif isinstance(rich_output, OutputLatex):
             return ({u'text/html':  rich_output.mathjax(),
+                     u'text/latex': rich_output.inline_equation(),
                      u'text/plain': plain_text.text.get_unicode(),
             }, {})
         elif isinstance(rich_output, OutputHtml):
-            return ({u'text/html':  rich_output.html.get(),
-                     u'text/plain': plain_text.text.get(),
+            return ({u'text/html':  rich_output.html.get_unicode(),
+                     u'text/plain': plain_text.text.get_unicode(),
             }, {})
         elif isinstance(rich_output, OutputImagePng):
             return ({u'image/png':  rich_output.png.get(),
@@ -548,7 +557,7 @@ class BackendIPythonNotebook(BackendIPython):
             }, {})
         elif isinstance(rich_output, OutputImageGif):
             return ({u'text/html':  rich_output.html_fragment(),
-                     u'text/plain': plain_text.text.get(),
+                     u'text/plain': plain_text.text.get_unicode(),
             }, {})
         elif isinstance(rich_output, OutputImageJpg):
             return ({u'image/jpeg':  rich_output.jpg.get(),
@@ -594,14 +603,14 @@ class BackendIPythonNotebook(BackendIPython):
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
             sage: backend = BackendIPythonNotebook()
             sage: backend.threejs_offline_scripts()
-            '...<script src="/nbextensions/threejs/three.min...<\\/script>...'
+            '...<script src="/nbextensions/threejs/build/three.min...<\\/script>...'
         """
         from sage.repl.rich_output import get_display_manager
         CDN_scripts = get_display_manager().threejs_scripts(online=True)
         return """
-<script src="/nbextensions/threejs/three.min.js"></script>
-<script src="/nbextensions/threejs/OrbitControls.js"></script>
+<script src="/nbextensions/threejs/build/three.min.js"></script>
+<script src="/nbextensions/threejs/examples/js/controls/OrbitControls.js"></script>
 <script>
   if ( !window.THREE ) document.write('{}');
 </script>
-        """.format(CDN_scripts.replace('</script>', r'<\/script>'))
+        """.format(CDN_scripts.replace('</script>', r'<\/script>').replace('\n', ' \\\n'))

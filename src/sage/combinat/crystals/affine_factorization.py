@@ -475,7 +475,7 @@ class FactorizationToTableaux(CrystalMorphism):
             # The word is most likely in reverse order to begin with
             q += sorted(reversed(word))
         C = self.codomain()
-        return C(RSK(p, q, insertion='EG')[1])
+        return C(RSK(p, q, insertion=RSK.rules.EG)[1])
 
     def is_isomorphism(self):
         """

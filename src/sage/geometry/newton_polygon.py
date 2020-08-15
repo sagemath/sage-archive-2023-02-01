@@ -11,7 +11,7 @@ slopes (and hence a last infinite slope).
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #############################################################################
 from __future__ import division
 
@@ -246,7 +246,7 @@ class NewtonPolygon_element(Element):
             sage: NP = NP1 * NP2; NP
             Infinite Newton polygon with 3 vertices: (0, 0), (1, 1), (2, 5/2) ending by an infinite line of slope 2
 
-        The slopes of ``NP`` is the union of thos of ``NP1`` and those of ``NP2``
+        The slopes of ``NP`` is the union of those of ``NP1`` and those of ``NP2``
         which are less than the last slope::
 
             sage: NP1.slopes()
@@ -358,7 +358,6 @@ class NewtonPolygon_element(Element):
             [0, 1, 7/2, 6]
         """
         # complexity: O(log(n))
-        from sage.functions.other import floor
         vertices = self.vertices()
         lastslope = self.last_slope()
         if len(vertices) == 0 or x < vertices[0][0]:
@@ -377,8 +376,8 @@ class NewtonPolygon_element(Element):
                 a = c
             else:
                 b = c
-        (xg,yg) = vertices[a]
-        (xd,yd) = vertices[b]
+        xg, yg = vertices[a]
+        xd, yd = vertices[b]
         return ((x-xg)*yd + (xd-x)*yg) / (xd-xg)
 
     def _richcmp_(self, other, op):
@@ -597,7 +596,7 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
         sage: NP == NP2
         True
 
-    except if the contrary is explicitely mentioned::
+    except if the contrary is explicitly mentioned::
 
         sage: NewtonPolygon([0, 1, 1/2, 2/3, 1/2, 2/3, 1, 2/3], sort_slopes=False)
         Finite Newton polygon with 4 vertices: (0, 0), (1, 0), (6, 10/3), (8, 5)

@@ -6,6 +6,8 @@ This module defines two classes:
 
 - :class:`LinearExtensionOfPoset`
 - :class:`LinearExtensionsOfPoset`
+- :class:`LinearExtensionsOfPosetWithHooks`
+- :class:`LinearExtensionsOfForest`
 
 Classes and methods
 -------------------
@@ -25,8 +27,6 @@ Classes and methods
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 from __future__ import print_function
-from six.moves import range
-from six import add_metaclass
 
 from sage.rings.rational_field import QQ
 from sage.structure.unique_representation import UniqueRepresentation
@@ -36,10 +36,12 @@ from sage.graphs.digraph import DiGraph
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.structure.list_clone import ClonableArray
+from sage.misc.misc_c import prod
+from sage.functions.other import factorial
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class LinearExtensionOfPoset(ClonableArray):
+class LinearExtensionOfPoset(ClonableArray,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A linear extension of a finite poset `P` of size `n` is a total
     ordering `\pi := \pi_0 \pi_1 \ldots \pi_{n-1}` of its elements
@@ -299,13 +301,13 @@ class LinearExtensionOfPoset(ClonableArray):
             True
         """
         P = self.poset()
-        a = self[i-1]
-        b = self[i  ]
-        if P.lt(a,b) or P.lt(b,a):
+        a = self[i - 1]
+        b = self[i]
+        if P.lt(a, b) or P.lt(b, a):
             return self
         with self.clone() as q:
-                q[i-1] = b
-                q[i  ] = a
+            q[i - 1] = b
+            q[i] = a
         return q
 
     def promotion(self, i=1):
@@ -417,7 +419,6 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
     .. SEEALSO::
 
         - :meth:`sage.combinat.posets.posets.FinitePoset.linear_extensions`
-        - :class:`sage.graphs.linearextensions.LinearExtensions`
 
     EXAMPLES::
 
@@ -592,7 +593,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
                 ct += Jup[j]
             Jup[m] = ct
         return ct
-    
+
     def __iter__(self):
         r"""
         Iterates through the linear extensions of the underlying poset.
@@ -812,7 +813,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
                     M[(L.index(p),i)] += x[j]
         for i in range(l):
             M[(i,i)] += -sum(M[(j,i)] for j in range(l))
-        return matrix(l,l,lambda x,y : M[(x,y)])
+        return matrix(l, l, lambda x, y: M[(x, y)])
 
     def _element_constructor_(self, lst, check=True):
         r"""
@@ -845,3 +846,51 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             return self.element_class(self, lst, check)
 
     Element = LinearExtensionOfPoset
+
+class LinearExtensionsOfPosetWithHooks(LinearExtensionsOfPoset):
+    r"""
+    Linear extensions such that the poset has well-defined
+    hook lengths (i.e., d-complete).
+    """
+    def cardinality(self):
+        r"""
+        Count the number of linear extensions using a hook-length formula.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: P = Posets.YoungDiagramPoset(Partition([3,2]), dual=True)
+            sage: P.linear_extensions().cardinality()
+            5
+        """
+        num_elmts = self._poset.cardinality()
+
+        if num_elmts == 0:
+            return 1
+
+        hooks = self._poset.get_hooks()
+        hook_product = prod(hooks.values())
+        return factorial(num_elmts) // hook_product
+
+class LinearExtensionsOfForest(LinearExtensionsOfPoset):
+    r"""
+    Linear extensions such that the poset is a forest.
+    """
+    def cardinality(self):
+        r"""
+        Use Atkinson's algorithm to compute the number of linear extensions.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.forest import ForestPoset
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: P.linear_extensions().cardinality()
+            4
+
+            sage: Q = Poset({0: [1], 1: [2, 3], 2: [], 3: [], 4: [5, 6], 5: [], 6: []})
+            sage: Q.linear_extensions().cardinality()
+            140
+        """
+        return sum(self.atkinson(self._elements[0]))
+

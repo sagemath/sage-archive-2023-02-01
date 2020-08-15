@@ -65,7 +65,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.misc.cachefunc import cached_method
 
@@ -140,15 +139,17 @@ cdef class Ring(ParentWithGens):
 
         sage: QQ['x'].category()
         Join of Category of euclidean domains and Category of commutative algebras over
-        (number fields and quotient fields and metric spaces) and Category of infinite sets
+         (number fields and quotient fields and metric spaces) and Category of infinite sets
         sage: QQ['x','y'].category()
         Join of Category of unique factorization domains and Category of commutative algebras over
-        (number fields and quotient fields and metric spaces) and Category of infinite sets
+         (number fields and quotient fields and metric spaces) and Category of infinite sets
         sage: PolynomialRing(MatrixSpace(QQ,2),'x').category()
         Category of infinite algebras over (finite dimensional algebras with basis over
-        (number fields and quotient fields and metric spaces) and infinite sets)
+         (number fields and quotient fields and metric spaces) and infinite sets)
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
-        Category of infinite algebras over graded hopf algebras with basis over Finite Field of size 2
+        Category of infinite algebras over (super hopf algebras with basis
+         over Finite Field of size 2 and supercocommutative super coalgebras
+         over Finite Field of size 2)
 
     TESTS::
 
@@ -177,7 +178,7 @@ cdef class Ring(ParentWithGens):
         sage: QQ.cardinality()
         +Infinity
      """
-    def __init__(self, base, names=None, normalize=True, category = None):
+    def __init__(self, base, names=None, normalize=True, category=None):
         """
         Initialize ``self``.
 
@@ -995,17 +996,6 @@ cdef class Ring(ParentWithGens):
         else:
             return False
 
-    def is_ring(self):
-        """
-        Return ``True`` since ``self`` is a ring.
-
-        EXAMPLES::
-
-            sage: QQ.is_ring()
-            True
-        """
-        return True
-
     def is_noetherian(self):
         """
         Return ``True`` if this ring is Noetherian.
@@ -1294,6 +1284,24 @@ cdef class CommutativeRing(Ring):
         Ring.__init__(self, base_ring, names=names, normalize=normalize,
                       category=category)
 
+    def localization(self, additional_units, names=None, normalize=True, category=None):
+        """
+        Return the localization of ``self`` at the given additional units.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = GF(3)[]
+            sage: R.localization((x*y, x**2+y**2))
+            Multivariate Polynomial Ring in x, y over Finite Field of size 3 localized at (y, x, x^2 + y^2)
+            sage: ~y in _
+            True
+        """
+        if not self.is_integral_domain():
+            raise TypeError("self must be an integral domain.")
+
+        from sage.rings.localization import Localization
+        return Localization(self, additional_units)
+
     def fraction_field(self):
         """
         Return the fraction field of ``self``.
@@ -1424,11 +1432,11 @@ cdef class CommutativeRing(Ring):
 
             sage: K.<i> = QuadraticField(-1)
             sage: R = K.maximal_order(); R
-            Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
+            Gaussian Integers in Number Field in i with defining polynomial x^2 + 1 with i = 1*I
             sage: R.krull_dimension()
             1
             sage: R = K.order(2*i); R
-            Order in Number Field in i with defining polynomial x^2 + 1
+            Order in Number Field in i with defining polynomial x^2 + 1 with i = 1*I
             sage: R.is_maximal()
             False
             sage: R.krull_dimension()
@@ -1916,7 +1924,7 @@ cdef class DedekindDomain(IntegralDomain):
 
             sage: K.<i> = QuadraticField(-1)
             sage: R = K.order(2*i); R
-            Order in Number Field in i with defining polynomial x^2 + 1
+            Order in Number Field in i with defining polynomial x^2 + 1 with i = 1*I
             sage: R.is_maximal()
             False
             sage: R.krull_dimension()
@@ -2486,7 +2494,7 @@ cdef class CommutativeAlgebra(CommutativeRing):
     """
     Generic commutative algebra
     """
-    def __init__(self, base_ring, names=None, normalize=True, category = None):
+    def __init__(self, base_ring, names=None, normalize=True, category=None):
         r"""
         Standard init function. This just checks that the base is a commutative
         ring and then passes the buck.
@@ -2547,6 +2555,4 @@ def is_Ring(x):
         sage: is_Ring(MS)
         True
     """
-    # TODO: use the idiom `x in _Rings` as soon as all rings will be
-    # in the category Rings()
-    return isinstance(x, Ring) or x in _Rings
+    return x in _Rings

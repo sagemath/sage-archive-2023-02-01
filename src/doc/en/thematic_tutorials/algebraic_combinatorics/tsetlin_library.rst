@@ -187,4 +187,4 @@ arbitrary posets was given in [AKS2013]_.
 .. [AKS2013] Arvind Ayyer, Steven Klee, Anne Schilling.
     *Combinatorial Markov chains on linear extensions*
     J. Algebraic Combinatorics,
-    :doi:`10.1007/s10801-013-0470-9`, :arXiv:`1205.7074`.
+    :doi:`10.1007/s10801-013-0470-9`, :arxiv:`1205.7074`.

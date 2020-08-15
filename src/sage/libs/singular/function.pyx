@@ -74,7 +74,6 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from libc.string cimport memcpy
 from cysignals.signals cimport sig_on, sig_off
@@ -108,7 +107,7 @@ from sage.libs.singular.singular import error_messages
 
 from sage.interfaces.singular import get_docstring
 
-from sage.misc.misc import get_verbose
+from sage.misc.verbose import get_verbose
 
 from sage.structure.sequence import Sequence, Sequence_generic
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence, PolynomialSequence_generic
@@ -593,7 +592,7 @@ cdef class Converter(SageObject):
 
             if attributes and a in attributes:
                 for attrib in attributes[a]:
-                    if attrib == "isSB" :
+                    if attrib == "isSB":
                         val = <long>(attributes[a][attrib])
                         atSet(v, omStrDup("isSB"), <void*>val, INT_CMD)
                         setFlag(v, FLAG_STD)
@@ -1311,6 +1310,11 @@ cdef class SingularFunction(SageObject):
             The input is no groebner basis.
             leaving triang.lib::triangL
 
+        Flush any stray output -- see :trac:`28622`::
+
+            sage: sys.stdout.flush()
+            ...
+
             sage: G= Ideal(I.groebner_basis())
             sage: triangL(G,attributes={G:{'isSB':1}})
             [[e + d + c + b + a, ...]]
@@ -1550,7 +1554,7 @@ cdef class SingularLibraryFunction(SingularFunction):
     """
     def __init__(self, name):
         """
-        Construct a new Singular kernel function.
+        Construct a new Singular library function.
 
         EXAMPLES::
 

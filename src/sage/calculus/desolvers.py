@@ -542,7 +542,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
         sage: forget()
         sage: y = function('y')(x)
         sage: desolve(diff(y, x) == sqrt(abs(y)), dvar=y, ivar=x)
-        sqrt(-y(x))*(sgn(y(x)) - 1) + (sgn(y(x)) + 1)*sqrt(y(x)) == _C + x
+        integrate(1/sqrt(abs(y(x))), y(x)) == _C + x
 
     AUTHORS:
 
@@ -1243,13 +1243,13 @@ def desolve_rk4_determine_bounds(ics,end_points=None):
 
     """
     if end_points is None:
-        return((ics[0],ics[0]+10))
-    if not isinstance(end_points,list):
-        end_points=[end_points]
-    if len(end_points)==1:
-        return (min(ics[0],end_points[0]),max(ics[0],end_points[0]))
+        return ics[0], ics[0] + 10
+    if not isinstance(end_points, list):
+        end_points = [end_points]
+    if len(end_points) == 1:
+        return min(ics[0], end_points[0]), max(ics[0], end_points[0])
     else:
-        return (min(ics[0],end_points[0]),max(ics[0],end_points[1]))
+        return min(ics[0], end_points[0]), max(ics[0], end_points[1])
 
 
 def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output='list', **kwds):
@@ -1863,16 +1863,10 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
 
         This requires the package tides.
 
-
     REFERENCES:
 
-    .. [ABBR1] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
-       Transactions on Mathematical Software* , *39* (1), 1-28.
-
-    .. [ABBR2] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
-      `TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
-      <http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm>`_
-
+    - [ABBR2011]_
+    - [ABBR2012]_
     """
     import subprocess
     if subprocess.call('command -v gcc', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE):

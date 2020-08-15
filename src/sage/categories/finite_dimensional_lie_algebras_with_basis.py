@@ -67,7 +67,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     class ParentMethods:
         @cached_method
         def _construct_UEA(self):
-            """
+            r"""
             Construct the universal enveloping algebra of ``self``.
 
             EXAMPLES::
@@ -87,6 +87,15 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  nc-relations: {...}
                 sage: sorted(UEA.relations().items(), key=str)
                 [(y*x, x*y - z), (z*x, x*z + y), (z*y, y*z - x)]
+
+            Singular's ``nc_algebra`` does not work over `\ZZ/6\ZZ`,
+            so we fallback to the PBW basis in this case::
+
+                sage: L = lie_algebras.pwitt(Zmod(6), 6)
+                sage: L._construct_UEA()
+                Universal enveloping algebra of
+                 The 6-Witt Lie algebra over Ring of integers modulo 6
+                 in the Poincare-Birkhoff-Witt basis
             """
             # Create the UEA relations
             # We need to get names for the basis elements, not just the generators
@@ -117,7 +126,12 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     rels[g1*g0] = g0*g1 - F.sum(val*get_var(g) for g, val in S[k])
                 else:
                     rels[g0*g1] = g1*g0 + F.sum(val*get_var(g) for g, val in S[k])
-            return F.g_algebra(rels)
+            try:
+                return F.g_algebra(rels)
+            except RuntimeError:
+                # Something went wrong with the computation, so fallback to
+                #   the generic PBW basis implementation
+                return self.pbw_basis()
 
         @lazy_attribute
         def _basis_ordering(self):
@@ -207,7 +221,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         module = _dense_free_module
 
-        def from_vector(self, v):
+        def from_vector(self, v, order=None):
             """
             Return the element of ``self`` corresponding to the
             vector ``v`` in ``self.module()``.
@@ -225,9 +239,10 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: parent(u) is L
                 True
             """
+            if order is None:
+                order = self._basis_ordering
             B = self.basis()
-            return self.sum(v[i] * B[k] for i,k in enumerate(self._basis_ordering)
-                            if v[i] != 0)
+            return self.sum(v[i] * B[k] for i,k in enumerate(order) if v[i] != 0)
 
         def killing_matrix(self, x, y):
             r"""
@@ -1344,7 +1359,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra import FiniteDimensionalAlgebra
             return FiniteDimensionalAlgebra(R, mats, names=self._names)
 
-        def morphism(self, on_generators, codomain=None, check=True):
+        def morphism(self, on_generators, codomain=None, base_map=None, check=True):
             r"""
             Return a Lie algebra morphism defined by images of a Lie
             generating subset of ``self``.
@@ -1355,6 +1370,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
               in ``codomain`` of elements `X` of ``domain``
             - ``codomain`` -- a Lie algebra (optional); this is inferred
               from the values of ``on_generators`` if not given
+            - ``base_map`` -- a homomorphism from the base ring to something
+              coercing into the codomain
             - ``check`` -- (default: ``True``) boolean; if ``False`` the
               values  on the Lie brackets implied by ``on_generators`` will
               not be checked for contradictory values
@@ -1391,10 +1408,25 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 ...
                 ValueError: this does not define a Lie algebra morphism;
                  contradictory values for brackets of length 2
+
+            However, it is still possible to create a morphism that acts nontrivially
+            on the coefficients, even though it's not a Lie algebra morphism
+            (since it isn't linear)::
+
+                sage: R.<x> = ZZ[]
+                sage: K.<i> = NumberField(x^2 + 1)
+                sage: cc = K.hom([-i])
+                sage: L.<X,Y,Z,W> = LieAlgebra(K, {('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
+                sage: M.<A,B> = LieAlgebra(K, abelian=True)
+                sage: phi = L.morphism({X: A, Y: B}, base_map=cc)
+                sage: phi(X)
+                A
+                sage: phi(i*X)
+                -i*A
             """
             from sage.algebras.lie_algebras.morphism import LieAlgebraMorphism_from_generators
             return LieAlgebraMorphism_from_generators(on_generators, domain=self,
-                                                      codomain=codomain, check=check)
+                                                      codomain=codomain, base_map=base_map, check=check)
 
     class ElementMethods:
         def adjoint_matrix(self): # In #11111 (more or less) by using matrix of a morphism
@@ -1424,7 +1456,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             return matrix(self.base_ring(),
                           [P.bracket(self, b).to_vector() for b in basis])
 
-        def to_vector(self):
+        def to_vector(self, order=None):
             """
             Return the vector in ``g.module()`` corresponding to the
             element ``self`` of ``g`` (where ``g`` is the parent of
@@ -1464,8 +1496,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             mc = self.monomial_coefficients(copy=False)
             M = self.parent().module()
             B = M.basis()
-            return M.sum(mc[k] * B[i] for i,k in enumerate(self.parent()._basis_ordering)
-                         if k in mc)
+            if order is None:
+                order = self.parent()._basis_ordering
+            return M.sum(mc[k] * B[i] for i,k in enumerate(order) if k in mc)
 
         _vector_ = to_vector
 

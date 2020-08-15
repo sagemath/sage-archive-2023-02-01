@@ -30,7 +30,6 @@ from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
 from sage.matrix.matrix2 cimport Matrix
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.misc.superseded import deprecated_function_alias
 
 
 cdef class Matrix_polynomial_dense(Matrix_generic_dense):
@@ -1395,8 +1394,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             return self.T.reduced_form(transformation, shifts, row_wise=True).T
         return self.weak_popov_form(transformation, shifts)
 
-    row_reduced_form = deprecated_function_alias(23619, reduced_form)
-
     def hermite_form(self, include_zero_rows=True, transformation=False):
         """
         Return the Hermite form of this matrix.
@@ -1583,8 +1580,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         n = pmat.ncols()
 
         # set default shifts / check shifts dimension
-        if shifts == None:
-            shifts = [0]*m if row_wise else [0]*n
+        if shifts is None:
+            shifts = [0] * m if row_wise else [0] * n
         elif row_wise and len(shifts) != m:
             raise ValueError('shifts length should be the row dimension of' \
                                                       + ' the input matrix')
@@ -1796,8 +1793,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         n = self.ncols()
 
         # set default shifts / check shifts dimension
-        if shifts == None:
-            shifts = [0]*m if row_wise else [0]*n
+        if shifts is None:
+            shifts = [0] * m if row_wise else [0] * n
         elif row_wise and len(shifts) != m:
             raise ValueError('shifts length should be the row dimension')
         elif (not row_wise) and len(shifts) != n:

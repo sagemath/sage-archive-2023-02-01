@@ -92,7 +92,6 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 import random
@@ -1016,7 +1015,7 @@ class CubeGroup(PermutationGroup_generic):
         try:
             g = self.parse(state)
             res = 1
-        except TypeError:
+        except ValueError:
             res = 0
             g = self.identity()
         if mode != 'quiet':

@@ -62,7 +62,7 @@ def SimpleGraphSpecies():
 
         sage: seq = S.generating_series().counts(10)[1:]
         sage: oeis(seq)[0]                              # optional -- internet
-        A006125: a(n) = 2^(n(n-1)/2).
+        A006125: a(n) = 2^(n*(n-1)/2).
     """
     E = SetSpecies()
     E2 = SetSpecies(size=2)
@@ -102,7 +102,7 @@ def BinaryTreeSpecies():
 
         sage: seq = B.isotype_generating_series().counts(10)[1:]
         sage: oeis(seq)[0]                              # optional -- internet
-        A000108: Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!). Also called Segner numbers.
+        A000108: Catalan numbers: ...
     """
     B = CombinatorialSpecies()
     X = SingletonSpecies()

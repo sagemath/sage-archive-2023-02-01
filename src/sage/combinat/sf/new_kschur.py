@@ -306,8 +306,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             Category of k bounded subspace bases of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field
             sage: KBB.super_categories()
             [Category of realizations of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field,
-             Join of Category of graded modules with basis over Univariate Polynomial Ring in t over Rational Field
-                 and Category of coalgebras with basis over Univariate Polynomial Ring in t over Rational Field
+             Join of Category of graded coalgebras with basis over Univariate Polynomial Ring in t over Rational Field
                  and Category of subobjects of sets]
         """
         R = self.base().base_ring()
@@ -981,8 +980,8 @@ class kSchur(CombinatorialFreeModule):
         """
         CombinatorialFreeModule.__init__(self, kBoundedRing.base_ring(),
             kBoundedRing.indices(),
-            category= KBoundedSubspaceBases(kBoundedRing, kBoundedRing.t),
-            prefix='ks%d'%kBoundedRing.k)
+            category=KBoundedSubspaceBases(kBoundedRing, kBoundedRing.t),
+            prefix='ks%d' % kBoundedRing.k)
 
         self._kBoundedRing = kBoundedRing
 
@@ -1237,8 +1236,8 @@ class kSplit(CombinatorialFreeModule):
         """
         CombinatorialFreeModule.__init__(self, kBoundedRing.base_ring(),
             kBoundedRing.indices(),
-            category= KBoundedSubspaceBases(kBoundedRing, kBoundedRing.t),
-            prefix='ksp%d'%kBoundedRing.k)
+            category=KBoundedSubspaceBases(kBoundedRing, kBoundedRing.t),
+            prefix='ksp%d' % kBoundedRing.k)
 
         self._kBoundedRing = kBoundedRing
 
@@ -1351,8 +1350,8 @@ class kHomogeneous(CombinatorialFreeModule):
         """
         CombinatorialFreeModule.__init__(self, kBoundedRing.base_ring(),
             kBoundedRing.indices(),
-            category= KBoundedSubspaceBases(kBoundedRing, kBoundedRing.t),
-            prefix='h%d'%kBoundedRing.k)
+            category=KBoundedSubspaceBases(kBoundedRing, kBoundedRing.t),
+            prefix='h%d' % kBoundedRing.k)
 
         self._kBoundedRing = kBoundedRing
 
@@ -1426,8 +1425,8 @@ class K_kSchur(CombinatorialFreeModule):
         """
         CombinatorialFreeModule.__init__(self, kBoundedRing.base_ring(),
             kBoundedRing.indices(),
-            category= KBoundedSubspaceBases(kBoundedRing, kBoundedRing.base_ring().one()),
-            prefix='Kks%d'%kBoundedRing.k)
+            category=KBoundedSubspaceBases(kBoundedRing, kBoundedRing.base_ring().one()),
+            prefix='Kks%d' % kBoundedRing.k)
 
         self._kBoundedRing = kBoundedRing
 

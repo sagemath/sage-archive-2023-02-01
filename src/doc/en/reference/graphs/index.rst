@@ -14,7 +14,7 @@ Graph objects and methods
    sage/graphs/graph
    sage/graphs/digraph
    sage/graphs/bipartite_graph
-
+   sage/graphs/views
 
 Constructors and databases
 --------------------------
@@ -75,9 +75,9 @@ Libraries of algorithms
    sage/graphs/matchpoly
    sage/graphs/genus
    sage/graphs/lovasz_theta
-   sage/graphs/linearextensions
    sage/graphs/schnyder
    sage/graphs/planarity
+   sage/graphs/traversals
    sage/graphs/graph_plot
    sage/graphs/graph_plot_js
    sage/graphs/graph_decompositions/vertex_separation
@@ -85,6 +85,8 @@ Libraries of algorithms
    sage/graphs/graph_decompositions/bandwidth
    sage/graphs/graph_decompositions/cutwidth
    sage/graphs/graph_decompositions/graph_products
+   sage/graphs/graph_decompositions/modular_decomposition
+   sage/graphs/graph_decompositions/clique_separators
    sage/graphs/convexity_properties
    sage/graphs/weakly_chordal
    sage/graphs/distances_all_pairs
@@ -95,8 +97,10 @@ Libraries of algorithms
    sage/graphs/hyperbolicity
    sage/graphs/tutte_polynomial
    sage/graphs/partial_cube
+   sage/graphs/path_enumeration
    sage/graphs/generic_graph_pyx
    sage/graphs/orientations
    sage/graphs/connectivity
+   sage/graphs/domination
 
 .. include:: ../footer.txt

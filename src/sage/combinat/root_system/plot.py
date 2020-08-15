@@ -141,7 +141,7 @@ coordinates in the root lattice::
 One can also customize the projection by specifying a function. Here,
 we display all the roots for type `E_8` using the projection from its
 eight dimensional ambient space onto 3D described on
-:wikipedia:`Wikipedia's E8 3D picture <File:E8_3D.png>`::
+:wikipedia:`Wikipedia%27s E8 3D picture <File:E8_3D.png>`::
 
     sage: M = matrix([[0., -0.556793440452, 0.19694925177, -0.19694925177, 0.0805477263944, -0.385290876171, 0., 0.385290876171],
     ....:             [0.180913155536, 0., 0.160212955043, 0.160212955043, 0., 0.0990170516545, 0.766360424875, 0.0990170516545],
@@ -476,7 +476,7 @@ below) that can be called independently and combined at will::
 .. NOTE::
 
     By default the axes are disabled in root system plots since they
-    tend to polute the picture. Annoyingly they come back when
+    tend to pollute the picture. Annoyingly they come back when
     combining them. Here is a workaround::
 
         sage: p = L.plot_roots() + L.plot_reflection_hyperplanes()
@@ -797,15 +797,14 @@ Here is an analogue picture in 3D::
 Enjoy and please post your best pictures on the
 `Sage-Combinat wiki <http://wiki.sagemath.org/combinat/CoolPictures>`_.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
-import six
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.latex import latex
 from sage.misc.lazy_import import lazy_import
@@ -988,13 +987,13 @@ class PlotOptions(object):
         """
         if self.labels:
             if self.dimension <= 2:
-                if not isinstance(label, six.string_types):
+                if not isinstance(label, str):
                     label = "$"+str(latex(label))+"$"
                 from sage.plot.text import text
                 return text(label, position, fontsize=15, rgbcolor=rgbcolor)
             elif self.dimension == 3:
                 # LaTeX labels not yet supported in 3D
-                if isinstance(label, six.string_types):
+                if isinstance(label, str):
                     label = label.replace("{","").replace("}","").replace("$","").replace("_","")
                 else:
                     label = str(label)
@@ -1386,8 +1385,8 @@ class PlotOptions(object):
         from sage.geometry.polyhedron.all import Polyhedron
         # TODO: we currently convert lines into rays, which simplify a
         # bit the calculation of the intersection. But it would be
-        # nice to benefit from the new ``lines`` option of Polyhedrons
-        rays = list(rays)+[ray for ray in lines]+[-ray for ray in lines]
+        # nice to benefit from the new ``lines`` option of Polyhedra
+        rays = list(rays) + [ray for ray in lines] + [-ray for ray in lines]
 
         # Compute the intersection at level 1, if needed
         if self.level:

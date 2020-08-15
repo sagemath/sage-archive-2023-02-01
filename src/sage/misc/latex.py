@@ -10,15 +10,14 @@ AUTHORS:
 - William Stein: original implementation
 - Joel B. Mohler: latex_variable_name() drastic rewrite and many doc-tests
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 
 import os
@@ -26,10 +25,6 @@ import random
 import re
 import shutil
 import subprocess
-
-from six import iteritems, integer_types
-
-from sage.cpython.string  import str_to_bytes
 
 from sage.misc import sage_eval
 from sage.misc.cachefunc import cached_function, cached_method
@@ -368,7 +363,7 @@ def dict_function(x):
     """
     return "".join([r"\left\{",
                     ", ".join(r"%s : %s" % (latex(key), latex(value))
-                              for key, value in iteritems(x)),
+                              for key, value in x.items()),
                     r"\right\}"])
 
 # One can add to the latex_table in order to install latexing
@@ -403,18 +398,18 @@ def float_function(x):
     return latex(RDF(x))
 
 
-latex_table = {type(None): None_function,
-               bool: bool_function,
-               dict: dict_function,
-               float: float_function,
-               list: list_function,
-               str: str_function,
-               tuple: tuple_function,
-               type(NotImplemented): builtin_constant_function,
-               type(Ellipsis): builtin_constant_function}
-
-for t in integer_types:
-    latex_table[t] = str
+latex_table = {
+    type(None): None_function,
+    bool: bool_function,
+    dict: dict_function,
+    float: float_function,
+    int: str,
+    list: list_function,
+    str: str_function,
+    tuple: tuple_function,
+    type(NotImplemented): builtin_constant_function,
+    type(Ellipsis): builtin_constant_function
+}
 
 
 class LatexExpr(str):
@@ -692,8 +687,8 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
 
         sage: from sage.misc.latex import _run_latex_, _latex_file_
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
-        sage: O = open(file, 'w')
-        sage: _ = O.write(_latex_file_([ZZ['x'], RR])); O.close()
+        sage: with open(file, 'w') as O:
+        ....:     _ = O.write(_latex_file_([ZZ['x'], RR]))
         sage: _run_latex_(file) # random - depends on whether latex is installed
         'dvi'
     """
@@ -861,7 +856,8 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
     if not e:
         print("An error occurred.")
         try:
-            print(open(base + '/' + filename + '.log').read())
+            with open(base + '/' + filename + '.log') as f:
+                print(f.read())
         except IOError:
             pass
         return "Error latexing slide."
@@ -1032,7 +1028,7 @@ class Latex(LatexCall):
                 k = str(latex(sage_eval.sage_eval(var, locals)))
             except Exception as msg:
                 print(msg)
-                k = '\\mbox{\\rm [%s undefined]}'%var
+                k = '\\mbox{\\rm [%s undefined]}' % var
             s = s[:i] + k + t[j+1:]
 
     def eval(self, x, globals, strip=False, filename=None, debug=None,
@@ -1082,7 +1078,7 @@ class Latex(LatexCall):
             sage: fn = tmp_filename()
             sage: latex.eval("$\\ZZ[x]$", locals(), filename=fn) # not tested
             ''
-            sage: latex.eval("\ThisIsAnInvalidCommand", {}) # optional -- ImageMagick
+            sage: latex.eval(r"\ThisIsAnInvalidCommand", {}) # optional -- ImageMagick
             An error occurred...
             No pages of output...
         """
@@ -1111,7 +1107,7 @@ class Latex(LatexCall):
             O.write(MACROS)
             O.write('\\begin{document}\n')
 
-        O.write(str_to_bytes(x, encoding='utf-8'))
+        O.write(x)
         if self.__slide:
             O.write('\n\n\\end{document}')
         else:
@@ -1897,7 +1893,7 @@ class MathJax:
 
         OUTPUT:
 
-        A :calss:`MathJaxExpr`
+        A :class:`MathJaxExpr`
 
         EXAMPLES::
 
@@ -2152,7 +2148,8 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         sage: g = sage.misc.latex.latex_examples.graph()
         sage: latex.add_to_preamble(r"\usepackage{tkz-graph}")
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
-        sage: O = open(file, 'w'); _ = O.write(_latex_file_(g)); O.close()
+        sage: with open(file, 'w') as O:
+        ....:     _ = O.write(_latex_file_(g))
         sage: _run_latex_(file, engine="pdflatex") # optional - latex
         'pdf'
 
@@ -2221,8 +2218,8 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
             print(MathJax().eval(objects, mode=mode, combine_all=combine_all))
         else:
             base_dir = os.path.abspath("")
-            from sage.misc.temporary_file import graphics_filename
-            png_file = graphics_filename()
+            from sage.misc.temporary_file import tmp_filename
+            png_file = tmp_filename(ext='.png')
             png_link = "cell://" + png_file
             png(objects, os.path.join(base_dir, png_file),
                 debug=debug, engine=engine)
@@ -2231,7 +2228,8 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     # command line or notebook with viewer
     tmp = tmp_dir('sage_viewer')
     tex_file = os.path.join(tmp, "sage.tex")
-    open(tex_file,'w').write(s)
+    with open(tex_file, 'w') as file:
+        file.write(s)
     suffix = _run_latex_(tex_file, debug=debug, engine=engine, png=False)
     if suffix == "pdf":
         from sage.misc.viewer import pdf_viewer
@@ -2303,7 +2301,8 @@ def png(x, filename, density=150, debug=False,
     tex_file = os.path.join(tmp, "sage.tex")
     png_file = os.path.join(tmp, "sage.png")
     # write latex string to file
-    open(tex_file,'w').write(s)
+    with open(tex_file, 'w') as file:
+        file.write(s)
     # run latex on the file, producing png output to png_file
     e = _run_latex_(tex_file, density=density, debug=debug,
                     png=True, engine=engine)
@@ -2340,7 +2339,7 @@ def coeff_repr(c):
         return c._latex_coeff_repr()
     except AttributeError:
         pass
-    if isinstance(c, integer_types + (float,)):
+    if isinstance(c, (int, float)):
         return str(c)
     s = latex(c)
     if s.find("+") != -1 or s.find("-") != -1:
@@ -2440,11 +2439,12 @@ def repr_lincomb(symbols, coeffs):
 
 def pretty_print_default(enable=True):
     r"""
-    Enable or disable default pretty printing. Pretty printing means
-    rendering things so that MathJax or some other latex-aware front end
-    can render real math.
+    Enable or disable default pretty printing.
 
-    This function is pretty useless without the notebook, it shoudn't
+    Pretty printing means rendering things so that MathJax or some
+    other latex-aware front end can render real math.
+
+    This function is pretty useless without the notebook, it should not
     be in the global namespace.
 
     INPUT:

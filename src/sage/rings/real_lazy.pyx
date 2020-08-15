@@ -19,7 +19,6 @@ specified in the forward direction).
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, division, print_function
 
 import math, cmath
 
@@ -380,7 +379,7 @@ class ComplexLazyField_class(LazyField):
             sage: CLF._test_prod()
             Traceback (most recent call last):
             ...
-            AssertionError: False is not true
+            AssertionError: -1 != ...
 
         is due to (acceptable?) numerical noise::
 
@@ -394,7 +393,7 @@ class ComplexLazyField_class(LazyField):
     """
     def __init__(self):
         """
-        This lazy field doesn't evaluate its elements until they are cast into
+        This lazy field does not evaluate its elements until they are cast into
         a field of fixed precision.
 
         EXAMPLES::
@@ -1177,9 +1176,9 @@ cdef class LazyBinop(LazyFieldElement):
 
             sage: from sage.rings.real_lazy import LazyBinop
             sage: a = LazyBinop(RLF, 5, 1/2, operator.sub)
-            sage: hash(a)
-            -1607638785           # 32-bit
-            -7461864723258187521  # 64-bit
+            sage: b = LazyBinop(RLF, 4, 1/2, operator.add)
+            sage: hash(a) == hash(b)
+            False
         """
         return hash(self._op(hash(self._left), hash(self._right)))
 
@@ -1391,8 +1390,9 @@ cdef class LazyNamedUnop(LazyUnop):
 
             sage: from sage.rings.real_lazy import LazyNamedUnop
             sage: a = LazyNamedUnop(RLF, 1, 'sin')
-            sage: hash(a)
-            2110729788
+            sage: b = LazyNamedUnop(RLF, 1, 'cos')
+            sage: hash(a) == hash(b)
+            False
         """
         return hash(complex(self))
 
@@ -1554,8 +1554,8 @@ cdef class LazyConstant(LazyFieldElement):
 
             sage: from sage.rings.real_lazy import LazyConstant
             sage: a = LazyConstant(RLF, 'e')
-            sage: hash(a)
-            2141977644
+            sage: hash(a) == hash(1)
+            False
         """
         return hash(complex(self))
 

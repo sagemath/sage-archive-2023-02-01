@@ -73,6 +73,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         Join of Category of hopf algebras over Rational Field
             and Category of graded algebras over Rational Field
             and Category of monoids with realizations
+            and Category of graded coalgebras over Rational Field
             and Category of coalgebras over Rational Field with realizations
 
     Notice that ``Sym`` is an *abstract* algebra.  This reflects the fact that
@@ -791,7 +792,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         .. [FD06] Francois Descouens, Making research on symmetric functions using MuPAD-Combinat.
                  In Andres Iglesias and Nobuki Takayama, editors, 2nd International Congress on Mathematical Software (ICMS'06),
                  volume 4151 of LNCS, pages 407-418, Castro Urdiales, Spain, September 2006. Springer-Verlag.
-                 :arXiv:`0806.1873`
+                 :arxiv:`0806.1873`
 
         .. [HT04] Florent Hivert and Nicolas M. Thiery,
                  MuPAD-Combinat, an open-source package for research in algebraic combinatorics.
@@ -1485,7 +1486,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         from sage.combinat.sf.new_kschur import KBoundedSubspace
         return KBoundedSubspace(self, k, t=t)
 
-    def kschur(self, k, t ='t'):
+    def kschur(self, k, t='t'):
         r"""
         Returns the `k`-Schur functions.
 
@@ -1505,9 +1506,9 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.kBoundedSubspace(k, t=t).kschur()
 
-    def ksplit(self, k, t ='t'):
+    def ksplit(self, k, t='t'):
         r"""
-        Returns the `k`-split basis of the `k`-bounded subspace.
+        Return the `k`-split basis of the `k`-bounded subspace.
 
         EXAMPLES::
 

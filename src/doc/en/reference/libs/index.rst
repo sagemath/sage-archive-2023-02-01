@@ -46,6 +46,13 @@ FLINT
    sage/libs/flint/fmpz_poly
    sage/libs/flint/arith
 
+Giac
+----
+.. toctree::
+   :maxdepth: 2
+
+   sage/libs/giac
+
 GMP-ECM
 -------
 .. toctree::

@@ -2698,21 +2698,26 @@ cpdef wiener_index(g, algorithm=None, weight_function=None, check_weight=True):
     if weight_function and check_weight:
         g._check_weight_function(weight_function)
 
-    if algorithm is None:
+    cdef bint use_Bellman_Ford = algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']
+    if not use_Bellman_Ford:
         # Check if there are edges with negative weights
         if weight_function is not None:
-            for e in g.edge_iterator():
+            for e in g.edges(sort=False):
                 if float(weight_function(e)) < 0:
-                    algorithm = 'Bellman-Ford'
+                    use_Bellman_Ford = True
                     break
         elif g.weighted():
-            for _,_,w in g.edge_iterator():
+            for _,_,w in g.edges(sort=False):
                 if float(w) < 0:
-                    algorithm = 'Bellman-Ford'
+                    use_Bellman_Ford = True
                     break
 
-        if algorithm is None:
-            algorithm = 'Dijkstra'
+        if algorithm in ['Dijkstra', 'Dijkstra_Boost']:
+            if use_Bellman_Ford:
+                raise RuntimeError("Dijkstra algorithm does not work with "
+                                   "negative weights, use Bellman-Ford instead")
+        elif algorithm is not None:
+            raise ValueError(f"unknown algorithm {algorithm!r}")
 
     # These variables are automatically deleted when the function terminates.
     cdef v_index vi, u, v
@@ -2729,47 +2734,30 @@ cpdef wiener_index(g, algorithm=None, weight_function=None, check_weight=True):
         boost_weighted_graph_from_sage_graph(&g_boost_und, g, v_to_int, weight_function)
 
     for u in range(n):
-        if g.is_directed():
-            if algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']:
+        if use_Bellman_Ford:
+            if g.is_directed():
                 sig_on()
                 distances = g_boost_dir.bellman_ford_shortest_paths(u).distances
                 sig_off()
-                if not distances.size():
-                   raise ValueError("the graph contains a negative cycle")
-            elif algorithm in ['Dijkstra', 'Dijkstra_Boost']:
-                try:
-                    sig_on()
-                    distances = g_boost_dir.dijkstra_shortest_paths(u).distances
-                    sig_off()
-                    if not distances.size():
-                       raise RuntimeError("Dijkstra algorithm does not "
-                                          "work with negative weights, "
-                                          "use Bellman-Ford instead")
-                except RuntimeError as msg:
-                   raise RuntimeError(msg)
             else:
-                raise ValueError(f"unknown algorithm {algorithm!r}")
-        else:
-            if algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']:
                 sig_on()
                 distances = g_boost_und.bellman_ford_shortest_paths(u).distances
                 sig_off()
-                if not distances.size():
-                   raise ValueError("the graph contains a negative cycle")
-
-            elif algorithm in ['Dijkstra', 'Dijkstra_Boost']:
-                try:
-                    sig_on()
-                    distances = g_boost_und.dijkstra_shortest_paths(u).distances
-                    sig_off()
-                    if not distances.size():
-                        raise RuntimeError("Dijkstra algorithm does not "
-                                           "work with negative weights, "
-                                           "use Bellman-Ford instead")
-                except RuntimeError as msg:
-                    raise RuntimeError(msg)
+            if not distances.size():
+                raise ValueError("the graph contains a negative cycle")
+        else:
+            if g.is_directed():
+                sig_on()
+                distances = g_boost_dir.dijkstra_shortest_paths(u).distances
+                sig_off()
             else:
-                raise ValueError(f"unknown algorithm {algorithm!r}")
+                sig_on()
+                distances = g_boost_und.dijkstra_shortest_paths(u).distances
+                sig_off()
+            if not distances.size():
+                # This situation should never happen
+                raise RuntimeError("something goes wrong. Please report the "
+                                   "bug on sage-devel@googlegroups.com")
 
         for v in range(0 if g.is_directed() else (u + 1), n):
             if distances[v] == sys.float_info.max:

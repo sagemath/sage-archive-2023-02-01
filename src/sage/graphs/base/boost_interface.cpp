@@ -242,9 +242,6 @@ public:
                                             .predecessor_map(boost::make_iterator_property_map(predecessors.begin(), index)));
          } catch (boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::negative_edge> > e) {
              return to_return;
-         } catch (boost::wrapexcept<boost::negative_edge> e) {
-           // needed since boost 1.7.3
-           return to_return;
          }
 
          to_return.distances = distances;

@@ -853,6 +853,8 @@ class HypergeometricData(object):
 
             :meth:`hodge_numbers`, :meth:`hodge_polynomial`, :meth:`hodge_polygon_vertices`
 
+        EXAMPLES::
+
             sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(cyclotomic=([6,10],[3,12]))
             sage: H.hodge_function(3)

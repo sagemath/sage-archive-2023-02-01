@@ -2088,32 +2088,48 @@ def distances_distribution(G):
         sage: D.distances_distribution()
         {1: 1/4, 2: 11/28, 3: 5/14}
     """
-    if G.order() <= 1:
+    cdef size_t n = G.order()
+    if n <= 1:
         return {}
 
-    from sage.rings.infinity import Infinity
-    from sage.rings.integer import Integer
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=list(G))
 
-    cdef unsigned short* distances = c_distances_all_pairs(G, vertex_list=list(G))
-    cdef unsigned int n = G.order()
-    cdef unsigned int NN = n * n
-    cdef dict count = {}
-    cdef dict distr = {}
-    cdef unsigned int i
-    NNN = Integer(NN - n)
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *> mem.allocarray(2 * n, sizeof(uint32_t))
+    cdef uint32_t * waiting_list = distances + n
+    cdef uint64_t * count = <uint64_t *> mem.allocarray(n, sizeof(uint64_t))
+    cdef bitset_t seen
+    bitset_init(seen, n)
 
     # We count the number of pairs at equal distances
-    for i in range(NN):
-        count[distances[i]] = count.get(distances[i], 0) + 1
+    cdef uint32_t u, v
+    cdef uint64_t count_inf = 0
+    memset(count, 0, n * sizeof(uint64_t))
+    for u in range(n):
+        ecc = simple_BFS(sd, u, distances, NULL, waiting_list, seen)
+        if ecc == UINT32_MAX:
+            for v in range(n):
+                if bitset_in(seen, v):
+                    count[distances[v]] += 1
+            count_inf += n - bitset_len(seen)
+        else:
+            for v in range(n):
+                count[distances[v]] += 1
 
-    sig_free(distances)
+    free_short_digraph(sd)
+    bitset_free(seen)
+
+    from sage.rings.infinity import Infinity
+    from sage.rings.rational_field import QQ
 
     # We normalize the distribution
-    for j in count:
-        if j == <unsigned short> -1:
-            distr[+Infinity] = Integer(count[j]) / NNN
-        elif j > 0:
-            distr[j] = Integer(count[j]) / NNN
+    cdef uint64_t NN = n * (n - 1)
+    cdef dict distr = {+Infinity: QQ((count_inf, NN))} if count_inf else {}
+    cdef size_t d
+    for d in range(1, n):
+        if count[d]:
+            distr[d] = QQ((count[d], NN))
 
     return distr
 

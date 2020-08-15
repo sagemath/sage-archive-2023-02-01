@@ -27,7 +27,8 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.all import prod
-from sage.misc.prandom import random, randint
+from sage.misc.prandom import random
+from random import randrange
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.all import ZZ, QQ
 from sage.rings.integer import Integer
@@ -445,7 +446,7 @@ class Derangements(UniqueRepresentation, Parent):
         while u >= 2:
             if not(mark[i - 1]):
                 while True:
-                    j = randint(1, i - 1)
+                    j = randrange(1, i)
                     if not(mark[j - 1]):
                         A[i - 1], A[j - 1] = A[j - 1], A[i - 1]
                         break
@@ -507,7 +508,7 @@ class Derangements(UniqueRepresentation, Parent):
             L = list(self)
             if len(L) == 0:
                 return self.element_class(self, [])
-            i = randint(0, len(L)-1)
+            i = randrange(len(L))
             return L[i]
         temp = self._rand_der()
         return self.element_class(self, [self._set[ii - 1] for ii in temp])

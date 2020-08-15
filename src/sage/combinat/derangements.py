@@ -495,12 +495,19 @@ class Derangements(UniqueRepresentation, Parent):
             sage: D = Derangements([1,1,2,2,2])
             sage: D.random_element()
             []
+
+        TESTS:
+
+        Check that index error discovered in :trac:`29974` is fixed::
+
+            sage: D = Derangements([1,1,2,2])
+            sage: _ = [D.random_element() for _ in range(20)]
         """
         if self.__multi:
             L = list(self)
             if len(L) == 0:
                 return self.element_class(self, [])
-            i = randint(0, len(L))
+            i = randint(0, len(L)-1)
             return L[i]
         temp = self._rand_der()
         return self.element_class(self, [self._set[ii - 1] for ii in temp])

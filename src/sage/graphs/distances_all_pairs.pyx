@@ -2098,14 +2098,13 @@ def distances_distribution(G):
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef uint32_t * distances = <uint32_t *> mem.allocarray(2 * n, sizeof(uint32_t))
     cdef uint32_t * waiting_list = distances + n
-    cdef uint64_t * count = <uint64_t *> mem.allocarray(n, sizeof(uint64_t))
+    cdef uint64_t * count = <uint64_t *> mem.calloc(n, sizeof(uint64_t))
     cdef bitset_t seen
     bitset_init(seen, n)
 
     # We count the number of pairs at equal distances
     cdef uint32_t u, v
     cdef uint64_t count_inf = 0
-    memset(count, 0, n * sizeof(uint64_t))
     for u in range(n):
         ecc = simple_BFS(sd, u, distances, NULL, waiting_list, seen)
         if ecc == UINT32_MAX:

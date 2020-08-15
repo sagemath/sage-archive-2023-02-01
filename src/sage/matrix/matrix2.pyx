@@ -6038,9 +6038,17 @@ cdef class Matrix(Matrix1):
         self.cache('eigenvalues', eigenvalues)
         return eigenvalues
 
-    def eigenvectors_left(self,extend=True):
+    def eigenvectors_left(self, other=None, extend=True):
         r"""
         Compute the left eigenvectors of a matrix.
+
+        INPUT:
+
+        - ``other`` -- not supported
+
+        - ``extend`` -- boolean (default: ``True``)
+
+        OUTPUT:
 
         For each distinct eigenvalue, returns a list of the form (e,V,n)
         where e is the eigenvalue, V is a list of eigenvectors forming a
@@ -6050,8 +6058,9 @@ cdef class Matrix(Matrix1):
         If the option extend is set to False, then only the eigenvalues that
         live in the base ring are considered.
 
-        EXAMPLES: We compute the left eigenvectors of a `3\times 3`
-        rational matrix.
+        EXAMPLES:
+
+        We compute the left eigenvectors of a `3\times 3` rational matrix.
 
         ::
 
@@ -6084,7 +6093,36 @@ cdef class Matrix(Matrix1):
             (0, 0, 1)
             ], 1)]
 
+        TESTS::
+
+            sage: A = matrix(QQ, [[1, 2], [3, 4]])
+            sage: B = matrix(QQ, [[1, 1], [0, 1]])
+            sage: A.eigenvectors_left(B)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: generalized eigenvector decomposition is
+            implemented for RDF and CDF, but not for Rational Field
+
+        Check the deprecation::
+
+            sage: matrix(QQ, [[1, 2], [3, 4]]).eigenvectors_left(False)
+            doctest:...: DeprecationWarning: "extend" should be used as keyword argument
+            See https://trac.sagemath.org/29243 for details.
+            []
         """
+        if other is not None:
+            if isinstance(other, bool):
+                # for backward compatibility
+                from sage.misc.superseded import deprecation
+                deprecation(29243,
+                            '"extend" should be used as keyword argument')
+                extend = other
+            else:
+                raise NotImplementedError('generalized eigenvector '
+                                          'decomposition is implemented '
+                                          'for RDF and CDF, but not for %s'
+                                          % self.base_ring())
+
         x = self.fetch('eigenvectors_left')
         if not x is None:
             return x
@@ -6124,9 +6162,17 @@ cdef class Matrix(Matrix1):
 
     left_eigenvectors = eigenvectors_left
 
-    def eigenvectors_right(self, extend=True):
+    def eigenvectors_right(self, other=None, extend=True):
         r"""
         Compute the right eigenvectors of a matrix.
+
+        INPUT:
+
+        - ``other`` -- not supported
+
+        - ``extend`` -- boolean (default: ``True``)
+
+        OUTPUT:
 
         For each distinct eigenvalue, returns a list of the form (e,V,n)
         where e is the eigenvalue, V is a list of eigenvectors forming a
@@ -6136,8 +6182,9 @@ cdef class Matrix(Matrix1):
         closure of the base field where this is implemented; otherwise
         it will restrict to eigenvalues in the base field.
 
-        EXAMPLES: We compute the right eigenvectors of a
-        `3\times 3` rational matrix.
+        EXAMPLES:
+
+        We compute the right eigenvectors of a `3\times 3` rational matrix.
 
         ::
 
@@ -6159,8 +6206,18 @@ cdef class Matrix(Matrix1):
             sage: delta = eval*evec - A*evec
             sage: abs(abs(delta)) < 1e-10
             True
+
+        TESTS::
+
+            sage: A = matrix(QQ, [[1, 2], [3, 4]])
+            sage: B = matrix(QQ, [[1, 1], [0, 1]])
+            sage: A.eigenvectors_right(B)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: generalized eigenvector decomposition is
+            implemented for RDF and CDF, but not for Rational Field
         """
-        return self.transpose().eigenvectors_left(extend=extend)
+        return self.transpose().eigenvectors_left(other=other, extend=extend)
 
     right_eigenvectors = eigenvectors_right
 
@@ -6327,16 +6384,7 @@ cdef class Matrix(Matrix1):
         """
         from sage.misc.flatten import flatten
         from sage.matrix.constructor import diagonal_matrix, matrix
-        if other is None:
-            evecs = self.eigenvectors_left()
-        else:
-            try:
-                evecs = self.eigenvectors_left(other=other)
-            except TypeError as e:
-                raise NotImplementedError('generalized eigenvector '
-                                          'decomposition is implemented '
-                                          'for RDF and CDF, but not for %s'
-                                          % self.base_ring()) from e
+        evecs = self.eigenvectors_left(other=other)
         D = diagonal_matrix(flatten([[e[0]]*e[2] for e in evecs]))
         rows = []
         for e in evecs:

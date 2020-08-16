@@ -249,7 +249,7 @@ something like the following to install it:
     fi
 
 At build time :envvar:`CFLAGS`, :envvar:`CXXFLAGS`, :envvar:`FCFLAGS`,
-and :envvar:`F77FLAGS` are usually set to ``-g -O2 -march=native``
+and :envvar:`F77FLAGS` are usually set to ``-g -O2``
 (according to `debugging options <../installation/source.html#sage-debug>`_
 and whether building
 `fat binaries <../installation/source.html#sage-fat-binary>`_).
@@ -258,14 +258,8 @@ Slightly modified versions are available:
 
 .. CODE-BLOCK:: bash
 
-    # No ``-march=native``.
-    export CFLAGS=$CFLAGS_NON_NATIVE
-
     # ``-O3`` instead of ``-O2``.
     export CFLAGS=$CFLAGS_O3
-
-    # No ``-march=native`` and ``-O3`` instead of ``-O2``.
-    export CFLAGS=$CFLAGS_O3_NON_NATIVE
 
     # Use flags as set by the user, possibly empty.
     export CFLAGS=$ORIGINAL_CFLAGS

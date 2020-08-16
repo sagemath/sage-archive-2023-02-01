@@ -151,10 +151,6 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
                     # Install our own GCC if the system-provided one is newer than 9.x.
                     # See https://trac.sagemath.org/ticket/29456
                     SAGE_SHOULD_INSTALL_GCC([$CXX is g++ version $GXX_VERSION, which is too recent for this version of Sage])
-                ],
-                [4.[[8-9]].*|5.[[0-1]].*], [
-                    # GCC less than 5.1 is not ready for AVX512.
-                    sage_use_march_native=no
                 ])
         fi
 
@@ -206,53 +202,34 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
         ])
     fi
 
-    # Determine which compiler flags should be set.
-    if test "x$sage_use_march_native" = "xno"; then
-        SAGE_MARCH=""
-    elif test "x$SAGE_FAT_BINARY" = "xyes"; then
-        SAGE_MARCH=""
-    elif test "x$sage_spkg_install_gcc" =" xyes"; then
-        SAGE_MARCH=" -march=native"
-    else
-        AX_CHECK_COMPILE_FLAG("-march=native", [SAGE_MARCH=" -march=native"], [SAGE_MARCH=""], [], [])
-    fi
-    AC_SUBST(SAGE_MARCH)
-
-    # We will only export SAGE_MARCH for now and redo this later.
+    # We redo this later.
     # (Allow debugging of individual packages.)
     # But we print the messages for convenience.
-    if test "x$SAGE_DEBUG" = "xyes"; then
-        SAGE_MARCH=""
-    fi
     if test "x$ORIGINAL_CFLAGS" = "x"; then
         # Evaluate SAGE_DEBUG:
         if test "x$SAGE_DEBUG" = "xyes" ; then
-            CFLAGS_NON_NATIVE="-Og -g"
-            CFLAGS_O3_NON_NATIVE="-Og -g"
+            CFLAGS="-Og -g"
+            CFLAGS_O3="-Og -g"
         else
             if test "x$SAGE_DEBUG" = "xno" ; then
-                CFLAGS_NON_NATIVE="-O2"
-                CFLAGS_O3_NON_NATIVE="-O3"
+                CFLAGS="-O2"
+                CFLAGS_O3="-O3"
             else
-                CFLAGS_NON_NATIVE="-O2 -g"
-                CFLAGS_O3_NON_NATIVE="-O3 -g"
+                CFLAGS="-O2 -g"
+                CFLAGS_O3="-O3 -g"
             fi
         fi
-        CFLAGS="${CFLAGS_NON_NATIVE}${SAGE_MARCH}
-        CFLAGS_O3="${CFLAGS_O3_NON_NATIVE}${SAGE_MARCH}
+        CFLAGS="${CFLAGS_NON_NATIVE}
+        CFLAGS_O3="${CFLAGS_O3_NON_NATIVE}
     else
         # Respect user environment variable.
         CFLAGS="${CFLAGS}
         CFLAGS_O3="${CFLAGS}
-        CFLAGS_NON_NATIVE="${CFLAGS}
-        CFLAGS_O3_NON_NATIVE="${CFLAGS}
     fi
 
     AC_MSG_NOTICE(ORIGINAL_CFLAGS=$ORIGINAL_CFLAGS)
     AC_MSG_NOTICE(CFLAGS=$CFLAGS)
     AC_MSG_NOTICE(CFLAGS_O3=$CFLAGS_O3)
-    AC_MSG_NOTICE(CFLAGS_NON_NATIVE=$CFLAGS_NON_NATIVE)
-    AC_MSG_NOTICE(CFLAGS_O3_NON_NATIVE=$CFLAGS_O3_NON_NATIVE)
 
 ], , , [
     # Trac #27907: Find location of crti.o from the system CC, in case we build our own gcc

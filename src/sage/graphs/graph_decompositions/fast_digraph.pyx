@@ -32,6 +32,18 @@ cdef class FastDigraph:
         - ``vertex_list`` -- list (default: ``None``); specifies a mapping
           between `[0..n-1]` and the set of vertices of the input (Di)Graph,
           ``list(D)`` by default
+
+        TESTS::
+
+            sage: cython_code = [
+            ....: 'from sage.graphs.graph import Graph',
+            ....: 'from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph',
+            ....: 'G = Graph([(0, 1), (1, 2)])',
+            ....: 'cdef FastDigraph F = FastDigraph(G)',
+            ....: 'cdef int i',
+            ....: 'print([F.degree[i] for i in range(F.n)])']
+            sage: cython(os.linesep.join(cython_code))
+            [1, 2, 1]
         """
         if D.order() > 8*sizeof(int):
             raise OverflowError("Too many vertices. This structure can only encode digraphs on at most %i vertices"%(8*sizeof(int)))
@@ -78,10 +90,21 @@ cdef class FastDigraph:
     def print_adjacency_matrix(self):
         r"""
         Displays the adjacency matrix of ``self``.
+
+        TESTS::
+
+            sage: cython_code = [
+            ....: 'from sage.graphs.graph import Graph',
+            ....: 'from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph',
+            ....: 'FastDigraph(Graph([(0, 1), (1, 2)])).print_adjacency_matrix()']
+            sage: cython(os.linesep.join(cython_code))
+            010
+            101
+            010
         """
-        cdef int i,j
-        for 0<= i<self.n:
-            for 0<= j <self.n:
+        cdef int i, j
+        for i in range(self.n):
+            for j in range(self.n):
                 print(((self.graph[i]>>j)&1), end="")
             print("")
 
@@ -91,8 +114,20 @@ cdef inline int compute_out_neighborhood_cardinality(FastDigraph g, int S):
 
     INPUT:
 
-    - ``g`` a FastDigraph
-    - S (integer) an integer describing the set
+    - ``g`` -- a FastDigraph
+    - ``S`` -- an integer describing the set
+
+    TESTS::
+
+        sage: cython_code = [
+        ....: 'from sage.graphs.graph import Graph',
+        ....: 'from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph',
+        ....: 'from sage.graphs.graph_decompositions.fast_digraph cimport compute_out_neighborhood_cardinality',
+        ....: 'cdef FastDigraph F = FastDigraph(Graph([(0, 1), (1, 2)]))',
+        ....: 'cdef int i',
+        ....: 'print([compute_out_neighborhood_cardinality(F, 1<<i) for i in range(F.n)])']
+        sage: cython(os.linesep.join(cython_code))
+        [1, 2, 1]
     """
     cdef int i
     cdef int tmp = 0
@@ -103,15 +138,24 @@ cdef inline int compute_out_neighborhood_cardinality(FastDigraph g, int S):
     return popcount32(tmp)
 
 cdef inline int popcount32(int i):
-   """
-   Returns the number of '1' bits in a 32-bits integer.
+    """
+    Return the number of '1' bits in a 32-bits integer.
 
-   If sizeof(int) > 4, this function only returns the number of '1'
-   bits in (i & ((1<<32) - 1)).
-   """
-   i = i - ((i >> 1) & 0x55555555);
-   i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
-   return ((i + (i >> 4) & 0x0F0F0F0F) * 0x01010101) >> 24;
+    If sizeof(int) > 4, this function only returns the number of '1'
+    bits in (i & ((1<<32) - 1)).
+
+    TESTS::
+
+        sage: cython_code = [
+        ....: 'from sage.graphs.graph_decompositions.fast_digraph cimport popcount32',
+        ....: 'cdef int i',
+        ....: 'print([popcount32(i) for i in range(16)])']
+        sage: cython(os.linesep.join(cython_code))
+        [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4]
+    """
+    i = i - ((i >> 1) & 0x55555555);
+    i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+    return ((i + (i >> 4) & 0x0F0F0F0F) * 0x01010101) >> 24;
 
 
 # If you happened to be doubting the consistency of the popcount32 function
@@ -120,30 +164,46 @@ cdef inline int popcount32(int i):
 # it would report any problem if it finds one.
 
 def test_popcount():
-   """
-   Correction test for popcount32.
+    """
+    Correction test for popcount32.
 
-   EXAMPLES::
+    EXAMPLES::
 
-       sage: from sage.graphs.graph_decompositions.fast_digraph import test_popcount
-       sage: test_popcount() # not tested
-   """
-   cdef int i = 1
-   # While the last 32 bits of i are not equal to 0
-   while (i & ((1<<32) - 1)) :
-       if popcount32(i) != slow_popcount32(i):
-           print("Error for i = ", str(i))
-           print("Result with popcount32 : " + str(popcount32(i)))
-           print("Result with slow_popcount32 : " + str(slow_popcount32(i)))
-       i += 1
+        sage: from sage.graphs.graph_decompositions.fast_digraph import test_popcount
+        sage: test_popcount() # not tested
+    """
+    cdef int i = 1
+    # While the last 32 bits of i are not equal to 0
+    while (i & ((1<<32) - 1)) :
+        if popcount32(i) != slow_popcount32(i):
+            print("Error for i = ", str(i))
+            print("Result with popcount32 : " + str(popcount32(i)))
+            print("Result with slow_popcount32 : " + str(slow_popcount32(i)))
+        i += 1
 
 
 cdef inline int slow_popcount32(int i):
-   # Slow popcount for 32bits integers
-   cdef int j = 0
-   cdef int k
+    """
+    Return the number of '1' bits in a 32-bits integer.
 
-   for k in range(32):
-       j += (i>>k) & 1
+    If sizeof(int) > 4, this function only returns the number of '1'
+    bits in (i & ((1<<32) - 1)).
 
-   return j
+    TESTS::
+
+        sage: cython_code = [
+        ....: 'from sage.graphs.graph_decompositions.fast_digraph cimport popcount32',
+        ....: 'from sage.graphs.graph_decompositions.fast_digraph cimport slow_popcount32',
+        ....: 'cdef int i',
+        ....: 'print(all(popcount32(i) == slow_popcount32(i) for i in range(16)))']
+        sage: cython(os.linesep.join(cython_code))
+        True
+    """
+    # Slow popcount for 32bits integers
+    cdef int j = 0
+    cdef int k
+
+    for k in range(32):
+        j += (i>>k) & 1
+
+    return j

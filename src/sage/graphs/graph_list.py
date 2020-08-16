@@ -65,6 +65,12 @@ def _from_whatever(data, fmt=None):
       either ``'graph6'``, ``sparse6``, or ``None``, with the latter case
       indicating that the ``Graph`` constructor should determine this for
       itself
+
+    EXAMPLES::
+
+        sage: l = ['N@@?N@UGAGG?gGlKCMO', ':P_`cBaC_ACd`C_@BC`ABDHaEH_@BF_@CHIK_@BCEHKL_BIKM_BFGHI']
+        sage: graphs_list.from_whatever(l)
+        [Graph on 15 vertices, Looped multi-graph on 17 vertices]
     """
     from sage.graphs.graph import Graph
 
@@ -202,6 +208,14 @@ def to_sparse6(graphs, file=None, output_list=False):
 def _to_graph6(graphs, file=None, output_list=False, sparse=False):
     """
     Internal implementation of :func:`to_graph6` and :func:`to_sparse6`.
+
+    EXAMPLES::
+
+        sage: l = [graphs.DodecahedralGraph(), graphs.PetersenGraph()]
+        sage: graphs_list._to_graph6(l, sparse=False)
+        'ShCHGD@?K?_@?@?C_GGG@??cG?G?GK_?C\nIheA@GUAo\n'
+        sage: graphs_list._to_graph6(l, sparse=True)
+        ':S_`abcaDe`Fg_HijhKfLdMkNcOjP_BQ\n:I`ES@obGkqegW~\n'
     """
     if sparse:
         method = 'sparse6_string'

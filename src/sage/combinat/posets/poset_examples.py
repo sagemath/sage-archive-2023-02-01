@@ -1814,27 +1814,24 @@ class Posets(metaclass=ClasscallMetaclass):
         elements = []
         cover_relations = []
 
-        for k, v in hangers.items():
-            for i, p in enumerate(v):
-                hangers[k][i] = p.relabel(lambda x: (k, i, x))
-
-        if anchor:
-            anchor[1] = (anchor[0], anchor[1])
-            anchor[2] = anchor[2].relabel(lambda x: (anchor[0], x))
-
         cover_relations.extend(ribbon.cover_relations())
         elements.extend(ribbon._elements)
 
         if anchor:
-            cover_relations.extend(anchor[2].cover_relations())
+            for cr in anchor[2].cover_relations():
+                cover_relations.append(((anchor[0], cr[0]), (anchor[0], cr[1])))
             cover_relations.append((anchor[0], anchor[1]))
-            elements.extend(anchor[2]._elements)
+
+            for elmt in anchor[2]._elements:
+                elements.extend((anchor[0], elmt))
 
         for r, hangs in hangers.items():
-            for h in hangs:
-                elements.extend(h._elements)
-                cover_relations.extend(h.cover_relations())
-                cover_relations.append((h.top(), r))
+            for i, h in enumerate(hangs):
+                for v in h._elements:
+                    elements.append((r,i,v))
+                for cr in h.cover_relations():
+                    cover_relations.append(((r, i, cr[0]), (r, i, cr[1])))
+                cover_relations.append(((r,i,h.top()), r))
 
         return Poset([elements, cover_relations])
 

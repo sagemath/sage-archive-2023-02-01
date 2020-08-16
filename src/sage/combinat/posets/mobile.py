@@ -19,7 +19,7 @@ class MobilePoset(FinitePoset):
     formula for counting linear extensions.
     """
 
-    #_lin_ext_type = LinearExtensionsOfForest
+    _lin_ext_type = LinearExtensionsOfMobile
     _desc = 'Finite mobile poset'
 
 
@@ -136,7 +136,7 @@ class MobilePoset(FinitePoset):
 
         if G.is_path():
             # Check if there is a anchor by seeing if there is more than one acyclic path to the next max
-            ends = max_elmt_graph.vertices_with_degree(1)
+            ends = max_elmt_graph.vertices(degree=1)
             # Form ribbon
             ribbon = G.shortest_path(ends[0], ends[1])
             for end_count, end in enumerate(ends):
@@ -147,37 +147,34 @@ class MobilePoset(FinitePoset):
                             return G.shortest_path(ends[(end_count + 1) % 2], traverse_ribbon[ind+1])
             return ribbon
 
+        # First check path counts between ends and deg3 vertex
+        # Then check if more than one max elmt on way to degree 3 vertex.
+        # Arbitrarily choose between ones with just 1
 
-        else:
-            # First check path counts between ends and deg3 vertex
-            # Then check if more than one max elmt on way to degree 3 vertex.
-            # Arbitrarily choose between ones with just 1
+        ends = max_elmt_graph.vertices(degree=1)
+        deg3 = max_elmt_graph.vertices(degree=3)[0]
 
-            ends = max_elmt_graph.vertices_with_degree(1)
-            deg3 = max_elmt_graph.vertices_with_degree(3)[0]
+        anchoredEnd = None
+        for end in ends:
+            if not (H_un.is_cut_vertex(end) or H_un.degree(end) == 1):
+                anchoredEnd = end
+                break
 
-            anchoredEnd = None
-            for end in ends:
-                if not (H_un.is_cut_vertex(end) or H_un.degree(end) == 1):
-                    anchoredEnd = end
-                    break
+        if not anchoredEnd is None:
+            path = H.shortest_path(deg3, anchoredEnd)
+            ends.remove(anchoredEnd)
 
-            if not anchoredEnd is None:
-                path = H.shortest_path(deg3, anchoredEnd)
-                ends.remove(anchoredEnd)
+            return G.shortest_path(ends[0], ends[1])
 
-                return G.shortest_path(ends[0], ends[1])
+        possible_anchors = ends[:]
+        for end in ends:
+            path = G.shortest_path(end, deg3)
+            if not sum(map(lambda z: z in max_elmts, path)) == 1:
+                possible_anchors.remove(end)
 
-            else:
-                possible_anchors = ends[:]
-                for end in ends:
-                    path = G.shortest_path(end, deg3)
-                    if not sum(map(lambda z: z in max_elmts, path)) == 1:
-                        possible_anchors.remove(end)
-
-                anchoredEnd = possible_anchors[0]
-                ends.remove(anchoredEnd)
-                return  G.shortest_path(ends[0], ends[1])
+        anchoredEnd = possible_anchors[0]
+        ends.remove(anchoredEnd)
+        return  G.shortest_path(ends[0], ends[1])
 
     def get_ribbon(self):
         r"""
@@ -190,32 +187,3 @@ class MobilePoset(FinitePoset):
         Returns the anchor of the mobile poset
         """
         return self._anchor
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

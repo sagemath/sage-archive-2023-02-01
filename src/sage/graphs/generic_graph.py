@@ -12101,30 +12101,6 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return list(self.degree_iterator(vertices, labels))
 
-    def vertices_with_degree(self, degree):
-        r"""
-        Return a list of vertices with the indicated degree.
-
-        INPUT:
-
-        - ``degree`` -- a degree to match with each vertex in the graph
-
-        EXAMPLES:
-
-            sage: G = graphs.CompleteGraph(5)
-            sage: G.vertices_with_degree(4)
-            [0, 1, 2, 3, 4]
-            sage: P = graphs.PathGraph(5)
-            sage: P.vertices_with_degree(1)
-            [0, 4]
-        """
-        vertices = []
-        for v in self.vertex_iterator():
-            if self.degree(v) == degree:
-                vertices.append(v)
-
-        return vertices
-
     def average_degree(self):
         r"""
         Return the average degree of the graph.

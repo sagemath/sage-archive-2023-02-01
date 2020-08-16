@@ -38,7 +38,7 @@ from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.structure.list_clone import ClonableArray
 from sage.misc.misc_c import prod
 from sage.functions.other import factorial
-
+from sage.matrix.constructor import matrix
 
 class LinearExtensionOfPoset(ClonableArray,
         metaclass=InheritComparisonClasscallMetaclass):
@@ -866,10 +866,9 @@ class LinearExtensionsOfPosetWithHooks(LinearExtensionsOfPoset):
         num_elmts = self._poset.cardinality()
 
         if num_elmts == 0:
-            return 1
+            return ZZ(1)
 
-        hooks = self._poset.get_hooks()
-        hook_product = prod(hooks.values())
+        hook_product = self._poset.hook_product()
         return factorial(num_elmts) // hook_product
 
 class LinearExtensionsOfForest(LinearExtensionsOfPoset):
@@ -894,7 +893,7 @@ class LinearExtensionsOfForest(LinearExtensionsOfPoset):
         """
         return sum(self.atkinson(self._elements[0]))
 
-class LinearExtensionsOfMobile(LinearExtensionOfPoset):
+class LinearExtensionsOfMobile(LinearExtensionsOfPoset):
     r"""
     Linear extensions for a mobile poset.
     """
@@ -919,7 +918,7 @@ class LinearExtensionsOfMobile(LinearExtensionOfPoset):
         import sage.combinat.posets.posets as fp
         # Find folds
         if self._poset._anchor:
-            anchor_index = self._poset._ribbon.indexOf(self._poset._anchor[0])
+            anchor_index = self._poset._ribbon.index(self._poset._anchor[0])
         else:
             anchor_index = len(self._poset._ribbon)
 
@@ -936,10 +935,9 @@ class LinearExtensionsOfMobile(LinearExtensionOfPoset):
         # Get ordered connected components
 
         cr = self._poset.cover_relations()
-        foldless_cr = [r for c in cr if (not r in folds)]
+        foldless_cr = [tuple(c) for c in cr if tuple(c) not in folds]
 
-        elmts = self._poset._elements
-
+        elmts = list(self._poset._elements)
         poset_components = DiGraph([elmts, foldless_cr])
         ordered_poset_components = list(map(lambda l: poset_components.connected_component_containing_vertex(l),
                                             [fold[1] for fold in fold_up] + [fold[0] for fold in fold_down]))
@@ -949,18 +947,16 @@ class LinearExtensionsOfMobile(LinearExtensionOfPoset):
 
         # Return determinant
         mat = []
-        for i in range(len(folds)):
+        for i in range(len(folds)+1):
             mat_poset = dc.DCompletePoset(self._poset.subposet(ordered_poset_components[i]))
             row = [0] * (i-1 if i-1 > 0 else 0) + [1] * (1 if i >= 1 else 0)
+            row.append(1 / mat_poset.hook_product())
             for j, f in enumerate(folds[i:]):
+                next_poset = self._poset.subposet(ordered_poset_components[j+i+1])
+                mat_poset = dc.DCompletePoset(fp.FinitePoset.slant_sum(mat_poset, next_poset, f[1], f[0]))
                 row.append(1 / mat_poset.hook_product())
-                if j + i < len(folds) - 1:
-                    next_poset = self._poset.subposet(ordered_poset_components[j+i+1])
-
-                    mat_poset = dc.DCompletePoset(fp.FinitePoset.slant_sum(mat_poset, next_poset, f[1], f[0]))
 
             mat.append(row)
-
         return matrix(QQ, mat).determinant() * factorial(self._poset.cardinality())
 
 

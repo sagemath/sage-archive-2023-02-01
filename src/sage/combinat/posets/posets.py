@@ -6465,7 +6465,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.order_ideal_cardinality([7,10])
             10
         """
-        vertices = list(map(self._element_to_vertex, elements))
+        vertices = [self._element_to_vertex(elmt) for elmt in elements]
         return self._hasse_diagram.order_ideal_cardinality(vertices)
 
     def order_ideal_plot(self, elements):

@@ -20,6 +20,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from .linear_extensions import LinearExtensionsOfPosetWithHooks
 from .lattices import FiniteJoinSemilattice
 from collections import deque
+from sage.rings.integer_ring import ZZ
 from sage.misc.misc_c import prod
 
 class DCompletePoset(FiniteJoinSemilattice):
@@ -121,7 +122,7 @@ class DCompletePoset(FiniteJoinSemilattice):
                     queue.append(c)
                     enqueued.add(c)
 
-        poset_hooks = {self._vertex_to_element(key): value for (key, value) in hooks.items()}
+        poset_hooks = {self._vertex_to_element(key): ZZ(value) for (key, value) in hooks.items()}
         return poset_hooks
 
     def get_hook(self, elmt):
@@ -158,7 +159,7 @@ class DCompletePoset(FiniteJoinSemilattice):
         r"""
         Return the hook product for the poset.
         """
-        if self._poset.cardinality() == 0:
-            return 1
-        
-        return prod(self._hooks.values())
+        if self.cardinality() == 0:
+            return ZZ(1)
+
+        return ZZ(prod(self._hooks.values()))

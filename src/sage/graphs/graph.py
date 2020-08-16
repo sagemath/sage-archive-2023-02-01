@@ -3244,22 +3244,40 @@ class Graph(GenericGraph):
             sage: H = graphs.CycleGraph(5)
             sage: H.is_path()
             False
+            sage: D = graphs.PathGraph(5).disjoint_union(graphs.CycleGraph(5))
+            sage: D.is_path()
+            False
+            sage: E = graphs.EmptyGraph()
+            sage: E.is_path()
+            False
+            sage: O = Graph([[1], []])
+            sage: O.is_path()
+            True
+            sage: O.allow_loops(True)
+            sage: O.add_edge(1, 1)
+            sage: O.is_path()
+            False
         """
+        order = self.order()
+        if order != self.size() + 1:
+            return False
+
+        if order <= 1:
+            return True if order else False
+
         deg_one_counter = 0
         seen_counter = 0
-        for v in self.depth_first_search(self.vertices()[0]):
+        for v in self.depth_first_search(next(self.vertex_iterator())):
             seen_counter += 1
-
-            if deg_one_counter > 2:
-                return False
-
-            if self.degree(v) == 1:
+            deg = self._backend.degree(v, False)
+            if deg == 1:
                 deg_one_counter += 1
+                if deg_one_counter > 2:
+                    return False
 
-            elif self.degree(v) != 2:
+            elif deg != 2:
                 return False
-
-        return seen_counter == self.order() and deg_one_counter == 2
+        return deg_one_counter == 2 and seen_counter == order
 
 
     @doc_index("Connectivity, orientations, trees")

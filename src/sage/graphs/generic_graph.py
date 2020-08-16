@@ -10417,7 +10417,7 @@ class GenericGraph(GenericGraph_pyx):
 
         return {v: self._assoc.get(v, None) for v in verts}
 
-    def vertex_iterator(self, vertices=None):
+    def vertex_iterator(self, vertices=None, degree=None):
         """
         Return an iterator over the given vertices.
 
@@ -10429,6 +10429,9 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``vertices`` -- iterated vertices are these intersected with the
           vertices of the (di)graph
+
+        - ``degree`` -- a nonnegative integer (default: ``None``) that specifies
+          vertices with the given degree
 
         EXAMPLES::
 
@@ -10452,6 +10455,14 @@ class GenericGraph(GenericGraph_pyx):
             2
             3
 
+        ::
+
+            sage: H = graphs.PathGraph(5)
+            sage: for v in H.vertex_iterator(degree=1):
+            ....:     print(v)
+            0
+            4
+
         Note that since the intersection option is available, the
         vertex_iterator() function is sub-optimal, speed-wise, but note the
         following optimization::
@@ -10461,6 +10472,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: timeit V = list(P.vertex_iterator())      # not tested
             100000 loops, best of 3: 5.74 [micro]s per loop
         """
+        if degree:
+            return [v for v, d in self.degree_iterator(labels=True) if d == degree]
+
         return self._backend.iterator_verts(vertices)
 
     __iter__ = vertex_iterator
@@ -10537,7 +10551,7 @@ class GenericGraph(GenericGraph_pyx):
         for u in self._backend.iterator_nbrs(vertex):
             yield u
 
-    def vertices(self, sort=True, key=None):
+    def vertices(self, sort=True, key=None, degree=None):
         r"""
         Return a list of the vertices.
 
@@ -10549,6 +10563,9 @@ class GenericGraph(GenericGraph_pyx):
         - ``key`` -- a function (default: ``None``); a function that takes a
           vertex as its one argument and returns a value that can be used for
           comparisons in the sorting algorithm (we must have ``sort=True``)
+
+        - ``degree`` -- a nonnegative integer (default: ``None``); an integer
+          that specifies vertices only with the given degree
 
         OUTPUT:
 
@@ -10627,8 +10644,8 @@ class GenericGraph(GenericGraph_pyx):
         if (not sort) and key:
             raise ValueError('sort keyword is False, yet a key function is given')
         if sort:
-            return sorted(self.vertex_iterator(), key=key)
-        return list(self.vertex_iterator())
+            return sorted(self.vertex_iterator(degree=degree), key=key)
+        return list(self.vertex_iterator(degree=degree))
 
     def neighbors(self, vertex, closed=False):
         """

@@ -9682,11 +9682,11 @@ class NumberField_absolute(NumberField_generic):
                                          "with respect to %s"%p)
                 else:
                     if not p in self.real_places():
-                        raise ValueError("entries of the list must be " +
+                        raise ValueError("entries of the list must be "
                                          "prime ideals or real places")
                     if p(b) > 0:
-                        raise ValueError("%s is a square in the completion " +
-                                         "with respect to %s" %(b,p))
+                        raise ValueError("%s is a square in the completion "
+                                         "with respect to %s" % (b, p))
 
         # L is the list of primes that we need to consider, b must have
         # nonzero valuation for each prime in L, this is the set S'

@@ -125,14 +125,6 @@ cdef class LaurentSeries(AlgebraElement):
             Laurent Series Ring in s over Finite Field of size 5
             sage: parent(S(t)[1])
             Finite Field of size 5
-
-        TESTS:
-
-        Check that :trac:`30073` is fixed::
-
-            sage: P.<x> = LaurentSeriesRing(QQ)
-            sage: P({-3: 1})
-            x^-3
         """
         AlgebraElement.__init__(self, parent)
 

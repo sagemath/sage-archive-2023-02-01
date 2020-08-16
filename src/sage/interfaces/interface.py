@@ -1099,7 +1099,7 @@ class InterfaceElement(Element):
         To implement a custom string representation, override the method
         ``_repr_``, but do not override this double underscore method.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Here is one example showing that the string representation will
         be cached when requested::

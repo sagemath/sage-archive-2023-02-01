@@ -259,9 +259,10 @@ class Berkovich_Cp(Berkovich):
 
             sage: R.<z> = QQ[]
             sage: A.<a> = NumberField(z^2 + 1)
-            sage: B = Berkovich_Cp_Projective(A, A.prime_above(5))
-            sage: hash(B)
-            1629824360745675264
+            sage: B = Berkovich_Cp_Projective(A, A.primes_above(5)[0])
+            sage: C = Berkovich_Cp_Projective(A, A.primes_above(5)[1])
+            sage: hash(B) != hash(C)
+            True
         """
         if self._base_type == 'padic field':
             return hash(self.prime())
@@ -395,7 +396,7 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
     def __init__(self, base, ideal=None):
         if base in ZZ:
             if base.is_prime():
-                base = Qp(base) #TODO chance to Qpbar
+                base = Qp(base) # change to Qpbar
             else:
                 raise ValueError("non-prime pased into Berkovich space")
         if is_AffineSpace(base):
@@ -417,7 +418,7 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
             if not ideal.is_prime():
                 raise ValueError('passed non prime ideal')
             self._base_type = 'number field'
-        elif is_pAdicField(base): #TODO change base to Qpbar(prime)
+        elif is_pAdicField(base): # change base to Qpbar
             prime = base.prime()
             ideal = None
             self._base_type = 'padic field'

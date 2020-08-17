@@ -363,6 +363,7 @@ from sage.functions.generalized import sign
 from sage.functions.other import binomial
 from sage.geometry.cone import Cone
 from sage.geometry.fan import Fan
+from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import identity_matrix, matrix
 from sage.matrix.special import block_matrix
 from sage.misc.cachefunc import cached_method
@@ -1476,6 +1477,48 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         # everything that is in the base can be coerced to self
         return self.base().has_coerce_map_from(other)
 
+    @cached_method
+    def coxeter_element(self):
+        r"""
+        Return the Coxeter element associated to the initial exchange matrix, if acyclic.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(matrix([[0,1,1],[-1,0,1],[-1,-1,0]]))
+            sage: A.coxeter_element()
+            [0, 1, 2]
+
+        Raise an error if the initial exchange matrix is not acyclic::
+
+            sage: A = ClusterAlgebra(matrix([[0,1,-1],[-1,0,1],[1,-1,0]]))
+            sage: A.coxeter_element()
+            Traceback (most recent call last):
+            ...
+            ValueError: The initial exchange matrix is not acyclic.
+        """
+        dg = DiGraph(self.b_matrix().apply_map(lambda x: ZZ(0) if x <= 0 else ZZ(1)))
+        acyclic, coxeter = dg.is_directed_acyclic(certificate=True)
+        if not acyclic:
+            raise ValueError("The initial exchange matrix is not acyclic.")
+        return coxeter
+
+    @cached_method
+    def is_acyclic(self):
+        r"""
+        Return ``True`` if the exchange matrix in the initial seed is acyclic, ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(matrix([[0,1,1],[-1,0,1],[-1,-1,0]]))
+            sage: A.is_acyclic()
+            True
+            sage: A = ClusterAlgebra(matrix([[0,1,-1],[-1,0,1],[1,-1,0]]))
+            sage: A.is_acyclic()
+            False
+        """
+        dg = DiGraph(self.b_matrix().apply_map(lambda x: ZZ(0) if x <= 0 else ZZ(1)))
+        return dg.is_directed_acyclic()
+
     def rank(self):
         r"""
         Return the rank of ``self``, i.e. the number of cluster variables
@@ -1625,6 +1668,94 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         n = self.rank()
         return copy(self._B0[:n, :])
+
+    def euler_matrix(self):
+        r"""
+        Return the Euler matrix associated to ``self``.
+
+        ALGORITHM:
+
+            This method returns the matrix of the biliinear form defined in Equation (2.1) of [ReSt2020]_ .
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(matrix([[0,1,1],[-1,0,1],[-1,-1,0]]))
+            sage: A.euler_matrix()
+            [ 1  0  0]
+            [-1  1  0]
+            [-1 -1  1]
+
+        Raise an error if the initial exchange matrix is not acyclic::
+
+            sage: A = ClusterAlgebra(matrix([[0,1,-1],[-1,0,1],[1,-1,0]]))
+            sage: A.euler_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: The initial exchange matrix is not acyclic.
+        """
+
+        if not self.is_acyclic():
+            raise ValueError("The initial exchange matrix is not acyclic.")
+        return 1 + self.b_matrix().apply_map(lambda x: min(ZZ(0), x))
+
+    def d_vector_to_g_vector(self, d):
+        r"""
+        Return the g-vector of an element of ``self`` having d-vector ``d``
+
+        INPUT:
+
+        - ``d`` -- the d-vector
+
+        ALGORITHM:
+
+            This method implements the piecewise-linear map `\\nu_c` introduced in Section 9.1 of [ReSt2020]_.
+
+        .. WARNING:
+
+            This implementation works only when the initial exchange matrix is acyclic.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(matrix([[0,1,1],[-1,0,1],[-1,-1,0]]))
+            sage: A.d_vector_to_g_vector((1,0,-1))
+            (-1, 1, 2)
+        """
+        dm = vector(( x if x < 0 else 0 for x in d))
+        dp = vector(d) - dm
+        return tuple(- dm - self.euler_matrix()*dp)
+
+    def g_vector_to_d_vector(self, g):
+        r"""
+        Return the d-vector of an element of ``self`` having g-vector ``g``
+
+        INPUT:
+
+        - ``g`` -- the g-vector
+
+        ALGORITHM:
+
+            This method implements the inverse of the piecewise-linear map `\\nu_c` introduced in Section 9.1 of [ReSt2020]_.
+
+        .. WARNING:
+
+            This implementation works only when the initial exchange matrix is acyclic.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(matrix([[0,1,1],[-1,0,1],[-1,-1,0]]))
+            sage: A.g_vector_to_d_vector((-1,1,2))
+            (1, 0, -1)
+        """
+        E = -self.euler_matrix()
+        c = self.coxeter_element()
+        dp = vector(ZZ, self.rank())
+        g = vector(g)
+        for i in c:
+            dp[i] = -min(g[i], 0)
+            g += min(g[i],0)*E.column(i)
+        return tuple(-g+dp)
+
+        return d
 
     def g_vectors(self, mutating_F=True):
         r"""
@@ -2392,28 +2523,89 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         if self.rank() != 2:
             raise ValueError('greedy elements are only defined in rank 2')
 
-        if len(self.coefficients()) != 0:
-            raise NotImplementedError('can only compute greedy elements in the coefficient-free case')
+        return self.theta_basis_element(self.d_vector_to_g_vector(d_vector))
 
-        b = abs(self.b_matrix()[0, 1])
-        c = abs(self.b_matrix()[1, 0])
-        a1, a2 = d_vector
-        # Here we use the generators of self.ambient() because cluster variables
-        #   do not have an inverse.
-        x1, x2 = self.ambient().gens()
-        if a1 < 0:
-            if a2 < 0:
-                return self.retract(x1 ** (-a1) * x2 ** (-a2))
-            else:
-                return self.retract(x1 ** (-a1) * ((1 + x2 ** c) / x1) ** a2)
-        elif a2 < 0:
-            return self.retract(((1 + x1 ** b) / x2) ** a1 * x2 ** (-a2))
-        output = 0
-        for p in range(0, a2 + 1):
-            for q in range(0, a1 + 1):
-                output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b * p) * x2 ** (c * q)
-        return self.retract(x1 ** (-a1) * x2 ** (-a2) * output)
+    @cached_method(key=lambda a, b: tuple(b))
+    def theta_basis_element(self, g_vector):
+        r"""
+        Return the element of the theta basis of ``self`` with g-vector ``g_vector``.
 
+        INPUT:
+
+        - ``g_vector`` -- tuple; the g-vector of the element to compute
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(matrix([[0,-3],[2,0]]), principal_coefficients=True)
+            sage: A.theta_basis_element((-1,-1))
+            (x1^8*y0^4*y1 + 4*x1^6*y0^3*y1 + 6*x1^4*y0^2*y1 + x0^3*x1^2*y0 + 4*x1^2*y0*y1 + x0^3 + y1)/(x0^4*x1)
+
+            sage: A = ClusterAlgebra(['F', 4])
+            sage: A.theta_basis_element((1, 0, 0, 0))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Currently only implemented for cluster algebras of rank 2.
+
+        .. WARNING::
+
+            Currently only cluster algebras of rank 2 are supported
+
+        .. SEEALSO::
+
+            :meth:`sage.algebras.cluster_algebra.theta_basis_F_polynomial`
+        """
+        g_vector = tuple(g_vector)
+        F = self.theta_basis_F_polynomial(g_vector)
+        F_std = F.subs(self._yhat)
+        g_mon = prod(self.ambient().gen(i) ** g_vector[i] for i in range(self.rank()))
+        F_trop = self.ambient()(F.subs(self._y))._fraction_pair()[1]
+        return self.retract(g_mon * F_std * F_trop)
+
+    @cached_method(key=lambda a, b: tuple(b))
+    def theta_basis_F_polynomial(self, g_vector):
+        r"""
+        Return the F-polynomial of the element of the theta basis of ``self`` with g-vector ``g_vector``.
+
+        INPUT:
+
+        - ``g_vector`` -- tuple; the g-vector of the F-polynomial to compute
+
+        ALGORITHM:
+
+        This method uses the fact that the greedy basis and the theta basis
+        coincide in rank 2 and uses the former defining recursion (Equation
+        (1.5) from [LLZ2014]_) to compute.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(matrix([[0,-3],[2,0]]), principal_coefficients=True)
+            sage: A.theta_basis_F_polynomial((-1,-1))
+            u0^4*u1 + 4*u0^3*u1 + 6*u0^2*u1 + 4*u0*u1 + u0 + u1 + 1
+
+            sage: A = ClusterAlgebra(['F', 4])
+            sage: A.theta_basis_F_polynomial((1, 0, 0, 0))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Currently only implemented for cluster algebras of rank 2.
+        """
+        if self.rank() != 2:
+            raise NotImplementedError("Currently only implemented for cluster algebras of rank 2.")
+
+        # extract the part of g_vector not coming from the initial cluster
+        d = tuple( max(x, 0) for x in self.g_vector_to_d_vector(g_vector) )
+        g = self.d_vector_to_g_vector(d)
+
+        shifts = ((d[0]+g[0])/self._B0[0, 1], (d[1]+g[1])/self._B0[1, 0] )
+        signs = ( sign(self._B0[0, 1]), sign(self._B0[1, 0]) )
+
+        u = list(self._U.gens())
+        output = self._U.zero()
+        for p in range(0, d[1] + 1):
+            for q in range(0, d[0] + 1):
+                output += self._greedy_coefficient(d, p, q) * u[1] ** (signs[0]*p - shifts[0]) * u[0] ** (signs[1]*q - shifts[1])
+        return output
+
+    @cached_method
     def _greedy_coefficient(self, d_vector, p, q):
         r"""
         Return the coefficient of the monomial ``x1 ** (b * p) * x2 ** (c * q)``
@@ -2429,8 +2621,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A._greedy_coefficient((1, 1), 1, 0)
             1
         """
-        b = abs(self.b_matrix()[0, 1])
-        c = abs(self.b_matrix()[1, 0])
+        b = abs(self._B0[0, 1])
+        c = abs(self._B0[1, 0])
         a1, a2 = d_vector
         p = Integer(p)
         q = Integer(q)
@@ -2488,20 +2680,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
             sage: A = ClusterAlgebra(['F', 4])
             sage: A.lower_bound()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: not implemented yet
-        """
-        raise NotImplementedError("not implemented yet")
-
-    def theta_basis_element(self, g_vector):
-        r"""
-        Return the element of the theta basis with g-vector ``g_vector``.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['F', 4])
-            sage: A.theta_basis_element((1, 0, 0, 0))
             Traceback (most recent call last):
             ...
             NotImplementedError: not implemented yet

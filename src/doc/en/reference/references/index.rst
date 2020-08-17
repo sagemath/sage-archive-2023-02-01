@@ -4680,6 +4680,9 @@ REFERENCES:
 .. [Rea2009] Nathan Reading, *Noncrossing partitions and the shard
              intersection order*, DMTCS Proceedings of FPSAC 2009, 745--756
 
+.. [ReSt2020] Nathan Reading and Salvatore Stella, *An affine almost positive
+              roots model*, J. Comb. Algebra Volume 4, Issue 1, 2020, pp. 1--59
+
 .. [Red2001] Maria Julia Redondo. *Hochschild cohomology: some methods
              for computations*. Resenhas IME-USP 5 (2), 113-137
              (2001). http://inmabb.criba.edu.ar/gente/mredondo/crasp.pdfc

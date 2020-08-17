@@ -1350,7 +1350,7 @@ cdef class FiniteField(Field):
                     self.base_ring())
 
     def extension(self, modulus, name=None, names=None, map=False, embedding=None,
-                  latex_name=None, **kwds):
+                  *, latex_name=None, latex_names=None, **kwds):
         """
         Return an extension of this finite field.
 

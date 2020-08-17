@@ -3094,12 +3094,12 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: F == loads(dumps(F))
             True
 
-            sage: K2.<a> = NumberField(x^3+x^2+1, latex_name='a')
+            sage: K2.<a> = NumberField(x^3+x^2+1, latex_names='a')
             sage: F2 = K2.construction()[0]
             sage: F2 == F
             True
 
-            sage: K3.<a> = NumberField(x^3+x^2+1, latex_name='alpha')
+            sage: K3.<a> = NumberField(x^3+x^2+1, latex_names='alpha')
             sage: F3 = K3.construction()[0]
             sage: F3 == F
             False

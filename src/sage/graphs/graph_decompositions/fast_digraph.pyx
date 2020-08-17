@@ -9,8 +9,8 @@ cardinality).
 
 **Sets and integers :**
 
-In the following code, sets are represented as integers, where the ith bit is
-set if element i belongs to the set.
+In the following code, sets are represented as integers, where the `i`-th bit is
+set if element `i` belongs to the set.
 """
 
 from libc.stdint cimport uint8_t
@@ -33,7 +33,7 @@ cdef class FastDigraph:
           between `[0..n-1]` and the set of vertices of the input (Di)Graph,
           ``list(D)`` by default
 
-        TESTS::
+        EXAMPLES::
 
             sage: cython_code = [
             ....: 'from sage.graphs.graph import Graph',
@@ -46,7 +46,9 @@ cdef class FastDigraph:
             [1, 2, 1]
         """
         if D.order() > 8*sizeof(int):
-            raise OverflowError("Too many vertices. This structure can only encode digraphs on at most %i vertices"%(8*sizeof(int)))
+            raise OverflowError("Too many vertices. This structure can only "
+                                "encode digraphs on at most "
+                                "%i vertices"%(8 * sizeof(int)))
 
         self.n = D.order()
         self.graph = <int *>check_calloc(self.n, sizeof(int))
@@ -91,7 +93,7 @@ cdef class FastDigraph:
         r"""
         Displays the adjacency matrix of ``self``.
 
-        TESTS::
+        EXAMPLES::
 
             sage: cython_code = [
             ....: 'from sage.graphs.graph import Graph',
@@ -105,19 +107,20 @@ cdef class FastDigraph:
         cdef int i, j
         for i in range(self.n):
             for j in range(self.n):
-                print(((self.graph[i]>>j)&1), end="")
+                print(((self.graph[i]>>j) & 1), end="")
             print("")
 
 cdef inline int compute_out_neighborhood_cardinality(FastDigraph g, int S):
     r"""
-    Returns the cardinality of `N^+(S)\S`.
+    Return the cardinality of `N^+(S)\S`.
 
     INPUT:
 
     - ``g`` -- a FastDigraph
+
     - ``S`` -- an integer describing the set
 
-    TESTS::
+    EXAMPLES::
 
         sage: cython_code = [
         ....: 'from sage.graphs.graph import Graph',
@@ -132,19 +135,19 @@ cdef inline int compute_out_neighborhood_cardinality(FastDigraph g, int S):
     cdef int i
     cdef int tmp = 0
     for i in range(g.n):
-        tmp |= g.graph[i] & (-((S >> i)&1))
+        tmp |= g.graph[i] & (-((S >> i) & 1))
 
     tmp &= (~S)
     return popcount32(tmp)
 
 cdef inline int popcount32(int i):
-    """
+    r"""
     Return the number of '1' bits in a 32-bits integer.
 
-    If sizeof(int) > 4, this function only returns the number of '1'
-    bits in (i & ((1<<32) - 1)).
+    If ``sizeof(int) > 4``, this function only returns the number of '1'
+    bits in ``(i & ((1<<32) - 1))``.
 
-    TESTS::
+    EXAMPLES::
 
         sage: cython_code = [
         ....: 'from sage.graphs.graph_decompositions.fast_digraph cimport popcount32',
@@ -153,9 +156,9 @@ cdef inline int popcount32(int i):
         sage: cython(os.linesep.join(cython_code))
         [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4]
     """
-    i = i - ((i >> 1) & 0x55555555);
-    i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
-    return ((i + (i >> 4) & 0x0F0F0F0F) * 0x01010101) >> 24;
+    i = i - ((i >> 1) & 0x55555555)
+    i = (i & 0x33333333) + ((i >> 2) & 0x33333333)
+    return ((i + (i >> 4) & 0x0F0F0F0F) * 0x01010101) >> 24
 
 
 # If you happened to be doubting the consistency of the popcount32 function
@@ -174,7 +177,7 @@ def test_popcount():
     """
     cdef int i = 1
     # While the last 32 bits of i are not equal to 0
-    while (i & ((1<<32) - 1)) :
+    while (i & ((1 << 32) - 1)):
         if popcount32(i) != slow_popcount32(i):
             print("Error for i = ", str(i))
             print("Result with popcount32 : " + str(popcount32(i)))
@@ -186,10 +189,10 @@ cdef inline int slow_popcount32(int i):
     """
     Return the number of '1' bits in a 32-bits integer.
 
-    If sizeof(int) > 4, this function only returns the number of '1'
-    bits in (i & ((1<<32) - 1)).
+    If ``sizeof(int) > 4``, this function only returns the number of '1'
+    bits in ``(i & ((1<<32) - 1))``.
 
-    TESTS::
+    EXAMPLES::
 
         sage: cython_code = [
         ....: 'from sage.graphs.graph_decompositions.fast_digraph cimport popcount32',
@@ -204,6 +207,6 @@ cdef inline int slow_popcount32(int i):
     cdef int k
 
     for k in range(32):
-        j += (i>>k) & 1
+        j += (i >> k) & 1
 
     return j

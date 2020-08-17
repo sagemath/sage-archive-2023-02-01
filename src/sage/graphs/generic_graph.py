@@ -10459,7 +10459,8 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: H = graphs.PathGraph(5)
-            sage: for v in H.vertex_iterator(degree=1):
+            sage: degree_one = lambda v: H.degree(v) == 1
+            sage: for v in H.vertex_iterator(vertex_property=degree_one):
             ....:     print(v)
             0
             4

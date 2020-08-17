@@ -1810,6 +1810,44 @@ class Posets(metaclass=ClasscallMetaclass):
              [3, 2],
              [3, 4],
              [2, 1]]
+
+            sage: P = posets.Mobile(posets.RibbonPoset(7, [1,3]), {1:
+            ....: [posets.YoungDiagramPoset([3, 2], dual=True)], 3: [posets.DoubleTailedDiamond(6)]},
+            ....: anchor=(4, 2, posets.ChainPoset(6)))
+            sage: P.cover_relations()
+            [[4, 5],
+             [4, 3],
+             [4, (4, 2)],
+             [5, 6],
+             [2, 3],
+             [2, 1],
+             [(4, 0), (4, 1)],
+             [(4, 1), (4, 2)],
+             [(1, 0, (1, 1)), (1, 0, (1, 0))],
+             [(1, 0, (1, 1)), (1, 0, (0, 1))],
+             [(1, 0, (1, 0)), (1, 0, (0, 0))],
+             [(1, 0, (0, 2)), (1, 0, (0, 1))],
+             [(1, 0, (0, 1)), (1, 0, (0, 0))],
+             [(1, 0, (0, 0)), 1],
+             [(3, 0, 1), (3, 0, 2)],
+             [(3, 0, 2), (3, 0, 3)],
+             [(3, 0, 3), (3, 0, 4)],
+             [(3, 0, 4), (3, 0, 5)],
+             [(3, 0, 5), (3, 0, 6)],
+             [(3, 0, 6), (3, 0, 8)],
+             [(3, 0, 6), (3, 0, 7)],
+             [(3, 0, 8), (3, 0, 9)],
+             [(3, 0, 7), (3, 0, 9)],
+             [(3, 0, 9), (3, 0, 10)],
+             [(3, 0, 10), (3, 0, 11)],
+             [(3, 0, 11), (3, 0, 12)],
+             [(3, 0, 12), (3, 0, 13)],
+             [(3, 0, 13), (3, 0, 14)],
+             [(3, 0, 14), 3],
+             [0, 1],
+             [(4, 2), (4, 3)],
+             [(4, 3), (4, 4)],
+             [(4, 4), (4, 5)]]
         """
         elements = []
         cover_relations = []
@@ -1820,10 +1858,10 @@ class Posets(metaclass=ClasscallMetaclass):
         if anchor:
             for cr in anchor[2].cover_relations():
                 cover_relations.append(((anchor[0], cr[0]), (anchor[0], cr[1])))
-            cover_relations.append((anchor[0], anchor[1]))
+            cover_relations.append((anchor[0], (anchor[0], anchor[1])))
 
             for elmt in anchor[2]._elements:
-                elements.extend((anchor[0], elmt))
+                elements.append((anchor[0], elmt))
 
         for r, hangs in hangers.items():
             for i, h in enumerate(hangs):
@@ -1833,7 +1871,7 @@ class Posets(metaclass=ClasscallMetaclass):
                     cover_relations.append(((r, i, cr[0]), (r, i, cr[1])))
                 cover_relations.append(((r,i,h.top()), r))
 
-        return Poset([elements, cover_relations])
+        return Poset(DiGraph([elements, cover_relations]))
 
 
 ## RANDOM LATTICES

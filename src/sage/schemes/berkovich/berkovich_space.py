@@ -408,6 +408,14 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
     Element = Berkovich_Element_Cp_Affine
 
     def __init__(self, base, ideal=None):
+        """
+        The Python constructor.
+
+        EXAMPLES::
+
+            sage: Berkovich_Cp_Affine(3)
+            Affine Berkovich line over Cp(3) of precision 20
+        """
         if base in ZZ:
             if base.is_prime():
                 base = Qp(base) # change to Qpbar
@@ -592,6 +600,14 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
     Element = Berkovich_Element_Cp_Projective
 
     def __init__(self, base, ideal=None):
+        """
+        The Python constructor.
+
+        EXAMPLES::
+
+            sage: Berkovich_Cp_Projective(3)
+            Projective Berkovich line over Cp(3) of precision 20
+        """
         if base in ZZ:
             if base.is_prime():
                 base = ProjectiveSpace(Qp(base), 1)

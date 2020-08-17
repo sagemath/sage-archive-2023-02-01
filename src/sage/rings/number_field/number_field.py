@@ -233,7 +233,9 @@ from sage.rings.complex_double import CDF
 from sage.rings.real_lazy import RLF, CLF
 
 
-def NumberField(polynomial, name=None, check=True, names=None, embedding=None, latex_name=None, assume_disc_small=False, maximize_at_primes=None, structure=None, **kwds):
+def NumberField(polynomial, name=None, check=True, names=None, embedding=None,
+                latex_name=None, assume_disc_small=False, maximize_at_primes=None, structure=None,
+                *, latex_names=None, **kwds):
     r"""
     Return *the* number field (or tower of number fields) defined by the
     irreducible ``polynomial``.
@@ -242,13 +244,15 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
 
         - ``polynomial`` - a polynomial over `\QQ` or a number field, or a list
           of such polynomials.
-        - ``name`` - a string or a list of strings, the names of the generators
+        - ``names`` (or ``name``) - a string or a list of strings, the names of
+          the generators
         - ``check`` - a boolean (default: ``True``); do type checking and
           irreducibility checking.
         - ``embedding`` - ``None``, an element, or a list of elements, the
           images of the generators in an ambient field (default: ``None``)
-        - ``latex_name`` - ``None``, a string, or a list of strings (default:
-          ``None``), how the generators are printed for latex output
+        - ``latex_names`` (or ``latex_name``) - ``None``, a string, or a
+          list of strings (default: ``None``), how the generators are printed
+          for latex output
         - ``assume_disc_small`` -- a boolean (default: ``False``); if ``True``,
           assume that no square of a prime greater than PARI's primelimit
           (which should be 500000); only applies for absolute fields at
@@ -539,6 +543,8 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
     """
     if names is not None:
         name = names
+    if latex_names is not None:
+        latex_name = latex_names
     for key, val in kwds.items():
         if key not in ['implementation', 'prec']:
             raise TypeError("NumberField() got an unexpected keyword argument '%s'"%key)
@@ -1558,7 +1564,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         The construction preserves latex variable names::
 
-            sage: K.<a,b,c> = NumberField([x^3+x^2+1, x^2+1, x^7+x+1], latex_name=['alpha', 'beta', 'gamma'])
+            sage: K.<a,b,c> = NumberField([x^3+x^2+1, x^2+1, x^7+x+1], latex_names=['alpha', 'beta', 'gamma'])
             sage: F, R = K.construction()
             sage: F(R) == K
             True
@@ -5406,7 +5412,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         B = self.pari_bnf(proof).bnfisintnorm(n)
         return [self(x, check=False) for x in B]
 
-    def extension(self, poly, name=None, names=None, latex_name=None, *args, **kwds):
+    def extension(self, poly, name=None, names=None, latex_name=None, latex_names=None, *args, **kwds):
         """
         Return the relative extension of this field by a given polynomial.
 
@@ -5455,8 +5461,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             poly = poly.change_ring(self)
         if names is not None:
             name = names
-        if isinstance(name, tuple):
+        if isinstance(name, (tuple, list)):
             name = name[0]
+        if latex_names is not None:
+            latex_name = latex_names
+        if isinstance(latex_name, (tuple, list)):
+            latex_name = latex_name[0]
         return NumberField(poly, name, latex_name=latex_name, *args, **kwds)
 
     def factor(self, n):

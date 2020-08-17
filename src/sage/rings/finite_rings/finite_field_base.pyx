@@ -1359,8 +1359,11 @@ cdef class FiniteField(Field):
         - ``modulus`` -- a polynomial with coefficients in ``self``,
           or an integer.
 
-        - ``name`` -- string: the name of the generator in the new
-          extension
+        - ``name`` or ``names`` -- string: the name of the generator
+          in the new extension
+
+        - ``latex_name`` or ``latex_names`` -- string: latex name of
+          the generator in the new extension
 
         - ``map`` -- boolean (default: ``False``): if ``False``,
           return just the extension `E`; if ``True``, return a pair
@@ -1428,6 +1431,8 @@ cdef class FiniteField(Field):
         from sage.rings.integer import Integer
         if name is None and names is not None:
             name = names
+        if latex_name is None and latex_names is not None:
+            latex_name = latex_names
         if self.degree() == 1:
             if isinstance(modulus, (int, Integer)):
                 E = GF(self.characteristic()**modulus, name=name, **kwds)
@@ -1454,7 +1459,7 @@ cdef class FiniteField(Field):
                 except AssertionError: # coercion already exists
                     pass
         else:
-            E = Field.extension(self, modulus, name=name, embedding=embedding, **kwds)
+            E = Field.extension(self, modulus, name=name, embedding=embedding, latex_name=latex_name, **kwds)
         if map:
             return (E, E.coerce_map_from(self))
         else:

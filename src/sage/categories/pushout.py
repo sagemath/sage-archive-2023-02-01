@@ -3077,11 +3077,11 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             return R.extension(self.polys[0], names=self.names[0], embedding=self.embeddings[0],
                                structure=self.structures[0], prec=self.precs[0],
                                implementation=self.implementations[0],
-                               latex_name=self.latex_names[0], **self.kwds)
+                               latex_names=self.latex_names[0], **self.kwds)
         return R.extension(self.polys, names=self.names, embedding=self.embeddings,
                            structure=self.structures, prec=self.precs,
                            implementation=self.implementations,
-                           latex_name=self.latex_names, **self.kwds)
+                           latex_names=self.latex_names, **self.kwds)
 
     def __eq__(self, other):
         """

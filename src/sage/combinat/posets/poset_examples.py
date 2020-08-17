@@ -1769,13 +1769,13 @@ class Posets(metaclass=ClasscallMetaclass):
         INPUT:
 
         - ``n`` -- the number of vertices
-        - ``descents`` -- (an iterable) the indices on the ribbon where `y > x`
+        - ``descents`` -- an iterable; the indices on the ribbon where `y > x`
 
         EXAMPLES::
 
             sage: R = Posets.RibbonPoset(5, [1,2])
-            sage: R.cover_relations()
-            [[3, 4], [3, 2], [2, 1], [0, 1]]
+            sage: sorted(R.cover_relations())
+            [[0, 1], [2, 1], [3, 2], [3, 4]]
         """
         return Poset([list(range(n)), [(i+1, i) if i in descents else (i, i+1) for i in range(n-1) ]])
 
@@ -1785,7 +1785,6 @@ class Posets(metaclass=ClasscallMetaclass):
         Return a mobile poset with the ribbon ``ribbon`` and
         with hanging d-complete posets specified in ``hangers``
         and a d-complete poset attached above, specified in ``anchor``.
-        The elements specified in ``ribbon``, ``hangers``, and ``anchor``.
 
         INPUT:
 
@@ -1793,61 +1792,24 @@ class Posets(metaclass=ClasscallMetaclass):
         - ``hangers`` -- a dictionary mapping an element on the ribbon
           to a list of d-complete posets that it covers
         - ``anchor`` -- (optional) a ``tuple`` (``ribbon_elmt``,
-        ``anchor_elmt``, ``anchor_poset``), where ``anchor_elmt`` covers
-        ``ribbon_elmt``, and ``anchor_elmt`` is an acyclic element of
-        ``anchor_poset``
+          ``anchor_elmt``, ``anchor_poset``), where ``anchor_elmt`` covers
+          ``ribbon_elmt``, and ``anchor_elmt`` is an acyclic element of
+          ``anchor_poset``
 
         EXAMPLES::
 
             sage: R = Posets.RibbonPoset(5, [1,2])
             sage: H = Poset([[5, 6, 7], [(5, 6), (6,7)]])
             sage: M = Posets.Mobile(R, {3: [H]})
-            sage: M.cover_relations()
-            [[0, 1],
-             [(3, 0, 5), (3, 0, 6)],
-             [(3, 0, 6), (3, 0, 7)],
-             [(3, 0, 7), 3],
-             [3, 2],
-             [3, 4],
-             [2, 1]]
+            sage: len(M.cover_relations())
+            7
 
-            sage: P = posets.Mobile(posets.RibbonPoset(7, [1,3]), {1:
-            ....: [posets.YoungDiagramPoset([3, 2], dual=True)], 3: [posets.DoubleTailedDiamond(6)]},
+            sage: P = posets.Mobile(posets.RibbonPoset(7, [1,3]),
+            ....: {1: [posets.YoungDiagramPoset([3, 2], dual=True)],
+            ....: 3: [posets.DoubleTailedDiamond(6)]},
             ....: anchor=(4, 2, posets.ChainPoset(6)))
-            sage: P.cover_relations()
-            [[4, 5],
-             [4, 3],
-             [4, (4, 2)],
-             [5, 6],
-             [2, 3],
-             [2, 1],
-             [(4, 0), (4, 1)],
-             [(4, 1), (4, 2)],
-             [(1, 0, (1, 1)), (1, 0, (1, 0))],
-             [(1, 0, (1, 1)), (1, 0, (0, 1))],
-             [(1, 0, (1, 0)), (1, 0, (0, 0))],
-             [(1, 0, (0, 2)), (1, 0, (0, 1))],
-             [(1, 0, (0, 1)), (1, 0, (0, 0))],
-             [(1, 0, (0, 0)), 1],
-             [(3, 0, 1), (3, 0, 2)],
-             [(3, 0, 2), (3, 0, 3)],
-             [(3, 0, 3), (3, 0, 4)],
-             [(3, 0, 4), (3, 0, 5)],
-             [(3, 0, 5), (3, 0, 6)],
-             [(3, 0, 6), (3, 0, 8)],
-             [(3, 0, 6), (3, 0, 7)],
-             [(3, 0, 8), (3, 0, 9)],
-             [(3, 0, 7), (3, 0, 9)],
-             [(3, 0, 9), (3, 0, 10)],
-             [(3, 0, 10), (3, 0, 11)],
-             [(3, 0, 11), (3, 0, 12)],
-             [(3, 0, 12), (3, 0, 13)],
-             [(3, 0, 13), (3, 0, 14)],
-             [(3, 0, 14), 3],
-             [0, 1],
-             [(4, 2), (4, 3)],
-             [(4, 3), (4, 4)],
-             [(4, 4), (4, 5)]]
+            sage: len(P.cover_relations())
+            33
         """
         elements = []
         cover_relations = []

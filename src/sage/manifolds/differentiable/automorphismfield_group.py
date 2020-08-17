@@ -314,8 +314,9 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
             if dom.is_manifestly_parallelizable():
                 fmodule = dom.vector_field_module()
                 resu._restrictions[dom] = fmodule.identity_map(name='Id',
-                                                      latex_name=r'\mathrm{Id}')
+                                                     latex_name=r'\mathrm{Id}')
         resu._is_identity = True
+        resu.set_immutable()
         return resu
 
     #### End of monoid methods ####

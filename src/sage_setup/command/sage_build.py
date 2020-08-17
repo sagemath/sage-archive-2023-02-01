@@ -12,10 +12,21 @@ class sage_build(build):
         see :trac:`22106`.
         """
         from sage_setup.autogen import autogen_all
+        from sage_setup.find import find_python_sources
+        from sage.env import SAGE_SRC
+
         log.info("Generating auto-generated sources")
-        for pkg in autogen_all():
+
+        pkgs = autogen_all()
+        python_packages, python_modules, cython_modules = find_python_sources(
+            SAGE_SRC, [ pkg.replace('.', '/') for pkg in pkgs])
+
+        for pkg in python_packages:
             if pkg not in self.distribution.packages:
-                    self.distribution.packages.append(pkg)
+                self.distribution.packages.append(pkg)
+
+        for cython_module in cython_modules:
+            self.distribution.ext_modules.append(cython_module)
 
     def run(self):
         self.run_autogen()

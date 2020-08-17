@@ -409,7 +409,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def _custom_abs(self, x):
         """
-        Returns the absolute value of ``x`` with respect to the norm on ``Cp``.
+        Return the absolute value of ``x`` with respect to the norm on ``Cp``.
 
         Used to simplify code, as ``x`` may be a point of a number field
         or a p-adic field.
@@ -438,7 +438,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def center_function(self):
         """
-        Returns the function defining the centers of disks in the approximation.
+        Return the function defining the centers of disks in the approximation.
 
         Not defined unless this point is a type IV point created by using
         a univariate function to compute centers.
@@ -466,7 +466,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def radius_function(self):
         """
-        Returns the function defining the radii of disks in the approximation.
+        Return the function defining the radii of disks in the approximation.
 
         Not defined unless this point is a type IV point created by using
         a univariate function to compute radii.
@@ -494,7 +494,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def precision(self):
         """
-        Returns the precision of a type IV point.
+        Return the precision of a type IV point.
 
         This integer is the number of disks used in the approximation of the type IV point.
         Not defined for type I, II, or III points.
@@ -652,7 +652,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def path_distance_metric(self, other):
         r"""
-        Returns the path distance metric distance between this point and ``other``.
+        Return the path distance metric distance between this point and ``other``.
 
         Also referred to as the hyperbolic metric, or the big metric.
 
@@ -753,7 +753,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def small_metric(self, other):
         r"""
-        Returns the small metric distance between this point and ``other``.
+        Return the small metric distance between this point and ``other``.
 
         The small metric is an extension of twice
         the spherical distance on `P^1(\CC_p)`.
@@ -930,7 +930,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def center(self):
         r"""
-        Returns the center of the corresponding disk (or sequence of disks)
+        Return the center of the corresponding disk (or sequence of disks)
         in `\CC_p`.
 
         OUTPUT: An element of the ``base`` of the parent Berkovich space.
@@ -962,7 +962,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def type_of_point(self):
         r"""
-        Returns the type of this point of Berkovich space over `\CC_p`.
+        Return the type of this point of Berkovich space over `\CC_p`.
 
         OUTPUT: An integer between 1 and 4 inclusive.
 
@@ -1251,7 +1251,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def as_projective_point(self):
         r"""
-        Returns the corresponding point of projective Berkovich space.
+        Return the corresponding point of projective Berkovich space.
 
         We identify affine Berkovich space with the subset `P^1_{\text{Berk}}(C_p) - \{(1 : 0)\}`.
 
@@ -1349,7 +1349,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def __hash__(self):
         """
-        Returns the hash of this point.
+        Return the hash of this point.
 
         EXAMPLES::
 
@@ -1378,7 +1378,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def lt(self, other):
         r"""
-        Returns ``True`` if this point is less than ``other`` in the standard partial order.
+        Return ``True`` if this point is less than ``other`` in the standard partial order.
 
         Roughly, the partial order corresponds to containment of
         the corresponding disks in ``Cp``.
@@ -1455,7 +1455,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def gt(self, other):
         r"""
-        Returns ``True`` if this point is greater than ``other`` in the standard partial order.
+        Return ``True`` if this point is greater than ``other`` in the standard partial order.
 
         Roughly, the partial order corresponds to containment of
         the corresponding disks in `\CC_p`.
@@ -1605,7 +1605,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def involution_map(self):
         r"""
-        Returns the image of this point under the involution map.
+        Return the image of this point under the involution map.
 
         The involution map is the extension of the map ``z |-> 1/z``
         on `\CC_p` to Berkovich space.
@@ -1888,7 +1888,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     def as_affine_point(self):
         """
-        Returns the corresponding affine point after dehomogenizing at infinity.
+        Return the corresponding affine point after dehomogenizing at infinity.
 
         OUTPUT: A point of affine Berkovich space.
 
@@ -1994,7 +1994,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     def __hash__(self):
         """
-        Returns the hash of this point.
+        Return the hash of this point.
 
         EXAMPLES::
 
@@ -2024,7 +2024,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     def lt(self, other):
         r"""
-        Returns ``True`` if this point is less than ``other`` in the standard partial order.
+        Return ``True`` if this point is less than ``other`` in the standard partial order.
 
         Roughly, the partial order corresponds to containment of
         the corresponding disks in `\CC_p`.
@@ -2114,7 +2114,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     def gt(self, other):
         r"""
-        Returns ``True`` if this point is greater than ``other`` in the standard partial order.
+        Return ``True`` if this point is greater than ``other`` in the standard partial order.
 
         Roughly, the partial order corresponds to containment of
         the corresponding disks in `\CC_p`.
@@ -2351,7 +2351,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     def involution_map(self):
         r"""
-        Returns the image of this point under the involution map.
+        Return the image of this point under the involution map.
 
         The involution map is the extension of the map ``z |-> 1/z``
         on `P^1(\CC_p)` to Berkovich space.

@@ -117,7 +117,7 @@ class Berkovich_Cp(Berkovich):
 
     def is_padic_base(self):
         """
-        Returns ``True`` if this Berkovich space is backed by a p-adic field.
+        Return ``True`` if this Berkovich space is backed by a p-adic field.
 
         OUTPUT:
 
@@ -140,7 +140,7 @@ class Berkovich_Cp(Berkovich):
 
     def is_number_field_base(self):
         """
-        Returns ``True`` if this Berkovich space is backed by a p-adic field.
+        Return ``True`` if this Berkovich space is backed by a p-adic field.
 
         OUTPUT:
 

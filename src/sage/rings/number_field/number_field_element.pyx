@@ -4797,7 +4797,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         """
         K = self.number_field()
         R = K.base_field()[K.variable_name()]
-        R._latex_names = [K.latex_variable_name()]
+        R._latex_names = K.latex_variable_names()
         return R(self.list())._latex_()
 
     def charpoly(self, var='x'):

@@ -10430,9 +10430,9 @@ class GenericGraph(GenericGraph_pyx):
         - ``vertices`` -- iterated vertices are these intersected with the
           vertices of the (di)graph
 
-        - ``vertex_property`` -- function (default: ``None``); a function that inputs
-          a vertex and outputs a boolean value, i.e., a vertex ``v`` is kept if
-          ``vertex_property(v) == True``
+        - ``vertex_property`` -- function (default: ``None``); a function
+          that inputs a vertex and outputs a boolean value, i.e., a vertex
+          ``v`` is kept if ``vertex_property(v) == True``
 
         EXAMPLES::
 
@@ -10478,8 +10478,8 @@ class GenericGraph(GenericGraph_pyx):
             for v in self._backend.iterator_verts(vertices):
                 if vertex_property(v):
                     yield v
-
-        return self._backend.iterator_verts(vertices)
+        else:
+            yield from self._backend.iterator_verts(vertices)
 
     __iter__ = vertex_iterator
 

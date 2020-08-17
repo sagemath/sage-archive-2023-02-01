@@ -13,3 +13,5 @@ lazy_import('sage.libs.eclib.all', ('mwrank_EllipticCurve',
         'mwrank_MordellWeil', 'mwrank_initprimes', 'CremonaModularSymbols'))
 lazy_import('sage.libs.eclib.all', 'get_precision', 'mwrank_get_precision')
 lazy_import('sage.libs.eclib.all', 'set_precision', 'mwrank_set_precision')
+
+lazy_import('sage.libs.giac.giac', 'libgiac')

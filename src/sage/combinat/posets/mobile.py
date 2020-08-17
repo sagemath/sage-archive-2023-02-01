@@ -15,8 +15,13 @@ from .linear_extensions import LinearExtensionsOfMobile
 
 class MobilePoset(FinitePoset):
     r"""
+    A mobile poset.
+
     Mobile posets are an extension of d-complete posets which permit a determinant
-    formula for counting linear extensions.
+    formula for counting linear extensions. They are formed by having a ribbon
+    poset with d-complete posets 'hanging' below it and at most one
+    d-complete poset above it, known as the anchor. See [GGMM2020]_
+    for the definition.
     """
 
     _lin_ext_type = LinearExtensionsOfMobile
@@ -24,6 +29,35 @@ class MobilePoset(FinitePoset):
 
 
     def __init__(self, hasse_diagram, elements, category, facade, key, ribbon=None):
+        r"""
+        EXAMPLES::
+
+            sage: P = posets.Mobile(posets.RibbonPoset(7, [1,3]), {1:
+            ....: [posets.YoungDiagramPoset([3, 2], dual=True)], 3: [posets.DoubleTailedDiamond(6)]},
+            ....: anchor=(4, 2, posets.ChainPoset(6)))
+            sage: type(P)
+            <class 'sage.combinat.posets.mobile.MobilePoset_with_category'>
+
+        The internal data structure consists of:
+
+        - the data required to form a finite poset (see
+          :class:`sage.combinat.posets.posets.FinitePoset`)::
+
+        - ``ribbon`` -- an ordered list of elements that are a path in the
+          undirected Hasse diagram and form the ribbon of the mobile
+
+        TESTS::
+
+            sage: P._ribbon
+            [(4, 5), (4, 4), (4, 3), (4, 2), 4, 3, 2, 1]
+            sage: P._anchor
+            (4, 5)
+            sage: P.linear_extensions().cardinality()
+            361628701868606400
+
+
+        See also the tests in the class documentation.
+        """
         FinitePoset.__init__(self, hasse_diagram=hasse_diagram, elements=elements, category=category, facade=facade, key=key)
         if ribbon and self._test_valid_ribbon(ribbon):
             self._ribbon = ribbon
@@ -117,7 +151,6 @@ class MobilePoset(FinitePoset):
         H = self._hasse_diagram
         H_un = H.to_undirected()
         max_elmts = H.sinks()
-
         # Compute anchor, ribbon
         ribbon = [] # In order list of elements on zigzag
 
@@ -130,7 +163,6 @@ class MobilePoset(FinitePoset):
         for m in max_elmts[1:]:
             sp = H_un.shortest_path(start, m)
             zigzag_elmts.update(sp)
-
         max_elmt_graph = H.subgraph(zigzag_elmts)
         G = max_elmt_graph.to_undirected()
 

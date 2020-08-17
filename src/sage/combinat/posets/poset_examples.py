@@ -1821,10 +1821,10 @@ class Posets(metaclass=ClasscallMetaclass):
         if anchor:
             for cr in anchor[2].cover_relations():
                 cover_relations.append(((anchor[0], cr[0]), (anchor[0], cr[1])))
-            cover_relations.append((anchor[0], anchor[1]))
+            cover_relations.append((anchor[0], (anchor[0], anchor[1])))
 
             for elmt in anchor[2]._elements:
-                elements.extend((anchor[0], elmt))
+                elements.append((anchor[0], elmt))
 
         for r, hangs in hangers.items():
             for i, h in enumerate(hangs):

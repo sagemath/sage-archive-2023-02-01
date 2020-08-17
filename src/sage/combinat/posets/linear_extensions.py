@@ -866,7 +866,7 @@ class LinearExtensionsOfPosetWithHooks(LinearExtensionsOfPoset):
         num_elmts = self._poset.cardinality()
 
         if num_elmts == 0:
-            return ZZ(1)
+            return 1
 
         hook_product = self._poset.hook_product()
         return factorial(num_elmts) // hook_product
@@ -939,11 +939,11 @@ class LinearExtensionsOfMobile(LinearExtensionsOfPoset):
 
         elmts = list(self._poset._elements)
         poset_components = DiGraph([elmts, foldless_cr])
-        ordered_poset_components = list(map(lambda l: poset_components.connected_component_containing_vertex(l),
-                                            [fold[1] for fold in fold_up] + [fold[0] for fold in fold_down]))
+        ordered_poset_components = [poset_components.connected_component_containing_vertex(l, sort=False)
+                                    for l in [fold[1] for fold in fold_up] + [fold[0] for fold in fold_down]]
         ordered_poset_components.append(poset_components.connected_component_containing_vertex(
             folds[-1][1] if len(fold_down) > 0 else folds[-1][0]
-            ))
+            , sort=False))
 
         # Return determinant
         mat = []

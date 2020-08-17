@@ -10417,7 +10417,7 @@ class GenericGraph(GenericGraph_pyx):
 
         return {v: self._assoc.get(v, None) for v in verts}
 
-    def vertex_iterator(self, vertices=None, property=None):
+    def vertex_iterator(self, vertices=None, vertex_property=None):
         """
         Return an iterator over the given vertices.
 
@@ -10430,9 +10430,9 @@ class GenericGraph(GenericGraph_pyx):
         - ``vertices`` -- iterated vertices are these intersected with the
           vertices of the (di)graph
 
-        - ``property`` -- function (default: ``None``); a function that inputs
+        - ``vertex_property`` -- function (default: ``None``); a function that inputs
           a vertex and outputs a boolean value, i.e., a vertex ``v`` is kept if
-          ``property(v) == True``
+          ``vertex_property(v) == True``
 
         EXAMPLES::
 
@@ -10473,9 +10473,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: timeit V = list(P.vertex_iterator())      # not tested
             100000 loops, best of 3: 5.74 [micro]s per loop
         """
-        if property is not None:
+        if vertex_property is not None:
             for v in self._backend.iterator_verts(vertices):
-                if property(v):
+                if vertex_property(v):
                     yield v
 
         return self._backend.iterator_verts(vertices)
@@ -10554,7 +10554,7 @@ class GenericGraph(GenericGraph_pyx):
         for u in self._backend.iterator_nbrs(vertex):
             yield u
 
-    def vertices(self, sort=True, key=None, property=None):
+    def vertices(self, sort=True, key=None, vertex_property=None):
         r"""
         Return a list of the vertices.
 
@@ -10567,9 +10567,9 @@ class GenericGraph(GenericGraph_pyx):
           vertex as its one argument and returns a value that can be used for
           comparisons in the sorting algorithm (we must have ``sort=True``)
 
-        - ``property`` -- function (default: ``None``); a function that inputs
+        - ``vertex_property`` -- function (default: ``None``); a function that inputs
           a vertex and outputs a boolean value, i.e., a vertex ``v`` is kept if
-          ``property(v) == True``
+          ``vertex_property(v) == True``
 
         OUTPUT:
 
@@ -10648,8 +10648,8 @@ class GenericGraph(GenericGraph_pyx):
         if (not sort) and key:
             raise ValueError('sort keyword is False, yet a key function is given')
         if sort:
-            return sorted(self.vertex_iterator(property=property), key=key)
-        return list(self.vertex_iterator(property=property))
+            return sorted(self.vertex_iterator(vertex_property=vertex_property), key=key)
+        return list(self.vertex_iterator(vertex_property=vertex_property))
 
     def neighbors(self, vertex, closed=False):
         """

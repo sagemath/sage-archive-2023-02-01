@@ -39,12 +39,8 @@ from sage.rings.real_mpfr import RR, is_RealNumber
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
 from sage.rings.padics.generic_nodes import is_pAdicField
-from sage.rings.padics.factory import Qp
-from sage.schemes.projective.projective_space import is_ProjectiveSpace, ProjectiveSpace
+from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_field
-from sage.schemes.generic.morphism import is_SchemeMorphism
-from sage.schemes.affine.affine_space import AffineSpace
-from sage.schemes.generic.scheme import Scheme
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import Infinity
@@ -185,14 +181,14 @@ class Berkovich_Element_Cp(Berkovich_Element):
                     if not isinstance(center, SchemeMorphism_point_projective_field):
                         try:
                             center = (self._base_space)(center)
-                        except (TypeError, ValueError) as e:
+                        except (TypeError, ValueError):
                             raise TypeError('could not convert %s to %s' %(center, self._base_space))
                     if self._base_type == 'padic field':
                         if not is_pAdicField(center.scheme().base_ring()):
                             if not isinstance(center.scheme().base_ring(), pAdicBaseGeneric):
                                 try:
                                     center = (self._base_space)(center)
-                                except (TypeError, ValueError) as e:
+                                except (TypeError, ValueError):
                                     raise ValueError("could not convert %s to %s" %(center, self._base_space))
                             else:
                                 # center is padic, not but an element of a scheme over a padic field.
@@ -205,7 +201,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         if center not in self._base_space:
                             try:
                                 center = (self._base_space)(center)
-                            except (TypeError, ValueError) as e:
+                            except (TypeError, ValueError):
                                 raise ValueError('could not convert %s to %s' %(center, self._base_space))
                     if center.scheme().ambient_space() != center.scheme():
                         raise ValueError("the center of a point of Berkovich space over " + \
@@ -244,7 +240,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         if not isinstance(center, pAdicGenericElement):
                             try:
                                 center = (self._base_space)(center)
-                            except (TypeError, ValueError) as e:
+                            except (TypeError, ValueError):
                                 raise TypeError("could not convert %s to %s" %(center, self._base_space))
                         elif not is_pAdicField(center.parent()):
                             #center is padic, not but an element of a padic field. we convert to padic field
@@ -256,7 +252,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         if center.parent() == self._base_space:
                             try:
                                 center = (self._base_space)(center)
-                            except (TypeError, ValueError) as e:
+                            except (TypeError, ValueError):
                                 raise ValueError('could not convert %s to %s' %(center, self._base_space))
                     #make sure the radius coerces into the reals
                     if not is_RealNumber(radius):
@@ -289,14 +285,14 @@ class Berkovich_Element_Cp(Berkovich_Element):
                 if not isinstance(center, SchemeMorphism_point_projective_field):
                     try:
                         center = (self._base_space)(center)
-                    except (ValueError, TypeError) as e:
+                    except (ValueError, TypeError):
                         raise TypeError("could not convert %s to %s" %(center, self._base_space))
                 if self._base_type == 'padic field':
                     if not is_pAdicField(center.scheme().base_ring()):
                         if not isinstance(center.scheme().base_ring(), pAdicBaseGeneric):
                             try:
                                 center = (self._base_space)(center)
-                            except (TypeError, ValueError) as e:
+                            except (TypeError, ValueError):
                                 raise ValueError("could not convert %s to %s" %(center, self._base_space))
                         else:
                             # center is padic, not but an element of a scheme over a padic field.
@@ -304,7 +300,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                             field_scheme = ProjectiveSpace(center.scheme().base_ring().fraction_field(), 1)
                             try:
                                 center = field_scheme(center)
-                            except (TypeError, ValueError) as e:
+                            except (TypeError, ValueError):
                                 raise ValueError('could not convert %s to %s' %center, field_scheme)
                     if center.scheme().base_ring().prime() != self._p:
                         raise ValueError("center must be an element of " + \
@@ -313,7 +309,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                     if center not in self._base_space:
                         try:
                             center = (self._base_space)(center)
-                        except (TypeError, ValueError) as e:
+                        except (TypeError, ValueError):
                             raise ValueError('could not convert %s to %s' %(center, self._base_space))
                 if not(center.scheme().ambient_space() is center.scheme()):
                         raise ValueError("the center of a point of projective Berkovich space cannot be " + \
@@ -326,7 +322,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                     if not isinstance(center, pAdicGenericElement):
                         try:
                             center = (self._base_space)(center)
-                        except (TypeError, ValueError) as e:
+                        except (TypeError, ValueError):
                             raise TypeError("could not convert %s to %s" %(center, self._base_space))
                     elif not is_pAdicField(center.parent()):
                         #center is padic, not but an element of a padic field. we convert to padic field
@@ -338,7 +334,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                     if not(center.parent() == self._base_space):
                         try:
                             center = (self._base_space)(center)
-                        except (TypeError, ValueError) as e:
+                        except (TypeError, ValueError):
                             raise ValueError('could not convert %s to %s' %(center, self._base_space))
             else:
                 raise ValueError("bad value %s passed to space_type. Do not initialize  "%(space_type) + \

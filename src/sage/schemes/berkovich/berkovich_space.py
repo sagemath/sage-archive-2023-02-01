@@ -53,6 +53,13 @@ def is_Berkovich(space):
 
     - ``True`` if ``space`` is a Berkovich space.
     - ``False`` otherwise.
+
+    EXAMPLES::
+
+        sage: B = Berkovich_Cp_Projective(3)
+        sage: from sage.schemes.berkovich.berkovich_space import is_Berkovich
+        sage: is_Berkovich(B)
+        True
     """
     return isinstance(space, Berkovich)
 
@@ -64,6 +71,13 @@ def is_Berkovich_Cp(space):
 
     - ``True`` if ``space`` is a Berkovich space over ``Cp``.
     - ``False`` otherwise.
+
+    EXAMPLES::
+
+        sage: B = Berkovich_Cp_Projective(3)
+        sage: from sage.schemes.berkovich.berkovich_space import is_Berkovich
+        sage: is_Berkovich(B)
+        True
     """
     return isinstance(space, Berkovich_Cp)
 

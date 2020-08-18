@@ -1820,7 +1820,7 @@ def is_classical_parameters_graph(list array):
         ....: is_classical_parameters_graph
         sage: is_classical_parameters_graph([68, 64, 1, 17])  # srg not drg
         False
-        sage: G = gaphs.GossetGraph() # sporadic classical parameters graph
+        sage: G = graphs.GossetGraph() # sporadic classical parameters graph
         sage: G.is_distance_regular(True)
         ([27, 10, 1, None], [None, 1, 10, 27])
         sage: is_classical_parameters_graph([27, 10, 1, 1, 10, 27])
@@ -1902,6 +1902,9 @@ def is_classical_parameters_graph(list array):
 
         if not valid:  # must have -a_1 - 1
             b = -a_(1) - 1
+            if b in {0, -1}:
+                return False  # even this case is invalid
+
             alpha = c_(2) / (1 + b) - 1
             beta = a_(1) + 1 - alpha*(q_binomial(d, 1, b) - 1)
 

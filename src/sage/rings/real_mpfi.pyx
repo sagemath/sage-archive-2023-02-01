@@ -3446,6 +3446,30 @@ cdef class RealIntervalFieldElement(RingElement):
         else:
             raise ValueError("interval contains no integer")
 
+    def _integer_(self, _):
+        r"""
+        Convert this interval to an integer.
+
+        EXAMPLES::
+
+            sage: ZZ(RIF(3))
+            3
+            sage: ZZ(RIF(1/2))
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to convert interval 0.50000000000000000? to an integer
+            sage: ZZ(RIF(1/2,3/2))
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to convert interval 1.? to an integer
+        """
+        try:
+            if self.is_exact():
+                return self.unique_integer()
+        except ValueError:
+            pass
+        raise ValueError("unable to convert interval {!r} to an integer".format(self))
+
     def simplest_rational(self, low_open=False, high_open=False):
         """
         Return the simplest rational in this interval. Given rationals

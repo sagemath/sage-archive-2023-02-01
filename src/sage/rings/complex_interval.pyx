@@ -887,7 +887,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         if not isinstance(right, Integer):
             try:
                 right = Integer(right)
-            except TypeError:
+            except (TypeError, ValueError):
                 # Exponent is really not an integer
                 return (z.log() * z._parent(right)).exp()
 
@@ -1434,6 +1434,30 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             TypeError: can...t convert complex interval to int
         """
         raise TypeError("can't convert complex interval to int")
+
+    def _integer_(self, _):
+        r"""
+        Convert this interval to an integer.
+
+        EXAMPLES::
+
+            sage: ZZ(CIF(-3))
+            -3
+            sage: ZZ(CIF(1+I))
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to convert interval 1 + 1*I to an integer
+            sage: ZZ(CIF(RIF(1/2,3/2)))
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to convert interval 1.? to an integer
+        """
+        try:
+            if self.imag()._integer_(None).is_zero():
+                return self.real()._integer_(None)
+        except ValueError:
+            pass
+        raise ValueError("unable to convert interval {!r} to an integer".format(self))
 
     def __float__(self):
         """

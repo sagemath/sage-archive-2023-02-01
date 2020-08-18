@@ -1640,7 +1640,7 @@ class Function_factorial(GinacFunction):
         elif isinstance(x, Rational):
             from sage.functions.gamma import gamma
             return gamma(x + 1)
-        elif isinstance(x, Element) and hasattr(x.parent(), 'prec'):
+        elif isinstance(x, Element) and hasattr(x.parent(), 'precision'):
             return (x + 1).gamma()
         elif self._is_numerical(x):
             from sage.functions.gamma import gamma

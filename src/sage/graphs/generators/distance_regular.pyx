@@ -1773,12 +1773,12 @@ def is_classical_parameters_graph(list array):
     Return a tuple of parameters representing the array given. If such no tuple
     can be produced, it returns ``False``.
 
-    Given an intersection array, if it represents a family of  distance-regular 
-    graphs with classical parameters, then this function  returns a tuple 
-    consisting of the  parameters `(d, b, \alpha, \beta)` and a fourth parameter 
-    which is the enum ``CalssicalParametersGraph`` indicating the family with 
+    Given an intersection array, if it represents a family of  distance-regular
+    graphs with classical parameters, then this function  returns a tuple
+    consisting of the  parameters `(d, b, \alpha, \beta)` and a fourth parameter
+    which is the enum ``CalssicalParametersGraph`` indicating the family with
     the given itersection array.
-    If the array doesn't belong to any classical parameter graph, then this 
+    If the array doesn't belong to any classical parameter graph, then this
     function returns ``False``.
     If the array belongs to a sporadic graph rather than a family of graphs,
     then the function returns ``False``. This is to reduce the overlap with
@@ -1825,7 +1825,6 @@ def is_classical_parameters_graph(list array):
         ([27, 10, 1, None], [None, 1, 10, 27])
         sage: is_classical_parameters_graph([27, 10, 1, 1, 10, 27])
         False
-        
     """
     from sage.functions.log import log
     from sage.rings.integer_ring import ZZ
@@ -1846,29 +1845,28 @@ def is_classical_parameters_graph(list array):
               (beta - alpha * q_binomial(i, 1, b)) for i in range(d)]
         cs = [q_binomial(i, 1, b) * (1 + alpha*q_binomial(i-1, 1, b))
               for i in range(1, d+1)]
-        print(bs + cs)
         return arr == bs + cs
 
     def b_(i):
         if i == d:
             return 0
         return array[i]
-    
+
     def c_(i):
         if i == 0:
             return 0
         return array[d - 1 + i]
-    
+
     def a_(i):
         return b_(0) - b_(i) - c_(i)
 
     if len(array) % 2 != 0 :
         return False
-    
+
     d = len(array) // 2
     if d < 3:
         return False
-    
+
     # if array is classical parameters, then we have 2 cases:
     # 1. a_i != \lambda c_i for 2<= i <= d
     # 2. a_i == \lambda c_i for 0<= i <= d
@@ -1879,7 +1877,6 @@ def is_classical_parameters_graph(list array):
     else:
         return False
 
-    print(f"case : {case}")
     if case == 1:
         # b = (a_2 c_3 - c_2 a_3) / (a_1 c_3 - a_3)
         num = a_(2) * c_(3) - c_(2) * a_(3)
@@ -1887,7 +1884,7 @@ def is_classical_parameters_graph(list array):
         b = num / den
         if b in {0, -1}:
             return False
-        
+
         alpha = c_(2) / (1 + b) - 1
         beta = b_(0) / q_binomial(d, 1, b)
 
@@ -1907,14 +1904,12 @@ def is_classical_parameters_graph(list array):
             b = -a_(1) - 1
             alpha = c_(2) / (1 + b) - 1
             beta = a_(1) + 1 - alpha*(q_binomial(d, 1, b) - 1)
-            print(f"b = {b} and alpha = {alpha} and beta = {beta}")
 
     if not check_parameters(d, b, alpha, beta, array):
-        print("check params failed")
         return False
-    
+
     gamma = ClassicalParametersGraph.NonExisting
-    
+
     if b == 1 :
         if alpha == 1 and beta >= d:  # since beta+d = n >= 2*d
             # Johnson Graph
@@ -1954,7 +1949,7 @@ def is_classical_parameters_graph(list array):
         # we checked that beta + 1 = (b^(n-d+1) - 1)/(b - 1) for n >= 2d
         # Grassmann graph
         gamma = ClassicalParametersGraph.Grassmann
-        
+
     elif alpha == 0 and  beta * beta in {1, b, b * b, b**3, b**4}:
         # checked beta in {b^0, b^(0.5), b, b^(1.5), b^2}
         # dual polar graphs
@@ -1971,15 +1966,15 @@ def is_classical_parameters_graph(list array):
                 gamma = ClassicalParametersGraph.UnitaryDualPolar1
             elif beta == r:
                 gamma = ClassicalParametersGraph.UnitaryDualPolar2
-                
+
     elif k % 2 == 0 and alpha + 1 == q_binomial(3, 1, r) and \
          beta + 1 in {q_binomial(2*d + 2, 1, r),
                       q_binomial(2*d + 1, 1, r)}:
         gamma = ClassicalParametersGraph.Ustimenko
-        
+
     elif alpha + 1 == b and integral_log(beta + 1, b) >= d:
         gamma = ClassicalParametersGraph.BilinearForms
-        
+
     elif k % 2 == 0 and alpha + 1 == b and \
          beta + 1 in {r**(2*d - 1),r**(2*d + 1)}:
         gamma = ClassicalParametersGraph.AlternatingForms
@@ -1990,7 +1985,7 @@ def is_classical_parameters_graph(list array):
 
     elif d == 3 and k % 4 == 0 and alpha + 1 == b and beta + 1 == (p**(k//4))**9:
         gamma = ClassicalParametersGraph.AffineE6
-        
+
     if gamma == ClassicalParametersGraph.NonExisting:
         return False
     return (d, b, alpha, beta, gamma)
@@ -2000,10 +1995,10 @@ def graph_with_classical_parameters(int d, int b, alpha_in, beta_in, int gamma):
     Return the graph with the classical parameters given.
 
     The last parameter ``gamma`` is meant to be an element of the enum
-    ``ClassicalParametersGraph`` used to identify the family of graphs to 
+    ``ClassicalParametersGraph`` used to identify the family of graphs to
     construct.
     In particular this function doesn't build any sporadic graph.
-    To build such a graph use 
+    To build such a graph use
     :func:`sage.graphs.generators.distance_regular.distance_regular_graph`.
 
     INPUT:
@@ -2015,9 +2010,51 @@ def graph_with_classical_parameters(int d, int b, alpha_in, beta_in, int gamma):
 
     EXAMPLES::
 
+        sage: from sage.graphs.generators.distance_regular import *
+        sage: graph_with_classical_parameters(3, 1, 1, 3, 1)
+        Johnson graph with parameters 6,3: Graph on 20 vertices
+
+    The last parameter is very important as it takes precedence.
+    This function will not check that the other four parameters match the correct
+    family. Use
+    :func:`sage.graphs.generators.distance_regular.is_classical_parameters_graph`
+    to check the parameters::
+
+        sage: from sage.graphs.generators.distance_regular import *
+        sage: graph_with_classical_parameters(3, 1, 1, 3, 2)
+        Hamming Graph with parameters 3,4: Graph on 64 vertices
+        sage: G = _; G.is_distance_regular(True)
+        ([9, 6, 3, None], [None, 1, 2, 3])
+        sage: is_classical_parameters_graph([9, 6, 3, 1, 2, 3])
+        (3, 1, 0, 3, 2)
+
+    Two families of graphs are not implemented yet::
+
+        sage: from sage.graphs.generators.distance_regular import *
+        sage: graph_with_classical_parameters(3, 16, 15, 511, 17)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Graph would be too big
+        sage: graph_with_classical_parameters(3, 16, 30, 1022, 16)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Graph would be too big
+
     REFERENCES:
 
+    See [BCN1989]_ chapter 9 for a discussion of distance-regular graphs with
+    classical parameters. See also [VDKT2016]_ section 3.1.1.
+
     TESTS::
+
+        sage: graph_with_classical_parameters(3, 1, 2, 3, 3)
+        Half 4 Cube: Graph on 8 vertices
+        sage: graph_with_classical_parameters(3, 2, 0, 2, 9)
+        Symplectic Dual Polar Graph DSp(6, 2): Graph on 135 vertices
+        sage: graph_with_classical_parameters(3, 2, 2, 14, 7)
+        Grassmann graph J_2(6, 3): Graph on 1395 vertices
+        sage: graph_with_classical_parameters(3, -2, -2, 6, 6)
+        Generalised hexagon of order (2, 8): Graph on 819 vertices
     """
     from sage.rings.rational import Rational
     from sage.functions.log import log
@@ -2035,54 +2072,54 @@ def graph_with_classical_parameters(int d, int b, alpha_in, beta_in, int gamma):
 
     if gamma == ClassicalParametersGraph.Johnson:
         return JohnsonGraph(beta + d, d)
-    
+
     elif gamma == ClassicalParametersGraph.Hamming:
         return HammingGraph(d, beta + 1)
-    
+
     elif gamma == ClassicalParametersGraph.HalvedCube:
         a = 0 if beta == 2*d + 1 else 1
         return HalfCube(beta + a)
-    
+
     elif gamma == ClassicalParametersGraph.UnitaryDualPolar:
         return UnitaryDualPolarGraph(2 * d, -b)
-    
+
     elif gamma == ClassicalParametersGraph.HermitianForms:
         return HermitianFormsGraph(d,(-b)**2)
-    
+
     elif gamma == ClassicalParametersGraph.GeneralisedHexagon:
         q = -b
         return GeneralisedHexagonGraph(q, q**3)
-    
+
     elif gamma == ClassicalParametersGraph.Grassmann:
         n = int(log((beta+1) * (b-1) + 1, b)) + d -1
         return GrassmannGraph(b, n, d)
-    
+
     elif gamma == ClassicalParametersGraph.OrthogonalDualPolar1:
         return OrthogonalDualPolarGraph(1, d, b)
-    
+
     elif gamma == ClassicalParametersGraph.SymplecticDualPolar:
         return SymplecticDualPolarGraph(2 * d, b)
-    
+
     elif gamma == ClassicalParametersGraph.OrthogonalDualPolar2:
         return OrthogonalDualPolarGraph(-1, d, b)
-    
+
     elif gamma == ClassicalParametersGraph.UnitaryDualPolar1:
         r = int(sqrt(b))
         return UnitaryDualPolarGraph(2*d + 1, r)
-    
+
     elif gamma == ClassicalParametersGraph.UnitaryDualPolar2:
         r = int(sqrt(b))
         return UnitaryDualPolarGraph(2 * d, r)
-    
+
     elif gamma == ClassicalParametersGraph.Ustimenko:
         q = int(sqrt(b))
         m = int(log((beta+1) * (q-1) + 1, q)) - 1
         UstimenkoGraph(m, q)
-        
+
     elif gamma == ClassicalParametersGraph.BilinearForms:
         e = int(log(beta + 1, b))
         return BilinearFormsGraph(d, e, b)
-    
+
     elif gamma == ClassicalParametersGraph.AlternatingForms:
         q = int(sqrt(b))
         a = 0 if beta + 1 == q**(2*d - 1) else 1
@@ -2210,7 +2247,11 @@ def distance_regular_graph(list arr, existence=False, check=True):
         sage: graphs.distance_regular_graph([3, 2, 2, 1, 2, 1, 1, 2, 2, 3],
         ....: existence=True)
         False
-
+        sage: graphs.distance_regular_graph([18, 16, 16, 1, 1, 9])  # optional - internet gap_packages
+        Generalised hexagon of order (2, 8): Graph on 819 vertices
+        sage: graphs.distance_regular_graph([14, 12, 10, 8, 6, 4, 2,
+        ....: 1, 2, 3, 4, 5, 6, 7])
+        Hamming Graph with parameters 7,3: Graph on 2187 vertices
     """
     from sage.misc.unknown import Unknown
     from sage.categories.sets_cat import EmptySetError

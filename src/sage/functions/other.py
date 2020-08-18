@@ -921,20 +921,19 @@ class Function_real_nth_root(BuiltinFunction):
 
     EXAMPLES::
 
-        sage: v = real_nth_root(2, 3)
-        sage: v
-        real_nth_root(2, 3)
-        sage: v^3
-        2
-        sage: v = real_nth_root(-2, 3)
-        sage: v
-        real_nth_root(-2, 3)
-        sage: v^3
-        -2
+        sage: real_nth_root(2, 3)
+        2^(1/3)
+        sage: real_nth_root(-2, 3)
+        -2^(1/3)
         sage: real_nth_root(8, 3)
         2
         sage: real_nth_root(-8, 3)
         -2
+
+        sage: real_nth_root(-2, 4)
+        Traceback (most recent call last):
+        ...
+        ValueError: no real nth root of negative real number with even n
 
     For numeric input, it gives a numerical approximation. ::
 
@@ -954,7 +953,6 @@ class Function_real_nth_root(BuiltinFunction):
         integrate((abs(x)^3)^(1/5)*sgn(x^3), x)
         sage: _.diff()
         (abs(x)^3)^(1/5)*sgn(x^3)
-
     """
     def __init__(self):
         r"""
@@ -993,14 +991,10 @@ class Function_real_nth_root(BuiltinFunction):
         """
         TESTS::
 
-            sage: real_nth_root(RIF(2), 3)
-            1.259921049894873?
-            sage: real_nth_root(RBF(2), 3)
-            [1.259921049894873 +/- 3.92e-16]
-            sage: real_nth_root(-2, 4)
-            Traceback (most recent call last):
-            ...
-            ValueError: no real nth root of negative real number with even n
+            sage: real_nth_root(RDF(-2), 3)
+            -1.25992104989487...
+            sage: real_nth_root(Reals(100)(2), 2)
+            1.4142135623730950488016887242
         """
         negative = base < 0
 
@@ -1024,6 +1018,11 @@ class Function_real_nth_root(BuiltinFunction):
             x
             sage: real_nth_root(x, 3)
             real_nth_root(x, 3)
+
+            sage: real_nth_root(RIF(2), 3)
+            1.259921049894873?
+            sage: real_nth_root(RBF(2), 3)
+            [1.259921049894873 +/- 3.92e-16]
         """
         if not isinstance(base, Expression) and not isinstance(exp, Expression):
             if isinstance(base, Integer):
@@ -1031,7 +1030,7 @@ class Function_real_nth_root(BuiltinFunction):
                     return base.nth_root(exp)
                 except ValueError:
                     pass
-            self._evalf_(base, exp, parent=s_parent(base))
+            return self._evalf_(base, exp, parent=s_parent(base))
 
         if isinstance(exp, Integer) and exp.is_one():
             return base

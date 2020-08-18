@@ -2970,6 +2970,9 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: t.is_zero()
             True
+            sage: t = pi + x*pi + (pi - 1 - x)*pi - pi^2
+            sage: t.is_zero()
+            True
             sage: u = sin(x)^2 + cos(x)^2 - 1
             sage: u.is_trivial_zero()
             False
@@ -3125,6 +3128,12 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s)...
+
+        Check that :trac:`24658` is fixed::
+
+            sage: val = pi - 2286635172367940241408/1029347477390786609545*sqrt(2)
+            sage: bool(val>0)
+            False
         """
         if self.is_relational():
             # constants are wrappers around Sage objects, compare directly
@@ -3171,10 +3180,11 @@ cdef class Expression(CommutativeRingElement):
                 if pynac_result == relational_notimplemented and self.operator()==operator.ne:
                     return not (self.lhs()-self.rhs()).is_trivial_zero()
                 res = self.test_relation()
-                if res is True:
-                    return True
-                elif res is False:
-                    return False
+                if res in (True, False):
+                    return res
+                res = self.operator()((self.lhs()-self.rhs()).simplify_full(), 0).test_relation()
+                if res in (True, False):
+                    return res
 
             # we really have to do some work here...
             # I really don't like calling Maxima to test equality.  It
@@ -3183,7 +3193,10 @@ cdef class Expression(CommutativeRingElement):
             # precision, etc., that can lead to subtle bugs.  Also, a
             # lot of basic Sage objects can't be put into maxima.
             from sage.symbolic.relation import test_relation_maxima
-            return test_relation_maxima(self)
+            if self.variables():
+                return test_relation_maxima(self)
+            else:
+                return False
 
         self_is_zero = self._gobj.is_zero()
         if self_is_zero:

@@ -13,7 +13,7 @@ Copyright (c) 2008 The PolyBoRi Team.
 def _exists():
     """PolyBoRi convention: checking optional components for prerequisites here
 
-    >>> _exists()
+    sage: _exists()
     True
     """
     try:
@@ -133,10 +133,10 @@ def plot(p, filename, colored=True, format="png",
 
     EXAMPLES:
 
-    >>> r=Ring(1000)
-    >>> x = r.variable
-    >>> plot(x(1)+x(0),"/dev/null", colored=True)
-    >>> plot(x(1)+x(0),"/dev/null", colored=False)
+    sage: r=Ring(1000)
+    sage: x = r.variable
+    sage: plot(x(1)+x(0),"/dev/null", colored=True)
+    sage: plot(x(1)+x(0),"/dev/null", colored=False)
     """
     THICK_PEN = 5
     highlight_path = dict()

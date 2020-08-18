@@ -7,7 +7,7 @@ if __name__ == '__main__':
 def _exists():
     """PolyBoRi convention: checking optional components for prerequisites here
 
-    >>> _exists()
+    sage: _exists()
     True
     """
     from distutils.sysconfig import get_python_version
@@ -24,13 +24,13 @@ class FactoryContext(object):
     callable object. It is useful together with the with statement.
 
     Example:
-    >>> r = Ring(1000)
-    >>> from sage.rings.polynomial.pbori.brial import Variable
-    >>> def var(idx): return Variable(idx, r)
-    >>> with FactoryContext(Variable, var):
+    sage: r = Ring(1000)
+    sage: from sage.rings.polynomial.pbori.brial import Variable
+    sage: def var(idx): return Variable(idx, r)
+    sage: with FactoryContext(Variable, var):
     ...     print Variable(17)
     x(17)
-    >>> try:
+    sage: try:
     ...     print Variable(17)
     ... except:
     ...     print "caught expected exception"
@@ -64,14 +64,14 @@ class RingContext(object):
     the with statement.
 
     Example:
-    >>> r = Ring(1000)
-    >>> from sage.rings.polynomial.pbori.brial import Variable
-    >>> print Variable(17, r)
+    sage: r = Ring(1000)
+    sage: from sage.rings.polynomial.pbori.brial import Variable
+    sage: print Variable(17, r)
     x(17)
-    >>> with RingContext(r):
+    sage: with RingContext(r):
     ...     print Variable(17), Monomial(), Polynomial(0), BooleSet()
     x(17) 1 0 {}
-    >>> try:
+    sage: try:
     ...     print Variable(17)
     ... except:
     ...     print "caught expected exception"

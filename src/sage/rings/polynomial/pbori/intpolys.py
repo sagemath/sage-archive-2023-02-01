@@ -33,16 +33,16 @@ class IntegerPolynomial(object):
 
     def __add__(self, other):
         """
-        >>> from sage.rings.polynomial.pbori.brial import *
-        >>> r= declare_ring([Block("x",1000)], globals()) # doctest: +ELLIPSIS
-        >>> p=IntegerPolynomial(x(1))
-        >>> p
+        sage: from sage.rings.polynomial.pbori.brial import *
+        sage: r= declare_ring([Block("x",1000)], globals()) # doctest: +ELLIPSIS
+        sage: p=IntegerPolynomial(x(1))
+        sage: p
         {0: x(1)}
-        >>> p=p+p;p
+        sage: p=p+p;p
         {1: x(1)}
-        >>> p=p+x(2); p
+        sage: p=p+x(2); p
         {0: x(2), 1: x(1)}
-        >>> p+p
+        sage: p+p
         {1: x(2), 2: x(1)}
         """
         if not isinstance(other, IntegerPolynomial):

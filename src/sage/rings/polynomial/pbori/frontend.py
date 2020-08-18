@@ -4,27 +4,27 @@ This module defines an initial ring, and patches the declare_ring to use
 a given context.
 
 
->>> x(0)
+sage: x(0)
 x(0)
->>> x(0)*x(0)
+sage: x(0)*x(0)
 x(0)
->>> x(0) + x(0)
+sage: x(0) + x(0)
 0
->>> x(9999)
+sage: x(9999)
 x(9999)
->>> x(9999)*x(9999)
+sage: x(9999)*x(9999)
 x(9999)
->>> x(9999) + x(9999)
+sage: x(9999) + x(9999)
 0
 
->>> from sage.rings.polynomial.pbori.brial.frontend import *
->>> context = dict(globals())
->>> polybori_start(context) # doctest: +ELLIPSIS
+sage: from sage.rings.polynomial.pbori.brial.frontend import *
+sage: context = dict(globals())
+sage: polybori_start(context) # doctest: +ELLIPSIS
 ipbori...
->>> r = context['declare_ring']('abc')
->>> context['a']
+sage: r = context['declare_ring']('abc')
+sage: context['a']
 a
->>> r.variable(0)
+sage: r.variable(0)
 a
 """
 

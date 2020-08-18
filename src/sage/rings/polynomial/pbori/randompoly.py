@@ -35,12 +35,12 @@ def sparse_random_system(ring, number_of_polynomials,
     generates a system, which is sparse in the sense, that each polynomial
     contains only a small subset of variables. In each variable that occurrs in a polynomial it is dense in the terms up to the given degree (every term occurs with probability 1/2).
     The system will be satisfiable by at least one solution.
-    >>> from sage.rings.polynomial.pbori.brial import *
-    >>> r=Ring(10)
-    >>> s=sparse_random_system(r, number_of_polynomials = 20, variables_per_polynomial = 3, degree=2, random_seed=123)
-    >>> [p.deg() for p in s]
+    sage: from sage.rings.polynomial.pbori.brial import *
+    sage: r=Ring(10)
+    sage: s=sparse_random_system(r, number_of_polynomials = 20, variables_per_polynomial = 3, degree=2, random_seed=123)
+    sage: [p.deg() for p in s]
     [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-    >>> sorted(groebner_basis(s), reverse=True)
+    sage: sorted(groebner_basis(s), reverse=True)
     [x(0), x(1), x(2), x(3), x(4) + 1, x(5), x(6) + 1, x(7), x(8) + 1, x(9)]
     """
     if random_seed is not None:
@@ -71,7 +71,7 @@ def sparse_random_system(ring, number_of_polynomials,
 def sparse_random_system_data_file_content(
     number_of_variables, **kwds):
     r"""
-    >>> sparse_random_system_data_file_content(10, number_of_polynomials = 5, variables_per_polynomial = 3, degree=2, random_seed=123) # doctest: +ELLIPSIS
+    sage: sparse_random_system_data_file_content(10, number_of_polynomials = 5, variables_per_polynomial = 3, degree=2, random_seed=123) # doctest: +ELLIPSIS
     "declare_ring(['x'+str(i) for in xrange(10)])\nideal=\\\n[...]\n\n"
     """
     dummy_dict = dict()

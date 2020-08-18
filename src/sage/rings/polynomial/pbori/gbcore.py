@@ -339,27 +339,27 @@ def ll_constants_pre(I):
 
 def variety_size_from_gb(I):
     """
-    >>> r=Ring(100)
-    >>> x = r.variable
-    >>> variety_size_from_gb([])
+    sage: r=Ring(100)
+    sage: x = r.variable
+    sage: variety_size_from_gb([])
     1
-    >>> variety_size_from_gb([Polynomial(0, r)])
+    sage: variety_size_from_gb([Polynomial(0, r)])
     1
-    >>> variety_size_from_gb([Polynomial(1, r)])
+    sage: variety_size_from_gb([Polynomial(1, r)])
     0.0
-    >>> variety_size_from_gb([x(1)])
+    sage: variety_size_from_gb([x(1)])
     1.0
-    >>> variety_size_from_gb([x(1), x(2)])
+    sage: variety_size_from_gb([x(1), x(2)])
     1.0
-    >>> variety_size_from_gb([x(1), x(2)*x(3)])
+    sage: variety_size_from_gb([x(1), x(2)*x(3)])
     3.0
-    >>> variety_size_from_gb([x(1), x(1)*x(4), x(2)*x(3)])
+    sage: variety_size_from_gb([x(1), x(1)*x(4), x(2)*x(3)])
     6.0
-    >>> variety_size_from_gb([x(1)*x(2), x(2)*x(3)])
+    sage: variety_size_from_gb([x(1)*x(2), x(2)*x(3)])
     5.0
-    >>> mons = [Monomial([r.variable(i) for i in xrange(100) if i!=j])\
+    sage: mons = [Monomial([r.variable(i) for i in xrange(100) if i!=j])\
         for j in xrange(100)]
-    >>> variety_size_from_gb(mons)
+    sage: variety_size_from_gb(mons)
     1.2676506002282294e+30
     """
     I = [Polynomial(p) for p in I]
@@ -387,10 +387,10 @@ def variety_size_from_gb(I):
 
 def other_ordering_pre(I, option_set, kwds):
     """
-    >>> from sage.rings.polynomial.pbori.brial.blocks import declare_ring
-    >>> r = declare_ring(['x0', 'x1', 'x2', 'x3', 'x4'], globals())
-    >>> id = [x1*x3 + x1 + x2*x3 + x3 + x4, x0*x3 + x0 + x1*x2 + x2 + 1,  x1*x3 + x1*x4 + x3*x4 + x4 + 1, x0*x2 + x0*x4 + x1 + x3 + x4]
-    >>> groebner_basis(id)
+    sage: from sage.rings.polynomial.pbori.brial.blocks import declare_ring
+    sage: r = declare_ring(['x0', 'x1', 'x2', 'x3', 'x4'], globals())
+    sage: id = [x1*x3 + x1 + x2*x3 + x3 + x4, x0*x3 + x0 + x1*x2 + x2 + 1,  x1*x3 + x1*x4 + x3*x4 + x4 + 1, x0*x2 + x0*x4 + x1 + x3 + x4]
+    sage: groebner_basis(id)
     [1]
 
     """

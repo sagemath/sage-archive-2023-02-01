@@ -10,7 +10,7 @@ if __name__ == '__main__':
 def _exists():
     """PolyBoRi convention: checking optional components for prerequisites here
 
-    >>> _exists()
+    sage: _exists()
     True
     """
     try:

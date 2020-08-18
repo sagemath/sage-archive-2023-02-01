@@ -8,57 +8,57 @@ AUTHOR:
 
             Examples:
 
-            >>> from sage.rings.polynomial.pbori.brial.frontend import *
-            >>> r=declare_ring(["x0","x1","x2","y0","y1","y2"], globals())
-            >>> x0>x1
+            sage: from sage.rings.polynomial.pbori.brial.frontend import *
+            sage: r=declare_ring(["x0","x1","x2","y0","y1","y2"], globals())
+            sage: x0>x1
             True
-            >>> x0>x1*x2
+            sage: x0>x1*x2
             True
-            >>> y0>y1
+            sage: y0>y1
             True
-            >>> y0>y1*y2
-            True
-
-            >>> r = r.clone(ordering=dlex)
-            >>> r(x0) > r(x1)
-            True
-            >>> r(x0) > r(x1*x2)
-            False
-
-            >>> r = r.clone(ordering=dp_asc)
-            >>> r(x0) > r(x1)
-            False
-            >>> r(x0) > r(x1*x2)
-            False
-
-            >>> r = r.clone(ordering=block_dlex, blocks=[3])
-            >>> r(x0) > r(x1)
-            True
-            >>> r(x0) > r(x1*x2)
-            False
-            >>> r(x0) > r(y0*y1*y2)
+            sage: y0>y1*y2
             True
 
-            >>> r = r.clone(ordering=block_dp_asc)
-            >>> r(x0) > r(x1)
-            False
-            >>> r(x0) > r(y0)
-            False
-            >>> r(x0) > r(x1*x2)
+            sage: r = r.clone(ordering=dlex)
+            sage: r(x0) > r(x1)
+            True
+            sage: r(x0) > r(x1*x2)
             False
 
-            >>> r = r.clone(ordering=block_dp_asc, blocks=[3])
-            >>> r(x0) > r(y0)
+            sage: r = r.clone(ordering=dp_asc)
+            sage: r(x0) > r(x1)
+            False
+            sage: r(x0) > r(x1*x2)
+            False
+
+            sage: r = r.clone(ordering=block_dlex, blocks=[3])
+            sage: r(x0) > r(x1)
+            True
+            sage: r(x0) > r(x1*x2)
+            False
+            sage: r(x0) > r(y0*y1*y2)
             True
 
-            >>> r(x0) > r(y0*y1)
+            sage: r = r.clone(ordering=block_dp_asc)
+            sage: r(x0) > r(x1)
+            False
+            sage: r(x0) > r(y0)
+            False
+            sage: r(x0) > r(x1*x2)
+            False
+
+            sage: r = r.clone(ordering=block_dp_asc, blocks=[3])
+            sage: r(x0) > r(y0)
             True
 
-            >>> r = r.clone(names=["z17", "z7"])
-            >>> [r.variable(idx) for idx in xrange(3)]
+            sage: r(x0) > r(y0*y1)
+            True
+
+            sage: r = r.clone(names=["z17", "z7"])
+            sage: [r.variable(idx) for idx in xrange(3)]
             [z17, z7, x2]
-            >>> r = r.clone(names="abcde")
-            >>> [r.variable(idx) for idx in xrange(6)]
+            sage: r = r.clone(names="abcde")
+            sage: [r.variable(idx) for idx in xrange(6)]
             [a, b, c, d, e, y2]
 
 """

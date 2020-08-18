@@ -1513,6 +1513,64 @@ cdef class Expression(CommutativeRingElement):
         except TypeError:
             raise TypeError("unable to simplify to a complex interval approximation")
 
+    def _arb_(self, R):
+        r"""
+        Convert this expression to a real or complex ball.
+
+        (In spite of its name, this method also works in the complex case.)
+
+        EXAMPLES::
+
+            sage: RBF(pi, 1/1000)
+            [3.14 +/- 2.60e-3]
+            sage: RBF(pi/2 + 2*arctan(1))
+            [3.14159265358979...]
+            sage: (pi + I)._arb_(CBF)
+            [3.14159265358979...] + 1.000000000000000*I
+            sage: RBF(x)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x to a RealBall
+
+        TESTS::
+
+            sage: CBF(gamma(15/2, 1)).identical(CBF(15/2).gamma(1))
+            True
+        """
+        # Note that we deliberately don't use _eval_self and don't try going
+        # through RIF/CIF in order to avoid unsafe conversions.
+        operator = self.operator()
+        # Constants
+        if operator is None:
+            try:
+                return R(self.pyobject())
+            except (TypeError, ValueError):
+                pass
+        else:
+            # Intended for BuiltinFunctions with a well-defined main argument
+            args = [a.pyobject() if a.is_numeric() else a
+                    for a in self.operands()]
+            try:
+                args = operator._method_arguments(*args)
+                method = getattr(R(args[0]), operator.name())
+            except (AttributeError, TypeError):
+                pass
+            else:
+                if callable(method):
+                    return method(*args[1:])
+            # Generic case: walk through the expression
+            try:
+                res = self.operator()(*[R(a) for a in args])
+            except (TypeError, ValueError):
+                pass
+            else:
+                if res.parent() is R:
+                    return res
+        # Typically more informative and consistent than the exceptions that
+        # would propagate
+        raise TypeError("unable to convert {!r} to a {!s}".format(
+                self, R.element_class.__name__))
+
     def _real_double_(self, R):
         """
         EXAMPLES::

@@ -2928,7 +2928,7 @@ class RealChart(Chart):
                 resu._extra_kwds['axes_labels'] = [r'$'+latex(ac)+r'$'
                                                    for ac in ambient_coords]
         else: # 3D graphic
-            resu.aspect_ratio(1)
+            resu.set_aspect_ratio(1)
             if label_axes:
                 labels = [str(ac) for ac in ambient_coords]
                 resu = set_axes_labels(resu, *labels)

@@ -1,10 +1,8 @@
-# -*- python -*-
 from __future__ import print_function
 
 import sys
 import resource
 from .gbcore import *
-from .memusage import *
 from time import time, clock
 from .PyPolyBoRi import *
 from .blocks import declare_ring, Block
@@ -27,17 +25,19 @@ def print_matrix(A):
 # TODO: Implement constructor to convert Polynomials to
 # GeneralBooleanPolynomial (with e_1 + ... + e_k as coefficient)
 class GeneralBooleanPolynomial:
-    """
+    r"""
     Class to represent Boolean polynomials over F_2^k
     """
 
     def __init__(self, k, coeff, polynomial):
-        """
+        r"""
         Construct a GeneralBooleanPolynomial given by coeff * polynomial
-        Arguments:
-           k :           Number of factors of F_2
-           coeff :       Array containing natural numbers in {0, ..., k-1} representing an element of F_2^k as a set
-           polynomial :  Polynomial
+        
+        INPUT:
+        
+        - ``k`` -- Number of factors of F_2
+        - ``coeff`` -- Array containing natural numbers in {0, ..., k-1} representing an element of F_2^k as a set
+        - ``polynomial`` -- Polynomial
         """
         #print "type of polynomials", type(polynomial)
         #print "polynomials is int?", isinstance(polynomial, int)
@@ -54,28 +54,28 @@ class GeneralBooleanPolynomial:
                 self.polys.append(Polynomial(0, self.ring))
 
     def __len__(self):
-        """
+        r"""
         Returns the number of factors k in the product of the underlying ring F_2^k
         """
         return self.k
 
     def __getitem__(self, k):
-        """
+        r"""
         Return the k-th component (i.e. the projection to the k-th factor)
         """
         return self.polys[k]
 
     def __setitem__(self, k, value):
-        """
+        r"""
         Sets the k-th component (i.e. the projection to the k-th factor)
         """
         self.polys[k] = value
 
     def __eq__(self, other):
-        """
+        r"""
         Tests equality by testing that
-         - both objects are defined over the same ring (i.e. the number of factors is the same)
-         - the objects are equal in each component
+        - both objects are defined over the same ring (i.e. the number of factors is the same)
+        - the objects are equal in each component
         """
         if not len(self) == len(other):
             return False
@@ -88,7 +88,7 @@ class GeneralBooleanPolynomial:
         return not self == other
 
     def __str__(self):
-        """
+        r"""
         Returns a representation of the polynomial as string
         """
         res = ""
@@ -119,7 +119,7 @@ class GeneralBooleanPolynomial:
             return res
 
     def __add__(self, other):
-        """
+        r"""
         Addition of two GeneralBooleanPolynomial
         """
         if not len(self) == len(other):
@@ -133,7 +133,7 @@ class GeneralBooleanPolynomial:
         return sum
 
     def __mul__(self, other):
-        """
+        r"""
         Multiplication of two GeneralBooleanPolynomial
         """
         if not len(self) == len(other):
@@ -147,7 +147,7 @@ class GeneralBooleanPolynomial:
         return prod
 
     def __sub__(self, other):
-        """
+        r"""
         Subtraction of two GeneralBooleanPolynomial
         """
         if not len(self) == len(other):
@@ -161,14 +161,14 @@ class GeneralBooleanPolynomial:
         return sub
 
     def lc(self):
-        """
+        r"""
         Returns leading coefficient as constant GeneralBooleanPolynomial
         """
         return GeneralBooleanPolynomial(self.k, self.lc_as_set(),
                         Polynomial(1, self.ring))
 
     def lc_as_set_array(self):
-        """
+        r"""
         Returns leading coefficient as array containing the indices of the
         non-zero components of the leading coefficient.
         """
@@ -182,14 +182,14 @@ class GeneralBooleanPolynomial:
         return comps
 
     def lc_as_set(self):
-        """
+        r"""
         Returns leading coefficient as set containing the indices of the
         non-zero components of the leading coefficient.
         """
         return set(self.lc_as_set_array())
 
     def lc_binary(self):
-        """
+        r"""
         Returns leading coefficient as array containing the integers 0 or 1
         representing the leading coefficient in a binary form.
         """
@@ -201,7 +201,7 @@ class GeneralBooleanPolynomial:
         return lc_binary
 
     def lt(self):
-        """
+        r"""
         Leading term in form of a GeneralBooleanPolynomial
         """
         max_term = 1
@@ -213,7 +213,7 @@ class GeneralBooleanPolynomial:
         return GeneralBooleanPolynomial(self.k, comps, max_term)
 
     def lm(self):
-        """
+        r"""
         Leading monomial in form of a GeneralBooleanPolynomial
         """
         max_term = 1
@@ -229,7 +229,7 @@ class GeneralBooleanPolynomial:
             max_term)
 
     def constant_part_binary(self):
-        """
+        r"""
         Constant part as binary tuple indicading which coefficients are non-zero
         """
         comps = []
@@ -241,7 +241,7 @@ class GeneralBooleanPolynomial:
         return comps
 
     def constant_part_as_set_array(self):
-        """
+        r"""
         Constant part as array containing the indices of the non-zero coefficients of the constant part (sorted increasingly)
         """
         res = []
@@ -251,13 +251,13 @@ class GeneralBooleanPolynomial:
         return res
 
     def constant_part_as_set(self):
-        """
+        r"""
         Constant part as set containing the indices of the non-zero coefficients of the constant part
         """
         return set(self.constant_part_as_set_array())
 
     def constant_part(self):
-        """
+        r"""
         Constant part as GeneralBoolenPolynomial
         """
         res = GeneralBooleanPolynomial(len(self), [], Polynomial(0, self.ring))
@@ -269,7 +269,7 @@ class GeneralBooleanPolynomial:
         return res
 
     def to_expanded_polynomial_ring(self, new_variables):
-        """
+        r"""
         Returns a representation in form of a Polynomial over a ring with
         additional variables, one for each factor in the product of fields
         F_2^k
@@ -278,7 +278,7 @@ class GeneralBooleanPolynomial:
         return sum(new_variables[i] * self.polys[i] for i in range(self.k))
 
     def is_monomial(self):
-        """
+        r"""
         Test if self is a Monomial
         """
         # Build a list of all terms occurring
@@ -295,7 +295,7 @@ class GeneralBooleanPolynomial:
             return True
 
     def is_zero(self):
-        """
+        r"""
         Tests if self is zero
         """
         for i in range(len(self)):
@@ -304,7 +304,7 @@ class GeneralBooleanPolynomial:
         return True
 
     def monomial(self):
-        """
+        r"""
         Returns a PolyBoRi Monomial representing the leading monomial of self, where self should be a monomial
         """
         assert self.is_monomial()
@@ -314,7 +314,7 @@ class GeneralBooleanPolynomial:
         return Polynomial(0, self.ring)
 
     def divides(self, other):
-        """
+        r"""
         Tests if self divides other
         """
         assert len(self) == len(other)
@@ -374,7 +374,7 @@ def triangulate_over_F2(A, b):
 
 
 def projection_of_expanded_polynomial(f, e, e_vars):
-    """
+    r"""
     Compute the projection of the expanded polynomial f to the component
     corresponding to the variable e (which is part of e_vars)
     """
@@ -390,7 +390,7 @@ def projection_of_expanded_polynomial(f, e, e_vars):
 
 
 def expanded_polynomial2general_polynomial(polynomial, new_variables, ring):
-    """
+    r"""
     Returns a GeneralBooleanPolynomial associated to a Polynomial (polynomial) in
     additional variables (new_variables), where the
     GeneralBooleanPolynomial in obtained from the projections of polynomial
@@ -406,7 +406,7 @@ def expanded_polynomial2general_polynomial(polynomial, new_variables, ring):
 
 
 def reduce_general_boolean_polynomial(F, polynomial):
-    """
+    r"""
     Computes the reduction of polynomial via the ideal given by F
     """
     r = polynomial
@@ -479,7 +479,7 @@ def reduce_general_boolean_polynomial(F, polynomial):
 
 
 def stratified(I):
-    """
+    r"""
     Tests if I does no contain two polynomials with the same leading monomials
     """
     leading_monomials = []
@@ -501,7 +501,7 @@ def build_dict_from_array_of_extended_polynomials(A, e_vars):
 
 
 def stratify_dict_I_gb_I(dict, e_vars, debug=0):
-    """
+    r"""
     Wrapper (calls either stratify_dict_I_gb_I_our_alg or stratify_dict_I_gb_I_Inoue
     """
     #return stratify_dict_I_gb_I_Inoue(dict, e_vars, debug)
@@ -509,7 +509,7 @@ def stratify_dict_I_gb_I(dict, e_vars, debug=0):
 
 
 def stratify_dict_I_gb_I_our_alg(dict, e_vars, debug=0):
-    """
+    r"""
     Build a stratified Groebner bases for dict
     """
     # Ideal for the polynomials of the new basis
@@ -586,7 +586,7 @@ def stratify_dict_I_gb_I_our_alg(dict, e_vars, debug=0):
 
 
 def stratify_dict_I_gb_I_Inoue(dict, e_vars, debug=0):
-    """
+    r"""
     Reimplementation of a simple algorithm of Inoue from BGSet
     """
     # Ideal for the polynomials of the new basis

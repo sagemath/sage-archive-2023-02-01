@@ -1,66 +1,67 @@
-"""PolyBoRi's interface to libpolybori*
+r"""
+PolyBoRi's interface to libpolybori/BRiAL
 
 This file makes interfaces to PolyBoRi's runtime libraries available in Python via sage.
 
 
 AUTHOR:
-    The PolyBoRi Team, 2007-2012
 
-            Examples:
+- The PolyBoRi Team, 2007-2012
 
-            sage: from sage.rings.polynomial.pbori.brial.frontend import *
-            sage: r=declare_ring(["x0","x1","x2","y0","y1","y2"], globals())
-            sage: x0>x1
-            True
-            sage: x0>x1*x2
-            True
-            sage: y0>y1
-            True
-            sage: y0>y1*y2
-            True
+    EXAMPLES::
 
-            sage: r = r.clone(ordering=dlex)
-            sage: r(x0) > r(x1)
-            True
-            sage: r(x0) > r(x1*x2)
-            False
+        sage: from sage.rings.polynomial.pbori.brial.frontend import *
+        sage: r=declare_ring(["x0","x1","x2","y0","y1","y2"], globals())
+        sage: x0>x1
+        True
+        sage: x0>x1*x2
+        True
+        sage: y0>y1
+        True
+        sage: y0>y1*y2
+        True
 
-            sage: r = r.clone(ordering=dp_asc)
-            sage: r(x0) > r(x1)
-            False
-            sage: r(x0) > r(x1*x2)
-            False
+        sage: r = r.clone(ordering=dlex)
+        sage: r(x0) > r(x1)
+        True
+        sage: r(x0) > r(x1*x2)
+        False
 
-            sage: r = r.clone(ordering=block_dlex, blocks=[3])
-            sage: r(x0) > r(x1)
-            True
-            sage: r(x0) > r(x1*x2)
-            False
-            sage: r(x0) > r(y0*y1*y2)
-            True
+        sage: r = r.clone(ordering=dp_asc)
+        sage: r(x0) > r(x1)
+        False
+        sage: r(x0) > r(x1*x2)
+        False
 
-            sage: r = r.clone(ordering=block_dp_asc)
-            sage: r(x0) > r(x1)
-            False
-            sage: r(x0) > r(y0)
-            False
-            sage: r(x0) > r(x1*x2)
-            False
+        sage: r = r.clone(ordering=block_dlex, blocks=[3])
+        sage: r(x0) > r(x1)
+        True
+        sage: r(x0) > r(x1*x2)
+        False
+        sage: r(x0) > r(y0*y1*y2)
+        True
 
-            sage: r = r.clone(ordering=block_dp_asc, blocks=[3])
-            sage: r(x0) > r(y0)
-            True
+        sage: r = r.clone(ordering=block_dp_asc)
+        sage: r(x0) > r(x1)
+        False
+        sage: r(x0) > r(y0)
+        False
+        sage: r(x0) > r(x1*x2)
+        False
 
-            sage: r(x0) > r(y0*y1)
-            True
+        sage: r = r.clone(ordering=block_dp_asc, blocks=[3])
+        sage: r(x0) > r(y0)
+        True
 
-            sage: r = r.clone(names=["z17", "z7"])
-            sage: [r.variable(idx) for idx in xrange(3)]
-            [z17, z7, x2]
-            sage: r = r.clone(names="abcde")
-            sage: [r.variable(idx) for idx in xrange(6)]
-            [a, b, c, d, e, y2]
+        sage: r(x0) > r(y0*y1)
+        True
 
+        sage: r = r.clone(names=["z17", "z7"])
+        sage: [r.variable(idx) for idx in xrange(3)]
+        [z17, z7, x2]
+        sage: r = r.clone(names="abcde")
+        sage: [r.variable(idx) for idx in xrange(6)]
+        [a, b, c, d, e, y2]
 """
 
 from sage import all
@@ -97,7 +98,7 @@ _add_up_polynomials = add_up_polynomials
 
 
 def add_up_polynomials(polys, init):
-    """
+    r"""
     Adds up the polynomials in polys (which should be a BoolePolynomialVector or a sequence of ???
     """
     if not isinstance(polys, BoolePolynomialVector):

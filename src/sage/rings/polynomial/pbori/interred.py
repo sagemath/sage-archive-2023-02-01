@@ -2,7 +2,7 @@ from .PyPolyBoRi import GroebnerStrategy, Polynomial, ReductionStrategy
 
 
 def interred(l, completely=False):
-    """computes a new generating system (g1, ...,gn),
+    r"""computes a new generating system (g1, ...,gn),
     spanning the same ideal modulo field equations.
     The system is interreduced: For i!=j:
     gi.lead() does not divide any leading term of gj.

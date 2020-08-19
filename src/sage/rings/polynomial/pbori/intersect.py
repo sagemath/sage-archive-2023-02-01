@@ -1,10 +1,10 @@
-#
-#  intersect.py
-#  PolyBoRi
-#
-#  Created by Michael Brickenstein on 2008-09-24.
-#  Copyright 2008 The PolyBoRi Team
-#
+r"""
+intersect.py
+PolyBoRi
+
+Created by Michael Brickenstein on 2008-09-24.
+Copyright 2008 The PolyBoRi Team
+"""
 
 from .gbcore import groebner_basis
 from .statistics import used_vars_set
@@ -12,16 +12,19 @@ from itertools import chain
 
 
 def intersect(i, j, **gb_opts):
-    """
+    r"""
     This functions intersects two ideals. The first ring variable is used as helper variable for this
     intersection. It is assumed, that it doesn't occur in the ideals, and that we have an elimination ordering
     for this variables. Both assumptions are checked.
-    sage: from sage.rings.polynomial.pbori.brial.frontend import declare_ring
-    sage: from sage.rings.polynomial.pbori.brial import Block
-    sage: r=declare_ring(Block("x", 1000), globals())
-    sage: x = r.variable
-    sage: intersect([x(1),x(2)+1],[x(1),x(2)])
-    [x(1)]
+    
+    TESTS::
+    
+        sage: from sage.rings.polynomial.pbori.brial.frontend import declare_ring
+        sage: from sage.rings.polynomial.pbori.brial import Block
+        sage: r=declare_ring(Block("x", 1000), globals())
+        sage: x = r.variable
+        sage: intersect([x(1),x(2)+1],[x(1),x(2)])
+        [x(1)]
     """
     if not i or not j:
         return []

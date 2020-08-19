@@ -1,10 +1,9 @@
-# -*- python -*-
 # encoding: utf-8
-"""
+r"""
 cluster.py
 
 Created by Michael Brickenstein on 2011-08-05.
-Copyright 2011 The PolyBoRi Team. See LICENSE file.
+Copyright 2011 The PolyBoRi Team.
 """
 
 import sys

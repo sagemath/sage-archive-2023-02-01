@@ -79,9 +79,9 @@ def ll_encode(polys, reduce=False, prot=False, reduce_by_linear=True):
 
 def eliminate(polys, on_the_fly=False, prot=False, reduction_function=None,
     optimized=True):
-    """There exists an optimized variant, which reorders the variable in a different
-  ring.
-  """
+    r"""
+    There exists an optimized variant, which reorders the variable in a different ring.
+    """
     polys = [Polynomial(p) for p in polys]
     rest = []
     linear_leads = []
@@ -207,37 +207,43 @@ def eliminate_ll_ranked(ll_system, to_reduce,
 
 
 class RingMap(object):
-    """Define a mapping between two rings by common variable names.
+    r"""
+    Define a mapping between two rings by common variable names.
 
-    sage: from sage.rings.polynomial.pbori.brial.frontend import *
-    sage: to_ring = declare_ring([Block("x", 10)], globals())
-    sage: from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
-    sage: mapping = RingMap(to_ring, from_ring)
-    sage: (x(1)+1).navigation().value()
-    6
-    sage: mapping(x(1)+1)
-    x(1) + 1
-    sage: mapping(x(1)+1).navigation().value()
-    1
-    sage: mapping.invert(mapping(x(1)+1))
-    x(1) + 1
-    sage: mapping.invert(mapping(x(1)+1)).navigation().value()
-    6
-    sage: mapping(y(1)+1)
-    Traceback (most recent call last):
-    ...
-    RuntimeError: Operands come from different manager.
-    """
-
-    def __init__(self, to_ring, from_ring):
-        """Initialize map by two given rings.
-
+    TESTS::
+    
         sage: from sage.rings.polynomial.pbori.brial.frontend import *
         sage: to_ring = declare_ring([Block("x", 10)], globals())
         sage: from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
         sage: mapping = RingMap(to_ring, from_ring)
+        sage: (x(1)+1).navigation().value()
+        6
         sage: mapping(x(1)+1)
         x(1) + 1
+        sage: mapping(x(1)+1).navigation().value()
+        1
+        sage: mapping.invert(mapping(x(1)+1))
+        x(1) + 1
+        sage: mapping.invert(mapping(x(1)+1)).navigation().value()
+        6
+        sage: mapping(y(1)+1)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Operands come from different manager.
+    """
+
+    def __init__(self, to_ring, from_ring):
+        r"""
+        Initialize map by two given rings.
+        
+        TESTS::
+
+            sage: from sage.rings.polynomial.pbori.brial.frontend import *
+            sage: to_ring = declare_ring([Block("x", 10)], globals())
+            sage: from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
+            sage: mapping = RingMap(to_ring, from_ring)
+            sage: mapping(x(1)+1)
+            x(1) + 1
         """
 
         def vars(ring):
@@ -266,25 +272,29 @@ class RingMap(object):
         self.from_map = BoolePolynomialVector(from_map)
 
     def __call__(self, poly):
-        """Execute the map to change rings.
+        r"""
+        Execute the map to change rings.
+        
+        TESTS::
 
-        sage: from sage.rings.polynomial.pbori.brial.frontend import *
-        sage: to_ring = declare_ring([Block("x", 10)], globals())
-        sage: from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
-        sage: mapping = RingMap(to_ring, from_ring)
-        sage: mapping(x(1)+1)
-        x(1) + 1
+            sage: from sage.rings.polynomial.pbori.brial.frontend import *
+            sage: to_ring = declare_ring([Block("x", 10)], globals())
+            sage: from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
+            sage: mapping = RingMap(to_ring, from_ring)
+            sage: mapping(x(1)+1)
+            x(1) + 1
         """
         return substitute_variables(self.to_ring, self.to_map, poly)
 
     def invert(self, poly):
-        """Inverted map to initial ring.
+        r"""
+        Inverted map to initial ring.
 
-        sage: from sage.rings.polynomial.pbori.brial.frontend import *
-        sage: to_ring = declare_ring([Block("x", 10)], globals())
-        sage: from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
-        sage: mapping = RingMap(to_ring, from_ring)
-        sage: mapping.invert(mapping(x(1)+1))
-        x(1) + 1
+            sage: from sage.rings.polynomial.pbori.brial.frontend import *
+            sage: to_ring = declare_ring([Block("x", 10)], globals())
+            sage: from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
+            sage: mapping = RingMap(to_ring, from_ring)
+            sage: mapping.invert(mapping(x(1)+1))
+            x(1) + 1
         """
         return substitute_variables(self.from_ring, self.from_map, poly)

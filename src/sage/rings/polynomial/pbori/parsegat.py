@@ -8,10 +8,14 @@ if __name__ == '__main__':
 
 
 def _exists():
-    """PolyBoRi convention: checking optional components for prerequisites here
+    r"""
+    PolyBoRi convention: checking optional components for prerequisites here
 
-    sage: _exists()
-    True
+    TESTS::
+    
+        sage: from sage.rings.polynomial.pbori.parsegat import *
+        sage: _exists()
+        True
     """
     try:
         import pyparsing
@@ -86,7 +90,9 @@ def add_negated(str, log, tokens):
 
 
 class FamiliarityException(Exception):
-    """docstring for FamiliarityException"""
+    r"""
+    Docstring for FamiliarityException
+    """
 
     def __init__(self):
         super(FamiliarityException, self).__init__()
@@ -98,7 +104,9 @@ def fix_symbol_name(str, log, tokens):
 
 
 class DeterminingEquation(object):
-    """docstring for DeterminingEquation"""
+    r"""
+    Docstring for DeterminingEquation
+    """
 
     def __init__(self, variable, mapped_to):
         super(DeterminingEquation, self).__init__()
@@ -113,7 +121,9 @@ class DeterminingEquation(object):
 # be careful: for next state/output we directly generate mapped_to + value
 # instead of introducing a variable and mapping it later
 class VariableManager(object):
-    """docstring for VariableManager"""
+    r"""
+    Docstring for VariableManager
+    """
 
     def __init__(self, ring, prefix="", initialize="noinit", **kwd):
         super(VariableManager, self).__init__()

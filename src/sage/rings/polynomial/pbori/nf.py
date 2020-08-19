@@ -12,7 +12,9 @@ import sys
 
 
 class GeneratorLimitExceeded(Exception):
-    """docstring for GeneratorLimitExceeded"""
+    r"""
+    Docstring for GeneratorLimitExceeded
+    """
 
     def __init__(self, strat):
         #super(GeneratorLimitExceeded, self).__init__()
@@ -26,8 +28,10 @@ mat_counter = 0
 
 
 def build_and_print_matrices(v, strat):
-    """old solution using PIL, the currently used implementation is done in C++
-    and plots the same matrices, as being calculated"""
+    r"""
+    Old solution using PIL, the currently used implementation is done in C++
+    and plots the same matrices, as being calculated
+    """
     treated = BooleSet()
     v = list(v)
     rows = 0
@@ -83,11 +87,14 @@ def build_and_print_matrices(v, strat):
 
 
 def multiply_polynomials(l, ring):
-    """
-    sage: r=Ring(1000)
-    sage: x=r.variable
-    sage: multiply_polynomials([x(3), x(2)+x(5)*x(6), x(0), x(0)+1], r)
-    0
+    r"""
+    
+    TESTS::
+    
+        sage: r=Ring(1000)
+        sage: x=r.variable
+        sage: multiply_polynomials([x(3), x(2)+x(5)*x(6), x(0), x(0)+1], r)
+        0
     """
     l = [Polynomial(p) for p in l]
 
@@ -101,7 +108,9 @@ def multiply_polynomials(l, ring):
 
 
 def build_and_print_matrices_deg_colored(v, strat):
-    """old PIL solution using a different color for each degree"""
+    r"""
+    old PIL solution using a different color for each degree
+    """
     if len(v) == 0:
         return
 
@@ -642,13 +651,17 @@ def symmGB_F2_C(G, opt_exchange=True,
 
 
 def normal_form(poly, ideal, reduced=True):
-    """ Simple normal form computation of a polynomial  against an ideal.
-    sage: from sage.rings.polynomial.pbori.brial import declare_ring, normal_form
-    sage: r=declare_ring(['x','y'], globals())
-    sage: normal_form(x+y, [y],reduced=True)
-    x
-    sage: normal_form(x+y,[x,y])
-    0
+    r"""
+    Simple normal form computation of a polynomial  against an ideal.
+    
+    TESTS::
+    
+        sage: from sage.rings.polynomial.pbori.brial import declare_ring, normal_form
+        sage: r=declare_ring(['x','y'], globals())
+        sage: normal_form(x+y, [y],reduced=True)
+        x
+        sage: normal_form(x+y,[x,y])
+        0
     """
     ring = poly.ring()
     strat = ReductionStrategy(ring)

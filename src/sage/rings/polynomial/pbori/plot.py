@@ -1,20 +1,22 @@
-# -*- python -*-
 # encoding: utf-8
-"""
+r"""
 plot.py
 
 Created by Michael Brickenstein on 2008-10-17.
 Copyright (c) 2008 The PolyBoRi Team.
 
-
 """
 
 
 def _exists():
-    """PolyBoRi convention: checking optional components for prerequisites here
+    r"""
+    PolyBoRi convention: checking optional components for prerequisites here
 
-    sage: _exists()
-    True
+    TESTS::
+    
+        sage: from sage.rings.polynomial.pbori.plot import *
+        sage: _exists()
+        True
     """
     try:
         import jinja2
@@ -129,14 +131,15 @@ def plot(p, filename, colored=True, format="png",
     highlight_monomial=None, fontsize=14,
     template_engine='jinja', landscape=False
     ):
-    """plots ZDD structure to <filename> in format <format>
+    r"""
+    plots ZDD structure to <filename> in format <format>
 
-    EXAMPLES:
+    EXAMPLES::
 
-    sage: r=Ring(1000)
-    sage: x = r.variable
-    sage: plot(x(1)+x(0),"/dev/null", colored=True)
-    sage: plot(x(1)+x(0),"/dev/null", colored=False)
+        sage: r=Ring(1000)
+        sage: x = r.variable
+        sage: plot(x(1)+x(0),"/dev/null", colored=True)
+        sage: plot(x(1)+x(0),"/dev/null", colored=False)
     """
     THICK_PEN = 5
     highlight_path = dict()

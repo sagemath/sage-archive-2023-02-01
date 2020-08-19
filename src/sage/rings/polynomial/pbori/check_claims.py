@@ -1,9 +1,9 @@
 # encoding: utf-8
-"""
-untitled.py
+r"""
+check_claims.py
 
 Created by Michael Brickenstein on 2007-03-05.
-Copyright (c) 2007 The PolyBoRi Team. See LICENSE file.
+Copyright (c) 2007 The PolyBoRi Team.
 """
 from __future__ import print_function
 

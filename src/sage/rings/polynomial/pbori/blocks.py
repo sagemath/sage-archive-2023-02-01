@@ -15,10 +15,11 @@ from itertools import chain, islice
 
 
 class Block(object):
-    """The block class represents a block of variables
-        <var_name>(start_index,...,start_index+size-1), it is the preferred
-        block type for simple one-dimensional variable sets"""
-
+    r"""
+    The block class represents a block of variables
+    <var_name>(start_index,...,start_index+size-1), it is the preferred
+    block type for simple one-dimensional variable sets
+    """
     def __init__(self, var_name, size, start_index=0, reverse=False):
         indices = range(start_index, start_index + size)
         if reverse:
@@ -54,10 +55,11 @@ class Block(object):
 
 
 class AlternatingBlock(object):
-    """The Alternating Block class is used for doing tricky variable
-        schemes,where base names vary, e.g.
-        a(0),b(0),a(1),b(1),a(2),b(2)"""
-
+    r"""
+    The Alternating Block class is used for doing tricky variable
+    schemes,where base names vary, e.g.
+    a(0),b(0),a(1),b(1),a(2),b(2)
+    """
     def __init__(self, var_names, size_per_variable, start_index=0,
         reverse=False):
         self.var_names = var_names
@@ -161,12 +163,12 @@ class AdderBlock(AlternatingBlock):
 
 
 class HigherOrderBlock(object):
-    """HigherOrderBlocks are multidimensional blocks of variables, for each dimension a seperate start_index and size can be specified
+    r"""
+    HigherOrderBlocks are multidimensional blocks of variables, for each dimension a seperate start_index and size can be specified
 
     var_name : variables will be called <var_name>(multiindex), where multiindex is a tuple of the size <size_tuple>
     size_tuple : specifies the sizes of the ranges of each component of the multi-indices
     start_index_tuple : the multi-indices will be of the form start_index_tuple + a, where a is a multi-index with non-negative components
-
     """
 
     def __init__(self, var_name, size_tuple, start_index_tuple=None,
@@ -358,14 +360,19 @@ def if_then(i, t, supposed_to_be_valid=True):
 
 
 def declare_ring(blocks, context=None):
-    """Declare Ring is the preferred function to create a ring and declare a variable scheme,
-  the number of variables is automatically determined,
-  usually you pass globals() as context argument to store the ring and the variable mapping.
-  Example
-  declare_ring([Block("x",10),Block("y",5)],globals())
-  gives  a ring with x(0..9),y(0..4) and registers the ring as r,
-  and the variable blocks x and y in the context dictionary globals(), which consists of the global variables of the python module
-  """
+    r"""
+    Declare Ring is the preferred function to create a ring and declare a variable scheme,
+    the number of variables is automatically determined, usually you pass globals() as context 
+    argument to store the ring and the variable mapping.
+
+    EXAMPLES::
+
+        sage: declare_ring([Block("x",10),Block("y",5)],globals())
+        
+    gives  a ring with x(0..9),y(0..4) and registers the ring as r, and the variable 
+    blocks x and y in the context dictionary globals(), which consists of the global 
+    variables of the python module
+    """
     if context is None:
         context = sys.modules['__main__'].__dict__
 

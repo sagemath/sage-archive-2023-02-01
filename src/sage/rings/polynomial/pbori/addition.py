@@ -5,13 +5,17 @@ from .ll import ll_encode, ll_red_nf_redsb
 
 
 def add_bits_old(bits):
-    """Adds n bits
-    sage: from sage.rings.polynomial.pbori.brial import *
-    sage: r=Ring(10)
-    sage: add_bits_old([r.variable(i) for i in xrange(3)])
-    [x(0) + x(1) + x(2), x(0)*x(1) + x(0)*x(2) + x(1)*x(2)]
-    sage: add_bits_old([r.variable(i) for i in xrange(4)])
-    [x(0) + x(1) + x(2) + x(3), x(0)*x(1) + x(0)*x(2) + x(0)*x(3) + x(1)*x(2) + x(1)*x(3) + x(2)*x(3)]
+    r"""
+    Adds n bits
+    
+    TESTS::
+    
+        sage: from sage.rings.polynomial.pbori.brial import *
+        sage: r=Ring(10)
+        sage: add_bits_old([r.variable(i) for i in xrange(3)])
+        [x(0) + x(1) + x(2), x(0)*x(1) + x(0)*x(2) + x(1)*x(2)]
+        sage: add_bits_old([r.variable(i) for i in xrange(4)])
+        [x(0) + x(1) + x(2) + x(3), x(0)*x(1) + x(0)*x(2) + x(0)*x(3) + x(1)*x(2) + x(1)*x(3) + x(2)*x(3)]
     """
     bits = list(bits)
     n = len(bits)
@@ -32,15 +36,19 @@ def add_bits_old(bits):
 
 
 def add_bits(bits):
-    """Adds n bit variables, by Lucas theorem
-    sage: from sage.rings.polynomial.pbori.brial import *
-    sage: r=Ring(10)
-    sage: add_bits([r.variable(i) for i in xrange(3)])
-    [x(0) + x(1) + x(2), x(0)*x(1) + x(0)*x(2) + x(1)*x(2)]
-    sage: add_bits([r.variable(i) for i in xrange(4)])
-    [x(0) + x(1) + x(2) + x(3), x(0)*x(1) + x(0)*x(2) + x(0)*x(3) + x(1)*x(2) + x(1)*x(3) + x(2)*x(3), x(0)*x(1)*x(2)*x(3)]
-    sage: add_bits([r.variable(0)])
-    [x(0)]
+    r"""
+    Adds n bit variables, by Lucas theorem
+    
+    TESTS::
+    
+        sage: from sage.rings.polynomial.pbori.brial import *
+        sage: r=Ring(10)
+        sage: add_bits([r.variable(i) for i in xrange(3)])
+        [x(0) + x(1) + x(2), x(0)*x(1) + x(0)*x(2) + x(1)*x(2)]
+        sage: add_bits([r.variable(i) for i in xrange(4)])
+        [x(0) + x(1) + x(2) + x(3), x(0)*x(1) + x(0)*x(2) + x(0)*x(3) + x(1)*x(2) + x(1)*x(3) + x(2)*x(3), x(0)*x(1)*x(2)*x(3)]
+        sage: add_bits([r.variable(0)])
+        [x(0)]
     """
     bits = list(bits)
     if len(bits) < 2:
@@ -57,18 +65,21 @@ def add_bits(bits):
 
 
 def add_bit_expressions(bit_expressions):
-    """Adds n bits, which can be arbitrary expressions, the first n variables of the ring    are reversed for usage in this function.
+    r"""
+    Adds n bits, which can be arbitrary expressions, the first n variables of the ring    are reversed for usage in this function.
 
-    sage: from sage.rings.polynomial.pbori.brial import *
-    sage: r=Ring(20)
-    sage: add_bit_expressions([r.variable(i) for i in xrange(10,13)])
-    [x(10) + x(11) + x(12), x(10)*x(11) + x(10)*x(12) + x(11)*x(12)]
-    sage: add_bit_expressions([r.variable(i) for i in xrange(10,13)])
-    [x(10) + x(11) + x(12), x(10)*x(11) + x(10)*x(12) + x(11)*x(12)]
-    sage: add_bit_expressions([r.variable(11), r.variable(11)])
-    [0, x(11)]
-    sage: add_bit_expressions([r.variable(11),r.variable(12),r.variable(13)])
-    [x(11) + x(12) + x(13), x(11)*x(12) + x(11)*x(13) + x(12)*x(13)]
+    TESTS::
+    
+        sage: from sage.rings.polynomial.pbori.brial import *
+        sage: r=Ring(20)
+        sage: add_bit_expressions([r.variable(i) for i in xrange(10,13)])
+        [x(10) + x(11) + x(12), x(10)*x(11) + x(10)*x(12) + x(11)*x(12)]
+        sage: add_bit_expressions([r.variable(i) for i in xrange(10,13)])
+        [x(10) + x(11) + x(12), x(10)*x(11) + x(10)*x(12) + x(11)*x(12)]
+        sage: add_bit_expressions([r.variable(11), r.variable(11)])
+        [0, x(11)]
+        sage: add_bit_expressions([r.variable(11),r.variable(12),r.variable(13)])
+        [x(11) + x(12) + x(13), x(11)*x(12) + x(11)*x(13) + x(12)*x(13)]
     """
 
     bit_variables = []
@@ -84,18 +95,22 @@ def add_bit_expressions(bit_expressions):
 
 
 def add_words(words):
-    """def adds n words, this words are supposed to consists of list of their bits.
-    sage: from sage.rings.polynomial.pbori.brial import *
-    sage: r=Ring(1000)
-    sage: add_words([[r.variable(100+i*3+j) for i in xrange(2)] for j in xrange(3)])
-    [x(100) + x(101) + x(102), x(100)*x(101) + x(100)*x(102) + x(101)*x(102) + x(103) + x(104) + x(105), x(100)*x(101)*x(103) + x(100)*x(101)*x(104) + x(100)*x(101)*x(105) + x(100)*x(102)*x(103) + x(100)*x(102)*x(104) + x(100)*x(102)*x(105) + x(101)*x(102)*x(103) + x(101)*x(102)*x(104) + x(101)*x(102)*x(105) + x(103)*x(104) + x(103)*x(105) + x(104)*x(105), x(100)*x(101)*x(103)*x(104)*x(105) + x(100)*x(102)*x(103)*x(104)*x(105) + x(101)*x(102)*x(103)*x(104)*x(105)]
-    sage: res=add_words([[r.variable(100+i*9+j) for i in xrange(4)] for j in xrange(9)])
-    sage: [len(p) for p in res]
-    [9, 45, 495, 12870, 735462, 70285482, 1891358892, 6435]
-    sage: [p.deg() for p in res]
-    [1, 2, 4, 8, 12, 18, 25, 33]
-    sage: [p.n_nodes() for p in res]
-    [9, 25, 54, 100, 153, 211, 249, 100]
+    r"""
+    Adds n words, this words are supposed to consists of list of their bits.
+
+    TESTS::
+    
+        sage: from sage.rings.polynomial.pbori.brial import *
+        sage: r=Ring(1000)
+        sage: add_words([[r.variable(100+i*3+j) for i in xrange(2)] for j in xrange(3)])
+        [x(100) + x(101) + x(102), x(100)*x(101) + x(100)*x(102) + x(101)*x(102) + x(103) + x(104) + x(105), x(100)*x(101)*x(103) + x(100)*x(101)*x(104) + x(100)*x(101)*x(105) + x(100)*x(102)*x(103) + x(100)*x(102)*x(104) + x(100)*x(102)*x(105) + x(101)*x(102)*x(103) + x(101)*x(102)*x(104) + x(101)*x(102)*x(105) + x(103)*x(104) + x(103)*x(105) + x(104)*x(105), x(100)*x(101)*x(103)*x(104)*x(105) + x(100)*x(102)*x(103)*x(104)*x(105) + x(101)*x(102)*x(103)*x(104)*x(105)]
+        sage: res=add_words([[r.variable(100+i*9+j) for i in xrange(4)] for j in xrange(9)])
+        sage: [len(p) for p in res]
+        [9, 45, 495, 12870, 735462, 70285482, 1891358892, 6435]
+        sage: [p.deg() for p in res]
+        [1, 2, 4, 8, 12, 18, 25, 33]
+        sage: [p.n_nodes() for p in res]
+        [9, 25, 54, 100, 153, 211, 249, 100]
     """
 
     max_word_length = max((len(w) for w in words))
@@ -111,14 +126,18 @@ def add_words(words):
 
 
 def multiply_by_addition(word_a, word_b):
-    """Multiply two words
-    sage: from sage.rings.polynomial.pbori.brial import Ring
-    sage: r=Ring(1000)
-    sage: x = r.variable
-    sage: n=7
-    sage: res=multiply_by_addition([x(200+2*i)  for i in xrange(n)], [x(200+2*i+1)  for i in xrange(n)])
-    sage: [p.n_nodes() for p in res]
-    [2, 4, 7, 17, 38, 85, 222, 630, 1358, 1702, 1713, 1430, 875, 214, 0]
+    r"""
+    Multiply two words
+    
+    TESTS::
+    
+        sage: from sage.rings.polynomial.pbori.brial import Ring
+        sage: r=Ring(1000)
+        sage: x = r.variable
+        sage: n=7
+        sage: res=multiply_by_addition([x(200+2*i)  for i in xrange(n)], [x(200+2*i+1)  for i in xrange(n)])
+        sage: [p.n_nodes() for p in res]
+        [2, 4, 7, 17, 38, 85, 222, 630, 1358, 1702, 1713, 1430, 875, 214, 0]
     """
     word_a = list(word_a)
     word_b = list(word_b)

@@ -3,15 +3,18 @@ from .PyPolyBoRi import easy_linear_factors
 
 
 def easy_linear_polynomials(p):
-    """ Get linear polynomials implied by given polynomial.
+    r"""
+    Get linear polynomials implied by given polynomial.
 
-    sage: from sage.rings.polynomial.pbori.brial.frontend import *
-    sage: easy_linear_polynomials(x(1)*x(2) + 1)
-    [x(1) + 1, x(2) + 1]
-    sage: easy_linear_polynomials(x(1)*x(2) + 0)
-    []
-    sage: easy_linear_polynomials(x(0)*x(1) + x(0)*x(2) + 1)
-    [x(0) + 1, x(1) + x(2) + 1]
+    TESTS::
+    
+        sage: from sage.rings.polynomial.pbori.brial.frontend import *
+        sage: easy_linear_polynomials(x(1)*x(2) + 1)
+        [x(1) + 1, x(2) + 1]
+        sage: easy_linear_polynomials(x(1)*x(2) + 0)
+        []
+        sage: easy_linear_polynomials(x(0)*x(1) + x(0)*x(2) + 1)
+        [x(0) + 1, x(1) + x(2) + 1]
     """
     res = []
     if p.deg() >= 2:
@@ -25,16 +28,18 @@ def easy_linear_polynomials(p):
 
 
 def easy_linear_polynomials_via_interpolation(p):
-    """ Get linear polynomials implied by given polynomial using interpolation
-    of the variety.
+    r"""
+    Get linear polynomials implied by given polynomial using interpolation of the variety.
 
-    sage: from sage.rings.polynomial.pbori.brial.frontend import *
-    sage: easy_linear_polynomials_via_interpolation(x(1)*x(2) + 1)
-    [x(1) + 1, x(2) + 1]
-    sage: easy_linear_polynomials_via_interpolation(x(1)*x(2) + 0)
-    []
-    sage: easy_linear_polynomials_via_interpolation(x(0)*x(1) + x(0)*x(2) + 1)
-    [x(0) + 1, x(1) + x(2) + 1]
+    TESTS::
+    
+        sage: from sage.rings.polynomial.pbori.brial.frontend import *
+        sage: easy_linear_polynomials_via_interpolation(x(1)*x(2) + 1)
+        [x(1) + 1, x(2) + 1]
+        sage: easy_linear_polynomials_via_interpolation(x(1)*x(2) + 0)
+        []
+        sage: easy_linear_polynomials_via_interpolation(x(0)*x(1) + x(0)*x(2) + 1)
+        [x(0) + 1, x(1) + x(2) + 1]
     """
     res = []
     p_vars = p.vars_as_monomial()

@@ -5,10 +5,14 @@ if __name__ == '__main__':
 
 
 def _exists():
-    """PolyBoRi convention: checking optional components for prerequisites here
+    r"""
+    PolyBoRi convention: checking optional components for prerequisites here
+    
+    TESTS::
 
-    sage: _exists()
-    True
+        sage: from sage.rings.polynomial.pbori.context import *
+        sage: _exists()
+        True
     """
     from distutils.sysconfig import get_python_version
     return float(get_python_version()) > 2.4
@@ -20,21 +24,23 @@ import polybori
 
 
 class FactoryContext(object):
-    """Temporarily exchange the constructor of a given type with a compatible
+    r"""
+    Temporarily exchange the constructor of a given type with a compatible
     callable object. It is useful together with the with statement.
 
-    Example:
-    sage: r = Ring(1000)
-    sage: from sage.rings.polynomial.pbori.brial import Variable
-    sage: def var(idx): return Variable(idx, r)
-    sage: with FactoryContext(Variable, var):
-    ...     print Variable(17)
-    x(17)
-    sage: try:
-    ...     print Variable(17)
-    ... except:
-    ...     print "caught expected exception"
-    caught expected exception
+    EXAMPLES::
+    
+        sage: r = Ring(1000)
+        sage: from sage.rings.polynomial.pbori.brial import Variable
+        sage: def var(idx): return Variable(idx, r)
+        sage: with FactoryContext(Variable, var):
+        ...     print Variable(17)
+        x(17)
+        sage: try:
+        ...     print Variable(17)
+        ...   except:
+        ...     print "caught expected exception"
+        caught expected exception
     """
 
     def __init__(self, original, factory):
@@ -59,23 +65,25 @@ class FactoryContext(object):
 
 
 class RingContext(object):
-    """Temporarily fix the ring for constructors of some ring-dependent types
+    r"""
+    Temporarily fix the ring for constructors of some ring-dependent types
     like Variable and Monomial to a given ring. It is useful together with
     the with statement.
 
-    Example:
-    sage: r = Ring(1000)
-    sage: from sage.rings.polynomial.pbori.brial import Variable
-    sage: print Variable(17, r)
-    x(17)
-    sage: with RingContext(r):
-    ...     print Variable(17), Monomial(), Polynomial(0), BooleSet()
-    x(17) 1 0 {}
-    sage: try:
-    ...     print Variable(17)
-    ... except:
-    ...     print "caught expected exception"
-    caught expected exception
+    EXAMPLES::
+    
+        sage: r = Ring(1000)
+        sage: from sage.rings.polynomial.pbori.brial import Variable
+        sage: print Variable(17, r)
+        x(17)
+        sage: with RingContext(r):
+        ...     print Variable(17), Monomial(), Polynomial(0), BooleSet()
+        x(17) 1 0 {}
+        sage: try:
+        ...     print Variable(17)
+        ...   except:
+        ...     print "caught expected exception"
+        caught expected exception
     """
 
     def __init__(self, ring):

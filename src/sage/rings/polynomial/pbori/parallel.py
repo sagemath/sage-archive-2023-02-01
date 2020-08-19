@@ -1,12 +1,11 @@
-# -*- python -*-
 # coding=utf-8
+r"""
+parallel.py
+PolyBoRi
 
-#  parallel.py
-#  PolyBoRi
-#
-#  Created by Michael Brickenstein on 2008-10-31.
-#  Copyright 2008 The PolyBoRi Team
-#
+Created by Michael Brickenstein on 2008-10-31.
+Copyright 2008 The PolyBoRi Team
+"""
 
 from .PyPolyBoRi import if_then_else, CCuddNavigator, BooleSet
 from .PyPolyBoRi import (Polynomial, Ring, WeakRingRef, Monomial,
@@ -20,26 +19,32 @@ except ImportError:
 
 
 def to_fast_pickable(l):
-    """
-    to_fast_pickable(l) converts a list of polynomials into a builtin Python value, which is fast pickable and compact.
-    INPUT:
-        - a list of Boolean polynomials
-    OUTPUT:
-        It is converted to a tuple consisting of
-        - codes referring to the polynomials
-        - list of conversions of nodes.
-            The nodes are sorted, that
-            n occurs before n.else_branch(), n.then_branch()
-            Nodes are only listed, if they are not constant.
+    r"""
+    Converts a list of polynomials into a builtin Python value, which is fast pickable and compact.
 
-        A node is converted in this way:
-            0 -> 0
-            1 -> 1
-            if_then_else(v,t,e) -> (v, index of then branch +2, index of else branch +2)
-            The shift of +2 is for the constant values implicitly contained in the list.
-        Each code c refers to the c-2-th position in the conversion list, if c >=2, else to
-        the corresponding Boolean constant if c in {0, 1}
-    EXAMPLES:
+    INPUT:
+    
+    - a list of Boolean polynomials
+    
+    OUTPUT:
+    
+    It is converted to a tuple consisting of
+    - codes referring to the polynomials
+    - list of conversions of nodes.
+        The nodes are sorted, that
+        n occurs before n.else_branch(), n.then_branch()
+        Nodes are only listed, if they are not constant.
+
+    A node is converted in this way:
+        0 -> 0
+        1 -> 1
+        if_then_else(v,t,e) -> (v, index of then branch +2, index of else branch +2)
+        The shift of +2 is for the constant values implicitly contained in the list.
+    Each code c refers to the c-2-th position in the conversion list, if c >=2, else to
+    the corresponding Boolean constant if c in {0, 1}
+
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.pbori.brial.PyPolyBoRi import Ring
         sage: r=Ring(1000)
         sage: x=r.variable
@@ -101,14 +106,21 @@ def to_fast_pickable(l):
 
 
 def from_fast_pickable(l, r):
-    """from_fast_pickable(l, ring) undoes the operation to_fast_pickable. The first argument is an object created by to_fast_pickable.
+    r"""
+    Undoes the operation to_fast_pickable. The first argument is an object created by to_fast_pickable.
     For the specified format, see the documentation of to_fast_pickable.
     The second argument is ring, in which this polynomial should be created.
+
     INPUT:
-        see OUTPUT of to_fast_pickable
+    
+    See OUTPUT of to_fast_pickable
+
     OUTPUT:
-        a list of Boolean polynomials
-    EXAMPLES:
+    
+    a list of Boolean polynomials
+    
+    EXAMPLES::
+    
         sage: from sage.rings.polynomial.pbori.brial.PyPolyBoRi import Ring
         sage: r=Ring(1000)
         sage: x = r.variable
@@ -249,14 +261,20 @@ copyreg.pickle(Ring, pickle_ring)
 
 
 def groebner_basis_first_finished(I, *l):
-    """
+    r"""
+    
     INPUT:
-        - I ideal
-        - l: keyword dictionaries, which will be keyword arguments to groebner_basis.
+    
+    - ``I`` -- ideal
+    - ``l`` -- keyword dictionaries, which will be keyword arguments to groebner_basis.
+    
     OUTPUT:
-        - tries to compute groebner_basis(I, **kwd) for kwd in l
-        - returns the result of the first terminated computation
-    EXAMPLES:
+    
+    - tries to compute groebner_basis(I, **kwd) for kwd in l
+    - returns the result of the first terminated computation
+    
+    EXAMPLES::
+    
         sage: from sage.rings.polynomial.pbori.brial.PyPolyBoRi import Ring
         sage: r=Ring(1000)
         sage: ideal = [r.variable(1)*r.variable(2)+r.variable(2)+r.variable(1)]

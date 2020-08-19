@@ -2,7 +2,9 @@ from . import BooleSet, interpolate_smallest_lex
 
 
 class PartialFunction(object):
-    """docstring for PartialFunction"""
+    r"""
+    Docstring for PartialFunction
+    """
 
     def __init__(self, zeros, ones):
         super(PartialFunction, self).__init__()

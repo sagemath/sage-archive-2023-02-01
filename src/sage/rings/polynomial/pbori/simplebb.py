@@ -3,7 +3,9 @@ from .interred import interred
 
 
 def buchberger(l):
-    "calculates a (non minimal) Groebner basis"
+    r"""
+    Calculates a (non minimal) Groebner basis
+    """
     l = interred(l)
     #for making sure, that every polynomial has a different leading term
     #needed for add_generator
@@ -50,8 +52,14 @@ def less_than_n_solutions(ideal, n):
 
 
 def gauss(matrix):
-    """Toy Gaussian elimination.
-    Example: gauss([[0,1],[1,1]]) """
+    r"""
+    Toy Gaussian elimination.
+    
+    EXAMPLES:: 
+    
+        sage: from sage.rings.polynomial.pbori.simplebb import *
+        sage: gauss([[0,1],[1,1]])
+    """
     from .gbcore import groebner_basis
 
     def get_num(idx, vars):

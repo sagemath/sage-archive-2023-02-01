@@ -68,7 +68,7 @@ class BundleConnection(SageObject):
         sage: X.<x,y,z> = M.chart()
         sage: E = M.vector_bundle(2, 'E')
         sage: e = E.local_frame('e') # standard frame for E
-        sage: nab = E.bundle_connection('nabla', latex_name=r'\nabla'); nab
+        sage: nab = E.bundle_connection('nabla'); nab
         Bundle connection nabla on the Differentiable real vector bundle E -> M
          of rank 2 over the base space 3-dimensional differentiable manifold M
 
@@ -81,25 +81,27 @@ class BundleConnection(SageObject):
 
         sage: nab[e, :] = 0  # initialize to zero
 
-    Now, we want to specify some non-zero entries::
+    The connection 1-forms are now initialized being differential 1-forms::
 
-        sage: nab[e, 1, 2] = [x*z, y*z, z^2]
-        sage: nab[e, 2, 1] = [x, x^2, x^3]
-        sage: nab[e, 1, 2].display()
-        connection (1,2) of bundle connection nabla w.r.t. Local frame
-         (E|_M, (e_1,e_2)) = x*z dx + y*z dy + z^2 dz
-        sage: nab[e, 2, 1].display()
-        connection (2,1) of bundle connection nabla w.r.t. Local frame
-         (E|_M, (e_1,e_2)) = x dx + x^2 dy + x^3 dz
-
-    The other entries remain zero::
-
+        sage: nab[e, 1, 1].parent()
+        Free module Omega^1(M) of 1-forms on the 3-dimensional differentiable
+         manifold M
         sage: nab[e, 1, 1].display()
         connection (1,1) of bundle connection nabla w.r.t. Local frame
          (E|_M, (e_1,e_2)) = 0
-        sage: nab[e, 2, 2].display()
-        connection (2,2) of bundle connection nabla w.r.t. Local frame
-         (E|_M, (e_1,e_2)) = 0
+
+    Now, we want to specify some non-zero entries::
+
+        sage: nab[e, 1, 2][:] = [x*z, y*z, z^2]
+        sage: nab[e, 2, 1][:] = [x, x^2, x^3]
+        sage: nab[e, 1, 1][:] = [x+z, y-z, x*y*z]
+        sage: nab.display()
+        connection (1,1) of bundle connection nabla w.r.t. Local frame
+          (E|_M, (e_1,e_2)) = (x + z) dx + (y - z) dy + x*y*z dz
+         connection (1,2) of bundle connection nabla w.r.t. Local frame
+          (E|_M, (e_1,e_2)) = x*z dx + y*z dy + z^2 dz
+         connection (2,1) of bundle connection nabla w.r.t. Local frame
+          (E|_M, (e_1,e_2)) = x dx + x^2 dy + x^3 dz
 
     Notice, when we omit the frame, the default frame of the vector bundle is
     assumed (in this case ``e``)::
@@ -110,7 +112,7 @@ class BundleConnection(SageObject):
 
     The same holds for the assignment::
 
-        sage: nab[:] = 0
+        sage: nab[1, 2] = 0
         sage: nab[e, 1, 2].display()
         connection (1,2) of bundle connection nabla w.r.t. Local frame
          (E|_M, (e_1,e_2)) = 0
@@ -133,6 +135,50 @@ class BundleConnection(SageObject):
         Notice that list assignments and :meth:`set_connection_form` delete
         the connection 1-forms w.r.t. other frames for consistency reasons. To
         avoid this behavior, :meth:`add_connection_form` must be used instead.
+
+    By definition, a bundle connection acts on vector fields and sections::
+
+        sage: v = M.vector_field((x^2,y^2,z^2), name='v'); v.display()
+        v = x^2 d/dx + y^2 d/dy + z^2 d/dz
+        sage: s = E.section((x-y^2, -z), name='s'); s.display()
+        s = (-y^2 + x) e_1 - z e_2
+        sage: nab_vs = nab(v, s); nab_vs
+        Section nabla_v(s) on the 3-dimensional differentiable manifold M with
+         values in the real vector bundle E of rank 2
+        sage: nab_vs.display()
+        nabla_v(s) = (-x^3*z^3 - 2*y^3 + x^2 - (x^2*y^2 + x^3)*z) e_1 +
+         (-(y^2 - x)*z^4 - (x^3*y^2 + y^5 - x^4 - x*y^3)*z - z^2) e_2
+
+    The bundle connection action certainly obeys the defining formula for
+    the connection 1-forms::
+
+        sage: vframe = X.frame()
+        sage: all(nab(vframe[k], e[i]) == sum(nab[e, i, j](vframe[k])*e[j]
+        ....:                                 for j in E.irange())
+        ....:     for i in E.irange() for k in M.irange())
+        True
+
+    The connection 1-forms are computed automatically for different frames::
+
+        sage: f = E.local_frame('f', ((1+x^2)*e[1], e[1]-e[2]))
+        sage: nab.display(frame=f)
+        connection (1,1) of bundle connection nabla w.r.t. Local frame
+         (E|_M, (f_1,f_2)) = ((x^3 + x)*z + 2*x)/(x^2 + 1) dx + y*z dy + z^2 dz
+         connection (1,2) of bundle connection nabla w.r.t. Local frame
+          (E|_M, (f_1,f_2)) = -(x^3 + x)*z dx - (x^2 + 1)*y*z dy -
+          (x^2 + 1)*z^2 dz
+         connection (2,1) of bundle connection nabla w.r.t. Local frame
+          (E|_M, (f_1,f_2)) = (x*z - x)/(x^2 + 1) dx -
+          (x^2 - y*z)/(x^2 + 1) dy - (x^3 - z^2)/(x^2 + 1) dz
+         connection (2,2) of bundle connection nabla w.r.t. Local frame
+          (E|_M, (f_1,f_2)) = -x*z dx - y*z dy - z^2 dz
+
+    The new connection 1-forms obey the defining formula, too::
+
+        sage: all(nab(vframe[k], f[i]) == sum(nab[f, i, j](vframe[k])*f[j]
+        ....:                                 for j in E.irange())
+        ....:     for i in E.irange() for k in M.irange())
+        True
 
     After the connection has been specified, the curvature 2-forms can be
     derived::
@@ -497,7 +543,7 @@ class BundleConnection(SageObject):
             smodule = self._vbundle.section_module(domain=self._base_space)
             frame = smodule.default_frame()
             if frame is None:
-                raise ValueError("a frame must be provided!")
+                raise ValueError("a frame must be provided")
         if frame not in self._connection_forms:
             # the connection forms must be computed
             #
@@ -512,8 +558,19 @@ class BundleConnection(SageObject):
                         comp_store[ind] = value.restrict(frame._domain)
                     break
             else:
-                # TODO: Compute coefficients out of known ones
-                pass
+                # If not, the forms must be computed from scratch:
+                vb = self._vbundle
+                dom = frame._domain
+                vframe = dom.default_frame()
+                # it is important to use _new_forms instead of
+                # self.set_connection_form:
+                omega = self._new_forms(frame)
+                for d in dom.irange():
+                    for i in vb.irange():
+                        sec_nab = self(vframe[d], frame[i])
+                        for j in vb.irange():
+                            omega[(i, j)][vframe, d] = sec_nab[[frame, j]]
+                self._connection_forms[frame] = omega
         return self._connection_forms[frame]
 
     def connection_form(self, i, j, frame=None):
@@ -555,6 +612,128 @@ class BundleConnection(SageObject):
 
         """
         return self.connection_forms(frame)[(i, j)]
+
+    def __call__(self, v, s):
+        r"""
+        Action of the connection on a vector field and local section.
+
+        INPUT:
+
+        - ``v`` -- a vector field `v` on the base space
+        - ``s`` -- a local section `s`
+
+        OUTPUT:
+
+        - local section `\nabla_v s`
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e')
+            sage: nab = E.bundle_connection('nabla', latex_name=r'\nabla')
+            sage: nab[:] = 0
+            sage: nab[1,2][1] = x*y
+            sage: v = M.vector_field('v')
+            sage: v[:] = [-y, x]
+            sage: s = E.section('s')
+            sage: s[:] = [y, -x]
+            sage: nab.__call__(v, s)
+            Section nabla_v(s) on the 2-dimensional differentiable manifold M
+             with values in the real vector bundle E of rank 2
+
+        """
+        from sage.manifolds.section import TrivialSection
+        from sage.tensor.modules.format_utilities import format_unop_latex
+        if isinstance(s, TrivialSection):
+            return self._derive_trivial(v, s)
+        # Resulting section
+        vb = self._vbundle
+        dom = s.domain()
+        if s._name is None or v._name:
+            name_resu = None
+        else:
+            name_resu = self._name + '_' + v._name + '(' + s._name + ')'
+        if s._latex_name is None or v._latex_name is None:
+            latex_name_resu = None
+        else:
+            nab_v_latex = self._latex_name + '_{' + v._latex_name + '} '
+            latex_name_resu = format_unop_latex(nab_v_latex, s._latex_name)
+        resu = vb.section(domain=dom, name=name_resu,
+                          latex_name=latex_name_resu)
+        # gluing process
+        for dom, rst in s._restrictions.items():
+            # the computation is performed only if dom is not a subdomain
+            # of another restriction:
+            for odom in s._restrictions:
+                if dom in odom._subsets and dom is not odom:
+                    break
+            else:
+                # dom is not a subdomain and the computation is performed:
+                resu._restrictions[rst._domain] = self(rst)
+        return resu
+
+    def _derive_trivial(self, v, s):
+        r"""
+        Action of the connection on a local section whose module is free.
+
+        INPUT:
+
+        - ``v`` -- a vector field `v` on the base space
+        - ``s`` -- a local section `s` whose module is free
+
+        OUTPUT:
+
+        - local section `\nabla_v s`
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e')
+            sage: nab = E.bundle_connection('nabla', latex_name=r'\nabla')
+            sage: nab[:] = 0
+            sage: nab[1,2][1] = x*y
+            sage: v = M.vector_field('v')
+            sage: v[:] = [-y, x]
+            sage: s = E.section('s')
+            sage: s[:] = [y, -x]
+            sage: nab._derive_trivial(v, s)
+            Section nabla_v(s) on the 2-dimensional differentiable manifold M
+             with values in the real vector bundle E of rank 2
+
+        """
+        vb = self._vbundle
+        dom = s.domain()
+        # pick the first frame whose forms of self on dom are known
+        for frame in self._connection_forms:
+            if dom.is_subset(frame.domain()):
+                frame = frame.restrict(dom)
+                break
+        else:
+            raise ValueError("no local frame found for the computation")
+        # Resulting section
+        from sage.tensor.modules.format_utilities import format_unop_latex
+        if s._name is None or v._name is None:
+            name_resu = None
+        else:
+            name_resu = self._name + '_' + v._name + '(' + s._name + ')'
+        if s._latex_name is None or v._latex_name is None:
+            latex_name_resu = None
+        else:
+            nab_v_latex = self._latex_name + '_{' + v._latex_name + '} '
+            latex_name_resu = format_unop_latex(nab_v_latex, s._latex_name)
+        res = vb.section(domain=dom, name=name_resu,
+                         latex_name=latex_name_resu)
+        for j in vb.irange():
+            ds_comp = s[[frame, j]].differential()
+            res_comp = ds_comp(v)
+            res_comp += sum(s[[frame, i]] * self[frame, i, j](v)
+                            for i in vb.irange())
+            res[frame, j] = res_comp
+        return res
 
     def add_connection_form(self, i, j, form=None, frame=None):
         r"""
@@ -629,7 +808,7 @@ class BundleConnection(SageObject):
             smodule = self._vbundle.section_module(domain=self._base_space)
             frame = smodule.default_frame()
             if frame is None:
-                raise ValueError("a frame must be provided!")
+                raise ValueError("a frame must be provided")
         # Are the components already known?
         if frame not in self._connection_forms:
             if frame not in self._vbundle._frames:
@@ -709,7 +888,8 @@ class BundleConnection(SageObject):
             sage: nab[e, 0, 1].display()
             Traceback (most recent call last):
             ...
-            KeyError: Local frame (E|_M, (e_0,e_1))
+            ValueError: no basis could be found for computing the components in
+             the Local frame (E|_M, (f_0,f_1))
 
         To keep them, use the method :meth:`add_connection_form` instead.
 
@@ -767,14 +947,15 @@ class BundleConnection(SageObject):
             sage: nab[f, :]
             Traceback (most recent call last):
             ...
-            KeyError: Local frame (E|_M, (f_1,f_2))
+            ValueError: no basis could be found for computing the components in
+             the Local frame (E|_M, (e_1,e_2))
 
         """
         if frame is None:
             smodule = self._vbundle.section_module(domain=self._base_space)
             frame = smodule.default_frame()
             if frame is None:
-                raise ValueError("a frame must be provided!")
+                raise ValueError("a frame must be provided")
         if frame not in self._connection_forms:
             raise ValueError("the coefficients w.r.t. {}".format(frame) +
                              " have not been defined")
@@ -830,7 +1011,7 @@ class BundleConnection(SageObject):
             smodule = self._vbundle.section_module(domain=self._base_space)
             frame = smodule.default_frame()
             if frame is None:
-                raise ValueError("a frame must be provided!")
+                raise ValueError("a frame must be provided")
         if frame not in self._curvature_forms:
             self._curvature_forms[frame] = {}
         if (i, j) not in self._curvature_forms[frame]:
@@ -1060,3 +1241,122 @@ class BundleConnection(SageObject):
             else:
                 raise NotImplementedError("[start:stop] syntax not "
                                           "implemented")
+
+    def display(self, frame=None, vector_frame=None, chart=None,
+                only_nonzero=True):
+        r"""
+        Display all the connection 1-forms w.r.t. to a given local frame, one
+        per line.
+
+        The output is either text-formatted (console mode) or LaTeX-formatted
+        (notebook mode).
+
+        INPUT:
+
+        - ``frame`` -- (default: ``None``) local frame of the vector bundle
+          relative to which the connection 1-forms are defined; if ``None``,
+          the default frame of the bundle is used
+        - ``vector_frame`` -- (default: ``None``) vector frame of the manifold
+          relative to which the connection 1-forms should be displayed; if
+          ``None``, the default frame of the local frame's domain is used
+        - ``chart`` -- (default: ``None``) chart specifying the coordinate
+          expression of the connection 1-forms; if ``None``,
+          the default chart of the domain of ``frame`` is used
+        - ``only_nonzero`` -- (default: ``True``) boolean; if ``True``, only
+          nonzero connection coefficients are displayed
+
+        EXAMPLES:
+
+        Set connection 1-forms::
+
+            sage: M = Manifold(3, 'M', start_index=1)
+            sage: X.<x,y,z> = M.chart()
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e') # standard frame for E
+            sage: nab = E.bundle_connection('nabla', latex_name=r'\nabla'); nab
+            Bundle connection nabla on the Differentiable real vector bundle
+             E -> M of rank 2 over the base space 3-dimensional differentiable
+             manifold M
+            sage: nab[:] = 0
+            sage: nab[1, 1][:] = [x, y, z]
+            sage: nab[2, 2][:] = [x^2, y^2, z^2]
+
+        By default, only the nonzero connection coefficients are displayed::
+
+            sage: nab.display()
+            connection (1,1) of bundle connection nabla w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = x dx + y dy + z dz
+             connection (2,2) of bundle connection nabla w.r.t. Local frame
+              (E|_M, (e_1,e_2)) = x^2 dx + y^2 dy + z^2 dz
+            sage: latex(nab.display())
+            \begin{array}{lcl} \omega^1_{\ \, 1} = x \mathrm{d} x +
+             y \mathrm{d} y + z \mathrm{d} z \\ \omega^2_{\ \, 2} = x^{2}
+             \mathrm{d} x + y^{2} \mathrm{d} y + z^{2} \mathrm{d} z \end{array}
+
+        By default, the displayed connection 1-forms are those w.r.t.
+        the default frame of the vector bundle. The aforementioned is
+        therefore equivalent to::
+
+            sage: nab.display(frame=E.default_frame())
+            connection (1,1) of bundle connection nabla w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = x dx + y dy + z dz
+            connection (2,2) of bundle connection nabla w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = x^2 dx + y^2 dy + z^2 dz
+
+        Moreover, the connection 1-forms are displayed w.r.t. the default
+        vector frame on the local frame's domain, i.e.::
+
+            sage: domain = e.domain()
+            sage: nab.display(vector_frame=domain.default_frame())
+            connection (1,1) of bundle connection nabla w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = x dx + y dy + z dz
+            connection (2,2) of bundle connection nabla w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = x^2 dx + y^2 dy + z^2 dz
+
+        By default, the parameter ``only_nonzero`` is set to ``True``.
+        Otherwise, the connection 1-forms being zero are shown as well::
+
+            sage: nab.display(only_nonzero=False)
+            connection (1,1) of bundle connection nabla w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = x dx + y dy + z dz
+            connection (1,2) of bundle connection nabla w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = 0
+            connection (2,1) of bundle connection nabla w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = 0
+            connection (2,2) of bundle connection nabla w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = x^2 dx + y^2 dy + z^2 dz
+
+        """
+        vb = self._vbundle
+        if frame is None:
+            smodule = vb.section_module(domain=self._base_space)
+            frame = smodule.default_frame()
+            if frame is None:
+                raise ValueError("a local frame must be provided")
+        dom = frame.domain()
+        if frame is None:
+            vmodule = dom.vector_field_module()
+            vector_frame = vmodule.default_frame()
+            if vector_frame is None:
+                raise ValueError("a vector frame must be provided")
+        if chart is None:
+            chart = dom.default_chart()
+            if chart is None:
+                raise ValueError("a chart must be provided")
+        # create output:
+        from sage.misc.latex import latex
+        from sage.tensor.modules.format_utilities import FormattedExpansion
+
+        rlatex = r'\begin{array}{lcl}'
+        rtxt = ''
+        for i in vb.irange():
+            for j in vb.irange():
+                omega = self[frame, i, j]
+                if only_nonzero and (omega == 0):
+                    continue
+                omega_out = omega.display(vector_frame, chart)
+                rlatex += latex(omega_out) + r' \\'
+                rtxt += str(omega_out) + ' \n'
+        rtxt = rtxt[:-1]  # remove the last new line
+        rlatex = rlatex[:-2] + r'\end{array}'
+        return FormattedExpansion(rtxt, rlatex)

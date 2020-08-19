@@ -161,8 +161,6 @@ class sage_build_cython(Command):
             profile=self.profile,
         )
         self.compile_time_env = dict(
-            PY_VERSION_HEX=sys.hexversion,
-            PY_MAJOR_VERSION=sys.version_info[0],
             PY_PLATFORM=sys.platform
         )
 

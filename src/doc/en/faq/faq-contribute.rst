@@ -165,50 +165,47 @@ Also consult the Sage Developer's Guide, especially the chapter
 `Conventions for Coding in Sage <https://doc.sagemath.org/html/en/developer/#sage-coding-details>`_.
 
 
-I submitted a bug fix to the trac server several weeks ago. Why are you ignoring my patch?
+I submitted a bug fix to the trac server several weeks ago. Why are you ignoring my branch?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-We are not trying to ignore your patch. People who work on Sage do so
+We are not trying to ignore your branch. Most people who work on Sage do so
 in their free time. With hundreds of open tickets of varying degrees of
 impacts on the whole Sage community, people who work on tickets need
 to prioritize their time and work on those tickets that interest
 them. Sometimes you may be the only person who understands your
-patch. In that case, you are encouraged to take extra care to make it
-as easy as possible for anyone to review your patch. Here are some
-tips on making your patch easy to review:
+branch. In that case, you are encouraged to take extra care to make it
+as easy as possible for anyone to review. Here are some
+tips on making your branch easy to review:
 
-* Have you clearly described the problem your patch is trying to
+* Have you clearly described the problem your branch is trying to
   solve?
 * Have you provided any background information relevant to the problem
   your patch is trying to solve? Such information include links to
   online resources and any relevant papers, books and reference
   materials.
-* Have you clearly described how your patch solves the problem under
+* Have you clearly described how your branch solves the problem under
   consideration?
-* Have you clearly described how to test the changes in your patch?
-* Have you listed any tickets that your patch depends on?
-* If there are more than one patch, have you clearly stated the order
-  in which those patches are to be applied?
-* Does your patch
+* Have you clearly described how to test the changes in your branch?
+* Have you listed any tickets that your branch depends on?
+* Is your branch based on a recent (peferably, the lastest) Sage beta version?
+* Does your branch
   `follow relevant conventions <https://doc.sagemath.org/html/en/developer/#writing-code-for-sage>`_
   as documented in the Developer's Guide?
 
-If your patch stands no chance of being merged in the Sage source
-tree, we will not ignore your patch but simply close the relevant
+If your branch stands no chance of being merged in the Sage source
+tree, we will not ignore your branch but simply close the relevant
 ticket with an explanation why we cannot include your changes.
 
 
-When and how might I remind the Sage community of a patch I care about?
+When and how might I remind the Sage community of a branch I care about?
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 You are encouraged to take extra care in how you remind the Sage
-community of a patch you want to get merged into the Sage source
+community of a branch/patch you want to get merged into the Sage source
 tree. There might be an upcoming bug squash sprint or an upcoming Sage
 Days workshop that relates to your patch. Monitor the relevant Sage
 mailing lists and respond politely to any relevant email threads, with
-clear explanation on why your patch is relevant. Monitor the
-``#sage-devel`` IRC channel, taking care to strategically time your
-reminders.
+clear explanation on why your patch is relevant.
 
 
 I wrote some Sage code and I want it to be integrated into Sage. However, after renaming my file ``a.sage`` to ``a.py``, I got syntax errors. Do I have to rewrite all my code in Python instead of Sage?

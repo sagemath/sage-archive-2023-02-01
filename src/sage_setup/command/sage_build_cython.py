@@ -161,7 +161,10 @@ class sage_build_cython(Command):
             profile=self.profile,
         )
         self.compile_time_env = dict(
-            PY_PLATFORM=sys.platform
+            PY_PLATFORM=sys.platform,
+            # The following two constants are here only for backwards compatibility of user packages
+            PY_VERSION_HEX=sys.hexversion,
+            PY_MAJOR_VERSION=sys.version_info[0]
         )
 
         # We check the Cython version and some relevant configuration

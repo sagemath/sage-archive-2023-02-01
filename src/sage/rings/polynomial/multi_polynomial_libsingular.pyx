@@ -792,25 +792,26 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         base_ring = self.base_ring()
 
         if isinstance(element, MPolynomial_libsingular):
-            n = (<MPolynomial_libsingular>element)._parent.ngens()
-            if element.parent() is self:
+            Element = <MPolynomial_libsingular>element
+            El_parent = Element._parent
+            if El_parent is self:
                 return element
-            elif(base_ring is element.base_ring() and
-                 self.ngens() >= n and
-                 self.variable_names()[:n] == (<MPolynomial_libsingular>element)._parent.variable_names()):
-                if self.term_order() == (<MPolynomial_libsingular>element)._parent.term_order():
-                    _p = prCopyR_NoSort((<MPolynomial_libsingular>element)._poly,
-                                        (<MPolynomial_libsingular>element)._parent_ring,
-                                        _ring)
+            El_poly = Element._poly
+            El_ring = Element._parent_ring
+            El_base = El_parent._base
+            El_n = El_parent.ngens()
+            if (base_ring is El_base and self.ngens() >= El_n
+                    and self.variable_names()[:El_n] == El_parent.variable_names()):
+                if self.term_order() == El_parent.term_order():
+                    _p = prCopyR_NoSort(El_poly, El_ring, _ring)
                 else:
-                    _p = prCopyR((<MPolynomial_libsingular>element)._poly,
-                                 (<MPolynomial_libsingular>element)._parent_ring, _ring)
+                    _p = prCopyR(El_poly, El_ring, _ring)
                 return new_MP(self, _p)
-            elif base_ring.has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
-                return self(element._mpoly_dict_recursive(self.variable_names(), base_ring))
+            variable_names_t = self.variable_names()
+            if base_ring.has_coerce_map_from(El_parent._mpoly_base_ring(variable_names_t)):
+                return self(element._mpoly_dict_recursive(variable_names_t, base_ring))
             else:
                 variable_names_s = element.parent().variable_names()
-                variable_names_t = self.variable_names()
 
                 if set(variable_names_s).issubset(variable_names_t):
                     for v in variable_names_s:
@@ -818,14 +819,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                 else:
                     ind_map = [i+1 for i in range(_ring.N)]
 
-                if element.parent().ngens() <= self.ngens():
+                if El_n <= self.ngens():
                     # Map the variables by indices
                     _p = p_ISet(0, _ring)
-                    Element = <MPolynomial_libsingular>element
-                    El_poly = Element._poly
-                    El_parent = Element._parent
-                    El_ring = Element._parent_ring
-                    El_base = El_parent._base
 
                     #this loop needs improvement
                     while El_poly:

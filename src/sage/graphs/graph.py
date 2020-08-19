@@ -9361,6 +9361,124 @@ class Graph(GenericGraph):
         else:
           return len(P)
 
+    def is_antipodal(self):
+        r"""
+        Return whether this graph is antipodal.
+
+        A graph `G` of diameter `d` is said to be antipodal if its distance-`d`
+        graph is a disjoint union of cliques.
+
+        EXAMPLES::
+
+            sage: G = graphs.JohnsonGraph(10, 5)
+            sage: G.is_antipodal()
+            True
+            sage: H = G.folded_graph()
+            sage: H.is_antipodal()
+            False
+
+        REFERENCES:
+
+        See [BCN1989]_ p. 438 or [Sam2012]_ for this definition of antipodal
+        graphs.
+
+        TESTS::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.is_antipodal()
+            False
+            sage: G = graphs.HammingGraph(7, 2)
+            sage: G.is_antipodal()
+            True
+            sage: G = Graph([(0,1), (2, 3)])
+            sage: G.is_antipodal()
+            False
+            sage: G = Graph(4)
+            sage: G.is_antipodal()
+            True
+            sage: graphs.CompleteGraph(5).is_antipodal()
+            True
+        """
+        G = self.distance_graph(self.diameter())
+
+        vertexSet = set(G)
+        while vertexSet:
+            v = vertexSet.pop()
+
+            # all neighbours of v should be in the same clique as v
+            clique = set(G.neighbor_iterator(v, closed=True))
+            for u in clique:
+                if set(G.neighbor_iterator(u, closed=True)) != clique:
+                    return False
+
+            vertexSet.difference_update(clique)
+
+        return True
+
+    def folded_graph(self):
+        r"""
+        Return the antipodal fold of this graph.
+
+        Given an antipodal graph `G` let `G_d` be its distance-`d` graph.
+        Then the folded graph of `G` has a vertex for each maximal clique
+        of `G_d` and two cliques are adjacent if there is an edge in `G`
+        connecting the two.
+
+        OUTPUT:
+
+        This function returns a new graph and ``self`` is not touched.
+
+        .. NOTE::
+
+            The input is expected to be an antipodal graph.
+            You can check that a graph is antipodal using
+            :meth:`sage.graphs.graph.is_antipodal`.
+
+        EXAMPLES::
+
+            sage: G = graphs.JohnsonGraph(10, 5)
+            sage: H = G.folded_graph(); H
+            Folded Johnson graph with parameters 10,5: Graph on 126 vertices
+            sage: Gd = G.distance_graph(G.diameter())
+            sage: all(i == 1 for i in Gd.degree())
+            True
+            sage: H.is_distance_regular(True)
+            ([25, 16, None], [None, 1, 4])
+
+        REFERENCES:
+
+        See [BCN1989]_ p. 438 or [Sam2012]_ for this definition of folded graph.
+
+        TESTS::
+
+            sage: G = Graph(4)
+            sage: G.folded_graph()
+        """
+        G = self.distance_graph(self.diameter())
+
+        vertices = set(G)
+        newVertices = {}
+        numCliques = 0
+        while vertices:
+            v = vertices.pop()
+            clique = frozenset(G.neighbor_iterator(v, closed=True))
+            newVertices[numCliques] = clique
+            numCliques += 1
+            vertices.difference_update(clique)
+
+        # now newVertices is a map {0, ..., numCliques-1} -> antipodal classes
+        edges = []
+        for i, j in itertools.combinations(range(numCliques), 2):
+            if any(self.has_edge(u, v) for u, v in
+                   itertools.product(newVertices[i], newVertices[j])):
+                edges.append((i, j))
+
+        H = Graph([range(numCliques), edges], format='vertices_and_edges')
+        H.name(f"Folded {self.name()}")
+        return H
+
+
+
     # Aliases to functions defined in other modules
     from sage.graphs.weakly_chordal import is_long_hole_free, is_long_antihole_free, is_weakly_chordal
     from sage.graphs.asteroidal_triples import is_asteroidal_triple_free

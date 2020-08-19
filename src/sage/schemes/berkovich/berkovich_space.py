@@ -53,6 +53,13 @@ def is_Berkovich(space):
 
     - ``True`` if ``space`` is a Berkovich space.
     - ``False`` otherwise.
+
+    EXAMPLES::
+
+        sage: B = Berkovich_Cp_Projective(3)
+        sage: from sage.schemes.berkovich.berkovich_space import is_Berkovich
+        sage: is_Berkovich(B)
+        True
     """
     return isinstance(space, Berkovich)
 
@@ -64,6 +71,13 @@ def is_Berkovich_Cp(space):
 
     - ``True`` if ``space`` is a Berkovich space over ``Cp``.
     - ``False`` otherwise.
+
+    EXAMPLES::
+
+        sage: B = Berkovich_Cp_Projective(3)
+        sage: from sage.schemes.berkovich.berkovich_space import is_Berkovich
+        sage: is_Berkovich(B)
+        True
     """
     return isinstance(space, Berkovich_Cp)
 
@@ -103,7 +117,7 @@ class Berkovich_Cp(Berkovich):
 
     def is_padic_base(self):
         """
-        Returns ``True`` if this Berkovich space is backed by a p-adic field.
+        Return ``True`` if this Berkovich space is backed by a p-adic field.
 
         OUTPUT:
 
@@ -126,7 +140,7 @@ class Berkovich_Cp(Berkovich):
 
     def is_number_field_base(self):
         """
-        Returns ``True`` if this Berkovich space is backed by a p-adic field.
+        Return ``True`` if this Berkovich space is backed by a p-adic field.
 
         OUTPUT:
 
@@ -259,9 +273,10 @@ class Berkovich_Cp(Berkovich):
 
             sage: R.<z> = QQ[]
             sage: A.<a> = NumberField(z^2 + 1)
-            sage: B = Berkovich_Cp_Projective(A, A.prime_above(5))
-            sage: hash(B)
-            1629824360745675264
+            sage: B = Berkovich_Cp_Projective(A, A.primes_above(5)[0])
+            sage: C = Berkovich_Cp_Projective(A, A.primes_above(5)[1])
+            sage: hash(B) != hash(C)
+            True
         """
         if self._base_type == 'padic field':
             return hash(self.prime())
@@ -393,9 +408,17 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
     Element = Berkovich_Element_Cp_Affine
 
     def __init__(self, base, ideal=None):
+        """
+        The Python constructor.
+
+        EXAMPLES::
+
+            sage: Berkovich_Cp_Affine(3)
+            Affine Berkovich line over Cp(3) of precision 20
+        """
         if base in ZZ:
             if base.is_prime():
-                base = Qp(base) #TODO chance to Qpbar
+                base = Qp(base) # change to Qpbar
             else:
                 raise ValueError("non-prime pased into Berkovich space")
         if is_AffineSpace(base):
@@ -417,7 +440,7 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
             if not ideal.is_prime():
                 raise ValueError('passed non prime ideal')
             self._base_type = 'number field'
-        elif is_pAdicField(base): #TODO change base to Qpbar(prime)
+        elif is_pAdicField(base): # change base to Qpbar
             prime = base.prime()
             ideal = None
             self._base_type = 'padic field'
@@ -577,6 +600,14 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
     Element = Berkovich_Element_Cp_Projective
 
     def __init__(self, base, ideal=None):
+        """
+        The Python constructor.
+
+        EXAMPLES::
+
+            sage: Berkovich_Cp_Projective(3)
+            Projective Berkovich line over Cp(3) of precision 20
+        """
         if base in ZZ:
             if base.is_prime():
                 base = ProjectiveSpace(Qp(base), 1)

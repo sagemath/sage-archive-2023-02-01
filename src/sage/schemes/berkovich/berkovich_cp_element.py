@@ -39,12 +39,8 @@ from sage.rings.real_mpfr import RR, is_RealNumber
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
 from sage.rings.padics.generic_nodes import is_pAdicField
-from sage.rings.padics.factory import Qp
-from sage.schemes.projective.projective_space import is_ProjectiveSpace, ProjectiveSpace
+from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_field
-from sage.schemes.generic.morphism import is_SchemeMorphism
-from sage.schemes.affine.affine_space import AffineSpace
-from sage.schemes.generic.scheme import Scheme
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import Infinity
@@ -185,14 +181,14 @@ class Berkovich_Element_Cp(Berkovich_Element):
                     if not isinstance(center, SchemeMorphism_point_projective_field):
                         try:
                             center = (self._base_space)(center)
-                        except (TypeError, ValueError) as e:
+                        except (TypeError, ValueError):
                             raise TypeError('could not convert %s to %s' %(center, self._base_space))
                     if self._base_type == 'padic field':
                         if not is_pAdicField(center.scheme().base_ring()):
                             if not isinstance(center.scheme().base_ring(), pAdicBaseGeneric):
                                 try:
                                     center = (self._base_space)(center)
-                                except (TypeError, ValueError) as e:
+                                except (TypeError, ValueError):
                                     raise ValueError("could not convert %s to %s" %(center, self._base_space))
                             else:
                                 # center is padic, not but an element of a scheme over a padic field.
@@ -205,7 +201,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         if center not in self._base_space:
                             try:
                                 center = (self._base_space)(center)
-                            except (TypeError, ValueError) as e:
+                            except (TypeError, ValueError):
                                 raise ValueError('could not convert %s to %s' %(center, self._base_space))
                     if center.scheme().ambient_space() != center.scheme():
                         raise ValueError("the center of a point of Berkovich space over " + \
@@ -244,7 +240,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         if not isinstance(center, pAdicGenericElement):
                             try:
                                 center = (self._base_space)(center)
-                            except (TypeError, ValueError) as e:
+                            except (TypeError, ValueError):
                                 raise TypeError("could not convert %s to %s" %(center, self._base_space))
                         elif not is_pAdicField(center.parent()):
                             #center is padic, not but an element of a padic field. we convert to padic field
@@ -256,7 +252,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         if center.parent() == self._base_space:
                             try:
                                 center = (self._base_space)(center)
-                            except (TypeError, ValueError) as e:
+                            except (TypeError, ValueError):
                                 raise ValueError('could not convert %s to %s' %(center, self._base_space))
                     #make sure the radius coerces into the reals
                     if not is_RealNumber(radius):
@@ -289,14 +285,14 @@ class Berkovich_Element_Cp(Berkovich_Element):
                 if not isinstance(center, SchemeMorphism_point_projective_field):
                     try:
                         center = (self._base_space)(center)
-                    except (ValueError, TypeError) as e:
+                    except (ValueError, TypeError):
                         raise TypeError("could not convert %s to %s" %(center, self._base_space))
                 if self._base_type == 'padic field':
                     if not is_pAdicField(center.scheme().base_ring()):
                         if not isinstance(center.scheme().base_ring(), pAdicBaseGeneric):
                             try:
                                 center = (self._base_space)(center)
-                            except (TypeError, ValueError) as e:
+                            except (TypeError, ValueError):
                                 raise ValueError("could not convert %s to %s" %(center, self._base_space))
                         else:
                             # center is padic, not but an element of a scheme over a padic field.
@@ -304,7 +300,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                             field_scheme = ProjectiveSpace(center.scheme().base_ring().fraction_field(), 1)
                             try:
                                 center = field_scheme(center)
-                            except (TypeError, ValueError) as e:
+                            except (TypeError, ValueError):
                                 raise ValueError('could not convert %s to %s' %center, field_scheme)
                     if center.scheme().base_ring().prime() != self._p:
                         raise ValueError("center must be an element of " + \
@@ -313,7 +309,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                     if center not in self._base_space:
                         try:
                             center = (self._base_space)(center)
-                        except (TypeError, ValueError) as e:
+                        except (TypeError, ValueError):
                             raise ValueError('could not convert %s to %s' %(center, self._base_space))
                 if not(center.scheme().ambient_space() is center.scheme()):
                         raise ValueError("the center of a point of projective Berkovich space cannot be " + \
@@ -326,7 +322,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                     if not isinstance(center, pAdicGenericElement):
                         try:
                             center = (self._base_space)(center)
-                        except (TypeError, ValueError) as e:
+                        except (TypeError, ValueError):
                             raise TypeError("could not convert %s to %s" %(center, self._base_space))
                     elif not is_pAdicField(center.parent()):
                         #center is padic, not but an element of a padic field. we convert to padic field
@@ -338,7 +334,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                     if not(center.parent() == self._base_space):
                         try:
                             center = (self._base_space)(center)
-                        except (TypeError, ValueError) as e:
+                        except (TypeError, ValueError):
                             raise ValueError('could not convert %s to %s' %(center, self._base_space))
             else:
                 raise ValueError("bad value %s passed to space_type. Do not initialize  "%(space_type) + \
@@ -413,7 +409,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def _custom_abs(self, x):
         """
-        Returns the absolute value of ``x`` with respect to the norm on ``Cp``.
+        Return the absolute value of ``x`` with respect to the norm on ``Cp``.
 
         Used to simplify code, as ``x`` may be a point of a number field
         or a p-adic field.
@@ -442,7 +438,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def center_function(self):
         """
-        Returns the function defining the centers of disks in the approximation.
+        Return the function defining the centers of disks in the approximation.
 
         Not defined unless this point is a type IV point created by using
         a univariate function to compute centers.
@@ -470,7 +466,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def radius_function(self):
         """
-        Returns the function defining the radii of disks in the approximation.
+        Return the function defining the radii of disks in the approximation.
 
         Not defined unless this point is a type IV point created by using
         a univariate function to compute radii.
@@ -498,7 +494,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def precision(self):
         """
-        Returns the precision of a type IV point.
+        Return the precision of a type IV point.
 
         This integer is the number of disks used in the approximation of the type IV point.
         Not defined for type I, II, or III points.
@@ -656,7 +652,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def path_distance_metric(self, other):
         r"""
-        Returns the path distance metric distance between this point and ``other``.
+        Return the path distance metric distance between this point and ``other``.
 
         Also referred to as the hyperbolic metric, or the big metric.
 
@@ -757,7 +753,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def small_metric(self, other):
         r"""
-        Returns the small metric distance between this point and ``other``.
+        Return the small metric distance between this point and ``other``.
 
         The small metric is an extension of twice
         the spherical distance on `P^1(\CC_p)`.
@@ -934,7 +930,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def center(self):
         r"""
-        Returns the center of the corresponding disk (or sequence of disks)
+        Return the center of the corresponding disk (or sequence of disks)
         in `\CC_p`.
 
         OUTPUT: An element of the ``base`` of the parent Berkovich space.
@@ -966,7 +962,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     def type_of_point(self):
         r"""
-        Returns the type of this point of Berkovich space over `\CC_p`.
+        Return the type of this point of Berkovich space over `\CC_p`.
 
         OUTPUT: An integer between 1 and 4 inclusive.
 
@@ -1255,7 +1251,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def as_projective_point(self):
         r"""
-        Returns the corresponding point of projective Berkovich space.
+        Return the corresponding point of projective Berkovich space.
 
         We identify affine Berkovich space with the subset `P^1_{\text{Berk}}(C_p) - \{(1 : 0)\}`.
 
@@ -1353,7 +1349,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def __hash__(self):
         """
-        Returns the hash of this point.
+        Return the hash of this point.
 
         EXAMPLES::
 
@@ -1382,7 +1378,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def lt(self, other):
         r"""
-        Returns ``True`` if this point is less than ``other`` in the standard partial order.
+        Return ``True`` if this point is less than ``other`` in the standard partial order.
 
         Roughly, the partial order corresponds to containment of
         the corresponding disks in ``Cp``.
@@ -1459,7 +1455,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def gt(self, other):
         r"""
-        Returns ``True`` if this point is greater than ``other`` in the standard partial order.
+        Return ``True`` if this point is greater than ``other`` in the standard partial order.
 
         Roughly, the partial order corresponds to containment of
         the corresponding disks in `\CC_p`.
@@ -1609,7 +1605,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def involution_map(self):
         r"""
-        Returns the image of this point under the involution map.
+        Return the image of this point under the involution map.
 
         The involution map is the extension of the map ``z |-> 1/z``
         on `\CC_p` to Berkovich space.
@@ -1892,7 +1888,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     def as_affine_point(self):
         """
-        Returns the corresponding affine point after dehomogenizing at infinity.
+        Return the corresponding affine point after dehomogenizing at infinity.
 
         OUTPUT: A point of affine Berkovich space.
 
@@ -1998,7 +1994,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     def __hash__(self):
         """
-        Returns the hash of this point.
+        Return the hash of this point.
 
         EXAMPLES::
 
@@ -2028,7 +2024,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     def lt(self, other):
         r"""
-        Returns ``True`` if this point is less than ``other`` in the standard partial order.
+        Return ``True`` if this point is less than ``other`` in the standard partial order.
 
         Roughly, the partial order corresponds to containment of
         the corresponding disks in `\CC_p`.
@@ -2118,7 +2114,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     def gt(self, other):
         r"""
-        Returns ``True`` if this point is greater than ``other`` in the standard partial order.
+        Return ``True`` if this point is greater than ``other`` in the standard partial order.
 
         Roughly, the partial order corresponds to containment of
         the corresponding disks in `\CC_p`.
@@ -2355,7 +2351,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     def involution_map(self):
         r"""
-        Returns the image of this point under the involution map.
+        Return the image of this point under the involution map.
 
         The involution map is the extension of the map ``z |-> 1/z``
         on `P^1(\CC_p)` to Berkovich space.

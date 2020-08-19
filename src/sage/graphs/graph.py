@@ -9307,6 +9307,7 @@ class Graph(GenericGraph):
                     if M[v, w] == maximum:
                         output.append((verts[v], verts[w]))
         return output
+
     @doc_index("Leftovers")
     def arboricity(self, certificate=False):
         r"""
@@ -9361,6 +9362,7 @@ class Graph(GenericGraph):
         else:
           return len(P)
 
+    @doc_index("Graph properties")
     def is_antipodal(self):
         r"""
         Return whether this graph is antipodal.
@@ -9415,6 +9417,7 @@ class Graph(GenericGraph):
 
         return True
 
+    @doc_index("Leftovers")
     def folded_graph(self):
         r"""
         Return the antipodal fold of this graph.
@@ -9423,6 +9426,10 @@ class Graph(GenericGraph):
         Then the folded graph of `G` has a vertex for each maximal clique
         of `G_d` and two cliques are adjacent if there is an edge in `G`
         connecting the two.
+
+        .. SEEALSO::
+
+            :meth:`sage.graphs.graph.is_antipodal`
 
         OUTPUT:
 
@@ -9445,14 +9452,26 @@ class Graph(GenericGraph):
             sage: H.is_distance_regular(True)
             ([25, 16, None], [None, 1, 4])
 
+        This method doesn't check if the graph is antipodal::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.is_antipodal()
+            False
+            sage: G.folded_graph()  # some garbage
+            Folded Petersen graph: Graph on 2 vertices
+
         REFERENCES:
 
         See [BCN1989]_ p. 438 or [Sam2012]_ for this definition of folded graph.
 
         TESTS::
 
-            sage: G = Graph(4)
+            sage: G = Graph(5)
             sage: G.folded_graph()
+            Folded Graph: Graph on 1 vertex
+            sage: G = graphs.CompleteGraph(5)
+            sage: G.folded_graph()
+            Folded Complete graph: Graph on 1 vertex
         """
         G = self.distance_graph(self.diameter())
 
@@ -9474,7 +9493,8 @@ class Graph(GenericGraph):
                 edges.append((i, j))
 
         H = Graph([range(numCliques), edges], format='vertices_and_edges')
-        H.name(f"Folded {self.name()}")
+        name = self.name() if self.name() != "" else "Graph"
+        H.name(f"Folded {name}")
         return H
 
 

@@ -942,6 +942,19 @@ class FriCASElement(ExpectElement):
         l = P('#(%s)' % self._name)
         return l.sage()
 
+    def __iter__(self):
+        """
+        Return an iterator over ``self``.
+
+        EXAMPLES::
+
+            sage: L = fricas([4,5,6])   # optional - fricas
+            sage: list(L)               # optional - fricas
+            [4, 5, 6]
+        """
+        for i in range(len(self)):
+            yield self[i]
+
     def __getitem__(self, n):
         """
         We implement the sage conventions here, translating to 0-based iterables.
@@ -958,6 +971,9 @@ class FriCASElement(ExpectElement):
             sage: fricas("[1,2,3]")[0]                                          # optional - fricas
             1
 
+            sage: fricas("[1,2,3]")[-1]    # optional - fricas
+            3
+
             sage: fricas("[1,2,3]")[3]                                          # optional - fricas
             Traceback (most recent call last):
             ...
@@ -967,12 +983,14 @@ class FriCASElement(ExpectElement):
             index out of range
         """
         n = int(n)
-        if n < 0:
+        if n < -1:
             raise IndexError("index out of range")
         P = self._check_valid()
         # use "elt" instead of "." here because then the error
         # message is clearer
-        return P.new("elt(%s,%s)" % (self._name, n+1))
+        if n == -1:
+            return P.new("elt(%s,last)" % (self._name))
+        return P.new("elt(%s,%s)" % (self._name, n + 1))
 
     def __int__(self):
         """

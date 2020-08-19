@@ -208,6 +208,12 @@ cdef class Matrix(Matrix1):
         field, this method computes a least-squares solution if the
         system is not square.
 
+        .. NOTE::
+
+            In Sage one can also write ``B / A`` for
+            ``A.solve_left(B)``, that is, Sage implements "the
+            MATLAB/Octave slash operator".
+
         INPUT:
 
         - ``B`` -- a matrix or vector
@@ -250,10 +256,14 @@ cdef class Matrix(Matrix1):
             sage: X = A.solve_left(B)
             sage: X*A == B
             True
+            sage: X == B / A
+            True
 
-            sage: M = matrix([(3,-1,0,0),(1,1,-2,0),(0,0,0,-3)])
-            sage: B = matrix(QQ,3,1, [0,0,-1])
-            sage: M.solve_left(B)
+        ::
+
+            sage: A = matrix([(3, -1, 0, 0), (1, 1, -2, 0), (0, 0, 0, -3)])
+            sage: B = matrix(QQ, 3, 1, [0, 0, -1])
+            sage: A.solve_left(B)
             Traceback (most recent call last):
             ...
             ValueError: number of columns of self must equal number of columns
@@ -409,9 +419,9 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-           In Sage one can also write ``A \ B`` for
-           ``A.solve_right(B)``, that is, Sage implements "the
-           MATLAB/Octave backslash operator".
+            In Sage one can also write ``A \ B`` for
+            ``A.solve_right(B)``, that is, Sage implements "the
+            MATLAB/Octave backslash operator".
 
         INPUT:
 

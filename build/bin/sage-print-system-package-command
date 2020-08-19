@@ -64,6 +64,10 @@ case $system:$command in
     arch*:install)
         [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}pacman -S $system_packages"
         ;;
+
+    void*:install)
+        [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}xbps-install $system_packages"
+        ;;
     *conda*:install)
         [ -n "$system_packages" ] && echo "${PROMPT}conda install $system_packages"
         ;;

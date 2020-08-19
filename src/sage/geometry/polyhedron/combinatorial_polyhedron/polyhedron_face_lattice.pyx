@@ -451,9 +451,9 @@ cdef class PolyhedronFaceLattice:
             sage: it = C.face_iter(dimension=1)
             sage: face = next(it)
             sage: face_via_all_faces_from_iterator(it, C).ambient_Vrepresentation()
-            (A vertex at (3, 1, 4, 2), A vertex at (3, 2, 4, 1))
+            (A vertex at (2, 1, 4, 3), A vertex at (1, 2, 4, 3))
             sage: face.ambient_Vrepresentation()
-            (A vertex at (3, 1, 4, 2), A vertex at (3, 2, 4, 1))
+            (A vertex at (2, 1, 4, 3), A vertex at (1, 2, 4, 3))
             sage: all(face_via_all_faces_from_iterator(it, C).ambient_Vrepresentation() ==
             ....:     face.ambient_Vrepresentation() for face in it)
             True

@@ -895,6 +895,9 @@ REFERENCES:
             group actions}, (preprint March 2003, available on
             Mitter's MIT website).
 
+.. [Bond2007] P. Bonderson, Nonabelian anyons and interferometry,
+              Dissertation (2007). https://thesis.library.caltech.edu/2447/
+
 .. [BM2004] John M. Boyer and Wendy J. Myrvold, *On the Cutting Edge:
             *Simplified `O(n)` Planarity by Edge Addition*. Journal of Graph
             Algorithms and Applications, Vol. 8, No. 3, pp. 241-273,
@@ -3717,6 +3720,12 @@ REFERENCES:
              Advances in Cryptology --
              EUROCRYPT 2010. Springer 2010. :doi:`10.1007/978-3-642-13190-5_1`
 
+
+.. [LR1997] Robert Leduc and Arun Ram, A ribbon Hopf algebra approach to
+            the irreducible representations of centralizer algebras: the
+            Brauer, Birman-Wenzl, and type A Iwahori-Hecke algebras.
+            Adv. Math. 125 (1997), no. 1, 1–94.
+
 .. [LR1998] Jean-Louis Loday and Maria O. Ronco.
             *Hopf algebra of the planar binary trees*,
             Advances in Mathematics, volume 139, issue 2,
@@ -4777,6 +4786,9 @@ REFERENCES:
 .. [Sal2014] \B. Salisbury.
              The flush statistic on semistandard Young tableaux.
              :arXiv:`1401.1185`
+
+.. [Sam2012] \P. Samanta: *Antipodal Graphs*
+             :doi:`10.13140/RG.2.2.28238.46409`
 
 .. [Sch1990] Schnyder, Walter. *Embedding Planar Graphs on the Grid*.
              Proc. 1st Annual ACM-SIAM Symposium on Discrete Algorithms,

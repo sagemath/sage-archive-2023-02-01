@@ -48,6 +48,7 @@ def plist(a, b):
 # ... any from below? ...
 
 # Deprecated reimports
+from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.polynomial.pbori.pbori',
             ['BooleConstant',
              'BooleSet',

@@ -57,7 +57,7 @@ except ImportError:
     # Python 2.7
     from urllib2 import urlopen, URLError
 
-DEFAULT_PYPI = 'https://pypi.python.org/pypi'
+DEFAULT_PYPI = 'https://pypi.org/project'
 
 def pkgname_split(name):
     r"""

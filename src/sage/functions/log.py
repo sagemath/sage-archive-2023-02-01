@@ -522,13 +522,10 @@ class Function_polylog(GinacFunction):
             sage: polylog(2.0, 1.0)
             1.64493406684823
 
-            sage: BF = RealBallField(100)
-            sage: polylog(2, BF(1/3))
+            sage: polylog(2, RealBallField(100)(1/3))
             [0.36621322997706348761674629766... +/- ...]
-            sage: polylog(2, BF(4/3))
-            [2.27001825336107090380391448586 +/- 5.64e-30] + [-0.90377988538400159956755721265 +/- 8.39e-30]*I
-            sage: parent(_)
-            Complex ball field with 100 bits of precision
+            sage: polylog(2, ComplexBallField(100)(4/3))
+            [2.27001825336107090380391448586 +/- ...] + [-0.90377988538400159956755721265 +/- ...]*I
             sage: polylog(2, CBF(1/3))
             [0.366213229977063 +/- ...]
             sage: parent(_)
@@ -573,6 +570,15 @@ class Function_polylog(GinacFunction):
         else:
             return 'polylog(%s, %s)' % (n, x)
 
+    def _method_arguments(self, k, z):
+        r"""
+        TESTS::
+
+            sage: b = RBF(1/2, .0001)
+            sage: polylog(2, b)
+            [0.582 +/- ...]
+        """
+        return [z, k]
 
 polylog = Function_polylog()
 

@@ -2600,3 +2600,170 @@ cpdef diameter(G, algorithm=None, source=None,
         return +Infinity
     else:
         return LB
+
+cpdef wiener_index(g, algorithm=None, weight_function=None, check_weight=True):
+    r"""
+    Return the Wiener index of the graph.
+
+    The Wiener index of an undirected graph `G` is defined as
+    `W(G) = \frac{1}{2} \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the
+    distance between vertices `u` and `v` (see [KRG1996]_).
+
+    The Wiener index of a directed graph `G` is defined as the sum of the
+    distances between each pairs of vertices, `W(G) = \sum_{u,v\in G} d(u,v)`.
+
+    INPUT:
+
+    - ``g`` -- the input Sage graph
+
+    - ``algorithm`` -- string (default: ``None``); one of the following
+      algorithms:
+
+      - ``'Dijkstra'``, ``'Dijkstra_Boost'``: the Dijkstra algorithm implemented
+        in Boost (works only with positive weights)
+
+      - ``'Bellman-Ford'``, ``'Bellman-Ford_Boost'``: the Bellman-Ford algorithm
+        implemented in Boost (works also with negative weights, if there is no
+        negative cycle)
+
+    - ``weight_function`` -- function (default: ``None``); a function that
+      associates a weight to each edge. If ``None`` (default), the weights of
+      ``g`` are used, if ``g.weighted()==True``, otherwise all edges have
+      weight 1.
+
+    - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+      that the ``weight_function`` outputs a number for each edge.
+
+    EXAMPLES:
+
+        sage: from sage.graphs.base.boost_graph import wiener_index
+        sage: g = Graph([(0,1,9), (1,2,7), (2,3,4), (3,0,3)])
+        sage: wiener_index(g)
+        8.0
+        sage: g.weighted(True)
+        sage: wiener_index(g)
+        41.0
+
+    Wiener index of circuit digraphs::
+
+        sage: n = 10
+        sage: g = digraphs.Circuit(n)
+        sage: w = lambda x: (x*x*(x-1))/2
+        sage: wiener_index(g) == w(n)
+        True
+
+    Wiener index of a graph of order 1::
+
+        sage: wiener_index(Graph(1))
+        0
+
+    The Wiener index is not defined on the empty graph::
+
+        sage: wiener_index(Graph())
+        Traceback (most recent call last):
+        ...
+        ValueError: Wiener index is not defined for the empty graph
+
+    TESTS:
+
+    Using ``"Dijkstra"`` on a graph with negative weights::
+
+        sage: g = Graph([(0, 1, -1), (1, 2, 1)])
+        sage: def weight_of(e):
+        ....:     return e[2]
+        sage: wiener_index(g, algorithm="Dijkstra", weight_function=weight_of)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead
+
+    Directed graph with a negative weight cycle::
+
+        sage: g = DiGraph([(0, 1, -1), (1, 2, -1), (2, 0, -1)])
+        sage: def weight_of(e):
+        ....:     return e[2]
+        sage: wiener_index(g, algorithm="Bellman-Ford", weight_function=weight_of)
+        Traceback (most recent call last):
+        ...
+        ValueError: the graph contains a negative cycle
+    """
+    if not g:
+        raise ValueError("Wiener index is not defined for the empty graph")
+
+    cdef unsigned int n = g.order()
+    if n == 1:
+        return 0
+
+    import sys
+
+    if weight_function and check_weight:
+        g._check_weight_function(weight_function)
+
+    cdef bint use_Bellman_Ford = algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']
+    if not use_Bellman_Ford:
+        # Check if there are edges with negative weights
+        if weight_function is not None:
+            for e in g.edges(sort=False):
+                if float(weight_function(e)) < 0:
+                    use_Bellman_Ford = True
+                    break
+        elif g.weighted():
+            for _,_,w in g.edges(sort=False):
+                if float(w) < 0:
+                    use_Bellman_Ford = True
+                    break
+
+        if algorithm in ['Dijkstra', 'Dijkstra_Boost']:
+            if use_Bellman_Ford:
+                raise RuntimeError("Dijkstra algorithm does not work with "
+                                   "negative weights, use Bellman-Ford instead")
+        elif algorithm is not None:
+            raise ValueError(f"unknown algorithm {algorithm!r}")
+
+    # These variables are automatically deleted when the function terminates.
+    cdef v_index vi, u, v
+    cdef dict int_to_v = dict(enumerate(g))
+    cdef dict v_to_int = {vv: vi for vi, vv in enumerate(g)}
+    cdef BoostVecWeightedDiGraphU g_boost_dir
+    cdef BoostVecWeightedGraph g_boost_und
+    cdef vector[double] distances
+    cdef double s = 0
+
+    if g.is_directed():
+        boost_weighted_graph_from_sage_graph(&g_boost_dir, g, v_to_int, weight_function)
+    else:
+        boost_weighted_graph_from_sage_graph(&g_boost_und, g, v_to_int, weight_function)
+
+    for u in range(n):
+        if use_Bellman_Ford:
+            if g.is_directed():
+                sig_on()
+                distances = g_boost_dir.bellman_ford_shortest_paths(u).distances
+                sig_off()
+            else:
+                sig_on()
+                distances = g_boost_und.bellman_ford_shortest_paths(u).distances
+                sig_off()
+            if not distances.size():
+                raise ValueError("the graph contains a negative cycle")
+        else:
+            if g.is_directed():
+                sig_on()
+                distances = g_boost_dir.dijkstra_shortest_paths(u).distances
+                sig_off()
+            else:
+                sig_on()
+                distances = g_boost_und.dijkstra_shortest_paths(u).distances
+                sig_off()
+            if not distances.size():
+                # This situation should never happen
+                raise RuntimeError("something goes wrong. Please report the "
+                                   "bug on sage-devel@googlegroups.com")
+
+        for v in range(0 if g.is_directed() else (u + 1), n):
+            if distances[v] == sys.float_info.max:
+                from sage.rings.infinity import Infinity
+                return +Infinity
+            else:
+                s += distances[v]
+
+    return s

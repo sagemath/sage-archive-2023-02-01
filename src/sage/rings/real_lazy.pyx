@@ -370,26 +370,7 @@ class ComplexLazyField_class(LazyField):
 
     TESTS::
 
-        sage: TestSuite(CLF).run(skip=["_test_prod"])
-
-    .. NOTE::
-
-        The following ``TestSuite`` failure::
-
-            sage: CLF._test_prod()
-            Traceback (most recent call last):
-            ...
-            AssertionError: -1 != ...
-
-        is due to (acceptable?) numerical noise::
-
-            sage: x = CLF.I
-            sage: x*x == x^2
-            False
-            sage: x*x
-            -1
-            sage: x^2
-            -0.9999999999999999? + 0.?e-15*I
+        sage: TestSuite(CLF).run()
     """
     def __init__(self):
         """

@@ -4604,8 +4604,8 @@ class Graph(GenericGraph):
             return False
 
     @doc_index("Clique-related methods")
-    def fractional_clique_number(self, solver='PPL', verbose=0, only_maximal=True,
-                                     check_components=True, check_bipartite=True):
+    def fractional_clique_number(self, solver='PPL', verbose=0,
+                                 check_components=True, check_bipartite=True):
         r"""
         Return the fractional clique number of the graph.
 
@@ -4638,18 +4638,14 @@ class Graph(GenericGraph):
               using other solvers.
 
         - ``verbose`` -- integer (default: `0`); sets the level of verbosity of
-          the LP solver.
+          the LP solver
 
-        - ``only_maximal`` -- boolean (default: `True`); flag determining
-          whether the variables of the LP are maximal independent sets (the
-          alternative is to consider all independent sets).
+        - ``check_components`` -- boolean (default: ``True``); whether the
+          method is called on each connected component of `G`
 
-        - ``check_components`` -- boolean (default: `True`); flag determining
-          whether the method is called on each connected component of G.
-
-        - ``check_bipartite`` -- boolean (default: `True`); flag determining
-          whether the graph is checked for bipartiteness. If the graph is
-          bipartite then we can avoid creating and solving the LP.
+        - ``check_bipartite`` -- boolean (default: ``True``); whether the graph
+          is checked for bipartiteness. If the graph is bipartite then we can
+          avoid creating and solving the LP.
 
         EXAMPLES:
 
@@ -4660,7 +4656,6 @@ class Graph(GenericGraph):
             7/3
         """
         return self.fractional_chromatic_number(solver=solver, verbose=verbose,
-                                                only_maximal=only_maximal,
                                                 check_components=check_components,
                                                 check_bipartite=check_bipartite)
 

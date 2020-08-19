@@ -625,12 +625,12 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver=None, 
             return classes
 
 # Fractional relaxations
-def fractional_chromatic_number(G, solver='PPL', verbose=0, only_maximal=True,
-                                    check_components=True, check_bipartite=True):
+def fractional_chromatic_number(G, solver='PPL', verbose=0,
+                                check_components=True, check_bipartite=True):
     r"""
     Return the fractional chromatic number of the graph.
 
-    The fractional coloring is a relaxed version of vertex coloring with several
+    Fractional coloring is a relaxed version of vertex coloring with several
     equivalent definitions, such as the optimum value in a linear relaxation of
     the integer program that gives the usual chromatic number. It is also equal
     to the fractional clique number by LP-duality.
@@ -647,10 +647,11 @@ def fractional_chromatic_number(G, solver='PPL', verbose=0, only_maximal=True,
         &\forall v\in V(G), \sum_{I\in \mathcal{I}(G),\, v\in I}x_{v}\geq 1\\
         &\forall I\in \mathcal{I}(G), x_{I} \geq 0
 
-    except as (optional) optimisations we only consider a variable for each
-    maximal independent set, only construct the LP for connected components of G
-    (and output the maximum), and avoid using the LP if G is bipartite (as then
-    the output must be 1 or 2).
+    where `\mathcal{I}(G)` is the set of maximal independent sets of `G` (see
+    Section 2.1 of [CFKPR2010]_ to know why it is sufficient to consider maximal
+    independent sets). As optional optimisations, we construct the LP on each
+    connected component of `G` (and output the maximum value), and avoid using
+    the LP if G is bipartite (as then the output must be 1 or 2).
 
     .. NOTE::
 
@@ -662,7 +663,7 @@ def fractional_chromatic_number(G, solver='PPL', verbose=0, only_maximal=True,
 
     INPUT:
 
-    - ``G`` -- a graph.
+    - ``G`` -- a graph
 
     - ``solver`` -- (default: ``"PPL"``); specify a Linear Program (LP) solver
       to be used. If set to ``None``, the default one is used. For more
@@ -678,18 +679,14 @@ def fractional_chromatic_number(G, solver='PPL', verbose=0, only_maximal=True,
           using other solvers.
 
     - ``verbose`` -- integer (default: `0`); sets the level of verbosity of
-      the LP solver.
+      the LP solver
 
-    - ``only_maximal`` -- boolean (default: ``True``); flag determining whether
-      the variables of the LP are maximal independent sets (the alternative is
-      to consider all independent sets).
+    - ``check_components`` -- boolean (default: ``True``); whether the method is
+      called on each connected component of `G`
 
-    - ``check_components`` -- boolean (default: ``True``); flag determining
-      whether the method is called on each connected component of G.
-
-    - ``check_bipartite`` -- boolean (default: ``True``); flag determining
-      whether the graph is checked for bipartiteness. If the graph is bipartite
-      then we can avoid creating and solving the LP.
+    - ``check_bipartite`` -- boolean (default: ``True``); whether the graph is
+      checked for bipartiteness. If the graph is bipartite then we can avoid
+      creating and solving the LP.
 
     EXAMPLES:
 
@@ -711,12 +708,11 @@ def fractional_chromatic_number(G, solver='PPL', verbose=0, only_maximal=True,
         return 2
     if check_components:
         return max(fractional_chromatic_number(h, solver=solver, verbose=verbose,
-                                                   only_maximal=only_maximal,
                                                    check_components=False,
                                                    check_bipartite=check_bipartite)
                    for h in G.connected_components_subgraphs())
 
-    Is = [frozenset(I) for I in IndependentSets(G, maximal=only_maximal)]
+    Is = [frozenset(I) for I in IndependentSets(G, maximal=True)]
 
     # Initialize LP for fractional chromatic number, we want to minimize the
     # total weight
@@ -750,7 +746,7 @@ def fractional_chromatic_index(G, solver="PPL", verbose_constraints=False, verbo
 
     .. MATH::
 
-        \forall e \in E(G), \sum_{e \in M_i} \alpha_i \geq 1
+        \forall e \in E(G), \sum_{e \in M_i} \alpha_i \geq 1.
 
     For more information, see the :wikipedia:`Fractional_coloring`.
 
@@ -767,7 +763,7 @@ def fractional_chromatic_index(G, solver="PPL", verbose_constraints=False, verbo
 
     INPUT:
 
-    - ``G`` -- a graph.
+    - ``G`` -- a graph
 
     - ``solver`` -- (default: ``"PPL"``); specify a Linear Program (LP) solver
       to be used. If set to ``None``, the default one is used. For more
@@ -785,10 +781,10 @@ def fractional_chromatic_index(G, solver="PPL", verbose_constraints=False, verbo
           :trac:`23798`.
 
     - ``verbose_constraints`` -- boolean (default: ``False``); whether to
-      display which constraints are being generated.
+      display which constraints are being generated
 
     - ``verbose`` -- integer (default: `0`); sets the level of verbosity of the
-      LP solver.
+      LP solver
 
     EXAMPLES:
 

@@ -663,7 +663,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             sage: P(B.gen(0))
             x
 
-        If everything else fails, we try to coerce to the base ring::
+        If everything else fails, we try to convert to the base ring::
 
             sage: R.<x,y,z> = GF(3)[]
             sage: R(1/2)
@@ -777,9 +777,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         cdef poly *mon
         cdef poly *El_poly
         cdef ring *_ring = self._ring
-        cdef number *_n
         cdef ring *El_ring
-        cdef long mpos
         cdef MPolynomial_libsingular Element
         cdef MPolynomialRing_libsingular El_parent
         cdef int i, j
@@ -787,9 +785,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         cdef list ind_map = []
         cdef sBucket *bucket
 
-        if _ring!=currRing: rChangeCurrRing(_ring)
+        if _ring != currRing: rChangeCurrRing(_ring)
 
-        base_ring = self.base_ring()
+        base_ring = self._base
 
         if isinstance(element, MPolynomial_libsingular):
             Element = <MPolynomial_libsingular>element
@@ -811,8 +809,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             if base_ring.has_coerce_map_from(El_parent._mpoly_base_ring(variable_names_t)):
                 return self(element._mpoly_dict_recursive(variable_names_t, base_ring))
             else:
-                variable_names_s = element.parent().variable_names()
-
+                variable_names_s = El_parent.variable_names()
                 if set(variable_names_s).issubset(variable_names_t):
                     for v in variable_names_s:
                         ind_map.append(variable_names_t.index(v)+1)
@@ -911,7 +908,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                 return self(element._mpoly_dict_recursive(self.variable_names(), base_ring))
 
         elif isinstance(element, dict):
-            if len(element)==0:
+            if not element:
                 _p = p_ISet(0, _ring)
             else:
                 bucket = sBucketCreate(_ring)
@@ -960,6 +957,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
 
         if isinstance(element, (SingularElement, cypari2.gen.Gen)):
             element = str(element)
+        elif is_Macaulay2Element(element):
+            element = element.external_string()
 
         if isinstance(element, str):
             # let python do the parsing
@@ -979,14 +978,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             # element in self.
             return self._coerce_c(element)
 
-        try: #if hasattr(element,'_polynomial_'):
-            # SymbolicVariable
+        if hasattr(element,'_polynomial_'): # symbolic.expression.Expression
             return element._polynomial_(self)
-        except AttributeError:
-            pass
 
-        if is_Macaulay2Element(element):
-            return self(element.external_string())
         try:
             return self(str(element))
         except TypeError:

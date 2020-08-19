@@ -45,7 +45,7 @@ import os
 import shutil
 import codecs
 import tempfile
-from sage.misc.worksheet2rst import worksheet2rst
+from sage_sws2rst.worksheet2rst import worksheet2rst
 
 from optparse import OptionParser
 

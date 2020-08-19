@@ -650,7 +650,7 @@ def fractional_chromatic_number(G, solver='PPL', verbose=0,
     where `\mathcal{I}(G)` is the set of maximal independent sets of `G` (see
     Section 2.1 of [CFKPR2010]_ to know why it is sufficient to consider maximal
     independent sets). As optional optimisations, we construct the LP on each
-    connected component of `G` (and output the maximum value), and avoid using
+    biconnected component of `G` (and output the maximum value), and avoid using
     the LP if G is bipartite (as then the output must be 1 or 2).
 
     .. NOTE::
@@ -658,8 +658,8 @@ def fractional_chromatic_number(G, solver='PPL', verbose=0,
         Computing the fractional chromatic number can be very slow. Since the
         variables of the LP are independent sets, in general the LP has size
         exponential in the order of the graph. In the current implementation a
-        list of all (maximal, depending on parameters) independent sets is
-        created and stored, which can be both slow and memory-hungry.
+        list of all maximal independent sets is created and stored, which can be
+        both slow and memory-hungry.
 
     INPUT:
 
@@ -682,7 +682,7 @@ def fractional_chromatic_number(G, solver='PPL', verbose=0,
       the LP solver
 
     - ``check_components`` -- boolean (default: ``True``); whether the method is
-      called on each connected component of `G`
+      called on each biconnected component of `G`
 
     - ``check_bipartite`` -- boolean (default: ``True``); whether the graph is
       checked for bipartiteness. If the graph is bipartite then we can avoid
@@ -695,22 +695,32 @@ def fractional_chromatic_number(G, solver='PPL', verbose=0,
         sage: g = graphs.CycleGraph(5)
         sage: g.fractional_chromatic_number()
         5/2
+
+    TESTS::
+
+        sage: G = graphs.RandomGNP(20, .2)
+        sage: a = G.fractional_chromatic_number(check_components=True)
+        sage: b = G.fractional_chromatic_number(check_components=False)
+        sage: a == b
+        True
     """
     G._scream_if_not_simple()
 
     if not G.order():
         return 0
     if not G.size():
+        # The fractional chromatic number of an independent set is 1
         return 1
     if check_bipartite and G.is_bipartite():
         # at this point we've already ascertained g.size() > 0
         # so g is a bipartite graph with at least one edge
         return 2
     if check_components:
-        return max(fractional_chromatic_number(h, solver=solver, verbose=verbose,
-                                                   check_components=False,
-                                                   check_bipartite=check_bipartite)
-                   for h in G.connected_components_subgraphs())
+        return max(fractional_chromatic_number(G.subgraph(b), solver=solver,
+                                               verbose=verbose,
+                                               check_components=False,
+                                               check_bipartite=check_bipartite)
+                   for b in G.blocks_and_cut_vertices()[0])
 
     Is = [frozenset(I) for I in IndependentSets(G, maximal=True)]
 

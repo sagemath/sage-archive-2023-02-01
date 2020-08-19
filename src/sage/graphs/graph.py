@@ -4641,7 +4641,7 @@ class Graph(GenericGraph):
           the LP solver
 
         - ``check_components`` -- boolean (default: ``True``); whether the
-          method is called on each connected component of `G`
+          method is called on each biconnected component of `G`
 
         - ``check_bipartite`` -- boolean (default: ``True``); whether the graph
           is checked for bipartiteness. If the graph is bipartite then we can

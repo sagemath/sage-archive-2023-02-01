@@ -83,6 +83,9 @@ case $system:$command in
     cygwin*:install)
         [ -n "$system_packages" ] && echo "${PROMPT}apt-cyg install $system_packages"
         ;;
+    freebsd*:install)
+        [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}pkg install $system_packages"
+        ;;
     *:update)
         # Nothing needed
         ;;

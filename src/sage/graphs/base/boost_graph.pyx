@@ -2616,8 +2616,7 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
       shortest paths from. By default (``None``), compute shortest paths from
       all vertices.
 
-    - ``order`` -- list (default: ``None``); order of vertices of `g` when
-      output is `dict of list`. By default (``None``),
+    - ``order`` -- list (default: ``None``); order of vertices of `g`.
 
     - ``weight_function`` -- function (default: ``None``); a function that
       associates a weight to each edge. If ``None`` (default), the weights of
@@ -2636,11 +2635,19 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
 
     OUTPUT:
 
-    A pair of dictionaries of dictionaries ``(distances, predecessors)`` such
-    that for each vertex ``v`` in ``vertex_list``, ``distances[v]`` store the
-    shortest distances of all the other vertices from ``v``, ``predecessors[v]``
-    store the last vertices in the shortest path from ``v`` to all the other
-    vertices.
+    Two possible outputs:
+
+    - A pair of dictionaries of list ``(distances, predecessors)``, when
+      ``order is not None``, such that for each vertex ``v`` in ``vertex_list``,
+      ``distances[v][i]`` store the shortest distance between ``v`` and
+      ``order[i]`` and ``predecessors[v][i]`` store the last vertex in the
+      shortest path from ``v`` to ``order[i]``.
+
+    - A pair of dictionaries of dictionaries ``(distances, predecessors)`` such
+      that for each vertex ``v`` in ``vertex_list``, ``distances[v]`` store the
+      shortest distances of all the other vertices from ``v``,
+      ``predecessors[v]`` store the last vertices in the shortest path from
+      ``v`` to all the other vertices.
 
     EXAMPLES:
 
@@ -2649,14 +2656,16 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
         sage: from sage.graphs.base.boost_graph import shortest_paths_from_vertices
         sage: g = Graph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
         sage: shortest_paths_from_vertices(g,[1,2])
-        ({1: {0: 1, 1: 0, 2: 2, 3: 3}, 2: {0: 3, 1: 2, 2: 0, 3: 1}},
+        ({1: {0: 1.0, 1: 0.0, 2: 2.0, 3: 3.0}, 2: {0: 3.0, 1: 2.0, 2: 0.0, 3: 1.0}},
          {1: {0: 1, 1: None, 2: 1, 3: 2}, 2: {0: 1, 1: 2, 2: None, 3: 2}})
 
     Directed graphs::
 
         sage: g = DiGraph([(0,1,1),(1,2,-1),(2,0,2),(2,3,1)], weighted=True)
         sage: shortest_paths_from_vertices(g,1)
-        ({0: 1, 1: 0, 2: -1, 3: 0}, {0: 2, 1: None, 2: 1, 3: 2})
+        ({1: {0: 1.0, 1: 0.0, 2: -1.0, 3: 0.0}}, {1: {0: 2, 1: None, 2: 1, 3: 2}})
+        sage: shortest_paths_from_vertices(g, 1, [0,1,2,3])
+        ({1: [1.0, 0.0, -1.0, 0.0]}, {1: [2, None, 1, 2]})
 
     TESTS:
 
@@ -2674,6 +2683,14 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
         Traceback (most recent call last):
         ...
         ValueError: the graph contains a negative cycle
+
+    If the given ordering is not valid::
+
+        sage: g = DiGraph([(0,1,1),(1,2,2),(2,0,0.5),(2,3,1)], weighted=True)
+        sage: shortest_paths_from_vertices(g,1,[0,1])
+        Traceback (most recent call last):
+        ...
+        ValueError: Given ordering is not valid
 
     If Dijkstra is used with negative weights::
 
@@ -2704,17 +2721,17 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
         if not isinstance(vertex_list, list):
             vertex_list = [vertex_list]
 
-        for v in vertex_list:
-            if v not in g:
-                raise ValueError(f"the starting vertex {v} is not in the graph")
+        for vertex in vertex_list:
+            if vertex not in g:
+                raise ValueError(f"the starting vertex {vertex} is not in the graph")
 
     if order is not None:
         if len(g) == len(order):
-            for v in g:
-                if v not in order:
-                    raise ValueError("Given ordering is not a valid")
+            for vertex in g:
+                if vertex not in order:
+                    raise ValueError("Given ordering is not valid")
         else:
-            raise ValueError("Given ordering is not a valid")
+            raise ValueError("Given ordering is not valid")
 
     cdef bint use_Bellman_Ford = algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']
     if not use_Bellman_Ford:
@@ -2725,8 +2742,8 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
                     use_Bellman_Ford = True
                     break
         elif g.weighted():
-            for _,_,w in g.edges(sort=False):
-               if float(w) < 0:
+            for _,_,wt in g.edges(sort=False):
+               if float(wt) < 0:
                     use_Bellman_Ford = True
                     break
 
@@ -2744,14 +2761,16 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
     cdef result_distances result
     cdef BoostVecWeightedDiGraphU g_boost_dir
     cdef BoostVecWeightedGraph g_boost_und
+    cdef dict dist_v_dict, pred_v_dict
+    cdef list dist_v_list, pred_v_list
 
     if g.is_directed():
         boost_weighted_graph_from_sage_graph(&g_boost_dir, g, v_to_int, weight_function)
     else:
         boost_weighted_graph_from_sage_graph(&g_boost_und, g, v_to_int, weight_function)
 
-    cdef dict distances = {}
-    cdef dict predecessors = {}
+    distances = {}
+    predecessors = {}
 
     for v in vertex_list:
         vi = v_to_int[v]
@@ -2781,33 +2800,36 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
                                    "bug on sage-devel@googlegroups.com")
 
         if order is None:
-            cdef dict dist_v = {}
-            cdef dict pred_v = {}
+            dist_v_dict = {}
+            pred_v_dict = {}
 
             for vert in range(g.num_verts()):
                 if result.distances[vert] != sys.float_info.max:
                     w = int_to_v[vert]
-                    dist_v[w] = result.distances[vert]
+                    dist_v_dict[w] = result.distances[vert]
                     pred = result.predecessors[vert]
                     if pred == vert:
-                        pred_v[w] = None
+                        pred_v_dict[w] = None
                     else:
-                        pred_v[w] = int_to_v[pred]
+                        pred_v_dict[w] = int_to_v[pred]
+
+            distances[v] = dist_v_dict
+            predecessors[v] = pred_v_dict
         else:
-            cdef list dict_v = []
-            cdef list pred_v = []
+            dist_v_list = []
+            pred_v_list = []
 
             for w in order:
                 vert = v_to_int[w]
                 if result.distances[vert] != sys.float_info.max:
-                    dict_v.append(result.distances[vert])
+                    dist_v_list.append(result.distances[vert])
                     pred = result.predecessors[vert]
                     if pred == vert:
-                        pred_v.append(None)
+                        pred_v_list.append(None)
                     else:
-                        pred_v.append(int_to_v[pred])
+                        pred_v_list.append(int_to_v[pred])
 
-        distances[v] = dist_v
-        predecessors[v] = pred_v
+            distances[v] = dist_v_list
+            predecessors[v] = pred_v_list
 
     return distances, predecessors

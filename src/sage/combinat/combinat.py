@@ -500,7 +500,7 @@ def narayana_number(n, k):
 
     REFERENCES:
 
-    - wikipedia:`Narayana_number`
+    - :wikipedia:`Narayana_number`
     """
     n = ZZ(n)
     if n <= 0:
@@ -670,7 +670,7 @@ def fibonacci(n, algorithm="pari"):
     - ``algorithm`` -- a string:
 
       * ``"pari"`` - (default) use the PARI C library's
-        fibo function
+        :pari:`fibo` function
 
       * ``"gap"`` - use GAP's Fibonacci function
 

@@ -2590,7 +2590,8 @@ cpdef diameter(G, algorithm=None, source=None,
     else:
         return LB
 
-cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, algorithm=None):
+cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
+                                   weight_function=None, algorithm=None):
     r"""
     Compute the shortest paths to all vertices from each vertex in
     ``vertex_list``.
@@ -2614,6 +2615,9 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
     - ``vertex_list`` -- list (default: ``None``); list of vertices to compute
       shortest paths from. By default (``None``), compute shortest paths from
       all vertices.
+
+    - ``order`` -- list (default: ``None``); order of vertices of `g` when
+      output is `dict of list`. By default (``None``),
 
     - ``weight_function`` -- function (default: ``None``); a function that
       associates a weight to each edge. If ``None`` (default), the weights of
@@ -2704,8 +2708,37 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
             if v not in g:
                 raise ValueError(f"the starting vertex {v} is not in the graph")
 
+    if order is not None:
+        if len(g) == len(order):
+            for v in g:
+                if v not in order:
+                    raise ValueError("Given ordering is not a valid")
+        else:
+            raise ValueError("Given ordering is not a valid")
+
+    cdef bint use_Bellman_Ford = algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']
+    if not use_Bellman_Ford:
+        # Check if there are edges with negative weights
+        if weight_function is not None:
+            for e in g.edges(sort=False):
+                if float(weight_function(e)) < 0:
+                    use_Bellman_Ford = True
+                    break
+        elif g.weighted():
+            for _,_,w in g.edges(sort=False):
+               if float(w) < 0:
+                    use_Bellman_Ford = True
+                    break
+
+        if algorithm in ['Dijkstra', 'Dijkstra_Boost']:
+            if use_Bellman_Ford:
+                raise RuntimeError("Dijkstra algorithm does not work with "
+                                   "negative weights, use Bellman-Ford instead")
+        elif algorithm is not None:
+            raise ValueError(f"unknown algorithm {algorithm!r}")
+
     # These variables are automatically deleted when the function terminates.
-    cdef v_index vi, vert, pred
+    cdef v_index vi, v, vert, pred, w
     cdef list int_to_v = list(g)
     cdef dict v_to_int = {vv: vi for vi, vv in enumerate(g)}
     cdef result_distances result
@@ -2717,86 +2750,64 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, weight_function=None, al
     else:
         boost_weighted_graph_from_sage_graph(&g_boost_und, g, v_to_int, weight_function)
 
-    if algorithm is None:
-        # Check if there are edges with negative weights
-        if weight_function is not None:
-            for e in g.edge_iterator():
-                if float(weight_function(e)) < 0:
-                    algorithm = 'Bellman-Ford'
-                    break
-        elif g.weighted():
-            for _,_,w in g.edge_iterator():
-                if float(w) < 0:
-                    algorithm = 'Bellman-Ford'
-                    break
-
-        if algorithm is None:
-            algorithm = 'Dijkstra'
-
-    cdef list distances = []
-    cdef list predecessors = []
+    cdef dict distances = {}
+    cdef dict predecessors = {}
 
     for v in vertex_list:
         vi = v_to_int[v]
-        if g.is_directed():
-
-            if algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']:
+        if use_Bellman_Ford:
+            if g.is_directed():
                 sig_on()
                 result = g_boost_dir.bellman_ford_shortest_paths(vi)
                 sig_off()
-                if not result.distances.size():
-                    raise ValueError("the graph contains a negative cycle")
-            elif algorithm in ['Dijkstra', 'Dijkstra_Boost']:
-                try:
-                    sig_on()
-                    result = g_boost_dir.dijkstra_shortest_paths(vi)
-                    sig_off()
-                    if not result.distances.size():
-                        raise RuntimeError("Dijkstra algorithm does not "
-                                           "work with negative weights, "
-                                           "use Bellman-Ford instead")
-                except RuntimeError as msg:
-                    raise RuntimeError(msg)
             else:
-                raise ValueError(f"unknown algorithm {algorithm!r}")
-        else:
-            if algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']:
                 sig_on()
                 result = g_boost_und.bellman_ford_shortest_paths(vi)
                 sig_off()
-                if not result.distances.size():
-                    raise ValueError("the graph contains a negative cycle")
-
-            elif algorithm in ['Dijkstra', 'Dijkstra_Boost']:
-                try:
-                    sig_on()
-                    result = g_boost_und.dijkstra_shortest_paths(vi)
-                    sig_off()
-                    if not result.distances.size():
-                        raise RuntimeError("Dijkstra algorithm does not "
-                                           "work with negative weights, "
-                                           "use Bellman-Ford instead")
-                except RuntimeError as msg:
-                    raise RuntimeError(msg)
+            if not result.distances.size():
+                raise ValueError("the graph contains a negative cycle")
+        else:
+            if g.is_directed():
+                sig_on()
+                result = g_boost_dir.dijkstra_shortest_paths(vi)
+                sig_off()
             else:
-                raise ValueError(f"unknown algorithm {algorithm!r}")
+                sig_on()
+                result = g_boost_und.dijkstra_shortest_paths(vi)
+                sig_off()
+            if not result.distances.size():
+                # This situation should never happen
+                raise RuntimeError("something goes wrong. Please report the "
+                                   "bug on sage-devel@googlegroups.com")
 
-        dist_v = []
-        pred_v = []
+        if order is None:
+            cdef dict dist_v = {}
+            cdef dict pred_v = {}
 
-        for vert in range(g.num_verts()):
-            if result.distances[vert] != sys.float_info.max:
-                dist_v.append(result.distances[vert])
-                pred = result.predecessors[vert]
-                if pred != vert:
-                    pred_v.append(pred)
-                else:
-                    pred_v.append(None)
-            else:
-                dist_v.append(+Infinity)
-                pred_v.append(None)
+            for vert in range(g.num_verts()):
+                if result.distances[vert] != sys.float_info.max:
+                    w = int_to_v[vert]
+                    dist_v[w] = result.distances[vert]
+                    pred = result.predecessors[vert]
+                    if pred == vert:
+                        pred_v[w] = None
+                    else:
+                        pred_v[w] = int_to_v[pred]
+        else:
+            cdef list dict_v = []
+            cdef list pred_v = []
 
-        distances.append(dist_v)
-        predecessors.append(pred_v)
+            for w in order:
+                vert = v_to_int[w]
+                if result.distances[vert] != sys.float_info.max:
+                    dict_v.append(result.distances[vert])
+                    pred = result.predecessors[vert]
+                    if pred == vert:
+                        pred_v.append(None)
+                    else:
+                        pred_v.append(int_to_v[pred])
+
+        distances[v] = dist_v
+        predecessors[v] = pred_v
 
     return distances, predecessors

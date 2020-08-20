@@ -9400,6 +9400,14 @@ class Graph(GenericGraph):
             True
             sage: graphs.CompleteGraph(5).is_antipodal()
             True
+            sage: G = Graph()
+            sage: G.is_antipodal()
+            Traceback (most recent call last):
+            ...
+            ValueError: diameter is not defined for the empty graph
+            sage: G = Graph(1)
+            sage: G.is_antipodal()
+            True
         """
         G = self.distance_graph(self.diameter())
 
@@ -9418,7 +9426,7 @@ class Graph(GenericGraph):
         return True
 
     @doc_index("Leftovers")
-    def folded_graph(self):
+    def folded_graph(self, check=False):
         r"""
         Return the antipodal fold of this graph.
 
@@ -9430,6 +9438,12 @@ class Graph(GenericGraph):
         .. SEEALSO::
 
             :meth:`sage.graphs.graph.is_antipodal`
+
+        INPUT:
+
+        - ``check`` -- boolean (default: ``False``); whether to check if the
+          graph is antipodal. If ``check`` is ``True`` and the graph is not
+          antipodal, then return ``False``.
 
         OUTPUT:
 
@@ -9459,6 +9473,8 @@ class Graph(GenericGraph):
             False
             sage: G.folded_graph()  # some garbage
             Folded Petersen graph: Graph on 2 vertices
+            sage: G.folded_graph(check=True)
+            False
 
         REFERENCES:
 
@@ -9472,6 +9488,14 @@ class Graph(GenericGraph):
             sage: G = graphs.CompleteGraph(5)
             sage: G.folded_graph()
             Folded Complete graph: Graph on 1 vertex
+            sage: G = Graph()
+            sage: G.folded_graph()
+            Traceback (most recent call last):
+            ...
+            ValueError: diameter is not defined for the empty graph
+            sage: G = Graph(1)
+            sage: G.folded_graph()
+            Folded Graph: Graph on 1 vertex
         """
         G = self.distance_graph(self.diameter())
 
@@ -9481,6 +9505,12 @@ class Graph(GenericGraph):
         while vertices:
             v = vertices.pop()
             clique = frozenset(G.neighbor_iterator(v, closed=True))
+
+            if check:
+                for u in clique:
+                    if frozenset(G.neighbor_iterator(u, closed=True)) != clique:
+                        return False
+
             newVertices[numCliques] = clique
             numCliques += 1
             vertices.difference_update(clique)

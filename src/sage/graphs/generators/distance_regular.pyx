@@ -604,3 +604,44 @@ def UstimenkoGraph(const int m, const int q):
     G.add_edges(edgesToAdd)
     G.name(f"Ustimenko graph ({m}, {q})")
     return G
+
+def antipodal_graph1(G):
+    r"""
+    Return the antipodal graph of `G` via straight-forward implementatiion
+    """
+    from sage.graphs.distances_all_pairs import distances_all_pairs
+
+    D = distances_all_pairs(G)
+
+    # compute diameter
+    d = 0
+    for u, v in itertools.combinations(G, 2):
+        if D[u][v] > d:
+            d = D[u][v]
+
+    edges = []
+    for u, v in itertools.combinations(G, 2):
+        if D[u][v] == d:
+            edges.append((u, v))
+
+    return Graph([G, edges], format="vertices_and_edges")
+
+def antipodal_graph2(G):
+    r"""
+    Return the antipodal graph of `G` via eccentricities
+    """
+    from sage.graphs.distances_all_pairs import eccentricity
+
+    ecc = eccentricity(G, algorithm="DHV")
+
+    # diameter
+    diam = max(ecc)
+
+    edges = []
+    for u in G:
+        for v, d in G.breadth_first_search(u, report_distance=True):
+            if d == diam:
+                edges.append((u, v))
+
+    return Graph([G, edges], format="vertices_and_edges")
+    

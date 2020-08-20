@@ -367,7 +367,9 @@ def declare_ring(blocks, context=None):
 
     EXAMPLES::
 
+        sage: from sage.rings.polynomial.pbori import *
         sage: declare_ring([Block("x",10),Block("y",5)],globals())
+        Boolean PolynomialRing in x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, y0, y1, y2, y3, y4
         
     gives  a ring with x(0..9),y(0..4) and registers the ring as r, and the variable 
     blocks x and y in the context dictionary globals(), which consists of the global 

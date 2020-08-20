@@ -996,11 +996,22 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     dist = {}
     pred = {}
 
+    if weight_function is not None:
+        correct_type = type(weight_function(next(g.edge_iterator())))
+    elif g.weighted():
+        correct_type = type(next(g.edge_iterator())[2])
+    else:
+        correct_type = int
+    # Needed for rational curves.
+    from sage.rings.real_mpfr import RealNumber, RR
+    if correct_type == RealNumber:
+        correct_type = RR
+
     import sys
     for v in range(g.num_verts()):
         if result.distances[v] != sys.float_info.max:
             w = int_to_v[v]
-            dist[w] = result.distances[v]
+            dist[w] = correct_type(result.distances[v])
             pred[w] = int_to_v[result.predecessors[v]] if result.predecessors[v] != v else None
     return (dist, pred)
 

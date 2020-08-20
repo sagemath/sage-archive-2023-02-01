@@ -646,6 +646,7 @@ class DiffForm(TensorField):
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: W = U.intersection(V) # The complement of the two poles
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
+            sage: M.set_orientation([eU, eV])  # make M orientable
             sage: g = M.metric('g')
             sage: g[eU,1,1], g[eU,2,2] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2
             sage: g[eV,1,1], g[eV,2,2] = 4/(1+u^2+v^2)^2, 4/(1+u^2+v^2)^2

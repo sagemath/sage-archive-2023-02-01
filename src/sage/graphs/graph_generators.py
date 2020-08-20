@@ -107,10 +107,14 @@ __append_to_doc(
      "Cell120",
      "ChvatalGraph",
      "ClebschGraph",
+     "cocliques_HoffmannSingleton",
+     "ConwaySmith_for_3S7",
      "CoxeterGraph",
      "DesarguesGraph",
      "DejterGraph",
+     "distance_3_doubly_truncated_Golay_code_graph",
      "DoubleStarSnark",
+     "DoublyTruncatedWittGraph",
      "DurerGraph",
      "DyckGraph",
      "EllinghamHorton54Graph",
@@ -120,11 +124,13 @@ __append_to_doc(
      "FlowerSnark",
      "FolkmanGraph",
      "FosterGraph",
+     "FosterGraph3S6",
      "FranklinGraph",
      "FruchtGraph",
      "GoldnerHararyGraph",
      "GolombGraph",
      "GossetGraph",
+     "graph_3O73",
      "GrayGraph",
      "GrotzschGraph",
      "HallJankoGraph",
@@ -139,15 +145,21 @@ __append_to_doc(
      "HoltGraph",
      "HortonGraph",
      "IoninKharaghani765Graph",
+     "IvanovIvanovFaradjevGraph",
+     "J2Graph",
      "JankoKharaghaniGraph",
      "JankoKharaghaniTonchevGraph",
      "KittellGraph",
      "KrackhardtKiteGraph",
      "Klein3RegularGraph",
      "Klein7RegularGraph",
-     "LocalMcLaughlinGraph",
+     "LargeWittGraph",
+     "LeonardGraph",
      "LjubljanaGraph",
+     "LintSchrijverGraph",
      "LivingstoneGraph",
+     "locally_GQ42_distance_transitive_graph",
+     "LocalMcLaughlinGraph",
      "M22Graph",
      "MarkstroemGraph",
      "MathonStronglyRegularGraph",
@@ -163,6 +175,8 @@ __append_to_doc(
      "PetersenGraph",
      "RobertsonGraph",
      "SchlaefliGraph",
+     "shortened_00_11_binary_Golay_code_graph",
+     "shortened_000_111_extended_binary_Golay_code_graph",
      "ShrikhandeGraph",
      "SimsGewirtzGraph",
      "SousselierGraph",
@@ -172,6 +186,7 @@ __append_to_doc(
      "TietzeGraph",
      "TruncatedIcosidodecahedralGraph",
      "TruncatedTetrahedralGraph",
+     "TruncatedWittGraph",
      "Tutte12Cage",
      "TutteCoxeterGraph",
      "TutteGraph",
@@ -253,6 +268,7 @@ __append_to_doc(
      "trees",
      "triangulations",
      "TuranGraph",
+     "UstimenkoGraph",
      "WheelGraph",
      "WindmillGraph"])
 
@@ -269,6 +285,7 @@ __append_to_doc(
      "AhrensSzekeresGeneralizedQuadrangleGraph",
      "NonisotropicOrthogonalPolarGraph",
      "NonisotropicUnitaryPolarGraph",
+     "OrthogonalDualPolarGraph",
      "OrthogonalPolarGraph",
      "SymplecticDualPolarGraph",
      "SymplecticPolarGraph",
@@ -1913,7 +1930,7 @@ class GraphGenerators():
 ###########################################################################
 # Small Graphs
 ###########################################################################
-    from .generators import smallgraphs
+    from .generators import smallgraphs, distance_regular
     Balaban10Cage            = staticmethod(smallgraphs.Balaban10Cage)
     Balaban11Cage            = staticmethod(smallgraphs.Balaban11Cage)
     BidiakisCube             = staticmethod(smallgraphs.BidiakisCube)
@@ -1928,10 +1945,14 @@ class GraphGenerators():
     Cell120                  = staticmethod(smallgraphs.Cell120)
     ChvatalGraph             = staticmethod(smallgraphs.ChvatalGraph)
     ClebschGraph             = staticmethod(smallgraphs.ClebschGraph)
+    cocliques_HoffmannSingleton = staticmethod(distance_regular.cocliques_HoffmannSingleton)
+    ConwaySmith_for_3S7      = staticmethod(distance_regular.ConwaySmith_for_3S7)
     CoxeterGraph             = staticmethod(smallgraphs.CoxeterGraph)
     DejterGraph              = staticmethod(smallgraphs.DejterGraph)
     DesarguesGraph           = staticmethod(smallgraphs.DesarguesGraph)
+    distance_3_doubly_truncated_Golay_code_graph = staticmethod(distance_regular.distance_3_doubly_truncated_Golay_code_graph)
     DoubleStarSnark          = staticmethod(smallgraphs.DoubleStarSnark)
+    DoublyTruncatedWittGraph = staticmethod(distance_regular.DoublyTruncatedWittGraph)
     DurerGraph               = staticmethod(smallgraphs.DurerGraph)
     DyckGraph                = staticmethod(smallgraphs.DyckGraph)
     EllinghamHorton54Graph   = staticmethod(smallgraphs.EllinghamHorton54Graph)
@@ -1941,11 +1962,13 @@ class GraphGenerators():
     FlowerSnark              = staticmethod(smallgraphs.FlowerSnark)
     FolkmanGraph             = staticmethod(smallgraphs.FolkmanGraph)
     FosterGraph              = staticmethod(smallgraphs.FosterGraph)
+    FosterGraph3S6           = staticmethod(distance_regular.FosterGraph3S6)
     FranklinGraph            = staticmethod(smallgraphs.FranklinGraph)
     FruchtGraph              = staticmethod(smallgraphs.FruchtGraph)
     GoldnerHararyGraph       = staticmethod(smallgraphs.GoldnerHararyGraph)
     GolombGraph              = staticmethod(smallgraphs.GolombGraph)
     GossetGraph              = staticmethod(smallgraphs.GossetGraph)
+    graph_3O73               = staticmethod(distance_regular.graph_3O73)
     GrayGraph                = staticmethod(smallgraphs.GrayGraph)
     GrotzschGraph            = staticmethod(smallgraphs.GrotzschGraph)
     HallJankoGraph           = staticmethod(smallgraphs.HallJankoGraph)
@@ -1961,15 +1984,21 @@ class GraphGenerators():
     HoltGraph                = staticmethod(smallgraphs.HoltGraph)
     HortonGraph              = staticmethod(smallgraphs.HortonGraph)
     IoninKharaghani765Graph  = staticmethod(smallgraphs.IoninKharaghani765Graph)
+    IvanovIvanovFaradjevGraph = staticmethod(distance_regular.IvanovIvanovFaradjevGraph)
+    J2Graph                  = staticmethod(distance_regular.J2Graph)
     JankoKharaghaniGraph     = staticmethod(smallgraphs.JankoKharaghaniGraph)
     JankoKharaghaniTonchevGraph  = staticmethod(smallgraphs.JankoKharaghaniTonchevGraph)
     KittellGraph             = staticmethod(smallgraphs.KittellGraph)
     KrackhardtKiteGraph      = staticmethod(smallgraphs.KrackhardtKiteGraph)
     Klein3RegularGraph       = staticmethod(smallgraphs.Klein3RegularGraph)
     Klein7RegularGraph       = staticmethod(smallgraphs.Klein7RegularGraph)
-    LocalMcLaughlinGraph     = staticmethod(smallgraphs.LocalMcLaughlinGraph)
+    LargeWittGraph           = staticmethod(distance_regular.LargeWittGraph)
+    LeonardGraph             = staticmethod(distance_regular.LeonardGraph)
     LjubljanaGraph           = staticmethod(smallgraphs.LjubljanaGraph)
+    LintSchrijverGraph       = staticmethod(distance_regular.LintSchrijverGraph)
     LivingstoneGraph         = staticmethod(smallgraphs.LivingstoneGraph)
+    locally_GQ42_distance_transitive_graph = staticmethod(distance_regular.locally_GQ42_distance_transitive_graph)
+    LocalMcLaughlinGraph     = staticmethod(smallgraphs.LocalMcLaughlinGraph)
     M22Graph                 = staticmethod(smallgraphs.M22Graph)
     MarkstroemGraph          = staticmethod(smallgraphs.MarkstroemGraph)
     MathonStronglyRegularGraph = staticmethod(smallgraphs.MathonStronglyRegularGraph)
@@ -1985,6 +2014,8 @@ class GraphGenerators():
     PetersenGraph            = staticmethod(smallgraphs.PetersenGraph)
     RobertsonGraph           = staticmethod(smallgraphs.RobertsonGraph)
     SchlaefliGraph           = staticmethod(smallgraphs.SchlaefliGraph)
+    shortened_00_11_binary_Golay_code_graph = staticmethod(distance_regular.shortened_00_11_binary_Golay_code_graph)
+    shortened_000_111_extended_binary_Golay_code_graph = staticmethod(distance_regular.shortened_000_111_extended_binary_Golay_code_graph)
     ShrikhandeGraph          = staticmethod(smallgraphs.ShrikhandeGraph)
     SimsGewirtzGraph         = staticmethod(smallgraphs.SimsGewirtzGraph)
     SousselierGraph          = staticmethod(smallgraphs.SousselierGraph)
@@ -1994,7 +2025,8 @@ class GraphGenerators():
     TietzeGraph              = staticmethod(smallgraphs.TietzeGraph)
     Tutte12Cage              = staticmethod(smallgraphs.Tutte12Cage)
     TruncatedIcosidodecahedralGraph = staticmethod(smallgraphs.TruncatedIcosidodecahedralGraph)
-    TruncatedTetrahedralGraph= staticmethod(smallgraphs.TruncatedTetrahedralGraph)
+    TruncatedTetrahedralGraph = staticmethod(smallgraphs.TruncatedTetrahedralGraph)
+    TruncatedWittGraph       = staticmethod(distance_regular.TruncatedWittGraph)
     TutteCoxeterGraph        = staticmethod(smallgraphs.TutteCoxeterGraph)
     TutteGraph               = staticmethod(smallgraphs.TutteGraph)
     U42Graph216              = staticmethod(smallgraphs.U42Graph216)
@@ -2066,6 +2098,7 @@ class GraphGenerators():
     TadpoleGraph           = staticmethod(families.TadpoleGraph)
     trees                  = staticmethod(families.trees)
     TuranGraph             = staticmethod(families.TuranGraph)
+    UstimenkoGraph         = staticmethod(distance_regular.UstimenkoGraph)
     WheelGraph             = staticmethod(families.WheelGraph)
     WindmillGraph          = staticmethod(families.WindmillGraph)
 
@@ -2077,18 +2110,19 @@ class GraphGenerators():
     AhrensSzekeresGeneralizedQuadrangleGraph = staticmethod(classical_geometries.AhrensSzekeresGeneralizedQuadrangleGraph)
     NonisotropicOrthogonalPolarGraph = staticmethod(classical_geometries.NonisotropicOrthogonalPolarGraph)
     NonisotropicUnitaryPolarGraph = staticmethod(classical_geometries.NonisotropicUnitaryPolarGraph)
-    OrthogonalPolarGraph   = staticmethod(classical_geometries.OrthogonalPolarGraph)
+    OrthogonalDualPolarGraph = staticmethod(classical_geometries.OrthogonalDualPolarGraph)
+    OrthogonalPolarGraph = staticmethod(classical_geometries.OrthogonalPolarGraph)
     SymplecticDualPolarGraph = staticmethod(classical_geometries.SymplecticDualPolarGraph)
-    SymplecticPolarGraph   = staticmethod(classical_geometries.SymplecticPolarGraph)
+    SymplecticPolarGraph = staticmethod(classical_geometries.SymplecticPolarGraph)
     TaylorTwographDescendantSRG = \
              staticmethod(classical_geometries.TaylorTwographDescendantSRG)
-    TaylorTwographSRG      = staticmethod(classical_geometries.TaylorTwographSRG)
-    T2starGeneralizedQuadrangleGraph      = staticmethod(classical_geometries.T2starGeneralizedQuadrangleGraph)
+    TaylorTwographSRG = staticmethod(classical_geometries.TaylorTwographSRG)
+    T2starGeneralizedQuadrangleGraph = staticmethod(classical_geometries.T2starGeneralizedQuadrangleGraph)
     Nowhere0WordsTwoWeightCodeGraph = staticmethod(classical_geometries.Nowhere0WordsTwoWeightCodeGraph)
-    HaemersGraph      = staticmethod(classical_geometries.HaemersGraph)
+    HaemersGraph = staticmethod(classical_geometries.HaemersGraph)
     CossidentePenttilaGraph = staticmethod(classical_geometries.CossidentePenttilaGraph)
-    UnitaryDualPolarGraph  = staticmethod(classical_geometries.UnitaryDualPolarGraph)
-    UnitaryPolarGraph      = staticmethod(classical_geometries.UnitaryPolarGraph)
+    UnitaryDualPolarGraph = staticmethod(classical_geometries.UnitaryDualPolarGraph)
+    UnitaryPolarGraph = staticmethod(classical_geometries.UnitaryPolarGraph)
 
 ###########################################################################
 # Chessboard Graphs

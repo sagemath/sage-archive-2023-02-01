@@ -4,19 +4,21 @@ on: [push, pull_request]
 
 jobs:
   lint-pycodestyle:
-    name: Code style checking with pycodestyle
+    name: Code style check with pycodestyle
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Lint using pycodestyle
-      uses: ricardochaves/python-lint@v1.2.0
+    - name: Set up Python
+      uses: actions/setup-python@v2
       with:
-        python-root-list: "src"
-        use-pycodestyle: true
-        extra-pycodestyle-options: "--ignore=C0326" # C,E1,E2,E3,E402,E5,E9,W1,W2,W3,W4,W5   # all except for E401, E701, E702, W605
+        python-version: 3.9
+    - name: Install pycodestyle
+      run: pip install pylint pycodestyle
+    - name: Lint using pycodestyle
+      run: pycodestyle --select=E401 src # C,E1,E2,E3,E402,E5,E9,W1,W2,W3,W4,W5   # all except for E401, E701, E702, W605
   lint-pyright:
-    name: Static type checking with Pyright
+    name: Static type check with Pyright
     runs-on: ubuntu-latest
     steps:
     - name: Checkout

@@ -10,7 +10,8 @@ AUTHOR:
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.pbori.frontend import *
+        sage: from sage.rings.polynomial.pbori.pbori import *
+        sage: from sage.rings.polynomial.pbori.blocks import declare_ring
         sage: r=declare_ring(["x0","x1","x2","y0","y1","y2"], globals())
         sage: x0>x1
         True

@@ -42,11 +42,12 @@ def sparse_random_system(ring, number_of_polynomials,
     
         sage: from sage.rings.polynomial.pbori import *
         sage: r=Ring(10)
+        sage: from sage.rings.polynomial.pbori.randompoly import sparse_random_system
         sage: s=sparse_random_system(r, number_of_polynomials = 20, variables_per_polynomial = 3, degree=2, random_seed=123)
         sage: [p.deg() for p in s]
         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
         sage: sorted(groebner_basis(s), reverse=True)
-        [x(0), x(1), x(2), x(3), x(4) + 1, x(5), x(6) + 1, x(7), x(8) + 1, x(9)]
+        [x(0), x(1) + 1, x(2), x(3) + 1, x(4) + 1, x(5), x(6), x(7) + 1, x(8) + 1, x(9) + 1]
     """
     if random_seed is not None:
         set_random_seed(random_seed)
@@ -79,8 +80,11 @@ def sparse_random_system_data_file_content(
     
     TESTS::
     
+        
+        sage: from sage.rings.polynomial.pbori import *
+        sage: from sage.rings.polynomial.pbori.randompoly import sparse_random_system_data_file_content
         sage: sparse_random_system_data_file_content(10, number_of_polynomials = 5, variables_per_polynomial = 3, degree=2, random_seed=123)
-        declare_ring(['x'+str(i) for in range(10)])\nideal=\\\n[...]\n\n
+        "declare_ring(['x'+str(i) for in range(10)])\nideal=\\\n[...]\n\n"
     """
     dummy_dict = dict()
     r = declare_ring(['x' + str(i) for i in range(number_of_variables)],

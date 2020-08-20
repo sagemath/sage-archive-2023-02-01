@@ -496,7 +496,8 @@ cdef class NumberFieldElement(FieldElement):
             sage: latex(zeta12^4-zeta12) # indirect doctest
             \zeta_{12}^{2} - \zeta_{12} - 1
         """
-        return self.polynomial()._latex_(name=self.number_field().latex_variable_name())
+        latex_name = self.number_field().latex_variable_names()[0]
+        return self.polynomial()._latex_(name=latex_name)
 
     def _gap_init_(self):
         """

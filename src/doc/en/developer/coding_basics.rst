@@ -87,19 +87,6 @@ In particular,
        def SomeIdentityValue(x):
            return SomeValue(1)
 
-It is recommended to check your Python code against the style
-conventions using the following tools:
-- `Pycodestyle <https://pycodestyle.pycqa.org/en/latest/>` checks
-  against the style conventions of PEP8 Python.
-- `Pyflakes <https://github.com/PyCQA/pyflakes>` checks for 
-  common coding errors.
-- `Pyright <https://github.com/microsoft/pyright>` is a static
-  type checker. It can be used as a command-line tool and via the 
-  `Pylance <https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance>` 
-  extension for Visual Studio Code.
-  Currently, only the manifolds package is checked. 
-  Further packages can be added in the ``pyrightconfig.json`` file
-  in the root.
 
 .. _chapter-directory-structure:
 

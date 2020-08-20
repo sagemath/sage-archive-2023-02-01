@@ -16,7 +16,7 @@ jobs:
     - name: Install pycodestyle
       run: pip install pylint pycodestyle
     - name: Lint using pycodestyle
-      run: pycodestyle --select=E401 src # C,E1,E2,E3,E402,E5,E9,W1,W2,W3,W4,W5   # all except for E401, E701, E702, W605
+      run: pycodestyle --select=E401,E701,E702,W605 src # Only check a few selected rules
   lint-pyright:
     name: Static type check with Pyright
     runs-on: ubuntu-latest

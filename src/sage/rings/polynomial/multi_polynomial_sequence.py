@@ -1248,8 +1248,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
             This is called "massaging" in [BCJ2007]_.
         """
-        from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing
-        from sage.rings.polynomial.pbori import gauss_on_polys
+        from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing,gauss_on_polys
         from sage.rings.polynomial.pbori.ll import eliminate,ll_encode,ll_red_nf_redsb
 
         R = self.ring()
@@ -1330,7 +1329,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: P.<x,y,z> = BooleanPolynomialRing()
             sage: F = Sequence([x*y + z, y + z + 1])
             sage: F._groebner_strategy()
-            <sage.rings.polynomial.pbori.GroebnerStrategy object at 0x...>
+            <sage.rings.polynomial.pbori.pbori.GroebnerStrategy object at 0x...>
         """
         from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing
         R = self.ring()

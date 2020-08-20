@@ -14,7 +14,7 @@ from distutils.errors import (DistutilsModuleError,
                               DistutilsOptionError)
 
 from Cython.Build.Dependencies import default_create_extension
-from sage_setup.util import stable_uniq, have_module
+from sage_setup.util import stable_uniq
 from sage_setup.find import find_extra_files
 from sage_setup.library_order import library_order
 

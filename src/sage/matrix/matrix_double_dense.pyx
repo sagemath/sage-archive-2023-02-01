@@ -1204,7 +1204,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         self.cache('PLU_factors', PLU)
         return PLU
 
-    def eigenvalues(self, other=None, algorithm='default', tol=None,
+    def eigenvalues(self, other=None, algorithm='default', tol=None, *,
                     homogeneous=False):
         r"""
         Return a list of ordinary or generalized eigenvalues.
@@ -1380,6 +1380,10 @@ cdef class Matrix_double_dense(Matrix_dense):
             Traceback (most recent call last):
             ...
             ValueError: matrix must be square, not 2 x 3
+            sage: matrix.identity(CDF, 2).eigenvalues(A)
+            Traceback (most recent call last):
+            ...
+            ValueError: other matrix must be square, not 2 x 3
 
             sage: A = matrix(CDF, 2, [1, 2, 3, 4*I])
             sage: A.eigenvalues(algorithm='symmetric')
@@ -1411,21 +1415,52 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: B = matrix(CDF, [[2, 1+I], [1-I, 3]])
             sage: A.eigenvalues(B, algorithm='hermitian', homogeneous=True)  # tol 1e-14
             [(0.25, 1.0), (1.0, 1.0)]
+
+        Test the deprecation::
+
+            sage: A = graphs.PetersenGraph().adjacency_matrix().change_ring(RDF)
+            sage: ev = A.eigenvalues('symmetric', 1e-13)
+            doctest:...: DeprecationWarning: "extend" and "tol" should be used
+            as keyword argument only
+            See https://trac.sagemath.org/29243 for details.
+            sage: ev  # tol 1e-13
+            [(-2.0, 4), (1.0, 5), (3.0, 1)]
+            sage: A.eigenvalues('symmetric', 1e-13, tol=1e-12)
+            Traceback (most recent call last):
+            ...
+            TypeError: eigenvalues() got multiple values for keyword argument 'tol'
+            sage: A.eigenvalues('symmetric', algorithm='hermitian')
+            Traceback (most recent call last):
+            ...
+            TypeError: eigenvalues() got multiple values for keyword argument 'algorithm'
         """
         from sage.rings.real_double import RDF
         from sage.rings.complex_double import CDF
         if isinstance(other, str):
             # for backward compatibilty, allow algorithm to be passed as first
-            # positional argument
+            # positional argument and tol as second positional argument
+            from sage.misc.superseded import deprecation
+            deprecation(29243, '"extend" and "tol" should be used as '
+                               'keyword argument only')
+            if algorithm != 'default':
+                if isinstance(algorithm, str):
+                    raise TypeError("eigenvalues() got multiple values for "
+                                    "keyword argument 'algorithm'")
+                if tol is not None:
+                    raise TypeError("eigenvalues() got multiple values for "
+                                    "keyword argument 'tol'")
+                tol = algorithm
             algorithm = other
             other = None
         if not algorithm in ['default', 'symmetric', 'hermitian']:
             msg = "algorithm must be 'default', 'symmetric', or 'hermitian', not {0}"
             raise ValueError(msg.format(algorithm))
-        if not self.is_square() or other is not None and not other.is_square():
-            msg = 'matrix must be square, not {0} x {1}'
-            m = self if not self.is_square() else other
-            raise ValueError(msg.format(m.nrows(), m.ncols()))
+        if not self.is_square():
+            raise ValueError('matrix must be square, not %s x %s'
+                             % (self.nrows(), self.ncols()))
+        if other is not None and not other.is_square():
+            raise ValueError('other matrix must be square, not %s x %s'
+                             % (other.nrows(), other.ncols()))
         if algorithm == 'symmetric':
             if self.base_ring() != RDF:
                 try:
@@ -1503,7 +1538,7 @@ cdef class Matrix_double_dense(Matrix_dense):
                     ev_group[location][2] = ev_group[location][0]/ev_group[location][1]
             return [(return_class(avg), m) for _, m, avg in ev_group]
 
-    def left_eigenvectors(self, other=None, homogeneous=False):
+    def left_eigenvectors(self, other=None, *, homogeneous=False):
         r"""
         Compute the ordinary or generalized left eigenvectors of a matrix of
         double precision real or complex numbers (i.e. ``RDF`` or ``CDF``).
@@ -1661,7 +1696,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
     eigenvectors_left = left_eigenvectors
 
-    def right_eigenvectors(self, other=None, homogeneous=False):
+    def right_eigenvectors(self, other=None, *, homogeneous=False):
         r"""
         Compute the ordinary or generalized right eigenvectors of a matrix of
         double precision real or complex numbers (i.e. ``RDF`` or ``CDF``).

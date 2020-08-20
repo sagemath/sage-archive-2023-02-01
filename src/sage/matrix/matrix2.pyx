@@ -6038,13 +6038,16 @@ cdef class Matrix(Matrix1):
         self.cache('eigenvalues', eigenvalues)
         return eigenvalues
 
-    def eigenvectors_left(self, other=None, extend=True):
+    def eigenvectors_left(self, other=None, *, extend=True):
         r"""
         Compute the left eigenvectors of a matrix.
 
         INPUT:
 
-        - ``other`` -- not supported
+        - ``other`` -- a square matrix `B` (default: ``None``) in a generalized
+          eigenvalue problem; if ``None``, an ordinary eigenvalue problem is
+          solved (currently supported only if the base ring of ``self`` is
+          ``RDF`` or ``CDF``)
 
         - ``extend`` -- boolean (default: ``True``)
 
@@ -6117,6 +6120,7 @@ cdef class Matrix(Matrix1):
                 deprecation(29243,
                             '"extend" should be used as keyword argument')
                 extend = other
+                other = None
             else:
                 raise NotImplementedError('generalized eigenvector '
                                           'decomposition is implemented '
@@ -6162,13 +6166,16 @@ cdef class Matrix(Matrix1):
 
     left_eigenvectors = eigenvectors_left
 
-    def eigenvectors_right(self, other=None, extend=True):
+    def eigenvectors_right(self, other=None, *, extend=True):
         r"""
         Compute the right eigenvectors of a matrix.
 
         INPUT:
 
-        - ``other`` -- not supported
+        - ``other`` -- a square matrix `B` (default: ``None``) in a generalized
+          eigenvalue problem; if ``None``, an ordinary eigenvalue problem is
+          solved (currently supported only if the base ring of ``self`` is
+          ``RDF`` or ``CDF``)
 
         - ``extend`` -- boolean (default: ``True``)
 

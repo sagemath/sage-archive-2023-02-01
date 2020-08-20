@@ -9527,6 +9527,7 @@ class Graph(GenericGraph):
         H.name(f"Folded {name}")
         return H
 
+    @doc_index("Leftovers")
     def antipodal_graph(self):
         r"""
         Return the antipodal graph of ``self``.

@@ -314,7 +314,6 @@ from .combinat import CombinatorialElement
 from . import tableau
 from . import permutation
 from . import composition
-from sage.combinat.partitions import number_of_partitions as bober_number_of_partitions
 from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_lists import IntegerListsLex
@@ -6385,7 +6384,6 @@ class Partitions_n(Partitions):
         - ``algorithm``  - (default: ``'flint'``)
 
           - ``'flint'`` -- use FLINT (currently the fastest)
-          - ``'bober'`` -- Use Jonathan Bober's implementation (*very* fast)
           - ``'gap'`` -- use GAP (VERY *slow*)
           - ``'pari'`` -- use PARI. Speed seems the same as GAP until
             `n` is in the thousands, in which case PARI is faster.
@@ -6404,8 +6402,6 @@ class Partitions_n(Partitions):
             sage: Partitions(5).cardinality(algorithm='gap')
             7
             sage: Partitions(5).cardinality(algorithm='pari')
-            7
-            sage: Partitions(5).cardinality(algorithm='bober')
             7
             sage: number_of_partitions(5, algorithm='flint')
             7
@@ -6456,9 +6452,6 @@ class Partitions_n(Partitions):
         """
         if algorithm == 'flint':
             return cached_number_of_partitions(self.n)
-
-        elif algorithm == 'bober':
-            return bober_number_of_partitions(self.n)
 
         elif algorithm == 'gap':
             from sage.libs.gap.libgap import libgap
@@ -8636,15 +8629,11 @@ def number_of_partitions(n, algorithm='default'):
 
        -  ``'flint'`` -- use FLINT
 
-       -  ``'bober'`` -- use Jonathan Bober's implementation
-
     EXAMPLES::
 
         sage: v = Partitions(5).list(); v
         [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
         sage: len(v)
-        7
-        sage: number_of_partitions(5, algorithm='bober')
         7
 
     The input must be a nonnegative integer or a ``ValueError`` is raised.
@@ -8734,9 +8723,6 @@ def number_of_partitions(n, algorithm='default'):
 
     if algorithm == 'flint':
         return cached_number_of_partitions(n)
-
-    elif algorithm == 'bober':
-        return bober_number_of_partitions(n)
 
     raise ValueError("unknown algorithm '%s'"%algorithm)
 

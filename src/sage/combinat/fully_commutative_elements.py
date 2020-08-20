@@ -32,7 +32,6 @@ from sage.structure.list_clone import NormalizedClonableList
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.structure.unique_representation import UniqueRepresentation
 from .root_system.coxeter_matrix import CoxeterMatrix
-from .root_system.cartan_type import CartanType
 from collections import deque
 from sage.combinat.posets.posets import Poset
 from sage.categories.coxeter_groups import CoxeterGroups

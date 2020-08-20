@@ -45,7 +45,7 @@ def to_fast_pickable(l):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.pbori.brial.PyPolyBoRi import Ring
+        sage: from sage.rings.polynomial.pbori.PyPolyBoRi import Ring
         sage: r=Ring(1000)
         sage: x=r.variable
         sage: to_fast_pickable([Polynomial(1, r)])
@@ -121,7 +121,7 @@ def from_fast_pickable(l, r):
     
     EXAMPLES::
     
-        sage: from sage.rings.polynomial.pbori.brial.PyPolyBoRi import Ring
+        sage: from sage.rings.polynomial.pbori.PyPolyBoRi import Ring
         sage: r=Ring(1000)
         sage: x = r.variable
         sage: from_fast_pickable([[1], []], r)
@@ -275,7 +275,7 @@ def groebner_basis_first_finished(I, *l):
     
     EXAMPLES::
     
-        sage: from sage.rings.polynomial.pbori.brial.PyPolyBoRi import Ring
+        sage: from sage.rings.polynomial.pbori.PyPolyBoRi import Ring
         sage: r=Ring(1000)
         sage: ideal = [r.variable(1)*r.variable(2)+r.variable(2)+r.variable(1)]
         sage: #groebner_basis_first_finished(ideal, dict(heuristic=True), dict(heuristic=False))

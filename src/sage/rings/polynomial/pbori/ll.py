@@ -212,7 +212,7 @@ class RingMap(object):
 
     TESTS::
     
-        sage: from sage.rings.polynomial.pbori.brial.frontend import *
+        sage: from sage.rings.polynomial.pbori.frontend import *
         sage: to_ring = declare_ring([Block("x", 10)], globals())
         sage: from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
         sage: mapping = RingMap(to_ring, from_ring)
@@ -238,7 +238,7 @@ class RingMap(object):
         
         TESTS::
 
-            sage: from sage.rings.polynomial.pbori.brial.frontend import *
+            sage: from sage.rings.polynomial.pbori.frontend import *
             sage: to_ring = declare_ring([Block("x", 10)], globals())
             sage: from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
             sage: mapping = RingMap(to_ring, from_ring)
@@ -277,7 +277,7 @@ class RingMap(object):
         
         TESTS::
 
-            sage: from sage.rings.polynomial.pbori.brial.frontend import *
+            sage: from sage.rings.polynomial.pbori.frontend import *
             sage: to_ring = declare_ring([Block("x", 10)], globals())
             sage: from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
             sage: mapping = RingMap(to_ring, from_ring)
@@ -290,7 +290,7 @@ class RingMap(object):
         r"""
         Inverted map to initial ring.
 
-            sage: from sage.rings.polynomial.pbori.brial.frontend import *
+            sage: from sage.rings.polynomial.pbori.frontend import *
             sage: to_ring = declare_ring([Block("x", 10)], globals())
             sage: from_ring = declare_ring([Block("y", 5), Block("x", 10)], globals())
             sage: mapping = RingMap(to_ring, from_ring)

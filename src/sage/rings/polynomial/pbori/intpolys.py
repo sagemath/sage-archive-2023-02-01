@@ -36,7 +36,7 @@ class IntegerPolynomial(object):
         
         TESTS::
         
-            sage: from sage.rings.polynomial.pbori.brial import *
+            sage: from sage.rings.polynomial.pbori import *
             sage: r= declare_ring([Block("x",1000)], globals()) # doctest: +ELLIPSIS
             sage: p=IntegerPolynomial(x(1))
             sage: p

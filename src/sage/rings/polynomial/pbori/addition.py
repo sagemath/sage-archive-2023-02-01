@@ -10,7 +10,7 @@ def add_bits_old(bits):
     
     TESTS::
     
-        sage: from sage.rings.polynomial.pbori.brial import *
+        sage: from sage.rings.polynomial.pbori import *
         sage: r=Ring(10)
         sage: add_bits_old([r.variable(i) for i in xrange(3)])
         [x(0) + x(1) + x(2), x(0)*x(1) + x(0)*x(2) + x(1)*x(2)]
@@ -41,7 +41,7 @@ def add_bits(bits):
     
     TESTS::
     
-        sage: from sage.rings.polynomial.pbori.brial import *
+        sage: from sage.rings.polynomial.pbori import *
         sage: r=Ring(10)
         sage: add_bits([r.variable(i) for i in xrange(3)])
         [x(0) + x(1) + x(2), x(0)*x(1) + x(0)*x(2) + x(1)*x(2)]
@@ -70,7 +70,7 @@ def add_bit_expressions(bit_expressions):
 
     TESTS::
     
-        sage: from sage.rings.polynomial.pbori.brial import *
+        sage: from sage.rings.polynomial.pbori import *
         sage: r=Ring(20)
         sage: add_bit_expressions([r.variable(i) for i in xrange(10,13)])
         [x(10) + x(11) + x(12), x(10)*x(11) + x(10)*x(12) + x(11)*x(12)]
@@ -100,7 +100,7 @@ def add_words(words):
 
     TESTS::
     
-        sage: from sage.rings.polynomial.pbori.brial import *
+        sage: from sage.rings.polynomial.pbori import *
         sage: r=Ring(1000)
         sage: add_words([[r.variable(100+i*3+j) for i in xrange(2)] for j in xrange(3)])
         [x(100) + x(101) + x(102), x(100)*x(101) + x(100)*x(102) + x(101)*x(102) + x(103) + x(104) + x(105), x(100)*x(101)*x(103) + x(100)*x(101)*x(104) + x(100)*x(101)*x(105) + x(100)*x(102)*x(103) + x(100)*x(102)*x(104) + x(100)*x(102)*x(105) + x(101)*x(102)*x(103) + x(101)*x(102)*x(104) + x(101)*x(102)*x(105) + x(103)*x(104) + x(103)*x(105) + x(104)*x(105), x(100)*x(101)*x(103)*x(104)*x(105) + x(100)*x(102)*x(103)*x(104)*x(105) + x(101)*x(102)*x(103)*x(104)*x(105)]
@@ -131,7 +131,7 @@ def multiply_by_addition(word_a, word_b):
     
     TESTS::
     
-        sage: from sage.rings.polynomial.pbori.brial import Ring
+        sage: from sage.rings.polynomial.pbori import Ring
         sage: r=Ring(1000)
         sage: x = r.variable
         sage: n=7

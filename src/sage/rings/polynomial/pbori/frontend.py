@@ -18,7 +18,7 @@ EXAMPLES::
     sage: x(9999) + x(9999)
     0
 
-    sage: from sage.rings.polynomial.pbori.brial.frontend import *
+    sage: from sage.rings.polynomial.pbori.frontend import *
     sage: context = dict(globals())
     sage: polybori_start(context)
     ipbori...

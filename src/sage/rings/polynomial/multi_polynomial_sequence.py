@@ -1249,8 +1249,8 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             This is called "massaging" in [BCJ2007]_.
         """
         from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing
-        from sage.rings.polynomial.pbori.brial import gauss_on_polys
-        from sage.rings.polynomial.pbori.brial.ll import eliminate,ll_encode,ll_red_nf_redsb
+        from sage.rings.polynomial.pbori import gauss_on_polys
+        from sage.rings.polynomial.pbori.ll import eliminate,ll_encode,ll_red_nf_redsb
 
         R = self.ring()
 
@@ -1534,7 +1534,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         R = self.ring()
 
         if isinstance(R, BooleanPolynomialRing):
-            from sage.rings.polynomial.pbori.brial.interred import interred as inter_red
+            from sage.rings.polynomial.pbori.interred import interred as inter_red
             l = [p for p in self if not p==0]
             l = sorted(inter_red(l, completely=True), reverse=True)
             return PolynomialSequence(l, R, immutable=True)

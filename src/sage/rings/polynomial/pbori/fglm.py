@@ -30,7 +30,7 @@ def fglm(I, from_ring, to_ring):
     
     TESTS::
     
-        sage: from sage.rings.polynomial.pbori.brial.PyPolyBoRi import OrderCode
+        sage: from sage.rings.polynomial.pbori.PyPolyBoRi import OrderCode
         sage: dp_asc = OrderCode.dp_asc
         sage: r=declare_ring(['x','y','z'],dict())
         sage: old_ring = r
@@ -52,9 +52,9 @@ def vars_real_divisors(monomial, monomial_set):
     
     TESTS::
     
-        sage: from sage.rings.polynomial.pbori.brial.PyPolyBoRi import OrderCode
+        sage: from sage.rings.polynomial.pbori.PyPolyBoRi import OrderCode
         sage: dp_asc = OrderCode.dp_asc
-        sage: from sage.rings.polynomial.pbori.brial.PyPolyBoRi import Ring
+        sage: from sage.rings.polynomial.pbori.PyPolyBoRi import Ring
         sage: r=Ring(1000)
         sage: x = r.variable
         sage: b=BooleSet([x(1)*x(2),x(2)])
@@ -72,7 +72,7 @@ def m_k_plus_one(completed_elements, variables):
     
     TESTS::
     
-        sage: from sage.rings.polynomial.pbori.brial.PyPolyBoRi import OrderCode
+        sage: from sage.rings.polynomial.pbori.PyPolyBoRi import OrderCode
         sage: dp_asc = OrderCode.dp_asc
         sage: r=Ring(1000)
         sage: x = r.variable

@@ -40,7 +40,7 @@ def sparse_random_system(ring, number_of_polynomials,
 
     TESTS::
     
-        sage: from sage.rings.polynomial.pbori.brial import *
+        sage: from sage.rings.polynomial.pbori import *
         sage: r=Ring(10)
         sage: s=sparse_random_system(r, number_of_polynomials = 20, variables_per_polynomial = 3, degree=2, random_seed=123)
         sage: [p.deg() for p in s]

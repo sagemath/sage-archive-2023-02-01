@@ -656,7 +656,7 @@ def normal_form(poly, ideal, reduced=True):
     
     TESTS::
     
-        sage: from sage.rings.polynomial.pbori.brial import declare_ring, normal_form
+        sage: from sage.rings.polynomial.pbori import declare_ring, normal_form
         sage: r=declare_ring(['x','y'], globals())
         sage: normal_form(x+y, [y],reduced=True)
         x

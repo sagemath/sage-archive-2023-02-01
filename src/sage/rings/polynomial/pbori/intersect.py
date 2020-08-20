@@ -19,8 +19,8 @@ def intersect(i, j, **gb_opts):
     
     TESTS::
     
-        sage: from sage.rings.polynomial.pbori.brial.frontend import declare_ring
-        sage: from sage.rings.polynomial.pbori.brial import Block
+        sage: from sage.rings.polynomial.pbori.frontend import declare_ring
+        sage: from sage.rings.polynomial.pbori import Block
         sage: r=declare_ring(Block("x", 1000), globals())
         sage: x = r.variable
         sage: intersect([x(1),x(2)+1],[x(1),x(2)])

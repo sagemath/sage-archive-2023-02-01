@@ -31,7 +31,7 @@ class FactoryContext(object):
     EXAMPLES::
     
         sage: r = Ring(1000)
-        sage: from sage.rings.polynomial.pbori.brial import Variable
+        sage: from sage.rings.polynomial.pbori import Variable
         sage: def var(idx): return Variable(idx, r)
         sage: with FactoryContext(Variable, var):
         ...     print Variable(17)
@@ -73,7 +73,7 @@ class RingContext(object):
     EXAMPLES::
     
         sage: r = Ring(1000)
-        sage: from sage.rings.polynomial.pbori.brial import Variable
+        sage: from sage.rings.polynomial.pbori import Variable
         sage: print Variable(17, r)
         x(17)
         sage: with RingContext(r):

@@ -18,7 +18,7 @@ class CNFEncoder(object):
         
         TESTS::
         
-            sage: from sage.rings.polynomial.pbori.brial import *
+            sage: from sage.rings.polynomial.pbori import *
             sage: r = declare_ring(["x", "y", "z"], dict())
             sage: e = CNFEncoder(r)
             sage: e.zero_blocks(r.variable(0)*r.variable(1)*r.variable(2))
@@ -85,7 +85,7 @@ class CNFEncoder(object):
         
         TESTS::
         
-            sage: from sage.rings.polynomial.pbori.brial import *
+            sage: from sage.rings.polynomial.pbori import *
             sage: r = declare_ring(["x", "y", "z"], dict())
             sage: e = CNFEncoder(r)
             sage: e.clauses(r.variable(0)*r.variable(1)*r.variable(2)) # doctest:+ELLIPSIS
@@ -112,7 +112,7 @@ class CNFEncoder(object):
         
         TESTS::
         
-            sage: from sage.rings.polynomial.pbori.brial import *
+            sage: from sage.rings.polynomial.pbori import *
             sage: r = declare_ring(["x", "y", "z"], dict())
             sage: e = CNFEncoder(r)
             sage: e.polynomial_clauses(r.variable(0)*r.variable(1)*r.variable(2))
@@ -154,7 +154,7 @@ class CNFEncoder(object):
         
         TESTS::
         
-            sage: from sage.rings.polynomial.pbori.brial import *
+            sage: from sage.rings.polynomial.pbori import *
             sage: d=dict()
             sage: r = declare_ring(["x", "y", "z"], d)
             sage: e = CNFEncoder(r)
@@ -172,7 +172,7 @@ class CNFEncoder(object):
         
         TESTS::
         
-            sage: from sage.rings.polynomial.pbori.brial import *
+            sage: from sage.rings.polynomial.pbori import *
             sage: r = declare_ring(["x", "y", "z"], dict())
             sage: e = CNFEncoder(r)
             sage: e.dimacs_cnf([r.variable(0)*r.variable(1)*r.variable(2)])
@@ -201,7 +201,7 @@ class CryptoMiniSatEncoder(CNFEncoder):
         
         TESTS::
         
-            sage: from sage.rings.polynomial.pbori.brial import *
+            sage: from sage.rings.polynomial.pbori import *
             sage: d=dict()
             sage: r = declare_ring(["x", "y", "z"], d)
             sage: e = CryptoMiniSatEncoder(r)
@@ -238,7 +238,7 @@ class CryptoMiniSatEncoder(CNFEncoder):
         
         TESTS::
         
-            sage: from sage.rings.polynomial.pbori.brial import *
+            sage: from sage.rings.polynomial.pbori import *
             sage: r = declare_ring(["x", "y", "z"], dict())
             sage: e = CryptoMiniSatEncoder(r)
             sage: e.dimacs_cnf([r.variable(0)*r.variable(1)*r.variable(2)])

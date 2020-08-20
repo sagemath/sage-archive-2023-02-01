@@ -5,6 +5,7 @@ a given context.
 
 EXAMPLES::
 
+    sage: from sage.rings.polynomial.pbori.frontend import *
     sage: x(0)
     x(0)
     sage: x(0)*x(0)
@@ -33,7 +34,6 @@ from __future__ import print_function
 
 from . import *
 from .blocks import declare_ring as orig_declare_ring
-from os import environ as env, path as os_path
 
 
 def block_scheme_names(blocks):

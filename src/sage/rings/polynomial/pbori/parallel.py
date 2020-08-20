@@ -45,7 +45,8 @@ def to_fast_pickable(l):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.pbori.PyPolyBoRi import Ring
+        sage: from sage.rings.polynomial.pbori.frontend import *
+        sage: from sage.rings.polynomial.pbori.parallel import to_fast_pickable, from_fast_pickable
         sage: r=Ring(1000)
         sage: x=r.variable
         sage: to_fast_pickable([Polynomial(1, r)])
@@ -121,7 +122,8 @@ def from_fast_pickable(l, r):
     
     EXAMPLES::
     
-        sage: from sage.rings.polynomial.pbori.PyPolyBoRi import Ring
+        sage: from sage.rings.polynomial.pbori.frontend import *
+        sage: from sage.rings.polynomial.pbori.parallel import from_fast_pickable
         sage: r=Ring(1000)
         sage: x = r.variable
         sage: from_fast_pickable([[1], []], r)
@@ -296,11 +298,3 @@ def groebner_basis_first_finished(I, *l):
     pool.terminate()
 
     return res
-
-
-def _test():
-    import doctest
-    doctest.testmod()
-
-if __name__ == "__main__":
-    _test()

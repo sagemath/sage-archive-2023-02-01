@@ -1,13 +1,3 @@
-if __name__ == "__main__":
-    import os
-    import sys
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
-
-
-    def _test():
-        import doctest
-        doctest.testmod()
-
 from .PyPolyBoRi import BooleSet, Polynomial, BoolePolynomialVector, \
     FGLMStrategy, Monomial, Ring
 
@@ -30,6 +20,7 @@ def fglm(I, from_ring, to_ring):
     
     TESTS::
     
+        sage: from sage.rings.polynomial.pbori import *
         sage: from sage.rings.polynomial.pbori.PyPolyBoRi import OrderCode
         sage: dp_asc = OrderCode.dp_asc
         sage: r=declare_ring(['x','y','z'],dict())
@@ -37,6 +28,7 @@ def fglm(I, from_ring, to_ring):
         sage: new_ring = old_ring.clone(ordering=dp_asc)
         sage: (x,y,z) = [old_ring.variable(i) for i in range(3)]
         sage: ideal=[x+z, y+z]# lp Groebner basis
+        sage: from sage.rings.polynomial.pbori.fglm import fglm
         sage: list(fglm(ideal, old_ring, new_ring))
         [y + x, z + x]
     """
@@ -52,12 +44,14 @@ def vars_real_divisors(monomial, monomial_set):
     
     TESTS::
     
+        sage: from sage.rings.polynomial.pbori.pbori import *
         sage: from sage.rings.polynomial.pbori.PyPolyBoRi import OrderCode
         sage: dp_asc = OrderCode.dp_asc
         sage: from sage.rings.polynomial.pbori.PyPolyBoRi import Ring
         sage: r=Ring(1000)
         sage: x = r.variable
         sage: b=BooleSet([x(1)*x(2),x(2)])
+        sage: from sage.rings.polynomial.pbori.fglm import vars_real_divisors
         sage: vars_real_divisors(x(1)*x(2)*x(3),b)
         {{x(1),x(2)}}
     """
@@ -72,11 +66,15 @@ def m_k_plus_one(completed_elements, variables):
     
     TESTS::
     
+        sage: from sage.rings.polynomial.pbori.pbori import *
         sage: from sage.rings.polynomial.pbori.PyPolyBoRi import OrderCode
         sage: dp_asc = OrderCode.dp_asc
+        sage: from sage.rings.polynomial.pbori.PyPolyBoRi import Ring
         sage: r=Ring(1000)
         sage: x = r.variable
+        sage: from sage.rings.polynomial.pbori.PyPolyBoRi import Monomial
         sage: s=BooleSet([x(1)*x(2),x(1),x(2),Monomial(r),x(3)])
+        sage: from sage.rings.polynomial.pbori.fglm import m_k_plus_one
         sage: variables=BooleSet([x(1),x(2),x(3)])
         sage: m_k_plus_one(s,variables)
         x(2)*x(3)

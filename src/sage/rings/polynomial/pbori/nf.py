@@ -91,8 +91,10 @@ def multiply_polynomials(l, ring):
     
     TESTS::
     
+        sage: from sage.rings.polynomial.pbori import *
         sage: r=Ring(1000)
         sage: x=r.variable
+        sage: from sage.rings.polynomial.pbori.nf import multiply_polynomials
         sage: multiply_polynomials([x(3), x(2)+x(5)*x(6), x(0), x(0)+1], r)
         0
     """

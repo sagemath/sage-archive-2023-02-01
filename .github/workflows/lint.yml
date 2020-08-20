@@ -14,7 +14,7 @@ jobs:
       with:
         python-root-list: "src"
         use-pycodestyle: true
-        extra-pycodestyle-options: --select=C0330
+        extra-pycodestyle-options: --ignore=C,E1,E2,E3,E402,E5,E9,W1,W2,W3,W4,W5   # all except for E401, E701, E702, W605
   lint-pyright:
     name: Static type checking with Pyright
     runs-on: ubuntu-latest

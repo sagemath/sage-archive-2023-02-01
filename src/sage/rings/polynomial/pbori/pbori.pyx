@@ -1518,14 +1518,14 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         if isinstance(zeros, BooleSet):
             z = zeros
         else:
-            z = sum([prod([x[i] for i in xrange(n) if v[i]],
+            z = sum([prod([x[i] for i in range(n) if v[i]],
                           self.one()) for v in zeros],
                     self.zero())
             z = z.set()
         if isinstance(ones, BooleSet):
             o = ones
         else:
-            o = sum([prod([x[i] for i in xrange(n) if v[i]],
+            o = sum([prod([x[i] for i in range(n) if v[i]],
                           self.one()) for v in ones],
                     self.zero())
             o = o.set()
@@ -1798,7 +1798,7 @@ def get_var_mapping(ring, other):
     """
     my_names = list(ring._names)  # we need .index(.)
     if isinstance(other, (Parent, BooleanMonomialMonoid)):
-        indices = list(xrange(other.ngens()))
+        indices = list(range(other.ngens()))
         ovar_names = other._names
     else:
         ovar_names = other.parent().variable_names()
@@ -1965,7 +1965,7 @@ class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
             sage: M.gens()
             (x, y, z)
         """
-        return tuple(self.gen(i) for i in xrange(self.ngens()))
+        return tuple(self.gen(i) for i in range(self.ngens()))
 
     def _get_action_(self, S, op, bint self_on_left):
         """

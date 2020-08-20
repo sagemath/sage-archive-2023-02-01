@@ -80,14 +80,14 @@ def sparse_random_system_data_file_content(
     TESTS::
     
         sage: sparse_random_system_data_file_content(10, number_of_polynomials = 5, variables_per_polynomial = 3, degree=2, random_seed=123)
-        declare_ring(['x'+str(i) for in xrange(10)])\nideal=\\\n[...]\n\n
+        declare_ring(['x'+str(i) for in range(10)])\nideal=\\\n[...]\n\n
     """
     dummy_dict = dict()
     r = declare_ring(['x' + str(i) for i in range(number_of_variables)],
         dummy_dict)
     polynomials = sparse_random_system(r, **kwds)
     polynomials = pformat(polynomials)
-    res = "declare_ring(['x'+str(i) for in xrange(%s)])\nideal=\\\n%s\n\n" % (
+    res = "declare_ring(['x'+str(i) for in range(%s)])\nideal=\\\n%s\n\n" % (
         number_of_variables, polynomials)
     return res
 

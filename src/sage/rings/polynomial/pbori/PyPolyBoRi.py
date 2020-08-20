@@ -57,10 +57,10 @@ AUTHOR:
         True
 
         sage: r = r.clone(names=["z17", "z7"])
-        sage: [r.variable(idx) for idx in xrange(3)]
+        sage: [r.variable(idx) for idx in range(3)]
         [z17, z7, x2]
         sage: r = r.clone(names="abcde")
-        sage: [r.variable(idx) for idx in xrange(6)]
+        sage: [r.variable(idx) for idx in range(6)]
         [a, b, c, d, e, y2]
 """
 

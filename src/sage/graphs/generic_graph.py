@@ -449,11 +449,8 @@ def igraph_feature():
     TESTS::
 
         sage: from sage.graphs.generic_graph import igraph_feature
-        sage: ((igraph_feature().is_present()
-        ....:   and 'igraph' in installed_packages())
-        ....:  or (not igraph_feature().is_present()
-        ....:      and 'igraph' not in installed_packages()))
-        True
+        sage: igraph_feature().is_present()  # optional - python_igraph
+        FeatureTestResult('igraph', True)
     """
     from sage.features import PythonModule
     return PythonModule("igraph", spkg="python_igraph", url="http://igraph.org")

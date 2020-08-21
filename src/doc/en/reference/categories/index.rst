@@ -112,6 +112,7 @@ Individual Categories
    sage/categories/graded_hopf_algebras_with_basis
    sage/categories/graded_lie_algebras
    sage/categories/graded_lie_algebras_with_basis
+   sage/categories/graded_lie_conformal_algebras
    sage/categories/graded_modules
    sage/categories/graded_modules_with_basis
    sage/categories/graphs
@@ -177,6 +178,7 @@ Individual Categories
    sage/categories/super_algebras
    sage/categories/super_algebras_with_basis
    sage/categories/super_hopf_algebras_with_basis
+   sage/categories/super_lie_conformal_algebras
    sage/categories/super_modules
    sage/categories/super_modules_with_basis
    sage/categories/supercommutative_algebras

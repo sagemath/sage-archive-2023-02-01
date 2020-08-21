@@ -34,5 +34,3 @@ Pycodestyle
 Pyflakes
 ===============================
 `Pyflakes <https://github.com/PyCQA/pyflakes>` checks for common coding errors.
-
-......

@@ -38,8 +38,6 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 import logging
 import optparse
 import os
@@ -612,7 +610,7 @@ class ReferenceBuilder(AllBuilder):
                 # Get rid of todolist and miscellaneous rst markup.
                 rst = rst.replace('.. _reference-manual:\n\n', '')
                 rst = re.sub(r'\\\\', r'\\', rst)
-                # Replace rst links with html links.  There are three forms:
+                # Replace rst links with html links. There are three forms:
                 #
                 #   `blah`__    followed by __ LINK
                 #

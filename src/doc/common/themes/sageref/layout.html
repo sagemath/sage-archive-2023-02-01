@@ -36,7 +36,7 @@ jq(document).ready(function () {
 
     /* The sidebar toggle adapts its height to the bodywrapper height. */
     const resizeObserver = new ResizeObserver(entries => {
-         tog.height(bod.height());
+        tog.height(bod.height());
     });
     resizeObserver.observe(bod[0]);
 

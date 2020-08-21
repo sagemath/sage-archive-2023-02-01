@@ -9502,8 +9502,16 @@ class Graph(GenericGraph):
             True
             sage: graphs.CompleteGraph(5).is_antipodal()
             True
+            sage: G = Graph()
+            sage: G.is_antipodal()
+            Traceback (most recent call last):
+            ...
+            ValueError: diameter is not defined for the empty graph
+            sage: G = Graph(1)
+            sage: G.is_antipodal()
+            True
         """
-        G = self.distance_graph(self.diameter())
+        G = self.antipodal_graph()
 
         vertexSet = set(G)
         while vertexSet:
@@ -9520,7 +9528,7 @@ class Graph(GenericGraph):
         return True
 
     @doc_index("Leftovers")
-    def folded_graph(self):
+    def folded_graph(self, check=False):
         r"""
         Return the antipodal fold of this graph.
 
@@ -9532,6 +9540,12 @@ class Graph(GenericGraph):
         .. SEEALSO::
 
             :meth:`sage.graphs.graph.is_antipodal`
+
+        INPUT:
+
+        - ``check`` -- boolean (default: ``False``); whether to check if the
+          graph is antipodal. If ``check`` is ``True`` and the graph is not
+          antipodal, then return ``False``.
 
         OUTPUT:
 
@@ -9561,6 +9575,8 @@ class Graph(GenericGraph):
             False
             sage: G.folded_graph()  # some garbage
             Folded Petersen graph: Graph on 2 vertices
+            sage: G.folded_graph(check=True)
+            False
 
         REFERENCES:
 
@@ -9574,8 +9590,16 @@ class Graph(GenericGraph):
             sage: G = graphs.CompleteGraph(5)
             sage: G.folded_graph()
             Folded Complete graph: Graph on 1 vertex
+            sage: G = Graph()
+            sage: G.folded_graph()
+            Traceback (most recent call last):
+            ...
+            ValueError: diameter is not defined for the empty graph
+            sage: G = Graph(1)
+            sage: G.folded_graph()
+            Folded Graph: Graph on 1 vertex
         """
-        G = self.distance_graph(self.diameter())
+        G = self.antipodal_graph()
 
         vertices = set(G)
         newVertices = {}
@@ -9583,6 +9607,12 @@ class Graph(GenericGraph):
         while vertices:
             v = vertices.pop()
             clique = frozenset(G.neighbor_iterator(v, closed=True))
+
+            if check:
+                for u in clique:
+                    if frozenset(G.neighbor_iterator(u, closed=True)) != clique:
+                        return False
+
             newVertices[numCliques] = clique
             numCliques += 1
             vertices.difference_update(clique)
@@ -9597,6 +9627,57 @@ class Graph(GenericGraph):
         H = Graph([range(numCliques), edges], format='vertices_and_edges')
         name = self.name() if self.name() != "" else "Graph"
         H.name(f"Folded {name}")
+        return H
+
+    @doc_index("Leftovers")
+    def antipodal_graph(self):
+        r"""
+        Return the antipodal graph of ``self``.
+
+        The antipodal graph of `G` has the same vertex set of `G` and two
+        vertices are adjacent if their distance in `G` is equal to the diameter
+        of `G`.
+
+        OUTPUT:
+
+        A new graph. ``self`` is not touched.
+
+        EXAMPLES::
+
+            sage: G = graphs.JohnsonGraph(10, 5)
+            sage: G.antipodal_graph()
+            Antipodal graph of Johnson graph with parameters 10,5: Graph on 252 vertices
+            sage: G = graphs.HammingGraph(8, 2)
+            sage: G.antipodal_graph()
+            Antipodal graph of Hamming Graph with parameters 8,2: Graph on 256 vertices
+
+        The antipodal graph of a disconnected graph is its complement::
+
+            sage: G = Graph(5)
+            sage: H = G.antipodal_graph()
+            sage: H.is_isomorphic(G.complement())
+            True
+
+        TESTS::
+
+            sage: G = Graph([(0, 1), (2, 3)])
+            sage: H = G.antipodal_graph()
+            sage: H.is_isomorphic(Graph([(0, 2), (0, 3), (1, 2), (1, 3)]))
+            True
+            sage: G = Graph()
+            sage: G.antipodal_graph()
+            Traceback (most recent call last):
+            ...
+            ValueError: diameter is not defined for the empty graph
+            sage: G = Graph(1)
+            sage: G.antipodal_graph()
+            Antipodal graph of Graph: Looped graph on 1 vertex
+        """
+
+        H = self.distance_graph(self.diameter())
+
+        name = self.name() if self.name() != "" else "Graph"
+        H.name(f"Antipodal graph of {name}")
         return H
 
     # Aliases to functions defined in other modules

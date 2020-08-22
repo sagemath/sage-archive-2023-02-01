@@ -33,9 +33,11 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~Posets.DexterSemilattice` | Return the Dexter semilattice.
     :meth:`~Posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
     :meth:`~Posets.DivisorLattice` | Return the divisor lattice of an integer.
+    :meth:`~Posets.DoubleTailedDiamond` | Return the double tailed diamond poset on `2n + 2` elements.
     :meth:`~Posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
     :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
     :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the lattice of integer partitions on the integer `n` ordered by dominance.
+    :meth:`~Posets.MobilePoset` | Return the mobile poset formed by the `ribbon` with `hangers` below and an `anchor` above.
     :meth:`~Posets.NoncrossingPartitions` | Return the poset of noncrossing partitions of a finite Coxeter group ``W``.
     :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
     :meth:`~Posets.PermutationPattern` | Return the Permutation pattern poset.
@@ -45,6 +47,7 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~Posets.ProductOfChains` | Return a product of chain posets.
     :meth:`~Posets.RandomLattice` | Return a random lattice on `n` elements.
     :meth:`~Posets.RandomPoset` | Return a random poset on `n` elements.
+    :meth:`~Posets.RibbonPoset` | Return a ribbon on `n` elements with descents at `descents`.
     :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
     :meth:`~Posets.SetPartitions` | Return the poset of set partitions of the set `\{1,\dots,n\}`.
     :meth:`~Posets.ShardPoset` | Return the shard intersection order.
@@ -1770,23 +1773,22 @@ class Posets(metaclass=ClasscallMetaclass):
         INPUT:
 
         - ``n`` -- the number of vertices
-        - ``descents`` -- (an iterable) the indices on the ribbon where `y > x`
+        - ``descents`` -- an iterable; the indices on the ribbon where `y > x`
 
         EXAMPLES::
 
             sage: R = Posets.RibbonPoset(5, [1,2])
-            sage: R.cover_relations()
-            [[3, 4], [3, 2], [2, 1], [0, 1]]
+            sage: sorted(R.cover_relations())
+            [[0, 1], [2, 1], [3, 2], [3, 4]]
         """
         return MobilePoset(DiGraph([list(range(n)), [(i+1, i) if i in descents else (i, i+1) for i in range(n-1) ]]))
 
     @staticmethod
-    def Mobile(ribbon, hangers, anchor=None):
+    def MobilePoset(ribbon, hangers, anchor=None):
         r"""
         Return a mobile poset with the ribbon ``ribbon`` and
         with hanging d-complete posets specified in ``hangers``
         and a d-complete poset attached above, specified in ``anchor``.
-        The elements specified in ``ribbon``, ``hangers``, and ``anchor``.
 
         INPUT:
 
@@ -1794,61 +1796,24 @@ class Posets(metaclass=ClasscallMetaclass):
         - ``hangers`` -- a dictionary mapping an element on the ribbon
           to a list of d-complete posets that it covers
         - ``anchor`` -- (optional) a ``tuple`` (``ribbon_elmt``,
-        ``anchor_elmt``, ``anchor_poset``), where ``anchor_elmt`` covers
-        ``ribbon_elmt``, and ``anchor_elmt`` is an acyclic element of
-        ``anchor_poset``
+          ``anchor_elmt``, ``anchor_poset``), where ``anchor_elmt`` covers
+          ``ribbon_elmt``, and ``anchor_elmt`` is an acyclic element of
+          ``anchor_poset``
 
         EXAMPLES::
 
             sage: R = Posets.RibbonPoset(5, [1,2])
             sage: H = Poset([[5, 6, 7], [(5, 6), (6,7)]])
-            sage: M = Posets.Mobile(R, {3: [H]})
-            sage: M.cover_relations()
-            [[0, 1],
-             [(3, 0, 5), (3, 0, 6)],
-             [(3, 0, 6), (3, 0, 7)],
-             [(3, 0, 7), 3],
-             [3, 2],
-             [3, 4],
-             [2, 1]]
+            sage: M = Posets.MobilePoset(R, {3: [H]})
+            sage: len(M.cover_relations())
+            7
 
-            sage: P = posets.Mobile(posets.RibbonPoset(7, [1,3]), {1:
-            ....: [posets.YoungDiagramPoset([3, 2], dual=True)], 3: [posets.DoubleTailedDiamond(6)]},
+            sage: P = posets.MobilePoset(posets.RibbonPoset(7, [1,3]),
+            ....: {1: [posets.YoungDiagramPoset([3, 2], dual=True)],
+            ....: 3: [posets.DoubleTailedDiamond(6)]},
             ....: anchor=(4, 2, posets.ChainPoset(6)))
-            sage: P.cover_relations()
-            [[4, 5],
-             [4, 3],
-             [4, (4, 2)],
-             [5, 6],
-             [2, 3],
-             [2, 1],
-             [(4, 0), (4, 1)],
-             [(4, 1), (4, 2)],
-             [(1, 0, (1, 1)), (1, 0, (1, 0))],
-             [(1, 0, (1, 1)), (1, 0, (0, 1))],
-             [(1, 0, (1, 0)), (1, 0, (0, 0))],
-             [(1, 0, (0, 2)), (1, 0, (0, 1))],
-             [(1, 0, (0, 1)), (1, 0, (0, 0))],
-             [(1, 0, (0, 0)), 1],
-             [(3, 0, 1), (3, 0, 2)],
-             [(3, 0, 2), (3, 0, 3)],
-             [(3, 0, 3), (3, 0, 4)],
-             [(3, 0, 4), (3, 0, 5)],
-             [(3, 0, 5), (3, 0, 6)],
-             [(3, 0, 6), (3, 0, 8)],
-             [(3, 0, 6), (3, 0, 7)],
-             [(3, 0, 8), (3, 0, 9)],
-             [(3, 0, 7), (3, 0, 9)],
-             [(3, 0, 9), (3, 0, 10)],
-             [(3, 0, 10), (3, 0, 11)],
-             [(3, 0, 11), (3, 0, 12)],
-             [(3, 0, 12), (3, 0, 13)],
-             [(3, 0, 13), (3, 0, 14)],
-             [(3, 0, 14), 3],
-             [0, 1],
-             [(4, 2), (4, 3)],
-             [(4, 3), (4, 4)],
-             [(4, 4), (4, 5)]]
+            sage: len(P.cover_relations())
+            33
         """
         elements = []
         cover_relations = []

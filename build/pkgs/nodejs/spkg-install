@@ -28,6 +28,12 @@ if [ ! -f "$nodeenv_activate" ]; then
 fi
 
 . "$nodeenv_activate"
+
+if [ $? -ne 0 ]; then
+    echo "Error activating nodeenv containing nodejs ... exiting"
+    exit 1
+fi
+
 active_ver=`node --version | grep -oP "\d+\.\d+\.\d+"`
 
 if [ $? -ne 0 ]; then
@@ -43,3 +49,5 @@ if [ ! "$nodejs_ver" = "$active_ver" ]; then
     echo "Expected $nodejs_ver but found $active_ver"
     exit 1
 fi
+
+ln -sf "$nodeenv_activate" "$SAGE_LOCAL/share/nodejs/activate"

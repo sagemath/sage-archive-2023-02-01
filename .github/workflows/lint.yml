@@ -14,11 +14,11 @@ jobs:
       with:
         python-version: 3.8
     - name: Install pycodestyle
-      run: pip install pylint pycodestyle
+      run: pip install tox pycodestyle
     - name: Lint using pycodestyle
-      run: pycodestyle --select=E401,E701,E702,W605 src # Only check a few selected rules
+      run: tox -e pycodestyle
   lint-pyright:
-    name: Static type check with Pyright
+    name: Static type check with pyright
     runs-on: ubuntu-latest
     steps:
     - name: Checkout

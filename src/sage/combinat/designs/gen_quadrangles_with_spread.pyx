@@ -9,7 +9,7 @@ EXAMPLES::
     sage: GQ, S = designs.generalised_quadrangle_with_spread(4, 16, check=False)
     sage: GQ
     Incidence structure with 325 points and 1105 blocks
-    sage: GQ2, O = designs.generalised_quadrangle_hermitian(4)
+    sage: GQ2, O = designs.generalised_quadrangle_hermitian_with_ovoid(4)
     sage: GQ2
     Incidence structure with 1105 points and 325 blocks
     sage: GQ3 = GQ.dual()
@@ -139,7 +139,7 @@ def is_GQ_with_spread(GQ, S, s=None, t=None):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.gen_quadrangles import *
+        sage: from sage.combinat.designs.gen_quadrangles_with_spread import *
         sage: t = generalised_quadrangle_hermitian_with_ovoid(3)
         sage: is_GQ_with_spread(*t)
         Traceback (most recent call last):
@@ -153,7 +153,7 @@ def is_GQ_with_spread(GQ, S, s=None, t=None):
 
     TESTS::
 
-       sage: from sage.combinat.designs.gen_quadrangles import *
+       sage: from sage.combinat.designs.gen_quadrangles_with_spread import *
        sage: t = generalised_quadrangle_hermitian_with_ovoid(2)
        sage: t = dual_GQ_ovoid(*t)
        sage: is_GQ_with_spread(*t, s=2, t=4)
@@ -201,7 +201,8 @@ def dual_GQ_ovoid(GQ,O):
 
     EXAMPLES::
     
-        sage: from sage.combinat.designs.gen_quadrangles import dual_GQ_ovoid
+        sage: from sage.combinat.designs.gen_quadrangles_with_spread import \
+        ....: dual_GQ_ovoid
         sage: t = designs.generalised_quadrangle_hermitian_with_ovoid(3)
         sage: t[0].is_generalized_quadrangle(parameters=True)
         (9, 3)
@@ -214,7 +215,7 @@ def dual_GQ_ovoid(GQ,O):
 
     TESTS::
 
-        sage: from sage.combinat.designs.gen_quadrangles import *
+        sage: from sage.combinat.designs.gen_quadrangles_with_spread import *
         sage: t = designs.generalised_quadrangle_hermitian_with_ovoid(2)
         sage: t = dual_GQ_ovoid(*t)
         sage: t[0].is_generalized_quadrangle(parameters=True)
@@ -272,7 +273,7 @@ def generalised_quadrangle_hermitian_with_ovoid(const int q):
 
     TESTS::
 
-        sage: from sage.combinat.designs.gen_quadrangles import \
+        sage: from sage.combinat.designs.gen_quadrangles_with_spread import \
               is_GQ_with_spread, dual_GQ_ovoid
         sage: t = designs.generalised_quadrangle_hermitian_with_ovoid(3)
         sage: t = dual_GQ_ovoid(*t)

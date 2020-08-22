@@ -607,7 +607,7 @@ def UstimenkoGraph(const int m, const int q):
 
 def BilinearFormsGraph(const int d, const int e, const int q):
     r"""
-    Return a bilienar forms graph with the given parameters.
+    Return a bilinear forms graph with the given parameters.
 
     This build a graph whose vertices are all ``d``x``e`` matrices over
     ``GF(q)``. Two vertices are adjecent if the difference of the two
@@ -626,8 +626,8 @@ def BilinearFormsGraph(const int d, const int e, const int q):
         sage: G = graphs.BilinearFormsGraph(3, 3, 2)  # optional - meataxe
         sage: G.is_distance_regular(True)  # optional - meataxe; due to above
         ([49, 36, 16, None], [None, 1, 6, 28])
-        sage: G = graphs.BilinearFormsGraph(3,3,3)  # long time (1 min)  optional - meataxe
-        sage: G.order()  # long time; optional - meataxe (because of above)
+        sage: G = graphs.BilinearFormsGraph(3,3,3)  # not tested (2 min)  optional - meataxe
+        sage: G.order()  # not tested; optional - meataxe (because of above)
         19683
 
     .. NOTE::
@@ -694,8 +694,8 @@ def AlternatingFormsGraph(const int n, const int q):
 
     EXAMPLES::
 
-        sage: G = graphs.AlternatingFormsGraph(5,2)  # long time (5 min) optional - meataxe
-        sage: G.is_distance_regular(True) # long time; optional - meataxe (due to above)
+        sage: G = graphs.AlternatingFormsGraph(5,2)  # not tested (5 min) optional - meataxe
+        sage: G.is_distance_regular(True) # not tested; optional - meataxe (due to above)
         ([155, 112, None], [None, 1, 20])
 
     .. NOTE::
@@ -710,10 +710,10 @@ def AlternatingFormsGraph(const int n, const int q):
 
     TESTS::
 
-         sage: G = graphs.AlternatingFormsGraph(6,2)  # long time (> 30 min) optional - meataxe
-         sage: G.order()  # long time optional - meataxe (because of above)
+         sage: G = graphs.AlternatingFormsGraph(6,2)  # not tested (> 30 min) optional - meataxe
+         sage: G.order()  # not tested; optional - meataxe (because of above)
          32768
-         sage: G.is_distance_regular(True)  # long time (33 min)  optional - meataxe
+         sage: G.is_distance_regular(True)  # not tested (33 min)  optional - meataxe
          ([651, 560, 256, None], [None, 1, 20, 336])
          sage: G = graphs.AlternatingFormsGraph(4,2)  # optional - meataxe
          sage: G.is_distance_regular(True) # optional - meataxe
@@ -793,8 +793,8 @@ def HermitianFormsGraph(const int n, const int q):
         sage: G = graphs.HermitianFormsGraph(2,4)  # optional - meataxe
         sage: G.is_distance_regular(True) # optional - meataxe
         ([5, 4, None], [None, 1, 2])
-        sage: G = graphs.HermitianFormsGraph(3,9)  # long time (> 10 min)  optional - meataxe
-        sage: G.order()  # long time (bacuase of the above)
+        sage: G = graphs.HermitianFormsGraph(3,9)  # not tested (> 10 min)  optional - meataxe
+        sage: G.order()  # not tested (bacuase of the above)
         19683
 
     .. NOTE::
@@ -809,8 +809,8 @@ def HermitianFormsGraph(const int n, const int q):
 
     TESTS::
 
-         sage: G = graphs.HermitianFormsGraph(3,4) # long time (5 min)  optional - meataxe
-         sage: G.is_distance_regular(True) # long time optional - meataxe; due to above
+         sage: G = graphs.HermitianFormsGraph(3,4) # not tested (5 min)  optional - meataxe
+         sage: G.is_distance_regular(True) # not tested; optional - meataxe; due to above
          ([21, 20, 16, None], [None, 1, 2, 12])
          sage: G = graphs.HermitianFormsGraph(2,9) # optional - meataxe
          sage: G.is_distance_regular(True) # optional - meataxe; due to above

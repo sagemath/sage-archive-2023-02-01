@@ -173,7 +173,7 @@ def is_GQ_with_spread(GQ, S, s=None, t=None):
     # check spread
     return GQ.is_spread(S)
 
-def dual_GQ_ovoid(GQ,O):
+def dual_GQ_ovoid(GQ, O):
     r"""
     Compute the dual incidence structure of GQ 
     and return the image of `O` under the dual map
@@ -291,7 +291,7 @@ def generalised_quadrangle_hermitian_with_ovoid(const int q):
     e1 = [one, zero, zero, zero]  # isotropic point
 
     points = list(libgap.Orbit(GU, e1, libgap.OnLines))  # all isotropic points
-    pointInt = { x:(i + 1) for i, x in enumerate(points) }
+    pointInt = { x: int(i + 1) for i, x in enumerate(points) }
     # above we sum 1 because GAP starts at 1
 
     GUp = libgap.Action(GU, points, libgap.OnLines)

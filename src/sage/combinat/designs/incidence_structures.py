@@ -2236,7 +2236,7 @@ class IncidenceStructure(object):
         r"""
         Check whether the input is a spread for ``self``.
 
-        A spread of an incidence structure `(P, B)` is a set of blocks which
+        A spread of an incidence structure `(P, B)` is a subset of `B` which
         forms a partition of `P`.
 
         INPUT:
@@ -2252,6 +2252,14 @@ class IncidenceStructure(object):
             Traceback (most recent call last):
             ...
             TypeError: 'sage.rings.integer.Integer' object is not iterable
+            sage: E.is_spread([[1, 2, 3, 4], [5, 6]])
+            False
+
+        Order of blocks or of points within each block doesn't matter::
+
+            sage: E = IncidenceStructure([[1, 2, 3], [4, 5, 6], [1, 5, 6]])
+            sage: E.is_spread([[5, 6, 4], [3, 1, 2]])
+            True
 
         TESTS::
 
@@ -2269,10 +2277,17 @@ class IncidenceStructure(object):
         """
 
         points = set(self.ground_set())
+        allBlocks = set(map(frozenset, self.blocks()))
         for block in spread:
-            if not points.issuperset(block):
+            sblock = set(block)
+
+            if sblock not in allBlocks:
                 return False
-            points.difference_update(block)
+
+            if not points.issuperset(sblock):
+                return False
+
+            points.difference_update(sblock)
 
         if points:
             return False

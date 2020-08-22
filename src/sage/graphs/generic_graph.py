@@ -10472,10 +10472,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: timeit V = list(P.vertex_iterator())      # not tested
             100000 loops, best of 3: 5.74 [micro]s per loop
         """
-        if degree is not None:
-            for v in self._backend.iterator_verts(vertices):
-                if self._backend.degree(v, self._directed) == degree:
-                    yield v
+        if degree:
+            yield from [v for v, d in self.degree_iterator(labels=True) if d == degree]
+
         else:
             yield from self._backend.iterator_verts(vertices)
 

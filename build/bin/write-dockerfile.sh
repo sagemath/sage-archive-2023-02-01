@@ -91,6 +91,16 @@ EOF
         EXISTS="pacman -Si"
         INSTALL="pacman -Su --noconfirm"
         ;;
+    void*)
+	# https://hub.docker.com/r/voidlinux/masterdir-x86_64-musl
+	cat <<EOF
+ARG BASE_IMAGE=voidlinux:masterdir-x86_64-musl
+FROM \${BASE_IMAGE} as with-system-packages
+EOF
+        UPDATE="xbps-install -Su &&"
+        EXISTS="xbps-query"
+        INSTALL="xbps-install --yes"
+        ;;
     conda*)
         cat <<EOF
 ARG BASE_IMAGE=continuumio/miniconda3:latest

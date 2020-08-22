@@ -2280,6 +2280,202 @@ def pseudo_partition_graph(int m, int a):
 
     raise ValueError("No known graph exists")
 
+cdef enum NearPolygonGraph:
+    RegularPolygon,
+    GeneralisedPolygon,
+    OddGraph
+
+def new_is_near_polygon(array):
+    r"""
+    Return a pair
+    """
+
+
+    if len(array) % 2 != 0:
+        return False
+
+    d = len(array) // 2
+
+    k = array[0]
+    l = k - array[1] - 1
+
+    if l < 0:
+        return False
+
+    if any(array[i] != k - (l + 1)*array[d - 1 + i] for i in range(1, d)) or \
+       k - (l + 1)*array[2*d - 1] != 0:
+        return False
+
+    # additional checks
+    if k < (l+1) * array[2*d - 1] or k % (l + 1) != 0:
+        return False
+
+    # check if it is known example
+    if k == (l+1) * array[2*d - 1] and \
+       all(array[d + i] == 1 for i in range(d-1)) and \
+       l + 1 > 1 and array[2*d - 1] - 1 >  1:
+        # generalised polygon
+        s = l+1
+        t = array[2*d - 1] - 1
+
+        # check we know the pair (s, t)
+        if s == 1 and t == 1:
+            # normal polygon
+            return (NearPolygonGraph.RegularPolygon, d)
+
+        if (d, s, t) in {(3, 2, 2), (3, 3, 3), (3, 4, 4), (3, 5, 5), (3, 2, 8),
+                         (3, 8, 2), (3, 3, 27), (3, 27, 3), (4, 2, 4),
+                         (6, 1, 2), (6, 1, 3), (6, 1, 4), (6, 1, 5), (6, 2, 1),
+                         (6, 3, 1), (6, 4, 1), (6, 5, 1)}:
+            # we know the gen pol
+            return (NearPolygonGraph.GenralisedPolygon, d, s, t)
+        
+        if d == 3 and (s == 1 or t == 1) and is_pime_power(s * t):
+            # we know it
+            return (NearPolygonGraph.GenralisedPolygon, d, s, t)
+        
+        if d == 4 and (s == 1 or t == 1):
+            q = s * t
+            if strongly_regular_graph((q+1) * (q*q + 1), q * (q+1), q-1, q+1,
+                                      existence=True):
+                # we know it
+                return (NearPolygonGraph.GenralisedPolygon, d, s, t)
+            
+        # otherwise not known generalised polygon
+        return False
+
+    n = 2 * d if k == (l+1) * array[2*d - 1] else 2*d + 1
+
+    if l == 0 and k == d + 1 and n == 2*d + 1 and \
+       all(array[d + i] == (i + 2) // 2 for i in range(d)):
+        # odd graph
+        return (NearPolygonGraph.OddGraph, n)
+
+    
+
+def is_near_polygon(list arr):
+    r"""
+    Checks if the intersection array could be of a near polygon. if so returns a parameter l, otherwise -1
+
+    p199 theorem 6.4.1:
+    a dist-reg graph with int. arr [b_0,...,b_{d-1}, c_1, ..., c_d] is a regular near polygon
+    iff there is no induced subgraph K_{1,1,2} and there is l s.t. b_i = k - (l+1)*c_i for i = 0,..,d-1.
+
+    In particular, if it is a near polygon, then is a near 2d-gon if k = (l+1)*c_d and a near (2d+1)-gon otherwise
+    """
+    def is_generalised_2d_gon(a,d):
+        #c_1,...,c_{d-1} = 1
+        for i in range(1,d):
+            if a[d+i-1] != 1: return False
+
+        t = a[2*d-1] -1 #c_d-1
+        
+        # b_0 = s(t+1)
+        if a[0] % (t+1) != 0: return False
+        s = a[0] // (t+1)
+
+        if not is_prime_power(s*t):#this also rules out (1,1)
+            return False
+       
+        if d == 3:
+            if s == 1 or t == 1:
+                #order (1,q) or (q,1)
+                return True
+            elif s == t and s in {2,3,4,5}:
+                #order (q,q)
+                return True
+            elif (s==t**3 or t == s**3) and s*t in {16,81}:
+                #order (q,q^3) or (q^3,q); q is 2 or 3
+                return True
+            return False
+        elif d == 4:
+            if s== 1 or t == 1:
+                #order (1,q) or (q,1)
+                q= s*t
+                if strongly_regular_graph((q+1)*(q*q+1),q*(q+1),q-1,q+1,existence=True):
+                    return True
+            elif s==t*t or s*s == t and s*t == 8:
+                #order (q,q^2) we can only do q=2
+                return True
+            return False
+        elif d == 6:
+            if (s==1 or t == 1) and s*t in {2,3,4,5}:
+                #order (1,q); rely on hexagon (q,q)
+                return True
+        
+        return False
+
+    #gamma indicates what graph we have
+    # gamma -> graph
+    #   0   -> gen polygon
+    #   1   -> polygon
+    #   2   -> Odd graph
+    #   3   -> 2xGrassmann
+    #   4   -> 2xodd
+    #   5   -> folded cube
+
+    d = len(arr)
+    if d % 2 != 0:
+        return False
+
+    d = d // 2
+    if d < 3:
+        return False
+    
+    k = arr[0]
+    l = k - arr[1] - 1  # b_1 = k - (l+1)
+    if l < 0: return False
+    
+    #for i = 0 we have b_0 = k - (l+1)*c_0 = k since c_0 = 0 always
+    for i in range(1,d):
+        if arr[i] != k - (l+1)*arr[d+i-1]: #b_i = k - (l+1)c_i
+            return False
+
+    #chek k >= (l+1)c_d
+    if k < (l+1)*arr[2*d-1]:
+        return False
+
+    #now find if we can build this graph
+    n = 2*d if k == (l+1)*arr[2*d-1] else 2*d+1
+    cs = arr[d:]
+    
+    #is generalised polygon?
+    if is_generalised_2d_gon(arr,d):
+        t = arr[2*d-1]-1
+        s = arr[0]//(t+1)
+        return (0,(d,s,t))
+    
+    if l != 0: return False#classial parameters; don't deal it here
+
+    #now l==0
+    if k== 2 and cs == ([1 for i in range(1,d)]+[2*d+2-n]):
+        #polygon
+        return (1,n)
+
+    if n == 2*d+1 and k == d+1 and cs == [(i+1)//2 for i in range(1,d+1)]:
+        #odd graph
+        return (2,d+1)
+
+    if ( n == 2*d and d%2 == 1 and is_prime_power(cs[2]-1) and
+         k == q_binomial((d-1)//2+1, 1,cs[2]-1) and#cs[2]=c_3 = q_binom(2,1,q) = q+1
+         cs == [q_binomial((i+1)//2,1,cs[2]-1) for i in range(1,d+1)]):
+        #double grassman
+        e = (d-1)//2
+        q = cs[2]-1
+        return (3,(q,e))
+
+    if ( n==2*d and d%2 == 1 and k -1 == (d-1)//2 and
+         cs == [(i+1)//2 for i in range(1,d+1)] ):
+        #double odd
+        e = (d-1)//2
+        return (4,e)
+    
+    if k == n and cs == ([i for i in range(1,d)]+[d*(2*d+2-n)]):
+        #Folded cube
+        return (5,n)
+    
+    return False
+
 
 
 # dictionary intersection_array (as tuple)  -> construction

@@ -15,7 +15,7 @@ BSD License
 Upstream Contact
 ----------------
 
-Home page: http://jupyter.org/
+Home page: https://jupyter.org/
 
 Dependencies
 ------------

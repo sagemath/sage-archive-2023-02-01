@@ -675,7 +675,7 @@ export TERMINFO="$SAGE_LOCAL/share/terminfo"
 nodeenv_activate=`resolvelinks "$SAGE_LOCAL/share/nodejs/activate"`
 
 if [ -f "$nodeenv_activate" ]; then
-    . "$nodeenv_activate"
+    NODE_VIRTUAL_ENV_DISABLE_PROMPT=1 . "$nodeenv_activate"
 
     if [ $? -ne 0 ]; then
         echo >&2 "Warning: failed to activate the nodeenv containing nodejs"

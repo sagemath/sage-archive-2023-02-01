@@ -171,16 +171,7 @@ def is_GQ_with_spread(GQ, S, s=None, t=None):
         return False
 
     # check spread
-    points = set(GQ.ground_set())
-    for line in S:
-        if not points.issuperset(line):
-            return False
-        points = points.difference(line)
-
-    if points:
-        return False
-
-    return True
+    return GQ.is_spread(S)
 
 def dual_GQ_ovoid(GQ,O):
     r"""

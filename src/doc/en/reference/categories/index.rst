@@ -95,6 +95,7 @@ Individual Categories
    sage/categories/finite_semigroups
    sage/categories/finite_sets
    sage/categories/finite_weyl_groups
+   sage/categories/finitely_generated_lambda_bracket_algebras
    sage/categories/finitely_generated_lie_conformal_algebras
    sage/categories/finitely_generated_magmas
    sage/categories/finitely_generated_semigroups
@@ -128,6 +129,8 @@ Individual Categories
    sage/categories/integral_domains
    sage/categories/j_trivial_semigroups
    sage/categories/kac_moody_algebras
+   sage/categories/lambda_bracket_algebras
+   sage/categories/lambda_bracket_algebras_with_basis
    sage/categories/lattice_posets
    sage/categories/left_modules
    sage/categories/lie_algebras

@@ -9365,7 +9365,7 @@ class Graph(GenericGraph):
     @doc_index("Graph properties")
     def is_antipodal(self):
         r"""
-        Return whether this graph is antipodal.
+        Check whether this graph is antipodal.
 
         A graph `G` of diameter `d` is said to be antipodal if its distance-`d`
         graph is a disjoint union of cliques.
@@ -9500,8 +9500,7 @@ class Graph(GenericGraph):
         G = self.antipodal_graph()
 
         vertices = set(G)
-        newVertices = {}
-        numCliques = 0
+        newVertices = []
         while vertices:
             v = vertices.pop()
             clique = frozenset(G.neighbor_iterator(v, closed=True))
@@ -9511,11 +9510,11 @@ class Graph(GenericGraph):
                     if frozenset(G.neighbor_iterator(u, closed=True)) != clique:
                         return False
 
-            newVertices[numCliques] = clique
-            numCliques += 1
+            newVertices.append(clique)
             vertices.difference_update(clique)
 
         # now newVertices is a map {0, ..., numCliques-1} -> antipodal classes
+        numCliques = len(newVertices)
         edges = []
         for i, j in itertools.combinations(range(numCliques), 2):
             if any(self.has_edge(u, v) for u, v in
@@ -9532,9 +9531,9 @@ class Graph(GenericGraph):
         r"""
         Return the antipodal graph of ``self``.
 
-        The antipodal graph of `G` has the same vertex set of `G` and two
-        vertices are adjacent if their distance in `G` is equal to the diameter
-        of `G`.
+        The antipodal graph of a graph `G` has the same vertex set of `G` and
+        two vertices are adjacent if their distance in `G` is equal to the
+        diameter of `G`.
 
         OUTPUT:
 
@@ -9571,7 +9570,6 @@ class Graph(GenericGraph):
             sage: G.antipodal_graph()
             Antipodal graph of Graph: Looped graph on 1 vertex
         """
-
         H = self.distance_graph(self.diameter())
 
         name = self.name() if self.name() != "" else "Graph"

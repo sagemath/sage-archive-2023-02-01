@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # Run this test from SAGE_ROOT.
 # If SAGE_ROOT is not defined (this will be the case when called from

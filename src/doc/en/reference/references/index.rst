@@ -91,6 +91,10 @@ REFERENCES:
                Journal of Combinatorial Theory, Series B, vol 98, n.6,
                pp 1119-1164, 2008. :doi:`10.1016/j.jctb.2007.12.006`.
 
+.. [ABS2004] \N. Alon, I. Benjamini and Alan Stacey, *Percolation on finite
+             graphs and isoperimetric inequalities*, The Annals of Probability
+             32 (2004), no.  3A, 1727-1745.
+
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
               Transitive Closure of a Directed Graph.'
@@ -614,6 +618,13 @@ REFERENCES:
              Annals of Mathematics,
              Second Series, Vol. 29, No. 1/4 (1927 - 1928), pp. 38-46
 
+.. [Ben1998] \I. Benjamini, *Expanders are not hyperbolic*, Israel Journal of
+             Mathematics 108 (1998), 33-36.
+
+.. [BS1997] \I. Benjamini and O. Schramm, *Every graph with a positive Cheeger
+            constant contains a tree with a positive Cheeger constant*,
+            Geometric and Functional Analysis 7 (1997), no. 3, 403-419.
+
 .. [Benasque2009] Fernando Rodriguez Villegas, *The L-function of the quintic*,
    http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
 
@@ -883,6 +894,9 @@ REFERENCES:
 .. [BM2003] Bazzi and Mitter, {\it Some constructions of codes from
             group actions}, (preprint March 2003, available on
             Mitter's MIT website).
+
+.. [Bond2007] P. Bonderson, Nonabelian anyons and interferometry,
+              Dissertation (2007). https://thesis.library.caltech.edu/2447/
 
 .. [BM2004] John M. Boyer and Wendy J. Myrvold, *On the Cutting Edge:
             *Simplified `O(n)` Planarity by Edge Addition*. Journal of Graph
@@ -1364,7 +1378,10 @@ REFERENCES:
              Experience, 4:1-10 (2001).
              http://www.hipersoft.rice.edu/grads/publications/dom14.pdf
 
-.. [CHPSS18] C. Cid, T. Huang, T. Peyrin, Y. Sasaki, L. Song.
+.. [Chu2007] \F. Chung, *Random walks and local cuts in graphs*, Linear Algebra
+             and its Applications 423 (2007), no. 1, 22-32.
+
+.. [CHPSS18] \C. Cid, T. Huang, T. Peyrin, Y. Sasaki, L. Song.
              *Boomerang Connectivity Table: A New Cryptanalysis Tool* (2018)
              IACR Transactions on Symmetric Cryptology. Vol 2017, Issue 4.
              pre-print available at https://eprint.iacr.org/2018/161.pdf
@@ -1652,6 +1669,10 @@ REFERENCES:
 .. [CTTL2014] \C. Carlet, Deng Tang, Xiaohu Tang, and Qunying Liao: *New
             Construction of Differentially 4-Uniform Bijections*, Inscrypt,
             pp. 22-38, 2013.
+
+.. [CT1998] \F. Chung and P. Tetali, *Isoperimetric inequalities for
+            Cartesian products of graphs*, Combinatorics, Probability and
+            Computing 7 (1998), no. 2, 141-148.
 
 .. [Cu1984] \R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu
             group `M_{12}`, and the kitten. *Computational group
@@ -3106,6 +3127,15 @@ REFERENCES:
              subcodes of the second order binary Reed-Muller codes*.
              Information and Control, 18, pp. 369-394, 1971.
 
+.. [Kas1966a] \T. Kasami: *Weight Distributions of
+              Bose-Chaudhuri-Hocquenghem Codes*. Coordinated Science
+              Laboratory, University of Illinois at Urbana-Champaign.
+              1966 http://hdl.handle.net/2142/74459
+
+.. [Kas1966b] \T. Kasami: *Weight Distribution Formula for Some Class
+              of Cyclic Codes*. Coordinated Science Laboratory,
+              University of Illinois at Urbana-Champaign. 1966
+
 .. [Kas2018] András Kaszanyitzky. *The GraftalLace Cellular Automata*.
              Preprint, :arxiv:`1805.11532`.
 
@@ -3448,6 +3478,10 @@ REFERENCES:
             CMS Conf. Proc., **24**, Amer. Math. Soc., Providence, RI, 1998.
             :mathscinet:`MR1648638`
 
+.. [KY2019] Jang Soo Kim, Meesue Yoo.
+            *Hook length property of d-complete posets via q-integrals*.
+            J. Combin. Theory Ser. A, **162** (2019), pp. 167-221.
+
 .. [KZ2003] \M. Kontsevich, A. Zorich "Connected components of the
             moduli space of Abelian differentials with prescripebd
             singularities" Invent. math. 153, 631-678 (2003)
@@ -3685,6 +3719,12 @@ REFERENCES:
              Ideal Lattices and Learning with Errors over Rings. in
              Advances in Cryptology --
              EUROCRYPT 2010. Springer 2010. :doi:`10.1007/978-3-642-13190-5_1`
+
+
+.. [LR1997] Robert Leduc and Arun Ram, A ribbon Hopf algebra approach to
+            the irreducible representations of centralizer algebras: the
+            Brauer, Birman-Wenzl, and type A Iwahori-Hecke algebras.
+            Adv. Math. 125 (1997), no. 1, 1–94.
 
 .. [LR1998] Jean-Louis Loday and Maria O. Ronco.
             *Hopf algebra of the planar binary trees*,
@@ -3993,6 +4033,10 @@ REFERENCES:
 
 .. [MM2015] \J. Matherne and \G. Muller, *Computing upper cluster algebras*,
             Int. Math. Res. Not. IMRN, 2015, 3121-3149.
+
+.. [Moh1988] \B. Mohar, *Isoperimetric inequalities, growth, and the spectrum
+             of graphs*, Linear Algebra and its Applications 103 (1988),
+             119–131.
 
 .. [MNO1994] Alexander Molev, Maxim Nazarov, and Grigori Olshanski.
              *Yangians and classical Lie algebras*. (1994)
@@ -4410,6 +4454,17 @@ REFERENCES:
              Geometry, Contemp. Math., 605, Amer. Math. Soc.,
              Providence, RI, 2013.
              :arxiv:`1112.6163`
+
+.. [Proc1999] \R. A. Proctor, *Minuscule elements of Weyl groups, the numbers game,
+              and d-complete posets*. J. Algebra, 213(1):272–303, 1999.
+
+.. [PDynk1999] \R. A. Proctor. *Dynkin diagram classification of λ-minuscule
+               Bruhat lattices and of d-complete posets*. J. Algebraic Combin.,
+               9(1):61-94, 1999.
+
+.. [Proc2014] \R. A. Proctor. `d`-*complete posets generalize Young diagrams
+              for the hook product formula: Partial Presentation of Proof*.
+              RIMS Kôkyûroku, 1913:120-140, 2014.
 
 .. [PR2003] Perrin-Riou, *Arithmétique des courbes elliptiques à
             réduction supersingulière en `p`*,
@@ -5257,6 +5312,9 @@ REFERENCES:
 .. [Terwilliger2011] Paul Terwilliger. *The universal Askey-Wilson algebra*.
                      SIGMA **7** (2011), 069, 24 pages. :arxiv:`1104.2813`.
 
+.. [TP1994] \J. Thas, S. Payne, *Spreads and ovoids in finite generalized
+            quadrangles*. Geometriae Dedicata, Vol. 52, pp. 227-253, 1994.
+
 .. [Tho2010] \T. Thongjunthug, Computing a lower bound for the canonical
              height on elliptic curves over number fields, Math. Comp. 79
              (2010), pages 2431-2449.
@@ -5349,6 +5407,9 @@ REFERENCES:
              framework for vector M-Padé and matrix rational interpolation."
              Numer. Algorithms, 3:451-462, 1992.
              :doi:`10.1007/BF02141952`
+
+.. [VDKT2016] \E. R. van Dam, J. H. Koolen, H. Tanaka, *Distance Regular graphs*
+              The Electronic Journal of Combinatorics. 2016
 
 .. [Vee1978] William Veech, "Interval exchange
              transformations", J. Analyse Math. 33 (1978), 222-272
@@ -5487,6 +5548,11 @@ REFERENCES:
 .. [Wor1984] Worley, Dale Raymond, *A theory of shifted Young
              tableaux*. Dissertation, Massachusetts Institute of
              Technology, 1984.
+
+.. [WPNBBAtl] \R. A. Wilson, R. A. Parker, S. Nickerson, J. N. Bray,
+              \T. Breuer, *AtlasRep, a GAP interface to the atlas
+              of group representations*.
+              http://www.math.rwth-aachen.de/~Thomas.Breuer/atlasrep
 
 .. [WP-Bessel] :wikipedia:`Bessel_function`
 

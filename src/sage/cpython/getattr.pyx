@@ -319,7 +319,7 @@ cpdef getattr_from_other_class(self, cls, name):
         Traceback (most recent call last):
         ...
         TypeError: descriptor '__weakref__' for 'A' objects doesn't apply
-        to 'sage.rings.integer.Integer' object
+        to ...'sage.rings.integer.Integer' object
 
     When this occurs, an ``AttributeError`` is raised::
 

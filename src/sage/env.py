@@ -6,7 +6,8 @@ AUTHORS:
 - \R. Andrew Ohana (2012): Initial version.
 
 Verify that importing ``sage.all`` works in Sage's Python without any ``SAGE_``
-environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``::
+environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``
+(see also :trac:`29446`)::
 
     sage: env = {k:v for (k,v) in os.environ.items() if not k.startswith("SAGE_")}
     sage: from subprocess import check_output
@@ -405,8 +406,10 @@ def cython_aliases():
             aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
             pc = pkgconfig.parse(lib)
             libs = pkgconfig.libs(lib)
-        # INCDIR should be redundant because the -I options are also
-        # passed in CFLAGS
+        # It may seem that INCDIR is redundant because the -I options are also
+        # passed in CFLAGS.  However, "extra_compile_args" are put at the end
+        # of the compiler command line.  "include_dirs" go to the front; the
+        # include search order matters.
         aliases[var + "INCDIR"] = pc['include_dirs']
         aliases[var + "LIBDIR"] = pc['library_dirs']
         aliases[var + "LIBEXTRA"] = list(filter(lambda s: not s.startswith(('-l','-L')), libs.split()))

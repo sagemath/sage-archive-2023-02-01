@@ -255,11 +255,6 @@ Guide](https://doc.sagemath.org/html/en/installation).
    powerful machines, you might even consider `-j16`, as building with
    more jobs than CPU cores can speed things up further.
 
-   If you want to run the test suite for each individual Sage package
-   as it gets installed, type `export SAGE_CHECK="yes"`. This will run
-   each test suite, raising an error if any failure occurs.  If set to
-   ``warn``, then only a warning is printed in this case.
-
    To reduce the terminal output during the build, type `export V=0`.
    (`V` stands for "verbosity".)
 

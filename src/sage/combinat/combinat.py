@@ -632,7 +632,7 @@ def eulerian_polynomial(n, algorithm='derivative'):
     TESTS::
 
         sage: eulerian_polynomial(7)(1) == factorial(7)
-        True 
+        True
 
         sage: eulerian_polynomial(6, algorithm='coeffs')
         t^5 + 57*t^4 + 302*t^3 + 302*t^2 + 57*t + 1
@@ -1114,7 +1114,7 @@ class CombinatorialObject(SageObject):
                 sage: sorted(L)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: comparison not implemented for <class '__main__.Bar'>
+                TypeError: '<' not supported between instances of 'Bar' and 'Bar'
         """
         if isinstance(other, CombinatorialObject):
             return self._list == other._list
@@ -1879,7 +1879,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
 
             sage: C = CombinatorialClass()
             sage: C.list = lambda: [1,2,3]
-            sage: C.random_element()       # indirect doctest
+            sage: C.random_element()       # random  # indirect doctest
             1
         """
         c = self.cardinality()

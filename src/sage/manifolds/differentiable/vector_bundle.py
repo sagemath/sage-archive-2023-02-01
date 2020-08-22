@@ -2,8 +2,8 @@ r"""
 Differentiable Vector Bundles
 
 Let `K` be a topological field. A `C^k`-differentiable *vector bundle* of rank
-`n` over the field `K` and over a `C^k`-differentiable manifold `M` (base space)
-is a `C^k`-differentiable manifold `E` (total space) together with a
+`n` over the field `K` and over a `C^k`-differentiable manifold `M` (base
+space) is a `C^k`-differentiable manifold `E` (total space) together with a
 `C^k` differentiable and surjective map `\pi: E \to M` such that for
 every point `x \in M`:
 
@@ -68,8 +68,8 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
 
     EXAMPLES:
 
-    A differentiable vector bundle of rank 2 over a 3-dimensional differentiable
-    manifold::
+    A differentiable vector bundle of rank 2 over a 3-dimensional
+    differentiable manifold::
 
         sage: M = Manifold(3, 'M')
         sage: E = M.vector_bundle(2, 'E', field='complex'); E
@@ -116,7 +116,7 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
                                          field=field,
                                          latex_name=latex_name,
                                          category=category)
-        self._diff_degree = diff_degree # Override diff degree
+        self._diff_degree = diff_degree  # Override diff degree
 
     def _repr_(self):
         r"""
@@ -220,8 +220,9 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
         Let us introduce the corresponding Levi-Civita connection::
 
             sage: nab = g.connection(); nab
-            Levi-Civita connection nabla_g associated with the Lorentzian metric
-             g on the 4-dimensional Lorentzian manifold M
+            Levi-Civita connection nabla_g associated with the Lorentzian
+             metric g on the 4-dimensional Lorentzian manifold M
+            sage: nab.set_immutable()  # make nab immutable
 
         Of course, `\nabla_g` is flat::
 
@@ -233,8 +234,9 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
             sage: TM = M.tangent_bundle(); TM
             Tangent bundle TM over the 4-dimensional Lorentzian manifold M
             sage: p = TM.characteristic_class('Pontryagin'); p
-            Characteristic class p of multiplicative type associated to x + 1 on
-             the Tangent bundle TM over the 4-dimensional Lorentzian manifold M
+            Characteristic class p of multiplicative type associated to x + 1
+             on the Tangent bundle TM over the 4-dimensional Lorentzian
+             manifold M
             sage: p.function()
             x + 1
             sage: p_form = p.get_form(nab); p_form.display_expansion()
@@ -265,8 +267,8 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
             name = kwargs.pop('name', None)
             latex_name = kwargs.pop('latex_name', None)
 
-        return CharacteristicClass(self, func, class_type=class_type, name=name,
-                                   latex_name=latex_name)
+        return CharacteristicClass(self, func, class_type=class_type,
+                                   name=name, latex_name=latex_name)
 
     def diff_degree(self):
         r"""
@@ -283,7 +285,8 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
             sage: E = M.vector_bundle(2, 'E')
             sage: E.diff_degree()
             +Infinity
-            sage: M = Manifold(2, 'M', structure='differentiable', diff_degree=3)
+            sage: M = Manifold(2, 'M', structure='differentiable',
+            ....:              diff_degree=3)
             sage: E = M.vector_bundle(2, 'E')
             sage: E.diff_degree()
             3
@@ -359,8 +362,8 @@ class TensorBundle(DifferentiableVectorBundle):
     The trivializations are directly given by charts on the codomain (called
     *ambient domain*) of `\Phi`.
     In particular, let `(V, \varphi)` be a chart of `N` with components
-    `(x^1, \dots, x^n)` such that `q=\Phi(p) \in V`. Then, the matrix entries of
-    `t \in T_q^{(k,l)}N` are given by
+    `(x^1, \dots, x^n)` such that `q=\Phi(p) \in V`. Then, the matrix entries
+    of `t \in T_q^{(k,l)}N` are given by
 
     .. MATH::
 
@@ -416,7 +419,8 @@ class TensorBundle(DifferentiableVectorBundle):
 
     The section module is the corresponding tensor field module::
 
-        sage: R.tensor_field_module((1,0), dest_map=Phi) is PhiTM.section_module()
+        sage: R_tensor_module = R.tensor_field_module((1,0), dest_map=Phi)
+        sage: R_tensor_module is PhiTM.section_module()
         True
 
     """
@@ -443,7 +447,6 @@ class TensorBundle(DifferentiableVectorBundle):
             self._dest_map = dest_map
         self._ambient_domain = self._dest_map._codomain
         self._tensor_type = (k, l)
-        ###
         # Set total space name:
         if not self._dest_map.is_identity():
             if self._dest_map._name is None:
@@ -467,7 +470,6 @@ class TensorBundle(DifferentiableVectorBundle):
             name += "T^({},{}){}".format(k, l, self._ambient_domain._name)
             latex_name += r'T^{(' + str(k) + r',' + str(l) + r')}' + \
                           self._ambient_domain._latex_name
-        ###
         # Initialize differentiable vector bundle:
         rank = self._ambient_domain.dim() ** (k + l)
         DifferentiableVectorBundle.__init__(self, rank, name, base_space,
@@ -592,8 +594,8 @@ class TensorBundle(DifferentiableVectorBundle):
 
     def section_module(self, domain=None):
         r"""
-        Return the section module on ``domain``, namely the corresponding tensor
-        field module, of ``self`` on ``domain``.
+        Return the section module on ``domain``, namely the corresponding
+        tensor field module, of ``self`` on ``domain``.
 
         .. NOTE::
 
@@ -631,16 +633,17 @@ class TensorBundle(DifferentiableVectorBundle):
 
         """
         if domain is None:
-            return self._base_space.tensor_field_module(self._tensor_type,
-                                                        dest_map=self._dest_map)
+            base_space = self.base_space()
+            return base_space.tensor_field_module(self._tensor_type,
+                                                  dest_map=self._dest_map)
         else:
             return domain.tensor_field_module(self._tensor_type,
-                                       dest_map=self._dest_map.restrict(domain))
+                                      dest_map=self._dest_map.restrict(domain))
 
     def section(self, *args, **kwargs):
         r"""
-        Return a section of ``self`` on ``domain``, namely a tensor field on the
-        subset ``domain`` of the base space.
+        Return a section of ``self`` on ``domain``, namely a tensor field on
+        the subset ``domain`` of the base space.
 
         .. NOTE::
 
@@ -694,8 +697,10 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
-            ....:                              restrictions1= x>0, restrictions2= u+v>0)
+            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                              intersection_name='W',
+            ....:                              restrictions1= x>0,
+            ....:                              restrictions2= u+v>0)
             sage: inv = transf.inverse()
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
@@ -712,7 +717,8 @@ class TensorBundle(DifferentiableVectorBundle):
 
             sage: TM = M.tangent_bundle()
             sage: w = TM.section([-y, x], domain=U); w
-            Vector field on the Open subset U of the 2-dimensional differentiable manifold M
+            Vector field on the Open subset U of the 2-dimensional
+             differentiable manifold M
             sage: w.display()
             -y d/dx + x d/dy
 
@@ -900,7 +906,6 @@ class TensorBundle(DifferentiableVectorBundle):
 
         """
         base_cof = self._base_space.changes_of_frame()
-        ###
         # Filter out all frames with respect to dest_map:
         cof = {}
         for frames in base_cof:
@@ -935,7 +940,7 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: TM.frames()
             [Coordinate frame (R^2, (d/dx,d/dy)),
              Vector frame (R^2, (e_0,e_1))]
-            sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1}) # unit disk
+            sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1})
             sage: TU = U.tangent_bundle()
             sage: TU.frames()
             [Coordinate frame (U, (d/dx,d/dy))]
@@ -974,7 +979,6 @@ class TensorBundle(DifferentiableVectorBundle):
         if self._dest_map.is_identity():
             return self._base_space.frames()
         else:
-            ###
             # Filter out all frames with respect to dest_map:
             frames = []
             for frame in self._base_space.frames():
@@ -1008,7 +1012,7 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: e = TM.vector_frame('e')
             sage: M.coframes()
             [Coordinate coframe (R^2, (dx,dy)), Coframe (R^2, (e^0,e^1))]
-            sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1}) # unit disk
+            sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1})
             sage: TU = U.tangent_bundle()
             sage: TU.coframes()
             [Coordinate coframe (U, (dx,dy))]
@@ -1026,7 +1030,6 @@ class TensorBundle(DifferentiableVectorBundle):
         if self._dest_map.is_identity():
             return self._base_space.coframes()
         else:
-            ###
             # Filter out all coframes with respect to dest_map:
             coframes = []
             for coframe in self._base_space.coframes():
@@ -1126,8 +1129,8 @@ class TensorBundle(DifferentiableVectorBundle):
     def transitions(self):
         r"""
         Return the transition maps between trivialization maps in terms of
-        coordinate changes defined via charts on the codomain of the destination
-        map.
+        coordinate changes defined via charts on the codomain of the
+        destination map.
 
         .. NOTE::
 
@@ -1148,32 +1151,42 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: TM = M.tangent_bundle()
             sage: TM.transitions()
             {(Chart (M, (x, y)),
-              Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))}
+              Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y))
+               to Chart (M, (u, v))}
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: TM.transitions()  # random (dictionary output)
             {(Chart (M, (u, v)),
-              Chart (M, (x, y))): Change of coordinates from Chart (M, (u, v)) to Chart (M, (x, y)),
+              Chart (M, (x, y))): Change of coordinates from Chart (M, (u, v))
+              to Chart (M, (x, y)),
              (Chart (M, (x, y)),
-              Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))}
+              Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y))
+               to Chart (M, (u, v))}
             sage: c_rs.<r,s> = M.chart()
             sage: uv_to_rs = c_uv.transition_map(c_rs, [-u+2*v, 3*u-v])
             sage: TM.transitions()  # random (dictionary output)
             {(Chart (M, (u, v)),
-              Chart (M, (r, s))): Change of coordinates from Chart (M, (u, v)) to Chart (M, (r, s)),
+              Chart (M, (r, s))): Change of coordinates from Chart (M, (u, v))
+               to Chart (M, (r, s)),
              (Chart (M, (u, v)),
-              Chart (M, (x, y))): Change of coordinates from Chart (M, (u, v)) to Chart (M, (x, y)),
+              Chart (M, (x, y))): Change of coordinates from Chart (M, (u, v))
+              to Chart (M, (x, y)),
              (Chart (M, (x, y)),
-              Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))}
+              Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y))
+               to Chart (M, (u, v))}
             sage: xy_to_rs = uv_to_rs * xy_to_uv
             sage: TM.transitions()  # random (dictionary output)
             {(Chart (M, (u, v)),
-              Chart (M, (r, s))): Change of coordinates from Chart (M, (u, v)) to Chart (M, (r, s)),
+              Chart (M, (r, s))): Change of coordinates from Chart (M, (u, v))
+               to Chart (M, (r, s)),
              (Chart (M, (u, v)),
-              Chart (M, (x, y))): Change of coordinates from Chart (M, (u, v)) to Chart (M, (x, y)),
+              Chart (M, (x, y))): Change of coordinates from Chart (M, (u, v))
+              to Chart (M, (x, y)),
              (Chart (M, (x, y)),
-              Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v)),
+              Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y))
+               to Chart (M, (u, v)),
              (Chart (M, (x, y)),
-              Chart (M, (r, s))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (r, s))}
+              Chart (M, (r, s))): Change of coordinates from Chart (M, (x, y))
+               to Chart (M, (r, s))}
 
         """
         return self._ambient_domain.coord_changes()
@@ -1184,16 +1197,16 @@ class TensorBundle(DifferentiableVectorBundle):
         between two differentiable charts defined on the codomain of the
         destination map.
 
-        The differentiable chart must have been defined previously, for instance
-        by the method :meth:`~sage.manifolds.chart.Chart.transition_map`.
+        The differentiable chart must have been defined previously, for
+        instance by the method
+        :meth:`~sage.manifolds.chart.Chart.transition_map`.
 
         .. NOTE::
 
             Since a chart gives direct rise to a trivialization, this method is
             nothing but an invocation of
-            :meth:`~sage.manifolds.manifold.TopologicalManifold.coord_change` of
-            the class
-            :class:`~sage.manifolds.manifold.TopologicalManifold`.
+            :meth:`~sage.manifolds.manifold.TopologicalManifold.coord_change`
+            of the class :class:`~sage.manifolds.manifold.TopologicalManifold`.
 
         INPUT:
 
@@ -1212,10 +1225,10 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: M = Manifold(2, 'M')
             sage: c_xy.<x,y> = M.chart()
             sage: c_uv.<u,v> = M.chart()
-            sage: c_xy.transition_map(c_uv, (x+y, x-y)) # defines the coord. change
+            sage: c_xy.transition_map(c_uv, (x+y, x-y)) # defines coord. change
             Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))
             sage: TM = M.tangent_bundle()
-            sage: TM.transition(c_xy, c_uv) # returns the coord. change defined above
+            sage: TM.transition(c_xy, c_uv) # returns the coord. change above
             Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))
 
         """
@@ -1259,21 +1272,25 @@ class TensorBundle(DifferentiableVectorBundle):
 
             sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: c_xy.<x,y> = U.chart() # stereo coord from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: c_uv.<u,v> = V.chart() # stereo coord from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                 restrictions2= u^2+v^2!=0)
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2),
+            ....:                                       y/(x^2+y^2)),
+            ....:                                intersection_name='W',
+            ....:                                restrictions1= x^2+y^2!=0,
+            ....:                                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: W = U.intersection(V)
-            sage: Phi = U.diff_map(M, {(c_xy, c_xy): [x, y]}, name='Phi') # inclusion map
+            sage: Phi = U.diff_map(M, {(c_xy, c_xy): [x, y]},
+            ....:                  name='Phi') # inclusion map
             sage: PhiTU = U.tangent_bundle(dest_map=Phi); PhiTU
-            Tangent bundle Phi^*TS^2 over the Open subset U of the 2-dimensional
-             differentiable manifold S^2 along the Differentiable map Phi from
-             the Open subset U of the 2-dimensional differentiable manifold S^2
-             to the 2-dimensional differentiable manifold S^2
+            Tangent bundle Phi^*TS^2 over the Open subset U of the
+             2-dimensional differentiable manifold S^2 along the
+             Differentiable map Phi from the Open subset U of the
+             2-dimensional differentiable manifold S^2 to the 2-dimensional
+             differentiable manifold S^2
 
         A priori, the pullback tangent bundle is not trivial::
 
@@ -1292,16 +1309,13 @@ class TensorBundle(DifferentiableVectorBundle):
 
         """
         if self._dest_map.is_identity():
-            ###
             # The standard case:
             return self._base_space.is_manifestly_parallelizable()
         else:
-            ###
             # If the ambient domain is manifestly trivial, the pullback bundle
             # is certainly trivial:
             if self._ambient_domain.is_manifestly_parallelizable():
                 return True
-            ###
             # Otherwise check whether a global frame on the pullback bundle is
             # defined:
             for frame in self.frames():
@@ -1452,7 +1466,7 @@ class TensorBundle(DifferentiableVectorBundle):
             sage: Phi.display()
             Phi: R --> M
                t |--> (x, y) = (cos(t), sin(t))
-            sage: PhiT11 = R.tensor_bundle(1, 1, dest_map=Phi)
+                sage: PhiT11 = R.tensor_bundle(1, 1, dest_map=Phi)
             sage: PhiT11.ambient_domain()
             2-dimensional differentiable manifold M
 
@@ -1501,8 +1515,8 @@ class TensorBundle(DifferentiableVectorBundle):
         the first one defined on the manifold, usually the coordinate frame,
         unless it is changed via :meth:`set_default_frame`.
 
-        If the destination map is non-trivial, the default frame usually must be
-        set via :meth:`set_default_frame`.
+        If the destination map is non-trivial, the default frame usually must
+        be set via :meth:`set_default_frame`.
 
         OUTPUT:
 
@@ -1572,3 +1586,164 @@ class TensorBundle(DifferentiableVectorBundle):
         else:
             frame._fmodule.set_default_basis(frame)
         self._def_frame = frame
+
+    def set_orientation(self, orientation):
+        r"""
+        Set the preferred orientation of ``self``.
+
+        INPUT:
+
+        - ``orientation`` -- a vector frame or a list of vector frames, covering
+          the base space of ``self``
+
+        .. NOTE::
+
+            If the destination map is the identity, the preferred orientation
+            of the base manifold gets changed here as well.
+
+        .. WARNING::
+
+            It is the user's responsibility that the orientation set here
+            is indeed an orientation. There is no check going on in the
+            background. See :meth:`orientation` for the definition of an
+            orientation.
+
+        EXAMPLES:
+
+        Set an orientation on a tensor bundle::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: T11 = M.tensor_bundle(1, 1)
+            sage: e = T11.local_frame('e'); e
+            Vector frame (M, (e_0,e_1))
+            sage: T11.set_orientation(e)
+            sage: T11.orientation()
+            [Vector frame (M, (e_0,e_1))]
+
+        Set an orientation in the non-trivial case::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: T12 = M.tensor_bundle(1, 2)
+            sage: e = T12.local_frame('e', domain=U)
+            sage: f = T12.local_frame('f', domain=V)
+            sage: T12.set_orientation([e, f])
+            sage: T12.orientation()
+            [Vector frame (U, (e_0,e_1)), Vector frame (V, (f_0,f_1))]
+
+        """
+        if self._dest_map.is_identity():
+            base_space = self._base_space
+            base_space.set_orientation(orientation)
+            self._orientation = base_space._orientation
+        else:
+            super().set_orientation(orientation)
+
+    def orientation(self):
+        r"""
+        Get the preferred orientation of ``self`` if available.
+
+        See :meth:`~sage.manifolds.vector_bundle.TopologicalVectorBundle.orientation`
+        for details regarding orientations on vector bundles.
+
+        The tensor bundle `\Phi^* T^{(k,l)}N` of a manifold is orientable if
+        the manifold `\Phi(M)` is orientable. The converse does not
+        necessarily hold true. The usual case corresponds to `\Phi`
+        being the identity map, where the tensor bundle `T^{(k,l)}M` is
+        orientable if and only if the manifold `M` is orientable.
+
+        .. NOTE::
+
+            Notice that the orientation of a general tensor bundle
+            `\Phi^* T^{(k,l)}N` is canonically induced by the orientation of
+            the tensor bundle `\Phi^* T^{(1,0)}N` as each local frame there
+            induces the frames on `\Phi^* T^{(k,l)}N` in a canonical way.
+
+        If no preferred orientation has been set before, and if the ambient
+        space already admits a preferred orientation, the corresponding
+        orientation is returned and henceforth fixed for the tensor bundle.
+
+        EXAMPLES:
+
+        In the trivial case, i.e. if the destination map is the identitiy
+        and the tangent bundle is covered by one frame, the orientation is
+        easily obtained::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: T11 = M.tensor_bundle(1, 1)
+            sage: T11.orientation()
+            [Coordinate frame (M, (d/dx,d/dy))]
+
+        The same holds true if the ambient domain admits a trivial
+        orientation::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: R = Manifold(1, 'R')
+            sage: c_t.<t> = R.chart()
+            sage: Phi = R.diff_map(M, name='Phi')
+            sage: PhiT22 = R.tensor_bundle(2, 2, dest_map=Phi); PhiT22
+            Tensor bundle Phi^*T^(2,2)M over the 1-dimensional differentiable
+             manifold R along the Differentiable map Phi from the 1-dimensional
+             differentiable manifold R to the 2-dimensional differentiable
+             manifold M
+            sage: PhiT22.local_frame()  # initialize frame
+            Vector frame (R, (d/dx,d/dy)) with values on the 2-dimensional
+             differentiable manifold M
+            sage: PhiT22.orientation()
+            [Vector frame (R, (d/dx,d/dy)) with values on the 2-dimensional
+             differentiable manifold M]
+            sage: PhiT22.local_frame() is PhiT22.orientation()[0]
+            True
+
+        In the non-trivial case, however, the orientation must be set
+        manually by the user::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: T11 = M.tensor_bundle(1, 1); T11
+            Tensor bundle T^(1,1)M over the 2-dimensional differentiable
+             manifold M
+            sage: T11.orientation()
+            []
+            sage: T11.set_orientation([c_xy.frame(), c_uv.frame()])
+            sage: T11.orientation()
+            [Coordinate frame (U, (d/dx,d/dy)), Coordinate frame
+             (V, (d/du,d/dv))]
+
+        If the destination map is the identity, the orientation is
+        automatically set for the manifold, too::
+
+            sage: M.orientation()
+            [Coordinate frame (U, (d/dx,d/dy)), Coordinate frame
+             (V, (d/du,d/dv))]
+
+        Conversely, if one sets an orientation on the manifold,
+        the orientation on its tensor bundles is set accordingly::
+
+            sage: c_tz.<t,z> = U.chart()
+            sage: M.set_orientation([c_tz, c_uv])
+            sage: T11.orientation()
+            [Coordinate frame (U, (d/dt,d/dz)), Coordinate frame
+             (V, (d/du,d/dv))]
+
+        """
+        if self._dest_map.is_identity():
+            self._orientation = self._base_space.orientation()
+        if not self._orientation:
+            if not self._dest_map.is_identity():
+                # try to get orientation from ambient space:
+                ambient_domain = self._ambient_domain
+                amb_orient = ambient_domain.orientation()
+                if amb_orient:
+                    for frame in self.frames():
+                        from_frame = frame._from_frame
+                        if from_frame in amb_orient:
+                            self._orientation.append(frame)
+        return list(self._orientation)

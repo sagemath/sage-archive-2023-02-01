@@ -1624,7 +1624,7 @@ cdef class ComplexBall(RingElement):
             sage: float(CBF(1,1))
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex ball to float
+            TypeError: can...t convert complex ball to float
         """
         if not arb_is_zero(acb_imagref(self.value)):
             raise TypeError("can't convert complex ball to float")
@@ -1665,7 +1665,7 @@ cdef class ComplexBall(RingElement):
             sage: RDF(CBF(1 + I))
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex ball to float
+            TypeError: can...t convert complex ball to float
 
             sage: RDF(CBF(3)).parent()
             Real Double Field

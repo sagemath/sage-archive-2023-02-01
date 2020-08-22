@@ -208,6 +208,12 @@ cdef class Matrix(Matrix1):
         field, this method computes a least-squares solution if the
         system is not square.
 
+        .. NOTE::
+
+            In Sage one can also write ``B / A`` for
+            ``A.solve_left(B)``, that is, Sage implements "the
+            MATLAB/Octave slash operator".
+
         INPUT:
 
         - ``B`` -- a matrix or vector
@@ -250,10 +256,14 @@ cdef class Matrix(Matrix1):
             sage: X = A.solve_left(B)
             sage: X*A == B
             True
+            sage: X == B / A
+            True
 
-            sage: M = matrix([(3,-1,0,0),(1,1,-2,0),(0,0,0,-3)])
-            sage: B = matrix(QQ,3,1, [0,0,-1])
-            sage: M.solve_left(B)
+        ::
+
+            sage: A = matrix([(3, -1, 0, 0), (1, 1, -2, 0), (0, 0, 0, -3)])
+            sage: B = matrix(QQ, 3, 1, [0, 0, -1])
+            sage: A.solve_left(B)
             Traceback (most recent call last):
             ...
             ValueError: number of columns of self must equal number of columns
@@ -409,9 +419,9 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-           In Sage one can also write ``A \ B`` for
-           ``A.solve_right(B)``, that is, Sage implements "the
-           MATLAB/Octave backslash operator".
+            In Sage one can also write ``A \ B`` for
+            ``A.solve_right(B)``, that is, Sage implements "the
+            MATLAB/Octave backslash operator".
 
         INPUT:
 
@@ -8813,6 +8823,40 @@ cdef class Matrix(Matrix1):
                         return False
         return True
 
+    def is_diagonal(self):
+        """
+        Return True if this matrix is a diagonal matrix.
+
+        OUTPUT:
+
+        - whether self is a diagonal matrix.
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ,2,2,range(4))
+            sage: m.is_diagonal()
+            False
+            sage: m = matrix(QQ,2,[5,0,0,5])
+            sage: m.is_diagonal()
+            True
+            sage: m = matrix(QQ,2,[1,0,0,1])
+            sage: m.is_diagonal()
+            True
+            sage: m = matrix(QQ,2,[1,1,1,1])
+            sage: m.is_diagonal()
+            False
+        """
+        if not self.is_square():
+            return False
+        cdef Py_ssize_t i, j
+
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                if i != j:
+                    if not self.get_unsafe(i,j).is_zero():
+                        return False
+        return True
+
     def is_unitary(self):
         r"""
         Returns ``True`` if the columns of the matrix are an orthonormal basis.
@@ -13460,7 +13504,7 @@ cdef class Matrix(Matrix1):
         There is also a shortcut for the conjugate transpose, or "Hermitian transpose"::
 
             sage: M.H
-             [   I + 2  6*I + 9]
+            [   I + 2  6*I + 9]
             [-4*I + 3     -5*I]
 
         Matrices over base rings that can be embedded in the

@@ -172,7 +172,6 @@ class LieConformalAlgebras(Category_over_base_ring):
         Traceback (most recent call last):
         ValueError: base must be a commutative ring got Quaternion Algebra (-1, -1) with base ring Rational Field
     """
-
     @cached_method
     def super_categories(self):
         """

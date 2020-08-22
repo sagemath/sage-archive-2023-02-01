@@ -68,4 +68,3 @@ class GradedLieConformalAlgebras(GradedLieConformalAlgebrasCategory):
         sage: CS is LieConformalAlgebras(QQ).Super().Graded()
         True
     """
-

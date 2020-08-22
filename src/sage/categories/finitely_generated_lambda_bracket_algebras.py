@@ -18,7 +18,6 @@ AUTHORS:
 
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.graded_modules import GradedModulesCategory
-from sage.categories.super_modules import SuperModulesCategory
 from sage.categories.lambda_bracket_algebras import LambdaBracketAlgebras
 
 class FinitelyGeneratedLambdaBracketAlgebras(CategoryWithAxiom_over_base_ring):

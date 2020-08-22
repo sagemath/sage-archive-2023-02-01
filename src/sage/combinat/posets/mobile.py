@@ -30,58 +30,85 @@ class MobilePoset(FinitePoset):
 
     def __init__(self, hasse_diagram, elements, category, facade, key, ribbon=None):
         r"""
+        Initialize self. The second example comes from Example 5.9 in [GGMM2020]_
+
         EXAMPLES::
 
-            sage: P = posets.Mobile(posets.RibbonPoset(7, [1,3]), {1:
+            sage: P = posets.MobilePoset(posets.RibbonPoset(7, [1,3]), {1:
             ....: [posets.YoungDiagramPoset([3, 2], dual=True)], 3: [posets.DoubleTailedDiamond(6)]},
             ....: anchor=(4, 2, posets.ChainPoset(6)))
-            sage: type(P)
-            <class 'sage.combinat.posets.mobile.MobilePoset_with_category'>
-
-        The internal data structure consists of:
-
-        - the data required to form a finite poset (see
-          :class:`sage.combinat.posets.posets.FinitePoset`)::
-
-        - ``ribbon`` -- an ordered list of elements that are a path in the
-          undirected Hasse diagram and form the ribbon of the mobile
-
-        TESTS::
-
-            sage: P._ribbon
-            [(4, 5), (4, 4), (4, 3), (4, 2), 4, 3, 2, 1]
+            sage: len(P._ribbon)
+            8
             sage: P._anchor
             (4, 5)
-            sage: P.linear_extensions().cardinality()
-            361628701868606400
 
+            sage: P1 = posets.MobilePoset(posets.RibbonPoset(8, [2,3,4]),
+            ....: {4: [posets.ChainPoset(1)]}, anchor=(3, 0, posets.ChainPoset(1)))
+            sage: sorted([P1._element_to_vertex(i) for i in P1._ribbon])
+            [0, 1, 2, 6, 7, 9]
+            sage: P1._anchor
+            (3, 2)
 
-        See also the tests in the class documentation.
+            sage: P2 = posets.MobilePoset(posets.RibbonPoset(15, [1,3,5,7,9,11,13]),
+            ....: {}, anchor=(8, 0, posets.ChainPoset(1)))
+            sage: sorted(P2._ribbon)
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+            sage: P2._anchor
+            (8, (8, 0))
+            sage: P2.linear_extensions().cardinality()
+            21399440939
+
+            sage: TestSuite(P2).run()
         """
         FinitePoset.__init__(self, hasse_diagram=hasse_diagram, elements=elements, category=category, facade=facade, key=key)
-        if ribbon and self._test_valid_ribbon(ribbon):
+        if ribbon and self._is_valid_ribbon(ribbon):
             self._ribbon = ribbon
 
-    def _test_valid_ribbon(self, ribbon):
+    def _is_valid_ribbon(self, ribbon):
         r"""
-        Returns True if a ribbon has at most one anchor and that no vertex has two or more anchors
+        Return True if a ribbon has at most one anchor, no vertex has two or more anchors,
+        and every hanging poset is d-complete.
 
         INPUT:
 
             - ``ribbon`` -- a list of elements that form a ribbon in your poset
+
+        TESTS::
+
+            sage: P = posets.RibbonPoset(5, [2])
+            sage: P._is_valid_ribbon([0,1,2,3,4])
+            True
+            sage: P._is_valid_ribbon([2])
+            False
+            sage: P._is_valid_ribbon([2,3,4])
+            True
+            sage: P._is_valid_ribbon([2,3])
+            True
         """
-        ribbon = list(map(lambda x: self._element_to_vertex(x), ribbon))
-        H = self._hasse_diagram
-        R = H.subgraph(ribbon)
+        ribbon = [self._element_to_vertex(x) for x in ribbon]
+        G = self._hasse_diagram
+        G_un = G.to_undirected().copy(immutable=False)
+        R = G.subgraph(ribbon)
         num_anchors = 0
+
         for r in ribbon:
-            anchor_neighbors = set(H.neighbors_out(r)).difference(set(R.neighbors_out(r)))
+            anchor_neighbors = set(G.neighbors_out(r)).difference(set(R.neighbors_out(r)))
             if len(anchor_neighbors) == 1:
                 num_anchors += 1
             elif len(anchor_neighbors) > 1:
                 return False
 
-        return num_anchors <= 1
+            for lc in G.neighbors_in(r):
+                if lc in ribbon:
+                    continue
+
+                G_un.delete_edge(lc, r)
+                P = Poset(G.subgraph(G_un.connected_component_containing_vertex(lc)))
+                if P.top() != lc or not P.is_d_complete():
+                    return False
+                G_un.add_edge(lc, r)
+
+        return True
 
 
     @lazy_attribute
@@ -92,10 +119,12 @@ class MobilePoset(FinitePoset):
         TESTS::
 
             sage: from sage.combinat.posets.mobile import MobilePoset
-            sage: M = MobilePoset(DiGraph([[0,1,2,3,4,5,6,7,8], [(1,0),(3,0),(2,1),(2,3),(4,3), (5,4),(5,6),(7,4),(7,8)]]))
+            sage: M = MobilePoset(DiGraph([[0,1,2,3,4,5,6,7,8],
+            ....: [(1,0),(3,0),(2,1),(2,3),(4,3), (5,4),(5,6),(7,4),(7,8)]]))
             sage: M._anchor
             (4, 3)
-            sage: M2 = MobilePoset(Poset([[0,1,2,3,4,5,6,7,8], [(1,0),(3,0),(2,1),(2,3),(4,3),(5,4),(7,4),(7,8)]]))
+            sage: M2 = MobilePoset(Poset([[0,1,2,3,4,5,6,7,8],
+            ....: [(1,0),(3,0),(2,1),(2,3),(4,3),(5,4),(7,4),(7,8)]]))
             sage: M2._anchor
             (4, 3)
             sage: M3 = MobilePoset(Posets.RibbonPoset(5, [1,2]))
@@ -129,20 +158,20 @@ class MobilePoset(FinitePoset):
             sage: M = MobilePoset(DiGraph([[0,1,2,3,4,5,6,7,8], [(1,0),(3,0),(2,1),(2,3),(4,3), (5,4),(5,6),(7,4),(7,8)]]))
             sage: sorted(M._ribbon)
             [4, 5, 6, 7, 8]
-            sage: M._test_valid_ribbon(M._ribbon)
+            sage: M._is_valid_ribbon(M._ribbon)
             True
             sage: M2 = MobilePoset(Poset([[0,1,2,3,4,5,6,7,8], [(1,0),(3,0),(2,1),(2,3),(4,3),(5,4),(7,4),(7,8)]]))
             sage: sorted(M2._ribbon)
             [4, 7, 8]
-            sage: M2._test_valid_ribbon(M2._ribbon)
+            sage: M2._is_valid_ribbon(M2._ribbon)
             True
             sage: M3 = MobilePoset(Posets.RibbonPoset(5, [1,2]))
             sage: sorted(M3._ribbon)
             [1, 2, 3, 4]
-            sage: M3._test_valid_ribbon(M3._ribbon)
+            sage: M3._is_valid_ribbon(M3._ribbon)
             True
         """
-        return list(map(lambda x: self._vertex_to_element(x), self._compute_ribbon()))
+        return [self._vertex_to_element(x) for x in self._compute_ribbon()]
 
     def _compute_ribbon(self):
         r"""
@@ -181,6 +210,7 @@ class MobilePoset(FinitePoset):
 
         # First check path counts between ends and deg3 vertex
         # Then check if more than one max elmt on way to degree 3 vertex.
+        # Then check if the edge going to a max element is down fron the degree 3 vertex
         # Arbitrarily choose between ones with just 1
 
         ends = max_elmt_graph.vertices(degree=1)
@@ -192,17 +222,20 @@ class MobilePoset(FinitePoset):
                 anchoredEnd = end
                 break
 
-        if not anchoredEnd is None:
-            path = H.shortest_path(deg3, anchoredEnd)
+        if anchoredEnd is not None:
             ends.remove(anchoredEnd)
-
             return G.shortest_path(ends[0], ends[1])
 
         possible_anchors = ends[:]
         for end in ends:
             path = G.shortest_path(end, deg3)
-            if not sum(map(lambda z: z in max_elmts, path)) == 1:
+            if sum(map(lambda z: z in max_elmts, path)) != 1:
                 possible_anchors.remove(end)
+
+        for p in possible_anchors:
+            path = G.shortest_path(p, deg3)
+            if max_elmt_graph.has_edge(path[-2], path[-1]):
+                possible_anchors.remove(p)
 
         anchoredEnd = possible_anchors[0]
         ends.remove(anchoredEnd)
@@ -210,12 +243,12 @@ class MobilePoset(FinitePoset):
 
     def get_ribbon(self):
         r"""
-        Returns the ribbon of the mobile poset
+        Return the ribbon of the mobile poset
         """
         return self._ribbon
 
     def get_anchor(self):
         r"""
-        Returns the anchor of the mobile poset
+        Return the anchor of the mobile poset
         """
         return self._anchor

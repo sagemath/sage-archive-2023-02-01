@@ -90,7 +90,7 @@ import sage.categories.posets
 from sage.combinat.permutation import Permutations, Permutation, to_standard
 from sage.combinat.posets.posets import Poset, FinitePoset, FinitePosets_n
 from sage.combinat.posets.d_complete import DCompletePoset
-from sage.combinat.posets.mobile import MobilePoset
+from sage.combinat.posets.mobile import MobilePoset as Mobile
 from sage.combinat.posets.lattices import (LatticePoset, MeetSemilattice,
                                            JoinSemilattice, FiniteLatticePoset)
 from sage.categories.finite_posets import FinitePosets
@@ -1781,7 +1781,7 @@ class Posets(metaclass=ClasscallMetaclass):
             sage: sorted(R.cover_relations())
             [[0, 1], [2, 1], [3, 2], [3, 4]]
         """
-        return MobilePoset(DiGraph([list(range(n)), [(i+1, i) if i in descents else (i, i+1) for i in range(n-1) ]]))
+        return Mobile(DiGraph([list(range(n)), [(i+1, i) if i in descents else (i, i+1) for i in range(n-1) ]]))
 
     @staticmethod
     def MobilePoset(ribbon, hangers, anchor=None):
@@ -1837,7 +1837,7 @@ class Posets(metaclass=ClasscallMetaclass):
                     cover_relations.append(((r, i, cr[0]), (r, i, cr[1])))
                 cover_relations.append(((r,i,h.top()), r))
 
-        return MobilePoset(DiGraph([elements, cover_relations]))
+        return Mobile(DiGraph([elements, cover_relations]))
 
 
 ## RANDOM LATTICES

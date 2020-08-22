@@ -913,6 +913,12 @@ class LinearExtensionsOfMobile(LinearExtensionsOfPoset):
             sage: M1 = posets.RibbonPoset(6, [1,3])
             sage: M1.linear_extensions().cardinality()
             61
+
+            sage: P = posets.MobilePoset(posets.RibbonPoset(7, [1,3]), {1:
+            ....: [posets.YoungDiagramPoset([3, 2], dual=True)], 3: [posets.DoubleTailedDiamond(6)]},
+            ....: anchor=(4, 2, posets.ChainPoset(6)))
+            sage: P.linear_extensions().cardinality()
+            361628701868606400
         """
         import sage.combinat.posets.d_complete as dc
         import sage.combinat.posets.posets as fp
@@ -932,8 +938,11 @@ class LinearExtensionsOfMobile(LinearExtensionsOfPoset):
                 fold_down.append((r, self._poset._ribbon[ind+1]))
 
         folds = fold_up + fold_down
-        # Get ordered connected components
 
+        if len(folds) == 0:
+            return dc.DCompletePoset(self._poset).linear_extensions().cardinality()
+
+        # Get ordered connected components
         cr = self._poset.cover_relations()
         foldless_cr = [tuple(c) for c in cr if tuple(c) not in folds]
 

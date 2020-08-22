@@ -57,6 +57,7 @@ REFERENCES:
 
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.alternating_contr_tensor import AlternatingContrTensor
@@ -237,7 +238,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
         """
         from sage.functions.other import binomial
         self._fmodule = fmodule
-        self._degree = degree
+        self._degree = ZZ(degree)
         rank = binomial(fmodule._rank, degree)
         if name is None and fmodule._name is not None:
             name = r'/\^{}('.format(degree) + fmodule._name + ')'
@@ -371,15 +372,10 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
             '4th exterior power of the Rank-5 free module M over the Integer Ring'
             sage: M.exterior_power(5)._repr_()
             '5th exterior power of the Rank-5 free module M over the Integer Ring'
-
+            sage: M.exterior_power(21)._repr_()
+            '21st exterior power of the Rank-5 free module M over the Integer Ring'
         """
-        description = "{}".format(self._degree)
-        if self._degree == 2:
-            description += "nd"
-        elif self._degree == 3:
-            description += "rd"
-        else:
-            description += "th"
+        description = "{}".format(self._degree.ordinal_str())
         description += " exterior power of the {}".format(self._fmodule)
         return description
 
@@ -635,7 +631,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
         """
         from sage.functions.other import binomial
         self._fmodule = fmodule
-        self._degree = degree
+        self._degree = ZZ(degree)
         rank = binomial(fmodule._rank, degree)
         if degree == 1:  # case of the dual
             if name is None and fmodule._name is not None:
@@ -842,17 +838,13 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
             '4th exterior power of the dual of the Rank-5 free module M over the Integer Ring'
             sage: M.dual_exterior_power(5)._repr_()
             '5th exterior power of the dual of the Rank-5 free module M over the Integer Ring'
+            sage: M.dual_exterior_power(21)._repr_()
+            '21st exterior power of the dual of the Rank-5 free module M over the Integer Ring'
 
         """
         if self._degree == 1:
             return "Dual of the {}".format(self._fmodule)
-        description = "{}".format(self._degree)
-        if self._degree == 2:
-            description += "nd"
-        elif self._degree == 3:
-            description += "rd"
-        else:
-            description += "th"
+        description = "{}".format(self._degree.ordinal_str())
         description += " exterior power of the dual of the {}".format(
                                                                  self._fmodule)
         return description

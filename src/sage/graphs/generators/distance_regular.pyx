@@ -786,21 +786,21 @@ def HermitianFormsGraph(const int n, const int r):
     INPUT:
 
     - ``n`` -- integer
-    - ``r`` -- square of a prime power
+    - ``r`` -- a prime power
 
     EXAMPLES::
 
         sage: G = graphs.HermitianFormsGraph(2, 2)  # optional - meataxe
         sage: G.is_distance_regular(True) # optional - meataxe
         ([5, 4, None], [None, 1, 2])
-        sage: G = graphs.HermitianFormsGraph(3, 3)  # not tested (> 10 min)  optional - meataxe
+        sage: G = graphs.HermitianFormsGraph(3, 3)  # not tested (2 min)  optional - meataxe
         sage: G.order()  # not tested (bacuase of the above)
         19683
 
     .. NOTE::
 
         If ``r`` does not satisfy the requirements, then this function
-        will raise a ``ValueError``. This function needs the additional 
+        will raise a ``ValueError``. This function needs the additional
         package MeatAxe. Install it with ``sage -i meataxe``.
 
     REFERENCES:
@@ -809,8 +809,8 @@ def HermitianFormsGraph(const int n, const int r):
 
     TESTS::
 
-         sage: G = graphs.HermitianFormsGraph(3, 2) # not tested (5 min)  optional - meataxe
-         sage: G.is_distance_regular(True) # not tested; optional - meataxe; due to above
+         sage: G = graphs.HermitianFormsGraph(3, 2) # optional - meataxe
+         sage: G.is_distance_regular(True) # optional - meataxe; due to above
          ([21, 20, 16, None], [None, 1, 2, 12])
          sage: G = graphs.HermitianFormsGraph(2, 3) # optional - meataxe
          sage: G.is_distance_regular(True) # optional - meataxe; due to above
@@ -822,116 +822,25 @@ def HermitianFormsGraph(const int n, const int r):
         raise ValueError("We need r to be a prime power")
 
     q = r * r
-    i = (GF(q).gen())
-    ir = i**r
-    
-    toR = {(a + i*b): (a + ir*b) for a, b in itertools.product(GF(r), repeat=2)}
-
-    def build_matrix(v, d):
-        # v represents upper triangular entries
-        # d represents the diagonal entries
-        v = list(v)
-        d = list(d)
-
-        mat = []  # our matrix
-
-        # number entries used from v
-        used_v = 0
-
-        row_constructed = 0
-        zeros = [0] * (n-1)
-        while row_constructed < n:
-            sig_check()
-            row = (zeros[:row_constructed] + [d[row_constructed]] +
-                   v[used_v : used_v + (n - 1 - row_constructed)])
-            mat.append(row)
-
-            used_v += n - 1 - row_constructed
-            row_constructed += 1
-
-        # fix lower diagonal
-        for row in range(n):
-            for c in range(row):
-                mat[row][c] = toR(mat[c][row])
-
-        return Matrix(GF(q), mat, immutable=True, implementation="meataxe")
-
-
-    size = (n * (n+1)) // 2
-    V = VectorSpace(GF(q), size)  # upper triangular entries
-    D = VectorSpace(GF(r), n)  # diagonal entries
-    hermitianMatrices = [build_matrix(v, d) for v in V for d in D]
-
-    rank1Matrices = []
-    for mat in hermitianMatrices:
-        sig_check()
-        if mat.rank() == 1:
-            rank1Matrices.append(mat)
-
-    edges = []
-    for mat in hermitianMatrices:
-        for mat2 in rank1Matrices:
-            sig_check()
-            mat3 = mat + mat2
-            mat3.set_immutable()
-            edges.append((mat, mat3))
-
-    G = Graph(edges, format='list_of_edges')
-    G.name("Hermitian forms graph on (F_%d)^%d"%(q, n))
-    return G
-
-def productForms(n, r):
-
-
-    q = r * r
     Fr = GF(r)
     Fq = GF(q)
     i = Fq.gen()
-    ir1 = i**(r-1)
+    ir = i**r
 
-    def build_symmetric(v):
-        v = list(v)
-        mat = []
+    toR = {(a + i*b): (a + ir*b) for a, b in itertools.product(Fr, repeat=2)}
+
+    def build_mat(v, w):
+        # get upper diagonal entries
+        res = []
         used_v = 0
-        row_constructed = 0
-        zeros = [0] * (n-1)
-        while row_constructed < n:
-            sig_check()
-            row = (zeros[:row_constructed]  +
-                   v[used_v : used_v + (n - row_constructed)])
-            mat.append(row)
-
-            used_v += n - row_constructed
-            row_constructed += 1
-
-        # fix lower diagonal
+        used_w = 0
         for row in range(n):
-            for col in range(row):
-                mat[row][col] = mat[col][row]
+            res += [v[used_v]] + [v[used_v + 1 + j] + i * w[used_w + j]
+                                  for j in range(n - 1 - row)]
+            used_v += n - row
+            used_w += n - 1 - row
 
-        return Matrix(Fq, mat, implementation="meataxe")
-
-    def build_alternating(w):
-        v = list(map(lambda x: i * x, w))
-        mat = []
-        used_v = 0
-        row_constructed = 0
-        zeros = [0] * n
-        while row_constructed < n:
-            sig_check()
-            row = (zeros[:row_constructed + 1]  +
-                   v[used_v : used_v + (n - 1 - row_constructed)])
-            mat.append(row)
-
-            used_v += n - 1 - row_constructed
-            row_constructed += 1
-
-        # fix lower diagonal
-        for row in range(n):
-            for col in range(row):
-                mat[row][col] = ir1 * mat[col][row]
-
-        return Matrix(Fq, mat, implementation="meataxe")
+        return tuple(res)
 
     # produce all rank1 matrices
     rank1Matrices = []
@@ -943,21 +852,23 @@ def productForms(n, r):
                 nonZero += 1
 
             for w2 in VectorSpace(Fr, n - nonZero - 1):
-                v = ([0] * nonZero) + [w1[nonZero]] + \
+                # get upper triangular entries
+
+                v = [w1[nonZero]] + \
                     [w1[nonZero + 1 + j] + i * w2[j]
                      for j in range(n - nonZero - 1)]
-            
-                mat = [[0 for i in range(n)] for j in range(n)]
-                mat[nonZero] = v
-                u = list(map(lambda x: x**r, v))
 
-                for row in range(nonZero + 1, n):
-                    factor = u[row] / v[nonZero]
-                    for col in range(nonZero, n):
-                        mat[row][col] = factor * v[col]
+                res = []
+                for row in range(nonZero):
+                    res += [0] * (n - row)
 
-                mat = Matrix(Fq, mat, implementation="meataxe")
-                rank1Matrices.append(mat)
+                res += v
+
+                for row in range(1, n - nonZero):
+                    factor = toR[v[row]] / v[0]
+                    res += list(map(lambda x: factor * x, v[row:]))
+
+                rank1Matrices.append(res)
 
 
     Vs = VectorSpace(Fr, (n * (n+1)) // 2)
@@ -965,13 +876,11 @@ def productForms(n, r):
 
     edges = []
     for a, b in itertools.product(Vs, Va):
-        M = build_symmetric(a) + build_alternating(b)
+        M = build_mat(a, b)
         for R in rank1Matrices:
-            N = M + R
-            M.set_immutable()
-            N.set_immutable()
+            N = tuple([M[i] + R[i] for i in range((n * (n+1)) // 2)])
             edges.append((M, N))
 
     G = Graph(edges, format='list_of_edges')
-    G.name(f"Hermitian product with params {n}, {r}")
+    G.name(f"Hermitian forms graph on (F_{q})^{n}")
     return G

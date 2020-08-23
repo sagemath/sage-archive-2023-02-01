@@ -53,10 +53,22 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.sage_eval import sage_eval
 from sage.groups.braid import BraidGroup
 from sage.knots.knot import Knots
-from sage.databases.knotinfo_db import KnotInfoColumnTypes, KnotInfoColumns, KnotInfoDataBase
+from sage.databases.knotinfo_db import KnotInfoColumnTypes, KnotInfoColumns, db
 
 
-db = KnotInfoDataBase()
+
+
+def is_knotinfo_available():
+    r"""
+    Return wether the KnotInfo databases are installed or not.
+
+    EXAMPLES::
+
+        sage: from sage.knots.knotinfo import is_knotinfo_available
+        sage: is_knotinfo_available()     # optional - database_knotinfo
+        True
+    """
+    return db.is_available()
 
 
 def eval_knotinfo(string, locals={}, to_tuple=True):
@@ -107,7 +119,7 @@ class KnotInfoBase(Enum):
             sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L4a1_0
             sage: it = L.items
-            sage: [i.name for i in it if i.name.endswith('notation')]
+            sage: [i.name for i in it if i.name.endswith('notation')]   # optional - database_knotinfo
             ['dt_notation',
              'conway_notation',
              'two_bridge_notation',
@@ -165,7 +177,7 @@ class KnotInfoBase(Enum):
 
             sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L4a1_0
-            sage: L._offset_knots()
+            sage: L._offset_knots()          # optional - database_knotinfo
             2978
         """
         return db.read_num_knots()
@@ -481,9 +493,9 @@ class KnotInfoBase(Enum):
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: KnotInfo.L7a1_0.is_knot()
+            sage: KnotInfo.L7a1_0.is_knot()      # optional - database_knotinfo
             False
-            sage: KnotInfo.K6_3.is_knot()
+            sage: KnotInfo.K6_3.is_knot()        # optional - database_knotinfo
             True
         """
         return self.num_components() == 1
@@ -561,10 +573,10 @@ class KnotInfoBase(Enum):
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: K = KnotInfo.K12a_427
-            sage: K.is_amphicheiral()
+            sage: K = KnotInfo.K12a_427                 # optional - database_knotinfo
+            sage: K.is_amphicheiral()                   # optional - database_knotinfo
             False
-            sage: K.is_amphicheiral(positive=True)
+            sage: K.is_amphicheiral(positive=True)      # optional - database_knotinfo
             True
         """
         if positive:

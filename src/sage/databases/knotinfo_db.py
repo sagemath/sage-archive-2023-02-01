@@ -35,24 +35,6 @@ from sage.misc.cachefunc import cached_method
 from sage.env import SAGE_SHARE, SAGE_ROOT
 
 
-def is_knotinfo_available():
-    r"""
-    Return wether the KnotInfo databases are installed or not.
-
-    EXAMPLES::
-
-        sage: from sage.databases.knotinfo_db import is_knotinfo_available
-        sage: is_knotinfo_available()
-        True
-    """
-    ki_db = KnotInfoDataBase()
-    try:
-        ki_db.read_num_knots()
-        return True
-    except FileNotFoundError:
-        return False
-
-
 class KnotInfoColumnTypes(Enum):
     r"""
     Enum class to specify if a column from the table of knots and links provided by http://www.indiana.edu/~knotinfo
@@ -82,7 +64,7 @@ class KnotInfoColumns(Enum):
         sage: ki_db = KnotInfoDataBase()
         sage: KnotInfoColumns('Columns', ki_db.read_column_dict())
         <enum 'Columns'>
-        sage: [col.column_name() for col in _ if col.column_type() == KnotInfoColumnTypes.OnlyLinks]
+        sage: [col.column_name() for col in _ if col.column_type() == KnotInfoColumnTypes.OnlyLinks]  # optional - database_knotinfo
         ['Name - Unoriented',
          'Orientation',
          'Unoriented Rank',
@@ -310,6 +292,8 @@ class KnotInfoDataBase(SageObject):
 
         self._knot_list = None
         self._link_list = None
+        self._available = None
+        self._num_knots = None
 
 
     def _create_csv_file(self, filename, path_for_src):
@@ -349,6 +333,28 @@ class KnotInfoDataBase(SageObject):
             url_data = urlopen(url).read().decode()
         except:
             pass
+
+    def is_available(self):
+        r"""
+        Return wether the KnotInfo databases are installed or not.
+
+        EXAMPLES::
+
+            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
+            sage: ki_db = KnotInfoDataBase()
+            sage: ki_db.is_available()       # optional - database_knotinfo
+            True
+        """
+        if not self._available:
+            try:
+                lib_path = self._import_path
+                filename = self.filename.knots.sobj_num_knots()
+                self._num_knots =  load('%s/%s' %(lib_path, filename))
+                self._available = True
+            except FileNotFoundError:
+                self._available = False
+                self._num_knots = len([v for v in row_demo_sample.values() if v[1]==1])
+        return self._available
 
 
     def create_spkg_tarball(self, path_for_src=None):
@@ -565,7 +571,7 @@ class KnotInfoDataBase(SageObject):
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
             sage: cols = ki_db.columns()
-            sage: [col.column_name() for col in cols if col.name.startswith('pd')]
+            sage: [col.column_name() for col in cols if col.name.startswith('pd')]   # optional - database_knotinfo
             ['PD Notation', 'PD Notation (vector)', 'PD Notation (KnotTheory)']
         """
         column_dict = self.read_column_dict()
@@ -588,9 +594,11 @@ class KnotInfoDataBase(SageObject):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: len(ki_db.read_column_dict())
+            sage: len(ki_db.read_column_dict())       # optional - database_knotinfo
             120
         """
+        if not self.is_available():
+            return column_demo_sample
         lib_path = self._import_path
         filename = self.filename.knots.sobj_column()
         return load('%s/%s' %(lib_path, filename))
@@ -614,9 +622,11 @@ class KnotInfoDataBase(SageObject):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: len(ki_db.read_row_dict())
+            sage: len(ki_db.read_row_dict())          # optional - database_knotinfo
             7166
         """
+        if not self.is_available():
+            return row_demo_sample
         lib_path = self._import_path
         filename = self.filename.knots.sobj_row()
         return load('%s/%s' %(lib_path, filename))
@@ -624,7 +634,6 @@ class KnotInfoDataBase(SageObject):
     # -------------------------------------------------------------------------------------------------------------
     # read the dictionary for the row names that is the knot and link names from sobj-file
     # -------------------------------------------------------------------------------------------------------------
-    @cached_method
     def read_num_knots(self):
         r"""
         Read the number of knots contained in the database (without
@@ -638,12 +647,12 @@ class KnotInfoDataBase(SageObject):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.read_num_knots()
+            sage: ki_db.read_num_knots()              # optional - database_knotinfo
             2978
         """
-        lib_path = self._import_path
-        filename = self.filename.knots.sobj_num_knots()
-        return load('%s/%s' %(lib_path, filename))
+        if not self._num_knots:
+            self.is_available()
+        return self._num_knots
 
 
     # -------------------------------------------------------------------------------------------------------------
@@ -671,6 +680,9 @@ class KnotInfoDataBase(SageObject):
         if not isinstance(column, KnotInfoColumns):
             raise TypeError('column must be an instance of enum %s' (KnotInfoColumns))
 
+        if not self.is_available():
+            return data_demo_sample[column]
+
         lib_path = self._import_path
         if column.column_type() == KnotInfoColumnTypes.OnlyLinks:
             filename = self.filename.links.sobj_data(column)
@@ -683,3 +695,207 @@ class KnotInfoDataBase(SageObject):
 
         return res
 
+
+
+column_demo_sample = {
+    'name':                 ['Name',                 KnotInfoColumnTypes.KnotsAndLinks],
+    'dt_notation':          ['DT Notation',          KnotInfoColumnTypes.OnlyKnots],
+    'gauss_notation':       ['Gauss Notation',       KnotInfoColumnTypes.KnotsAndLinks],
+    'pd_notation':          ['PD Notation',          KnotInfoColumnTypes.OnlyKnots],
+    'pd_notation_vector':   ['PD Notation (vector)', KnotInfoColumnTypes.OnlyLinks],
+    'crossing_number':      ['Crossing Number',      KnotInfoColumnTypes.KnotsAndLinks],
+    'braid_index':          ['Braid Index',          KnotInfoColumnTypes.OnlyKnots],
+    'braid_length':         ['Braid Length',         KnotInfoColumnTypes.OnlyKnots],
+    'braid_notation':       ['Braid Notation',       KnotInfoColumnTypes.KnotsAndLinks],
+    'alternating':          ['Alternating',          KnotInfoColumnTypes.KnotsAndLinks],
+    'alexander_polynomial': ['Alexander',            KnotInfoColumnTypes.OnlyKnots],
+    'jones_polynomial':     ['Jones',                KnotInfoColumnTypes.KnotsAndLinks],
+    'conway_polynomial':    ['Conway',               KnotInfoColumnTypes.KnotsAndLinks],
+    'homfly_polynomial':    ['HOMFLY',               KnotInfoColumnTypes.OnlyKnots],
+    'kauffman_polynomial':  ['Kauffman',             KnotInfoColumnTypes.KnotsAndLinks],
+    'symmetry_type':        ['Symmetry Type',        KnotInfoColumnTypes.OnlyKnots],
+    'width':                ['Width',                KnotInfoColumnTypes.OnlyKnots],
+    'homflypt_polynomial':  ['HOMFLYPT Polynomial',  KnotInfoColumnTypes.OnlyLinks],
+    'arc_notation':         ['Arc Notation',         KnotInfoColumnTypes.OnlyLinks],
+    'dt_code':              ['DT code',              KnotInfoColumnTypes.OnlyLinks]
+}
+
+
+row_demo_sample = {
+    'K0_1':   [0, 1],
+    'K3_1':   [1, 1],
+    'K4_1':   [2, 1],
+    'K5_1':   [3, 1],
+    'K5_2':   [4, 1],
+    'K6_1':   [5, 1],
+    'K6_2':   [6, 1],
+    'K6_3':   [7, 1],
+    'K7_1':   [8, 1],
+    'K7_2':   [9, 1],
+    'L2a1_0': [10, 2],
+    'L2a1_1': [11, 2],
+    'L4a1_0': [12, 2],
+    'L4a1_1': [13, 2],
+    'L5a1_0': [14, 2],
+    'L5a1_1': [15, 2],
+    'L6a1_0': [16, 2],
+    'L6a1_1': [17, 2],
+    'L6a2_0': [18, 2],
+    'L6a2_1': [19, 2]
+}
+
+db = KnotInfoDataBase()
+dc = db.columns()
+
+data_demo_sample = {
+    dc.crossing_number: ['0', '3', '4', '5', '5', '6', '6', '6', '7', '7', '2', '2', '4', '4', '5', '5', '6', '6', '6', '6', '6'],
+    dc.braid_notation: [
+        '',
+        '{1,1,1}',
+        '{1,-2,1,-2}',
+        '{1,1,1,1,1}',
+        '{1,1,1,2,-1,2}',
+        '{1,1,2,-1,-3,2,-3}',
+        '{1,1,1,-2,1,-2}',
+        '{1,1,-2,1,-2,-2}',
+        '{1,1,1,1,1,1,1}',
+        '{1,1,1,2,-1,2,3,-2,3}',
+        '{2, {-1, -1}}',
+        '{2, {1, 1}}',
+        '{4, {1, -2, 3, -2, -1, -2, -3, -2}}',
+        '{2, {1, 1, 1, 1}}',
+        '{3, {-1, 2, -1, 2, -1}}',
+        '{3, {-1, 2, -1, 2, -1}}',
+        '{4, {1, -2, 3, -2, 1, -2, -3, -2}}',
+        '{4, {1, 2, 3, 2, 2, -1, 2, 2, -3, 2}}',
+        '{4, {1, -2, -2, -2, 3, -2, -1, -2, -3, -2}}',
+        '{4, {1, 2, -3, 2, -1, 2, 3, 2, 2, 2}}',
+        '{2, {-1, -1, -1, -1, -1, -1}}'
+        ],
+    dc.braid_index: ['1', '2', '3', '2', '3', '4', '3', '3', '2', '4'],
+    dc.braid_length: ['', '3', '4', '5', '6', '7', '6', '6', '7', '9'],
+    dc.pd_notation: [
+        '',
+        '[[1,5,2,4],[3,1,4,6],[5,3,6,2]]',
+        '[[4,2,5,1],[8,6,1,5],[6,3,7,4],[2,7,3,8]]',
+        '[[2,8,3,7],[4,10,5,9],[6,2,7,1],[8,4,9,3],[10,6,1,5]]',
+        '[[1,5,2,4],[3,9,4,8],[5,1,6,10],[7,3,8,2],[9,7,10,6]]',
+        '[[1,7,2,6],[3,10,4,11],[5,3,6,2],[7,1,8,12],[9,4,10,5],[11,9,12,8]]',
+        '[[1,8,2,9],[3,11,4,10],[5,1,6,12],[7,2,8,3],[9,7,10,6],[11,5,12,4]]',
+        '[[4,2,5,1],[8,4,9,3],[12,9,1,10],[10,5,11,6],[6,11,7,12],[2,8,3,7]]',
+        '[[1,9,2,8],[3,11,4,10],[5,13,6,12],[7,1,8,14],[9,3,10,2],[11,5,12,4],[13,7,14,6]]',
+        '[[2,10,3,9],[4,14,5,13],[6,12,7,11],[8,2,9,1],[10,8,11,7],[12,6,13,5],[14,4,1,3]]',
+        ],
+    dc.pd_notation_vector: [
+        '{{4, 1, 3, 2}, {2, 3, 1, 4}}',
+        '{{4, 2, 3, 1}, {2, 4, 1, 3}}',
+        '{{6, 1, 7, 2}, {8, 3, 5, 4}, {2, 5, 3, 6}, {4, 7, 1, 8}}',
+        '{{6, 2, 7, 1}, {8, 4, 5, 3}, {2, 8, 3, 7}, {4, 6, 1, 5}}',
+        '{{6, 1, 7, 2}, {10, 7, 5, 8}, {4, 5, 1, 6}, {2, 10, 3, 9}, {8, 4, 9, 3}}',
+        '{{8, 2, 9, 1}, {10, 7, 5, 8}, {4, 10, 1, 9}, {2, 5, 3, 6}, {6, 3, 7, 4}}',
+        '{{6, 1, 7, 2}, {10, 3, 11, 4}, {12, 8, 5, 7}, {8, 12, 9, 11}, {2, 5, 3, 6}, {4, 9, 1, 10}}',
+        '{{10, 2, 11, 1}, {6, 4, 7, 3}, {12, 10, 5, 9}, {8, 6, 9, 5}, {2, 12, 3, 11}, {4, 8, 1, 7}}',
+        '{{8, 1, 9, 2}, {12, 5, 7, 6}, {10, 3, 11, 4}, {4, 11, 5, 12}, {2, 7, 3, 8}, {6, 9, 1, 10}}',
+        '{{10, 2, 11, 1}, {12, 6, 7, 5}, {8, 4, 9, 3}, {4, 8, 5, 7}, {2, 12, 3, 11}, {6, 10, 1, 9}}',
+        '{{8, 1, 9, 2}, {2, 9, 3, 10}, {10, 3, 11, 4}, {12, 5, 7, 6}, {6, 7, 1, 8}, {4, 11, 5, 12}}'
+        ],
+    dc.dt_notation: [
+        '',
+        '[4, 6, 2]',
+        '[4, 6, 8, 2]',
+        '[6, 8, 10, 2, 4]',
+        '[4, 8, 10, 2, 6]',
+        '[4, 8, 12, 10, 2, 6]',
+        '[4, 8, 10, 12, 2, 6]',
+        '[4, 8, 10, 2, 12, 6]',
+        '[8, 10, 12, 14, 2, 4, 6]',
+        '[4, 10, 14, 12, 2, 8, 6]'
+        ],
+    dc.dt_code: [
+        '[{4}, {2}]',
+        '[{4}, {2}]',
+        '[{6, 8}, {2, 4}]',
+        '[{6, 8}, {4, 2}]',
+        '[{6, 8}, {4, 10, 2}]',
+        '[{8, 6}, {2, 10, 4}]',
+        '[{6, 10}, {2, 12, 4, 8}]',
+        '[{10, 6}, {8, 4, 12, 2}]',
+        '[{8, 10, 12}, {2, 6, 4}]',
+        '[{10, 8, 12}, {4, 6, 2}]',
+        '[{8, 10, 12}, {6, 2, 4}]'
+        ],
+    dc.gauss_notation: [
+        '',
+        '{1, -2, 3, -1, 2, -3}',
+        '{-1, 2, -3, 1, -4, 3, -2, 4}',
+        '{-1, 2, -3, 4, -5, 1, -2, 3, -4, 5}',
+        '{1, -2, 3, -1, 4, -5, 2, -3, 5, -4}',
+        '{1, -2, 3, -4, 2, -1, 5, -6, 4, -3, 6, -5}',
+        '{1, -2, 3, -4, 5, -6, 2, -1, 6, -3, 4, -5}',
+        '{-1, 2, -3, 1, -4, 5, -2, 3, -6, 4, -5, 6}',
+        '{1, -2, 3, -4, 5, -6, 7, -1, 2, -3, 4, -5, 6, -7}',
+        '{-1, 2, -3, 4, -5, 6, -7, 1, -2, 7, -6, 5, -4, 3}',
+        '{{1, -2}, {2, -1}}',
+        '{{1, -2}, {2, -1}}',
+        '{{1, -3, 2, -4}, {3, -1, 4, -2}}',
+        '{{1, -3, 2, -4}, {4, -1, 3, -2}}',
+        '{{1, -4, 5, -3}, {3, -1, 2, -5, 4, -2}}',
+        '{{1, -4, 5, -3}, {4, -5, 2, -1, 3, -2}}',
+        '{{1, -5, 2, -6}, {5, -1, 3, -4, 6, -2, 4, -3}}',
+        '{{1, -5, 2, -6}, {4, -2, 6, -4, 3, -1, 5, -3}}',
+        '{{1, -5, 3, -4, 2, -6}, {5, -1, 6, -3, 4, -2}}',
+        '{{1, -5, 3, -4, 2, -6}, {4, -3, 6, -1, 5, -2}}',
+        '{{1, -2, 3, -6, 4, -5}, {5, -1, 2, -3, 6, -4}}'
+        ],
+    dc.arc_notation: [
+        '{{4, 2}, {3, 1}, {4, 2}, {1, 3}}',
+        '{{2, 4}, {3, 1}, {2, 4}, {3, 1}}',
+        '{{6, 4}, {3, 5}, {4, 2}, {1, 3}, {2, 6}, {5, 1}}',
+        '{{3, 6}, {2, 5}, {6, 4}, {1, 3}, {5, 2}, {4, 1}}',
+        '{{6, 2}, {1, 4}, {3, 5}, {4, 7}, {2, 6}, {7, 3}, {5, 1}}',
+        '{{3, 5}, {6, 4}, {5, 2}, {7, 3}, {1, 6}, {2, 7}, {4, 1}}',
+        '{{8, 4}, {3, 5}, {4, 2}, {6, 3}, {5, 7}, {1, 6}, {2, 8}, {7, 1}}',
+        '{{2, 8}, {1, 7}, {8, 4}, {5, 3}, {4, 2}, {3, 6}, {7, 5}, {6, 1}}',
+        '{{8, 3}, {2, 7}, {3, 1}, {4, 8}, {5, 2}, {6, 4}, {7, 5}, {1, 6}}',
+        '{{3, 8}, {2, 7}, {8, 4}, {1, 3}, {5, 2}, {4, 6}, {7, 5}, {6, 1}}',
+        '{{8, 2}, {1, 3}, {2, 4}, {3, 5}, {4, 6}, {5, 7}, {6, 8}, {7, 1}}'
+        ],
+    dc.alternating: ['Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'],
+    dc.symmetry_type: [
+        '',
+        'reversible',
+        'fully amphicheiral',
+        'reversible',
+        'reversible',
+        'reversible',
+        'reversible',
+        'fully amphicheiral',
+        'reversible',
+        'reversible'
+        ],
+    dc.homfly_polynomial: [
+        '',
+        '(2*v^2-v^4)+ (v^2)*z^2',
+        '(v^(-2)-1+ v^2)+ (-1)*z^2',
+        '(3*v^4-2*v^6)+ (4*v^4-v^6)*z^2+ (v^4)*z^4',
+        '(v^2+ v^4-v^6)+ (v^2+ v^4)*z^2',
+        '(v^(-2)-v^2+ v^4)+ (-1-v^2)*z^2',
+        '(2-2*v^2+ v^4)+ (1-3*v^2+ v^4)*z^2+ (-v^2)*z^4',
+        '(-v^(-2)+ 3-v^2)+ (-v^(-2)+ 3-v^2)*z^2+ (1)*z^4',
+        '(4*v^6-3*v^8)+ (10*v^6-4*v^8)*z^2+ (6*v^6-v^8)*z^4+ (v^6)*z^6',
+        '(v^2+ v^6-v^8)+ (v^2+ v^4+ v^6)*z^2'
+        ],
+    dc.homflypt_polynomial: [
+        '1/(v^3*z)-1/(v*z)-z/v',
+        'v/z-v^3/z + v*z',
+        '1/(v^5*z)-1/(v^3*z)-z/v^3-z/v',
+        'v^3/z-v^5/z + 3*v^3*z-v^5*z + v^3*z^3',
+        '1/(v*z)-v/z-z/v^3 + (2*z)/v-v*z + z^3/v',
+        '1/(v*z)-v/z-z/v^3 + (2*z)/v-v*z + z^3/v',
+        '1/(v^5*z)-1/(v^3*z)-(2*z)/v^3 + z/v-v*z + z^3/v',
+        'v^3/z-v^5/z + 2*v^3*z + v^5*z-v^7*z + v^3*z^3 + v^5*z^3',
+        '1/(v^7*z)-1/(v^5*z) + z/v^7-(2*z)/v^5-(2*z)/v^3-z^3/v^5-z^3/v^3',
+        'v^5/z-v^7/z + 2*v^3*z + 2*v^5*z-v^7*z + v^3*z^3 + v^5*z^3',
+        '1/(v^7*z)-1/(v^5*z) + (3*z)/v^7-(6*z)/v^5 + z^3/v^7-(5*z^3)/v^5-z^5/v^5'
+        ]
+}

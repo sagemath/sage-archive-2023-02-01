@@ -682,7 +682,7 @@ def AlternatingFormsGraph(const int n, const int q):
 
     This construct a graph whose vertices are all ``n``x``n`` skew-symmetric
     matrices over ``GF(q)`` with zero diagonal. Two vertices are adjacent
-    if and only if the difference of the tow matrices has rank 2.
+    if and only if the difference of the two matrices has rank 2.
 
     This grap is distance-regular with classical parameters
     `(\lfloor \frac n 2 \rfloor,  q^2, q^2 - 1, q^{2 \lceil \frac n 2 \rceil -1})`.
@@ -790,10 +790,10 @@ def HermitianFormsGraph(const int n, const int r):
 
     EXAMPLES::
 
-        sage: G = graphs.HermitianFormsGraph(2, 2)  # optional - meataxe
-        sage: G.is_distance_regular(True) # optional - meataxe
+        sage: G = graphs.HermitianFormsGraph(2, 2)
+        sage: G.is_distance_regular(True)
         ([5, 4, None], [None, 1, 2])
-        sage: G = graphs.HermitianFormsGraph(3, 3)  # not tested (2 min)  optional - meataxe
+        sage: G = graphs.HermitianFormsGraph(3, 3)  # not tested (2 min)
         sage: G.order()  # not tested (bacuase of the above)
         19683
 
@@ -809,11 +809,11 @@ def HermitianFormsGraph(const int n, const int r):
 
     TESTS::
 
-         sage: G = graphs.HermitianFormsGraph(3, 2) # optional - meataxe
-         sage: G.is_distance_regular(True) # optional - meataxe; due to above
+         sage: G = graphs.HermitianFormsGraph(3, 2)
+         sage: G.is_distance_regular(True)
          ([21, 20, 16, None], [None, 1, 2, 12])
-         sage: G = graphs.HermitianFormsGraph(2, 3) # optional - meataxe
-         sage: G.is_distance_regular(True) # optional - meataxe; due to above
+         sage: G = graphs.HermitianFormsGraph(2, 3)
+         sage: G.is_distance_regular(True)
          ([20, 18, None], [None, 1, 6])
     """
     from sage.arith.misc import is_prime_power

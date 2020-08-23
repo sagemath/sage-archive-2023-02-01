@@ -2495,6 +2495,13 @@ REFERENCES:
 .. [GR2001] Chris Godsil and Gordon Royle, *Algebraic Graph Theory*. Graduate
             Texts in Mathematics, Springer, 2001.
 
+.. [Gre2006] \R. M. Green, *Star reducible Coxeter groups*, Glasgow 
+            Mathematical Journal, Volume 48, Issue 3, pp. 583-609.
+
+.. [GX2020] \R. M. Green, Tianyuan Xu, *Classification of Coxeter groups with
+            finitely many elements of a-value 2*, Algebraic Combinatorics, 
+            Volume 3 (2020) no. 2, pp. 331-364.
+
 .. [Gr2006] Matthew Greenberg,
             "Heegner points and rigid analytic modular forms",
             Ph.D. Thesis, McGill University, 2006.
@@ -3807,6 +3814,13 @@ REFERENCES:
              No. 2001.02.069
              (2002). http://www.eg-models.de/models/Classical_Models/2001.02.069/_direct_link.html
 
+.. [Lus1985] George Lusztig, *Cells in affine Weyl groups*, Algebraic Groups
+             and Related Topics, Advanced Studies in Pure mathematics 6, 1985, 
+             pp. 255-287.
+
+.. [Lus2013] George Lusztig, *Hecke algebras with unequal parameters*,
+             :arxiv:`math/0208154`. 
+
 .. [Lut2005] Frank H. Lutz, "Triangulated Manifolds with Few Vertices:
              Combinatorial Manifolds", preprint (2005),
              :arxiv:`math/0506372`
@@ -5104,6 +5118,13 @@ REFERENCES:
               Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of
               Anders Björner,
               Research Paper 9, 24 pp.
+
+.. [Ste1996] John R. Stembridge, *On the fully commutative elements of Coxeter
+             groups*, Journal of Algebraic Combinatorics, 5,  pp. 355-385
+
+.. [Ste1998] John R. Stembridge, *The enumeration of the fully commutative
+             elements of Coxeter groups*, Journal of Algebraic Combinatorics,
+             7,  pp. 291-320.
 
 .. [Ste2003] John R. Stembridge, *A local characterization of
              simply-laced crystals*, Transactions of the American

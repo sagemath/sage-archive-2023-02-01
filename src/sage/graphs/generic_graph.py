@@ -442,6 +442,15 @@ to_hex = LazyImport('matplotlib.colors', 'to_hex')
 
 
 def igraph_feature():
+    """
+    Helper method to check whether optional package ``igraph`` is installed.
+
+    TESTS::
+
+        sage: from sage.graphs.generic_graph import igraph_feature
+        sage: igraph_feature().is_present()  # optional - python_igraph
+        FeatureTestResult('igraph', True)
+    """
     from sage.features import PythonModule
     return PythonModule("igraph", spkg="python_igraph", url="http://igraph.org")
 
@@ -475,13 +484,19 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._latex_opts = None
 
-    def __setstate__(self,state):
+    def __setstate__(self, state):
         r"""
         Set the state from a pickle dict
 
-        Also converts old NetworkX backends into a more recent one.
+        TESTS::
+
+            sage: G = graphs.PetersenGraph()
+            sage: s = dumps(G)
+            sage: H = loads(s)
+            sage: all(k in H.__dict__ for k in G.__dict__.keys())
+            True
         """
-        for k,v in state.items():
+        for k, v in state.items():
             self.__dict__[k] = v
 
     def __add__(self, other):

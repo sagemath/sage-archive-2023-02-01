@@ -7,10 +7,6 @@ cd src
 # Use newer version of config.guess and config.sub (see Trac #19727)
 cp "$SAGE_ROOT"/config/config.* config
 
-# Run libtool/autotools
-libtoolize
-autoreconf -ivf
-
 if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building a debug version of gf2x."
     export CFLAGS="-O0 -g $CFLAGS"

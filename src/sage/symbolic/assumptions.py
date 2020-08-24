@@ -648,6 +648,13 @@ def assume(*args):
         [0 < x]
         sage: forget()
 
+    Chack that :trac:`28538` is fixed::
+
+        sage: x, y = SR.var('x, y')
+        sage: assume(x > 0)
+        sage: assume(y > 0)
+        sage: bool(y*(x - y) == 0)
+        False
     """
     for x in preprocess_assumptions(args):
         if isinstance(x, (tuple, list)):

@@ -176,7 +176,7 @@ size_t get_next_level(\
     }
 
 
-    // For each face we will Step 2 and Step 3.
+    // For each face we will do Step 2 and Step 3.
     for (size_t j = 0; j < n_faces-1; j++){
         if (is_contained_in_one(maybe_newfaces[j], maybe_newfaces, n_faces-1, face_length, j) || \
                 is_contained_in_one(maybe_newfaces[j], visited_all, n_visited_all, face_length))
@@ -192,6 +192,63 @@ size_t get_next_level(\
         }
         // It is a new face of codimension 1.
         newfaces[n_newfaces] = maybe_newfaces[j];
+        n_newfaces++;
+    }
+    return n_newfaces;
+}
+
+size_t get_next_level_simple(\
+        uint64_t **faces, const size_t n_faces, uint64_t **maybe_newfaces, \
+        uint64_t **newfaces, uint64_t **visited_all, \
+        size_t n_visited_all, size_t face_length,
+        uint64_t **faces_coatom_rep, uint64_t **maybe_newfaces_coatom_rep, \
+        uint64_t **newfaces_coatom_rep, uint64_t **visited_all_coatom_rep, \
+        size_t face_length_coatom_rep){
+    /*
+    As above, but modified for the case where every interval not containing zero is boolean.
+    */
+
+    // We keep track, which face in ``maybe_newfaces`` is a new face.
+    int is_not_newface[n_faces -1];
+
+    // Step 1:
+    for (size_t j = 0; j < n_faces - 1; j++){
+        intersection(faces[j], faces[n_faces - 1], maybe_newfaces[j], face_length);
+        unite(faces_coatom_rep[j], faces_coatom_rep[n_faces - 1], maybe_newfaces_coatom_rep[j], face_length_coatom_rep);
+        is_not_newface[j] = 0;
+    }
+
+    // For each face we will do Step 2 and Step 3.
+    for (size_t j = 0; j < n_faces-1; j++){
+        // Step 2:
+        // Check if the atom representation is zero.
+        if (is_zero(maybe_newfaces[j], face_length)){
+            is_not_newface[j] = 1;
+            continue;
+        }
+
+        // Step 3:
+        for (size_t k = 0; k < n_visited_all; k++){
+            // Testing if maybe_newfaces[j] is contained in one,
+            // we have already completely visited.
+            if(is_subset(visited_all_coatom_rep[k], maybe_newfaces_coatom_rep[j], face_length_coatom_rep)){
+                // If so, we don't want to revisit.
+                is_not_newface[j] = 1;
+                break;
+            }
+        }
+    }
+
+    // Set ``newfaces`` to point to the correct ones.
+    size_t n_newfaces = 0;  // length of newfaces2
+    for (size_t j = 0; j < n_faces -1; j++){
+        if (is_not_newface[j]) {
+            // Not a new face of codimension 1.
+            continue;
+        }
+        // It is a new face of codimension 1.
+        newfaces[n_newfaces] = maybe_newfaces[j];
+        newfaces_coatom_rep[n_newfaces] = maybe_newfaces_coatom_rep[j];
         n_newfaces++;
     }
     return n_newfaces;

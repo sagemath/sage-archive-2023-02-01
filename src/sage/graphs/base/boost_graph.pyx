@@ -2627,7 +2627,7 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
       shortest paths from. By default (``None``), compute shortest paths from
       all vertices.
 
-    - ``order`` -- list (default: ``None``); order of vertices of `g`.
+    - ``order`` -- list (default: ``None``); order of vertices of `g`
 
     - ``weight_function`` -- function (default: ``None``); a function that
       associates a weight to each edge. If ``None`` (default), the weights of
@@ -2637,16 +2637,16 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
     - ``algorithm`` -- string (default: ``None``); one of the following
       algorithms:
 
-      - ``'Dijkstra'``, ``'Dijkstra_Boost'``: the Dijkstra algorithm implemented
-        in Boost (works only with positive weights)
+      - ``'Dijkstra'``, ``'Dijkstra_Boost'`` - the Dijkstra algorithm
+        implemented in Boost (works only with positive weights)
 
-      - ``'Bellman-Ford'``, ``'Bellman-Ford_Boost'``: the Bellman-Ford algorithm
-        implemented in Boost (works also with negative weights, if there is no
-        negative cycle)
+      - ``'Bellman-Ford'``, ``'Bellman-Ford_Boost'`` - the Bellman-Ford
+        algorithm implemented in Boost (works also with negative weights,
+        if there is no negative cycle)
 
     OUTPUT:
 
-    Two possible outputs:
+    The type of output depends on the input. More precisely -
 
     - A pair of dictionaries of list ``(distances, predecessors)``, when
       ``order is not None``, such that for each vertex ``v`` in ``vertex_list``,
@@ -2738,9 +2738,8 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
 
     if order is not None:
         if len(g) == len(order):
-            for vertex in g:
-                if vertex not in order:
-                    raise ValueError("Given ordering is not valid")
+            if any(v not in order for v in g):
+                raise ValueError("Given ordering is not valid")
         else:
             raise ValueError("Given ordering is not valid")
 

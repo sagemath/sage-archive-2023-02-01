@@ -705,7 +705,7 @@ def AlternatingFormsGraph(const int n, const int q):
 
     TESTS::
 
-         sage: G = graphs.AlternatingFormsGraph(6,2)  # not tested (3 min)
+         sage: G = graphs.AlternatingFormsGraph(6,2)  # not tested (2 min)
          sage: G.order()  # not tested (because of above)
          32768
          sage: G.is_distance_regular(True)  # not tested (33 min)
@@ -733,7 +733,7 @@ def AlternatingFormsGraph(const int n, const int q):
     for v in Vn:
         if v.is_zero() or not v[v.support()[0]].is_one():
             continue
-        # v.set_immutable()
+        v.set_immutable()
         # remove from basis e_i s.t. (v[i-1] =) v_i != 0
         i = v.support()[0]
         Ubasis = basis.difference([e[i]])

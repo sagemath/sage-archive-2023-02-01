@@ -3234,7 +3234,11 @@ class Graph(GenericGraph):
     @doc_index("Graph properties")
     def is_path(self):
         r"""
-        Return true if the graph is a path (has degree sequence of n-2 2's and two 1's).
+        Check whether ``self`` is a path.
+
+        A connected graph of order `n \geq 2` is a path if it is a tree (see :meth:`is_tree`)
+        with `n-2` vertices of degree 2 and two of degree 1.
+        By convention, a graph of order 1 without loops is a path, but the empty graph is not a path.
 
         EXAMPLES:
 
@@ -3263,7 +3267,7 @@ class Graph(GenericGraph):
             return False
 
         if order <= 1:
-            return True if order else False
+            return order == 1
 
         deg_one_counter = 0
         seen_counter = 0

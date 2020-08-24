@@ -1,3 +1,7 @@
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc
+# distutils: language = c++
+# distutils: extra_compile_args = -std=c++11
+
 r"""
 Combinatorial polyhedron
 
@@ -103,6 +107,12 @@ from sage.misc.cachefunc            import cached_method
 from sage.rings.integer                cimport smallInteger
 from cysignals.signals                 cimport sig_check, sig_block, sig_unblock
 from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
+
+cdef extern from "bit_vector_operations.cc":
+    cdef size_t count_atoms(uint64_t *A, size_t face_length)
+#        Return the number of atoms/vertices in A.
+#        This is the number of set bits in A.
+#        ``face_length`` is the length of A in terms of uint64_t.
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -1886,13 +1896,15 @@ cdef class CombinatorialPolyhedron(SageObject):
         if not self.is_bounded():
             raise NotImplementedError("this function is implemented for polytopes only")
 
-        cdef int d, dim = self.dimension()
-        cdef FaceIterator face_iter = self._face_iter(False, dim-1)
-        d = face_iter.next_dimension()
-        while d == dim-1:
-            if face_iter.n_atom_rep() != dim:
+        cdef ListOfFaces facets = self._bitrep_facets
+        cdef size_t n_facets = facets.n_faces
+        cdef size_t face_length = facets.face_length
+        cdef size_t i
+        cdef int dim = self.dimension()
+
+        for i in range(n_facets):
+            if count_atoms(facets.data[i], face_length) != dim:
                 return False
-            d = face_iter.next_dimension()
         return True
 
     @cached_method
@@ -1992,19 +2004,15 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         if not self.is_bounded(): return False
 
-        cdef int d, dim = self.dimension()
+        cdef ListOfFaces vertices = self._bitrep_Vrep
+        cdef size_t n_vertices = vertices.n_faces
+        cdef size_t face_length = vertices.face_length
+        cdef size_t i
+        cdef int dim = self.dimension()
 
-        # ``output_dimension`` in
-        # :meth:`FaceIterator.__init`
-        # requires the dimension of the original polyhedron.
-        # We iterate over the vertices, by iterating over the facets of the dual.
-        cdef FaceIterator coface_iter = self._face_iter(True, 0)
-
-        d = coface_iter.next_dimension()
-        while d == dim-1:
-            if coface_iter.n_atom_rep() != dim:
+        for i in range(n_vertices):
+            if count_atoms(vertices.data[i], face_length) != dim:
                 return False
-            d = coface_iter.next_dimension()
         return True
 
     @cached_method

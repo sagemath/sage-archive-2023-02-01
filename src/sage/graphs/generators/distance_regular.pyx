@@ -667,7 +667,13 @@ def BilinearFormsGraph(const int d, const int e, const int q):
             if v.is_zero():
                 continue
 
-            M = u.outer_product(v)
+            sig_check()
+            M = [[0 for i in range(e)] for j in range(d)]
+            for row in range(d):
+                for col in range(e):
+                    M[row][col] = u[row] * v[col]
+
+            M = matricesOverq(M)
             rank1Matrices.append(M)
 
     edges = []

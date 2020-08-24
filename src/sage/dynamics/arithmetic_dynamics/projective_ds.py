@@ -7023,11 +7023,12 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             elif valuation == 0:
                 indifferent_point = fixed_points[multipliers.index(mult)]
         if indifferent_point is not None:
-            preimages = [indifferent_point]
             point = indifferent_point
+            field_of_definition = system.field_of_definition_preimage(point, 2)
+            system = system.change_ring(field_of_definition)
+            point = indifferent_point.change_ring(field_of_definition)
+            preimages = [point]
             for i in [1,2]:
-                field_of_definition = system.field_of_definition_preimage(point, 1)
-                system = system.change_ring(field_of_definition)
                 preimages_of_point = system.rational_preimages(point, 1)
                 for preimage in preimages_of_point:
                     if preimage != point:

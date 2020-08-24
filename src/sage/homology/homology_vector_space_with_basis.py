@@ -109,7 +109,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 
         sage: Klein_c = cubical_complexes.KleinBottle()
         sage: H = Klein_c.cohomology_ring(GF(2))
-        sage: x,y = H.basis(1)
+        sage: x,y = sorted(H.basis(1))
         sage: x.cup_product(x)
         0
         sage: x.cup_product(y)
@@ -119,7 +119,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 
         sage: Klein_d = delta_complexes.KleinBottle()
         sage: H = Klein_d.cohomology_ring(GF(2))
-        sage: u,v = H.basis(1)
+        sage: u,v = sorted(H.basis(1))
         sage: u.cup_product(u)
         h^{2,0}
         sage: u.cup_product(v)

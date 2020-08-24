@@ -4056,8 +4056,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The cone need not be strictly convex::
 
             sage: halfplane = Cone([(1,0),(2,1),(-1,0)])
-            sage: halfplane.semigroup_generators()
-            (N(0, 1), N(1, 0), N(-1, 0))
+            sage: sorted(halfplane.semigroup_generators())
+            [N(-1, 0), N(0, 1), N(1, 0)]
             sage: line = Cone([(1,1,1),(-1,-1,-1)])
             sage: sorted(line.semigroup_generators())
             [N(-1, -1, -1), N(1, 1, 1)]

@@ -546,7 +546,7 @@ Hecke triangle groups and elements:
       [-4, -lam - 2, lam - 3, 0]
       sage: G.class_number(9*G.lam() + 5)
       2
-      sage: G.class_representatives(9*G.lam() + 5)
+      sage: sorted(G.class_representatives(9*G.lam() + 5))
       [S*T^(-2)*S*T^(-1)*S, T*S*T^2]
       sage: R = G.reduced_elements(9*G.lam() + 5)
       sage: all(v.is_reduced() for v in R)  # long time

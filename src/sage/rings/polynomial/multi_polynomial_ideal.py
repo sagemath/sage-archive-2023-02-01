@@ -4163,11 +4163,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I = P * ( x*y*z + z^5, 2*x^2 + y^3 + z^7, 3*z^5 +y ^5 )
             sage: J = Ideal(I.groebner_basis())
             sage: f = sum(P.random_element(terms=2)*f for f in I.gens())
-            sage: f
+            sage: f                       # random
             1/2*y^2*z^7 - 1/4*y*z^8 + 2*x*z^5 + 95*z^6 + 1/2*y^5 - 1/4*y^4*z + x^2*y^2 + 3/2*x^2*y*z + 95*x*y*z^2
-            sage: f.lift(I.gens())
+            sage: f.lift(I.gens())        # random
             [2*x + 95*z, 1/2*y^2 - 1/4*y*z, 0]
-            sage: l = f.lift(J.gens()); l
+            sage: l = f.lift(J.gens()); l # random
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1/2*y^2 + 1/4*y*z, 1/2*y^2*z^2 - 1/4*y*z^3 + 2*x + 95*z]
             sage: sum(map(mul, zip(l,J.gens()))) == f
             True

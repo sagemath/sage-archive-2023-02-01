@@ -948,6 +948,24 @@ class TraceMonoid(UniqueRepresentation, Monoid_class):
                           if not ((list(word.value)[-1][0], suffix.value) in self._independence
                                   and list(word.value)[-1][0] > suffix.value)])
 
+    def _sorted_independence(self):
+        r"""
+        Return independence relation over the monoid.
+
+        OUTPUT: sorted list of sorted commuting generator pairs.
+
+        EXAMPLES::
+
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: F.<a,b,c> = FreeMonoid()
+            sage: I = frozenset(((a,c), (c,a)))
+            sage: M.<ac,bc,cc> = TraceMonoid(F, I=I)
+            sage: M._sorted_independence()
+            [[a, c]]
+        """
+        return sorted(sorted(x_y)
+                      for x_y in sorted(self.independence()))
+
     def _repr_(self):
         r"""
         Textual representation of trace monoids.
@@ -963,7 +981,7 @@ class TraceMonoid(UniqueRepresentation, Monoid_class):
         return ("Trace monoid on {!s} generators {!s} "
                 "with independence relation {{{}}}").format(self.ngens(), self.gens(),
                                                             ", ".join("{{{}, {}}}".format(x, y)
-                                                                      for (x, y) in sorted(self.independence())))
+                                                                      for (x, y) in self._sorted_independence()))
 
     def _latex_(self):
         r"""
@@ -980,6 +998,6 @@ class TraceMonoid(UniqueRepresentation, Monoid_class):
             repr(self._free_monoid.gens())[1:-1],
             ",".join(
                 "{0!r}{1!r}={1!r}{0!r}".format(v1, v2)
-                for v1, v2 in sorted(self.independence())
+                for v1, v2 in self._sorted_independence()
             )
         )

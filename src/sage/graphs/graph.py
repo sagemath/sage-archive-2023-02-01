@@ -7339,8 +7339,8 @@ class Graph(GenericGraph):
             sage: d = F.cliques_containing_vertex(vertices=[(0, 1)])
             sage: list(d)
             [(0, 1)]
-            sage: sorted(d[(0, 1)])
-            [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]]
+            sage: sorted(sorted(x for x in L) for L in d[(0, 1)])
+            [[(0, 0), (0, 1)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]]
         """
         import networkx
         return networkx.cliques_containing_node(self.networkx_graph(), vertices, cliques)

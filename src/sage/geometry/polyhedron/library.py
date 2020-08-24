@@ -2636,13 +2636,23 @@ class Polytopes():
         an exact embedded NumberField::
 
             sage: perm_a2_reg = polytopes.generalized_permutahedron(['A',2],regular=True)
-            sage: sorted(perm_a2_reg.vertices())
+            sage: V = sorted(perm_a2_reg.vertices()); V         # random
             [A vertex at (-1, 0),
              A vertex at (-1/2, -0.866025403784439?),
              A vertex at (-1/2, 0.866025403784439?),
              A vertex at (1/2, -0.866025403784439?),
              A vertex at (1/2, 0.866025403784439?),
              A vertex at (1.000000000000000?, 0.?e-18)]
+            sage: for v in V:
+            ....:     for x in v:
+            ....:         x.exactify()
+            sage: V
+            [A vertex at (-1, 0),
+             A vertex at (-1/2, -0.866025403784439?),
+             A vertex at (-1/2, 0.866025403784439?),
+             A vertex at (1/2, -0.866025403784439?),
+             A vertex at (1/2, 0.866025403784439?),
+             A vertex at (1, 0)]
             sage: perm_a2_reg.is_inscribed()
             True
             sage: perm_a3_reg = polytopes.generalized_permutahedron(['A',3],regular=True)  # long time

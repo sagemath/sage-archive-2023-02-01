@@ -668,9 +668,6 @@ def BilinearFormsGraph(const int d, const int e, const int q):
                 continue
 
             M = u.outer_product(v)
-            if M.rank() != 1:
-                print(f"error (u,v) = f{(u, v)}")
-
             rank1Matrices.append(M)
 
     edges = []

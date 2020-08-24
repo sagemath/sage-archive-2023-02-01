@@ -213,8 +213,8 @@ size_t get_next_level_simple(\
 
     // Step 1:
     for (size_t j = 0; j < n_faces - 1; j++){
-        intersection(faces[j], faces[n_faces - 1], maybe_newfaces[j], face_length);
-        unite(faces_coatom_rep[j], faces_coatom_rep[n_faces - 1], maybe_newfaces_coatom_rep[j], face_length_coatom_rep);
+        intersection(maybe_newfaces[j], faces[j], faces[n_faces - 1], face_length);
+        unite(maybe_newfaces_coatom_rep[j], faces_coatom_rep[j], faces_coatom_rep[n_faces - 1], face_length_coatom_rep);
         is_not_newface[j] = 0;
     }
 
@@ -224,6 +224,11 @@ size_t get_next_level_simple(\
         // Check if the atom representation is zero.
         if (is_zero(maybe_newfaces[j], face_length)){
             is_not_newface[j] = 1;
+            continue;
+        }
+
+        if (is_not_newface[j]) {
+            // No further tests needed, if it is empty.
             continue;
         }
 

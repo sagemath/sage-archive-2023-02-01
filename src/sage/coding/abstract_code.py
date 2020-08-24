@@ -80,8 +80,6 @@ For more information about the Decoder class, see
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
 from copy import copy
-from .encoder import Encoder
-from .decoder import Decoder, DecodingError
 from sage.rings.integer import Integer
 
 import inspect
@@ -290,9 +288,6 @@ class AbstractCode(Parent):
             ...
             ValueError: length must be a non-zero positive integer
         """
-
-        _registered_encoders = {}
-        _registered_decoders = {}
 
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")

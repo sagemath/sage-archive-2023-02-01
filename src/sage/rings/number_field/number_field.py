@@ -123,6 +123,7 @@ from sage.categories.number_fields import NumberFields
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name
 from sage.misc.misc import union
+from sage.misc.superseded import deprecation
 
 from .unit_group import UnitGroup
 from .class_group import ClassGroup
@@ -890,8 +891,8 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
         \sqrt{-7}
         sage: latex(1/(1+a))
         -\frac{1}{8} \sqrt{-7} + \frac{1}{8}
-        sage: K.latex_variable_name()
-        '\\sqrt{-7}'
+        sage: list(K.latex_variable_names())
+        ['\\sqrt{-7}']
 
     We can provide our own name as well::
 
@@ -1370,7 +1371,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 raise ValueError("defining polynomial (%s) must be irreducible"%polynomial)
 
         self._assign_names(name)
-        self.__latex_variable_name = latex_name
+        self._latex_names = (latex_name,)
         self.__polynomial = polynomial
         self._pari_bnf_certified = False
         self._integral_basis_dict = {}
@@ -3244,16 +3245,19 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         EXAMPLES::
 
             sage: NumberField(x^2 + 3, 'a').latex_variable_name()
+            doctest:...: DeprecationWarning: This method is replaced by ...
+            See https://trac.sagemath.org/30372 for details.
             'a'
             sage: NumberField(x^3 + 3, 'theta3').latex_variable_name()
             '\\theta_{3}'
             sage: CyclotomicField(5).latex_variable_name()
             '\\zeta_{5}'
         """
+        deprecation(30372, 'This method is replaced by the method latex_variable_names')
         if name is None:
-            return self.__latex_variable_name
+            return self._latex_names[0]
         else:
-            self.__latex_variable_name = name
+            self._latex_names = (name,)
 
     def _repr_(self):
         """
@@ -3294,8 +3298,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: print(k._latex_())
             \Bold{Q}[\theta_{25}]/(\theta_{25}^{25} + \theta_{25} + 1)
         """
-        return "%s[%s]/(%s)"%(latex(QQ), self.latex_variable_name(),
-                              self.polynomial()._latex_(self.latex_variable_name()))
+        latex_name = self.latex_variable_names()[0]
+        return "%s[%s]/(%s)"%(latex(QQ), latex_name,
+                              self.polynomial()._latex_(latex_name))
 
     def _ideal_class_(self, n=0):
         """
@@ -9677,11 +9682,11 @@ class NumberField_absolute(NumberField_generic):
                                          "with respect to %s"%p)
                 else:
                     if not p in self.real_places():
-                        raise ValueError("entries of the list must be " +
+                        raise ValueError("entries of the list must be "
                                          "prime ideals or real places")
                     if p(b) > 0:
-                        raise ValueError("%s is a square in the completion " +
-                                         "with respect to %s" %(b,p))
+                        raise ValueError("%s is a square in the completion "
+                                         "with respect to %s" % (b, p))
 
         # L is the list of primes that we need to consider, b must have
         # nonzero valuation for each prime in L, this is the set S'
@@ -10309,7 +10314,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: latex(f)
             \left(z^{2} + z\right) s
         """
-        v = self.latex_variable_name()
+        v = self.latex_variable_names()[0]
         if v.startswith('\\zeta_'):
             return "%s(%s)"%(latex(QQ), v)
         else:
@@ -11427,7 +11432,7 @@ class NumberField_quadratic(NumberField_absolute):
             sage: latex(Z) # indirect doctest
             \Bold{Q}[x]/(x^{2} - 7)
         """
-        v = self.latex_variable_name()
+        v = self.latex_variable_names()[0]
         if v.startswith('\\sqrt'):
             return "%s(%s)"%(latex(QQ), v)
         else:

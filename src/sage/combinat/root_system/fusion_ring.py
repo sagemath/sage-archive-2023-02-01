@@ -356,7 +356,7 @@ class FusionRing(WeylCharacterRing):
         tester = self._tester(**options)
         tqo = self.total_q_order()
         tester.assertTrue(tqo.is_real_positive())
-        tester.assertTrue(tqo**2 == self.global_q_dimension())
+        tester.assertEqual(tqo**2, self.global_q_dimension())
 
     def fusion_labels(self, labels=None, inject_variables=False):
         r"""

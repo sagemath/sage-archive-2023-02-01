@@ -25,7 +25,7 @@ TESTS::
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import, print_function
 
@@ -36,7 +36,6 @@ from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
 from sage.structure.factorization import Factorization
 from sage.rings.integer_ring import ZZ
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.structure.element import is_Element
 from .padic_base_leaves import (pAdicRingCappedRelative,
@@ -55,8 +54,23 @@ from . import padic_printing
 # factory when it finds a given class in the ground ring of the tower.
 ######################################################
 
-from .padic_extension_leaves import *
-from .relative_extension_leaves import *
+from .padic_extension_leaves import (EisensteinExtensionFieldCappedRelative,
+                                     EisensteinExtensionRingFixedMod,
+                                     EisensteinExtensionRingCappedAbsolute,
+                                     EisensteinExtensionRingCappedRelative,
+                                     UnramifiedExtensionFieldCappedRelative,
+                                     UnramifiedExtensionRingCappedRelative,
+                                     UnramifiedExtensionRingCappedAbsolute,
+                                     UnramifiedExtensionRingFixedMod,
+                                     UnramifiedExtensionFieldFloatingPoint,
+                                     UnramifiedExtensionRingFloatingPoint)
+from .relative_extension_leaves import \
+        (RelativeRamifiedExtensionRingFixedMod,
+         RelativeRamifiedExtensionRingCappedAbsolute,
+         RelativeRamifiedExtensionRingCappedRelative,
+         RelativeRamifiedExtensionFieldCappedRelative,
+         RelativeRamifiedExtensionRingFloatingPoint,
+         RelativeRamifiedExtensionFieldFloatingPoint)
 from functools import reduce
 #This imports all of the classes used in the ext_table below.
 
@@ -216,7 +230,8 @@ def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_se
         if 'ram_name' in print_mode:
             print_ram_name = print_mode['ram_name']
         if 'unram_name' in print_mode:
-            print_unram_name = print_mode['unram_name']
+            # print_unram_name = print_mode['unram_name']
+            pass
         if 'sep' in print_mode:
             print_sep = print_mode['sep']
         if 'alphabet' in print_mode:

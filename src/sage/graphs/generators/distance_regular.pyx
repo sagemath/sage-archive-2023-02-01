@@ -728,10 +728,12 @@ def AlternatingFormsGraph(const int n, const int q):
     for v in e:
         v.set_immutable()
 
+    scalars = [x for x in GF(q) if not x.is_zero()]
+    Vseen = set()
     for v in Vn:
-        if v.is_zero():
+        if v.is_zero() or not v[v.support()[0]].is_one():
             continue
-
+        # v.set_immutable()
         # remove from basis e_i s.t. (v[i-1] =) v_i != 0
         i = v.support()[0]
         Ubasis = basis.difference([e[i]])
@@ -740,15 +742,22 @@ def AlternatingFormsGraph(const int n, const int q):
             sig_check()
             if u.is_zero() or not u[u.support()[0]].is_one():
                 continue
+            u.set_immutable()
+            if u in Vseen:
+                continue
 
-            M = tuple()
+            M = []
             for row in range(n - 1):
                 upperRow = [0] * (n - 1 - row)
                 for col in range(row + 1, n):
                     upperRow[col - row - 1] = v[row]*u[col] - u[row]*v[col]
-                M += tuple(upperRow)
+                M += upperRow
 
-            rank2Matrices.add(M)
+            for scalar in scalars:
+                N = tuple(map(lambda x: scalar * x, M))
+                rank2Matrices.add(N)
+
+        Vseen.add(v)
 
     # now we have all matrices of rank 2
     edges = []

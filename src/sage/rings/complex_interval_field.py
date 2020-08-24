@@ -163,7 +163,7 @@ class ComplexIntervalField_class(Field):
 
         sage: CIF.category()
         Category of infinite fields
-        sage: TestSuite(CIF).run()
+        sage: TestSuite(CIF).run(skip="_test_gcd_vs_xgcd")
 
     TESTS:
 

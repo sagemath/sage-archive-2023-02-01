@@ -14,7 +14,7 @@ from distutils.errors import (DistutilsModuleError,
                               DistutilsOptionError)
 
 from Cython.Build.Dependencies import default_create_extension
-from sage_setup.util import stable_uniq, have_module
+from sage_setup.util import stable_uniq
 from sage_setup.find import find_extra_files
 from sage_setup.library_order import library_order
 
@@ -161,9 +161,10 @@ class sage_build_cython(Command):
             profile=self.profile,
         )
         self.compile_time_env = dict(
+            PY_PLATFORM=sys.platform,
+            # The following two constants are here only for backwards compatibility of user packages
             PY_VERSION_HEX=sys.hexversion,
-            PY_MAJOR_VERSION=sys.version_info[0],
-            PY_PLATFORM=sys.platform
+            PY_MAJOR_VERSION=sys.version_info[0]
         )
 
         # We check the Cython version and some relevant configuration

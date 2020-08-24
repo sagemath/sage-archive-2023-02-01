@@ -522,7 +522,7 @@ for ``eclib``:
 For Python packages, common dependencies include ``pip``,
 ``setuptools``, and ``future``. If your package depends on any of
 these, use ``$(PYTHON_TOOLCHAIN)`` instead. For example, here is the
-``dependencies`` file for ``configparser``::
+``dependencies`` file for ``configparser``:
 
 .. CODE-BLOCK:: text
 

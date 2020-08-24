@@ -69,9 +69,6 @@ cdef class Mutability:
     def is_mutable(self):
         return not self._is_immutable
 
-    def __reduce__(self):
-        return Mutability, (self._is_immutable, )
-
 ##########################################################################
 ## Method decorators for mutating methods resp. methods that assume immutability
 

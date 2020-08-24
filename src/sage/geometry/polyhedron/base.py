@@ -6091,15 +6091,23 @@ class Polyhedron_base(Element):
                 tester.assertEqual(self.n_vertices() + 2, Q.n_vertices())
                 tester.assertEqual(self.backend(), Q.backend())  # Any backend should handle the fraction field.
 
-                '''
-                # Known bug.
-                # See :trac:`30328`.
-                R = self.lawrence_extension(2.0*v - self.center())
-                tester.assertEqual(self.dim() + 1, R.dim())
-                tester.assertEqual(self.n_vertices() + 2, R.n_vertices())
+                import warnings
 
-                tester.assertTrue(Q.is_combinatorially_isomorphic(R))
-                '''
+                with warnings.catch_warnings():
+                    warnings.simplefilter("error")
+                    try:
+                        # Implicitely checks :trac:`30328`.
+                        R = self.lawrence_extension(2.0*v - self.center())
+                        tester.assertEqual(self.dim() + 1, R.dim())
+                        tester.assertEqual(self.n_vertices() + 2, R.n_vertices())
+
+                        tester.assertTrue(Q.is_combinatorially_isomorphic(R))
+                    except UserWarning:
+                        # Data is numerically complicated.
+                        pass
+                    except ValueError as err:
+                        if not "Numerical inconsistency" in err.args[0]:
+                            raise err
 
         if self.n_vertices() >= 12 or (self.base_ring() not in (ZZ, QQ) and self.backend() == 'field'):
             # Avoid very long tests.

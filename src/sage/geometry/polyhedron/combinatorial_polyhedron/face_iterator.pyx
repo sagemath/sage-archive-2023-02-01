@@ -181,6 +181,7 @@ AUTHOR:
 from sage.rings.integer     cimport smallInteger
 from cysignals.signals      cimport sig_check, sig_on, sig_off
 from .conversions           cimport bit_rep_to_Vrep_list
+from .conversions            import facets_tuple_to_bit_rep_of_facets
 from .base                  cimport CombinatorialPolyhedron
 from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
 
@@ -274,6 +275,7 @@ cdef class FaceIterator_base(SageObject):
         self.dual = dual
         self.structure.dual = dual
         self.structure.face = NULL
+        self.structure.face_coatom_rep = NULL
         self.structure.dimension = C.dimension()
         self.structure.current_dimension = self.structure.dimension -1
         self._mem = MemoryAllocator()
@@ -363,6 +365,40 @@ cdef class FaceIterator_base(SageObject):
 
         self.structure.yet_to_visit = self.coatoms.n_faces
         self.structure._index = 0
+
+        if C.is_bounded() and ((dual and C.is_simplicial()) or (not dual and C.is_simple())):
+            # We are in the comfortable situation that for our iterator
+            # all intervalls not containing the 0 element are boolean.
+            # This makes things a lot easier.
+            self.structure.is_simple = True
+
+            self.structure.face_length_coatom_rep = self.atoms.face_length
+
+            # Initialize ``maybe_newfaces``,
+            # the place where the new faces are being stored.
+            self.newfaces_lists_coatom_rep = tuple(ListOfFaces(self.coatoms.n_faces, self.atoms.n_atoms)
+                                                   for i in range(self.structure.dimension -1))
+            self.structure.maybe_newfaces_coatom_rep = <uint64_t ***> self._mem.allocarray((self.structure.dimension -1), sizeof(uint64_t **))
+            for i in range(self.structure.dimension -1):
+                some_list = self.newfaces_lists_coatom_rep[i]
+                self.structure.maybe_newfaces_coatom_rep[i] = some_list.data
+
+            # Initialize ``visited_all``.
+            self.structure.visited_all_coatom_rep = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t *))
+
+            # Note that C is not bounded.
+
+            # Initializing the facets in their Bit-representation.
+            self.coatoms_coatom_rep = facets_tuple_to_bit_rep_of_facets(tuple((i,) for i in range(self.coatoms.n_faces)), self.coatoms.n_faces)
+
+            # Initialize ``newfaces``, which will point to the new faces of codimension 1,
+            # which have not been visited yet.
+            self.structure.newfaces_coatom_rep = <uint64_t ***> self._mem.allocarray(self.structure.dimension, sizeof(uint64_t **))
+            for i in range(self.structure.dimension - 1):
+                self.structure.newfaces_coatom_rep[i] = <uint64_t **> self._mem.allocarray(self.atoms.n_faces, sizeof(uint64_t *))
+            self.structure.newfaces_coatom_rep[self.structure.dimension - 1] = self.coatoms_coatom_rep.data  # we start with coatoms
+        else:
+            self.structure.is_simple = False
 
     def reset(self):
         r"""

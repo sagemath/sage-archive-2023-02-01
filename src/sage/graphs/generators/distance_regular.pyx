@@ -655,19 +655,29 @@ def BilinearFormsGraph(const int d, const int e, const int q):
     """
     from sage.matrix.matrix_space import MatrixSpace
 
-    matricesOverq = MatrixSpace(GF(q), d, e, implementation='meataxe')
+    Fq = GF(q)
+    matricesOverq = MatrixSpace(Fq, d, e, implementation='meataxe')
 
     rank1Matrices = []
-    for m in matricesOverq:
-        sig_check()
-        if m.rank() == 1:
-            rank1Matrices.append(m)
+    for u in VectorSpace(Fq, d):
+        if u.is_zero() or not u[u.support()[0]].is_one():
+            continue
+
+        for v in VectorSpace(Fq, e):
+            if v.is_zero():
+                continue
+
+            M = u.outer_product(v)
+            if M.rank() != 1:
+                print(f"error (u,v) = f{(u, v)}")
+
+            rank1Matrices.append(M)
 
     edges = []
     for m1 in matricesOverq:
         m1.set_immutable()
         for m2 in rank1Matrices:
-            sig_check()  # this loop may take a long time; check for interrupts
+            sig_check()
             m3 = m1 + m2
             m3.set_immutable()
             edges.append((m1, m3))

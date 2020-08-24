@@ -2738,8 +2738,9 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
 
     if order is not None:
         if len(g) == len(order):
-            if any(v not in order for v in g):
-                raise ValueError("Given ordering is not valid")
+            for vertex in order:
+                if vertex not in g:
+                    raise ValueError("Given ordering is not valid")
         else:
             raise ValueError("Given ordering is not valid")
 

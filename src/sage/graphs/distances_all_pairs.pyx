@@ -124,7 +124,8 @@ Functions
 
 include "sage/data_structures/binary_matrix.pxi"
 from libc.string cimport memset
-from libc.stdint cimport uint64_t, uint32_t, INT32_MAX, UINT32_MAX
+from libc.stdint cimport uint64_t, UINT64_MAX
+from libc.stdint cimport uint32_t, INT32_MAX, UINT32_MAX
 from cysignals.memory cimport sig_malloc, sig_calloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
@@ -1973,6 +1974,7 @@ def radius_DHV(G):
                 LB = ecc_lower_bound[v]
                 source = v  # vertex with minimum eccentricity lower bound
 
+    free_short_digraph(sd)
     bitset_free(seen)
     if UB == UINT32_MAX:
         from sage.rings.infinity import Infinity
@@ -1988,17 +1990,12 @@ def wiener_index(G):
     r"""
     Return the Wiener index of the graph.
 
-    The Wiener index of a graph `G` can be defined in two equivalent
-    ways [KRG1996]_ :
+    The Wiener index of an undirected graph `G` is defined as
+    `W(G) = \frac{1}{2} \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the
+    distance between vertices `u` and `v` (see [KRG1996]_).
 
-    - `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the
-      distance between vertices `u` and `v`.
-
-    - Let `\Omega` be a set of `\frac {n(n-1)} 2` paths in `G` such that `\Omega`
-      contains exactly one shortest `u-v` path for each set `\{u,v\}` of
-      vertices in `G`. Besides, `\forall e\in E(G)`, let `\Omega(e)` denote the
-      paths from `\Omega` containing `e`. We then have
-      `W(G) = \sum_{e\in E(G)}|\Omega(e)|`.
+    The Wiener index of a directed graph `G` is defined as the sum of the
+    distances between each pairs of vertices, `W(G) = \sum_{u,v\in G} d(u,v)`.
 
     EXAMPLES:
 
@@ -2008,20 +2005,68 @@ def wiener_index(G):
         sage: w=lambda x: (x*(x*x -1)/6)
         sage: g.wiener_index()==w(10)
         True
+
+    Wiener index of complete (di)graphs::
+
+        sage: n = 5
+        sage: g = graphs.CompleteGraph(n)
+        sage: g.wiener_index() == (n * (n - 1)) / 2
+        True
+        sage: g = digraphs.Complete(n)
+        sage: g.wiener_index() == n * (n - 1)
+        True
+
+    Wiener index of a graph of order 1::
+
+        sage: Graph(1).wiener_index()
+        0
+
+    The Wiener index is not defined on the empty graph::
+
+        sage: Graph().wiener_index()
+        Traceback (most recent call last):
+        ...
+        ValueError: Wiener index is not defined for the empty graph
     """
-    if not G.is_connected():
+    if not G:
+        raise ValueError("Wiener index is not defined for the empty graph")
+
+    cdef unsigned int n = G.order()
+    if n == 1:
+        return 0
+
+    # Copying the whole graph to obtain the list of neighbors quicker than by
+    # calling out_neighbors.  This data structure is well documented in the
+    # module sage.graphs.base.static_sparse_graph
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=list(G))
+
+    # allocated some data structures
+    cdef bitset_t seen
+    bitset_init(seen, n)
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *> mem.allocarray(2 * n, sizeof(uint32_t))
+    cdef uint32_t * waiting_list = distances + n
+
+    cdef uint64_t s = 0
+    cdef uint32_t u, v
+    cdef uint32_t ecc
+    for u in range(n):
+        ecc = simple_BFS(sd, u, distances, NULL, waiting_list, seen)
+        if ecc == UINT32_MAX:
+            # the graph is not  connected
+            s = UINT64_MAX
+            break
+        for v in range(0 if G.is_directed() else (u + 1), n):
+            s += distances[v]
+
+    free_short_digraph(sd)
+    bitset_free(seen)
+
+    if s == UINT64_MAX:
         from sage.rings.infinity import Infinity
         return +Infinity
-
-    from sage.rings.integer import Integer
-    cdef unsigned short* distances = c_distances_all_pairs(G, vertex_list=list(G))
-    cdef unsigned int NN = G.order() * G.order()
-    cdef unsigned int i
-    cdef uint64_t s = 0
-    for i in range(NN):
-        s += distances[i]
-    sig_free(distances)
-    return Integer(s) / 2
+    return s
 
 ##########################
 # Distances distribution #
@@ -2088,32 +2133,47 @@ def distances_distribution(G):
         sage: D.distances_distribution()
         {1: 1/4, 2: 11/28, 3: 5/14}
     """
-    if G.order() <= 1:
+    cdef size_t n = G.order()
+    if n <= 1:
         return {}
 
-    from sage.rings.infinity import Infinity
-    from sage.rings.integer import Integer
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=list(G))
 
-    cdef unsigned short* distances = c_distances_all_pairs(G, vertex_list=list(G))
-    cdef unsigned int n = G.order()
-    cdef unsigned int NN = n * n
-    cdef dict count = {}
-    cdef dict distr = {}
-    cdef unsigned int i
-    NNN = Integer(NN - n)
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *> mem.allocarray(2 * n, sizeof(uint32_t))
+    cdef uint32_t * waiting_list = distances + n
+    cdef uint64_t * count = <uint64_t *> mem.calloc(n, sizeof(uint64_t))
+    cdef bitset_t seen
+    bitset_init(seen, n)
 
     # We count the number of pairs at equal distances
-    for i in range(NN):
-        count[distances[i]] = count.get(distances[i], 0) + 1
+    cdef uint32_t u, v
+    cdef uint64_t count_inf = 0
+    for u in range(n):
+        ecc = simple_BFS(sd, u, distances, NULL, waiting_list, seen)
+        if ecc == UINT32_MAX:
+            for v in range(n):
+                if bitset_in(seen, v):
+                    count[distances[v]] += 1
+            count_inf += n - bitset_len(seen)
+        else:
+            for v in range(n):
+                count[distances[v]] += 1
 
-    sig_free(distances)
+    free_short_digraph(sd)
+    bitset_free(seen)
+
+    from sage.rings.infinity import Infinity
+    from sage.rings.rational_field import QQ
 
     # We normalize the distribution
-    for j in count:
-        if j == <unsigned short> -1:
-            distr[+Infinity] = Integer(count[j]) / NNN
-        elif j > 0:
-            distr[j] = Integer(count[j]) / NNN
+    cdef uint64_t NN = n * (n - 1)
+    cdef dict distr = {+Infinity: QQ((count_inf, NN))} if count_inf else {}
+    cdef size_t d
+    for d in range(1, n):
+        if count[d]:
+            distr[d] = QQ((count[d], NN))
 
     return distr
 

@@ -457,6 +457,12 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             1/5*q^-11 + 4/5*q^-9 + 64/25*q^-7 + 192/25*q^-5 + 2816/125*q^-3 + 8192/125*q^-1 + O(1)
             sage: L(pari('O(x^-10)'))
             O(q^-10)
+
+        Check that :trac:`30073` is fixed::
+
+            sage: P.<x> = LaurentSeriesRing(QQ)
+            sage: P({-3: 1})
+            x^-3
         """
         from sage.rings.fraction_field_element import is_FractionFieldElement
         from sage.rings.polynomial.polynomial_element import is_Polynomial

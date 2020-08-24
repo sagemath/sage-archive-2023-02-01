@@ -1,13 +1,11 @@
 .. -*- coding: utf-8 -*-
-
 .. _structures_in_coding_theory:
 
 ===============================================
 How to write your own classes for coding theory
 ===============================================
 
-.. MODULEAUTHOR:: David Lucas (2016) for initial version. Marketa Slukova (2019)
-                  for this version.
+.. MODULEAUTHOR:: David Lucas (2016) for initial version. Marketa Slukova (2019) for this version.
 
 This tutorial, designed for advanced users who want to build their own classes,
 will explain step by step what you need to do to write code which integrates
@@ -51,20 +49,19 @@ consisting of the following `l` words:
 
 Here is how we can implement it::
 
+    sage: from sage.coding.abstract_code import AbstractCode
     sage: class ExampleCodeFamily(AbstractCode):
-          ....:   def __init__(self, length):
-          ....:       super(ExampleCodeFamily, self).__init__(length)
-          ....:   def __iter__(self):
-          ....:       for i in range(self.length() + 1):
-          ....:            yield vector([1 for j in range(i)] + [0 for k in range(i, self.length())])
-          ....:   def __contains__(self, word):
-          ....:       return word in list(self)
-          ....:   def _repr_(self):
-          ....:       return "Dummy code of length {}".format(self.length())
+    ....:     def __init__(self, length):
+    ....:         super(ExampleCodeFamily, self).__init__(length)
+    ....:     def __iter__(self):
+    ....:         for i in range(self.length() + 1):
+    ....:             yield vector([1 for j in range(i)] + [0 for k in range(i, self.length())])
+    ....:     def __contains__(self, word):
+    ....:         return word in list(self)
+    ....:     def _repr_(self):
+    ....:         return "Dummy code of length {}".format(self.length())
 
-We can check that our iterator gives us the code that we wanted::
-
-    sage: C = ExampleCodeFamily(4)
+    sage: C = ExampleCodeFamily(4) # check that this works.
     sage: C.list()
     [(0, 0, 0, 0), (1, 0, 0, 0), (1, 1, 0, 0), (1, 1, 1, 0), (1, 1, 1, 1)]
 

@@ -26,7 +26,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.all import cached_method
 from sage.rings.all import ZZ, infinity
 from sage.graphs.all import Graph, DiGraph
-from sage.arith.all import binomial, Euler_Phi
+from sage.arith.all import binomial, euler_phi
 from sage.all import prod
 from sage.matrix.all import matrix
 
@@ -1752,7 +1752,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
                 i = ZZ(i)
                 j = ZZ(j)
                 n = i+j
-                f = Euler_Phi()
+                f = euler_phi
                 if i == j:
                     return ( binomial( 2*i,i ) +
                              sum( f(k) * binomial(2*i//k,i//k)**2
@@ -1812,7 +1812,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
                 if self._rank == 4:
                     return 6
                 else:
-                    f = Euler_Phi()
+                    f = euler_phi
                     n = ZZ(self._rank)
                     return sum(f(n // k) * binomial(2 * k, k)
                                for k in n.divisors()) // (2 * n)

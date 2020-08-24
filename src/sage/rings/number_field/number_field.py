@@ -3358,7 +3358,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         r"""
         Return a solution of the Chinese Remainder Theorem problem
         for ideals in a number field.
-        This is a wrapper around the pari function `idealchinese`.
+
+        This is a wrapper around the pari function :pari:`idealchinese`.
 
         INPUT:
 

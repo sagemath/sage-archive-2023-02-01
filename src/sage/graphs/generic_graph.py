@@ -10430,8 +10430,8 @@ class GenericGraph(GenericGraph_pyx):
         - ``vertices`` -- iterated vertices are these intersected with the
           vertices of the (di)graph
 
-        - ``degree`` -- a nonnegative integer (default: ``None``); a vertex ``v``
-          is kept if ``degree(v) == degree``
+        - ``degree`` -- a nonnegative integer (default: ``None``);
+          a vertex ``v`` is kept if ``degree(v) == degree``
 
         - ``vertex_property`` -- function (default: ``None``); a function
           that inputs a vertex and outputs a boolean value, i.e., a vertex
@@ -10462,8 +10462,8 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: H = graphs.PathGraph(5)
-            sage: one_mod_3 = lambda l: l % 3 == 1
-            sage: for v in H.vertex_iterator(degree=1, vertex_property=one_mod_3):
+            sage: prop = lambda l: l % 3 == 1
+            sage: for v in H.vertex_iterator(degree=1, vertex_property=prop):
             ....:     print(v)
             4
 
@@ -10576,12 +10576,12 @@ class GenericGraph(GenericGraph_pyx):
           vertex as its one argument and returns a value that can be used for
           comparisons in the sorting algorithm (we must have ``sort=True``)
 
-        - ``degree`` -- a nonnegative integer (default: ``None``); a vertex ``v``
-          is kept if ``degree(v) == degree``
+        - ``degree`` -- a nonnegative integer (default: ``None``);
+          a vertex ``v`` is kept if ``degree(v) == degree``
 
-        - ``vertex_property`` -- function (default: ``None``); a function that inputs
-          a vertex and outputs a boolean value, i.e., a vertex ``v`` is kept if
-          ``vertex_property(v) == True``
+        - ``vertex_property`` -- function (default: ``None``); a function
+          that inputs a vertex and outputs a boolean value, i.e., a vertex
+          ``v`` is kept if ``vertex_property(v) == True``
 
         OUTPUT:
 

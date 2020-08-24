@@ -10492,8 +10492,7 @@ class GenericGraph(GenericGraph_pyx):
                     yield v
 
         else:
-            for v in self._backend.iterator_verts(vertices):
-                yield v
+            yield from self._backend.iterator_verts(vertices)
 
     __iter__ = vertex_iterator
 

@@ -42,7 +42,7 @@ EXAMPLES::
 
 AUTHORS:
 
--Isabel Vogt (2013): initial version
+- Isabel Vogt (2013): initial version
 
 See [SV2013]_, [BMS2006]_, and [SS1983]_.
 """
@@ -108,7 +108,7 @@ class BinaryRecurrenceSequence(SageObject):
     def __init__(self, b, c, u0=0, u1=1):
 
         """
-        See ``BinaryRecurrenceSequence`` for full documentation.
+        See :class:`BinaryRecurrenceSequence` for full documentation.
 
         EXAMPLES::
 
@@ -263,7 +263,9 @@ class BinaryRecurrenceSequence(SageObject):
         Decide whether the binary recurrence sequence is geometric - ie a geometric sequence.
 
         This is a subcase of a degenerate binary recurrence sequence, for which `ab=0`, i.e.
-        `u_{n}/u_{n-1}=r` for some value of `r`.  See ``is_degenerate`` for a description of
+        `u_{n}/u_{n-1}=r` for some value of `r`.
+
+        See :meth:`is_degenerate` for a description of
         degeneracy and definitions of `a` and `b`.
 
         EXAMPLES::
@@ -1079,7 +1081,7 @@ def _find_cong1(p, R, ell):
 
     - ``p`` -- a prime number
 
-    - ``R`` -- an object in class BinaryRecurrenceSequence
+    - ``R`` -- an object in class :class:`BinaryRecurrenceSequence`
 
     - ``ell`` -- a prime number
 

@@ -202,9 +202,10 @@ cdef class LocalGenericElement(CommutativeRingElement):
     def slice(self, i, j, k = 1, lift_mode='simple'):
         r"""
         Returns the sum of the `p^{i + l \cdot k}` terms of the series
-        expansion of this element, for `i + l \cdot k` between ``i`` and
-        ``j-1`` inclusive, and nonnegative integers `l`. Behaves analogously to
-        the slice function for lists.
+        expansion of this element, where p is the uniformizer, 
+        for `i + l \cdot k` between ``i`` and ``j-1`` inclusive, and 
+        nonnegative integers `l`. Behaves analogously to the slice 
+        function for lists.
 
         INPUT:
 
@@ -298,6 +299,34 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: b.slice(0,9,2)
             5^2 + O(5^8)
 
+        Test that slices also work over unramified extensions::
+            
+            sage: T.<t> = Qp(5).extension(x^2-2)
+            sage: a = T(3*5^-1 + 1 + (3*t + 4)*5^2)
+            sage: a.slice(0, 1)
+            1
+            sage: a.slice(-3, 4)
+            3*5^-1 + 1 + (3*t + 4)*5^2
+
+        Test that slices also work over 2-step extensions (unramified followed by eisenstein)::
+        
+            sage: F.<a> = Qp(5).extension(x^2-3)
+            sage: H.<y> = F[]
+            sage: T.<w> = F.extension((4*5^-2 + 2*5^-1 + 4 + (2*a + 2)*5 + 3*a*5^3 + 4*5^4 + 
+            3*5^5 + (2*a + 2)*5^8 + (4*a + 3)*5^9 + 2*a*5^10 + (3*a + 3)*5^11 + (3*a + 1)*5^12 + 
+            (3*a + 2)*5^13 + 4*5^14 + (2*a + 4)*5^15 + (4*a + 1)*5^16 + (a + 1)*5^17 + 
+            O(5^18))*y^2 + (a + 2*a*5 + a*5^2 + 4*a*5^3 + (2*a + 4)*5^4 + (3*a + 4)*5^5 + 
+            (a + 1)*5^6 + a*5^7 + (2*a + 4)*5^8 + 3*5^9 + 2*5^10 + 5^12 + (4*a + 2)*5^13 + 5^14 + 
+            5^15 + 3*a*5^16 + (a + 2)*5^17 + 4*5^18 + (3*a + 1)*5^19 + O(5^20))*y + (2*a + 
+            2)*5^-1 + 3 + 5 + a*5^2 + (4*a + 2)*5^3 + (4*a + 1)*5^4 + (3*a + 4)*5^5 + 
+            (4*a + 4)*5^6 + (3*a + 2)*5^7 + (4*a + 4)*5^8 + 3*5^9 + (a + 3)*5^10 + (4*a + 3)*5^11 
+            + 5^12 + (2*a + 2)*5^14 + 4*a*5^15 + (2*a + 2)*5^16 + (4*a + 4)*5^17 + O(5^18))
+            sage: b = T(3*w^-36 + (2*a + 2)*w^-23)
+            sage: b.slice(-25,2)
+            (2*a + 2)*w^-23
+            sage: b.slice(0, 1)
+            0
+        
         Verify that :trac:`14106` has been fixed::
 
             sage: R = Zp(5,7)
@@ -340,13 +369,38 @@ cdef class LocalGenericElement(CommutativeRingElement):
         pk = self.parent().uniformizer_pow(k)
         # the p-power of the first term
         ppow = self.parent().uniformizer_pow(i)
+        
+        # classify the type of padic field 
+        if isinstance(self.parent(), pAdicExtensionGeneric):
+            ext_type = self.parent()._extension_type()
+        # base fields are treated as Eisenstein extensions.
+        else:
+            ext_type = "Eisenstein"
 
         # construct the return value
         ans = self.parent().zero()
-        for c in islice(self.expansion(lift_mode=lift_mode),
-                        int(start), int(stop), int(k)):
-            ans += ppow * c
-            ppow *= pk
+        if ext_type == "Eisenstein":
+            # one-step extension
+            if self.parent().absolute_degree() == self.parent().relative_degree():
+                for c in islice(self.expansion(lift_mode=lift_mode),
+                                int(start), int(stop), int(k)):
+                    ans += ppow * c
+                    ppow *= pk
+                generator = 0
+            # two-step extension (unramified and then eisenstein)
+            generator = self.parent().base_ring().gen()
+        elif ext_type == "Unramified":            # one-step extension
+            generator = self.parent().gen()
+        # sage currently supports only Eisenstein / unramified expansions.
+        else:
+            raise NotImplementedError
+        if generator != 0:
+            for c in islice(self.expansion(lift_mode=lift_mode),
+                                int(start), int(stop), int(k)):
+                genpow = 1
+                for d in c:
+                    ans += d * genpow * ppow                    
+                    genpow *= generator
 
         # fix the precision of the return value
         if j < ans.precision_absolute() or self.precision_absolute() < ans.precision_absolute():

@@ -519,9 +519,30 @@ class Berkovich_Element_Cp(Berkovich_Element):
 
     prec = precision
 
+    def ideal(self):
+        r"""
+        The ideal which defines an embedding of the ``base_ring`` into `\CC_p`.
+
+        If this Berkovich space is backed by a p-adic field, then an embedding is
+        already specified, and this returns ``None``.
+
+        EXAMPLES::
+
+            sage: B = Berkovich_Cp_Projective(QQ, 3)
+            sage: B(0).ideal()
+            3
+
+            ::
+
+            sage: B = Berkovich_Cp_Projective(3)
+            sage: B(0).ideal()
+
+        """
+        return self.parent().ideal()
+
     def power(self):
         r"""
-        Power of ``p`` such that `p^\text{power} = \text{radius}`.
+        The power of ``p`` such that `p^\text{power} = \text{radius}`.
 
         For type II points, always in `\QQ`. For type III points,
         a real number. Not defined for type I or IV points.

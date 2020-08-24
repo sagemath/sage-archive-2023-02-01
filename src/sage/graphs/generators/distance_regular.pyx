@@ -710,9 +710,9 @@ def AlternatingFormsGraph(const int n, const int q):
          32768
          sage: G.is_distance_regular(True)  # not tested (33 min)
          ([651, 560, 256, None], [None, 1, 20, 336])
-         sage: G = graphs.AlternatingFormsGraph(4, 2)
+         sage: G = graphs.AlternatingFormsGraph(4, 3)
          sage: G.is_distance_regular(True)
-         ([35, 16, None], [None, 1, 20])
+         ([260, 162, None], [None, 1, 90])
     """
     # n x n zero-diagonal skew-symmetric matrix
     # can be represented by the upper triangular entries
@@ -738,7 +738,7 @@ def AlternatingFormsGraph(const int n, const int q):
 
         for u in Vn.span_of_basis(Ubasis):
             sig_check()
-            if u.is_zero():
+            if u.is_zero() or not u[u.support()[0]].is_one():
                 continue
 
             M = tuple()

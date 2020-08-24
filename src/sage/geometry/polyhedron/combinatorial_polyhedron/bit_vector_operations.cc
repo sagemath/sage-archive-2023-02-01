@@ -49,6 +49,17 @@ inline void intersection(uint64_t *dest, uint64_t *A, uint64_t *B, \
     }
 }
 
+inline void unite(uint64_t *dest, uint64_t *A, uint64_t *B, \
+                         size_t face_length){
+    /*
+    Set ``dest = A | B``, i.e. dest is the union of A and B.
+    ``face_length`` is the length of A, B and dest in terms of uint64_t.
+    */
+    for (size_t i = 0; i < face_length; i++){
+        dest[i] = A[i] | B[i];
+    }
+}
+
 inline size_t count_atoms(const uint64_t* A, size_t face_length){
     /*
     Return the number of atoms/vertices in A.
@@ -65,7 +76,14 @@ inline size_t count_atoms(const uint64_t* A, size_t face_length){
     }
     return count;
 }
-
+inline int is_zero(uint64_t *A, size_t face_length){
+    for (size_t i = 0; i < face_length; i++){
+        if (A[i]){
+            return 0;
+        }
+    }
+    return 1;
+}
 
 inline int is_contained_in_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t face_length){
     /*

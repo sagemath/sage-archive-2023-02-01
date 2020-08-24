@@ -10478,12 +10478,18 @@ class GenericGraph(GenericGraph_pyx):
         """
         if degree:
             if vertex_property is not None:
-                yield from [v for v, d in self.degree_iterator(labels=True) if d == degree and vertex_property(v)]
+                for v, d in self.degree_iterator(labels=True):
+                    if d == degree and vertex_property(v):
+                        yield v
             else:
-                yield from [v for v, d in self.degree_iterator(labels=True) if d == degree]
+                for v, d in self.degree_iterator(labels=True):
+                    if d == degree:
+                        yield v
 
         elif vertex_property is not None:
-            yield from [v for v in self._backend.iterator_verts(vertices) if vertex_property(v)]
+            for v in self._backend.iterator_verts(vertices):
+                if vertex_property(v):
+                    yield v
 
         else:
             for v in self._backend.iterator_verts(vertices):

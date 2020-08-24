@@ -772,6 +772,105 @@ def AlternatingFormsGraph(const int n, const int q):
     G.name("Alternating forms graph on (F_%d)^%d"%(q, n))
     return G
 
+def productForm(n, q):
+
+    Fq = GF(q)
+
+    def build_matrix(v):
+        # v represents upper triangular entries
+        v = list(v)
+
+        mat = []  # our matrix
+
+        # number entries used from v
+        used_v = 0
+
+        row_constructed = 0
+        zeros = [0] * (n-1)
+        while row_constructed < n:
+            sig_check()
+            row = (zeros[:row_constructed] + [0] +
+                   v[used_v : used_v + (n - 1 - row_constructed)])
+            mat.append(row)
+
+            used_v += n - 1 - row_constructed
+            row_constructed += 1
+
+        # fix lower diagonal
+        for r in range(n):
+            for c in range(r):
+                mat[r][c] = - mat[c][r]
+
+        return Matrix(Fq, mat, immutable=True, implementation="meataxe")
+
+    size = (n * (n-1)) // 2
+    V = VectorSpace(Fq, size)
+    skewSymmetricMatrices = [build_matrix(v) for v in V]
+
+    rank2Matrices = []
+    count1 = 0
+    for mat in skewSymmetricMatrices:
+        sig_check()
+        if mat.rank() == 2 and mat.is_alternating():
+            count1 += 1
+            rank2Matrices.append(mat)
+
+
+    myRank2Matrices = set()
+    toVec = {}
+    count2 = 0
+    Vn = VectorSpace(Fq, n)
+    for v, u in itertools.product(Vn, Vn):
+        if v.is_zero() or u.is_zero() or v in Vn.span([u]):
+            continue
+        M = u.tensor_product(v) - v.tensor_product(u)
+        if M.rank() != 2 or not M.is_alternating():
+            print("error")
+            print(f"v={v}; u={u}")
+        else:
+            count2 += 1
+            M.set_immutable()
+            if M in myRank2Matrices:
+                #print(f"({v}, {u}) equal to {toVec[M]}")
+                pass
+            else:
+                myRank2Matrices.add(M)
+                toVec[M] = (v, u)
+
+    print(len(rank2Matrices), count1)
+    print(len(myRank2Matrices), count2)
+
+    count3 = 0
+    basis = set(Vn.basis())
+    e = [Vn([0]*i + [1] + [0]*(n - i - 1)) for i in range(n)]
+    for v in e:
+        v.set_immutable()
+        
+    finalMatrices = set()
+    for v in Vn:
+        if v.is_zero():
+            continue
+
+        # remove from basis e_i s.t. (v[i-1] =) v_i != 0
+        i = v.support()[0]
+        Ubasis = basis.difference([e[i]])
+
+        for u in Vn.span_of_basis(Ubasis):
+            if u.is_zero():
+                continue
+            M = u.tensor_product(v) - v.tensor_product(u)
+            if M.rank() != 2 or not M.is_alternating():
+                print("error")
+                print(f"v={v}; u={u}")
+            else:
+                count3 += 1
+                M.set_immutable()
+                finalMatrices.add(M)
+        
+    print(len(finalMatrices), count3)
+    
+    print("done")
+
 def HermitianFormsGraph(const int n, const int r):
     r"""
     Return the Hermitian froms graph with the given parameters.
@@ -869,7 +968,6 @@ def HermitianFormsGraph(const int n, const int r):
                     res += list(map(lambda x: factor * x, v[row:]))
 
                 rank1Matrices.append(res)
-
 
     Vs = VectorSpace(Fr, (n * (n+1)) // 2)
     Va = VectorSpace(Fr, (n * (n-1)) // 2)

@@ -694,14 +694,9 @@ def AlternatingFormsGraph(const int n, const int q):
 
     EXAMPLES::
 
-        sage: G = graphs.AlternatingFormsGraph(5,2)  # not tested (5 min) optional - meataxe
-        sage: G.is_distance_regular(True) # not tested; optional - meataxe (due to above)
+        sage: G = graphs.AlternatingFormsGraph(5,2)
+        sage: G.is_distance_regular(True)
         ([155, 112, None], [None, 1, 20])
-
-    .. NOTE::
-
-        This function needs the additional package MeatAxe.
-        Install it with ``sage -i meataxe``.
 
     REFERENCES:
 
@@ -710,13 +705,13 @@ def AlternatingFormsGraph(const int n, const int q):
 
     TESTS::
 
-         sage: G = graphs.AlternatingFormsGraph(6,2)  # not tested (> 30 min) optional - meataxe
-         sage: G.order()  # not tested; optional - meataxe (because of above)
+         sage: G = graphs.AlternatingFormsGraph(6,2)  # not tested (3 min)
+         sage: G.order()  # not tested (because of above)
          32768
-         sage: G.is_distance_regular(True)  # not tested (33 min)  optional - meataxe
+         sage: G.is_distance_regular(True)  # not tested (33 min)
          ([651, 560, 256, None], [None, 1, 20, 336])
-         sage: G = graphs.AlternatingFormsGraph(4,2)  # optional - meataxe
-         sage: G.is_distance_regular(True) # optional - meataxe
+         sage: G = graphs.AlternatingFormsGraph(4, 2)
+         sage: G.is_distance_regular(True)
          ([35, 16, None], [None, 1, 20])
     """
     # n x n zero-diagonal skew-symmetric matrix
@@ -793,12 +788,6 @@ def HermitianFormsGraph(const int n, const int r):
         sage: G.order()  # not tested (bacuase of the above)
         19683
 
-    .. NOTE::
-
-        If ``r`` does not satisfy the requirements, then this function
-        will raise a ``ValueError``. This function needs the additional
-        package MeatAxe. Install it with ``sage -i meataxe``.
-
     REFERENCES:
 
     See [BCN1989]_ p. 285 or [VDKT2016]_ p. 22.
@@ -812,11 +801,6 @@ def HermitianFormsGraph(const int n, const int r):
          sage: G.is_distance_regular(True)
          ([20, 18, None], [None, 1, 6])
     """
-    from sage.arith.misc import is_prime_power
-
-    if not is_prime_power(r):
-        raise ValueError("We need r to be a prime power")
-
     q = r * r
     Fr = GF(r)
     Fq = GF(q)

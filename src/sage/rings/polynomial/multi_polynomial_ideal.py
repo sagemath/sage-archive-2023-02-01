@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 r"""
-Ideals in multivariate polynomial rings.
+Ideals in multivariate polynomial rings
 
 Sage has a powerful system to compute with multivariate polynomial
 rings. Most algorithms dealing with these ideals are centered on the
@@ -8,21 +7,6 @@ computation of *Groebner bases*. Sage mainly uses Singular to
 implement this functionality. Singular is widely regarded as the best
 open-source system for Groebner basis calculation in multivariate
 polynomial rings over fields.
-
-AUTHORS:
-
-- William Stein
-
-- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of some
-  Singular features
-
-- Martin Albrecht (2008,2007): refactoring, many Singular related
-  functions
-
-- Martin Albrecht (2009): added Groebner basis over rings
-  functionality from Singular 3.1
-
-- John Perry (2012): bug fixing equality & containment of ideals
 
 EXAMPLES:
 
@@ -211,6 +195,21 @@ TESTS::
     ideals. Thus an ideal is not identified with a particular set of
     generators. For sequences of multivariate polynomials see
     :class:`sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence_generic`.
+
+AUTHORS:
+
+- William Stein: initial version
+
+- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of some Singular
+  features
+
+- Martin Albrecht (2007,2008): refactoring, many Singular related functions,
+  added plot()
+
+- Martin Albrecht (2009): added Groebner basis over rings functionality from
+  Singular 3.1
+
+- John Perry (2012): bug fixing equality & containment of ideals
 
 """
 
@@ -4786,15 +4785,19 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.plot()                         # the Singular logo
             Graphics object consisting of 1 graphics primitive
 
-        This used to be :trac:`5267`::
+        ::
 
-            sage: I = R.ideal([-x^2*y+1])
-            sage: I.plot()
+            sage: R.<x,y> = PolynomialRing(QQ,2)
+            sage: I = R.ideal([x - 1])
+            sage: I.plot((y, -2, 2))               # vertical line
             Graphics object consisting of 1 graphics primitive
 
-        AUTHORS:
+        ::
 
-        - Martin Albrecht (2008-09)
+            sage: I = R.ideal([-x^2*y + 1])
+            sage: I.plot()                         # blow up
+            Graphics object consisting of 1 graphics primitive
+
         """
         from sage.rings.real_mpfr import RR
         from sage.plot.all import implicit_plot
@@ -4808,7 +4811,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         f = self.gens()[0]
 
-        variables = sorted(f.variables(), reverse=True)
+        variables = sorted(f.parent().gens(), reverse=True)
 
         if len(variables) == 2 and kwds.get('algorithm','') != 'surf':
             V = [(variables[0], None, None), (variables[1], None, None)]
@@ -4833,14 +4836,14 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 if V[var_index][1] is None:
                     v, mi, ma = variables[var_index], -10, 10
                     for i in range(mi, ma):
-                        roots = f.subs({v:i}).univariate_polynomial().change_ring(RR).roots()
-                        if len(roots) > 0:
+                        poly = f.subs({v:i}).univariate_polynomial().change_ring(RR)
+                        if not poly or len(poly.roots()) > 0:
                             mi = i - 1
                             break
 
                     for i in range(ma, mi, -1):
-                        roots = f.subs({v:i}).univariate_polynomial().change_ring(RR).roots()
-                        if len(roots) > 0:
+                        poly = f.subs({v:i}).univariate_polynomial().change_ring(RR)
+                        if not poly or len(poly.roots()) > 0:
                             ma = i + 1
                             break
                     V[var_index] = variables[var_index], mi, ma

@@ -719,134 +719,20 @@ def AlternatingFormsGraph(const int n, const int q):
          sage: G.is_distance_regular(True) # optional - meataxe
          ([35, 16, None], [None, 1, 20])
     """
-    def build_matrix(v):
-        # v represents upper triangular entries
-        v = list(v)
-
-        mat = []  # our matrix
-
-        # number entries used from v
-        used_v = 0
-
-        row_constructed = 0
-        zeros = [0] * (n-1)
-        while row_constructed < n:
-            sig_check()
-            row = (zeros[:row_constructed] + [0] +
-                   v[used_v : used_v + (n - 1 - row_constructed)])
-            mat.append(row)
-
-            used_v += n - 1 - row_constructed
-            row_constructed += 1
-
-        # fix lower diagonal
-        for r in range(n):
-            for c in range(r):
-                mat[r][c] = - mat[c][r]
-
-        return Matrix(GF(q), mat, immutable=True, implementation="meataxe")
-
     # n x n zero-diagonal skew-symmetric matrix
     # can be represented by the upper triangular entries
-    # there are n*(n+1) // 2 of them
-    size = (n * (n+1)) // 2
-    V = VectorSpace(GF(q), size)
-    skewSymmetricMatrices = [build_matrix(v) for v in V]
-
-    rank2Matrices = []
-    for mat in skewSymmetricMatrices:
-        sig_check()
-        if mat.rank() == 2:
-            rank2Matrices.append(mat)
-
-    # now we have all matrices of rank 2
-    edges = []
-    for m1 in skewSymmetricMatrices:
-        for m2 in rank2Matrices:
-            sig_check()
-            m3 = m1 + m2
-            m3.set_immutable()
-            edges.append((m1, m3))
-
-    G = Graph(edges, format='list_of_edges')
-    G.name("Alternating forms graph on (F_%d)^%d"%(q, n))
-    return G
-
-def productForm(n, q):
-
-    Fq = GF(q)
-
-    def build_matrix(v):
-        # v represents upper triangular entries
-        v = list(v)
-
-        mat = []  # our matrix
-
-        # number entries used from v
-        used_v = 0
-
-        row_constructed = 0
-        zeros = [0] * (n-1)
-        while row_constructed < n:
-            sig_check()
-            row = (zeros[:row_constructed] + [0] +
-                   v[used_v : used_v + (n - 1 - row_constructed)])
-            mat.append(row)
-
-            used_v += n - 1 - row_constructed
-            row_constructed += 1
-
-        # fix lower diagonal
-        for r in range(n):
-            for c in range(r):
-                mat[r][c] = - mat[c][r]
-
-        return Matrix(Fq, mat, immutable=True, implementation="meataxe")
-
+    # there are n*(n-1) // 2 of them
     size = (n * (n-1)) // 2
-    V = VectorSpace(Fq, size)
-    skewSymmetricMatrices = [build_matrix(v) for v in V]
+    V = VectorSpace(GF(q), size)
 
-    rank2Matrices = []
-    count1 = 0
-    for mat in skewSymmetricMatrices:
-        sig_check()
-        if mat.rank() == 2 and mat.is_alternating():
-            count1 += 1
-            rank2Matrices.append(mat)
-
-
-    myRank2Matrices = set()
-    toVec = {}
-    count2 = 0
-    Vn = VectorSpace(Fq, n)
-    for v, u in itertools.product(Vn, Vn):
-        if v.is_zero() or u.is_zero() or v in Vn.span([u]):
-            continue
-        M = u.tensor_product(v) - v.tensor_product(u)
-        if M.rank() != 2 or not M.is_alternating():
-            print("error")
-            print(f"v={v}; u={u}")
-        else:
-            count2 += 1
-            M.set_immutable()
-            if M in myRank2Matrices:
-                #print(f"({v}, {u}) equal to {toVec[M]}")
-                pass
-            else:
-                myRank2Matrices.add(M)
-                toVec[M] = (v, u)
-
-    print(len(rank2Matrices), count1)
-    print(len(myRank2Matrices), count2)
-
-    count3 = 0
+    # construct all rank 2 matrices
+    rank2Matrices = set()
+    Vn = VectorSpace(GF(q), n)
     basis = set(Vn.basis())
     e = [Vn([0]*i + [1] + [0]*(n - i - 1)) for i in range(n)]
     for v in e:
         v.set_immutable()
-        
-    finalMatrices = set()
+
     for v in Vn:
         if v.is_zero():
             continue
@@ -856,20 +742,31 @@ def productForm(n, q):
         Ubasis = basis.difference([e[i]])
 
         for u in Vn.span_of_basis(Ubasis):
+            sig_check()
             if u.is_zero():
                 continue
-            M = u.tensor_product(v) - v.tensor_product(u)
-            if M.rank() != 2 or not M.is_alternating():
-                print("error")
-                print(f"v={v}; u={u}")
-            else:
-                count3 += 1
-                M.set_immutable()
-                finalMatrices.add(M)
-        
-    print(len(finalMatrices), count3)
-    
-    print("done")
+
+            M = tuple()
+            for row in range(n - 1):
+                upperRow = [0] * (n - 1 - row)
+                for col in range(row + 1, n):
+                    upperRow[col - row - 1] = v[row]*u[col] - u[row]*v[col]
+                M += tuple(upperRow)
+
+            rank2Matrices.add(M)
+
+    # now we have all matrices of rank 2
+    edges = []
+    for m1 in V:
+        t1 = tuple(m1)
+        for m2 in rank2Matrices:
+            sig_check()
+            t3 = tuple([t1[i] + m2[i] for i in range(size)])
+            edges.append((t1, t3))
+
+    G = Graph(edges, format='list_of_edges')
+    G.name("Alternating forms graph on (F_%d)^%d"%(q, n))
+    return G
 
 def HermitianFormsGraph(const int n, const int r):
     r"""
@@ -952,6 +849,7 @@ def HermitianFormsGraph(const int n, const int r):
 
             for w2 in VectorSpace(Fr, n - nonZero - 1):
                 # get upper triangular entries
+                sig_check()
 
                 v = [w1[nonZero]] + \
                     [w1[nonZero + 1 + j] + i * w2[j]

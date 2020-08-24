@@ -741,7 +741,6 @@ def projective_plane(n, check=True, existence=False):
         sage: designs.projective_plane(12, existence=True)
         Unknown
     """
-    from sage.rings.sum_of_squares import is_sum_of_two_squares_pyx
     from sage.combinat.designs.bibd import BruckRyserChowla_check
 
     if n <= 1:

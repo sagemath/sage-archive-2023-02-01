@@ -1064,7 +1064,7 @@ class IncidenceStructure(object):
         EXAMPLES::
 
             sage: D = IncidenceStructure(4, [[0,2],[1,2,3],[2,3]])
-            sage: D._libgap_()
+            sage: D._libgap_()                # optional - gap_packages
             rec( blocks := [ [ 1, 3 ], [ 2, 3, 4 ], [ 3, 4 ] ],
             isBlockDesign := true, v := 4 )
         """

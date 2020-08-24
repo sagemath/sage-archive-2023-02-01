@@ -917,13 +917,15 @@ cdef class FaceIterator(FaceIterator_base):
 
     We do the following modifications:
 
-    - To check whether an intersection of faces is zero, we check whether the atom-representation
-      is zero. Although not unique, it works to distinct from zero.
+    - To check whether an intersection of faces is zero, we check whether the
+      atom-representation is zero. Although not unique,
+      it works to distinct from zero.
 
     - The intersection of two (relative) facets has always codimension `1` unless empty.
 
-    - To intersect we now additionally unite the coatom representation. This gives
-      the correct representation of the new face unless the intersection is zero.
+    - To intersect we now additionally unite the coatom representation.
+      This gives the correct representation of the new face
+      unless the intersection is zero.
 
     - To mark a face as visited, we save its coatom representation.
 

@@ -898,6 +898,9 @@ REFERENCES:
             group actions}, (preprint March 2003, available on
             Mitter's MIT website).
 
+.. [Bond2007] P. Bonderson, Nonabelian anyons and interferometry,
+              Dissertation (2007). https://thesis.library.caltech.edu/2447/
+
 .. [BM2004] John M. Boyer and Wendy J. Myrvold, *On the Cutting Edge:
             *Simplified `O(n)` Planarity by Edge Addition*. Journal of Graph
             Algorithms and Applications, Vol. 8, No. 3, pp. 241-273,
@@ -1302,6 +1305,13 @@ REFERENCES:
 
 .. [CFI1992] Cai, JY., Fürer, M. & Immerman, N. Combinatorica (1992) 12: 389.
              :doi:`10.1007/BF01305232`
+
+.. [CFKPR2010] Ioannis Caragiannis, Afonso Ferreira, Christos Kaklamanis,
+               Stéphane Pérennes, Hervé Rivano.
+               *Fractional Path Coloring in Bounded Degree Trees with
+               Applications*. Algorithmica, Springer Verlag, 2010, 58 (2),
+               pp.516-540. :doi:`10.1007/s00453-009-9278-3`,
+               https://hal.archives-ouvertes.fr/hal-00371052/document
 
 .. [CFL1958] \K.-T. Chen, R.H. Fox, R.C. Lyndon, Free differential calculus,
              IV. The quotient groups of the lower central series, Ann. of Math.
@@ -3724,6 +3734,12 @@ REFERENCES:
              Advances in Cryptology --
              EUROCRYPT 2010. Springer 2010. :doi:`10.1007/978-3-642-13190-5_1`
 
+
+.. [LR1997] Robert Leduc and Arun Ram, A ribbon Hopf algebra approach to
+            the irreducible representations of centralizer algebras: the
+            Brauer, Birman-Wenzl, and type A Iwahori-Hecke algebras.
+            Adv. Math. 125 (1997), no. 1, 1–94.
+
 .. [LR1998] Jean-Louis Loday and Maria O. Ronco.
             *Hopf algebra of the planar binary trees*,
             Advances in Mathematics, volume 139, issue 2,
@@ -5310,6 +5326,9 @@ REFERENCES:
 .. [Terwilliger2011] Paul Terwilliger. *The universal Askey-Wilson algebra*.
                      SIGMA **7** (2011), 069, 24 pages. :arxiv:`1104.2813`.
 
+.. [TP1994] \J. Thas, S. Payne, *Spreads and ovoids in finite generalized
+            quadrangles*. Geometriae Dedicata, Vol. 52, pp. 227-253, 1994.
+
 .. [Tho2010] \T. Thongjunthug, Computing a lower bound for the canonical
              height on elliptic curves over number fields, Math. Comp. 79
              (2010), pages 2431-2449.
@@ -5402,6 +5421,9 @@ REFERENCES:
              framework for vector M-Padé and matrix rational interpolation."
              Numer. Algorithms, 3:451-462, 1992.
              :doi:`10.1007/BF02141952`
+
+.. [VDKT2016] \E. R. van Dam, J. H. Koolen, H. Tanaka, *Distance Regular graphs*
+              The Electronic Journal of Combinatorics. 2016
 
 .. [Vee1978] William Veech, "Interval exchange
              transformations", J. Analyse Math. 33 (1978), 222-272
@@ -5540,6 +5562,11 @@ REFERENCES:
 .. [Wor1984] Worley, Dale Raymond, *A theory of shifted Young
              tableaux*. Dissertation, Massachusetts Institute of
              Technology, 1984.
+
+.. [WPNBBAtl] \R. A. Wilson, R. A. Parker, S. Nickerson, J. N. Bray,
+              \T. Breuer, *AtlasRep, a GAP interface to the atlas
+              of group representations*.
+              http://www.math.rwth-aachen.de/~Thomas.Breuer/atlasrep
 
 .. [WP-Bessel] :wikipedia:`Bessel_function`
 

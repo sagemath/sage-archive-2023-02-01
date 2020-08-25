@@ -89,6 +89,7 @@ from sage.structure.element import is_Matrix
 from cysignals.signals      cimport sig_on, sig_off
 from libc.string            cimport memcpy
 from .conversions           cimport vertex_to_bit_dictionary
+from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
 
 cdef extern from "bit_vector_operations.cc":
     # Any Bit-representation is assumed to be `chunksize`-Bit aligned.
@@ -400,3 +401,43 @@ cdef class ListOfFaces:
             copy.data[self.n_faces][i//64] |= vertex_to_bit_dictionary(i % 64)
 
         return copy
+
+    def matrix(self):
+        r"""
+        Obtain the matrix of self.
+
+        Each row represents a face and each column an atom.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+            ....:     import facets_tuple_to_bit_rep_of_facets, \
+            ....:     facets_tuple_to_bit_rep_of_Vrep
+            sage: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4), (0,1,5), (1,2,5), (2,3,5), (3,0,5))
+            sage: facets = facets_tuple_to_bit_rep_of_facets(bi_pyr, 6)
+            sage: Vrep = facets_tuple_to_bit_rep_of_Vrep(bi_pyr, 6)
+            sage: facets.matrix()
+            [1 1 0 0 1 0]
+            [0 1 1 0 1 0]
+            [0 0 1 1 1 0]
+            [1 0 0 1 1 0]
+            [1 1 0 0 0 1]
+            [0 1 1 0 0 1]
+            [0 0 1 1 0 1]
+            [1 0 0 1 0 1]
+            sage: facets.matrix().transpose() == Vrep.matrix()
+            True
+        """
+        from sage.rings.all import ZZ
+        from sage.matrix.constructor import matrix
+        cdef Matrix_integer_dense M = matrix(
+                ZZ, self.n_faces, self.n_atoms, 0)
+
+        cdef size_t i,j
+        for i in range(self.n_faces):
+            for j in range(self.n_atoms):
+                if self.data[i][j//64] & vertex_to_bit_dictionary(j % 64):
+                    M.set_unsafe_si(i, j, 1)
+
+        M.set_immutable()
+        return M

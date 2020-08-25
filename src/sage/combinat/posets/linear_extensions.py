@@ -928,36 +928,36 @@ class LinearExtensionsOfMobile(LinearExtensionsOfPoset):
         else:
             anchor_index = len(self._poset._ribbon)
 
-        fold_up = []
-        fold_down = []
+        folds_up = []
+        folds_down = []
 
         for ind, r in enumerate(self._poset._ribbon[:-1]):
             if ind < anchor_index and self._poset.is_greater_than(r, self._poset._ribbon[ind + 1]):
-                fold_up.append((self._poset._ribbon[ind + 1], r))
+                folds_up.append((self._poset._ribbon[ind + 1], r))
             elif ind >= anchor_index and self._poset.is_less_than(r, self._poset._ribbon[ind + 1]):
-                fold_down.append((r, self._poset._ribbon[ind + 1]))
+                folds_down.append((r, self._poset._ribbon[ind + 1]))
 
-        folds = fold_up + fold_down
-
-        if not folds:
+        if not folds_up and not folds_down:
             return dc.DCompletePoset(self._poset).linear_extensions().cardinality()
 
         # Get ordered connected components
         cr = self._poset.cover_relations()
-        foldless_cr = [tuple(c) for c in cr if tuple(c) not in folds]
+        foldless_cr = [tuple(c) for c in cr if tuple(c) not in folds_up and tuple(c) not in folds_down]
 
         elmts = list(self._poset._elements)
         poset_components = DiGraph([elmts, foldless_cr])
-        ordered_poset_components = [poset_components.connected_component_containing_vertex(l, sort=False)
-                                    for l in [fold[1] for fold in fold_up] + [fold[0] for fold in fold_down]]
+        ordered_poset_components = [poset_components.connected_component_containing_vertex(f[1], sort=False)
+                                    for f in folds_up]
+        ordered_poset_components.extend(poset_components.connected_component_containing_vertex(f[0], sort=False)
+                                        for f in folds_down)
         ordered_poset_components.append(poset_components.connected_component_containing_vertex(
-            fold_down[-1][1] if len(fold_down) > 0 else fold_up[-1][0], sort=False))
+            folds_down[-1][1] if folds_down else folds_up[-1][0], sort=False))
 
         # Return determinant
 
-        # Remove extra list
-        folds = fold_up
-        folds.extend(fold_down)
+        # Consoludate the folds lists
+        folds = folds_up
+        folds.extend(folds_down)
 
         mat = []
         for i in range(len(folds)+1):
@@ -971,6 +971,4 @@ class LinearExtensionsOfMobile(LinearExtensionsOfPoset):
 
             mat.append(row)
         return matrix(QQ, mat).determinant() * factorial(self._poset.cardinality())
-
-
 

@@ -1420,7 +1420,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
             sage: A = graphs.PetersenGraph().adjacency_matrix().change_ring(RDF)
             sage: ev = A.eigenvalues('symmetric', 1e-13)
-            doctest:...: DeprecationWarning: "extend" and "tol" should be used
+            doctest:...: DeprecationWarning: "algorithm" and "tol" should be used
             as keyword argument only
             See https://trac.sagemath.org/29243 for details.
             sage: ev  # tol 1e-13
@@ -1440,7 +1440,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             # for backward compatibilty, allow algorithm to be passed as first
             # positional argument and tol as second positional argument
             from sage.misc.superseded import deprecation
-            deprecation(29243, '"extend" and "tol" should be used as '
+            deprecation(29243, '"algorithm" and "tol" should be used as '
                                'keyword argument only')
             if algorithm != 'default':
                 if isinstance(algorithm, str):

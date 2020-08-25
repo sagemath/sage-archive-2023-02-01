@@ -1541,7 +1541,7 @@ def OrthogonalDualPolarGraph(e, d, q):
     allIsoSubspaces = libgap.Orbit(permutation, isoSPointsInt, libgap.OnSets)
 
     # number of projective points in a (d-1)-subspace
-    intersection_size = (q**(d-1) - 1) / (q-1)
+    intersection_size = (q**(d-1) - 1) // (q-1)
 
     edges = []
     n = len(allIsoSubspaces)

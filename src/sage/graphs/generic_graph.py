@@ -273,7 +273,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.planar_dual` | Return the planar dual of an embedded graph.
     :meth:`~GenericGraph.get_pos` | Return the position dictionary
     :meth:`~GenericGraph.set_pos` | Set the position dictionary.
-    :meth:`~GenericGraph.set_planar_positions` | Compute a planar layout for self using Schnyder's algorithm
     :meth:`~GenericGraph.layout_planar` | Compute a planar layout of the graph using Schnyder's algorithm.
     :meth:`~GenericGraph.is_drawn_free_of_edge_crossings` | Check whether the position dictionary gives a planar embedding.
     :meth:`~GenericGraph.latex_options` | Return an instance of :class:`~sage.graphs.graph_latex.GraphLatex` for the graph.
@@ -2951,7 +2950,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 for u in self:
                     s = set()
-                    for a, b in self.edge_iterator(u, labels=False):
+                    for a, b in self.edges(vertices=u, labels=False, sort=False):
                         if a is u:
                             if b in s:
                                 return True
@@ -5162,38 +5161,10 @@ class GenericGraph(GenericGraph_pyx):
                     self._embedding = graph._embedding.copy()
 
             if (set_pos and set_embedding):
-                self.set_planar_positions()
+                self.layout(layout="planar", save_pos=True, test=False)
 
         del graph
         return result
-
-    def set_planar_positions(self, test=False, **layout_options):
-        """
-        Compute a planar layout for self using Schnyder's algorithm,
-        and save it as default layout.
-
-        EXAMPLES::
-
-            sage: g = graphs.CycleGraph(7)
-            sage: g.set_planar_positions(test=True)
-            doctest:...: DeprecationWarning: This method is replaced by the method layout. Please use layout(layout="planar", save_pos=True) instead.
-            See http://trac.sagemath.org/24494 for details.
-            True
-
-        This method is deprecated since Sage-4.4.1.alpha2. Please use instead:
-
-            sage: g.layout(layout = "planar", save_pos = True)
-            {0: [1, 4], 1: [5, 1], 2: [0, 5], 3: [1, 0], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
-        """
-        deprecation(24494, 'This method is replaced by the method layout. '
-                           'Please use layout(layout="planar", save_pos=True) '
-                           'instead.')
-        self.layout(layout="planar", save_pos=True, test=test, **layout_options)
-        if test: # Optional error-checking (looking for edge-crossings O(n^2))
-            # returns true if tests pass
-            return self.is_drawn_free_of_edge_crossings()
-        else:
-            return
 
     def layout_planar(self, set_embedding=False, on_embedding=None,
                       external_face=None, test=False, circular=False,
@@ -11544,7 +11515,7 @@ class GenericGraph(GenericGraph_pyx):
                     label = None
         return self._backend.has_edge(u, v, label)
 
-    def edges(self, labels=True, sort=True, key=None):
+    def edges(self, vertices=None, labels=True, sort=True, key=None, ignore_direction=False):
         r"""
         Return a :class:`~EdgesView` of edges.
 
@@ -11553,7 +11524,16 @@ class GenericGraph(GenericGraph_pyx):
         list of couple ``(u, v)`` is returned where ``u`` and ``v`` are
         vertices.
 
+        The returned :class:`~EdgesView` is over the edges incident with any
+        vertex given in the parameter ``vertices`` (all edges if ``None``). If
+        ``self`` is directed, iterates over outgoing edges only, unless
+        parameter ``ignore_direction`` is ``True`` in which case it searches
+        across edges in either direction.
+
         INPUT:
+
+        - ``vertices`` -- object (default: ``None``); a vertex, a list of
+          vertices or ``None``
 
         - ``labels`` -- boolean (default: ``True``); if ``False``, each edge is
           simply a pair ``(u, v)`` of vertices
@@ -11565,6 +11545,10 @@ class GenericGraph(GenericGraph_pyx):
           edge (a pair or a triple, according to the ``labels`` keyword) as its
           one argument and returns a value that can be used for comparisons in
           the sorting algorithm
+
+        - ``ignore_direction`` -- boolean (default: ``False``); only applies to
+           directed graphs. If ``True``, searches across edges in either
+           direction.
 
         OUTPUT: A :class:`~EdgesView`.
 
@@ -11616,6 +11600,29 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges(key=lambda x: x[2])
             [(0, 1, 'F'), (1, 2, 'L'), (2, 3, 'R'), (0, 4, 'U'), (3, 4, 'X')]
 
+        We can restrict considered edges to those incident to a given set::
+
+            sage: for i in graphs.PetersenGraph().edges(vertices=[0]):
+            ....:     print(i)
+            (0, 1, None)
+            (0, 4, None)
+            (0, 5, None)
+            sage: D = DiGraph({0: [1, 2], 1: [0]})
+            sage: for i in D.edges(vertices=[0]):
+            ....:     print(i)
+            (0, 1, None)
+            (0, 2, None)
+
+        Ignoring the direction of edges::
+
+            sage: D = DiGraph({1: [0], 2: [0]})
+            sage: D.edges(vertices=0)
+            []
+            sage: D.edges(vertices=0, ignore_direction=True)
+            [(1, 0, None), (2, 0, None)]
+            sage: D.edges(vertices=[0], ignore_direction=True)
+            [(1, 0, None), (2, 0, None)]
+
         TESTS:
 
         It is an error to turn off sorting while providing a key function for
@@ -11645,7 +11652,12 @@ class GenericGraph(GenericGraph_pyx):
         if sort is None:
             deprecation(27408, "parameter 'sort' will be set to False by default in the future")
             sort = True
-        return EdgesView(self, labels=labels, sort=sort, key=key)
+
+        if vertices is not None and vertices in self:
+            vertices = [vertices]
+
+        return EdgesView(self, vertices=vertices, labels=labels, sort=sort, key=key,
+                             ignore_direction=ignore_direction)
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True, sort=False):
         r"""
@@ -11711,11 +11723,11 @@ class GenericGraph(GenericGraph_pyx):
         else:
             if vertices2 is not None:
                 vertices2 = set(v for v in vertices2 if v in self)
-                output = [e for e in self.edge_iterator(vertices1, labels=labels)
+                output = [e for e in self.edges(vertices=vertices1, labels=labels, sort=False)
                             if (e[0] in vertices1 and e[1] in vertices2) or
                             (e[1] in vertices1 and e[0] in vertices2)]
             else:
-                output = [e for e in self.edge_iterator(vertices1, labels=labels)
+                output = [e for e in self.edges(vertices=vertices1, labels=labels, sort=False)
                             if e[1] not in vertices1 or e[0] not in vertices1]
         if sort:
             output.sort()
@@ -12597,12 +12609,12 @@ class GenericGraph(GenericGraph_pyx):
 
             edges_to_keep = []
             if self._directed:
-                for u, v, l in self.edge_iterator(vertices):
+                for u, v, l in self.edges(vertices=vertices, sort=False):
                     if (v in vertices and ((u, v, l) in edges_to_keep_labeled
                                            or (u, v) in edges_to_keep_unlabeled)):
                         edges_to_keep.append((u, v, l))
             else:
-                for u, v, l in self.edge_iterator(vertices):
+                for u, v, l in self.edges(vertices=vertices, sort=False):
                     if (u in vertices and v in vertices
                         and ((u, v, l) in edges_to_keep_labeled
                              or (v, u, l) in edges_to_keep_labeled
@@ -12610,7 +12622,8 @@ class GenericGraph(GenericGraph_pyx):
                              or (v, u) in edges_to_keep_unlabeled)):
                         edges_to_keep.append((u, v, l))
         else:
-            edges_to_keep = [e for e in self.edge_iterator(vertices) if e[0] in vertices and e[1] in vertices]
+            edges_to_keep = [e for e in self.edges(vertices=vertices, sort=False)
+                                 if e[0] in vertices and e[1] in vertices]
 
         if edge_property is not None:
             edges_to_keep = [e for e in edges_to_keep if edge_property(e)]
@@ -16736,13 +16749,17 @@ class GenericGraph(GenericGraph_pyx):
     def wiener_index(self, by_weight=False, algorithm=None,
                      weight_function=None, check_weight=True):
         r"""
-        Return the Wiener index of the graph.
+        Return the Wiener index of ``self``.
 
         The graph is expected to have no cycles of negative weight.
 
-        The Wiener index of a graph `G` is `W(G) = \frac{1}{2} \sum_{u,v\in G}
-        d(u,v)` where `d(u,v)` denotes the distance between vertices `u` and `v`
-        (see [KRG1996]_).
+        The Wiener index of a undirected graph `G` is `W(G) = \frac{1}{2}
+        \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the distance between
+        vertices `u` and `v` (see [KRG1996]_).
+
+        The Wiener index of a directed graph `G` is defined as the sum of the
+        distances between each pairs of vertices, i.e.,
+        `W(G) = \sum_{u,v\in G} d(u,v)`.
 
         For more information on the input variables and more examples, we refer
         to :meth:`~GenericGraph.shortest_paths` and
@@ -16775,6 +16792,9 @@ class GenericGraph(GenericGraph_pyx):
 
           - For graphs with negative weights:
 
+            - ``'Bellman-Ford_Boost'``: the Bellman-Ford algorithm, implemented
+              in Boost.
+
             - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
               Boost.
 
@@ -16795,6 +16815,12 @@ class GenericGraph(GenericGraph_pyx):
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the weight_function outputs a number for each edge
 
+        .. NOTE::
+
+            Some algorithms (e.g., Boost algorithms) use floating point numbers
+            for internal computations. Whenever the solution is integral, we try
+            to convert the returned value to an integer.
+
         EXAMPLES::
 
             sage: G = Graph( { 0: {1: None}, 1: {2: None}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True)
@@ -16812,10 +16838,42 @@ class GenericGraph(GenericGraph_pyx):
             15
             sage: G.wiener_index(algorithm='Dijkstra_Boost')
             15
+            sage: G.wiener_index(algorithm='Bellman-Ford_Boost')
+            15
             sage: G.wiener_index(algorithm='Johnson_Boost')
             15
             sage: G.wiener_index(algorithm='Dijkstra_NetworkX')
             15
+
+        Wiener index of complete (di)graphs::
+
+            sage: n = 5
+            sage: g = graphs.CompleteGraph(n)
+            sage: g.wiener_index() == (n * (n - 1)) / 2
+            True
+            sage: g = digraphs.Complete(n)
+            sage: g.wiener_index() == n * (n - 1)
+            True
+
+        Wiener index of circuit digraphs::
+
+            sage: n = 7
+            sage: g = digraphs.Circuit(n)
+            sage: w = lambda x: (x*x*(x-1))/2
+            sage: g.wiener_index(algorithm='Dijkstra_Boost') == w(n)
+            True
+
+        Wiener index of a graph of order 1::
+
+            sage: Graph(1).wiener_index()
+            0
+
+        The Wiener index is not defined on the empty graph::
+
+            sage: Graph().wiener_index()
+            Traceback (most recent call last):
+            ...
+            ValueError: Wiener index is not defined for the empty graph
 
         TESTS::
 
@@ -16824,15 +16882,17 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: BFS algorithm does not work on weighted graphs
 
-            sage: graphs.EmptyGraph().wiener_index()
+            sage: Graph([(0, 1, 1)]).wiener_index(algorithm="coco beach")
             Traceback (most recent call last):
             ...
-            ValueError: Wiener index is not defined for empty or one-element graph
+            ValueError: unknown algorithm "coco beach"
         """
         by_weight = by_weight or (weight_function is not None)
 
-        if self.order() < 2:
-            raise ValueError("Wiener index is not defined for empty or one-element graph")
+        if not self:
+            raise ValueError("Wiener index is not defined for the empty graph")
+        elif self.order() == 1:
+            return 0
 
         if algorithm == 'BFS' or (algorithm is None and not by_weight):
             if by_weight:
@@ -16840,18 +16900,46 @@ class GenericGraph(GenericGraph_pyx):
             from .distances_all_pairs import wiener_index
             return wiener_index(self)
 
-        if not self.is_connected():
+        if algorithm in ['Dijkstra_Boost', 'Bellman-Ford_Boost'] or (algorithm is None and by_weight):
+            from .base.boost_graph import wiener_index
+            WI = wiener_index(self, algorithm=algorithm,
+                              weight_function=weight_function,
+                              check_weight=check_weight)
+
+        elif (not self.is_connected()
+              or (self.is_directed() and not self.is_strongly_connected())):
             from sage.rings.infinity import Infinity
             return Infinity
 
-        distances = self.shortest_path_all_pairs(by_weight=by_weight,
-                    algorithm=algorithm, weight_function=weight_function,
-                    check_weight=check_weight)[0]
-        total = 0
-        for u in distances.values():
-            total += sum(u.values())
+        elif algorithm == "Dijkstra_NetworkX":
+            import networkx
+            if by_weight:
+                if self.is_directed():
+                    G = networkx.DiGraph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
+                else:
+                    G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
+            else:
+                # Needed to remove labels.
+                if self.is_directed():
+                    G = networkx.DiGraph(list(self.edges(labels=False, sort=False)))
+                else:
+                    G = networkx.Graph(list(self.edges(labels=False, sort=False)))
+            G.add_nodes_from(self)
+            total = sum(sum(networkx.single_source_dijkstra_path_length(G, u).values())
+                            for u in G)
+            WI = total if self.is_directed() else (total / 2)
 
-        return total // 2
+        else:
+            distances = self.shortest_path_all_pairs(
+                by_weight=by_weight, algorithm=algorithm,
+                weight_function=weight_function, check_weight=check_weight)[0]
+            total = sum(sum(u.values()) for u in distances.values())
+            WI = total if self.is_directed() else (total / 2)
+
+        if WI in ZZ:
+            WI = Integer(WI)
+
+        return WI
 
     def average_distance(self, by_weight=False, algorithm=None,
                          weight_function=None):
@@ -16893,6 +16981,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.average_distance()==w(10)
             True
 
+        Average distance of a circuit::
+
+            sage: g = digraphs.Circuit(6)
+            sage: g.average_distance()
+            3
+
         TESTS:
 
         Giving an empty graph::
@@ -16906,7 +17000,7 @@ class GenericGraph(GenericGraph_pyx):
         :trac:`22885`::
 
             sage: G = graphs.PetersenGraph()
-            sage: G2 = Graph([(u, v, 2) for u,v in G.edge_iterator(labels=False)])
+            sage: G2 = Graph([(u, v, 2) for u,v in G.edge_iterator(labels=False)], weighted=True)
             sage: G2.average_distance()
             5/3
             sage: G2.average_distance(by_weight=True)
@@ -16916,7 +17010,10 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("average distance is not defined for empty or one-element graph")
         WI =  self.wiener_index(by_weight=by_weight, algorithm=algorithm,
                                     weight_function=weight_function)
-        return 2 * WI / (self.order() * (self.order() - 1))
+        f = 1 if self.is_directed() else 2
+        if WI in ZZ:
+            return QQ((f * WI, self.order() * (self.order() - 1)))
+        return f * WI / (self.order() * (self.order() - 1))
 
     def szeged_index(self):
         r"""
@@ -22816,7 +22913,7 @@ class GenericGraph(GenericGraph_pyx):
                 # self.(out_)neighbors ignores multiedges,
                 # so we use edge_iterator instead
                 adj = [y if v == x else x
-                       for x, y, z in self.edge_iterator(v)]
+                       for x, y, z in self.edges(vertices=v, sort=False)]
                 genset = [map[u] for u in adj]
         if certificate:
             out = [c]

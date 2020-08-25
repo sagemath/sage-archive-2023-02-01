@@ -2350,8 +2350,9 @@ REFERENCES:
              Riemann surfaces and Dessins d'enfant*, (2011)
              London Mathematical Society, Student Text 79.
 
-.. [GGMM2020] A. Garver, S. Grosser, J. Matherne, A. Morales, Counting linear extensions of
-              posets with determinants of hook lengths, :arxiv:`2001.08822`
+.. [GGMM2020] \A. Garver, S. Grosser, J. Matherne, and A. Morales.
+              *Counting linear extensions of posets with determinants of hook
+              lengths*. Preprint, :arxiv:`2001.08822` (2020).
 
 .. [GGNS2013] \B. Gerard, V. Grosso, M. Naya-Plasencia, and F.-X. Standaert,
               *Block ciphers that are easier to mask: How far can we go?*; in

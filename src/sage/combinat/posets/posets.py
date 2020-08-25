@@ -120,6 +120,7 @@ List of Poset methods
     :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with given probability.
     :meth:`~FinitePoset.relabel` | Return a copy of this poset with its elements relabelled.
     :meth:`~FinitePoset.canonical_label` | Return copy of the poset canonically (re)labelled to integers.
+    :meth:`~FinitePoset.slant_sum` | Return the slant sum poset of two posets.
 
 **Chains & antichains**
 
@@ -2376,14 +2377,20 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def slant_sum(self, p, element, p_element):
         r"""
-        Return the slant sum poset of posets ``self`` and ``p`` by connecting them with a
-        cover relation ``(p_element, element)``. Element names of ``self`` and ``p`` must be distinct.
+        Return the slant sum poset of posets ``self`` and ``p`` by
+        connecting them with a cover relation ``(p_element, element)``.
+
+        .. NOTE::
+
+            The element names of ``self`` and ``p`` must be distinct.
 
         INPUT:
 
-        - ``p`` -- The poset used for the slant sum
-        - ``element`` -- The element of ``self`` that is the top of the new cover relation
-        - ``p_element`` -- The element of ``p`` that is the bottom of the new cover relation
+        - ``p`` -- the poset used for the slant sum
+        - ``element`` -- the element of ``self`` that is the top of
+          the new cover relation
+        - ``p_element`` -- the element of ``p`` that is the bottom of
+          the new cover relation
 
         EXAMPLES::
 

@@ -158,8 +158,18 @@ class DCompletePoset(FiniteJoinSemilattice):
     def hook_product(self):
         r"""
         Return the hook product for the poset.
+
+        TESTS::
+
+            sage: from sage.combinat.posets.d_complete import DCompletePoset
+            sage: P = DCompletePoset(DiGraph({0: [1, 2], 1: [3], 2: [3], 3: []}))
+            sage: P.hook_product()
+            12
+            sage: P = DCompletePoset(posets.YoungDiagramPoset(Partition([3,2,1]), dual=True))
+            sage: P.hook_product()
+            45
         """
-        if self.cardinality() == 0:
-            return ZZ(1)
+        if not self._hasse_diagram:
+            return ZZ.one()
 
         return ZZ(prod(self._hooks.values()))

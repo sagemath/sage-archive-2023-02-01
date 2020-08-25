@@ -932,14 +932,14 @@ class LinearExtensionsOfMobile(LinearExtensionsOfPoset):
         fold_down = []
 
         for ind, r in enumerate(self._poset._ribbon[:-1]):
-            if ind < anchor_index and self._poset.is_greater_than(r, self._poset._ribbon[ind+1]):
+            if ind < anchor_index and self._poset.is_greater_than(r, self._poset._ribbon[ind + 1]):
                 fold_up.append((self._poset._ribbon[ind + 1], r))
-            elif ind >= anchor_index and self._poset.is_less_than(r, self._poset._ribbon[ind+1]):
-                fold_down.append((r, self._poset._ribbon[ind+1]))
+            elif ind >= anchor_index and self._poset.is_less_than(r, self._poset._ribbon[ind + 1]):
+                fold_down.append((r, self._poset._ribbon[ind + 1]))
 
         folds = fold_up + fold_down
 
-        if len(folds) == 0:
+        if not folds:
             return dc.DCompletePoset(self._poset).linear_extensions().cardinality()
 
         # Get ordered connected components
@@ -951,10 +951,14 @@ class LinearExtensionsOfMobile(LinearExtensionsOfPoset):
         ordered_poset_components = [poset_components.connected_component_containing_vertex(l, sort=False)
                                     for l in [fold[1] for fold in fold_up] + [fold[0] for fold in fold_down]]
         ordered_poset_components.append(poset_components.connected_component_containing_vertex(
-            folds[-1][1] if len(fold_down) > 0 else folds[-1][0]
-            , sort=False))
+            fold_down[-1][1] if len(fold_down) > 0 else fold_up[-1][0], sort=False))
 
         # Return determinant
+
+        # Remove extra list
+        folds = fold_up
+        folds.extend(fold_down)
+
         mat = []
         for i in range(len(folds)+1):
             mat_poset = dc.DCompletePoset(self._poset.subposet(ordered_poset_components[i]))
@@ -962,7 +966,7 @@ class LinearExtensionsOfMobile(LinearExtensionsOfPoset):
             row.append(1 / mat_poset.hook_product())
             for j, f in enumerate(folds[i:]):
                 next_poset = self._poset.subposet(ordered_poset_components[j+i+1])
-                mat_poset = dc.DCompletePoset(fp.FinitePoset.slant_sum(mat_poset, next_poset, f[1], f[0]))
+                mat_poset = dc.DCompletePoset(next_poset.slant_sum(mat_poset, f[0], f[1]))
                 row.append(1 / mat_poset.hook_product())
 
             mat.append(row)

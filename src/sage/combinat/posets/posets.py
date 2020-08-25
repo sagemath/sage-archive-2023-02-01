@@ -2374,53 +2374,32 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         return True
 
-    @staticmethod
-    def slant_sum(P1, P2, P1_element, P2_element):
+    def slant_sum(self, p, element, p_element):
         r"""
-        Return the slant sum poset of posets P1 and P2 by connecting them with a
-        cover relation (P1_element, P2_element). Element names of P1 and P2 must be distinct.
+        Return the slant sum poset of posets ``self`` and ``p`` by connecting them with a
+        cover relation ``(p_element, element)``. Element names of ``self`` and ``p`` must be distinct.
 
         INPUT:
 
-            - ``P1`` -- The first poset
-            - ``P2`` -- The second poset
-            - ``P1_element`` -- The element of P1 that is the bottom of the new cover relation
-            - ``P2_element`` -- The element of P2 that is the top of the new cover relation
+        - ``p`` -- The poset used for the slant sum
+        - ``element`` -- The element of ``self`` that is the top of the new cover relation
+        - ``p_element`` -- The element of ``p`` that is the bottom of the new cover relation
 
         EXAMPLES::
 
-            sage: from sage.combinat.posets.posets import FinitePoset
-            sage: R = Posets.RibbonPoset(5, [1,2])
+            sage: R = posets.RibbonPoset(5, [1,2])
             sage: H = Poset([[5, 6, 7], [(5, 6), (6,7)]])
-            sage: SS = FinitePoset.slant_sum(H, R, 7, 3)
-            sage: SS.cover_relations()
-            [[5, 6], [6, 7], [7, 3], [3, 4], [3, 2], [2, 1], [0, 1]]
+            sage: SS = R.slant_sum(H, 3, 7)
+            sage: all(cr in SS.cover_relations() for cr in R.cover_relations())
+            True
+            sage: all(cr in SS.cover_relations() for cr in H.cover_relations())
+            True
+            sage: SS.covers(7, 3)
+            True
         """
-        elements = P1._elements + P2._elements
-        cover_relations = P1.cover_relations() + P2.cover_relations()
-        cover_relations.append((P1_element, P2_element))
-        return Poset([elements, cover_relations])
-
-    @staticmethod
-    def multislant_sum(psets, relations):
-        r"""
-        Return the union of posets provided in ``psets``, along with the additional cover relations
-        specified in ``relations``
-
-        INPUT:
-
-            - ``psets`` -- A list of finite posets
-            - ``relations`` -- A list of new cover relations
-        """
-        elements = []
-        cover_relations = []
-        for p in psets:
-            elements.extend(p._elements)
-            cover_relations.extend(p.cover_relations())
-
-        for r in relations:
-            cover_relations.append(r)
-
+        elements = p._elements + self._elements
+        cover_relations = p.cover_relations() + self.cover_relations()
+        cover_relations.append((p_element, element))
         return Poset([elements, cover_relations])
 
     def intervals_poset(self):

@@ -1435,12 +1435,12 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             The *universal polynomials* of a Lie algebra `L` with
             basis `\{e_i\}_{i \in I}` and structure coefficients
-            `[e_i, e_j] = \tau_{ij}^a e_a is given by
+            `[e_i, e_j] = \tau_{ij}^a e_a` is given by
 
             .. MATH::
 
                 P_{aij} = \sum_{u \in I} \tau_{ij}^u X_{au}
-                - \sum_{s,t \in I} \tau_{st}^a X_{ai} X_{tj},
+                - \sum_{s,t \in I} \tau_{st}^a X_{si} X_{tj},
 
             where `a,i,j \in I`.
 
@@ -1466,6 +1466,16 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  -2*X11*X20 + 2*X10*X21 - 2*X20,
                  -2*X12*X20 + 2*X10*X22 + X21,
                  -2*X12*X21 + 2*X11*X22 - 2*X22]
+
+                sage: L = LieAlgebra(QQ, cartan_type=['B',2])
+                sage: al = RootSystem(['B',2]).root_lattice().simple_roots()
+                sage: k = list(L.basis().keys())[0]
+                sage: UP = L.universal_polynomials()  # long time
+                sage: len(UP)  # long time
+                450
+                sage: UP[al[2],al[1],-al[1]]  # long time
+                X0_7*X4_1 - X0_1*X4_7 - 2*X0_7*X5_1 + 2*X0_1*X5_7 + X2_7*X7_1
+                 - X2_1*X7_7 - X3_7*X8_1 + X3_1*X8_7 + X0_4
             """
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             I = self.basis().keys()
@@ -1480,7 +1490,11 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 return s_coeffs[I[i],I[j]]
             d = {}
             keys = []
-            R = PolynomialRing(self.base_ring(), ','.join('X{}{}'.format(i,j)
+            if n >= 10:
+                vs = 'X{}_{}'
+            else:
+                vs = 'X{}{}'
+            R = PolynomialRing(self.base_ring(), ','.join(vs.format(i,j)
                                                           for i in range(n)
                                                           for j in range(n)))
             X = [[R.gen(i+n*j) for i in range(n)] for j in range(n)]

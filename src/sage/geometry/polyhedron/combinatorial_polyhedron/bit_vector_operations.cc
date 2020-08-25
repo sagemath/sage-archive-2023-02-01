@@ -55,13 +55,13 @@ inline size_t count_atoms(uint64_t* A, size_t face_length){
     This is the number of set bits in A.
     ``face_length`` is the length of A in terms of uint64_t.
     */
+    size_t i;
     unsigned int count = 0;
-    for (size_t i=0; i<face_length; i++){
+    for (i=0; i<face_length; i++){
         uint64_t a = A[i];
-        while (a){
-            count += a & 1;
-            a >>= 1;
-        }
+        a = a - ((a >> 1) & 0x5555555555555555ULL);
+        a = (a & 0x3333333333333333ULL) + ((a >> 2) & 0x3333333333333333ULL);
+        count += ( ((a + (a >> 4)) & 0x0f0f0f0f0f0f0f0fULL) * 0x0101010101010101ULL ) >> 56;
     }
     return count;
 }

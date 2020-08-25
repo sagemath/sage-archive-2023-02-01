@@ -368,7 +368,7 @@ cdef class FaceIterator_base(SageObject):
 
         if C.is_bounded() and ((dual and C.is_simplicial()) or (not dual and C.is_simple())):
             # We are in the comfortable situation that for our iterator
-            # all intervalls not containing the 0 element are boolean.
+            # all intervals not containing the 0 element are boolean.
             # This makes things a lot easier.
             self.structure.is_simple = True
 

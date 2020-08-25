@@ -189,6 +189,7 @@ Comprehensive Module list
     sage/combinat/posets/all
     sage/combinat/posets/cartesian_product
     sage/combinat/posets/d_complete
+    sage/combinat/posets/mobile
     sage/combinat/posets/elements
     sage/combinat/posets/forest
     sage/combinat/posets/hasse_diagram

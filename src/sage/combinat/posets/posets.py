@@ -1657,7 +1657,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = posets.ChainPoset(5)
             sage: P.spectrum(2)
             [0, 0, 1, 0, 0]
-            
+
             sage: P = posets.BooleanLattice(3)
             sage: P.spectrum(5)
             [0, 0, 0, 4, 12, 16, 16, 0]
@@ -1751,7 +1751,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         components = self.connected_components()
         remainder_poset = Poset()
 
-        
+
         for X in components:
             if a in X:
                 main = X
@@ -2373,6 +2373,34 @@ class FinitePoset(UniqueRepresentation, Parent):
                     break
 
         return True
+
+    def slant_sum(self, p, element, p_element):
+        r"""
+        Return the slant sum poset of posets ``self`` and ``p`` by connecting them with a
+        cover relation ``(p_element, element)``. Element names of ``self`` and ``p`` must be distinct.
+
+        INPUT:
+
+        - ``p`` -- The poset used for the slant sum
+        - ``element`` -- The element of ``self`` that is the top of the new cover relation
+        - ``p_element`` -- The element of ``p`` that is the bottom of the new cover relation
+
+        EXAMPLES::
+
+            sage: R = posets.RibbonPoset(5, [1,2])
+            sage: H = Poset([[5, 6, 7], [(5, 6), (6,7)]])
+            sage: SS = R.slant_sum(H, 3, 7)
+            sage: all(cr in SS.cover_relations() for cr in R.cover_relations())
+            True
+            sage: all(cr in SS.cover_relations() for cr in H.cover_relations())
+            True
+            sage: SS.covers(7, 3)
+            True
+        """
+        elements = p._elements + self._elements
+        cover_relations = p.cover_relations() + self.cover_relations()
+        cover_relations.append((p_element, element))
+        return Poset([elements, cover_relations])
 
     def intervals_poset(self):
         r"""
@@ -6416,7 +6444,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.order_ideal_cardinality([7,10])
             10
         """
-        vertices = list(map(self._element_to_vertex, elements))
+        vertices = [self._element_to_vertex(elmt) for elmt in elements]
         return self._hasse_diagram.order_ideal_cardinality(vertices)
 
     def order_ideal_plot(self, elements):

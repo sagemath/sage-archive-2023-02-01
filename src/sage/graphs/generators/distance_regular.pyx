@@ -627,13 +627,8 @@ def BilinearFormsGraph(const int d, const int e, const int q):
         sage: G.is_distance_regular(True)
         ([49, 36, 16, None], [None, 1, 6, 28])
         sage: G = graphs.BilinearFormsGraph(3,3,3)  # long time (20 s)
-        sage: G.order()
+        sage: G.order()  # long time (due to above)
         19683
-
-    .. NOTE::
-
-        This function needs the additional package MeatAxe.
-        Install it with ``sage -i meataxe``.
 
     REFERENCES:
 

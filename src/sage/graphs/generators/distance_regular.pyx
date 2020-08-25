@@ -463,7 +463,7 @@ def shortened_000_111_extended_binary_Golay_code_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # long time (2 min)
+        sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # not tested (2 min)
         sage: G.is_distance_regular(True)  # long time
         ([21, 20, 16, 9, 2, 1, None], [None, 1, 2, 3, 16, 20, 21])
 
@@ -2635,7 +2635,7 @@ def distance_regular_graph(list arr, existence=False, check=True):
 
         sage: graphs.distance_regular_graph([3, 2, 2, 1, 1, 1, 1, 2, 2, 3],
         ....: existence=True)
-        Unknown
+        True
         sage: graphs.distance_regular_graph([3, 2, 2, 1, 2, 1, 1, 2, 2, 3],
         ....: existence=True)
         False

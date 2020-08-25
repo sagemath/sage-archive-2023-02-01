@@ -25,25 +25,27 @@ class MobilePoset(FinitePoset):
 
     EXAMPLES::
 
-        sage: P = posets.MobilePoset(posets.RibbonPoset(7, [1,3]), {1:
-        ....: [posets.YoungDiagramPoset([3, 2], dual=True)], 3: [posets.DoubleTailedDiamond(6)]},
-        ....: anchor=(4, 2, posets.ChainPoset(6)))
+        sage: P = posets.MobilePoset(posets.RibbonPoset(7, [1,3]),
+        ....:                        {1: [posets.YoungDiagramPoset([3, 2], dual=True)],
+        ....:                         3: [posets.DoubleTailedDiamond(6)]},
+        ....:                        anchor=(4, 2, posets.ChainPoset(6)))
         sage: len(P._ribbon)
         8
         sage: P._anchor
         (4, 5)
 
-    This example comes from Example 5.9 in [GGMM2020]_::
+    This example is Example 5.9 in [GGMM2020]_::
 
         sage: P1 = posets.MobilePoset(posets.RibbonPoset(8, [2,3,4]),
-        ....: {4: [posets.ChainPoset(1)]}, anchor=(3, 0, posets.ChainPoset(1)))
+        ....:                         {4: [posets.ChainPoset(1)]},
+        ....:                         anchor=(3, 0, posets.ChainPoset(1)))
         sage: sorted([P1._element_to_vertex(i) for i in P1._ribbon])
         [0, 1, 2, 6, 7, 9]
         sage: P1._anchor
         (3, 2)
 
         sage: P2 = posets.MobilePoset(posets.RibbonPoset(15, [1,3,5,7,9,11,13]),
-        ....: {}, anchor=(8, 0, posets.ChainPoset(1)))
+        ....:                         {}, anchor=(8, 0, posets.ChainPoset(1)))
         sage: sorted(P2._ribbon)
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
         sage: P2._anchor
@@ -51,39 +53,38 @@ class MobilePoset(FinitePoset):
         sage: P2.linear_extensions().cardinality()
         21399440939
 
-        sage: from sage.combinat.posets.mobile import MobilePoset
-        sage: EP = MobilePoset(posets.ChainPoset(0))
+        sage: EP = posets.MobilePoset(posets.ChainPoset(0), {})
         Traceback (most recent call last):
         ...
-        ValueError: Empty poset is not a mobile
+        ValueError: the empty poset is not a mobile poset
     """
-
     _lin_ext_type = LinearExtensionsOfMobile
     _desc = 'Finite mobile poset'
 
     def __init__(self, hasse_diagram, elements, category, facade, key, ribbon=None, check=True):
         r"""
-        Initialize self.
+        Initialize ``self``.
 
         EXAMPLES::
 
             sage: P = posets.MobilePoset(posets.RibbonPoset(15, [1,3,5,7,9,11,13]),
-            ....: {}, anchor=(8, 0, posets.ChainPoset(1)))
+            ....:                        {}, anchor=(8, 0, posets.ChainPoset(1)))
             sage: TestSuite(P).run()
         """
-        FinitePoset.__init__(self, hasse_diagram=hasse_diagram, elements=elements, category=category, facade=facade, key=key)
+        FinitePoset.__init__(self, hasse_diagram=hasse_diagram, elements=elements,
+                             category=category, facade=facade, key=key)
         if not self._hasse_diagram:
-            raise ValueError('Empty poset is not a mobile')
+            raise ValueError("the empty poset is not a mobile poset")
 
         if ribbon:
             if check and not self._is_valid_ribbon(ribbon):
-                raise ValueError('Invalid ribbon')
+                raise ValueError("invalid ribbon")
             self._ribbon = ribbon
 
     def _is_valid_ribbon(self, ribbon):
         r"""
-        Return ``True`` if a ribbon has at most one anchor, no vertex has two or more anchors,
-        and every hanging poset is d-complete.
+        Return ``True`` if a ribbon has at most one anchor, no vertex has two
+        or more anchors, and every hanging poset is d-complete.
 
         INPUT:
 
@@ -135,7 +136,7 @@ class MobilePoset(FinitePoset):
 
             sage: from sage.combinat.posets.mobile import MobilePoset
             sage: M = MobilePoset(DiGraph([[0,1,2,3,4,5,6,7,8],
-            ....: [(1,0),(3,0),(2,1),(2,3),(4,3), (5,4),(5,6),(7,4),(7,8)]]))
+            ....:   [(1,0),(3,0),(2,1),(2,3),(4,3), (5,4),(5,6),(7,4),(7,8)]]))
             sage: M._anchor
             (4, 3)
         """
@@ -161,12 +162,14 @@ class MobilePoset(FinitePoset):
         TESTS::
 
             sage: from sage.combinat.posets.mobile import MobilePoset
-            sage: M = MobilePoset(DiGraph([[0,1,2,3,4,5,6,7,8], [(1,0),(3,0),(2,1),(2,3),(4,3), (5,4),(5,6),(7,4),(7,8)]]))
+            sage: M = MobilePoset(DiGraph([[0,1,2,3,4,5,6,7,8],
+            ....:   [(1,0),(3,0),(2,1),(2,3),(4,3), (5,4),(5,6),(7,4),(7,8)]]))
             sage: sorted(M._ribbon)
             [4, 5, 6, 7, 8]
             sage: M._is_valid_ribbon(M._ribbon)
             True
-            sage: M2 = MobilePoset(Poset([[0,1,2,3,4,5,6,7,8], [(1,0),(3,0),(2,1),(2,3),(4,3),(5,4),(7,4),(7,8)]]))
+            sage: M2 = MobilePoset(Poset([[0,1,2,3,4,5,6,7,8],
+            ....:          [(1,0),(3,0),(2,1),(2,3),(4,3),(5,4),(7,4),(7,8)]]))
             sage: sorted(M2._ribbon)
             [4, 7, 8]
             sage: M2._is_valid_ribbon(M2._ribbon)
@@ -200,7 +203,8 @@ class MobilePoset(FinitePoset):
                     traverse_ribbon = ribbon if end_count == 0 else ribbon[::-1]
                     for ind, p in enumerate(traverse_ribbon):
                         if H_un.is_cut_edge(p, traverse_ribbon[ind+1]):
-                            return [self._vertex_to_element(r) for r in G.shortest_path(ends[(end_count + 1) % 2], traverse_ribbon[ind+1])]
+                            return [self._vertex_to_element(r)
+                                    for r in G.shortest_path(ends[(end_count + 1) % 2], traverse_ribbon[ind+1])]
             return [self._vertex_to_element(r) for r in ribbon]
 
         # First check path counts between ends and deg3 vertex
@@ -224,7 +228,7 @@ class MobilePoset(FinitePoset):
         possible_anchors = ends[:]
         for end in ends:
             path = G.shortest_path(end, deg3)
-            if sum(map(lambda z: z in max_elmts, path)) != 1:
+            if sum(bool(z in max_elmts) for z in path) != 1:
                 possible_anchors.remove(end)
 
         for p in possible_anchors:
@@ -240,14 +244,12 @@ class MobilePoset(FinitePoset):
         r"""
         Return the ribbon of the mobile poset.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.combinat.posets.mobile import MobilePoset
             sage: M3 = MobilePoset(Posets.RibbonPoset(5, [1,2]))
             sage: sorted(M3.ribbon())
             [1, 2, 3, 4]
-            sage: M3._is_valid_ribbon(M3.ribbon())
-            True
         """
         return self._ribbon
 
@@ -255,11 +257,11 @@ class MobilePoset(FinitePoset):
         r"""
         Return the anchor of the mobile poset.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.combinat.posets.mobile import MobilePoset
             sage: M2 = MobilePoset(Poset([[0,1,2,3,4,5,6,7,8],
-            ....: [(1,0),(3,0),(2,1),(2,3),(4,3),(5,4),(7,4),(7,8)]]))
+            ....:          [(1,0),(3,0),(2,1),(2,3),(4,3),(5,4),(7,4),(7,8)]]))
             sage: M2.anchor()
             (4, 3)
             sage: M3 = MobilePoset(Posets.RibbonPoset(5, [1,2]))
@@ -267,3 +269,4 @@ class MobilePoset(FinitePoset):
             True
         """
         return self._anchor
+

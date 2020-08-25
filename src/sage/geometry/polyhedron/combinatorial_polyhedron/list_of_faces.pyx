@@ -62,6 +62,14 @@ Likewise for the Vrepresenatives as facet-incidences::
     sage: facets = ((0,1,2), (0,1,3), (0,2,3), (1,2,3))
     sage: face_list = facets_tuple_to_bit_rep_of_Vrep(facets, 4)
 
+Obtain the matrix of a list of faces::
+
+    sage: face_list.matrix()
+    [1 1 1 0]
+    [1 1 0 1]
+    [1 0 1 1]
+    [0 1 1 1]
+
 .. SEEALSO::
 
     :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.base`,
@@ -248,6 +256,8 @@ cdef class ListOfFaces:
             3
             sage: copy(facets).compute_dimension()
             3
+            sage: facets.matrix() == copy(facets).matrix()
+            True
             sage: copy(facets) is facets
             False
         """

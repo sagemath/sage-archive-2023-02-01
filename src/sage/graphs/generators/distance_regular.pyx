@@ -464,7 +464,7 @@ def shortened_000_111_extended_binary_Golay_code_graph():
     EXAMPLES::
 
         sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # not tested (2 min)
-        sage: G.is_distance_regular(True)  # long time
+        sage: G.is_distance_regular(True)  # not tested; due to above
         ([21, 20, 16, 9, 2, 1, None], [None, 1, 2, 3, 16, 20, 21])
 
     ALGORITHM:

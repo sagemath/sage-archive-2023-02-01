@@ -623,11 +623,11 @@ def BilinearFormsGraph(const int d, const int e, const int q):
 
     EXAMPLES::
 
-        sage: G = graphs.BilinearFormsGraph(3, 3, 2)  # optional - meataxe
-        sage: G.is_distance_regular(True)  # optional - meataxe; due to above
+        sage: G = graphs.BilinearFormsGraph(3, 3, 2)
+        sage: G.is_distance_regular(True)
         ([49, 36, 16, None], [None, 1, 6, 28])
-        sage: G = graphs.BilinearFormsGraph(3,3,3)  # not tested (2 min)  optional - meataxe
-        sage: G.order()  # not tested; optional - meataxe (because of above)
+        sage: G = graphs.BilinearFormsGraph(3,3,3)  # long time (20 s)
+        sage: G.order()
         19683
 
     .. NOTE::
@@ -642,21 +642,22 @@ def BilinearFormsGraph(const int d, const int e, const int q):
 
     TESTS::
 
-        sage: G = graphs.BilinearFormsGraph(2,3,2)  # optional - meataxe
-        sage: G.is_distance_regular(True)  # optional - meataxe; due to above
+        sage: G = graphs.BilinearFormsGraph(2,3,2)
+        sage: G.is_distance_regular(True)
         ([21, 12, None], [None, 1, 6])
-        sage: H = graphs.BilinearFormsGraph(3,2,2)  # optional - meataxe
-        sage: H.is_isomorphic(G)  # optional - meataxe; due to above
+        sage: H = graphs.BilinearFormsGraph(3,2,2)
+        sage: H.is_isomorphic(G)
         True
-        sage: G = graphs.BilinearFormsGraph(5, 1, 3)  # optional - meataxe
-        sage: K = graphs.CompleteGraph(G.order())  # optional - meataxe; due to above
-        sage: K.is_isomorphic(G)  # optional - meataxe
+        sage: G = graphs.BilinearFormsGraph(5, 1, 3)
+        sage: K = graphs.CompleteGraph(G.order())
+        sage: K.is_isomorphic(G)
         True
     """
-    from sage.matrix.matrix_space import MatrixSpace
+    from sage.combinat.integer_vector import IntegerVectors
 
     Fq = GF(q)
-    matricesOverq = MatrixSpace(Fq, d, e, implementation='meataxe')
+    Fqelems = list(Fq)
+    matricesOverq = IntegerVectors(k=d*e, max_part=q-1)
 
     rank1Matrices = []
     for u in VectorSpace(Fq, d):
@@ -668,21 +669,19 @@ def BilinearFormsGraph(const int d, const int e, const int q):
                 continue
 
             sig_check()
-            M = [[0 for i in range(e)] for j in range(d)]
+            M = [0] * (d*e)
             for row in range(d):
                 for col in range(e):
-                    M[row][col] = u[row] * v[col]
+                    M[e*row + col] = u[row] * v[col]
 
-            M = matricesOverq(M)
             rank1Matrices.append(M)
 
     edges = []
     for m1 in matricesOverq:
-        m1.set_immutable()
+        m1 = tuple(map(lambda x: Fqelems[x], m1))
         for m2 in rank1Matrices:
             sig_check()
-            m3 = m1 + m2
-            m3.set_immutable()
+            m3 = tuple([m1[i] + m2[i] for i in range(d*e)])
             edges.append((m1, m3))
 
     G = Graph(edges, format='list_of_edges')

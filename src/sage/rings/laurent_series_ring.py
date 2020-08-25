@@ -46,6 +46,8 @@ from .ring import CommutativeRing
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 
+from sage.rings.integer_ring import ZZ
+
 
 def is_LaurentSeriesRing(x):
     """
@@ -503,6 +505,30 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             x = self(x.numerator()) / self(x.denominator())
             return (x << n).add_bigoh(prec)
         return self.element_class(self, x, n).add_bigoh(prec)
+
+    def random_element(self, algorithm='default'):
+        r"""
+        Returns a random element of ``self``, optionally using the ``algorithm``
+        argument to decide how it generates the element. Algorithms currently
+        implemented:
+
+        - default: Choose an integer `shift` using the standard
+          distribution on the integers.  Then choose a list of coeeficients
+          using the random_element function of the base ring, and construct 
+          a new element based on those coeeficients, so that the i'th 
+          coeeficient corresponds to the (i+shift) power of the uniformizer.
+
+        EXAMPLES::
+
+            sage: S.<s> = LaurentSeriesRing(GF(3))
+            sage: S.random_element()  # random
+            s^-8 + s^-7 + s^-6 + s^-5 + s^-1 + s + s^3 + s^4 + s^5 + 2*s^6 + s^7 + s^11
+        """
+        if (algorithm == 'default'):
+            shift = ZZ.random_element()
+            return self([self.base_ring().random_element() for k in range(self.default_prec())], shift)
+        else:
+            raise NotImplementedError("Don't know %s algorithm"%algorithm)
 
     def construction(self):
         r"""

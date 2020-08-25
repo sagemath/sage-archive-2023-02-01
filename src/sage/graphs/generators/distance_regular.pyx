@@ -2451,7 +2451,7 @@ def near_polygon_graph(family, params):
         sage: from sage.graphs.generators.distance_regular import (
         ....: is_near_polygon, near_polygon_graph)
         sage: near_polygon_graph(*is_near_polygon([6, 5, 5, 4, 4, 3, 3, 2, 2, \
-        ....: 1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6])
+        ....: 1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6]))
         Bipartite double of Odd graph on a set of 11 elements: Graph on 924 vertices
         sage: G=_; G.is_distance_regular(True)
         ([6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, None],
@@ -2476,7 +2476,7 @@ def near_polygon_graph(family, params):
         TypeError: near_polygon_graph() takes exactly 2 positional arguments (1 given)
         sage: near_polygon_graph(0, 12)
         Cycle graph: Graph on 12 vertices
-        sage: near_polygon_graph(*is_near_polygon([8, 7, 6, 5, 1, 2, 3, 8])
+        sage: near_polygon_graph(*is_near_polygon([8, 7, 6, 5, 1, 2, 3, 8]))
         Folded Cube Graph: Graph on 128 vertices
     """
 
@@ -2626,16 +2626,6 @@ def distance_regular_graph(list arr, existence=False, check=True):
         sage: G = graphs.distance_regular_graph([12,11,10,7,1,2,5,12], check=False)
         sage: G.is_distance_regular(True)
         ([12, 11, 10, 7, None], [None, 1, 2, 5, 12])
-
-    Not all distance-regular graphs can be built with this function::
-
-        sage: G = graphs.DoubleOddGraph(2)
-        sage: G.is_distance_regular(True)
-        ([3, 2, 2, 1, 1, None], [None, 1, 1, 2, 2, 3])
-        sage: graphs.distance_regular_graph([3, 2, 2, 1, 1, 1, 1, 2, 2, 3])
-        Traceback (most recent call last):
-        ...
-        RuntimeError: No distance-regular graph with intersection array [3, 2, 2, 1, 1, 1, 1, 2, 2, 3] known
 
     REFERENCES:
 

@@ -388,6 +388,56 @@ cdef class ListOfFaces:
     cpdef ListOfFaces pyramid(self):
         r"""
         Return the list of faces of the pyramid.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+            ....:         import facets_tuple_to_bit_rep_of_facets
+            sage: facets = ((0,1,2), (0,1,3), (0,2,3), (1,2,3))
+            sage: face_list = facets_tuple_to_bit_rep_of_facets(facets, 4)
+            sage: face_list.matrix()
+            [1 1 1 0]
+            [1 1 0 1]
+            [1 0 1 1]
+            [0 1 1 1]
+            sage: face_list.pyramid().matrix()
+            [1 1 1 0 1]
+            [1 1 0 1 1]
+            [1 0 1 1 1]
+            [0 1 1 1 1]
+            [1 1 1 1 0]
+
+        Incorrect facets that illustrate how this method works::
+
+            sage: facets = ((0,1,2,3), (0,1,2,3), (0,1,2,3), (0,1,2,3))
+            sage: face_list = facets_tuple_to_bit_rep_of_facets(facets, 4)
+            sage: face_list.matrix()
+            [1 1 1 1]
+            [1 1 1 1]
+            [1 1 1 1]
+            [1 1 1 1]
+            sage: face_list.pyramid().matrix()
+            [1 1 1 1 1]
+            [1 1 1 1 1]
+            [1 1 1 1 1]
+            [1 1 1 1 1]
+            [1 1 1 1 0]
+
+        ::
+
+            sage: facets = ((), (), (), ())
+            sage: face_list = facets_tuple_to_bit_rep_of_facets(facets, 4)
+            sage: face_list.matrix()
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            sage: face_list.pyramid().matrix()
+            [0 0 0 0 1]
+            [0 0 0 0 1]
+            [0 0 0 0 1]
+            [0 0 0 0 1]
+            [1 1 1 1 0]
         """
         cdef ListOfFaces copy
         cdef size_t i, j

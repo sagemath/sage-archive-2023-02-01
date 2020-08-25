@@ -2281,7 +2281,7 @@ def pseudo_partition_graph(int m, int a):
     raise ValueError("No known graph exists")
 
 cdef enum NearPolygonGraph:
-    RegularPolygon,
+    RegularPolygon = 0,
     GeneralisedPolygon,
     OddGraph,
     DoubleOdd,
@@ -2290,9 +2290,31 @@ cdef enum NearPolygonGraph:
     HammingGraph,
     DualPolarGraph
 
-def new_is_near_polygon(array):
+def is_near_polygon(array):
     r"""
-    Return a pair
+    Return a tuple of parameters which identify the near polygon graph with
+    the given intersection array. If such tuple doesn't exist, return ``False``.
+
+    Note that ``array`` may be the intersection array of a near polygon, but if
+    such graph has diameter less than 3, then this function will return
+    ``False``.
+
+    INPUT:
+
+    - ``array`` -- list; intersection array
+
+    OUTPUT:
+
+    The tuple has the form ``(id, params)`` where ``id`` is a value of the
+    enum `NearPolygonGraph` which identify a family of graphs and ``params``
+    are all parameters needed to construct the final graph.
+
+    EXAMPLES::
+
+    REFERECES:
+
+    TESTS::
+
     """
     from sage.arith.misc import is_prime_power
     from sage.combinat.q_analogues import q_binomial
@@ -2303,58 +2325,65 @@ def new_is_near_polygon(array):
 
     d = len(array) // 2
 
+    if d < 3:
+        print("diameter < 3")
+        return False
+
     k = array[0]
     l = k - array[1] - 1
 
     if l < 0:
+        print("lambda < 0")
         return False
 
     if any(array[i] != k - (l+1) * array[d - 1 + i] for i in range(1, d)) or \
-       k - (l+1) * array[2*d - 1] != 0:
+       k < (l+1) * array[2*d - 1]:
+        print("no near poly")
         return False
 
     # additional checks
     if k < (l+1) * array[2*d - 1] or k % (l + 1) != 0:
+        print("fail additional checks")
         return False
 
     # check if it is known example
     if k == (l+1) * array[2*d - 1] and \
        all(array[d + i] == 1 for i in range(d-1)) and \
-       l + 1 > 1 and array[2*d - 1] - 1 >  1:
+       (l + 1 > 1 or array[2*d - 1] - 1 >  1):  # last 2 reject regular polygons
         # generalised polygon
         s = l+1
         t = array[2*d - 1] - 1
 
-        # check we know the pair (s, t)
-        if s == 1 and t == 1:
-            # normal polygon
-            return (NearPolygonGraph.RegularPolygon, d)
-
         if (d == 3 and (s == 1 or t == 1) and is_prime_power(s * t)) or \
            (d, s, t) in {(3, 2, 2), (3, 3, 3), (3, 4, 4), (3, 5, 5), (3, 2, 8),
-                         (3, 8, 2), (3, 3, 27), (3, 27, 3), (4, 2, 4),
+                         (3, 8, 2), (3, 3, 27), (3, 27, 3), (4, 2, 4), (4, 4, 2),
                          (6, 1, 2), (6, 1, 3), (6, 1, 4), (6, 1, 5), (6, 2, 1),
                          (6, 3, 1), (6, 4, 1), (6, 5, 1)}:
-            return (NearPolygonGraph.GeneralisedPolygon, d, s, t)
-        
+            return (NearPolygonGraph.GeneralisedPolygon, (d, s, t))
+
         if d == 4 and (s == 1 or t == 1):
             q = s * t
             if strongly_regular_graph((q+1) * (q*q + 1), q * (q+1), q-1, q+1,
                                       existence=True):
-                return (NearPolygonGraph.GeneralisedPolygon, d, s, t)
-            
+                return (NearPolygonGraph.GeneralisedPolygon, (d, s, t))
+
         # otherwise not known generalised polygon
+        print("not known gen poly")
         return False
 
     n = 2 * d if k == (l+1) * array[2*d - 1] else 2*d + 1
 
+    if k == 2 and l == 0 and all(array[d + i] == 1 for i in range(d - 1)) and \
+       array[2*d - 1] in {1, 2}:
+        return (NearPolygonGraph.RegularPolygon, 2*d + 2 - array[2*d - 1])
+
     if l == 0 and k == d + 1 and n == 2*d + 1 and \
        all(array[d + i] == (i + 2) // 2 for i in range(d)):
-        return (NearPolygonGraph.OddGraph, n)
+        return (NearPolygonGraph.OddGraph, d + 1)
 
     if l == 0 and k == n and all(array[d - 1 + i] == i for i in range(1, d)) \
        and array[2*d - 1] == d * (2*d + 2 - n):
-        return (NearPolygonGraph.FoldedCube, n)
+        return (NearPolygonGraph.FoldedCube, k)
 
     if l == 0 and n == 2 * d and d % 2 == 1 and (d-1) // 2 + 1 == k and \
        all(array[d - 1 + i] == (i+1) // 2 for i in range(1, d + 1)):
@@ -2365,22 +2394,113 @@ def new_is_near_polygon(array):
        all(array[d - 1 + i] == q_binomial((i+1) // 2, 1, array[d + 2] - 1)
            for i in range(1, d+1)) and \
        k == q_binomial((d-1) // 2 + 1, 1, array[d + 2] - 1):
-        return (NearPolygonGraph.DoubleGrassmann, array[d + 2] - 1, (d-1) // 2)
+        return (NearPolygonGraph.DoubleGrassmann, (array[d + 2] - 1, (d-1) // 2))
 
     if n == 2 * d and k == (l+1) * d and \
        all(array[d - 1 + i] == i for i in range(1, d + 1)):
-        return (NearPolygonGraph.HammingGraph, d, l + 2)
+        return (NearPolygonGraph.HammingGraph, (d, l + 2))
 
     if n == 2 * d and is_prime_power(array[d + 1] - 1) and \
        (l + 1) in [(array[d + 1] - 1) ** e for e in [0, 0.5, 1, 1.5, 2]] and \
        k == (l+1) * q_binomial(d, 1, array[d + 1] - 1) and \
        all(array[d - 1 + i] == q_binomial(i, 1, array[d + 1] - 1)
            for i in range(1, d + 1)):
-        return (NearPolygonGraph.DualPolarGraph, d, array[d + 1] - 1,
-                log(l + 1, array[d + 1] - 1))
-    
+        return (NearPolygonGraph.DualPolarGraph, (d, array[d + 1] - 1,
+                log(l + 1, array[d + 1] - 1)))
+
     # otherwise we don't know the near polygon
+    print("not known near poly")
     return False
+
+def near_polygon_graph(family, params):
+    r"""
+    Return the near polygon graph with the given parameters.
+
+    The input is expected to be the result of the function
+    :func:`sage.graphs.generators.distance_regular.is_near_polygon`.
+
+    INPUT:
+
+    - ``family`` -- int; an element of the enum ``NearPolygonGraph``.
+
+    - ``params`` -- int or tuple; the paramters needed to construct a graph
+      of the family ``family``.
+
+    EXAMPLES::
+
+    REFERENCES:
+
+    See [BCN1989]_ pp. 198-206 for some theory about near polygons as well as
+    a list of known examples.
+
+    TESTS::
+    """
+
+    if family == NearPolygonGraph.RegularPolygon:
+        from sage.graphs.generators.basic import CycleGraph
+        return CycleGraph(params)
+
+    if family == NearPolygonGraph.GeneralisedPolygon:
+        d, s, t = params
+        if d == 3:
+            return GeneralisedHexagonGraph(s, t)
+        if d == 4:
+            return GeneralisedOctagonGraph(s, t)
+        if d == 6:
+            return GeneralisedDodecagonGraph(s, t)
+
+    if family == NearPolygonGraph.OddGraph:
+        from sage.graphs.generators.families import OddGraph
+        return OddGraph(params)
+
+    if family == NearPolygonGraph.DoubleOdd:
+        return DoubleOddGraph(params)
+
+    if family == NearPolygonGraph.DoubleGrassmann:
+        return DoubleGrassmannGraph(*params)
+
+    if family == NearPolygonGraph.FoldedCube:
+        from sage.graphs.generators.families import FoldedCubeGraph
+        return FoldedCubeGraph(params)
+
+    if family == NearPolygonGraph.HammingGraph:
+        from sage.graphs.generators.families import HammingGraph
+        return HammingGraph(*params)
+
+    if family == NearPolygonGraph.DualPolarGraph:
+        from sage.graphs.generators.classical_geometries import (
+            UnitaryDualPolarGraph,
+            OrthogonalDualPolarGraph,
+            SymplecticDualPolarGraph)
+
+        d, q, e = params
+        if e == 0:
+            print(f"d={d}, q={q} of type {type(d)}, {type(q)}")
+            return OrthogonalDualPolarGraph(1, d, q)
+        if e == 0.5:
+            return UnitaryDualPolarGraph(2 * d, q)
+        if e == 1:
+            return SymplecticDualPolarGraph(2 * d, q)
+        if e == 1.5:
+            return UnitaryDualPolarGraph(2*d + 1, q)
+        if e == 2:
+            return OrthogonalDualPolarGraph(-1, d, q)
+
+    raise ValueError("No known near polygons with the given parameters")
+
+def test_near_poly(G):
+    array = _intersection_array_from_graph(G)
+    print(f"intersection array: {array}")
+    res = is_near_polygon(array)
+    print(f"near polygon parameters {res}")
+    if res is False:
+        print("")
+        return
+    H = near_polygon_graph(*res)
+    print(f"graph built: {H.name()}")
+    ok = _intersection_array_from_graph(H) == array
+    print(f"tests passed: {ok}\n")
+
 
 # dictionary intersection_array (as tuple)  -> construction
 # of spordaic distance-regular graphs

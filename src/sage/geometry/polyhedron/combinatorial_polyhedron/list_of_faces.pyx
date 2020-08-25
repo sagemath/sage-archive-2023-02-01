@@ -88,6 +88,7 @@ from sage.structure.element import is_Matrix
 
 from cysignals.signals      cimport sig_on, sig_off
 from libc.string            cimport memcpy
+from .conversions           cimport vertex_to_bit_dictionary
 
 cdef extern from "bit_vector_operations.cc":
     # Any Bit-representation is assumed to be `chunksize`-Bit aligned.
@@ -372,3 +373,30 @@ cdef class ListOfFaces:
         # compute the dimension of the polyhedron,
         # by calculating dimension of one of its faces.
         return self.compute_dimension_loop(newfaces, new_n_faces, face_length) + 1
+
+    cpdef ListOfFaces pyramid(self):
+        r"""
+        Return the list of faces of the pyramid.
+        """
+        cdef ListOfFaces copy
+        cdef size_t i, j
+
+        # ``copy`` has a new atom and a new coatom.
+        copy = ListOfFaces(self.n_faces + 1, self.n_atoms + 1)
+
+        for i in range(self.n_faces):
+            for j in range(self.face_length, copy.face_length):
+                copy.data[i][j] = 0
+
+            # All old coatoms contain their respective old atoms.
+            # Also all of them contain the new atom.
+            memcpy(copy.data[i], self.data[i], self.face_length*8)
+            copy.data[i][self.n_atoms//64] |= vertex_to_bit_dictionary(self.n_atoms % 64)
+
+        # The new coatom contains all atoms, but the new atom.
+        for i in range(copy.face_length):
+            copy.data[self.n_faces][i] = 0
+        for i in range(self.n_atoms):
+            copy.data[self.n_faces][i//64] |= vertex_to_bit_dictionary(i % 64)
+
+        return copy

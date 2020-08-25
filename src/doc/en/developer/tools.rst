@@ -14,8 +14,8 @@ Pyright
 
 *Installation:* ``npm install -g pyright``, see `documentation <https://github.com/microsoft/pyright#installation>` for details. 
 *Usage:*
-  - Manual: Run ``pyright path/to/the/file.py``
-  - VS Code: Install the `Pylance <https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance>` extension.
+- Manual: Run ``pyright path/to/the/file.py``
+- VS Code: Install the `Pylance <https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance>` extension.
 *Configuration:* ``pyrightconfig.json`` in the root
 *Note*: Currently, only the manifolds package is checked. Further packages can be added in the ``pyrightconfig.json`` file.
 *Documentation:* https://github.com/microsoft/pyright#documentation
@@ -26,8 +26,8 @@ Pycodestyle
 
 *Installation:* ``pip install -U pycodestyle --user``
 *Usage:*
-  - Manual: Run ``pycodestyle path/to/the/file.py``
-  - VS Code: Activate by adding the setting ``"python.linting.pycodestyleEnabled": true``, see `official VS Code documentation <https://code.visualstudio.com/docs/python/linting>` for details.
+- Manual: Run ``pycodestyle path/to/the/file.py``
+- VS Code: Activate by adding the setting ``"python.linting.pycodestyleEnabled": true``, see `official VS Code documentation <https://code.visualstudio.com/docs/python/linting>` for details.
 *Configuration:* ``[pycodestyle]`` block in ``src/tox.ini``
 *Documentation:* https://pycodestyle.pycqa.org/en/latest/index.html
 

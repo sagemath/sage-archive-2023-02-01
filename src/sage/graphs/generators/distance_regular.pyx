@@ -2311,10 +2311,36 @@ def is_near_polygon(array):
 
     EXAMPLES::
 
+        sage: from sage.graphs.generators.distance_regular import (
+        ....: is_near_polygon, near_polygon_graph)
+        sage: is_near_polygon([7, 6, 6, 5, 5, 4, 1, 1, 2, 2, 3, 3])
+        (2, 7)
+        sage: near_polygon_graph(2, 7)
+        Odd Graph with parameter 7: Graph on 1716 vertices
+        sage: _.is_distance_regular(True)
+        ([7, 6, 6, 5, 5, 4, None], [None, 1, 1, 2, 2, 3, 3])
+
     REFERECES:
+
+    See [BCN1989]_ pp. 198-206 for some theory about near polygons as well as
+    a list of known examples.
 
     TESTS::
 
+        sage: from sage.graphs.generators.distance_regular import (
+        ....: is_near_polygon, near_polygon_graph)
+        sage: is_near_polygon([7, 6, 6, 4, 4, 1, 1, 3, 3, 7])
+        (4, (2, 2))
+        sage: near_polygon_graph(4, (2, 2))
+        Double Grassmann graph (5, 2, 2): Graph on 310 vertices
+        sage: near_polygon_graph(*is_near_polygon([3, 2, 2, 1, 1, 3]))
+        Generalised hexagon of order (1, 2): Graph on 14 vertices
+        sage: is_near_polygon([16, 12, 8, 4, 1, 2, 3, 4])
+        (6, (4, 5))
+        sage: is_near_polygon([])
+        False
+        sage: is_near_polygon([25, 16, 9, 4, 1, 1, 4, 9, 16, 25]) # JohnsonGraph
+        False
     """
     from sage.arith.misc import is_prime_power
     from sage.combinat.q_analogues import q_binomial
@@ -2326,24 +2352,20 @@ def is_near_polygon(array):
     d = len(array) // 2
 
     if d < 3:
-        print("diameter < 3")
         return False
 
     k = array[0]
     l = k - array[1] - 1
 
     if l < 0:
-        print("lambda < 0")
         return False
 
     if any(array[i] != k - (l+1) * array[d - 1 + i] for i in range(1, d)) or \
        k < (l+1) * array[2*d - 1]:
-        print("no near poly")
         return False
 
     # additional checks
     if k < (l+1) * array[2*d - 1] or k % (l + 1) != 0:
-        print("fail additional checks")
         return False
 
     # check if it is known example
@@ -2368,7 +2390,6 @@ def is_near_polygon(array):
                 return (NearPolygonGraph.GeneralisedPolygon, (d, s, t))
 
         # otherwise not known generalised polygon
-        print("not known gen poly")
         return False
 
     n = 2 * d if k == (l+1) * array[2*d - 1] else 2*d + 1
@@ -2409,7 +2430,6 @@ def is_near_polygon(array):
                 log(l + 1, array[d + 1] - 1)))
 
     # otherwise we don't know the near polygon
-    print("not known near poly")
     return False
 
 def near_polygon_graph(family, params):
@@ -2428,12 +2448,36 @@ def near_polygon_graph(family, params):
 
     EXAMPLES::
 
+        sage: from sage.graphs.generators.distance_regular import (
+        ....: is_near_polygon, near_polygon_graph)
+        sage: near_polygon_graph(*is_near_polygon([6, 5, 5, 4, 4, 3, 3, 2, 2, \
+        ....: 1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6])
+        Bipartite double of Odd graph on a set of 11 elements: Graph on 924 vertices
+        sage: G=_; G.is_distance_regular(True)
+        ([6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, None],
+         [None, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6])
+
     REFERENCES:
 
     See [BCN1989]_ pp. 198-206 for some theory about near polygons as well as
     a list of known examples.
 
     TESTS::
+
+        sage: near_polygon_graph(12, 9)
+        Traceback (most recent call last):
+        ...
+        ValueError: No known near polygons with the given parameters
+        sage: is_near_polygon([2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2])
+        (0, 12)
+        sage: near_polygon_graph((0, 12))
+        Traceback (most recent call last):
+        ...
+        TypeError: near_polygon_graph() takes exactly 2 positional arguments (1 given)
+        sage: near_polygon_graph(0, 12)
+        Cycle graph: Graph on 12 vertices
+        sage: near_polygon_graph(*is_near_polygon([8, 7, 6, 5, 1, 2, 3, 8])
+        Folded Cube Graph: Graph on 128 vertices
     """
 
     if family == NearPolygonGraph.RegularPolygon:
@@ -2475,32 +2519,17 @@ def near_polygon_graph(family, params):
 
         d, q, e = params
         if e == 0:
-            print(f"d={d}, q={q} of type {type(d)}, {type(q)}")
             return OrthogonalDualPolarGraph(1, d, q)
         if e == 0.5:
-            return UnitaryDualPolarGraph(2 * d, q)
+            return UnitaryDualPolarGraph(2 * d, int(q**0.5))
         if e == 1:
             return SymplecticDualPolarGraph(2 * d, q)
         if e == 1.5:
-            return UnitaryDualPolarGraph(2*d + 1, q)
+            return UnitaryDualPolarGraph(2*d + 1, int(q**0.5))
         if e == 2:
             return OrthogonalDualPolarGraph(-1, d, q)
 
     raise ValueError("No known near polygons with the given parameters")
-
-def test_near_poly(G):
-    array = _intersection_array_from_graph(G)
-    print(f"intersection array: {array}")
-    res = is_near_polygon(array)
-    print(f"near polygon parameters {res}")
-    if res is False:
-        print("")
-        return
-    H = near_polygon_graph(*res)
-    print(f"graph built: {H.name()}")
-    ok = _intersection_array_from_graph(H) == array
-    print(f"tests passed: {ok}\n")
-
 
 # dictionary intersection_array (as tuple)  -> construction
 # of spordaic distance-regular graphs
@@ -2567,7 +2596,8 @@ _sporadic_graph_database = {
 
 _infinite_families_database = [
     (is_classical_parameters_graph, graph_with_classical_parameters),
-    (is_pseudo_partition_graph, pseudo_partition_graph)
+    (is_pseudo_partition_graph, pseudo_partition_graph),
+    (is_near_polygon, near_polygon_graph)
 ]
 
 def distance_regular_graph(list arr, existence=False, check=True):

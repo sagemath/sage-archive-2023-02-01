@@ -166,7 +166,7 @@ Also consult the Sage Developer's Guide, especially the chapter
 
 
 I submitted a bug fix to the trac server several weeks ago. Why are you ignoring my branch?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 We are not trying to ignore your branch. Most people who work on Sage do so
 in their free time. With hundreds of open tickets of varying degrees of
@@ -198,7 +198,7 @@ ticket with an explanation why we cannot include your changes.
 
 
 When and how might I remind the Sage community of a branch I care about?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 You are encouraged to take extra care in how you remind the Sage
 community of a branch/patch you want to get merged into the Sage source

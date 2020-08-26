@@ -1082,6 +1082,101 @@ class Polyhedron_base(Element):
         """
         self.plot(**kwds).show()
 
+    def tikz(self, view=[0, 0, 1], angle=0, scale=1,
+             edge_color='blue!95!black', facet_color='blue!95!black',
+             opacity=0.8, vertex_color='green', axis=False):
+        r"""
+        Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
+        according to a projection ``view`` and an angle ``angle``
+        obtained via the threejs viewer.
+
+        INPUT:
+
+        - ``view`` - list (default: [0,0,1]) representing the rotation axis (see note below).
+        - ``angle`` - integer (default: 0) angle of rotation in degree from 0 to 360 (see note
+          below).
+        - ``scale`` - integer (default: 1) specifying the scaling of the tikz picture.
+        - ``edge_color`` - string (default: 'blue!95!black') representing colors which tikz
+          recognize.
+        - ``facet_color`` - string (default: 'blue!95!black') representing colors which tikz
+          recognize.
+        - ``vertex_color`` - string (default: 'green') representing colors which tikz
+          recognize.
+        - ``opacity`` - real number (default: 0.8) between 0 and 1 giving the opacity of
+          the front facets.
+        - ``axis`` - Boolean (default: False) draw the axes at the origin or not.
+
+        OUTPUT:
+
+        - LatexExpr -- containing the TikZ picture.
+
+        .. NOTE::
+
+            This is a wrapper of a method of the projection object
+            `self.projection()`. See :meth:`~sage.geometry.polyhedron.plot.Projection.tikz`
+            for more detail.
+
+            The inputs ``view`` and ``angle`` can be obtained by visualizing it
+            using ``.show(aspect_ratio=1)``. This will open an interactive view
+            in your default browser, where you can rotate the polytope. Once
+            the desired view angle is found, click on the information icon in
+            the lower right-hand corner and select *Get Viewpoint*. This will
+            copy a string of the form '[x,y,z],angle' to your local clipboard.
+            Go back to Sage and type ``Img = P.tikz([x,y,z],angle)``.
+
+            The inputs ``view`` and ``angle`` can also be obtained from the
+            viewer Jmol::
+
+                1) Right click on the image
+                2) Select ``Console``
+                3) Select the tab ``State``
+                4) Scroll to the line ``moveto``
+
+            It reads something like::
+
+                moveto 0.0 {x y z angle} Scale
+
+            The ``view`` is then [x,y,z] and ``angle`` is angle.
+            The following number is the scale.
+
+            Jmol performs a rotation of ``angle`` degrees along the
+            vector [x,y,z] and show the result from the z-axis.
+
+
+        EXAMPLES::
+
+            sage: co = polytopes.cuboctahedron()
+            sage: Img = co.tikz([0,0,1], 0)
+            sage: print('\n'.join(Img.splitlines()[:9]))
+            \begin{tikzpicture}%
+                [x={(1.000000cm, 0.000000cm)},
+                y={(0.000000cm, 1.000000cm)},
+                z={(0.000000cm, 0.000000cm)},
+                scale=1.000000,
+                back/.style={loosely dotted, thin},
+                edge/.style={color=blue!95!black, thick},
+                facet/.style={fill=blue!95!black,fill opacity=0.800000},
+                vertex/.style={inner sep=1pt,circle,draw=green!25!black,fill=green!75!black,thick}]
+            sage: print('\n'.join(Img.splitlines()[12:21]))
+            %% with the command: ._tikz_3d_in_3d and parameters:
+            %% view = [0, 0, 1]
+            %% angle = 0
+            %% scale = 1
+            %% edge_color = blue!95!black
+            %% facet_color = blue!95!black
+            %% opacity = 0.8
+            %% vertex_color = green
+            %% axis = False
+            sage: print('\n'.join(Img.splitlines()[22:26]))
+            %% Coordinate of the vertices:
+            %%
+            \coordinate (-1.00000, -1.00000, 0.00000) at (-1.00000, -1.00000, 0.00000);
+            \coordinate (-1.00000, 0.00000, -1.00000) at (-1.00000, 0.00000, -1.00000);
+        """
+        return self.projection().tikz(view, angle, scale,
+                                      edge_color, facet_color,
+                                      opacity, vertex_color, axis)
+
     def _repr_(self):
         """
         Return a description of the polyhedron.

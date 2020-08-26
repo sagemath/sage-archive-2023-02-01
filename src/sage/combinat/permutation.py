@@ -49,6 +49,7 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation.rank` | Returns the rank of ``self`` in lexicographic ordering (on the symmetric group containing ``self``).
     :meth:`~sage.combinat.permutation.Permutation.to_inversion_vector` | Returns the inversion vector of a permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.inversions` | Returns a list of the inversions of permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.to_digraph` | Return a digraph representation of ``self``.
     :meth:`~sage.combinat.permutation.Permutation.show` | Displays the permutation as a drawing.
     :meth:`~sage.combinat.permutation.Permutation.number_of_inversions` | Returns the number of inversions in the permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.noninversions` | Returns the ``k``-noninversions in the permutation ``self``.
@@ -1599,6 +1600,29 @@ class Permutation(CombinatorialElement):
         return [tuple([i+1,j+1]) for i in range(n-1) for j in range(i+1,n)
                 if p[i]>p[j]]
 
+    def to_digraph(self):
+        r"""
+        Return a digraph representation of ``self``.
+
+        EXAMPLES::
+
+            sage: d = Permutation([3, 1, 2]).to_digraph()
+            sage: d.edges(labels=False)
+            [(1, 3), (2, 1), (3, 2)]
+            sage: P = Permutations(range(1, 10))
+            sage: d = Permutation(P.random_element()).to_digraph()
+            sage: all(c.is_cycle() for c in d.strongly_connected_components_subgraphs())
+            True
+
+        TESTS::
+
+            sage: d = Permutation([1]).to_digraph()
+            sage: d.edges(labels=False)
+            [(1, 1)]
+        """
+        return DiGraph([self, enumerate(self, start=1)],
+                       format='vertices_and_edges', loops=True)
+
     def show(self, representation="cycles", orientation="landscape", **args):
         r"""
         Display the permutation as a drawing.
@@ -1637,9 +1661,7 @@ class Permutation(CombinatorialElement):
             ValueError: The value of 'representation' must be equal to 'cycles', 'chord-diagram' or 'braid'
         """
         if representation == "cycles" or representation == "chord-diagram":
-            d = DiGraph(loops = True)
-            for i in range(len(self)):
-                d.add_edge(i+1, self[i])
+            d = self.to_digraph()
 
             if representation == "cycles":
                 d.show(**args)
@@ -5200,8 +5222,8 @@ class Permutations(UniqueRepresentation, Parent):
         Standard permutations of 5 avoiding [[3, 4, 1, 2], [4, 2, 3, 1]]
         sage: p.cardinality()
         88
-        sage: p.random_element()
-        [5, 1, 2, 4, 3]
+        sage: p.random_element().parent() is p
+        True
     """
     @staticmethod
     def __classcall_private__(cls, n=None, k=None, **kwargs):
@@ -5507,8 +5529,9 @@ class Permutations_nk(Permutations):
         """
         EXAMPLES::
 
-            sage: Permutations(3,2).random_element()
-            [1, 2]
+            sage: s = Permutations(3,2).random_element()
+            sage: s in Permutations(3,2)
+            True
         """
         return sample(range(1, self.n+1), self._k)
 
@@ -6023,8 +6046,9 @@ class Permutations_set(Permutations):
         """
         EXAMPLES::
 
-            sage: Permutations([1,2,3]).random_element()
-            [1, 2, 3]
+            sage: s = Permutations([1,2,3]).random_element()
+            sage: s.parent() is Permutations([1,2,3])
+            True
         """
         return sample(self._set, len(self._set))
 
@@ -6195,8 +6219,9 @@ class Permutations_setk(Permutations_set):
         """
         EXAMPLES::
 
-            sage: Permutations([1,2,4], 2).random_element()
-            [1, 2]
+            sage: s = Permutations([1,2,4], 2).random_element()
+            sage: s in Permutations([1,2,4], 2)
+            True
         """
         return sample(self._set, self._k)
 
@@ -6637,8 +6662,10 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         """
         EXAMPLES::
 
-            sage: Permutations(4).random_element()
+            sage: s = Permutations(4).random_element(); s  # random
             [1, 2, 4, 3]
+            sage: s in Permutations(4)
+            True
         """
         return self.element_class(self, sample(range(1,self.n+1), self.n))
 

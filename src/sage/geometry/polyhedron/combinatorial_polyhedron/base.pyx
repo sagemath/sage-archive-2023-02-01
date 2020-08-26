@@ -2873,9 +2873,9 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef size_t *f_vector   # compute f_vector, if not done already
         cdef bint is_f_vector   # True if f_vector was computed previously
 
-        cdef size_t **edges
+        cdef size_t **edges = <size_t**> mem.malloc(sizeof(size_t**))
         cdef size_t counter = 0         # the number of edges so far
-        cdef size_t current_length = 0  # dynamically enlarge **edges
+        cdef size_t current_length = 1  # dynamically enlarge **edges
 
         cdef size_t a,b                # vertices of an edge
 
@@ -3021,23 +3021,20 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         cdef MemoryAllocator mem = MemoryAllocator()
         cdef FaceIterator face_iter
-        cdef size_t len_ridge_list = self._length_edges_list
         cdef int dim = self.dimension()
 
         # For each ridge we determine its location in ``ridges``
         # by ``ridges[one][two]``.
-        cdef size_t **ridges = <size_t**> mem.malloc(sizeof(size_t*))
-        cdef size_t one, two
+        cdef size_t **ridges = <size_t**> mem.malloc(sizeof(size_t**))
 
         cdef size_t counter = 0         # the number of ridges so far
         cdef size_t current_length = 1  # dynamically enlarge **ridges
 
+        cdef size_t a,b                # facets of a ridge
+
         if dim == 1 and self.n_facets() > 1:
             # In this case there is a ridge, but its not a proper face.
-            ridges[0] = <size_t *> mem.allocarray(2, sizeof(size_t))
-            ridges[0][0] = 0
-            ridges[0][1] = 1
-            counter = 1
+            self._set_edge(0, 1, &ridges, &counter, &current_length, mem)
 
             # Success, copy the data to ``CombinatorialPolyhedron``.
             if not dual:
@@ -3087,27 +3084,13 @@ cdef class CombinatorialPolyhedron(SageObject):
             # Prevent error message.
 
             while (face_iter.next_dimension() == dim - 2):
-
-                # Determine the position in ``ridges``.
-                one = counter // len_ridge_list
-                two = counter % len_ridge_list
-
-                # Enlarge ``ridges`` if needed.
-                if unlikely(two == 0):
-                    if unlikely(one + 1 > current_length):
-                        # enlarge **ridges
-                        current_length *= 2
-                        ridges = <size_t **> mem.reallocarray(ridges, current_length, sizeof(size_t*))
-
-                    ridges[one] = <size_t *> mem.allocarray(2 * len_ridge_list, sizeof(size_t))
-
                 # Set up face_iter.coatom_rep
                 face_iter.set_coatom_rep()
 
                 # Copy the information.
-                ridges[one][2*two] = face_iter.structure.coatom_rep[0]
-                ridges[one][2*two + 1] = face_iter.structure.coatom_rep[1]
-                counter += 1
+                a = face_iter.structure.coatom_rep[0]
+                b = face_iter.structure.coatom_rep[1]
+                self._set_edge(a, b, &ridges, &counter, &current_length, mem)
 
         # Success, copy the data to ``CombinatorialPolyhedron``.
         if not dual:

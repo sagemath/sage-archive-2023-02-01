@@ -1096,7 +1096,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
             [[U], [U^(-1)]]
 
             sage: R = G.class_representatives(14)
-            sage: R
+            sage: sorted(R)
             [[V(2)*V(3)], [V(1)*V(2)]]
             sage: sorted(v.continued_fraction()[1] for v in R)
             [(1, 2, 2), (3,)]

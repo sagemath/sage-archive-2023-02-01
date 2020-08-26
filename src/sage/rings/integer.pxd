@@ -1,6 +1,5 @@
 from sage.libs.gmp.types cimport __mpz_struct, mpz_t, mpz_ptr
 from sage.libs.gmp.mpz cimport mpz_set
-from sage.libs.ntl.types cimport ZZ_c
 
 from sage.structure.element cimport EuclideanDomainElement, RingElement
 from sage.categories.morphism cimport Morphism
@@ -11,7 +10,6 @@ cdef class Integer(EuclideanDomainElement):
     # https://github.com/cython/cython/issues/1984
     cdef __mpz_struct value[1]
 
-    cdef int _to_ZZ(self, ZZ_c *z) except -1
     cdef void set_from_mpz(self, mpz_t value)
     cdef hash_c(self)
 

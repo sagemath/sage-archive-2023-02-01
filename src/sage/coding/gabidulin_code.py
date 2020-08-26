@@ -16,16 +16,13 @@ AUTHOR:
 - Arpit Merchant (2016-08-16)
 - Marketa Slukova (2019-08-19): initial version
 """
-
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from sage.modules.free_module import VectorSpace
-from sage.rings.integer import Integer
 from sage.coding.encoder import Encoder
 from sage.coding.decoder import Decoder, DecodingError
-from sage.rings.integer_ring import ZZ
-from sage.functions.other import floor
-from sage.coding.linear_rank_metric import *
+from sage.coding.linear_rank_metric import AbstractLinearRankMetricCode
+from sage.categories.fields import Fields
+
 
 class GabidulinCode(AbstractLinearRankMetricCode):
     """
@@ -317,7 +314,7 @@ class GabidulinCode(AbstractLinearRankMetricCode):
 
     def parity_evaluation_points(self):
         r"""
-        Returns the parity evalution points of ``self``.
+        Return the parity evalution points of ``self``.
 
         These form the first row of the parity check matrix of ``self``.
 
@@ -330,7 +327,6 @@ class GabidulinCode(AbstractLinearRankMetricCode):
         eval_pts = self.evaluation_points()
         n = self.length()
         k = self.dimension()
-        q = self.sub_field().order()
         sigma = self.twisting_homomorphism()
 
         coefficient_matrix = matrix(self.base_field(), n - 1, n,
@@ -340,7 +336,7 @@ class GabidulinCode(AbstractLinearRankMetricCode):
 
     def dual_code(self):
         r"""
-        Returns the dual code `C^{\perp}` of ``self``, the code `C`,
+        Return the dual code `C^{\perp}` of ``self``, the code `C`,
 
         .. MATH::
 
@@ -361,7 +357,7 @@ class GabidulinCode(AbstractLinearRankMetricCode):
 
     def parity_check_matrix(self):
         r"""
-        Returns the parity check matrix of ``self``.
+        Return the parity check matrix of ``self``.
 
         This is the generator matrix of the dual code of ``self``.
 
@@ -507,12 +503,12 @@ class GabidulinVectorEvaluationEncoder(Encoder):
         from functools import reduce
         C = self.code()
         eval_pts = C.evaluation_points()
-        k = C.dimension()
         sigma = C.twisting_homomorphism()
         create_matrix_elements = lambda A,k,f: reduce(lambda L,x: [x] + \
                 list(map(lambda l: list(map(f,l)), L)), [A]*k, [])
-        return matrix(C.base_field(), C.dimension(), C.length(), \
-                create_matrix_elements(eval_pts, C.dimension(), sigma))
+        return matrix(C.base_field(), C.dimension(), C.length(),
+                      create_matrix_elements(eval_pts, C.dimension(), sigma))
+
 
 class GabidulinPolynomialEvaluationEncoder(Encoder):
     r"""
@@ -735,7 +731,7 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
 
     def unencode_nocheck(self, c):
         """
-        Returns the message corresponding to the codeword ``c``.
+        Return the message corresponding to the codeword ``c``.
 
         Use this method with caution: it does not check if ``c``
         belongs to the code, and if this is not the case, the output is
@@ -969,7 +965,7 @@ class GabidulinGaoDecoder(Decoder):
         #R = S.lagrange_polynomial(eval_pts, list(r))
         R = S.lagrange_polynomial(points)
         r_out, u_out = self._partial_xgcd(S.minimal_vanishing_polynomial(eval_pts),
-                R, floor((C.length() + C.dimension())//2))
+                R, (C.length() + C.dimension()) // 2)
         quo, rem = r_out.left_quo_rem(u_out)
         if not rem.is_zero():
             raise DecodingError("Decoding failed because the number of errors exceeded the decoding radius")
@@ -1056,7 +1052,7 @@ class GabidulinGaoDecoder(Decoder):
             sage: D.decoding_radius()
             8
         """
-        return (self.code().minimum_distance()-1)//2
+        return (self.code().minimum_distance() - 1) // 2
 
 ############################## registration ####################################
 

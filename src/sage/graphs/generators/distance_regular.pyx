@@ -607,10 +607,10 @@ def UstimenkoGraph(const int m, const int q):
 
 def BilinearFormsGraph(const int d, const int e, const int q):
     r"""
-    Return a bilienar forms graph with the given parameters.
+    Return a bilinear forms graph with the given parameters.
 
     This build a graph whose vertices are all ``d``x``e`` matrices over
-    ``GF(q)``. Two vertices are adjecent if the difference of the two
+    ``GF(q)``. Two vertices are adjacent if the difference of the two
     matrices has rank 1.
 
     The graph is distance-regular with classical parameters
@@ -623,17 +623,12 @@ def BilinearFormsGraph(const int d, const int e, const int q):
 
     EXAMPLES::
 
-        sage: G = graphs.BilinearFormsGraph(3, 3, 2)  # optional - meataxe
-        sage: G.is_distance_regular(True)  # optional - meataxe; due to above
+        sage: G = graphs.BilinearFormsGraph(3, 3, 2)
+        sage: G.is_distance_regular(True)
         ([49, 36, 16, None], [None, 1, 6, 28])
-        sage: G = graphs.BilinearFormsGraph(3,3,3)  # long time (1 min)  optional - meataxe
-        sage: G.order()  # long time; optional - meataxe (because of above)
+        sage: G = graphs.BilinearFormsGraph(3,3,3)  # long time (20 s)
+        sage: G.order()  # long time (due to above)
         19683
-
-    .. NOTE::
-
-        This function needs the additional package MeatAxe.
-        Install it with ``sage -i meataxe``.
 
     REFERENCES:
 
@@ -642,34 +637,46 @@ def BilinearFormsGraph(const int d, const int e, const int q):
 
     TESTS::
 
-        sage: G = graphs.BilinearFormsGraph(2,3,2)  # optional - meataxe
-        sage: G.is_distance_regular(True)  # optional - meataxe; due to above
+        sage: G = graphs.BilinearFormsGraph(2,3,2)
+        sage: G.is_distance_regular(True)
         ([21, 12, None], [None, 1, 6])
-        sage: H = graphs.BilinearFormsGraph(3,2,2)  # optional - meataxe
-        sage: H.is_isomorphic(G)  # optional - meataxe; due to above
+        sage: H = graphs.BilinearFormsGraph(3,2,2)
+        sage: H.is_isomorphic(G)
         True
-        sage: G = graphs.BilinearFormsGraph(5, 1, 3)  # optional - meataxe
-        sage: K = graphs.CompleteGraph(G.order())  # optional - meataxe; due to above
-        sage: K.is_isomorphic(G)  # optional - meataxe
+        sage: G = graphs.BilinearFormsGraph(5, 1, 3)
+        sage: K = graphs.CompleteGraph(G.order())
+        sage: K.is_isomorphic(G)
         True
     """
-    from sage.matrix.matrix_space import MatrixSpace
+    from sage.combinat.integer_vector import IntegerVectors
 
-    matricesOverq = MatrixSpace(GF(q), d, e, implementation='meataxe')
+    Fq = GF(q)
+    Fqelems = list(Fq)
+    matricesOverq = IntegerVectors(k=d*e, max_part=q-1)
 
     rank1Matrices = []
-    for m in matricesOverq:
-        sig_check()
-        if m.rank() == 1:
-            rank1Matrices.append(m)
+    for u in VectorSpace(Fq, d):
+        if u.is_zero() or not u[u.support()[0]].is_one():
+            continue
+
+        for v in VectorSpace(Fq, e):
+            if v.is_zero():
+                continue
+
+            sig_check()
+            M = [0] * (d*e)
+            for row in range(d):
+                for col in range(e):
+                    M[e*row + col] = u[row] * v[col]
+
+            rank1Matrices.append(M)
 
     edges = []
     for m1 in matricesOverq:
-        m1.set_immutable()
+        m1 = tuple(map(lambda x: Fqelems[x], m1))
         for m2 in rank1Matrices:
-            sig_check()  # this loop may take a long time; check for interrupts
-            m3 = m1 + m2
-            m3.set_immutable()
+            sig_check()
+            m3 = tuple([m1[i] + m2[i] for i in range(d*e)])
             edges.append((m1, m3))
 
     G = Graph(edges, format='list_of_edges')
@@ -681,8 +688,8 @@ def AlternatingFormsGraph(const int n, const int q):
     Return the alternating forms graph with the given parameters.
 
     This construct a graph whose vertices are all ``n``x``n`` skew-symmetric
-    matrices over ``GF(q)`` with zero diagonal. Two vertices are adjecent
-    if and only if the difference of the tow matrices has rank 2.
+    matrices over ``GF(q)`` with zero diagonal. Two vertices are adjacent
+    if and only if the difference of the two matrices has rank 2.
 
     This grap is distance-regular with classical parameters
     `(\lfloor \frac n 2 \rfloor,  q^2, q^2 - 1, q^{2 \lceil \frac n 2 \rceil -1})`.
@@ -694,14 +701,9 @@ def AlternatingFormsGraph(const int n, const int q):
 
     EXAMPLES::
 
-        sage: G = graphs.AlternatingFormsGraph(5,2)  # long time (5 min) optional - meataxe
-        sage: G.is_distance_regular(True) # long time; optional - meataxe (due to above)
+        sage: G = graphs.AlternatingFormsGraph(5,2)
+        sage: G.is_distance_regular(True)
         ([155, 112, None], [None, 1, 20])
-
-    .. NOTE::
-
-        This function needs the additional package MeatAxe.
-        Install it with ``sage -i meataxe``.
 
     REFERENCES:
 
@@ -710,98 +712,97 @@ def AlternatingFormsGraph(const int n, const int q):
 
     TESTS::
 
-         sage: G = graphs.AlternatingFormsGraph(6,2)  # long time (> 30 min) optional - meataxe
-         sage: G.order()  # long time optional - meataxe (because of above)
+         sage: G = graphs.AlternatingFormsGraph(6,2)  # not tested (2 min)
+         sage: G.order()  # not tested (because of above)
          32768
-         sage: G.is_distance_regular(True)  # long time (33 min)  optional - meataxe
+         sage: G.is_distance_regular(True)  # not tested (33 min)
          ([651, 560, 256, None], [None, 1, 20, 336])
-         sage: G = graphs.AlternatingFormsGraph(4,2)  # optional - meataxe
-         sage: G.is_distance_regular(True) # optional - meataxe
-         ([35, 16, None], [None, 1, 20])
+         sage: G = graphs.AlternatingFormsGraph(4, 3)
+         sage: G.is_distance_regular(True)
+         ([260, 162, None], [None, 1, 90])
     """
-    def build_matrix(v):
-        # v represents upper triangular entries
-        v = list(v)
-
-        mat = []  # our matrix
-
-        # number entries used from v
-        used_v = 0
-
-        row_constructed = 0
-        zeros = [0] * (n-1)
-        while row_constructed < n:
-            sig_check()
-            row = (zeros[:row_constructed] + [0] +
-                   v[used_v : used_v + (n - 1 - row_constructed)])
-            mat.append(row)
-
-            used_v += n - 1 - row_constructed
-            row_constructed += 1
-
-        # fix lower diagonal
-        for r in range(n):
-            for c in range(r):
-                mat[r][c] = - mat[c][r]
-
-        return Matrix(GF(q), mat, immutable=True, implementation="meataxe")
-
     # n x n zero-diagonal skew-symmetric matrix
     # can be represented by the upper triangular entries
-    # there are n*(n+1) // 2 of them
-    size = (n * (n+1)) // 2
+    # there are n*(n-1) // 2 of them
+    size = (n * (n-1)) // 2
     V = VectorSpace(GF(q), size)
-    skewSymmetricMatrices = [build_matrix(v) for v in V]
 
-    rank2Matrices = []
-    for mat in skewSymmetricMatrices:
-        sig_check()
-        if mat.rank() == 2:
-            rank2Matrices.append(mat)
+    # construct all rank 2 matrices
+    rank2Matrices = set()
+    Vn = VectorSpace(GF(q), n)
+    basis = set(Vn.basis())
+    e = [Vn([0]*i + [1] + [0]*(n - i - 1)) for i in range(n)]
+    for v in e:
+        v.set_immutable()
+
+    scalars = [x for x in GF(q) if not x.is_zero()]
+    Vseen = set()
+    for v in Vn:
+        if v.is_zero() or not v[v.support()[0]].is_one():
+            continue
+        v.set_immutable()
+        # remove from basis e_i s.t. (v[i-1] =) v_i != 0
+        i = v.support()[0]
+        Ubasis = basis.difference([e[i]])
+
+        for u in Vn.span_of_basis(Ubasis):
+            sig_check()
+            if u.is_zero() or not u[u.support()[0]].is_one():
+                continue
+            u.set_immutable()
+            if u in Vseen:
+                continue
+
+            M = []
+            for row in range(n - 1):
+                upperRow = [0] * (n - 1 - row)
+                for col in range(row + 1, n):
+                    upperRow[col - row - 1] = v[row]*u[col] - u[row]*v[col]
+                M += upperRow
+
+            for scalar in scalars:
+                N = tuple(map(lambda x: scalar * x, M))
+                rank2Matrices.add(N)
+
+        Vseen.add(v)
 
     # now we have all matrices of rank 2
     edges = []
-    for m1 in skewSymmetricMatrices:
+    for m1 in V:
+        t1 = tuple(m1)
         for m2 in rank2Matrices:
             sig_check()
-            m3 = m1 + m2
-            m3.set_immutable()
-            edges.append((m1, m3))
+            t3 = tuple([t1[i] + m2[i] for i in range(size)])
+            edges.append((t1, t3))
 
     G = Graph(edges, format='list_of_edges')
     G.name("Alternating forms graph on (F_%d)^%d"%(q, n))
     return G
 
-def HermitianFormsGraph(const int n, const int q):
+def HermitianFormsGraph(const int n, const int r):
     r"""
     Return the Hermitian froms graph with the given parameters.
 
     We build a graph whose vertices are all ``n``x``n`` Hermitian matrices
-    over ``GF(q)``. Two  vertices are adjecent if the difference of the two
+    over ``GF(r^2)``. Two  vertices are adjacent if the difference of the two
     vertices has rank 1.
 
     This graph is distance-regular with classical parameters
-    `(n, - \sqrt{q}, - \sqrt{q} - 1, - (- \sqrt{q})^d - 1)`.
+    `(n, - r, - r - 1, - (- r)^d - 1)`.
 
     INPUT:
 
     - ``n`` -- integer
-    - ``q`` -- square of aprime power
+    - ``r`` -- a prime power
 
     EXAMPLES::
 
-        sage: G = graphs.HermitianFormsGraph(2,4)  # optional - meataxe
-        sage: G.is_distance_regular(True) # optional - meataxe
+        sage: G = graphs.HermitianFormsGraph(2, 2)
+        sage: G.is_distance_regular(True)
         ([5, 4, None], [None, 1, 2])
-        sage: G = graphs.HermitianFormsGraph(3,9)  # long time (> 10 min)  optional - meataxe
-        sage: G.order()  # long time (bacuase of the above)
+        sage: G = graphs.HermitianFormsGraph(3, 3)  # not tested (2 min)
+        sage: G.order()  # not tested (bacuase of the above)
         19683
-
-    .. NOTE::
-
-        If ``q`` does not satisfy the requirements, then this function
-        will raise a ``ValueError``. This function needs the additional 
-        package MeatAxe. Install it with ``sage -i meataxe``.
 
     REFERENCES:
 
@@ -809,74 +810,75 @@ def HermitianFormsGraph(const int n, const int q):
 
     TESTS::
 
-         sage: G = graphs.HermitianFormsGraph(3,4) # long time (5 min)  optional - meataxe
-         sage: G.is_distance_regular(True) # long time optional - meataxe; due to above
+         sage: G = graphs.HermitianFormsGraph(3, 2)
+         sage: G.is_distance_regular(True)
          ([21, 20, 16, None], [None, 1, 2, 12])
-         sage: G = graphs.HermitianFormsGraph(2,9) # optional - meataxe
-         sage: G.is_distance_regular(True) # optional - meataxe; due to above
+         sage: G = graphs.HermitianFormsGraph(2, 3)
+         sage: G.is_distance_regular(True)
          ([20, 18, None], [None, 1, 6])
     """
-    from sage.arith.misc import is_prime_power
+    q = r * r
+    Fr = GF(r)
+    Fq = GF(q)
+    i = Fq.gen()
+    ir = i**r
 
-    b, k = is_prime_power(q, get_data=True)
-    if k == 0 or k % 2 != 0:
-        raise ValueError("We need q=r^2 where r is a prime power")
+    toR = {(a + i*b): (a + ir*b) for a, b in itertools.product(Fr, repeat=2)}
 
-    # here we have b^k = q, b is prime and k is even
-    r = b**(k//2)
-    # so r^2 = b^k = q
-
-    def build_matrix(v, d):
-        # v represents upper triangular entries
-        # d represents the diagonal entries
-        v = list(v)
-        d = list(d)
-
-        mat = []  # our matrix
-
-        # number entries used from v
+    def build_mat(v, w):
+        # get upper diagonal entries
+        res = []
         used_v = 0
-
-        row_constructed = 0
-        zeros = [0] * (n-1)
-        while row_constructed < n:
-            sig_check()
-            row = (zeros[:row_constructed] + [d[row_constructed]] +
-                   v[used_v : used_v + (n - 1 - row_constructed)])
-            mat.append(row)
-
-            used_v += n - 1 - row_constructed
-            row_constructed += 1
-
-        # fix lower diagonal
+        used_w = 0
         for row in range(n):
-            for c in range(row):
-                mat[row][c] = (mat[c][row])**r
+            res += [v[used_v]] + [v[used_v + 1 + j] + i * w[used_w + j]
+                                  for j in range(n - 1 - row)]
+            used_v += n - row
+            used_w += n - 1 - row
 
-        return Matrix(GF(q), mat, immutable=True, implementation="meataxe")
+        return tuple(res)
 
-
-    size = (n * (n+1)) // 2
-    V = VectorSpace(GF(q), size)  # upper triangular entries
-    D = VectorSpace(GF(r), n)  # diagonal entries
-    hermitianMatrices = [build_matrix(v, d) for v in V for d in D]
-
+    # produce all rank1 matrices
     rank1Matrices = []
-    for mat in hermitianMatrices:
-        sig_check()
-        if mat.rank() == 1:
-            rank1Matrices.append(mat)
+    for w1 in VectorSpace(Fr, n):
+        if not w1.is_zero():
+            # build matrix
+            nonZero = 0
+            while nonZero < n and w1[nonZero] == 0:
+                nonZero += 1
+
+            for w2 in VectorSpace(Fr, n - nonZero - 1):
+                # get upper triangular entries
+                sig_check()
+
+                v = [w1[nonZero]] + \
+                    [w1[nonZero + 1 + j] + i * w2[j]
+                     for j in range(n - nonZero - 1)]
+
+                res = []
+                for row in range(nonZero):
+                    res += [0] * (n - row)
+
+                res += v
+
+                for row in range(1, n - nonZero):
+                    factor = toR[v[row]] / v[0]
+                    res += list(map(lambda x: factor * x, v[row:]))
+
+                rank1Matrices.append(res)
+
+    Vs = VectorSpace(Fr, (n * (n+1)) // 2)
+    Va = VectorSpace(Fr, (n * (n-1)) // 2)
 
     edges = []
-    for mat in hermitianMatrices:
-        for mat2 in rank1Matrices:
-            sig_check()
-            mat3 = mat + mat2
-            mat3.set_immutable()
-            edges.append((mat, mat3))
+    for a, b in itertools.product(Vs, Va):
+        M = build_mat(a, b)
+        for R in rank1Matrices:
+            N = tuple([M[i] + R[i] for i in range((n * (n+1)) // 2)])
+            edges.append((M, N))
 
     G = Graph(edges, format='list_of_edges')
-    G.name("Hermitian forms graph on (F_%d)^%d"%(q, n))
+    G.name(f"Hermitian forms graph on (F_{q})^{n}")
     return G
 
 def DoubleOddGraph(const int n):

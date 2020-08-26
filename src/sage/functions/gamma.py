@@ -509,14 +509,14 @@ class Function_gamma_inc_lower(BuiltinFunction):
             sage: gamma_inc_lower(x,x)._sympy_()
             lowergamma(x, x)
             sage: maxima(gamma_inc_lower(x,x))
-            gamma_greek(_SAGE_VAR_x,_SAGE_VAR_x)
+            gamma_incomplete_lower(_SAGE_VAR_x,_SAGE_VAR_x)
 
     .. SEEALSO::
 
         :class:`Function_gamma_inc`
         """
         BuiltinFunction.__init__(self, "gamma_inc_lower", nargs=2, latex_name=r"\gamma",
-                conversions={'maxima':'gamma_greek',
+                conversions={'maxima':'gamma_incomplete_lower',
                     'maple':'GAMMA', 'sympy':'lowergamma', 'giac':'igamma'})
 
     def _eval_(self, x, y):

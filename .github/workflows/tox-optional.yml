@@ -63,6 +63,16 @@ jobs:
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install python-tox
+      - name: Try to login to docker.pkg.github.com
+        # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
+        run: |
+            TOKEN="${{ secrets.DOCKER_PKG_GITHUB_TOKEN }}"
+            if [ -z "$TOKEN" ]; then
+              TOKEN="${{ secrets.GITHUB_TOKEN }}"
+            fi
+            if echo "$TOKEN" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin; then
+              echo "::set-env name=DOCKER_PUSH_REPOSITORY::docker.pkg.github.com/${{ github.repository }}/"
+            fi
       - run: |
           set -o pipefail; EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3\"" tox -e $TOX_ENV -- $TARGETS 2>&1 | sed "/^configure: notice:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: warning:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: error:/s|^|::error file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;"
       - name: Copy logs from the docker image or build container
@@ -82,20 +92,10 @@ jobs:
         run: |
           .github/workflows/scan-logs.sh "artifacts/$LOGS_ARTIFACT_NAME"
         if: always()
-      - name: Push docker images
+      - name: List docker images
         run: |
           if [ -f .tox/$TOX_ENV/Dockertags ]; then
-            TOKEN="${{ secrets.DOCKER_PKG_GITHUB_TOKEN }}"
-            if [ -z "$TOKEN" ]; then
-              TOKEN="${{ secrets.GITHUB_TOKEN }}"
-            fi
-            echo "$TOKEN" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
-            for a in $(cat .tox/$TOX_ENV/Dockertags); do
-              FULL_TAG=docker.pkg.github.com/${{ github.repository }}/$a
-              docker tag $a $FULL_TAG
-              echo Pushing $FULL_TAG
-              docker push $FULL_TAG
-            done || echo "(Ignoring errors)"
+             cat .tox/$TOX_ENV/Dockertags
           fi
         if: always()
 

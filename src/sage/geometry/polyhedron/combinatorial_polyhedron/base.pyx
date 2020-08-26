@@ -2868,19 +2868,16 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         cdef MemoryAllocator mem = MemoryAllocator()
         cdef FaceIterator face_iter
-        cdef size_t len_edge_list = self._length_edges_list
         cdef int dim = self.dimension()
         cdef int d              # dimension of the current face of ``FaceIterator``
         cdef size_t *f_vector   # compute f_vector, if not done already
         cdef bint is_f_vector   # True if f_vector was computed previously
 
-        # For each edge we determine its location in ``edges``
-        # by ``edges[one][two]``
-        cdef size_t **edges = <size_t**> mem.malloc(sizeof(size_t*))
-        cdef size_t one, two
-
+        cdef size_t **edges
         cdef size_t counter = 0         # the number of edges so far
-        cdef size_t current_length = 1  # dynamically enlarge **edges
+        cdef size_t current_length = 0  # dynamically enlarge **edges
+
+        cdef size_t a,b                # vertices of an edge
 
         if self._f_vector:
             is_f_vector = True
@@ -2890,10 +2887,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         if dim == 1:
             # In this case there is an edge, but its not a proper face.
-            edges[0] = <size_t *> mem.allocarray(2, sizeof(size_t))
-            edges[0][0] = 0
-            edges[0][1] = 1
-            counter = 1
+            self._set_edge(0, 1, &edges, &counter, &current_length, mem)
 
             # Success, copy the data to ``CombinatorialPolyhedron``.
             if dual:
@@ -2947,27 +2941,13 @@ cdef class CombinatorialPolyhedron(SageObject):
                 # If not, there won't even be any edges. Prevent error message.
 
                 while (face_iter.next_dimension() == 1):
-
-                    # Determine the position in ``edges``.
-                    one = counter // len_edge_list
-                    two = counter % len_edge_list
-
-                    # Enlarge ``edges`` if needed.
-                    if unlikely(two == 0):
-                        if unlikely(one + 1 > current_length):
-                            # enlarge **edges
-                            current_length *= 2
-                            edges = <size_t **> mem.reallocarray(edges, current_length, sizeof(size_t*))
-
-                        edges[one] = <size_t *> mem.allocarray(2 * len_edge_list, sizeof(size_t))
-
                     # Set up face_iter.atom_rep
                     face_iter.set_atom_rep()
 
                     # Copy the information.
-                    edges[one][2*two] = face_iter.structure.atom_rep[0]
-                    edges[one][2*two + 1] = face_iter.structure.atom_rep[1]
-                    counter += 1
+                    a = face_iter.structure.atom_rep[0]
+                    b = face_iter.structure.atom_rep[1]
+                    self._set_edge(a, b, &edges, &counter, &current_length, mem)
 
             # Success, copy the data to ``CombinatorialPolyhedron``.
             if dual:
@@ -3000,26 +2980,13 @@ cdef class CombinatorialPolyhedron(SageObject):
                     if d == 1:
                         # If it is an edge.
 
-                         # Determine the position in ``edges``.
-                        one = counter // len_edge_list
-                        two = counter % len_edge_list
-
-                        # Enlarge ``edges`` if needed.
-                        if unlikely(two == 0):
-                            if unlikely(one + 1 > current_length):
-                                # enlarge **edges
-                                current_length *= 2
-                                edges = <size_t **> mem.reallocarray(edges, current_length, sizeof(size_t*))
-
-                            edges[one] = <size_t *> mem.allocarray(2 * len_edge_list, sizeof(size_t))
-
                         # Set up face_iter.atom_rep
                         face_iter.set_atom_rep()
 
                         # Copy the information.
-                        edges[one][2*two] = face_iter.structure.atom_rep[0]
-                        edges[one][2*two + 1] = face_iter.structure.atom_rep[1]
-                        counter += 1
+                        a = face_iter.structure.atom_rep[0]
+                        b = face_iter.structure.atom_rep[1]
+                        self._set_edge(a, b, &edges, &counter, &current_length, mem)
 
                     d = face_iter.next_dimension()  # Go to next face.
 
@@ -3260,6 +3227,43 @@ cdef class CombinatorialPolyhedron(SageObject):
         self._mem_tuple += (mem,)
         self._face_lattice_incidences = incidences
         sig_unblock()
+
+    cdef inline int _set_edge(self, size_t a, size_t b, size_t ***edges_pt, size_t *counter_pt, size_t *current_length_pt, MemoryAllocator mem) except -1:
+        r"""
+        Set an edge in a list of lists of edges.
+
+        Sets the values of all pointers accordingly.
+
+        INPUT:
+
+        - ``a``,``b`` -- the vertices of the edge
+        - ``edges_pt`` -- pointer to the list of lists; might point to ``NULL``
+          when ``current_length_pt[0] == 0``
+        - ``counter_pt`` -- pointer to the number of edges
+        - ``current_length_pt`` -- pointer to the length of ``edges_pt[0]``
+        - ``mem`` -- ``MemoryAllocator`` used for allocation
+        """
+        cdef size_t len_edge_list = self._length_edges_list
+        # Determine the position in ``edges``.
+        cdef size_t one = counter_pt[0] // len_edge_list
+        cdef size_t two = counter_pt[0] % len_edge_list
+
+        if unlikely(current_length_pt[0] == 0):
+            edges_pt[0] = <size_t**> mem.malloc(sizeof(size_t*))
+            current_length_pt[0] = 1
+
+        # Enlarge ``edges`` if needed.
+        if unlikely(two == 0):
+            if unlikely(one + 1 > current_length_pt[0]):
+                # enlarge **edges
+                current_length_pt[0] = 2*current_length_pt[0]
+                edges_pt[0] = <size_t **> mem.reallocarray(edges_pt[0], current_length_pt[0], sizeof(size_t*))
+
+            edges_pt[0][one] = <size_t *> mem.allocarray(2 * len_edge_list, sizeof(size_t))
+
+        edges_pt[0][one][2*two] = a
+        edges_pt[0][one][2*two + 1] = b
+        counter_pt[0] = counter_pt[0] + 1
 
     def _record_all_faces(self):
         r"""

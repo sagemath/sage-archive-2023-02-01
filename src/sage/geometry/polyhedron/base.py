@@ -525,15 +525,17 @@ class Polyhedron_base(Element):
 
         tester.assertEqual(self.n_vertices() + self.n_rays() + self.n_lines(), self.n_Vrepresentation())
         tester.assertEqual(self.n_inequalities() + self.n_equations(), self.n_Hrepresentation())
-        tester.assertEqual(self.dim() + self.n_equations(), self.ambient_dim())
+        if self.n_vertices():
+            # Depending on the backend, this does not hold for the empty polyhedron.
+            tester.assertEqual(self.dim() + self.n_equations(), self.ambient_dim())
 
         tester.assertTrue(all(len(v[::]) == self.ambient_dim() for v in self.Vrep_generator()))
         tester.assertTrue(all(len(h[::]) == self.ambient_dim() + 1 for h in self.Hrep_generator()))
 
         if self.n_vertices() + self.n_rays() < 40:
-            tester.assertEqual(self, Polyhedron(vertices=self.vertices(), rays=self.rays(), lines=self.lines()))
+            tester.assertEqual(self, Polyhedron(vertices=self.vertices(), rays=self.rays(), lines=self.lines(), ambient_dim=self.ambient_dim()))
         if self.n_inequalities() < 40:
-            tester.assertEqual(self, Polyhedron(ieqs=self.inequalities(), eqns=self.equations()))
+            tester.assertEqual(self, Polyhedron(ieqs=self.inequalities(), eqns=self.equations(), ambient_dim=self.ambient_dim()))
 
     def base_extend(self, base_ring, backend=None):
         """
@@ -4626,28 +4628,6 @@ class Polyhedron_base(Element):
 
             sage: polytopes.hypercube(1) * polytopes.hypercube(2)
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
-
-        Check that the product preserves the backend, where possible::
-
-            sage: P = polytopes.simplex(backend='cdd')
-            sage: Q = polytopes.simplex(backend='ppl')
-            sage: (P*Q).backend()
-            'cdd'
-            sage: (Q*P).backend()
-            'ppl'
-            sage: (P * polytopes.dodecahedron(backend='field')).backend()
-            'field'
-
-        Check that double description is set up correctly::
-
-           sage: P = polytopes.permutahedron(4).base_extend(QQ)
-           sage: P1 = Polyhedron(rays=[[1,0,0,0],[0,1,1,0]], lines=[[0,1,0,1]])
-           sage: Q = P.base_extend(QQ, 'field')
-           sage: Q1 = P1.base_extend(QQ, 'field')
-           sage: P * P1 == Q * Q1
-           True
-           sage: P.polar(in_affine_span=True) * P1 == Q.polar(in_affine_span=True) * Q1
-           True
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
@@ -4669,6 +4649,13 @@ class Polyhedron_base(Element):
         lines = chain((tuple(l) + other_zero for l in  self.line_generator()),
                       (self_zero + tuple(l)  for l in other.line_generator()))
 
+        if self.n_vertices() == 0 or other.n_vertices() == 0:
+            # In this case we obtain the empty polyhedron.
+            # There is not vertex to attach the rays or lines to.
+            # By our convenction, in this case the polyhedron shall also not have rays or lines.
+            rays = ()
+            lines = ()
+
         ieqs = chain((tuple(i) + other_zero               for i in  self.inequality_generator()),
                      ((i.b(),) + self_zero + tuple(i.A()) for i in other.inequality_generator()))
 
@@ -4684,6 +4671,39 @@ class Polyhedron_base(Element):
                                     Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
     _mul_ = product
+
+    def _test_product(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.product`.
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_product()
+        """
+        from sage.geometry.polyhedron.library import polytopes
+        if tester is None:
+            tester = self._tester(**options)
+
+        if self.n_vertices() + self.n_rays() < 40 and self.n_facets() < 40:
+            # Check that the product preserves the backend, where possible.
+            P = polytopes.simplex(backend="cdd")
+            tester.assertEqual((self*P).backend(), self.backend())
+            Q = polytopes.simplex(backend="ppl")
+            tester.assertEqual((self*Q).backend(), self.backend())
+
+            # And that it changes the backend correctly where necessary.
+            if AA.has_coerce_map_from(self.base_ring()):
+                P = polytopes.regular_polygon(5, exact=True)
+            if RDF.has_coerce_map_from(self.base_ring()):
+                R = self*polytopes.regular_polygon(5, exact=False)
+
+        if self.base_ring().is_exact():
+            # Check that the double description is set up correctly.
+            self_field = self.base_extend(self.base_ring(), backend='field')
+            P = polytopes.permutahedron(4, backend='field').base_extend(QQ)
+            Q = Polyhedron(rays=[[1,0,0,0],[0,1,1,0]], lines=[[0,1,0,1]], backend='field')
+            (self_field * P)._test_basic_properties(tester)
+            (self_field * Q)._test_basic_properties(tester)
 
     def join(self, other):
         """

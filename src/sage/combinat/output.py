@@ -392,7 +392,7 @@ def ascii_art_table(data, use_unicode=False, convention="English"):
     #   being all None's for ease later on.
     ncols = max(len(row) for row in data)
     str_tab = [[None]*ncols] + [[art(val) if val is not None else None for val in row] + [None]*(ncols-len(row))
-                              for row in data]
+                                for row in data]
     str_tab.append([None]*ncols)
     # Get the widths of the columns
     col_widths = [1]*len(str_tab[0])

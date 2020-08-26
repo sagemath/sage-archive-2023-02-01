@@ -59,7 +59,7 @@ This module gathers the following designs:
     :meth:`~sage.combinat.designs.steiner_quadruple_systems.steiner_quadruple_system`
     :meth:`~sage.combinat.designs.block_design.projective_plane`
     :meth:`~sage.combinat.designs.biplane`
-    :meth:`~sage.combinat.designs.gen_quadrangles`
+    :meth:`~sage.combinat.designs.gen_quadrangles_with_spread`
 
 And the :meth:`designs.best_known_covering_design_from_LJCR
 <sage.combinat.designs.covering_design.best_known_covering_design_www>` function

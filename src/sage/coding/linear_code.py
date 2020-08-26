@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Linear codes
+Generic structures for linear codes over the Hamming metric
 
 Linear Codes
 ============
@@ -940,7 +940,8 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         V = VectorSpace(QQ,n+1)
         S = V(A).nonzero_positions()
         S0 = [S[i] for i in range(1,len(S))]
-        if len(S)>1: return GCD(S0)
+        if len(S)>1:
+            return GCD(S0)
         return 1
 
     def is_projective(self):
@@ -1001,7 +1002,8 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             sage: C3 = C1.direct_sum(C2); C3
             [21, 12] linear code over GF(2)
         """
-        C1 = self; C2 = other
+        C1 = self
+        C2 = other
         G1 = C1.generator_matrix()
         G2 = C2.generator_matrix()
         F = C1.base_ring()

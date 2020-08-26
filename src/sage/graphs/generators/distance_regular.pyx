@@ -885,10 +885,10 @@ def HermitianFormsGraph(const int n, const int r):
 
 def DoubleOddGraph(const int n):
     r"""
-    Return the double odd graph on `2*n+1` points.
+    Return the double odd graph on `2n+1` points.
 
     The graph is obtained using the subsets of size `n` and `n+1`
-    of `{1, 2, ..., 2*n+1}` as vertices. Two vertices are adjacent if one
+    of `{1, 2, ..., 2n+1}` as vertices. Two vertices are adjacent if one
     is included in the other.
 
     The graph is distance-transitive.
@@ -920,7 +920,8 @@ def DoubleOddGraph(const int n):
          sage: H = graphs.OddGraph(4)
          sage: G1 = graphs.DoubleOddGraph(3)
          sage: vertices = [(x, 0) for x in H] + [(x, 1) for x in H]
-         sage: G2 = Graph([vertices, lambda i, j: i[1] != j[1] and H.has_edge(i[0], j[0])])
+         sage: G2 = Graph([vertices, lambda i, j:
+         ....: i[1] != j[1] and H.has_edge(i[0], j[0])])
          sage: G2.is_isomorphic(G1)
          True
     """
@@ -1023,7 +1024,7 @@ def GrassmannGraph(const int q, const int n, const int input_e):
     has dimension $e-1$.
 
     This graph is distance-regular with classical parameters
-    `(\min(e, n-e), q, q, \gbinom {n-e+1} 1 _q -1)`
+    `(\min(e, n-e), q, q, \genfrac {[}{]} {0pt} {} {n-e+1} 1 _q -1)`
 
     INPUT:
 
@@ -1052,17 +1053,16 @@ def GrassmannGraph(const int q, const int n, const int input_e):
     from sage.combinat.designs import design_catalog as designs
 
     if n <= input_e + 1:
-        raise ValueError(
-            "Impossible parameters n <= e+1 (%d > %d)" %(n,input_e) )
+        raise ValueError(f"Impossible parameters n <= e+1 ({n} > {input_e + 1})")
 
     e = input_e
-    if n < 2*input_e:
+    if n < 2 * input_e:
         e = n - input_e
 
-    PG = designs.ProjectiveGeometryDesign(n-1, e-1, q)
+    PG = designs.ProjectiveGeometryDesign(n - 1, e - 1, q)
     # we want the intersection graph
     # the size of the intersection must be (q^{e-1} - 1) / (q-1)
-    size = (q**(e-1) -  1) / (q-1)
+    size = (q**(e-1) -  1) // (q - 1)
     G = PG.intersection_graph([size])
     G.name("Grassmann graph J_%d(%d, %d)"%(q, n, e))
     return G
@@ -1070,7 +1070,12 @@ def GrassmannGraph(const int q, const int n, const int input_e):
 def DoubleGrassmannGraph(const int q, const int e):
     r"""
     Return the bipartite double of the distance-`e` graph of the
-    Grassmann graph with parameters `(q, 2*e+1, e)`.
+    Grassmann graph with parameters `(q, 2e+1, e)`.
+
+    This graph can also be descirbed as follow:
+    Let `V` be the vector space of dimension `n` over `GF(q)`.
+    The vertex set is the set of `e+1` or `e` subspaces of `V`.
+    Two vertices are adjacent if one subspace is contained in the other.
 
     This graph is distance-transitive.
 
@@ -1105,7 +1110,7 @@ def DoubleGrassmannGraph(const int q, const int e):
          sage: G.is_distance_regular(True)
          ([13, 12, 12, 9, 9, None], [None, 1, 1, 4, 4, 13])
     """
-    n = 2*e+1
+    n = 2*e + 1
     V = VectorSpace(GF(q), n)
 
     edges = []

@@ -68,3 +68,4 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef int _compute_face_lattice_incidences(self) except -1
 
     cdef inline int _set_edge(self, size_t a, size_t b, size_t ***edges_pt, size_t *counter_pt, size_t *current_length_pt, MemoryAllocator mem) except -1
+    cdef inline size_t _get_edge(self, size_t **edges, size_t edge_number, size_t vertex) except -1

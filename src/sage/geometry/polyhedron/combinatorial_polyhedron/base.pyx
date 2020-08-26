@@ -1161,7 +1161,6 @@ cdef class CombinatorialPolyhedron(SageObject):
              ('a', 'c'),
              ('a', 'b'))
         """
-        cdef size_t len_edge_list = self._length_edges_list
         if self._edges is NULL:
             # compute the edges.
             if not self.is_bounded():
@@ -1176,15 +1175,6 @@ cdef class CombinatorialPolyhedron(SageObject):
         if self._edges is NULL:
             raise ValueError('could not determine edges')
 
-        # The edges are being saved in a list basically.
-        # The first entry represents the first vertex of the first edge.
-        # The second entry represents the second vertex of that edge.
-        # The third entry represents the first vertex of the second edge etc.
-
-        # Possibly there are many edges.
-        # Hence, edges are stored in an array of arrays,
-        # with each array containing ``len_edge_list`` of edges.
-
         # Mapping the indices of the Vrep to the names, if requested.
         if self.Vrep() is not None and names is True:
             def f(size_t i): return self.Vrep()[i]
@@ -1193,9 +1183,9 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         # Getting the indices of the `i`-th edge.
         def vertex_one(size_t i):
-            return f(self._edges[i // len_edge_list][2*(i % len_edge_list)])
+            return f(self._get_edge(self._edges, i, 0))
         def vertex_two(size_t i):
-            return f(self._edges[i // len_edge_list][2*(i % len_edge_list)+1])
+            return f(self._get_edge(self._edges, i, 1))
 
         cdef size_t j
         return tuple((vertex_one(j), vertex_two(j)) for j in range(self._n_edges))
@@ -1343,7 +1333,6 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.ridges(names=False, add_equalities=True)
             ((2, 3), (1, 3), (0, 3), (1, 2), (0, 2), (0, 1))
         """
-        cdef size_t len_ridge_list = self._length_edges_list
         if self._ridges is NULL:
             # compute the ridges.
             if not self.is_bounded():
@@ -1359,15 +1348,6 @@ cdef class CombinatorialPolyhedron(SageObject):
             raise ValueError('could not determine ridges')
         n_ridges = self._n_ridges
 
-        # The ridges are being saved in a list basically.
-        # The first entry represents the first facet of the first ridge.
-        # The second entry represents the second facet of that ridge.
-        # The third entry represents the first facet of the second ridge etc.
-
-        # Possibly there are many ridges.
-        # Hence, ridges are stored in an array of arrays,
-        # with each array containing ``len_ridge_list`` of ridges.
-
         # Mapping the indices of the Vepr to the names, if requested.
         if self.facet_names() is not None and names is True:
             def f(size_t i): return self.facet_names()[i]
@@ -1376,9 +1356,9 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         # Getting the indices of the `i`-th ridge.
         def facet_one(size_t i):
-            return f(self._ridges[i // len_ridge_list][2*(i % len_ridge_list)])
+            return f(self._get_edge(self._ridges, i, 0))
         def facet_two(size_t i):
-            return f(self._ridges[i // len_ridge_list][2*(i % len_ridge_list)+1])
+            return f(self._get_edge(self._ridges, i, 1))
 
         cdef size_t j
         if add_equalities and names:
@@ -2442,27 +2422,17 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         cdef size_t **incidences = self._face_lattice_incidences
         cdef size_t n_incidences = self._n_face_lattice_incidences
-        cdef size_t len_incidence_list = self._length_edges_list
-
-        # The incidences are being saved in a list basically.
-        # The first entry represents the first face of the first incidence.
-        # The second entry represents the second face of that incidence.
-        # The third entry represents the first face of the second incidence etc.
-
-        # Possibly there are many incidences.
-        # Hence, incidences are stored in an array of arrays,
-        # with each array containing ``len_incidence_list`` of incidences.
 
         # Getting the indices of the `i`-th incidence.
         def face_one(size_t i):
-            return smallInteger(incidences[i // len_incidence_list][2*(i % len_incidence_list)])
+            return smallInteger(self._get_edge(incidences, i, 0))
         def face_two(size_t i):
-            return smallInteger(incidences[i // len_incidence_list][2*(i % len_incidence_list)+1])
+            return smallInteger(self._get_edge(incidences, i, 1))
 
         # Edges of the face-lattice/Hasse diagram.
         cdef size_t j
         edges = tuple((face_one(j), face_two(j))
-                          for j in range(n_incidences))
+                      for j in range(n_incidences))
 
         V = tuple(range(sum(self._f_vector)))
         D = DiGraph([V, edges], format='vertices_and_edges')
@@ -3195,7 +3165,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     cdef inline int _set_edge(self, size_t a, size_t b, size_t ***edges_pt, size_t *counter_pt, size_t *current_length_pt, MemoryAllocator mem) except -1:
         r"""
-        Set an edge in a list of lists of edges.
+        Set an edge in an edge list.
 
         Sets the values of all pointers accordingly.
 
@@ -3229,6 +3199,25 @@ cdef class CombinatorialPolyhedron(SageObject):
         edges_pt[0][one][2*two] = a
         edges_pt[0][one][2*two + 1] = b
         counter_pt[0] = counter_pt[0] + 1
+
+    cdef inline size_t _get_edge(self, size_t **edges, size_t edge_number, size_t vertex) except -1:
+        r"""
+        Get a vertex of an edge in an edge list.
+
+        INPUT:
+
+        - ``edges`` -- the edges list
+        - ``edge_number`` -- the number of the edge to obtain
+        - ``vertex`` -- one of ``0``, ``1``; the vertex to obtain
+
+        OUTPUT: The specified vertex of the specified edge.
+        """
+        cdef size_t len_edge_list = self._length_edges_list
+        # Determine the position in ``edges``.
+        cdef size_t one = edge_number // len_edge_list
+        cdef size_t two = edge_number % len_edge_list
+
+        return edges[one][2*two + vertex]
 
     def _record_all_faces(self):
         r"""

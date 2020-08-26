@@ -107,15 +107,15 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
     This works with simplicial, cubical, and `\Delta`-complexes, and
     also simplicial sets::
 
-        sage: Klein_c = cubical_complexes.KleinBottle()
-        sage: H = Klein_c.cohomology_ring(GF(2))
-        sage: x,y = sorted(H.basis(1))
+        sage: Torus_c = cubical_complexes.Torus()
+        sage: H = Torus_c.cohomology_ring(GF(2))
+        sage: x,y = H.basis(1)
         sage: x.cup_product(x)
         0
         sage: x.cup_product(y)
         h^{2,0}
         sage: y.cup_product(y)
-        h^{2,0}
+        0
 
         sage: Klein_d = delta_complexes.KleinBottle()
         sage: H = Klein_d.cohomology_ring(GF(2))

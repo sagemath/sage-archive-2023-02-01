@@ -9286,112 +9286,10 @@ class Graph(GenericGraph):
         else:
           return len(P)
 
-    @doc_index("Basic methods")
-    def bipartite_double(self, extended=False):
-        r"""
-        Return the (extended) bipartite double of this graph.
-
-        The bipartite double of a graph `G` has vertex set
-        `\{ (v,0), (v,1) : v \in G\}` and for any edge `(u, v)` in `G`
-        it has edges `((u,0),(v,1))` and `((u,1),(v,0))`.
-        Note that this is the tensor product of `G` with `K_2`.
-
-        The extended bipartite double of `G` is the bipartite double of
-        `G` after added all edges `((v,0),(v,1))` for all vertices `v`.
-
-        INPUT:
-
-        - ``extended`` -- boolean (default: ``False``); Whether to return the
-          extended bipartite double, or only the bipartite double (default)
-
-        OUTPUT:
-
-        A graph; ``self`` is left untouched.
-
-        EXAMPLES::
-
-            sage: G = graphs.PetersenGraph()
-            sage: H = G.bipartite_double()
-            sage: G == graphs.PetersenGraph()  # G is left invariant
-            True
-            sage: H.order() == 2 * G.order()
-            True
-            sage: H.size() == 2 * G.size()
-            True
-            sage: H.is_bipartite()
-            True
-            sage: H.bipartite_sets() == (set([(v, 0) for v in G]),
-            ....: set([(v, 1) for v in G]))
-            True
-            sage: H.is_isomorphic(G.tensor_product(graphs.CompleteGraph(2)))
-            True
-
-        Behaviour with disconnected graphs::
-
-            sage: G1 = graphs.PetersenGraph()
-            sage: G2 = graphs.HoffmanGraph()
-            sage: G = G1.disjoint_union(G2)
-            sage: H = G.bipartite_double()
-            sage: H1 = G1.bipartite_double()
-            sage: H2 = G2.bipartite_double()
-            sage: H.is_isomorphic(H1.disjoint_union(H2))
-            True
-
-        .. SEEALSO::
-
-            :wikipedia:`Bipartite_double_cover`,
-            `WolframAlpha Bipartite Double
-            <https://mathworld.wolfram.com/BipartiteDoubleGraph.html>`_,
-            [VDKT2016]_ p. 20 for the extended bipartite double.
-
-        TESTS::
-
-            sage: G = graphs.PetersenGraph()
-            sage: H = G.bipartite_double(True)
-            sage: G == graphs.PetersenGraph()  # G is left invariant
-            True
-            sage: H.order() == 2 * G.order()
-            True
-            sage: H.size() == 2 * G.size() + G.order()
-            True
-            sage: H.is_bipartite()
-            True
-            sage: H.bipartite_sets() == (set([(v, 0) for v in G]),
-            ....: set([(v, 1) for v in G]))
-            True
-            sage: H.is_isomorphic(G.tensor_product(graphs.CompleteGraph(2)))
-            False
-
-        Test edge cases::
-
-            sage: G = Graph()
-            sage: H = G.bipartite_double()
-            sage: H.size() + H.order()
-            0
-            sage: H = G.bipartite_double(True)
-            sage: H.size() + H.order()
-            0
-            sage: G = Graph(1)
-            sage: H = G.bipartite_double()
-            sage: H.size() == 0 and H.order() == 2
-            True
-            sage: H = G.bipartite_double(True)
-            sage: H.is_isomorphic(Graph([(0, 1)]))
-            True
-        """
-        G = self.tensor_product(Graph([(0, 1)]))
-
-        if extended:
-            G.add_edges(((v, 0), (v, 1)) for v in self)
-
-        prefix = "Extended " if extended else ""
-        G.name("%sBipartite Double of %s"%(prefix, self.name()))
-        return G
-
     @doc_index("Graph properties")
     def is_antipodal(self):
         r"""
-        Return whether this graph is antipodal.
+        Check whether this graph is antipodal.
 
         A graph `G` of diameter `d` is said to be antipodal if its distance-`d`
         graph is a disjoint union of cliques.
@@ -9526,8 +9424,7 @@ class Graph(GenericGraph):
         G = self.antipodal_graph()
 
         vertices = set(G)
-        newVertices = {}
-        numCliques = 0
+        newVertices = []
         while vertices:
             v = vertices.pop()
             clique = frozenset(G.neighbor_iterator(v, closed=True))
@@ -9537,11 +9434,11 @@ class Graph(GenericGraph):
                     if frozenset(G.neighbor_iterator(u, closed=True)) != clique:
                         return False
 
-            newVertices[numCliques] = clique
-            numCliques += 1
+            newVertices.append(clique)
             vertices.difference_update(clique)
 
         # now newVertices is a map {0, ..., numCliques-1} -> antipodal classes
+        numCliques = len(newVertices)
         edges = []
         for i, j in itertools.combinations(range(numCliques), 2):
             if any(self.has_edge(u, v) for u, v in
@@ -9558,9 +9455,9 @@ class Graph(GenericGraph):
         r"""
         Return the antipodal graph of ``self``.
 
-        The antipodal graph of `G` has the same vertex set of `G` and two
-        vertices are adjacent if their distance in `G` is equal to the diameter
-        of `G`.
+        The antipodal graph of a graph `G` has the same vertex set of `G` and
+        two vertices are adjacent if their distance in `G` is equal to the
+        diameter of `G`.
 
         OUTPUT:
 
@@ -9597,12 +9494,113 @@ class Graph(GenericGraph):
             sage: G.antipodal_graph()
             Antipodal graph of Graph: Looped graph on 1 vertex
         """
-
         H = self.distance_graph(self.diameter())
 
         name = self.name() if self.name() != "" else "Graph"
         H.name(f"Antipodal graph of {name}")
         return H
+
+    @doc_index("Basic methods")
+    def bipartite_double(self, extended=False):
+        r"""
+        Return the (extended) bipartite double of this graph.
+
+        The bipartite double of a graph `G` has vertex set
+        `\{ (v,0), (v,1) : v \in G\}` and for any edge `(u, v)` in `G`
+        it has edges `((u,0),(v,1))` and `((u,1),(v,0))`.
+        Note that this is the tensor product of `G` with `K_2`.
+
+        The extended bipartite double of `G` is the bipartite double of
+        `G` after added all edges `((v,0),(v,1))` for all vertices `v`.
+
+        INPUT:
+
+        - ``extended`` -- boolean (default: ``False``); Whether to return the
+          extended bipartite double, or only the bipartite double (default)
+
+        OUTPUT:
+
+        A graph; ``self`` is left untouched.
+
+        EXAMPLES::
+
+            sage: G = graphs.PetersenGraph()
+            sage: H = G.bipartite_double()
+            sage: G == graphs.PetersenGraph()  # G is left invariant
+            True
+            sage: H.order() == 2 * G.order()
+            True
+            sage: H.size() == 2 * G.size()
+            True
+            sage: H.is_bipartite()
+            True
+            sage: H.bipartite_sets() == (set([(v, 0) for v in G]),
+            ....: set([(v, 1) for v in G]))
+            True
+            sage: H.is_isomorphic(G.tensor_product(graphs.CompleteGraph(2)))
+            True
+
+        Behaviour with disconnected graphs::
+
+            sage: G1 = graphs.PetersenGraph()
+            sage: G2 = graphs.HoffmanGraph()
+            sage: G = G1.disjoint_union(G2)
+            sage: H = G.bipartite_double()
+            sage: H1 = G1.bipartite_double()
+            sage: H2 = G2.bipartite_double()
+            sage: H.is_isomorphic(H1.disjoint_union(H2))
+            True
+
+        .. SEEALSO::
+
+            :wikipedia:`Bipartite_double_cover`,
+            `WolframAlpha Bipartite Double
+            <https://mathworld.wolfram.com/BipartiteDoubleGraph.html>`_,
+            [VDKT2016]_ p. 20 for the extended bipartite double.
+
+        TESTS::
+
+            sage: G = graphs.PetersenGraph()
+            sage: H = G.bipartite_double(True)
+            sage: G == graphs.PetersenGraph()  # G is left invariant
+            True
+            sage: H.order() == 2 * G.order()
+            True
+            sage: H.size() == 2 * G.size() + G.order()
+            True
+            sage: H.is_bipartite()
+            True
+            sage: H.bipartite_sets() == (set([(v, 0) for v in G]),
+            ....: set([(v, 1) for v in G]))
+            True
+            sage: H.is_isomorphic(G.tensor_product(graphs.CompleteGraph(2)))
+            False
+
+        Test edge cases::
+
+            sage: G = Graph()
+            sage: H = G.bipartite_double()
+            sage: H.size() + H.order()
+            0
+            sage: H = G.bipartite_double(True)
+            sage: H.size() + H.order()
+            0
+            sage: G = Graph(1)
+            sage: H = G.bipartite_double()
+            sage: H.size() == 0 and H.order() == 2
+            True
+            sage: H = G.bipartite_double(True)
+            sage: H.is_isomorphic(Graph([(0, 1)]))
+            True
+        """
+        G = self.tensor_product(Graph([(0, 1)]))
+
+        if extended:
+            G.add_edges(((v, 0), (v, 1)) for v in self)
+
+        prefix = "Extended " if extended else ""
+        G.name("%sBipartite Double of %s"%(prefix, self.name()))
+        return G
 
     # Aliases to functions defined in other modules
     from sage.graphs.weakly_chordal import is_long_hole_free, is_long_antihole_free, is_weakly_chordal

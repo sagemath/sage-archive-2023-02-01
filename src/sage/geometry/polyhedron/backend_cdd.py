@@ -570,6 +570,13 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
             ....:                        Vrep_minimal=True, Hrep_minimal=True)  # indirect doctest
             sage: p
             A 1-dimensional polyhedron in RDF^1 defined as the convex hull of 1 vertex and 1 line
+
+        Test that :trac:`30330` is fixed::
+
+            sage: P1 = polytopes.regular_polygon(5, exact=False)
+            sage: P2 = Polyhedron()
+            sage: P1*P2
+            The empty polyhedron in RDF^2
         """
         def parse_Vrep(intro, data):
             count = int(data[0][0])
@@ -620,6 +627,11 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
 
         vertices, rays, lines = (tuple(x) for x in Vrep)
         ieqs, eqns            = (tuple(x) for x in Hrep)
+
+        if not (vertices or rays or lines):
+            # cdd refuses to handle empty polyhedra.
+            self._init_empty_polyhedron()
+            return
 
         # We prefer the shorter representation.
         # Note that for the empty polyhedron we prefer Hrepresentation.

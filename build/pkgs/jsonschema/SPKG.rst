@@ -20,4 +20,8 @@ Home page: http://github.com/Julian/jsonschema
 Dependencies
 ------------
 
-Python, Setuptools
+- Python
+- Setuptools
+- attrs
+- importlib_metadata
+- pyrsistent

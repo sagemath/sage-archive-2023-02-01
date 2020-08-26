@@ -859,11 +859,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: integrate(cos(w+T) / (1+c*cos(T))^2, T, 0, 2*pi)
         2*pi*sqrt(-c^2 + 1)*c*cos(w)/(c^4 - 2*c^2 + 1)
 
-    Check that :trac:`13733` is fixed::
+    Check that :trac:`13733` is fixed (but the bug reappeared, see :trac:`30063`)::
 
-        sage: a = integral(log(cot(x) - 1), x, 0, pi/4); a  # long time (about 6 s)
+        sage: a = integral(log(cot(x) - 1), x, 0, pi/4); a  # long time (about 6 s) # known bug
         -1/4*pi*log(2) - 1/2*I*dilog(I + 1) + 1/2*I*dilog(-I + 1) + 1/2*I*dilog(1/2*I + 1/2) - 1/2*I*dilog(-1/2*I + 1/2)
-        sage: abs(N(a - pi*log(2)/8)) < 1e-15  # long time
+        sage: abs(N(a - pi*log(2)/8)) < 1e-15  # long time # known bug
         True
 
     Check that :trac:`17968` is fixed::

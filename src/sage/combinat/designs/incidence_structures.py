@@ -2232,6 +2232,68 @@ class IncidenceStructure(object):
         tex += "\\end{tikzpicture}"
         return tex
 
+    def is_spread(self, spread):
+        r"""
+        Check whether the input is a spread for ``self``.
+
+        A spread of an incidence structure `(P, B)` is a subset of `B` which
+        forms a partition of `P`.
+
+        INPUT:
+
+        - ``spread`` -- iterable; defines the spread
+
+        EXAMPLES::
+
+            sage: E = IncidenceStructure([[1, 2, 3], [4, 5, 6], [1, 5, 6]])
+            sage: E.is_spread([[1, 2, 3], [4, 5, 6]])
+            True
+            sage: E.is_spread([1, 2, 3, 4, 5, 6])
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
+            sage: E.is_spread([[1, 2, 3, 4], [5, 6]])
+            False
+
+        Order of blocks or of points within each block doesn't matter::
+
+            sage: E = IncidenceStructure([[1, 2, 3], [4, 5, 6], [1, 5, 6]])
+            sage: E.is_spread([[5, 6, 4], [3, 1, 2]])
+            True
+
+        TESTS::
+
+            sage: E = IncidenceStructure([])
+            sage: E.is_spread([])
+            True
+            sage: E = IncidenceStructure([[1]])
+            sage: E.is_spread([])
+            False
+            sage: E.is_spread([[1]])
+            True
+            sage: E = IncidenceStructure([[1], [1]])
+            sage: E.is_spread([[1]])
+            True
+        """
+
+        points = set(self.ground_set())
+        allBlocks = set(map(frozenset, self.blocks()))
+        for block in spread:
+            sblock = set(block)
+
+            if sblock not in allBlocks:
+                return False
+
+            if not points.issuperset(sblock):
+                return False
+
+            points.difference_update(sblock)
+
+        if points:
+            return False
+
+        return True
+
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(METHODS_OF_IncidenceStructure=gen_rest_table_index(IncidenceStructure))

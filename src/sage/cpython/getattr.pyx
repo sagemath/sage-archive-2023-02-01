@@ -8,39 +8,17 @@ from .string cimport bytes_to_str
 
 cdef extern from "Python.h":
     r"""
-    /* Coded in C because of substantial differences between Python 2
-     * and Python 3 and class internals need to be accessed. */
+    /* Coded in C because class internals need to be accessed. */
     static PyObject*
     instance_getattr(PyObject* obj, PyObject* name)
     {
-        #if PY_MAJOR_VERSION < 3
-        if PyClass_Check(obj) {
-            PyClassObject* cp = (PyClassObject*)obj;
-            PyObject *value = PyDict_GetItem(cp->cl_dict, name);
-            Py_ssize_t n = PyTuple_GET_SIZE(cp->cl_bases);
-            for (Py_ssize_t i = 0; value == NULL && i < n; i++) {
-                value = instance_getattr(PyTuple_GetItem(cp->cl_bases, i), name);
-            }
-            return value;
-        }
-        #endif
-
         if (PyType_Check(obj)) {
             return _PyType_Lookup((PyTypeObject*)obj, name);
         }
 
-        PyObject* dict;
-        #if PY_MAJOR_VERSION < 3
-        if PyInstance_Check(obj) {
-            dict = ((PyInstanceObject*)obj)->in_dict;
-        }
-        else
-        #endif
-        {
-            PyObject** dptr = _PyObject_GetDictPtr(obj);
-            if (dptr == NULL) return NULL;
-            dict = *dptr;
-        }
+        PyObject** dptr = _PyObject_GetDictPtr(obj);
+        if (dptr == NULL) return NULL;
+        PyObject* dict = *dptr;
         if (dict == NULL) return NULL;
         return PyDict_GetItem(dict, name);
     }

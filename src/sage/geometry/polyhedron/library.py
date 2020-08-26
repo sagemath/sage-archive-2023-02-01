@@ -881,7 +881,7 @@ class Polytopes():
             (1, 24, 48, 26, 1)
             sage: sr.volume()                                                   # optional - pynormaliz
             80/3*sqrt2 + 32
-            sage: TestSuite(sr).run()                                           # optional - pynormaliz
+            sage: TestSuite(sr).run()                                           # optional - pynormaliz, long time
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -1478,14 +1478,16 @@ class Polytopes():
 
             sage: id = polytopes.icosidodecahedron(exact=False); id
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 30 vertices
-            sage: TestSuite(id).run(skip="_test_is_combinatorially_isomorphic")
+            sage: TestSuite(id).run(skip=["_test_is_combinatorially_isomorphic",
+            ....:                         "_test_pyramid",
+            ....:                         "_test_lawrence"])
 
             sage: id = polytopes.icosidodecahedron(backend='normaliz')  # optional - pynormaliz
             sage: id.f_vector()                                         # optional - pynormaliz
             (1, 30, 60, 32, 1)
             sage: id.base_ring()                                        # optional - pynormaliz
             Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
-            sage: TestSuite(id).run()                                   # optional - pynormaliz
+            sage: TestSuite(id).run()                                   # optional - pynormaliz, long time
         """
         from sage.rings.number_field.number_field import QuadraticField
         from itertools import product
@@ -1558,7 +1560,7 @@ class Polytopes():
             (1, 30, 60, 32, 1)
             sage: id.base_ring()                                           # optional - pynormaliz
             Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
-            sage: TestSuite(id).run()                                      # optional - pynormaliz
+            sage: TestSuite(id).run()                                      # optional - pynormaliz, long time
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -2469,7 +2471,7 @@ class Polytopes():
             A 6-dimensional polyhedron in RDF^6 defined as the convex hull of 35 vertices
             sage: h_7_3.f_vector()
             (1, 35, 210, 350, 245, 84, 14, 1)
-            sage: TestSuite(h_7_3).run()
+            sage: TestSuite(h_7_3).run(skip="_test_pyramid")
         """
         verts = Permutations([0] * (dim - k) + [1] * k).list()
         if project:
@@ -2520,6 +2522,15 @@ class Polytopes():
             sage: perm4.graph().is_isomorphic(graphs.BubbleSortGraph(4))
             True
 
+        As both Hrepresentation an Vrepresentation are known, the permutahedron can be set
+        up with both using the backend ``field``. The following takes very very long time
+        to recompute, e.g. with backend ``ppl``::
+
+            sage: polytopes.permutahedron(8, backend='field')  # (~1s)
+            A 7-dimensional polyhedron in QQ^8 defined as the convex hull of 40320 vertices
+            sage: polytopes.permutahedron(9, backend='field')  # not tested (memory consumption)  # (~5s)
+            A 8-dimensional polyhedron in QQ^9 defined as the convex hull of 362880 vertices
+
         .. SEEALSO::
 
             * :meth:`~sage.graphs.graph_generators.GraphGenerators.BubbleSortGraph`
@@ -2528,11 +2539,34 @@ class Polytopes():
 
             sage: p4 = polytopes.permutahedron(4,backend='normaliz')   # optional - pynormaliz
             sage: TestSuite(p4).run()                                  # optional - pynormaliz
+
+        Check that precomputed data is correct::
+
+            sage: P = polytopes.permutahedron(5, backend='field')
+            sage: TestSuite(P).run()  # long time
         """
-        verts = list(itertools.permutations(range(1, n + 1)))
+        verts = itertools.permutations(range(1, n + 1))
         if project:
             verts = project_points(*verts)
-        return Polyhedron(vertices=verts, backend=backend)
+            return Polyhedron(vertices=verts, backend=backend)
+        else:
+            parent = Polyhedra(ZZ, n, backend=backend)
+            def tri(m):
+                return (m*(m+1))//2
+
+            # Each proper `S \subset [n]` corresponds exactly to
+            # a facet that minimizes the coordinates in `S`.
+            # The minimal sum for `m` coordinates is `(m*(m+1))/2`.
+            ieqs = ((-tri(sum(x)),) + x
+                    for x in itertools.product([0,1], repeat=n)
+                    if 0 < sum(x) < n)
+
+            # Adding the defining equality.
+            eqns = ((-tri(n),) + tuple(1 for _ in range(n)),)
+
+            return parent([verts, [], []], [ieqs, eqns],
+                          Vrep_minimal=True, Hrep_minimal=True, pref_rep="Hrep")
+
 
     def generalized_permutahedron(self, coxeter_type, point=None, exact=True, regular=False, backend=None):
         r"""
@@ -3305,7 +3339,7 @@ class Polytopes():
         ::
 
             sage: P = polytopes.cross_polytope(6, backend='field')
-            sage: TestSuite(P).run()
+            sage: TestSuite(P).run()  # long time
 
         Check that double description is set up correctly::
 

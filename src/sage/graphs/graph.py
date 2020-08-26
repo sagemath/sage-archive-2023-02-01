@@ -3231,6 +3231,59 @@ class Graph(GenericGraph):
                 self.is_edge_transitive() and not
                 self.is_vertex_transitive())
 
+    @doc_index("Graph properties")
+    def is_path(self):
+        r"""
+        Check whether ``self`` is a path.
+
+        A connected graph of order `n \geq 2` is a path if it is a tree (see :meth:`is_tree`)
+        with `n-2` vertices of degree 2 and two of degree 1.
+        By convention, a graph of order 1 without loops is a path, but the empty graph is not a path.
+
+        EXAMPLES:
+
+            sage: G = graphs.PathGraph(5)
+            sage: G.is_path()
+            True
+            sage: H = graphs.CycleGraph(5)
+            sage: H.is_path()
+            False
+            sage: D = graphs.PathGraph(5).disjoint_union(graphs.CycleGraph(5))
+            sage: D.is_path()
+            False
+            sage: E = graphs.EmptyGraph()
+            sage: E.is_path()
+            False
+            sage: O = Graph([[1], []])
+            sage: O.is_path()
+            True
+            sage: O.allow_loops(True)
+            sage: O.add_edge(1, 1)
+            sage: O.is_path()
+            False
+        """
+        order = self.order()
+        if order != self.size() + 1:
+            return False
+
+        if order <= 1:
+            return order == 1
+
+        deg_one_counter = 0
+        seen_counter = 0
+        for v in self.depth_first_search(next(self.vertex_iterator())):
+            seen_counter += 1
+            deg = self._backend.degree(v, False)
+            if deg == 1:
+                deg_one_counter += 1
+                if deg_one_counter > 2:
+                    return False
+
+            elif deg != 2:
+                return False
+        return deg_one_counter == 2 and seen_counter == order
+
+
     @doc_index("Connectivity, orientations, trees")
     def degree_constrained_subgraph(self, bounds, solver=None, verbose=0):
         r"""

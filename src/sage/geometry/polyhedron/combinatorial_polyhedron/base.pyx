@@ -3143,7 +3143,6 @@ cdef class CombinatorialPolyhedron(SageObject):
         # For each incidence we determine its location in ``incidences``
         # by ``incidences[one][two]``.
         cdef size_t **incidences = <size_t**> mem.malloc(sizeof(size_t*))
-        cdef size_t one, two
 
         cdef size_t counter = 0         # the number of incidences so far
         cdef size_t current_length = 1  # dynamically enlarge **incidences
@@ -3171,33 +3170,16 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             # Get all incidences for fixed ``[dimension_one, dimension_two]``.
             while all_faces.next_incidence(&second, &first):
-
-                # Determine the position in ``incidences``.
-                one = counter // len_incidence_list
-                two = counter % len_incidence_list
-
-                # Enlarge ``incidences`` if needed.
-                if unlikely(two == 0):
-                    if unlikely(one + 1 > current_length):
-                        # enlarge **incidences
-                        current_length *= 2
-                        incidences = <size_t **> mem.reallocarray(incidences, current_length, sizeof(size_t*))
-
-                    incidences[one] = <size_t *> mem.allocarray(2 * len_incidence_list, sizeof(size_t))
-
                 if all_faces.dual:
                     # If ``dual``, then ``second`` and ``first are flipped.
                     second += already_seen
                     first += already_seen_next
-                    incidences[one][2*two] = second
-                    incidences[one][2*two + 1] = first
+                    self._set_edge(second, first, &incidences, &counter, &current_length, mem)
                 else:
                     second += already_seen_next
                     first += already_seen
-                    incidences[one][2*two] = first
-                    incidences[one][2*two + 1] = second
+                    self._set_edge(first, second, &incidences, &counter, &current_length, mem)
 
-                counter += 1
                 sig_check()
 
             # Increase dimensions.

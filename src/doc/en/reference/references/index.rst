@@ -1299,6 +1299,13 @@ REFERENCES:
 .. [CFI1992] Cai, JY., Fürer, M. & Immerman, N. Combinatorica (1992) 12: 389.
              :doi:`10.1007/BF01305232`
 
+.. [CFKPR2010] Ioannis Caragiannis, Afonso Ferreira, Christos Kaklamanis,
+               Stéphane Pérennes, Hervé Rivano.
+               *Fractional Path Coloring in Bounded Degree Trees with
+               Applications*. Algorithmica, Springer Verlag, 2010, 58 (2),
+               pp.516-540. :doi:`10.1007/s00453-009-9278-3`,
+               https://hal.archives-ouvertes.fr/hal-00371052/document
+
 .. [CFL1958] \K.-T. Chen, R.H. Fox, R.C. Lyndon, Free differential calculus,
              IV. The quotient groups of the lower central series, Ann. of Math.
              68 (1958) 81--95.

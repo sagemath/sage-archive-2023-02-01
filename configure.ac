@@ -148,17 +148,8 @@ please join the sage-devel discussion list - see
 http://groups.google.com/group/sage-devel
 The Sage community would also appreciate any patches you submit]]);;
 
-*-*-freebsd*)
-AC_MSG_ERROR([[
-You are attempting to build Sage on the FreeBSD operating system,
-which is not a supported platform for Sage yet, though
-developers are working on adding FreeBSD support. Things may or
-may not work. If you would like to help port Sage to FreeBSD,
-please join the sage-devel discussion list - see
-http://groups.google.com/group/sage-devel
-The Sage community would also appreciate any patches you submit]]);;
-
 # The following are all supported platforms.
+*-*-freebsd*);;
 *-*-linux*);;
 *-*-darwin*);;
 *-*-solaris*);;

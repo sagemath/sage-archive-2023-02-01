@@ -13,10 +13,10 @@ from sage.categories.modules import Modules
 from sage.modules.free_module import VectorSpace
 from sage.coding.encoder import Encoder
 from sage.misc.cachefunc import cached_method
-from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer import Integer
 from sage.structure.parent import Parent
 from sage.rings.integer_ring import ZZ
+
 
 class AbstractLinearCodeNoMetric(AbstractCode, Module):
     r"""
@@ -208,7 +208,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     def ambient_space(self):
         r"""
-        Returns the ambient vector space of ``self``.
+        Return the ambient vector space of ``self``.
 
         EXAMPLES::
 
@@ -220,7 +220,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     def generator_matrix(self, encoder_name=None, **kwargs):
         r"""
-        Returns a generator matrix of ``self``.
+        Return a generator matrix of ``self``.
 
         INPUT:
 
@@ -303,7 +303,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     def dimension(self):
         r"""
-        Returns the dimension of this code.
+        Return the dimension of this code.
 
         EXAMPLES::
 
@@ -376,7 +376,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
     @cached_method
     def gens(self):
         r"""
-        Returns the generators of this code as a list of vectors.
+        Return the generators of this code as a list of vectors.
 
         EXAMPLES::
 
@@ -388,7 +388,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     def basis(self):
         r"""
-        Returns a basis of ``self``.
+        Return a basis of ``self``.
 
         OUTPUT:
 
@@ -414,7 +414,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
     @cached_method
     def parity_check_matrix(self):
         r"""
-        Returns the parity check matrix of ``self``.
+        Return the parity check matrix of ``self``.
 
         The parity check matrix of a linear code `C` corresponds to the
         generator matrix of the dual code of `C`.
@@ -453,7 +453,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     def syndrome(self, r):
         r"""
-        Returns the syndrome of ``r``.
+        Return the syndrome of ``r``.
 
         The syndrome of ``r`` is the result of `H \times r` where `H` is
         the parity check matrix of ``self``. If ``r`` belongs to ``self``,
@@ -497,7 +497,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     def __contains__(self, v):
         r"""
-        Returns True if `v` can be coerced into ``self``. Otherwise, returns False.
+        Return True if `v` can be coerced into ``self``. Otherwise, returns False.
 
         EXAMPLES::
 
@@ -549,7 +549,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     def standard_form(self, return_permutation=True):
         r"""
-        Returns a linear code which is permutation-equivalent to ``self`` and
+        Return a linear code which is permutation-equivalent to ``self`` and
         admits a generator matrix in standard form.
 
         A generator matrix is in standard form if it is of the form `[I \vert
@@ -603,7 +603,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     def redundancy_matrix(self):
         r"""
-        Returns the non-identity columns of a systematic generator matrix for
+        Return the non-identity columns of a systematic generator matrix for
         ``self``.
 
         A systematic generator matrix is a generator matrix such that a subset
@@ -730,7 +730,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     def __getitem__(self, i):
         r"""
-        Returns the `i`-th codeword of this code.
+        Return the `i`-th codeword of this code.
 
         The implementation of this depends on the implementation of the
         :meth:`.__iter__` method.
@@ -833,7 +833,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     def __hash__(self):
         r"""
-        Returns the hash value of ``self``.
+        Return the hash value of ``self``.
 
         EXAMPLES::
 
@@ -860,7 +860,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     def is_subcode(self, other):
         """
-        Returns ``True`` if ``self`` is a subcode of ``other``.
+        Return ``True`` if ``self`` is a subcode of ``other``.
 
         EXAMPLES::
 
@@ -896,7 +896,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     def is_permutation_automorphism(self,g):
         r"""
-        Returns `1` if `g` is an element of `S_n` (`n` = length of self) and
+        Return `1` if `g` is an element of `S_n` (`n` = length of self) and
         if `g` is an automorphism of self.
 
         EXAMPLES::
@@ -927,7 +927,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     def permuted_code(self, p):
         r"""
-        Returns the permuted code, which is equivalent to ``self`` via the
+        Return the permuted code, which is equivalent to ``self`` via the
         column permutation ``p``.
 
         EXAMPLES::
@@ -943,14 +943,14 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
             True
         """
         if not hasattr(self, "_generic_constructor"):
-          raise NotImplementedException("Generic constructor not set for the class of codes")
+          raise NotImplementedError("Generic constructor not set for the class of codes")
         G = copy(self.generator_matrix())
         G.permute_columns(p)
         return self._generic_constructor(G)
 
     def dual_code(self):
         r"""
-        Returns the dual code `C^{\perp}` of the code `C`,
+        Return the dual code `C^{\perp}` of the code `C`,
 
         .. MATH::
 
@@ -966,12 +966,12 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
             [21, 3] linear code over GF(4)
         """
         if not hasattr(self, "_generic_constructor"):
-          raise NotImplementedException("Generic constructor not set for the class of codes")
+          raise NotImplementedError("Generic constructor not set for the class of codes")
         return self._generic_constructor(self.parity_check_matrix())
 
     def is_self_dual(self):
         """
-        Returns ``True`` if the code is self-dual (in the usual Hamming inner
+        Return ``True`` if the code is self-dual (in the usual Hamming inner
         product) and ``False`` otherwise.
 
         EXAMPLES::
@@ -987,7 +987,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
 
     def is_self_orthogonal(self):
         """
-        Returns ``True`` if this code is self-orthogonal and ``False``
+        Return ``True`` if this code is self-orthogonal and ``False``
         otherwise.
 
         A code is self-orthogonal if it is a subcode of its dual.
@@ -1009,7 +1009,7 @@ class AbstractLinearCodeNoMetric(AbstractCode, Module):
     @cached_method
     def zero(self):
         r"""
-        Returns the zero vector of ``self``.
+        Return the zero vector of ``self``.
 
         EXAMPLES::
 
@@ -1201,7 +1201,7 @@ class LinearCodeSystematicEncoder(Encoder):
     @cached_method
     def generator_matrix(self):
         r"""
-        Returns a generator matrix in systematic form of the associated code of ``self``.
+        Return a generator matrix in systematic form of the associated code of ``self``.
 
         Systematic form here means that a subsets of the columns of the matrix
         forms the identity matrix.
@@ -1280,7 +1280,7 @@ class LinearCodeSystematicEncoder(Encoder):
 
     def systematic_permutation(self):
         r"""
-        Returns a permutation which would take the systematic positions into [0,..,k-1]
+        Return a permutation which would take the systematic positions into [0,..,k-1]
 
         EXAMPLES::
 
@@ -1310,7 +1310,7 @@ class LinearCodeSystematicEncoder(Encoder):
 
     def systematic_positions(self):
         r"""
-        Returns a tuple containing the indices of the columns which form an
+        Return a tuple containing the indices of the columns which form an
         identity matrix when the generator matrix is in systematic form.
 
         EXAMPLES::

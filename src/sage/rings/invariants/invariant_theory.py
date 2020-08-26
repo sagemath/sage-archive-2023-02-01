@@ -806,38 +806,69 @@ class AlgebraicForm(FormsBase):
             Traceback (most recent call last):
             ...
             ValueError: less monomials were passed than the form actually has
+
+        TESTS:
+
+        Check for :trac:`30035`::
+
+            sage: R.<a,b,c> = QQ[]
+            sage: f = 3*a**3+b**3+a*b*c
+            sage: T = invariant_theory.ternary_cubic(f)
+            sage: T.S_invariant().parent()
+            Rational Field
         """
         R = self._ring
+        Rgens = R.gens()
+        BR = R.base_ring()
         if self._homogeneous:
             variables = self._variables
         else:
-            variables = self._variables[0:-1]
-        indices = [ R.gens().index(x) for x in variables ]
-        coeffs = dict()
-        if R.ngens() == 1:
-            # Univariate polynomials
-            assert indices == [0]
-            coefficient_monomial_iter = [(c, R.gen(0)**i) for i,c in
-                                         enumerate(self._polynomial.padded_list())]
+            variables = self._variables[:-1]
+        indices = [Rgens.index(x) for x in variables]
 
-            def index(monomial):
-                if monomial in R.base_ring():
-                    return (0,)
-                return (monomial.exponents()[0],)
+        if len(indices) == len(Rgens):
+            coeff_ring = BR
         else:
-            # Multivariate polynomials
-            coefficient_monomial_iter = self._polynomial
+            coeff_ring = R
 
-            def index(monomial):
-                if monomial in R.base_ring():
-                    return tuple(0 for i in indices)
-                e = monomial.exponents()[0]
-                return tuple(e[i] for i in indices)
-        for c,m in coefficient_monomial_iter:
-            i = index(m)
-            coeffs[i] = c*m + coeffs.pop(i, R.zero())
-        result = tuple(coeffs.pop(index(m), R.zero()) // m for m in monomials)
-        if len(coeffs):
+        coeffs = {}
+        if len(Rgens) == 1:
+            # Univariate polynomials
+
+            def mono_to_tuple(mono):
+                return (R(mono).exponents()[0],)
+
+            def coeff_tuple_iter():
+                for i, c in enumerate(self._polynomial):
+                    yield (c, (i,))
+        else:
+            # Multivariate polynomials, mixing variables and coefficients !
+            def mono_to_tuple(mono):
+                # mono is any monomial in the ring R
+                # keep only the exponents of true variables
+                mono = R(mono).exponents()[0]
+                return tuple(mono[i] for i in indices)
+
+            def mono_to_tuple_and_coeff(mono):
+                # mono is any monomial in the ring R
+                # separate the exponents of true variables
+                # and one coefficient monomial
+                mono = mono.exponents()[0]
+                true_mono = tuple(mono[i] for i in indices)
+                coeff_mono = list(mono)
+                for i in indices:
+                    coeff_mono[i] = 0
+                return true_mono, R.monomial(*coeff_mono)
+
+            def coeff_tuple_iter():
+                for c, m in self._polynomial:
+                    mono, coeff = mono_to_tuple_and_coeff(m)
+                    yield coeff_ring(c * coeff), mono
+
+        for c, i in coeff_tuple_iter():
+            coeffs[i] = c + coeffs.pop(i, coeff_ring.zero())
+        result = tuple(coeffs.pop(mono_to_tuple(m), coeff_ring.zero()) for m in monomials)
+        if coeffs:
             raise ValueError('less monomials were passed than the form actually has')
         return result
 

@@ -810,8 +810,15 @@ def combinatorial_face_to_polyhedral_face(polyhedron, combinatorial_face):
         raise NotImplementedError("unknown backend")
 
     if polyhedron.dimension() == 0:
-        # In case of the 0-dimensional polyhedron,
-        # there is a facets but no inequality.
+        # Taking care of a special case:
+        # In this case the face lattice has a coatom,
+        # but the polyhedron does not have a facet
+        # (a facet is defined to be non-empty).
+
+        # More important, there is no inequality for that coatom.
+        # So the above would produce an index error.
+        # Instead, any case of the 0-dimensional polyhedron
+        # satisfies all of the equations.
         H_indices = tuple(range(n_equations))
 
     return PolyhedronFace(polyhedron, V_indices, H_indices)

@@ -3036,6 +3036,18 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: g is f.polynomial()
             False
+
+        Note that in relative number fields, this produces the polynomial of
+        the internal representation of this element which might not be what
+        you are looking for::
+
+            sage: R.<y> = K[]
+            sage: L.<b> = K.extension(y^2 - a)
+            sage: b.polynomial()
+            -1/2*x^19 - 1/2*x^17 - 1/2*x^15 - 1/2*x^13 - x^11 - 1/2*x^9 - 1/2*x^7 - 1/2*x^5 - x^3 - 1/2*x
+            sage: R(list(b))
+            y
+
         """
         from sage.rings.polynomial.polynomial_ring_constructor import _single_variate as Pol
         return Pol(QQ, var)(self._coefficients())

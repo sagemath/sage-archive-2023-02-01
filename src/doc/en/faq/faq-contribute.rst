@@ -7,10 +7,9 @@ FAQ: Contributing to Sage
 How can I start contributing to Sage?
 """""""""""""""""""""""""""""""""""""
 
-The first step 
-is to use Sage and encourage your friends to use Sage. If you find 
-bugs or confusing documentation along the way, please report your 
-problems!
+The first step is to use Sage and encourage your friends to use
+Sage. If you find bugs or confusing documentation along the way,
+please report your problems!
 
 Two popular ways to contribute to Sage are to write code and to 
 create documentation or tutorials. Some steps in each direction 
@@ -20,12 +19,12 @@ I want to contribute code to Sage. How do I get started?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Take a look at the
-`official development guide <http://doc.sagemath.org/html/en/developer>`_
+`official development guide <https://doc.sagemath.org/html/en/developer>`_
 for Sage. At a minimum, the first chapter in that guide is required
 reading for any Sage developer. Also pay special attention to the
-`trac guidelines <http://doc.sagemath.org/html/en/developer/trac.html>`_.
+`trac guidelines <https://doc.sagemath.org/html/en/developer/trac.html>`_.
 You can also join the
-`sage-devel <http://groups.google.com/group/sage-devel>`_
+`sage-devel <https://groups.google.com/group/sage-devel>`_
 mailing list or hang around on the
 ``#sage-devel`` IRC channel on
 `freenode <http://freenode.net>`_. While you are getting to know 
@@ -35,7 +34,7 @@ source and familiarize yourself with the
 
 The best way to become familiar with the Sage development process is
 to choose a ticket from the
-`trac server <http://trac.sagemath.org>`_
+`trac server <https://trac.sagemath.org>`_
 and review the proposed changes contained in that ticket. If you want
 to implement something, it is a good practice to discuss your ideas on
 the ``sage-devel`` mailing list first, so that other developers have a
@@ -43,7 +42,7 @@ chance to comment on your ideas/proposals. They are pretty open to new
 ideas, too, as all mathematicians should be.
 
 Sage's main programming language is
-`Python <http://www.python.org>`_.
+`Python <https://www.python.org>`_.
 Some parts of Sage may be written in other languages, especially the
 components that do the heavy number crunching, but most native
 functionality is done using Python, including "glue code". One of the
@@ -62,11 +61,11 @@ evil."
 
 If you do not know Python, you should start learning that language. A
 good place to start is the
-`Python Official Tutorial <http://docs.python.org/tutorial>`_
+`Python Official Tutorial <https://docs.python.org/tutorial>`_
 and other documents in the
-`Python standard documentation <http://docs.python.org>`_.
+`Python standard documentation <https://docs.python.org>`_.
 Another good place to take a look at is
-`Dive Into Python <http://www.diveintopython.net>`_
+`Dive Into Python <http://www.diveintopython3.net>`_
 by Mark Pilgrim, which may be pretty helpful on some specific topics
 such as test-driven development. The book
 `Building Skills in Python <http://homepage.mac.com/s_lott/books/python.html>`_
@@ -82,17 +81,8 @@ programming concepts are explained more thoroughly in Python-centered
 resources than in Sage-centered resources; in the latter, 
 mathematics is usually the priority.
 
-Can I contribute to Sage using SageMathCloud?
-"""""""""""""""""""""""""""""""""""""""""""""
-
-Absolutely! If you want to write code for Sage or update the 
-official documentation, 
-you will need your own installation of Sage on `SageMathCloud <https://cloud.sagemath.com/>`_. 
-You can find more information about the details of installation in 
-`the SageMathCloud FAQ <https://github.com/sagemath/cloud/wiki/FAQ>`_.
-
-I'm not a programmer. Is there another way I can help out?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+I am not a programmer. Is there another way I can help out?
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Yes. As with any free open source software project, there are numerous
 ways in which you could help out within the Sage community, and
@@ -109,23 +99,20 @@ has written some
 which we highly recommend.
 
 For the graphic designers or the artistically creative, you can
-help out with improving the design of the Sage website. Or you can
-cast your critical artistic eyes over the interfaces of SageMathCloud 
-or the Sage notebook, and find out where they need improvement.
+help out with improving the design of the Sage website.
 
 If you can speak, read,
 and write in another (natural) language, there are many ways in which
 your contribution would be very valuable to the whole Sage
 community. Say you know Italian. Then you can write a Sage tutorial in
 Italian, or help out with translating the official Sage tutorial to
-Italian. 
+Italian.
 
-The above is a very short
-list. There are many, many more ways in which you can help out. Feel
-free to send an email to the
-`sage-devel <http://groups.google.com/group/sage-devel>`_
-mailing list to ask about possible ways in which you could help out,
-or to suggest a project idea.
+The above is a very short list. There are many, many more ways in
+which you can help out. Feel free to send an email to the `sage-devel
+<https://groups.google.com/group/sage-devel>`_ mailing list to ask
+about possible ways in which you could help out, or to suggest a
+project idea.
 
 
 Where can I find resources on Python or Cython?
@@ -136,31 +123,26 @@ resources can be found by a web search.
 
 **General resources**
 
-* `Cython <http://www.cython.org>`_
+* `Cython <https://cython.org/>`_
 * `pep8 <http://pypi.python.org/pypi/pep8>`_
 * `py2depgraph <http://www.tarind.com/depgraph.html>`_
 * `pycallgraph <http://pycallgraph.slowchop.com>`_
 * `PyChecker <http://pychecker.sourceforge.net>`_
 * `PyFlakes <http://divmod.org/trac/wiki/DivmodPyflakes>`_
 * `Pylint <http://www.logilab.org/project/pylint>`_
-* `Python <http://www.python.org>`_ home page and the
-  `Python standard documentation <http://docs.python.org>`_
+* `Python <https://www.python.org>`_ home page and the
+  `Python standard documentation <https://docs.python.org>`_
 * `Snakefood <http://furius.ca/snakefood>`_
 * `Sphinx <http://sphinx.pocoo.org>`_
 * `XDot <https://github.com/jrfonseca/xdot.py>`_
 
 **Tutorials and books**
 
-* `Building Skills in Python <http://homepage.mac.com/s_lott/books/python.html>`_
-  by Steven F. Lott
 * `Cython Tutorial <http://conference.scipy.org/proceedings/SciPy2009/paper_1/>`_
   by Stefan Behnel, Robert W. Bradshaw, and Dag Sverre Seljebotn
-* `Dive into Python <http://www.diveintopython.net>`_ by Mark Pilgrim
 * `Dive Into Python 3 <http://www.diveintopython3.net>`_ by Mark Pilgrim
 * `Fast Numerical Computations with Cython <http://conference.scipy.org/proceedings/SciPy2009/paper_2/>`_
   by Dag Sverre Seljebotn
-* `How to Think Like a Computer Scientist <http://www.openbookproject.net/thinkCSpy>`_
-  by Jeffrey Elkner, Allen B. Downey, and Chris Meyers
 * `Official Python Tutorial <http://docs.python.org/tutorial>`_
 
 **Articles and HOWTOs**
@@ -173,9 +155,6 @@ resources can be found by a web search.
 * `Regular Expression HOWTO <http://docs.python.org/howto/regex.html>`_
   by A. M. Kuchling
 * `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
-* `Static Code Analizers for Python <http://www.doughellmann.com/articles/pythonmagazine/completely-different/2008-03-linters/>`_
-  by Doug Hellmann
-
 
 Are there any coding conventions I need to follow?
 """"""""""""""""""""""""""""""""""""""""""""""""""
@@ -183,7 +162,7 @@ Are there any coding conventions I need to follow?
 You should follow the standard Python conventions as documented at
 :pep:`8` and :pep:`257`.
 Also consult the Sage Developer's Guide, especially the chapter
-`Conventions for Coding in Sage <http://doc.sagemath.org/html/en/developer/conventions.html>`_.
+`Conventions for Coding in Sage <https://doc.sagemath.org/html/en/developer/conventions.html>`_.
 
 
 I submitted a bug fix to the trac server several weeks ago. Why are you ignoring my patch?
@@ -268,7 +247,12 @@ necessity to import what you need.
 
       from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-  You can ask Sage where to find ``PolynomialRing`` using::
+  You can use ``import_statements`` to get the exact necessary line::
+
+      sage: import_statements(PolynomialRing)
+      from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+  If this fails, you can ask Sage where to find ``PolynomialRing`` using::
 
       sage: PolynomialRing.__module__
       'sage.rings.polynomial.polynomial_ring_constructor'

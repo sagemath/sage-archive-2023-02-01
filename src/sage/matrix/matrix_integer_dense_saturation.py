@@ -7,7 +7,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.arith.all import binomial, gcd
 from sage.matrix.constructor import identity_matrix, random_matrix
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.misc.randstate import current_randstate
 from . import matrix_integer_dense_hnf
 from copy import copy

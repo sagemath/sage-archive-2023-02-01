@@ -43,6 +43,11 @@ case $SYSTEM in
 ARG BASE_IMAGE=ubuntu:latest
 FROM \${BASE_IMAGE} as with-system-packages
 EOF
+        if [ -n "$DIST_UPGRADE" ]; then
+            cat <<EOF
+RUN sed -i.bak $DIST_UPGRADE /etc/apt/sources.list && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
+EOF
+        fi
         EXISTS="2>/dev/null >/dev/null apt-cache show"
         UPDATE="apt-get update &&"
         INSTALL="DEBIAN_FRONTEND=noninteractive apt-get install -qqq --no-install-recommends --yes"
@@ -55,6 +60,15 @@ FROM \${BASE_IMAGE} as with-system-packages
 EOF
         EXISTS="2>/dev/null >/dev/null yum install -y --downloadonly"
         INSTALL="yum install -y"
+        ;;
+    gentoo*)
+        cat <<EOF
+ARG BASE_IMAGE=sheerluck/sage-on-gentoo-stage4:latest
+FROM \${BASE_IMAGE} as with-system-packages
+EOF
+        EXISTS="2>/dev/null >/dev/null emerge -f"
+        UPDATE="" # not needed. "FROM gentoo/portage" used instead
+        INSTALL="emerge -DNut --with-bdeps=y --complete-graph=y"
         ;;
     slackware*)
         # https://docs.slackware.com/slackbook:package_management
@@ -76,6 +90,16 @@ EOF
         UPDATE="pacman -Sy &&"
         EXISTS="pacman -Si"
         INSTALL="pacman -Su --noconfirm"
+        ;;
+    void*)
+	# https://hub.docker.com/r/voidlinux/masterdir-x86_64-musl
+	cat <<EOF
+ARG BASE_IMAGE=voidlinux:masterdir-x86_64-musl
+FROM \${BASE_IMAGE} as with-system-packages
+EOF
+        UPDATE="xbps-install -Su &&"
+        EXISTS="xbps-query"
+        INSTALL="xbps-install --yes"
         ;;
     conda*)
         cat <<EOF
@@ -150,15 +174,14 @@ RUN mkdir -p /sage
 WORKDIR /sage
 ADD Makefile VERSION.txt README.md bootstrap configure.ac sage ./
 ADD src/doc/bootstrap src/doc/bootstrap
+ADD src/bin src/bin
 ADD m4 ./m4
 ADD build ./build
-ADD src/bin/sage-version.sh src/bin/sage-version.sh
-$RUN ./bootstrap
+ARG BOOTSTRAP=./bootstrap
+$RUN sh -x -c "\${BOOTSTRAP}"
 
 FROM bootstrapped as configured
 #:configuring:
-ADD src/bin src/bin
-ADD src/Makefile.in src/Makefile.in
 RUN mkdir -p logs/pkgs; ln -s logs/pkgs/config.log config.log
 ARG EXTRA_CONFIGURE_ARGS=""
 EOF
@@ -179,7 +202,7 @@ ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
 ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
-ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake"
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!symengine_py"
 #:toolchain:
 $RUN make \${USE_MAKEFLAGS} base-toolchain
 
@@ -188,7 +211,7 @@ ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
 ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
-ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake"
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!symengine_py"
 #:make:
 ARG TARGETS_PRE="sagelib-build-deps"
 $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_PRE}
@@ -198,7 +221,7 @@ ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
 ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
-ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake"
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!symengine_py"
 ADD src src
 ARG TARGETS="build"
 $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS}
@@ -208,7 +231,7 @@ ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
 ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
-ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake"
+ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!symengine_py"
 ARG TARGETS_OPTIONAL="ptest"
 $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_OPTIONAL} || echo "(error ignored)"
 

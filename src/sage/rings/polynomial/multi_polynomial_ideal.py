@@ -247,7 +247,8 @@ from sage.structure.sequence import Sequence
 from sage.structure.richcmp import (richcmp_method, op_EQ, op_NE,
                                     op_LT, op_GT, op_LE, op_GE, rich_to_bool)
 from sage.misc.cachefunc import cached_method
-from sage.misc.all import prod, verbose, get_verbose
+from sage.misc.all import prod
+from sage.misc.verbose import verbose, get_verbose
 from sage.misc.method_decorator import MethodDecorator
 
 from sage.rings.integer_ring import ZZ
@@ -1226,6 +1227,12 @@ class MPolynomialIdeal_singular_repr(
             sage: I.vector_space_dimension()
             +Infinity
 
+        Due to integer overflow, the result is correct only modulo ``2^32``, see :trac:`8586`::
+
+            sage: P.<x,y,z> = PolynomialRing(GF(32003),3)
+            sage: sage.rings.ideal.FieldIdeal(P).vector_space_dimension()  # known bug
+            32777216864027
+
         TESTS:
 
         Check that this method works over QQbar (:trac:`25351`)::
@@ -2092,7 +2099,7 @@ class MPolynomialIdeal_singular_repr(
 
         You can use Giac to compute the elimination ideal::
 
-            sage: I.elimination_ideal([t, s], algorithm="giac") == J  # optional - giacpy_sage
+            sage: I.elimination_ideal([t, s], algorithm="giac") == J
             ...
             Running a probabilistic check for the reconstructed Groebner basis...
             True
@@ -2118,7 +2125,7 @@ class MPolynomialIdeal_singular_repr(
             sage: J = I.elimination_ideal([t,s]); J
             Ideal (y^2 - x*z, x*y - z, x^2 - y) of Multivariate
             Polynomial Ring in x, y, t, s, z over Algebraic Field
-            sage: I.elimination_ideal([t, s], algorithm="giac") == J  # optional - giacpy_sage
+            sage: I.elimination_ideal([t, s], algorithm="giac") == J
             Running a probabilistic check for the reconstructed Groebner basis...
             True
         """
@@ -3996,20 +4003,20 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: J = I.change_ring(P.change_ring(order='degrevlex'))
-            sage: gb = J.groebner_basis('giac') # optional - giacpy_sage, random
-            sage: gb  # optional - giacpy_sage
+            sage: gb = J.groebner_basis('giac') # random
+            sage: gb
             [c^3 - 79/210*c^2 + 1/30*b + 1/70*c, b^2 - 3/5*c^2 - 1/5*b + 1/5*c, b*c + 6/5*c^2 - 1/10*b - 2/5*c, a + 2*b + 2*c - 1]
 
-            sage: J.groebner_basis.set_cache(gb)  # optional - giacpy_sage
+            sage: J.groebner_basis.set_cache(gb)
             sage: ideal(J.transformed_basis()).change_ring(P).interreduced_basis()  # testing trac 21884
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
         Giac's gbasis over `\QQ` can benefit from a probabilistic lifting and
         multi threaded operations::
 
-            sage: A9=PolynomialRing(QQ,9,'x') # optional - giacpy_sage
-            sage: I9=sage.rings.ideal.Katsura(A9) # optional - giacpy_sage
-            sage: I9.groebner_basis("giac",proba_epsilon=1e-7) # optional - giacpy_sage, long time (3s)
+            sage: A9=PolynomialRing(QQ,9,'x')
+            sage: I9=sage.rings.ideal.Katsura(A9)
+            sage: I9.groebner_basis("giac",proba_epsilon=1e-7) # long time (3s)
             ...Running a probabilistic check for the reconstructed Groebner basis...
             Polynomial Sequence with 143 Polynomials in 9 Variables
 
@@ -4074,6 +4081,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         protocol did not appear during doctests, so, we skip the
         examples with protocol output.  ::
 
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(2)
             sage: I = R*[x^3+y^2,x^2*y+1]
             sage: I.groebner_basis()  # not tested
@@ -4251,8 +4259,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: J = I.change_ring(P.change_ring(order='degrevlex'))
-            sage: gb = J.groebner_basis('giac') # optional - giacpy_sage, random
-            sage: gb  # optional - giacpy_sage
+            sage: gb = J.groebner_basis('giac') # random
+            sage: gb
             [c^3 + (-79/210)*c^2 + 1/30*b + 1/70*c, b^2 + (-3/5)*c^2 + (-1/5)*b + 1/5*c, b*c + 6/5*c^2 + (-1/10)*b + (-2/5)*c, a + 2*b + 2*c - 1]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching

@@ -108,8 +108,18 @@ class Polyhedron_cdd(Polyhedron_base):
             ....:            backend='cdd', base_ring=QQ)  # indirect doctest
             A 1-dimensional polyhedron in QQ^2 defined as the
             convex hull of 1 vertex and 1 ray
+
+        TESTS:
+
+        The polyhedron with zero inequalities can be initialized from Hrepresentation;
+        see :trac:`29899`::
+
+            sage: Polyhedron(ieqs=[], ambient_dim=5, backend='cdd')
+            A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 1 vertex and 5 lines
         """
         from .cdd_file_format import cdd_Hrepresentation
+        # We have to add a trivial inequality, in case the polyhedron is the universe.
+        ieqs = tuple(ieqs) + ((1,) + tuple(0 for _ in range(self.ambient_dim())),)
         s = cdd_Hrepresentation(self._cdd_type, ieqs, eqns)
         s = self._run_cdd(s, '--redcheck', verbose=verbose)
         s = self._run_cdd(s, '--repall', verbose=verbose)
@@ -551,6 +561,22 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
             sage: R = 2*P
             sage: P.is_combinatorially_isomorphic(R)
             True
+
+        The polyhedron with zero inequalities works correctly; see :trac:`29899`::
+
+            sage: Vrep = [[], [], [[1.0]]]
+            sage: Hrep = [[], []]
+            sage: p = Polyhedron_RDF_cdd(parent, Vrep, Hrep,
+            ....:                        Vrep_minimal=True, Hrep_minimal=True)  # indirect doctest
+            sage: p
+            A 1-dimensional polyhedron in RDF^1 defined as the convex hull of 1 vertex and 1 line
+
+        Test that :trac:`30330` is fixed::
+
+            sage: P1 = polytopes.regular_polygon(5, exact=False)
+            sage: P2 = Polyhedron()
+            sage: P1*P2
+            The empty polyhedron in RDF^2
         """
         def parse_Vrep(intro, data):
             count = int(data[0][0])
@@ -585,8 +611,11 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
                 from .cdd_file_format import cdd_Vrepresentation
                 s = cdd_Vrepresentation(self._cdd_type, vertices, rays, lines)
             else:
+                # We have to add a trivial inequality, in case the polyhedron is the universe.
+                new_ieqs = ieqs + ((1,) + tuple(0 for _ in range(self.ambient_dim())),)
+
                 from .cdd_file_format import cdd_Hrepresentation
-                s = cdd_Hrepresentation(self._cdd_type, ieqs, eqns)
+                s = cdd_Hrepresentation(self._cdd_type, new_ieqs, eqns)
 
             s = self._run_cdd(s, '--redcheck', verbose=verbose)
             s = self._run_cdd(s, '--repall', verbose=verbose)
@@ -598,6 +627,11 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
 
         vertices, rays, lines = (tuple(x) for x in Vrep)
         ieqs, eqns            = (tuple(x) for x in Hrep)
+
+        if not (vertices or rays or lines):
+            # cdd refuses to handle empty polyhedra.
+            self._init_empty_polyhedron()
+            return
 
         # We prefer the shorter representation.
         # Note that for the empty polyhedron we prefer Hrepresentation.

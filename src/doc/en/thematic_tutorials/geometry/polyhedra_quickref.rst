@@ -133,6 +133,7 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_facet_graph` | bipartite digraph given vertex-facet adjacency
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.adjacency_matrix` | adjacency matrix
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix` | incidence matrix
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.slack_matrix` | slack matrix
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.facet_adjacency_matrix` | adjacency matrix of the facets
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_adjacency_matrix` | adjacency matrix of the vertices
 

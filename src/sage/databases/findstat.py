@@ -183,7 +183,7 @@ from sage.categories.sets_cat import Sets
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp
 
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.rings.integer import Integer
 from sage.databases.oeis import FancyTuple
 

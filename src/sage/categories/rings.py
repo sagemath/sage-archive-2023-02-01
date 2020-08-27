@@ -178,8 +178,11 @@ class Rings(CategoryWithAxiom):
                     if K is self.codomain():
                         return True
 
-            if self.domain().cardinality() > self.codomain().cardinality():
-                return False
+            try:
+                if self.domain().cardinality() > self.codomain().cardinality():
+                    return False
+            except AttributeError:
+                pass
 
             raise NotImplementedError
 
@@ -205,7 +208,7 @@ class Rings(CategoryWithAxiom):
 
         def extend_to_fraction_field(self):
             r"""
-            Return the extension of the morphism to fraction fields of
+            Return the extension of this morphism to fraction fields of
             the domain and the codomain.
 
             EXAMPLES::
@@ -231,6 +234,14 @@ class Rings(CategoryWithAxiom):
                 Traceback (most recent call last):
                 ...
                 ValueError: the morphism is not injective
+
+            TESTS::
+
+                sage: A.<x> = RR[]
+                sage: phi = A.hom([x+1])
+                sage: phi.extend_to_fraction_field()
+                Ring endomorphism of Fraction Field of Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+                  Defn: x |--> x + 1.00000000000000
             """
             from sage.rings.morphism import RingHomomorphism_from_fraction_field
             if self.domain().is_field() and self.codomain().is_field():
@@ -238,7 +249,7 @@ class Rings(CategoryWithAxiom):
             try:
                 if not self.is_injective():
                     raise ValueError("the morphism is not injective")
-            except NotImplementedError:   # we trust the user
+            except (NotImplementedError, TypeError):   # we trust the user
                 pass
             domain = self.domain().fraction_field()
             codomain = self.codomain().fraction_field()
@@ -923,12 +934,17 @@ class Rings(CategoryWithAxiom):
                 sage: GF(17)['a']['b']
                 Univariate Polynomial Ring in b over Univariate Polynomial Ring in a over Finite Field of size 17
 
-            We can create skew polynomial rings::
+            We can create Ore polynomial rings::
 
                 sage: k.<t> = GF(5^3)
                 sage: Frob = k.frobenius_endomorphism()
-                sage: k['x',Frob]
-                Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+                sage: k['x', Frob]
+                Ore Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+
+                sage: R.<t> = QQ[]
+                sage: der = R.derivation()
+                sage: R['d', der]
+                Ore Polynomial Ring in d over Univariate Polynomial Ring in t over Rational Field twisted by d/dt
 
             We can also create power series rings by using double brackets::
 
@@ -1063,7 +1079,7 @@ class Rings(CategoryWithAxiom):
             # 1. If arg is a list, try to return a power series ring.
 
             if isinstance(arg, list):
-                if arg == []:
+                if not arg:
                     raise TypeError("power series rings must have at least one variable")
                 elif len(arg) == 1:
                     # R[["a,b"]], R[[(a,b)]]...
@@ -1077,9 +1093,10 @@ class Rings(CategoryWithAxiom):
 
             if isinstance(arg, tuple):
                 from sage.categories.morphism import Morphism
-                if len(arg) == 2 and isinstance(arg[1], Morphism):
-                   from sage.rings.polynomial.skew_polynomial_ring import SkewPolynomialRing
-                   return SkewPolynomialRing(self, arg[1], names=arg[0])
+                from sage.rings.derivation import RingDerivation
+                if len(arg) == 2 and isinstance(arg[1], (Morphism, RingDerivation)):
+                    from sage.rings.polynomial.ore_polynomial_ring import OrePolynomialRing
+                    return OrePolynomialRing(self, arg[1], names=arg[0])
 
             # 2. Otherwise, if all specified elements are algebraic, try to
             #    return an algebraic extension

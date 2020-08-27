@@ -25,8 +25,8 @@ Cython modules::
     sage: sage_getdoc(sage.rings.rational).lstrip()
     'Rational Numbers...'
 
-    sage: sage_getsource(sage.rings.rational)[5:]
-    'Rational Numbers...'
+    sage: sage_getsource(sage.rings.rational)
+    '# distutils: ...Rational Numbers...'
 
 Python modules::
 
@@ -156,9 +156,9 @@ def isclassinstance(obj):
         sage: from sage.misc.sageinspect import isclassinstance
         sage: isclassinstance(int)
         False
-        sage: isclassinstance(FreeModule)
-        True
         sage: class myclass: pass
+        sage: isclassinstance(myclass())
+        True
         sage: isclassinstance(myclass)
         False
         sage: class mymetaclass(type): pass

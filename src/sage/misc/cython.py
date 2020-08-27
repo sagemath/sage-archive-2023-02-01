@@ -41,7 +41,7 @@ cblas_library_dirs = list(cblas_pc['library_dirs'])
 cblas_include_dirs = list(cblas_pc['include_dirs'])
 
 standard_libs = [
-    'mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm',
+    'mpfr', 'gmp', 'gmpxx', 'pari', 'm',
     'ec', 'gsl',
 ] + cblas_libs + [
     'ntl']

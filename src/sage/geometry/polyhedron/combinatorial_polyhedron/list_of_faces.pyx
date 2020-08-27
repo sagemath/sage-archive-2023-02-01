@@ -306,8 +306,10 @@ cdef class ListOfFaces:
             ....:     points = tuple(tuple(randint(-1000,1000) for _ in range(10))
             ....:                    for _ in range(randint(3,15)))
             ....:     P = Polyhedron(vertices=points)
-            ....:     facets = incidence_matrix_to_bit_rep_of_facets(P.incidence_matrix())
-            ....:     vertices = incidence_matrix_to_bit_rep_of_Vrep(P.incidence_matrix())
+            ....:     inc = P.incidence_matrix()
+            ....:     mod_inc = inc.delete_columns([i for i,V in enumerate(P.Hrepresentation()) if V.is_equation()])
+            ....:     facets = incidence_matrix_to_bit_rep_of_facets(mod_inc)
+            ....:     vertices = incidence_matrix_to_bit_rep_of_Vrep(mod_inc)
             ....:     d1 = P.dimension()
             ....:     if d1 == 0:
             ....:         continue

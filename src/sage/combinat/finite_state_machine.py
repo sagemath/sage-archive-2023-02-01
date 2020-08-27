@@ -942,7 +942,7 @@ from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_function
 from sage.misc.latex import latex
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.misc.sageinspect import sage_getargspec
 from sage.rings.qqbar import QQbar
 from sage.rings.integer_ring import ZZ
@@ -10296,8 +10296,9 @@ class FiniteStateMachine(SageObject):
                 sage: moments['covariance']
                 -1/8*n + Order(1)
 
-            This warning can be silenced by :func:`~sage.misc.misc.set_verbose`::
+            This warning can be silenced by :func:`~sage.misc.verbose.set_verbose`::
 
+                sage: from sage.misc.verbose import set_verbose
                 sage: set_verbose(-1, "finite_state_machine.py")
                 sage: moments = T.asymptotic_moments()
                 sage: moments['expectation']

@@ -1,3 +1,5 @@
+# distutils: libraries = givaro gmp m
+# distutils: language = c++
 r"""
 Givaro Field Elements
 
@@ -52,7 +54,6 @@ AUTHORS:
 
 from cysignals.signals cimport sig_on, sig_off
 
-include "sage/libs/ntl/decl.pxi"
 from cypari2.paridecl cimport *
 
 from sage.misc.randstate cimport randstate, current_randstate

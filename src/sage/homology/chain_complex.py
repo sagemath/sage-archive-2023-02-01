@@ -681,7 +681,7 @@ class ChainComplex_class(Parent):
         self._degree_of_differential = degree_of_differential
         self._diff = differentials
 
-        from sage.categories.all import ChainComplexes
+        from sage.categories.chain_complexes import ChainComplexes
         category = ChainComplexes(base_ring)
         super(ChainComplex_class, self).__init__(base=base_ring, category=category)
 
@@ -1999,10 +1999,8 @@ class ChainComplex_class(Parent):
         R = self.base_ring()
         zero = matrix(R, [])
         subdivide = kwds.get('subdivide', False)
-        ret = self
-
         diffs = [D.differential() for D in factors]
-        keys = reduce(lambda X,d: X.union(d.keys()), diffs, set())
+        keys = reduce(lambda X, d: X.union(d.keys()), diffs, set())
         ret = {k: matrix.block_diagonal([d.get(k, zero) for d in diffs],
                                          subdivide=subdivide)
                for k in keys}

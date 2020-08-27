@@ -1287,7 +1287,8 @@ def isogeny_degrees_cm(E, verbose=False):
     if verbose:
         print("Complete set of primes: %s" % L)
 
-    return sorted(list(L))
+    return sorted(L)
+
 
 def possible_isogeny_degrees(E, algorithm='Billerey', max_l=None,
                              num_l=None, exact=True, verbose=False):

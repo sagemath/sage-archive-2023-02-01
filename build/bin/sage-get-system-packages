@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#!/bin/sh
 SYSTEM=$1
 if [ -z "$SYSTEM" ]; then
    echo >&2 "usage: $0 {debian|arch|conda|...} SPKGS..."

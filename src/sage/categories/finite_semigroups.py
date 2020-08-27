@@ -11,7 +11,7 @@ Finite semigroups
 # *****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import attrcall
+from sage.misc.call import attrcall
 from sage.categories.category_with_axiom import CategoryWithAxiom
 
 

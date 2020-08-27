@@ -8,12 +8,7 @@ export PYTHONPATH="$(pwd)/src"
 # need to use --upgrade or --ignore-installed; Otherwise pip, which is
 # importing itself, will think itself is already installed
 #
-if [ "$SAGE_PYTHON3" = "yes" ]; then
-    versions="3"
-else
-    # Install pip3 first so pip2 overwrites local/bin/pip
-    versions="3 2"
-fi
+versions=3
 
 for vers in $versions; do
     python${vers} -m pip install --verbose --no-index --ignore-installed \

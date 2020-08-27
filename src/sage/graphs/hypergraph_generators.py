@@ -51,7 +51,9 @@ class HypergraphGenerators():
 
         INPUT:
 
-        - ``number_of_sets``, ``number_of_vertices`` -- integers.
+        - ``number_of_sets`` -- integer, at most 64 minus ``number_of_vertices``
+
+        - ``number_of_vertices`` -- integer, at most 30
 
         - ``multiple_sets`` -- boolean (default: ``False``); whether to allow
           several sets of the hypergraph to be equal.
@@ -79,19 +81,19 @@ class HypergraphGenerators():
           hypergraphs to be connected.
 
         - ``debug`` -- boolean (default: ``False``); if ``True`` the first line
-          of genbg's output to standard error is captured and the first call to
+          of genbgL's output to standard error is captured and the first call to
           the generator's ``next()`` function will return this line as a string.
           A line leading with ">A" indicates a successful initiation of the
           program with some information on the arguments, while a line beginning
           with ">E" indicates an error with the input.
 
         - ``options`` -- string (default: ``""``) -- anything else that should
-          be forwarded as input to Nauty's genbg. See its documentation for more
+          be forwarded as input to Nauty's genbgL. See its documentation for more
           information : `<http://cs.anu.edu.au/~bdm/nauty/>`_.
 
           .. NOTE::
 
-              For genbg the *first class* elements are vertices, and *second
+              For genbgL the *first class* elements are vertices, and *second
               class* elements are the hypergraph's sets.
 
         OUTPUT:
@@ -128,7 +130,25 @@ class HypergraphGenerators():
             sage: fano = next(hypergraphs.nauty(7, 7, regular=3, max_intersection=1))
             sage: print(fano)
             ((0, 1, 2), (0, 3, 4), (0, 5, 6), (1, 3, 5), (2, 4, 5), (2, 3, 6), (1, 4, 6))
+
+        TESTS::
+
+            sage: len(list(hypergraphs.nauty(20, 20, uniform=2, regular=2,max_intersection=1)))
+            49
+            sage: list(hypergraphs.nauty(40, 40, uniform=2, regular=2,max_intersection=1))
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot have more than 30 vertices
+            sage: list(hypergraphs.nauty(40, 30, uniform=2, regular=2,max_intersection=1))
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot have more than 64 sets+vertices
         """
+        if number_of_vertices > 30:
+            raise ValueError("cannot have more than 30 vertices")
+        if number_of_sets + number_of_vertices > 64:
+            raise ValueError("cannot have more than 64 sets+vertices")
+
         import subprocess
 
         nauty_input = options
@@ -162,7 +182,7 @@ class HypergraphGenerators():
 
         nauty_input +=  " " + str(number_of_vertices) + " " + str(number_of_sets) + " "
 
-        sp = subprocess.Popen(nautyprefix+"genbg {0}".format(nauty_input), shell=True,
+        sp = subprocess.Popen(nautyprefix + "genbgL {0}".format(nauty_input), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True)
 

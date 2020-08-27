@@ -12,8 +12,8 @@ These options should be "attached" to one or more classes as an options method.
 .. SEEALSO::
 
     For good examples of :class:`GlobalOptions` in action see
-    :meth:`sage.combinat.partition.Partitions.options` and
-    :meth:`sage.combinat.tableau.Tableaux.options`.
+    :obj:`sage.combinat.partition.Partitions.options` and
+    :obj:`sage.combinat.tableau.Tableaux.options`.
 
 .. _construction_section:
 

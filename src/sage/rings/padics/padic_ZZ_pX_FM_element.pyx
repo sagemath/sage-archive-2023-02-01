@@ -1,3 +1,5 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
 """
 `p`-Adic ``ZZ_pX`` FM Element
 

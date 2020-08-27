@@ -815,7 +815,7 @@ class LocalGeneric(CommutativeRing):
 
     def e(self):
         """
-        Return the degree of this extension.
+        Return the ramification index of this extension.
 
         Raise an error if the base ring/field is itself an extension.
 
@@ -836,7 +836,7 @@ class LocalGeneric(CommutativeRing):
 
     def ramification_index(self):
         """
-        Return the degree of this extension.
+        Return the ramification index of this extension.
 
         Raise an error if the base ring/field is itself an extension.
 

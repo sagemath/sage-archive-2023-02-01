@@ -1580,7 +1580,7 @@ class DyckWord(CombinatorialElement):
             else:
                 close_positions.append(i + 1)
         from sage.combinat.tableau import StandardTableau
-        return StandardTableau([x for x in [open_positions, close_positions] if x != []])
+        return StandardTableau([x for x in [open_positions, close_positions] if x])
 
     def to_tamari_sorting_tuple(self):
         """

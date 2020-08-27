@@ -1126,21 +1126,25 @@ class Graph(GenericGraph):
         if format == 'weighted_adjacency_matrix':
             if weighted is False:
                 raise ValueError("Format was weighted_adjacency_matrix but weighted was False.")
-            if weighted   is None: weighted   = True
-            if multiedges is None: multiedges = False
+            if weighted is None:
+                weighted = True
+            if multiedges is None:
+                multiedges = False
             format = 'adjacency_matrix'
 
         # At this point, 'format' has been set. We build the graph
 
         if format == 'graph6':
-            if weighted   is None: weighted   = False
+            if weighted is None:
+                weighted = False
             self.allow_loops(loops if loops else False, check=False)
             self.allow_multiple_edges(multiedges if multiedges else False, check=False)
             from .graph_input import from_graph6
             from_graph6(self, data)
 
         elif format == 'sparse6':
-            if weighted   is None: weighted   = False
+            if weighted is None:
+                weighted = False
             self.allow_loops(False if loops is False else True, check=False)
             self.allow_multiple_edges(False if multiedges is False else True, check=False)
             from .graph_input import from_sparse6
@@ -1163,9 +1167,12 @@ class Graph(GenericGraph):
             from .graph_input import from_seidel_adjacency_matrix
             from_seidel_adjacency_matrix(self, data)
         elif format == 'Graph':
-            if loops is None:      loops      = data.allows_loops()
-            if multiedges is None: multiedges = data.allows_multiple_edges()
-            if weighted is None:   weighted   = data.weighted()
+            if loops is None:
+                loops = data.allows_loops()
+            if multiedges is None:
+                multiedges = data.allows_multiple_edges()
+            if weighted is None:
+                weighted = data.weighted()
             self.allow_loops(loops, check=False)
             self.allow_multiple_edges(multiedges, check=False)
             if data.get_pos() is not None:
@@ -1213,8 +1220,10 @@ class Graph(GenericGraph):
         elif format == 'rule':
             f = data[1]
             verts = data[0]
-            if loops is None: loops = any(f(v,v) for v in verts)
-            if weighted is None: weighted = False
+            if loops is None:
+                loops = any(f(v,v) for v in verts)
+            if weighted is None:
+                weighted = False
             self.allow_loops(loops, check=False)
             self.allow_multiple_edges(True if multiedges else False, check=False)
             self.add_vertices(verts)
@@ -1253,7 +1262,8 @@ class Graph(GenericGraph):
         else:
             raise ValueError("Unknown input format '{}'".format(format))
 
-        if weighted   is None: weighted   = False
+        if weighted is None:
+            weighted = False
         self._weighted = getattr(self, '_weighted', weighted)
 
         self._pos = copy(pos)
@@ -2801,9 +2811,12 @@ class Graph(GenericGraph):
 
         # Stupid cases
         if not g.order():
-            if certificate: return Graph()
-            elif k is None: return -1
-            else:           return True
+            if certificate:
+                return Graph()
+            elif k is None:
+                return -1
+            else:
+                return True
 
         if k is not None and k >= g.order() - 1:
             if certificate:
@@ -3865,7 +3878,7 @@ class Graph(GenericGraph):
 
         return left, right
 
-    @doc_index("Algorithmically hard stuff")
+    @doc_index("Coloring")
     def chromatic_index(self, solver=None, verbose=0):
         r"""
         Return the chromatic index of the graph.
@@ -3936,8 +3949,7 @@ class Graph(GenericGraph):
         from sage.graphs.graph_coloring import edge_coloring
         return edge_coloring(self, value_only=True, solver=solver, verbose=verbose)
 
-
-    @doc_index("Algorithmically hard stuff")
+    @doc_index("Coloring")
     def chromatic_number(self, algorithm="DLX", solver=None, verbose=0):
         r"""
         Return the minimal number of colors needed to color the vertices of the
@@ -4052,7 +4064,7 @@ class Graph(GenericGraph):
         else:
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX', 'MILP' or 'CP'.")
 
-    @doc_index("Algorithmically hard stuff")
+    @doc_index("Coloring")
     def coloring(self, algorithm="DLX", hex_colors=False, solver=None, verbose=0):
         r"""
         Return the first (optimal) proper vertex-coloring found.
@@ -4130,7 +4142,7 @@ class Graph(GenericGraph):
         else:
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX' or 'MILP'.")
 
-    @doc_index("Algorithmically hard stuff")
+    @doc_index("Coloring")
     def chromatic_symmetric_function(self, R=None):
         r"""
         Return the chromatic symmetric function of ``self``.
@@ -4198,7 +4210,7 @@ class Graph(GenericGraph):
             ret += (-1)**len(F) * p[la]
         return ret
 
-    @doc_index("Algorithmically hard stuff")
+    @doc_index("Coloring")
     def chromatic_quasisymmetric_function(self, t=None, R=None):
         r"""
         Return the chromatic quasisymmetric function of ``self``.
@@ -4483,7 +4495,6 @@ class Graph(GenericGraph):
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
 
-
     @doc_index("Algorithmically hard stuff")
     def has_homomorphism_to(self, H, core=False, solver=None, verbose=0):
         r"""
@@ -4592,135 +4603,61 @@ class Graph(GenericGraph):
         except MIPSolverException:
             return False
 
-    @doc_index("Leftovers")
-    def fractional_chromatic_index(self, solver="PPL", verbose_constraints=False, verbose=0):
+    @doc_index("Clique-related methods")
+    def fractional_clique_number(self, solver='PPL', verbose=0,
+                                 check_components=True, check_bipartite=True):
         r"""
-        Return the fractional chromatic index of the graph.
+        Return the fractional clique number of the graph.
 
-        The fractional chromatic index is a relaxed version of edge-coloring. An
-        edge coloring of a graph being actually a covering of its edges into the
-        smallest possible number of matchings, the fractional chromatic index of
-        a graph `G` is the smallest real value `\chi_f(G)` such that there
-        exists a list of matchings `M_1, ..., M_k` of `G` and coefficients
-        `\alpha_1, ..., \alpha_k` with the property that each edge is covered by
-        the matchings in the following relaxed way
-
-        .. MATH::
-
-            \forall e \in E(G), \sum_{e \in M_i} \alpha_i \geq 1
-
-        For more information, see the :wikipedia:`Fractional_coloring`.
+        A fractional clique is a nonnegative weight function on the vertices of
+        a graph such that the sum of the weights over any independent set is at
+        most 1. The fractional clique number is the largest total weight of a
+        fractional clique, which is equal to the fractional chromatic number by
+        LP-duality.
 
         ALGORITHM:
 
-        The fractional chromatic index is computed through Linear Programming
-        through its dual. The LP solved by sage is actually:
-
-        .. MATH::
-
-            \mbox{Maximize : }&\sum_{e\in E(G)} r_{e}\\
-            \mbox{Such that : }&\\
-            &\forall M\text{ matching }\subseteq G, \sum_{e\in M}r_{v}\leq 1\\
+        The fractional clique number is computed via the Linear Program for
+        fractional chromatic number, see :meth:`fractional_chromatic_number
+        <sage.graphs.graph_coloring.fractional_chromatic_number>`
 
         INPUT:
 
         - ``solver`` -- (default: ``"PPL"``); specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+          the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
           .. NOTE::
 
               The default solver used here is ``"PPL"`` which provides exact
               results, i.e. a rational number, although this may be slower that
-              using other solvers. Be aware that this method may loop endlessly
-              when using some non exact solvers as reported in :trac:`23658` and
-              :trac:`23798`.
-
-        - ``verbose_constraints`` -- boolean (default: ``False``); whether to
-          display which constraints are being generated.
+              using other solvers.
 
         - ``verbose`` -- integer (default: `0`); sets the level of verbosity of
-          the LP solver.
+          the LP solver
+
+        - ``check_components`` -- boolean (default: ``True``); whether the
+          method is called on each biconnected component of `G`
+
+        - ``check_bipartite`` -- boolean (default: ``True``); whether the graph
+          is checked for bipartiteness. If the graph is bipartite then we can
+          avoid creating and solving the LP.
 
         EXAMPLES:
 
-        The fractional chromatic index of a `C_5` is `5/2`::
+        The fractional clique number of a `C_7` is `7/3`::
 
-            sage: g = graphs.CycleGraph(5)
-            sage: g.fractional_chromatic_index()
-            5/2
-
-        TESTS:
-
-        Issue reported in :trac:`23658` and :trac:`23798` with non exact
-        solvers::
-
-            sage: g = graphs.PetersenGraph()
-            sage: g.fractional_chromatic_index(solver='GLPK')  # known bug (#23798)
-            3.0
-            sage: g.fractional_chromatic_index(solver='PPL')
-            3
+            sage: g = graphs.CycleGraph(7)
+            sage: g.fractional_clique_number()
+            7/3
         """
-        self._scream_if_not_simple()
-
-        if not self.order():
-            return 0
-        if not self.size():
-            return 1
-
-        from sage.numerical.mip import MixedIntegerLinearProgram
-
-        # Initialize LP for maximum weight matching
-        M = MixedIntegerLinearProgram(solver=solver, constraint_generation=True)
-
-        # One variable per edge
-        b = M.new_variable(binary=True, nonnegative=True)
-
-        # We want to select at most one incident edge per vertex (matching)
-        for u in self:
-            M.add_constraint(M.sum(b[frozenset(e)] for e in self.edges_incident(u, labels=0)), max=1)
-
-        #
-        # Initialize LP for fractional chromatic number
-        p = MixedIntegerLinearProgram(solver=solver, constraint_generation=True)
-
-        # One variable per edge
-        r = p.new_variable(nonnegative=True)
-
-        # We want to maximize the sum of weights on the edges
-        p.set_objective(p.sum(r[frozenset(e)] for e in self.edge_iterator(labels=False)))
-
-        # Each edge being by itself a matching, its weight can not be more than
-        # 1
-        for e in self.edge_iterator(labels=False):
-            p.add_constraint(r[frozenset(e)], max=1)
-
-        obj = p.solve(log=verbose)
-
-        while True:
-
-            # Update the weights of edges for the matching problem
-            M.set_objective(M.sum(p.get_values(r[frozenset(e)]) * b[frozenset(e)] for e in self.edge_iterator(labels=0)))
-
-            # If the maximum matching has weight at most 1, we are done !
-            if M.solve(log=verbose) <= 1:
-                break
-
-            # Otherwise, we add a new constraint
-            matching = [e for e in self.edge_iterator(labels=0) if M.get_values(b[frozenset(e)]) == 1]
-            p.add_constraint(p.sum(r[frozenset(e)] for e in matching), max=1)
-            if verbose_constraints:
-                print("Adding a constraint on matching : {}".format(matching))
-
-            # And solve again
-            obj = p.solve(log=verbose)
-
-        # Accomplished !
-        return obj
+        return self.fractional_chromatic_number(solver=solver, verbose=verbose,
+                                                check_components=check_components,
+                                                check_bipartite=check_bipartite)
 
     @doc_index("Leftovers")
     def maximum_average_degree(self, value_only=True, solver=None, verbose=0):
@@ -5223,14 +5160,21 @@ class Graph(GenericGraph):
           - ``'BFS'`` - the computation is done through a BFS centered on each
             vertex successively. Works only if ``by_weight==False``.
 
+          - ``'DHV'`` - the computation is done using the algorithm proposed in
+            [Dragan2018]_. Works only if ``self`` has non-negative edge weights
+            and ``v is None`` or ``v`` should contain all vertices of ``self``.
+            For more information see method
+            :func:`sage.graphs.distances_all_pairs.eccentricity` and
+            :func:`sage.graphs.base.boost_graph.eccentricity_DHV`.
+
           - ``'Floyd-Warshall-Cython'`` - a Cython implementation of the
             Floyd-Warshall algorithm. Works only if ``by_weight==False`` and
-            ``v is None``.
+            ``v is None`` or ``v`` should contain all vertices of ``self``.
 
           - ``'Floyd-Warshall-Python'`` - a Python implementation of the
             Floyd-Warshall algorithm. Works also with weighted graphs, even with
             negative weights (but no negative cycle is allowed). However, ``v``
-            must be ``None``.
+            must be ``None`` or ``v`` should contain all vertices of ``self``.
 
           - ``'Dijkstra_NetworkX'`` - the Dijkstra algorithm, implemented in
             NetworkX. It works with weighted graphs, but no negative weight is
@@ -5241,7 +5185,8 @@ class Graph(GenericGraph):
 
           - ``'Johnson_Boost'`` - the Johnson algorithm, implemented in
             Boost (works also with negative weights, if there is no negative
-            cycle).
+            cycle). Works only if ``v is None`` or ``v`` should contain all
+            vertices of ``self``.
 
           - ``'From_Dictionary'`` - uses the (already computed) distances, that
             are provided by input variable ``dist_dict``.
@@ -5255,7 +5200,7 @@ class Graph(GenericGraph):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -5303,6 +5248,10 @@ class Graph(GenericGraph):
             [2, 1, 2]
             sage: G.eccentricity(dist_dict = G.shortest_path_all_pairs(by_weight = True)[0])
             [2, 1, 2]
+            sage: G.eccentricity(by_weight = False, algorithm = 'DHV')
+            [1, 1, 1]
+            sage: G.eccentricity(by_weight = True, algorithm = 'DHV')
+            [2.0, 1.0, 2.0]
 
         TESTS:
 
@@ -5339,6 +5288,10 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: algorithm 'Johnson_Boost' works only if all eccentricities are needed
+            sage: G.eccentricity(0, algorithm = 'DHV')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm 'DHV' works only if all eccentricities are needed
         """
         if weight_function is not None:
             by_weight = True
@@ -5367,6 +5320,8 @@ class Graph(GenericGraph):
             v = [v]
 
         if v is None or all(u in v for u in self):
+            if v is None:
+                v = list(self)
             # If we want to use BFS, we use the Cython routine
             if algorithm == 'BFS':
                 if by_weight:
@@ -5374,10 +5329,28 @@ class Graph(GenericGraph):
                 from sage.graphs.distances_all_pairs import eccentricity
                 algo = 'bounds'
                 if with_labels:
-                    vertex_list = list(self)
-                    return dict(zip(vertex_list, eccentricity(self, algorithm=algo, vertex_list=vertex_list)))
+                    return dict(zip(v, eccentricity(self, algorithm=algo, vertex_list=v)))
                 else:
-                    return eccentricity(self, algorithm=algo)
+                    return eccentricity(self, algorithm=algo,vertex_list=v)
+
+            if algorithm == 'DHV':
+                if by_weight:
+                    from sage.graphs.base.boost_graph import eccentricity_DHV
+                    if with_labels:
+                        return dict(zip(v, eccentricity_DHV(self, vertex_list=v,
+                                                            weight_function=weight_function,
+                                                            check_weight=check_weight)))
+                    else:
+                        return eccentricity_DHV(self, vertex_list=v,
+                                                weight_function=weight_function,
+                                                check_weight=check_weight)
+                else:
+                    from sage.graphs.distances_all_pairs import eccentricity
+                    if with_labels:
+                        return dict(zip(v, eccentricity(self, algorithm=algorithm,
+                                                        vertex_list=v)))
+                    else:
+                        return eccentricity(self, algorithm=algorithm, vertex_list=v)
 
             if algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
                 dist_dict = self.shortest_path_all_pairs(by_weight, algorithm,
@@ -5385,9 +5358,7 @@ class Graph(GenericGraph):
                                                          check_weight)[0]
                 algorithm = 'From_Dictionary'
 
-            v = self.vertices()
-
-        elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
+        elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost','DHV']:
             raise ValueError("algorithm '" + algorithm + "' works only if all" +
                              " eccentricities are needed")
 
@@ -5451,7 +5422,7 @@ class Graph(GenericGraph):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -5546,6 +5517,12 @@ class Graph(GenericGraph):
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
 
+          - ``'DHV'`` - diameter computation is done using the algorithm
+            proposed in [Dragan2018]_. Works only for non-negative edge weights.
+            For more information see method
+            :func:`sage.graphs.distances_all_pairs.diameter_DHV` and
+            :func:`sage.graphs.base.boost_graph.diameter_DHV`.
+
           - ``'standard'``, ``'2sweep'``, ``'multi-sweep'``, ``'iFUB'``:
             these algorithms are implemented in
             :func:`sage.graphs.distances_all_pairs.diameter`
@@ -5567,7 +5544,7 @@ class Graph(GenericGraph):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -5609,10 +5586,26 @@ class Graph(GenericGraph):
         if weight_function is not None:
             by_weight = True
 
-        if algorithm is None and not by_weight:
-            algorithm = 'iFUB'
+        if by_weight and not weight_function:
+            def weight_function(e):
+                return 1 if e[2] is None else e[2]
+
+        if algorithm is None:
+            if by_weight:
+                algorithm = 'iFUB'
+            else:
+                algorithm = 'DHV'
         elif algorithm == 'BFS':
             algorithm = 'standard'
+
+        if algorithm == 'DHV':
+            if by_weight:
+                from sage.graphs.base.boost_graph import diameter_DHV
+                return diameter_DHV(self, weight_function=weight_function,
+                                    check_weight=check_weight)
+            else:
+                from sage.graphs.distances_all_pairs import diameter
+                return diameter(self, algorithm=algorithm)
 
         if algorithm in ['standard', '2sweep', 'multi-sweep', 'iFUB']:
             if by_weight:
@@ -5651,7 +5644,7 @@ class Graph(GenericGraph):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -5723,7 +5716,7 @@ class Graph(GenericGraph):
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-          weight.
+          weight, if ``l`` is not ``None``, else ``1`` as a weight.
 
         - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
           that the ``weight_function`` outputs a number for each edge
@@ -6510,7 +6503,7 @@ class Graph(GenericGraph):
             (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
           - If ``algorithm = "mcqd"``, uses the MCQD solver
-            (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+            (`<http://insilab.org/maxclique/>`_). Note that the MCQD
             package must be installed.
 
         - ``cliques`` -- an optional list of cliques that can be input if
@@ -7490,6 +7483,7 @@ class Graph(GenericGraph):
             [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
             sage: (graphs.FruchtGraph()).cores(with_labels=True)
             {0: 3, 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 3, 11: 3}
+            sage: set_random_seed(0)
             sage: a = random_matrix(ZZ, 20, x=2, sparse=True, density=.1)
             sage: b = Graph(20)
             sage: b.add_edges(a.nonzero_positions(), loops=False)
@@ -7641,16 +7635,12 @@ class Graph(GenericGraph):
 
         The Bull Graph is prime::
 
-            sage: graphs.BullGraph().modular_decomposition()  # py2
-            (PRIME, [0, 3, 4, 2, 1])
-            sage: graphs.BullGraph().modular_decomposition()  # py3
+            sage: graphs.BullGraph().modular_decomposition()
             (PRIME, [1, 2, 0, 3, 4])
 
         The Petersen Graph too::
 
-            sage: graphs.PetersenGraph().modular_decomposition()  # py2
-            (PRIME, [6, 2, 5, 1, 9, 3, 0, 7, 8, 4])
-            sage: graphs.PetersenGraph().modular_decomposition()  # py3
+            sage: graphs.PetersenGraph().modular_decomposition()
             (PRIME, [1, 4, 5, 0, 2, 6, 3, 7, 8, 9])
 
         This a clique on 5 vertices with 2 pendant edges, though, has a more
@@ -8651,7 +8641,6 @@ class Graph(GenericGraph):
     def has_perfect_matching(self, algorithm="Edmonds", solver=None, verbose=0):
         r"""
         Return whether this graph has a perfect matching.
-
         INPUT:
 
         - ``algorithm`` -- string (default: ``"Edmonds"``)
@@ -9254,14 +9243,14 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``certificate`` -- boolean (default: ``False``); whether to return 
+        - ``certificate`` -- boolean (default: ``False``); whether to return
           a certificate.
 
         OUTPUT:
 
         When ``certificate = True``, then the function returns `(a, F)`
-        where `a` is the arboricity and `F` is a list of `a` disjoint forests 
-        that partitions the edge set of `g`. The forests are represented as 
+        where `a` is the arboricity and `F` is a list of `a` disjoint forests
+        that partitions the edge set of `g`. The forests are represented as
         subgraphs of the original graph.
 
         If ``certificate = False``, the function returns just a integer
@@ -9287,7 +9276,7 @@ class Graph(GenericGraph):
 
             sage: g = Graph()
             sage: g.arboricity(True)
-            (0, []) 
+            (0, [])
         """
         from sage.matroids.constructor import Matroid
         P = Matroid(self).partition()
@@ -9295,6 +9284,108 @@ class Graph(GenericGraph):
           return (len(P), [self.subgraph(edges=forest) for forest in P])
         else:
           return len(P)
+
+    @doc_index("Basic methods")
+    def bipartite_double(self, extended=False):
+        r"""
+        Return the (extended) bipartite double of this graph.
+
+        The bipartite double of a graph `G` has vertex set
+        `\{ (v,0), (v,1) : v \in G\}` and for any edge `(u, v)` in `G`
+        it has edges `((u,0),(v,1))` and `((u,1),(v,0))`.
+        Note that this is the tensor product of `G` with `K_2`.
+
+        The extended bipartite double of `G` is the bipartite double of
+        `G` after added all edges `((v,0),(v,1))` for all vertices `v`.
+
+        INPUT:
+
+        - ``extended`` -- boolean (default: ``False``); Whether to return the
+          extended bipartite double, or only the bipartite double (default)
+
+        OUTPUT:
+
+        A graph; ``self`` is left untouched.
+
+        EXAMPLES::
+
+            sage: G = graphs.PetersenGraph()
+            sage: H = G.bipartite_double()
+            sage: G == graphs.PetersenGraph()  # G is left invariant
+            True
+            sage: H.order() == 2 * G.order()
+            True
+            sage: H.size() == 2 * G.size()
+            True
+            sage: H.is_bipartite()
+            True
+            sage: H.bipartite_sets() == (set([(v, 0) for v in G]),
+            ....: set([(v, 1) for v in G]))
+            True
+            sage: H.is_isomorphic(G.tensor_product(graphs.CompleteGraph(2)))
+            True
+
+        Behaviour with disconnected graphs::
+
+            sage: G1 = graphs.PetersenGraph()
+            sage: G2 = graphs.HoffmanGraph()
+            sage: G = G1.disjoint_union(G2)
+            sage: H = G.bipartite_double()
+            sage: H1 = G1.bipartite_double()
+            sage: H2 = G2.bipartite_double()
+            sage: H.is_isomorphic(H1.disjoint_union(H2))
+            True
+
+        .. SEEALSO::
+
+            :wikipedia:`Bipartite_double_cover`,
+            `WolframAlpha Bipartite Double
+            <https://mathworld.wolfram.com/BipartiteDoubleGraph.html>`_,
+            [VDKT2016]_ p. 20 for the extended bipartite double.
+
+        TESTS::
+
+            sage: G = graphs.PetersenGraph()
+            sage: H = G.bipartite_double(True)
+            sage: G == graphs.PetersenGraph()  # G is left invariant
+            True
+            sage: H.order() == 2 * G.order()
+            True
+            sage: H.size() == 2 * G.size() + G.order()
+            True
+            sage: H.is_bipartite()
+            True
+            sage: H.bipartite_sets() == (set([(v, 0) for v in G]),
+            ....: set([(v, 1) for v in G]))
+            True
+            sage: H.is_isomorphic(G.tensor_product(graphs.CompleteGraph(2)))
+            False
+
+        Test edge cases::
+
+            sage: G = Graph()
+            sage: H = G.bipartite_double()
+            sage: H.size() + H.order()
+            0
+            sage: H = G.bipartite_double(True)
+            sage: H.size() + H.order()
+            0
+            sage: G = Graph(1)
+            sage: H = G.bipartite_double()
+            sage: H.size() == 0 and H.order() == 2
+            True
+            sage: H = G.bipartite_double(True)
+            sage: H.is_isomorphic(Graph([(0, 1)]))
+            True
+        """
+        G = self.tensor_product(Graph([(0, 1)]))
+
+        if extended:
+            G.add_edges(((v, 0), (v, 1)) for v in self)
+
+        prefix = "Extended " if extended else ""
+        G.name("%sBipartite Double of %s"%(prefix, self.name()))
+        return G
 
     # Aliases to functions defined in other modules
     from sage.graphs.weakly_chordal import is_long_hole_free, is_long_antihole_free, is_weakly_chordal
@@ -9325,13 +9416,16 @@ class Graph(GenericGraph):
     from sage.graphs.domination import minimal_dominating_sets
     from sage.graphs.traversals import (lex_M, maximum_cardinality_search,
                                         maximum_cardinality_search_M)
+    from sage.graphs.isoperimetric_inequalities import cheeger_constant, edge_isoperimetric_number, vertex_isoperimetric_number
+    from sage.graphs.graph_coloring import fractional_chromatic_number
+    from sage.graphs.graph_coloring import fractional_chromatic_index
 
 _additional_categories = {
     "is_long_hole_free"         : "Graph properties",
     "is_long_antihole_free"     : "Graph properties",
     "is_weakly_chordal"         : "Graph properties",
     "is_asteroidal_triple_free" : "Graph properties",
-    "chromatic_polynomial"      : "Algorithmically hard stuff",
+    "chromatic_polynomial"      : "Coloring",
     "rank_decomposition"        : "Algorithmically hard stuff",
     "pathwidth"                 : "Algorithmically hard stuff",
     "matching_polynomial"       : "Algorithmically hard stuff",
@@ -9361,7 +9455,12 @@ _additional_categories = {
     "minimal_dominating_sets"   : "Domination",
     "lex_M"                     : "Traversals",
     "maximum_cardinality_search" : "Traversals",
-    "maximum_cardinality_search_M" : "Traversals"
+    "maximum_cardinality_search_M" : "Traversals",
+    "cheeger_constant"          : "Expansion properties",
+    "edge_isoperimetric_number" : "Expansion properties",
+    "vertex_isoperimetric_number" : "Expansion properties",
+    "fractional_chromatic_number" : "Coloring",
+    "fractional_chromatic_index" : "Coloring"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

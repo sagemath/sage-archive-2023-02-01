@@ -21,7 +21,7 @@ Heilbronn matrix computation
 from cysignals.memory cimport check_allocarray, sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off, sig_check
 
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.arith.misc import is_prime
 
 from sage.libs.gmp.mpz cimport *

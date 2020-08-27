@@ -75,8 +75,13 @@ def _make_color_list(n, colors=None,  color_map=None, randomize=False):
          (0.5019607843137255, 0.7509803921568627, 0.4),
          (0.7529411764705882, 0.8764705882352941, 0.4),
          (1.0, 1.0, 0.4)]
-        sage: _make_color_list(8, ['blue', 'red'], randomize=True)
-        ['blue', 'blue', 'red', 'blue', 'red', 'red', 'red', 'blue']
+        sage: l = _make_color_list(8, ['blue', 'red'], randomize=True)
+        sage: len(l)
+        8
+        sage: l.count('blue')
+        4
+        sage: l.count('red')
+        4
     """
     if colors:
         dim = len(colors)
@@ -1154,10 +1159,14 @@ class FullyPackedLoop(Element, metaclass=InheritComparisonClasscallMetaclass):
             i,j = unrank(k)
 
             # initial direction
-            if i == -1: d = R
-            elif i == n: d = L
-            elif j == -1: d = U
-            elif j == n: d = D
+            if i == -1:
+                d = R
+            elif i == n:
+                d = L
+            elif j == -1:
+                d = U
+            elif j == n:
+                d = D
 
             # go through the link
             while True:

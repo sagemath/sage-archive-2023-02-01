@@ -407,9 +407,6 @@ cdef class ntl_ZZ_pX(object):
             raise ArithmeticError("self (=%s) is not divisible by other (=%s)" % (self, other))
         return r
 
-    def __div__(self, other):
-        return self / other
-
     def __mod__(ntl_ZZ_pX self, ntl_ZZ_pX other):
         """
         Given polynomials a, b in ZZ_p[X], if p is prime, then there exist polynomials q, r

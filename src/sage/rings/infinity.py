@@ -864,6 +864,27 @@ class LessThanInfinity(_uniq, RingElement):
             return rich_to_bool(op, -1)
         return rich_to_bool(op, 0)
 
+    def sign(self):
+        """
+        Raise an error because the sign of self is not well defined.
+
+        EXAMPLES::
+
+            sage: sign(UnsignedInfinityRing(2))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: sign of number < oo is not well defined
+            sage: sign(UnsignedInfinityRing(0))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: sign of number < oo is not well defined
+            sage: sign(UnsignedInfinityRing(-2))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: sign of number < oo is not well defined
+        """
+        raise NotImplementedError("sign of number < oo is not well defined")
+
 
 class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
 
@@ -1462,6 +1483,34 @@ class FiniteNumber(RingElement):
         if self.value == 0:
             return FiniteNumber(self.parent(), 0)
         return FiniteNumber(self.parent(), 1)
+
+    def sign(self):
+        """
+        Return the sign of self.
+
+        EXAMPLES::
+
+            sage: sign(InfinityRing(2))
+            1
+            sage: sign(InfinityRing(0))
+            0
+            sage: sign(InfinityRing(-2))
+            -1
+
+        TESTS::
+
+            sage: sgn(InfinityRing(7))
+            1
+            sage: sgn(InfinityRing(0))
+            0
+            sage: sgn(InfinityRing(-7))
+            -1
+        """
+        if self.value == 0:
+            return 0
+        if self.value > 0:
+            return 1
+        return -1
 
     def sqrt(self):
         """

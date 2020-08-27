@@ -801,7 +801,7 @@ class Color(object):
             RGB color (0.29166666666666663, 0.286437908496732, 0.07794117647058824)
             sage: vector((papayawhip / 2).rgb()) == vector((papayawhip * 0.5).rgb())
             True
-            sage: yellow.__div__(1/4)
+            sage: yellow.__truediv__(1/4)
             RGB color (0.0, 0.0, 0.0)
 
         TESTS::
@@ -821,27 +821,6 @@ class Color(object):
             TypeError: float() argument must be a string or a number, not 'Color'
         """
         return self * (1 / float(right))
-
-    def __div__(self, right):
-        """
-        Return a color whose RGB coordinates are this color's
-        coordinates divided by a scalar.
-
-        INPUT:
-
-        - ``right`` -- a float-convertible, non-zero number
-
-        OUTPUT:
-
-        - a **new** instance of :class:`Color`
-
-        EXAMPLES::
-
-            sage: from sage.plot.colors import yellow
-            sage: yellow.__div__(4)
-            RGB color (0.25, 0.25, 0.0)
-        """
-        return self / right
 
     def __int__(self):
         """

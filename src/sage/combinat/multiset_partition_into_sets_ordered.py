@@ -191,7 +191,7 @@ class OrderedMultisetPartitionIntoSets(ClonableArray,
         if not _has_nonempty_sets(co):
             raise ValueError("cannot view %s as an ordered partition of %s"%(co, parent._Xtup))
 
-        ClonableArray.__init__(self, parent, [frozenset(list(k)) for k in co])
+        ClonableArray.__init__(self, parent, [frozenset(k) for k in co])
         self._multiset = _get_multiset(co)
         self._weight = _get_weight(self._multiset)
         self._order = sum(len(block) for block in self)
@@ -2873,12 +2873,13 @@ def _iterator_size(size, length=None, alphabet=None):
                                                         max_part=min(a, max_p))
                                         for a in alpha]):
                 if frozenset(_concatenate(p)).issubset(frozenset(alphabet)):
-                    yield tuple(frozenset(list(k)) for k in p)
+                    yield tuple(frozenset(k) for k in p)
     else:
         for alpha in IntegerListsLex(size, length=length, min_part=1, max_part=size):
             for p in cartesian_product([IntegerListsLex(a, min_slope=1,
                                                         min_part=1) for a in alpha]):
-                yield tuple(frozenset(list(k)) for k in p)
+                yield tuple(frozenset(k) for k in p)
+
 
 def _iterator_order(A, d, lengths=None):
     """

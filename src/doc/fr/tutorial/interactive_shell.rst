@@ -963,35 +963,3 @@ la variable ``b`` n'a pas été écrasée.
     sage: a
     389
 
-
-
-.. _section-notebook:
-
-L'ancienne interface *bloc-note sagenb*
-=======================================
-
-L'ancien bloc-note de Sage (“sagenb”) est obsolète et n'est plus
-disponible à partir de la version 9.0 de SageMath, pour cause
-d'incompatibilité avec Python 3. SageMath utilise désormais le
-`bloc-note Jupyter
-<https://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_.
-
-Pour les utilisateurs, une différence notable est la suivante : les
-feuilles de calcul du bloc-note Jupyter sont sauvegardées sous le
-nouveau format ``.ipynb`` dans le système de fichiers local comme
-n'importe quel autre fichier, alors que pour l'ancien bloc-note le
-principal accès aux feuilles de calcul passait par le serveur.
-
-La nouvelle interface *bloc-note Jupyter*
-=========================================
-
-Pour démarrer le bloc-note Jupyter, tapez
-
-.. skip
-
-::
-
-    sage -n jupyter
-
-sur la ligne de commande dans un terminal. Cela démarre le serveur Jupyter et
-ouvre votre navigateur web par défaut sur la page correspondante.

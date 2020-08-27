@@ -1415,7 +1415,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         ::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: K.<w> = QuadraticField(2, embedding=QQbar(-sqrt(2)))
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: X = P.subscheme(x-y)

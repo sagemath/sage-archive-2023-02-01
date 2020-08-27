@@ -684,6 +684,19 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
         """
         return self.__class__(self.domain(), self.power()*n)
 
+    @cached_method
+    def inverse(self):
+        """
+        Return the inverse of this Frobenius endomorphism.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(7^11)
+            sage: f = k.frobenius_endomorphism(5)
+            sage: (f.inverse() * f).is_identity()
+            True
+        """
+        return self.__class__(self.domain(), -self.power())
 
     def _composition(self, right):
         """

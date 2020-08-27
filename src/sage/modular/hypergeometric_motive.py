@@ -853,6 +853,8 @@ class HypergeometricData(object):
 
             :meth:`hodge_numbers`, :meth:`hodge_polynomial`, :meth:`hodge_polygon_vertices`
 
+        EXAMPLES::
+
             sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(cyclotomic=([6,10],[3,12]))
             sage: H.hodge_function(3)
@@ -1291,10 +1293,10 @@ class HypergeometricData(object):
         else:
             gtab = gauss_table(p, f, prec, use_longs)
             trcoeffs = hgm_coeffs(p, f, prec, gamma, m, D, gtab, prec, use_longs)
-        sigma = trcoeffs[q-2]
+        sigma = trcoeffs[p-2]
         p_ring = sigma.parent()
         teich = p_ring.teichmuller(M/t)
-        for i in range(q-3, -1, -1):
+        for i in range(p-3, -1, -1):
             sigma = sigma * teich + trcoeffs[i]
         resu = ZZ(-1) ** m[0] * sigma / (1 - q)
         return IntegerModRing(p**prec)(resu).lift_centered()

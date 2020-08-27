@@ -1,3 +1,5 @@
+# distutils: libraries = ntl
+# distutils: language = c++
 """
 Number Field Elements
 
@@ -42,6 +44,7 @@ from sage.libs.gmp.mpq cimport *
 from sage.libs.mpfi cimport mpfi_t, mpfi_init, mpfi_set, mpfi_clear, mpfi_div_z, mpfi_init2, mpfi_get_prec, mpfi_set_prec
 from sage.libs.mpfr cimport mpfr_equal_p, mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p, mpfr_floor, mpfr_get_z, MPFR_RNDN
 from sage.libs.ntl.error import NTLError
+from sage.libs.ntl.convert cimport mpz_to_ZZ
 from sage.libs.gmp.pylong cimport mpz_pythonhash
 
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
@@ -49,7 +52,7 @@ from sage.structure.richcmp cimport rich_to_bool
 
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element
-from sage.rings.polynomial.evaluation cimport ZZX_evaluation_mpfi
+from sage.rings.polynomial.evaluation_ntl cimport ZZX_evaluation_mpfi
 import sage.rings.rational_field
 import sage.rings.rational
 import sage.rings.integer_ring
@@ -302,7 +305,7 @@ cdef class NumberFieldElement(FieldElement):
         if isinstance(f, (int, long, Integer_sage)):
             # set it up and exit immediately
             # fast pathway
-            (<Integer>ZZ(f))._to_ZZ(&coeff)
+            mpz_to_ZZ(&coeff, (<Integer>ZZ(f)).value)
             ZZX_SetCoeff( self.__numerator, 0, coeff )
             ZZ_conv_from_int( self.__denominator, 1 )
             return
@@ -321,10 +324,10 @@ cdef class NumberFieldElement(FieldElement):
 
         cdef long i
         den = f.denominator()
-        (<Integer>ZZ(den))._to_ZZ(&self.__denominator)
+        mpz_to_ZZ(&self.__denominator, (<Integer>ZZ(den)).value)
         num = f * den
         for i from 0 <= i <= num.degree():
-            (<Integer>ZZ(num[i]))._to_ZZ(&coeff)
+            mpz_to_ZZ(&coeff, (<Integer>ZZ(num[i])).value)
             ZZX_SetCoeff( self.__numerator, i, coeff )
 
     def _lift_cyclotomic_element(self, new_parent, bint check=True, int rel=0):
@@ -493,7 +496,8 @@ cdef class NumberFieldElement(FieldElement):
             sage: latex(zeta12^4-zeta12) # indirect doctest
             \zeta_{12}^{2} - \zeta_{12} - 1
         """
-        return self.polynomial()._latex_(name=self.number_field().latex_variable_name())
+        latex_name = self.number_field().latex_variable_names()[0]
+        return self.polynomial()._latex_(name=latex_name)
 
     def _gap_init_(self):
         """
@@ -931,11 +935,11 @@ cdef class NumberFieldElement(FieldElement):
 
             # set the denominator
             mpz_set_si(denom_temp.value, 1)
-            denom_temp._to_ZZ(&self.__denominator)
+            mpz_to_ZZ(&self.__denominator, (<Integer>denom_temp).value)
             for i from 0 <= i < ZZX_deg(self.__fld_numerator.x):
                 tmp_integer = <Integer>(ZZ.random_element(x=num_bound,
                                                    distribution=distribution))
-                tmp_integer._to_ZZ(&ntl_temp)
+                mpz_to_ZZ(&ntl_temp, (<Integer>tmp_integer).value)
                 ZZX_SetCoeff(self.__numerator, i, ntl_temp)
 
         else:
@@ -955,7 +959,7 @@ cdef class NumberFieldElement(FieldElement):
             # scale the numerators and set everything appropriately
 
             # first, the denominator (easy)
-            denom_temp._to_ZZ(&self.__denominator)
+            mpz_to_ZZ(&self.__denominator, (<Integer>denom_temp).value)
 
             # now the coefficients themselves.
             for i from 0 <= i < ZZX_deg(self.__fld_numerator.x):
@@ -970,7 +974,8 @@ cdef class NumberFieldElement(FieldElement):
                              mpq_denref(tmp_rational.value))
 
                 # now set the coefficient of self
-                tmp_integer._to_ZZ(&ntl_temp)
+                mpz_to_ZZ(&ntl_temp, (<Integer>tmp_integer).value)
+
                 ZZX_SetCoeff(self.__numerator, i, ntl_temp)
 
         return 0  # No error
@@ -2730,7 +2735,9 @@ cdef class NumberFieldElement(FieldElement):
             raise TypeError("Unable to coerce %s to a rational"%self)
         cdef Integer num = Integer.__new__(Integer)
         ZZX_getitem_as_mpz(num.value, &self.__numerator, 0)
-        return num / (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
+        cdef Integer den = Integer.__new__(Integer)
+        ZZ_to_mpz(den.value, &self.__denominator)
+        return num / den
 
     def _algebraic_(self, parent):
         r"""
@@ -3125,7 +3132,8 @@ cdef class NumberFieldElement(FieldElement):
             ZZX_getitem_as_mpz(z, &self.__numerator, i)
 
     cdef void _ntl_denom_as_mpz(self, mpz_t z):
-        cdef Integer denom = (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
+        cdef Integer denom = Integer.__new__(Integer)
+        ZZ_to_mpz(denom.value, &self.__denominator)
         mpz_set(z, denom.value)
 
     def denominator(self):
@@ -3143,7 +3151,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: a.denominator()
             15
         """
-        return (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
+        cdef Integer ans = Integer.__new__(Integer)
+        ZZ_to_mpz(ans.value, &self.__denominator)
+        return ans
 
     def _set_multiplicative_order(self, n):
         """
@@ -4375,6 +4385,83 @@ cdef class NumberFieldElement(FieldElement):
         candidates = [h(a) for a in K.selmer_group_iterator(S,d)]
         return [a for a in candidates if (self/f(a)).is_nth_power(d)]
 
+    def different(self, K=None):
+        r"""
+        Return the different of this element with respect to the given
+        base field.
+
+        The different of an element `a` in an extension of number fields `L/K`
+        is defined as `\mathrm{Diff}_{L/K}(a) = f'(a)` where `f` is the
+        characteristic polynomial of `a` over `K`.
+
+        INPUT:
+
+        - ``K`` -- a subfield (embedding of a subfield) of the parent
+          number field of ``self``. Default: ``None``, which will amount
+          to ``self.parent().base_field()``.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: a.different()
+            3*a^2
+            sage: a.different(K=K)
+            1
+
+        The optional argument ``K`` can be an embedding of a subfield::
+
+            sage: K.<b> = NumberField(x^4 - 2)
+            sage: (b^2).different()
+            0
+            sage: phi = K.base_field().embeddings(K)[0]
+            sage: b.different(K=phi)
+            4*b^3
+
+        Compare the relative different and the absolute different
+        for an element in a relative number field::
+
+            sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
+            sage: a.different()
+            2*a0
+            sage: a.different(K=QQ)
+            0
+            sage: a.absolute_different()
+            0
+
+        Observe that for the field extension `\QQ(i)/\QQ`, the different of
+        the field extension is the ideal generated by the different of `i`::
+
+
+            sage: K.<c> = NumberField(x^2 + 1)
+            sage: K.different() == K.ideal(c.different())
+            True
+
+        .. SEEALSO::
+
+            :meth:`absolute_different`
+            :meth:`sage.rings.number_field.number_field_rel.NumberField_relative.different`
+        """
+        f = self.matrix(base=K).charpoly().derivative().change_ring(self.parent())
+        return f(self)
+
+    def absolute_different(self):
+        r"""
+        Return the absolute different of this element.
+
+        This means the different with respect to the base field `\QQ`.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
+            sage: a.absolute_different()
+            0
+
+        .. SEEALSO::
+
+            :meth:`different`
+        """
+        return self.different(K=QQ)
+
 cdef class NumberFieldElement_absolute(NumberFieldElement):
 
     def _magma_init_(self, magma):
@@ -5382,11 +5469,11 @@ cdef void _ntl_poly(f, ZZX_c *num, ZZ_c *den):
     cdef ntl_ZZ _den
 
     __den = f.denominator()
-    (<Integer>ZZ(__den))._to_ZZ(den)
+    mpz_to_ZZ(den, (<Integer>ZZ(__den)).value)
 
     __num = f * __den
     for i from 0 <= i <= __num.degree():
-        (<Integer>ZZ(__num[i]))._to_ZZ(&coeff)
+        mpz_to_ZZ(&coeff, (<Integer>ZZ(__num[i])).value)
         ZZX_SetCoeff( num[0], i, coeff )
 
 

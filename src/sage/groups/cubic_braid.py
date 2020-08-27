@@ -714,8 +714,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
                 n = None
         # derive n from counting names
         if n is None:
-            import six
-            if isinstance(names, six.string_types):
+            if isinstance(names, str):
                 n = len(names.split(','))
             else:
                 names = list(names)

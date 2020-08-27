@@ -63,6 +63,14 @@ class IndefiniteIntegral(BuiltinFunction):
             sage: Ex = (1-2*x^(1/3))^(3/4)/x
             sage: integrate(Ex, x, algorithm="giac")  # long time
             4*(-2*x^(1/3) + 1)^(3/4) + 6*arctan((-2*x^(1/3) + 1)^(1/4)) - 3*log((-2*x^(1/3) + 1)^(1/4) + 1) + 3*log(abs((-2*x^(1/3) + 1)^(1/4) - 1))
+
+        Check for :trac:`29833`::
+
+            sage: (x,a,b)=var('x a b')
+            sage: assume(b > 0)
+            sage: f = (exp((x-a)/b) + 1)**(-1)
+            sage: (f*f).integrate(x, algorithm="mathematica_free") # optional -- internet
+            -b*log(e^(-(a - x)/b) + 1) + x + b/(e^(-(a - x)/b) + 1)
         """
         # The automatic evaluation routine will try these integrators
         # in the given order. This is an attribute of the class instead of
@@ -851,11 +859,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: integrate(cos(w+T) / (1+c*cos(T))^2, T, 0, 2*pi)
         2*pi*sqrt(-c^2 + 1)*c*cos(w)/(c^4 - 2*c^2 + 1)
 
-    Check that :trac:`13733` is fixed::
+    Check that :trac:`13733` is fixed (but the bug reappeared, see :trac:`30063`)::
 
-        sage: a = integral(log(cot(x) - 1), x, 0, pi/4); a  # long time (about 6 s)
+        sage: a = integral(log(cot(x) - 1), x, 0, pi/4); a  # long time (about 6 s) # known bug
         -1/4*pi*log(2) - 1/2*I*dilog(I + 1) + 1/2*I*dilog(-I + 1) + 1/2*I*dilog(1/2*I + 1/2) - 1/2*I*dilog(-1/2*I + 1/2)
-        sage: abs(N(a - pi*log(2)/8)) < 1e-15  # long time
+        sage: abs(N(a - pi*log(2)/8)) < 1e-15  # long time # known bug
         True
 
     Check that :trac:`17968` is fixed::
@@ -939,6 +947,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
         sage: (g.derivative() - f).full_simplify().full_simplify()
         0
+
+    Test for :trac:`24117`::
+
+        sage: integrate(sqrt(1-4*sin(x)^2),x, algorithm='maxima')
+        integrate(sqrt(-4*sin(x)^2 + 1), x)
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

@@ -128,9 +128,9 @@ http://maxima.sourceforge.net/docs/intromax/intromax.html.
 
     sage: a = maxima('(1 + sqrt(2))^5')
     sage: float(a)
-    82.01219330881975
+    82.0121933088197...
     sage: a.numer()
-    82.01219330881975
+    82.0121933088197...
 
 ::
 
@@ -522,10 +522,10 @@ class Maxima(MaximaAbstract, Expect):
         # setting inchar and outchar..
         eval_using_file_cutoff = 256
         self.__eval_using_file_cutoff = eval_using_file_cutoff
-        STARTUP = os.path.join(SAGE_LOCAL,'bin','sage-maxima.lisp')
+        STARTUP = os.path.join(os.path.dirname(__file__), 'sage-maxima.lisp')
 
         if not os.path.exists(STARTUP):
-            raise RuntimeError('You must get the file local/bin/sage-maxima.lisp')
+            raise RuntimeError('You must get the file sage-maxima.lisp')
 
         #self.__init_code = init_code
         if init_code is None:
@@ -553,7 +553,7 @@ class Maxima(MaximaAbstract, Expect):
                         init_code = init_code,
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
-        # Must match what is in the file local/bin/sage-maxima.lisp
+        # Must match what is in the file sage-maxima.lisp
         self._display_prompt = '<sage-display>'
         # See #15440 for the importance of the trailing space
         self._output_prompt_re = re.compile(r'\(\%o[0-9]+\) ')

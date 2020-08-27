@@ -32,7 +32,6 @@ from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.algebras import Algebras
 from sage.categories.associative_algebras import AssociativeAlgebras
 from sage.categories.tensor import TensorProductsCategory
-from sage.matrix.constructor import Matrix
 
 class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     r"""
@@ -701,6 +700,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [0 0 0 1 0 1 1 0]
                 [0 0 0 0 0 0 0 1]
             """
+            from sage.matrix.constructor import Matrix
             from sage.rings.integer_ring import ZZ
             A_quo = self.semisimple_quotient()
             idempotents_quo = A_quo.central_orthogonal_idempotents()

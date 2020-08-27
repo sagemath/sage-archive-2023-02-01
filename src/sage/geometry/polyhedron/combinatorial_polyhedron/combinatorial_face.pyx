@@ -74,6 +74,7 @@ import numbers
 from sage.rings.integer         cimport smallInteger
 from .conversions               cimport bit_rep_to_Vrep_list
 from .base                      cimport CombinatorialPolyhedron
+from .face_iterator             cimport FaceIterator_base
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 from libc.string                cimport memcpy
 
@@ -174,28 +175,28 @@ cdef class CombinatorialFace(SageObject):
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace).run()
         """
-        cdef FaceIterator it
+        cdef FaceIterator_base it
         cdef PolyhedronFaceLattice all_faces
 
-        if isinstance(data, FaceIterator):
+        if isinstance(data, FaceIterator_base):
             assert dimension is None and index is None, "dimension and index must be ``None``, when providing a face iterator"
 
             # Copy data from FaceIterator.
             it = data
             self._dual              = it.dual
-            self.face_mem           = ListOfFaces(1, it.face_length*64)
+            self.face_mem           = ListOfFaces(1, it.structure.face_length*64)
             self.face               = self.face_mem.data[0]
-            memcpy(self.face, it.face, it.face_length*8)
+            memcpy(self.face, it.structure.face, it.structure.face_length*8)
             self._mem               = MemoryAllocator()
-            self._dimension         = it.current_dimension
-            self._ambient_dimension = it.dimension
-            self.face_length        = it.face_length
+            self._dimension         = it.structure.current_dimension
+            self._ambient_dimension = it.structure.dimension
+            self.face_length        = it.structure.face_length
             self._ambient_Vrep      = it._Vrep
             self._ambient_facets    = it._facet_names
             self._equalities        = it._equalities
             self.atoms              = it.atoms
             self.coatoms            = it.coatoms
-            self._hash_index        = it._index
+            self._hash_index        = it.structure._index
 
         elif isinstance(data, PolyhedronFaceLattice):
             all_faces = data
@@ -350,16 +351,20 @@ cdef class CombinatorialFace(SageObject):
             sage: it = C.face_iter(dimension=2)
             sage: face = next(it)
             sage: face.ambient_Vrepresentation()
-            (A vertex at (4, 1, 5, 2, 3),
-             A vertex at (4, 2, 5, 1, 3),
-             A vertex at (5, 1, 4, 2, 3),
-             A vertex at (5, 2, 4, 1, 3))
+            (A vertex at (1, 3, 2, 5, 4),
+             A vertex at (2, 3, 1, 5, 4),
+             A vertex at (3, 1, 2, 5, 4),
+             A vertex at (3, 2, 1, 5, 4),
+             A vertex at (2, 1, 3, 5, 4),
+             A vertex at (1, 2, 3, 5, 4))
             sage: face = next(it)
             sage: face.ambient_Vrepresentation()
-            (A vertex at (4, 1, 5, 2, 3),
-             A vertex at (4, 1, 5, 3, 2),
-             A vertex at (5, 1, 4, 2, 3),
-             A vertex at (5, 1, 4, 3, 2))
+            (A vertex at (2, 1, 4, 5, 3),
+             A vertex at (3, 2, 4, 5, 1),
+             A vertex at (3, 1, 4, 5, 2),
+             A vertex at (1, 3, 4, 5, 2),
+             A vertex at (1, 2, 4, 5, 3),
+             A vertex at (2, 3, 4, 5, 1))
 
             sage: C = CombinatorialPolyhedron([[0,1,2],[0,1,3],[0,2,3],[1,2,3]])
             sage: it = C.face_iter()
@@ -410,9 +415,9 @@ cdef class CombinatorialFace(SageObject):
             sage: it = C.face_iter(dimension=2)
             sage: face = next(it)
             sage: next(it).ambient_V_indices()
-            (76, 77, 100, 101)
+            (32, 91, 92, 93, 94, 95)
             sage: next(it).ambient_V_indices()
-            (76, 77, 82, 83, 88, 89)
+            (32, 89, 90, 94)
 
             sage: C = CombinatorialPolyhedron([[0,1,2],[0,1,3],[0,2,3],[1,2,3]])
             sage: it = C.face_iter()
@@ -473,10 +478,12 @@ cdef class CombinatorialFace(SageObject):
             sage: face.Vrepr()
             doctest:...: DeprecationWarning: the method Vrepr of CombinatorialPolyhedron is deprecated; use ambient_V_indices or ambient_Vrepresentation
             See https://trac.sagemath.org/28616 for details.
-            (A vertex at (4, 1, 5, 2, 3),
-             A vertex at (4, 2, 5, 1, 3),
-             A vertex at (5, 1, 4, 2, 3),
-             A vertex at (5, 2, 4, 1, 3))
+            (A vertex at (1, 3, 2, 5, 4),
+             A vertex at (2, 3, 1, 5, 4),
+             A vertex at (3, 1, 2, 5, 4),
+             A vertex at (3, 2, 1, 5, 4),
+             A vertex at (2, 1, 3, 5, 4),
+             A vertex at (1, 2, 3, 5, 4))
         """
         from sage.misc.superseded import deprecation
         deprecation(28616, "the method Vrepr of CombinatorialPolyhedron is deprecated; use ambient_V_indices or ambient_Vrepresentation", 3)
@@ -530,12 +537,12 @@ cdef class CombinatorialFace(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter(2)
             sage: next(it).ambient_Hrepresentation()
-            (An inequality (0, 1, 0, 1, 0) x - 3 >= 0,
-             An inequality (0, 1, 0, 1, 1) x - 6 >= 0,
+            (An inequality (1, 1, 1, 0, 0) x - 6 >= 0,
+             An inequality (0, 0, 0, -1, 0) x + 5 >= 0,
              An equation (1, 1, 1, 1, 1) x - 15 == 0)
             sage: next(it).ambient_Hrepresentation()
-            (An inequality (0, 1, 0, 0, 0) x - 1 >= 0,
-             An inequality (0, 1, 0, 1, 1) x - 6 >= 0,
+            (An inequality (0, 0, -1, -1, 0) x + 9 >= 0,
+             An inequality (0, 0, 0, -1, 0) x + 5 >= 0,
              An equation (1, 1, 1, 1, 1) x - 15 == 0)
 
             sage: P = polytopes.cyclic_polytope(4,6)
@@ -651,8 +658,8 @@ cdef class CombinatorialFace(SageObject):
             sage: next(it).Hrepr()
             doctest:...: DeprecationWarning: the method Hrepr of CombinatorialPolyhedron is deprecated; use ambient_H_indices or ambient_Hrepresentation
             See https://trac.sagemath.org/28616 for details.
-            (An inequality (0, 1, 0, 1, 0) x - 3 >= 0,
-             An inequality (0, 1, 0, 1, 1) x - 6 >= 0,
+            (An inequality (1, 1, 1, 0, 0) x - 6 >= 0,
+             An inequality (0, 0, 0, -1, 0) x + 5 >= 0,
              An equation (1, 1, 1, 1, 1) x - 15 == 0)
         """
         from sage.misc.superseded import deprecation

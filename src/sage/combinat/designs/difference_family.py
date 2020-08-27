@@ -1543,6 +1543,11 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
     k = ZZ(k)
     l = ZZ(l)
 
+    if v < 0 or k < 0 or l < 0:
+        if existence:
+            return False
+        raise EmptySetError("No difference family eixsts with negative parameters")
+
     if (v,k,l) in DF:
         if existence:
             return True
@@ -1590,6 +1595,20 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
                      "set in the database... Please contact "
                      "sage-devel@googlegroups.com".format(v,k,l))
         return G,df
+
+    if k in [0,1]:
+        # Then \Delta D_i is empty
+        # So if G\{0} is empty is good, otherwise not
+        if v == 1:
+            if existence:
+                return True
+            from sage.rings.finite_rings.integer_mod_ring import Zmod
+            l = [0] if k ==1 else []
+            return Zmod(1),[l]
+
+        if existence:
+            return False
+        raise EmptySetError("No difference family exists with k=1 and v!=1")
 
     e = k*(k-1)
     if (l*(v-1)) % e:

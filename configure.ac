@@ -62,6 +62,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # Assume current directory is SAGE_ROOT.
 SAGE_ROOT=`pwd -P`
+AC_SUBST(SAGE_ROOT)
 
 SAGE_LOCAL="$prefix"
 # The following line is necessary because the code below
@@ -147,17 +148,8 @@ please join the sage-devel discussion list - see
 http://groups.google.com/group/sage-devel
 The Sage community would also appreciate any patches you submit]]);;
 
-*-*-freebsd*)
-AC_MSG_ERROR([[
-You are attempting to build Sage on the FreeBSD operating system,
-which is not a supported platform for Sage yet, though
-developers are working on adding FreeBSD support. Things may or
-may not work. If you would like to help port Sage to FreeBSD,
-please join the sage-devel discussion list - see
-http://groups.google.com/group/sage-devel
-The Sage community would also appreciate any patches you submit]]);;
-
 # The following are all supported platforms.
+*-*-freebsd*);;
 *-*-linux*);;
 *-*-darwin*);;
 *-*-solaris*);;
@@ -313,7 +305,9 @@ SAGE_CHECK_CONDA_COMPILERS
 AC_PROG_CC()
 AC_PROG_CPP()
 AC_PROG_CXX()
-AC_PROG_FC()
+# Search for gfortran-9 first. #30067
+# This is a temporary workaround until we support gfortran 10.
+AC_PROG_FC([gfortran-9 gfortran g95 xlf95 f95 fort ifort ifc efc pgfortran pgf95 lf95 ftn nagfor xlf90 f90 pgf90 pghpf epcf90 g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77])
 
 AC_SUBST(CC)
 AC_SUBST(FC)
@@ -414,23 +408,8 @@ AC_SUBST([SAGE_SPKG_OPTIONS])
 
 SAGE_SPKG_COLLECT()
 
-# We need sage-env-config to exist before running this.
-# TODO: fix this in Trac #21524
-touch "$SAGE_SRC/bin/sage-env-config"
-
-SAGE_SCRIPTS=''
-for file in "$SAGE_SRC/bin/"*; do
-    # Skip files with ".in" extension
-    ext=${file##*.}
-    if test "$ext" != in; then
-        SAGE_SCRIPTS="${SAGE_SCRIPTS} \\$(printf '\n    ')\$(SAGE_LOCAL)${file#$SAGE_SRC}"
-    fi
-done
-
-AC_SUBST([SAGE_SCRIPTS])
-
 dnl AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile src/Makefile])
+AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile])
 AC_CONFIG_FILES([src/bin/sage-env-config build/bin/sage-build-env-config])
 
 AC_CONFIG_FILES([build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg])

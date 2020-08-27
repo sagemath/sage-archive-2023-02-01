@@ -4,7 +4,7 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-nodejs_ver=`grep -oP "\d+\.\d+\.\d+" package-version.txt`
+nodejs_ver=`grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+" package-version.txt`
 
 if [ $? -ne 0 ]; then
     echo "Error determining which nodejs version to install ... exiting"
@@ -34,7 +34,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-active_ver=`node --version | grep -oP "\d+\.\d+\.\d+"`
+active_ver=`node --version | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+"`
 
 if [ $? -ne 0 ]; then
     echo "Error determining which nodejs version is active ... exiting"

@@ -544,7 +544,8 @@ def LeonardGraph():
     M = hadamard_matrix(12)
     edges = []
     for i, j, k, l in itertools.product(range(12), repeat=4):
-        if i == k or j == l: continue
+        if i == k or j == l:
+            continue
         if M[i, j] * M[i, l] * M[k, j] * M[k, l] == -1:
             edges.append(((i, j), (k, l)))
 

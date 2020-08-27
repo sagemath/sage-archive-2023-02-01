@@ -91,7 +91,7 @@ combinatorial functions:
 
 .. MATH::
 
-             \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}                              {(1-q)(1-q^2)\cdots (1-q^r)}.
+    \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}{(1-q)(1-q^2)\cdots (1-q^r)}.
 
 The ``sage.groups.perm_gps.permgroup_elements``
 contains the following combinatorial functions:

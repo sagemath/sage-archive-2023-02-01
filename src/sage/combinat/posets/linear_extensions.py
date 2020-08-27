@@ -312,15 +312,17 @@ class LinearExtensionOfPoset(ClonableArray,
 
     def promotion(self, i=1):
         r"""
-        Computes the (generalized) promotion on the linear extension of a poset.
+        Compute the (generalized) promotion on the linear extension of a poset.
 
         INPUT:
 
-        - `i` -- an integer between `1` and `n-1`, where `n` is the cardinality of the poset (default: `1`)
+        - ``i`` -- (default: `1`) an integer between `1` and `n-1`,
+          where `n` is the cardinality of the poset
 
-        The `i`-th generalized promotion operator `\partial_i` on a linear extension
-        `\pi` is defined as `\pi \tau_i \tau_{i+1} \cdots \tau_{n-1}`, where `n` is the
-        size of the linear extension (or size of the underlying poset).
+        The `i`-th generalized promotion operator `\partial_i` on a linear
+        extension `\pi` is defined as `\pi \tau_i \tau_{i+1} \cdots \tau_{n-1}`,
+        where `n` is the size of the linear extension (or size of the
+        underlying poset).
 
         For more details see [Stan2009]_.
 
@@ -343,7 +345,7 @@ class LinearExtensionOfPoset(ClonableArray,
 
     def evacuation(self):
         r"""
-        Computes evacuation on the linear extension of a poset.
+        Compute evacuation on the linear extension of a poset.
 
         Evacuation on a linear extension `\pi` of length `n` is defined as
         `\pi (\tau_1 \cdots \tau_{n-1}) (\tau_1 \cdots \tau_{n-2}) \cdots (\tau_1)`.

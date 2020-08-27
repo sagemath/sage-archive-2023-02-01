@@ -7053,7 +7053,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             \sum_{\substack{p_0 < p_1 < \ldots < p_k, \\
                             p_0 = \min P, \ p_k = \max P}}
             x_{\rho(p_1)} x_{\rho(p_2)} \cdots x_{\rho(p_k)}
-            \in \ZZ[x_1, x_2, \cdots, x_n]
+            \in \ZZ[x_1, x_2, \cdots, x_n],
 
         where `\min P` and `\max P` are (respectively) the minimum and
         the maximum of `P`, where `\rho` is the rank function of `P`

@@ -1046,7 +1046,7 @@ def OA_11_185():
 
 def OA_10_205():
     r"""
-    Return an OA(10,205)
+    Return an `OA(10,205)`.
 
     Julian R. Abel shared the following construction, which originally appeared
     in Theorem 8.7 of [Greig99]_, and can in Lemmas 5.14-5.16 of [ColDin01]_:

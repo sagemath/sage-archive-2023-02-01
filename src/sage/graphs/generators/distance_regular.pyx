@@ -648,11 +648,14 @@ def BilinearFormsGraph(const int d, const int e, const int q):
         sage: K.is_isomorphic(G)
         True
     """
-    from sage.combinat.integer_vector import IntegerVectors
+    from itertools import product as cartprod
 
     Fq = GF(q)
     Fqelems = list(Fq)
-    matricesOverq = IntegerVectors(k=d*e, max_part=q-1)
+    FqToInt = {x: n for n, x in enumerate(Fqelems)}
+    dim = d * e
+    matricesOverq = cartprod(range(q), repeat=dim)
+    qto = [int(q**jj) for jj in range(dim)]
 
     rank1Matrices = []
     for u in VectorSpace(Fq, d):
@@ -664,7 +667,7 @@ def BilinearFormsGraph(const int d, const int e, const int q):
                 continue
 
             sig_check()
-            M = [0] * (d*e)
+            M = [0] * dim
             for row in range(d):
                 for col in range(e):
                     M[e*row + col] = u[row] * v[col]
@@ -673,11 +676,17 @@ def BilinearFormsGraph(const int d, const int e, const int q):
 
     edges = []
     for m1 in matricesOverq:
-        m1 = tuple(map(lambda x: Fqelems[x], m1))
+        intM1 = 0  # represents vector m1 as integer base q
+        for jj in range(dim):
+            intM1 += m1[jj] * qto[jj]
+
         for m2 in rank1Matrices:
             sig_check()
-            m3 = tuple([m1[i] + m2[i] for i in range(d*e)])
-            edges.append((m1, m3))
+            intM3 = 0
+            for jj in range(dim):
+                intM3 += FqToInt[Fqelems[m1[jj]] + Fqelems[m2[jj]]] * qto[jj]
+
+            edges.append((intM1, intM3))
 
     G = Graph(edges, format='list_of_edges')
     G.name("Bilinear forms graphs over F_%d with parameters (%d, %d)"%(q, d, e))

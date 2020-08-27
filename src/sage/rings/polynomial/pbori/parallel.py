@@ -31,15 +31,14 @@ def to_fast_pickable(l):
     It is converted to a tuple consisting of
     - codes referring to the polynomials
     - list of conversions of nodes.
-        The nodes are sorted, that
-        n occurs before n.else_branch(), n.then_branch()
-        Nodes are only listed, if they are not constant.
+    The nodes are sorted, so that n occurs before n.else_branch(), n.then_branch()
+    nodes are only listed, if they are not constant.
 
     A node is converted in this way:
-        0 -> 0
-        1 -> 1
-        if_then_else(v,t,e) -> (v, index of then branch +2, index of else branch +2)
-        The shift of +2 is for the constant values implicitly contained in the list.
+    0 -> 0
+    1 -> 1
+    if_then_else(v,t,e) -> (v, index of then branch +2, index of else branch +2)
+    the shift of +2 is for the constant values implicitly contained in the list.
     Each code c refers to the c-2-th position in the conversion list, if c >=2, else to
     the corresponding Boolean constant if c in {0, 1}
 
@@ -272,7 +271,7 @@ def groebner_basis_first_finished(I, *l):
     
     OUTPUT:
     
-    - tries to compute groebner_basis(I, **kwd) for kwd in l
+    - tries to compute ``groebner_basis(I, **kwd)`` for kwd in l
     - returns the result of the first terminated computation
     
     EXAMPLES::
@@ -280,8 +279,9 @@ def groebner_basis_first_finished(I, *l):
         sage: from sage.rings.polynomial.pbori.PyPolyBoRi import Ring
         sage: r=Ring(1000)
         sage: ideal = [r.variable(1)*r.variable(2)+r.variable(2)+r.variable(1)]
-        sage: #groebner_basis_first_finished(ideal, dict(heuristic=True), dict(heuristic=False))
-        [x(1), x(2)]
+        sage: from sage.rings.polynomial.pbori.parallel import groebner_basis_first_finished
+        sage: groebner_basis_first_finished(ideal, dict(heuristic=True), dict(heuristic=False))
+        [x1, x2]
     """
     if not I:
         return []

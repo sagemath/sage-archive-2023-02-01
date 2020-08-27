@@ -693,7 +693,7 @@ class NumberFieldFactory(UniqueFactory):
 NumberField_version2 = NumberFieldFactory("sage.rings.number_field.number_field.NumberField_version2")
 
 def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_names=None, assume_disc_small=False, maximize_at_primes=None, structures=None):
-    """
+    r"""
     Create the tower of number fields defined by the polynomials in the list
     ``polynomials``.
 

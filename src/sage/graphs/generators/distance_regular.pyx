@@ -2206,7 +2206,9 @@ _sporadic_graph_database = {
 }
 
 _infinite_families_database = [
-    (is_classical_parameters_graph, graph_with_classical_parameters)]
+    (is_classical_parameters_graph, graph_with_classical_parameters),
+    (is_from_GQ_spread, graph_from_GQ_spread),
+]
 
 def distance_regular_graph(list arr, existence=False, check=True):
     r"""
@@ -2262,6 +2264,8 @@ def distance_regular_graph(list arr, existence=False, check=True):
         sage: graphs.distance_regular_graph([14, 12, 10, 8, 6, 4, 2,
         ....: 1, 2, 3, 4, 5, 6, 7])
         Hamming Graph with parameters 7,3: Graph on 2187 vertices
+        sage: graphs.distance_regular_graph([64, 60, 1, 1, 15, 64], check=True)
+        Graph on 325 vertices
     """
     from sage.misc.unknown import Unknown
     from sage.categories.sets_cat import EmptySetError

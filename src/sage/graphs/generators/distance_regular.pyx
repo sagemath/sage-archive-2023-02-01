@@ -1274,7 +1274,7 @@ def GeneralisedDodecagonGraph(const int s, const int t):
         sage: H = graphs.GeneralisedDodecagonGraph(5, 1)  # optional - gap_packages internet
         sage: H.order()  # optional - gap_packages internet
         23436
-        sage: H.is_distance_regular(True) # long time (6 min); optional - gap_packages internet
+        sage: H.is_distance_regular(True) # not tested (6 min); optional - gap_packages internet
         ([10, 5, 5, 5, 5, 5, None], [None, 1, 1, 1, 1, 1, 2])
 
     .. NOTE::
@@ -1330,14 +1330,16 @@ def GeneralisedDodecagonGraph(const int s, const int t):
         q = s
         orderType = 1
     else:
-        raise ValueError(f"No generalised dodacagon of order ({s}, {t}) exists")
+        raise ValueError(
+            f"No generalised dodacagon of order ({s}, {t}) is known")
 
     if q == 1:  # order (1, 1)
         from sage.graphs.generators.basic import CycleGraph
         return CycleGraph(12)
 
     if not is_prime_power(q):
-        raise ValueError(f"No generalised dodacagon of order ({s}, {t}) exists")
+        raise ValueError(
+            f"No generalised dodacagon of order ({s}, {t}) is known")
 
     if orderType == 0:
         # incidence graph of hexagon (q,q)
@@ -1401,7 +1403,7 @@ def GeneralisedOctagonGraph(const int s, const int t):
         sage: G = graphs.GeneralisedOctagonGraph(4, 16)
         Traceback (most recent call last):
         ...
-        ValueError: generalised octagons of order (q, q^2) exist only for q odd powers of 2
+        ValueError: generalised octagons of order (q, q^2) are known only for q odd powers of 2
 
     """
     from sage.arith.misc import is_prime_power
@@ -1422,20 +1424,20 @@ def GeneralisedOctagonGraph(const int s, const int t):
 
         if p != 2 or k % 2 != 1:
             raise ValueError(("generalised octagons of order (q, q^2) "
-                              "exist only for q odd powers of 2"))
+                              "are known only for q odd powers of 2"))
         orderType = 2
     elif t**2 == s:  # (q^2, q)
         q = t
         orderType = 1
     else:
-        raise ValueError(f"No generalised octagon of order ({s}, {t}) exists")
+        raise ValueError(f"No generalised octagon of order ({s}, {t}) is known")
 
     if q == 1:  # order (1, 1)
         from sage.graphs.generators.basic import CycleGraph
         return CycleGraph(8)
 
     if not is_prime_power(q):
-        raise ValueError(f"No generalised octagon of order ({s}, {t}) exists")
+        raise ValueError(f"No generalised octagon of order ({s}, {t}) is known")
 
     if orderType == 0:
         # incidence graph of generalised quadrangle (q, q)
@@ -1457,7 +1459,7 @@ def GeneralisedOctagonGraph(const int s, const int t):
 
     elif orderType == 1:
         # dual
-        H = GeneralisedOctagonGraph(t,s)
+        H = GeneralisedOctagonGraph(t, s)
         G = _line_graph_generalised_polygon(H)
         G.name("Generalised octagon of order(%d, %d)"%(s, t))
         return G
@@ -1540,18 +1542,18 @@ def GeneralisedHexagonGraph(const int s, const int t):
         q = t
         orderType = 1
     else:
-        raise ValueError(f"No generalised octagon of order ({s}, {t}) exists")
+        raise ValueError(f"No generalised octagon of order ({s}, {t}) is known")
 
     if q == 1:  # order (1, 1)
         from sage.graphs.generators.basic import CycleGraph
         return CycleGraph(6)
 
     if not is_prime_power(q):
-        raise ValueError(f"No generalised octagon of order ({s}, {t}) exists")
+        raise ValueError(f"No generalised octagon of order ({s}, {t}) is known")
 
     if orderType == 0:
         # incident graph of generalised 3-gon of order (q, q)
-        PG2 = designs.ProjectiveGeometryDesign(2,1,q)
+        PG2 = designs.ProjectiveGeometryDesign(2, 1, q)
 
         edges = []
         for l in PG2.blocks():
@@ -1612,7 +1614,7 @@ def GeneralisedHexagonGraph(const int s, const int t):
         movedPoints = 819 if q==2 else 26572
         group = libgap.AtlasGroup("3D4(%d)"%q, libgap.NrMovedPoints, movedPoints)
 
-        G = Graph(libgap.Orbit(group, [1, 2],libgap.OnSets),
+        G = Graph(libgap.Orbit(group, [1, 2], libgap.OnSets),
                   format='list_of_edges')
         G.name("Generalised hexagon of order (%d, %d)"%(q, q**3))
         return G
@@ -1632,7 +1634,7 @@ def _extract_lines(G):
 
     OUTPUT:
 
-    A list of tuples where each tuple represent a line through the vertices
+    A list of tuples where each tuple represent a line via the vertices
     contained in that line.
 
     EXAMPLES::
@@ -1647,7 +1649,7 @@ def _extract_lines(G):
         sage: line = lines[0]
         sage: type(line)
         <class 'tuple'>
-        sage: line[0] in G  # elements in line are vertices
+        sage: line[0] in G  # the elements in the line are vertices
         True
 
     REFERENCES:
@@ -1680,11 +1682,12 @@ def _extract_lines(G):
 
         # remove already handled edges
         for u, v in itertools.product(bot2, repeat=2):
+            sig_check()
             try :
                 edges.remove((u, v))
             except KeyError:
                 pass  # ignore this
-    #end while edges
+    # end while edges
 
     return lines
 

@@ -648,7 +648,7 @@ def assume(*args):
         [0 < x]
         sage: forget()
 
-    Chack that :trac:`28538` is fixed::
+    Check that :trac:`28538` is fixed::
 
         sage: x, y = SR.var('x, y')
         sage: assume(x > 0)

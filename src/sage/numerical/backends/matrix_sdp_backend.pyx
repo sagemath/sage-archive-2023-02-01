@@ -173,7 +173,7 @@ cdef class MatrixSDPBackend(GenericSDPBackend):
 
         INPUT:
 
-        - ``sense`` (integer) :
+        - ``sense`` (integer)
 
             * +1 => Maximization
             * -1 => Minimization

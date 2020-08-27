@@ -934,9 +934,16 @@ class FriCASElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: v = fricas('[x^i for i in 0..5]')                             # optional - fricas
-            sage: len(v)                                                        # optional - fricas
+            sage: v = fricas('[x^i for i in 0..5]')    # optional - fricas
+            sage: len(v)                               # optional - fricas
             6
+
+        TESTS:
+
+        Streams are not handled yet::
+
+            sage: oh = fricas('[i for i in 1..]')    # optional - fricas
+            sage: len(oh)                            # known bug
         """
         P = self._check_valid()
         l = P('#(%s)' % self._name)
@@ -951,6 +958,13 @@ class FriCASElement(ExpectElement):
             sage: L = fricas([4,5,6])   # optional - fricas
             sage: list(L)               # optional - fricas
             [4, 5, 6]
+
+        TESTS:
+
+        Streams are not handled yet::
+
+            sage: oh = fricas('[i for i in 1..]')    # optional - fricas
+            sage: next(iter(oh))       # known bug
         """
         for i in range(len(self)):
             yield self[i]
@@ -962,30 +976,46 @@ class FriCASElement(ExpectElement):
         We do not check validity, since many objects in FriCAS are
         iterable, in particular Streams
 
-        .. TODO::
-
-            - can we somehow implement negative arguments?
-
         TESTS::
 
             sage: fricas("[1,2,3]")[0]                                          # optional - fricas
             1
 
+        Negative indices do work::
+
             sage: fricas("[1,2,3]")[-1]    # optional - fricas
             3
 
-            sage: fricas("[1,2,3]")[3]                                          # optional - fricas
+            sage: fricas("[1,2,3]")[-2]    # optional - fricas
+            2
+
+        Invalid indices raise exceptions::
+
+            sage: fricas("[1,2,3]")[3]     # optional - fricas
             Traceback (most recent call last):
             ...
             TypeError: An error occurred when FriCAS evaluated 'elt(...,...)':
             <BLANKLINE>
             >> Error detected within library code:
             index out of range
+
+        And streams are ok too::
+
+            sage: oh = fricas('[i for i in 1..]')    # optional - fricas
+            sage: oh[4]                              # optional - fricas
+            5
         """
         n = int(n)
-        if n < -1:
-            raise IndexError("index out of range")
         P = self._check_valid()
+        if n < -1:
+            try:
+                l = len(self)
+            except Error:
+                raise
+            else:
+                n += l
+                if not(0 <= n < l):
+                    raise IndexError("index out of range")
         # use "elt" instead of "." here because then the error
         # message is clearer
         if n == -1:

@@ -1873,7 +1873,7 @@ def bridges(G, labels=True):
         sage: g.add_edge(1, 10)
         sage: is_connected(g)
         True
-        sage: list(list(bridges(g)))
+        sage: list(bridges(g))
         [(1, 10, None)]
         sage: list(g.bridges())
         [(1, 10, None)]

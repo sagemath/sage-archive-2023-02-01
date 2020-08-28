@@ -943,7 +943,10 @@ class FriCASElement(ExpectElement):
         Streams are not handled yet::
 
             sage: oh = fricas('[i for i in 1..]')    # optional - fricas
-            sage: len(oh)                            # known bug
+            sage: len(oh)                            # optional - fricas
+            Traceback (most recent call last):
+            ...
+            TypeError: ...
         """
         P = self._check_valid()
         l = P('#(%s)' % self._name)
@@ -1010,7 +1013,7 @@ class FriCASElement(ExpectElement):
         if n < -1:
             try:
                 l = len(self)
-            except Error:
+            except TypeError:
                 raise
             else:
                 n += l

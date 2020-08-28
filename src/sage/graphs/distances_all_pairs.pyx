@@ -2164,6 +2164,132 @@ def distances_distribution(G):
 
     return distr
 
+###################
+# Antipodal graph #
+###################
+
+def antipodal_graph(G):
+    r"""
+    Return the antipodal graph of `G`.
+
+    The antipodal graph of a graph `G` has the same vertex set of `G` and
+    two vertices are adjacent if their distance in `G` is equal to the
+    diameter of `G`.
+
+    This method first computes the eccentricity of all vertices and determines
+    the diameter of the graph. Then, it for each vertex `u` with eccentricity
+    the diameter, it computes BFS distances from `u` and add an edge in the
+    antipodal graph for each vertex `v` at diamter distance from `u` (i.e., for
+    each antipodal vertex).
+
+    The drawback of this method is that some BFS distances may be computed
+    twice, one time to determine the eccentricities and another time is the
+    vertex has eccentricity equal to the diameter. However, in practive, this is
+    much more efficient. See the documentation of method
+    :meth:`c_eccentricity_DHV`.
+
+    EXAMPLES:
+
+    The antipodal graph of a grid graph has only 2 edges::
+
+        sage: from sage.graphs.distances_all_pairs import antipodal_graph
+        sage: G = graphs.Grid2dGraph(5, 5)
+        sage: A = antipodal_graph(G)
+        sage: A.order(), A.size()
+        (25, 2)
+
+    The antipodal graph of a disjoint union of cliques is its complement::
+
+        sage: from sage.graphs.distances_all_pairs import antipodal_graph
+        sage: G = graphs.CompleteGraph(3) * 3
+        sage: A = antipodal_graph(G)
+        sage: A.is_isomorphic(G.complement())
+        True
+
+    The antipodal graph can also be constructed as the
+    :meth:`sage.graphs.generic_graph.distance_graph` for diameter distance::
+
+        sage: from sage.graphs.distances_all_pairs import antipodal_graph
+        sage: G = graphs.RandomGNP(10, .2)
+        sage: A = antipodal_graph(G)
+        sage: B = G.distance_graph(G.diameter())
+        sage: A.is_isomorphic(B)
+        True
+
+    TESTS::
+
+        sage: from sage.graphs.distances_all_pairs import antipodal_graph
+        sage: antipodal_graph(Graph())
+        Traceback (most recent call last):
+        ...
+        ValueError: the antipodal graph of the empty graph is not defined
+        sage: antipodal_graph(DiGraph(1))
+        Traceback (most recent call last):
+        ...
+        ValueError: this method is defined for undirected graphs only
+        sage: antipodal_graph(Graph(1))
+        Antipodal graph of Graph on 1 vertex: Looped graph on 1 vertex
+        sage: antipodal_graph(Graph(2)).edges(labels=False)
+        [(0, 1)]
+    """
+    if not G:
+        raise ValueError("the antipodal graph of the empty graph is not defined")
+    if G.is_directed():
+        raise ValueError("this method is defined for undirected graphs only")
+
+    from sage.graphs.graph import Graph
+
+    cdef uint32_t n = G.order()
+    name = f"Antipodal graph of {G}"
+    if n == 1:
+        return Graph(list(zip(G, G)), loops=True, name=name)
+
+    import copy
+    A = Graph(name=name, pos=copy.deepcopy(G.get_pos()))
+
+    if not G.is_connected():
+        import itertools
+        CC = G.connected_components()
+        for c1, c2 in itertools.combinations(CC, 2):
+            A.add_edges(itertools.product(c1, c2))
+        return A
+
+    cdef list int_to_vertex = list(G)
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *> mem.allocarray(2 * n, sizeof(uint32_t))
+    cdef uint32_t * waiting_list = distances + n
+    cdef bitset_t seen
+    bitset_init(seen, n)
+
+    # Get the eccentricity of all vertices
+    cdef uint32_t* ecc = c_eccentricity_DHV(sd)
+    cdef uint32_t i
+    cdef uint32_t diam = 0
+    for i in range(n):
+        if ecc[i] > diam:
+            diam = ecc[i]
+
+    cdef uint32_t ui, vj, j
+    for ui in range(n):
+        if ecc[ui] == diam:
+            _ = simple_BFS(sd, ui, distances, NULL, waiting_list, seen)
+            u = int_to_vertex[ui]
+            j = n - 1
+            while distances[waiting_list[j]] == diam:
+                vj = waiting_list[j]
+                if ui < vj:  # avoid adding twice the same edge
+                    A.add_edge(u, int_to_vertex[vj])
+                j -= 1
+
+    free_short_digraph(sd)
+    bitset_free(seen)
+
+    A.add_vertices(G)
+    return A
+
 ##################
 # Floyd-Warshall #
 ##################

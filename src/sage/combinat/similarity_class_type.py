@@ -791,7 +791,7 @@ class SimilarityClassType(CombinatorialElement):
 
     def as_partition_dictionary(self):
         r"""
-        Return a dictionary whose keys are the partitions of types occuring in
+        Return a dictionary whose keys are the partitions of types occurring in
         ``self`` and the value at the key `\lambda` is the partition formed by
         sorting the degrees of primary types with partition `\lambda`.
 

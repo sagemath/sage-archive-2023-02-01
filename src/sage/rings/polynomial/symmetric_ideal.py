@@ -142,7 +142,7 @@ class SymmetricIdeal( Ideal_generic ):
     However, any element of ``J`` has symmetric reduction zero even
     after applying a permutation. This even holds when the
     permutations involve higher variable indices than the ones
-    occuring in ``J``::
+    occurring in ``J``::
 
         sage: [[(p^P).reduce(J) for p in J] for P in Permutations(3)]
         [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]

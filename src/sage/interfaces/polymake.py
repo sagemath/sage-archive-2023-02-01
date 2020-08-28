@@ -1983,7 +1983,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
                         elif i > 0:
                             raise RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[i]))
                 except pexpect.TIMEOUT:
-                    warnings.warn("A timeout has occured when synchronising {}.".format(self), RuntimeWarning)
+                    warnings.warn("A timeout has occurred when synchronising {}.".format(self), RuntimeWarning)
                     self._interrupt()
                 except pexpect.EOF:
                     self._crash_msg()

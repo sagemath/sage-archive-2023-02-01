@@ -2223,7 +2223,7 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         If ``n`` is not given, it is first checked whether it can be
         determined from the parent, otherwise it is the maximal
-        occuring integer in the set of rooks.
+        occurring integer in the set of rooks.
 
         INPUT:
 

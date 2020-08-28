@@ -268,7 +268,7 @@ cdef class CombinatorialFace(SageObject):
         Return an index for the face.
 
         If the face was constructed from a :class:`sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`,
-        then this is the index of the occurence in the iterator.
+        then this is the index of the occurrence in the iterator.
 
         If the face was constructed from
         :meth:`sage:geometry.polyhedron.combinatorial_polyhedronn.base.CombinatorialPolyhedron.face_by_face_lattice_index`,

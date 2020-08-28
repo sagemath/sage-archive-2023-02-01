@@ -719,17 +719,14 @@ cdef uint32_t * c_eccentricity(G, vertex_list=None) except NULL:
 
     return ecc
 
-cdef uint32_t * c_eccentricity_bounding(G, short_digraph sd,
-                                        vertex_list=None) except NULL:
+cdef uint32_t * c_eccentricity_bounding(short_digraph sd) except NULL:
     r"""
-    Return the vector of eccentricities in G using the algorithm of [TK2013]_.
+    Return the vector of eccentricities using the algorithm of [TK2013]_.
 
-    The array returned is of length `n`, and by default its `i`-th component is
-    the eccentricity of the `i`-th vertex in ``G.vertices()``.
+    The array returned is of length `n`, and its `i`-th component is the
+    eccentricity of vertex `i` in ``sd``.
 
-    Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
-    mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When set,
-    ``ecc[i]`` is the eccentricity of vertex ``vertex_list[i]``.
+    This method assumes that ``sd`` is an undirected graph.
 
     The algorithm proposed in [TK2013]_ is based on the observation that for all
     nodes `v,w\in V`, we have `\max(ecc[v]-d(v,w), d(v,w))\leq ecc[w] \leq
@@ -737,25 +734,21 @@ cdef uint32_t * c_eccentricity_bounding(G, short_digraph sd,
     bounds on the eccentricity of each node until no further improvements can be
     done. This algorithm offers good running time reduction on scale-free graphs.
     """
-    if G.is_directed():
-        raise ValueError("The 'bounds' algorithm only works on undirected graphs.")
-
-    cdef unsigned int n = G.order()
+    cdef unsigned int n = sd.n
 
     # allocated some data structures
-    cdef bitset_t seen
-    bitset_init(seen, n)
-    cdef uint32_t * distances = <uint32_t *>sig_malloc(3 * n * sizeof(uint32_t))
-    cdef uint32_t * LB        = <uint32_t *>sig_calloc(n, sizeof(uint32_t))
-    if distances==NULL or LB==NULL:
-        bitset_free(seen)
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *> mem.malloc(3 * n * sizeof(uint32_t))
+    cdef uint32_t * LB        = <uint32_t *> sig_calloc(n, sizeof(uint32_t))
+    if not distances or not LB:
         sig_free(LB)
-        sig_free(distances)
         free_short_digraph(sd)
         raise MemoryError()
     cdef uint32_t * waiting_list = distances + n
     cdef uint32_t * UB           = distances + 2 * n
     memset(UB, -1, n * sizeof(uint32_t))
+    cdef bitset_t seen
+    bitset_init(seen, n)
 
     cdef uint32_t v, w, next_v, tmp, cpt = 0
 
@@ -792,21 +785,18 @@ cdef uint32_t * c_eccentricity_bounding(G, short_digraph sd,
 
     sig_off()
 
-    sig_free(distances)
     bitset_free(seen)
 
     return LB
 
-cdef uint32_t * c_eccentricity_DHV(G, short_digraph sd, vertex_list=None):
+cdef uint32_t * c_eccentricity_DHV(short_digraph sd) except NULL:
     r"""
     Return the vector of eccentricities using the algorithm of [Dragan2018]_.
 
-    The array returned is of length `n`, and by default its `i`-th component is
-    the eccentricity of the `i`-th vertex in ``G.vertices()``.
+    The array returned is of length `n`, and its `i`-th component is the
+    eccentricity of vertex `i` in ``sd``.
 
-    Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
-    mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When set,
-    ``ecc[i]`` is the eccentricity of vertex ``vertex_list[i]``.
+    This method assumes that ``sd`` is an undirected graph.
 
     The algorithm proposed in [Dragan2018]_ is an improvement of the algorithm
     proposed in [TK2013]_. It is also based on the observation that for all
@@ -829,10 +819,7 @@ cdef uint32_t * c_eccentricity_DHV(G, short_digraph sd, vertex_list=None):
         sage: eccentricity(G, algorithm='bounds') == eccentricity(G, algorithm='DHV')
         True
     """
-    if G.is_directed():
-        raise ValueError("the 'DHV' algorithm only works on undirected graphs")
-
-    cdef uint32_t n = G.order()
+    cdef uint32_t n = sd.n
     if not n:
         return NULL
 
@@ -1021,6 +1008,8 @@ def eccentricity(G, algorithm="standard", vertex_list=None):
     cdef short_digraph sd
 
     # Trivial cases
+    if algorithm not in ['standard', 'bounds', 'DHV']:
+        raise ValueError("unknown algorithm '{}', please contribute".format(algorithm))
     if not n:
         return []
     elif G.is_directed() and algorithm in ['bounds', 'DHV']:
@@ -1038,21 +1027,18 @@ def eccentricity(G, algorithm="standard", vertex_list=None):
 
     cdef uint32_t* ecc
 
-    if algorithm == "bounds":
-        init_short_digraph(sd, G, edge_labelled=False, vertex_list=vertex_list)
-        ecc = c_eccentricity_bounding(G, sd, vertex_list=int_to_vertex)
-        free_short_digraph(sd)
-
-    elif algorithm == "standard":
+    if algorithm == "standard":
         ecc = c_eccentricity(G, vertex_list=int_to_vertex)
 
-    elif algorithm == "DHV":
-        init_short_digraph(sd, G, edge_labelled=False, vertex_list=vertex_list)
-        ecc = c_eccentricity_DHV(G, sd, vertex_list=int_to_vertex)
-        free_short_digraph(sd)
-
     else:
-        raise ValueError("unknown algorithm '{}', please contribute".format(algorithm))
+        init_short_digraph(sd, G, edge_labelled=False, vertex_list=vertex_list)
+
+        if algorithm == "DHV":
+            ecc = c_eccentricity_DHV(sd)
+        else:  # "bounds"
+            ecc = c_eccentricity_bounding(sd)
+
+        free_short_digraph(sd)
 
     from sage.rings.integer import Integer
     cdef list l_ecc = [Integer(ecc[i]) if ecc[i] != UINT32_MAX else +Infinity for i in range(n)]
@@ -1531,6 +1517,7 @@ cdef uint32_t diameter_DiFUB(short_digraph sd,
 
     # Finally return the computed diameter
     return LB
+
 cdef uint32_t diameter_DHV(short_digraph g):
     r"""
     Return the diameter of unweighted graph `g`.

@@ -779,7 +779,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 new_polys = [R(u*t) for u in self]
         self._polys = tuple(new_polys)
 
-    def normalize_coordinates(self, ideal=None):
+    def normalize_coordinates(self, **kwargs):
         """
         Ensures that this morphism has integral coefficients, and,
         if the coordinate ring has a GCD, then it ensures that the
@@ -789,17 +789,21 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         positive (if positive has meaning in the coordinate ring).
         This is done in place.
 
-        When ``ideal`` is specified, normalization occurs
-        with respect to the absolute value defined by ``ideal``.
-        That is, the coefficients are scaled such that one
-        coefficient has absolute value 1 while the others
-        have absolute value less than or equal to 1. Only
-        supported when the base ring is a number field.
+        When ``ideal`` or ``valuation`` is specified,
+        normalization occurs with respect to the absolute value
+        defined by the ``ideal`` or ``valuation``. That is, the
+        coefficients are scaled such that one coefficient has
+        absolute value 1 while the others have absolute value
+        less than or equal to 1. Only supported when the base
+        ring is a number field.
 
         INPUT:
 
         - ``ideal`` -- (optional) a prime ideal of the base ring of this
-          morphism, or a valuation defined on the base ring of this morphism.
+          morphism.
+
+        - ``valuation`` -- (optional) a valuation of the base ring of this
+          morphism.
 
         OUTPUT:
 
@@ -888,10 +892,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x : y : z) to
                     ((-a + 2)*x*y^2 : (-2*a + 2)*x*y^2 : (-4*a + 4)*x*z^2)
 
-        We can also pass in a valuation to ``ideal``::
+        We can pass in a valuation to ``valuation``::
 
             sage: g = H([(a+1)*x^3 + 2*x*y^2, 4*x*y^2, 8*x*z^2])
-            sage: g.normalize_coordinates(ideal=A.valuation(A.prime_above(2)))
+            sage: g.normalize_coordinates(valuation=A.valuation(A.prime_above(2)))
             sage: g == f
             True
 
@@ -904,52 +908,56 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x : y) to
                     (x^2 + (2 + O(3^20))*y^2 : (3 + O(3^21))*x*y)
         """
-        # if ideal is specified, we scale according the norm defined by ideal
+        # if ideal or valuation is specified, we scale according the norm defined by the ideal/valuation
+        ideal = kwargs.pop('ideal', None)
         if ideal != None:
             from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
-            from sage.rings.padics.padic_valuation import pAdicValuation_base
-            if ideal in QQ or isinstance(ideal, NumberFieldFractionalIdeal):
-                if isinstance(ideal, NumberFieldFractionalIdeal):
-                    if ideal.number_field() != self.base_ring():
-                        raise ValueError('ideal must be an ideal of the base ring of this morphism ' +  \
-                            ', not an ideal of %s' %ideal.number_field())
-                    if not ideal.is_prime():
-                        raise ValueError('ideal was %s, not a prime ideal' %ideal)
-                    for generator in ideal.gens():
-                        if generator.valuation(ideal) == 1:
-                            uniformizer = generator
-                            break
-                else:
-                    if self.base_ring() != QQ:
-                        raise ValueError('ideal was defined over QQ, but the base ring of this ' + \
-                            'morphism is %s' %self.base_ring())
-                    if not ideal.is_prime():
-                        raise ValueError('ideal was %s, not a prime ideal' %ideal)
-                    uniformizer = ideal
-                valuations = []
-                for poly in self:
-                    for coefficient, monomial in poly:
-                        if coefficient != 0:
-                            valuations.append(coefficient.valuation(ideal))
-                min_val = min(valuations)
-                self.scale_by(uniformizer**(-1*min_val))
-                return
-            elif isinstance(ideal, pAdicValuation_base):
-                if ideal.domain() != self.base_ring():
-                    raise ValueError('the domain of ideal must be the base ring of this morphism ' + \
-                        'not %s' %ideal.domain())
-                uniformizer = ideal.uniformizer()
-                ramification_index = 1/ideal(uniformizer)
-                valuations = []
-                for poly in self:
-                    for coefficient, monomial in poly:
-                        if coefficient != 0:
-                            valuations.append(ideal(coefficient) * ramification_index)
-                min_val = min(valuations)
-                self.scale_by(uniformizer**(-1*min_val))
-                return
+            if not (ideal in ZZ or isinstance(ideal, NumberFieldFractionalIdeal)):
+                raise TypeError('ideal must be an ideal of a number field, not %s' %ideal)
+            if isinstance(ideal, NumberFieldFractionalIdeal):
+                if ideal.number_field() != self.base_ring():
+                    raise ValueError('ideal must be an ideal of the base ring of this morphism ' +  \
+                        ', not an ideal of %s' %ideal.number_field())
+                if not ideal.is_prime():
+                    raise ValueError('ideal was %s, not a prime ideal' %ideal)
+                for generator in ideal.gens():
+                    if generator.valuation(ideal) == 1:
+                        uniformizer = generator
+                        break
             else:
-                raise TypeError('ideal must be an ideal or a valuation, not %s' %ideal)
+                ideal = ZZ(ideal)
+                if self.base_ring() != QQ:
+                    raise ValueError('ideal was an integer, but the base ring of this ' + \
+                        'morphism is %s' %self.base_ring())
+                if not ideal.is_prime():
+                    raise ValueError('ideal must be a prime, not %s' %ideal)
+                uniformizer = ideal
+            valuations = []
+            for poly in self:
+                for coefficient, monomial in poly:
+                    if coefficient != 0:
+                        valuations.append(coefficient.valuation(ideal))
+            min_val = min(valuations)
+            self.scale_by(uniformizer**(-1*min_val))
+            return
+        valuation = kwargs.pop('valuation', None)
+        if valuation != None:
+            from sage.rings.padics.padic_valuation import pAdicValuation_base
+            if not isinstance(valuation, pAdicValuation_base):
+                raise TypeError('valuation must be a valuation on a number field, not %s' %valuation)
+            if valuation.domain() != self.base_ring():
+                raise ValueError('the domain of valuation must be the base ring of this morphism ' + \
+                    'not %s' %valuation.domain())
+            uniformizer = valuation.uniformizer()
+            ramification_index = 1/valuation(uniformizer)
+            valuations = []
+            for poly in self:
+                for coefficient, monomial in poly:
+                    if coefficient != 0:
+                        valuations.append(valuation(coefficient) * ramification_index)
+            min_val = min(valuations)
+            self.scale_by(uniformizer**(-1*min_val))
+            return
 
         # clear any denominators from the coefficients
         N = self.codomain().ambient_space().dimension_relative() + 1

@@ -779,7 +779,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 new_polys = [R(u*t) for u in self]
         self._polys = tuple(new_polys)
 
-    def normalize_coordinates(self, **kwargs):
+    def normalize_coordinates(self, **kwds):
         """
         Ensures that this morphism has integral coefficients, and,
         if the coordinate ring has a GCD, then it ensures that the
@@ -798,6 +798,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         ring is a number field.
 
         INPUT:
+
+        keywords:
 
         - ``ideal`` -- (optional) a prime ideal of the base ring of this
           morphism.

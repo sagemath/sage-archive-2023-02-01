@@ -8977,8 +8977,8 @@ class GenericGraph(GenericGraph_pyx):
             return solution
 
         # If the (di)graph has bridges, the problem is not feasible
-        if ( (self.is_directed() and not self.is_strongly_connected() and self.to_undirected().bridges())
-            or (not self.is_directed() and self.bridges()) ):
+        if ( (self.is_directed() and not self.is_strongly_connected() and next(self.to_undirected().bridges(), False))
+            or (not self.is_directed() and next(self.bridges(), False)) ):
             raise EmptySetError("(di)graphs with bridges have no feasible solution")
 
         #

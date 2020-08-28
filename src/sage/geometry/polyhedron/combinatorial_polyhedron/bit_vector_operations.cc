@@ -109,9 +109,6 @@ inline int contains_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t
         contains_one(face, faces+skip+1, n_faces-skip-1, face_length);
 }
 
-void set_not_inclusion_maximal(uint64_t **faces, size_t n_faces, int *is_not_maximal){
-}
-
 size_t get_next_level(\
         uint64_t **faces, size_t n_faces, uint64_t **maybe_newfaces, \
         uint64_t **newfaces, uint64_t **visited_all, \

@@ -719,7 +719,8 @@ cdef uint32_t * c_eccentricity(G, vertex_list=None) except NULL:
 
     return ecc
 
-cdef uint32_t * c_eccentricity_bounding(G, vertex_list=None) except NULL:
+cdef uint32_t * c_eccentricity_bounding(G, short_digraph sd,
+                                        vertex_list=None) except NULL:
     r"""
     Return the vector of eccentricities in G using the algorithm of [TK2013]_.
 
@@ -739,12 +740,7 @@ cdef uint32_t * c_eccentricity_bounding(G, vertex_list=None) except NULL:
     if G.is_directed():
         raise ValueError("The 'bounds' algorithm only works on undirected graphs.")
 
-    # Copying the whole graph to obtain the list of neighbors quicker than by
-    # calling out_neighbors.  This data structure is well documented in the
-    # module sage.graphs.base.static_sparse_graph
     cdef unsigned int n = G.order()
-    cdef short_digraph sd
-    init_short_digraph(sd, G, edge_labelled=False, vertex_list=vertex_list)
 
     # allocated some data structures
     cdef bitset_t seen
@@ -798,11 +794,10 @@ cdef uint32_t * c_eccentricity_bounding(G, vertex_list=None) except NULL:
 
     sig_free(distances)
     bitset_free(seen)
-    free_short_digraph(sd)
 
     return LB
 
-cdef uint32_t * c_eccentricity_DHV(G, vertex_list=None):
+cdef uint32_t * c_eccentricity_DHV(G, short_digraph sd, vertex_list=None):
     r"""
     Return the vector of eccentricities using the algorithm of [Dragan2018]_.
 
@@ -840,9 +835,6 @@ cdef uint32_t * c_eccentricity_DHV(G, vertex_list=None):
     cdef uint32_t n = G.order()
     if not n:
         return NULL
-
-    cdef short_digraph sd
-    init_short_digraph(sd, G, edge_labelled=False, vertex_list=vertex_list)
 
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef uint32_t * distances = <uint32_t *> mem.malloc(3 * n * sizeof(uint32_t))
@@ -929,7 +921,6 @@ cdef uint32_t * c_eccentricity_DHV(G, vertex_list=None):
                 else:
                     i += 1
 
-    free_short_digraph(sd)
     bitset_free(seen)
 
     return ecc_upper_bound
@@ -1027,11 +1018,12 @@ def eccentricity(G, algorithm="standard", vertex_list=None):
     """
     from sage.rings.infinity import Infinity
     cdef int n = G.order()
+    cdef short_digraph sd
 
     # Trivial cases
     if not n:
         return []
-    elif G.is_directed() and algorithm == 'bounds':
+    elif G.is_directed() and algorithm in ['bounds', 'DHV']:
         raise ValueError("the 'bounds' algorithm only works on undirected graphs")
     elif not G.is_connected():
         return [Infinity] * n
@@ -1045,12 +1037,20 @@ def eccentricity(G, algorithm="standard", vertex_list=None):
         raise ValueError("parameter vertex_list is incorrect for this graph")
 
     cdef uint32_t* ecc
+
     if algorithm == "bounds":
-        ecc = c_eccentricity_bounding(G, vertex_list=int_to_vertex)
+        init_short_digraph(sd, G, edge_labelled=False, vertex_list=vertex_list)
+        ecc = c_eccentricity_bounding(G, sd, vertex_list=int_to_vertex)
+        free_short_digraph(sd)
+
     elif algorithm == "standard":
         ecc = c_eccentricity(G, vertex_list=int_to_vertex)
+
     elif algorithm == "DHV":
-        ecc = c_eccentricity_DHV(G, vertex_list=int_to_vertex)
+        init_short_digraph(sd, G, edge_labelled=False, vertex_list=vertex_list)
+        ecc = c_eccentricity_DHV(G, sd, vertex_list=int_to_vertex)
+        free_short_digraph(sd)
+
     else:
         raise ValueError("unknown algorithm '{}', please contribute".format(algorithm))
 

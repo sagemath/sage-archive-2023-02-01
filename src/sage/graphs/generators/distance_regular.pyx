@@ -1331,7 +1331,7 @@ def GeneralisedDodecagonGraph(const int s, const int t):
         orderType = 1
     else:
         raise ValueError(
-            f"No generalised dodacagon of order ({s}, {t}) is known")
+            f"Generalised dodecagon of order ({s}, {t}) does not exist")
 
     if q == 1:  # order (1, 1)
         from sage.graphs.generators.basic import CycleGraph
@@ -1339,7 +1339,7 @@ def GeneralisedDodecagonGraph(const int s, const int t):
 
     if not is_prime_power(q):
         raise ValueError(
-            f"No generalised dodacagon of order ({s}, {t}) is known")
+            f"No generalised dodecagon of order ({s}, {t}) is known")
 
     if orderType == 0:
         # incidence graph of hexagon (q,q)
@@ -1403,7 +1403,7 @@ def GeneralisedOctagonGraph(const int s, const int t):
         sage: G = graphs.GeneralisedOctagonGraph(4, 16)
         Traceback (most recent call last):
         ...
-        ValueError: generalised octagons of order (q, q^2) are known only for q odd powers of 2
+        ValueError: generalised octagons of order (q, q^2) are known only for odd powers q of 2
 
     """
     from sage.arith.misc import is_prime_power
@@ -1424,7 +1424,7 @@ def GeneralisedOctagonGraph(const int s, const int t):
 
         if p != 2 or k % 2 != 1:
             raise ValueError(("generalised octagons of order (q, q^2) "
-                              "are known only for q odd powers of 2"))
+                              "are known only for odd powers q of 2"))
         orderType = 2
     elif t**2 == s:  # (q^2, q)
         q = t
@@ -1476,11 +1476,11 @@ def GeneralisedOctagonGraph(const int s, const int t):
 
 def GeneralisedHexagonGraph(const int s, const int t):
     r"""
-    Return the point-graph of a generalised octagon of order `(s,t)`.
+    Return the point-graph of a generalised hexagon of order `(s,t)`.
 
     INPUT:
 
-    - ``s, t`` -- integers; order of the generalised octagon
+    - ``s, t`` -- integers; order of the generalised hexagon
 
     EXAMPLES::
 
@@ -1495,7 +1495,7 @@ def GeneralisedHexagonGraph(const int s, const int t):
 
     .. NOTE::
 
-        This function uses the GAP's AtlasRep package to build the graphs
+        This function uses the GAP's AtlasRep package to build GHs
         of order `(q, q)`, `(q, q^3)` or `(q^3, q)`. For those graphs you need
         an internet connection and Sage's optional package ``gap_packages``.
 
@@ -1542,17 +1542,17 @@ def GeneralisedHexagonGraph(const int s, const int t):
         q = t
         orderType = 1
     else:
-        raise ValueError(f"No generalised octagon of order ({s}, {t}) is known")
+        raise ValueError(f"No generalised hexagon of order ({s}, {t}) is known")
 
     if q == 1:  # order (1, 1)
         from sage.graphs.generators.basic import CycleGraph
         return CycleGraph(6)
 
     if not is_prime_power(q):
-        raise ValueError(f"No generalised octagon of order ({s}, {t}) is known")
+        raise ValueError(f"No generalised hexagon of order ({s}, {t}) is known")
 
     if orderType == 0:
-        # incident graph of generalised 3-gon of order (q, q)
+        # incidence graph of generalised 3-gon of order (q, q)
         PG2 = designs.ProjectiveGeometryDesign(2, 1, q)
 
         edges = []

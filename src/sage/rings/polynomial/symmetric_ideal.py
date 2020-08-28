@@ -40,7 +40,7 @@ equal to `x_1` in ``Q``. Indeed, we have
     True
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 Simon King <king@mathematik.nuigalway.ie>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -52,17 +52,16 @@ equal to `x_1` in ``Q``. Indeed, we have
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.rings.ideal import Ideal_generic
 from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
 from sage.misc.cachefunc import cached_method
 import sys
 
-class SymmetricIdeal( Ideal_generic ):
+
+class SymmetricIdeal(Ideal_generic):
     r"""
     Ideal in an Infinite Polynomial Ring, invariant under permutation of variable indices
 
@@ -486,7 +485,6 @@ class SymmetricIdeal( Ideal_generic ):
 
         """
         DONE = []
-        j = 0
         TODO = []
         PARENT = self.ring()
         for P in self.gens():
@@ -515,9 +513,8 @@ class SymmetricIdeal( Ideal_generic ):
                 return SymmetricIdeal(PARENT,[0])
             VarList.sort(key=PARENT.varname_key, reverse=True)
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            CommonR = PolynomialRing(self.base_ring(), VarList, order=self.ring()._order)
 
-        ## Now, the symmetric interreduction starts
+        # Now, the symmetric interreduction starts
         if not (report is None):
             print('Symmetric interreduction')
         from sage.rings.polynomial.symmetric_reduction import SymmetricReductionStrategy
@@ -962,7 +959,9 @@ class SymmetricIdeal( Ideal_generic ):
                 print("->", len(newOUT.gens()), 'generators')
             # Symmetrise out to the next index:
             N += 1
-            newOUT = newOUT.symmetrisation(N=N,tailreduce=tailreduce,report=report,use_full_group=use_full_group)
+            newOUT = newOUT.symmetrisation(N=N, tailreduce=tailreduce,
+                                           report=report,
+                                           use_full_group=use_full_group)
             if [X.lm() for X in OUT.gens()] == [X.lm() for X in newOUT.gens()]:
                 if reduced:
                     if tailreduce:

@@ -60,7 +60,7 @@ import sphinx.ext.intersphinx
 import sage.all
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, DOT_SAGE
 
 from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
      PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
@@ -1185,6 +1185,9 @@ name = {!r}
 html_title = project
 html_short_title = project
 htmlhelp_basename = name
+
+extensions.remove('multidocs') # see #29651
+extensions.remove('inventory_builder')
 
 latex_domain_indices = False
 latex_documents = [

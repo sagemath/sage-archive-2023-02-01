@@ -1984,7 +1984,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: m.sage()                           # optional - magma
             [1 2 3]
             [4 5 6]
-
+            
         Multivariate polynomials::
 
             sage: R.<x,y,z> = QQ[]                   # optional - magma
@@ -2059,6 +2059,21 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: R = Zmod(137)
             sage: magma(R).sage()  # optional - magma
             Ring of integers modulo 137
+            
+        TESTS:
+        
+        Tests for :trac:`30341`::
+
+            sage: P.<t> = PolynomialRing(QQ)
+            sage: l = [-27563611963/4251528, -48034411/104976, -257/54, 1]
+            sage: u = P(l)
+            sage: u == P(magma(u).sage()) # optional - magma
+            True
+            
+            sage: P.<x,y> = PolynomialRing(QQ, 2)
+            sage: u = x + 27563611963/4251528*y
+            sage: magma(u).sage() # optional - magma
+            x + 27563611963/4251528*y
         """
         z, preparse = self.Sage(nvals=2)
         s = str(z)

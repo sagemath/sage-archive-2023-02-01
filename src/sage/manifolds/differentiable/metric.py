@@ -211,6 +211,7 @@ class PseudoRiemannianMetric(TensorField):
 
     The volume form (Levi-Civita tensor) associated with `g`::
 
+        sage: M.set_orientation([c_xy, c_uv])
         sage: eps = g.volume_form() ; eps
         2-form eps_g on the 2-dimensional differentiable manifold S^2
         sage: eps.display(eU)
@@ -1620,19 +1621,20 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Volume form (Levi-Civita tensor) `\epsilon` associated with the metric.
 
-        This assumes that the manifold is orientable.
-
-        The volume form `\epsilon` is a `n`-form (`n` being the manifold's
-        dimension) such that for any vector basis `(e_i)` that is orthonormal
-        with respect to the metric,
+        The volume form `\epsilon` is an `n`-form (`n` being the manifold's
+        dimension) such that for any oriented vector basis `(e_i)` which is
+        orthonormal with respect to the metric, the condition
 
         .. MATH::
 
-            \epsilon(e_1,\ldots,e_n) = \pm 1
+            \epsilon(e_1,\ldots,e_n) = 1
 
-        There are only two such `n`-forms, which are opposite of each other.
-        The volume form `\epsilon` is selected such that the domain's default
-        frame is right-handed with respect to it.
+        holds.
+
+        Notice that that a volume form requires an orientable manifold with
+        a preferred orientation, see
+        :meth:`~sage.manifolds.manifold.DifferentiableManifold.orientation`
+        for details.
 
         INPUT:
 
@@ -1718,10 +1720,13 @@ class PseudoRiemannianMetric(TensorField):
             True
 
         """
+        dom = self._domain
+        orient = dom.orientation()
+        if orient is None:
+            raise ValueError('{} must admit an orientation'.format(dom))
         if self._vol_forms == []:
             # a new computation is necessary
             manif = self._ambient_domain
-            dom = self._domain
             ndim = manif.dimension()
             # The result is constructed on the vector field module,
             # so that dest_map is taken automatically into account:
@@ -1729,7 +1734,7 @@ class PseudoRiemannianMetric(TensorField):
                                 latex_name=r'\epsilon_{'+self._latex_name+r'}')
             si = manif.start_index()
             ind = tuple(range(si, si+ndim))
-            for frame in dom._top_frames:
+            for frame in orient:
                 if frame.destination_map() is frame.domain().identity_map():
                     eps.add_comp(frame)[[ind]] = self.sqrt_abs_det(frame)
             self._vol_forms.append(eps)  # Levi-Civita tensor constructed
@@ -1760,6 +1765,11 @@ class PseudoRiemannianMetric(TensorField):
         where `n` is the manifold's dimension, `\epsilon` is the volume
         `n`-form associated with `g` (see :meth:`volume_form`) and the indices
         `k_1,\ldots, k_p` are raised with `g`.
+
+        Notice that that the hodge star dual requires an orientable
+        manifold with a preferred orientation, see
+        :meth:`~sage.manifolds.manifold.DifferentiableManifold.orientation`
+        for details.
 
         INPUT:
 

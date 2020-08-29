@@ -208,6 +208,12 @@ cdef class Matrix(Matrix1):
         field, this method computes a least-squares solution if the
         system is not square.
 
+        .. NOTE::
+
+            In Sage one can also write ``B / A`` for
+            ``A.solve_left(B)``, that is, Sage implements "the
+            MATLAB/Octave slash operator".
+
         INPUT:
 
         - ``B`` -- a matrix or vector
@@ -250,10 +256,14 @@ cdef class Matrix(Matrix1):
             sage: X = A.solve_left(B)
             sage: X*A == B
             True
+            sage: X == B / A
+            True
 
-            sage: M = matrix([(3,-1,0,0),(1,1,-2,0),(0,0,0,-3)])
-            sage: B = matrix(QQ,3,1, [0,0,-1])
-            sage: M.solve_left(B)
+        ::
+
+            sage: A = matrix([(3, -1, 0, 0), (1, 1, -2, 0), (0, 0, 0, -3)])
+            sage: B = matrix(QQ, 3, 1, [0, 0, -1])
+            sage: A.solve_left(B)
             Traceback (most recent call last):
             ...
             ValueError: number of columns of self must equal number of columns
@@ -409,9 +419,9 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-           In Sage one can also write ``A \ B`` for
-           ``A.solve_right(B)``, that is, Sage implements "the
-           MATLAB/Octave backslash operator".
+            In Sage one can also write ``A \ B`` for
+            ``A.solve_right(B)``, that is, Sage implements "the
+            MATLAB/Octave backslash operator".
 
         INPUT:
 
@@ -6601,6 +6611,22 @@ cdef class Matrix(Matrix1):
             sage: D, P = A.eigenmatrix_left()
             sage: (P*A - D*P).norm() < 10^(-2)
             True
+
+        For some symbolic matrices, the Maxima backend fails to correctly
+        compute some eigenvectors, returning either none or more vectors than
+        the algebraic multiplicity. The following examples show that these
+        cases are detected (:trac:`27842`)::
+
+            sage: A = matrix(SR, [(225/548, 0, -175/274*sqrt(193/1446)), (0, 1/2, 0), (-63/548*sqrt(723/386), 0, 49/548)])
+            sage: A.eigenmatrix_left()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: failed to compute eigenvectors for eigenvalue ..., check eigenvectors_left() for partial results
+            sage: B = matrix(SR, [(1/2, -7/2*sqrt(1/386), 0, 49/2*sqrt(1/279078)), (-7/2*sqrt(1/386), 211/772, 0, -8425/772*sqrt(1/723)), (0, 0, 1/2, 0), (49/2*sqrt(1/279078), -8425/772*sqrt(1/723), 0, 561/772)])
+            sage: B.eigenmatrix_left()  # long time (1.2 seconds)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: failed to compute eigenvectors for eigenvalue ..., check eigenvectors_left() for partial results
         """
         from sage.misc.flatten import flatten
         from sage.matrix.constructor import diagonal_matrix, matrix
@@ -6608,7 +6634,14 @@ cdef class Matrix(Matrix1):
         D = diagonal_matrix(flatten([[e[0]]*e[2] for e in evecs]))
         rows = []
         for e in evecs:
-            rows.extend(e[1]+[e[1][0].parent().zero_vector()]*(e[2]-len(e[1])))
+            defect = e[2] - len(e[1])
+            if e[1] and defect >= 0:
+                rows.extend(e[1] + [e[1][0].parent().zero_vector()] * defect)
+            else:
+                # see trac #27842
+                raise RuntimeError(
+                        "failed to compute eigenvectors for eigenvalue %s, "
+                        "check eigenvectors_left() for partial results" % e[0])
         P = matrix(rows)
         return D,P
 

@@ -84,6 +84,8 @@ from .real_mpfr import mpfr_prec_min, mpfr_prec_max
 from sage.structure.richcmp cimport rich_to_bool, richcmp
 from sage.categories.fields import Fields
 
+from sage.misc.superseded import deprecated_function_alias
+
 cimport gmpy2
 gmpy2.import_gmpy2()
 
@@ -1962,8 +1964,6 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: MPC = MPComplexField(53)
             sage: (1+MPC(I)).cot()
             0.217621561854403 - 0.868014142895925*I
-            sage: (1+MPC(I)).cotan()
-            0.217621561854403 - 0.868014142895925*I
             sage: i = MPComplexField(200).0
             sage: (1+i).cot()
             0.21762156185440268136513424360523807352075436916785404091068 - 0.86801414289592494863584920891627388827343874994609327121115*I
@@ -1973,7 +1973,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         """
         return ~(self.tan())
 
-    cotan = cot # provide this alias for backward compatibility in #29409
+    cotan = deprecated_function_alias(29412, cot)
 
     ################################
     # Other functions

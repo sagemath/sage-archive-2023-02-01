@@ -51,7 +51,7 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
 
             sage: p = PermutationGroupElement((2,3,4))
             sage: P = species.PermutationSpecies()
-            sage: a = P.structures(["a", "b", "c", "d"]).random_element(); a
+            sage: a = P.structures(["a", "b", "c", "d"])[2]; a
             ['a', 'c', 'b', 'd']
             sage: a.permutation_group_element()
             (2,3)
@@ -67,7 +67,7 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
 
             sage: p = PermutationGroupElement((2,3,4))
             sage: P = species.PermutationSpecies()
-            sage: a = P.structures(["a", "b", "c", "d"]).random_element(); a
+            sage: a = P.structures(["a", "b", "c", "d"])[2]; a
             ['a', 'c', 'b', 'd']
             sage: a.transport(p)
             ['a', 'd', 'c', 'b']
@@ -83,9 +83,10 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: p = PermutationGroupElement((2,3,4))
             sage: P = species.PermutationSpecies()
-            sage: a = P.structures(["a", "b", "c", "d"]).random_element(); a
+            sage: a = P.structures(["a", "b", "c", "d"])[2]; a
             ['a', 'c', 'b', 'd']
             sage: a.automorphism_group()
             Permutation Group with generators [(2,3), (1,4)]
@@ -213,7 +214,7 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             sage: g.coefficients(10)
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
         """
-        from sage.combinat.partitions import number_of_partitions
+        from sage.combinat.partition import number_of_partitions
         for n in _integers_from(0):
             yield base_ring(number_of_partitions(n))
 

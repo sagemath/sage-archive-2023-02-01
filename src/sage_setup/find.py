@@ -207,8 +207,8 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
     EXAMPLES::
 
         sage: from sage_setup.find import find_extra_files
-        sage: from sage.env import SAGE_SRC
-        sage: cythonized_dir = os.path.join(SAGE_SRC, "build", "cythonized")
+        sage: from sage.env import SAGE_SRC, SAGE_ROOT
+        sage: cythonized_dir = os.path.join(SAGE_ROOT, "build", "pkgs", "sagelib", "src", "build", "cythonized")
         sage: extras = find_extra_files(SAGE_SRC, ["sage"], cythonized_dir)
         sage: extras["sage/libs/mpfr"]
         [...sage/libs/mpfr/types.pxd...]

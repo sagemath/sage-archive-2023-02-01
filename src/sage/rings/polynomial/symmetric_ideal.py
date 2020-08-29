@@ -488,40 +488,38 @@ class SymmetricIdeal(Ideal_generic):
         TODO = []
         PARENT = self.ring()
         for P in self.gens():
-            if P._p!=0:
-                if P.is_unit(): # self generates all of self.ring()
+            if P._p != 0:
+                if P.is_unit():  # self generates all of self.ring()
                     if RStrat is not None:
                         RStrat.add_generator(PARENT(1))
-                    return SymmetricIdeal(self.ring(),[self.ring()(1)], coerce=False)
+                    return SymmetricIdeal(self.ring(), [self.ring()(1)],
+                                          coerce=False)
                 TODO.append(P)
         if not sorted:
             TODO = list(set(TODO))
             TODO.sort()
-        if hasattr(PARENT,'_P'):
-            CommonR = PARENT._P
-        else:
-            VarList = set([])
+        if not hasattr(PARENT, '_P'):
+            VarList = set()
             for P in TODO:
-                if P._p!=0:
-                    if P.is_unit(): # self generates all of PARENT
+                if P._p != 0:
+                    if P.is_unit():  # self generates all of PARENT
                         if RStrat is not None:
-                            RStrat.add_generator(PARENT(1))
-                        return SymmetricIdeal(PARENT,[PARENT(1)], coerce=False)
+                            RStrat.add_generator(PARENT.one())
+                        return SymmetricIdeal(PARENT, [PARENT.one()],
+                                              coerce=False)
                     VarList = VarList.union(P._p.parent().variable_names())
             VarList = list(VarList)
             if not VarList:
-                return SymmetricIdeal(PARENT,[0])
-            VarList.sort(key=PARENT.varname_key, reverse=True)
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+                return SymmetricIdeal(PARENT, [0])
 
         # Now, the symmetric interreduction starts
-        if not (report is None):
+        if report is not None:
             print('Symmetric interreduction')
         from sage.rings.polynomial.symmetric_reduction import SymmetricReductionStrategy
         if RStrat is None:
             RStrat = SymmetricReductionStrategy(self.ring(),tailreduce=tailreduce)
         GroundState = RStrat.gens()
-        while (1):
+        while True:
             RStrat.setgens(GroundState)
             DONE = []
             for i in range(len(TODO)):
@@ -535,7 +533,7 @@ class SymmetricIdeal(Ideal_generic):
                     RStrat.add_generator(p, good_input=True)
                     DONE.append(p)
                 else:
-                    if not (report is None):
+                    if report is not None:
                         print("-> 0")
             DONE.sort()
             if DONE == TODO:
@@ -929,7 +927,7 @@ class SymmetricIdeal(Ideal_generic):
         N = max([int(X.split('_')[1]) for X in VarList]+[1])
 
         #from sage.combinat.permutation import Permutations
-        while (1):
+        while True:
             if hasattr(PARENT,'_P'):
                 CommonR = PARENT._P
             else:

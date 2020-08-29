@@ -90,7 +90,7 @@ SAGE_SCRIPTS
     box.vertices.push( new THREE.Vector3( a[0]*b[0].x, a[1]*b[0].y, a[2]*b[0].z ) );
     box.vertices.push( new THREE.Vector3( a[0]*b[1].x, a[1]*b[1].y, a[2]*b[1].z ) );
     var boxMesh = new THREE.Line( box );
-    var boxColor = ( options.theme === 'dark' ) ? 'white': 'black';
+    var boxColor = options.theme === 'dark' ? 'white': 'black';
     if ( options.frame ) scene.add( new THREE.BoxHelper( boxMesh, boxColor ) );
 
     if ( options.axesLabels ) {
@@ -395,7 +395,7 @@ SAGE_SCRIPTS
                 }
             }
 
-            var gridColor = ( options.theme === 'dark' ) ? 'white' : 'black';
+            var gridColor = options.theme === 'dark' ? 'white' : 'black';
             var material = new THREE.LineBasicMaterial( { color: gridColor, linewidth: 1 } );
 
             var c = new THREE.Vector3();

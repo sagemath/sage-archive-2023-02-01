@@ -140,44 +140,26 @@ from sage.graphs.base.static_sparse_graph cimport (short_digraph,
                                                    out_degree,
                                                    simple_BFS)
 
-cdef inline all_pairs_shortest_path_BFS(gg,
-                                        unsigned short* predecessors,
-                                        unsigned short* distances,
-                                        uint32_t* eccentricity,
-                                        vertex_list=None):
+cdef inline c_all_pairs_shortest_path_BFS(short_digraph sd,
+                                          unsigned short* predecessors,
+                                          unsigned short* distances,
+                                          uint32_t* eccentricity):
     r"""
     See the module's documentation.
-
-    Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
-    mapping from `(0, \ldots, n-1)` to vertex labels in ``gg``. When
-    ``vertex_list`` is ``None`` (default), the mapping is given by the ordering
-    of ``gg.vertices()``. When set, ``distances[i * n + j]`` is the shortest BFS
-    distance between vertices ``vertex_list[i]`` and ``vertex_list[j]``.
     """
-
-    from sage.rings.infinity import Infinity
-
-    cdef list int_to_vertex
-    if vertex_list is None:
-        int_to_vertex = gg.vertices()
-    elif set(gg.vertex_iterator()) == set(vertex_list):
-        int_to_vertex = vertex_list
-    else:
-        raise ValueError("parameter vertex_list is incorrect for this graph")
-
-    cdef int i
-    cdef MemoryAllocator mem = MemoryAllocator()
-
-    cdef int n = gg.order()
+    cdef int n = sd.n
 
     # Computing the predecessors/distances can only be done if we have less than
     # MAX_UNSIGNED_SHORT vertices. No problem with the eccentricities though as
     # we store them on an integer vector.
     if (predecessors or distances) and n > <unsigned short> -1:
-        raise ValueError("The graph backend contains more than "+
-                         str(<unsigned short> -1)+" nodes and we cannot "+
-                         "compute the matrix of distances/predecessors on "+
+        raise ValueError("The graph backend contains more than " +
+                         str(<unsigned short> -1) + " nodes and we cannot " +
+                         "compute the matrix of distances/predecessors on " +
                          "something like that !")
+
+    cdef int i
+    cdef MemoryAllocator mem = MemoryAllocator()
 
     # The vertices which have already been visited
     cdef bitset_t seen
@@ -196,9 +178,6 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     cdef unsigned short *c_predecessors = predecessors
     cdef int* c_distances = <int*> mem.allocarray(n, sizeof(int))
 
-    # Copying the whole graph to obtain the list of neighbors quicker than by
-    # calling out_neighbors
-
     # The edges are stored in the vector p_edges. This vector contains, from
     # left to right The list of the first vertex's outneighbors, then the
     # second's, then the third's, ...
@@ -210,9 +189,6 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     #
     # This data structure is well documented in the module
     # sage.graphs.base.static_sparse_graph
-
-    cdef short_digraph sd
-    init_short_digraph(sd, gg, edge_labelled=False, vertex_list=int_to_vertex)
     cdef uint32_t** p_vertices = sd.neighbors
     cdef uint32_t* p_edges = sd.edges
     cdef uint32_t* p_next = p_edges
@@ -278,7 +254,6 @@ cdef inline all_pairs_shortest_path_BFS(gg,
         elif eccentricity:
             eccentricity[source] = c_distances[waiting_list[n - 1]]
 
-
         if predecessors:
             c_predecessors += n
 
@@ -288,6 +263,49 @@ cdef inline all_pairs_shortest_path_BFS(gg,
             distances += n
 
     bitset_free(seen)
+
+cdef inline all_pairs_shortest_path_BFS(gg,
+                                        unsigned short* predecessors,
+                                        unsigned short* distances,
+                                        uint32_t* eccentricity,
+                                        vertex_list=None):
+    r"""
+    See the module's documentation.
+
+    Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
+    mapping from `(0, \ldots, n-1)` to vertex labels in ``gg``. When
+    ``vertex_list`` is ``None`` (default), the mapping is given by the ordering
+    of ``gg.vertices()``. When set, ``distances[i * n + j]`` is the shortest BFS
+    distance between vertices ``vertex_list[i]`` and ``vertex_list[j]``.
+    """
+    from sage.rings.infinity import Infinity
+
+    cdef list int_to_vertex
+    if vertex_list is None:
+        int_to_vertex = gg.vertices()
+    elif set(gg.vertex_iterator()) == set(vertex_list):
+        int_to_vertex = vertex_list
+    else:
+        raise ValueError("parameter vertex_list is incorrect for this graph")
+
+    cdef int n = gg.order()
+
+    # Computing the predecessors/distances can only be done if we have less than
+    # MAX_UNSIGNED_SHORT vertices. No problem with the eccentricities though as
+    # we store them on an integer vector.
+    if (predecessors or distances) and n > <unsigned short> -1:
+        raise ValueError("The graph backend contains more than "+
+                         str(<unsigned short> -1)+" nodes and we cannot "+
+                         "compute the matrix of distances/predecessors on "+
+                         "something like that !")
+
+    # Copying the whole graph to obtain the list of neighbors quicker than by
+    # calling out_neighbors
+    cdef short_digraph sd
+    init_short_digraph(sd, gg, edge_labelled=False, vertex_list=int_to_vertex)
+
+    c_all_pairs_shortest_path_BFS(sd, predecessors, distances, eccentricity)
+
     free_short_digraph(sd)
 
 ################

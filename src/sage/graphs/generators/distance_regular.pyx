@@ -1757,10 +1757,28 @@ def _intersection_array_from_graph(G):
 
     EXAMPLES::
 
+        sage: from sage.graphs.generators.distance_regular import \
+        ....: _intersection_array_from_graph
+        sage: _intersection_array_from_graph(graphs.FosterGraph())
+        [3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3]
+        sage: graphs.FosterGraph().is_distance_regular(True)
+        ([3, 2, 2, 2, 2, 1, 1, 1, None], [None, 1, 1, 1, 1, 2, 2, 2, 3])
+        sage: graphs.DartGraph().is_distance_regular()
+        False
+        sage: _intersection_array_from_graph(graphs.DartGraph())
+        False
+
     TESTS::
 
+        sage: from sage.graphs.generators.distance_regular import \
+        ....: _intersection_array_from_graph
+        sage: _intersection_array_from_graph(Graph())
+        []
+        sage: _intersection_array_from_graph(Graph(3))
+        []
+        sage: _intersection_array_from_graph(graphs.CompleteGraph(7))
+        [6, 1]
     """
-
     t = G.is_distance_regular(True)
     if t is False:
         return False

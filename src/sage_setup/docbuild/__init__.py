@@ -1156,7 +1156,7 @@ class SingleFileBuilder(DocBuilder):
         # By default, this is DOT_SAGE/docbuild/MODULE_NAME, but can
         # also be specified at the command line.
         module_name = os.path.splitext(os.path.basename(path))[0]
-        latex_name = module_name.replace('_', r'\_')
+        latex_name = module_name.replace('_', r'\\_')
 
         if self._options.output_dir:
             base_dir = os.path.join(self._options.output_dir, module_name)

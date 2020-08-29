@@ -385,8 +385,8 @@ def distance_3_doubly_truncated_Golay_code_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.distance_3_doubly_truncated_Golay_code_graph()
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.distance_3_doubly_truncated_Golay_code_graph()  # long time (5 s)
+        sage: G.is_distance_regular(True)  # long time; due to above
         ([9, 8, 6, 3, None], [None, 1, 1, 3, 8])
 
     ALGORITHM:
@@ -421,7 +421,7 @@ def shortened_00_11_binary_Golay_code_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.shortened_00_11_binary_Golay_code_graph() # long time (25 s)
+        sage: G = graphs.shortened_00_11_binary_Golay_code_graph() # long time (9 s)
         sage: G.is_distance_regular(True) # long time
         ([21, 20, 16, 6, 2, 1, None], [None, 1, 2, 6, 16, 20, 21])
 
@@ -460,7 +460,7 @@ def shortened_000_111_extended_binary_Golay_code_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # long time (2 min)
+        sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # long time (25 s)
         sage: G.is_distance_regular(True)  # long time
         ([21, 20, 16, 9, 2, 1, None], [None, 1, 2, 3, 16, 20, 21])
 
@@ -580,13 +580,13 @@ def UstimenkoGraph(const int m, const int q):
 
     TESTS::
 
-        sage: G = graphs.UstimenkoGraph(5, 2)
-        sage: G.order()
+        sage: G = graphs.UstimenkoGraph(5, 2)  # long time (11 s)
+        sage: G.order()  # long time; due to above
         2295
-        sage: G.is_distance_regular(True)
+        sage: G.is_distance_regular(True)  # long time (2 s)
         ([310, 224, None], [None, 1, 35])
-        sage: G = graphs.UstimenkoGraph(4,3)
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.UstimenkoGraph(4,3)  # long time (5 s)
+        sage: G.is_distance_regular(True)  # long time; due to above
         ([390, 243, None], [None, 1, 130])
     """
     from sage.graphs.graph_generators import graphs
@@ -630,8 +630,8 @@ def BilinearFormsGraph(const int d, const int e, const int q):
         sage: G = graphs.BilinearFormsGraph(3,3,3)  # not tested (20 s)
         sage: G.order()  # not tested (due to above)
         19683
-        sage: G = graphs.BilinearFormsGraph(3, 4, 2)
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.BilinearFormsGraph(3, 4, 2)  # long time (1 s)
+        sage: G.is_distance_regular(True)  # long time (5 s)
         ([105, 84, 48, None], [None, 1, 6, 28])
 
     REFERENCES:
@@ -714,8 +714,8 @@ def AlternatingFormsGraph(const int n, const int q):
 
     EXAMPLES::
 
-        sage: G = graphs.AlternatingFormsGraph(5,2)
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.AlternatingFormsGraph(5,2)  # long time (1 s)
+        sage: G.is_distance_regular(True)  # long time; due to above
         ([155, 112, None], [None, 1, 20])
 
     REFERENCES:
@@ -1054,8 +1054,8 @@ def GrassmannGraph(const int q, const int n, const int input_e):
 
     TESTS::
 
-        sage: G = graphs.GrassmannGraph(2, 6, 3)
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.GrassmannGraph(2, 6, 3)  # long time (19 s)
+        sage: G.is_distance_regular(True)  # long time; due to above
         ([98, 72, 32, None], [None, 1, 9, 49])
         sage: G = graphs.GrassmannGraph(3, 4, 2)
         sage: G.is_distance_regular(True)
@@ -1115,10 +1115,10 @@ def DoubleGrassmannGraph(const int q, const int e):
          62
          sage: G.is_distance_regular(True)
          ([6, 5, 5, None], [None, 1, 1, 6])
-         sage: G = graphs.DoubleGrassmannGraph(3, 2)
-         sage: G.order()
+         sage: G = graphs.DoubleGrassmannGraph(3, 2)  # long time (15 s)
+         sage: G.order()  # long time; due to above
          2420
-         sage: G.is_distance_regular(True)
+         sage: G.is_distance_regular(True)  # long time (5 s)
          ([13, 12, 12, 9, 9, None], [None, 1, 1, 4, 4, 13])
     """
     n = 2*e + 1

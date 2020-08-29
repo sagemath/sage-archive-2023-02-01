@@ -911,7 +911,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                     (x^2 + (2 + O(3^20))*y^2 : (3 + O(3^21))*x*y)
         """
         # if ideal or valuation is specified, we scale according the norm defined by the ideal/valuation
-        ideal = kwargs.pop('ideal', None)
+        ideal = kwds.pop('ideal', None)
         if ideal != None:
             from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
             if not (ideal in ZZ or isinstance(ideal, NumberFieldFractionalIdeal)):
@@ -942,7 +942,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             min_val = min(valuations)
             self.scale_by(uniformizer**(-1*min_val))
             return
-        valuation = kwargs.pop('valuation', None)
+        valuation = kwds.pop('valuation', None)
         if valuation != None:
             from sage.rings.padics.padic_valuation import pAdicValuation_base
             if not isinstance(valuation, pAdicValuation_base):

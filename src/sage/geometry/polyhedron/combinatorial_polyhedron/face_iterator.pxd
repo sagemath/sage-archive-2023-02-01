@@ -82,3 +82,9 @@ cdef class FaceIterator_geom(FaceIterator_base):
     cdef int _trivial_faces     # Whether to yield the trivial faces.
     cdef object _requested_dim  # Dimension requested on init.
     cdef readonly object P      # The original polyhedron.
+
+# Nogil definitions of crucial functions.
+
+cdef int next_dimension(iter_struct *structptr) nogil except -1
+cdef int next_face_loop(iter_struct *structptr) nogil except -1
+cdef size_t n_atom_rep(iter_struct *structptr) nogil except -1

@@ -872,8 +872,8 @@ class Polyhedron_normaliz(Polyhedron_base):
             ....:                rays=[[1,1]], backend='normaliz')
             sage: P._test_far_facet_condition()                        # optional - pynormaliz
 
-            sage: P = Polyhedron(rays=[[1,1,0]],
-            ....:                lines=[[0,0,1]], backend='normaliz')  # optional - pynormaliz
+            sage: P = Polyhedron(rays=[[1,1,0]],                       # optional - pynormaliz
+            ....:                lines=[[0,0,1]], backend='normaliz')
             sage: P._test_far_facet_condition()                        # optional - pynormaliz
 
             sage: P = Polyhedron(vertices=[[1,0,0], [0,1,0]],          # optional - pynormaliz

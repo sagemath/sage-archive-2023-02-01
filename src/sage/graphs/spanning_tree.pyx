@@ -956,7 +956,7 @@ def spanning_trees(g, labels=False):
 
     Giving anything else than a graph::
 
-        sage: from sage.graphs.connectivity import spanning trees
+        sage: from sage.graphs.connectivity import spanning_trees
         sage: spanning_trees(DiGraph())
         Traceback (most recent call last):
         ...

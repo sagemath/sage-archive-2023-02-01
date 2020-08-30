@@ -1431,116 +1431,6 @@ class Graph(GenericGraph):
         """
         return False
 
-
-    @doc_index("Connectivity, orientations, trees")
-    def spanning_trees(self, labels=False):
-        """
-        Returns a list of all spanning trees.
-
-        If the graph is disconnected, returns the empty list.
-
-        Uses the Read-Tarjan backtracking algorithm [RT1975a]_.
-
-        INPUT:
-
-        - ``labels`` -- boolean (default: ``False``); whether to return edges
-          labels in the spanning trees or not
-
-        EXAMPLES::
-
-            sage: G = Graph([(1,2),(1,2),(1,3),(1,3),(2,3),(1,4)], multiedges=True)
-            sage: len(G.spanning_trees())
-            8
-            sage: G.spanning_trees_count()
-            8
-            sage: G = Graph([(1,2),(2,3),(3,1),(3,4),(4,5),(4,5),(4,6)], multiedges=True)
-            sage: len(G.spanning_trees())
-            6
-            sage: G.spanning_trees_count()
-            6
-
-        .. SEEALSO::
-
-            - :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
-              -- counts the number of spanning trees.
-
-            - :meth:`~sage.graphs.graph.Graph.random_spanning_tree`
-              -- returns a random spanning tree.
-
-        TESTS:
-
-        Works with looped graphs::
-
-            sage: g = Graph({i:[i,(i+1)%6] for i in range(6)})
-            sage: g.spanning_trees()
-            [Graph on 6 vertices,
-             Graph on 6 vertices,
-             Graph on 6 vertices,
-             Graph on 6 vertices,
-             Graph on 6 vertices,
-             Graph on 6 vertices]
-
-        Edges of the spanning trees can be labeled
-        or unlabeled (:trac:`27557`)::
-
-            sage: g = Graph([(1,2,2),(1,2,1),(1,2,4),(1,4,5)],multiedges=True)
-            sage: l = g.spanning_trees(labels=True)
-            sage: l[0].edges()
-            [(1, 2, 4), (1, 4, 5)]
-            sage: l[1].edges()
-            [(1, 2, 1), (1, 4, 5)]
-            sage: l[2].edges()
-            [(1, 2, 2), (1, 4, 5)]
-        """
-
-        def _recursive_spanning_trees(G, forest, labels):
-            """
-            Returns all the spanning trees of G containing forest
-            """
-            if not G.is_connected():
-                return []
-
-            if G.size() == forest.size():
-                return [forest.copy()]
-            else:
-                # Pick an edge e from G-forest
-                for e in G.edge_iterator(labels=labels):
-                    if not forest.has_edge(e):
-                        break
-
-                # 1) Recursive call with e removed from G
-                G.delete_edge(e)
-                trees = _recursive_spanning_trees(G, forest, labels)
-                G.add_edge(e)
-
-                # 2) Recursive call with e include in forest
-                #
-                # e=xy links the CC (connected component) of forest containing x
-                # with the CC containing y. Any other edge which does that
-                # cannot be added to forest anymore, and B is the list of them
-                c1 = forest.connected_component_containing_vertex(e[0])
-                c2 = forest.connected_component_containing_vertex(e[1])
-                G.delete_edge(e)
-                B = G.edge_boundary(c1, c2, sort=False)
-                G.add_edge(e)
-
-                # Actual call
-                forest.add_edge(e)
-                G.delete_edges(B)
-                trees.extend(_recursive_spanning_trees(G, forest, labels))
-                G.add_edges(B)
-                forest.delete_edge(e)
-
-                return trees
-
-        if self.is_connected() and self.order():
-            forest = Graph()
-            forest.add_vertices(self.vertex_iterator())
-            forest.add_edges(self.bridges())
-            return _recursive_spanning_trees(Graph(self, immutable=False, loops=False), forest, labels)
-        else:
-            return []
-
     ### Properties
     @doc_index("Graph properties")
     def is_tree(self, certificate=False, output='vertex'):
@@ -9398,6 +9288,7 @@ class Graph(GenericGraph):
     from sage.graphs.cliquer import all_max_clique as cliques_maximum
     from sage.graphs.cliquer import all_cliques
     from sage.graphs.spanning_tree import random_spanning_tree
+    from sage.graphs.spanning_tree import spanning_trees
     from sage.graphs.graph_decompositions.graph_products import is_cartesian_product
     from sage.graphs.distances_all_pairs import is_distance_regular
     from sage.graphs.base.static_dense_graph import is_strongly_regular
@@ -9434,6 +9325,7 @@ _additional_categories = {
     "all_cliques"               : "Clique-related methods",
     "atoms_and_clique_separators" : "Clique-related methods",
     "random_spanning_tree"      : "Connectivity, orientations, trees",
+    "spanning_trees"            : "Connectivity, orientations, trees",
     "is_cartesian_product"      : "Graph properties",
     "is_distance_regular"       : "Graph properties",
     "is_strongly_regular"       : "Graph properties",

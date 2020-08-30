@@ -593,6 +593,8 @@ cdef class FaceIterator_base(SageObject):
         # Also, this face will not be added a second time to ``visited_all``,
         # as there are no new faces.
         self.structure.visited_all[self.structure.n_visited_all[self.structure.current_dimension]] = self.structure.face
+        if self.structure.is_simple:
+            self.structure.visited_all_coatom_rep[self.structure.n_visited_all[self.structure.current_dimension]] = self.structure.face_coatom_rep
         self.structure.n_visited_all[self.structure.current_dimension] += 1
 
     cdef inline CombinatorialFace next_face(self):

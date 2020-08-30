@@ -112,6 +112,7 @@ def build_many(target, args, processes=None):
         ...
         WorkerDiedException: worker for 4 died with non-zero exit code -9
     """
+    import multiprocessing
     from multiprocessing import Process, Queue, cpu_count, set_start_method
     # With OS X, Python 3.8 defaults to use 'spawn' instead of 'fork'
     # in multiprocessing, and Sage docbuilding doesn't work with

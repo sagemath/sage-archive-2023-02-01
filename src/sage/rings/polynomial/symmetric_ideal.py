@@ -146,7 +146,7 @@ class SymmetricIdeal(Ideal_generic):
         sage: [[(p^P).reduce(J) for p in J] for P in Permutations(3)]
         [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
-    Since ``I`` is not a Groebner basis, it is no surprise that it can not detect
+    Since ``I`` is not a Groebner basis, it is no surprise that it cannot detect
     ideal membership::
 
         sage: [p.reduce(I) for p in J]
@@ -492,7 +492,7 @@ class SymmetricIdeal(Ideal_generic):
                 if P.is_unit():  # self generates all of self.ring()
                     if RStrat is not None:
                         RStrat.add_generator(PARENT(1))
-                    return SymmetricIdeal(self.ring(), [self.ring()(1)],
+                    return SymmetricIdeal(self.ring(), [self.ring().one()],
                                           coerce=False)
                 TODO.append(P)
         if not sorted:
@@ -529,7 +529,8 @@ class SymmetricIdeal(Ideal_generic):
                 p = RStrat.reduce(TODO[i], report=report)
                 if p._p != 0:
                     if p.is_unit(): # self generates all of self.ring()
-                        return SymmetricIdeal(self.ring(),[self.ring()(1)], coerce=False)
+                        return SymmetricIdeal(self.ring(),[self.ring().one()],
+                                              coerce=False)
                     RStrat.add_generator(p, good_input=True)
                     DONE.append(p)
                 else:

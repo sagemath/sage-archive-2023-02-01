@@ -403,7 +403,7 @@ cdef class GenericSDPBackend:
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "Nonexistent_LP_solver")   # optional - Nonexistent_LP_solver
             sage: p.problem_name("There once was a french fry") # optional - Nonexistent_LP_solver
-            sage: print(p.get_problem_name())                     # optional - Nonexistent_LP_solver
+            sage: print(p.problem_name())                     # optional - Nonexistent_LP_solver
             There once was a french fry
         """
 
@@ -679,7 +679,7 @@ def default_sdp_solver(solver=None):
     else:
         raise ValueError("'solver' should be set to 'CVXOPT', a class, or None.")
 
-cpdef GenericSDPBackend get_solver(solver = None):
+cpdef GenericSDPBackend get_solver(solver=None, base_ring=None):
     """
     Return a solver according to the given preferences.
 
@@ -722,13 +722,13 @@ cpdef GenericSDPBackend get_solver(solver = None):
         solver = default_sdp_solver()
 
     if callable(solver):
-        return solver()
+        return solver(base_ring=base_ring)
 
     solver = solver.capitalize()
 
     if solver == "Cvxopt":
         from sage.numerical.backends.cvxopt_sdp_backend import CVXOPTSDPBackend
-        return CVXOPTSDPBackend()
+        return CVXOPTSDPBackend(base_ring=base_ring)
 
     else:
         raise ValueError("'solver' should be set to 'CVXOPT', a class, or None (in which case the default one is used).")

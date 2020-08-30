@@ -2828,15 +2828,15 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             sage: P = polytopes.cyclic_polytope(4,10)
             sage: C = P.combinatorial_polyhedron()
-            sage: C1 = C.pyramid(new_vertex='appex')
+            sage: C1 = C.pyramid(new_vertex='apex')
             sage: C1.is_pyramid(certificate=True)
-            (True, 'appex')
+            (True, 'apex')
             sage: C1.facets()[0]
             (A vertex at (0, 0, 0, 0),
              A vertex at (1, 1, 1, 1),
              A vertex at (2, 4, 8, 16),
              A vertex at (3, 9, 27, 81),
-             'appex')
+             'apex')
 
         One can specify a name for the new facets::
 

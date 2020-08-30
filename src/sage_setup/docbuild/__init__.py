@@ -58,7 +58,7 @@ import sphinx.ext.intersphinx
 import sage.all
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, DOT_SAGE
 
 from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
      PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
@@ -1165,7 +1165,7 @@ class SingleFileBuilder(DocBuilder):
         # By default, this is DOT_SAGE/docbuild/MODULE_NAME, but can
         # also be specified at the command line.
         module_name = os.path.splitext(os.path.basename(path))[0]
-        latex_name = module_name.replace('_', r'\_')
+        latex_name = module_name.replace('_', r'\\_')
 
         if self._options.output_dir:
             base_dir = os.path.join(self._options.output_dir, module_name)
@@ -1194,6 +1194,9 @@ name = {!r}
 html_title = project
 html_short_title = project
 htmlhelp_basename = name
+
+extensions.remove('multidocs') # see #29651
+extensions.remove('inventory_builder')
 
 latex_domain_indices = False
 latex_documents = [

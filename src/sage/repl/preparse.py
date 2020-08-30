@@ -226,6 +226,7 @@ Behind the scenes what happens is the following::
 #*****************************************************************************
 from __future__ import print_function
 
+import collections
 import os
 import re
 
@@ -314,6 +315,12 @@ in_triple_quote = False
 def in_quote():
     return in_single_quote or in_double_quote or in_triple_quote
 
+QuoteStackFrame = collections.namedtuple("QuoteStackFrame", [
+    'delim',    # the quote characters used: ', ", ''', or """
+    'raw',      # whether we're in a raw string
+    'f_string', # whether we're in an F-string (PEP 498)
+    'braces'    # in an F-string, how many unclosed {'s have we encountered?
+])
 
 def strip_string_literals(code, state=None):
     r"""
@@ -325,9 +332,9 @@ def strip_string_literals(code, state=None):
 
     - ``code`` - a string; the input
 
-    - ``state`` - a 2-tuple (default: None); state with which to
-      continue processing, e.g., across multiple calls to this
-      function
+    - ``state`` - a list of :class:`QuoteStackFrame` (default: None);
+      state with which to continue processing, e.g., across multiple calls
+      to this function
 
     OUTPUT:
 
@@ -382,19 +389,25 @@ def strip_string_literals(code, state=None):
     literals = {}
     counter = 0
     start = q = 0
-    if state is None:
-        in_quote = False
-        raw = False
-    else:
-        in_quote, raw = state
+    quote_stack = state or []
     while True:
+        quote = quote_stack and quote_stack[-1]
+        in_quote = quote and (not quote.f_string or not quote.braces)
         sig_q = code.find("'", q)
         dbl_q = code.find('"', q)
-        hash_q = code.find('#', q)
+        hash_q = -1 if quote else code.find('#', q)
+        if quote and quote.f_string:
+            lbrace_q = code.find('{', q)
+            rbrace_q = code.find('}', q)
+            brace_q = min(lbrace_q, rbrace_q)
+            if brace_q == -1:
+                brace_q = max(lbrace_q, rbrace_q)
+        else:
+            brace_q = -1
         q = min(sig_q, dbl_q)
         if q == -1:
             q = max(sig_q, dbl_q)
-        if not in_quote and hash_q != -1 and (q == -1 or hash_q < q):
+        if hash_q != -1 and (q == -1 or hash_q < q):
             # it's a comment
             newline = code.find('\n', hash_q)
             if newline == -1:
@@ -405,6 +418,28 @@ def strip_string_literals(code, state=None):
             new_code.append(code[start:hash_q].replace('%','%%'))
             new_code.append("#%%(%s)s" % label)
             start = q = newline
+        elif brace_q != -1 and (q == -1 or brace_q < q):
+            # Inside the replacement section of an F-string?
+            if quote.braces:
+                # Treat the preceding substring as code.
+                new_code.append(code[start:brace_q].replace('%','%%'))
+            else:
+                # Treat the preceding substring as literal.
+                counter += 1
+                label = "L%s" % counter
+                literals[label] = code[start:brace_q]
+                new_code.append("%%(%s)s" % label)
+            # Treat the brace itself as literal.
+            counter += 1
+            label = "L%s" % counter
+            literals[label] = code[brace_q]
+            new_code.append("%%(%s)s" % label)
+            # Increment/decrement brace count.
+            brace_incr = 1 if code[brace_q] == '{' else -1
+            new_braces = quote.braces + brace_incr
+            quote_stack[-1] = quote._replace(braces=new_braces)
+            # Skip ahead just past the brace.
+            start = q = brace_q+1
         elif q == -1:
             if in_quote:
                 counter += 1
@@ -421,27 +456,36 @@ def strip_string_literals(code, state=None):
                     k += 1
                 if k % 2 == 0:
                     q += 1
-            if code[q:q+len(in_quote)] == in_quote:
+            if code[q:q+len(quote.delim)] == quote.delim:
                 counter += 1
                 label = "L%s" % counter
-                literals[label] = code[start:q+len(in_quote)]
+                literals[label] = code[start:q+len(quote.delim)]
                 new_code.append("%%(%s)s" % label)
-                q += len(in_quote)
+                q += len(quote.delim)
                 start = q
-                in_quote = False
+                quote_stack.pop()
             else:
                 q += 1
         else:
-            raw = q>0 and code[q-1] in 'rR'
-            if len(code) >= q+3 and (code[q+1] == code[q] == code[q+2]):
-                in_quote = code[q]*3
+            if q>0 and code[q-1] in 'rR':
+                raw = True
+                f_string = q>1 and code[q-2] in 'fF'
+            elif q>0 and code[q-1] in 'fF':
+                f_string = True
+                raw = q>1 and code[q-2] in 'rR'
             else:
-                in_quote = code[q]
+                raw = f_string = False
+            if len(code) >= q+3 and (code[q+1] == code[q] == code[q+2]):
+                delim = code[q]*3
+            else:
+                delim = code[q]
+            quote_stack.append(QuoteStackFrame(
+                delim=delim, raw=raw, f_string=f_string, braces=0))
             new_code.append(code[start:q].replace('%', '%%'))
             start = q
-            q += len(in_quote)
+            q += len(delim)
 
-    return "".join(new_code), literals, (in_quote, raw)
+    return "".join(new_code), literals, quote_stack
 
 
 def containing_block(code, idx, delimiters=['()','[]','{}'], require_delim=True):

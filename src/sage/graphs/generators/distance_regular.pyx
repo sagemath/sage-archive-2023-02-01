@@ -626,9 +626,12 @@ def BilinearFormsGraph(const int d, const int e, const int q):
         sage: G = graphs.BilinearFormsGraph(3, 3, 2)
         sage: G.is_distance_regular(True)
         ([49, 36, 16, None], [None, 1, 6, 28])
-        sage: G = graphs.BilinearFormsGraph(3,3,3)  # long time (20 s)
-        sage: G.order()  # long time (due to above)
+        sage: G = graphs.BilinearFormsGraph(3,3,3)  # not tested (20 s)
+        sage: G.order()  # not tested (due to above)
         19683
+        sage: G = graphs.BilinearFormsGraph(3, 4, 2)
+        sage: G.is_distance_regular(True)
+        ([105, 84, 48, None], [None, 1, 6, 28])
 
     REFERENCES:
 

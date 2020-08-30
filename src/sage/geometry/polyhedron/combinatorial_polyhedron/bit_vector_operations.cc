@@ -222,26 +222,14 @@ size_t get_next_level_simple(\
     for (size_t j = 0; j < n_faces-1; j++){
         // Step 2:
         // Check if the atom representation is zero.
-        if (is_zero(maybe_newfaces[j], face_length)){
-            is_not_newface[j] = 1;
-            continue;
-        }
-
-        if (is_not_newface[j]) {
-            // No further tests needed, if it is empty.
-            continue;
-        }
-
+        //
+        // and
+        //
+        //
         // Step 3:
-        for (size_t k = 0; k < n_visited_all; k++){
-            // Testing if maybe_newfaces[j] is contained in one,
-            // we have already completely visited.
-            if(is_subset(visited_all_coatom_rep[k], maybe_newfaces_coatom_rep[j], face_length_coatom_rep)){
-                // If so, we don't want to revisit.
-                is_not_newface[j] = 1;
-                break;
-            }
-        }
+        if (is_zero(maybe_newfaces[j], face_length) || \
+                contains_one(maybe_newfaces_coatom_rep[j], visited_all_coatom_rep, n_visited_all, face_length_coatom_rep))
+            is_not_newface[j] = 1;
     }
 
     // Set ``newfaces`` to point to the correct ones.

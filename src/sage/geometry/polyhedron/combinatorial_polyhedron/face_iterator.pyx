@@ -306,6 +306,7 @@ cdef class FaceIterator_base(SageObject):
         self._Vrep = C.Vrep()
         self._facet_names = C.facet_names()
         self._equalities = C.equalities()
+        self._bounded = C.is_bounded()
 
         self.structure.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
         self.structure.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))
@@ -363,6 +364,42 @@ cdef class FaceIterator_base(SageObject):
         self.structure.yet_to_visit = self.coatoms.n_faces
         self.structure._index = 0
 
+    def reset(self):
+        r"""
+        Reset the iterator.
+
+        The iterator will start with the first face again.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: C = P.combinatorial_polyhedron()
+            sage: it = C.face_iter()
+            sage: next(it).ambient_V_indices()
+            (0, 3, 4, 5)
+            sage: it.reset()
+            sage: next(it).ambient_V_indices()
+            (0, 3, 4, 5)
+        """
+        if self.structure.dimension == 0 or self.coatoms.n_faces == 0:
+            # As we will only yield proper faces,
+            # there is nothing to yield in those cases.
+            # We have to discontinue initialization,
+            # as it assumes ``self.dimension > 0`` and ``self.n_faces > 0``.
+            self.structure.current_dimension = self.structure.dimension
+            return
+        if self._bounded:
+            self.structure.n_visited_all[self.structure.dimension -1] = 0
+        else:
+            self.structure.n_visited_all[self.structure.dimension -1] = 1
+        self.structure.face = NULL
+        self.structure.n_newfaces[self.structure.dimension - 1] = self.coatoms.n_faces
+        self.structure.current_dimension = self.structure.dimension - 1
+        self.structure.first_time[self.structure.dimension - 1] = True
+
+        self.structure.yet_to_visit = self.coatoms.n_faces
+        self.structure._index = 0
+
     def __next__(self):
         r"""
         Must be implemented by a derived class.
@@ -381,6 +418,25 @@ cdef class FaceIterator_base(SageObject):
         raise NotImplementedError("a derived class must implement this")
 
     next = __next__
+
+    def current(self):
+        r"""
+        Retrieve the last value of :meth:`next`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.octahedron()
+            sage: it = P.combinatorial_polyhedron().face_iter()
+            sage: next(it)
+            A 0-dimensional face of a 3-dimensional combinatorial polyhedron
+            sage: it.current()
+            A 0-dimensional face of a 3-dimensional combinatorial polyhedron
+            sage: next(it).ambient_V_indices() == it.current().ambient_V_indices()
+            True
+        """
+        if unlikely(self.structure.face is NULL):
+            raise ValueError("iterator not set to a face yet")
+        return CombinatorialFace(self)
 
     def __iter__(self):
         r"""
@@ -446,15 +502,7 @@ cdef class FaceIterator_base(SageObject):
         """
         if unlikely(self.dual):
             raise ValueError("only possible when not in dual mode")
-        if unlikely(self.structure.face is NULL):
-            raise ValueError("iterator not set to a face yet")
-
-        # The current face is added to ``visited_all``.
-        # This will make the iterator skip those faces.
-        # Also, this face will not be added a second time to ``visited_all``,
-        # as there are no new faces.
-        self.structure.visited_all[self.structure.n_visited_all[self.structure.current_dimension]] = self.structure.face
-        self.structure.n_visited_all[self.structure.current_dimension] += 1
+        self.ignore_subsets()
 
     def ignore_supfaces(self):
         r"""
@@ -479,9 +527,20 @@ cdef class FaceIterator_base(SageObject):
         """
         if unlikely(not self.dual):
             raise ValueError("only possible when in dual mode")
+        self.ignore_subsets()
+
+    cdef int ignore_subsets(self) except -1:
+        r"""
+        Ignore sub-/supfaces of the current face.
+
+        In non-dual mode ignores all subfaces of the current face.
+        In dual mode ignores all supfaces of the current face.
+
+        See :meth:`FaceIterator_base.ignore_subfaces` and
+        :meth:`FaceIterator_base.ignore_supfaces`.
+        """
         if unlikely(self.structure.face is NULL):
             raise ValueError("iterator not set to a face yet")
-
         # The current face is added to ``visited_all``.
         # This will make the iterator skip those faces.
         # Also, this face will not be added a second time to ``visited_all``,
@@ -1020,23 +1079,6 @@ cdef class FaceIterator_geom(FaceIterator_base):
         """
         self._requested_dim = output_dimension
 
-        if output_dimension is None:
-            if P.dim() == -1:
-                self._trivial_faces = 1  # the empty polyhedron, only yield the empty face
-            else:
-                self._trivial_faces = 2  # yield the universe, then the empty face, than all other faces
-        elif output_dimension == P.dim():
-            output_dimension = None
-            self._trivial_faces = 4  # only yield the full-dimensional face and no other faces
-        elif output_dimension == -1:
-            output_dimension = None
-            self._trivial_faces = 3  # only yield the empty face and no other faces
-        elif output_dimension < -1 or output_dimension > P.dim():
-            output_dimension = None
-            self._trivial_faces = -1  # don't yield any faces at all
-        else:
-            self._trivial_faces = 0  # yield the faces of the requested dimension
-
         if dual is None:
             # Determine the (likely) faster way, to iterate through all faces.
             if not P.is_compact() or P.n_facets() <= P.n_vertices():
@@ -1046,7 +1088,54 @@ cdef class FaceIterator_geom(FaceIterator_base):
 
         self.P = P
 
+        if output_dimension is not None and (output_dimension < 0 or output_dimension >= P.dim()):
+            # In those cases the output will be completely handled by :meth:`FaceIterator_geom.__next__`.
+            output_dimension = None
+
         FaceIterator_base.__init__(self, P.combinatorial_polyhedron(), dual, output_dimension)
+        self.reset()
+
+    def reset(self):
+        r"""
+        Reset the iterator.
+
+        The iterator will start with the first face again.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: it = P.face_generator()
+            sage: next(it).ambient_V_indices()
+            (0, 1, 2, 3, 4, 5, 6, 7)
+            sage: next(it).ambient_V_indices()
+            ()
+            sage: next(it).ambient_V_indices()
+            (0, 3, 4, 5)
+            sage: it.reset()
+            sage: next(it).ambient_V_indices()
+            (0, 1, 2, 3, 4, 5, 6, 7)
+            sage: next(it).ambient_V_indices()
+            ()
+            sage: next(it).ambient_V_indices()
+            (0, 3, 4, 5)
+        """
+        output_dimension = self._requested_dim
+        P = self.P
+
+        if output_dimension is None:
+            if P.dim() == -1:
+                self._trivial_faces = 1  # the empty polyhedron, only yield the empty face
+            else:
+                self._trivial_faces = 2  # yield the universe, then the empty face, than all other faces
+        elif output_dimension == P.dim():
+            self._trivial_faces = 4  # only yield the full-dimensional face and no other faces
+        elif output_dimension == -1:
+            self._trivial_faces = 3  # only yield the empty face and no other faces
+        elif output_dimension < -1 or output_dimension > P.dim():
+            self._trivial_faces = -1  # don't yield any faces at all
+        else:
+            self._trivial_faces = 0  # yield the faces of the requested dimension
+        FaceIterator_base.reset(self)
 
     def _repr_(self):
         r"""
@@ -1099,11 +1188,28 @@ cdef class FaceIterator_geom(FaceIterator_base):
                     self._trivial_faces = -1  # The iterator is exhausted.
                 return PolyhedronFace(self.P, [], range(self.P.n_Hrepresentation()))
 
-        cdef CombinatorialFace face = self.next_face()
+        self.next_dimension()
         if unlikely(self.structure.current_dimension == self.structure.dimension):
             raise StopIteration
+        return self.current()
 
-        return combinatorial_face_to_polyhedral_face(self.P, face)
+    def current(self):
+        r"""
+        Retrieve the last value of :meth:`__next__`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.octahedron()
+            sage: it = P.face_generator()
+            sage: _ = next(it), next(it)
+            sage: next(it)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: it.current()
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: next(it).ambient_V_indices() == it.current().ambient_V_indices()
+            True
+        """
+        return combinatorial_face_to_polyhedral_face(self.P, FaceIterator_base.current(self))
 
 # Nogil definitions of crucial functions.
 

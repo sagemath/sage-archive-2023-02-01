@@ -207,7 +207,7 @@ cdef class PolyhedronFaceLattice:
             # Initialize the empty face.
             # In case ``dimension == 0``, we would overwrite the coatoms.
             Vrep_list_to_bit_rep((), self.faces[0][0], self.face_length)
-        # Intialize the full polyhedron
+        # Initialize the full polyhedron
         Vrep_list_to_bit_rep(tuple(j for j in range(n_atoms)),
                                 self.faces[self.dimension + 1][0],
                                 self.face_length)

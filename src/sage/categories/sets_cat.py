@@ -1505,7 +1505,7 @@ class Sets(Category_singleton):
             FO = self.construction()
             if FO is None:
                 return
-            tester.assert_(FO[0](FO[1])==self, "the object's construction does not recreate this object")
+            tester.assertEqual(FO[0](FO[1]), self, "the object's construction does not recreate this object")
 
         CartesianProduct = CartesianProduct
 

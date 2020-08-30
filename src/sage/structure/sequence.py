@@ -252,7 +252,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
                 universe = sage.structure.element.parent(x[len(x)-1])
 
     from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
-    from sage.rings.polynomial.pbori import BooleanMonomialMonoid
+    from sage.rings.polynomial.pbori.pbori import BooleanMonomialMonoid
     from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
     from sage.rings.quotient_ring import is_QuotientRing
 

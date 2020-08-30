@@ -90,7 +90,7 @@ inline int is_contained_in_one(uint64_t *face, uint64_t **faces, size_t n_faces,
 
 inline int contains_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t face_length){
     /*
-    Return whether ``face`` contains in one of ``faces``.
+    Return whether ``face`` contains one of ``faces``.
     */
     for(size_t i = 0; i < n_faces; i++){
         if (is_subset(faces[i], face, face_length))
@@ -101,7 +101,7 @@ inline int contains_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t
 
 inline int contains_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t face_length, size_t skip){
     /*
-    Return whether ``face`` is contains in one of ``faces``.
+    Return whether ``face`` contains one of ``faces``.
 
     Skips ``faces[skip]``.
     */

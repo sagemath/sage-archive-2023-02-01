@@ -3236,9 +3236,10 @@ class Graph(GenericGraph):
         r"""
         Check whether ``self`` is a path.
 
-        A connected graph of order `n \geq 2` is a path if it is a tree (see :meth:`is_tree`)
-        with `n-2` vertices of degree 2 and two of degree 1.
-        By convention, a graph of order 1 without loops is a path, but the empty graph is not a path.
+        A connected graph of order `n \geq 2` is a path if it is a tree
+        (see :meth:`is_tree`) with `n-2` vertices of degree 2 and two of
+        degree 1. By convention, a graph of order 1 without loops is a path,
+        but the empty graph is not a path.
 
         EXAMPLES:
 

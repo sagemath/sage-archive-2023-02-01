@@ -2696,8 +2696,8 @@ class QuotientFunctor(ConstructionFunctor):
     """
     rank = 4.5
 
-    def __init__(self, I, names=None, as_field=False, domain=Rings(),
-                 codomain=Rings(), **kwds):
+    def __init__(self, I, names=None, as_field=False, domain=None,
+                 codomain=None, **kwds):
         """
         INPUT:
 
@@ -2736,6 +2736,10 @@ class QuotientFunctor(ConstructionFunctor):
             Ring of integers modulo 5
 
         """
+        if domain is None:
+            domain = Rings()
+        if codomain is None:
+            codomain = Rings()
         Functor.__init__(self, domain, codomain)
         
         self.I = I

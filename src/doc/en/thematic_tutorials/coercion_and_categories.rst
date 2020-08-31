@@ -1546,6 +1546,7 @@ Here are the tests that form the test suite of quotient fields::
      '_test_cardinality',
      '_test_characteristic',
      '_test_characteristic_fields',
+     '_test_construction',
      '_test_distributivity',
      '_test_divides',
      '_test_elements',
@@ -1594,6 +1595,7 @@ Let us see what tests are actually performed::
     running ._test_category() . . . pass
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
+    running ._test_construction() . . . pass
     running ._test_distributivity() . . . pass
     running ._test_divides() . . . pass
     running ._test_elements() . . .
@@ -1767,6 +1769,7 @@ interesting.
     running ._test_category() . . . pass
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
+    running ._test_construction() . . . pass
     running ._test_distributivity() . . . pass
     running ._test_divides() . . . pass
     running ._test_elements() . . .

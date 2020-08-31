@@ -18,7 +18,7 @@ jobs:
         Ubuntu\ubuntu2004.exe install --root
     - name: Build
       run: |
-        wsl ./configure --prefix=SAGE_LOCAL
+        wsl ./configure
         wsl MAKE='make -j8' make
     - name: Install dependencies
       # Dependencies as in https://doc.sagemath.org/html/en/installation/source.html#linux-recommended-installation

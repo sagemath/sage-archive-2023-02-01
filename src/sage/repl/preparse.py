@@ -439,9 +439,10 @@ def strip_string_literals(code, state=None):
             literals[label] = code[brace_q]
             new_code.append("%%(%s)s" % label)
             # Increment/decrement brace count.
-            brace_incr = 1 if code[brace_q] == '{' else -1
-            new_braces = quote.braces + brace_incr
-            quote_stack[-1] = quote._replace(braces=new_braces)
+            if code[brace_q] == '{':
+                quote_stack[-1] = quote._replace(braces=quote.braces+1)
+            elif quote.braces > 0:
+                quote_stack[-1] = quote._replace(braces=quote.braces-1)
             # Skip ahead just past the brace.
             start = q = brace_q+1
         elif q == -1:

@@ -198,6 +198,8 @@ cdef class CombinatorialFace(SageObject):
             self.coatoms            = it.coatoms
             self._hash_index        = it.structure._index
 
+            self._initialized_from_face_lattice = False
+
         elif isinstance(data, PolyhedronFaceLattice):
             all_faces = data
             assert isinstance(dimension, numbers.Integral), "dimension must be an integer"
@@ -220,11 +222,23 @@ cdef class CombinatorialFace(SageObject):
             self.atoms              = all_faces.atoms
             self.coatoms            = all_faces.coatoms
 
+            self._initialized_from_face_lattice = True
+
             self._hash_index = index
             for i in range(-1,dimension):
                 self._hash_index += all_faces.f_vector[i+1]
+
+            # Add the complete ``f-vector`` to the hash index,
+            # such that hash values obtained by an iterator or by the face lattice
+            # do not collide.
+            for i in range(-1,self._ambient_dimension+1):
+                self._hash_index += all_faces.f_vector[i+1]
         else:
             raise NotImplementedError("data must be face iterator or a list of all faces")
+
+        if self._dual:
+            # Reverse the hash index in dual mode to respect inclusion of faces.
+            self._hash_index = -self._hash_index - 1
 
     def _repr_(self):
         r"""
@@ -267,12 +281,18 @@ cdef class CombinatorialFace(SageObject):
         r"""
         Return an index for the face.
 
+        This is constructed such that for faces `F,G` constructed in the same manner (same face iterator or face lattice)
+        it holds that `F` contained in `G` implies ``hash(F) < hash(G)``.
+
         If the face was constructed from a :class:`sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`,
         then this is the index of the occurence in the iterator.
+        In dual mode this value is then deducted from the maximal value of ``size_t``.
 
         If the face was constructed from
         :meth:`sage:geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron.face_by_face_lattice_index`,
-        then this the index in the level set plus the number of lower dimension (or higher dimension).
+        then this is the total number of faces plus the index in the level set plus the number of lower dimensional faces
+        (or higher dimensional faces in dual mode).
+        In dual mode this value is then deducted from the maximal value of ``size_t``.
 
         EXAMPLES::
 
@@ -305,23 +325,41 @@ cdef class CombinatorialFace(SageObject):
         we must define some order relation that is compatible with the Hasse diagram.
 
         Any order relation compatible with ordering by dimension is suitable.
-        We us :meth:`__hash__` to define the relation.
+        We use :meth:`__hash__` to define the relation.
 
         EXAMPLES::
 
-            sage: P = polytopes.simplex()
+            sage: P = polytopes.cube()
             sage: C = CombinatorialPolyhedron(P)
             sage: F1 = C.face_by_face_lattice_index(0)
             sage: F2 = C.face_by_face_lattice_index(1)
             sage: F1 < F2
             True
-            sage: for i,j in Combinations(range(16), 2):
+            sage: for i,j in Combinations(range(28), 2):
+            ....:     F1 = C.face_by_face_lattice_index(i)
+            ....:     F2 = C.face_by_face_lattice_index(j)
+            ....:     if F1.dim() != F2.dim():
+            ....:          assert (F1.dim() < F2.dim()) == (F1 < F2)
+
+            sage: P = polytopes.cross_polytope(3)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: F1 = C.face_by_face_lattice_index(0)
+            sage: F2 = C.face_by_face_lattice_index(1)
+            sage: F1 < F2
+            True
+            sage: for i,j in Combinations(range(28), 2):
             ....:     F1 = C.face_by_face_lattice_index(i)
             ....:     F2 = C.face_by_face_lattice_index(j)
             ....:     if F1.dim() != F2.dim():
             ....:          assert (F1.dim() < F2.dim()) == (F1 < F2)
         """
-        return hash(self) < hash(other)
+        cdef CombinatorialFace other_face
+        if isinstance(other, CombinatorialFace):
+            other_face = other
+            if (self._initialized_from_face_lattice == other_face._initialized_from_face_lattice and
+                    self.atoms is other_face.atoms):
+                # They are faces of the same polyhedron obtained in the same way.
+                return hash(self) < hash(other)
 
     def dimension(self):
         r"""

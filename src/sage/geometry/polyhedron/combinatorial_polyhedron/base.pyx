@@ -2607,7 +2607,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             ((), (0,), (0, 1), (0, 2), (0, 1, 2))
         """
         self._record_all_faces()                            # Initalize ``_all_faces``, if not done yet.
-        dim = self._face_lattice_dimension(index)            # Determine dimension to that index.
+        dim = self._face_lattice_dimension(index)           # Determine dimension to that index.
         newindex = index - sum(self._f_vector[:dim + 1])    # Index in that level-set.
 
         # Let ``_all_faces`` determine Vrepresentation.

@@ -103,6 +103,7 @@ cdef class Ring(ParentWithGens):
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
+        running ._test_construction() . . . pass
         running ._test_distributivity() . . . pass
         running ._test_divides() . . . pass
         running ._test_elements() . . .

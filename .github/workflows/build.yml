@@ -19,7 +19,9 @@ jobs:
     - name: Test
       run: wsl ls
     - name: Prepare
-      run: bash ./configure
+      run: |
+         wsl ./bootstrap
+         wsl ./configure
     - name: Build 
       run: wsl MAKE='make -j8' make
     - name: Install dependencies

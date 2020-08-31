@@ -100,7 +100,7 @@ Wall time: 0.05 s
 sage: time z = expand((u + v + a + b + c)^100)
 ^C^C^C
 ------------------------------------------------------------
-Unhandled SIGBUS: A bus error occured in SAGE.
+Unhandled SIGBUS: A bus error occured in Sage.
 
 done * pretty serious todo -- all predefined constants in utils.cpp get made wrong:
     // TODO: BECAUSE of Floor division, this gives the wrong answer!!
@@ -143,7 +143,7 @@ For PHASE II: LATER  (Hopefully Burcin)
 done * CRASH:
 sage: f = (Mod(2,7)*x^2 + Mod(2,7))^7
 ------------------------------------------------------------
-Unhandled SIGBUS: A bus error occured in SAGE.
+Unhandled SIGBUS: A bus error occured in Sage.
 
 It works fine with leading coefficient Mod(1,7)
 
@@ -159,7 +159,7 @@ sage: f * k(-1) * k(-1)
 (1+x)^(-1)
 
 
-* Maybe change SAGE's Ginac to make a call to a cython gcd function, then use
+* Maybe change Sage's Ginac to make a call to a cython gcd function, then use
 singular, since singular's gcd over QQ is much better than ginac's, I think,
 and ginac *only* does GCD over QQ.  Actually, just make everything in normal.cpp
 be implemented via Singular, probably...

@@ -5995,7 +5995,7 @@ cdef class RegularMatroid(LinearMatroid):
             sage: G
             Digraph on 55 vertices
         """
-        # NEW VERSION, USES SAGE'S GRAPH ISOMORPHISM
+        # NEW VERSION, Uses Sage'S Graph Isomorphism
         from sage.graphs.all import Graph, DiGraph
         if self._r_hypergraph is not None:
             return (self._hypergraph_vertex_partition, self._hypergraph_tuples, self._r_hypergraph)
@@ -6034,14 +6034,15 @@ cdef class RegularMatroid(LinearMatroid):
 
         self._r_hypergraph = G
         return self._hypergraph_vertex_partition, self._hypergraph_tuples, self._r_hypergraph
-        # REMNANT OF THE OLD CODE THAT WAS NOT YET TRANSLATED TO SAGE'S GRAPH ISOMORPHISM. POTENTIAL SPEEDUP?
+        # REMNANT OF THE OLD CODE THAT WAS NOT YET TRANSLATED
+        # TO Sage'S GRAPH ISOMORPHISM. POTENTIAL SPEEDUP?
         # C = []
         # if len(A) < 5:
-        #     for i in xrange(P.nrows()):
-        #         for j in xrange(i):
+        #     for i in range(P.nrows()):
+        #         for j in range(i):
         #             if P.get_unsafe(i, j) == 0:
         #                 continue
-        #             for k in xrange(j):
+        #             for k in range(j):
         #                 w = P.get_unsafe(i, j)*P.get_unsafe(j, k)*P.get_unsafe(k, i)
         #                 if w < 0:
         #                     C.append(frozenset([self._E[i], self._E[j], self._E[k]]))

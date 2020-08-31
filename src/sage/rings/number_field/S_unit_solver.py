@@ -1464,7 +1464,7 @@ def split_primes_large_lcm(SUK, bound):
         sage: split_primes_large_lcm(SUK, 200)
         [17, 19, 37, 53]
 
-    With a tiny bound, SAGE may ask you to increase the bound.
+    With a tiny bound, Sage may ask you to increase the bound.
 
     ::
 

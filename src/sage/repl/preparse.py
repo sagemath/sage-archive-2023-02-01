@@ -424,6 +424,10 @@ def strip_string_literals(code, state=None):
                 # Treat the preceding substring as code.
                 new_code.append(code[start:brace_q].replace('%','%%'))
             else:
+                # Skip over {{ and }} escape sequences in the literal portion.
+                if brace_q+1 < len(code) and code[brace_q+1] == code[brace_q]:
+                    q = brace_q+2
+                    continue
                 # Treat the preceding substring as literal.
                 counter += 1
                 label = "L%s" % counter

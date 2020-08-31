@@ -332,6 +332,7 @@ from sage.functions.log import exp
 from sage.functions.other import binomial
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.graphs.all import DiGraph, Graph
+from sage.graphs.digraph_generators import digraphs
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
@@ -6320,7 +6321,8 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
         ...
         ValueError: parameter weight_max must be a positive integer
     """
-    return digraphs.RandomDirectedAcyclicGraph(n, p, weight_max=weight_max,
+    return digraphs.RandomDirectedAcyclicGraph(num_verts, p,
+                                               weight_max=weight_max,
                                                return_dict=True)
 
 

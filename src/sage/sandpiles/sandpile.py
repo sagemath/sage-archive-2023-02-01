@@ -337,7 +337,7 @@ from sage.probability.probability_distribution import GeneralDiscreteDistributio
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
-from sage.misc.all import prod, det, tmp_filename, random, randint, exists, denominator
+from sage.misc.all import prod, det, tmp_filename, exists, denominator
 from sage.arith.srange import xsrange
 from sage.modules.free_module_element import vector
 from sage.plot.colors import rainbow
@@ -2753,7 +2753,7 @@ class Sandpile(DiGraph):
 
         L = singular.subst(self._ideal,
                 singular.var(singular.nvars(self._ring)), 1)
-        R = singular.ring(0, vars_, 'lp')
+        _ = singular.ring(0, vars_, 'lp')
         K = singular.fetch(self._ring, L)
         K = singular.groebner(K)
         singular.LIB('solve.lib')

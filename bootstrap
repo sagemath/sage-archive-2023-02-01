@@ -99,7 +99,7 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
 
     SAGE_ROOT="$SAGE_ROOT" src/doc/bootstrap && \
     # install_config_rpath && \
-    aclocal -I m4 && \
+    # aclocal -I m4 && \
     automake --add-missing --copy build/make/Makefile-auto && \
     autoconf
 

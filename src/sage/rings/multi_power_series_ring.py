@@ -506,7 +506,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             sage: c(R) == M
             True
 
-        TESTS:
+        TESTS::
 
             sage: M2 = PowerSeriesRing(QQ,4,'f', sparse=True)
             sage: M == M2

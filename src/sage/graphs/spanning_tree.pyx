@@ -956,12 +956,12 @@ def spanning_trees(g, labels=False):
 
     Giving anything else than a graph::
 
-        sage: from sage.graphs.connectivity import spanning_trees
-        sage: spanning_trees(DiGraph())
+        sage: from sage.graphs.spanning_tree import spanning_trees
+        sage: list(spanning_trees(DiGraph()))
         Traceback (most recent call last):
         ...
         ValueError: this method is for undirected graphs only
-        sage: spanning_trees("bike")
+        sage: list(spanning_trees("bike"))
         Traceback (most recent call last):
         ...
         ValueError: this method is for undirected graphs only

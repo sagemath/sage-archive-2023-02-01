@@ -134,6 +134,7 @@ class Sets(Category_singleton):
         running ._test_an_element() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -1483,8 +1484,9 @@ class Sets(Category_singleton):
                 Traceback (most recent call last):
                 ...
                 AssertionError: the object's construction does not recreate this object
+                ...
                 ------------------------------------------------------------
-                The following tests failed: _test_construction
+                The following tests failed: _test_construction...
 
             If the parent returns the empty construction, the test will not complain::
 

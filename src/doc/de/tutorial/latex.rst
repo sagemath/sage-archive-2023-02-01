@@ -467,10 +467,10 @@ auch von http://sourceforge.net/projects/dvipng/ als Teil von
 `Ghostscript <http://www.ghostscript.com/>`_ bezogen werden können.
 
 Um kombinatorische Graphen darstellen zu können, wird eine aktuelle
-Version der PGF Bibliothek, die Datei ``tkz-graph.sty`` verfügbar
-auf der seite https://www.ctan.org/pkg/tkz-graph,  und die Datein
-``tkz-arith.sty`` und vielleicht``tkz-berge.sty``, verfügbar
-auf der seite https://www.ctan.org/pkg/tkz-berge.
+Version der PGF Bibliothek, die Datei ``tkz-graph.sty`` (verfügbar
+via https://www.ctan.org/pkg/tkz-graph), sowie die Datei
+``tkz-arith.sty`` und vielleicht auch ``tkz-berge.sty``, jeweils verfügbar
+auf der Seite https://www.ctan.org/pkg/tkz-berge, benötigt.
 
 Externe Programme
 =================

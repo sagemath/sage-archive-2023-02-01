@@ -13,9 +13,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install Ubuntu 20.04 (in WSL)
       run: |
-        (New-Object System.Net.WebClient).DownloadFile("https://aka.ms/wslubuntu2004", "$env:temp\Ubuntu.appx")
-        Expand-Archive "$env:temp\Ubuntu.appx"
-        "$env:temp\Ubuntu\ubuntu2004.exe install --root"
+        (New-Object System.Net.WebClient).DownloadFile("https://aka.ms/wslubuntu2004", "Ubuntu.appx")
+        Expand-Archive Ubuntu.appx
+        \Ubuntu\ubuntu2004.exe install --root
     - name: Build
       run: |
         wsl ./configure --prefix=SAGE_LOCAL

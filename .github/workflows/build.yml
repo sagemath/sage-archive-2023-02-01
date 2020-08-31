@@ -1,4 +1,4 @@
-name: Build
+name: Build & Test
 
 on: [push, pull_request]
 
@@ -25,4 +25,7 @@ jobs:
     - name: Build
       run: |
         wsl export MAKE="make -j8"
+        wsl ./configure --prefix=SAGE_LOCAL
         wsl make
+    - name: Test
+      run: make ptest

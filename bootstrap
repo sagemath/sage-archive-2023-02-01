@@ -98,7 +98,7 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
     echo "$spkg_configures" >> m4/sage_spkg_configures.m4
 
     SAGE_ROOT="$SAGE_ROOT" src/doc/bootstrap && \
-    install_config_rpath && \
+    # install_config_rpath && \
     aclocal -I m4 && \
     automake --add-missing --copy build/make/Makefile-auto && \
     autoconf

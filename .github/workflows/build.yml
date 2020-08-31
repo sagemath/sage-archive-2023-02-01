@@ -5,13 +5,13 @@ on: [push, pull_request]
 jobs:
   windows:
     runs-on: windows-latest
-    name: Windows
+    name: Windows (using WSL)
     # Following https://trac.sagemath.org/ticket/25206#comment:63
     steps:
     - name: Configure git
       run: git config --global core.symlinks true
     - uses: actions/checkout@v2
-    - name: Install WSL
+    - name: Install Ubuntu 20.04 
       run: |
         (New-Object System.Net.WebClient).DownloadFile("https://aka.ms/wslubuntu2004", "Ubuntu.appx")
         Expand-Archive Ubuntu.appx
@@ -21,8 +21,8 @@ jobs:
       # except libpython3.7-dev that is missing
       run: |
         wsl sudo apt-get update
-        wsl sudo apt-get install bc binutils bzip2 ca-certificates cliquer curl eclib-tools fflas-ffpack flintqs g++ g++ gcc gcc gfan gfortran git glpk-utils gmp-ecm lcalc libatomic-ops-dev libboost-dev libbraiding-dev libbz2-dev libcdd-dev libcdd-tools libcliquer-dev libcurl4-openssl-dev libec-dev libecm-dev libffi-dev libflint-arb-dev libflint-dev libfreetype6-dev libgd-dev libgf2x-dev libgivaro-dev libglpk-dev libgmp-dev libgsl-dev libiml-dev liblfunction-dev liblrcalc-dev liblzma-dev libm4rie-dev libmpc-dev libmpfi-dev libmpfr-dev libncurses5-dev libntl-dev libopenblas-dev libpari-dev libpcre3-dev libplanarity-dev libppl-dev libreadline-dev librw-dev libsqlite3-dev libsymmetrica2-dev libz-dev libzmq3-dev m4 make nauty pari-doc pari-elldata pari-galdata pari-galpol pari-gp2c pari-seadata patch perl pkg-config planarity ppl-dev python3 python3-distutils python3.7 r-base-dev r-cran-lattice sqlite3 tachyon tar xz-utils yasm
+        wsl sudo apt-get install -y bc binutils bzip2 ca-certificates cliquer curl eclib-tools fflas-ffpack flintqs g++ g++ gcc gcc gfan gfortran git glpk-utils gmp-ecm lcalc libatomic-ops-dev libboost-dev libbraiding-dev libbz2-dev libcdd-dev libcdd-tools libcliquer-dev libcurl4-openssl-dev libec-dev libecm-dev libffi-dev libflint-arb-dev libflint-dev libfreetype6-dev libgd-dev libgf2x-dev libgivaro-dev libglpk-dev libgmp-dev libgsl-dev libiml-dev liblfunction-dev liblrcalc-dev liblzma-dev libm4rie-dev libmpc-dev libmpfi-dev libmpfr-dev libncurses5-dev libntl-dev libopenblas-dev libpari-dev libpcre3-dev libplanarity-dev libppl-dev libreadline-dev librw-dev libsqlite3-dev libsymmetrica2-dev libz-dev libzmq3-dev m4 make nauty pari-doc pari-elldata pari-galdata pari-galpol pari-gp2c pari-seadata patch perl pkg-config planarity ppl-dev python3 python3-distutils python3.7 r-base-dev r-cran-lattice sqlite3 tachyon tar xz-utils yasm
     - name: Build
       run: |
-        wsl export MAKE="make -j4"
+        wsl export MAKE="make -j8"
         wsl make

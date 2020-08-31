@@ -6295,6 +6295,7 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import random_DAG
         sage: d = DiGraph(random_DAG(5, .5)); d
         Digraph on 5 vertices
 
@@ -6303,34 +6304,24 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
     Check that we can construct a random DAG with the
     default arguments (:trac:`12181`)::
 
+        sage: from sage.sandpiles.sandpile import random_DAG
         sage: g = random_DAG(5);DiGraph(g)
         Digraph on 5 vertices
 
     Check that bad inputs are rejected::
 
+        sage: from sage.sandpiles.sandpile import random_DAG
         sage: g = random_DAG(5,1.1)
         Traceback (most recent call last):
         ...
-        ValueError: The parameter p must satisfy 0 < p <= 1.
+        ValueError: the probability p must be in [0..1]
         sage: g = random_DAG(5,0.1,-1)
         Traceback (most recent call last):
         ...
-        ValueError: The parameter weight_max must be positive.
+        ValueError: parameter weight_max must be a positive integer
     """
-    if not(0 < p and p <= 1):
-        raise ValueError("The parameter p must satisfy 0 < p <= 1.")
-    weight_max=ZZ(weight_max)
-    if not(0 < weight_max):
-        raise ValueError("The parameter weight_max must be positive.")
-    g = {0:{}}
-    for i in range(1,num_verts):
-        out_edges = {}
-        while out_edges == {}:
-            for j in range(i):
-                if p > random():
-                    out_edges[j] = randint(1,weight_max)
-        g[i] = out_edges
-    return g
+    return digraphs.RandomDirectedAcyclicGraph(n, p, weight_max=weight_max,
+                                               return_dict=True)
 
 
 def glue_graphs(g, h, glue_g, glue_h):

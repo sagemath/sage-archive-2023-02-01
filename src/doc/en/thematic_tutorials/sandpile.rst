@@ -4911,6 +4911,7 @@ Other
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import random_DAG
         sage: S = random_DAG(5, 0.3)
 
 ---

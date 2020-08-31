@@ -19,8 +19,9 @@ jobs:
     - name: Test
       run: wsl ls
     - name: Prepare
+      # Bootstrap with d argument fails - why?
       run: |
-         wsl ./bootstrap
+         wsl ./bootstrap -d
          wsl ./configure
     - name: Build 
       run: wsl MAKE='make -j8' make

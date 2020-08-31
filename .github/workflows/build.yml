@@ -15,10 +15,10 @@ jobs:
       run: |
         (New-Object System.Net.WebClient).DownloadFile("https://aka.ms/wslubuntu2004", "$env:temp\Ubuntu.appx")
         Expand-Archive "$env:temp\Ubuntu.appx"
-        $env:temp\Ubuntu\ubuntu2004.exe install --root
+        "$env:temp\Ubuntu\ubuntu2004.exe install --root"
     - name: Build
       run: |
-        wsl configure --prefix=SAGE_LOCAL
+        wsl "./configure --prefix=SAGE_LOCAL"
         wsl MAKE='make -j8' make
     - name: Install dependencies
       # Dependencies as in https://doc.sagemath.org/html/en/installation/source.html#linux-recommended-installation

@@ -2481,6 +2481,117 @@ class RuleSuperRSK(RuleRSK):
         raise ValueError("invalid output option")
 
 
+class RuleStar:
+    r"""
+    Rule for star insertion.
+    """
+    def insertion(line1,line2):
+    r"""
+    
+    EXAMPLES:
+
+        sage: insertion([1,1,2,3,3],[2,3,3,1,3])
+        ([[1, 2, 2], [3, 3]], [[1, 1], [2, 3], [3]])
+        sage: insertion([1,2,3,3,3],[1,3,1,3,4])
+        ([[1, 1], [3, 3], [4]], [[1, 2, 3], [3, 3]])
+    """
+    P = []
+    Q = []
+    for a,b in zip(line1,line2):
+        for i,row in enumerate(P):
+            if b > row[-1]:
+                # if b is bigger than the last letter in that row, append it to the end
+                row.append(b)
+                Q[i].append(a)
+                break
+            else:
+                if b in row:
+                    # if b is in the that row, then look for 
+                    # the smallest in that sequence to insert to the next row
+                    k = b
+                    while k in row:
+                        k += -1
+                    k += 1
+                else:
+                    # if b is not in that row, then look for 
+                    # the smallest k that is bigger than b to bump
+                    y_pos = bisect_right(row,b)
+                    k = row[y_pos]
+                if b not in row:
+                    row[y_pos] = b
+                b = k
+        else:
+            # We made through all of the rows of p without breaking
+            # so we need to add a new row to P and Q.
+            P.append([b])
+            Q.append([a])
+    P = Tableau(P)
+    Q = Tableau(Q)
+    return P,Q
+
+    def reverse_insertion(P,Q):
+        r"""
+
+        EXAMPLES:
+
+            sage:P,Q = new_insertion([1,2,2,3,3],[2,2,3,1,3])
+            sage:aart(P,Q)
+            [              1  2 ]
+            [   1  2  2    2  3 ]
+            [   3  3   ,   3    ]
+            sage:new_reverse(P,Q)
+            ([1, 1, 2, 3, 3], [2, 3, 3, 1, 3])
+
+            sage:P,Q = new_insertion([1,2,3,3,3],[1,3,1,3,4])
+            sage:aart(P,Q)
+            [   1  1            ]
+            [   3  3    1  2  3 ]
+            [   4   ,   3  3    ]
+            sage:new_reverse(P,Q)
+            ([1, 2, 3, 3, 3], [1, 3, 1, 3, 4])
+        """
+        if P.shape() != Q.shape():
+            raise ValueError("P conjugate(=%s) and Q(=%s) must have the same shape" % (P, Q))
+        if P.conjugate() not in SemistandardTableaux():
+            raise ValueError("p.conjugate(=%s) must be a semistandard tableau" % P.conjugate())    
+        p_copy = [list(row) for row in P]
+        q_copy = [list(row) for row in Q]
+        line1 = []
+        line2 = []
+        d = {}
+        for i, row in enumerate(Q):
+            for j, val in enumerate(row):
+                if val in d:
+                    d[val][j] = i
+                else:
+                    d[val] = {j: i}
+        # d is now a double family such that for every integers k and j,
+        # the value d[k][j]=i means (i, j)-th cell of Q is filled with k.
+        for value, row_dict in sorted(d.items(), key=lambda x: -x[0]):
+            for j in sorted(row_dict.keys(), reverse=True):
+                i = row_dict[j]
+                #print "i=",i,"j=",j,"value=",value,"row_dict=",row_dict
+                x = p_copy[i].pop()  # Always the right-most entry
+                #print "temp x=",x
+                while i > 0:
+                    i -= 1
+                    row = p_copy[i]
+                    if x in row:
+                        y = x
+                        while y in row:
+                            y += 1
+                        y -=1
+                    else:
+                        y_pos = bisect_left(row, x) - 1
+                        y = row[y_pos]
+                        row[y_pos] = x
+                    x = y
+                #print "final x=",x
+                line2.append(x)
+                line1.append(value)
+        return line1[::-1],line2[::-1]
+
+
 class InsertionRules(object):
     r"""
     Catalog of rules for RSK-like insertion algorithms.

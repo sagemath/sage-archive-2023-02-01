@@ -646,7 +646,6 @@ cdef class Ring(ParentWithGens):
     def quo(self, I, names=None, **kwds):
         """
         Create the quotient of `R` by the ideal `I`.  This is a synonym for :meth:`.quotient`
-        return sage.rings.quotient_ring.QuotientRing(self, I, names=names, **kwds)
 
         EXAMPLES::
 

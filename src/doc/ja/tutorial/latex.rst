@@ -389,7 +389,8 @@ Linux系システムではTeXliveを基にした基本TeXパッケージを採�
 また ``dvipng`` は http://sourceforge.net/projects/dvipng/ から， ``ps2pdf`` は `Ghostscript <http://www.ghostscript.com/>`_ の一部として入手することもできる．
 
 
-連結グラフの作画には，PGFライブラリの新しいバージョンに加えて ``tkz-graph.sty`` が https://www.ctan.org/pkg/tkz-graph から必要で，さらに ``tkz-arith.sty``　とおそらく ``tkz-berge.sty`` も https://www.ctan.org/pkg/tkz-berge から 必要になる.
+連結グラフの作画には，PGFライブラリの新しいバージョンに加えて ``tkz-graph.sty`` を https://www.ctan.org/pkg/tkz-graph から入手する必要があり，
+さらに ``tkz-arith.sty``　とおそらく ``tkz-berge.sty`` も https://www.ctan.org/pkg/tkz-berge から入手する必要がある.
 
 
 

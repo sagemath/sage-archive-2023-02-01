@@ -1,7 +1,7 @@
 "Exceptions raised by the coercion model"
 
 ###############################################################################
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage: Open Source Mathematical Software
 #       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:

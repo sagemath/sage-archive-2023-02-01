@@ -4,7 +4,7 @@ Mutability -- Pyrex Implementation
 
 ##########################################################################
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
 #

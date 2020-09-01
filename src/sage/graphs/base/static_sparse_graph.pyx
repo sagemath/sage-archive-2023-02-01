@@ -168,7 +168,7 @@ Python functions
 ----------------
 
 These functions are available so that Python modules from Sage can call the
-Cython routines this module implements (as they can not directly call methods
+Cython routines this module implements (as they cannot directly call methods
 with C arguments).
 """
 

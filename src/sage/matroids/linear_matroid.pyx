@@ -6034,8 +6034,8 @@ cdef class RegularMatroid(LinearMatroid):
 
         self._r_hypergraph = G
         return self._hypergraph_vertex_partition, self._hypergraph_tuples, self._r_hypergraph
-        # REMNANT OF THE OLD CODE THAT WAS NOT YET TRANSLATED
-        # TO Sage'S GRAPH ISOMORPHISM. POTENTIAL SPEEDUP?
+        # Remnant Of The Old Code That Was Not Yet Translated
+        # To Sage'S Graph Isomorphism. Potential Speedup?
         # C = []
         # if len(A) < 5:
         #     for i in range(P.nrows()):

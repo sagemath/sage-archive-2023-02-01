@@ -338,13 +338,14 @@ def strip_string_literals(code, state=None):
 
     OUTPUT:
 
-    - a 3-tuple of the processed code, the dictionary of labels, and
-      any accumulated state
+    - a 4-tuple of the processed code, the dictionary of labels,
+      any accumulated state, and the list of string delimiters
+      (', ", ''', \"\"\") that are safe to insert into the processed code.
 
     EXAMPLES::
 
         sage: from sage.repl.preparse import strip_string_literals
-        sage: s, literals, state = strip_string_literals(r'''['a', "b", 'c', "d\""]''')
+        sage: s, literals, _, _ = strip_string_literals(r'''['a', "b", 'c', "d\""]''')
         sage: s
         '[%(L1)s, %(L2)s, %(L3)s, %(L4)s]'
         sage: literals
@@ -356,7 +357,7 @@ def strip_string_literals(code, state=None):
 
     Triple-quotes are handled as well::
 
-        sage: s, literals, state = strip_string_literals("[a, '''b''', c, '']")
+        sage: s, literals, _, _ = strip_string_literals("[a, '''b''', c, '']")
         sage: s
         '[a, %(L1)s, c, %(L2)s]'
         sage: print(s % literals)
@@ -364,7 +365,7 @@ def strip_string_literals(code, state=None):
 
     Comments are substitute too::
 
-        sage: s, literals, state = strip_string_literals("code '#' # ccc 't'"); s
+        sage: s, literals, _, _ = strip_string_literals("code '#' # ccc 't'"); s
         'code %(L1)s #%(L2)s'
         sage: s % literals
         "code '#' # ccc 't'"
@@ -372,16 +373,16 @@ def strip_string_literals(code, state=None):
     A state is returned so one can break strings across multiple calls to
     this function::
 
-        sage: s, literals, state = strip_string_literals('s = "some'); s
+        sage: s, _, state, _ = strip_string_literals('s = "some'); s
         's = %(L1)s'
-        sage: s, literals, state = strip_string_literals('thing" * 5', state); s
+        sage: s, _, _, _ = strip_string_literals('thing" * 5', state); s
         '%(L1)s * 5'
 
     TESTS:
 
     Even for raw strings, a backslash can escape a following quote::
 
-        sage: s, literals, state = strip_string_literals(r"r'somethin\' funny'"); s
+        sage: s, _, _, _ = strip_string_literals(r"r'somethin\' funny'"); s
         'r%(L1)s'
         sage: dep_regex = r'^ *(?:(?:cimport +([\w\. ,]+))|(?:from +(\w+) +cimport)|(?:include *[\'"]([^\'"]+)[\'"])|(?:cdef *extern *from *[\'"]([^\'"]+)[\'"]))' # Ticket 5821
     """
@@ -390,6 +391,10 @@ def strip_string_literals(code, state=None):
     counter = 0
     start = q = 0
     quote_stack = state or []
+    safe_delims = collections.OrderedDict.fromkeys(["'", '"', "'''", '"""'])
+    for quote in quote_stack:
+        if quote.f_string:
+            safe_delims.pop(quote.delim, None)
     while True:
         quote = quote_stack and quote_stack[-1]
         in_quote = quote and (not quote.f_string or not quote.braces)
@@ -483,11 +488,13 @@ def strip_string_literals(code, state=None):
                 delim = code[q]
             quote_stack.append(QuoteStackFrame(
                 delim=delim, raw=raw, f_string=f_string, braces=0))
+            if f_string:
+                safe_delims.pop(delim, None)
             new_code.append(code[start:q].replace('%', '%%'))
             start = q
             q += len(delim)
 
-    return "".join(new_code), literals, quote_stack
+    return "".join(new_code), literals, quote_stack, list(safe_delims)
 
 
 def containing_block(code, idx, delimiters=['()','[]','{}'], require_delim=True):
@@ -733,7 +740,7 @@ def extract_numeric_literals(code):
 
 all_num_regex = None
 
-def preparse_numeric_literals(code, extract=False):
+def preparse_numeric_literals(code, extract=False, quotes="'"):
     """
     This preparses numerical literals into their Sage counterparts,
     e.g. Integer, RealNumber, and ComplexNumber.
@@ -745,6 +752,9 @@ def preparse_numeric_literals(code, extract=False):
     - ``extract`` - a boolean (default: False); whether to create
       names for the literals and return a dictionary of
       name-construction pairs
+
+    - ``quotes`` - a string (default: "'"); used to surround string
+      arguments to Integer, RealNumber, and ComplexNumber
 
     OUTPUT:
 
@@ -857,6 +867,16 @@ def preparse_numeric_literals(code, extract=False):
         Traceback (most recent call last):
         ...
         SyntaxError: invalid ...
+
+    Using the ``quotes`` parameter::
+
+        sage: preparse_numeric_literals('5j', quotes='"')
+        'ComplexNumber(0, "5")'
+        sage: preparse_numeric_literals('3.14', quotes="'''")
+        "RealNumber('''3.14''')"
+        sage: preparse_numeric_literals('01', quotes='~')
+        'Integer(~01~)'
+
     """
     literals = {}
     last = 0
@@ -910,14 +930,14 @@ def preparse_numeric_literals(code, extract=False):
             num_name = numeric_literal_prefix + num.replace('.', 'p').replace('-', 'n').replace('+', '')
 
             if 'J' in postfix:
-                num_make = "ComplexNumber(0, '%s')" % num
+                num_make = "ComplexNumber(0, %s%s%s)" % (quotes, num, quotes)
                 num_name += 'j'
             elif len(num) < 2 or num[1] in 'oObBxX':
                 num_make = "Integer(%s)" % num
             elif '.' in num or 'e' in num or 'E' in num:
-                num_make = "RealNumber('%s')" % num
+                num_make = "RealNumber(%s%s%s)" % (quotes, num, quotes)
             elif num[0] == "0":
-                num_make = "Integer('%s')" % num
+                num_make = "Integer(%s%s%s)" % (quotes, num, quotes)
             else:
                 num_make = "Integer(%s)" % num
 
@@ -1325,7 +1345,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     # This part handles lines with semi-colons all at once
     # Then can also handle multiple lines more efficiently, but
     # that optimization can be done later.
-    L, literals, quote_state = strip_string_literals(line, quote_state)
+    L, literals, quote_state, safe_delims = strip_string_literals(line, quote_state)
 
     # Ellipsis Range
     # [1..n]
@@ -1339,10 +1359,10 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         # 2x -> 2*x
         L = implicit_mul(L, level = implicit_mul_level)
 
-    if numeric_literals:
+    if numeric_literals and safe_delims:
         # Wrapping
         # 1 + 0.5 -> Integer(1) + RealNumber('0.5')
-        L = preparse_numeric_literals(L)
+        L = preparse_numeric_literals(L, quotes=safe_delims[0])
 
     # Generators
     # R.0 -> R.gen(0)
@@ -1436,7 +1456,7 @@ def preparse_file(contents, globals=None, numeric_literals=True):
         numeric_literals = False
 
     if numeric_literals:
-        contents, literals, state = strip_string_literals(contents)
+        contents, literals, _, _ = strip_string_literals(contents)
         contents, nums = extract_numeric_literals(contents)
         contents = contents % literals
         if nums:
@@ -1543,7 +1563,7 @@ def implicit_mul(code, level=5):
                                           code[m.end():])
         return code
 
-    code, literals, state = strip_string_literals(code)
+    code, literals, _, _ = strip_string_literals(code)
     if level >= 1:
         no_mul_token = " '''_no_mult_token_''' "
         code = re.sub(r'\b0x', r'0%sx' % no_mul_token, code)  # hex digits

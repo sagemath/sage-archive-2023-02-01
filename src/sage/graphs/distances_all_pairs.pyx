@@ -2272,7 +2272,7 @@ def szeged_index(G, algorithm="low"):
 
       - ``"high"`` -- algorithm with time complexity in `O(nm)` and space
         complexity in `O(n^2)`. It cannot be used on graphs with more than
-        `2^16` vertices.
+        `65536 = 2^{16}` vertices.
 
     EXAMPLES:
 

@@ -2481,74 +2481,68 @@ class RuleSuperRSK(RuleRSK):
         raise ValueError("invalid output option")
 
 
-class RuleStar:
+class RuleStar(Rule):
     r"""
     Rule for star insertion.
     """
-    def insertion(line1,line2):
-    r"""
-    
-    EXAMPLES:
+    def insertion(self, line1, line2):
+	    r"""
+	    EXAMPLES:
+            sage: Tableaux.options.convention="french"
+	        sage: P, Q = RuleStar().insertion([1,1,2,3,3],[2,3,3,1,3]);ascii_art(P,Q)
+              2     3   
+              2  3  2  3
+              1  3  1  1
+	    """
+	    P = []
+	    Q = []
+	    for a,b in zip(line1,line2):
+	        for i,row in enumerate(P):
+	            if b > row[-1]:
+	                # if b is bigger than the last letter in that row, append it to the end
+	                row.append(b)
+	                Q[i].append(a)
+	                break
+	            else:
+	                if b in row:
+	                    # if b is in the that row, then look for 
+	                    # the smallest in that sequence to insert to the next row
+	                    k = b
+	                    while k in row:
+	                        k += -1
+	                    k += 1
+	                else:
+	                    # if b is not in that row, then look for 
+	                    # the smallest k that is bigger than b to bump
+	                    y_pos = bisect_right(row,b)
+	                    k = row[y_pos]
+	                if b not in row:
+	                    row[y_pos] = b
+	                b = k
+	        else:
+	            # We made through all of the rows of p without breaking
+	            # so we need to add a new row to P and Q.
+	            P.append([b])
+	            Q.append([a])
+	    P = Tableau(P)
+	    Q = Tableau(Q)
+	    return P,Q
 
-        sage: insertion([1,1,2,3,3],[2,3,3,1,3])
-        ([[1, 2, 2], [3, 3]], [[1, 1], [2, 3], [3]])
-        sage: insertion([1,2,3,3,3],[1,3,1,3,4])
-        ([[1, 1], [3, 3], [4]], [[1, 2, 3], [3, 3]])
-    """
-    P = []
-    Q = []
-    for a,b in zip(line1,line2):
-        for i,row in enumerate(P):
-            if b > row[-1]:
-                # if b is bigger than the last letter in that row, append it to the end
-                row.append(b)
-                Q[i].append(a)
-                break
-            else:
-                if b in row:
-                    # if b is in the that row, then look for 
-                    # the smallest in that sequence to insert to the next row
-                    k = b
-                    while k in row:
-                        k += -1
-                    k += 1
-                else:
-                    # if b is not in that row, then look for 
-                    # the smallest k that is bigger than b to bump
-                    y_pos = bisect_right(row,b)
-                    k = row[y_pos]
-                if b not in row:
-                    row[y_pos] = b
-                b = k
-        else:
-            # We made through all of the rows of p without breaking
-            # so we need to add a new row to P and Q.
-            P.append([b])
-            Q.append([a])
-    P = Tableau(P)
-    Q = Tableau(Q)
-    return P,Q
-
-    def reverse_insertion(P,Q):
+    def reverse_insertion(self, P, Q):
         r"""
 
         EXAMPLES:
 
-            sage:P,Q = new_insertion([1,2,2,3,3],[2,2,3,1,3])
-            sage:aart(P,Q)
-            [              1  2 ]
-            [   1  2  2    2  3 ]
-            [   3  3   ,   3    ]
-            sage:new_reverse(P,Q)
-            ([1, 1, 2, 3, 3], [2, 3, 3, 1, 3])
-
-            sage:P,Q = new_insertion([1,2,3,3,3],[1,3,1,3,4])
-            sage:aart(P,Q)
-            [   1  1            ]
-            [   3  3    1  2  3 ]
-            [   4   ,   3  3    ]
-            sage:new_reverse(P,Q)
-            ([1, 2, 3, 3, 3], [1, 3, 1, 3, 4])
+            sage: Tableaux.options.convention="french"
+            sage: P, Q = RuleStar().insertion([1,1,2,3,3],[2,3,3,1,3]);ascii_art(P,Q)
+              2     3   
+              2  3  2  3
+              1  3  1  1
+            sage: line1, line2 = RuleStar().reverse_insertion(P,Q)
+            sage: line1
+            [1, 1, 2, 3, 3]
+            sage: line2
+            [2, 3, 3, 1, 3]
         """
         if P.shape() != Q.shape():
             raise ValueError("P conjugate(=%s) and Q(=%s) must have the same shape" % (P, Q))
@@ -2602,6 +2596,7 @@ class InsertionRules(object):
     dualRSK = RuleDualRSK
     coRSK = RuleCoRSK
     superRSK = RuleSuperRSK
+    Star = RuleStar
 
 #####################################################################
 

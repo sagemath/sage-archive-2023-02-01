@@ -146,19 +146,19 @@ else:
                 matching_modules = [m for m in all_modules if m.__name__.endswith(module_arg)]
         if not matching_modules:
             print('Warning: No modules loaded at startup correspond to {}'.format(module_arg))
-        for module_arg in matching_modules:
-            parents = all_modules[module_arg]['parents']
+        for module_name in matching_modules:
+            parents = all_modules[module_name]['parents']
             print()
             print_separator()
-            print_headline('Slowest modules importing {0}'.format(module_arg.__name__))
+            print_headline('Slowest modules importing {0}'.format(module_name.__name__))
             print_table([m for m in module_by_speed if m[1] in parents], 10)
             print()
-            print_headline('Slowest modules imported by {0}'.format(module_arg.__name__))
-            print_table([m for m in module_by_speed if module_arg in m[2]['parents']], 10)
+            print_headline('Slowest modules imported by {0}'.format(module_name.__name__))
+            print_table([m for m in module_by_speed if module_name in m[2]['parents']], 10)
             print()
-            data = all_modules[module_arg]
-            print_headline('module ' + module_arg.__name__)
+            data = all_modules[module_name]
+            print_headline('module ' + module_name.__name__)
             print('Time to import:  {0:.3f}ms'.format(1000 * data['time']))
             print('Cumulative time: {0:.3f}ms'.format(1000 * data['cumulative_time']))
             print('Names: {0}'.format(', '.join(data['import_names'])))
-            print('File: {0}'.format(module_arg.__file__))
+            print('File: {0}'.format(module_name.__file__))

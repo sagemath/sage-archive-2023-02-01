@@ -939,13 +939,17 @@ class DirichletCharacter(MultiplicativeGroupElement):
             xx = S.gen()
             return m.charpoly(xx)
 
-        # Use pari
-        G,chi = self._pari_conversion()
-        K=pari.charker(G,chi)
-        H = pari.galoissubcyclo(G,K);
-        P = PolynomialRing(rings.RationalField(),"x")
-        x = P.gen()
-        return H.sage({"x":x})
+        elif algorithm == "pari":
+            # Use pari
+            G,chi = self._pari_conversion()
+            K=pari.charker(G,chi)
+            H = pari.galoissubcyclo(G,K);
+            P = PolynomialRing(rings.RationalField(),"x")
+            x = P.gen()
+            return H.sage({"x":x})
+
+        else:
+             raise NotImplentedError("algorithm must be one of 'pari' or 'sage'")
 
 
     def fixed_field(self):

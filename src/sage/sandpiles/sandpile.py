@@ -314,6 +314,8 @@ Working with sandpile divisors::
 # ****************************************************************************
 from __future__ import print_function, division
 
+from sage.misc.superseded import deprecation
+
 from collections import Counter
 from copy import deepcopy
 from inspect import getdoc
@@ -6298,6 +6300,8 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
 
         sage: from sage.sandpiles.sandpile import random_DAG
         sage: d = DiGraph(random_DAG(5, .5)); d
+        doctest:...: DeprecationWarning: method random_DAG is deprecated. Please use digraphs.RandomDirectedAcyclicGraph instead.
+        See https://trac.sagemath.org/30479 for details.
         Digraph on 5 vertices
 
     TESTS:
@@ -6321,6 +6325,8 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
         ...
         ValueError: parameter weight_max must be a positive integer
     """
+    deprecation(30479, "method random_DAG is deprecated. Please use "
+                       "digraphs.RandomDirectedAcyclicGraph instead.")
     D = digraphs.RandomDirectedAcyclicGraph(num_verts, p, weight_max=weight_max)
     return D.to_dictionary(edge_labels=True)
 

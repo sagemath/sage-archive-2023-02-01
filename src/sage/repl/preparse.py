@@ -754,7 +754,8 @@ def preparse_numeric_literals(code, extract=False, quotes="'"):
       name-construction pairs
 
     - ``quotes`` - a string (default: "'"); used to surround string
-      arguments to Integer, RealNumber, and ComplexNumber
+      arguments to RealNumber and ComplexNumber. If None, will rebuild
+      the string using an array of its Unicode code-points.
 
     OUTPUT:
 
@@ -813,6 +814,10 @@ def preparse_numeric_literals(code, extract=False, quotes="'"):
         '0xEA'
         sage: preparse_numeric_literals('0x1012Fae')
         'Integer(0x1012Fae)'
+        sage: preparse_numeric_literals('042')
+        'Integer(42)'
+        sage: preparse_numeric_literals('000042')
+        'Integer(42)'
 
     Test underscores as digit separators (PEP 515,
     https://www.python.org/dev/peps/pep-0515/)::
@@ -874,8 +879,10 @@ def preparse_numeric_literals(code, extract=False, quotes="'"):
         'ComplexNumber(0, "5")'
         sage: preparse_numeric_literals('3.14', quotes="'''")
         "RealNumber('''3.14''')"
-        sage: preparse_numeric_literals('01', quotes='~')
-        'Integer(~01~)'
+        sage: preparse_numeric_literals('3.14', quotes=None)
+        'RealNumber(str().join(map(chr, [51, 46, 49, 52])))'
+        sage: preparse_numeric_literals('5j', quotes=None)
+        'ComplexNumber(0, str().join(map(chr, [53])))'
 
     """
     literals = {}
@@ -930,15 +937,22 @@ def preparse_numeric_literals(code, extract=False, quotes="'"):
             num_name = numeric_literal_prefix + num.replace('.', 'p').replace('-', 'n').replace('+', '')
 
             if 'J' in postfix:
-                num_make = "ComplexNumber(0, %s%s%s)" % (quotes, num, quotes)
+                if quotes:
+                    num_make = "ComplexNumber(0, %s%s%s)" % (quotes, num, quotes)
+                else:
+                    code_points = list(map(ord, list(num)))
+                    num_make = "ComplexNumber(0, str().join(map(chr, %s)))" % code_points
                 num_name += 'j'
             elif len(num) < 2 or num[1] in 'oObBxX':
                 num_make = "Integer(%s)" % num
             elif '.' in num or 'e' in num or 'E' in num:
-                num_make = "RealNumber(%s%s%s)" % (quotes, num, quotes)
-            elif num[0] == "0":
-                num_make = "Integer(%s%s%s)" % (quotes, num, quotes)
+                if quotes:
+                    num_make = "RealNumber(%s%s%s)" % (quotes, num, quotes)
+                else:
+                    code_points = list(map(ord, list(num)))
+                    num_make = "RealNumber(str().join(map(chr, %s)))" % code_points
             else:
+                num = re.sub(r'^0+', '', num) # Strip leading zeroes.
                 num_make = "Integer(%s)" % num
 
             literals[num_name] = num_make
@@ -1359,10 +1373,11 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         # 2x -> 2*x
         L = implicit_mul(L, level = implicit_mul_level)
 
-    if numeric_literals and safe_delims:
+    if numeric_literals:
         # Wrapping
         # 1 + 0.5 -> Integer(1) + RealNumber('0.5')
-        L = preparse_numeric_literals(L, quotes=safe_delims[0])
+        quotes = safe_delims and safe_delims[0] or None
+        L = preparse_numeric_literals(L, quotes=quotes)
 
     # Generators
     # R.0 -> R.gen(0)

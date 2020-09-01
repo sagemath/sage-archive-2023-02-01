@@ -2246,7 +2246,7 @@ cdef uint64_t c_szeged_index_high_memory(short_digraph sd):
 
     return s
 
-def szeged_index(G, algorithm="low"):
+def szeged_index(G, algorithm=None):
     r"""
     Return the Szeged index of the graph `G`.
 
@@ -2264,7 +2264,7 @@ def szeged_index(G, algorithm="low"):
 
     - ``G`` -- a Sage graph
 
-    - ``algorithm`` -- string (default: ``"low"``); algorithm to use among:
+    - ``algorithm`` -- string (default: ``None``); algorithm to use among:
 
       - ``"low"`` -- algorithm with time complexity in `O(nm)` and space
         complexity in `O(m)`. This implementation is currently valid only for
@@ -2273,6 +2273,9 @@ def szeged_index(G, algorithm="low"):
       - ``"high"`` -- algorithm with time complexity in `O(nm)` and space
         complexity in `O(n^2)`. It cannot be used on graphs with more than
         `65536 = 2^{16}` vertices.
+
+      By default (``None``), the ``"low"`` algorithm is used for graphs and the
+      ``"high"`` algorithm for digraphs.
 
     EXAMPLES:
 
@@ -2300,7 +2303,7 @@ def szeged_index(G, algorithm="low"):
 
     The Szeged index of a directed circuit of order `n` is `(n-1)^2`::
 
-        sage: [digraphs.Circuit(n).szeged_index(algorithm="high") for n in range(1, 8)]
+        sage: [digraphs.Circuit(n).szeged_index() for n in range(1, 8)]
         [0, 1, 4, 9, 16, 25, 36]
 
     TESTS:
@@ -2349,7 +2352,10 @@ def szeged_index(G, algorithm="low"):
     if G.is_directed() and algorithm is "low":
         raise ValueError("the 'low' algorithm cannot be used on digraphs")
 
-    if algorithm not in ["low", "high"]:
+    if algorithm is None:
+        algorithm = "high" if G.is_directed() else "low"
+
+    elif algorithm not in ["low", "high"]:
         raise ValueError(f"unknown algorithm '{algorithm}'")
     
     if algorithm is "low" and (G.has_loops() or G.has_multiple_edges()):

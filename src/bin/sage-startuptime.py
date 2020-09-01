@@ -144,9 +144,8 @@ else:
                 matching_modules = [m for m in all_modules if m.__name__.startswith(module_arg)]
             else:
                 matching_modules = [m for m in all_modules if m.__name__.endswith(module_arg)]
-                if len(matching_modules) != 1:
-                    print(matching_modules)
-                    raise ValueError('"' + module_arg + '" does not uniquely determine Sage module.')
+        if not matching_modules:
+            print('Warning: No modules loaded at startup correspond to {}'.format(module_arg))
         for module_arg in matching_modules:
             parents = all_modules[module_arg]['parents']
             print()

@@ -45,3 +45,11 @@
 
 - name: 'triple_colon: triple colon (::: or : ::)'
   pattern: ':[ 	]*::'
+
+# From various typo tickets
+
+# https://trac.sagemath.org/ticket/30472
+- name: 'capitalization_sage: all-caps "SAGE" detected'
+  hint: |
+    Use "Sage" or "SageMath" instead
+  pattern: '\bSAGE\b'

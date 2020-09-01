@@ -306,12 +306,12 @@ Working with sandpile divisors::
     (2, 1, 0, 0, 0, -1)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 David Perkinson <davidp@reed.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import print_function, division
 
 from collections import Counter
@@ -6321,9 +6321,8 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
         ...
         ValueError: parameter weight_max must be a positive integer
     """
-    return digraphs.RandomDirectedAcyclicGraph(num_verts, p,
-                                               weight_max=weight_max,
-                                               return_dict=True)
+    D = digraphs.RandomDirectedAcyclicGraph(num_verts, p, weight_max=weight_max)
+    return D.to_dictionary(edge_labels=True)
 
 
 def glue_graphs(g, h, glue_g, glue_h):

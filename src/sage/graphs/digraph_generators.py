@@ -1153,7 +1153,7 @@ class DiGraphGenerators():
         G.name("Kautz digraph (k={}, D={})".format(k, D))
         return G
 
-    def RandomDirectedAcyclicGraph(self, n, p, weight_max=None, return_dict=False):
+    def RandomDirectedAcyclicGraph(self, n, p, weight_max=None):
         r"""
         Return a random (weighted) directed acyclic graph of order `n`.
 
@@ -1173,11 +1173,6 @@ class DiGraphGenerators():
           unweighted. When ``weight_max`` is set to a positive integer, edges
           are assigned a random integer weight between ``1`` and ``weight_max``.
 
-        - ``return_dict`` -- boolean (default: ``False``); whether to return a
-          :class:`~sage.graphs.digraph.DiGraph` or, if the DAG is weighted a
-          dictionary of dictionaries encoding the arcs of the DAG and a
-          dictionary of lists otherwise.
-
         EXAMPLES::
 
             sage: D = digraphs.RandomDirectedAcyclicGraph(5, .5); D
@@ -1190,15 +1185,6 @@ class DiGraphGenerators():
             True
 
         TESTS:
-
-        Check that we can construct a random DAG when ``return_dict`` is
-        ``True``::
-
-            sage: d = digraphs.RandomDirectedAcyclicGraph(5, .5, return_dict=True)
-            sage: D = DiGraph(d); D
-            Digraph on 5 vertices
-            sage: D.is_directed_acyclic()
-            True
 
         Check special cases::
 
@@ -1249,10 +1235,7 @@ class DiGraphGenerators():
             D.add_edges((i, j, randint(1, weight_max))
                             for i in range(n) for j in range(i) if random() < pp)
 
-        if return_dict:
-            return D.to_dictionary(edge_labels=True)
-        else:
-            return D
+        return D
 
     def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):
         r"""

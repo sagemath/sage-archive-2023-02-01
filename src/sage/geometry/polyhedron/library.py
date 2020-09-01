@@ -2034,7 +2034,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2063,7 +2063,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2091,7 +2091,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2192,7 +2192,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2706,7 +2706,7 @@ class Polytopes():
         try:
             W = CoxeterGroup(coxeter_type)
         except:
-            raise ValueError("can not build a Coxeter group from {}".format(coxeter_type))
+            raise ValueError("cannot build a Coxeter group from {}".format(coxeter_type))
         n = W.one().canonical_matrix().rank()
         weights = W.fundamental_weights()
         if point is None:
@@ -2767,7 +2767,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2783,7 +2783,7 @@ class Polytopes():
         """
         if not exact:
             # cdd finds a numerical inconsistency.
-            raise NotImplementedError("can not compute the convex hull using floating points")
+            raise NotImplementedError("cannot compute the convex hull using floating points")
         return self.generalized_permutahedron(['H', 4], exact=exact, backend=backend, regular=True)
 
     omnitruncated_six_hundred_cell = omnitruncated_one_hundred_twenty_cell
@@ -2839,7 +2839,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2905,7 +2905,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2933,7 +2933,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2961,7 +2961,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2989,7 +2989,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 

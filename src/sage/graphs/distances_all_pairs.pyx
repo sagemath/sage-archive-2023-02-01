@@ -2298,6 +2298,11 @@ def szeged_index(G, algorithm="low"):
         sage: a == b  # long time
         True
 
+    The Szeged index of a directed circuit of order `n` is `(n-1)^2`::
+
+        sage: [digraphs.Circuit(n).szeged_index(algorithm="high") for n in range(1, 8)]
+        [0, 1, 4, 9, 16, 25, 36]
+
     TESTS:
 
     Not defined when the graph is not connected (:trac:`26803`)::
@@ -2306,6 +2311,13 @@ def szeged_index(G, algorithm="low"):
         Traceback (most recent call last):
         ...
         ValueError: the Szeged index is defined for connected graphs only
+
+    Directed graphs must be strongly connected::
+
+        sage: szeged_index(digraphs.Path(2))
+        Traceback (most recent call last):
+        ...
+        ValueError: the Szeged index is defined for strongly connected digraphs only
 
     Wrong name of algorithm::
 
@@ -2324,16 +2336,28 @@ def szeged_index(G, algorithm="low"):
         Traceback (most recent call last):
         ...
         ValueError: the 'low' algorithm is for simple connected undirected graphs only
+        sage: szeged_index(digraphs.circuit(3), algorithm="low")
+        Traceback (most recent call last):
+        ...
+        ValueError: the 'low' algorithm cannot be used on digraphs
     """
-    if G.is_directed() or not G.is_connected():
+    if not G.is_connected():
         raise ValueError("the Szeged index is defined for connected graphs only")
-        
+    if G.is_directed() and not G.is_strongly_connected():
+        raise ValueError("the Szeged index is defined for "
+                         "strongly connected digraphs only")
+    if G.is_directed() and algorithm is "low":
+        raise ValueError("the 'low' algorithm cannot be used on digraphs")
+
     if algorithm not in ["low", "high"]:
         raise ValueError(f"unknown algorithm '{algorithm}'")
     
     if algorithm is "low" and (G.has_loops() or G.has_multiple_edges()):
         raise ValueError("the 'low' algorithm is for simple connected "
                          "undirected graphs only")
+
+    if n <= 1:
+        return 0
 
     cdef short_digraph sd
     init_short_digraph(sd, G, edge_labelled=False, vertex_list=list(G))

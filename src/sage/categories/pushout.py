@@ -2452,7 +2452,8 @@ class CompletionFunctor(ConstructionFunctor):
                     return R.completion(self.p, self.prec, {'type': self.type})
             else:
                 extras = self.extras.copy()
-                extras['type'] = self.type
+                if self.type is not None:
+                    extras['type'] = self.type
                 return R.completion(self.p, self.prec, extras)
         except (NotImplementedError, AttributeError):
             if R.construction() is None:

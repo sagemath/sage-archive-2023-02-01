@@ -113,7 +113,7 @@ def build_many(target, args, processes=None):
         WorkerDiedException: worker for 4 died with non-zero exit code -9
     """
     from multiprocessing import Process, Queue, cpu_count
-    from six.moves.queue import Empty
+    from queue import Empty
 
     if processes is None:
         processes = cpu_count()

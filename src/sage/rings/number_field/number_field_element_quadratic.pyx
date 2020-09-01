@@ -1442,6 +1442,15 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: K.<a> = NumberField(x^2-41)
             sage: (10^1000 * (a+1)) * K(2+3*a) == 10^1000 * ((a+1) * K(2+3*a))
             True
+
+        TESTS:
+
+        Test that :trac:`30360` is fixed::
+
+            sage: K.<sqrt5> = QuadraticField(5, embedding=AA(5).sqrt())
+            sage: sqrt5*vector([1,2])
+            (sqrt5, 2*sqrt5)
+
         """
         cdef NumberFieldElement_quadratic other = <NumberFieldElement_quadratic>other_m
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()

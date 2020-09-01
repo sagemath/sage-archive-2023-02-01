@@ -1479,6 +1479,7 @@ class Polytopes():
             sage: id = polytopes.icosidodecahedron(exact=False); id
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 30 vertices
             sage: TestSuite(id).run(skip=["_test_is_combinatorially_isomorphic",
+            ....:                         "_test_product",
             ....:                         "_test_pyramid",
             ....:                         "_test_lawrence"])
 

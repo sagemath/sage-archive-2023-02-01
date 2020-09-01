@@ -1177,7 +1177,7 @@ class HasseDiagram(DiGraph):
             seen.add(v)
             q.extend(self.neighbors_in(v))
 
-        return size
+        return ZZ(size)
 
     def principal_order_ideal(self, i):
         """

@@ -29,6 +29,6 @@ jobs:
          wsl ./bootstrap
          wsl ./configure --enable-build-as-root
     - name: Build 
-      run: wsl MAKE='make -j8' make
+      run: wsl make -j8
     - name: Test
       run: make ptest

@@ -392,9 +392,9 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: set(pts1) == set(pts2)
             True
 
-            sage: timeit('Polyhedron(v).integral_points()')   # random output
-            sage: timeit('LatticePolytope(v).points()')       # random output
-            sage: timeit('LatticePolytope_PPL(*v).integral_points()')       # random output
+            sage: timeit('Polyhedron(v).integral_points()')   # random output  # long time
+            sage: timeit('LatticePolytope(v).points()')       # random output  # long time
+            sage: timeit('LatticePolytope_PPL(*v).integral_points()')       # random output  # long time
         """
         if self.is_empty():
             return tuple()

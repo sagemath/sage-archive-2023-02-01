@@ -2113,7 +2113,7 @@ class WeightRing(CombinatorialFreeModule):
 
             .. MATH::
 
-                \frac{\lambda - s_i \cdot \lambda + \alpha_i}{1 + \alpha_i}
+                \frac{\lambda - s_i \cdot \lambda + \alpha_i}{1 + \alpha_i},
 
             where the numerator is divisible the denominator in the weight
             ring. This is extended by multiplicativity to all `w` in the

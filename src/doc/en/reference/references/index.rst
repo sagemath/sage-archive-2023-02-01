@@ -3529,6 +3529,9 @@ REFERENCES:
              Mémoire de maîtrise en Mathématiques, Montréal, UQAM,
              2008, 109 pages.
 
+.. [Labelle2008] \G. Labelle. *New combinatorial computational methods
+                 arising from pseudo-singletons.* DMTCS Proceedings 1, 2008.
+
 .. [Lak2010] Dan Laksov. *Splitting algebras and Gysin homomorphisms*.
              Journal of Commutative Algebra, Volume 2, Number 3, Fall 2010
 
@@ -4616,6 +4619,11 @@ REFERENCES:
 
 .. [Rau1979] Gerard Rauzy, *Échanges d'intervalles et transformations
              induites*, Acta Arith. 34, no. 3, 203-212, 1980
+
+.. [RCES1994] Ruskey, R. Cohen, P. Eades, A. Scott.
+              *Alley CATs in search of good homes.*
+              Congressus numerantium, 1994.
+              Pages 97--110
 
 .. [Rea2004] Nathan Reading.
              *Cambrian Lattices*.

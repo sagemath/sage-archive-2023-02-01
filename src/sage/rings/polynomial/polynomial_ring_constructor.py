@@ -948,7 +948,7 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
     if not R is None:
         return R
 
-    from sage.rings.polynomial.pbori import BooleanPolynomialRing
+    from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing
     R = BooleanPolynomialRing(n, names, order)
 
     _save_in_cache(key, R)

@@ -606,6 +606,25 @@ class CoxeterGroups(Category_singleton):
             return self.weak_order_ideal(attrcall("is_grassmannian", side=side),
                                          side=order_side)
 
+        def fully_commutative_elements(self):
+            r"""
+            Return the set of fully commutative elements in this Coxeter group.
+
+            .. SEEALSO::
+
+                :class:`~sage.combinat.fully_commutative_elements.FullyCommutativeElements`
+
+            EXAMPLES::
+
+                sage: CoxeterGroup(['A', 3]).fully_commutative_elements()
+                Fully commutative elements of Finite Coxeter group over Integer Ring with Coxeter matrix:
+                [1 3 2]
+                [3 1 3]
+                [2 3 1]
+            """
+            from sage.combinat.fully_commutative_elements import FullyCommutativeElements
+            return FullyCommutativeElements(self)
+
         def _test_reduced_word(self, **options):
             """
             Run sanity checks on :meth:`CoxeterGroups.ElementMethods.reduced_word` and

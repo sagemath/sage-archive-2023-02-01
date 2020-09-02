@@ -33,8 +33,8 @@ usage() {
     echo "  --maxima [...]      -- run Sage's Maxima with given arguments"
     echo "  --mwrank [...]      -- run Sage's mwrank with given arguments"
     echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
-    echo "                         'default', 'jupyter', and 'export')"
-    echo "                         Current default is 'export' from sagenb to jupyter"
+    echo "                         'default', 'jupyter', 'jupyterlab', and 'export')"
+    echo "                         Current default is 'jupyter'"
     echo "  -n, --notebook      -- shortcut for --notebook=default"
     echo "  --python [...], --python3 [...] -- run the Python 3 interpreter"
     echo "  -R [...]            -- run Sage's R with given arguments"
@@ -348,9 +348,9 @@ usage_advanced() {
     echo "Running the notebook:"
     echo
     echo "  -n [...], --notebook=[...]"
-    echo "                      -- start the notebook; valid options"
-    echo "                         include \"default\", \"jupyter\", \"export\"."
-    echo "                         Current default is \"jupyter\"."
+    echo "                      -- start the notebook; valid options include"
+    echo "                         'default', 'jupyter', 'jupyterlab', and 'export'."
+    echo "                         Current default is 'jupyter'."
     echo "                         Run \"sage --notebook --help\" for more details."
     echo
     ####  1.......................26..................................................78

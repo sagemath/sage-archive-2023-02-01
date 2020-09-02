@@ -37,7 +37,7 @@ from sage.structure.richcmp cimport rich_to_bool
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
-from sage.rings.polynomial.pbori import BooleanPolynomial
+from sage.rings.polynomial.pbori.pbori import BooleanPolynomial
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.polynomial.polynomial_element import is_Polynomial
@@ -505,7 +505,7 @@ cdef class BooleanFunction(SageObject):
         bitset_init(anf, (1<<self._nvariables))
         bitset_copy(anf, self._truth_table)
         reed_muller(anf.bits, ZZ(anf.limbs).exact_log(2))
-        from sage.rings.polynomial.pbori import BooleanPolynomialRing
+        from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing
         R = BooleanPolynomialRing(self._nvariables,"x")
         G = R.gens()
         P = R(0)

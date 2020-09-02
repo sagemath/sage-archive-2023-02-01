@@ -481,6 +481,8 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint f
         cdef Rational r
         cdef mpz_t tmpz
+        cdef fmpz_t tmpfz
+        cdef fmpq_t tmpfq
 
         if len(x) == 1:
             a = x[0]
@@ -506,10 +508,13 @@ cdef class Polynomial_rational_flint(Polynomial):
             elif isinstance(a, int):
                 r = Rational.__new__(Rational)
                 sig_str("FLINT exception")
-                mpz_init(tmpz)
-                mpz_set_si(tmpz, PyInt_AS_LONG(a))
-                fmpq_poly_evaluate_mpz(r.value, self.__poly, tmpz)
-                mpz_clear(tmpz)
+                fmpz_init(tmpfz)
+                fmpq_init(tmpfq)
+                fmpz_set_si(tmpfz, PyInt_AS_LONG(a))
+                fmpq_poly_evaluate_fmpz(tmpfq, self.__poly, tmpfz)
+                fmpq_get_mpq(r.value, tmpfq)
+                fmpq_clear(tmpfq)
+                fmpz_clear(tmpfz)
                 sig_off()
                 return r
 

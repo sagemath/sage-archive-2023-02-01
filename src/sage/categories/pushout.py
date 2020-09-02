@@ -754,10 +754,7 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
             sage: pushout(cartesian_product([ZZ]), cartesian_product([ZZ, QQ]))  # indirect doctest
             Traceback (most recent call last):
             ...
-            CoercionException: No common base ("join") found for
-            The cartesian_product functorial construction(Integer Ring) and
-            The cartesian_product functorial construction(Integer Ring, Rational Field):
-            Functors need the same number of arguments.
+            CoercionException: No common base ("join") found ...
         """
         if self != other_functor:
             self._raise_common_base_exception_(

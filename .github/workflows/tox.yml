@@ -104,11 +104,15 @@ jobs:
       matrix:
         tox_system_factor: [homebrew-macos, homebrew-macos-python3_xcode, homebrew-macos-python3_xcode-nokegonly, homebrew-macos-python3_pythonorg, homebrew-macos-python3_xcode-gcc_spkg, conda-forge-macos]
         tox_packages_factor: [minimal, standard]
+        xcode_version_factor: [default, 12]
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
-      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}-xcode_${{ matrix.xcode_version_factor }}
     steps:
       - uses: actions/checkout@v2
+      - name: Select Xcode version
+        run: |
+          if [ ${{ matrix.xcode_version_factor }} != default ]; then sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode_version_factor }}.app; fi
       - name: Install test prerequisites
         run: |
           brew install tox
@@ -217,9 +221,10 @@ jobs:
       matrix:
         tox_system_factor: [macos-nobootstrap, macos-nobootstrap-python3_pythonorg]
         tox_packages_factor: [minimal]
+        xcode_version_factor: [default, 12]
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
-      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}-xcode_${{ matrix.xcode_version_factor }}
     steps:
       - uses: actions/checkout@v2
         if: "!contains(matrix.tox_system_factor, 'nobootstrap')"
@@ -235,6 +240,9 @@ jobs:
       - name: Move homebrew away
         run: |
           (cd /usr/local && for a in bin etc include lib opt sbin share; do mv $a $a-moved; done)
+      - name: Select Xcode version
+        run: |
+          if [ ${{ matrix.xcode_version_factor }} != default ]; then sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode_version_factor }}.app; fi
       - name: Install test prerequisites
         run: |
           /usr/bin/python3 -m pip install --user tox

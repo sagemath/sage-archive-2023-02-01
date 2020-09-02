@@ -764,9 +764,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         from sage.categories.pushout import QuotientFunctor
         Cover = self.base()
         if Cover in CommutativeRings():
-            return QuotientFunctor([self.modulus()]*Cover, self.variable_names(), self.is_field(),
+            return QuotientFunctor([self.modulus()]*Cover, self.variable_names(),
                                    domain=CommutativeRings(), codomain=CommutativeRings()), Cover
-        return QuotientFunctor([self.modulus()]*self.base(), self.variable_names(), self.is_field()), Cover
+        return QuotientFunctor([self.modulus()]*self.base(), self.variable_names()), Cover
 
     @cached_method
     def base_ring(self):

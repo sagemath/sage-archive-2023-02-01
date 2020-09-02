@@ -74,10 +74,10 @@ from .base                  cimport CombinatorialPolyhedron
 from .face_iterator         cimport FaceIterator
 
 cdef extern from "bit_vector_operations.cc":
-    cdef void intersection(uint64_t *A, uint64_t *B, uint64_t *C,
+    cdef void intersection(uint64_t *dest, uint64_t *A, uint64_t *B,
                            size_t face_length)
-#    Set ``C = A & B``, i.e. C is the intersection of A and B.
-#    ``face_length`` is the length of A, B and C in terms of uint64_t.
+#    Set ``dest = A & B``, i.e. dest is the intersection of A and B.
+#    ``face_length`` is the length of A, B and dest in terms of uint64_t.
 
     cdef size_t bit_rep_to_coatom_rep(
             uint64_t *face, uint64_t **coatoms, size_t n_coatoms,
@@ -207,7 +207,7 @@ cdef class PolyhedronFaceLattice:
             # Initialize the empty face.
             # In case ``dimension == 0``, we would overwrite the coatoms.
             Vrep_list_to_bit_rep((), self.faces[0][0], self.face_length)
-        # Intialize the full polyhedron
+        # Initialize the full polyhedron
         Vrep_list_to_bit_rep(tuple(j for j in range(n_atoms)),
                                 self.faces[self.dimension + 1][0],
                                 self.face_length)
@@ -624,8 +624,8 @@ cdef class PolyhedronFaceLattice:
 
             # Get the intersection of ``dimension_one_face`` with the
             # ``self.incidence_counter_two``-th coatom.
-            intersection(dimension_one_face, coatoms[self.incidence_counter_two],
-                         self.incidence_face, self.face_length)
+            intersection(self.incidence_face, dimension_one_face,
+                         coatoms[self.incidence_counter_two], self.face_length)
 
             # Get the location of the intersection and
             # check, wether it is correct.

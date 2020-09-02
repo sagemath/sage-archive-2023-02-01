@@ -4,7 +4,7 @@ The Normaliz backend for polyhedral computations
 
 .. NOTE::
 
-    This backend requires `PyNormaliz <https://pypi.python.org/pypi/PyNormaliz/1.5>`_.
+    This backend requires `PyNormaliz <https://pypi.org/project/PyNormaliz>`_.
     To install PyNormaliz, type :code:`sage -i pynormaliz` in the terminal.
 
 AUTHORS:
@@ -20,7 +20,7 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function

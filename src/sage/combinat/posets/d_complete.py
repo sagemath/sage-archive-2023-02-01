@@ -20,6 +20,8 @@ from sage.misc.lazy_attribute import lazy_attribute
 from .linear_extensions import LinearExtensionsOfPosetWithHooks
 from .lattices import FiniteJoinSemilattice
 from collections import deque
+from sage.rings.integer_ring import ZZ
+from sage.misc.misc_c import prod
 
 class DCompletePoset(FiniteJoinSemilattice):
     r"""
@@ -120,7 +122,7 @@ class DCompletePoset(FiniteJoinSemilattice):
                     queue.append(c)
                     enqueued.add(c)
 
-        poset_hooks = {self._vertex_to_element(key): value for (key, value) in hooks.items()}
+        poset_hooks = {self._vertex_to_element(key): ZZ(value) for (key, value) in hooks.items()}
         return poset_hooks
 
     def get_hook(self, elmt):
@@ -153,3 +155,21 @@ class DCompletePoset(FiniteJoinSemilattice):
         """
         return dict(self._hooks)
 
+    def hook_product(self):
+        r"""
+        Return the hook product for the poset.
+
+        TESTS::
+
+            sage: from sage.combinat.posets.d_complete import DCompletePoset
+            sage: P = DCompletePoset(DiGraph({0: [1, 2], 1: [3], 2: [3], 3: []}))
+            sage: P.hook_product()
+            12
+            sage: P = DCompletePoset(posets.YoungDiagramPoset(Partition([3,2,1]), dual=True))
+            sage: P.hook_product()
+            45
+        """
+        if not self._hasse_diagram:
+            return ZZ.one()
+
+        return ZZ(prod(self._hooks.values()))

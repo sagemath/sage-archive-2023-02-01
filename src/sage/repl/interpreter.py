@@ -435,11 +435,21 @@ def SagePreparseTransformer(lines):
         SyntaxError: Mismatched ']'
         <BLANKLINE>
         sage: shell.quit()
+
+    Make sure the quote state is carried over across subsequent lines in order
+    to avoid interfering with multi-line strings, see :trac:`30417`. ::
+
+        sage: SagePreparseTransformer(["'''", 'abc-1-2', "'''"])
+        ["'''", 'abc-1-2', "'''"]
+        sage: # instead of ["'''", 'abc-Integer(1)-Integer(2)', "'''"]
+
     """
     lines_out = []
+    reset = True
     for line in lines:
         if _do_preparse and not line.startswith('%'):
-            lines_out += [preparse(line)]
+            lines_out += [preparse(line, reset=reset)]
+            reset = False
         else:
             lines_out += [line]
     return lines_out

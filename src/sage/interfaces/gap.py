@@ -886,7 +886,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             sage: print(gap.version())
             4...
         """
-        return self.eval('VERSION')[1:-1]
+        return self.eval('GAPInfo.Version')[1:-1]
 
     def function_call(self, function, args=None, kwds=None):
         """

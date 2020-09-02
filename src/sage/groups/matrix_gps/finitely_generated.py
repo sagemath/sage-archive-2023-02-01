@@ -550,7 +550,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: A = MS([[0,0,0,0,1],[0,0,0,1,0],[0,0,1,0,0],[0,1,0,0,0],[1,0,0,0,0]])
             sage: G = MatrixGroup([A])
             sage: G.as_permutation_group()
-            Permutation Group with generators [(1,2)]
+            Permutation Group with generators [(2,17)(3,9)(4,25)(6,21)(7,13)(8,29)(10,19)(12,27)(14,23)(16,31)(20,26)(24,30)]
 
         A finite subgroup of  GL(12,Z) as a permutation group::
 
@@ -625,7 +625,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: PG = MG.as_permutation_group()
             sage: mg = MG.an_element()
             sage: PG(mg)
-            (1,2,6,19,35,33)(3,9,26,14,31,23)(4,13,5)(7,22,17)(8,24,12)(10,16,32,27,20,28)(11,30,18)(15,25,36,34,29,21)
+            (2,33,32,23,31,55)(3,49,38,44,40,28)(4,17,59,62,58,46)(5,21,47,20,43,8)(6,53,50)(7,37,12,57,14,29)(9,41,56,34,64,10)(11,25,19)(13,61,26,51,22,15)(16,45,36)(18,27,35,48,52,54)(24,63,42)(30,39,60)
         """
         # Note that the output of IsomorphismPermGroup() depends on
         # memory locations and will change if you change the order of

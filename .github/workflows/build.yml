@@ -29,8 +29,11 @@ jobs:
         & wsl sudo apt-get install -y @(ExtractPackages '.\build\pkgs\debian-bootstrap.txt')
         & wsl sudo apt-get install -y tox
     - name: Build
-      run: wsl MAKE="make -j2" tox -e local -- SAGE_NUM_THREADS=4 build
-      # If make is invoked in parellel (i.e. with -jN where N > 1), then we run into errors for some reason
+      # If make is invoked in parellel (i.e. with -jN where N > 1), then we sometimes run into errors for some reason
+      # So keep N small in order to minimize the risk
+      run: |
+        wsl export MAKEFLAGS='-j 2'
+        wsl tox -e local -- SAGE_NUM_THREADS=4 build
     - name: Test
       run: wsl tox -e local -- SAGE_NUM_THREADS=4 ptest
     - name: Prepare logs artifact

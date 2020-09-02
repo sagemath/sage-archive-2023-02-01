@@ -28,7 +28,7 @@ Classes and Methods
 ##############################################################################
 
 from random import Random
-from sage.rings.polynomial.pbori import if_then_else as ite
+from sage.rings.polynomial.pbori.pbori import if_then_else as ite
 from sage.rings.integer_ring import ZZ
 from sage.functions.other import ceil
 from sage.misc.cachefunc import cached_method, cached_function

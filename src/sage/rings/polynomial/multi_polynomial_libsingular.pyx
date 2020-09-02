@@ -919,7 +919,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                     raise
                 return new_MP(self, _p)
 
-        from sage.rings.polynomial.pbori import BooleanPolynomial
+        from sage.rings.polynomial.pbori.pbori import BooleanPolynomial
         if isinstance(element, BooleanPolynomial):
             if element.constant():
                 if element:

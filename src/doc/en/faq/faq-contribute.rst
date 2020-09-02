@@ -30,7 +30,7 @@ mailing list or hang around on the
 `freenode <http://freenode.net>`_. While you are getting to know 
 the community, grab a copy of the Sage
 source and familiarize yourself with the
-`git <http://git-scm.com>`_ version control system. 
+`git <https://git-scm.com>`_ version control system. 
 
 The best way to become familiar with the Sage development process is
 to choose a ticket from the
@@ -61,14 +61,14 @@ evil."
 
 If you do not know Python, you should start learning that language. A
 good place to start is the
-`Python Official Tutorial <https://docs.python.org/tutorial>`_
+`Python Official Tutorial <https://docs.python.org/3/tutorial>`_
 and other documents in the
 `Python standard documentation <https://docs.python.org>`_.
 Another good place to take a look at is
-`Dive Into Python <http://www.diveintopython3.net>`_
+`Dive Into Python <https://diveintopython3.net>`_
 by Mark Pilgrim, which may be pretty helpful on some specific topics
 such as test-driven development. The book
-`Building Skills in Python <http://homepage.mac.com/s_lott/books/python.html>`_
+`Building Skills in Python <http://itmaybeahack.com/homepage/books/python.html>`_
 by Steven F. Lott is suitable for anyone who is already comfortable
 with programming.
 
@@ -95,7 +95,7 @@ useful in fields other than technical writing itself. A main point
 about technical writing is that you communicate a technical subject to
 beginners, so keep technical jargon to a minimum. Darrell Anderson
 has written some
-`tips on technical writing <http://humanreadable.nfshost.com/howtos/technical_writing_tips.htm>`_,
+`tips on technical writing <http://web.archive.org/web/20130128102724/http://humanreadable.nfshost.com:80/howtos/technical_writing_tips.htm>`_,
 which we highly recommend.
 
 For the graphic designers or the artistically creative, you can
@@ -109,9 +109,9 @@ Italian, or help out with translating the official Sage tutorial to
 Italian.
 
 The above is a very short list. There are many, many more ways in
-which you can help out. Feel free to send an email to the `sage-devel
-<https://groups.google.com/group/sage-devel>`_ mailing list to ask
-about possible ways in which you could help out, or to suggest a
+which you can help out. Feel free to send an email to the
+`sage-devel <https://groups.google.com/group/sage-devel>`_ mailing list
+to ask about possible ways in which you could help out, or to suggest a
 project idea.
 
 
@@ -123,17 +123,17 @@ resources can be found by a web search.
 
 **General resources**
 
-* `Cython <https://cython.org/>`_
-* `pep8 <http://pypi.python.org/pypi/pep8>`_
-* `py2depgraph <http://www.tarind.com/depgraph.html>`_
-* `pycallgraph <http://pycallgraph.slowchop.com>`_
+* `Cython <https://cython.org>`_
+* `pep8 <https://pypi.org/project/pep8>`_
+* `pydeps <https://pypi.org/project/pydeps>`_
+* `pycallgraph <https://pycallgraph.readthedocs.io>`_
 * `PyChecker <http://pychecker.sourceforge.net>`_
-* `PyFlakes <http://divmod.org/trac/wiki/DivmodPyflakes>`_
-* `Pylint <http://www.logilab.org/project/pylint>`_
+* `PyFlakes <https://pypi.org/project/pyflakes>`_
+* `Pylint <https://www.logilab.org/project/pylint>`_
 * `Python <https://www.python.org>`_ home page and the
   `Python standard documentation <https://docs.python.org>`_
 * `Snakefood <http://furius.ca/snakefood>`_
-* `Sphinx <http://sphinx.pocoo.org>`_
+* `Sphinx <https://www.sphinx-doc.org>`_
 * `XDot <https://github.com/jrfonseca/xdot.py>`_
 
 **Tutorials and books**
@@ -143,18 +143,18 @@ resources can be found by a web search.
 * `Dive Into Python 3 <http://www.diveintopython3.net>`_ by Mark Pilgrim
 * `Fast Numerical Computations with Cython <http://conference.scipy.org/proceedings/SciPy2009/paper_2/>`_
   by Dag Sverre Seljebotn
-* `Official Python Tutorial <http://docs.python.org/tutorial>`_
+* `Official Python Tutorial <https://docs.python.org/3/tutorial/>`_
 
 **Articles and HOWTOs**
 
-* `decorator <http://pypi.python.org/pypi/decorator>`_
-* `Functional Programming HOWTO <http://docs.python.org/howto/functional.html>`_
+* `decorator <https://pypi.org/project/decorator>`_
+* `Functional Programming HOWTO <https://docs.python.org/3/howto/functional.html>`_
   by A. M. Kuchling
-* `Python Functional Programming for Mathematicians <http://wiki.sagemath.org/devel/FunctionalProgramming>`_
+* `Python Functional Programming for Mathematicians <https://wiki.sagemath.org/devel/FunctionalProgramming>`_
   by Minh Van Nguyen
-* `Regular Expression HOWTO <http://docs.python.org/howto/regex.html>`_
+* `Regular Expression HOWTO <https://docs.python.org/3/howto/regex.html>`_
   by A. M. Kuchling
-* `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
+* `reStructuredText <https://docutils.sourceforge.io/rst.html>`_
 
 Are there any coding conventions I need to follow?
 """"""""""""""""""""""""""""""""""""""""""""""""""
@@ -162,53 +162,50 @@ Are there any coding conventions I need to follow?
 You should follow the standard Python conventions as documented at
 :pep:`8` and :pep:`257`.
 Also consult the Sage Developer's Guide, especially the chapter
-`Conventions for Coding in Sage <https://doc.sagemath.org/html/en/developer/conventions.html>`_.
+`Conventions for Coding in Sage <https://doc.sagemath.org/html/en/developer/#sage-coding-details>`_.
 
 
-I submitted a bug fix to the trac server several weeks ago. Why are you ignoring my patch?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+I submitted a bug fix to the trac server several weeks ago. Why are you ignoring my branch?
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-We are not trying to ignore your patch. People who work on Sage do so
+We are not trying to ignore your branch. Most people who work on Sage do so
 in their free time. With hundreds of open tickets of varying degrees of
 impacts on the whole Sage community, people who work on tickets need
 to prioritize their time and work on those tickets that interest
 them. Sometimes you may be the only person who understands your
-patch. In that case, you are encouraged to take extra care to make it
-as easy as possible for anyone to review your patch. Here are some
-tips on making your patch easy to review:
+branch. In that case, you are encouraged to take extra care to make it
+as easy as possible for anyone to review. Here are some
+tips on making your branch easy to review:
 
-* Have you clearly described the problem your patch is trying to
+* Have you clearly described the problem your branch is trying to
   solve?
 * Have you provided any background information relevant to the problem
   your patch is trying to solve? Such information include links to
   online resources and any relevant papers, books and reference
   materials.
-* Have you clearly described how your patch solves the problem under
+* Have you clearly described how your branch solves the problem under
   consideration?
-* Have you clearly described how to test the changes in your patch?
-* Have you listed any tickets that your patch depends on?
-* If there are more than one patch, have you clearly stated the order
-  in which those patches are to be applied?
-* Does your patch
-  `follow relevant conventions <http://doc.sagemath.org/html/en/developer/writing_code.html>`_
+* Have you clearly described how to test the changes in your branch?
+* Have you listed any tickets that your branch depends on?
+* Is your branch based on a recent (peferably, the lastest) Sage beta version?
+* Does your branch
+  `follow relevant conventions <https://doc.sagemath.org/html/en/developer/#writing-code-for-sage>`_
   as documented in the Developer's Guide?
 
-If your patch stands no chance of being merged in the Sage source
-tree, we will not ignore your patch but simply close the relevant
+If your branch stands no chance of being merged in the Sage source
+tree, we will not ignore your branch but simply close the relevant
 ticket with an explanation why we cannot include your changes.
 
 
-When and how might I remind the Sage community of a patch I care about?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+When and how might I remind the Sage community of a branch I care about?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 You are encouraged to take extra care in how you remind the Sage
-community of a patch you want to get merged into the Sage source
+community of a branch/patch you want to get merged into the Sage source
 tree. There might be an upcoming bug squash sprint or an upcoming Sage
 Days workshop that relates to your patch. Monitor the relevant Sage
 mailing lists and respond politely to any relevant email threads, with
-clear explanation on why your patch is relevant. Monitor the
-``#sage-devel`` IRC channel, taking care to strategically time your
-reminders.
+clear explanation on why your patch is relevant.
 
 
 I wrote some Sage code and I want it to be integrated into Sage. However, after renaming my file ``a.sage`` to ``a.py``, I got syntax errors. Do I have to rewrite all my code in Python instead of Sage?
@@ -265,8 +262,8 @@ necessity to import what you need.
 
       Type:    function
       [...]
-      File:    /home/florent/src/Sage/sage/local/lib/python2.6/site-packages/sage/rings/polynomial/polynomial_ring_constructor.py
+      File:    /path_to_sage_root/sage/local/lib/python3.7/site-packages/sage/rings/polynomial/polynomial_ring_constructor.py
       [...]
 
 
-.. _afterword: http://doc.sagemath.org/html/en/tutorial/afterword.html
+.. _afterword: https://doc.sagemath.org/html/en/tutorial/afterword.html

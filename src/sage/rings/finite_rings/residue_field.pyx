@@ -512,7 +512,7 @@ class ResidueField_generic(Field):
             sage: F(ZZ)
             Residue field of Integers modulo 17
             sage: F(CyclotomicField(49))
-            Residue field in zeta49bar of Fractional ideal (17)
+            Residue field in zbar of Fractional ideal (17)
 
         """
         return AlgebraicExtensionFunctor([self.polynomial()], [self.variable_name()], [None], residue=self.p), self.p.ring()

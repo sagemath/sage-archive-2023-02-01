@@ -913,7 +913,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             return self
         return sage.rings.finite_rings.integer_mod_ring.IntegerModRing(n, **kwds)
 
-    def residue_field(self, prime, check = True):
+    def residue_field(self, prime, check=True, names=None):
         r"""
         Return the residue field of the integers modulo the given prime, i.e.
         `\ZZ/p\ZZ`.
@@ -923,7 +923,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         - ``prime`` - a prime number
 
         - ``check`` - (boolean, default ``True``) whether or not
-          to check the primality of prime.
+          to check the primality of prime
+
+        - ``names`` - ignored (for compatibility with number fields)
 
         OUTPUT: The residue field at this prime.
 

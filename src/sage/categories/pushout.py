@@ -2980,7 +2980,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         sage: F(ZZ)
         Residue field of Integers modulo 17
         sage: F(CyclotomicField(49))
-        Residue field in zeta49bar of Fractional ideal (17)
+        Residue field in zbar of Fractional ideal (17)
 
     """
     rank = 3
@@ -3099,22 +3099,6 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: L1 = (b*x).parent().base_ring()
             sage: L1 is L0
             True
-
-        Residue fields can be constructed for different rings, too::
-
-            sage: K.<z> = CyclotomicField(7)
-            sage: P = K.factor(17)[0][0]
-            sage: k = K.residue_field(P)
-            sage: F, R = k.construction()
-            sage: R
-            Cyclotomic Field of order 7 and degree 6
-            sage: F(R) is k
-            True
-            sage: F(ZZ)
-            Residue field of Integers modulo 17
-            sage: F(CyclotomicField(49))
-            Residue field in zeta49bar of Fractional ideal (17)
-
         """
         Functor.__init__(self, Rings(), Rings())
         if not (isinstance(polys, (list, tuple)) and isinstance(names, (list, tuple))):
@@ -3181,7 +3165,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             if R == ZZ:
                 return CyclotomicField(self.cyclotomic).maximal_order()
         elif self.residue is not None:
-            return R.residue_field(R*self.residue, names=self.names)
+            return R.residue_field(R*self.residue, names=tuple(self.names))
         if len(self.polys) == 1:
             return R.extension(self.polys[0], names=self.names[0], embedding=self.embeddings[0],
                                structure=self.structures[0], prec=self.precs[0],

@@ -2339,7 +2339,7 @@ def szeged_index(G, algorithm=None):
         Traceback (most recent call last):
         ...
         ValueError: the 'low' algorithm is for simple connected undirected graphs only
-        sage: szeged_index(digraphs.circuit(3), algorithm="low")
+        sage: szeged_index(digraphs.Circuit(3), algorithm="low")
         Traceback (most recent call last):
         ...
         ValueError: the 'low' algorithm cannot be used on digraphs
@@ -2362,7 +2362,7 @@ def szeged_index(G, algorithm=None):
         raise ValueError("the 'low' algorithm is for simple connected "
                          "undirected graphs only")
 
-    if n <= 1:
+    if G.order() <= 1:
         return 0
 
     cdef short_digraph sd

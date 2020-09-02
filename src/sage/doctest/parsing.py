@@ -332,7 +332,7 @@ def parse_optional_tags(string):
          sage: parse_optional_tags("'ěščřžýáíéďĎ'")
          set()
     """
-    safe, literals, _, _ = strip_string_literals(string)
+    safe, literals, _ = strip_string_literals(string)
     first_line = safe.split('\n', 1)[0]
     if '#' not in first_line:
         return set()
@@ -382,7 +382,7 @@ def parse_tolerance(source, want):
         sage: marked.abs_tol
         0.010000000000000000000...?
     """
-    safe, literals, _, _ = strip_string_literals(source)
+    safe, literals, _ = strip_string_literals(source)
     first_line = safe.split('\n', 1)[0]
     if '#' not in first_line:
         return want

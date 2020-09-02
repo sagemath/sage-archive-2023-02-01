@@ -213,6 +213,36 @@ Behind the scenes what happens is the following::
    much more efficient than Sage integers when they are very small;
    large Sage integers are much more efficient than Python integers,
    since they are implemented using the GMP C library.
+
+F-Strings (`PEP 498 <https://www.python.org/dev/peps/pep-0498/>`_):
+
+Expressions embedded within F-strings are preparsed::
+
+    sage: f'{1/3}'
+    '1/3'
+    sage: f'{2^3}'
+    '8'
+    sage: x = 20
+    sage: f'{x} in binary is: {x:08b}'
+    '20 in binary is: 00010100'
+    sage: f'{list(map(lambda x: x^2, [1, 2, .., 5]))}'
+    '[1, 4, 9, 16, 25]'
+
+Note that the format specifier is not preparsed. Expressions within it,
+however, are::
+
+    sage: f'{x:10r}'
+    Traceback (most recent call last):
+    ...
+    ValueError: Unknown format code 'r' for object of type 'int'
+    sage: f'{x:{10r}}'
+    '        20'
+
+Nested F-strings are also supported::
+
+    sage: f'''1{ f"2{ f'4{ 2^3 }4' }2" }1'''
+    '1248421'
+
 """
 
 #*****************************************************************************
@@ -226,9 +256,11 @@ Behind the scenes what happens is the following::
 #*****************************************************************************
 from __future__ import print_function
 
-import collections
 import os
 import re
+
+from collections import OrderedDict
+from types import SimpleNamespace
 
 from sage.repl.load import load_wrap
 
@@ -315,12 +347,91 @@ in_triple_quote = False
 def in_quote():
     return in_single_quote or in_double_quote or in_triple_quote
 
-QuoteStackFrame = collections.namedtuple("QuoteStackFrame", [
-    'delim',    # the quote characters used: ', ", ''', or """
-    'raw',      # whether we're in a raw string
-    'f_string', # whether we're in an F-string (PEP 498)
-    'braces'    # in an F-string, how many unclosed {'s have we encountered?
-])
+class QuoteStack:
+    """The preserved state of parsing in :func:`strip_string_literals`."""
+    def __init__(self):
+        self.stack = [] # list of QuoteStackFrame
+        self.safe_delims = OrderedDict.fromkeys(["'", '"', "'''", '"""'])
+    def __repr__(self):
+        return repr(self.stack)
+    def peek(self):
+        """Get the frame at the top of the stack or None if empty."""
+        return self.stack[-1] if self.stack else None
+    def pop(self):
+        return self.stack.pop()
+    def push(self, frame):
+        self.stack.append(frame)
+        if frame.f_string:
+            self.safe_delims.pop(frame.delim, None) # remove safe delimiter
+    def safe_delimiter(self):
+        """
+        Determine which string delimiter, if any, can be safely inserted into
+        the processed code. Chooses ``'``, ``"``, ``'''``, or ``\"\"\"`` in
+        that order.
+
+        Delimiters are never added back to the set of safe ones. They're no
+        longer applicable to parsing, but they appear somewhere in the processed
+        code, so they're not safe to insert just anywhere. A future enhancement
+        could be to map ranges in the processed code to the delimiters that
+        would be safe to insert there.
+
+        EXAMPLES::
+
+            sage: from sage.repl.preparse import QuoteStack, QuoteStackFrame
+            sage: s = QuoteStack()
+            sage: s.safe_delimiter()
+            "'"
+            sage: s.push(QuoteStackFrame("'"))
+            sage: s.safe_delimiter()
+            '"'
+            sage: s.push(QuoteStackFrame('"'))
+            sage: s.safe_delimiter()
+            "'''"
+            sage: s.push(QuoteStackFrame("'''"))
+        """'''
+            sage: s.safe_delimiter()
+            '"""'
+            sage: s.push(QuoteStackFrame('"""'))
+            sage: s.safe_delimiter()
+            sage: s.pop()
+            QuoteStackFrame(...)
+            sage: s.safe_delimiter()
+
+        '''
+        if self.safe_delims:
+            delim, _ = self.safe_delims.popitem(last=False)
+            return delim
+        else:
+            return None
+
+class QuoteStackFrame(SimpleNamespace):
+    """
+    The state of a single level of a string literal being parsed.
+    (Only F-strings have more than one level.)
+
+    Attributes:
+
+    - ``delim`` - the quote character(s) used: ``'``, ``"``, ``'''``, or ``\"\"\"``
+    - ``raw`` - whether we're in a raw string
+    - ``f_string`` - whether we're in an F-string
+    - ``braces`` - in an F-string, how many unclosed ``{``'s have we encountered?
+    - ``parens`` - in a replacement section of an F-string (``braces`` > 0),
+      how many unclosed ``(``'s have we encountered?
+    - ``fmt_spec`` - in the format specifier portion of a replacement section?
+    - ``nested_fmt_spec`` - in a nested format specifier? For example,
+      the ``X`` in ``f'{value:{width:X}}'``. Only one level of nesting is currently
+      allowed (as of Python 3.8).
+
+    """
+    def __init__(self, delim, raw=False, f_string=False, braces=0, parens=0,
+                 fmt_spec=False, nested_fmt_spec=False):
+        self.delim = delim
+        self.raw = raw
+        self.f_string = f_string
+        self.braces = braces
+        self.parens = parens
+        self.fmt_spec = fmt_spec
+        self.nested_fmt_spec = nested_fmt_spec
 
 def strip_string_literals(code, state=None):
     r"""
@@ -332,20 +443,18 @@ def strip_string_literals(code, state=None):
 
     - ``code`` - a string; the input
 
-    - ``state`` - a list of :class:`QuoteStackFrame` (default: None);
-      state with which to continue processing, e.g., across multiple calls
-      to this function
+    - ``state`` - a :class:`QuoteStack` (default: None); state with which to
+      continue processing, e.g., across multiple calls to this function
 
     OUTPUT:
 
-    - a 4-tuple of the processed code, the dictionary of labels,
-      any accumulated state, and the list of string delimiters
-      (', ", ''', \"\"\") that are safe to insert into the processed code.
+    - a 3-tuple of the processed code, the dictionary of labels, and
+      any accumulated state
 
     EXAMPLES::
 
         sage: from sage.repl.preparse import strip_string_literals
-        sage: s, literals, _, _ = strip_string_literals(r'''['a', "b", 'c', "d\""]''')
+        sage: s, literals, _ = strip_string_literals(r'''['a', "b", 'c', "d\""]''')
         sage: s
         '[%(L1)s, %(L2)s, %(L3)s, %(L4)s]'
         sage: literals
@@ -357,7 +466,7 @@ def strip_string_literals(code, state=None):
 
     Triple-quotes are handled as well::
 
-        sage: s, literals, _, _ = strip_string_literals("[a, '''b''', c, '']")
+        sage: s, literals, _ = strip_string_literals("[a, '''b''', c, '']")
         sage: s
         '[a, %(L1)s, c, %(L2)s]'
         sage: print(s % literals)
@@ -365,7 +474,7 @@ def strip_string_literals(code, state=None):
 
     Comments are substitute too::
 
-        sage: s, literals, _, _ = strip_string_literals("code '#' # ccc 't'"); s
+        sage: s, literals, _ = strip_string_literals("code '#' # ccc 't'"); s
         'code %(L1)s #%(L2)s'
         sage: s % literals
         "code '#' # ccc 't'"
@@ -373,128 +482,277 @@ def strip_string_literals(code, state=None):
     A state is returned so one can break strings across multiple calls to
     this function::
 
-        sage: s, _, state, _ = strip_string_literals('s = "some'); s
+        sage: s, _, state = strip_string_literals('s = "some'); s
         's = %(L1)s'
-        sage: s, _, _, _ = strip_string_literals('thing" * 5', state); s
+        sage: s, _, _ = strip_string_literals('thing" * 5', state); s
         '%(L1)s * 5'
 
     TESTS:
 
     Even for raw strings, a backslash can escape a following quote::
 
-        sage: s, _, _, _ = strip_string_literals(r"r'somethin\' funny'"); s
+        sage: s, _, _ = strip_string_literals(r"r'somethin\' funny'"); s
         'r%(L1)s'
         sage: dep_regex = r'^ *(?:(?:cimport +([\w\. ,]+))|(?:from +(\w+) +cimport)|(?:include *[\'"]([^\'"]+)[\'"])|(?:cdef *extern *from *[\'"]([^\'"]+)[\'"]))' # Ticket 5821
+
+    Some extra tests for escaping with odd/even numbers of backslashes::
+
+        sage: s, literals, _ = strip_string_literals(r"'somethin\\' 'funny'"); s
+        '%(L1)s %(L2)s'
+        sage: literals
+        {'L1': "'somethin\\\\'", 'L2': "'funny'"}
+        sage: s, literals, _ = strip_string_literals(r"'something\\\' funny'"); s
+        '%(L1)s'
+        sage: literals
+        {'L1': "'something\\\\\\' funny'"}
+
+    Braces don't do anything special in normal strings::
+
+        sage: s, literals, _ = strip_string_literals("'before{during}after'"); s
+        '%(L1)s'
+        sage: literals
+        {'L1': "'before{during}after'"}
+
+    But they are treated special in F-strings::
+
+        sage: s, literals, _ = strip_string_literals("f'before{during}after'"); s
+        'f%(L1)s{during}%(L2)s'
+        sage: literals
+        {'L1': "'before", 'L2': "after'"}
+
+    '#' isn't handled specially inside a replacement section
+    (Python won't allow it anyways)::
+
+        sage: s, literals, _ = strip_string_literals("f'#before {#during}' #after"); s
+        'f%(L1)s{#during}%(L2)s #%(L3)s'
+        sage: literals
+        {'L1': "'#before ", 'L2': "'", 'L3': 'after'}
+
+    '{{' and '}}' only escape sequences work in the literal portion of an F-string::
+
+        sage: s, literals, _ = strip_string_literals("f'A{{B}}C}}D{{'"); s
+        'f%(L1)s'
+        sage: literals
+        {'L1': "'A{{B}}C}}D{{'"}
+        sage: s, literals, _ = strip_string_literals("f'{ A{{B}}C }'"); s
+        'f%(L1)s{ A{{B}}C }%(L2)s'
+        sage: literals
+        {'L1': "'", 'L2': "'"}
+
+    Nested braces in the replacement section (such as for a dict literal)::
+
+        sage: s, literals, _ = strip_string_literals(''' f'{ {"x":1, "y":2} }' '''); s
+        ' f%(L1)s{ {%(L2)s:1, %(L3)s:2} }%(L4)s '
+        sage: literals
+        {'L1': "'", 'L2': '"x"', 'L3': '"y"', 'L4': "'"}
+
+    Format specifier treated as literal except for braced sections within::
+
+        sage: s, literals, _ = strip_string_literals("f'{value:width}'"); s
+        'f%(L1)s{value:%(L2)s}%(L3)s'
+        sage: literals['L2']
+        'width'
+        sage: s, literals, _ = strip_string_literals("f'{value:{width}}'"); s
+        'f%(L1)s{value:%(L2)s{width}%(L3)s}%(L4)s'
+        sage: (literals['L2'], literals['L3']) # empty; not ideal, but not harmful
+        ('', '')
+
+    Nested format specifiers -- inside a braced section in the main format
+    specier -- are treated as literals.
+    (Python doesn't allow any deeper nesting.)::
+
+        sage: s, literals, _ = strip_string_literals("f'{value:{width:10}}'"); s
+        'f%(L1)s{value:%(L2)s{width:%(L3)s}%(L4)s}%(L5)s'
+        sage: literals['L3']
+        '10'
+
+    A colon inside parentheses doesn't start the format specifier in order to
+    allow lambdas. (Python requires lambdas in F-strings to be in parentheses.)::
+
+        sage: s, _, _ = strip_string_literals("f'{(lambda x: x^2)(4)}'"); s
+        'f%(L1)s{(lambda x: x^2)(4)}%(L2)s'
+
+    'r' and 'f' can be mixed to create raw F-strings::
+
+        sage: _, _, stack = strip_string_literals("'"); stack.peek()
+        QuoteStackFrame(...f_string=False...raw=False...)
+        sage: _, _, stack = strip_string_literals("f'"); stack.peek()
+        QuoteStackFrame(...f_string=True...raw=False...)
+        sage: _, _, stack = strip_string_literals("r'"); stack.peek()
+        QuoteStackFrame(...f_string=False...raw=True...)
+        sage: _, _, stack = strip_string_literals("rf'"); stack.peek()
+        QuoteStackFrame(...f_string=True...raw=True...)
+        sage: _, _, stack = strip_string_literals("fr'"); stack.peek()
+        QuoteStackFrame(...f_string=True...raw=True...)
+        sage: _, _, stack = strip_string_literals("FR'"); stack.peek()
+        QuoteStackFrame(...f_string=True...raw=True...)
+
+    Verify that state gets carried over correctly between calls with F-strings::
+
+        sage: s, lit = [None] * 9, [None] * 9
+        sage: s[0], lit[0], stack = strip_string_literals(''); stack
+        []
+        sage: s[1], lit[1], stack = strip_string_literals(" f'", stack); stack
+        [QuoteStackFrame(braces=0, delim="'", f_string=True, fmt_spec=False, nested_fmt_spec=False, parens=0, raw=False)]
+        sage: s[2], lit[2], stack = strip_string_literals('{', stack); stack
+        [QuoteStackFrame(...braces=1...)]
+        sage: s[3], lit[3], stack = strip_string_literals('r"abc', stack); stack
+        [QuoteStackFrame(...), QuoteStackFrame(...delim='"'...raw=True)]
+        sage: s[4], lit[4], stack = strip_string_literals('".upper(', stack); stack
+        [QuoteStackFrame(...parens=1...)]
+        sage: s[5], lit[5], stack = strip_string_literals('):', stack); stack
+        [QuoteStackFrame(...fmt_spec=True...parens=0...)]
+        sage: s[6], lit[6], stack = strip_string_literals('{width:1', stack); stack
+        [QuoteStackFrame(braces=2...nested_fmt_spec=True...)]
+        sage: s[7], lit[7], stack = strip_string_literals('0}', stack); stack
+        [QuoteStackFrame(braces=1...nested_fmt_spec=False...)]
+        sage: s[8], lit[8], stack = strip_string_literals("}' ", stack); stack
+        []
+        sage: s_broken_up = "".join(si % liti for si, liti in zip(s, lit)); s_broken_up
+        ' f\'{r"abc".upper():{width:10}}\' '
+
+    Make sure the end result is the same whether broken up into multiple calls
+    or processed all at once::
+
+        sage: s, lit, _ = strip_string_literals(''' f'{r"abc".upper():{width:10}}' ''')
+        sage: s_one_time = s % lit; s_one_time
+        ' f\'{r"abc".upper():{width:10}}\' '
+        sage: s_broken_up == s_one_time
+        True
+
     """
     new_code = []
     literals = {}
-    counter = 0
-    start = q = 0
-    quote_stack = state or []
-    safe_delims = collections.OrderedDict.fromkeys(["'", '"', "'''", '"""'])
-    for quote in quote_stack:
-        if quote.f_string:
-            safe_delims.pop(quote.delim, None)
-    while True:
-        quote = quote_stack and quote_stack[-1]
-        in_quote = quote and (not quote.f_string or not quote.braces)
-        sig_q = code.find("'", q)
-        dbl_q = code.find('"', q)
-        hash_q = -1 if quote else code.find('#', q)
-        if quote and quote.f_string:
-            lbrace_q = code.find('{', q)
-            rbrace_q = code.find('}', q)
-            brace_q = min(lbrace_q, rbrace_q)
-            if brace_q == -1:
-                brace_q = max(lbrace_q, rbrace_q)
+    counter = 0 # to assign unique label numbers
+    start = 0 # characters before this point have been added to new_code or literals
+    q = 0 # current search position in code string
+    state = state or QuoteStack()
+
+    def in_literal():
+        """In the literal portion of a string?"""
+        quote = state.peek()
+        if not quote:
+            return False
+        elif not quote.f_string or not quote.braces or quote.nested_fmt_spec:
+            return True
         else:
-            brace_q = -1
-        q = min(sig_q, dbl_q)
-        if q == -1:
-            q = max(sig_q, dbl_q)
-        if hash_q != -1 and (q == -1 or hash_q < q):
-            # it's a comment
-            newline = code.find('\n', hash_q)
+            return quote.fmt_spec and quote.braces == 1
+
+    while q < len(code):
+        orig_q = q
+        ch = code[q]
+        quote = state.peek()
+
+        if ch == '#' and not quote:
+            # It's a comment. Treat everything before as code and everything
+            # afterward up to the next newline as a comment literal.
+            newline = code.find('\n', q)
             if newline == -1:
                 newline = len(code)
             counter += 1
             label = "L%s" % counter
-            literals[label] = code[hash_q+1:newline]
-            new_code.append(code[start:hash_q].replace('%','%%'))
+            literals[label] = code[q+1:newline]
+            new_code.append(code[start:q].replace('%','%%'))
             new_code.append("#%%(%s)s" % label)
             start = q = newline
-        elif brace_q != -1 and (q == -1 or brace_q < q):
-            # Inside the replacement section of an F-string?
-            if quote.braces:
-                # Treat the preceding substring as code.
-                new_code.append(code[start:brace_q].replace('%','%%'))
-            else:
-                # Skip over {{ and }} escape sequences in the literal portion.
-                if brace_q+1 < len(code) and code[brace_q+1] == code[brace_q]:
-                    q = brace_q+2
-                    continue
-                # Treat the preceding substring as literal.
-                counter += 1
-                label = "L%s" % counter
-                literals[label] = code[start:brace_q]
-                new_code.append("%%(%s)s" % label)
-            # Treat the brace itself as code.
-            new_code.append(code[brace_q])
-            # Increment/decrement brace count.
-            if code[brace_q] == '{':
-                quote_stack[-1] = quote._replace(braces=quote.braces+1)
-            elif quote.braces > 0:
-                quote_stack[-1] = quote._replace(braces=quote.braces-1)
-            # Skip ahead just past the brace.
-            start = q = brace_q+1
-        elif q == -1:
-            if in_quote:
-                counter += 1
-                label = "L%s" % counter
-                literals[label] = code[start:]
-                new_code.append("%%(%s)s" % label)
-            else:
-                new_code.append(code[start:].replace('%','%%'))
-            break
-        elif in_quote:
-            if code[q-1] == '\\':
-                k = 2
-                while code[q-k] == '\\':
-                    k += 1
-                if k % 2 == 0:
-                    q += 1
-            if code[q:q+len(quote.delim)] == quote.delim:
-                counter += 1
-                label = "L%s" % counter
-                literals[label] = code[start:q+len(quote.delim)]
-                new_code.append("%%(%s)s" % label)
-                q += len(quote.delim)
-                start = q
-                quote_stack.pop()
-            else:
-                q += 1
-        else:
-            if q>0 and code[q-1] in 'rR':
-                raw = True
-                f_string = q>1 and code[q-2] in 'fF'
-            elif q>0 and code[q-1] in 'fF':
-                f_string = True
-                raw = q>1 and code[q-2] in 'rR'
-            else:
-                raw = f_string = False
-            if len(code) >= q+3 and (code[q+1] == code[q] == code[q+2]):
-                delim = code[q]*3
-            else:
-                delim = code[q]
-            quote_stack.append(QuoteStackFrame(
-                delim=delim, raw=raw, f_string=f_string, braces=0))
-            if f_string:
-                safe_delims.pop(delim, None)
-            new_code.append(code[start:q].replace('%', '%%'))
-            start = q
-            q += len(delim)
 
-    return "".join(new_code), literals, quote_stack, list(safe_delims)
+        elif ch in '{}' and quote and quote.f_string:
+            # Skip over {{ and }} escape sequences outside of replacement sections.
+            if not quote.braces and q+1 < len(code) and code[q+1] == ch:
+                q += 2
+                continue
+            # Handle the substring preceding the brace.
+            if in_literal():
+                counter += 1
+                label = "L%s" % counter
+                literals[label] = code[start:q]
+                new_code.append("%%(%s)s" % label)
+            else:
+                new_code.append(code[start:q].replace('%','%%'))
+            # Treat the brace itself as code.
+            new_code.append(ch)
+            if ch == '{':
+                quote.braces += 1
+            else:
+                if quote.braces > 0:
+                    quote.braces -= 1
+                # We can no longer be in a nested format specifier following a }.
+                quote.nested_fmt_spec = False
+            start = q+1
+
+        elif ch in '()' and quote and quote.braces:
+            # Just keep track of parentheses inside F-string replacement sections.
+            if ch == '(':
+                quote.parens += 1
+            elif quote.parens > 0:
+                quote.parens -= 1
+
+        elif ch == ':' and quote and not quote.parens and (quote.braces == 1 or quote.fmt_spec):
+            if quote.braces == 1:
+                # In a replacement section but outside of any nested braces or
+                # parentheses, the colon signals the beginning of the format specifier.
+                quote.fmt_spec = True
+            else:
+                # Already in the format specifier, so this must be a nested specifier.
+                quote.nested_fmt_spec = True
+            # Treat the preceding substring and the colon itself as code.
+            new_code.append(code[start:q+1].replace('%','%%'))
+            start = q+1
+
+        elif ch in '\'"':
+            if in_literal():
+                # Deal with escaped quotes (odd number of backslashes preceding).
+                if code[q-1] == '\\':
+                    k = 2
+                    while code[q-k] == '\\':
+                        k += 1
+                    if k % 2 == 0:
+                        q += 1
+                        continue
+                # Check for end of quote.
+                if code[q:q+len(quote.delim)] == quote.delim:
+                    counter += 1
+                    label = "L%s" % counter
+                    literals[label] = code[start:q+len(quote.delim)]
+                    new_code.append("%%(%s)s" % label)
+                    q += len(quote.delim)
+                    start = q
+                    state.pop()
+            else:
+                # Check prefixes for raw or F-string.
+                if q>0 and code[q-1] in 'rR':
+                    raw = True
+                    f_string = q>1 and code[q-2] in 'fF'
+                elif q>0 and code[q-1] in 'fF':
+                    f_string = True
+                    raw = q>1 and code[q-2] in 'rR'
+                else:
+                    raw = f_string = False
+                # Short or long string?
+                if len(code) >= q+3 and (code[q+1] == ch == code[q+2]):
+                    delim = ch*3
+                else:
+                    delim = ch
+                # Now inside quotes.
+                state.push(QuoteStackFrame(delim, raw, f_string))
+                new_code.append(code[start:q].replace('%', '%%'))
+                start = q
+                q += len(delim)
+
+        # Move to the next character if we haven't already moved elsewhere.
+        if q == orig_q:
+            q += 1
+
+    # Handle the remainder of the string.
+    if in_literal():
+        counter += 1
+        label = "L%s" % counter
+        literals[label] = code[start:]
+        new_code.append("%%(%s)s" % label)
+    else:
+        new_code.append(code[start:].replace('%','%%'))
+
+    return "".join(new_code), literals, state
 
 
 def containing_block(code, idx, delimiters=['()','[]','{}'], require_delim=True):
@@ -753,9 +1011,9 @@ def preparse_numeric_literals(code, extract=False, quotes="'"):
       names for the literals and return a dictionary of
       name-construction pairs
 
-    - ``quotes`` - a string (default: "'"); used to surround string
+    - ``quotes`` - a string (default: ``"'"``); used to surround string
       arguments to RealNumber and ComplexNumber. If None, will rebuild
-      the string using an array of its Unicode code-points.
+      the string using a list of its Unicode code-points.
 
     OUTPUT:
 
@@ -1359,7 +1617,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     # This part handles lines with semi-colons all at once
     # Then can also handle multiple lines more efficiently, but
     # that optimization can be done later.
-    L, literals, quote_state, safe_delims = strip_string_literals(line, quote_state)
+    L, literals, quote_state = strip_string_literals(line, quote_state)
 
     # Ellipsis Range
     # [1..n]
@@ -1376,8 +1634,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     if numeric_literals:
         # Wrapping
         # 1 + 0.5 -> Integer(1) + RealNumber('0.5')
-        quotes = safe_delims and safe_delims[0] or None
-        L = preparse_numeric_literals(L, quotes=quotes)
+        L = preparse_numeric_literals(L, quotes=quote_state.safe_delimiter())
 
     # Generators
     # R.0 -> R.gen(0)
@@ -1471,7 +1728,7 @@ def preparse_file(contents, globals=None, numeric_literals=True):
         numeric_literals = False
 
     if numeric_literals:
-        contents, literals, _, _ = strip_string_literals(contents)
+        contents, literals, _ = strip_string_literals(contents)
         contents, nums = extract_numeric_literals(contents)
         contents = contents % literals
         if nums:
@@ -1578,7 +1835,7 @@ def implicit_mul(code, level=5):
                                           code[m.end():])
         return code
 
-    code, literals, _, _ = strip_string_literals(code)
+    code, literals, _ = strip_string_literals(code)
     if level >= 1:
         no_mul_token = " '''_no_mult_token_''' "
         code = re.sub(r'\b0x', r'0%sx' % no_mul_token, code)  # hex digits

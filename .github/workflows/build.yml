@@ -31,6 +31,6 @@ jobs:
          wsl ./bootstrap
          wsl ./configure --enable-build-as-root
     - name: Build 
-      run: wsl make -j8
+      run: wsl make -j1
     - name: Test
       run: make ptest

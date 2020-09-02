@@ -17,9 +17,6 @@ jobs:
         Expand-Archive Ubuntu.appx
         Ubuntu\ubuntu2004.exe install --root
     - name: Install dependencies
-      # Dependencies as in https://doc.sagemath.org/html/en/installation/source.html#linux-recommended-installation
-      # except libpython3.7-dev that is listed but missing in apt-get
-      # and adding a few for the bootstrap script that is not listed but required
       run: |
         Function ExtractPackages
         {
@@ -30,14 +27,23 @@ jobs:
         & wsl sudo apt-get update -y 
         & wsl sudo apt-get install -y @(ExtractPackages '.\build\pkgs\debian.txt')
         & wsl sudo apt-get install -y @(ExtractPackages '.\build\pkgs\debian-bootstrap.txt')
-      #wsl xargs -a <(awk '! /^ *(#|$)/' "build/pkgs/debian-bootstrap.txt") -r -- sudo apt-get -y install
-      #wsl sudo apt-get install -y bc binutils bzip2 ca-certificates cliquer curl eclib-tools fflas-ffpack flintqs g++ g++ gcc gcc gfan gfortran git glpk-utils gmp-ecm lcalc libatomic-ops-dev libboost-dev libbraiding-dev libbz2-dev libcdd-dev libcdd-tools libcliquer-dev libcurl4-openssl-dev libec-dev libecm-dev libffi-dev libflint-arb-dev libflint-dev libfreetype6-dev libgd-dev libgf2x-dev libgivaro-dev libglpk-dev libgmp-dev libgsl-dev libiml-dev liblfunction-dev liblrcalc-dev liblzma-dev libm4rie-dev libmpc-dev libmpfi-dev libmpfr-dev libncurses5-dev libntl-dev libopenblas-dev libpari-dev libpcre3-dev libplanarity-dev libppl-dev libreadline-dev librw-dev libsqlite3-dev libsymmetrica2-dev libz-dev libzmq3-dev m4 make nauty pari-doc pari-elldata pari-galdata pari-galpol pari-gp2c pari-seadata patch perl pkg-config planarity ppl-dev python3 python3-distutils python3.7 r-base-dev r-cran-lattice sqlite3 tachyon tar xz-utils yasm
-      #wsl sudo apt-get install -y automake autoconf pkgconf gettext
-    - name: Prepare
-      run: |
-         wsl ./bootstrap
-         wsl ./configure --enable-build-as-root
-    - name: Build 
-      run: wsl make -j8
+        & wsl sudo apt-get install -y python-tox
+    - name: Build
+      run: wsl MAKE="make -j2" tox -e local -- SAGE_NUM_THREADS=4 build
+      # If make is invoked in parellel (i.e. with -jN where N > 1), then we run into errors for some reason
     - name: Test
-      run: make ptest
+      run: wsl tox -e local -- SAGE_NUM_THREADS=4 ptest
+    - name: Prepare logs artifact
+      run: mkdir -p "artifacts/logs"; cp -r .tox/*/log "artifacts/logs"
+      shell: bash
+      if: always()
+    - uses: actions/upload-artifact@v1
+      with:
+        path: artifacts
+        name: logs
+      if: always()
+    - name: Print out logs for immediate inspection
+      # and markup the output with GitHub Actions logging commands
+      run: .github/workflows/scan-logs.sh "artifacts/logs"
+      shell: bash
+      if: always()

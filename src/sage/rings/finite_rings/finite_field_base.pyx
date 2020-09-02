@@ -1346,8 +1346,8 @@ cdef class FiniteField(Field):
         """
         from sage.categories.pushout import AlgebraicExtensionFunctor
         try:
-            kwds = {'impl':self._factory_data[2][3]}
-        except (AttributeError,IndexError):
+            kwds = {'impl': self._factory_data[2][3]}
+        except (AttributeError, IndexError, TypeError):
             kwds = {}
         if self.degree() == 1:
             # this is not of type FiniteField_prime_modn

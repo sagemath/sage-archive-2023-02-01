@@ -1169,7 +1169,6 @@ cdef class CombinatorialPolyhedron(SageObject):
              ('a', 'c'),
              ('a', 'b'))
         """
-        cdef size_t len_edge_list = self._length_edges_list
         if self._edges is NULL:
             # compute the edges.
             if not self.is_bounded():
@@ -1184,15 +1183,6 @@ cdef class CombinatorialPolyhedron(SageObject):
         if self._edges is NULL:
             raise ValueError('could not determine edges')
 
-        # The edges are being saved in a list basically.
-        # The first entry represents the first vertex of the first edge.
-        # The second entry represents the second vertex of that edge.
-        # The third entry represents the first vertex of the second edge etc.
-
-        # Possibly there are many edges.
-        # Hence, edges are stored in an array of arrays,
-        # with each array containing ``len_edge_list`` of edges.
-
         # Mapping the indices of the Vrep to the names, if requested.
         if self.Vrep() is not None and names is True:
             def f(size_t i): return self.Vrep()[i]
@@ -1201,9 +1191,9 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         # Getting the indices of the `i`-th edge.
         def vertex_one(size_t i):
-            return f(self._edges[i // len_edge_list][2*(i % len_edge_list)])
+            return f(self._get_edge(self._edges, i, 0))
         def vertex_two(size_t i):
-            return f(self._edges[i // len_edge_list][2*(i % len_edge_list)+1])
+            return f(self._get_edge(self._edges, i, 1))
 
         cdef size_t j
         return tuple((vertex_one(j), vertex_two(j)) for j in range(self._n_edges))
@@ -1351,7 +1341,6 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.ridges(names=False, add_equalities=True)
             ((2, 3), (1, 3), (0, 3), (1, 2), (0, 2), (0, 1))
         """
-        cdef size_t len_ridge_list = self._length_edges_list
         if self._ridges is NULL:
             # compute the ridges.
             if not self.is_bounded():
@@ -1367,15 +1356,6 @@ cdef class CombinatorialPolyhedron(SageObject):
             raise ValueError('could not determine ridges')
         n_ridges = self._n_ridges
 
-        # The ridges are being saved in a list basically.
-        # The first entry represents the first facet of the first ridge.
-        # The second entry represents the second facet of that ridge.
-        # The third entry represents the first facet of the second ridge etc.
-
-        # Possibly there are many ridges.
-        # Hence, ridges are stored in an array of arrays,
-        # with each array containing ``len_ridge_list`` of ridges.
-
         # Mapping the indices of the Vepr to the names, if requested.
         if self.facet_names() is not None and names is True:
             def f(size_t i): return self.facet_names()[i]
@@ -1384,9 +1364,9 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         # Getting the indices of the `i`-th ridge.
         def facet_one(size_t i):
-            return f(self._ridges[i // len_ridge_list][2*(i % len_ridge_list)])
+            return f(self._get_edge(self._ridges, i, 0))
         def facet_two(size_t i):
-            return f(self._ridges[i // len_ridge_list][2*(i % len_ridge_list)+1])
+            return f(self._get_edge(self._ridges, i, 1))
 
         cdef size_t j
         if add_equalities and names:
@@ -2491,27 +2471,17 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         cdef size_t **incidences = self._face_lattice_incidences
         cdef size_t n_incidences = self._n_face_lattice_incidences
-        cdef size_t len_incidence_list = self._length_edges_list
-
-        # The incidences are being saved in a list basically.
-        # The first entry represents the first face of the first incidence.
-        # The second entry represents the second face of that incidence.
-        # The third entry represents the first face of the second incidence etc.
-
-        # Possibly there are many incidences.
-        # Hence, incidences are stored in an array of arrays,
-        # with each array containing ``len_incidence_list`` of incidences.
 
         # Getting the indices of the `i`-th incidence.
         def face_one(size_t i):
-            return smallInteger(incidences[i // len_incidence_list][2*(i % len_incidence_list)])
+            return smallInteger(self._get_edge(incidences, i, 0))
         def face_two(size_t i):
-            return smallInteger(incidences[i // len_incidence_list][2*(i % len_incidence_list)+1])
+            return smallInteger(self._get_edge(incidences, i, 1))
 
         # Edges of the face-lattice/Hasse diagram.
         cdef size_t j
         edges = tuple((face_one(j), face_two(j))
-                          for j in range(n_incidences))
+                      for j in range(n_incidences))
 
         V = tuple(smallInteger(i) for i in range(sum(self._f_vector)))
 
@@ -3002,19 +2972,16 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         cdef MemoryAllocator mem = MemoryAllocator()
         cdef FaceIterator face_iter
-        cdef size_t len_edge_list = self._length_edges_list
         cdef int dim = self.dimension()
         cdef int d              # dimension of the current face of ``FaceIterator``
         cdef size_t *f_vector   # compute f_vector, if not done already
         cdef bint is_f_vector   # True if f_vector was computed previously
 
-        # For each edge we determine its location in ``edges``
-        # by ``edges[one][two]``
-        cdef size_t **edges = <size_t**> mem.malloc(sizeof(size_t*))
-        cdef size_t one, two
-
+        cdef size_t **edges = <size_t**> mem.malloc(sizeof(size_t**))
         cdef size_t counter = 0         # the number of edges so far
         cdef size_t current_length = 1  # dynamically enlarge **edges
+
+        cdef size_t a,b                # vertices of an edge
 
         if self._f_vector:
             is_f_vector = True
@@ -3024,10 +2991,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         if dim == 1:
             # In this case there is an edge, but its not a proper face.
-            edges[0] = <size_t *> mem.allocarray(2, sizeof(size_t))
-            edges[0][0] = 0
-            edges[0][1] = 1
-            counter = 1
+            self._set_edge(0, 1, &edges, &counter, &current_length, mem)
 
             # Success, copy the data to ``CombinatorialPolyhedron``.
             if dual:
@@ -3081,27 +3045,13 @@ cdef class CombinatorialPolyhedron(SageObject):
                 # If not, there won't even be any edges. Prevent error message.
 
                 while (face_iter.next_dimension() == 1):
-
-                    # Determine the position in ``edges``.
-                    one = counter // len_edge_list
-                    two = counter % len_edge_list
-
-                    # Enlarge ``edges`` if needed.
-                    if unlikely(two == 0):
-                        if unlikely(one + 1 > current_length):
-                            # enlarge **edges
-                            current_length *= 2
-                            edges = <size_t **> mem.reallocarray(edges, current_length, sizeof(size_t*))
-
-                        edges[one] = <size_t *> mem.allocarray(2 * len_edge_list, sizeof(size_t))
-
                     # Set up face_iter.atom_rep
                     face_iter.set_atom_rep()
 
                     # Copy the information.
-                    edges[one][2*two] = face_iter.structure.atom_rep[0]
-                    edges[one][2*two + 1] = face_iter.structure.atom_rep[1]
-                    counter += 1
+                    a = face_iter.structure.atom_rep[0]
+                    b = face_iter.structure.atom_rep[1]
+                    self._set_edge(a, b, &edges, &counter, &current_length, mem)
 
             # Success, copy the data to ``CombinatorialPolyhedron``.
             if dual:
@@ -3134,26 +3084,13 @@ cdef class CombinatorialPolyhedron(SageObject):
                     if d == 1:
                         # If it is an edge.
 
-                         # Determine the position in ``edges``.
-                        one = counter // len_edge_list
-                        two = counter % len_edge_list
-
-                        # Enlarge ``edges`` if needed.
-                        if unlikely(two == 0):
-                            if unlikely(one + 1 > current_length):
-                                # enlarge **edges
-                                current_length *= 2
-                                edges = <size_t **> mem.reallocarray(edges, current_length, sizeof(size_t*))
-
-                            edges[one] = <size_t *> mem.allocarray(2 * len_edge_list, sizeof(size_t))
-
                         # Set up face_iter.atom_rep
                         face_iter.set_atom_rep()
 
                         # Copy the information.
-                        edges[one][2*two] = face_iter.structure.atom_rep[0]
-                        edges[one][2*two + 1] = face_iter.structure.atom_rep[1]
-                        counter += 1
+                        a = face_iter.structure.atom_rep[0]
+                        b = face_iter.structure.atom_rep[1]
+                        self._set_edge(a, b, &edges, &counter, &current_length, mem)
 
                     d = face_iter.next_dimension()  # Go to next face.
 
@@ -3188,23 +3125,20 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         cdef MemoryAllocator mem = MemoryAllocator()
         cdef FaceIterator face_iter
-        cdef size_t len_ridge_list = self._length_edges_list
         cdef int dim = self.dimension()
 
         # For each ridge we determine its location in ``ridges``
         # by ``ridges[one][two]``.
-        cdef size_t **ridges = <size_t**> mem.malloc(sizeof(size_t*))
-        cdef size_t one, two
+        cdef size_t **ridges = <size_t**> mem.malloc(sizeof(size_t**))
 
         cdef size_t counter = 0         # the number of ridges so far
         cdef size_t current_length = 1  # dynamically enlarge **ridges
 
+        cdef size_t a,b                # facets of a ridge
+
         if dim == 1 and self.n_facets() > 1:
             # In this case there is a ridge, but its not a proper face.
-            ridges[0] = <size_t *> mem.allocarray(2, sizeof(size_t))
-            ridges[0][0] = 0
-            ridges[0][1] = 1
-            counter = 1
+            self._set_edge(0, 1, &ridges, &counter, &current_length, mem)
 
             # Success, copy the data to ``CombinatorialPolyhedron``.
             if not dual:
@@ -3254,27 +3188,13 @@ cdef class CombinatorialPolyhedron(SageObject):
             # Prevent error message.
 
             while (face_iter.next_dimension() == dim - 2):
-
-                # Determine the position in ``ridges``.
-                one = counter // len_ridge_list
-                two = counter % len_ridge_list
-
-                # Enlarge ``ridges`` if needed.
-                if unlikely(two == 0):
-                    if unlikely(one + 1 > current_length):
-                        # enlarge **ridges
-                        current_length *= 2
-                        ridges = <size_t **> mem.reallocarray(ridges, current_length, sizeof(size_t*))
-
-                    ridges[one] = <size_t *> mem.allocarray(2 * len_ridge_list, sizeof(size_t))
-
                 # Set up face_iter.coatom_rep
                 face_iter.set_coatom_rep()
 
                 # Copy the information.
-                ridges[one][2*two] = face_iter.structure.coatom_rep[0]
-                ridges[one][2*two + 1] = face_iter.structure.coatom_rep[1]
-                counter += 1
+                a = face_iter.structure.coatom_rep[0]
+                b = face_iter.structure.coatom_rep[1]
+                self._set_edge(a, b, &ridges, &counter, &current_length, mem)
 
         # Success, copy the data to ``CombinatorialPolyhedron``.
         if not dual:
@@ -3327,7 +3247,6 @@ cdef class CombinatorialPolyhedron(SageObject):
         # For each incidence we determine its location in ``incidences``
         # by ``incidences[one][two]``.
         cdef size_t **incidences = <size_t**> mem.malloc(sizeof(size_t*))
-        cdef size_t one, two
 
         cdef size_t counter = 0         # the number of incidences so far
         cdef size_t current_length = 1  # dynamically enlarge **incidences
@@ -3355,33 +3274,16 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             # Get all incidences for fixed ``[dimension_one, dimension_two]``.
             while all_faces.next_incidence(&second, &first):
-
-                # Determine the position in ``incidences``.
-                one = counter // len_incidence_list
-                two = counter % len_incidence_list
-
-                # Enlarge ``incidences`` if needed.
-                if unlikely(two == 0):
-                    if unlikely(one + 1 > current_length):
-                        # enlarge **incidences
-                        current_length *= 2
-                        incidences = <size_t **> mem.reallocarray(incidences, current_length, sizeof(size_t*))
-
-                    incidences[one] = <size_t *> mem.allocarray(2 * len_incidence_list, sizeof(size_t))
-
                 if all_faces.dual:
                     # If ``dual``, then ``second`` and ``first are flipped.
                     second += already_seen
                     first += already_seen_next
-                    incidences[one][2*two] = second
-                    incidences[one][2*two + 1] = first
+                    self._set_edge(second, first, &incidences, &counter, &current_length, mem)
                 else:
                     second += already_seen_next
                     first += already_seen
-                    incidences[one][2*two] = first
-                    incidences[one][2*two + 1] = second
+                    self._set_edge(first, second, &incidences, &counter, &current_length, mem)
 
-                counter += 1
                 sig_check()
 
             # Increase dimensions.
@@ -3394,6 +3296,62 @@ cdef class CombinatorialPolyhedron(SageObject):
         self._mem_tuple += (mem,)
         self._face_lattice_incidences = incidences
         sig_unblock()
+
+    cdef inline int _set_edge(self, size_t a, size_t b, size_t ***edges_pt, size_t *counter_pt, size_t *current_length_pt, MemoryAllocator mem) except -1:
+        r"""
+        Set an edge in an edge list.
+
+        Sets the values of all pointers accordingly.
+
+        INPUT:
+
+        - ``a``,``b`` -- the vertices of the edge
+        - ``edges_pt`` -- pointer to the list of lists; might point to ``NULL``
+          when ``current_length_pt[0] == 0``
+        - ``counter_pt`` -- pointer to the number of edges
+        - ``current_length_pt`` -- pointer to the length of ``edges_pt[0]``
+        - ``mem`` -- ``MemoryAllocator`` used for allocation
+        """
+        cdef size_t len_edge_list = self._length_edges_list
+        # Determine the position in ``edges``.
+        cdef size_t one = counter_pt[0] // len_edge_list
+        cdef size_t two = counter_pt[0] % len_edge_list
+
+        if unlikely(current_length_pt[0] == 0):
+            edges_pt[0] = <size_t**> mem.malloc(sizeof(size_t*))
+            current_length_pt[0] = 1
+
+        # Enlarge ``edges`` if needed.
+        if unlikely(two == 0):
+            if unlikely(one + 1 > current_length_pt[0]):
+                # enlarge **edges
+                current_length_pt[0] = 2*current_length_pt[0]
+                edges_pt[0] = <size_t **> mem.reallocarray(edges_pt[0], current_length_pt[0], sizeof(size_t*))
+
+            edges_pt[0][one] = <size_t *> mem.allocarray(2 * len_edge_list, sizeof(size_t))
+
+        edges_pt[0][one][2*two] = a
+        edges_pt[0][one][2*two + 1] = b
+        counter_pt[0] = counter_pt[0] + 1
+
+    cdef inline size_t _get_edge(self, size_t **edges, size_t edge_number, size_t vertex) except -1:
+        r"""
+        Get a vertex of an edge in an edge list.
+
+        INPUT:
+
+        - ``edges`` -- the edges list
+        - ``edge_number`` -- the number of the edge to obtain
+        - ``vertex`` -- one of ``0``, ``1``; the vertex to obtain
+
+        OUTPUT: The specified vertex of the specified edge.
+        """
+        cdef size_t len_edge_list = self._length_edges_list
+        # Determine the position in ``edges``.
+        cdef size_t one = edge_number // len_edge_list
+        cdef size_t two = edge_number % len_edge_list
+
+        return edges[one][2*two + vertex]
 
     def _record_all_faces(self):
         r"""

@@ -4788,11 +4788,11 @@ class Polyhedron_base(Element):
 
             # And that it changes the backend correctly where necessary.
             if AA.has_coerce_map_from(self.base_ring()):
-                P = polytopes.regular_polygon(5, exact=True)
+                R = self*polytopes.regular_polygon(5, exact=True)
             if RDF.has_coerce_map_from(self.base_ring()):
                 R = self*polytopes.regular_polygon(5, exact=False)
 
-        if self.base_ring().is_exact():
+        if self.base_ring() in (ZZ, QQ):
             # Check that the double description is set up correctly.
             self_field = self.base_extend(self.base_ring(), backend='field')
             P = polytopes.permutahedron(4, backend='field').base_extend(QQ)

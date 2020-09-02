@@ -1468,8 +1468,10 @@ class Sets(Category_singleton):
                 ....:     Element = ElementWrapper
                 ....:     def __init__(self):
                 ....:         Parent.__init__(self, category=Sets())
-                ....:     def __cmp__(self, P):
-                ....:         return cmp(type(self),type(P))
+                ....:     def __eq__(self, P):
+                ....:         return type(self) == type(P)
+                ....:     def __hash__(self):
+                ....:         return hash(type(self))
                 ....:     def construction(self):
                 ....:         return sage.categories.pushout.FractionField(), ZZ
                 ....:
@@ -1485,8 +1487,7 @@ class Sets(Category_singleton):
                 ...
                 AssertionError: the object's construction does not recreate this object
                 ...
-                ------------------------------------------------------------
-                The following tests failed: _test_construction...
+                The following tests failed: _test_construction
 
             If the parent returns the empty construction, the test will not complain::
 

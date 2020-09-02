@@ -2847,6 +2847,89 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     polar = dual
 
+    cpdef CombinatorialPolyhedron pyramid(self, new_vertex=None, new_facet=None):
+        r"""
+        Return the pyramid of ``self``.
+
+        INPUT:
+
+        - ``new_vertex`` -- (optional); specify a new vertex name to set up
+          the pyramid with vertex names
+        - ``new_facet`` -- (optional); specify a new facet name to set up
+          the pyramid with facet names
+
+        EXAMPLES::
+
+            sage: C = CombinatorialPolyhedron(((1,2,3),(1,2,4),(1,3,4),(2,3,4)))
+            sage: C1 = C.pyramid()
+            sage: C1.facets()
+            ((0, 1, 2, 4), (0, 1, 3, 4), (0, 2, 3, 4), (1, 2, 3, 4), (0, 1, 2, 3))
+
+        ::
+
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C1 = C.pyramid()
+            sage: P1 = P.pyramid()
+            sage: C2 = P1.combinatorial_polyhedron()
+            sage: C2.vertex_facet_graph().is_isomorphic(C1.vertex_facet_graph())
+            True
+
+        One can specify a name for the new vertex::
+
+            sage: P = polytopes.cyclic_polytope(4,10)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C1 = C.pyramid(new_vertex='apex')
+            sage: C1.is_pyramid(certificate=True)
+            (True, 'apex')
+            sage: C1.facets()[0]
+            (A vertex at (0, 0, 0, 0),
+             A vertex at (1, 1, 1, 1),
+             A vertex at (2, 4, 8, 16),
+             A vertex at (3, 9, 27, 81),
+             'apex')
+
+        One can specify a name for the new facets::
+
+            sage: P = polytopes.regular_polygon(4)
+            sage: C = P.combinatorial_polyhedron()
+            sage: C1 = C.pyramid(new_facet='base')
+            sage: C1.Hrepresentation()
+            (An inequality (-1/2, 1/2) x + 1/2 >= 0,
+             An inequality (-1/2, -1/2) x + 1/2 >= 0,
+             An inequality (1/2, 0.50000000000000000?) x + 1/2 >= 0,
+             An inequality (1/2, -1/2) x + 1/2 >= 0,
+             'base')
+
+        For unbounded polyhedra, an error is raised::
+
+            sage: C = CombinatorialPolyhedron([[0,1], [0,2]], far_face=[1,2], unbounded=True)
+            sage: C.pyramid()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be bounded
+        """
+        if not self.is_bounded():
+            raise ValueError("self must be bounded")
+        cdef ListOfFaces new_facets = self.bitrep_facets().pyramid()
+        cdef ListOfFaces new_Vrep = self.bitrep_Vrep().pyramid()
+
+        if new_vertex is not None:
+            new_Vrep_names = self.Vrepresentation() + (new_vertex,)
+        else:
+            new_Vrep_names = None
+
+        if new_facet is not None:
+            if self.facet_names() is not None:
+                new_facet_names = self.facet_names() + (new_facet,)
+            else:
+                # Closures inside cpdef functions not yet supported
+                new_facet_names = self.Hrepresentation()[:self.n_facets()] + (new_facet,)
+        else:
+            new_facet_names = None
+
+        return CombinatorialPolyhedron((new_facets, new_Vrep), Vrep=new_Vrep_names, facets=new_facet_names)
+
 
     # Internal methods.
 

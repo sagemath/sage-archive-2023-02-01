@@ -192,6 +192,29 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
 
         return super(CartesianProductFunctor, self).__call__(args, **kwds)
 
+    def __eq__(self, other):
+        r"""
+        Comparison ignores the ``category`` parameter.
+
+        TESTS::
+
+            sage: from sage.categories.cartesian_product import CartesianProductFunctor
+            sage: cartesian_product([ZZ, ZZ]).construction()[0] == CartesianProductFunctor()
+            True
+        """
+        return isinstance(other, CartesianProductFunctor)
+
+    def __ne__(self, other):
+        r"""
+        Comparison ignores the ``category`` parameter.
+
+        TESTS::
+
+            sage: from sage.categories.cartesian_product import CartesianProductFunctor
+            sage: cartesian_product([ZZ, ZZ]).construction()[0] != CartesianProductFunctor()
+            False
+        """
+        return not (self == other)
 
 class CartesianProductsCategory(CovariantConstructionCategory):
     r"""

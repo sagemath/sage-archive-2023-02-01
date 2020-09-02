@@ -389,7 +389,7 @@ usage_advanced() {
     echo "                         the tests for each module from the top of the file"
     echo "                         and skips tests once it exceeds the budget"
     echo "                         allocated for that file."
-    echo "     --help           -- show all testing options"
+    echo "     --help           -- show all doctesting options"
     echo "  --tnew [...]        -- equivalent to -t --new"
     echo "  -tp <N> [...]       -- like -t above, but tests in parallel using"
     echo "                         N threads, with 0 interpreted as min(8, cpu_count())"
@@ -401,6 +401,15 @@ usage_advanced() {
     echo "  --startuptime [module] -- display how long each component of Sage takes to"
     echo "                         start up; optionally specify a module to get more"
     echo "                         details about that particular module"
+    if [ -n "$SAGE_SRC" -a -f "$SAGE_SRC/tox.ini" ]; then
+        echo "  --tox [options] <files|dirs> -- general entry point for testing"
+        echo "                                  and linting of the Sage library"
+        echo "     --listenvs -v    -- show list of test environments"
+        echo "     -e <envlist>     -- run tests environments"
+        echo "     --help           -- show tox help"
+    fi
+    command -v tox &>/dev/null || \
+    echo "                         (not installed currently, run sage -i tox)"
     echo
     echo "Some developer utilities:"
     echo
@@ -901,6 +910,20 @@ fi
 
 if [ "$1" = '-startuptime' -o "$1" = '--startuptime' ]; then
     exec sage-startuptime.py "$@"
+fi
+
+if [ "$1" = '-tox' -o "$1" = '--tox' ]; then
+    shift
+    if [ -n "$SAGE_SRC" -a -f "$SAGE_SRC/tox.ini" ]; then
+        if command -v tox >/dev/null ; then
+            exec tox -c "$SAGE_SRC" "$@"
+        else
+            echo "Run sage -i tox to install"
+        fi
+    else
+        echo >&2 "error: Sage source directory or tox.ini not avialable"
+        exit 1
+    fi
 fi
 
 #####################################################################

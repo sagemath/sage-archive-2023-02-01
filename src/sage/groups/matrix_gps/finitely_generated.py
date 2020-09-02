@@ -549,8 +549,8 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: MS = MatrixSpace(GF(2), 5, 5)
             sage: A = MS([[0,0,0,0,1],[0,0,0,1,0],[0,0,1,0,0],[0,1,0,0,0],[1,0,0,0,0]])
             sage: G = MatrixGroup([A])
-            sage: G.as_permutation_group()
-            Permutation Group with generators [(2,17)(3,9)(4,25)(6,21)(7,13)(8,29)(10,19)(12,27)(14,23)(16,31)(20,26)(24,30)]
+            sage: G.as_permutation_group().order()
+            2
 
         A finite subgroup of  GL(12,Z) as a permutation group::
 

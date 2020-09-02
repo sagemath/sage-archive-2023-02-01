@@ -28,8 +28,7 @@ in a notebook cell, or the Typeset checkbox in the notebook, will handle ``g``
 appropriately.
 
 Support through the ``tkz-graph`` package is by Alain Matthes, the author of
-``tkz-graph``, whose work can be found at his `Altermundus.com
-<http://altermundus.com/>`_ site.
+``tkz-graph``, whose work can be found at https://www.ctan.org/pkg/tkz-graph.
 
 The range of possible options for customizing the appearance of a graph are
 carefully documented at :meth:`sage.graphs.graph_latex.GraphLatex.set_option`.
@@ -71,7 +70,7 @@ Primary locations for these programs are:
 - TeX: http://ctan.org/
 - dvipng: http://sourceforge.net/projects/dvipng/
 - convert: http://www.imagemagick.org (the ImageMagick suite)
-- tkz-graph: http://altermundus.com/pages/tkz/
+- tkz-graph: https://www.ctan.org/pkg/tkz-graph
 
 Customizing the output is accomplished in several ways.  Suppose ``g`` is a
 graph, then ``g.set_latex_options()`` can be used to efficiently set or modify
@@ -423,10 +422,10 @@ def check_tkz_graph():
 Visit '...'.
 """)
     latex.check_file("tkz-graph.sty", """This package is required to render graphs in LaTeX.
-Visit 'http://altermundus.com/pages/tkz/'.
+Visit 'https://www.ctan.org/pkg/tkz-graph'.
 """)
     latex.check_file("tkz-berge.sty", """This package is required to render graphs in LaTeX.
-Visit 'http://altermundus.com/pages/tkz/'.
+Visit 'https://www.ctan.org/pkg/tkz-berge'.
 """)
 
 
@@ -1457,7 +1456,7 @@ class GraphLatex(SageObject):
         document.
 
         For more information about tkz-graph you can visit
-        `Altermundus.com <http://altermundus.com/>`_
+        https://www.ctan.org/pkg/tkz-graph.
 
         EXAMPLES:
 

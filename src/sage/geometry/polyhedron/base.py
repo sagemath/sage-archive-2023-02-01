@@ -4787,7 +4787,7 @@ class Polyhedron_base(Element):
             tester.assertEqual((self*Q).backend(), self.backend())
 
             # And that it changes the backend correctly where necessary.
-            if AA.has_coerce_map_from(self.base_ring()):
+            if self.base_ring() is not AA and AA.has_coerce_map_from(self.base_ring()):
                 R = self*polytopes.regular_polygon(5, exact=True)
             if RDF.has_coerce_map_from(self.base_ring()):
                 R = self*polytopes.regular_polygon(5, exact=False)
@@ -5093,21 +5093,22 @@ class Polyhedron_base(Element):
         tester.assertEqual(self.dilation(2*self.base_ring().gen()).backend(), self.backend())
         tester.assertEqual(self.dilation(ZZ(3)).backend(), self.backend())
 
-        if self.n_vertices() > 40:
+        if self.n_vertices() + self.n_rays() > 40:
             # Avoid long time computations.
             return
 
         # Testing that the double description is set up correctly.
         if self.base_ring().is_exact():
-            p = self.base_extend(self.base_ring(), backend='field')
-            (ZZ(2)*p)._test_basic_properties(tester)
-            (ZZ(2)/2*p)._test_basic_properties(tester)
-            (ZZ(-3)*p)._test_basic_properties(tester)
-            (ZZ(-1)/2*p)._test_basic_properties(tester)
+            if self.base_ring() in (QQ, ZZ):
+                p = self.base_extend(self.base_ring(), backend='field')
+                (ZZ(2)*p)._test_basic_properties(tester)
+                (ZZ(2)/2*p)._test_basic_properties(tester)
+                (ZZ(-3)*p)._test_basic_properties(tester)
+                (ZZ(-1)/2*p)._test_basic_properties(tester)
         else:
             tester.assertIsInstance(ZZ(1)/3*self, Polyhedron_base)
 
-        if self.n_vertices() > 20:
+        if self.n_vertices() > 20 or self.base_ring() is AA:
             # Avoid long time computations.
             return
 
@@ -5321,6 +5322,10 @@ class Polyhedron_base(Element):
         """
         if tester is None:
             tester = self._tester(**options)
+
+        if self.n_vertices() > 200 or self.n_facets() > 200:
+            # Avoid very long doctests.
+            return
 
         # Check that :trac:`30146` is fixed.
         from sage.matrix.special import identity_matrix
@@ -6173,6 +6178,10 @@ class Polyhedron_base(Element):
         if tester is None:
             tester = self._tester(**options)
 
+        if self.backend() == 'normaliz' and not self.base_ring() in (ZZ, QQ):
+            # Speeds up the doctest for significantly.
+            self = self.change_ring(self._normaliz_field)
+
         if not self.is_compact():
             with tester.assertRaises(NotImplementedError):
                 self.lawrence_polytope()
@@ -6185,7 +6194,7 @@ class Polyhedron_base(Element):
             with tester.assertRaises(ValueError):
                 self.lawrence_extension(self.center())
 
-        if self.n_vertices() >= 40:
+        if self.n_vertices() >= 40 or self.n_facets() > 40:
             # Avoid very long tests.
             return
 
@@ -7414,7 +7423,7 @@ class Polyhedron_base(Element):
             if b:
                 check_pyramid_certificate(self, cert)
 
-            if self.n_vertices():
+            if 1 < self.n_vertices() < 50 and self.n_facets() < 50:
                 pyr = self.pyramid()
                 b, cert = pyr.is_pyramid(certificate=True)
                 tester.assertTrue(b)
@@ -7423,7 +7432,7 @@ class Polyhedron_base(Element):
             with tester.assertRaises(AssertionError):
                 pyr = self.pyramid()
 
-        if self.is_compact() and self.n_vertices() > 1:
+        if self.is_compact() and 1 < self.n_vertices() < 50 and self.n_facets() < 50:
             # Check the pyramid of the polar.
             self_fraction_field = self.base_extend(QQ)
 
@@ -9801,11 +9810,15 @@ class Polyhedron_base(Element):
                 self.is_combinatorially_isomorphic(self)
             return
 
+        if self.n_vertices() > 200 or self.n_facets() > 200:
+            # Avoid very long doctests.
+            return
+
         tester.assertTrue(self.is_combinatorially_isomorphic(ZZ(4)*self))
         if self.n_vertices():
             tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center()))
 
-        if self.n_vertices() < 20:
+        if self.n_vertices() < 20 and self.n_facets() < 20:
             tester.assertTrue(self.is_combinatorially_isomorphic(ZZ(4)*self, algorithm='face_lattice'))
             if self.n_vertices():
                 tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center(), algorithm='face_lattice'))

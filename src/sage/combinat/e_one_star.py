@@ -886,8 +886,8 @@ class Patch(SageObject):
 
             sage: from sage.combinat.e_one_star import Face, Patch
             sage: P = Patch([Face((0,0,0),1), Face((1,2,0),3), Face((1,2,0),1)])
-            sage: P.faces_of_vector([1,2,0])
-            [[(1, 2, 0), 3]*, [(1, 2, 0), 1]*]
+            sage: sorted(P.faces_of_vector([1,2,0]))
+            [[(1, 2, 0), 1]*, [(1, 2, 0), 3]*]
         """
         v = vector(v)
         return [f for f in self if f.vector() == v]
@@ -904,7 +904,7 @@ class Patch(SageObject):
 
             sage: from sage.combinat.e_one_star import Face, Patch
             sage: P = Patch([Face((0,0,0),1), Face((1,2,0),3), Face((1,2,0),1)])
-            sage: P.faces_of_type(1)
+            sage: sorted(P.faces_of_type(1))
             [[(0, 0, 0), 1]*, [(1, 2, 0), 1]*]
         """
         return [f for f in self if f.type() == t]
@@ -921,7 +921,7 @@ class Patch(SageObject):
 
             sage: from sage.combinat.e_one_star import Face, Patch
             sage: P = Patch([Face((0,0,0),1, 'red'), Face((1,2,0),3, 'blue'), Face((1,2,0),1, 'red')])
-            sage: P.faces_of_color('red')
+            sage: sorted(P.faces_of_color('red'))
             [[(0, 0, 0), 1]*, [(1, 2, 0), 1]*]
         """
         color = tuple(Color(color))

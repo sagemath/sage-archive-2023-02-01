@@ -1330,7 +1330,7 @@ cdef class GapElement(RingElement):
             sage: type(_)
             <... 'str'>
 
-            sage: x = libgap.eval('Indeterminate(Integers, "x")')
+            sage: x = libgap.Integers.Indeterminate("x")
 
             sage: p = x^2 - 2*x + 3
             sage: p.sage()
@@ -1354,7 +1354,7 @@ cdef class GapElement(RingElement):
 
         Check :trac:`30496`::
 
-            sage: x = libgap.eval('Indeterminate(Integers, "x")')
+            sage: x = libgap.Integers.Indeterminate("x")
 
             sage: p = x^2 - 2*x
             sage: p.sage()

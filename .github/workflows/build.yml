@@ -23,10 +23,10 @@ jobs:
            param($path)
            @(Get-Content $path | Where-Object { !$_.StartsWith("#") })
         }
-
+        $packages = Get-ChildItem 'build/pkgs' -Recurse -Filter 'debian.txt|debian-bootstrap.txt' | foreach-object { ExtractPackages $_.FullName })
+        echo @packages
         & wsl sudo apt-get update -y 
-        & wsl sudo apt-get install -y @(Get-ChildItem 'build/pkgs' -Recurse -Filter 'debian.txt' | foreach-object { ExtractPackages $_.FullName })
-        & wsl sudo apt-get install -y @(ExtractPackages '.\build\pkgs\debian-bootstrap.txt')
+        & wsl sudo apt-get install -y @packages
         & wsl sudo apt-get install -y tox
     - name: Build
       # If make is invoked in parellel (i.e. with -jN where N > 1), then we sometimes run into errors for some reason

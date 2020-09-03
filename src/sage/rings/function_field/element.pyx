@@ -849,7 +849,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: (x*y).list()
             [0, x]
         """
-        return self._x.padded_list(self.parent().degree())
+        return self._x.padded_list(self._parent.degree())
 
     def nth_root(self, n):
         r"""
@@ -868,13 +868,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
         If ``n`` is a power of the characteristic of the field and the constant
         base field is perfect, then this uses the algorithm described in
-        Proposition 12 of [GiTr1996].
-
-        REFERENCES:
-
-        .. [GiTr1996] P. Gianni, B. Trager. Square-Free Algorithms in Positive
-           Characteristic. Applicable Algebra In Engineering, Communication And
-           Computing, 7(1), p. 1-14.
+        Proposition 12 of [GiTr1996]_.
 
         .. SEEALSO::
 
@@ -907,19 +901,21 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             return (~self).nth_root(-n)
         if n == 0:
             if not self.is_one():
-                raise ValueError("element is not a 0-th power.")
+                raise ValueError("element is not a 0-th power")
             return self
 
         # reduce to the separable case
-        if not self.parent().polynomial().gcd(self.parent().polynomial().derivative()).is_one():
-            L, from_L, to_L = self.parent().separable_model(('t', 'w'))
+        poly = self._parent._polynomial
+        if not poly.gcd(poly.derivative()).is_one():
+            L, from_L, to_L = self._parent.separable_model(('t', 'w'))
             return from_L(to_L(self).nth_root(n))
 
-        p = self.parent().characteristic()
-        if p.divides(n) and self.parent().constant_base_field().is_perfect():
-            return self.__pth_root().nth_root(n//p)
+        constant_base_field = self._parent.constant_base_field()
+        p = constant_base_field.characteristic()
+        if p.divides(n) and constant_base_field.is_perfect():
+            return self._pth_root().nth_root(n//p)
 
-        raise NotImplementedError("nth_root() not implemented for this n.")
+        raise NotImplementedError("nth_root() not implemented for this n")
 
     def is_nth_power(self, n):
         r"""
@@ -933,13 +929,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
         If ``n`` is a power of the characteristic of the field and the constant
         base field is perfect, then this uses the algorithm described in
-        Proposition 12 of [GiTr1996].
-
-        REFERENCES:
-
-        .. [GiTr1996] P. Gianni, B. Trager. Square-Free Algorithms in Positive
-           Characteristic. Applicable Algebra In Engineering, Communication And
-           Computing, 7(1), p. 1-14.
+        Proposition 12 of [GiTr1996]_.
 
         .. SEEALSO::
 
@@ -964,17 +954,19 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             return self.is_unit() and (~self).is_nth_power(-n)
 
         # reduce to the separable case
-        if not self.parent().polynomial().gcd(self.parent().polynomial().derivative()).is_one():
-            L,from_L,to_L = self.parent().separable_model(('t','w'))
+        poly = self._parent._polynomial
+        if not poly.gcd(poly.derivative()).is_one():
+            L, from_L, to_L = self._parent.separable_model(('t', 'w'))
             return to_L(self).is_nth_power(n)
 
-        p = self.parent().characteristic()
-        if p.divides(n) and self.parent().constant_base_field().is_perfect():
-            return self.parent().derivation()(self).is_zero() and self.__pth_root().is_nth_power(n//p)
+        constant_base_field = self._parent.constant_base_field()
+        p = constant_base_field.characteristic()
+        if p.divides(n) and constant_base_field.is_perfect():
+            return self._parent.derivation()(self).is_zero() and self._pth_root().is_nth_power(n//p)
 
         raise NotImplementedError("is_nth_power() not implemented for this n")
 
-    def __pth_root(self):
+    cdef _pth_root(self):
         r"""
         Helper method for :meth:`nth_root` and :meth:`is_nth_power` which
         computes a `p`-th root if the characteristic is `p` and the constant
@@ -985,30 +977,32 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: K.<x> = FunctionField(GF(3))
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
-            sage: (y^3).nth_root(3) # indirect doctest
+            sage: (y^3).nth_root(3)  # indirect doctest
             y
-
         """
-        if self.parent().degree() == 1:
-            return self.parent()(self.element()[0].nth_root(self.parent().characteristic()))
+        cdef Py_ssize_t deg = self._parent.degree()
+        if deg == 1:
+            return self._parent(self._x[0].nth_root(self._parent.characteristic()))
 
         from .function_field import RationalFunctionField
         if not isinstance(self.base_ring(), RationalFunctionField):
-            raise NotImplementedError("only implemented for simple extensions of function fields.")
+            raise NotImplementedError("only implemented for simple extensions of function fields")
         # compute a representation of the generator y of the field in terms of powers of y^p
-        v = []
-        yp = self.parent().gen()**self.parent().characteristic()
-        x = self.parent().one()
-        for i in range(self.parent().degree()):
-            v += x.list()
+        cdef Py_ssize_t i
+        cdef list v = []
+        char = self._parent.characteristic()
+        cdef FunctionFieldElement yp = self._parent.gen() ** char
+        x = self._parent.one()
+        for i in range(deg):
+            v += <list> x.list()
             x *= yp
-        from sage.all import MatrixSpace
-        MS = MatrixSpace(self.parent().base_ring(), self.parent().degree())
+        from sage.matrix.matrix_space import MatrixSpace
+        MS = MatrixSpace(self._parent._base, deg)
         M = MS(v)
-        y = self.parent().base_ring().polynomial_ring()(M.solve_left(MS.column_space()([0,1]+[0]*(self.parent().degree()-2))).list())
+        y = self._parent._base.polynomial_ring()(M.solve_left(MS.column_space()([0,1]+[0]*(deg-2))).list())
 
-        f = self.element()(y).map_coefficients(lambda c:c.nth_root(self.parent().characteristic()))
-        return self.parent()(f)
+        f = self._x(y).map_coefficients(lambda c: c.nth_root(char))
+        return self._parent(f)
 
 
 cdef class FunctionFieldElement_rational(FunctionFieldElement):
@@ -1362,7 +1356,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         If ``n`` is a power of the characteristic of the field and the constant
         base field is perfect, then this uses the algorithm described in Lemma
-        3 of [GiTr1996].
+        3 of [GiTr1996]_.
 
         .. SEEALSO::
 
@@ -1380,16 +1374,15 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             True
             sage: (f^9).is_nth_power(-9)
             True
-
         """
         if n == 1:
             return True
         if n < 0:
             return (~self).is_nth_power(-n)
 
-        p = self.parent().characteristic()
+        p = self._parent.characteristic()
         if n == p:
-            return self.parent().derivation()(self).is_zero()
+            return self._parent.derivation()(self).is_zero()
         if p.divides(n):
             return self.is_nth_power(p) and self.nth_root(p).is_nth_power(n//p)
         if n == 2:
@@ -1414,7 +1407,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         If ``n`` is a power of the characteristic of the field and the constant
         base field is perfect, then this uses the algorithm described in
-        Corollary 3 of [GiTr1996].
+        Corollary 3 of [GiTr1996]_.
 
         .. SEEALSO::
 
@@ -1429,7 +1422,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             sage: f.nth_root(3)
             Traceback (most recent call last):
             ...
-            ValueError: element is not an n-th power.
+            ValueError: element is not an n-th power
             sage: (f^3).nth_root(3)
             (x + 1)/(x + 2)
             sage: (f^9).nth_root(-9)
@@ -1438,21 +1431,21 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         if n == 0:
             if not self.is_one():
-                raise ValueError("element is not a 0-th power.")
+                raise ValueError("element is not a 0-th power")
             return self
         if n == 1:
             return self
         if n < 0:
             return (~self).nth_root(-n)
-        p = self.parent().characteristic()
+        p = self._parent.characteristic()
         if p.divides(n):
             if not self.is_nth_power(p):
-                raise ValueError("element is not an n-th power.")
-            return self.parent()(self.numerator().nth_root(p) / self.denominator().nth_root(p)).nth_root(n//p)
+                raise ValueError("element is not an n-th power")
+            return self._parent(self.numerator().nth_root(p) / self.denominator().nth_root(p)).nth_root(n//p)
         if n == 2:
             return self.sqrt()
 
-        raise NotImplementedError("nth_root() not implemented for this n.")
+        raise NotImplementedError("nth_root() not implemented for {}".format(n))
 
     def factor(self):
         """

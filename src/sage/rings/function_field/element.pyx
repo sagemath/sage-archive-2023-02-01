@@ -919,9 +919,6 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         if p.divides(n) and self.parent().constant_base_field().is_perfect():
             return self.__pth_root().nth_root(n//p)
 
-        if n == 2:
-            return self.sqrt()
-
         raise NotImplementedError("nth_root() not implemented for this n.")
 
     def is_nth_power(self, n):
@@ -950,7 +947,13 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: K.<x> = FunctionField(GF(4))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: y.is_nth_power(2)
+            False
+            sage: L(x).is_nth_power(2)
+            True
 
         """
         if n == 0:
@@ -968,9 +971,6 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         p = self.parent().characteristic()
         if p.divides(n) and self.parent().constant_base_field().is_perfect():
             return self.parent().derivation()(self).is_zero() and self.__pth_root().is_nth_power(n//p)
-
-        if n == 2:
-            return self.is_square()
 
         raise NotImplementedError("is_nth_power() not implemented for this n")
 

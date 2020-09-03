@@ -34,7 +34,7 @@ jobs:
       run: |
         wsl export MAKEFLAGS='-j 2'
         wsl export EXTRA_CONFIGURE_ARGS='--enable-build-as-root'
-        wsl tox -e local -- SAGE_NUM_THREADS=4 build
+        wsl env MAKEFLAGS='-j 2'; env EXTRA_CONFIGURE_ARGS='--enable-build-as-root'; tox -e local -- SAGE_NUM_THREADS=4 build
     - name: Test
       run: wsl tox -e local -- SAGE_NUM_THREADS=4 ptest
     - name: Prepare logs artifact

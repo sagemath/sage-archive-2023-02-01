@@ -40,7 +40,7 @@ AUTHORS:
 
 - Robert Bradshaw (2010-05-27): cythonize function field elements
 
-- Julian Rueth (2011-06-28): treat zero correctly
+- Julian Rueth (2011-06-28, 2020-09-01): treat zero correctly; implement nth_root/is_nth_power
 
 - Maarten Derickx (2011-09-11): added doctests, fixed pickling
 
@@ -50,7 +50,7 @@ AUTHORS:
 # ****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
-#       Copyright (C) 2011 Julian Rueth <julian.rueth@gmail.com>
+#       Copyright (C) 2011-2020 Julian Rueth <julian.rueth@gmail.com>
 #       Copyright (C) 2011 Maarten Derickx <m.derickx.student@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -851,6 +851,165 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         """
         return self._x.padded_list(self.parent().degree())
 
+    def nth_root(self, n):
+        r"""
+        Return an ``n``-th root of this element in the function field.
+
+        INPUT:
+
+        - ``n`` -- an integer
+
+        OUTPUT:
+
+        Returns an element ``a`` in the function field such that this element
+        equals `a^n`. Raises an error if no such element exists.
+
+        ALGORITHM:
+
+        If ``n`` is a power of the characteristic of the field and the constant
+        base field is perfect, then this uses the algorithm described in
+        Proposition 12 of [GiTr1996].
+
+        REFERENCES:
+
+        .. [GiTr1996] P. Gianni, B. Trager. Square-Free Algorithms in Positive
+           Characteristic. Applicable Algebra In Engineering, Communication And
+           Computing, 7(1), p. 1-14.
+
+        .. SEEALSO::
+
+            :meth:`is_nth_power`
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(3))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: L(y^3).nth_root(3)
+            y
+            sage: L(y^9).nth_root(-9)
+            1/x*y
+
+        This also works for inseparable extensions::
+
+            sage: K.<x> = FunctionField(GF(3))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^3 - x^2)
+            sage: L(x).nth_root(3)^3
+            x
+            sage: L(x^9).nth_root(-27)^-27
+            x^9
+
+        """
+        if n == 1:
+            return self
+        if n < 0:
+            return (~self).nth_root(-n)
+        if n == 0:
+            if not self.is_one():
+                raise ValueError("element is not a 0-th power.")
+            return self
+
+        # reduce to the separable case
+        if not self.parent().polynomial().gcd(self.parent().polynomial().derivative()).is_one():
+            L, from_L, to_L = self.parent().separable_model(('t', 'w'))
+            return from_L(to_L(self).nth_root(n))
+
+        p = self.parent().characteristic()
+        if p.divides(n) and self.parent().constant_base_field().is_perfect():
+            return self.__pth_root().nth_root(n//p)
+
+        if n == 2:
+            return self.sqrt()
+
+        raise NotImplementedError("nth_root() not implemented for this n.")
+
+    def is_nth_power(self, n):
+        r"""
+        Return whether this element is an ``n``-th power in the function field.
+
+        INPUT:
+
+        - ``n`` -- an integer
+
+        ALGORITHM:
+
+        If ``n`` is a power of the characteristic of the field and the constant
+        base field is perfect, then this uses the algorithm described in
+        Proposition 12 of [GiTr1996].
+
+        REFERENCES:
+
+        .. [GiTr1996] P. Gianni, B. Trager. Square-Free Algorithms in Positive
+           Characteristic. Applicable Algebra In Engineering, Communication And
+           Computing, 7(1), p. 1-14.
+
+        .. SEEALSO::
+
+            :meth:`nth_root`
+
+        EXAMPLES::
+
+            sage: TODO
+
+        """
+        if n == 0:
+            return self.is_one()
+        if n == 1:
+            return True
+        if n < 0:
+            return self.is_unit() and (~self).is_nth_power(-n)
+
+        # reduce to the separable case
+        if not self.parent().polynomial().gcd(self.parent().polynomial().derivative()).is_one():
+            L,from_L,to_L = self.parent().separable_model(('t','w'))
+            return to_L(self).is_nth_power(n)
+
+        p = self.parent().characteristic()
+        if p.divides(n) and self.parent().constant_base_field().is_perfect():
+            return self.parent().derivation()(self).is_zero() and self.__pth_root().is_nth_power(n//p)
+
+        if n == 2:
+            return self.is_square()
+
+        raise NotImplementedError("is_nth_power() not implemented for this n")
+
+    def __pth_root(self):
+        r"""
+        Helper method for :meth:`nth_root` and :meth:`is_nth_power` which
+        computes a `p`-th root if the characteristic is `p` and the constant
+        base field is perfect.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(3))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: (y^3).nth_root(3) # indirect doctest
+            y
+
+        """
+        if self.parent().degree() == 1:
+            return self.parent()(self.element()[0].nth_root(self.parent().characteristic()))
+
+        from .function_field import RationalFunctionField
+        if not isinstance(self.base_ring(), RationalFunctionField):
+            raise NotImplementedError("only implemented for simple extensions of function fields.")
+        # compute a representation of the generator y of the field in terms of powers of y^p
+        v = []
+        yp = self.parent().gen()**self.parent().characteristic()
+        x = self.parent().one()
+        for i in range(self.parent().degree()):
+            v += x.list()
+            x *= yp
+        from sage.all import MatrixSpace
+        MS = MatrixSpace(self.parent().base_ring(), self.parent().degree())
+        M = MS(v)
+        y = self.parent().base_ring().polynomial_ring()(M.solve_left(MS.column_space()([0,1]+[0]*(self.parent().degree()-2))).list())
+
+        f = self.element()(y).map_coefficients(lambda c:c.nth_root(self.parent().characteristic()))
+        return self.parent()(f)
+
 
 cdef class FunctionFieldElement_rational(FunctionFieldElement):
     """
@@ -1184,6 +1343,116 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             return [self._parent(r) for r in self._x.sqrt(all=True)]
         else:
             return self._parent(self._x.sqrt())
+
+    def is_nth_power(self, n):
+        r"""
+        Return whether this element is an ``n``-th power in the rational
+        function field.
+
+        INPUT:
+
+        - ``n`` -- an integer
+
+        OUTPUT:
+
+        Returns ``True`` if there is an element `a` in the function field such
+        that this element equals `a^n`.
+
+        ALGORITHM:
+
+        If ``n`` is a power of the characteristic of the field and the constant
+        base field is perfect, then this uses the algorithm described in Lemma
+        3 of [GiTr1996].
+
+        .. SEEALSO::
+
+            :meth:`nth_root`
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(3))
+            sage: f = (x+1)/(x-1)
+            sage: f.is_nth_power(1)
+            True
+            sage: f.is_nth_power(3)
+            False
+            sage: (f^3).is_nth_power(3)
+            True
+            sage: (f^9).is_nth_power(-9)
+            True
+
+        """
+        if n == 1:
+            return True
+        if n < 0:
+            return (~self).is_nth_power(-n)
+
+        p = self.parent().characteristic()
+        if n == p:
+            return self.parent().derivation()(self).is_zero()
+        if p.divides(n):
+            return self.is_nth_power(p) and self.nth_root(p).is_nth_power(n//p)
+        if n == 2:
+            return self.is_square()
+
+        raise NotImplementedError("is_nth_power() not implemented for the given n")
+
+    def nth_root(self, n):
+        r"""
+        Return an ``n``-th root of this element in the function field.
+
+        INPUT:
+
+        - ``n`` -- an integer
+
+        OUTPUT:
+
+        Returns an element ``a`` in the rational function field such that this
+        element equals `a^n`. Raises an error if no such element exists.
+
+        ALGORITHM:
+
+        If ``n`` is a power of the characteristic of the field and the constant
+        base field is perfect, then this uses the algorithm described in
+        Corollary 3 of [GiTr1996].
+
+        .. SEEALSO::
+
+            :meth:`is_nth_power`
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(3))
+            sage: f = (x+1)/(x+2)
+            sage: f.nth_root(1)
+            (x + 1)/(x + 2)
+            sage: f.nth_root(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: element is not an n-th power.
+            sage: (f^3).nth_root(3)
+            (x + 1)/(x + 2)
+            sage: (f^9).nth_root(-9)
+            (x + 2)/(x + 1)
+
+        """
+        if n == 0:
+            if not self.is_one():
+                raise ValueError("element is not a 0-th power.")
+            return self
+        if n == 1:
+            return self
+        if n < 0:
+            return (~self).nth_root(-n)
+        p = self.parent().characteristic()
+        if p.divides(n):
+            if not self.is_nth_power(p):
+                raise ValueError("element is not an n-th power.")
+            return self.parent()(self.numerator().nth_root(p) / self.denominator().nth_root(p)).nth_root(n//p)
+        if n == 2:
+            return self.sqrt()
+
+        raise NotImplementedError("nth_root() not implemented for this n.")
 
     def factor(self):
         """

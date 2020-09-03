@@ -388,16 +388,15 @@ class QuoteStack:
             sage: s.safe_delimiter()
             "'''"
             sage: s.push(QuoteStackFrame("'''"))
-        """'''
-            sage: s.safe_delimiter()
-            '"""'
-            sage: s.push(QuoteStackFrame('"""'))
+            sage: s.safe_delimiter() == '\"\"\"'
+            True
+            sage: s.push(QuoteStackFrame('\"\"\"'))
             sage: s.safe_delimiter()
             sage: s.pop()
             QuoteStackFrame(...)
             sage: s.safe_delimiter()
 
-        '''
+        """
         if self.safe_delims:
             delim, _ = self.safe_delims.popitem(last=False)
             return delim

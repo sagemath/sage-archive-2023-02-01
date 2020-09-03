@@ -277,7 +277,7 @@ def get_gap_memory_pool_size():
     # Don't eat all address space if the user set ulimit -v
     suggested_size = min(suggested_size, vmax // 10)
     # ~220MB is the minimum for long doctests
-    suggested_size = max(suggested_size, 250 * 1024**2)
+    suggested_size = max(suggested_size, 400 * 1024**2)
     return suggested_size
 
 

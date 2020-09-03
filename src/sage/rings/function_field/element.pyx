@@ -148,7 +148,7 @@ cdef class FunctionFieldElement(FieldElement):
         raise NotImplementedError("PARI does not support general function field elements.")
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -626,6 +626,59 @@ cdef class FunctionFieldElement(FieldElement):
         else: # v < 0
             raise ValueError('has a pole at the place')
 
+    cpdef bint is_nth_power(self, n):
+        r"""
+        Return whether this element is an ``n``-th power in the rational
+        function field.
+
+        INPUT:
+
+        - ``n`` -- an integer
+
+        OUTPUT:
+
+        Returns ``True`` if there is an element `a` in the function field such
+        that this element equals `a^n`.
+
+        .. SEEALSO::
+
+            :meth:`nth_root`
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(3))
+            sage: f = (x+1)/(x-1)
+            sage: f.is_nth_power(2)
+            False
+        """
+        raise NotImplementedError("is_nth_power() not implemented for generic elements")
+
+    cpdef FunctionFieldElement nth_root(self, n):
+        """
+        Return an ``n``-th root of this element in the function field.
+
+        INPUT:
+
+        - ``n`` -- an integer
+
+        OUTPUT:
+
+        Returns an element ``a`` in the function field such that this element
+        equals `a^n`. Raises an error if no such element exists.
+
+        .. SEEALSO::
+
+            :meth:`is_nth_power`
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(3))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: L(y^27).nth_root(27)
+            y
+        """
+        raise NotImplementedError("nth_root() not implemented for generic elements")
 
 cdef class FunctionFieldElement_polymod(FunctionFieldElement):
     """
@@ -831,7 +884,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         P = self._parent
         return P(self._x.xgcd(P._polynomial)[1])
 
-    def list(self):
+    cpdef list list(self):
         """
         Return the list of the coefficients representing the element.
 
@@ -851,7 +904,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         """
         return self._x.padded_list(self._parent.degree())
 
-    def nth_root(self, n):
+    cpdef FunctionFieldElement nth_root(self, n):
         r"""
         Return an ``n``-th root of this element in the function field.
 
@@ -917,7 +970,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
         raise NotImplementedError("nth_root() not implemented for this n")
 
-    def is_nth_power(self, n):
+    cpdef bint is_nth_power(self, n):
         r"""
         Return whether this element is an ``n``-th power in the function field.
 
@@ -966,7 +1019,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
         raise NotImplementedError("is_nth_power() not implemented for this n")
 
-    cdef _pth_root(self):
+    cdef FunctionFieldElement _pth_root(self):
         r"""
         Helper method for :meth:`nth_root` and :meth:`is_nth_power` which
         computes a `p`-th root if the characteristic is `p` and the constant
@@ -991,10 +1044,10 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         cdef Py_ssize_t i
         cdef list v = []
         char = self._parent.characteristic()
-        cdef FunctionFieldElement yp = self._parent.gen() ** char
-        x = self._parent.one()
+        cdef FunctionFieldElement_polymod yp = self._parent.gen() ** char
+        cdef FunctionFieldElement_polymod x = self._parent.one()
         for i in range(deg):
-            v += <list> x.list()
+            v += x.list()
             x *= yp
         from sage.matrix.matrix_space import MatrixSpace
         MS = MatrixSpace(self._parent._base, deg)
@@ -1064,7 +1117,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         return self._x
 
-    def list(self):
+    cpdef list list(self):
         """
         Return a list with just the element.
 
@@ -1338,7 +1391,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         else:
             return self._parent(self._x.sqrt())
 
-    def is_nth_power(self, n):
+    cpdef bint is_nth_power(self, n):
         r"""
         Return whether this element is an ``n``-th power in the rational
         function field.
@@ -1390,7 +1443,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         raise NotImplementedError("is_nth_power() not implemented for the given n")
 
-    def nth_root(self, n):
+    cpdef FunctionFieldElement nth_root(self, n):
         r"""
         Return an ``n``-th root of this element in the function field.
 
@@ -1427,7 +1480,6 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             (x + 1)/(x + 2)
             sage: (f^9).nth_root(-9)
             (x + 2)/(x + 1)
-
         """
         if n == 0:
             if not self.is_one():

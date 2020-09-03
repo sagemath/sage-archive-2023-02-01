@@ -32,9 +32,12 @@ jobs:
       # If make is invoked in parellel (i.e. with -jN where N > 1), then we sometimes run into errors for some reason
       # So keep N small in order to minimize the risk
       run: |
-        wsl export MAKEFLAGS='-j 2'
-        wsl export EXTRA_CONFIGURE_ARGS='--enable-build-as-root'
-        wsl env MAKEFLAGS='-j 2'; env EXTRA_CONFIGURE_ARGS='--enable-build-as-root'; tox -e local -- SAGE_NUM_THREADS=4 build
+        wsl env
+        wsl tox -e local -- SAGE_NUM_THREADS=4 build
+      env:
+        EXTRA_CONFIGURE_ARGS: "--enable-build-as-root"
+        MAKEFLAGS: "-j 2"
+        WSLENV: EXTRA_CONFIGURE_ARGS:MAKEFLAGS
     - name: Test
       run: wsl tox -e local -- SAGE_NUM_THREADS=4 ptest
     - name: Prepare logs artifact

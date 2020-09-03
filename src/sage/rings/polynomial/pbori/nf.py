@@ -2,13 +2,10 @@ from __future__ import print_function
 
 from .PyPolyBoRi import *
 from .easy_polynomials import (easy_linear_polynomials as
-    easy_linear_polynomials_func)
+                               easy_linear_polynomials_func)
 from .statistics import used_vars_set
-from random import Random
 from warnings import warn
-import copy
 import os
-import sys
 
 
 class GeneratorLimitExceeded(Exception):
@@ -20,7 +17,6 @@ class GeneratorLimitExceeded(Exception):
         #super(GeneratorLimitExceeded, self).__init__()
         self.strat = strat
 
-#used_polynomials=list()
 
 def pkey(p):
     return (p[0], len(p))
@@ -55,20 +51,16 @@ def build_and_print_matrices(v, strat):
         treated = treated.union(p.set())
     m2i = dict([(v, k) for (k, v) in enumerate(list(Polynomial(BooleSet(
         treated)).terms()))])
-    #print polys_in_mat
     polys_in_mat.sort(key=Polynomial.lead, reverse=True)
     polys_in_mat = [[m2i[t] for t in p.terms()] for p in polys_in_mat]
 
     global mat_counter
     mat_counter = mat_counter + 1
     from PIL import Image
-    from PIL import ImageDraw
 
     rows = len(polys_in_mat)
     cols = len(m2i)
-    #print cols,rows
     im = Image.new("1", (cols, rows), "white")
-    #im=Image.new("1",(,10000),"white")
     for i in range(len(polys_in_mat)):
         p = polys_in_mat[i]
         for j in p:
@@ -88,9 +80,9 @@ def build_and_print_matrices(v, strat):
 
 def multiply_polynomials(l, ring):
     r"""
-    
+
     TESTS::
-    
+
         sage: from sage.rings.polynomial.pbori import *
         sage: r=Ring(1000)
         sage: x=r.variable
@@ -145,7 +137,6 @@ def build_and_print_matrices_deg_colored(v, strat):
     global mat_counter
     mat_counter = mat_counter + 1
     from PIL import Image
-    from PIL import ImageDraw
     from PIL import ImageColor
 
     rows = len(polys_in_mat)
@@ -617,7 +608,6 @@ def symmGB_F2_C(G, opt_exchange=True,
     max_generators=None, red_tail_deg_growth=True,
     modified_linear_algebra=True, matrix_prefix="",
     draw_matrices=False):
-    #print implications
     if use_noro:
         raise NotImplementedError("noro not implemented for symmgb")
     if (isinstance(G, list)):
@@ -643,8 +633,6 @@ def symmGB_F2_C(G, opt_exchange=True,
 
         strat.redByReduced = False  # True
 
-        #if PROT:
-        #    print "added first"
         for g in G:  # [1:]:
             if not g.is_zero():
                 strat.add_generator_delayed(g)
@@ -655,9 +643,9 @@ def symmGB_F2_C(G, opt_exchange=True,
 def normal_form(poly, ideal, reduced=True):
     r"""
     Simple normal form computation of a polynomial  against an ideal.
-    
+
     TESTS::
-    
+
         sage: from sage.rings.polynomial.pbori import declare_ring, normal_form
         sage: r=declare_ring(['x','y'], globals())
         sage: normal_form(x+y, [y],reduced=True)

@@ -763,7 +763,21 @@ class HighestWeightCrystals(Category_singleton):
                     Traceback (most recent call last):
                     ...
                     NotImplementedError: not implemented for infinite crystals
+
+                Check that :trac:`30493` is fixed::
+
+                    sage: CW = CartanType("G", 2)
+                    sage: C = crystals.Letters(CW)
+                    sage: C.highest_weight_vectors()
+                    (1,)
+                    sage: T = crystals.TensorProduct(C)
+                    sage: T.highest_weight_vectors()
+                    ([1],)
                 """
+                if len(self.crystals) == 1:
+                    for b in self.crystals[0].highest_weight_vectors():
+                        yield self.element_class(self, [b])
+                    return
                 I = self.index_set()
                 try:
                     T_elts = [C.list() for C in self.crystals[:-1]]

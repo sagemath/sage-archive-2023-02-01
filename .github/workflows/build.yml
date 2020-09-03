@@ -36,7 +36,7 @@ jobs:
         wsl tox -e local -- SAGE_NUM_THREADS=4 build
       env:
         EXTRA_CONFIGURE_ARGS: "--enable-build-as-root"
-        MAKEFLAGS: "-j 2"
+        MAKE: "make -j 2"
         WSLENV: EXTRA_CONFIGURE_ARGS:MAKEFLAGS
     - name: Test
       run: wsl tox -e local -- SAGE_NUM_THREADS=4 ptest

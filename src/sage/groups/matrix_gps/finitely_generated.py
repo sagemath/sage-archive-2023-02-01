@@ -624,8 +624,8 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: MG = GU(3,2).as_matrix_group()
             sage: PG = MG.as_permutation_group()
             sage: mg = MG.an_element()
-            sage: PG(mg)
-            (2,33,32,23,31,55)(3,49,38,44,40,28)(4,17,59,62,58,46)(5,21,47,20,43,8)(6,53,50)(7,37,12,57,14,29)(9,41,56,34,64,10)(11,25,19)(13,61,26,51,22,15)(16,45,36)(18,27,35,48,52,54)(24,63,42)(30,39,60)
+            sage: PG(mg).order() # particular element depends on the set of GAP packages installed
+            6
         """
         # Note that the output of IsomorphismPermGroup() depends on
         # memory locations and will change if you change the order of

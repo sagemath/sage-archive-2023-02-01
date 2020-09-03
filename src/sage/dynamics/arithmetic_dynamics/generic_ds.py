@@ -36,6 +36,7 @@ from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affin
 from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.qqbar import AlgebraicField_common
+from sage.schemes.berkovich.berkovich_space import is_Berkovich_Cp
 from sage.rings.rational_field import QQ
 from copy import copy
 
@@ -164,6 +165,9 @@ class DynamicalSystem(SchemeMorphism_polynomial,
             if is_AffineSpace(domain) or isinstance(domain, AlgebraicScheme_subscheme_affine):
                 from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
                 return DynamicalSystem_affine(morphism_or_polys, domain)
+            if is_Berkovich_Cp(domain):
+                from sage.dynamics.arithmetic_dynamics.berkovich_ds import DynamicalSystem_Berkovich
+                return DynamicalSystem_Berkovich(morphism_or_polys,domain)
 
         from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective
         return DynamicalSystem_projective(morphism_or_polys, domain, names)

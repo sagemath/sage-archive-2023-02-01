@@ -442,6 +442,15 @@ to_hex = LazyImport('matplotlib.colors', 'to_hex')
 
 
 def igraph_feature():
+    """
+    Helper method to check whether optional package ``igraph`` is installed.
+
+    TESTS::
+
+        sage: from sage.graphs.generic_graph import igraph_feature
+        sage: igraph_feature().is_present()  # optional - python_igraph
+        FeatureTestResult('igraph', True)
+    """
     from sage.features import PythonModule
     return PythonModule("igraph", spkg="python_igraph", url="http://igraph.org")
 
@@ -475,13 +484,19 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._latex_opts = None
 
-    def __setstate__(self,state):
+    def __setstate__(self, state):
         r"""
         Set the state from a pickle dict
 
-        Also converts old NetworkX backends into a more recent one.
+        TESTS::
+
+            sage: G = graphs.PetersenGraph()
+            sage: s = dumps(G)
+            sage: H = loads(s)
+            sage: all(k in H.__dict__ for k in G.__dict__.keys())
+            True
         """
-        for k,v in state.items():
+        for k, v in state.items():
             self.__dict__[k] = v
 
     def __add__(self, other):
@@ -8977,8 +8992,8 @@ class GenericGraph(GenericGraph_pyx):
             return solution
 
         # If the (di)graph has bridges, the problem is not feasible
-        if ( (self.is_directed() and not self.is_strongly_connected() and self.to_undirected().bridges())
-            or (not self.is_directed() and self.bridges()) ):
+        if ( (self.is_directed() and not self.is_strongly_connected() and next(self.to_undirected().bridges(), False))
+            or (not self.is_directed() and next(self.bridges(), False)) ):
             raise EmptySetError("(di)graphs with bridges have no feasible solution")
 
         #
@@ -10385,7 +10400,7 @@ class GenericGraph(GenericGraph_pyx):
 
         return {v: self._assoc.get(v, None) for v in verts}
 
-    def vertex_iterator(self, vertices=None):
+    def vertex_iterator(self, vertices=None, degree=None, vertex_property=None):
         """
         Return an iterator over the given vertices.
 
@@ -10397,6 +10412,13 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``vertices`` -- iterated vertices are these intersected with the
           vertices of the (di)graph
+
+        - ``degree`` -- a nonnegative integer (default: ``None``);
+          a vertex ``v`` is kept if ``degree(v) == degree``
+
+        - ``vertex_property`` -- function (default: ``None``); a function
+          that inputs a vertex and outputs a boolean value, i.e., a vertex
+          ``v`` is kept if ``vertex_property(v) == True``
 
         EXAMPLES::
 
@@ -10420,6 +10442,14 @@ class GenericGraph(GenericGraph_pyx):
             2
             3
 
+        ::
+
+            sage: H = graphs.PathGraph(5)
+            sage: prop = lambda l: l % 3 == 1
+            sage: for v in H.vertex_iterator(degree=1, vertex_property=prop):
+            ....:     print(v)
+            4
+
         Note that since the intersection option is available, the
         vertex_iterator() function is sub-optimal, speed-wise, but note the
         following optimization::
@@ -10429,7 +10459,23 @@ class GenericGraph(GenericGraph_pyx):
             sage: timeit V = list(P.vertex_iterator())      # not tested
             100000 loops, best of 3: 5.74 [micro]s per loop
         """
-        return self._backend.iterator_verts(vertices)
+        if degree:
+            if vertex_property is not None:
+                for v, d in self.degree_iterator(labels=True):
+                    if d == degree and vertex_property(v):
+                        yield v
+            else:
+                for v, d in self.degree_iterator(labels=True):
+                    if d == degree:
+                        yield v
+
+        elif vertex_property is not None:
+            for v in self._backend.iterator_verts(vertices):
+                if vertex_property(v):
+                    yield v
+
+        else:
+            yield from self._backend.iterator_verts(vertices)
 
     __iter__ = vertex_iterator
 
@@ -10505,7 +10551,7 @@ class GenericGraph(GenericGraph_pyx):
         for u in self._backend.iterator_nbrs(vertex):
             yield u
 
-    def vertices(self, sort=True, key=None):
+    def vertices(self, sort=True, key=None, degree=None, vertex_property=None):
         r"""
         Return a list of the vertices.
 
@@ -10517,6 +10563,13 @@ class GenericGraph(GenericGraph_pyx):
         - ``key`` -- a function (default: ``None``); a function that takes a
           vertex as its one argument and returns a value that can be used for
           comparisons in the sorting algorithm (we must have ``sort=True``)
+
+        - ``degree`` -- a nonnegative integer (default: ``None``);
+          a vertex ``v`` is kept if ``degree(v) == degree``
+
+        - ``vertex_property`` -- function (default: ``None``); a function
+          that inputs a vertex and outputs a boolean value, i.e., a vertex
+          ``v`` is kept if ``vertex_property(v) == True``
 
         OUTPUT:
 
@@ -10595,8 +10648,8 @@ class GenericGraph(GenericGraph_pyx):
         if (not sort) and key:
             raise ValueError('sort keyword is False, yet a key function is given')
         if sort:
-            return sorted(self.vertex_iterator(), key=key)
-        return list(self.vertex_iterator())
+            return sorted(self.vertex_iterator(degree=degree, vertex_property=vertex_property), key=key)
+        return list(self.vertex_iterator(degree=degree, vertex_property=vertex_property))
 
     def neighbors(self, vertex, closed=False):
         """
@@ -12237,11 +12290,11 @@ class GenericGraph(GenericGraph_pyx):
         else:
             vertices = [v for v in vertices if v in self]
         if labels:
-            filter_ = lambda v, self: (v, self._backend.degree(v, self._directed))
+            for v in vertices:
+                yield (v, self._backend.degree(v, self._directed))
         else:
-            filter_ = lambda v, self: self._backend.degree(v, self._directed)
-        for v in vertices:
-            yield filter_(v, self)
+            for v in vertices:
+                yield self._backend.degree(v, self._directed)
 
     def degree_sequence(self):
         r"""

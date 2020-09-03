@@ -525,15 +525,17 @@ class Polyhedron_base(Element):
 
         tester.assertEqual(self.n_vertices() + self.n_rays() + self.n_lines(), self.n_Vrepresentation())
         tester.assertEqual(self.n_inequalities() + self.n_equations(), self.n_Hrepresentation())
-        tester.assertEqual(self.dim() + self.n_equations(), self.ambient_dim())
+        if self.n_vertices():
+            # Depending on the backend, this does not hold for the empty polyhedron.
+            tester.assertEqual(self.dim() + self.n_equations(), self.ambient_dim())
 
         tester.assertTrue(all(len(v[::]) == self.ambient_dim() for v in self.Vrep_generator()))
         tester.assertTrue(all(len(h[::]) == self.ambient_dim() + 1 for h in self.Hrep_generator()))
 
         if self.n_vertices() + self.n_rays() < 40:
-            tester.assertEqual(self, Polyhedron(vertices=self.vertices(), rays=self.rays(), lines=self.lines()))
+            tester.assertEqual(self, Polyhedron(vertices=self.vertices(), rays=self.rays(), lines=self.lines(), ambient_dim=self.ambient_dim()))
         if self.n_inequalities() < 40:
-            tester.assertEqual(self, Polyhedron(ieqs=self.inequalities(), eqns=self.equations()))
+            tester.assertEqual(self, Polyhedron(ieqs=self.inequalities(), eqns=self.equations(), ambient_dim=self.ambient_dim()))
 
     def base_extend(self, base_ring, backend=None):
         """
@@ -1079,6 +1081,101 @@ class Polyhedron_base(Element):
             sage: square.show(point='red')
         """
         self.plot(**kwds).show()
+
+    def tikz(self, view=[0, 0, 1], angle=0, scale=1,
+             edge_color='blue!95!black', facet_color='blue!95!black',
+             opacity=0.8, vertex_color='green', axis=False):
+        r"""
+        Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
+        according to a projection ``view`` and an angle ``angle``
+        obtained via the threejs viewer.
+
+        INPUT:
+
+        - ``view`` - list (default: [0,0,1]) representing the rotation axis (see note below).
+        - ``angle`` - integer (default: 0) angle of rotation in degree from 0 to 360 (see note
+          below).
+        - ``scale`` - integer (default: 1) specifying the scaling of the tikz picture.
+        - ``edge_color`` - string (default: 'blue!95!black') representing colors which tikz
+          recognize.
+        - ``facet_color`` - string (default: 'blue!95!black') representing colors which tikz
+          recognize.
+        - ``vertex_color`` - string (default: 'green') representing colors which tikz
+          recognize.
+        - ``opacity`` - real number (default: 0.8) between 0 and 1 giving the opacity of
+          the front facets.
+        - ``axis`` - Boolean (default: False) draw the axes at the origin or not.
+
+        OUTPUT:
+
+        - LatexExpr -- containing the TikZ picture.
+
+        .. NOTE::
+
+            This is a wrapper of a method of the projection object
+            `self.projection()`. See :meth:`~sage.geometry.polyhedron.plot.Projection.tikz`
+            for more detail.
+
+            The inputs ``view`` and ``angle`` can be obtained by visualizing it
+            using ``.show(aspect_ratio=1)``. This will open an interactive view
+            in your default browser, where you can rotate the polytope. Once
+            the desired view angle is found, click on the information icon in
+            the lower right-hand corner and select *Get Viewpoint*. This will
+            copy a string of the form '[x,y,z],angle' to your local clipboard.
+            Go back to Sage and type ``Img = P.tikz([x,y,z],angle)``.
+
+            The inputs ``view`` and ``angle`` can also be obtained from the
+            viewer Jmol::
+
+                1) Right click on the image
+                2) Select ``Console``
+                3) Select the tab ``State``
+                4) Scroll to the line ``moveto``
+
+            It reads something like::
+
+                moveto 0.0 {x y z angle} Scale
+
+            The ``view`` is then [x,y,z] and ``angle`` is angle.
+            The following number is the scale.
+
+            Jmol performs a rotation of ``angle`` degrees along the
+            vector [x,y,z] and show the result from the z-axis.
+
+
+        EXAMPLES::
+
+            sage: co = polytopes.cuboctahedron()
+            sage: Img = co.tikz([0,0,1], 0)
+            sage: print('\n'.join(Img.splitlines()[:9]))
+            \begin{tikzpicture}%
+                [x={(1.000000cm, 0.000000cm)},
+                y={(0.000000cm, 1.000000cm)},
+                z={(0.000000cm, 0.000000cm)},
+                scale=1.000000,
+                back/.style={loosely dotted, thin},
+                edge/.style={color=blue!95!black, thick},
+                facet/.style={fill=blue!95!black,fill opacity=0.800000},
+                vertex/.style={inner sep=1pt,circle,draw=green!25!black,fill=green!75!black,thick}]
+            sage: print('\n'.join(Img.splitlines()[12:21]))
+            %% with the command: ._tikz_3d_in_3d and parameters:
+            %% view = [0, 0, 1]
+            %% angle = 0
+            %% scale = 1
+            %% edge_color = blue!95!black
+            %% facet_color = blue!95!black
+            %% opacity = 0.8
+            %% vertex_color = green
+            %% axis = False
+            sage: print('\n'.join(Img.splitlines()[22:26]))
+            %% Coordinate of the vertices:
+            %%
+            \coordinate (-1.00000, -1.00000, 0.00000) at (-1.00000, -1.00000, 0.00000);
+            \coordinate (-1.00000, 0.00000, -1.00000) at (-1.00000, 0.00000, -1.00000);
+        """
+        return self.projection().tikz(view, angle, scale,
+                                      edge_color, facet_color,
+                                      opacity, vertex_color, axis)
 
     def _repr_(self):
         """
@@ -4626,28 +4723,6 @@ class Polyhedron_base(Element):
 
             sage: polytopes.hypercube(1) * polytopes.hypercube(2)
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
-
-        Check that the product preserves the backend, where possible::
-
-            sage: P = polytopes.simplex(backend='cdd')
-            sage: Q = polytopes.simplex(backend='ppl')
-            sage: (P*Q).backend()
-            'cdd'
-            sage: (Q*P).backend()
-            'ppl'
-            sage: (P * polytopes.dodecahedron(backend='field')).backend()
-            'field'
-
-        Check that double description is set up correctly::
-
-           sage: P = polytopes.permutahedron(4).base_extend(QQ)
-           sage: P1 = Polyhedron(rays=[[1,0,0,0],[0,1,1,0]], lines=[[0,1,0,1]])
-           sage: Q = P.base_extend(QQ, 'field')
-           sage: Q1 = P1.base_extend(QQ, 'field')
-           sage: P * P1 == Q * Q1
-           True
-           sage: P.polar(in_affine_span=True) * P1 == Q.polar(in_affine_span=True) * Q1
-           True
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
@@ -4669,6 +4744,13 @@ class Polyhedron_base(Element):
         lines = chain((tuple(l) + other_zero for l in  self.line_generator()),
                       (self_zero + tuple(l)  for l in other.line_generator()))
 
+        if self.n_vertices() == 0 or other.n_vertices() == 0:
+            # In this case we obtain the empty polyhedron.
+            # There is not vertex to attach the rays or lines to.
+            # By our convenction, in this case the polyhedron shall also not have rays or lines.
+            rays = ()
+            lines = ()
+
         ieqs = chain((tuple(i) + other_zero               for i in  self.inequality_generator()),
                      ((i.b(),) + self_zero + tuple(i.A()) for i in other.inequality_generator()))
 
@@ -4684,6 +4766,39 @@ class Polyhedron_base(Element):
                                     Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
     _mul_ = product
+
+    def _test_product(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.product`.
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_product()
+        """
+        from sage.geometry.polyhedron.library import polytopes
+        if tester is None:
+            tester = self._tester(**options)
+
+        if self.n_vertices() + self.n_rays() < 40 and self.n_facets() < 40:
+            # Check that the product preserves the backend, where possible.
+            P = polytopes.simplex(backend="cdd")
+            tester.assertEqual((self*P).backend(), self.backend())
+            Q = polytopes.simplex(backend="ppl")
+            tester.assertEqual((self*Q).backend(), self.backend())
+
+            # And that it changes the backend correctly where necessary.
+            if AA.has_coerce_map_from(self.base_ring()):
+                P = polytopes.regular_polygon(5, exact=True)
+            if RDF.has_coerce_map_from(self.base_ring()):
+                R = self*polytopes.regular_polygon(5, exact=False)
+
+        if self.base_ring().is_exact():
+            # Check that the double description is set up correctly.
+            self_field = self.base_extend(self.base_ring(), backend='field')
+            P = polytopes.permutahedron(4, backend='field').base_extend(QQ)
+            Q = Polyhedron(rays=[[1,0,0,0],[0,1,1,0]], lines=[[0,1,0,1]], backend='field')
+            (self_field * P)._test_basic_properties(tester)
+            (self_field * Q)._test_basic_properties(tester)
 
     def join(self, other):
         """
@@ -6091,15 +6206,23 @@ class Polyhedron_base(Element):
                 tester.assertEqual(self.n_vertices() + 2, Q.n_vertices())
                 tester.assertEqual(self.backend(), Q.backend())  # Any backend should handle the fraction field.
 
-                '''
-                # Known bug.
-                # See :trac:`30328`.
-                R = self.lawrence_extension(2.0*v - self.center())
-                tester.assertEqual(self.dim() + 1, R.dim())
-                tester.assertEqual(self.n_vertices() + 2, R.n_vertices())
+                import warnings
 
-                tester.assertTrue(Q.is_combinatorially_isomorphic(R))
-                '''
+                with warnings.catch_warnings():
+                    warnings.simplefilter("error")
+                    try:
+                        # Implicitely checks :trac:`30328`.
+                        R = self.lawrence_extension(2.0*v - self.center())
+                        tester.assertEqual(self.dim() + 1, R.dim())
+                        tester.assertEqual(self.n_vertices() + 2, R.n_vertices())
+
+                        tester.assertTrue(Q.is_combinatorially_isomorphic(R))
+                    except UserWarning:
+                        # Data is numerically complicated.
+                        pass
+                    except ValueError as err:
+                        if not "Numerical inconsistency" in err.args[0]:
+                            raise err
 
         if self.n_vertices() >= 12 or (self.base_ring() not in (ZZ, QQ) and self.backend() == 'field'):
             # Avoid very long tests.

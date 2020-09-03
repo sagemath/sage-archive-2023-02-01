@@ -317,7 +317,9 @@ class Rule(UniqueRepresentation):
         p = []       # the "insertion" tableau
         q = []       # the "recording" tableau
         for i, j in itr:
+            print(i,j)
             for r, qr in zip(p, q):
+                print(r,qr)
                 j1 = self.insertion(j, r)
                 if j1 is None:
                     r.append(j)
@@ -2485,65 +2487,124 @@ class RuleStar(Rule):
     r"""
     Rule for star insertion.
     """
-    def insertion(self, line1, line2):
-	    r"""
-	    EXAMPLES:
-            sage: Tableaux.options.convention="french"
-	        sage: P, Q = RuleStar().insertion([1,1,2,3,3],[2,3,3,1,3]);ascii_art(P,Q)
-              2     3   
-              2  3  2  3
-              1  3  1  1
-	    """
-	    P = []
-	    Q = []
-	    for a,b in zip(line1,line2):
-	        for i,row in enumerate(P):
-	            if b > row[-1]:
-	                # if b is bigger than the last letter in that row, append it to the end
-	                row.append(b)
-	                Q[i].append(a)
-	                break
-	            else:
-	                if b in row:
-	                    # if b is in the that row, then look for 
-	                    # the smallest in that sequence to insert to the next row
-	                    k = b
-	                    while k in row:
-	                        k += -1
-	                    k += 1
-	                else:
-	                    # if b is not in that row, then look for 
-	                    # the smallest k that is bigger than b to bump
-	                    y_pos = bisect_right(row,b)
-	                    k = row[y_pos]
-	                if b not in row:
-	                    row[y_pos] = b
-	                b = k
-	        else:
-	            # We made through all of the rows of p without breaking
-	            # so we need to add a new row to P and Q.
-	            P.append([b])
-	            Q.append([a])
-	    P = Tableau(P)
-	    Q = Tableau(Q)
-	    return P,Q
+    def forward_rule(self, obj1, obj2 = None, check_braid = True):
+        r"""
+        Return a pair of tableaux obtained by applying forward
+        insertion to the generalized permutation ``[obj1, obj2]``.
+        
+        Examples::
+        
+            sage: from sage.combinat.rsk import RuleStar
+            sage: P,Q = RuleStar().forward_rule([1,1,2,3,3],[2,3,3,1,3]) 
+            sage: ascii_art(P,Q) 
+            1  3  1  1
+            2  3  2  3
+            2     3 
+            sage: P,Q = RuleStar().forward_rule([2,3,3,1,3])
+            sage: ascii_art(P,Q) 
+            1  3  1  2
+            2  3  3  5
+            2     4 
+        
+        Tests::
+        
+            sage: P,Q = RuleStar().forward_rule([1,1,2,3,3],[2,2,3,1,3]) 
+            ValueError 
+            ...
+            ValueError: [1, 1, 2, 3, 3],[2, 2, 3, 1, 3] are not increasing factorizations
+            sage: P,Q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,1,3]) 
+            ValueError 
+            ...
+            ValueError: The Star-insertion is not defined for words containing a braid, i.e., not 321-avoiding.
+        """
+        if not obj1:
+            return None,None
+        if not obj2:
+            obj2 = obj1
+            obj1 = [i+1 for i in range(len(obj1))]
+        if len(obj1) != len(obj2):
+            raise ValueError(f"{obj1} and {obj2} have different number of elements.")
+        for i in range(len(obj1)-1):
+            if obj1[i]>obj1[i+1] or (obj1[i]==obj1[i+1] and obj2[i] >= obj2[i+1]):
+                raise ValueError(f"{obj1},{obj2} are not increasing factorizations")
+        if check_braid:
+            N = max(obj2) +1
+            from sage.monoids.hecke_monoid import HeckeMonoid
+            from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+            H = HeckeMonoid(SymmetricGroup(N))
+            h = H.from_reduced_word(obj2)
+            from sage.combinat.permutation import Permutations
+            P = Permutations(N)
+            w = P.from_reduced_word(h.reduced_word())
+            if w.has_pattern([3,2,1]):
+                raise ValueError("The Star-insertion is not defined for words containing a braid, i.e., not 321-avoiding.") 
+            
+        p = []       # the "insertion" tableau
+        q = []       # the "recording" tableau
+        for i, j in zip(obj1,obj2):
+            for r, qr in zip(p, q):
+                j1 = self.insertion(j, r)
+                if j1 is None:
+                    r.append(j)
+                    qr.append(i)  # Values are always inserted to the right
+                    break
+                else:
+                    j = j1
+            else:
+                # We made through all of the rows of p without breaking
+                # so we need to add a new row to p and q.
+                p.append([j])
+                q.append([i])
+        from sage.combinat.tableau import Tableau,SemistandardTableau
+        p = Tableau(p)
+        q = SemistandardTableau(q)
+        if not (p.conjugate()).is_semistandard():
+            raise ValueError(f"The insertion tableau {p} is not semistandard")
+        return [p,q]
+    
+    def insertion(self,b,r):
+        r"""
+        Inserting the letter ``j`` from the second row of the biword into the row ``r`` using Star-insertion.
+        If there is bumping to be done, the row `r` is modified in place if bumping occurs. The bump-out entry, if if exists, is returned.
+        
+        Examples::
+        
+            sage: RuleStar().insertion(3,[1,2,4,5]) 
+            4
+            sage: RuleStar().insertion(3,[1,2,3,5])
+            1
+            sage: RuleStar().insertion(6,[1,2,3,5]) is None
+            True
+        """
+        if r[-1] < b:
+            return None # append j to the end of row r
+        if b in r:
+            k = b
+            while k in r:
+                k += -1
+            k += 1
+        else:
+            y_pos = bisect_right(r,b)
+            k = r[y_pos]
+            r[y_pos] = b
+        return k
 
-    def reverse_insertion(self, P, Q):
+    def backward_rule(self, P, Q):
         r"""
 
-        EXAMPLES:
+        Examples::
 
-            sage: Tableaux.options.convention="french"
-            sage: P, Q = RuleStar().insertion([1,1,2,3,3],[2,3,3,1,3]);ascii_art(P,Q)
-              2     3   
-              2  3  2  3
-              1  3  1  1
-            sage: line1, line2 = RuleStar().reverse_insertion(P,Q)
-            sage: line1
-            [1, 1, 2, 3, 3]
-            sage: line2
-            [2, 3, 3, 1, 3]
+            sage: from sage.combinat.rsk import RuleStar
+            sage: P,Q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,2,4]) 
+            sage: ascii_art(P,Q)
+            1  2  4  1  1  2
+            1  4     2  4   
+            3        4 
+            sage: line1,line2 = RuleStar().backward_rule(P,Q)
+            sage: print(line1,line2)
+            [1, 1, 2, 2, 4, 4] [1, 3, 2, 4, 2, 4]
         """
+        from sage.combinat.tableau import Tableau,SemistandardTableau, SemistandardTableaux
         if P.shape() != Q.shape():
             raise ValueError("P conjugate(=%s) and Q(=%s) must have the same shape" % (P, Q))
         if P.conjugate() not in SemistandardTableaux():
@@ -2570,21 +2631,35 @@ class RuleStar(Rule):
                 while i > 0:
                     i -= 1
                     row = p_copy[i]
-                    if x in row:
-                        y = x
-                        while y in row:
-                            y += 1
-                        y -=1
-                    else:
-                        y_pos = bisect_left(row, x) - 1
-                        y = row[y_pos]
-                        row[y_pos] = x
-                    x = y
+                    x = self.reverse_insertion(x,row)
                 #print "final x=",x
                 line2.append(x)
                 line1.append(value)
         return line1[::-1],line2[::-1]
-
+    
+    def reverse_insertion(self,x,row):
+        r"""
+        Reverse bump the row ``row`` of the current insertion tableau ``p`` with number ``x``, provided that the ``row`` is the ``i``-th row of ``p``.
+        
+        The row ``row`` is modified in place. The bumped-out entry is returned.
+        
+        Examples::
+        
+            sage: from sage.combinat.rsk import RuleStar
+            sage: RuleStar().reverse_insertion(4,[1,2,3,5]) 
+            3
+        """
+        if x in row:
+            y = x
+            while y in row:
+                y += 1
+            y -=1
+        else:
+            y_pos = bisect_left(row, x) - 1
+            y = row[y_pos]
+            row[y_pos] = x
+        x = y
+        return x
 
 class InsertionRules(object):
     r"""

@@ -190,7 +190,7 @@ def graph_3O73():
     This graph is distance-regular with intersection array
     `[117, 80, 24, 1; 1, 12, 80, 117]`.
 
-    The graph is also distance transitive with "3.O(7,3)" as automorphism
+    The graph is also distance transitive with `3.O(7,3)` as automorphism
     group
 
     EXAMPLES::
@@ -609,8 +609,8 @@ def BilinearFormsGraph(const int d, const int e, const int q):
     r"""
     Return a bilinear forms graph with the given parameters.
 
-    This build a graph whose vertices are all ``d``x``e`` matrices over
-    ``GF(q)``. Two vertices are adjacent if the difference of the two
+    This builds a graph whose vertices are all `d`x`e` matrices over
+    `GF(q)`. Two vertices are adjacent if the difference of the two
     matrices has rank 1.
 
     The graph is distance-regular with classical parameters
@@ -690,8 +690,8 @@ def AlternatingFormsGraph(const int n, const int q):
     r"""
     Return the alternating forms graph with the given parameters.
 
-    This construct a graph whose vertices are all ``n``x``n`` skew-symmetric
-    matrices over ``GF(q)`` with zero diagonal. Two vertices are adjacent
+    This builds a graph whose vertices are all `n`x`n` skew-symmetric
+    matrices over `GF(q)` with zero diagonal. Two vertices are adjacent
     if and only if the difference of the two matrices has rank 2.
 
     This grap is distance-regular with classical parameters
@@ -1019,10 +1019,10 @@ def GrassmannGraph(const int q, const int n, const int input_e):
     r"""
     Return the Grassmann graph with parameters `(q, n, e)`.
 
-    This build the Grassmann graph $J_q(n,e)$. That is, for a vector
-    space $V = \mathbb F(q))^n$ the output is the graph on the subspaces
-    of dimension $e$ where two subspaces are adjancent if their intersection
-    has dimension $e-1$.
+    This builds the Grassmann graph `J_q(n,e)`. That is, for a vector
+    space `V = \mathbb F(q)^n` the output is the graph on the subspaces
+    of dimension `e` where two subspaces are adjancent if their intersection
+    has dimension `e-1`.
 
     This graph is distance-regular with classical parameters
     `(\min(e, n-e), q, q, \genfrac {[}{]} {0pt} {} {n-e+1} 1 _q -1)`
@@ -1070,10 +1070,9 @@ def GrassmannGraph(const int q, const int n, const int input_e):
 
 def DoubleGrassmannGraph(const int q, const int e):
     r"""
-    Return the bipartite double of the distance-`e` graph of the
-    Grassmann graph with parameters `(q, 2e+1, e)`.
+    Return the bipartite double of the distance-`e` graph of the Grassmann graph `J_q(n,e)`.
 
-    This graph can also be descirbed as follow:
+    This graph can also be descirbed as follows:
     Let `V` be the vector space of dimension `n` over `GF(q)`.
     The vertex set is the set of `e+1` or `e` subspaces of `V`.
     Two vertices are adjacent if one subspace is contained in the other.

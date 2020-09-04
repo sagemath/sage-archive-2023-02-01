@@ -50,6 +50,62 @@ from libcpp.pair cimport pair
 from libcpp.vector cimport vector
 
 
+def _is_valid_lex_BFS_order(G, L):
+    r"""
+    Check whether `L` is a valid lex BFS ordering of the vertices of `G`.
+
+    Given two vertices `a` and `b` of `G = (V, E)`, we write `a < b` if `a` has
+    a smaller label than `b`, and so if `a` is after `b` in the ordering `L`.
+    It is proved in [DNB1996]_ that any lex BFS ordering satisfies that,
+    if `a < b < c` and `ac \in E` and `bc \not\in E`, then there exists `d\in V`
+    such that `c < d`, `bd \in E` and `ad \not\in E`.
+
+    INPUT:
+
+    - ``G`` -- a sage Graph
+
+    - ``L`` -- list; an ordering of the vertices of `G`
+
+    TESTS::
+
+        sage: from sage.graphs.traversals import _is_valid_lex_BFS_order
+        sage: G = graphs.PathGraph(3)
+        sage: _is_valid_lex_BFS_order(G, [0, 1, 2])
+        True
+        sage: _is_valid_lex_BFS_order(G, [0, 2, 1])
+        False
+
+        sage: G = DiGraph("I?O@??A?CCA?A??C??")
+        sage: _is_valid_lex_BFS_order(G, [0, 7, 1, 2, 3, 4, 5, 8, 6, 9])
+        True
+    """
+    cdef int n = G.order()
+
+    if set(L) != set(G):
+        return False
+
+    cdef dict L_inv = {u: i for i, u in enumerate(L)}
+    cdef int pos_a, pos_b, pos_c
+
+    neighbors = G.neighbor_in_iterator if G.is_directed() else G.neighbor_iterator
+
+    for pos_a in range(n - 1, -1, -1):
+        a = L[pos_a]
+        for c in neighbors(a):
+            pos_c = L_inv[c]
+            if pos_c > pos_a:
+                continue
+            for pos_b in range(pos_c + 1, pos_a):
+                b = L[pos_b]
+                if G.has_edge(c, b):
+                    continue
+                if any(L_inv[d] < pos_c and not G.has_edge(d, a)
+                       for d in neighbors(b)):
+                    # The condition is satisfied for a < b < c
+                    continue
+                return False
+    return True
+
 cdef lex_BFS_fast_short_digraph(short_digraph sd, uint32_t *sigma, uint32_t *pred):
     r"""
     Perform a lexicographic breadth first search (LexBFS) on the graph.
@@ -269,6 +325,24 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None, algorithm="fast")
 
     TESTS:
 
+    Computed orderings are valid::
+
+        sage: from sage.graphs.traversals import _is_valid_lex_BFS_order
+        sage: G = graphs.RandomChordalGraph(15)
+        sage: L = G.lex_BFS(initial_vertex=0, algorithm="fast")
+        sage: _is_valid_lex_BFS_order(G, L)
+        True
+        sage: L = G.lex_BFS(initial_vertex=0, algorithm="slow")
+        sage: _is_valid_lex_BFS_order(G, L)
+        True
+        sage: G = digraphs.RandomDirectedGNP(15, .3)
+        sage: L = G.lex_BFS(initial_vertex=0, algorithm="fast")
+        sage: _is_valid_lex_BFS_order(G, L)
+        True
+        sage: L = G.lex_BFS(initial_vertex=0, algorithm="slow")
+        sage: _is_valid_lex_BFS_order(G, L)
+        True
+
     Lex BFS ordering of a graph on one vertex::
 
         sage: Graph(1).lex_BFS(tree=True)
@@ -348,14 +422,11 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None, algorithm="fast")
         vertices = set(range(n))
         code = [[] for i in range(n)]
 
-        def l_func(x):
-            return code[x]
-
         # The initial_vertex is at position 0 and so named 0 in sd
         code[0].append(n + 1)
         now = 1
         while vertices:
-            v = max(vertices, key=l_func)
+            v = max(vertices, key=code.__getitem__)
             vertices.remove(v)
             sigma.append(int_to_v[v])
             for vi in range(out_degree(sd, v)):

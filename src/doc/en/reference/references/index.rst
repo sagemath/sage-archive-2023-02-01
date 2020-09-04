@@ -1899,6 +1899,13 @@ REFERENCES:
             l'École Normale Supérieure, Sér. 4, 23, no. 3 (1990) p
             469-494
 
+.. [DNB1996] Feodor F. Dragan, Falk Nicolai, Andreas Brandstat.
+               *LexBFS-orderings and powers of graphs*.
+               International Workshop on Graph-Theoretic Concepts in Computer
+               Science, WG 1996. Lecture Notes in Computer Science, vol 1197.
+               Springer, Berlin, Heidelberg.
+               :doi:`10.1007/3-540-62559-3_15`
+
 .. [Do2009] \P. Dobcsanyi et
             al. DesignTheory.org. http://designtheory.org/database/
 

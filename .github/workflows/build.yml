@@ -40,7 +40,7 @@ jobs:
         # If make is invoked in parellel (i.e. with -jN where N > 1), then we sometimes run into errors for some reason
         # So keep N small in order to minimize the risk
         MAKE: "make -j 2"
-        WSLENV: EXTRA_CONFIGURE_ARGS:MAKEFLAGS
+        WSLENV: EXTRA_CONFIGURE_ARGS:MAKE
     - name: Test
       run: wsl tox -e local -- SAGE_NUM_THREADS=4 ptest
     - name: Prepare logs artifact

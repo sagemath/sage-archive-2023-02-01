@@ -328,6 +328,7 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None, algorithm="fast")
     Computed orderings are valid::
 
         sage: from sage.graphs.traversals import _is_valid_lex_BFS_order
+        sage: set_random_seed()
         sage: G = graphs.RandomChordalGraph(15)
         sage: L = G.lex_BFS(initial_vertex=0, algorithm="fast")
         sage: _is_valid_lex_BFS_order(G, L)

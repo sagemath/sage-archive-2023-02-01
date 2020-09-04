@@ -1731,7 +1731,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
     Topological = LazyImport('sage.categories.topological_spaces',
                              'TopologicalSpaces', 'Topological', at_startup=True)
     Metric = LazyImport('sage.categories.metric_spaces', 'MetricSpaces',
-                        'Mertic', at_startup=True)
+                        'Metric', at_startup=True)
 
     class Infinite(CategoryWithAxiom):
 

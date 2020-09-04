@@ -1044,8 +1044,8 @@ def GrassmannGraph(const int q, const int n, const int input_e):
 
     TESTS::
 
-        sage: G = graphs.GrassmannGraph(2, 6, 3)
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.GrassmannGraph(2, 6, 3)  # long time
+        sage: G.is_distance_regular(True)  # long time
         ([98, 72, 32, None], [None, 1, 9, 49])
         sage: G = graphs.GrassmannGraph(3, 4, 2)
         sage: G.is_distance_regular(True)
@@ -1105,10 +1105,10 @@ def DoubleGrassmannGraph(const int q, const int e):
          62
          sage: G.is_distance_regular(True)
          ([6, 5, 5, None], [None, 1, 1, 6])
-         sage: G = graphs.DoubleGrassmannGraph(3, 2)
-         sage: G.order()
+         sage: G = graphs.DoubleGrassmannGraph(3, 2)  # long time
+         sage: G.order()  # long time
          2420
-         sage: G.is_distance_regular(True)
+         sage: G.is_distance_regular(True)  # long time
          ([13, 12, 12, 9, 9, None], [None, 1, 1, 4, 4, 13])
     """
     n = 2*e + 1

@@ -206,7 +206,7 @@ class Soup2Rst(object):
                 visitor = getattr(self, 'visit_' + self.tags[node.name])
                 return visitor(node)
             except (KeyError, AttributeError):
-                print(('Warning: node not supported (or something else?) ' + node.name))
+                print(f'Warning: node not supported (or something else?) {node.name}')
                 return str(node)
         else:
             #Assume plain string

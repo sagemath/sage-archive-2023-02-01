@@ -1045,10 +1045,11 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         cdef list v = []
         char = self._parent.characteristic()
         cdef FunctionFieldElement_polymod yp = self._parent.gen() ** char
-        cdef FunctionFieldElement_polymod x = self._parent.one()
+        val = self._parent.one()._x
+        poly = self._parent.polynomial()
         for i in range(deg):
-            v += x.list()
-            x *= yp
+            v += val.padded_list(deg)
+            val = (val * yp._x) % poly
         from sage.matrix.matrix_space import MatrixSpace
         MS = MatrixSpace(self._parent._base, deg)
         M = MS(v)

@@ -225,8 +225,6 @@ from sage.combinat.words.word_options import word_options
 from sage.rings.all import Integer, Infinity, ZZ, QQ
 from sage.sets.set import Set
 
-from sage.misc.superseded import deprecated_function_alias
-
 class FiniteWord_class(Word_class):
     def __str__(self):
         r"""
@@ -4653,7 +4651,7 @@ class FiniteWord_class(Word_class):
 
         """
         return Integer(sum(1 for a in self if a == letter))
-    count = deprecated_function_alias(30187, number_of_occurrences_of_letter)
+    count = number_of_occurrences_of_letter # todo: deprecate count ?
 
     def _return_words_list(self, fact):
         r"""

@@ -4245,7 +4245,7 @@ _SupportedFindStatCollections = {
     _SupportedFindStatCollection(lambda x: (lambda E, V: Graph([list(range(V)),
                                                                 lambda i,j: (i,j) in E or (j,i) in E],
                                                                immutable=True))(*literal_eval(x)),
-                                 lambda X: str((sorted(X.edges(False)), X.num_verts())),
+                                 lambda X: str((sorted(X.edges(labels=False)), X.num_verts())),
                                  lambda x: (g.copy(immutable=True) for g in graphs(x, copy=False)),
                                  lambda x: x.num_verts(),
                                  lambda x: isinstance(x, Graph)),

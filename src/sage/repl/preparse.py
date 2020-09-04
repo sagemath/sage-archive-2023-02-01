@@ -349,20 +349,111 @@ def in_quote():
 
 class QuoteStack:
     """The preserved state of parsing in :func:`strip_string_literals`."""
+
     def __init__(self):
+        """
+        Create a new, empty QuoteStack.
+
+        EXAMPLES::
+
+            sage: qs = sage.repl.preparse.QuoteStack()
+            sage: len(qs)
+            0
+
+        """
         self.stack = [] # list of QuoteStackFrame
         self.safe_delims = OrderedDict.fromkeys(["'", '"', "'''", '"""'])
+
+    def __len__(self):
+        """
+        Return the number of frames current on the stack.
+
+        EXAMPLES::
+
+            sage: qs = sage.repl.preparse.QuoteStack(); len(qs)
+            0
+            sage: qs.push(sage.repl.preparse.QuoteStackFrame("'")); len(qs)
+            1
+            sage: _ = qs.pop(); len(qs)
+            0
+
+        """
+        return len(self.stack)
+
     def __repr__(self):
+        """
+        Return a string representation of the stack's contents.
+
+        EXAMPLES::
+
+            sage: qs = sage.repl.preparse.QuoteStack(); qs
+            []
+            sage: qs.push(sage.repl.preparse.QuoteStackFrame('"')); qs
+            [QuoteStackFrame(...delim='"'...)]
+            sage: qs.push(sage.repl.preparse.QuoteStackFrame("'")); qs
+            [QuoteStackFrame(...delim='"'...), QuoteStackFrame(...delim="'"...)]
+
+        """
         return repr(self.stack)
+
     def peek(self):
-        """Get the frame at the top of the stack or None if empty."""
+        """
+        Get the frame at the top of the stack or None if empty.
+
+        EXAMPLES::
+
+            sage: qs = sage.repl.preparse.QuoteStack()
+            sage: qs.peek()
+            sage: qs.push(sage.repl.preparse.QuoteStackFrame('"'))
+            sage: qs.peek()
+            QuoteStackFrame(...delim='"'...)
+
+        """
         return self.stack[-1] if self.stack else None
+
     def pop(self):
+        """
+        Removes and returns the frame that was most recently added to the stack.
+        Raises an IndexError if the stack is empty.
+
+        EXAMPLES::
+
+            sage: qs = sage.repl.preparse.QuoteStack()
+            sage: qs.pop()
+            Traceback (most recent call last):
+            ...
+            IndexError: ...
+            sage: qs.push(sage.repl.preparse.QuoteStackFrame('"'))
+            sage: qs.pop()
+            QuoteStackFrame(...delim='"'...)
+
+        """
         return self.stack.pop()
+
     def push(self, frame):
+        """
+        Adds a frame to the stack. If it corresponds to an F-string, its
+        delimiter is removed from the set of safe ones.
+
+        EXAMPLES::
+
+            sage: qs = sage.repl.preparse.QuoteStack()
+            sage: qs.push(sage.repl.preparse.QuoteStackFrame("'"))
+            sage: len(qs)
+            1
+            sage: qs.safe_delimiter()
+            "'"
+            sage: qs.pop()
+            QuoteStackFrame(...delim="'"...)
+            sage: qs.push(sage.repl.preparse.QuoteStackFrame("'", f_string=True))
+            sage: qs.safe_delimiter()
+            '"'
+
+        """
         self.stack.append(frame)
         if frame.f_string:
             self.safe_delims.pop(frame.delim, None) # remove safe delimiter
+
     def safe_delimiter(self):
         """
         Determine which string delimiter, if any, can be safely inserted into
@@ -381,49 +472,56 @@ class QuoteStack:
             sage: s = QuoteStack()
             sage: s.safe_delimiter()
             "'"
-            sage: s.push(QuoteStackFrame("'"))
+            sage: s.push(QuoteStackFrame("'", f_string=True))
             sage: s.safe_delimiter()
             '"'
-            sage: s.push(QuoteStackFrame('"'))
+            sage: s.push(QuoteStackFrame('"', f_string=True))
             sage: s.safe_delimiter()
             "'''"
-            sage: s.push(QuoteStackFrame("'''"))
+            sage: s.push(QuoteStackFrame("'''", f_string=True))
             sage: s.safe_delimiter() == '\"\"\"'
             True
-            sage: s.push(QuoteStackFrame('\"\"\"'))
+            sage: s.push(QuoteStackFrame('\"\"\"', f_string=True))
             sage: s.safe_delimiter()
             sage: s.pop()
             QuoteStackFrame(...)
             sage: s.safe_delimiter()
 
         """
-        if self.safe_delims:
-            delim, _ = self.safe_delims.popitem(last=False)
-            return delim
-        else:
-            return None
+        return next(iter(self.safe_delims)) if self.safe_delims else None
 
 class QuoteStackFrame(SimpleNamespace):
     """
     The state of a single level of a string literal being parsed.
     (Only F-strings have more than one level.)
-
-    Attributes:
-
-    - ``delim`` - the quote character(s) used: ``'``, ``"``, ``'''``, or ``\"\"\"``
-    - ``raw`` - whether we're in a raw string
-    - ``f_string`` - whether we're in an F-string
-    - ``braces`` - in an F-string, how many unclosed ``{``'s have we encountered?
-    - ``parens`` - in a replacement section of an F-string (``braces`` > 0),
-      how many unclosed ``(``'s have we encountered?
-    - ``fmt_spec`` - in the format specifier portion of a replacement section?
-    - ``nested_fmt_spec`` - in a nested format specifier? For example,
-      the ``X`` in ``f'{value:{width:X}}'``. Only one level of nesting is currently
-      allowed (as of Python 3.8).
-
     """
+
     def __init__(self, delim, raw=False, f_string=False, braces=0, parens=0,
                  fmt_spec=False, nested_fmt_spec=False):
+        """
+        Create a new QuoteStackFrame.
+
+        INPUT:
+
+        - ``delim`` - a string; the quote character(s) used: ``'``, ``"``, ``'''``, or ``\"\"\"``
+        - ``raw`` - a boolean (default: False); whether we're in a raw string
+        - ``f_string`` - a boolean (default: False); whether we're in an F-string
+        - ``braces`` - an integer (default: 0); in an F-string,
+          how many unclosed ``{``'s have we encountered?
+        - ``parens`` - an integer (default: 0); in a replacement section of an F-string
+          (``braces`` > 0), how many unclosed ``(``'s have we encountered?
+        - ``fmt_spec`` - a boolean (default: False); in the format specifier portion of a
+          replacement section?
+        - ``nested_fmt_spec`` - a boolean (default: False); in a nested format specifier?
+          For example, the ``X`` in ``f'{value:{width:X}}'``. Only one level of nesting
+          is currently allowed (as of Python 3.8).
+
+        EXAMPLES::
+
+            sage: qsf = sage.repl.preparse.QuoteStackFrame("'"); qsf
+            QuoteStackFrame(braces=0, delim="'", f_string=False, fmt_spec=False, nested_fmt_spec=False, parens=0, raw=False)
+
+        """
         self.delim = delim
         self.raw = raw
         self.f_string = f_string

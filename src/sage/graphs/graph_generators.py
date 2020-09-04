@@ -155,7 +155,7 @@ __append_to_doc(
      "LargeWittGraph",
      "LeonardGraph",
      "LjubljanaGraph",
-     "LintSchrijverGraph",
+     "vanLintSchrijverGraph",
      "LivingstoneGraph",
      "locally_GQ42_distance_transitive_graph",
      "LocalMcLaughlinGraph",
@@ -1998,7 +1998,7 @@ class GraphGenerators():
     LargeWittGraph           = staticmethod(distance_regular.LargeWittGraph)
     LeonardGraph             = staticmethod(distance_regular.LeonardGraph)
     LjubljanaGraph           = staticmethod(smallgraphs.LjubljanaGraph)
-    LintSchrijverGraph       = staticmethod(distance_regular.LintSchrijverGraph)
+    vanLintSchrijverGraph       = staticmethod(distance_regular.vanLintSchrijverGraph)
     LivingstoneGraph         = staticmethod(smallgraphs.LivingstoneGraph)
     locally_GQ42_distance_transitive_graph = staticmethod(distance_regular.locally_GQ42_distance_transitive_graph)
     LocalMcLaughlinGraph     = staticmethod(smallgraphs.LocalMcLaughlinGraph)

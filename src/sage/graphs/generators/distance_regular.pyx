@@ -585,7 +585,7 @@ def UstimenkoGraph(const int m, const int q):
         sage: G.is_distance_regular(True)  # long time
         ([310, 224, None], [None, 1, 35])
         sage: G = graphs.UstimenkoGraph(4,3)  # long time
-        sage: G.is_distance_regular(True)
+        sage: G.is_distance_regular(True)  # long time
         ([390, 243, None], [None, 1, 130])
     """
     from sage.graphs.graph_generators import graphs

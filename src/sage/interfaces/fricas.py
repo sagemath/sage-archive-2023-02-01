@@ -345,7 +345,7 @@ http://fricas.sourceforge.net.
 
     def _quit_string(self):
         """
-        Returns the string used to quit FriCAS.
+        Return the string used to quit FriCAS.
 
         EXAMPLES::
 
@@ -365,7 +365,7 @@ http://fricas.sourceforge.net.
 
             sage: import psutil                                                 # optional - fricas
             sage: p = fricas.pid(); pr = psutil.Process(p); pr                  # optional - fricas
-            <psutil.Process(pid=..., name='AXIOMsys') at ...>
+            <psutil.Process(pid=..., name='FRICASsys') at ...>
             sage: pr.children()                                                 # optional - fricas
             []
         """
@@ -373,7 +373,7 @@ http://fricas.sourceforge.net.
 
     def _commands(self):
         """
-        Returns a list of commands available. This is done by parsing the
+        Return a list of commands available. This is done by parsing the
         result of the first section of the output of ')what things'.
 
         EXAMPLES::
@@ -394,7 +394,7 @@ http://fricas.sourceforge.net.
 
     def _tab_completion(self, verbose=True, use_disk_cache=True):
         """
-        Returns a list of all the commands defined in Fricas and optionally
+        Return a list of all the commands defined in Fricas and optionally
         (per default) store them to disk.
 
         EXAMPLES::
@@ -888,7 +888,7 @@ http://fricas.sourceforge.net.
 
     def _function_element_class(self):
         """
-        Returns the FriCAS function element class.
+        Return the FriCAS function element class.
 
         EXAMPLES::
 
@@ -1010,15 +1010,6 @@ class FriCASElement(ExpectElement):
         return not P.new("zero?(%s)" % self._name).sage()
 
     __nonzero__ = __bool__
-
-    def __long__(self):
-        """
-        TESTS::
-
-            sage: long(fricas('1'))                                             # optional - fricas
-            1L
-        """
-        return long(self.sage())
 
     def __float__(self):
         """
@@ -1977,7 +1968,7 @@ fricas = FriCAS()
 
 def reduce_load_fricas():
     """
-    Returns the FriCAS interface object defined in
+    Return the FriCAS interface object defined in
     :sage.interfaces.fricas.
 
     EXAMPLES::

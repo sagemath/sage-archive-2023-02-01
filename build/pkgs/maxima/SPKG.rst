@@ -43,7 +43,7 @@ Special Update/Build Instructions
    and download the source tarball maxima-x.y.z.tar.gz; place it in
    the upstream/ directory.
 
-2. Update package-version.txt and run sage-fix-pkg-checksums.
+2. Update package-version.txt and run 'sage --package fix-checksum'.
 
 3. Make sure the patches still apply cleanly, and update them if
    necessary.

@@ -123,6 +123,7 @@ from sage.categories.number_fields import NumberFields
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name
 from sage.misc.misc import union
+from sage.misc.superseded import deprecation
 
 from .unit_group import UnitGroup
 from .class_group import ClassGroup
@@ -232,7 +233,9 @@ from sage.rings.complex_double import CDF
 from sage.rings.real_lazy import RLF, CLF
 
 
-def NumberField(polynomial, name=None, check=True, names=None, embedding=None, latex_name=None, assume_disc_small=False, maximize_at_primes=None, structure=None, **kwds):
+def NumberField(polynomial, name=None, check=True, names=None, embedding=None,
+                latex_name=None, assume_disc_small=False, maximize_at_primes=None, structure=None,
+                *, latex_names=None, **kwds):
     r"""
     Return *the* number field (or tower of number fields) defined by the
     irreducible ``polynomial``.
@@ -241,13 +244,15 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
 
         - ``polynomial`` - a polynomial over `\QQ` or a number field, or a list
           of such polynomials.
-        - ``name`` - a string or a list of strings, the names of the generators
+        - ``names`` (or ``name``) - a string or a list of strings, the names of
+          the generators
         - ``check`` - a boolean (default: ``True``); do type checking and
           irreducibility checking.
         - ``embedding`` - ``None``, an element, or a list of elements, the
           images of the generators in an ambient field (default: ``None``)
-        - ``latex_name`` - ``None``, a string, or a list of strings (default:
-          ``None``), how the generators are printed for latex output
+        - ``latex_names`` (or ``latex_name``) - ``None``, a string, or a
+          list of strings (default: ``None``), how the generators are printed
+          for latex output
         - ``assume_disc_small`` -- a boolean (default: ``False``); if ``True``,
           assume that no square of a prime greater than PARI's primelimit
           (which should be 500000); only applies for absolute fields at
@@ -538,6 +543,8 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
     """
     if names is not None:
         name = names
+    if latex_names is not None:
+        latex_name = latex_names
     for key, val in kwds.items():
         if key not in ['implementation', 'prec']:
             raise TypeError("NumberField() got an unexpected keyword argument '%s'"%key)
@@ -686,7 +693,7 @@ class NumberFieldFactory(UniqueFactory):
 NumberField_version2 = NumberFieldFactory("sage.rings.number_field.number_field.NumberField_version2")
 
 def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_names=None, assume_disc_small=False, maximize_at_primes=None, structures=None):
-    """
+    r"""
     Create the tower of number fields defined by the polynomials in the list
     ``polynomials``.
 
@@ -778,6 +785,21 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
         Number Field in a1 with defining polynomial x^2 + 2 over its base field
         sage: K.base_field().base_field()
         Number Field in a2 with defining polynomial x^2 + 1
+        
+    LaTeX versions of generator names can be specified either as::
+         
+        sage: K = NumberField([x^3 - 2, x^3 - 3, x^3 - 5], names=['a', 'b', 'c'], latex_names=[r'\alpha', r'\beta', r'\gamma'])
+        sage: K.inject_variables(verbose=False)
+        sage: latex(a + b + c)
+        \alpha + \beta + \gamma
+            
+    or as::
+
+        sage: K = NumberField([x^3 - 2, x^3 - 3, x^3 - 5], names='a', latex_names=r'\alpha')
+        sage: K.inject_variables()
+        Defining a0, a1, a2
+        sage: latex(a0 + a1 + a2)
+        \alpha_{0} + \alpha_{1} + \alpha_{2}
 
     A bigger tower of quadratic fields::
 
@@ -806,6 +828,8 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
         embeddings = [None] * len(polynomials)
     if latex_names is None:
         latex_names = [None] * len(polynomials)
+    elif isinstance(latex_names, str):
+        latex_names = ['%s_{%s}' % (latex_names, i) for i in range(len(polynomials))]
     if structures is None:
         structures = [None] * len(polynomials)
 
@@ -824,7 +848,7 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
     var = f.variable_name() if is_Polynomial(f) else 'x'
 
     R = w[var]  # polynomial ring
-    return w.extension(R(f), name, check=check, embedding=embeddings[0], structure=structures[0]) # currently, extension does not accept assume_disc_small, or maximize_at_primes
+    return w.extension(R(f), name, check=check, embedding=embeddings[0], structure=structures[0], latex_name=latex_names[0]) # currently, extension does not accept assume_disc_small, or maximize_at_primes
 
 def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', **args):
     r"""
@@ -890,8 +914,8 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
         \sqrt{-7}
         sage: latex(1/(1+a))
         -\frac{1}{8} \sqrt{-7} + \frac{1}{8}
-        sage: K.latex_variable_name()
-        '\\sqrt{-7}'
+        sage: list(K.latex_variable_names())
+        ['\\sqrt{-7}']
 
     We can provide our own name as well::
 
@@ -1370,7 +1394,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 raise ValueError("defining polynomial (%s) must be irreducible"%polynomial)
 
         self._assign_names(name)
-        self.__latex_variable_name = latex_name
+        self._latex_names = (latex_name,)
         self.__polynomial = polynomial
         self._pari_bnf_certified = False
         self._integral_basis_dict = {}
@@ -1540,6 +1564,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: a*b
             a*b
 
+        The construction preserves latex variable names::
+
+            sage: K.<a,b,c> = NumberField([x^3+x^2+1, x^2+1, x^7+x+1], latex_names=['alpha', 'beta', 'gamma'])
+            sage: F, R = K.construction()
+            sage: F(R) == K
+            True
+
         """
         from sage.categories.pushout import AlgebraicExtensionFunctor
         from sage.all import QQ
@@ -1547,13 +1578,16 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         polys = []
         embeddings = []
         structures = []
+        latex_names = []
         K = self
         while K is not QQ:
             polys.append(K.relative_polynomial())
             embeddings.append(None if K.coerce_embedding() is None else K.coerce_embedding()(K.gen()))
             structures.append(K._structure)
+            latex_names.append(K.latex_variable_names()[0])
             K = K.base_field()
-        return (AlgebraicExtensionFunctor(polys, names, embeddings, structures), QQ)
+        return (AlgebraicExtensionFunctor(polys, names, embeddings, structures,
+                                          latex_names=latex_names), QQ)
 
     def _element_constructor_(self, x, check=True):
         r"""
@@ -3244,16 +3278,19 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         EXAMPLES::
 
             sage: NumberField(x^2 + 3, 'a').latex_variable_name()
+            doctest:...: DeprecationWarning: This method is replaced by ...
+            See https://trac.sagemath.org/30372 for details.
             'a'
             sage: NumberField(x^3 + 3, 'theta3').latex_variable_name()
             '\\theta_{3}'
             sage: CyclotomicField(5).latex_variable_name()
             '\\zeta_{5}'
         """
+        deprecation(30372, 'This method is replaced by the method latex_variable_names')
         if name is None:
-            return self.__latex_variable_name
+            return self._latex_names[0]
         else:
-            self.__latex_variable_name = name
+            self._latex_names = (name,)
 
     def _repr_(self):
         """
@@ -3294,8 +3331,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: print(k._latex_())
             \Bold{Q}[\theta_{25}]/(\theta_{25}^{25} + \theta_{25} + 1)
         """
-        return "%s[%s]/(%s)"%(latex(QQ), self.latex_variable_name(),
-                              self.polynomial()._latex_(self.latex_variable_name()))
+        latex_name = self.latex_variable_names()[0]
+        return "%s[%s]/(%s)"%(latex(QQ), latex_name,
+                              self.polynomial()._latex_(latex_name))
 
     def _ideal_class_(self, n=0):
         """
@@ -3423,7 +3461,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: d = K.ideals_of_bdd_norm(10)
             sage: for n in d:
             ....:     print(n)
-            ....:     for I in d[n]:
+            ....:     for I in sorted(d[n]):
             ....:         print(I)
             1
             Fractional ideal (1)
@@ -3434,25 +3472,25 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             Fractional ideal (3, 1/2*a - 1/2)
             Fractional ideal (3, 1/2*a + 1/2)
             4
-            Fractional ideal (4, 1/2*a + 3/2)
             Fractional ideal (2)
+            Fractional ideal (4, 1/2*a + 3/2)
             Fractional ideal (4, 1/2*a + 5/2)
             5
             6
             Fractional ideal (1/2*a - 1/2)
+            Fractional ideal (1/2*a + 1/2)
             Fractional ideal (6, 1/2*a + 5/2)
             Fractional ideal (6, 1/2*a + 7/2)
-            Fractional ideal (1/2*a + 1/2)
             7
             8
-            Fractional ideal (1/2*a + 3/2)
             Fractional ideal (4, a - 1)
             Fractional ideal (4, a + 1)
+            Fractional ideal (1/2*a + 3/2)
             Fractional ideal (1/2*a - 3/2)
             9
-            Fractional ideal (9, 1/2*a + 11/2)
             Fractional ideal (3)
             Fractional ideal (9, 1/2*a + 7/2)
+            Fractional ideal (9, 1/2*a + 11/2)
             10
         """
         hnf_ideals = self.pari_nf().ideallist(bound)
@@ -4539,17 +4577,25 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K._S_class_group_and_units( (K.ideal(5),) )
             ([5, -1], [])
 
-        TESTS::
+        TESTS:
+
+        Note for the following test that the representation of
+        the units depends on the PARI version::
 
             sage: K.<a> = NumberField(x^3 - 381 * x + 127)
-            sage: K._S_class_group_and_units(tuple(K.primes_above(13)))
-            ([2/13*a^2 + 1/13*a - 677/13,
-              1/13*a^2 + 7/13*a - 332/13,
-              -1/13*a^2 + 6/13*a + 345/13,
-              -1,
-              2/13*a^2 + 1/13*a - 755/13,
-              1/13*a^2 - 19/13*a - 7/13],
-             [(Fractional ideal (11, a - 2), 2), (Fractional ideal (19, a + 7), 2)])
+            sage: units, clpg_gens = K._S_class_group_and_units(tuple(K.primes_above(13)))
+            sage: clpg_gens
+            [(Fractional ideal (11, a - 2), 2), (Fractional ideal (19, a + 7), 2)]
+            sage: units[:5]
+            [2/13*a^2 + 1/13*a - 677/13,
+             1/13*a^2 + 7/13*a - 332/13,
+             -1/13*a^2 + 6/13*a + 345/13,
+             -1,
+             2/13*a^2 + 1/13*a - 755/13]
+            sage: units[5] in (1/13*a^2 - 19/13*a - 7/13, 1/13*a^2 + 20/13*a - 7/13)
+            True
+            sage: len(units) == 6
+            True
 
         Number fields defined by non-monic and non-integral
         polynomials are supported (:trac:`252`)::
@@ -4697,18 +4743,25 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: S in ([2, a + 1, a], [2, a + 1, -a], [2, -a - 1, a], [2, -a - 1, -a]) or S
             True
 
-        Verify that :trac:`14489` is fixed::
+        Verify that :trac:`14489` is fixed;
+        the representation depends on the PARI version::
 
             sage: K.<a> = NumberField(x^3 - 381 * x + 127)
-            sage: K.selmer_group(K.primes_above(13), 2)
+            sage: gens = K.selmer_group(K.primes_above(13), 2)
+            sage: len(gens) == 8
+            True
+            sage: gens[:5]
             [2/13*a^2 + 1/13*a - 677/13,
              1/13*a^2 + 7/13*a - 332/13,
              -1/13*a^2 + 6/13*a + 345/13,
              -1,
-             2/13*a^2 + 1/13*a - 755/13,
-             1/13*a^2 - 19/13*a - 7/13,
-             -1/13*a^2 + 45/13*a - 97/13,
-             2/13*a^2 + 40/13*a - 27/13]
+             2/13*a^2 + 1/13*a - 755/13]
+            sage: gens[5] in (1/13*a^2 - 19/13*a - 7/13, 1/13*a^2 + 20/13*a - 7/13)
+            True
+            sage: gens[6] in (-1/13*a^2 + 45/13*a - 97/13, 1/13*a^2 - 45/13*a + 97/13)
+            True
+            sage: gens[7] in (2/13*a^2 + 40/13*a - 27/13, -2/13*a^2 - 40/13*a + 27/13)
+            True
 
         Verify that :trac:`16708` is fixed::
 
@@ -5349,17 +5402,19 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         TESTS:
 
         Number fields defined by non-monic and non-integral
-        polynomials are supported (:trac:`252`)::
+        polynomials are supported (:trac:`252`);
+        the representation depends on the PARI version::
 
             sage: K.<a> = NumberField(7/9*x^3 + 7/3*x^2 - 56*x + 123)
-            sage: K.elements_of_norm(7)
-            [7/225*a^2 - 7/75*a - 42/25]
+            sage: [x] = K.elements_of_norm(7)
+            sage: x in (7/225*a^2 - 7/75*a - 42/25, 28/225*a^2 + 77/75*a - 133/25)
+            True
         """
         proof = proof_flag(proof)
         B = self.pari_bnf(proof).bnfisintnorm(n)
         return [self(x, check=False) for x in B]
 
-    def extension(self, poly, name=None, names=None, *args, **kwds):
+    def extension(self, poly, name=None, names=None, latex_name=None, latex_names=None, *args, **kwds):
         """
         Return the relative extension of this field by a given polynomial.
 
@@ -5408,9 +5463,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             poly = poly.change_ring(self)
         if names is not None:
             name = names
-        if isinstance(name, tuple):
+        if isinstance(name, (tuple, list)):
             name = name[0]
-        return NumberField(poly, name, *args, **kwds)
+        if latex_names is not None:
+            latex_name = latex_names
+        if isinstance(latex_name, (tuple, list)):
+            latex_name = latex_name[0]
+        return NumberField(poly, name, latex_name=latex_name, *args, **kwds)
 
     def factor(self, n):
         r"""
@@ -5455,7 +5514,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: pari('setrand(2)')
             sage: L.<b> = K.extension(x^2 - 7)
-            sage: f = L.factor(a + 1); f
+            sage: f = L.factor(a + 1)
+            sage: f                               # representation varies, not tested
             (Fractional ideal (1/2*a*b - a + 1/2)) * (Fractional ideal (-1/2*a*b - a + 1/2))
             sage: f.value() == a+1
             True
@@ -5470,6 +5530,21 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         AUTHORS:
 
         - Alex Clemesha (2006-05-20), Francis Clarke (2009-04-21): examples
+
+        TESTS:
+
+        We test the above doctest. The representation depends on the PARI version::
+
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: L.<b> = K.extension(x^2 - 7)
+            sage: f = L.factor(a + 1)
+            sage: (fi, fj) = f[::]
+            sage: (fi[1], fj[1])
+            (1, 1)
+            sage: fi[0] == L.fractional_ideal(1/2*a*b - a + 1/2)
+            True
+            sage: fj[0] == L.fractional_ideal(-1/2*a*b - a + 1/2)
+            True
         """
         return self.ideal(n).factor()
 
@@ -6149,7 +6224,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         if algorithm is None:
             algorithm = 'pari'
-        
+
         if algorithm == 'gp':
             from sage.lfunctions.all import Dokchitser
             r1, r2 = self.signature()
@@ -6532,7 +6607,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             [t - 1]
             sage: [K.uniformizer(P) for P,e in factor(K.ideal(5))]
             [t^2 - t + 1, t + 2, t - 2]
-            sage: [K.uniformizer(P) for P,e in factor(K.ideal(7))]
+            sage: [K.uniformizer(P) for P,e in factor(K.ideal(7))]  # representation varies, not tested
             [t^2 + 3*t + 1]
             sage: [K.uniformizer(P) for P,e in factor(K.ideal(67))]
             [t + 23, t + 26, t - 32, t - 18]
@@ -6543,6 +6618,15 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             :pari:`idealprimedec` in the "positive" case. Use :pari:`idealappr`
             with exponent of -1 and invert the result in the "negative"
             case.
+
+        TESTS:
+
+        We test the above doctest. The representation depends on the PARI version::
+
+            sage: K.<t> = NumberField(x^4 - x^3 - 3*x^2 - x + 1)
+            sage: [x] = [K.uniformizer(P) for P,e in factor(K.ideal(7))]
+            sage: x in (t^2 + 3*t +1, t^2 - 4*t +1)
+            True
         """
         if not is_NumberFieldIdeal(P):
             P = self.ideal(P)
@@ -7337,7 +7421,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         import webbrowser
         from urllib.parse import quote
-        lmfdb_url = 'https://www.lmfdb.org/NumberField/?natural={}'
+        lmfdb_url = 'https://www.lmfdb.org/NumberField/?jump={}'
         poly = self.absolute_polynomial()
         f = poly.parent().change_var('x')(poly)
         poly = pari(f).polredabs()
@@ -7617,8 +7701,6 @@ class NumberField_absolute(NumberField_generic):
             sage: S.<y> = NumberField(x^3 + x + 1)
             sage: S.coerce(int(4)) # indirect doctest
             4
-            sage: S.coerce(long(7))
-            7
             sage: S.coerce(-Integer(2))
             -2
             sage: z = S.coerce(-7/8); z, type(z)
@@ -7798,7 +7880,7 @@ class NumberField_absolute(NumberField_generic):
         polynomials are supported (:trac:`252`)::
 
             sage: K.<a> = NumberField(7/9*x^3 + 7/3*x^2 - 56*x + 123)
-            sage: K.optimized_representation()
+            sage: K.optimized_representation()  # representation varies, not tested
             (Number Field in a1 with defining polynomial x^3 - 7*x - 7,
              Ring morphism:
                From: Number Field in a1 with defining polynomial x^3 - 7*x - 7
@@ -7808,6 +7890,27 @@ class NumberField_absolute(NumberField_generic):
                From: Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123
                To:   Number Field in a1 with defining polynomial x^3 - 7*x - 7
                Defn: a |--> -15/7*a1^2 + 9)
+
+        TESTS:
+
+        We test the above doctest. The representation depends on the PARI version::
+
+            sage: K.<a> = NumberField(7/9*x^3 + 7/3*x^2 - 56*x + 123)
+            sage: N, M1, M2 = K.optimized_representation(); N, M1, M2
+            (Number Field in a1 with defining polynomial x^3 - 7*x - 7,
+             Ring morphism:
+               From: Number Field in a1 with defining polynomial x^3 - 7*x - 7
+               To:   Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123
+               Defn: a1 |--> ...,
+             Ring morphism:
+               From: Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123
+               To:   Number Field in a1 with defining polynomial x^3 - 7*x - 7
+               Defn: a |--> ...)
+            sage: a1 = M1.domain().gens()[0]
+            sage: M2(a) in (-15/7*a1^2 + 9, -60/7*a1^2 + 15*a1 + 39)
+            True
+            sage: M1(M2(a)) == a
+            True
         """
         if name is None:
             name = self.variable_names()
@@ -9616,11 +9719,11 @@ class NumberField_absolute(NumberField_generic):
                                          "with respect to %s"%p)
                 else:
                     if not p in self.real_places():
-                        raise ValueError("entries of the list must be " +
+                        raise ValueError("entries of the list must be "
                                          "prime ideals or real places")
                     if p(b) > 0:
-                        raise ValueError("%s is a square in the completion " +
-                                         "with respect to %s" %(b,p))
+                        raise ValueError("%s is a square in the completion "
+                                         "with respect to %s" % (b, p))
 
         # L is the list of primes that we need to consider, b must have
         # nonzero valuation for each prime in L, this is the set S'
@@ -10248,7 +10351,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: latex(f)
             \left(z^{2} + z\right) s
         """
-        v = self.latex_variable_name()
+        v = self.latex_variable_names()[0]
         if v.startswith('\\zeta_'):
             return "%s(%s)"%(latex(QQ), v)
         else:
@@ -11366,7 +11469,7 @@ class NumberField_quadratic(NumberField_absolute):
             sage: latex(Z) # indirect doctest
             \Bold{Q}[x]/(x^{2} - 7)
         """
-        v = self.latex_variable_name()
+        v = self.latex_variable_names()[0]
         if v.startswith('\\sqrt'):
             return "%s(%s)"%(latex(QQ), v)
         else:

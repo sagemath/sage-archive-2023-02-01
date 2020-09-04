@@ -662,7 +662,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 put on a more robust and systematic footing.
             """
             from sage.combinat.sf.sf import SymmetricFunctions
-            from sage.misc.misc import attrcall
+            from sage.misc.call import attrcall
             try:
                 return attrcall(self._basis)(SymmetricFunctions(R))
             except AttributeError:   # or except (AttributeError, ValueError):
@@ -970,8 +970,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 m = lam.to_exp_dict() # == {i: m_i | i occurs in lam}
                 p = self.realization_of().power()
                 h = self.realization_of().complete()
-                from sage.arith.all import Moebius, squarefree_divisors
-                mu = Moebius()
+                from sage.arith.all import moebius, squarefree_divisors
+                mu = moebius
                 def component(i, g): # == h_g[L_i]
                     L_i = p.sum_of_terms([(_Partitions([d] * (i//d)), R(mu(d)))
                                           for d in squarefree_divisors(i)],

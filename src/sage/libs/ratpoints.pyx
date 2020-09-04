@@ -1,3 +1,4 @@
+# distutils: libraries = ratpoints
 r"""
 Hyperelliptic Curve Point Finding, via ratpoints (deprecated)
 

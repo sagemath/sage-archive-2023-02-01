@@ -153,7 +153,7 @@ class Function_exp(GinacFunction):
             e^x
         """
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
-                                   conversions=dict(maxima='exp', fricas='exp'))
+                               conversions=dict(maxima='exp', fricas='exp'))
 
 exp = Function_exp()
 
@@ -263,8 +263,8 @@ class Function_log2(GinacFunction):
             log
         """
         GinacFunction.__init__(self, 'log', ginac_name='logb', nargs=2,
-                            latex_name=r'\log',
-                            conversions=dict(maxima='log'))
+                               latex_name=r'\log',
+                               conversions=dict(maxima='log'))
 
 logb = Function_log2()
 
@@ -409,7 +409,7 @@ def log(*args, **kwds):
         -I*log(3)/pi
         sage: log(int(8),2)
         3
-        sage: log(8,int(2))  # known bug, see #21518
+        sage: log(8,int(2))
         3
         sage: log(8,2)
         3
@@ -417,7 +417,7 @@ def log(*args, **kwds):
         -3
         sage: log(1/8,1/2)
         3
-        sage: log(8,1/2)  # known bug, see #21517
+        sage: log(8,1/2)
         -3
 
         sage: log(1000, 10, base=5)
@@ -522,13 +522,10 @@ class Function_polylog(GinacFunction):
             sage: polylog(2.0, 1.0)
             1.64493406684823
 
-            sage: BF = RealBallField(100)
-            sage: polylog(2, BF(1/3))
+            sage: polylog(2, RealBallField(100)(1/3))
             [0.36621322997706348761674629766... +/- ...]
-            sage: polylog(2, BF(4/3))
-            [2.27001825336107090380391448586 +/- 5.64e-30] + [-0.90377988538400159956755721265 +/- 8.39e-30]*I
-            sage: parent(_)
-            Complex ball field with 100 bits of precision
+            sage: polylog(2, ComplexBallField(100)(4/3))
+            [2.27001825336107090380391448586 +/- ...] + [-0.90377988538400159956755721265 +/- ...]*I
             sage: polylog(2, CBF(1/3))
             [0.366213229977063 +/- ...]
             sage: parent(_)
@@ -573,6 +570,15 @@ class Function_polylog(GinacFunction):
         else:
             return 'polylog(%s, %s)' % (n, x)
 
+    def _method_arguments(self, k, z):
+        r"""
+        TESTS::
+
+            sage: b = RBF(1/2, .0001)
+            sage: polylog(2, b)
+            [0.582 +/- ...]
+        """
+        return [z, k]
 
 polylog = Function_polylog()
 

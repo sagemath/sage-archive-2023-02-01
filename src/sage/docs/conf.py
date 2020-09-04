@@ -7,6 +7,7 @@ from docutils import nodes
 from docutils.transforms import Transform
 from sphinx.ext.doctest import blankline_re
 from sphinx import highlighting
+import sphinx.ext.intersphinx as intersphinx
 from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
 # If your extensions are in another directory, add it here.
@@ -172,13 +173,8 @@ todo_include_todos = True
 
 # Cross-links to other project's online documentation.
 python_version = sys.version_info.major
-intersphinx_mapping = {
-    'python': ('https://docs.python.org/',
-                os.path.join(SAGE_DOC_SRC, "common",
-                             "python{}.inv".format(python_version))),
-    'pplpy': (PPLPY_DOCS, None)}
 
-def set_intersphinx_mappings(app):
+def set_intersphinx_mappings(app, config):
     """
     Add precompiled inventory (the objects.inv)
     """
@@ -189,7 +185,11 @@ def set_intersphinx_mappings(app):
         app.config.intersphinx_mapping = {}
         return
 
-    app.config.intersphinx_mapping = intersphinx_mapping
+    app.config.intersphinx_mapping =  {
+    'python': ('https://docs.python.org/',
+                os.path.join(SAGE_DOC_SRC, "common",
+                             "python{}.inv".format(python_version))),
+    'pplpy': (PPLPY_DOCS, None)}
 
     # Add master intersphinx mapping
     dst = os.path.join(invpath, 'objects.inv')
@@ -204,6 +204,7 @@ def set_intersphinx_mappings(app):
             dst = os.path.join(invpath, directory, 'objects.inv')
             app.config.intersphinx_mapping[src] = dst
 
+    intersphinx.normalize_intersphinx_mapping(app, config)
 
 # By default document are not master.
 multidocs_is_master = True
@@ -424,6 +425,32 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{2308}{\lceil}
     \DeclareUnicodeCharacter{2309}{\rceil}
     \DeclareUnicodeCharacter{22C5}{\ensuremath{\cdot}}
+
+    \DeclareUnicodeCharacter{2070}{\ensuremath{{}^0}}
+    \DeclareUnicodeCharacter{00B9}{\ensuremath{{}^1}}
+    \DeclareUnicodeCharacter{00B2}{\ensuremath{{}^2}}
+    \DeclareUnicodeCharacter{00B3}{\ensuremath{{}^3}}
+    \DeclareUnicodeCharacter{2074}{\ensuremath{{}^4}}
+    \DeclareUnicodeCharacter{2075}{\ensuremath{{}^5}}
+    \DeclareUnicodeCharacter{2076}{\ensuremath{{}^6}}
+    \DeclareUnicodeCharacter{2077}{\ensuremath{{}^7}}
+    \DeclareUnicodeCharacter{2078}{\ensuremath{{}^8}}
+    \DeclareUnicodeCharacter{2079}{\ensuremath{{}^9}}
+    \DeclareUnicodeCharacter{207A}{\ensuremath{{}^+}}
+    \DeclareUnicodeCharacter{207B}{\ensuremath{{}^-}}
+    \DeclareUnicodeCharacter{141F}{\ensuremath{{}^/}}
+    \DeclareUnicodeCharacter{2080}{\ensuremath{{}_0}}
+    \DeclareUnicodeCharacter{2081}{\ensuremath{{}_1}}
+    \DeclareUnicodeCharacter{2082}{\ensuremath{{}_2}}
+    \DeclareUnicodeCharacter{2083}{\ensuremath{{}_3}}
+    \DeclareUnicodeCharacter{2084}{\ensuremath{{}_4}}
+    \DeclareUnicodeCharacter{2085}{\ensuremath{{}_5}}
+    \DeclareUnicodeCharacter{2086}{\ensuremath{{}_6}}
+    \DeclareUnicodeCharacter{2087}{\ensuremath{{}_7}}
+    \DeclareUnicodeCharacter{2088}{\ensuremath{{}_8}}
+    \DeclareUnicodeCharacter{2089}{\ensuremath{{}_9}}
+    \DeclareUnicodeCharacter{208A}{\ensuremath{{}_+}}
+    \DeclareUnicodeCharacter{208B}{\ensuremath{{}_-}}
 
     \newcommand{\sageMexSymbol}[1]
     {{\fontencoding{OMX}\fontfamily{cmex}\selectfont\raisebox{0.75em}{\symbol{#1}}}}
@@ -674,11 +701,11 @@ def call_intersphinx(app, env, node, contnode):
         sage: for line in open(thematic_index).readlines():  # optional - dochtml
         ....:     if "padics" in line:
         ....:         _ = sys.stdout.write(line)
-        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage... Reference Manual: p-Adics v...)"><span>Introduction to the p-adics</span></a></li>
+        <li><p><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage... Reference Manual: p-Adics v...)"><span>Introduction to the p-adics</span></a></p></li>
     """
     debug_inf(app, "???? Trying intersphinx for %s" % node['reftarget'])
     builder = app.builder
-    res =  sphinx.ext.intersphinx.missing_reference(
+    res =  intersphinx.missing_reference(
         app, env, node, contnode)
     if res:
         # Replace absolute links to $SAGE_DOC by relative links: this
@@ -861,11 +888,10 @@ def setup(app):
     if app.srcdir.startswith(SAGE_DOC_SRC):
         app.add_config_value('intersphinx_mapping', {}, False)
         app.add_config_value('intersphinx_cache_limit', 5, False)
+        app.connect('config-inited', set_intersphinx_mappings)
+        app.connect('builder-inited', intersphinx.load_mappings)
         # We do *not* fully initialize intersphinx since we call it by hand
         # in find_sage_dangling_links.
         #   app.connect('missing-reference', missing_reference)
         app.connect('missing-reference', find_sage_dangling_links)
-        import sphinx.ext.intersphinx
-        app.connect('builder-inited', set_intersphinx_mappings)
-        app.connect('builder-inited', sphinx.ext.intersphinx.load_mappings)
         app.connect('builder-inited', nitpick_patch_config)

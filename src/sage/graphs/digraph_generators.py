@@ -577,14 +577,14 @@ class DiGraphGenerators():
         - ``options`` (str) -- a string passed to directg as if it was run at
           a system command line. Available options from directg --help::
 
-            -e# | -e#:#  specify a value or range of the total number of arcs
-            -o     orient each edge in only one direction, never both
-            -f#  Use only the subgroup that fixes the first # vertices setwise
-            -V  only output graphs with nontrivial groups (including exchange of
-                  isolated vertices).  The -f option is respected.
-            -s#/#  Make only a fraction of the orientations: The first integer is
-                    the part number (first is 0) and the second is the number of
-                    parts. Splitting is done per input graph independently.
+            -e<int> | -e<int>:<int>  specify a value or range of the total number of arcs
+            -o       orient each edge in only one direction, never both
+            -f<int>  Use only the subgroup that fixes the first <int> vertices setwise
+            -V       only output graphs with nontrivial groups (including exchange of
+                     isolated vertices).  The -f option is respected.
+            -s<int>/<int>  Make only a fraction of the orientations: The first integer is
+                     the part number (first is 0) and the second is the number of
+                     parts. Splitting is done per input graph independently.
 
         - ``debug`` (boolean) -- default: ``False`` - if ``True``
           directg standard error and standard output are displayed.
@@ -1174,9 +1174,14 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGN(25)
-            sage: D.edges(labels=False)
-            [(1, 0), (2, 0), (3, 2), (4, 2), (5, 4), (6, 3), (7, 0), (8, 4), (9, 4), (10, 3), (11, 4), (12, 4), (13, 3), (14, 4), (15, 4), (16, 0), (17, 2), (18, 4), (19, 6), (20, 14), (21, 4), (22, 0), (23, 22), (24, 14)]  # 32-bit
-            [(1, 0), (2, 1), (3, 0), (4, 2), (5, 0), (6, 2), (7, 3), (8, 2), (9, 3), (10, 4), (11, 5), (12, 9), (13, 2), (14, 2), (15, 5), (16, 2), (17, 15), (18, 1), (19, 5), (20, 2), (21, 5), (22, 1), (23, 5), (24, 14)]   # 64-bit
+            sage: D.num_verts()
+            25
+            sage: D.num_edges()
+            24
+            sage: D.is_connected()
+            True
+            sage: D.parent() is DiGraph
+            True
             sage: D.show()  # long time
         """
         if seed is None:
@@ -1240,12 +1245,11 @@ class DiGraphGenerators():
 
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: D = digraphs.RandomDirectedGNP(10, .2)
             sage: D.num_verts()
             10
-            sage: D.edges(labels=False)
-            [(1, 0), (1, 2), (3, 6), (3, 7), (4, 5), (4, 7), (4, 8), (5, 2), (6, 0), (7, 2), (8, 1), (8, 9), (9, 4)]
+            sage: D.parent() is DiGraph
+            True
         """
         from sage.graphs.graph_generators_pyx import RandomGNP
         if 0.0 > p or 1.0 < p:
@@ -1276,8 +1280,8 @@ class DiGraphGenerators():
             sage: D = digraphs.RandomDirectedGNM(10, 5)
             sage: D.num_verts()
             10
-            sage: D.edges(labels=False)
-            [(0, 3), (1, 5), (5, 1), (7, 0), (8, 5)]
+            sage: D.num_edges()
+            5
 
         With loops::
 

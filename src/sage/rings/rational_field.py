@@ -72,7 +72,7 @@ class RationalField(Singleton, number_field_base.NumberField):
 
     EXAMPLES::
 
-        sage: a = long(901824309821093821093812093810928309183091832091)
+        sage: a = 901824309821093821093812093810928309183091832091
         sage: b = QQ(a); b
         901824309821093821093812093810928309183091832091
         sage: QQ(b)
@@ -360,13 +360,6 @@ class RationalField(Singleton, number_field_base.NumberField):
               To:   Rational Field
             sage: f(44)
             44
-
-        ::
-
-            sage: QQ.coerce_map_from(long) # indirect doctest py2
-            Native morphism:
-              From: Set of Python objects of class 'long'
-              To:   Rational Field
 
         ::
 

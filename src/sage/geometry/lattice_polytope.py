@@ -2389,6 +2389,11 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: o.incidence_matrix().is_immutable()
             True
+
+        Check that the base ring is ``ZZ``, see :trac:`29840`::
+
+            sage: o.incidence_matrix().base_ring()
+            Integer Ring
         """
         incidence_matrix = matrix(ZZ, self.nvertices(),
                                   self.nfacets(), 0)

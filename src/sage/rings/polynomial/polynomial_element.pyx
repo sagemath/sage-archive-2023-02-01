@@ -106,6 +106,7 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.libs.gmp.mpz cimport *
 from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
+from sage.rings.padics.padic_generic import pAdicGeneric
 
 from sage.structure.category_object cimport normalize_names
 
@@ -1634,26 +1635,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         raise NotImplementedError("only implemented for certain base rings")
 
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: f = x - 902384
-            sage: long(f) # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot coerce nonconstant polynomial to long
-            sage: long(R(939392920202)) # py2
-            doctest:...: DeprecationWarning: converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3
-            See https://trac.sagemath.org/27675 for details.
-            939392920202L
-        """
-        if self.degree() > 0:
-            raise TypeError("cannot coerce nonconstant polynomial to long")
-        deprecation(27675, "converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3")
-        return long(self.get_coeff_c(0))
-
     cpdef _mul_(self, right):
         """
         EXAMPLES::
@@ -2247,9 +2228,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return wrapperdescr_fastcall(RingElement.__truediv__,
                 left, (right,), <object>NULL)
 
-    def __div__(left, right):
-        return PyNumber_TrueDivide(left, right)
-
     def __pow__(left, right, modulus):
         """
         EXAMPLES::
@@ -2547,10 +2525,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x + 0
 
         """
+        if name is None:
+            name = self._parent._names[0]
+        # p-adic polynomials like (1 + O(p^20))*x have _is_gen set to True but
+        # want their coefficient printed with its O() term
+        if self._is_gen and not isinstance(self._parent._base, pAdicGeneric):
+            return name
         s = " "
         m = self.degree() + 1
-        if name is None:
-            name = self._parent.variable_name()
         atomic_repr = self._parent.base_ring()._repr_option('element_is_atomic')
         coeffs = self.list(copy=False)
         for n in reversed(xrange(m)):
@@ -7953,7 +7935,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         # integer
                         c = self.content_ideal().gen()
                         self = self//c
-                    except (AttributeError, NotImplementedError):
+                    except (AttributeError, NotImplementedError, TypeError):
                         pass
                 return self._roots_from_factorization(self.factor(), multiplicities)
             else:

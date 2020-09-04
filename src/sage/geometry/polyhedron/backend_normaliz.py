@@ -4,7 +4,7 @@ The Normaliz backend for polyhedral computations
 
 .. NOTE::
 
-    This backend requires `PyNormaliz <https://pypi.python.org/pypi/PyNormaliz/1.5>`_.
+    This backend requires `PyNormaliz <https://pypi.org/project/PyNormaliz>`_.
     To install PyNormaliz, type :code:`sage -i pynormaliz` in the terminal.
 
 AUTHORS:
@@ -20,13 +20,13 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
 
 from sage.structure.element import Element
-from sage.misc.all import prod
+from sage.misc.all import cached_method, prod
 from sage.features import PythonModule
 
 from sage.rings.all import ZZ, QQ
@@ -332,12 +332,20 @@ class Polyhedron_normaliz(Polyhedron_base):
             [[7, 2], [1, 1]]
             sage: Pn._convert_to_pynormaliz([[1, 2], (3, 4)])
             [[1, 2], [3, 4]]
+
+        Check that :trac:`29836` is fixed::
+
+            sage: P = polytopes.simplex(backend='normaliz')  # optional - pynormaliz
+            sage: K.<sqrt2> = QuadraticField(2)              # optional - pynormaliz
+            sage: P.dilation(sqrt2)                          # optional - pynormaliz
+            A 3-dimensional polyhedron in (Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.41...)^4 defined as the convex hull of 4 vertices
         """
         def _QQ_pair(x):
             x = QQ(x)
             return [ int(x.numerator()), int(x.denominator())]
         from sage.rings.rational import Rational
-        if isinstance(x, list) or isinstance(x, tuple):
+        from types import GeneratorType
+        if isinstance(x, (list, tuple, GeneratorType)):
             return [ Polyhedron_normaliz._convert_to_pynormaliz(y) for y in x ]
         try:
             return int(ZZ(x))
@@ -587,6 +595,18 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: p = Polyhedron(ieqs=[(1, a, 0)], backend='normaliz')        # optional - pynormaliz
             sage: p & p == p                                                  # optional - pynormaliz
             True
+
+        Check that :trac:`30248` is fixed, that maps as input works::
+
+            sage: q = Polyhedron(backend='normaliz', base_ring=AA,            # optional - pynormaliz
+            ....:                rays=[(0, 0, 1), (0, 1, -1), (1, 0, -1)])
+            sage: make_new_Hrep = lambda h: tuple(x if i == 0 else -1*x for i, x in enumerate(h._vector))
+            sage: new_inequalities = map(make_new_Hrep, q.inequality_generator())  # optional - pynormaliz
+            sage: new_equations = map(make_new_Hrep, q.equation_generator())  # optional - pynormaliz
+            sage: parent = q.parent()                                         # optional - pynormaliz
+            sage: new_q = parent.element_class(parent,None,[new_inequalities,new_equations])  # optional - pynormaliz
+            sage: new_q                                                       # optional - pynormaliz
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 1 vertex and 3 rays
         """
 
         def nmz_ieqs_eqns_NF(ieqs, eqns):
@@ -821,7 +841,13 @@ class Polyhedron_normaliz(Polyhedron_base):
             ...
             ValueError: invalid base ring: Number Field in a ... is not real embedded
 
+        Checks that :trac:`30248` is fixed::
 
+            sage: q = Polyhedron(backend='normaliz', base_ring=AA,   # indirect doctest # optional - pynormaliz
+            ....:                rays=[(0, 0, 1), (0, 1, -1), (1, 0, -1)]); q
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 1 vertex and 3 rays
+            sage: -q                                                                    # optional - pynormaliz
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 1 vertex and 3 rays
         """
         from sage.categories.number_fields import NumberFields
         from sage.rings.all import RDF
@@ -830,6 +856,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             normaliz_field = QQ
             nmz_data_lists = convert_QQ(*data_lists)
         else:
+            # Allows to re-iterate if K is QQ below when data_lists contain
+            # iterators:
+            data_lists = [tuple(_) for _ in data_lists]
             nmz_data_lists = convert_NF(*data_lists)
             if self.base_ring() in NumberFields:
                 if not RDF.has_coerce_map_from(self.base_ring()):
@@ -1104,6 +1133,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return '{}'.format(QQ(x))
             except (ValueError, TypeError):
                 return '({})'.format(x.polynomial('a'))
+
         def format_field(key, value):
             if isinstance(value, list) or isinstance(value, tuple):
                 s = '{} {}\n'.format(key, len(value))
@@ -1114,6 +1144,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return s
             else:
                 return '{} {}\n'.format(key, value)
+
         def format_number_field_data(nf_triple):
             min_poly, gen, emb = nf_triple
             return 'min_poly ({}) embedding {}'.format(min_poly, emb)
@@ -1488,6 +1519,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         return triangulation
 
+
 #########################################################################
 class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
     r"""
@@ -1506,6 +1538,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         sage: TestSuite(p).run()                                           # optional - pynormaliz
     """
 
+    @cached_method(do_pickle=True)
     def ehrhart_series(self, variable='t'):
         r"""
         Return the Ehrhart series of a compact rational polyhedron.
@@ -1559,6 +1592,14 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         .. SEEALSO::
 
             :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`
+
+        TESTS:
+
+        Check that the Ehrhart series is pickled::
+
+            sage: new_poly = loads(dumps(rat_poly))      # optional - pynormaliz
+            sage: new_poly.ehrhart_series.is_in_cache()  # optional - pynormaliz
+            True
         """
         if self.is_empty():
             return 0
@@ -1662,6 +1703,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
     _ehrhart_polynomial_normaliz = _ehrhart_quasipolynomial_normaliz
 
+    @cached_method(do_pickle=True, key=lambda self, g, v: (tuple(g), v))
     def hilbert_series(self, grading, variable='t'):
         r"""
         Return the Hilbert series of the polyhedron with respect to ``grading``.
@@ -1723,6 +1765,14 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         .. SEEALSO::
 
             :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
+
+        TESTS:
+
+        Check that the Hilbert series is pickled::
+
+            sage: new_magic = loads(dumps(magic_square))  # optional - pynormaliz
+            sage: new_magic.hilbert_series.is_in_cache(grading)  # optional - pynormaliz
+            True
         """
         if self.is_empty():
             return 0

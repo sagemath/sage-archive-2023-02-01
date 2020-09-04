@@ -785,8 +785,6 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         from sage.combinat.skew_tableau import SkewTableau
         return SkewTableau(st)
 
-    __div__ = __truediv__
-
     def __call__(self, *cell):
         r"""
 
@@ -6708,14 +6706,16 @@ class SemistandardTableaux_shape(SemistandardTableaux):
         Return a uniformly distributed random tableau of the given ``shape`` and ``max_entry``.
 
         Uses the algorithm from [Kra1999]_ based on the Novelli-Pak-Stoyanovskii bijection
+           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
 
         EXAMPLES::
 
-           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
-            sage: SemistandardTableaux([2, 2, 1, 1]).random_element()
-            [[1, 1], [2, 3], [3], [5]]
-            sage: SemistandardTableaux([2, 2, 1, 1], max_entry=7).random_element()
-            [[1, 4], [5, 5], [6], [7]]
+            sage: S = SemistandardTableaux([2, 2, 1, 1])
+            sage: S.random_element() in S
+            True
+            sage: S = SemistandardTableaux([2, 2, 1, 1], max_entry=7)
+            sage: S.random_element() in S
+            True
 
         """
         from sage.misc.prandom import randint
@@ -8060,8 +8060,9 @@ class StandardTableaux_shape(StandardTableaux):
 
         EXAMPLES::
 
-            sage: StandardTableaux([2,2]).random_element()
-            [[1, 2], [3, 4]]
+            sage: t = StandardTableaux([2,2]).random_element()
+            sage: t.shape()
+            [2, 2]
             sage: StandardTableaux([]).random_element()
             []
         """

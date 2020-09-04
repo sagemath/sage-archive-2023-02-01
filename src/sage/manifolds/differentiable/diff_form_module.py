@@ -38,9 +38,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
-from sage.symbolic.ring import ZZ
 from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
-from sage.manifolds.scalarfield import ScalarField
 from sage.manifolds.differentiable.diff_form import DiffForm, DiffFormParal
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
@@ -332,8 +330,12 @@ class DiffFormModule(UniqueRepresentation, Parent):
             True
 
         """
-        if comp in ZZ and comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction
             if (self._degree == comp._tensor_type[1]
@@ -356,14 +358,13 @@ class DiffFormModule(UniqueRepresentation, Parent):
             else:
                 raise TypeError("cannot convert the {} ".format(tensor) +
                                 "to an element of {}".format(self))
-        if isinstance(comp, ScalarField):
-            # since the degree of self is >= 1, we cannot coerce scalar fields:
+        if not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
         # standard construction
         resu = self.element_class(self._vmodule, self._degree, name=name,
                                   latex_name=latex_name)
-        if comp != []:
+        if comp:
             resu.set_comp(frame)[:] = comp
         return resu
 
@@ -446,9 +447,10 @@ class DiffFormModule(UniqueRepresentation, Parent):
         zero = self._element_constructor_(name='zero', latex_name='0')
         for frame in self._domain._frames:
             if self._dest_map.restrict(frame._domain) == frame._dest_map:
-                zero._add_comp_unsafe(frame)
+                zero.add_comp(frame)
                 # (since new components are initialized to zero)
         zero._is_zero = True  # This element is certainly zero
+        zero.set_immutable()
         return zero
 
     #### End of Parent methods
@@ -802,8 +804,12 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
             False
 
         """
-        if comp in ZZ and comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction
             if (self._degree == comp._tensor_type[1]
@@ -826,13 +832,13 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
             else:
                 raise TypeError("cannot convert the {} ".format(tensor) +
                                 "to an element of {}".format(self))
-        if isinstance(comp, ScalarField):
-            # since the degree of self is >= 1, we cannot coerce scalar fields:
+        if not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
+        # standard construction
         resu = self.element_class(self._fmodule, self._degree, name=name,
                                   latex_name=latex_name)
-        if comp != []:
+        if comp:
             resu.set_comp(frame)[:] = comp
         return resu
 

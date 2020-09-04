@@ -116,6 +116,17 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
         sage: P.<x,y,z> = Zmod(25213521351515232)[]; P
         Multivariate Polynomial Ring in x, y, z over Ring of integers modulo 25213521351515232
+
+    TESTS:
+
+    Check that ``degneglex`` and ``degrevlex`` are the same up to reversal of
+    variables (:trac:`29635`)::
+
+        sage: R = PolynomialRing(QQ, 'x', 4, order='degrevlex')
+        sage: S = PolynomialRing(QQ, tuple(reversed(R.gens())), order='degneglex')
+        sage: L = [v for d in (0..4) for v in IntegerVectors(d, 4)]
+        sage: sorted([R.monomial(*e) for e in L]) == sorted([S.monomial(*e) for e in L])
+        True
     """
     cdef long cexponent
     cdef GFInfo* _param
@@ -212,12 +223,13 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
                 nlen = len(order[i])
 
             _wvhdl[idx] = <int *>omAlloc0(len(order[i])*sizeof(int))
-            for j in range(nlen):  _wvhdl[idx][j] = 1
-            _block0[idx] = offset + 1     # same like subsequent rp block
+            for j in range(nlen):
+                _wvhdl[idx][j] = 1
+            _block0[idx] = offset + 1     # same like subsequent ls block
             _block1[idx] = offset + nlen
 
             idx += 1;                   # we need one more block here
-            _order[idx] = ringorder_rp
+            _order[idx] = ringorder_ls
 
         else: # ordinary orders
             _order[idx] = order_dict.get(s, ringorder_dp)

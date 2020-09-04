@@ -133,6 +133,11 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: get_matrix_class(ZZ, 3, 3, False, 'generic')
         <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
 
+        sage: get_matrix_class(GF(2^15), 3, 3, False, None)
+        <class 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
+        sage: get_matrix_class(GF(2^17), 3, 3, False, None)
+        <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+
         sage: get_matrix_class(GF(2), 2, 2, False, 'm4ri')
         <type 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
         sage: get_matrix_class(GF(4), 2, 2, False, 'm4ri')
@@ -215,9 +220,9 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                     return matrix_complex_double_dense.Matrix_complex_double_dense
 
             if sage.rings.finite_rings.finite_field_constructor.is_FiniteField(R):
-                if R.order() == 2 and R.order() <= 65536:
+                if R.order() == 2:
                     return matrix_mod2_dense.Matrix_mod2_dense
-                if R.characteristic() == 2:
+                if R.characteristic() == 2 and R.order() <= 65536:  # 65536 == 2^16
                     return matrix_gf2e_dense.Matrix_gf2e_dense
 
                 if (not R.is_prime_field()) and R.order() < 256:

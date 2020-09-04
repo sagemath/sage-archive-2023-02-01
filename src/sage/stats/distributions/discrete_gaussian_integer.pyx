@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+# distutils: sources = sage/stats/distributions/dgs_gauss_mp.c sage/stats/distributions/dgs_gauss_dp.c sage/stats/distributions/dgs_bern.c
+# distutils: depends = sage/stats/distributions/dgs_gauss.h sage/stats/distributions/dgs_bern.h sage/stats/distributions/dgs_misc.h
+# distutils: extra_compile_args = -D_XOPEN_SOURCE=600
+
 r"""
 Discrete Gaussian Samplers over the Integers
 

@@ -919,7 +919,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                     raise
                 return new_MP(self, _p)
 
-        from sage.rings.polynomial.pbori import BooleanPolynomial
+        from sage.rings.polynomial.pbori.pbori import BooleanPolynomial
         if isinstance(element, BooleanPolynomial):
             if element.constant():
                 if element:
@@ -1205,7 +1205,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             sage: P._singular_().name() == P._singular_().name()
             True
 
-        TESTS:
+        TESTS::
+
             sage: P.<x> = QQ[]
             sage: P._singular_()
             polynomial ring, over a field, global ordering

@@ -57,21 +57,6 @@ cdef class MPolynomial(CommutativeRingElement):
             return int(self.constant_coefficient())
         raise TypeError(f"unable to convert non-constant polynomial {self} to an integer")
 
-    def __long__(self):
-        """
-        TESTS::
-
-            sage: long(RR['x,y'](0)) # indirect doctest
-            0L
-            sage: long(ZZ['x,y'].gen(0))
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to convert non-constant polynomial x to an integer
-        """
-        if self.degree() <= 0:
-            return long(self.constant_coefficient())
-        raise TypeError(f"unable to convert non-constant polynomial {self} to an integer")
-
     def __float__(self):
         """
         TESTS::

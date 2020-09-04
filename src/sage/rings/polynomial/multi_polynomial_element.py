@@ -1000,7 +1000,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f.exponents()
             [(3, 0, 0), (0, 2, 0), (0, 1, 0)]
 
-        Be default the list of exponents is a list of ETuples::
+        By default the list of exponents is a list of ETuples::
 
             sage: type(f.exponents()[0])
             <type 'sage.rings.polynomial.polydict.ETuple'>

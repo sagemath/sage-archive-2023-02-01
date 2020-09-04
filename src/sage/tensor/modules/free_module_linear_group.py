@@ -430,13 +430,14 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
 
         """
         resu = self.element_class(self._fmodule)
-        if self._fmodule._def_basis is not None:
-            comp = resu.set_comp()
-            for i in self._fmodule.irange():
-                if i%2 == 0:
-                    comp[[i,i]] = self._fmodule._ring.one()
-                else:
-                    comp[[i,i]] = -(self._fmodule._ring.one())
+        # Make sure that the base module has a default basis
+        self._fmodule.an_element()
+        comp = resu.set_comp()
+        for i in self._fmodule.irange():
+            if i%2 == 0:
+                comp[[i,i]] = self._fmodule._ring.one()
+            else:
+                comp[[i,i]] = -(self._fmodule._ring.one())
         return resu
 
     #### End of parent methods ####
@@ -515,6 +516,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
                                     start_index=fmodule._sindex,
                                     output_formatter=fmodule._output_formatter)
         resu._is_identity = True
+        resu.set_immutable()
         return resu
 
     #### End of monoid methods ####

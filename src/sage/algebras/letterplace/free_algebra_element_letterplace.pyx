@@ -18,7 +18,7 @@ AUTHOR:
 # ****************************************************************************
 
 from sage.libs.singular.function import lib, singular_function
-from sage.misc.misc import repr_lincomb
+from sage.misc.repr import repr_lincomb
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from cpython.object cimport PyObject_RichCompare
 

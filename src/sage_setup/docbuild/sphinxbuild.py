@@ -110,7 +110,12 @@ class SageSphinxLogger(object):
             re.compile('WARNING: Any IDs not assiend for figure node'),
             re.compile('WARNING: .* is not referenced'),
             re.compile('WARNING: Build finished'),
-            )
+        )
+        # The warning "unknown config value 'multidoc_first_pass'..."
+        # should only appear when building the documentation for a
+        # single file (SingleFileBuilder from __init__.py), and it
+        # needs to be ignored in that case. See #29651.
+        self._ignored_warnings += (re.compile('WARNING: unknown config value \'multidoc_first_pass\''),)
         self._useless_chatter += self._ignored_warnings
 
         # replacements: pairs of regular expressions and their replacements,

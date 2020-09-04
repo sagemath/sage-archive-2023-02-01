@@ -1,3 +1,5 @@
+# distutils: libraries = ratpoints
+
 r"""
 Descent on elliptic curves over `\QQ` with a 2-isogeny
 """

@@ -107,7 +107,7 @@ from __future__ import print_function
 
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
-from sage.misc.misc import attrcall
+from sage.misc.call import attrcall
 # The identity function would deserve a more canonical location
 from sage.misc.c3_controlled import identity
 from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups

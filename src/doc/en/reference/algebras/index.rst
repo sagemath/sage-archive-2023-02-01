@@ -88,6 +88,7 @@ Various associative algebras
    sage/algebras/cellular_basis
    sage/algebras/commutative_dga
    sage/algebras/q_system
+   sage/algebras/splitting_algebra
 
 Non-associative algebras
 ------------------------
@@ -96,6 +97,7 @@ Non-associative algebras
    :maxdepth: 2
 
    lie_algebras
+   lie_conformal_algebras
    sage/algebras/jordan_algebra
    sage/combinat/free_dendriform_algebra
    sage/combinat/free_prelie_algebra

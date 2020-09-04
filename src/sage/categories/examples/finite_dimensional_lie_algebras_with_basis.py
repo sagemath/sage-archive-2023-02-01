@@ -281,7 +281,7 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
         """
         return self._M
 
-    def from_vector(self, v):
+    def from_vector(self, v, order=None):
         """
         Return the element of ``self`` corresponding to the
         vector ``v`` in ``self.module()``.
@@ -369,7 +369,7 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             gens = UEA.gens()
             return UEA.sum(c * gens[i] for i, c in self.value.items())
 
-        def to_vector(self):
+        def to_vector(self, order=None):
             """
             Return ``self`` as a vector in
             ``self.parent().module()``.

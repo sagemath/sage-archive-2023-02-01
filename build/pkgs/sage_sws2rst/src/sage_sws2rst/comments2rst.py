@@ -143,7 +143,7 @@ def replace_latex(soup):
         if (t.fetchParents(name = 'display') or
             t.fetchParents(name = 'pre')        ):
             continue
-        parts = single_dollar.split(unicode(t))
+        parts = single_dollar.split(t)
         even  = [escape_chars(parts[i]) for i in range(0,len(parts),2)]
         odd   = [' :math:`%s`'%parts[i] for i in range(1,len(parts),2)]
         odd.append('')
@@ -184,12 +184,12 @@ class Soup2Rst(object):
 #            '':'',
             }
 
-    headers = {'h1':u'=',
-               'h2':u'-',
-               'h3':u'^',
-               'h4':u'"',
-               'h5':u'~',
-               'h6':u'*',
+    headers = {'h1':'=',
+               'h2':'-',
+               'h3':'^',
+               'h4':'"',
+               'h5':'~',
+               'h6':'*',
                }
     
     def __init__(self, images_dir):
@@ -206,11 +206,11 @@ class Soup2Rst(object):
                 visitor = getattr(self, 'visit_' + self.tags[node.name])
                 return visitor(node)
             except (KeyError, AttributeError):
-                print('Warning: node not supported (or something else?) ' + node.name)
-                return unicode(node)
+                print(('Warning: node not supported (or something else?) ' + node.name))
+                return str(node)
         else:
             #Assume plain string
-            return unicode(node).replace('\n','')
+            return str(node).replace('\n','')
 
     def visit_document(self, node):
         return '\n'.join(self.visit(tag) for tag in node.contents)    
@@ -220,7 +220,7 @@ class Soup2Rst(object):
         if hasattr(node, 'contents'):
             t = ' '.join(self.get_plain_text(tag) for tag in node.contents)
         else:
-            t = unicode(node)
+            t = str(node)
         return t.replace('\n','')
         
     def visit_header(self, node):
@@ -229,7 +229,7 @@ class Soup2Rst(object):
         return s.replace( '\n', '') +  '\n' + spacer
 
     def visit_pre(self, node):
-        return '::\n\n    '+unicode(node)[5:-6].replace('<br />','\n').replace('<br></br>','\n').replace('\n','\n    ')
+        return '::\n\n    '+str(node)[5:-6].replace('<br />','\n').replace('<br></br>','\n').replace('\n','\n    ')
 
     def visit_ul(self, node):
         self._nested_list += 1
@@ -255,7 +255,7 @@ class Soup2Rst(object):
 
     def visit_display(self, node):
         return ('\n\n.. MATH::\n\n    ' +
-                unicode(node)[9:-10].replace('<br></br>','\n').replace('\n','\n    ') +
+                str(node)[9:-10].replace('<br></br>','\n').replace('\n','\n    ') +
                 '\n\n.. end of math\n\n')
 
     def visit_img(self, node):

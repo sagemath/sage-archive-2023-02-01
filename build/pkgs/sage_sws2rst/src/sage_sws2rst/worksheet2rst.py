@@ -30,7 +30,7 @@ results
 Each kind of text is dealt with separately.
 
 """
-from __future__ import absolute_import
+
 #**************************************************
 # Copyright (C) 2011 Pablo Angulo
 #
@@ -161,16 +161,16 @@ def worksheet2rst(s, images_dir=''):
             if state == States.COMMENT:
                 last_cell_id = m.group(1)
                 img_path = images_dir + os.path.sep
-                result.append(html2rst(u'\n'.join(ls), img_path))
+                result.append(html2rst('\n'.join(ls), img_path))
             elif state == States.RESULT:
                 img_path = os.path.join(images_dir, 'cell_%s_' % last_cell_id)
-                result.append(results2rst(u'\n'.join(ls),
+                result.append(results2rst('\n'.join(ls),
                                              img_path))
                 result.append('')
                 result.append('.. end of output')
             elif state == States.CODE:
                 if ls and any(ls):
-                    result.append(code_parser(u'\n'.join(ls)))
+                    result.append(code_parser('\n'.join(ls)))
                 else:
                     next_state = States.RESULT_TO_BE_DROPPED
             ls = []
@@ -179,17 +179,17 @@ def worksheet2rst(s, images_dir=''):
             ls.append(line)
     if state == States.COMMENT:
         img_path = images_dir + os.path.sep
-        result.append(html2rst(u'\n'.join(ls), img_path))
+        result.append(html2rst('\n'.join(ls), img_path))
     elif state == States.RESULT:
         img_path = os.path.join(images_dir, 'cell_%s_' % last_cell_id)
-        result.append(result_parser(u'\n'.join(ls),
+        result.append(result_parser('\n'.join(ls),
                                      img_path))
         result.append('')
         result.append('.. end of output')
     elif state == States.CODE:
-        result.append(code_parser(u'\n'.join(ls)))
+        result.append(code_parser('\n'.join(ls)))
 
-    return u'\n'.join(result)
+    return '\n'.join(result)
 
 if __name__=='__main__':
     if len(sys.argv)>1:        
@@ -200,5 +200,5 @@ if __name__=='__main__':
         text = sys.stdin.read()
     images_dir = sys.argv[2] if len(sys.argv)>2 else ''
 
-    print(worksheet2rst(text, images_dir).encode('utf-8'))
+    print((worksheet2rst(text, images_dir).encode('utf-8')))
 

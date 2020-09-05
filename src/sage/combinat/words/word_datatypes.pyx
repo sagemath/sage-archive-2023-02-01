@@ -298,7 +298,7 @@ cdef class WordDatatype_list(WordDatatype):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.words.finite_word.FiniteWord_class.nb_factor_occurrences_in`
+            :meth:`sage.combinat.words.finite_word.FiniteWord_class.number_of_factor_occurrences`
 
         """
         return self._data.count(a)
@@ -640,7 +640,7 @@ cdef class WordDatatype_str(WordDatatype):
 
         .. SEEALSO::
 
-            :meth:`sage.combinat.words.finite_word.FiniteWord_class.nb_factor_occurrences_in`
+            :meth:`sage.combinat.words.finite_word.FiniteWord_class.number_of_factor_occurrences`
 
         """
         if len(letter) == 1:

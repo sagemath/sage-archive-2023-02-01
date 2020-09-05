@@ -4329,57 +4329,6 @@ class FiniteWord_class(Word_class):
                 ' Use w.first_occurrence(f) instead.')
         return other.first_occurrence(self)
 
-    def first_occurrence(self, other, start=0):
-        r"""
-        Return the position of the first occurrence of ``other`` in ``self``,
-        or ``None`` if ``other`` is not a factor of ``self``.
-
-        INPUT:
-
-        - ``other`` -- a word
-        - ``start`` -- integer (default:``0``), where the search starts
-
-        EXAMPLES::
-
-            sage: w = Word('01234567890123456789')
-            sage: w.first_occurrence(Word('3456'))
-            3
-            sage: w.first_occurrence(Word('3456'), start=7)
-            13
-
-        When the factor is not present, ``None``is returned::
-
-            sage: w.first_occurrence(Word('3456'), start=17) is None
-            True
-            sage: w.first_occurrence(Word('3333')) is None
-            True
-
-        The empty word occurs in a word::
-
-            sage: Word('123').first_occurrence(Word(''), 0)
-            0
-            sage: Word('').first_occurrence(Word(''), 0)
-            0
-        """
-        lf = other.length()
-        lm = self.length()
-        if lf == 0:
-            return start
-        elif lm == 0:
-            return None
-        occ = other.last_position_dict()
-        suff = other.good_suffix_table()
-        s = start
-        while s <= lm - lf:
-            for j in range(lf-1, -1, -1):
-                a = self[s+j]
-                if other[j] != a:
-                    s += max(suff[j + 1], j - occ.get(a,-1))
-                    break
-            else:
-                return s
-        return None
-
     def find(self, sub, start=0, end=None):
         r"""
         Return the index of the first occurrence of ``sub`` in ``self``,

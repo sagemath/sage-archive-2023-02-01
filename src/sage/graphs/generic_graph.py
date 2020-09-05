@@ -12822,7 +12822,7 @@ class GenericGraph(GenericGraph_pyx):
             G = copy(self)
         G.name("Subgraph of (%s)"%self.name())
 
-        if vertices:
+        if vertices is not None:
             vertices = set(vertices)
             G.delete_vertices([v for v in G if v not in vertices])
 

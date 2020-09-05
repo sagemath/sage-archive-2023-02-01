@@ -286,6 +286,10 @@ def QuotientRing(R, I, names=None, **kwds):
             pass
     else:
         names = normalize_names(R.ngens(), names)
+    if kwds.get('implementation') == 'pbori':
+        from sage.rings.polynomial.polynomial_ring_constructor import BooleanPolynomialRing_constructor as BooleanPolynomialRing
+        kwds.pop('implementation')
+        return BooleanPolynomialRing(R.ngens(), names=names, **kwds)
     if not isinstance(I, ideal.Ideal_generic) or I.ring() != R:
         I = R.ideal(I)
     if I.is_zero():

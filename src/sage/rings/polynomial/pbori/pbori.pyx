@@ -481,8 +481,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         R = I.ring()
         return QuotientFunctor(I, names=self.variable_names(),
                                domain=R.category(), codomain=self.category(),
-                               implementation = "pbori",
-                               order = self.term_order()
+                               implementation="pbori",
+                               order=self.term_order()
                               ), R
 
     def ngens(self):

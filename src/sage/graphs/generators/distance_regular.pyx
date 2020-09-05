@@ -953,7 +953,7 @@ def HalfCube(const int n):
     r"""
     Return the halved cube in `n` dimensions.
 
-    The graph is distance-regular with calssical parameters
+    The graph is distance-regular with classical parameters
     `(\lfloor \frac n 2 \rfloor, 1, 2, 2 \lceil \frac n 2 \rceil -1)`.
 
     INPUT:

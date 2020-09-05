@@ -273,7 +273,7 @@ cdef class WordDatatype_list(WordDatatype):
 
     __add__ = __mul__
 
-    def number_of_occurrences_of_letter(self, a):
+    def number_of_letter_occurrences(self, a):
         r"""
         Returns the number of occurrences of the letter ``a`` in the word
         ``self``.
@@ -289,11 +289,11 @@ cdef class WordDatatype_list(WordDatatype):
         EXAMPLES::
 
             sage: w = Word([0,1,1,0,1])
-            sage: w.number_of_occurrences_of_letter(0)
+            sage: w.number_of_letter_occurrences(0)
             2
-            sage: w.number_of_occurrences_of_letter(1)
+            sage: w.number_of_letter_occurrences(1)
             3
-            sage: w.number_of_occurrences_of_letter(2)
+            sage: w.number_of_letter_occurrences(2)
             0
 
         .. SEEALSO::
@@ -611,7 +611,7 @@ cdef class WordDatatype_str(WordDatatype):
 
     __add__ = __mul__
 
-    def number_of_occurrences_of_letter(self, letter):
+    def number_of_letter_occurrences(self, letter):
         r"""
         Count the number of occurrences of ``letter``.
 
@@ -626,16 +626,16 @@ cdef class WordDatatype_str(WordDatatype):
         EXAMPLES::
 
             sage: w = Word("abbabaabababa")
-            sage: w.number_of_occurrences_of_letter('a')
+            sage: w.number_of_letter_occurrences('a')
             7
-            sage: w.number_of_occurrences_of_letter('b')
+            sage: w.number_of_letter_occurrences('b')
             6
-            sage: w.number_of_occurrences_of_letter('c')
+            sage: w.number_of_letter_occurrences('c')
             0
 
         ::
 
-            sage: w.number_of_occurrences_of_letter('abb')
+            sage: w.number_of_letter_occurrences('abb')
             0
 
         .. SEEALSO::

@@ -290,10 +290,10 @@ class LowerChristoffelWord(FiniteWord_list):
                 break
             u = v
         w1, w2 = self[:index+1], self[index+1:]
-        w10 = w1.number_of_occurrences_of_letter(0)
-        w11 = w1.number_of_occurrences_of_letter(1)
-        w20 = w2.number_of_occurrences_of_letter(0)
-        w21 = w2.number_of_occurrences_of_letter(1)
+        w10 = w1.number_of_letter_occurrences(0)
+        w11 = w1.number_of_letter_occurrences(1)
+        w20 = w2.number_of_letter_occurrences(0)
+        w21 = w2.number_of_letter_occurrences(1)
         return Factorization([LowerChristoffelWord(w11,w10),
                               LowerChristoffelWord(w21,w20)])
 

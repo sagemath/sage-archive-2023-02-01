@@ -4760,7 +4760,7 @@ class FiniteWord_class(Word_class):
         # return only the number of occurrences of other
         return occ[-1]
 
-    def number_of_occurrences_of_letter(self, letter):
+    def number_of_letter_occurrences(self, letter):
         r"""
         Return the number of occurrences of ``letter`` in ``self``.
 
@@ -4774,9 +4774,30 @@ class FiniteWord_class(Word_class):
 
         EXAMPLES::
 
-            sage: Word('abbabaab').number_of_occurrences_of_letter('a')
+            sage: w = Word('abbabaab')
+            sage: w.number_of_letter_occurrences('a')
             4
-            sage: Word('abbabaab').number_of_occurrences_of_letter('ab')
+            sage: w.number_of_letter_occurrences('ab')
+            0
+
+        This methods is equivalent to ``list(w).count(letter)`` and
+        ``tuple(w).count(letter)``, thus ``count`` is an alias for the method
+        ``number_of_letter_occurrences``::
+
+            sage: list(w).count('a')
+            4
+            sage: w.count('a')
+            4
+
+        But notice that if ``s`` and ``w`` are strings,
+        ``Word(s).count(w)`` counts the number occurrences of ``w`` as a
+        letter in ``Word(s)`` which is not the same as ``s.count(w)`` which
+        counts the number of occurrences of the string ``w`` inside ``s``::
+
+            sage: s = 'abbabaab'
+            sage: s.count('ab')
+            3
+            sage: Word(s).count('ab')
             0
 
         .. SEEALSO::
@@ -4785,7 +4806,7 @@ class FiniteWord_class(Word_class):
 
         """
         return Integer(sum(1 for a in self if a == letter))
-    count = number_of_occurrences_of_letter # todo: deprecate count ?
+    count = number_of_letter_occurrences
 
     def _return_words_list(self, fact):
         r"""

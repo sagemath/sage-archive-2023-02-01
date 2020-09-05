@@ -1,5 +1,5 @@
 r"""
-Common Digraphs
+Common digraphs
 
 All digraphs in Sage can be built through the ``digraphs`` object. In order to
 build a circuit on 15 elements, one can do::

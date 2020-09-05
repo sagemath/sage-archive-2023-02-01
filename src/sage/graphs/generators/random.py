@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Random Graphs
+Random graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """

@@ -12434,7 +12434,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: J = G.subgraph(edges=[(0, 1)])
             sage: J.edges(labels=False)
             [(0, 1)]
-            sage: J.vertices() == G.vertices()
+            sage: set(J) == set(G)
             True
             sage: G.subgraph([0, 1, 2], inplace=True); G
             Subgraph of (Complete graph): Graph on 3 vertices
@@ -12449,7 +12449,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H = D.subgraph(edges=[(0, 1), (0, 2)])
             sage: H.edges(labels=False)
             [(0, 1), (0, 2)]
-            sage: H.vertices() == D.vertices()
+            sage: set(H) == set(D)
             True
             sage: D
             Complete digraph: Digraph on 9 vertices
@@ -12523,7 +12523,7 @@ class GenericGraph(GenericGraph_pyx):
             {3: 'v3', 4: 'v4', 5: 'v5'}
         """
         if vertices is None:
-            vertices = list(self)
+            vertices = self
         elif vertices in self:
             vertices = [vertices]
         else:
@@ -12555,7 +12555,9 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``vertices`` -- a list of vertices
+        - ``vertices`` -- (default: ``None``); an iterable container of
+          vertices, e.g. a list, set, graph, file or numeric array. If not
+          passed (i.e., ``None``), defaults to the entire graph.
 
         - ``edges`` -- a single edge or an iterable container of edges (e.g., a
           list, set, file, numeric array, etc.). By default (``edges=None``),
@@ -12581,7 +12583,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: J = G._subgraph_by_adding(vertices=G, edges=[(0, 1)])
             sage: J.edges(labels=False)
             [(0, 1)]
-            sage: J.vertices() == G.vertices()
+            sage: set(J) == set(G)
             True
             sage: G._subgraph_by_adding(vertices=G) == G
             True
@@ -12594,7 +12596,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H = D._subgraph_by_adding(vertices=D, edges=[(0, 1), (0, 2)])
             sage: H.edges(labels=False)
             [(0, 1), (0, 2)]
-            sage: H.vertices() == D.vertices()
+            sage: set(H) == set(D)
             True
             sage: D
             Complete digraph: Digraph on 9 vertices
@@ -12653,9 +12655,8 @@ class GenericGraph(GenericGraph_pyx):
         G = self.__class__(weighted=self._weighted, loops=self.allows_loops(),
                            multiedges=self.allows_multiple_edges())
         G.name("Subgraph of (%s)"%self.name())
-        G.add_vertices(vertices)
+        G.add_vertices(self if vertices is None else vertices)
 
-        vertices = set(vertices)
         if edges is not None:
             edges_to_keep_labeled = frozenset(e for e in edges if len(e) == 3)
             edges_to_keep_unlabeled = frozenset(e for e in edges if len(e) == 2)
@@ -12663,12 +12664,12 @@ class GenericGraph(GenericGraph_pyx):
             edges_to_keep = []
             if self._directed:
                 for u, v, l in self.edges(vertices=vertices, sort=False):
-                    if (v in vertices and ((u, v, l) in edges_to_keep_labeled
-                                           or (u, v) in edges_to_keep_unlabeled)):
+                    if (v in G and ((u, v, l) in edges_to_keep_labeled
+                                    or (u, v) in edges_to_keep_unlabeled)):
                         edges_to_keep.append((u, v, l))
             else:
                 for u, v, l in self.edges(vertices=vertices, sort=False):
-                    if (u in vertices and v in vertices
+                    if (u in G and v in G
                         and ((u, v, l) in edges_to_keep_labeled
                              or (v, u, l) in edges_to_keep_labeled
                              or (u, v) in edges_to_keep_unlabeled
@@ -12705,7 +12706,9 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``vertices`` -- a list of vertices
+        - ``vertices`` -- (default: ``None``); an iterable container of
+          vertices, e.g. a list, set, graph, file or numeric array. If not
+          passed (i.e., ``None``), defaults to the entire graph.
 
         - ``edges`` -- a single edge or an iterable container of edges (e.g., a
           list, set, file, numeric array, etc.). By default (``edges=None``),
@@ -12735,7 +12738,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: J = G._subgraph_by_deleting(vertices=G, edges=[(0, 1)])
             sage: J.edges(labels=False)
             [(0, 1)]
-            sage: J.vertices() == G.vertices()
+            sage: set(J) == set(G)
             True
             sage: G._subgraph_by_deleting([0, 1, 2], inplace=True); G
             Subgraph of (Complete graph): Graph on 3 vertices
@@ -12750,7 +12753,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H = D._subgraph_by_deleting(vertices=D, edges=[(0, 1), (0, 2)])
             sage: H.edges(labels=False)
             [(0, 1), (0, 2)]
-            sage: H.vertices() == D.vertices()
+            sage: set(H) == set(D)
             True
             sage: D
             Complete digraph: Digraph on 9 vertices
@@ -12819,7 +12822,9 @@ class GenericGraph(GenericGraph_pyx):
             G = copy(self)
         G.name("Subgraph of (%s)"%self.name())
 
-        G.delete_vertices([v for v in G if v not in vertices])
+        if vertices:
+            vertices = set(vertices)
+            G.delete_vertices([v for v in G if v not in vertices])
 
         edges_to_delete = []
         if edges is not None:

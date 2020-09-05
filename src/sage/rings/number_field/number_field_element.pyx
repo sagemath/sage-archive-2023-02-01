@@ -3038,13 +3038,20 @@ cdef class NumberFieldElement(FieldElement):
             False
 
         Note that in relative number fields, this produces the polynomial of
-        the internal representation of this element which might not be what
-        you are looking for::
+        the internal representation of this element::
 
             sage: R.<y> = K[]
             sage: L.<b> = K.extension(y^2 - a)
             sage: b.polynomial()
-            -1/2*x^19 - 1/2*x^17 - 1/2*x^15 - 1/2*x^13 - x^11 - 1/2*x^9 - 1/2*x^7 - 1/2*x^5 - x^3 - 1/2*x
+            x
+
+        In some cases this might not be what you are looking for::
+
+            sage: K.<a> = NumberField(x^2 + x + 1)
+            sage: R.<y> = K[]
+            sage: L.<b> = K.extension(y^2 + y + 2)
+            sage: b.polynomial()
+            1/2*x^3 + 3*x - 1/2
             sage: R(list(b))
             y
 

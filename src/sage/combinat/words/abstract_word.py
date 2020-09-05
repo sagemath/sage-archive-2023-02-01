@@ -1565,7 +1565,7 @@ class Word_class(SageObject):
             sage: w.first_occurrence(Word('3456'), start=7)
             13
 
-        When the factor is not present, ``None``is returned::
+        When the factor is not present, ``None`` is returned::
 
             sage: w.first_occurrence(Word('3456'), start=17) is None
             True

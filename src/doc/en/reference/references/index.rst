@@ -213,6 +213,10 @@ REFERENCES:
             Math. Z. 233 (2000), no. 3, 601–623.
             :mathscinet:`MR1750939`
 
+.. [AM2020] \A. L. Agore and G. Militaru.
+            *A new invariant for finite dimensional Leibniz/Lie algebras*.
+            Preprint, :arxiv:`2006.00711` (2020).
+
 .. [AMOZ2006] Asahiro, Y. and Miyano, E. and Ono, H. and Zenmyo, K.,
               *Graph orientation algorithms to minimize the maximum outdegree*.
               Proceedings of the 12th Computing: The Australasian Theory
@@ -625,6 +629,9 @@ REFERENCES:
             constant contains a tree with a positive Cheeger constant*,
             Geometric and Functional Analysis 7 (1997), no. 3, 403-419.
 
+.. [Ben2019] Benedetto, Robert L. Dynamics in one non-archimedean variable.
+             Graduate Studies in Mathematics, Volume 198. 2019.
+
 .. [Benasque2009] Fernando Rodriguez Villegas, *The L-function of the quintic*,
    http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
 
@@ -1014,6 +1021,10 @@ REFERENCES:
 .. [BPU2016] Alex Biryukov, Léo Perrin, Aleksei Udovenko,
              *Reverse-Engineering the S-Box of Streebog, Kuznyechik and STRIBOBr1*; in
              EuroCrypt'16, pp. 372-402.
+
+.. [BR2010] Matthew Baker and Robert Rumely. Potential theory and dynamics on the
+            Berkovich projective line. Mathematical Surveys and Monographs,
+            Volumne 159. 2010.
 
 .. [Brandes01] Ulrik Brandes,
                A faster algorithm for betweenness centrality,
@@ -1950,6 +1961,9 @@ REFERENCES:
             *Differential Geometry of Lightlike Submanifolds*,
             Frontiers in Mathematics, 2010.
 
+.. [DSK2006] \A. De Sole and V. Kac. "Finite vs Affine W-algebras". Jpn. J. Math. 
+             (2006) vol. 1, no. 1, pp 137--261
+
 .. [Du2001] \I. Duursma, "From weight enumerators to zeta functions", in
             Discrete Applied Mathematics, vol. 111, no. 1-2,
             pp. 55-73, 2001.
@@ -2350,6 +2364,10 @@ REFERENCES:
              Riemann surfaces and Dessins d'enfant*, (2011)
              London Mathematical Society, Student Text 79.
 
+.. [GGMM2020] \A. Garver, S. Grosser, J. Matherne, and A. Morales.
+              *Counting linear extensions of posets with determinants of hook
+              lengths*. Preprint, :arxiv:`2001.08822` (2020).
+
 .. [GGNS2013] \B. Gerard, V. Grosso, M. Naya-Plasencia, and F.-X. Standaert,
               *Block ciphers that are easier to mask: How far can we go?*; in
               CHES, (2013), pp. 383-399.
@@ -2494,6 +2512,13 @@ REFERENCES:
 
 .. [GR2001] Chris Godsil and Gordon Royle, *Algebraic Graph Theory*. Graduate
             Texts in Mathematics, Springer, 2001.
+
+.. [Gre2006] \R. M. Green, *Star reducible Coxeter groups*, Glasgow 
+            Mathematical Journal, Volume 48, Issue 3, pp. 583-609.
+
+.. [GX2020] \R. M. Green, Tianyuan Xu, *Classification of Coxeter groups with
+            finitely many elements of a-value 2*, Algebraic Combinatorics, 
+            Volume 3 (2020) no. 2, pp. 331-364.
 
 .. [Gr2006] Matthew Greenberg,
             "Heegner points and rigid analytic modular forms",
@@ -3093,6 +3118,9 @@ REFERENCES:
 .. [Ka1990] Victor G. Kac. *Infinite-dimensional Lie Algebras*. Third
             edition. Cambridge University Press, Cambridge, 1990.
 
+.. [Kac1997] \V. Kac, "Vertex algebras for beginners". Second Edition. vol 10. 
+             university lecture series. AMS, Cambridge, 1997. 
+
 .. [Kal1992] \B. Kaliski,
              *The MD2 message-digest algorithm*; in
              RFS 1319, (1992).
@@ -3582,6 +3610,9 @@ REFERENCES:
 .. [Li1995b] \P. Littelmann, Paths and root operators in representation
              theory. Ann. of Math. (2) 142 (1995), no. 3, 499-525.
 
+.. [Li2005] \H. Li, *Abelianizing vertex algebras*. Comm. Math. Phys. vol. 259,
+             no. 2, pp. 391--411 (2005)
+
 .. [Lic1977] \A. Lichnerowicz, *Les variétés de Poisson et leurs
              algèbres de Lie associées*, Journal of Differential
              Geometry **12**, 253 (1977); :doi:`10.4310/jdg/1214433987`
@@ -3806,6 +3837,13 @@ REFERENCES:
 .. [Lut2002] Frank H. Lutz, Császár's Torus, Electronic Geometry Model
              No. 2001.02.069
              (2002). http://www.eg-models.de/models/Classical_Models/2001.02.069/_direct_link.html
+
+.. [Lus1985] George Lusztig, *Cells in affine Weyl groups*, Algebraic Groups
+             and Related Topics, Advanced Studies in Pure mathematics 6, 1985, 
+             pp. 255-287.
+
+.. [Lus2013] George Lusztig, *Hecke algebras with unequal parameters*,
+             :arxiv:`math/0208154`. 
 
 .. [Lut2005] Frank H. Lutz, "Triangulated Manifolds with Few Vertices:
              Combinatorial Manifolds", preprint (2005),
@@ -4794,6 +4832,9 @@ REFERENCES:
              The flush statistic on semistandard Young tableaux.
              :arXiv:`1401.1185`
 
+.. [Sam2012] \P. Samanta: *Antipodal Graphs*
+             :doi:`10.13140/RG.2.2.28238.46409`
+
 .. [Sch1990] Schnyder, Walter. *Embedding Planar Graphs on the Grid*.
              Proc. 1st Annual ACM-SIAM Symposium on Discrete Algorithms,
              San Francisco (1994), pp. 138-147.
@@ -5104,6 +5145,13 @@ REFERENCES:
               Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of
               Anders Björner,
               Research Paper 9, 24 pp.
+
+.. [Ste1996] John R. Stembridge, *On the fully commutative elements of Coxeter
+             groups*, Journal of Algebraic Combinatorics, 5,  pp. 355-385
+
+.. [Ste1998] John R. Stembridge, *The enumeration of the fully commutative
+             elements of Coxeter groups*, Journal of Algebraic Combinatorics,
+             7,  pp. 291-320.
 
 .. [Ste2003] John R. Stembridge, *A local characterization of
              simply-laced crystals*, Transactions of the American

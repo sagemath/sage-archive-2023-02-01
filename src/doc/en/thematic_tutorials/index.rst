@@ -119,7 +119,7 @@ Advanced Programming
 Documentation
 =============
 
-* :ref:`sws2srt`
+* :ref:`sws2rst`
 
 .. Sage development
 .. ----------------

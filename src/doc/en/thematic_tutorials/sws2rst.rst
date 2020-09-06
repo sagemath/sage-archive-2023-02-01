@@ -1,4 +1,4 @@
-.. _sws2srt:
+.. _sws2rst:
 
 =====================================================
 Creating a Tutorial from an old Sage Worksheet (.sws)

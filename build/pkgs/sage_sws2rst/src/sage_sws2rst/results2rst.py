@@ -158,7 +158,7 @@ def results2rst(text, images_dir):
         sage: results2rst(s,'')
         '\n.. image:: sage0.png\n    :align: center\n'
         sage: results2rst("4",'')
-        '    4'
+        '    4    '
         sage: s=r'<html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{3}{2}</div></html>'
         sage: results2rst(s,'')                                       
         '\n.. MATH::\n\n    \\frac{3}{2}\n'

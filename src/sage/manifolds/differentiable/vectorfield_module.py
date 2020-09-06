@@ -1019,7 +1019,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             sage: Id.set_name('1')
             Traceback (most recent call last):
             ...
-            AssertionError: the name of an immutable element cannot be changed
+            ValueError: the name of an immutable element cannot be changed
             sage: one = Id.copy('1'); one
             Field of tangent-space automorphisms 1 on the 2-dimensional
              differentiable manifold M

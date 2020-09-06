@@ -370,7 +370,7 @@ class TensorField(ModuleElementWithMutability):
         sage: zer.set_comp()
         Traceback (most recent call last):
         ...
-        AssertionError: the components of an immutable element cannot be
+        ValueError: the components of an immutable element cannot be
          changed
 
     Other tensor fields can be declared immutable, too::
@@ -383,12 +383,12 @@ class TensorField(ModuleElementWithMutability):
         sage: t.set_comp()
         Traceback (most recent call last):
         ...
-        AssertionError: the components of an immutable element cannot be
+        ValueError: the components of an immutable element cannot be
          changed
         sage: t.set_name('b')
         Traceback (most recent call last):
         ...
-        AssertionError: the name of an immutable element cannot be changed
+        ValueError: the name of an immutable element cannot be changed
 
     """
     def __init__(self, vector_field_module, tensor_type, name=None,
@@ -631,8 +631,8 @@ class TensorField(ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the name of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the name of an immutable element "
+                             "cannot be changed")
         if name is not None:
             self._name = name
             if latex_name is None:
@@ -996,8 +996,8 @@ class TensorField(ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the restrictions of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the restrictions of an immutable element "
+                             "cannot be changed")
         if not isinstance(rst, TensorField):
             raise TypeError("the argument must be a tensor field")
         if not rst._domain.is_subset(self._domain):
@@ -1304,13 +1304,13 @@ class TensorField(ModuleElementWithMutability):
             sage: z.set_comp(e)[0,1] = u*v
             Traceback (most recent call last):
             ...
-            AssertionError: the components of an immutable element cannot be
+            ValueError: the components of an immutable element cannot be
              changed
 
         """
         if self.is_immutable():
-            raise AssertionError("the components of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         self._is_zero = False  # a priori
         if basis is None:
             basis = self._domain._def_frame
@@ -1434,13 +1434,13 @@ class TensorField(ModuleElementWithMutability):
             sage: z.add_comp(e_uv)[1, 1] = u^2
             Traceback (most recent call last):
             ...
-            AssertionError: the components of an immutable element cannot be
+            ValueError: the components of an immutable element cannot be
              changed
 
         """
         if self.is_immutable():
-            raise AssertionError("the components of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         self._is_zero = False  # a priori
         if basis is None:
             basis = self._domain._def_frame
@@ -1514,8 +1514,8 @@ class TensorField(ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the components of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         dom = frame._domain
         if not dom.is_subset(self._domain):
             raise ValueError("the vector frame is not defined on a subset " +
@@ -1614,8 +1614,8 @@ class TensorField(ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the expressions of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the expressions of an immutable element "
+                             "cannot be changed")
         dom = frame._domain
         if not dom.is_subset(self._domain):
             raise ValueError("the vector frame is not defined on a subset " +
@@ -2105,8 +2105,8 @@ class TensorField(ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the components of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         if other not in self.parent():
             raise TypeError("the original must be an element "
                             + "of {}".format(self.parent()))

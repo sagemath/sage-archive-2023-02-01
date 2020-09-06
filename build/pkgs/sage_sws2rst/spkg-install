@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /usr/bin/env bash
 # From sage-spkg.
 # For type=script packages, the build rule in build/make/Makefile sources
 # sage-env but not sage-dist-helpers.

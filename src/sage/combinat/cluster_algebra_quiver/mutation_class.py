@@ -49,13 +49,13 @@ def _principal_part(mat):
         [1 2]
         [3 4]
     """
-    n, m = mat.ncols(), mat.nrows()-mat.ncols()
+    n, m = mat.ncols(), mat.nrows() - mat.ncols()
     if m < 0:
         raise ValueError('The input matrix has more columns than rows.')
     elif m == 0:
         return mat
     else:
-        return mat.submatrix(0,0,n,n)
+        return mat.submatrix(0, 0, n, n)
 
 
 def _digraph_mutate(dg, k, frozen=None):
@@ -166,8 +166,10 @@ def _matrix_to_digraph( M ):
 
     dg = DiGraph(sparse=True)
     for i,j in M.nonzero_positions():
-        if i >= n: a,b = M[i,j],-M[i,j]
-        else: a,b = M[i,j],M[j,i]
+        if i >= n:
+            a, b = M[i, j], -M[i, j]
+        else:
+            a, b = M[i, j], M[j, i]
         if a > 0:
             dg._backend.add_edge(i,j,(a,b),True)
         elif i >= n:

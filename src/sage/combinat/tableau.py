@@ -606,7 +606,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         else:
             get_len = len
         for row in str_tab:
-            for i,e in enumerate(row):
+            for i, e in enumerate(row):
                 col_widths[i] = max(col_widths[i], get_len(e))
 
         matr = []  # just the list of lines
@@ -616,7 +616,8 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             l1 += dh + h + h + h*w
         matr.append(l1 + dl)
         for nrow,row in enumerate(str_tab):
-            l1 = ""; l2 = ""
+            l1 = ""
+            l2 = ""
             n = len(str_tab[nrow+1]) if nrow+1 < len(str_tab) else 0
             for i,(e,w) in enumerate(zip(row,col_widths)):
                 if i == 0:

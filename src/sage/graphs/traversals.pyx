@@ -250,16 +250,42 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None, algorithm="fast")
         maximal code (according to the lexicographic order) is then removed, and
         the codes are updated. See for instance [CK2008]_ for more details.  The
         time complexity of this algorithm as described in [CK2008]_ is in
-        `O(n+m)`, where `n` is the number of vertices and `m` is the number of
+        `O(n + m)`, where `n` is the number of vertices and `m` is the number of
         edges, but our implementation is in `O(n^2)`.
 
       - ``"fast"`` -- This algorithm uses the notion of *slices* to refine the
         position of the vertices in the ordering. The time complexity of this
-        algorithm is in `O(n+m)`, and our implementation follows that
-        complexity. See [HMPV2000]_ for more details.
+        algorithm is in `O(n + m)`, and our implementation follows that
+        complexity. See [HMPV2000]_ and next section for more details.
 
-      Both algorithms have time complexity in `O(n+m)`, where `n` is the number
-      of vertices and `m` is the number of edges.
+    ALGORITHM:
+
+    The ``"fast"`` algorithm is the `O(n + m)` time algorithm proposed in
+    [HMPV2000]_, where `n` is the number of vertices and `m` is the number of
+    edges. It uses the notion of *slices*, i.e., subsets of consecutive vertices
+    in the ordering, and iteratively refines the slices by subdividing them into
+    sub-slices to determine the exact position of the vertices in the ordering.
+
+    Consider an ordering `\sigma` of the vertices. For a vertex `v`, we define
+    `N_i(v) = \{u | u \in N(v) \text{ and } \sigma(u) < i\}`, that is the subset
+    of neighbors of `v` appearing before the `i`-th vertex in the ordering
+    `\sigma`. Now, a slice of an ordering `\sigma` is a set of consecutive
+    vertices, `S = `{u | i \leq \sigma(u) \leq j\}`, such that for any `u \in
+    S`, we have `N_i(u) = N_i(\sigma^{-1}(i))` and for any `v` such that `j <
+    \sigma(v)`, `N_i(v) \neq N_i(\sigma^{-1}(i))`. The *head* of a slice is the
+    first position of its vertices.
+
+    The algorithm starts with a single slice containing all vertices. Then, when
+    the position of the `i`-th vertex `v` is fixed, it explores the neighbors of
+    `v` that have not yet been ordered. Consider a slice `S` such that `N(x)\cap
+    S \neq \emptyset`. The algorithm will rearrange the ordering of the vertices
+    in `S` so that the first vertices are the neighbors of `v`. The sub-slice
+    containing the neighbors of `v` is assigned a new slice name, and the head
+    of slice `S` is set to the position of the first vertex of `S \setminus
+    N(v)` in the ordering `\sigma`.
+
+    Observe that each arc of the graph can induce the subdivision of a
+    slice. Hence, the algorithm can use up to `m + 1` different slices.
 
     .. SEEALSO::
 
@@ -330,17 +356,19 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None, algorithm="fast")
         sage: from sage.graphs.traversals import _is_valid_lex_BFS_order
         sage: set_random_seed()
         sage: G = graphs.RandomChordalGraph(15)
-        sage: L = G.lex_BFS(initial_vertex=0, algorithm="fast")
+        sage: v0 = ZZ.random_element(G.order())
+        sage: L = G.lex_BFS(initial_vertex=v0, algorithm="fast")
         sage: _is_valid_lex_BFS_order(G, L)
         True
-        sage: L = G.lex_BFS(initial_vertex=0, algorithm="slow")
+        sage: L = G.lex_BFS(initial_vertex=v0, algorithm="slow")
         sage: _is_valid_lex_BFS_order(G, L)
         True
         sage: G = digraphs.RandomDirectedGNP(15, .3)
-        sage: L = G.lex_BFS(initial_vertex=0, algorithm="fast")
+        sage: v0 = ZZ.random_element(G.order())
+        sage: L = G.lex_BFS(initial_vertex=v0, algorithm="fast")
         sage: _is_valid_lex_BFS_order(G, L)
         True
-        sage: L = G.lex_BFS(initial_vertex=0, algorithm="slow")
+        sage: L = G.lex_BFS(initial_vertex=v0, algorithm="slow")
         sage: _is_valid_lex_BFS_order(G, L)
         True
 
@@ -1613,7 +1641,7 @@ def maximum_cardinality_search(G, reverse=False, tree=False, initial_vertex=None
         sage: T.edges(labels=False, sort=True)
         [(0, 1), (1, 2), (2, 3)]
 
-    TESTS:
+    TESTS::
 
         sage: Graph().maximum_cardinality_search()
         []

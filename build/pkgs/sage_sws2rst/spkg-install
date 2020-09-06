@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#! /bin/sh
 # From sage-spkg.
 # For type=script packages, the build rule in build/make/Makefile sources
 # sage-env but not sage-dist-helpers.
@@ -9,4 +9,14 @@ if [ $? -ne 0 ]; then
     echo >&2 "Is $SAGE_ROOT the correct SAGE_ROOT?"
     exit 1
 fi
-cd src && sdh_pip_install .
+set -e
+(cd src && sdh_pip_install .)
+# For type=script packages, spkg-check is not run
+case "$SAGE_CHECK" in
+    yes)
+        ./spkg-check
+        ;;
+    warn)
+        ./spkg-check || echo >&2  "Warning: Failures testing package sage_sws2rst (ignored)"
+        ;;
+esac

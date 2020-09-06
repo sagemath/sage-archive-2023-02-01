@@ -39,18 +39,18 @@ def preprocess_display_latex(text):
 
     EXAMPLES::
 
-        sage: from sage_sws2rst.comments2rst import preprocess_display_latex # optional - beautifulsoup
-        sage: s="$$a=2$$" # optional - beautifulsoup
-        sage: preprocess_display_latex(s) # optional - beautifulsoup
+        >>> from sage_sws2rst.comments2rst import preprocess_display_latex
+        >>> s="$$a=2$$"
+        >>> preprocess_display_latex(s)
         '<display>a=2</display>' 
-        sage: s="<p>$$a=2$$</p>" # optional - beautifulsoup
-        sage: preprocess_display_latex(s) # optional - beautifulsoup
+        >>> s="<p>$$a=2$$</p>"
+        >>> preprocess_display_latex(s)
         '<p><display>a=2</display></p>'
-        sage: s="<p>$$a=2</p>$$" # optional - beautifulsoup
-        sage: preprocess_display_latex(s) # optional - beautifulsoup
+        >>> s="<p>$$a=2</p>$$"
+        >>> preprocess_display_latex(s)
         '<p><display>a=2</display></p>'
-        sage: s="$$<p>a=2</p>$$" # optional - beautifulsoup
-        sage: preprocess_display_latex(s) # optional - beautifulsoup
+        >>> s="$$<p>a=2</p>$$"
+        >>> preprocess_display_latex(s)
         '<display>a=2</display>'
     """
     ls = []
@@ -128,20 +128,20 @@ def replace_latex(soup):
 
     EXAMPLES::
 
-        sage: from sage_sws2rst.comments2rst import replace_latex # optional - beautifulsoup
-        sage: from bs4 import BeautifulSoup                       # optional - beautifulsoup
-        sage: soup = r"<p>Some <strong>latex: $e^\pi i=-1$</strong></p>"
-        sage: s = BeautifulSoup(soup, features='html.parser') # optional - beautifulsoup
-        sage: replace_latex(s)                                # optional - beautifulsoup
-        sage: s                                               # optional - beautifulsoup
+        >>> from sage_sws2rst.comments2rst import replace_latex
+        >>> from bs4 import BeautifulSoup
+        >>> soup = r"<p>Some <strong>latex: $e^\pi i=-1$</strong></p>"
+        >>> s = BeautifulSoup(soup, features='html.parser')
+        >>> replace_latex(s)
+        >>> s
         <p>Some <strong>latex: :math:`e^\pi i=-1`</strong></p>
 
     ::
 
-        sage: soup = "<p><strong>2+2 | 1+3</strong></p>"
-        sage: s = BeautifulSoup(soup, features='html.parser') # optional - beautifulsoup
-        sage: replace_latex(s)                                # optional - beautifulsoup
-        sage: s                                               # optional - beautifulsoup
+        >>> soup = "<p><strong>2+2 | 1+3</strong></p>"
+        >>> s = BeautifulSoup(soup, features='html.parser')
+        >>> replace_latex(s)
+        >>> s
         <p><strong>2\+2 \| 1\+3</strong></p>
     """
     for t in soup.findAll(text=re.compile('.+')):
@@ -377,34 +377,34 @@ def html2rst(text, images_dir):
 
     EXAMPLES::
 
-        sage: from sage_sws2rst.comments2rst import html2rst # optional - beautifulsoup
-        sage: text = r'<p>Some text with <em>math</em>: $e^{\pi i}=-1$</p>'
-        sage: html2rst(text, '') # optional - beautifulsoup
-        u'Some text with  *math* :  :math:`e^{\\pi i}=-1`\n\n'
+        >>> from sage_sws2rst.comments2rst import html2rst
+        >>> text = r'<p>Some text with <em>math</em>: $e^{\pi i}=-1$</p>'
+        >>> html2rst(text, '')
+        'Some text with  *math* :  :math:`e^{\\pi i}=-1`\n\n'
 
     ::
 
-        sage: text = '<p>Text with <em>incorrect</p> nesting</em>.'
-        sage: html2rst(text, '') # optional - beautifulsoup
-        u'Text with  *incorrect* \n\n nesting\n.'
+        >>> text = '<p>Text with <em>incorrect</p> nesting</em>.'
+        >>> html2rst(text, '')
+        'Text with  *incorrect* \n\n nesting\n.'
 
     ::
 
-        sage: text = '<pre>Preformatted: \n    a+2\n</pre><p> Not preformatted: \n    a+2\n</p>'
-        sage: html2rst(text, '') # optional - beautifulsoup
-        u'::\n\n    Preformatted: \n        a+2\n    \n Not preformatted:     a\\+2\n\n'
+        >>> text = '<pre>Preformatted: \n    a+2\n</pre><p> Not preformatted: \n    a+2\n</p>'
+        >>> html2rst(text, '')
+        '::\n\n    Preformatted: \n        a+2\n    \n Not preformatted:     a\\+2\n\n'
 
     ::
 
-        sage: text = '&aacute;ñ&nbsp;&ntildeá'
-        sage: html2rst(text, '') # optional - beautifulsoup
-        u'\xe1\xf1 \xf1\xe1'
+        >>> text = '&aacute;ñ&nbsp;&ntildeá'
+        >>> html2rst(text, '')
+        '\xe1\xf1 \xf1\xe1'
 
     ::
 
-        sage: text = r'<p>some text</p><p>$$</p><p>3.183098861 \cdot 10^{-1}</p><p>$$</p>'
-        sage: html2rst(text, '') # optional - beautifulsoup
-        u'some text\n\n.. MATH::\n\n    3.183098861 \\cdot 10^{-1}\n\n.. end of math\n\n'
+        >>> text = r'<p>some text</p><p>$$</p><p>3.183098861 \cdot 10^{-1}</p><p>$$</p>'
+        >>> html2rst(text, '')
+        'some text\n\n.. MATH::\n\n    3.183098861 \\cdot 10^{-1}\n\n.. end of math\n\n'
     """
     
     #replace $$some display latex$$ with
@@ -438,3 +438,6 @@ def html2rst(text, images_dir):
     text = replace_xml_entities(text)
     return text
     
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod(optionflags=doctest.NORMALIZE_WHITESPACE)

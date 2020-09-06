@@ -153,16 +153,19 @@ def results2rst(text, images_dir):
 
     EXAMPLES::
 
-        sage: from sage_sws2rst.results2rst import results2rst
-        sage: s="<html><font color='black'><img src='cell://sage0.png'></font></html>"
-        sage: results2rst(s,'')
+        >>> from sage_sws2rst.results2rst import results2rst
+        >>> s="<html><font color='black'><img src='cell://sage0.png'></font></html>"
+        >>> results2rst(s,'')
         '\n.. image:: sage0.png\n    :align: center\n'
-        sage: results2rst("4",'')
+        >>> results2rst("4",'')
         '    4    '
-        sage: s=r'<html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{3}{2}</div></html>'
-        sage: results2rst(s,'')                                       
+        >>> s=r'<html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{3}{2}</div></html>'
+        >>> results2rst(s,'')
         '\n.. MATH::\n\n    \\frac{3}{2}\n'
     """
     Parser = ResultsParser(images_dir)
     return Parser.parse(text)
 
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod(optionflags=doctest.NORMALIZE_WHITESPACE)

@@ -308,20 +308,24 @@ class Soup2Rst(object):
     def visit_strong(self, node):
         if node.contents:
             content = ' '.join(self.visit(tag) for tag in node.contents).strip()
-            if '``' in content:
+            if not content:
+                return ''
+            elif '``' in content:
                 return content
             else:
-                # in rst syntax, ``**test**something`` is invalid, the
-                # end ``**`` must be followed by a space or punctuation
-                # we add a space here to avoid that issue, acknowledging
-                # that it may add a space at some undesirable places
-                return '**' + content + '** '
+                return ' **' + content + '** '
         else:
             return ''
 
     def visit_em(self,node):
         if node.contents:
-            return ' *' + ' '.join(self.visit(tag) for tag in node.contents).strip() + '* '
+            content = ' '.join(self.visit(tag) for tag in node.contents).strip()
+            if not content:
+                return ''
+            elif '``' in content:
+                return content
+            else:
+                return ' *' + content + '* '
         else:
             return ''
 
@@ -405,6 +409,40 @@ def html2rst(text, images_dir):
         >>> text = r'<p>some text</p><p>$$</p><p>3.183098861 \cdot 10^{-1}</p><p>$$</p>'
         >>> html2rst(text, '')
         'some text\n\n.. MATH::\n\n    3.183098861 \\cdot 10^{-1}\n\n.. end of math\n\n'
+
+    When the content is empty::
+
+        >>> html2rst("<strong></strong> ", '')
+        '\n '
+        >>> html2rst("<strong> </strong> ", '')
+        '\n '
+        >>> html2rst("<em></em> ", '')
+        '\n '
+        >>> html2rst("<em> </em> ", '')
+        '\n '
+
+    Spaces are added around *italic* or **bold** text (otherwise, it
+    may be invalid ReStructuredText syntax)::
+
+        >>> text = '<p><strong>Exercice.</strong>Let x be ...</p>'
+        >>> html2rst(text, '')
+        ' **Exercice.** Let x be ...\n\n'
+        >>> text = '<p><em>Exercice.</em>Let x be ...</p>'
+        >>> html2rst(text, '')
+        ' *Exercice.* Let x be ...\n\n'
+
+    Below is an example showing the translation from html to rst is not
+    always perfect.
+
+    Here the strong emphasis is on more than one line and is not properly
+    translated::
+
+        >>> text='<p>You will find a <em>while loop</em> helpful here. Below is a simple example:</p><p style="padding-left: 30px;"><strong>x = 0<br />while x &lt; 7:<br />&nbsp;&nbsp;&nbsp; x = x + 2<br />&nbsp;&nbsp;&nbsp; print x</strong></p>'
+        >>> html2rst(text, '')
+        'You will find a  *while loop*  helpful here. Below is a simple
+        example:\n\n **x = 0 \n\n while x < 7: \n\n     x = x \\+ 2 \n\n
+        print x** \n\n'
+
     """
     
     #replace $$some display latex$$ with

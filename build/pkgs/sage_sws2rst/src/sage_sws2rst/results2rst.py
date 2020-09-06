@@ -153,7 +153,7 @@ def results2rst(text, images_dir):
 
     EXAMPLES::
 
-        sage: from sagenb.misc.results2rst import results2rst
+        sage: from sage_sws2rst.results2rst import results2rst
         sage: s="<html><font color='black'><img src='cell://sage0.png'></font></html>"
         sage: results2rst(s,'')
         '\n.. image:: sage0.png\n    :align: center\n'

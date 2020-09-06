@@ -59,6 +59,7 @@ available:
   [GR2018v5sol]_.
 - Super RSK insertion (:class:`~sage.combinat.rsk.RuleSuperRSK`), a
   combination of row and column insertions defined in [Muth2019]_.
+-Star insertion (:class:`~sage.combinat.RuleStar`), defined in [MPPS2020]_.
 
 Implementing your own insertion rule
 ------------------------------------
@@ -147,6 +148,10 @@ REFERENCES:
    *Hopf Algebras In Combinatorics*,
    :arXiv:`1409.8356v5`, available with solutions at
    https://arxiv.org/src/1409.8356v5/anc/HopfComb-v73-with-solutions.pdf
+   
+.. [MPPS2020] Jennifer Morse, Jianping Pan, Wencin Poh, Anne Schilling.
+   *A Crystal on Decreasing Factorizations in the 0-Hecke Monoid*,
+   Electronic J. Comb. Volume 27, Issue 2 (2020), P2.29
 """
 
 # *****************************************************************************
@@ -2486,13 +2491,55 @@ class RuleSuperRSK(RuleRSK):
 class RuleStar(Rule):
     r"""
     Rule for star insertion.
+    
+    The Star Insertion algorithm is similar to the classical RSK algorithm, but it is defined using the *-insertion algorithm in [MPPS2020]_. The bottom row of the increasing Hecke biword is an element in the 0-Hecke monoid that is 321-avoiding. When inserting a letter x into a row R, there are three cases:
+    
+    Case 1: If R is empty or x > max(R), then append x to row R, terminate.
+    
+    Case 2: Otherwise if x is not in R, locate the smallest y in R with y > x. Bump y with x and insert y into the next row.
+    
+    Case 3: Otherwise, if x is in R, locate the smallest y in R with y <= x and interval [y,x] contained in R. Row R remains unchanged and y is to be inserted into the next row.
+    
+    The Star insertion algorithm returns a pair of an conjugate of a semistandard tableau and a semistandard tableau.
+    
+    EXAMPLES:
+    
+    As an example of *-insertion, we reproduce Example 3.9 :arxiv:`1911.08732`::
+    
+        sage: from sage.combinat.rsk import RuleStar
+        sage: p,q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,2,4])         
+        sage: ascii_art(p,q)                                                            
+          1  2  4  1  1  2
+          1  4     2  4   
+          3        4   
+        sage: line1,line2 = RuleStar().backward_rule(p,q)
+        sage: line1,line2                                                               
+        ([1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4])    
+        
+        sage: p,q = RSK([1,1,2,2,4,4],[1,3,2,4,2,4],insertion='Star')                 
+        sage: ascii_art(p,q)                                                            
+          1  2  4  1  1  2
+          1  4     2  4   
+          3        4     
+        sage: line1,line2 = RSK_inverse(p,q,insertion='Star') 
+        sage: line1,line2                                                               
+        ([1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4])
+    
     """
     def forward_rule(self, obj1, obj2 = None, check_braid = True):
         r"""
         Return a pair of tableaux obtained by applying forward
         insertion to the generalized permutation ``[obj1, obj2]``.
         
-        Examples::
+        INPUT:
+        
+        - ``obj1,obj2`` -- can be one of the following ways to represent a generalized permutation (or, equivalently, biword) that is 321-avoiding:
+        
+          - two lists ``obj1`` and ``obj2`` of equal length, to be interpreted as the top row and the bottom row of the biword
+          
+          - a word ``obj1`` to be interpreted the bottom of the biword (in this case, ``obj1`` is ``None``; the top row of the biword is understood to be `(1,2,\ldots,n)` by default)
+          
+        EXAMPLES::
         
             sage: from sage.combinat.rsk import RuleStar
             sage: P,Q = RuleStar().forward_rule([1,1,2,3,3],[2,3,3,1,3]) 
@@ -2505,7 +2552,12 @@ class RuleStar(Rule):
             1  3  1  2
             2  3  3  5
             2     4 
-        
+            sage: P,Q = RSK([1,1,2,3,3],[2,3,3,1,3],insertion=RSK.rules.Star)
+            sage: ascii_art(P,Q) 
+            1  3  1  2
+            2  3  3  5
+            2     4  
+                       
         Tests::
         
             sage: P,Q = RuleStar().forward_rule([1,1,2,3,3],[2,2,3,1,3]) 
@@ -2561,10 +2613,75 @@ class RuleStar(Rule):
         if not (p.conjugate()).is_semistandard():
             raise ValueError(f"The insertion tableau {p} is not semistandard")
         return [p,q]
+
+    def backward_rule(self, p, q, output = None):
+        r"""
+        Return the Hecke biword obtained by applying reverse *-insertion to a pair of tableaux ``(p,q)``.
+        
+        INPUT:
+        
+        - ``p``,``q`` -- two tableaux of the same shape, ``p`` is the conjugate of a semistandard tableau, whose reading word is 321-avoiding
+
+        Examples::
+
+            sage: from sage.combinat.rsk import RuleStar
+            sage: P,Q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,2,4]) 
+            sage: ascii_art(P,Q)
+            1  2  4  1  1  2
+            1  4     2  4   
+            3        4 
+            sage: line1,line2 = RuleStar().backward_rule(P,Q)
+            sage: print(line1,line2)
+            [1, 1, 2, 2, 4, 4] [1, 3, 2, 4, 2, 4]
+        """
+        from sage.combinat.tableau import Tableau,SemistandardTableau, SemistandardTableaux
+        if p.shape() != q.shape():
+            raise ValueError("p conjugate(=%s) and q(=%s) must have the same shape" % (p, q))
+        if p.conjugate() not in SemistandardTableaux():
+            raise ValueError("p.conjugate(=%s) must be a semistandard tableau" % p.conjugate())  
+        row_reading = [ele for row in p[::-1] for ele in row]
+        N = max(row_reading) +1
+        from sage.monoids.hecke_monoid import HeckeMonoid
+        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+        H = HeckeMonoid(SymmetricGroup(N))
+        h = H.from_reduced_word(row_reading)
+        from sage.combinat.permutation import Permutations
+        P = Permutations(N)
+        w = P.from_reduced_word(h.reduced_word())
+        if w.has_pattern([3,2,1]):
+            raise ValueError(f"The row reading of the insertion tableau {p} contains 321-pattern.")           
+        p_copy = [list(row) for row in p]
+        q_copy = [list(row) for row in q]
+        line1 = []
+        line2 = []
+        d = {}
+        for i, row in enumerate(q):
+            for j, val in enumerate(row):
+                if val in d:
+                    d[val][j] = i
+                else:
+                    d[val] = {j: i}
+        # d is now a double family such that for every integers k and j,
+        # the value d[k][j]=i means (i, j)-th cell of Q is filled with k.
+        for value, row_dict in sorted(d.items(), key=lambda x: -x[0]):
+            for j in sorted(row_dict.keys(), reverse=True):
+                i = row_dict[j]
+                #print "i=",i,"j=",j,"value=",value,"row_dict=",row_dict
+                x = p_copy[i].pop()  # Always the right-most entry
+                #print "temp x=",x
+                while i > 0:
+                    i -= 1
+                    row = p_copy[i]
+                    x = self.reverse_insertion(x,row)
+                #print "final x=",x
+                line2.append(x)
+                line1.append(value)
+        return line1[::-1],line2[::-1]
     
     def insertion(self,b,r):
         r"""
-        Inserting the letter ``j`` from the second row of the biword into the row ``r`` using Star-insertion.
+        Inserting the letter ``j`` from the second row of the biword into the row ``r`` using *-insertion defined in [MPPS2020]_.
+        
         If there is bumping to be done, the row `r` is modified in place if bumping occurs. The bump-out entry, if if exists, is returned.
         
         Examples::
@@ -2588,54 +2705,6 @@ class RuleStar(Rule):
             k = r[y_pos]
             r[y_pos] = b
         return k
-
-    def backward_rule(self, P, Q):
-        r"""
-
-        Examples::
-
-            sage: from sage.combinat.rsk import RuleStar
-            sage: P,Q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,2,4]) 
-            sage: ascii_art(P,Q)
-            1  2  4  1  1  2
-            1  4     2  4   
-            3        4 
-            sage: line1,line2 = RuleStar().backward_rule(P,Q)
-            sage: print(line1,line2)
-            [1, 1, 2, 2, 4, 4] [1, 3, 2, 4, 2, 4]
-        """
-        from sage.combinat.tableau import Tableau,SemistandardTableau, SemistandardTableaux
-        if P.shape() != Q.shape():
-            raise ValueError("P conjugate(=%s) and Q(=%s) must have the same shape" % (P, Q))
-        if P.conjugate() not in SemistandardTableaux():
-            raise ValueError("p.conjugate(=%s) must be a semistandard tableau" % P.conjugate())    
-        p_copy = [list(row) for row in P]
-        q_copy = [list(row) for row in Q]
-        line1 = []
-        line2 = []
-        d = {}
-        for i, row in enumerate(Q):
-            for j, val in enumerate(row):
-                if val in d:
-                    d[val][j] = i
-                else:
-                    d[val] = {j: i}
-        # d is now a double family such that for every integers k and j,
-        # the value d[k][j]=i means (i, j)-th cell of Q is filled with k.
-        for value, row_dict in sorted(d.items(), key=lambda x: -x[0]):
-            for j in sorted(row_dict.keys(), reverse=True):
-                i = row_dict[j]
-                #print "i=",i,"j=",j,"value=",value,"row_dict=",row_dict
-                x = p_copy[i].pop()  # Always the right-most entry
-                #print "temp x=",x
-                while i > 0:
-                    i -= 1
-                    row = p_copy[i]
-                    x = self.reverse_insertion(x,row)
-                #print "final x=",x
-                line2.append(x)
-                line1.append(value)
-        return line1[::-1],line2[::-1]
     
     def reverse_insertion(self,x,row):
         r"""
@@ -2648,6 +2717,10 @@ class RuleStar(Rule):
             sage: from sage.combinat.rsk import RuleStar
             sage: RuleStar().reverse_insertion(4,[1,2,3,5]) 
             3
+            sage: RuleStar().reverse_insertion(1,[1,2,3,5])
+            3
+            sage:RuleStar().reverse_insertion(5,[1,2,3,5])
+            5
         """
         if x in row:
             y = x
@@ -2855,6 +2928,8 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
             insertion = RSK.rules.coRSK
         elif insertion == 'superRSK':
             insertion = RSK.rules.superRSK
+        elif insertion == 'Star':
+            insertion = RSK.rules.Star
         else:
             raise ValueError("invalid input")
 
@@ -3052,6 +3127,8 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
             insertion = RSK.rules.coRSK
         elif insertion == 'superRSK':
             insertion = RSK.rules.superRSK
+        elif insertion == 'Star':
+            insertion = RSK.rules.Star
         else:
             raise ValueError("invalid input")
 

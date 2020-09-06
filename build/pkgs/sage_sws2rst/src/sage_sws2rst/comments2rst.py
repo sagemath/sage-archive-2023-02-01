@@ -39,7 +39,7 @@ def preprocess_display_latex(text):
 
     EXAMPLES::
 
-        sage: from sagenb.misc.comments2rst import preprocess_display_latex # optional - beautifulsoup
+        sage: from sage_sws2rst.comments2rst import preprocess_display_latex # optional - beautifulsoup
         sage: s="$$a=2$$" # optional - beautifulsoup
         sage: preprocess_display_latex(s) # optional - beautifulsoup
         '<display>a=2</display>' 
@@ -128,7 +128,7 @@ def replace_latex(soup):
 
     EXAMPLES::
 
-        sage: from sagenb.misc.comments2rst import replace_latex # optional - beautifulsoup
+        sage: from sage_sws2rst.comments2rst import replace_latex # optional - beautifulsoup
         sage: from BeautifulSoup import BeautifulSoup # optional - beautifulsoup
         sage: s = BeautifulSoup("<p>Some <strong>latex: $e^\pi i=-1$</strong></p>") # optional - beautifulsoup
         sage: replace_latex(s) # optional - beautifulsoup
@@ -371,7 +371,7 @@ def html2rst(text, images_dir):
 
     EXAMPLES::
 
-        sage: from sagenb.misc.comments2rst import html2rst # optional - beautifulsoup
+        sage: from sage_sws2rst.comments2rst import html2rst # optional - beautifulsoup
         sage: html2rst('<p>Some text with <em>math</em>: $e^{\pi i}=-1$</p>', '') # optional - beautifulsoup
         u'Some text with  *math* :  :math:`e^{\\pi i}=-1`\n\n'
         sage: html2rst('<p>Text with <em>incorrect</p> nesting</em>.', '') # optional - beautifulsoup

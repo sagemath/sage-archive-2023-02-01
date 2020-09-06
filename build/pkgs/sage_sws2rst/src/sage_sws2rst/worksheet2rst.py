@@ -98,7 +98,7 @@ def code_parser(text):
     EXAMPLES (not used for unit test, see 
     http://groups.google.com/group/sage-devel/browse_thread/thread/d82cb049ac102f3a)
 
-    : from sagenb.misc.worksheet2rst import code_parser
+    : from sage_sws2rst.worksheet2rst import code_parser
     : s="a=2"
     : code_parser(s)
     '::\n\n    sage: a=2'
@@ -143,7 +143,7 @@ def worksheet2rst(s, images_dir=''):
     EXAMPLES (not used for unit test, see 
     http://groups.google.com/group/sage-devel/browse_thread/thread/d82cb049ac102f3a)
 
-    : from sagenb.misc.worksheet2rst import worksheet2rst
+    : from sage_sws2rst.worksheet2rst import worksheet2rst
     : worksheet2rst('<p>some text</p>\n{{{id=1|\nprint 2+2\n///\n4\n}}}')
     u'.. -*- coding: utf-8 -*-\n\nPlease write a title for this worksheet!\n========================================\n\nsome text\n\n\n::\n\n    sage: print 2+2\n    4\n\n.. end of output\n'
     : s = '{{{id=2|\nshow(f)\n///\n<html><div class="math">\\sqrt{x}</div></html>\n}}}\n'

@@ -416,6 +416,7 @@ AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
 - Travis Scrimshaw (2016): review tweaks
+- Michael Jung (2020): tensor bundles and orientability
 
 REFERENCES:
 

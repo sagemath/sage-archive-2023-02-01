@@ -303,6 +303,7 @@ AUTHORS:
 - Travis Scrimshaw (2015): structure described via
   :class:`~sage.manifolds.structure.TopologicalStructure` or
   :class:`~sage.manifolds.structure.RealTopologicalStructure`
+- Michael Jung (2020): topological vector bundles and orientability
 
 
 REFERENCES:

@@ -129,7 +129,7 @@ def replace_latex(soup):
     EXAMPLES::
 
         sage: from sage_sws2rst.comments2rst import replace_latex # optional - beautifulsoup
-        sage: from BeautifulSoup import BeautifulSoup # optional - beautifulsoup
+        sage: from bs4 import BeautifulSoup # optional - beautifulsoup
         sage: s = BeautifulSoup("<p>Some <strong>latex: $e^\pi i=-1$</strong></p>") # optional - beautifulsoup
         sage: replace_latex(s) # optional - beautifulsoup
         sage: s # optional - beautifulsoup

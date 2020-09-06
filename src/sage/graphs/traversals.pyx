@@ -58,7 +58,7 @@ def _is_valid_lex_BFS_order(G, L):
     a smaller label than `b`, and so if `a` is after `b` in the ordering `L`.
     It is proved in [DNB1996]_ that any lex BFS ordering satisfies that,
     if `a < b < c` and `ac \in E` and `bc \not\in E`, then there exists `d\in V`
-    such that `c < d`, `bd \in E` and `ad \not\in E`.
+    such that `c < d`, `db \in E` and `da \not\in E`.
 
     INPUT:
 
@@ -125,7 +125,7 @@ cdef lex_BFS_fast_short_digraph(short_digraph sd, uint32_t *sigma, uint32_t *pre
     `N_i(v) = \{u | u \in N(v) \text{ and } \sigma(u) < i\}`, that is the subset
     of neighbors of `v` appearing before the `i`-th vertex in the ordering
     `\sigma`. Now, a slice of an ordering `\sigma` is a set of consecutive
-    vertices, `S = `{u | i \leq \sigma(u) \leq j\}`, such that for any `u \in
+    vertices, `S = \{u | i \leq \sigma(u) \leq j\}`, such that for any `u \in
     S`, we have `N_i(u) = N_i(\sigma^{-1}(i))` and for any `v` such that `j <
     \sigma(v)`, `N_i(v) \neq N_i(\sigma^{-1}(i))`. The *head* of a slice is the
     first position of its vertices.
@@ -270,7 +270,7 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None, algorithm="fast")
     `N_i(v) = \{u | u \in N(v) \text{ and } \sigma(u) < i\}`, that is the subset
     of neighbors of `v` appearing before the `i`-th vertex in the ordering
     `\sigma`. Now, a slice of an ordering `\sigma` is a set of consecutive
-    vertices, `S = `{u | i \leq \sigma(u) \leq j\}`, such that for any `u \in
+    vertices, `S = \{u | i \leq \sigma(u) \leq j\}`, such that for any `u \in
     S`, we have `N_i(u) = N_i(\sigma^{-1}(i))` and for any `v` such that `j <
     \sigma(v)`, `N_i(v) \neq N_i(\sigma^{-1}(i))`. The *head* of a slice is the
     first position of its vertices.

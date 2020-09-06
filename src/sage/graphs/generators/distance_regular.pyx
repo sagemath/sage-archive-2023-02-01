@@ -986,26 +986,36 @@ def HalfCube(const int n):
          sage: G1.is_isomorphic(G2)
          True
     """
+    from sage.functions.trig import cos, sin
+
     if n < 2:
         raise ValueError("the dimension must be n > 1")
 
     cdef int u, uu, v, i, j
     cdef list E = []
+    cdef dict pos = {}  # dictionary of positions
+    cdef float theta = 3.14159265 / (n - 1)
+    cdef list cosi = [<float>cos(i*theta) for i in range(n - 1)]
+    cdef list sini = [<float>sin(i*theta) for i in range(n - 1)]
+
     for u in range(2**(n - 1)):
+        sig_check()
+        pos[u] = (sum(((u >> (n-2-i)) & 1) * cosi[i] for i in range(n - 1)),
+                  sum(((u >> (n-2-i)) & 1) * sini[i] for i in range(n - 1)))
+
         for i in range(n - 1):
             uu = u ^ (1 << i)
             if u < uu:
                 E.append((u, uu))
             for j in range(i + 1, n - 1):
-                sig_check()
                 v = uu ^ (1 << j)
                 if u < v:
                     E.append((u, v))
 
-    G = Graph(E, format='list_of_edges')
+    G = Graph([range(2**(n - 1)), E], format='vertices_and_edges')
+    G.set_pos(pos)
     G.name("Half %d Cube"%n)
     return G
-
 
 def GrassmannGraph(const int q, const int n, const int input_e):
     r"""

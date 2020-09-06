@@ -311,7 +311,11 @@ class Soup2Rst(object):
             if '``' in content:
                 return content
             else:
-                return '**' + content + '**'
+                # in rst syntax, ``**test**something`` is invalid, the
+                # end ``**`` must be followed by a space or punctuation
+                # we add a space here to avoid that issue, acknowledging
+                # that it may add a space at some undesirable places
+                return '**' + content + '** '
         else:
             return ''
 

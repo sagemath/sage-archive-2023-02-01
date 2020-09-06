@@ -168,6 +168,7 @@ def worksheet2rst(s, images_dir=''):
                                              img_path))
                 result.append('')
                 result.append('.. end of output')
+                result.append('')
             elif state == States.CODE:
                 if ls and any(ls):
                     result.append(code_parser('\n'.join(ls)))
@@ -186,6 +187,7 @@ def worksheet2rst(s, images_dir=''):
                                      img_path))
         result.append('')
         result.append('.. end of output')
+        result.append('')
     elif state == States.CODE:
         result.append(code_parser('\n'.join(ls)))
 

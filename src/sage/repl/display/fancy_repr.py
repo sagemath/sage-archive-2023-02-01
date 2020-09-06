@@ -3,14 +3,14 @@
 Representations of objects
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import types
 from io import StringIO
@@ -276,7 +276,8 @@ class PlainPythonRepr(ObjectReprABC):
             try:
                 output = repr(obj)
             except Exception:
-                import sys, traceback
+                import sys
+                import traceback
                 objrepr = object.__repr__(obj).replace("object at", "at")
                 exc = traceback.format_exception_only(sys.exc_info()[0], sys.exc_info()[1])
                 exc = (''.join(exc)).strip()

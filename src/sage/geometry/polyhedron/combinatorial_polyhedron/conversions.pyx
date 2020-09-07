@@ -75,7 +75,6 @@ AUTHOR:
 
 from sage.structure.element import is_Matrix
 
-from libc.string                      cimport memset
 from .list_of_faces                   cimport ListOfFaces
 from sage.misc.superseded              import deprecated_function_alias
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
@@ -87,6 +86,7 @@ cdef extern from "Python.h":
 cdef extern from "bitsets.cc":
     cdef void bitset_add(uint64_t* bits, size_t n)
     cdef size_t bitset_next(uint64_t* bits, size_t face_length, size_t n)
+    cdef void bitset_clear(uint64_t* bits, size_t face_length)
 
 def _Vrep_list_to_bit_rep_wrapper(tup, size_t face_length=-1):
     r"""
@@ -96,7 +96,7 @@ def _Vrep_list_to_bit_rep_wrapper(tup, size_t face_length=-1):
 
         sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
         ....:         import _Vrep_list_to_bit_rep_wrapper
-        sage: _Vrep_list_to_bit_rep_wrapper((60, 63))
+        sage: _Vrep_list_to_bit_rep_wrapper((0, 3))
         (9,)
     """
     if face_length == -1:
@@ -129,9 +129,9 @@ cdef int Vrep_list_to_bit_rep(tuple Vrep_list, uint64_t *output,
 
         sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
         ....:         import _Vrep_list_to_bit_rep_wrapper
-        sage: _Vrep_list_to_bit_rep_wrapper((62, 63))
+        sage: _Vrep_list_to_bit_rep_wrapper((0, 1))
         (3,)
-        sage: _Vrep_list_to_bit_rep_wrapper((61, 63, 125))
+        sage: _Vrep_list_to_bit_rep_wrapper((0, 2, 64+2))
         (5, 4)
         sage: _Vrep_list_to_bit_rep_wrapper((62, 70), face_length=1)
         Traceback (most recent call last):
@@ -150,7 +150,7 @@ cdef int Vrep_list_to_bit_rep(tuple Vrep_list, uint64_t *output,
     cdef size_t position  # determines the position in output of entry
     cdef size_t value     # determines which bit will be set in output[position]
 
-    memset(output, 0, face_length*8)  # initialize output
+    bitset_clear(output, face_length)
     if unlikely(len(Vrep_list) != len(set(Vrep_list))):
         raise ValueError("entries of ``tup`` are not distinct")
     for entry in Vrep_list:
@@ -166,7 +166,7 @@ def _incidences_to_bit_rep_wrapper(tup, size_t face_length=-1):
 
         sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
         ....:         import _incidences_to_bit_rep_wrapper
-        sage: _incidences_to_bit_rep_wrapper((0,) * 60 + (1,0,0,1))
+        sage: _incidences_to_bit_rep_wrapper((1,0,0,1))
         (9,)
     """
     if face_length == -1:
@@ -201,10 +201,10 @@ cdef int incidences_to_bit_rep(tuple incidences, uint64_t *output,
 
         sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
         ....:         import _incidences_to_bit_rep_wrapper
-        sage: _incidences_to_bit_rep_wrapper((0,) * 62 + (1,1))
+        sage: _incidences_to_bit_rep_wrapper((1,1))
         (3,)
-        sage: _incidences_to_bit_rep_wrapper((0,) * 61 + (1,0,1) +
-        ....:                                 (0,) * 61 + (1,))
+        sage: _incidences_to_bit_rep_wrapper((1,0,1) + 61*(0,) +
+        ....:                                (0,0,1,))
         (5, 4)
         sage: _incidences_to_bit_rep_wrapper((1,) * 64) == (2**64-1,)
         True
@@ -216,7 +216,7 @@ cdef int incidences_to_bit_rep(tuple incidences, uint64_t *output,
     cdef size_t entry       # index for the entries in tup
     cdef size_t length = len(incidences)
 
-    memset(output, 0, face_length*8)  #initialize
+    bitset_clear(output, face_length)
     if unlikely(length > 64*face_length):
         raise IndexError("output too small to represent all incidences")
     for entry in range(length):
@@ -282,7 +282,7 @@ def incidence_matrix_to_bit_rep_of_facets(Matrix_integer_dense matrix):
     cdef size_t i
     for i in range(ncols):
         output = facets_data[i]
-        memset(output, 0, face_length*8)  #initialize
+        bitset_clear(output, face_length)
 
         # Filling each facet with its Vrep-incidences, which "is" the
         # "i-th column" of the original matrix (but we have transposed).
@@ -444,7 +444,7 @@ def facets_tuple_to_bit_rep_of_Vrep(tuple facets_input, size_t n_Vrep):
     cdef size_t face_length = Vrep.face_length
     cdef size_t i
     for i in range(n_Vrep):
-        memset(Vrep_data[i], 0, face_length*8)
+        bitset_clear(Vrep_data[i], face_length)
 
     cdef size_t input_facet   # will iterate over indices of facets_input
     cdef size_t position      # determines the position in output of entry
@@ -484,7 +484,7 @@ def _bit_rep_to_Vrep_list_wrapper(data, index=0):
         ....:     import facets_tuple_to_bit_rep_of_facets, \
         ....:            _bit_rep_to_Vrep_list_wrapper
         sage: _bit_rep_to_Vrep_list_wrapper((1, 1))
-        (63, 127)
+        (0, 64)
         sage: faces = facets_tuple_to_bit_rep_of_facets(((1,5,123,1054),), 1055)
         sage: _bit_rep_to_Vrep_list_wrapper(faces, 0)
         (1, 5, 123, 1054)
@@ -531,11 +531,11 @@ cdef inline size_t bit_rep_to_Vrep_list(uint64_t *face, size_t *output,
         sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
         ....:     import _bit_rep_to_Vrep_list_wrapper
         sage: _bit_rep_to_Vrep_list_wrapper((17, 31))
-        (59, 63, 123, 124, 125, 126, 127)
+        (0, 4, 64, 65, 66, 67, 68)
         sage: _bit_rep_to_Vrep_list_wrapper((13,))
-        (60, 61, 63)
+        (0, 2, 3)
         sage: _bit_rep_to_Vrep_list_wrapper((0, 61))
-        (122, 123, 124, 125, 127)
+        (64, 66, 67, 68, 69)
 
     TESTS:
 

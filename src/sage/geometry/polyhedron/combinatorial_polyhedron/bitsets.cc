@@ -5,6 +5,8 @@
 */
 
 #include "gmp.h"
+#include <cstring>
+using namespace std;
 
 const size_t index_shift = 6;
 const size_t LIMB_BITS = 64;
@@ -14,7 +16,6 @@ const size_t LIMB_BITS = 64;
 # Creating limb patterns
 #############################################################################
 */
-
 
 inline uint64_t limb_one_set_bit(size_t n){
     /*
@@ -36,6 +37,52 @@ inline uint64_t limb_lower_bits_down(size_t n){
     in [0 .. 64-1].
     */
     return ((uint64_t) 1 << (n % LIMB_BITS)) - 1;
+}
+
+/*
+#############################################################################
+# Bitset Initalization
+#############################################################################
+*/
+
+inline void bitset_clear(uint64_t* bits, size_t face_length){
+    /*
+    Remove all elements from the set.
+    */
+    memset(bits, 0, face_length*8);
+}
+
+inline void bitset_copy(uint64_t* dst, uint64_t* src, size_t face_length){
+    /*
+    Copy the bitset src over to the bitset dst, overwriting dst.
+
+    We assume ``dst.limbs == src.limbs``.
+    */
+    memcpy(dst, src, face_length*8);
+}
+
+inline void bitset_copy(uint64_t* dst, uint64_t* src, size_t face_length_dst, size_t face_length_src){
+    /*
+    Copy the bitset src over to the bitset dst, overwriting dst.
+
+    If ``dst`` is longer, then additional bits are set to zero.
+    */
+    if (face_length_src > face_length_dst)
+        face_length_src = face_length_dst;
+
+    memcpy(dst, src, face_length_src*8);
+    memset(dst+face_length_src, 0, (face_length_dst-face_length_src)*8);
+}
+
+inline int bitset_cmp(uint64_t* a, uint64_t* b, size_t face_length){
+    /*
+    Compare bitsets a and b.  Return 0 if the two sets are
+    identical, and consistently return -1 or 1 for two sets that are
+    not equal.
+
+    We assume ``a.limbs >= b.limbs``.
+    */
+    return memcmp(a, b, face_length*8);
 }
 
 /*
@@ -64,6 +111,20 @@ inline void bitset_add(uint64_t* bits, size_t n){
     Add n to bits.
     */
     bits[n >> index_shift] |= limb_one_set_bit(n);
+}
+
+inline void bitset_set_first_n(uint64_t* bits, size_t face_length, size_t n){
+    /*
+    Set exactly the first n bits.
+    */
+    size_t i;
+    size_t index = n >> index_shift;
+    for(i = 0; i < index; i++)
+        bits[i] = -1;
+    if (index < face_length)
+        bits[index] = limb_lower_bits_down(n);
+    for(i=index+1; i < face_length; i++)
+        bits[i] = 0;
 }
 
 /*

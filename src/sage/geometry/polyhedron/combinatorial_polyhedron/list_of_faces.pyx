@@ -96,7 +96,6 @@ AUTHOR:
 from sage.structure.element import is_Matrix
 
 from cysignals.signals      cimport sig_on, sig_off
-from libc.string            cimport memcpy
 from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
 
 cdef extern from "bitset_operations.cc":
@@ -146,6 +145,10 @@ cdef extern from "bitset_operations.cc":
 cdef extern from "bitsets.cc":
     cdef void bitset_add(uint64_t* bits, size_t n)
     cdef int bitset_in(uint64_t* bits, size_t n)
+    cdef void bitset_copy(uint64_t* dst, uint64_t* src, size_t face_length)
+    cdef void bitset_copy_flex "bitset_copy" (uint64_t* dst, uint64_t* src, size_t face_length_dst, size_t face_length_src)
+    cdef void bitset_clear(uint64_t* bits, size_t face_length)
+    cdef void bitset_set_first_n(uint64_t* bits, size_t face_length, size_t n)
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -267,7 +270,7 @@ cdef class ListOfFaces:
         cdef ListOfFaces copy = ListOfFaces(self.n_faces, self.n_atoms)
         cdef size_t i
         for i in range(self.n_faces):
-            memcpy(copy.data[i], self.data[i], self.face_length*8)
+            bitset_copy(copy.data[i], self.data[i], self.face_length)
         return copy
 
     cpdef int compute_dimension(self) except -2:
@@ -356,7 +359,7 @@ cdef class ListOfFaces:
         cdef size_t new_n_faces
         sig_on()
         new_n_faces = get_next_level(faces, n_faces,
-                                      newfaces.data, NULL, 0, face_length)
+                                     newfaces.data, NULL, 0, face_length)
         sig_off()
 
         newfaces.n_faces = new_n_faces
@@ -420,25 +423,20 @@ cdef class ListOfFaces:
             [1 1 1 1 0]
         """
         cdef ListOfFaces copy
-        cdef size_t i, j
+        cdef size_t i
 
         # ``copy`` has a new atom and a new coatom.
         copy = ListOfFaces(self.n_faces + 1, self.n_atoms + 1)
 
         for i in range(self.n_faces):
-            for j in range(self.face_length, copy.face_length):
-                copy.data[i][j] = 0
 
             # All old coatoms contain their respective old atoms.
             # Also all of them contain the new atom.
-            memcpy(copy.data[i], self.data[i], self.face_length*8)
+            bitset_copy_flex(copy.data[i], self.data[i], copy.face_length, self.face_length)
             bitset_add(copy.data[i], self.n_atoms)
 
         # The new coatom contains all atoms, but the new atom.
-        for i in range(copy.face_length):
-            copy.data[self.n_faces][i] = 0
-        for i in range(self.n_atoms):
-            bitset_add(copy.data[self.n_faces], i)
+        bitset_set_first_n(copy.data[self.n_faces], copy.face_length, self.n_atoms)
 
         return copy
 

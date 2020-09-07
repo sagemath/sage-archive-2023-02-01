@@ -1,6 +1,7 @@
-# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitset_operations.cc
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitset_operations.cc sage/geometry/polyhedron/combinatorial_polyhedron/bitsets.cc
 # distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
+# distutils: libraries = gmp
 
 r"""
 PolyhedronFaceLattice
@@ -68,7 +69,6 @@ from .conversions \
                facets_tuple_to_bit_rep_of_Vrep
 
 from sage.rings.integer     cimport smallInteger
-from libc.string            cimport memcmp, memcpy, memset
 from .conversions           cimport Vrep_list_to_bit_rep, bit_rep_to_Vrep_list
 from .base                  cimport CombinatorialPolyhedron
 from .face_iterator         cimport FaceIterator
@@ -86,6 +86,10 @@ cdef extern from "bitset_operations.cc":
 #        ``face_length`` is the length of ``face`` and ``coatoms[i]``
 #        in terms of uint64_t.
 #        ``n_coatoms`` length of ``coatoms``.
+
+cdef extern from "bitsets.cc":
+    cdef int bitset_cmp(uint64_t* a, uint64_t* b, size_t face_length)
+    cdef void bitset_copy(uint64_t* dst, uint64_t* src, size_t face_length)
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -245,7 +249,7 @@ cdef class PolyhedronFaceLattice:
             raise IOError("trying to add too many faces to ``PolyhedronFaceLattice``")
 
         # Actually add the face by copying its data.
-        memcpy(self.faces[face_dim + 1][counter], face, self.face_length*8)
+        bitset_copy(self.faces[face_dim + 1][counter], face, self.face_length)
         self.face_counter[face_dim + 1] += 1
 
     cdef int _sort(self) except -1:
@@ -413,7 +417,7 @@ cdef class PolyhedronFaceLattice:
         r"""
         Return `1` if ``one`` is smaller than ``two``, otherwise `0`.
         """
-        return memcmp(one, two, self.face_length*8) < 0
+        return bitset_cmp(one, two, self.face_length) < 0
 
     cdef inline int is_equal(self, int dimension, size_t index, uint64_t *face) except -1:
         r"""
@@ -426,7 +430,7 @@ cdef class PolyhedronFaceLattice:
             raise IndexError()
         cdef uint64_t *face2 = self.faces[dimension+1][index]
         cdef size_t i
-        return (0 == memcmp(face, face2, self.face_length*8))
+        return (0 == bitset_cmp(face, face2, self.face_length))
 
     cpdef CombinatorialFace get_face(self, int dimension, size_t index):
         r"""

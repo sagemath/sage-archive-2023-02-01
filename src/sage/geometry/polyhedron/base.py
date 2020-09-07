@@ -6912,8 +6912,8 @@ class Polyhedron_base(Element):
             A 0-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 1 vertex
             sage: P.join_of_Vrep()
             A -1-dimensional face of a Polyhedron in ZZ^5
-            sage: P.join_of_Vrep(1,3,4).ambient_V_indices()
-            (0, 1, 2, 3, 4, 5)
+            sage: P.join_of_Vrep(0,12,13).ambient_V_indices()
+            (0, 12, 13, 68)
 
         The input is flexible::
 
@@ -6971,12 +6971,12 @@ class Polyhedron_base(Element):
             A 4-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 120 vertices
             sage: P.meet_of_facets(1)
             A 3-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 24 vertices
-            sage: P.meet_of_facets(2)
+            sage: P.meet_of_facets(4)
             A 3-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 12 vertices
-            sage: P.meet_of_facets(2,3,4)
+            sage: P.meet_of_facets(1,3,7)
             A 1-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 2 vertices
-            sage: P.meet_of_facets(2,3,4).ambient_H_indices()
-            (0, 2, 3, 4)
+            sage: P.meet_of_facets(1,3,7).ambient_H_indices()
+            (0, 1, 3, 7)
 
         The indices are the indices of the Hrepresentation::
 
@@ -6987,7 +6987,7 @@ class Polyhedron_base(Element):
 
         The input is flexible::
 
-            sage: P.meet_of_facets(P.facets()[-1], P.inequalities()[1], 3)
+            sage: P.meet_of_facets(P.facets()[-1], P.inequalities()[2], 7)
             A 1-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 2 vertices
 
         TESTS:
@@ -6996,13 +6996,13 @@ class Polyhedron_base(Element):
 
             sage: P = polytopes.permutahedron(3, backend='field')
             sage: P.Hrepresentation()
-            (An inequality (1, 1, 0) x - 3 >= 0,
+            (An inequality (0, 0, 1) x - 1 >= 0,
+             An inequality (0, 1, 0) x - 1 >= 0,
+             An inequality (0, 1, 1) x - 3 >= 0,
              An inequality (1, 0, 0) x - 1 >= 0,
-             An inequality (0, -1, 0) x + 3 >= 0,
-             An inequality (0, 2, 0) x - 2 >= 0,
-             An inequality (-4, -4, 0) x + 20 >= 0,
-             An inequality (-8, 0, 0) x + 24 >= 0,
-             An equation (-1/6, -1/6, -1/6) x + 1 == 0)
+             An inequality (1, 0, 1) x - 3 >= 0,
+             An inequality (1, 1, 0) x - 3 >= 0,
+             An equation (1, 1, 1) x - 6 == 0)
             sage: P.meet_of_facets(0)
             A 1-dimensional face of a Polyhedron in QQ^3 defined as the convex hull of 2 vertices
         """

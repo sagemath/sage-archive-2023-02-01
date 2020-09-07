@@ -7837,7 +7837,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     l = [((-coeffs[1]-I*sqrt(-D))/2/coeffs[2], 1),
                          ((-coeffs[1]+I*sqrt(-D))/2/coeffs[2], 1)]
                 else:
-                    l = [(-coeffs[1]/2/coeffs[2]), 2]
+                    l = [(-coeffs[1]/2/coeffs[2], 2)]
                 if multiplicities:
                     return l
                 else:

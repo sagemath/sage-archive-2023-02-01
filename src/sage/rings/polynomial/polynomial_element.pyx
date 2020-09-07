@@ -7835,18 +7835,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 from sage.libs.pynac.pynac import I
                 coeffs = self.list()
                 D = coeffs[1]*coeffs[1] - 4*coeffs[0]*coeffs[2]
+                l = None
                 if D > 0:
                     l = [((-coeffs[1]-sqrt(D))/2/coeffs[2], 1),
                          ((-coeffs[1]+sqrt(D))/2/coeffs[2], 1)]
                 elif D < 0:
                     l = [((-coeffs[1]-I*sqrt(-D))/2/coeffs[2], 1),
                          ((-coeffs[1]+I*sqrt(-D))/2/coeffs[2], 1)]
-                else:
+                elif D == 0:
                     l = [(-coeffs[1]/2/coeffs[2], 2)]
-                if multiplicities:
-                    return l
-                else:
-                    return [val for val,m in l]
+                if l:
+                    if multiplicities:
+                        return l
+                    else:
+                        return [val for val,m in l]
             vname = 'do_not_use_this_name_in_a_polynomial_coefficient'
             var = SR(vname)
             expr = self(var)

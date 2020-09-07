@@ -996,34 +996,36 @@ def HalfCube(const int n):
          sage: G1.is_isomorphic(G2)
          True
     """
-    from sage.graphs.graph_generators import graphs
+    from sage.functions.trig import cos, sin
 
-    def hamming_distance(str v, str w):
-        cdef int i, counter
+    if n < 2:
+        raise ValueError("the dimension must be n > 1")
 
-        counter = 0
-        for i in range(len(v)):
-            if (v[i] != w[i]):
-                counter = counter + 1
+    cdef int u, uu, v, i, j
+    cdef list E = []
+    cdef dict pos = {}  # dictionary of positions
+    cdef float theta = 3.14159265 / (n - 1)
+    cdef list cosi = [<float>cos(i*theta) for i in range(n - 1)]
+    cdef list sini = [<float>sin(i*theta) for i in range(n - 1)]
 
-        return counter
-
-    if n <= 2:
-        raise ValueError("we need n > 2")
-
-    G = graphs.CubeGraph(n-1)
-    # we use the fact that the vertices are strings
-    # and their distance is their hamming_distance
-    for v, w in itertools.combinations(G, 2):
+    for u in range(2**(n - 1)):
         sig_check()
-        if hamming_distance(v, w) == 2:
-            G.add_edge(v, w)
+        pos[u] = (sum(((u >> (n-2-i)) & 1) * cosi[i] for i in range(n - 1)),
+                  sum(((u >> (n-2-i)) & 1) * sini[i] for i in range(n - 1)))
 
-    G.relabel()  # relabel vertices to 0,1,2,...
+        for i in range(n - 1):
+            uu = u ^ (1 << i)
+            if u < uu:
+                E.append((u, uu))
+            for j in range(i + 1, n - 1):
+                v = uu ^ (1 << j)
+                if u < v:
+                    E.append((u, v))
 
+    G = Graph([range(2**(n - 1)), E], format='vertices_and_edges')
+    G.set_pos(pos)
     G.name("Half %d Cube"%n)
     return G
-
 
 def GrassmannGraph(const int q, const int n, const int input_e):
     r"""

@@ -280,6 +280,7 @@ cdef class FaceIterator_base(SageObject):
         if dual and not C.is_bounded():
             raise ValueError("cannot iterate over dual of unbounded Polyedron")
         cdef int i
+        cdef size_t j
         cdef ListOfFaces some_list  # make Cython aware of type
 
         self.dual = dual
@@ -339,7 +340,11 @@ cdef class FaceIterator_base(SageObject):
         for i in range(self.structure.dimension-1):
             some_list = self.newfaces_lists[i]
             self.structure.newfaces[i] = some_list.data
-        self.structure.newfaces[self.structure.dimension - 1] = self.coatoms.data  # we start with coatoms
+
+        # We start with the coatoms.
+        self.structure.newfaces[self.structure.dimension - 1] = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t*))
+        for j in self.coatoms.n_faces:
+            self.structure.newfaces[self.structure.dimension - 1][j] = self.coatoms.data[j]
 
         # Initialize ``visited_all``.
         self.structure.visited_all = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t *))

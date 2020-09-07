@@ -524,13 +524,15 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
         EXAMPLES::
 
             sage: S.<s> = LaurentSeriesRing(GF(3))
-            sage: S.random_element()
-            s^-8 + s^-7 + s^-6 + s^-5 + s^-1 + s + s^3 + s^4 + s^5 + 2*s^6 + s^7 + s^11 + O(s^12)
+            sage: S.random_element()  # random
+            s^-8 + s^-7 + s^-6 + s^-5 + s^-1 + s + s^3 + s^4
+            + s^5 + 2*s^6 + s^7 + s^11 + O(s^12)
         """
         if algorithm == 'default':
             shift = ZZ.random_element()
-            return self([self.base_ring().random_element() for k in range(self.default_prec())],
-                         shift).O(shift + self.default_prec())
+            return self([self.base_ring().random_element()
+                         for k in range(self.default_prec())],
+                        shift).O(shift + self.default_prec())
         else:
             raise ValueError("algorithm cannot be %s" % algorithm)
 

@@ -322,9 +322,7 @@ class Rule(UniqueRepresentation):
         p = []       # the "insertion" tableau
         q = []       # the "recording" tableau
         for i, j in itr:
-            print(i,j)
             for r, qr in zip(p, q):
-                print(r,qr)
                 j1 = self.insertion(j, r)
                 if j1 is None:
                     r.append(j)
@@ -2533,39 +2531,30 @@ class RuleStar(Rule):
         
         INPUT:
         
-        - ``obj1,obj2`` -- can be one of the following ways to represent a generalized permutation (or, equivalently, biword) that is 321-avoiding:
+        - ``obj1,obj2`` -- can be one of the following ways to represent a biword (or, equivalently,an increasing 0-Hecke factorization) that is 321-avoiding:
         
-          - two lists ``obj1`` and ``obj2`` of equal length, to be interpreted as the top row and the bottom row of the biword
+          - two lists ``obj1`` and ``obj2`` of equal length, to be interpreted as the top row and the bottom row of the biword.
           
-          - a word ``obj1`` to be interpreted the bottom of the biword (in this case, ``obj1`` is ``None``; the top row of the biword is understood to be `(1,2,\ldots,n)` by default)
+          - a word ``obj1`` to be interpreted the bottom of the biword (in this case, ``obj1`` is ``None``; the top row of the biword is understood to be `(1,2,\ldots,n)` by default).
           
         EXAMPLES::
         
-            sage: from sage.combinat.rsk import RuleStar
-            sage: P,Q = RuleStar().forward_rule([1,1,2,3,3],[2,3,3,1,3]) 
-            sage: ascii_art(P,Q) 
-            1  3  1  1
-            2  3  2  3
-            2     3 
-            sage: P,Q = RuleStar().forward_rule([2,3,3,1,3])
-            sage: ascii_art(P,Q) 
-            1  3  1  2
-            2  3  3  5
-            2     4 
-            sage: P,Q = RSK([1,1,2,3,3],[2,3,3,1,3],insertion=RSK.rules.Star)
-            sage: ascii_art(P,Q) 
-            1  3  1  2
-            2  3  3  5
-            2     4  
+            sage: from sage.combinat.rsk import RuleStar                                    
+            sage: P,Q = RuleStar().forward_rule([1,1,2,3,3],[2,3,3,1,3]);P,Q
+            ([[1, 3], [2, 3], [2]], [[1, 1], [2, 3], [3]])             
+            sage: P,Q = RuleStar().forward_rule([2,3,3,1,3]);P,Q
+            ([[1, 3], [2, 3], [2]], [[1, 2], [3, 5], [4]])
+            sage: P,Q = RSK([1,1,2,3,3],[2,3,3,1,3],insertion=RSK.rules.Star);P,Q
+            ([[1, 3], [2, 3], [2]], [[1, 1], [2, 3], [3]])
                        
         Tests::
         
             sage: P,Q = RuleStar().forward_rule([1,1,2,3,3],[2,2,3,1,3]) 
-            ValueError 
+            Traceback (most recent call last): 
             ...
             ValueError: [1, 1, 2, 3, 3],[2, 2, 3, 1, 3] are not increasing factorizations
             sage: P,Q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,1,3]) 
-            ValueError 
+            Traceback (most recent call last): 
             ...
             ValueError: The Star-insertion is not defined for words containing a braid, i.e., not 321-avoiding.
         """
@@ -2620,16 +2609,16 @@ class RuleStar(Rule):
         
         INPUT:
         
-        - ``p``,``q`` -- two tableaux of the same shape, ``p`` is the conjugate of a semistandard tableau, whose reading word is 321-avoiding
+        - ``p``,``q`` -- two tableaux of the same shape, ``p`` is the conjugate of a semistandard tableau, whose reading word is 321-avoiding.
 
         Examples::
 
             sage: from sage.combinat.rsk import RuleStar
             sage: P,Q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,2,4]) 
             sage: ascii_art(P,Q)
-            1  2  4  1  1  2
-            1  4     2  4   
-            3        4 
+              1  2  4  1  1  2
+              1  4     2  4   
+              3        4 
             sage: line1,line2 = RuleStar().backward_rule(P,Q)
             sage: print(line1,line2)
             [1, 1, 2, 2, 4, 4] [1, 3, 2, 4, 2, 4]
@@ -2686,6 +2675,7 @@ class RuleStar(Rule):
         
         Examples::
         
+            sage: from sage.combinat.rsk import RuleStar
             sage: RuleStar().insertion(3,[1,2,4,5]) 
             4
             sage: RuleStar().insertion(3,[1,2,3,5])
@@ -2719,7 +2709,7 @@ class RuleStar(Rule):
             3
             sage: RuleStar().reverse_insertion(1,[1,2,3,5])
             3
-            sage:RuleStar().reverse_insertion(5,[1,2,3,5])
+            sage: RuleStar().reverse_insertion(5,[1,2,3,5])
             5
         """
         if x in row:

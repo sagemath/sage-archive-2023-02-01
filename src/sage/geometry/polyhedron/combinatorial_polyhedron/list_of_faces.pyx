@@ -104,17 +104,15 @@ cdef extern from "bit_vector_operations.cc":
     cdef const size_t chunksize
 
     cdef size_t get_next_level(
-        uint64_t **faces, const size_t n_faces, uint64_t **nextfaces,
-        uint64_t **nextfaces2, uint64_t **visited_all,
-        size_t n_visited_all, size_t face_length)
+        uint64_t **faces, const size_t n_faces, uint64_t **newfaces,
+        uint64_t **visited_all, size_t n_visited_all, size_t face_length)
 #        Set ``newfaces`` to be the facets of ``faces[n_faces -1]``
 #        that are not contained in a face of ``visited_all``.
 
 #        INPUT:
 
-#        - ``maybe_newfaces`` -- quasi of type ``uint64_t[n_faces -1][face_length]``,
+#        - ``newfaces`` -- quasi of type ``uint64_t[n_faces -1][face_length]``,
 #          needs to be ``chunksize``-Bit aligned
-#        - ``newfaces`` -- quasi of type ``*uint64_t[n_faces -1]
 #        - ``visited_all`` -- quasi of type ``*uint64_t[n_visited_all]
 #        - ``face_length`` -- length of the faces
 
@@ -364,20 +362,16 @@ cdef class ListOfFaces:
             # the number of atoms it contains.
             return count_atoms(faces[0], face_length)
 
-        # ``maybe_newfaces`` are all intersection of ``faces[n_faces -1]`` with previous faces.
+        # ``newfaces`` are all intersection of ``faces[n_faces -1]`` with previous faces.
         # It needs to be allocated to store those faces.
-        cdef ListOfFaces maybe_newfaces_mem = ListOfFaces(n_faces, face_length*64)
-        cdef uint64_t **maybe_newfaces = maybe_newfaces_mem.data
+        cdef ListOfFaces newfaces_mem = ListOfFaces(n_faces, face_length*64)
+        cdef uint64_t **newfaces = newfaces_mem.data
 
-        # ``newfaces`` point to the actual facets of ``faces[n_faces -1]``.
-        cdef MemoryAllocator newfaces_mem = MemoryAllocator()
-        cdef uint64_t **newfaces = <uint64_t **> newfaces_mem.allocarray(n_faces, sizeof(uint64_t *))
-
-        # Calculating ``maybe_newfaces`` and ``newfaces``
+        # Calculating ``newfaces``
         # such that ``newfaces`` points to all facets of ``faces[n_faces -1]``.
         cdef size_t new_n_faces
         sig_on()
-        new_n_faces = get_next_level(faces, n_faces, maybe_newfaces,
+        new_n_faces = get_next_level(faces, n_faces,
                                       newfaces, NULL, 0, face_length)
         sig_off()
 

@@ -330,30 +330,10 @@ cdef class ListOfFaces:
         """
         if self.n_faces == 0:
             raise TypeError("at least one face needed")
-        return self.compute_dimension_loop(self.data, self.n_faces, self.face_length)
 
-    cdef int compute_dimension_loop(self, uint64_t **faces, size_t n_faces,
-                                      size_t face_length) except -2:
-        r"""
-        Compute the dimension of a polyhedron by its facets.
-
-        INPUT:
-
-        - ``faces`` -- facets in Bit-representation
-        - ``n_faces`` -- length of facesdata
-        - ``face_length`` -- the length of each face in terms of ``uint64_t``
-
-        OUTPUT:
-
-        - dimension of the polyhedron
-
-        .. SEEALSO::
-
-            :meth:`compute_dimension`
-        """
-        if n_faces == 0:
-            raise TypeError("wrong usage of ``compute_dimension_loop``,\n" +
-                            "at least one face needed.")
+        cdef size_t n_faces = self.n_faces
+        cdef size_t face_length = self.face_length
+        cdef uint64_t **faces = self.data
 
         if n_faces == 1:
             # We expect the face to be the empty polyhedron.
@@ -364,20 +344,21 @@ cdef class ListOfFaces:
 
         # ``newfaces`` are all intersection of ``faces[n_faces -1]`` with previous faces.
         # It needs to be allocated to store those faces.
-        cdef ListOfFaces newfaces_mem = ListOfFaces(n_faces, face_length*64)
-        cdef uint64_t **newfaces = newfaces_mem.data
+        cdef ListOfFaces newfaces = ListOfFaces(n_faces, face_length*64)
 
         # Calculating ``newfaces``
         # such that ``newfaces`` points to all facets of ``faces[n_faces -1]``.
         cdef size_t new_n_faces
         sig_on()
         new_n_faces = get_next_level(faces, n_faces,
-                                      newfaces, NULL, 0, face_length)
+                                      newfaces.data, NULL, 0, face_length)
         sig_off()
+
+        newfaces.n_faces = new_n_faces
 
         # compute the dimension of the polyhedron,
         # by calculating dimension of one of its faces.
-        return self.compute_dimension_loop(newfaces, new_n_faces, face_length) + 1
+        return newfaces.compute_dimension() + 1
 
     cpdef ListOfFaces pyramid(self):
         r"""

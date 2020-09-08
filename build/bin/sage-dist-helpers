@@ -216,7 +216,7 @@ sdh_pip_install() {
     sage-python23 -m pip wheel --wheel-dir=dist --no-binary :all: --verbose --no-deps --no-index --isolated --no-build-isolation "$@" || \
         sdh_die "Error building a wheel for $PKG_NAME"
 
-    sdh_store_and_pip_install_wheel
+    sdh_store_and_pip_install_wheel .
 }
 
 sdh_store_and_pip_install_wheel() {

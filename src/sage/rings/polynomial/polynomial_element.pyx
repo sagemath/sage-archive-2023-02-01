@@ -7544,6 +7544,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: PolynomialRing(SR, names="x")("x^2").roots()
             [(0, 2)]
 
+        Check that :trac:`30523` is fixed::
+
+            sage: PolynomialRing(SR, names="x")("x^2 + q").roots()
+            [(-sqrt(-q), 1), (sqrt(-q), 1)]
+
         Algorithms used:
 
         For brevity, we will use RR to mean any RealField of any precision;

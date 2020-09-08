@@ -297,7 +297,7 @@ cdef class DenseGraph(CGraph):
 
         INPUT:
 
-        - ``u``, ``v`` -- non-negative integers
+        - ``u, v`` -- non-negative integers
 
         """
         cdef int place = (u * self.num_longs) + (v / radix)
@@ -314,7 +314,7 @@ cdef class DenseGraph(CGraph):
 
         INPUT:
 
-        - ``u``, ``v`` -- non-negative integers, must be in self
+        - ``u, v`` -- non-negative integers, must be in self
 
         OUTPUT:
             0 -- False
@@ -331,7 +331,7 @@ cdef class DenseGraph(CGraph):
 
         INPUT:
 
-        - ``u``, ``v`` -- non-negative integers, must be in self
+        - ``u, v`` -- non-negative integers, must be in self
 
         """
         cdef int place = (u * self.num_longs) + (v / radix)
@@ -517,8 +517,6 @@ def _test_adjacency_sequence_out():
 # Dense Graph Backend
 ###########################################
 
-from .c_graph cimport CGraphBackend
-
 cdef class DenseGraphBackend(CGraphBackend):
     """
     Backend for Sage graphs using DenseGraphs.
@@ -570,7 +568,6 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         """
         self._cg = DenseGraph(n)
-        self._cg_rev = None
         self._directed = directed
         self.vertex_labels = {}
         self.vertex_ints = {}
@@ -581,7 +578,7 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         INPUT:
 
-        - ``u,v`` -- the vertices of the edge
+        - ``u, v`` -- the vertices of the edge
 
         - ``l`` -- the edge label (ignored)
 
@@ -659,7 +656,7 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         INPUT:
 
-        - ``u,v`` -- the vertices of the edge
+        - ``u, v`` -- the vertices of the edge
 
         - ``l`` -- the edge label (ignored)
 
@@ -709,7 +706,7 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         INPUT:
 
-        - ``u,v`` -- the vertices of the edge
+        - ``u, v`` -- the vertices of the edge
 
         EXAMPLES::
 
@@ -750,7 +747,7 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         INPUT:
 
-        - ``u,v`` -- the vertices of the edge
+        - ``u, v`` -- the vertices of the edge
 
         - ``l`` -- the edge label (ignored)
 
@@ -923,7 +920,7 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         INPUT:
 
-        - ``u,v`` -- the vertices of the edge
+        - ``u, v`` -- the vertices of the edge
 
         - ``l`` -- the edge label
 

@@ -90,8 +90,7 @@ Many other functionalities...::
 # ****************************************************************************
 from __future__ import print_function
 
-from six.moves import range
-import itertools
+from itertools import chain
 
 from sage.misc.callable_dict import CallableDict
 from sage.structure.sage_object import SageObject
@@ -1793,7 +1792,7 @@ class WordMorphism(SageObject):
                     yield a
                 else:
                     next_w = next(w)
-                    w = itertools.chain([next_w], w, self.image(next_w))
+                    w = chain([next_w], w, self.image(next_w))
             except StopIteration:
                 return
 

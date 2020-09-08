@@ -234,10 +234,6 @@ class SpecialJordanAlgebra(JordanAlgebra):
         cat = C.Commutative()
         if A in C.Unital():
             cat = cat.Unital()
-            self._no_generic_basering_coercion = True
-            # Remove the preceding line once trac #16492 is fixed
-            # Removing this line will also break some of the input formats,
-            # see trac #16054
         if A in C.WithBasis():
             cat = cat.WithBasis()
         if A in C.FiniteDimensional():
@@ -595,7 +591,6 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
         self._form = form
         self._M = FreeModule(R, form.ncols())
         cat = MagmaticAlgebras(R).Commutative().Unital().FiniteDimensional().WithBasis()
-        self._no_generic_basering_coercion = True # Remove once 16492 is fixed
         Parent.__init__(self, base=R, names=names, category=cat)
 
     def _repr_(self):

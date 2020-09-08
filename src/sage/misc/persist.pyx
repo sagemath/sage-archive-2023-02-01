@@ -29,6 +29,7 @@ save member functions and commands.
 
 import io
 import os
+import pickle
 import sys
 
 from textwrap import dedent
@@ -37,8 +38,6 @@ from textwrap import dedent
 # slows down loading any data stored in the other format
 import zlib; comp = zlib
 import bz2; comp_other = bz2
-
-from six.moves import cPickle as pickle
 
 from .misc import SAGE_DB
 from .sage_unittest import TestSuite
@@ -552,153 +551,46 @@ def unpickle_global(module, name):
     return getattr(mod, name)
 
 
-IF PY_MAJOR_VERSION == 2:
-    class _BasePickler(object):
-        """
-        Wrapper class for ``cPickle.Pickler``.
+class _BasePickler(pickle.Pickler):
+    """
+    Provides the Python 3 implementation for
+    :class:`sage.misc.persist.SagePickler`.
 
-        On Python 2, ``cPickle.Pickler`` is not actually a class, but a function
-        that is effectively the ``__new__`` method for an old-fashioned type
-        that otherwise cannot be imported or instantiated directly.
+    This is simpler than the Python 2 case since ``pickle.Pickler`` is a
+    modern built-in type which can be easily subclassed to provide new
+    functionality.
 
-        TESTS::
+    See the documentation for that class for tests and examples.
+    """
 
-            sage: from io import BytesIO
-            sage: from sage.misc.persist import _BasePickler
-            sage: p = BytesIO()
-            sage: pick = _BasePickler(p)
-            sage: pick.dump(1)
-            sage: _ = p.seek(0)
-            sage: loads(p.getvalue(), compress=False)
-            1
+    def __init__(self, file_obj, protocol=None, persistent_id=None, *,
+                    fix_imports=True):
+        super(_BasePickler, self).__init__(file_obj, protocol,
+                                            fix_imports=fix_imports)
+        self._persistent_id = persistent_id
 
-        We can also subclass this, which is not immediately possible with the
-        original ``cPickle.Pickler``::
+        def persistent_id(self, obj):
+            """
+            Implement persistence of external objects with the
+            ``persistent_id`` function given at instantiation, if any.
+            Otherwise returns ``None`` as in the base class.
 
-            sage: class MyPickler(_BasePickler):
-            ....:     def dump(self, obj):
-            ....:         print("dumping pickle...")
-            ....:         return super(MyPickler, self).dump(obj)
-            sage: p = BytesIO()
-            sage: unp = MyPickler(p)
-            sage: unp.dump(1)
-            dumping pickle...
-            sage: _ = p.seek(0)
-            sage: loads(p.getvalue(), compress=False)
-            1
+            See the documentation for
+            :class:`sage.misc.persist.SagePickler` for more details.
+            """
 
-        It also accepts setting a ``persistent_id`` function via the
-        constructor.
-        """
+            if self._persistent_id is not None:
+                return self._persistent_id(obj)
 
-        def __init__(self, file_obj, protocol=0, persistent_id=None):
-            self._pickler = pickle.Pickler(file_obj, protocol)
-            if persistent_id is not None:
-                self._pickler.persistent_id = persistent_id
-
-        def dump(self, obj):
-            self._pickler.dump(obj)
-
-        def clear_memo(self):
-            self._pickler.clear_memo()
+            return super(_BasePickler, self).persistent_id(obj)
 
 
-    # On Python 2 we always pickle with protocol version 2 (the highest
-    # version that will ever be on Python 2)
-    _DEFAULT_PROTOCOL_VERSION = 2
+# Since Python 3.4, protocol version 4 is the "best" protocol, so we
+# use that by default on Sage
+_DEFAULT_PROTOCOL_VERSION = 4
 
 
-    class _BaseUnpickler(object):
-        """
-        Wrapper class for ``cPickle.Unpickler``.
-
-        On Python 2, ``cPickle.Unpickler`` is not actually a class, but a
-        function that is effectively the ``__new__`` method for an
-        old-fashioned type that otherwise cannot be imported or instantiated
-        directly.
-
-        TESTS::
-
-            sage: from io import BytesIO
-            sage: from sage.misc.persist import _BaseUnpickler
-            sage: p = BytesIO(dumps(1, compress=False))
-            sage: unp = _BaseUnpickler(p)
-            sage: unp.load()
-            1
-
-        We can also subclass this, which is not immediately possible with
-        the original ``cPickle.Unpickler``::
-
-            sage: class MyUnpickler(_BaseUnpickler):
-            ....:     def load(self):
-            ....:         print("loading pickle...")
-            ....:         return super(MyUnpickler, self).load()
-            sage: _ = p.seek(0)
-            sage: unp = MyUnpickler(p)
-            sage: unp.load()
-            loading pickle...
-            1
-
-        It also accepts setting a ``persistent_load`` function via the
-        constructor and sets Sage's :func:`sage.misc.persist.unpickle_global`
-        as its ``find_global`` attribute.  This is discussed further in the
-        documentation for :class:`sage.misc.persist.SageUnpickler` for which
-        this serves as the base class.
-        """
-
-        def __init__(self, file_obj, persistent_load=None):
-            self._unpickler = pickle.Unpickler(file_obj)
-            self._unpickler.find_global = unpickle_global
-            if persistent_load is not None:
-                self._unpickler.persistent_load = persistent_load
-
-        def load(self):
-            return self._unpickler.load()
-
-        def noload(self):
-            return self._unpickler.noload()
-ELSE:
-    class _BasePickler(pickle.Pickler):
-        """
-        Provides the Python 3 implementation for
-        :class:`sage.misc.persist.SagePickler`.
-
-        This is simpler than the Python 2 case since ``pickle.Pickler`` is a
-        modern built-in type which can be easily subclassed to provide new
-        functionality.
-
-        See the documentation for that class for tests and examples.
-        """
-
-        def __init__(self, file_obj, protocol=None, persistent_id=None, *,
-                     fix_imports=True):
-            super(_BasePickler, self).__init__(file_obj, protocol,
-                                               fix_imports=fix_imports)
-            self._persistent_id = persistent_id
-
-            def persistent_id(self, obj):
-                """
-                Implement persistence of external objects with the
-                ``persistent_id`` function given at instantiation, if any.
-                Otherwise returns ``None`` as in the base class.
-
-                See the documentation for
-                :class:`sage.misc.persist.SagePickler` for more details.
-                """
-
-                if self._persistent_id is not None:
-                    return self._persistent_id(obj)
-
-                return super(_BasePickler, self).persistent_id(obj)
-
-
-    # Since Python 3.4, protocol version 4 is the "best" protocol, so we
-    # use that by default on Sage for Python 3; by default pickles made on
-    # Python 3 can only be used on Python 3
-    _DEFAULT_PROTOCOL_VERSION = 4
-
-
-    class _BaseUnpickler(pickle.Unpickler):
+class _BaseUnpickler(pickle.Unpickler):
         """
         Provides the Python 3 implementation for
         :class:`sage.misc.persist.SageUnpickler`.
@@ -834,16 +726,15 @@ class SagePickler(_BasePickler):
         sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII') #py3
         Traceback (most recent call last):
         ...
-        UnicodeDecodeError: 'ascii' codec can't decode byte 0x80 in position 0: ordinal not in range(128)
+        UnicodeDecodeError: 'ascii' codec can...t decode byte 0x80 in position 0: ordinal not in range(128)
 
     """
 
     def __init__(self, file_obj, persistent_id=None, py2compat=True):
         protocol = _DEFAULT_PROTOCOL_VERSION
 
-        IF PY_MAJOR_VERSION > 2:
-            if py2compat:
-                protocol = 2
+        if py2compat:
+            protocol = 2
 
         super(SagePickler, self).__init__(file_obj, protocol=protocol,
                                           persistent_id=persistent_id)
@@ -1024,7 +915,7 @@ def loads(s, compress=True, **kwargs):
         sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII') #py3
         Traceback (most recent call last):
         ...
-        UnicodeDecodeError: 'ascii' codec can't decode byte 0x80 in position 0: ordinal not in range(128)
+        UnicodeDecodeError: 'ascii' codec can...t decode byte 0x80 in position 0: ordinal not in range(128)
 
     """
     if not isinstance(s, bytes):

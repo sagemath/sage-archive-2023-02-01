@@ -1,3 +1,8 @@
+# distutils: extra_compile_args = -D_XPG6 M4RI_CFLAGS
+# distutils: libraries = iml ntl m CBLAS_LIBRARIES
+# distutils: library_dirs = CBLAS_LIBDIR
+# distutils: include_dirs = M4RI_INCDIR CBLAS_INCDIR
+
 """
 Dense matrices over the rational field
 
@@ -110,7 +115,8 @@ from sage.arith.all import gcd
 from .matrix2 import decomp_seq
 from .matrix0 import Matrix as Matrix_base
 
-from sage.misc.all import verbose, get_verbose, prod
+from sage.misc.all import prod
+from sage.misc.verbose import verbose, get_verbose
 
 #########################################################
 # PARI C library
@@ -134,7 +140,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: type(a)
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
 
-        .. warning::
+        .. WARNING::
 
            This is for internal use only, or if you really know what
            you're doing.
@@ -259,6 +265,17 @@ cdef class Matrix_rational_dense(Matrix_dense):
         x = Rational.__new__(Rational)
         fmpq_get_mpq(x.value, fmpq_mat_entry(self._matrix, i, j))
         return x
+
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Return 1 if the entry (i, j) is zero, otherwise 0.
+
+        .. WARNING::
+
+           This is very unsafe; it assumes i and j are in the right
+           range.
+        """
+        return fmpq_is_zero(fmpq_mat_entry(self._matrix, i,j))
 
     cdef _add_ui_unsafe_assuming_int(self, Py_ssize_t i, Py_ssize_t j, unsigned long int n):
         # doesn't check immutability
@@ -1426,7 +1443,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: a.change_ring(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: matrix has denominators so can't change to ZZ.
+            TypeError: matrix has denominators so can...t change to ZZ.
             sage: b = a.change_ring(QQ['x']); b
             [1/2  -1]
             [  2   3]
@@ -2652,6 +2669,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         Return the determinant of this matrix computed using pari.
 
         EXAMPLES::
+
             sage: matrix(QQ,3,[1..9])._det_pari()
             0
             sage: matrix(QQ,3,[1..9])._det_pari(1)

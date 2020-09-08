@@ -50,8 +50,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function, division, absolute_import
-from six import integer_types, iteritems
-from six.moves import range
 
 from . import constructor
 from . import BSD
@@ -86,6 +84,7 @@ from sage.rings.all import (
     ComplexField, RationalField)
 
 import sage.misc.all as misc
+from sage.misc.verbose import verbose as verbose_verbose
 
 from sage.functions.log import log
 
@@ -718,7 +717,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__database_curve
         except AttributeError:
-            misc.verbose("Looking up %s in the database."%self)
+            verbose_verbose("Looking up %s in the database."%self)
             D = sage.databases.cremona.CremonaDatabase()
             ainvs = list(self.minimal_model().ainvs())
             try:
@@ -839,7 +838,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             True
 
         """
-        misc.verbose("Calling mwrank C++ library.")
+        verbose_verbose("Calling mwrank C++ library.")
         C = self.mwrank_curve()
         C.two_descent(verbose, selmer_only,
                         first_limit, second_limit,
@@ -1348,21 +1347,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('19a1')
             sage: f = E.modular_symbol_numerical(1)
             sage: g = E.modular_symbol(1)
-            sage: f(0), g(0)  # abs tol 1e-14
+            sage: f(0), g(0)  # abs tol 1e-11
             (0.333333333333333, 1/3)
 
             sage: E = EllipticCurve('5077a1')
             sage: f = E.modular_symbol_numerical(-1, prec=2)
-            sage: f(0)        # abs tol 1e-4
+            sage: f(0)        # abs tol 1e-11
             0.000000000000000
-            sage: f(1/7)      # abs tol 1e-4
-            1.00001356670155
+            sage: f(1/7)      # abs tol 1e-11
+            0.999844176260303
 
             sage: E = EllipticCurve([123,456])
             sage: E.conductor()
             104461920
             sage: f = E.modular_symbol_numerical(prec=2)
-            sage: f(0)        # abs tol 1e-4
+            sage: f(0)        # abs tol 1e-11
             2.00001004772210
         """
         from sage.schemes.elliptic_curves.mod_sym_num import ModularSymbolNumerical
@@ -1668,7 +1667,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             :func:`LFunctionZeroSum`
             :meth:`.root_number`
-            :func:`set_verbose`
+            :func:`~sage.misc.verbose.set_verbose`
 
         EXAMPLES:
 
@@ -2105,7 +2104,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             # true rank
             rank_bound = self.analytic_rank_upper_bound()
             if rank_bound <= 1:
-                misc.verbose("rank %s due to zero sum bound and parity"%rank_bound)
+                verbose_verbose("rank %s due to zero sum bound and parity"%rank_bound)
                 rank = Integer(rank_bound)
                 self.__rank = (rank, proof)
                 return rank
@@ -2116,20 +2115,20 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             if self.root_number() == 1:
                 L, err = self.lseries().at1(prec)
                 if abs(L) > err + R(0.0001):  # definitely doesn't vanish
-                    misc.verbose("rank 0 because L(E,1)=%s" % L)
+                    verbose_verbose("rank 0 because L(E,1)=%s" % L)
                     rank = Integer(0)
                     self.__rank = (rank, proof)
                     return rank
             else:
                 Lprime, err = self.lseries().deriv_at1(prec)
                 if abs(Lprime) > err + R(0.0001):  # definitely doesn't vanish
-                    misc.verbose("rank 1 because L'(E,1)=%s"%Lprime)
+                    verbose_verbose("rank 1 because L'(E,1)=%s"%Lprime)
                     rank = Integer(1)
                     self.__rank = (rank, proof)
                     return rank
 
         if algorithm == 'mwrank_lib':
-            misc.verbose("using mwrank lib")
+            verbose_verbose("using mwrank lib")
             if self.is_integral(): E = self
             else: E = self.integral_model()
             C = E.mwrank_curve()
@@ -2147,11 +2146,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     del E.__mwrank_curve
                     raise RuntimeError('rank not provably correct (lower bound: {})'.format(rank))
                 else:
-                    misc.verbose("Warning -- rank not proven correct", level=1)
+                    verbose_verbose("Warning -- rank not proven correct", level=1)
             return rank
 
         if algorithm == 'mwrank_shell':
-            misc.verbose("using mwrank shell")
+            verbose_verbose("using mwrank shell")
             X = self.mwrank()
             if 'determined unconditionally' not in X or 'only a lower bound of' in X:
                 if proof:
@@ -2159,7 +2158,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     print(X)
                     raise RuntimeError('rank not provably correct')
                 else:
-                    misc.verbose("Warning -- rank not proven correct", level=1)
+                    verbose_verbose("Warning -- rank not proven correct", level=1)
 
                 s = "lower bound of"
                 X = X[X.rfind(s)+len(s)+1:]
@@ -2321,31 +2320,31 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         if not only_use_mwrank:
             try:
-                misc.verbose("Trying to compute rank.")
+                verbose_verbose("Trying to compute rank.")
                 r = self.rank(only_use_mwrank = False)
-                misc.verbose("Got r = %s."%r)
+                verbose_verbose("Got r = %s."%r)
                 if r == 0:
-                    misc.verbose("Rank = 0, so done.")
+                    verbose_verbose("Rank = 0, so done.")
                     return [], True
                 if r == 1 and rank1_search:
-                    misc.verbose("Rank = 1, so using direct search.")
+                    verbose_verbose("Rank = 1, so using direct search.")
                     h = 6
                     while h <= rank1_search:
-                        misc.verbose("Trying direct search up to height %s"%h)
+                        verbose_verbose("Trying direct search up to height %s"%h)
                         G = self.point_search(h, verbose)
                         G = [P for P in G if P.order() == oo]
                         if G:
-                            misc.verbose("Direct search succeeded.")
+                            verbose_verbose("Direct search succeeded.")
                             G, _, _ = self.saturation(G, verbose=verbose)
-                            misc.verbose("Computed saturation.")
+                            verbose_verbose("Computed saturation.")
                             return G, True
                         h += 2
-                    misc.verbose("Direct search FAILED.")
+                    verbose_verbose("Direct search FAILED.")
             except RuntimeError:
                 pass
         # end if (not_use_mwrank)
         if algorithm == "mwrank_lib":
-            misc.verbose("Calling mwrank C++ library.")
+            verbose_verbose("Calling mwrank C++ library.")
             if not self.is_integral():
                 xterm = 1
                 yterm = 1
@@ -2387,13 +2386,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             # all for gens() and just use the library. This is in
             # progress (see trac #1949).
             X = self.mwrank('-p 100 -S '+str(sat_bound))
-            misc.verbose("Calling mwrank shell.")
+            verbose_verbose("Calling mwrank shell.")
             if not 'The rank and full Mordell-Weil basis have been determined unconditionally' in X:
                 msg = 'Generators not provably computed.'
                 if proof:
                     raise RuntimeError('%s\n%s'%(X,msg))
                 else:
-                    misc.verbose("Warning -- %s"%msg, level=1)
+                    verbose_verbose("Warning -- %s"%msg, level=1)
                 proved = False
             else:
                 proved = True
@@ -5137,7 +5136,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         G.set_vertices(dict([(v,isocls[v]) for v in G.vertices()]))
         v = G.shortest_path_lengths(0, by_weight=True)
         # Now exponentiate and round to get degrees of isogenies
-        v = dict([(i, j.exp().round() if j else 0) for i,j in iteritems(v)])
+        v = dict([(i, j.exp().round() if j else 0) for i,j in v.items()])
         return isocls.curves, v
 
     def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
@@ -5170,7 +5169,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # enumeration is complete (which need not be the case a priori!), the LCM
         # of these numbers is a multiple of the degree of the isogeny
         # to the optimal curve.
-        v = [deg for num, deg in iteritems(v) if deg]  # get just the degrees
+        v = [deg for num, deg in v.items() if deg]  # get just the degrees
         return arith.LCM(v)
 
     ##########################################################
@@ -6782,7 +6781,7 @@ def cremona_curves(conductors):
         ('39a3', 0),
         ('39a4', 0)]
     """
-    if isinstance(conductors, integer_types + (rings.RingElement,)):
+    if isinstance(conductors, (rings.RingElement, int)):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter(conductors)
 
@@ -6808,7 +6807,7 @@ def cremona_optimal_curves(conductors):
         ['990a1', '990b1', '990c1', '990d1', '990e1', '990f1', '990g1', '990h3', '990i1', '990j1', '990k1', '990l1']
 
     """
-    if isinstance(conductors, integer_types + (rings.RingElement,)):
+    if isinstance(conductors, (rings.RingElement, int)):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter_optimal(conductors)
 

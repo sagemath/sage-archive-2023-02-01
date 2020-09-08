@@ -45,3 +45,4 @@ from .product_projective.all import *
 
 from .cyclic_covers.all import *
 
+from .berkovich.all import *

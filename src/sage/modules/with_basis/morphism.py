@@ -104,11 +104,10 @@ sage.categories.modules_with_basis; see :trac:`8678` for the complete log.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
-from six import iteritems
 
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
-from sage.misc.misc import attrcall
+from sage.misc.call import attrcall
 # The identity function would deserve a more canonical location
 from sage.misc.c3_controlled import identity
 from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
@@ -395,9 +394,12 @@ class ModuleMorphismByLinearity(ModuleMorphism):
 
         mc = x.monomial_coefficients(copy=False)
         if self._is_module_with_basis_over_same_base_ring:
-            return self.codomain().linear_combination( (self._on_basis(*(before+(index,)+after)), coeff ) for (index, coeff) in iteritems(mc) )
+            return self.codomain().linear_combination(
+                    (self._on_basis(*(before+(index,)+after)), coeff )
+                    for (index, coeff) in mc.items())
         else:
-            return sum(( coeff * self._on_basis(*(before+(index,)+after)) for (index, coeff) in iteritems(mc) ), self._zero)
+            return sum((coeff * self._on_basis(*(before+(index,)+after))
+                       for (index, coeff) in mc.items()), self._zero)
 
     # As per the specs of Map, we should in fact implement _call_.
     # However we currently need to abuse Map.__call__ (which strict

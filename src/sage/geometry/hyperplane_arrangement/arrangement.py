@@ -64,6 +64,19 @@ supported::
     sage: a = H([(1,2,3), 4], [(5,6,7), 8]);  a
     Arrangement <y + 2*z + 3 | x + 2*y + 3*z + 4>
 
+Number fields are also possible::
+
+    sage: x = var('x')
+    sage: NF.<a> = NumberField(x**4 - 5*x**2 + 5,embedding=1.90)
+    sage: H.<y,z> = HyperplaneArrangements(NF)
+    sage: A = H([[(-a**3 + 3*a, -a**2 + 4), 1], [(a**3 - 4*a, -1), 1],
+    ....:        [(0, 2*a**2 - 6), 1], [(-a**3 + 4*a, -1), 1],
+    ....:        [(a**3 - 3*a, -a**2 + 4), 1]])
+    sage: A
+    Arrangement of 5 hyperplanes of dimension 2 and rank 2
+    sage: A.base_ring()
+    Number Field in a with defining polynomial x^4 - 5*x^2 + 5 with a = 1.902113032590308?
+
 Notation (iii): a list or tuple of hyperplanes::
 
     sage: H.<x,y,z> = HyperplaneArrangements(GF(5))
@@ -115,6 +128,9 @@ New arrangements from old::
     sage: b = a.restriction(h)
     sage: b == hyperplane_arrangements.coordinate(3)
     True
+
+Properties of Arrangements
+--------------------------
 
 A hyperplane arrangement is *essential* if the normals to its
 hyperplanes span the ambient space.  Otherwise, it is *inessential*.
@@ -352,7 +368,7 @@ class HyperplaneArrangementElement(Element):
         :class:`HyperplaneArrangementElement` instances directly,
         always use the parent.
     """
-    def __init__(self, parent, hyperplanes, check=True):
+    def __init__(self, parent, hyperplanes, check=True, backend=None):
         """
         Construct a hyperplane arrangement.
 
@@ -365,15 +381,30 @@ class HyperplaneArrangementElement(Element):
         - ``check`` -- boolean (optional; default ``True``); whether
           to check input
 
+        - ``backend`` -- string (optional; default: ``None``); the backend to
+          use for the related polyhedral objects
+
         EXAMPLES::
 
             sage: H.<x,y> = HyperplaneArrangements(QQ)
             sage: elt = H(x, y); elt
             Arrangement <y | x>
             sage: TestSuite(elt).run()
+
+        It is possible to specify a backend for polyhedral computations::
+
+            sage: R.<sqrt5> = QuadraticField(5)
+            sage: H = HyperplaneArrangements(R, names='xyz')
+            sage: x,y,z = H.gens()
+            sage: A = H(sqrt5*x+2*y+3*z, backend='normaliz')
+            sage: A.backend()
+            'normaliz'
+            sage: A.regions()[0].backend()  # optional - pynormaliz
+            'normaliz'
         """
         super(HyperplaneArrangementElement, self).__init__(parent)
         self._hyperplanes = hyperplanes
+        self._backend = backend
         if check:
             if not isinstance(hyperplanes, tuple):
                 raise ValueError("the hyperplanes must be given as a tuple")
@@ -546,6 +577,33 @@ class HyperplaneArrangementElement(Element):
         normals = [h.normal() for h in self]
         return matrix(R, normals).rank()
 
+    def backend(self):
+        """
+        Return the backend used for polyhedral objects
+
+        OUTPUT:
+
+        A string giving the backend or ``None`` if none is specified.
+
+        EXAMPLES:
+
+        By default, no backend is specified::
+
+           sage: H = HyperplaneArrangements(QQ)
+           sage: A = H()
+           sage: A.backend()
+
+        Otherwise, one may specify a polyhedral backend::
+
+           sage: A = H(backend='ppl')
+           sage: A.backend()
+           'ppl'
+           sage: A = H(backend='normaliz')
+           sage: A.backend()
+           'normaliz'
+        """
+        return self._backend
+
     def _richcmp_(self, other, op):
         """
         Compare two hyperplane arrangements.
@@ -602,7 +660,7 @@ class HyperplaneArrangementElement(Element):
         P = self.parent()
         other = P(other)
         hyperplanes = self._hyperplanes + other._hyperplanes
-        return P(*hyperplanes)
+        return P(*hyperplanes, backend=self._backend)
 
     add_hyperplane = union
 
@@ -680,7 +738,7 @@ class HyperplaneArrangementElement(Element):
         P = self.parent()
         names = (variable,) + P._names
         H = HyperplaneArrangements(self.parent().base_ring(), names=names)
-        return H(*hyperplanes)
+        return H(*hyperplanes, backend=self._backend)
 
     @cached_method
     def intersection_poset(self):
@@ -848,6 +906,15 @@ class HyperplaneArrangementElement(Element):
             Traceback (most recent call last):
             ...
             ValueError: hyperplane is not in the arrangement
+
+        Checks that deletion preserves the backend::
+
+            sage: H = HyperplaneArrangements(QQ,names='xyz')
+            sage: x,y,z = H.gens()
+            sage: h1,h2 = [1*x+2*y+3*z,3*x+2*y+1*z]
+            sage: A = H(h1,h2,backend='normaliz')
+            sage: A.deletion(h2).backend()
+            'normaliz'
         """
         parent = self.parent()
         hyperplanes = parent(hyperplanes)
@@ -857,7 +924,7 @@ class HyperplaneArrangementElement(Element):
                 planes.remove(hyperplane)
             except ValueError:
                 raise ValueError('hyperplane is not in the arrangement')
-        return parent(*planes)
+        return parent(*planes, backend=self._backend)
 
     def restriction(self, hyperplane):
         r"""
@@ -893,6 +960,17 @@ class HyperplaneArrangementElement(Element):
         .. SEEALSO::
 
             :meth:`deletion`
+
+        TESTS:
+
+        Checks that restriction preserves the backend::
+
+            sage: H = HyperplaneArrangements(QQ,names='xyz')
+            sage: x,y,z = H.gens()
+            sage: h1,h2 = [1*x+2*y+3*z,3*x+2*y+1*z]
+            sage: A = H(h1, h2, backend='normaliz')
+            sage: A.restriction(h2).backend()
+            'normaliz'
         """
         parent = self.parent()
         hyperplane = parent(hyperplane)[0]
@@ -913,7 +991,7 @@ class HyperplaneArrangementElement(Element):
         names = list(parent._names)
         names.pop(pivot)
         H = HyperplaneArrangements(parent.base_ring(), names=tuple(names))
-        return H(*hyperplanes, signed=False)
+        return H(*hyperplanes, signed=False, backend=self._backend)
 
     def change_ring(self, base_ring):
         """
@@ -945,9 +1023,20 @@ class HyperplaneArrangementElement(Element):
             sage: A = H([(1,1), 0], [(2,3), -1])
             sage: A.change_ring(FiniteField(2))
             Arrangement <y + 1 | x + y>
+
+        TESTS:
+
+        Checks that changing the ring preserves the backend::
+
+            sage: H = HyperplaneArrangements(QQ,names='xyz')
+            sage: x,y,z = H.gens()
+            sage: h1,h2 = [1*x+2*y+3*z,3*x+2*y+1*z]
+            sage: A = H(h1, h2, backend='normaliz')
+            sage: A.change_ring(RDF).backend()
+            'normaliz'
         """
         parent = self.parent().change_ring(base_ring)
-        return parent(self)
+        return parent(self, backend=self._backend)
 
     @cached_method
     def n_regions(self):
@@ -1151,7 +1240,7 @@ class HyperplaneArrangementElement(Element):
         if self.n_hyperplanes() == 0:
             if certificate:
                 from sage.geometry.polyhedron.parent import Polyhedra
-                pp = Polyhedra(R, self.dimension())
+                pp = Polyhedra(R, self.dimension(), backend=self._backend)
                 return (True, pp.universe())
             else:
                 return True
@@ -1165,7 +1254,7 @@ class HyperplaneArrangementElement(Element):
             # The solution set is empty, therefore the center is empty
             if certificate:
                 from sage.geometry.polyhedron.parent import Polyhedra
-                pp = Polyhedra(R, self.dimension())
+                pp = Polyhedra(R, self.dimension(), backend=self._backend)
                 return (False, pp.empty())
             else:
                 return False
@@ -1173,7 +1262,9 @@ class HyperplaneArrangementElement(Element):
         if certificate:
             Ker = m.right_kernel()
             from sage.geometry.polyhedron.constructor import Polyhedron
-            return (True, Polyhedron(base_ring=R, vertices=[x], lines=Ker.basis()))
+            return (True, Polyhedron(base_ring=R, vertices=[x],
+                                     lines=Ker.basis(),
+                                     backend=self._backend))
         else:
             return True
 
@@ -1218,13 +1309,13 @@ class HyperplaneArrangementElement(Element):
     def is_simplicial(self):
         r"""
         Test whether the arrangement is simplicial.
-        
+
         A region is simplicial if the normal vectors of its bounding hyperplanes
         are linearly independent. A hyperplane arrangement is said to be
         simplicial if every region is simplicial.
 
         OUTPUT:
-        
+
         A boolean whether the hyperplane arrangement is simplicial.
 
         EXAMPLES::
@@ -1249,7 +1340,6 @@ class HyperplaneArrangementElement(Element):
         # Check that the number of facets for each region is equal to rank
         rank = self.rank()
         return all(R.n_facets() == rank for R in self.regions())
-
 
     @cached_method
     def essentialization(self):
@@ -1345,7 +1435,7 @@ class HyperplaneArrangementElement(Element):
         names = tuple(name for i, name in enumerate(parent._names) if i not in echelon_pivots)
         # Construct the result
         restricted_parent = HyperplaneArrangements(R, names=names)
-        return restricted_parent(*restricted, signed=False)
+        return restricted_parent(*restricted, signed=False, backend=self._backend)
 
     def sign_vector(self, p):
         r"""
@@ -1558,11 +1648,20 @@ class HyperplaneArrangementElement(Element):
             sage: h = H(x)
             sage: h._make_region([x, 1-x, y, 1-y])
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+
+        TESTS:
+
+        Checks that it creates the regions with the appropriate backend::
+
+            sage: h = H(x,backend='normaliz')                 # optional - pynormaliz
+            sage: h._make_region([x, 1-x, y, 1-y]).backend()  # optional - pynormaliz
+            'normaliz'
         """
         ieqs = [h.dense_coefficient_list() for h in hyperplanes]
         from sage.geometry.polyhedron.constructor import Polyhedron
         return Polyhedron(ieqs=ieqs, ambient_dim=self.dimension(),
-                          base_ring=self.parent().base_ring())
+                          base_ring=self.parent().base_ring(),
+                          backend=self._backend)
 
     @cached_method
     def regions(self):
@@ -1601,26 +1700,128 @@ class HyperplaneArrangementElement(Element):
             sage: chessboard = H(chessboard)
             sage: len(chessboard.bounded_regions())   # long time, 359 ms on a Core i7
             64
+
+        Example 6 of [KP2020]_::
+
+            sage: from itertools import product
+            sage: def zero_one(d):
+            ....:     for x in product([0,1], repeat=d):
+            ....:         if any(y for y in x):
+            ....:             yield [0] + list(x)
+            ....:
+            sage: K.<x,y> = HyperplaneArrangements(QQ)
+            sage: A = K(*zero_one(2))
+            sage: len(A.regions())
+            6
+            sage: K.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = K(*zero_one(3))
+            sage: len(A.regions())
+            32
+            sage: K.<x,y,z,w> = HyperplaneArrangements(QQ)
+            sage: A = K(*zero_one(4))
+            sage: len(A.regions())
+            370
+            sage: K.<x,y,z,w,r> = HyperplaneArrangements(QQ)
+            sage: A = K(*zero_one(5))
+            sage: len(A.regions())            # not tested (~25s)
+            11292
+
+        It is possible to specify the backend::
+
+            sage: K.<q> = CyclotomicField(9)
+            sage: L.<r9> = NumberField((q+q**(-1)).minpoly(),embedding = AA(q+q**-1))
+            sage: norms = [[1,1/3*(-2*r9**2-r9+1),0], 
+            ....:          [1,-r9**2-r9,0],
+            ....:          [1,-r9**2+1,0],
+            ....:          [1,-r9**2,0],
+            ....:          [1,r9**2-4,-r9**2+3]]
+            sage: H.<x,y,z> = HyperplaneArrangements(L)
+            sage: A = H(backend='normaliz')
+            sage: for v in norms:
+            ....:     a,b,c = v
+            ....:     A = A.add_hyperplane(a*x + b*y + c*z)
+            sage: R = A.regions()               # optional - pynormaliz
+            sage: R[0].backend()                # optional - pynormaliz
+            'normaliz'
+
+        TESTS::
+
+            sage: K.<x,y,z,w,r> = HyperplaneArrangements(QQ)
+            sage: A = K()
+            sage: A.regions()
+            (A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 1 vertex and 5 lines,)
         """
         if self.base_ring().characteristic() != 0:
             raise ValueError('base field must have characteristic zero')
         from sage.geometry.polyhedron.constructor import Polyhedron
         R = self.base_ring()
         dim = self.dimension()
-        universe = Polyhedron(eqns=[[0] + [0] * dim], base_ring=R)
+        be = self._backend
+        universe = Polyhedron(eqns=[[0] + [0] * dim],
+                              base_ring=R,
+                              backend=be)
         regions = [universe]
+        if self.is_linear() and self.n_hyperplanes():
+            # We only take the positive half w.r. to the first hyperplane.
+            # We fix this by appending all negative regions in the end.
+            regions = None
+
         for hyperplane in self:
             ieq = vector(R, hyperplane.dense_coefficient_list())
-            pos_half = Polyhedron(ieqs=[ ieq], base_ring=R)
-            neg_half = Polyhedron(ieqs=[-ieq], base_ring=R)
+            pos_half = Polyhedron(ieqs=[ ieq], base_ring=R, backend=be)
+            neg_half = Polyhedron(ieqs=[-ieq], base_ring=R, backend=be)
+            if not regions:
+                # See comment above.
+                regions = [pos_half]
+                continue
             subdivided = []
             for region in regions:
-                for half_space in pos_half, neg_half:
-                    part = region.intersection(half_space)
-                    if part.dim() == dim:
-                        subdivided.append(part)
+                # For each region we determine, if the hyperplane splits it.
+                splits = False
+
+                # Determine if all vertices lie on one side of the hyperplane.
+                # If so, we determine on which side.
+                valuations = tuple(ieq[0] + ieq[1:]*v[:] for v in region.vertices())
+                direction = 0
+                if any(x > 0 for x in valuations):
+                    direction = 1
+                if any(x < 0 for x in valuations):
+                    if direction:
+                        splits = True
+                    else:
+                        direction = -1
+
+                if not splits:
+                    # All vertices lie in one closed halfspace of the hyperplane.
+                    region_lines = region.lines()
+                    if direction == 0:
+                        # In this case all vertices lie on the hyperplane and we must
+                        # check if rays are contained in one closed halfspace given by the hyperplane.
+                        valuations = tuple(ieq[1:]*ray[:] for ray in region.rays())
+                        if region_lines:
+                            valuations += tuple(ieq[1:]*line[:] for line in region_lines)
+                            valuations += tuple(-ieq[1:]*line[:] for line in region_lines)
+                        if any(x > 0 for x in valuations) and any(x < 0 for x in valuations):
+                            splits = True
+                    else:
+                        # In this case, at least one of the vertices is not on the hyperplane.
+                        # So we check if any ray or line pokes the hyperplane.
+                        if (    any(ieq[1:]*r[:]*direction < 0 for r in region.rays()) or
+                                any(ieq[1:]*l[:]          != 0 for l in region_lines)):
+                            splits = True
+
+                if splits:
+                    subdivided.append(region.intersection(pos_half))
+                    subdivided.append(region.intersection(neg_half))
+                else:
+                    subdivided.append(region)
             regions = subdivided
-        return tuple(regions)
+
+        if self.is_linear() and self.n_hyperplanes():
+            # We have treated so far only the positive half space w.r. to the first hyperplane.
+            return tuple(regions) + tuple(-x for x in regions)
+        else:
+            return tuple(regions)
 
     @cached_method
     def poset_of_regions(self, B=None, numbered_labels=True):
@@ -1667,7 +1868,6 @@ class HyperplaneArrangementElement(Element):
             sage: base_region = R[3]
             sage: A.poset_of_regions(B=base_region)
             Finite poset containing 14 elements
-
         """
         # We use RX to keep track of indexes and R to keep track of which regions
         # we've already hit. This poset is graded, so we can go one set at a time
@@ -1693,20 +1893,19 @@ class HyperplaneArrangementElement(Element):
             for r in R:
                 # Since it's graded, it suffices to look at the regions of the previous rank
                 for b in curTest:
-                    if self.distance_between_regions(b,r) == 1:
+                    if self.distance_between_regions(b, r) == 1:
                         nextTest.add(r)
                         if numbered_labels:
-                            edges.append([RX.index(b),RX.index(r)])
+                            edges.append([RX.index(b), RX.index(r)])
                         else:
-                            edges.append([b,r])
+                            edges.append([b, r])
             for x in nextTest:
                 R.discard(x)
 
         if numbered_labels:
-            return Poset([range(len(RX)),edges])
+            return Poset([range(len(RX)), edges])
         else:
-            return Poset([RX,edges])
-
+            return Poset([RX, edges])
 
     @cached_method
     def closed_faces(self, labelled=True):
@@ -1906,7 +2105,8 @@ class HyperplaneArrangementElement(Element):
         from sage.geometry.polyhedron.constructor import Polyhedron
         dim = self.dimension()
         hypes = self.hyperplanes()
-        universe = Polyhedron(eqns=[[0] + [0] * dim], base_ring=R)
+        be = self._backend
+        universe = Polyhedron(eqns=[[0] + [0] * dim], base_ring=R, backend=be)
         faces = [((), universe)]
         for k, hyperplane in enumerate(hypes):
             # Loop invariant:
@@ -1914,11 +2114,11 @@ class HyperplaneArrangementElement(Element):
             # hyperplane arrangement given by the first ``k`` hyperplanes
             # in the list ``hypes`` (that is, by ``hypes[:k]``).
             ieq = vector(R, hyperplane.dense_coefficient_list())
-            zero_half = Polyhedron(eqns=[ieq], base_ring=R)
+            zero_half = Polyhedron(eqns=[ieq], base_ring=R, backend=be)
             # ``zero_half`` is the hyperplane ``hyperplane`` itself
             # (viewed as a polyhedron).
-            pos_half = Polyhedron(ieqs=[ ieq], base_ring=R)
-            neg_half = Polyhedron(ieqs=[-ieq], base_ring=R)
+            pos_half = Polyhedron(ieqs=[ ieq], base_ring=R, backend=be)
+            neg_half = Polyhedron(ieqs=[-ieq], base_ring=R, backend=be)
             subdivided = []
             for signs, face in faces:
                 # So ``face`` is a face of the hyperplane arrangement
@@ -2077,7 +2277,7 @@ class HyperplaneArrangementElement(Element):
                 ieqs.append(-ieq)
             else:
                 ieqs.append(ieq)
-        face = Polyhedron(eqns=eqns, ieqs=ieqs, base_ring=R)
+        face = Polyhedron(eqns=eqns, ieqs=ieqs, base_ring=R, backend=self._backend)
         if not normalize:
             return face
         # Look for ``I`` in ``self.closed_faces()``:
@@ -2272,7 +2472,8 @@ class HyperplaneArrangementElement(Element):
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         normal = Polyhedron(vertices=[[0]*self.dimension()],
-                            lines=[hyperplane.normal() for hyperplane in self])
+                            lines=[hyperplane.normal() for hyperplane in self],
+                            backend=self._backend)
         if normal.dim() == 0:
             transverse = lambda poly: poly
         else:
@@ -2592,7 +2793,7 @@ class HyperplaneArrangementElement(Element):
             sage: c.distance_enumerator(c.region_containing_point([1,1,1]))
             x^3 + 3*x^2 + 3*x + 1
         """
-        d = [self.distance_between_regions(r,base_region) for r in self.regions()]
+        d = [self.distance_between_regions(r, base_region) for r in self.regions()]
         d = [d.count(i) for i in range(max(d)+1)]
         from sage.rings.polynomial.polynomial_ring import polygen
         x = polygen(QQ, 'x')
@@ -2640,7 +2841,7 @@ class HyperplaneArrangementElement(Element):
             for j in range(i+1, k):
                 t = prod(h[p] for p in range(k) if
                          self.is_separating_hyperplane(region[i], region[j], self[p]))
-                v[i,j] = v[j,i] = t
+                v[i, j] = v[j, i] = t
         v.set_immutable()
         return v
 
@@ -2783,7 +2984,7 @@ class HyperplaneArrangementElement(Element):
                 d = list(d)
                 dep = V.linear_dependence([norms[j] for j in d])
                 w = W.zero().list()
-                for j,k in enumerate(d):
+                for j, k in enumerate(d):
                     w[k] = dep[0][j]
                 sol.append(w)
             mat = matrix(sol)
@@ -2879,7 +3080,7 @@ class HyperplaneArrangementElement(Element):
         from sage.geometry.hyperplane_arrangement.check_freeness import construct_free_chain
         return construct_free_chain(self)
 
-    @cached_method(key=lambda self,a: None)
+    @cached_method(key=lambda self, a: None)
     def is_free(self, algorithm="singular"):
         r"""
         Return if ``self`` is free.
@@ -3014,14 +3215,14 @@ class HyperplaneArrangementElement(Element):
         """
         alg = algorithm # prevent possible changes to a global variable
         if alg == "singular":
-            #import sage.libs.singular.function_factory
-            #syz = sage.libs.singular.function_factory.ff.syz
+            # import sage.libs.singular.function_factory
+            # syz = sage.libs.singular.function_factory.ff.syz
             f = self.defining_polynomial()
             I = f + f.jacobian_ideal()
             IS = I._singular_()
             ISS = IS.syz()
             MSTD = ISS.mstd()
-            basis = MSTD[2]._sage_().transpose().submatrix(0,1)
+            basis = MSTD[2]._sage_().transpose().submatrix(0, 1)
             try:
                 det = basis.det()
                 # Check using Saito's criterion
@@ -3046,6 +3247,7 @@ class HyperplaneArrangementElement(Element):
             return None
         else:
             raise ValueError("invalid algorithm")
+
 
 class HyperplaneArrangements(Parent, UniqueRepresentation):
     """
@@ -3094,8 +3296,9 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: K = HyperplaneArrangements(QQ)
             sage: TestSuite(K).run()
         """
-        from sage.categories.all import Fields, Sets
-        if not base_ring in Fields:
+        from sage.categories.all import Sets
+        from sage.rings.ring import _Fields
+        if base_ring not in _Fields:
             raise ValueError('base ring must be a field')
         super(HyperplaneArrangements, self).__init__(category=Sets())
         self._base_ring = base_ring
@@ -3249,6 +3452,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
         signed = kwds.pop('signed', not_char2)
         warn_duplicates = kwds.pop('warn_duplicates', False)
         check = kwds.pop('check', True)
+        backend = kwds.pop('backend', None)
         if len(kwds) > 0:
             raise ValueError('unknown keyword argument')
         # process positional arguments
@@ -3278,7 +3482,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
                     raise ValueError('linear expression must be non-constant to define a hyperplane')
                 if not_char2 and -h in hyperplanes:
                     raise ValueError('arrangement cannot simultaneously have h and -h as hyperplane')
-        return self.element_class(self, tuple(sorted(hyperplanes)))
+        return self.element_class(self, tuple(sorted(hyperplanes)), backend=backend)
 
     @cached_method
     def ngens(self):
@@ -3364,4 +3568,3 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
         if isinstance(P, HyperplaneArrangements):
             return self.base_ring().has_coerce_map_from(P.base_ring())
         return super(HyperplaneArrangements, self)._coerce_map_from_(P)
-

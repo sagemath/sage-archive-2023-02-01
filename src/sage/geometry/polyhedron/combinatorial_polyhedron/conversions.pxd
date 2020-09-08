@@ -6,5 +6,7 @@ cdef int Vrep_list_to_bit_rep(tuple Vrep_list, uint64_t *output,
 cdef int incidences_to_bit_rep(tuple incidences, uint64_t *output,
                                 size_t face_length) except -1
 
-cdef size_t bit_repr_to_Vrep_list(uint64_t *face, size_t *output,
+cdef size_t bit_rep_to_Vrep_list(uint64_t *face, size_t *output,
                                     size_t face_length) except -1
+
+cdef uint64_t vertex_to_bit_dictionary(size_t i)

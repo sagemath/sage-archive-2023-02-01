@@ -70,7 +70,6 @@ character-by-character::
 from __future__ import print_function
 
 import os
-import six
 import time
 from IPython import get_ipython
 
@@ -466,7 +465,7 @@ def detach(filename):
         ...
         ValueError: file '/dev/null/foobar.sage' is not attached, see attached_files()
     """
-    if isinstance(filename, six.string_types):
+    if isinstance(filename, str):
         filelist = [filename]
     else:
         filelist = [str(x) for x in filename]
@@ -597,12 +596,7 @@ def reload_attached_files_if_modified():
         basename = os.path.basename(filename)
         timestr = time.strftime('%T', mtime)
         notice = '### reloading attached file {0} modified at {1} ###'.format(basename, timestr)
-        if ip and ip.pt_cli:
-            with ip.pt_cli.patch_stdout_context(raw=True):
-                print(notice)
-                code = load_wrap(filename, attach=True)
-                ip.run_cell(code)
-        elif ip:
+        if ip:
             print(notice)
             code = load_wrap(filename, attach=True)
             ip.run_cell(code)

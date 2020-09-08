@@ -809,7 +809,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         OUTPUT:
 
         - the automorphism resulting from the composition of ``other`` and
-        ``self.``
+          ``self``.
 
         EXAMPLES::
 

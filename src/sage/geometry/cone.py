@@ -192,7 +192,6 @@ REFERENCES:
 
 # Use python-3.x versions of print() and range().
 from __future__ import print_function
-from six.moves import range
 
 import collections
 import copy
@@ -2280,9 +2279,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: face = L.level_sets()[1][0]
             sage: D = L.hasse_diagram()
-            sage: D.neighbors(face)
-            [2-d cone in 2-d lattice N,
-             0-d face of 2-d cone in 2-d lattice N]
+            sage: sorted(D.neighbors(face))
+            [0-d face of 2-d cone in 2-d lattice N,
+             2-d cone in 2-d lattice N]
 
         However, you can achieve some of this functionality using
         :meth:`facets`, :meth:`facet_of`, and :meth:`adjacent` methods::
@@ -2772,6 +2771,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: halfspace.incidence_matrix().is_immutable()
             True
+
+        Check that the base ring is ``ZZ``, see :trac:`29840`::
+
+            sage: halfspace.incidence_matrix().base_ring()
+            Integer Ring
         """
         normals = self.facet_normals()
         incidence_matrix = matrix(ZZ, self.nrays(),
@@ -4052,11 +4056,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The cone need not be strictly convex::
 
             sage: halfplane = Cone([(1,0),(2,1),(-1,0)])
-            sage: halfplane.semigroup_generators()
-            (N(0, 1), N(1, 0), N(-1, 0))
+            sage: sorted(halfplane.semigroup_generators())
+            [N(-1, 0), N(0, 1), N(1, 0)]
             sage: line = Cone([(1,1,1),(-1,-1,-1)])
-            sage: line.semigroup_generators()
-            (N(1, 1, 1), N(-1, -1, -1))
+            sage: sorted(line.semigroup_generators())
+            [N(-1, -1, -1), N(1, 1, 1)]
             sage: wedge = Cone([ (1,0,0), (1,2,0), (0,0,1), (0,0,-1) ])
             sage: sorted(wedge.semigroup_generators())
             [N(0, 0, -1), N(0, 0, 1), N(1, 0, 0), N(1, 1, 0), N(1, 2, 0)]

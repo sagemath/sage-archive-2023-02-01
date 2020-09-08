@@ -617,7 +617,18 @@ class ComplexBallField(UniqueRepresentation, Field):
             sage: CBF(1+I, 2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert I + 1 to a RealBall
+            TypeError: unable to convert ... to a RealBall
+
+        The following conversions used to yield incorrect enclosures::
+
+            sage: a = CBF(airy_ai(1)); a
+            [0.1352924163128814 +/- 4.17e-17]
+            sage: a.overlaps(ComplexBallField(100).one().airy_ai())
+            True
+            sage: v = CBF(zetaderiv(1, 3/2)); v
+            [-3.932239737431101 +/- 5.58e-16]
+            sage: v.overlaps(ComplexBallField(100)(3/2).zetaderiv(1))
+            True
         """
         try:
             return self.element_class(self, x, y)
@@ -626,26 +637,37 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         if y is None:
             try:
-                x = self._base(x)
-                return self.element_class(self, x)
+                _x = self._base(x)
+                return self.element_class(self, _x)
             except (TypeError, ValueError):
                 pass
+            # Handle symbolic expressions in a special way in order to avoid
+            # unsafe conversions as much as possible. Unlike the real case,
+            # this is not implemented via an _acb_() method, because such a
+            # conversion method would also be called by things like
+            # CBF(re_expr, im_expr).
+            from sage.symbolic.expression import Expression
+            if isinstance(x, Expression):
+                # Parse the expression. Despite the method name, the result
+                # will be a complex ball.
+                _x = x._arb_(self)
+                return self.element_class(self, _x)
             try:
-                y = self._base(x.imag())
-                x = self._base(x.real())
-                return self.element_class(self, x, y)
+                _y = self._base(x.imag())
+                _x = self._base(x.real())
+                return self.element_class(self, _x, _y)
             except (AttributeError, TypeError):
                 pass
             try:
-                x = ComplexIntervalField(self._prec)(x)
-                return self.element_class(self, x)
+                _x = ComplexIntervalField(self._prec)(x)
+                return self.element_class(self, _x)
             except TypeError:
                 pass
             raise TypeError("unable to convert {!r} to a ComplexBall".format(x))
         else:
-            x = self._base(x)
-            y = self._base(y)
-            return self.element_class(self, x, y)
+            _x = self._base(x)
+            _y = self._base(y)
+            return self.element_class(self, _x, _y)
 
     def _an_element_(self):
         r"""
@@ -1624,7 +1646,7 @@ cdef class ComplexBall(RingElement):
             sage: float(CBF(1,1))
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex ball to float
+            TypeError: can...t convert complex ball to float
         """
         if not arb_is_zero(acb_imagref(self.value)):
             raise TypeError("can't convert complex ball to float")
@@ -1665,7 +1687,7 @@ cdef class ComplexBall(RingElement):
             sage: RDF(CBF(1 + I))
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex ball to float
+            TypeError: can...t convert complex ball to float
 
             sage: RDF(CBF(3)).parent()
             Real Double Field

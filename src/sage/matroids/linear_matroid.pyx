@@ -3671,10 +3671,12 @@ cdef class BinaryMatroid(LinearMatroid):
         sage: M = matroids.named_matroids.R12()
         sage: N = BinaryMatroid(reduced_matrix=M.representation(reduced=True,
         ....:                         labels=False), groundset='abcdefghijkl')
-        sage: N._projection_partition()
+        sage: Npp = N._projection_partition(); Npp # random
         2 x 12 BinaryMatrix
         [110011001100]
         [001100110011]
+        sage: sorted(Npp._matrix_().rows())
+        [(1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0), (0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1)]
         """
         if self._eq_part is None:
             if self._b_invariant is None:
@@ -5870,7 +5872,7 @@ cdef class RegularMatroid(LinearMatroid):
         ALGORITHM:
 
         Since the matroid is regular, we use Kirchhoff's Matrix-Tree Theorem.
-        See also :wikipedia:`Kirchhoff's_theorem`.
+        See also :wikipedia:`Kirchhoff%27s_theorem`.
         """
         if self._bases_count is None:
             R = self._basic_representation()._matrix_()

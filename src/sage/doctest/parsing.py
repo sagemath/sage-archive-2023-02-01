@@ -23,9 +23,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from sage.misc.six import u
-import six
-from six import text_type
 
 import re
 import doctest
@@ -39,6 +36,11 @@ from .external import available_software
 
 float_regex = re.compile(r'\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
+# Version 4.65 of glpk prints the warning "Long-step dual simplex will
+# be used" frequently. When Sage uses a system installation of glpk
+# which has not been patched, we need to ignore that message.
+# See :trac:`29317`.
+glpk_simplex_warning_regex = re.compile(r'(Long-step dual simplex will be used)')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
 find_python_continuation = re.compile(r"^(\s*)\.\.\.([^\.])", re.M)
@@ -51,21 +53,39 @@ tolerance_pattern = re.compile(r'\b((?:abs(?:olute)?)|(?:rel(?:ative)?))? *?tol(
 backslash_replacer = re.compile(r"""(\s*)sage:(.*)\\\ *
 \ *(((\.){4}:)|((\.){3}))?\ *""")
 
-# Use this real interval field for doctest tolerances. It allows large
-# numbers like 1e1000, it parses strings with spaces like RIF(" - 1 ")
-# out of the box and it carries a lot of precision. The latter is
-# useful for testing libraries using arbitrary precision but not
-# guaranteed rounding such as PARI. We use 1044 bits of precision,
-# which should be good to deal with tolerances on numbers computed with
-# 1024 bits of precision.
-#
-# The interval approach also means that we do not need to worry about
-# rounding errors and it is also very natural to see a number with
-# tolerance as an interval.
-# We need to import from sage.all to avoid circular imports.
-from sage.all import RealIntervalField
-RIFtol = RealIntervalField(1044)
+_RIFtol = None
 
+def RIFtol(*args):
+    """
+    Create an element of the real interval field used for doctest tolerances.
+
+    It allows large numbers like 1e1000, it parses strings with spaces
+    like ``RIF(" - 1 ")`` out of the box and it carries a lot of
+    precision. The latter is useful for testing libraries using
+    arbitrary precision but not guaranteed rounding such as PARI. We use
+    1044 bits of precision, which should be good to deal with tolerances
+    on numbers computed with 1024 bits of precision.
+
+    The interval approach also means that we do not need to worry about
+    rounding errors and it is also very natural to see a number with
+    tolerance as an interval.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.parsing import RIFtol
+        sage: RIFtol(-1, 1)
+        0.?
+        sage: RIFtol(" - 1 ")
+        -1
+        sage: RIFtol("1e1000")
+        1.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000?e1000
+    """
+    global _RIFtol
+    if _RIFtol is None:
+        # We need to import from sage.all to avoid circular imports.
+        from sage.all import RealIntervalField
+        _RIFtol = RealIntervalField(1044)
+    return _RIFtol(*args)
 
 # This is the correct pattern to match ISO/IEC 6429 ANSI escape sequences:
 #
@@ -114,7 +134,7 @@ def remove_unicode_u(string):
         sage: print(remu(euro))
         '€'
     """
-    stripped, replacements = cython_strip_string_literals(u(string),
+    stripped, replacements = cython_strip_string_literals(string,
                                                           "__remove_unicode_u")
     string = stripped.replace('u"', '"').replace("u'", "'")
     for magic, literal in replacements.items():
@@ -252,25 +272,19 @@ def normalize_bound_method_repr(s):
 # application.
 # For example, on Python 3 we strip all u prefixes from unicode strings in the
 # expected output, because we never expect to see those on Python 3.
-if six.PY2:
-    _repr_fixups = [
-        (lambda g, w: '<class' in w and '<type' in g,
-         lambda g, w: (normalize_type_repr(g), w)),
-    ]
-else:
-    _repr_fixups = [
-        (lambda g, w: 'u"' in w or "u'" in w,
-         lambda g, w: (g, remove_unicode_u(w))),
+_repr_fixups = [
+    (lambda g, w: 'u"' in w or "u'" in w,
+     lambda g, w: (g, remove_unicode_u(w))),
 
-        (lambda g, w: '<class' in g and '<type' in w,
-         lambda g, w: (g, normalize_type_repr(w))),
+    (lambda g, w: '<class' in g and '<type' in w,
+     lambda g, w: (g, normalize_type_repr(w))),
 
-        (lambda g, w: 'L' in w or 'l' in w,
-         lambda g, w: (g, normalize_long_repr(w))),
-        (lambda g, w: '<bound method' in w,
-         lambda g, w: (normalize_bound_method_repr(g),
-                       normalize_bound_method_repr(w)))
-    ]
+    (lambda g, w: 'L' in w or 'l' in w,
+     lambda g, w: (g, normalize_long_repr(w))),
+    (lambda g, w: '<bound method' in w,
+     lambda g, w: (normalize_bound_method_repr(g),
+                   normalize_bound_method_repr(w)))
+]
 
 
 def parse_optional_tags(string):
@@ -452,7 +466,7 @@ def reduce_hex(fingerprints):
     return "%032x" % res
 
 
-class MarkedOutput(text_type):
+class MarkedOutput(str):
     """
     A subclass of string with context for whether another string
     matches it.
@@ -1071,6 +1085,7 @@ class SageOutputChecker(doctest.OutputChecker):
             <class 'float'>
         """
         got = self.human_readable_escape_sequences(got)
+        got = glpk_simplex_warning_regex.sub('', got)
         if isinstance(want, MarkedOutput):
             if want.random:
                 return True

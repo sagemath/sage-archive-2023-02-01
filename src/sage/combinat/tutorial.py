@@ -222,7 +222,7 @@ gold mine of information: the `Online Encyclopedia of Integer Sequences
 author, which contains more than 190000 sequences of integers::
 
     sage: oeis([1,1,2,5,14])                            # optional -- internet
-    0: A000108: Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!). Also called Segner numbers.
+    0: A000108: Catalan numbers: ...
     1: ...
     2: ...
 
@@ -1731,8 +1731,8 @@ The Fibonacci sequence is easily recognized here, hence the name::
 
     sage: oeis(L)                                       # optional -- internet
     0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-    1: A212804: Expansion of (1-x)/(1-x-x^2).
-    2: A132636: a(n) = Fibonacci(n) mod n^3.
+    1: ...
+    2: ...
 
 This is an immediate consequence of the recurrence relation. One can
 also generate immediately all the Fibonacci words of a given length,

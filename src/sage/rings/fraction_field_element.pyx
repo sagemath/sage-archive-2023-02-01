@@ -181,6 +181,15 @@ cdef class FractionFieldElement(FieldElement):
             (x^2 + 2.0*x + 1.0)/(x + 1.0)
             sage: f.reduce(); f
             x + 1.0
+
+        TESTS:
+
+        Check that :trac:`8111` is fixed::
+
+            sage: K.<k>= QQ[]
+            sage: frac = (64*k^2+128)/(64*k^3+256)
+            sage: frac.reduce(); frac
+            (k^2 + 2)/(k^3 + 4)
         """
         if self._is_reduced:
             return
@@ -772,18 +781,6 @@ cdef class FractionFieldElement(FieldElement):
             3/2
         """
         return Q(self.__numerator) / Q(self.__denominator)
-
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: K.<x> = Frac(QQ['x'])
-            sage: long(K(3))
-            3L
-            sage: long(K(3/5))
-            0L
-        """
-        return long(int(self))
 
     def __pow__(self, right, dummy):
         r"""

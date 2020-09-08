@@ -142,7 +142,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.libs.pari.all import pari
 import sage.rings.complex_field
@@ -933,17 +933,6 @@ class GpElement(ExpectElement):
             False
         """
         return repr(self.type()) == 't_STR'
-
-    def __long__(self):
-        """
-        Return Python long.
-
-        EXAMPLES::
-
-            sage: long(gp(10))
-            10L
-        """
-        return long(str(self))
 
     def __float__(self):
         """

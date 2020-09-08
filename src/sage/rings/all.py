@@ -1,14 +1,5 @@
 """
 Rings
-
-Test for deprecations of imports into global namespace::
-
-    sage: convergents
-    doctest:warning...:
-    DeprecationWarning:
-    Importing convergents from here is deprecated. If you need to use it, please import it directly from sage.rings.continued_fraction
-    See https://trac.sagemath.org/27066 for details.
-    <function convergents at ...>
 """
 # ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -19,7 +10,6 @@ Test for deprecations of imports into global namespace::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 from sage.misc.lazy_import import lazy_import
 
 # Ring base classes
@@ -168,12 +158,9 @@ from .fast_arith import prime_range
 # continued fractions
 from sage.rings.continued_fraction import (continued_fraction,
                                            continued_fraction_list)
-lazy_import('sage.rings.continued_fraction', 'convergents', deprecation=27066)
 
 # asymptotic ring
 from .asymptotic.all import *
 
 # Register classes in numbers abc
 from . import numbers_abc
-
-del absolute_import

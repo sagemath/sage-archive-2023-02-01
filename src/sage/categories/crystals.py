@@ -20,7 +20,6 @@ Catch warnings produced by :func:`check_tkz_graph`::
 #*****************************************************************************
 
 from __future__ import print_function
-from builtins import zip
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -30,12 +29,6 @@ from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.tensor import TensorProductsCategory
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom, Homset
-from sage.misc.latex import latex
-from sage.combinat import ranker
-from sage.graphs.dot2tex_utils import have_dot2tex
-from sage.rings.integer import Integer
-from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-from sage.sets.family import Family
 
 class Crystals(Category_singleton):
     r"""
@@ -145,6 +138,7 @@ class Crystals(Category_singleton):
         if choice == "naive":
             return examples.NaiveCrystal(**kwds)
         else:
+            from sage.rings.integer import Integer
             if isinstance(choice, Integer):
                 return examples.HighestWeightCrystalOfTypeA(n=choice, **kwds)
             else:
@@ -389,6 +383,7 @@ class Crystals(Category_singleton):
             if index_set is None:
                 index_set = self.index_set()
             succ = lambda x: [x.f(i) for i in index_set] + [x.e(i) for i in index_set]
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
             R = RecursivelyEnumeratedSet(self.module_generators, succ, structure=None)
             return R.breadth_first_search_iterator(max_depth)
 
@@ -541,6 +536,7 @@ class Crystals(Category_singleton):
             else:
                 raise ValueError("direction must be either 'both', 'upper', or 'lower'")
 
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
             subset = RecursivelyEnumeratedSet(generators, succ,
                                               structure=None, enumeration='breadth',
                                               max_depth=max_depth)
@@ -913,6 +909,7 @@ class Crystals(Category_singleton):
                         continue
                     d[x][child]=i
             G = DiGraph(d)
+            from sage.graphs.dot2tex_utils import have_dot2tex
             if have_dot2tex():
                 G.set_latex_options(format="dot2tex",
                                     edge_labels=True,
@@ -1128,12 +1125,15 @@ class Crystals(Category_singleton):
                 'digraph G { \n  node [ shape=plaintext ];\n  N_0 [ label = " ", texlbl = "$1$" ];\n  N_1 [ label = " ", texlbl = "$2$" ];\n  N_2 [ label = " ", texlbl = "$3$" ];\n  N_0 -> N_1 [ label = " ", texlbl = "1" ];\n  N_1 -> N_2 [ label = " ", texlbl = "2" ];\n}'
             """
             import re
+            from sage.combinat import ranker
+
             rank = ranker.from_list(self.list())[0]
             vertex_key = lambda x: "N_"+str(rank(x))
 
             # To do: check the regular expression
             # Removing %-style comments, newlines, quotes
             # This should probably be moved to sage.misc.latex
+            from sage.misc.latex import latex
             quoted_latex = lambda x: re.sub("\"|\r|(%[^\n]*)?\n","", latex(x))
 
             result = "digraph G { \n  node [ shape=plaintext ];\n"
@@ -1849,6 +1849,7 @@ class CrystalMorphism(Morphism):
                 virtualization = dict(virtualization)
             except (TypeError, ValueError):
                 virtualization = {i: (virtualization(i),) for i in index_set}
+        from sage.sets.family import Family
         self._virtualization = Family(virtualization)
         self._scaling_factors = Family(scaling_factors)
 

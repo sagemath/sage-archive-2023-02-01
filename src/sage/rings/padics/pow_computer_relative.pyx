@@ -1,3 +1,5 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
 # -*- coding: utf-8 -*-
 r"""
 A ``PowComputer`` for relative extensions

@@ -265,11 +265,11 @@ cdef class Morphism(Map):
         Caveat: the registration of the coercion must be done before any
         other coercion is registered or discovered::
 
-            sage: phi = Hom(X, Y)(y)
+            sage: phi = Hom(X, Z)(z^2)
             sage: phi.register_as_coercion()
             Traceback (most recent call last):
             ...
-            AssertionError: coercion from Univariate Polynomial Ring in x over Integer Ring to Univariate Polynomial Ring in y over Integer Ring already registered or discovered
+            AssertionError: coercion from Univariate Polynomial Ring in x over Integer Ring to Univariate Polynomial Ring in z over Integer Ring already registered or discovered
 
         """
         self._codomain.register_coercion(self)
@@ -397,10 +397,7 @@ cdef class Morphism(Map):
         try:
             return self._is_nonzero()
         except Exception:
-            if PY_MAJOR_VERSION < 3:
-                return super(Morphism, self).__nonzero__()
-            else:
-                return super().__bool__()
+            return super().__bool__()
 
 
 cdef class FormalCoercionMorphism(Morphism):

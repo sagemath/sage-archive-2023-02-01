@@ -24,27 +24,28 @@ see :trac:`12849`::
     ....:     for line in fobj:
     ....:         if "#sage.symbolic.expression.Expression.numerical_approx" in line:
     ....:             print(line)
-    <code class="descname">numerical_approx</code><span class="sig-paren">(</span><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><span class="sig-paren">)</span>...
+    <code class="sig-name descname">numerical_approx</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">prec</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">digits</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">algorithm</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span>...
 
 Check that sphinx is not imported at Sage start-up::
 
     sage: "sphinx" in sys.modules
     False
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import print_function
 from __future__ import absolute_import
-from six import string_types, text_type
 
-import os, re, sys
+import os
+import re
+import sys
 import pydoc
 from sage.misc.temporary_file import tmp_dir
 from .viewer import browser
@@ -258,7 +259,7 @@ def skip_TESTS_block(docstring):
 
     - ``docstring``, a string
 
-    A "TESTS" block is a block starting with "TEST:" or "TESTS:" (or
+    A "TESTS" block is a block starting "TESTS:" (or
     the same with two colons), on a line on its own, and ending either
     with a line indented less than "TESTS", or with a line with the
     same level of indentation -- not more -- matching one of the
@@ -284,7 +285,7 @@ def skip_TESTS_block(docstring):
 
         sage: from sage.misc.sagedoc import skip_TESTS_block
         sage: start = ' Docstring\n\n'
-        sage: test = ' TEST: \n\n Here is a test::\n     sage: 2+2 \n     5 \n\n'
+        sage: test = ' TESTS: \n\n Here is a test::\n     sage: 2+2 \n     5 \n\n'
         sage: test2 = ' TESTS:: \n\n     sage: 2+2 \n     6 \n\n'
 
     Test lines starting with "REFERENCES:"::
@@ -681,7 +682,7 @@ def format(s, embedded=False):
         sage: format(r'inline code ``\\\\.``')
         'inline code "\\\\\\\\."\n'
     """
-    if not isinstance(s, string_types):
+    if not isinstance(s, str):
         raise TypeError("s must be a string")
 
     # Leading empty lines must be removed, since we search for directives
@@ -710,9 +711,11 @@ def format(s, embedded=False):
         i_0 = 0
         while True:
             i = s[i_0:].find("<<<")
-            if i == -1: break
+            if i == -1:
+                break
             j = s[i_0+i+3:].find('>>>')
-            if j == -1: break
+            if j == -1:
+                break
             obj = s[i_0+i+3 : i_0+i+3+j]
             if obj in docs:
                 t = ''
@@ -763,15 +766,17 @@ def format_src(s):
         sage: format_src('<<<Sq>>>')[5:15]
         'Sq(*nums):'
     """
-    if not isinstance(s, string_types):
+    if not isinstance(s, str):
         raise TypeError("s must be a string")
     docs = set([])
     import sage.all
     while True:
         i = s.find("<<<")
-        if i == -1: break
+        if i == -1:
+            break
         j = s[i+3:].find('>>>')
-        if j == -1: break
+        if j == -1:
+            break
         obj = s[i+3:i+3+j]
         if obj in docs:
             t = ''
@@ -948,7 +953,7 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
     else:
         # Pass through the IPython pager in a mime bundle
         from IPython.core.page import page
-        if not isinstance(text_results, text_type):
+        if not isinstance(text_results, str):
             text_results = text_results.decode('utf-8', 'replace')
 
         page({
@@ -1059,7 +1064,7 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
         sage: print(search_src(" fetch(", "def", interact=False)) # py3
         Traceback (most recent call last):
         ...
-        re.error: missing ), unterminated subpattern at position 6
+        error: missing ), unterminated subpattern at position 6
 
     To fix this, *escape* the parenthesis with a backslash::
 

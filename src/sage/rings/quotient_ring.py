@@ -108,7 +108,6 @@ easily::
 #*****************************************************************************
 
 from __future__ import absolute_import
-from six.moves import range
 
 import sage.misc.latex as latex
 from . import ring, ideal, quotient_ring_element
@@ -987,6 +986,11 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Finite Field of size 7 to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+
+        TESTS::
+
+            sage: S(x, coerce=False)
+            a
         """
         if isinstance(x, quotient_ring_element.QuotientRingElement):
             if x.parent() is self:
@@ -1297,7 +1301,7 @@ class QuotientRing_generic(QuotientRing_nc, ring.CommutativeRing):
         QuotientRing_nc.__init__(self, R, I, names, category=category)
 
     def _macaulay2_init_(self, macaulay2=None):
-        """
+        r"""
         EXAMPLES:
 
         Quotients of multivariate polynomial rings over `\QQ`, `\ZZ` and

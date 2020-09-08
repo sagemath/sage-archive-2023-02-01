@@ -161,7 +161,7 @@ class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
         EXAMPLES::
 
             sage: H, (i,j,k) = sage.algebras.free_algebra_quotient.hamilton_quatalg(QQ)
-            sage: H._element_constructor_(i) is i
+            sage: H(i) is i
             True
             sage: a = H._element_constructor_(1); a
             1
@@ -170,8 +170,6 @@ class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
             sage: a = H._element_constructor_([1,2,3,4]); a
             1 + 2*i + 3*j + 4*k
         """
-        if isinstance(x, FreeAlgebraQuotientElement) and x.parent() is self:
-            return x
         return self.element_class(self,x)
 
     def _coerce_map_from_(self,S):

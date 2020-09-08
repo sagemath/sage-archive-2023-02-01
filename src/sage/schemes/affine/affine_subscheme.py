@@ -22,6 +22,7 @@ AUTHORS:
 
 from sage.categories.fields import Fields
 from sage.interfaces.all import singular
+from sage.modules.all import vector
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 
 from .affine_morphism import SchemeMorphism_polynomial_affine_subscheme_field
@@ -537,3 +538,60 @@ class AlgebraicScheme_subscheme_affine_field(AlgebraicScheme_subscheme_affine):
                     (x*y : x : y)
         """
         return SchemeMorphism_polynomial_affine_subscheme_field(*args, **kwds)
+
+    def tangent_space(self, p):
+        """
+        Return the tangent space at the point ``p``.
+
+        The points of the tangent space are the tangent vectors at ``p``.
+
+        INPUT:
+
+        - ``p`` -- a rational point
+
+        EXAMPLES::
+
+            sage: A3.<x,y,z> = AffineSpace(3, QQ)
+            sage: X = A3.subscheme(z-x*y)
+            sage: X.tangent_space(A3.origin())
+            Closed subscheme of Affine Space of dimension 3 over Rational Field
+            defined by:
+              z
+            sage: X.tangent_space(X(1,1,1))
+            Closed subscheme of Affine Space of dimension 3 over Rational Field
+            defined by:
+              -x - y + z
+
+        Tangent space at a point may have higher dimension than the dimension
+        of the point. ::
+
+            sage: C = Curve([x + y + z, x^2 - y^2*z^2 + z^3])
+            sage: C.singular_points()
+            [(0, 0, 0)]
+            sage: p = C(0,0,0)
+            sage: C.tangent_space(p)
+            Closed subscheme of Affine Space of dimension 3 over Rational Field
+            defined by:
+              x + y + z
+            sage: _.dimension()
+            2
+            sage: q = C(1,0,-1)
+            sage: C.tangent_space(q)
+            Closed subscheme of Affine Space of dimension 3 over Rational Field
+            defined by:
+              x + y + z,
+              2*x + 3*z
+            sage: _.dimension()
+            1
+
+        """
+        A = self.ambient_space()
+        R = A.coordinate_ring()
+        gens = R.gens()
+
+        J = self.Jacobian_matrix()
+        Jp = J.apply_map( lambda f: f.subs(dict(zip(gens, p))) )
+        I = [f for f in Jp * vector(gens) if f]
+
+        return A.subscheme(R.ideal(I))
+

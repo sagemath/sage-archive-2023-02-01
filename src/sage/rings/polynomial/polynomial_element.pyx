@@ -7718,6 +7718,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p = x^4 + (-5 - 2*t)*x^3 + (-2 + 10*t)*x^2 + (10 + 4*t)*x - 20*t
             sage: p.roots()
             [(5, 1), (2*t, 1)]
+
+        Check that :trac:`30522` is fixed::
+
+            sage: PolynomialRing(SR, names="x")("x^2").roots()
+            [(0, 2)]
         """
         from sage.rings.finite_rings.finite_field_constructor import GF
         K = self._parent.base_ring()

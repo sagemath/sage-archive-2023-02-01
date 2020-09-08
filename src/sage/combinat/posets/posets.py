@@ -7088,7 +7088,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             \sum_{\substack{p_0 < p_1 < \ldots < p_k, \\
                             p_0 = \min P, \ p_k = \max P}}
             x_{\rho(p_1)} x_{\rho(p_2)} \cdots x_{\rho(p_k)}
-            \in \ZZ[x_1, x_2, \cdots, x_n]
+            \in \ZZ[x_1, x_2, \cdots, x_n],
 
         where `\min P` and `\max P` are (respectively) the minimum and
         the maximum of `P`, where `\rho` is the rank function of `P`
@@ -8180,10 +8180,14 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = posets.AntichainPoset(3)
             sage: Pc = P.cuts()
-            sage: [list(c) for c in Pc]
-            [[0], [], [0, 1, 2], [2], [1]]
-            sage: Pc[0]
-            frozenset({0})
+            sage: Pc # random
+            [frozenset({0}),
+             frozenset(),
+             frozenset({0, 1, 2}),
+             frozenset({2}),
+             frozenset({1})]
+            sage: sorted(list(c) for c in Pc)
+            [[], [0], [0, 1, 2], [1], [2]]
 
         .. SEEALSO::
 

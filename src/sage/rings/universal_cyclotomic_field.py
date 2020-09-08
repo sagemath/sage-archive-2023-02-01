@@ -615,9 +615,8 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: UCF = UniversalCyclotomicField()
             sage: hash(UCF.zero())  # indirect doctest
             0
-            sage: hash(UCF.gen(3,2))
-            313156239               # 32-bit
-            1524600308199219855     # 64-bit
+            sage: hash(UCF.gen(3,2)) == hash((3,0,0,1))
+            True
 
         TESTS:
 

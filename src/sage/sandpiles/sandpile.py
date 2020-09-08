@@ -306,13 +306,15 @@ Working with sandpile divisors::
     (2, 1, 0, 0, 0, -1)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 David Perkinson <davidp@reed.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import print_function, division
+
+from sage.misc.superseded import deprecation
 
 from collections import Counter
 from copy import deepcopy
@@ -332,11 +334,12 @@ from sage.functions.log import exp
 from sage.functions.other import binomial
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.graphs.all import DiGraph, Graph
+from sage.graphs.digraph_generators import digraphs
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
-from sage.misc.all import prod, det, tmp_filename, random, randint, exists, denominator
+from sage.misc.all import prod, det, tmp_filename, exists, denominator
 from sage.arith.srange import xsrange
 from sage.modules.free_module_element import vector
 from sage.plot.colors import rainbow
@@ -2752,7 +2755,7 @@ class Sandpile(DiGraph):
 
         L = singular.subst(self._ideal,
                 singular.var(singular.nvars(self._ring)), 1)
-        R = singular.ring(0, vars_, 'lp')
+        _ = singular.ring(0, vars_, 'lp')
         K = singular.fetch(self._ring, L)
         K = singular.groebner(K)
         singular.LIB('solve.lib')
@@ -6295,7 +6298,10 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import random_DAG
         sage: d = DiGraph(random_DAG(5, .5)); d
+        doctest:...: DeprecationWarning: method random_DAG is deprecated. Please use digraphs.RandomDirectedAcyclicGraph instead.
+        See https://trac.sagemath.org/30479 for details.
         Digraph on 5 vertices
 
     TESTS:
@@ -6303,34 +6309,26 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
     Check that we can construct a random DAG with the
     default arguments (:trac:`12181`)::
 
+        sage: from sage.sandpiles.sandpile import random_DAG
         sage: g = random_DAG(5);DiGraph(g)
         Digraph on 5 vertices
 
     Check that bad inputs are rejected::
 
+        sage: from sage.sandpiles.sandpile import random_DAG
         sage: g = random_DAG(5,1.1)
         Traceback (most recent call last):
         ...
-        ValueError: The parameter p must satisfy 0 < p <= 1.
+        ValueError: the probability p must be in [0..1]
         sage: g = random_DAG(5,0.1,-1)
         Traceback (most recent call last):
         ...
-        ValueError: The parameter weight_max must be positive.
+        ValueError: parameter weight_max must be a positive integer
     """
-    if not(0 < p and p <= 1):
-        raise ValueError("The parameter p must satisfy 0 < p <= 1.")
-    weight_max=ZZ(weight_max)
-    if not(0 < weight_max):
-        raise ValueError("The parameter weight_max must be positive.")
-    g = {0:{}}
-    for i in range(1,num_verts):
-        out_edges = {}
-        while out_edges == {}:
-            for j in range(i):
-                if p > random():
-                    out_edges[j] = randint(1,weight_max)
-        g[i] = out_edges
-    return g
+    deprecation(30479, "method random_DAG is deprecated. Please use "
+                       "digraphs.RandomDirectedAcyclicGraph instead.")
+    D = digraphs.RandomDirectedAcyclicGraph(num_verts, p, weight_max=weight_max)
+    return D.to_dictionary(edge_labels=True)
 
 
 def glue_graphs(g, h, glue_g, glue_h):

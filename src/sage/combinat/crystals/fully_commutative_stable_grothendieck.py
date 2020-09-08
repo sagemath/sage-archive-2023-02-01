@@ -7,6 +7,7 @@ from sage.combinat.permutation import Permutations
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat import permutation
 from sage.monoids.hecke_monoid import HeckeMonoid
+from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 
 from copy import copy
 from sage.rings.integer import Integer
@@ -15,10 +16,11 @@ class DecreasingHeckeFactorization:
     """
     Class of decreasing factorizations in the 0-Hecke monoid.
     
-    EXAMPLES:
-    
+    EXAMPLES::
+
+        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
         sage: t = [[3,2],[],[2,1]]
-        sage: h = HeckeFactorization(t,3); h
+        sage: h = DecreasingHeckeFactorization(t,3); h
         (3, 2)()(2, 1)
         sage: h.w
         h3*h2*h1
@@ -66,6 +68,7 @@ class DecreasingHeckeFactorization:
         self.w = self.H.from_reduced_word([ele for factor in t for ele in factor])
         self.excess = sum(len(l) for l in t)-len(self.w.reduced_word())
         self.value = tuple([tuple(factors) for factors in t])
+        self.bright = bright
     
     @property
     def m(self):
@@ -144,7 +147,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``t`` -- an element in a HeckeMonoid
+    - ``t`` -- an element in the HeckeMonoid
 
     - ``m`` -- the number of factors in the factorization
 
@@ -154,8 +157,8 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
         sage: H = HeckeMonoid(SymmetricGroup(4))
         sage: t = H.from_reduced_word([1,3,2])
-        sage: B = StarCrystal(t,3,2);B
-        *-Crystal of 321-avoiding 0-Hecke monoid factorizations of type A_2 associated to [1, 3, 2] with excess 2
+        sage: B = FullyCommutativeStableGrothendieckCrystal(t,3,2); B
+        Fully commutative stable Grothendieck crystal of type A_2 associated to [1, 3, 2] with excess 2
     """
 
     def __init__(self, t, m, excess, k=None):
@@ -164,7 +167,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
             sage: H = HeckeMonoid(SymmetricGroup(3))
             sage: t = H.from_reduced_word([1,3,2])
-            sage: B = StarCrystal(t,3,2)
+            sage: B = FullyCommutativeStableGrothendieckCrystal(t,3,2)
             sage: B.m
             3
             sage: B.excess
@@ -179,7 +182,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
         self.k = k if k else max(self.h)
         # t is an element of HeckeMonoid
         self.t = t
-        # m is the number of parenthesis pairs
+        # m is the number of factorizations
         self.m = m
         # check if the w is 321-avoiding
         P = Permutations(self.k+1,avoiding=[3,2,1])
@@ -193,22 +196,22 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
     def _repr_(self):
         """
-        Return a representation of self.
+        Return a representation of ``self''.
 
         EXAMPLES::
         
             sage: H = HeckeMonoid(SymmetricGroup(4))
             sage: t = H.from_reduced_word([1,3,2])
-            sage: B = StarCrystal(t,3,2)
-            *-Crystal of 321-avoiding 0-Hecke monoid factorizations of type A_2 associated to [1, 3, 2] with excess 2
+            sage: B = FullyCommutativeStableGrothendieckCrystal(t,3,2); B
+            Fully commutative stable Grothendieck crystal of type A_2 associated to [1, 3, 2] with excess 2
         """
-        return "*-Crystal of 321-avoiding 0-Hecke monoid factorizations of type A_{} associated to {} with excess {}".format(self.m-1, self.h,self.excess)
+        return "Fully commutative stable Grothendieck crystal of type A_{} associated to {} with excess {}".format(self.m-1, self.h,self.excess)
 
     # temporary workaround while an_element is overriden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_ 
 
     class Element(ElementWrapper):
-        def __init__(self,parent,hf):
+        def __init__(self, parent, hf):
             """
             Creates an instance of element t subject to constraints on w and excess.
             The decreasing factorization t should be equivalent to t and
@@ -280,7 +283,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             R.append(y)
             L.sort(reverse=True)
             R.sort(reverse=True)  
-            s = HeckeFactorization([self.value[j] for j in range(self.m-i-1)] + [L] + [R] + [self.value[j] for j in range(self.m-i+1,self.m)],self.k)
+            s = DecreasingHeckeFactorization([self.value[j] for j in range(self.m-i-1)] + [L] + [R] + [self.value[j] for j in range(self.m-i+1,self.m)],self.k)
             if not check_local(self,s,i):
                 s.bright = True
                 print(self,s,i)           
@@ -302,7 +305,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             L.append(x)
             L.sort(reverse=True)
             R.sort(reverse=True)  
-            s = HeckeFactorization([self.value[j] for j in range(self.m-i-1)] + [L] + [R] + [self.value[j] for j in range(self.m-i+1,self.m)],self.k)
+            s = DecreasingHeckeFactorization([self.value[j] for j in range(self.m-i-1)] + [L] + [R] + [self.value[j] for j in range(self.m-i+1,self.m)],self.k)
             if not check_local(self,s,i):
                 s.bright = True
                 print(self,s,i)  

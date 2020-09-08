@@ -343,7 +343,7 @@ cdef class FaceIterator_base(SageObject):
 
         # We start with the coatoms.
         self.structure.newfaces[self.structure.dimension - 1] = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t*))
-        for j in self.coatoms.n_faces:
+        for j in range(self.coatoms.n_faces):
             self.structure.newfaces[self.structure.dimension - 1][j] = self.coatoms.data[j]
 
         # Initialize ``visited_all``.

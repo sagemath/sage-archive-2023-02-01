@@ -1,3 +1,8 @@
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitsets.cc
+# distutils: language = c++
+# distutils: extra_compile_args = -std=c++11
+# distutils: libraries = gmp
+
 r"""
 Conversions
 
@@ -79,13 +84,9 @@ from sage.ext.memory_allocator        cimport MemoryAllocator
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
 
-cdef inline uint64_t vertex_to_bit_dictionary(size_t i):
-    r"""
-    Return an uint64_t with exactly the i-th bit set to 1.
-
-    This "dictionary" helps storing a vector of 64 incidences as ``uint64_t``.
-    """
-    return (<uint64_t>1) << (64 - i - 1)
+cdef extern from "bitsets.cc":
+    cdef void bitset_add(uint64_t* bits, size_t n)
+    cdef size_t bitset_next(uint64_t* bits, size_t face_length, size_t n)
 
 def _Vrep_list_to_bit_rep_wrapper(tup, size_t face_length=-1):
     r"""
@@ -153,11 +154,9 @@ cdef int Vrep_list_to_bit_rep(tuple Vrep_list, uint64_t *output,
     if unlikely(len(Vrep_list) != len(set(Vrep_list))):
         raise ValueError("entries of ``tup`` are not distinct")
     for entry in Vrep_list:
-        value = entry % 64
-        position = entry//64
-        if unlikely(position >= face_length):
+        if unlikely(entry >= 64*face_length):
             raise IndexError("output too small to represent %s"%entry)
-        output[position] += vertex_to_bit_dictionary(value)
+        bitset_add(output, entry)
 
 def _incidences_to_bit_rep_wrapper(tup, size_t face_length=-1):
     r"""
@@ -215,8 +214,6 @@ cdef int incidences_to_bit_rep(tuple incidences, uint64_t *output,
         IndexError: output too small to represent all incidences
     """
     cdef size_t entry       # index for the entries in tup
-    cdef size_t position    # determines the position in output of entry
-    cdef size_t value       # determines which bit will be set in output[position]
     cdef size_t length = len(incidences)
 
     memset(output, 0, face_length*8)  #initialize
@@ -225,9 +222,7 @@ cdef int incidences_to_bit_rep(tuple incidences, uint64_t *output,
     for entry in range(length):
         if incidences[entry]:
             # Vrep ``entry`` is contained in the face, so set the corresponding bit
-            value = entry % 64
-            position = entry//64
-            output[position] += vertex_to_bit_dictionary(value)
+            bitset_add(output, entry)
 
 def incidence_matrix_to_bit_rep_of_facets(Matrix_integer_dense matrix):
     r"""
@@ -283,8 +278,6 @@ def incidence_matrix_to_bit_rep_of_facets(Matrix_integer_dense matrix):
     cdef uint64_t *output
     cdef size_t face_length = facets.face_length
     cdef size_t entry       # index for the entries in tup
-    cdef size_t position    # determines the position in output of entry
-    cdef size_t value       # determines which bit will be set in output[position]
 
     cdef size_t i
     for i in range(ncols):
@@ -296,9 +289,7 @@ def incidence_matrix_to_bit_rep_of_facets(Matrix_integer_dense matrix):
         for entry in range(nrows):
             if not matrix.get_is_zero_unsafe(entry, i):
                 # Vrep ``entry`` is contained in the face, so set the corresponding bit
-                value = entry % 64
-                position = entry//64
-                output[position] += vertex_to_bit_dictionary(value)
+                bitset_add(output, entry)
     return facets
 incidence_matrix_to_bit_repr_of_facets = deprecated_function_alias(28608, incidence_matrix_to_bit_rep_of_facets)
 
@@ -461,13 +452,11 @@ def facets_tuple_to_bit_rep_of_Vrep(tuple facets_input, size_t n_Vrep):
     cdef size_t input_Vrep    # will iterate over vertices in facet ``input_facet``
 
     for input_facet in range(n_facets):
-        value = input_facet % 64
-        position = input_facet//64
         for input_Vrep in facets_input[input_facet]:
             # Iff the input-Vrep is in the input-facet,
             # then in facet-representation of the Vrep
             # input-facet is a Vrep of intput-Vrep.
-            Vrep_data[input_Vrep][position] += vertex_to_bit_dictionary(value)
+            bitset_add(Vrep_data[input_Vrep], input_facet)
     return Vrep
 facets_tuple_to_bit_repr_of_Vrepr = deprecated_function_alias(28608, facets_tuple_to_bit_rep_of_Vrep)
 
@@ -565,17 +554,11 @@ cdef inline size_t bit_rep_to_Vrep_list(uint64_t *face, size_t *output,
         ....:         print('``bit_rep_to_Vrep_list`` does not behave',
         ....:               'as the inverse of ``Vrep_list_to_bit_rep``')
     """
-    cdef size_t i, j
     cdef size_t output_length = 0
     cdef uint64_t copy
-    for i in range(face_length):
-        if face[i]:
-            copy = face[i]
-            for j in range(64):
-                if copy >= vertex_to_bit_dictionary(j):
-                    # Then face[i] has the j-th bit set to 1.
-                    # This corresponds to face containing Vrep i*64 + j.
-                    output[output_length] = i*64 + j
-                    output_length += 1
-                    copy -= vertex_to_bit_dictionary(j)
+    cdef size_t j = bitset_next(face, face_length, 0)
+    while (j != -1):
+        output[output_length] = j
+        output_length += 1
+        j = bitset_next(face, face_length, j+1)
     return output_length

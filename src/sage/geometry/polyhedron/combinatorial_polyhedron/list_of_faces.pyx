@@ -1,6 +1,7 @@
-# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitset_operations.cc
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitset_operations.cc sage/geometry/polyhedron/combinatorial_polyhedron/bitsets.cc
 # distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
+# distutils: libraries = gmp
 
 r"""
 List of faces
@@ -96,7 +97,6 @@ from sage.structure.element import is_Matrix
 
 from cysignals.signals      cimport sig_on, sig_off
 from libc.string            cimport memcpy
-from .conversions           cimport vertex_to_bit_dictionary
 from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
 
 cdef extern from "bitset_operations.cc":
@@ -142,6 +142,10 @@ cdef extern from "bitset_operations.cc":
 #        Return the number of atoms/vertices in A.
 #        This is the number of set bits in A.
 #        ``face_length`` is the length of A in terms of uint64_t.
+
+cdef extern from "bitsets.cc":
+    cdef void bitset_add(uint64_t* bits, size_t n)
+    cdef int bitset_in(uint64_t* bits, size_t n)
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -428,13 +432,13 @@ cdef class ListOfFaces:
             # All old coatoms contain their respective old atoms.
             # Also all of them contain the new atom.
             memcpy(copy.data[i], self.data[i], self.face_length*8)
-            copy.data[i][self.n_atoms//64] |= vertex_to_bit_dictionary(self.n_atoms % 64)
+            bitset_add(copy.data[i], self.n_atoms)
 
         # The new coatom contains all atoms, but the new atom.
         for i in range(copy.face_length):
             copy.data[self.n_faces][i] = 0
         for i in range(self.n_atoms):
-            copy.data[self.n_faces][i//64] |= vertex_to_bit_dictionary(i % 64)
+            bitset_add(copy.data[self.n_faces], i)
 
         return copy
 
@@ -472,7 +476,7 @@ cdef class ListOfFaces:
         cdef size_t i,j
         for i in range(self.n_faces):
             for j in range(self.n_atoms):
-                if self.data[i][j//64] & vertex_to_bit_dictionary(j % 64):
+                if bitset_in(self.data[i], j):
                     M.set_unsafe_si(i, j, 1)
 
         M.set_immutable()

@@ -6,10 +6,10 @@ from sage.categories.enumerated_sets import EnumeratedSets
 from sage.combinat.permutation import Permutations
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat import permutation
-from sage.monoids.hecke_monoid import HeckeMonoid
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+from sage.monoids.hecke_monoid import HeckeMonoid
+from sage.misc.lazy_attribute import lazy_attribute
 
-from copy import copy
 from sage.rings.integer import Integer
 
 class DecreasingHeckeFactorization:
@@ -22,10 +22,6 @@ class DecreasingHeckeFactorization:
         sage: t = [[3,2],[],[2,1]]
         sage: h = DecreasingHeckeFactorization(t,3); h
         (3, 2)()(2, 1)
-        sage: h.w
-        h3*h2*h1
-        sage: h.W
-        Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space)
         sage: h.excess
         1
         sage: h.m
@@ -34,41 +30,31 @@ class DecreasingHeckeFactorization:
         3
         sage: h.value
         ((3, 2), (), (2, 1))
-        sage: h.bright
-        false
 
         sage: u = [[3,2,1],[3],[2,1]]
         sage: h = HeckeFactorization(u,4); h
         (3, 2, 1)(3)(2, 1)
-        sage: h.w
-        h2*h3*h1*h2*h1
-        sage: h._weight()
+        sage: h.weight()
         [2, 1, 3]
     """
-    def __init__(self, t, k=None, bright=False):
+    def __init__(self, t, k=None):
         """
         Initialize a decreasing factorization for ``self`` given the relevant data.
         """
-        if isinstance(t,tuple) == False and isinstance(t,list) == False:
+        if not isinstance(t,(list,tuple)):
             raise ValueError("A list or tuple is expected")
         for factor in t:
-            for r,value in enumerate(factor):
-                if r == len(factor)-1:
-                    pass
-                elif factor[r]<= factor[r+1]:
-                    print(r,factor[r],factor[r+1])
+            for r, value in enumerate(factor):
+                if r<len(factor)-1 and factor[r]<=factor[r+1]:
                     raise ValueError("All the factors need to be decreasing")
-        u = []
-        for factor in t:
-            u += list(factor)
+        u = [list(factor) for factor in t]
         if k == None:
-            k = max([ele for factor in t for ele in factor])
+            k = max([x for factor in t for x in factor])
         self.k = k
-        self.H = HeckeMonoid(SymmetricGroup(k+1))
-        self.w = self.H.from_reduced_word([ele for factor in t for ele in factor])
-        self.excess = sum(len(l) for l in t)-len(self.w.reduced_word())
+        H = HeckeMonoid(SymmetricGroup(k+1))
+        w = H.from_reduced_word([x for factor in t for x in factor])
+        self.excess = sum(len(l) for l in t)-len(w.reduced_word())
         self.value = tuple([tuple(factors) for factors in t])
-        self.bright = bright
     
     @property
     def m(self):
@@ -86,9 +72,17 @@ class DecreasingHeckeFactorization:
     def __eq__(self, other):
         return isinstance(self, type(other)) and self.value == other.value
 
+    def __lt__(self,other):
+        return (self._weight(),self.value) < (other._weight(),other.value)
+
     def _latex_(self):
         r"""
-        Return latex of ``self``
+        Return LaTeX code for ``self``.
+
+        EXAMPLES::
+
+            sage:
+
         """
         s = ""
         for factor in self.value:
@@ -98,35 +92,38 @@ class DecreasingHeckeFactorization:
                 s += r"\left(\;\right)"
         return s
 
-    def _weight(self):
-        r"""
-        Returns the weight of self
+    def weight(self):
+        """
+        Returns the weight of ``self``
 
-        EXAMPLE:
+        EXAMPLES:
+
             sage: t = [[2],[2,1],[],[4,3,1]]
             sage: u = DecreasingHeckeFactorization(t,4)
-            sage: t._weight()
+            sage: t.weight()
             [3, 0, 2, 1]
         """
         return [len(l) for l in self.value][::-1]
 
     def to_word(self):
-        r"""
-        Returns the Hecke word (as a list) of self in 0-Hecke monoid
+        """
+        Return the word associated to ``self`` in the 0-Hecke monoid
 
-        EXAMPLE:
+        EXAMPLES:
+
             sage: t = [[2],[],[2,1],[4,3,1]]
             sage: u = DecreasingHeckeFactorization(t,4)
             sage: u.to_word()
-            [2, 2, 2, 1, 4, 3, 1]
+            [2, 2, 1, 4, 3, 1]
         """
         return [j for factors in self.value for j in factors]
 
     def to_increasing_hecke_biword(self):
         """
-        Return the associated increasing Hecke biword of self
+        Return the associated increasing Hecke biword of ``self``
 
-        EXAMPLE:
+        EXAMPLES:
+
             sage: t = [[2],[],[2,1],[4,3,1]]
             sage: u = DecreasingHeckeFactorization(t,4)
             sage: u.to_increasing_hecke_biword()
@@ -138,61 +135,96 @@ class DecreasingHeckeFactorization:
             L[0] += [j+1]*len(self.value[-j-1])
         return L
 
-    def __lt__(self,other):
-        return (self._weight(),self.value)<(other._weight(),other.value)
 
 class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
-    r"""
-    The crystal on fully-commutative decreasing factorizations in the 0-Hecke monoid.
+    """
+    The crystal on fully commutative decreasing factorizations in the 0-Hecke 
+    monoid, as introduced by [MPPS2020]_.
 
     INPUT:
 
-    - ``t`` -- an element in the HeckeMonoid
+    - ``w`` -- an element in a 0-Hecke monoid
 
     - ``m`` -- the number of factors in the factorization
 
-    - ``excess`` -- the number of extra letters in the factorization
+    - ``excess`` -- the total number of letters in the factorization minus the length of a reduced word for ``w``
 
     EXAMPLES::
 
-        sage: H = HeckeMonoid(SymmetricGroup(4))
-        sage: t = H.from_reduced_word([1,3,2])
-        sage: B = FullyCommutativeStableGrothendieckCrystal(t,3,2); B
+        sage: from sage.monoids.hecke_monoid import HeckeMonoid
+        sage: H = HeckeMonoid(SymmetricGroup(3+1))
+        sage: w = H.from_reduced_word([1,3,2])
+        sage: B = FullyCommutativeStableGrothendieckCrystal(w,3,2); B
         Fully commutative stable Grothendieck crystal of type A_2 associated to [1, 3, 2] with excess 2
     """
-
-    def __init__(self, t, m, excess, k=None):
+    def __init__(self, w, m, excess):
         """
+        Initialize a crystal for self given reduced word ``w`` in a 0-Hecke 
+        monoid, number of factors ``m`` and``excess`` extra letters.
+
         EXAMPLES::
 
-            sage: H = HeckeMonoid(SymmetricGroup(3))
-            sage: t = H.from_reduced_word([1,3,2])
-            sage: B = FullyCommutativeStableGrothendieckCrystal(t,3,2)
+            sage: from sage.monoids.hecke_monoid import HeckeMonoid
+            sage: H = HeckeMonoid(SymmetricGroup(3+1))
+            sage: w = H.from_reduced_word([1,3,2])
+            sage: B = FullyCommutativeStableGrothendieckCrystal(w,3,2)
+            sage: B.w
+            (1, 3, 2)
             sage: B.m
             3
             sage: B.excess
             2
-            sage: B.h
-            [1,3,2]
+            sage: B.H
+            0-Hecke monoid of the Symmetric group of order 4! as a permutation group
+
+            The reduced word ``w`` should be fully commutative, that is, its 
+            associated permutation should avoid the pattern 321.
+
+            sage: from sage.monoids.hecke_monoid import HeckeMonoid
+            sage: H = HeckeMonoid(SymmetricGroup(3+1))
+            sage: w = H.from_reduced_word([1,2,1])
+            sage: B = FullyCommutativeStableGrothendieckCrystal(w,4,2)
+            Traceback (most recent call last):
+            ...
+            ValueError: w should be fully commutative
+
+        TESTS::
+
+            sage: from sage.monoids.hecke_monoid import HeckeMonoid
+            sage: H = HeckeMonoid(SymmetricGroup(3+1))
+            sage: w = H.from_reduced_word([2,1,3,2])
+            sage: B = FullyCommutativeStableGrothendieckCrystal(w,4,2)
+            sage: TestSuite(B).run()
         """
+        # Check if w is fully commutative, ie. if the associated permutation is
+        # 321-avoiding 
+        word = w.reduced_word()
+        p = permutation.from_reduced_word(word)
+        if p not in Permutations(avoiding=[3,2,1]):
+            raise ValueError("w should be fully commutative")
+
         Parent.__init__(self, category = ClassicalCrystals())
-        # h is the standard underlying reduced word in 0-Hecke monoid
-        self.h = t.reduced_word()
-        # k is the highest letter that appears in the factorization
-        self.k = k if k else max(self.h)
-        # t is an element of HeckeMonoid
-        self.t = t
-        # m is the number of factorizations
+        self.w = tuple(word)
         self.m = m
-        # check if the w is 321-avoiding
-        P = Permutations(self.k+1,avoiding=[3,2,1])
-        w = permutation.from_reduced_word(t.reduced_word(),P)
-        if w not in P:
-            raise ValueError("The 0-Hecke word must be 321-avoiding.")
+        self.H = w.parent()
+        self.k = len(self.H.gens())
         self.excess = excess
-        cartan_type = CartanType(['A',self.m-1])
-        self._cartan_type = cartan_type
-        self.module_generators = [self(x).to_highest_weight()[0] for x in _lowest_weights(self.h,self.m,self.excess)]
+        self._cartan_type = CartanType(['A', self.m-1])
+
+    @lazy_attribute
+    def module_generators(self):
+        """
+        Return module generators for ``self``.
+
+        EXAMPLES::
+
+            sage: H = HeckeMonoid(SymmetricGroup(3))
+            sage: w = H.from_reduced_word([1,3,2])
+            sage: B = FullyCommutativeStableGrothendieckCrystal(w,3,2)
+            sage: B.module_generators
+            ((1)(3, 1)(3, 2), (3)(3, 1)(3, 2))
+        """
+        return tuple(self(x).to_highest_weight()[0] for x in _lowest_weights(self.h, self.m, self.excess))
 
     def _repr_(self):
         """
@@ -200,72 +232,17 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
         EXAMPLES::
         
-            sage: H = HeckeMonoid(SymmetricGroup(4))
-            sage: t = H.from_reduced_word([1,3,2])
-            sage: B = FullyCommutativeStableGrothendieckCrystal(t,3,2); B
-            Fully commutative stable Grothendieck crystal of type A_2 associated to [1, 3, 2] with excess 2
+            sage: H = HeckeMonoid(SymmetricGroup(3+1))
+            sage: w = H.from_reduced_word([2,1,3,2])
+            sage: FullyCommutativeStableGrothendieckCrystal(w,3,1)
+            Fully commutative stable Grothendieck crystal of type A_2 associated to [2, 1, 3, 2] with excess 1
         """
-        return "Fully commutative stable Grothendieck crystal of type A_{} associated to {} with excess {}".format(self.m-1, self.h,self.excess)
+        return "Fully commutative stable Grothendieck crystal of type A_{} associated to {} with excess {}".format(self.m-1, list(self.w), self.excess)
 
     # temporary workaround while an_element is overriden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_ 
 
     class Element(ElementWrapper):
-        def __init__(self, parent, hf):
-            """
-            Creates an instance of element t subject to constraints on w and excess.
-            The decreasing factorization t should be equivalent to t and
-            must have the correct excess as specified by its parent.
-
-            EXAMPLES::
-
-                sage: H = HeckeMonoid(SymmetricGroup(4))
-                sage: t = H.from_reduced_word([1,3,2])
-                sage: B = StarCrystal(t,3,2);B
-                sage: h = HeckeFactorization([[3,1],[3],[3,2]],3);h
-                (3, 1)(3)(3, 2)
-                sage: u = B(h);u
-                (3, 1)(3)(3, 2)
-            """
-            excess = parent.excess
-            if not isinstance(hf,DecreasingHeckeFactorization):
-                raise ValueError("A HeckeFactorization is expected")
-            if parent.m != hf.m:
-                raise ValueError("Number of factors do not match")
-            self.m = parent.m
-            self.value = hf.value
-            # self.weight = hf.weight
-            self.k = parent.k
-            self.hf = hf
-            self.bright = hf.bright
-            if hf.excess != excess:
-                raise ValueError("The HeckeFactorization word must have correct excess")
-            ElementWrapper.__init__(self, parent, self.value)
-
-        def __repr__(self):
-            """
-            Return a representation of self.
-
-            EXAMPLES::
-        
-                sage: t = [[2,1],[3,2],[],[4]]
-                sage: HeckeFactorization(t,5)
-                (2, 1)(3, 2)( )(4)
-            """
-            return "".join("("+repr(list(factor))[1:-1]+")" for factor in self.value)
-
-        # def _latex_(self):
-        #     if not self.bright:
-        #         L= [r"\color{black}\mathbf{"]
-        #     else:
-        #         L= [r"\color{blue}\mathbf{"]
-        #     for factor in self.value:
-        #         if len(factor)>0:
-        #             L += [r"\left("+repr(list(factor))[1:-1]+r"\right)"]
-        #         else:
-        #             L += [r"\left(\;\right)"]
-        #     L += "}"
-        #     return "".join(L)
 
         def e(self, i):
             L = list(self.value[self.m-i-1])
@@ -327,15 +304,6 @@ def bracketing_eq(L,R):
         else:
             left_unbracketed += [m]
     return [[j for j in left_unbracketed],[j for j in right_n]]
-
-def check_local(self,s,i):
-    for r in range(self.m):
-        if r == self.m-i or r == self.m-i-1:
-            pass
-        else:
-            if self.value[r]!=s.value[r]:
-                return False
-    return True
 
 def _lowest_weights(w,m,ex):
     """
@@ -615,57 +583,3 @@ def applicable_relations(word):
                 L += [[i,"pq=qp"]]
     return L
 
-# Generates all valid 0-Hecke decreasing factorizations for w of a certain excess e with m factors.
-# def generate_hecke_decreasing_factorizations(w, m, e, wt=None):
-#     """
-#     Generates all 0-Hecke decreasing factorizations of (reduced word) w with excess e using m factors.
-    
-#     EXAMPLES:
-
-#         sage: generate_hecke_decreasing_factorizations([1,2,1],3,1)
-#         [(2, 1)(2, 1)(),
-#          (2, 1)(1)(2),
-#          (2, 1)(2)(1),
-#          (2, 1)(2)(2),
-#          (1)(2, 1)(1),
-#          (1)(2, 1)(2),
-#          (2)(2, 1)(2),
-#          (2, 1)()(2, 1),
-#          (1)(1)(2, 1),
-#          (1)(2)(2, 1),
-#          (2)(1)(2, 1),
-#          ()(2, 1)(2, 1)]
-
-#         sage: generate_hecke_decreasing_factorizations([1,2,1],3,1,[1,1,2])
-#         [(2, 1)(1)(2), (2, 1)(2)(1), (2, 1)(2)(2)]
-#     """
-#     L = list_equivalent_words(canonical_word(w,e))
-#     Factors = []
-#     for word in L:
-#         F = list_all_decreasing_factorizations(word,m)
-#         for f in F:
-#             t = [[word[j] for j in range(len(word)) if f[j]==-i] for i in range(-m,0)]
-#             weight = lambda t:[len(factor) for factor in t[::-1]]
-#             if wt == None or weight(t)==wt:
-#                 u = HeckeFactorization(t)
-#                 Factors.append(u)
-#     wgt = lambda h: [len(l) for l in h.value][::-1]
-#     return sorted(Factors,key=lambda h:([-i for i in wgt(h)],h.value))
-
-# def list_all_decreasing_factorizations(w,n):
-#     """
-#     Lists all possible decreasing runs in a 0-Hecke word w with n factors
-    
-#     EXAMPLES:
-    
-#         sage: w = [2, 1, 2, 1]
-#         sage: list_all_decreasing_factorizations(w,3)
-#         [[2, 2, 1, 1], [3, 2, 1, 1], [3, 3, 1, 1], [3, 3, 2, 1], [3, 3, 2, 2]]
-#     """
-#     from sage.combinat.integer_vector import IntegerVectors
-#     J = jumps(w)
-#     jump_vector = [1]+[int(j in J) for j in range(1,len(w))]
-#     I = sorted(IntegerVectors(n-1-len(J),len(w)+1),reverse=True)
-#     P = [[elt[i]+jump_vector[i] for i in range(len(w))] for elt in I]
-#     V = [[n+1-sum(elt[:i+1:]) for i in range(len(elt))] for elt in P]
-#     return V

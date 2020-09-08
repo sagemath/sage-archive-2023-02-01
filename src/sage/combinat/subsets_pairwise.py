@@ -120,7 +120,7 @@ class PairwiseCompatibleSubsets(RecursivelyEnumeratedSet_forest):
             sage: P == P
             True
         """
-        return self.__class__ is other.__class__ and self._ambient == other._ambient and self._predicate == other._predicate
+        return self.__class__ is other.__class__ and self._ambient == other._ambient and self._predicate.__str__() == other._predicate.__str__()
 
     def __contains__(self, subset):
         """

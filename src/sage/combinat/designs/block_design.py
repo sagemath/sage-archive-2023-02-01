@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Block designs
 
 A *block design* is a set together with a family of subsets (repeated subsets
@@ -8,10 +8,9 @@ deemed useful for a particular application. See :wikipedia:`Block_design`.
 
 REFERENCES:
 
-.. [1] Block design from wikipedia,
-  :wikipedia:`Block_design`
+- Block design from wikipedia: :wikipedia:`Block_design`
 
-.. [2] What is a block design?,
+- What is a block design?,
   http://designtheory.org/library/extrep/extrep-1.1-html/node4.html (in 'The
   External Representation of Block Designs' by Peter J. Cameron, Peter
   Dobcsanyi, John P. Morgan, Leonard H. Soicher)

@@ -449,7 +449,7 @@ def CPRFanoToricVariety(Delta=None,
         N(-1,  0)
         in 2-d lattice N
         sage: [cone.ambient_ray_indices() for cone in FTV.fan()]
-        [(0, 1), (1, 2), (3, 4), (2, 4), (0, 3)]
+        [(0, 1), (1, 2), (2, 4), (3, 4), (0, 3)]
 
     If charts are wrong, it should be detected::
 

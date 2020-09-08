@@ -149,10 +149,10 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
     cdef byteptr pari_prime_ptr
     # input to pari.init_primes cannot be greater than 436273290 (hardcoded bound)
     DEF init_primes_max = 436273290
-    DEF small_prime_max = 436273009 # a prime < init_primes_max (preferably the largest)
-    DEF prime_gap_bound = 250 # upper bound for gap between primes <= small_prime_max
+    DEF small_prime_max = 436273009  #  a prime < init_primes_max (preferably the largest)
+    DEF prime_gap_bound = 250        #  upper bound for gap between primes <= small_prime_max
 
-    if algorithm == None:
+    if algorithm is None:
         # if 'stop' is 'None', need to change it to an integer before comparing with 'start'
         if max(start, stop or 0) <= small_prime_max:
             algorithm = "pari_primes"
@@ -162,7 +162,7 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
     if algorithm == "pari_primes":
 
         if max(start, stop or 0) > small_prime_max:
-            raise ValueError('algorithm "pari_primes" cannot compute primes larger than'
+            raise ValueError('algorithm "pari_primes" is limited to primes larger than'
                 + ' {}'.format(small_prime_max - 1))
 
         if stop is None:

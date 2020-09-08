@@ -2218,7 +2218,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         e = embedding
         # It is also trivially true if we have a complex embedding
-        if not e is None:
+        if e is not None:
             if not is_RealField(e.codomain()):
                 return True
 

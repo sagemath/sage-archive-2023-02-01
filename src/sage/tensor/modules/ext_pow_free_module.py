@@ -57,6 +57,7 @@ REFERENCES:
 
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.alternating_contr_tensor import AlternatingContrTensor
@@ -237,7 +238,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
         """
         from sage.functions.other import binomial
         self._fmodule = fmodule
-        self._degree = degree
+        self._degree = ZZ(degree)
         rank = binomial(fmodule._rank, degree)
         if name is None and fmodule._name is not None:
             name = r'/\^{}('.format(degree) + fmodule._name + ')'
@@ -248,14 +249,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
                                       name=name, latex_name=latex_name,
                                       start_index=fmodule._sindex,
                              output_formatter=fmodule._output_formatter)
-        # Unique representation:
-        if self._degree == 1 or \
-           self._degree in self._fmodule._exterior_powers:
-            raise ValueError("the {}th exterior power of ".format(degree) +
-                             "{}".format(self._fmodule) +
-                             " has already been created")
-        else:
-            self._fmodule._exterior_powers[self._degree] = self
+        fmodule._all_modules.add(self)
 
     #### Parent methods
 
@@ -312,12 +306,28 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
             sage: a.display()
             1/2 e_0/\e_1/\e_2/\e_3
 
+        TESTS:
+
+        When the base module has no default basis, a default
+        basis will be set for it::
+
+            sage: M2 = FiniteRankFreeModule(QQ, 4, name='M2')
+            sage: a = M2.exterior_power(2)._an_element_(); a
+            Alternating contravariant tensor of degree 2
+            on the 4-dimensional vector space M2 over the Rational Field
+            sage: a + a
+            Alternating contravariant tensor of degree 2
+            on the 4-dimensional vector space M2 over the Rational Field
+            sage: M2.default_basis()
+            Basis (e_0,e_1,e_2,e_3) on the 4-dimensional vector space M2 over the Rational Field
+
         """
         resu = self.element_class(self._fmodule, self._degree)
-        if self._fmodule._def_basis is not None:
-            sindex = self._fmodule._sindex
-            ind = [sindex + i for i in range(resu._tensor_rank)]
-            resu.set_comp()[ind] = self._fmodule._ring.an_element()
+        # Make sure that the base module has a default basis
+        self._fmodule.an_element()
+        sindex = self._fmodule._sindex
+        ind = [sindex + i for i in range(resu._tensor_rank)]
+        resu.set_comp()[ind] = self._fmodule._ring.an_element()
         return resu
 
     #### End of parent methods
@@ -344,6 +354,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
             resu._add_comp_unsafe(basis)
             # (since new components are initialized to zero)
         resu._is_zero = True # This element is certainly zero
+        resu.set_immutable()
         return resu
 
     def _repr_(self):
@@ -361,15 +372,10 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
             '4th exterior power of the Rank-5 free module M over the Integer Ring'
             sage: M.exterior_power(5)._repr_()
             '5th exterior power of the Rank-5 free module M over the Integer Ring'
-
+            sage: M.exterior_power(21)._repr_()
+            '21st exterior power of the Rank-5 free module M over the Integer Ring'
         """
-        description = "{}".format(self._degree)
-        if self._degree == 2:
-            description += "nd"
-        elif self._degree == 3:
-            description += "rd"
-        else:
-            description += "th"
+        description = "{}".format(self._degree.ordinal_str())
         description += " exterior power of the {}".format(self._fmodule)
         return description
 
@@ -625,7 +631,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
         """
         from sage.functions.other import binomial
         self._fmodule = fmodule
-        self._degree = degree
+        self._degree = ZZ(degree)
         rank = binomial(fmodule._rank, degree)
         if degree == 1:  # case of the dual
             if name is None and fmodule._name is not None:
@@ -642,13 +648,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
                                       latex_name=latex_name,
                                       start_index=fmodule._sindex,
                                     output_formatter=fmodule._output_formatter)
-        # Unique representation:
-        if self._degree in self._fmodule._dual_exterior_powers:
-            raise ValueError("the {}th exterior power of ".format(degree) +
-                             "the dual of {}".format(self._fmodule) +
-                             " has already been created")
-        else:
-            self._fmodule._dual_exterior_powers[self._degree] = self
+        fmodule._all_modules.add(self)
 
     #### Parent methods
 
@@ -731,12 +731,26 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
             sage: a.display()
             1/2 e^0/\e^1/\e^2/\e^3
 
+        TESTS:
+
+        When the base module has no default basis, a default
+        basis will be set for it::
+
+            sage: M2 = FiniteRankFreeModule(QQ, 4, name='M2')
+            sage: a = M2.dual_exterior_power(2)._an_element_(); a
+            Alternating form of degree 2 on the 4-dimensional vector space M2 over the Rational Field
+            sage: a + a
+            Alternating form of degree 2 on the 4-dimensional vector space M2 over the Rational Field
+            sage: M2.default_basis()
+            Basis (e_0,e_1,e_2,e_3) on the 4-dimensional vector space M2 over the Rational Field
+
         """
         resu = self.element_class(self._fmodule, self._degree)
-        if self._fmodule._def_basis is not None:
-            sindex = self._fmodule._sindex
-            ind = [sindex + i for i in range(resu._tensor_rank)]
-            resu.set_comp()[ind] = self._fmodule._ring.an_element()
+        # Make sure that the base module has a default basis
+        self._fmodule.an_element()
+        sindex = self._fmodule._sindex
+        ind = [sindex + i for i in range(resu._tensor_rank)]
+        resu.set_comp()[ind] = self._fmodule._ring.an_element()
         return resu
 
     def _coerce_map_from_(self, other):
@@ -804,6 +818,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
             resu._components[basis] = resu._new_comp(basis)
             # (since new components are initialized to zero)
         resu._is_zero = True # This element is certainly zero
+        resu.set_immutable()
         return resu
 
     def _repr_(self):
@@ -823,17 +838,13 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
             '4th exterior power of the dual of the Rank-5 free module M over the Integer Ring'
             sage: M.dual_exterior_power(5)._repr_()
             '5th exterior power of the dual of the Rank-5 free module M over the Integer Ring'
+            sage: M.dual_exterior_power(21)._repr_()
+            '21st exterior power of the dual of the Rank-5 free module M over the Integer Ring'
 
         """
         if self._degree == 1:
             return "Dual of the {}".format(self._fmodule)
-        description = "{}".format(self._degree)
-        if self._degree == 2:
-            description += "nd"
-        elif self._degree == 3:
-            description += "rd"
-        else:
-            description += "th"
+        description = "{}".format(self._degree.ordinal_str())
         description += " exterior power of the dual of the {}".format(
                                                                  self._fmodule)
         return description

@@ -406,6 +406,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
             sage: CM = M.scalar_field_algebra()
             sage: CM._coerce_map_from_(SR)
             True
+            sage: CM._coerce_map_from_(X.function_ring())
+            True
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: CU = U.scalar_field_algebra()
             sage: CM._coerce_map_from_(CU)
@@ -414,6 +416,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
             True
 
         """
+        from sage.manifolds.chart_func import ChartFunctionRing
+
         if other is SR:
             return True  # coercion from the base ring (multiplication by the
                          # algebra unit, i.e. self.one())
@@ -421,6 +425,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
                          # the coercion map
         elif isinstance(other, DiffScalarFieldAlgebra):
             return self._domain.is_subset(other._domain)
+        elif isinstance(other, ChartFunctionRing):
+            return self._domain.is_subset(other._chart._domain)
         else:
             return False
 

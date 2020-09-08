@@ -28,7 +28,7 @@ from sage.functions.log import log, exp
 from sage.functions.other import real, imag
 from sage.symbolic.constants import pi, euler_gamma
 from sage.libs.pari.all import pari
-from sage.misc.all import verbose
+from sage.misc.verbose import verbose
 from sage.parallel.decorate import parallel
 from sage.parallel.ncpus import ncpus as num_cpus
 from sage.libs.flint.ulong_extras cimport n_is_prime
@@ -1622,7 +1622,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
             :func:`LFunctionZeroSum`
             :meth:`EllipticCurve.root_number`
-            :func:`set_verbose`
+            :func:`~sage.misc.verbose.set_verbose`
 
         EXAMPLES:
 

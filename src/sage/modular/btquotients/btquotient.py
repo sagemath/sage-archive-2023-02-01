@@ -58,7 +58,7 @@ from sage.modular.arithgroup.all import Gamma0
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.modular.dirichlet import DirichletGroup
 from sage.modular.arithgroup.congroup_gammaH import GammaH_constructor
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 
 
 class DoubleCosetReduction(SageObject):
@@ -1522,9 +1522,10 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: X = BruhatTitsQuotient(5,13)
-            sage: X._cache_key()
-            -406423199 # 32-bit
-            1375458358400022881 # 64-bit
+            sage: X._cache_key() == BruhatTitsQuotient(5,13)._cache_key()
+            True
+            sage: X._cache_key() == BruhatTitsQuotient(5,11)._cache_key()
+            False
 
             sage: Y = BruhatTitsQuotient(5,13,use_magma = True) # optional - magma
             sage: Y._cache_key() == X._cache_key() # optional - magma

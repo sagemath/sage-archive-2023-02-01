@@ -68,8 +68,6 @@ This example illustrates generators for a free module over `\ZZ`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.misc.defaults
-from sage.misc.latex import latex_variable_name
 from . import gens_py
 cimport sage.structure.parent as parent
 from sage.structure.coerce_dict cimport MonoDict

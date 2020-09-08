@@ -476,7 +476,6 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
     c = op(inverse(b),multiple(a,lb,operation=operation))
 
     if ran < 30:    # use simple search for small ranges
-        i = lb
         d = c
 #        for i,d in multiples(a,ran,c,indexed=True,operation=operation):
         for i0 in range(ran):
@@ -589,7 +588,6 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
     - Yann Laigle-Chapuy (2009-09-05)
 
     """
-    from six.moves import range
     from sage.rings.integer import Integer
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
     from operator import mul, add, pow
@@ -892,7 +890,6 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
         -- Yann Laigle-Chapuy (2009-01-25)
 
     """
-    from six.moves import range
     from sage.rings.integer import Integer
     from operator import mul, add, pow
 

@@ -1,3 +1,5 @@
+# distutils: libraries = ntl gmp
+# distutils: language = c++
 r"""
 Univariate polynomials over `\QQ` implemented via FLINT
 
@@ -479,6 +481,8 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint f
         cdef Rational r
         cdef mpz_t tmpz
+        cdef fmpz_t tmpfz
+        cdef fmpq_t tmpfq
 
         if len(x) == 1:
             a = x[0]
@@ -504,10 +508,13 @@ cdef class Polynomial_rational_flint(Polynomial):
             elif isinstance(a, int):
                 r = Rational.__new__(Rational)
                 sig_str("FLINT exception")
-                mpz_init(tmpz)
-                mpz_set_si(tmpz, PyInt_AS_LONG(a))
-                fmpq_poly_evaluate_mpz(r.value, self.__poly, tmpz)
-                mpz_clear(tmpz)
+                fmpz_init(tmpfz)
+                fmpq_init(tmpfq)
+                fmpz_set_si(tmpfz, PyInt_AS_LONG(a))
+                fmpq_poly_evaluate_fmpz(tmpfq, self.__poly, tmpfz)
+                fmpq_get_mpq(r.value, tmpfq)
+                fmpq_clear(tmpfq)
+                fmpz_clear(tmpfz)
                 sig_off()
                 return r
 
@@ -2125,7 +2132,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if self.degree() > 21 and algorithm == 'kash':
             raise NotImplementedError("Galois group computation is "
                 "supported for degrees up to 11 using PARI, or up to 21 "
-                "if the optional package KASH is installed.  Try "
+                "if KASH is installed.  Try "
                 "algorithm='magma' if you have magma.")
 
         if algorithm == 'pari':
@@ -2149,7 +2156,7 @@ cdef class Polynomial_rational_flint(Polynomial):
                 raise NotImplementedError(str(msg) + "\nSorry, " +
                     "computation of Galois groups of fields of degree " +
                     "bigger than 11 is not yet implemented.  Try installing " +
-                    "the optional free (closed source) KASH package, which " +
+                    "the optional free (closed source) KASH software, which " +
                     "supports degrees up to 21, or use algorithm='magma' if " +
                     "you have magma.")
 

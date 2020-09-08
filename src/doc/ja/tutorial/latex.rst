@@ -389,8 +389,8 @@ Linux系システムではTeXliveを基にした基本TeXパッケージを採�
 また ``dvipng`` は http://sourceforge.net/projects/dvipng/ から， ``ps2pdf`` は `Ghostscript <http://www.ghostscript.com/>`_ の一部として入手することもできる．
 
 
-連結グラフの作画には，PGFライブラリの新しいバージョンに加えて ``tkz-graph.sty`` と ``tkz-arith.sty`` が必要で，さらに ``tkz-berge.sty`` も必要になるかもしれない．
-tkz関係のファイルは全て `Altermundus site <http://altermundus.com/pages/tkz/graph/>`_ から入手することができる．
+連結グラフの作画には，PGFライブラリの新しいバージョンに加えて ``tkz-graph.sty`` を https://www.ctan.org/pkg/tkz-graph から入手する必要があり，
+さらに ``tkz-arith.sty``　とおそらく ``tkz-berge.sty`` も https://www.ctan.org/pkg/tkz-berge から入手する必要がある.
 
 
 
@@ -402,14 +402,3 @@ TeXとSageのさらなる統合運用に役立つプログラムが三つある�
 LaTeX文書のコンパイル処理過程で，Sageの演算やLaTeXによるフォーマット支援などの全ての機能も自動的に実行されるのである．
 sagetexを使えば，例えば数学試験作成において，問題の計算そのものをSageに実行させて対応する解答を正確に維持管理することなどが可能になる．
 詳細は :ref:`sec-sagetex` 節を参照してほしい．
-
-
-tex2swsはLaTeX文書にSageコードを組込むための環境を定義している．
-これをしかるべきツールで処理すると，MathJaxで適切に表示される本文と入力セル経由で動作するSageコードが組込まれたSageワークシートが出来上がる．
-tex2sws環境を使えばLaTeXで教科書や記事をSageコードのブロックを含んだ形で執筆することができるが，これを変換すると数式混じりの本文は美しく整形され，かつSageコード部分が機能するSageワークシートになるわけである．
-現在も開発進行中で，詳細は  `tex2sws @ BitBucket <http://bitbucket.org/rbeezer/tex2sws/>`_  を見てほしい．
-
-
-これとは逆に，sws2texはSageワークシートをLaTeX形式に変換してLaTeX関連ツールによる処理を可能にする．
-現在も開発中で，詳細は `sws2tex @ BitBucket <http://bitbucket.org/whuss/sws2tex/>`_ を見てほしい．
-

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The symbolic ring
 """
@@ -218,7 +219,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return True
 
     def _element_constructor_(self, x):
-        """
+        r"""
         Coerce `x` into the symbolic expression ring SR.
 
         EXAMPLES::
@@ -237,7 +238,7 @@ cdef class SymbolicRing(CommutativeRing):
             x + y0/y1
             sage: x.subs(x=y0/y1)
             y0/y1
-            sage: x + long(1)
+            sage: x + int(1)
             x + 1
 
         If `a` is already in the symbolic expression ring, coercing returns
@@ -335,13 +336,21 @@ cdef class SymbolicRing(CommutativeRing):
             Traceback (most recent call last):
             ...
             TypeError: positive characteristic not allowed in symbolic computations
+
+        Check support for unicode characters (:trac:`29280`)::
+
+            sage: SR('λ + 2λ')
+            3*λ
+            sage: SR('μ') is var('μ')
+            True
+            sage: SR('λ + * 1')
+            Traceback (most recent call last):
+            ...
+            TypeError: Malformed expression: λ + * !!!  1
         """
         cdef GEx exp
         if is_Expression(x):
-            if (<Expression>x)._parent is self:
-                return x
-            else:
-                return new_Expression_from_GEx(self, (<Expression>x)._gobj)
+            return new_Expression_from_GEx(self, (<Expression>x)._gobj)
         if hasattr(x, '_symbolic_'):
             return x._symbolic_(self)
         elif isinstance(x, str):
@@ -350,8 +359,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return self(symbolic_expression_from_string(x))
             except SyntaxError as err:
                 msg, s, pos = err.args
-                raise TypeError("%s: %s !!! %s" %
-                        (msg, bytes_to_str(s[:pos]), bytes_to_str(s[pos:])))
+                raise TypeError("%s: %s !!! %s" % (msg, s[:pos], s[pos:]))
 
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
@@ -913,8 +921,8 @@ cdef class SymbolicRing(CommutativeRing):
         return ccrepr(x._gobj)
 
     def _latex_element_(self, Expression x):
-        """
-        Returns the standard LaTeX version of the expression *x*.
+        r"""
+        Returns the standard LaTeX version of the expression `x`.
 
         EXAMPLES::
 

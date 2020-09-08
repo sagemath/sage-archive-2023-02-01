@@ -13,7 +13,6 @@ Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
 #
 ################################################################################
 from __future__ import absolute_import
-from six.moves import range
 
 from sage.groups.old import Group
 from sage.categories.groups import Groups
@@ -686,6 +685,7 @@ class ArithmeticSubgroup(Group):
         r"""
         Return a sorted list of inequivalent cusps for self, i.e. a set of
         representatives for the orbits of self on `\mathbb{P}^1(\QQ)`.
+
         These should be returned in a reduced form where this makes sense.
 
         INPUT:
@@ -709,19 +709,20 @@ class ArithmeticSubgroup(Group):
         """
         try:
             return copy(self._cusp_list[algorithm])
-        except (AttributeError,KeyError):
+        except (AttributeError, KeyError):
             self._cusp_list = {}
 
         from .congroup_sl2z import is_SL2Z
-        if is_SL2Z(self):
-            s = [Cusp(1,0)]
-
         if algorithm == 'default':
-            s = self._find_cusps()
+            if is_SL2Z(self):
+                s = [Cusp(1, 0)]
+            else:
+                s = self._find_cusps()
         elif algorithm == 'modsym':
-            s = sorted([self.reduce_cusp(c) for c in self.modular_symbols().cusps()])
+            s = sorted(self.reduce_cusp(c)
+                       for c in self.modular_symbols().cusps())
         else:
-            raise ValueError("unknown algorithm: %s"%algorithm)
+            raise ValueError("unknown algorithm: %s" % algorithm)
 
         self._cusp_list[algorithm] = s
         return copy(s)

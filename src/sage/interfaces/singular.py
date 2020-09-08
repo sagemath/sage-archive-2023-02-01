@@ -318,9 +318,6 @@ see :trac:`11645`::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import integer_types, string_types
-from six import reraise as raise_
 
 import io
 import os
@@ -332,13 +329,13 @@ from time import sleep
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.structure.sequence import Sequence
+from sage.structure.sequence import Sequence_generic
 from sage.structure.element import RingElement
 
 import sage.rings.integer
 
 from sage.env import SINGULARPATH
-from sage.misc.misc import get_verbose
+from sage.misc.verbose import get_verbose
 from sage.docs.instancedoc import instancedoc
 
 
@@ -586,6 +583,7 @@ class Singular(ExtraTabCompletion, Expect):
 
         ::
 
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(1)
             sage: o = singular.eval('hilb(%s)'%(s.name()))
             //         1 t^0
@@ -791,7 +789,7 @@ class Singular(ExtraTabCompletion, Expect):
             return x._singular_(self)
 
         # some convenient conversions
-        if type in ("module","list") and isinstance(x,(list,tuple,Sequence)):
+        if type in ("module","list") and isinstance(x,(list,tuple,Sequence_generic)):
             x = str(x)[1:-1]
 
         return SingularElement(self, type, x, False)
@@ -815,7 +813,7 @@ class Singular(ExtraTabCompletion, Expect):
         if hasattr(S, 'an_element'):
             if hasattr(S.an_element(), '_singular_'):
                 return True
-        elif S in integer_types:
+        elif S is int:
             return True
         return None
 
@@ -901,7 +899,7 @@ class Singular(ExtraTabCompletion, Expect):
             x0*x1-x0*x2-x1*x2,
             x0^2*x2-x0*x2^2-x1*x2^2
         """
-        if isinstance(gens, string_types):
+        if isinstance(gens, str):
             gens = self(gens)
 
         if isinstance(gens, SingularElement):
@@ -931,8 +929,85 @@ class Singular(ExtraTabCompletion, Expect):
                1
             [2]:
                2
+
+            sage: singular.list([1,2,[3,4]])
+            [1]:
+               1
+            [2]:
+               2
+            [3]:
+               [1]:
+                  3
+               [2]:
+                  4
+
+            sage: R.<x,y> = QQ[]
+            sage: singular.list([1,2,[x,ideal(x,y)]])
+            [1]:
+               1
+            [2]:
+               2
+            [3]:
+               [1]:
+                  x
+               [2]:
+                  _[1]=x
+                  _[2]=y
+
+        Strings have to be escaped before passing them to this method::
+
+            sage: singular.list([1,2,'"hi"'])
+            [1]:
+               1
+            [2]:
+               2
+            [3]:
+               hi
+
+        TESTS:
+
+        Check that a list already converted to Singular can be
+        embedded into a list to be converted::
+
+            sage: singular.list([1, 2, singular.list([3, 4])])
+            [1]:
+               1
+            [2]:
+               2
+            [3]:
+               [1]:
+                  3
+               [2]:
+                  4
         """
-        return self(x, 'list')
+
+        # We have to be careful about object destruction.
+
+        # If we convert an object to a Singular element, the only
+        # thing that goes into the list definition statement is the
+        # Singular variable name, so we need to keep the element
+        # around long enough to ensure that the variable still exists
+        # when we create the list.  We ensure this by putting created
+        # elements on a list, which gets destroyed when this function
+        # returns, by which time the list has been created.
+
+        singular_elements = []
+
+        def strify(x):
+           if isinstance(x, (list, tuple, Sequence_generic)):
+              return 'list(' + ','.join([strify(i) for i in x]) + ')'
+           elif isinstance(x, SingularElement):
+              return x.name()
+           elif isinstance(x, (int, sage.rings.integer.Integer)):
+              return repr(x)
+           elif hasattr(x, '_singular_'):
+              e = x._singular_()
+              singular_elements.append(e)
+              return e.name()
+           else:
+              return str(x)
+
+        return self(strify(x), 'list')
 
     def matrix(self, nrows, ncols, entries=None):
         """
@@ -1049,7 +1124,7 @@ class Singular(ExtraTabCompletion, Expect):
                            for x in vars[1:-1].split(',')])
             self.eval(s)
 
-        if check and isinstance(char, integer_types + (sage.rings.integer.Integer,)):
+        if check and isinstance(char, (int, sage.rings.integer.Integer)):
             if char != 0:
                 n = sage.rings.integer.Integer(char)
                 if not n.is_prime():
@@ -1280,7 +1355,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             # coercion to work properly.
             except SingularError as x:
                 self._session_number = -1
-                raise_(TypeError, TypeError(x), sys.exc_info()[2])
+                raise TypeError(x)
             except BaseException:
                 self._session_number = -1
                 raise
@@ -1678,6 +1753,18 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: P2.0.lift().parent()
             Multivariate Polynomial Ring in x, y over Rational Field
 
+        Test that :trac:`29396` is fixed::
+
+            sage: Rxz.<x,z> = RR[]
+            sage: f = x**3 + x*z + 1
+            sage: f.discriminant(x)
+            -4.00000000000000*z^3 - 27.0000000000000
+            sage: Rx.<x> = RR[]
+            sage: Rx("x + 7.5")._singular_().sage_poly()
+            x + 7.50000
+            sage: Rx("x + 7.5")._singular_().sage_poly(Rx)
+            x + 7.50000000000000
+
         AUTHORS:
 
         - Martin Albrecht (2006-05-18)
@@ -1766,7 +1853,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                 exp = dict()
                 monomial = singular_poly_list[i]
 
-                if monomial!="1":
+                if monomial not in ['1', '(1.000e+00)']:
                     variables = [var.split("^") for var in monomial.split("*") ]
                     for e in variables:
                         var = e[0]
@@ -1794,7 +1881,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                 monomial = singular_poly_list[i]
                 exp = int(0)
 
-                if monomial!="1":
+                if monomial not in ['1', '(1.000e+00)']:
                     term =  monomial.split("^")
                     if len(term)==int(2):
                         exp = int(term[1])

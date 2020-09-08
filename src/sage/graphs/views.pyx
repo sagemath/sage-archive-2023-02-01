@@ -496,6 +496,13 @@ cdef class EdgesView:
             False
             sage: G == E
             False
+
+        Check that :trac:`29180` is fixed::
+
+            sage: G = graphs.CycleGraph(4)
+            sage: E = graphs.EmptyGraph()
+            sage: G.edges() == E.edges()
+            False
         """
         if not isinstance(right, EdgesView):
             return NotImplemented
@@ -506,6 +513,9 @@ cdef class EdgesView:
         if (self._graph._directed != other._graph._directed or
             self._ignore_direction != other._ignore_direction or
             self._labels != other._labels):
+            return False
+        # Check that self and other have the same number of edges
+        if len(self) != len(other):
             return False
         # Check that the same edges are reported in the same order
         return all(es == eo for es, eo in zip(self, other))
@@ -601,6 +611,7 @@ cdef class EdgesView:
         elif i < 0:
             return list(self)[i]
         else:
+            i = int(i)  # For Python < 3.7 where islice doesn't support non-int
             try:
                 return next(islice(self, i, i + 1, 1))
             except StopIteration:
@@ -684,7 +695,7 @@ cdef class EdgesView:
             sage: E * 1.5
             Traceback (most recent call last):
             ...
-            TypeError: can't multiply sequence by non-int of type 'sage.rings.real_mpfr.RealLiteral'
+            TypeError: can...t multiply sequence by non-int of type 'sage.rings.real_mpfr.RealLiteral'
         """
         if isinstance(left, EdgesView):
             return list(left) * right

@@ -938,6 +938,7 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: A.<t> = PowerSeriesRing(ZZ)
             sage: B.<s> = A[[]]
             sage: f = (1 - 3*t + 4*t^3 + O(t^4))*s + (2 + t + t^2 + O(t^3))*s^2 + O(s^3)
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(1)
             sage: g = f.reverse(); g
             verbose 1 (<module>) passing to pari failed; trying Lagrange inversion
@@ -1036,7 +1037,7 @@ cdef class PowerSeries_poly(PowerSeries):
             return PowerSeries_poly(f.parent(), g.Vec(-out_prec), out_prec)
         except (TypeError,ValueError,AttributeError,PariError):
             # if pari fails, continue with Lagrange inversion
-            from sage.misc.all import verbose
+            from sage.misc.verbose import verbose
             verbose("passing to pari failed; trying Lagrange inversion")
 
         if f.parent().characteristic():

@@ -55,9 +55,7 @@ REFERENCES:
 #*****************************************************************************
 from __future__ import print_function
 
-from six.moves import range
-from six import itervalues
-from six.moves.urllib.request import urlopen
+from urllib.request import urlopen
 
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix, block_matrix, block_diagonal_matrix, diagonal_matrix
@@ -303,7 +301,7 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
 
     prod = (M*M.transpose()).dict()
     if (len(prod) != n or
-        set(itervalues(prod)) != {n} or
+        set(prod.values()) != {n} or
         any((i, i) not in prod for i in range(n))):
         if verbose:
             print("The product M*M.transpose() is not equal to nI")
@@ -653,8 +651,8 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
     elif (  e  == 1                 and
           not sqn is None           and
           sqn%4 == 2            and
-          True == strongly_regular_graph(sqn-1,(sqn-2)//2,(sqn-6)//4,
-                    existence=True) and
+          strongly_regular_graph(sqn-1,(sqn-2)//2,(sqn-6)//4,
+            existence=True) is True and
           is_prime_power(ZZ(sqn+1))):
         if existence:
             return true()
@@ -666,8 +664,8 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         for n1,e1 in product(divisors(n)[1:-1],[-1,1]):
             e2 = e1*e
             n2 = n//n1
-            if (regular_symmetric_hadamard_matrix_with_constant_diagonal(n1,e1,existence=True) and
-                regular_symmetric_hadamard_matrix_with_constant_diagonal(n2,e2,existence=True)):
+            if (regular_symmetric_hadamard_matrix_with_constant_diagonal(n1,e1,existence=True) is True and
+                regular_symmetric_hadamard_matrix_with_constant_diagonal(n2,e2,existence=True)) is True:
                 if existence:
                     return true()
                 M1 = regular_symmetric_hadamard_matrix_with_constant_diagonal(n1,e1)
@@ -925,14 +923,14 @@ def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
     .. [GS70s] \J.M. Goethals and J. J. Seidel,
       A skew Hadamard matrix of order 36,
       J. Aust. Math. Soc. 11(1970), 343-344
+
     .. [Wall71] \J. Wallis,
       A skew-Hadamard matrix of order 92,
       Bull. Aust. Math. Soc. 5(1971), 203-204
+
     .. [KoSt08] \C. Koukouvinos, S. Stylianou
       On skew-Hadamard matrices,
       Discrete Math. 308(2008) 2723-2731
-
-
     """
     n = len(a)
     R = matrix(ZZ, n, n, lambda i,j: 1 if i+j==n-1 else 0)
@@ -1122,7 +1120,7 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
         M = hadamard_matrix_paleyI(n, normalize=False)
 
     elif n % 8 == 0:
-        if skew_hadamard_matrix(n//2,existence=True): # (Lemma 14.1.6 in [Ha83]_)
+        if skew_hadamard_matrix(n//2,existence=True) is True: # (Lemma 14.1.6 in [Ha83]_)
             if existence:
                 return true()
             H = skew_hadamard_matrix(n//2,check=False)
@@ -1132,7 +1130,7 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
             for d in divisors(n)[2:-2]: # skip 1, 2, n/2, and n
                 n1 = n//d
                 if is_prime_power(d - 1) and (d % 4 == 0) and (n1 % 4 == 0)\
-                    and skew_hadamard_matrix(n1,existence=True):
+                    and skew_hadamard_matrix(n1,existence=True) is True:
                     if existence:
                         return true()
                     H = skew_hadamard_matrix(n1, check=False)-I(n1)
@@ -1145,7 +1143,7 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
                     M = A.tensor_product(I(n1))+(U*A).tensor_product(H)
                     break
     if M is None: # try Williamson-Goethals-Seidel construction
-        if GS_skew_hadamard_smallcases(n, existence=True):
+        if GS_skew_hadamard_smallcases(n, existence=True) is True:
             if existence:
                 return true()
             M = GS_skew_hadamard_smallcases(n)

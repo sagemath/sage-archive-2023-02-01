@@ -318,10 +318,19 @@ cdef class SageObject:
             1
             sage: type(_)
             <class 'sage.typeset.unicode_art.UnicodeArt'>
+
+        Check that breakpoints and baseline are preserved (:trac:`29202`)::
+
+            sage: F = FreeAbelianMonoid(index_set=ZZ)
+            sage: f = prod(F.gen(i) for i in range(5))
+            sage: s, t = ascii_art(f), unicode_art(f)
+            sage: s._breakpoints == t._breakpoints and s._baseline == t._baseline
+            True
         """
         from sage.typeset.unicode_art import UnicodeArt
-        lines = [unicode(z) for z in self._ascii_art_()]
-        return UnicodeArt(lines)
+        s = self._ascii_art_()
+        lines = [unicode(z) for z in s]
+        return UnicodeArt(lines, s._breakpoints, s._baseline)
 
     def __hash__(self):
         r"""
@@ -471,7 +480,7 @@ cdef class SageObject:
     #############################################################################
 
     def category(self):
-        from sage.categories.all import Objects
+        from sage.categories.objects import Objects
         return Objects()
 
     def _test_category(self, **options):
@@ -583,6 +592,14 @@ cdef class SageObject:
             ...
             AssertionError: Not implemented method: bla
 
+        Check that only errors triggered by ``AbstractMethod`` are caught
+        (:trac:`29694`)::
+
+            sage: class NotAbstract(SageObject):
+            ....:     @lazy_attribute
+            ....:     def bla(self):
+            ....:         raise NotImplementedError("not implemented")
+            sage: NotAbstract()._test_not_implemented_methods()
         """
         tester = self._tester(**options)
         try:
@@ -592,9 +609,9 @@ cdef class SageObject:
             for name in dir(self):
                 try:
                     getattr(self, name)
-                except NotImplementedError:
-                    # It would be best to make sure that this NotImplementedError was triggered by AbstractMethod
-                    tester.fail("Not implemented method: %s"%name)
+                except NotImplementedError as e:
+                    if 'abstract method' in str(e):
+                        tester.fail("Not implemented method: %s" % name)
                 except Exception:
                     pass
         finally:

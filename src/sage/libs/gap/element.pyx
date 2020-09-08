@@ -1330,7 +1330,7 @@ cdef class GapElement(RingElement):
             sage: type(_)
             <... 'str'>
 
-            sage: x = libgap.eval('Indeterminate(Integers, "x")')
+            sage: x = libgap.Integers.Indeterminate("x")
 
             sage: p = x^2 - 2*x + 3
             sage: p.sage()
@@ -1349,6 +1349,16 @@ cdef class GapElement(RingElement):
             (3*x^2 + x)/(x^2 - 2)
             sage: p.sage().parent()
             Fraction Field of Univariate Polynomial Ring in x over Integer Ring
+
+        TESTS:
+
+        Check :trac:`30496`::
+
+            sage: x = libgap.Integers.Indeterminate("x")
+
+            sage: p = x^2 - 2*x
+            sage: p.sage()
+            x^2 - 2*x
         """
         if self.value is NULL:
             return None
@@ -1373,7 +1383,8 @@ cdef class GapElement(RingElement):
             if self.IsUnivariatePolynomial():
                 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
                 R = PolynomialRing(base_ring, var)
-                return R(num)
+                x = R.gen()
+                return x**val * R(num)
 
             elif self.IsLaurentPolynomial():
                 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing

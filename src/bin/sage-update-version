@@ -36,6 +36,8 @@ SAGE_VERSION=`echo "$1" | sed 's/^sage-//'`
 SAGE_RELEASE_DATE=`date -u +'%Y-%m-%d'`
 SAGE_VERSION_BANNER="SageMath version $SAGE_VERSION, Release Date: $SAGE_RELEASE_DATE"
 
+echo $SAGE_VERSION > "$SAGE_ROOT/build/pkgs/sagelib/package-version.txt"
+
 # Update Sage version file for Python in SAGE_SRC/sage
 cat <<EOF > "$SAGE_SRC/sage/version.py"
 # Sage version information for Python scripts
@@ -67,6 +69,7 @@ git commit -m "Updated SageMath version to $SAGE_VERSION" -- \
     "$SAGE_SRC/bin/sage-version.sh" \
     "$SAGE_ROOT/build/pkgs/configure/checksums.ini" \
     "$SAGE_ROOT/build/pkgs/configure/package-version.txt" \
+    "$SAGE_ROOT/build/pkgs/sagelib/package-version.txt" \
     || die "Error committing to the repository."
 
 git tag -a "$SAGE_VERSION" -m "$SAGE_VERSION_BANNER" \

@@ -112,9 +112,7 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
     For a Chordal Graph, a reversed Lex BFS is a Perfect Elimination Order::
 
         sage: g = graphs.PathGraph(3).lexicographic_product(graphs.CompleteGraph(2))
-        sage: g.lex_BFS(reverse=True)  # py2
-        [(2, 0), (2, 1), (1, 1), (1, 0), (0, 0), (0, 1)]
-        sage: g.lex_BFS(reverse=True)  # py3
+        sage: g.lex_BFS(reverse=True)
         [(2, 1), (2, 0), (1, 1), (1, 0), (0, 1), (0, 0)]
 
     And the vertices at the end of the tree of discovery are, for chordal
@@ -1290,7 +1288,7 @@ def is_valid_lex_M_order(G, alpha, F):
     clique. The ordering `\alpha` is a perfect elimination ordering of `H`, so
     `H` is chordal. See [RTL76]_ for more details.
 
-    INPUTS:
+    INPUT:
 
     - ``G`` -- a Graph
 

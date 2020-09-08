@@ -4010,6 +4010,7 @@ OUTPUT:
 SandpileDivisor
 
 EXAMPLES::
+
     sage: S = sandpiles.Cycle(3)
     sage: D = SandpileDivisor(S, [1,2,3])
     sage: D.dualize()
@@ -4926,6 +4927,8 @@ Other
     EXAMPLES::
 
         sage: S = random_DAG(5, 0.3)
+        doctest:...: DeprecationWarning: method random_DAG is deprecated. Please use digraphs.RandomDirectedAcyclicGraph instead.
+        See https://trac.sagemath.org/30479 for details.
 
 ---
 

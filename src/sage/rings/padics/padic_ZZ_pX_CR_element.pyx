@@ -2529,27 +2529,24 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W(0)._polynomial_list(pad=True)
             [0, 0, 0]
             sage: W(O(w^7))._polynomial_list()
-            [0, O(5^2)]
+            []
             sage: W(O(w^7))._polynomial_list(pad=True)
-            [0, O(5^2), 0]
+            [O(5^3), O(5^2), O(5^2)]
         """
         R = self.base_ring()
-        e = self.parent().e()
-        if self._is_exact_zero():
+        if self.is_zero():
             L = []
-        elif self.is_zero():
-            power, shift = divmod(self.ordp, e)
-            L = [R.zero()] * (shift+1)
-            L[shift] = R(0, power)
+            k = 0
         else:
             f, k = self._ntl_rep_abs()
             L = [Integer(c) for c in f.list()]
         if pad:
             n = self.parent().degree()
             L.extend([R.zero()] * (n - len(L)))
-        if self.is_zero():
+        if self._is_exact_zero():
             return L
         prec = self.relprec + self.ordp
+        e = self.parent().e()
         if e == 1:
             return [R(c, prec) >> k for c in L]
         else:

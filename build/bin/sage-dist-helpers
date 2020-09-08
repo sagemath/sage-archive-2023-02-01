@@ -210,10 +210,31 @@ sdh_pip_install() {
         local sudo="$SAGE_SUDO"
         local root=""
     fi
-    $sudo sage-pip-install $root "$@" || \
-        sdh_die "Error installing $PKG_NAME"
-}
+    $sudo sage-pip-uninstall "$@" || \
+        sdh_die "Error uninstalling a previous version of $PKG_NAME"
 
+    sage-python23 -m pip wheel --wheel-dir=. --no-binary :all: --verbose --no-deps --no-index --isolated --no-build-isolation "$@" || \
+        sdh_die "Error building a wheel for $PKG_NAME"
+
+    wheel=""
+    for w in *.whl; do
+        if [ -n "$wheel" ]; then
+            sdh_die "Error: more than one wheel found after building"
+        fi
+        if [ -f "$w" ]; then
+            wheel="$w"
+        fi
+    done
+    if [ -z "$wheel" ]; then
+        sdh_die "Error: no wheel found after building"
+    fi
+
+    $sudo sage-pip-install $root "$wheel" || \
+        sdh_die "Error installing $wheel"
+    mkdir -p "${SAGE_DESTDIR}${SAGE_SPKG_WHEELS}" && \
+        mv "$wheel" "${SAGE_DESTDIR}${SAGE_SPKG_WHEELS}/" || \
+        sdh_die "Error storing $wheel"
+}
 
 sdh_cmake() {
     echo "Configuring $PKG_NAME with cmake"

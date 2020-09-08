@@ -266,8 +266,8 @@ class FiniteWord_char(WordDatatype_char, FiniteWord_class):
         sage: u = W([1,2,3])
         sage: w.first_occurrence(u)
         0
-        sage: w[1:].first_occurrence(u)
-        8
+        sage: w.first_occurrence(u, start=1)
+        9
 
     TESTS::
 

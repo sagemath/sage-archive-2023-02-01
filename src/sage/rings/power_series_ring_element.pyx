@@ -978,7 +978,7 @@ cdef class PowerSeries(AlgebraElement):
 
         - David Harvey (2006-09-03)
         """
-        # return false for O(t^0) (the only power-series-ring element with precision_absolute == 0)
+        # Return False for O(t^0) (the only power-series-ring element with precision_absolute == 0).
         if self.precision_absolute() == 0:
             return False
         return self[0].is_unit()

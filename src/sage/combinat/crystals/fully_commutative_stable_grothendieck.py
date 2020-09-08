@@ -31,15 +31,39 @@ class DecreasingHeckeFactorization:
         sage: h.value
         ((3, 2), (), (2, 1))
 
+        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
         sage: u = [[3,2,1],[3],[2,1]]
-        sage: h = HeckeFactorization(u,4); h
+        sage: h = DecreasingHeckeFactorization(u); h
         (3, 2, 1)(3)(2, 1)
         sage: h.weight()
         [2, 1, 3]
     """
     def __init__(self, t, k=None):
         """
-        Initialize a decreasing factorization for ``self`` given the relevant data.
+        Initialize a decreasing factorization for ``self`` given the relevant 
+        data.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
+            sage: t = [[2,1],[2],[],[1]]
+            sage: h1 = DecreasingHeckeFactorization(t); h1
+            (2, 1)(2)()(1)
+            sage: h1.excess
+            1
+            sage: h2 = DecreasingHeckeFactorization(t,2)
+            sage: h2.value
+            ((2, 1), (2,), (), (1,))
+            sage: h1 == h2
+            True
+
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
+            sage: t = [[2,1],[2],[],[3,1]]
+            sage: h = DecreasingHeckeFactorization(t,5)
+            sage: h.k
+            5
+            sage: h.m
+            4
         """
         if not isinstance(t,(list,tuple)):
             raise ValueError("A list or tuple is expected")
@@ -58,22 +82,89 @@ class DecreasingHeckeFactorization:
     
     @property
     def m(self):
+        """
+        Return the number of factors for ``self``.
+        
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
+            sage: t = [[],[2,1],[2],[],[2]]
+            sage: h = DecreasingHeckeFactorization(t)
+            sage: h.m
+            5
+        """ 
         return len(self.value)
 
     def __repr__(self):
+        """
+        Return the representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
+            sage: t = [[],[2,1],[2],[],[2]]
+            sage: h = DecreasingHeckeFactorization(t); h
+            ()(2, 1)(2)()(2)
+        """
         return "".join("("+repr(list(factor))[1:-1]+")" for factor in self.value)
 
-    def __key(self):
-        return (self.k, self.value)
-
     def __hash__(self):
-        return hash(self.__key())
+        """
+        Return hash of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
+            sage: t = [[],[2,1],[2],[],[2]]
+            sage: h1 = DecreasingHeckeFactorization(t)
+            sage: h2 = DecreasingHeckeFactorization(t,3)
+            sage: h3 = DecreasingHeckeFactorization(t,2)
+            sage: hash(h1) == hash(h2)
+            False
+            sage: hash(h1) == hash(h3)
+            True
+        """
+        return hash(self.k, self.value)
 
     def __eq__(self, other):
+        """
+        Return True if ``self`` equals ``other`` and False otherwise.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
+            sage: t = [[],[2,1],[2],[],[2]]
+            sage: h1 = DecreasingHeckeFactorization(t)
+            sage: h2 = DecreasingHeckeFactorization(t,3)
+            sage: h1 == h2
+            True
+        """
         return isinstance(self, type(other)) and self.value == other.value
 
     def __lt__(self,other):
-        return (self._weight(),self.value) < (other._weight(),other.value)
+        """
+        Return True if ``self`` comes before ``other`` and False otherwise.
+        
+        We say that h1 comes before h2 if either weight of h1 < weight of h2 
+        lexicographically, or if both weights of h1 and h2 are equal, 
+        but h1 < h2 lexicographically.
+        This ordering is mainly used for sorting or comparison.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
+            sage: t1 = [[],[2,1],[],[2,1],[1]]
+            sage: t2 = [[],[2,1],[],[2,1],[2]]
+            sage: t3 = [[],[2,1],[2],[1],[1]]
+            sage: h1 = DecreasingHeckeFactorization(t1)
+            sage: h2 = DecreasingHeckeFactorization(t2)
+            sage: h3 = DecreasingHeckeFactorization(t3)
+            sage: h1 < h2
+            True
+            sage: h1 < h3
+            False
+        """
+        return (self.weight(), self.value) < (other.weight(), other.value)
 
     def _latex_(self):
         r"""
@@ -81,8 +172,11 @@ class DecreasingHeckeFactorization:
 
         EXAMPLES::
 
-            sage:
-
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
+            sage: t = [[2],[2,1],[],[4,3,1]]
+            sage: h = DecreasingHeckeFactorization(t,6)
+            sage: latex(h)
+            \left(2\right)\left(2, 1\right)\left(\;\right)\left(4, 3, 1\right)
         """
         s = ""
         for factor in self.value:
@@ -94,39 +188,42 @@ class DecreasingHeckeFactorization:
 
     def weight(self):
         """
-        Returns the weight of ``self``
+        Returns the weight of ``self``.
 
         EXAMPLES:
 
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
             sage: t = [[2],[2,1],[],[4,3,1]]
-            sage: u = DecreasingHeckeFactorization(t,4)
-            sage: t.weight()
+            sage: h = DecreasingHeckeFactorization(t,6)
+            sage: h.weight()
             [3, 0, 2, 1]
         """
         return [len(l) for l in self.value][::-1]
 
     def to_word(self):
         """
-        Return the word associated to ``self`` in the 0-Hecke monoid
+        Return the word associated to ``self`` in the 0-Hecke monoid.
 
         EXAMPLES:
 
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
             sage: t = [[2],[],[2,1],[4,3,1]]
-            sage: u = DecreasingHeckeFactorization(t,4)
-            sage: u.to_word()
+            sage: h = DecreasingHeckeFactorization(t)
+            sage: h.to_word()
             [2, 2, 1, 4, 3, 1]
         """
         return [j for factors in self.value for j in factors]
 
     def to_increasing_hecke_biword(self):
         """
-        Return the associated increasing Hecke biword of ``self``
+        Return the associated increasing Hecke biword of ``self``.
 
         EXAMPLES:
 
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
             sage: t = [[2],[],[2,1],[4,3,1]]
-            sage: u = DecreasingHeckeFactorization(t,4)
-            sage: u.to_increasing_hecke_biword()
+            sage: h = DecreasingHeckeFactorization(t,4)
+            sage: h.to_increasing_hecke_biword()
             [[1, 1, 1, 2, 2, 4], [1, 3, 4, 1, 2, 2]]
         """
         L = [[],[]]
@@ -260,10 +357,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             R.append(y)
             L.sort(reverse=True)
             R.sort(reverse=True)  
-            s = DecreasingHeckeFactorization([self.value[j] for j in range(self.m-i-1)] + [L] + [R] + [self.value[j] for j in range(self.m-i+1,self.m)],self.k)
-            if not check_local(self,s,i):
-                s.bright = True
-                print(self,s,i)           
+            s = DecreasingHeckeFactorization([self.value[j] for j in range(self.m-i-1)] + [L] + [R] + [self.value[j] for j in range(self.m-i+1,self.m)],self.k)        
             return self.parent()(s)
 
         def f(self, i):
@@ -282,10 +376,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             L.append(x)
             L.sort(reverse=True)
             R.sort(reverse=True)  
-            s = DecreasingHeckeFactorization([self.value[j] for j in range(self.m-i-1)] + [L] + [R] + [self.value[j] for j in range(self.m-i+1,self.m)],self.k)
-            if not check_local(self,s,i):
-                s.bright = True
-                print(self,s,i)  
+            s = DecreasingHeckeFactorization([self.value[j] for j in range(self.m-i-1)] + [L] + [R] + [self.value[j] for j in range(self.m-i+1,self.m)],self.k) 
             return self.parent()(s)
 
 def bracketing_eq(L,R):
@@ -347,9 +438,8 @@ def _lowest_weights(w,m,ex):
         [(3, 2, 1)(1)(1)()()]
     """
     k = max(w) if w else 1
-    P = Permutations(k+1, avoiding=[3,2,1])
-    p = permutation.from_reduced_word(w,P)
-    if p not in P:
+    p = permutation.from_reduced_word(w)
+    if p not in Permutations(avoiding=[3,2,1]):
         raise ValueError("The 0-Hecke word w must be 321-avoiding")
 
     L = list_equivalent_words(canonical_word(w,ex))

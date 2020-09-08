@@ -446,7 +446,7 @@ def _giac(s):
 
         sage: L = libgiac('[1,sqrt(5),[1.3,x]]')
         sage: L.sage()       # All entries are converted recursively
-        [1, sqrt(5), [1.3, x]]
+        [1, sqrt(5), [1.30000000000000, x]]
 
     To obtain matrices and vectors, use the :meth:`matrix<Pygen._matrix_>` and
     :meth:`vector<Pygen._vector_>` commands. Get more details with::

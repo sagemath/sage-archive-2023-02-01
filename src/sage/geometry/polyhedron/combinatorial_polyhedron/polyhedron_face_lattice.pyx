@@ -1,4 +1,4 @@
-# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitset_operations.cc
 # distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
 
@@ -73,7 +73,7 @@ from .conversions           cimport Vrep_list_to_bit_rep, bit_rep_to_Vrep_list
 from .base                  cimport CombinatorialPolyhedron
 from .face_iterator         cimport FaceIterator
 
-cdef extern from "bit_vector_operations.cc":
+cdef extern from "bitset_operations.cc":
     cdef void intersection(uint64_t *dest, uint64_t *A, uint64_t *B,
                            size_t face_length)
 #    Set ``dest = A & B``, i.e. dest is the intersection of A and B.

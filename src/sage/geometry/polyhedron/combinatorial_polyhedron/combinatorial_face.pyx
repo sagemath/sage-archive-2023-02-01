@@ -1,4 +1,4 @@
-# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitset_operations.cc
 # distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
 
@@ -78,7 +78,7 @@ from .face_iterator             cimport FaceIterator_base
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 from libc.string                cimport memcpy
 
-cdef extern from "bit_vector_operations.cc":
+cdef extern from "bitset_operations.cc":
     cdef size_t count_atoms(uint64_t *A, size_t face_length)
 #        Return the number of atoms/vertices in A.
 #        This is the number of set bits in A.

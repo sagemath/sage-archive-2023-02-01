@@ -1,4 +1,4 @@
-# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitset_operations.cc
 # distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
 
@@ -185,7 +185,7 @@ from .conversions            import facets_tuple_to_bit_rep_of_facets
 from .base                  cimport CombinatorialPolyhedron
 from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
 
-cdef extern from "bit_vector_operations.cc":
+cdef extern from "bitset_operations.cc":
     cdef size_t get_next_level(
         uint64_t **faces, const size_t n_faces,
         uint64_t **newfaces, uint64_t **visited_all,

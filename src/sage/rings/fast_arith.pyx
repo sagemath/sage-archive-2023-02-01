@@ -135,7 +135,7 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
         sage: prime_range(436273009, 436273010, algorithm="pari_primes")
         Traceback (most recent call last):
         ...
-        ValueError: algorithm "pari_primes" cannot compute primes larger than 436273008
+        ValueError: algorithm "pari_primes" is limited to primes larger than 436273008
 
     AUTHORS:
 

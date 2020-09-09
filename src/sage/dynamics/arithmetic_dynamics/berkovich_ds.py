@@ -24,10 +24,8 @@ AUTHORS:
 
 from sage.structure.element import Element
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
-from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.classcall_metaclass import typecall
-from sage.rings.padics.generic_nodes import is_pAdicField
 from sage.schemes.berkovich.berkovich_space import (Berkovich_Cp_Affine,
                                 Berkovich_Cp_Projective, is_Berkovich_Cp,
                                 Berkovich_Element_Cp_Affine)
@@ -42,8 +40,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
 from sage.matrix.constructor import Matrix
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class DynamicalSystem_Berkovich(Element):
+class DynamicalSystem_Berkovich(Element, metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A dynamical system on Berkovich space over `\CC_p`.
 
@@ -221,7 +218,7 @@ class DynamicalSystem_Berkovich(Element):
     @staticmethod
     def __classcall_private__(cls, dynamical_system, domain=None, ideal=None):
         """
-        Returns the appropriate dynamical system on Berkovich space.
+        Return the appropriate dynamical system on Berkovich space.
 
         EXAMPLES::
 
@@ -336,7 +333,7 @@ class DynamicalSystem_Berkovich(Element):
 
     def domain(self):
         """
-        Returns the domain of this dynamical system.
+        Return the domain of this dynamical system.
 
         OUTPUT: A Berkovich space over ``Cp``.
 
@@ -369,7 +366,7 @@ class DynamicalSystem_Berkovich(Element):
 
     def __getitem__(self, i):
         """
-        Returns the ith polynomial.
+        Return the ith polynomial.
 
         INPUT:
 
@@ -506,7 +503,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
     @staticmethod
     def __classcall_private__(cls, dynamical_system, domain=None):
         """
-        Returns the approapriate dynamical system on projective Berkovich space over ``Cp``.
+        Return the approapriate dynamical system on projective Berkovich space over ``Cp``.
 
         EXAMPLES::
 
@@ -732,7 +729,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
 
     def dehomogenize(self, n):
         """
-        Returns the map induced by the standard dehomogenization.
+        Return the map induced by the standard dehomogenization.
 
         The dehomogenization is done at the ``n[0]`` coordinate
         of the domain and the ``n[1]`` coordinate of the codomain.
@@ -986,7 +983,7 @@ class DynamicalSystem_Berkovich_affine(DynamicalSystem_Berkovich):
     @staticmethod
     def __classcall_private__(cls, dynamical_system, domain=None):
         """
-        Returns the appropriate dynamical system on affine Berkovich space over ``Cp``.
+        Return the appropriate dynamical system on affine Berkovich space over ``Cp``.
 
         EXAMPLES::
 
@@ -1035,7 +1032,7 @@ class DynamicalSystem_Berkovich_affine(DynamicalSystem_Berkovich):
 
     def homogenize(self, n):
         """
-        Returns the homogenization of this dynamical system.
+        Return the homogenization of this dynamical system.
 
         For dynamical systems of Berkovich space, this is the dynamical
         system of projective Berkovich space induced by the homogenization of

@@ -1,0 +1,282 @@
+From 27811e0021c73de26bf2cff5105c763e163ca8b7 Mon Sep 17 00:00:00 2001
+From: Jean-Guillaume Dumas <Jean-Guillaume.Dumas@imag.fr>
+Date: Fri, 26 Jun 2020 09:54:38 +0200
+Subject: [PATCH 1/3] iterators may have different types
+
+---
+ linbox/vector/blas-subvector.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/linbox/vector/blas-subvector.h b/linbox/vector/blas-subvector.h
+index 8120e654a..e1582723c 100644
+--- a/linbox/vector/blas-subvector.h
++++ b/linbox/vector/blas-subvector.h
+@@ -158,7 +158,8 @@ namespace LinBox {
+         template<class Vect>
+         Self_t& copy(const Vect& A){
+             assert(_size == A.size());            
+-            for (auto it=A.begin(), jt=begin();it!=A.end();it++,jt++)
++            auto it=A.begin(); auto jt=begin();
++			for( ; it!=A.end();++it,++jt)
+                 field().assign(*jt,*it);
+             return *this;
+         }
+
+From 4ff828e20053ab2ef9adc4ce6931d159fd513cef Mon Sep 17 00:00:00 2001
+From: Jean-Guillaume Dumas <Jean-Guillaume.Dumas@imag.fr>
+Date: Fri, 26 Jun 2020 09:54:57 +0200
+Subject: [PATCH 2/3] incompatible const & with modifiers
+
+---
+ examples/Makefile.am             |  3 +-
+ examples/ratdet.C                | 96 ++++++++++++++++++++++++++++++++
+ linbox/algorithms/det-rational.h |  4 +-
+ 3 files changed, 100 insertions(+), 3 deletions(-)
+ create mode 100644 examples/ratdet.C
+
+diff --git a/examples/Makefile.am b/examples/Makefile.am
+index fe3d84991..a876132a1 100644
+--- a/examples/Makefile.am
++++ b/examples/Makefile.am
+@@ -29,7 +29,7 @@ SUBDIRS=data
+ 
+ EXAMPLES=rank det minpoly valence solve dot-product echelon sparseelimdet \
+ sparseelimrank checksolve doubledet smithvalence charpoly blassolve solverat \
+-sparsesolverat poweroftwo_ranks power_rank genprime smithsparse matrices
++ratdet sparsesolverat poweroftwo_ranks power_rank genprime smithsparse matrices
+ #polysmith bench-fft bench-matpoly-mult
+ # EXAMPLES+=nulp yabla 
+ GIVARONTL_EXAMPLES=smith graph-charpoly
+@@ -66,6 +66,7 @@ smithvalence_SOURCES   = smithvalence.C
+ sparseelimdet_SOURCES  = sparseelimdet.C
+ sparseelimrank_SOURCES = sparseelimrank.C
+ solverat_SOURCES       = solverat.C
++ratdet_SOURCES       = ratdet.C
+ sparsesolverat_SOURCES = sparsesolverat.C
+ blassolve_SOURCES      = blassolve.C
+ power_rank_SOURCES     = power_rank.C
+diff --git a/examples/ratdet.C b/examples/ratdet.C
+new file mode 100644
+index 000000000..1a6979825
+--- /dev/null
++++ b/examples/ratdet.C
+@@ -0,0 +1,96 @@
++/*
++ * examples/ratdet.C
++ *
++ * Copyright (C) 2020 The LinBox group
++ * ========LICENCE========
++ * This file is part of the library LinBox.
++ *
++ * LinBox is free software: you can redistribute it and/or modify
++ * it under the terms of the  GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
++ * ========LICENCE========
++ */
++
++/**\file examples/ratdet.C
++ * @example  examples/ratdet.C
++  \brief Determinant of rational matrix
++  \ingroup examples
++  */
++
++#include <linbox/linbox-config.h>
++#include <iostream>
++
++#include <givaro/givrational.h>
++#include <linbox/matrix/sparse-matrix.h>
++#include <linbox/solutions/det.h>
++
++using namespace LinBox;
++typedef SparseMatrixFormat::SparseSeq SparseStorage;
++typedef Givaro::QField<Givaro::Rational> Rationals;
++
++template<typename RMatrix>
++int ratdet(int argc, char **argv) {
++
++	std::ifstream input (argv[1]);
++	if (!input) {
++		std::cerr << "Error opening matrix file: " << argv[1] << std::endl;
++		return -1;
++	}
++
++	Rationals QQ;
++	MatrixStream<Rationals> ms (QQ, input);
++ 	RMatrix A ( ms );
++
++    Rationals::Element det_A;
++
++	LinBox::Timer tim ; tim.clear() ; tim.start();
++    det (det_A, A);
++	tim.stop();
++
++    std::cout << "Determinant is ";
++    QQ.write(std::cout, det_A) << ':' << std::flush;
++	std::clog << tim << std::endl;
++
++	return 0;
++}
++
++
++int main (int argc, char **argv)
++{
++	commentator().setMaxDetailLevel (-1);
++	commentator().setMaxDepth (-1);
++	commentator().setReportStream (std::cerr);
++
++	bool dense=true;
++	if (argc < 2 || argc > 3) {
++		std::cerr << "Usage: ratdet <matrix-file-in-supported-format> [d/s]" << std::endl;
++		return -1;
++	}
++
++	if (argc == 3) {
++		if (argv[2][0] != 'd') dense=false;
++	}
++
++	if (dense)
++		return ratdet< DenseMatrix<Rationals> >(argc,argv);
++	else
++		return ratdet< SparseMatrix<Rationals, SparseStorage> >(argc, argv);
++}
++
++// Local Variables:
++// mode: C++
++// tab-width: 4
++// indent-tabs-mode: nil
++// c-basic-offset: 4
++// End:
++// vim:sts=4:sw=4:ts=4:et:sr:cino=>s,f0,{0,g0,(0,\:0,t0,+0,=s
+diff --git a/linbox/algorithms/det-rational.h b/linbox/algorithms/det-rational.h
+index 327b4710f..1943876c1 100644
+--- a/linbox/algorithms/det-rational.h
++++ b/linbox/algorithms/det-rational.h
+@@ -79,8 +79,8 @@ namespace LinBox
+ 	struct MyRationalModularDet {
+ 		const Blackbox &A;
+ 		const MyMethod &M;
+-		const Integer &mul;//multiplicative prec;
+-		const Integer &div;
++		Integer mul;//multiplicative prec;
++		Integer div;
+ 
+ 		MyRationalModularDet(const Blackbox& b, const MyMethod& n,
+ 				     const Integer & p1, const Integer & p2) :
+
+From 567f727aa42de6678433591d731b275ea55fa8ad Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Cl=C3=A9ment=20Pernet?= <clement.pernet@gmail.com>
+Date: Fri, 26 Jun 2020 17:11:37 +0200
+Subject: [PATCH 3/3] untabify + auto-indent
+
+---
+ examples/ratdet.C | 66 +++++++++++++++++++++++------------------------
+ 1 file changed, 33 insertions(+), 33 deletions(-)
+
+diff --git a/examples/ratdet.C b/examples/ratdet.C
+index 1a6979825..508077b20 100644
+--- a/examples/ratdet.C
++++ b/examples/ratdet.C
+@@ -23,9 +23,9 @@
+ 
+ /**\file examples/ratdet.C
+  * @example  examples/ratdet.C
+-  \brief Determinant of rational matrix
+-  \ingroup examples
+-  */
++ \brief Determinant of rational matrix
++ \ingroup examples
++*/
+ 
+ #include <linbox/linbox-config.h>
+ #include <iostream>
+@@ -41,50 +41,50 @@ typedef Givaro::QField<Givaro::Rational> Rationals;
+ template<typename RMatrix>
+ int ratdet(int argc, char **argv) {
+ 
+-	std::ifstream input (argv[1]);
+-	if (!input) {
+-		std::cerr << "Error opening matrix file: " << argv[1] << std::endl;
+-		return -1;
+-	}
++    std::ifstream input (argv[1]);
++    if (!input) {
++        std::cerr << "Error opening matrix file: " << argv[1] << std::endl;
++        return -1;
++    }
+ 
+-	Rationals QQ;
+-	MatrixStream<Rationals> ms (QQ, input);
+- 	RMatrix A ( ms );
++    Rationals QQ;
++    MatrixStream<Rationals> ms (QQ, input);
++    RMatrix A ( ms );
+ 
+     Rationals::Element det_A;
+ 
+-	LinBox::Timer tim ; tim.clear() ; tim.start();
++    LinBox::Timer tim ; tim.clear() ; tim.start();
+     det (det_A, A);
+-	tim.stop();
++    tim.stop();
+ 
+     std::cout << "Determinant is ";
+     QQ.write(std::cout, det_A) << ':' << std::flush;
+-	std::clog << tim << std::endl;
++    std::clog << tim << std::endl;
+ 
+-	return 0;
++    return 0;
+ }
+ 
+ 
+ int main (int argc, char **argv)
+ {
+-	commentator().setMaxDetailLevel (-1);
+-	commentator().setMaxDepth (-1);
+-	commentator().setReportStream (std::cerr);
+-
+-	bool dense=true;
+-	if (argc < 2 || argc > 3) {
+-		std::cerr << "Usage: ratdet <matrix-file-in-supported-format> [d/s]" << std::endl;
+-		return -1;
+-	}
+-
+-	if (argc == 3) {
+-		if (argv[2][0] != 'd') dense=false;
+-	}
+-
+-	if (dense)
+-		return ratdet< DenseMatrix<Rationals> >(argc,argv);
+-	else
+-		return ratdet< SparseMatrix<Rationals, SparseStorage> >(argc, argv);
++    commentator().setMaxDetailLevel (-1);
++    commentator().setMaxDepth (-1);
++    commentator().setReportStream (std::cerr);
++
++    bool dense=true;
++    if (argc < 2 || argc > 3) {
++        std::cerr << "Usage: ratdet <matrix-file-in-supported-format> [d/s]" << std::endl;
++        return -1;
++    }
++
++    if (argc == 3) {
++        if (argv[2][0] != 'd') dense=false;
++    }
++
++    if (dense)
++        return ratdet< DenseMatrix<Rationals> >(argc,argv);
++    else
++        return ratdet< SparseMatrix<Rationals, SparseStorage> >(argc, argv);
+ }
+ 
+ // Local Variables:

@@ -448,7 +448,7 @@ Homebrew package called "foo", then the file
 ``build/pkgs/PACKAGE/distros/homebrew.txt`` should contain the single
 line "foo". If ``foo`` is currently uninstalled, then ``./configure``
 will print a message suggesting that the user should run ``brew install
-foo``.
+foo``. See :ref:`section-equiv-distro-packages` for more on this.
 
 .. IMPORTANT::
 
@@ -456,6 +456,13 @@ foo``.
     ``spkg-configure.m4`` script and a populated ``distros``
     directory. There are many examples in ``build/pkgs``, including
     ``build/pkgs/python3`` and ``build/pkgs/suitesparse``, to name a few.
+
+Note that this may not be possible (as of this writing) for some
+packages, for example packages installed via pip for use while running
+Sage, like ``matplotlib`` or ``scipy``. If a package is installed via
+pip for use in a separate process, like ``tox``, then this should be
+possible.
+
 
 
 .. _section-spkg-check:

@@ -259,7 +259,8 @@ class Ideal_generic(MonoidElement):
             gens = [ring(x) for x in gens]
 
         gens = tuple(gens)
-        if len(gens)==0: gens=(ring.zero(),)
+        if len(gens) == 0:
+            gens = (ring.zero(),)
         self.__gens = gens
         MonoidElement.__init__(self, ring.ideal_monoid())
 

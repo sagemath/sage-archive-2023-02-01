@@ -1629,6 +1629,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return self.str(10, no_sci=True)
 
+    def _mathematica_init_(self):
+        """
+        TESTS:
+
+        Check that :trac:`28814` is fixed::
+
+            sage: mathematica(3.5e-15)           # optional - mathematica
+            3.5*^-15
+            sage: mathematica.Log(3.5e6).sage()  # optional - mathematica
+            15.06827352645964
+        """
+        return self.str(10, e='*^')
+
     def _sage_input_(self, sib, coerced):
         r"""
         Produce an expression which will reproduce this value when evaluated.

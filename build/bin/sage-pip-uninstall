@@ -19,11 +19,7 @@ fi
 PYTHON=sage-python23
 
 # The PIP variable is only used to determine the name of the lock file.
-if [ "$SAGE_PYTHON3" = yes ]; then
-    PIP=pip3
-else
-    PIP=pip2
-fi
+PIP=pip3
 
 # Find out the name of the package that we are installing
 name="$($PYTHON setup.py --name)"
@@ -40,7 +36,7 @@ if [ $(echo "$name" | wc -l) -gt 1 ]; then
     echo >&2 "line as the package name: $name"
 fi
 
-# We should avoid running pip2/3 while uninstalling a package because that
+# We should avoid running pip while uninstalling a package because that
 # is prone to race conditions. Therefore, we use a lockfile while
 # running pip. This is implemented in the Python script sage-flock
 LOCK="$SAGE_LOCAL/var/lock/$PIP.lock"

@@ -2825,7 +2825,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
                         # different chart
                         chart_coords = chart[:]
                         var_not_in_chart = [s for s in var
-                                            if not s in chart_coords]
+                                            if s not in chart_coords]
                         any_in_other_chart = False
                         if var_not_in_chart:
                             for other_chart in self._domain.atlas():

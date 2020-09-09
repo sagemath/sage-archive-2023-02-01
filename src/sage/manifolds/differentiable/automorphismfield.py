@@ -1214,7 +1214,8 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
                     inv_latex_name = r'\left(' + self._latex_name + \
                                      r'\right)^{-1}'
             fmodule = self._fmodule
-            si = fmodule._sindex ; nsi = fmodule._rank + si
+            si = fmodule._sindex
+            nsi = fmodule._rank + si
             self._inverse = fmodule.automorphism(name=inv_name,
                                                  latex_name=inv_latex_name)
             for frame in self._components:

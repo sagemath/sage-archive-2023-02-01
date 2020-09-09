@@ -126,11 +126,21 @@ class WeightedIntegerVectors(Parent, UniqueRepresentation):
             [1, 2, 0]
             sage: elt.parent() is WIV
             True
+            sage: WIV([1, 2, 0])
+            [1, 2, 0]
+            sage: WIV([1, 2, 1])
+            ValueError: cannot convert [1, 2, 1] into Integer vectors of 3
+             weighted by [2, 1, 1]
+
         """
         if isinstance(lst, IntegerVector):
             if lst.parent() is self:
                 return lst
+        if lst not in self:
             raise ValueError("cannot convert %s into %s" % (lst, self))
+        if WeightedIntegerVectors_all.grading(self, lst) != self._n:
+            raise ValueError("integer vector {} must ".format(lst) +
+                             "have grading {}".format(self._n))
         return self.element_class(self, lst)
 
     def _repr_(self):

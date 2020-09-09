@@ -214,7 +214,6 @@ class DecreasingHeckeFactorization:
             L[0] += [j+1]*len(self.value[-j-1])
         return L
 
-
 class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
     """
     The crystal on fully commutative decreasing factorizations in the 0-Hecke 
@@ -233,7 +232,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
         sage: from sage.monoids.hecke_monoid import HeckeMonoid
         sage: H = HeckeMonoid(SymmetricGroup(3+1))
         sage: w = H.from_reduced_word([1,3,2])
-        sage: B = FullyCommutativeStableGrothendieckCrystal(w,3,2); B
+        sage: B = crystals.FullyCommutativeStableGrothendieck(w,3,2); B
         Fully commutative stable Grothendieck crystal of type A_2 associated to [1, 3, 2] with excess 2
     """
     def __init__(self, w, m, excess):
@@ -246,7 +245,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             sage: from sage.monoids.hecke_monoid import HeckeMonoid
             sage: H = HeckeMonoid(SymmetricGroup(3+1))
             sage: w = H.from_reduced_word([1,3,2])
-            sage: B = FullyCommutativeStableGrothendieckCrystal(w,3,2)
+            sage: B = crystals.FullyCommutativeStableGrothendieck(w,3,2)
             sage: B.w
             (1, 3, 2)
             sage: B.m
@@ -262,7 +261,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             sage: from sage.monoids.hecke_monoid import HeckeMonoid
             sage: H = HeckeMonoid(SymmetricGroup(3+1))
             sage: w = H.from_reduced_word([1,2,1])
-            sage: B = FullyCommutativeStableGrothendieckCrystal(w,4,2)
+            sage: B = crystals.FullyCommutativeStableGrothendieck(w,4,2)
             Traceback (most recent call last):
             ...
             ValueError: w should be fully commutative
@@ -271,12 +270,11 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
             sage: from sage.monoids.hecke_monoid import HeckeMonoid
             sage: H = HeckeMonoid(SymmetricGroup(3+1))
-            sage: w = H.from_reduced_word([2,1,3,2])
-            sage: B = FullyCommutativeStableGrothendieckCrystal(w,4,2)
+            sage: w = H.from_reduced_word([2,3,1])
+            sage: B = crystals.FullyCommutativeStableGrothendieck(w,4,2)
             sage: TestSuite(B).run()
         """
-        # Check if w is fully commutative, ie. if the associated permutation is
-        # 321-avoiding 
+        # Check if w is fully commutative
         word = w.reduced_word()
         p = permutation.from_reduced_word(word)
         if p not in Permutations(avoiding=[3,2,1]):
@@ -300,10 +298,10 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             sage: from sage.monoids.hecke_monoid import HeckeMonoid
             sage: H = HeckeMonoid(SymmetricGroup(3+1))
             sage: w = H.from_reduced_word([1,3,2])
-            sage: B = FullyCommutativeStableGrothendieckCrystal(w,3,2)
+            sage: B = crystals.FullyCommutativeStableGrothendieck(w,3,2)
             sage: B.module_generators
             ((1)(3, 1)(3, 2), (3)(3, 1)(3, 2))
-            sage: C = FullyCommutativeStableGrothendieckCrystal(w,4,2)
+            sage: C = crystals.FullyCommutativeStableGrothendieck(w,4,2)
             sage: C.module_generators
             (()(1)(3, 1)(3, 2),
              ()(3)(3, 1)(3, 2),
@@ -321,7 +319,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
         
             sage: H = HeckeMonoid(SymmetricGroup(3+1))
             sage: w = H.from_reduced_word([2,1,3,2])
-            sage: FullyCommutativeStableGrothendieckCrystal(w,3,1)
+            sage: crystals.FullyCommutativeStableGrothendieck(w,3,1)
             Fully commutative stable Grothendieck crystal of type A_2 associated to [2, 1, 3, 2] with excess 1
         """
         return "Fully commutative stable Grothendieck crystal of type A_{} associated to {} with excess {}".format(self.m-1, list(self.w), self.excess)
@@ -336,12 +334,12 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             constraints on word, number of factors and excess statistic 
             associated to ``parent``.
 
-            TESTS::
+            EXAMPLES::
 
                 sage: from sage.monoids.hecke_monoid import HeckeMonoid
                 sage: H = HeckeMonoid(SymmetricGroup(3+1))
                 sage: w = H.from_reduced_word([1,3,2])
-                sage: B = FullyCommutativeStableGrothendieckCrystal(w,3,2)
+                sage: B = crystals.FullyCommutativeStableGrothendieck(w,3,2)
                 sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
                 sage: h = DecreasingHeckeFactorization([[3,1],[3],[3,2]],3)
                 sage: u = B(h); u.value
@@ -377,7 +375,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                 from sage.monoids.hecke_monoid import HeckeMonoid
                 sage: H = HeckeMonoid(SymmetricGroup(4+1))
                 sage: w = H.from_reduced_word([2,1,4,3,2])
-                sage: B = FullyCommutativeStableGrothendieckCrystal(w,4,3)
+                sage: B = crystals.FullyCommutativeStableGrothendieck(w,4,3)
                 sage: h = B([[4,2],[4,2,1],[3,2],[2]]); h
                 (4, 2)(4, 2, 1)(3, 2)(2)
                 sage: h.e(1)
@@ -413,7 +411,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                 from sage.monoids.hecke_monoid import HeckeMonoid
                 sage: H = HeckeMonoid(SymmetricGroup(4+1))
                 sage: w = H.from_reduced_word([3,2,1,4,3])
-                sage: B = FullyCommutativeStableGrothendieckCrystal(w,4,3)
+                sage: B = crystals.FullyCommutativeStableGrothendieck(w,4,3)
                 sage: h = B([[3,2],[2,1],[4,3],[3,1]]); h
                 (3, 2)(2, 1)(4, 3)(3, 1)
                 sage: h.f(1)

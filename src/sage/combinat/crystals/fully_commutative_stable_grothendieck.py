@@ -35,7 +35,7 @@ class DecreasingHeckeFactorization:
         sage: h = DecreasingHeckeFactorization(u); h
         (3, 2, 1)(3)(2, 1)
         sage: h.weight()
-        [2, 1, 3]
+        (2, 1, 3)
     """
     def __init__(self, t, k=None):
         """
@@ -178,9 +178,9 @@ class DecreasingHeckeFactorization:
             sage: t = [[2],[2,1],[],[4,3,1]]
             sage: h = DecreasingHeckeFactorization(t,6)
             sage: h.weight()
-            [3, 0, 2, 1]
+            (3, 0, 2, 1)
         """
-        return [len(l) for l in self.value][::-1]
+        return tuple(len(l) for l in self.value)[::-1]
 
     def to_word(self):
         """
@@ -386,7 +386,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             """
             L = list(self.value[self.m-i-1])
             R = list(self.value[self.m-i])
-            b = bracketing_eq(L,R)
+            b = self.bracketing(i)
             if not b[0]:
                 return None
             
@@ -399,7 +399,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             R.append(y)
             L.sort(reverse=True)
             R.sort(reverse=True)  
-            s = DecreasingHeckeFactorization([self.value[j] for j in range(self.m-i-1)] + [L] + [R] + [self.value[j] for j in range(self.m-i+1,self.m)],self.k)        
+            s = [self.value[j] for j in range(self.m-i-1)]+[L]+[R]+[self.value[j] for j in range(self.m-i+1, self.m)]        
             return self.parent()(s)
 
         def f(self, i):
@@ -421,8 +421,8 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                 (3, 2, 1)(1)(4, 3)(3, 1)
             """
             L = list(self.value[self.m-i-1])
-            R = list(self.value[self.m-i])
-            b = bracketing_eq(L,R)
+            R = list(self.value[self.m-i]) 
+            b = self.bracketing(i)
             if not b[1]:
                 return None
             
@@ -435,24 +435,65 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             L.append(x)
             L.sort(reverse=True)
             R.sort(reverse=True)  
-            s = DecreasingHeckeFactorization([self.value[j] for j in range(self.m-i-1)] + [L] + [R] + [self.value[j] for j in range(self.m-i+1,self.m)],self.k) 
+            s = [self.value[j] for j in range(self.m-i-1)]+[L]+[R]+[self.value[j] for j in range(self.m-i+1, self.m)] 
             return self.parent()(s)
+
+        def bracketing(self,i):
+            """
+            Remove all bracketed letters between `i`th and `(i+1)`th entry.
+
+            EXAMPLES::
+
+                from sage.monoids.hecke_monoid import HeckeMonoid
+                sage: H = HeckeMonoid(SymmetricGroup(4+1))
+                sage: w = H.from_reduced_word([3,2,1,4,3])
+                sage: B = crystals.FullyCommutativeStableGrothendieck(w,3,2)
+                sage: h = B([[3],[4,2,1],[4,3,1]])
+                sage: h.bracketing(1)
+                [[], []]
+                sage: h.bracketing(2)
+                [[], [2, 1]]
+            """
+            L = list(self.value[self.m-i-1])
+            R = list(self.value[self.m-i])
+            right_n = [j for j in R]
+            left_n = [j for j in L]
+            left_unbracketed = []
+            while left_n:
+                m = max(left_n)
+                left_n.remove(m)
+                l = [j for j in right_n if j>=m]
+                if l:
+                    right_n.remove(min(l))
+                else:
+                    left_unbracketed += [m]
+            return [[j for j in left_unbracketed],[j for j in right_n]]
 
 
 ####################
-# HELPER FUNCTIONS #
+# Helper functions #
 ####################
 
 def _check_decreasing_hecke_factorization(t):
     """
-    Check if t is a suitable data type for a decreasing factorization in the 
+    Check if ``t`` is a suitable data type for a decreasing factorization in a 
     0-Hecke monoid.
 
     TESTS::
 
-        sage: _check_decreasing_hecke_factorization()
-        sage: _
-
+        sage: _check_decreasing_hecke_factorization([[3,2],[2,1],[4]])
+        sage: _check_decreasing_hecke_factorization([[3,2,2],[2,1],[4]])
+        Traceback (most recent call last):
+        ...
+        ValueError: Each nonempty factor should be a strictly decreasing sequence
+        sage: _check_decreasing_hecke_factorization([[3,'a'],[2,1],[4]])
+        Traceback (most recent call last):
+        ...
+        ValueError: Each nonempty factor should contain integers
+        sage: _check_decreasing_hecke_factorization([[3,2],[2,1],4])
+        Traceback (most recent call last):
+        ...
+        ValueError: Each factor in t should be a list or tuple
     """
     if not isinstance(t, (tuple,list)):
         raise ValueError("t should be an list or tuple")
@@ -465,51 +506,34 @@ def _check_decreasing_hecke_factorization(t):
             if factor[i] <= factor[i+1]:
                 raise ValueError("Each nonempty factor should be a strictly decreasing sequence")
 
-def bracketing_eq(L,R):
+def _lowest_weights(w, m, ex):
     """
-        Removes all bracketed letters between `i`-th and `i+1`-th entry.
-    """
-    right_n = [j for j in R]
-    left_n = [j for j in L]
-    left_unbracketed = []
-    while left_n:
-        m = max(left_n)
-        left_n.remove(m)
-        l = [j for j in right_n if j>=m]
-        if l:
-            right_n.remove(min(l))
-        else:
-            left_unbracketed += [m]
-    return [[j for j in left_unbracketed],[j for j in right_n]]
+    Generate all decreasing factorizations in the 0-Hecke monoid that correspond 
+    to some valid semistandard Young tableaux.
 
-def _lowest_weights(w,m,ex):
-    """
-    Generate all 0-Hecke decreasing factorizations corresponding to 
-    some valid semistandard Young tableau.
-
-    The semistandard Young tableaux should have at most m columns 
-    and their column reading words should be equivalent to w in some 
-    0-Hecke monoid.
+    The semistandard Young tableaux should have at most ``m`` columns and their 
+    column reading words should be equivalent to ``w`` in a 0-Hecke monoid.
 
     INPUTS:
 
-        w - 321-avoiding reduced word in a 0-Hecke monoid
-        
-        m - number of factors in decreasing 0-Hecke factorizations
-        
-        ex - number of extra letters in the decreasing factorizations
+        ``w`` - a fully commutative reduced word in a 0-Hecke monoid, expressed
+                as an iterable
+
+        ``m`` - number of factors for each decreasing factorization
+
+        ``ex`` - number of extra letters in each decreasing factorizations
 
     EXAMPLES:
 
-        sage: _lowest_weight_factorizations([1, 2, 1],3,1)
+        sage: _lowest_weights([1,2,1],3,1)
         Traceback (most recent call last):
         ...
-        ValueError: The 0-Hecke word w must be 321-avoiding.  
+        ValueError: The word w should be fully commutative 
 
-        sage: _lowest_weights([2, 1, 3, 2],4,3)
+        sage: _lowest_weights([2,1,3,2],4,3)
         [(2, 1)(3, 1)(3, 1)(2), (2, 1)(3, 1)(3, 2)(2)]
         
-        sage: _lowest_weights([2, 1, 3, 2],5,3)
+        sage: _lowest_weights([2,1,3,2],5,3)
         [(2, 1)(3, 1)(3, 1)(2)(),
          (2, 1)(3, 1)(3, 2)(2)(),
          (2, 1)(3, 1)(1)(1)(2),
@@ -517,105 +541,100 @@ def _lowest_weights(w,m,ex):
          (2, 1)(3, 1)(2)(2)(2),
          (2, 1)(3, 2)(2)(2)(2)]
 
-        sage: _lowest_weights([1, 3],3,1)
+        sage: _lowest_weights([1,3],3,1)
         [(3, 1)(1)(), (3, 1)(3)(), (1)(1)(3), (1)(3)(3)]
 
-        sage: _lowest_weights([3, 2, 1],5,2)
+        sage: _lowest_weights([3,2,1],5,2)
         [(3, 2, 1)(1)(1)()()]
     """
-    k = max(w) if w else 1
     p = permutation.from_reduced_word(w)
     if p not in Permutations(avoiding=[3,2,1]):
         raise ValueError("The word w should be fully commutative")
 
-    L = list_equivalent_words(canonical_word(w,ex))
-    D = {}
-    k = max(w)
+    def _canonical_word(w, ex):
+        """
+        Return a standard word equivalent to ``w`` in a 0-Hecke monoid whose 
+        excess is ``ex``.
+
+        EXAMPLES:
+
+            sage: w = [1,2,1]
+            sage: v = _canonical_word(w,2); v
+            [1, 1, 1, 2, 1]
+        """
+        L = list(w)
+        return [L[0]]*ex + L
+
+    L = _list_equivalent_words(_canonical_word(w,ex))
+    k, D = max(w), {}
     for v in L:
-        if is_valid_col_word(v, m) == True:
-            J = [0] + jumps(v) + [len(v)]
+        if _is_valid_column_word(v, m):
+            J = [0] + _jumps(v) + [len(v)]
             t = [v[J[i]:J[i+1]] for i in range(len(J)-1)]
             if len(J) < m+1:
                 t += [()]*(m+1-len(J))
             h = DecreasingHeckeFactorization(t, k)
-            wt = lambda h: [len(l) for l in h.value][::-1]
-            weight = tuple(wt(h))
+            weight = h.weight()
             if weight not in D:
                 D[weight] = [h]
             else:
                 D[weight] += [h]
-    return sorted([h for key in D for h in D[key]], key=lambda h:([i for i in wt(h)],h.value))
+    return sorted([h for key in D for h in D[key]])
 
-def canonical_word(w, ex):
+def _jumps(w):
     """
-    Return a standard Hecke factorization equivalent to w in 
-    some 0-Hecke monoid with excess ex
-
-    EXAMPLES:
-
-    sage: w = [1,2,1]
-    sage: v = canonical_word(w,ex=2); v
-    [1, 1, 1, 2, 1]
-    """
-    if isinstance(w,list)==True or isinstance(w,tuple)==True:
-        L = list(w)
-        return [L[0]]*ex+L
-
-def jumps(w):
-    """
-    Detect positions where indices weakly increases in w
+    Detect all positions where letters weakly increases in ``w``.
     
     EXAMPLES:
 
         sage: w = [4, 1, 2, 1, 4, 3, 2, 1, 3, 2, 2]
-        sage: jumps(w)
+        sage: _jumps(w)
         [2, 4, 8, 10]
     """
     return [i+1 for i in range(len(w)-1) if w[i]<=w[i+1]]
 
-def is_valid_col_word(w, m=None):
+def _is_valid_column_word(w, m=None):
     """
-    Determine if w is actually a valid column reading word of some 
-    semistandard Young tableau with at most m columns
+    Determine if ``w`` is actually a valid column reading word of some 
+    semistandard Young tableau with at most ``m`` columns.
 
-    If m is None, then we determine if w is a valid column reading word 
-    of some semistandard Young tableau
+    If ``m`` is None, then we determine if ``w`` is a valid column reading word 
+    of some semistandard Young tableau.
 
     EXAMPLES:
 
         sage: w = [3, 2, 2, 1, 1]
-        sage: is_valid_col_word(w)
+        sage: _is_valid_column_word(w)
         False
 
         sage: w = [3, 2, 1, 1, 1]
-        sage: is_valid_col_word(w,3)
+        sage: _is_valid_column_word(w,3)
         True
 
         sage: w = [3, 2, 1, 1, 1]
-        sage: is_valid_col_word(w,2)
+        sage: _is_valid_column_word(w,2)
         False
 
         sage: w = [3, 2, 1, 3, 1]
-        sage: is_valid_col_word(w,2)
+        sage: _is_valid_column_word(w,2)
         True
     """
     from sage.combinat.tableau import Tableau
-    J = [0]+jumps(w)+[len(w)]
+    J = [0]+_jumps(w)+[len(w)]
     L = [w[J[i]:J[i+1]][::-1] for i in range(len(J)-1)]
     if all(len(L[i])>=len(L[i+1]) for i in range(len(L)-1)):
-        if m == None or (len(jumps(w))<=m-1):
+        if m == None or (len(_jumps(w))<=m-1):
             T = Tableau(L)
             return T.conjugate().is_semistandard()
     return False
 
-def list_equivalent_words(w):
+def _list_equivalent_words(w):
     """
-    Lists all words v equivalent to w in 0-Hecke monoid
+    Lists all words equivalent to ``w`` in a 0-Hecke monoid.
 
     EXAMPLES:
 
-        sage: w = [1,2,1]
-        sage: list_equivalent_words(canonical_word(w,1))
+        sage: _list_equivalent_words([1,1,2,1])
         [(1, 1, 2, 1),
          (1, 2, 1, 1),
          (1, 2, 1, 2),
@@ -624,71 +643,97 @@ def list_equivalent_words(w):
          (2, 1, 2, 1),
          (2, 1, 2, 2),
          (2, 2, 1, 2)]
-        
-        sage: list_equivalent_words([1,1,2,1])
-        [(1, 1, 2, 1),
-         (1, 2, 1, 1),
-         (1, 2, 1, 2),
-         (1, 2, 2, 1),
-         (2, 1, 1, 2),
-         (2, 1, 2, 1),
-         (2, 1, 2, 2),
-         (2, 2, 1, 2)]
+
+        sage: _list_equivalent_words([2,1,3,1,2])                                       
+        [(2, 1, 1, 3, 2),
+         (2, 1, 3, 1, 2),
+         (2, 1, 3, 2, 2),
+         (2, 1, 3, 3, 2),
+         (2, 2, 1, 3, 2),
+         (2, 2, 3, 1, 2),
+         (2, 3, 1, 1, 2),
+         (2, 3, 1, 2, 2),
+         (2, 3, 1, 3, 2),
+         (2, 3, 3, 1, 2)]
     """
     if all(isinstance(i,(int,Integer)) for i in w):
         u = w
     else:
         raise ValueError("w needs to be a tuple of integers")
+
+    def _applicable_relations(word):
+        """
+        Return all positions where a relation can be applied on ``word``
+        along with the type of relation.
+        """
+        L = []
+        for i in range(len(word)-1):
+            if i < len(word)-2:
+                p, q, r = word[i:(i+2)+1]
+                if abs(p-q) > 1:
+                    L += [[i,"pq=qp"]]
+                if p==r and q!=p and abs(p-q)==1:
+                    L += [[i,"pqp=qpq"]]
+                if q==p and r!=p:
+                    L += [[i,"ppq=pqq"]]
+                if q==r and r!=p:
+                    L += [[i,"pqq=ppq"]]
+            elif i == len(word)-2:
+                p, q = word[i:(i+1)+1]
+                if abs(p-q) > 1:
+                    L += [[i,"pq=qp"]]
+        return L
+
     V, queue = set([]), [tuple(u)]
     while len(queue) > 0:
         v = queue.pop(0)
         if tuple(v) not in V:
             V.add(tuple(v))
-            L = applicable_relations(v)
+            L = _applicable_relations(v)
             for pair in L:
                 position, move = pair
-                t = apply_relations(v,position,move)
+                t = _apply_relations(v,position,move)
                 queue += [tuple(t)]
     return sorted([v for v in list(V)])
 
-def apply_relations(word,position,move):
+def _apply_relations(word, position, move):
     """
-    Applies a particular type of move using a relation in 0-Hecke monoid on 
-    word at the specified position.
+    Apply a particular type of ``move`` on ``word`` at the specified 
+    ``position`` using a relation in a 0-Hecke monoid .
 
     EXAMPLES:
 
         sage: w = [2, 1, 3, 4]
-        sage: apply_relations(w,position=1,move="pq=qp")
+        sage: _apply_relations(w, position=1, move="pq=qp")
         [2, 3, 1, 4]
         
         sage: w = [1, 3, 2, 1, 2, 4]
-        sage: apply_relations(w,position=2,move="pqp=qpq")
+        sage: _apply_relations(w, position=2, move="pqp=qpq")
         [1, 3, 1, 2, 1, 4]
         
         sage: w = [2, 3, 1, 2, 2, 3]
-        sage: apply_relations(w,position=3,move="pp=p")
+        sage: _apply_relations(w, position=3, move="pp=p")
         [2, 3, 1, 2, 3]
 
         sage: w = [2, 3, 1, 2, 3]
-        sage: apply_relations(w,position=3,move="p=pp")
+        sage: _apply_relations(w, position=3, move="p=pp")
         [2, 3, 1, 2, 2, 3]
         
         sage: w = [2, 3, 1, 2, 2, 3]
-        sage: apply_relations(w,position=2,move="pqq=ppq")
+        sage: _apply_relations(w, position=2, move="pqq=ppq")
         [2, 3, 1, 1, 2, 3]
         
         sage: w = [2, 3, 1, 1, 2, 3]
-        sage: apply_relations(w,position=2,move="ppq=pqq")
+        sage: _apply_relations(w, position=2, move="ppq=pqq")
         [2, 3, 1, 2, 2, 3]
     """
-    w = list(word[:])
+    w = list(word)
     # Type 1
     if move == "pq=qp":
         if position > len(w)-2:
-            raise IndexError("position is out of range for relation pq=qp")
-        p,q = w[position],w[position+1]
-        if abs(p-q)==1:
+            raise IndexError("Position is out of range for relation pq=qp")
+        p, q = w[position], w[position+1]
+        if abs(p-q) == 1:
             raise IndexError("Relation pq=qp does not apply here")
         else:
             w[position] = q
@@ -696,8 +741,8 @@ def apply_relations(word,position,move):
     # Type 2
     elif move == "pqp=qpq":
         if position > len(w)-3:
-            raise IndexError("position is out of range for relation pqp=qpq")
-        p,q = w[position],w[position+1]
+            raise IndexError("Position is out of range for relation pqp=qpq")
+        p, q = w[position], w[position+1]
         if p != w[position+2]:
             raise IndexError("Relation pqp=qpq does not apply here")
         else:
@@ -707,8 +752,8 @@ def apply_relations(word,position,move):
     # Type 3
     elif move == "pqq=ppq":
         if position > len(w)-3:
-            raise IndexError("position is out of range for relation pqq=ppq")
-        p,q = w[position],w[position+2]
+            raise IndexError("Position is out of range for relation pqq=ppq")
+        p, q = w[position], w[position+2]
         if q != w[position+1]:
             raise IndexError("Relation pqq=ppq does not apply here")
         else:
@@ -716,8 +761,8 @@ def apply_relations(word,position,move):
     # Type 4
     elif move == "ppq=pqq":
         if position > len(w)-3:
-            raise IndexError("position is out of range for relation ppq=pqq")
-        p,q = w[position],w[position+2]
+            raise IndexError("Position is out of range for relation ppq=pqq")
+        p, q = w[position], w[position+2]
         if p != w[position+1]:
             raise IndexError("Relation ppq=pqq does not apply here")
         else:
@@ -725,35 +770,16 @@ def apply_relations(word,position,move):
     # Type 5
     elif move == "pp=p":
         if position > len(w)-2:
-            raise IndexError("position is out of range for relation pp=p")
+            raise IndexError("Position is out of range for relation pp=p")
         p = w[position]
         if p != w[position+1]:
             raise IndexError("Relation pp=p does not apply here")
         else:
-            w = w[:position+1]+w[position+2:]
+            w = w[:position+1] + w[position+2:]
     elif move == "p=pp":
         if position > len(w)-1:
-            raise IndexError("position is out of range for relation p=pp")
+            raise IndexError("Position is out of range for relation p=pp")
         p = w[position]
-        w = w[:position+1]+[p]+w[position+1:]
+        w = w[:position+1] + [p] + w[position+1:]
     return w
-
-def applicable_relations(word):
-    L = []
-    for i in range(len(word)-1):
-        if i < len(word)-2:
-            p,q,r = word[i:(i+2)+1]
-            if abs(p-q)>1:
-                L += [[i,"pq=qp"]]
-            if p==r and q!=p and abs(p-q)==1:
-                L += [[i,"pqp=qpq"]]
-            if q==p and r!=p:
-                L += [[i,"ppq=pqq"]]
-            if q==r and r!=p:
-                L += [[i,"pqq=ppq"]]
-        elif i == len(word)-2:
-            p,q = word[i:(i+1)+1]
-            if abs(p-q)>1:
-                L += [[i,"pq=qp"]]
-    return L
 

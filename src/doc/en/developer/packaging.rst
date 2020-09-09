@@ -164,10 +164,14 @@ The following are some additional files which can be added:
 .. CODE-BLOCK:: text
 
     SAGE_ROOT/build/pkgs/foo
+    |-- distros
+    |   |-- platform1.txt
+    |   `-- platform2.txt
     |-- patches
     |   |-- bar.patch
     |   `-- baz.patch
     |-- spkg-check.in
+    |-- spkg-configure.m4
     `-- spkg-src
 
 We discuss the individual files in the following sections.
@@ -408,6 +412,50 @@ The following are also available, but rarely used.
    program or another library) for a library starting with ``SONAME``, and
    if found appends ``SONAME`` to the ``LD_PRELOAD`` environment variable.
    See :trac:`24885`.
+
+
+.. _spkg-configure.m4:
+
+Allowing for the use of system packages
+---------------------------------------
+
+For a number of Sage packages, an already installed system version can
+be used instead, and Sage's top-level ``./configure`` script
+determines when this is possible. To enable this, a package needs to
+have a script called ``spkg-configure.m4``, which can, for example,
+determines whether the installed software is recent enough (and
+sometimes not too recent) to be usable by Sage. This script is
+processed by the `GNU M4 macro processor
+<https://www.gnu.org/savannah-checkouts/gnu/m4/manual/m4-1.4.18/m4.html>`_.
+
+Also, if the software for a Sage package is provided by a system
+package, the ``./configure`` script can provide that information. To
+do this, there must be a directory ``build/pkgs/PACKAGE/distros``
+containing files with names like ::
+
+    arch.txt
+    conda.txt
+    cygwin.txt
+    debian.txt
+    homebrew.txt
+    ...
+
+corresponding to different packaging systems.
+
+For example, if ``./configure`` detects that the Homebrew packaging
+system is in use, and if the current package can be provided by a
+Homebrew package called "foo", then the file
+``build/pkgs/PACKAGE/distros/homebrew.txt`` should contain the single
+line "foo". If ``foo`` is currently uninstalled, then ``./configure``
+will print a message suggesting that the user should run ``brew install
+foo``.
+
+.. IMPORTANT::
+
+    All new standard packages should, when possible, include a
+    ``spkg-configure.m4`` script and a populated ``distros``
+    directory. There are many examples in ``build/pkgs``, including
+    ``build/pkgs/python3`` and ``build/pkgs/suitesparse``, to name a few.
 
 
 .. _section-spkg-check:

@@ -1390,7 +1390,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         subgroups_orders_kwds = dict()
 
         if order is None:
-            for p, p_exps in six.iteritems(sylow_types):
+            for p, p_exps in sylow_types.items():
                 subgroups_orders_kwds[p] = dict(max_sum=sum(p_exps))
         else:
             order = Integer(order)
@@ -1406,7 +1406,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
                 subgroups_orders_kwds[p] = dict(n=order_exps[p])
 
         result = Integer(1)
-        for p, p_exps in six.iteritems(sylow_types):
+        for p, p_exps in sylow_types.items():
             p_exps.sort(reverse=True)
             # The sum is over all partitions mu contained in p_exps whose size
             # is determined by subgroups_orders_kwds.

@@ -1,3 +1,2 @@
 #sage
 sphinx
-six

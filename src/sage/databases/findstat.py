@@ -227,7 +227,7 @@ import re
 import webbrowser
 import tempfile
 import inspect
-import cgi
+import html
 import requests
 
 # Combinatorial collections
@@ -300,7 +300,7 @@ FINDSTAT_COLLECTION_PADDED_IDENTIFIER  = "Cc%04d"
 ######################################################################
 
 # the format string for using POST
-# WARNING: we use cgi.escape to avoid injection problems, thus we expect double quotes as field delimiters.
+# WARNING: we use html.escape to avoid injection problems, thus we expect double quotes as field delimiters.
 FINDSTAT_POST_HEADER = """
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
 <script>
@@ -454,9 +454,9 @@ def _submit(args, url):
     for key, value in iteritems(args):
         if value:
             verbose("writing argument %s" % key, caller_name='FindStat')
-            value_encoded = cgi.escape(value, quote=True)
-            html = FINDSTAT_FORM_FORMAT % (key, value_encoded)
-            f.write(html)
+            value_encoded = html.escape(value, quote=True)
+            html_content = FINDSTAT_FORM_FORMAT % (key, value_encoded)
+            f.write(html_content)
         else:
             verbose("skipping argument %s because it is empty" % key, caller_name='FindStat')
     f.write(FINDSTAT_FORM_FOOTER)
@@ -4443,13 +4443,13 @@ class FindStatCollections(UniqueRepresentation, Parent):
 
             sage: cc = FindStatCollection(graphs(3)); cc                        # optional -- internet
             a subset of Cc0020: Graphs
-            sage: cc.first_terms(lambda x: x.edges(False)).list()               # optional -- internet
+            sage: cc.first_terms(lambda x: x.edges(labels=False)).list()        # optional -- internet
             [(Graph on 3 vertices, []),
              (Graph on 3 vertices, [(0, 2)]),
              (Graph on 3 vertices, [(0, 2), (1, 2)]),
              (Graph on 3 vertices, [(0, 1), (0, 2), (1, 2)])]
 
-            sage: len(cc.first_terms(lambda x: x.edges(False)).list())          # optional -- internet
+            sage: len(cc.first_terms(lambda x: x.edges(labels=False)).list())   # optional -- internet
             4
         """
         if isinstance(entry, self.Element):

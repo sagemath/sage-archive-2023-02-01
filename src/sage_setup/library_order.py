@@ -79,9 +79,10 @@ aliases = cython_aliases()
 arb_dylib_name = aliases["ARB_LIBRARY"]
 library_order_list = aliases["SINGULAR_LIBRARIES"] + [
     "ec", "ecm",
+    "giac", "intl", "curl"
 ] + aliases["LINBOX_LIBRARIES"] + aliases["FFLASFFPACK_LIBRARIES"] + aliases["GSL_LIBRARIES"] + [
     "pari", "flint", "ratpoints", "ecl", "glpk", "ppl",
-    arb_dylib_name, "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
+    arb_dylib_name, "mpfi", "mpfr", "mpc", "ntl", "gmp", "gmpxx",
     "brial",
     "brial_groebner",
     "m4rie",

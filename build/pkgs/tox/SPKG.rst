@@ -6,9 +6,9 @@ Description
 
 Command line driven CI frontend and development task automation tool.
 
-The Sage library uses tox as an entry point for testing and linting. See `src/tox.ini` and `sage --advanced`.
+The Sage library uses tox as an entry point for testing and linting. See ``src/tox.ini`` and ``sage --advanced``.
 
-Sage-the-distribution uses tox for portability testing.  See `SAGE_ROOT/tox.ini`.
+Sage-the-distribution uses tox for portability testing.  See ``SAGE_ROOT/tox.ini``.
 
 License
 -------

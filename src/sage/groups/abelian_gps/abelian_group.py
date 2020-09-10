@@ -319,7 +319,7 @@ def word_problem(words, g, verbose = False):
     gap.eval(s5)
     gap.eval("x:=Factorization(H,g)")
     l3 = eval(gap.eval("L3:=ExtRepOfObj(x)"))
-    nn = gap.eval("n:=Int(Length(L3)/2)")
+    gap.eval("n:=Int(Length(L3)/2)")
     LL = eval(gap.eval("L4:=List([l..n],i->L3[2*i])"))
     if verbose:
         v = '*'.join(['(%s)^%s'%(words[l3[2*i]-1], LL[i]) for i in range(len(LL))])

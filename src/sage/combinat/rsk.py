@@ -2488,86 +2488,99 @@ class RuleSuperRSK(RuleRSK):
 
 class RuleStar(Rule):
     r"""
-    Rule for star insertion.
-    
-    The Star Insertion algorithm is similar to the classical RSK algorithm, but it is defined using the *-insertion algorithm in [MPPS2020]_. The bottom row of the increasing Hecke biword is an element in the 0-Hecke monoid that is 321-avoiding. When inserting a letter x into a row R, there are three cases:
-    
-    Case 1: If R is empty or x > max(R), then append x to row R, terminate.
-    
-    Case 2: Otherwise if x is not in R, locate the smallest y in R with y > x. Bump y with x and insert y into the next row.
-    
-    Case 3: Otherwise, if x is in R, locate the smallest y in R with y <= x and interval [y,x] contained in R. Row R remains unchanged and y is to be inserted into the next row.
-    
-    The Star insertion algorithm returns a pair of an conjugate of a semistandard tableau and a semistandard tableau.
-    
+    Rule for *-insertion.
+
+    The *-insertion algorithm is similar to the classical RSK algorithm, but
+    it is defined using the *-insertion algorithm in [MPPS2020]_. The bottom
+    row of the increasing Hecke biword is a word in the 0-Hecke monoid that is
+    fully commutative. When inserting a letter `x` into a row `R`, there are
+    three cases:
+
+    Case 1: If `R` is empty or `x > max(R)`, then append `x` to row `R`
+            and terminate.
+
+    Case 2: Otherwise if `x` is not in `R`, locate the smallest `y` in `R` with
+            `y > x`. Bump `y` with `x` and insert `y` into the next row.
+
+    Case 3: Otherwise, if `x` is in `R`, locate the smallest `y` in `R` with 
+            `y <= x` and interval `[y,x]` contained in `R`. Row `R` remains
+            unchanged and `y` is to be inserted into the next row.
+
+    The *-insertion algorithm returns a pair of a conjugate of a semistandard 
+    tableau and a semistandard tableau.
+
     EXAMPLES:
-    
+
     As an example of *-insertion, we reproduce Example 3.9 :arxiv:`1911.08732`::
-    
+
         sage: from sage.combinat.rsk import RuleStar
-        sage: p,q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,2,4])         
-        sage: ascii_art(p,q)                                                            
+        sage: p,q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,2,4])
+        sage: ascii_art(p,q)
           1  2  4  1  1  2
-          1  4     2  4   
-          3        4   
+          1  4     2  4
+          3        4
         sage: line1,line2 = RuleStar().backward_rule(p,q)
-        sage: line1,line2                                                               
-        ([1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4])    
-        
-        sage: p,q = RSK([1,1,2,2,4,4],[1,3,2,4,2,4],insertion='Star')                 
-        sage: ascii_art(p,q)                                                            
-          1  2  4  1  1  2
-          1  4     2  4   
-          3        4     
-        sage: line1,line2 = RSK_inverse(p,q,insertion='Star') 
-        sage: line1,line2                                                               
+        sage: line1,line2
         ([1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4])
-    
+
+        sage: p,q = RSK([1,1,2,2,4,4],[1,3,2,4,2,4],insertion='Star')
+        sage: ascii_art(p,q)
+          1  2  4  1  1  2
+          1  4     2  4
+          3        4
+        sage: line1,line2 = RSK_inverse(p,q,insertion='Star')
+        sage: line1,line2
+        ([1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4])
     """
-    def forward_rule(self, obj1, obj2 = None, check_braid = True):
+    def forward_rule(self, obj1, obj2=None, check_braid=True):
         r"""
         Return a pair of tableaux obtained by applying forward
-        insertion to the generalized permutation ``[obj1, obj2]``.
-        
+        insertion to the increasing Hecke biword ``[obj1, obj2]``.
+
         INPUT:
-        
-        - ``obj1,obj2`` -- can be one of the following ways to represent a biword (or, equivalently,an increasing 0-Hecke factorization) that is 321-avoiding:
-        
-          - two lists ``obj1`` and ``obj2`` of equal length, to be interpreted as the top row and the bottom row of the biword.
-          
-          - a word ``obj1`` to be interpreted the bottom of the biword (in this case, ``obj1`` is ``None``; the top row of the biword is understood to be `(1,2,\ldots,n)` by default).
-          
+
+        - ``obj1, obj2`` -- can be one of the following ways to represent a
+          biword (or, equivalently, an increasing 0-Hecke factorization) that
+          is fully commutative:
+
+          - two lists ``obj1`` and ``obj2`` of equal length, to be interpreted
+            as the top row and the bottom row of the biword.
+
+          - a word ``obj1`` in an ordered alphabet, to be interpreted as the 
+            bottom row of the biword (in this case, ``obj2`` is ``None``; the 
+            top row of the biword is understood to be `(1,2,\ldots,n)` by default).
+
         EXAMPLES::
-        
-            sage: from sage.combinat.rsk import RuleStar                                    
-            sage: P,Q = RuleStar().forward_rule([1,1,2,3,3],[2,3,3,1,3]);P,Q
-            ([[1, 3], [2, 3], [2]], [[1, 1], [2, 3], [3]])             
-            sage: P,Q = RuleStar().forward_rule([2,3,3,1,3]);P,Q
-            ([[1, 3], [2, 3], [2]], [[1, 2], [3, 5], [4]])
-            sage: P,Q = RSK([1,1,2,3,3],[2,3,3,1,3],insertion=RSK.rules.Star);P,Q
+
+            sage: from sage.combinat.rsk import RuleStar
+            sage: P,Q = RuleStar().forward_rule([1,1,2,3,3],[2,3,3,1,3]); P,Q
             ([[1, 3], [2, 3], [2]], [[1, 1], [2, 3], [3]])
-                       
-        Tests::
-        
+            sage: P,Q = RuleStar().forward_rule([2,3,3,1,3]); P,Q
+            ([[1, 3], [2, 3], [2]], [[1, 2], [3, 5], [4]])
+            sage: P,Q = RSK([1,1,2,3,3],[2,3,3,1,3],insertion=RSK.rules.Star); P,Q
+            ([[1, 3], [2, 3], [2]], [[1, 1], [2, 3], [3]])
+
+        TESTS::
+
             sage: P,Q = RuleStar().forward_rule([1,1,2,3,3],[2,2,3,1,3]) 
             Traceback (most recent call last): 
             ...
-            ValueError: [1, 1, 2, 3, 3],[2, 2, 3, 1, 3] are not increasing factorizations
+            ValueError: [1, 1, 2, 3, 3], [2, 2, 3, 1, 3] is not an increasing factorization
             sage: P,Q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,1,3]) 
             Traceback (most recent call last): 
             ...
-            ValueError: The Star-insertion is not defined for words containing a braid, i.e., not 321-avoiding.
+            ValueError: The *-insertion is not defined for non-fully commutative words
         """
         if not obj1:
-            return None,None
-        if not obj2:
+            return None, None
+        if obj2 is None:
             obj2 = obj1
             obj1 = [i+1 for i in range(len(obj1))]
         if len(obj1) != len(obj2):
-            raise ValueError(f"{obj1} and {obj2} have different number of elements.")
+            raise ValueError(f"{obj1} and {obj2} have different number of elements")
         for i in range(len(obj1)-1):
             if obj1[i]>obj1[i+1] or (obj1[i]==obj1[i+1] and obj2[i] >= obj2[i+1]):
-                raise ValueError(f"{obj1},{obj2} are not increasing factorizations")
+                raise ValueError(f"{obj1}, {obj2} is not an increasing factorization")
         if check_braid:
             N = max(obj2) +1
             from sage.monoids.hecke_monoid import HeckeMonoid
@@ -2578,11 +2591,11 @@ class RuleStar(Rule):
             P = Permutations(N)
             w = P.from_reduced_word(h.reduced_word())
             if w.has_pattern([3,2,1]):
-                raise ValueError("The Star-insertion is not defined for words containing a braid, i.e., not 321-avoiding.") 
-            
+                raise ValueError("The *-insertion is not defined for non-fully commutative words") 
+
         p = []       # the "insertion" tableau
         q = []       # the "recording" tableau
-        for i, j in zip(obj1,obj2):
+        for i, j in zip(obj1, obj2):
             for r, qr in zip(p, q):
                 j1 = self.insertion(j, r)
                 if j1 is None:
@@ -2596,40 +2609,45 @@ class RuleStar(Rule):
                 # so we need to add a new row to p and q.
                 p.append([j])
                 q.append([i])
-        from sage.combinat.tableau import Tableau,SemistandardTableau
+        from sage.combinat.tableau import Tableau, SemistandardTableau
         p = Tableau(p)
         q = SemistandardTableau(q)
         if not (p.conjugate()).is_semistandard():
             raise ValueError(f"The insertion tableau {p} is not semistandard")
-        return [p,q]
+        return [p, q]
 
-    def backward_rule(self, p, q, output = None):
-        r"""
-        Return the Hecke biword obtained by applying reverse *-insertion to a pair of tableaux ``(p,q)``.
-        
+    def backward_rule(self, p, q, output=None):
+        """
+        Return the increasing Hecke biword obtained by applying reverse *-insertion to a pair of tableaux ``(p, q)``.
+
         INPUT:
-        
-        - ``p``,``q`` -- two tableaux of the same shape, ``p`` is the conjugate of a semistandard tableau, whose reading word is 321-avoiding.
 
-        Examples::
+        - ``p``, ``q`` -- two tableaux of the same shape, where ``p`` is the 
+          conjugate of a semistandard tableau, whose reading word is fully 
+          commutative and ``q`` is a semistandard tableau.
+
+        EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleStar
-            sage: P,Q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,2,4]) 
+            sage: P,Q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,2,4])
             sage: ascii_art(P,Q)
               1  2  4  1  1  2
-              1  4     2  4   
-              3        4 
+              1  4     2  4
+              3        4
             sage: line1,line2 = RuleStar().backward_rule(P,Q)
             sage: print(line1,line2)
             [1, 1, 2, 2, 4, 4] [1, 3, 2, 4, 2, 4]
         """
-        from sage.combinat.tableau import Tableau,SemistandardTableau, SemistandardTableaux
+        from sage.combinat.tableau import Tableau, SemistandardTableau, SemistandardTableaux
         if p.shape() != q.shape():
             raise ValueError("p conjugate(=%s) and q(=%s) must have the same shape" % (p, q))
+        if q not in SemistandardTableaux():
+            raise ValueError("q(=%s) must be a semistandard tableau" % q)
         if p.conjugate() not in SemistandardTableaux():
-            raise ValueError("p.conjugate(=%s) must be a semistandard tableau" % p.conjugate())  
+            raise ValueError("p.conjugate(=%s) must be a semistandard tableau" % p.conjugate())
+
         row_reading = [ele for row in p[::-1] for ele in row]
-        N = max(row_reading) +1
+        N = max(row_reading) + 1
         from sage.monoids.hecke_monoid import HeckeMonoid
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         H = HeckeMonoid(SymmetricGroup(N))
@@ -2638,7 +2656,8 @@ class RuleStar(Rule):
         P = Permutations(N)
         w = P.from_reduced_word(h.reduced_word())
         if w.has_pattern([3,2,1]):
-            raise ValueError(f"The row reading of the insertion tableau {p} contains 321-pattern.")           
+            raise ValueError(f"The row reading of the insertion tableau {p} is not fully-commutative")           
+
         p_copy = [list(row) for row in p]
         q_copy = [list(row) for row in q]
         line1 = []
@@ -2650,33 +2669,32 @@ class RuleStar(Rule):
                     d[val][j] = i
                 else:
                     d[val] = {j: i}
-        # d is now a double family such that for every integers k and j,
-        # the value d[k][j]=i means (i, j)-th cell of Q is filled with k.
+        # d is now a double family such that for all integers k and j,
+        # d[k][j]=i means that (i, j)-th cell of q is filled with k.
         for value, row_dict in sorted(d.items(), key=lambda x: -x[0]):
             for j in sorted(row_dict.keys(), reverse=True):
                 i = row_dict[j]
-                #print "i=",i,"j=",j,"value=",value,"row_dict=",row_dict
                 x = p_copy[i].pop()  # Always the right-most entry
-                #print "temp x=",x
                 while i > 0:
                     i -= 1
                     row = p_copy[i]
-                    x = self.reverse_insertion(x,row)
-                #print "final x=",x
+                    x = self.reverse_insertion(x, row)
                 line2.append(x)
                 line1.append(value)
-        return line1[::-1],line2[::-1]
-    
-    def insertion(self,b,r):
-        r"""
-        Inserting the letter ``j`` from the second row of the biword into the row ``r`` using *-insertion defined in [MPPS2020]_.
-        
-        If there is bumping to be done, the row `r` is modified in place if bumping occurs. The bump-out entry, if if exists, is returned.
-        
-        Examples::
-        
+        return line1[::-1], line2[::-1]
+
+    def insertion(self, b, r):
+        """
+        Insert the letter ``b`` from the second row of the biword into the row 
+        ``r`` using *-insertion defined in [MPPS2020]_.
+
+        The row `r` is modified in place if bumping occurs and `b` is not in 
+        row `r`. The bumped-out entry, if if exists, is returned.
+
+        EXAMPLES::
+
             sage: from sage.combinat.rsk import RuleStar
-            sage: RuleStar().insertion(3,[1,2,4,5]) 
+            sage: RuleStar().insertion(3,[1,2,4,5])
             4
             sage: RuleStar().insertion(3,[1,2,3,5])
             1
@@ -2684,43 +2702,44 @@ class RuleStar(Rule):
             True
         """
         if r[-1] < b:
-            return None # append j to the end of row r
+            return None # append b to the end of row r
         if b in r:
             k = b
             while k in r:
-                k += -1
+                k -= 1
             k += 1
         else:
             y_pos = bisect_right(r,b)
             k = r[y_pos]
             r[y_pos] = b
         return k
-    
-    def reverse_insertion(self,x,row):
-        r"""
-        Reverse bump the row ``row`` of the current insertion tableau ``p`` with number ``x``, provided that the ``row`` is the ``i``-th row of ``p``.
-        
-        The row ``row`` is modified in place. The bumped-out entry is returned.
-        
-        Examples::
+
+    def reverse_insertion(self, x, r):
+        """
+        Reverse bump the row ``r`` of the current insertion tableau ``p`` 
+        with number ``x``, provided that ``r`` is the ``i``-th row of ``p``.
+
+        The row ``r`` is modified in place. The bumped-out entry is returned.
+
+        EXAMPLES::
         
             sage: from sage.combinat.rsk import RuleStar
-            sage: RuleStar().reverse_insertion(4,[1,2,3,5]) 
+            sage: RuleStar().reverse_insertion(4,[1,2,3,5])
             3
             sage: RuleStar().reverse_insertion(1,[1,2,3,5])
             3
             sage: RuleStar().reverse_insertion(5,[1,2,3,5])
             5
         """
-        if x in row:
+        if x in r:
             y = x
-            while y in row:
+            while y in r:
                 y += 1
             y -=1
         else:
-            y_pos = bisect_left(row, x) - 1
-            y = row[y_pos]
-            row[y_pos] = x
+            y_pos = bisect_left(r, x) - 1
+            y = r[y_pos]
+            r[y_pos] = x
         x = y
         return x
 

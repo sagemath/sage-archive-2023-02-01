@@ -1668,8 +1668,6 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         self._ambient_group = ambient
         Hgens = tuple(x for x in gens if x != ambient.one())  ## in case someone puts 1 in the list of generators
         self._gens = Hgens
-        m = len(gens)
-        ell = len(ambient.gens())
         ambient_invs = ambient.gens_orders()
         invsf = [x for x in ambient_invs if x > 0]    ## fixes the problem with
         invs0 = [x for x in ambient_invs if x == 0]   ## the infinite parts

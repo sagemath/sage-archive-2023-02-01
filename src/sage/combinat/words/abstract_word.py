@@ -1549,13 +1549,19 @@ class Word_class(SageObject):
 
     def first_occurrence(self, other, start=0):
         r"""
-        Return the position of the first occurrence of ``other`` in ``self``,
-        or ``None`` if ``other`` is not a factor of ``self``.
+        Return the position of the first occurrence of ``other`` in ``self``.
+
+        If ``other`` is not a factor of ``self``, it returns ``None``
+        or loops forever when ``self`` is an infinite word.
 
         INPUT:
 
         - ``other`` -- a finite word
         - ``start`` -- integer (default:``0``), where the search starts
+
+        OUTPUT:
+
+        integer or ``None``
 
         EXAMPLES::
 
@@ -1579,6 +1585,10 @@ class Word_class(SageObject):
             3
             sage: w.first_occurrence(Word('3456'), start=1000)
             1003
+
+        But it will loop for ever if the factor is not found::
+
+            sage: w.first_occurrence(Word('3333')) # not tested -- infinite loop
 
         The empty word occurs in a word::
 

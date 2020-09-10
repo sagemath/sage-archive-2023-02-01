@@ -188,6 +188,17 @@ save () {
 
 usage () {
     echo >&2 "Usage: $0 [-d|-D|-s] [-u <URL>] [-h] [-q]"
+    echo >&2 ""
+    echo >&2 "Options:"
+    echo >&2 "  -d         fall back to downloading (released versions only)"
+    echo >&2 "             or using a pre-generated configure script"
+    echo >&2 "  -D         download and use a pre-generated configure script"
+    echo >&2 "             (released versions only); overrides -d"
+    echo >&2 "  -s         save the generated configure script under upstream/"
+    echo >&2 "             for later use with -d or -D"
+    echo >&2 "  -u <URL>   like -D, but downloads from the specified base URL"
+    echo >&2 "  -h         display this help and exit"
+    echo >&2 "  -q         hide informational output (be quiet)"
 }
 
 

@@ -331,6 +331,7 @@ class FindStat(UniqueRepresentation, SageObject):
         # user credentials if provided
         self._user_name  = ""
         self._user_email = ""
+        self._allow_execution = False
 
     def __repr__(self):
         r"""
@@ -1050,7 +1051,7 @@ def findstat(query=None, values=None, distribution=None, domain=None,
             return FindStatStatistics(domain=domain)
 
         if domain is None:
-            if isinstance(query, (int, Integer)):
+            if isinstance(query, (int, Integer, FindStatCombinatorialStatistic)):
                 return FindStatStatistic(query)
 
             if isinstance(query, string_types):
@@ -1071,7 +1072,7 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         domain = FindStatCollection(domain)
 
     if values is not None:
-        if isinstance(values, (int, Integer, string_types)):
+        if isinstance(values, (int, Integer, string_types, FindStatCombinatorialStatistic)):
             if domain is not None:
                 raise ValueError("the domain must not be provided if a statistic identifier is given")
             return FindStatStatisticQuery(values_of=values, depth=depth)
@@ -1081,7 +1082,7 @@ def findstat(query=None, values=None, distribution=None, domain=None,
                                       known_terms=known_terms, function=function)
 
     if distribution is not None:
-        if isinstance(distribution, (int, Integer, string_types)):
+        if isinstance(distribution, (int, Integer, string_types, FindStatCombinatorialStatistic)):
             if domain is not None:
                 raise ValueError("the domain must not be provided if a statistic identifier is given")
             return FindStatStatisticQuery(distribution_of=distribution, depth=depth)
@@ -1307,7 +1308,7 @@ def findmap(*args, **kwargs):
     if len(args) == 1:
         if (values is None and distribution is None
             and domain is None and codomain is None
-            and (isinstance(args[0], (int, Integer))
+            and (isinstance(args[0], (int, Integer, FindStatCombinatorialMap))
                  or (isinstance(args[0], string_types)
                      and not is_collection(args[0])))):
             return FindStatMap(args[0])
@@ -1341,7 +1342,7 @@ def findmap(*args, **kwargs):
         return FindStatMaps(domain=domain, codomain=codomain)
 
     if values is not None:
-        if isinstance(values, (int, Integer, string_types)):
+        if isinstance(values, (int, Integer, string_types, FindStatCombinatorialMap)):
             if domain is not None or codomain is not None:
                 raise ValueError("domain and codomain must not be provided if a map identifier is given")
             return FindStatMapQuery(values_of=values, depth=depth)
@@ -1351,7 +1352,7 @@ def findmap(*args, **kwargs):
                                 known_terms=known_terms, function=function)
 
     if distribution is not None:
-        if isinstance(distribution, (int, Integer, string_types)):
+        if isinstance(distribution, (int, Integer, string_types, FindStatCombinatorialMap)):
             if domain is not None or codomain is not None:
                 raise ValueError("domain and codomain must not be provided if a map identifier is given")
             return FindStatMapQuery(distribution_of=distribution, depth=depth)
@@ -1462,9 +1463,9 @@ class FindStatFunction(SageObject):
             sage: q(graphs.PetersenGraph().copy(immutable=True))                # optional -- internet
             2
         """
-        if self._function is False:
+        if self._function is False and FindStat()._allow_execution is False:
             raise ValueError("execution of verified code provided by FindStat is not enabled for %s" % self)
-        if self._function is True:
+        if self._function is True or (self._function is False and FindStat()._allow_execution is True):
             if not self.sage_code():
                 raise ValueError("there is no verified code available for %s" % self)
             from sage.repl.preparse import preparse
@@ -2389,6 +2390,8 @@ class FindStatStatistics(UniqueRepresentation, Parent):
             return id
         if isinstance(id, (int, Integer)):
             id = FINDSTAT_STATISTIC_PADDED_IDENTIFIER % id
+        elif isinstance(id, FindStatCombinatorialStatistic):
+            id = id.id_str()
         if not isinstance(id, string_types):
             raise TypeError("the value '%s' is not a valid FindStat statistic identifier, nor a FindStat statistic query" % id)
         if FINDSTAT_MAP_SEPARATOR in id:
@@ -2516,14 +2519,14 @@ class FindStatStatisticQuery(FindStatStatistic):
 
             self._distribution_of = FindStatCompoundStatistic(distribution_of)
             domain = self._distribution_of.domain()
-            query = {"DistributionOf": distribution_of}
+            query = {"DistributionOf": self._distribution_of.id_str()}
 
         elif values_of is not None:
             assert all(param is None for param in [data, known_terms, distribution_of])
 
             self._values_of = FindStatCompoundStatistic(values_of)
             domain = self._values_of.domain()
-            query = {"ValuesOf": values_of}
+            query = {"ValuesOf": self._values_of.id_str()}
 
         else:
             raise ValueError("incompatible set of parameters: data: %s, distribution_of: %s, values_of: %s" % ((data, distribution_of, values_of)))
@@ -2675,6 +2678,8 @@ class FindStatCompoundStatistic(Element, FindStatCombinatorialStatistic):
         """
         if isinstance(id, (int, Integer)):
             id = FINDSTAT_STATISTIC_PADDED_IDENTIFIER % id
+        elif isinstance(id, FindStatCombinatorialStatistic):
+            id = id.id_str()
         self._id = id
         if domain is not None:
             self._domain = FindStatCollection(domain)
@@ -2921,9 +2926,17 @@ class FindStatMatchingStatistic(FindStatCompoundStatistic):
 ######################################################################
 # maps
 ######################################################################
+class FindStatCombinatorialMap(SageObject):
+    """
+    A class serving as common ancestor of :class:`FindStatStatistic`
+    and :class:`FindStatCompoundStatistic`.
+    """
+    pass
+
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class FindStatMap(Element,
-                  FindStatFunction):
+                  FindStatFunction,
+                  FindStatCombinatorialMap):
     r"""
     A FindStat map.
 
@@ -3072,7 +3085,7 @@ class FindStatMap(Element,
         args["Properties"]         = self.properties_raw()
         args["SageCode"]           = self.sage_code()
         args["CurrentAuthor"]      = FindStat().user_name()
-        args["CurrentEmail"]       = findstat().user_email()
+        args["CurrentEmail"]       = FindStat().user_email()
 
         if not self.id():
             url = FINDSTAT_NEWMAP_FORM_HEADER % FINDSTAT_URL_NEW_MAP
@@ -3248,6 +3261,8 @@ class FindStatMaps(UniqueRepresentation, Parent):
             return id
         if isinstance(id, (int, Integer)):
             id = FINDSTAT_MAP_PADDED_IDENTIFIER % id
+        elif isinstance(id, FindStatCombinatorialMap):
+            id = id.id_str()
         if not isinstance(id, string_types):
             raise TypeError("the value %s is neither an integer nor a string" % id)
         if FINDSTAT_MAP_SEPARATOR in id:
@@ -3382,7 +3397,7 @@ class FindStatMapQuery(FindStatMap):
             self._distribution_of = FindStatCompoundMap(distribution_of)
             domain = self._distribution_of.domain()
             codomain = self._distribution_of.codomain()
-            query = {"DistributionOf": distribution_of}
+            query = {"DistributionOf": self._distribution_of.id_str()}
 
         elif values_of is not None:
             assert all(param is None for param in [data, known_terms, distribution_of])
@@ -3390,7 +3405,7 @@ class FindStatMapQuery(FindStatMap):
             self._values_of = FindStatCompoundMap(values_of)
             domain = self._values_of.domain()
             codomain = self._values_of.codomain()
-            query = {"ValuesOf": values_of}
+            query = {"ValuesOf": self._values_of.id_str()}
 
         else:
             raise ValueError("incompatible set of parameters: data: %s, distribution_of: %s, values_of: %s" % ((data, distribution_of, values_of)))
@@ -3457,7 +3472,7 @@ class FindStatMapQuery(FindStatMap):
         return self._result[i]
 
 
-class FindStatCompoundMap(Element):
+class FindStatCompoundMap(Element, FindStatCombinatorialMap):
     def __init__(self, id, domain=None, codomain=None, check=True):
         """
         Initialize a compound statistic.
@@ -3493,6 +3508,8 @@ class FindStatCompoundMap(Element):
         """
         if isinstance(id, (int, Integer)):
             id = FINDSTAT_MAP_PADDED_IDENTIFIER % id
+        elif isinstance(id, FindStatCombinatorialMap):
+            id = id.id_str()
         if id == "":
             self._id = "id"
             self._maps = []
@@ -4376,7 +4393,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
             if data["NameWiki"] in _SupportedFindStatCollections:
                 data["Code"] = _SupportedFindStatCollections[data["NameWiki"]]
             else:
-                print("%s provides a new collection:" % findstat())
+                print("%s provides a new collection:" % FindStat())
                 print("    %s: %s" %(id, data["NamePlural"]))
                 print("To use it with this interface, it has to be added to the dictionary")
                 print("    _SupportedFindStatCollections in src/sage/databases/findstat.py")

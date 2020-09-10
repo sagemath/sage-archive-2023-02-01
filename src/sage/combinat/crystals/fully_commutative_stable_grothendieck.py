@@ -220,11 +220,13 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``w`` -- an element in a 0-Hecke monoid
+    - ``w`` -- an element in a 0-Hecke monoid or a (skew) shape
 
     - ``m`` -- the number of factors in the factorization
 
     - ``excess`` -- the total number of letters in the factorization minus the length of a reduced word for ``w``
+
+    - ``shape`` -- (default: ``False``) indicator for input ``w``, True if ``w`` is entered as a (skew) shape and False otherwise.
 
     EXAMPLES::
 
@@ -233,7 +235,74 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
         sage: w = H.from_reduced_word([1,3,2])
         sage: B = crystals.FullyCommutativeStableGrothendieck(w,3,2); B
         Fully commutative stable Grothendieck crystal of type A_2 associated to [1, 3, 2] with excess 2
+        sage: B.list()
+        [(1)(3, 1)(3, 2),
+         (3, 1)(1)(3, 2),
+         (3, 1)(3, 1)(2),
+         (3)(3, 1)(3, 2),
+         (3, 1)(3)(3, 2),
+         (3, 1)(3, 2)(2)]
+
+    We can also access the crystal by specifying a skew shape::
+
+        sage: crystals.FullyCommutativeStableGrothendieck([[2,2],[1]],4,1,shape=True)
+        Fully commutative stable Grothendieck crystal of type A_3 associated to [2, 1, 3] with excess 1
+
+    We can compute the highest weight elements::
+
+        sage: hw = [w for w in B if w.is_highest_weight()]
+        sage: hw
+        [(1)(3, 1)(3, 2), (3)(3, 1)(3, 2)]
+        sage: hw[0].weight()
+        (2, 2, 1)
+
+    The crystal operators themselves move elements between adjacent factors::
+
+        sage: b = hw[0]; b
+        (1)(3, 1)(3, 2)
+        sage: b.f(2)
+        (3, 1)(1)(3, 2)
     """
+    @staticmethod
+    def __classcall_private__(cls, w, m, excess, shape=False):
+        """
+        Classcall to mend the input.
+
+        TESTS::
+            sage: A = crystals.FullyCommutativeStableGrothendieck([[3,3],[2,1]],4,1,shape=True); A
+            Fully commutative stable Grothendieck crystal of type A_3 associated to [3, 2, 4] with excess 1
+            sage: B = crystals.FullyCommutativeStableGrothendieck(SkewPartition([[3,3],[2,1]]),4,1,shape=True)
+            sage: A is B
+            True
+
+            sage: C = crystals.FullyCommutativeStableGrothendieck((2,1),3,2,shape=True); C
+            Fully commutative stable Grothendieck crystal of type A_2 associated to [1, 3, 2] with excess 2
+            sage: D = crystals.FullyCommutativeStableGrothendieck(Partition([2,1]),3,2,shape=True)
+            sage: C is D
+            True
+        """
+        if shape:
+            from sage.combinat.partition import Partition, Partitions
+            from sage.combinat.root_system.weyl_group import WeylGroup
+            from sage.combinat.skew_partition import SkewPartition
+            cond1 = isinstance(w, (tuple, list)) and len(w)==2 and w[0] in Partitions() and w[1] in Partitions()
+            cond2 = isinstance(w, SkewPartition)
+            cond3 = isinstance(w, (tuple, list)) and w in Partitions()
+            cond4 = isinstance(w, Partition)
+            if cond1 or cond2:
+                sh = SkewPartition([Partition(w[0]), Partition(w[1])])
+            elif cond3 or cond4:
+                sh = SkewPartition([Partition(w),Partition([])])
+            else:
+                raise ValueError("w needs to be a (skew) partition")
+            word = _to_reduced_word(sh)
+            k = max(word) if word else 1
+            H = HeckeMonoid(SymmetricGroup(k+1))
+            w = H.from_reduced_word(word)
+        if w.reduced_word()==[] and excess!=0:
+            raise ValueError("excess must be 0 for the empty word")
+        return super(FullyCommutativeStableGrothendieckCrystal, cls).__classcall__(cls, w, m, excess)
+
     def __init__(self, w, m, excess):
         """
         Initialize a crystal for self given reduced word ``w`` in a 0-Hecke
@@ -348,7 +417,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                 ((3, 1), (3,), (3, 2))
             """
             if not isinstance(parent, FullyCommutativeStableGrothendieckCrystal):
-                raise ValueError("parent should be an instance of FullyCommutativeStableGrothendieckCrystal.")
+                raise ValueError("parent should be an instance of FullyCommutativeStableGrothendieckCrystal")
 
             if isinstance(t, DecreasingHeckeFactorization):
                 u = t
@@ -502,6 +571,39 @@ def _check_decreasing_hecke_factorization(t):
         for i in range(len(factor)-1):
             if factor[i] <= factor[i+1]:
                 raise ValueError("Each nonempty factor should be a strictly decreasing sequence")
+
+def _to_reduced_word(P):
+    """
+    Return a reduced word associated to skew partition ``P``.
+
+    EXAMPLES::
+
+        sage: P = SkewPartition([[2,2],[1]])
+        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _to_reduced_word
+        sage: _to_reduced_word(P)
+        [2, 1, 3]
+
+        sage: P = SkewPartition([[],[]])
+        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _to_reduced_word
+        sage: _to_reduced_word(P)
+        []
+
+        sage: P = SkewPartition([[2,1],[]])
+        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _to_reduced_word
+        sage: _to_reduced_word(P)
+        [1, 3, 2]
+    """
+    cells = P.cells()
+    if not cells:
+        return []
+    m = max([cell[0] for cell in cells])+1
+    n = max([cell[1] for cell in cells])+1
+    L = []
+    for i in range(m)[::-1]:
+        for j in range(n)[::-1]:
+            if (i,j) in cells:
+                L += [j-i+m]
+    return L
 
 def _lowest_weights(w, m, ex):
     """

@@ -102,10 +102,21 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
     done
     echo "$spkg_configures" >> m4/sage_spkg_configures.m4
 
+    # Default to no filter if "-q" was not passed.
+    QUIET_SED_FILTER=""
+    if [ "${BOOTSTRAP_QUIET}" = "yes" ]; then
+	# Otherwise, this filters the expected output from automake.
+	QUIET_SED_FILTER='/configure\.ac:[0-9][0-9]*: installing /d'
+    fi
+
+    # The insanity with automake's descriptors is intended to filter
+    # ONLY stderr, and to re-output the results back to stderr leaving
+    # stdout alone. Basically we swap the two descriptors using a
+    # third, filter, and then swap them back.
     BOOTSTRAP_QUIET="${BOOTSTRAP_QUIET}" SAGE_ROOT="$SAGE_ROOT" src/doc/bootstrap && \
     install_config_rpath && \
     aclocal -I m4 && \
-    automake --add-missing --copy build/make/Makefile-auto && \
+    automake --add-missing --copy build/make/Makefile-auto 3>&1 1>&2 2>&3 | sed "${QUIET_SED_FILTER}" 3>&1 1>&2 2>&3 && \
     autoconf
 
     st=$?

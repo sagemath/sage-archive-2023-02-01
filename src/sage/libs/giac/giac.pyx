@@ -1,4 +1,4 @@
-# distutils: libraries = giac glpk intl mpfi mpfr ntl GSL_LIBRARIES
+# distutils: libraries = giac curl ecm glpk intl mpfi mpfr ntl GSL_LIBRARIES
 # distutils: library_dirs = GSL_LIBDIR
 # distutils: include_dirs = GSL_INCDIR
 # distutils: language = c++

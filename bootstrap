@@ -17,6 +17,9 @@
 # will download http://host/path/configure-$CONFVERSION.tar.gz to
 # upstream/configure-$CONFVERSION.tar.gz. This is used by the buildbot
 # to download tarballs that are not published.
+#
+# The -q (quiet) flag hides all "informational" output.
+#
 ########################################################################
 
 # Set SAGE_ROOT to the path to this file and then cd into it
@@ -66,7 +69,9 @@ install_config_rpath() {
         return 179
     fi
 
-    echo "bootstrap:$LINENO: installing 'config/config.rpath'"
+    if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
+	echo "bootstrap:$LINENO: installing 'config/config.rpath'"
+    fi
     cp "$config_rpath" config/
 }
 
@@ -97,7 +102,7 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
     done
     echo "$spkg_configures" >> m4/sage_spkg_configures.m4
 
-    SAGE_ROOT="$SAGE_ROOT" src/doc/bootstrap && \
+    BOOTSTRAP_QUIET="${BOOTSTRAP_QUIET}" SAGE_ROOT="$SAGE_ROOT" src/doc/bootstrap && \
     install_config_rpath && \
     aclocal -I m4 && \
     automake --add-missing --copy build/make/Makefile-auto && \
@@ -171,7 +176,7 @@ save () {
 
 
 usage () {
-    echo >&2 "Usage: $0 [-d|-D|-s] [-u <URL>] [-h]"
+    echo >&2 "Usage: $0 [-d|-D|-s] [-u <URL>] [-h] [-q]"
 }
 
 
@@ -180,7 +185,8 @@ SAVE=no
 DOWNLOAD=no
 ALWAYSDOWNLOAD=no
 CONFTARBALL_URL=""
-while getopts "Ddshu:" OPTION
+BOOTSTRAP_QUIET=no
+while getopts "Ddsu:hq" OPTION
 do
      case "$OPTION" in
          D) ALWAYSDOWNLOAD=yes; DOWNLOAD=yes;;
@@ -188,6 +194,7 @@ do
          s) SAVE=yes;;
          u) CONFTARBALL_URL="$OPTARG"; ALWAYSDOWNLOAD=yes; DOWNLOAD=yes;;
          h) usage; exit 0;;
+         q) BOOTSTRAP_QUIET=yes;;
          ?) usage; exit 2;;
      esac
 done
@@ -200,7 +207,12 @@ if [ $DOWNLOAD$SAVE = yesyes ]; then
 fi
 
 # Start cleanly (it's not a problem if this fails)
-$MAKE bootstrap-clean 2>/dev/null
+# POSIX supports two separate incompatible formats for the MAKEFLAGS
+# variable, so instead of guessing, we simply define our own variable
+# to optionally pass an "-s" (silent) flag to Make.
+MAKE_SILENT=""
+[ "${BOOTSTRAP_QUIET}" = "yes" ] && MAKE_SILENT="-s"
+$MAKE ${MAKE_SILENT} bootstrap-clean 2>/dev/null
 mkdir config 2>/dev/null
 
 # If Sage has not been built yet, this will fail due to a missing

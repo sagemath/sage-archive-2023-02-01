@@ -14,7 +14,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 class DecreasingHeckeFactorization:
     """
     Class of decreasing factorizations in the 0-Hecke monoid.
-    
+
     EXAMPLES::
 
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
@@ -39,8 +39,7 @@ class DecreasingHeckeFactorization:
     """
     def __init__(self, t, k=None):
         """
-        Initialize a decreasing factorization for ``self`` given the relevant 
-        data.
+        Initialize a decreasing factorization for ``self`` given the relevant data.
 
         EXAMPLES::
 
@@ -126,10 +125,10 @@ class DecreasingHeckeFactorization:
     def __lt__(self,other):
         """
         Return True if ``self`` comes before ``other`` and False otherwise.
-        
-        We say that h1 comes before h2 if either weight of h1 < weight of h2 
-        lexicographically, or if both weights of h1 and h2 are equal, 
-        but h1 < h2 lexicographically.
+
+        We say that `h_1` comes before `h_2` if either weight of `h_1 <` weight of `h_2`
+        lexicographically, or if both weights of `h_1` and `h_2` are equal,
+        but `h_1 < h_2` lexicographically.
         This ordering is mainly used for sorting or comparison.
 
         EXAMPLES::
@@ -170,9 +169,9 @@ class DecreasingHeckeFactorization:
 
     def weight(self):
         """
-        Returns the weight of ``self``.
+        Return the weight of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
             sage: t = [[2],[2,1],[],[4,3,1]]
@@ -186,7 +185,7 @@ class DecreasingHeckeFactorization:
         """
         Return the word associated to ``self`` in the 0-Hecke monoid.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
             sage: t = [[2],[],[2,1],[4,3,1]]
@@ -200,7 +199,7 @@ class DecreasingHeckeFactorization:
         """
         Return the associated increasing Hecke biword of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
             sage: t = [[2],[],[2,1],[4,3,1]]
@@ -216,7 +215,7 @@ class DecreasingHeckeFactorization:
 
 class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
     """
-    The crystal on fully commutative decreasing factorizations in the 0-Hecke 
+    The crystal on fully commutative decreasing factorizations in the 0-Hecke
     monoid, as introduced by [MPPS2020]_.
 
     INPUT:
@@ -237,7 +236,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
     """
     def __init__(self, w, m, excess):
         """
-        Initialize a crystal for self given reduced word ``w`` in a 0-Hecke 
+        Initialize a crystal for self given reduced word ``w`` in a 0-Hecke
         monoid, number of factors ``m`` and``excess`` extra letters.
 
         EXAMPLES::
@@ -255,8 +254,8 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             sage: B.H
             0-Hecke monoid of the Symmetric group of order 4! as a permutation group
 
-            The reduced word ``w`` should be fully commutative, that is, its 
-            associated permutation should avoid the pattern 321.
+        The reduced word ``w`` should be fully commutative, that is, its
+        associated permutation should avoid the pattern 321::
 
             sage: from sage.monoids.hecke_monoid import HeckeMonoid
             sage: H = HeckeMonoid(SymmetricGroup(3+1))
@@ -313,10 +312,10 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
     def _repr_(self):
         """
-        Return a representation of ``self''.
+        Return a representation of ``self``.
 
         EXAMPLES::
-        
+
             sage: H = HeckeMonoid(SymmetricGroup(3+1))
             sage: w = H.from_reduced_word([2,1,3,2])
             sage: crystals.FullyCommutativeStableGrothendieck(w,3,1)
@@ -325,14 +324,15 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
         return "Fully commutative stable Grothendieck crystal of type A_{} associated to {} with excess {}".format(self.m-1, list(self.w), self.excess)
 
     # temporary workaround while an_element is overriden by Parent
-    _an_element_ = EnumeratedSets.ParentMethods._an_element_ 
+    _an_element_ = EnumeratedSets.ParentMethods._an_element_
 
     class Element(DecreasingHeckeFactorization, ElementWrapper):
         def __init__(self, parent, t):
             """
-            Creates an instance ``self`` of element ``t`` subject to 
-            constraints on word, number of factors and excess statistic 
-            associated to ``parent``.
+            Create an instance ``self`` of element ``t``.
+
+            This method takes into account the constraints on the word,
+            the number of factors, and excess statistic associated to ``parent``.
 
             EXAMPLES::
 
@@ -389,7 +389,6 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             b = self.bracketing(i)
             if not b[0]:
                 return None
-            
             y = b[0][-1]
             if y-1 in L and y-1 in R:
                 # special case: (--x+1--)(--x+1,x--) -->> (--x+1,x--)(--x--)
@@ -398,8 +397,8 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                 L.remove(y)
             R.append(y)
             L.sort(reverse=True)
-            R.sort(reverse=True)  
-            s = [self.value[j] for j in range(self.m-i-1)]+[L]+[R]+[self.value[j] for j in range(self.m-i+1, self.m)]        
+            R.sort(reverse=True)
+            s = [self.value[j] for j in range(self.m-i-1)]+[L]+[R]+[self.value[j] for j in range(self.m-i+1, self.m)]
             return self.parent()(s)
 
         def f(self, i):
@@ -421,11 +420,10 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                 (3, 2, 1)(1)(4, 3)(3, 1)
             """
             L = list(self.value[self.m-i-1])
-            R = list(self.value[self.m-i]) 
+            R = list(self.value[self.m-i])
             b = self.bracketing(i)
             if not b[1]:
                 return None
-            
             x = b[1][0]
             if x+1 in L and x+1 in R:
                 # special case: (--x+1--)(--x+1,x--) -->> (--x+1,x--)(--x--)
@@ -434,8 +432,8 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                 R.remove(x)
             L.append(x)
             L.sort(reverse=True)
-            R.sort(reverse=True)  
-            s = [self.value[j] for j in range(self.m-i-1)]+[L]+[R]+[self.value[j] for j in range(self.m-i+1, self.m)] 
+            R.sort(reverse=True)
+            s = [self.value[j] for j in range(self.m-i-1)]+[L]+[R]+[self.value[j] for j in range(self.m-i+1, self.m)]
             return self.parent()(s)
 
         def bracketing(self,i):
@@ -476,8 +474,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
 def _check_decreasing_hecke_factorization(t):
     """
-    Check if ``t`` is a suitable data type for a decreasing factorization in a 
-    0-Hecke monoid.
+    Check if ``t`` is a suitable data type for a decreasing factorization in a 0-Hecke monoid.
 
     TESTS::
 
@@ -508,31 +505,31 @@ def _check_decreasing_hecke_factorization(t):
 
 def _lowest_weights(w, m, ex):
     """
-    Generate all decreasing factorizations in the 0-Hecke monoid that correspond 
+    Generate all decreasing factorizations in the 0-Hecke monoid that correspond
     to some valid semistandard Young tableaux.
 
-    The semistandard Young tableaux should have at most ``m`` columns and their 
+    The semistandard Young tableaux should have at most ``m`` columns and their
     column reading words should be equivalent to ``w`` in a 0-Hecke monoid.
 
     INPUTS:
 
-        ``w`` - a fully commutative reduced word in a 0-Hecke monoid, expressed
-                as an iterable
+    - ``w`` -- a fully commutative reduced word in a 0-Hecke monoid, expressed
+               as an iterable
 
-        ``m`` - number of factors for each decreasing factorization
+    - ``m`` -- number of factors for each decreasing factorization
 
-        ``ex`` - number of extra letters in each decreasing factorizations
+    - ``ex`` -- number of extra letters in each decreasing factorizations
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: _lowest_weights([1,2,1],3,1)
         Traceback (most recent call last):
         ...
-        ValueError: The word w should be fully commutative 
+        ValueError: The word w should be fully commutative
 
         sage: _lowest_weights([2,1,3,2],4,3)
         [(2, 1)(3, 1)(3, 1)(2), (2, 1)(3, 1)(3, 2)(2)]
-        
+
         sage: _lowest_weights([2,1,3,2],5,3)
         [(2, 1)(3, 1)(3, 1)(2)(),
          (2, 1)(3, 1)(3, 2)(2)(),
@@ -553,10 +550,10 @@ def _lowest_weights(w, m, ex):
 
     def _canonical_word(w, ex):
         """
-        Return a standard word equivalent to ``w`` in a 0-Hecke monoid whose 
+        Return a standard word equivalent to ``w`` in a 0-Hecke monoid whose
         excess is ``ex``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: w = [1,2,1]
             sage: v = _canonical_word(w,2); v
@@ -584,8 +581,8 @@ def _lowest_weights(w, m, ex):
 def _jumps(w):
     """
     Detect all positions where letters weakly increases in ``w``.
-    
-    EXAMPLES:
+
+    EXAMPLES::
 
         sage: w = [4, 1, 2, 1, 4, 3, 2, 1, 3, 2, 2]
         sage: _jumps(w)
@@ -595,13 +592,13 @@ def _jumps(w):
 
 def _is_valid_column_word(w, m=None):
     """
-    Determine if ``w`` is actually a valid column reading word of some 
+    Determine if ``w`` is actually a valid column reading word of some
     semistandard Young tableau with at most ``m`` columns.
 
-    If ``m`` is None, then we determine if ``w`` is a valid column reading word 
+    If ``m`` is None, then we determine if ``w`` is a valid column reading word
     of some semistandard Young tableau.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: w = [3, 2, 2, 1, 1]
         sage: _is_valid_column_word(w)
@@ -632,7 +629,7 @@ def _list_equivalent_words(w):
     """
     Lists all words equivalent to ``w`` in a 0-Hecke monoid.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: _list_equivalent_words([1,1,2,1])
         [(1, 1, 2, 1),
@@ -644,7 +641,7 @@ def _list_equivalent_words(w):
          (2, 1, 2, 2),
          (2, 2, 1, 2)]
 
-        sage: _list_equivalent_words([2,1,3,1,2])                                       
+        sage: _list_equivalent_words([2,1,3,1,2])
         [(2, 1, 1, 3, 2),
          (2, 1, 3, 1, 2),
          (2, 1, 3, 2, 2),
@@ -698,19 +695,19 @@ def _list_equivalent_words(w):
 
 def _apply_relations(word, position, move):
     """
-    Apply a particular type of ``move`` on ``word`` at the specified 
+    Apply a particular type of ``move`` on ``word`` at the specified
     ``position`` using a relation in a 0-Hecke monoid .
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: w = [2, 1, 3, 4]
         sage: _apply_relations(w, position=1, move="pq=qp")
         [2, 3, 1, 4]
-        
+
         sage: w = [1, 3, 2, 1, 2, 4]
         sage: _apply_relations(w, position=2, move="pqp=qpq")
         [1, 3, 1, 2, 1, 4]
-        
+
         sage: w = [2, 3, 1, 2, 2, 3]
         sage: _apply_relations(w, position=3, move="pp=p")
         [2, 3, 1, 2, 3]
@@ -718,11 +715,11 @@ def _apply_relations(word, position, move):
         sage: w = [2, 3, 1, 2, 3]
         sage: _apply_relations(w, position=3, move="p=pp")
         [2, 3, 1, 2, 2, 3]
-        
+
         sage: w = [2, 3, 1, 2, 2, 3]
         sage: _apply_relations(w, position=2, move="pqq=ppq")
         [2, 3, 1, 1, 2, 3]
-        
+
         sage: w = [2, 3, 1, 1, 2, 3]
         sage: _apply_relations(w, position=2, move="ppq=pqq")
         [2, 3, 1, 2, 2, 3]
@@ -782,4 +779,3 @@ def _apply_relations(word, position, move):
         p = w[position]
         w = w[:position+1] + [p] + w[position+1:]
     return w
-

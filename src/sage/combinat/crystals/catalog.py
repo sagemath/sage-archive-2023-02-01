@@ -38,7 +38,7 @@ This is a catalog of crystals that are currently implemented in Sage:
 * :class:`AffinizationOf <sage.combinat.crystals.affinization.AffinizationOfCrystal>`
 * :class:`AlcovePaths <sage.combinat.crystals.alcove_path.CrystalOfAlcovePaths>`
 * :class:`FastRankTwo <sage.combinat.crystals.fast_crystals.FastCrystal>`
-* :class:`FullyCommutativeStableGrothendieck 
+* :class:`FullyCommutativeStableGrothendieck
   <sage.combinat.crystals.fully_commutative_stable_grothendieck.FullyCommutativeStableGrothendieckCrystal>`
 * :class:`GeneralizedYoungWalls
   <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`

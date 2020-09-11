@@ -1117,36 +1117,6 @@ class Polyhedron_normaliz(Polyhedron_base):
         assert cone, "NmzCone(**{}) did not return a cone".format(data)
         return cone
 
-    @staticmethod
-    def _cone_generators(pynormaliz_cone):
-        r"""
-        Returns the generators of a pynormaliz cone.
-
-        This is particularly useful to get the reordering of the vertices (or
-        rays) that is internally used by normaliz.
-
-        INPUT:
-
-        - ``pynormaliz_cone`` -- a pynormaliz cone object.
-
-        OUTPUT:
-
-        - a tuple of generators for the cone.
-
-        TESTS::
-
-            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz     # optional - pynormaliz
-            sage: data = {'inhom_inequalities': [[-1, 2, 0], [0, 0, 1], [2, -1, 0]]}   # optional - pynormaliz
-            sage: nmz_cone = Polyhedron_normaliz._make_normaliz_cone(data,verbose=False)        # optional - pynormaliz
-            sage: Polyhedron_normaliz._cone_generators(nmz_cone)                                # py2 # optional - pynormaliz
-            [[1L, 2L, 0L], [0L, 0L, 1L], [2L, 1L, 0L]]
-            sage: Polyhedron_normaliz._cone_generators(nmz_cone)                                # py3 # optional - pynormaliz
-            [[1, 2, 0], [0, 0, 1], [2, 1, 0]]
-        """
-        PythonModule("PyNormaliz", spkg="pynormaliz").require()
-        import PyNormaliz
-        return PyNormaliz.NmzResult(pynormaliz_cone, "Generators")
-
     def _get_nmzcone_data(self):
         r"""
         Get the data necessary to reproduce the normaliz cone.

@@ -148,10 +148,6 @@ REFERENCES:
    *Hopf Algebras In Combinatorics*,
    :arXiv:`1409.8356v5`, available with solutions at
    https://arxiv.org/src/1409.8356v5/anc/HopfComb-v73-with-solutions.pdf
-   
-.. [MPPS2020] Jennifer Morse, Jianping Pan, Wencin Poh, Anne Schilling.
-   *A Crystal on Decreasing Factorizations in the 0-Hecke Monoid*,
-   Electronic J. Comb. Volume 27, Issue 2 (2020), P2.29
 """
 
 # *****************************************************************************
@@ -2502,11 +2498,11 @@ class RuleStar(Rule):
     Case 2: Otherwise if `x` is not in `R`, locate the smallest `y` in `R` with
             `y > x`. Bump `y` with `x` and insert `y` into the next row.
 
-    Case 3: Otherwise, if `x` is in `R`, locate the smallest `y` in `R` with 
+    Case 3: Otherwise, if `x` is in `R`, locate the smallest `y` in `R` with
             `y <= x` and interval `[y,x]` contained in `R`. Row `R` remains
             unchanged and `y` is to be inserted into the next row.
 
-    The *-insertion algorithm returns a pair of a conjugate of a semistandard 
+    The *-insertion algorithm returns a pair of a conjugate of a semistandard
     tableau and a semistandard tableau.
 
     EXAMPLES:
@@ -2546,8 +2542,8 @@ class RuleStar(Rule):
           - two lists ``obj1`` and ``obj2`` of equal length, to be interpreted
             as the top row and the bottom row of the biword.
 
-          - a word ``obj1`` in an ordered alphabet, to be interpreted as the 
-            bottom row of the biword (in this case, ``obj2`` is ``None``; the 
+          - a word ``obj1`` in an ordered alphabet, to be interpreted as the
+            bottom row of the biword (in this case, ``obj2`` is ``None``; the
             top row of the biword is understood to be `(1,2,\ldots,n)` by default).
 
         EXAMPLES::
@@ -2562,12 +2558,12 @@ class RuleStar(Rule):
 
         TESTS::
 
-            sage: P,Q = RuleStar().forward_rule([1,1,2,3,3],[2,2,3,1,3]) 
-            Traceback (most recent call last): 
+            sage: P,Q = RuleStar().forward_rule([1,1,2,3,3],[2,2,3,1,3])
+            Traceback (most recent call last):
             ...
             ValueError: [1, 1, 2, 3, 3], [2, 2, 3, 1, 3] is not an increasing factorization
-            sage: P,Q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,1,3]) 
-            Traceback (most recent call last): 
+            sage: P,Q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,1,3])
+            Traceback (most recent call last):
             ...
             ValueError: The *-insertion is not defined for non-fully commutative words
         """
@@ -2591,7 +2587,7 @@ class RuleStar(Rule):
             P = Permutations(N)
             w = P.from_reduced_word(h.reduced_word())
             if w.has_pattern([3,2,1]):
-                raise ValueError("The *-insertion is not defined for non-fully commutative words") 
+                raise ValueError("The *-insertion is not defined for non-fully commutative words")
 
         p = []       # the "insertion" tableau
         q = []       # the "recording" tableau
@@ -2622,8 +2618,8 @@ class RuleStar(Rule):
 
         INPUT:
 
-        - ``p``, ``q`` -- two tableaux of the same shape, where ``p`` is the 
-          conjugate of a semistandard tableau, whose reading word is fully 
+        - ``p``, ``q`` -- two tableaux of the same shape, where ``p`` is the
+          conjugate of a semistandard tableau, whose reading word is fully
           commutative and ``q`` is a semistandard tableau.
 
         EXAMPLES::
@@ -2656,7 +2652,7 @@ class RuleStar(Rule):
         P = Permutations(N)
         w = P.from_reduced_word(h.reduced_word())
         if w.has_pattern([3,2,1]):
-            raise ValueError(f"The row reading of the insertion tableau {p} is not fully-commutative")           
+            raise ValueError(f"The row reading of the insertion tableau {p} is not fully-commutative")
 
         p_copy = [list(row) for row in p]
         q_copy = [list(row) for row in q]
@@ -2685,10 +2681,10 @@ class RuleStar(Rule):
 
     def insertion(self, b, r):
         """
-        Insert the letter ``b`` from the second row of the biword into the row 
+        Insert the letter ``b`` from the second row of the biword into the row
         ``r`` using *-insertion defined in [MPPS2020]_.
 
-        The row `r` is modified in place if bumping occurs and `b` is not in 
+        The row `r` is modified in place if bumping occurs and `b` is not in
         row `r`. The bumped-out entry, if if exists, is returned.
 
         EXAMPLES::
@@ -2716,13 +2712,13 @@ class RuleStar(Rule):
 
     def reverse_insertion(self, x, r):
         """
-        Reverse bump the row ``r`` of the current insertion tableau ``p`` 
+        Reverse bump the row ``r`` of the current insertion tableau ``p``
         with number ``x``, provided that ``r`` is the ``i``-th row of ``p``.
 
         The row ``r`` is modified in place. The bumped-out entry is returned.
 
         EXAMPLES::
-        
+
             sage: from sage.combinat.rsk import RuleStar
             sage: RuleStar().reverse_insertion(4,[1,2,3,5])
             3

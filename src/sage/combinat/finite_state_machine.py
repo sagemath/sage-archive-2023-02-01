@@ -1760,7 +1760,7 @@ class FSMState(SageObject):
             sage: B = deepcopy(A)
             sage: B
             (1, 3)
-            sage: B.label == A.label
+            sage: B.label() == A.label()
             True
             sage: B.label is A.label
             False

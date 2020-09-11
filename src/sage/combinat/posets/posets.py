@@ -120,6 +120,7 @@ List of Poset methods
     :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with given probability.
     :meth:`~FinitePoset.relabel` | Return a copy of this poset with its elements relabelled.
     :meth:`~FinitePoset.canonical_label` | Return copy of the poset canonically (re)labelled to integers.
+    :meth:`~FinitePoset.slant_sum` | Return the slant sum poset of two posets.
 
 **Chains & antichains**
 
@@ -1657,7 +1658,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = posets.ChainPoset(5)
             sage: P.spectrum(2)
             [0, 0, 1, 0, 0]
-            
+
             sage: P = posets.BooleanLattice(3)
             sage: P.spectrum(5)
             [0, 0, 0, 4, 12, 16, 16, 0]
@@ -1751,7 +1752,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         components = self.connected_components()
         remainder_poset = Poset()
 
-        
+
         for X in components:
             if a in X:
                 main = X
@@ -2373,6 +2374,40 @@ class FinitePoset(UniqueRepresentation, Parent):
                     break
 
         return True
+
+    def slant_sum(self, p, element, p_element):
+        r"""
+        Return the slant sum poset of posets ``self`` and ``p`` by
+        connecting them with a cover relation ``(p_element, element)``.
+
+        .. NOTE::
+
+            The element names of ``self`` and ``p`` must be distinct.
+
+        INPUT:
+
+        - ``p`` -- the poset used for the slant sum
+        - ``element`` -- the element of ``self`` that is the top of
+          the new cover relation
+        - ``p_element`` -- the element of ``p`` that is the bottom of
+          the new cover relation
+
+        EXAMPLES::
+
+            sage: R = posets.RibbonPoset(5, [1,2])
+            sage: H = Poset([[5, 6, 7], [(5, 6), (6,7)]])
+            sage: SS = R.slant_sum(H, 3, 7)
+            sage: all(cr in SS.cover_relations() for cr in R.cover_relations())
+            True
+            sage: all(cr in SS.cover_relations() for cr in H.cover_relations())
+            True
+            sage: SS.covers(7, 3)
+            True
+        """
+        elements = p._elements + self._elements
+        cover_relations = p.cover_relations() + self.cover_relations()
+        cover_relations.append((p_element, element))
+        return Poset([elements, cover_relations])
 
     def intervals_poset(self):
         r"""
@@ -6416,7 +6451,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.order_ideal_cardinality([7,10])
             10
         """
-        vertices = list(map(self._element_to_vertex, elements))
+        vertices = [self._element_to_vertex(elmt) for elmt in elements]
         return self._hasse_diagram.order_ideal_cardinality(vertices)
 
     def order_ideal_plot(self, elements):
@@ -7053,7 +7088,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             \sum_{\substack{p_0 < p_1 < \ldots < p_k, \\
                             p_0 = \min P, \ p_k = \max P}}
             x_{\rho(p_1)} x_{\rho(p_2)} \cdots x_{\rho(p_k)}
-            \in \ZZ[x_1, x_2, \cdots, x_n]
+            \in \ZZ[x_1, x_2, \cdots, x_n],
 
         where `\min P` and `\max P` are (respectively) the minimum and
         the maximum of `P`, where `\rho` is the rank function of `P`
@@ -8145,10 +8180,14 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = posets.AntichainPoset(3)
             sage: Pc = P.cuts()
-            sage: [list(c) for c in Pc]
-            [[0], [], [0, 1, 2], [2], [1]]
-            sage: Pc[0]
-            frozenset({0})
+            sage: Pc # random
+            [frozenset({0}),
+             frozenset(),
+             frozenset({0, 1, 2}),
+             frozenset({2}),
+             frozenset({1})]
+            sage: sorted(list(c) for c in Pc)
+            [[], [0], [0, 1, 2], [1], [2]]
 
         .. SEEALSO::
 

@@ -474,9 +474,10 @@ respectivamente, http://sourceforge.net/projects/dvipng/ e como parte
 do `Ghostscript <http://www.ghostscript.com/>`_.
 
 A criação de grafos combinatoriais requer uma versão recente da
-biblioteca PGF, e os arquivos ``tkz-graph.sty``, ``tkz-arith.sty`` e
-talvez ``tkz-berge.sty``, que estão disponíveis em `Altermundus site
-<http://altermundus.com/pages/tkz/graph/>`_.
+biblioteca PGF, e o arquivo ``tkz-graph.sty``, que está disponível em
+https://www.ctan.org/pkg/tkz-graph, os arquivos  ``tkz-arith.sty`` e
+talvez ``tkz-berge.sty``, que estão disponíveis em
+https://www.ctan.org/pkg/tkz-berge.
 
 Programas Externos
 ==================

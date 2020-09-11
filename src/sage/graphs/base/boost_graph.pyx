@@ -2601,6 +2601,250 @@ cpdef diameter(G, algorithm=None, source=None,
     else:
         return LB
 
+cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
+                                   weight_function=None, algorithm=None):
+    r"""
+    Compute the shortest paths to all vertices from each vertex in
+    ``vertex_list``.
+
+    The input graph can be weighted: if the algorithm is Dijkstra, no negative
+    weights are allowed, while if the algorithm is Bellman-Ford, negative
+    weights are allowed, but there must be no negative cycle (otherwise, the
+    shortest paths might not exist).
+
+    However, Dijkstra algorithm is more efficient: for this reason, we suggest
+    to use Bellman-Ford only if necessary (which is also the default option).
+
+    The running-time for each vertex is `O(n \log n+m)` for Dijkstra algorithm
+    and `O(mn)` for Bellman-Ford algorithm, where `n` is the number of nodes and
+    `m` is the number of edges.
+
+    INPUT:
+
+    - ``g`` -- the input Sage graph
+
+    - ``vertex_list`` -- list (default: ``None``); list of vertices to compute
+      shortest paths from. By default (``None``), compute shortest paths from
+      all vertices.
+
+    - ``order`` -- list (default: ``None``); order of vertices of `g`
+
+    - ``weight_function`` -- function (default: ``None``); a function that
+      associates a weight to each edge. If ``None`` (default), the weights of
+      ``g`` are used, if ``g.weighted()==True``, otherwise all edges have
+      weight 1.
+
+    - ``algorithm`` -- string (default: ``None``); one of the following
+      algorithms:
+
+      - ``'Dijkstra'``, ``'Dijkstra_Boost'`` - the Dijkstra algorithm
+        implemented in Boost (works only with positive weights)
+
+      - ``'Bellman-Ford'``, ``'Bellman-Ford_Boost'`` - the Bellman-Ford
+        algorithm implemented in Boost (works also with negative weights,
+        if there is no negative cycle)
+
+    OUTPUT:
+
+    The type of output depends on the input. More precisely -
+
+    - A pair of dictionaries of list ``(distances, predecessors)``, when
+      ``order is not None``, such that for each vertex ``v`` in ``vertex_list``,
+      ``distances[v][i]`` store the shortest distance between ``v`` and
+      ``order[i]`` and ``predecessors[v][i]`` store the last vertex in the
+      shortest path from ``v`` to ``order[i]``.
+
+    - A pair of dictionaries of dictionaries ``(distances, predecessors)`` such
+      that for each vertex ``v`` in ``vertex_list``, ``distances[v]`` store the
+      shortest distances of all the other vertices from ``v``,
+      ``predecessors[v]`` store the last vertices in the shortest path from
+      ``v`` to all the other vertices.
+
+    EXAMPLES:
+
+    Undirected graphs::
+
+        sage: from sage.graphs.base.boost_graph import shortest_paths_from_vertices
+        sage: g = Graph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
+        sage: shortest_paths_from_vertices(g,[1,2])
+        ({1: {0: 1.0, 1: 0.0, 2: 2.0, 3: 3.0}, 2: {0: 3.0, 1: 2.0, 2: 0.0, 3: 1.0}},
+         {1: {0: 1, 1: None, 2: 1, 3: 2}, 2: {0: 1, 1: 2, 2: None, 3: 2}})
+
+    Directed graphs::
+
+        sage: g = DiGraph([(0,1,1),(1,2,-1),(2,0,2),(2,3,1)], weighted=True)
+        sage: shortest_paths_from_vertices(g,1)
+        ({1: {0: 1.0, 1: 0.0, 2: -1.0, 3: 0.0}}, {1: {0: 2, 1: None, 2: 1, 3: 2}})
+        sage: shortest_paths_from_vertices(g, 1, [0,1,2,3])
+        ({1: [1.0, 0.0, -1.0, 0.0]}, {1: [2, None, 1, 2]})
+
+    TESTS:
+
+    Given an input which is not a graph::
+
+        sage: shortest_paths_from_vertices("X-AE A-12", 1)
+        Traceback (most recent call last):
+        ...
+        TypeError: the input must be a Sage graph
+
+    If there is a negative cycle::
+
+        sage: g = DiGraph([(0,1,1),(1,2,-2),(2,0,0.5),(2,3,1)], weighted=True)
+        sage: shortest_paths_from_vertices(g, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: the graph contains a negative cycle
+
+    If the given ordering is not valid::
+
+        sage: g = DiGraph([(0,1,1),(1,2,2),(2,0,0.5),(2,3,1)], weighted=True)
+        sage: shortest_paths_from_vertices(g,1,[0,1])
+        Traceback (most recent call last):
+        ...
+        ValueError: Given ordering is not valid
+
+    If Dijkstra is used with negative weights::
+
+        sage: g = Graph([(0,1,1),(1,2,-2),(1,3,4)], weighted=True)
+        sage: shortest_paths_from_vertices(g, 1, algorithm='Dijkstra')
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead
+
+    Wrong starting vertex::
+
+        sage: shortest_paths_from_vertices(g, 55)
+        Traceback (most recent call last):
+        ...
+        ValueError: the starting vertex 55 is not in the graph
+    """
+    import sys
+    from sage.rings.infinity import Infinity
+    from sage.graphs.generic_graph import GenericGraph
+
+    if not isinstance(g, GenericGraph):
+        raise TypeError("the input must be a Sage graph")
+
+    if vertex_list is None:
+        vertex_list = g
+
+    else:
+        if not isinstance(vertex_list, list):
+            vertex_list = [vertex_list]
+
+        for vertex in vertex_list:
+            if vertex not in g:
+                raise ValueError(f"the starting vertex {vertex} is not in the graph")
+
+    if order is not None:
+        if len(g) == len(order):
+            for vertex in order:
+                if vertex not in g:
+                    raise ValueError("Given ordering is not valid")
+        else:
+            raise ValueError("Given ordering is not valid")
+
+    cdef bint use_Bellman_Ford = algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']
+    if not use_Bellman_Ford:
+        # Check if there are edges with negative weights
+        if weight_function is not None:
+            for e in g.edges(sort=False):
+                if float(weight_function(e)) < 0:
+                    use_Bellman_Ford = True
+                    break
+        elif g.weighted():
+            for _,_,wt in g.edges(sort=False):
+               if float(wt) < 0:
+                    use_Bellman_Ford = True
+                    break
+
+        if algorithm in ['Dijkstra', 'Dijkstra_Boost']:
+            if use_Bellman_Ford:
+                raise RuntimeError("Dijkstra algorithm does not work with "
+                                   "negative weights, use Bellman-Ford instead")
+        elif algorithm is not None:
+            raise ValueError(f"unknown algorithm {algorithm!r}")
+
+    # These variables are automatically deleted when the function terminates.
+    cdef v_index vi, v, vert, pred, w
+    cdef list int_to_v = list(g)
+    cdef dict v_to_int = {vv: vi for vi, vv in enumerate(g)}
+    cdef result_distances result
+    cdef BoostVecWeightedDiGraphU g_boost_dir
+    cdef BoostVecWeightedGraph g_boost_und
+    cdef dict dist_v_dict, pred_v_dict
+    cdef list dist_v_list, pred_v_list
+
+    if g.is_directed():
+        boost_weighted_graph_from_sage_graph(&g_boost_dir, g, v_to_int, weight_function)
+    else:
+        boost_weighted_graph_from_sage_graph(&g_boost_und, g, v_to_int, weight_function)
+
+    distances = {}
+    predecessors = {}
+
+    for v in vertex_list:
+        vi = v_to_int[v]
+        if use_Bellman_Ford:
+            if g.is_directed():
+                sig_on()
+                result = g_boost_dir.bellman_ford_shortest_paths(vi)
+                sig_off()
+            else:
+                sig_on()
+                result = g_boost_und.bellman_ford_shortest_paths(vi)
+                sig_off()
+            if not result.distances.size():
+                raise ValueError("the graph contains a negative cycle")
+        else:
+            if g.is_directed():
+                sig_on()
+                result = g_boost_dir.dijkstra_shortest_paths(vi)
+                sig_off()
+            else:
+                sig_on()
+                result = g_boost_und.dijkstra_shortest_paths(vi)
+                sig_off()
+            if not result.distances.size():
+                # This situation should never happen
+                raise RuntimeError("something goes wrong. Please report the "
+                                   "bug on sage-devel@googlegroups.com")
+
+        if order is None:
+            dist_v_dict = {}
+            pred_v_dict = {}
+
+            for vert in range(g.num_verts()):
+                if result.distances[vert] != sys.float_info.max:
+                    w = int_to_v[vert]
+                    dist_v_dict[w] = result.distances[vert]
+                    pred = result.predecessors[vert]
+                    if pred == vert:
+                        pred_v_dict[w] = None
+                    else:
+                        pred_v_dict[w] = int_to_v[pred]
+
+            distances[v] = dist_v_dict
+            predecessors[v] = pred_v_dict
+        else:
+            dist_v_list = []
+            pred_v_list = []
+
+            for w in order:
+                vert = v_to_int[w]
+                if result.distances[vert] != sys.float_info.max:
+                    dist_v_list.append(result.distances[vert])
+                    pred = result.predecessors[vert]
+                    if pred == vert:
+                        pred_v_list.append(None)
+                    else:
+                        pred_v_list.append(int_to_v[pred])
+
+            distances[v] = dist_v_list
+            predecessors[v] = pred_v_list
+
+    return distances, predecessors
+
 cpdef wiener_index(g, algorithm=None, weight_function=None, check_weight=True):
     r"""
     Return the Wiener index of the graph.

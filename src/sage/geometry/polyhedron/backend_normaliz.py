@@ -660,7 +660,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             data["number_field"] = number_field_data
         self._init_from_normaliz_data(data, normaliz_field=normaliz_field, verbose=verbose)
 
-    def _cone_from_Vrepresentation_and_Hrepresentation(self, vertices, rays, lines, ieqs, eqns=None, verbose=False, homogenous=False):
+    def _cone_from_Vrepresentation_and_Hrepresentation(self, vertices, rays, lines, ieqs, eqns=None, verbose=False, homogeneous=False):
         r"""
         Construct cone from V-representation data and H-representation data.
 
@@ -685,7 +685,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         - ``verbose`` -- boolean (default: ``False``); whether to print
           verbose output for debugging purposes
 
-        - ``homogenous`` -- boolean (default: ``False``); if ``True`` set
+        - ``homogeneous`` -- boolean (default: ``False``); if ``True`` set
           up the cone without explicit inhomogenization
 
         EXAMPLES::
@@ -855,7 +855,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 "support_hyperplanes": nmz_ieqs}
 
         ambient_dim = len(data["extreme_rays"][0])
-        if not homogenous:
+        if not homogeneous:
             data["dehomogenization"] = [[0]*(ambient_dim-1) + [1]]
 
         number_field_data = self._number_field_triple(normaliz_field)
@@ -1607,10 +1607,10 @@ class Polyhedron_normaliz(Polyhedron_base):
         if self.is_compact():
             cone = self._normaliz_cone
         else:
-            # Make a inhomogenous copy of the cone.
+            # Make a inhomogeneous copy of the cone.
             cone = self._cone_from_Vrepresentation_and_Hrepresentation(
                     self.vertices(), self.rays(), self.lines(),
-                    self.inequalities(), self.equations(), homogenous=True)
+                    self.inequalities(), self.equations(), homogeneous=True)
 
         # Compute the triangulation.
         assert cone

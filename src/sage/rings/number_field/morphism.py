@@ -159,7 +159,7 @@ class RelativeNumberFieldHomomorphism_from_abs(RingHomomorphism):
               Defn: a |--> (-b - 1)*a
                     b |--> b
             sage: type(f)
-            <class 'sage.rings.number_field.morphism.RelativeNumberFieldHomomorphism_from_abs'>
+            <class 'sage.rings.number_field.homset.RelativeNumberFieldHomset_with_category.element_class'>
         """
         RingHomomorphism.__init__(self, parent)
         self._abs_hom = abs_hom

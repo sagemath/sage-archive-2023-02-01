@@ -22,10 +22,8 @@ def install_scripts(directory=None, ignore_existing=False):
     - 'R' runs R
     - 'singular' runs Singular
     - 'sqlite3' runs SQLite version 3
-    - 'kash' runs Kash if it is installed (Kash is an optional Sage
-      package)
-    - 'M2' runs Macaulay2 if it is installed (Macaulay2 is an
-      experimental Sage package)
+    - 'kash' runs Kash if it is installed
+    - 'M2' runs Macaulay2 if it is installed
 
     This command:
 

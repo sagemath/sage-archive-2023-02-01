@@ -1284,6 +1284,24 @@ cdef class CommutativeRing(Ring):
         Ring.__init__(self, base_ring, names=names, normalize=normalize,
                       category=category)
 
+    def localization(self, additional_units, names=None, normalize=True, category=None):
+        """
+        Return the localization of ``self`` at the given additional units.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = GF(3)[]
+            sage: R.localization((x*y, x**2+y**2))
+            Multivariate Polynomial Ring in x, y over Finite Field of size 3 localized at (y, x, x^2 + y^2)
+            sage: ~y in _
+            True
+        """
+        if not self.is_integral_domain():
+            raise TypeError("self must be an integral domain.")
+
+        from sage.rings.localization import Localization
+        return Localization(self, additional_units)
+
     def fraction_field(self):
         """
         Return the fraction field of ``self``.
@@ -1490,7 +1508,7 @@ cdef class CommutativeRing(Ring):
         if name is None:
             name = str(poly.parent().gen(0))
         for key, val in kwds.items():
-            if key not in ['structure', 'implementation', 'prec', 'embedding']:
+            if key not in ['structure', 'implementation', 'prec', 'embedding', 'latex_name', 'latex_names']:
                 raise TypeError("extension() got an unexpected keyword argument '%s'"%key)
             if not (val is None or isinstance(val, list) and all(c is None for c in val)):
                 raise NotImplementedError("ring extension with prescripted %s is not implemented"%key)

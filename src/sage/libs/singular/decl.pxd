@@ -1,3 +1,4 @@
+# distutils: include_dirs = SINGULAR_INCDIR
 # distutils: extra_compile_args = SINGULAR_CFLAGS
 # distutils: libraries = SINGULAR_LIBRARIES
 # distutils: library_dirs = SINGULAR_LIBDIR
@@ -334,6 +335,7 @@ cdef extern from "singular/Singular/libsingular.h":
         bint *pairtest
         void *R
         int *S_2_R
+        bint noTailReduction
 
     ctypedef struct data_union:
         ring *uring

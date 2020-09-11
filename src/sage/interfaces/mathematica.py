@@ -172,8 +172,8 @@ We find the `x` such that `e^x - 3x = 0`.
 
 ::
 
-    sage: e = mathematica('Exp[x] - 3x == 0') # optional - mathematica
-    sage: e.FindRoot(['x', 2])                # optional - mathematica
+    sage: eqn = mathematica('Exp[x] - 3x == 0') # optional - mathematica
+    sage: eqn.FindRoot(['x', 2])                # optional - mathematica
     {x -> 1.512134551657842}
 
 Note that this agrees with what the PARI interpreter gp produces::
@@ -354,6 +354,15 @@ correctly (:trac:`18888`, :trac:`28907`)::
     sage: str(mathematica('Pi*x^2-1/2').N())  # optional -- mathematica
                     2
     -0.5 + 3.14159 x
+
+Check that Mathematica's `E` exponential symbol is correctly backtranslated
+as Sage's `e` (:trac:`29833`)::
+
+    sage: x = var('x')
+    sage: (e^x)._mathematica_().sage()  # optional -- mathematica
+    e^x
+    sage: exp(x)._mathematica_().sage() # optional -- mathematica
+    e^x
 """
 
 #*****************************************************************************
@@ -368,7 +377,7 @@ correctly (:trac:`18888`, :trac:`28907`)::
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
 
@@ -381,6 +390,7 @@ from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
 from sage.interfaces.interface import AsciiArtString
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
+from sage.structure.richcmp import rich_to_bool
 
 
 def clean_output(s):
@@ -982,19 +992,15 @@ class MathematicaElement(ExpectElement):
     def str(self):
         return str(self)
 
-    def _cmp_(self, other):
-        #if not (isinstance(other, ExpectElement) and other.parent() is self.parent()):
-        #    return coerce.cmp(self, other)
+    def _richcmp_(self, other, op):
         P = self.parent()
         if P.eval("%s < %s"%(self.name(), other.name())).strip() == 'True':
-            return -1
+            return rich_to_bool(op, -1)
         elif P.eval("%s > %s"%(self.name(), other.name())).strip() == 'True':
-            return 1
+            return rich_to_bool(op, 1)
         elif P.eval("%s == %s"%(self.name(), other.name())).strip() == 'True':
-            return 0
-        else:
-            return -1  # everything is supposed to be comparable in Python, so we define
-                       # the comparison thus when no comparable in interfaced system.
+            return rich_to_bool(op, 0)
+        return NotImplemented
 
     def __bool__(self):
         """

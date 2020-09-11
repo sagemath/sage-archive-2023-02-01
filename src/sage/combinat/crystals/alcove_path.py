@@ -512,7 +512,7 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
             sage: C = crystals.AlcovePaths(['A',2],[1,1]); C
             Highest weight crystal of alcove paths of type ['A', 2] and weight Lambda[1] + Lambda[2]
-            sage: roots = sorted(list(C._R._root_lattice.positive_roots())); roots
+            sage: roots = sorted(C._R._root_lattice.positive_roots()); roots
             [alpha[1], alpha[1] + alpha[2], alpha[2]]
             sage: r1 = C._R(roots[0],0); r1
             (alpha[1], 0)

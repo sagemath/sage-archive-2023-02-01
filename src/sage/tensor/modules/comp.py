@@ -245,9 +245,8 @@ In case of symmetries, only non-redundant components are stored::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  https://www.gnu.org/licenses/
-# *****************************************************************************
-from six.moves import range
+#                  http://www.gnu.org/licenses/
+#******************************************************************************
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
@@ -860,7 +859,7 @@ class Components(SageObject):
             si = self._sindex
             nsi = si + self._dim
             return [self._gen_list(ind + [i], no_format, format_type)
-                                                       for i in range(si, nsi)]
+                    for i in range(si, nsi)]
 
     def __setitem__(self, args, value):
         r"""
@@ -1890,7 +1889,7 @@ class Components(SageObject):
             sage: from sage.tensor.modules.comp import Components
             sage: a = Components(QQ, [1,2,3], 1)
             sage: a[:] = 1, 0, -3
-            sage: s = a.__div__(3) ; s
+            sage: s = a.__truediv__(3) ; s
             1-index components w.r.t. [1, 2, 3]
             sage: s[:]
             [1/3, 0, -1]
@@ -1907,8 +1906,6 @@ class Components(SageObject):
         for ind, val in self._comp.items():
             result._comp[ind] = val / other
         return result
-
-    __div__ = __truediv__
 
     def trace(self, pos1, pos2):
         r"""

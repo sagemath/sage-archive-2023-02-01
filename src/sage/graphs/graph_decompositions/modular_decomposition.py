@@ -1160,7 +1160,6 @@ def check_parallel(graph, root, left, right,
     # module can be formed
     if source_index != new_right_index:
         node = create_parallel_node()
-        temp = source_index
         for temp in range(source_index, new_right_index + 1):
 
             # if module X to be included in the new parallel module Y is also
@@ -2540,20 +2539,20 @@ def habib_maurer_algorithm(graph, g_classes=None):
     The Icosahedral graph is Prime::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import *
-        sage: print_md_tree(habib_maurer_algorithm(graphs.IcosahedralGraph()))  # py2
+        sage: print_md_tree(habib_maurer_algorithm(graphs.IcosahedralGraph()))
         PRIME
-         8
-         0
          1
-         3
-         7
-         4
          5
-         2
-         10
+         7
+         8
          11
-         9
+         0
+         2
          6
+         3
+         9
+         4
+         10
 
     The Octahedral graph is not Prime::
 
@@ -3296,6 +3295,7 @@ def random_md_tree(max_depth, max_fan_out, leaf_probability):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import *
+        sage: set_random_seed(0)
         sage: tree_to_nested_tuple(random_md_tree(2, 5, 0.5))
         (PRIME, [0, 1, (PRIME, [2, 3, 4, 5, 6]), 7, (PARALLEL, [8, 9, 10])])
     """

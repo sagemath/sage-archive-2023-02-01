@@ -15,13 +15,13 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef tuple _facet_names                # the names of HRep without equalities, if they exist
     cdef tuple _equalities                 # stores equalities, given on input (might belong to Hrep)
     cdef int _dimension                    # stores dimension, -2 on init
-    cdef unsigned int _n_Hrepresentation   # Hrepr might include equalities
-    cdef unsigned int _n_Vrepresentation   # Vrepr might include rays/lines
+    cdef unsigned int _n_Hrepresentation   # Hrep might include equalities
+    cdef unsigned int _n_Vrepresentation   # Vrep might include rays/lines
     cdef size_t _n_facets                  # length Hrep without equalities
     cdef bint _bounded                     # ``True`` iff Polyhedron is bounded
     cdef ListOfFaces _bitrep_facets        # facets in bit representation
-    cdef ListOfFaces _bitrep_Vrepr         # vertices in bit representation
-    cdef ListOfFaces _far_face             # a 'face' containing all none-vertices of Vrepr
+    cdef ListOfFaces _bitrep_Vrep          # vertices in bit representation
+    cdef ListOfFaces _far_face             # a 'face' containing all none-vertices of Vrep
     cdef tuple _far_face_tuple
     cdef tuple _f_vector
 
@@ -49,9 +49,13 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef unsigned int n_Hrepresentation(self)
     cdef bint is_bounded(self)
     cdef ListOfFaces bitrep_facets(self)
-    cdef ListOfFaces bitrep_Vrepr(self)
+    cdef ListOfFaces bitrep_Vrep(self)
     cdef ListOfFaces far_face(self)
     cdef tuple far_face_tuple(self)
+
+    # Methods to obtain a different combinatorial polyhedron.
+    cpdef CombinatorialPolyhedron dual(self)
+    cpdef CombinatorialPolyhedron pyramid(self, new_vertex=*, new_facet=*)
 
     # Space for edges, ridges, etc. is allocated with ``MemoryAllocators``.
     # Upon success they are copied to ``_mem_tuple``.
@@ -63,3 +67,6 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef int _compute_edges(self, dual) except -1
     cdef int _compute_ridges(self, dual) except -1
     cdef int _compute_face_lattice_incidences(self) except -1
+
+    cdef inline int _set_edge(self, size_t a, size_t b, size_t ***edges_pt, size_t *counter_pt, size_t *current_length_pt, MemoryAllocator mem) except -1
+    cdef inline size_t _get_edge(self, size_t **edges, size_t edge_number, size_t vertex) except -1

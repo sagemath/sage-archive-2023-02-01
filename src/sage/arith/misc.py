@@ -14,7 +14,6 @@ Miscellaneous arithmetic functions
 # ****************************************************************************
 
 from __future__ import absolute_import, print_function
-from six.moves import range
 
 import math
 import collections
@@ -1577,6 +1576,7 @@ class Sigma:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Sigma
             sage: Sigma().__repr__()
             'Function that adds up (k-th powers of) the divisors of n'
         """
@@ -1588,6 +1588,7 @@ class Sigma:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Sigma
             sage: q = Sigma()
             sage: q(10)
             18
@@ -1632,6 +1633,7 @@ class Sigma:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Sigma
             sage: p = Sigma().plot()
             sage: p.ymax()
             124.0
@@ -2023,8 +2025,8 @@ def xkcd(n=""):
     from sage.misc.html import html
 
     # import compatible with py2 and py3
-    from six.moves.urllib.request import urlopen
-    from six.moves.urllib.error import HTTPError, URLError
+    from urllib.request import urlopen
+    from urllib.error import HTTPError, URLError
 
     data = None
     url = "http://dynamic.xkcd.com/api-0/jsonp/comic/{}".format(n)
@@ -2450,8 +2452,8 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
        - ``'pari'`` - (default) use the PARI c library
 
-       - ``'kash'`` - use KASH computer algebra system (requires the
-         optional kash package be installed)
+       - ``'kash'`` - use KASH computer algebra system (requires that
+         kash be installed)
 
        - ``'magma'`` - use Magma (requires magma be installed)
 
@@ -2991,6 +2993,7 @@ class Euler_Phi:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Euler_Phi
             sage: Euler_Phi().__repr__()
             'Number of positive integers <=n but relatively prime to n'
         """
@@ -3002,6 +3005,7 @@ class Euler_Phi:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Euler_Phi
             sage: Euler_Phi()(10)
             4
             sage: Euler_Phi()(720)
@@ -3036,6 +3040,7 @@ class Euler_Phi:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Euler_Phi
             sage: p = Euler_Phi().plot()
             sage: p.ymax()
             46.0
@@ -4229,6 +4234,7 @@ class Moebius:
         """
         EXAMPLES::
 
+            sage: from sage.arith.misc import Moebius
             sage: Moebius().__call__(7)
             -1
         """
@@ -4256,6 +4262,7 @@ class Moebius:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Moebius
             sage: q = Moebius()
             sage: q.__repr__()
             'The Moebius function'
@@ -4285,6 +4292,7 @@ class Moebius:
 
         EXAMPLES::
 
+            sage: from sage.arith.misc import Moebius
             sage: p = Moebius().plot()
             sage: p.ymax()
             1.0

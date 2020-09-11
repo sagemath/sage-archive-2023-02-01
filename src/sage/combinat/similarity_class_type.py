@@ -175,8 +175,6 @@ AUTHOR:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function
-from six.moves import range
-from six import add_metaclass
 
 from operator import mul
 from itertools import chain, product
@@ -340,8 +338,8 @@ def centralizer_group_cardinality(la, q = None):
     return q**centralizer_algebra_dim(la)*prod([fq(m, q = q) for m in la.to_exp()])
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class PrimarySimilarityClassType(Element):
+class PrimarySimilarityClassType(Element,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A primary similarity class type is a pair consisting of a partition and a positive
     integer.
@@ -410,15 +408,14 @@ class PrimarySimilarityClassType(Element):
             sage: PT1 = PrimarySimilarityClassType(2, [3, 2, 1])
             sage: PT2 = PrimarySimilarityClassType(3, [3, 2, 1])
             sage: PT3 = PrimarySimilarityClassType(2, [4, 2, 1])
-            sage: hash(PT1)
-            5050909583595644741 # 64-bit
-            1658169157          # 32-bit
-            sage: hash(PT2)
-            5050909583595644740 # 64-bit
-            1658169156          # 32-bit
-            sage: hash(PT3)
-            6312110366011971308 # 64-bit
-            1429493484          # 32-bit
+            sage: hash(PT1) == hash(PrimarySimilarityClassType(2, [3, 2, 1]))
+            True
+            sage: abs(hash(PT1) - hash(PT2)) == 1
+            True
+            sage: hash(PT1) == hash(PT3)
+            False
+            sage: hash(PT2) == hash(PT3)
+            False
         """
         return hash(self._deg) ^ hash(tuple(self._par))
 

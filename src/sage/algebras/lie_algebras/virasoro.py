@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Virasoro Algebra and Related Lie Algebras
 
@@ -413,6 +414,25 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
         if isinstance(m, str):
             return m
         return IndexedGenerators._latex_generator(self, m)
+
+    def _unicode_art_term(self, m):
+        r"""
+        Return a unicode art representation of the term indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: d = lie_algebras.VirasoroAlgebra(QQ)
+            sage: d._unicode_art_term('c')
+            c
+            sage: d._unicode_art_term(2)
+            d₂
+            sage: d._unicode_art_term(-13)
+            d₋₁₃
+        """
+        from sage.typeset.unicode_art import unicode_art, unicode_subscript
+        if isinstance(m, str):
+            return unicode_art(m)
+        return unicode_art('d' + unicode_subscript(m))
 
     def _repr_(self):
         """

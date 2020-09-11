@@ -1,14 +1,5 @@
-###############################################################################
-#
-#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-#
-###############################################################################
-
 """
-Weighted homogeneous elements of free algebras, in letterplace implementation.
+Weighted homogeneous elements of free algebras, in letterplace implementation
 
 AUTHOR:
 
@@ -16,8 +7,18 @@ AUTHOR:
 
 """
 
+# ****************************************************************************
+#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 from sage.libs.singular.function import lib, singular_function
-from sage.misc.misc import repr_lincomb
+from sage.misc.repr import repr_lincomb
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from cpython.object cimport PyObject_RichCompare
 

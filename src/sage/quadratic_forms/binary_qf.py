@@ -1188,6 +1188,16 @@ class BinaryQF(SageObject):
             sage: Q1.is_equivalent(Q2, proper=True)
             True
 
+        We check that the first part of :trac:`29028` is fixed::
+
+            sage: Q = BinaryQF(0, 2, 0)
+            sage: Q.discriminant()
+            4
+            sage: Q.is_equivalent(Q, proper=True)
+            True
+            sage: Q.is_equivalent(Q, proper=False)
+            True
+
         A test for rational forms::
 
             sage: Q1 = BinaryQF(0, 4, 2)
@@ -1219,12 +1229,15 @@ class BinaryQF(SageObject):
                 b = selfred._b
                 a = selfred._a
                 ao = otherred._a
-                # Conway Sloane p. 359
+                assert otherred._b == b
+                # p. 359 of Conway-Sloane [Co1999]_
+                # but `2b` in their notation is `b` in our notation
+                is_properly_equiv = ((a-ao) % b == 0)
                 if proper:
-                    return (a-ao) % (2*b) == 0
+                    return is_properly_equiv
                 else:
                     g = gcd(a, b)
-                    return (a*ao - g**2) % (2*b*g) == 0
+                    return is_properly_equiv or ((gcd(ao,b) == g) and ((a*ao - g**2) % (b*g) == 0))
 
             proper_cycle = otherred.cycle(proper=True)
 
@@ -1570,6 +1583,33 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
          x^2 + 12*x*y - y^2,
          4*x^2 + 6*x*y - 7*y^2,
          6*x^2 + 2*x*y - 6*y^2]
+
+    Test another part of :trac:`29028`::
+
+        sage: BinaryQF_reduced_representatives(10^2, proper=False, primitive_only=False)
+        [-4*x^2 + 10*x*y,
+         -3*x^2 + 10*x*y,
+         -2*x^2 + 10*x*y,
+         -x^2 + 10*x*y,
+         10*x*y,
+         x^2 + 10*x*y,
+         2*x^2 + 10*x*y,
+         5*x^2 + 10*x*y]
+        sage: BinaryQF_reduced_representatives(10^2, proper=False, primitive_only=True)
+        [-3*x^2 + 10*x*y, -x^2 + 10*x*y, x^2 + 10*x*y]
+        sage: BinaryQF_reduced_representatives(10^2, proper=True, primitive_only=True)
+        [-3*x^2 + 10*x*y, -x^2 + 10*x*y, x^2 + 10*x*y, 3*x^2 + 10*x*y]
+        sage: BinaryQF_reduced_representatives(10^2, proper=True, primitive_only=False)
+        [-4*x^2 + 10*x*y,
+         -3*x^2 + 10*x*y,
+         -2*x^2 + 10*x*y,
+         -x^2 + 10*x*y,
+         10*x*y,
+         x^2 + 10*x*y,
+         2*x^2 + 10*x*y,
+         3*x^2 + 10*x*y,
+         4*x^2 + 10*x*y,
+         5*x^2 + 10*x*y]
     """
     D = ZZ(D)
 
@@ -1590,8 +1630,8 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
             c = ZZ(0)
             # -b/2 < a <= b/2
             for a in xsrange((-b/2).floor() + 1, (b/2).floor() + 1):
-                Q = BinaryQF(a, b, c)
-                form_list.append(Q)
+                if (not primitive_only) or (gcd([a,b,c]) == 1):
+                    form_list.append(BinaryQF(a, b, c))
         # We follow the description of Buchmann/Vollmer 6.7.1.  They
         # enumerate all reduced forms.  We only want representatives.
         else:

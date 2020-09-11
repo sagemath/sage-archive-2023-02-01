@@ -858,7 +858,7 @@ class SympyConverter(Converter):
             sage: diff(f(x, t), x)._sympy_(), diff(f(x, t), t)._sympy_()
             (Derivative(f(x, t), x), Derivative(f(x, t), t))
 
-        Check differentiating by variables with multiple occurences
+        Check differentiating by variables with multiple occurrences
         (:trac:`28964`)::
 
             sage: f = function('f')

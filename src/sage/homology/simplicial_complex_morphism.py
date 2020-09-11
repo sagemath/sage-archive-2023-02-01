@@ -81,7 +81,7 @@ EXAMPLES::
     sage: z = y.fiber_product(x)
     sage: z                                     # this is the mapping path space
     Simplicial complex morphism:
-      From: Simplicial complex with 6 vertices and 4 facets
+      From: Simplicial complex with 6 vertices and ... facets
       To:   Minimal triangulation of the 2-sphere
       Defn: ['L0R(0, 0)', 'L0R(0, 1)', 'L1R(1, 0)', 'L1R(1, 1)', 'L2R(2, 0)', 'L2R(2, 1)'] --> [0, 0, 1, 1, 2, 2]
 """

@@ -352,8 +352,8 @@ class RiemannSurface(object):
 
         sage: S = RiemannSurface(f, prec=100); S
         Riemann surface defined by polynomial f = -z^3 + w^2 + 1 = 0, with 100 bits of precision
-        sage: S.riemann_matrix() #abs tol 0.00000001
-        [0.500000000000000000000000... + 0.866025403784438646763723...*I]
+        sage: S.riemann_matrix()^6 #abs tol 0.00000001
+        [1.0000000000000000000000000000 - 1.1832913578315177081175928479e-30*I]
 
     We can also work with Riemann surfaces that are defined over fields with a
     complex embedding, but since the current interface for computing genus and

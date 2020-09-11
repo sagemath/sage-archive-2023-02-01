@@ -1061,8 +1061,8 @@ class FanMorphism(FreeModuleMorphism):
             N( 1,  0)
             in 2-d lattice N
             sage: xi.factor()[0].domain_fan().rays()
-            N( 1, 0),
-            N(-1, 0)
+            N(-1, 0),
+            N( 1, 0)
             in Sublattice <N(1, 0)>
 
         We see that one of the rays of the fan of ``P1`` is mapped to a ray,
@@ -1093,7 +1093,7 @@ class FanMorphism(FreeModuleMorphism):
             sage: zeta = prod(zeta.factor()[1:])
             sage: Sigma_p = zeta.codomain_fan()
             sage: [zeta.index(cone) for cone in flatten(Sigma_p.cones())]
-            [4, 4, 1, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1]
+            [4, 4, 4, 1, 4, 4, 4, 1, 1, 1, 1, 1, 1]
             sage: zeta.index() == zeta.index(Sigma_p(0)[0])
             True
         """
@@ -1820,9 +1820,9 @@ class FanMorphism(FreeModuleMorphism):
             Domain fan: Rational polyhedral fan in Sublattice <N(1, 0, 0), N(0, 1, 0)>
             Codomain fan: Rational polyhedral fan in Sublattice <N(1, 0, 0), N(0, 1, 0)>
             sage: phi_b.codomain_fan().rays()
-            N( 1,  0, 0),
+            N(-1, -1, 0),
             N( 0,  1, 0),
-            N(-1, -1, 0)
+            N( 1,  0, 0)
             in Sublattice <N(1, 0, 0), N(0, 1, 0)>
 
         Coordinate plane inclusion (injective)::

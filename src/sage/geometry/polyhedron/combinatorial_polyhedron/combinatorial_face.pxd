@@ -17,7 +17,12 @@ cdef class CombinatorialFace(SageObject):
     cdef int _dimension             # dimension of current face, dual dimension if ``dual``
     cdef int _ambient_dimension     # dimension of the polyhedron
     cdef size_t face_length         # stores length of the faces in terms of uint64_t
-    cdef size_t _hash_index         # an index to give different hashes for all faces of a Polyhedron
+
+    # An index to give different hashes for all faces of a Polyhedron.
+    # The index must be chosen such that `F \subset G` implies ``hash(F) < hash(G)``.
+    cdef size_t _hash_index
+
+    cdef bint _initialized_from_face_lattice
 
     # some copies from ``CombinatorialPolyhedron``
     cdef tuple _ambient_Vrep, _ambient_facets, _equalities

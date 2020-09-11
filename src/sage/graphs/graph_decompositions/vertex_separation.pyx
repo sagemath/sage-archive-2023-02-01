@@ -756,7 +756,7 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
         sage: D = digraphs.Path(8)
         sage: print(vertex_separation(D))
         (0, [7, 6, 5, 4, 3, 2, 1, 0])
-        sage: D = DiGraph( random_DAG(30) )
+        sage: D = digraphs.RandomDirectedAcyclicGraph(10, .5)
         sage: vs,L = vertex_separation(D); vs
         0
         sage: K4 = DiGraph( graphs.CompleteGraph(4) )

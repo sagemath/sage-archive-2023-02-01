@@ -246,20 +246,19 @@ html_theme_path = [os.path.join(SAGE_DOC_SRC, 'common', 'themes')]
 # pixels large.
 html_favicon = 'favicon.ico'
 
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'), THEBE_DIR,
-                    'static']
+# html_static_path defined here and imported in the actual configuration file
+# conf.py read by Sphinx was the cause of subtle bugs in builders (see #30418 for
+# instance). Hence now html_common_static_path contains the common paths to static
+# files, and is combined to html_static_path in each conf.py file read by Sphinx.
+html_common_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'),
+                           THEBE_DIR, 'static']
 
 # We use MathJax to build the documentation unless the environment
 # variable SAGE_DOC_MATHJAX is set to "no" or "False".  (Note that if
 # the user does not set this variable, then the script sage-env sets
 # it to "True".)
 
-if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
-            and os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'False'):
-
+if (os.environ.get('SAGE_DOC_MATHJAX', 'no') not in ['no', 'False']):
     extensions.append('sphinx.ext.mathjax')
     mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
 
@@ -268,13 +267,13 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
 
     mathjax_relative = os.path.basename(MATHJAX_DIR)
 
-    # It would be really nice if sphinx would copy the entire mathjax directory,
-    # (so we could have a _static/mathjax directory), rather than the contents of the directory
+    # It would be really nice if sphinx would copy the entire mathjax
+    # directory, (so we could have a _static/mathjax directory), rather than
+    # the contents of the directory
 
-    html_static_path.append(MATHJAX_DIR)
+    html_common_static_path.append(MATHJAX_DIR)
     exclude_patterns += ['**/'+os.path.join(mathjax_relative, i)
-                         for i in ('docs', 'README*', 'test',
-                                   'unpacked', 'LICENSE')]
+                         for i in ('docs', 'README*', 'test', 'unpacked', 'LICENSE')]
 else:
      extensions.append('sphinx.ext.imgmath')
 

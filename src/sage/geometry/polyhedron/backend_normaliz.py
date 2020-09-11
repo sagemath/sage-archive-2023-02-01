@@ -1545,12 +1545,15 @@ class Polyhedron_normaliz(Polyhedron_base):
 
     def _triangulate_normaliz(self):
         r"""
-        Gives a triangulation of the polyhedron using normaliz
+        Give a triangulation of the polyhedron using normaliz.
 
         OUTPUT:
 
-        A tuple of pairs ``(simplex,simplex_volume)`` used in the
-        triangulation.
+        For compact polyhedra a list of simplices
+        each represented by indices of their vertices.
+
+        For cones a list of simplicial cones
+        each represented by indices of their rays.
 
         .. NOTE::
 
@@ -1568,6 +1571,33 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: C2 = Polyhedron(rays=[[1,0,1],[0,0,1],[0,1,1],[1,1,10/9]],backend='normaliz')  #  optional - pynormaliz
             sage: C2._triangulate_normaliz()  #  optional - pynormaliz
             [(0, 1, 2), (1, 2, 3)]
+
+        Works only for cones and compact polyhedra::
+
+            sage: P = polytopes.cube(backend='normaliz')             # optional - pynormaliz
+            sage: Q = Polyhedron(rays=[[0,1]], backend='normaliz')   # optional - pynormaliz
+            sage: R = Polyhedron(lines=[[0,1]], backend='normaliz')  # optional - pynormaliz
+            sage: (P*Q)._triangulate_normaliz()                      # optional - pynormaliz
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: triangulation of non-compact polyhedra that are not cones is not supported
+            sage: (P*R)._triangulate_normaliz()                      # optional - pynormaliz
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: triangulation of non-compact not pointed polyhedron is not supported
+
+        TESTS:
+
+        Check that :trac:`30531` is fixed::
+
+            sage: P = polytopes.cube(backend='normaliz')*AA(2).sqrt()  # optional - pynormaliz
+            sage: P._triangulate_normaliz()                            # optional - pynormaliz
+            [(0, 1, 2, 4),
+            (1, 2, 4, 3),
+            (1, 3, 4, 5),
+            (3, 5, 6, 7),
+            (6, 2, 4, 3),
+            (6, 3, 4, 5)]
         """
         if self.lines():
             raise NotImplementedError("triangulation of non-compact not pointed polyhedron is not supported")

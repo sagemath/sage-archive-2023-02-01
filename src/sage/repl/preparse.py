@@ -146,7 +146,7 @@ expression::
     -10
 
 This involves -=, which should not be turned into a symbolic
-expression (of course a(x) isn't an identifier, so this will never be
+expression (of course a(x) is not an identifier, so this will never be
 valid)::
 
     sage: preparse('a(x) -= 5')
@@ -460,9 +460,9 @@ class QuoteStack:
         the processed code. Chooses ``'``, ``"``, ``'''``, or ``\"\"\"`` in
         that order.
 
-        Delimiters are never added back to the set of safe ones. They're no
+        Delimiters are never added back to the set of safe ones. They are no
         longer applicable to parsing, but they appear somewhere in the processed
-        code, so they're not safe to insert just anywhere. A future enhancement
+        code, so they are not safe to insert just anywhere. A future enhancement
         could be to map ranges in the processed code to the delimiters that
         would be safe to insert there.
 
@@ -503,16 +503,16 @@ class QuoteStackFrame(SimpleNamespace):
 
         INPUT:
 
-        - ``delim`` - a string; the quote character(s) used: ``'``, ``"``, ``'''``, or ``\"\"\"``
-        - ``raw`` - a boolean (default: False); whether we're in a raw string
-        - ``f_string`` - a boolean (default: False); whether we're in an F-string
-        - ``braces`` - an integer (default: 0); in an F-string,
+        - ``delim`` - string; the quote character(s) used: ``'``, ``"``, ``'''``, or ``\"\"\"``
+        - ``raw`` - boolean (default: ``False``); whether we are in a raw string
+        - ``f_string`` - boolean (default: ``False``); whether we are in an F-string
+        - ``braces`` - integer (default: ``0``); in an F-string,
           how many unclosed ``{``'s have we encountered?
-        - ``parens`` - an integer (default: 0); in a replacement section of an F-string
-          (``braces`` > 0), how many unclosed ``(``'s have we encountered?
-        - ``fmt_spec`` - a boolean (default: False); in the format specifier portion of a
+        - ``parens`` - integer (default: ``0``); in a replacement section of an F-string
+          (``braces > 0``), how many unclosed ``(``'s have we encountered?
+        - ``fmt_spec`` - boolean (default: ``False``); in the format specifier portion of a
           replacement section?
-        - ``nested_fmt_spec`` - a boolean (default: False); in a nested format specifier?
+        - ``nested_fmt_spec`` - boolean (default: ``False``); in a nested format specifier?
           For example, the ``X`` in ``f'{value:{width:X}}'``. Only one level of nesting
           is currently allowed (as of Python 3.8).
 
@@ -617,15 +617,15 @@ def strip_string_literals(code, state=None):
         sage: literals
         {'L1': "'before", 'L2': "after'"}
 
-    '#' isn't handled specially inside a replacement section
-    (Python won't allow it anyways)::
+    '#' is not handled specially inside a replacement section
+    (Python will not allow it anyways)::
 
         sage: s, literals, _ = strip_string_literals("f'#before {#during}' #after"); s
         'f%(L1)s{#during}%(L2)s #%(L3)s'
         sage: literals
         {'L1': "'#before ", 'L2': "'", 'L3': 'after'}
 
-    '{{' and '}}' only escape sequences work in the literal portion of an F-string::
+    '{{' and '}}' escape sequences only work in the literal portion of an F-string::
 
         sage: s, literals, _ = strip_string_literals("f'A{{B}}C}}D{{'"); s
         'f%(L1)s'
@@ -655,7 +655,7 @@ def strip_string_literals(code, state=None):
         ('', '')
 
     Nested format specifiers -- inside a braced section in the main format
-    specier -- are treated as literals.
+    specifier -- are treated as literals.
     (Python doesn't allow any deeper nesting.)::
 
         sage: s, literals, _ = strip_string_literals("f'{value:{width:10}}'"); s
@@ -749,7 +749,7 @@ def strip_string_literals(code, state=None):
             counter += 1
             label = "L%s" % counter
             literals[label] = code[q+1:newline]
-            new_code.append(code[start:q].replace('%','%%'))
+            new_code.append(code[start:q].replace('%', '%%'))
             new_code.append("#%%(%s)s" % label)
             start = q = newline
 
@@ -765,7 +765,7 @@ def strip_string_literals(code, state=None):
                 literals[label] = code[start:q]
                 new_code.append("%%(%s)s" % label)
             else:
-                new_code.append(code[start:q].replace('%','%%'))
+                new_code.append(code[start:q].replace('%', '%%'))
             # Treat the brace itself as code.
             new_code.append(ch)
             if ch == '{':
@@ -793,7 +793,7 @@ def strip_string_literals(code, state=None):
                 # Already in the format specifier, so this must be a nested specifier.
                 quote.nested_fmt_spec = True
             # Treat the preceding substring and the colon itself as code.
-            new_code.append(code[start:q+1].replace('%','%%'))
+            new_code.append(code[start:q+1].replace('%', '%%'))
             start = q+1
 
         elif ch in '\'"':
@@ -847,7 +847,7 @@ def strip_string_literals(code, state=None):
         literals[label] = code[start:]
         new_code.append("%%(%s)s" % label)
     else:
-        new_code.append(code[start:].replace('%','%%'))
+        new_code.append(code[start:].replace('%', '%%'))
 
     return "".join(new_code), literals, state
 
@@ -1102,13 +1102,13 @@ def preparse_numeric_literals(code, extract=False, quotes="'"):
 
     INPUT:
 
-    - ``code`` - a string; a code block to preparse
+    - ``code`` - string; a code block to preparse
 
-    - ``extract`` - a boolean (default: False); whether to create
+    - ``extract`` - boolean (default: ``False``); whether to create
       names for the literals and return a dictionary of
       name-construction pairs
 
-    - ``quotes`` - a string (default: ``"'"``); used to surround string
+    - ``quotes`` - string (default: ``"'"``); used to surround string
       arguments to RealNumber and ComplexNumber. If None, will rebuild
       the string using a list of its Unicode code-points.
 
@@ -1307,7 +1307,9 @@ def preparse_numeric_literals(code, extract=False, quotes="'"):
                     code_points = list(map(ord, list(num)))
                     num_make = "RealNumber(str().join(map(chr, %s)))" % code_points
             else:
-                num = re.sub(r'^0+', '', num) # Strip leading zeroes.
+                # Python 3 does not allow leading zeroes. Sage does, so just strip them out.
+                # The number is still interpreted as decimal, not octal!
+                num = re.sub(r'^0+', '', num)
                 num_make = "Integer(%s)" % num
 
             literals[num_name] = num_make
@@ -2073,7 +2075,7 @@ def handle_encoding_declaration(contents, out):
         - :pep:`263` says that Python will interpret a UTF-8
           byte order mark as a declaration of UTF-8 encoding, but I don't
           think we do that; this function only sees a Python string so it
-          can't account for a BOM.
+          cannot account for a BOM.
 
         - We default to UTF-8 encoding even though PEP 263 says that
           Python files should default to ASCII.

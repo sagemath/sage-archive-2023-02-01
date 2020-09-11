@@ -3439,6 +3439,7 @@ class FindStatMapQuery(FindStatMap):
                                         "Codomain": codomain,
                                         "Name": "a new map from %s to %s" % (domain.name("plural"), codomain.name("plural")),
                                         "References": "",
+                                        "Properties": "",
                                         "SageCode": ""},
                                   function=function)
         Element.__init__(self, FindStatMaps()) # this is not completely correct, but it works

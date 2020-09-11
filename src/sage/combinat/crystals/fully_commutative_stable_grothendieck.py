@@ -385,6 +385,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from sage.monoids.hecke_monoid import HeckeMonoid
             sage: H = HeckeMonoid(SymmetricGroup(3+1))
             sage: w = H.from_reduced_word([2,1,3,2])
             sage: crystals.FullyCommutativeStableGrothendieck(w,3,1)
@@ -441,7 +442,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                from sage.monoids.hecke_monoid import HeckeMonoid
+                sage: from sage.monoids.hecke_monoid import HeckeMonoid
                 sage: H = HeckeMonoid(SymmetricGroup(4+1))
                 sage: w = H.from_reduced_word([2,1,4,3,2])
                 sage: B = crystals.FullyCommutativeStableGrothendieck(w,4,3)
@@ -476,7 +477,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                from sage.monoids.hecke_monoid import HeckeMonoid
+                sage: from sage.monoids.hecke_monoid import HeckeMonoid
                 sage: H = HeckeMonoid(SymmetricGroup(4+1))
                 sage: w = H.from_reduced_word([3,2,1,4,3])
                 sage: B = crystals.FullyCommutativeStableGrothendieck(w,4,3)
@@ -511,7 +512,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                from sage.monoids.hecke_monoid import HeckeMonoid
+                sage: from sage.monoids.hecke_monoid import HeckeMonoid
                 sage: H = HeckeMonoid(SymmetricGroup(4+1))
                 sage: w = H.from_reduced_word([3,2,1,4,3])
                 sage: B = crystals.FullyCommutativeStableGrothendieck(w,3,2)
@@ -654,12 +655,6 @@ def _lowest_weights(w, m, ex):
         """
         Return a standard word equivalent to ``w`` in a 0-Hecke monoid whose
         excess is ``ex``.
-
-        EXAMPLES::
-
-            sage: w = [1,2,1]
-            sage: v = _canonical_word(w,2); v
-            [1, 1, 1, 2, 1]
         """
         L = list(w)
         return [L[0]]*ex + L

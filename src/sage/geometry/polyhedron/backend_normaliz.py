@@ -660,7 +660,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             data["number_field"] = number_field_data
         self._init_from_normaliz_data(data, normaliz_field=normaliz_field, verbose=verbose)
 
-    def _cone_from_Vrepresentation_and_Hrepresentation(self, vertices, rays, lines, ieqs, eqns=None, verbose=False):
+    def _cone_from_Vrepresentation_and_Hrepresentation(self, vertices, rays, lines, ieqs, eqns=None, verbose=False, homogenous=False):
         r"""
         Construct cone from V-representation data and H-representation data.
 
@@ -684,6 +684,9 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         - ``verbose`` -- boolean (default: ``False``); whether to print
           verbose output for debugging purposes
+
+        - ``homogenous`` -- boolean (default: ``False``); if ``True`` set
+          up the cone without explicit inhomogenization
 
         EXAMPLES::
 
@@ -852,7 +855,8 @@ class Polyhedron_normaliz(Polyhedron_base):
                 "support_hyperplanes": nmz_ieqs}
 
         ambient_dim = len(data["extreme_rays"][0])
-        data["dehomogenization"] = [[0]*(ambient_dim-1) + [1]]
+        if not homogenous:
+            data["dehomogenization"] = [[0]*(ambient_dim-1) + [1]]
 
         number_field_data = self._number_field_triple(normaliz_field)
         if number_field_data:
@@ -1565,46 +1569,43 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: C2._triangulate_normaliz()  #  optional - pynormaliz
             [(0, 1, 2), (1, 2, 3)]
         """
-        cone = self._normaliz_cone
-        assert cone
         if self.lines():
             raise NotImplementedError("triangulation of non-compact not pointed polyhedron is not supported")
         if len(self.vertices_list()) >= 2 and self.rays_list():  # A mix of polytope and cone
             raise NotImplementedError("triangulation of non-compact polyhedra that are not cones is not supported")
 
-        data = self._get_nmzcone_data()
-        # Recreates a pointed cone. This is a hack and should be fixed once
-        # Normaliz accepts compact polyhedron
-        # For now, we lose the information about the volume?
-        # if self.is_compact():
-        #     data['cone'] = data['vertices']
-        if not self.is_compact():
-            data.pop('vertices', None)
-        data.pop('inhom_equations', None)
-        data.pop('inhom_inequalities', None)
-        cone = self._make_normaliz_cone(data)
+        if self.is_compact():
+            cone = self._normaliz_cone
+        else:
+            # Make a inhomogenous copy of the cone.
+            cone = self._cone_from_Vrepresentation_and_Hrepresentation(
+                    self.vertices(), self.rays(), self.lines(),
+                    self.inequalities(), self.equations(), homogenous=True)
 
+        # Compute the triangulation.
+        assert cone
         nmz_triangulation = self._nmz_result(cone, "Triangulation")
-        triang_indices = tuple(vector(ZZ, s[0]) for s in nmz_triangulation)
 
-        # Get the Normaliz ordering of generators
         if self.is_compact():
-            generators = [list(vector(ZZ, g)[:-1]) for g in self._cone_generators(cone)]
+            return [tuple(x[0]) for x in nmz_triangulation]
         else:
-            generators = [list(vector(ZZ, g)) for g in self._cone_generators(cone)]
+            # Find the index of the vertex.
+            for i,g in enumerate(self._nmz_result(cone, "ExtremeRays")):
+                if g[-1] > 0:
+                    vertex_index = i
+                    break
+            else:
+                raise AssertionError("the normaliz cone does not have a ray [0,0,...,1]")
 
-        # Get the Sage ordering of generators
-        if self.is_compact():
-            poly_gen = self.vertices_list()
-        else:
-            poly_gen = self.rays_list()
+            def indices_to_new_indices(x):
+                for i in x:
+                    if i < vertex_index:
+                        yield i
+                    if i > vertex_index:
+                        yield i-1
 
-        # When triangulating, Normaliz uses the indexing of 'Generators' and
-        # not necessarily the indexing of the V-representation. So we apply the
-        # appropriate relabeling into the V-representation inside sage.
-        triangulation = [tuple(sorted([poly_gen.index(generators[i]) for i in s])) for s in triang_indices]
+            return [tuple(indices_to_new_indices(x[0])) for x in nmz_triangulation]
 
-        return triangulation
 
 
 #########################################################################

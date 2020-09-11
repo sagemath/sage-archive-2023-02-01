@@ -949,7 +949,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             return H.sage({"x":x})
 
         else:
-             raise NotImplentedError("algorithm must be one of 'pari' or 'sage'")
+            raise NotImplementedError("algorithm must be one of 'pari' or 'sage'")
 
 
     def fixed_field(self):

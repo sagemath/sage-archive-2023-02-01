@@ -3284,7 +3284,6 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         m = self.conductor()
         d = self.degree()
         A = _splitting_classes_gens_(self,m,d)
-        n = len(A)
         # d could be improve to be the exponenent of the Galois group rather than the degree, but I do not see how to how about it already.
         G = DirichletGroup(m, CyclotomicField(d))
         H = [G(1)]
@@ -3292,11 +3291,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             if len(H) == d:
                 break
             if chi not in H:
-                if prod( chi(a)==1 for a in A):
+                if all(chi(a) == 1 for a in A):
                     H.append(chi)
         return H
-
-
 
     def latex_variable_name(self, name=None):
         """

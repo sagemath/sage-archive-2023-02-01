@@ -526,16 +526,16 @@ def BIBD_from_TD(v,k,existence=False):
 
     INPUT:
 
-    - ``v,k`` (integers) -- computes a `(v,k,1)`-BIBD.
+    - ``v,k`` -- (integers) computes a `(v,k,1)`-BIBD.
 
-    - ``existence`` (boolean) -- instead of building the design, return:
+    - ``existence``  -- (boolean) instead of building the design, return:
 
-        - ``True`` -- meaning that Sage knows how to build the design
+      - ``True`` -- meaning that Sage knows how to build the design
 
-        - ``Unknown`` -- meaning that Sage does not know how to build the
-          design, but that the design may exist (see :mod:`sage.misc.unknown`).
+      - ``Unknown`` -- meaning that Sage does not know how to build the
+        design, but that the design may exist (see :mod:`sage.misc.unknown`)
 
-        - ``False`` -- meaning that the design does not exist.
+      - ``False`` -- meaning that the design does not exist
 
     This method implements three constructions:
 

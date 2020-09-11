@@ -183,9 +183,18 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             raise ArithmeticError("could not determine eigenvalues exactly using symbolic matrices; try using a different type of matrix via self.change_ring(), if possible")
         return sum([[ev] * int(mult) for ev, mult in zip(*maxima_evals)], [])
 
-    def eigenvectors_left(self):
+    def eigenvectors_left(self, other=None):
         r"""
         Compute the left eigenvectors of a matrix.
+
+        INPUT:
+
+        - ``other`` -- a square matrix `B` (default: ``None``) in a generalized
+          eigenvalue problem; if ``None``, an ordinary eigenvalue problem is
+          solved (currently supported only if the base ring of ``self`` is
+          ``RDF`` or ``CDF``)
+
+        OUTPUT:
 
         For each distinct eigenvalue, returns a list of the form (e,V,n)
         where e is the eigenvalue, V is a list of eigenvectors forming a
@@ -256,7 +265,22 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             sage: am = G.adjacency_matrix().change_ring(SR)
             sage: am.eigenvectors_left()
             [(-1, [(1, 0, -1, 1, 0, -1), (0, 1, -1, 0, 1, -1)], 2), (1, [(1, 0, -1, -1, 0, 1), (0, 1, 1, 0, -1, -1)], 2), (-2, [(1, -1, 1, -1, 1, -1)], 1), (2, [(1, 1, 1, 1, 1, 1)], 1)]
+
+        TESTS::
+
+            sage: A = matrix(SR, [[1, 2], [3, 4]])
+            sage: B = matrix(SR, [[1, 1], [0, 1]])
+            sage: A.eigenvectors_left(B)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: generalized eigenvector decomposition is
+            implemented for RDF and CDF, but not for Symbolic Ring
         """
+        if other is not None:
+            raise NotImplementedError('generalized eigenvector decomposition '
+                                      'is implemented for RDF and CDF, but '
+                                      'not for %s' % self.base_ring())
+
         from sage.modules.free_module_element import vector
         from sage.rings.integer_ring import ZZ
 
@@ -267,9 +291,18 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
 
         return result
 
-    def eigenvectors_right(self):
+    def eigenvectors_right(self, other=None):
         r"""
         Compute the right eigenvectors of a matrix.
+
+        INPUT:
+
+        - ``other`` -- a square matrix `B` (default: ``None``) in a generalized
+          eigenvalue problem; if ``None``, an ordinary eigenvalue problem is
+          solved (currently supported only if the base ring of ``self`` is
+          ``RDF`` or ``CDF``)
+
+        OUTPUT:
 
         For each distinct eigenvalue, returns a list of the form (e,V,n)
         where e is the eigenvalue, V is a list of eigenvectors forming a
@@ -291,8 +324,18 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             [(-1/2*sqrt(17) + 3/2, [(1, -1/2*sqrt(17) + 3/2)], 1), (1/2*sqrt(17) + 3/2, [(1, 1/2*sqrt(17) + 3/2)], 1)]
             sage: right[0][1] == left[0][1]
             True
+
+        TESTS::
+
+            sage: A = matrix(SR, [[1, 2], [3, 4]])
+            sage: B = matrix(SR, [[1, 1], [0, 1]])
+            sage: A.eigenvectors_right(B)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: generalized eigenvector decomposition is
+            implemented for RDF and CDF, but not for Symbolic Ring
         """
-        return self.transpose().eigenvectors_left()
+        return self.transpose().eigenvectors_left(other=other)
 
     def exp(self):
         r"""

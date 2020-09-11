@@ -4702,8 +4702,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``S``, a list of lists -- list of element blocks that the congruence
-          will contain.
+        - ``S`` -- a list of lists; list of element blocks that the congruence
+          will contain
 
         OUTPUT:
 

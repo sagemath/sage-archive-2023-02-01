@@ -48,7 +48,7 @@ Here is what the module can do:
     :widths: 30, 70
     :delim: |
 
-    :meth:`bridges` | Returns a list of the bridges (or cut edges) of given undirected graph.
+    :meth:`bridges` | Returns an iterator over the bridges (or cut edges) of given undirected graph.
     :meth:`cleave` | Return the connected subgraphs separated by the input vertex cut.
     :meth:`is_triconnected` | Check whether the graph is triconnected.
     :meth:`spqr_tree` | Return a SPQR-tree representing the triconnected components of the graph.
@@ -1855,7 +1855,7 @@ def strong_articulation_points(G):
 
 def bridges(G, labels=True):
     r"""
-    Return a list of the bridges (or cut edges).
+    Return an iterator over the bridges (or cut edges).
 
     A bridge is an edge whose deletion disconnects the undirected graph.
     A disconnected graph has no bridge.
@@ -1873,13 +1873,26 @@ def bridges(G, labels=True):
         sage: g.add_edge(1, 10)
         sage: is_connected(g)
         True
-        sage: bridges(g)
+        sage: list(bridges(g))
         [(1, 10, None)]
-        sage: g.bridges()
+        sage: list(g.bridges())
         [(1, 10, None)]
 
+    Every edge of a tree is a bridge::
+
+        sage: g = graphs.RandomTree(100)
+        sage: sum(1 for _ in g.bridges()) == 99
+        True
 
     TESTS:
+
+    Disconnected graphs have no bridges::
+
+        sage: g = 2*graphs.PetersenGraph()
+        sage: next(g.bridges())
+        Traceback (most recent call last):
+        ...
+        StopIteration
 
     Graph with multiple edges and edge labels::
 
@@ -1887,24 +1900,24 @@ def bridges(G, labels=True):
         sage: g.allow_multiple_edges(True)
         sage: g.add_edges(g.edges(sort=False))
         sage: g.add_edge(2, 3, "label")
-        sage: bridges(g, labels=True)
+        sage: list(bridges(g, labels=True))
         [(2, 3, 'label')]
 
     Ticket :trac:`23817` is solved::
 
         sage: G = Graph()
         sage: G.add_edge(0, 1)
-        sage: bridges(G)
+        sage: list(bridges(G))
         [(0, 1, None)]
         sage: G.allow_loops(True)
         sage: G.add_edge(0, 0)
         sage: G.add_edge(1, 1)
-        sage: bridges(G)
+        sage: list(bridges(G))
         [(0, 1, None)]
 
     If ``G`` is not a Sage Graph, an error is raised::
 
-        sage: bridges('I am not a graph')
+        sage: next(bridges('I am not a graph'))
         Traceback (most recent call last):
         ...
         TypeError: the input must be an undirected Sage graph
@@ -1915,7 +1928,7 @@ def bridges(G, labels=True):
 
     # Small graphs and disconnected graphs have no bridge
     if G.order() < 2 or not is_connected(G):
-        return []
+        return
 
     B,C = G.blocks_and_cut_vertices()
 
@@ -1923,7 +1936,6 @@ def bridges(G, labels=True):
     # multiple edges.
     cdef bint multiple_edges = G.allows_multiple_edges()
     cdef set ME = set(G.multiple_edges(labels=False)) if multiple_edges else set()
-    cdef list my_bridges = []
     for b in B:
         if len(b) == 2 and not tuple(b) in ME:
             if labels:
@@ -1931,11 +1943,10 @@ def bridges(G, labels=True):
                     [label] = G.edge_label(b[0], b[1])
                 else:
                     label = G.edge_label(b[0], b[1])
-                my_bridges.append((b[0], b[1], label))
+                yield (b[0], b[1], label)
             else:
-                my_bridges.append(tuple(b))
+                yield tuple(b)
 
-    return my_bridges
 
 # ==============================================================================
 # Methods for finding 3-vertex-connected components and building SPQR-tree

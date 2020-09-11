@@ -104,6 +104,7 @@ Comprehensive Module list
     sage/combinat/designs/difference_matrices
     sage/combinat/designs/evenly_distributed_sets
     sage/combinat/designs/ext_rep
+    sage/combinat/designs/gen_quadrangles_with_spread
     sage/combinat/designs/incidence_structures
     sage/combinat/designs/latin_squares
     sage/combinat/designs/orthogonal_arrays
@@ -121,6 +122,7 @@ Comprehensive Module list
     sage/combinat/expnums
     sage/combinat/family
     sage/combinat/fast_vector_partitions
+    sage/combinat/fully_commutative_elements
     sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
     sage/combinat/fqsym
@@ -189,6 +191,7 @@ Comprehensive Module list
     sage/combinat/posets/all
     sage/combinat/posets/cartesian_product
     sage/combinat/posets/d_complete
+    sage/combinat/posets/mobile
     sage/combinat/posets/elements
     sage/combinat/posets/forest
     sage/combinat/posets/hasse_diagram

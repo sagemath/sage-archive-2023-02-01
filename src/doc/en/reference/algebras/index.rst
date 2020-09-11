@@ -97,6 +97,7 @@ Non-associative algebras
    :maxdepth: 2
 
    lie_algebras
+   lie_conformal_algebras
    sage/algebras/jordan_algebra
    sage/combinat/free_dendriform_algebra
    sage/combinat/free_prelie_algebra

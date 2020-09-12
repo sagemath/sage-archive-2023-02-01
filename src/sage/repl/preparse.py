@@ -378,7 +378,9 @@ class QuoteStack:
             0
             sage: qs.push(sage.repl.preparse.QuoteStackFrame("'")); len(qs)
             1
-            sage: _ = qs.pop(); len(qs)
+            sage: qs.pop()
+            QuoteStackFrame(...)
+            sage: len(qs)
             0
 
         """
@@ -588,7 +590,7 @@ def strip_string_literals(code, state=None):
     EXAMPLES::
 
         sage: from sage.repl.preparse import strip_string_literals
-        sage: s, literals, _ = strip_string_literals(r'''['a', "b", 'c', "d\""]''')
+        sage: s, literals, state = strip_string_literals(r'''['a', "b", 'c', "d\""]''')
         sage: s
         '[%(L1)s, %(L2)s, %(L3)s, %(L4)s]'
         sage: literals
@@ -600,7 +602,7 @@ def strip_string_literals(code, state=None):
 
     Triple-quotes are handled as well::
 
-        sage: s, literals, _ = strip_string_literals("[a, '''b''', c, '']")
+        sage: s, literals, state = strip_string_literals("[a, '''b''', c, '']")
         sage: s
         '[a, %(L1)s, c, %(L2)s]'
         sage: print(s % literals)
@@ -608,7 +610,7 @@ def strip_string_literals(code, state=None):
 
     Comments are substitute too::
 
-        sage: s, literals, _ = strip_string_literals("code '#' # ccc 't'"); s
+        sage: s, literals, state = strip_string_literals("code '#' # ccc 't'"); s
         'code %(L1)s #%(L2)s'
         sage: s % literals
         "code '#' # ccc 't'"
@@ -616,40 +618,40 @@ def strip_string_literals(code, state=None):
     A state is returned so one can break strings across multiple calls to
     this function::
 
-        sage: s, _, state = strip_string_literals('s = "some'); s
+        sage: s, literals, state = strip_string_literals('s = "some'); s
         's = %(L1)s'
-        sage: s, _, _ = strip_string_literals('thing" * 5', state); s
+        sage: s, literals, state = strip_string_literals('thing" * 5', state); s
         '%(L1)s * 5'
 
     TESTS:
 
     Even for raw strings, a backslash can escape a following quote::
 
-        sage: s, _, _ = strip_string_literals(r"r'somethin\' funny'"); s
+        sage: s, literals, state = strip_string_literals(r"r'somethin\' funny'"); s
         'r%(L1)s'
         sage: dep_regex = r'^ *(?:(?:cimport +([\w\. ,]+))|(?:from +(\w+) +cimport)|(?:include *[\'"]([^\'"]+)[\'"])|(?:cdef *extern *from *[\'"]([^\'"]+)[\'"]))' # Ticket 5821
 
     Some extra tests for escaping with odd/even numbers of backslashes::
 
-        sage: s, literals, _ = strip_string_literals(r"'somethin\\' 'funny'"); s
+        sage: s, literals, state = strip_string_literals(r"'somethin\\' 'funny'"); s
         '%(L1)s %(L2)s'
         sage: literals
         {'L1': "'somethin\\\\'", 'L2': "'funny'"}
-        sage: s, literals, _ = strip_string_literals(r"'something\\\' funny'"); s
+        sage: s, literals, state = strip_string_literals(r"'something\\\' funny'"); s
         '%(L1)s'
         sage: literals
         {'L1': "'something\\\\\\' funny'"}
 
     Braces don't do anything special in normal strings::
 
-        sage: s, literals, _ = strip_string_literals("'before{during}after'"); s
+        sage: s, literals, state = strip_string_literals("'before{during}after'"); s
         '%(L1)s'
         sage: literals
         {'L1': "'before{during}after'"}
 
     But they are treated special in F-strings::
 
-        sage: s, literals, _ = strip_string_literals("f'before{during}after'"); s
+        sage: s, literals, state = strip_string_literals("f'before{during}after'"); s
         'f%(L1)s{during}%(L2)s'
         sage: literals
         {'L1': "'before", 'L2': "after'"}
@@ -657,36 +659,36 @@ def strip_string_literals(code, state=None):
     '#' is not handled specially inside a replacement section
     (Python will not allow it anyways)::
 
-        sage: s, literals, _ = strip_string_literals("f'#before {#during}' #after"); s
+        sage: s, literals, state = strip_string_literals("f'#before {#during}' #after"); s
         'f%(L1)s{#during}%(L2)s #%(L3)s'
         sage: literals
         {'L1': "'#before ", 'L2': "'", 'L3': 'after'}
 
     '{{' and '}}' escape sequences only work in the literal portion of an F-string::
 
-        sage: s, literals, _ = strip_string_literals("f'A{{B}}C}}D{{'"); s
+        sage: s, literals, state = strip_string_literals("f'A{{B}}C}}D{{'"); s
         'f%(L1)s'
         sage: literals
         {'L1': "'A{{B}}C}}D{{'"}
-        sage: s, literals, _ = strip_string_literals("f'{ A{{B}}C }'"); s
+        sage: s, literals, state = strip_string_literals("f'{ A{{B}}C }'"); s
         'f%(L1)s{ A{{B}}C }%(L2)s'
         sage: literals
         {'L1': "'", 'L2': "'"}
 
     Nested braces in the replacement section (such as for a dict literal)::
 
-        sage: s, literals, _ = strip_string_literals(''' f'{ {"x":1, "y":2} }' '''); s
+        sage: s, literals, state = strip_string_literals(''' f'{ {"x":1, "y":2} }' '''); s
         ' f%(L1)s{ {%(L2)s:1, %(L3)s:2} }%(L4)s '
         sage: literals
         {'L1': "'", 'L2': '"x"', 'L3': '"y"', 'L4': "'"}
 
     Format specifier treated as literal except for braced sections within::
 
-        sage: s, literals, _ = strip_string_literals("f'{value:width}'"); s
+        sage: s, literals, state = strip_string_literals("f'{value:width}'"); s
         'f%(L1)s{value:%(L2)s}%(L3)s'
         sage: literals['L2']
         'width'
-        sage: s, literals, _ = strip_string_literals("f'{value:{width}}'"); s
+        sage: s, literals, state = strip_string_literals("f'{value:{width}}'"); s
         'f%(L1)s{value:%(L2)s{width}%(L3)s}%(L4)s'
         sage: (literals['L2'], literals['L3']) # empty; not ideal, but not harmful
         ('', '')
@@ -695,7 +697,7 @@ def strip_string_literals(code, state=None):
     specifier -- are treated as literals.
     (Python doesn't allow any deeper nesting.)::
 
-        sage: s, literals, _ = strip_string_literals("f'{value:{width:10}}'"); s
+        sage: s, literals, state = strip_string_literals("f'{value:{width:10}}'"); s
         'f%(L1)s{value:%(L2)s{width:%(L3)s}%(L4)s}%(L5)s'
         sage: literals['L3']
         '10'
@@ -703,28 +705,28 @@ def strip_string_literals(code, state=None):
     A colon inside parentheses doesn't start the format specifier in order to
     allow lambdas. (Python requires lambdas in F-strings to be in parentheses.)::
 
-        sage: s, _, _ = strip_string_literals("f'{(lambda x: x^2)(4)}'"); s
+        sage: s, literals, state = strip_string_literals("f'{(lambda x: x^2)(4)}'"); s
         'f%(L1)s{(lambda x: x^2)(4)}%(L2)s'
 
     Similarly, a colon inside brackets doesn't start the format specifier in order
     to allow slices.::
 
-        sage: s, _, _ = strip_string_literals("f'{[0, 1, 2, 3][1:3]}'"); s
+        sage: s, literals, state = strip_string_literals("f'{[0, 1, 2, 3][1:3]}'"); s
         'f%(L1)s{[0, 1, 2, 3][1:3]}%(L2)s'
 
     'r' and 'f' can be mixed to create raw F-strings::
 
-        sage: _, _, stack = strip_string_literals("'"); stack.peek()
+        sage: s, literals, stack = strip_string_literals("'"); stack.peek()
         QuoteStackFrame(...f_string=False...raw=False...)
-        sage: _, _, stack = strip_string_literals("f'"); stack.peek()
+        sage: s, literals, stack = strip_string_literals("f'"); stack.peek()
         QuoteStackFrame(...f_string=True...raw=False...)
-        sage: _, _, stack = strip_string_literals("r'"); stack.peek()
+        sage: s, literals, stack = strip_string_literals("r'"); stack.peek()
         QuoteStackFrame(...f_string=False...raw=True...)
-        sage: _, _, stack = strip_string_literals("rf'"); stack.peek()
+        sage: s, literals, stack = strip_string_literals("rf'"); stack.peek()
         QuoteStackFrame(...f_string=True...raw=True...)
-        sage: _, _, stack = strip_string_literals("fr'"); stack.peek()
+        sage: s, literals, stack = strip_string_literals("fr'"); stack.peek()
         QuoteStackFrame(...f_string=True...raw=True...)
-        sage: _, _, stack = strip_string_literals("FR'"); stack.peek()
+        sage: s, literals, stack = strip_string_literals("FR'"); stack.peek()
         QuoteStackFrame(...f_string=True...raw=True...)
 
     Verify that state gets carried over correctly between calls with F-strings::
@@ -756,7 +758,7 @@ def strip_string_literals(code, state=None):
     Make sure the end result is the same whether broken up into multiple calls
     or processed all at once::
 
-        sage: s, lit, _ = strip_string_literals(''' f'{r"abc".upper()[1:]:{width:10}}' ''')
+        sage: s, lit, state = strip_string_literals(''' f'{r"abc".upper()[1:]:{width:10}}' ''')
         sage: s_one_time = s % lit; s_one_time
         ' f\'{r"abc".upper()[1:]:{width:10}}\' '
         sage: s_broken_up == s_one_time
@@ -1883,7 +1885,7 @@ def preparse_file(contents, globals=None, numeric_literals=True):
         numeric_literals = False
 
     if numeric_literals:
-        contents, literals, _ = strip_string_literals(contents)
+        contents, literals, state = strip_string_literals(contents)
         contents, nums = extract_numeric_literals(contents)
         contents = contents % literals
         if nums:
@@ -1990,7 +1992,7 @@ def implicit_mul(code, level=5):
                                           code[m.end():])
         return code
 
-    code, literals, _ = strip_string_literals(code)
+    code, literals, state = strip_string_literals(code)
     if level >= 1:
         no_mul_token = " '''_no_mult_token_''' "
         code = re.sub(r'\b0x', r'0%sx' % no_mul_token, code)  # hex digits

@@ -177,7 +177,9 @@ save () {
     NEWCONFBALL="upstream/configure-$NEWCONFVERSION.tar.gz"
 
     # Create configure tarball
-    echo "Creating $NEWCONFBALL..."
+    if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
+	echo "Creating $NEWCONFBALL..."
+    fi
     mkdir -p upstream
     tar zcf "$NEWCONFBALL" \
 	configure \
@@ -191,7 +193,12 @@ save () {
     echo "$NEWCONFVERSION" >$PKG/package-version.txt
 
     # Compute checksum
-    ./sage --package fix-checksum configure
+    if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
+	./sage --package fix-checksum configure
+    else
+	# Hide the "Updating checksum..." message
+	./sage --package fix-checksum configure > /dev/null
+    fi
 }
 
 

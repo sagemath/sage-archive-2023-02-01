@@ -506,7 +506,7 @@ class AbstractSetPartition(ClonableArray,
                     out.append(a)
             return out
         def pre_conjugate(sp):
-            if len(sp) == 1:
+            if len(sp) <= 1:
                 return SetPartition([[a] for S in sp for a in S])
             if sp.max_block_size() == 1:
                 return SetPartition([sp.base_set()])

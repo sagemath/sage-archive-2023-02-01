@@ -857,9 +857,9 @@ def strip_string_literals(code, state=None):
         elif ch in '\'"':
             if in_literal():
                 # Deal with escaped quotes (odd number of backslashes preceding).
-                if code[q-1] == '\\':
+                if q>0 and code[q-1] == '\\':
                     k = 2
-                    while code[q-k] == '\\':
+                    while q >= k and code[q-k] == '\\':
                         k += 1
                     if k % 2 == 0:
                         q += 1

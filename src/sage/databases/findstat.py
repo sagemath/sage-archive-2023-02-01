@@ -205,7 +205,7 @@ Classes and methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import iteritems, add_metaclass, string_types
+from six import add_metaclass, string_types
 from sage.misc.lazy_list import lazy_list
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
@@ -255,6 +255,7 @@ from sage.combinat.words.words import Words
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.colored_permutations import SignedPermutations
 from sage.combinat.plane_partition import PlanePartition, PlanePartitions
+from sage.combinat.decorated_permutation import DecoratedPermutation, DecoratedPermutations
 
 ######################################################################
 # the FindStat URLs
@@ -453,7 +454,7 @@ def _submit(args, url):
     verbose("Created temporary file %s" % f.name, caller_name='FindStat')
     f.write(FINDSTAT_POST_HEADER)
     f.write(url)
-    for key, value in iteritems(args):
+    for key, value in args.items():
         if value:
             verbose("writing argument %s" % key, caller_name='FindStat')
             value_encoded = html.escape(value, quote=True)
@@ -3752,6 +3753,33 @@ def _plane_partitions_by_size_aux(n, outer=None):
                 yield pp
 
 def _plane_partitions_by_size(n):
+    """
+    Iterate over the plane partitions with `n` boxes.
+
+    .. TODO::
+
+        This can be replaced when :trac:`28244` is merged.
+
+    INPUT:
+
+    - n -- an integer.
+
+    OUTPUT:
+
+    The plane partitions with `n` boxes.
+
+    TESTS::
+
+        sage: from sage.databases.findstat import _plane_partitions_by_size
+        sage: list(_plane_partitions_by_size(3))
+        [Plane partition [[1], [1], [1]],
+         Plane partition [[2], [1]],
+         Plane partition [[1, 1], [1]],
+         Plane partition [[3]],
+         Plane partition [[2, 1]],
+         Plane partition [[1, 1, 1]]]
+
+    """
     for pp in _plane_partitions_by_size_aux(n):
         yield PlanePartition(pp[:-1])
 
@@ -4033,6 +4061,7 @@ class FindStatCollection(Element):
             Cc0023: Parking functions 18248 True
             Cc0024: Binary words 1022 True
             Cc0025: Plane partitions 1123 True
+            Cc0026: Decorated permutations 2371 True
             Cc0027: Signed permutations 4282 True
             Cc0028: Skew partitions 1250 True
         """
@@ -4364,7 +4393,15 @@ _SupportedFindStatCollections = {
                                  lambda X: str(list(X)).replace(" ",""),
                                  _plane_partitions_by_size,
                                  lambda x: sum(sum(la) for la in x),
-                                 lambda x: isinstance(x, PlanePartition))}
+                                 lambda x: isinstance(x, PlanePartition)),
+    "DecoratedPermutations":
+    _SupportedFindStatCollection(lambda x: DecoratedPermutation([v if v > 0 else (i if v == 0 else -i)
+                                                                 for i, v in enumerate(literal_eval(x.replace("+","0").replace("-","-1")), 1)]),
+                                 lambda x: "[" + ",".join([str(v) if abs(v) != i else ("+" if v > 0 else "-")
+                                                           for i, v in enumerate(x, 1)]) + "]",
+                                 DecoratedPermutations,
+                                 lambda x: x.size(),
+                                 lambda x: isinstance(x, DecoratedPermutation))}
 
 
 class FindStatCollections(UniqueRepresentation, Parent):
@@ -4469,6 +4506,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
              Cc0023: Parking functions,
              Cc0024: Binary words,
              Cc0025: Plane partitions,
+             Cc0026: Decorated permutations,
              Cc0027: Signed permutations,
              Cc0028: Skew partitions]
 

@@ -719,16 +719,14 @@ cdef uint32_t * c_eccentricity(G, vertex_list=None) except NULL:
 
     return ecc
 
-cdef uint32_t * c_eccentricity_bounding(G, vertex_list=None) except NULL:
+cdef uint32_t * c_eccentricity_bounding(short_digraph sd) except NULL:
     r"""
-    Return the vector of eccentricities in G using the algorithm of [TK2013]_.
+    Return the vector of eccentricities using the algorithm of [TK2013]_.
 
-    The array returned is of length `n`, and by default its `i`-th component is
-    the eccentricity of the `i`-th vertex in ``G.vertices()``.
+    The array returned is of length `n`, and its `i`-th component is the
+    eccentricity of vertex `i` in ``sd``.
 
-    Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
-    mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When set,
-    ``ecc[i]`` is the eccentricity of vertex ``vertex_list[i]``.
+    This method assumes that ``sd`` is an undirected graph.
 
     The algorithm proposed in [TK2013]_ is based on the observation that for all
     nodes `v,w\in V`, we have `\max(ecc[v]-d(v,w), d(v,w))\leq ecc[w] \leq
@@ -736,30 +734,21 @@ cdef uint32_t * c_eccentricity_bounding(G, vertex_list=None) except NULL:
     bounds on the eccentricity of each node until no further improvements can be
     done. This algorithm offers good running time reduction on scale-free graphs.
     """
-    if G.is_directed():
-        raise ValueError("The 'bounds' algorithm only works on undirected graphs.")
-
-    # Copying the whole graph to obtain the list of neighbors quicker than by
-    # calling out_neighbors.  This data structure is well documented in the
-    # module sage.graphs.base.static_sparse_graph
-    cdef unsigned int n = G.order()
-    cdef short_digraph sd
-    init_short_digraph(sd, G, edge_labelled=False, vertex_list=vertex_list)
+    cdef unsigned int n = sd.n
 
     # allocated some data structures
-    cdef bitset_t seen
-    bitset_init(seen, n)
-    cdef uint32_t * distances = <uint32_t *>sig_malloc(3 * n * sizeof(uint32_t))
-    cdef uint32_t * LB        = <uint32_t *>sig_calloc(n, sizeof(uint32_t))
-    if distances==NULL or LB==NULL:
-        bitset_free(seen)
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *> mem.malloc(3 * n * sizeof(uint32_t))
+    cdef uint32_t * LB        = <uint32_t *> sig_calloc(n, sizeof(uint32_t))
+    if not distances or not LB:
         sig_free(LB)
-        sig_free(distances)
         free_short_digraph(sd)
         raise MemoryError()
     cdef uint32_t * waiting_list = distances + n
     cdef uint32_t * UB           = distances + 2 * n
     memset(UB, -1, n * sizeof(uint32_t))
+    cdef bitset_t seen
+    bitset_init(seen, n)
 
     cdef uint32_t v, w, next_v, tmp, cpt = 0
 
@@ -796,22 +785,18 @@ cdef uint32_t * c_eccentricity_bounding(G, vertex_list=None) except NULL:
 
     sig_off()
 
-    sig_free(distances)
     bitset_free(seen)
-    free_short_digraph(sd)
 
     return LB
 
-cdef uint32_t * c_eccentricity_DHV(G, vertex_list=None):
+cdef uint32_t * c_eccentricity_DHV(short_digraph sd) except NULL:
     r"""
     Return the vector of eccentricities using the algorithm of [Dragan2018]_.
 
-    The array returned is of length `n`, and by default its `i`-th component is
-    the eccentricity of the `i`-th vertex in ``G.vertices()``.
+    The array returned is of length `n`, and its `i`-th component is the
+    eccentricity of vertex `i` in ``sd``.
 
-    Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
-    mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When set,
-    ``ecc[i]`` is the eccentricity of vertex ``vertex_list[i]``.
+    This method assumes that ``sd`` is an undirected graph.
 
     The algorithm proposed in [Dragan2018]_ is an improvement of the algorithm
     proposed in [TK2013]_. It is also based on the observation that for all
@@ -834,15 +819,9 @@ cdef uint32_t * c_eccentricity_DHV(G, vertex_list=None):
         sage: eccentricity(G, algorithm='bounds') == eccentricity(G, algorithm='DHV')
         True
     """
-    if G.is_directed():
-        raise ValueError("the 'DHV' algorithm only works on undirected graphs")
-
-    cdef uint32_t n = G.order()
+    cdef uint32_t n = sd.n
     if not n:
         return NULL
-
-    cdef short_digraph sd
-    init_short_digraph(sd, G, edge_labelled=False, vertex_list=vertex_list)
 
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef uint32_t * distances = <uint32_t *> mem.malloc(3 * n * sizeof(uint32_t))
@@ -929,7 +908,6 @@ cdef uint32_t * c_eccentricity_DHV(G, vertex_list=None):
                 else:
                     i += 1
 
-    free_short_digraph(sd)
     bitset_free(seen)
 
     return ecc_upper_bound
@@ -1027,11 +1005,14 @@ def eccentricity(G, algorithm="standard", vertex_list=None):
     """
     from sage.rings.infinity import Infinity
     cdef int n = G.order()
+    cdef short_digraph sd
 
     # Trivial cases
+    if algorithm not in ['standard', 'bounds', 'DHV']:
+        raise ValueError("unknown algorithm '{}', please contribute".format(algorithm))
     if not n:
         return []
-    elif G.is_directed() and algorithm == 'bounds':
+    elif G.is_directed() and algorithm in ['bounds', 'DHV']:
         raise ValueError("the 'bounds' algorithm only works on undirected graphs")
     elif not G.is_connected():
         return [Infinity] * n
@@ -1045,14 +1026,19 @@ def eccentricity(G, algorithm="standard", vertex_list=None):
         raise ValueError("parameter vertex_list is incorrect for this graph")
 
     cdef uint32_t* ecc
-    if algorithm == "bounds":
-        ecc = c_eccentricity_bounding(G, vertex_list=int_to_vertex)
-    elif algorithm == "standard":
+
+    if algorithm == "standard":
         ecc = c_eccentricity(G, vertex_list=int_to_vertex)
-    elif algorithm == "DHV":
-        ecc = c_eccentricity_DHV(G, vertex_list=int_to_vertex)
+
     else:
-        raise ValueError("unknown algorithm '{}', please contribute".format(algorithm))
+        init_short_digraph(sd, G, edge_labelled=False, vertex_list=vertex_list)
+
+        if algorithm == "DHV":
+            ecc = c_eccentricity_DHV(sd)
+        else:  # "bounds"
+            ecc = c_eccentricity_bounding(sd)
+
+        free_short_digraph(sd)
 
     from sage.rings.integer import Integer
     cdef list l_ecc = [Integer(ecc[i]) if ecc[i] != UINT32_MAX else +Infinity for i in range(n)]
@@ -1531,6 +1517,7 @@ cdef uint32_t diameter_DiFUB(short_digraph sd,
 
     # Finally return the computed diameter
     return LB
+
 cdef uint32_t diameter_DHV(short_digraph g):
     r"""
     Return the diameter of unweighted graph `g`.
@@ -2176,6 +2163,132 @@ def distances_distribution(G):
             distr[d] = QQ((count[d], NN))
 
     return distr
+
+###################
+# Antipodal graph #
+###################
+
+def antipodal_graph(G):
+    r"""
+    Return the antipodal graph of `G`.
+
+    The antipodal graph of a graph `G` has the same vertex set of `G` and
+    two vertices are adjacent if their distance in `G` is equal to the
+    diameter of `G`.
+
+    This method first computes the eccentricity of all vertices and determines
+    the diameter of the graph. Then, it for each vertex `u` with eccentricity
+    the diameter, it computes BFS distances from `u` and add an edge in the
+    antipodal graph for each vertex `v` at diamter distance from `u` (i.e., for
+    each antipodal vertex).
+
+    The drawback of this method is that some BFS distances may be computed
+    twice, one time to determine the eccentricities and another time is the
+    vertex has eccentricity equal to the diameter. However, in practive, this is
+    much more efficient. See the documentation of method
+    :meth:`c_eccentricity_DHV`.
+
+    EXAMPLES:
+
+    The antipodal graph of a grid graph has only 2 edges::
+
+        sage: from sage.graphs.distances_all_pairs import antipodal_graph
+        sage: G = graphs.Grid2dGraph(5, 5)
+        sage: A = antipodal_graph(G)
+        sage: A.order(), A.size()
+        (25, 2)
+
+    The antipodal graph of a disjoint union of cliques is its complement::
+
+        sage: from sage.graphs.distances_all_pairs import antipodal_graph
+        sage: G = graphs.CompleteGraph(3) * 3
+        sage: A = antipodal_graph(G)
+        sage: A.is_isomorphic(G.complement())
+        True
+
+    The antipodal graph can also be constructed as the
+    :meth:`sage.graphs.generic_graph.distance_graph` for diameter distance::
+
+        sage: from sage.graphs.distances_all_pairs import antipodal_graph
+        sage: G = graphs.RandomGNP(10, .2)
+        sage: A = antipodal_graph(G)
+        sage: B = G.distance_graph(G.diameter())
+        sage: A.is_isomorphic(B)
+        True
+
+    TESTS::
+
+        sage: from sage.graphs.distances_all_pairs import antipodal_graph
+        sage: antipodal_graph(Graph())
+        Traceback (most recent call last):
+        ...
+        ValueError: the antipodal graph of the empty graph is not defined
+        sage: antipodal_graph(DiGraph(1))
+        Traceback (most recent call last):
+        ...
+        ValueError: this method is defined for undirected graphs only
+        sage: antipodal_graph(Graph(1))
+        Antipodal graph of Graph on 1 vertex: Looped graph on 1 vertex
+        sage: antipodal_graph(Graph(2)).edges(labels=False)
+        [(0, 1)]
+    """
+    if not G:
+        raise ValueError("the antipodal graph of the empty graph is not defined")
+    if G.is_directed():
+        raise ValueError("this method is defined for undirected graphs only")
+
+    from sage.graphs.graph import Graph
+
+    cdef uint32_t n = G.order()
+    name = f"Antipodal graph of {G}"
+    if n == 1:
+        return Graph(list(zip(G, G)), loops=True, name=name)
+
+    import copy
+    A = Graph(name=name, pos=copy.deepcopy(G.get_pos()))
+
+    if not G.is_connected():
+        import itertools
+        CC = G.connected_components()
+        for c1, c2 in itertools.combinations(CC, 2):
+            A.add_edges(itertools.product(c1, c2))
+        return A
+
+    cdef list int_to_vertex = list(G)
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * distances = <uint32_t *> mem.allocarray(2 * n, sizeof(uint32_t))
+    cdef uint32_t * waiting_list = distances + n
+    cdef bitset_t seen
+    bitset_init(seen, n)
+
+    # Get the eccentricity of all vertices
+    cdef uint32_t* ecc = c_eccentricity_DHV(sd)
+    cdef uint32_t i
+    cdef uint32_t diam = 0
+    for i in range(n):
+        if ecc[i] > diam:
+            diam = ecc[i]
+
+    cdef uint32_t ui, vj, j
+    for ui in range(n):
+        if ecc[ui] == diam:
+            _ = simple_BFS(sd, ui, distances, NULL, waiting_list, seen)
+            u = int_to_vertex[ui]
+            j = n - 1
+            while distances[waiting_list[j]] == diam:
+                vj = waiting_list[j]
+                if ui < vj:  # avoid adding twice the same edge
+                    A.add_edge(u, int_to_vertex[vj])
+                j -= 1
+
+    free_short_digraph(sd)
+    bitset_free(seen)
+
+    A.add_vertices(G)
+    return A
 
 ##################
 # Floyd-Warshall #

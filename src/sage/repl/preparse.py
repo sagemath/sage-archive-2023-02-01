@@ -365,8 +365,8 @@ class QuoteStack:
             True
 
         """
-        self.stack = [] # list of QuoteStackFrame
-        self.safe_delims = OrderedDict.fromkeys(["'", '"', "'''", '"""'])
+        self._stack = [] # list of QuoteStackFrame
+        self._safe_delims = OrderedDict.fromkeys(["'", '"', "'''", '"""'])
 
     def __len__(self):
         """
@@ -382,7 +382,7 @@ class QuoteStack:
             0
 
         """
-        return len(self.stack)
+        return len(self._stack)
 
     def __repr__(self):
         """
@@ -398,7 +398,7 @@ class QuoteStack:
             [QuoteStackFrame(...delim='"'...), QuoteStackFrame(...delim="'"...)]
 
         """
-        return repr(self.stack)
+        return repr(self._stack)
 
     def peek(self):
         """
@@ -413,7 +413,7 @@ class QuoteStack:
             QuoteStackFrame(...delim='"'...)
 
         """
-        return self.stack[-1] if self.stack else None
+        return self._stack[-1] if self._stack else None
 
     def pop(self):
         """
@@ -432,7 +432,7 @@ class QuoteStack:
             QuoteStackFrame(...delim='"'...)
 
         """
-        return self.stack.pop()
+        return self._stack.pop()
 
     def push(self, frame):
         """
@@ -460,14 +460,14 @@ class QuoteStack:
             []
 
         """
-        self.stack.append(frame)
+        self._stack.append(frame)
         if frame.f_string:
-            self.safe_delims.pop(frame.delim, None) # No longer safe!
+            self._safe_delims.pop(frame.delim, None) # No longer safe!
             # Nor is the triple-quoted version!
             if frame.delim == "'":
-                self.safe_delims.pop("'''", None)
+                self._safe_delims.pop("'''", None)
             elif frame.delim == '"':
-                self.safe_delims.pop('"""', None)
+                self._safe_delims.pop('"""', None)
 
     def safe_delimiters(self):
         """
@@ -502,7 +502,7 @@ class QuoteStack:
             []
 
         """
-        return list(self.safe_delims)
+        return list(self._safe_delims)
 
     def safe_delimiter(self):
         """
@@ -522,7 +522,7 @@ class QuoteStack:
             True
 
         """
-        return next(iter(self.safe_delims)) if self.safe_delims else None
+        return next(iter(self._safe_delims)) if self._safe_delims else None
 
 class QuoteStackFrame(SimpleNamespace):
     """

@@ -129,7 +129,7 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
         179|16|63|127)  # install_config_rpath failed|no m4 for pkg-config|autotools not installed|or version too old
             if [ $DOWNLOAD = yes ]; then
                 echo >&2 "Bootstrap failed, downloading required files instead."
-                bootstrap-download || exit $?
+                bootstrap_download || exit $?
             else
                 if [ $st -eq 127 ]; then
                     verb="install"
@@ -148,7 +148,7 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
 }
 
 # Bootstrap by downloading the auto-generated files
-bootstrap-download () {
+bootstrap_download () {
     sage-download-file configure-$CONFVERSION.tar.gz
     if [ $? -ne 0 ]; then
         echo >&2 "Error: downloading configure-$CONFVERSION.tar.gz failed"
@@ -262,7 +262,7 @@ if [ $ALWAYSDOWNLOAD = yes ]; then
         fi
         echo >&2 "Downloaded configure-$CONFVERSION.tar.gz from $CONFTARBALL_URL "
     else
-        bootstrap-download || exit $?
+        bootstrap_download || exit $?
     fi
 else
     bootstrap

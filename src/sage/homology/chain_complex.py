@@ -2,10 +2,6 @@
 r"""
 Chain complexes
 
-AUTHORS:
-
-- John H. Palmieri (2009-04)
-
 This module implements bounded chain complexes of free `R`-modules,
 for any commutative ring `R` (although the interesting things, like
 homology, only work if `R` is the integers or a field).
@@ -34,21 +30,25 @@ differentials may increase degree by 1 or decrease it, or indeed
 change it by any fixed amount: this is controlled by the
 ``degree_of_differential`` parameter used in defining the chain
 complex.
+
+AUTHORS:
+
+- John H. Palmieri (2009-04): initial implementation
 """
 
-
-########################################################################
+# ****************************************************************************
 #       Copyright (C) 2013 John H. Palmieri <palmieri@math.washington.edu>
 #                          Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#
-#                  http://www.gnu.org/licenses/
-########################################################################
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from copy import copy
+from functools import reduce
 
 from sage.structure.parent import Parent
 from sage.structure.element import ModuleElement, is_Vector, coercion_model
@@ -63,7 +63,6 @@ from sage.matrix.constructor import matrix
 from sage.misc.latex import latex
 from sage.rings.all import GF, prime_range
 from sage.homology.homology_group import HomologyGroup
-from functools import reduce
 
 
 def _latex_module(R, m):
@@ -883,8 +882,8 @@ class ChainComplex_class(Parent):
             result.sort()
             return tuple(result)
 
-        import collections
-        result = collections.deque()
+        from collections import deque
+        result = deque()
         result.append(start)
 
         next_deg = start + self.degree_of_differential()

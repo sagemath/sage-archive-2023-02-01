@@ -35,7 +35,7 @@ Methods
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-import collections
+from collections import deque
 
 from libc.string cimport memset
 from sage.ext.memory_allocator cimport MemoryAllocator
@@ -778,7 +778,7 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
     # Perform Lex DFS
 
     # We are using deque in order to prepend items in list efficiently
-    cdef list code = [collections.deque([]) for i in range(nV)]
+    cdef list code = [deque([]) for i in range(nV)]
 
     def l_func(x):
         return code[x]
@@ -952,7 +952,7 @@ def lex_DOWN(G, reverse=False, tree=False, initial_vertex=None):
     # Perform Lex DOWN
 
     # We are using deque in order to prepend items in list efficiently
-    cdef list code = [collections.deque([]) for i in range(nV)]
+    cdef list code = [deque([]) for i in range(nV)]
 
     def l_func(x):
         return code[x]

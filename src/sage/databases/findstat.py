@@ -254,6 +254,7 @@ from sage.combinat.words.word import Word
 from sage.combinat.words.words import Words
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.colored_permutations import SignedPermutations
+from sage.combinat.plane_partition import PlanePartition, PlanePartitions
 
 ######################################################################
 # the FindStat URLs
@@ -992,7 +993,7 @@ def findstat(query=None, values=None, distribution=None, domain=None,
 
     Check that ``None`` values are omitted::
 
-        sage: findstat("graphs", lambda g: g.diameter() if g.is_connected() else None)    # optional -- internet
+        sage: findstat("graphs", lambda g: g.diameter() if g.is_connected() else None, max_values=100) # optional -- internet
         0: St000259 (quality [100, 100])
     """
     try:
@@ -1459,7 +1460,7 @@ class FindStatFunction(SageObject):
 
         EXAMPLES::
 
-            sage: q = findstat("graphs", lambda g: g.diameter() if g.is_connected() else None) # optional -- internet
+            sage: q = findstat("graphs", lambda g: g.diameter() if g.is_connected() else None, max_values=100) # optional -- internet
             sage: q(graphs.PetersenGraph().copy(immutable=True))                # optional -- internet
             2
         """
@@ -2097,7 +2098,7 @@ class FindStatStatistic(Element,
 
         EXAMPLES::
 
-            sage: q = findstat("graphs", lambda g: g.diameter() if g.is_connected() else None) # optional -- internet
+            sage: q = findstat("graphs", lambda g: g.diameter() if g.is_connected() else None, max_values=100) # optional -- internet
             sage: q(graphs.PetersenGraph().copy(immutable=True))                # optional -- internet
             2
         """
@@ -3732,6 +3733,26 @@ def _finite_irreducible_cartan_types_by_rank(n):
         cartan_types += [ CartanType(['G',n]) ]
     return cartan_types
 
+# helper for generation of PlanePartitions
+def _plane_partitions_by_size_aux(n, outer=None):
+    empty = [[]]
+    if n == 0:
+        yield [empty]
+        return
+    if outer == empty:
+        yield []
+        return
+    if outer is None:
+        outer = [n]*n
+    for k in range(1,n+1):
+        for la in Partitions(k, outer=outer):
+            for pp in _plane_partitions_by_size_aux(n-k, outer=la):
+                pp = [la] + pp
+                yield pp
+
+def _plane_partitions_by_size(n):
+    for pp in _plane_partitions_by_size_aux(n):
+        yield PlanePartition(pp[:-1])
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class FindStatCollection(Element):
@@ -3988,7 +4009,7 @@ class FindStatCollection(Element):
 
             sage: from sage.databases.findstat import FindStatCollections
             sage: l = FindStatCollections()                                     # optional -- internet
-            sage: long = [9, 12, 14, 20]
+            sage: long = [14, 20]
             sage: for c in sorted(l):                                           # optional -- internet
             ....:     if c.id() not in long and c.is_supported():
             ....:         f = c.first_terms(lambda x: 1)
@@ -3999,7 +4020,9 @@ class FindStatCollection(Element):
             Cc0005: Dyck paths 2055 True
             Cc0006: Integer compositions 1023 True
             Cc0007: Standard tableaux 1115 True
+            Cc0009: Set partitions 1155 True
             Cc0010: Binary trees 2055 True
+            Cc0012: Perfect matchings 1069 True
             Cc0013: Cores 100 True
             Cc0017: Alternating sign matrices 7917 True
             Cc0018: Gelfand-Tsetlin patterns 1409 True
@@ -4008,6 +4031,7 @@ class FindStatCollection(Element):
             Cc0022: Finite Cartan types 31 True
             Cc0023: Parking functions 18248 True
             Cc0024: Binary words 1022 True
+            Cc0025: Plane partitions 1123 True
             Cc0027: Signed permutations 4282 True
             Cc0028: Skew partitions 1250 True
         """
@@ -4333,7 +4357,13 @@ _SupportedFindStatCollections = {
                                  str,
                                  SignedPermutations,
                                  lambda x: len(list(x)),
-                                 lambda x: isinstance(x, SignedPermutations.Element))}
+                                 lambda x: isinstance(x, SignedPermutations.Element)),
+    "PlanePartitions":
+    _SupportedFindStatCollection(lambda x: PlanePartition(literal_eval(x)),
+                                 lambda X: str(list(X)).replace(" ",""),
+                                 _plane_partitions_by_size,
+                                 lambda x: sum(sum(la) for la in x),
+                                 lambda x: isinstance(x, PlanePartition))}
 
 
 class FindStatCollections(UniqueRepresentation, Parent):
@@ -4437,6 +4467,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
              Cc0022: Finite Cartan types,
              Cc0023: Parking functions,
              Cc0024: Binary words,
+             Cc0025: Plane partitions,
              Cc0027: Signed permutations,
              Cc0028: Skew partitions]
 

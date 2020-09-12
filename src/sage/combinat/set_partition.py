@@ -506,20 +506,21 @@ class AbstractSetPartition(ClonableArray,
                     out.append(a)
             return out
         def pre_conjugate(sp):
-            if len(sp)==1:
+            if len(sp) == 1:
                 return SetPartition([[a] for S in sp for a in S])
-            if sp.max_block_size()==1:
+            if sp.max_block_size() == 1:
                 return SetPartition([sp.base_set()])
             support = sorted(a for S in sp for a in S)
             initials = [a for S in sp for a in S if next(a,support) in S]
-            singletons = [a for S in sp for a in S if len(S)==1]
+            singletons = [a for S in sp for a in S if len(S) == 1]
             if not initials and not singletons:
                 return sp
-            rho = pre_conjugate(SetPartition([[a for a in S if a not in initials]
-                    for S in sp if len(S)>1 and any(a not in initials for a in S)]))
-            # add back the initials as singletons and the singletons as terminals
+            rho = pre_conjugate(
+                SetPartition([[a for a in S if a not in initials]
+                for S in sp if len(S)>1 and any(a not in initials for a in S)]))
+            # add back initials as singletons and singletons as terminals
             return SetPartition([addback(S, singletons, support[::-1])
-                       for S in rho]+[[a] for a in initials])
+                for S in rho]+[[a] for a in initials])
         support = sorted(a for S in self for a in S)
         return SetPartition([[support[-support.index(a)-1] for a in S]
             for S in pre_conjugate(self)])

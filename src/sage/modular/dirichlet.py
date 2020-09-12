@@ -416,9 +416,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: e = DirichletGroup(16)([-1, 1])
-            sage: hash(e)
-            -1497246046           # 32-bit
-            -3713082714463545694  # 64-bit
+            sage: hash(e) == hash((-1,1))
+            True
         """
         return hash(self.values_on_gens())
 

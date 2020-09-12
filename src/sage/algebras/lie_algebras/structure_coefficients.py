@@ -124,7 +124,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             try:
                 s_coeff = {(d[k[0]], d[k[1]]): [(d[x], y) for x,y in get_pairs(s_coeff[k])]
                            for k in s_coeff}
-            except KeyError:
+            except (KeyError, ValueError):
                 # At this point we assume they are given by the index set
                 pass
 

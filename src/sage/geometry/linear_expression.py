@@ -383,9 +383,8 @@ class LinearExpression(ModuleElement):
 
             sage: from sage.geometry.linear_expression import LinearExpressionModule
             sage: L.<x> = LinearExpressionModule(QQ)
-            sage: hash(L([0,1]))
-            3430019387558 # 64-bit
-            -1659481946   # 32-bit
+            sage: hash(L([0,1])) == hash((1,))
+            True
         """
         return hash(self._coeffs) ^ hash(self._const)
 

@@ -530,7 +530,7 @@ class QuoteStackFrame(SimpleNamespace):
     (Only F-strings have more than one level.)
     """
 
-    def __init__(self, delim, raw=False, f_string=False, braces=0, parens=0,
+    def __init__(self, delim, raw=False, f_string=False, braces=0, parens=0, brackets=0,
                  fmt_spec=False, nested_fmt_spec=False):
         """
         Create a new QuoteStackFrame.
@@ -544,6 +544,8 @@ class QuoteStackFrame(SimpleNamespace):
           how many unclosed ``{``'s have we encountered?
         - ``parens`` - integer (default: ``0``); in a replacement section of an F-string
           (``braces > 0``), how many unclosed ``(``'s have we encountered?
+        - ``brackets`` - integer (default: ``0``); in a replacement section of an F-string
+          (``braces > 0``), how many unclosed ``[``'s have we encountered?
         - ``fmt_spec`` - boolean (default: ``False``); in the format specifier portion of a
           replacement section?
         - ``nested_fmt_spec`` - boolean (default: ``False``); in a nested format specifier?
@@ -553,7 +555,7 @@ class QuoteStackFrame(SimpleNamespace):
         EXAMPLES::
 
             sage: qsf = sage.repl.preparse.QuoteStackFrame("'"); qsf
-            QuoteStackFrame(braces=0, delim="'", f_string=False, fmt_spec=False, nested_fmt_spec=False, parens=0, raw=False)
+            QuoteStackFrame(braces=0, brackets=0, delim="'", f_string=False, fmt_spec=False, nested_fmt_spec=False, parens=0, raw=False)
 
         """
         self.delim = delim
@@ -561,6 +563,7 @@ class QuoteStackFrame(SimpleNamespace):
         self.f_string = f_string
         self.braces = braces
         self.parens = parens
+        self.brackets = brackets
         self.fmt_spec = fmt_spec
         self.nested_fmt_spec = nested_fmt_spec
 
@@ -703,6 +706,12 @@ def strip_string_literals(code, state=None):
         sage: s, _, _ = strip_string_literals("f'{(lambda x: x^2)(4)}'"); s
         'f%(L1)s{(lambda x: x^2)(4)}%(L2)s'
 
+    Similarly, a colon inside brackets doesn't start the format specifier in order
+    to allow slices.::
+
+        sage: s, _, _ = strip_string_literals("f'{[0, 1, 2, 3][1:3]}'"); s
+        'f%(L1)s{[0, 1, 2, 3][1:3]}%(L2)s'
+
     'r' and 'f' can be mixed to create raw F-strings::
 
         sage: _, _, stack = strip_string_literals("'"); stack.peek()
@@ -720,34 +729,36 @@ def strip_string_literals(code, state=None):
 
     Verify that state gets carried over correctly between calls with F-strings::
 
-        sage: s, lit = [None] * 9, [None] * 9
+        sage: s, lit = [None] * 10, [None] * 10
         sage: s[0], lit[0], stack = strip_string_literals(''); stack
         []
         sage: s[1], lit[1], stack = strip_string_literals(" f'", stack); stack
-        [QuoteStackFrame(braces=0, delim="'", f_string=True, fmt_spec=False, nested_fmt_spec=False, parens=0, raw=False)]
+        [QuoteStackFrame(braces=0, brackets=0, delim="'", f_string=True, fmt_spec=False, nested_fmt_spec=False, parens=0, raw=False)]
         sage: s[2], lit[2], stack = strip_string_literals('{', stack); stack
         [QuoteStackFrame(...braces=1...)]
         sage: s[3], lit[3], stack = strip_string_literals('r"abc', stack); stack
         [QuoteStackFrame(...), QuoteStackFrame(...delim='"'...raw=True)]
         sage: s[4], lit[4], stack = strip_string_literals('".upper(', stack); stack
         [QuoteStackFrame(...parens=1...)]
-        sage: s[5], lit[5], stack = strip_string_literals('):', stack); stack
-        [QuoteStackFrame(...fmt_spec=True...parens=0...)]
-        sage: s[6], lit[6], stack = strip_string_literals('{width:1', stack); stack
+        sage: s[5], lit[5], stack = strip_string_literals(')[1:', stack); stack
+        [QuoteStackFrame(...brackets=1...parens=0...)]
+        sage: s[6], lit[6], stack = strip_string_literals(']:', stack); stack
+        [QuoteStackFrame(...brackets=0...fmt_spec=True...)]
+        sage: s[7], lit[7], stack = strip_string_literals('{width:1', stack); stack
         [QuoteStackFrame(braces=2...nested_fmt_spec=True...)]
-        sage: s[7], lit[7], stack = strip_string_literals('0}', stack); stack
+        sage: s[8], lit[8], stack = strip_string_literals('0}', stack); stack
         [QuoteStackFrame(braces=1...nested_fmt_spec=False...)]
-        sage: s[8], lit[8], stack = strip_string_literals("}' ", stack); stack
+        sage: s[9], lit[9], stack = strip_string_literals("}' ", stack); stack
         []
         sage: s_broken_up = "".join(si % liti for si, liti in zip(s, lit)); s_broken_up
-        ' f\'{r"abc".upper():{width:10}}\' '
+        ' f\'{r"abc".upper()[1:]:{width:10}}\' '
 
     Make sure the end result is the same whether broken up into multiple calls
     or processed all at once::
 
-        sage: s, lit, _ = strip_string_literals(''' f'{r"abc".upper():{width:10}}' ''')
+        sage: s, lit, _ = strip_string_literals(''' f'{r"abc".upper()[1:]:{width:10}}' ''')
         sage: s_one_time = s % lit; s_one_time
-        ' f\'{r"abc".upper():{width:10}}\' '
+        ' f\'{r"abc".upper()[1:]:{width:10}}\' '
         sage: s_broken_up == s_one_time
         True
 
@@ -818,14 +829,25 @@ def strip_string_literals(code, state=None):
             elif quote.parens > 0:
                 quote.parens -= 1
 
-        elif ch == ':' and quote and not quote.parens and (quote.braces == 1 or quote.fmt_spec):
+        elif ch in '[]' and quote and quote.braces:
+            # Just keep track of brackets inside F-string replacement sections.
+            if ch == '[':
+                quote.brackets += 1
+            elif quote.brackets > 0:
+                quote.brackets -= 1
+
+        elif ch == ':' and quote and not quote.parens and not quote.brackets:
             if quote.braces == 1:
                 # In a replacement section but outside of any nested braces or
                 # parentheses, the colon signals the beginning of the format specifier.
                 quote.fmt_spec = True
-            else:
+            elif quote.fmt_spec:
                 # Already in the format specifier, so this must be a nested specifier.
                 quote.nested_fmt_spec = True
+            else:
+                # Otherwise, don't give the colon any special treatment.
+                q += 1
+                continue
             # Treat the preceding substring and the colon itself as code.
             new_code.append(code[start:q+1].replace('%', '%%'))
             start = q+1

@@ -496,6 +496,8 @@ class AbstractSetPartition(ClonableArray,
             {{1, 4, 7}, {2, 8}, {3}, {5}, {6}}
             sage: all(sp.conjugate().conjugate()==sp for sp in SetPartitions([1,3,5,7]))
             True
+            sage: SetPartition([]).conjugate()
+            {}
         """
         def next(a, support):
             return support[(support.index(a)+1) % len(support)]

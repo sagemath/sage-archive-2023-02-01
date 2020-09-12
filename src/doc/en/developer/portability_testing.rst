@@ -213,6 +213,8 @@ Let's just follow this helpful hint::
   ...
 
 
+.. _section-equiv-distro-packages:
+
 Using Sage's database of equivalent distribution packages
 ---------------------------------------------------------
 

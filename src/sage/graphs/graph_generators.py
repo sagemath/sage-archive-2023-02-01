@@ -57,8 +57,7 @@ __doc__ += """
 """
 
 __append_to_doc(
-    ["AztecDiamondGraph",
-     "BullGraph",
+    ["BullGraph",
      "ButterflyGraph",
      "CircularLadderGraph",
      "ClawGraph",
@@ -156,7 +155,7 @@ __append_to_doc(
      "LargeWittGraph",
      "LeonardGraph",
      "LjubljanaGraph",
-     "LintSchrijverGraph",
+     "vanLintSchrijverGraph",
      "LivingstoneGraph",
      "locally_GQ42_distance_transitive_graph",
      "LocalMcLaughlinGraph",
@@ -219,8 +218,11 @@ or a list of graphs or ...)
 """
 
 __append_to_doc(
-    ["BalancedTree",
+    ["AlternatingFormsGraph",
+     "AztecDiamondGraph",
+     "BalancedTree",
      "BarbellGraph",
+     "BilinearFormsGraph",
      "BubbleSortGraph",
      "CaiFurerImmermanGraph",
      "chang_graphs",
@@ -242,6 +244,7 @@ __append_to_doc(
      "HammingGraph",
      "HanoiTowerGraph",
      "HararyGraph",
+     "HermitianFormsGraph",
      "HyperStarGraph",
      "JohnsonGraph",
      "KneserGraph",
@@ -1995,7 +1998,7 @@ class GraphGenerators():
     LargeWittGraph           = staticmethod(distance_regular.LargeWittGraph)
     LeonardGraph             = staticmethod(distance_regular.LeonardGraph)
     LjubljanaGraph           = staticmethod(smallgraphs.LjubljanaGraph)
-    LintSchrijverGraph       = staticmethod(distance_regular.LintSchrijverGraph)
+    vanLintSchrijverGraph       = staticmethod(distance_regular.vanLintSchrijverGraph)
     LivingstoneGraph         = staticmethod(smallgraphs.LivingstoneGraph)
     locally_GQ42_distance_transitive_graph = staticmethod(distance_regular.locally_GQ42_distance_transitive_graph)
     LocalMcLaughlinGraph     = staticmethod(smallgraphs.LocalMcLaughlinGraph)
@@ -2051,9 +2054,11 @@ class GraphGenerators():
 ###########################################################################
     from .generators import families
     from . import strongly_regular_db
+    AlternatingFormsGraph   = staticmethod(distance_regular.AlternatingFormsGraph)
     AztecDiamondGraph      = staticmethod(families.AztecDiamondGraph)
     BalancedTree           = staticmethod(families.BalancedTree)
     BarbellGraph           = staticmethod(families.BarbellGraph)
+    BilinearFormsGraph      = staticmethod(distance_regular.BilinearFormsGraph)
     BubbleSortGraph        = staticmethod(families.BubbleSortGraph)
     CaiFurerImmermanGraph  = staticmethod(families.CaiFurerImmermanGraph)
     chang_graphs           = staticmethod(families.chang_graphs)
@@ -2073,6 +2078,7 @@ class GraphGenerators():
     HammingGraph           = staticmethod(families.HammingGraph)
     HanoiTowerGraph        = staticmethod(families.HanoiTowerGraph)
     HararyGraph            = staticmethod(families.HararyGraph)
+    HermitianFormsGraph     = staticmethod(distance_regular.HermitianFormsGraph)
     HyperStarGraph         = staticmethod(families.HyperStarGraph)
     JohnsonGraph           = staticmethod(families.JohnsonGraph)
     KneserGraph            = staticmethod(families.KneserGraph)

@@ -149,7 +149,10 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
 
 # Bootstrap by downloading the auto-generated files
 bootstrap_download () {
-    sage-download-file configure-$CONFVERSION.tar.gz
+    SAGE_DL_LOGLEVEL=""
+    [ "${BOOTSTRAP_QUIET}" = "yes" ] && SAGE_DL_LOGLEVEL="--log=WARNING"
+    sage-download-file ${SAGE_DL_LOGLEVEL} configure-$CONFVERSION.tar.gz
+
     if [ $? -ne 0 ]; then
         echo >&2 "Error: downloading configure-$CONFVERSION.tar.gz failed"
         exit 1
@@ -262,7 +265,9 @@ source src/bin/sage-env 2>/dev/null
 if [ $ALWAYSDOWNLOAD = yes ]; then
     if [ -n "$CONFTARBALL_URL" ]; then
         URL="$CONFTARBALL_URL"/configure-$CONFVERSION.tar.gz
-        sage-download-file "$URL" upstream/configure-$CONFVERSION.tar.gz
+        SAGE_DL_LOGLEVEL=""
+        [ "${BOOTSTRAP_QUIET}" = "yes" ] && SAGE_DL_LOGLEVEL="--log=WARNING"
+        sage-download-file ${SAGE_DL_LOGLEVEL} "$URL" upstream/configure-$CONFVERSION.tar.gz
         if [ $? -ne 0 ]; then
             echo >&2 "Error: downloading configure-$CONFVERSION.tar.gz from $CONFTARBALL_URL failed"
             exit 1

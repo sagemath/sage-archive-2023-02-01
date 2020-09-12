@@ -191,7 +191,7 @@ class Section(ModuleElementWithMutability):
         sage: zer.set_comp()
         Traceback (most recent call last):
         ...
-        AssertionError: the components of an immutable element cannot be
+        ValueError: the components of an immutable element cannot be
          changed
 
     Other sections can be declared immutable, too::
@@ -204,12 +204,12 @@ class Section(ModuleElementWithMutability):
         sage: c.set_comp()
         Traceback (most recent call last):
         ...
-        AssertionError: the components of an immutable element cannot be
+        ValueError: the components of an immutable element cannot be
          changed
         sage: c.set_name('b')
         Traceback (most recent call last):
         ...
-        AssertionError: the name of an immutable element cannot be changed
+        ValueError: the name of an immutable element cannot be changed
 
     """
     def __init__(self, section_module, name=None, latex_name=None):
@@ -421,8 +421,8 @@ class Section(ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the name of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the name of an immutable element "
+                             "cannot be changed")
         if name is not None:
             self._name = name
             if latex_name is None:
@@ -625,8 +625,8 @@ class Section(ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the restrictions of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the restrictions of an immutable element "
+                             "cannot be changed")
         self._restrictions[rst._domain] = rst.copy()
         self._restrictions[rst._domain].set_name(name=self._name,
                                                  latex_name=self._latex_name)
@@ -917,8 +917,8 @@ class Section(ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the components of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         if basis is None:
             basis = self._smodule.default_frame()
             if basis is None: # should be "is still None" ;-)
@@ -1055,8 +1055,8 @@ class Section(ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the components of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         if basis is None:
             basis = self._smodule.default_frame()
             if basis is None: # should be "is still None" ;-)
@@ -1693,8 +1693,8 @@ class Section(ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the components of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         if other not in self.parent():
             raise TypeError("the original must be an element "
                             + "of {}".format(self.parent()))

@@ -20,8 +20,8 @@ from sage.docs.conf import *
 html_static_path = [] + html_common_static_path
 
 # General information about the project.
-project = u"Sage Tutorial"
-name = u'tutorial-es'
+project = "Sage Tutorial"
+name = 'tutorial-es'
 language = "es"
 
 # The name for this set of Sphinx documents.  If None, it defaults to
@@ -34,6 +34,6 @@ htmlhelp_basename = 'SageTutorial'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('index', 'SageTutorial.tex', u'Sage Tutorial',
-   u'The Sage Development Team', 'manual'),
+  ('index', 'SageTutorial.tex', 'Sage Tutorial',
+   'The Sage Development Team', 'manual'),
 ]

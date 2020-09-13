@@ -20,7 +20,7 @@ from sage.docs.conf import *  # NOQA
 html_static_path = [] + html_common_static_path
 
 # General information about the project.
-project = u'Esplora Sage'
+project = 'Esplora Sage'
 name = 'a_tour_of_sage'
 language = 'it'
 
@@ -35,8 +35,8 @@ htmlhelp_basename = name
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('index', name+'.tex', u'A Tour Of Sage',
-   u'The Sage Development Team', 'manual'),
+  ('index', name + '.tex', 'A Tour Of Sage',
+   'The Sage Development Team', 'manual'),
 ]
 
 # Our Sphinx expects the older behavior of babel-italian where double

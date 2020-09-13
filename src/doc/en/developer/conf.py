@@ -20,14 +20,14 @@ from sage.docs.conf import *  # NOQA
 html_static_path = [] + html_common_static_path
 
 # General information about the project.
-project = u"Sage Developer's Guide"
+project = "Sage Developer's Guide"
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
 html_title = project + " v"+release
 name = 'developer'
 
-html_short_title = u"Developer's Guide v" + release
+html_short_title = "Developer's Guide v" + release
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = name
@@ -35,7 +35,7 @@ htmlhelp_basename = name
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('index', name+'.tex', u'Sage Developer\'s Guide',
-   u'The Sage Development Team', 'manual'),
+  ('index', name+'.tex', 'Sage Developer\'s Guide',
+   'The Sage Development Team', 'manual'),
 ]
 

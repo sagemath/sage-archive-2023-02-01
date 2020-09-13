@@ -20,8 +20,8 @@ from sage.docs.conf import *  # NOQA
 html_static_path = [] + html_common_static_path
 
 # General information about the project.
-project = u'PREP Tutorials'
-copyright = u'2012, Rob Beezer, Karl-Dieter Crisman, and Jason Grout'
+project = 'PREP Tutorials'
+copyright = '2012, Rob Beezer, Karl-Dieter Crisman, and Jason Grout'
 name = 'prep_tutorials'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
@@ -34,6 +34,6 @@ htmlhelp_basename = name
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('index', name+'.tex', u'PREP Tutorials',
-   u'Rob Beezer, Karl-Dieter Crisman, and Jason Grout', 'manual'),
+  ('index', name + '.tex', 'PREP Tutorials',
+   'Rob Beezer, Karl-Dieter Crisman, and Jason Grout', 'manual'),
 ]

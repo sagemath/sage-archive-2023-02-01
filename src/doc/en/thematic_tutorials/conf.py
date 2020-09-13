@@ -22,7 +22,7 @@ from sage.docs.conf import *
 html_static_path = [] + html_common_static_path
 
 # General information about the project.
-project = u"Thematic Tutorials"
+project = "Thematic Tutorials"
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -35,8 +35,8 @@ htmlhelp_basename = "thematic_tutorials"
 # (source start file, target name, title, author,
 # document class [howto/manual]).
 latex_documents = [(
-        "index", "thematic_tutorials.tex", u'Thematic Tutorials',
-        u'The Sage Development Team', 'manual'),
+        "index", "thematic_tutorials.tex", 'Thematic Tutorials',
+        'The Sage Development Team', 'manual'),
 ]
 
 show_authors = True

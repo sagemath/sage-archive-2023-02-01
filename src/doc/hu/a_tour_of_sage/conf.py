@@ -22,7 +22,7 @@ from sage.docs.conf import *  # NOQA
 html_static_path = [] + html_common_static_path
 
 # General information about the project.
-project = u'A Sage bemutatása'
+project = 'A Sage bemutatása'
 name = 'a_tour_of_sage'
 language = 'hu'
 
@@ -38,6 +38,6 @@ htmlhelp_basename = name
 # start file, target name, title, author, document class
 # [howto/manual]).
 latex_documents = [
-  ('index', name+'.tex', u'A Tour Of Sage',
-   u'The Sage Development Team', 'manual'),
+  ('index', name + '.tex', 'A Tour Of Sage',
+   'The Sage Development Team', 'manual'),
 ]

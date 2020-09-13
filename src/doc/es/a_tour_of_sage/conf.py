@@ -22,7 +22,7 @@ from sage.docs.conf import *
 html_static_path = [] + html_common_static_path
 
 # General information about the project.
-project = u'Un Tour Por Sage'
+project = 'Un Tour Por Sage'
 name = 'a_tour_of_sage'
 language = 'es'
 
@@ -39,6 +39,6 @@ htmlhelp_basename = name
 # [howto/manual]).
 latex_documents = [('index',
                     name + '.tex',
-                    u'A Tour Of Sage',
-                    u'The Sage Development Team',
+                    'A Tour Of Sage',
+                    'The Sage Development Team',
                     'manual')]

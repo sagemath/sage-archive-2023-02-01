@@ -21,14 +21,14 @@ html_static_path = [] + html_common_static_path
 
 # General information about the project.
 name = 'bordeaux_2008'
-project = u'Three Lectures about Explicit Methods in\nNumber Theory Using Sage'
+project = 'Three Lectures about Explicit Methods in\nNumber Theory Using Sage'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = project + " v"+release
+html_title = project + " v" + release
 copyright = "2008, William Stein"
 
-html_short_title = u'Bordeaux Lectures v' + release
+html_short_title = 'Bordeaux Lectures v' + release
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = name
@@ -36,7 +36,7 @@ htmlhelp_basename = name
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('index', name+'.tex', u'Three Lectures about Explicit Methods in\nNumber Theory Using Sage',
-   u'William Stein', 'manual'),
+  ('index', name + '.tex', 'Three Lectures about Explicit Methods in\nNumber Theory Using Sage',
+   'William Stein', 'manual'),
 ]
 

@@ -29,7 +29,7 @@ rst_file = open('index.rst', 'r')
 rst_lines = rst_file.read().splitlines()
 rst_file.close()
 
-title = u''
+title = ''
 for i in range(len(rst_lines)):
     if rst_lines[i].startswith('==') and i > 0:
         title = rst_lines[i-1].strip()
@@ -39,10 +39,10 @@ for i in range(len(rst_lines)):
 name = os.path.basename(os.path.abspath('.'))
 if not title:
     title = name.capitalize()
-title = title.replace(u'`', u'$')
+title = title.replace('`', '$')
 
 # General information about the project.
-project = u'Sage {} Reference Manual: '.format(release) + title
+project = 'Sage {} Reference Manual: '.format(release) + title
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -63,7 +63,7 @@ htmlhelp_basename = name
 # start file, target name, title, author, document class
 # [howto/manual]).
 latex_documents = [
-('index', name + '.tex', project, u'The Sage Development Team', 'manual')
+('index', name + '.tex', project, 'The Sage Development Team', 'manual')
 ]
 
 latex_elements['hyperref'] = r"""

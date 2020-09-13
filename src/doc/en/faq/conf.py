@@ -22,7 +22,7 @@ from sage.docs.conf import *
 html_static_path = [] + html_common_static_path
 
 # General information about the project.
-project = u"Sage FAQ"
+project = "Sage FAQ"
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -35,6 +35,6 @@ htmlhelp_basename = "faq"
 # (source start file, target name, title, author, document class
 # [howto/manual]).
 latex_documents = [
-    ("index", "faq.tex", u"Sage FAQ",
-     u"The Sage Development Team", "manual"),
+    ("index", "faq.tex", "Sage FAQ",
+     "The Sage Development Team", "manual"),
 ]

@@ -20,8 +20,8 @@ from sage.docs.conf import *  # NOQA
 html_static_path = [] + html_common_static_path
 
 # General information about the project.
-project = u"Thematische Anleitungen"
-name = u'ThematischeAnleitungen-de'
+project = "Thematische Anleitungen"
+name = 'ThematischeAnleitungen-de'
 language = "de"
 
 # The name for this set of Sphinx documents.  If None, it defaults to
@@ -35,6 +35,6 @@ htmlhelp_basename = name
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
   ('index', name+'.tex', project,
-   u'The Sage Group', 'manual'),
+   'The Sage Group', 'manual'),
 ]
 

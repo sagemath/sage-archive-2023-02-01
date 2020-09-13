@@ -32,7 +32,7 @@ extensions = ['inventory_builder',
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
 # through matplotlib, so that it will be displayed in the HTML doc
 plot_html_show_source_link = False
-plot_pre_code = """
+plot_pre_code = r"""
 # Set locale to prevent having commas in decimal numbers
 # in tachyon input (see https://trac.sagemath.org/ticket/28971)
 import locale
@@ -107,8 +107,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u""
-copyright = u"2005--{}, The Sage Development Team".format(dateutil.parser.parse(sage.version.date).year)
+project = ""
+copyright = "2005--{}, The Sage Development Team".format(dateutil.parser.parse(sage.version.date).year)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -700,7 +700,7 @@ def debug_inf(app, message):
     if dangling_debug: app.info(message)
 
 def call_intersphinx(app, env, node, contnode):
-    """
+    r"""
     Call intersphinx and make links between Sage manuals relative.
 
     TESTS:
@@ -733,7 +733,7 @@ def call_intersphinx(app, env, node, contnode):
     return res
 
 def find_sage_dangling_links(app, env, node, contnode):
-    """
+    r"""
     Try to find dangling link in local module imports or all.py.
     """
     debug_inf(app, "==================== find_sage_dangling_links ")

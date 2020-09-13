@@ -24,8 +24,8 @@ class DecreasingHeckeFactorization:
     EXAMPLES::
 
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-        sage: t = [[3,2],[],[2,1]]
-        sage: h = DecreasingHeckeFactorization(t,3); h
+        sage: t = [[3, 2], [], [2, 1]]
+        sage: h = DecreasingHeckeFactorization(t, 3); h
         (3, 2)()(2, 1)
         sage: h.excess
         1
@@ -37,7 +37,7 @@ class DecreasingHeckeFactorization:
         ((3, 2), (), (2, 1))
 
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-        sage: u = [[3,2,1],[3],[2,1]]
+        sage: u = [[3, 2, 1], [3], [2, 1]]
         sage: h = DecreasingHeckeFactorization(u); h
         (3, 2, 1)(3)(2, 1)
         sage: h.weight()
@@ -50,7 +50,7 @@ class DecreasingHeckeFactorization:
         EXAMPLES::
 
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-            sage: t = [[2,1],[2],[],[1]]
+            sage: t = [[2, 1], [2], [], [1]]
             sage: h1 = DecreasingHeckeFactorization(t); h1
             (2, 1)(2)()(1)
             sage: h1.excess
@@ -62,8 +62,8 @@ class DecreasingHeckeFactorization:
             True
 
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-            sage: t = [[2,1],[2],[],[3,1]]
-            sage: h = DecreasingHeckeFactorization(t,5)
+            sage: t = [[2, 1], [2], [], [3, 1]]
+            sage: h = DecreasingHeckeFactorization(t, 5)
             sage: h.max_value
             5
             sage: h.factors
@@ -89,7 +89,7 @@ class DecreasingHeckeFactorization:
         EXAMPLES::
 
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-            sage: t = [[],[2,1],[2],[],[2]]
+            sage: t = [[], [2, 1], [2], [], [2]]
             sage: h = DecreasingHeckeFactorization(t); h
             ()(2, 1)(2)()(2)
         """
@@ -102,10 +102,10 @@ class DecreasingHeckeFactorization:
         EXAMPLES::
 
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-            sage: t = [[],[2,1],[2],[],[2]]
+            sage: t = [[], [2, 1], [2], [], [2]]
             sage: h1 = DecreasingHeckeFactorization(t)
-            sage: h2 = DecreasingHeckeFactorization(t,3)
-            sage: h3 = DecreasingHeckeFactorization(t,2)
+            sage: h2 = DecreasingHeckeFactorization(t, 3)
+            sage: h3 = DecreasingHeckeFactorization(t, 2)
             sage: hash(h1) == hash(h2)
             False
             sage: hash(h1) == hash(h3)
@@ -120,7 +120,7 @@ class DecreasingHeckeFactorization:
         EXAMPLES::
 
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-            sage: t = [[],[2,1],[2],[],[2]]
+            sage: t = [[], [2, 1], [2], [], [2]]
             sage: h1 = DecreasingHeckeFactorization(t)
             sage: h2 = DecreasingHeckeFactorization(t,3)
             sage: h1 == h2
@@ -140,9 +140,9 @@ class DecreasingHeckeFactorization:
         EXAMPLES::
 
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-            sage: t1 = [[],[2,1],[],[2,1],[1]]
-            sage: t2 = [[],[2,1],[],[2,1],[2]]
-            sage: t3 = [[],[2,1],[2],[1],[1]]
+            sage: t1 = [[], [2, 1], [], [2, 1], [1]]
+            sage: t2 = [[], [2, 1], [], [2, 1], [2]]
+            sage: t3 = [[], [2, 1], [2], [1], [1]]
             sage: h1 = DecreasingHeckeFactorization(t1)
             sage: h2 = DecreasingHeckeFactorization(t2)
             sage: h3 = DecreasingHeckeFactorization(t3)
@@ -160,8 +160,8 @@ class DecreasingHeckeFactorization:
         EXAMPLES::
 
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-            sage: t = [[2],[2,1],[],[4,3,1]]
-            sage: h = DecreasingHeckeFactorization(t,6)
+            sage: t = [[2], [2, 1], [], [4, 3, 1]]
+            sage: h = DecreasingHeckeFactorization(t, 6)
             sage: latex(h)
             \left(2\right)\left(2, 1\right)\left(\;\right)\left(4, 3, 1\right)
         """
@@ -180,8 +180,8 @@ class DecreasingHeckeFactorization:
         EXAMPLES::
 
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-            sage: t = [[2],[2,1],[],[4,3,1]]
-            sage: h = DecreasingHeckeFactorization(t,6)
+            sage: t = [[2], [2, 1], [], [4, 3, 1]]
+            sage: h = DecreasingHeckeFactorization(t, 6)
             sage: h.weight()
             (3, 0, 2, 1)
         """
@@ -194,7 +194,7 @@ class DecreasingHeckeFactorization:
         EXAMPLES::
 
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-            sage: t = [[2],[],[2,1],[4,3,1]]
+            sage: t = [[2], [], [2, 1], [4, 3, 1]]
             sage: h = DecreasingHeckeFactorization(t)
             sage: h.to_word()
             [2, 2, 1, 4, 3, 1]
@@ -208,8 +208,8 @@ class DecreasingHeckeFactorization:
         EXAMPLES::
 
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-            sage: t = [[2],[],[2,1],[4,3,1]]
-            sage: h = DecreasingHeckeFactorization(t,4)
+            sage: t = [[2], [], [2, 1],[4, 3, 1]]
+            sage: h = DecreasingHeckeFactorization(t, 4)
             sage: h.to_increasing_hecke_biword()
             [[1, 1, 1, 2, 2, 4], [1, 3, 4, 1, 2, 2]]
         """
@@ -226,7 +226,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``w`` -- an element in a 0-Hecke monoid or a (skew) shape
+    - ``w`` -- an element in the symmetric group or a (skew) shape
 
     - ``factors`` -- the number of factors in the factorization
 
@@ -236,10 +236,9 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: from sage.monoids.hecke_monoid import HeckeMonoid
-        sage: H = HeckeMonoid(SymmetricGroup(3+1))
-        sage: w = H.from_reduced_word([1,3,2])
-        sage: B = crystals.FullyCommutativeStableGrothendieck(w,3,2); B
+        sage: S = SymmetricGroup(3+1)
+        sage: w = S.from_reduced_word([1, 3, 2])
+        sage: B = crystals.FullyCommutativeStableGrothendieck(w, 3, 2); B
         Fully commutative stable Grothendieck crystal of type A_2 associated to [1, 3, 2] with excess 2
         sage: B.list()
         [(1)(3, 1)(3, 2),
@@ -251,7 +250,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
     We can also access the crystal by specifying a skew shape::
 
-        sage: crystals.FullyCommutativeStableGrothendieck([[2,2],[1]],4,1,shape=True)
+        sage: crystals.FullyCommutativeStableGrothendieck([[2, 2], [1]], 4, 1, shape=True)
         Fully commutative stable Grothendieck crystal of type A_3 associated to [2, 1, 3] with excess 1
 
     We can compute the highest weight elements::
@@ -275,21 +274,21 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
         Classcall to mend the input.
 
         TESTS::
-            sage: A = crystals.FullyCommutativeStableGrothendieck([[3,3],[2,1]],4,1,shape=True); A
+
+            sage: A = crystals.FullyCommutativeStableGrothendieck([[3, 3], [2, 1]], 4, 1, shape=True); A
             Fully commutative stable Grothendieck crystal of type A_3 associated to [3, 2, 4] with excess 1
-            sage: B = crystals.FullyCommutativeStableGrothendieck(SkewPartition([[3,3],[2,1]]),4,1,shape=True)
+            sage: B = crystals.FullyCommutativeStableGrothendieck(SkewPartition([[3, 3], [2, 1]]), 4, 1, shape=True)
             sage: A is B
             True
 
-            sage: C = crystals.FullyCommutativeStableGrothendieck((2,1),3,2,shape=True); C
+            sage: C = crystals.FullyCommutativeStableGrothendieck((2, 1), 3, 2, shape=True); C
             Fully commutative stable Grothendieck crystal of type A_2 associated to [1, 3, 2] with excess 2
-            sage: D = crystals.FullyCommutativeStableGrothendieck(Partition([2,1]),3,2,shape=True)
+            sage: D = crystals.FullyCommutativeStableGrothendieck(Partition([2, 1]), 3, 2, shape=True)
             sage: C is D
             True
         """
         if shape:
             from sage.combinat.partition import Partition, Partitions
-            from sage.combinat.root_system.weyl_group import WeylGroup
             from sage.combinat.skew_partition import SkewPartition
             cond1 = isinstance(w, (tuple, list)) and len(w)==2 and w[0] in Partitions() and w[1] in Partitions()
             cond2 = isinstance(w, SkewPartition)
@@ -305,21 +304,24 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             max_value = max(word) if word else 1
             H = HeckeMonoid(SymmetricGroup(max_value+1))
             w = H.from_reduced_word(word)
+        else:
+            if isinstance(w.parent(), SymmetricGroup):
+                H = HeckeMonoid(w.parent())
+                w = H.from_reduced_word(w.reduced_word())
         if w.reduced_word()==[] and excess!=0:
             raise ValueError("excess must be 0 for the empty word")
         return super(FullyCommutativeStableGrothendieckCrystal, cls).__classcall__(cls, w, factors, excess)
 
     def __init__(self, w, factors, excess):
         """
-        Initialize a crystal for self given reduced word ``w`` in a 0-Hecke
-        monoid, number of factors ``factors`` and``excess`` extra letters.
+        Initialize a crystal for self given reduced word ``w`` in the symmetric group,
+        number of factors ``factors`` and``excess`` extra letters.
 
         EXAMPLES::
 
-            sage: from sage.monoids.hecke_monoid import HeckeMonoid
-            sage: H = HeckeMonoid(SymmetricGroup(3+1))
-            sage: w = H.from_reduced_word([1,3,2])
-            sage: B = crystals.FullyCommutativeStableGrothendieck(w,3,2)
+            sage: S = SymmetricGroup(3+1)
+            sage: w = S.from_reduced_word([1, 3, 2])
+            sage: B = crystals.FullyCommutativeStableGrothendieck(w, 3, 2)
             sage: B.w
             (1, 3, 2)
             sage: B.factors
@@ -332,20 +334,18 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
         The reduced word ``w`` should be fully commutative, that is, its
         associated permutation should avoid the pattern 321::
 
-            sage: from sage.monoids.hecke_monoid import HeckeMonoid
-            sage: H = HeckeMonoid(SymmetricGroup(3+1))
-            sage: w = H.from_reduced_word([1,2,1])
-            sage: B = crystals.FullyCommutativeStableGrothendieck(w,4,2)
+            sage: S = SymmetricGroup(3+1)
+            sage: w = S.from_reduced_word([1, 2, 1])
+            sage: B = crystals.FullyCommutativeStableGrothendieck(w, 4, 2)
             Traceback (most recent call last):
             ...
             ValueError: w should be fully commutative
 
         TESTS::
 
-            sage: from sage.monoids.hecke_monoid import HeckeMonoid
-            sage: H = HeckeMonoid(SymmetricGroup(3+1))
-            sage: w = H.from_reduced_word([2,3,1])
-            sage: B = crystals.FullyCommutativeStableGrothendieck(w,4,2)
+            sage: S = SymmetricGroup(3+1)
+            sage: w = S.from_reduced_word([2, 3, 1])
+            sage: B = crystals.FullyCommutativeStableGrothendieck(w, 4, 2)
             sage: TestSuite(B).run()
         """
         # Check if w is fully commutative
@@ -369,13 +369,12 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: from sage.monoids.hecke_monoid import HeckeMonoid
-            sage: H = HeckeMonoid(SymmetricGroup(3+1))
-            sage: w = H.from_reduced_word([1,3,2])
-            sage: B = crystals.FullyCommutativeStableGrothendieck(w,3,2)
+            sage: S = SymmetricGroup(3+1)
+            sage: w = S.from_reduced_word([1, 3, 2])
+            sage: B = crystals.FullyCommutativeStableGrothendieck(w, 3, 2)
             sage: B.module_generators
             ((1)(3, 1)(3, 2), (3)(3, 1)(3, 2))
-            sage: C = crystals.FullyCommutativeStableGrothendieck(w,4,2)
+            sage: C = crystals.FullyCommutativeStableGrothendieck(w, 4, 2)
             sage: C.module_generators
             (()(1)(3, 1)(3, 2),
              ()(3)(3, 1)(3, 2),
@@ -391,10 +390,9 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.monoids.hecke_monoid import HeckeMonoid
-            sage: H = HeckeMonoid(SymmetricGroup(3+1))
-            sage: w = H.from_reduced_word([2,1,3,2])
-            sage: crystals.FullyCommutativeStableGrothendieck(w,3,1)
+            sage: S = SymmetricGroup(3+1)
+            sage: w = S.from_reduced_word([2, 1, 3, 2])
+            sage: crystals.FullyCommutativeStableGrothendieck(w, 3, 1)
             Fully commutative stable Grothendieck crystal of type A_2 associated to [2, 1, 3, 2] with excess 1
         """
         return "Fully commutative stable Grothendieck crystal of type A_{} associated to {} with excess {}".format(self.factors-1, list(self.w), self.excess)
@@ -412,12 +410,11 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from sage.monoids.hecke_monoid import HeckeMonoid
-                sage: H = HeckeMonoid(SymmetricGroup(3+1))
-                sage: w = H.from_reduced_word([1,3,2])
-                sage: B = crystals.FullyCommutativeStableGrothendieck(w,3,2)
+                sage: S = SymmetricGroup(3+1)
+                sage: w = S.from_reduced_word([1, 3, 2])
+                sage: B = crystals.FullyCommutativeStableGrothendieck(w, 3, 2)
                 sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-                sage: h = DecreasingHeckeFactorization([[3,1],[3],[3,2]],3)
+                sage: h = DecreasingHeckeFactorization([[3, 1], [3], [3, 2]], 3)
                 sage: u = B(h); u.value
                 ((3, 1), (3,), (3, 2))
                 sage: v = B([[3,1],[3],[3,2]]); v.value
@@ -448,11 +445,10 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from sage.monoids.hecke_monoid import HeckeMonoid
-                sage: H = HeckeMonoid(SymmetricGroup(4+1))
-                sage: w = H.from_reduced_word([2,1,4,3,2])
-                sage: B = crystals.FullyCommutativeStableGrothendieck(w,4,3)
-                sage: h = B([[4,2],[4,2,1],[3,2],[2]]); h
+                sage: S = SymmetricGroup(4+1)
+                sage: w = S.from_reduced_word([2, 1, 4, 3, 2])
+                sage: B = crystals.FullyCommutativeStableGrothendieck(w, 4, 3)
+                sage: h = B([[4, 2], [4, 2, 1], [3, 2], [2]]); h
                 (4, 2)(4, 2, 1)(3, 2)(2)
                 sage: h.e(1)
                 (4, 2)(4, 2, 1)(3)(3, 2)
@@ -483,11 +479,10 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from sage.monoids.hecke_monoid import HeckeMonoid
-                sage: H = HeckeMonoid(SymmetricGroup(4+1))
-                sage: w = H.from_reduced_word([3,2,1,4,3])
-                sage: B = crystals.FullyCommutativeStableGrothendieck(w,4,3)
-                sage: h = B([[3,2],[2,1],[4,3],[3,1]]); h
+                sage: S = SymmetricGroup(4+1)
+                sage: w = S.from_reduced_word([3, 2, 1, 4, 3])
+                sage: B = crystals.FullyCommutativeStableGrothendieck(w, 4, 3)
+                sage: h = B([[3, 2], [2, 1], [4, 3], [3, 1]]); h
                 (3, 2)(2, 1)(4, 3)(3, 1)
                 sage: h.f(1)
                 (3, 2)(2, 1)(4, 3, 1)(3)
@@ -518,11 +513,10 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from sage.monoids.hecke_monoid import HeckeMonoid
-                sage: H = HeckeMonoid(SymmetricGroup(4+1))
-                sage: w = H.from_reduced_word([3,2,1,4,3])
-                sage: B = crystals.FullyCommutativeStableGrothendieck(w,3,2)
-                sage: h = B([[3],[4,2,1],[4,3,1]])
+                sage: S = SymmetricGroup(4+1)
+                sage: w = S.from_reduced_word([3, 2, 1, 4, 3])
+                sage: B = crystals.FullyCommutativeStableGrothendieck(w, 3, 2)
+                sage: h = B([[3], [4, 2, 1], [4, 3, 1]])
                 sage: h.bracketing(1)
                 [[], []]
                 sage: h.bracketing(2)
@@ -555,16 +549,16 @@ def _check_decreasing_hecke_factorization(t):
     TESTS::
 
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _check_decreasing_hecke_factorization
-        sage: _check_decreasing_hecke_factorization([[3,2],[2,1],[4]])
-        sage: _check_decreasing_hecke_factorization([[3,2,2],[2,1],[4]])
+        sage: _check_decreasing_hecke_factorization([[3, 2], [2, 1], [4]])
+        sage: _check_decreasing_hecke_factorization([[3, 2, 2], [2, 1], [4]])
         Traceback (most recent call last):
         ...
         ValueError: Each nonempty factor should be a strictly decreasing sequence
-        sage: _check_decreasing_hecke_factorization([[3,'a'],[2,1],[4]])
+        sage: _check_decreasing_hecke_factorization([[3, 'a'], [2, 1], [4]])
         Traceback (most recent call last):
         ...
         ValueError: Each nonempty factor should contain integers
-        sage: _check_decreasing_hecke_factorization([[3,2],[2,1],4])
+        sage: _check_decreasing_hecke_factorization([[3, 2], [2, 1], 4])
         Traceback (most recent call last):
         ...
         ValueError: Each factor in t should be a list or tuple
@@ -587,17 +581,17 @@ def _to_reduced_word(P):
     TESTS::
 
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _to_reduced_word
-        sage: P = SkewPartition([[2,2],[1]])
+        sage: P = SkewPartition([[2, 2], [1]])
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _to_reduced_word
         sage: _to_reduced_word(P)
         [2, 1, 3]
 
-        sage: P = SkewPartition([[],[]])
+        sage: P = SkewPartition([[], []])
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _to_reduced_word
         sage: _to_reduced_word(P)
         []
 
-        sage: P = SkewPartition([[2,1],[]])
+        sage: P = SkewPartition([[2, 1], []])
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _to_reduced_word
         sage: _to_reduced_word(P)
         [1, 3, 2]
@@ -624,8 +618,7 @@ def _lowest_weights(w, factors, ex):
 
     INPUT:
 
-    - ``w`` -- a fully commutative reduced word in a 0-Hecke monoid, expressed
-               as an iterable
+    - ``w`` -- a fully commutative reduced word, expressed as an iterable
 
     - ``factors`` -- number of factors for each decreasing factorization
 
@@ -634,15 +627,15 @@ def _lowest_weights(w, factors, ex):
     EXAMPLES::
 
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _lowest_weights
-        sage: _lowest_weights([1,2,1], 3, 1)
+        sage: _lowest_weights([1, 2, 1], 3, 1)
         Traceback (most recent call last):
         ...
         ValueError: The word w should be fully commutative
 
-        sage: _lowest_weights([2,1,3,2], 4, 3)
+        sage: _lowest_weights([2, 1, 3, 2], 4, 3)
         [(2, 1)(3, 1)(3, 1)(2), (2, 1)(3, 1)(3, 2)(2)]
 
-        sage: _lowest_weights([2,1,3,2], 5, 3)
+        sage: _lowest_weights([2, 1, 3, 2], 5, 3)
         [(2, 1)(3, 1)(3, 1)(2)(),
          (2, 1)(3, 1)(3, 2)(2)(),
          (2, 1)(3, 1)(1)(1)(2),
@@ -650,10 +643,10 @@ def _lowest_weights(w, factors, ex):
          (2, 1)(3, 1)(2)(2)(2),
          (2, 1)(3, 2)(2)(2)(2)]
 
-        sage: _lowest_weights([1,3],3,1)
+        sage: _lowest_weights([1, 3], 3, 1)
         [(3, 1)(1)(), (3, 1)(3)(), (1)(1)(3), (1)(3)(3)]
 
-        sage: _lowest_weights([3,2,1],5,2)
+        sage: _lowest_weights([3, 2, 1], 5, 2)
         [(3, 2, 1)(1)(1)()()]
     """
     p = permutation.from_reduced_word(w)
@@ -740,7 +733,7 @@ def _list_equivalent_words(w):
     EXAMPLES::
 
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _list_equivalent_words
-        sage: _list_equivalent_words([1,1,2,1])
+        sage: _list_equivalent_words([1, 1, 2, 1])
         [(1, 1, 2, 1),
          (1, 2, 1, 1),
          (1, 2, 1, 2),

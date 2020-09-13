@@ -273,7 +273,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
         """
         Classcall to mend the input.
 
-        TESTS::
+        EXAMPLES::
 
             sage: A = crystals.FullyCommutativeStableGrothendieck([[3, 3], [2, 1]], 4, 1, shape=True); A
             Fully commutative stable Grothendieck crystal of type A_3 associated to [3, 2, 4] with excess 1
@@ -546,7 +546,7 @@ def _check_decreasing_hecke_factorization(t):
     """
     Check if ``t`` is a suitable data type for a decreasing factorization in a 0-Hecke monoid.
 
-    TESTS::
+    EXAMPLES::
 
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _check_decreasing_hecke_factorization
         sage: _check_decreasing_hecke_factorization([[3, 2], [2, 1], [4]])
@@ -578,7 +578,7 @@ def _to_reduced_word(P):
     """
     Return a reduced word associated to skew partition ``P``.
 
-    TESTS::
+    EXAMPLES::
 
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _to_reduced_word
         sage: P = SkewPartition([[2, 2], [1]])
@@ -681,7 +681,7 @@ def _jumps(w):
     """
     Detect all positions where letters weakly increase in ``w``.
 
-    TESTS::
+    EXAMPLES::
 
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _jumps
         sage: w = [4, 1, 2, 1, 4, 3, 2, 1, 3, 2, 2]

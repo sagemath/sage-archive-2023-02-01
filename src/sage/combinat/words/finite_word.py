@@ -2956,16 +2956,15 @@ class FiniteWord_class(Word_class):
             [0, 0, 2, 0, 2, 2, 4, 6, 8]
         """
         LPC = self.lengths_maximal_palindromes(f)
-        Nk = 0 + LPC[0]
+        Nk = LPC[0]
         LPS = [0]  # lengths of the longest palindromic suffix of prefixes
 
         for j in range(1, 2 * len(self) + 1):
             Nj = j + LPC[j]
             if Nj > Nk:
-                for i in range(Nk + 1, Nj + 1):
-                    if not i % 2:
-                        LPS.append(i - j)
-                    Nk = Nj
+                for i in range(Nk + 2 - (Nk % 2), Nj + 1, 2):
+                    LPS.append(i - j)
+                Nk = Nj
         return LPS
 
     def palindromes(self, f=None):

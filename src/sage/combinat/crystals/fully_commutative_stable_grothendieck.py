@@ -15,6 +15,12 @@ class DecreasingHeckeFactorization:
     """
     Class of decreasing factorizations in the 0-Hecke monoid.
 
+    INPUT:
+
+    - ``t`` -- decreasing factorization inputted as list of lists
+
+    - ``max_value`` -- maximal value of entries
+
     EXAMPLES::
 
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
@@ -25,7 +31,7 @@ class DecreasingHeckeFactorization:
         1
         sage: h.factors
         3
-        sage: h.k
+        sage: h.max_value
         3
         sage: h.value
         ((3, 2), (), (2, 1))
@@ -37,7 +43,7 @@ class DecreasingHeckeFactorization:
         sage: h.weight()
         (2, 1, 3)
     """
-    def __init__(self, t, k=None):
+    def __init__(self, t, max_value=None):
         """
         Initialize a decreasing factorization for ``self`` given the relevant data.
 
@@ -58,7 +64,7 @@ class DecreasingHeckeFactorization:
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
             sage: t = [[2,1],[2],[],[3,1]]
             sage: h = DecreasingHeckeFactorization(t,5)
-            sage: h.k
+            sage: h.max_value
             5
             sage: h.factors
             4
@@ -67,10 +73,10 @@ class DecreasingHeckeFactorization:
         """
         _check_decreasing_hecke_factorization(t)
         self.factors = len(t)
-        if k == None:
-            k = max([x for factor in t for x in factor])
-        self.k = k
-        H = HeckeMonoid(SymmetricGroup(k+1))
+        if max_value == None:
+            max_value = max([x for factor in t for x in factor])
+        self.max_value = max_value
+        H = HeckeMonoid(SymmetricGroup(max_value+1))
         word = H.from_reduced_word([x for factor in t for x in factor]).reduced_word()
         self.w = tuple(word)
         self.excess = sum(len(l) for l in t) - len(word)
@@ -105,7 +111,7 @@ class DecreasingHeckeFactorization:
             sage: hash(h1) == hash(h3)
             True
         """
-        return hash((self.k, self.value))
+        return hash((self.max_value, self.value))
 
     def __eq__(self, other):
         """
@@ -222,7 +228,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
     - ``w`` -- an element in a 0-Hecke monoid or a (skew) shape
 
-    - ``m`` -- the number of factors in the factorization
+    - ``factors`` -- the number of factors in the factorization
 
     - ``excess`` -- the total number of letters in the factorization minus the length of a reduced word for ``w``
 
@@ -264,7 +270,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
         (3, 1)(1)(3, 2)
     """
     @staticmethod
-    def __classcall_private__(cls, w, m, excess, shape=False):
+    def __classcall_private__(cls, w, factors, excess, shape=False):
         """
         Classcall to mend the input.
 
@@ -296,17 +302,17 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             else:
                 raise ValueError("w needs to be a (skew) partition")
             word = _to_reduced_word(sh)
-            k = max(word) if word else 1
-            H = HeckeMonoid(SymmetricGroup(k+1))
+            max_value = max(word) if word else 1
+            H = HeckeMonoid(SymmetricGroup(max_value+1))
             w = H.from_reduced_word(word)
         if w.reduced_word()==[] and excess!=0:
             raise ValueError("excess must be 0 for the empty word")
-        return super(FullyCommutativeStableGrothendieckCrystal, cls).__classcall__(cls, w, m, excess)
+        return super(FullyCommutativeStableGrothendieckCrystal, cls).__classcall__(cls, w, factors, excess)
 
     def __init__(self, w, factors, excess):
         """
         Initialize a crystal for self given reduced word ``w`` in a 0-Hecke
-        monoid, number of factors ``m`` and``excess`` extra letters.
+        monoid, number of factors ``factors`` and``excess`` extra letters.
 
         EXAMPLES::
 
@@ -352,7 +358,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
         self.w = tuple(word)
         self.factors = factors
         self.H = w.parent()
-        self.k = len(self.H.gens())
+        self.max_value = len(self.H.gens())
         self.excess = excess
         self._cartan_type = CartanType(['A', self.factors-1])
 
@@ -429,11 +435,11 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             if u.w != parent.w:
                 raise ValueError("self and parent must be specified based on equivalent words")
             if u.factors != parent.factors:
-                raise ValueError("Number of factors, m, do not match")
+                raise ValueError("Number of factors do not match")
             if u.excess != parent.excess:
                 raise ValueError("Number of excess do not match")
 
-            DecreasingHeckeFactorization.__init__(self, u.value, k=parent.k)
+            DecreasingHeckeFactorization.__init__(self, u.value, max_value=parent.max_value)
             ElementWrapper.__init__(self, parent, u.value)
 
         def e(self, i):
@@ -608,35 +614,35 @@ def _to_reduced_word(P):
                 L += [j-i+m]
     return L
 
-def _lowest_weights(w, m, ex):
+def _lowest_weights(w, factors, ex):
     """
     Generate all decreasing factorizations in the 0-Hecke monoid that correspond
     to some valid semistandard Young tableaux.
 
-    The semistandard Young tableaux should have at most ``m`` columns and their
+    The semistandard Young tableaux should have at most ``factors`` columns and their
     column reading words should be equivalent to ``w`` in a 0-Hecke monoid.
 
-    INPUTS:
+    INPUT:
 
     - ``w`` -- a fully commutative reduced word in a 0-Hecke monoid, expressed
                as an iterable
 
-    - ``m`` -- number of factors for each decreasing factorization
+    - ``factors`` -- number of factors for each decreasing factorization
 
     - ``ex`` -- number of extra letters in each decreasing factorizations
 
     EXAMPLES::
 
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _lowest_weights
-        sage: _lowest_weights([1,2,1],3,1)
+        sage: _lowest_weights([1,2,1], 3, 1)
         Traceback (most recent call last):
         ...
         ValueError: The word w should be fully commutative
 
-        sage: _lowest_weights([2,1,3,2],4,3)
+        sage: _lowest_weights([2,1,3,2], 4, 3)
         [(2, 1)(3, 1)(3, 1)(2), (2, 1)(3, 1)(3, 2)(2)]
 
-        sage: _lowest_weights([2,1,3,2],5,3)
+        sage: _lowest_weights([2,1,3,2], 5, 3)
         [(2, 1)(3, 1)(3, 1)(2)(),
          (2, 1)(3, 1)(3, 2)(2)(),
          (2, 1)(3, 1)(1)(1)(2),
@@ -665,11 +671,11 @@ def _lowest_weights(w, m, ex):
     L = _list_equivalent_words(_canonical_word(w,ex))
     k, D = max(w), {}
     for v in L:
-        if _is_valid_column_word(v, m):
+        if _is_valid_column_word(v, factors):
             J = [0] + _jumps(v) + [len(v)]
             t = [v[J[i]:J[i+1]] for i in range(len(J)-1)]
-            if len(J) < m+1:
-                t += [()]*(m+1-len(J))
+            if len(J) < factors+1:
+                t += [()]*(factors+1-len(J))
             h = DecreasingHeckeFactorization(t, k)
             weight = h.weight()
             if weight not in D:
@@ -680,7 +686,7 @@ def _lowest_weights(w, m, ex):
 
 def _jumps(w):
     """
-    Detect all positions where letters weakly increases in ``w``.
+    Detect all positions where letters weakly increase in ``w``.
 
     TESTS::
 

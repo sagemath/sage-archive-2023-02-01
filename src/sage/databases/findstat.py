@@ -205,7 +205,7 @@ Classes and methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import add_metaclass, string_types
+from six import string_types
 from sage.misc.lazy_list import lazy_list
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
@@ -254,7 +254,7 @@ from sage.combinat.words.word import Word
 from sage.combinat.words.words import Words
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.colored_permutations import SignedPermutations
-from sage.combinat.plane_partition import PlanePartition, PlanePartitions
+from sage.combinat.plane_partition import PlanePartition
 from sage.combinat.decorated_permutation import DecoratedPermutation, DecoratedPermutations
 
 ######################################################################
@@ -489,7 +489,7 @@ def _data_to_str(data, domain, codomain=None):
         sage: data = [([pi for pi in l(i)], [pi(1) for pi in l(i)]) for i in range(1,n+1)]
         sage: data.append(([Permutation([1,2])], [1]))
         sage: from sage.databases.findstat import FindStatCollection, _data_to_str
-        sage: print(_data_to_str(data, FindStatCollection(1)))                     # optional -- internet
+        sage: print(_data_to_str(data, FindStatCollection(1)))                  # optional -- internet
         [1, 2, 3]
         [1, 3, 2]
         ====> 1;1
@@ -1179,12 +1179,12 @@ def findmap(*args, **kwargs):
     The database can be searched by providing a list of pairs::
 
         sage: l = [pi for n in range(5) for pi in Permutations(n)]
-        sage: q = findmap([(pi, pi.complement().increasing_tree_shape()) for pi in l], depth=2); q # optional -- internet
+        sage: q = findmap([(pi, pi.complement().increasing_tree_shape()) for pi in l], depth=2); q  # optional -- internet
         0: Mp00061oMp00069 (quality [100])
 
     or a dictionary::
 
-        sage: p = findmap({pi: pi.complement().increasing_tree_shape() for pi in l}, depth=2); p        # optional -- internet
+        sage: p = findmap({pi: pi.complement().increasing_tree_shape() for pi in l}, depth=2); p    # optional -- internet
         0: Mp00061oMp00069 (quality [100])
 
     Note however, that the results of these two queries need not
@@ -1195,7 +1195,7 @@ def findmap(*args, **kwargs):
     this case, the function is applied to the first few objects of
     the collection::
 
-        sage: findmap("Permutations", lambda pi: pi.increasing_tree_shape(), depth=1)      # optional -- internet
+        sage: findmap("Permutations", lambda pi: pi.increasing_tree_shape(), depth=1)     # optional -- internet
         0: Mp00061 (quality [100])
 
     In rare cases, it may not be possible to guess the codomain of a
@@ -2036,10 +2036,10 @@ class FindStatCombinatorialStatistic(SageObject):
             return
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
 class FindStatStatistic(Element,
                         FindStatFunction,
-                        FindStatCombinatorialStatistic):
+                        FindStatCombinatorialStatistic,
+                        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A FindStat statistic.
 
@@ -2142,7 +2142,7 @@ class FindStatStatistic(Element,
 
         TESTS::
 
-            sage: findstat(41)._data()                                    # optional -- internet, indirect doctest
+            sage: findstat(41)._data()                                          # optional -- internet, indirect doctest
             {u'Bibliography': {u'MathSciNet:1288802': {u'Author': u'de M\xe9dicis, A., Viennot, X. G.',
                u'Title': u'Moments des $q$-polyn\xf4mes de Laguerre et la bijection de Foata-Zeilberger'},
               u'MathSciNet:1418763': {u'Author': u'Simion, R., Stanton, D.',
@@ -2175,7 +2175,7 @@ class FindStatStatistic(Element,
 
         TESTS::
 
-            sage: findstat(41)._first_terms_raw(4)                            # optional -- internet, indirect doctest
+            sage: findstat(41)._first_terms_raw(4)                              # optional -- internet, indirect doctest
             [(u'[(1,2)]', 0),
              (u'[(1,2),(3,4)]', 0),
              (u'[(1,3),(2,4)]', 0),
@@ -2613,11 +2613,11 @@ class FindStatStatisticQuery(FindStatStatistic):
             sage: n = 3; l = lambda i: [pi for pi in Permutations(n) if pi(1) == i]
             sage: data = [([pi for pi in l(i)], [pi(1) for pi in l(i)]) for i in range(1,n+1)]
             sage: data.append((Permutation([1,2]), 1))
-            sage: q = findstat(data, depth=0); q                                    # optional -- internet
+            sage: q = findstat(data, depth=0); q                                # optional -- internet
             0: St000054 (quality [100, 100])
-            sage: q.first_terms()                                                   # optional -- internet
+            sage: q.first_terms()                                               # optional -- internet
             OrderedDict([([1, 2], 1)])
-            sage: q.generating_functions()                                          # optional -- internet, indirect doctest
+            sage: q.generating_functions()                                      # optional -- internet, indirect doctest
             {3: 2*q^3 + 2*q^2 + 2*q}
         """
         return _distribution_from_data(self._known_terms,
@@ -2935,10 +2935,10 @@ class FindStatCombinatorialMap(SageObject):
     """
     pass
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
 class FindStatMap(Element,
                   FindStatFunction,
-                  FindStatCombinatorialMap):
+                  FindStatCombinatorialMap,
+                  metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A FindStat map.
 
@@ -3783,8 +3783,8 @@ def _plane_partitions_by_size(n):
     for pp in _plane_partitions_by_size_aux(n):
         yield PlanePartition(pp[:-1])
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class FindStatCollection(Element):
+class FindStatCollection(Element,
+                         metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A FindStat collection.
 

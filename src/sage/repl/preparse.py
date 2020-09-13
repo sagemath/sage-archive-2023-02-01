@@ -261,7 +261,6 @@ from __future__ import print_function
 import os
 import re
 
-from collections import OrderedDict
 from types import SimpleNamespace
 
 from sage.repl.load import load_wrap
@@ -361,12 +360,11 @@ class QuoteStack:
             sage: qs = sage.repl.preparse.QuoteStack()
             sage: len(qs)
             0
-            sage: qs.safe_delimiters() == ["'", '"', "'''", '\"\"\"']
-            True
 
         """
         self._stack = [] # list of QuoteStackFrame
-        self._safe_delims = OrderedDict.fromkeys(["'", '"', "'''", '"""'])
+        self._single_quote_safe = True
+        self._double_quote_safe = True
 
     def __len__(self):
         """
@@ -441,8 +439,8 @@ class QuoteStack:
         """
         Add a frame to the stack.
 
-        If the frame corresponds to an F-string, its delimiter is removed from
-        the set of safe ones, as is its triple-quoted version.
+        If the frame corresponds to an F-string, its delimiter is marked as no
+        longer being a :meth:`safe_delimiter`.
 
         EXAMPLES::
 
@@ -450,70 +448,29 @@ class QuoteStack:
             sage: qs.push(sage.repl.preparse.QuoteStackFrame("'"))
             sage: len(qs)
             1
-            sage: "'" in qs.safe_delimiters()
-            True
-            sage: qs.pop()
-            QuoteStackFrame(...delim="'"...)
-            sage: qs.push(sage.repl.preparse.QuoteStackFrame("'", f_string=True))
-            sage: "'" in qs.safe_delimiters()
-            False
-            sage: "'''" in qs.safe_delimiters()
-            False
-            sage: qs.push(sage.repl.preparse.QuoteStackFrame('"', f_string=True))
-            sage: qs.safe_delimiters()
-            []
 
         """
         self._stack.append(frame)
         if frame.f_string:
-            self._safe_delims.pop(frame.delim, None) # No longer safe!
-            # Nor is the triple-quoted version!
             if frame.delim == "'":
-                self._safe_delims.pop("'''", None)
+                self._single_quote_safe = False
             elif frame.delim == '"':
-                self._safe_delims.pop('"""', None)
-
-    def safe_delimiters(self):
-        """
-        Return a list of string delimiters that may be safely inserted into the code
-        output by :func:`strip_string_literals`.
-
-        They always appear in the order: ``'``, ``"``, ``'''``, ``\"\"\"``.
-
-        Delimiters are never added back to the set of safe ones. They may no
-        longer be applicable to parsing, but they appear somewhere in the processed
-        code, so they are not safe to insert just anywhere. A future enhancement
-        could be to map ranges in the processed code to the delimiters that
-        would be safe to insert there.
-
-        EXAMPLES::
-
-            sage: from sage.repl.preparse import QuoteStack, QuoteStackFrame
-            sage: s = QuoteStack()
-            sage: s.safe_delimiters() == ["'", '"', "'''", '\"\"\"']
-            True
-            sage: s.push(QuoteStackFrame('"', f_string=True))
-            sage: s.safe_delimiters()
-            ["'", "'''"]
-            sage: s.push(QuoteStackFrame("'''", f_string=True))
-            sage: s.safe_delimiters()
-            ["'"]
-            sage: s.push(QuoteStackFrame("'", f_string=True))
-            sage: s.safe_delimiters()
-            []
-            sage: s.pop()
-            QuoteStackFrame(...)
-            sage: s.safe_delimiters()
-            []
-
-        """
-        return list(self._safe_delims)
+                self._double_quote_safe = False
 
     def safe_delimiter(self):
         """
-        Return the first safe string delimiter, if any.
+        Return a string delimiter that may be safely inserted into the code
+        output by :func:`strip_string_literals`, if any.
 
-        See :meth:`safe_delimiters`.
+        ``'`` is preferred over ``"``. The triple-quoted versions are never
+        returned since by the time they would be chosen, they would also be invalid.
+        ``'''`` cannot, for example, appear within an F-string delimited by ``'``.
+
+        Once marked unsafe, a delimiter is never made safe again, even after the
+        stack frame that used it is popped. It may no longer be applicable to parsing,
+        but it appears somewhere in the processed code, so it is not safe to insert
+        just anywhere. A future enhancement could be to map ranges in the processed
+        code to the delimiter(s) that would be safe to insert there.
 
         EXAMPLES::
 
@@ -521,6 +478,11 @@ class QuoteStack:
             sage: s = QuoteStack()
             sage: s.safe_delimiter()
             "'"
+            sage: s.push(QuoteStackFrame("'"))
+            sage: s.safe_delimiter()
+            "'"
+            sage: s.pop()
+            QuoteStackFrame(...)
             sage: s.push(QuoteStackFrame("'", f_string=True))
             sage: s.safe_delimiter()
             '"'
@@ -529,7 +491,12 @@ class QuoteStack:
             True
 
         """
-        return next(iter(self._safe_delims), None)
+        if self._single_quote_safe:
+            return "'"
+        elif self._double_quote_safe:
+            return '"'
+        else:
+            return None
 
 class QuoteStackFrame(SimpleNamespace):
     """

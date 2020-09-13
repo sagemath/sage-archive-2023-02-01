@@ -23,7 +23,7 @@ class DecreasingHeckeFactorization:
         (3, 2)()(2, 1)
         sage: h.excess
         1
-        sage: h.m
+        sage: h.factors
         3
         sage: h.k
         3
@@ -60,13 +60,13 @@ class DecreasingHeckeFactorization:
             sage: h = DecreasingHeckeFactorization(t,5)
             sage: h.k
             5
-            sage: h.m
+            sage: h.factors
             4
             sage: h.w
             (1, 2, 1, 3)
         """
         _check_decreasing_hecke_factorization(t)
-        self.m = len(t)
+        self.factors = len(t)
         if k == None:
             k = max([x for factor in t for x in factor])
         self.k = k
@@ -303,7 +303,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             raise ValueError("excess must be 0 for the empty word")
         return super(FullyCommutativeStableGrothendieckCrystal, cls).__classcall__(cls, w, m, excess)
 
-    def __init__(self, w, m, excess):
+    def __init__(self, w, factors, excess):
         """
         Initialize a crystal for self given reduced word ``w`` in a 0-Hecke
         monoid, number of factors ``m`` and``excess`` extra letters.
@@ -316,7 +316,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             sage: B = crystals.FullyCommutativeStableGrothendieck(w,3,2)
             sage: B.w
             (1, 3, 2)
-            sage: B.m
+            sage: B.factors
             3
             sage: B.excess
             2
@@ -350,11 +350,11 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
         Parent.__init__(self, category = ClassicalCrystals())
         self.w = tuple(word)
-        self.m = m
+        self.factors = factors
         self.H = w.parent()
         self.k = len(self.H.gens())
         self.excess = excess
-        self._cartan_type = CartanType(['A', self.m-1])
+        self._cartan_type = CartanType(['A', self.factors-1])
 
     @lazy_attribute
     def module_generators(self):
@@ -377,7 +377,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
              (1)(1)(3)(3, 2),
              (1)(3)(3)(3, 2))
         """
-        return tuple([self(x).to_highest_weight()[0] for x in _lowest_weights(self.w, self.m, self.excess)])
+        return tuple([self(x).to_highest_weight()[0] for x in _lowest_weights(self.w, self.factors, self.excess)])
 
     def _repr_(self):
         """
@@ -391,7 +391,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             sage: crystals.FullyCommutativeStableGrothendieck(w,3,1)
             Fully commutative stable Grothendieck crystal of type A_2 associated to [2, 1, 3, 2] with excess 1
         """
-        return "Fully commutative stable Grothendieck crystal of type A_{} associated to {} with excess {}".format(self.m-1, list(self.w), self.excess)
+        return "Fully commutative stable Grothendieck crystal of type A_{} associated to {} with excess {}".format(self.factors-1, list(self.w), self.excess)
 
     # temporary workaround while an_element is overriden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
@@ -428,7 +428,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
             if u.w != parent.w:
                 raise ValueError("self and parent must be specified based on equivalent words")
-            if u.m != parent.m:
+            if u.factors != parent.factors:
                 raise ValueError("Number of factors, m, do not match")
             if u.excess != parent.excess:
                 raise ValueError("Number of excess do not match")
@@ -454,8 +454,8 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                 (4, 2)(2, 1)(4, 3, 2)(2)
                 sage: h.e(3)
             """
-            L = list(self.value[self.m-i-1])
-            R = list(self.value[self.m-i])
+            L = list(self.value[self.factors-i-1])
+            R = list(self.value[self.factors-i])
             b = self.bracketing(i)
             if not b[0]:
                 return None
@@ -468,7 +468,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             R.append(y)
             L.sort(reverse=True)
             R.sort(reverse=True)
-            s = [self.value[j] for j in range(self.m-i-1)]+[L]+[R]+[self.value[j] for j in range(self.m-i+1, self.m)]
+            s = [self.value[j] for j in range(self.factors-i-1)]+[L]+[R]+[self.value[j] for j in range(self.factors-i+1, self.factors)]
             return self.parent()(s)
 
         def f(self, i):
@@ -489,8 +489,8 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                 sage: h.f(3)
                 (3, 2, 1)(1)(4, 3)(3, 1)
             """
-            L = list(self.value[self.m-i-1])
-            R = list(self.value[self.m-i])
+            L = list(self.value[self.factors-i-1])
+            R = list(self.value[self.factors-i])
             b = self.bracketing(i)
             if not b[1]:
                 return None
@@ -503,7 +503,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             L.append(x)
             L.sort(reverse=True)
             R.sort(reverse=True)
-            s = [self.value[j] for j in range(self.m-i-1)]+[L]+[R]+[self.value[j] for j in range(self.m-i+1, self.m)]
+            s = [self.value[j] for j in range(self.factors-i-1)]+[L]+[R]+[self.value[j] for j in range(self.factors-i+1, self.factors)]
             return self.parent()(s)
 
         def bracketing(self,i):
@@ -522,8 +522,8 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                 sage: h.bracketing(2)
                 [[], [2, 1]]
             """
-            L = list(self.value[self.m-i-1])
-            R = list(self.value[self.m-i])
+            L = list(self.value[self.factors-i-1])
+            R = list(self.value[self.factors-i])
             right_n = [j for j in R]
             left_n = [j for j in L]
             left_unbracketed = []
@@ -548,6 +548,7 @@ def _check_decreasing_hecke_factorization(t):
 
     TESTS::
 
+        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _check_decreasing_hecke_factorization
         sage: _check_decreasing_hecke_factorization([[3,2],[2,1],[4]])
         sage: _check_decreasing_hecke_factorization([[3,2,2],[2,1],[4]])
         Traceback (most recent call last):
@@ -577,8 +578,9 @@ def _to_reduced_word(P):
     """
     Return a reduced word associated to skew partition ``P``.
 
-    EXAMPLES::
+    TESTS::
 
+        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _to_reduced_word
         sage: P = SkewPartition([[2,2],[1]])
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _to_reduced_word
         sage: _to_reduced_word(P)
@@ -625,6 +627,7 @@ def _lowest_weights(w, m, ex):
 
     EXAMPLES::
 
+        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _lowest_weights
         sage: _lowest_weights([1,2,1],3,1)
         Traceback (most recent call last):
         ...
@@ -679,8 +682,9 @@ def _jumps(w):
     """
     Detect all positions where letters weakly increases in ``w``.
 
-    EXAMPLES::
+    TESTS::
 
+        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _jumps
         sage: w = [4, 1, 2, 1, 4, 3, 2, 1, 3, 2, 2]
         sage: _jumps(w)
         [2, 4, 8, 10]
@@ -697,6 +701,7 @@ def _is_valid_column_word(w, m=None):
 
     EXAMPLES::
 
+        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _is_valid_column_word
         sage: w = [3, 2, 2, 1, 1]
         sage: _is_valid_column_word(w)
         False
@@ -728,6 +733,7 @@ def _list_equivalent_words(w):
 
     EXAMPLES::
 
+        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _list_equivalent_words
         sage: _list_equivalent_words([1,1,2,1])
         [(1, 1, 2, 1),
          (1, 2, 1, 1),
@@ -797,6 +803,7 @@ def _apply_relations(word, position, move):
 
     EXAMPLES::
 
+        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import _apply_relations
         sage: w = [2, 1, 3, 4]
         sage: _apply_relations(w, position=1, move="pq=qp")
         [2, 3, 1, 4]

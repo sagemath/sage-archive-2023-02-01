@@ -1659,7 +1659,7 @@ def _extract_lines(G):
     lines = []
     edges = set(G.edges(labels=False, sort=False))
 
-    while edges :
+    while edges:
         (x, y) = edges.pop()
 
         #compute line
@@ -1680,7 +1680,7 @@ def _extract_lines(G):
         # remove already handled edges
         for u, v in itertools.product(bot2, repeat=2):
             sig_check()
-            try :
+            try:
                 edges.remove((u, v))
             except KeyError:
                 pass  # ignore this

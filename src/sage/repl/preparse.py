@@ -67,7 +67,7 @@ Preparsing::
     "RealNumber('2e3')*x + Integer(3)*exp(y)"
 
 A string with escaped quotes in it (the point here is that the
-preparser doesn't get confused by the internal quotes)::
+preparser does not get confused by the internal quotes)::
 
     sage: "\"Yes,\" he said."
     '"Yes," he said.'
@@ -370,7 +370,7 @@ class QuoteStack:
 
     def __len__(self):
         """
-        Return the number of frames current on the stack.
+        Return the number of frames currently on the stack.
 
         EXAMPLES::
 
@@ -419,8 +419,9 @@ class QuoteStack:
 
     def pop(self):
         """
-        Removes and returns the frame that was most recently added to the stack.
-        Raises an IndexError if the stack is empty.
+        Remove and return the frame that was most recently added to the stack.
+
+        Raise an IndexError if the stack is empty.
 
         EXAMPLES::
 
@@ -438,9 +439,10 @@ class QuoteStack:
 
     def push(self, frame):
         """
-        Adds a frame to the stack. If it corresponds to an F-string, its
-        delimiter is removed from the set of safe ones, as is its triple-quoted
-        version.
+        Add a frame to the stack.
+
+        If the frame corresponds to an F-string, its delimiter is removed from
+        the set of safe ones, as is its triple-quoted version.
 
         EXAMPLES::
 
@@ -474,8 +476,9 @@ class QuoteStack:
     def safe_delimiters(self):
         """
         Return a list of string delimiters that may be safely inserted into the code
-        output by :func:`strip_string_literals`. They always appear in the order:
-        ``'``, ``"``, ``'''``, ``\"\"\"``.
+        output by :func:`strip_string_literals`.
+
+        They always appear in the order: ``'``, ``"``, ``'''``, ``\"\"\"``.
 
         Delimiters are never added back to the set of safe ones. They may no
         longer be applicable to parsing, but they appear somewhere in the processed
@@ -508,7 +511,9 @@ class QuoteStack:
 
     def safe_delimiter(self):
         """
-        Return the first safe string delimiter, if any. See :meth:`safe_delimiters`.
+        Return the first safe string delimiter, if any.
+
+        See :meth:`safe_delimiters`.
 
         EXAMPLES::
 
@@ -524,12 +529,14 @@ class QuoteStack:
             True
 
         """
-        return next(iter(self._safe_delims)) if self._safe_delims else None
+        return next(iter(self._safe_delims), None)
 
 class QuoteStackFrame(SimpleNamespace):
     """
     The state of a single level of a string literal being parsed.
-    (Only F-strings have more than one level.)
+
+    Only F-strings have more than one level.
+
     """
 
     def __init__(self, delim, raw=False, f_string=False, braces=0, parens=0, brackets=0,
@@ -571,9 +578,10 @@ class QuoteStackFrame(SimpleNamespace):
 
 def strip_string_literals(code, state=None):
     r"""
-    Returns a string with all literal quotes replaced with labels and
-    a dictionary of labels for re-substitution.  This makes parsing
-    easier.
+    Return a string with all literal quotes replaced with labels and
+    a dictionary of labels for re-substitution.
+
+    This makes parsing easier.
 
     INPUT:
 
@@ -642,7 +650,7 @@ def strip_string_literals(code, state=None):
         sage: literals
         {'L1': "'something\\\\\\' funny'"}
 
-    Braces don't do anything special in normal strings::
+    Braces do not do anything special in normal strings::
 
         sage: s, literals, state = strip_string_literals("'before{during}after'"); s
         '%(L1)s'
@@ -695,21 +703,21 @@ def strip_string_literals(code, state=None):
 
     Nested format specifiers -- inside a braced section in the main format
     specifier -- are treated as literals.
-    (Python doesn't allow any deeper nesting.)::
+    (Python does not allow any deeper nesting.)::
 
         sage: s, literals, state = strip_string_literals("f'{value:{width:10}}'"); s
         'f%(L1)s{value:%(L2)s{width:%(L3)s}%(L4)s}%(L5)s'
         sage: literals['L3']
         '10'
 
-    A colon inside parentheses doesn't start the format specifier in order to
+    A colon inside parentheses does not start the format specifier in order to
     allow lambdas. (Python requires lambdas in F-strings to be in parentheses.)::
 
         sage: s, literals, state = strip_string_literals("f'{(lambda x: x^2)(4)}'"); s
         'f%(L1)s{(lambda x: x^2)(4)}%(L2)s'
 
-    Similarly, a colon inside brackets doesn't start the format specifier in order
-    to allow slices.::
+    Similarly, a colon inside brackets does not start the format specifier in order
+    to allow slices::
 
         sage: s, literals, state = strip_string_literals("f'{[0, 1, 2, 3][1:3]}'"); s
         'f%(L1)s{[0, 1, 2, 3][1:3]}%(L2)s'
@@ -788,7 +796,7 @@ def strip_string_literals(code, state=None):
         quote = state.peek()
 
         if ch == '#' and not quote:
-            # It's a comment. Treat everything before as code and everything
+            # It is a comment. Treat everything before as code and everything
             # afterward up to the next newline as a comment literal.
             newline = code.find('\n', q)
             if newline == -1:
@@ -847,7 +855,7 @@ def strip_string_literals(code, state=None):
                 # Already in the format specifier, so this must be a nested specifier.
                 quote.nested_fmt_spec = True
             else:
-                # Otherwise, don't give the colon any special treatment.
+                # Otherwise, do not give the colon any special treatment.
                 q += 1
                 continue
             # Treat the preceding substring and the colon itself as code.
@@ -894,7 +902,7 @@ def strip_string_literals(code, state=None):
                 start = q
                 q += len(delim)
 
-        # Move to the next character if we haven't already moved elsewhere.
+        # Move to the next character if we have not already moved elsewhere.
         if q == orig_q:
             q += 1
 
@@ -1155,7 +1163,7 @@ all_num_regex = None
 
 def preparse_numeric_literals(code, extract=False, quotes="'"):
     """
-    This preparses numerical literals into their Sage counterparts,
+    Preparse numerical literals into their Sage counterparts,
     e.g. Integer, RealNumber, and ComplexNumber.
 
     INPUT:
@@ -1436,7 +1444,7 @@ def preparse_calculus(code):
 
     - William Stein
 
-      - Make variables become defined if they aren't already defined.
+      - Make variables become defined if they are not already defined.
 
     - Robert Bradshaw
 
@@ -1568,7 +1576,7 @@ def preparse_generators(code):
 
     - 2006-10-31: William
 
-      - Fix so obj doesn't have to be mutated.
+      - Fix so obj does not have to be mutated.
 
     - 2009-01-27: Robert Bradshaw
 
@@ -1622,7 +1630,7 @@ def preparse_generators(code):
         sage: preparse("A.<x,y,z>=FreeAlgebra(ZZ,3)")
         "A = FreeAlgebra(ZZ,Integer(3), names=('x', 'y', 'z',)); (x, y, z,) = A._first_ngens(3)"
 
-    Ensure we don't eat too much::
+    Ensure we do not eat too much::
 
         sage: preparse("R.<x, y> = ZZ;2")
         'R = ZZ; (x, y,) = R._first_ngens(2);Integer(2)'
@@ -1741,7 +1749,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         'A  * BackslashOperator() * B'
         sage: preparse("A^2 \\ B + C")
         'A**Integer(2)  * BackslashOperator() * B + C'
-        sage: preparse("a \\ b \\") # There is really only one backslash here, it's just being escaped.
+        sage: preparse("a \\ b \\") # There is really only one backslash here, it is just being escaped.
         'a  * BackslashOperator() * b \\'
 
         sage: preparse("time R.<x> = ZZ[]", do_time=True)
@@ -1856,7 +1864,7 @@ def preparse_file(contents, globals=None, numeric_literals=True):
       dict.
 
     - ``numeric_literals`` - bool (default: True), whether to factor
-      out wrapping of integers and floats, so they don't get created
+      out wrapping of integers and floats, so they do not get created
       repeatedly inside loops
 
     OUTPUT:
@@ -1981,7 +1989,7 @@ def implicit_mul(code, level=5):
     keywords_py2 = ['print', 'exec']
 
     def re_no_keyword(pattern, code):
-        for _ in range(2): # do it twice in because matches don't overlap
+        for _ in range(2): # do it twice in because matches do not overlap
             for m in reversed(list(re.finditer(pattern, code))):
                 left, right = m.groups()
                 if not iskeyword(left) and not iskeyword(right) \
@@ -2103,7 +2111,7 @@ def handle_encoding_declaration(contents, out):
         ## -*- coding: utf-8 -*-
         'import os, sys\nprint(x)'
 
-    When the encoding declaration doesn't match the specification, we
+    When the encoding declaration does not match the specification, we
     spit out a default UTF-8 encoding.
 
     Incorrect coding line::
@@ -2120,7 +2128,7 @@ def handle_encoding_declaration(contents, out):
         # -*- coding: utf-8 -*-
         '#!/usr/local/bin/python\n#\n# -*- coding: latin-1 -*-\nimport os, sys'
 
-    We don't check for legal encoding names; that's Python's job::
+    We do not check for legal encoding names; that is Python's job::
 
         sage: contents ='#!/usr/local/bin/python\n# -*- coding: utf-42 -*-\nimport os, sys'
         sage: handle_encoding_declaration(contents, sys.stdout)
@@ -2131,7 +2139,7 @@ def handle_encoding_declaration(contents, out):
     .. NOTE::
 
         - :pep:`263` says that Python will interpret a UTF-8
-          byte order mark as a declaration of UTF-8 encoding, but I don't
+          byte order mark as a declaration of UTF-8 encoding, but I do not
           think we do that; this function only sees a Python string so it
           cannot account for a BOM.
 
@@ -2151,7 +2159,7 @@ def handle_encoding_declaration(contents, out):
             out.write(line + '\n')
             return '\n'.join(lines[:num] + lines[(num+1):])
 
-    # If we didn't find any encoding hints, use utf-8. This is not in
+    # If we did not find any encoding hints, use utf-8. This is not in
     # conformance with PEP 263, which says that Python files default to
     # ascii encoding.
     out.write("# -*- coding: utf-8 -*-\n")

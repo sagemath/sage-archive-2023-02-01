@@ -1,3 +1,4 @@
+# distutils: libraries = sqlite3
 """
 Miscellaneous operating system functions
 """

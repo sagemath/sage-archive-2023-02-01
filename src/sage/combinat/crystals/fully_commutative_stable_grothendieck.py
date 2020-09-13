@@ -308,7 +308,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             if isinstance(w.parent(), SymmetricGroup):
                 H = HeckeMonoid(w.parent())
                 w = H.from_reduced_word(w.reduced_word())
-        if w.reduced_word()==[] and excess!=0:
+        if (not w.reduced_word()) and excess!=0:
             raise ValueError("excess must be 0 for the empty word")
         return super(FullyCommutativeStableGrothendieckCrystal, cls).__classcall__(cls, w, factors, excess)
 
@@ -367,7 +367,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
         """
         Return generators for ``self`` as a crystal.
 
-        TESTS::
+        EXAMPLES::
 
             sage: S = SymmetricGroup(3+1)
             sage: w = S.from_reduced_word([1, 3, 2])
@@ -728,7 +728,7 @@ def _is_valid_column_word(w, m=None):
 
 def _list_equivalent_words(w):
     """
-    Lists all words equivalent to ``w`` in a 0-Hecke monoid.
+    List all words equivalent to ``w`` in a 0-Hecke monoid.
 
     EXAMPLES::
 
@@ -784,7 +784,7 @@ def _list_equivalent_words(w):
         return L
 
     V, queue = set([]), [tuple(u)]
-    while len(queue) > 0:
+    while queue:
         v = queue.pop(0)
         if tuple(v) not in V:
             V.add(tuple(v))

@@ -1316,7 +1316,6 @@ def GeneralisedDodecagonGraph(const int s, const int t):
         sage: G = graphs.GeneralisedDodecagonGraph(2, 1)  # optional - gap_packages internet
         sage: G.is_distance_regular(True)  # optional - gap_packages internet
         ([4, 2, 2, 2, 2, 2, None], [None, 1, 1, 1, 1, 1, 2])
-
     """
     from sage.arith.misc import is_prime_power
 
@@ -1404,7 +1403,6 @@ def GeneralisedOctagonGraph(const int s, const int t):
         Traceback (most recent call last):
         ...
         ValueError: generalised octagons of order (q, q^2) are known only for odd powers q of 2
-
     """
     from sage.arith.misc import is_prime_power
     from sage.libs.gap.libgap import libgap
@@ -1518,7 +1516,6 @@ def GeneralisedHexagonGraph(const int s, const int t):
         sage: G = graphs.GeneralisedHexagonGraph(2, 8)  # optional - gap_packages internet
         sage: G.is_distance_regular(True)  # optional - gap_packages internet
         ([18, 16, 16, None], [None, 1, 1, 9])
-
     """
     from sage.arith.misc import is_prime_power
     from sage.libs.gap.libgap import libgap

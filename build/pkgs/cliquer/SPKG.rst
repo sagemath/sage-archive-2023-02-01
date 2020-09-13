@@ -5,8 +5,8 @@ Description
 -----------
 
 Cliquer is a set of C routines for finding cliques in an arbitrary
-weighted graph. It uses an exact branch-and-bound algorithm recently
-developed by Patr Ostergard.
+weighted graph. It uses an exact branch-and-bound algorithm
+developed by Patric Östergård.
 
 License
 -------
@@ -28,4 +28,5 @@ Dependencies
 Patches
 -------
 
--  autotoolized - see https://github.com/dimpase/autocliquer
+-  minor config updates (v1.22)
+-  autotoolized - see https://github.com/dimpase/autocliquer (v1.21)

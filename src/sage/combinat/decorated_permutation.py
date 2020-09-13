@@ -77,7 +77,7 @@ class DecoratedPermutation(Element,
 
             sage: S = DecoratedPermutations(3)
             sage: elt = S([2, 1, -3])
-            sage: hash(elt)
+            sage: hash(elt) # random
             915443076393556996
         """
         return hash(self._pi)

@@ -27,6 +27,17 @@ Constructors and databases
    sage/graphs/graph_generators_pyx
    sage/graphs/graph_database
    sage/graphs/strongly_regular_db
+   sage/graphs/generators/distance_regular
+   sage/graphs/generators/classical_geometries
+   sage/graphs/generators/families
+   sage/graphs/generators/basic
+   sage/graphs/generators/chessboard
+   sage/graphs/generators/intersection
+   sage/graphs/generators/platonic_solids
+   sage/graphs/generators/random
+   sage/graphs/generators/smallgraphs
+   sage/graphs/generators/world_map
+
    sage/graphs/isgci
 
 

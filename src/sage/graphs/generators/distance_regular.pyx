@@ -190,7 +190,7 @@ def graph_3O73():
     This graph is distance-regular with intersection array
     `[117, 80, 24, 1; 1, 12, 80, 117]`.
 
-    The graph is also distance transitive with "3.O(7,3)" as automorphism
+    The graph is also distance transitive with `3.O(7,3)` as automorphism
     group
 
     EXAMPLES::
@@ -334,8 +334,8 @@ def TruncatedWittGraph():
 
     EXAMPLES::
 
-         sage: G = graphs.TruncatedWittGraph()
-         sage: G.is_distance_regular(True)
+         sage: G = graphs.TruncatedWittGraph()  # long time
+         sage: G.is_distance_regular(True)  # long time (due to above)
          ([15, 14, 12, None], [None, 1, 1, 9])
 
     REFERENCES:
@@ -385,8 +385,8 @@ def distance_3_doubly_truncated_Golay_code_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.distance_3_doubly_truncated_Golay_code_graph()
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.distance_3_doubly_truncated_Golay_code_graph()  # long time
+        sage: G.is_distance_regular(True)  # long time (due to above)
         ([9, 8, 6, 3, None], [None, 1, 1, 3, 8])
 
     ALGORITHM:
@@ -421,7 +421,7 @@ def shortened_00_11_binary_Golay_code_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.shortened_00_11_binary_Golay_code_graph() # long time (25 s)
+        sage: G = graphs.shortened_00_11_binary_Golay_code_graph() # long time (9 s)
         sage: G.is_distance_regular(True) # long time
         ([21, 20, 16, 6, 2, 1, None], [None, 1, 2, 6, 16, 20, 21])
 
@@ -460,7 +460,7 @@ def shortened_000_111_extended_binary_Golay_code_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # long time (2 min)
+        sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # long time (25 s)
         sage: G.is_distance_regular(True)  # long time
         ([21, 20, 16, 9, 2, 1, None], [None, 1, 2, 3, 16, 20, 21])
 
@@ -492,7 +492,7 @@ def shortened_000_111_extended_binary_Golay_code_graph():
     G.name("Shortened 000 111 extended binary Golay code")
     return G
 
-def LintSchrijverGraph():
+def vanLintSchrijverGraph():
     r"""
     Return the van Lint-Schrijver graph.
 
@@ -501,7 +501,7 @@ def LintSchrijverGraph():
 
     EXAMPLES::
 
-         sage: G = graphs.LintSchrijverGraph()
+         sage: G = graphs.vanLintSchrijverGraph()
          sage: G.is_distance_regular(True)
          ([6, 5, 5, 4, None], [None, 1, 1, 2, 6])
 
@@ -544,7 +544,8 @@ def LeonardGraph():
     M = hadamard_matrix(12)
     edges = []
     for i, j, k, l in itertools.product(range(12), repeat=4):
-        if i == k or j == l: continue
+        if i == k or j == l:
+            continue
         if M[i, j] * M[i, l] * M[k, j] * M[k, l] == -1:
             edges.append(((i, j), (k, l)))
 
@@ -579,13 +580,13 @@ def UstimenkoGraph(const int m, const int q):
 
     TESTS::
 
-        sage: G = graphs.UstimenkoGraph(5, 2)
-        sage: G.order()
+        sage: G = graphs.UstimenkoGraph(5, 2)  # long time
+        sage: G.order()  # long time
         2295
-        sage: G.is_distance_regular(True)
+        sage: G.is_distance_regular(True)  # long time
         ([310, 224, None], [None, 1, 35])
-        sage: G = graphs.UstimenkoGraph(4,3)
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.UstimenkoGraph(4,3)  # long time
+        sage: G.is_distance_regular(True)  # long time
         ([390, 243, None], [None, 1, 130])
     """
     from sage.graphs.graph_generators import graphs
@@ -609,8 +610,8 @@ def BilinearFormsGraph(const int d, const int e, const int q):
     r"""
     Return a bilinear forms graph with the given parameters.
 
-    This build a graph whose vertices are all ``d``x``e`` matrices over
-    ``GF(q)``. Two vertices are adjacent if the difference of the two
+    This builds a graph whose vertices are all `d`x`e` matrices over
+    `GF(q)`. Two vertices are adjacent if the difference of the two
     matrices has rank 1.
 
     The graph is distance-regular with classical parameters
@@ -626,9 +627,12 @@ def BilinearFormsGraph(const int d, const int e, const int q):
         sage: G = graphs.BilinearFormsGraph(3, 3, 2)
         sage: G.is_distance_regular(True)
         ([49, 36, 16, None], [None, 1, 6, 28])
-        sage: G = graphs.BilinearFormsGraph(3,3,3)  # long time (20 s)
-        sage: G.order()  # long time (due to above)
+        sage: G = graphs.BilinearFormsGraph(3,3,3)  # not tested (20 s)
+        sage: G.order()  # not tested (due to above)
         19683
+        sage: G = graphs.BilinearFormsGraph(3, 4, 2)  # long time
+        sage: G.is_distance_regular(True)  # long time
+        ([105, 84, 48, None], [None, 1, 6, 28])
 
     REFERENCES:
 
@@ -696,8 +700,8 @@ def AlternatingFormsGraph(const int n, const int q):
     r"""
     Return the alternating forms graph with the given parameters.
 
-    This construct a graph whose vertices are all ``n``x``n`` skew-symmetric
-    matrices over ``GF(q)`` with zero diagonal. Two vertices are adjacent
+    This builds a graph whose vertices are all `n`x`n` skew-symmetric
+    matrices over `GF(q)` with zero diagonal. Two vertices are adjacent
     if and only if the difference of the two matrices has rank 2.
 
     This grap is distance-regular with classical parameters
@@ -710,8 +714,8 @@ def AlternatingFormsGraph(const int n, const int q):
 
     EXAMPLES::
 
-        sage: G = graphs.AlternatingFormsGraph(5,2)
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.AlternatingFormsGraph(5, 2)  # long time
+        sage: G.is_distance_regular(True)  # long time
         ([155, 112, None], [None, 1, 20])
 
     REFERENCES:
@@ -959,7 +963,7 @@ def HalfCube(const int n):
     r"""
     Return the halved cube in `n` dimensions.
 
-    The graph is distance-regular with calssical parameters
+    The graph is distance-regular with classical parameters
     `(\lfloor \frac n 2 \rfloor, 1, 2, 2 \lceil \frac n 2 \rceil -1)`.
 
     INPUT:
@@ -992,43 +996,45 @@ def HalfCube(const int n):
          sage: G1.is_isomorphic(G2)
          True
     """
-    from sage.graphs.graph_generators import graphs
+    from sage.functions.trig import cos, sin
 
-    def hamming_distance(str v, str w):
-        cdef int i, counter
+    if n < 2:
+        raise ValueError("the dimension must be n > 1")
 
-        counter = 0
-        for i in range(len(v)):
-            if (v[i] != w[i]):
-                counter = counter + 1
+    cdef int u, uu, v, i, j
+    cdef list E = []
+    cdef dict pos = {}  # dictionary of positions
+    cdef float theta = 3.14159265 / (n - 1)
+    cdef list cosi = [<float>cos(i*theta) for i in range(n - 1)]
+    cdef list sini = [<float>sin(i*theta) for i in range(n - 1)]
 
-        return counter
-
-    if n <= 2:
-        raise ValueError("we need n > 2")
-
-    G = graphs.CubeGraph(n-1)
-    # we use the fact that the vertices are strings
-    # and their distance is their hamming_distance
-    for v, w in itertools.combinations(G, 2):
+    for u in range(2**(n - 1)):
         sig_check()
-        if hamming_distance(v, w) == 2:
-            G.add_edge(v, w)
+        pos[u] = (sum(((u >> (n-2-i)) & 1) * cosi[i] for i in range(n - 1)),
+                  sum(((u >> (n-2-i)) & 1) * sini[i] for i in range(n - 1)))
 
-    G.relabel()  # relabel vertices to 0,1,2,...
+        for i in range(n - 1):
+            uu = u ^ (1 << i)
+            if u < uu:
+                E.append((u, uu))
+            for j in range(i + 1, n - 1):
+                v = uu ^ (1 << j)
+                if u < v:
+                    E.append((u, v))
 
+    G = Graph([range(2**(n - 1)), E], format='vertices_and_edges')
+    G.set_pos(pos)
     G.name("Half %d Cube"%n)
     return G
-
 
 def GrassmannGraph(const int q, const int n, const int input_e):
     r"""
     Return the Grassmann graph with parameters `(q, n, e)`.
 
-    This build the Grassmann graph $J_q(n,e)$. That is, for a vector
-    space $V = \mathbb F(q))^n$ the output is the graph on the subspaces
-    of dimension $e$ where two subspaces are adjancent if their intersection
-    has dimension $e-1$.
+    This builds the Grassmann graph `J_q(n,e)`. That is, for a vector
+    space `V = \mathbb F(q)^n` the output is the graph on the subspaces
+    of dimension `e` where two subspaces are adjancent if their intersection
+    has dimension `e-1`.
 
     This graph is distance-regular with classical parameters
     `(\min(e, n-e), q, q, \genfrac {[}{]} {0pt} {} {n-e+1} 1 _q -1)`
@@ -1050,8 +1056,8 @@ def GrassmannGraph(const int q, const int n, const int input_e):
 
     TESTS::
 
-        sage: G = graphs.GrassmannGraph(2, 6, 3)
-        sage: G.is_distance_regular(True)
+        sage: G = graphs.GrassmannGraph(2, 6, 3)  # long time
+        sage: G.is_distance_regular(True)  # long time
         ([98, 72, 32, None], [None, 1, 9, 49])
         sage: G = graphs.GrassmannGraph(3, 4, 2)
         sage: G.is_distance_regular(True)
@@ -1076,10 +1082,9 @@ def GrassmannGraph(const int q, const int n, const int input_e):
 
 def DoubleGrassmannGraph(const int q, const int e):
     r"""
-    Return the bipartite double of the distance-`e` graph of the
-    Grassmann graph with parameters `(q, 2e+1, e)`.
+    Return the bipartite double of the distance-`e` graph of the Grassmann graph `J_q(n,e)`.
 
-    This graph can also be descirbed as follow:
+    This graph can also be descirbed as follows:
     Let `V` be the vector space of dimension `n` over `GF(q)`.
     The vertex set is the set of `e+1` or `e` subspaces of `V`.
     Two vertices are adjacent if one subspace is contained in the other.
@@ -1111,10 +1116,10 @@ def DoubleGrassmannGraph(const int q, const int e):
          62
          sage: G.is_distance_regular(True)
          ([6, 5, 5, None], [None, 1, 1, 6])
-         sage: G = graphs.DoubleGrassmannGraph(3, 2)
-         sage: G.order()
+         sage: G = graphs.DoubleGrassmannGraph(3, 2)  # long time
+         sage: G.order()  # long time
          2420
-         sage: G.is_distance_regular(True)
+         sage: G.is_distance_regular(True)  # long time
          ([13, 12, 12, 9, 9, None], [None, 1, 1, 4, 4, 13])
     """
     n = 2*e + 1

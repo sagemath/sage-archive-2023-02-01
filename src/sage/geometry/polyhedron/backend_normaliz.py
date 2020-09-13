@@ -1568,6 +1568,12 @@ class Polyhedron_normaliz(Polyhedron_base):
             (3, 5, 6, 7),
             (6, 2, 4, 3),
             (6, 3, 4, 5)]
+
+        ::
+
+            sage: C1 = Polyhedron(rays=[[0,0,1],[1,0,AA(2).sqrt()],[0,1,1],[1,1,1]], backend='normaliz')
+            sage: C1._triangulate_normaliz()
+            [(0, 1, 3), (0, 3, 2)]
         """
         if self.lines():
             raise NotImplementedError("triangulation of non-compact not pointed polyhedron is not supported")
@@ -1586,26 +1592,50 @@ class Polyhedron_normaliz(Polyhedron_base):
         assert cone
         nmz_triangulation = self._nmz_result(cone, "Triangulation")
 
-        if self.is_compact():
-            return [tuple(x[0]) for x in nmz_triangulation]
-        else:
-            # Find the index of the vertex.
-            for i,g in enumerate(self._nmz_result(cone, "ExtremeRays")):
-                if g[-1] > 0:
-                    vertex_index = i
-                    break
+        # Normaliz does not guarantee that the order of generators is kept during
+        # computation of the triangulation.
+        # Those are the generators that the indices of the triangulation correspond to:
+        nmz_new_generators = self._nmz_result(cone, "Generators")
+
+        base_ring = self.base_ring()
+        v_list = self.vertices_list()
+        r_list = self.rays_list()
+
+        new_to_old = {}
+        for i,g in enumerate(nmz_new_generators):
+            if self.is_compact():
+                d = base_ring(g[-1])
+                vertex = [base_ring(x)/d for x in g[:-1]]
+                new_to_old[i] = v_list.index(vertex)
+                pass
             else:
-                raise AssertionError("the normaliz cone does not have a ray [0,0,...,1]")
+                if g[-1] > 0:
+                    new_to_old[i] = None
+                else:
+                    try:
+                        new_to_old[i] = r_list.index([base_ring(x) for x in g[:-1]])
+                    except ValueError:
+                        # Rays are only unique up to scaling.
+                        new_ray = vector(base_ring, g[:-1])
 
-            def indices_to_new_indices(x):
-                for i in x:
-                    if i < vertex_index:
-                        yield i
-                    if i > vertex_index:
-                        yield i-1
+                        for j,r in enumerate(self.rays()):
+                            ray = r.vector()
+                            try:
+                                # Check for colinearity.
+                                _ = new_ray/ray
+                                new_to_old[i] = j
+                                break
+                            except (TypeError, ArithmeticError):
+                                pass
+                        else:
+                            raise ValueError("could not match rays after computing triangulation with original rays")
 
-            return [tuple(indices_to_new_indices(x[0])) for x in nmz_triangulation]
+        def new_indices(old_indices):
+            for i in old_indices:
+                if new_to_old[i] is not None:
+                    yield new_to_old[i]
 
+        return [tuple(new_indices(x[0])) for x in nmz_triangulation]
 
 
 #########################################################################

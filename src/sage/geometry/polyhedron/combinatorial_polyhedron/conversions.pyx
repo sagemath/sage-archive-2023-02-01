@@ -76,7 +76,6 @@ AUTHOR:
 from sage.structure.element import is_Matrix
 
 from .list_of_faces                   cimport ListOfFaces
-from sage.misc.superseded              import deprecated_function_alias
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.ext.memory_allocator        cimport MemoryAllocator
 
@@ -291,7 +290,6 @@ def incidence_matrix_to_bit_rep_of_facets(Matrix_integer_dense matrix):
                 # Vrep ``entry`` is contained in the face, so set the corresponding bit
                 bitset_add(output, entry)
     return facets
-incidence_matrix_to_bit_repr_of_facets = deprecated_function_alias(28608, incidence_matrix_to_bit_rep_of_facets)
 
 def incidence_matrix_to_bit_rep_of_Vrep(Matrix_integer_dense matrix):
     r"""
@@ -352,7 +350,6 @@ def incidence_matrix_to_bit_rep_of_Vrep(Matrix_integer_dense matrix):
         (0, 4, 6)
     """
     return incidence_matrix_to_bit_rep_of_facets(matrix.transpose())
-incidence_matrix_to_bit_repr_of_Vrepr = deprecated_function_alias(28608, incidence_matrix_to_bit_rep_of_Vrep)
 
 def facets_tuple_to_bit_rep_of_facets(tuple facets_input, size_t n_Vrep):
     r"""
@@ -395,7 +392,6 @@ def facets_tuple_to_bit_rep_of_facets(tuple facets_input, size_t n_Vrep):
         # filling each facet with the data from the corresponding facet
         Vrep_list_to_bit_rep(facets_input[i], facets_data[i], face_length)
     return facets
-facets_tuple_to_bit_repr_of_facets = deprecated_function_alias(28608, facets_tuple_to_bit_rep_of_facets)
 
 def facets_tuple_to_bit_rep_of_Vrep(tuple facets_input, size_t n_Vrep):
     r"""
@@ -458,7 +454,6 @@ def facets_tuple_to_bit_rep_of_Vrep(tuple facets_input, size_t n_Vrep):
             # input-facet is a Vrep of intput-Vrep.
             bitset_add(Vrep_data[input_Vrep], input_facet)
     return Vrep
-facets_tuple_to_bit_repr_of_Vrepr = deprecated_function_alias(28608, facets_tuple_to_bit_rep_of_Vrep)
 
 def _bit_rep_to_Vrep_list_wrapper(data, index=0):
     r"""

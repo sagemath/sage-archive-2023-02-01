@@ -818,6 +818,7 @@ def HermitianFormsGraph(const int n, const int r):
         sage: G = graphs.HermitianFormsGraph(3, 3)  # not tested (2 min)
         sage: G.order()  # not tested (bacuase of the above)
         19683
+
     REFERENCES:
 
     See [BCN1989]_ p. 285 or [VDKT2016]_ p. 22.
@@ -1807,18 +1808,21 @@ _sporadic_graph_database = {
     shortened_00_11_binary_Golay_code_graph,
     (21, 20, 16, 9, 2, 1, 1, 2, 3, 16, 20, 21) : \
     shortened_000_111_extended_binary_Golay_code_graph,
-    (22, 21, 20, 3, 2, 1, 1, 2, 3, 20, 21, 22) : \
+    (22, 21, 20, 3, 2, 1, 1, 2, 3, 20, 21, 22) : lambda : \
     codes.GolayCode(GF(2), extended=False).shortened([0]).cosetGraph,
     (3, 2, 1, 1, 1, 1, 1, 1, 2, 3) : DodecahedralGraph,
-    (22, 20, 18, 2, 1, 1, 2, 9, 20, 22) : \
+    (22, 20, 18, 2, 1, 1, 2, 9, 20, 22) : lambda : \
     codes.GolayCode(GF(3)).shortened([0]).cosetGraph,
-    (7, 6, 6, 1, 1, 1, 1, 6, 6, 7) : HoffmanSingletonGraph().bipartite_double,
-    (10, 9, 8, 2, 1, 1, 2, 8, 9, 10) : SimsGewirtzGraph().bipartite_double,
-    (16, 15, 12, 4, 1, 1, 4, 12, 15, 16) : \
+    (7, 6, 6, 1, 1, 1, 1, 6, 6, 7) : lambda : \
+    HoffmanSingletonGraph().bipartite_double,
+    (10, 9, 8, 2, 1, 1, 2, 8, 9, 10) : lambda : \
+    SimsGewirtzGraph().bipartite_double,
+    (16, 15, 12, 4, 1, 1, 4, 12, 15, 16) : lambda : \
     strongly_regular_graph(77, 16, 0, check=False).bipartite_double,
-    (22, 21, 16, 6, 1, 1, 6, 16, 21, 22) : HigmanSimsGraph().bipartite_double,
+    (22, 21, 16, 6, 1, 1, 6, 16, 21, 22) : lambda : \
+    HigmanSimsGraph().bipartite_double,
     (3, 2, 2, 1, 1, 1, 1, 2) : CoxeterGraph,
-    (6, 5, 5, 4, 1, 1, 2, 6) : LintSchrijverGraph,
+    (6, 5, 5, 4, 1, 1, 2, 6) : vanLintSchrijverGraph,
     (7, 6, 4, 4, 1, 1, 1, 6) : DoublyTruncatedWittGraph,
     (9, 8, 6, 3, 1, 1, 3, 8) : distance_3_doubly_truncated_Golay_code_graph,
     (10, 8, 8, 2, 1, 1, 4, 5) : J2Graph,
@@ -1826,21 +1830,22 @@ _sporadic_graph_database = {
     (5, 4, 1, 1, 1, 1, 4, 5) : WellsGraph,
     (6, 4, 2, 1, 1, 1, 4, 6) : FosterGraph3S6,
     (10, 6, 4, 1, 1, 2, 6, 10) :  ConwaySmith_for_3S7,
-    (20, 18, 4, 1, 1, 2, 18, 20) : \
+    (20, 18, 4, 1, 1, 2, 18, 20) : lambda : \
     codes.GolayCode(GF(3), extended=False).shortened([0]).cosetGraph,
     (45, 32, 12, 1, 1, 6, 32, 45) : locally_GQ42_distance_transitive_graph,
     (117, 80, 24, 1, 1, 12, 80, 117) : graph_3O73,
-    (22, 21, 20, 1, 2, 6): \
+    (22, 21, 20, 1, 2, 6): lambda : \
     codes.GolayCode(GF(2), extended=False).punctured([0]).cosetGraph,
-    (23, 22, 21, 1, 2, 3): codes.GolayCode(GF(2), extended=False).cosetGraph,
-    (24, 23, 22, 21, 1, 2, 3, 24): codes.GolayCode(GF(2)).cosetGraph,
+    (23, 22, 21, 1, 2, 3): lambda : \
+    codes.GolayCode(GF(2), extended=False).cosetGraph,
+    (24, 23, 22, 21, 1, 2, 3, 24): lambda : codes.GolayCode(GF(2)).cosetGraph,
     (12, 11, 10, 7, 1, 2, 5, 12): LeonardGraph,
     (15, 14, 10, 3, 1, 5, 12, 15): cocliques_HoffmannSingleton,
     (27, 10, 1, 1, 10, 27): GossetGraph,
     (30, 28, 24, 1, 3, 15): LargeWittGraph,
     (15, 14, 12, 1, 1, 9): TruncatedWittGraph,
-    (24, 22, 20, 1, 2, 12): codes.GolayCode(GF(3)).cosetGraph,
-    (21, 20, 16, 1, 2, 12): \
+    (24, 22, 20, 1, 2, 12): lambda : codes.GolayCode(GF(3)).cosetGraph,
+    (21, 20, 16, 1, 2, 12): lambda : \
     codes.GolayCode(GF(2), extended=False).punctured([0, 1]).cosetGraph
 }
 

@@ -23,16 +23,15 @@ AUTHORS:
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.structure.element import Element
-from sage.structure.richcmp import richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.arith.all import factorial
 from sage.rings.integer import Integer
-from .permutation import Permutations
-from .subset import Subsets
-from .colored_permutations import SignedPermutations
+from sage.combinat.permutation import Permutations
+from sage.combinat.subset import Subsets
+from sage.combinat.colored_permutations import SignedPermutations
+from sage.structure.list_clone import ClonableArray
 
-class DecoratedPermutation(Element,
+class DecoratedPermutation(ClonableArray,
         metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A decorated permutation.
@@ -41,7 +40,7 @@ class DecoratedPermutation(Element,
     non-fixed points have positive sign.
     """
     @staticmethod
-    def __classcall_private__(cls, pi, check=True):
+    def __classcall_private__(cls, pi):
         """
         Create a decorated permutation.
 
@@ -55,9 +54,9 @@ class DecoratedPermutation(Element,
 
         """
         pi = list(pi)
-        return DecoratedPermutations(len(pi))(pi, check=check)
+        return DecoratedPermutations(len(pi))(pi)
 
-    def __init__(self, parent, pi):
+    def __init__(self, parent, pi, check=True):
         """
         Initialize ``self``.
 
@@ -67,34 +66,34 @@ class DecoratedPermutation(Element,
             sage: elt = S([2, 1, -3])
             sage: TestSuite(elt).run()
         """
-        self._pi = pi
-        Element.__init__(self, parent)
+        ClonableArray.__init__(self, parent, pi, check=check)
 
-    def __hash__(self):
-        r"""
-        TESTS::
-
-            sage: S = DecoratedPermutations(3)
-            sage: elt = S([2, 1, -3])
-            sage: hash(elt) # random
-            915443076393556996
+    def check(self):
         """
-        return hash(self._pi)
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
+        Check that ``self`` is a valid decorated permutation.
 
         EXAMPLES::
 
-            sage: DecoratedPermutation([2, 1, -3])
-            [2, 1, -3]
+            sage: S = DecoratedPermutations(3)
+            sage: elt = S([2, 1, -3])
+            sage: elt.check()
+            sage: elt = S([2, -1, 3])
+            Traceback (most recent call last):
+            ...            
+            ValueError: invalid decorated permutation
         """
-        return repr(list(self._pi))
+        if self not in self.parent():
+            raise ValueError("{} is not a decorated permutation".format(self))
 
-    def _richcmp_(self, other, op):
+    def __eq__(self, other):
         """
-        Do the comparison.
+        Check whether ``self`` is equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- the element that ``self`` is compared to
+
+        OUTPUT: Boolean
 
         EXAMPLES::
 
@@ -104,7 +103,27 @@ class DecoratedPermutation(Element,
             sage: elt1 == elt2
             True
         """
-        return richcmp(self._pi, other._pi, op)
+        return isinstance(other, DecoratedPermutation) and list(self) == list(other)
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- the element that ``self`` is compared to
+
+        OUTPUT: Boolean
+
+        EXAMPLES::
+
+            sage: S = DecoratedPermutations(3)
+            sage: elt1 = S([2, 1, -3])
+            sage: elt2 = DecoratedPermutation([2, 1, 3])
+            sage: elt1 != elt2
+            True
+        """
+        return not (self == other)
 
     def size(self):
         """
@@ -115,19 +134,8 @@ class DecoratedPermutation(Element,
             sage: DecoratedPermutation([2, 1, -3]).size()
             3
         """
-        return len(self._pi)
+        return len(self)
 
-    def __iter__(self):
-        """
-        Iterate over the values of the decorated permutation.
-
-        EXAMPLES::
-
-            sage: list(DecoratedPermutation([2, 1, -3]))
-            [2, 1, -3]
-        """
-        return iter(self._pi)                 
-    
     def to_signed_permutation(self):
         """
         Return ``self`` as a signed permutation.
@@ -137,7 +145,7 @@ class DecoratedPermutation(Element,
             sage: DecoratedPermutation([2, 1, -3]).to_signed_permutation()
             [2, 1, -3]
         """
-        return SignedPermutations(len(self._pi))(list(self._pi))
+        return SignedPermutations(len(self))(list(self))
 
 class DecoratedPermutations(UniqueRepresentation, Parent):
     r"""
@@ -197,7 +205,7 @@ class DecoratedPermutations(UniqueRepresentation, Parent):
             False
         """
         if isinstance(pi, DecoratedPermutation):
-            return len(pi._pi) == self._n
+            return len(pi) == self._n
 
         values = [v for v in pi]
         if len(values) != self._n:

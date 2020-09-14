@@ -466,10 +466,12 @@ bereits Teil Ihrer TeX Distribution.  Die ersten beiden sollten
 auch von http://sourceforge.net/projects/dvipng/ als Teil von
 `Ghostscript <http://www.ghostscript.com/>`_ bezogen werden können.
 
-Um kombinatorische Graphen darstellen zu können, wird eine aktuelle Version
-der PGF Bibliothek und die Dateien ``tkz-graph.sty``, ``tkz-arith.sty``
-und eventuell ``tkz-berge.sty`` benötigt, allesamt verfügbar auf der `Altermundus Seite
-<http://altermundus.com/pages/graph.html>`_.
+Um kombinatorische Graphen darstellen zu können,
+benötigt man eine aktuelle Version der PGF-Bibliothek,
+die Datei ``tkz-graph.sty`` (verfügbar
+unter https://www.ctan.org/pkg/tkz-graph), die Datei
+``tkz-arith.sty`` und vielleicht auch ``tkz-berge.sty``, beide verfügbar
+auf der Seite https://www.ctan.org/pkg/tkz-berge.
 
 Externe Programme
 =================

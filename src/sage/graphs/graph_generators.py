@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Common Graphs
+Common graphs
 
 All graphs in Sage can be built through the ``graphs`` object. In order to
 build a complete graph on 15 elements, one can do::
@@ -155,7 +155,7 @@ __append_to_doc(
      "LargeWittGraph",
      "LeonardGraph",
      "LjubljanaGraph",
-     "LintSchrijverGraph",
+     "vanLintSchrijverGraph",
      "LivingstoneGraph",
      "locally_GQ42_distance_transitive_graph",
      "LocalMcLaughlinGraph",
@@ -2006,7 +2006,7 @@ class GraphGenerators():
     LargeWittGraph           = staticmethod(distance_regular.LargeWittGraph)
     LeonardGraph             = staticmethod(distance_regular.LeonardGraph)
     LjubljanaGraph           = staticmethod(smallgraphs.LjubljanaGraph)
-    LintSchrijverGraph       = staticmethod(distance_regular.LintSchrijverGraph)
+    vanLintSchrijverGraph       = staticmethod(distance_regular.vanLintSchrijverGraph)
     LivingstoneGraph         = staticmethod(smallgraphs.LivingstoneGraph)
     locally_GQ42_distance_transitive_graph = staticmethod(distance_regular.locally_GQ42_distance_transitive_graph)
     LocalMcLaughlinGraph     = staticmethod(smallgraphs.LocalMcLaughlinGraph)

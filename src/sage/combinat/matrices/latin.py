@@ -14,7 +14,8 @@ A latin square `L` is a
 A *latin bitrade* `(T_1,\, T_2)` is a pair of partial
 latin squares such that:
 
-#. `\{ (i,\,j) \mid (i,\,j,\,k) \in T_1 \text{ for some symbol }k \} = \{ (i,\,j) \mid (i,\,j,\,k') \in T_2 \text{ for some symbol }k' \};`
+#. `\{ (i,\,j) \mid (i,\,j,\,k) \in T_1 \text{ for some symbol }k \}
+   = \{ (i,\,j) \mid (i,\,j,\,k') \in T_2 \text{ for some symbol }k' \};`
 
 #. for each `(i,\,j,\,k) \in T_1` and `(i,\,j,\,k') \in T_2`,
    `k \neq k'`;

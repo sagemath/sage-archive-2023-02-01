@@ -427,8 +427,9 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         [(37.0, 'temp'), ('a', ('e', 2, [None, ({False: True}, 'pi')]))]
         sage: v = ast.parse("jc = ['veni', 'vidi', 'vici']").body[0]; v
         <_ast.Assign object at ...>
-        sage: [x for x in dir(v) if not x.startswith('__')]
-        ['_attributes', '_fields', 'col_offset', 'lineno', 'targets', 'value']
+        sage: attrs = [x for x in dir(v) if not x.startswith('__')]
+        sage: '_attributes' in attrs and '_fields' in attrs and 'col_offset' in attrs
+        True
         sage: visitor.visit(v.targets[0])
         'jc'
         sage: visitor.visit(v.value)
@@ -1428,7 +1429,7 @@ def sage_getargspec(obj):
         sage: from sage.rings.polynomial.real_roots import bernstein_polynomial_factory_ratlist
         sage: sage_getargspec(bernstein_polynomial_factory_ratlist.coeffs_bitsize)
         ArgSpec(args=['self'], varargs=None, keywords=None, defaults=None)
-        sage: from sage.rings.polynomial.pbori import BooleanMonomialMonoid
+        sage: from sage.rings.polynomial.pbori.pbori import BooleanMonomialMonoid
         sage: sage_getargspec(BooleanMonomialMonoid.gen)
         ArgSpec(args=['self', 'i'], varargs=None, keywords=None, defaults=(0,))
         sage: I = P*[x,y]

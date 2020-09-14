@@ -57,7 +57,7 @@ except ImportError:
     # Python 2.7
     from urllib2 import urlopen, URLError
 
-DEFAULT_PYPI = 'https://pypi.python.org/pypi'
+DEFAULT_PYPI = 'https://pypi.org/pypi'
 
 def pkgname_split(name):
     r"""
@@ -117,7 +117,7 @@ def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
     except URLError:
         if ignore_URLError:
             import warnings
-            warnings.warn("failed to fetch the version of pkg={!r} at {}".format(pkg, pypi_url))
+            warnings.warn("failed to fetch the version of pkg={!r} at {}".format(pkg, url))
             return
         else:
             raise

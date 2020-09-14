@@ -127,7 +127,7 @@ class Timer:
             sage: from sage.doctest.util import Timer
             sage: import time
             sage: timer = Timer().start()
-            sage: time.sleep(0.5)
+            sage: time.sleep(float(0.5))
             sage: timer.stop()
             {'cputime': ..., 'walltime': ...}
         """

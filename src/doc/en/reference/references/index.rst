@@ -172,6 +172,12 @@ REFERENCES:
                 Journal of Number Theory 90 (2002), pp.304--315,
                 http://www.math.arizona.edu/~wmc/Research/JacobianFinal.pdf
 
+.. [AKMRVW] \A. Alvarado, A. Koutsianas, B. Malmskog, C. Rasmussen, C. Vincent,
+            and M. West,
+            *A robust implementation for solving the S-unit equation and 
+            several applications.*
+            :arxiv:`1903.00977`
+
 .. [AJL2011] \S. Ariki, N. Jacon, and C. Lecouvey.
              *The modular branching rule for affine Hecke algebras of type A*.
              Adv. Math. 228:481-526, 2011.
@@ -212,6 +218,10 @@ REFERENCES:
             *The number of simple modules of the Hecke algebras of type G(r,1,n)*.
             Math. Z. 233 (2000), no. 3, 601–623.
             :mathscinet:`MR1750939`
+
+.. [AM2020] \A. L. Agore and G. Militaru.
+            *A new invariant for finite dimensional Leibniz/Lie algebras*.
+            Preprint, :arxiv:`2006.00711` (2020).
 
 .. [AMOZ2006] Asahiro, Y. and Miyano, E. and Ono, H. and Zenmyo, K.,
               *Graph orientation algorithms to minimize the maximum outdegree*.
@@ -625,6 +635,9 @@ REFERENCES:
             constant contains a tree with a positive Cheeger constant*,
             Geometric and Functional Analysis 7 (1997), no. 3, 403-419.
 
+.. [Ben2019] Benedetto, Robert L. Dynamics in one non-archimedean variable.
+             Graduate Studies in Mathematics, Volume 198. 2019.
+
 .. [Benasque2009] Fernando Rodriguez Villegas, *The L-function of the quintic*,
    http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
 
@@ -1014,6 +1027,10 @@ REFERENCES:
 .. [BPU2016] Alex Biryukov, Léo Perrin, Aleksei Udovenko,
              *Reverse-Engineering the S-Box of Streebog, Kuznyechik and STRIBOBr1*; in
              EuroCrypt'16, pp. 372-402.
+
+.. [BR2010] Matthew Baker and Robert Rumely. Potential theory and dynamics on the
+            Berkovich projective line. Mathematical Surveys and Monographs,
+            Volumne 159. 2010.
 
 .. [Brandes01] Ulrik Brandes,
                A faster algorithm for betweenness centrality,
@@ -1950,6 +1967,9 @@ REFERENCES:
             *Differential Geometry of Lightlike Submanifolds*,
             Frontiers in Mathematics, 2010.
 
+.. [DSK2006] \A. De Sole and V. Kac. "Finite vs Affine W-algebras". Jpn. J. Math. 
+             (2006) vol. 1, no. 1, pp 137--261
+
 .. [Du2001] \I. Duursma, "From weight enumerators to zeta functions", in
             Discrete Applied Mathematics, vol. 111, no. 1-2,
             pp. 55-73, 2001.
@@ -2350,6 +2370,10 @@ REFERENCES:
              Riemann surfaces and Dessins d'enfant*, (2011)
              London Mathematical Society, Student Text 79.
 
+.. [GGMM2020] \A. Garver, S. Grosser, J. Matherne, and A. Morales.
+              *Counting linear extensions of posets with determinants of hook
+              lengths*. Preprint, :arxiv:`2001.08822` (2020).
+
 .. [GGNS2013] \B. Gerard, V. Grosso, M. Naya-Plasencia, and F.-X. Standaert,
               *Block ciphers that are easier to mask: How far can we go?*; in
               CHES, (2013), pp. 383-399.
@@ -2494,6 +2518,13 @@ REFERENCES:
 
 .. [GR2001] Chris Godsil and Gordon Royle, *Algebraic Graph Theory*. Graduate
             Texts in Mathematics, Springer, 2001.
+
+.. [Gre2006] \R. M. Green, *Star reducible Coxeter groups*, Glasgow 
+            Mathematical Journal, Volume 48, Issue 3, pp. 583-609.
+
+.. [GX2020] \R. M. Green, Tianyuan Xu, *Classification of Coxeter groups with
+            finitely many elements of a-value 2*, Algebraic Combinatorics, 
+            Volume 3 (2020) no. 2, pp. 331-364.
 
 .. [Gr2006] Matthew Greenberg,
             "Heegner points and rigid analytic modular forms",
@@ -3093,6 +3124,9 @@ REFERENCES:
 .. [Ka1990] Victor G. Kac. *Infinite-dimensional Lie Algebras*. Third
             edition. Cambridge University Press, Cambridge, 1990.
 
+.. [Kac1997] \V. Kac, "Vertex algebras for beginners". Second Edition. vol 10. 
+             university lecture series. AMS, Cambridge, 1997. 
+
 .. [Kal1992] \B. Kaliski,
              *The MD2 message-digest algorithm*; in
              RFS 1319, (1992).
@@ -3501,6 +3535,9 @@ REFERENCES:
              Mémoire de maîtrise en Mathématiques, Montréal, UQAM,
              2008, 109 pages.
 
+.. [Labelle2008] \G. Labelle. *New combinatorial computational methods
+                 arising from pseudo-singletons.* DMTCS Proceedings 1, 2008.
+
 .. [Lak2010] Dan Laksov. *Splitting algebras and Gysin homomorphisms*.
              Journal of Commutative Algebra, Volume 2, Number 3, Fall 2010
 
@@ -3581,6 +3618,9 @@ REFERENCES:
 
 .. [Li1995b] \P. Littelmann, Paths and root operators in representation
              theory. Ann. of Math. (2) 142 (1995), no. 3, 499-525.
+
+.. [Li2005] \H. Li, *Abelianizing vertex algebras*. Comm. Math. Phys. vol. 259,
+             no. 2, pp. 391--411 (2005)
 
 .. [Lic1977] \A. Lichnerowicz, *Les variétés de Poisson et leurs
              algèbres de Lie associées*, Journal of Differential
@@ -3806,6 +3846,13 @@ REFERENCES:
 .. [Lut2002] Frank H. Lutz, Császár's Torus, Electronic Geometry Model
              No. 2001.02.069
              (2002). http://www.eg-models.de/models/Classical_Models/2001.02.069/_direct_link.html
+
+.. [Lus1985] George Lusztig, *Cells in affine Weyl groups*, Algebraic Groups
+             and Related Topics, Advanced Studies in Pure mathematics 6, 1985, 
+             pp. 255-287.
+
+.. [Lus2013] George Lusztig, *Hecke algebras with unequal parameters*,
+             :arxiv:`math/0208154`. 
 
 .. [Lut2005] Frank H. Lutz, "Triangulated Manifolds with Few Vertices:
              Combinatorial Manifolds", preprint (2005),
@@ -4103,8 +4150,8 @@ REFERENCES:
              Volume 34, Issue 3, May 1983, Pages 340--359.
              http://www.sciencedirect.com/science/article/pii/0097316583900687
 
-.. [MR2016] \B. Malmskog, C. Rasmussen, "Picard curves over \mathbb{Q}
-            with good reduction away from 3". LMS Journal of Computation and
+.. [MR2016] \B. Malmskog, C. Rasmussen, *Picard curves over Q
+            with good reduction away from 3*. LMS Journal of Computation and
             Mathematics 19 (2016), no. 2, 382-408.
             :doi:`10.1112/S1461157016000413`.
 
@@ -4579,6 +4626,11 @@ REFERENCES:
 .. [Rau1979] Gerard Rauzy, *Échanges d'intervalles et transformations
              induites*, Acta Arith. 34, no. 3, 203-212, 1980
 
+.. [RCES1994] Ruskey, R. Cohen, P. Eades, A. Scott.
+              *Alley CATs in search of good homes.*
+              Congressus numerantium, 1994.
+              Pages 97--110
+
 .. [Rea2004] Nathan Reading.
              *Cambrian Lattices*.
              :arxiv:`math/0402086v2`.
@@ -4794,6 +4846,9 @@ REFERENCES:
              The flush statistic on semistandard Young tableaux.
              :arXiv:`1401.1185`
 
+.. [Sam2012] \P. Samanta: *Antipodal Graphs*
+             :doi:`10.13140/RG.2.2.28238.46409`
+
 .. [Sch1990] Schnyder, Walter. *Embedding Planar Graphs on the Grid*.
              Proc. 1st Annual ACM-SIAM Symposium on Discrete Algorithms,
              San Francisco (1994), pp. 138-147.
@@ -4943,8 +4998,8 @@ REFERENCES:
 .. [Sor1984] \A. Sorkin, *LUCIFER: a cryptographic algorithm*;
              in Cryptologia, 8(1), pp. 22–35, 1984.
 
-.. [Sma1995] \N.P. Smart, "The Solution of Triangularly Connected
-             Decomposable Form Equations". Math. Comp. 64 (1995), 819-840.
+.. [Sma1995] \N.P. Smart, *The Solution of Triangularly Connected
+             Decomposable Form Equations*. Math. Comp. 64 (1995), 819-840.
              :doi:`10.1090/S0025-5718-1995-1277771-4`.
 
 .. [Sma1998] \N.P. Smart, *The algorithmic resolution of Diophantine equations*,
@@ -5104,6 +5159,13 @@ REFERENCES:
               Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of
               Anders Björner,
               Research Paper 9, 24 pp.
+
+.. [Ste1996] John R. Stembridge, *On the fully commutative elements of Coxeter
+             groups*, Journal of Algebraic Combinatorics, 5,  pp. 355-385
+
+.. [Ste1998] John R. Stembridge, *The enumeration of the fully commutative
+             elements of Coxeter groups*, Journal of Algebraic Combinatorics,
+             7,  pp. 291-320.
 
 .. [Ste2003] John R. Stembridge, *A local characterization of
              simply-laced crystals*, Transactions of the American
@@ -5630,6 +5692,9 @@ REFERENCES:
 .. [Yip2018] Yip, Martha. "Rook placements and Jordan forms of
              upper-triangular nilpotent matrices."
              Electronic J. Comb. 25(1) (2018) #P1.68. :arxiv:`1703.00057`.
+
+.. [Yu2007] \K. Yu, *p-adic logarithmic forms and group varieties. III.* 
+            Forum Math., 19(2):187–280, 2007.
 
 .. [Yun1976] Yun, David YY. On square-free decomposition
              algorithms. In Proceedings of the third ACM symposium on

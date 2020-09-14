@@ -1479,6 +1479,7 @@ class Polytopes():
             sage: id = polytopes.icosidodecahedron(exact=False); id
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 30 vertices
             sage: TestSuite(id).run(skip=["_test_is_combinatorially_isomorphic",
+            ....:                         "_test_product",
             ....:                         "_test_pyramid",
             ....:                         "_test_lawrence"])
 
@@ -2636,13 +2637,23 @@ class Polytopes():
         an exact embedded NumberField::
 
             sage: perm_a2_reg = polytopes.generalized_permutahedron(['A',2],regular=True)
-            sage: perm_a2_reg.vertices()
-            (A vertex at (-1/2, -0.866025403784439?),
-             A vertex at (-1, 0),
-             A vertex at (1/2, -0.866025403784439?),
+            sage: V = sorted(perm_a2_reg.vertices()); V         # random
+            [A vertex at (-1, 0),
+             A vertex at (-1/2, -0.866025403784439?),
              A vertex at (-1/2, 0.866025403784439?),
-             A vertex at (1.000000000000000?, 0.?e-18),
-             A vertex at (0.500000000000000?, 0.866025403784439?))
+             A vertex at (1/2, -0.866025403784439?),
+             A vertex at (1/2, 0.866025403784439?),
+             A vertex at (1.000000000000000?, 0.?e-18)]
+            sage: for v in V:
+            ....:     for x in v:
+            ....:         x.exactify()
+            sage: V
+            [A vertex at (-1, 0),
+             A vertex at (-1/2, -0.866025403784439?),
+             A vertex at (-1/2, 0.866025403784439?),
+             A vertex at (1/2, -0.866025403784439?),
+             A vertex at (1/2, 0.866025403784439?),
+             A vertex at (1, 0)]
             sage: perm_a2_reg.is_inscribed()
             True
             sage: perm_a3_reg = polytopes.generalized_permutahedron(['A',3],regular=True)  # long time
@@ -2652,22 +2663,22 @@ class Polytopes():
         The same is possible with vertices in ``RDF``::
 
             sage: perm_a2_inexact = polytopes.generalized_permutahedron(['A',2],exact=False)
-            sage: perm_a2_inexact.vertices()
-            (A vertex at (0.0, 1.0),
+            sage: sorted(perm_a2_inexact.vertices())
+            [A vertex at (-1.0, -1.0),
              A vertex at (-1.0, 0.0),
-             A vertex at (-1.0, -1.0),
              A vertex at (0.0, -1.0),
+             A vertex at (0.0, 1.0),
              A vertex at (1.0, 0.0),
-             A vertex at (1.0, 1.0))
+             A vertex at (1.0, 1.0)]
 
             sage: perm_a2_inexact_reg = polytopes.generalized_permutahedron(['A',2],exact=False,regular=True)
-            sage: perm_a2_inexact_reg.vertices()
-            (A vertex at (-0.5, 0.8660254038),
-             A vertex at (-1.0, 0.0),
+            sage: sorted(perm_a2_inexact_reg.vertices())
+            [A vertex at (-1.0, 0.0),
              A vertex at (-0.5, -0.8660254038),
+             A vertex at (-0.5, 0.8660254038),
              A vertex at (0.5, -0.8660254038),
-             A vertex at (1.0, 0.0),
-             A vertex at (0.5, 0.8660254038))
+             A vertex at (0.5, 0.8660254038),
+             A vertex at (1.0, 0.0)]
 
         It works also with types with non-rational coordinates::
 

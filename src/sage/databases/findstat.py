@@ -205,7 +205,6 @@ Classes and methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import string_types
 from sage.misc.lazy_list import lazy_list
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
@@ -378,9 +377,9 @@ class FindStat(UniqueRepresentation, SageObject):
             It is usually more convenient to login into the FindStat
             web page using the :meth:`login` method.
         """
-        if not isinstance(name, string_types):
+        if not isinstance(name, str):
             raise ValueError("the given name (%s) should be a string" % name)
-        if not isinstance(email, string_types):
+        if not isinstance(email, str):
             raise ValueError("the given email (%s) should be a string" % email)
         self._user_name  = name
         self._user_email = email
@@ -1056,7 +1055,7 @@ def findstat(query=None, values=None, distribution=None, domain=None,
             if isinstance(query, (int, Integer, FindStatCombinatorialStatistic)):
                 return FindStatStatistic(query)
 
-            if isinstance(query, string_types):
+            if isinstance(query, str):
                 if re.match(FINDSTAT_COLLECTION_REGEXP, query):
                     return FindStatStatistics(domain=query)
 
@@ -1074,7 +1073,7 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         domain = FindStatCollection(domain)
 
     if values is not None:
-        if isinstance(values, (int, Integer, string_types, FindStatCombinatorialStatistic)):
+        if isinstance(values, (int, Integer, str, FindStatCombinatorialStatistic)):
             if domain is not None:
                 raise ValueError("the domain must not be provided if a statistic identifier is given")
             return FindStatStatisticQuery(values_of=values, depth=depth)
@@ -1084,7 +1083,7 @@ def findstat(query=None, values=None, distribution=None, domain=None,
                                       known_terms=known_terms, function=function)
 
     if distribution is not None:
-        if isinstance(distribution, (int, Integer, string_types, FindStatCombinatorialStatistic)):
+        if isinstance(distribution, (int, Integer, str, FindStatCombinatorialStatistic)):
             if domain is not None:
                 raise ValueError("the domain must not be provided if a statistic identifier is given")
             return FindStatStatisticQuery(distribution_of=distribution, depth=depth)
@@ -1311,11 +1310,11 @@ def findmap(*args, **kwargs):
         if (values is None and distribution is None
             and domain is None and codomain is None
             and (isinstance(args[0], (int, Integer, FindStatCombinatorialMap))
-                 or (isinstance(args[0], string_types)
+                 or (isinstance(args[0], str)
                      and not is_collection(args[0])))):
             return FindStatMap(args[0])
 
-        elif (isinstance(args[0], string_types) and
+        elif (isinstance(args[0], str) and
               is_collection(args[0])):
             domain = check_domain(args[0], domain)
 
@@ -1324,7 +1323,7 @@ def findmap(*args, **kwargs):
 
     elif len(args) == 2:
         domain = check_domain(args[0], domain)
-        if isinstance(args[1], (int, Integer, string_types)):
+        if isinstance(args[1], (int, Integer, str)):
             codomain = check_codomain(args[1], codomain)
         else:
             values = check_values(args[1], values)
@@ -1344,7 +1343,7 @@ def findmap(*args, **kwargs):
         return FindStatMaps(domain=domain, codomain=codomain)
 
     if values is not None:
-        if isinstance(values, (int, Integer, string_types, FindStatCombinatorialMap)):
+        if isinstance(values, (int, Integer, str, FindStatCombinatorialMap)):
             if domain is not None or codomain is not None:
                 raise ValueError("domain and codomain must not be provided if a map identifier is given")
             return FindStatMapQuery(values_of=values, depth=depth)
@@ -1354,7 +1353,7 @@ def findmap(*args, **kwargs):
                                 known_terms=known_terms, function=function)
 
     if distribution is not None:
-        if isinstance(distribution, (int, Integer, string_types, FindStatCombinatorialMap)):
+        if isinstance(distribution, (int, Integer, str, FindStatCombinatorialMap)):
             if domain is not None or codomain is not None:
                 raise ValueError("domain and codomain must not be provided if a map identifier is given")
             return FindStatMapQuery(distribution_of=distribution, depth=depth)
@@ -2394,7 +2393,7 @@ class FindStatStatistics(UniqueRepresentation, Parent):
             id = FINDSTAT_STATISTIC_PADDED_IDENTIFIER % id
         elif isinstance(id, FindStatCombinatorialStatistic):
             id = id.id_str()
-        if not isinstance(id, string_types):
+        if not isinstance(id, str):
             raise TypeError("the value '%s' is not a valid FindStat statistic identifier, nor a FindStat statistic query" % id)
         if FINDSTAT_MAP_SEPARATOR in id:
             return FindStatCompoundStatistic(id)
@@ -3265,7 +3264,7 @@ class FindStatMaps(UniqueRepresentation, Parent):
             id = FINDSTAT_MAP_PADDED_IDENTIFIER % id
         elif isinstance(id, FindStatCombinatorialMap):
             id = id.id_str()
-        if not isinstance(id, string_types):
+        if not isinstance(id, str):
             raise TypeError("the value %s is neither an integer nor a string" % id)
         if FINDSTAT_MAP_SEPARATOR in id:
             return FindStatCompoundMap(id)
@@ -4542,7 +4541,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
         if isinstance(entry, self.Element):
             return entry
 
-        if isinstance(entry, string_types):
+        if isinstance(entry, str):
             # find by name in self._findstat_collections (ignoring case and spaces)
             def normalize(e):
                 return "".join(e.split()).upper()

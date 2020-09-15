@@ -606,7 +606,12 @@ fi
 
 if [ "$1" = '-maxima' -o "$1" = '--maxima' ]; then
     shift
-    exec maxima "$@"
+    if [ -z $(sage-config MAXIMA) ]; then
+        maxima_cmd="maxima"
+    else
+        maxima_cmd=$(sage-config MAXIMA)
+    fi
+    exec "$maxima_cmd" "$@"
 fi
 
 if [ "$1" = '-mwrank' -o "$1" = '--mwrank' ]; then

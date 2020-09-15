@@ -7,7 +7,6 @@ from sage.combinat.permutation import Permutations
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat import permutation
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.monoids.hecke_monoid import HeckeMonoid
 from sage.rings.integer import Integer
 from sage.misc.lazy_attribute import lazy_attribute
 
@@ -76,6 +75,7 @@ class DecreasingHeckeFactorization:
         if max_value == None:
             max_value = max([x for factor in t for x in factor])
         self.max_value = max_value
+        from sage.monoids.hecke_monoid import HeckeMonoid
         H = HeckeMonoid(SymmetricGroup(max_value+1))
         word = H.from_reduced_word([x for factor in t for x in factor]).reduced_word()
         self.w = tuple(word)
@@ -290,6 +290,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
         if shape:
             from sage.combinat.partition import Partition, Partitions
             from sage.combinat.skew_partition import SkewPartition
+            from sage.monoids.hecke_monoid import HeckeMonoid
             cond1 = isinstance(w, (tuple, list)) and len(w)==2 and w[0] in Partitions() and w[1] in Partitions()
             cond2 = isinstance(w, SkewPartition)
             cond3 = isinstance(w, (tuple, list)) and w in Partitions()

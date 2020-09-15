@@ -236,6 +236,14 @@ class Hypergeometric(BuiltinFunction):
 
             sage: maxima(hypergeometric)
             hypergeometric
+
+        TESTS::
+
+            sage: F = hypergeometric([-4,2],[1],1)  # optional - maple
+            sage: G = maple(F); G                   # optional - maple
+            hypergeom([-4, 2],[1],1)
+            sage: G.simplify()                      # optional - maple
+            0
         """
         BuiltinFunction.__init__(self, 'hypergeometric', nargs=3,
                                  conversions={'mathematica':

@@ -431,6 +431,10 @@ usage_advanced() {
     echo "                         a Jupyter notebook (.ipynb)."
     echo "  --rst2txt [...]     -- Generates Sage worksheet text file from standalone"
     echo "                         reStructuredText source."
+    echo "  --sws2rst <sws doc> -- Generates a reStructuredText source file from"
+    echo "                         a Sage worksheet (.sws) document."
+    command -v sage-sws2rst >&/dev/null || \
+    echo "                         (not installed currently, run sage -i sage_sws2rst)"
     echo
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
@@ -784,6 +788,11 @@ fi
 if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then
     shift
     exec sage-rst2txt "$@"
+fi
+
+if [ "$1" = '-sws2rst' -o "$1" = '--sws2rst' ]; then
+    shift
+    exec sage-sws2rst "$@"
 fi
 
 #####################################################################

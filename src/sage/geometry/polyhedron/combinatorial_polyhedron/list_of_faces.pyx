@@ -97,7 +97,10 @@ from sage.structure.element import is_Matrix
 from cysignals.signals      cimport sig_on, sig_off
 from libc.string            cimport memcpy
 from .conversions           cimport vertex_to_bit_dictionary
+from .face_data_structure   cimport *
 from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
+
+include "sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pxi"
 
 cdef extern from "bit_vector_operations.cc":
     # Any Bit-representation is assumed to be `chunksize`-Bit aligned.
@@ -147,6 +150,16 @@ cdef extern from "bit_vector_operations.cc":
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
+
+cdef struct face_list_s:
+    face_bitset_t* faces
+    size_t n_faces
+    size_t total_n_faces
+    size_t n_atoms
+    size_t n_coatoms
+    bint polyhedron_is_simple
+
+ctypedef face_list_s face_list_t[1]
 
 cdef class ListOfFaces:
     r"""

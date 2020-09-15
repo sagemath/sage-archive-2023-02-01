@@ -1,3 +1,27 @@
+r"""
+Fully commutative stable Grothendieck crystal
+
+AUTHORS:
+
+- Jianping Pan (2020-08-31): initial version
+
+- Wencin Poh (2020-08-31): initial version
+
+- Anne Schilling (2020-08-31): initial version
+"""
+
+# ****************************************************************************
+#       Copyright (C) 2020 Jianping Pan <jppan at math dot ucdavis dot edu>
+#                          Wencin Poh <wpoh at ucdavis dot edu>
+#                          Anne Schilling <anne at math dot ucdavis dot edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation

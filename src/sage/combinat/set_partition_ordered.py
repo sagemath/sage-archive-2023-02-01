@@ -814,15 +814,14 @@ class OrderedSetPartition(ClonableArray,
         r"""
         Return the number of inversions in ``self``.
 
-        An inversion of an ordered set partition with blocks `[B_1,B_2,...,B_k]`
-        is a pair of letters `i` and `j` with `i < j` such that `i` is minimal
-        in `B_m`, `j ∈ B_l`, and `l < m`.
+        An inversion of an ordered set partition with blocks
+        `[B_1,B_2,...,B_k]` is a pair of letters `i` and `j` with `i < j`
+        such that `i` is minimal in `B_m`, `j \in B_l`, and `l < m`.
 
         REFERENCES:
 
-        .. A. T. Wilson.
-        *An extension of MacMahon’s Equidistribution Theorem to ordered multiset partitions*.
-        Electron. J. Combin., **23** (1) (2016), P1.5.
+        .. \A. T. Wilson. *An extension of MacMahon's Equidistribution Theorem
+           to ordered multiset partitions*. Electron. J. Combin., **23** (1) (2016)
 
         EXAMPLES::
 
@@ -832,11 +831,10 @@ class OrderedSetPartition(ClonableArray,
             3
         """
         num_invs = 0
-        for i in range(len(self)):
-            for j in range(i + 1, len(self)):
-                for a in self[i]:
-                    if a > min(self[j]):
-                        num_invs += 1
+        for m in range(len(self)):
+            i = min(self[m])
+            for l in range(m):
+                num_invs += sum(1 for j in self[l] if i < j)
         return num_invs
 
 

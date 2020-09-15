@@ -126,6 +126,10 @@ lazy_import('sage.combinat.alternating_sign_matrix', ('AlternatingSignMatrix',
                                                       'ContreTableaux',
                                                       'TruncatedStaircases'))
 
+# Decorated Permutations
+lazy_import('sage.combinat.decorated_permutation', ('DecoratedPermutation',
+                                                    'DecoratedPermutations'))
+
 # Plane Partitions
 lazy_import('sage.combinat.plane_partition', ('PlanePartition',
                                               'PlanePartitions'))
@@ -234,4 +238,3 @@ lazy_import('sage.combinat.growth', ['GrowthDiagram',
 
 # Path Tableaux
 lazy_import('sage.combinat.path_tableaux', 'catalog', as_='path_tableaux')
-

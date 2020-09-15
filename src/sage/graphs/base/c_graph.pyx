@@ -1530,7 +1530,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             name = 0
             while name in self.vertex_ints or (
                 name not in self.vertex_labels and
-                bitset_in(self.cg().active_vertices, name)):
+                bitset_in(self.cg().active_vertices, <mp_bitcnt_t> name)):
                 name += 1
             retval = name
 
@@ -3307,6 +3307,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef bitset_t activated
         bitset_init(activated, self.cg().active_vertices.size)
         bitset_set_first_n(activated, self.cg().active_vertices.size)
+
+        cdef mp_bitcnt_t uu, u, v
 
         # Vertices whose neighbors have already been added to the stack
         cdef bitset_t tried

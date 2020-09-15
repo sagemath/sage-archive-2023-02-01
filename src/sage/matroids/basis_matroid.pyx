@@ -162,6 +162,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         """
         cdef SetSystem NB
         cdef long i
+        cdef mp_bitcnt_t bc
 
         if isinstance(M, BasisMatroid):
             BasisExchangeMatroid.__init__(self, groundset=(<BasisMatroid>M)._E, rank=(<BasisMatroid>M)._matroid_rank)
@@ -912,7 +913,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             bitset_clear(b2)
             j = bitset_first(self._b)
             while j != -1:
-                bitset_add(b2, morph[j])
+                bitset_add(b2, <mp_bitcnt_t> morph[j])
                 j = bitset_next(self._b, j + 1)
             if bitset_in((<BasisMatroid>other)._bb, set_to_index(b2)):
                 bitset_free(b2)
@@ -975,7 +976,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             Internal version that does no input checking.
 
         EXAMPLES::
-        
+
             sage: from sage.matroids.advanced import *
             sage: M = BasisMatroid(matroids.Wheel(3))
             sage: N = BasisMatroid(matroids.CompleteGraphic(4))
@@ -996,7 +997,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         if self.full_rank() != other.full_rank():
             return None
         if self.full_rank() == 0:
-            return {self.groundset_list()[i]: other.groundset_list()[i] for i in xrange(len(self))}        
+            return {self.groundset_list()[i]: other.groundset_list()[i] for i in xrange(len(self))}
         if self.bases_count() != other.bases_count():
             return None
 
@@ -1036,7 +1037,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
                 return morphism
 
         return self.nonbases()._isomorphism(other.nonbases(), PS, PO)
-        
+
     cpdef _is_isomorphic(self, other, certificate=False):
         """
         Return if this matroid is isomorphic to the given matroid.

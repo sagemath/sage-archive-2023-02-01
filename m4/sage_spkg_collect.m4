@@ -208,7 +208,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
             ],                               [ message="not required on your platform; SPKG will not be installed"
             ])
         ], [
-            dnl We won't use the system package.
+            dnl We will not use the system package.
             SAGE_BUILT_PACKAGES="${SAGE_BUILT_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
             AS_VAR_SET_IF([sage_use_system], [
                 AS_VAR_COPY([reason], [sage_use_system])
@@ -218,9 +218,6 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
                                              ],
                 [installed],                 [ message="already installed as an SPKG$uninstall_message" ],
                                              [ message="$reason; $message" ])
-            ], [
-                # Package does not use spkg-configure.m4 yet
-                message="does not support check for system package; $message"
             ])
         ])
 

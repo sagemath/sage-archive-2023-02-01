@@ -86,17 +86,12 @@ GCC_DEP = @SAGE_GCC_DEP@
 
 @SAGE_PACKAGE_DEPENDENCIES@
 
-# All standard packages
-STANDARD_PACKAGES = @SAGE_STANDARD_PACKAGES@
-STANDARD_PACKAGE_INSTS = \
-	$(foreach pkgname,$(STANDARD_PACKAGES),$(inst_$(pkgname)))
-
-# All optional installed packages (triggers the auto-update)
+# All standard/optional/experimental installed packages (triggers the auto-update)
 OPTIONAL_INSTALLED_PACKAGES = @SAGE_OPTIONAL_INSTALLED_PACKAGES@
 OPTIONAL_INSTALLED_PACKAGE_INSTS = \
     $(foreach pkgname,$(OPTIONAL_INSTALLED_PACKAGES),$(inst_$(pkgname)))
 
-# All previously installed optional packages that are to be uninstalled
+# All previously installed standard/optional/experimental packages that are to be uninstalled
 OPTIONAL_CLEANED_PACKAGES = @SAGE_OPTIONAL_CLEANED_PACKAGES@
 OPTIONAL_CLEANED_PACKAGES_CLEANS = $(OPTIONAL_CLEANED_PACKAGES:%=%-clean)
 
@@ -211,7 +206,6 @@ base-toolchain: _clean-broken-gcc base
 # All targets except for the base packages
 all-sage: \
 		sagelib \
-		$(STANDARD_PACKAGE_INSTS) \
 		$(OPTIONAL_INSTALLED_PACKAGE_INSTS) \
                 $(OPTIONAL_CLEANED_PACKAGES_CLEANS)
 
@@ -268,7 +262,7 @@ build-start: all-build
 # We make this depend on all standard packages because running
 # sage-starts runs sage-location, which should be run after installing
 # any package.
-$(STARTED): $(STANDARD_PACKAGE_INSTS)
+$(STARTED): $(OPTIONAL_INSTALLED_PACKAGE_INSTS)
 	$(AM_V_at)"$(SAGE_ROOT)/build/bin/sage-starts"
 
 

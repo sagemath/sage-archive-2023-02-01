@@ -20,13 +20,11 @@
 #        platform, or the dependency on them is satisfied by an existing
 #        system package.
 #
-#      - SAGE_STANDARD_PACKAGES - lists the names of all packages that have
-#        the "standard" type.  All "standard" packages are installed by
-#        default (if they are listed in SAGE_DUMMY_PACKAGES "installed" in
-#        this case is a no-op).
+#      - SAGE_OPTIONAL_INSTALLED_PACKAGES - lists the names of packages with the
+#        "standard", "optional", or "experimental" type that should be installed.
 #
-#      - SAGE_OPTIONAL_PACKAGES - lists the names of packages with the
-#        "optional" type that should be installed.
+#      - SAGE_OPTIONAL_CLEANED_PACKAGES - lists the names of packages with the
+#        "standard", "optional", or "experimental" type that should be installed.
 #
 #      - SAGE_SDIST_PACKAGES - lists the names of all packages whose sources
 #        need to be downloaded to be included in the source distribution.
@@ -107,9 +105,6 @@ SAGE_BUILT_PACKAGES=''
 # underlying system.
 SAGE_DUMMY_PACKAGES=''
 
-# Standard packages
-SAGE_STANDARD_PACKAGES=''
-
 # List of currently installed and to-be-installed optional packages - filled in SAGE_SPKG_ENABLE
 #SAGE_OPTIONAL_INSTALLED_PACKAGES
 # List of optional packages to be uninstalled - filled in SAGE_SPKG_ENABLE
@@ -155,18 +150,12 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     base)
         message="came preinstalled with the SageMath tarball"
         ;;
-    standard)
-        SAGE_STANDARD_PACKAGES="${SAGE_STANDARD_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
-        in_sdist=yes
-        message="will be installed as an SPKG"
-        ;;
-    optional|experimental)
+    standard|optional|experimental)
         AS_VAR_IF([SAGE_ENABLE_]${SPKG_NAME}, [yes], [
             message="$SPKG_TYPE, will be installed as an SPKG"
         ], [
             message="$SPKG_TYPE, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
         ])
-        uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
         ;;
     *)
         AC_MSG_ERROR([The content of "$SPKG_TYPE_FILE" must be 'base', 'standard', 'optional', or 'experimental'])
@@ -174,7 +163,11 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     esac
 
     case "$SPKG_TYPE" in
+    standard)
+        in_sdist=yes
+        ;;
     optional|experimental)
+        uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
         stampfile=""
         for f in "$SAGE_SPKG_INST/$SPKG_NAME"-*; do
             AS_IF([test -r "$f"], [
@@ -325,7 +318,6 @@ AC_SUBST([SAGE_PIP_PACKAGES])
 AC_SUBST([SAGE_SCRIPT_PACKAGES])
 AC_SUBST([SAGE_BUILT_PACKAGES])
 AC_SUBST([SAGE_DUMMY_PACKAGES])
-AC_SUBST([SAGE_STANDARD_PACKAGES])
 AC_SUBST([SAGE_OPTIONAL_INSTALLED_PACKAGES])
 AC_SUBST([SAGE_OPTIONAL_CLEANED_PACKAGES])
 AC_SUBST([SAGE_SDIST_PACKAGES])

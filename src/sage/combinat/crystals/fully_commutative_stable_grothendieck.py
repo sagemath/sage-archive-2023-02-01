@@ -352,7 +352,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
         # Check if w is fully commutative
         word = w.reduced_word()
         p = permutation.from_reduced_word(word)
-        if p not in Permutations(avoiding=[3,2,1]):
+        if p.has_pattern([3,2,1]):
             raise ValueError("w should be fully commutative")
 
         Parent.__init__(self, category = ClassicalCrystals())
@@ -433,9 +433,9 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             if u.w != parent.w:
                 raise ValueError("self and parent must be specified based on equivalent words")
             if u.factors != parent.factors:
-                raise ValueError("Number of factors do not match")
+                raise ValueError("number of factors do not match")
             if u.excess != parent.excess:
-                raise ValueError("Number of excess do not match")
+                raise ValueError("number of excess do not match")
 
             DecreasingHeckeFactorization.__init__(self, u.value, max_value=parent.max_value)
             ElementWrapper.__init__(self, parent, u.value)
@@ -472,7 +472,8 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             L.sort(reverse=True)
             R.sort(reverse=True)
             s = [self.value[j] for j in range(self.factors-i-1)]+[L]+[R]+[self.value[j] for j in range(self.factors-i+1, self.factors)]
-            return self.parent()(s)
+            P = self.parent()
+            return P.element_class(P, s)
 
         def f(self, i):
             """
@@ -506,7 +507,8 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             L.sort(reverse=True)
             R.sort(reverse=True)
             s = [self.value[j] for j in range(self.factors-i-1)]+[L]+[R]+[self.value[j] for j in range(self.factors-i+1, self.factors)]
-            return self.parent()(s)
+            P = self.parent()
+            return P.element_class(P, s)
 
         def bracketing(self,i):
             """
@@ -554,26 +556,26 @@ def _check_decreasing_hecke_factorization(t):
         sage: _check_decreasing_hecke_factorization([[3, 2, 2], [2, 1], [4]])
         Traceback (most recent call last):
         ...
-        ValueError: Each nonempty factor should be a strictly decreasing sequence
+        ValueError: each nonempty factor should be a strictly decreasing sequence
         sage: _check_decreasing_hecke_factorization([[3, 'a'], [2, 1], [4]])
         Traceback (most recent call last):
         ...
-        ValueError: Each nonempty factor should contain integers
+        ValueError: each nonempty factor should contain integers
         sage: _check_decreasing_hecke_factorization([[3, 2], [2, 1], 4])
         Traceback (most recent call last):
         ...
-        ValueError: Each factor in t should be a list or tuple
+        ValueError: each factor in t should be a list or tuple
     """
     if not isinstance(t, (tuple,list)):
         raise ValueError("t should be an list or tuple")
     for factor in t:
         if not isinstance(factor, (tuple,list)):
-            raise ValueError("Each factor in t should be a list or tuple")
+            raise ValueError("each factor in t should be a list or tuple")
         if not all(isinstance(x,(int,Integer)) for x in factor):
-            raise ValueError("Each nonempty factor should contain integers")
+            raise ValueError("each nonempty factor should contain integers")
         for i in range(len(factor)-1):
             if factor[i] <= factor[i+1]:
-                raise ValueError("Each nonempty factor should be a strictly decreasing sequence")
+                raise ValueError("each nonempty factor should be a strictly decreasing sequence")
 
 def _to_reduced_word(P):
     """
@@ -600,11 +602,11 @@ def _to_reduced_word(P):
     cells = P.cells()
     if not cells:
         return []
-    m = max([cell[0] for cell in cells])+1
-    n = max([cell[1] for cell in cells])+1
+    m = max(cell[0] for cell in cells)+1
+    n = max(cell[1] for cell in cells)+1
     L = []
-    for i in range(m)[::-1]:
-        for j in range(n)[::-1]:
+    for i in range(m,-1,-1):
+        for j in range(n,-1,-1):
             if (i,j) in cells:
                 L += [j-i+m]
     return L
@@ -631,7 +633,7 @@ def _lowest_weights(w, factors, ex):
         sage: _lowest_weights([1, 2, 1], 3, 1)
         Traceback (most recent call last):
         ...
-        ValueError: The word w should be fully commutative
+        ValueError: the word w should be fully commutative
 
         sage: _lowest_weights([2, 1, 3, 2], 4, 3)
         [(2, 1)(3, 1)(3, 1)(2), (2, 1)(3, 1)(3, 2)(2)]
@@ -651,8 +653,8 @@ def _lowest_weights(w, factors, ex):
         [(3, 2, 1)(1)(1)()()]
     """
     p = permutation.from_reduced_word(w)
-    if p not in Permutations(avoiding=[3,2,1]):
-        raise ValueError("The word w should be fully commutative")
+    if p.has_pattern([3,2,1]):
+        raise ValueError("the word w should be fully commutative")
 
     def _canonical_word(w, ex):
         """
@@ -718,13 +720,15 @@ def _is_valid_column_word(w, m=None):
         sage: _is_valid_column_word(w,2)
         True
     """
-    from sage.combinat.tableau import Tableau
     J = [0]+_jumps(w)+[len(w)]
     L = [w[J[i]:J[i+1]][::-1] for i in range(len(J)-1)]
     if all(len(L[i])>=len(L[i+1]) for i in range(len(L)-1)):
-        if m == None or (len(_jumps(w))<=m-1):
-            T = Tableau(L)
-            return T.conjugate().is_semistandard()
+        if m is None or len(_jumps(w))<=m-1:
+            for i in range(len(L)-1):
+                for j in range(len(L[i+1])):
+                    if L[i+1][j]<L[i][j]:
+                        return False
+            return True
     return False
 
 def _list_equivalent_words(w):
@@ -832,20 +836,20 @@ def _apply_relations(word, position, move):
     # Type 1
     if move == "pq=qp":
         if position > len(w)-2:
-            raise IndexError("Position is out of range for relation pq=qp")
+            raise IndexError("position is out of range for relation pq=qp")
         p, q = w[position], w[position+1]
         if abs(p-q) == 1:
-            raise IndexError("Relation pq=qp does not apply here")
+            raise IndexError("pelation pq=qp does not apply here")
         else:
             w[position] = q
             w[position+1] = p
     # Type 2
     elif move == "pqp=qpq":
         if position > len(w)-3:
-            raise IndexError("Position is out of range for relation pqp=qpq")
+            raise IndexError("position is out of range for relation pqp=qpq")
         p, q = w[position], w[position+1]
         if p != w[position+2]:
-            raise IndexError("Relation pqp=qpq does not apply here")
+            raise IndexError("relation pqp=qpq does not apply here")
         else:
             w[position] = q
             w[position+1] = p
@@ -853,33 +857,33 @@ def _apply_relations(word, position, move):
     # Type 3
     elif move == "pqq=ppq":
         if position > len(w)-3:
-            raise IndexError("Position is out of range for relation pqq=ppq")
+            raise IndexError("position is out of range for relation pqq=ppq")
         p, q = w[position], w[position+2]
         if q != w[position+1]:
-            raise IndexError("Relation pqq=ppq does not apply here")
+            raise IndexError("relation pqq=ppq does not apply here")
         else:
             w[position+1] = p
     # Type 4
     elif move == "ppq=pqq":
         if position > len(w)-3:
-            raise IndexError("Position is out of range for relation ppq=pqq")
+            raise IndexError("position is out of range for relation ppq=pqq")
         p, q = w[position], w[position+2]
         if p != w[position+1]:
-            raise IndexError("Relation ppq=pqq does not apply here")
+            raise IndexError("relation ppq=pqq does not apply here")
         else:
             w[position+1] = q
     # Type 5
     elif move == "pp=p":
         if position > len(w)-2:
-            raise IndexError("Position is out of range for relation pp=p")
+            raise IndexError("position is out of range for relation pp=p")
         p = w[position]
         if p != w[position+1]:
-            raise IndexError("Relation pp=p does not apply here")
+            raise IndexError("relation pp=p does not apply here")
         else:
             w = w[:position+1] + w[position+2:]
     elif move == "p=pp":
         if position > len(w)-1:
-            raise IndexError("Position is out of range for relation p=pp")
+            raise IndexError("position is out of range for relation p=pp")
         p = w[position]
         w = w[:position+1] + [p] + w[position+1:]
     return w

@@ -138,46 +138,29 @@ from sage.graphs.base.static_sparse_graph cimport (short_digraph,
                                                    init_reverse,
                                                    free_short_digraph,
                                                    out_degree,
+                                                   has_edge,
                                                    simple_BFS)
 
-cdef inline all_pairs_shortest_path_BFS(gg,
-                                        unsigned short* predecessors,
-                                        unsigned short* distances,
-                                        uint32_t* eccentricity,
-                                        vertex_list=None):
+cdef inline c_all_pairs_shortest_path_BFS(short_digraph sd,
+                                          unsigned short* predecessors,
+                                          unsigned short* distances,
+                                          uint32_t* eccentricity):
     r"""
     See the module's documentation.
-
-    Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
-    mapping from `(0, \ldots, n-1)` to vertex labels in ``gg``. When
-    ``vertex_list`` is ``None`` (default), the mapping is given by the ordering
-    of ``gg.vertices()``. When set, ``distances[i * n + j]`` is the shortest BFS
-    distance between vertices ``vertex_list[i]`` and ``vertex_list[j]``.
     """
-
-    from sage.rings.infinity import Infinity
-
-    cdef list int_to_vertex
-    if vertex_list is None:
-        int_to_vertex = gg.vertices()
-    elif set(gg.vertex_iterator()) == set(vertex_list):
-        int_to_vertex = vertex_list
-    else:
-        raise ValueError("parameter vertex_list is incorrect for this graph")
-
-    cdef int i
-    cdef MemoryAllocator mem = MemoryAllocator()
-
-    cdef int n = gg.order()
+    cdef int n = sd.n
 
     # Computing the predecessors/distances can only be done if we have less than
     # MAX_UNSIGNED_SHORT vertices. No problem with the eccentricities though as
     # we store them on an integer vector.
     if (predecessors or distances) and n > <unsigned short> -1:
-        raise ValueError("The graph backend contains more than "+
-                         str(<unsigned short> -1)+" nodes and we cannot "+
-                         "compute the matrix of distances/predecessors on "+
+        raise ValueError("The graph backend contains more than " +
+                         str(<unsigned short> -1) + " nodes and we cannot " +
+                         "compute the matrix of distances/predecessors on " +
                          "something like that !")
+
+    cdef int i
+    cdef MemoryAllocator mem = MemoryAllocator()
 
     # The vertices which have already been visited
     cdef bitset_t seen
@@ -196,9 +179,6 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     cdef unsigned short *c_predecessors = predecessors
     cdef int* c_distances = <int*> mem.allocarray(n, sizeof(int))
 
-    # Copying the whole graph to obtain the list of neighbors quicker than by
-    # calling out_neighbors
-
     # The edges are stored in the vector p_edges. This vector contains, from
     # left to right The list of the first vertex's outneighbors, then the
     # second's, then the third's, ...
@@ -210,9 +190,6 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     #
     # This data structure is well documented in the module
     # sage.graphs.base.static_sparse_graph
-
-    cdef short_digraph sd
-    init_short_digraph(sd, gg, edge_labelled=False, vertex_list=int_to_vertex)
     cdef uint32_t** p_vertices = sd.neighbors
     cdef uint32_t* p_edges = sd.edges
     cdef uint32_t* p_next = p_edges
@@ -278,7 +255,6 @@ cdef inline all_pairs_shortest_path_BFS(gg,
         elif eccentricity:
             eccentricity[source] = c_distances[waiting_list[n - 1]]
 
-
         if predecessors:
             c_predecessors += n
 
@@ -288,6 +264,49 @@ cdef inline all_pairs_shortest_path_BFS(gg,
             distances += n
 
     bitset_free(seen)
+
+cdef inline all_pairs_shortest_path_BFS(gg,
+                                        unsigned short* predecessors,
+                                        unsigned short* distances,
+                                        uint32_t* eccentricity,
+                                        vertex_list=None):
+    r"""
+    See the module's documentation.
+
+    Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
+    mapping from `(0, \ldots, n-1)` to vertex labels in ``gg``. When
+    ``vertex_list`` is ``None`` (default), the mapping is given by the ordering
+    of ``gg.vertices()``. When set, ``distances[i * n + j]`` is the shortest BFS
+    distance between vertices ``vertex_list[i]`` and ``vertex_list[j]``.
+    """
+    from sage.rings.infinity import Infinity
+
+    cdef list int_to_vertex
+    if vertex_list is None:
+        int_to_vertex = gg.vertices()
+    elif set(gg.vertex_iterator()) == set(vertex_list):
+        int_to_vertex = vertex_list
+    else:
+        raise ValueError("parameter vertex_list is incorrect for this graph")
+
+    cdef int n = gg.order()
+
+    # Computing the predecessors/distances can only be done if we have less than
+    # MAX_UNSIGNED_SHORT vertices. No problem with the eccentricities though as
+    # we store them on an integer vector.
+    if (predecessors or distances) and n > <unsigned short> -1:
+        raise ValueError("The graph backend contains more than "+
+                         str(<unsigned short> -1)+" nodes and we cannot "+
+                         "compute the matrix of distances/predecessors on "+
+                         "something like that !")
+
+    # Copying the whole graph to obtain the list of neighbors quicker than by
+    # calling out_neighbors
+    cdef short_digraph sd
+    init_short_digraph(sd, gg, edge_labelled=False, vertex_list=int_to_vertex)
+
+    c_all_pairs_shortest_path_BFS(sd, predecessors, distances, eccentricity)
+
     free_short_digraph(sd)
 
 ################
@@ -2053,6 +2072,296 @@ def wiener_index(G):
     if s == UINT64_MAX:
         from sage.rings.infinity import Infinity
         return +Infinity
+    return s
+
+################
+# Szeged index #
+################
+
+cdef uint64_t c_szeged_index_low_memory(short_digraph sd):
+    """
+    Return the Szeged index of the graph.
+
+    Let `G = (V, E)` be a connected simple graph, and for any `uv\in E`, let
+    `N_u(uv) = \{w\in V:d(u,w)<d(v,w)\}` and `n_u(uv)=|N_u(uv)|`. The Szeged
+    index of `G` is then defined as [KRG1996]_ as `\sum_{uv \in
+    E(G)}n_u(uv)\times n_v(uv)`.
+
+    To determine `N_u(uv)`, this method perfoms a breadth first search (BFS)
+    from each vertex `s \in V`. Then, each time an edge `uv` visited by the BFS
+    is such that `d(s, u) < d(s, v)`, it adds 1 to `N_u(uv)`. Since this method
+    assumes that the graph is undirected, the graph `sd` has both arcs `uv` and
+    `vu`. Using one counter per arc, the counter for arc `uv` records the number
+    of vertices that are closer to the side `u` of edge `uv`, and the counter
+    for arc `vu` records the number of vertices that are closer to the side `v`
+    of edge `uv`.
+
+    This method assumes that the input graph has no loops or multiple edges.
+
+    EXAMPLES::
+
+        sage: graphs.CycleGraph(4).szeged_index(algorithm="low")
+        16
+    """
+    cdef size_t n = sd.n
+    if n <= 1:
+        return 0
+    if n == 2:
+        return 1
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * current_layer = <uint32_t *> mem.malloc(n * sizeof(uint32_t))
+    cdef uint32_t n_current
+    cdef uint32_t * next_layer = <uint32_t *> mem.malloc(n * sizeof(uint32_t))
+    cdef uint32_t n_next
+    cdef uint32_t * seen = <uint32_t *> mem.calloc(n, sizeof(uint32_t))
+    cdef uint32_t seen_value = 0
+
+    # For each edge e = uv, we have 2 arcs. Let p_uv be a pointer to arc uv and
+    # p_vu a pointer to arc vu. The index of arc uv is p_uv - sd.edges. During a
+    # BFS from source, we add 1 to counter[p_uv - sd.edges] if vertex u is closer
+    # from source than v and 1 to counter[p_vu - sd.edges] if vertex v is closer
+    # from source than u. The Szeged index is then
+    #   sum_{e=uv} counter[p_uv - sd.edges] * counter[p_vu - sd.edges]
+    cdef uint32_t * counter = <uint32_t *> mem.calloc(2 * sd.m, sizeof(uint32_t))
+
+    cdef uint32_t source, u, v, i
+    cdef uint32_t* p_uv
+    cdef uint32_t* p_end
+
+    sig_on()
+    for source in range(n):
+
+        next_layer[0] = source
+        n_next = 1
+        seen_value += 1
+
+        while n_next:
+            # Go to next layer
+            current_layer, next_layer = next_layer, current_layer
+            n_current, n_next = n_next, 0
+
+            # Mark all vertices in current layer as seen
+            for i in range(n_current):
+                seen[current_layer[i]] = seen_value
+
+            for i in range(n_current):
+                u = current_layer[i]
+
+                # Visit all (out) neighbors of u
+                p_uv = sd.neighbors[u]
+                p_end = sd.neighbors[u + 1]
+                while p_uv < p_end:
+                    v = p_uv[0]
+                    if seen[v] != seen_value:
+                        # u is closer to the source
+                        counter[p_uv - sd.edges] += 1
+
+                        # Ensure that v is added only once for next_level
+                        if seen[v] != seen_value + 1:
+                            next_layer[n_next] = v
+                            n_next += 1
+                            seen[v] = seen_value + 1
+
+                    p_uv += 1
+    sig_off()
+
+    cdef uint64_t s = 0
+    cdef uint32_t* p_vu
+
+    sig_on()
+    for u in range(n - 1):
+        p_uv = sd.neighbors[u]
+        p_end = sd.neighbors[u + 1]
+        while p_uv < p_end:
+            v = p_uv[0]
+            if u < v:
+                # Get the pointer to arc vu
+                p_vu = has_edge(sd, v, u)
+                s += counter[p_uv - sd.edges] * counter[p_vu - sd.edges]
+
+            p_uv += 1
+    sig_off()
+
+    return s
+
+cdef uint64_t c_szeged_index_high_memory(short_digraph sd):
+    """
+    Return the Szeged index of the graph.
+
+    Let `G = (V, E)` be a connected graph, and for any `uv\in E`, let `N_u(uv) =
+    \{w\in V:d(u,w)<d(v,w)\}` and `n_u(uv)=|N_u(uv)|`. The Szeged index of `G`
+    is then defined as [KRG1996]_ as `\sum_{uv \in E(G)}n_u(uv)\times n_v(uv)`.
+
+    EXAMPLES::
+
+        sage: graphs.CycleGraph(4).szeged_index(algorithm="high")
+        16
+    """
+    cdef int n = sd.n
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef unsigned short* distances = <unsigned short*> mem.malloc(n * n * sizeof(unsigned short))
+
+    # Compute all pairs shortest path
+    c_all_pairs_shortest_path_BFS(sd, NULL, distances, NULL)
+
+    cdef uint32_t* p_uv
+    cdef uint32_t* p_end
+    cdef uint32_t u, v, w
+    cdef unsigned short* du
+    cdef unsigned short* dv
+    cdef uint32_t n1, n2
+    cdef uint64_t s = 0
+
+    for u in range(n):
+        du = distances + u * n
+        p_uv = sd.neighbors[u]
+        p_end = sd.neighbors[u + 1]
+        while p_uv < p_end:
+            v = p_uv[0]
+            if u < v:
+                dv = distances + v * n
+                n1 = n2 = 0
+                for w in range(n):
+                    if du[w] < dv[w]:
+                        n1 += 1
+                    elif dv[w] < du[w]:
+                        n2 += 1
+
+                s += n1 * n2
+            p_uv += 1
+
+    return s
+
+def szeged_index(G, algorithm=None):
+    r"""
+    Return the Szeged index of the graph `G`.
+
+    Let `G = (V, E)` be a connected graph, and for any `uv\in E`, let `N_u(uv) =
+    \{w\in V:d(u,w)<d(v,w)\}` and `n_u(uv)=|N_u(uv)|`. The Szeged index of `G`
+    is then defined as [KRG1996]_
+
+    .. MATH::
+
+        `\sum_{uv \in E(G)}n_u(uv)\times n_v(uv)`
+
+    See the :wikipedia:`Szeged_index` for more details.
+
+    INPUT:
+
+    - ``G`` -- a Sage graph
+
+    - ``algorithm`` -- string (default: ``None``); algorithm to use among:
+
+      - ``"low"`` -- algorithm with time complexity in `O(nm)` and space
+        complexity in `O(m)`. This implementation is currently valid only for
+        simple (without loops or multiple edges) connected graphs.
+
+      - ``"high"`` -- algorithm with time complexity in `O(nm)` and space
+        complexity in `O(n^2)`. It cannot be used on graphs with more than
+        `65536 = 2^{16}` vertices.
+
+      By default (``None``), the ``"low"`` algorithm is used for graphs and the
+      ``"high"`` algorithm for digraphs.
+
+    EXAMPLES:
+
+    True for any connected graph [KRG1996]_::
+
+        sage: from sage.graphs.distances_all_pairs import szeged_index
+        sage: g = graphs.PetersenGraph()
+        sage: g.wiener_index() <= szeged_index(g)
+        True
+
+    True for all trees [KRG1996]_::
+
+        sage: g = Graph()
+        sage: g.add_edges(graphs.CubeGraph(5).min_spanning_tree())
+        sage: g.wiener_index() == szeged_index(g)
+        True
+
+    Check that both algorithms return same value::
+
+        sage: G = graphs.RandomBarabasiAlbert(100, 2)  # long time
+        sage: a = szeged_index(G, algorithm='low')  # long time
+        sage: b = szeged_index(G, algorithm='high')  # long time
+        sage: a == b  # long time
+        True
+
+    The Szeged index of a directed circuit of order `n` is `(n-1)^2`::
+
+        sage: [digraphs.Circuit(n).szeged_index() for n in range(1, 8)]
+        [0, 1, 4, 9, 16, 25, 36]
+
+    TESTS:
+
+    Not defined when the graph is not connected (:trac:`26803`)::
+
+        sage: szeged_index(Graph({0: [1], 2: []}))
+        Traceback (most recent call last):
+        ...
+        ValueError: the Szeged index is defined for connected graphs only
+
+    Directed graphs must be strongly connected::
+
+        sage: szeged_index(digraphs.Path(2))
+        Traceback (most recent call last):
+        ...
+        ValueError: the Szeged index is defined for strongly connected digraphs only
+
+    Wrong name of algorithm::
+
+        sage: szeged_index(Graph(1), algorithm="wheel")
+        Traceback (most recent call last):
+        ...
+        ValueError: unknown algorithm 'wheel'
+
+    Algorithm `"low"` is for graphs without loops or multiple edges::
+
+        sage: szeged_index(Graph([(0, 0)], loops=True), algorithm="low")
+        Traceback (most recent call last):
+        ...
+        ValueError: the 'low' algorithm is for simple connected undirected graphs only
+        sage: szeged_index(Graph([(0, 1), (0, 1)], multiedges=True), algorithm="low")
+        Traceback (most recent call last):
+        ...
+        ValueError: the 'low' algorithm is for simple connected undirected graphs only
+        sage: szeged_index(digraphs.Circuit(3), algorithm="low")
+        Traceback (most recent call last):
+        ...
+        ValueError: the 'low' algorithm cannot be used on digraphs
+    """
+    if not G.is_connected():
+        raise ValueError("the Szeged index is defined for connected graphs only")
+    if G.is_directed() and not G.is_strongly_connected():
+        raise ValueError("the Szeged index is defined for "
+                         "strongly connected digraphs only")
+    if G.is_directed() and algorithm is "low":
+        raise ValueError("the 'low' algorithm cannot be used on digraphs")
+
+    if algorithm is None:
+        algorithm = "high" if G.is_directed() else "low"
+
+    elif algorithm not in ["low", "high"]:
+        raise ValueError(f"unknown algorithm '{algorithm}'")
+    
+    if algorithm is "low" and (G.has_loops() or G.has_multiple_edges()):
+        raise ValueError("the 'low' algorithm is for simple connected "
+                         "undirected graphs only")
+
+    if G.order() <= 1:
+        return 0
+
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=list(G))
+    cdef uint64_t s
+
+    if algorithm is "low":
+        s = c_szeged_index_low_memory(sd)
+    else:
+        s = c_szeged_index_high_memory(sd)
+
+    free_short_digraph(sd)
     return s
 
 ##########################

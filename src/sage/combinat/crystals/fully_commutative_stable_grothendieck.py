@@ -287,10 +287,10 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             sage: C is D
             True
         """
+        from sage.monoids.hecke_monoid import HeckeMonoid
         if shape:
             from sage.combinat.partition import Partition, Partitions
             from sage.combinat.skew_partition import SkewPartition
-            from sage.monoids.hecke_monoid import HeckeMonoid
             cond1 = isinstance(w, (tuple, list)) and len(w)==2 and w[0] in Partitions() and w[1] in Partitions()
             cond2 = isinstance(w, SkewPartition)
             cond3 = isinstance(w, (tuple, list)) and w in Partitions()

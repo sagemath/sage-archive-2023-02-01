@@ -79,9 +79,112 @@ cdef inline int faces_shallow_copy(face_list_t dst, face_list_t src) except -1:
 # Face Comparison
 #############################################################################
 
-# Todo: Find
+cdef void sort_faces_list(face_list_t faces):
+    r"""
+    Sorts faces in place.
+    """
+    cdef MemoryAllocator mem = MemoryAllocator()
 
-# Todo Sort
+    # Merge sort needs a second list of pointers.
+    cdef face_t* extra_mem = <face_t*> mem.allocarray(faces.n_faces, sizeof(face_t))
+
+    # Sort the faces using merge sort.
+    _sort_faces_loop(faces.faces, faces.faces, extra_mem, faces.n_faces)
+
+cdef void _sort_faces_loop(face_t* inp, face_t* output1, face_t* output2, size_t n_faces):
+    """
+    This is merge sort.
+
+    Sorts ``inp`` and returns it in ``output1``.
+
+    .. WARNING::
+
+        Input is the same as output1 or output2
+
+    See :func:`sort_faces`.
+    """
+    if n_faces == 0:
+        # Prevent it from crashing.
+        # In this case there is nothing to do anyway.
+        return
+
+    if n_faces == 1:
+        # The final case, where there is only one element.
+        output1[0][0] = inp[0][0]
+        return
+
+    cdef size_t middle = n_faces//2
+    cdef size_t len_upper_half = n_faces - middle
+
+    # Sort the upper and lower half of ``inp`` iteratively into ``output2``.
+    _sort_faces_loop(inp, output2, output1, middle)
+    _sort_faces_loop(inp+middle, output2+middle,
+                     output2+middle, len_upper_half)
+
+    # Merge lower and upper half into ``output1``.
+    cdef size_t i = 0        # index through lower half
+    cdef size_t j = middle   # index through upper half
+    cdef size_t counter = 0  # counts how many elements have been "merged" already
+    cdef int val
+    while i < middle and j < n_faces:
+        # Compare the lowest elements of lower and upper half.
+        val = face_cmp(output2[i], output2[j])
+        if val < 0:
+            output1[counter][0] = output2[i][0]
+            i += 1
+            counter += 1
+        else:
+            output1[counter][0] = output2[j][0]
+            j += 1
+            counter += 1
+    if i < middle:
+        # Add the remaining elements of lower half.
+        while i < middle:
+            output1[counter][0] = output2[i][0]
+            i += 1
+            counter += 1
+    else:
+        # Add the remaining elements of upper half.
+        while j < n_faces:
+            output1[counter][0] = output2[j][0]
+            j += 1
+            counter += 1
+
+cdef inline size_t find_face(self, face_t face, face_list_t faces):
+    r"""
+    Return the index of ``face`` in ``faces``.
+
+    Return ``-1`` if the ``face`` is not contained.
+
+    .. NOTE::
+
+        Assumes that ``faces`` are sorted.
+    """
+    cdef size_t start = 0
+    cdef size_t middle
+    cdef size_t n_faces = faces.n_faces
+    cdef face_t* faces_pt = faces.faces
+    cdef int val
+
+    while (n_faces > 1):
+        # In each iteration step, we will look for ``face`` in
+        # ``faces_pt[start:start+n_faces]``.
+        middle = n_faces//2
+        val = face_cmp(face, faces_pt[middle + start])
+        if val < 0:
+            # If face is in the list, then in the lower half.
+            # Look for face in ``faces[start : start + middle]`` in next step.
+            n_faces = middle
+        else:
+            # If face is in the list, then in the upper half.
+            # Look for face in ``faces[start+middle:start+n_faces]``, i.e.
+            # ``faces[start + middle : (start + middle) + n_faces - middle]``.
+            n_faces -= middle
+            start += middle
+    if face_cmp(face, faces_pt[start]) == 0:
+        return start
+    else:
+        return -1
 
 cdef inline bint is_contained_in_one_fused(face_t face, face_list_t faces, algorithm_variant algorithm) nogil:
     """

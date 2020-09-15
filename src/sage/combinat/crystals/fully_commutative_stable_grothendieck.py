@@ -24,17 +24,19 @@ AUTHORS:
 
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
+from sage.structure.richcmp import richcmp_method, richcmp_by_eq_and_lt
+from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.enumerated_sets import EnumeratedSets
-from sage.combinat.permutation import Permutations
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat import permutation
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.rings.integer import Integer
 from sage.misc.lazy_attribute import lazy_attribute
 
-class DecreasingHeckeFactorization:
+@richcmp_method
+class DecreasingHeckeFactorization(SageObject):
     """
     Class of decreasing factorizations in the 0-Hecke monoid.
 
@@ -62,7 +64,7 @@ class DecreasingHeckeFactorization:
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
         sage: u = [[3, 2, 1], [3], [2, 1]]
         sage: h = DecreasingHeckeFactorization(u); h
-        (3, 2, 1)(3)(2, 1)
+        (3, 2, 1)(3,)(2, 1)
         sage: h.weight()
         (2, 1, 3)
     """
@@ -75,7 +77,7 @@ class DecreasingHeckeFactorization:
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
             sage: t = [[2, 1], [2], [], [1]]
             sage: h1 = DecreasingHeckeFactorization(t); h1
-            (2, 1)(2)()(1)
+            (2, 1)(2,)()(1,)
             sage: h1.excess
             1
             sage: h2 = DecreasingHeckeFactorization(t,2)
@@ -97,14 +99,14 @@ class DecreasingHeckeFactorization:
         _check_decreasing_hecke_factorization(t)
         self.factors = len(t)
         if max_value == None:
-            max_value = max([x for factor in t for x in factor])
+            max_value = max(x for factor in t for x in factor)
         self.max_value = max_value
         from sage.monoids.hecke_monoid import HeckeMonoid
         H = HeckeMonoid(SymmetricGroup(max_value+1))
-        word = H.from_reduced_word([x for factor in t for x in factor]).reduced_word()
+        word = H.from_reduced_word(x for factor in t for x in factor).reduced_word()
         self.w = tuple(word)
         self.excess = sum(len(l) for l in t) - len(word)
-        self.value = tuple([tuple(factors) for factors in t])
+        self.value = tuple(tuple(factors) for factors in t)
 
     def __repr__(self):
         """
@@ -115,9 +117,9 @@ class DecreasingHeckeFactorization:
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
             sage: t = [[], [2, 1], [2], [], [2]]
             sage: h = DecreasingHeckeFactorization(t); h
-            ()(2, 1)(2)()(2)
+            ()(2, 1)(2,)()(2,)
         """
-        return "".join("("+repr(list(factor))[1:-1]+")" for factor in self.value)
+        return "".join(repr(factor) for factor in self.value)
 
     def __hash__(self):
         """
@@ -137,7 +139,9 @@ class DecreasingHeckeFactorization:
         """
         return hash((self.max_value, self.value))
 
-    def __eq__(self, other):
+    __richcmp__ = richcmp_by_eq_and_lt("eq", "lt")
+
+    def eq(self, other):
         """
         Return True if ``self`` equals ``other`` and False otherwise.
 
@@ -152,7 +156,7 @@ class DecreasingHeckeFactorization:
         """
         return isinstance(self, type(other)) and self.value == other.value
 
-    def __lt__(self,other):
+    def lt(self,other):
         """
         Return True if ``self`` comes before ``other`` and False otherwise.
 
@@ -265,12 +269,12 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
         sage: B = crystals.FullyCommutativeStableGrothendieck(w, 3, 2); B
         Fully commutative stable Grothendieck crystal of type A_2 associated to [1, 3, 2] with excess 2
         sage: B.list()
-        [(1)(3, 1)(3, 2),
-         (3, 1)(1)(3, 2),
-         (3, 1)(3, 1)(2),
-         (3)(3, 1)(3, 2),
-         (3, 1)(3)(3, 2),
-         (3, 1)(3, 2)(2)]
+        [(1,)(3, 1)(3, 2),
+         (3, 1)(1,)(3, 2),
+         (3, 1)(3, 1)(2,),
+         (3,)(3, 1)(3, 2),
+         (3, 1)(3,)(3, 2),
+         (3, 1)(3, 2)(2,)]
 
     We can also access the crystal by specifying a skew shape::
 
@@ -281,16 +285,16 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
         sage: hw = [w for w in B if w.is_highest_weight()]
         sage: hw
-        [(1)(3, 1)(3, 2), (3)(3, 1)(3, 2)]
+        [(1,)(3, 1)(3, 2), (3,)(3, 1)(3, 2)]
         sage: hw[0].weight()
         (2, 2, 1)
 
     The crystal operators themselves move elements between adjacent factors::
 
         sage: b = hw[0]; b
-        (1)(3, 1)(3, 2)
+        (1,)(3, 1)(3, 2)
         sage: b.f(2)
-        (3, 1)(1)(3, 2)
+        (3, 1)(1,)(3, 2)
     """
     @staticmethod
     def __classcall_private__(cls, w, factors, excess, shape=False):
@@ -398,16 +402,16 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             sage: w = S.from_reduced_word([1, 3, 2])
             sage: B = crystals.FullyCommutativeStableGrothendieck(w, 3, 2)
             sage: B.module_generators
-            ((1)(3, 1)(3, 2), (3)(3, 1)(3, 2))
+            ((1,)(3, 1)(3, 2), (3,)(3, 1)(3, 2))
             sage: C = crystals.FullyCommutativeStableGrothendieck(w, 4, 2)
             sage: C.module_generators
-            (()(1)(3, 1)(3, 2),
-             ()(3)(3, 1)(3, 2),
-             (1)(1)(1)(3, 2),
-             (1)(1)(3)(3, 2),
-             (1)(3)(3)(3, 2))
+            (()(1,)(3, 1)(3, 2),
+             ()(3,)(3, 1)(3, 2),
+             (1,)(1,)(1,)(3, 2),
+             (1,)(1,)(3,)(3, 2),
+             (1,)(3,)(3,)(3, 2))
         """
-        return tuple([self(x).to_highest_weight()[0] for x in _lowest_weights(self.w, self.factors, self.excess)])
+        return tuple(self(x).to_highest_weight()[0] for x in _lowest_weights(self.w, self.factors, self.excess))
 
     def _repr_(self):
         """
@@ -445,9 +449,6 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                 sage: v = B([[3,1],[3],[3,2]]); v.value
                 ((3, 1), (3,), (3, 2))
             """
-            if not isinstance(parent, FullyCommutativeStableGrothendieckCrystal):
-                raise ValueError("parent should be an instance of FullyCommutativeStableGrothendieckCrystal")
-
             if isinstance(t, DecreasingHeckeFactorization):
                 u = t
             else:
@@ -474,11 +475,11 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                 sage: w = S.from_reduced_word([2, 1, 4, 3, 2])
                 sage: B = crystals.FullyCommutativeStableGrothendieck(w, 4, 3)
                 sage: h = B([[4, 2], [4, 2, 1], [3, 2], [2]]); h
-                (4, 2)(4, 2, 1)(3, 2)(2)
+                (4, 2)(4, 2, 1)(3, 2)(2,)
                 sage: h.e(1)
-                (4, 2)(4, 2, 1)(3)(3, 2)
+                (4, 2)(4, 2, 1)(3,)(3, 2)
                 sage: h.e(2)
-                (4, 2)(2, 1)(4, 3, 2)(2)
+                (4, 2)(2, 1)(4, 3, 2)(2,)
                 sage: h.e(3)
             """
             L = list(self.value[self.factors-i-1])
@@ -511,10 +512,10 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                 sage: h = B([[3, 2], [2, 1], [4, 3], [3, 1]]); h
                 (3, 2)(2, 1)(4, 3)(3, 1)
                 sage: h.f(1)
-                (3, 2)(2, 1)(4, 3, 1)(3)
+                (3, 2)(2, 1)(4, 3, 1)(3,)
                 sage: h.f(2)
                 sage: h.f(3)
-                (3, 2, 1)(1)(4, 3)(3, 1)
+                (3, 2, 1)(1,)(4, 3)(3, 1)
             """
             L = list(self.value[self.factors-i-1])
             R = list(self.value[self.factors-i])
@@ -660,21 +661,21 @@ def _lowest_weights(w, factors, ex):
         ValueError: the word w should be fully commutative
 
         sage: _lowest_weights([2, 1, 3, 2], 4, 3)
-        [(2, 1)(3, 1)(3, 1)(2), (2, 1)(3, 1)(3, 2)(2)]
+        [(2, 1)(3, 1)(3, 1)(2,), (2, 1)(3, 1)(3, 2)(2,)]
 
         sage: _lowest_weights([2, 1, 3, 2], 5, 3)
-        [(2, 1)(3, 1)(3, 1)(2)(),
-         (2, 1)(3, 1)(3, 2)(2)(),
-         (2, 1)(3, 1)(1)(1)(2),
-         (2, 1)(3, 1)(1)(2)(2),
-         (2, 1)(3, 1)(2)(2)(2),
-         (2, 1)(3, 2)(2)(2)(2)]
+        [(2, 1)(3, 1)(3, 1)(2,)(),
+         (2, 1)(3, 1)(3, 2)(2,)(),
+         (2, 1)(3, 1)(1,)(1,)(2,),
+         (2, 1)(3, 1)(1,)(2,)(2,),
+         (2, 1)(3, 1)(2,)(2,)(2,),
+         (2, 1)(3, 2)(2,)(2,)(2,)]
 
         sage: _lowest_weights([1, 3], 3, 1)
-        [(3, 1)(1)(), (3, 1)(3)(), (1)(1)(3), (1)(3)(3)]
+        [(3, 1)(1,)(), (3, 1)(3,)(), (1,)(1,)(3,), (1,)(3,)(3,)]
 
         sage: _lowest_weights([3, 2, 1], 5, 2)
-        [(3, 2, 1)(1)(1)()()]
+        [(3, 2, 1)(1,)(1,)()()]
     """
     p = permutation.from_reduced_word(w)
     if p.has_pattern([3,2,1]):
@@ -702,7 +703,7 @@ def _lowest_weights(w, factors, ex):
                 D[weight] = [h]
             else:
                 D[weight] += [h]
-    return sorted([h for key in D for h in D[key]])
+    return sorted(h for key in D for h in D[key])
 
 def _jumps(w):
     """
@@ -747,12 +748,12 @@ def _is_valid_column_word(w, m=None):
     J = [0]+_jumps(w)+[len(w)]
     L = [w[J[i]:J[i+1]][::-1] for i in range(len(J)-1)]
     if all(len(L[i])>=len(L[i+1]) for i in range(len(L)-1)):
-        if m is None or len(_jumps(w))<=m-1:
-            for i in range(len(L)-1):
-                for j in range(len(L[i+1])):
-                    if L[i+1][j]<L[i][j]:
-                        return False
-            return True
+        if m is None or len(_jumps(w)) <= m-1:
+            # By construction the sequences along rows of L are strictly
+            # decreasing, so it remains to verify that the sequences along
+            # columns of L are weakly increasing
+            return all(L[i+1][j] >= L[i][j] for i in range(len(L)-1)
+                       for j in range(len(L[i+1])))
     return False
 
 def _list_equivalent_words(w):
@@ -812,7 +813,7 @@ def _list_equivalent_words(w):
                     L += [[i,"pq=qp"]]
         return L
 
-    V, queue = set([]), [tuple(u)]
+    V, queue = set(), [tuple(u)]
     while queue:
         v = queue.pop(0)
         if tuple(v) not in V:
@@ -822,7 +823,7 @@ def _list_equivalent_words(w):
                 position, move = pair
                 t = _apply_relations(v,position,move)
                 queue += [tuple(t)]
-    return sorted([v for v in list(V)])
+    return sorted(v for v in list(V))
 
 def _apply_relations(word, position, move):
     """

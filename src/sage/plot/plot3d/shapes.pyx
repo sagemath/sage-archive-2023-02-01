@@ -1093,6 +1093,7 @@ class Text(PrimitiveObject):
         """
         PrimitiveObject.__init__(self, **kwds)
         self.string = string
+        self._set_extra_kwds(kwds)
 
     def x3d_geometry(self):
         """
@@ -1168,9 +1169,20 @@ class Text(PrimitiveObject):
 
         EXAMPLES::
 
-            sage: T = text3d("Hi", (1, 2, 3), color='red')
+            sage: T = text3d("Hi", (1, 2, 3), color='red', font='serif', bold=True,
+            ....:            italic=True, size=20, opacity=0.5)
             sage: T.threejs_repr(T.default_render_params())
-            [('text', {'color': '#ff0000', 'text': 'Hi', 'x': 1.0, 'y': 2.0, 'z': 3.0})]
+            [('text',
+              {'bold': True,
+               'color': '#ff0000',
+               'font': ['serif'],
+               'italic': True,
+               'opacity': 0.5,
+               'size': 20,
+               'text': 'Hi',
+               'x': 1.0,
+               'y': 2.0,
+               'z': 3.0})]
 
         TESTS:
 
@@ -1180,7 +1192,17 @@ class Text(PrimitiveObject):
             sage: from sage.plot.plot3d.shapes import Text
             sage: T = Text("Hi")
             sage: T.threejs_repr(T.default_render_params())
-            [('text', {'color': '#6666ff', 'text': 'Hi', 'x': 0.0, 'y': 0.0, 'z': 0.0})]
+            [('text',
+              {'bold': False,
+               'color': '#6666ff',
+               'font': ['monospace'],
+               'italic': False,
+               'opacity': 1.0,
+               'size': 14,
+               'text': 'Hi',
+               'x': 0.0,
+               'y': 0.0,
+               'z': 0.0})]
 
         """
         center = (float(0), float(0), float(0))
@@ -1188,7 +1210,16 @@ class Text(PrimitiveObject):
             center = render_params.transform.transform_point(center)
         color = '#' + str(self.texture.hex_rgb())
         string = str(self.string)
-        text = dict(text=string, x=center[0], y=center[1], z=center[2], color=color)
+        size = int(self._extra_kwds.get('size', 14))
+        font = self._extra_kwds.get('font', ['monospace'])
+        if isinstance(font, str):
+            font = font.split(',')
+        font = [str(f).strip() for f in font]
+        italic = bool(self._extra_kwds.get('italic'))
+        bold = bool(self._extra_kwds.get('bold'))
+        opacity = float(self._extra_kwds.get('opacity', 1.0))
+        text = dict(text=string, x=center[0], y=center[1], z=center[2], color=color,
+                    size=size, font=font, italic=italic, bold=bold, opacity=opacity)
         return [('text', text)]
 
     def bounding_box(self):

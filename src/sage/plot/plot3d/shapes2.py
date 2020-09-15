@@ -670,10 +670,6 @@ def text3d(txt, x_y_z, **kwds):
 
     -  ``**kwds`` -- standard 3d graphics options
 
-    .. note::
-
-        There is no way to change the font size or opacity yet.
-
     EXAMPLES:
 
     We write the word Sage in red at position (1,2,3)::
@@ -696,6 +692,21 @@ def text3d(txt, x_y_z, **kwds):
 
         sage: text3d("Sage is...",(2,12,1), color=(1,0,0)) + text3d("quite powerful!!",(4,10,0), color=(0,0,1))
         Graphics3d Object
+
+    Adjust the font size, family, and style (Three.js viewer only)::
+
+        sage: t1 = text3d("Hello", (1, 2, 3), size=25, font='serif', italic=True)
+        sage: t2 = text3d("World", (3, 2, 1), size=10, font='sans-serif', bold=True)
+        sage: t3 = text3d("Font fallbacks", (0, 1, 0), font=['Consolas', 'Lucida Console', 'monospace'])
+        sage: t4 = text3d("Another way", (0, -1, 0), font='Consolas, Lucida Console, monospace')
+        sage: show(t1 + t2 + t3 + t4, viewer='threejs')
+
+    Adjust the text's opacity (Three.js viewer only)::
+
+        sage: def echo(o):
+        ....:     return text3d("Echo!", (0, 0, o), opacity=o)
+        sage: show(sum([echo(o) for o in (0.1, 0.2, .., 1)]), viewer='threejs')
+
     """
     (x, y, z) = x_y_z
     if 'color' not in kwds and 'rgbcolor' not in kwds:

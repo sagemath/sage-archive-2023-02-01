@@ -2994,7 +2994,7 @@ class Polyhedron_base(Element):
             Vrep_matrix = matrix(self.base_ring(), self.Vrepresentation())
             Hrep_matrix = matrix(self.base_ring(), self.Hrepresentation())
 
-            # Getting homogenous coordinates of the Vrepresentation.
+            # Getting homogeneous coordinates of the Vrepresentation.
             hom_helper = matrix(self.base_ring(), [1 if v.is_vertex() else 0 for v in self.Vrepresentation()])
             hom_Vrep = hom_helper.stack(Vrep_matrix.transpose())
 
@@ -5262,32 +5262,32 @@ class Polyhedron_base(Element):
                 new_lines = ()
 
             if self.is_compact() and self.n_vertices() and self.n_inequalities():
-                homogenous_basis = matrix(R, ( [1] + list(v) for v in self.an_affine_basis() )).transpose()
+                homogeneous_basis = matrix(R, ( [1] + list(v) for v in self.an_affine_basis() )).transpose()
 
                 # To convert first to a list and then to a matrix seems to be necesarry to obtain a meaningful error,
                 # in case the number of columns doesn't match the dimension.
-                new_homogenous_basis = matrix(list( [1] + list(linear_transf*vector(R, v)) for v in self.an_affine_basis()) ).transpose()
+                new_homogeneous_basis = matrix(list( [1] + list(linear_transf*vector(R, v)) for v in self.an_affine_basis()) ).transpose()
 
-                if self.dim() + 1 == new_homogenous_basis.rank():
+                if self.dim() + 1 == new_homogeneous_basis.rank():
                     # The transformation is injective on the polytope.
                     is_injective = True
 
-                    # Let V be the homogenous vertex matrix (each vertex a column)
+                    # Let V be the homogeneous vertex matrix (each vertex a column)
                     # and M the linear transformation.
-                    # Then M*V is the new homogenous vertex matrix.
+                    # Then M*V is the new homogeneous vertex matrix.
 
                     # Let H be the inequalities matrix (each inequality a row).
                     # If we find N such that N*M*V = V than the new inequalities are
                     # given by H*N.
 
                     # Note that such N must exist, as our map is injective on the polytope.
-                    # It is uniquely defined by considering a basis of the homogenous vertices.
-                    N = new_homogenous_basis.solve_left(homogenous_basis)
+                    # It is uniquely defined by considering a basis of the homogeneous vertices.
+                    N = new_homogeneous_basis.solve_left(homogeneous_basis)
                     new_inequalities = ( h for h in matrix(R, self.inequalities())*N )
 
-                    # The equations are the left kernel matrix of the homogenous vertices
+                    # The equations are the left kernel matrix of the homogeneous vertices
                     # or equivalently a basis thereof.
-                    new_equations = (new_homogenous_basis.transpose()).right_kernel_matrix()
+                    new_equations = (new_homogeneous_basis.transpose()).right_kernel_matrix()
 
         else:
             new_vertices = [[] for v in self.vertex_generator() ]

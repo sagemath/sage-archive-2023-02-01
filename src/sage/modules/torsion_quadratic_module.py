@@ -228,9 +228,9 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
     @staticmethod
     def __classcall__(cls, V, W, gens=None, modulus=None, modulus_qf=None, check=True):
         r"""
-        Return a :class:``TorsionQuadraticModule``.
+        Return a :class:`TorsionQuadraticModule`.
 
-        This method does the preprocessing for :meth:``sage.structure.CachedRepresentation``.
+        This method does the preprocessing for :meth:`sage.structure.CachedRepresentation`.
 
         TESTS::
 

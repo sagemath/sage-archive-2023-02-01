@@ -1397,9 +1397,9 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         EXAMPLES::
 
-            sage: p = PointConfiguration([(0,0),(+1,0),(-1,0),(0,+1),(0,-1)])
-            sage: list( p.circuits_support() )
-            [(0, 3, 4), (0, 1, 2), (1, 2, 3, 4)]
+            sage: p = PointConfiguration([(0,0), (+1,0), (-1,0), (0,+1), (0,-1)])
+            sage: sorted(p.circuits_support())
+            [(0, 1, 2), (0, 3, 4), (1, 2, 3, 4)]
         """
         n = len(self)
         U = [self[i].reduced_projective() for i in range(n)]
@@ -1468,8 +1468,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         EXAMPLES::
 
             sage: p = PointConfiguration([(0,0),(+1,0),(-1,0),(0,+1),(0,-1)])
-            sage: p.circuits()
-            (((0,), (1, 2), (3, 4)), ((0,), (3, 4), (1, 2)), ((1, 2), (0,), (3, 4)))
+            sage: sorted(p.circuits())
+            [((0,), (1, 2), (3, 4)), ((0,), (3, 4), (1, 2)), ((1, 2), (0,), (3, 4))]
 
 
         TESTS::
@@ -1523,8 +1523,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         EXAMPLES::
 
             sage: p = PointConfiguration([(1,0,0),(0,1,0),(0,0,1),(-2,0,-1),(-2,-1,0),(-3,-1,-1),(1,1,1),(-1,0,0),(0,0,0)])
-            sage: p.positive_circuits(8)
-            ((0, 7), (0, 1, 4), (0, 2, 3), (0, 5, 6), (0, 1, 2, 5), (0, 3, 4, 6))
+            sage: sorted(p.positive_circuits(8))
+            [(0, 1, 2, 5), (0, 1, 4), (0, 2, 3), (0, 3, 4, 6), (0, 5, 6), (0, 7)]
             sage: p.positive_circuits(0,5,6)
             ((8,),)
         """

@@ -1571,8 +1571,8 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         ::
 
-            sage: C1 = Polyhedron(rays=[[0,0,1],[1,0,AA(2).sqrt()],[0,1,1],[1,1,1]], backend='normaliz')
-            sage: C1._triangulate_normaliz()
+            sage: C1 = Polyhedron(rays=[[0,0,1],[1,0,AA(2).sqrt()],[0,1,1],[1,1,1]], backend='normaliz')  # optional - pynormaliz
+            sage: C1._triangulate_normaliz()                                                              # optional - pynormaliz
             [(0, 1, 3), (0, 3, 2)]
         """
         if self.lines():

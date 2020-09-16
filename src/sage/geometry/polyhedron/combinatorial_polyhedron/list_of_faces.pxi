@@ -15,12 +15,13 @@ include "sage/geometry/polyhedron/combinatorial_polyhedron/face.pxi"
 
 from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces cimport *
 from libc.string                      cimport memset
+from cysignals.signals                cimport sig_on, sig_off
 
 #############################################################################
 # Face List Initalization
 #############################################################################
 
-cdef inline void face_list_init(face_list_t faces, size_t n_faces, size_t n_atoms, size_t n_coatoms, MemoryAllocator mem):
+cdef inline int face_list_init(face_list_t faces, size_t n_faces, size_t n_atoms, size_t n_coatoms, MemoryAllocator mem) except -1:
     """
     Sets the initial values for a list of faces with given number of faces
     and number of atoms.
@@ -30,7 +31,7 @@ cdef inline void face_list_init(face_list_t faces, size_t n_faces, size_t n_atom
     for i in range(n_faces):
         face_init(faces.faces[i], n_atoms, n_coatoms, mem)
 
-cdef inline void face_list_shallow_init(face_list_t faces, size_t n_faces, size_t n_atoms, size_t n_coatoms, MemoryAllocator mem):
+cdef inline int face_list_shallow_init(face_list_t faces, size_t n_faces, size_t n_atoms, size_t n_coatoms, MemoryAllocator mem) except -1:
     """
     Initialize ``faces`` completely, but only set up memory for the pointers to the faces.
     """
@@ -42,7 +43,7 @@ cdef inline void face_list_shallow_init(face_list_t faces, size_t n_faces, size_
     faces.is_not_new_face = <bint *> mem.allocarray(n_faces, sizeof(bint))
     faces.polyhedron_is_simple = False
 
-cdef inline int faces_copy(face_list_t dst, face_list_t src) except -1:
+cdef inline int face_list_copy(face_list_t dst, face_list_t src) except -1:
     """
     This is a deep copy. All the data for the faces is copied.
 
@@ -59,7 +60,7 @@ cdef inline int faces_copy(face_list_t dst, face_list_t src) except -1:
     for i in range(src.n_faces):
         face_copy(dst.faces[i], src.faces[i])
 
-cdef inline int faces_shallow_copy(face_list_t dst, face_list_t src) except -1:
+cdef inline int face_list_shallow_copy(face_list_t dst, face_list_t src) except -1:
     """
     Copy the pointers to the faces.
 
@@ -74,6 +75,24 @@ cdef inline int faces_shallow_copy(face_list_t dst, face_list_t src) except -1:
     cdef size_t i
     for i in range(src.n_faces):
         dst.faces[i] = src.faces[i]
+
+cdef inline int add_face_shallow(face_list_t faces, face_t face) nogil except -1:
+    """
+    Add a face to faces.
+    """
+    if not faces.total_n_faces >= faces.n_faces + 1:
+        with gil:
+            raise AssertionError
+    faces.faces[faces.n_faces][0] = face[0]
+    faces.n_faces += 1
+
+cdef inline int add_face_deep(face_list_t faces, face_t face) except -1:
+    """
+    Add a face to faces.
+    """
+    assert faces.total_n_faces >= faces.n_faces + 1
+    face_copy(faces.faces[faces.n_faces], face)
+    faces.n_faces += 1
 
 #############################################################################
 # Face Comparison
@@ -90,16 +109,20 @@ cdef void sort_faces_list(face_list_t faces):
 
     # Sort the faces using merge sort.
     _sort_faces_loop(faces.faces, faces.faces, extra_mem, faces.n_faces)
+    cdef size_t i
+    if faces.n_faces == 0:
+        # Nothing to do. Prevent it from crashing.
+        return
 
-cdef void _sort_faces_loop(face_t* inp, face_t* output1, face_t* output2, size_t n_faces):
+cdef void _sort_faces_loop(face_t* inp, face_t* out, face_t* extra_mem, size_t n_faces):
     """
     This is merge sort.
 
-    Sorts ``inp`` and returns it in ``output1``.
+    Sorts ``inp`` and returns it in ``out``.
 
     .. WARNING::
 
-        Input is the same as output1 or output2
+        ``inp`` is the same as ``out`` or ``extra_mem``.
 
     See :func:`sort_faces`.
     """
@@ -110,16 +133,16 @@ cdef void _sort_faces_loop(face_t* inp, face_t* output1, face_t* output2, size_t
 
     if n_faces == 1:
         # The final case, where there is only one element.
-        output1[0][0] = inp[0][0]
+        out[0][0] = inp[0][0]
         return
 
     cdef size_t middle = n_faces//2
     cdef size_t len_upper_half = n_faces - middle
 
     # Sort the upper and lower half of ``inp`` iteratively into ``output2``.
-    _sort_faces_loop(inp, output2, output1, middle)
-    _sort_faces_loop(inp+middle, output2+middle,
-                     output2+middle, len_upper_half)
+    _sort_faces_loop(inp, extra_mem, out, middle)
+    _sort_faces_loop(inp+middle, extra_mem+middle,
+                     out+middle, len_upper_half)
 
     # Merge lower and upper half into ``output1``.
     cdef size_t i = 0        # index through lower half
@@ -128,29 +151,29 @@ cdef void _sort_faces_loop(face_t* inp, face_t* output1, face_t* output2, size_t
     cdef int val
     while i < middle and j < n_faces:
         # Compare the lowest elements of lower and upper half.
-        val = face_cmp(output2[i], output2[j])
+        val = face_cmp(extra_mem[i], extra_mem[j])
         if val < 0:
-            output1[counter][0] = output2[i][0]
+            out[counter][0] = extra_mem[i][0]
             i += 1
             counter += 1
         else:
-            output1[counter][0] = output2[j][0]
+            out[counter][0] = extra_mem[j][0]
             j += 1
             counter += 1
     if i < middle:
         # Add the remaining elements of lower half.
         while i < middle:
-            output1[counter][0] = output2[i][0]
+            out[counter][0] = extra_mem[i][0]
             i += 1
             counter += 1
     else:
         # Add the remaining elements of upper half.
         while j < n_faces:
-            output1[counter][0] = output2[j][0]
+            out[counter][0] = extra_mem[j][0]
             j += 1
             counter += 1
 
-cdef inline size_t find_face(self, face_t face, face_list_t faces):
+cdef inline size_t find_face(face_t face, face_list_t faces):
     r"""
     Return the index of ``face`` in ``faces``.
 
@@ -166,6 +189,7 @@ cdef inline size_t find_face(self, face_t face, face_list_t faces):
     cdef face_t* faces_pt = faces.faces
     cdef int val
 
+
     while (n_faces > 1):
         # In each iteration step, we will look for ``face`` in
         # ``faces_pt[start:start+n_faces]``.
@@ -175,12 +199,14 @@ cdef inline size_t find_face(self, face_t face, face_list_t faces):
             # If face is in the list, then in the lower half.
             # Look for face in ``faces[start : start + middle]`` in next step.
             n_faces = middle
-        else:
+        elif val > 0:
             # If face is in the list, then in the upper half.
             # Look for face in ``faces[start+middle:start+n_faces]``, i.e.
             # ``faces[start + middle : (start + middle) + n_faces - middle]``.
             n_faces -= middle
             start += middle
+        else:
+            return middle + start
     if face_cmp(face, faces_pt[start]) == 0:
         return start
     else:
@@ -223,9 +249,11 @@ cdef inline int face_list_intersection_fused(face_list_t dest, face_list_t A, fa
     Set ``dest`` to be the intersection of each face of ``A`` with ``b``.
     """
     if not dest.total_n_faces >= A.n_faces:
-        raise AssertionError
+        with gil:
+            raise AssertionError
     if not dest.n_atoms >= A.n_atoms:
-        raise AssertionError
+        with gil:
+            raise AssertionError
     dest.n_faces = A.n_faces
     dest.polyhedron_is_simple = A.polyhedron_is_simple
 
@@ -274,12 +302,12 @@ cdef inline size_t get_next_level_fused(
     # We keep track, which face in ``new_faces`` is a new face.
     cdef size_t n_faces = faces.n_faces
     cdef bint* is_not_new_face = new_faces.is_not_new_face
-    memset(is_not_new_face, 0, n_faces)
+    memset(is_not_new_face, 0, n_faces*sizeof(bint))
 
     # Step 1:
     n_faces -= 1
     faces.n_faces -= 1;
-    face_list_intersection_fused(new_faces, faces, faces.faces[n_faces-1], algorithm)
+    face_list_intersection_fused(new_faces, faces, faces.faces[n_faces], algorithm)
 
     cdef size_t j
     for j in range(n_faces):
@@ -303,16 +331,21 @@ cdef inline size_t get_next_level_fused(
     new_faces.n_faces = n_new_faces
     return n_new_faces
 
-cdef inline size_t get_next_level_1(
+cdef inline size_t get_next_level(
         face_list_t faces,
         face_list_t new_faces,
         face_list_t visited_all) nogil except -1:
-    if faces.polyhedron_is_simple:
-        return get_next_level_fused(faces, new_faces, visited_all, <simple> 0)
-    else:
-        return get_next_level_fused(faces, new_faces, visited_all, <standard> 0)
 
-cdef inline size_t bit_rep_to_coatom_rep_1(face_t face, face_list_t coatoms, size_t *output):
+    cdef size_t output
+    sig_on()
+    if faces.polyhedron_is_simple:
+        output = get_next_level_fused(faces, new_faces, visited_all, <simple> 0)
+    else:
+        output = get_next_level_fused(faces, new_faces, visited_all, <standard> 0)
+    sig_off()
+    return output
+
+cdef inline size_t bit_rep_to_coatom_rep(face_t face, face_list_t coatoms, size_t *output):
     """
     Write the coatom-representation of face in output. Return length.
     ``face_length`` is the length of ``face`` and ``coatoms[i]``

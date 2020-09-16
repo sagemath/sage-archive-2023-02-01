@@ -1,8 +1,3 @@
-# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitsets.cc
-# distutils: language = c++
-# distutils: extra_compile_args = -std=c++11
-# distutils: libraries = gmp
-
 r"""
 Conversions
 
@@ -29,7 +24,6 @@ Obtain the facets of a polyhedron as :class:`~sage.geometry.polyhedron.combinato
     sage: P = polytopes.simplex(4)
     sage: inc = P.incidence_matrix()
     sage: mod_inc = inc.delete_columns([i for i,V in enumerate(P.Hrepresentation()) if V.is_equation()])
-    sage: face_list = incidence_matrix_to_bit_rep_of_facets(mod_inc)
     sage: face_list = incidence_matrix_to_bit_rep_of_facets(mod_inc)
     sage: face_list.compute_dimension()
     4
@@ -78,14 +72,11 @@ from sage.structure.element import is_Matrix
 from .list_of_faces                   cimport ListOfFaces
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.ext.memory_allocator        cimport MemoryAllocator
+from .face_data_structure             cimport face_next_atom, face_add_atom_safe, facet_set_coatom, face_clear
+from .face_list_data_structure        cimport face_list_t
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
-
-cdef extern from "bitsets.cc":
-    cdef void bitset_add(uint64_t* bits, size_t n)
-    cdef size_t bitset_next(uint64_t* bits, size_t face_length, size_t n)
-    cdef void bitset_clear(uint64_t* bits, size_t face_length)
 
 def _Vrep_list_to_bit_rep_wrapper(tup):
     r"""
@@ -98,12 +89,11 @@ def _Vrep_list_to_bit_rep_wrapper(tup):
         sage: _Vrep_list_to_bit_rep_wrapper((0, 3)).matrix()
         [1 0 0 1]
     """
-    cdef ListOfFaces output = ListOfFaces(1, max(tup) + 1)
-    Vrep_list_to_bit_rep(tup, output.data[0], output.face_length)
+    cdef ListOfFaces output = ListOfFaces(1, max(tup) + 1, 1)
+    Vrep_list_to_bit_rep(tup, output.data.faces[0])
     return output
 
-cdef int Vrep_list_to_bit_rep(tuple Vrep_list, uint64_t *output,
-                                 size_t face_length) except -1:
+cdef int Vrep_list_to_bit_rep(tuple Vrep_list, face_t output) except -1:
     r"""
     Convert a vertex list into Bit-representation. Store it in ``output``.
 
@@ -112,10 +102,8 @@ cdef int Vrep_list_to_bit_rep(tuple Vrep_list, uint64_t *output,
 
     INPUT:
 
-    - ``vertex_list`` -- tuple of pairwise distinct positive integers in
-      ``range(face_length*64)``
-    - ``output`` -- array of ``uint64_t`` of length ``face_length``
-    - ``face_length``
+    - ``vertex_list`` -- tuple of pairwise distinct positive integers that fit into ``output``
+    - ``output`` -- an already initialized face
 
     OUTPUT:
 
@@ -139,16 +127,12 @@ cdef int Vrep_list_to_bit_rep(tuple Vrep_list, uint64_t *output,
         ValueError: entries of ``tup`` are not distinct
     """
     cdef size_t entry     # will iterate over tup
-    cdef size_t position  # determines the position in output of entry
-    cdef size_t value     # determines which bit will be set in output[position]
 
-    bitset_clear(output, face_length)
+    face_clear(output)
     if unlikely(len(Vrep_list) != len(set(Vrep_list))):
         raise ValueError("entries of ``tup`` are not distinct")
     for entry in Vrep_list:
-        if unlikely(entry >= 64*face_length):
-            raise IndexError("output too small to represent %s"%entry)
-        bitset_add(output, entry)
+        face_add_atom_safe(output, entry)
 
 def _incidences_to_bit_rep_wrapper(tup):
     r"""
@@ -161,13 +145,11 @@ def _incidences_to_bit_rep_wrapper(tup):
         sage: _incidences_to_bit_rep_wrapper((1,0,0,1)).matrix()
         [1 0 0 1]
     """
-    cdef ListOfFaces output = ListOfFaces(1, len(tup))
-    incidences_to_bit_rep(tup, output.data[0], output.face_length)
+    cdef ListOfFaces output = ListOfFaces(1, len(tup), 1)
+    incidences_to_bit_rep(tup, output.data.faces[0])
     return output
 
-cdef int incidences_to_bit_rep(tuple incidences, uint64_t *output,
-                                size_t face_length) except -1:
-
+cdef int incidences_to_bit_rep(tuple incidences, face_t output) except -1:
     r"""
     Convert a tuple of incidences into Bit-representation.
 
@@ -176,10 +158,8 @@ cdef int incidences_to_bit_rep(tuple incidences, uint64_t *output,
 
     INPUT:
 
-    - ``incidences`` -- tuple of integers representing incidences
-      of length at most ``face_length*64``
-    - ``output`` -- array of ``uint64_t`` of length ``face_length``
-    - ``face_length``
+    - ``incidences`` -- tuple of integers representing incidences that fit into ``output``
+    - ``output`` -- an already initialized face
 
     OUTPUT:
 
@@ -198,13 +178,11 @@ cdef int incidences_to_bit_rep(tuple incidences, uint64_t *output,
     cdef size_t entry       # index for the entries in tup
     cdef size_t length = len(incidences)
 
-    bitset_clear(output, face_length)
-    if unlikely(length > 64*face_length):
-        raise IndexError("output too small to represent all incidences")
+    face_clear(output)
     for entry in range(length):
         if incidences[entry]:
             # Vrep ``entry`` is contained in the face, so set the corresponding bit
-            bitset_add(output, entry)
+            face_add_atom_safe(output, entry)
 
 def incidence_matrix_to_bit_rep_of_facets(Matrix_integer_dense matrix):
     r"""
@@ -253,23 +231,21 @@ def incidence_matrix_to_bit_rep_of_facets(Matrix_integer_dense matrix):
     # ``matrix.nrows()`` Vrep.
     cdef size_t nrows = matrix._nrows
     cdef size_t ncols = matrix._ncols
-    cdef ListOfFaces facets = ListOfFaces(ncols, nrows)
-    cdef uint64_t **facets_data = facets.data
-    cdef uint64_t *output
-    cdef size_t face_length = facets.face_length
+    cdef ListOfFaces facets = ListOfFaces(ncols, nrows, ncols)
+    cdef face_t output
     cdef size_t entry       # index for the entries in tup
 
     cdef size_t i
     for i in range(ncols):
-        output = facets_data[i]
-        bitset_clear(output, face_length)
+        output = facets.data.faces[i]
+        facet_set_coatom(output, i)
 
         # Filling each facet with its Vrep-incidences, which "is" the
         # "i-th column" of the original matrix (but we have transposed).
         for entry in range(nrows):
             if not matrix.get_is_zero_unsafe(entry, i):
                 # Vrep ``entry`` is contained in the face, so set the corresponding bit
-                bitset_add(output, entry)
+                face_add_atom_safe(output, entry)
     return facets
 
 def incidence_matrix_to_bit_rep_of_Vrep(Matrix_integer_dense matrix):
@@ -364,12 +340,11 @@ def facets_tuple_to_bit_rep_of_facets(tuple facets_input, size_t n_Vrep):
         (0, 3, 5)
     """
     cdef Py_ssize_t i
-    cdef ListOfFaces facets = ListOfFaces(len(facets_input), n_Vrep)
-    cdef size_t face_length = facets.face_length
-    cdef uint64_t **facets_data = facets.data
+    cdef ListOfFaces facets = ListOfFaces(len(facets_input), n_Vrep, len(facets_input))
     for i in range(len(facets_input)):
         # filling each facet with the data from the corresponding facet
-        Vrep_list_to_bit_rep(facets_input[i], facets_data[i], face_length)
+        Vrep_list_to_bit_rep(facets_input[i], facets.data.faces[i])
+        facet_set_coatom(facets.data.faces[i], i)
     return facets
 
 def facets_tuple_to_bit_rep_of_Vrep(tuple facets_input, size_t n_Vrep):
@@ -412,26 +387,24 @@ def facets_tuple_to_bit_rep_of_Vrep(tuple facets_input, size_t n_Vrep):
     # Vertices in facet-representation will be a ``ListOfFaces``
     # with number of Vrep faces and
     # number of facets "Vrep"/atoms.
-    cdef ListOfFaces Vrep = ListOfFaces(n_Vrep, n_facets)
-    cdef uint64_t **Vrep_data = Vrep.data
+    cdef ListOfFaces Vrep = ListOfFaces(n_Vrep, n_facets, n_Vrep)
+    cdef face_t* Vrep_data = Vrep.data.faces
 
     # Initializing the data of ListOfFaces.
-    cdef size_t face_length = Vrep.face_length
-    cdef size_t i
-    for i in range(n_Vrep):
-        bitset_clear(Vrep_data[i], face_length)
 
     cdef size_t input_facet   # will iterate over indices of facets_input
-    cdef size_t position      # determines the position in output of entry
-    cdef size_t value         # determines which bit will be set in output[position]
     cdef size_t input_Vrep    # will iterate over vertices in facet ``input_facet``
+    cdef size_t i
+
+    for i in range(n_Vrep):
+        facet_set_coatom(Vrep_data[i], i)
 
     for input_facet in range(n_facets):
         for input_Vrep in facets_input[input_facet]:
             # Iff the input-Vrep is in the input-facet,
             # then in facet-representation of the Vrep
             # input-facet is a Vrep of intput-Vrep.
-            bitset_add(Vrep_data[input_Vrep], input_facet)
+            face_add_atom_safe(Vrep_data[input_Vrep], input_facet)
     return Vrep
 
 def _bit_rep_to_Vrep_list_wrapper(ListOfFaces faces, index=0):
@@ -456,15 +429,14 @@ def _bit_rep_to_Vrep_list_wrapper(ListOfFaces faces, index=0):
     """
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef size_t *output
-    output = <size_t *> mem.allocarray(faces.n_atoms,
+    output = <size_t *> mem.allocarray(faces.n_atoms(),
                                        sizeof(size_t))
 
     length = bit_rep_to_Vrep_list(
-            faces.data[index], output, faces.face_length)
+            faces.data.faces[index], output)
     return tuple(output[i] for i in range(length))
 
-cdef inline size_t bit_rep_to_Vrep_list(uint64_t *face, size_t *output,
-                                           size_t face_length) except -1:
+cdef inline size_t bit_rep_to_Vrep_list(face_t face, size_t *output) except -1:
     r"""
     Convert a bitrep-representation to a list of Vrep. Return length of representation.
 
@@ -475,8 +447,7 @@ cdef inline size_t bit_rep_to_Vrep_list(uint64_t *face, size_t *output,
 
     - ``face`` -- a Bit-representation of a face
     - ``output`` -- an array of ``size_t`` long enough to contain all Vrep
-      of that face (``face_length*64`` will suffice)
-    - ``face_length`` -- the length of ``face``
+      of that face
 
     OUTPUT:
 
@@ -516,10 +487,9 @@ cdef inline size_t bit_rep_to_Vrep_list(uint64_t *face, size_t *output,
         ....:               'as the inverse of ``Vrep_list_to_bit_rep``')
     """
     cdef size_t output_length = 0
-    cdef uint64_t copy
-    cdef size_t j = bitset_next(face, face_length, 0)
+    cdef long j = face_next_atom(face, 0)
     while (j != -1):
         output[output_length] = j
         output_length += 1
-        j = bitset_next(face, face_length, j+1)
+        j = face_next_atom(face, j+1)
     return output_length

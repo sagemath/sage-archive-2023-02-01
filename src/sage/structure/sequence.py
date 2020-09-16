@@ -173,9 +173,8 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
     that.::
 
         sage: v = Sequence(range(10), ZZ, immutable=True)
-        sage: hash(v)
-        1591723448             # 32-bit
-        -4181190870548101704   # 64-bit
+        sage: hash(v) == hash(tuple(range(10)))
+        True
 
 
     If you really know what you are doing, you can circumvent the type
@@ -360,9 +359,8 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
     ::
 
         sage: v = Sequence(range(10), ZZ, immutable=True)
-        sage: hash(v)
-        1591723448             # 32-bit
-        -4181190870548101704   # 64-bit
+        sage: hash(v) == hash(tuple(range(10)))
+        True
 
 
     If you really know what you are doing, you can circumvent the type
@@ -640,12 +638,8 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             ValueError: mutable sequences are unhashable
             sage: a[0] = 10
             sage: a.set_immutable()
-            sage: a.__hash__()
-            -123014399  # 32-bit
-            -5823618793256324351  # 64-bit
-            sage: hash(a)
-            -123014399  # 32-bit
-            -5823618793256324351  # 64-bit
+            sage: a.__hash__() == hash(a) == hash(tuple(a))
+            True
         """
         if not self._is_immutable:
             raise ValueError("mutable sequences are unhashable")
@@ -827,9 +821,9 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: t = copy(s)
             sage: t == s
             True
-            sage: t.is_immutable == s.is_immutable
+            sage: t.is_immutable() == s.is_immutable()
             True
-            sage: t.is_mutable == s.is_mutable
+            sage: t.is_mutable() == s.is_mutable()
             True
 
         """

@@ -55,6 +55,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     # Methods to obtain a different combinatorial polyhedron.
     cpdef CombinatorialPolyhedron dual(self)
+    cpdef CombinatorialPolyhedron pyramid(self, new_vertex=*, new_facet=*)
 
     # Space for edges, ridges, etc. is allocated with ``MemoryAllocators``.
     # Upon success they are copied to ``_mem_tuple``.
@@ -66,3 +67,6 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef int _compute_edges(self, dual) except -1
     cdef int _compute_ridges(self, dual) except -1
     cdef int _compute_face_lattice_incidences(self) except -1
+
+    cdef inline int _set_edge(self, size_t a, size_t b, size_t ***edges_pt, size_t *counter_pt, size_t *current_length_pt, MemoryAllocator mem) except -1
+    cdef inline size_t _get_edge(self, size_t **edges, size_t edge_number, size_t vertex) except -1

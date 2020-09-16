@@ -1707,7 +1707,7 @@ class Rule(UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.combinat.growth import Rule
-            sage: Rule().normalize_vertex("hello") is "hello"
+            sage: Rule().normalize_vertex("hello") == "hello"
             True
         """
         return v

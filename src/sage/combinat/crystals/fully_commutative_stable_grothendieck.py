@@ -550,7 +550,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
         def bracketing(self, i):
             """
-            Remove all bracketed letters between `i`th and `(i+1)`th entry.
+            Remove all bracketed letters between `i`-th and `(i+1)`-th entry.
 
             EXAMPLES::
 

@@ -705,7 +705,7 @@ def _lowest_weights(w, factors, ex):
         return [L[0]]*ex + L
 
     L = _list_equivalent_words(_canonical_word(w, ex))
-    k = max(w) 
+    k = max(w)
     D = {}
     for v in L:
         if _is_valid_column_word(v, factors):

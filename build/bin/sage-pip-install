@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 # This command is specifically for pip-installing a previously
 # built wheel.
-#
-# This ensures that any previous installations of the same package
-# are uninstalled first.
 
 # Default arguments for all packages installed with `pip install`
 # --ignore-installed : Force pip to re-install package even if it thinks it's

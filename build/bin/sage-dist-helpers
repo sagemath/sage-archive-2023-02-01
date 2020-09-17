@@ -247,7 +247,7 @@ sdh_store_and_pip_install_wheel() {
     $sudo sage-pip-install $root "$wheel" || \
         sdh_die "Error installing $wheel"
     mkdir -p "${SAGE_DESTDIR}${SAGE_SPKG_WHEELS}" && \
-        mv "$wheel" "${SAGE_DESTDIR}${SAGE_SPKG_WHEELS}/" || \
+        $sudo mv "$wheel" "${SAGE_DESTDIR}${SAGE_SPKG_WHEELS}/" || \
         sdh_die "Error storing $wheel"
 }
 

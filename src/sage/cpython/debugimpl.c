@@ -1,5 +1,13 @@
 #include <stdio.h>
 
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 9
+
+static void _type_debug(PyTypeObject* tp)
+{
+    printf("Not implemented for CPython >= 3.9\n");
+}
+
+#else
 
 #define HAVE_WEAKREFS(tp) (1)
 #define HAVE_CLASS(tp) (1)
@@ -340,3 +348,5 @@ static void _type_debug(PyTypeObject* tp)
         printf("  tp_version_tag: %lu\n", (unsigned long)tp->tp_version_tag);
     }
 }
+
+#endif

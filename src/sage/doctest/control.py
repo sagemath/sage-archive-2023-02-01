@@ -45,8 +45,9 @@ optionaltag_regex = re.compile(r'^\w+$')
 
 # Optional tags which are always automatically added
 
-from sage.misc.package import package_versions
-arb_tag = 'arb' + package_versions('standard', local=True)['arb'][1].split('.')[1]
+from sage.libs.arb.arb_version import version as arb_vers
+arb_tag = 'arb2' + arb_vers().split('.')[1]
+
 auto_optional_tags = set(['py3', arb_tag])
 
 

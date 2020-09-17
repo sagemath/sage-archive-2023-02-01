@@ -337,7 +337,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
             if cond1 or cond2:
                 sh = SkewPartition([w[0], w[1]])
             elif w in _Partitions:
-                sh = SkewPartition([w,[]])
+                sh = SkewPartition([w, []])
             else:
                 raise ValueError("w needs to be a (skew) partition")
             word = _to_reduced_word(sh)
@@ -457,7 +457,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                 sage: h = DecreasingHeckeFactorization([[3, 1], [3], [3, 2]], 3)
                 sage: u = B(h); u.value
                 ((3, 1), (3,), (3, 2))
-                sage: v = B([[3,1],[3],[3,2]]); v.value
+                sage: v = B([[3, 1], [3], [3, 2]]); v.value
                 ((3, 1), (3,), (3, 2))
             """
             if isinstance(t, DecreasingHeckeFactorization):
@@ -578,7 +578,7 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
                     right_n.remove(min(l))
                 else:
                     left_unbracketed += [m]
-            return [[j for j in left_unbracketed],[j for j in right_n]]
+            return [[j for j in left_unbracketed], [j for j in right_n]]
 
 
 ####################
@@ -606,12 +606,12 @@ def _check_decreasing_hecke_factorization(t):
         ...
         ValueError: each factor in t should be a list or tuple
     """
-    if not isinstance(t, (tuple,list)):
+    if not isinstance(t, (tuple, list)):
         raise ValueError("t should be an list or tuple")
     for factor in t:
-        if not isinstance(factor, (tuple,list)):
+        if not isinstance(factor, (tuple, list)):
             raise ValueError("each factor in t should be a list or tuple")
-        if not all(isinstance(x,(int,Integer)) for x in factor):
+        if not all(isinstance(x,(int, Integer)) for x in factor):
             raise ValueError("each nonempty factor should contain integers")
         for i in range(len(factor)-1):
             if factor[i] <= factor[i+1]:
@@ -642,12 +642,12 @@ def _to_reduced_word(P):
     cells = P.cells()
     if not cells:
         return []
-    m = max(cell[0] for cell in cells)+1
-    n = max(cell[1] for cell in cells)+1
+    m = max(cell[0] for cell in cells) + 1
+    n = max(cell[1] for cell in cells) + 1
     L = []
-    for i in range(m,-1,-1):
-        for j in range(n,-1,-1):
-            if (i,j) in cells:
+    for i in range(m, -1, -1):
+        for j in range(n, -1, -1):
+            if (i, j) in cells:
                 L += [j-i+m]
     return L
 
@@ -704,8 +704,9 @@ def _lowest_weights(w, factors, ex):
         L = list(w)
         return [L[0]]*ex + L
 
-    L = _list_equivalent_words(_canonical_word(w,ex))
-    k, D = max(w), {}
+    L = _list_equivalent_words(_canonical_word(w, ex))
+    k = max(w) 
+    D = {}
     for v in L:
         if _is_valid_column_word(v, factors):
             J = [0] + _jumps(v) + [len(v)]
@@ -760,9 +761,9 @@ def _is_valid_column_word(w, m=None):
         sage: _is_valid_column_word(w,2)
         True
     """
-    J = [0]+_jumps(w)+[len(w)]
-    L = [w[J[i]:J[i+1]][::-1] for i in range(len(J)-1)]
-    if all(len(L[i])>=len(L[i+1]) for i in range(len(L)-1)):
+    J = [0] + _jumps(w) + [len(w)]
+    L = [w[J[i+1]-1:J[i]:-1] for i in range(len(J)-1)]
+    if all(len(L[i]) >= len(L[i+1]) for i in range(len(L)-1)):
         if m is None or len(_jumps(w)) <= m-1:
             # By construction the sequences along rows of L are strictly
             # decreasing, so it remains to verify that the sequences along
@@ -800,7 +801,7 @@ def _list_equivalent_words(w):
          (2, 3, 1, 3, 2),
          (2, 3, 3, 1, 2)]
     """
-    if all(isinstance(i,(int,Integer)) for i in w):
+    if all(isinstance(i, (int, Integer)) for i in w):
         u = w
     else:
         raise ValueError("w needs to be a tuple of integers")
@@ -811,24 +812,23 @@ def _list_equivalent_words(w):
         along with the type of relation.
         """
         L = []
-        for i in range(len(word)-1):
-            if i < len(word)-2:
-                p, q, r = word[i:(i+2)+1]
-                if abs(p-q) > 1:
-                    L += [[i,"pq=qp"]]
-                if p==r and q!=p and abs(p-q)==1:
+        for i in range(len(word)-2):
+            p, q, r = word[i:(i+2)+1]
+            if abs(p-q) > 1:
+                L += [[i,"pq=qp"]]
+            elif abs(p-q) == 1:
+                if p == r:  # p != q by the abs test
                     L += [[i,"pqp=qpq"]]
-                if q==p and r!=p:
-                    L += [[i,"ppq=pqq"]]
-                if q==r and r!=p:
-                    L += [[i,"pqq=ppq"]]
-            elif i == len(word)-2:
-                p, q = word[i:(i+1)+1]
-                if abs(p-q) > 1:
-                    L += [[i,"pq=qp"]]
+            elif r != p:  # We must have p == q
+                L += [[i,"ppq=pqq"]]
+            if q == r and r != p:
+                L += [[i,"pqq=ppq"]]
+        if abs(word[-2]-word[-1]) > 1:
+            L += [[len(word)-2,"pq=qp"]]
         return L
 
-    V, queue = set(), [tuple(u)]
+    V = set()
+    queue = [tuple(u)]
     while queue:
         v = queue.pop(0)
         if tuple(v) not in V:
@@ -836,7 +836,7 @@ def _list_equivalent_words(w):
             L = _applicable_relations(v)
             for pair in L:
                 position, move = pair
-                t = _apply_relations(v,position,move)
+                t = _apply_relations(v, position, move)
                 queue += [tuple(t)]
     return sorted(v for v in list(V))
 
@@ -875,55 +875,32 @@ def _apply_relations(word, position, move):
     w = list(word)
     # Type 1
     if move == "pq=qp":
-        if position > len(w)-2:
-            raise IndexError("position is out of range for relation pq=qp")
-        p, q = w[position], w[position+1]
-        if abs(p-q) == 1:
-            raise IndexError("pelation pq=qp does not apply here")
-        else:
-            w[position] = q
-            w[position+1] = p
+        p = w[position]
+        q = w[position+1]
+        w[position] = q
+        w[position+1] = p
     # Type 2
     elif move == "pqp=qpq":
-        if position > len(w)-3:
-            raise IndexError("position is out of range for relation pqp=qpq")
-        p, q = w[position], w[position+1]
-        if p != w[position+2]:
-            raise IndexError("relation pqp=qpq does not apply here")
-        else:
-            w[position] = q
-            w[position+1] = p
-            w[position+2] = q
+        p = w[position]
+        q = w[position+1]
+        w[position] = q
+        w[position+1] = p
+        w[position+2] = q
     # Type 3
     elif move == "pqq=ppq":
-        if position > len(w)-3:
-            raise IndexError("position is out of range for relation pqq=ppq")
-        p, q = w[position], w[position+2]
-        if q != w[position+1]:
-            raise IndexError("relation pqq=ppq does not apply here")
-        else:
-            w[position+1] = p
+        p = w[position]
+        q = w[position+2]
+        w[position+1] = p
     # Type 4
     elif move == "ppq=pqq":
-        if position > len(w)-3:
-            raise IndexError("position is out of range for relation ppq=pqq")
-        p, q = w[position], w[position+2]
-        if p != w[position+1]:
-            raise IndexError("relation ppq=pqq does not apply here")
-        else:
-            w[position+1] = q
+        p = w[position]
+        q = w[position+2]
+        w[position+1] = q
     # Type 5
     elif move == "pp=p":
-        if position > len(w)-2:
-            raise IndexError("position is out of range for relation pp=p")
         p = w[position]
-        if p != w[position+1]:
-            raise IndexError("relation pp=p does not apply here")
-        else:
-            w = w[:position+1] + w[position+2:]
+        w = w[:position+1] + w[position+2:]
     elif move == "p=pp":
-        if position > len(w)-1:
-            raise IndexError("position is out of range for relation p=pp")
         p = w[position]
         w = w[:position+1] + [p] + w[position+1:]
     return w

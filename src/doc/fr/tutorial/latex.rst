@@ -440,10 +440,10 @@ respectivement à l'adresse http://sourceforge.net/projects/dvipng/ et dans
 `Ghostscript <http://www.ghostscript.com/>`_.
 
 Le rendu des graphes nécessite une version suffisamment récente de PGF, ainsi
-que les fichiers ``tkz-graph.sty``, ``tkz-arith.sty`` et suivant les cas
-``tkz-berge.sty``, tous issus du site web `Altermundus
-<http://www.altermundus.fr/pages/graph.html>`_ (`version anglaise
-<http://altermundus.com/pages/graph/>`_).
+que les fichiers ``tkz-graph.sty``, disponible sur le site web
+https://www.ctan.org/pkg/tkz-graph, ``tkz-arith.sty`` et suivant les
+cas ``tkz-berge.sty``, disponibles sur le site web
+https://www.ctan.org/pkg/tkz-berge.
 
 Programmes externes
 ===================

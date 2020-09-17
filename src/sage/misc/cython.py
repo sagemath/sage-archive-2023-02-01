@@ -193,6 +193,12 @@ def cython(filename, verbose=0, compile_message=False,
         Traceback (most recent call last):
         ...
         RuntimeError: ...
+
+    As of :trac:`29139` the default is ``cdivision=True``::
+
+        sage: cython('''
+        ....: cdef size_t foo = 3/2
+        ....: ''')
     """
     if not filename.endswith('pyx'):
         print("Warning: file (={}) should have extension .pyx".format(filename), file=sys.stderr)
@@ -314,7 +320,7 @@ def cython(filename, verbose=0, compile_message=False,
                     libraries=standard_libs,
                     library_dirs=standard_libdirs)
 
-    directives = dict(language_level=sys.version_info[0])
+    directives = dict(language_level=sys.version_info[0], cdivision=True)
 
     try:
         # Change directories to target_dir so that Cython produces the correct

@@ -573,85 +573,9 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             └────┴────┴────┴───┘
             sage: Tableaux.options._reset()
         """
-        if use_unicode:
-            import unicodedata
-            v  = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL')
-            h  = unicodedata.lookup('BOX DRAWINGS LIGHT HORIZONTAL')
-            dl = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND LEFT')
-            dr = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND RIGHT')
-            ul = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND LEFT')
-            ur = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND RIGHT')
-            vr = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND RIGHT')
-            vl = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND LEFT')
-            uh = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND HORIZONTAL')
-            dh = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND HORIZONTAL')
-            vh = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL')
-            from sage.typeset.unicode_art import unicode_art as art
-        else:
-            v = '|'
-            h = '-'
-            dl = dr = ul = ur = vr = vl = uh = dh = vh = '+'
-            from sage.typeset.ascii_art import ascii_art as art
-
-        if not self:
-            return dr + dl + '\n' + ur + ul
-
-        # Get the widths of the columns
-        str_tab = [[art(_) for _ in row] for row in self]
-        col_widths = [1]*len(str_tab[0])
-        if use_unicode:
-            # Special handling of overline not adding to printed length
-            def get_len(e):
-                return len(e) - list(str(e)).count(u"\u0304")
-        else:
-            get_len = len
-        for row in str_tab:
-            for i,e in enumerate(row):
-                col_widths[i] = max(col_widths[i], get_len(e))
-
-        matr = []  # just the list of lines
-        l1 = ""
-        l1 += dr + h*(2+col_widths[0])
-        for w in col_widths[1:]:
-            l1 += dh + h + h + h*w
-        matr.append(l1 + dl)
-        for nrow,row in enumerate(str_tab):
-            l1 = ""; l2 = ""
-            n = len(str_tab[nrow+1]) if nrow+1 < len(str_tab) else 0
-            for i,(e,w) in enumerate(zip(row,col_widths)):
-                if i == 0:
-                    if n:
-                        l1 += vr + h*(2+w)
-                    else:
-                        l1 += ur + h*(2+w)
-                elif i <= n:
-                    l1 += vh + h*(2+w)
-                else:
-                    l1 += uh + h*(2+w)
-                if use_unicode:
-                    l2 += u"{} {:^{width}} ".format(v, e, width=w)
-                else:
-                    l2 += "{} {:^{width}} ".format(v, e, width=w)
-            if i+1 <= n:
-                l1 += vl
-            else:
-                l1 += ul
-            l2 += v
-            matr.append(l2)
-            matr.append(l1)
-
-        if self.parent().options('convention') == "English":
-            return "\n".join(matr)
-        else:
-            output = "\n".join(reversed(matr))
-            if use_unicode:
-                tr = {
-                    ord(dl): ul, ord(dr): ur,
-                    ord(ul): dl, ord(ur): dr,
-                    ord(dh): uh, ord(uh): dh}
-                return output.translate(tr)
-            else:
-                return output
+        from sage.combinat.output import ascii_art_table
+        return ascii_art_table(self, use_unicode=use_unicode,
+                               convention=self.parent().options('convention'))
 
     def _ascii_art_compact(self):
         """

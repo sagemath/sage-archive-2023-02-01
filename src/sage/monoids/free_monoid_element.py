@@ -88,15 +88,12 @@ class FreeMonoidElement(MonoidElement):
         TESTS::
 
             sage: R.<x,y> = FreeMonoid(2)
-            sage: hash(x)
-            1914282862589934403  # 64-bit
-            139098947            # 32-bit
-            sage: hash(y)
-            2996819001369607946  # 64-bit
-            13025034             # 32-bit
-            sage: hash(x*y)
-            7114093379175463612  # 64-bit
-            2092317372           # 32-bit
+            sage: hash(x) == hash(((0, 1),))
+            True
+            sage: hash(y) == hash(((1, 1),))
+            True
+            sage: hash(x*y) == hash(((0, 1), (1, 1)))
+            True
         """
         return hash(tuple(self._element_list))
 

@@ -62,6 +62,14 @@ Likewise for the Vrepresenatives as facet-incidences::
     sage: facets = ((0,1,2), (0,1,3), (0,2,3), (1,2,3))
     sage: face_list = facets_tuple_to_bit_rep_of_Vrep(facets, 4)
 
+Obtain the matrix of a list of faces::
+
+    sage: face_list.matrix()
+    [1 1 1 0]
+    [1 1 0 1]
+    [1 0 1 1]
+    [0 1 1 1]
+
 .. SEEALSO::
 
     :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.base`,
@@ -88,6 +96,8 @@ from sage.structure.element import is_Matrix
 
 from cysignals.signals      cimport sig_on, sig_off
 from libc.string            cimport memcpy
+from .conversions           cimport vertex_to_bit_dictionary
+from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
 
 cdef extern from "bit_vector_operations.cc":
     # Any Bit-representation is assumed to be `chunksize`-Bit aligned.
@@ -246,6 +256,8 @@ cdef class ListOfFaces:
             3
             sage: copy(facets).compute_dimension()
             3
+            sage: facets.matrix() == copy(facets).matrix()
+            True
             sage: copy(facets) is facets
             False
         """
@@ -372,3 +384,120 @@ cdef class ListOfFaces:
         # compute the dimension of the polyhedron,
         # by calculating dimension of one of its faces.
         return self.compute_dimension_loop(newfaces, new_n_faces, face_length) + 1
+
+    cpdef ListOfFaces pyramid(self):
+        r"""
+        Return the list of faces of the pyramid.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+            ....:         import facets_tuple_to_bit_rep_of_facets
+            sage: facets = ((0,1,2), (0,1,3), (0,2,3), (1,2,3))
+            sage: face_list = facets_tuple_to_bit_rep_of_facets(facets, 4)
+            sage: face_list.matrix()
+            [1 1 1 0]
+            [1 1 0 1]
+            [1 0 1 1]
+            [0 1 1 1]
+            sage: face_list.pyramid().matrix()
+            [1 1 1 0 1]
+            [1 1 0 1 1]
+            [1 0 1 1 1]
+            [0 1 1 1 1]
+            [1 1 1 1 0]
+
+        Incorrect facets that illustrate how this method works::
+
+            sage: facets = ((0,1,2,3), (0,1,2,3), (0,1,2,3), (0,1,2,3))
+            sage: face_list = facets_tuple_to_bit_rep_of_facets(facets, 4)
+            sage: face_list.matrix()
+            [1 1 1 1]
+            [1 1 1 1]
+            [1 1 1 1]
+            [1 1 1 1]
+            sage: face_list.pyramid().matrix()
+            [1 1 1 1 1]
+            [1 1 1 1 1]
+            [1 1 1 1 1]
+            [1 1 1 1 1]
+            [1 1 1 1 0]
+
+        ::
+
+            sage: facets = ((), (), (), ())
+            sage: face_list = facets_tuple_to_bit_rep_of_facets(facets, 4)
+            sage: face_list.matrix()
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            sage: face_list.pyramid().matrix()
+            [0 0 0 0 1]
+            [0 0 0 0 1]
+            [0 0 0 0 1]
+            [0 0 0 0 1]
+            [1 1 1 1 0]
+        """
+        cdef ListOfFaces copy
+        cdef size_t i, j
+
+        # ``copy`` has a new atom and a new coatom.
+        copy = ListOfFaces(self.n_faces + 1, self.n_atoms + 1)
+
+        for i in range(self.n_faces):
+            for j in range(self.face_length, copy.face_length):
+                copy.data[i][j] = 0
+
+            # All old coatoms contain their respective old atoms.
+            # Also all of them contain the new atom.
+            memcpy(copy.data[i], self.data[i], self.face_length*8)
+            copy.data[i][self.n_atoms//64] |= vertex_to_bit_dictionary(self.n_atoms % 64)
+
+        # The new coatom contains all atoms, but the new atom.
+        for i in range(copy.face_length):
+            copy.data[self.n_faces][i] = 0
+        for i in range(self.n_atoms):
+            copy.data[self.n_faces][i//64] |= vertex_to_bit_dictionary(i % 64)
+
+        return copy
+
+    def matrix(self):
+        r"""
+        Obtain the matrix of self.
+
+        Each row represents a face and each column an atom.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+            ....:     import facets_tuple_to_bit_rep_of_facets, \
+            ....:     facets_tuple_to_bit_rep_of_Vrep
+            sage: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4), (0,1,5), (1,2,5), (2,3,5), (3,0,5))
+            sage: facets = facets_tuple_to_bit_rep_of_facets(bi_pyr, 6)
+            sage: Vrep = facets_tuple_to_bit_rep_of_Vrep(bi_pyr, 6)
+            sage: facets.matrix()
+            [1 1 0 0 1 0]
+            [0 1 1 0 1 0]
+            [0 0 1 1 1 0]
+            [1 0 0 1 1 0]
+            [1 1 0 0 0 1]
+            [0 1 1 0 0 1]
+            [0 0 1 1 0 1]
+            [1 0 0 1 0 1]
+            sage: facets.matrix().transpose() == Vrep.matrix()
+            True
+        """
+        from sage.rings.all import ZZ
+        from sage.matrix.constructor import matrix
+        cdef Matrix_integer_dense M = matrix(
+                ZZ, self.n_faces, self.n_atoms, 0)
+
+        cdef size_t i,j
+        for i in range(self.n_faces):
+            for j in range(self.n_atoms):
+                if self.data[i][j//64] & vertex_to_bit_dictionary(j % 64):
+                    M.set_unsafe_si(i, j, 1)
+
+        M.set_immutable()
+        return M

@@ -528,8 +528,8 @@ Hecke triangle groups and elements:
       [-4, -2, 0]
       sage: G.class_number(68)
       4
-      sage: G.class_representatives(68)
-      [S*T^(-2)*S*T^(-1)*S*T, -S*T^(-1)*S*T^2*S*T, S*T^(-5)*S*T^(-1)*S, T*S*T^5]
+      sage: sorted(G.class_representatives(68))
+      [S*T^(-5)*S*T^(-1)*S, S*T^(-2)*S*T^(-1)*S*T, T*S*T^5, -S*T^(-1)*S*T^2*S*T]
       sage: R = G.reduced_elements(68)
       sage: all(v.is_reduced() for v in R)  # long time
       True
@@ -546,7 +546,7 @@ Hecke triangle groups and elements:
       [-4, -lam - 2, lam - 3, 0]
       sage: G.class_number(9*G.lam() + 5)
       2
-      sage: G.class_representatives(9*G.lam() + 5)
+      sage: sorted(G.class_representatives(9*G.lam() + 5))
       [S*T^(-2)*S*T^(-1)*S, T*S*T^2]
       sage: R = G.reduced_elements(9*G.lam() + 5)
       sage: all(v.is_reduced() for v in R)  # long time

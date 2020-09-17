@@ -244,7 +244,7 @@ Here is an example or how to deal with timeout::
     sage: from sage.parallel.map_reduce import (RESetMPExample, AbortError)
     sage: EX = RESetMPExample(maxl=100)
     sage: try:
-    ....:     res = EX.run(timeout=0.01)
+    ....:     res = EX.run(timeout=float(0.01))
     ....: except AbortError:
     ....:     print("Computation timeout")
     ....: else:
@@ -1126,7 +1126,7 @@ class RESetMapReduce(object):
 
             sage: from sage.parallel.map_reduce import RESetMapReduce
             sage: def children(x):
-            ....:     sleep(0.5)
+            ....:     sleep(float(0.5))
             ....:     return []
             sage: S = RESetMapReduce(roots=[1], children=children)
             sage: S.setup_workers(2)
@@ -1387,7 +1387,7 @@ class RESetMapReduce(object):
             sage: EX = RESetMPExample(maxl=6)
             sage: EX.setup_workers(2)
             sage: EX.random_worker()
-            <RESetMapReduceWorker(RESetMapReduceWorker-..., initial)>
+            <RESetMapReduceWorker...RESetMapReduceWorker-... initial...>
             sage: EX.random_worker() in EX._workers
             True
 
@@ -1434,7 +1434,7 @@ class RESetMapReduce(object):
             sage: from sage.parallel.map_reduce import AbortError
             sage: EX = RESetMPExample(maxl = 100)
             sage: try:
-            ....:     res = EX.run(timeout=0.01)
+            ....:     res = EX.run(timeout=float(0.01))
             ....: except AbortError:
             ....:     print("Computation timeout")
             ....: else:
@@ -1571,7 +1571,7 @@ class RESetMapReduceWorker(mp.Process):
             sage: from sage.parallel.map_reduce import RESetMPExample, RESetMapReduceWorker
             sage: EX = RESetMPExample()
             sage: RESetMapReduceWorker(EX, 200, True)
-            <RESetMapReduceWorker(RESetMapReduceWorker-..., initial)>
+            <RESetMapReduceWorker...RESetMapReduceWorker-... initial...>
         """
         mp.Process.__init__(self)
         self._iproc = iproc

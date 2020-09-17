@@ -574,9 +574,8 @@ class AlgebraicWeight(WeightCharacter):
         TESTS::
 
             sage: w = pAdicWeightSpace(23)(12, DirichletGroup(23, QQ).0)
-            sage: hash(w)
-            2363715643371367891  # 64-bit
-            -1456525869          # 32-bit
+            sage: hash(w) == hash((12, 23, (-1,)))
+            True
         """
         if self._chi.is_trivial():
             return hash(self._k)

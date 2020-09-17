@@ -27,7 +27,7 @@ Puoi entrare nella lista email
 `sage-devel <https://groups.google.com/group/sage-devel>`_ o nel canale IRC
 ``#sage-devel`` su `freenode <http://freenode.net>`_.
 Mentre inizi a conoscere la comunità prendi una copia del codice sorgente di Sage
-e familiarizza con `git <http://git-scm.com>`_, un software per il controllo
+e familiarizza con `git <https://git-scm.com>`_, un software per il controllo
 versione.
 
 Il migiol mode per diventare familiare con il processo di sviluppo di Sage
@@ -59,15 +59,15 @@ radice di ogni male".
 
 Se non conosci Python dovresti iniziare ad imparare il linguaggio.
 Un buon posto dove iniziare è il
-`Tutorial Ufficiale per Python <https://docs.python.org/tutorial>`_
+`Tutorial Ufficiale per Python <https://docs.python.org/3/tutorial>`_
 e altra documentazione si trova in
 `Documentazione standard di Python <https://docs.python.org>`_.
 Un altro posto da guardare è al link
-`Dive Into Python <http://www.diveintopython.net>`_ di Marc Pilgrim,
+`Dive Into Python <https://diveintopython3.net>`_ di Marc Pilgrim,
 che può essere veramente d'aiuto su temi specifici come
 lo sviluppo guidato dai test. Il libro
-`Building Skills in Python <http://homepage.mac.com/s_lott/books/python.html>`_
-di Stephen F.Lott è adatto a chiunque sia già a suo agio nel programmare.
+`Building Skills in Python <http://itmaybeahack.com/homepage/books/python.html>`_
+di Steven F. Lott è adatto a chiunque sia già a suo agio nel programmare.
 
 Se desideri, puoi iniziare a imparare Python usando Sage.
 Tuttavia, è utile sapere cosa è semplice Python e quando Sage sta usando la
@@ -89,7 +89,8 @@ ai principianti, un'abilità che è utile anche in campi estranei alla stesura
 di documentazione tecnica. Un aspetto fondamentale della documentazione tecnica
 è che espone un dato tecnico a dei principianti, pertanto il gergo
 tecnico dev'essere ridotto al minimo. Darrell Anderson ha scritto
-`alcuni suggerimenti sulla scrittura di documentazione tecnica <http://humanreadable.nfshost.com/howtos/technical_writing_tips.htm>`_,
+`alcuni suggerimenti sulla scrittura di documentazione tecnica
+<http://web.archive.org/web/20130128102724/http://humanreadable.nfshost.com:80/howtos/technical_writing_tips.htm>`_,
 il quale consigliamo vivamente.
 
 Per i designer grafici o gli artisti c'è la possibilità di aiutare migliorando
@@ -115,18 +116,18 @@ Ulteriori risorse possono essere trovate cercando sul web.
 
 **Risorse generali**
 
-* `Cython <http://www.cython.org>`_
-* `pep8 <http://pypi.python.org/pypi/pep8>`_
-* `py2depgraph <http://www.tarind.com/depgraph.html>`_
-* `pycallgraph <http://pycallgraph.slowchop.com>`_
+* `Cython <https://cython.org>`_
+* `pep8 <https://pypi.org/project/pep8>`_
+* `pydeps <https://pypi.org/project/pydeps>`_
+* `pycallgraph <https://pycallgraph.readthedocs.io>`_
 * `PyChecker <http://pychecker.sourceforge.net>`_
-* `PyFlakes <http://divmod.org/trac/wiki/DivmodPyflakes>`_
-* `Pylint <http://www.logilab.org/project/pylint>`_
+* `PyFlakes <https://pypi.org/project/pyflakes>`_
+* `Pylint <https://www.logilab.org/project/pylint>`_
 * `Python <https://www.python.org>`_ home page e la
   `Documentazione standard su Python <https://docs.python.org>`_
 * `Snakefood <http://furius.ca/snakefood>`_
-* `Sphinx <http://sphinx.pocoo.org>`_
-* `XDot <http://code.google.com/p/jrfonseca/wiki/XDot>`_
+* `Sphinx <https://www.sphinx-doc.org>`_
+* `XDot <https://github.com/jrfonseca/xdot.py>`_
 
 **Tutorial e libri**
 
@@ -135,18 +136,18 @@ Ulteriori risorse possono essere trovate cercando sul web.
 * `Dive Into Python 3 <http://www.diveintopython3.net>`_ di Mark Pilgrim
 * `Fast Numerical Computations with Cython <http://conference.scipy.org/proceedings/SciPy2009/paper_2/>`_
   di Dag Sverre Seljebotn
-* `Tutorial ufficiale di Python <http://docs.python.org/tutorial>`_
+* `Tutorial ufficiale di Python <https://docs.python.org/3/tutorial/>`_
 
 **Articoli e HOWTO**
 
-* `decorator <http://pypi.python.org/pypi/decorator>`_
-* `Functional Programming HOWTO <http://docs.python.org/howto/functional.html>`_
+* `decorator <https://pypi.org/project/decorator>`_
+* `Functional Programming HOWTO <https://docs.python.org/3/howto/functional.html>`_
   di A. M. Kuchling
-* `Python Functional Programming for Mathematicians <http://wiki.sagemath.org/devel/FunctionalProgramming>`_
+* `Python Functional Programming for Mathematicians <https://wiki.sagemath.org/devel/FunctionalProgramming>`_
   di Minh Van Nguyen
-* `Regular Expression HOWTO <http://docs.python.org/howto/regex.html>`_
+* `Regular Expression HOWTO <https://docs.python.org/3/howto/regex.html>`_
   di A. M. Kuchling
-* `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
+* `reStructuredText <https://docutils.sourceforge.io/rst.html>`_
 
 
 Ci sono delle convenzioni di scrittura del codice sorgente che devo seguire?
@@ -155,7 +156,7 @@ Ci sono delle convenzioni di scrittura del codice sorgente che devo seguire?
 Dovresti seguire le convenzioni standard di Python come documentato in
 :pep:`8` e :pep:`257`.
 Consulta anche la Guida dello Sviluppo Sage, specialmente il capitolo
-`Convenzioni per scrivere codice sorgente in Sage <http://www.sagemath.org/doc/developer/conventions.html>`_.
+`Convenzioni per scrivere codice sorgente in Sage <https://doc.sagemath.org/html/en/developer/#sage-coding-details>`_.
 
 
 Ho inviato al server trac una correzione molte settimane fa. Perchè la state ignorando?
@@ -183,7 +184,7 @@ Ecco alcuni suggerimenti su come rendere la tua correzione facile da esaminare
 * Se vi sono più correzioni, hai indicato chiaramente l'ordine in cui devono
   essere applicate ?
 * La tua correzione segue le
-  `convenzioni importanti <http://www.sagemath.org/doc/developer/writing_code.html>`_
+  `convenzioni importanti <https://doc.sagemath.org/html/en/developer/#writing-code-for-sage>`_
   indicate nella "Guida dello sviluppatore"?
 
 Se la tua correzione non ha la possibilità di essere aggiunta nell'albero dei
@@ -252,9 +253,8 @@ preparser di Sage) e la necessità di importare quello che ti serve.
 
       Type:    function
       [...]
-      File:    /home/florent/src/Sage/sage/local/lib/python2.6/site-packages/sage/rings/
-               polynomial/polynomial_ring_constructor.py
+      File:    /path_to_sage_root/sage/local/lib/python3.7/site-packages/sage/rings/polynomial/polynomial_ring_constructor.py
       [...]
 
 
-.. _afterword: http://www.sagemath.org/doc/tutorial/afterword.html
+.. _afterword: https://doc.sagemath.org/html/en/tutorial/afterword.html

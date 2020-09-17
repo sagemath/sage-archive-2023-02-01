@@ -106,6 +106,7 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.libs.gmp.mpz cimport *
 from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
+from sage.rings.padics.padic_generic import pAdicGeneric
 
 from sage.structure.category_object cimport normalize_names
 
@@ -2524,10 +2525,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x + 0
 
         """
+        if name is None:
+            name = self._parent._names[0]
+        # p-adic polynomials like (1 + O(p^20))*x have _is_gen set to True but
+        # want their coefficient printed with its O() term
+        if self._is_gen and not isinstance(self._parent._base, pAdicGeneric):
+            return name
         s = " "
         m = self.degree() + 1
-        if name is None:
-            name = self._parent.variable_name()
         atomic_repr = self._parent.base_ring()._repr_option('element_is_atomic')
         coeffs = self.list(copy=False)
         for n in reversed(xrange(m)):

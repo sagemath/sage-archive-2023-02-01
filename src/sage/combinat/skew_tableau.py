@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Skew Tableaux
 
@@ -301,15 +302,44 @@ class SkewTableau(ClonableList,
         print(self._repr_diagram())
 
     def _ascii_art_(self):
-        """
+        r"""
+        Return an ascii art representation of ``self``.
+
         TESTS::
 
-            sage: ascii_art(RibbonTableaux([[2,1],[]],[1,1,1],1).list())
-            [   1  3    1  2 ]
-            [   2   ,   3    ]
+            sage: T1 = SkewTableau([[None,2,3],[None,4],[5]])
+            sage: T2 = SkewTableau([[None,None,3],[4,5]])
+            sage: ascii_art([T1, T2])
+            [   .  2  3            ]
+            [   .  4       .  .  3 ]
+            [   5      ,   4  5    ]
         """
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines())
+
+    def _unicode_art_(self):
+        """
+        Return a unicode art representation of ``self``.
+
+        TESTS::
+
+            sage: T = SkewTableau([[None,None,1,1,2],[None,2,3],[None,4],[None,5],[6]])
+            sage: unicode_art(T)
+                    ┌───┬───┬───┐
+                    │ 1 │ 1 │ 2 │
+                ┌───┼───┼───┴───┘
+                │ 2 │ 3 │
+                ├───┼───┘
+                │ 4 │
+                ├───┤
+                │ 5 │
+            ┌───┼───┘
+            │ 6 │
+            └───┘
+        """
+        from sage.combinat.output import ascii_art_table
+        from sage.typeset.unicode_art import UnicodeArt
+        return UnicodeArt(ascii_art_table(self, use_unicode=True).splitlines())
 
     def _latex_(self):
         r"""

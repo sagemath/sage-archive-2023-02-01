@@ -3315,7 +3315,7 @@ class MutablePoset(SageObject):
             ....:         return all(l <= r for l, r in zip(left, right))
             sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
             ....:         T((1, 2)), T((2, 2))])
-            sage: list(P.maximal_elements())
+            sage: sorted(P.maximal_elements())
             [(1, 3), (2, 2)]
 
         .. SEEALSO::

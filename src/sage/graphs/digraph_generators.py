@@ -1,5 +1,5 @@
 r"""
-Common Digraphs
+Common digraphs
 
 All digraphs in Sage can be built through the ``digraphs`` object. In order to
 build a circuit on 15 elements, one can do::
@@ -30,6 +30,7 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.nauty_directg`       | Return an iterator yielding digraphs using nauty's ``directg`` program.
     :meth:`~DiGraphGenerators.Paley`               | Return a Paley digraph on `q` vertices.
     :meth:`~DiGraphGenerators.Path`                | Return a directed path on `n` vertices.
+    :meth:`~DiGraphGenerators.RandomDirectedAcyclicGraph` | Return a random (weighted) directed acyclic graph of order `n`.
     :meth:`~DiGraphGenerators.RandomDirectedGNC`   | Return a random growing network with copying (GNC) digraph with `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNM`   | Return a random labelled digraph on `n` nodes and `m` arcs.
     :meth:`~DiGraphGenerators.RandomDirectedGNP`   | Return a random digraph on `n` nodes.
@@ -86,6 +87,7 @@ class DiGraphGenerators():
     The constructors currently in this class include::
 
                 Random Directed Graphs:
+                    - RandomDirectedAcyclicGraph
                     - RandomDirectedGN
                     - RandomDirectedGNC
                     - RandomDirectedGNP
@@ -1150,6 +1152,90 @@ class DiGraphGenerators():
 
         G.name("Kautz digraph (k={}, D={})".format(k, D))
         return G
+
+    def RandomDirectedAcyclicGraph(self, n, p, weight_max=None):
+        r"""
+        Return a random (weighted) directed acyclic graph of order `n`.
+
+        The method starts with the sink vertex and adds vertices one at a time.
+        A vertex is connected only to previously defined vertices, and the
+        probability of each possible connection is given by the probability `p`.
+        The weight of an edge is a random integer between ``1`` and
+        ``weight_max``.
+
+        INPUT:
+
+        - ``n`` -- number of nodes of the graph
+
+        - ``p`` -- probability of an edge
+
+        - ``weight_max`` -- (default: ``None``); by default, the returned DAG is
+          unweighted. When ``weight_max`` is set to a positive integer, edges
+          are assigned a random integer weight between ``1`` and ``weight_max``.
+
+        EXAMPLES::
+
+            sage: D = digraphs.RandomDirectedAcyclicGraph(5, .5); D
+            RandomDAG(5, 0.500000000000000): Digraph on 5 vertices
+            sage: D.is_directed_acyclic()
+            True
+            sage: D = digraphs.RandomDirectedAcyclicGraph(5, .5, weight_max=3); D
+            RandomWeightedDAG(5, 0.500000000000000, 3): Digraph on 5 vertices
+            sage: D.is_directed_acyclic()
+            True
+
+        TESTS:
+
+        Check special cases::
+
+            sage: digraphs.RandomDirectedAcyclicGraph(0, .5).order() == 0
+            True
+            sage: digraphs.RandomDirectedAcyclicGraph(4, 0).size() == 0
+            True
+            sage: digraphs.RandomDirectedAcyclicGraph(4, 1).size() == 6
+            True
+
+        Check that bad inputs are rejected::
+
+            sage: digraphs.RandomDirectedAcyclicGraph(-1, .5)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of nodes must be positive or null
+            sage: digraphs.RandomDirectedAcyclicGraph(5, 1.1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the probability p must be in [0..1]
+            sage: digraphs.RandomDirectedAcyclicGraph(5, .5, weight_max=-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: parameter weight_max must be a positive integer
+        """
+        if n < 0:
+            raise ValueError("the number of nodes must be positive or null")
+        if 0.0 > p or 1.0 < p:
+            raise ValueError("the probability p must be in [0..1]")
+
+        # according the sage.misc.randstate.pyx documentation, random
+        # integers are on 31 bits. We thus set the pivot value to p*2^31
+        from sage.misc.prandom import randint
+        from sage.misc.randstate import random
+        RAND_MAX_f = float(1<<31)
+        pp = int(round(float(p * RAND_MAX_f)))
+
+        if weight_max is None:
+            D = DiGraph(n, name=f"RandomDAG({n}, {p})")
+            D.add_edges((i, j) for i in range(n) for j in range(i) if random() < pp)
+
+        else:
+            from sage.rings.integer_ring import ZZ
+            if weight_max in ZZ and weight_max < 1:
+                raise ValueError("parameter weight_max must be a positive integer")
+
+            D = DiGraph(n, name=f"RandomWeightedDAG({n}, {p}, {weight_max})")
+            D.add_edges((i, j, randint(1, weight_max))
+                            for i in range(n) for j in range(i) if random() < pp)
+
+        return D
 
     def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):
         r"""

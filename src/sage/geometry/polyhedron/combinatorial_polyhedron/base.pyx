@@ -1,4 +1,4 @@
-# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitset_operations.cc
 # distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
 
@@ -106,7 +106,7 @@ from sage.rings.integer                cimport smallInteger
 from cysignals.signals                 cimport sig_check, sig_block, sig_unblock
 from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
 
-cdef extern from "bit_vector_operations.cc":
+cdef extern from "bitset_operations.cc":
     cdef size_t count_atoms(uint64_t *A, size_t face_length)
 #        Return the number of atoms/vertices in A.
 #        This is the number of set bits in A.

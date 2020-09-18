@@ -1,6 +1,7 @@
-# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitset_operations.cc sage/geometry/polyhedron/combinatorial_polyhedron/bitsets.cc
 # distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
+# distutils: libraries = gmp
 
 r"""
 Combinatorial face of a polyhedron
@@ -76,9 +77,8 @@ from .conversions               cimport bit_rep_to_Vrep_list
 from .base                      cimport CombinatorialPolyhedron
 from .face_iterator             cimport FaceIterator_base
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
-from libc.string                cimport memcpy
 
-cdef extern from "bit_vector_operations.cc":
+cdef extern from "bitset_operations.cc":
     cdef size_t count_atoms(uint64_t *A, size_t face_length)
 #        Return the number of atoms/vertices in A.
 #        This is the number of set bits in A.
@@ -91,6 +91,9 @@ cdef extern from "bit_vector_operations.cc":
 #        ``face_length`` is the length of ``face`` and ``coatoms[i]``
 #        in terms of uint64_t.
 #        ``n_coatoms`` length of ``coatoms``.
+
+cdef extern from "bitsets.cc":
+    cdef void bitset_copy(uint64_t* dst, uint64_t* src, size_t face_length)
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -113,7 +116,7 @@ cdef class CombinatorialFace(SageObject):
 
         sage: F = C.face_lattice()
         sage: F._elements[3]
-        29
+        17
         sage: C.face_by_face_lattice_index(29)
         A 1-dimensional face of a 5-dimensional combinatorial polyhedron
 
@@ -186,7 +189,7 @@ cdef class CombinatorialFace(SageObject):
             self._dual              = it.dual
             self.face_mem           = ListOfFaces(1, it.structure.face_length*64)
             self.face               = self.face_mem.data[0]
-            memcpy(self.face, it.structure.face, it.structure.face_length*8)
+            bitset_copy(self.face, it.structure.face, it.structure.face_length)
             self._mem               = MemoryAllocator()
             self._dimension         = it.structure.current_dimension
             self._ambient_dimension = it.structure.dimension
@@ -211,7 +214,7 @@ cdef class CombinatorialFace(SageObject):
             self._dual              = all_faces.dual
             self.face_mem           = ListOfFaces(1, all_faces.face_length*64)
             self.face               = self.face_mem.data[0]
-            memcpy(self.face, all_faces.faces[dimension+1][index], all_faces.face_length*8)
+            bitset_copy(self.face, all_faces.faces[dimension+1][index], all_faces.face_length)
             self._mem               = MemoryAllocator()
             self._dimension         = dimension
             self._ambient_dimension = all_faces.dimension

@@ -1,6 +1,7 @@
-# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitset_operations.cc sage/geometry/polyhedron/combinatorial_polyhedron/bitsets.cc
 # distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
+# distutils: libraries = gmp
 
 r"""
 PolyhedronFaceLattice
@@ -68,12 +69,11 @@ from .conversions \
                facets_tuple_to_bit_rep_of_Vrep
 
 from sage.rings.integer     cimport smallInteger
-from libc.string            cimport memcmp, memcpy, memset
 from .conversions           cimport Vrep_list_to_bit_rep, bit_rep_to_Vrep_list
 from .base                  cimport CombinatorialPolyhedron
 from .face_iterator         cimport FaceIterator
 
-cdef extern from "bit_vector_operations.cc":
+cdef extern from "bitset_operations.cc":
     cdef void intersection(uint64_t *dest, uint64_t *A, uint64_t *B,
                            size_t face_length)
 #    Set ``dest = A & B``, i.e. dest is the intersection of A and B.
@@ -86,6 +86,10 @@ cdef extern from "bit_vector_operations.cc":
 #        ``face_length`` is the length of ``face`` and ``coatoms[i]``
 #        in terms of uint64_t.
 #        ``n_coatoms`` length of ``coatoms``.
+
+cdef extern from "bitsets.cc":
+    cdef int bitset_cmp(uint64_t* a, uint64_t* b, size_t face_length)
+    cdef void bitset_copy(uint64_t* dst, uint64_t* src, size_t face_length)
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -245,7 +249,7 @@ cdef class PolyhedronFaceLattice:
             raise IOError("trying to add too many faces to ``PolyhedronFaceLattice``")
 
         # Actually add the face by copying its data.
-        memcpy(self.faces[face_dim + 1][counter], face, self.face_length*8)
+        bitset_copy(self.faces[face_dim + 1][counter], face, self.face_length)
         self.face_counter[face_dim + 1] += 1
 
     cdef int _sort(self) except -1:
@@ -337,6 +341,30 @@ cdef class PolyhedronFaceLattice:
                 j += 1
                 counter += 1
 
+    def _find_face_from_combinatorial_face(self, CombinatorialFace face):
+        r"""
+        A method to test :meth:`find_face`.
+
+        ``f`` must be a face in dual mode if and only if ``self`` is in dual mode.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice \
+            ....:         import PolyhedronFaceLattice
+            sage: P = polytopes.hypercube(4)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: F = PolyhedronFaceLattice(C)
+            sage: it = C.face_iter()
+            sage: face = next(it)
+            sage: F._find_face_from_combinatorial_face(face)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot find a facet, as those are not sorted
+        """
+        if not (self.dual == face._dual):
+            raise ValueError("iterator and allfaces not in same mode")
+        return self.find_face(face.dimension(), face.face)
+
     cdef inline size_t find_face(self, int dimension, uint64_t *face) except -1:
         r"""
         Return the index of ``face``, if it is of dimension ``dimension``.
@@ -348,28 +376,13 @@ cdef class PolyhedronFaceLattice:
 
         EXAMPLES::
 
-            sage: cython('''
-            ....: from libc.stdint cimport uint64_t
-            ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
-            ....: cimport CombinatorialPolyhedron, FaceIterator, PolyhedronFaceLattice
-            ....:
-            ....: def find_face_from_iterator(FaceIterator it, CombinatorialPolyhedron C):
-            ....:     C._record_all_faces()
-            ....:     cdef PolyhedronFaceLattice all_faces = C._all_faces
-            ....:     if not (all_faces.dual == it.dual):
-            ....:         raise ValueError("iterator and allfaces not in same mode")
-            ....:     return all_faces.find_face(it.structure.current_dimension, it.structure.face)
-            ....: ''')
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice \
+            ....:         import PolyhedronFaceLattice
             sage: P = polytopes.permutahedron(4)
             sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter()
-            sage: face = next(it)
-            sage: find_face_from_iterator(it, C)
-            Traceback (most recent call last):
-            ...
-            ValueError: cannot find a facet, as those are not sorted
+            sage: F = PolyhedronFaceLattice(C)
             sage: it = C.face_iter(dimension=1)
-            sage: S = set(find_face_from_iterator(it, C) for _ in it)
+            sage: S = set(F._find_face_from_combinatorial_face(f) for f in it)
             sage: S == set(range(36))
             True
         """
@@ -404,7 +417,7 @@ cdef class PolyhedronFaceLattice:
         r"""
         Return `1` if ``one`` is smaller than ``two``, otherwise `0`.
         """
-        return memcmp(one, two, self.face_length*8) < 0
+        return bitset_cmp(one, two, self.face_length) < 0
 
     cdef inline int is_equal(self, int dimension, size_t index, uint64_t *face) except -1:
         r"""
@@ -417,9 +430,9 @@ cdef class PolyhedronFaceLattice:
             raise IndexError()
         cdef uint64_t *face2 = self.faces[dimension+1][index]
         cdef size_t i
-        return (0 == memcmp(face, face2, self.face_length*8))
+        return (0 == bitset_cmp(face, face2, self.face_length))
 
-    cdef CombinatorialFace get_face(self, int dimension, size_t index):
+    cpdef CombinatorialFace get_face(self, int dimension, size_t index):
         r"""
         Return the face of dimension ``dimension`` and index ``index``.
 
@@ -432,42 +445,36 @@ cdef class PolyhedronFaceLattice:
 
         EXAMPLES::
 
-            sage: cython('''
-            ....: from libc.stdint cimport uint64_t
-            ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
-            ....: cimport CombinatorialPolyhedron, FaceIterator, PolyhedronFaceLattice
-            ....:
-            ....: def face_via_all_faces_from_iterator(FaceIterator it, CombinatorialPolyhedron C):
-            ....:     cdef int dimension = it.structure.current_dimension
-            ....:     C._record_all_faces()
-            ....:     cdef PolyhedronFaceLattice all_faces = C._all_faces
-            ....:     if not (all_faces.dual == it.dual):
-            ....:         raise ValueError("iterator and allfaces not in same mode")
-            ....:     index = all_faces.find_face(dimension, it.structure.face)
-            ....:     return all_faces.get_face(dimension, index)
-            ....: ''')
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice \
+            ....:         import PolyhedronFaceLattice
             sage: P = polytopes.permutahedron(4)
             sage: C = CombinatorialPolyhedron(P)
+            sage: F = PolyhedronFaceLattice(C)
             sage: it = C.face_iter(dimension=1)
             sage: face = next(it)
-            sage: face_via_all_faces_from_iterator(it, C).ambient_Vrepresentation()
+            sage: index = F._find_face_from_combinatorial_face(face)
+            sage: F.get_face(face.dimension(), index).ambient_Vrepresentation()
             (A vertex at (2, 1, 4, 3), A vertex at (1, 2, 4, 3))
             sage: face.ambient_Vrepresentation()
             (A vertex at (2, 1, 4, 3), A vertex at (1, 2, 4, 3))
-            sage: all(face_via_all_faces_from_iterator(it, C).ambient_Vrepresentation() ==
+            sage: all(F.get_face(face.dimension(),
+            ....:                F._find_face_from_combinatorial_face(face)).ambient_Vrepresentation() ==
             ....:     face.ambient_Vrepresentation() for face in it)
             True
 
             sage: P = polytopes.twenty_four_cell()
             sage: C = CombinatorialPolyhedron(P)
+            sage: F = PolyhedronFaceLattice(C)
             sage: it = C.face_iter()
             sage: face = next(it)
             sage: while (face.dimension() == 3): face = next(it)
-            sage: face_via_all_faces_from_iterator(it, C).ambient_Vrepresentation()
+            sage: index = F._find_face_from_combinatorial_face(face)
+            sage: F.get_face(face.dimension(), index).ambient_Vrepresentation()
             (A vertex at (-1/2, 1/2, -1/2, -1/2),
              A vertex at (-1/2, 1/2, 1/2, -1/2),
              A vertex at (0, 0, 0, -1))
-            sage: all(face_via_all_faces_from_iterator(it, C).ambient_V_indices() ==
+            sage: all(F.get_face(face.dimension(),
+            ....:                F._find_face_from_combinatorial_face(face)).ambient_V_indices() ==
             ....:     face.ambient_V_indices() for face in it)
             True
         """

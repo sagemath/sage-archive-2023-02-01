@@ -17,6 +17,12 @@ from sage.data_structures.bitset_base cimport *
 ctypedef int simple
 ctypedef long standard
 
+cdef struct face_s:
+    sparse_bitset_t atoms
+    bitset_t coatoms
+
+ctypedef face_s face_t[1]
+
 ctypedef fused algorithm_variant:
     simple
     standard

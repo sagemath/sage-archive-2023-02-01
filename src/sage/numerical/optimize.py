@@ -687,9 +687,10 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
 
     EXAMPLES:
 
-    First we create some data points of a sine function with some random
+    First we create some data points of a sine function with some "random"
     perturbations::
 
+        sage: set_random_seed(0)
         sage: data = [(i, 1.2 * sin(0.5*i-0.2) + 0.1 * normalvariate(0, 1)) for i in xsrange(0, 4*pi, 0.2)]
         sage: var('a, b, c, x')
         (a, b, c, x)

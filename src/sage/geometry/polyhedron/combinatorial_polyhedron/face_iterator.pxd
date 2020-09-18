@@ -90,6 +90,6 @@ cdef class FaceIterator_geom(FaceIterator_base):
 
 # Nogil definitions of crucial functions.
 
-cdef int next_dimension(iter_struct *structptr) nogil except -1
-cdef int next_face_loop(iter_struct *structptr) nogil except -1
-cdef size_t n_atom_rep(iter_struct *structptr) nogil except -1
+cdef int next_dimension(iter_struct& structure) nogil except -1
+cdef int next_face_loop(iter_struct& structure) nogil except -1
+cdef size_t n_atom_rep(iter_struct& structure) nogil except -1

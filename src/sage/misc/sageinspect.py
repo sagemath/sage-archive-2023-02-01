@@ -426,7 +426,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         sage: sorted(v.items(), key=lambda x: str(x[0]))
         [(37.0, 'temp'), ('a', ('e', 2, [None, ({False: True}, 'pi')]))]
         sage: v = ast.parse("jc = ['veni', 'vidi', 'vici']").body[0]; v
-        <_ast.Assign object at ...>
+        <...ast.Assign object at ...>
         sage: attrs = [x for x in dir(v) if not x.startswith('__')]
         sage: '_attributes' in attrs and '_fields' in attrs and 'col_offset' in attrs
         True

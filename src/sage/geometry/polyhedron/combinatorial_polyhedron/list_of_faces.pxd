@@ -1,18 +1,6 @@
 cimport cython
 from libc.stdint cimport uint64_t
 from sage.ext.memory_allocator cimport MemoryAllocator
-from .face_data_structure   cimport *
-
-cdef struct face_list_s:
-    face_t* faces
-    size_t n_faces
-    size_t total_n_faces
-    size_t n_atoms
-    size_t n_coatoms
-    bint polyhedron_is_simple
-    bint* is_not_new_face
-
-ctypedef face_list_s face_list_t[1]
 
 @cython.final
 cdef class ListOfFaces:

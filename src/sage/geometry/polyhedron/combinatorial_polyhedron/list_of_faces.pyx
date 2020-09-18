@@ -99,8 +99,6 @@ from libc.string            cimport memcpy
 from .conversions           cimport vertex_to_bit_dictionary
 from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
 
-include "sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pxi"
-
 cdef extern from "bit_vector_operations.cc":
     # Any Bit-representation is assumed to be `chunksize`-Bit aligned.
     cdef const size_t chunksize

@@ -11,11 +11,21 @@ Cython methods for lists of faces.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-include "sage/geometry/polyhedron/combinatorial_polyhedron/face.pxi"
-
 from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces cimport *
+from .face_data_structure             cimport *
 from libc.string                      cimport memset
 from cysignals.signals                cimport sig_on, sig_off
+
+cdef struct face_list_s:
+    face_t* faces
+    size_t n_faces
+    size_t total_n_faces
+    size_t n_atoms
+    size_t n_coatoms
+    bint polyhedron_is_simple
+    bint* is_not_new_face
+
+ctypedef face_list_s face_list_t[1]
 
 #############################################################################
 # Face List Initalization

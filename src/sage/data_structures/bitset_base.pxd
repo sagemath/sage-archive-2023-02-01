@@ -27,15 +27,53 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# This file declares the bitset types and the (inline functions).
+# Few functions that are not inline are in the `pyx` file.
+# The python wrapper and all the doctests are in bitset.pyx/bitset.pxd.
+
 from libc.string cimport strlen
 from cysignals.memory cimport check_calloc, check_reallocarray, sig_malloc, sig_free
 
 from sage.cpython.string cimport char_to_str, str_to_bytes, bytes_to_str
 from sage.libs.gmp.mpn cimport *
-from sage.data_structures.bitset cimport *
-from sage.data_structures.sparse_bitset cimport *
+from sage.libs.gmp.types cimport *
+from sage.data_structures.sparse_bitset cimport sparse_bitset_t
 from cython.operator import preincrement as preinc
 from sage.ext.memory_allocator  cimport MemoryAllocator
+
+
+cdef extern from *:
+    # Given an element index n in a set, (n >> index_shift) gives the
+    # corresponding limb number.
+    int index_shift "(sizeof(mp_limb_t) == 8 ? 6 : 5)"
+
+
+cdef struct bitset_s:
+    # The size of a bitset B counts the maximum number of bits that B can
+    # hold. This size is independent of how many elements of B are toggled to
+    # 1. For example, say B is the bitset 1001. Then B has size 4, with the
+    # first and fourth elements toggled to 1, reading from left to right.
+    # We can also think of the size of a bitset as its capacity.
+    mp_bitcnt_t size
+
+    # A limb is that part of a bitset that can fit into an mp_limb_t
+    # (typically, 32 bits on a 32-bit machine and 64 bits on a 64-bit
+    # machine). This counts the number of limbs to represent a bitset.
+    # If a bitset has size <= n, then the whole bitset fits into a limb
+    # and we only require one limb to represent the bitset. However, if
+    # the bitset has size > n, we require more than one limb to
+    # represent the bitset. For example, if a limb is 64 bits in length
+    # and the bitset has size 96 bits, then we require at most two limbs
+    # to represent the bitset.
+    #
+    # NOTE: some code assumes that mp_limb_t is an unsigned long
+    # (this assumption is always true in practice).
+    mp_size_t limbs
+
+    # The individual bits of a bitset.
+    mp_limb_t* bits
+
+ctypedef bitset_s bitset_t[1]
 
 ctypedef fused fused_bitset_t:
     bitset_t
@@ -225,7 +263,7 @@ cdef inline bint mpn_equal_bits(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n):
     cdef mp_limb_t b2h = b2[nlimbs]
     return (b1h ^ b2h) & mask == 0
 
-cdef bint mpn_equal_bits_shifted(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n, mp_bitcnt_t offset):
+cdef inline bint mpn_equal_bits_shifted(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n, mp_bitcnt_t offset):
     """
     Return ``True`` iff the first n bits of *b1 and the bits ranging from
     offset to offset+n of *b2 agree.
@@ -337,7 +375,6 @@ cdef inline bint bitset_issuperset(fused_bitset_t a, fused_bitset_t b) nogil:
     We assume ``a.limbs >= b.limbs``.
     """
     return bitset_issubset(b, a)
-
 
 cdef inline bint bitset_are_disjoint(fused_bitset_t a, fused_bitset_t b):
     """
@@ -641,8 +678,7 @@ cdef inline void bitset_xor(fused_bitset_t r, fused_bitset_t a, fused_bitset_t b
     """
     _bitset_symmetric_difference(r.bits, a.bits, b.bits, b.limbs)
 
-
-cdef void bitset_rshift(fused_bitset_t r, fused_bitset_t a, mp_bitcnt_t n):
+cdef inline void bitset_rshift(fused_bitset_t r, fused_bitset_t a, mp_bitcnt_t n):
     """
     Shift the bitset ``a`` right by ``n`` bits and store the result in
     ``r``.
@@ -682,7 +718,7 @@ cdef void bitset_rshift(fused_bitset_t r, fused_bitset_t a, mp_bitcnt_t n):
         # Clear bits outside bitset in top limb
         bitset_fix(r)
 
-cdef void bitset_lshift(fused_bitset_t r, fused_bitset_t a, mp_bitcnt_t n):
+cdef inline void bitset_lshift(fused_bitset_t r, fused_bitset_t a, mp_bitcnt_t n):
     """
     Shift the bitset ``a`` left by ``n`` bits and store the result in
     ``r``.
@@ -724,8 +760,7 @@ cdef void bitset_lshift(fused_bitset_t r, fused_bitset_t a, mp_bitcnt_t n):
     # Clear bottom limbs
     mpn_zero(r.bits, nlimbs)
 
-
-cdef int bitset_map(fused_bitset_t r, fused_bitset_t a, m) except -1:
+cdef inline int bitset_map(fused_bitset_t r, fused_bitset_t a, m) except -1:
     """
     Fill bitset ``r`` so ``r == {m[i] for i in a}``.
 
@@ -752,111 +787,18 @@ cdef inline long bitset_hamming_weight(fused_bitset_t a):
 # Bitset Conversion
 #############################################################################
 
-cdef char* bitset_chars(char* s, fused_bitset_t bits, char zero=c'0', char one=c'1'):
-    """
-    Return a string representation of the bitset in s, using zero for
-    the character representing the items not in the bitset and one for
-    the character representing the items in the bitset.
+cdef char* bitset_chars(char* s, fused_bitset_t bits, char zero=*, char one=*)
 
-    The string is both stored in s and returned.  If s is NULL, then a
-    new string is allocated.
-    """
-    cdef mp_bitcnt_t i
-    if s == NULL:
-        s = <char *>sig_malloc(bits.size + 1)
-    for i from 0 <= i < bits.size:
-        s[i] = one if bitset_in(bits, i) else zero
-    s[bits.size] = 0
-    return s
+cdef int bitset_from_char(bitset_t bits, char* s, char zero=*, char one=*) except -1
 
+cdef int bitset_from_str(bitset_t bits, object s, char zero=*, char one=*) except -1
 
-cdef int bitset_from_char(bitset_t bits, char* s, char zero=c'0', char one=c'1') except -1:
-    """
-    Initialize a bitset with a set derived from the C string s, where one
-    represents the character indicating set membership.
-    """
-    bitset_init(bits, strlen(s))
-    cdef mp_bitcnt_t i
-    for i from 0 <= i < bits.size:
-        bitset_set_to(bits, i, s[i] == one)
-    return 0
+cdef bitset_string(fused_bitset_t bits)
 
+cdef bitset_bytes(fused_bitset_t bits)
 
-cdef int bitset_from_str(bitset_t bits, object s, char zero=c'0', char one=c'1') except -1:
-    """
-    Initialize a bitset with a set derived from the Python str s, where one
-    represents the character indicating set membership.
-    """
-    cdef bytes b = str_to_bytes(s)
-    return bitset_from_char(bits, b, zero, one)
+cdef list bitset_list(fused_bitset_t bits)
 
+cdef bitset_pickle(bitset_t bs)
 
-cdef bitset_string(fused_bitset_t bits):
-    """
-    Return a python string representing the bitset.
-    """
-    return bytes_to_str(bitset_bytes(bits))
-
-
-cdef bitset_bytes(fused_bitset_t bits):
-    """
-    Return a python bytes string representing the bitset.
-
-    On Python 2 this is equivalent to bitset_string.
-    """
-
-    cdef char* s = bitset_chars(NULL, bits)
-    cdef object py_s
-    py_s = s
-    sig_free(s)
-    return py_s
-
-
-cdef list bitset_list(fused_bitset_t bits):
-    """
-    Return a list of elements in the bitset.
-    """
-    cdef list elts = []
-    cdef long elt = bitset_first(bits)
-    while elt >= 0:
-        elts.append(elt)
-        elt = bitset_next(bits, elt + 1)
-    return elts
-
-cdef bitset_pickle(bitset_t bs):
-    """
-    Convert ``bs`` to a reasonably compact Python structure.
-
-    Useful for pickling objects using bitsets as internal data structure.
-    To ensure this works on 32-bit and 64-bit machines, the size of a long
-    is stored too.
-    """
-    version = 0
-    data = []
-    for i from 0 <= i < bs.limbs:
-        data.append(bs.bits[i])
-    return (version, bs.size, bs.limbs, sizeof(unsigned long), tuple(data))
-
-cdef bitset_unpickle(bitset_t bs, tuple input):
-    """
-    Convert the data into a bitset.
-
-    Companion of ``bitset_pickle()``. Assumption: ``bs`` has been initialized.
-    """
-    version, size, limbs, longsize, data = input
-    if version != 0:
-        raise TypeError("bitset was saved with newer version of Sage. Please upgrade.")
-    if bs.size != size:
-        bitset_realloc(bs, size)
-    if sizeof(unsigned long) == longsize and bs.limbs == limbs:
-        for i from 0 <= i < bs.limbs:
-            bs.bits[i] = data[i]
-    else:
-        storage = 8 * longsize  # number of elements encoded in one limb
-        adder = 0
-        bitset_clear(bs)
-        for i from 0 <= i < limbs:
-            for j from 0 <= j < storage:
-                if (data[i] >> j) & 1:
-                    bitset_add(bs, <mp_bitcnt_t>(j + adder))
-            adder += storage
+cdef bitset_unpickle(bitset_t bs, tuple input)

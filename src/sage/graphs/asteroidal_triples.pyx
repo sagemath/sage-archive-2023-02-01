@@ -63,8 +63,7 @@ Functions
 from libc.stdint cimport uint32_t
 from cysignals.signals cimport sig_on, sig_off
 
-include "sage/data_structures/bitset.pxi"
-
+from sage.data_structures.bitset_base cimport *
 from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph
 from sage.ext.memory_allocator cimport MemoryAllocator
 

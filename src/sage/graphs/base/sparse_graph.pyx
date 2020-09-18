@@ -193,7 +193,8 @@ for both of these uses.
 from libc.string cimport memset
 from cysignals.memory cimport check_malloc, check_allocarray, sig_free
 
-include 'sage/data_structures/bitset.pxi'
+from sage.data_structures.bitset_base cimport *
+from sage.data_structures.bitset cimport *
 
 cdef enum:
     BT_REORDERING_CONSTANT = 145533211

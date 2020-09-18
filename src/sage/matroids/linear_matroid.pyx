@@ -111,9 +111,9 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/data_structures/bitset.pxi'
 from cpython.object cimport Py_EQ, Py_NE
 
+from sage.data_structures.bitset_base cimport *
 from sage.structure.richcmp cimport rich_to_bool
 from sage.matroids.matroid cimport Matroid
 from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid

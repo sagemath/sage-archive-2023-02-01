@@ -27,7 +27,7 @@ Methods
 #*****************************************************************************
 
 from cysignals.memory cimport check_allocarray, check_reallocarray, sig_free
-include 'sage/data_structures/bitset.pxi'
+from sage.data_structures.bitset_base cimport *
 
 # SetSystem
 

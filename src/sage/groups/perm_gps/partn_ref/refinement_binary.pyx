@@ -26,7 +26,7 @@ REFERENCE:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/data_structures/bitset.pxi"
+from sage.data_structures.bitset_base cimport *
 from .data_structures cimport *
 from sage.rings.integer cimport Integer
 from sage.structure.element import is_Matrix

@@ -182,7 +182,6 @@ with C arguments).
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/data_structures/bitset.pxi"
 cimport cpython
 from libc.string cimport memset
 from libc.limits cimport INT_MAX
@@ -191,6 +190,7 @@ from libcpp.vector cimport vector
 from cysignals.memory cimport check_allocarray, check_calloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
+from sage.data_structures.bitset_base cimport *
 from sage.graphs.base.c_graph cimport CGraph
 from .static_sparse_backend cimport StaticSparseCGraph
 from .static_sparse_backend cimport StaticSparseBackend
@@ -1094,7 +1094,7 @@ def spectral_radius(G, prec=1e-10):
         sage: G.spectral_radius()
         Traceback (most recent call last):
         ...
-        ValueError: the graph must be aperiodic        
+        ValueError: the graph must be aperiodic
     """
     if not G:
         raise ValueError("empty graph")
@@ -1103,7 +1103,7 @@ def spectral_radius(G, prec=1e-10):
             raise ValueError("G must be strongly connected")
     elif not G.is_connected():
         raise ValueError("G must be connected")
-    
+
     cdef double e_min, e_max
 
     if G.num_verts() == 1:

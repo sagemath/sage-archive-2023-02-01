@@ -11,18 +11,18 @@ Cython data structure for combinatorial faces.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-cdef struct face_s:
-    sparse_bitset_t atoms
-    bitset_t coatoms
-
-ctypedef face_s face_t[1]
-
 include "sage/data_structures/bitset.pxi"
 
 from sage.ext.memory_allocator  cimport MemoryAllocator
 
 ctypedef int simple
 ctypedef long standard
+
+cdef struct face_s:
+    sparse_bitset_t atoms
+    bitset_t coatoms
+
+ctypedef face_s face_t[1]
 
 ctypedef fused algorithm_variant:
     simple

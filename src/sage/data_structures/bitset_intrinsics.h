@@ -9,6 +9,9 @@
 #############################################################################
 */
 
+const mp_bitcnt_t LIMB_SIZE = sizeof(mp_limb_t);
+const mp_bitcnt_t ALIGNMENT = sizeof(mp_limb_t);
+
 inline int _bitset_isempty(mp_limb_t* bits, mp_bitcnt_t limbs){
     /*
     Test whether bits is empty.  Return True (i.e., 1) if the set is

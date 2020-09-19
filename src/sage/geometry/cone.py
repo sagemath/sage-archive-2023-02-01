@@ -578,42 +578,28 @@ def _ambient_space_point(body, data):
     from sage.rings.all import AA, RR
 
     L = body.lattice()
-    try: # to make a lattice element...
-        return L(data)
-    except TypeError:
-        pass
-    except ValueError as ex:
-         if str(ex).startswith("Cannot coerce"):
-             pass
+
+    def try_base_extend(ring):
+        # Factor out the "try this ring..." code that's repeated four
+        # times.
+        try: return L.base_extend(ring)(data)
+        except TypeError: pass
+        except ValueError as ex:
+            if str(ex).startswith("Cannot coerce"): pass
 
     # Special treatment for toric lattice elements
+    p = try_base_extend(ZZ)
+    if p is not None: return p
     if is_ToricLattice(parent(data)):
         raise TypeError("the point %s and %s have incompatible "
                         "lattices" % (data, body))
 
-    try: # ... or an exact point...
-        return L.base_extend(QQ)(data)
-    except TypeError:
-        pass
-    except ValueError as ex:
-         if str(ex).startswith("Cannot coerce"):
-             pass
-
-    try:
-        return L.base_extend(AA)(data)
-    except TypeError:
-        pass
-    except ValueError as ex:
-         if str(ex).startswith("Cannot coerce"):
-             pass
-
-    try: # ... or at least a numeric one
-        return L.base_extend(RR)(data)
-    except TypeError:
-        pass
-    except ValueError as ex:
-         if str(ex).startswith("Cannot coerce"):
-             pass
+    # If we don't have a lattice element, try successively
+    # less-desirable ambient spaces until (as a last resort) we
+    # attempt a numerical representation.
+    for ring in [QQ, AA, RR]:
+        p = try_base_extend(ring)
+        if p is not None: return p
 
     # Raise TypeError with our own message
     raise TypeError("%s does not represent a valid point in the ambient "

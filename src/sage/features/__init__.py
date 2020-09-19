@@ -363,7 +363,7 @@ def package_systems():
 
         sage: from sage.features import package_systems
         sage: package_systems()    # random
-        [Feature('homebrew'), Feature('sage-spkg'), Feature('pip')]
+        [Feature('homebrew'), Feature('sage_spkg'), Feature('pip')]
     """
     # The current implementation never returns more than one system.
     from subprocess import run, CalledProcessError
@@ -462,7 +462,7 @@ class SagePackageSystem(PackageSystem):
 
         sage: from sage.features import SagePackageSystem
         sage: SagePackageSystem()
-        Feature('sage-spkg')
+        Feature('sage_spkg')
     """
     @staticmethod
     def __classcall__(cls):
@@ -475,7 +475,7 @@ class SagePackageSystem(PackageSystem):
             sage: SagePackageSystem() is SagePackageSystem()  # indirect doctest
             True
         """
-        return PackageSystem.__classcall__(cls, "sage-spkg")
+        return PackageSystem.__classcall__(cls, "sage_spkg")
 
     def _is_present(self):
         """

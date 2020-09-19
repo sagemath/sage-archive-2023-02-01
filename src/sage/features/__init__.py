@@ -56,7 +56,7 @@ from distutils.errors import CCompilerError
 from distutils.spawn import find_executable
 
 from sage.env import SAGE_SHARE
-
+from sage.misc.lazy_string import lazy_string
 
 class TrivialClasscallMetaClass(type):
     """
@@ -119,6 +119,7 @@ class Feature(TrivialUniqueRepresentation):
         self.spkg = spkg
         self.url = url
         self._cache_is_present = None
+        self._cache_resolution = None
 
     def is_present(self):
         r"""
@@ -207,42 +208,54 @@ class Feature(TrivialUniqueRepresentation):
         Return a suggestion on how to make :meth:`is_present` pass if it did not
         pass.
 
+        OUTPUT:
+
+        A string, a lazy string, or ``None``.  The default implementation always
+        returns a lazy string.
+
         EXAMPLES::
 
             sage: from sage.features import Executable
             sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp").resolution()
-            '...To install CSDP...you can try to run...sage -i csdp...Further installation instructions might be available at http://github.org/dimpase/csdp.'
+            l'...To install CSDP...you can try to run...sage -i csdp...Further installation instructions might be available at http://github.org/dimpase/csdp.'
         """
-        lines = []
-        if self.spkg:
-            from subprocess import run, DEVNULL, CalledProcessError
-            prompt = "  !"
-            try:
-                proc = run('sage-guess-package-system', shell=True, capture_output=True, text=True, check=True)
-                system = proc.stdout.strip()
+        def find_resolution():
+            if self._cache_resolution is not None:
+                return self._cache_resolution
+            lines = []
+            if self.spkg:
+                from subprocess import run, DEVNULL, CalledProcessError
+                prompt = "  !"
                 try:
-                    proc = run(f'sage-get-system-packages {system} {self.spkg}', shell=True, capture_output=True, text=True, check=True)
-                    system_packages = proc.stdout.strip()
-                    print_sys = f'sage-print-system-package-command {system} --verbose --prompt --sudo --prompt="{prompt}"'
-                    proc = run(f'{print_sys} update && {print_sys} install {system_packages}', shell=True, capture_output=True, text=True, check=True)
-                    command = proc.stdout
-                    lines.append('To install {self.name} using the system package manager, you can try to run:')
-                    lines.append(command)
+                    # Try to use scripts from SAGE_ROOT (or an installation of sage_bootstrap)
+                    # to obtain system package advice.
+                    proc = run('sage-guess-package-system', shell=True, capture_output=True, text=True, check=True)
+                    system = proc.stdout.strip()
+                    try:
+                        proc = run(f'sage-get-system-packages {system} {self.spkg}', shell=True, capture_output=True, text=True, check=True)
+                        system_packages = proc.stdout.strip()
+                        print_sys = f'sage-print-system-package-command {system} --verbose --prompt --sudo --prompt="{prompt}"'
+                        proc = run(f'{print_sys} update && {print_sys} install {system_packages}', shell=True, capture_output=True, text=True, check=True)
+                        command = proc.stdout
+                        lines.append('To install {self.name} using the system package manager, you can try to run:')
+                        lines.append(command)
+                    except CalledProcessError:
+                        lines.append(f'No equivalent system packages for {system} are known to Sage.')
                 except CalledProcessError:
-                    lines.append(f'No equivalent system packages for {system} are known to Sage.')
-            except CalledProcessError:
-                pass
-            try:
-                # "sage -p" is a fast way of checking whether sage-spkg is available.
-                run('sage -p', shell=True, stdout=DEVNULL, stderr=DEVNULL, check=True)
-                lines.append(f'To install {self.name} using the Sage distribution, you can try to run:')
-                lines.append(f'{prompt}sage -i {self.spkg}')
-            except CalledProcessError:
-                pass
-        if self.url:
-            lines.append("Further installation instructions might be available at {url}.".format(url=self.url))
-        return "\n".join(lines) or None
+                    pass
+                try:
+                    # "sage -p" is a fast way of checking whether sage-spkg is available.
+                    run('sage -p', shell=True, stdout=DEVNULL, stderr=DEVNULL, check=True)
+                    lines.append(f'To install {self.name} using the Sage distribution, you can try to run:')
+                    lines.append(f'{prompt}sage -i {self.spkg}')
+                except CalledProcessError:
+                    pass
+            if self.url:
+                lines.append("Further installation instructions might be available at {url}.".format(url=self.url))
+            self._cache_resolution = "\n".join(lines)
+            return self._cache_resolution
 
+        return lazy_string(find_resolution)
 
 class FeatureNotPresentError(RuntimeError):
     r"""
@@ -282,7 +295,7 @@ class FeatureNotPresentError(RuntimeError):
         if self.reason:
             lines.append(self.reason)
         if self.resolution:
-            lines.append(self.resolution)
+            lines.append(str(self.resolution))
         return "\n".join(lines)
 
 
@@ -306,8 +319,8 @@ class FeatureTestResult(object):
 
         sage: presence.reason
         '`TestPackageAvailability("NOT_A_PACKAGE")` evaluated to `fail` in GAP.'
-        sage: print(presence.resolution)
-        None
+        sage: bool(presence.resolution)
+        False
 
     If a feature is not present, ``resolution`` defaults to
     ``feature.resolution()`` if this is defined. If you do not want to use this
@@ -315,9 +328,9 @@ class FeatureTestResult(object):
 
         sage: from sage.features import FeatureTestResult
         sage: package = GapPackage("NOT_A_PACKAGE", spkg="no_package")
-        sage: FeatureTestResult(package, True).resolution
+        sage: str(FeatureTestResult(package, True).resolution)
         '...To install GAP package NOT_A_PACKAGE...you can try to run...sage -i no_package...'
-        sage: FeatureTestResult(package, False).resolution
+        sage: str(FeatureTestResult(package, False).resolution)
         '...To install GAP package NOT_A_PACKAGE...you can try to run...sage -i no_package...'
         sage: FeatureTestResult(package, False, resolution="rtm").resolution
         'rtm'

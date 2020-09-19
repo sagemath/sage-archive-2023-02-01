@@ -549,6 +549,15 @@ class PackageNotFoundError(RuntimeError):
         ...
         PackageNotFoundError: the package 'my_package' was not found. You can install it by running 'sage -i my_package' in a shell
     """
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        # We do not deprecate the whole class because we want
+        # to allow user code to handle this exception without causing
+        # a deprecation warning.
+        from sage.misc.superseded import deprecation
+        deprecation(30607, "Instead of raising PackageNotFoundError, raise sage.features.FeatureNotPresentError")
+
     def __str__(self):
         """
         Return the actual error message.
@@ -557,6 +566,7 @@ class PackageNotFoundError(RuntimeError):
 
             sage: from sage.misc.package import PackageNotFoundError
             sage: str(PackageNotFoundError("my_package"))
+            doctest:warning...
             "the package 'my_package' was not found. You can install it by running 'sage -i my_package' in a shell"
         """
         return ("the package {0!r} was not found. "

@@ -58,31 +58,6 @@ from distutils.spawn import find_executable
 from sage.env import SAGE_SHARE
 from sage.misc.lazy_string import lazy_string
 
-_package_systems = None
-
-def package_systems():
-    """
-    Return a list of strings naming the available package systems.
-
-    EXAMPLE::
-
-        sage: from sage.features import package_systems
-        sage: package_systems()    # random
-        ['debian']
-    """
-    # The current implementation never returns more than one system.
-    from subprocess import run, CalledProcessError
-    global _package_systems
-    if _package_systems is None:
-        try:
-            # Try to use scripts from SAGE_ROOT (or an installation of sage_bootstrap)
-            # to obtain system package advice.
-            proc = run('sage-guess-package-system', shell=True, capture_output=True, text=True, check=True)
-            _package_systems = [proc.stdout.strip()]
-        except CalledProcessError:
-            _package_systems = []
-    return _package_systems
-
 class TrivialClasscallMetaClass(type):
     """
     A trivial version of :class:`ClasscallMetaclass` without Cython dependencies.
@@ -249,30 +224,8 @@ class Feature(TrivialUniqueRepresentation):
                 return self._cache_resolution
             lines = []
             if self.spkg:
-                from subprocess import run, DEVNULL, CalledProcessError
-                prompt = "  !"
-                # Try to use scripts from SAGE_ROOT (or an installation of sage_bootstrap)
-                # to obtain system package advice.
-                for system in package_systems():
-                    try:
-                        proc = run(f'sage-get-system-packages {system} {self.spkg}',
-                                   shell=True, capture_output=True, text=True, check=True)
-                        system_packages = proc.stdout.strip()
-                        print_sys = f'sage-print-system-package-command {system} --verbose --prompt --sudo --prompt="{prompt}"'
-                        proc = run(f'{print_sys} update && {print_sys} install {system_packages}',
-                                   shell=True, capture_output=True, text=True, check=True)
-                        command = proc.stdout
-                        lines.append(f'To install {self.name} using the {system} package manager, you can try to run:')
-                        lines.append(command)
-                    except CalledProcessError:
-                        lines.append(f'No equivalent system packages for {system} are known to Sage.')
-                try:
-                    # "sage -p" is a fast way of checking whether sage-spkg is available.
-                    run('sage -p', shell=True, stdout=DEVNULL, stderr=DEVNULL, check=True)
-                    lines.append(f'To install {self.name} using the Sage distribution, you can try to run:')
-                    lines.append(f'{prompt}sage -i {self.spkg}')
-                except CalledProcessError:
-                    pass
+                for ps in package_systems():
+                    lines.append(ps.spkg_installation_hint(self.spkg, feature=self.name))
             if self.url:
                 lines.append("Further installation instructions might be available at {url}.".format(url=self.url))
             self._cache_resolution = "\n".join(lines)
@@ -397,6 +350,133 @@ class FeatureTestResult(object):
         """
         return "FeatureTestResult({feature!r}, {is_present!r})".format(feature=self.feature.name, is_present=self.is_present)
 
+
+_cache_package_systems = None
+
+def package_systems():
+    """
+    Return a list of ``PackageSystem`` objects representing the available package systems.
+
+    The list is ordered by decreasing preference.
+
+    EXAMPLE::
+
+        sage: from sage.features import package_systems
+        sage: package_systems()    # random
+        [Feature('homebrew'), Feature('sage-spkg'), Feature('pip')]
+    """
+    # The current implementation never returns more than one system.
+    from subprocess import run, CalledProcessError
+    global _cache_package_systems
+    if _cache_package_systems is None:
+        _cache_package_systems = []
+        # Try to use scripts from SAGE_ROOT (or an installation of sage_bootstrap)
+        # to obtain system package advice.
+        try:
+            proc = run('sage-guess-package-system', shell=True, capture_output=True, text=True, check=True)
+            _cache_package_systems = [PackageSystem(proc.stdout.strip())]
+        except CalledProcessError:
+            pass
+        more_package_systems = [SagePackageSystem(), PipPackageSystem()]
+        _cache_package_systems += [ps for ps in more_package_systems if ps.is_present()]
+
+    return _cache_package_systems
+
+class PackageSystem(Feature):
+    r"""
+    A feature describing a system package manager.
+
+    EXAMPLES::
+
+        sage: from sage.features import PackageSystem
+        sage: homebrew = PackageSystem('homebrew')
+        sage: homebrew.spkg_installation_hint('openblas')  # optional - SAGE_ROOT
+        'To install openblas using the homebrew package manager, you can try to run:\n!brew install openblas'
+
+    """
+    def _is_present(self):
+        """
+        Test whether ``self`` appears in the list of available package systems.
+        """
+        return self in package_systems()
+
+    def spkg_installation_hint(self, spkgs, *, prompt="  !", feature=None):
+        if isinstance(spkgs, (tuple, list)):
+            spkgs = ' '.join(spkgs)
+        if feature is None:
+            feature = spkgs
+        return self._spkg_installation_hint(spkgs, prompt, feature)
+
+    def _spkg_installation_hint(self, spkgs, prompt, feature):
+        from subprocess import run, CalledProcessError
+        lines = []
+        system = self.name
+        try:
+            proc = run(f'sage-get-system-packages {system} {spkgs}',
+                       shell=True, capture_output=True, text=True, check=True)
+            system_packages = proc.stdout.strip()
+            print_sys = f'sage-print-system-package-command {system} --verbose --sudo --prompt="{prompt}"'
+            command = f'{print_sys} update && {print_sys} install {system_packages}'
+            proc = run(command, shell=True, capture_output=True, text=True, check=True)
+            command = proc.stdout.strip()
+            if command:
+                lines.append(f'To install {feature} using the {system} package manager, you can try to run:')
+                lines.append(command)
+                return '\n'.join(lines)
+        except CalledProcessError:
+            pass
+        return f'No equivalent system packages for {system} are known to Sage.'
+
+class SagePackageSystem(PackageSystem):
+    r"""
+    The feature describing the Sage package manager.
+    """
+    @staticmethod
+    def __classcall__(cls):
+        """
+        Normalize initargs.
+        """
+        return PackageSystem.__classcall__(cls, "sage-spkg")
+
+    def _is_present(self):
+        """
+        Test whether ``sage-spkg`` is available.
+        """
+        from subprocess import run, DEVNULL, CalledProcessError
+        try:
+            # "sage -p" is a fast way of checking whether sage-spkg is available.
+            run('sage -p', shell=True, stdout=DEVNULL, stderr=DEVNULL, check=True)
+            return True
+        except CalledProcessError:
+            return False
+
+    def _spkg_installation_hint(self, spkgs, prompt, feature):
+        lines = []
+        lines.append(f'To install {feature} using the Sage package manager, you can try to run:')
+        lines.append(f'{prompt}sage -i {spkgs}')
+        return '\n'.join(lines)
+
+class PipPackageSystem(PackageSystem):
+    r"""
+    The feature describing the Pip package manager.
+    """
+    @staticmethod
+    def __classcall__(cls):
+        """
+        Normalize initargs.
+        """
+        return PackageSystem.__classcall__(cls, "pip")
+
+    def _is_present(self):
+        """
+        Test whether ``pip`` is available.
+        """
+        from subprocess import run, DEVNULL, CalledProcessError
+        try:
+            run('sage -pip --version', shell=True, stdout=DEVNULL, stderr=DEVNULL, check=True)
+            return True
+        except CalledProcessError:
+            return False
 
 class Executable(Feature):
     r"""

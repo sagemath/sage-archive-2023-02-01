@@ -40,7 +40,7 @@ can use the ``require`` method::
 
     sage: Executable(name="sh", executable="sh").require()
 
-    sage: Executable(name="random", executable="randomOochoz6x", spkg="random", url="http://rand.om").require()
+    sage: Executable(name="random", executable="randomOochoz6x", spkg="random", url="http://rand.om").require() # optional - sage_spkg
     Traceback (most recent call last):
     ...
     FeatureNotPresentError: random is not available.
@@ -216,7 +216,7 @@ class Feature(TrivialUniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.features import Executable
-            sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp").resolution()
+            sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp").resolution()  # optional - sage_spkg
             l'...To install CSDP...you can try to run...sage -i csdp...Further installation instructions might be available at http://github.org/dimpase/csdp.'
         """
         def find_resolution():
@@ -304,9 +304,9 @@ class FeatureTestResult(object):
 
         sage: from sage.features import FeatureTestResult
         sage: package = GapPackage("NOT_A_PACKAGE", spkg="no_package")
-        sage: str(FeatureTestResult(package, True).resolution)
+        sage: str(FeatureTestResult(package, True).resolution)  # optional - sage_spkg
         '...To install GAP package NOT_A_PACKAGE...you can try to run...sage -i no_package...'
-        sage: str(FeatureTestResult(package, False).resolution)
+        sage: str(FeatureTestResult(package, False).resolution) # optional - sage_spkg
         '...To install GAP package NOT_A_PACKAGE...you can try to run...sage -i no_package...'
         sage: FeatureTestResult(package, False, resolution="rtm").resolution
         'rtm'
@@ -484,7 +484,7 @@ class SagePackageSystem(PackageSystem):
         EXAMPLES::
 
             sage: from sage.features import SagePackageSystem
-            sage: SagePackageSystem().is_present()  # indirect doctest, optional - SAGE_ROOT
+            sage: bool(SagePackageSystem().is_present())  # indirect doctest, optional - sage_spkg
             True
         """
         from subprocess import run, DEVNULL, CalledProcessError
@@ -620,7 +620,7 @@ class StaticFile(Feature):
     EXAMPLES::
 
         sage: from sage.features import StaticFile
-        sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=("/",), spkg="some_spkg", url="http://rand.om").require()
+        sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=("/",), spkg="some_spkg", url="http://rand.om").require()  # optional - sage_spkg
         Traceback (most recent call last):
         ...
         FeatureNotPresentError: no_such_file is not available.
@@ -670,7 +670,7 @@ class StaticFile(Feature):
         A ``FeatureNotPresentError`` is raised if the file can not be found::
 
             sage: from sage.features import StaticFile
-            sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=(), spkg="some_spkg", url="http://rand.om").absolute_path()
+            sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=(), spkg="some_spkg", url="http://rand.om").absolute_path()  # optional - sage_spkg
             Traceback (most recent call last):
             ...
             FeatureNotPresentError: no_such_file is not available.

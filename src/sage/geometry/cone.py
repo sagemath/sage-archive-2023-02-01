@@ -538,6 +538,8 @@ def _ambient_space_point(body, data):
         sage: c = Cone([(1,0), (0,1)])
         sage: _ambient_space_point(c, [1,1])
         N(1, 1)
+        sage: _ambient_space_point(c, vector(ZZ,[1,1]))
+        N(1, 1)
         sage: _ambient_space_point(c, c.dual_lattice()([1,1]))
         Traceback (most recent call last):
         ...
@@ -545,13 +547,22 @@ def _ambient_space_point(body, data):
          2-d cone in 2-d lattice N have incompatible lattices
         sage: _ambient_space_point(c, [1,1/3])
         (1, 1/3)
+        sage: _ambient_space_point(c, vector(QQ,[1,1/3]))
+        (1, 1/3)
         sage: _ambient_space_point(c, [1/2,1/sqrt(3)])
+        (1/2, 0.5773502691896258?)
+        sage: _ambient_space_point(c, vector(AA,[1/2,1/sqrt(3)]))
         (1/2, 0.5773502691896258?)
         sage: _ambient_space_point(c, [1,1,3])
         Traceback (most recent call last):
         ...
         TypeError: [1, 1, 3] does not represent a valid point
-         in the ambient space of 2-d cone in 2-d lattice N
+        in the ambient space of 2-d cone in 2-d lattice N
+        sage: _ambient_space_point(c, vector(ZZ,[1,1,3]))
+        Traceback (most recent call last):
+        ...
+        TypeError: (1, 1, 3) does not represent a valid point
+        in the ambient space of 2-d cone in 2-d lattice N
 
     Ensure that transcendental elements can, at the very least, be
     represented numerically::
@@ -560,6 +571,9 @@ def _ambient_space_point(body, data):
         sage: c = Cone([(1,0), (0,1)])
         sage: _ambient_space_point(c, [1, pi])
         (1.00000000000000, 3.14159265358979)
+        sage: _ambient_space_point(c, vector(SR,[1, pi]))
+        (1.00000000000000, 3.14159265358979)
+
     """
     from sage.rings.all import AA, RR
 
@@ -567,22 +581,40 @@ def _ambient_space_point(body, data):
     try: # to make a lattice element...
         return L(data)
     except TypeError:
-        # Special treatment for toric lattice elements
-        if is_ToricLattice(parent(data)):
-            raise TypeError("the point %s and %s have incompatible "
-                            "lattices" % (data, body))
+        pass
+    except ValueError as ex:
+         if str(ex).startswith("Cannot coerce"):
+             pass
+
+    # Special treatment for toric lattice elements
+    if is_ToricLattice(parent(data)):
+        raise TypeError("the point %s and %s have incompatible "
+                        "lattices" % (data, body))
+
     try: # ... or an exact point...
         return L.base_extend(QQ)(data)
     except TypeError:
         pass
+    except ValueError as ex:
+         if str(ex).startswith("Cannot coerce"):
+             pass
+
     try:
         return L.base_extend(AA)(data)
     except TypeError:
         pass
+    except ValueError as ex:
+         if str(ex).startswith("Cannot coerce"):
+             pass
+
     try: # ... or at least a numeric one
         return L.base_extend(RR)(data)
     except TypeError:
         pass
+    except ValueError as ex:
+         if str(ex).startswith("Cannot coerce"):
+             pass
+
     # Raise TypeError with our own message
     raise TypeError("%s does not represent a valid point in the ambient "
                     "space of %s" % (data, body))

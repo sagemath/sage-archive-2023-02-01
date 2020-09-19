@@ -58,6 +58,31 @@ from distutils.spawn import find_executable
 from sage.env import SAGE_SHARE
 from sage.misc.lazy_string import lazy_string
 
+_package_systems = None
+
+def package_systems():
+    """
+    Return a list of strings naming the available package systems.
+
+    EXAMPLE::
+
+        sage: from sage.features import package_systems
+        sage: package_systems()    # random
+        ['debian']
+    """
+    # The current implementation never returns more than one system.
+    from subprocess import run, CalledProcessError
+    global _package_systems
+    if _package_systems is None:
+        try:
+            # Try to use scripts from SAGE_ROOT (or an installation of sage_bootstrap)
+            # to obtain system package advice.
+            proc = run('sage-guess-package-system', shell=True, capture_output=True, text=True, check=True)
+            _package_systems = [proc.stdout.strip()]
+        except CalledProcessError:
+            _package_systems = []
+    return _package_systems
+
 class TrivialClasscallMetaClass(type):
     """
     A trivial version of :class:`ClasscallMetaclass` without Cython dependencies.
@@ -226,23 +251,21 @@ class Feature(TrivialUniqueRepresentation):
             if self.spkg:
                 from subprocess import run, DEVNULL, CalledProcessError
                 prompt = "  !"
-                try:
-                    # Try to use scripts from SAGE_ROOT (or an installation of sage_bootstrap)
-                    # to obtain system package advice.
-                    proc = run('sage-guess-package-system', shell=True, capture_output=True, text=True, check=True)
-                    system = proc.stdout.strip()
+                # Try to use scripts from SAGE_ROOT (or an installation of sage_bootstrap)
+                # to obtain system package advice.
+                for system in package_systems():
                     try:
-                        proc = run(f'sage-get-system-packages {system} {self.spkg}', shell=True, capture_output=True, text=True, check=True)
+                        proc = run(f'sage-get-system-packages {system} {self.spkg}',
+                                   shell=True, capture_output=True, text=True, check=True)
                         system_packages = proc.stdout.strip()
                         print_sys = f'sage-print-system-package-command {system} --verbose --prompt --sudo --prompt="{prompt}"'
-                        proc = run(f'{print_sys} update && {print_sys} install {system_packages}', shell=True, capture_output=True, text=True, check=True)
+                        proc = run(f'{print_sys} update && {print_sys} install {system_packages}',
+                                   shell=True, capture_output=True, text=True, check=True)
                         command = proc.stdout
                         lines.append('To install {self.name} using the system package manager, you can try to run:')
                         lines.append(command)
                     except CalledProcessError:
                         lines.append(f'No equivalent system packages for {system} are known to Sage.')
-                except CalledProcessError:
-                    pass
                 try:
                     # "sage -p" is a fast way of checking whether sage-spkg is available.
                     run('sage -p', shell=True, stdout=DEVNULL, stderr=DEVNULL, check=True)

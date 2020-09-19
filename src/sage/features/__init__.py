@@ -45,7 +45,7 @@ can use the ``require`` method::
     ...
     FeatureNotPresentError: random is not available.
     Executable 'randomOochoz6x' not found on PATH.
-    To install random you can try to run 'sage -i random'.
+    ...try to run...sage -i random...
     Further installation instructions might be available at http://rand.om.
 
 As can be seen above, features try to produce helpful error messages.
@@ -211,11 +211,34 @@ class Feature(TrivialUniqueRepresentation):
 
             sage: from sage.features import Executable
             sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp").resolution()
-            "To install CSDP you can try to run 'sage -i csdp'.\nFurther installation instructions might be available at http://github.org/dimpase/csdp."
+            '...To install CSDP...you can try to run...sage -i csdp...Further installation instructions might be available at http://github.org/dimpase/csdp.'
         """
         lines = []
         if self.spkg:
-            lines.append("To install {feature} you can try to run 'sage -i {spkg}'.".format(feature=self.name, spkg=self.spkg))
+            from subprocess import run, DEVNULL, CalledProcessError
+            prompt = "  !"
+            try:
+                proc = run('sage-guess-package-system', shell=True, capture_output=True, text=True, check=True)
+                system = proc.stdout.strip()
+                try:
+                    proc = run(f'sage-get-system-packages {system} {self.spkg}', shell=True, capture_output=True, text=True, check=True)
+                    system_packages = proc.stdout.strip()
+                    print_sys = f'sage-print-system-package-command {system} --verbose --prompt --sudo --prompt="{prompt}"'
+                    proc = run(f'{print_sys} update && {print_sys} install {system_packages}', shell=True, capture_output=True, text=True, check=True)
+                    command = proc.stdout
+                    lines.append('To install {self.name} using the system package manager, you can try to run:')
+                    lines.append(command)
+                except CalledProcessError:
+                    lines.append(f'No equivalent system packages for {system} are known to Sage.')
+            except CalledProcessError:
+                pass
+            try:
+                # "sage -p" is a fast way of checking whether sage-spkg is available.
+                run('sage -p', shell=True, stdout=DEVNULL, stderr=DEVNULL, check=True)
+                lines.append(f'To install {self.name} using the Sage distribution, you can try to run:')
+                lines.append(f'{prompt}sage -i {self.spkg}')
+            except CalledProcessError:
+                pass
         if self.url:
             lines.append("Further installation instructions might be available at {url}.".format(url=self.url))
         return "\n".join(lines) or None
@@ -293,9 +316,9 @@ class FeatureTestResult(object):
         sage: from sage.features import FeatureTestResult
         sage: package = GapPackage("NOT_A_PACKAGE", spkg="no_package")
         sage: FeatureTestResult(package, True).resolution
-        "To install GAP package NOT_A_PACKAGE you can try to run 'sage -i no_package'."
+        '...To install GAP package NOT_A_PACKAGE...you can try to run...sage -i no_package...'
         sage: FeatureTestResult(package, False).resolution
-        "To install GAP package NOT_A_PACKAGE you can try to run 'sage -i no_package'."
+        '...To install GAP package NOT_A_PACKAGE...you can try to run...sage -i no_package...'
         sage: FeatureTestResult(package, False, resolution="rtm").resolution
         'rtm'
     """
@@ -412,8 +435,8 @@ class StaticFile(Feature):
         Traceback (most recent call last):
         ...
         FeatureNotPresentError: no_such_file is not available.
-        'KaT1aihu' not found in any of ['/']
-        To install no_such_file you can try to run 'sage -i some_spkg'.
+        'KaT1aihu' not found in any of ['/']...
+        To install no_such_file...you can try to run...sage -i some_spkg...
         Further installation instructions might be available at http://rand.om.
     """
     def __init__(self, name, filename, search_path=None, **kwds):
@@ -462,8 +485,8 @@ class StaticFile(Feature):
             Traceback (most recent call last):
             ...
             FeatureNotPresentError: no_such_file is not available.
-            'KaT1aihu' not found in any of []
-            To install no_such_file you can try to run 'sage -i some_spkg'.
+            'KaT1aihu' not found in any of []...
+            To install no_such_file...you can try to run...sage -i some_spkg...
             Further installation instructions might be available at http://rand.om.
         """
         for directory in self.search_path:

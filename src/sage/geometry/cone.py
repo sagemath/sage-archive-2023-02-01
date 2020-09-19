@@ -210,7 +210,7 @@ from sage.graphs.digraph import DiGraph
 from sage.matrix.all import column_matrix, matrix, MatrixSpace
 from sage.misc.all import cached_method, flatten, latex
 from sage.modules.all import span, vector, VectorSpace
-from sage.rings.all import QQ, RR, ZZ
+from sage.rings.all import QQ, ZZ
 from sage.structure.all import SageObject, parent
 from sage.structure.richcmp import richcmp_method, richcmp
 from ppl import (C_Polyhedron, Generator_System, Constraint_System,
@@ -527,9 +527,10 @@ def _ambient_space_point(body, data):
 
     OUTPUT:
 
-    - integral, rational or numeric point of the ambient space of ``body``
-      if ``data`` were successfully interpreted in such a way, otherwise a
-      ``TypeError`` exception is raised
+    An integral, rational, real algebraic, or numeric point of the
+    ambient space of ``body`` is returned if ``data`` were
+    successfully interpreted in such a way. A ``TypeError`` is raised
+    otherwise.
 
     TESTS::
 
@@ -545,13 +546,23 @@ def _ambient_space_point(body, data):
         sage: _ambient_space_point(c, [1,1/3])
         (1, 1/3)
         sage: _ambient_space_point(c, [1/2,1/sqrt(3)])
-        (0.500000000000000, 0.577350269189626)
+        (1/2, 0.5773502691896258?)
         sage: _ambient_space_point(c, [1,1,3])
         Traceback (most recent call last):
         ...
         TypeError: [1, 1, 3] does not represent a valid point
          in the ambient space of 2-d cone in 2-d lattice N
+
+    Ensure that transcendental elements can, at the very least, be
+    represented numerically::
+
+        sage: from sage.geometry.cone import _ambient_space_point
+        sage: c = Cone([(1,0), (0,1)])
+        sage: _ambient_space_point(c, [1, pi])
+        (1.00000000000000, 3.14159265358979)
     """
+    from sage.rings.all import AA, RR
+
     L = body.lattice()
     try: # to make a lattice element...
         return L(data)
@@ -562,6 +573,10 @@ def _ambient_space_point(body, data):
                             "lattices" % (data, body))
     try: # ... or an exact point...
         return L.base_extend(QQ)(data)
+    except TypeError:
+        pass
+    try:
+        return L.base_extend(AA)(data)
     except TypeError:
         pass
     try: # ... or at least a numeric one

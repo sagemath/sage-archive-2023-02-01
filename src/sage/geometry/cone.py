@@ -1583,27 +1583,38 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         This function is called by :meth:`__contains__` and :meth:`contains`
         to ensure the same call depth for warning messages.
 
+        By default, a point on the boundary of the cone is considered
+        part of the cone. If you want to test whether the
+        **interior** of the cone contains the point, you need to pass
+        the optional argument ``'interior'``.  If you want to test
+        whether the **relative interior** of the cone contains the
+        point, you need to pass the optional argument
+        ``'relative_interior'``.
+
+        .. WARNING::
+
+            The boundary of a closed convex cone is determined by a
+            set of inequalities. If your ``point`` has entries in an
+            inexact ring, it will sometimes be impossible to say (with
+            confidence) if that point lies on the boundary of the cone
+            or slightly inside it.
+
         INPUT:
 
-        - ``point`` -- anything. An attempt will be made to convert it into a
-          single element of the ambient space of ``self``. If it fails,
-          ``False`` is returned;
+        - ``point`` -- anything; an attempt will be made to convert it
+          into an element compatible with the ambient space of ``self``.
 
-        - ``region`` -- string. Can be either 'whole cone' (default),
-          'interior', or 'relative interior'. By default, a point on
-          the boundary of the cone is considered part of the cone. If
-          you want to test whether the **interior** of the cone
-          contains the point, you need to pass the optional argument
-          ``'interior'``.  If you want to test whether the **relative
-          interior** of the cone contains the point, you need to pass
-          the optional argument ``'relative_interior'``.
+        - ``region`` -- a string (default: 'whole cone'); can be
+          either 'whole cone', 'interior', or 'relative interior'.
 
         OUTPUT:
 
-        - ``True`` if ``point`` is contained in the specified ``region`` of
-          ``self``, ``False`` otherwise.
+        ``True`` is returned if ``point`` is contained in the
+        specified ``region`` of ``self``. ``False`` is returned
+        otherwise, in particular when ``point`` is incompatible with
+        the ambient space.
 
-        Raises a ``ValueError`` if ``region`` is not one of the
+        A ``ValueError`` is raised if ``region`` is not one of the
         three allowed values.
 
         TESTS::
@@ -1611,6 +1622,28 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: c = Cone([(1,0), (0,1)])
             sage: c._contains((1,1))
             True
+
+        We can test vectors with irrational components::
+
+            sage: c = Cone([(1,0), (0,1)])
+            sage: c._contains((1,sqrt(2)))
+            True
+            sage: c._contains(vector(SR, [1,pi]))
+            True
+
+        Ensure that complex vectors are not contained in a real cone::
+
+            sage: c = Cone([(1,0), (0,1)])
+            sage: c._contains((1,I))
+            False
+            sage: c._contains(vector(QQbar,[1,I]))
+            False
+
+        And we refuse to coerce elements of another lattice into ours::
+
+            sage: c = Cone([(1,0), (0,1)])
+            sage: c._contains(c.dual().ray(0))
+            False
         """
         try:
             point = _ambient_space_point(self, point)

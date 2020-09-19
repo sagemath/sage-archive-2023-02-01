@@ -15,11 +15,14 @@ do
             # Whether to print sudo for package managers that need sudo for non-root users
             SUDO="sudo "
             ;;
+        --prompt=*)
+            PROMPT=${1#--prompt=}
+            ;;
         --prompt)
             PROMPT='  $ '
             ;;
         -*)
-            echo >&2 "$0: unknown option $2"
+            echo >&2 "$0: unknown option $1"
             exit 1
             ;;
         *)

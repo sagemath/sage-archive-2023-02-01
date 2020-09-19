@@ -262,7 +262,7 @@ class Feature(TrivialUniqueRepresentation):
                         proc = run(f'{print_sys} update && {print_sys} install {system_packages}',
                                    shell=True, capture_output=True, text=True, check=True)
                         command = proc.stdout
-                        lines.append('To install {self.name} using the system package manager, you can try to run:')
+                        lines.append(f'To install {self.name} using the {system} package manager, you can try to run:')
                         lines.append(command)
                     except CalledProcessError:
                         lines.append(f'No equivalent system packages for {system} are known to Sage.')

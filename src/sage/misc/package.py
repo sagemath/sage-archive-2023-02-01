@@ -49,13 +49,8 @@ import json
 import os
 import subprocess
 import sys
-try:
-    # Python 3.3+
-    from urllib.request import urlopen
-    from urllib.error import URLError
-except ImportError:
-    # Python 2.7
-    from urllib2 import urlopen, URLError
+from urllib.request import urlopen
+from urllib.error import URLError
 
 DEFAULT_PYPI = 'https://pypi.org/pypi'
 

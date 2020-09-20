@@ -32,9 +32,9 @@ def build_and_print_matrices(v, strat):
     v = list(v)
     rows = 0
     polys_in_mat = []
-    if len(v) == 0:
+    if not v:
         return
-    while(len(v) > 0):
+    while v:
         rows = rows + 1
         p = v[0]
         v = v[1:]
@@ -104,7 +104,7 @@ def build_and_print_matrices_deg_colored(v, strat):
     r"""
     old PIL solution using a different color for each degree
     """
-    if len(v) == 0:
+    if not v:
         return
 
     treated = BooleSet()
@@ -112,7 +112,7 @@ def build_and_print_matrices_deg_colored(v, strat):
     rows = 0
     polys_in_mat = []
 
-    while(len(v) > 0):
+    while v:
         rows = rows + 1
         p = v[0]
         v = v[1:]
@@ -239,8 +239,8 @@ def symmGB_F2_python(G, deg_bound=1000000000000, over_deg_bound=0,
             if prot:
                 print("#Generators:", len(strat))
 
-    if (isinstance(G, list)):
-        if len(G) == 0:
+    if isinstance(G, list):
+        if not G:
             return []
         G = [Polynomial(g) for g in G]
         current_ring = G[0].ring()
@@ -287,7 +287,7 @@ def symmGB_F2_python(G, deg_bound=1000000000000, over_deg_bound=0,
             if ps and ps[0].ring().has_degree_order():
                 ps = [strat.reduction_strategy.cheap_reductions(p) for p in ps]
                 ps = [p for p in ps if not p.is_zero()]
-                if len(ps) > 0:
+                if ps:
                     min_deg = min((p.deg() for p in ps))
                 new_ps = []
                 for p in ps:
@@ -338,7 +338,7 @@ def symmGB_F2_python(G, deg_bound=1000000000000, over_deg_bound=0,
             if prot:
                 print("end reducing")
 
-            if len(res) > 0 and res[0].ring().has_degree_order():
+            if res and res[0].ring().has_degree_order():
                 res_min_deg = min([p.deg() for p in res])
                 new_res = []
                 for p in res:
@@ -395,9 +395,9 @@ def GPS(G, vars_start, vars_end):
                 branch(strat, trace + [(var, val)], var - 1)
 
     def branch(strat, trace, var):
-        while(strat.variableHasValue(var)):
+        while strat.variableHasValue(var):
             # remember to add value to trace
-            var = var - 1
+            var -= 1
         step(strat, trace, var, 0)
         step(strat, trace, var, 1)
     if G:
@@ -485,7 +485,7 @@ def GPS_with_suggestions(G, deg_bound, over_deg_bound, opt_lazy=True,
             lv = set([next(iter(p.lead())).index() for p in strat if p.
                 lead_deg() == 1])
             candidates = uv.difference(lv)
-            if len(candidates) > 0:
+            if candidates:
                 index = next(iter(candidates)).index()
         if index >= 0:
             print("chosen index:", index)
@@ -593,8 +593,8 @@ def symmGB_F2_C(G, opt_exchange=True,
         draw_matrices=False):
     if use_noro:
         raise NotImplementedError("noro not implemented for symmgb")
-    if (isinstance(G, list)):
-        if len(G) == 0:
+    if isinstance(G, list):
+        if not G:
             return []
 
         G = [Polynomial(g) for g in G]

@@ -82,12 +82,14 @@ def Ring(n, order='lp', names=None, blocks=[]):
     R = BooleanPolynomialRing(n, names=pbnames, order=order)
     return R
 
+
 BoolePolynomialVector = BooleanPolynomialVector
 
 
-#todo: PolyBoRi's original interface uses its WeakRingPtr here
+# todo: PolyBoRi's original interface uses its WeakRingPtr here
 def WeakRingRef(ring):
     return weakref.weakref(ring)
+
 
 Monomial = MonomialFactory()
 Polynomial = PolynomialFactory()
@@ -108,6 +110,7 @@ def add_up_polynomials(polys, init):
         polys = vec
 
     return _add_up_polynomials(polys, init)
+
 
 _gauss_on_polys = gauss_on_polys
 

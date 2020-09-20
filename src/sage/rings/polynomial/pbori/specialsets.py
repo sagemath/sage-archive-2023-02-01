@@ -1,7 +1,7 @@
 from sage.rings.polynomial.pbori.pbori import (top_index, if_then_else,
                                                mod_mon_set)
 from .PyPolyBoRi import (BooleSet, Polynomial,
-                         Monomial, BooleConstant)
+                         Monomial, BooleConstant, Variable)
 
 #def all_monomials_of_degree_d(d,variables):
 #    res=all_monomials_of_degree_d_new(d, variables)

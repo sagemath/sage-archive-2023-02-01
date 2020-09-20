@@ -83,7 +83,3 @@ def m_k_plus_one(completed_elements, variables):
     """
     return sorted(completed_elements.cartesian_product(variables).diff(
         completed_elements))[0]
-
-
-if __name__ == "__main__":
-    _test()

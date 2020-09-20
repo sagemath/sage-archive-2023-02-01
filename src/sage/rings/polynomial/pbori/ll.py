@@ -1,4 +1,4 @@
-
+from sage.rings.polynomial.pbori.pbori import top_index, if_then_else
 from .PyPolyBoRi import *
 from .statistics import used_vars_set
 from .rank import rank

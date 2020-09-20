@@ -6,10 +6,9 @@ PolyBoRi
 Created by Michael Brickenstein on 2008-10-31.
 Copyright 2008 The PolyBoRi Team
 """
-
-from .PyPolyBoRi import if_then_else, CCuddNavigator, BooleSet
-from .PyPolyBoRi import (Polynomial, Ring, WeakRingRef, Monomial,
-    Variable)
+from sage.rings.polynomial.pbori.pbori import if_then_else
+from .PyPolyBoRi import CCuddNavigator, BooleSet
+from .PyPolyBoRi import (Polynomial, Ring, WeakRingRef, Monomial, Variable)
 from .gbcore import groebner_basis
 from zlib import compress, decompress
 try:
@@ -20,7 +19,7 @@ except ImportError:
 
 def to_fast_pickable(l):
     r"""
-    Converts a list of polynomials into a builtin Python value, which is fast pickable and compact.
+    Convert a list of polynomials into a builtin Python value, which is fast pickable and compact.
 
     INPUT:
     

@@ -1,5 +1,6 @@
 from random import Random
-from .PyPolyBoRi import Polynomial, if_then_else as ite
+from sage.rings.polynomial.pbori.pbori import if_then_else as ite
+from .PyPolyBoRi import Polynomial
 from .statistics import used_vars_set
 
 

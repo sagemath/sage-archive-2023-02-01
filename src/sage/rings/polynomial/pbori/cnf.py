@@ -1,7 +1,5 @@
 from random import Random
-from .PyPolyBoRi import (Monomial, BooleSet, Polynomial, if_then_else
-    as ite, lp, gauss_on_polys, ll_red_nf_redsb)
-from .ll import ll_encode
+from .PyPolyBoRi import Polynomial, if_then_else as ite
 from .statistics import used_vars_set
 
 
@@ -14,7 +12,7 @@ class CNFEncoder(object):
 
     def zero_blocks(self, f):
         r"""
-        Divides the zero set of f into blocks
+        Divide the zero set of f into blocks.
         
         TESTS::
         

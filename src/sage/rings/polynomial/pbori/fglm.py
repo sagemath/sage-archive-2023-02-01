@@ -1,7 +1,5 @@
-from .PyPolyBoRi import BooleSet, Polynomial, BoolePolynomialVector, \
-    FGLMStrategy, Monomial, Ring
-
-from .blocks import declare_ring
+from .PyPolyBoRi import (BooleSet, Polynomial, BoolePolynomialVector,
+                         FGLMStrategy)
 
 
 def _fglm(I, from_ring, to_ring):
@@ -14,8 +12,9 @@ def _fglm(I, from_ring, to_ring):
 
 def fglm(I, from_ring, to_ring):
     r"""
-    Converts *reduced* Groebner Basis in from_ring to a GroebnerBasis in to_ring.
-    It acts independend of the global ring, which is restored at the end of the
+    Convert *reduced* Groebner Basis in from_ring to a GroebnerBasis in to_ring.
+
+    It acts independent of the global ring, which is restored at the end of the
     computation.
     
     TESTS::

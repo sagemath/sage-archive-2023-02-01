@@ -1,8 +1,6 @@
 # Copyright (c) 2005-2007 by The PolyBoRi Team
 
-from .PyPolyBoRi import (BoolePolynomialVector, Polynomial, BooleSet, Block,
-                         Variable, Monomial, declare_ring, interpolate,
-                         interpolate_smallest_lex, add_up_polynomials)
+from .PyPolyBoRi import *
 from .randompoly import gen_random_poly
 from random import Random
 

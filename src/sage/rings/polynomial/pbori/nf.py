@@ -1,7 +1,4 @@
-from .PyPolyBoRi import (BooleSet, Monomial, Polynomial, matrix_prefix,
-                         easy_linear_factors, GroebnerStrategy, Variable,
-                         BoolePolynomialVector, mod_mon_set, parallel_reduce,
-                         ReductionStrategy)
+from .PyPolyBoRi import *
 from .easy_polynomials import (easy_linear_polynomials as
                                easy_linear_polynomials_func)
 from .statistics import used_vars_set

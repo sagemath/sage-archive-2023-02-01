@@ -11,10 +11,7 @@ from .PyPolyBoRi import CCuddNavigator, BooleSet
 from .PyPolyBoRi import (Polynomial, Ring, WeakRingRef, Monomial, Variable)
 from .gbcore import groebner_basis
 from zlib import compress, decompress
-try:
-    import copy_reg as copyreg
-except ImportError:
-    import copyreg
+import copyreg
 
 
 def to_fast_pickable(l):
@@ -71,7 +68,7 @@ def to_fast_pickable(l):
         sage: to_fast_pickable([x(0)*x(1), Polynomial(0, r), Polynomial(1, r), x(3)])
         [[2, 0, 1, 4], [(0, 3, 0), (1, 1, 0), (3, 1, 0)]]
     """
-    if len(l) == 0:
+    if not l:
         return [[], []]
 
     f = l[0]

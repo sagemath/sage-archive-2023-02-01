@@ -65,7 +65,6 @@ AUTHOR:
         [a, b, c, d, e, y2]
 """
 
-from sage import all
 from sage.rings.polynomial.pbori.pbori import *
 
 import weakref

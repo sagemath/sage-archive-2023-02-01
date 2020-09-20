@@ -284,10 +284,8 @@ def groebner_basis_first_finished(I, *l):
     """
     if not I:
         return []
-    try:
-        from multiprocessing import Pool
-    except:
-        from processing import Pool
+
+    from multiprocessing import Pool
 
     pool = Pool(processes=len(l))
     it = pool.imap_unordered(_calculate_gb_with_keywords,

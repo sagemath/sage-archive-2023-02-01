@@ -543,6 +543,8 @@ class QuoteStackFrame(SimpleNamespace):
         self.fmt_spec = fmt_spec
         self.nested_fmt_spec = nested_fmt_spec
 
+ssl_search_chars = re.compile(r'[()\[\]\'"#:{}]')
+
 def strip_string_literals(code, state=None):
     r"""
     Return a string with all literal quotes replaced with labels and
@@ -746,10 +748,10 @@ def strip_string_literals(code, state=None):
     start = 0 # characters before this point have been added to new_code or literals
     q = 0 # current search position in code string
     state = state or QuoteStack()
+    quote = state.peek()
 
     def in_literal():
         """In the literal portion of a string?"""
-        quote = state.peek()
         if not quote:
             return False
         elif not quote.f_string or not quote.braces or quote.nested_fmt_spec:
@@ -757,90 +759,38 @@ def strip_string_literals(code, state=None):
         else:
             return quote.fmt_spec and quote.braces == 1
 
-    while q < len(code):
+    match = ssl_search_chars.search(code)
+    while match:
+        q = match.start()
         orig_q = q
-        ch = code[q]
-        quote = state.peek()
+        ch = match.group()
 
-        if ch == '#' and not quote:
-            # It is a comment. Treat everything before as code and everything
-            # afterward up to the next newline as a comment literal.
-            newline = code.find('\n', q)
-            if newline == -1:
-                newline = len(code)
-            counter += 1
-            label = "L%s" % counter
-            literals[label] = code[q+1:newline]
-            new_code.append(code[start:q].replace('%', '%%'))
-            new_code.append("#%%(%s)s" % label)
-            start = q = newline
-
-        elif ch in '{}' and quote and quote.f_string:
-            # Skip over {{ and }} escape sequences outside of replacement sections.
-            if not quote.braces and q+1 < len(code) and code[q+1] == ch:
-                q += 2
-                continue
-            # Handle the substring preceding the brace.
-            if in_literal():
-                counter += 1
-                label = "L%s" % counter
-                literals[label] = code[start:q]
-                new_code.append("%%(%s)s" % label)
-            else:
-                new_code.append(code[start:q].replace('%', '%%'))
-            # Treat the brace itself as code.
-            new_code.append(ch)
-            if ch == '{':
-                quote.braces += 1
-            else:
-                if quote.braces > 0:
-                    quote.braces -= 1
-                # We can no longer be in a nested format specifier following a }.
-                quote.nested_fmt_spec = False
-            start = q+1
-
-        elif ch in '()' and quote and quote.braces:
-            # Just keep track of parentheses inside F-string replacement sections.
-            if ch == '(':
+        # Just keep track of parentheses/brackets inside F-string replacement sections.
+        if ch == '(':
+            if quote and quote.braces:
                 quote.parens += 1
-            elif quote.parens > 0:
+        elif ch == ')':
+            if quote and quote.braces and quote.parens > 0:
                 quote.parens -= 1
-
-        elif ch in '[]' and quote and quote.braces:
-            # Just keep track of brackets inside F-string replacement sections.
-            if ch == '[':
+        elif ch == '[':
+            if quote and quote.braces:
                 quote.brackets += 1
-            elif quote.brackets > 0:
+        elif ch == ']':
+            if quote and quote.braces and quote.brackets > 0:
                 quote.brackets -= 1
 
-        elif ch == ':' and quote and not quote.parens and not quote.brackets:
-            if quote.braces == 1:
-                # In a replacement section but outside of any nested braces or
-                # parentheses, the colon signals the beginning of the format specifier.
-                quote.fmt_spec = True
-            elif quote.fmt_spec:
-                # Already in the format specifier, so this must be a nested specifier.
-                quote.nested_fmt_spec = True
-            else:
-                # Otherwise, do not give the colon any special treatment.
-                q += 1
-                continue
-            # Treat the preceding substring and the colon itself as code.
-            new_code.append(code[start:q+1].replace('%', '%%'))
-            start = q+1
-
-        elif ch in '\'"':
+        elif ch == "'" or ch == '"':
             if in_literal():
                 # Deal with escaped quotes (odd number of backslashes preceding).
+                escaped = False
                 if q>0 and code[q-1] == '\\':
                     k = 2
                     while q >= k and code[q-k] == '\\':
                         k += 1
                     if k % 2 == 0:
-                        q += 1
-                        continue
+                        escaped = True
                 # Check for end of quote.
-                if code[q:q+len(quote.delim)] == quote.delim:
+                if not escaped and code[q:q+len(quote.delim)] == quote.delim:
                     counter += 1
                     label = "L%s" % counter
                     literals[label] = code[start:q+len(quote.delim)]
@@ -848,6 +798,7 @@ def strip_string_literals(code, state=None):
                     q += len(quote.delim)
                     start = q
                     state.pop()
+                    quote = state.peek()
             else:
                 # Check prefixes for raw or F-string.
                 if q>0 and code[q-1] in 'rR':
@@ -864,14 +815,74 @@ def strip_string_literals(code, state=None):
                 else:
                     delim = ch
                 # Now inside quotes.
-                state.push(QuoteStackFrame(delim, raw, f_string))
+                quote = QuoteStackFrame(delim, raw, f_string)
+                state.push(quote)
                 new_code.append(code[start:q].replace('%', '%%'))
                 start = q
                 q += len(delim)
 
+        elif ch == '#':
+            if not quote:
+                # It is a comment. Treat everything before as code and everything
+                # afterward up to the next newline as a comment literal.
+                newline = code.find('\n', q)
+                if newline == -1:
+                    newline = len(code)
+                counter += 1
+                label = "L%s" % counter
+                literals[label] = code[q+1:newline]
+                new_code.append(code[start:q].replace('%', '%%'))
+                new_code.append("#%%(%s)s" % label)
+                start = q = newline
+
+        elif ch == ':':
+            if quote and not quote.parens and not quote.brackets:
+                handle_colon = False
+                if quote.braces == 1:
+                    # In a replacement section but outside of any nested braces or
+                    # parentheses, the colon signals the beginning of the format specifier.
+                    quote.fmt_spec = True
+                    handle_colon = True
+                elif quote.fmt_spec:
+                    # Already in the format specifier, so this must be a nested specifier.
+                    quote.nested_fmt_spec = True
+                    handle_colon = True
+                if handle_colon:
+                    # Treat the preceding substring and the colon itself as code.
+                    new_code.append(code[start:q+1].replace('%', '%%'))
+                    start = q+1
+
+        elif ch == '{' or ch == '}':
+            if quote and quote.f_string:
+                # Skip over {{ and }} escape sequences outside of replacement sections.
+                if not quote.braces and q+1 < len(code) and code[q+1] == ch:
+                    q += 2
+                else:
+                    # Handle the substring preceding the brace.
+                    if in_literal():
+                        counter += 1
+                        label = "L%s" % counter
+                        literals[label] = code[start:q]
+                        new_code.append("%%(%s)s" % label)
+                    else:
+                        new_code.append(code[start:q].replace('%', '%%'))
+                    # Treat the brace itself as code.
+                    new_code.append(ch)
+                    if ch == '{':
+                        quote.braces += 1
+                    else:
+                        if quote.braces > 0:
+                            quote.braces -= 1
+                        # We can no longer be in a nested format specifier following a }.
+                        quote.nested_fmt_spec = False
+                    start = q+1
+
         # Move to the next character if we have not already moved elsewhere.
         if q == orig_q:
             q += 1
+
+        # Re-prime the loop.
+        match = ssl_search_chars.search(code, q)
 
     # Handle the remainder of the string.
     if in_literal():

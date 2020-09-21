@@ -55,7 +55,7 @@ Obtain the facets of a polyhedron as :class:`ListOfFaces` from a facet list::
     sage: facets = ((0,1,2), (0,1,3), (0,2,3), (1,2,3))
     sage: face_list = facets_tuple_to_bit_rep_of_facets(facets, 4)
 
-Likewise for the Vrepresenatives as facet-incidences::
+Likewise for the Vrepresentatives as facet-incidences::
 
     sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
     ....:         import facets_tuple_to_bit_rep_of_Vrep

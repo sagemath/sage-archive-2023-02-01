@@ -1656,7 +1656,7 @@ class GraphicMatroid(Matroid):
 
             sage: N = Matroid(range(4), graphs.CycleGraph(4))
             sage: I = N.graphic_coextensions(element='a')
-            sage: for N1 in I:
+            sage: for N1 in I:                                           # random
             ....:     N1.graph().edges(sort=True)
             [(0, 1, 0), (0, 3, 1), (0, 4, 'a'), (1, 2, 2), (2, 3, 3)]
             [(0, 1, 0), (0, 3, 1), (1, 4, 2), (2, 3, 3), (2, 4, 'a')]

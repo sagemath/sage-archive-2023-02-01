@@ -532,7 +532,7 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
                   "if rays are given, they must include all rays of the fan!")
             rays = new_rays
         else:
-            rays = tuple(ray_set)
+            rays = tuple(sorted(ray_set))
         if check:
             # Maybe we should compute all faces of all cones and save them for
             # later if we are doing this check?
@@ -1151,7 +1151,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
             sage: fan = Fan([Cone([(1,0), (1,1)]), Cone([(-1,-1)])])
             sage: sage_input(fan)
-            Fan(cones=[[0, 1], [2]], rays=[(1, 0), (1, 1), (-1, -1)])
+            Fan(cones=[[1, 2], [0]], rays=[(-1, -1), (1, 0), (1, 1)])
        """
         cones = [[ZZ(_) for _ in c.ambient_ray_indices()] for c in self.generating_cones()]
         rays = [sib(tuple(r)) for r in self.rays()]
@@ -1345,13 +1345,13 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: cone2 = Cone([(-1,0)])
             sage: fan = Fan([cone1, cone2])
             sage: fan.rays()
+            N(-1, 0),
             N( 0, 1),
-            N( 1, 0),
-            N(-1, 0)
+            N( 1, 0)
             in 2-d lattice N
             sage: for cone in fan: print(cone.ambient_ray_indices())
-            (0, 1)
-            (2,)
+            (1, 2)
+            (0,)
             sage: L = fan.cone_lattice() # indirect doctest
             sage: L
             Finite poset containing 6 elements with distinguished linear extension
@@ -1878,8 +1878,8 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: cone2 = Cone([(1,0), (0,1)])
             sage: f = Fan([cone1, cone2])
             sage: f.rays()
-            N(0,  1),
             N(0, -1),
+            N(0,  1),
             N(1,  0)
             in 2-d lattice N
             sage: f.cone_containing(0)  # ray index
@@ -2004,13 +2004,13 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: cone2 = Cone([(-1,0)])
             sage: fan = Fan([cone1, cone2])
             sage: fan.rays()
+            N(-1, 0),
             N( 0, 1),
-            N( 1, 0),
-            N(-1, 0)
+            N( 1, 0)
             in 2-d lattice N
             sage: for cone in fan: print(cone.ambient_ray_indices())
-            (0, 1)
-            (2,)
+            (1, 2)
+            (0,)
             sage: L = fan.cone_lattice()
             sage: L
             Finite poset containing 6 elements with distinguished linear extension
@@ -2034,7 +2034,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             ....:     print([f.ambient_ray_indices() for f in l])
             [()]
             [(0,), (1,), (2,)]
-            [(0, 1)]
+            [(1, 2)]
 
         If the fan is complete, its cone lattice is atomic and coatomic and
         can (and will!) be computed in a much more efficient way, but the
@@ -2122,9 +2122,9 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: fan(codim=2)
             (0-d cone of Rational polyhedral fan in 2-d lattice N,)
             sage: for cone in fan.cones(1): cone.ray(0)
+            N(-1, 0)
             N(0, 1)
             N(1, 0)
-            N(-1, 0)
             sage: fan.cones(2)
             (2-d cone of Rational polyhedral fan in 2-d lattice N,)
 

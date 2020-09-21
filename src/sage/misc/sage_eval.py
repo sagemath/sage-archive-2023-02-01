@@ -162,7 +162,7 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
          File "<string>", line 1
             RR(Integer(22)/Integer(7)]
                                      ^
-        SyntaxError: unexpected EOF while parsing
+        SyntaxError: ...
 
     ::
 

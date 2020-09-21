@@ -278,7 +278,7 @@ cdef inline bint mpn_equal_bits_shifted(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t 
     # bits of an additional limb of b1 to be considered
     cdef mp_limb_t tmp_limb
     cdef mp_size_t i1
-    for i1 from 0 <= i1 < nlimbs:
+    for i1 in range(nlimbs):
         tmp_limb = (b2[i2] >> bit_offset)
         tmp_limb |= (b2[preinc(i2)] << neg_bit_offset)
         if tmp_limb != b1[i1]:
@@ -469,11 +469,11 @@ cdef inline void bitset_set_first_n(fused_bitset_t bits, mp_bitcnt_t n):
     """
     cdef mp_size_t i
     cdef mp_size_t index = n >> index_shift
-    for i from 0 <= i < index:
+    for i in range(index):
         bits.bits[i] = -1
     if index < bits.limbs:
         bits.bits[index] = limb_lower_bits_down(n)
-    for i from index < i < bits.limbs:
+    for i in range(index+1, bits.limbs):
         bits.bits[i] = 0
 
 #############################################################################
@@ -486,7 +486,7 @@ cdef inline long bitset_first(fused_bitset_t a):
     is empty, returns -1.
     """
     cdef mp_size_t i
-    for i from 0 <= i < a.limbs:
+    for i in range(a.limbs):
         if a.bits[i]:
             return (i << index_shift) | _bitset_first_in_limb_nonzero(a.bits[i])
     return -1
@@ -498,7 +498,7 @@ cdef inline long bitset_first_in_complement(fused_bitset_t a):
     """
     cdef mp_size_t i
     cdef mp_bitcnt_t j
-    for i from 0 <= i < a.limbs:
+    for i in range(a.limbs):
         if ~a.bits[i]:
             j = (i << index_shift) | _bitset_first_in_limb_nonzero(~a.bits[i])
             if j >= a.size:
@@ -525,7 +525,7 @@ cdef inline long bitset_first_diff(fused_bitset_t a, fused_bitset_t b):
     We assume ``a.limbs == b.limbs``.
     """
     cdef mp_size_t i
-    for i from 0 <= i < a.limbs:
+    for i in range(a.limbs):
         if a.bits[i] != b.bits[i]:
             return (i << index_shift) | _bitset_first_in_limb_nonzero(a.bits[i] ^ b.bits[i])
     return -1
@@ -543,7 +543,7 @@ cdef inline long bitset_next(fused_bitset_t a, mp_bitcnt_t n):
     cdef long ret = _bitset_first_in_limb(limb)
     if ret != -1:
         return (i << index_shift) | ret
-    for i from (n >> index_shift) < i < a.limbs:
+    for i in range((n >> index_shift) + 1, a.limbs):
         if a.bits[i]:
             return (i << index_shift) | _bitset_first_in_limb_nonzero(a.bits[i])
     return -1
@@ -563,7 +563,7 @@ cdef inline long bitset_next_diff(fused_bitset_t a, fused_bitset_t b, mp_bitcnt_
     cdef long ret = _bitset_first_in_limb(limb)
     if ret != -1:
         return (i << index_shift) | ret
-    for i from (n >> index_shift) < i < a.limbs:
+    for i in range((n >> index_shift) + 1, a.limbs):
         if a.bits[i] != b.bits[i]:
             return (i << index_shift) | _bitset_first_in_limb(a.bits[i] ^ b.bits[i])
     return -1
@@ -583,7 +583,7 @@ cdef inline long bitset_hash(fused_bitset_t bits):
     """
     cdef mp_limb_t hash = 0
     cdef mp_size_t i
-    for i from 0 <= i < bits.limbs:
+    for i in range(bits.limbs):
         hash += bits.bits[i]
     return hash
 

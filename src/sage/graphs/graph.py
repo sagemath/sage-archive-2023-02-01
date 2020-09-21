@@ -2691,10 +2691,11 @@ class Graph(GenericGraph):
         elif algorithm != "sage":
             raise ValueError("'algorithm' must be equal to 'tdlib', 'sage', or None")
 
-        if algorithm is None and tdlib_found:
-            algorithm = 'tdlib'
-        else:
-            algorithm = 'sage'
+        if algorithm is None:
+            if tdlib_found:
+                algorithm = 'tdlib'
+            else:
+                algorithm = 'sage'
 
         if k is not None and k < 0:
             raise ValueError("k(={}) must be a nonnegative integer".format(k))

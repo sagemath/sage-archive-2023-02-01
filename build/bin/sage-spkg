@@ -183,6 +183,9 @@ if [ -z "$SAGE_BUILD_DIR" ]; then
     export SAGE_BUILD_DIR="$SAGE_INST_LOCAL/var/tmp/sage/build"
 fi
 
+export SAGE_SPKG_INST="$SAGE_INST_LOCAL/var/lib/sage/installed"
+export SAGE_SPKG_SCRIPTS="$SAGE_INST_LOCAL/var/lib/sage/scripts"
+export SAGE_SPKG_WHEELS="$SAGE_INST_LOCAL/var/lib/sage/wheels"
 
 # Remove '.' from PYTHONPATH, to avoid trouble with setuptools / easy_install
 # (cf. #10192, #10176):

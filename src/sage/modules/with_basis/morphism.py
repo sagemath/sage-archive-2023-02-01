@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Module with basis morphisms
 
@@ -90,20 +91,25 @@ compatibility is guaranteed in this case::
 AUTHORS:
 
 - Nicolas M. Thiery (2008-2015)
+
 - Jason Bandlow and Florent Hivert (2010): Triangular Morphisms
+
 - Christian Stump (2010): :trac:`9648` module_morphism's to a wider class
   of codomains
 
 Before :trac:`8678`, this hierarchy of classes used to be in
 sage.categories.modules_with_basis; see :trac:`8678` for the complete log.
 """
-#*****************************************************************************
+
+# ****************************************************************************
 #  Copyright (C) 2015 Nicolas M. Thiery <nthiery at users.sf.net>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
-from __future__ import print_function
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
@@ -1455,8 +1461,8 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
                 domain.base_ring()    == codomain.base_ring()):
             raise ValueError("The domain and codomain should have the same base ring "
                              "and the same basis indexing")
-        import collections
-        if not isinstance(diagonal, collections.Callable):
+        from collections.abc import Callable
+        if not isinstance(diagonal, Callable):
             raise ValueError("diagonal (=%s) should be a function"%diagonal)
         if category is None:
             category = ModulesWithBasis(domain.base_ring())

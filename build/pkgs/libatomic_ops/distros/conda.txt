@@ -1,0 +1,2 @@
+# this needs a rectification from Conda people
+# libatomic_ops

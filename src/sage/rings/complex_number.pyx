@@ -237,6 +237,15 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self.str()
 
+    def _mathematica_init_(self):
+        """
+        EXAMPLES::
+
+            sage: mathematica(CC(3.5e-15, 2.3e15))  # indirect doctest, optional - mathematica
+            3.5*^-15 + 2.3*^15*I
+        """
+        return self.str(e='*^')
+
     def _maxima_init_(self, I=None):
         """
         Return a string representation of this complex number in the syntax of

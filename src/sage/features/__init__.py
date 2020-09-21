@@ -74,13 +74,13 @@ class TrivialClasscallMetaClass(type):
 _trivial_unique_representation_cache = dict()
 
 class TrivialUniqueRepresentation(metaclass=TrivialClasscallMetaClass):
-    """
+    r"""
     A trivial version of :class:`UniqueRepresentation` without Cython dependencies.
     """
 
     @staticmethod
     def __classcall__(cls, *args, **options):
-        """
+        r"""
         Construct a new object of this class or reuse an existing one.
         """
         key = (cls, tuple(args), frozenset(options.items()))
@@ -166,7 +166,7 @@ class Feature(TrivialUniqueRepresentation):
         return self._cache_is_present
 
     def _is_present(self):
-        """
+        r"""
         Override this in a derived class to implement the feature check.
 
         This should return either an instance of
@@ -393,7 +393,7 @@ class PackageSystem(Feature):
         Feature('conda')
     """
     def _is_present(self):
-        """
+        r"""
         Test whether ``self`` appears in the list of available package systems.
 
         EXAMPLES::
@@ -406,7 +406,7 @@ class PackageSystem(Feature):
         return self in package_systems()
 
     def spkg_installation_hint(self, spkgs, *, prompt="  !", feature=None):
-        """
+        r"""
         Return a string that explains how to install ``feature``.
 
         EXAMPLES::
@@ -423,7 +423,7 @@ class PackageSystem(Feature):
         return self._spkg_installation_hint(spkgs, prompt, feature)
 
     def _spkg_installation_hint(self, spkgs, prompt, feature):
-        """
+        r"""
         Return a string that explains how to install ``feature``.
 
         Override this method in derived classes.
@@ -466,7 +466,7 @@ class SagePackageSystem(PackageSystem):
     """
     @staticmethod
     def __classcall__(cls):
-        """
+        r"""
         Normalize initargs.
 
         TESTS::
@@ -478,7 +478,7 @@ class SagePackageSystem(PackageSystem):
         return PackageSystem.__classcall__(cls, "sage_spkg")
 
     def _is_present(self):
-        """
+        r"""
         Test whether ``sage-spkg`` is available.
 
         EXAMPLES::
@@ -496,7 +496,7 @@ class SagePackageSystem(PackageSystem):
             return False
 
     def _spkg_installation_hint(self, spkgs, prompt, feature):
-        """
+        r"""
         Return a string that explains how to install ``feature``.
 
         EXAMPLES::
@@ -523,7 +523,7 @@ class PipPackageSystem(PackageSystem):
     """
     @staticmethod
     def __classcall__(cls):
-        """
+        r"""
         Normalize initargs.
 
         TESTS::
@@ -535,7 +535,7 @@ class PipPackageSystem(PackageSystem):
         return PackageSystem.__classcall__(cls, "pip")
 
     def _is_present(self):
-        """
+        r"""
         Test whether ``pip`` is available.
 
         EXAMPLES::

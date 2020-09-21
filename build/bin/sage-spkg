@@ -24,8 +24,9 @@
 #  A package may assume that the following environment
 #  variables are defined:
 #
-#      SAGE_ROOT      -- root directory of sage install
-#      SAGE_LOCAL     -- $SAGE_ROOT/local
+#      SAGE_ROOT      -- root directory of sage distribution
+#      SAGE_LOCAL     -- prefix where packages are installed (usually $SAGE_ROOT/local)
+#      SAGE_INST_LOCAL-- prefix where to install this package (default: $SAGE_LOCAL)
 #      SAGE_DISTFILES -- directory that stores upstream tarballs
 #      SAGE_DESTDIR   -- temporary root the package will be installed to
 #      PKG_BASE       -- the base name of the package itself (e.g. 'patch')
@@ -169,6 +170,9 @@ fi
 . sage-env-config
 . sage-env
 
+if [ -z "$SAGE_INST_LOCAL" ]; then
+    export SAGE_INST_LOCAL="$SAGE_LOCAL"
+fi
 
 if [ $? -ne 0 ]; then
     error_msg "Error setting environment variables by sourcing sage-env"
@@ -176,7 +180,7 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ -z "$SAGE_BUILD_DIR" ]; then
-    export SAGE_BUILD_DIR="$SAGE_LOCAL/var/tmp/sage/build"
+    export SAGE_BUILD_DIR="$SAGE_INST_LOCAL/var/tmp/sage/build"
 fi
 
 
@@ -391,12 +395,12 @@ if [ ! -w "$SAGE_BUILD_DIR" ]; then
     error_msg "Error: no write access to build directory $SAGE_BUILD_DIR"
     exit 1
 fi
-if [ ! -d "$SAGE_LOCAL" ]; then
+if [ ! -d "$SAGE_INST_LOCAL" ]; then
     # If you just unpack Sage and run "sage -p <pkg>" then local does not yet exist
-    mkdir "$SAGE_LOCAL"
+    mkdir "$SAGE_INST_LOCAL"
 fi
-if [ ! -w "$SAGE_LOCAL" ]; then
-    error_msg "Error: no write access to installation directory $SAGE_LOCAL"
+if [ ! -w "$SAGE_INST_LOCAL" ]; then
+    error_msg "Error: no write access to installation directory $SAGE_INST_LOCAL"
     exit 1
 fi
 
@@ -555,7 +559,7 @@ done
 if [ ! -f spkg-install ]; then
     echo '#!/usr/bin/env bash' > spkg-install
     if [ -x configure ]; then
-        echo './configure --prefix="$SAGE_LOCAL" && make && $SAGE_SUDO make install' >> spkg-install
+        echo './configure --prefix="$SAGE_INST_LOCAL" && make && $SAGE_SUDO make install' >> spkg-install
     elif [ -f setup.py ]; then
         echo 'python setup.py install' >> spkg-install
     else
@@ -596,6 +600,7 @@ export rsync_proxy=$http_proxy
 ##################################################################
 
 if [ "$UNAME" = "CYGWIN" ]; then
+    # This is a global lock - so we use SAGE_LOCAL, not SAGE_INST_LOCAL.
     if [ ! -d "$SAGE_LOCAL/var/lock" ]; then
         mkdir -p "$SAGE_LOCAL/var/lock"
     fi
@@ -614,9 +619,9 @@ export SAGE_DESTDIR="${SAGE_BUILD_DIR}/${PKG_NAME}/inst"
 
 # The actual prefix where the installation will be staged. This is the
 # directory that you need to work in if you want to change the staged
-# installation tree (before final installation to $SAGE_LOCAL) at the
+# installation tree (before final installation to $SAGE_INST_LOCAL) at the
 # end of spkg-install.
-export SAGE_DESTDIR_LOCAL="${SAGE_DESTDIR}${SAGE_LOCAL}"
+export SAGE_DESTDIR_LOCAL="${SAGE_DESTDIR}${SAGE_INST_LOCAL}"
 
 # First uninstall the previous version of this package, if any
 if [ "$KEEP_EXISTING" != "yes" ]; then

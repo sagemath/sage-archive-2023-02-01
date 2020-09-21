@@ -5,6 +5,9 @@
 #
 # This script is run by SAGE_ROOT/bootstrap as part of the bootstrapping phase
 # (before configure, before creating source distributions).
+#
+# The BOOTSTRAP_QUIET variable is set by the top-level
+# bootstrap script and controls how verbose we are.
 ########################################################################
 
 set -e
@@ -49,14 +52,18 @@ for SYSTEM in arch debian fedora cygwin homebrew; do
             fi
         fi
     done
-    echo >&2 $0:$LINENO: installing "$OUTPUT_DIR"/$SYSTEM.txt and "$OUTPUT_DIR"/$SYSTEM-optional.txt
+    if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
+	echo >&2 $0:$LINENO: installing "$OUTPUT_DIR"/$SYSTEM.txt and "$OUTPUT_DIR"/$SYSTEM-optional.txt
+    fi
     echo "$(sage-print-system-package-command $SYSTEM --prompt --sudo install $(echo $(echo $SYSTEM_PACKAGES | xargs -n 1 echo | sort)))" > "$OUTPUT_DIR"/$SYSTEM.txt
     echo "$(sage-print-system-package-command $SYSTEM --prompt --sudo install $(echo $(echo $OPTIONAL_SYSTEM_PACKAGES | xargs -n 1 echo | sort)))" > "$OUTPUT_DIR"/$SYSTEM-optional.txt
 done
 
 OUTPUT_DIR="src/doc/en/reference/spkg"
 mkdir -p "$OUTPUT_DIR"
-echo >&2 $0:$LINENO: installing "$OUTPUT_DIR"/"*.rst"
+if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
+    echo >&2 $0:$LINENO: installing "$OUTPUT_DIR"/"*.rst"
+fi
 OUTPUT_INDEX="$OUTPUT_DIR"/index.rst
 cat > "$OUTPUT_INDEX" <<EOF
 
@@ -86,5 +93,7 @@ EOF
 OUTPUT_DIR="src/doc/en/reference/repl"
 mkdir -p "$OUTPUT_DIR"
 OUTPUT="$OUTPUT_DIR/options.txt"
-echo >&2 $0:$LINENO: installing "$OUTPUT"
+if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
+    echo >&2 $0:$LINENO: installing "$OUTPUT"
+fi
 ./sage -advanced > "$OUTPUT"

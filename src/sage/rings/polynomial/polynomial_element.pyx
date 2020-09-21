@@ -7539,6 +7539,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p.roots(ring=QQbar)
             [(-5.9223865215328558?e225, 1), (5.9223865215328558?e225, 1)]
 
+        Check that :trac:`30522` is fixed::
+
+            sage: PolynomialRing(SR, names="x")("x^2").roots()
+            [(0, 2)]
+
         Algorithms used:
 
         For brevity, we will use RR to mean any RealField of any precision;
@@ -7837,7 +7842,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     l = [((-coeffs[1]-I*sqrt(-D))/2/coeffs[2], 1),
                          ((-coeffs[1]+I*sqrt(-D))/2/coeffs[2], 1)]
                 else:
-                    l = [(-coeffs[1]/2/coeffs[2]), 2]
+                    l = [(-coeffs[1]/2/coeffs[2], 2)]
                 if multiplicities:
                     return l
                 else:

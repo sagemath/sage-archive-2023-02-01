@@ -1,4 +1,4 @@
-# Shell functions for making spkg-install scripts a little easier to write,
+# -*- shell-script -*- functions for making spkg-install scripts a little easier to write,
 # eliminating duplication.  All Sage helper functions begin with sdh_ (for
 # Sage-distribution helper).  Consult the below documentation for the list of
 # available helper functions.
@@ -205,15 +205,51 @@ sdh_pip_install() {
     echo "Installing $PKG_NAME"
     if [ -n "$SAGE_DESTDIR" ]; then
         local sudo=""
-        local root="--root=$SAGE_DESTDIR"
+    else
+        local sudo="$SAGE_SUDO"
+    fi
+    $sudo sage-pip-uninstall "$@" || \
+        sdh_die "Error uninstalling a previous version of $PKG_NAME"
+
+    mkdir -p dist
+    rm -f dist/*.whl
+    sage-python23 -m pip wheel --wheel-dir=dist --no-binary :all: --verbose --no-deps --no-index --isolated --no-build-isolation "$@" || \
+        sdh_die "Error building a wheel for $PKG_NAME"
+
+    sdh_store_and_pip_install_wheel .
+}
+
+sdh_store_and_pip_install_wheel() {
+    if [ -n "$SAGE_DESTDIR" ]; then
+        local sudo=""
+        # --no-warn-script-location: Suppress a warning caused by --root
+        local root="--root=$SAGE_DESTDIR --no-warn-script-location"
     else
         local sudo="$SAGE_SUDO"
         local root=""
     fi
-    $sudo sage-pip-install $root "$@" || \
-        sdh_die "Error installing $PKG_NAME"
-}
+    if [ "$*" != "." ]; then
+        sdh_die "Error: sdh_store_and_pip_install_wheel requires . as only argument"
+    fi
+    wheel=""
+    for w in dist/*.whl; do
+        if [ -n "$wheel" ]; then
+            sdh_die "Error: more than one wheel found after building"
+        fi
+        if [ -f "$w" ]; then
+            wheel="$w"
+        fi
+    done
+    if [ -z "$wheel" ]; then
+        sdh_die "Error: no wheel found after building"
+    fi
 
+    $sudo sage-pip-install $root "$wheel" || \
+        sdh_die "Error installing $wheel"
+    mkdir -p "${SAGE_DESTDIR}${SAGE_SPKG_WHEELS}" && \
+        $sudo mv "$wheel" "${SAGE_DESTDIR}${SAGE_SPKG_WHEELS}/" || \
+        sdh_die "Error storing $wheel"
+}
 
 sdh_cmake() {
     echo "Configuring $PKG_NAME with cmake"

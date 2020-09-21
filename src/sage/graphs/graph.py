@@ -424,6 +424,10 @@ from sage.graphs.independent_sets import IndependentSets
 from sage.misc.rest_index_of_methods import doc_index, gen_thematic_rest_table_index
 from sage.graphs.views import EdgesView
 
+from sage.misc.lazy_import import lazy_import
+from sage.features import PythonModule
+lazy_import('sage.graphs.mcqd', ['mcqd'],
+            feature=PythonModule('sage.graphs.mcqd', spkg='mcqd'))
 
 class Graph(GenericGraph):
     r"""
@@ -2718,8 +2722,9 @@ class Graph(GenericGraph):
         # TDLIB
         if algorithm == 'tdlib':
             if not tdlib_found:
-                from sage.misc.package import PackageNotFoundError
-                raise PackageNotFoundError("tdlib")
+                from sage.features import FeatureNotPresentError
+                raise FeatureNotPresentError(PythonModule('sage.graphs.graph_decompositions.tdlib',
+                                                          spkg='tdlib'))
 
             T = tdlib.treedecomposition_exact(g, -1 if k is None else k)
             width = tdlib.get_width(T)
@@ -6411,11 +6416,6 @@ class Graph(GenericGraph):
         elif algorithm == "MILP":
             return self.complement().independent_set(algorithm=algorithm, solver=solver, verbosity=verbose)
         elif algorithm == "mcqd":
-            try:
-                from sage.graphs.mcqd import mcqd
-            except ImportError:
-                from sage.misc.package import PackageNotFoundError
-                raise PackageNotFoundError("mcqd")
             return mcqd(self)
         else:
             raise NotImplementedError("Only 'MILP', 'Cliquer' and 'mcqd' are supported.")
@@ -6514,11 +6514,6 @@ class Graph(GenericGraph):
         elif algorithm == "MILP":
             return len(self.complement().independent_set(algorithm=algorithm, solver=solver, verbosity=verbose))
         elif algorithm == "mcqd":
-            try:
-                from sage.graphs.mcqd import mcqd
-            except ImportError:
-                from sage.misc.package import PackageNotFoundError
-                raise PackageNotFoundError("mcqd")
             return len(mcqd(self))
         else:
             raise NotImplementedError("Only 'networkx' 'MILP' 'Cliquer' and 'mcqd' are supported.")

@@ -351,7 +351,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: a = 0
         sage: b = 2
         sage: T = RealDistribution('uniform', [a, b])
-        sage: a <= T.get_random_element() < b
+        sage: a <= T.get_random_element() <= b
         True
         sage: T.distribution_function(0)
         0.5
@@ -380,6 +380,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: sigma = 3
         sage: T = RealDistribution('rayleigh', sigma)
         sage: s = T.get_random_element()
+        sage: s >= 0
+        True
         sage: s.parent()
         Real Double Field
         sage: T.distribution_function(0)
@@ -396,6 +398,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: sigma = 1
         sage: T = RealDistribution('lognormal', [zeta, sigma])
         sage: s = T.get_random_element()
+        sage: s >= 0
+        True
         sage: s.parent()
         Real Double Field
         sage: T.distribution_function(0)
@@ -411,6 +415,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: b = 1
         sage: T = RealDistribution('pareto', [a, b])
         sage: s = T.get_random_element()
+        sage: s >= b
+        True
         sage: s.parent()
         Real Double Field
         sage: T.distribution_function(0)
@@ -439,6 +445,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: nu1 = 9; nu2 = 17
         sage: F = RealDistribution('F', [nu1,nu2])
         sage: s = F.get_random_element()
+        sage: s >= 0
+        True
         sage: s.parent()
         Real Double Field
         sage: F.distribution_function(1)  # rel tol 1e-14
@@ -453,6 +461,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: nu = 1
         sage: T = RealDistribution('chisquared', nu)
         sage: s = T.get_random_element()
+        sage: s >= 0
+        True
         sage: s.parent()
         Real Double Field
         sage: T.distribution_function(0)
@@ -482,6 +492,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: b = 2
         sage: T = RealDistribution('beta', [a, b])
         sage: s = T.get_random_element()
+        sage: 0 <= s <= 1
+        True
         sage: s.parent()
         Real Double Field
         sage: T.distribution_function(0)
@@ -495,6 +507,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: b = 1
         sage: T = RealDistribution('weibull', [a, b])
         sage: s = T.get_random_element()
+        sage: s >= 0
+        True
         sage: s.parent()
         Real Double Field
         sage: T.distribution_function(0)
@@ -989,8 +1003,8 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         sage: nr_samples = 10000
         sage: for _ in range(nr_samples):
         ....:     counts[X.get_random_element()] += 1
-        sage: [1.0*x/nr_samples for x in counts]  # abs tol 1e-1
-        [0.304200000000000, 0.397300000000000, 0.298500000000000]
+        sage: [1.0*x/nr_samples for x in counts]  # abs tol 3e-2
+        [0.3, 0.4, 0.3]
 
 
     The distribution probabilities will automatically be normalised::

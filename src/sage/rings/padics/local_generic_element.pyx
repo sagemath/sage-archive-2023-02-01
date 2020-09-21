@@ -201,13 +201,13 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
     def slice(self, i, j, k = 1, lift_mode='simple'):
         r"""
-        Returns the sum of the `p^{i + l \cdot k}` terms of the series
-        expansion of this element, where p is the uniformizer, 
+        Returns the sum of the `pi^{i + l \cdot k}` terms of the series
+        expansion of this element, where pi is the uniformizer, 
         for `i + l \cdot k` between ``i`` and ``j-1`` inclusive, and 
         nonnegative integers `l`. Behaves analogously to the slice 
         function for lists.
-        Currently implemented for one-step eisenstein or unramified padic
-        extensions, or for two-step (unramified and then eisenstein) 
+        Currently implemented for padic base-rings, one-step eisenstein
+        or unramified extensions, or two-step (unramified and then eisenstein)
         extensions.
 
         INPUT:
@@ -302,6 +302,19 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: b.slice(0,9,2)
             5^2 + O(5^8)
 
+        Test that slices also work over eisenstein extensions::
+            
+            sage: F = Qp(5)
+            sage: H.<x> = F[]
+            sage: T.<t> = F.extension(x^2-5)
+            sage: a = T(3*t^-2 + 1 + 4*t + 2*t^2)
+            sage: a.slice(0, 1)
+            1 + O(t)
+            sage: a.slice(-3, 4)
+            3*t^-2 + 1 + 4*t + 2*t^2 + O(t^4)
+            sage: a.slice(-2, 6, 3)
+            3*t^-2 + 4*t + O(t^6)
+
         Test that slices also work over unramified extensions::
             
             sage: F = Qp(5)
@@ -340,7 +353,6 @@ cdef class LocalGenericElement(CommutativeRingElement):
             2*5^2 + 2*5^3 + O(5^5)
 
         """
-        from sage.rings.padics.padic_extension_generic import pAdicExtensionGeneric
         
         if i is None:
             i = self.valuation()
@@ -368,45 +380,22 @@ cdef class LocalGenericElement(CommutativeRingElement):
             start = 0
         stop = max(stop, 0)
 
-        # the increase of the p-power in every step
+        # the increase of the pi-power in every step
         pk = self.parent().uniformizer_pow(k)
-        # the p-power of the first term
+        # the pi-power of the first term
         ppow = self.parent().uniformizer_pow(i)
-        
-        # classify the type of padic field 
-        if isinstance(self.parent(), pAdicExtensionGeneric):
-            ext_type = self.parent()._extension_type()
-        # base fields are treated here as Eisenstein extensions.
-        else:
-            ext_type = "Eisenstein"
 
         # construct the return value
         ans = self.parent().zero()
-        if ext_type == "Eisenstein":
-            # one-step eisenstein extension
-            if self.parent().absolute_degree() == self.parent().relative_degree():
-                for c in islice(self.expansion(lift_mode=lift_mode),
-                                int(start), int(stop), int(k)):
-                    ans += ppow * c
-                    ppow *= pk
-                generator = 0
-            # two-step extension (unramified and then eisenstein)
-            else:
-                generator = self.parent().base_ring().gen()
-        # one-step unramified extension
-        elif ext_type == "Unramified":
-            generator = self.parent().gen()
-        # sage currently supports only Eisenstein / unramified expansions.
-        else:
-            raise NotImplementedError
-        if generator != 0:
-            for c in islice(self.expansion(lift_mode=lift_mode),
-                                int(start), int(stop), int(k)):
-                genpow = 1
-                for d in c:
-                    ans += d * genpow * ppow                    
-                    genpow *= generator
-                ppow *= pk
+        unramified_generator = self.parent()(self.parent().residue_field().gen()).lift_to_precision()
+        for c in islice(self.expansion(lift_mode=lift_mode), int(start), int(stop), int(k)):
+            genpow = 1
+            if not isinstance(c, list): c = [c] # relevant for the case of base-rings, or one-step
+                                                # eisenstein extensions
+            for d in c:
+                ans += d * genpow * ppow
+                genpow *= unramified_generator
+            ppow *= pk
 
         # fix the precision of the return value
         if j < ans.precision_absolute() or self.precision_absolute() < ans.precision_absolute():

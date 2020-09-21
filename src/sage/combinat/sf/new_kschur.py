@@ -109,23 +109,23 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
         self.t = R(t)
 
         category = GradedHopfAlgebras(R) if t == 1 else GradedCoalgebras(R)
-        Parent.__init__(self, category = category.Subobjects().WithRealizations())
+        Parent.__init__(self, category=category.Subobjects().WithRealizations())
 
         ks = self.kschur()
         # Coercions
         if t == 1:
             s = ks.ambient()
-            kh = self.khomogeneous(); h = kh.ambient()
-            h_to_s   = s._internal_coerce_map_from(h)
+            kh = self.khomogeneous()
+            h = kh.ambient()
+            h_to_s = s._internal_coerce_map_from(h)
             kh_to_ks = ks.retract * h_to_s * kh.lift
             ks.register_coercion(kh_to_ks)
-            s_to_h   = h._internal_coerce_map_from(s)
+            s_to_h = h._internal_coerce_map_from(s)
             ks_to_kh = kh.retract * s_to_h * ks.lift
             kh.register_coercion(ks_to_kh)
         # temporary workaround until handled by trac 125959
             self.one = ConstantFunction(ks.one())
         self.zero = ConstantFunction(ks.zero())
-
 
     def retract(self, sym):
         r"""

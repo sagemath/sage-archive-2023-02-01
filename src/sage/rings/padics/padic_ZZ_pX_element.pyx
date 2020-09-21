@@ -181,6 +181,9 @@ cdef class pAdicZZpXElement(pAdicExtElement):
             sage: T.<a> = Qp(5).extension(x^2-5)
             sage: T([5^-2], absprec=-1)
             a^-4 + O(a^-1)
+            sage: G.<g> = Qp(5).extension(x^2-5)
+            sage: G(a^-41)
+            g^-41 + O(g^-2)
         """
         cdef ntl_ZZ_pContext_class ctx
         L, min_val, ctx = preprocess_list(self, L)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Map graphs
+Graphs from the World Map
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """

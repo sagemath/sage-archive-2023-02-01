@@ -31,9 +31,10 @@ for l in readline ; do
         CPATH="$HOMEBREW/opt/$l/include:$CPATH"
     fi
 done
-for l in "gcc@9/lib/gcc/9"; do
+for l in "gcc/lib/gcc/10 gcc/lib/gcc/9"; do
     if [ -d "$HOMEBREW/opt/$l" ]; then
         LIBRARY_PATH="$HOMEBREW/opt/$l:$LIBRARY_PATH"
+        break
     fi
 done
 export LIBRARY_PATH

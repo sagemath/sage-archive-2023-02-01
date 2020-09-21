@@ -589,10 +589,13 @@ class PseudoRiemannianManifold(DifferentiableManifold):
         r"""
         Volume form (Levi-Civita tensor) `\epsilon` associated with ``self``.
 
-        This assumes that ``self`` is an orientable manifold.
+        This assumes that ``self`` is an orientable manifold, with a
+        preferred orientation; see
+        :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.orientation`
+        for details.
 
         The volume form `\epsilon` is a `n`-form (`n` being the manifold's
-        dimension) such that for any vector basis `(e_i)` that is orthonormal
+        dimension) such that, for any vector frame `(e_i)` that is orthonormal
         with respect to the metric of the pseudo-Riemannian manifold ``self``,
 
         .. MATH::
@@ -600,8 +603,9 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             \epsilon(e_1,\ldots,e_n) = \pm 1
 
         There are only two such `n`-forms, which are opposite of each other.
-        The volume form `\epsilon` is selected such that the default frame
-        of ``self`` is right-handed with respect to it.
+        The volume form `\epsilon` is selected as the one that returns `+1` for
+        any right-handed vector frame with respect to the chosen orientation of
+        ``self``.
 
         INPUT:
 

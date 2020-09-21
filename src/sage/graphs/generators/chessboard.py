@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Chessboard Graphs
+Chessboard graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 

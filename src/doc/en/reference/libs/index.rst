@@ -138,13 +138,6 @@ PARI
    sage/libs/pari/convert_sage
    sage/rings/pari_ring
 
-PPL
----
-.. toctree::
-   :maxdepth: 2
-
-   sage/libs/ppl
-
 ratpoints
 ---------
 .. toctree::

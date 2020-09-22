@@ -424,6 +424,15 @@ class FindStat(UniqueRepresentation, SageObject):
 ######################################################################
 def _get_json(url, **kwargs):
     """
+    Return the json response or raise an error.
+
+    EXAMPLES::
+
+        sage: from sage.databases.findstat import _get_json
+        sage: _get_json("https://nonexistingfindstaturl.org")
+        Traceback (most recent call last):
+        ...
+        ConnectionError: HTTPSConnectionPool(host='nonexistingfindstaturl.org', port=443): Max retries exceeded with url: / (Caused by NewConnectionError('...Failed to establish a new connection: [Errno -2] Name or service not known'))
     """
     response = requests.get(url)
     if response.ok:

@@ -109,15 +109,13 @@ SAGE_SCRIPTS
     }
 
     function addLabel( text, x, y, z, color='black', fontSize=14, fontFamily='monospace',
-                       italic=false, bold=false, opacity=1 ) {
+                       fontStyle='normal', fontWeight='normal', opacity=1 ) {
 
         var canvas = document.createElement( 'canvas' );
         var context = canvas.getContext( '2d' );
         var pixelRatio = Math.round( window.devicePixelRatio );
 
-        var font = fontSize + 'px ' + fontFamily;
-        if ( italic ) font = 'italic ' + font;
-        if ( bold ) font = 'bold ' + font;
+        var font = [fontStyle, fontWeight, fontSize + 'px', fontFamily].join(' ');
 
         context.font = font;
         var width = context.measureText( text ).width;
@@ -258,12 +256,13 @@ SAGE_SCRIPTS
     for ( var i=0 ; i < texts.length ; i++ ) addText( texts[i] );
 
     function addText( json ) {
-        json.font = json.font.map( function( f ) {
+        json.fontFamily = json.fontFamily.map( function( f ) {
             // Need to put quotes around fonts that have whitespace in their names.
             return /\s/.test( f ) ? '"' + f + '"' : f;
         }).join(', ');
         var sprite = addLabel( json.text, a[0]*json.x, a[1]*json.y, a[2]*json.z, json.color,
-                               json.size, json.font, json.italic, json.bold, json.opacity );
+                               json.fontSize, json.fontFamily, json.fontStyle, json.fontWeight,
+                               json.opacity );
         sprite.userData = json;
     }
 

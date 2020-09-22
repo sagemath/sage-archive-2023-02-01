@@ -693,13 +693,18 @@ def text3d(txt, x_y_z, **kwds):
         sage: text3d("Sage is...",(2,12,1), color=(1,0,0)) + text3d("quite powerful!!",(4,10,0), color=(0,0,1))
         Graphics3d Object
 
-    Adjust the font size, family, and style (Three.js viewer only)::
+    Adjust the font size, family, style, and weight (Three.js viewer only)::
 
-        sage: t1 = text3d("Hello", (1, 2, 3), size=25, font='serif', italic=True)
-        sage: t2 = text3d("World", (3, 2, 1), size=10, font='sans-serif', bold=True)
-        sage: t3 = text3d("Font fallbacks", (0, 1, 0), font=['Consolas', 'Lucida Console', 'monospace'])
-        sage: t4 = text3d("Another way", (0, -1, 0), font='Consolas, Lucida Console, monospace')
-        sage: show(t1 + t2 + t3 + t4, viewer='threejs')
+        sage: t0 = text3d("Pixel size", (0, 0, 0), fontsize=20)
+        sage: t1 = text3d("Percentage size", (0, 0, 1), fontsize='300%')
+        sage: t2 = text3d("Keyword size", (0, 0, 2), fontsize='x-small')
+        sage: t3 = text3d("Single family", (0, 0, 3), fontfamily='serif')
+        sage: t4 = text3d("Family fallback", (0, 0, 4), fontfamily=['Consolas', 'Lucida Console', 'monospace'])
+        sage: t5 = text3d("Another way", (0, 0, 5), fontfamily='Consolas, Lucida Console, monospace')
+        sage: t6 = text3d("Style", (0, 0, 6), fontstyle='italic')
+        sage: t7 = text3d("Keyword weight", (0, 0, 7), fontweight='bold')
+        sage: t8 = text3d("Integer weight (1-1000)", (0, 0, 8), fontweight=800) # 'extra bold'
+        sage: sum([t0, t1, t2, t3, t4, t5, t6, t7, t8]).show(viewer='threejs', frame=False)
 
     Adjust the text's opacity (Three.js viewer only)::
 

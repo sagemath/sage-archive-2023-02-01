@@ -422,6 +422,14 @@ class FindStat(UniqueRepresentation, SageObject):
 ######################################################################
 # tools
 ######################################################################
+def _get_json(url, **kwargs):
+    """
+    """
+    response = requests.get(url)
+    if response.ok:
+        return response.json(**kwargs)
+    raise ConnectionError(response.text)
+
 def _submit(args, url):
     """
     Open a post form containing fields for each of the arguments,
@@ -2160,7 +2168,7 @@ class FindStatStatistic(Element,
                + "&fields[Bibliography]=" + fields_Bibliography)
         verbose("fetching statistic data %s" % url, caller_name='FindStatStatistic')
 
-        included = requests.get(url).json()["included"]
+        included = _get_json(url)["included"]
         # slightly simplify the representation
         data = {key: val for key, val in included["Statistics"][self.id_str()].items()}
         # we replace the list of identifiers in Bibliography with the dictionary
@@ -2182,7 +2190,7 @@ class FindStatStatistic(Element,
         """
         fields = "Values"
         url = FINDSTAT_API_STATISTICS + self.id_str() + "?fields=" + fields
-        values = requests.get(url).json()["included"]["Statistics"][self.id_str()]["Values"]
+        values = _get_json(url)["included"]["Statistics"][self.id_str()]["Values"]
         return [tuple(pair) for pair in values]
 
     def set_first_terms(self, values):
@@ -2437,7 +2445,7 @@ class FindStatStatistics(UniqueRepresentation, Parent):
             else:
                 url = FINDSTAT_API_STATISTICS + "?Domain=%s" % self._domain.id_str()
 
-            self._identifiers = requests.get(url).json()["data"]
+            self._identifiers = _get_json(url)["data"]
 
         for st in self._identifiers:
             yield FindStatStatistic(st)
@@ -2719,9 +2727,9 @@ class FindStatCompoundStatistic(Element, FindStatCombinatorialStatistic):
         fields = "Values"
         url = FINDSTAT_API_STATISTICS + self.id_str() + "?fields=" + fields
         if len(self._maps):
-            values = requests.get(url).json()["included"]["CompoundStatistics"][self.id_str()]["Values"]
+            values = _get_json(url)["included"]["CompoundStatistics"][self.id_str()]["Values"]
         else:
-            values = requests.get(url).json()["included"]["Statistics"][self.id_str()]["Values"]
+            values = _get_json(url)["included"]["Statistics"][self.id_str()]["Values"]
         return [(sequence[0], sequence[-1]) for sequence in values]
 
     def domain(self):
@@ -3044,7 +3052,7 @@ class FindStatMap(Element,
                + "?fields=" + fields
                + "&fields[Bibliography]=" + fields_Bibliography)
         verbose("fetching map data %s" % url, caller_name='FindStatMap')
-        included = requests.get(url).json()["included"]
+        included = _get_json(url)["included"]
         # slightly simplify the representation
         data = {key: val for key, val in included["Maps"][self.id_str()].items()}
         # we replace the list of identifiers in Bibliography with the dictionary
@@ -3316,7 +3324,7 @@ class FindStatMaps(UniqueRepresentation, Parent):
                 url = FINDSTAT_API_MAPS + "?" + "&".join(query)
             else:
                 url = FINDSTAT_API_MAPS
-            self._identifiers = requests.get(url).json()["data"]
+            self._identifiers = _get_json(url)["data"]
 
         for mp in self._identifiers:
             yield FindStatMap(mp)
@@ -4451,8 +4459,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
         """
         fields = "LevelsWithSizes,Name,NamePlural,NameWiki"
         url = FINDSTAT_API_COLLECTIONS + "?fields=" + fields
-        response = requests.get(url)
-        d = response.json(object_pairs_hook=OrderedDict)
+        d = _get_json(url, object_pairs_hook=OrderedDict)
         self._findstat_collections = d["included"]["Collections"]
         for id, data in self._findstat_collections.items():
             data["LevelsWithSizes"] = OrderedDict((literal_eval(level), size)

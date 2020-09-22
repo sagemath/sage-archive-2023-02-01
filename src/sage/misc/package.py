@@ -102,7 +102,8 @@ def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
         sage: pypi = 'http://this.is.not.pypi.com/'
         sage: pip_remote_version(nap, pypi_url=pypi, ignore_URLError=True) # optional - internet
         doctest:...: UserWarning: failed to fetch the version of
-        pkg='hey_this_is_NOT_a_python_package' at http://this.is.not.pypi.com/
+        pkg='hey_this_is_NOT_a_python_package' at
+        http://this.is.not.pypi.com/.../json
         sage: pip_remote_version(nap, pypi_url=pypi, ignore_URLError=False) # optional - internet
         Traceback (most recent call last):
         ...

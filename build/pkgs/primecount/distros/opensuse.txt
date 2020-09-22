@@ -1,1 +1,2 @@
-primecount libprimecount-devel
+primecount
+libprimecount-devel

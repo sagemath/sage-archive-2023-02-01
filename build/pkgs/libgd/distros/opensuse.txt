@@ -1,1 +1,2 @@
-gd pkgconfig(gd)
+gd
+"pkgconfig(gd)"

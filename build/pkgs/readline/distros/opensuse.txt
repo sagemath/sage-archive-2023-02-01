@@ -1,1 +1,1 @@
-pkgconfig(readline)
+"pkgconfig(readline)"

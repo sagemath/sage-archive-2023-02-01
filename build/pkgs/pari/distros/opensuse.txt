@@ -1,1 +1,2 @@
-pari-devel pari-gp
+pari-devel
+pari-gp

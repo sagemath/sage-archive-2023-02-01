@@ -1,1 +1,2 @@
-barvinok pkgconfig(barvinok)
+barvinok
+"pkgconfig(barvinok)"

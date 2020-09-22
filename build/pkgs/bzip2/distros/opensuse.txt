@@ -1,1 +1,1 @@
-pkgconfig(bzip2)
+"pkgconfig(bzip2)"

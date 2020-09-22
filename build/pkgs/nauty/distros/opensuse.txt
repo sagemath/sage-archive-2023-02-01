@@ -1,1 +1,2 @@
-nauty nauty-devel
+nauty
+nauty-devel

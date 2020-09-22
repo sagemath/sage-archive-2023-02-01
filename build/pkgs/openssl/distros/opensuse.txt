@@ -1,1 +1,1 @@
-pkgconfig(ssl)
+"pkgconfig(ssl)"

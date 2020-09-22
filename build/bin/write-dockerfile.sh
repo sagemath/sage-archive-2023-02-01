@@ -119,7 +119,7 @@ ARG BASE_IMAGE=opensuse/leap:latest
 FROM \${BASE_IMAGE} as with-system-packages
 EOF
         UPDATE="zypper refresh &&"
-        INSTALL="zypper install"
+        INSTALL="zypper --ignore-unknown install --no-confirm --auto-agree-with-licenses --no-recommends --details"
         ;;
     conda*)
         cat <<EOF

@@ -407,7 +407,7 @@ class DecreasingHeckeFactorizations(UniqueRepresentation, Parent):
         """
         Return list of all elements of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorizations
             sage: S = SymmetricGroup(3+1)
@@ -610,15 +610,15 @@ class FullyCommutativeStableGrothendieckCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-            sage: S = SymmetricGroup(3+1)
-            sage: w = S.from_reduced_word([1, 3, 2])
-            sage: B = crystals.FullyCommutativeStableGrothendieck(w, 3, 2)
-            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-            sage: h = DecreasingHeckeFactorization([[3, 1], [3], [3, 2]], 4)
-            sage: u = B(h); u.value
-            ((3, 1), (3,), (3, 2))
-            sage: v = B([[3, 1], [3], [3, 2]]); v.value
-            ((3, 1), (3,), (3, 2))
+                sage: S = SymmetricGroup(3+1)
+                sage: w = S.from_reduced_word([1, 3, 2])
+                sage: B = crystals.FullyCommutativeStableGrothendieck(w, 3, 2)
+                sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
+                sage: h = DecreasingHeckeFactorization([[3, 1], [3], [3, 2]], 4)
+                sage: u = B(h); u.value
+                ((3, 1), (3,), (3, 2))
+                sage: v = B([[3, 1], [3], [3, 2]]); v.value
+                ((3, 1), (3,), (3, 2))
             """
             u = t
             if isinstance(t, DecreasingHeckeFactorization):

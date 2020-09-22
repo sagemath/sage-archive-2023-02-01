@@ -68,6 +68,9 @@ case $system:$command in
     void*:install)
         [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}xbps-install $system_packages"
         ;;
+    opensuse*:install)
+        [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}zypper install $system_packages"
+        ;;
     *conda*:install)
         [ -n "$system_packages" ] && echo "${PROMPT}conda install $system_packages"
         ;;

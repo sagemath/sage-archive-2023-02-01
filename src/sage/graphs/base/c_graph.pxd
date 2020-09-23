@@ -42,6 +42,7 @@ cdef class CGraph:
 
 cdef class CGraphBackend(GenericGraphBackend):
     cdef int get_vertex(self, u) except ? -2
+    cdef int get_vertex_checked(self, u) except ? -2
     cdef vertex_label(self, int u_int)
     cdef int check_labelled_vertex(self, u, bint reverse) except ? -1
     #cdef CGraph _cg  # a child class should declare this accordingly

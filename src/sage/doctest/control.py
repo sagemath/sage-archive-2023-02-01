@@ -44,7 +44,11 @@ nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')
 
 # Optional tags which are always automatically added
-auto_optional_tags = set(['py3'])
+
+from sage.libs.arb.arb_version import version as arb_vers
+arb_tag = 'arb2' + arb_vers().split('.')[1]
+
+auto_optional_tags = set(['py3', arb_tag])
 
 
 class DocTestDefaults(SageObject):
@@ -771,8 +775,8 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(optional='magma,guava')
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
-            sage: sorted(DC.sources[0].options.optional)  # abs tol 1
-            ['guava', 'magma', 'py2']
+            sage: all(t in DC.sources[0].options.optional for t in ['magma','guava'])
+            True
 
         We check that files are skipped appropriately::
 

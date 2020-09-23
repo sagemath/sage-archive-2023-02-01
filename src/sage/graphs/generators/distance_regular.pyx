@@ -2175,7 +2175,7 @@ def graph_with_classical_parameters(int d, int b, alpha_in, beta_in, int gamma):
 
 def is_pseudo_partition_graph(list arr):
     r"""
-    Return `(m, a)` if the intersection array given satisfy:
+    Return `(m, a)` if the intersection array given satisfies:
     `b_i = (m - i)(1 + a(m - 1 - i))` for `0 \leq i < d`
     `c_i = i(1 + a(i - 1))` for `0 \leq i < d`
     `c_d = (2d + 2 - m) d (1 + a(d - 1))` where `d` is the diameter of the graph.

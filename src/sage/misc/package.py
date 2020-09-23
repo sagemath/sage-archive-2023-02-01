@@ -541,16 +541,33 @@ class PackageNotFoundError(RuntimeError):
     - The required optional package is installed, but the relevant
       interface to that package is unable to detect the package.
 
+    Raising a ``PackageNotFoundError`` is deprecated.  Use
+    :class:`sage.features.FeatureNotPresentError` instead.
+
+    User code can continue to catch ``PackageNotFoundError`` exceptions
+    for compatibility with older versions of the Sage library.
+    This does not cause deprecation warnings.
+
     EXAMPLES::
 
         sage: from sage.misc.package import PackageNotFoundError
-        sage: raise PackageNotFoundError("my_package")
-        Traceback (most recent call last):
-        ...
-        PackageNotFoundError: the package 'my_package' was not found. You can install it by running 'sage -i my_package' in a shell
+        sage: try:
+        ....:     pass
+        ....: except PackageNotFoundError:
+        ....:     pass
+
     """
 
     def __init__(self, *args):
+        """
+        TESTS::
+
+            sage: from sage.misc.package import PackageNotFoundError
+            sage: raise PackageNotFoundError("my_package")
+            Traceback (most recent call last):
+            ...
+            PackageNotFoundError: the package 'my_package' was not found. You can install it by running 'sage -i my_package' in a shell
+        """
         super().__init__(*args)
         # We do not deprecate the whole class because we want
         # to allow user code to handle this exception without causing

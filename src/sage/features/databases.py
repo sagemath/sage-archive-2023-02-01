@@ -44,6 +44,13 @@ class DatabaseJones(StaticFile):
         True
     """
     def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.features.databases import DatabaseJones
+            sage: isinstance(DatabaseJones(), DatabaseJones)
+            True
+        """
         StaticFile.__init__(self, "John Jones's tables of number fields",
                             filename='jones/jones.sobj',
                             spkg="database_jones_numfield")

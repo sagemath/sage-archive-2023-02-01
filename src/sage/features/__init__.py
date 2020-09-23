@@ -359,7 +359,7 @@ def package_systems():
 
     The list is ordered by decreasing preference.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.features import package_systems
         sage: package_systems()    # random
@@ -603,7 +603,7 @@ class Executable(Feature):
 
         EXAMPLES:
 
-        Returns ``True`` unless explicitly overwritten::
+        The function returns ``True`` unless explicitly overwritten::
 
             sage: from sage.features import Executable
             sage: Executable(name="sh", executable="sh").is_functional()

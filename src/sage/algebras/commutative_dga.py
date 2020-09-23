@@ -1667,7 +1667,7 @@ class GCAlgebra_multigraded(GCAlgebra):
             sage: A.<a,b,c> = GradedCommutativeAlgebra(QQ, degrees=((1,0), (0,1), (1,1)))
             sage: TestSuite(A).run()
             sage: B.<w> = GradedCommutativeAlgebra(GF(2), degrees=((3,2),))
-            sage: TestSuite(B).run()
+            sage: TestSuite(B).run(skip=['_test_construction'])
             sage: C = GradedCommutativeAlgebra(GF(7), degrees=((3,2),))
             sage: TestSuite(C).run()
         """

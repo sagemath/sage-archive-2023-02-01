@@ -425,7 +425,7 @@ def shortened_00_11_binary_Golay_code_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.shortened_00_11_binary_Golay_code_graph() # long time (25 s)
+        sage: G = graphs.shortened_00_11_binary_Golay_code_graph() # long time (9 s)
         sage: G.is_distance_regular(True) # long time
         ([21, 20, 16, 6, 2, 1, None], [None, 1, 2, 6, 16, 20, 21])
 
@@ -463,7 +463,7 @@ def shortened_000_111_extended_binary_Golay_code_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # long time (2 min)
+        sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # long time (25 s)
         sage: G.is_distance_regular(True)  # long time
         ([21, 20, 16, 9, 2, 1, None], [None, 1, 2, 3, 16, 20, 21])
 
@@ -546,7 +546,8 @@ def LeonardGraph():
     M = hadamard_matrix(12)
     edges = []
     for i, j, k, l in itertools.product(range(12), repeat=4):
-        if i == k or j == l: continue
+        if i == k or j == l:
+            continue
         if M[i, j] * M[i, l] * M[k, j] * M[k, l] == -1:
             edges.append(((i, j), (k, l)))
 
@@ -653,11 +654,14 @@ def BilinearFormsGraph(const int d, const int e, const int q):
         sage: K.is_isomorphic(G)
         True
     """
-    from sage.combinat.integer_vector import IntegerVectors
+    from itertools import product as cartprod
 
     Fq = GF(q)
     Fqelems = list(Fq)
-    matricesOverq = IntegerVectors(k=d*e, max_part=q-1)
+    FqToInt = {x: n for n, x in enumerate(Fqelems)}
+    dim = d * e
+    matricesOverq = cartprod(range(q), repeat=dim)
+    qto = [int(q**jj) for jj in range(dim)]
 
     rank1Matrices = []
     for u in VectorSpace(Fq, d):
@@ -669,7 +673,7 @@ def BilinearFormsGraph(const int d, const int e, const int q):
                 continue
 
             sig_check()
-            M = [0] * (d*e)
+            M = [0] * dim
             for row in range(d):
                 for col in range(e):
                     M[e*row + col] = u[row] * v[col]
@@ -678,11 +682,17 @@ def BilinearFormsGraph(const int d, const int e, const int q):
 
     edges = []
     for m1 in matricesOverq:
-        m1 = tuple(map(lambda x: Fqelems[x], m1))
+        intM1 = 0  # represents vector m1 as integer base q
+        for jj in range(dim):
+            intM1 += m1[jj] * qto[jj]
+
         for m2 in rank1Matrices:
             sig_check()
-            m3 = tuple([m1[i] + m2[i] for i in range(d*e)])
-            edges.append((m1, m3))
+            intM3 = 0
+            for jj in range(dim):
+                intM3 += FqToInt[Fqelems[m1[jj]] + Fqelems[m2[jj]]] * qto[jj]
+
+            edges.append((intM1, intM3))
 
     G = Graph(edges, format='list_of_edges')
     G.name("Bilinear forms graphs over F_%d with parameters (%d, %d)"%(q, d, e))
@@ -988,34 +998,36 @@ def HalfCube(const int n):
          sage: G1.is_isomorphic(G2)
          True
     """
-    from sage.graphs.graph_generators import graphs
+    from sage.functions.trig import cos, sin
 
-    def hamming_distance(str v, str w):
-        cdef int i, counter
+    if n < 2:
+        raise ValueError("the dimension must be n > 1")
 
-        counter = 0
-        for i in range(len(v)):
-            if (v[i] != w[i]):
-                counter = counter + 1
+    cdef int u, uu, v, i, j
+    cdef list E = []
+    cdef dict pos = {}  # dictionary of positions
+    cdef float theta = 3.14159265 / (n - 1)
+    cdef list cosi = [<float>cos(i*theta) for i in range(n - 1)]
+    cdef list sini = [<float>sin(i*theta) for i in range(n - 1)]
 
-        return counter
-
-    if n <= 2:
-        raise ValueError("we need n > 2")
-
-    G = graphs.CubeGraph(n-1)
-    # we use the fact that the vertices are strings
-    # and their distance is their hamming_distance
-    for v, w in itertools.combinations(G, 2):
+    for u in range(2**(n - 1)):
         sig_check()
-        if hamming_distance(v, w) == 2:
-            G.add_edge(v, w)
+        pos[u] = (sum(((u >> (n-2-i)) & 1) * cosi[i] for i in range(n - 1)),
+                  sum(((u >> (n-2-i)) & 1) * sini[i] for i in range(n - 1)))
 
-    G.relabel()  # relabel vertices to 0,1,2,...
+        for i in range(n - 1):
+            uu = u ^ (1 << i)
+            if u < uu:
+                E.append((u, uu))
+            for j in range(i + 1, n - 1):
+                v = uu ^ (1 << j)
+                if u < v:
+                    E.append((u, v))
 
+    G = Graph([range(2**(n - 1)), E], format='vertices_and_edges')
+    G.set_pos(pos)
     G.name("Half %d Cube"%n)
     return G
-
 
 def GrassmannGraph(const int q, const int n, const int input_e):
     r"""
@@ -1264,7 +1276,7 @@ def GeneralisedDodecagonGraph(const int s, const int t):
         sage: H = graphs.GeneralisedDodecagonGraph(5, 1)  # optional - gap_packages internet
         sage: H.order()  # optional - gap_packages internet
         23436
-        sage: H.is_distance_regular(True) # long time (6 min); optional - gap_packages internet
+        sage: H.is_distance_regular(True) # not tested (6 min); optional - gap_packages internet
         ([10, 5, 5, 5, 5, 5, None], [None, 1, 1, 1, 1, 1, 2])
 
     .. NOTE::
@@ -1306,7 +1318,6 @@ def GeneralisedDodecagonGraph(const int s, const int t):
         sage: G = graphs.GeneralisedDodecagonGraph(2, 1)  # optional - gap_packages internet
         sage: G.is_distance_regular(True)  # optional - gap_packages internet
         ([4, 2, 2, 2, 2, 2, None], [None, 1, 1, 1, 1, 1, 2])
-
     """
     from sage.arith.misc import is_prime_power
 
@@ -1320,14 +1331,16 @@ def GeneralisedDodecagonGraph(const int s, const int t):
         q = s
         orderType = 1
     else:
-        raise ValueError(f"No generalised dodacagon of order ({s}, {t}) exists")
+        raise ValueError(
+            f"Generalised dodecagon of order ({s}, {t}) does not exist")
 
     if q == 1:  # order (1, 1)
         from sage.graphs.generators.basic import CycleGraph
         return CycleGraph(12)
 
     if not is_prime_power(q):
-        raise ValueError(f"No generalised dodacagon of order ({s}, {t}) exists")
+        raise ValueError(
+            f"No generalised dodecagon of order ({s}, {t}) is known")
 
     if orderType == 0:
         # incidence graph of hexagon (q,q)
@@ -1391,8 +1404,7 @@ def GeneralisedOctagonGraph(const int s, const int t):
         sage: G = graphs.GeneralisedOctagonGraph(4, 16)
         Traceback (most recent call last):
         ...
-        ValueError: generalised octagons of order (q, q^2) exist only for q odd powers of 2
-
+        ValueError: generalised octagons of order (q, q^2) are known only for odd powers q of 2
     """
     from sage.arith.misc import is_prime_power
     from sage.libs.gap.libgap import libgap
@@ -1412,20 +1424,20 @@ def GeneralisedOctagonGraph(const int s, const int t):
 
         if p != 2 or k % 2 != 1:
             raise ValueError(("generalised octagons of order (q, q^2) "
-                              "exist only for q odd powers of 2"))
+                              "are known only for odd powers q of 2"))
         orderType = 2
     elif t**2 == s:  # (q^2, q)
         q = t
         orderType = 1
     else:
-        raise ValueError(f"No generalised octagon of order ({s}, {t}) exists")
+        raise ValueError(f"No generalised octagon of order ({s}, {t}) is known")
 
     if q == 1:  # order (1, 1)
         from sage.graphs.generators.basic import CycleGraph
         return CycleGraph(8)
 
     if not is_prime_power(q):
-        raise ValueError(f"No generalised octagon of order ({s}, {t}) exists")
+        raise ValueError(f"No generalised octagon of order ({s}, {t}) is known")
 
     if orderType == 0:
         # incidence graph of generalised quadrangle (q, q)
@@ -1447,7 +1459,7 @@ def GeneralisedOctagonGraph(const int s, const int t):
 
     elif orderType == 1:
         # dual
-        H = GeneralisedOctagonGraph(t,s)
+        H = GeneralisedOctagonGraph(t, s)
         G = _line_graph_generalised_polygon(H)
         G.name("Generalised octagon of order(%d, %d)"%(s, t))
         return G
@@ -1464,11 +1476,11 @@ def GeneralisedOctagonGraph(const int s, const int t):
 
 def GeneralisedHexagonGraph(const int s, const int t):
     r"""
-    Return the point-graph of a generalised octagon of order `(s,t)`.
+    Return the point-graph of a generalised hexagon of order `(s,t)`.
 
     INPUT:
 
-    - ``s, t`` -- integers; order of the generalised octagon
+    - ``s, t`` -- integers; order of the generalised hexagon
 
     EXAMPLES::
 
@@ -1483,7 +1495,7 @@ def GeneralisedHexagonGraph(const int s, const int t):
 
     .. NOTE::
 
-        This function uses the GAP's AtlasRep package to build the graphs
+        This function uses the GAP's AtlasRep package to build GHs
         of order `(q, q)`, `(q, q^3)` or `(q^3, q)`. For those graphs you need
         an internet connection and Sage's optional package ``gap_packages``.
 
@@ -1506,7 +1518,6 @@ def GeneralisedHexagonGraph(const int s, const int t):
         sage: G = graphs.GeneralisedHexagonGraph(2, 8)  # optional - gap_packages internet
         sage: G.is_distance_regular(True)  # optional - gap_packages internet
         ([18, 16, 16, None], [None, 1, 1, 9])
-
     """
     from sage.arith.misc import is_prime_power
     from sage.libs.gap.libgap import libgap
@@ -1530,18 +1541,18 @@ def GeneralisedHexagonGraph(const int s, const int t):
         q = t
         orderType = 1
     else:
-        raise ValueError(f"No generalised octagon of order ({s}, {t}) exists")
+        raise ValueError(f"No generalised hexagon of order ({s}, {t}) is known")
 
     if q == 1:  # order (1, 1)
         from sage.graphs.generators.basic import CycleGraph
         return CycleGraph(6)
 
     if not is_prime_power(q):
-        raise ValueError(f"No generalised octagon of order ({s}, {t}) exists")
+        raise ValueError(f"No generalised hexagon of order ({s}, {t}) is known")
 
     if orderType == 0:
-        # incident graph of generalised 3-gon of order (q, q)
-        PG2 = designs.ProjectiveGeometryDesign(2,1,q)
+        # incidence graph of generalised 3-gon of order (q, q)
+        PG2 = designs.ProjectiveGeometryDesign(2, 1, q)
 
         edges = []
         for l in PG2.blocks():
@@ -1602,7 +1613,7 @@ def GeneralisedHexagonGraph(const int s, const int t):
         movedPoints = 819 if q==2 else 26572
         group = libgap.AtlasGroup("3D4(%d)"%q, libgap.NrMovedPoints, movedPoints)
 
-        G = Graph(libgap.Orbit(group, [1, 2],libgap.OnSets),
+        G = Graph(libgap.Orbit(group, [1, 2], libgap.OnSets),
                   format='list_of_edges')
         G.name("Generalised hexagon of order (%d, %d)"%(q, q**3))
         return G
@@ -1622,7 +1633,7 @@ def _extract_lines(G):
 
     OUTPUT:
 
-    A list of tuples where each tuple represent a line through the vertices
+    A list of tuples where each tuple represent a line via the vertices
     contained in that line.
 
     EXAMPLES::
@@ -1637,7 +1648,7 @@ def _extract_lines(G):
         sage: line = lines[0]
         sage: type(line)
         <class 'tuple'>
-        sage: line[0] in G  # elements in line are vertices
+        sage: line[0] in G  # the elements in the line are vertices
         True
 
     REFERENCES:
@@ -1670,11 +1681,12 @@ def _extract_lines(G):
 
         # remove already handled edges
         for u, v in itertools.product(bot2, repeat=2):
+            sig_check()
             try :
                 edges.remove((u, v))
             except KeyError:
                 pass  # ignore this
-    #end while edges
+    # end while edges
 
     return lines
 
@@ -1746,10 +1758,28 @@ def _intersection_array_from_graph(G):
 
     EXAMPLES::
 
+        sage: from sage.graphs.generators.distance_regular import \
+        ....: _intersection_array_from_graph
+        sage: _intersection_array_from_graph(graphs.FosterGraph())
+        [3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3]
+        sage: graphs.FosterGraph().is_distance_regular(True)
+        ([3, 2, 2, 2, 2, 1, 1, 1, None], [None, 1, 1, 1, 1, 2, 2, 2, 3])
+        sage: graphs.DartGraph().is_distance_regular()
+        False
+        sage: _intersection_array_from_graph(graphs.DartGraph())
+        False
+
     TESTS::
 
+        sage: from sage.graphs.generators.distance_regular import \
+        ....: _intersection_array_from_graph
+        sage: _intersection_array_from_graph(Graph())
+        []
+        sage: _intersection_array_from_graph(Graph(3))
+        []
+        sage: _intersection_array_from_graph(graphs.CompleteGraph(7))
+        [6, 1]
     """
-
     t = G.is_distance_regular(True)
     if t is False:
         return False
@@ -2327,7 +2357,7 @@ _sporadic_graph_database = {
     (22, 21, 16, 6, 1, 1, 6, 16, 21, 22) : lambda : \
     HigmanSimsGraph().bipartite_double(),
     (3, 2, 2, 1, 1, 1, 1, 2) : CoxeterGraph,
-    (6, 5, 5, 4, 1, 1, 2, 6) : LintSchrijverGraph,
+    (6, 5, 5, 4, 1, 1, 2, 6) : vanLintSchrijverGraph,
     (7, 6, 4, 4, 1, 1, 1, 6) : DoublyTruncatedWittGraph,
     (9, 8, 6, 3, 1, 1, 3, 8) : distance_3_doubly_truncated_Golay_code_graph,
     (10, 8, 8, 2, 1, 1, 4, 5) : J2Graph,
@@ -2356,7 +2386,8 @@ _sporadic_graph_database = {
 
 _infinite_families_database = [
     (is_classical_parameters_graph, graph_with_classical_parameters),
-    (is_pseudo_partition_graph, pseudo_partition_graph)
+    (is_pseudo_partition_graph, pseudo_partition_graph),
+    (is_from_GQ_spread, graph_from_GQ_spread),
 ]
 
 def distance_regular_graph(list arr, existence=False, check=True):
@@ -2415,6 +2446,8 @@ def distance_regular_graph(list arr, existence=False, check=True):
         Hamming Graph with parameters 7,3: Graph on 2187 vertices
         sage: graphs.distance_regular_graph([66, 45, 28, 1, 6, 30])
         Graph on 1024 vertices
+        sage: graphs.distance_regular_graph([64, 60, 1, 1, 15, 64], check=True)
+        Graph on 325 vertices
     """
     from sage.misc.unknown import Unknown
     from sage.categories.sets_cat import EmptySetError

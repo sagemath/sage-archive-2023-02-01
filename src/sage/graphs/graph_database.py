@@ -512,7 +512,8 @@ class GraphQuery(GenericGraphQuery):
                 # construct sql syntax substring for display cols
                 disp_list = ['SELECT graph_data.graph6, ']
                 for col in graph_data_disp[1:]:
-                    if col != 'graph6': disp_list.append('graph_data.%s, '%col)
+                    if col != 'graph6':
+                        disp_list.append('graph_data.%s, '%col)
                 for col in aut_grp_disp[1:]:
                     disp_list.append('aut_grp.%s, '%col)
                 for col in degrees_disp[1:]:
@@ -670,7 +671,8 @@ class GraphQuery(GenericGraphQuery):
 
         if re.search('SELECT .*degree_sequence.* FROM', self.__query_string__):
             format_cols = {'degree_sequence': (lambda x, y: data_to_degseq(x, y))}
-        else: format_cols = {}
+        else:
+            format_cols = {}
         if with_picture:
             SQLQuery.show(self, max_field_size=max_field_size,
                                 plot_cols={'graph6': (lambda x: graph6_to_plot(x))},

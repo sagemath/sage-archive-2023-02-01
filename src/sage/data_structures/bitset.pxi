@@ -1,3 +1,5 @@
+# distutils: depends = bitset_intrinsics.h
+# distutils: libraries = gmp
 """
 A fast bitset datatype in Cython
 
@@ -34,6 +36,28 @@ from sage.data_structures.bitset cimport *
 from cython.operator import preincrement as preinc
 
 # Doctests for the functions in this file are in sage/data_structures/bitset.pyx
+
+#############################################################################
+# Functions that can be optimized by intrinsics.
+#############################################################################
+
+cdef extern from "bitset_intrinsics.h":
+    # Bitset Comparison
+    cdef bint _bitset_isempty(mp_limb_t* bits, mp_bitcnt_t limbs) nogil
+    cdef bint _bitset_eq(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs) nogil
+    cdef bint _bitset_issubset(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs) nogil
+    cdef bint _bitset_are_disjoint(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs) nogil
+
+    # Bitset Searching
+    cdef long _bitset_first_in_limb(mp_limb_t limb) nogil
+    cdef long _bitset_first_in_limb_nonzero(mp_limb_t) nogil
+    cdef long _bitset_len(mp_limb_t* bits, mp_bitcnt_t limbs) nogil
+
+    # Bitset Arithmetic
+    cdef void _bitset_intersection(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs) nogil
+    cdef void _bitset_union(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs) nogil
+    cdef void _bitset_difference(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs) nogil
+    cdef void _bitset_symmetric_difference(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs) nogil
 
 #############################################################################
 # Creating limb patterns
@@ -197,14 +221,7 @@ cdef inline bint bitset_isempty(bitset_t bits):
     Test whether bits is empty.  Return True (i.e., 1) if the set is
     empty, False (i.e., 0) otherwise.
     """
-    # First check lowest limb
-    if bits.bits[0]:
-        return False
-    if bits.limbs == 1:
-        return True
-    # Compare bits to itself shifted by 1 limb. If these compare equal,
-    # all limbs must be 0.
-    return mpn_cmp(bits.bits+1, bits.bits, bits.limbs-1) == 0
+    return _bitset_isempty(bits.bits, bits.limbs)
 
 cdef inline bint bitset_is_zero(bitset_t bits):
     """
@@ -222,7 +239,7 @@ cdef inline bint bitset_eq(bitset_t a, bitset_t b):
 
     We assume ``a.limbs >= b.limbs``.
     """
-    return mpn_cmp(a.bits, b.bits, b.limbs) == 0
+    return _bitset_eq(a.bits, b.bits, b.limbs)
 
 cdef inline int bitset_cmp(bitset_t a, bitset_t b):
     """
@@ -270,11 +287,7 @@ cdef inline bint bitset_issubset(bitset_t a, bitset_t b):
 
     We assume ``a.limbs <= b.limbs``.
     """
-    cdef mp_size_t i
-    for i from 0 <= i < a.limbs:
-        if (a.bits[i] & ~b.bits[i]) != 0:
-            return False
-    return True
+    return _bitset_issubset(a.bits, b.bits, a.limbs)
 
 cdef inline bint bitset_issuperset(bitset_t a, bitset_t b):
     """
@@ -292,11 +305,7 @@ cdef inline bint bitset_are_disjoint(bitset_t a, bitset_t b):
 
     We assume ``a.limbs <= b.limbs``.
     """
-    cdef mp_size_t i
-    for i from 0 <= i < a.limbs:
-        if (a.bits[i]&b.bits[i]) != 0:
-            return False
-    return True
+    return _bitset_are_disjoint(a.bits, b.bits, a.limbs)
 
 
 #############################################################################
@@ -394,22 +403,6 @@ cdef inline void bitset_set_first_n(bitset_t bits, mp_bitcnt_t n):
 # Bitset Searching
 #############################################################################
 
-cdef inline long _bitset_first_in_limb_nonzero(mp_limb_t limb):
-    """
-    Given a non-zero limb of a bitset, return the index of the first
-    nonzero bit.
-    """
-    return mpn_scan1(&limb, 0)
-
-cdef inline long _bitset_first_in_limb(mp_limb_t limb):
-    """
-    Given a limb of a bitset, return the index of the first nonzero
-    bit. If there are no bits set in the limb, return -1.
-    """
-    if limb == 0:
-        return -1
-    return mpn_scan1(&limb, 0)
-
 cdef inline long bitset_first(bitset_t a):
     """
     Calculate the index of the first element in the set. If the set
@@ -502,7 +495,7 @@ cdef inline long bitset_len(bitset_t bits):
     """
     Calculate the number of items in the set (i.e., the number of nonzero bits).
     """
-    return mpn_popcount(bits.bits, bits.limbs)
+    return _bitset_len(bits.bits, bits.limbs)
 
 cdef inline long bitset_hash(bitset_t bits):
     """
@@ -546,7 +539,7 @@ cdef inline void bitset_intersection(bitset_t r, bitset_t a, bitset_t b):
 
     We assume ``a.limbs >= r.limbs == b.limbs``.
     """
-    mpn_and_n(r.bits, a.bits, b.bits, b.limbs)
+    _bitset_intersection(r.bits, a.bits, b.bits, b.limbs)
 
 cdef inline void bitset_and(bitset_t r, bitset_t a, bitset_t b):
     """
@@ -556,7 +549,7 @@ cdef inline void bitset_and(bitset_t r, bitset_t a, bitset_t b):
 
     This function is the same as bitset_intersection(r, a, b).
     """
-    mpn_and_n(r.bits, a.bits, b.bits, b.limbs)
+    _bitset_intersection(r.bits, a.bits, b.bits, b.limbs)
 
 cdef inline void bitset_union(bitset_t r, bitset_t a, bitset_t b):
     """
@@ -565,7 +558,7 @@ cdef inline void bitset_union(bitset_t r, bitset_t a, bitset_t b):
     We assume ``r.limbs >= a.limbs >= b.limbs`` and either ``r is a``
     or ``r.limbs == b.limbs``.
     """
-    mpn_ior_n(r.bits, a.bits, b.bits, b.limbs)
+    _bitset_union(r.bits, a.bits, b.bits, b.limbs)
 
 cdef inline void bitset_or(bitset_t r, bitset_t a, bitset_t b):
     """
@@ -576,7 +569,7 @@ cdef inline void bitset_or(bitset_t r, bitset_t a, bitset_t b):
 
     This function is the same as bitset_union(r, a, b).
     """
-    mpn_ior_n(r.bits, a.bits, b.bits, b.limbs)
+    _bitset_union(r.bits, a.bits, b.bits, b.limbs)
 
 cdef inline void bitset_difference(bitset_t r, bitset_t a, bitset_t b):
     """
@@ -586,7 +579,7 @@ cdef inline void bitset_difference(bitset_t r, bitset_t a, bitset_t b):
     We assume ``r.limbs >= a.limbs >= b.limbs`` and either ``r is a``
     or ``r.limbs == b.limbs``.
     """
-    mpn_andn_n(r.bits, a.bits, b.bits, b.limbs)
+    _bitset_difference(r.bits, a.bits, b.bits, b.limbs)
 
 cdef inline void bitset_symmetric_difference(bitset_t r, bitset_t a, bitset_t b):
     """
@@ -595,7 +588,7 @@ cdef inline void bitset_symmetric_difference(bitset_t r, bitset_t a, bitset_t b)
     We assume ``r.limbs >= a.limbs >= b.limbs`` and either ``r is a``
     or ``r.limbs == b.limbs``.
     """
-    mpn_xor_n(r.bits, a.bits, b.bits, b.limbs)
+    _bitset_symmetric_difference(r.bits, a.bits, b.bits, b.limbs)
 
 cdef inline void bitset_xor(bitset_t r, bitset_t a, bitset_t b):
     """
@@ -606,7 +599,7 @@ cdef inline void bitset_xor(bitset_t r, bitset_t a, bitset_t b):
 
     This function is the same as bitset_symmetric_difference(r, a, b).
     """
-    mpn_xor_n(r.bits, a.bits, b.bits, b.limbs)
+    _bitset_symmetric_difference(r.bits, a.bits, b.bits, b.limbs)
 
 
 cdef void bitset_rshift(bitset_t r, bitset_t a, mp_bitcnt_t n):

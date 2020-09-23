@@ -42,12 +42,12 @@ install_config_rpath() {
         echo >&2 "your PATH. E.g. Homebrew installs them in /usr/local/opt/gettext/bin."
         return 179
     fi
-    eval `sed -n '/^prefix=.*$/p' $gettextize`
-    eval `sed -n '/^datarootdir=.*$/p' $gettextize`
-    eval `sed -n '/^: \${gettext_datadir=.*$/p' $gettextize`
+    eval `sed -n '/^prefix=.*$/p' "$gettextize"`
+    eval `sed -n '/^datarootdir=.*$/p' "$gettextize"`
+    eval `sed -n '/^: \${gettext_datadir=.*$/p' "$gettextize"`
 
     if [ -z "$gettext_datadir" ]; then
-        eval `sed -n '/^gettext_dir=.*$/p' $gettextize`
+        eval `sed -n '/^gettext_dir=.*$/p' "$gettextize"`
         # In older versions (before 2014) this is spelled gettext_dir
         # See https://github.com/autotools-mirror/gettext/commit/ff18897068486560e2bb421004cfbd42b7cdd0f8
         gettext_datadir="$gettext_dir"

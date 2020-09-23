@@ -311,7 +311,7 @@ class AutomorphismField(TensorField):
             sage: id.add_comp(e)[0,1] = u*v
             Traceback (most recent call last):
             ...
-            AssertionError: the components of an immutable element cannot be
+            ValueError: the components of an immutable element cannot be
              changed
 
         """
@@ -384,7 +384,7 @@ class AutomorphismField(TensorField):
             sage: id.add_comp(e)[0,1] = u*v
             Traceback (most recent call last):
             ...
-            AssertionError: the components of an immutable element cannot be
+            ValueError: the components of an immutable element cannot be
              changed
 
         """

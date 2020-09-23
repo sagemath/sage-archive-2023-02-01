@@ -761,7 +761,9 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
             sage: eigval.rad()
             0.00000000
             sage: eigvec
-            [([0.8270449269...], [-0.54744843072...], [-0.1276593297...])]
+            [([0.8270449269720...], [0.4598639043655...], [0.3232984352444...])]
+            sage: (mat - eigval)*eigvec[0]
+            ([1e-15 +/- ...], [2e-15 +/- ...], [+/- ...])
 
         .. SEEALSO:: :meth:`eigenvectors_right`
         """
@@ -778,7 +780,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
             eigval = _acb_vec_to_list(_eigval, n, self._parent._base)
         finally:
             _acb_vec_clear(_eigval, n)
-        return [(l, [v], 1) for l, v in zip(eigval, eigvec)]
+        return [(l, [v], 1) for l, v in zip(eigval, eigvec.columns())]
 
     @experimental(trac_number=30393)
     def eigenvectors_right(self, other=None, *, extend=None):
@@ -809,12 +811,15 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
 
             sage: from sage.matrix.benchmark import hilbert_matrix
             sage: mat = hilbert_matrix(3).change_ring(CBF) 
-            sage: mat.eigenvectors_right()[0]
+            sage: eigval, eigvec, _ = mat.eigenvectors_right()[0]
             doctest:...: FutureWarning: This class/method/function is marked as experimental.
             ...
-            ([1.4083189271236...] + [+/- ...]*I,
-            [([0.82704492697...] + [+/- ...]*I, [-0.54744843072...] + [+/- ...]*I, [-0.12765932974...] + [+/- ...]*I)],
-            1)
+            sage: eigval
+            [1.40831892712...] + [+/- ...]*I
+            sage: eigvec
+            [([0.82704492697...] + [+/- ...]*I, [0.45986390436...] + [+/- ...]*I, [0.32329843524...] + [+/- ...]*I)]
+            sage: (mat - eigval)*eigvec[0]
+            ([+/- ...] + [+/- ...]*I, [+/- ...] + [+/- ...]*I, [+/- ...] + [+/- ...]*I)
 
         .. SEEALSO:: :meth:`eigenvectors_right_approx`, :meth:`eigenvalues`
         """
@@ -838,7 +843,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
             acb_mat_clear(eigvec_approx)
             _acb_vec_clear(_eigval, n)
             _acb_vec_clear(eigval_approx, n)
-        return [(l, [v], 1) for l, v in zip(eigval, eigvec)]
+        return [(l, [v], 1) for l, v in zip(eigval, eigvec.columns())]
 
     def exp(self):
         r"""

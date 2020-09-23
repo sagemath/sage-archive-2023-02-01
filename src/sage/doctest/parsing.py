@@ -22,11 +22,10 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 import re
 import doctest
-import collections
+from collections import defaultdict
 from sage.repl.preparse import preparse, strip_string_literals
 from Cython.Build.Dependencies import strip_string_literals as cython_strip_string_literals
 from functools import reduce
@@ -662,8 +661,8 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: TestSuite(DTP).run()
         """
         self.long = long
-        self.optionals = collections.defaultdict(int) # record skipped optional tests
-        if optional_tags is True: # run all optional tests
+        self.optionals = defaultdict(int)  # record skipped optional tests
+        if optional_tags is True:  # run all optional tests
             self.optional_tags = True
             self.optional_only = False
         else:

@@ -1144,7 +1144,7 @@ def _gap_factorization(w, gens):
     fac = gap3('MinimalWord(W,%s)'%str(w)).sage()
     return [i-1 for i in fac]
 
-_gap_factorization_code = """
+_gap_factorization_code = r"""
 # MinimalWord(G,w)
 # given a permutation group G find some expression of minimal length in the
 # generators of G and their inverses of the element w (an inverse is

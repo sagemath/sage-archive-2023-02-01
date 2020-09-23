@@ -2708,7 +2708,8 @@ a picture of a graph.  In the notebook, it still won't work.  Finally,
 run 'latex.add_to_mathjax_avoid_list("tikzpicture")' and try again
 from the notebook -- you should get a nice picture.
 
-(LaTeX code taken from http://altermundus.com/pages/tkz/)
+(LaTeX code taken from the documentation of the LaTeX package tkz-graph
+https://www.ctan.org/pkg/tkz-graph)
 """
 
         def _latex_(self):

@@ -528,7 +528,7 @@ class FullyPackedLoop(Element, metaclass=InheritComparisonClasscallMetaclass):
             generator = SixVertexModel(generator.parent()._nrows,
                                        boundary_conditions='ice')(generator)
             M = generator.to_alternating_sign_matrix().to_matrix()
-            M = AlternatingSignMatrix(M)
+            AlternatingSignMatrix(M)
             SVM = generator
         else: # Not ASM nor SVM
             try:
@@ -537,7 +537,7 @@ class FullyPackedLoop(Element, metaclass=InheritComparisonClasscallMetaclass):
                 generator = matrix(generator)
                 generator = SixVertexModel(generator.nrows(), boundary_conditions='ice')(generator)
                 # Check that this is an ice square model
-                M = generator.to_alternating_sign_matrix()
+                generator.to_alternating_sign_matrix()
                 SVM = generator
 
         if not SVM:

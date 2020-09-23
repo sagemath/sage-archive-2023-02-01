@@ -264,10 +264,10 @@ class FiniteWord_char(WordDatatype_char, FiniteWord_class):
         Looped digraph on 9 vertices
 
         sage: u = W([1,2,3])
-        sage: u.first_pos_in(w)
+        sage: w.first_occurrence(u)
         0
-        sage: u.first_pos_in(w[1:])
-        8
+        sage: w.first_occurrence(u, start=1)
+        9
 
     TESTS::
 

@@ -83,7 +83,7 @@ def q_int(n, q=None):
 
 
 def q_factorial(n, q=None):
-    """
+    r"""
     Return the `q`-analogue of the factorial `n!`.
 
     This is the product

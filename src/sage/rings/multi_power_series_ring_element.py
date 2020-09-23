@@ -1504,7 +1504,12 @@ class MPowerSeries(PowerSeries):
             False
             sage: f.base_extend(QQ).is_unit()
             True
+            sage: (O(a,b)^0).is_unit()
+            False
         """
+        # Return False for 0 + O(a, b)^0, which is the only element with precision_absolute == 0.
+        if self.precision_absolute() == 0:
+            return False
         return self._bg_value[0].is_unit()
 
     ###

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Parallel computations using RecursivelyEnumeratedSet and Map-Reduce
 
@@ -36,8 +37,8 @@ Contents
 - :ref:`protocol-description`
 - :ref:`examples`
 
-How is this different from usual MapReduce ?
---------------------------------------------
+How is this different from usual MapReduce?
+-------------------------------------------
 
 This implementation is specific to :class:`RecursivelyEnumeratedSet_forest`, and uses its
 properties to do its job. Not only mapping and reducing but also
@@ -244,7 +245,7 @@ Here is an example or how to deal with timeout::
     sage: from sage.parallel.map_reduce import (RESetMPExample, AbortError)
     sage: EX = RESetMPExample(maxl=100)
     sage: try:
-    ....:     res = EX.run(timeout=0.01)
+    ....:     res = EX.run(timeout=float(0.01))
     ....: except AbortError:
     ....:     print("Computation timeout")
     ....: else:
@@ -532,12 +533,19 @@ smaller than 15::
 Classes and methods
 -------------------
 """
-from __future__ import print_function, absolute_import
 
+# ****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
+from collections import deque
 from threading import Thread
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet # _generic
 from sage.misc.lazy_attribute import lazy_attribute
-import collections
 import copy
 import sys
 import random
@@ -1126,7 +1134,7 @@ class RESetMapReduce(object):
 
             sage: from sage.parallel.map_reduce import RESetMapReduce
             sage: def children(x):
-            ....:     sleep(0.5)
+            ....:     sleep(float(0.5))
             ....:     return []
             sage: S = RESetMapReduce(roots=[1], children=children)
             sage: S.setup_workers(2)
@@ -1387,7 +1395,7 @@ class RESetMapReduce(object):
             sage: EX = RESetMPExample(maxl=6)
             sage: EX.setup_workers(2)
             sage: EX.random_worker()
-            <RESetMapReduceWorker(RESetMapReduceWorker-..., initial)>
+            <RESetMapReduceWorker...RESetMapReduceWorker-... initial...>
             sage: EX.random_worker() in EX._workers
             True
 
@@ -1434,7 +1442,7 @@ class RESetMapReduce(object):
             sage: from sage.parallel.map_reduce import AbortError
             sage: EX = RESetMPExample(maxl = 100)
             sage: try:
-            ....:     res = EX.run(timeout=0.01)
+            ....:     res = EX.run(timeout=float(0.01))
             ....: except AbortError:
             ....:     print("Computation timeout")
             ....: else:
@@ -1571,11 +1579,11 @@ class RESetMapReduceWorker(mp.Process):
             sage: from sage.parallel.map_reduce import RESetMPExample, RESetMapReduceWorker
             sage: EX = RESetMPExample()
             sage: RESetMapReduceWorker(EX, 200, True)
-            <RESetMapReduceWorker(RESetMapReduceWorker-..., initial)>
+            <RESetMapReduceWorker...RESetMapReduceWorker-... initial...>
         """
         mp.Process.__init__(self)
         self._iproc = iproc
-        self._todo = collections.deque()
+        self._todo = deque()
         self._request = mp.SimpleQueue()  # Faster than Queue
         # currently this is not possible to have to simultaneous read or write
         # on the following Pipe. So there is no need to have a queue.

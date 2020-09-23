@@ -372,12 +372,26 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
    arguments. If ``$SAGE_DESTDIR`` is not set then the command is run
    with ``$SAGE_SUDO``, if set.
 
-- ``sdh_pip_install [...]``: Runs ``pip install`` with the given
-   arguments, as well as additional default arguments used for
-   installing packages into Sage with pip. Currently this is just a
-   wrapper around the ``sage-pip-install`` command. If
-   ``$SAGE_DESTDIR`` is not set then the command is run with
-   ``$SAGE_SUDO``, if set.
+- ``sdh_pip_install [...]``: The equivalent of running ``pip install``
+   with the given arguments, as well as additional default arguments used for
+   installing packages into Sage with pip. The last argument must be
+   ``.`` to indicate installation from the current directory.
+
+   ``sdh_pip_install`` actually does the installation via ``pip wheel``,
+   creating a wheel file in ``dist/``, followed by
+   ``sdh_store_and_pip_install_wheel`` (see below).
+
+- ``sdh_store_and_pip_install_wheel .``: The current directory,
+   indicated by the required argument ``.``, must have a subdirectory
+   ``dist`` containing a unique wheel file (``*.whl``).
+
+   This command (1) moves this wheel file to the
+   directory ``$SAGE_SPKG_WHEELS`` (``$SAGE_LOCAL/var/lib/sage/wheels``)
+   and then (2) installs the wheel in ``$SAGE_LOCAL``.
+
+   Both of these steps, instead of writing directly into ``$SAGE_LOCAL``,
+   use the staging directory ``$SAGE_DESTDIR`` if set; otherwise, they
+   use ``$SAGE_SUDO`` (if set).
 
 - ``sdh_install [-T] SRC [SRC...] DEST``: Copies one or more files or
    directories given as ``SRC`` (recursively in the case of

@@ -24,6 +24,6 @@ sage-python23 setup.py \
        --debug \
        --disable-jpeg \
        $extra_build_ext \
-       install \
-       --single-version-externally-managed \
-       --root "$SAGE_DESTDIR" || sdh_die "Error building/installing Pillow"
+       bdist_wheel || sdh_die "Error building/installing Pillow"
+
+sdh_store_and_pip_install_wheel .

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Sparse matrices over `\ZZ/n\ZZ` for `n` small
 
@@ -78,8 +79,6 @@ TESTS::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
-from collections import Iterator, Sequence
 
 from libc.stdint cimport uint64_t
 from libc.limits cimport UINT_MAX

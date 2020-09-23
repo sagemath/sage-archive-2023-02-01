@@ -194,12 +194,12 @@ class MixedForm(AlgebraElement):
         sage: z[0] = 1
         Traceback (most recent call last):
         ...
-        AssertionError: the components of the element zero cannot be changed
+        ValueError: the components of the element zero cannot be changed
         sage: one = M.mixed_form_algebra().one()
         sage: one[0] = 0
         Traceback (most recent call last):
         ...
-        AssertionError: the components of the element one cannot be changed
+        ValueError: the components of the element one cannot be changed
 
     """
     def __init__(self, parent, name=None, latex_name=None):
@@ -1091,8 +1091,8 @@ class MixedForm(AlgebraElement):
 
         """
         if self is self.parent().one() or self is self.parent().zero():
-            raise AssertionError("the components of the element "
-                                 "{} cannot be changed".format(self._name))
+            raise ValueError("the components of the element "
+                             "{} cannot be changed".format(self._name))
         if isinstance(index, (int, Integer)):
             start = index
             stop = index + 1

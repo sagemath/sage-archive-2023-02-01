@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Convex rational polyhedral cones
 
@@ -184,18 +185,16 @@ REFERENCES:
 #       Copyright (C) 2012 Andrey Novoseltsev <novoselt@gmail.com>
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-# Use python-3.x versions of print() and range().
-from __future__ import print_function
-
-import collections
-import copy
-import warnings
+from collections.abc import Hashable, Iterable, Container
+from copy import copy
+from warnings import warn
 
 from sage.arith.all import gcd, lcm
 from sage.combinat.posets.posets import FinitePoset
@@ -693,9 +692,7 @@ def normalize_rays(rays, lattice):
 
 
 @richcmp_method
-class IntegralRayCollection(SageObject,
-                            collections.Hashable,
-                            collections.Iterable):
+class IntegralRayCollection(SageObject, Hashable, Iterable):
     r"""
     Create a collection of integral rays.
 
@@ -1335,8 +1332,7 @@ def classify_cone_2d(ray0, ray1, check=True):
 # and ``ambient_ray_indices`` keyword parameters. See ``intersection`` method
 # for an example why this is needed.
 @richcmp_method
-class ConvexRationalPolyhedralCone(IntegralRayCollection,
-                                   collections.Container):
+class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
     r"""
     Create a convex rational polyhedral cone.
 
@@ -1530,7 +1526,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: C2 is C      # Is this desirable?
             False
         """
-        state = copy.copy(self.__dict__)
+        state = copy(self.__dict__)
         state.pop("_PPL_C_Polyhedron", None) # PPL is not picklable.
 
         # TODO: do we want to keep the face lattice in the pickle?
@@ -1583,9 +1579,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             point = _ambient_space_point(self, point)
         except TypeError as ex:
             if str(ex).endswith("have incompatible lattices!"):
-                warnings.warn("you have checked if a cone contains a point "
-                              "from an incompatible lattice, this is False!",
-                              stacklevel=3)
+                warn("you have checked if a cone contains a point "
+                     "from an incompatible lattice, this is False!",
+                     stacklevel=3)
             return False
 
         if region not in ("whole cone", "relative interior", "interior"):
@@ -6575,7 +6571,7 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
                     pm = choice([-1,1])
 
                     # rays has immutable elements
-                    rays = [copy.copy(ray) for ray in rays]
+                    rays = [copy(ray) for ray in rays]
 
                     for i, ray in enumerate(rays):
                         rays[i][0] = pm * (ray[0].abs() + 1)

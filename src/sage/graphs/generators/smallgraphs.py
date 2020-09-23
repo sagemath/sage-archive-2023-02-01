@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Small graphs
+Various small graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """

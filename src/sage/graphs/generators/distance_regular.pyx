@@ -421,7 +421,7 @@ def shortened_00_11_binary_Golay_code_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.shortened_00_11_binary_Golay_code_graph() # long time (25 s)
+        sage: G = graphs.shortened_00_11_binary_Golay_code_graph() # long time (9 s)
         sage: G.is_distance_regular(True) # long time
         ([21, 20, 16, 6, 2, 1, None], [None, 1, 2, 6, 16, 20, 21])
 
@@ -460,7 +460,7 @@ def shortened_000_111_extended_binary_Golay_code_graph():
 
     EXAMPLES::
 
-        sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # long time (2 min)
+        sage: G = graphs.shortened_000_111_extended_binary_Golay_code_graph() # long time (25 s)
         sage: G.is_distance_regular(True)  # long time
         ([21, 20, 16, 9, 2, 1, None], [None, 1, 2, 3, 16, 20, 21])
 
@@ -544,7 +544,8 @@ def LeonardGraph():
     M = hadamard_matrix(12)
     edges = []
     for i, j, k, l in itertools.product(range(12), repeat=4):
-        if i == k or j == l: continue
+        if i == k or j == l:
+            continue
         if M[i, j] * M[i, l] * M[k, j] * M[k, l] == -1:
             edges.append(((i, j), (k, l)))
 
@@ -651,11 +652,14 @@ def BilinearFormsGraph(const int d, const int e, const int q):
         sage: K.is_isomorphic(G)
         True
     """
-    from sage.combinat.integer_vector import IntegerVectors
+    from itertools import product as cartprod
 
     Fq = GF(q)
     Fqelems = list(Fq)
-    matricesOverq = IntegerVectors(k=d*e, max_part=q-1)
+    FqToInt = {x: n for n, x in enumerate(Fqelems)}
+    dim = d * e
+    matricesOverq = cartprod(range(q), repeat=dim)
+    qto = [int(q**jj) for jj in range(dim)]
 
     rank1Matrices = []
     for u in VectorSpace(Fq, d):
@@ -667,7 +671,7 @@ def BilinearFormsGraph(const int d, const int e, const int q):
                 continue
 
             sig_check()
-            M = [0] * (d*e)
+            M = [0] * dim
             for row in range(d):
                 for col in range(e):
                     M[e*row + col] = u[row] * v[col]
@@ -676,11 +680,17 @@ def BilinearFormsGraph(const int d, const int e, const int q):
 
     edges = []
     for m1 in matricesOverq:
-        m1 = tuple(map(lambda x: Fqelems[x], m1))
+        intM1 = 0  # represents vector m1 as integer base q
+        for jj in range(dim):
+            intM1 += m1[jj] * qto[jj]
+
         for m2 in rank1Matrices:
             sig_check()
-            m3 = tuple([m1[i] + m2[i] for i in range(d*e)])
-            edges.append((m1, m3))
+            intM3 = 0
+            for jj in range(dim):
+                intM3 += FqToInt[Fqelems[m1[jj]] + Fqelems[m2[jj]]] * qto[jj]
+
+            edges.append((intM1, intM3))
 
     G = Graph(edges, format='list_of_edges')
     G.name("Bilinear forms graphs over F_%d with parameters (%d, %d)"%(q, d, e))
@@ -1125,4 +1135,125 @@ def DoubleGrassmannGraph(const int q, const int e):
 
     G = Graph(edges, format='list_of_edges')
     G.name("Double Grassmann graph (%d, %d, %d)"%(n, e, q))
+    return G
+
+
+def is_from_GQ_spread(list arr):
+    r"""
+    Return a pair `(s, t)` if the graph obtained from a GQ of order `(s, t)`
+    with a spread has the intersection array passed. We also require that such
+    GQ can be built by Sage.
+    If no such pair exists, then return ``False``.
+
+    INPUT:
+
+    - ``arr`` -- list; an intersection array
+
+    EXAMPLES::
+
+         sage: from sage.graphs.generators.distance_regular import \
+         ....: is_from_GQ_spread, graph_from_GQ_spread
+         sage: is_from_GQ_spread([125, 120, 1, 1, 24, 125])
+         (5, 25)
+         sage: G = graph_from_GQ_spread(5, 25)
+         sage: G.is_distance_regular(True)
+         ([125, 120, 1, None], [None, 1, 24, 125])
+
+    REFERENCES:
+
+    The graphs we are looking for are antipodal covers of complete graphs.
+    See [BCN1989]_ pp. 385, 386 for a discussion on these particular case.
+
+    TESTS::
+
+         sage: from sage.graphs.generators.distance_regular import \
+         ....: is_from_GQ_spread
+         sage: is_from_GQ_spread([343, 336, 1, 1, 48, 343])
+         (7, 49)
+         sage: is_from_GQ_spread([343, 336, 1, 2, 48, 343])
+         False
+
+    Check that we don't get ``True`` for inexisting GQs::
+
+         sage: from sage.graphs.generators.distance_regular import \
+         ....: is_from_GQ_spread
+         sage: s = 5
+         sage: t = 6
+         sage: [s * t, s * (t-1), 1, 1, t - 1, s * t]
+         [30, 25, 1, 1, 5, 30]
+         sage: is_from_GQ_spread([30, 25, 1, 1, 5, 30])
+         False
+    """
+    from sage.combinat.designs import design_catalog as designs
+
+    if len(arr) != 6:
+        return False
+
+    t = arr[4] + 1
+    if t <= 1:  # avoid division by 0
+        return False
+
+    s = arr[1] // (t-1)
+    if s == 1 and t == 1:  # in this case we don't get a connected graph
+        return False
+
+    if arr != [s * t, s * (t-1), 1, 1, t - 1, s * t]:
+        return False
+
+    # check Sage can build it (it may not exist)
+    if designs.generalised_quadrangle_with_spread(s, t, existence=True) \
+       is not True:
+        return False
+
+    return (s,t)
+
+def graph_from_GQ_spread(const int s, const int t):
+    r"""
+    Return the point graph of the generalised quandrangle with
+    order `(s, t)` after removing one of its spreads.
+
+    These graphs are antipodal covers of complete graphs and, in particular,
+    distance-regular graphs of diameter 3.
+
+    INPUT:
+
+    - ``s, t`` -- integers; order of the generalised quadrangle
+
+    EXAMPLES::
+
+         sage: from sage.graphs.generators.distance_regular import \
+         ....: graph_from_GQ_spread
+         sage: G = graph_from_GQ_spread(4, 16)
+         sage: G.is_distance_regular(True)
+         ([64, 60, 1, None], [None, 1, 15, 64])
+
+    REFERENCES:
+
+    The graphs constructed here follow [BCN1989]_ pp. 385, 386.
+
+    TESTS::
+
+         sage: from sage.graphs.generators.distance_regular import \
+         ....: graph_from_GQ_spread, is_from_GQ_spread
+         sage: is_from_GQ_spread([64, 60, 1, 1, 15, 64])
+         (4, 16)
+         sage: graph_from_GQ_spread(*is_from_GQ_spread([27, 24, 1, 1, 8, 27]))
+         Graph on 112 vertices
+         sage: _.is_distance_regular(True)
+         ([27, 24, 1, None], [None, 1, 8, 27])
+    """
+    from sage.combinat.designs import design_catalog as designs
+
+    (GQ, S) = designs.generalised_quadrangle_with_spread(s, t, check=False)
+
+    k = len(GQ.blocks()[0])
+    edges = []
+    for b in GQ.blocks():
+        if b in S:  # skip blocks in spread
+            continue
+        for p1, p2 in itertools.combinations(b, 2):
+            sig_check()
+            edges.append((p1, p2))
+
+    G = Graph(edges, format="list_of_edges")
     return G

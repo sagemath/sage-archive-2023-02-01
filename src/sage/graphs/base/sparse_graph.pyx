@@ -1838,11 +1838,12 @@ cdef class SparseGraphBackend(CGraphBackend):
             True
 
         """
-        cdef SparseGraph cg = self.cg()
-        cdef int u_int = self.get_vertex(u)
-        cdef int v_int = self.get_vertex(v)
-        if not cg.has_vertex(u_int) or not cg.has_vertex(v_int):
+        cdef int u_int = self.get_vertex_checked(u)
+        cdef int v_int = self.get_vertex_checked(v)
+        if u_int == -1 or v_int == -1:
             return False
+
+        cdef SparseGraph cg = self.cg()
         if l is None:
             return 1 == cg.has_arc_unsafe(u_int, v_int)
         cdef SparseGraphLLNode* label = cg.arc_labels_unsafe(u_int, v_int)

@@ -59,7 +59,7 @@ jobs:
       shell: bash
       if: always()
   linux:
-    runs-on: linux-latest
+    runs-on: ubuntu-latest
     name: Linux (Ubuntu)
     continue-on-error: true
     # Following https://trac.sagemath.org/ticket/25206#comment:63

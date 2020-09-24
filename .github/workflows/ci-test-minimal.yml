@@ -78,7 +78,7 @@ jobs:
         echo "Install the following packages:" @packages
         $packages = $packages | foreach-object { ExtractPackages $_.FullName } | sort -Unique
         # Add tox which is use to build
-        $packages += 'tox'
+        # $packages += 'tox'
         echo "Install the following packages:" @packages
         # Add deadsnakes so that libpython3.7-dev is found
         & sudo add-apt-repository ppa:deadsnakes/ppa

@@ -174,13 +174,6 @@ Nevertheless, the tail is preserved under invertible integer homographies::
 
 .. TODO::
 
-    - Gosper's algorithm to compute the continued fraction of (ax + b)/(cx + d)
-      knowing the one of x (see Gosper (1972,
-      http://www.inwap.com/pdp10/hbaker/hakmem/cf.html), Knuth (1998, TAOCP vol
-      2, Exercise 4.5.3.15), Fowler (1999). See also Liardet, P. and Stambul, P.
-      "Algebraic Computation with Continued Fractions." J. Number Th. 73,
-      92-121, 1998.
-
     - Improve numerical approximation (the method
       :meth:`~ContinuedFraction_base._mpfr_` is quite slow compared to the
       same method for an element of a number field)
@@ -205,6 +198,7 @@ from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, rich_to_bool
 from .integer import Integer
 from .infinity import Infinity
+from .continued_fraction_gosper import gosper_iterator
 
 ZZ_0 = Integer(0)
 ZZ_1 = Integer(1)
@@ -1137,6 +1131,68 @@ class ContinuedFraction_base(SageObject):
 
     n = numerical_approx
 
+    def apply_homography(self, a, b, c, d):
+        """
+        Return a new continued fraction (ax + b)/(cx + d).
+
+        This is computed using Gosper's algorithm.
+
+        - Gosper's algorithm to compute the continued fraction of (ax
+          + b)/(cx + d) knowing the one of x (
+
+        INPUT:
+
+        - ``a, b, c, d`` -- integer coefficients
+
+        EXAMPLES::
+
+            sage: a = Integer(randint(-10,10)); b = Integer(randint(-10,10));
+            sage: c = Integer(randint(-10,10)); d = Integer(randint(-10,10));
+            sage: vals = [pi, sqrt(2), 541/227];
+            sage: for val in vals:
+            ....:     x = continued_fraction(val)
+            ....:     y = continued_fraction((a*val+b)/(c*val+d))
+            ....:     z = x.apply_homography(a,b,c,d)
+            ....:     y == z
+            ....:
+            True
+            True
+            True
+            sage: x = continued_fraction(([1,2,3],[4,5]))
+            sage: val = x.value()
+            sage: y = continued_fraction((a*val+b)/(c*val+d))
+            sage: z = x.apply_homography(a,b,c,d)
+            sage: y == z
+            True
+
+        REFERENCES:
+
+        - Gosper (1972, http://www.inwap.com/pdp10/hbaker/hakmem/cf.html),
+        - Knuth (1998, TAOCP vol 2, Exercise 4.5.3.15),
+        - Fowler (1999),
+        - Liardet, P. and Stambul, P.  "Algebraic Computation
+          with Continued Fractions." J. Number Th. 73, 92-121, 1998.
+        """
+        from .rational_field import QQ
+        from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+
+        if not all(isinstance(x, Integer) for x in (a, b, c, d)):
+            raise AttributeError("coefficients a, b, c, d must be integers")
+
+        x = self.value()
+        z = (a * x + b) / (c * x + d)
+        _i = iter(gosper_iterator(a, b, c, d, self))
+
+        if z in QQ or isinstance(z, NumberFieldElement_quadratic):
+            l = list(_i)
+            preperiod_length = _i.output_preperiod_length
+            preperiod = l[:preperiod_length]
+            period = l[preperiod_length:]
+            return continued_fraction((preperiod, period), z)
+        else:
+            from sage.misc.lazy_list import lazy_list
+            return continued_fraction(lazy_list(_i), z)
+
 
 class ContinuedFraction_periodic(ContinuedFraction_base):
     r"""
@@ -1266,6 +1322,36 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
         if len(self._x2) > 1 or self._x2[0] is not Infinity:
             return Infinity
         return Integer(len(self._x1))
+
+    def preperiod_length(self):
+        r"""
+        Returns the number of partial quotients of the preperiodic part of ``self``.
+
+        EXAMPLES::
+
+            sage: continued_fraction(2/5).preperiod_length()
+            3
+            sage: cf = continued_fraction([(0,1),(2,)]); cf
+            [0; 1, (2)*]
+            sage: cf.preperiod_length()
+            2
+        """
+        return Integer(len(self._x1))
+
+    def period_length(self):
+        r"""
+        Return the number of partial quotients of the preperiodic part of ``self``.
+
+        EXAMPLES::
+
+            sage: continued_fraction(2/5).period_length()
+            1
+            sage: cf = continued_fraction([(0,1),(2,)]); cf
+            [0; 1, (2)*]
+            sage: cf.period_length()
+            1
+        """
+        return Integer(len(self._x2))
 
     def __richcmp__(self, other, op):
         r"""
@@ -2048,7 +2134,21 @@ class ContinuedFraction_infinite(ContinuedFraction_base):
             return self._value
         else:
             from sage.rings.real_lazy import RLF
+            if self._w[0] < 0:
+                return -RLF(-self)
             return RLF(self)
+
+    def __neg__(self):
+        """
+        Return the opposite of ``self``.
+        """
+        from sage.combinat.words.word import Word
+        _w = self._w
+        if _w[1] == 1:
+            _w = Word((-_w[0]-1, _w[2]+1)).concatenate(_w[3:])
+        else:
+            _w = Word((-_w[0]-1, ZZ_1, _w[1]-1)).concatenate(_w[2:])
+        return self.__class__(_w)
 
 
 def check_and_reduce_pair(x1, x2=None):

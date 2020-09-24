@@ -424,7 +424,7 @@ cdef class DenseGraph(CGraph):
         """
         Return the next out-neighbor of ``u`` that is greater or equal to ``v``.
 
-        Return ``-1`` in case there does not exist such a out-neighbor.
+        Return ``-1`` in case there does not exist such an out-neighbor.
         """
         cdef int place = (u * self.num_longs)
         cdef size_t i

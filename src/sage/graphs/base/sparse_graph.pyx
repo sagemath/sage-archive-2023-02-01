@@ -697,22 +697,16 @@ cdef class SparseGraph(CGraph):
             there were more
 
         """
-        cdef int i, num_nbrs = 0, current_nbr = 0
-        if self.out_degrees[u] == 0:
-            return 0
+        cdef int num_nbrs = 0
+        cdef int v = self.next_out_neighbor_unsafe(u, -1)
+        while v != -1:
+            if num_nbrs == size:
+                return -1
+            neighbors[num_nbrs] = v
+            num_nbrs += 1
+            v = self.next_out_neighbor_unsafe(u, v)
 
-        cdef SparseGraphBTNode ** pointers[1]
-        cdef int n_neighbors = self.out_neighbors_BTNode_unsafe(u, pointers)
-        if size >= n_neighbors:
-            for i in range(n_neighbors):
-                neighbors[i] = pointers[0][i].vertex
-        else:
-            for i in range(size):
-                neighbors[i] = pointers[0][i].vertex
-            n_neighbors = -1
-
-        sig_free(pointers[0])
-        return n_neighbors
+        return num_nbrs
 
     cdef int out_neighbors_BTNode_unsafe(self, int u, SparseGraphBTNode *** p_pointers):
         """
@@ -735,31 +729,88 @@ cdef class SparseGraph(CGraph):
 
             Don't forget to free ``p_pointers[0]``  !
         """
-        cdef int i, num_nbrs = 0, current_nbr = 0
+        cdef int num_nbrs = 0
         cdef int degree = self.out_degrees[u]
         if degree == 0:
             p_pointers[0] = NULL
             return 0
         cdef SparseGraphBTNode **pointers = <SparseGraphBTNode **>check_allocarray(degree, sizeof(SparseGraphBTNode *))
         p_pointers[0] = pointers
-        for i in range(u * self.hash_length, (u+1) * self.hash_length):
-            if not self.vertices[i]:
-                continue
-            pointers[num_nbrs] = self.vertices[i]
-            num_nbrs += 1
 
-            # While all the neighbors have not been added to the list, explore
-            # element pointers[current_nbr] and append its children to the end
-            # of pointers if necessary, the increment current_nbr.
-            while current_nbr < num_nbrs:
-                if pointers[current_nbr].left:
-                    pointers[num_nbrs] = pointers[current_nbr].left
-                    num_nbrs += 1
-                if pointers[current_nbr].right:
-                    pointers[num_nbrs] = pointers[current_nbr].right
-                    num_nbrs += 1
-                current_nbr += 1
+        cdef SparseGraphBTNode* v = self.next_out_neighbor_BTNode_unsafe(u, -1)
+        while v:
+            pointers[num_nbrs] = v
+            num_nbrs += 1
+            v = self.next_out_neighbor_BTNode_unsafe(u, v.vertex)
+
         return num_nbrs
+
+    cdef int next_out_neighbor_unsafe(self, int u, int v):
+        """
+        Return the next out-neighbor of ``u`` that is greater than ``v``.
+
+        If ``v`` is ``-1`` return the first neighbor of ``u``.
+
+        Return ``-1`` in case there does not exist such an out-neighbor.
+        """
+        cdef SparseGraphBTNode* next_bt = self.next_out_neighbor_BTNode_unsafe(u, v)
+        if next_bt:
+            return next_bt.vertex
+        else:
+            return -1
+
+    cdef inline SparseGraphBTNode* next_out_neighbor_BTNode_unsafe(self, int u, int v):
+        """
+        Return the next out-neighbor of ``u`` that is greater than ``v``.
+
+        If ``v`` is ``-1`` return the first neighbor of ``u``.
+
+        Return ``NULL`` in case there does not exist such an out-neighbor.
+        """
+        return self.next_neighbor_BTNode_unsafe(self.vertices, u, v)
+
+    cdef inline SparseGraphBTNode* next_neighbor_BTNode_unsafe(self, SparseGraphBTNode** vertices, int u, int v):
+        """
+        Return the next neighbor of ``u`` that is greater than ``v``.
+
+        If ``v`` is ``-1`` return the first neighbor of ``u``.
+
+        Return ``NULL`` in case there does not exist such a neighbor.
+
+        If ``vertices`` is ``self.vertices`` the out-neighbor is given.
+        If ``vertices`` is ``self.vertices_rev`` the in-neighbor is given.
+        """
+        cdef int i
+        cdef int start_i = (u * self.hash_length) + (v & self.hash_mask)
+        cdef SparseGraphBTNode* temp
+        cdef SparseGraphBTNode* last_larger
+
+        i = start_i
+        if v != -1 and vertices[i]:
+            last_larger = NULL
+            temp = vertices[i]
+            while temp:
+                if compare(temp.vertex, v) > 0:
+                    # We have found a candidate.
+                    # We fall back to it, if we do not find anything smaller.
+                    last_larger = temp
+                    temp = temp.left
+                else: # note compare < 0
+                    temp = temp.right
+            if last_larger:
+                return last_larger
+        elif v == -1:
+            start_i = (u*self.hash_length) - 1
+
+        # Return the next vertex.
+        for i in range(start_i+1, (u+1) * self.hash_length):
+            if not vertices[i]:
+                continue
+            temp = vertices[i]
+            while temp.left:
+                temp = temp.left
+            return temp
+        return NULL
 
     cpdef int out_degree(self, int u):
         """
@@ -853,23 +904,16 @@ cdef class SparseGraph(CGraph):
             expensive than out_neighbors_unsafe.
 
         """
-        cdef size_t i
         cdef int num_nbrs = 0
-        if self.in_degrees[v] == 0:
-            return 0
+        cdef int u = self.next_in_neighbor_unsafe(v, -1)
+        while u != -1:
+            if num_nbrs == size:
+                return -1
+            neighbors[num_nbrs] = u
+            num_nbrs += 1
+            u = self.next_in_neighbor_unsafe(v, u)
 
-        cdef SparseGraphBTNode ** pointers[1]
-        cdef int n_neighbors = self.in_neighbors_BTNode_unsafe(v, pointers)
-        if size >= n_neighbors:
-            for i in range(n_neighbors):
-                neighbors[i] = pointers[0][i].vertex
-        else:
-            for i in range(size):
-                neighbors[i] = pointers[0][i].vertex
-            n_neighbors = -1
-
-        sig_free(pointers[0])
-        return n_neighbors
+        return num_nbrs
 
     cdef int in_neighbors_BTNode_unsafe(self, int v, SparseGraphBTNode *** p_pointers):
         """
@@ -892,31 +936,46 @@ cdef class SparseGraph(CGraph):
 
             Don't forget to free ``p_pointers[0]``  !
         """
-        cdef int i, num_nbrs = 0, current_nbr = 0
+        cdef int num_nbrs = 0
         cdef int degree = self.in_degrees[v]
         if degree == 0:
             p_pointers[0] = NULL
             return 0
         cdef SparseGraphBTNode **pointers = <SparseGraphBTNode **>check_allocarray(degree, sizeof(SparseGraphBTNode *))
         p_pointers[0] = pointers
-        for i in range(v * self.hash_length, (v+1) * self.hash_length):
-            if not self.vertices_rev[i]:
-                continue
-            pointers[num_nbrs] = self.vertices_rev[i]
-            num_nbrs += 1
 
-            # While all the neighbors have not been added to the list, explore
-            # element pointers[current_nbr] and append its children to the end
-            # of pointers if necessary, the increment current_nbr.
-            while current_nbr < num_nbrs:
-                if pointers[current_nbr].left:
-                    pointers[num_nbrs] = pointers[current_nbr].left
-                    num_nbrs += 1
-                if pointers[current_nbr].right:
-                    pointers[num_nbrs] = pointers[current_nbr].right
-                    num_nbrs += 1
-                current_nbr += 1
+        cdef SparseGraphBTNode* u = self.next_in_neighbor_BTNode_unsafe(v, -1)
+        while u:
+            pointers[num_nbrs] = u
+            num_nbrs += 1
+            u = self.next_in_neighbor_BTNode_unsafe(v, u.vertex)
+
         return num_nbrs
+
+    cdef int next_in_neighbor_unsafe(self, int v, int u):
+        """
+        Return the next in-neighbor of ``v`` that is greater than ``u``.
+
+        If ``u`` is ``-1`` return the first neighbor of ``v``.
+
+        Return ``-1`` in case there does not exist such an in-neighbor.
+        """
+        cdef SparseGraphBTNode* next_bt = self.next_in_neighbor_BTNode_unsafe(v, u)
+        if next_bt:
+            return next_bt.vertex
+        else:
+            return -1
+
+    cdef inline SparseGraphBTNode* next_in_neighbor_BTNode_unsafe(self, int v, int u):
+        """
+        Return the next in-neighbor of ``v`` that is greater than ``u``.
+
+        If ``u`` is ``-1`` return the first neighbor of ``v``.
+
+        Return ``NULL`` in case there does not exist such an in-neighbor.
+        """
+        return self.next_neighbor_BTNode_unsafe(self.vertices_rev, v, u)
+
 
     cpdef int in_degree(self, int v):
         """

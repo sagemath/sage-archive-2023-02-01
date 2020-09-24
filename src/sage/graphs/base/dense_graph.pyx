@@ -409,23 +409,33 @@ cdef class DenseGraph(CGraph):
           there were more
 
         """
-        cdef int place = (u * self.num_longs)
         cdef int num_nbrs = 0
+        cdef int v = self.next_out_neighbor_unsafe(u, 0)
+        while v != -1:
+            if num_nbrs == size:
+                return -1
+            neighbors[num_nbrs] = v
+            num_nbrs += 1
+            v = self.next_out_neighbor_unsafe(u, v+1)
+
+        return num_nbrs
+
+    cdef inline int next_out_neighbor_unsafe(self, int u, int v):
+        cdef int place = (u * self.num_longs)
         cdef size_t i
-        cdef int v = 0
         cdef unsigned long word, data
-        for i in range(self.num_longs):
+        cdef size_t start = (<size_t> v)/(8*sizeof(unsigned long))
+        for i in range(start, self.num_longs):
             data = self.edges[place + i]
             word = 1
+            word = word << (v % (8*sizeof(unsigned long)))
             while word:
                 if word & data:
-                    if num_nbrs == size:
-                        return -1
-                    neighbors[num_nbrs] = v
-                    num_nbrs += 1
-                word = word << 1
-                v += 1
-        return num_nbrs
+                    return v
+                else:
+                    word = word << 1
+                    v += 1
+        return -1
 
     cdef int in_neighbors_unsafe(self, int v, int *neighbors, int size) except -2:
         """
@@ -788,32 +798,41 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         """
         cdef object v, u
-        vertices = [self.get_vertex(v) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int
+        cdef DenseGraph cg = self.cg()
+
+        vertices = [self.get_vertex_checked(v) for v in vertices]
+
         if labels:
             for v_int in vertices:
-                for u_int in self._cg.out_neighbors(v_int):
-                    if u_int >= v_int or u_int not in vertices:
-                        v = self.vertex_label(v_int)
-                        u = self.vertex_label(u_int)
-                        try:
-                            if u < v:
-                                v, u = u, v
-                        except TypeError:
-                            pass
-                        yield (v, u, None)
+                if v_int != -1:
+                    v = self.vertex_label(v_int)
+                    u_int = cg.next_out_neighbor_unsafe(v_int, 0)
+                    while u_int != -1:
+                        if u_int >= v_int or u_int not in vertices:
+                            u = self.vertex_label(u_int)
+                            try:
+                                if u < v:
+                                    v, u = u, v
+                            except TypeError:
+                                pass
+                            yield (v, u, None)
+                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int + 1)
         else:
             for v_int in vertices:
-                for u_int in self._cg.out_neighbors(v_int):
-                    if u_int >= v_int or u_int not in vertices:
-                        v = self.vertex_label(v_int)
-                        u = self.vertex_label(u_int)
-                        try:
-                            if u < v:
-                                v, u = u, v
-                        except TypeError:
-                            pass
-                        yield (v, u)
+                if v_int != -1:
+                    v = self.vertex_label(v_int)
+                    u_int = cg.next_out_neighbor_unsafe(v_int, 0)
+                    while u_int != -1:
+                        if u_int >= v_int or u_int not in vertices:
+                            u = self.vertex_label(u_int)
+                            try:
+                                if u < v:
+                                    v, u = u, v
+                            except TypeError:
+                                pass
+                            yield (v, u)
+                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int + 1)
 
     def iterator_in_edges(self, object vertices, bint labels):
         """
@@ -839,18 +858,20 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         """
         cdef object v
-        vertices = [self.get_vertex(v) for v in vertices if self.has_vertex(v)]
+        vertices = [self.get_vertex_checked(v) for v in vertices]
         cdef int u_int, v_int
         if labels:
             for v_int in vertices:
-                v = self.vertex_label(v_int)
-                for u_int in self._cg.in_neighbors(v_int):
-                    yield (self.vertex_label(u_int), v, None)
+                if v_int != -1:
+                    v = self.vertex_label(v_int)
+                    for u_int in self._cg.in_neighbors(v_int):
+                        yield (self.vertex_label(u_int), v, None)
         else:
             for v_int in vertices:
-                v = self.vertex_label(v_int)
-                for u_int in self._cg.in_neighbors(v_int):
-                    yield (self.vertex_label(u_int), v)
+                if v_int != -1:
+                    v = self.vertex_label(v_int)
+                    for u_int in self._cg.in_neighbors(v_int):
+                        yield (self.vertex_label(u_int), v)
 
     def iterator_out_edges(self, object vertices, bint labels):
         """
@@ -876,18 +897,27 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         """
         cdef object v
-        vertices = [self.get_vertex(v) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int
+        cdef DenseGraph cg = self.cg()
+
+        vertices = [self.get_vertex_checked(v) for v in vertices]
+
         if labels:
             for v_int in vertices:
-                v = self.vertex_label(v_int)
-                for u_int in self._cg.out_neighbors(v_int):
-                    yield (v, self.vertex_label(u_int), None)
+                if v_int != -1:
+                    v = self.vertex_label(v_int)
+                    u_int = cg.next_out_neighbor_unsafe(v_int, 0)
+                    while u_int != -1:
+                        yield (v, self.vertex_label(u_int), None)
+                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int + 1)
         else:
             for v_int in vertices:
-                v = self.vertex_label(v_int)
-                for u_int in self._cg.out_neighbors(v_int):
-                    yield (v, self.vertex_label(u_int))
+                if v_int != -1:
+                    v = self.vertex_label(v_int)
+                    u_int = cg.next_out_neighbor_unsafe(v_int, 0)
+                    while u_int != -1:
+                        yield (v, self.vertex_label(u_int))
+                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int + 1)
 
     def multiple_edges(self, new):
         """

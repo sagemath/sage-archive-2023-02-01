@@ -1226,7 +1226,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         Return the object represented by ``u_int``, or ``None`` if this does not
         represent a vertex.
         """
-        cdef dict vertex_labels = self.vertex_labels,
+        cdef dict vertex_labels = self.vertex_labels
 
         if u_int in vertex_labels:
             return vertex_labels[u_int]

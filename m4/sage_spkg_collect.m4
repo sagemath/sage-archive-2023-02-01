@@ -160,12 +160,12 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         in_sdist=yes
         message="will be installed as an SPKG"
         ;;
-    optional)
-        message="optional, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
-        uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
-        ;;
-    experimental)
-        message="experimental, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
+    optional|experimental)
+        AS_VAR_IF([SAGE_ENABLE_]${SPKG_NAME}, [yes], [
+            message="$SPKG_TYPE, will be installed as an SPKG"
+        ], [
+            message="$SPKG_TYPE, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
+        ])
         uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
         ;;
     *)

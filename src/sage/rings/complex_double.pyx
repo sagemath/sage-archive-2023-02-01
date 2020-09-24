@@ -988,6 +988,17 @@ cdef class ComplexDoubleElement(FieldElement):
         # Sending to another computer algebra system is slow anyway, right?
         return CC(self)._interface_init_(I)
 
+    def _mathematica_init_(self):
+        """
+        TESTS:
+
+        Check that :trac:`28814` is fixed::
+
+            sage: mathematica(CDF(1e-25, 1e25))  # optional - mathematica
+            1.*^-25 + 1.*^25*I
+        """
+        return CC(self)._mathematica_init_()
+
     def _maxima_init_(self, I=None):
         """
         Return a string representation of this complex number in the syntax of

@@ -20,8 +20,8 @@ SAGE_SPKG_CONFIGURE([python3], [
       AC_CACHE_CHECK([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules], [ac_cv_path_PYTHON3], [
         AS_IF([test x"$ac_path_PYTHON3" != x], [dnl checking explicitly specified $with_python
            AC_MSG_RESULT([])
-           AC_PATH_PROGS_FEATURE_CHECK([PYTHON3], [$ac_path_PYTHON3], [
-                SAGE_CHECK_PYTHON_FOR_VENV([$ac_path_PYTHON3],
+           AC_PATH_PROG([ac_path_PYTHON3], [$ac_path_PYTHON3])
+           SAGE_CHECK_PYTHON_FOR_VENV([$ac_path_PYTHON3],
                                            MIN_VERSION, LT_VERSION,
                                            $check_modules, [
                     dnl It is good
@@ -30,7 +30,6 @@ SAGE_SPKG_CONFIGURE([python3], [
                     AC_MSG_RESULT([yes])
                     dnl introduction for AC_MSG_RESULT printed by AC_CACHE_CHECK
                     AC_MSG_CHECKING([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules])
-                ])
            ])
            AS_IF([test -z "$ac_cv_path_PYTHON3"], [
                AC_MSG_ERROR([the python3 selected using --with-python=$with_python is not suitable])

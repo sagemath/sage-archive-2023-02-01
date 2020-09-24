@@ -371,7 +371,7 @@ command ``docker build``.  For example::
   [mkoeppe@sage sage]$ docker build . -f Dockerfile \
     --build-arg BASE_IMAGE=ubuntu:latest \
     --build-arg NUMPROC=4 \
-    --build-arg EXTRA_CONFIGURE_ARGS="--with-python=/usr/opt/python3.42"
+    --build-arg EXTRA_CONFIGURE_ARGS="--with-python=/usr/bin/python3.42"
 
 These arguments (and their default values) are defined using ``ARG``
 commands in the ``Dockerfile``.

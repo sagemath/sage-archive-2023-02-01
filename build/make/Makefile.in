@@ -31,7 +31,7 @@ INST = $(SAGE_SPKG_INST)
 
 # Aliases for mutually exclusive standard packages selected at configure time
 TOOLCHAIN = @SAGE_TOOLCHAIN@
-PYTHON = python@SAGE_PYTHON_VERSION@
+PYTHON = python3
 MP_LIBRARY = @SAGE_MP_LIBRARY@
 BLAS = @SAGE_BLAS@
 

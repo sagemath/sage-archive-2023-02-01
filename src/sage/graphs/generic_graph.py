@@ -17072,64 +17072,6 @@ class GenericGraph(GenericGraph_pyx):
             return QQ((f * WI, self.order() * (self.order() - 1)))
         return f * WI / (self.order() * (self.order() - 1))
 
-    def szeged_index(self):
-        r"""
-        Return the Szeged index of the graph.
-
-        For any `uv\in E(G)`, let
-        `N_u(uv) = \{w\in G:d(u,w)<d(v,w)\}, n_u(uv)=|N_u(uv)|`
-
-        The Szeged index of a connected graph is then defined as [1]:
-        `\sum_{uv \in E(G)}n_u(uv)\times n_v(uv)`
-
-        See the :wikipedia:`Szeged_index` for more details.
-
-        EXAMPLES:
-
-        True for any connected graph [1]::
-
-            sage: g=graphs.PetersenGraph()
-            sage: g.wiener_index()<= g.szeged_index()
-            True
-
-        True for all trees [1]::
-
-            sage: g=Graph()
-            sage: g.add_edges(graphs.CubeGraph(5).min_spanning_tree())
-            sage: g.wiener_index() == g.szeged_index()
-            True
-
-        TESTS:
-
-        Not defined when the graph is not connected (:trac:`26803`)::
-
-            sage: Graph({0: [1], 2: []}).szeged_index()
-            Traceback (most recent call last):
-            ...
-            ValueError: the Szeged index is defined for connected graphs only
-
-        REFERENCE:
-
-        [1] Klavzar S., Rajapakse A., Gutman I. (1996). The Szeged and the
-        Wiener index of graphs. Applied Mathematics Letters, 9 (5), pp. 45-49.
-        """
-        if not self.is_connected():
-            raise ValueError("the Szeged index is defined for connected graphs only")
-
-        distances = self.distance_all_pairs()
-        s = 0
-        for u, v in self.edge_iterator(labels=None):
-            du = distances[u]
-            dv = distances[v]
-            n1 = n2 = 0
-            for w in self:
-                if du[w] < dv[w]:
-                    n1 += 1
-                elif dv[w] < du[w]:
-                    n2 += 1
-            s += n1 * n2
-        return s
-
     ### Searches
 
     def breadth_first_search(self, start, ignore_direction=False,
@@ -23096,6 +23038,7 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import is_cut_vertex
     from sage.graphs.connectivity import edge_connectivity
     from sage.graphs.connectivity import vertex_connectivity
+    from sage.graphs.distances_all_pairs import szeged_index
     from sage.graphs.domination import dominating_set
     from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
     from sage.graphs.path_enumeration import shortest_simple_paths

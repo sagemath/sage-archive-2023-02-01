@@ -1325,12 +1325,12 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: z.set_comp(e)[0,1] = 1
             Traceback (most recent call last):
             ...
-            AssertionError: the components of an immutable element cannot be changed
+            ValueError: the components of an immutable element cannot be changed
 
         """
         if self.is_immutable():
-            raise AssertionError("the components of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         self._is_zero = False  # a priori
         return self._set_comp_unsafe(basis)
 
@@ -1462,12 +1462,12 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: z.add_comp(e)[0,1] = 1
             Traceback (most recent call last):
             ...
-            AssertionError: the components of an immutable element cannot be changed
+            ValueError: the components of an immutable element cannot be changed
 
         """
         if self.is_immutable():
-            raise AssertionError("the components of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         self._is_zero = False  # a priori
         return self._add_comp_unsafe(basis)
 
@@ -1670,8 +1670,8 @@ class FreeModuleTensor(ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the components of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         if other not in self.parent():
             raise TypeError("the original must be an element "
                             + "of {}".format(self.parent()))

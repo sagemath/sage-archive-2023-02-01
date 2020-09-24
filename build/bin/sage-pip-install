@@ -42,12 +42,7 @@ fi
 PYTHON=sage-python23
 
 # The PIP variable is only used to determine the name of the lock file.
-if [ "$SAGE_PYTHON3" = yes ]; then
-    PIP=pip3
-else
-    PIP=pip2
-fi
-
+PIP=pip3
 
 # Find out the name of the package that we are installing
 name="$($PYTHON setup.py --name)"

@@ -191,14 +191,25 @@ AUTHORS:
 - Vincent Delecroix (2014): cleaning, refactorisation, documentation from the
   old implementation in ``contfrac`` (:trac:`14567`).
 """
-# python3
-from __future__ import division, print_function, absolute_import
+# ****************************************************************************
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#       Copyright (C) 2014-2020 Vincent Delecroix <20100.delecroix@gmail.com>
+#       Copyright (C) 2020 Frédéric Chapoton <chapoton@math.unistra.fr>
+#       Copyright (C) 2016 Moritz Firsching <moritz@math.fu-berlin.de>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
+import numbers
 
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, rich_to_bool
 from .integer import Integer
+from .integer_ring import ZZ
 from .infinity import Infinity
-from .continued_fraction_gosper import gosper_iterator
 
 ZZ_0 = Integer(0)
 ZZ_1 = Integer(1)
@@ -1133,57 +1144,74 @@ class ContinuedFraction_base(SageObject):
 
     def apply_homography(self, a, b, c, d):
         """
-        Return a new continued fraction (ax + b)/(cx + d).
+        Return the continued fraction of `(ax + b)/(cx + d)`.
 
-        This is computed using Gosper's algorithm.
-
-        - Gosper's algorithm to compute the continued fraction of (ax
-          + b)/(cx + d) knowing the one of x (
+        This is computed using Gosper's algorithm, see
+        :mod:`~sage.rings.continued_fraction_gosper`.
 
         INPUT:
 
-        - ``a, b, c, d`` -- integer coefficients
+        - ``a, b, c, d`` -- integers
 
         EXAMPLES::
 
-            sage: a = Integer(randint(-10,10)); b = Integer(randint(-10,10));
-            sage: c = Integer(randint(-10,10)); d = Integer(randint(-10,10));
-            sage: vals = [pi, sqrt(2), 541/227];
-            sage: for val in vals:
-            ....:     x = continued_fraction(val)
-            ....:     y = continued_fraction((a*val+b)/(c*val+d))
-            ....:     z = x.apply_homography(a,b,c,d)
-            ....:     y == z
-            ....:
-            True
-            True
-            True
-            sage: x = continued_fraction(([1,2,3],[4,5]))
-            sage: val = x.value()
-            sage: y = continued_fraction((a*val+b)/(c*val+d))
-            sage: z = x.apply_homography(a,b,c,d)
-            sage: y == z
-            True
+            sage: (5 * 13/6 - 2) / (3 * 13/6 - 4)
+            53/15
+            sage: continued_fraction(13/6).apply_homography(5, -2,  3, -4).value()
+            53/15
+
+        TESTS::
+
+            sage: CF = [continued_fraction(x) for x in [sqrt(2), AA(3).sqrt(),
+            ....:       AA(3)**(1/3), QuadraticField(37).gen(), pi, 113/27,
+            ....:       [3,1,2,2], words.FibonacciWord([1,3])]]
+            sage: for _ in range(100):
+            ....:     cf = choice(CF)
+            ....:     a = ZZ.random_element(-30, 30)
+            ....:     b = ZZ.random_element(-30, 30)
+            ....:     c = ZZ.random_element(-30, 30)
+            ....:     d = ZZ.random_element(-30, 30)
+            ....:     if not c and not d:
+            ....:         continue
+            ....:     cf_gosper = cf.apply_homography(a,b,c,d)
+            ....:     x = cf.value()
+            ....:     cf_hom = continued_fraction((a*x + b) / (c*x + d))
+            ....:     assert cf_gosper[:30] == cf_hom[:30]
+
+            sage: continued_fraction(13/25).apply_homography(0, 1, 25, -13)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
+
+            sage: continued_fraction(pi).apply_homography(0, 1, 0, 0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero
 
         REFERENCES:
 
-        - Gosper (1972, http://www.inwap.com/pdp10/hbaker/hakmem/cf.html),
-        - Knuth (1998, TAOCP vol 2, Exercise 4.5.3.15),
-        - Fowler (1999),
-        - Liardet, P. and Stambul, P.  "Algebraic Computation
-          with Continued Fractions." J. Number Th. 73, 92-121, 1998.
+        - [Gos1972]_
+        - [Knu1998]_ Exercise 4.5.3.15
+        - [LS1998]_
         """
         from .rational_field import QQ
+        from .continued_fraction_gosper import gosper_iterator
         from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 
-        if not all(isinstance(x, Integer) for x in (a, b, c, d)):
-            raise AttributeError("coefficients a, b, c, d must be integers")
+        if not all(isinstance(x, numbers.Integral) for x in (a, b, c, d)):
+            raise TypeError("a, b, c and d must be integral")
+
+        a = ZZ(a)
+        b = ZZ(b)
+        c = ZZ(c)
+        d = ZZ(d)
+        if not c and not d:
+            raise ZeroDivisionError("division by zero")
 
         x = self.value()
         z = (a * x + b) / (c * x + d)
         _i = iter(gosper_iterator(a, b, c, d, self))
-
-        if z in QQ or isinstance(z, NumberFieldElement_quadratic):
+        if isinstance(self, ContinuedFraction_periodic):
             l = list(_i)
             preperiod_length = _i.output_preperiod_length
             preperiod = l[:preperiod_length]
@@ -1192,7 +1220,6 @@ class ContinuedFraction_base(SageObject):
         else:
             from sage.misc.lazy_list import lazy_list
             return continued_fraction(lazy_list(_i), z)
-
 
 class ContinuedFraction_periodic(ContinuedFraction_base):
     r"""
@@ -2141,13 +2168,23 @@ class ContinuedFraction_infinite(ContinuedFraction_base):
     def __neg__(self):
         """
         Return the opposite of ``self``.
+
+        EXAMPLES::
+
+            sage: -continued_fraction(words.FibonacciWord([2,5]))
+            [-3; 1, 4, 2, 2, 5, 2, 5, 2, 2, 5, 2, 2, 5, 2, 5, 2, 2, 5, 2...]
+
+            sage: from sage.misc.lazy_list import lazy_list
+            sage: l = lazy_list(lambda n: (n**2)%17)
+            sage: -continued_fraction(l)
+            [-1; 5, 9, 16, 8, 2, 15, 13, 13, 15, 2, 8, 16, 9, 4, 1, 0, 1, 4, 9...]
         """
         from sage.combinat.words.word import Word
         _w = self._w
         if _w[1] == 1:
-            _w = Word((-_w[0]-1, _w[2]+1)).concatenate(_w[3:])
+            _w = Word((-_w[0]-1, _w[2]+1)).concatenate(Word(_w[3:]))
         else:
-            _w = Word((-_w[0]-1, ZZ_1, _w[1]-1)).concatenate(_w[2:])
+            _w = Word((-_w[0]-1, ZZ_1, _w[1]-1)).concatenate(Word(_w[2:]))
         return self.__class__(_w)
 
 

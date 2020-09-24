@@ -1,8 +1,5 @@
 """
-Gosper iterator
-
-A class which serves as a stateful iterable for computing the terms of the continued fraction of `(a*x+b)/(c*x+d)`,
-where `a, b, c, d` are integers, and `x` is a continued fraction.
+Gosper iterator for homographic transformations
 
 EXAMPLES::
 
@@ -11,26 +8,47 @@ EXAMPLES::
     sage: it = iter(gosper_iterator(3,2,3,1,x))
     sage: Word(it, length='infinite')
     word: 1,10,2,2,1,4,1,1,1,97,4,1,2,1,2,45,6,4,9,1,27,2,6,1,4,2,3,1,3,1,15,2,1,1,2,1,1,2,32,1,...
+    sage: continued_fraction((3*pi + 2) / (3*pi + 1))
+    [1; 10, 2, 2, 1, 4, 1, 1, 1, 97, 4, 1, 2, 1, 2, 45, 6, 4, 9, 1, ...]
+
+REFERENCES:
+
+For more information on the underlying algorithm, see [Gos1972]_.
+
+.. TODO::
+
+    Implement the more general version for `(axy + bx + cy + d) / (exy + fx + gy + h)`
+    which would allow to handle the product of two continued fractions.
 """
+# ****************************************************************************
+#       Copyright (C) 2006 Miroslav Kovar <miroslavkovar@protonmail.com>
+#       Copyright (C) 2020 Vincent Delecroix <20100.delecroix@gmail.com>
+#       Copyright (C) 2020 Frédéric Chapoton <chapoton@math.unistra.fr>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 from sage.rings.infinity import Infinity
 from sage.rings.integer import Integer
 from sage.rings.real_mpfr import RR
 
-
 class gosper_iterator(object):
-
+    r"""
+    Iterable for the partial quotients of `(a*x+b)/(c*x+d)`, where `a, b, c, d`
+    are integers, and `x` is a continued fraction.
+    """
     def __init__(self, a, b, c, d, x):
         """
         Construct the class.
 
         INPUT:
 
-        - ``a, b, c, d`` -- Integer coefficients of the transformation.
-        - ``x`` -- An instance of a continued fraction.
+        - ``a, b, c, d`` -- integer coefficients of the transformation
 
-        OUTPUT:
-
-        - The instance of gosper_iterator class.
+        - ``x`` -- a continued fraction
 
         TESTS::
 
@@ -101,28 +119,14 @@ class gosper_iterator(object):
             sage: for i in range(10):
             ....:     assert next(ig) == next(icf)
         """
-        limit = 100
         while True:
             if self.currently_read >= self.input_preperiod_length:
-                current_state = (
-                    ('a', self.a),
-                    ('b', self.b),
-                    ('c', self.c),
-                    ('d', self.d),
-                    ('index', (self.currently_read - self.input_preperiod_length) % self.input_period_length)
-                )
-                # for state in self.states:
-                #     if self.compare_dicts(state, current_state, ['currently_emitted']):
-                #         self.output_preperiod_length = state['currently_emitted']
-                #         raise StopIteration
+                current_state = (self.a, self.b, self.c, self.d, (self.currently_read - self.input_preperiod_length) % self.input_period_length)
                 if current_state in self.states:
                     self.output_preperiod_length = self.states_to_currently_emitted[current_state]
                     raise StopIteration
                 self.states.add(current_state)
                 self.states_to_currently_emitted[current_state] = self.currently_emitted
-                if len(self.states) > 100:
-                    print("ERROR: Stopping iteration, danger of memory overflow.")
-                    raise StopIteration
 
             if (self.c == 0 and self.d == 0):
                 raise StopIteration
@@ -136,13 +140,6 @@ class gosper_iterator(object):
                 return Integer(ub)
             else:
                 self.ingest()
-
-            limit -= 1
-            if limit < 1:
-                print("ERROR: Next loop iteration ran too many times.")
-                raise StopIteration
-
-    next = __next__  # for python2
 
     def emit(self, q):
         """
@@ -209,7 +206,7 @@ class gosper_iterator(object):
             sage: gosper_iterator.bound(1,0)
             +Infinity
         """
-        if d == 0:
+        if not d:
             return +Infinity
         else:
-            return (n / d).floor()
+            return n // d

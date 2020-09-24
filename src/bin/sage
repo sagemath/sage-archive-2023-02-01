@@ -529,11 +529,7 @@ fi
 
 if [ "$1" = '-python' -o "$1" = '--python' ]; then
     shift
-    if [ "$SAGE_PYTHON3" = 'yes' ]; then
-        exec "$SAGE_LOCAL"/bin/python3 "$@"
-    else
-        exec "$SAGE_LOCAL"/bin/python2 "$@"
-    fi
+    exec "$SAGE_LOCAL"/bin/python3 "$@"
 fi
 
 if [ "$1" = '-python3' -o "$1" = '--python3' ]; then

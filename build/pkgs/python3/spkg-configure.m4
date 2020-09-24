@@ -1,8 +1,10 @@
 SAGE_SPKG_CONFIGURE([python3], [
    AC_ARG_WITH([python],
-               [AS_HELP_STRING([--with-python=''],
-               [full path to a Python 3 to use for Sage venv, e.g. --with-python=/usr/opt/python3.42])])
+               [AS_HELP_STRING([--with-python=PYTHON3],
+                               [Python 3 executable to use for Sage venv; default: python3])])
    ac_path_PYTHON3="$with_python"
+   AS_IF([test x"$with_python" = x"no"],
+         [AC_MSG_ERROR([building Sage --without-python is not supported])])
 
    SAGE_SPKG_DEPCHECK([sqlite libpng bzip2 xz libffi], [
       dnl Check if we can do venv with a system python3
@@ -18,9 +20,13 @@ SAGE_SPKG_CONFIGURE([python3], [
                                     $check_modules, [
                     dnl It is good
                     ac_cv_path_PYTHON3="$ac_path_PYTHON3"
-                    ac_path_PYTHON3_found=:
-                    AC_MSG_RESULT([yes])
-                    AC_MSG_CHECKING("$ac_path_PYTHON3"[ for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules])
+           ])
+           AS_IF([test -n "$ac_cv_path_PYTHON3"], [
+               AC_MSG_RESULT([yes])
+               dnl introduction for AC_MSG_RESULT printed by AC_CACHE_CHECK
+               AC_MSG_CHECKING([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules])
+           ], [
+               AC_MSG_ERROR([the python3 selected using --with-python=$with_python is not suitable])
            ])
 	], [dnl checking the default system python3
            AC_MSG_RESULT([])

@@ -76,7 +76,7 @@ jobs:
         }
         $packages = Get-ChildItem build/pkgs -recurse -Include debian.txt, debian-bootstrap.txt | foreach-object { ExtractPackages $_.FullName } | Sort-Object -Unique
         # Add tox which is use to build
-        # $packages += 'tox'
+        $packages += 'tox'
         echo "Install the following packages:" @packages
         # Add deadsnakes so that libpython3.7-dev is found
         & sudo add-apt-repository ppa:deadsnakes/ppa

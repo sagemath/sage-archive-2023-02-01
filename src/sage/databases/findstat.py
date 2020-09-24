@@ -228,6 +228,7 @@ import tempfile
 import inspect
 import html
 import requests
+from json.decoder import JSONDecodeError
 
 # Combinatorial collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
@@ -428,15 +429,21 @@ def _get_json(url, **kwargs):
 
     EXAMPLES::
 
-        sage: from sage.databases.findstat import _get_json
-        sage: _get_json("https://nonexistingfindstaturl.org")
+        sage: from sage.databases.findstat import _get_json, FINDSTAT_API_MAPS
+        sage: _get_json(FINDSTAT_API_MAPS + "?xxx=yyy")                         # optional -- internet
         Traceback (most recent call last):
         ...
-        ConnectionError: HTTPSConnectionPool(host='nonexistingfindstaturl.org', port=443): Max retries exceeded with url: / (Caused by NewConnectionError('...Failed to establish a new connection: [Errno -2] Name or service not known'))
+        ValueError: E005: On filtering maps, the following parameters are not allowed: [u'xxx'].
     """
     response = requests.get(url)
     if response.ok:
-        return response.json(**kwargs)
+        try:
+            result = response.json(**kwargs)
+        except JSONDecodeError:
+            raise ValueError(response.text)
+        if "error" in result:
+            raise ValueError(result["error"])
+        return(result)
     raise ConnectionError(response.text)
 
 def _submit(args, url):
@@ -1222,7 +1229,7 @@ def findmap(*args, **kwargs):
         0: Mp00146 (quality [100])
 
         sage: findmap("Dyck paths", "Set partitions", lambda D: [(a+1, b) for a,b in D.tunnels()]) # optional -- internet
-        0: Mp00092oMp00146 (quality [50])
+        0: Mp00092oMp00146 (quality [83])
 
     Finally, we can also retrieve all maps with a given domain or codomain::
 

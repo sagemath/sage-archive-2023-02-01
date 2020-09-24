@@ -2,6 +2,11 @@ SAGE_SPKG_CONFIGURE([python3], [
    AC_ARG_WITH([python],
                [AS_HELP_STRING([--with-python=''],
                [full path to a Python 3 to use for Sage venv, e.g. --with-python=/usr/opt/python3.42])])
+   AS_IF([test x"$with_python" = x2], [AC_MSG_ERROR([Sage cannot be built on Python 2. Exiting.])])
+   AS_IF([test x"$with_python" = x3], [
+       AC_MSG_NOTICE([The meaning of this option has changed in Sage 9.2. Ignoring.])
+       with_python=''
+       ])
    ac_path_PYTHON3="$with_python"
 
    SAGE_SPKG_DEPCHECK([sqlite libpng bzip2 xz libffi], [

@@ -1831,7 +1831,7 @@ class SR_generic(MPolynomialSystemGenerator):
         if reverse_variables:
             names +=  self.varstrs("k", 0, r*c, e)
 
-        #from sage.rings.polynomial.pbori import BooleanPolynomialRing
+        #from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing
 
         if self._gf2 and self._polybori:
             return BooleanPolynomialRing(2*n*r*c*e + (n+1)*r*c*e + n*r*e, names, order=self._order)

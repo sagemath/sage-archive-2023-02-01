@@ -924,16 +924,17 @@ Methods
 #               2012--2015 Daniel Krenn <dev@danielkrenn.at>
 #               2012--2015 Sara Kropf <sara.kropf@aau.at>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                https://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from IPython.lib.pretty import pretty
-import collections
 import itertools
+from collections import defaultdict, deque, namedtuple, OrderedDict
+from collections.abc import Iterator
 from copy import copy, deepcopy
 
 from sage.calculus.var import var
@@ -964,13 +965,13 @@ def full_group_by(l, key=lambda x: x):
     A list of pairs ``(k, elements)`` such that ``key(e)=k`` for all
     ``e`` in ``elements``.
 
-    This is similar to ``itertools.groupby`` except that lists are
+    This is similar to :func:`itertools.groupby` except that lists are
     returned instead of iterables and no prior sorting is required.
 
     We do not require
 
     - that the keys are sortable (in contrast to the
-      approach via ``sorted`` and ``itertools.groupby``) and
+      approach via :func:`sorted` and :func:`itertools.groupby`) and
     - that the keys are hashable (in contrast to the
       implementation proposed in `<https://stackoverflow.com/a/15250161>`_).
 
@@ -998,13 +999,13 @@ def full_group_by(l, key=lambda x: x):
         1/x [1]
         2/x [2]
 
-    Note that the behavior is different from ``itertools.groupby``
+    Note that the behavior is different from :func:`itertools.groupby`
     because neither `1/x<2/x` nor `2/x<1/x` does hold.
 
     Here, the result ``r`` has been sorted in order to guarantee a
     consistent order for the doctest suite.
     """
-    elements = collections.defaultdict(list)
+    elements = defaultdict(list)
     original_keys = {}
     for item in l:
         k = key(item)
@@ -1760,7 +1761,7 @@ class FSMState(SageObject):
             sage: B = deepcopy(A)
             sage: B
             (1, 3)
-            sage: B.label == A.label
+            sage: B.label() == A.label()
             True
             sage: B.label is A.label
             False
@@ -4924,7 +4925,7 @@ class FiniteStateMachine(SageObject):
         # transitions have to be sorted anyway, the performance
         # penalty should be bearable; nevertheless, this is only
         # required for doctests.
-        adjacent = collections.OrderedDict(
+        adjacent = OrderedDict(
             (pair, list(transitions))
             for pair, transitions in
             itertools.groupby(
@@ -13143,7 +13144,7 @@ class _FSMTapeCache_(SageObject):
 
         self.tape_cache_manager = tape_cache_manager
         self.tape_cache_manager.append(self)
-        self.cache = tuple(collections.deque() for _ in self.tape)
+        self.cache = tuple(deque() for _ in self.tape)
 
     def _repr_(self):
         """
@@ -13927,8 +13928,7 @@ def is_FSMProcessIterator(PI):
 # ****************************************************************************
 
 
-class FSMProcessIterator(SageObject,
-                         collections.Iterator):
+class FSMProcessIterator(SageObject, Iterator):
     """
     This class takes an input, feeds it into a finite state machine
     (automaton or transducer, in particular), tests whether this was
@@ -14215,7 +14215,7 @@ class FSMProcessIterator(SageObject,
             return result
 
 
-    FinishedBranch = collections.namedtuple('Branch', 'accept, state, output')
+    FinishedBranch = namedtuple('Branch', 'accept, state, output')
     r"""
     A :func:`named tuple <collections.namedtuple>` representing the
     attributes of a branch, once
@@ -14311,7 +14311,7 @@ class FSMProcessIterator(SageObject,
         self._finished_ = []  # contains (accept, state, output)
 
 
-    _branch_ = collections.namedtuple('Branch', 'tape_cache, outputs')
+    _branch_ = namedtuple('Branch', 'tape_cache, outputs')
     r"""
     A :func:`named tuple <collections.namedtuple>` representing the
     attributes of a branch at a particular state during processing.

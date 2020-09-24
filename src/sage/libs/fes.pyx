@@ -83,7 +83,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
 from sage.rings.polynomial.multi_polynomial cimport MPolynomial
 from sage.rings.polynomial.term_order import TermOrder
-from sage.rings.polynomial.pbori import BooleanPolynomial, BooleanPolynomialRing
+from sage.rings.polynomial.pbori.pbori import BooleanPolynomial, BooleanPolynomialRing
 from sage.arith.all import binomial
 from sage.combinat.subset import Subsets
 

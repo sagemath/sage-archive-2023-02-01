@@ -481,7 +481,20 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{2321}{\ensuremath{\int}} % bottom half integral
     \DeclareUnicodeCharacter{23AE}{\ensuremath{\|}} % integral extenison
 
-    \DeclareUnicodeCharacter{2571}{/}   % Box drawings light diagonal upper right to lower left
+    % Box drawings light
+    \DeclareUnicodeCharacter{2500}{-}  % h
+    \DeclareUnicodeCharacter{2502}{|}  % v
+    \DeclareUnicodeCharacter{250C}{+}  % dr
+    \DeclareUnicodeCharacter{2510}{+}  % dl
+    \DeclareUnicodeCharacter{2514}{+}  % ur
+    \DeclareUnicodeCharacter{2518}{+}  % ul
+    \DeclareUnicodeCharacter{251C}{+}  % vr
+    \DeclareUnicodeCharacter{2524}{+}  % vl
+    \DeclareUnicodeCharacter{252C}{+}  % dh
+    \DeclareUnicodeCharacter{2534}{+}  % uh
+    \DeclareUnicodeCharacter{253C}{+}  % vh
+    \DeclareUnicodeCharacter{2571}{/}  % upper right to lower left
+    \DeclareUnicodeCharacter{2571}{\setminus} % upper left to lower right
 
     \DeclareUnicodeCharacter{25CF}{\ensuremath{\bullet}}  % medium black circle
     \DeclareUnicodeCharacter{26AC}{\ensuremath{\circ}}  % medium small white circle

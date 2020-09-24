@@ -758,7 +758,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         filt = self._filt[1:]
         for d, V in filt:
             generators.update(V.echelonized_basis())
-        generators = tuple(generators)
+        generators = tuple(sorted(generators))
 
         filtration = dict()
         for d, V in filt:

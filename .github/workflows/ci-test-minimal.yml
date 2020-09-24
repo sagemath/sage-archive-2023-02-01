@@ -1,4 +1,4 @@
-name: Build & Test WSL
+name: Build & Test
 
 on: [push, pull_request]
 
@@ -43,6 +43,51 @@ jobs:
         WSLENV: EXTRA_CONFIGURE_ARGS:MAKE
     - name: Test
       run: wsl tox -e local -- SAGE_NUM_THREADS=4 ptest
+    - name: Prepare logs artifact
+      run: mkdir -p "artifacts/logs"; cp -r .tox/*/log "artifacts/logs"
+      shell: bash
+      if: always()
+    - uses: actions/upload-artifact@v1
+      with:
+        path: artifacts
+        name: logs
+      if: always()
+    - name: Print out logs for immediate inspection
+      # and markup the output with GitHub Actions logging commands
+      run: .github/workflows/scan-logs.sh "artifacts/logs"
+      shell: bash
+      if: always()
+  linux:
+    runs-on: linux-latest
+    name: Linux (Ubuntu)
+    # Following https://trac.sagemath.org/ticket/25206#comment:63
+    steps:
+    - name: Configure git
+      run: git config --global core.symlinks true
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        Function ExtractPackages
+        {
+           param($path)
+           @(Get-Content $path | Where-Object { !$_.StartsWith("#") })
+        }
+        $packages = Get-ChildItem build/pkgs -recurse -Include debian.txt, debian-bootstrap.txt | foreach-object { ExtractPackages $_.FullName } | sort -Unique
+        # Add tox which is use to build
+        $packages += 'tox'
+        echo "Install the following packages:" @packages
+        # Add deadsnakes so that libpython3.7-dev is found
+        & sudo add-apt-repository ppa:deadsnakes/ppa
+        # Install
+        & sudo apt-get update -y 
+        & sudo apt-get install -y @packages
+      shell: pwsh
+    - name: Build
+      run: tox -e local -- SAGE_NUM_THREADS=4 build
+      env:
+        MAKE: "make -j4"
+    - name: Test
+      run: tox -e local -- SAGE_NUM_THREADS=4 ptest
     - name: Prepare logs artifact
       run: mkdir -p "artifacts/logs"; cp -r .tox/*/log "artifacts/logs"
       shell: bash

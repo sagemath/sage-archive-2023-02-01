@@ -2093,7 +2093,7 @@ def graph_with_classical_parameters(int d, int b, alpha_in, beta_in, int gamma):
         Half 4 Cube: Graph on 8 vertices
         sage: graph_with_classical_parameters(3, 2, 0, 2, 9)
         Symplectic Dual Polar Graph DSp(6, 2): Graph on 135 vertices
-        sage: graph_with_classical_parameters(3, 2, 2, 14, 7)
+        sage: graph_with_classical_parameters(3, 2, 2, 14, 7)  # long time
         Grassmann graph J_2(6, 3): Graph on 1395 vertices
         sage: graph_with_classical_parameters(3, -2, -2, 6, 6)
         Generalised hexagon of order (2, 8): Graph on 819 vertices

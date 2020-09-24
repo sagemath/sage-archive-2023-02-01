@@ -1,7 +1,7 @@
 SAGE_SPKG_CONFIGURE([python3], [
    AC_ARG_WITH([python],
                [AS_HELP_STRING([--with-python=PYTHON3],
-                               [Python 3 executable to use for Sage venv; default: python3])])
+                               [Python 3 executable to use for the Sage venv; default: python3])])
    AS_IF([test x"$with_python" = x2], [AC_MSG_ERROR([Sage cannot be built on Python 2. Exiting.])])
    AS_IF([test x"$with_python" = x3], [
        AC_MSG_NOTICE([The meaning of the option --with-python has changed in Sage 9.2. Ignoring.])

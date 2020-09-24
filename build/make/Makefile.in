@@ -17,16 +17,13 @@
 # Always use bash for make rules
 SHELL = @SHELL@
 
-ifndef SAGE_SPKG_INST
-ifndef DEBUG_RULES
+ifndef SAGE_PKGCONFIG
 $(error This Makefile needs to be invoked by build/make/install)
-else
-# A dummy value for this variable for debugging purposes
-SAGE_SPKG_INST=installed
-endif
 endif
 
 # Directory to keep track of which packages are installed
+SAGE_SPKG_INST = $(SAGE_LOCAL)/var/lib/sage/installed
+
 INST = $(SAGE_SPKG_INST)
 
 # Aliases for mutually exclusive standard packages selected at configure time
